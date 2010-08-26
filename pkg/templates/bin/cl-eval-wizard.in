@@ -1,0 +1,407 @@
+#!/usr/bin/env bash
+################################################################################
+#
+#   Copyright (C) 2002-2009 by OpenClovis Inc. All Rights  Reserved.
+# 
+# The source code for  this program is not published  or otherwise 
+# divested of  its trade secrets, irrespective  of  what  has been 
+# deposited with the U.S. Copyright office.
+# 
+# This program is  free software; you can redistribute it and / or
+# modify  it under  the  terms  of  the GNU General Public License
+# version 2 as published by the Free Software Foundation.
+# 
+# This program is distributed in the  hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# General Public License for more details.
+# 
+# You  should  have  received  a  copy of  the  GNU General Public
+# License along  with  this program. If  not,  write  to  the 
+# Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+################################################################################
+#
+# Build: 4.2.0
+#
+#
+##############################################################################
+#
+# cl-eval-wizard
+#
+# Usage:
+#   cl-eval-wizard [options]
+#
+# Guides the user through the steps of building and running the eval kit.
+#
+# Outline of script:
+#
+# Step 1: Initializing and command line parsing
+# Step 2: Print welcome text
+# Step 3: Figure out if we need a new project area, and create it if we do
+#
+##############################################################################
+
+# These variables is hard-coded into the script at install time.
+
+CL_SDK=@CL_SDK@
+CL_SDKDIR=@CL_SDKDIR@
+CL_BUILDTOOLS=`dirname $CL_SDKDIR`/buildtools
+
+##############################################################################
+#
+# Step 1: Initializing and command line parsing
+#
+##############################################################################
+
+# Trapping some critical signals, so that the script stops promptly and
+# with proper error message.
+trap 'echo ***Error***: abnormal exit, eval wizard aborted; exit 1' 1 2 3 15
+
+script=`which $0`
+
+usage () {
+	echo "$(basename $0) - OpenClovis SDK Evaluation Project Wizard"
+	echo ""
+	echo "Guides you through the steps of building the OpenClovis Evaluation Run-Time"
+	echo "system"
+	echo ""
+	echo "Usage:"
+	echo "    $(basename $0) [<options>] <project-area-path>"
+	echo ""
+	echo "Where <options> are:"
+	echo "    -h            - print this help text"
+	echo "    -v            - be more verbose"
+	echo ""
+}
+
+# Print a feedback if verbosity level is high enough
+# Args: 1: The desired verbosity level
+#       2: The actual message
+feedback () {
+	if [ $verbosity -ge ${1} ]; then
+		echo "${2}"
+	fi
+}
+
+# Create a new project area
+# Args: 1: dir
+create-project-area() {
+
+	projectarea=$1
+
+	if [ ! -f $CL_SDKDIR/bin/cl-create-project-area ]; then
+		echo "[ERROR] We could not find 'cl-create-project-area' in your installation."
+		echo "        This may be a sign of an incomplete installation.  Please"
+		echo "        reinstall OpenClovis SDK."
+		exit 1
+	fi
+	
+	which cl-create-project-area > /dev/null
+	if [ $? -ne 0 ]; then
+		cmd="$CL_SDKDIR/bin/cl-create-project-area -e $projectarea"
+	else
+		cmd="cl-create-project-area -e $projectarea"
+	fi
+	
+	echo "------------------------------------------------"
+	echo "Command we execute:"
+	echo "    $cmd"
+	echo "------------------------------------------------"
+	
+	$cmd > /dev/null
+	
+	if [ $? -eq 0 ]; then
+		echo "Done."
+	else
+		echo "[ERROR] cl-create-project-area failed, aborting" >&2
+		exit 1
+	fi
+}
+
+
+# Initialization
+
+verbosity=0             		# verbosity level
+
+# default settings:
+
+projectarea=$HOME/clovis/projects	# def. project area
+
+
+# Command line parsing
+
+while getopts :hv options; do
+	case $options in
+		h)
+			usage
+            exit 0
+			;;
+        v)
+            verbosity=$(( $verbosity + 1 ))
+            ;;
+		?)
+			echo "***Error***: Invalid argument, type $(basename $0) -h for help"; exit 1
+			;;
+	esac
+done
+shift $(( $OPTIND - 1 ))
+
+# Some sanity checks:
+
+##############################################################################
+#
+# Step 2: Print welcome text
+#
+##############################################################################
+
+EVAL_DOC=$(ls $CL_SDKDIR/doc | egrep -i eval)
+
+cat << EOF
+
+         Welcome to the OpenClovis Evaluation System Wizard
+
+This wizard will guide you through the steps of building an OpenClovis
+run-time ASP system.  It will build the system for a single-node
+configuration running on your local host.  The documentation of the
+Evaluation System, found on your system in/as
+    $CL_SDKDIR/$EVAL_DOC
+provides further information on the scope and capabilities of the evaluation
+applications, as well as on the various choices you have in terms of target
+system.
+
+You can always exit this process pressing Ctrl-C.
+
+EOF
+
+#echo -n "Press any key to continue ... "
+#read dummy
+
+##############################################################################
+#
+# Step 2a: Ask all questions up front so user can leave the system
+#
+##############################################################################
+
+
+SNMP_TRAP_IP=
+DEFAULT_TRAP_IP=127.0.0.1
+
+echo
+echo "Please enter the SNMP trap IP address (if you are not sure what"
+echo -n "to specify, accept the default value) [$DEFAULT_TRAP_IP]: "
+
+read newtrapip dummy
+
+if [ -z $newtrapip ]; then
+	SNMP_TRAP_IP=$DEFAULT_TRAP_IP
+else
+	SNMP_TRAP_IP=$newtrapip
+fi
+
+
+##############################################################################
+#
+# Step 3: Figure out if we need a new project area, and create it if we do
+#
+##############################################################################
+
+printf "\n\n\n\n"
+printf "First, a project area for building the eval binaries needs to be created.\n\n"
+
+# check if the user has already created a project area and if it has the
+# eval kit in it
+if [ -f $HOME/.clovis/$CL_SDK/project-area.rc ]; then
+	source $HOME/.clovis/$CL_SDK/project-area.rc
+	feedback 1 "Found last/current project area reference in"
+	feedback 1 "$HOME/.clovis/$CL_SDK/project-area.rc: $CL_PROJECT_AREA"
+fi
+
+if [ -z "$CL_PROJECT_AREA" -o ! -d "$CL_PROJECT_AREA" ]; then
+	echo "It seems you have not created a project area yet, so we will create one"
+	echo "for you.  "
+	echo "Please specify a working directory [default: $projectarea]: "
+	read dir dummy
+	
+	if [ -n "$dir" ]; then
+		projectarea=$dir
+	fi
+	
+	create-project-area $projectarea
+else
+	projectarea=$CL_PROJECT_AREA
+	
+	echo "Found an existing project area.  We check if it has the evaluation"
+	echo -n "sample model in it ... "
+	
+	if [ -d "$projectarea/ASP/models/eval" ]; then
+		echo "yes"
+		echo "Your existing project area $projectarea"
+		echo "includes the evaluation sample system."
+		echo ""
+		echo "Re-use existing project area [$projectarea] <y|n> [y]: "
+		read choice dummy
+		case $choice in
+			y|Y)
+				;;
+			n|N)
+				echo -n "Please specify a new directory: "
+				read dir dummy
+				
+				if [ -z "$dir" ]; then
+					echo "[ERROR] You must specify a valid directory name" >&2
+					exit 1
+				fi
+				
+				create-project-area $dir
+				;;
+			*)
+				echo "Invalid option, assuming yes"
+				;;
+		esac
+
+	else
+		echo "no"
+		echo "Your existing project area $projectarea"
+		echo "does not include the evaluation sample system.  We need to"
+		echo "create a new project area with the sample system in it."
+		echo ""
+		echo -n "Please specify a new directory: "
+		read dir dummy
+		
+		if [ -z "$dir" ]; then
+			echo "[ERROR] You must specify a valid directory name" >&2
+			exit 1
+		fi
+		
+		create-project-area $dir
+	fi	
+fi	
+	
+##############################################################################
+#
+# Step 4: modify target.conf with SNMP trap IP
+#
+##############################################################################
+
+# modifying target.conf
+
+sed -e "s/^TRAP_IP=.*$/TRAP_IP=$SNMP_TRAP_IP/g" \
+	$projectarea/ASP/models/eval/target.conf > \
+	$projectarea/ASP/models/eval/target.conf.new
+if ! chmod u+w ${projectarea}/ASP/models/eval/target.conf >& /dev/null
+then
+    mv $projectarea/ASP/models/eval/target.conf \
+        $projectarea/ASP/models/eval/target.conf.orig
+fi
+
+mv $projectarea/ASP/models/eval/target.conf.new \
+   $projectarea/ASP/models/eval/target.conf
+
+##############################################################################
+#
+# Step 5: Run through the process of building a local single-node unmanaged
+#         eval kit
+#
+##############################################################################
+
+cd $projectarea/ASP
+
+# Configure evaluation kit
+echo
+echo "Configuring ASP ..."
+
+configure_cmd="./configure --with-model-name=eval"
+if [ $verbosity -ge 1 ]; then
+	echo "configure command: $configure_cmd"
+fi
+$configure_cmd
+echo "Done"
+
+# Build evaluation kit
+echo
+echo "Building ASP ..."
+
+build_cmd="make"
+if [ $verbosity -ge 1 ]; then
+	echo "build command: $build_cmd"
+fi
+$build_cmd
+echo "Done"
+
+# Create evaluation kit runtime images
+echo
+echo "Creating target image ..."
+
+image_cmd="make images"
+if [ $verbosity -ge 1 ]; then
+	echo "target creation command: $image_cmd"
+fi
+$image_cmd
+echo "Done"
+
+cd - >/dev/null 2>&1
+
+##############################################################################
+#
+# Step 6: If the user wants, move the runtime image to /root/asp for
+#         running the evalulation kit.
+#
+##############################################################################
+
+echo
+echo
+echo "The Evaluation System is now built and is ready to be deployed."
+echo "If you would like, we can copy the runtime image to /root/asp"
+echo "for you to proceed with the evaluation, or you could deploy it"
+echo "there manually."
+echo "Proceed with deploying evaluation system runtime image to local"
+echo -n "root account (any existing image will be replaced)? <y/n> [y]: "
+
+read deployimage dummy
+
+if [ -z $deployimage ]; then
+	deployimage='y'
+fi
+
+case $deployimage in
+	Y|y)
+		;;
+	N|n)
+		echo
+		echo "Skipping automatic deployment.  To proceed, please untar"
+		echo "$projectarea/target/eval/images/SCNodeI0.tgz"
+		echo "into the directory /root/asp and proceed with the evaluation"
+		echo "as detailed in the Evaluation System User Guide."
+		
+		exit 0
+		;;
+	*)
+		echo "Invalid option, assuming yes"
+		;;
+esac
+		
+echo
+echo "Deploying runtime image to /root/asp ..."
+echo 
+#echo "You will be prompted for your root password in order to complete"
+echo "deploying the runtime image to /root/asp"
+#echo
+
+echo "(cd /root; rm -rf asp; mkdir asp; cd asp; tar xvfz \$1)" > $CL_SDKDIR/bin/stage.sh
+sudo -s $CL_SDKDIR/bin/stage.sh $projectarea/target/eval/images/SCNodeI0.tgz
+
+# The 2 lines above do the same as these, but work on distributions that do not allow root to ssh
+#cd $projectarea/target/eval/images
+#
+#rsync_cmd="rsync -e ssh --delete -av SCNodeI0/ root@localhost:asp"
+#if [ $verbosity -ge 1 ]; then
+#	echo "rsync command: $rsync_cmd"
+#fi
+#$rsync_cmd
+
+echo "Done"
+
+echo
+echo "The runtime image has been deployed to /root/asp.  Please proceed with"
+echo "the evaluation as detailed in the Evaluation System User Guide."
+

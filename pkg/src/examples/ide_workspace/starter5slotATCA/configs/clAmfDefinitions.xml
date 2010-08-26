@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<amfDefinitions:amfTypes xmlns:amfDefinitions="amfDefinitions.ecore" version="B.01.01">
+  <nodeTypes>
+    <nodeType name="ctrl">
+      <id>0</id>
+      <classType>CL_AMS_NODE_CLASS_B</classType>
+      <subClassType> </subClassType>
+      <isSwappable>CL_TRUE</isSwappable>
+      <isRestartable>CL_TRUE</isRestartable>
+      <isASPAware>CL_TRUE</isASPAware>
+      <suFailoverDuration>10000</suFailoverDuration>
+      <suFailoverCountMax>10</suFailoverCountMax>
+      <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+    </nodeType>
+    <nodeType name="work">
+      <id>0</id>
+      <classType>CL_AMS_NODE_CLASS_C</classType>
+      <subClassType> </subClassType>
+      <isSwappable>CL_TRUE</isSwappable>
+      <isRestartable>CL_TRUE</isRestartable>
+      <isASPAware>CL_TRUE</isASPAware>
+      <suFailoverDuration>10000</suFailoverDuration>
+      <suFailoverCountMax>10</suFailoverCountMax>
+      <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+    </nodeType>
+  </nodeTypes>
+  <sgTypes>
+    <sgType name="App2plus1SG">
+      <failbackOption>CL_FALSE</failbackOption>
+      <restartDuration>10000</restartDuration>
+      <numPrefActiveSUs>2</numPrefActiveSUs>
+      <numPrefStandbySUs>1</numPrefStandbySUs>
+      <numPrefInserviceSUs>3</numPrefInserviceSUs>
+      <numPrefAssignedSUs>3</numPrefAssignedSUs>
+      <numPrefActiveSUsPerSI>1</numPrefActiveSUsPerSI>
+      <maxActiveSIsPerSU>1</maxActiveSIsPerSU>
+      <maxStandbySIsPerSU>1</maxStandbySIsPerSU>
+      <compRestartDuration>10000</compRestartDuration>
+      <compRestartCountMax>1</compRestartCountMax>
+      <suRestartDuration>10000</suRestartDuration>
+      <suRestartCountMax>1</suRestartCountMax>
+      <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+      <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N</redundancyModel>
+      <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
+      <autoRepair>CL_FALSE</autoRepair>
+      <isCollocationAllowed>CL_TRUE</isCollocationAllowed>
+    </sgType>
+    <sgType name="App1plus1SG">
+      <failbackOption>CL_FALSE</failbackOption>
+      <restartDuration>10000</restartDuration>
+      <numPrefActiveSUs>1</numPrefActiveSUs>
+      <numPrefStandbySUs>1</numPrefStandbySUs>
+      <numPrefInserviceSUs>2</numPrefInserviceSUs>
+      <numPrefAssignedSUs>2</numPrefAssignedSUs>
+      <numPrefActiveSUsPerSI>1</numPrefActiveSUsPerSI>
+      <maxActiveSIsPerSU>1</maxActiveSIsPerSU>
+      <maxStandbySIsPerSU>1</maxStandbySIsPerSU>
+      <compRestartDuration>10000</compRestartDuration>
+      <compRestartCountMax>1</compRestartCountMax>
+      <suRestartDuration>10000</suRestartDuration>
+      <suRestartCountMax>1</suRestartCountMax>
+      <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+      <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_TWO_N</redundancyModel>
+      <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
+      <autoRepair>CL_FALSE</autoRepair>
+      <isCollocationAllowed>CL_TRUE</isCollocationAllowed>
+    </sgType>
+  </sgTypes>
+  <suTypes>
+    <suType name="App2plus1SU">
+      <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+      <isPreinstantiable>CL_TRUE</isPreinstantiable>
+      <isRestartable>CL_TRUE</isRestartable>
+      <isContainerSU>CL_TRUE</isContainerSU>
+      <numComponents>1</numComponents>
+    </suType>
+    <suType name="App1plus1SU">
+      <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+      <isPreinstantiable>CL_TRUE</isPreinstantiable>
+      <isRestartable>CL_TRUE</isRestartable>
+      <isContainerSU>CL_TRUE</isContainerSU>
+      <numComponents>1</numComponents>
+    </suType>
+  </suTypes>
+  <siTypes>
+    <siType name="App2plus1SI">
+      <rank>0</rank>
+      <numCSIs>1</numCSIs>
+      <numStandbyAssignments>1</numStandbyAssignments>
+      <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+    </siType>
+    <siType name="App1plus1SI">
+      <rank>0</rank>
+      <numCSIs>1</numCSIs>
+      <numStandbyAssignments>1</numStandbyAssignments>
+      <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+    </siType>
+  </siTypes>
+  <compTypes>
+    <compType name="App2plus1">
+      <csiTypes>
+        <csiType name="App2plus1CSIa"/>
+        <csiType name="App2plus1CS1b"/>
+      </csiTypes>
+      <proxyCSIType></proxyCSIType>
+      <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
+      <property>CL_AMS_SA_AWARE</property>
+      <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+      <instantiateCommand>App2plus1</instantiateCommand>
+      <args/>
+      <envs/>
+      <terminateCommand></terminateCommand>
+      <cleanupCommand></cleanupCommand>
+      <isRestartable>CL_TRUE</isRestartable>
+      <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
+      <instantiateLevel>0</instantiateLevel>
+      <instantiateDelay>10000</instantiateDelay>
+      <numMaxInstantiate>1</numMaxInstantiate>
+      <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
+      <numMaxTerminate>1</numMaxTerminate>
+      <numMaxAmStart>1</numMaxAmStart>
+      <numMaxAmStop>1</numMaxAmStop>
+      <numMaxActiveCSIs>1</numMaxActiveCSIs>
+      <numMaxStandbyCSIs>1</numMaxStandbyCSIs>
+      <recoveryOnTimeout>CL_AMS_RECOVERY_NO_RECOMMENDATION</recoveryOnTimeout>
+      <amStartCommand></amStartCommand>
+      <amStopCommand></amStopCommand>
+      <timeouts>
+        <instantiateTimeout>10000</instantiateTimeout>
+        <terminateTimeout>10000</terminateTimeout>
+        <cleanupTimeout>10000</cleanupTimeout>
+        <amStartTimeout>10000</amStartTimeout>
+        <amStopTimeout>10000</amStopTimeout>
+        <quiescingCompleteTimeout>10000</quiescingCompleteTimeout>
+        <csiSetTimeout>10000</csiSetTimeout>
+        <csiRemoveTimeout>10000</csiRemoveTimeout>
+        <proxiedCompInstantiateTimeout>10000</proxiedCompInstantiateTimeout>
+        <proxiedCompCleanupTimeout>10000</proxiedCompCleanupTimeout>
+      </timeouts>
+    </compType>
+    <compType name="App1plus1">
+      <csiTypes>
+        <csiType name="App1plus1CSI"/>
+      </csiTypes>
+      <proxyCSIType></proxyCSIType>
+      <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
+      <property>CL_AMS_SA_AWARE</property>
+      <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+      <instantiateCommand>App1plus1</instantiateCommand>
+      <args/>
+      <envs/>
+      <terminateCommand></terminateCommand>
+      <cleanupCommand></cleanupCommand>
+      <isRestartable>CL_TRUE</isRestartable>
+      <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
+      <instantiateLevel>0</instantiateLevel>
+      <instantiateDelay>10000</instantiateDelay>
+      <numMaxInstantiate>1</numMaxInstantiate>
+      <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
+      <numMaxTerminate>1</numMaxTerminate>
+      <numMaxAmStart>1</numMaxAmStart>
+      <numMaxAmStop>1</numMaxAmStop>
+      <numMaxActiveCSIs>1</numMaxActiveCSIs>
+      <numMaxStandbyCSIs>1</numMaxStandbyCSIs>
+      <recoveryOnTimeout>CL_AMS_RECOVERY_NO_RECOMMENDATION</recoveryOnTimeout>
+      <amStartCommand></amStartCommand>
+      <amStopCommand></amStopCommand>
+      <timeouts>
+        <instantiateTimeout>10000</instantiateTimeout>
+        <terminateTimeout>10000</terminateTimeout>
+        <cleanupTimeout>10000</cleanupTimeout>
+        <amStartTimeout>10000</amStartTimeout>
+        <amStopTimeout>10000</amStopTimeout>
+        <quiescingCompleteTimeout>10000</quiescingCompleteTimeout>
+        <csiSetTimeout>10000</csiSetTimeout>
+        <csiRemoveTimeout>10000</csiRemoveTimeout>
+        <proxiedCompInstantiateTimeout>10000</proxiedCompInstantiateTimeout>
+        <proxiedCompCleanupTimeout>10000</proxiedCompCleanupTimeout>
+      </timeouts>
+    </compType>
+  </compTypes>
+  <csiTypes>
+    <csiType name="App2plus1CSIa">
+      <rank>0</rank>
+      <nameValueLists>
+        <nameValue name="VirtualIpAddress" value="192.168.3.201"/>
+        <nameValue name="VirtualNetMask" value="255.255.255.0"/>
+        <nameValue name="VirtualDevice" value="eth0:1"/>
+      </nameValueLists>
+    </csiType>
+    <csiType name="App1plus1CSI">
+      <rank>0</rank>
+      <nameValueLists>
+        <nameValue name="VirtualIpAddress" value="192.168.3.200"/>
+        <nameValue name="VirtualNetMask" value="255.255.255.0"/>
+        <nameValue name="VirtualDevice" value="eth0:0"/>
+      </nameValueLists>
+    </csiType>
+    <csiType name="App2plus1CS1b">
+      <rank>0</rank>
+      <nameValueLists>
+        <nameValue name="VirtualIpAddress" value="192.168.3.202"/>
+        <nameValue name="VirtualNetMask" value="255.255.255.0"/>
+        <nameValue name="VirtualDevice" value="eth0:1"/>
+      </nameValueLists>
+    </csiType>
+  </csiTypes>
+</amfDefinitions:amfTypes>

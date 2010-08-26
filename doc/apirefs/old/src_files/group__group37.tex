@@ -1,0 +1,104 @@
+\hypertarget{group__group37}{
+\chapter{Functional Overview}
+\label{group__group37}
+}
+
+\begin{flushleft}
+The OpenClovis CheckSum library provides a set of APIs for computing the CheckSum on the input byte stream. The computation can be done for a 16-bit or a 
+32-bit number, depending on the need of the application.
+\section{Interaction with other components} This component is used by all the components of ASP, as well as the application that needs the CheckSum of
+some data.
+
+\chapter{Service Model}
+TBD
+
+
+\chapter{Service APIs}
+
+
+
+
+
+\subsection{clCksm16bitCompute}
+\index{clCksm16bitCompute@{clCksm16bitCompute}}
+ \hypertarget{pagecksm101}{}\paragraph{cl\-Cksm16bit\-Compute}\label{pagecksm101}
+\begin{Desc}
+\item[Synopsis:]Computes a 16-bit CheckSum.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCksmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCksm16bitCompute(
+              				CL_IN  ClUint8T *pData,
+              				CL_IN  ClUint32T length,
+              				CL_OUT ClUint16T *pCheckSum);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Data:}](in) Data for which CheckSum is being computed. This must be a valid pointer and cannot be NULL.
+\item[{\em length:}](in) Length of the data for which the CheckSum is to be computed.
+\item[{\em p\-Check\-Sum:}](out) Location where the computed CheckSum is stored. This must be a valid pointer and cannot be NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pData}} or {\tt{pCheckSum}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to compute a 16-bit Check\-Sum.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecksm102}{cl\-Cksm32bit\-Compute} \end{Desc}
+\newpage
+
+\subsection{clCksm32bitCompute}
+\index{clCksm32bitCompute@{clCksm32bitCompute}}
+\hypertarget{pagecksm102}{}\paragraph{cl\-Cksm32bit\-Compute}\label{pagecksm102}
+\begin{Desc}
+\item[Synopsis:]Computes a 32-bit Check\-Sum.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCksmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCksm32bitCompute(
+           				CL_IN  ClUint8T *pData,
+           				CL_IN  ClUint32T length,
+           				CL_OUT ClUint32T *pCheckSum)
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Data:}](in) Data for which Check\-Sum is being computed. This must be a valid pointer and cannot be NULL.
+\item[{\em length:}](in) Length of the data for which the checksum is to be computed.
+\item[{\em p\-Check\-Sum:}](out) Location where the computed CheckSum is stored. This must be a valid pointer and cannot be NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pData}} or {\tt{pCheckSum}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to compute a 32-bit Check\-Sum.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecksm101}{cl\-Cksm16bit\-Compute} \end{Desc}
+
+
+\chapter{Service Management Information Model}
+TBD
+\chapter{Service Notifications}
+TBD
+\chapter{Debug CLIs}
+TBD
+\end{flushleft}

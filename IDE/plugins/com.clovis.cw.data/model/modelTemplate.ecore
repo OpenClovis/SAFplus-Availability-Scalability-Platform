@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="modelTemplate"
+    nsURI="modelTemplate.ecore" nsPrefix="modelTemplate">
+  <eClassifiers xsi:type="ecore:EClass" name="template">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="Template">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="modelType" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="includeChildHierarchy"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        transient="true" defaultValueLiteral="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Include Child Hierarchy"/>
+        <details key="isHiddenForKeyValueTreeView" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="includeRelatedEntities"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        transient="true" defaultValueLiteral="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Include Related Entities"/>
+        <details key="isHiddenForKeyValueTreeView" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="entities" lowerBound="1"
+        eType="#//Entities" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="isHiddenForKeyValueTreeView" value="false"/>
+        <details key="label" value="Template Entities"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="releaseVersion" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral="Template">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="updateVersion" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral="Template">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Entities">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="resourceInformation" eType="ecore:EClass resource.ecore#//resourceInformation"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Resources"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="alarmInformation" eType="ecore:EClass alarm.ecore#//alarmInformation"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Alarms"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="componentInformation" eType="ecore:EClass component.ecore#//componentInformation"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Components"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="resourceAlarmMapInformation"
+        eType="ecore:EClass modelMapping.ecore#//mapInformation" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Resource Alarm Mapping"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="componentResourceMapInformation"
+        eType="ecore:EClass modelMapping.ecore#//mapInformation" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Component Resource Mapping"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="alarmRuleInformation" eType="ecore:EClass alarmRule.ecore#//alarmRuleInformation"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Resource Alarm Rules"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+</ecore:EPackage>

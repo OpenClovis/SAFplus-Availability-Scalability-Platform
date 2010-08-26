@@ -1,0 +1,1567 @@
+\hypertarget{group__group20}{
+\chapter{Functional Overview}
+\label{group__group20}
+}
+
+\begin{flushleft}
+The OpenClovis Event Service is a communication mechanism based on the concept of event channels. It is a publish and/or subscribe mechanism where a 
+publisher can communicate with one or more subscribers asynchronously by publishing events over an event channel. The publishers and subscribers can be 
+any component residing anywhere in the cluster.
+\par
+An Event has a standard header and zero or more bytes of publisher event data. Publishers and Subscribers can communicate over multiple event 
+channels. Multiple publishers and multiple subscribers can communicate over a single event channel. Subscribers are anonymous, which means that they can 
+join and leave an event channel at any time without involving the publisher(s). An Event publisher can also be an Event subscriber. 
+\par
+The Event Service function does not impose a specific layout or format for the published event data. Publishers and subscribers on an event channel must 
+agree on the structure of the data for events published on that event channel. They can use data marshalling, if support for heterogeneity is required. 
+Conventions on the structure of the event data can vary from one event channel to another. 
+
+\chapter{Service Model}
+\section{Usage Model}
+A component can subscribe to receive events on an event channel using the {\tt{clEventSubscribe()}} function. The Event 
+Service delivers events to a subscribing component using the {\tt{clEvtEventDeliverCallback()}} function of that component. To stop receiving 
+events for which it has registered, a subscriber can invoke the {\tt{clEventUnsubscribe()}} function. If a component terminates abnormally, the Event 
+Service closes all of its open event channels. 
+
+\section{Functional Description}
+\subsection{Events}
+An event consists of a standard set of event attributes (event header) and zero or more bytes of event data. An event header is allocated using the 
+{\tt{clEventAllocate()}} function and is released using the {\tt{clEventFree()}} function. The {\tt{clEventAllocate()}} function returns a handle that can be used in 
+subsequent invocations of the Event Service functions. The event attributes are written and read using {\tt{SET}} and {\tt{GET}} functions of the Event 
+Service function. These attributes cannot be read and written directly. An event is published using the {\tt{clEventPublish()}} function. The parameters
+to be specified for this function are event handle, additional information (optional), and event data contained in a data buffer. Thus, a published 
+event consists of the event header that contains the set of attributes and additional information (optional) contained in the data buffer. 
+
+\subsection{Event Channels}
+An event channel enables multiple publishers to communicate with multiple subscribers. It is global to a cluster and is identified by a unique name. To
+use the Event Service, a component must open an event channel using the {\tt{clEventChannelOpen()}} or {\tt{clEventChannelOpenAsync()}} function. The 
+event channel is created, if it does not exist. A component can open an event channel to publish events and subscribe to receive events. 
+Publishers can also act as subscribers on the same event channel. Event channels can be deleted using the {\tt{clEventChannelUnlink()}} function. When an 
+event is allocated for an event channel using the {\tt{clEventAllocate()}} call, it can be published several times on the same event channel, by changing
+its attributes prior to each publication. 
+\par
+The OpenClovis Event Channel has the following features:
+\begin{itemize}
+\item
+Best effort delivery: The Event Service provides best effort delivery of events to an anonymous set of subscribers. A published event can be lost or
+it can be delivered to a subset of the subscribers. Some subscribers receive the event while others do not. For example, there is no guarantee that an
+event is delivered to all existing subscribers, if the publisher fails while publishing the event. A subscriber may lose events, if the subscriber node
+is overwhelmed with events.
+\item
+At most once delivery: The Event Service does not deliver the same event for a subscription of a subscriber multiple times.
+\item
+Event priority: Events are published with a certain priority. High priority events are delivered ahead of low priority events. 
+\item
+Event ordering: For a given priority, events are received by subscribers in the order in which the publisher published the events.
+\item
+Retention time: Events published with a non-zero retention period are retained for a specified duration. This duration can be provided while allocating 
+an Event. This provides the opportunity for new subscribers to obtain events that were published before their subscription to the event channel. Processes can
+use the Event Service functions to remove events before the retention time expires. 
+\item
+Payload structure: The Event Service function does not impose a specific layout or format for the published event data or payload. Publishers and subscribers on an
+event channel must agree on the structure of the data for events published on that event channel and can use data marshalling support for heterogeneity is
+required. Conventions on the structure of the event data can vary from one event channel to another. 
+\item
+Event Filtering: The standard set of event attributes include an array of event patterns. The values of these patterns are set by the event publisher and
+are used to organize events into various categories. All users (publishers and subscribers) of an event channel must share the same conventions regarding
+the number of patterns being used, their ordering, contents, and meaning. 
+For example, an event channel, used to notify changes made to a relational database, can define events where only three patterns are used as follows: 
+\begin{enumerate}
+\item
+The first pattern contains the name of the database being modified. 
+\item
+The second pattern contains the name of the table being modified. 
+\item
+The third pattern contains the primary key of the record being modified.
+\end{enumerate}
+The event data can be used to provide a description of the modified fields and the old/new values. Event patterns play an important role in the Event 
+Service, as they are the basis for filtering the events that must be delivered to a particular subscriber. When subscribing on an event channel, a 
+component must specify the filters that need to be applied on published events. Only events which satisfy the filters are delivered to 
+the component. 
+Using the previous example of the database notifications published on an event channel, a subscriber can provide a filter array indicating: 
+\begin{itemize}
+\item
+The name of a database required by the subscriber. 
+\item
+The name of a table required by the subscriber. 
+\item
+No filter for the primary key. If a filter is not specified, the component will receive all notification events related to the 
+specified table, in the specified database for any primary key. 
+\end{itemize}
+
+\end{itemize}
+
+
+\chapter{Service APIs}
+
+
+\section{Type Definitions}
+
+\subsection{ClEventInitHandleT}
+\index{ClEventInitHandleT@{ClEventInitHandleT}}
+\textit{typedef ClHandleT ClEventInitHandleT;}          
+\newline
+\newline
+The type of the handle provided by the Event Service to a component during the initialization of the Event Service library. It is used by the 
+component when it invokes the Event Service function, so that the component can be recognized by the Event Service.
+
+\subsection{ClEventChannelHandleT}
+\index{ClEventChannelHandleT@{ClEventChannelHandleT}}
+\textit{typedef ClHandleT ClEventChannelHandleT;}
+\newline
+\newline
+The type of the handle of an event channel. This is provided by the Event Service to a component that has opened a channel for publishing or receiving events. 
+The component has to use this handle for using the Event service functions such as {\tt{clEventSubscribe()}}, {\tt{clEventAllocate()}}, and so on as this
+handle enables the Event service associate subscriptions with an Event channel. 
+
+\subsection{ClEventHandleT}
+\index{ClEventHandleT@{ClEventHandleT}}
+\textit{typedef ClHandleT ClEventHandleT;}
+\newline
+\newline
+The type of the handle to an event provided by the Event Service, to a component that needs to publish an event or process a received event. This
+handle can be used by the component to use the Event functions such as {\tt{clEventDataGet()}}, {\tt{clEventPublish()}}, and so on.
+
+
+\subsection{ClEventCallbacksT}
+\index{clEventExtAttributesGet@{clEventExtAttributesGet}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClEventChannelOpenCallbackT clEvtChannelOpenCallback;}\\
+\>\>\>\>\textit{ClEventDeliverCallbackT clEvtEventDeliverCallback;}\\
+\textit{\} ClEventCallbacksT;}\end{tabbing}
+The type of the callback structure supplied by a component to the Event Service containing the callback functions that can be invoked by the Event Service. 
+\begin{itemize}
+ \item
+ \textit{clEvtChannelOpenCallback} - An asynchronous channel open callback. This is invoked when the {\tt{clEventChannelOpenAsync()}} call, by the 
+ component to  open a channel is completed.  
+\item
+\textit{clEvtEventDeliverCallback} - This callback is executed when an event required (subscribed) by a component, is delivered to
+the component. 
+\end{itemize}
+
+
+
+\subsection{ClEventChannelOpenFlagsT}
+\index{ClEventChannelOpenFlagsT@{ClEventChannelOpenFlagsT}}
+\textit{typedef ClUint8T ClEventChannelOpenFlagsT;}
+\newline
+\newline
+The type of the event Channel open flag. It is named as an open flag as it is used to open a channel ({\tt{clEventChannelOpen()}}). This flag is used
+to inform the Event service if the user is a subscriber, publisher or both. It also defines the scope for the channel. It specifies if the event channel is 
+local or global. The values of this flag are:
+\begin{itemize}
+\item
+\textit{CL\_\-EVENT\_\-LOCAL\_\-CHANNEL}
+\item
+\textit{CL\_\-EVENT\_\-GLOBAL\_\-CHANNEL}
+\item
+\textit{CL\_\-EVENT\_\-CHANNEL\_\-PUBLISHER}
+\item
+\textit{CL\_\-EVENT\_\-CHANNEL\_\-SUBSCRIBER}
+\item
+\textit{CL\_\-EVENT\_\-CHANNEL\_\-CREATE}
+\end{itemize}
+The value of this flag is set by performing a bitwise OR with one or more of the following:
+\begin{itemize}
+\item
+\textit{CL\_\-EVENT\_\-CHANNEL\_\-PUBLISHER} - To enable the component to use the event channel handle returned by the {\tt{clEventPublish()}} function. 
+\item
+\textit{CL\_\-EVENT\_\-CHANNEL\_\-SUBSCRIBER} - To enable the component to use the event channel handle returned by the {\tt{clEventSubscribe()}} function.
+\item
+\textit{CL\_\-EVENT\_\-CHANNEL\_\-CREATE} - To open and create an event channel that does not exist. 
+\item
+\textit{CL\_\-EVENT\_\-LOCAL\_\-CHANNEL} and \textit{CL\_\-EVENT\_\-GLOBAL\_\-CHANNEL} - Flags that specify the scope of the event channel. 
+{\tt{CL\_\-EVENT\_\-LOCAL\_\-CHANNEL}} and {\tt{CL\_\-EVENT\_\-GLOBAL\_\-CHANNEL}} cannot be ORed with each other as they cannot be used simultaneously.
+\end{itemize}
+
+
+\subsection{ClEventPatternArrayT}
+\index{ClEventPatternArrayT@{ClEventPatternArrayT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClSizeT allocatedNumber;}\\
+\>\>\>\>\textit{ClSizeT patternsNumber;}\\
+\>\>\>\>\textit{ClEventPatternT *pPatterns;}\\
+\textit{\} ClEventPatternArrayT;}\end{tabbing}
+The structure, {\tt{ClEventPatternArrayT}}, defines the type of an event pattern array. Its attributes are:
+\begin{itemize}
+\item
+\textit{allocatedNumber} - Number of entries allocated in the pattern buffer.
+\item
+\textit{patternsNumber} - Number of patterns in the event.
+\item
+\textit{pPatterns} - Pointer to a buffer where the array of pattern is copied.
+\end{itemize}
+
+
+\subsection{ClEventPriorityT}
+\index{ClEventPriorityT@{ClEventPriorityT}}
+\textit{typedef ClUint8T ClEventPriorityT;}
+\newline
+\newline
+Every event has a priority associated with it. This priority controls the sending and delivery of the order of events. The priority ranges from: 
+{\tt{CL\_\-EVENT\_\-LOWEST\_\-PRIORITY}} to {\tt{CL\_\-EVENT\_\-HIGHEST\_\-PRIORITY}}. 
+
+\subsection{ClEventIdT}
+\index{ClEventIdT@{ClEventIdT}}
+\textit{typedef ClUint64T ClEventIdT;}
+\newline
+\newline
+ The type of an event identifier. Values ranging from 0 to 1000 have special meanings
+ and cannot be used by the event service to identify regular events.
+
+    
+\subsection{ClEventSubscriptionIdT}
+\index{ClEventSubscriptionIdT@{ClEventSubscriptionIdT}}
+\textit{typedef ClUint32T ClEventSubscriptionIdT;}
+\newline
+\newline
+The type of an identifier for a subscription by a component on an event channel. This identifier is used to associate the delivery
+of events for that subscription with the component. Subscription IDs are unique for every subscription.
+
+
+\subsection{ClEventFilterArrayT}
+\index{ClEventFilterArrayT@{ClEventFilterArrayT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClSizeT filtersNumber;}\\
+\>\>\>\>\textit{ClEventFilterT *pFilters;}\\
+\textit{\} ClEventFilterArrayT;}\end{tabbing}
+The structure, {\tt{ClEventFilterArrayT}}, defines a set of filters. Filters are passed to the Event Service by a subscriber component through the 
+{\tt{clEvtEventSubscribe()}} call. The Event Service performs the filtering operation to decide if a published event is to be delivered to a subscriber 
+for a given subscription. The filtering is performed by matching the first filter (contents and type) against the first pattern in the event pattern 
+array, the second filter against the second pattern in the event pattern array, and so on till the last filter is reached. An event matches a given
+subscription, if the patterns of the event match all filters provided in the {\tt{clEvtEventSubscribe()}} function call. 
+\par 
+The attributes of the structure are:
+\begin{itemize}
+\item
+\textit{filtersNumber} - Number of filters.
+\item
+\textit{pFilters} - Pointer to filter pattern.
+\end{itemize} 
+
+
+
+\newpage
+
+\section{Library Life Cycle APIs}
+\subsection{clEventInitialize}
+\index{clEventInitialize@{clEventInitialize}}
+\hypertarget{pageem101}{}\paragraph{cl\-Event\-Initialize}\label{pageem101}
+\begin{Desc}
+\item[Synopsis:]Initializes the Event Service for the calling component and ensures version compatibility.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventInitialize(
+              						CL_OUT ClEventInitHandleT* pEvtHandle,
+					                CL_IN const ClEventCallbacksT* pEvtCallbacks,
+              						CL_INOUT ClVersionT* pVersion );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Evt\-Handle:}](out) Pointer to the handle that identifies this initialization of the Event Service. This parameter is returned by this 
+function.
+\item[{\em p\-Evt\-Callbacks:}](in) If {\tt{evtCallbacks}} is set to NULL, a callback is not registered. Otherwise, it acts as a pointer to the 
+{\tt{ClEventCallbacksT}} structure, that contains the callback functions of the component that the Event Service can use. Only callback functions that
+are not NULL, are registered in this structure.
+\item[{\em p\-Version:}](in/out) As an input parameter, {\tt{version}} is a pointer to the required Event Service version. {\tt{minorVersion}} is ignored
+and should be set to {\tt{0x00}}. As an output parameter, the version supported by Event Service is delivered.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The Event service initialization was successful.
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}] An unexpected problem occurred within the Event service.
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-ERR\_\-VERSION\_\-MISMATCH:}]The provided version is not supported by the current implementation of the Event Service.
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}] {\tt{pEvtHandle}} or {\tt{pVersion}} contains a NULL pointer.
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]There is no memory available for the Event service or a module of the Event service. Thus, the service
+cannot be provided and this can be a transient problem.
+\item[{\em CL\_\-ERR\_\-NO\_\-RESOURCE:}]There is no resource (other than memory) available for the Event service or a module of the Event service. Thus,
+the service cannot be provided and this can be a transient problem.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function is used to initialize the Event Service for the invoking component and registers the various callback functions. It must be invoked prior
+to the invocation of any other Event Service functionality. The handle, {\tt{pEvtHandle}}, is returned as a reference to this association between the 
+component and the Event Service. The component uses this handle in subsequent communication with the Event Service. 
+\par 
+If the implementation supports the required {\tt{releaseCode}}, and a majorVersion 
+is greater than or equal to the required {\tt{majorVersion}}, {\tt{CL\_\-AIS\_\-OK}} is returned. 
+\par
+If the implementation supports the required {\tt{releaseCode}} (a member of {\tt{pVersion}}), and its {\tt{majorVersion}} is greater than or equal to
+the required {\tt{majorVersion}}, 
+{\tt{CL\_\-OK}} is returned and {\tt{pVersion}} is set to:
+\begin{itemize}
+\item
+{\tt{releaseCode}} = Required {\tt{releaseCode}}.
+\item
+{\tt{majorVersion}} = Highest major version supported for required {\tt{releaseCode}}
+\item
+{\tt{minorVersion}} = Highest minor version supported for the returned {\tt{releaseCode}} and {\tt{majorVersion}}
+\end{itemize}
+If the mentioned condition is not satisfied, {\tt{CL\_\-ERR\_\-VERSION\_\-MISMATCH}} is returned and {\tt{pVersion}} is set to:
+\begin{itemize}
+\item
+{\tt{releaseCode}}: Required {\tt{releaseCode}}, if it is supported
+\item
+Lowest {\tt{releaseCode}} higher than required {\tt{releaseCode}}, if the required {\tt{releaseCode}} is lower than any supported {\tt{releaseCode}}
+\item
+Highest {\tt{releaseCode}} lower than required {\tt{releaseCode}}, if the required {\tt{releaseCode}} is higher than any supported {\tt{releaseCode}}
+\item
+{\tt{majorVersion}} = Highest major version supported for returned {\tt{releaseCode}}
+\item
+{\tt{minorVersion}} = Highest minor version supported for returned {\tt{releaseCode}} and {\tt{majorVersion}}
+\end{itemize}
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem117}{cl\-Event\-Selection\-Object\-Get}, \hyperlink{pageem118}{cl\-Event\-Dispatch}, 
+\hyperlink{pageem102}{cl\-Event\-Finalize} \end{Desc}
+\newpage
+
+
+\subsection{clEventSelectionObjectGet}
+\index{clEventSelectionObjectGet@{clEventSelectionObjectGet}}
+\hypertarget{pageem117}{}\paragraph{cl\-Event\-Selection\-Object\-Get}\label{pageem117}
+\begin{Desc}
+\item[Synopsis:] This function is used to retrieve the operating system handle, {\tt{selectionObject}}, associated with the handle, {\tt{evtHandle}}. 
+\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventSelectionObjectGet(
+              							CL_IN ClEventInitHandleT evtHandle,
+			                			CL_OUT ClSelectionObjectT *pSelectionObject);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em evt\-Handle:}](in) The handle that identifies this initialization of the Event Service, obtained using the {\tt{clEventInitialize()}} function.
+
+\item[{\em p\-Selection\-Object:}](out) A pointer to the operating system handle that the invoking component can use to detect pending callbacks. 
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}] {\tt{evtHandle}} is an invalid handle.
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]There is no memory available for the Event service or a module of the Event service. Thus, the service cannot be 
+provided and this can be a transient problem.
+\item[{\em CL\_\-ERR\_\-NO\_\-RESOURCE:}]There is no resource (other than memory) available for the Event service or a module of the Event service. Thus,
+the service cannot be provided and this can be a transient problem.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function returns the operating system handle, {\tt{pSelectionObject}}, associated with the handle {\tt{evtHandle}}. A component can use this handle
+to detect pending callbacks, instead of repeatedly calling the {\tt{clEventDispatch()}} function.
+\par
+{\tt{pSelectionObject}}, is a file descriptor that can be used with {\tt{poll()}} or {\tt{select()}} system calls to detect incoming callbacks. 
+\par
+{\tt{selectionObject}}, becomes invalid when {\tt{clEventFinalize()}} is executed on the same handle, {\tt{evtHandle}}. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem101}{cl\-Event\-Initialize}, \hyperlink{pageem118}{cl\-Event\-Dispatch}, 
+\hyperlink{pageem102}{cl\-Event\-Finalize} \end{Desc}
+\newpage
+
+
+\subsection{clEventDispatch}
+\index{clEventDispatch@{clEventDispatch}}
+\hypertarget{pageem118}{}\paragraph{cl\-Event\-Dispatch}\label{pageem118}
+\begin{Desc}
+\item[Synopsis:]Invokes the pending callbacks in the context of the calling component.
+\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventDispatch(
+              				CL_IN ClEventInitHandleT evtHandle,
+			                CL_IN ClDispatchFlagsT dispatchFlags);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em evt\-Handle:}](in) The handle (obtained through the {\tt{clEventInitialize()}}) that identifies this initialization of the Event service.
+\item[{\em dispatch\-Flags:}](in) Flags that specify how the callbacks of the {\tt{clEventDispatch()}} function must be executed. This parameter can 
+accept the values, {\tt{CL\_\-DISPATCH\_\-ONE}}, {\tt{CL\_\-DISPATCH\_\-ALL}}, or {\tt{CL\_\-DISPATCH\_\-BLOCKING}}.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{evtHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]There is no memory available for the Event service or a module of the Event service. Thus, the service cannot be
+provided and this can be a transient problem.
+\item[{\em CL\_\-ERR\_\-NO\_\-RESOURCE:}]There is no resource (other than memory) available for the Event service or a module of the Event service. Thus,
+the service cannot be provided and this can be a transient problem.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function invokes pending callbacks for {\tt{evtHandle}} (in the context of the calling component), as specified in the {\tt{dispatchFlags}} 
+parameter. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem101}{cl\-Event\-Initialize}, \hyperlink{pageem117}{cl\-Event\-Selection\-Object\-Get} \end{Desc}
+\newpage
+
+
+\subsection{clEventFinalize}
+\index{clEventFinalize@{clEventFinalize}}
+\hypertarget{pageem102}{}\paragraph{cl\-Event\-Finalize}\label{pageem102}
+\begin{Desc}
+\item[Synopsis:]Finalizes the Event service library.
+\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventFinalize(
+              				CL_IN ClEventInitHandleT evtHandle );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em evt\-Handle:}](in) The handle (obtained through the {\tt{clEventInitialize()}}) that identifies this initialization of the Event service.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{evtHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function is used to close the association, identified by evtHandle, between the invoking component and Event Service. The component must call the
+{\tt{clEventInitialize()}} function before using this function. If the {\tt{clEventFinalize()}} function is executed successfully, all resources acquired
+by the {\tt{clEventInitialize()}} function are released. It also removes the open event channels and cancels the pending callbacks related to the handle. 
+\par
+As the callback invocation is asynchronous, some callbacks can still be executed after this function is called. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem101}{cl\-Event\-Initialize} \end{Desc}
+\newpage
+
+
+\section{Functional APIs}
+\subsection{clEventChannelOpen}
+\index{clEventChannelOpen@{clEventChannelOpen}}
+\hypertarget{pageem103}{}\paragraph{cl\-Event\-Channel\-Open}\label{pageem103}
+\begin{Desc}
+\item[Synopsis:]Opens an event channel for the requesting component that needs to publish and/or subscribe to events.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventChannelOpen(
+              				CL_IN ClEventInitHandleT evtHandle,
+              				CL_IN const ClNameT *pEvtChannelName,
+              				CL_IN ClEventChannelOpenFlagsT evtChannelOpenFlag,
+              				CL_IN ClTimeT timeout,
+              				CL_OUT ClEventChannelHandleT *pChannelHandle );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em evt\-Handle:}](in) The handle obtained by the {\tt{clEventInitialize()}} function designating this particular initialization of the Event 
+Service.
+\item[{\em p\-Evt\-Channel\-Name:}](in) Pointer to the name of the event channel that identifies the event channel.
+\item[{\em evt\-Channel\-Open\-Flags:}](in) The requested access modes and scope of the event channel. For more information, refer to
+{\tt{evtChannelOpenFlagT}} in the Type Definitions section.
+\item[{\em timeout:}](in) Time-out for calling this function. 
+ \item[{\em p\-Channel\-Handle:}](out) Pointer to the handle of the event channel, provided by the invoking component in the address space of the 
+ component. If the  event channel is opened successfully, the Event Service stores the handle in {\tt{p\-Channel\-Handle}}. This handle is used by the 
+ component to access the channel in subsequent invocations of the Event Service functions.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{evtHandle}} or {\tt{pChannelHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]The Event service library or a module of the Event service is out of memory. The service cannot be 
+provided at this time. This can be a transient problem.
+\item[{\em CL\_\-ERR\_\-NO\_\-RESOURCE:}]The Event Service library or a module of Event service is out of resources (other than memory).
+The service cannot be provided at this time. This can be a transient problem.
+\item[{\em CL\_\-EVENT\_\-ERR\_\-CHANNEL\_\-ALREADY\_\-OPENED:}]The event channel is already opened by a component with the same name and scope.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function opens an event channel. If the event channel does not exist and {\tt{CL\_\-EVENT\_\-CHANNEL\_\-CREATE}} flag is set in 
+{\tt{channelOpenFlags}}, the event channel is created. This function is a blocking operation and returns a new event channel handle. \end{Desc}
+\begin{Desc}
+\item[Note:] 
+An event channel can be created even after the time-out period expires.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem101}{cl\-Event\-Initialize}, \hyperlink{pageem105}{cl\-Event\-Channel\-Close} \end{Desc}
+\newpage
+
+
+\subsection{clEventChannelOpenAsync}
+\index{clEventChannelOpenAsync@{clEventChannelOpenAsync}}
+\hypertarget{pageem104}{}\paragraph{cl\-Event\-Channel\-Open\-Async}\label{pageem104}
+\begin{Desc}
+\item[Synopsis:]Opens an event channel asynchronously.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventChannelOpenAsync(
+              				CL_IN ClEventInitHandleT evtHandle,
+              				CL_IN ClInvocationT invocation,
+              				CL_IN const ClNameT *pEvtChannelName,
+              				CL_IN ClEventChannelOpenFlagsT channelOpenFlags );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em evt\-Handle:}](in) Handle obtained by the {\tt{clEventInitialize()}} function designating this particular initialization of the Event Service.
+
+\item[{\em invocation:}](in) Allows the invoking component to match the invocation of {\tt{clEventChannelOpenAsync()}} function with the 
+corresponding callback.
+
+\item[{\em p\-Evt\-Channel\-Name:}](in) Pointer to the name of the event channel that identifies the event channel.
+
+\item[{\em evt\-Channel\-Open\-Flags:}](in) The requested access modes and scope of the event channel. For details, refer {\tt{evtChannelOpenFlagT}} in 
+the Type Definitions section.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle.
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]The Event service library or a module of the Event service is out of memory. The service cannot be 
+provided at this time. This can be a transient problem.
+\item[{\em CL\_\-ERR\_\-NO\_\-RESOURCE:}]The Event Service library or a module of Event service is out of resources (other than memory).
+The service cannot be provided at this time. This can be a transient problem.
+\item[{\em CL\_\-EVENT\_\-ERR\_\-CHANNEL\_\-ALREADY\_\-OPENED:}]The event channel is already opened by a component with the same name and scope.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function opens an event channel asynchronously. The event channel is created, if the event channel does not exist and the 
+{\tt{CL\_\-EVENT\_\-CHANNEL\_\-CREATE}} flag is set in {\tt{channelOpenFlags}}. The {\tt{clEvtChannelOpenCallback()}} function is invoked when this 
+function is successfully executed. The component provides the {\tt{invocation}} value to this function and the Event Service provides it to the calling
+component using the {\tt{clEvtChannelOpenCallback()}} function.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]cl\-Evt\-Channel\-Open\-Callback\-T(), \hyperlink{pageem101}{cl\-Event\-Initialize}, 
+\hyperlink{pageem105}{cl\-Event\-Channel\-Close} \end{Desc}
+\newpage
+
+
+\subsection{clEventChannelClose}
+\index{clEventChannelClose@{clEventChannelClose}}
+\hypertarget{pageem105}{}\paragraph{cl\-Event\-Channel\-Close}\label{pageem105}
+\begin{Desc}
+\item[Synopsis:]Closes an event channel.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventChannelClose(
+              				CL_IN ClEventChannelHandleT channelHandle );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em channel\-Handle:}](in) Handle of the event channel to be closed, obtained using the 
+{\tt{clEventChannelOpen()}} or {\tt{clEvtChannelOpenCallback()}} functions.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{channelHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function closes the event channel identified by {\tt{channelHandle}}. After the execution of this function, the {\tt{channelHandle}} becomes invalid.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem103}{cl\-Event\-Channel\-Open}, \hyperlink{pageem104}{cl\-Event\-Channel\-Open\-Async}, 
+cl\-Evt\-Channel\-Open\-Callback\-T, \hyperlink{pageem106}{cl\-Event\-Channel\-Unlink} \end{Desc}
+\newpage
+
+
+\subsection{clEventChannelUnlink}
+\index{clEventChannelUnlink@{clEventChannelUnlink}}
+\hypertarget{pageem106}{}\paragraph{cl\-Event\-Channel\-Unlink}\label{pageem106}
+\begin{Desc}
+\item[Synopsis:]Deletes an event channel.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventChannelUnlink(
+              				CL_IN ClEventInitHandleT evtHandle,
+              				CL_IN const ClNameT *pEvtChannelName );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em evt\-Handle:}](in) Handle obtained by the invocation of {\tt{clEventInitialize()}} designating this particular initialization of the Event 
+Service. 
+\item[{\em p\-Evt\-Channel\-Name:}](in) Pointer to the name of the event channel to be unlinked.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{evtHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function deletes an existing event channel, identified by {\tt{pEvtChannelName}}, from the cluster. In the current implementation 
+of the event service, this functionality of unlink is not implemented and a call to {\tt{clEventChannelUnlink}} returns {\tt{CL\_\-OK}}, unconditionally.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem101}{cl\-Event\-Initialize}, \hyperlink{pageem105}{cl\-Event\-Channel\-Close} \end{Desc}
+\newpage
+
+
+
+\subsection{clEventAllocate}
+\index{clEventAllocate@{clEventAllocate}}
+\hypertarget{pageem107}{}\paragraph{cl\-Event\-Allocate}\label{pageem107}
+\begin{Desc}
+\item[Synopsis:]This function allocates an event header.
+\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventAllocate(
+              				CL_IN ClEventChannelHandleT channelHandle,
+              				CL_OUT ClEventHandleT* pEventHandle );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em channel\-Handle:}](in) Handle of the event channel on which the event is to be published. It must be obtained earlier, either using the 
+{\tt{clEventChannelOpen()}} function or {\tt{clEvtChannelOpenCallback()}} function. 
+\item[{\em p\-Event\-Handle:}](out) Pointer to the handle of the newly allocated event. The calling component must allocate memory for this handle before
+this function is executed. The Event Service assigns the value of the {\tt{eventHandle}} when this function is invoked. 
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{channelHandle}} or {\tt{pEventHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-NO\_\-MEvent Service:}]Memory allocation failure. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]The Event service library or a module of the Event service is out of memory. The service cannot be 
+provided at this time. This can be a transient problem.
+\item[{\em CL\_\-ERR\_\-NO\_\-RESOURCE:}]The Event Service library or a module of Event service is out of resources (other than memory).
+The service cannot be provided at this time. This can be a transient problem.
+\item[{\em CL\_\-EVENT\_\-ERR\_\-NOT\_\-OPENED\_\-FOR\_\-PUBLISH:}]: The flag, {\tt{CL\_\-EVENT\_\-CHANNEL\_\-PUBLISHER}}, was not set in the 
+{\tt{ClEventChannelOpenFlagsT}}, while opening the event channel on which this event was allocated.
+{\tt{ClEventAllocate}} does not allow such a component to allocate an event on that channel. 
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to allocate memory for the event header. The event allocated by this function must be freed using the 
+{\tt{clEventFree()}} function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem108}{cl\-Event\-Free}, \hyperlink{pageem113}{cl\-Event\-Publish()} \end{Desc}
+\newpage
+
+
+\subsection{clEventFree}
+\index{clEventFree@{clEventFree}}
+\hypertarget{pageem108}{}\paragraph{cl\-Event\-Free}\label{pageem108}
+\begin{Desc}
+\item[Synopsis:]Frees an event header that is allocated using {\tt{clEventAllocate()}}.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventFree(
+              				CL_IN ClEventHandleT eventHandle );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em event\-Handle:}](in) Handle of the event for which memory is to be freed by the Event Service.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to give permission to the Event Service to de-allocate the event associated with the {\tt{eventHandle}} including 
+the memory containing the attributes and the event data (if present). It frees the events allocated by {\tt{clEventAllocate()}} function or 
+{\tt{clEvtEventDeliverCallback()}} function. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem107}{cl\-Event\-Allocate}, \hyperlink{pageem103}{cl\-Event\-Channel\-Open}, 
+\hyperlink{pageem104}{cl\-Event\-Channel\-Open\-Async} \end{Desc}
+\newpage
+
+
+\section{Event APIs}
+\subsection{clEventAttributesSet}
+\index{clEventAttributesSet@{clEventAttributesSet}}
+\hypertarget{pageem109}{}\paragraph{cl\-Event\-Attributes\-Set}\label{pageem109}
+\begin{Desc}
+\item[Synopsis:]This function is used to set (assign values) the attributes of an event.  \end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventAttributesSet(
+              				CL_IN ClEventHandleT eventHandle,
+              				CL_IN const ClEventPatternArrayT *pPatternArray,
+              				CL_IN ClEventPriorityT priority,
+              				CL_IN ClTimeT retentionTime,
+              				CL_IN const ClNameT *pPublisherName );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em event\-Handle:}](in) Handle of the event for which attributes are to be set.
+\item[{\em p\-Pattern\-Array:}](in) Pointer to a structure that contains the array of patterns. For details, refer to the {\tt{ClEventPatternArrayT}} in the
+Type Definitions section.
+\item[{\em priority:}](in) Priority of the event.
+\item[{\em retention\-Time:}](in) Duration for which the event is retained.
+\item[{\em p\-Publisher\-Name:}](in) Pointer to the name of the event publisher.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle.
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]The Event service library or a module of the Event service is out of memory. The service cannot be 
+provided at this time. This can be a transient problem.
+\item[{\em CL\_\-ERR\_\-NO\_\-RESOURCE:}]There is no resource (other than memory) available for the Event service or a module of the Event service. Thus, 
+the service cannot be provided and this can be a transient problem.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set all the writeable event attributes identified by eventHandle. These attributes are: {\tt{pPatternArray}}, 
+{\tt{priority}}, {\tt{retentionTime}}, and {\tt{pPublisherName}}.
+If {\tt{pPatternArray}} or {\tt{pPublisherName}} is NULL, the corresponding attributes are not changed. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related function(s):]\hyperlink{pageem107}{cl\-Event\-Allocate}, \hyperlink{pageem108}{cl\-Event\-Free}, cl\-Evt\-Event\-Deliver\-Callback\-T, 
+\hyperlink{pageem110}{cl\-Event\-Attributes\-Get}, \hyperlink{pageem103}{cl\-Event\-Channel\-Open}, 
+\hyperlink{pageem104}{cl\-Event\-Channel\-Open\-Async} \end{Desc}
+\newpage
+
+
+\subsection{clEventAttributesGet}
+\index{clEventAttributesGet@{clEventAttributesGet}}
+\hypertarget{pageem110}{}\paragraph{cl\-Event\-Attributes\-Get}\label{pageem110}
+\begin{Desc}
+\item[Synopsis:]Returns the attributes of an event. It provides a component with the priority, retention time, publisher name, publish time,
+and event identifier information for an event.
+\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventAttributesGet(
+              				CL_IN ClEventHandleT eventHandle,
+              				CL_IN ClEventPatternArrayT *pPatternArray,
+              				CL_OUT ClEventPriorityT *pPriority,
+              				CL_OUT ClTimeT *pRetentionTime,
+              				CL_OUT ClNameT *pPublisherName,
+              				CL_OUT ClTimeT *pPublishTime,
+              				CL_OUT ClEventIdT *pEventId );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em event\-Handle:}](in) Handle of the event whose attributes are to be retrieved.
+\item[{\em p\-Pattern\-Array:}](in) Pointer to a structure, {\tt{ClEventPatternArrayT}}, that describes the event pattern array and the number of patterns to be 
+retrieved. The attributes of this structure are:
+\begin{itemize}
+\item
+
+\textit{allocatedNumber} - Number of entries allocated in the pattern buffer. 
+\item
+
+\textit{patternsNumber} -  Actual number of patterns in the event. 
+\item
+
+\textit{pPatterns} -  Pointer to a buffer where the array of pattern is copied. 
+\item
+
+If ppatterns is set to NULL, Event Service ignores the allocatedNumber attribute, allocates memory for {\tt{pPattern}} array and the individual patterns, 
+and sets {\tt{allocatedNumber}}, {\tt{patternsNumber}}, and {\tt{pPatterns}} accordingly.
+\item
+The calling component is responsible for de-allocating the corresponding memory for each element of the {\tt{pPatterns}} array. 
+\item
+Alternatively, the invoking component can allocate memory to retrieve all event patterns and set the fields, {\tt{allocatedNumber}}, 
+{\tt{patternsNumber}}, and {\tt{pPatterns}} accordingly. 
+\item
+These fields are {\tt{input}} parameters and are not modified by the Event Service. The Event Service copies the patterns into successive entries of
+patterns, starting with the first entry and continuing till all event patterns are copied. 
+\item
+If {\tt{allocatedNumber}} is smaller than the number of event patterns or, if the size of the buffer allocated for one of the patterns is less then the 
+actual size of the pattern, the invocation fails and the error, {\tt{CL\_\-EVENT\_\-ERR\_\-NO\_\-SPACE}} is returned. 
+\item
+Regardless of whether such an error occurs, the Event Service sets the {\tt{pPatternArray>patternsNumber}} and {\tt{pPatternArray>patterns[i].patternSize}} 
+fields for all {\tt{pPatternArray>allocatedNumber}} individual patterns, to indicate the number of event patterns and the size of each pattern. 
+\end{itemize}
+
+\item[{\em p\-Priority:}](out) Pointer to the priority of the event.
+
+\item[{\em p\-Retention\-Time:}](out) Pointer to the time duration for which the publisher retains the event.
+
+\item[{\em p\-Publisher\-Name:}](out) Pointer to the name of the event publisher.
+
+\item[{\em p\-Publish\-Time:}](out) Pointer to the time when the publisher published the event.
+
+\item[{\em p\-Event\-Id:}](out) Pointer to the event identifier.\end{description}
+
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-EVENT\_\-ERR\_\-NO\_\-SPACE:}] Buffer provided by the component is not sufficient to hold the data associated with the delivered event.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function is used to retrieve the value of the attributes of the event identified by eventHandle. 
+If the invoking component provides a NULL reference for each of the {\tt{out}} or {\tt{in/out}} parameters, 
+the Event Service does not return the {\tt{out}} value. This function can be called on any event allocated
+by the {\tt{clEventAllocate()}} function or received through the {\tt{clEvtEventDeliverCallback()}} function. This can also be modified by the 
+{\tt{clEventAttributesSet()}}.
+If this function is invoked on a received event, the attributes {\tt{publish time}} and {\tt{event id}} retain the values set by the Event Service 
+at the time the event was published. 
+Otherwise, the attributes will either have the initial values set by the Event Service while allocating the event or the attributes set by a call to
+{\tt{clEventAttributesSet}} function. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem107}{cl\-Event\-Allocate}, \hyperlink{pageem108}{cl\-Event\-Free}, 
+\hyperlink{pageem103}{cl\-Event\-Channel\-Open}, \hyperlink{pageem104}{cl\-Event\-Channel\-Open\-Async}, 
+\hyperlink{pageem109}{cl\-Event\-Attributes\-Set} \end{Desc}
+\newpage
+
+\subsection{clEventDataGet}
+\index{clEventDataGet@{clEventDataGet}}
+\hypertarget{pageem111}{}\paragraph{cl\-Event\-Data\-Get}\label{pageem111}
+\begin{Desc}
+\item[Synopsis:]Retrieves the data associated with an event.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventDataGet(
+              				CL_IN ClEventHandleT eventHandle,
+              				CL_INOUT void *pEventData,
+              				CL_INOUT ClSizeT *pEventDataSize );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em event\-Handle:}](in) Handle to the event delivered by the {\tt{clEvtEventDeliverCallback()}} function.\par
+ \par
+ \item[{\em p\-Event\-Data:}](in/out) Pointer to a buffer provided by component in which Event Service stores the data associated with the delivered 
+ event is stored. If {\tt{pEventData}} is NULL, the value of {\tt{pEventDataSize}} (provided by the invoking component) is ignored and the buffer is 
+ provided by the Event Service library. The buffer must be de-allocated by the calling component after returning from the {\tt{clEventDataGet()}} call. 
+ 
+ \item[{\em p\-Event\-Data\-Size:}](in/out) If {\tt{pEventData}} is not NULL, the {\tt{in}} value of this parameter is same as the {\tt{pEventData}} 
+ buffer  provided by the  invoking component. 
+If the size of the buffer is smaller than the size of the data, the data is not copied into the buffer and the error 
+{\tt{CL\_\-EVENT\_\-ERR\_\-NO\_\-SPACE}} is returned. 
+If pEventData is NULL, the {\tt{in}} value of {\tt{pEventDataSize}} is ignored. The {\tt{out}} value of {\tt{pEventDataSize}} is SET when the function 
+returns either {\tt{CL\_\-AIS\_\-OK}} or {\tt{CL\_\-EVENT\_\-ERR\_\-NO\_\-SPACE}}, and its size is equal to the data associated with this event. 
+
+ \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-EVENT\_\-ERR\_\-NO\_\-SPACE:}]Buffer provided by the component is not sufficient to hold the data associated with the delivered event.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the data associated with an event earlier delivered by the {\tt{clEvtEventDeliverCallback()}}
+function.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]cl\-Evt\-Event\-Deliver\-Callback\-T, \hyperlink{pageem108}{cl\-Event\-Free}, \hyperlink{pageem103}{cl\-Event\-Channel\-Open},
+\hyperlink{pageem104}{cl\-Event\-Channel\-Open\-Async}, \end{Desc}
+\newpage
+
+
+\subsection{clEventCookieGet}
+\index{clEventCookieGet@{clEventCookieGet}}
+\hypertarget{pageem112}{}\paragraph{cl\-Event\-Cookie\-Get}\label{pageem112}
+\begin{Desc}
+\item[Synopsis:]Returns the cookie previously passed to the {\tt{clEventSubscribe()}} function.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventCookieGet(
+              				CL_IN ClEventHandleT eventHandle,
+			                CL_OUT void** ppCookie);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em event\-Handle:}](in) Handle to the event delivered by {\tt{cl\-Evt\-Event\-Deliver\-Callback()}} function.\par
+\item[{\em pp\-Cookie:}](out) Cookie, required for subscribing to an event.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter has been passed to the function. A parameter is not set correctly.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the cookie passed by the component when it subscribes to an event. It can be invoked from the 
+registered callback function. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem114}{cl\-Event\-Subscribe} \end{Desc}
+\newpage
+
+
+\subsection{clEventPublish}
+\index{clEventPublish@{clEventPublish}}
+\hypertarget{pageem113}{}\paragraph{cl\-Event\-Publish}\label{pageem113}
+\begin{Desc}
+\item[Synopsis:]Publishes an event on the event channel.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventPublish(
+              				CL_IN ClEventHandleT eventHandle,
+              				CL_IN const void *pEventData,
+              				CL_IN ClSizeT eventDataSize,
+              				CL_OUT ClEventIdT *pEventId );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em event\-Handle:}](in) Handle of the event that needs to be published. The event must be allocated by the {\tt{clEventAllocate()}} function or obtained 
+using the {\tt{cl\-Evt\-Event\-Deliver\-Callback()}} function. The patterns must be set by {\tt{clEventAttributesSet()}} function, if changes are 
+required.
+\item[{\em p\-Event\-Data:}](in) Pointer to a buffer that contains additional information about the event being published. This parameter is set 
+to NULL, if no additional information is associated with the event. The component can de-allocate the memory for {\tt{p\-Event\-Data}} when 
+the {\tt{clEventPublish()}} function returns.
+
+\item[{\em event\-Data\-Size:}](in) The number of bytes in the buffer pointed to by {\tt{p\-Event\-Data}}. 
+This parameter is ignored, if {\tt{p\-Event\-Data}} is NULL.
+
+\item[{\em p\-Event\-Id:}](out) Pointer to the identifier of the event.\end{description}
+
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle.
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-EVENT\_\-ERR\_\-NOT\_\-OPENED\_\-FOR\_\-PUBLISH:}]The flag, {\tt{CL\_\-EVENT\_\-CHANNEL\_\-PUBLISHER}}, was not set when the channel was 
+opened. The publisher did not open the channel as a publisher.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function is used to publish an event on the channel for which the event specified by {\tt{eventHandle}} has been allocated or 
+obtained through the {\tt{clEvtEventDeliverCallback()}} function. It returns the event identifier in {\tt{eventId}}. The event to be published consists of a standard 
+set of attributes, such as the event header, and optional data. To publish events, the publisher must open the channel as a publisher. This can
+be done by setting the {\tt{CL\_\-EVENT\_\-CHANNEL\_\-PUBLISHER}} flag. Before an event can be published, the publisher component can call the 
+{\tt{clEventAttributesSet()}} function to set the writeable event attributes. The published event is delivered to the subscribers whose subscription filters
+match the event patterns.
+When the Event Service publishes an event, it automatically sets the following read-only event attributes into the published event:
+\begin{itemize}
+\item
+Event publish time
+\item
+Event identifier
+\end{itemize}
+In addition to the event attributes, a component also provides values for the {\tt{pEventData}} and 
+{\tt{eventDataSize}} parameters for publication as part of the event. The event attributes and the event data of the event, {\tt{eventHandle}}, are not 
+affected by this function. This function copies the event attributes and the event data into the internal memory of the Event Service. The invoking 
+component can free the event using {\tt{clEventFree()}}, after {\tt{clEventPublish()}} returns successfully.  
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem107}{cl\-Event\-Allocate}, \hyperlink{pageem108}{cl\-Event\-Free}, cl\-Evt\-Event\-Deliver\-Callback\-T,
+\hyperlink{pageem109}{cl\-Event\-Attributes\-Set}, \hyperlink{pageem114}{cl\-Event\-Subscribe} \end{Desc}
+\newpage
+
+
+\subsection{clEventSubscribe}
+\index{clEventSubscribe@{clEventSubscribe}}
+\hypertarget{pageem114}{}\paragraph{cl\-Event\-Subscribe}\label{pageem114}
+\begin{Desc}
+\item[Synopsis:]Subscribes to an event identified by an event type (filter).\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventSubscribe(
+              				CL_IN ClEventChannelHandleT channelHandle,
+              				CL_IN const ClEventFilterArrayT *pFilters,
+              				CL_IN ClEventSubscriptionIdT subscriptionId,
+              				CL_IN void* pCookie);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em channel\-Handle:}](in) Handle of the event channel, on which the component is subscribing, to receive events. The parameter, 
+{\tt{channelHandle}}, must be obtained using the {\tt{clEventChannelOpen()}} or {\tt{clEvtChannelOpenCallback()}} functions. 
+\item[{\em p\-Filters:}](in) Pointer to {\tt{ClEventFilterArrayT}} structure, allocated by the component, that 
+defines the filter patterns to filter events received on the event channel. The component can de-allocate memory for the filters when 
+{\tt{clEventSubscribe()}} returns.
+
+\item[{\em p\-Subscription\-Id:}](in) Identifies a specific subscription on this instance of the opened event channel corresponding to the 
+{\tt{channelHandle}} that is used as a parameter to the {\tt{clEvtEventDeliverCallback()}} function. 
+
+\item[{\em p\-Cookie:}](in) Cookie, that is required to be provided by the component. It can be retrieved using the
+{\tt{cl\-Evt\-Event\-Utils\-Cookie\-Get()}} function.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle.
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-EVENT\_\-ERR\_\-NOT\_\-OPENED\_\-FOR\_\-SUBSCRIPTION:}]The flag, {\tt{CL\_\-EVENT\_\-CHANNEL\_\-PUBLISHER}}, was not set when the channel
+was opened. The publisher did not open the channel as a publisher.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function enables a component to subscribe for events on an event channel by registering one
+or more filters on that event channel. Events are delivered using the {\tt{clEvtEventDeliverCallback()}}
+function supplied when the component invokes the {\tt{clEventInitialize()}} function.
+The component must open the event channel, {\tt{channelHandle}}, with the {\tt{CL\_\-EVENT\_\-CHANNEL\_\-SUBSCRIBER}} flag set for the successful execution of
+this function.
+The memory associated with the filters is not de-allocated by the {\tt{clEventSubscribe()}} function.
+It is the responsibility of the invoking component to de-allocate the memory when the {\tt{clEventSubscribe()}} function returns.
+For a given subscription, the {\tt{pFilters}} parameter cannot be modified. To change the filters parameter without losing events, a component must 
+establish a new subscription (or subscribe again) by assigning new values to the {\tt{pFilters}} parameter. 
+The old subscription can be removed using the {\tt{clEventUnsubscribe()}} function when the new subscription is established.
+ \end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem115}{cl\-Event\-Unsubscribe}, \hyperlink{pageem111}{cl\-Event\-Data\-Get},
+cl\-Evt\-Event\-Deliver\-Callback\-T, \hyperlink{pageem110}{cl\-Event\-Attributes\-Get} \end{Desc}
+\newpage
+
+
+\subsection{clEventUnsubscribe}
+\index{clEventUnsubscribe@{clEventUnsubscribe}}
+\hypertarget{pageem115}{}\paragraph{cl\-Event\-Unsubscribe}\label{pageem115}
+\begin{Desc}
+\item[Synopsis:]Cancels the subscription to an event that was subscribed earlier.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventUnsubscribe(
+              				CL_IN ClEventChannelHandleT channelHandle,
+              				CL_IN ClEventSubscriptionIdT subscriptionId );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em channel\-Handle:}](in) Event channel for which the subscription needs to be deleted. This request for cancellation of the subscription is made 
+by the subscriber to the Event Service. This handle must be obtained using the {\tt{clEventChannelOpen()}} or 
+{\tt{cl\-Evt\-Channel\-Open\-Callback()}} functions.
+
+\item[{\em subscription\-Id:}](in) Identifier of the subscription.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{channelHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]There is no memory available for the Event service or a module of the Event service. Thus, the service cannot be 
+provided and this can be a transient problem.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function enables a component to stop receiving events for a particular subscription on an event channel by removing the 
+subscription. The execution of this function is successful if the subscription ID matches with an earlier registered subscription. 
+Events queued to be delivered to the component and those that do not match any subscription in the {\tt{clEventUnsubscribe()}} function are purged. A 
+component that needs to modify a subscription without losing any events must establish the new subscription before removing the existing
+subscription. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem114}{cl\-Event\-Subscribe} \end{Desc}
+\newpage
+
+
+\subsection{clEventRetentionTimeClear}
+\index{clEventRetentionTimeClear@{clEventRetentionTimeClear}}
+\hypertarget{pageem116}{}\paragraph{cl\-Event\-Retention\-Time\-Clear}\label{pageem116}
+\begin{Desc}
+\item[Synopsis:]Clears the retention event.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventRetentionTimeClear(
+              				CL_IN ClEventChannelHandleT channelHandle,
+              				CL_IN const ClEventIdT eventId );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em channel\-Handle:}](in) The handle of the event channel on which an event is published. {\tt{channel\-Handle}} must be obtained
+earlier using the {\tt{clEventChannelOpen()}} or {\tt{cl\-Evt\-Channel\-Open\-Callback()}} functions.
+\item[{\em event\-Id:}](in) Identifier to the event.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle.
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to clear the retention time of a published event, identified by {\tt{eventId}}. It indicates that Event Service need 
+not retain the event any longer for potential new subscribers. 
+The event is no longer available for new subscribers when the value of the retention time is reset to zero, 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related function(s):]\hyperlink{pageem113}{cl\-Event\-Publish}, cl\-Evt\-Event\-Deliver\-Callback\-T \end{Desc}
+\newpage
+
+
+\subsection{clEventExtSubscribe}
+\index{clEventExtSubscribe@{clEventExtSubscribe}}
+\hypertarget{pageem201}{}\paragraph{cl\-Event\-Ext\-Subscribe}\label{pageem201}
+\begin{Desc}
+\item[Synopsis:]Subscribes to an event identified by event type (constant integer instead of filter).\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventExtApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventExtSubscribe(
+              				CL_IN ClEventChannelHandleT channelHandle,
+              				CL_IN ClUint32T eventType,
+              				CL_IN ClEventSubscriptionIdT subscriptionId,
+              				CL_IN void* pCookie );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em channel\-Handle:}](in) Handle of the event channel. The component subscribes to receive events on this event channel. This parameter must be
+obtained using the {\tt{cl\-Event\-Channel\-Open}} or {\tt{cl\-Evt\-Channel\-Open\-Callback()}} functions.
+
+\item[{\em event\-Type:}](in) Event type within event channel.
+
+\item[{\em p\-Subscription\-Id:}](in) Identifies a specific subscription on this instance of the opened event channel (channel\-Handle), used as
+a parameter to {\tt{cl\-Evt\-Event\-Deliver\-Callback()}}.
+
+\item[{\em p\-Cookie:}](in) Cookie, that is required to be provided by the component. It can be retrieved using the 
+{\tt{cl\-Evt\-Event\-Utils\-Cookie\-Get()}} function.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function completed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle.
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-EVENT\_\-ERR\_\-NOT\_\-OPENED\_\-FOR\_\-SUBSCRIPTION:}]The channel, identified by {\tt{channelHandle}}, is not opened with the
+{\tt{CL\_\-EVENT\_\-CHANNEL\_\-SUBSCRIBER}} flag SET. The event channel is not opened to be accessed by subscribers.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function serves as a wrapper around the {\tt{clEventSubscribe()}} function and enables a component to subscribe for events on an event channel by 
+registering a fixed length event type on that event channel instead of filters. Events are delivered using the 
+{\tt{clEvtEventDeliverCallback()}} callback function provided by the component when it calls the {\tt{clEventInitialize()}} function. 
+\par
+The component must open the event channel, identified by channelHandle, with the {\tt{CL\_\-EVENT\_\-CHANNEL\_\-SUBSCRIBER}} flag set for successful execution 
+of this function. The memory associated with the filters is not de-allocated by the {\tt{clEventExtSubscribe()}} function. It is the responsibility of the invoking
+component to de-allocate the memory when the {\tt{clEventExtSubscribe()}} function returns.
+\par
+For a given subscription, the {\tt{pFilters}} parameter cannot be modified. To change the filters parameter without losing events, a component must 
+establish a new subscription (or subscribe again) by assigning new values to the {\tt{pfilters}} parameter. When a new subscription is established, the old 
+subscription can be removed using the {\tt{clEventUnsubscribe()}} function. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem114}{cl\-Event\-Subscribe}, \hyperlink{pageem202}{cl\-Event\-Ext\-With\-Rbe\-Subscribe} \end{Desc}
+\newpage
+
+
+\subsection{clEventExtWithRbeSubscribe}
+\index{clEventExtWithRbeSubscribe@{clEventExtWithRbeSubscribe}}
+\hypertarget{pageem202}{}\paragraph{cl\-Event\-Ext\-With\-Rbe\-Subscribe}\label{pageem202}
+\begin{Desc}
+\item[Synopsis:]Subscribes to an event identified by the Rule Based Engine.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventExtApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventExtWithRbeSubscribe(
+              				CL_IN const ClEventChannelHandleT channelHandle,
+              				CL_IN ClRuleExprT *pRbeExpr,
+              				CL_IN ClEventSubscriptionIdT subscriptionID,
+              				CL_IN void* pCookie);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em channel\-Handle:}](in) Handle of the event channel. The component subscribes to receive events on this event channel. This parameter must be 
+obtained using {\tt{clEventChannelOpen()}} or {\tt{cl\-Evt\-Channel\-Open\-Callback()}} functions.
+
+\item[{\em p\-Rbe\-Expr:}](in) Pointer to RBE expression allocated by the component. This defines filter patterns using the RBE expression. The component
+can de-allocate the memory for the filters when {\tt{cl\-Event\-Ext\-With\-Rbe\-Subscribe()}} returns.
+
+Identifies a specific subscription on this instance of the opened event channel ({\tt{channel\-Handle}}), that is used as
+a parameter to {\tt{cl\-Evt\-Event\-Deliver\-Callback()}} function.
+
+\item[{\em p\-Cookie:}](in) Cookie, provided to the function. This can be retrieved using the {\tt{cl\-Evt\-Event\-Utils\-Cooki\-Get()}} function.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function completed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle.
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\item[{\em CL\_\-EVENT\_\-ERR\_\-NOT\_\-OPENED\_\-FOR\_\-SUBSCRIPTION:}]The channel, identified by {\tt{channelHandle}}, is not opened with the
+{\tt{CL\_\-EVENT\_\-CHANNEL\_\-SUBSCRIBER}} flag set. The event channel is not opened to be accessed by subscribers.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function is an extension to the {\tt{clEventSubscribe()}} function. This function enables a component to subscribe for events on an event channel by 
+registering RBE expression on that event channel.
+\par
+Events are delivered using {\tt{clEvtEventDeliverCallback()}} callback function, provided when the 
+component calls the {\tt{clEventInitialize()}} function.
+\par
+The component must have opened the event channel, identified by {\tt{channelHandle}}, with the {\tt{CL\_\-EVENT\_\-CHANNEL\_\-SUBSCRIBER}} flag set, for 
+successful execution of the function.
+\par
+The memory associated with the RBE is not de-allocated by the {\tt{clEventExtWithRbeSubscribe()}} function. It is the responsibility of the invoking 
+component to de-allocate the memory when the {\tt{clEventExtWithRbeSubscribe()}} function returns. For a given subscription, the filters parameter cannot be 
+modified. To change the {\tt{pFilters}} parameter without losing events, a component must establish a new subscription with the new filters parameter. 
+After the new subscription is established, the old subscription can be removed using the {\tt{clEventUnsubscribe()}} function. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem114}{cl\-Event\-Subscribe},\hyperlink{pageem201}{cl\-Event\-Ext\-Subscribe} \end{Desc}
+\newpage
+
+
+\subsection{clEventExtAttributesSet}
+\index{clEventExtAttributesSet@{clEventExtAttributesSet}}
+\hypertarget{pageem203}{}\paragraph{cl\-Event\-Ext\-Attributes\-Set}\label{pageem203}
+\begin{Desc}
+\item[Synopsis:]Sets (assigns values) the attributes of an event.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventExtApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventExtAttributesSet(
+              				CL_IN ClEventHandleT eventHandle,
+              				CL_IN ClUint32T eventType,
+              				CL_IN ClEventPriorityT priority,
+              				CL_IN ClTimeT retentionTime,
+              				CL_IN const ClNameT *pPublisherName );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em event\-Handle:}](in) Handle of the event whose attributes are to be set. 
+\item[{\em event\-Type:}](in) Event type that needs to be published on a given channel. 
+\item[{\em priority:}](in) Priority of the event. 
+\item[{\em retention\-Time:}](in) Duration for which the event is retained. 
+\item[{\em p\-Publisher\-Name:}](in) Pointer to the name of the publisher of the event.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function completed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+	This function serves as a wrapper around {\tt{clEventAttributesSet()}} taking a fixed length event type instead of a filter. It is used to set all the 
+	writeable event attributes such as fixed length event type, priority, {\tt{retentionTime}}, and {\tt{pPublisherName}}, in the header of the event, identified
+	by the {\tt{eventHandle}}. If {\tt{pPatternArray}} or {\tt{pPublisherName}} is NULL, the corresponding attributes are not changed. \end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem109}{cl\-Event\-Attributes\-Set}, \hyperlink{pageem204}{cl\-Event\-Ext\-Attributes\-Get} \end{Desc}
+\newpage
+
+
+\subsection{clEventExtAttributesGet}
+\index{clEventExtAttributesGet@{clEventExtAttributesGet}}
+\hypertarget{pageem204}{}\paragraph{cl\-Event\-Ext\-Attributes\-Get}\label{pageem204}
+\begin{Desc}
+\item[Synopsis:]Returns the attributes of an event. It provides a component with the priority, retention time, publisher name, publish time, 
+and the event identifier for an event.
+\end{Desc}
+\begin{Desc}
+\item[Header File:]clEventExtApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clEventExtAttributesGet(
+              				CL_IN ClEventHandleT eventHandle,
+              				CL_OUT ClUint32T* pEventType,
+              				CL_OUT ClEventPriorityT *pPriority,
+              				CL_OUT ClTimeT *pRetentionTime,
+              				CL_OUT ClNameT *pPublisherName,
+              				CL_OUT ClTimeT *pPublishTime,
+              				CL_OUT ClEventIdT *pEventId );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em event\-Handle:}](in) Handle of the event for which attributes are to be retrieved. 
+\item[{\em p\-Event\-Type:}](out) Pointer to type of an event.
+\item[{\em p\-Priority:}](out) Pointer to the priority of the event. 
+\item[{\em p\-Retention\-Time:}](out) Pointer to the duration for which the publisher will retain the event. 
+\item[{\em p\-Publisher\-Name:}](in) Pointer to the name of the publisher of the event.
+\item[{\em p\-Publish\-Time:}](out) Pointer to the time when the publisher published the event. 
+\item[{\em p\-Event\-Id:}](out) Pointer to the event 
+identifier.\end{description}
+\end{Desc}
+
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function completed successfully. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]{\tt{eventHandle}} is an invalid handle. 
+\item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred in the Event service. 
+\item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]An invalid parameter is passed to the function. A parameter is not set correctly.
+\end{description}
+\end{Desc}
+
+\begin{Desc}
+\item[Description:]This function servers as a wrapper around {\tt{clEventAttributesGet()}} taking a fixed length event type instead of a filter. It 
+retrieves the
+value of the attributes of the event, identified by {\tt{eventHandle}}. For every {\tt{out}} or {\tt{inout}} parameters, if the invoking component
+provides 
+a NULL reference, the Event Service does not return the {\tt{out}} value. This function can be called on any event allocated by the {\tt{clEventAllocate()}} 
+function or 
+received through the {\tt{clEvtEventDeliverCallback()}} function. It can also be modified by the {\tt{clEventExtAttributesSet()}} function. 
+\par
+If this function is invoked on a received event, the attributes {\tt{publish time}} and {\tt{eventid}} will have the values set by the Event Service at 
+event publishing time. 
+\par
+Otherwise, the attributes will either have the initial values set by the Event Service when allocating the event, or the attributes set by a prior 
+invocation of the 
+{\tt{clEventExtAttributesSet()}} function. 
+\end{Desc}
+
+\begin{Desc}
+\item[Library File:]Cl\-Event\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageem109}{cl\-Event\-Attributes\-Set}, \hyperlink{pageem204}{cl\-Event\-Ext\-Attributes\-Get} \end{Desc}
+
+
+\chapter{Service Management Information Model}
+TBD
+
+\chapter{Service Notifications}
+TBD
+
+\chapter{Configuration}
+TBD
+
+
+\chapter{Debug CLIs}
+TBD
+
+\end{flushleft}

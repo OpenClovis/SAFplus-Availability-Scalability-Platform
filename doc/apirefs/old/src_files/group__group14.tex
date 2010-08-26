@@ -1,0 +1,2287 @@
+
+\hypertarget{group__group14}{
+\chapter{Functional Overview}
+\label{group__group14}
+}
+
+The Availability Management Framework (AMF) functions are collectively implemented in the Availability Management Service (AMS) and the
+Component Manager (CPM) software components. AMS is the primary decision making entity in the system with respect to service availability. AMS and CPM 
+together maintain a view of the system model that describes the various software and hardware components in the system, their attributes, dependencies 
+on each other, rules for grouping them together for providing services availability, current state and policies to be applied in the event of failure. 
+The CPM is the operational manager entity and is responsible for managing the various Service Units/components through their life cycle, based on 
+the configured policy and directions from AMS.
+Component management is achieved in a hierarchical manner and is implemented in two ways:\begin{enumerate}
+\item CPM/L (available on All nodes\mbox)\item CPM/G (available on the node where AMS exists) CPM/L takes on the additional 
+responsibility of managing the overall system\mbox{]}.\end{enumerate}
+
+
+Component Manager provides following functionalities:\begin{itemize}
+\item Life cycle management of the components.\item Boot Management functionality.\item Health check for the components available in the system. 
+Component failure, detected by Heartbeat mechanism, is notified by CPM.\item Instantiate/Terminate/Cleanup/Restart of the component.\end{itemize}
+
+
+CPM also exposes all the SAF defined interfaces, which can be used by various applications/components.\begin{itemize}
+\item Library Life Cycle\begin{itemize}
+\item cl\-Cpm\-Client\-Initialize\item cl\-Cpm\-Client\-Finalize\item cl\-Cpm\-Selection\-Object\-Get\item cl\-Cpm\-Dispatch\end{itemize}
+\end{itemize}
+
+
+\begin{itemize}
+\item Component Registration and Unregistration\begin{itemize}
+\item cl\-Cpm\-Component\-Register\item cl\-Cpm\-Component\-Unregister\item cl\-Cpm\-Component\-Name\-Get\end{itemize}
+\item Passive Monitoring of processes of components\begin{itemize}
+\item Not Supported\end{itemize}
+\item Component Health Monitoring\begin{itemize}
+\item Not Supported\end{itemize}
+\item Component Service Instance Management \mbox{[}in HA only\mbox{]}\begin{itemize}
+\item cl\-Cpm\-HAState\-Get\item cl\-Cpm\-CSIQuiescing\-Complete\item Cl\-Cpm\-CSISet\-Callback\-T\item Cl\-Cpm\-CSIRmv\-Callback\-T\end{itemize}
+\item Component Life Cycle\begin{itemize}
+\item Cl\-Cpm\-Terminate\-Callback\-T\item Cl\-Cpm\-Proxied\-Component\-Instantiate\-Callback\-T\item Cl\-Cpm\-Proxied\-Component\-Cleanup\-Callback\-T\end{itemize}
+\item Protection Group Management \mbox{[}in HA only\mbox{]}\begin{itemize}
+\item cl\-Cpm\-Protection\-Group\-Track\item cl\-Cpm\-Protection\-Group\-Track\-Stop\item Cl\-Cpm\-Protection\-Group\-Track\-Callback\-T\end{itemize}
+\item Error Reporting \mbox{[}in HA case only\mbox{]}\begin{itemize}
+\item cl\-Cpm\-Component\-Failure\-Report\item cl\-Cpm\-Component\-Failure\-Clear \mbox{[}Not supported\mbox{]}\end{itemize}
+\item Component Response to framework requests\begin{itemize}
+\item cl\-Cpm\-Response\end{itemize}
+\end{itemize}
+
+
+Along with this CPM also exposes the following APIs:\begin{itemize}
+\item Boot Management\begin{itemize}
+\item cl\-Cpm\-Boot\-Level\-Get\item cl\-Cpm\-Boot\-Level\-Set\item cl\-Cpm\-Boot\-Level\-Max\end{itemize}
+\item Component Management\begin{itemize}
+\item cl\-Cpm\-Component\-Id\-Get\item cl\-Cpm\-Component\-Address\-Get\item cl\-Cpm\-Component\-Status\-Get\item cl\-Cpm\-Component\-Instantiate\item cl\-Cpm\-Component\-Terminate\item cl\-Cpm\-Component\-Cleanup cl\-Cpm\-Component\-Restart\end{itemize}
+\item EO Management\begin{itemize}
+\item cl\-Cpm\-Func\-EOWalk\item cl\-Cpm\-Execution\-Object\-State\-Set\end{itemize}
+\item Other APIs\begin{itemize}
+\item cl\-Cpm\-Master\-Address\-Get\item cl\-Cpm\-Is\-Master\item cl\-Cpm\-Node\-Shut\-Down\item cl\-Cpm\-Local\-Node\-Name\-Get\end{itemize}
+\end{itemize}
+
+
+\par CPM also interacts with other Open\-Clovis ASP Infrastructure components, mainly event services for 
+publishing node arrival or departure events and component failure events. 
+
+
+\chapter{Service Model}
+TBD
+
+\chapter{Service APIs}
+
+\section{Defines}
+
+\hypertarget{group__group14_ga66}{
+\index{group14@{group14}!CL_CPM_DEFAULT_MAX_FREQ@{CL\_\-CPM\_\-DEFAULT\_\-MAX\_\-FREQ}}
+\index{CL_CPM_DEFAULT_MAX_FREQ@{CL\_\-CPM\_\-DEFAULT\_\-MAX\_\-FREQ}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-DEFAULT\_\-MAX\_\-FREQ]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-DEFAULT\_\-MAX\_\-FREQ~32000}\hfill}
+\label{group__group14_ga66}
+
+
+Maximum frequency at which Component Manager checks the heartbeats of the component. This value is in milliseconds. It can be overwritten in the
+Component Manager configuration file. \hypertarget{group__group14_ga65}{
+\index{group14@{group14}!CL_CPM_DEFAULT_MIN_FREQ@{CL\_\-CPM\_\-DEFAULT\_\-MIN\_\-FREQ}}
+\index{CL_CPM_DEFAULT_MIN_FREQ@{CL\_\-CPM\_\-DEFAULT\_\-MIN\_\-FREQ}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-DEFAULT\_\-MIN\_\-FREQ]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-DEFAULT\_\-MIN\_\-FREQ~2000}\hfill}
+\label{group__group14_ga65}
+
+
+Default frequency at which Component Manager checks the heartbeats of the component. This value is in milliseconds. It can be overwritten in the 
+Component Manager configuration file. \hypertarget{group__group14_ga57}{
+\index{group14@{group14}!CL_CPM_EO_ALIVE@{CL\_\-CPM\_\-EO\_\-ALIVE}}
+\index{CL_CPM_EO_ALIVE@{CL\_\-CPM\_\-EO\_\-ALIVE}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-EO\_\-ALIVE]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-EO\_\-ALIVE~(Cl\-Uint32T)0}\hfill}
+\label{group__group14_ga57}
+
+
+This define is related to EO state management, in the context of heartbeat success or failure. \hypertarget{group__group14_ga58}{
+\index{group14@{group14}!CL_CPM_EO_DEAD@{CL\_\-CPM\_\-EO\_\-DEAD}}
+\index{CL_CPM_EO_DEAD@{CL\_\-CPM\_\-EO\_\-DEAD}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-EO\_\-DEAD]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-EO\_\-DEAD~(Cl\-Uint32T)0x\-FFFFFFF}\hfill}
+\label{group__group14_ga58}
+
+
+This define is related to EO state management, in the context of heartbeat success or failure. \hypertarget{group__group14_ga51}{
+\index{group14@{group14}!CL_CPM_EO_VERSION_NO@{CL\_\-CPM\_\-EO\_\-VERSION\_\-NO}}
+\index{CL_CPM_EO_VERSION_NO@{CL\_\-CPM\_\-EO\_\-VERSION\_\-NO}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-EO\_\-VERSION\_\-NO]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-EO\_\-VERSION\_\-NO~0x0100}\hfill}
+\label{group__group14_ga51}
+
+
+Component Manager-supported version of EO library. \hypertarget{group__group14_ga74}{
+\index{group14@{group14}!CL_CPM_ERR_BAD_OPERATION@{CL\_\-CPM\_\-ERR\_\-BAD\_\-OPERATION}}
+\index{CL_CPM_ERR_BAD_OPERATION@{CL\_\-CPM\_\-ERR\_\-BAD\_\-OPERATION}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-ERR\_\-BAD\_\-OPERATION]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-ERR\_\-BAD\_\-OPERATION~(CL\_\-ERR\_\-COMMON\_\-MAX + 8)}\hfill}
+\label{group__group14_ga74}
+
+
+Component Manager returns this error when it receives an invalid request. \hypertarget{group__group14_ga68}{
+\index{group14@{group14}!CL_CPM_ERR_EO_UNREACHABLE@{CL\_\-CPM\_\-ERR\_\-EO\_\-UNREACHABLE}}
+\index{CL_CPM_ERR_EO_UNREACHABLE@{CL\_\-CPM\_\-ERR\_\-EO\_\-UNREACHABLE}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-ERR\_\-EO\_\-UNREACHABLE]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-ERR\_\-EO\_\-UNREACHABLE~(CL\_\-ERR\_\-COMMON\_\-MAX + 2)}\hfill}
+\label{group__group14_ga68}
+
+
+EO is not reachable. \hypertarget{group__group14_ga75}{
+\index{group14@{group14}!CL_CPM_ERR_EXIST@{CL\_\-CPM\_\-ERR\_\-EXIST}}
+\index{CL_CPM_ERR_EXIST@{CL\_\-CPM\_\-ERR\_\-EXIST}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-ERR\_\-EXIST]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-ERR\_\-EXIST~(CL\_\-ERR\_\-COMMON\_\-MAX + 9)}\hfill}
+\label{group__group14_ga75}
+
+
+Component Manager returns this error when the same registration request is requested multiple times. \hypertarget{group__group14_ga71}{
+\index{group14@{group14}!CL_CPM_ERR_FORWARDING_FAILED@{CL\_\-CPM\_\-ERR\_\-FORWARDING\_\-FAILED}}
+\index{CL_CPM_ERR_FORWARDING_FAILED@{CL\_\-CPM\_\-ERR\_\-FORWARDING\_\-FAILED}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-ERR\_\-FORWARDING\_\-FAILED]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-ERR\_\-FORWARDING\_\-FAILED~(CL\_\-ERR\_\-COMMON\_\-MAX + 5)}\hfill}
+\label{group__group14_ga71}
+
+
+Component Manager is unable to forward the request to the required node. \hypertarget{group__group14_ga73}{
+\index{group14@{group14}!CL_CPM_ERR_INIT@{CL\_\-CPM\_\-ERR\_\-INIT}}
+\index{CL_CPM_ERR_INIT@{CL\_\-CPM\_\-ERR\_\-INIT}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-ERR\_\-INIT]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-ERR\_\-INIT~(CL\_\-ERR\_\-COMMON\_\-MAX + 7)}\hfill}
+\label{group__group14_ga73}
+
+
+Component Manager returns this error if the initialization was not performed correctly and other functions are being accessed. \hypertarget{group__group14_ga69}{
+\index{group14@{group14}!CL_CPM_ERR_INVALID_ARGUMENTS@{CL\_\-CPM\_\-ERR\_\-INVALID\_\-ARGUMENTS}}
+\index{CL_CPM_ERR_INVALID_ARGUMENTS@{CL\_\-CPM\_\-ERR\_\-INVALID\_\-ARGUMENTS}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-ERR\_\-INVALID\_\-ARGUMENTS]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-ERR\_\-INVALID\_\-ARGUMENTS~(CL\_\-ERR\_\-COMMON\_\-MAX + 3)}\hfill}
+\label{group__group14_ga69}
+
+
+One of the parameters is not set correctly. \hypertarget{group__group14_ga76}{
+\index{group14@{group14}!CL_CPM_ERR_OPER_ABANDONED@{CL\_\-CPM\_\-ERR\_\-OPER\_\-ABANDONED}}
+\index{CL_CPM_ERR_OPER_ABANDONED@{CL\_\-CPM\_\-ERR\_\-OPER\_\-ABANDONED}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-ERR\_\-OPER\_\-ABANDONED]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-ERR\_\-OPER\_\-ABANDONED~(CL\_\-ERR\_\-COMMON\_\-MAX + 10)}\hfill}
+\label{group__group14_ga76}
+
+
+Component Manager returns this error when processing of the request is abandoned due to a high priority request. \hypertarget{group__group14_ga70}{
+\index{group14@{group14}!CL_CPM_ERR_OPERATION_FAILED@{CL\_\-CPM\_\-ERR\_\-OPERATION\_\-FAILED}}
+\index{CL_CPM_ERR_OPERATION_FAILED@{CL\_\-CPM\_\-ERR\_\-OPERATION\_\-FAILED}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-ERR\_\-OPERATION\_\-FAILED]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-ERR\_\-OPERATION\_\-FAILED~(CL\_\-ERR\_\-COMMON\_\-MAX + 4)}\hfill}
+\label{group__group14_ga70}
+
+
+Requested operation could not be performed by Component Manager. \hypertarget{group__group14_ga72}{
+\index{group14@{group14}!CL_CPM_ERR_OPERATION_IN_PROGRESS@{CL\_\-CPM\_\-ERR\_\-OPERATION\_\-IN\_\-PROGRESS}}
+\index{CL_CPM_ERR_OPERATION_IN_PROGRESS@{CL\_\-CPM\_\-ERR\_\-OPERATION\_\-IN\_\-PROGRESS}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-ERR\_\-OPERATION\_\-IN\_\-PROGRESS]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-ERR\_\-OPERATION\_\-IN\_\-PROGRESS~(CL\_\-ERR\_\-COMMON\_\-MAX + 6)}\hfill}
+\label{group__group14_ga72}
+
+
+Component Manager cannot handle this request, as it is currently performing similar operations. \hypertarget{group__group14_ga67}{
+\index{group14@{group14}!CL_CPM_ERR_OPERATION_NOT_ALLOWED@{CL\_\-CPM\_\-ERR\_\-OPERATION\_\-NOT\_\-ALLOWED}}
+\index{CL_CPM_ERR_OPERATION_NOT_ALLOWED@{CL\_\-CPM\_\-ERR\_\-OPERATION\_\-NOT\_\-ALLOWED}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-ERR\_\-OPERATION\_\-NOT\_\-ALLOWED]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-ERR\_\-OPERATION\_\-NOT\_\-ALLOWED~(CL\_\-ERR\_\-COMMON\_\-MAX + 1)}\hfill}
+\label{group__group14_ga67}
+
+
+Requested operation is not allowed. \hypertarget{group__group14_ga55}{
+\index{group14@{group14}!CL_CPM_EVENT_CHANNEL_NAME@{CL\_\-CPM\_\-EVENT\_\-CHANNEL\_\-NAME}}
+\index{CL_CPM_EVENT_CHANNEL_NAME@{CL\_\-CPM\_\-EVENT\_\-CHANNEL\_\-NAME}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-EVENT\_\-CHANNEL\_\-NAME]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-EVENT\_\-CHANNEL\_\-NAME~\char`\"{}CPM\_\-EVENT\_\-CHANNEL\char`\"{}}\hfill}
+\label{group__group14_ga55}
+
+
+Event Channel information related to Component failure. Component Manager publishes an event for the component failures using event filters. 
+The event can be subscribed to using the IOC address. \hypertarget{group__group14_ga63}{
+\index{group14@{group14}!CL_CPM_IOC_ADDRESS_CHASSIS_GET@{CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-CHASSIS\_\-GET}}
+\index{CL_CPM_IOC_ADDRESS_CHASSIS_GET@{CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-CHASSIS\_\-GET}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-CHASSIS\_\-GET]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-CHASSIS\_\-GET(address, my\-Ch)~my\-Ch = (address $>$$>$ CL\_\-CPM\_\-IOC\_\-SLOT\_\-BITS); $\backslash$}\hfill}
+\label{group__group14_ga63}
+
+
+Macro for getting the {\tt {chsssis\-Id}} from IOC address. \hypertarget{group__group14_ga61}{
+\index{group14@{group14}!CL_CPM_IOC_ADDRESS_GET@{CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-GET}}
+\index{CL_CPM_IOC_ADDRESS_GET@{CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-GET}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-GET]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-GET(my\-Ch, my\-Sl, address)}\hfill}
+\label{group__group14_ga61}
+
+
+{\bf Value:}
+
+\footnotesize\begin{verbatim}{\
+    address = (myCh << CL_CPM_IOC_SLOT_BITS); \
+    address |= mySl; \
+    }
+\end{verbatim}\normalsize 
+Macro for generating the IOC address based on the {\tt {chassid\-Id}} and {\tt {slot\-Id}}. \hypertarget{group__group14_ga62}{
+\index{group14@{group14}!CL_CPM_IOC_ADDRESS_SLOT_GET@{CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-SLOT\_\-GET}}
+\index{CL_CPM_IOC_ADDRESS_SLOT_GET@{CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-SLOT\_\-GET}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-SLOT\_\-GET]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-IOC\_\-ADDRESS\_\-SLOT\_\-GET
+(address, my\-Sl)~my\-Sl = address \& CL\_\-CPM\_\-IOC\_\-SLOT\_\-BITS\_\-HEX; $\backslash$}\hfill}
+\label{group__group14_ga62}
+
+
+Macro for getting the {\tt{slot\-Id}} from IOC address. 
+\hypertarget{group__group14_ga59}{
+\index{group14@{group14}!CL_CPM_IOC_SLOT_BITS@{CL\_\-CPM\_\-IOC\_\-SLOT\_\-BITS}}
+\index{CL_CPM_IOC_SLOT_BITS@{CL\_\-CPM\_\-IOC\_\-SLOT\_\-BITS}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-IOC\_\-SLOT\_\-BITS]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-IOC\_\-SLOT\_\-BITS~16}\hfill}
+\label{group__group14_ga59}
+
+
+\hypertarget{group__group14_ga60}{
+\index{group14@{group14}!CL_CPM_IOC_SLOT_BITS_HEX@{CL\_\-CPM\_\-IOC\_\-SLOT\_\-BITS\_\-HEX}}
+\index{CL_CPM_IOC_SLOT_BITS_HEX@{CL\_\-CPM\_\-IOC\_\-SLOT\_\-BITS\_\-HEX}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-IOC\_\-SLOT\_\-BITS\_\-HEX]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-IOC\_\-SLOT\_\-BITS\_\-HEX~0x0000ffff}\hfill}
+\label{group__group14_ga60}
+
+
+\hypertarget{group__group14_ga53}{
+\index{group14@{group14}!CL_CPM_MAJOR_VERSION@{CL\_\-CPM\_\-MAJOR\_\-VERSION}}
+\index{CL_CPM_MAJOR_VERSION@{CL\_\-CPM\_\-MAJOR\_\-VERSION}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-MAJOR\_\-VERSION]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-MAJOR\_\-VERSION~0x01}\hfill}
+\label{group__group14_ga53}
+
+
+\hypertarget{group__group14_ga54}{
+\index{group14@{group14}!CL_CPM_MINOR_VERSION@{CL\_\-CPM\_\-MINOR\_\-VERSION}}
+\index{CL_CPM_MINOR_VERSION@{CL\_\-CPM\_\-MINOR\_\-VERSION}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-MINOR\_\-VERSION]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-MINOR\_\-VERSION~0x01}\hfill}
+\label{group__group14_ga54}
+
+
+\hypertarget{group__group14_ga56}{
+\index{group14@{group14}!CL_CPM_NODE_EVENT_CHANNEL_NAME@{CL\_\-CPM\_\-NODE\_\-EVENT\_\-CHANNEL\_\-NAME}}
+\index{CL_CPM_NODE_EVENT_CHANNEL_NAME@{CL\_\-CPM\_\-NODE\_\-EVENT\_\-CHANNEL\_\-NAME}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-NODE\_\-EVENT\_\-CHANNEL\_\-NAME]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-NODE\_\-EVENT\_\-CHANNEL\_\-NAME~\char`\"{}CPM\_\-NODE\_\-EVENT\_\-CHANNEL\char`\"{}}\hfill}
+\label{group__group14_ga56}
+
+
+The node arrival and departure related Event channel information. \hypertarget{group__group14_ga77}{
+\index{group14@{group14}!CL_CPM_RC@{CL\_\-CPM\_\-RC}}
+\index{CL_CPM_RC@{CL\_\-CPM\_\-RC}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-RC]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-RC(ERROR\_\-CODE)~CL\_\-RC(CL\_\-CID\_\-CPM, (ERROR\_\-CODE))}\hfill}
+\label{group__group14_ga77}
+
+
+\hypertarget{group__group14_ga52}{
+\index{group14@{group14}!CL_CPM_RELEASE_CODE@{CL\_\-CPM\_\-RELEASE\_\-CODE}}
+\index{CL_CPM_RELEASE_CODE@{CL\_\-CPM\_\-RELEASE\_\-CODE}!group14@{group14}}
+\paragraph[CL\_\-CPM\_\-RELEASE\_\-CODE]{\setlength{\rightskip}{0pt plus 5cm}\#define CL\_\-CPM\_\-RELEASE\_\-CODE~'B'}\hfill}
+\label{group__group14_ga52}
+
+
+Component Manager-supported version for SA Forum. \hypertarget{group__group14_ga64}{
+\index{group14@{group14}!ClCpmSchedFeedBackT@{ClCpmSchedFeedBackT}}
+\index{ClCpmSchedFeedBackT@{ClCpmSchedFeedBackT}!group14@{group14}}
+\paragraph[ClCpmSchedFeedBackT]{\setlength{\rightskip}{0pt plus 5cm}\#define Cl\-Cpm\-Sched\-Feed\-Back\-T~Cl\-Eo\-Sched\-Feed\-Back\-T}\hfill}
+\label{group__group14_ga64}
+
+
+Feedback sent by the software component that is polled in response to heartbeat (is-Alive). 
+
+
+
+
+
+
+
+
+\section{Type Definitions}
+\subsection{ClCpmCompProcessRelT}
+\index{ClCpmCompProcessRelT@{ClCpmCompProcessRelT}}
+{\textit{typedef enum cl\-Cpm\-Comp\-Process\-Rel  Cl\-Cpm\-Comp\-Process\-Rel\-T;}
+\newline
+\newline
+The enumeration, {\tt{ClCpmCompProcessRelT}}, indicates the relationship between the component and the process. 
+
+
+\subsection{ClCpmCSIRmvCallbackT}
+\index{ClCpmCSIRmvCallbackT@{ClCpmCSIRmvCallbackT}}
+\begin{tabbing}
+  xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+    \textit{typedef ClRcT ( *ClCpmCSIRmvCallbackT ) (}\\
+    \>\>\>\>\textit{CL\_IN ClInvocationT invocation,}\\
+    \>\>\>\>\textit{CL\_IN const ClNameT *pCompName,}\\
+    \>\>\>\>\textit{CL\_IN const ClNameT *pCsiName,}\\
+    \>\>\>\>\textit{CL\_IN ClAmsCSIFlagsT csiFlags );}\\
+    \end{tabbing}
+Removes one or all the assigned CSIs. Component Manager can request the component, {\tt{comp\-Name}}, to remove a particular CSI or all 
+the CSIs using this function. This is an asynchronous function.
+\begin{itemize}
+\item
+\textit{invocation} - Invocation of this callback function.
+\item
+\textit{p\-Comp\-Name} - Pointer to the name of the component to which a CSI needs to be assigned.
+\item
+\textit{p\-Csi\-Name} - Pointer to the {\tt{csi\-Name}} that is to be removed from the component, {\tt{comp\-Name}}.
+\item
+\textit{csi\-Flags} - Flags that indicate if one or more CSI is affected. 
+\end{itemize}
+
+\subsection{ClCpmCSISetCallbackT}
+\index{ClCpmCSISetCallbackT@{ClCpmCSISetCallbackT}}
+  \begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+    \textit{typedef ClRcT (*ClCpmCSISetCallbackT) (}\\
+    \>\>\>\>\textit{CL\_IN ClInvocationT invocation,}\\
+    \>\>\>\>\textit{CL\_IN const ClNameT *pCompName,}\\
+    \>\>\>\>\textit{CL\_IN ClAmsHAStateT haState,}\\
+    \>\>\>\>\textit{CL\_IN ClAmsCSIDescriptorT csiDescriptor );}\\
+    \end{tabbing}
+
+Component Manager requests the component, {\tt{comp\-Name}}, to assume a particular HA state, specified by {\tt{ha\-State}}, for one or all the CSIs.
+This is an asynchronous function.
+\begin{itemize}
+\item
+\textit{invocation} - Invocation of this callback function.
+\item
+\textit{p\-Comp\-Name} - Pointer to the name of the component to which a CSI needs to be assigned.
+\item
+\textit{ha\-State} - HA state to be assigned for the CSI, {\tt{csi\-Descriptor}}, or for all CSIs, supported by the component, (if 
+{\tt {CSI\_\-TARGET\_\-ALL}} is set in {\tt{csi\-Flags}} of {\tt{csi\-Descriptor}}.)
+\item
+\textit{csi\-Descriptor} - Information about the CSI. 
+\end{itemize}
+
+
+\subsection{ClCpmHandleT}
+
+\index{ClCpmHandleT@{ClCpmHandleT}}
+typedef ClHandleT ClCpmHandleT;
+
+
+\subsection{ClCpmProtectionGroupTrackCallbackT}
+\index{ClCpmProtectionGroupTrackCallbackT@{ClCpmProtectionGroupTrackCallbackT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef void(ClCpmProtectionGroupTrackCallbackT)(}\\
+\>\>\>\>\textit{CL\_IN const ClNameT pCsiName,}\\
+\>\>\>\>\textit{CL\_IN ClAmsPGNotificationBufferT pNotificationBuffer, }\\
+\>\>\>\>\textit{CL\_IN ClUint32T numberOfMembers, }\\
+\>\>\>\>\textit{CL\_IN ClUint32T error);}\\
+\end{tabbing}
+Requested information is delivered to {\tt{notification\-Buffer}} using this callback function. The type of information returned in this buffer depends
+on the {\tt{track\-Flag}} parameter of the {\tt{cl\-AMSProtection\-Group\-Track}} function. This is an asynchronous function.
+
+{\em p\-Csi\-Name:} Pointer to {\tt{csi\-Name}} that is to be removed from the component, {\tt{comp\-Name}}.
+
+{\em p\-Notification\-Buffer:} Pointer to a notification buffer, that contains the requested information.
+
+{\em number\-Of\-Members:} Number of components that belong to protection group associated with the CSI, {\tt{csi\-Name}}.
+
+{\em error:} Indicates if Component Manager performed the operation. 
+
+
+
+\subsection{ClCpmProxiedComponentCleanupCallbackT}
+\index{ClCpmProxiedComponentCleanupCallbackT@{ClCpmProxiedComponentCleanupCallbackT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef ClRcT( ClCpmProxiedComponentCleanupCallbackT)(}\\
+\>\>\>\>\textit{CL\_IN ClInvocationT invocation, }\\
+\>\>\>\>\textit{CL\_IN const ClNameT pProxiedCompName);}\\
+\end{tabbing}
+
+Component Manager requests the proxy component to free the component, {\tt{proxied\-Comp\-Name}}, using this callback function. This is an asynchronous 
+function.
+
+{\em invocation:} Invocation of this callback function.
+
+{\em p\-Proxied\-Comp\-Name:} Pointer to the name of the component that needs to be freed. 
+
+
+\subsection{ClCpmProxiedComponentInstantiateCallbackT}
+\index{ClCpmProxiedComponentInstantiateCallbackT@{ClCpmProxiedComponentInstantiateCallbackT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef ClRcT(ClCpmProxiedComponentInstantiateCallbackT)(}\\
+\>\>\>\>\textit{CL\_IN ClInvocationT invocation, }\\
+\>\>\>\>\textit{CL\_IN const ClNameT pProxiedCompName)}\\
+\end{tabbing}
+
+
+Component Manager requests the proxy component to instantiate the component, {\tt{proxiedCompName}}, using this callback function. This is an 
+asynchronous function.
+
+{\em invocation:} Invocation of this callback function.
+
+{\em p\-Proxied\-Comp\-Name:} Pointer to the name of the component that needs to be instantiated. 
+
+
+
+\subsection{ClCpmTerminateCallbackT}
+\index{ClCpmTerminateCallbackT@{ClCpmTerminateCallbackT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef ClRcT( ClCpmTerminateCallbackT)(}\\
+\>\>\>\>\textit{CL\_IN ClInvocationT invocation, }\\
+\>\>\>\>\textit{CL\_IN const ClNameT $\ast$pCompName)}\\
+\end{tabbing}
+
+Component Manager requests the component, {\tt{compName}}, to gracefully shutdown using this callback function. This is an asynchronous function with
+reply.
+
+{\em invocation:} Invocation of this callback function.
+
+{\em pCompName:} Pointer to the name of the component that must gracefully terminate. 
+
+
+\subsection{ClCpmAttrIdsT}
+\index{ClCpmAttrIdsT@{ClCpmAttrIdsT}}
+  \begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_CPM\_COMP\_NAME = 1,}\\
+\>\>\>\>\textit{CL\_CPM\_COMP\_OPERATIONAL\_STATE,}\\
+\>\>\>\>\textit{CL\_CPM\_COMP\_PRESENCE\_STATE,}\\
+\>\>\>\>\textit{CL\_CPM\_SU\_NAME,}\\
+\>\>\>\>\textit{CL\_CPM\_SU\_OPERATIONAL\_STATE,}\\
+\>\>\>\>\textit{CL\_CPM\_SU\_PRESENCE\_STATE,}\\
+\>\>\>\>\textit{CL\_CPM\_NODE\_NAME}\\
+\textit{\} ClCpmAttrIdsT;}\\
+\end{tabbing}
+The enumeration, {\tt{ClCpmAttrIdsT}}, contains the attributes of a component.
+
+\begin{Desc}
+\item[Enumeration values:]
+\begin{description}
+\item[{\em CL\_\-CPM\_\-COMP\_\-NAME}] - Component class attribute for name of the component. 
+\item[{\em CL\_\-CPM\_\-COMP\_\-OPERATIONAL\_\-STATE}] - Component class attribute for its operational state. 
+\item[{\em CL\_\-CPM\_\-COMP\_\-PRESENCE\_\-STATE}] - Component class attribute for its presence state. 
+\item[{\em CL\_\-CPM\_\-SU\_\-NAME}] - Service Unit class attribute for its name. 
+\item[{\em CL\_\-CPM\_\-SU\_\-OPERATIONAL\_\-STATE}] - Service Unit class attribute for its operational state. 
+\item[{\em CL\_\-CPM\_\-SU\_\-PRESENCE\_\-STATE}] - Service Unit class attribute for its presence state. 
+\item[{\em CL\_\-CPM\_\-NODE\_\-NAME}] - Node class attribute for name. 
+\end{description}
+\end{Desc}
+
+
+
+\subsection{ClCpmClassIdT}
+\index{ClCpmClassIdT@{ClCpmClassIdT}}
+ \begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_CPM\_CLASS\_UNKNOWN = 0,}\\
+\>\>\>\>\textit{CL\_CPM\_CLASS\_CLUSTER = 0x7d02,}\\
+\>\>\>\>\textit{CL\_CPM\_CLASS\_NODE = 0x7d03,}\\
+\>\>\>\>\textit{CL\_CPM\_CLASS\_SU = 0x7d04,}\\
+\>\>\>\>\textit{CL\_CPM\_CLASS\_COMP = 0x7d05}\\
+\textit{\} ClCpmClassIdT;}\\
+\end{tabbing}
+The enumeration, {\tt{ClCpmClassIdT}}, contains the COR Class ID for the SA Forum information model.
+\begin{Desc}
+\item[Enumeration values: ]\par
+\begin{description}
+\item[{\em CL\_\-CPM\_\-CLASS\_\-UNKNOWN}]
+\item[{\em CL\_\-CPM\_\-CLASS\_\-CLUSTER}] - Cluster MO Class ID. 
+\item[{\em CL\_\-CPM\_\-CLASS\_\-NODE}] - Node MO Class ID. 
+\item[{\em CL\_\-CPM\_\-CLASS\_\-SU}] - Service Unit MO Class ID. 
+\item[{\em CL\_\-CPM\_\-CLASS\_\-COMP}] - Component MO Class ID. 
+\end{description}
+\end{Desc}
+
+\subsection{clCpmCompProcessRel}
+\index{clCpmCompProcessRel@{clCpmCompProcessRel}}
+ \begin{tabbing}
+ xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum clCpmCompProcessRel \{}\\
+ \>\>\>\>\textit{CL\_CPM\_COMP\_NONE = 0,}\\
+ \>\>\>\>\textit{CL\_CPM\_COMP\_MULTI\_PROCESS = 1,}\\
+ \>\>\>\>\textit{CL\_CPM\_COMP\_SINGLE\_PROCESS = 2,}\\
+ \>\>\>\>\textit{CL\_CPM\_COMP\_THREADED = 3}\\
+ \textit{\} ClCpmCompProcessRelT;}\\
+\end{tabbing}
+The enumeration, {\tt{ClCpmCompProcessRelT}}, represents the relationship between the component and the process. 
+\begin{Desc}
+\item[Enumeration values: ]\par
+\begin{description}
+\item[{\em CL\_\-CPM\_\-COMP\_\-NONE}] - This indicates that the component does not have any execution context. 
+\item[{\em CL\_\-CPM\_\-COMP\_\-MULTI\_\-PROCESS}] - This indicates that the component consists of multiple processes. 
+\item[{\em CL\_\-CPM\_\-COMP\_\-SINGLE\_\-PROCESS}] - This indicates the that component consists of a single process. 
+\item[{\em CL\_\-CPM\_\-COMP\_\-THREADED}] - This indicates that the component consists of multiple threads, but the process does not belong to the 
+component. 
+\end{description}
+\end{Desc}
+
+\subsection{ClCpmCompRequestTypeT}
+\index{ClCpmCompRequestTypeT@{ClCpmCompRequestTypeT}}
+\begin{tabbing}
+ xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_CPM\_HEALTHCHECK = 1,}\\
+\>\>\>\>\textit{CL\_CPM\_TERMINATE = 2,}\\
+\>\>\>\>\textit{CL\_CPM\_PROXIED\_INSTANTIATE = 3,}\\
+\>\>\>\>\textit{CL\_CPM\_PROXIED\_CLEANUP = 4,}\\
+\>\>\>\>\textit{CL\_CPM\_EXTN\_HEALTHCHECK = 5,}\\
+\>\>\>\>\textit{CL\_CPM\_INSTANTIATE = 6,}\\
+\>\>\>\>\textit{CL\_CPM\_CLEANUP = 7,}\\
+\>\>\>\>\textit{CL\_CPM\_RESTART = 8}\\
+\textit{\} ClCpmCompRequestTypeT;}\\
+\end{tabbing}
+The enumeration, {\tt{ClCpmCompRequestTypeT}}, defines the request types executed by the Component Manager, using the registered function callback. \begin{Desc}
+\item[Enumeration values: ]\par
+\begin{description}
+\item[{\em CL\_\-CPM\_\-HEALTHCHECK}] - SA Forum compliant health check request. 
+\item[{\em CL\_\-CPM\_\-TERMINATE}] - SA Forum and Proxied component terminate request. 
+\item[{\em CL\_\-CPM\_\-PROXIED\_\-INSTANTIATE}] - Proxied component instantiation request. 
+\item[{\em CL\_\-CPM\_\-PROXIED\_\-CLEANUP}] - Proxied component cleanup request. 
+\item[{\em CL\_\-CPM\_\-EXTN\_\-HEALTHCHECK}] - Component extensive healthcheck request. 
+\item[{\em CL\_\-CPM\_\-INSTANTIATE}] - SA Forum ot Non-proxied component instantiation request. 
+\item[{\em CL\_\-CPM\_\-CLEANUP}] - Component cleanup request. 
+\item[{\em CL\_\-CPM\_\-RESTART}] - Component restart request. 
+\end{description}
+\end{Desc}
+
+\subsection{ClCpmCSISetCallbackT}
+\index{ClCpmEventTypeT@{ClCpmEventTypeT}}
+   \begin{tabbing}
+ xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+ \>\>\>\>\textit{CL\_CPM\_COMP\_EVENT,}\\
+ \>\>\>\>\textit{CL\_CPM\_NODE\_EVENT}\\
+ \textit{\} ClCpmEventTypeT;}\\
+\end{tabbing}
+The enumeration, {\tt{ClCpmEventTypeT}}, contains the types of the events published by the Component Manager. 
+\begin{Desc}
+\item[Enumeration values: ]\par
+\begin{description}
+\item[{\em CL\_\-CPM\_\-COMP\_\-EVENT}] - Event that is published when a component fails. 
+\item[{\em CL\_\-CPM\_\-NODE\_\-EVENT}] - Event that is published when a node arrives/departs. 
+\end{description}
+\end{Desc}
+
+
+
+
+\subsection{ClCpmSlotInfoFieldIdT}
+\index{ClCpmSlotInfoFieldIdT@{ClCpmSlotInfoFieldIdT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_CPM\_SLOT\_ID,}\\
+\>\>\>\>\textit{CL\_CPM\_IOC\_ADDRESS,}\\
+\>\>\>\>\textit{CL\_CPM\_NODE\_MOID,}\\
+\>\>\>\>\textit{CL\_CPM\_NODENAME}\\
+\textit{\} ClCpmSlotInfoFieldIdT;}\end{tabbing}
+
+The enumeration, {\tt{ClCpmSlotInfoFieldIdT}}, indicates which field of {\tt{Cl\-Cpm\-Slot\-Info\-T}} is set and 
+other information related to it.
+
+\begin{Desc}
+\item[Enumeration values: ]\par
+\begin{description}
+\item[{\em CL\_\-CPM\_\-SLOT\_\-ID}]
+\item[{\em CL\_\-CPM\_\-IOC\_\-ADDRESS}]
+\item[{\em CL\_\-CPM\_\-NODE\_\-MOID}]
+\item[{\em CL\_\-CPM\_\-NODENAME}]
+\end{description}
+\end{Desc}
+
+
+
+
+\subsection{ClEoFunctionsIdT}
+\index{ClEoFunctionsIdT@{ClEoFunctionsIdT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_EO\_INITIALIZE\_COMMON\_FN\_ID = 0,}\\
+\>\>\>\>\textit{CL\_EO\_GET\_STATE\_COMMON\_FN\_ID =}\\
+\>\>\>\>\>\>\textit{CL\_EO\_GET\_FULL\_FN\_NUM(CL\_EO\_EO\_MGR\_CLIENT\_TABLE\_ID, 0),}\\
+\>\>\>\>\textit{CL\_EO\_SET\_STATE\_COMMON\_FN\_ID =}\\
+\>\>\>\>\>\>\textit{CL\_EO\_GET\_FULL\_FN\_NUM(CL\_EO\_EO\_MGR\_CLIENT\_TABLE\_ID, 1),}\\
+\>\>\>\>\textit{CL\_EO\_IS\_ALIVE\_COMMON\_FN\_ID =}\\
+\>\>\>\>\>\>\textit{CL\_EO\_GET\_FULL\_FN\_NUM(CL\_EO\_EO\_MGR\_CLIENT\_TABLE\_ID, 2),}\\
+\>\>\>\>\textit{CL\_EO\_GET\_RMD\_STATS =}\\
+\>\>\>\>\>\>\textit{CL\_EO\_GET\_FULL\_FN\_NUM(CL\_EO\_EO\_MGR\_CLIENT\_TABLE\_ID, 3),}\\
+\>\>\>\>\textit{CL\_EO\_SET\_PRIORITY =}\\
+\>\>\>\>\>\>\textit{CL\_EO\_GET\_FULL\_FN\_NUM(CL\_EO\_EO\_MGR\_CLIENT\_TABLE\_ID, 4),}\\
+\>\>\>\>\textit{CL\_EO\_LOG\_LEVEL\_SET =}\\
+\>\>\>\>\>\>\textit{CL\_EO\_GET\_FULL\_FN\_NUM(CL\_EO\_EO\_MGR\_CLIENT\_TABLE\_ID, 5),}\\
+\>\>\>\>\textit{CL\_EO\_LOG\_LEVEL\_GET =}\\
+\>\>\>\>\>\>\textit{CL\_EO\_GET\_FULL\_FN\_NUM(CL\_EO\_EO\_MGR\_CLIENT\_TABLE\_ID, 6),}\\
+\>\>\>\>\textit{CL\_EO\_LAST\_COMMON\_FN\_ID}\\
+\textit{\} ClEoFunctionsIdT;}\\
+\end{tabbing}
+
+The enumeration, {\tt{ClEoFunctionsIdT}}, defines the RMD number for the Component Manager EO management client installed on each EO. 
+
+\begin{Desc}
+\item[Enumeration values: ]\par
+\begin{description}
+\item[{\em CL\_\-EO\_\-INITIALIZE\_\-COMMON\_\-FN\_\-ID}] - EO initialization function. 
+\item[{\em CL\_\-EO\_\-GET\_\-STATE\_\-COMMON\_\-FN\_\-ID}] - EO Get State. 
+\item[{\em CL\_\-EO\_\-SET\_\-STATE\_\-COMMON\_\-FN\_\-ID}] - EO Set State. 
+\item[{\em CL\_\-EO\_\-IS\_\-ALIVE\_\-COMMON\_\-FN\_\-ID}] - Pings an EO. 
+\item[{\em CL\_\-EO\_\-GET\_\-RMD\_\-STATS}] - Returns RMD state of an EO. 
+\item[{\em CL\_\-EO\_\-SET\_\-PRIORITY}] - Sets the thread priority of EO Threads. 
+\item[{\em CL\_\-EO\_\-LOG\_\-LEVEL\_\-SET}] - Sets the log level of the EO. 
+\item[{\em CL\_\-EO\_\-LOG\_\-LEVEL\_\-GET}] - Retrieves the log level of the EO. 
+\item[{\em CL\_\-EO\_\-LAST\_\-COMMON\_\-FN\_\-ID}] - End of EO Function. 
+\end{description}
+\end{Desc}
+
+\newpage
+\section{Functional APIs}
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm102}{}\paragraph{cl\-Cpm\-Func\-EOWalk}\label{pagecpm102}
+\begin{Desc}
+\item[Synopsis:]Performs a walk operation through all the EOs.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    extern ClRcT clCpmFuncEOWalk(
+                			CL_IN ClCpmFuncWalkT *pWalk);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Walk:}]Contains information regarding the walk.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-CPM\_\-ERR\_\-NULL\_\-PTR:}]{\tt{pWalk}} is a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-VERSION\_\-MISMATCH:}]The version of the client and server is incompatible.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to perform a walk operation on all the components registered with the Component Manager. It invokes the function 
+with arguments, such as the function number and input buffer in {\tt{p\-Walk}}, on all the components registered with the component manager.\end{Desc}
+{\bf Note:} This is a synchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Execution\-Object\-State\-Set} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm103}{}\paragraph{cl\-Cpm\-Execution\-Object\-State\-Set}\label{pagecpm103}
+\begin{Desc}
+\item[Synopsis:]Sets the state of an EO.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmExecutionObjectStateSet(
+                			CL_IN ClIocNodeAddressT destAddr,
+                			CL_IN ClUint32T eoId,
+                			CL_IN ClEoStateT state);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em dest\-Addr:}]Address of the Component Manager. \item[{\em eo\-Id:}]ID of the EO. \item[{\em state:}]New state being assigned to the EO.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set the state of an EO, as specified by the parameter {\tt {state}}. After calling this function, 
+the component, identified by {\tt{eo\-Id}}, on the node having the address {\tt{dest\-Addr}}, is set to the state, {\tt{state}}.\end{Desc}
+{\bf Note:} This is a synchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]None. \end{Desc}
+
+\newpage
+
+
+
+
+
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm105}{}\paragraph{cl\-Cpm\-Boot\-Level\-Get}\label{pagecpm105}
+\begin{Desc}
+\item[Synopsis:]Retrieves the current boot-level of a node.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmBootLevelGet(
+                			CL_IN ClNameT     *pNodeName,
+                			CL_OUT ClUint32T  *pBootLevel);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Node\-Name:}]Pointer to the name of the node whose boot-level is to be returned. 
+\item[{\em p\-Boot\-Level:}](out) Boot level of the node, {\tt{p\-Node\-Name}}.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pNodeName}} or {\tt{pBootLevel}} is a NULL 
+pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the current boot-level of the node. The boot-level returned by this function indicates the level upto 
+which the node, {\tt{p\-Node\-Name}}, has been re-booted.\end{Desc}
+{\bf Note:} This is a synchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Boot\-Level\-Set}, \hyperlink{group__group14}{cl\-Cpm\-Boot\-Level\-Max} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm106}{}\paragraph{cl\-Cpm\-Boot\-Level\-Set}\label{pagecpm106}
+\begin{Desc}
+\item[Synopsis:]Sets the boot-level of a node.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmBootLevelSet(
+                			CL_IN ClNameT             *pNodeName,
+                			CL_IN ClCpmLcmReplyT      *pSrcInfo,
+                			CL_IN ClUint32T           bootLevel);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Node\-Name:}]Pointer to the name of the node whose boot-level is to be set.
+\item[{\em p\-Src\-Info:}]Pointer to the source information, where the reply to the requested operation is expected. 
+If a response is not required, this can be set to NULL.
+\item[{\em boot\-Level:}]Boot-level to be set for the node.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pNodeName}} or {\tt{pSrcInfo}} is a NULL pointer.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set the boot-level of the node. If {\tt{boot\-Level}} is greater than the current boot-level, 
+CPM boots all the service units mentioned in subsequent boot-levels up to the required boot-level. If {\tt{boot\-Level}} is lesser than the 
+current boot-level, CPM terminates all the service units listed above the {\tt{boot\-Level}}.\end{Desc}
+{\bf Note:} This is an asynchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Boot\-Level\-Get} , \hyperlink{group__group14}{cl\-Cpm\-Boot\-Level\-Max} \end{Desc}
+
+\newpage
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm107}{}\paragraph{cl\-Cpm\-Boot\-Level\-Max}\label{pagecpm107}
+\begin{Desc}
+\item[Synopsis:]Returns the maximum boot-level of a node.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmBootLevelMax(
+                			CL_IN ClNameT     *pNodeName,
+                			CL_OUT ClUint32T  *pBootLevel);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Node\-Name:}]Pointer to the name of the node whose boot-level is returned. 
+\item[{\em p\-Boot\-Level:}](out) Maximum boot-level of the node {\tt{p\-Node\-Name}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pNodeName}} or {\tt{pBootLevel}} contains a NULL 
+pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the maximum possible boot-level of the node. This indicates the maximum level upto which the node, 
+{\tt{p\-Node\-Name}}, can be rebooted.\end{Desc}
+{\bf Note:} This is a synchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Boot\-Level\-Get}, \hyperlink{group__group14}{cl\-Cpm\-Boot\-Level\-Set} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm108}{}\paragraph{cl\-Cpm\-Client\-Initialize}\label{pagecpm108}
+\begin{Desc}
+\item[Synopsis:]Initializes the client Component Manager library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmClientInitialize(
+                			CL_IN     ClCpmHandleT            *pCpmHandle,
+                			CL_IN     const ClCpmCallbacksT   *pCallback,
+                			CL_INOUT  ClVersionT              *pVersion)
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Cpm\-Handle:}]Handle of the component. 
+\item[{\em p\-Callback:}]Callback functions provided by the application to the Component Manager. 
+\item[{\em p\-Version:}]Required version number.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pCpmHandle}}, {\tt{pCallback}}, or {\tt{pVersion}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]Before invoking this function, the EO must be created. This function is used to update the EO client table internally based on 
+{\tt{Cl\-Cpm\-Callbacks\-T}}. It also ensures that the version of Component Manager client and Server Libraries are
+compatible.
+\end{Desc}
+\begin{Desc}
+\item[Note:]This function is equivalent to {\tt{sa\-Amf\-Initialize}}, which makes a synchronous call.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Finalize} \end{Desc}
+
+\newpage
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm109}{}\paragraph{cl\-Cpm\-Client\-Finalize}\label{pagecpm109}
+\begin{Desc}
+\item[Synopsis:]Frees the client Component Manager library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmClientFinalize(
+                			CL_IN ClCpmHandleT cpmHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by {\tt{cl\-Cpm\-Client\-Initialize()}} function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to free the client Component Manager library. It releases all the resources acquired when
+{\tt{cl\-Cpm\-Client\-Initialize()}} function was called. After this function is executed, {\tt{cpm\-Handle}} becomes 
+invalid.
+\end{Desc}
+\begin{Desc}
+\item[Note:]This function is equivalent to {\tt{sa\-Amf\-Finalize}}, which makes an asynchronous call.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize} \end{Desc}
+\newpage
+
+
+
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm110}{}\paragraph{cl\-Cpm\-Selection\-Object\-Get}\label{pagecpm110}
+\begin{Desc}
+\item[Synopsis:]Returns an operating system handle for detecting pending callbacks.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmSelectionObjectGet(
+                			CL_IN     ClCpmHandleT        cpmHandle,
+                			CL_OUT    ClSelectionObjectT  *pSelectionObject);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by {\tt{cl\-Cpm\-Client\-Initialize()}} function. 
+\item[{\em p\-Selection\-Object:}]Pointer to the operating system handle that the process can use to detect pending callbacks.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+
+\begin{Desc}
+\item[Description:]This function returns the operating system handle, {\tt{p\-Selection\-Object}}, associated with the handle, {\tt{cpm\-Handle}}. The 
+process can use this operating system handle to detect pending callbacks, instead of repeatedly invoking {\tt{cl\-Cpm\-Dispatch()}} for this purpose. 
+\par
+ The operating system handle returned by this function is a file descriptor that is used with {\tt{poll()}} or {\tt{select()}} systems call to detect 
+ incoming callbacks. \par
+ The {\tt{p\-Selection\-Object}}, returned by this function, is valid until {\tt{cl\-Cpm\-Client\-Finalize()}} is invoked on the same handle
+ {\tt{cpm\-Handle}}.
+ \end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize}, \hyperlink{group__group14}{cl\-Cpm\-Dispatch} \end{Desc}
+
+\newpage
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm111}{}\paragraph{cl\-Cpm\-Dispatch}\label{pagecpm111}
+\begin{Desc}
+\item[Synopsis:]Invokes pending callbacks.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmDispatch(
+                			CL_IN     ClCpmHandleT        cpmHandle,
+                			CL_OUT    ClDispatchFlagsT    dispatchFlags);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by {\tt{cl\-Cpm\-Client\-Initialize()}} function. 
+\item[{\em dispatch\-Flags:}]Flags that specify the callback execution behaviour of this function.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function invokes, in the context of the calling EO, pending callbacks for the handle, {\tt{cpm\-Handle}}, as specified by the 
+{\tt{dispatch\-Flags}} parameter.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize} , \hyperlink{group__group14}{cl\-Cpm\-Selection\-Object\-Get} \end{Desc}
+
+\newpage
+
+
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm112}{}\paragraph{cl\-Cpm\-Component\-Register}\label{pagecpm112}
+\begin{Desc}
+\item[Synopsis:]Registers a component with CPM.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmComponentRegister(
+                			CL_IN ClCpmHandleT    cpmHandle,
+                			CL_IN const ClNameT   *pCompName,
+                			CL_IN const ClNameT   *pProxyCompName);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by the {\tt{cl\-Cpm\-Client\-Initialize()}} function. 
+\item[{\em p\-Comp\-Name:}]Name of the component.
+\item[{\em p\-Proxy\-Comp\-Name:}]Name of the component that is a proxy for {\tt{p\-Comp\-Name}}.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pCompName}} or {\tt{pProxyCompName}} contains a NULL pointer. 
+\item[{\em CL\_\-CPM\_\-ERR\_\-INIT:}]The callbacks are provided during initialization is not correct. 
+\item[{\em CL\_\-CPM\_\-ERR\_\-EXIST:}] The component has already been registered.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to register a component with CPM. It can also be used by a proxy component to register a proxied component. By 
+calling this function, the component indicates that it is up and running, and is ready to provide service.\end{Desc}
+\begin{Desc}
+\item[Note:]This function is equivalent to {\tt{sa\-Amf\-Component\-Register}}, which makes a synchronous call.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Component\-Unregister} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm113}{}\paragraph{cl\-Cpm\-Component\-Unregister}\label{pagecpm113}
+\begin{Desc}
+\item[Synopsis:]De-registers a component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmComponentUnregister(
+                			CL_IN ClCpmHandleT    cpmHandle,
+                			CL_IN const ClNameT   *pCompName,
+                			CL_IN const ClNameT   *pProxyCompName);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by the {\tt{cl\-Cpm\-Client\-Initialize()}} function. 
+\item[{\em p\-Comp\-Name:}]Name of the component. 
+\item[{\em p\-Proxy\-Comp\-Name:}]Name of the component proxied by the component, {\tt{p\-Comp\-Name}}.
+\end{description}
+\end{Desc}
+
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pCompName}} or {\tt{pProxyCompName}} contains a NULL pointer. 
+\item[{\em CL\_\-CPM\_\-ERR\_\-BAD\_\-OPERATION:}]The component, {\tt{p\-Comp\-Name}}, has not de-registered all the proxied components or 
+{\tt{proxy\-Comp}} is not the proxy for {\tt{p\-Comp\-Name}}.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used for two purposes: A proxy component can de-register one of its proxied components or a component can de-register 
+itself. The {\tt{cpm\-Handle}} in this function must be same as that used in the corresponding {\tt{cl\-Cpm\-Component\-Register()}} call.\end{Desc}
+\begin{Desc}
+\item[Note:]This function is equivalent to {\tt{sa\-Amf\-Component\-Unregister()}}, which makes an asynchronous call.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize}, \hyperlink{group__group14}{cl\-Cpm\-Component\-Register} \end{Desc}
+\newpage
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm114}{}\paragraph{cl\-Cpm\-Component\-Name\-Get}\label{pagecpm114}
+\begin{Desc}
+\item[Synopsis:]Retrieves the component name.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmComponentNameGet(
+                			CL_IN ClCpmHandleT cpmHandle,
+                			CL_OUT ClNameT     *pCompName);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by the {\tt{cl\-Cpm\-Client\-Initialize()}} function.
+\item[{\em p\-Comp\-Name:}]Name of the component.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pCompName}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function returns the name of the component that the calling process belongs to. This function can be invoked by the process
+before its component is registered with CPM. The name of the component provided by this function should be used by a process, when it registers its local 
+component.\end{Desc}
+\begin{Desc}
+\item[Note:]This function is equivalent to {\tt{sa\-Amf\-Component\-Name\-Get()}}.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize}, \hyperlink{group__group14}{cl\-Cpm\-Component\-Register} \end{Desc}
+\newpage
+
+
+
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm115}{}\paragraph{cl\-Cpm\-Response}\label{pagecpm115}
+\begin{Desc}
+\item[Synopsis:]Returns the response with the corresponding handle and {\tt{invocation}}.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmResponse(
+                			CL_IN ClCpmHandleT    cpmHandle,
+                			CL_IN ClInvocationT   invocation
+                			CL_IN CLRcT           rc);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by the {\tt{cl\-Cpm\-Client\-Initialize()}} function. 
+\item[{\em invocation:}]Associates an invocation of this response function with a particular invocation of a callback function by CPM.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to provide a response about the success or failure of the callback invoked by CPM. The component responds to CPM 
+with the result of its execution of a particular request of the CPM, identified by {\tt{invocation}}.\end{Desc}
+\begin{Desc}
+\item[Note:]This function is equivalent to {\tt{sa\-Amf\-Response()}}.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize}, \hyperlink{group__group14}{cl\-Cpm\-Component\-Register} \end{Desc}
+\newpage
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm116}{}\paragraph{cl\-Cpm\-HAState\-Get}\label{pagecpm116}
+\begin{Desc}
+\item[Synopsis:]Returns the HA state of the component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmHAStateGet(
+                  			CL_IN ClCpmHandleT    cpmHandle,
+                  			CL_IN   ClNameT         *compName,
+                  			CL_IN   ClNameT         *csiName,
+                  			CL_OUT  ClAmsHAStateT   *haState);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by the {\tt{cl\-Cpm\-Client\-Initialize()}} API. 
+\item[{\em comp\-Name:}]Pointer to the name of the component for which the information is requested.
+\item[{\em csi\-Name:}]Pointer to the name of the component service instance for which the information is requested.
+\item[{\em ha\-State:}]Pointer to the HA state that the AMS is assigning to the component, {\tt{comp\-Name}}, on behalf of the component service instance,
+{\tt{csi\-Name}}.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{compName}}, {\tt{csiName}}, or {\tt{haState}} contains a NULL pointer.
+\item[{\em CL\_\-ERR\_\-DOESNT\_\-EXIST:}]CPM library is not able to retrieve the node\-Name.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function returns the HA state of a component, {\tt{comp\-Name}}, on behalf of the component service instance, {\tt{csi\-Name}}. The
+HA state of the component indicates if it is currently responsible to provide service characterized by the component service instance assigned to it, if 
+it is a standby, or if it is in the quiesced state.
+\end{Desc}
+\begin{Desc}
+\item[Library Files:]lib\-Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clCkptLibraryCkptCreate}
+\index{clCkptLibraryCkptCreate@{clCkptLibraryCkptCreate}}
+\hypertarget{pagecpm117}{}\paragraph{cl\-Cpm\-CSIQuiescing\-Complete}\label{pagecpm117}
+\begin{Desc}
+\item[Synopsis:]Returns the status of HA state quiescing with the corresponding handle and {\tt{invocation}}.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmCSIQuiescingComplete(
+                			CL_IN ClCpmHandleT    cpmHandle,
+                			CL_IN ClInvocationT   invocation
+                			CL_IN CLRcT           rc);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by the {\tt{cl\-Cpm\-Client\-Initialize()}} function. 
+\item[{\em invocation:}]Associates the {\tt{invocation}} of this function with a particular invocation of a callback function by CPM.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to respond with the success and failure information of the callback invoked by CPM, for quiescing the HA state 
+of a given CSI. The AMS requests to enter the {\tt{CL\_\-AMS\_\-HA\_\-STATE\_\-QUIESCING}} HA state for that particular component service instance or to
+all component service instances. Using this call, a component can notify CPM that it has successfully stopped its activity related to a particular
+component service instance or to all component service instances assigned to it. \end{Desc}
+\begin{Desc}
+\item[Note:]This function is equivalent to {\tt{sa\-Amf\-CSIQuiescing\-Complete()}}.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize} \hyperlink{group__group14}{cl\-Cpm\-Component\-Register} \hyperlink{group__group14}{cl\-Cpm\-Response} \end{Desc}
+
+\newpage
+
+
+
+\subsection{clCpmComponentFailureReport}
+\index{clCpmComponentFailureReport@{clCpmComponentFailureReport}}
+\hypertarget{pagecpm121}{}\paragraph{cl\-Cpm\-Component\-Failure\-Report}\label{pagecpm121}
+\begin{Desc}
+\item[Synopsis:]Notifies about the failed component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmComponentFailureReport(
+                			CL_IN ClCpmHandleT                cpmHandle,
+                			CL_IN const ClNameT               *pCompName,
+                			CL_IN ClTimeT                     errorDetectionTime,
+                			CL_IN ClAmsRecommendedRecoveryT   recommendedRecovery,
+                			CL_IN ClUint32T                   alarmHandle)
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by {\tt{cl\-Cpm\-Client\-Initialize()}} function. 
+\item[{\em p\-Comp\-Name:}]Pointer to the name of the component for which the failure is notified. 
+\item[{\em error\-Detection\-Time:}]Time when the error is detected. 
+\item[{\em recommonded\-Recovery:}]Recommonded recovery to be performed by AMF. 
+\item[{\em alarm\-Handle:}]Key returned by the {\tt{cl\-Alarm\-Raise()}} function.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pCompName}} contains a NULL pointer.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to notify the Component Manager about the failure of a component. It reports an error and provides a recovery 
+recommendation to the AMF. AMF responds to the error report and performs a recovery operation to retain the availability of component service instances
+supported by the erroneous component. AMF does not perform a recovery action other than that recommended by this function, but it can decide to escalate
+to the higher recovery level.\end{Desc}
+\begin{Desc}
+\item[Note:]This function is equivalent to {\tt{sa\-Amf\-Component\-Failure\-Report()}}, which makes a synchronous call.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize}, \hyperlink{group__group14}{cl\-Cpm\-Component\-Failure\-Clear} \end{Desc}
+
+\newpage
+
+
+
+
+
+\subsection{clCpmComponentFailureClear}
+\index{clCpmComponentFailureClear@{clCpmComponentFailureClear}}
+\hypertarget{pagecpm122}{}\paragraph{cl\-Cpm\-Component\-Failure\-Clear}\label{pagecpm122}
+\begin{Desc}
+\item[Synopsis:]Notifies about the restoration of the failed component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmComponentFailureClear(
+                			CL_IN ClCpmHandleT    cpmHandle,
+                			CL_IN ClNameT         *pCompName)
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by the {\tt{cl\-Cpm\-Client\-Initialize()}} function. 
+\item[{\em p\-Comp\-Name:}]Pointer to the name of the component for which the failure is notified.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pCompName}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to notify the Component Manager that the failed component is restored. It cancels the failure notification made
+by the {\tt{cl\-Cpm\-Component\-Failure\-Report()}} function.\end{Desc}
+\begin{Desc}
+\item[Note:]This function is equivalent to {\tt{sa\-Amf\-Component\-Failure\-Clear()}}, which makes a synchronous call.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize}, \hyperlink{group__group14}{cl\-Cpm\-Component\-Failure\-Report} \end{Desc}
+
+\newpage
+
+
+
+
+
+
+\subsection{clCpmProtectionGroupTrack}
+\index{clCpmProtectionGroupTrack@{clCpmProtectionGroupTrack}}
+\hypertarget{pagecpm123}{}\paragraph{cl\-Cpm\-Protection\-Group\-Track}\label{pagecpm123}
+\begin{Desc}
+\item[Synopsis:]Tracks the protection group for the given CSI.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmProtectionGroupTrack(
+                      			CL_IN   ClCpmHandleT                cpmHandle,
+                      			CL_IN   ClNameT                     *csiName,
+                      			CL_IN   ClUint8T                    trackFlags,
+                      			CL_INOUT  ClAmsPGNotificationT    *notificationBuffer);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by {\tt{cl\-Cpm\-Client\-Initialize()}} function. 
+\item[{\em p\-Csi\-Name:}]Pointer to the CSI for which the protection group needs to be tracked. 
+\item[{\em track\-Flags:}]The type of tracking that is requested. This is bitwise OR of one or more of the flags 
+{\tt{CL\_\-AMS\_\-PG\_\-TRACK\_\-CURRENT}}, {\tt{CL\_\-AMS\_\-PG\_\-TRACK\_\-CHANGES}}, or {\tt{CL\_\-AMS\_\-PG\_\-TRACK\_\-CHANGES\_\-ONLY}}. 
+\item[{\em p\-Notification\-Buffer:}]Pointer to a buffer of type {\tt{Cl\-Ams\-PGNotification\-T}}. This parameter is ignored, if
+{\tt{CL\_\-AMS\_\-PG\_\-TRACK\_\-CURRENT}} is not set in {\tt{track\-Flags}}; otherwise, if {\tt{notification\-Buffer}} is not NULL, the buffer will
+contain information about all components in the protection group when {\tt{cl\-Cpm\-Protection\-Group\-Track()}} returns.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{csiName}} or {\tt{notificationBuffer}}
+contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to request AMF to start tracking changes in the protection group associated with the component service instance, 
+{\tt{csi\-Name}}, or changes to attributes of any component in the protection group. These changes are notified through the invocation of the
+{\tt{Cl\-Cpm\-Protection\-Group\-Track\-Callback\-T()}} callback function, obtained using the {\tt{cl\-Cpm\-Client\-Initialize()}} function.\end{Desc}
+\begin{Desc}
+\item[Note:]This function is equivalent to {\tt{sa\-Amf\-Protection\-Group\-Track()}}, which makes a synchronous call.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize}, \hyperlink{group__group14}{cl\-Cpm\-Protection\-Group\-Track\-Stop} \end{Desc}
+\newpage
+
+
+
+
+
+
+
+\subsection{clCpmProtectionGroupTrackStop}
+\index{clCpmProtectionGroupTrackStop@{clCpmProtectionGroupTrackStop}}
+\hypertarget{pagecpm124}{}\paragraph{cl\-Cpm\-Protection\-Group\-Track\-Stop}\label{pagecpm124}
+\begin{Desc}
+\item[Synopsis:]Stops tracking the protection group for the given CSI.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmProtectionGroupTrackStop(
+                      			CL_IN   ClCpmHandleT            cpmHandle,
+                      			CL_IN   ClNameT                 *pCsiName)
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by {\tt{cl\-Cpm\-Client\-Initialize()}} function. 
+\item[{\em p\-Csi\-Name:}]Pointer to the CSI for which protection group needs to be tracked.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pCsiName}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]The invoking process requests Availability Management Framework to stop tracking protection group changes for the component service
+instance, {\tt{p\-Csi\-Name}}.
+\end{Desc}
+\begin{Desc}
+\item[Note:]This function is equivalent to {\tt{sa\-Amf\-Protection\-Group\-Track\-Stop()}}, which makes a synchronous call.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Client\-Initialize}, \hyperlink{group__group14}{cl\-Cpm\-Protection\-Group\-Track} \end{Desc}
+
+\newpage
+
+
+
+\subsection{clCpmComponentInstantiate}
+\index{clCpmComponentInstantiate@{clCpmComponentInstantiate}}
+\hypertarget{pagecpm125}{}\paragraph{cl\-Cpm\-Component\-Instantiate}\label{pagecpm125}
+\begin{Desc}
+\item[Synopsis:]Instantiates a component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmComponentInstantiate(
+                			CL_IN ClNameT             *pCompName,
+                			CL_IN ClNameT             *pNodeName,
+                			CL_IN ClCpmLcmReplyT      *pSrcInfo);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Comp\-Name:}]Name of the component being instantiated. 
+\item[{\em p\-Node\-Name:}]Pointer to the name of the node where {\tt{p\-Comp\-Name}} exists. 
+\item[{\em p\-Src\-Info:}]Pointer to the source information, where the reply to the requested operation is expected. If a response is not required, this
+can be set to NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{p\-Comp\-Name}}, {\tt{p\-Node\-Name}}, or {\tt{p\-Scr\-Info}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to instantiate the component, {\tt{p\-Comp\-Name}}, on the node, {\tt{p\-Node\-Name}}. If {\tt{p\-Src\-Info}} is 
+NULL, the reply regarding the success or failure in instantiating the component, is not sent. Otherwise, the reply is sent to the requested port through 
+an RMD call, as specified by the attributes of the structure {\tt{p\-Src\-Info}}.\end{Desc}
+{\bf Note:} This is an asynchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Component\-Terminate}, \hyperlink{group__group14}{cl\-Cpm\-Component\-Cleanup},
+\hyperlink{group__group14}{cl\-Cpm\-Component\-Restart} \end{Desc}
+\newpage
+
+
+
+
+
+
+
+
+\subsection{clCpmComponentTerminate}
+\index{clCpmComponentTerminate@{clCpmComponentTerminate}}
+\hypertarget{pagecpm126}{}\paragraph{cl\-Cpm\-Component\-Terminate}\label{pagecpm126}
+\begin{Desc}
+\item[Synopsis:]Terminates the component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmComponentTerminate(
+                			CL_IN ClNameT             *pCompName,
+                			CL_IN ClNameT             *pNodeName,
+                			CL_IN ClCpmLcmReplyT      *pSrcInfo);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Comp\-Name:}]Name of the component being terminated.
+\item[{\em p\-Node\-Name:}]Pointer to the name of the node, where {\tt{p\-Comp\-Name}} exist.
+\item[{\em p\-Src\-Info:}]Pointer to the source information, where the reply of the requested operation is expected. If a response is not required, this
+can be set to NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{p\-Comp\-Name}}, {\tt{p\-Node\-Name}}, or {\tt{p\-Scr\-Info}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to terminate (graceful shut-down) the component, {\tt{p\-Comp\-Name}}, on the node {\tt{p\-Node\-Name}}. If 
+{\tt{p\-Src\-Info}} is NULL, the reply regarding the success or failure in terminating the component is not sent. Otherwise, a reply is sent to the 
+requested port through an RMD call, as specified by the attrbutes of the structure, {\tt{p\-Src\-Info}}.\end{Desc}
+{\bf Note:} This is an asynchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Component\-Instantiate}, \hyperlink{group__group14}{cl\-Cpm\-Component\-Cleanup}, \hyperlink{group__group14}{cl\-Cpm\-Component\-Restart} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clCpmComponentCleanup}
+\index{clCpmComponentCleanup@{clCpmComponentCleanup}}
+\hypertarget{pagecpm127}{}\paragraph{cl\-Cpm\-Component\-Cleanup}\label{pagecpm127}
+\begin{Desc}
+\item[Synopsis:]Frees a component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmComponentCleanup(
+                			CL_IN ClNameT             *pCompName,
+                			CL_IN ClNameT             *pNodeName,
+                			CL_IN ClCpmLcmReplyT      *pSrcInfo);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Comp\-Name:}]Name of the component to be freed. 
+\item[{\em p\-Node\-Name:}]Pointer to the name of the node where {\tt{p\-Comp\-Name}} exists.
+\item[{\em p\-Src\-Info:}]Pointer to the source information, where the reply of the requested operation is expected. If a response is not required, this 
+can be set to NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{p\-Comp\-Name}}, {\tt{p\-Node\-Name}}, or {\tt{p\-Scr\-Info}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to free (abrupt shutdown) the component, {\tt{p\-Comp\-Name}}, on the node, {\tt{p\-Node\-Name}}. If 
+{\tt{p\-Src\-Info}} is NULL, the reply regarding the success or failure in freeing the component is not sent. Otherwise, a reply is sent to the requested 
+port through an RMD call, as specified by the attributes of the structure, {\tt{p\-Src\-Info}}.\end{Desc}
+{\bf Note:} This is an asynchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Component\-Instantiate}, \hyperlink{group__group14}{cl\-Cpm\-Component\-Terminate}, 
+\hyperlink{group__group14}{cl\-Cpm\-Component\-Restart} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clCpmComponentRestart}
+\index{clCpmComponentRestart@{clCpmComponentRestart}}
+\hypertarget{pagecpm128}{}\paragraph{cl\-Cpm\-Component\-Restart}\label{pagecpm128}
+\begin{Desc}
+\item[Synopsis:]Restarts the component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmComponentRestart(
+                			ClNameT                   *pCompName,
+                			CL_IN ClNameT             *pNodeName,
+                			CL_IN ClCpmLcmReplyT      *pSrcInfo);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Comp\-Name:}]Name of the component that needs to be restarted. 
+\item[{\em p\-Node\-Name:}]Pointer to the name of the node where {\tt{p\-Comp\-Name}} exists. 
+\item[{\em p\-Src\-Info:}]Pointer to the source information, where the reply of the requested operation is expected. If a response is not required, this
+can be set to NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{p\-Comp\-Name}}, {\tt{p\-Node\-Name}}, or {\tt{p\-Scr\-Info}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to restart a given component, {\tt{p\-Comp\-Name}}, on node {\tt{p\-Node\-Name}}. If {\tt{p\-Src\-Info}} is NULL, 
+the reply regarding the success or failure in restarting the component is not sent. Otherwise, a reply is sent to the requested port through an RMD call, 
+as specified by the attributes of the structure, {\tt{p\-Src\-Info}}. The complete restart process includes, termination of the component, freeing it and 
+instantiating the component back to the earlier state.\end{Desc}
+{\bf Note:} This is an asynchronous function.
+
+\begin{Desc}
+\item[Warning:]The cleanup process will get executed only when (graceful) termination is failed. In this case, termination and cleanup will occur without
+deleting the communication port.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Component\-Instantiate}, \hyperlink{group__group14}{cl\-Cpm\-Component\-Terminate}, \hyperlink{group__group14}{cl\-Cpm\-Component\-Cleanup} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clCpmComponentIdGet}
+\index{clCpmComponentIdGet@{clCpmComponentIdGet}}
+\hypertarget{pagecpm130}{}\paragraph{cl\-Cpm\-Component\-Id\-Get}\label{pagecpm130}
+\begin{Desc}
+\item[Synopsis:]Returns the ID of the component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmComponentIdGet(
+                			CL_IN ClCpmHandleT    cpmHandle,
+                			CL_IN ClNameT         *pCompName,
+                			CL_OUT ClUint32T      *pCompId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em cpm\-Handle:}]Handle returned by {\tt{cl\-Cpm\-Client\-Initialize()}} function. 
+\item[{\em p\-Comp\-Name:}]Name of the component. 
+\item[{\em p\-Comp\-Id:}](out) Unique ID of the component.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pCompName}} or {\tt{pCompId}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the component ID for a component, {\tt{p\-Comp\-Name}}. This unique component ID is internal to the 
+node and is not known to outside entities. Every time a component is instantiated, a new component ID is assigned to it.\end{Desc}
+{\bf Note:} This is a synchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]None \end{Desc}
+\newpage
+
+
+
+
+
+
+\subsection{clCpmComponentAddressGet}
+\index{clCpmComponentAddressGet@{clCpmComponentAddressGet}}
+\hypertarget{pagecpm131}{}\paragraph{cl\-Cpm\-Component\-Address\-Get}\label{pagecpm131}
+\begin{Desc}
+\item[Synopsis:]Returns the IOC address of a component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmComponentAddressGet(
+                			CL_IN  ClIocNodeAddressT      nodeAddress,
+                			CL_IN  ClNameT                *pCompName,
+                			CL_OUT ClIocAddressT          *pCompAddress);
+\end{verbatim}
+\normalsize
+ \end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em node\-Address:}]IOC address of the node. 
+\item[{\em p\-Comp\-Name:}]Name of the component. 
+\item[{\em p\-Comp\-Address:}]IOC address of the component including port information.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pCompName}} or {\tt{pCompAddress}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the IOC address of the component, {\tt{p\-Comp\-Name}}. This is the physical address of the node where 
+CPM is running.\end{Desc}
+{\bf Note:} This is a synchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Component\-Status\-Get} \end{Desc}
+\newpage
+
+
+
+\subsection{clCpmComponentStatusGet}
+\index{clCpmComponentStatusGet@{clCpmComponentStatusGet}}
+\hypertarget{pagecpm132}{}\paragraph{cl\-Cpm\-Component\-Status\-Get}\label{pagecpm132}
+\begin{Desc}
+\item[Synopsis:]Returns the component presence and operational state.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    extern ClRcT clCpmComponentStatusGet(
+                  			CL_IN   ClNameT                 *pCompName,
+                  			CL_IN   ClNameT                 *pNodeName,
+                  			CL_OUT  ClAmsPresenceStateT     *pPresenceState,
+                  			CL_OUT  ClAmsOperationalStateT  *pOperationalState);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Comp\-Name:}]Name of the component. 
+\item[{\em p\-Node\-Name:}]IOC address of the component. 
+\item[{\em p\-Presence\-State:}]Presence state of the component. 
+\item[{\em p\-Operational\-State:}]Operational state of the component.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pCompName}}, {\tt{pNodeName}}, {\tt{pPresenceState}} or 
+{\tt{pOperationalState}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the presence and operational state of the component, {\tt{p\-Comp\-Name}}. The presence state of the
+component reflects the component life cycle and the operational state of the component is used by AMF to determine if a component is capable of handling 
+component service instance assignments.\end{Desc}
+{\bf Note:} This is a synchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Component\-Address\-Get} \end{Desc}
+\newpage
+
+
+
+\subsection{clCpmSUInstantiate}
+\index{clCpmSUInstantiate@{clCpmSUInstantiate}}
+\hypertarget{pagecpm133}{}\paragraph{cl\-Cpm\-SUInstantiate}\label{pagecpm133}
+\begin{Desc}
+\item[Synopsis:]Instantiates a given Service Unit (SU).\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmSUInstantiate(
+                			CL_IN ClNameT             *pSuName,
+                			CL_IN ClNameT             *pNodeName,
+                			CL_IN ClCpmLcmReplyT      *pSrcInfo);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Su\-Name:}]Pointer to the name of the SU being instantiated. 
+\item[{\em p\-Node\-Name:}]Pointer to the name of the node where p\-Su\-Name exists. \item[{\em p\-Src\-Info:}]Pointer to the source information, where 
+the reply of the requested operation is expected. If no response is required, pass this as NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pSuName}}, 
+{\tt{p\-Node\-Name}}, or {\tt{p\-Scr\-Info}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to instantiate the given SU. This is equivalent to instantiating all the components in a pre-defined order for a 
+given SU.\end{Desc}
+{\bf Note:} This is an asynchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-SUTerminate} \end{Desc}
+\newpage
+
+
+
+\subsection{clCpmSUTerminate}
+\index{clCpmSUTerminate@{clCpmSUTerminate}}
+\hypertarget{pagecpm134}{}\paragraph{cl\-Cpm\-SUTerminate}\label{pagecpm134}
+\begin{Desc}
+\item[Synopsis:]Terminates a given Service Unit (SU).\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmSUTerminate(
+                			CL_IN ClNameT             *pSuName,
+                			CL_IN ClNameT             *pNodeName,
+                			CL_IN ClCpmLcmReplyT      *pSrcInfo);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Su\-Name:}]Pointer to the name of the SU being terminated. \item[{\em p\-Node\-Name:}]Pointer to the name of the node where 
+{\tt{p\-Su\-Name}} exist. \item[{\em p\-Src\-Info:}]Pointer to the source information, where the reply of the requested operation is expected. If no 
+response is required, pass this as NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pSuName}}, 
+{\tt{p\-Node\-Name}}, or {\tt{p\-Scr\-Info}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to terminate a given SU. This is quivalent to terminating all the components in a pre-defined order for a given
+SU.\end{Desc}
+{\bf Note:} This is an asynchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-SUInstantiate} \end{Desc}
+\newpage
+
+
+
+\subsection{clCpmMasterAddressGet}
+\index{clCpmMasterAddressGet@{clCpmMasterAddressGet}}
+\hypertarget{pagecpm135}{}\paragraph{cl\-Cpm\-Master\-Address\-Get}\label{pagecpm135}
+\begin{Desc}
+\item[Synopsis:]Returns the IOC address of the master.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmMasterAddressGet(
+                			CL_OUT ClIocNodeAddressT *pIocAddress);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Ioc\-Address:}](out) IOC address of the master.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pIocAddress}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the IOC address of the master. The address returned by this function is the physical address of the
+node where the CPM/G is running.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Is\-Master} \end{Desc}
+\newpage
+
+
+
+
+
+
+\subsection{clCpmIsMaster}
+\index{clCpmIsMaster@{clCpmIsMaster}}
+\hypertarget{pagecpm136}{}\paragraph{cl\-Cpm\-Is\-Master}\label{pagecpm136}
+\begin{Desc}
+\item[Synopsis:]Informs if the node is the master of the cluster.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClUint32T clCpmIsMaster();
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-TRUE:}]The node is the master. \item[{\em CL\_\-FALSE:}]The node is not the master.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function indicates if the node is master of the cluster. This function can be used by the component to determine if it is running 
+on the CPM master (CPM/G (global) or CPM/L (local)).\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]\hyperlink{group__group14}{cl\-Cpm\-Master\-Address\-Get} \end{Desc}
+\newpage
+
+
+
+
+
+
+\subsection{clCpmNodeShutDown}
+\index{clCpmNodeShutDown@{clCpmNodeShutDown}}
+\hypertarget{pagecpm137}{}\paragraph{cl\-Cpm\-Node\-Shut\-Down}\label{pagecpm137}
+\begin{Desc}
+\item[Synopsis:]Shuts down the node.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clCpmNodeShutDown(
+                  			CL_IN ClIocNodeAddressT iocNodeAddress);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ioc\-Node\-Address:}]IOC address of the node.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to shut down the node, corresponding to the given IOC Address. This function terminates all services running on 
+that node.\end{Desc}
+{\bf Note:} This is an asynchronous function.
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]None. \end{Desc}
+\newpage
+
+
+
+
+
+\subsection{clCpmLocalNodeNameGet}
+\index{clCpmLocalNodeNameGet@{clCpmLocalNodeNameGet}}
+\hypertarget{pageCPM138}{}\paragraph{cl\-Cpm\-Slot\-Info\-Get}\label{pageCPM138}
+\begin{Desc}
+\item[Synopsis:]Returns the name of the local node.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    extern ClRcT clCpmLocalNodeNameGet(
+                      			CL_IN ClNameT *nodeName);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em node\-Name:}]Local node name.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{nodeName}} contains a NULL pointer.
+\item[{\em CL\_\-ERR\_\-DOESNT\_\-EXIST:}]CPM library is not able to retrieve the {\tt{node\-Name}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function provides the local node name, in the buffer provided by the user. This function can be used by a component to determine 
+the name of the node on which it is running.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]None. \end{Desc}
+\newpage
+
+
+
+
+
+
+
+\subsection{clCpmComponentMoIdGet}
+\index{clCpmComponentMoIdGet@{clCpmComponentMoIdGet}}
+\hypertarget{pagecpm201}{}\paragraph{cl\-Cpm\-Component\-Mo\-Id\-Get}\label{pagecpm201}
+\begin{Desc}
+\item[Synopsis:]Retrieves the MoID of the component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmExtApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    extern ClRcT clCpmComponentMoIdGet(
+                      			CL_IN ClNameT compName
+                      			CL_OUT ClCorMOIdT *compMoId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em node\-Name:}]Local node name.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function provides the {\tt{Mo\-Id}} of the user component. {\tt{Mo\-Id}} of the component is a unique identifier that represents
+the position of the component in the tree heirarchy maintained by the COR.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]None. \end{Desc}
+
+\newpage
+
+
+
+
+
+
+\subsection{clCpmEventPayLoadExtract}
+\index{clCpmEventPayLoadExtract@{clCpmEventPayLoadExtract}}
+\hypertarget{pagecpm202}{}\paragraph{cl\-Cpm\-Event\-Pay\-Load\-Extract}\label{pagecpm202}
+\begin{Desc}
+\item[Synopsis:]Extracts the event payload data.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   extern clCpmEventPayLoadExtract(
+              				CL_IN   ClEventHandleT eventHandle, 
+              				CL_IN   ClSizeT eventDataSize, 
+              				CL_IN   ClCpmEventTypeT cpmEventType, 
+              				CL_OUT  void *payLoad)
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em event\-Handle:}]Event handle. \item[{\em event\-Data\-Size:}]Size of the event data. \item[{\em cpm\-Event\-Type:}]Type of the event published. \item[{\em pay\-Load:}](out) The actual payload.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{payLoad}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function extracts the payload data from the flat buffer returned by the event delivery callback for the events published by the 
+CPM. {\tt{event\-Handle}} and {\tt{event\-Data\-Size}} are the obtained from the event delivery callback. This function must be called only in the event 
+subscriber's context of event delivery callback, that is invoked when the event is published by CPM.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related API(s):]None. \end{Desc}
+\newpage
+
+
+
+
+\subsection{clCpmSlotInfoGet}
+\index{clCpmSlotInfoGet@{clCpmSlotInfoGet}}
+\hypertarget{pagecpm203}{}\paragraph{cl\-Cpm\-Slot\-Info\-Get}\label{pagecpm203}
+\begin{Desc}
+\item[Synopsis:]Returns the Slot related information such as node mo\-ID, node\-Name, and Ioc\-Address. Provides the mapping between slot ID, 
+IOC address, MoID, and name of the given node depending on the flag that is passed to it.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    extern ClRcT clCpmSlotInfoGet(
+                      			CL_IN ClCpmSlotInfoFieldIdT flag,
+                      			CL_OUT ClCpmSlotInfoT *slotInfo);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em flag:}]Flag that indicates the field of the structure,{\tt{slot\-Info}} that is populated by the user. 
+\item[{\em slot\-Info:}]The structure, populated by this function, will contain other information about node corresponding to the field provided by the
+user.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-DOESNT\_\-EXIST:}]{\tt{flag}} is invalid or a parameter is not set correctly. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function provides the mapping between the attributes that are unique to the node namely, slot ID, IOC address, MOID, and node 
+name. Depending on the flag provided by the user, this function assumes that the corresponding field has been given a correct value by the user and 
+populates the remaining fields of the structure, corresponding to the information in this field. For example, if the user needs to know the MOID of a 
+given slot ID, the flag {\tt{CL\_\-CPM\_\-SLOT\_\-ID}} should be provided (which are exposed in {\tt{cl\-Cpm\-Api.h}}) and the {\tt{slot\-Id}} field of 
+{\tt{slot\-Info}} structure should be set to a valid slot number.\end{Desc}
+\begin{Desc}
+\item[Library Files:]lib\-Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related APIs:]None.\end{Desc}
+
+\newpage
+
+
+
+
+
+\subsection{clCpmIocAddressForNodeGet}
+\index{clCpmIocAddressForNodeGet@{clCpmIocAddressForNodeGet}}
+\hypertarget{pagecpm204}{}\paragraph{cl\-Cpm\-Ioc\-Address\-For\-Node\-Get}\label{pagecpm204}
+\begin{Desc}
+\item[Synopsis:]Retrieves the IOC address for the given node.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    extern ClRcT clCpmIocAddressForNodeGet(
+                      			CL_IN ClNameT nodeName,
+                      			CL_OUT ClIocAddressT *pIocAddress);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em node\-Name:}]The name of the node whose {\tt{Ioc\-Address}} is required.
+\item[{\em p\-Ioc\-Address:}]IOC address of a given node, {\tt{node\-Name}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-DOESNT\_\-EXIST:}]CPM library is unable to retrieve the {\tt{nodeName}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function returns the physical IOC address of the node, which is passed as an argument.\end{Desc}
+\begin{Desc}
+\item[Library Files:]lib\-Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}\item[Related APIs:]None.\end{Desc}
+
+\newpage
+
+
+
+\subsection{clCpmIsCompRestarted}
+\index{clCpmIsCompRestarted@{clCpmIsCompRestarted}}
+\hypertarget{pagecpm205}{}\paragraph{cl\-Cpm\-Is\-Comp\-Restarted}\label{pagecpm205}
+\begin{Desc}
+\item[Synopsis:]Checks if the given component has been restarted.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCpmExtApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    extern ClBoolT clCpmIsCompRestarted(
+                      			CL_IN ClNameT compName);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em comp\-Name}]: The name of the component.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-DOESNT\_\-EXIST:}]CPM library is unable to retrieve the name of the component.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function returns TRUE, if the component has been restarted before.\end{Desc}
+\begin{Desc}
+\item[Library Files:]lib\-Cl\-Amf\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related APIs:]None.\end{Desc}
+
+
+\chapter{Service Management Information Model}
+TBD
+\chapter{Service Notifications}
+TBD
+\chapter{Debug CLIs}
+TBD
+

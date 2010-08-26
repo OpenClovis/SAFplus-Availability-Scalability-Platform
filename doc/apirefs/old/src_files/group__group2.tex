@@ -1,0 +1,377 @@
+\hypertarget{group__group2}{
+\chapter{Introduction}
+\label{group__group2}\index{Introduction@{Introduction}}
+}
+
+\begin{flushleft}
+The Service Description and API Reference documents define the functions, Model, Management Information Model,
+Notifications, and Configuration
+of the OpenClovis Application Service Platform (ASP) services. This document is written for system integrators, designers, and
+system architects. It is also intended for use by application developers who would use the
+OpenClovis ASP Services to develop applications that must be highly available and manageable. 
+It helps the developer understand the capabilities of the OpenClovis ASP services and the APIs that are provided by each service.
+\par
+You should be familiar with the OpenClovis SDK User's Guide and a good knowledge of C programming language is required as the 
+APIs are defined using C language.
+\end{flushleft}
+
+
+
+\section{Service Availability Forum (SA Forum)}
+\index{SA Forum@{SA Forum}}
+\begin{flushleft}
+The Service Availability Forum (SA Forum) is a consortium of industry-leading communications and computing companies that work together
+to develop and publish high availability and management software interface specifications.  
+\par
+A standardization of the interface between middleware and heterogeneous resources that need to be managed 
+can be established by writing software that conforms to SA Forum interface specifications.
+\par
+The following are the OpenClovis ASP components that are conformant with SA Forum B.01.01 specifications.
+\begin{itemize}
+\item Availability Management Framework (AMF)
+\item Checkpoint Service (CKPT)
+\item Event Manager (EM)
+\item Group Membership Service (GMS) component is conformant with the SA Forum CLM version B.01.01.
+\end{itemize}
+\end{flushleft}
+
+
+
+
+\section{Using OpenClovis Libraries}
+\index{Using OpenClovis Libraries@{Using OpenClovis Libraries}}
+\begin{flushleft}
+The following are basics for using OpenClovis ASP Libraries described in this document:
+
+\subsection{Include File and Library Name}
+To use the APIs provided by an ASP service, the statement containing declarations of data types and function prototypes
+must be included. 
+\newline
+For example, if your application is using a Checkpoint service API you must include the following:
+\footnotesize 
+\begin{verbatim} 
+#include <clCkptApi.h>
+\end{verbatim}
+\normalsize
+\par
+\par
+To use a particular Service API, an application must link with the corresponding 
+library. 
+\newline
+For example, to use Log service API, your application must link with the following library:
+\footnotesize 
+\begin{verbatim} 
+libClLogClient.a or .so
+\end{verbatim}
+\normalsize
+\par
+
+
+\subsection{Library Life Cycle}
+\index{Library Life Cycle@{Library Life Cycle}}
+Before you use an OpenClovis ASP library it is required to initialize the library. 
+You can initialize the library using the initialize function. 
+\newline
+For example, the log service provides the following function to initialize the log service library.
+\footnotesize 
+\begin{verbatim} 
+	clLogInitialize()
+	\end{verbatim}
+	\normalsize
+	
+After initializing the library you can perform the required operations. 
+When you no longer need to use a library it is required to finalize the library. 
+You can finalize the library using the finalize function. 
+\newline
+For example, the log service provides the following function to finalize the log service library.
+\footnotesize 
+\begin{verbatim} 
+	clLogFinalize()
+	\end{verbatim}
+	\normalsize
+The initialize and finalize functions are provided by all OpenClovis ASP libraries. 
+\end{flushleft}
+\subsection{Type Definitions}
+The type definitions specific to a library are described within the Type Definitions section. The type definitions that are
+common to all libraries are described in the Common Type Definitions chapter which is a part of this document.
+
+
+\section{Header Files Naming Convention}
+\index{Header Files Naming Convention@{Header Files Naming Convention}}
+\begin{flushleft}
+This section provides the ASP services acronym list. You can identify the header files and the library files you need 
+using this list. The naming convention used for the OpenClovis header files is
+\footnotesize 
+\begin{verbatim} 
+cl<Service Acronym>Api.h
+\end{verbatim}
+\normalsize
+
+\input{sheet1.tex}
+
+\end{flushleft}
+
+
+
+
+\section{Document Organization}
+\begin{flushleft}
+Most of the Service Description and API Reference documents are organized into the following chapters:
+\newline  
+\newline
+Chapter 1, Functional Overview: Provides a brief description of the functionality of the service.
+\newline  
+\newline
+Chapter 2, Service APIs: Describes all the APIs within a service and the type definitions specific to the APIs.
+\end{flushleft}
+
+\section{Related Documents}
+
+\begin{flushleft}
+Service Description and API Reference document: is written for the knowledgeable application programmer 
+who understands the basic architecture and working of the OpenClovis Application Service Platform. 
+To achieve this, you can refer the following documents:
+\par
+OpenClovis SDK User Guide: OpenClovis SDK User's Guide provides information about OpenClovis ASP
+architecture, various OpenClovis ASP components, and their interactions. This
+guide helps you to configure the OpenClovis ASP components, compile, and
+execute the OpenClovis ASP code to build your custom application.
+\par
+OpenClovis IDE User Guide: OpenClovis IDE Reference Guide describes the usage of IDE, a graphical
+development environment that compliment the ASP platform. This guide helps
+you to configure, compile, and execute IDE to build the application.
+\end{flushleft}
+
+
+\section{Documentation Conventions}
+\begin{flushleft}
+The Service Description and API Reference documents use different fonts and symbols to differentiate between document elements and types of information. 
+Following are the convention details:
+\newline\newline
+\begin{tabular}{|p{2in}|p{4in}|} \hline
+\textbf{Notation}&\textbf{Description}\\\hline
+\tt{code} &This font denotes the C code provided in various usage scenarios.\\
+\hyperlink {pagebuf102}{Cross reference} &This font denotes a hyperlink. You can click on the hyperlink text to access the reference location,
+which can be either a section within the 
+API Guide or a URL link. A cross reference refers to a section name accesses the first page of that section.
+\\ 
+\textit{Italic text} &Functions and parameters are indicated in italics.\\\hline
+\end{tabular}
+
+\end{flushleft}
+
+
+
+
+\chapter{Common Type Definitions}
+\section{Defines}
+\index{Defines@{Defines}}
+\input{sheet2.tex}
+
+
+\newpage
+\subsection{Error Codes}
+\index{Error Codes@{Error Codes}}
+\begin{tabular}{|p{2in}|p{1in}|p{2in}|} \hline
+\textbf{\textit{Define}} &\textbf{\textit{Value}} &\textbf{\textit{Description}} \\\hline
+CL\_\-ERR\_\-ALREADY\_\-EXIST &~0x10 &An entry is already existing.\\
+CL\_\-ERR\_\-BUFFER\_\-OVERRUN &~0x0d &Buffer over run.\\
+CL\_\-ERR\_\-COMMON\_\-MAX &~0xff &2$^\wedge$8-1, the max for common errors. \\
+CL\_\-ERR\_\-DOESNT\_\-EXIST &~0x13 &An entry does not exist.\\
+CL\_\-ERR\_\-DUPLICATE &~0x08 &Duplicate entry.\\
+CL\_\-ERR\_\-INITIALIZED &~0x0c &Already initialized.\\
+CL\_\-ERR\_\-INUSE &~0x15 &Resource is in use.\\
+CL\_\-ERR\_\-INVALID\_\-BUFFER &~0x06 &The buffer passed in is invalid.\\
+CL\_\-ERR\_\-INVALID\_\-HANDLE &~0x05 &The handle passed is invalid.\\
+CL\_\-ERR\_\-INVALID\_\-PARAMETER &~0x02 &Input parameters are invalid.\\
+CL\_\-ERR\_\-INVALID\_\-STATE &~0x12 &Invalid State.\\
+CL\_\-ERR\_\-MUTEX\_\-ERROR &~0x18 &Thread mutex error.\\
+CL\_\-ERR\_\-NO\_\-CALLBACK &~0x17 &No callback available for request.\\
+CL\_\-ERR\_\-NO\_\-MEMORY &~0x01 &Memory is not available.\\
+CL\_\-ERR\_\-NO\_\-OP &~0x19 &Null operation.\\
+CL\_\-ERR\_\-NO\_\-RESOURCE &~0x0b &No resources.\\
+CL\_\-ERR\_\-NOT\_\-EXIST &~0x04 &Requested resource does not exist.\\
+CL\_\-ERR\_\-NOT\_\-IMPLEMENTED &~0x07 &The function not yet implemented.\\
+CL\_\-ERR\_\-NOT\_\-INITIALIZED &~0x0e &Component not initialized.\\
+CL\_\-ERR\_\-NULL\_\-POINTER &~0x03 &Input parameter is a NULL pointer.\\
+CL\_\-ERR\_\-OP\_\-NOT\_\-PERMITTED &~0x20 &Requested operation is not permitted.\\
+CL\_\-ERR\_\-OUT\_\-OF\_\-RANGE &~0x0a &The value of one of the parameters passed is out of range.\\
+CL\_\-ERR\_\-TIMEOUT &~0x14 &Timeout.\\
+CL\_\-ERR\_\-TRY\_\-AGAIN &~0x16 &Component is busy , Try again.\\
+CL\_\-ERR\_\-UNSPECIFIED &~0x11 &Unknown/Unspecified error.\\
+CL\_\-ERR\_\-VERSION\_\-MISMATCH &~0x0f &Version mismatch.\\\hline
+\end{tabular}
+
+
+
+\newpage
+
+\section{Typedefs}
+\index{Typedefs@{Typedefs}}
+\begin{tabular}{|p{2in}|p{1in}|p{2in}|} \hline
+\textbf{\textit{Typedef}} &\textbf{\textit{Value}} &\textbf{\textit{Description}} \\\hline
+signed long long Cl\-Uint64T &\_\-\_\-attribute\_\-\_\- ((\_\-\_\-aligned\_\-\_\-(8))) &Unsigned Long Long, 64-bit.\\
+Cl\-Int8T &$\ast$ Cl\-Addr\-T &This can be used for storing address.\\
+Cl\-Uint16T &Cl\-Bool\-T &This can be used for storing boolean datatype.\\
+char &Cl\-Char\-T &This can be used for strings.\\
+Cl\-Int32T &Cl\-Handle\-T &This can be used for storing handle.\\
+signed short &Cl\-Int16T &Signed integer, 16-bit.\\
+signed int &Cl\-Int32T &Signed Integer, 32-bit.\\
+signed char &Cl\-Int8T &Signed Integer, 8-bit.\\
+Cl\-Uint64T &Cl\-Invocation\-T &This can be used for storing invocation type.\\
+Cl\-Uint64T &Cl\-Ntf\-Identifier\-T &This can be used for storing identifier.\\
+Cl\-Uint64T &Cl\-Offset\-T &This can be used for storing offset.\\
+void $\ast$ &Cl\-Ptr\-T &This can be used for storing pointer.\\
+Cl\-Uint32T &Cl\-Rc\-T &OpenClovis return code type.\\
+Cl\-Uint64T &Cl\-Selection\-Object\-T &This can be used for storing selection object.\\
+Cl\-Uint64T &Cl\-Size\-T &This can be used for storing size.\\
+Cl\-Int64T &Cl\-Time\-T &This can be used for storing time.\\
+unsigned short &Cl\-Uint16T &Unsigned, short integer, 16-bit.\\
+unsigned int &Cl\-Uint32T &Unsigned Integer, 32-bit.\\
+unsigned char &Cl\-Uint8T &Unsigned Integer, 8-bit.\\
+union cl\_\-u64\_\-u &Cl\-Union64T &Union having different representations of 64 bit datatype.\\\hline
+\end{tabular}
+
+
+\newpage
+\section{Enumeration \textit{ClClovisComponentT}}
+\index{Enumeration \textit{ClClovisComponentT}@{Enumeration \textit{ClClovisComponentT}}}
+\begin{tabular}{|p{2in}|p{1in}|p{2in}|} \hline
+\textbf{\textit{Enumeration}} &\textbf{\textit{Value}} &\textbf{\textit{Description}} \\\hline
+CL\_\-CID\_\-UNSPECIFIED &0x0 &Start.\\
+CL\_\-CID\_\-OSAL &0x01 &OS Abstraction Layer.\\
+CL\_\-CID\_\-HAL &0x02 &Hardware Abstraction Layer.\\
+CL\_\-CID\_\-DBAL &0x03 &Database Abstraction Layer.\\
+CL\_\-CID\_\-EO &0x04 &Execution Object.\\
+CL\_\-CID\_\-IOC &0x05 &Intelligent Object Communication.\\
+CL\_\-CID\_\-RMD &0x06 &Remote Method Dispatch.\\
+CL\_\-CID\_\-NAMES &0x07 &Name Service.\\
+CL\_\-CID\_\-TIMER &0x08 &Timer.\\
+CL\_\-CID\_\-SHM &0x09 &Shared Memory Support.\\
+CL\_\-CID\_\-DSHM &0x0a &Distributed Shared Memory.\\
+CL\_\-CID\_\-LOG &0x0b &Logging.\\
+CL\_\-CID\_\-TRACE &0x0c &Tracing.\\
+CL\_\-CID\_\-DIAG &0x0d &Diagnostics.\\
+CL\_\-CID\_\-DEBUG &0x0e &Debug.\\
+CL\_\-CID\_\-CPM &0x0f &Component Management.\\
+CL\_\-CID\_\-CAP &0x10 &Capability Management.\\
+CL\_\-CID\_\-RES &0x11 &Resource Management.\\
+CL\_\-CID\_\-GMS &0x12 &Group Membership Service.\\
+CL\_\-CID\_\-EVENTS &0x13 &Event Messaging.\\
+CL\_\-CID\_\-DLOCK &0x14 &Distributed Locking.\\
+CL\_\-CID\_\-TXN &0x15 &Transactions.\\
+CL\_\-CID\_\-CKPT &0x16 &Checkpointing.\\
+CL\_\-CID\_\-COR &0x17 &Clovis Object Registry.\\
+CL\_\-CID\_\-CNT &0x18 &Containers.\\
+CL\_\-CID\_\-DCNT &0x19 &Distributed Containers.\\
+CL\_\-CID\_\-RCNT &0x1a &Resilient Containers.\\
+CL\_\-CID\_\-ALARMS &0x1b &Alarm.\\
+CL\_\-CID\_\-POLICY &0x1c &Policy Engine .\\
+CL\_\-CID\_\-RULE &0x1d &Rule Base Engine.\\
+CL\_\-CID\_\-SCRIPTING &0x1e &Scripting Engine.\\
+CL\_\-CID\_\-CM &0x1f &Chassis Manager.\\
+CL\_\-CID\_\-HPI &0x20 &Hardware Platform Interface.\\
+CL\_\-CID\_\-FAULTS &0x21 &Fault Management.\\
+CL\_\-CID\_\-AMS &0x22 &Availability Management.\\
+CL\_\-CID\_\-MED &0x23 &Mediation.\\
+CL\_\-CID\_\-BUFFER &0x24 &Buffer Management.\\
+CL\_\-CID\_\-QUEUE &0x25 &Queue Management.\\
+CL\_\-CID\_\-CLIST &0x26 &Circular List Management.\\
+CL\_\-CID\_\-SNMP &0x27 &SNMP Agent.\\
+CL\_\-CID\_\-NS &0x28 &Name Service.\\
+CL\_\-CID\_\-OM &0x29 &Object Manger.\\
+CL\_\-CID\_\-POOL &0x2a &Pool management.\\
+CL\_\-CID\_\-CD &0x2b &Common Diagnostics.\\
+CL\_\-CID\_\-DM &0x2c &Diagnostics Manager.\\
+CL\_\-CID\_\-OAMP\_\-RT &0x2d &OAMP RT parser.\\
+CL\_\-CID\_\-PROV &0x2e &provisioning Manger.\\
+CL\_\-CID\_\-UM &0x2f &upgrade manager.\\\hline
+\end{tabular}
+
+
+
+\begin{tabular}{|p{2in}|p{1in}|p{2in}|} \hline
+\textbf{\textit{Enumeration}} &\textbf{\textit{Value}} &\textbf{\textit{Description}} \\\hline
+
+CL\_\-CID\_\-HANDLE &0x30 &handle database.\\
+CL\_\-CID\_\-VERSION &0x31 &version checker library.\\
+CL\_\-CID\_\-XDR &0x32 &xdr library.\\
+CL\_\-CID\_\-IDL &0x33 &IDL.\\\hline
+\end{tabular}
+\newpage
+
+
+\section{Data Structures}
+\index{Data Structures@{Data Structures}}
+\subsection{ClNameT}
+\textit{typedef struct \{}
+\newline \textit{ClUint16T length;}
+\newline \textit{ClCharT value \mbox{[}CL\_\-MAX\_\-NAME\_\-LENGTH\mbox{]};}
+\newline \textit{\} ClNameT;}
+\newline
+\newline 
+The structure \textit{ClNameT} contains the name of the service. Its attributes are:
+\begin{itemize}
+\item
+\textit{length} - Length of the name in bytes excluding the terminating NULL character.
+\item
+\textit{value} - Actual name.
+\end{itemize}
+
+
+\subsection{ClVersionT}
+
+\textit{typedef struct \{}
+   \newline \textit{ ClUint8T  releaseCode; } 
+   \newline \textit{ ClUint8T  majorVersion; }
+   \newline \textit{ ClUint8T  minorVersion;} 
+\newline \textit{\} ClVersionT;}
+The structure \textit{ClVersionT} contains the version information for various services. Its attributes are:
+\begin{itemize}
+\item
+\textit{releaseCode} - Single ASCII capitol letter "A-Z." 
+\item
+\textit{majorVersion} - Major Number in range of [01-255].
+\item
+\textit{minorVersion} - Minor Number in range of [01-255].
+\end{itemize}
+
+
+\chapter{List of Service Description and API Reference Documents}
+\index{Service Description and API Reference Documents@{Service Description and API Reference Documents}}
+\begin{tabular}{|p{4in}|p{1in}|} \hline
+\textbf{\textit{Service Description and API Reference Documents}} &\textbf{\textit{Version}}\\\hline
+Service Description and API Reference for Alarm Service &0.3\\
+Service Description and API Reference for Availability Management Service &0.3\\
+Service Description and API Reference for Buffer Management Service &0.3\\
+Service Description and API Reference for Checkpointing Service &0.3\\
+Service Description and API Reference for Checksum Management Service &0.3\\
+Service Description and API Reference for Chassis Management Service &0.3\\
+Service Description and API Reference for Circular List Management Service &0.3\\
+Service Description and API Reference for Container Management Service &0.4\\
+Service Description and API Reference for Clovis Object Registry (COR) Service &0.3\\
+Service Description and API Reference for Component Management Service &0.3\\
+Service Description and API Reference for Database Abstraction Layer (DBAL) Service &0.3\\
+Service Description and API Reference for Debug Service &0.3\\
+Service Description and API Reference for Execution Object (EO) Service &0.3\\
+Service Description and API Reference for Event Service &0.3\\
+Service Description and API Reference for Fault Service &0.3\\
+Service Description and API Reference for Group Membership Service &0.4\\
+Service Description and API Reference for Heap Service &0.5\\
+Service Description and API Reference for Interface Definition Language (IDL) Service &0.3\\
+Service Description and API Reference for Intelligent Object Communication (IOC) Service &0.4\\
+Service Description and API Reference for Log Service &0.4\\\hline
+\end{tabular}
+
+\begin{tabular}{|p{4in}|p{1in}|} \hline
+\textbf{\textit{Service Description and API Reference Documents}} &\textbf{\textit{Version}}\\\hline
+Service Description and API Reference for Mediation Management Service &0.3\\
+Service Description and API Reference for Name Service &0.3\\
+Service Description and API Reference for Operating System Abstraction Layer (OSAL) Service &0.3\\
+Service Description and API Reference for Queue Management Service &0.3\\
+Service Description and API Reference for Remote Method Dispatch (RMD) Service &0.3\\
+Service Description and API Reference for Rule Based Engine (RBE) Service &0.3\\
+Service Description and API Reference for Timer Service &0.3\\
+Service Description and API Reference for Transaction Management Service &0.3\\\hline
+\end{tabular}
+

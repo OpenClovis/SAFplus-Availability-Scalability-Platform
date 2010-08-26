@@ -1,0 +1,88 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/static/stylesheets/style.css" />
+	</head> 
+	<body>
+        
+        <h2>Admin - Detail View</h2>
+        <ul>
+        <li><a href='/dashboard'>Dashboard</a></li>
+        <li>{{ edit_user_link }}</li>
+        </ul>
+        
+        <form action="/adminedit" method="post" id="admin">
+            
+            
+            <table border="1" width="500" cellpadding="3" cellspacing="3">
+                <tr>
+                    <td>{{ email_lbl }}</td>
+                    <td>{{ email_val }}</td>
+                </tr>
+                <tr>
+                    <td>{{ phone_lbl }}</td>
+                    <td>{{ phone_val }}</td>
+                </tr>
+                <tr>
+                    <td>{{ confirm_lbl }}</td>
+                    <td>{{ confirm_val }}</td>
+                </tr>
+  
+                <tr>
+                    <td>{{ datereg_lbl }}</td>
+                    <td>{{ datereg_val }}</td>
+                </tr>
+                <tr>
+                    <td>{{ genremain_lbl }}</td>
+                    <td>{{ genremain_val }}</td>
+                </tr>
+                
+                <tr>
+                    <td>{{ genused_lbl }}</td>
+                    <td>{{ genused_val }}</td>
+                </tr>
+                
+                <tr>
+                    <td>{{ dateoflastcodegen_lbl }}</td>
+                    <td>{{ dateoflastcodegen_val }}</td>
+                </tr>
+                
+                <tr>
+                    <td>{{ timesdownloadedide_lbl }}</td>
+                    <td>{{ timesdownloadedide_val }}</td>
+                </tr>
+                
+                <tr>
+                    <td>{{ datelastdownloadedide_lbl }}</td>
+                    <td>{{ datelastdownloadedide_val }}</td>
+                </tr>
+                
+                <tr>
+                    <td>{{ timesloggedin_lbl }}</td>
+                    <td>{{ timesloggedin_val }}</td>
+                </tr>   
+                
+                <tr>
+                    <td>{{ lastloggedin_lbl }}</td>
+                    <td>{{ lastloggedin_val }}</td>
+                </tr>                
+                
+                
+                <tr>
+                    <td>{{ ip_lbl }}</td>
+                    <td>{{ ip_val }}</td>
+                </tr>    
+                
+
+                        </table>
+            
+            
+            
+            
+            
+        </form>
+        
+        <br />
+        <p>{{ logout_link }}</p>
+        
+	</body>
+</html>

@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="alarm"
+    nsURI="alarm.ecore" nsPrefix="alarm">
+  <eClassifiers xsi:type="ecore:EClass" name="AlarmProfile">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="AlarmID"/>
+      <details key="validationfeatures" value="AlarmID"/>
+      <details key="Help" value="com.clovis.cw.help.alarm_profile"/>
+      <details key="dependents" value="0@model/modelMapping.ecore!link,linkDetail%linkTarget|models/resource_alarm_map.xml#com.clovis.cw.workspace:com.clovis.cw.workspace.handler.AlarmHandler;0@None!GenerationRule%AlarmIDs|None#com.clovis.cw.workspace:com.clovis.cw.workspace.handler.AlarmHandler;0@None!SuppressionRule%AlarmIDs|None#com.clovis.cw.workspace:com.clovis.cw.workspace.handler.AlarmHandler"/>
+      <details key="changeTrackRequired" value="true"/>
+      <details key="menuxml" value="com.clovis.cw.editor.ca:com/clovis/cw/editor/ca/alarmtoolbar.xml"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="AlarmID" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Alarm ID"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Alarm ID"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Category" eType="#//CategoryType"
+        defaultValueLiteral="CL_ALARM_CATEGORY_COMMUNICATIONS" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Category"/>
+        <details key="UItype" value="UICategoryType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ProbableCause" eType="#//ProbableCauseEnum"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Probable Cause"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.customeditor.ProbableCauseComboBoxCellEditor"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="UItype" value="UIProbableCauseEnum"/>
+        <details key="tooltip" value="Probable cause is dependent on the selected category. The available Probable Causes are supported by x.733 standard"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Severity" eType="#//SeverityType"
+        defaultValueLiteral="CL_ALARM_SEVERITY_MAJOR" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UISeverityType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="GenerationRule" lowerBound="1"
+        eType="#//AlarmRule" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="editor" value="com.clovis.cw.workspace:com.clovis.cw.workspace.dialog.AlarmPushButtonCellEditor"/>
+        <details key="label" value="Generation Rule"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="SuppressionRule" lowerBound="1"
+        eType="#//AlarmRule" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="editor" value="com.clovis.cw.workspace:com.clovis.cw.workspace.dialog.AlarmPushButtonCellEditor"/>
+        <details key="label" value="Suppression Rule"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="AssertSoakingTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Assert Soaking Time (Milli Seconds)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ClearSoakingTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Clear Soaking Time (Milli Seconds)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="IsAlarmPolled" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is Alarm Polled?"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Description"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="OID" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="SeverityType">
+    <eLiterals name="CL_ALARM_SEVERITY_CRITICAL"/>
+    <eLiterals name="CL_ALARM_SEVERITY_MAJOR" value="1"/>
+    <eLiterals name="CL_ALARM_SEVERITY_MINOR" value="2"/>
+    <eLiterals name="CL_ALARM_SEVERITY_WARNING" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="CategoryType">
+    <eLiterals name="CL_ALARM_CATEGORY_COMMUNICATIONS"/>
+    <eLiterals name="CL_ALARM_CATEGORY_QUALITY_OF_SERVICE" value="1"/>
+    <eLiterals name="CL_ALARM_CATEGORY_PROCESSING_ERROR" value="2"/>
+    <eLiterals name="CL_ALARM_CATEGORY_EQUIPMENT" value="3"/>
+    <eLiterals name="CL_ALARM_CATEGORY_ENVIRONMENTAL" value="4"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AlarmRule">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="Alarm Rule"/>
+      <details key="Help" value="com.clovis.cw.help.alarm_rule"/>
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Relation" eType="#//RelationType"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="MaxAlarm" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="AlarmIDs" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="RelationType">
+    <eLiterals name="CL_ALARM_RULE_NO_RELATION"/>
+    <eLiterals name="CL_ALARM_RULE_LOGICAL_OR" value="1"/>
+    <eLiterals name="CL_ALARM_RULE_LOGICAL_AND" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="CommunicationsProbableCauseType">
+    <eLiterals name="CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL" value="1"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_LOSS_OF_FRAME" value="2"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_FRAMING_ERROR" value="3"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_LOCAL_NODE_TRANSMISSION_ERROR" value="4"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_REMOTE_NODE_TRANSMISSION_ERROR" value="5"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_CALL_ESTABLISHMENT_ERROR" value="6"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_DEGRADED_SIGNAL" value="7"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_COMMUNICATIONS_SUBSYSTEM_FAILURE" value="8"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_COMMUNICATIONS_PROTOCOL_ERROR" value="9"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_LAN_ERROR" value="10"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_DTE" value="11"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UISeverityType">
+    <eLiterals name="Critical"/>
+    <eLiterals name="Major" value="1"/>
+    <eLiterals name="Minor" value="2"/>
+    <eLiterals name="Warning" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UICategoryType">
+    <eLiterals name="Communications"/>
+    <eLiterals name="Quality of Service" value="1"/>
+    <eLiterals name="Processing Error" value="2"/>
+    <eLiterals name="Equipment" value="3"/>
+    <eLiterals name="Environmental" value="4"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UICommunicationsProbableCauseType">
+    <eLiterals name="Loss of Signal" value="1"/>
+    <eLiterals name="Loss of Frame" value="2"/>
+    <eLiterals name="Framing error" value="3"/>
+    <eLiterals name="Node transmission error" value="4"/>
+    <eLiterals name="Remote Node transmission error" value="5"/>
+    <eLiterals name="Call establishment error" value="6"/>
+    <eLiterals name="Degraded signal" value="7"/>
+    <eLiterals name="Communications subsystem failure" value="8"/>
+    <eLiterals name="Communications protocol error" value="9"/>
+    <eLiterals name="LAN Error" value="10"/>
+    <eLiterals name="DTE" value="11"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIQoSProbableCauseType">
+    <eLiterals name="Excessive response time" value="12"/>
+    <eLiterals name="Queue size exceeded" value="13"/>
+    <eLiterals name="Bandwidth reduced" value="14"/>
+    <eLiterals name="Excessive Retransmission Rate" value="15"/>
+    <eLiterals name="Threshold crossed" value="16"/>
+    <eLiterals name="Degraded Performance" value="17"/>
+    <eLiterals name="Congestion" value="18"/>
+    <eLiterals name="Resource at or nearing capacity" value="19"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIPEProbableCauseType">
+    <eLiterals name="Storage capacity problem" value="20"/>
+    <eLiterals name="Version mismatch" value="21"/>
+    <eLiterals name="Corrupt data" value="22"/>
+    <eLiterals name="CPU cycles limit exceeded" value="23"/>
+    <eLiterals name="Software error" value="24"/>
+    <eLiterals name="Software program error" value="25"/>
+    <eLiterals name="Software program abnormally terminated" value="26"/>
+    <eLiterals name="File error" value="27"/>
+    <eLiterals name="Out of memory" value="28"/>
+    <eLiterals name="Underlying resource unavailable" value="29"/>
+    <eLiterals name="Application system failure" value="30"/>
+    <eLiterals name="Configuration or customization error" value="31"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIEquipmentProbableCauseType">
+    <eLiterals name="Power problem" value="32"/>
+    <eLiterals name="Timing problem" value="33"/>
+    <eLiterals name="Processor problem" value="34"/>
+    <eLiterals name="Dataset or modem error" value="35"/>
+    <eLiterals name="Multiplexer problem" value="36"/>
+    <eLiterals name="Receiver failure" value="37"/>
+    <eLiterals name="Transmitter failure" value="38"/>
+    <eLiterals name="Receive failure" value="39"/>
+    <eLiterals name="Transmit failure" value="40"/>
+    <eLiterals name="Output device error" value="41"/>
+    <eLiterals name="Input device error" value="42"/>
+    <eLiterals name="Input output device error" value="43"/>
+    <eLiterals name="Equipment malfunction" value="44"/>
+    <eLiterals name="Adapter error" value="45"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIEnvironmentalProbableCauseType">
+    <eLiterals name="Temperature unacceptable" value="46"/>
+    <eLiterals name="Humidity unacceptable" value="47"/>
+    <eLiterals name="Heating or ventilation or cooling system problem" value="48"/>
+    <eLiterals name="Fire detected" value="49"/>
+    <eLiterals name="Flood detected" value="50"/>
+    <eLiterals name="Toxic leak detected" value="51"/>
+    <eLiterals name="Leak detected" value="52"/>
+    <eLiterals name="Pressure unacceptable" value="53"/>
+    <eLiterals name="Excessive vibration" value="54"/>
+    <eLiterals name="Material supply exhausted" value="55"/>
+    <eLiterals name="Pump failure" value="56"/>
+    <eLiterals name="Enclosure door open" value="57"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="QoSProbableCauseType">
+    <eLiterals name="CL_ALARM_PROB_CAUSE_RESPONSE_TIME_EXCESSIVE" value="12"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_QUEUE_SIZE_EXCEEDED" value="13"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_BANDWIDTH_REDUCED" value="14"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_RETRANSMISSION_RATE_EXCESSIVE" value="15"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_THRESHOLD_CROSSED" value="16"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_PERFORMANCE_DEGRADED" value="17"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_CONGESTION" value="18"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_RESOURCE_AT_OR_NEARING_CAPACITY" value="19"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PEProbableCauseType">
+    <eLiterals name="CL_ALARM_PROB_CAUSE_STORAGE_CAPACITY_PROBLEM" value="20"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_VERSION_MISMATCH" value="21"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_CORRUPT_DATA" value="22"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_CPU_CYCLES_LIMIT_EXCEEDED" value="23"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_SOFWARE_ERROR" value="24"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_SOFTWARE_PROGRAM_ERROR" value="25"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_SOFWARE_PROGRAM_ABNORMALLY_TERMINATED" value="26"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_FILE_ERROR" value="27"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_OUT_OF_MEMORY" value="28"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_UNDERLYING_RESOURCE_UNAVAILABLE" value="29"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_APPLICATION_SUBSYSTEM_FAILURE" value="30"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_CONFIGURATION_OR_CUSTOMIZATION_ERROR" value="31"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="EquipmentProbableCauseType">
+    <eLiterals name="CL_ALARM_PROB_CAUSE_POWER_PROBLEM" value="32"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_TIMING_PROBLEM" value="33"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_PROCESSOR_PROBLEM" value="34"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_DATASET_OR_MODEM_ERROR" value="35"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_MULTIPLEXER_PROBLEM" value="36"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_RECEIVER_FAILURE" value="37"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_TRANSMITTER_FAILURE" value="38"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_RECEIVE_FAILURE" value="39"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_TRANSMIT_FAILURE" value="40"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_OUTPUT_DEVICE_ERROR" value="41"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_INPUT_DEVICE_ERROR" value="42"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_INPUT_OUTPUT_DEVICE_ERROR" value="43"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_EQUIPMENT_MALFUNCTION" value="44"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_ADAPTER_ERROR" value="45"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="EnvironmentalProbableCauseType">
+    <eLiterals name="CL_ALARM_PROB_CAUSE_TEMPERATURE_UNACCEPTABLE" value="46"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_HUMIDITY_UNACCEPTABLE" value="47"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_HEATING_OR_VENTILATION_OR_COOLING_SYSTEM_PROBLEM"
+        value="48"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_FIRE_DETECTED" value="49"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_FLOOD_DETECTED" value="50"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_TOXIC_LEAK_DETECTED" value="51"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_LEAK_DETECTED" value="52"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_PRESSURE_UNACCEPTABLE" value="53"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_EXCESSIVE_VIBRATION" value="54"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_MATERIAL_SUPPLY_EXHAUSTED" value="55"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_PUMP_FAILURE" value="56"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN" value="57"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ProbableCauseEnum">
+    <eLiterals name="CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL" value="1"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_LOSS_OF_FRAME" value="2"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_FRAMING_ERROR" value="3"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_LOCAL_NODE_TRANSMISSION_ERROR" value="4"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_REMOTE_NODE_TRANSMISSION_ERROR" value="5"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_CALL_ESTABLISHMENT_ERROR" value="6"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_DEGRADED_SIGNAL" value="7"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_COMMUNICATIONS_SUBSYSTEM_FAILURE" value="8"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_COMMUNICATIONS_PROTOCOL_ERROR" value="9"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_LAN_ERROR" value="10"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_DTE" value="11"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_RESPONSE_TIME_EXCESSIVE" value="12"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_QUEUE_SIZE_EXCEEDED" value="13"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_BANDWIDTH_REDUCED" value="14"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_RETRANSMISSION_RATE_EXCESSIVE" value="15"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_THRESHOLD_CROSSED" value="16"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_PERFORMANCE_DEGRADED" value="17"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_CONGESTION" value="18"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_RESOURCE_AT_OR_NEARING_CAPACITY" value="19"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_STORAGE_CAPACITY_PROBLEM" value="20"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_VERSION_MISMATCH" value="21"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_CORRUPT_DATA" value="22"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_CPU_CYCLES_LIMIT_EXCEEDED" value="23"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_SOFWARE_ERROR" value="24"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_SOFTWARE_PROGRAM_ERROR" value="25"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_SOFWARE_PROGRAM_ABNORMALLY_TERMINATED" value="26"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_FILE_ERROR" value="27"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_OUT_OF_MEMORY" value="28"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_UNDERLYING_RESOURCE_UNAVAILABLE" value="29"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_APPLICATION_SUBSYSTEM_FAILURE" value="30"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_CONFIGURATION_OR_CUSTOMIZATION_ERROR" value="31"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_POWER_PROBLEM" value="32"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_TIMING_PROBLEM" value="33"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_PROCESSOR_PROBLEM" value="34"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_DATASET_OR_MODEM_ERROR" value="35"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_MULTIPLEXER_PROBLEM" value="36"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_RECEIVER_FAILURE" value="37"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_TRANSMITTER_FAILURE" value="38"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_RECEIVE_FAILURE" value="39"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_TRANSMIT_FAILURE" value="40"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_OUTPUT_DEVICE_ERROR" value="41"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_INPUT_DEVICE_ERROR" value="42"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_INPUT_OUTPUT_DEVICE_ERROR" value="43"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_EQUIPMENT_MALFUNCTION" value="44"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_ADAPTER_ERROR" value="45"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_TEMPERATURE_UNACCEPTABLE" value="46"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_HUMIDITY_UNACCEPTABLE" value="47"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_HEATING_OR_VENTILATION_OR_COOLING_SYSTEM_PROBLEM"
+        value="48"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_FIRE_DETECTED" value="49"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_FLOOD_DETECTED" value="50"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_TOXIC_LEAK_DETECTED" value="51"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_LEAK_DETECTED" value="52"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_PRESSURE_UNACCEPTABLE" value="53"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_EXCESSIVE_VIBRATION" value="54"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_MATERIAL_SUPPLY_EXHAUSTED" value="55"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_PUMP_FAILURE" value="56"/>
+    <eLiterals name="CL_ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN" value="57"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIProbableCauseEnum">
+    <eLiterals name="Loss of Signal" value="1"/>
+    <eLiterals name="Loss of Frame" value="2"/>
+    <eLiterals name="Framing error" value="3"/>
+    <eLiterals name="Node transmission error" value="4"/>
+    <eLiterals name="Remote Node transmission error" value="5"/>
+    <eLiterals name="Call establishment error" value="6"/>
+    <eLiterals name="Degraded signal" value="7"/>
+    <eLiterals name="Communications subsystem failure" value="8"/>
+    <eLiterals name="Communications protocol error" value="9"/>
+    <eLiterals name="LAN Error" value="10"/>
+    <eLiterals name="DTE" value="11"/>
+    <eLiterals name="Excessive response time" value="12"/>
+    <eLiterals name="Queue size exceeded" value="13"/>
+    <eLiterals name="Bandwidth reduced" value="14"/>
+    <eLiterals name="Excessive Retransmission Rate" value="15"/>
+    <eLiterals name="Threshold crossed" value="16"/>
+    <eLiterals name="Degraded Performance" value="17"/>
+    <eLiterals name="Congestion" value="18"/>
+    <eLiterals name="Resource at or nearing capacity" value="19"/>
+    <eLiterals name="Storage capacity problem" value="20"/>
+    <eLiterals name="Version mismatch" value="21"/>
+    <eLiterals name="Corrupt data" value="22"/>
+    <eLiterals name="CPU cycles limit exceeded" value="23"/>
+    <eLiterals name="Software error" value="24"/>
+    <eLiterals name="Software program error" value="25"/>
+    <eLiterals name="Software program abnormally terminated" value="26"/>
+    <eLiterals name="File error" value="27"/>
+    <eLiterals name="Out of memory" value="28"/>
+    <eLiterals name="Underlying resource unavailable" value="29"/>
+    <eLiterals name="Application system failure" value="30"/>
+    <eLiterals name="Configuration or customization error" value="31"/>
+    <eLiterals name="Power problem" value="32"/>
+    <eLiterals name="Timing problem" value="33"/>
+    <eLiterals name="Processor problem" value="34"/>
+    <eLiterals name="Dataset or modem error" value="35"/>
+    <eLiterals name="Multiplexer problem" value="36"/>
+    <eLiterals name="Receiver failure" value="37"/>
+    <eLiterals name="Transmitter failure" value="38"/>
+    <eLiterals name="Receive failure" value="39"/>
+    <eLiterals name="Transmit failure" value="40"/>
+    <eLiterals name="Output device error" value="41"/>
+    <eLiterals name="Input device error" value="42"/>
+    <eLiterals name="Input output device error" value="43"/>
+    <eLiterals name="Equipment malfunction" value="44"/>
+    <eLiterals name="Adapter error" value="45"/>
+    <eLiterals name="Temperature unacceptable" value="46"/>
+    <eLiterals name="Humidity unacceptable" value="47"/>
+    <eLiterals name="Heating or ventilation or cooling system problem" value="48"/>
+    <eLiterals name="Fire detected" value="49"/>
+    <eLiterals name="Flood detected" value="50"/>
+    <eLiterals name="Toxic leak detected" value="51"/>
+    <eLiterals name="Leak detected" value="52"/>
+    <eLiterals name="Pressure unacceptable" value="53"/>
+    <eLiterals name="Excessive vibration" value="54"/>
+    <eLiterals name="Material supply exhausted" value="55"/>
+    <eLiterals name="Pump failure" value="56"/>
+    <eLiterals name="Enclosure door open" value="57"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="alarmInformation">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="AlarmProfile" upperBound="-1"
+        eType="#//AlarmProfile" containment="true"/>
+  </eClassifiers>
+</ecore:EPackage>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:copyMap="copyMap.ecore" xsi:schemaLocation="copyMap.ecore ../model/copyMap.ecore">
+  <copyMap:map source="instantiateTimeout" dest="instantiateTimeout"/>
+  <copyMap:map source="terminateTimeout" dest="terminateTimeout"/>
+  <copyMap:map source="cleanupTimeout" dest="cleanupTimeout"/>
+  <copyMap:map source="amStartTimeout" dest="amStartTimeout"/>
+  <copyMap:map source="amStopTimeout" dest="amStopTimeout"/>
+  <copyMap:map source="quiescingCompleteTimeout" dest="quiescingCompleteTimeout"/>
+  <copyMap:map source="csiSetTimeout" dest="csiSetTimeout"/>
+  <copyMap:map source="csiRemoveTimeout" dest="csiRemoveTimeout"/>
+  <copyMap:map source="proxiedCompInstantiateTimeout" dest="proxiedCompInstantiateTimeout"/>
+  <copyMap:map source="proxiedCompCleanupTimeout" dest="proxiedCompCleanupTimeout"/>
+</xmi:XMI>

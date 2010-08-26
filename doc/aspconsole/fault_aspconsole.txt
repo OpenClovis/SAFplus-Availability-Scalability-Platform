@@ -1,0 +1,247 @@
+/**
+ * \addtogroup fault_aspconsole Fault Manager ASP Console Commands
+ * \{
+ */
+
+/**
+*****************************************
+\brief To generate fault. 
+ 
+\par Usage: 
+\code generateFault <Moid#> <Category#> <Subcategory#> <Severity#> <Cause#> \endcode
+\param Moid [STRING]    : This is the absolute path of the MOIDEx:- \Class_Chassis:0\Class_GigeBlade:1
+\param Category [DEC]   : Category of the fault
+\param Valid values are : 1 for COMMUNICATIONS, 2 for QUALITY OF SERVICE,
+               3 for PROCESSING ERROR, 4 for EQUIPMENT,
+               5 for ENVIRONMENTAL
+
+\param SpecProb [DEC]   : Specific problem of the fault
+\param Severity [DEC]   : Severity of the fault
+\param Valid values are : 1 for CRITICAL, 2 for MAJOR,
+               3 for MINOR, 4 for WARNING,
+               5 for INTERMEDIATE, 6 for CLEAR
+
+\param Cause [DEC]      : Cause of the fault
+\param Valid values are : 1 to 57. Refer ClAlarmProbableCauseT for more description
+\param Alarm State [DEC]: State of the fault
+\param Valid values are : 0 for CLEAR, 1 for ASSERT
+ 
+\par Output: 
+\code 
+cli[Test:SysNodeI0:FAULT]->  generateFault \Chassis:0\TestSync0:0 1 1 1 1 1
+
+Successfully generated fault
+
+\endcode 
+***************************************** 
+*/
+generateFault;
+
+/**
+*****************************************
+\brief To query a particular fault history.
+ 
+\par Usage: 
+\code
+queryFaulthistory <Moid> <Category#> <Subcategory#> \
+                  <Severity#> <Cause#>
+\endcode
+\param Moid [STRING]    : This is the absolute path of the MOIDi.e \Class_Chassis:0\Class_GigeBlade:1
+\param Category [DEC]   : Category of the fault
+\param Valid values are : 1 for COMMUNICATIONS, 2 for QUALITY OF SERVICE,
+3 for PROCESSING ERROR, 4 for EQUIPMENT,
+5 for ENVIRONMENTAL
+\param SpecProblem[DEC] : Specific problem of the fault
+\param Severity [DEC]   : Severity of the fault
+\param Valid values are : 1 for CRITICAL, 2 for MAJOR,
+3 for MINOR, 4 for WARNING,
+5 for INTERMEDIATE, 6 for CLEAR
+\param Cause [DEC]      : Cause of the fault
+\param Valid values are : 1 to 57. Refer ClAlarmProbableCauseT for more description
+
+\par Output: 
+\code 
+cli[Test:SysNodeI0:FAULT]-> generateFault \Chassis:0\TestSync0:0 1 1 1 1 1
+
+Successfully generated fault
+
+
+cli[Test:SysNodeI0:FAULT]-> queryFaulthistory \Chassis:0\TestSync0:0 1 1 1 1
+
+no record found
+
+cli[Test:SysNodeI0:FAULT]-> generateFault \Chassis:0\TestSync0:0 1 1 1 1 1
+
+Successfully generated fault
+
+
+cli[Test:SysNodeI0:FAULT]-> queryFaulthistory \Chassis:0\TestSync0:0 1 1 1 1
+
+existing record found
+Category........... CL_ALARM_CATEGORY_COMMUNICATIONS
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_CRITICAL
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber..... 0
+
+
+cli[Test:SysNodeI0:FAULT]-> generateFault \Chassis:0\TestSync0:0 2 1 1 1 1
+
+Successfully generated fault
+cli[Test:SysNodeI0:FAULT]-> queryFaulthistory \Chassis:0\TestSync0:0 2 1 1 1
+
+existing record found
+Category........... CL_ALARM_CATEGORY_QUALITY_OF_SERVICE
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_CRITICAL
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber..... 0
+
+
+
+\endcode 
+***************************************** 
+*/
+queryFaulthistory;
+
+/**
+*****************************************
+\brief To query complete fault history.
+ 
+\par Usage: 
+\code queryCompleteFaultHistory <Moid> \endcode 
+
+\param Moid[STRING] This is the absolute path of the MOID i.e., \Class_Chassis:0\Class_GigeBlade:1 
+
+\par Output:
+\code 
+
+cli[Test:SysNodeI0:FAULT]->  generateFault \Chassis:0\TestSync0:0 1 1 1 1 1
+
+Successfully generated fault
+
+
+cli[Test:SysNodeI0:FAULT]-> generateFault \Chassis:0\TestSync0:0 2 1 1 1 1
+
+Successfully generated fault
+
+
+cli[Test:SysNodeI0:FAULT]-> generateFault \Chassis:0\TestSync0:0 3 1 1 1 1
+
+Successfully generated fault
+
+
+cli[Test:SysNodeI0:FAULT]-> queryCompleteFaulthistory \Chassis:0\TestSync0:0
+
+Category........... CL_ALARM_CATEGORY_COMMUNICATIONS
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_CRITICAL
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 1
+
+Category........... CL_ALARM_CATEGORY_QUALITY_OF_SERVICE
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_CRITICAL
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 1
+
+Category........... CL_ALARM_CATEGORY_PROCESSING_ERROR
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_CRITICAL
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 1
+
+
+
+cli[Test:SysNodeI0:FAULT]->  generateFault \Chassis:0\TestSync0:0 2 1 2 1 1
+
+Successfully generated fault
+
+
+cli[Test:SysNodeI0:FAULT]-> queryCompleteFaulthistory \Chassis:0\TestSync0:0
+
+Category........... CL_ALARM_CATEGORY_COMMUNICATIONS
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_CRITICAL
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 1
+
+Category........... CL_ALARM_CATEGORY_QUALITY_OF_SERVICE
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_CRITICAL
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 1
+
+Category........... CL_ALARM_CATEGORY_PROCESSING_ERROR
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_CRITICAL
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 1
+
+Category........... CL_ALARM_CATEGORY_QUALITY_OF_SERVICE
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_MAJOR
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 1
+
+
+
+cli[Test:SysNodeI0:FAULT]->  generateFault \Chassis:0\TestSync0:0 2 1 2 1 1
+
+Successfully generated fault
+
+
+cli[Test:SysNodeI0:FAULT]-> queryCompleteFaulthistory \Chassis:0\TestSync0:0
+
+Category........... CL_ALARM_CATEGORY_COMMUNICATIONS
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_CRITICAL
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 1
+
+Category........... CL_ALARM_CATEGORY_QUALITY_OF_SERVICE
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_CRITICAL
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 1
+
+Category........... CL_ALARM_CATEGORY_PROCESSING_ERROR
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_CRITICAL
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 1
+
+Category........... CL_ALARM_CATEGORY_QUALITY_OF_SERVICE
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_MAJOR
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 1
+
+Category........... CL_ALARM_CATEGORY_QUALITY_OF_SERVICE
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_MAJOR
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 2
+
+cli[Test:SysNodeI0:FAULT]-> generateFault \Chassis:0\TestSync0:1 2 1 2 1 1
+
+Successfully generated fault
+
+
+cli[Test:SysNodeI0:FAULT]-> queryCompleteFaulthistory \Chassis:0\TestSync0:1
+
+Category........... CL_ALARM_CATEGORY_QUALITY_OF_SERVICE
+SpecificProblem.... 1
+Severity........... CL_ALARM_SEVERITY_MAJOR
+cause.............. CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL
+SequenceNumber.. 3
+
+\endcode 
+***************************************** 
+*/
+queryCompleteFaulthistory;
+
+
+/**
+ * \}
+ */

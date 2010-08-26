@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+   <extension id="ValidateProjectCommand"
+   		name="Command Line Validator"
+		point="org.eclipse.core.runtime.applications">
+		<application>
+			<run class="com.clovis.cw.cmdtool.ValidateProjectCommand">
+				<parameter name="optimize" value="true"/>
+			</run>
+		</application>
+	</extension>
+	<extension id="GenerateSourceCommand"
+   		name="Command Line Code Generator"
+		point="org.eclipse.core.runtime.applications">
+		<application>
+			<run class="com.clovis.cw.cmdtool.GenerateSourceCommand">
+				<parameter name="optimize" value="true"/>
+			</run>
+		</application>
+	</extension>
+	<extension id="MibImportCommand"
+   		name="Command Line Mib Importer"
+		point="org.eclipse.core.runtime.applications">
+		<application>
+			<run class="com.clovis.cw.cmdtool.MibImportCommand">
+				<parameter name="optimize" value="true"/>
+			</run>
+		</application>
+	</extension>
+	<extension id="MigrateProjectCommand"
+    	name="Command Line Project Migrator"
+		point="org.eclipse.core.runtime.applications">
+		<application>
+			<run class="com.clovis.cw.cmdtool.MigrateProjectCommand">
+				<parameter name="optimize" value="true"/>
+			</run>
+		</application>
+	</extension>
+</plugin>

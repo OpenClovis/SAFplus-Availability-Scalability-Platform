@@ -1,0 +1,271 @@
+#!/usr/bin/env python
+"""
+# Get various board information using local IPMI interface if available
+"""
+
+import os, string, sys, getopt, pdb, re
+
+shm_ip = None	# shelf manager's IP address
+
+# Find our own path and try to load the asp.conf file to get the
+# shelf manager's IP address
+asp_conf = os.path.dirname(os.path.realpath(__file__)) + '/../etc/asp.conf'
+try:
+    f = file(asp_conf, 'r')
+    conf=';'.join(f.readlines())
+    m = re.search(r'SAHPI_UNSPECIFIED_DOMAIN_ID=(.*)', conf)
+    if m and len(m.groups())==1:
+        shm_ip = m.groups()[0]
+except IOError:
+    # could not find file, so we do not set IP address
+    pass
+
+# Some IPMI constants (from IPMI spec version 1.5)
+IPMI_NETFN_CHASSIS = 0                 # IPMI network function for chassis
+IPMI_NETFN_APP = 6                     # IPMI network function for app
+IPMI_NETFN_STORAGE = 10                # IPMI network function for FRU
+                                       # storage area
+IPMI_NETFN_GROUPEXT = 0x2c             # IPMI netfn for group extensions
+
+IPMI_CMD_GETDEVICEID = 1               # Get device id of self
+IPMI_CMD_GETFRUINVAREAINFO = 0x10      # Read FRU inventory area info
+IPMI_CMD_READFRUDATA = 0x11            # Read FRU data from IPMI
+
+fru_data = ''
+debug_level = 0
+
+slot_type = { # From ATCA Spec (PICMG 3.0), with liberal abbreviations
+    0x00: 'atca_board',
+    0x01: 'pem',
+    0x02: 'shelf_fru_info',
+    0x03: 'shmc',
+    0x04: 'fan',
+    0x05: 'filter',
+    0x06: 'alarm',
+    0x07: 'amc',
+    0x08: 'pmc',
+    0x09: 'rtm',
+    0xc0: 'oem', 0xc1: 'oem', 0xc2: 'oem', 0xc3: 'oem',
+    0xc4: 'oem', 0xc5: 'oem', 0xc6: 'oem', 0xc7: 'oem',
+    0xc8: 'oem', 0xc9: 'oem', 0xca: 'oem', 0xcb: 'oem',
+    0xcc: 'oem', 0xcd: 'oem', 0xce: 'oem', 0xcf: 'oem'
+}
+
+usage_msg = """
+%s - Get local blade/board information using IPMI
+
+OpenClovis, Inc. Copyright 2007. All Rights Reserved
+
+Important: this script does not work if local IPMI support is not available
+(ipmi kernel modules and ipmitool command line utility).
+
+Usage:
+    %s [options]
+
+Options:
+    -h, --help             : Print help end exit
+    -i, --ipmi             : Print the IPMI address
+    -p, --physical-slot    : Print physical slot address and slot type. This
+                             requires the shelf manager's IP address.  The
+			     program will try to find asp.conf and extract
+			     the address from it, or it can be manually given
+			     using the -H flag.
+    -l, --logical-slot     : Print the logical slot number of this blade
+    -b, --board-info       : Print board and product related information
+    -a, --all              : Print all available information (default)
+    -c, --check            : Check if IPMI is accessible and return 0 if it is
+    -H <host>,             
+    --host=<host>          : Shelf manager's hostname or IP address for RMCP
+                             access. Only used when physical slot info is
+                             requested.
+    -P <passwd>,
+    --password=<passwd>    : (Optional) Password for RMCP access. Default: ""
+    -v, --verbose          : Show debug messages (can be repeated to be even
+                             more verbose)
+
+"""
+
+def usage(exitcode=0):
+    sys.stderr.write(usage_msg % (sys.argv[0], sys.argv[0]) + '\n')
+    sys.exit(exitcode)
+
+def debug_msg(level, msg):
+    if (level <= debug_level):
+        sys.stderr.write(msg+'\n')
+
+def ipmitool_raw(netfn, cmd, data=[], host='', passwd=''):
+    if host:
+        host = ' -H %s' % host
+        passwd = ' -P "%s"' % passwd
+    cmd_line = 'ipmitool%s%s raw %d %d %s' % \
+        (host, passwd, netfn, cmd, string.join([str(e) for e in data]))
+    debug_msg(1, 'command called: %s' % cmd_line)
+    response = os.popen(cmd_line).readlines()
+    if len(response) < 1:
+        sys.stderr.write('Error: Could not carry out ipmitool call.'
+                         ' Password error?\n')
+        sys.exit(1)
+    return [int(e, 16) for e in string.join(response).split()]
+
+def check_ipmi_access():
+    """ Check if ipmitool is functioning by a simple call to it """
+    res = ipmitool_raw(IPMI_NETFN_APP, IPMI_CMD_GETDEVICEID)
+    assert(len(res) in [11,15]) # per IPMI 1.5 spec, it is either 11 or 15 bytes
+
+def get_ipmi_address():
+    res = ipmitool_raw(IPMI_NETFN_GROUPEXT, 1, [0]) # TODO: explain this
+    assert(len(res) == 7)
+    return res[2]
+
+def get_physical_slot_info(ipmi_address, host, passwd):
+    res = ipmitool_raw(IPMI_NETFN_GROUPEXT, 1, [0, 0, 1, ipmi_address],
+                       host, passwd)
+    assert(len(res) == 7)
+    return res[5], slot_type.get(res[6], 'unknown')
+    
+def ipmi_to_logicalslot(ipmi_address):
+    # This relies on the 0x80 IPMI base address and the 2-increments
+    IPMI_BASE_ADDRESS = 0x80
+    assert(ipmi_address >= IPMI_BASE_ADDRESS and
+           ipmi_address <= IPMI_BASE_ADDRESS + (16*2))
+    return (ipmi_address-IPMI_BASE_ADDRESS)/2
+
+def get_fru_data():
+    global fru_data
+    res = ipmitool_raw(IPMI_NETFN_STORAGE, IPMI_CMD_GETFRUINVAREAINFO, [0])
+    assert(res[2]==0) # assume byte addressing
+    size = res[1]*256+res[0]
+    data = []
+    offset = 0
+    while size:
+        need = min(32, size)
+        res = ipmitool_raw(IPMI_NETFN_STORAGE, IPMI_CMD_READFRUDATA,
+                           [0, offset%256, offset/256, need])
+        assert(res[0] == len(res)-1)
+        res = res[1:]
+        data += res
+        offset += 32
+        size -= need
+    debug_msg(3, 'fru data len: '+str(len(data))+' fru data: '+str(data))
+    fru_data = data
+
+def get_fru_string_field(areaid, fieldid):
+    # All assumed to be of string type, with plain ASCII encoding
+    # This is extremely hackish and very limited. But it is engineered
+    # to work for the fields we are interested in this script
+    if fru_data == '': get_fru_data()
+    offset = fru_data[areaid+3]*8+3 # points to first byte of area
+    if areaid == 0: # first field of area 0 (BOARD_INFO) is a date, 3 bytes
+        assert(fieldid>0)
+        offset+=3
+        fieldid-=1
+    while fieldid:
+        field_code = fru_data[offset]
+        offset += (field_code & 0x3f) + 1
+        fieldid -= 1
+    debug_msg(2, 'Field offset: %d' % offset)
+    size = fru_data[offset] & 0x3f
+    offset += 1
+    return string.join(['%c'%e for e in fru_data[offset:offset+size]], '')
+
+no_access_msg = """
+Error: No IPMI access. Check the following:
+- ipmi drivers are loaded (lsmod should show ipmi drivers loaded)
+- ipmitool is installed (try to run "ipmitool")
+- ipmitool has access to IPMI driver (try running "ipmitool raw 6 1")
+"""
+
+def main():
+    global debug_level, shm_ip
+    ipmi = logical = physical = board = prod = check = 0
+    all = 1 # default
+    passwd = ''
+    
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],
+            'hailbpcvH:P:',
+            ['help',
+             'all',
+             'ipmi',
+             'physical-slot',
+             'logical-slot',
+             'board-info', 
+             'check'
+             'verbose'
+             'host',
+             'password'])
+    except getopt.GetoptError:
+        usage(1)
+
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            usage()
+        elif o in ("-a", "--all"):
+            all = 1
+        elif o in ("-i", "--ipmi"):
+            ipmi = 1
+        elif o in ("-p", "--physical-slot"):
+            physical = 1
+        elif o in ("-l", "--logical-slot"):
+            logical = 1
+        elif o in ("-b", "--board-info"):
+            board = 1
+        elif o in ("-p", "--product-info"):
+            prod = 1
+        elif o in ("-H", "--host"):
+            shm_ip = a
+        elif o in ("-P", "--password"):
+            passwd = a
+        elif o in ("-c", "--check"):
+            check = 1
+        elif o in ("-v", "--verbose"):
+            debug_level += 1
+    
+    if ipmi or logical or physical or board or prod:
+        all = 0
+
+    try:
+        check_ipmi_access()
+    except:
+        sys.stderr.write(no_access_msg)
+        sys.exit(1)
+    
+    if check:
+        sys.exit(0)
+
+    ipmi_address = get_ipmi_address()
+
+    if all or ipmi:
+        print '%-24s0x%x' % ('ipmi_address:', ipmi_address)
+    if all or logical:
+        print '%-24s%d' % \
+            ('logical_slot:', ipmi_to_logicalslot(ipmi_address))
+    if all or physical:
+        if shm_ip == '' or shm_ip is None:
+            print '%-24s%s' % ('physical_slot:', 'unknown')
+            print '%-24s%s' % ('slot_type:', 'unknown')
+        else:
+            slot, slottype = get_physical_slot_info(ipmi_address, shm_ip, passwd)
+            print '%-24s%d' % ('physical_slot:', slot)
+            print '%-24s%s' % ('slot_type:', slottype)
+    if all or board:
+        print '%-24s%s' % \
+            ('board_manufacturer:', get_fru_string_field(0, 1))
+        print '%-24s%s' % \
+            ('board_productname:', get_fru_string_field(0, 2))
+        print '%-24s%s' % \
+            ('board_serialnumber:', get_fru_string_field(0, 3))
+        print '%-24s%s' % \
+            ('product_manufacturer:', get_fru_string_field(1, 0))
+        print '%-24s%s' % \
+            ('product_name:', get_fru_string_field(1, 1))
+        print '%-24s%s' % \
+            ('product_partnumber:', get_fru_string_field(1, 2))
+        print '%-24s%s' % \
+            ('product_version:', get_fru_string_field(1, 3))
+        print '%-24s%s' % \
+            ('product_serialnumber:', get_fru_string_field(1, 4))
+        
+if __name__ == '__main__':
+    main()
+

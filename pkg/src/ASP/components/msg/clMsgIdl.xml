@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+      Copyright (C) 2002-2009 by OpenClovis Inc. All Rights Reserved.
+      
+      The source code for  this program is not published  or otherwise 
+      divested of  its trade secrets, irrespective  of  what  has been 
+      deposited with the U.S. Copyright office.
+
+      This program is  free software; you can redistribute it and / or
+      modify  it under  the  terms  of  the GNU General Public License
+      version 2 as published by the Free Software Foundation.
+
+      This program is distributed in the  hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+      General Public License for more details.
+
+      You  should  have  received  a  copy of  the  GNU General Public
+      License along  with  this program. If  not,  write  to  the 
+      Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+-->
+<!--
+    Build: 4.2.0
+-->
+<IDLSpecs name="MsgIDL">
+    <Service name="msgIdl">
+        <Comp name="msg"/>
+        <Include name="clCommon.h"/>
+        <Include name="clMsgDatabase.h"/>
+        <Include name="clMsgFailover.h"/>
+        <Struct name="SaMsgMessageT" defNeed="false">
+            <DataMember name="type" type="ClUint32T" />
+            <DataMember name="version" type="ClUint32T" />
+            <DataMember name="size" type="ClUint64T" />
+            <DataMember name="senderName" type="ClNameT" pointer="Single"/>
+            <DataMember name="data" type="ClUint8T" pointer="Single" lengthVar="size"/>
+            <DataMember name="priority" type="ClUint8T" />
+        </Struct>
+        <Struct name="SaMsgQueueCreationAttributesT" defNeed="false">
+            <DataMember name="creationFlags" type="ClUint32T" />
+            <DataMember name="size" type="ClInt64T" multiplicity="SA_MSG_MESSAGE_LOWEST_PRIORITY + 1"/>
+            <DataMember name="retentionTime" type="ClUint64T" />
+        </Struct>
+        <Struct name="SaMsgQueueUsageT" defNeed="false">
+            <DataMember name="queueSize" type="ClUint64T"/>
+            <DataMember name="queueUsed" type="ClUint64T"/>
+            <DataMember name="numberOfMessages" type="ClUint32T"/>
+        </Struct>
+        <Struct name="SaMsgQueueStatusT" defNeed="false">
+            <DataMember name="creationFlags" type="ClUint32T"/>
+            <DataMember name="retentionTime" type="ClInt64T"/>
+            <DataMember name="closeTime" type="ClInt64T"/>
+            <DataMember name="saMsgQueueUsage" type="SaMsgQueueUsageT" multiplicity="SA_MSG_MESSAGE_LOWEST_PRIORITY + 1"/>
+        </Struct>
+        <Struct name="ClMsgGroupSyncupRecordT" defNeed="false">
+            <DataMember name="name" type="ClNameT"/>
+            <DataMember name="policy" type="SaMsgQueueGroupPolicyT"/>
+        </Struct>
+        <Struct name="ClIocPhysicalAddressT" defNeed="false">
+            <DataMember name="nodeAddress" type="ClUint32T"/>
+            <DataMember name="portId" type="ClUint32T"/>
+        </Struct>
+        <Struct name="ClMsgQueueSyncupRecordT" defNeed="false">
+            <DataMember name="qName" type="ClNameT"/>
+            <DataMember name="compAddr" type="ClIocPhysicalAddressT"/>
+            <DataMember name="numGroups" type="ClUint32T"/>
+        </Struct>
+
+        <Enum name="SaMsgQueueOpenFlagsT">
+            <EnumMember name="SA_MSG_QUEUE_CREATE" value="0x1" />
+            <EnumMember name="SA_MSG_QUEUE_RECEIVE_CALLBACK" value="0x2" />
+            <EnumMember name="SA_MSG_QUEUE_EMPTY" value="0x4"/>
+        </Enum>
+        <Enum name="SaMsgQueueGroupPolicyT" defNeed="false"/>
+        <Enum name="SaMsgQueueGroupChangesT" defNeed="false"/>
+        <Struct name="SaMsgQueueGroupMemberT" defNeed="false">
+            <DataMember name="queueName" type="ClNameT" />
+        </Struct>
+        <Struct name="SaMsgQueueGroupNotificationT" defNeed="false">
+            <DataMember name="member" type="SaMsgQueueGroupMemberT"/>
+            <DataMember name="change" type="SaMsgQueueGroupChangesT"/>
+        </Struct>
+        <Enum name="ClMsgSyncActionT" defNeed="false">
+            <EnumMember name="CL_MSG_DATA_ADD" value="1"/>
+            <EnumMember name="CL_MSG_DATA_DEL" />
+        </Enum>
+        <Struct name="SaMsgQueueGroupNotificationBufferT" defNeed="false">
+            <DataMember name="numberOfItems" type="ClUint32T"/>
+            <DataMember name="notification" type="SaMsgQueueGroupNotificationT"
+                    pointer="Single" lengthVar="numberOfItems"/>
+            <DataMember name="queueGroupPolicy" type="SaMsgQueueGroupPolicyT"/>
+        </Struct>
+        <Enum name="ClMsgMoveStatusT" defNeed="false">
+            <EnumMember name="MSG_MOVE_FIN_UNINIT"/>
+            <EnumMember name="MSG_MOVE_FIN_BLOCKED"/>
+            <EnumMember name="MSG_MOVE_DONE"/>
+        </Enum>
+
+        <Port name="Client" ID="CL_EO_NATIVE_COMPONENT_TABLE_ID">
+            <Group name="CallsFromClient">
+                <Include name="clCommon.h"/>
+                <Operation name="clMsgClientInit" type="sync">
+                    <Argument ParameterType="CL_IN" name="pVersion" type="ClUint32T" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="clientHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_OUT" name="pMsgHandle" type="ClHandleT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgClientFin" type="sync">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT"/>
+                </Operation>
+                <Operation name="clMsgClientMessageSend">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT" />
+                    <Argument ParameterType="CL_IN" name="pDestination" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pMessage" type="SaMsgMessageT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="sendTime" type="ClInt64T"/>
+                    <Argument ParameterType="CL_IN" name="timeout" type="ClInt64T"/>
+                </Operation>
+                <Operation name="clMsgClientMessageGet" type="sync">
+                    <Argument ParameterType="CL_IN" name="qHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_INOUT" name="pMessage" type="SaMsgMessageT" pointer="Single"/>
+                    <Argument ParameterType="CL_OUT" name="pSendTime" type="ClInt64T" pointer="Single"/>
+                    <Argument ParameterType="CL_OUT" name="pSenderId" type="ClUint64T" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="timeout" type="ClInt64T" />
+                </Operation>
+                <Operation name="clMsgClientMessageSendReceive" type="sync">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pDestination" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pSendMessage" type="SaMsgMessageT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="sendTime" type="ClInt64T"/>
+                    <Argument ParameterType="CL_INOUT" name="pRecvMessage" type="SaMsgMessageT" pointer="Single"/>
+                    <Argument ParameterType="CL_INOUT" name="replySendTime" type="ClInt64T" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="timeout" type="ClInt64T" />
+                </Operation>
+                <Operation name="clMsgClientMessageReply">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT" />
+                    <Argument ParameterType="CL_IN" name="pReplyMessage" type="SaMsgMessageT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="sendTime" type="ClInt64T"/>
+                    <Argument ParameterType="CL_IN" name="pSenderId" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="timeout" type="ClInt64T"/>
+                </Operation>
+            </Group>
+            <Group name="QueueCallsFromClient">
+                <Include name="clCommon.h"/>
+                <Include name="saAis.h"/>
+                <Include name="saMsg.h"/>
+               
+                <Operation name="clMsgClientQueueOpen">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pQueueName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pCreationAttributes" type="SaMsgQueueCreationAttributesT" pointer="Single" />
+                    <Argument ParameterType="CL_IN" name="openFlags" type="SaMsgQueueOpenFlagsT" />
+                    <Argument ParameterType="CL_IN" name="timeout" type="ClInt64T" />
+                    <Argument ParameterType="CL_OUT" name="pQHandle" type="ClHandleT" pointer="Single" />
+                </Operation>
+                <Operation name="clMsgClientQueueClose" type="sync">
+                    <Argument ParameterType="CL_IN" name="queueHandle" type="ClHandleT"/>
+                </Operation>
+                <Operation name="clMsgClientQueueUnlink" type="sync">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pQueueName" type="ClNameT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgClientQueueStatusGet" type="sync">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pQueueName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_OUT" name="pQueueStatus" type="SaMsgQueueStatusT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgClientMessageCancel" type="sync">
+                    <Argument ParameterType="CL_IN" name="queueHandle" type="ClHandleT"/>
+                </Operation>
+                <Operation name="clMsgClientQueueRetentionTimeSet" type="sync">
+                    <Argument ParameterType="CL_IN" name="queueHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pRetenTime" type="ClInt64T" pointer="Single"/>
+                </Operation>
+            </Group>
+            <Group name="GroupCallsFromClient">
+                <Include name="clCommon.h"/>
+                <Include name="saMsg.h"/>
+               <Operation name="clMsgClientQueueGroupCreate" type="sync">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pGroupName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="groupPolicy" type="SaMsgQueueGroupPolicyT"/>
+                </Operation>
+                <Operation name="clMsgClientQueueGroupDelete" type="sync">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pGroupName" type="ClNameT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgClientQueueGroupInsert" type="sync">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pGroupName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pQueueName" type="ClNameT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgClientQueueGroupRemove" type="sync">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pGroupName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pQueueName" type="ClNameT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgClientQueueGroupTrack">
+                    <Argument ParameterType="CL_IN" name="clientHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pGroupName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="trackFlag" type="ClUint8T"/>
+                    <Argument ParameterType="CL_INOUT" name="pNotificationBuffer" type="SaMsgQueueGroupNotificationBufferT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgClientQueueGroupTrackStop" type="sync">
+                    <Argument ParameterType="CL_IN" name="msgHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pGroupName" type="ClNameT" pointer="Single"/>
+                </Operation>
+            </Group>
+            <Group name="CallsFromServer">
+                <Include name="clMsgDatabase.h"/>
+                <Include name="saMsg.h"/>
+                <Include name="clIocApi.h"/>
+       
+                <Operation name="clMsgMessageReceived">
+                    <Argument ParameterType="CL_IN" name="sendType" type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="pDestination" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pMessage" type="SaMsgMessageT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="sendTime" type="ClInt64T"/>
+                    <Argument ParameterType="CL_IN" name="senderHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="timeout" type="ClInt64T"/>
+                </Operation>
+                <Operation name="clMsgQDatabaseUpdate">
+                    <Argument ParameterType="CL_IN" name="syncupType" type="ClMsgSyncActionT"/>
+                    <Argument ParameterType="CL_IN" name="pQName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pCompAddr" type="ClIocPhysicalAddressT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pNewOwner" type="ClIocPhysicalAddressT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgGroupDatabaseUpdate" type="async">
+                    <Argument ParameterType="CL_IN" name="syncupType" type="ClMsgSyncActionT"/>
+                    <Argument ParameterType="CL_IN" name="pGroupName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="policy" type="SaMsgQueueGroupPolicyT"/>
+                </Operation>
+                <Operation name="clMsgGroupMembershipUpdate" type="async">
+                    <Argument ParameterType="CL_IN" name="syncAct" type="ClMsgSyncActionT"/>
+                    <Argument ParameterType="CL_IN" name="pGroupName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pQueueName" type="ClNameT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgGetDatabases" type="sync">
+                    <Argument ParameterType="CL_OUT" name="ppData" type="ClUint8T" pointer="Double" lengthVar="pSize"/>
+                    <Argument ParameterType="CL_OUT" name="pSize" type="ClUint32T" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgQueueInfoGet" type="sync">
+                    <Argument ParameterType="CL_IN" name="pQName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="openFlags" type="ClUint32T"/>
+                    <Argument ParameterType="CL_OUT" name="pQAttrs" type="SaMsgQueueCreationAttributesT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgQueueMoveMessages" type="sync">
+                    <Argument ParameterType="CL_IN" name="pQName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="openFlags" type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="pCompAddr" type="ClIocPhysicalAddressT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgQueueUnlink" type="sync">
+                    <Argument ParameterType="CL_IN" name="pQName" type="ClNameT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgQueueStatusGet" type="sync">
+                    <Argument ParameterType="CL_IN" name="pQName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_OUT" name="pQueueStatus" type="SaMsgQueueStatusT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgQueueAllocate" type="sync">
+                    <Argument ParameterType="CL_IN" name="newQ" type="ClUint8T"/>
+                    <Argument ParameterType="CL_IN" name="pQName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pCompAddress" type="ClIocPhysicalAddressT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="openFlags" type="SaMsgQueueOpenFlagsT"/>
+                    <Argument ParameterType="CL_IN" name="pCreationAttributes" type="SaMsgQueueCreationAttributesT" pointer="Single"/>
+                    <Argument ParameterType="CL_OUT" name="pQueueHandle" type="ClHandleT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgFailoverQMovedInfoUpdate" type="async">
+                    <Argument ParameterType="CL_IN" name="pQName" type="ClNameT" pointer="Single"/>
+                </Operation>
+
+            </Group>
+        </Port>
+    </Service>
+    <Service name="msgClt">
+        <Comp name="msg"/>
+        <Include name="saMsg.h"/>
+        <Port name="Client" ID="CL_MSG_CLIENT_TABLE_ID">
+            <Group  name="CallsFromServerToClient">
+                <Operation name="clMsgClientsTrackCallback" type="async">
+                    <Argument ParameterType="CL_IN" name="clientHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pGroupName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pNotification" type="SaMsgQueueGroupNotificationBufferT" pointer="Single"/>
+                </Operation>
+                <Operation name="clMsgClientsMessageReceiveCallback" type="async">
+                    <Argument ParameterType="CL_IN" name="clientHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="qHandle" type="ClHandleT"/>
+                </Operation>
+            </Group>
+        </Port>
+    </Service>
+</IDLSpecs>

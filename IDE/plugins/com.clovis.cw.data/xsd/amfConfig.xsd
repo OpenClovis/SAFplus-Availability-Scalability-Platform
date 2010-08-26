@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="BootConfigType">
+    <xsd:attribute name="name" type="xsd:string"/>
+    <xsd:attribute default="6" name="maxBootLevel" type="xsd:int"/>
+    <xsd:attribute default="5" name="defaultBootLevel" type="xsd:int"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="BootlevelType">
+    <xsd:sequence>
+      <xsd:element name="serviceUnits" type="SusType"/>
+    </xsd:sequence>
+    <xsd:attribute name="level" type="xsd:int"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="AspSusType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="aspServiceUnit" type="aspSUType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="aspSUType">
+    <xsd:attribute default=" " name="name" type="xsd:string"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ComponentInstance">
+    <xsd:attribute name="name" type="xsd:string"/>
+    <xsd:attribute name="type" type="xsd:string"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="SUInstances">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="serviceUnitInstance" type="SUInstance"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="IOCConfiguration">
+    <xsd:sequence>
+      <xsd:element name="sendQueue" type="Queue"/>
+      <xsd:element name="receiveQueue" type="Queue"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  
+  <xsd:complexType name="Queue">
+    <xsd:sequence>
+      <xsd:element name="waterMark" type="WaterMark"/>
+    </xsd:sequence>
+    <xsd:attribute default="0" name="size" type="xsd:unsignedLong"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="WaterMark">
+    <xsd:sequence>
+      <xsd:element name="action" type="WaterMarkAction"/>
+    </xsd:sequence>
+    <xsd:attribute default="35" name="lowLimit" type="xsd:int"/>
+    <xsd:attribute default="90" name="highLimit" type="xsd:int"/>
+  </xsd:complexType>
+  
+   <xsd:complexType name="WaterMarkAction">
+    <xsd:sequence>
+      <xsd:element name="event" type="EventAction"/>
+      <xsd:element name="notification" type="NotificationAction"/>
+      <xsd:element name="log" type="LogAction"/>
+      <xsd:element name="custom" type="CustomAction"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  
+  <xsd:complexType name="Action">
+    <xsd:attribute name="enable" type="xsd:boolean"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="EventAction">
+    <xsd:complexContent>
+      <xsd:extension base="Action"/>
+    </xsd:complexContent>
+  </xsd:complexType>
+  
+  <xsd:complexType name="NotificationAction">
+    <xsd:complexContent>
+      <xsd:extension base="Action"/>
+    </xsd:complexContent>
+  </xsd:complexType>
+  
+  <xsd:complexType name="LogAction">
+    <xsd:complexContent>
+      <xsd:extension base="Action"/>
+    </xsd:complexContent>
+  </xsd:complexType>
+  
+  <xsd:complexType name="CustomAction">
+    <xsd:complexContent>
+      <xsd:extension base="Action"/>
+    </xsd:complexContent>
+  </xsd:complexType>
+  
+  <xsd:complexType name="NodeInstances">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="nodeInstance" type="NodeInstance"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="NodeInstance">
+    <xsd:sequence>
+      <xsd:element name="serviceUnitInstances" type="SUInstances"/>
+      <xsd:element name="dependencies" type="nodeDependencyType"/>
+      <xsd:element name="iocConfiguration" type="IOCConfiguration"/>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="xsd:string"/>
+    <xsd:attribute name="type" type="xsd:string"/>
+    <xsd:attribute name="nodeMoId" type="xsd:string"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="cpmConfig">
+    <xsd:sequence>
+      <xsd:element name="bootConfigs" type="BootConfigsType"/>
+      <xsd:element name="aspServiceUnits" type="AspSusType"/>
+    </xsd:sequence>
+    <xsd:attribute default=" " name="nodeType" type="xsd:string"/>
+    <xsd:attribute default="LOCAL" name="cpmType" type="CpmType"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="SUInstance">
+    <xsd:sequence>
+      <xsd:element name="componentInstances" type="ComponentInstances"/>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="xsd:string"/>
+    <xsd:attribute name="type" type="xsd:string"/>
+    <xsd:attribute name="rank" type="xsd:int"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="BootConfigsType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="bootConfig" type="BootConfigType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="BootLevelsType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="bootLevel" type="BootlevelType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="SusType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="serviceUnit" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ComponentInstances">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="componentInstance" type="ComponentInstance"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="NodesType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="node" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:simpleType name="CpmType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="LOCAL"/>
+      <xsd:enumeration value="GLOBAL"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <xsd:simpleType name="PreInstanceType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="CL_FALSE"/>
+      <xsd:enumeration value="CL_TRUE"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <!-- Top level class in the xml file -->
+  <xsd:complexType name="amfConfig">
+    <xsd:sequence>
+      <xsd:element name="cpmConfigs" type="cpmConfigs"/>
+      <xsd:element name="nodeInstances" type="NodeInstances"/>
+      <xsd:element name="serviceGroups" type="ServiceGroupInstances"/>
+    </xsd:sequence>
+    <xsd:attribute default="B.01.01" name="version" type="xsd:string"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ServiceGroupInstances">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="serviceGroup" type="ServiceGroupInstance"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ServiceGroupInstance">
+    <xsd:sequence>
+      <xsd:element name="serviceInstances" type="ServiceInstances"/>
+      <xsd:element name="associatedServiceUnits" type="associatedServiceUnitsType"/>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="xsd:string"/>
+    <xsd:attribute name="type" type="xsd:string"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ServiceInstances">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="serviceInstance" type="ServiceInstance"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="associatedServiceUnitsType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="associatedServiceUnit" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ServiceInstance">
+    <xsd:sequence>
+      <xsd:element name="componentServiceInstances" type="ComponentServiceInstances"/>
+      <xsd:element name="dependencies" type="SIDependencyType"/>
+      <xsd:element minOccurs="0" name="prefferedServiceUnits" type="prefferedServiceUnitType"/>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="xsd:string"/>
+    <xsd:attribute name="type" type="xsd:string"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ComponentServiceInstances">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="componentServiceInstance" type="ComponentServiceInstance"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ComponentServiceInstance">
+    <xsd:attribute name="name" type="xsd:string"/>
+    <xsd:attribute name="type" type="xsd:string"/>
+  </xsd:complexType>
+  
+  <xsd:complexType name="nodeDependencyType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="node" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="prefferedServiceUnitType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="prefferedServiceUnit" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="cpmConfigs">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="cpmConfig" type="cpmConfig"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="SIDependencyType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="serviceInstance" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

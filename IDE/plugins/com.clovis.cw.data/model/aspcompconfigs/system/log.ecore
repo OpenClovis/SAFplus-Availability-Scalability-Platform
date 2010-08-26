@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="clLog"
+    nsURI="log.ecore" nsPrefix="log">
+  <eClassifiers xsi:type="ecore:EClass" name="BootConfig">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="log" lowerBound="1" eType="#//LOG"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="LOG">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="Log"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="logConfigData" lowerBound="1"
+        eType="#//LogConfigData" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Log Config Data"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="perennialStreamsData" lowerBound="1"
+        eType="#//StreamsData" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Perennial Streams Data"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.CpmPushButtonCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="precreatedStreamsData"
+        lowerBound="1" eType="#//PrecreatedStreamsData" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Precreated Streams Data"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.CpmPushButtonCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="LogConfigData">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maximumStreams" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong" defaultValueLiteral="256"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum Streams"/>
+        <details key="pattern" value="^[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?|[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|42949672[0-8][0-9]|429496729[0-5]$"/>
+        <details key="message" value="value is not in uint32 range(0 to 4294967295)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maximumComponents" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong" defaultValueLiteral="256"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum Components"/>
+        <details key="pattern" value="^[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?|[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|42949672[0-8][0-9]|429496729[0-5]$"/>
+        <details key="message" value="value is not in uint32 range(0 to 4294967295)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maximumSharedMemoryPages"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"
+        defaultValueLiteral="50" unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum Shared Memory Pages"/>
+        <details key="pattern" value="^[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?|[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|42949672[0-8][0-9]|429496729[0-5]$"/>
+        <details key="message" value="value is not in uint32 range(0 to 4294967295)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maximumRecordsInPacket"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"
+        defaultValueLiteral="100" unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum Records In Packet"/>
+        <details key="pattern" value="^[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?|[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|42949672[0-8][0-9]|429496729[0-5]$"/>
+        <details key="message" value="value is not in uint32 range(0 to 4294967295)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="StreamsData">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="stream" upperBound="-1"
+        eType="#//Stream" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Streams"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PrecreatedStreamsData">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="stream" upperBound="-1"
+        eType="#//PrecreatedStream" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Streams"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Stream">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="label" value="Stream"/>
+      <details key="LowerBound" value="2"/>
+      <details key="UpperBound" value="2"/>
+      <details key="Help" value="com.clovis.cw.help.boot_log_stream"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.StreamValidator"/>
+      <details key="initializationFields" value="fileName,file"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Stream Name"/>
+        <details key="pattern" value="^[a-zA-z][a-zA-z0-9_]*$"/>
+        <details key="message" value="Invalid Stream Name"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="fileName" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral=""
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="File Name"/>
+        <details key="pattern" value="^[a-zA-z][a-zA-z0-9_.]*$"/>
+        <details key="message" value="Invalid File Name"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="fileLocation" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral=".:var/log"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="File Location"/>
+        <details key="pattern" value="^([\*]|[\.]|[a-zA-Z][a-zA-Z0-9_]*)[:][/]?[a-zA-Z0-9_./]+$"/>
+        <details key="message" value="Invalid File Location"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="fileUnitSize" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong" defaultValueLiteral="1500000"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="File Unit Size(bytes)"/>
+        <details key="pattern" value="^[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?|[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|42949672[0-8][0-9]|429496729[0-5]$"/>
+        <details key="message" value="value is not in uint32 range(0 to 4294967295)"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="recordSize" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong" defaultValueLiteral="300"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Record Size(bytes)"/>
+        <details key="pattern" value="^[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?|[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|42949672[0-8][0-9]|429496729[0-5]$"/>
+        <details key="message" value="value is not in uint32 range(0 to 4294967295)"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="fileFullAction" lowerBound="1"
+        eType="#//FileFullActionEnum" defaultValueLiteral="ROTATE" unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="File Full Action"/>
+        <details key="message" value="Invalid File Full Action"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="UItype" value="UIFileFullActionEnum"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maximumFilesRotated" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong" defaultValueLiteral="3"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum Files Rotated"/>
+        <details key="pattern" value="^[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?|[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|42949672[0-8][0-9]|429496729[0-5]$"/>
+        <details key="message" value="value is not in uint32 range(0 to 4294967295)"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="flushFreq" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong" defaultValueLiteral="20"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Flush Frequency"/>
+        <details key="pattern" value="^[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?|[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|42949672[0-8][0-9]|429496729[0-5]$"/>
+        <details key="message" value="value is not in uint32 range(0 to 4294967295)"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="flushInterval" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong" defaultValueLiteral="20000000"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Flush Interval (nanoseconds)"/>
+        <details key="pattern" value="^[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?|[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|42949672[0-8][0-9]|429496729[0-5]$"/>
+        <details key="message" value="value is not in uint32 range(0 to 4294967295)"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="syslog" lowerBound="1"
+        eType="#//SysLogEnum" defaultValueLiteral="no" unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="SysLog"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="UItype" value="UISysLogEnum"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PrecreatedStream" eSuperTypes="#//Stream">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="Precreated Stream"/>
+      <details key="Help" value="com.clovis.cw.help.boot_log_stream"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.StreamValidator"/>
+      <details key="initializationFields" value="name,Stream;fileName,file"/>
+      <details key="uniqueFieldCombination" value="name,streamScope"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="streamScope" lowerBound="1"
+        eType="#//StreamScopeEnum" defaultValueLiteral="GLOBAL" unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Stream Scope"/>
+        <details key="message" value="Invalid Stream Scope"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="UItype" value="UIStreamScopeEnum"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="FileFullActionEnum">
+    <eLiterals name="ROTATE"/>
+    <eLiterals name="WRAP" value="1"/>
+    <eLiterals name="HALT" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIFileFullActionEnum">
+    <eLiterals name="Rotate"/>
+    <eLiterals name="Wrap" value="1"/>
+    <eLiterals name="Halt" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="StreamScopeEnum">
+    <eLiterals name="GLOBAL"/>
+    <eLiterals name="LOCAL" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIStreamScopeEnum">
+    <eLiterals name="Global"/>
+    <eLiterals name="Local" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="SysLogEnum">
+    <eLiterals name="no"/>
+    <eLiterals name="yes" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UISysLogEnum">
+    <eLiterals name="No"/>
+    <eLiterals name="Yes" value="1"/>
+  </eClassifiers>
+</ecore:EPackage>

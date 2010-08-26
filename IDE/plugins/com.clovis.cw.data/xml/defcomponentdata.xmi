@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component:componentInformation xmlns:component="component.ecore">
+	<cluster name="Cluster" rdn="java.lang.Object@1dd1752"/>
+</component:componentInformation>

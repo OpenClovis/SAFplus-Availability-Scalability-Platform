@@ -1,0 +1,102 @@
+This is the perforce backup utility.  It's a trivial shell script that
+is run on vault (192.168.0.14) every morning by way of cron.  It syncs
+a local copy of the whole depot, creates a backup copy of a couple
+subdirectories of the whole depot and downloads the set of changelists
+that have been commited since last run.
+
+It has no provision for dealing with perforce problems.  Well, almost
+no provision.  If perforce is down it'll just hang for a while and then
+error out on perforce timeout.  There are doubtless other problems
+but for some reason I'm drawing a blank right now.
+
+The script is called synchp4.  Here's the output of "synchp4 --help":
+[root@rackgw batch]# ./synchp4 --help
+Usage: p4sync [--backup] [--sync] [--changes] [--help]
+Sync and backup the perforce database locally
+
+  -b, --backup    Make daily backup of local depot copy
+  -s, --sync      Sync local depot copy with perforce server
+  -c, --changes   Get latest set of changeslists
+  -h, --help      Print this help message and exit
+
+With no arguments, do the --backup, the --sync, and the
+--changes operations
+
+
+The script is on rackgw in ~root/batch.  I have installed a root
+crontab that will (hopefully) invoke the script every morning at 
+5 o'clock on that system.  I have not tested the script being run
+from cron.
+
+The script will send e-mail to the three of us every time it's run.
+The e-mail will be either a success message, or a failure message.
+The success message may be a little overly verbose.  At the end
+of the script is an invocation of a "sendmail" function that includes
+the contents of the temporary output file that the script maintains.
+Feel free to eliminate the tempfile information if you think it's too
+verbose.  It'd probably be a good idea to wait a while before
+eliminating that extra detail as I probably missed an error case
+somewhere.
+
+The list of notification recipients is listed in the sendmail function
+itself.  Edit that at your pleasure.
+
+The script synch's the perforce client in /vault/depot.  It archives the
+depot/dev/main, depot/dev/RC2/R2.2-Mercury, and depot/dev/RC2/CWorks
+directories in /vault/depot_backup.  Current contents of that directory:
+[root@rackgw depot_backup]# ls -l
+total 17563752
+-rw-r--r--  1 root root  1351532647 Mar 21 07:20 depot_backup20070320.tgz
+-rw-r--r--  1 root root  1358296661 Mar 21 07:54 depot_backup20070321.tgz
+-rw-r--r--  1 root root 15257862211 Mar 20 11:44 depot_backup_baseline.tgz
+
+The depot_backup_baseline.tgz file is an archive of EVERYTHING in depot.  It
+also exists in my home directory on 192.168.0.201.  Feel free to put it
+someplace more secure.  The depot_backup file for yesterday (20070320)
+was created today before I sync'ed.  I was testing the backup function
+and artifically changed it's name so it'd look like yesterday's backup.  Yes
+it's bogus, but it gives us a bit more history I think.  Note that the backup
+function will keep only the last 20 files.  That's easy to change.  There's a
+variable in the backup function called keep that's currently being set to 20.
+The baseline backup is not counted against the upper limit.  Nor is it subject
+to removal when the limit is exceeded.
+
+The backup function does some primitive checking to defend against weird
+time effects if the system date gets changed.  If it notices any time related
+weirdness then it'll send you a nastygram that  looks something like:
+****
+There exist files in /vault/depot_backup that are for later
+dates than today's backup file: /vault/depot_backup/depot_backup20070321.tgz
+One example is depot_backup20070331.tgz
+
+You'll have to figure out what went wrong.  Either the date got set to some
+time in the past, or the time was set to the future and some files got
+created with future dates and then the clock was corrected.  The fix
+should be somewhat tedious, but pretty simple.
+
+The other operation is to download all the changelists.  The changelists
+function looks for the 5000 most recent changelists that are NOT pending
+and checks its "done" list for changelists that haven't been downloaded.
+You can change that 5000 to some other value.  It's the FUDGE_FACTOR
+variable in the function.  The list of "done" changelists is maintained in the
+file changes_done.  If it sees a non-pending changelist that isn't listed in
+the changes_done file then it asks perforce for a description of the
+changes.  It specifically requests unified diff listing as I am under the
+impression that patch prefers unified diff listings.  The changelists are
+described in files in /vault/changelists.  The files are named by the
+changelist number.  e.g for changelist 26025, there'll be a file named
+26025 in /vault/changelists.  The reason that I maintained the list of
+"done" changelists in a file instead of just using the presence/absence
+of the file is that this way you can archive the changelist files somewhere
+else and get rid of them in that directory and still know that that changelist
+is done.
+
+One other point with the changeslists is that sometimes perforce/the VPN
+get flakey.  Sometimes the p4 describe operation just hangs and then
+fails.  To deal with that eventuality, I save the list of changelists in a
+file: new_changelists.  If the changelists function is run again while there
+is a new_changelists file in the /vault/changelists directory it will use
+that file and will not try to get the list of changelists from perforce.  That
+way by calling "synchp4 --changes" you can get up to date on the
+changelists without having to sync and without having to make another
+backup.

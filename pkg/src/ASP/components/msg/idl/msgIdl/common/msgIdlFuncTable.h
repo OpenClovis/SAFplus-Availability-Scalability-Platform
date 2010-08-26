@@ -1,0 +1,59 @@
+#ifndef _MSG_IDL_FUNC_TABLE_H_
+#define _MSG_IDL_FUNC_TABLE_H_
+
+#if !defined (__SERVER__) && !defined (__CLIENT__)
+#error "This file should be included from server or client. Define __SERVER__ or __CLIENT__ if you are server or client and then recompile"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <clEoApi.h>
+
+
+CL_EO_CALLBACK_TABLE_DECL(gMsgIdlFuncList)[] =
+{
+	VSYM_VER(clMsgClientInitServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 0)),
+	VSYM_VER(clMsgClientFinServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 1)),
+	VSYM_VER(clMsgClientMessageSendServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 2)),
+	VSYM_VER(clMsgClientMessageGetServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 3)),
+	VSYM_VER(clMsgClientMessageSendReceiveServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 4)),
+	VSYM_VER(clMsgClientMessageReplyServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 5)),
+	VSYM_VER(clMsgClientQueueOpenServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 6)),
+	VSYM_VER(clMsgClientQueueCloseServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 7)),
+	VSYM_VER(clMsgClientQueueUnlinkServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 8)),
+	VSYM_VER(clMsgClientQueueStatusGetServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 9)),
+	VSYM_VER(clMsgClientMessageCancelServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 10)),
+	VSYM_VER(clMsgClientQueueRetentionTimeSetServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 11)),
+	VSYM_VER(clMsgClientQueueGroupCreateServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 12)),
+	VSYM_VER(clMsgClientQueueGroupDeleteServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 13)),
+	VSYM_VER(clMsgClientQueueGroupInsertServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 14)),
+	VSYM_VER(clMsgClientQueueGroupRemoveServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 15)),
+	VSYM_VER(clMsgClientQueueGroupTrackServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 16)),
+	VSYM_VER(clMsgClientQueueGroupTrackStopServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 17)),
+	VSYM_VER(clMsgMessageReceivedServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 18)),
+	VSYM_VER(clMsgQDatabaseUpdateServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 19)),
+	VSYM_VER(clMsgGroupDatabaseUpdateServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 20)),
+	VSYM_VER(clMsgGroupMembershipUpdateServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 21)),
+	VSYM_VER(clMsgGetDatabasesServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 22)),
+	VSYM_VER(clMsgQueueInfoGetServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 23)),
+	VSYM_VER(clMsgQueueMoveMessagesServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 24)),
+	VSYM_VER(clMsgQueueUnlinkServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 25)),
+	VSYM_VER(clMsgQueueStatusGetServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 26)),
+	VSYM_VER(clMsgQueueAllocateServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 27)),
+	VSYM_VER(clMsgFailoverQMovedInfoUpdateServer, 4, 0, 0, CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 28)),
+
+};
+
+CL_EO_CALLBACK_TABLE_LIST_DECL(gAspFuncTable, MsgIdl) [] =
+{
+    CL_EO_CALLBACK_TABLE_LIST_DEF(CL_EO_NATIVE_COMPONENT_TABLE_ID, gMsgIdlFuncList),
+    CL_EO_CALLBACK_TABLE_LIST_DEF_NULL,
+};
+
+
+#ifdef __cplusplus
+}
+#endif
+#endif /*_MSG_IDL_FUNC_TABLE_H_*/

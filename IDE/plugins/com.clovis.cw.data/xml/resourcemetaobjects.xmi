@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:resource="resource.ecore">
+  <resource:NodeHardwareResource rdn="11111" name="Blade" documentation="" maxInstances="0" deviceObject="">
+      <provisioning isEnabled="false">
+	  </provisioning>
+	  <alarmManagement isEnabled="false" pollingInterval="100">
+	  </alarmManagement>
+	</resource:NodeHardwareResource>
+  <resource:SoftwareResource rdn="33333" name="ManagedResource" documentation="" maxInstances="0">
+  	  <provisioning isEnabled="false">
+	  </provisioning>
+	  <alarmManagement isEnabled="false" pollingInterval="100">
+	  </alarmManagement>
+  </resource:SoftwareResource>
+  <!--<resource:MibResource rdn="33333" mibName="Mib" name="SoftwareResource" documentation="" maxInstances="0">
+  	  <provisioning isEnabled="false">
+	  </provisioning>
+	  <alarmManagement isEnabled="false" pollingInterval="100">
+	  </alarmManagement>
+  </resource:MibResource>
+  <resource:Mib rdn="44444" name="Mib">
+  </resource:Mib>-->
+</xmi:XMI>

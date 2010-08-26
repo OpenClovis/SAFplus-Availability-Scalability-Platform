@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<welcomePage 
+    title="Welcome to OpenClovis IDE version 5.0"
+    format = "wrap">
+<intro>
+    OpenClovis IDE provides a user friendly integrated development environment for designing a networking system. With an industry standard GUI for managing and building projects, OpenClovis IDE provides customized views, editors and perspectives for designing information.
+</intro>
+
+<item><b>Perspective, Views &amp; Editors</b>
+OpenClovis IDE perspective consists of Clovis Workspace, Editors and Views.
+</item>
+<item><b>Clovis Workspace</b>
+Clovis Workspace will list all OpenClovis IDE projects. All projects will have "configs",  "scripts" and "src" sub folders. 
+</item>
+<item><b>Configuring Clovis Perspective</b>
+You can move your views and editors around the Workspace by dragging its title bar. You can also add more views to Clovis Perspective by selecting Window &gt; Show View&gt; Other&gt; Clovis and selecting a view of your preference. You can reset the perspective to its default setting by selecting Window &gt; Reset Perspective. 
+</item>
+<item><b>Learn More About OpenClovis IDE</b>
+To learn more, you can browse through our online help OpenClovis IDE User Guide.
+</item>
+</welcomePage>

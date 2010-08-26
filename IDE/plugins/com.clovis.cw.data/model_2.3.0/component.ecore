@@ -1,0 +1,1221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="component"
+    nsURI="component.ecore" nsPrefix="component">
+  <eClassifiers xsi:type="ecore:EClass" name="Cluster">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+      <details key="validationfeatures" value="name"/>
+      <details key="outgoingconnection" value="Node:Relation=-1"/>
+      <details key="LowerBound" value="1"/>
+      <details key="UpperBound" value="1"/>
+      <details key="Help" value="com.clovis.cw.help.cluster"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contains" upperBound="-1"
+        eType="#//Relation" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="isConnection" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ServiceUnit">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+      <details key="validationfeatures" value="name"/>
+      <details key="incomingconnection" value="Node:Relation=-1,ServiceGroup:Relation=-1"/>
+      <details key="outgoingconnection" value="Component:Relation=-1"/>
+      <details key="Help" value="com.clovis.cw.help.service_unit"/>
+      <details key="label" value="Service Unit"/>
+      <details key="dependents" value="model/cpmconfig.ecore!nodeInstances,nodeInstance,serviceUnitInstances,serviceUnitInstance%type|configs/amfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFConfigHandler"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="adminState" eType="#//AmsAdminStates"
+        defaultValueLiteral="CL_AMS_ADMIN_STATE_UNLOCKED">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Admin state"/>
+        <details key="UItype" value="UIAmsAdminStates"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isPreinstantiable" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is preinstantiable"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isRestartable" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is restartable"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isContainerSU" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is container SU"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contains" upperBound="-1"
+        eType="#//Relation" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="isConnection" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Node">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+      <details key="validationfeatures" value="name"/>
+      <details key="incomingconnection" value="Cluster:Relation=1"/>
+      <details key="outgoingconnection" value="ServiceUnit:Relation=-1"/>
+      <details key="Help" value="com.clovis.cw.help.node"/>
+      <details key="dependents" value="model/cpmconfig.ecore!nodeInstances,nodeInstance%type|configs/amfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFConfigHandler;model/cpmconfig.ecore!cpmConfigs,cpmConfig%nodeType,cpmType|configs/amfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFConfigHandler;model/aspcompconfigs/system/map.ecore!slots,slot,classTypes,classType%name|configs/clSlotInfo.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.NodeAdmissionHandler"/>
+      <details key="initializationFields" value="id,None"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="0" iD="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Node ID"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="classType" eType="#//AmsNodeClass"
+        defaultValueLiteral="CL_AMS_NODE_CLASS_C">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Class"/>
+        <details key="UItype" value="UIAMSNodeClassType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="subClassType" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral=" "
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isSwappable" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is swappable?"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isRestartable" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is restartable?"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isASPAware" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="suFailoverDuration" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"
+        defaultValueLiteral="10000" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="SU failover duration"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="suFailoverCountMax" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="10" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum SU failover count"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Realizes" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral=" ">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="adminState" eType="#//AmsAdminStates"
+        defaultValueLiteral="CL_AMS_ADMIN_STATE_UNLOCKED">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Admin state"/>
+        <details key="UItype" value="UIAmsAdminStates"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contains" upperBound="-1"
+        eType="#//Relation" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="isConnection" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ServiceGroup">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+      <details key="validationfeatures" value="name"/>
+      <details key="outgoingconnection" value="ServiceUnit:Relation=1,ServiceInstance:Relation=-1"/>
+      <details key="Help" value="com.clovis.cw.help.service_group"/>
+      <details key="label" value="Service Group"/>
+      <details key="dependents" value="model/cpmconfig.ecore!serviceGroups,serviceGroup%type|configs/amfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFConfigHandler"/>
+      <details key="dependentsFeatureNames" value="redundancyModel,numPrefActiveSUs,numPrefStandbySUs"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="redundancyModel" eType="#//AmsSGRedundancyModel"
+        defaultValueLiteral="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Redundancy model"/>
+        <details key="dependents" value="None!None%numPrefActiveSUs,numPrefStandbySUs,numPrefInserviceSUs,numPrefAssignedSUs|None#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.SGRedundancyHandler"/>
+        <details key="UItype" value="UIAmsSGRedundancyModel"/>
+        <details key="Dependency" value="No Redundancy;Disable:add=numPrefActiveSUs;numPrefActiveSUs=1;numPrefStandbySUs=0;numPrefInserviceSUs=1|2N Redundancy;Disable:remove=numPrefActiveSUs;numPrefActiveSUs=1;numPrefStandbySUs=1;numPrefInserviceSUs=2|M+N Redundancy;Disable:remove=numPrefActiveSUs;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="failbackOption" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Failback option"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="restartDuration" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="10000">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Delayed SG instantiation interval (milliseconds)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numPrefActiveSUs" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Active SUs"/>
+        <details key="dependents" value="None!None%numPrefAssignedSUs|None#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AutoSetAssignedSUHandler"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numPrefStandbySUs" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Standby SUs"/>
+        <details key="dependents" value="None!None%numPrefAssignedSUs|None#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AutoSetAssignedSUHandler"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numPrefInserviceSUs" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="2" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Inservice SUs"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numPrefAssignedSUs" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="2" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Assigned SUs"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numPrefActiveSUsPerSI"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Active SUs per SI"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxActiveSIsPerSU" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum active SIs per SU"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxStandbySIsPerSU" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum standby SIs per SU"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="compRestartDuration" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"
+        defaultValueLiteral="10000">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Component restart duration(milliseconds)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="compRestartCountMax" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum component restart count"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="suRestartDuration" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="10000">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="SU restart duration (milliseconds)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="suRestartCountMax" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum SU restart count"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="adminState" eType="#//AmsAdminStates"
+        defaultValueLiteral="CL_AMS_ADMIN_STATE_UNLOCKED">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Admin state"/>
+        <details key="UItype" value="UIAmsAdminStates"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="loadingStrategy" eType="#//AmsSGLoadingStrategy"
+        defaultValueLiteral="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Loading strategy"/>
+        <details key="UItype" value="UIAmsSGLoadingStrategy"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numComponents" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="autoRepair" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Auto repair?"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Disable" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="associatedTo" upperBound="-1"
+        eType="#//Relation" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="allowCollocatedActiveStandbyAssignments"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="false"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Allow Collocated Active Standby Assignments"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ServiceInstance">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+      <details key="validationfeatures" value="name"/>
+      <details key="incomingconnection" value="ServiceGroup:Relation=1"/>
+      <details key="outgoingconnection" value="ComponentServiceInstance:Relation=-1"/>
+      <details key="Help" value="com.clovis.cw.help.service_instance"/>
+      <details key="label" value="Service Instance"/>
+      <details key="dependents" value="model/cpmconfig.ecore!serviceGroups,serviceGroup,serviceInstances,serviceInstance%type|configs/amfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFConfigHandler"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rank" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Rank"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numCSIs" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Number of CSIs"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numStandbyAssignments"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Number of standby assignments"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="adminState" eType="#//AmsAdminStates"
+        defaultValueLiteral="CL_AMS_ADMIN_STATE_UNLOCKED">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Admin state"/>
+        <details key="UItype" value="UIAmsAdminStates"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contains" upperBound="-1"
+        eType="#//Relation" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="isConnection" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Containment" eSuperTypes="#//Connection"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Proxy_Proxied" eSuperTypes="#//Connection"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Component">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+      <details key="validationfeatures" value="name,instantiateCommand"/>
+      <details key="incomingconnection" value="ServiceUnit:Relation=-1,ComponentServiceInstance:Relation=1"/>
+      <details key="dependents" value="model/cpmconfig.ecore!nodeInstances,nodeInstance,serviceUnitInstances,serviceUnitInstance,componentInstances,componentInstance%type|configs/amfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFConfigHandler"/>
+      <details key="initializationFields" value="instantiateCommand,comp_$name$"/>
+      <details key="nonCloneableFeatureNames" value="associatedResource"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="csiType" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral=" ">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="capabilityModel" lowerBound="1"
+        eType="#//CompCapabilityModel" defaultValueLiteral="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="property" lowerBound="1"
+        eType="#//CompProperty" defaultValueLiteral="CL_AMS_SA_AWARE">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="processRel" lowerBound="1"
+        eType="#//CompProcessRel" defaultValueLiteral="CL_CPM_COMP_SINGLE_PROCESS">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Process"/>
+        <details key="canModify" value="false"/>
+        <details key="UItype" value="UICompProcessRel"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="instantiateCommand" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral=""
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Component executable name"/>
+        <details key="pattern" value="|[a-zA-Z][a-zA-Z0-9_]*"/>
+        <details key="message" value="Invalid Component image name"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="commandLineArgument" upperBound="-1"
+        eType="#//CommandLineArgument" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Command line arguments"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="environmentVariable" upperBound="-1"
+        eType="#//EnvironmentVariable" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Environment variables"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="terminateCommand" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="label" value="Termination command"/>
+        <details key="message" value="Invalid Termination command"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="cleanupCommand" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="label" value="Cleanup command"/>
+        <details key="message" value="Invalid Cleanup command"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="associatedResource" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="label" value="Associated Resources"/>
+        <details key="editor" value="com.clovis.cw.workspace:com.clovis.cw.workspace.dialog.AssociateResourcePushButtonCellEditor"/>
+        <details key="canDisplayValue" value="false"/>
+        <details key="changeTrackRequired" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isRestartable" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is restartable"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nodeRebootCleanupFail"
+        eType="#//PreInstanceType" defaultValueLiteral="CL_TRUE">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Reboot node on cleanup failure"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="instantiateLevel" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="0">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Instantiate level"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="instantiateDelay" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="10000">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Instantiate delay (milliseconds)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numMaxInstantiate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum number of instantiations"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Maximum number of instantiations"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numMaxInstantiateWithDelay"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum number of instantiations after delay"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Maximum number of instantiations after delay"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numMaxTerminate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum number of terminations"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Maximum number of terminations"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numMaxAmStart" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum AM start number"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Maximum AM start number"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numMaxAmStop" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum AM stop number"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Maximum AM stop number"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numMaxActiveCSIs" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum number of active CSIs"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Maximum active CSIs number"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="numMaxStandbyCSIs" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum number of standby CSIs"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Maximum standby CSIs number"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="recoveryOnTimeout" eType="#//AMSLocalRecovery"
+        defaultValueLiteral="CL_AMS_RECOVERY_NO_RECOMMENDATION">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Recovery action on error"/>
+        <details key="UItype" value="UIAmsLocalRecovery"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="amStartCommand" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral=" "
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="AM start command"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="amStopCommand" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral=" "
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="AM stop command"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="timeouts" eType="#//CompTimeouts"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Timeouts"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CompTimeouts">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="Component Timeouts"/>
+      <details key="Help" value="com.clovis.cw.help.component_timeouts"/>
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="instantiateTimeout" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="10">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Instantiate timeout (milliseconds)"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Instantiate timeout"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="terminateTimeout" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="10"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Terminate timeout (milliseconds)"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Terminate timeout"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="cleanupTimeout" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="10" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Cleanup timeout (milliseconds)"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Cleanup timeout"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="amStartTimeout" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="10" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="AM start timeout (milli seconds)"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid AM start timeout"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="amStopTimeout" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="10" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="AM stop timeout (milliseconds)"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid AM stop timeout"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="csiSetTimeout" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="10" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="CSI set timeout (milliseconds)"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid CSI set timeout"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="csiRemoveTimeout" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="10" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="CSI remove timeout (milliseconds)"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid CSI remove timeout"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="quiescingCompleteTimeout"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="10"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Quiescing complete timeout (milliseconds)"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Quiescing complete timeout"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="proxiedCompInstantiateTimeout"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="10000"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Proxied component instantiate timeout (milliseconds)"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Proxied component instantiate timeout"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="proxiedCompCleanupTimeout"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="10000"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Proxied component cleanup timeout (milliseconds)"/>
+        <details key="pattern" value="^[0]*[1-9][0-9]*$"/>
+        <details key="message" value="Invalid Proxied component cleanup timeout"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SAFComponent" eSuperTypes="#//Component">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+      <details key="validationfeatures" value="name,instantiateCommand"/>
+      <details key="Help" value="com.clovis.cw.help.saf_component"/>
+      <details key="label" value="SAF Component"/>
+      <details key="initializationFields" value="instantiateCommand,comp_$name$;eoProperties:eoName,$name$EO"/>
+      <details key="dependents" value="model/cpmconfig.ecore!nodeInstances,nodeInstance,serviceUnitInstances,serviceUnitInstance,componentInstances,componentInstance%type|configs/amfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFConfigHandler;model/modelMapping.ecore!link,linkDetail%linkSource|models/component_resource_map.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.LinkHandler;model/eoConfig.ecore!None%eoConfig|configs/clEoConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.EOConfigHandler"/>
+      <details key="outgoingconnection" value="NonSAFComponent:Relation=-1"/>
+      <details key="nonCloneableFeatureNames" value="associatedResource"/>
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="eoProperties" lowerBound="1"
+        eType="#//EO" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="EO properties"/>
+        <details key="changeTrackRequired" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isSNMPSubAgent" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="false" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is SNMP Sub-agent"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="proxies" upperBound="-1"
+        eType="#//Relation" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="isConnection" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isBuildCPP" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="false" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is Build C++"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="CompCapabilityModel">
+    <eLiterals name="CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY" value="1"/>
+    <eLiterals name="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" value="2"/>
+    <eLiterals name="CL_AMS_COMP_CAP_ONE_ACTIVE_OR_X_STANDBY" value="3"/>
+    <eLiterals name="CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY" value="4"/>
+    <eLiterals name="CL_AMS_COMP_CAP_X_ACTIVE" value="5"/>
+    <eLiterals name="CL_AMS_COMP_CAP_ONE_ACTIVE" value="6"/>
+    <eLiterals name="CL_AMS_COMP_CAP_NON_PREINSTANTIABLE" value="7"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="CompProperty">
+    <eLiterals name="CL_AMS_SA_AWARE" value="1"/>
+    <eLiterals name="CL_AMS_PROXIED_PREINSTANTIABLE" value="2"/>
+    <eLiterals name="CL_AMS_PROXIED_NON_PREINSTANTIABLE" value="3"/>
+    <eLiterals name="CL_AMS_NON_PROXIED_NON_PREINSTANTIABLE" value="4"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="CompProcessRel">
+    <eLiterals name="CL_CPM_COMP_SINGLE_PROCESS" value="2"/>
+    <eLiterals name="CL_CPM_COMP_NONE"/>
+    <eLiterals name="CL_CPM_COMP_MULTI_PROCESS" value="1"/>
+    <eLiterals name="CL_CPM_COMP_THREADED" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CommandLineArgument">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="value"/>
+      <details key="validationfeatures" value="value"/>
+      <details key="label" value="Command Line Argument"/>
+      <details key="Help" value="com.clovis.cw.help.commandline_argument"/>
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Value"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EnvironmentVariable">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+      <details key="validationfeatures" value="name"/>
+      <details key="label" value="Environment Variable"/>
+      <details key="Help" value="com.clovis.cw.help.environment_variable"/>
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="label" value="Name                             "/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Value"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Connection">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        transient="true" defaultValueLiteral=""/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="target" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="source" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        transient="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="AmsNodeClass">
+    <eLiterals name="CL_AMS_NODE_CLASS_A"/>
+    <eLiterals name="CL_AMS_NODE_CLASS_B" value="1"/>
+    <eLiterals name="CL_AMS_NODE_CLASS_C" value="2"/>
+    <eLiterals name="CL_AMS_NODE_CLASS_D" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EO">
+    <eAnnotations source="CWAnnotation">
+      <details key="Help" value="com.clovis.cw.help.eo"/>
+      <details key="dependentsFeatureNames" value="eoName"/>
+      <details key="NameField" value="eoName"/>
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="eoName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="EO name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid EO name"/>
+        <details key="dependents" value="model/rmd.ecore!Service%name|idl/server_idl_interface.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.IDLHandler;model/eoConfig.ecore!None%eoConfig|configs/clEoConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.EOConfigEONameHandler"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="threadPriority" eType="#//ThreadPriorityEnum"
+        defaultValueLiteral="PRIORITY_LOW" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Thread priority"/>
+        <details key="UItype" value="UIThreadPriority"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="threadCount" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Thread count"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="iocPortNumber" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="IOC port number"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="mainThreadUsagePolicy"
+        eType="#//MainThreadUsagePolicyEnum" defaultValueLiteral="CL_EO_USE_THREAD_FOR_RECV"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Main thread usage policy"/>
+        <details key="UItype" value="UIMainThreadUsagePolicy"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxNoClients" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Number of additional port(client)s"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="aspLib" lowerBound="1"
+        eType="#//ASPLibType" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="ASP libraries"/>
+        <details key="changeTrackRequired" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ThreadPriorityEnum">
+    <eLiterals name="PRIORITY_LOW" value="1"/>
+    <eLiterals name="PRIORITY_MEDIUM" value="2"/>
+    <eLiterals name="PRIORITY_HIGH" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="MainThreadUsagePolicyEnum">
+    <eLiterals name="CL_EO_USE_THREAD_FOR_RECV"/>
+    <eLiterals name="CL_EO_USE_THREAD_FOR_APP" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ASPLibType">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="ASP Library"/>
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="COR" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="CM" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="NameService" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Name service"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="LOG" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Trace" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Diagnostics" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Transaction" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="OampRtParser" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Prov" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UIPreInstanceType"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Alarm" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UIPreInstanceType"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Debug" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="OSAL" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Timer" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Buffer" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="IOC" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="RMD" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="EO" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_TRUE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="OM" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UIPreInstanceType"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="HAL" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UIPreInstanceType"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="DBAL" eType="#//PreInstanceType"
+        defaultValueLiteral="CL_FALSE" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="UItype" value="UIPreInstanceType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PreInstanceType">
+    <eLiterals name="CL_TRUE"/>
+    <eLiterals name="CL_FALSE" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIPreInstanceType">
+    <eLiterals name="true"/>
+    <eLiterals name="false" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ComponentServiceInstance">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+      <details key="validationfeatures" value="name,type"/>
+      <details key="incomingconnection" value="ServiceInstance:Relation=-1"/>
+      <details key="outgoingconnection" value="Component:Relation=-1"/>
+      <details key="Help" value="com.clovis.cw.help.component_service_instance"/>
+      <details key="label" value="Component Service Instance"/>
+      <details key="dependents" value="model/cpmconfig.ecore!serviceGroups,serviceGroup,serviceInstances,serviceInstance,componentServiceInstances,componentServiceInstance%type|configs/amfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFConfigHandler"/>
+      <details key="initializationFields" value="type,$name$_type"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral=" " unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Type"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Type"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rank" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Rank"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nameValueLists" upperBound="-1"
+        eType="#//CSIWorkloads" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Name value lists"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="associatedTo" upperBound="-1"
+        eType="#//Relation" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="isConnection" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="AmsAdminStates">
+    <eLiterals name="CL_AMS_ADMIN_STATE_UNLOCKED"/>
+    <eLiterals name="CL_AMS_ADMIN_STATE_LOCKED_A" value="1"/>
+    <eLiterals name="CL_AMS_ADMIN_STATE_LOCKED_I" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIAmsAdminStates">
+    <eLiterals name="Unlocked"/>
+    <eLiterals name="Locked assigned" value="1"/>
+    <eLiterals name="Locked instantiated" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="AmsSGRedundancyModel">
+    <eLiterals name="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY"/>
+    <eLiterals name="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" value="1"/>
+    <eLiterals name="CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="AmsSGLoadingStrategy">
+    <eLiterals name="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU"/>
+    <eLiterals name="CL_AMS_SG_LOADING_STRATEGY_LEAST_SU_ASSIGNED" value="1"/>
+    <eLiterals name="CL_AMS_SG_LOADING_STRATEGY_LEAST_LOAD_PER_SU" value="2"/>
+    <eLiterals name=" CL_AMS_SG_LOADING_STRATEGY_BY_SI_PREFERENCE" value="3"/>
+    <eLiterals name="CL_AMS_SG_LOADING_STRATEGY_USER_DEFINED" value="4"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CSIWorkloads">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+      <details key="validationfeatures" value="name"/>
+      <details key="Help" value="com.clovis.cw.help.csi_workloads"/>
+      <details key="label" value="CSI Workloads"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="label" value="Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Value"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="AMSLocalRecovery">
+    <eLiterals name="CL_AMS_RECOVERY_NO_RECOMMENDATION" value="1"/>
+    <eLiterals name="CL_AMS_RECOVERY_COMP_RESTART" value="3"/>
+    <eLiterals name="CL_AMS_RECOVERY_COMP_FAILOVER" value="4"/>
+    <eLiterals name="CL_AMS_RECOVERY_NODE_SWITCHOVER" value="5"/>
+    <eLiterals name="CL_AMS_RECOVERY_NODE_FAILOVER" value="6"/>
+    <eLiterals name="CL_AMS_RECOVERY_NODE_FAILFAST" value="7"/>
+    <eLiterals name="CL_AMS_RECOVERY_CLUSTER_RESET" value="8"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Association" eSuperTypes="#//Connection"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Relation" eSuperTypes="#//Connection">
+    <eAnnotations source="CWAnnotation">
+      <details key="isAuto" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        transient="true" defaultValueLiteral="INVALID" unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NonSAFComponent" eSuperTypes="#//Component">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+      <details key="validationfeatures" value="name,instantiateCommand"/>
+      <details key="incomingconnection" value="SAFComponent:Relation=1,ServiceUnit:Relation=-1,ComponentServiceInstance:Relation=1"/>
+      <details key="Help" value="com.clovis.cw.help.nonsaf_component"/>
+      <details key="label" value="Non SAF Component"/>
+      <details key="initializationFields" value="instantiateCommand,comp_$name$;"/>
+      <details key="dependents" value="model/cpmconfig.ecore!nodeInstances,nodeInstance,serviceUnitInstances,serviceUnitInstance,componentInstances,componentInstance%type|configs/amfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFConfigHandler"/>
+      <details key="nonCloneableFeatureNames" value="associatedResource"/>
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="proxyCSIType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIAMSNodeClassType" instanceClassName="">
+    <eLiterals name="Class A: System Controller"/>
+    <eLiterals name="Class B: System Controller" value="1"/>
+    <eLiterals name="Class C: ASP node" value="2"/>
+    <eLiterals name="Class D: Non-ASP node" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIAmsSGRedundancyModel" instanceClassName="">
+    <eLiterals name="No Redundancy"/>
+    <eLiterals name="2N Redundancy" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIAmsSGLoadingStrategy" instanceClassName="">
+    <eLiterals name="Least SI per SU"/>
+    <eLiterals name="Least SU Assigned" value="1"/>
+    <eLiterals name="Least Load per SU" value="2"/>
+    <eLiterals name="SI preference" value="3"/>
+    <eLiterals name="User defined" value="4"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIAmsLocalRecovery">
+    <eLiterals name="No recommendation" value="1"/>
+    <eLiterals name="Component restart" value="3"/>
+    <eLiterals name="Component failover" value="4"/>
+    <eLiterals name="Node switchover" value="5"/>
+    <eLiterals name="Node failover" value="6"/>
+    <eLiterals name="Node failfast" value="7"/>
+    <eLiterals name="Cluster reset" value="8"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIThreadPriority">
+    <eLiterals name="Low" value="1"/>
+    <eLiterals name="Medium" value="2"/>
+    <eLiterals name="High" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UIMainThreadUsagePolicy">
+    <eLiterals name="Thread for recv"/>
+    <eLiterals name="Thread for app" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UICompProcessRel">
+    <eLiterals name="Single process" value="2"/>
+    <eLiterals name="None"/>
+    <eLiterals name="Multi process" value="1"/>
+    <eLiterals name="Threaded" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="componentInformation">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="cluster" lowerBound="1"
+        upperBound="-1" eType="#//Cluster" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="node" upperBound="-1" eType="#//Node"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="serviceUnit" upperBound="-1"
+        eType="#//ServiceUnit" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="safComponent" upperBound="-1"
+        eType="#//SAFComponent" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nonSAFComponent" upperBound="-1"
+        eType="#//NonSAFComponent" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="serviceGroup" upperBound="-1"
+        eType="#//ServiceGroup" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="serviceInstance" upperBound="-1"
+        eType="#//ServiceInstance" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="componentServiceInstance"
+        upperBound="-1" eType="#//ComponentServiceInstance" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="relation" upperBound="-1"
+        eType="#//Relation" transient="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isConnection" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+</ecore:EPackage>

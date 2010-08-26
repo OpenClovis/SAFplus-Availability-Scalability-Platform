@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gms:BootConfig xmlns:gms="gms.ecore">
+  <gms>
+    <ClusterName>GMS_Cluster_0</ClusterName>
+    <MaxNoOfGroups>10</MaxNoOfGroups>
+    <linkname>eth0</linkname>
+    <MulticastAddress>224.92.92.1</MulticastAddress>
+    <MulticastPort>6723</MulticastPort>
+    <consolelog>off</consolelog>
+    <loglevel>debug</loglevel>
+  </gms>
+</gms:BootConfig>

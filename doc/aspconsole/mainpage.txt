@@ -1,0 +1,175 @@
+/** 
+ * \anchor aspconsole
+ * \mainpage OpenClovis SDK ASP Console Reference Guide
+ * 
+ * Back to <a href="../index.html">OpenClovis SDK Documentation Main Page</a>
+ *   
+ * \section aspconsole_sec_main_1 Introduction
+ *  
+ * This Reference Guide provides details about managing applications built on 
+ * OpenClovis ASP using the ASP runtime debug console commands.
+ *  
+ * The ASP Console commands can be used to manage, monitor, and test your application.
+ * The ASP Console commands are not case sensitive. When you use a command that 
+ * is not available, an error message appears along with a list of supported 
+ * commands. All ASP Console commands are activated when AMF is executed on the 
+ * system controller card. 
+ *
+ * In addition to the <code>asp_console</code> tool, another utility, 
+ * <code>aspinfo</code>, is provided to gather information about 
+ * the running system and to offer some limited control capabilities.
+ *  
+ * \section aspconsole_sec_main_2 Key Topics
+ *
+ * <b> ASP Console </b>
+ * \arg \ref aspconsole_start
+ * \arg \ref common_aspconsole 
+ * \arg \ref aspconsole_components
+ *
+ * <b> ASP Info </b>
+ * \arg \ref aspinfo_start
+ * \arg \ref common_aspinfo
+ *
+ * \ref aspconsole_doc
+ * 
+ */
+
+//-----------------------------------------------------------
+
+/** 
+ * \page aspconsole_start Starting the ASP Console
+ * 
+ * To start ASP Console, perform the following steps:
+ * \code
+ * # cd /root/asp/bin
+ * # ./asp_console
+ * \endcode
+ * 
+ * You will see the following output:
+ * \code
+ * to get started type 'help intro'
+ * cli[Test]->
+ * \endcode
+ * 
+ * You can issue a <code>list</code> command on the Console to display 
+ * a list of slots and ASP node instance running on those slots, for instance,
+ * \code
+ * cli[Test]->  list
+ * Slot    Node
+ * 1       SysNodeI0
+ * 2       WorkerNodeI0
+ * cli[Test]->
+ * \endcode
+ *  
+ */  
+
+//-----------------------------------------------------------
+
+/**
+ * 
+ * \page aspconsole_components Component Specific ASP Console commands
+ *  
+ * ASP Console commands are available for the following components:
+ * 
+ * \section aspconsole_sec_ha High Availability
+ *  - \ref cpm_aspconsole
+ *  - \ref ckpt_aspconsole
+ *  - \ref gms_aspconsole
+ *  
+ * \section aspconsole_sec_sysmgmt System Management
+ *  - \ref alarm_aspconsole
+ *  - \ref cm_aspconsole
+ *  - \ref fault_aspconsole
+ *  - \ref cor_aspconsole
+ *  - \ref txn_aspconsole
+ *  - \ref pm_aspconsole
+ *  
+ * \section aspconsole_sec_comm Communication Infrastructure
+ *  - \ref event_aspconsole
+ *  - \ref name_aspconsole
+ *  
+ * \section aspconsole_sec_bic Basic Infrastructure
+ *  - \ref log_aspconsole
+ * 
+ */
+
+//-----------------------------------------------------------
+
+/**
+ * 
+ * \page aspconsole_doc OpenClovis SDK Related Documents
+ * 
+ * For additional information about OpenClovis products, refer to the following 
+ * guides:
+ * 
+ * <b> \htmlonly <a href="../relnotes/index.html"> \endhtmlonly OpenClovis 
+ * Release Notes \htmlonly </a> \endhtmlonly </b>
+ * <br>OpenClovis Release Notes provides information about the software and 
+ * the hardware required to install OpenClovis Application Service Platform 
+ * (ASP) and Integrated Development Environment (IDE). It summarizes the 
+ * additional features and enhancements of the product since the previous 
+ * release. It also summarizes the issues and limitations of the product and 
+ * provides workaround wherever applicable.
+ * 
+ * <b> \htmlonly <a href="../safcompliance/index.html"> \endhtmlonly OpenClovis
+ * SA Forum Compliance \htmlonly </a> \endhtmlonly </b>
+ * <br>OpenClovis SA Forum Compliance describes the level of compliance of 
+ * OpenClovis ASP and its Application Programming Interface (API) with the 
+ * relevant Service Availability Forum Specifications.
+ * 
+ * <b> \htmlonly <a href="../installguide/index.html"> \endhtmlonly OpenClovis 
+ * Installation Guide \htmlonly </a> \endhtmlonly </b>
+ * <br>OpenClovis Installation Guide provides the system requirements, installation 
+ * procedure for OpenClovis ASP, IDE, and the Evaluation System.
+ * 
+ * <b> \htmlonly <a href="../tutorial/index.html"> \endhtmlonly OpenClovis 
+ * Sample Application Tutorial \htmlonly </a> \endhtmlonly </b>
+ * <br>OpenClovis Sample Application Tutorial explains the steps to create and build
+ * a sample model using OpenClovis IDE and OpenClovis ASP. It also provides 
+ * troubleshooting information for this process. This provides the logical first step 
+ * in understanding the OpenClovis offering.
+ * 
+ * <b> \htmlonly <a href="../evalguide/index.html"> \endhtmlonly OpenClovis 
+ * Evaluation System User Guide \htmlonly </a> \endhtmlonly </b>
+ * <br>OpenClovis Evaluation System User Guide provides all the required information 
+ * to configure and run the sample models packaged within the Evaluation System. 
+ * This document also provides good understanding of OpenClovis ASP's functionality. 
+ * This is the natural follow on to the <b>OpenClovis Sample Application Tutorial</b> 
+ * as it builds on the example created in that document. 
+ *
+ * <b> \htmlonly <a href="../sdkguide/index.html"> \endhtmlonly OpenClovis 
+ * SDK User Guide \htmlonly </a> \endhtmlonly </b>
+ * <br>OpenClovis Software Development Kit (SDK) User Guide provides information 
+ * about OpenClovis ASP architecture, various OpenClovis ASP components, and 
+ * their interactions. This guide helps you to configure the OpenClovis ASP 
+ * components, compile, and execute the OpenClovis ASP code to build your 
+ * custom application.
+ *  
+ * <b> \htmlonly <a href="../ideguide/index.html"> \endhtmlonly OpenClovis 
+ * IDE User Guide \htmlonly </a> \endhtmlonly </b>
+ * <br>OpenClovis Integrated Development Environment (IDE) User Guide describes the 
+ * usage of IDE, a graphical development environment that complement the ASP 
+ * platform. This guide helps you to understand how to use the various features
+ * of the IDE to build the application.
+ * 
+ * <b> \htmlonly <a href="../logtoolguide/index.html"> \endhtmlonly OpenClovis 
+ * Log Tool User Guide \htmlonly </a> \endhtmlonly </b>
+ * <br>OpenClovis Log Tool User Guide provides information about the usage of 
+ * OpenClovis Log Tool. OpenClovis Log Tool is an interactive utility that 
+ * allows you to view binary log files in a readable format and hence monitor 
+ * system errors, warnings, and other log information. Log Tool allows you to 
+ * format the .log files and filter them to view the required entries. 
+ *
+ * <b> \htmlonly <a href="../apirefs/index.html"> \endhtmlonly OpenClovis 
+ * API Reference Guide \htmlonly </a> \endhtmlonly </b>
+ * <br>OpenClovis API Reference Guide is provided for each component. 
+ * It describes the Application Programming Interface (API), Service Model, 
+ * and Management Information Model of the 
+ * various OpenClovis Application Service Platform (ASP) services. 
+ * It helps the developer to understand the capabilities of the ASP services 
+ * and the APIs provided by these services. 
+ *
+ */
+
+//-----------------------------------------------------------
+

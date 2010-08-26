@@ -1,0 +1,34 @@
+!SESSION 2009-06-17 16:25:42.666 -----------------------------------------------
+eclipse.buildId=I20060119-1310
+java.version=1.5.0_03
+java.vendor=Sun Microsystems Inc.
+BootLoader constants: OS=linux, ARCH=x86, WS=gtk, NL=en_US
+Framework arguments:  -application org.eclipse.ui.ide.workbench -perspective com.clovis.cw.ui.CWPerspective
+Command-line arguments:  -os linux -ws gtk -arch x86 -application org.eclipse.ui.ide.workbench -perspective com.clovis.cw.ui.CWPerspective
+
+!ENTRY org.eclipse.update.configurator 2009-06-17 16:25:44.821
+!MESSAGE Unable to find feature.xml in directory: /opt/clovis/buildtools/local/eclipse/cdt/eclipse/features/org.eclipse.cdt.sdk_4.0.3.200802251018.jar
+
+!ENTRY org.eclipse.update.configurator 2009-06-17 16:25:44.823
+!MESSAGE Unable to find feature.xml in directory: /opt/clovis/buildtools/local/eclipse/cdt/eclipse/features/org.eclipse.cdt.source_4.0.3.200802251018.jar
+
+!ENTRY org.eclipse.update.configurator 2009-06-17 16:25:44.824
+!MESSAGE Unable to find feature.xml in directory: /opt/clovis/buildtools/local/eclipse/cdt/eclipse/features/org.eclipse.cdt.master_4.0.3.jar
+
+!ENTRY org.eclipse.update.configurator 2009-06-17 16:25:44.824
+!MESSAGE Unable to find feature.xml in directory: /opt/clovis/buildtools/local/eclipse/cdt/eclipse/features/org.eclipse.cdt_4.0.3.200802251018.jar
+
+!ENTRY org.eclipse.update.configurator 2009-06-17 16:25:44.824
+!MESSAGE Unable to find feature.xml in directory: /opt/clovis/buildtools/local/eclipse/cdt/eclipse/features/org.eclipse.cdt.testing_4.0.3.200802251018.jar
+
+!ENTRY org.eclipse.update.configurator 2009-06-17 16:25:44.825
+!MESSAGE Unable to find feature.xml in directory: /opt/clovis/buildtools/local/eclipse/cdt/eclipse/features/org.eclipse.cdt.core.parser.c99.feature_4.0.3.200802251018.jar
+
+!ENTRY org.eclipse.update.configurator 2009-06-17 16:25:44.825
+!MESSAGE Unable to find feature.xml in directory: /opt/clovis/buildtools/local/eclipse/cdt/eclipse/features/org.eclipse.cdt.xlc.feature_4.0.3.200802251018.jar
+
+!ENTRY org.eclipse.update.configurator 2009-06-17 16:25:44.826
+!MESSAGE Unable to find feature.xml in directory: /opt/clovis/buildtools/local/eclipse/cdt/eclipse/features/org.eclipse.cdt.debug.gdbjtag_4.0.3.200802251018.jar
+
+!ENTRY org.eclipse.update.configurator 2009-06-17 16:25:44.826
+!MESSAGE Unable to find feature.xml in directory: /opt/clovis/buildtools/local/eclipse/cdt/eclipse/features/org.eclipse.cdt.core.parser.upc.feature_4.0.3.200802251018.jar

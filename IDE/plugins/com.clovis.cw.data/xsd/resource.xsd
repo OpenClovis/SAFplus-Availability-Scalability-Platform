@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+<xsd:complexType name="ChassisResource">
+	<xsd:complexContent>
+   		<xsd:extension base="Class">
+			<xsd:sequence>
+			  <xsd:element maxOccurs="unbounded" minOccurs="0" name="contains" type="Composition"/>
+			  <xsd:element maxOccurs="unbounded" minOccurs="0" name="associatedTo" type="Association"/>  
+			  <xsd:element maxOccurs="unbounded" minOccurs="0" name="inherits" type="Inheritance"/>
+		</xsd:sequence>
+		<xsd:attribute name="maxInstances" type="xsd:integer"/>
+	    <xsd:attribute name="numSlots" type="xsd:integer"/>
+	   </xsd:extension>
+  	</xsd:complexContent>
+</xsd:complexType>
+ 
+<xsd:simpleType name="AttributeType">
+  <xsd:restriction base="xsd:string">
+    <xsd:enumeration value="Int8"/>
+    <xsd:enumeration value="Uint8"/>
+    <xsd:enumeration value="Int16"/>
+    <xsd:enumeration value="Uint16"/>
+    <xsd:enumeration value="Int32"/>
+    <xsd:enumeration value="Uint32"/>
+    <xsd:enumeration value="Int64"/>
+    <xsd:enumeration value="Uint64"/>
+    <xsd:enumeration value="OCTET STRING"/>
+    <xsd:enumeration value="Gauge32"/>
+    <xsd:enumeration value="Counter32"/>
+    <xsd:enumeration value="Counter64"/>
+    <xsd:enumeration value="TimeTicks"/>
+    <xsd:enumeration value="IpAddress"/>
+    <xsd:enumeration value="NetworkAddress"/>
+    <xsd:enumeration value="Opaque"/>
+    <xsd:enumeration value="UTF8String"/>
+    <xsd:enumeration value="BITS"/>
+    <xsd:enumeration value="IA5String"/>
+    <xsd:enumeration value="TruthValue"/>
+    <xsd:enumeration value="DisplayString"/>
+    <xsd:enumeration value="INTEGER"/>
+	<xsd:enumeration value="OBJECT IDENTIFIER"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="AttrTypeEnum">
+  <xsd:restriction base="xsd:string">
+    <xsd:enumeration value="RUNTIME"/>
+    <xsd:enumeration value="CONFIG"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="AccessTypeEnum">
+  <xsd:restriction base="xsd:string">
+    <xsd:enumeration value="READONLY"/>
+    <xsd:enumeration value="READWRITE"/>
+    <xsd:enumeration value="WRITEONLY"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:complexType name="Attribute">
+	  <xsd:attribute name="name" type="xsd:string"/>
+	  <xsd:attribute name="rdn" type="xsd:string"/>
+	  <xsd:attribute name="dataType" type="AttributeType"/>
+	  <xsd:attribute name="multiplicity" type="xsd:integer"/>
+	  <xsd:attribute name="minValue" type="xsd:long"/>
+	  <xsd:attribute name="maxValue" type="xsd:long"/>
+	  <xsd:attribute name="defaultValue" type="xsd:long"/>
+	  <xsd:attribute name="type" type="AttrTypeEnum"/>
+	  <xsd:attribute name="access" type="AccessTypeEnum"/>
+	  <xsd:attribute name="persistency" type="xsd:boolean"/>
+	  <xsd:attribute name="caching" type="xsd:boolean"/>
+	  <xsd:attribute name="isTransient" type="xsd:boolean"/>
+	  <xsd:attribute name="isImported" type="xsd:boolean"/>
+	  <xsd:attribute name="OID" type="xsd:string"/>
+</xsd:complexType>
+ 
+<xsd:complexType name="Class">
+	<xsd:sequence>
+		<xsd:element maxOccurs="unbounded" minOccurs="0" name="attribute" type="Attribute"/>
+	</xsd:sequence>
+	<xsd:attribute name="name" type="xsd:string"/>
+	<xsd:attribute name="rdn" type="xsd:string"/>
+</xsd:complexType>
+ 
+<xsd:complexType name="DataStructure">
+  	<xsd:complexContent>
+   		<xsd:extension base="Class">
+	 		<xsd:attribute name="documentation" type="xsd:string"/>
+		</xsd:extension>
+  	</xsd:complexContent>
+</xsd:complexType>
+ 
+<xsd:complexType name="AssociatedDO">
+	<xsd:attribute name="deviceId" type="xsd:string"/>
+	<xsd:attribute name="accessPriority" type="xsd:integer"/>
+</xsd:complexType>
+ 
+<xsd:complexType name="AlarmService">
+	<xsd:sequence>
+	  <xsd:element maxOccurs="unbounded" minOccurs="0" name="alarmIDs" type="xsd:string"/>
+	  <xsd:element maxOccurs="unbounded" minOccurs="0" name="associatedDO" type="AssociatedDO"/>
+	</xsd:sequence>
+	<xsd:attribute name="isEnabled" type="xsd:boolean"/>
+    <xsd:attribute name="pollingInterval" type="xsd:long"/>
+</xsd:complexType>
+ 
+<xsd:complexType name="ProvService">
+	<xsd:sequence>
+	  <xsd:element maxOccurs="unbounded" minOccurs="0" name="attribute" type="Attribute"/>
+	  <xsd:element maxOccurs="unbounded" minOccurs="0" name="associatedDO" type="AssociatedDO"/>
+	</xsd:sequence>
+	<xsd:attribute name="isEnabled" type="xsd:boolean"/>
+</xsd:complexType>
+ 
+<xsd:complexType name="Resource">
+  <xsd:complexContent>
+    <xsd:extension base="DataStructure">
+      <xsd:sequence>
+        <xsd:element maxOccurs="1" minOccurs="0" name="alarmManagement" type="AlarmService"/>
+        <xsd:element maxOccurs="1" minOccurs="0" name="provisioning" type="ProvService"/>
+      </xsd:sequence>
+      <xsd:attribute name="maxInstances" type="xsd:string"/>
+    </xsd:extension>
+  </xsd:complexContent>
+</xsd:complexType>
+
+<xsd:complexType name="DeviceOperations">
+	  <xsd:attribute name="HAL_DEV_INIT" type="xsd:boolean"/>
+	  <xsd:attribute name="HAL_DEV_OPEN" type="xsd:boolean"/>
+	  <xsd:attribute name="HAL_DEV_CLOSE" type="xsd:boolean"/>
+	  <xsd:attribute name="HAL_DEV_READ" type="xsd:boolean"/>
+	  <xsd:attribute name="HAL_DEV_WRITE" type="xsd:boolean"/>
+	  <xsd:attribute name="HAL_DEV_COLD_BOOT" type="xsd:boolean"/>
+	  <xsd:attribute name="HAL_DEV_WARM_BOOT" type="xsd:boolean"/>
+	  <xsd:attribute name="HAL_DEV_PWR_OFF" type="xsd:boolean"/>
+	  <xsd:attribute name="HAL_DEV_IMAGE_DN_LOAD" type="xsd:boolean"/>
+	  <xsd:attribute name="HAL_DEV_DIRECT_ACCESS" type="xsd:boolean"/>
+</xsd:complexType>
+
+<xsd:complexType name="DeviceObject">
+	<xsd:sequence>
+	   <xsd:element name="deviceOperations" type="DeviceOperations"/>
+	</xsd:sequence>
+	<xsd:attribute name="deviceId" type="xsd:string"/>
+	<xsd:attribute name="rdn" type="xsd:string"/>
+	<xsd:attribute name="maxResponseTime" type="xsd:integer"/>
+	<xsd:attribute name="bootPriority" type="xsd:integer"/>
+ </xsd:complexType>
+
+<xsd:complexType name="NodeHardwareResource">
+  <xsd:complexContent>
+    <xsd:extension base="Resource">
+      <xsd:sequence>
+        <xsd:element maxOccurs="unbounded" minOccurs="0" name="deviceObject" type="DeviceObject"/>
+        <xsd:element maxOccurs="unbounded" minOccurs="0" name="associatedTo" type="Association"/>
+        <xsd:element maxOccurs="unbounded" minOccurs="0" name="contains" type="Composition"/>   
+	  	<xsd:element maxOccurs="unbounded" minOccurs="0" name="inherits" type="Inheritance"/>
+      </xsd:sequence>
+    </xsd:extension>
+  </xsd:complexContent>
+</xsd:complexType>
+
+<xsd:complexType name="HardwareResource">
+  <xsd:complexContent>
+    <xsd:extension base="Resource">
+      <xsd:sequence>
+        <xsd:element maxOccurs="unbounded" minOccurs="0" name="deviceObject" type="DeviceObject"/>
+        <xsd:element maxOccurs="unbounded" minOccurs="0" name="associatedTo" type="Association"/>
+        <xsd:element maxOccurs="unbounded" minOccurs="0" name="contains" type="Composition"/>   
+	  	<xsd:element maxOccurs="unbounded" minOccurs="0" name="inherits" type="Inheritance"/>
+      </xsd:sequence>
+    </xsd:extension>
+  </xsd:complexContent>
+</xsd:complexType>
+
+<xsd:complexType name="SoftwareResource">
+  <xsd:complexContent>
+    <xsd:extension base="Resource">
+     <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="associatedTo" type="Association"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="contains" type="Composition"/>   
+	  <xsd:element maxOccurs="unbounded" minOccurs="0" name="inherits" type="Inheritance"/>
+	 </xsd:sequence>
+	</xsd:extension>
+  </xsd:complexContent>
+</xsd:complexType>
+
+<xsd:complexType name="MibResource">
+  <xsd:complexContent>
+    <xsd:extension base="SoftwareResource">
+	 <xsd:attribute name="mibName" type="xsd:string"/>
+	 <xsd:attribute name="isScalar" type="xsd:boolean"/>
+	</xsd:extension>
+  </xsd:complexContent>
+</xsd:complexType>
+
+<xsd:complexType name="Inheritance">
+  <xsd:attribute name="target" type="xsd:string"/>
+</xsd:complexType>
+
+<xsd:complexType name="Association">
+  <xsd:attribute name="target" type="xsd:string"/>
+  <xsd:attribute name="sourceMultiplicity" type="xsd:integer"/>
+  <xsd:attribute name="targetMultiplicity" type="xsd:integer"/>
+</xsd:complexType>
+
+<xsd:complexType name="Composition">
+  	<xsd:attribute name="target" type="xsd:string"/>
+  	<xsd:attribute name="sourceMultiplicity" type="xsd:integer"/>
+  	<xsd:attribute name="targetMultiplicity" type="xsd:integer"/>
+</xsd:complexType>
+
+<xsd:element name="resourceInformation">
+  <xsd:complexType>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="1" name="chassisResource" type="ChassisResource"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="nodeHardwareResource" type="NodeHardwareResource"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="hardwareResource" type="NodeHardwareResource"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="softwareResource" type="SoftwareResource"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="mibResource" type="MibResource"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="dataStructure" type="DataStructure"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:element>
+</xsd:schema>

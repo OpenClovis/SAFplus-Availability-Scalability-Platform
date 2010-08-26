@@ -1,0 +1,497 @@
+/**
+ *  \defgroup log Log Service
+ *  \brief Computer programs record various events during their execution 
+ *   for further analysis. ASP Log Service facilitates recording information
+ *   about these events. Any application/ASP component in the cluster can use
+ *   the Log Service to record information.
+ */
+ 
+/**
+ *  \defgroup log_intro Functional Description
+ *  \brief Description of Log Service.
+ *  \ingroup log
+ * 
+ */
+
+/**
+ *  \defgroup log_usage API Usage Examples
+ *  \brief Code Examples.
+ *  \ingroup log
+ * 
+ */
+
+/**
+ *  \defgroup log_error Error/Return Codes
+ *  \brief Common and Component specific Error Codes.
+ *  \ingroup log
+ *
+ *  The majority of ASP API functions return a <b>Return Code</b> as their return value. 
+ *  A zero return code (CL_OK) always indicates success. Non-zero return codes 
+ *  always carry two types of information, masked into one single value: 
+ *  a <b>Component Identifier</b> and an <b>Error Code</b>. The component 
+ *  identifier identifies the component (or software layer) in which the problem 
+ *  occurred, while the error code describes the nature of the problem. 
+ *  Some error codes are common across all components, while others are 
+ *  component specific. 
+ *
+ *  The format of the Return Codes is 0xCCNNNN (given in hex),
+ *  where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ *
+ *  \note <b>Only the Error Codes are listed as Return values 
+ *  in the Function Documentation of the API Reference pages. The real 
+ *  return value also contains the Component Identifier!</b> 
+ *
+ *  The following links are useful while interpreting Log Service 
+ *  generated return codes:
+ *  - \ref apirefs_errorcodes_compid_CL_CID_LOG "Log Service Component Identifier"
+ *  - \ref apirefs_errorcodes_common
+ *  - \ref apirefs_errorcodes_log
+ *
+ *  For further details and information about all error/return codes visit 
+ *  page \ref apirefs_errorcodes.
+ */
+
+/**
+ *  \defgroup log_apis API Reference Pages
+ *  \brief Defines, Structures, Typedefs, Functions. 
+ *  \ingroup log
+ */
+
+/**
+ *  \defgroup log_glossary Glossary
+ *  \brief Glossary of Log Service related Terms.
+ *  \ingroup log
+ */
+
+/**
+ *  \defgroup log_aspconsole ASP Console
+ *  \brief ASP Console.
+ *  \ingroup log
+ */
+
+//-----------------------------------------------------------
+//-----------------------------------------------------------
+
+/**
+
+\addtogroup log_intro
+\brief Description of Log Service.
+
+Computer programs record various events during their execution for further 
+analysis. ASP Log Service provides the facility of recording the information 
+about these events. Any application/ASP component in the cluster can use the 
+Log Service to record the information.
+
+Log Service persist the information recorded by its clients so that it is 
+available for consumption at later points in time also. The consumer may be 
+an offline consumer, consuming the information at some later point in time, 
+or an online consumer, consuming the information as soon as it is generated. 
+Log Service does not interpret the information recorded by its clients. 
+It treats the information as octet stream and does not apply any semantic 
+meaning to it.
+
+All information related to one event is stored as one unit. This unit is known 
+as <b>Log Record</b>. Log Records are grouped together based on certain client 
+defined theme. This group is called <b>Log Stream</b>. These Log Streams can be
+shared by various components of an application or of different applications. 
+The theme and the users of a Log Stream are defined by the application. 
+These Log Streams flow into <b>Handlers</b>. One of handlers is the File handler
+which persist the Log Records into the <b>Log File</b>. Another one is Online 
+Viewer, which is used to view the Log Records as they are generated. 
+Log Service expects an archiving utility to siphon off Log Records from 
+the Log File to other storage unit
+
+Log Service provides interfaces for creating a Log Stream, opening an existing 
+Log Stream, recording an event into an opened Log Stream and closing a Log 
+Stream. Log service supports three different kind of logging. Those are Binary logging,
+TLV(Tag-Length-Value) logging and ASCII logging. By changing the msgId field of clLogWriteAsync()
+API, the application can choose their logging type. Further, it provides interfaces 
+to change the properties of Log Streams and for setting filters on the Log Stream to 
+filter events at the generation side. It also provides interfaces for registering 
+interest in receiving certain Log Streams and interfaces to receive these streams.
+
+\section sec_log_intro_1 Usage Model
+
+The usage model of the Log Service is Producer-Consumer model. Loggers are 
+the producers of the Log Records whereas Log Stream Handlers are the consumers 
+of these records. Multiple Loggers may log into same Log Stream. Similarly, 
+same record may be consumed by many Log Stream Handlers simultaneously. 
+The usage model can also be thought off as publisher-subscriber model because 
+Loggers and Log Stream Handlers are unaware of each other and each Log Stream 
+Handler receives all the logged records. One of the Log Stream Handler is Log 
+File Handler that persist the Log Records in the Log File. Certain other 
+applications like offline Log Viewer and Archiver work with Log File Handler.
+
+\image html log.png "Usage Model of Log Service" 
+\image latex log.png "Usage Model of Log Service" width=\textwidth
+
+\section sec_log_intro_2 Functionality
+
+Basic purpose of the Log Service is to record information provided by the 
+Logger for future use. This information is provided in the form of Log Record. 
+Log Records flow through a Log Stream and are persisted by the Log Service 
+in Log File.
+
+The producer of Log Record is known as Logger which uses clLogWriteAsync()/
+clLogVWriteAsync() API to pour a Log Record into a Log Stream. For using the 
+services of Log Service, the Logger has to initialize the Log Service by 
+invoking clLogInitialize(). clLogInitialize() returns a ::ClLogHandleT that can 
+be used in the subsequent operations on the Log Service to identify the 
+initialization. When this handle is no more required, the association can be 
+closed by invoking clLogFinalize(). Subsequent to clLogInitialize(), the Logger
+gains access to a Log Stream by invoking clLogStreamOpen(). clLogStreamOpen() 
+returns a ::ClLogStreamHandleT that can be used in clLogWriteAsync() API 
+to identify the Log Stream. When a Log Stream is no more required by a Logger, 
+it can close the stream by invoking clLogStreamClose(). Any Log Client can 
+change the filter of a Log Stream by invoking clLogFilterSet().
+
+Logger can also do ASCII logging by using the following two macros. They are clAppLog(),
+clLog(). Both of them do formatted ASCII logging. ASP components uses clLog() macro
+to log their messages to default sys stream. clLog() macro can log only into sys stream.
+But clAppLog() macro can log into any kind of streams. But both macors do only 
+ASCII logging.
+
+If the application uses clLog() macro, they can directly use the macro just after calling
+clLogInitialize() API. It holds good for using clAppLog() macro, but only for default streams 
+such as appstream, sysstream which is defined in configuration file. If the user wants to log 
+into their own stream by clAppLog() macro, then they can do logging only after opening 
+the stream by clLogStreamOpen() call.
+
+There are three types of consumers of the Log Records - one who consumes the 
+Log Records on-line through Log Service, second who consume the Log Records 
+at will through Log Service and others who consume the records by directly 
+reading the file.
+
+The first kind of consumers is who is consuming the records on-line. These 
+consumers are known as Log Stream Handlers and they get records in a push mode.
+They are continuously waiting for the records and process them as soon as they 
+get it. Examples of such consumers are Log File Handler and on-line viewer. 
+These handlers initialize the Log Service by invoking clLogInitialize() and 
+then they register their interest in a particular Log Stream by invoking 
+clLogHandlerRegister(). These handlers can discover the active streams either 
+by listening to the stream creation event or by getting the list of active 
+stream by invoking clLogStreamListGet(). After registration, the handler starts
+getting the records through a callback ::ClLogRecordDeliveryCallbackT, 
+which is registered during clLogInitialize(). Handler can acknowledge the 
+receipt of the records by invoking clLogHandlerRecordAck(). When the handler is
+no more interested in receiving the Log Records for a particular Log Stream, 
+it can deregister itself by invoking clLogHandlerDeregister().
+
+The second kind of consumers is off-line consumer. These consumers operate in 
+the pull mode and they explicitly ask the Log Service for more Log Records, 
+if available. Another important difference with the first kind of consumers 
+is that these work on Log File instead of Log Stream. Examples of such 
+consumers are Log Reader and Archiver. These consumers also initialize the 
+Log Service by invoking clLogInitialize() and then they open a Log File by 
+invoking clLogFileOpen(). When these consumers need more records, they invoke 
+clLogFileRecordsGet(). These type of consumers invoke clLogFileMetaDataGet() 
+to get the metadata of the Log Streams persisted in the Log file. 
+When the consumer is done with the file, it can close the file by invoking 
+clLogFileClose().
+
+The third kind of consumers is off-line consumer who may not be present in 
+the cluster itself. This kind of consumers is out of scope of Log Service. 
+These consumers directly operate on the Log File. Off-line viewer is one 
+such consumer.
+
+Log Service provides at-most once guarantee. Log Records may be lost due 
+to many reasons. Some of the reasons are highlighted here. Typically Log Files 
+have limited space and if the archiver is not configured correctly, 
+the Log File may be full before the archiver can take out certain Log Records 
+to create space for more. In this case, the Log Service will continue 
+to overwrite oldest records and those overwritten records are lost. 
+Other reason of loss is that a node fails before it could flush recently 
+generated Log Records to the Log File Handler for persistence. Similarly, 
+if the speed of flushing of new Log Records is slower than the rate of 
+generation of Log Records, then the local memory of the Log Service Element 
+may become full and it will start overwriting oldest Log Records, which will 
+be lost.
+
+Each Log Stream is characterized by a set of attributes. These attributes are 
+specified at the time of creation of the Stream and can not be modified during 
+the lifetime of that Stream. The attributes include the file name and the 
+location of the file where the Stream should be persisted, size of each record 
+in the Log Stream, maximum number of records that can be stored in one physical
+file, action to be taken when the file becomes full, whether the file has a 
+backup copy and the frequency at which the Log Records must be flushed. 
+These attributes are specified through ClLogStreamAttributesT 
+structure.
+
+Multiple Log Streams may be persisted in one Log File. Local and Global streams
+can be mixed together in one Log File. But, in such a case, all the stream 
+attributes other than 
+\link ClLogStreamAttributesT::flushFreq flushFreq \endlink and 
+\link ClLogStreamAttributesT::flushInterval flushInterval \endlink 
+must be same.
+
+Log File is a logical concept and it is a collection of physical files. 
+Each such physical file is called a Log File Unit. In case the action on Log 
+File being full is specified as ::CL_LOG_FILE_FULL_ACTION_HALT or 
+::CL_LOG_FILE_FULL_ACTION_WRAP, the Log File consists of only one Log File Unit,
+whereas if the action is ::CL_LOG_FILE_FULL_ACTION_ROTATE, one Log File 
+contains multiple Log File Units. Each Log File Unit is of same size specified 
+as 
+\link ClLogStreamAttributesT::fileUnitSize fileUnitSize \endlink 
+in Log Stream Creation attributes. Maximum number of Log File 
+Units in a Log File is governed by 
+\link ClLogStreamAttributesT::maxFilesRotated maxFilesRotated \endlink
+attribute of Log Stream. 
+The Log File Unit names follow the following pattern: fileName_<creationTime>, 
+where fileName is a stream attribute and <creationTime> is the wall clock time 
+at which this Log File Unit is created, this time is in ISO 8601 format. 
+One more file per Log File is generated with the name 
+filename_<creationTime>.cfg to store the metadata of Log Streams being 
+persisted in the Log File. This file contains attributes of the Log Streams 
+going in this file and streamId to streamName mapping 
+
+*/
+ 
+//-----------------------------------------------------------
+
+/**
+
+\addtogroup log_usage
+\brief Code Examples.
+
+\code
+ClRcT            rc           = CL_OK;
+ClVersionT       version      = {'B', 0x1, 0x1};
+ClLogHandleT     logSvcHandle = CL_HANDLE_INVALID_VALUE; 
+ClLogCallbacksT  logCallbacks = {0};
+
+// Initializes the log library.
+rc = clLogInitialize(&logSvcHandle, &logCallbacks, &version); 
+if(CL_OK != rc) 
+{
+    // Error occured. Take appropriate action.
+}
+
+// Open a new application stream.
+ClLogStreamHandleT     streamHandle = CL_HANDLE_INVALID_VALUE;
+ClLogStreamAttributesT streamAttr   = {0};
+
+// copying the filename 
+if( NULL ==
+    ( streamAttr.fileName = clHeapCalloc(1, strlen("file1")+1)))
+{
+       /* no memory take appropriate action */
+}
+strcpy(streamAttr.fileName, "file1");
+// Filelocation is of the following format.
+// *:<absolute path>  or .:<absolutepath> or <nodename>:<absolutepath> 
+// *:<absolute path>, this creates the file wherever system controller runs.
+// .:<absolute path>, this creates the file in the local node 
+// <nodename>:<absolute path>, this creates the file where this node name
+//  instance is running
+// filelocation should be existing and absolute path 
+if( NULL ==
+      ( streamAttr.fileLocation = clHeapCalloc(1, strlen(".:/tmp")+1)))
+{
+       // no memory take appropriate action 
+}        
+strcpy(streamAttr.fileLocation, ".:/tmp");
+
+streamAttr.haProperty         = 0;
+streamAttr.fileUnitSize       = 100 * 1024; 
+streamAttr.recordSize         = 1024; 
+streamAttr.fileFullAction     = CL_LOG_FILE_FULL_ACTION_ROTATE; 
+streamAttr.maxFilesRotated    = 3; 
+streamAttr.flushFreq          = 20; 
+streamAttr.flushInterval      = 100000000; 
+streamAttr.waterMark          = {0, 80}; 
+
+// open or create the stream 
+rc = clLogStreamOpen(logSvcHandle, streamName, CL_LOG_STREAM_GLOBAL,
+                     &streamAttr, CL_LOG_STREAM_CREATE, 0, &streamHandle); 
+if(CL_OK != rc)
+{
+	// error occurred. Take appropriate action
+}
+// Log a message to the stream being created
+// severity could be one of ClLogSeverityT, based on the criticality of
+// the message. 
+// serviceId This field identifies the module within
+// the process which is generating this Log Record. If the Log Record
+// message is a generic one like out of memory, this field can be used to
+// narrow down on the module impacted. For ASP client libraries, these
+// values are defined in clCommon.h. For application modules, it is up-to
+// the application developer to define the values and scope of those values.  
+// msgId could be CL_LOG_MSGID_BUFFER, CL_LOG_MSGID_PRINTF_FMT, any of the
+// logger defined message-ids.
+rc = clLogWriteAsync(streamHandle, severity, serviceId, msgId,
+                     "this is the api reference guide code example");
+if(CL_OK != rc)
+{
+    // Error occured. Take appropriate action.
+}
+
+//code snippet for binary logging 
+ClCharT  buffer[0xfff] = {0};
+ClUint32T length       = 0xfff;
+rc = clLogWriteAsync(streamHandle, severity, serviceId, CL_LOG_MSGID_BUFFER,
+                     length, buffer);
+
+//code snippet for ASCII logging using this API.
+rc = clLogWriteAsync(streamHandle, severity, serviceId, CL_LOG_MSGID_PRINTF_FMT, 
+                     "This is api reference guide ASCII logging");
+
+//code snipper for TLV logging. CL_LOG_USER_DEFINED_MSGID should be defined 
+//by user, and it should not have values of CL_LOG_MSGID_BUFFER and 
+//CL_LOG_MSGID_PRINTF_FMT.
+rc = clLogWriteAsync(streamHandle, severity, serviceId, 
+                     CL_LOG_USER_DEFINED_MSGID, CL_LOG_TLV_UINT8(bitVar), 
+                     CL_LOG_TLV_UINT32(intVar), CL_LOG_TAG_TERMINATE);
+
+// Closes a stream
+rc = clLogStreamClose(streamHandle);
+if(CL_OK != errorCode) 
+{
+    // Error occured. Take appropriate action.
+}
+
+// Sets the log level of an Eo to CL_LOG_ALERT
+// streamFilter flags could be one of the following 
+// CL_LOG_FILTER_ASSIGN, CL_LOG_FILTER_MERGE, CL_LOG_FILTER_DEL
+ClLogSeverityT  severity = CL_LOG_SEV_ALERT;
+ClLogFilterT  filter = { 1 << (severity - 1),   
+                        0, NULL, 0, NULL };   
+
+rc = clLogFilterSet( streamHandle, CL_LOG_FILTER_ASSIGN,  
+                    filter);              
+if(CL_OK != rc)
+{
+    // Error occured. Take appropriate action.
+}
+
+// Finalizing the log library. Not doing this would lead to memory leaks.
+errorCode = clLogFinalize(logSvcHandle);
+if(CL_OK != rc)
+{
+    // Error occured. Take appropriate action.
+}
+
+\endcode
+\code
+//The following code describes how to do ASCII logging by using clAppLog() macro.
+//Here the streamHandle which we got after opening a specific stream.
+//ServiceId is specific to module from which this log message is being logged. 
+
+ clAppLog(streamHandle, CL_LOG_SEV_INFO, serviceId, "AREA", "CONTEXT",
+          "This is example messgae for ASCII logging");
+
+//The following code describes how to log into default(perennial) streams 
+//supported by ASP/log service. CL_LOG_HANDLE_SYS is handle for predefined 
+//SYS stream. CL_LOG_HANDLE_APP is handle for predefined APP stream.
+
+ clAppLog(CL_LOG_HANDLE_SYS, CL_LOG_SEV_INFO, serviceId, "AREA", "CONTEXT", 
+          "Logging to SYS stream by using clAppLog macro.");
+
+ clAppLog(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, serviceId, "AREA", "CONTEXT",          
+          "Logging to APP stream by using clAppLog macro.");
+
+\endcode
+
+*/
+
+//-----------------------------------------------------------
+
+/**
+
+\addtogroup log_glossary
+\brief Glossary of Log Service related Terms. 
+
+\par Log Service
+ASP Service that provides logging facility to various applications / ASP 
+components in the cluster.
+
+\par Logger 
+A component using the Log Service to record its events of interest.
+
+\par Log Record 
+One unit of information related to an event. This is an ordered set of 
+information. Log Record has two parts - header and user data. Header contains 
+meta-information regarding the event and data part contains the actual 
+information.
+
+\par Log Stream 
+It is a conceptual flow of Log Records. Every Log Stream has a theme associated
+with it, based on which the consumer can decide whether the events of interest 
+are available in this stream on not. Streams have names and scope for 
+addressing.
+
+\par Local Log Stream
+A Log Stream local to one node. This stream is not visible for Logging on any 
+other node in the system. Components running on the same node only can log 
+into this stream. But consumers on any node can consume this Log Stream.
+
+\par Global Log Stream 
+A Log Stream visible in the cluster. Any component in the cluster can log into 
+this stream.
+
+\par Log File 
+One of the destination for Log Stream and persistent store for Log Records. 
+A collection of Log Streams can flow into one Log File for the ease of 
+management of data.
+
+\par Log Configuration File 
+Persistent store for configuration of a Log File. 
+
+\par Log File Unit
+A Log File is a logical collection of Log File Units, where one Log File Unit 
+maps to one physical file on disc.
+
+\par Log Client
+Part of the Log Service linked to the Logger and/or Log Stream Handler. 
+This provides Log Service interface to the Logger and Log Stream Handler.
+
+\par Log Service Element
+One process per ASP enabled node in the cluster that provides part of the 
+functionality of the Log Service. All the Log Service Elements along with Log 
+Clients form the Log Service. This element is owner for all the Local Log 
+Streams on its node.
+
+\par Master Log Service Element
+Log Service Element running on the System Controller node. This element is the 
+owner of all the Global Log Streams in the cluster.
+
+\par Log Stream Handler
+An application that has registered its interest in receiving Log Records in 
+real-time mode from the Log Service Element. These records are made available 
+to the Log Stream Handler in push mode. Except the Log File Handler, 
+no other handler is part of Log Service.
+
+\par Log File Handler
+Log File Handler is one type of  Log Stream Handler which receives the Log 
+Records from the Log Stream and persist them in the Log File. This is the only 
+handler part of the Log Service.
+
+\par Log Viewer
+Application used for viewing the logged records. This is not part of Log 
+Service. The viewers are of two types - offline viewer and online viewer. 
+Offline viewer interacts with either the Log File Handler or archived files 
+to display Log Records. Online viewer registers itself as a Log Stream Handler 
+and displays the records in real-time.
+
+\par Archiver 
+Application used for siphoning off the logged records to some other form of 
+persistent storage. This is not part of Log Service.
+
+\par Log Reader 
+Application that programmatically consumes the logged records. Typical readers 
+are application looking for missing Notifications/Events.
+
+\par Filter 
+A pattern that controls the logging of records. Only the Log Records matching 
+this pattern are actually logged into the Log Stream.
+
+\par StreamId 
+Each stream in the cluster is uniquely identified by a number called stream 
+identifier or streamId. In the LogRecord it identifies the stream to which 
+the record belongs to.
+
+\par ClientId 
+Each logging client in the cluster is uniquely identified by a number called 
+client identifier or clientId. In the LogRecord it idetifies the client that 
+has logged this record.
+
+*/

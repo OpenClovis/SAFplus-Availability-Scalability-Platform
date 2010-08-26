@@ -1,0 +1,46 @@
+This is the home of the build server scripts and config files. The intended
+use of this directory is as follows:
+
+1. Check out directory on a host intended to be a packaging and build server
+2. Customize the packaging and build config files from the provided samples
+3. Run the packaging script 'autobuild' using a config file in any of the
+   following way:
+   - manually
+   - from a cron job
+   - from a script that runs it in an infinite loop
+
+Additional capabilities worth mentioning:
+
+- Multiple builds from different branches can be built in parallel, using
+  multiple config files and running the 'autobuild' script for each config
+  file separately
+
+- The script can be used to kick off a follow-up script once it successfully
+  finished job
+  
+- The script can automatically upload the generated package files to a remote
+  ftp server, provided that it has rsync privileges to the server's target
+  directory
+
+- The script can send out an email to a list of defined recipients about the
+  success status of the build
+
+
+Assumptions:
+
+  The top-level dir specified by the config file must have a Makefile with
+  the following behavior:
+  - it uses the 'all' target to point to the 'pkg' target
+  - the 'make pkg' takes care of building the release package
+  - The 'make pkg' requires the following environment variables:
+        BUILD_ID    - a unique number for the build
+        RELEASE_TAG - a release tag to be used in file naming of tarballs
+  If the 'make pkg' succeeds, it MUST create a 'manifest' file in the top-level
+  directory that contains all files (with full pathname) that are regarded
+  as the output of the packaging. These will be uploaded to a release file
+  server by the script.
+  
+Files:
+
+  build.conf.example            - sample config file
+  autobuild                     - release generator script (executable)

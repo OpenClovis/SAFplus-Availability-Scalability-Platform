@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<clSlotInfo:BootConfig xmlns:clSlotInfo="map.ecore">
+  <slots>
+    <slot slotNumber="1">
+      <classTypes/>
+    </slot>
+    <slot slotNumber="2">
+      <classTypes/>
+    </slot>
+    <slot slotNumber="3">
+      <classTypes/>
+    </slot>
+    <slot slotNumber="4">
+      <classTypes/>
+    </slot>
+    <slot slotNumber="5">
+      <classTypes/>
+    </slot>
+  </slots>
+</clSlotInfo:BootConfig>

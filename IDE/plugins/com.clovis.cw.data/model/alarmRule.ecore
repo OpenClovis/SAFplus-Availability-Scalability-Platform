@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="alarmRule"
+    nsURI="alarmRule.ecore" nsPrefix="alarmRule">
+  <eClassifiers xsi:type="ecore:EClass" name="alarm">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="alarmID" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Alarm ID"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Alarm ID"/>
+        <details key="isHidden" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="generationRule" lowerBound="1"
+        eType="#//alarmRule" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="editor" value="com.clovis.cw.workspace:com.clovis.cw.workspace.dialog.AlarmPushButtonCellEditor"/>
+        <details key="label" value="Generation Rule"/>
+        <details key="isHidden" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="suppressionRule" lowerBound="1"
+        eType="#//alarmRule" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="editor" value="com.clovis.cw.workspace:com.clovis.cw.workspace.dialog.AlarmPushButtonCellEditor"/>
+        <details key="label" value="Suppression Rule"/>
+        <details key="isHidden" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="alarmRuleInformation">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="resource" upperBound="-1"
+        eType="#//resource" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="resource">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]{0,79}$"/>
+        <details key="message" value="Invalid Reaource Name"/>
+        <details key="label" value="Resource Name"/>
+        <details key="isHidden" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="alarm" lowerBound="1" upperBound="-1"
+        eType="#//alarm" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="alarmRule">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="Alarm Rule"/>
+      <details key="Help" value="com.clovis.cw.help.alarm_rule"/>
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="relationType" lowerBound="1"
+        eType="#//relationType" defaultValueLiteral="CL_ALARM_RULE_NO_RELATION" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxAlarm" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="0"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="alarmIDs" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="relationType">
+    <eLiterals name="CL_ALARM_RULE_NO_RELATION" value="1"/>
+    <eLiterals name="CL_ALARM_RULE_LOGICAL_OR"/>
+    <eLiterals name="CL_ALARM_RULE_LOGICAL_AND" value="2"/>
+  </eClassifiers>
+</ecore:EPackage>

@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="rmd"
+    nsURI="rmd.ecore" nsPrefix="">
+  <eClassifiers xsi:type="ecore:EClass" name="IDLSpecs">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="Help" value="com.clovis.cw.help.idl_specs"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="IDLSpecs" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Service name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Struct" upperBound="-1"
+        eType="#//STRUCT" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Union" upperBound="-1"
+        eType="#//UNION" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Enum" upperBound="-1" eType="#//ENUM"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Service" lowerBound="1"
+        upperBound="-1" eType="#//SERVICE" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Service Group List"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SERVICE">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="Help" value="com.clovis.cw.help.idl"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.ListUniquenessValidator"/>
+      <details key="isNameCombo" value="All Services are defined."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Service Group Name"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.customeditor.EOComboBoxCellEditor"/>
+        <details key="tooltip" value="Select one of Services defined for the components in component editor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Port" upperBound="-1" eType="#//PORT"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Service"/>
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Service List"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Struct" upperBound="-1"
+        eType="#//STRUCT" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Struct List"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Union" upperBound="-1"
+        eType="#//UNION" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Union List"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Enum" upperBound="-1" eType="#//ENUM"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Enum List"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PORT">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="label" value="Service"/>
+      <details key="Help" value="com.clovis.cw.help.idl_client"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.ListUniquenessValidator"/>
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Service Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="tooltip" value="Select one of Services defined for the components in component editor"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="useNativeTable" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="true"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Use Native Table"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ID" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Group" lowerBound="1" upperBound="-1"
+        eType="#//GROUP" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Operation Group List"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="GROUP">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="label" value="Operation Group"/>
+      <details key="Help" value="com.clovis.cw.help.idl_client"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.ListUniquenessValidator"/>
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Operation Group Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Group Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Operation" upperBound="-1"
+        eType="#//OPERATION" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Operation List"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="OPERATION">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="label" value="Operation"/>
+      <details key="Help" value="com.clovis.cw.help.idl_service"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.ListUniquenessValidator"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Operation Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Operation Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Argument" upperBound="-1"
+        eType="#//ARGUMENT" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Arguments"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ARGUMENT">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="label" value="Argument"/>
+      <details key="Help" value="com.clovis.cw.help.idl_argument"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.ArgumentValidator"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ParameterType" eType="#//ParameterType"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Parameter Type"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="label" value="Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Data Type"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.DataTypesComboBoxCellEditor"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pointer" eType="#//PointerTypeEnum"
+        defaultValueLiteral="None">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Pointer"/>
+        <details key="Dependency" value="None;lengthVar=None;Disable:add=lengthVar|Single;Disable:remove=lengthVar|Double;Disable:remove=lengthVar"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lengthVar" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="None">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Length Variable"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.LengthVariableComboBoxCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Disable" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true"
+        defaultValueLiteral="lengthVar">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ENUM">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.EODataTypesValidator"/>
+      <details key="dependentsFeatureNames" value="defNeed"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="label" value="Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="EnumMember" upperBound="-1"
+        eType="#//ENumMember" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Enum Member"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defNeed" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="true"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Generate Definition"/>
+        <details key="dependents" value="1@None!None%include|None#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.EODataTypesHandler"/>
+        <details key="Dependency" value="true;Disable:add=include|false;Disable:remove=include"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="include" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Include Header File Path"/>
+        <details key="editor" value="com.clovis.common.utils:com.clovis.common.utils.ui.editor.FileChooserCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Disable" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ENumMember">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="label" value="Enum Member"/>
+      <details key="Help" value="com.clovis.cw.help.idl_enum_member"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="label" value="Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[-0-9][0-9]*$"/>
+        <details key="message" value="Invalid Value"/>
+        <details key="label" value="Value"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="STRUCT">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.EODataTypesValidator"/>
+      <details key="dependentsFeatureNames" value="defNeed"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="label" value="Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="DataMember" upperBound="-1"
+        eType="#//DataMember" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Struct Member"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defNeed" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="true"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Generate Definition"/>
+        <details key="dependents" value="1@None!None%include|None#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.EODataTypesHandler"/>
+        <details key="Dependency" value="true;Disable:add=include|false;Disable:remove=include"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="include" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Include Header File Path"/>
+        <details key="editor" value="com.clovis.common.utils:com.clovis.common.utils.ui.editor.FileChooserCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Disable" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true"
+        defaultValueLiteral="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DataMember">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="label" value="Data Member"/>
+      <details key="Help" value="com.clovis.cw.help.idl_data_member"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.DataMemberValidator"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="label" value="Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Data Type"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.DataTypesComboBoxCellEditor"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pointer" eType="#//DMPointerTypeEnum">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Pointer"/>
+        <details key="Dependency" value="None;lengthVar=None;Disable:add=lengthVar|Single;Disable:remove=lengthVar"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lengthVar" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="None">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Length Variable"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.DataMemberLengthVarComboBoxCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="multiplicity" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Multiplicity"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Disable" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true"
+        defaultValueLiteral="lengthVar">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ParameterType">
+    <eLiterals name="CL_IN"/>
+    <eLiterals name="CL_OUT" value="1"/>
+    <eLiterals name="CL_INOUT" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="UNION">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.EODataTypesValidator"/>
+      <details key="dependentsFeatureNames" value="defNeed"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="label" value="Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="DataMember" upperBound="-1"
+        eType="#//DataMember" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Union Member"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defNeed" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="true"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Generate Definition"/>
+        <details key="dependents" value="1@None!None%include|None#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.EODataTypesHandler"/>
+        <details key="Dependency" value="true;Disable:add=include|false;Disable:remove=include"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="include" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Include Header File Path"/>
+        <details key="editor" value="com.clovis.common.utils:com.clovis.common.utils.ui.editor.FileChooserCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Disable" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DataTypesEnum">
+    <eLiterals name="ClInt8T"/>
+    <eLiterals name="ClUint8T" value="1"/>
+    <eLiterals name="ClInt16T" value="2"/>
+    <eLiterals name="ClUint16T" value="3"/>
+    <eLiterals name="ClInt32T" value="4"/>
+    <eLiterals name="ClUint32T" value="5"/>
+    <eLiterals name="ClInt64T" value="6"/>
+    <eLiterals name="ClUint64T" value="7"/>
+    <eLiterals name="ClCharT" value="8"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PointerTypeEnum">
+    <eLiterals name="None"/>
+    <eLiterals name="Single" value="1"/>
+    <eLiterals name="Double" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DMPointerTypeEnum">
+    <eLiterals name="None"/>
+    <eLiterals name="Single" value="1"/>
+  </eClassifiers>
+</ecore:EPackage>

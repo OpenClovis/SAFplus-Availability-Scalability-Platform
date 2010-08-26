@@ -1,0 +1,13 @@
+#----------------------------------------------------------------------
+# ID              State  Brief description
+#----------------------------------------------------------------------
+*TG001		# This will run all TG based tests for now
+SQA-TAE-REG.TC001   E    TAE regression test and demo testcase (LINT)
+#SQA-TAE-REG.TC002   E    This testcase should always produce an ERROR
+#SQA-TAE-REG.TC003   E    This testcase should always produce a FAIL
+#SQA-TAE-REG.TC004   E    This is a well documented testcase example
+#SQA-TAE-REG.TC005   E    Unimplemented testcase (always errors out)
+#SQA-TAE-REG.TC006   E    Testcase example with measurements
+SQA-TAE-REG.TC007   E    Testcase example with RPC calls
+#SQA-TAE-REG.TC008   D    Disabled testcase
+*HPI*

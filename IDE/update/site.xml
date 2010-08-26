@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/com.clovis.cw.clovisworks_2.0.2.jar" id="com.clovis.cw.clovisworks" version="2.0.2"/>
+</site>

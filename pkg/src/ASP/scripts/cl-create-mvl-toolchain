@@ -1,0 +1,512 @@
+#!/bin/bash
+################################################################################
+#
+#   Copyright (C) 2002-2009 by OpenClovis Inc. All Rights  Reserved.
+# 
+# The source code for  this program is not published  or otherwise 
+# divested of  its trade secrets, irrespective  of  what  has been 
+# deposited with the U.S. Copyright office.
+# 
+# This program is  free software; you can redistribute it and / or
+# modify  it under  the  terms  of  the GNU General Public License
+# version 2 as published by the Free Software Foundation.
+# 
+# This program is distributed in the  hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# General Public License for more details.
+# 
+# You  should  have  received  a  copy of  the  GNU General Public
+# License along  with  this program. If  not,  write  to  the 
+# Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+################################################################################
+#
+# Build: 4.2.0
+#
+#
+##############################################################################
+#
+# cl-create-mvl-toolchain
+#
+# Usage:
+#
+#   [TODO:...]
+
+######################
+## Useful Functions ##
+######################
+#
+# usage - displays usage information
+#
+usage() {
+    echo ""
+    echo "cl-create-mvl-toolchain - OpenClovis SDK Toolchain creation utility"
+    echo "                          for use with MontaVista CGL 5.0"
+    echo ""
+    echo "Creates an OpenClovis SDK crossbuild toolchain using a MontaVista"
+    echo "CGL 5.0 installation."
+    echo ""
+    echo "Usage:"
+    echo "  $(basename $0) -m <workbench-install-path> -a <architecture> \\"
+    echo "      [ -b <binary-mode=32> ] <toolchain-name>"
+    echo "  $(basename $0) -m <workbench-install-path> -l \\"
+    echo ""
+    echo "The -l option lists the platform arch types supported by the"
+    echo "MontaVista CGL 5.0 installation specified."
+    echo "The -b option allows you to override the binary mode for 64-bit"
+    echo "BSPs.  If you would like to build 32-bit binaries for a 64-bit"
+    echo "architecture, please specify -b 32.  This option has no effect"
+    echo "for 32-bit BSPs."
+    echo ""
+}
+#
+# retexit - exits if return code is not zero
+#
+retexit() {
+    retval=$1
+    if [ $retval -ne 0 ]; then
+        exit $retval
+    fi
+}
+#
+# update_status [status_file_dir] [variable] [value]
+#
+update_status() {
+    thisdir=$(pwd)
+    workdir=$1
+    var=$2
+    val=$3
+    
+    cd $workdir
+    sed -e "s/^$var=./$var=$val/g" < .status > .status.foo
+    mv .status.foo .status
+    cd $thisdir
+}
+
+######################
+## Set up variables ##
+######################
+
+COPY_KERNEL=0
+PACKAGE_VERSION=4.2
+
+INSTALL_PPS=0
+LIST_ARCH=0
+
+BIN_MODE=32
+OVERRIDE_BINARY=0
+
+unset SDK_DIR
+
+#set -x
+
+#############################################
+## Parse and validate command-line options ##
+#############################################
+#
+# parse
+while getopts :m:a:b:s:lp:h options; do
+    case $options in
+        h)
+            usage
+            exit 0
+            ;;
+        m)
+            MVL_INSTALL=$OPTARG
+            ;;
+        a)
+            MVL_BOARD=$OPTARG
+            ;;
+        s)
+            SDK_DIR=$OPTARG
+            ;;
+        p)
+            INSTALL_PPS=1
+            PPS_TARBALL=$OPTARG
+            ;;
+        b)
+            OVERRIDE_BINARY=1
+            OVERRIDE_BIN_MODE=$OPTARG
+            ;;
+        l)
+            LIST_ARCH=1
+            ;;
+        ?)
+            echo ""
+            echo "Invalid option"
+            usage
+            exit 1
+    esac
+done
+shift $(( $OPTIND - 1 ))
+
+TOOLCHAIN_NAME=$1
+
+#
+# validate
+if [ ! $MVL_INSTALL ]; then
+    echo ""
+    echo "No MontaVista CGL installation directory specified."
+    usage
+    exit 1
+fi
+
+if [ $LIST_ARCH -eq 1 ]; then
+    echo ""
+    echo "The following platforms are supported by the MontaVista"
+    echo "CGL 5.0 installation at $MVL_INSTALL:"
+    ls -1 $MVL_INSTALL/cge/devkit/lsp | sed -e "s/^/    /g"
+    echo ""
+    exit 0
+fi
+
+if [ ! $MVL_BOARD ]; then
+    echo ""
+    echo "No MontaVista architecture specified."
+    usage
+    exit 1
+fi
+
+if [ ! $TOOLCHAIN_NAME ]; then
+    echo ""
+    echo "No target toolchain name specified."
+    usage
+    exit 1
+fi
+
+if [ $INSTALL_PPS -eq 1 ]; then
+    if [ ! -f $PPS_TARBALL ]; then
+        echo "failed"
+        usage
+        exit 1
+    fi
+fi
+
+if [ $OVERRIDE_BINARY -eq 1 ]; then
+    if [ "$OVERRIDE_BIN_MODE" != "32" ]; then
+        echo ""
+        echo "Invalid binary mode."
+        usage
+        exit 1
+    fi
+fi
+
+if [ ! $SDK_DIR ]; then
+    if [ -f ~/.clovis/sdk-$PACKAGE_VERSION/install.cache ]; then
+        sdk_inst=$(cat ~/.clovis/sdk-$PACKAGE_VERSION/install.cache)/sdk-$PACKAGE_VERSION
+        thisdir=$(pwd)
+        cd $sdk_inst/..
+        SDK_DIR=$(pwd)
+        cd $thisdir
+    else
+        echo ""
+        echo "Cannot find SDK installation.  Please rerun this script with the"
+        echo "-s option to specify the SDK install directory."
+        exit 1
+    fi
+fi
+
+if [ -d $SDK_DIR/buildtools/$TOOLCHAIN_NAME -a ! -f .status ]; then
+    echo ""
+    echo "A toolchain named $TOOLCHAIN_NAME already exists."
+    echo "Please remove it and run this script again."
+    echo ""
+    echo -n "Cleaning up possible temporary directory ... "
+    rm -rf tmp
+    echo "done"
+    exit 1
+fi
+
+############################
+## Source our status file ##
+############################
+
+TCDIR_DONE=0
+LINKS_DONE=0
+UNTAR_PKG_DONE=0
+SQLITE_DONE=0
+
+if [ -f .status ]; then
+    echo -n "Reading status file ... "
+    source .status
+    echo "done"
+else
+    echo -n "Creating status file ... "
+    cat << EOF > .status
+# wrs toolchain creation status file
+TCDIR_DONE=$TCDIR_DONE
+LINKS_DONE=$LINKS_DONE
+UNTAR_PKG_DONE=$UNTAR_PKG_DONE
+SQLITE_DONE=$SQLITE_DONE
+export TCDIR_DONE LINKS_DONE UNTAR_PKG_DONE 
+export SQLITE_DONE 
+EOF
+    echo "done"
+fi
+##########################################
+## Ensure 3rd party package is in place ##
+##########################################
+
+THIRDPARTYPKG=3rdparty-base-1.14.tar
+
+if [ ! -f $THIRDPARTYPKG ]; then
+    echo ""
+    echo "Please run this script in the same location as the third-party"
+    echo "package tarball $THIRDPARTYPKG"
+    exit 1
+fi
+
+######################################################
+## Check if MontaVista CGL installation exists ##
+######################################################
+#
+if [ ! -d $MVL_INSTALL/cge/devkit ]; then
+    echo ""
+    echo "No MontaVista CGL 5.0 installation found at $MVL_INSTALL"
+    echo "Please verify the installation is at this location, or specify"
+    echo "the location of a MontaVista CGL 5.0 installation, and try"
+    echo "this script again."
+    exit 1
+fi
+
+#################################################
+## Check if named board support package exists ##
+#################################################
+#
+if [ ! -d $MVL_INSTALL/cge/devkit/lsp/$MVL_BOARD ]; then
+    echo ""
+    echo "Support for $MVL_BOARD not found in MontaVista CGL"
+    echo "installation at $MVL_INSTALL.  Please verify that the arch/cpu"
+    echo "specified is supported by this installation and try again."
+    exit 1
+fi
+
+##################################################
+## Setup buildtool symlinks and write config.mk ##
+##################################################
+#
+# TODO: Harvest target information, assuming intel for now
+echo -n "Harvesting target data ... "
+
+MVL_PATH=$(grep 'ARCH' $MVL_INSTALL/cge/devkit/lsp/$MVL_BOARD/desc | sed -e 's/^ *//g' -e 's/<//g' -e 's;/>;;g' | cut -d\  -f 3 | cut -d= -f 2 | sed -e 's/"//g')
+echo -n "TARGET PATH ($MVL_PATH) "
+
+CPU=$(grep 'ARCH' $MVL_INSTALL/cge/devkit/lsp/$MVL_BOARD/desc | sed -e 's/^ *//g' -e 's/<//g' -e 's;/>;;g' | cut -d\  -f 2 | cut -d= -f 2 | sed -e 's/"//g' -e 's/-//g')
+echo -n "CPU ($CPU) "
+
+if [ "$CPU" = "pentium3" ]; then
+    ARCH=i386
+    BIN_MODE=32
+fi
+if [ "$CPU" = "em64t" ]; then
+    ARCH=x86_64
+    BIN_MODE=64
+fi
+if [ "$CPU" = "ppc_85xx" ]; then
+    ARCH=ppc
+    BIN_MODE=32
+fi
+if [ "$CPU" = "ppc_9xx" ]; then
+    ARCH=ppc64
+    BIN_MODE=64
+fi
+
+if [ "$OVERRIDE_BINARY" = "1" ]; then
+    BIN_MODE=32
+fi
+
+echo -n "ARCH ($ARCH) BINARY MODE ($BIN_MODE-bit) "
+
+TARGET=$(ls $MVL_INSTALL/cge/devkit/$MVL_PATH | grep 'montavista-linux')
+echo -n "TARGET ($TARGET) "
+
+MACH=$ARCH
+export CROSS_COMPILE=$CPU-
+
+echo -n "SDK ($SDK_DIR) "
+echo "... done"
+
+TC_DIR=$SDK_DIR/buildtools/$TOOLCHAIN_NAME
+echo "Creating new toolchain at $TC_DIR"
+TC_VER=0.1
+
+#
+# setup symlinks
+curdir=$(pwd)
+
+if [ $TCDIR_DONE = 0 ]; then
+    echo -n "Creating toolchain directory ... "
+    mkdir -p $TC_DIR
+    retexit $?
+    echo "done"
+    TCDIR_DONE=1
+    update_status $curdir TCDIR_DONE $TCDIR_DONE
+fi
+
+cd $TC_DIR
+
+if [ $LINKS_DONE = 0 ]; then
+    echo -n "Setting up symlinks ... "
+    ln -s $MVL_INSTALL/cge/devkit/$MVL_PATH/bin .
+    if [ $BIN_MODE -eq 64 ]; then
+        ln -s $MVL_INSTALL/cge/devkit/$MVL_PATH/target/usr/lib64 ./lib
+    else
+        ln -s $MVL_INSTALL/cge/devkit/$MVL_PATH/target/usr/lib .
+    fi
+    ln -s $MVL_INSTALL/cge/devkit/$MVL_PATH/target/usr/src .
+    ln -s $MVL_INSTALL/cge/devkit/$MVL_PATH/$TARGET .
+    mkdir target
+    cd target
+    ln -s $MVL_INSTALL/cge/devkit/$MVL_PATH/target/usr/bin .
+    ln -s $MVL_INSTALL/cge/devkit/$MVL_PATH/target/usr/sbin .
+    ln -s $MVL_INSTALL/cge/devkit/$MVL_PATH/target/usr/include .
+    ln -s $MVL_INSTALL/cge/devkit/$MVL_PATH/target/usr/share .
+    cd ..
+    
+    echo "done"
+
+    #
+    # create local directory for toolchain-built 3rd party dependencies
+    echo -n "Creating local directory for crossbuilt third party packages ... "
+    mkdir local
+    echo "done"
+
+    #
+    # write config.mk
+    cat << EOF > config.mk
+# Includig this file in a Makefile will properly set the ARCH and MARCH
+# variables for this toolchain.
+
+ARCH=$ARCH
+MACH=$MACH
+CPU=$CPU
+TARGET=$TARGET
+CROSS_COMPILE=$CROSS_COMPILE
+TOOLCHAIN_VERSION=$TC_VER
+BIN_MODE=$BIN_MODE
+WIND_VER=0
+MVL_VER=5
+export ARCH MACH TARGET TOOLCHAIN WIND_VER MVL_VER CROSS_COMPILE
+export BIN_MODE
+
+EOF
+    echo "done"
+
+    LINKS_DONE=1
+    update_status $curdir LINKS_DONE $LINKS_DONE
+fi
+
+cd $curdir
+
+########################################
+## extract the packages we care about ##
+########################################
+
+    SQLITE=sqlite-3.6.7
+    SQLITEPKG=$SQLITE.tar.gz
+
+if [ $UNTAR_PKG_DONE = 0 ]; then
+    if [ ! -d packages ]; then
+        mkdir packages
+    fi
+    cd packages
+
+    #
+    # sqlite
+    echo -n "Extracting $SQLITEPKG ... "
+    tar xf ../$THIRDPARTYPKG $SQLITEPKG
+    echo "done"
+
+    UNTAR_PKG_DONE=1
+    update_status $curdir UNTAR_PKG_DONE $UNTAR_PKG_DONE
+fi
+
+cd $curdir
+
+########################################################
+## Build third party dependencies with this toolchain ##
+########################################################
+export PREFIX=$TC_DIR/local
+export PATH=$PREFIX/bin:$TC_DIR/bin:$PATH
+export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig:$TC_DIR/lib/pkgconfig
+
+#
+# sqlite3
+#
+if [ $SQLITE_DONE = 0 ]; then
+    cd $curdir
+    mkdir tmp
+    cd tmp
+    tar xzf ../packages/$SQLITEPKG
+    cd $SQLITE
+    if [ $BIN_MODE -eq 32 ]; then
+        CPPFLAGS="-I$PREFIX/include -I$TC_DIR/$TARGET/include -I$TC_DIR/$TARGET/include/glib-2.0 -I$TC_DIR/lib/glib-2.0/include" \
+            LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib" \
+            CC="$CPU-gcc -m32" \
+            CROSS_COMPILE=$CPU- \
+            ./configure \
+                --prefix=$PREFIX \
+                --host=$TARGET \
+                --disable-tcl \
+                --disable-readline
+            retexit $?
+    else
+        CPPFLAGS="-I$PREFIX/include -I$TC_DIR/$TARGET/include -I$TC_DIR/$TARGET/include/glib-2.0 -I$TC_DIR/lib/glib-2.0/include" \
+            LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib" \
+            CC="$CPU-gcc -m64" \
+            CROSS_COMPILE=$CPU- \
+            ./configure \
+                --prefix=$PREFIX \
+                --host=$TARGET \
+                --disable-tcl \
+                --disable-readline
+            retexit $?
+    fi
+
+    make
+    retexit $?
+
+    make install
+    retexit $?
+
+    cd ../..
+    rm -rf tmp
+
+    SQLITE_DONE=1
+    update_status $curdir SQLITE_DONE $SQLITE_DONE
+fi
+
+# clean up
+
+cd $curdir
+rm -rf packages tmp
+
+##########################################
+## Last steps, manual workarounds, etc. ##
+##########################################
+#
+# Symlink PREFIX's include directory to top-level include 
+#
+echo -n "Setting toolchain include directory symlink ... "
+cd $TC_DIR
+ln -s local/include .
+cd $curdir
+echo "done"
+
+#
+# symlink openhpi header files
+#
+
+cd $TC_DIR
+cd local/include
+ln -s $MVL_INSTALL/cge/devkit/$MVL_PATH/target/usr/include/openhpi .
+cd $curdir
+
+###########
+## done! ##
+###########
+cd $curdir
+rm -rf packages tmp .status
+echo ""
+echo "We are done."
+

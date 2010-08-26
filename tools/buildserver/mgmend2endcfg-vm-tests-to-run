@@ -1,0 +1,41 @@
+#----------------------------------------------------------------------
+# ID              State  Brief description
+#----------------------------------------------------------------------
+MGM-CFG-MAX-TC001   E    Have a scalar object which is INTEGER which is read-only : SM_CFG_SCL_SIM1
+MGM-CFG-MAX-TC002   E    Have a scalar object which is OCTET-STRING which is read-only : SM_CFG_SCL_ALL_RO
+MGM-CFG-MAX-TC005   E    Have a tabular object which has INTEGER read-only attribute
+MGM-CFG-OPE-TC001   E    Get single INTEGER attribute of scalar object : SM_CFG_SCL_SIM1
+MGM-CFG-OPE-TC002   E    Get single OCTET-STRING attribute of scalar object : SM_CFG_SCL_ALL_RO
+MGM-CFG-OPE-TC003   E    Get single OCTET-STRING attribute of scalar object : SM_CFG_SCL_ALL_RO
+MGM-CFG-OPE-TC004   E    Get single OBJECT-IDENTIFIER attribute of scalar object : SM_CFG_SCL_ALL_RO
+MGM-CFG-OPE-TC008   E    Get single INTEGER attribute from table(SM_CFG_TBL_SIM1)
+MGM-CFG-OPE-TC009   E    Get single INTEGER attribute from table(SM_CFG_TBL_ALL_RO)
+MGM-CFG-OPE-TC010   E    Get single INTEGER attribute from table(SM_CFG_TBL_ALL_RO)
+MGM-CFG-OPE-TC014   E    Get attribute from table SM_CFG_TBL_SIM2
+MGM-CFG-OPE-TC023   E    Get-Next single INTEGER attribute of scalar object
+MGM-CFG-OPE-TC024   E    Get-Next single OCTET-STRING attribute of scalar object
+MGM-CFG-OPE-TC030   E    Get-Next single INTEGER attribute from table(SM_CFG_TBL_SIM1)
+MGM-CFG-OPE-TC031   E    Get-Next single OCTET-STRING attribute from table(SM_CFG_TBL_ALL_RO)
+MGM-CFG-OPE-TC032   E    Get-Next single IpAddress attribute from table(SM_CFG_TBL_ALL_RO)
+MGM-CFG-OPE-TC055   E    Get single INTEGER attribute of scalar object : SM_CFG_SCL_SIM2
+MGM-CFG-OPE-TC056   E    Set ''OCTET-STRING'' attribute on scalar object : SM_CFG_SCL_ALL_WR
+MGM-CFG-OPE-TC059   E    Set ''INTEGER'' attribute on table, attribute is in first row : SM_CFG_TBL_SIM1
+MGM-CFG-OPE-TC060   E    Set ''OCTET-STRING'' attribute on table, attribute is in second row : SM_CFG_TBL_ALL_WR
+MGM-CFG-RLC-TC009   E    Create a row in a table(SM_CFG_TBL_SIM_ATTR_1) where there is no other row already present
+MGM-CFG-RLC-TC010   E    Create a row in a table(SM_CFG_TBL_SIM_ATTR_1) where there is one row already present
+MGM-CFG-RLC-TC011   E    Create a row in a table(SM_CFG_TBL_SIM_ATTR_1) where there are two rows already present
+MGM-CFG-RLC-TC014   E    Create a row in a table(SM_CFG_TBL_IDX_S)
+MGM-CFG-RLC-TC016   E    Create a row in a table(SM_CFG_TBL_IDX_A)
+MGM-CFG-RLC-TC018   E    Perform all the test cases when SNMP sub-agent not preset and then bring the SNMP sub-agent. It should build its mapping between OID instance to MOID. And user should be able to access those attributes from NBI.
+MGM-CFG-SCA-TC001   E    Scalar object which contains INTEGER : Scalar with one attribute : SM_CFG_SCL_SIM1
+MGM-CFG-SCA-TC002   E    Scalar object which contains Integer32, Unsigned32 : Scalar with two attribute : SM_CFG_SCL_SIM2
+MGM-CFG-SCA-TC003   E    Scalar object which contains all the basic data type which are of Read-Only Attributes  : SM_CFG_SCL_ALL_RO
+MGM-CFG-SCA-TC004   E    Scalar object which contains all the basic data type which are of Read-Only Attributes  : SM_CFG_SCL_ALL_WO
+MGM-CFG-TBL-TC001   E    Table object which contains INTEGER with INTEGER as index : Table with one attribute : SM_CFG_TBL_SIM1
+MGM-CFG-TBL-TC002   E    Table object which contains Integer32, Unsigned32 with INTEGER as index : Table with two attribute : SM_CFG_TBL_SIM2
+MGM-CFG-TBL-TC003   E    Table object which contains all the basic data type of read-only max-access with INTEGER as index : SM_CFG_TBL_ALL_RO
+MGM-CFG-TBL-TC004   E    Table object which contains all the basic data type of read-write max-access with INTEGER as index : SM_CFG_TBL_ALL_WR
+MGM-CFG-TBL-TC005   E    Table has OCTET-STRING as index and it has INTEGER as attribute : SM_CFG_TBL_IDX_S
+MGM-CFG-TBL-TC007   E    Table has Ip Address as index and it has INTEGER as attribute : SM_CFG_TBL_IDX_A
+MGM-CFG-TBL-TC008   E    Table has Integer32, OCTET-STRING as index and it has INTEGER as attribute :
+MGM-CFG-TBL-TC010   E    Table has OCTET-STRING, Ip Address, Integer32 as index and it has INTEGER as attribute : Two complex index : SM_CFG_TBL_IDX_SAI

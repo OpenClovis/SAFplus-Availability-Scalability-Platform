@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <!-- mapping between different objects in different sub models-->
+  <xsd:complexType name="link">
+    <xsd:sequence>
+    	<xsd:element maxOccurs="unbounded" minOccurs="0" name="linkDetail" type="linkObjectType"/>
+    </xsd:sequence>
+    <!-- map type/name given to identify the type of relationship-->
+    <xsd:attribute name="linkType" type="xsd:string"/>
+  </xsd:complexType>
+  
+  <!--Sub models supported currently by IDE-->
+  <xsd:simpleType name="ModelType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="resource_model"/>
+      <xsd:enumeration value="component_model"/>
+      <xsd:enumeration value="alarm_model"/>
+      <xsd:enumeration value="amf_model"/>
+      <xsd:enumeration value="aspcomponent_model"/>
+      <xsd:enumeration value="idl_model"/>
+      <xsd:enumeration value="eo_model"/>
+      <xsd:enumeration value="memory_model"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <xsd:complexType name="linkObjectType">
+    <xsd:sequence>
+    	<!--Link target object names. can be multiple since one object can be mapped to many-->
+    	<xsd:element maxOccurs="unbounded" minOccurs="0" name="linkTarget" type="xsd:string"/>
+    </xsd:sequence>
+    <!--Link source object name-->
+    <xsd:attribute name="linkSource" type="xsd:string"/>
+  </xsd:complexType>
+  
+  <xsd:element name="mapInformation">
+  <xsd:complexType>
+    <xsd:sequence>
+    	<xsd:element maxOccurs="unbounded" minOccurs="0" name="link" type="link"/>
+    </xsd:sequence>
+    <!--map source model-->
+    <xsd:attribute name="sourceModel" type="ModelType"/>
+    <!--map target model-->
+    <xsd:attribute name="targetModel" type="ModelType"/>
+  </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

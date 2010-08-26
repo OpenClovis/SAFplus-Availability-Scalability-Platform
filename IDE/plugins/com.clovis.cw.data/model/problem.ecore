@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="problem"
+    nsURI="problem.ecore" nsPrefix="problem">
+  <eClassifiers xsi:type="ecore:EClass" name="Problem">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="level" eType="#//ProblemLevelType"
+        defaultValueLiteral="INFORMATION">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Severity Level"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="problemNumber" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="0">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Problem Number"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="message" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Message                                                                                                                             "/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="source" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Source                              "/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="category" eType="#//ProblemCategoryType"
+        defaultValueLiteral="None">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Location"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="resource" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="None">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="None">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="relatedObjects" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"
+        defaultValueLiteral="">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ProblemCategoryType">
+    <eLiterals name="None"/>
+    <eLiterals name="Resource Editor" value="1"/>
+    <eLiterals name="Component Editor" value="2"/>
+    <eLiterals name="ASP Component Configuration" value="3"/>
+    <eLiterals name="AMF Configuration" value="4"/>
+    <eLiterals name="Alarm Configuration" value="5"/>
+    <eLiterals name="RMD Configuration" value="6"/>
+    <eLiterals name="Web EMS Configuration" value="7"/>
+    <eLiterals name="Migration" value="8"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ProblemLevelType">
+    <eLiterals name="ERROR"/>
+    <eLiterals name="WARNING" value="1"/>
+    <eLiterals name="INFORMATION" value="2"/>
+  </eClassifiers>
+</ecore:EPackage>

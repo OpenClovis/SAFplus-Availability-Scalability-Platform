@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+      Copyright (C) 2002-2009 by OpenClovis Inc. All Rights Reserved.
+      
+      The source code for  this program is not published  or otherwise 
+      divested of  its trade secrets, irrespective  of  what  has been 
+      deposited with the U.S. Copyright office.
+
+      This program is  free software; you can redistribute it and / or
+      modify  it under  the  terms  of  the GNU General Public License
+      version 2 as published by the Free Software Foundation.
+
+      This program is distributed in the  hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+      General Public License for more details.
+
+      You  should  have  received  a  copy of  the  GNU General Public
+      License along  with  this program. If  not,  write  to  the 
+      Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+-->
+<!--
+    Build: 4.2.0
+-->
+<IDLSpecs xmlns="rmd.ecore" name="txnIDL">
+
+<Comp name="ioc"/>
+<Include name="clIocApi.h"/>
+
+<Comp name="txn"/>
+<Include name="clTxnCommonDefn.h"/>
+
+<!-- Common Definitions -->
+<Struct name="ClIocPhysicalAddressT">
+    <DataMember name="nodeAddress" type="ClUint32T"/>
+    <DataMember name="portId" type="ClUint32T"/>
+</Struct>
+
+<!-- Transaction management specific definitions -->
+<Enum name="ClTxnMgmtCommandT">
+    <EnumMember name="CL_TXN_CMD_INVALID"/>
+    <EnumMember name="CL_TXN_CMD_PROCESS_TXN"/>
+    <EnumMember name="CL_TXN_CMD_RESPONSE"/>
+    <EnumMember name="CL_TXN_CMD_CANCEL_TXN"/>
+    <EnumMember name="CL_TXN_CMD_INIT"/>
+    <EnumMember name="CL_TXN_CMD_PREPARE"/>
+    <EnumMember name="CL_TXN_CMD_COMMIT"/>
+    <EnumMember name="CL_TXN_CMD_ROLLBACK"/>
+</Enum>
+
+<Enum name="ClTxnTransactionStateT">
+    <EnumMember name="CL_TXN_STATE_PRE_INIT"/>
+    <EnumMember name="CL_TXN_STATE_ACTIVE"/>
+    <EnumMember name="CL_TXN_STATE_PREPARING"/>
+    <EnumMember name="CL_TXN_STATE_PREPARED"/>
+    <EnumMember name="CL_TXN_STATE_COMMITTING"/>
+    <EnumMember name="CL_TXN_STATE_COMMITTED"/>
+    <EnumMember name="CL_TXN_STATE_MARKED_ROLLBACK"/>
+    <EnumMember name="CL_TXN_STATE_ROLLING_BACK"/>
+    <EnumMember name="CL_TXN_STATE_ROLLED_BACK"/>
+    <EnumMember name="CL_TXN_STATE_RESTORED"/>
+    <EnumMember name="CL_TXN_STATE_UNKNOWN"/>
+</Enum>
+
+<Enum name="ClTxnMessageTypeT">
+    <EnumMember name="CL_TXN_MSG_CLIENT_REQ"/>
+    <EnumMember name="CL_TXN_MSG_MGR_CMD"/>
+    <EnumMember name="CL_TXN_MSG_MGR_RESP"/>
+    <EnumMember name="CL_TXN_MSG_AGNT_RESP"/>
+    <EnumMember name="CL_TXN_MSG_COMP_STATUS_UPDATE"/>
+</Enum>
+
+<Struct name="ClTxnTransactionIdT">
+    <DataMember name="txnMgrNodeAddress"    type="ClUint32T"/>
+    <DataMember name="txnId"                type="ClUint32T"/>
+</Struct>
+
+<Struct name="ClTxnTransactionJobIdT">
+    <DataMember name="unused_txnId"         type="ClTxnTransactionIdT"/>
+    <DataMember name="jobId"                type="ClUint32T"/>
+</Struct>
+
+<Struct name="ClTxnAgentIdT">
+    <DataMember name="jobId"              type="ClTxnTransactionJobIdT"/>
+    <DataMember name="agentAddress"       type="ClIocPhysicalAddressT"/>
+</Struct>
+
+<Struct name="ClTxnAgentT">
+    <DataMember name="failedAgentId"      type="ClTxnAgentIdT"/>
+    <DataMember name="failedPhase"        type="ClUint8T"/>
+    <DataMember name="agentJobDefnSize"   type="ClUint32T"/>
+    <DataMember name="agentJobDefn" type="ClUint8T" pointer="Single" lengthVar="agentJobDefnSize"/>
+</Struct>
+
+
+<!--
+<Struct name="ClTxnConfigT">
+    <DataMember name="priority"             type="ClUint16T"/>
+</Struct>
+-->
+
+<Struct name="ClTxnAppJobDefnT">
+    <DataMember name="jobId"                type="ClTxnTransactionJobIdT"/>
+    <DataMember name="currentState"         type="ClTxnTransactionStateT"/>
+    <DataMember name="serviceType"          type="ClInt32T"/>
+    <DataMember name="jobCfg"               type="ClUint8T"/>
+    <DataMember name="appJobDefnSize"       type="ClUint32T"/>
+    <DataMember name="compCount"            type="ClUint32T"/>
+</Struct>
+
+<Struct name="ClTxnAppComponentT">
+    <DataMember name="appCompAddress"       type="ClIocPhysicalAddressT"/>
+    <DataMember name="configMask"           type="ClUint8T"/>
+</Struct>
+
+<Struct name="ClTxnDefnT">
+    <DataMember name="clientTxnId"          type="ClTxnTransactionIdT"/>
+    <DataMember name="serverTxnId"          type="ClTxnTransactionIdT"/>
+    <DataMember name="jobCount"             type="ClUint32T"/>
+    <DataMember name="currentState"         type="ClTxnTransactionStateT"/>
+    <DataMember name="txnCfg"               type="ClUint16T"/>
+</Struct>
+
+<Struct name="ClTxnMessageHeaderIDLT" defNeed="Yes" >
+    <DataMember name="version"              type="ClVersionT"/>
+    <DataMember name="msgType"              type="ClTxnMessageTypeT"/>
+    <DataMember name="srcAddr"              type="ClIocPhysicalAddressT"/>
+    <DataMember name="srcStatus"            type="ClUint32T"/>
+    <DataMember name="msgCount"             type="ClUint32T"/>
+</Struct>
+
+<Struct name="ClTxnCmdT">
+    <DataMember name="txnId"                type="ClTxnTransactionIdT"/>
+    <DataMember name="jobId"                type="ClTxnTransactionJobIdT"/>
+    <DataMember name="cmd"                  type="ClTxnMgmtCommandT"/>
+    <DataMember name="resp"                 type="ClUint32T"/>
+</Struct>
+
+</IDLSpecs>
+

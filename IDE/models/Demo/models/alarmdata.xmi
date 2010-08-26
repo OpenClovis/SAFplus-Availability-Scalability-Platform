@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alarm:AlarmProfile xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:alarm="alarm.ecore" CWKEY="3632323" AlarmID="ResourceAlarm0" Category="CL_ALARM_CATEGORY_PROCESSING_ERROR" ProbableCause="CL_ALARM_PROB_CAUSE_CORRUPT_DATA" Severity="CL_ALARM_SEVERITY_MAJOR" AssertSoakingTime="1000" ClearSoakingTime="1000" IsAlarmPolled="false">
+  <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0">
+    <AlarmIDs>3632323</AlarmIDs>
+  </GenerationRule>
+  <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+</alarm:AlarmProfile>

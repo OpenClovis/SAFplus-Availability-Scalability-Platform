@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="ckpt"
+    nsURI="cps.ecore" nsPrefix="ckpt">
+  <eClassifiers xsi:type="ecore:EClass" name="CKPT">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="CKPT (CheckPoint)"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxreplicas" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Number of maximum replicas"/>
+        <details key="tooltip" value="Maximum Replicas of data on node"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxmemory" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum memory(bytes)"/>
+        <details key="tooltip" value="Maximum memory on node that can be used for Checkpointing"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="checkpoint" upperBound="-1"
+        eType="#//CheckPointType" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Checkpoint"/>
+        <details key="tooltip" value="Create CheckPoints"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CheckPointType">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="checkpointName"/>
+      <details key="validationfeatures" value="checkpointName"/>
+      <details key="label" value="Checkpoint"/>
+      <details key="Help" value="com.clovis.cw.help.boot_ckpt_ckpt"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="checkpointName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Checkpoint Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Checkpoint Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxreplicas" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Number of Maximum Replicas"/>
+        <details key="tooltip" value="Maximum Replicas of corresponding checkpoint"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="replicaPolicy" eType="#//PolicyEnum"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Replica Policy"/>
+        <details key="tooltip" value="Replica Management Policy in case of Node Absence"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="node" upperBound="-1" eType="#//NodeType"
+        unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Node"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PolicyEnum">
+    <eLiterals name="CL_CKPT_RPLC_PLCY_FIXED"/>
+    <eLiterals name="CL_CKPT_RPLC_PLCY_IMPL"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NodeType">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="Node"/>
+      <details key="Help" value="com.clovis.cw.help.boot_ckpt_ckpt_node"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="slotNo" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Physical Slot Number"/>
+        <details key="editor" value="com.clovis.cw.workspace:com.clovis.cw.workspace.dialog.SlotNoComboBoxCellEditor"/>
+        <details key="tooltip" value="Select Physical Slot Number of the Node which is defined in Slot Map of BootConfiguration"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="preference" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Preference"/>
+        <details key="tooltip" value="Priority of Node"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BootConfig">
+    <eAnnotations source="CWAnnotation">
+      <details key="isHidden" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="CKPT" eType="#//CKPT" containment="true"/>
+  </eClassifiers>
+</ecore:EPackage>

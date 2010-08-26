@@ -1,0 +1,29 @@
+This is the osswitch lilo management utility.  It provides a slightly
+useful tool for manipulating lilo configuration on our blades.
+
+Here's the output of "osswitch --help":
+
+Usage: ossswitch [--list | --test | --help | label]
+Switch the default boot label in LILO
+
+  -l, --list      List available labels in lilo.conf
+  -t, --test      Run a selftest function.  NOT FOR CASUAL USERS
+  -h, --help      Print this help message and exit
+
+With just the label argument, set the default to that label in lilo.conf
+and run lilo
+
+With no arugment, print the current default label from lilo.conf
+
+And there ends the help output.  It's pretty simple to use.  If you
+want to find what boot configuration options there are, run with the
+--list parameter.  The active config will be marked with a "*".  If
+you want to change to a different one, just pass the label of the
+desired configuration on the command line.  Then reboot the blade.
+
+The --test option is for development use only.  There is a minimal
+self-test function built in to the script.  If you add features,
+you might want to add unit tests for the new feature.  You will
+probably want to run the script in a test environment if you do.
+It should be pretty obvious from the script how you create the
+test environment.

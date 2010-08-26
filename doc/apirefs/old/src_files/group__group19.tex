@@ -1,0 +1,1059 @@
+\hypertarget{group__group19}{
+\chapter{Functional Overview}
+\label{group__group19}
+}
+
+\begin{flushleft}
+The OpenOpenClovis Execution Object (EO) encapsulates each distinct OpenOpenClovis ASP aware software component and provides an execution environment for
+the components. It provides a uniform interface between the software component and the rest of the system components. The interfaces fall into the
+following two categories:
+\begin{itemize}
+\item Management Interface - This interface is used to control and configure the software components. 
+\item Service Interface - This interface allows software components to expose component specific functionality. \par
+ \par
+ Both management and service interfaces are exposed using RMD APIs. EO provides threads for receiving RMD messages and worker threads to process them. It
+ provides an execution environment, required by a software component, to the component user and component manager. \par
+ \par
+ The OpenClovis product suite provides a process of integrating a third party software component with OpenClovis ASP. This process is known as
+ Componentization. Using Componentization, both management and service interfaces are exposed through RMD. \par
+ \par
+ Componentization provides the following functionality: 
+ \begin{itemize}
+ \item Component re-start
+ \item Service Migration 
+ \item Location Transparency 
+ \item Easy debugging, statistics gathering, and profiling 
+\end{itemize}
+Componentization helps in features such as: 
+\begin{itemize}
+ \item Resource Management 
+ \item Component start, stop, and restart 
+ \item Debugging
+ \end{itemize}
+ \end{itemize}
+EO communicates to other components using the OpenClovis Communication Core
+components such as Event Manager (EM), Remote Method Dispatch (RMD), Intelligent Object Communication (IOC), and Name Service. 
+
+
+\chapter{Service Model}
+TBD
+
+\chapter{Service APIs}
+
+\section{Type Definitions}
+
+\subsection{clEoExecutionObj}
+\index{clEoExecutionObj@{clEoExecutionObj}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\\textit{ClEoAppCreateCallbackT clEoCreateCallout;}\\
+\>\>\>\>\textit{ClEoAppDeleteCallbackT clEoDeleteCallout;}\\
+\>\>\>\>\textit{ClEoAppHealthCheckCallbackT clEoHealthCheckCallout;}\\
+\>\>\>\>\textit{ClEoAppStateChgCallbackT clEoStateChgCallout;}\\
+\>\>\>\>\textit{ClIocCommPortHandleT commObj;}\\
+\>\>\>\>\textit{ClEoIdT eoID;}\\
+\>\>\>\>\textit{ClUint32T eoInitDone;}\\
+\>\>\>\>\textit{ClOsalMutexIdT eoMutex;}\\
+\>\>\>\>\textit{ClIocPortT eoPort;}\\
+\>\>\>\>\textit{ClUint32T eoSetDoneCnt;}\\
+\>\>\>\>\textit{ClCntHandleT eoTaskIdInfo;}\\
+\>\>\>\>\textit{ClUint32T maxNoClients;}\\
+\>\>\>\>\textit{ClCharT name \mbox{[}CL\_EO\_MAX\_NAME\_LEN\mbox{]};}\\
+\>\>\>\>\textit{ClUint32T noOfThreads;}\\
+\>\>\>\>\textit{ClEoClientObjT *pClient;}\\
+\>\>\>\>\textit{ClCntHandleT pEOPrivDataHdl;}\\
+\>\>\>\>\textit{ClOsalThreadPriorityT pri;}\\
+\>\>\>\>\textit{ClUint32T refCnt;}\\
+\>\>\>\>\textit{ClRmdObjHandleT rmdObj;}\\
+\>\>\>\>\textit{ClEoStateT state;}\\
+\>\>\>\>\textit{ClUint32T threadRunning;}\\
+\textit{\} clEoExecutionObj;}\end{tabbing}
+ The structure, {\tt{clEoExecutionObj}}, contains the properties of an EO execution object.
+ These properties constitute the properties of running OS thread or process.
+ \begin{itemize}
+ \item
+ \textit{appType} - Indicates if the application needs the main thread.
+\item \textit{clEoCreateCallout} - Application function that is called from {\tt{main()}} during the initialization process.
+\item \textit{clEoDeleteCallout} - Application function that is called when the EO is terminated.
+\item \textit{clEoHealthCheckCallout} - Application function that is called when EO health check is
+performed by CPM.
+\item \textit{clEoStateChgCallout} - Application function that is called when the EO is moved into the suspended
+state.
+\item \textit{commObj} - EO communication object.
+\item \textit{eoID} - Unique EOID of a blade.
+\item \textit{eoInitDone} - This indicates if {\tt{EOInit()}} has been called.
+\item \textit{eoMutex} - Mutex that is used to protect the Execution Object.
+\item \textit{eoPort} - Requested IOC Communication Port.
+\item \textit{eoSetDoneCnt} - Used to set state related flag and counter.
+\item \textit{eoTaskIdInfo} - TaskID information of receive loop. It is used to delete the EO.
+\item \textit{maxNoClients} - Maximum number of EO clients.
+\item \textit{name\mbox{[}CL\_\-EO\_\-MAX\_\-NAME\_\-LEN\mbox{]}} - Execution object name.
+\item \textit{noOfThreads} - Number of RMD threads spawned.
+\item \textit{pClient} - Pointer to EO client functions.
+\item \textit{pEOPrivDataHdl} - Handle of the container of EO specific data.
+\item \textit{pri} - Priority of the EO threads where RMD is executed.
+\item \textit{rmdObj} - RMD object associated with the state of the EO.
+\item \textit{threadRunning} - State of the receive loop thread.
+\end{itemize}
+
+
+
+\subsection{ClEoProtoListT}
+\index{ClEoProtoListT@{ClEoProtoListT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\textit{ClUint8T            protoID;}\\
+\>\>\>\textit{ClInt8T             name[20];}\\
+\>\>\>\textit{ClEoProtoCallbackT   func;}\\
+\textit{\}ClEoProtoListT;}
+\end{tabbing}
+The structure, {\tt{ClEoProtoListT}}, contains the list of protocols registered with EO. The attributes of this structure are:
+\begin{itemize}
+\item
+\textit{protoID} - ID of the protocol being registered.
+\item
+\textit{name} - Name of the protocol being registered.
+\item
+\textit{func} - Receive function of the protocol.
+\end{itemize}
+
+
+
+\subsection{ClEoSchedFeedBackT}
+\index{ClEoSchedFeedBackT@{ClEoSchedFeedBackT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\textit{clEoPollingTypeT   freq;}\\
+\>\>\>\textit{ClRcT              status;}\\
+\textit{\}ClEoSchedFeedBackT;}
+\end{tabbing}
+The structure, {\tt{ClEoSchedFeedBackT}}, contains the feedback sent by the software component being polled in response to
+heartbeat, {\tt{(is-Alive)}}. The attributes of this structure are:
+\begin{itemize}
+ \item
+ \textit{freq} - Indicates the polling type {\tt{clEoPollingTypeT}}.
+ \item
+ \textit{status} - Indicates the health of the EO.
+ \end{itemize}
+
+
+\subsection{ClEoServiceObjT}
+\index{ClEoServiceObjT@{ClEoServiceObjT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct clEoServiceObj \{}\\
+\>\>\>\textit{void                    (*func)();}\\
+\>\>\>\textit{struct clEoServiceObj   *pNextServObj;}\\
+\textit{\}ClEoServiceObjT;}\end{tabbing}
+The structure, {\tt{ClEoServiceObjT}}, contains the EO service object. The attributes of this structure are:
+\begin{itemize}
+ \item
+ \textit{void (*func)()} - Pointer to the client service function.
+ \item
+ \textit{*pNextServObj} - Pointer to the next service on the same service ID.
+\end{itemize}
+
+
+
+
+\subsection{ClEoClientObjT}
+\index{ClEoClientObjT@{ClEoClientObjT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\textit{ClEoServiceObjT     funcs[CL\_EO\_MAX\_NO\_FUNC];}\\
+\>\>\>\textit{ClEoDataT           data;}\\
+\textit{\} ClEoClientObjT;}\end{tabbing}
+This structure, {\tt{ClEoClientObjT}}, contains the pointer to the callback functions to be
+registered with EO, and the data specific to the client. The attributes of this structure are:
+\begin{itemize}
+ \item
+ \textit{funcs[CL\_\-EO\_\-MAX\_\-NO\_\-FUNC]} - Pointer to EO functions.
+ \item
+ \textit{data} - Data that is specific to the client
+ \end{itemize}
+
+
+\subsection{ClEoConfigT}
+\index{ClEoConfigT@{ClEoConfigT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\textit{ClCharT                EOname[CL\_EO\_MAX\_NAME\_LEN];}\\
+\>\>\>\textit{ClOsalThreadPriorityT   pri;}\\
+\>\>\>\textit{ClUint32T               noOfThreads;}\\
+\>\>\>\textit{ClIocPortT              reqIocPort;}\\
+\>\>\>\textit{ClUint32T               maxNoClients;}\\
+\>\>\>\textit{ClEoApplicationTypeT    appType;}\\
+\>\>\>\textit{ClEoAppCreateCallbackT  clEoCreateCallout;}\\
+\>\>\>\textit{ClEoAppDeleteCallbackT  clEoDeleteCallout;}\\
+\>\>\>\textit{ClEoAppStateChgCallbackT    clEoStateChgCallout;}\\
+\>\>\>\textit{ClEoAppHealthCheckCallbackT clEoHealthCheckCallout;}\\
+\>\>\>\textit{ClEoCustomActionT clEoCustomAction;}\\
+\textit{\} ClEoConfigT;}\end{tabbing}
+The structure, {\tt{ClEoConfigT}}, contains the configuration parameters related to the EO and is passed to the {\tt{clEoCreate}} function.
+\begin{itemize}
+ \item
+ \textit{EOname[CL\_\-EO\_\-MAX\_\-NAME\_\-LEN]} - EO name.
+ \item
+ \textit{pri} - EO thread priority.
+ \item
+ \textit{noOfThreads} - Number of RMD threads.
+ \item
+ \textit{reqIocPort} - Requested IOC communication port.
+ \item
+ \textit{maxNoClients} - Maximum number of EO clients.
+  \item
+ \textit{appType} - Indicates if the application needs the main thread.
+ \item
+ \textit{clEoCreateCallout} - Application function that is called from {\tt{main()}} during the
+ initialization process.
+\item
+\textit{clEoDeleteCallout} - Application function that is called when EO needs to be terminated.
+\item
+\textit{clEoStateChgCallout} - Application function that is called when EO enters suspended state.
+\item
+\textit{clEoHealthCheckCallout} - Application function that is called when EO health check is
+performed by Component Manager.
+\item
+\textit{clEoCustomAction} - Application function that is called when a Water Mark is reached.
+\end{itemize}
+
+
+\subsection{ClEoStateT}
+\index{ClEoStateT@{ClEoStateT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\textit{CL\_EO\_STATE\_INIT        = 0x1,}\\
+\>\>\>\textit{CL\_EO\_STATE\_ACTIVE      = 0x2,}\\
+\>\>\>\textit{CL\_EO\_STATE\_STDBY       = 0x4,}\\
+\>\>\>\textit{CL\_EO\_STATE\_SUSPEND     = 0x8,}\\
+\>\>\>\textit{CL\_EO\_STATE\_STOP        = 0x10,}\\
+\>\>\>\textit{CL\_EO\_STATE\_KILL        = 0x20,}\\
+\>\>\>\textit{CL\_EO\_STATE\_RESUME      = 0x40,}\\
+\>\>\>\textit{CL\_EO\_STATE\_FAILED      = 0x80}\\
+\textit{\} ClEoStateT;}\end{tabbing}
+The values of the enumeration, {\tt{ClEoStateT}}, contains the various states of EO.
+\begin{itemize}
+ \item
+ \textit{CL\_\-EO\_\-STATE\_\-INIT} - Initial state of the EO.
+ \item
+ \textit{CL\_\-EO\_\-STATE\_\-ACTIVE} - EO is in the active state.
+ \item
+ \textit{CL\_\-EO\_\-STATE\_\-STDBY} - EO is in the standby state.
+ \item
+ \textit{CL\_\-EO\_\-STATE\_\-SUSPEND} - EO is the suspended state.
+ \item
+ \textit{CL\_\-EO\_\-STATE\_\-STOP} - EO is in the stopped state.
+ \item
+ \textit{CL\_\-EO\_\-STATE\_\-KILL} - EO is in the killed state.
+ \item
+ \textit{CL\_\-EO\_\-STATE\_\-RESUME} - EO is resumed from the standby state.
+ \item
+ \textit{CL\_\-EO\_\-STATE\_\-FAILED} - EO is in the failed state.
+\end{itemize}
+ 
+ 
+
+\subsection{ClEoApplicationTypeT}
+\index{ClEoApplicationTypeT@{ClEoApplicationTypeT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\\textit{CL\_EO\_USE\_THREAD\_FOR\_RECV   = CL\_TRUE,}\\
+\>\>\>\\textit{CL\_EO\_USE\_THREAD\_FOR\_APP    = CL\_FALSE}\\
+\textit{\}ClEoApplicationTypeT;}\end{tabbing}
+\begin{itemize}
+ \item
+ \textit{CL\_\-EO\_\-USE\_\-THREAD\_\-FOR\_\-RECV} - If this is selected, the main thread is used to receive the RMD message. 
+ The main thread is not blocked in {\tt{ClEoAppCreateCallbackT}} and returns immediately. 
+ \item
+ \textit{CL\_\-EO\_\-USE\_\-THREAD\_\-FOR\_\-APP} - The main thread is allotted to the user-application. The main
+ thread is blocked in {\tt{ClEoAppCreateCallbackT}} or used by the
+ application and returns only when the {\tt{ClEoAppDeleteCallbackT}} is called.
+ \end{itemize}
+
+ 
+\subsection{clEoPollingTypeT}
+\index{clEoPollingTypeT@{clEoPollingTypeT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\\textit{CL\_EO\_DONT\_POLL    = 0,}\\
+\>\>\>\\textit{CL\_EO\_BUSY\_POLL    = 1,}\\
+\>\>\>\\textit{CL\_EO\_DEFAULT\_POLL = 2}\\
+\textit{\}clEoPollingTypeT;}\end{tabbing}
+The enumeration, {\tt{clEoPollingTypeT}}, 
+\begin{itemize}
+ \item
+ \textit{CL\_\-EO\_\-DONT\_\-POLL} - Component Manager stops the heartbeat of an EO
+ if {\tt{CL\_\-CPM\_\-DONT\_\-POLL}} is received in response to the heartbeat.
+\item
+ \textit{CL\_\-EO\_\-BUSY\_\-POLL} - Component Manager increases the heartbeat timeout to the maximum polling timeout. You can configure the maximum
+ timeout  while configuring the Component Manager.
+ \item
+ \textit{CL\_\-EO\_\-DEFAULT\_\-POLL} - Component Manager continues with the default heartbeat timeout. You can configure the default timeout 
+ while configuring the Component Manager.
+  \end{itemize}
+
+
+\subsection{ClEOServiceInstallOrderT}
+\index{ClEOServiceInstallOrderT@{ClEOServiceInstallOrderT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\\textit{CL\_EO\_ADD\_TO\_FRONT  = 0,}\\
+\>\>\>\\textit{CL\_EO\_ADD\_TO\_BACK   = 1}\\
+\textit{\}ClEOServiceInstallOrderT;}\end{tabbing}
+The enumeration, {\tt{ClEOServiceInstallOrderT}}, is used while installing a client function 
+\begin{itemize}
+ \item
+ \textit{CL\_\-EO\_\-ADD\_\-TO\_\-FRONT} - Adds to the front of the list.
+ \item
+\textit{CL\_\-EO\_\-ADD\_\-TO\_\-BACK} - Adds to end of the list. This is used with the {\tt{clEoServiceValidate()}} function.
+  \end{itemize}
+
+
+
+
+\subsection{ClEoDataT}
+\index{ClEoDataT@{ClEoDataT}}
+\textit{typedef ClOsalTaskDataT ClEoDataT;}
+  \newline
+  \newline
+The type of the EO data.
+
+\subsection{ClIocPortT}
+\index{ClIocPortT@{ClIocPortT}}
+\textit{typedef ClUint32T ClIocPortT;}
+  \newline
+  \newline
+The type of the identifier to the IOC communication port.
+
+
+\subsection{ClEoIdT}
+\index{ClEoIdT@{ClEoIdT}}
+\textit{typedef ClUint16T ClEoIdT;}
+  \newline
+  \newline
+The type of the EO ID, assigned to an EO as part of the registration with the Component Manager.
+
+
+
+
+\subsection{ClEoPayloadWithReplyCallbackT}
+\index{ClEoPayloadWithReplyCallbackT@{ClEoPayloadWithReplyCallbackT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef ClRcT (* ClEoPayloadWithReplyCallbackT) (}\\
+\>\>\>\textit{CL\_IN   ClEoDataT data,}\\
+\>\>\>\textit{CL\_IN   ClBufferHandleT  inMsgHandle,}\\
+\>\>\>\textit{CL\_OUT  ClBufferHandleT  outMsgHandle);}
+\end{tabbing}
+RMD with payload (EO data) and pointer to the {\tt{reply}} function. This is the generic function
+ prototype definition for all RMD functions, installed on the EO client object.
+ \begin{itemize}
+ \item
+ \textit{data} - Data provided while invoking {\tt{clEoClientInstall()}}.
+ \item
+ \textit{inMsgHandle} - Received message over RMD.
+ \item
+ \textit{outMsgHandle} - Reply message if any.
+ \end{itemize}
+ 
+ 
+ \subsection{ClEoPayloadWithReplyCallbackT}
+ \index{ClEoPayloadWithReplyCallbackT@{ClEoPayloadWithReplyCallbackT}}
+ \begin{tabbing}
+ xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{ typedef ClRcT (*ClEoCallFuncCallbackT) (}\\
+\>\>\>\textit{CL\_IN ClEoPayloadWithReplyCallbackT func,}\\
+\>\>\>\textit{CL\_IN   ClEoDataT                   eoArg,}\\
+\>\>\>\textit{CL\_IN   ClBufferHandleT      inMsgHdl,}\\
+\>\>\>\textit{CL\_OUT  ClBufferHandleT      outMsgHdl);}\end{tabbing}
+ Function callout definition required for the {\tt{clEoWalk()}} function.
+\begin{itemize}
+\item
+\textit{func} - Function that needs to be invoked.
+\item
+\textit{eoArg} - Arguments that need to be passed.
+\item
+\textit{inMsgHdl} - Request packet received including the protocol header.
+\item
+\textit{outMsgHdl} - Data portion of the response to a protocol (PDU).
+\end{itemize}
+
+ 
+  \newpage
+
+
+\section{Library Life Cycle APIs}
+\subsection{clEoLibInitialize}
+\index{clEoLibInitialize@{clEoLibInitialize}}
+\hypertarget{pageeo201}{}\paragraph{cl\-Eo\-Lib\-Initialize}\label{pageeo201}
+\begin{Desc}
+\item[Synopsis:]Initializes the EO library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoConfigApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]lib\-Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clEoLibInitialize();
+\end{verbatim}
+  \normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to initialize the EO library. It creates a list that contains the mapping of EO port to EO objects.
+\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo202}{clEoLibFinalize}\end{Desc}
+
+
+
+
+  \newpage
+\subsection{clEoLibFinalize}
+\index{clEoLibFinalize@{clEoLibFinalize}}
+\hypertarget{pageeo202}{}\paragraph{cl\-Eo\-Lib\-Finalize}\label{pageeo202}
+\begin{Desc}
+\item[Synopsis:]Frees the resources of the EO component acquired during initialization.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoConfigApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]lib\-Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clEoLibFinalize();
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]Frees the resources of the EO component acquired during initialization of the EO library.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo201}{clEoLibFinalize}\end{Desc}
+
+\newpage
+
+\section{Functional APIs}
+\subsection{clEoWalk}
+\index{clEoWalk@{clEoWalk}}
+\hypertarget{pageeo103}{}\paragraph{cl\-Eo\-Walk}\label{pageeo103}
+\begin{Desc}
+\item[Synopsis:]Performs a walk operation on the EO component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoWalk(
+                 			CL_IN ClEoExecutionObjT          *pThis,
+                 			CL_IN ClUint32T                  func,
+                 			CL_IN ClEoCallFuncCallbackT      pFuncCallout,
+                 			CL_IN ClBufferHandleT     inMsgHdl,
+                 			CL_OUT ClBufferHandleT    outMsgHdl);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-This:}]Handle of the EO. 
+\item[{\em func:}]Function number of the function to be executed. 
+\item[{\em p\-Func\-Callout:}]Function that performs the execution. 
+\item[{\em in\-Msg\-Hdl:}]Request message received including protocol header. 
+\item[{\em out\-Msg\-Hdl:}](out) Data part of the response to a protocol (PDU).\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pThis}} contains a NULL pointer. 
+\item[{\em CL\_\-EO\_\-ERR\_\-FUNC\_\-NOT\_\-REGISTERED:}]This function is not registered. 
+\item[{\em CL\_\-EO\_\-ERR\_\-EO\_\-SUSPENDED:}]EO is in the suspended state.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to perform a walk operation through the EO for a given RMD function number. It calls {\tt{rmdInvoke}} for every 
+callback function registered with an EO for that RMD function number.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo104}{cl\-Eo\-Service\-Validate} \end{Desc}
+
+
+  \newpage
+\subsection{clEoServiceValidate}
+\index{clEoServiceValidate@{clEoServiceValidate}}
+\hypertarget{pageeo104}{}\paragraph{cl\-Eo\-Service\-Validate}\label{pageeo104}
+\begin{Desc}
+\item[Synopsis:]Validates the function registration.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoServiceValidate(
+                 			CL_IN    ClEoExecutionObjT   *pThis,
+                 			CL_IN    ClUint32T           func);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-This:}]Handle of the EO. 
+\item[{\em func:}]Function to be invoked.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-EO\_\-ERR\_\-FUNC\_\-NOT\_\-REGISTERED:}]The function is not registered. 
+\item[{\em CL\_\-EO\_\-ERR\_\-EO\_\-SUSPENDED:}]The EO is in the suspended state. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pThis}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to validate if the function for which the request is made is registered. It can be used to check 
+if the services provided by an EO is available before calling the {\tt{cl\-Eo\-Walk()}} function.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo103}{cl\-Eo\-Walk}\end{Desc}
+
+
+  \newpage
+\subsection{clEoClientInstall}
+\index{clEoClientInstall@{clEoClientInstall}}
+\hypertarget{pageeo106}{}\paragraph{cl\-Eo\-Client\-Install}\label{pageeo106}
+\begin{Desc}
+\item[Synopsis:]Installs the function table for a client.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoClientInstall(
+                 			CL_IN ClEoExecutionObjT      *pThis,
+                 			CL_IN ClUint32T              clientID,
+                 			CL_IN ClEoPayloadWithReplyCallbackT *pFuncs,
+                 			CL_IN ClEoDataT              data,
+                 			CL_IN ClUint32T              nFuncs);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-This:}]Handle of the EO. 
+\item[{\em client\-Id:}]ID of the client.   
+\item[{\em p\-Funcs:}]Pointer to the function table. 
+\item[{\em data:}]Data specific to the client.
+\item[{\em n\-Funcs:}]Number of functions that are being installed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pThis}} or {\tt{pFuncs}} contains a NULL pointer. 
+\item[{\em CL\_\-EO\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-EO\_\-CL\_\-INVALID\_\-CLIENTID:}]The client ID is invalid. 
+\item[{\em CL\_\-EO\_\-CL\_\-INVALID\_\-SERVICEID:}]The service ID is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is called by the client application to install its function table with the EO. The client exports
+the APIs that it provides to the users using this function. This function can be invoked through RMD calls.
+\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo107}{cl\-Eo\-Client\-Uninstall} \end{Desc}
+
+
+  \newpage
+\subsection{clEoClientUninstall}
+\index{clEoClientUninstall@{clEoClientUninstall}}
+\hypertarget{pageeo107}{}\paragraph{cl\-Eo\-Client\-Uninstall}\label{pageeo107}
+\begin{Desc}
+\item[Synopsis:]Uninstalls the function table for the client.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoClientUninstall(
+                 			CL_IN ClEoExecutionObjT* pThis,
+                 			CL_IN ClUint32T clientId);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-This:}]Handle of the EO. 
+\item[{\em client\-Id:}]ID of the client.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pThis}} contains a NULL pointer. 
+\item[{\em CL\_\-EO\_\-ERR\_\-INVALID\_\-CLIENTID:}]The client\-ID is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is called by the client to uninstall its function table with the EO. After this function is successfully executed,
+the functions previously exported by this client using {\tt{cl\-Eo\-Client\-Install()}}, cannot be invoked as RMD calls.
+\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo106}{cl\-Eo\-Client\-Install} \end{Desc}
+
+
+
+
+  \newpage
+\subsection{clEoClientDataSet}
+\index{clEoClientDataSet@{clEoClientDataSet}}
+\hypertarget{pageeo108}{}\paragraph{cl\-Eo\-Client\-Data\-Set}\label{pageeo108}
+\begin{Desc}
+\item[Synopsis:]Stores the data specific to the client.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoClientDataSet(
+                 			CL_IN ClEoExecutionObjT  *pThis,
+                 			CL_IN ClUint32T          clientId,
+                 			CL_IN ClEoDataT          data);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-This:}]Handle of the EO. 
+\item[{\em client\-Id:}]ID of the client.   
+\item[{\em data:}]Data specific to the client.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pThis}} contains a NULL pointer. 
+\item[{\em CL\_\-EO\_\-ERR\_\-INVALID\_\-CLIENTID:}]The client ID is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to store the data specific to the client application.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo109}{cl\-Eo\-Client\-Data\-Get} \end{Desc}
+
+
+
+
+  \newpage
+\subsection{clEoClientDataGet}
+\index{clEoClientDataGet@{clEoClientDataGet}}
+\hypertarget{pageeo109}{}\paragraph{cl\-Eo\-Client\-Data\-Get}\label{pageeo109}
+\begin{Desc}
+\item[Synopsis:]Returns the client specific data.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoClientDataGet(
+                 			CL_IN ClEoExecutionObjT *pThis,
+                 			CL_IN   ClUint32T   clientId,
+                 			CL_OUT  ClEoDataT   *pData);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-This:}]Handle of the EO. 
+\item[{\em client\-Id:}]ID of the client. 
+\item[{\em p\-Data:}](out) Data specific to the client.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pThis}} or {\tt{pData}} contains a NULL pointer. 
+\item[{\em CL\_\-EO\_\-ERR\_\-INVALID\_\-CLIENTID:}]The client ID is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the data specific to the client  .\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo108}{cl\-Eo\-Client\-Data\-Set} \end{Desc}
+
+
+
+
+
+  \newpage
+\subsection{clEoServiceInstall}
+\index{clEoServiceInstall@{clEoServiceInstall}}
+\hypertarget{pageeo110}{}\paragraph{cl\-Eo\-Service\-Install}\label{pageeo110}
+\begin{Desc}
+\item[Synopsis:]Installs a particular client function.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoServiceInstall(
+                 			CL_IN ClEoExecutionObjT              *pThis,
+                 			CL_IN ClEoPayloadWithReplyCallbackT  pFunction,
+                 			CL_IN ClUint32T                      iFuncNum,
+                 			CL_IN ClUint32T                      order);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-This:}]Handle of the EO. 
+\item[{\em p\-Function:}]Function pointer to be installed. 
+\item[{\em i\-Func\-Num:}]Function number. 
+\item[{\em order:}]Specifies if the service that is to be installed, should be added to the front or the end of the table.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pThis}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-EO\_\-CL\_\-INVALID\_\-SERVICEID:}]The service ID is invalid.
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]A parameter is not set correctly.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to install a particular client function, identified by {\tt{i\-Func\-Num}} in the EO function table. Using this function,
+the application can register the service it provides to other components. This function can install the new service either to the front or back of 
+the table by specifying the {\tt{order}}.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo111}{cl\-Eo\-Service\-Uninstall} \end{Desc}
+
+
+
+  \newpage
+\subsection{clEoServiceUninstall}
+\index{clEoServiceUninstall@{clEoServiceUninstall}}
+\hypertarget{pageeo111}{}\paragraph{cl\-Eo\-Service\-Uninstall}\label{pageeo111}
+\begin{Desc}
+\item[Synopsis:]Uninstalls a particular client function.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoServiceUninstall(
+                 			CL_IN ClEoExecutionObjT* pThis,
+                 			CL_IN ClEoPayloadWithReplyCallbackT pFunction,
+                 			CL_IN ClUint32T iFuncNum);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-This:}]Handle of the EO. 
+\item[{\em p\-Function:}]Function pointer to be uninstalled. 
+\item[{\em i\-Func\-Num:}]Function number.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pThis}} contains a NULL pointer. 
+\item[{\em CL\_\-EO\_\-FUNC\_\-NOT\_\-REGISTERED:}]Cannot de-register a function that is not registered.
+\item[{\em CL\_\-EO\_\-CL\_\-INVALID\_\-SERVICEID:}]The service ID is invalid.
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]A parameter is not set correctly.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to uninstall a particular client function from the EO function table. After this function is executed, 
+the service, {\em p\-Function\/}, becomes unavailable to be invoked as an RMD call.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo110}{cl\-Eo\-Service\-Install} \end{Desc}
+
+
+
+
+  \newpage
+\subsection{clEoPrivateDataSet}
+\index{clEoPrivateDataSet@{clEoPrivateDataSet}}
+\hypertarget{pageeo112}{}\paragraph{cl\-Eo\-Private\-Data\-Set}\label{pageeo112}
+\begin{Desc}
+\item[Synopsis:]Stores data in the area specific to the EO.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoPrivateDataSet(
+                 			CL_IN ClEoExecutionObjT* pThis,
+                 			CL_IN ClUint32T type,
+                 			CL_IN void *pData);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-This:}]Handle of the EO. 
+\item[{\em type:}]User specified key. 
+\item[{\em p\-Data:}]EO specific data.
+\end{description}
+\end{Desc}
+
+\begin{Desc}
+\item[Return Values:]
+\begin{description}
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}] {\tt{pThis}} or {\tt{pDdata}} contains a NULL pointer.
+ \par
+ This function also returns the return values of the {\tt{cl\-Cnt\-Node\-Add()}} function.
+ \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to store data in a data area specific to EO. For a unique key, there can be only one node.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo109}{cl\-Eo\-Private\-Data\-Get} \end{Desc}
+
+
+
+
+  \newpage
+\subsection{clEoPrivateDataGet}
+\index{clEoPrivateDataGet@{clEoPrivateDataGet}}
+\hypertarget{pageeo113}{}\paragraph{cl\-Eo\-Private\-Data\-Get}\label{pageeo113}
+\begin{Desc}
+\item[Synopsis:]Retrieves data from the area specific to the EO.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoPrivateDataGet(
+                 			CL_IN ClEoExecutionObjT* pThis,
+                 			CL_IN ClUint32T type,
+                 			CL_OUT void **data);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-This:}]Handle of the EO. 
+\item[{\em type:}]User specified key. 
+\item[{\em data:}](out) Data specific to the EO.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}] {\tt{pThis}} or {\tt{data}} contains a NULL pointer.\par
+ This function also returns the result of {\tt{cl\-Cnt\-Node\-User\-Data\-Get}}.
+ \end{description}
+ \end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the data private to the EO.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo116}{cl\-Eo\-My\-Eo\-Ioc\-Port\-Set} \end{Desc}
+
+
+
+  \newpage
+\subsection{clEoMyEoIocPortSet}
+\index{clEoMyEoIocPortSet@{clEoMyEoIocPortSet}}
+\hypertarget{pageeo116}{}\paragraph{cl\-Eo\-My\-Eo\-Ioc\-Port\-Set}\label{pageeo116}
+\begin{Desc}
+\item[Synopsis:]Sets the EO thread {\tt{iocPort}}.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoMyEoIocPortSet(
+                 			CL_IN ClIocPortT iocPort);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ioc\-Port:}]Contains the IOC port information that needs to be set.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set the EO ID.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo117}{cl\-Eo\-My\-Eo\-Ioc\-Port\-Get} \end{Desc}
+
+
+
+
+  \newpage
+\subsection{clEoMyEoIocPortGet}
+\index{clEoMyEoIocPortGet@{clEoMyEoIocPortGet}}
+\hypertarget{pageeo117}{}\paragraph{cl\-Eo\-My\-Eo\-Ioc\-Port\-Get}\label{pageeo117}
+\begin{Desc}
+\item[Synopsis:]Retrieves the {\tt{Ioc\-Port}} information of the EO.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoMyEoIocPortGet(
+                 			CL_OUT ClIocPortT *pIocPort);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Ioc\-Port:}](out) This is populated with the retrieved IOC port.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-STATE:}]The state of the EO is invalid. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pIocPort}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the EO {\tt{Ioc\-Port}}.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo116}{cl\-Eo\-My\-Eo\-Ioc\-Port\-Set} \end{Desc}
+
+
+
+
+  \newpage
+\subsection{clEoMyEoObjectSet}
+\index{clEoMyEoObjectSet@{clEoMyEoObjectSet}}
+\hypertarget{pageeo118}{}\paragraph{cl\-Eo\-My\-Eo\-Object\-Set}\label{pageeo118}
+\begin{Desc}
+\item[Synopsis:]Stores the EO Object.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoMyEoObjectSet(
+                 			CL_IN ClEoExecutionObjT* eoObj);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Eo\-Obj:}]Contains the {\tt{Cl\-Eo\-Execution\-Obj\-T}} information that is to be stored.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to store the EO Object.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo119}{cl\-Eo\-My\-Eo\-Object\-Get}. \end{Desc}
+
+
+
+
+  \newpage
+\subsection{clEoMyEoObjectGet}
+\index{clEoMyEoObjectGet@{clEoMyEoObjectGet}}
+\hypertarget{pageeo119}{}\paragraph{cl\-Eo\-My\-Eo\-Object\-Get}\label{pageeo119}
+\begin{Desc}
+\item[Synopsis:]Retrieves the EO Object.\end{Desc}
+\begin{Desc}
+\item[Header File:]clEoApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Eo\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     extern ClRcT clEoMyEoObjectGet(
+                 			CL_OUT ClEoExecutionObjT** pEOObj);
+\end{verbatim}
+  normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-EOObj:}](out) This is populated with the EO object.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-STATE:}]The state of the EO is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the EO Object.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageeo118}{cl\-Eo\-My\-Eo\-Object\-Set}. \end{Desc}
+
+
+
+
+
+
+
+\chapter{Service Management Information Model}
+TBD
+
+\chapter{Service Notifications}
+TBD
+
+\chapter{Configuration}
+TBD
+
+\chapter{Debug CLI}
+TBD
+\end{flushleft}

@@ -1,0 +1,465 @@
+#!/bin/bash
+###############################################################################
+#
+# Copyright (C) 2002-2009 by OpenClovis Inc. All  Rights Reserved.
+# 
+# The source code for  this program is not published  or otherwise 
+# divested of  its trade secrets, irrespective  of  what  has been 
+# deposited with the U.S. Copyright office.
+# 
+# This program is  free software; you can redistribute it and / or
+# modify  it under  the  terms  of  the GNU General Public License
+# version 2 as published by the Free Software Foundation.
+# 
+# This program is distributed in the  hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# General Public License for more details.
+# 
+# You  should  have  received  a  copy of  the  GNU General Public
+# License along  with  this program. If  not,  write  to  the 
+# Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+###############################################################################
+# Clovis ASP init file for ASP
+#
+# chkconfig: - 50 50
+# description: Clovis ASP
+#
+# processname: /root/evalplatform/blade-sc/bin/asp_cpm
+# config dir: /root/evalplatform/blade-sc/etc
+# pidfile: /var/run/asp
+
+# source function library
+if [ -e /etc/init.d/functions ] ; then
+. /etc/init.d/functions
+else
+
+status() {
+  base=${1##*/}
+  if pidof $1 > /dev/null; then
+    echo $"${base}  is running..."
+    return 0
+  else
+    echo $"${base} is stopped"
+    return 1
+  fi
+}
+
+failure() {
+echo "Failed"
+}
+
+success() {
+echo "Success"
+}
+
+killproc() {
+PID=`cat /var/run/$1.pid`
+verbose "Pid of $1 is $PID"
+kill $2 $PID
+}
+
+pidof() {
+PID=`ps -C $1 --no-headers -o pid`
+echo $PID
+if [ -z ${PID} ]
+then
+return 1
+else
+return 0
+fi
+}
+
+fi 
+
+verbose() {
+#echo $1
+echo -n
+}
+
+# ASP_DIR is two levels above the script directory
+cd `dirname $0`/../.. >/dev/null 2>&1
+ASP_DIR=$PWD
+cd - >/dev/null 2>&1
+
+
+#
+# Load configuration values from asp.conf
+verbose "Set up Environment"
+. ${ASP_DIR}/etc/asp.conf
+
+ASP_ENV="CLOVIS_ROOT=$ASP_DIR ASP_CONFIG=$ASP_DIR/etc ASP_BINDIR=$ASP_DIR/bin ASP_PERSIST=$PERSIST ASP_VOLATILE=$VOLATILE"
+# ASP_CPM_LOGFILE controls where the ascii log output from ASP goes. By default,
+# we send this to /dev/null. This can be overwritten from the asp.conf file
+# by defining ASCII_LOG_OUTPUT
+if [ ! "${ASCII_LOG_OUTPUT-z}" == z ]; then
+    # it's defined
+    if [ "${ASCII_LOG_OUTPUT}" ]; then
+        ASP_CPM_LOGFILE="$ASCII_LOG_OUTPUT"
+    else
+        unset ASP_CPM_LOGFILE
+    fi
+else
+    ASP_CPM_LOGFILE=/dev/null
+fi
+if [ "$ASP_CPM_LOGFILE" ]; then
+    ASP_ENV="$ASP_ENV ASP_CPM_LOGFILE=$ASP_CPM_LOGFILE"
+fi
+
+ASP_OPTIONS="-c ${CLUSTER_NUMBER} -l ${DEFAULT_NODEADDR} -n ${ASP_NODENAME} -p ${BOOT_CONFIG}"
+USE_GDB=
+ASP_NEED_ALARM_KM=0
+ASP_LOG_FILE=/var/log/asp_${ASP_NODENAME}.`date "+%H%M%S"`.log
+ASP_LOG_FILE_SYMLINK=/var/log/asp
+ASP_PTS_FILE=/tmp/clasp.tty
+ASP_CONSOLE_FILE=/dev/tty
+ASP_TMP=${ASP_DIR}/tmp
+KERNEL_MINOR_VERSION=`uname -r | cut -c 3`
+RETVAL=0
+STATE_FILE=/var/run/aspstate-$DEFAULT_NODEADDR
+prog="asp_amf"
+
+if [ -e /var/lock/subsys ] ; then
+LOCK_DIR=/var/lock/subsys
+else
+LOCK_DIR=/var/lock
+fi
+
+export LD_LIBRARY_PATH=${ASP_DIR}/lib:${ASP_DIR}/lib/openhpi:/usr/lib:/usr/local/lib:${LD_LIBRARY_PATH}
+
+start() {
+    echo -n $"Starting $prog: "
+    # check if we're root
+    if [ $UID -ne 0 ]; then
+        echo "Need to be root."
+                RETVAL=1
+                failure
+    # check if asp isn't already running
+    elif status $prog > /dev/null; then
+        echo "ASP is already running."
+        RETVAL=1
+        failure
+    elif [ ! -f $ASP_DIR/bin/$prog ]; then
+        echo "$prog is not in $ASP_DIR/bin."
+        RETVAL=1
+        failure
+    else
+        # Restart lifesignal LED controller (if it cannot access ipmi, it will
+        # silently exit)
+        pkill lifesignal 2>/dev/null
+        nohup $ASP_DIR/bin/lifesignal 2>/dev/null &
+        verbose "Removing DB files"
+        # ...removing db files...
+        rm -f $ASP_DIR/bin/*.[Dd]b $ASP_DIR/bin/AMF_*
+        # ...and removing temporary files.
+        rm -rf $ASP_TMP
+        # Remove the shared memory regions
+        rm -f /dev/shm/cl_*
+
+        RETVAL=$?
+
+        #
+        # Check for known problem configuration.  Don't stop if we see
+        # potential problems.  Just dump warning messages.
+        verbose "Check for configuration problems"
+        ${ASP_DIR}/bin/check_sys.sh
+
+        # if ioc and udp kernel modules are loaded, unload them
+        if [ ! `lsmod | grep 'clIoc' | wc -l | tr -d " "` -eq 0 ]; then
+			rmmod clIocUdpKernelXport
+			rmmod clIoc
+		fi
+
+        # what is the etc/ directory path
+        etc_dir=$(dirname $(dirname $0))
+
+        # check if tipc kernel module is loaded.  if it is, we use
+        # it.
+
+        TIPC_KMOD=0
+	    lsmod | grep 'tipc' > /dev/null
+	    if [ $? -eq 0 ]; then
+            TIPC_KMOD=1
+        fi
+
+        if [ $TIPC_BUILD -eq 0 ]; then
+    		# load ioc and udp kernel modules
+            if [ $KERNEL_MINOR_VERSION -eq 4 ]; then
+	            verbose "Load 2.4 kernel modules"
+                insmod $ASP_DIR/modules/ioc.o
+                insmod $ASP_DIR/modules/iocUdpKernelXport.o
+            else
+                verbose "Load 2.6 kernel modules"
+                insmod $ASP_DIR/modules/clIoc.ko
+                insmod $ASP_DIR/modules/clIocUdpKernelXport.ko
+            fi
+
+            if [ $? != 0 ]; then
+                echo -e "Unable to insert ioc kernel module.\n\nIf starting for the first time, this error often occurs because these modules\nwere compiled for a different kernel, try:\nuname -a\nto see your kernel version.\n\nIf restarting, this error occurs because the modules were not successfully\nunloaded.  This often happens because a process is still 'hanging around' that\nis using ioc.  Do a 'ps -efwww' and look for anything beginning with 'asp' or\nany of your HA applications.\n"
+            fi
+
+            # ...and create ioc and udp devices.
+            verbose "Create ioc and udp devices"
+            [ -e /dev/iocDevice ] && rm -f /dev/iocDevice
+            [ -e /dev/udpDevice ] && rm -f /dev/udpDevice
+            IOC_DEVICE_ID=`grep iocDevice /proc/devices | head -n 1 | cut -d " " -f 1`
+            UDP_DEVICE_ID=`grep udpDevice /proc/devices | head -n 1 | cut -d " " -f 1`
+            mknod -m 777 /dev/iocDevice c $IOC_DEVICE_ID 0
+            mknod -m 777 /dev/udpDevice c $UDP_DEVICE_ID 0
+        else
+            if [ $TIPC_NETID ]; then
+                if [ $TIPC_KMOD -eq 0 ]; then
+                    # load tipc kernel module
+                    verbose "Load tipc kernel module"
+                    modprobe tipc
+        
+                    if [ $? != 0 ]; then
+                        echo -e ""
+                        echo -e "Unable to load tipc kernel module.  Please ensure this system has"
+                        echo -e "tipc installed."
+                        exit 1
+                    fi
+        
+                    # configure tipc
+                    tipc-config -netid=$TIPC_NETID \
+                                -addr=1.1.$DEFAULT_NODEADDR \
+                                -be=eth:$LINK_NAME
+
+                    if [ $? != 0 ]; then
+                        echo -e ""
+                        echo -e "Unable to configure tipc via tipc-config.  Please verify that tipc"
+                        echo -e "is installed and functioning, then retry this script."
+                        exit 1
+                    fi
+                else
+                    echo -e ""
+                    echo -e "TIPC kernel module already loaded, using existing configuration."
+                fi
+            else
+                if [ $TIPC_KMOD -eq 0 ]; then
+                    echo -e ""
+                    echo -e "The TIPC kernel module is not currently loaded, and this script is unable"
+                    echo -e "to load the kernel module and set up TIPC parameters as they have not"
+                    echo -e "been defined.  Please either:"
+                    echo -e "   1. Load the kernel module, and set up TIPC parameters using"
+                    echo -e "      tipc-config (please refer to TIPC documentation, if necessary), OR"
+                    echo -e "   2. Set values for LINK_NAME and TIPC_NETID in asp.conf in" 
+                    echo -e "      $etc_dir, OR"
+                    echo -e "   3. Set the appropriate values in target.conf at build-time and rebuild"
+                    echo -e "      the target images,"
+                    echo -e "and run this script again."
+                    exit 1
+                else
+                    echo -e ""
+                    echo -e "TIPC kernel module already loaded, using existing configuration."
+                fi
+            fi
+        fi
+
+       
+        # get pts info from ASP_PTS_FILE
+        # check if we have a pts to log to
+        # if we don't, log to /dev/null
+        if [ ! -f $ASP_PTS_FILE ]; then
+            ASP_OUTPUT=${ASP_LOG_FILE}
+	    ln -sf ${ASP_LOG_FILE} ${ASP_LOG_FILE_SYMLINK}
+        else
+            ASP_OUTPUT=${ASP_CONSOLE_FILE}
+        fi
+
+        # Start the SNMP daemon
+	verbose "Start SNMP agent"
+        if [ "${SYSTEM_CONTROLLER}" = 1 ]
+        then
+            ${ASP_DIR}/bin/snmpd -DH -Lo -f -C -c ${ASP_DIR}/etc/snmpd.conf >& /dev/null &
+        fi
+	# This is required by openhpi
+        mkdir -p ${ASP_DIR}/tmp
+        export OPENHPI_UID_MAP="${ASP_DIR}/tmp/openhpi_uid.map"
+
+	verbose "run asp"
+        # ASP_PTS, and log stdout and stderr to log file specified by
+        # ASP_LOG_FILE
+        cd $ASP_DIR/bin
+        # Turn on core file generation
+        ulimit -c unlimited
+        CMD="env $ASP_ENV ${USE_GDB} ./$prog $ASP_OPTIONS > ${ASP_OUTPUT} 2>&1 &"
+        verbose "env $ASP_ENV ${USE_GDB} ./$prog $ASP_OPTIONS > ${ASP_OUTPUT} 2>&1"
+        env $ASP_ENV ${USE_GDB} ./$prog $ASP_OPTIONS > ${ASP_OUTPUT} 2>&1
+        RETVAL=$?
+
+        # If the hpi domain id is not UNDEFINED then start the hpi subagent
+        if [ "${SYSTEM_CONTROLLER}" = 1 -a "${SAHPI_UNSPECIFIED_DOMAIN_ID}" != "UNDEFINED" ]
+        then
+            export OPENHPI_CONF="${ASP_DIR}/etc/openhpi.conf"
+            # if asp_cm uses openhpi and has been built for daemon mode, we
+            # need to start openhpid, but only if it is not running yet
+            if [ ! -f $ASP_DIR/bin/asp_cm ]; then
+                echo "Note: Chassis manager will not be started because asp_cm is not found."
+                echo "However, the chassis manager's IP is configured in target.conf."
+                echo "If your system contains a chassis manager, you may reconfigure your build to"
+                echo "use the chassis manager (see ./configure --help).  Doing so will provide a"
+                echo "greater level of integration between the ASP and your hardware.  You may" 
+                echo "remove this warning by removing the CMM_IP field from the target.conf file."
+            else if ldd $ASP_DIR/bin/asp_cm | grep libopenhpi; then
+                # openhpi-based asp_cm; we look for libopenhpimarshal to see
+                # if it requires the openhpid daemon 
+                if ldd $ASP_DIR/bin/asp_cm | grep libopenhpimarshal; then
+                    if [ ! -f $ASP_DIR/bin/openhpid ]; then
+                        echo "Need to start openhpid but it cannot be found in [$ASP_DIR/bin]"
+                        exit 1
+                    fi
+                    # We need to start the daemon. In case it's running, we
+                    # will terminate the running one first
+                    if pidof openhpid; then
+                        pkill openhpid
+                        sleep 1
+                    fi
+                    env OPENHPI_UID_MAP=$ASP_DIR/tmp/uid_map \
+                        $ASP_DIR/bin/openhpid -c $OPENHPI_CONF
+                fi
+            fi
+            (sleep 60; ${ASP_DIR}/bin/hpiSubagent -s >& /dev/null) &
+          fi
+        fi
+
+        # set up standard files indicating that asp is running
+        echo $(pidof $prog) > /var/run/$prog.pid
+        touch $LOCK_DIR/$prog
+        success
+    fi;
+    echo
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    if [ $UID -ne 0 ]; then
+        echo "Need to be root."
+            failure
+            return 1
+    fi
+    if [ "$1" != "zap" ]; then
+        # Attempt to do graceful stop
+        # use standard function to kill $prog to begin asp shutdown
+        killproc $prog -INT
+ 
+        # Poll and check whether any of the ASP components are still running.
+        # Do a kill -9 after some time.
+         
+        tries=0
+        ntries=2
+        while [ $tries -lt $ntries ]
+        do
+            isProcThere=`ps -A | grep -c $prog`
+            if [ $isProcThere -eq 1 ]; then
+                sleep 6
+                tries=`expr $tries + 1`
+                continue
+            else
+                #echo "All ASP components are killed"
+                break
+            fi
+        done
+    fi
+
+    # The rest is a merciless shutdown
+    for file in $ASP_DIR/bin/*; do
+        if [ -x $file ]; then
+            killall -KILL $file 2> /dev/null
+        fi
+    done
+           
+    # ...removing db files...
+    rm -f $ASP_DIR/bin/*.db $ASP_DIR/bin/AMF_*
+    rm -f $LOCK_DIR/$prog
+
+    # stopping lifesignal LED controller
+    pkill lifesignal
+
+    if [ ! `lsmod | grep 'clIoc' | wc -l | tr -d " "` -eq 0 ]; then
+        echo "removing the ioc module"
+        rmmod clIocUdpKernelXport
+        rmmod clIoc
+    fi
+
+    echo
+    return $RETVAL
+}
+
+reload(){
+    restart
+}
+
+restart(){
+    stop
+    start
+}
+
+checkstate () {
+  if [ -f $STATE_FILE ]; then
+    state=`cat ${STATE_FILE}`
+    if [ "$state" == 0 ]; then
+      echo "(still) booting..."
+      return 5
+    else
+      echo "all ASP components successfully booted"
+      return 0
+    fi
+  else
+    echo "state file ${STATE_FILE} not found"
+    return 6
+  fi
+}
+
+if [ -e $ASP_DIR/bin/customScript.sh ]; then
+   . $ASP_DIR/bin/customScript.sh
+fi
+
+case "$1" in
+  consolestart)
+    touch ${ASP_PTS_FILE}
+    start
+    ;;
+  start)
+    rm -f ${ASP_PTS_FILE}
+    start
+    ;;
+  gdb)
+    touch ${ASP_PTS_FILE}
+    USE_GDB="gdb --args"
+    ASP_OPTIONS="${ASP_OPTIONS} -f"
+    start
+    ;;
+  -cd)  # Gdb under emacs
+    touch ${ASP_PTS_FILE}
+    USE_GDB="gdb --fullname --args"
+    ASP_OPTIONS="${ASP_OPTIONS} -f"
+    start
+    ;;
+
+  stop)
+    rm -f ${ASP_PTS_FILE}
+    stop
+    ;;
+  zap)
+    rm -f ${ASP_PTS_FILE}
+    stop zap
+    ;;
+  restart)
+    restart
+        ;;
+  reload)
+    reload
+        ;;
+  status)
+    status $prog && checkstate
+    RETVAL=$?
+        ;;
+  *)
+    echo $"Usage: $0 {start|consolestart|stop|status|restart|reload|zap}"
+    RETVAL=1
+esac
+
+exit $RETVAL

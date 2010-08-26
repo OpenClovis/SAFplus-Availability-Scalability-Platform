@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:copyMap="copyMap.ecore" xsi:schemaLocation="copyMap.ecore ../model/copyMap.ecore">
+  <copyMap:map source="name" dest="name"/>
+  <copyMap:map source="id" dest="id"/>
+  <copyMap:map source="classType" dest="classType"/>
+  <copyMap:map source="subClassType" dest="subClassType"/>
+  <copyMap:map source="isSwappable" dest="isSwappable"/>
+  <copyMap:map source="isRestartable" dest="isRestartable"/>
+  <copyMap:map source="isASPAware" dest="isASPAware"/>
+  <copyMap:map source="suFailoverDuration" dest="suFailoverDuration"/>
+  <copyMap:map source="suFailoverCountMax" dest="suFailoverCountMax"/>
+  <copyMap:map source="adminState" dest="adminState"/>
+  <copyMap:map source="autoRepair" dest="autoRepair"/>
+</xmi:XMI>

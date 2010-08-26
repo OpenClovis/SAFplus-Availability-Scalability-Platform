@@ -1,0 +1,100 @@
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="/static/stylesheets/style.css" />
+	</head> 
+	<body>
+        
+        <h2>Admin - Edit User</h2>
+        <ul>
+            <li><a href='/dashboard'>Dashboard</a></li>
+        </ul>
+        
+        
+        <form action="/adminedit" method="post" id="admin">
+            
+            
+            <table border="1" width="500" cellpadding="3" cellspacing="3">
+                <tr>
+                    <td>{{ email_lbl }}</td>
+                    <td><input type="text" maxlength="64" name="email" id="edit-name" size="32" value="{{ email_val }}" ></td>
+                </tr>
+                <tr>
+                    <td>{{ pass_lbl }}</td>
+                    <td><input type="text" maxlength="64" name="password" id="edit-password" size="32" value="{{ password_val }}" disabled ></td>
+                </tr>
+                <tr>
+                    <td>{{ phone_lbl }}</td>
+                    <td><input type="text" maxlength="32" name="phone" id="edit-phone" size="32" value="{{ phone_val }}" ></td>
+                </tr>
+                <tr>
+                    <td>{{ confirm_lbl }}</td>
+                    <td><input type="checkbox" name="validated" id="edit-validated" {{ confirm_val }} ></td>
+                </tr>
+                <tr>
+                    <td>{{ lastup_lbl }}</td>
+                    <td><input type="text" name="lastup" size="32" value="{{ lastup_val }}" disabled ></td>
+                </tr>
+                <tr>
+                    <td>{{ datereg_lbl }}</td>
+                    <td><input type="text" name="lastup" size="32" value="{{ datereg_val }}" disabled ></td>
+                </tr>
+                <tr>
+                    <td>{{ genremain_lbl }}</td>
+                    <td><input type="text" maxlength="5" name="genremain" id="edit-genremain" size="5" value="{{ genremain_val }}" ></td>
+                </tr>
+                
+                <tr>
+                    <td>{{ genused_lbl }}</td>
+                    <td><input type="text" name="lastup" size="32" value="{{ genused_val }}" disabled ></td>
+                </tr>
+                
+                <tr>
+                    <td>{{ dateoflastcodegen_lbl }}</td>
+                    <td><input type="text" name="lastup" size="32" value="{{ dateoflastcodegen_val }}" disabled ></td>
+                </tr>
+                
+                <tr>
+                    <td>{{ timesdownloadedide_lbl }}</td>
+                    <td><input type="text" name="lastup" size="32" value="{{ timesdownloadedide_val }}" disabled ></td>
+                </tr>
+                
+                <tr>
+                    <td>{{ datelastdownloadedide_lbl }}</td>
+                    <td><input type="text" name="lastup" size="32" value="{{ datelastdownloadedide_val }}" disabled ></td>
+                </tr>
+                
+                <tr>
+                    <td>{{ timesloggedin_lbl }}</td>
+                    <td><input type="text" name="lastup" size="32" value="{{ timesloggedin_val }}" disabled ></td>
+                </tr>   
+                
+                <tr>
+                    <td>{{ lastloggedin_lbl }}</td>
+                    <td><input type="text" name="lastup" size="32" value="{{ lastloggedin_val }}" disabled ></td>
+                </tr>                
+                
+                
+                <tr>
+                    <td>{{ ip_lbl }}</td>
+                    <td><input type="text" name="lastup" size="32" value="{{ ip_val }}" disabled ></td>
+                </tr>    
+                
+                <tr>
+                    <td colspan="2"><center><input type="submit" name="submit" id="edit-submit" value="Save Changes" class="form-submit"></center></td>
+                </tr>
+                
+                <input name="u" type=hidden value="{{ u }}">
+                    <input name="k" type=hidden value="{{ k }}">
+                        </table>
+            
+            
+            
+            
+            
+        </form>
+        
+        <br />
+        <p>{{ logout_link }}</p>
+        
+	</body>
+</html>

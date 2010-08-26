@@ -1,0 +1,24 @@
+
+
+
+                        Welcome to OpenClovis SDK
+                        =========================
+
+1. Content
+----------
+
+   This distribution contains OpenClovis SDK, a development and run-time
+   environment for the OpenClovis Application Service Platform (ASP).
+  
+   OpenClovis ASP is middleware that provides High Availability (HA),
+   System Management, and other common carrier grade services, primarily
+   addressing the infrastructure needs of complex communication devices.
+   
+
+2. How to Install
+-----------------
+
+   For more information on software pre-requisites and the complete procedure
+   to install OpenClovis SDK, refer to the installation guide accompanying this
+   package at doc/pdf/openclovis_installguide_3.0.pdf or 
+   doc/html/installguide/index.html.

@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+      Copyright (C) 2002-2009 by OpenClovis Inc. All Rights Reserved.
+      
+      The source code for  this program is not published  or otherwise 
+      divested of  its trade secrets, irrespective  of  what  has been 
+      deposited with the U.S. Copyright office.
+
+      This program is  free software; you can redistribute it and / or
+      modify  it under  the  terms  of  the GNU General Public License
+      version 2 as published by the Free Software Foundation.
+
+      This program is distributed in the  hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+      General Public License for more details.
+
+      You  should  have  received  a  copy of  the  GNU General Public
+      License along  with  this program. If  not,  write  to  the 
+      Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+-->
+<!--
+    Build: 4.2.0
+-->
+<IDLSpecs name="CorIDL">
+   
+    <Comp name="ioc"/>
+    <Include name="clIocApi.h"/>
+
+    <Comp name="timer"/>
+    <Include name="clTimerApi.h"/>
+    
+    <Comp name="cor"/>
+    <Include name="clCorMetaData.h"/>
+    <Include name="clCorNotifyApi.h"/>
+    
+    <Comp name="cor/common"/>
+    <Include name="clCorClient.h"/>
+    <Include name="clCorTxnJobStream.h"/>
+    <Include name="clCorDmData.h"/>
+
+    <Comp name="cor/server"/>
+    <Include name="clCorSync.h"/>
+
+    <Enum name="corClassOp_e">
+        <EnumMember name="COR_CLASS_OP_CREATE" type="1"/> 
+        <EnumMember name="COR_CLASS_OP_DELETE" /> 
+        <EnumMember name="COR_CLASS_OP_EXISTANCE" /> 
+        <EnumMember name="COR_CLASS_OP_CLASSID_GET" /> 
+        <EnumMember name="COR_CLASS_OP_FIRSTCHILD_GET" /> 
+        <EnumMember name="COR_CLASS_OP_NEXTSIBLING_GET" /> 
+        <EnumMember name="COR_CLASS_OP_MSOCLASSTYPE_GE" /> 
+    </Enum> 
+
+     <Enum name="corTxnOp_e">
+        <EnumMember name="COR_TXN_OP_COMMIT" type="1"/> 
+     </Enum>
+
+     <Enum name="corClassType_e">
+        <EnumMember name="MO_CLASS" type="1"/> 
+        <EnumMember name="MSO_CLASS" /> 
+    </Enum> 
+
+     <Enum name="corAttrOp_e">
+        <EnumMember name="COR_ATTR_OP_CREATE" type="1"/> 
+        <EnumMember name="COR_ATTR_OP_DELETE" /> 
+        <EnumMember name="COR_ATTR_OP_VALS_SET" /> 
+        <EnumMember name="COR_ATTR_OP_VALS_GET" /> 
+        <EnumMember name="COR_ATTR_OP_FLAGS_SET" /> 
+        <EnumMember name="COR_ATTR_OP_FLAGS_GET" /> 
+        <EnumMember name="COR_ATTR_OP_TYPE_GET" /> 
+        <EnumMember name="COR_ATTR_OP_ID_GET" /> 
+        <EnumMember name="COR_ATTR_OP_ID_GET_NEXT" /> 
+    </Enum> 
+
+     <Enum name="corNiOp_e">
+        <EnumMember name="COR_NI_OP_CLASS_NAME_SET" type="1"/> 
+        <EnumMember name="COR_NI_OP_CLASS_NAME_GET" /> 
+        <EnumMember name="COR_NI_OP_CLASS_ID_GET" /> 
+        <EnumMember name="COR_NI_OP_CLASS_NAME_DELETE" /> 
+        <EnumMember name="COR_NI_OP_ATTR_NAME_SET" /> 
+        <EnumMember name="COR_NI_OP_ATTR_NAME_GET" /> 
+        <EnumMember name="COR_NI_OP_ATTR_ID_GET" /> 
+        <EnumMember name="COR_NI_OP_ATTR_NAME_DELETE" /> 
+    </Enum> 
+
+     <Enum name="corNotifyOp_e">
+        <EnumMember name="COR_NOTIFY_OP_GET_RBE" type="1"/> 
+    </Enum> 
+
+     <Enum name="ClCorMoIdOpT">
+        <EnumMember name="CL_COR_MOID_TO_CLASS_GET" type="1"/> 
+        <EnumMember name="CL_COR_NAME_TO_MOID_GET" /> 
+        <EnumMember name="CL_COR_MOID_TO_NAME_GE" /> 
+    </Enum> 
+
+     <Enum name="corMoIdToNodeNameTableOp_e">
+        <EnumMember name="COR_MOID_TO_NODE_NAME_GET" /> 
+        <EnumMember name="COR_NODE_NAME_TO_MOID_GET" /> 
+    </Enum> 
+
+     <Enum name="ClCorMoPathQualifierT">
+        <EnumMember name="CL_COR_MO_PATH_ABSOLUTE" type="0"/> 
+        <EnumMember name="CL_COR_MO_PATH_RELATIVE" /> 
+        <EnumMember name="CL_COR_MO_PATH_RELATIVE_TO_BASE" /> 
+        <EnumMember name="CL_COR_MO_PATH_QUALIFIER_MAX" type="CL_COR_MO_PATH_RELATIVE_TO_BAS"/> 
+    </Enum> 
+
+     <Enum name="ClCorObjWalkFlagsT">
+        <EnumMember name="CL_COR_MOTREE_WALK" /> 
+        <EnumMember name="CL_COR_MO_WALK" /> 
+        <EnumMember name="CL_COR_MSO_WALK" /> 
+        <EnumMember name="CL_COR_MO_SUBTREE_WALK" /> 
+        <EnumMember name="CL_COR_MSO_SUBTREE_WALK" /> 
+        <EnumMember name="CL_COR_MO_WALK_UP" /> 
+        <EnumMember name="CL_COR_MSO_WALK_U" /> 
+    </Enum> 
+
+     <Enum name="ClCorServiceIdT">
+        <EnumMember name="CL_COR_INVALID_SRVC_ID" type="-1"/> 
+        <EnumMember name="CL_COR_SVC_ID_DUMMY_MANAGEMENT" type="0"/> 
+        <EnumMember name="CL_COR_SVC_ID_FAULT_MANAGEMENT" /> 
+        <EnumMember name="CL_COR_SVC_ID_ALARM_MANAGEMENT" /> 
+        <EnumMember name="CL_COR_SVC_ID_PROVISIONING_MANAGEMENT" /> 
+        <EnumMember name="CL_COR_SVC_ID_PM_MANAGEMENT" /> 
+        <EnumMember name="CL_COR_SVC_ID_AMF_MANAGEMENT" /> 
+        <EnumMember name="CL_COR_SVC_ID_CHM_MANAGEMENT" /> 
+        <EnumMember name="CL_COR_SVC_ID_MAX" /> 
+        <EnumMember name="CL_COR_SVC_ID_FORCED" type="CL_FORCED_TO_16BITS"/> 
+    </Enum> 
+
+     <Enum name="ClCorTypeT">
+        <EnumMember name="CL_COR_INVALID_DATA_TYPE" type="-1"/> 
+        <EnumMember name="CL_COR_VOID," /> 
+        <EnumMember name="CL_COR_INT8," /> 
+        <EnumMember name="CL_COR_UINT8," /> 
+        <EnumMember name="CL_COR_INT16" /> 
+        <EnumMember name="CL_COR_UINT16," /> 
+        <EnumMember name="CL_COR_INT32," /> 
+        <EnumMember name="CL_COR_UINT32," /> 
+        <EnumMember name="CL_COR_INT64," /> 
+        <EnumMember name="CL_COR_UINT64," /> 
+        <EnumMember name="CL_COR_FLOAT," /> 
+        <EnumMember name="CL_COR_DOUBLE," /> 
+        <EnumMember name="CL_COR_COUNTER32," /> 
+        <EnumMember name="CL_COR_COUNTER64," /> 
+        <EnumMember name="CL_COR_SEQUENCE32" /> 
+    </Enum> 
+
+     <Enum name="ClCorObjTypesT">
+        <EnumMember name="CL_COR_OBJ_TYPE_SIMPLE" /> 
+        <EnumMember name="CL_COR_OBJ_TYPE_MO" /> 
+        <EnumMember name="CL_COR_OBJ_TYPE_MS" /> 
+    </Enum> 
+
+     <Enum name="ClCorOpsT">
+        <EnumMember name="CL_COR_OP_RESERVED" type="0"/> 
+        <EnumMember name="CL_COR_OP_CREATE" type="0x1"/> 
+        <EnumMember name="CL_COR_OP_SET" type="0x2"/> 
+        <EnumMember name="CL_COR_OP_DELETE" type="0x4"/> 
+        <EnumMember name="CL_COR_OP_ALL" type="0x7"/> 
+    </Enum>
+
+    <Enum name="ClCorTxnJobStatusT">
+        <EnumMember name="CL_COR_TXN_JOB_PASS" />
+        <EnumMember name="CL_COR_TXN_JOB_FAIL" />
+    </Enum>
+
+     <Enum name="corEventOp_e">
+        <EnumMember name="COR_EVENT_SUBSCRIBE=" /> 
+        <EnumMember name="COR_EVENT_UNSUBSCRIBE" /> 
+    </Enum> 
+
+     <Enum name="corPersisOp_e">
+        <EnumMember name="COR_DATA_SAVE" type="1"/> 
+        <EnumMember name="COR_DATA_RESTORE" /> 
+        <EnumMember name="COR_DATA_FREQ_SAVE" /> 
+        <EnumMember name="COR_DATA_FREQ_SAVE_STOP" /> 
+    </Enum> 
+
+     <Enum name="corObjectOp_e">
+        <EnumMember name="COR_OBJ_OP_CREATE" type="1"/> 
+        <EnumMember name="COR_OBJ_OP_DELETE" /> 
+        <EnumMember name="COR_OBJ_OP_ATTR_GET" /> 
+        <EnumMember name="COR_OBJ_OP_ATTR_SET" /> 
+        <EnumMember name="COR_OBJ_OP_OBJHDL_TO_MOID_GET" /> 
+        <EnumMember name="COR_OBJ_OP_OBJHDL_TO_TYPE_GET" /> 
+        <EnumMember name="COR_OBJ_OP_OBJHDL_GET" /> 
+        <EnumMember name="COR_OBJ_OP_FIRSTINST_GET" /> 
+        <EnumMember name="COR_OBJ_OP_NEXTSIBLING_GET" /> 
+    </Enum> 
+
+     <Enum name="corObjWalkOp_e">
+        <EnumMember name="COR_OBJ_WALK_OBJCNT_GET" /> 
+        <EnumMember name="COR_OBJ_WALK_DATA_GET" /> 
+        <EnumMember name="COR_OBJ_FLAG_GET" /> 
+        <EnumMember name="COR_OBJ_FLAG_SET" /> 
+        <EnumMember name="COR_OBJ_SUBTREE_DELETE" /> 
+    </Enum> 
+
+     <Enum name="corRouteOp_e">
+        <EnumMember name="COR_SVC_ADD=" /> 
+        <EnumMember name="COR_SVC_RULE_ADD" /> 
+        <EnumMember name="COR_SVC_RULE_STATUS_SET" /> 
+        <EnumMember name="COR_MOID_TO_COMP_ADDR_GET" /> 
+    </Enum> 
+
+     <Enum name="ClCorAttrCmpFlagT">
+        <EnumMember name="CL_COR_ATTR_CMP_FLAG_INVALID" type="0"/> 
+        <EnumMember name="CL_COR_ATTR_CMP_FLAG_VALUE_EQUAL_TO" /> 
+        <EnumMember name="CL_COR_ATTR_CMP_FLAG_VALUE_LESS_THAN" /> 
+        <EnumMember name="CL_COR_ATTR_CMP_FLAG_VALUE_LESS_OR_EQUALS" /> 
+        <EnumMember name="CL_COR_ATTR_CMP_FLAG_VALUE_GREATER_THAN" /> 
+        <EnumMember name="CL_COR_ATTR_CMP_FLAG_VALUE_GREATER_OR_EQUALS" /> 
+        <EnumMember name="CL_COR_ATTR_CMP_FLAG_MA" /> 
+    </Enum> 
+
+     <Enum name="ClCorAttrWalkOpT">
+        <EnumMember name="CL_COR_ATTR_INVALID_OPTION" type="0"/> 
+        <EnumMember name="CL_COR_ATTR_WALK_ALL_ATTR" /> 
+        <EnumMember name="CL_COR_ATTR_WALK_ONLY_MATCHED_ATTR" /> 
+        <EnumMember name="CL_COR_ATTR_WALK_MA" /> 
+    </Enum> 
+
+     <Enum name="ClCorAttrTypeT">
+        <EnumMember name="CL_COR_MAX_TYPE" value="CL_COR_SEQUENCE32"/> 
+        <EnumMember name="CL_COR_SIMPLE_ATTR" /> 
+        <EnumMember name="CL_COR_ARRAY_ATTR" /> 
+        <EnumMember name="CL_COR_CONTAINMENT_ATTR" /> 
+        <EnumMember name="CL_COR_ASSOCIATION_ATTR" /> 
+        <EnumMember name="CL_COR_VIRTUAL_ATT" /> 
+    </Enum> 
+
+     <Enum name="ClCorObjLockFlagsT">
+        <EnumMember name="CL_COR_LOCK_OBJECT" /> 
+        <EnumMember name="CL_COR_LOCK_SUBTRE" /> 
+    </Enum> 
+
+    <Enum name="ClCorMoIdClassGetFlagsT">
+        <EnumMember name="CL_COR_MO_CLASS_GET" /> 
+        <EnumMember name="CL_COR_MSO_CLASS_GE" /> 
+    </Enum> 
+
+	<Enum name="ClCorObjFlagsT">
+		<EnumMember name="CL_COR_OBJ_CACHE_LOCAL" />
+		<EnumMember name="CL_COR_OBJ_CACHE_ONLY_ON_MASTER" />
+		<EnumMember name="CL_COR_OBJ_CACHE_ON_MASTER" />
+		<EnumMember name="CL_COR_OBJ_CACHE_GLOBAL" />
+		<EnumMember name="CL_COR_OBJ_CACHE_MAX" />
+		<EnumMember name="CL_COR_OBJ_CACHE_MASK" />
+		<EnumMember name="CL_COR_OBJ_PERSIST" />
+		<EnumMember name="CL_COR_OBJ_DO_NOT_PUBLISH" />
+		<EnumMember name="CL_COR_OBJ_ALLOW_SUB_TREE_DELETE" />
+		<EnumMember name="CL_COR_OBJ_FLAGS_ALL" />
+ 	</Enum> 
+
+     <Struct name="ClCorCommInfoT">
+        <DataMember name="addr" type="ClIocPhysicalAddressT"/>          <!-- ClCorAddrT -->
+        <DataMember name="timeout" type="ClUint32T"/> 
+        <DataMember name="maxRetries" type="ClUint16T"/> 
+        <DataMember name="maxSessions" type="ClUint16T"/> 
+    </Struct> 
+
+     <Struct name="ClCorAttrIdIdxPairT">
+        <DataMember name="attrId" type="ClInt32T"/> 
+        <DataMember name="index" type="ClUint32T"/> 
+    </Struct> 
+
+     <Struct name="ClCorAttrPathT">
+        <DataMember name="node" type="ClCorAttrIdIdxPairT" multiplicity="CL_COR_CONT_ATTR_MAX_DEPTH" /> 
+        <DataMember name="depth" type="ClUint16T"/> 
+        <DataMember name="tmp" type="ClUint16T"/> 
+    </Struct> 
+
+     <Struct name="ClCorMOHandleT">
+        <DataMember name="type" type="ClInt32T"/> 
+        <DataMember name="instance" type="ClInt32T"/> 
+    </Struct> 
+
+     <Struct name="ClCorMOIdT">
+        <DataMember name="node" type="ClCorMOHandleT" multiplicity="CL_COR_HANDLE_MAX_DEPTH" /> 
+        <DataMember name="svcId" type="ClInt16T"/> 
+        <DataMember name="depth" type="ClUint16T"/> 
+        <DataMember name="qualifier" type="ClCorMoPathQualifierT"/> 
+        <DataMember name="version" type="ClVersionT"/>
+    </Struct> 
+
+     <Struct name="ClCorMOClassPathT">
+        <DataMember name="node" type="ClInt32T" multiplicity="CL_COR_HANDLE_MAX_DEPTH" /> 
+        <DataMember name="depth" type="ClUint32T"/> 
+        <DataMember name="qualifier" type="ClCorMoPathQualifierT"/> 
+    </Struct> 
+
+     <Struct name="corClientMoIdToNodeNameT">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="moId" type="ClCorMOIdT"/> 
+        <DataMember name="nodeName" type="ClNameT"/> 
+        <DataMember name="op" type="corMoIdToNodeNameTableOp_e"/> 
+    </Struct> 
+
+     <Struct name="corClsIntf_t">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="op" type="corClassOp_e"/> 
+        <DataMember name="classId" type="ClInt32T"/> 
+        <DataMember name="superClassId" type="ClInt32T"/> 
+    </Struct> 
+
+     <Struct name="corClassDetails_t">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="operation" type="corClassOp_e"/> 
+        <DataMember name="classType" type="corClassType_e"/> 
+        <DataMember name="corPath" type="ClCorMOClassPathT"/> 
+        <DataMember name="maxInstances" type="ClInt32T"/> 
+        <DataMember name="svcId" type="ClCorServiceIdT"/> 
+        <DataMember name="objClass" type="ClInt32T"/> 
+    </Struct> 
+
+     <Struct name="corAttrIntf_t">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="op" type="corAttrOp_e"/> 
+        <DataMember name="classId" type="ClInt32T"/> 
+        <DataMember name="attrId" type="ClInt32T"/> 
+        <DataMember name="attrType" type="ClCorTypeT"/> 
+        <DataMember name="subAttrType" type="ClCorTypeT"/> 
+        <DataMember name="subClassId" type="ClInt32T"/> 
+        <DataMember name="min" type="ClInt64T"/> 
+        <DataMember name="max" type="ClInt64T"/> 
+        <DataMember name="init" type="ClInt64T"/> 
+        <DataMember name="flags" type="ClUint32T"/> 
+    </Struct> 
+
+     <Struct name="corNiOpInf_t">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="op" type="corNiOp_e"/> 
+        <DataMember name="classId" type="ClInt32T"/> 
+        <DataMember name="attrId" type="ClInt32T"/> 
+        <DataMember name="name" type="ClUint8T" multiplicity="CL_COR_MAX_NAME_SZ" /> 
+    </Struct> 
+
+     <Struct name="corRouteInfo_t">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="stations" type="ClCorCommInfoT" multiplicity="COR_TXN_MAX_STATIONS" /> 
+        <DataMember name="stnCnt" type="ClUint32T"/> 
+        <DataMember name="moId" type="ClCorMOIdT"/> 
+    </Struct> 
+
+     <Struct name="corTxnInfo_t">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="operation" type="corTxnOp_e"/> 
+        <DataMember name="jobCount" type="ClUint32T"/> 
+    </Struct> 
+
+     <Struct name="corPersisInfo_t">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="fileName" type="ClUint8T" multiplicity="COR_MAX_FILENAME_LEN" /> 
+        <DataMember name="operation" type="corPersisOp_e"/> 
+        <DataMember name="frequency" type="ClTimerTimeOutT"/> 
+    </Struct> 
+
+     <Struct name="corObjectInfo_t">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="operation" type="corObjectOp_e"/> 
+        <DataMember name="moId" type="ClCorMOIdT"/> 
+        <DataMember name="objHSize" type="ClUint16T"/>
+        <DataMember name="pObjHandle" type="ClUint8T" pointer="Single" lengthVar="objHSize"/> 
+        <DataMember name="attrPath" type="ClCorAttrPathT"/> 
+        <DataMember name="attrId" type="ClInt32T"/> 
+        <DataMember name="index" type="ClInt32T"/> 
+        <DataMember name="size" type="ClUint32T"/> 
+    </Struct> 
+
+     <Struct name="corObjHdlConvert_t">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="operation" type="corObjectOp_e"/> 
+        <DataMember name="ohSize" type="ClUint16T"/>
+        <DataMember name="pObjHandle" type="ClUint8T" pointer="Single" lengthVar="ohSize"/>
+        <DataMember name="moId" type="ClCorMOIdT"/> 
+        <DataMember name="type" type="ClCorObjTypesT"/> 
+        <DataMember name="svcId" type="ClCorServiceIdT"/> 
+    </Struct> 
+
+     <Struct name="corObjFlagNWalkInfoT">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="operation" type="corObjWalkOp_e"/> 
+        <DataMember name="moId" type="ClCorMOIdT"/> 
+        <DataMember name="moIdWithWC" type="ClCorMOIdT"/> 
+        <DataMember name="flags" type="ClCorObjWalkFlagsT"/> 
+    </Struct> 
+
+     <Struct name="corRouteApiInfo_t">
+        <DataMember name="version" type="ClVersionT"/> 
+        <DataMember name="reqType" type="corRouteOp_e"/> 
+        <DataMember name="moId" type="ClCorMOIdT"/> 
+        <DataMember name="addr" type="ClIocPhysicalAddressT"/>  <!--  ClCorAddrT -->
+        <DataMember name="srvcId" type="ClCorServiceIdT"/> 
+        <DataMember name="status" type="ClUint8T"/> 
+        <DataMember name="primaryOI" type="ClUint8T"/> 
+    </Struct> 
+
+     <Struct name="ClCorAttrValuesT">
+        <DataMember name="init" type="ClInt64T"/> 
+        <DataMember name="min" type="ClInt64T"/> 
+        <DataMember name="max" type="ClInt64T"/> 
+    </Struct> 
+
+     <Struct name="ClCorAttrAdditionalInfoT">
+        <DataMember name="arrDataType" type="ClCorAttrTypeT"/> 
+        <DataMember name="maxElement" type="ClUint32T"/> 
+        <DataMember name="classId" type="ClInt32T"/> 
+    </Struct> 
+    
+	 <Struct name="CorAttrInfo" defNeed="Yes">
+        <DataMember name="simpleAttrVals" type="ClCorAttrValuesT"/> 
+        <DataMember name="attrInfo" type="ClCorAttrAdditionalInfoT"/> 
+	</Struct>
+
+     <Struct name="ClCorAttrDefT">
+        <DataMember name="attrId" type="ClInt32T"/> 
+        <DataMember name="attrType" type="ClCorAttrTypeT"/> 
+        <DataMember name="u" type="CorAttrInfo"/> 
+    </Struct> 
+    
+    <Struct name="ClCorObjAttrWalkFilterT">
+        <DataMember name="baseAttrWalk" type="ClUint8T"/>
+        <DataMember name="pAttrPath" type="ClCorAttrPathT"/>
+        <DataMember name="attrId" type="ClInt32T" />
+        <DataMember name="index" type="ClInt32T"/>
+        <DataMember name="cmpFlag" type="ClCorAttrCmpFlagT"/>
+        <DataMember name="attrWalkOption" type="ClCorAttrWalkOpT"/>
+        <DataMember name="size" type="ClUint32T"/>
+        <DataMember name="value" type="ClCharT" pointer="Single" lengthVar="size"/>
+    </Struct>
+ 
+  <!--Structure definitions for clCpmComponentAddressGet-->
+  <!--This is the definition equivalent to ClUnion64T-->
+  <Struct name="DWord" defNeed="Yes">
+    <DataMember name="high" type="ClUint32T"/>
+    <DataMember name="low" type="ClUint32T"/>
+  </Struct>
+                                                                                                                            
+  <Union name="ClIocLogicalAddressIDLT" defNeed="Yes">
+    <DataMember name="dWord" type="DWord"/>
+    <DataMember name="dWords" type="ClUint32T" multiplicity="2"/>
+    <DataMember name="words" type="ClUint16T" multiplicity="4"/>
+    <DataMember name="bytes" type="ClInt8T" multiplicity="8"/>
+  </Union>
+  <!--End of the definition of ClUnion64T-->
+                                                                                                                            
+  <Struct name="ClIocPhysicalAddressT">
+    <DataMember name="nodeAddress" type="ClUint32T"/>
+    <DataMember name="portId" type="ClUint32T"/>
+  </Struct>
+                                                                                                                            
+  <Union name="ClIocAddressIDLT" defNeed="Yes">
+    <DataMember name="iocPhyAddress" type="ClIocPhysicalAddressT"/>
+    <DataMember name="iocLogicalAddress" type="ClIocLogicalAddressIDLT"/>
+  </Union>
+
+  <Struct name="ClTimerTimeOutT">
+    <DataMember name="tsSec" type="ClUint32T"/> 
+    <DataMember name="tsMilliSec" type="ClUint32T"/> 
+  </Struct>
+
+  <!-- Definition of ClCorObjectAttrInfoT -->
+   <Struct name="ClCorObjectAttrInfoT">
+    <DataMember name ="attrId" type ="ClInt32T" />
+    <DataMember name ="attrType" type ="ClCorAttrTypeT" />
+    <DataMember name ="lenOrContOp" type ="ClUint32T" />
+    <DataMember name ="attrFlag"  type ="ClUint32T" />
+  </Struct>
+
+  <Struct name="ClCorTxnAttrSetJobT">
+    <DataMember name="attrType"      type="ClCorAttrTypeT"/>
+    <DataMember name="arrDataType"   type="ClCorTypeT"/>
+    <DataMember name="attrId"        type="ClInt32T"/>
+    <DataMember name="index"         type="ClInt32T"/>
+    <DataMember name="size"          type="ClUint32T"/>
+    <DataMember name="pValue"        type="ClUint8T" pointer="Single" lengthVar="size"/>
+    <DataMember name="jobStatus"     type="ClUint32T"/>
+  </Struct>
+
+  <Struct name="ClCorTxnObjJobT">
+    <DataMember name="op" type="ClInt32T"/>             
+    <DataMember name="attrPath" type="ClCorAttrPathT"/>
+    <DataMember name="numJobs"  type="ClUint32T"/>
+    <DataMember name="jobStatus" type="ClUint32T"/>
+  </Struct>
+  
+  <Struct name="ClCorTxnJobHeaderT">
+    <DataMember name="srcArch"    type="ClUint8T"/>
+    <DataMember name="regStatus"  type="ClUint8T"/>
+    <DataMember name="reserved"   type="ClUint8T" multiplicity="2" />
+    <DataMember name="moId"       type="ClCorMOIdT"/>
+    <DataMember name="numJobs"    type="ClUint32T"/>
+    <DataMember name="jobStatus"  type="ClInt32T"/>
+    <DataMember name="omClassId"  type="ClInt32T"/>
+  </Struct>
+ 
+  <Enum name="corSyncEvts_e">
+    <EnumMember name="COR_SYNC_HELLO_REQUEST" />
+    <EnumMember name="COR_SYNC_HELLO_REQUEST_REPLY" />
+    <EnumMember name="COR_SYNC_CONFIG_DATA_REQUEST" />
+    <EnumMember name="COR_SYNC_CONFIG_DATA_REQUEST_REPLY" />
+    <EnumMember name="COR_SYNC_DM_DATA_REQUEST" />
+    <EnumMember name="COR_SYNC_DM_DATA_REQUEST_REPLY" />
+    <EnumMember name="COR_SYNC_COR_LIST_REQUEST" />
+    <EnumMember name="COR_SYNC_COR_LIST_REQUEST_REPLY" />
+    <EnumMember name="COR_SYNC_MOTREE_REQUEST" />
+    <EnumMember name="COR_SYNC_MOTREE_REQUEST_REPLY" />
+    <EnumMember name="COR_SYNC_OBJECT_TREE_REQUEST" />
+    <EnumMember name="COR_SYNC_OBJECT_TREE_REQUEST_REPLY" />
+    <EnumMember name="COR_SYNC_RM_DATA_REQUEST" />
+    <EnumMember name="COR_SYNC_RM_DATA_REQUEST_REPLY" />
+    <EnumMember name="COR_SYNC_NI_TABLE_REQUEST" />
+    <EnumMember name="COR_SYNC_NI_TABLE_REQUEST_REPLY" />
+    <EnumMember name="COR_SYNC_SLOT_TO_MOID_MAP_TABLE" />
+    <EnumMember name="COR_SYNC_SLOT_TO_MOID_MAP_TABLE_REPLY" />
+    <EnumMember name="COR_SYNC_DATA_END" />
+    </Enum> 
+
+  <Struct name="corSyncPkt_t">
+    <DataMember name ="version" type ="ClVersionT" />
+    <DataMember name ="opcode" type ="corSyncEvts_e" />
+    <DataMember name ="cksum" type ="ClUint16T" />
+    <DataMember name ="src" type ="ClUint32T" />  
+    <DataMember name ="dlen" type ="ClUint32T" />
+    <DataMember name ="data" type ="ClUint8T" pointer="Single" lengthVar="dlen" />
+  </Struct>
+     
+  <Struct name="ClCorObjectHandleIDLT" version="4.1.0">
+    <DataMember name="ohSize" type="ClUint16T" />
+    <DataMember name="oh" type="ClUint8T" pointer="Single" lengthVar="ohSize" />
+  </Struct>
+
+  <Struct name="ClCorAttrDefIDLT" version="4.1.0">
+    <DataMember name="numEntries" type="ClUint32T" />
+    <DataMember name="pAttrDef" type="ClCorAttrDefT" pointer="Single" lengthVar="numEntries" />
+  </Struct>
+
+  <Enum name="ClCorMsoConfigOpIDLT" defNeed="Yes">
+    <EnumMember name="COR_MSOCONFIG_CLIENT_TO_SERVER" />
+    <EnumMember name="COR_MSOCONFIG_SERVER_TO_SERVER" />
+  </Enum>
+
+  <Struct name="ClCorAlarmProfileDataIDLT" version="4.1.0" defNeed="Yes">
+    <DataMember name="probCause" type="ClUint32T" />
+    <DataMember name="specProb" type="ClUint32T" />
+    <DataMember name="category" type="ClUint8T" />
+    <DataMember name="severity" type="ClUint8T" />
+    <DataMember name="contValidEntry" type="ClUint8T" />
+    <DataMember name="pollAlarm" type="ClUint8T" />
+    <DataMember name="affectedAlarms" type="ClUint64T" />
+    <DataMember name="genRule" type="ClUint64T" />
+    <DataMember name="supRule" type="ClUint64T" />
+    <DataMember name="genRuleRel" type="ClUint32T" />
+    <DataMember name="supRuleRel" type="ClUint32T" />
+  </Struct>
+
+  <Struct name="ClCorAlarmResourceDataIDLT" version="4.1.0" defNeed="Yes">
+    <DataMember name="classId" type="ClInt32T" />
+    <DataMember name="noOfInst" type="ClUint32T" />
+    <DataMember name="pAlarmInstList" type="ClCorMOIdT" pointer="Single" lengthVar="noOfInst" />
+    <DataMember name="noOfAlarms" type="ClUint32T" />
+    <DataMember name="pAlarmProfile" type="ClCorAlarmProfileDataIDLT" version="4.1.0" pointer="Single" lengthVar="noOfAlarms"/>
+  </Struct>
+
+  <Struct name="ClCorAlarmConfiguredDataIDLT" version="4.1.0" defNeed="Yes">
+    <DataMember name="noOfRes" type="ClUint32T" />
+    <DataMember name="pResourceData" type="ClCorAlarmResourceDataIDLT" version="4.1.0" pointer="Single" lengthVar="noOfRes"/>
+  </Struct>
+
+  <Struct name="ClCorMsoConfigIDLT" defNeed="Yes" version="4.1.0">
+    <DataMember name="version" type="ClVersionT" />
+    <DataMember name="msoConfigOp" type="ClCorMsoConfigOpIDLT" />
+    <DataMember name="compName" type="ClNameT" />
+    <DataMember name="compAddr" type="ClIocPhysicalAddressT" />
+    <DataMember name="alarmInfo" type="ClCorAlarmConfiguredDataIDLT" version="4.1.0" />
+  </Struct>
+
+</IDLSpecs>

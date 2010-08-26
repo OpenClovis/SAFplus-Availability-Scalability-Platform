@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<categories:CATEGORIES xmlns:categories="categories">
+  <CATEGORY NAME="default">
+    <ATTRIBUTE NAME="Power_Supply" TYPE="TruthValue"/>
+    <ATTRIBUTE NAME="Fan_Speed" TYPE="Uint64"/>
+  </CATEGORY>
+</categories:CATEGORIES>

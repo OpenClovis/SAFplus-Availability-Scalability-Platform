@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="resource"
+    nsURI="resource.ecore" nsPrefix="resource">
+  <eClassifiers xsi:type="ecore:EClass" name="DataStructure">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="Name"/>
+      <details key="incomingconnection" value="ChassisResource:Inheritence=-1,SystemController:Inheritence=-1,HardwareResource:Inheritence=-1,NodeHardwareResource:Inheritence=-1,SoftwareResource:Inheritence=-1,SystemController:Composition=1,NodeHardwareResource:Composition=1,HardwareResource:Composition=1,SoftwareResource:Composition=1,HardwareResource:Association=-1,SystemController:Association=-1,SoftwareResource:Association=-1,NodeHardwareResource:Association=-1,ChassisResource:Association=-1"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="CWKEY" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]{0,79}$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Attributes" upperBound="-1"
+        eType="#//Attribute" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Documentation" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Resource" eSuperTypes="#//DataStructure">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="Name"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Modifier" unique="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Stereotype" unique="false"
+        lowerBound="1" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="IsAbstract" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="IsDistributed" unique="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="IsPersistent" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Multiplicity" unique="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="AlarmManagement" eType="#//AlarmService"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Provisioning" eType="#//ProvService"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="MaxInstances" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum instances"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="HardwareResource" eSuperTypes="#//Resource">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="Name"/>
+      <details key="incomingconnection" value="ChassisResource:Composition=1,HardwareResource:Composition=-1,SystemController:Composition=-1,NodeHardwareResource:Composition=-1,HardwareResource:Inheritence=-1"/>
+      <details key="outgoingconnection" value="DataStructure:Inheritence=-1,HardwareResource:Composition=-1,DataStructure:Composition=-1,DataStructure:Association=-1,HardwareResource:Inheritence=-1"/>
+      <details key="Help" value="/com.clovis.cw.help/html/section4/html/section6.htm"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="DeviceObject" upperBound="-1"
+        eType="#//DeviceObject" unsettable="true" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ChassisResource">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="Name"/>
+      <details key="outgoingconnection" value="SystemController:Composition=-1,NodeHardwareResource:Composition=-1,HardwareResource:Composition=-1,DataStructure:Inheritence=-1,DataStructure:Association=-1"/>
+      <details key="LowerBound" value="1"/>
+      <details key="UpperBound" value="1"/>
+      <details key="Help" value="/com.clovis.cw.help/html/section4/html/section6.htm"/>
+      <details key="dependentsFeatureNames" value="NumSlots"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="CWKEY" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="MaxInstances" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="NumSlots" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="5" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Number of slots"/>
+        <details key="dependents" value="model/aspcompconfigs/system/map.ecore!slots%slot|configs/clSlotInfo.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.SlotNoModificationHandler;model/aspcompconfigs/system/ioc.ecore!ioc,transport,link%location|configs/clIocConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.SlotNoModificationHandler"/>
+        <details key="pattern" value="^[1-9]|[1-5][0-9]|6[0-4]$"/>
+        <details key="message" value="Invalid value for Number of slots - maximum allowed value is 64"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SoftwareResource" eSuperTypes="#//Resource">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="Name"/>
+      <details key="incomingconnection" value="SystemController:Composition=-1,NodeHardwareResource:Composition=-1"/>
+      <details key="outgoingconnection" value="DataStructure:Inheritence=-1,DataStructure:Association=-1,DataStructure:Composition=-1"/>
+      <details key="Help" value="/com.clovis.cw.help/html/section4/html/section6.htm"/>
+    </eAnnotations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NodeHardwareResource" eSuperTypes="#//Resource">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="Name"/>
+      <details key="incomingconnection" value="ChassisResource:Composition=1,NodeHardwareResource:Composition=-1,SystemController:Composition=-1"/>
+      <details key="outgoingconnection" value="DataStructure:Inheritence=-1,DataStructure:Association=-1,HardwareResource:Composition=-1,SoftwareResource:Composition=-1,DataStructure:Composition=-1,NodeHardwareResource:Composition=-1"/>
+      <details key="Help" value="/com.clovis.cw.help/html/section4/html/section6.htm"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="DeviceObject" upperBound="-1"
+        eType="#//DeviceObject" unsettable="true" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SystemController" eSuperTypes="#//Resource">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="Name"/>
+      <details key="incomingconnection" value="ChassisResource:Composition=1"/>
+      <details key="outgoingconnection" value="DataStructure:Inheritence=-1,DataStructure:Association=-1,HardwareResource:Composition=-1,SoftwareResource:Composition=-1,DataStructure:Composition=-1,NodeHardwareResource:Composition=-1"/>
+      <details key="Help" value="/com.clovis.cw.help/html/section4/html/section6.htm"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="DeviceObject" upperBound="-1"
+        eType="#//DeviceObject" unsettable="true" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ProvService">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isEnabled" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Enable"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Attributes" upperBound="-1"
+        eType="#//ProvAttribute" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Methods" upperBound="-1"
+        eType="#//Method" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="AssociatedDO" upperBound="-1"
+        eType="#//AssociatedDO" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AlarmService">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isEnabled" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Enable"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="PollingInterval" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"
+        defaultValueLiteral="100" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Polling interval (milli seconds)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="AlarmIDs" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="AssociatedDO" upperBound="-1"
+        eType="#//AssociatedDO" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Attribute">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="Name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.TypeValidator"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]{0,79}$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Type" lowerBound="1" eType="#//AttributeType"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Multiplicity" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="MinValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"
+        defaultValueLiteral="0" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Minimum Value"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="MaxValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"
+        defaultValueLiteral="0" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum Value"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="DefaultValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"
+        defaultValueLiteral="0" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Default Value"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="CWKEY" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="IsTransient" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is Transient?"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="IsImported" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="canModify" value="false"/>
+        <details key="label" value="Is Imported?"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="OID" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ProvAttribute" eSuperTypes="#//Attribute">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="Name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.TypeValidator"/>
+    </eAnnotations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ParamAttribute">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="Name"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Type" lowerBound="1" eType="#//AttributeType"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Multiplicity" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="CWKEY" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MethodParameter" eSuperTypes="#//ParamAttribute"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Method">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="Name"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Modifier" eType="#//ModifierType"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Type" eType="#//AttributeType"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="IsAbstract" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is abstract?"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="IsStatic" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is static?"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="IsConst" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is constant?"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Params" upperBound="-1"
+        eType="#//MethodParameter" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Documentation" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ServiceType">
+    <eLiterals name="Provisioning"/>
+    <eLiterals name="ChassisManagement" value="1"/>
+    <eLiterals name="FaultManagement" value="2"/>
+    <eLiterals name="AlarmManagement" value="3"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="AttributeType">
+    <eLiterals name="Int8">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[-]?([0-9][0-9]?|1[0-1][0-9]|12[0-7])|(-128)$"/>
+        <details key="message" value="value is not in int8 range(-128 to +127)"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="Uint8" value="1">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[0-9][0-9]?|[01][0-9][0-9]|2[0-4][0-9]|25[0-5]$"/>
+        <details key="message" value="value is not in uint8 range(0 to 255)"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="Int16" value="2">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[-]?([0-9][0-9]?[0-9]?[0-9]?|[0-2][0-9][0-9][0-9][0-9]|3[0-1][0-9][0-9][0-9]|32[0-6][0-9][0-9]|327[0-5][0-9]|3276[0-7])|(-32768)$"/>
+        <details key="message" value="value is not in int16 range(-32768 to +32767)"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="Uint16" value="3">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[0-9][0-9]?[0-9]?[0-9]?|[0-5][0-9][0-9][0-9][0-9]|6[0-4][0-9][0-9][0-9]|65[0-4][0-9][0-9]|655[0-2][0-9]|6553[0-5]$"/>
+        <details key="message" value="value is not in uint16 range(0 to 65535)"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="Int32" value="4">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[-]?([0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?|[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|20[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|21[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|214[0-6][0-9][0-9][0-9][0-9]|2147[0-3][0-9][0-9][0-9][0-9][0-9]|21474[0-7][0-9][0-9][0-9][0-9]|214748[0-2][0-9][0-9][0-9]|2147483[0-5][0-9][0-9]|21474836[0-3][0-9]|214748364[0-7])|(-2147483648)$"/>
+        <details key="message" value="value is not in int32 range(-2147483648 to +2147483647)"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="Uint32" value="5">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?|[0-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|42949672[0-8][0-9]|429496729[0-5]$"/>
+        <details key="message" value="value is not in uint32 range(0 to 4294967295)"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="Int64" value="6"/>
+    <eLiterals name="Uint64" value="7"/>
+    <eLiterals name="OCTET STRING" value="8"/>
+    <eLiterals name="Gauge32" value="9"/>
+    <eLiterals name="Counter32" value="10"/>
+    <eLiterals name="Counter64" value="11"/>
+    <eLiterals name="TimeTicks" value="12"/>
+    <eLiterals name="IpAddress" value="13"/>
+    <eLiterals name="NetworkAddress" value="14"/>
+    <eLiterals name="Opaque" value="15"/>
+    <eLiterals name="UTF8String" value="16"/>
+    <eLiterals name="BITS" value="17"/>
+    <eLiterals name="IA5String" value="18"/>
+    <eLiterals name="TruthValue" value="19"/>
+    <eLiterals name="DisplayString" value="20"/>
+    <eLiterals name="INTEGER" value="21"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Connection">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="CWKEY" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="source" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="target" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Association" eSuperTypes="#//Connection">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Source_Multiplicity" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="1"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Multiplicity for source end"/>
+        <details key="canModify" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Target_Multiplicity" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="1"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Multiplicity for target end"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Composition" eSuperTypes="#//Association"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Inheritence" eSuperTypes="#//Connection"/>
+  <eClassifiers xsi:type="ecore:EEnum" name="ModifierType">
+    <eLiterals name="public"/>
+    <eLiterals name="private" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DeviceObject">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="DeviceID,BootPriority"/>
+      <details key="NameField" value="DeviceID"/>
+      <details key="initializationFields" value="BootPriority,None"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="DeviceID" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Device ID"/>
+        <details key="label" value="Device ID"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="MaxResponseTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="100" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum Response Time (Milli Seconds)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="BootPriority" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Boot Priority"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="DeviceOperations" lowerBound="1"
+        eType="#//DeviceOperations" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Device Operations"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="CWKEY" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DeviceOperations">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="HAL_DEV_INIT" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="true" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="HAL_DEV_OPEN" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="true" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="HAL_DEV_CLOSE" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="true" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="HAL_DEV_READ" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="true" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="HAL_DEV_WRITE" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="true" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="HAL_DEV_COLD_BOOT" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="HAL_DEV_WARM_BOOT" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="HAL_DEV_PWR_OFF" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="HAL_DEV_IMAGE_DN_LOAD"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="HAL_DEV_DIRECT_ACCESS"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AssociatedDO">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="DeviceID,AccessPriority"/>
+      <details key="initializationFields" value="AccessPriority,None"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="DeviceID" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Device ID"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.AssociatedDOComboBoxCellEditor"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="AccessPriority" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Access Priority"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+</ecore:EPackage>

@@ -1,0 +1,189 @@
+/**
+ *  \defgroup clist Circular List Management
+ *  \brief OpenClovis circular list object implementation.
+ *   
+ */
+
+//-----------------------------------------------------------
+ 
+/**
+ *  \defgroup clist_intro Functional Description
+ *  \brief Description of Circular Linked List.
+ *  \ingroup clist
+ *
+ *  A Circular list is a chain of nodes, without any termination. The last node
+ *  is linked back to the first node. A node is a data structure which contains
+ *  user data. The following are the operations supported by Circular List 
+ *  implementation:
+ *     \arg Adds a node at the beginning of the list.
+ *     \arg Adds a node at the end of the list.
+ *     \arg Adds a node before a specific node in the list.
+ *     \arg Adds a node after a specific node in the list.
+ *     \arg Returns the first node from the list.
+ *     \arg Returns the last node from the list.
+ *     \arg Returns the previous node from the list.
+ *     \arg Returns the next node from the list.
+ *     \arg Walks through the list, starting from a specific node.
+ *     \arg Deletes a node from the list.
+ *     \arg Returns the number of nodes from the list.
+ *     \arg Retrieves the data from a node from the list.
+ *     \arg Destroys the list.
+ *
+ *  Before performing any of the above mentioned operations, you must create a 
+ *  list. While creating a list, you need to specify the maximum size for the 
+ *  list. If the maximum size is specified as 0, then you can add any number 
+ *  of nodes. Otherwise, the number of nodes you can add is limited to the 
+ *  maximum size. At any instant, the list can have a maximum of maxSize 
+ *  number of nodes, specified when the list is created.
+ *
+ *  \section clist_intro_1 Interaction with other components
+ *  Circular List APIs depend on Heap for memory allocation and functions to 
+ *  free the allocated memory.
+ * 
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup clist_usage API Usage Examples
+ *  \brief Code Examples.
+ *  \ingroup clist
+ *
+ *  Code Examples with comments:
+ *  \code
+ * 
+ *  // Circular list should be created to use Clist. 
+ *  // Circular linklist of 256 nodes
+ *  ClUint32T  maxSize  = 256;
+ *  ClClistT   listHead = CL_HANDLE_INVALID_VALUE;
+ *  rc = clClistCreate(maxSize, dropPolicy, userDeleteCb, 
+ *                     userDestroyCb, &listHead);
+ *  if( CL_OK != rc ) 
+ *  {
+ *   // Error returned, take appropriate action
+ *  }
+ *  
+ *  // Add a node to the start of the list.
+ *  ClClistDataT  listData = YYYY; /* user data */
+ *  rc = clClistFirstNodeAdd(listHead, listData)
+ *  if( CL_OK != rc )
+ *  {
+ *   //Error returned, take appropriate action
+ *  }
+ *
+ *  // Add a node to the end of the list.
+ *  ClClistDataT listData = YYYY; /* user data */
+ *  rc = clClistLastNodeAdd(listData, listData)
+ *  if( CL_OK != rc )
+ *  {
+ *   // Error returned, take appropriate action
+ *  }
+ *
+ *  // Add a node to after the particular node 
+ *  ClClistDataT listData = YYYY; /* user data */
+ *  ClClistNodeT currentNode = NODE; /* any specific node */
+ *  rc = clClistAfterNodeAdd(listData, currentNode, listData)
+ *  if( CL_OK != rc )
+ *  {
+ *   // Error returned, take appropriate action
+ *  }
+ *  // Add a node to before the particular node 
+ *  ClClistDataT listData = YYYY; /* user data */
+ *  ClClistNodeT currentNode = NODE; /* any specific node */
+ *  rc = clClistBeforeNodeAdd(listData, currentNode, listData)
+ *  if( CL_OK != rc )
+ *  {
+ *   // Error returned, take appropriate action
+ *  }
+ *  // Get the first node of the Clist
+ *  ClClistNodeT  firstNode = CL_HANDLE_INVALID_VALUE;
+ *  rc = clClistFirstNodeGet(listData, &firstNode)
+ *  if( CL_OK != rc )
+ *  {
+ *   // Error returned, take appropriate action
+ *  }
+ *  // Get the last node of the list
+ *  ClClistNodeT  lastNode = CL_HANDLE_INVALID_VALUE;
+ *  rc = clClistLastNodeGet(listData, &lastNode);
+ *  if( CL_OK != rc )
+ *  {
+ *   // Error returned, take appropriate action
+ *  }
+ *  // Get the next node of the current node
+ *  ClClistNodeT  currentNode = NODE; // current node 
+ *  ClClistNodeT  nextNode    = CL_HANDLE_INVALID_VALUE;
+ *  rc = clClistNextNodeGet(listData, currentNode, &nextNode)
+ *  if( CL_OK != rc )
+ *  {
+ *   // Error returned, take appropriate action
+ *  }
+ *  // Get the previous node of the current node
+ *  rc = clClistPreviousNodeGet(listData, currentNode, &prevNode)
+ *  if( CL_OK != rc )
+ *  {
+ *   // Error returned, take appropriate action
+ *  }
+ *  // Walk through the list.
+ *  rc = clClistWalk(listData, listWalkCb, userArg);
+ *  if( CL_OK != rc )
+ *  {
+ *   // Error returned, take appropriate action
+ *  }
+ *  // size of the circular list
+ *  rc = clClistSizeGet(listData, &size);
+ *  if( CL_OK != rc )
+ *  {
+ *   //Error returned, take appropraite action
+ *  }
+ *  // Delete the circular list.
+ *  rc = clClistDelete(&listData);
+ *  if( CL_OK != rc )
+ *  {
+ *   // Error returned, take appropriate action
+ *  }
+ *
+ *  \endcode 
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup clist_error Error/Return Codes
+ *  \brief Common and Component specific Error Codes.
+ *  \ingroup clist
+ *
+ *  The majority of ASP API functions return a <b>Return Code</b> as their return value. 
+ *  A zero return code (CL_OK) always indicates success. Non-zero return codes 
+ *  always carry two types of information, masked into one single value: 
+ *  a <b>Component Identifier</b> and an <b>Error Code</b>. The component 
+ *  identifier identifies the component (or software layer) in which the problem 
+ *  occurred, while the error code describes the nature of the problem. 
+ *  Some error codes are common across all components, while others are 
+ *  component specific. 
+ *
+ *  The format of the Return Codes is 0xCCNNNN (given in hex),
+ *  where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ *
+ *  \note <b>Only the Error Codes are listed as Return values 
+ *  in the Function Documentation of the API Reference pages. The real 
+ *  return value also contains the Component Identifier!</b> 
+ *
+ *  The following links are useful while interpreting Circular List Management
+ *  generated return codes:
+ *  - \ref apirefs_errorcodes_compid_CL_CID_CLIST "Circular List Management Component Identifier"
+ *  - \ref apirefs_errorcodes_common
+ *
+ *  For further details and information about all error/return codes visit 
+ *  page \ref apirefs_errorcodes.
+ */
+ 
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup clist_apis API Reference Pages
+ *  \brief Defines, Structures, Typedefs, Functions. 
+ *  \ingroup clist
+ */
+
+//-----------------------------------------------------------

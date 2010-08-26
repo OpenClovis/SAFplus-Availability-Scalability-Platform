@@ -1,0 +1,77 @@
+#!/bin/bash
+################################################################################
+#
+#   Copyright (C) 2002-2009 by OpenClovis Inc. All Rights  Reserved.
+# 
+# The source code for  this program is not published  or otherwise 
+# divested of  its trade secrets, irrespective  of  what  has been 
+# deposited with the U.S. Copyright office.
+# 
+# This program is  free software; you can redistribute it and / or
+# modify  it under  the  terms  of  the GNU General Public License
+# version 2 as published by the Free Software Foundation.
+# 
+# This program is distributed in the  hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# General Public License for more details.
+# 
+# You  should  have  received  a  copy of  the  GNU General Public
+# License along  with  this program. If  not,  write  to  the 
+# Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+################################################################################
+#
+# Build: 4.2.0
+#
+# This file sets up the environment variables necessary to run the gms group test.
+#
+if [ -z "$ASP_DIR" ]; then
+    # ASP_DIR is 1 level above the bin directory
+    cd `dirname $0`/.. >/dev/null 2>&1
+    ASP_DIR=$PWD
+    cd - >/dev/null 2>&1
+fi
+
+if [ ! -f $ASP_DIR/etc/asp_run.env ]; then
+    echo "Error: Could not find [$ASP_DIR/etc/asp_run.env]. Exiting"
+    exit 1
+fi
+
+source $ASP_DIR/etc/asp_run.env
+
+function check_var () {
+    if [ "x" == "x${1}" ]; then
+        echo "Error: $1 is not defined in $ASP_DIR/etc/asp_run.env ... Exiting"
+        exit 1
+    fi
+}
+
+check_var ASP_BINDIR
+check_var ASP_RUNDIR
+check_var ASP_CONFIG
+check_var ASP_LOGDIR
+check_var ASP_DBDIR
+check_var ASP_NODENAME
+check_var ASP_NODEADDR
+
+export ASP_BINDIR
+export ASP_RUNDIR
+export ASP_CONFIG
+export ASP_LOGDIR
+export ASP_DBDIR
+export ASP_NODENAME
+export ASP_NODEADDR
+export ASP_WITHOUT_CPM=1
+export ASP_COMPNAME=gmsGroupTest_${ASP_NODENAME}
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/lib:/usr/local/lib:${ASP_DIR}/lib:${ASP_DIR}/lib/openhpi
+if [ `uname` == 'SunOS' ]
+then
+    export   LD_PRELOAD_32=/opt/SUNWtipc/lib/libtipcsocket.so
+    export   LD_PRELOAD_64=/opt/SUNWtipc/lib/sparcv9/libtipcsocket.so
+fi
+
+export CL_LOG_SEVERITY=ERROR
+
+${ASP_BINDIR}/test_gms_group
+
+exit $?

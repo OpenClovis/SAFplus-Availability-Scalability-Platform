@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="validation"
+    nsURI="validations.ecore" nsPrefix="validation">
+  <eClassifiers xsi:type="ecore:EClass" name="InvalidScenario">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="connectionName" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="source" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="target" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="operation" eType="#//OperationType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="connection" eType="#//ConnectionType"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="OperationType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" lowerBound="1" eType="#//ConditionType"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="operation" eType="#//OperationType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="connection" upperBound="2"
+        eType="#//ConnectionType"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ConnectionType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="connectionName" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="exists" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="source" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="target" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sourceMultiplicity" eType="#//Multiplicity"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="targetMultiplicity" eType="#//Multiplicity"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="message" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sourcePathInfo" lowerBound="1"
+        eType="#//PathsType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="targetPathInfo" lowerBound="1"
+        eType="#//PathsType"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PathsType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="negate" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sourcePath" lowerBound="1"
+        upperBound="-1" eType="#//PathType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="targetPath" lowerBound="1"
+        upperBound="-1" eType="#//PathType"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PathType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="start" lowerBound="1" eType="#//StartInfo"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="node" upperBound="-1" eType="#//NodeNavigationInfo"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NodeNavigationInfo">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="connType" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="direction" lowerBound="1"
+        eType="#//DirectionType" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="targetNodeName" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ConditionType">
+    <eLiterals name="AND"/>
+    <eLiterals name="OR" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DirectionType">
+    <eLiterals name="IN"/>
+    <eLiterals name="OUT" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="StartInfo">
+    <eLiterals name="source"/>
+    <eLiterals name="target" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Multiplicity">
+    <eLiterals name="n"/>
+    <eLiterals name="1" value="1"/>
+    <eLiterals name="n...*" value="2"/>
+    <eLiterals name="1...*" value="3"/>
+  </eClassifiers>
+</ecore:EPackage>

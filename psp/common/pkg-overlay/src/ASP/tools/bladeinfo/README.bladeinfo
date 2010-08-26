@@ -1,0 +1,20 @@
+A Python script that -- when run on an ATCA blade, or any IPMI enabled host --
+can obtain and print various blade related information to the standard output,
+such as IPMI address, logical slot number, physical slot number and slot type,
+board manufacturer info, product code and serial numbers. Here is a sample
+output:
+
+ipmi_address:           0x8a
+logical_slot:           5
+physical_slot:          5
+slot_type:              atca_board
+board_manufacturer:     Intel Corporation
+board_productname:      MPCBL0030S02Q
+board_serialnumber:     
+product_manufacturer:   Hewlett Packard
+product_name:           HP CPU_BLAD
+product_partnumber:     D48003-007
+product_version:        HP G-4632
+product_serialnumber:   HP US46320126
+
+Run it with -h to get further info.

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="clIocConfig"
+    nsURI="ioc.ecore" nsPrefix="ioc">
+  <eClassifiers xsi:type="ecore:EClass" name="IOC">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="IOC Links"/>
+      <details key="Help" value="/com.clovis.cw.help/html/section6/html/section7.htm"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="transport" lowerBound="1"
+        eType="#//TransportType" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Transports"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TransportType">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="transportName"/>
+      <details key="label" value="Transport"/>
+      <details key="Help" value="/com.clovis.cw.help/html/section6/html/section8.htm"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="transportName" eType="#//Transport"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Transport Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Transport Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="transportPriority" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Transport Priority"/>
+        <details key="pattern" value="^[1-9][0-9]*$"/>
+        <details key="message" value="Priority is a number and should be greater than zero"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="link" upperBound="-1" eType="#//LinkType"
+        unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Links"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="LinkType">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="linkName"/>
+      <details key="validationfeatures" value="linkName"/>
+      <details key="label" value="Link"/>
+      <details key="Help" value="/com.clovis.cw.help/html/section6/html/section9.htm"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="linkName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Link Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Link Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="linkPriority" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Link Priority"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="linkInterface" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Link Interface"/>
+        <details key="message" value="Invalid link interface"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="linkId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Link ID"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="linkSupportsBroadcast"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="true"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is Broadcast Supported?"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="linkSupportsChksum" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="true" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Is Checksum Supported?"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="location" upperBound="-1"
+        eType="#//Location" defaultValueLiteral="" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Manual Configuration"/>
+        <details key="tooltip" value="Manual configuration is to be done only if 'is Broadcast Supported' is false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BootConfig">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="ioc" lowerBound="1" eType="#//IOC"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Location">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="slot,interfaceAddress"/>
+      <details key="label" value="Link"/>
+      <details key="Help" value="/com.clovis.cw.help/html/section6/html/section10.htm"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="slot" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Slot Number"/>
+        <details key="editor" value="com.clovis.cw.workspace:com.clovis.cw.workspace.dialog.SlotNoComboBoxCellEditor"/>
+        <details key="tooltip" value="Manual configuration is to be done only if 'is Broadcast Supported' is false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="interfaceAddress" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Interface Address"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Transport">
+    <eLiterals name="UDP"/>
+  </eClassifiers>
+</ecore:EPackage>

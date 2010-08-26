@@ -1,0 +1,246 @@
+#!/usr/bin/env bash 
+################################################################################
+#
+#   Copyright (C) 2002-2009 by OpenClovis Inc. All Rights  Reserved.
+# 
+# The source code for  this program is not published  or otherwise 
+# divested of  its trade secrets, irrespective  of  what  has been 
+# deposited with the U.S. Copyright office.
+# 
+# This program is  free software; you can redistribute it and / or
+# modify  it under  the  terms  of  the GNU General Public License
+# version 2 as published by the Free Software Foundation.
+# 
+# This program is distributed in the  hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# General Public License for more details.
+# 
+# You  should  have  received  a  copy of  the  GNU General Public
+# License along  with  this program. If  not,  write  to  the 
+# Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+################################################################################
+#
+# Build: 4.2.0
+#
+##############################################################################
+#
+# cl-generate-source
+#
+# Usage:
+#   cl-generate-source
+#
+##############################################################################
+
+
+CL_SDK=@CL_SDK@
+CL_SDKDIR=@CL_SDKDIR@
+CL_BUILDTOOLS=`dirname $CL_SDKDIR`/buildtools
+
+##############################################################################
+#
+# Step 1: Initializing and command line parsing
+#
+##############################################################################
+
+# Trapping some critical signals, so that the script stops promptly and
+# with proper error message.
+trap 'echo ***Error***: abnormal exit, could not start cl-generate-source; exit 1' 1 2 3 15
+
+script=`which $0`
+
+usage () {
+    echo "$(basename $0) - OpenClovis IDE starter script"
+    echo ""
+    echo "Usage:"
+	echo "    $(basename $0) [<options>]"
+    echo ""
+    echo "Where <options> are:"
+    echo "    -h            - print this help text"
+    echo "    -v            - be more verbose"
+    echo ""
+}
+
+# Print a feedback if verbosity level is high enough
+# Args: 1: The desired verbosity level
+#       2: The actual message
+feedback () {
+    if [ $verbosity -ge ${1} ]; then
+        echo "${2}"
+    fi
+}
+ 
+# Initialization
+
+verbosity=0             # verbosity level
+
+# Command line parsing
+
+while getopts :hvw:p:a:y: options; do
+	case $options in
+	h)
+			usage
+            exit 0
+			;;
+        v)
+            verbosity=$(( $verbosity + 1 ))
+            ;;
+	w) WORKSPACE_NAME=$OPTARG
+		;;
+	p) PROJECT_NAME=$OPTARG
+		;;
+	a) PROJECT_AREA_LOCATION=$OPTARG
+		;;
+	y) PYTHON_LOCATION=$OPTARG
+		;;
+
+		?)
+			echo "***Error***: Invalid argument, type $(basename $0) -h for help"; exit 1
+			;;
+	esac
+done
+shift $(( $OPTIND - 1 ))
+
+##############################################################################
+#
+# Step 2: Sanity checks; we expect a working ecliple/IDE installation
+#
+##############################################################################
+
+SDK_CONFIG=$CL_SDKDIR/lib/clconfig.rc
+if [ ! -f $SDK_CONFIG ]; then
+    echo "[ERROR] Could not find $SDK_CONFIG. You may have an incomplete installation."
+    exit 1
+fi
+source $SDK_CONFIG
+
+if [ -z $SDKDIR ]; then
+    echo "[ERROR] Corrupt $SDK_CONFIG file: no SDKDIR defined"
+    echo "        This can be a signal of an incomplete installation"
+    exit 1
+fi
+
+if [ $SDKDIR != $CL_SDKDIR ]; then
+    echo "[ERROR] SDKDIR mismatch. This suggests that the installation does"
+    echo "        not match this script. Please reinstall the SDK."
+    exit 1
+fi
+
+if [ -z $ECLIPSE ]; then
+    echo "[ERROR] $SDK_CONFIG does not define ECLIPSE."
+    echo "        This can be a signal of an incomplete installation"
+    exit 1
+fi
+
+INI_FILE=$CL_SDKDIR/IDE/scripts/config.ini
+
+if [ ! -f $INI_FILE ]; then
+    echo "[ERROR] Could not find $INI_FILE in your installation directory"
+    echo "        This can be a signal of an incomplete installation"
+    exit 1
+fi
+
+feedback 1 "SDK installation directory: $SDKDIR"
+feedback 1 "Template config.ini file:   $INI_FILE"
+feedback 1 "Eclipse directory:          $ECLIPSE"
+
+##############################################################################
+#
+# Step 3: Create an eclipse var directory under ~/.clovis/sdk, so that eclipse
+#         can mock with its run-time files there.
+#         Also, check if project area exists and adjust default workspace to
+#         point there if it does.
+#
+##############################################################################
+
+# Create ~/.clovis/sdk/eclipse if it does not yet exist
+
+DOTDIR=$HOME/.clovis
+
+if [ ! -f $DOTDIR/$CL_SDK/eclipse ]; then
+    mkdir -p $DOTDIR/$CL_SDK/eclipse
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Could not create $DOTDIR/$CL_SDK/eclipse. Check permissions."
+    fi
+    feedback 1 "Created $DOTDIR/$CL_SDK/eclipse directory"
+fi
+
+# See if $DOTDIR/$CL_SDK/project-area.rc exists. If yes, source it.
+# That should have a reference to CL_PROJECT_AREA
+
+if [ -f $DOTDIR/$CL_SDK/project-area.rc ]; then
+    feedback 1 "Found $DOTDIR/$CL_SDK/project-area.rc"
+    source $DOTDIR/$CL_SDK/project-area.rc
+fi
+
+# Copy config.ini ($INI_FILE). Also, if project area is defined and it
+# actually exists, modify the config.ini so that it points to
+# CL_PROJECT_AREA/ide_workspace as default workspace.
+
+feedback 1 "CL_PROJECT_AREA is:         $CL_PROJECT_AREA"
+
+if [ $CL_PROJECT_AREA ] && [ -d $CL_PROJECT_AREA/ide_workspace ]; then
+    newini=$DOTDIR/$CL_SDK/eclipse/config.ini
+    egrep -v '(^osgi.instance.area.default)|(eof=eof)|(End of file marker)' \
+        $INI_FILE > $newini
+    cat << EOF >> $newini
+osgi.instance.area.default=$CL_PROJECT_AREA/ide_workspace
+
+# End of file marker - must be here
+eof=eof
+EOF
+    feedback 1 "Modified eclipse config.ini file:   $INI_FILE"
+else
+    cp $INI_FILE $DOTDIR/$CL_SDK/eclipse
+    feedback 1 "Unmodified Eclipse config.ini file: $INI_FILE"
+fi    
+
+##############################################################################
+#
+# Step 4: Launch Eclipse with the IDE
+#
+##############################################################################
+
+# Make sure we have write permissions in the current directory (ie where we
+# have executed cl-generate-source from so that openclovis_ide.log can be created
+
+if [ ! -w $(pwd) ]; then
+	echo "You do not have permission to write in the current directory.  Please"
+	echo "switch to a directory you have permission to write to and run cl-generate-source"
+	echo "again"
+
+	exit 1
+fi
+
+# If we've installed Java, use that instead of a potentially incompatible
+# local copy
+
+if [ -d $CL_BUILDTOOLS/local/jre1.5.0_03 ]; then
+	export PATH=$CL_BUILDTOOLS/local/jre1.5.0_03/bin:$PATH
+fi
+
+if [ -z "$WORKSPACE_NAME" -o -z "$PROJECT_NAME" -o -z "$PROJECT_AREA_LOCATION" -o -z "$PYTHON_LOCATION" ]; then
+	echo "Usage : cl-generate-source -w <workspace-name> -p <project-name> -a <project_area-location> -y <python-location> "
+	exit 1
+fi
+
+MODEL_SRC_LOCATION=$PROJECT_AREA_LOCATION/$PROJECT_NAME/src
+if [ ! -d $MODEL_SRC_LOCATION ]
+then
+	mkdir -p $MODEL_SRC_LOCATION
+fi
+
+APPLICATION_NAME=com.clovis.cw.cmdtool.GenerateSourceCommand
+
+CMD_ARGS="-application $APPLICATION_NAME -data $WORKSPACE_NAME  -nosplash"
+
+feedback 1 "Staring eclipse as:"
+feedback 1 "    $ECLIPSE/eclipse $CMD_ARGS"
+
+exec $ECLIPSE/eclipse $CMD_ARGS $PROJECT_NAME $CL_SDKDIR $MODEL_SRC_LOCATION $PYTHON_LOCATION 
+
+echo $?
+
+echo "IDE Started"
+
+exit 0

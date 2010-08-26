@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="IDLSpecs">
+    <xsd:sequence>
+      <xsd:element default="IDLSpecs" name="name" type="xsd:string"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Struct" type="STRUCT"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Union" type="UNION"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Enum" type="ENUM"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Service" type="SERVICE"/>
+    </xsd:sequence>
+    
+  </xsd:complexType>
+  <xsd:complexType name="SERVICE">
+    <xsd:sequence>
+      <xsd:element name="name" type="xsd:string"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Port" type="PORT"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Struct" type="STRUCT"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Union" type="UNION"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Enum" type="ENUM"/>
+    </xsd:sequence>
+    
+  </xsd:complexType>
+  <xsd:complexType name="PORT">
+    <xsd:sequence>
+      <xsd:element name="name" type="xsd:string"/>
+      <xsd:element name="ID" type="xsd:string"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Group" type="GROUP"/>
+    </xsd:sequence>
+    
+  </xsd:complexType>
+  <xsd:complexType name="GROUP">
+    <xsd:sequence>
+      <xsd:element name="name" type="xsd:string"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Operation" type="OPERATION"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="OPERATION">
+    <xsd:sequence>
+      <xsd:element name="name" type="xsd:string"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Argument" type="ARGUMENT"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ARGUMENT">
+    <xsd:sequence>
+      <xsd:element name="ParameterType" type="ParameterType"/>
+      <xsd:element name="name" type="xsd:string"/>
+      <xsd:element name="type" type="xsd:string"/>
+      <xsd:element default="None" name="pointer" type="PointerTypeEnum"/>
+      <xsd:element default="None" name="lengthVar" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ENUM">
+    <xsd:sequence>
+      <xsd:element name="name" type="xsd:string"/>
+      <xsd:element name="defNeed" type="xsd:boolean"/>
+      <xsd:element default="" name="include" type="xsd:string"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="EnumMember" type="ENumMember"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ENumMember">
+   <xsd:sequence>
+    <xsd:element name="name" type="xsd:string"/>
+    <xsd:element default="" name="value" type="xsd:string"/>
+   </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="STRUCT">
+    <xsd:sequence>
+      <xsd:element name="name" type="xsd:string"/>
+      <xsd:element name="defNeed" type="xsd:boolean"/>
+      <xsd:element default="" name="include" type="xsd:string"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="DataMember" type="DataMember"/>
+    </xsd:sequence>
+    
+  </xsd:complexType>
+  
+  <xsd:complexType name="DataMember">
+   <xsd:sequence>
+    <xsd:element name="name" type="xsd:string"/>
+    <xsd:element name="type" type="xsd:string"/>
+    <xsd:element name="pointer" type="DMPointerTypeEnum"/>
+    <xsd:element default="None" name="lengthVar" type="xsd:string"/>
+    <xsd:element name="multiplicity" type="xsd:int"/>
+   </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:simpleType name="ParameterType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="CL_IN"/>
+      <xsd:enumeration value="CL_OUT"/>
+      <xsd:enumeration value="CL_INOUT"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <xsd:complexType name="UNION">
+    <xsd:sequence>
+      <xsd:element name="name" type="xsd:string"/>
+      <xsd:element name="defNeed" type="xsd:boolean"/>
+      <xsd:element default="" name="include" type="xsd:string"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="DataMember" type="DataMember"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:simpleType name="DataTypesEnum">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="ClInt8T"/>
+      <xsd:enumeration value="ClUint8T"/>
+      <xsd:enumeration value="ClInt16T"/>
+      <xsd:enumeration value="ClUint16T"/>
+      <xsd:enumeration value="ClInt32T"/>
+      <xsd:enumeration value="ClUint32T"/>
+      <xsd:enumeration value="ClInt64T"/>
+      <xsd:enumeration value="ClUint64T"/>
+      <xsd:enumeration value="ClCharT"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <xsd:simpleType name="PointerTypeEnum">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="None"/>
+      <xsd:enumeration value="Single"/>
+      <xsd:enumeration value="Double"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <xsd:simpleType name="DMPointerTypeEnum">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="None"/>
+      <xsd:enumeration value="Single"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

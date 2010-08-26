@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<MenuBars>
+<Name>myMenubars</Name>
+<MenuBar>
+   <Menu>
+       <Name>loadbutton</Name>
+       <Label>Load</Label>
+        <Hint>tstdata</Hint>
+        <Icon>iconaas</Icon>
+        <Component>comp1 </Component>
+        <ActionClass>
+            <ClassName>com.clovis.cw.editor.ca.snmp.LoadAction</ClassName>
+            <CallOrder>2</CallOrder>
+            <CallType>INORDER</CallType>
+            <Argument>shell</Argument>
+            <Argument>tableviewer</Argument>
+            <Argument>treeviewer</Argument>
+            <ConstantArgument>adsd</ConstantArgument>
+        </ActionClass>
+    <DisplayOrder>1</DisplayOrder>
+    <Separator>true</Separator>
+  </Menu>
+  <Menu>
+      <Name>unloadbutton</Name>
+      <Label>Unload</Label>
+        <Hint>tstdata11 </Hint>
+        <Icon>iconaasda</Icon>
+        <Component>comp1ads</Component>
+        <ActionClass>
+            <ClassName>com.clovis.cw.editor.ca.snmp.UnloadAction</ClassName>
+            <CallOrder>2</CallOrder>
+            <CallType>INORDER</CallType>
+            <Argument>tableviewer</Argument>
+            <Argument>treeviewer</Argument>
+            <Argument>mibObjectsGroup</Argument>
+            <ConstantArgument>adsd</ConstantArgument>
+        </ActionClass>
+    <DisplayOrder>2</DisplayOrder>
+    <Separator>true</Separator>
+</Menu>
+<Orientation>VERTICAL</Orientation>
+ </MenuBar>
+</MenuBars>
+  

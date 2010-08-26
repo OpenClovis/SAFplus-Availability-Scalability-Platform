@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<categories:CATEGORIES xmlns:categories="categories">
+  <CATEGORY NAME="default">
+    <ATTRIBUTE NAME="MasterAttr_A" TYPE="Int64"/>
+    <ATTRIBUTE NAME="MasterAttr_B" TYPE="ARRAY"/>
+    <ATTRIBUTE NAME="MasterAttr_C" TYPE="Int8"/>
+    <ATTRIBUTE NAME="MasterAttr_D" TYPE="ARRAY"/>
+  </CATEGORY>
+</categories:CATEGORIES>

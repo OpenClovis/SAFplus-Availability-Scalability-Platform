@@ -1,0 +1,1775 @@
+\hypertarget{group__group26}{
+\chapter{Functional Overview}
+\label{group__group26}
+\index{Log Service@{Log Service}}
+}
+
+
+\begin{flushleft}
+
+Computer programs record various events for further analysis. The purpose of recording events could be to debug various mis-configurations, operational
+issues, and so on.
+The ASP Log Service provides the facility to record the information about these events. 
+A program on the cluster can use the Log Service to record information. 
+\par
+Log Service persists the information recorded by its clients so that the information is available for viewing.
+The viewer may be an offline viewer or an online viewer. An offline viewer views the information in the future and an online viewer may view the 
+information as soon as it is generated. 
+\par
+Log Service does not interpret the information recorded by its clients or apply any 
+semantic meaning to it. It treats the information as an octet stream.
+\par
+All information related to an event of interest is stored as one unit called the Log Record. Log Records are grouped together based on a certain 
+theme defined by the client. A group of Log Records is called a Log Stream. These Log Streams can be shared by various components of an application or 
+of different applications. The theme and the users of a Log Stream are defined by the application. The ASP Log Service does not impose any 
+restrictions on the same. 
+\par
+The Log Streams flow into Log File, where the Log Records are physically stored and persisted. As the clients of Log Service may be perpetual and 
+the lifetime of the Log Records may be forever, any amount of physical storage for persisting the Log Records may be insufficient. 
+Thus, the logged records need to be siphoned off to some other form of storage to make way for new records. Log Service requires the presence of an 
+archiving utility that siphons off the records to another form of persistent storage. 
+\par
+Log Service is designed to provide highly efficient and reliable logging service. Log Service provides interfaces for:
+\begin{itemize}
+\item
+Creating a Log Stream, opening an existing Log Stream, recording an event into an opened Log Stream, and closing a Log Stream. 
+\item
+Viewing logged records and for siphoning them to some other form of storage.
+\item
+Changing the properties of Log Streams.
+\item
+Creating Log Files and persist Log Streams in the Log Files, periodically.
+\item
+Recording binary buffer, strings, and data in TLV format. 
+\item
+Filtering the Log Records, thereby disallowing certain Log Records, on the basis of filter criteria, from entering the Log Stream.
+\end{itemize}
+
+\par
+A program can use any number of Log Streams and a Log Stream can be used by multiple programs. 
+A program can have the Log Service block Log Records and MetaData files for archiving to create space for more Log Records in the Log Files. 
+An application can use Log Service for the following:
+\begin{itemize}
+\item
+To debug by logging the trace records on to the Log Streams.
+\item
+Open the Log Stream, store the Log Records into the Log Stream, and close the Log Stream. 
+Log Stream can be assigned as: 
+\begin{enumerate}
+\item Cluster wide resources - Programs across different nodes can use the same Log Stream. 
+\item Node specific resource - Programs on a specific node only can make use of that Log Stream. 
+\end{enumerate}
+\end{itemize}
+
+\par
+Log Service requires that all Log Records in a Log File have the same length. This can be specified at the time of creation of Log Files. 
+There is no restriction on the format of the Log Record. 
+Rendering the Log Records is not in the scope of Log Service. 
+
+
+
+\chapter{Service Model}
+\section{Usage Model}
+\index{Usage Model@{Usage Model}}
+
+The usage model of the Log Service is a Producer-Consumer model (the users of Log Services are Producers and Consumers). Loggers produce the Log Records.
+Log Readers and Log Viewers consume the Log Records. Multiple Loggers may log into a specific Log Stream. Similarly, a specific record may be 
+consumed by many Log Readers and may be viewed many times. The Log Viewer may be online or offline. Thus the records may be consumed any time after
+being produced. Archiever is a special kind of consumer that consumes every record only once and siphons off the records to another storage.
+\begin{Desc}
+\item[Usage Scenarios] 
+\begin{enumerate}
+\item Health monitoring: Various components of the system periodically log messages recording their core state. A system administrator or a monitoring
+program periodically analyzes the records to determine if the system is running as expected. If any abnormal activity is detected corrective action can be
+taken.
+\item Failure analysis: If there is a failure in the system, the administrator can check the Log Records to determine the cause of failure.
+\item Realtime troubleshooting: The troubleshooter can check the Log Records as they are generated. The troubleshooter can identify and rectify the problem.
+Troubleshooter has the option of setting the filters for relevant records only.
+\item Debugging and Testing: Log Service provides the facility of logging ASCII messages and binary buffer. Applications can use Log Services to record 
+data during testing and debugging phase.
+\item Data Mining: Log Records are an important source of information regarding system usage scenarios. MIS can check the Log Records to determine 
+the usage pattern and can use the data for subsequent planning.   
+\item 	Speciality Log: Applications can create their own special log. For example, Logs having encrypted data. Applications can define their own message 
+identifiers and format. Log Service does not interpret the log data. So, the applications can use Log Service for logging these records.
+\item Archiving: Log Records can be archived for offline viewing or for future use. Log Service can provide a block of records from the Log File.
+\end{enumerate}
+\end{Desc}
+
+\section{Functional Description}
+\index{Functional Description@{Functional Description}}
+The purpose of the Log Service is to record information provided by the Logger for future use. This information is provided in the form of Log Records.
+Log Records flow through a Log Stream and are persisted by the Log Service in the Log File.
+The producer of Log Records is called the Logger which uses \textit{clLogWriteAsync()} API to write a Log Record into a Log Stream. 
+\par
+Before using the services of Log Service, the Logger has to initialize the client library of the Log Service by invoking \textit{clLogInitialize()}. 
+\textit{clLogInitialize()} returns a \textit{logServiceHandle} that can be used in subsequent operations on the Log Service to identify the
+initialization. When this handle is no more required, the association can be closed by invoking \textit{clLogFinalize()}. As a result, the Logger gains 
+access to the Log Stream by invoking \textit{clLogStreamOpen()}. \textit{clLogStreamOpen()} returns a \textit{logStreamHandle} that can be used in 
+\textit{clLogWriteAsync()} API to identify the Log Stream. When a Log Stream is no longer required by a Logger, it can be closed by invoking \textit{clLogStreamClose()}. 
+\par
+There are two types of consumers of Log Records:
+\begin{itemize}
+\item
+Consumers that consume the records through the Log Service.
+\item
+Consumers that consume the records by directly reading the file. 
+\end{itemize}
+The first type of consumers are those that are online. For example, the Log Reader or online Viewer or Archiever. 
+The second type of consumers are offline viewers who may not be present in the cluster itself. The offline
+consumers are out of scope of Log Service.
+
+
+
+\begin{Desc}
+\item [Log Service:] Framework that provides logging services to applications. Log Service is responsible for:
+\begin{itemize}
+\item Creation, maintenance, persistence, and closure of Log Streams.
+\item 	Creation, maintenance, and closure of Log Files.
+\item 	Propagating the filter criteria to all interested Log Service elements.
+\item 	Filtering Log Records.
+\item 	Providing Log Records for archival purpose.
+\item 	Writing a Log Record to a specific Log Stream.
+\end{itemize}
+\end{Desc}
+
+\begin{Desc}
+\item [Logger:] A client of the Log Service that uses the interface provided by the Log Service to write the Log Records to specific Log Streams.
+\begin{itemize}
+\item 	Logger uses \textit{clLogInitialize()} API to initialize the log services for itself.
+\item	Logger uses \textit{clLogStreamOpen()} API to gain access to a Log Stream.
+\item	Logger can create a new Log Stream using \textit{clLogStreamOpen()} API.
+\item	Logger uses \textit{clLogWriteRecord()} API to introduce a Log Record to a specific Log Stream.
+\item	To avoid blocking, logger can use an asynchronous log write using the \textit{clLogWriteRecordAsync()} API.
+\item	Logger has option of specifying the data in
+	\begin{itemize}
+\item TLV format
+\item	C printf style
+\item	Binary format
+\end{itemize}
+\item	Logger uses the \textit{clLogStreamClose()} API to terminate its relationship with the Log Stream.
+\item	Logger uses the \textit{clLogFinalize()} API to terminate its relationship with the Log Service.
+\end{itemize}
+\end{Desc}
+
+
+\begin{Desc}	
+\item 
+[LogStream:] A collection of similar Log Records or a conceptual flow of Log Records.
+\begin{itemize}
+\item	Log Streams have associated scope. They can be local to the node where only the loggers can access them, or they can be global 
+to a cluster where any logger can access the Log Stream.
+\item	A Log Stream is uniquely identified by its scope and its name.
+\item	Each Log Stream has an associated Log File which is used for persisting.
+\item	Log Service does not define any type of Log Streams.
+\item	Currently, Log Service does not provide any pre-created Log Streams to the loggers.
+\item	Log Streams are created when a call is made to \textit{clLogStreamOpen()/clLogSreamOpenAsync()} API with all the required parameters  
+(stream attributes) and the Log Stream should not preexist. 
+\item	Multiple loggers can use the same Log Stream and a logger can open multiple Log Streams.
+\item	If all the loggers using a Log Stream invoke the \textit{clLogStreamClose()} API, the Log Service tries to persist the Log Stream 
+and then destroys it.
+\end{itemize}
+\end{Desc}
+
+\begin{Desc}	
+\item
+[Log File:] A collection of Log Streams stored on a permanent storage media.
+\begin{itemize}
+\item	Log Files can reside on any node having persistent storage.
+\item	A Log File can be shared by multiple Log Streams.
+\item	A Log File is created when the first Log Stream that specifies the Log File as its output destination is created. 
+\item	A Log File can be uniquely identified by its name and location.
+\item	All the Log Records in a Log File have a fixed length, which is specified at the time of creating the Log File.
+\item	Maximum size of the Log File is fixed and is specified at creation time.
+\item	When the maximum size of a Log File is reached, the action taken by Log Service is dependent on the policy specified at the creation time. The 
+possible actions are:
+\begin{itemize}
+\item   Wrap: Overwrite the oldest records.
+\item	Halt: No more records are allowed to be added.
+\item	Rotate: Create new Log File.
+\end{itemize}
+\item	Each Log File has an associated Metadata file containing data regarding the Log File and Log Stream.
+\item	A Log File closes when all the associated Log Streams are closed.
+\end{itemize}
+\end{Desc}
+
+
+
+\begin{Desc}	
+\item
+[Log Record:] An ordered set of information provided by the logger. It is the basic unit that is written to the specified Log Stream.
+\begin{itemize}
+\item Log Service defines Log Record as having 2 parts:
+\begin{itemize}
+\item Header
+\item	Data
+\end{itemize}
+\item The header part has a fixed format with the following fields:
+\begin{itemize}
+\item	Endianess
+\item	Severity Level
+\item	TimeStamp
+\item	Context Identifier
+\item	Service Identifier
+\item	Stream Identifier
+\item	Message Identifier
+\end{itemize}
+\item	Log Records can be written to a specific Log Stream using \textit{clLogWriteRecord()/clLogWriteRecordAsync()} API. Logger is required to provide the 
+severity level, service identifier, and message identifier as the parameters. The remaining of the header fields are filled by the Log Service.
+\item	Logger can specify the data part as a binary buffer, in printf style, or in TLV format.
+\item	Two message identifiers are reserved:
+\begin{itemize}
+\item	0xFFFFFFFF: Implies that data is specified as binary buffer along with the length of buffer.
+\item	0xFFFFFFFE: Implies the data is specified as C printf style format.  
+\end{itemize}
+\item	If the message identifier does not match with the mentioned two identifiers, then data is specified in TLV format.
+\item	Log Service does not interpret the data. 
+\item	Log Service does not define the format for the contents of the data.
+\item	Logger and the Log Renderer should agree on the format but that is outside the scope of the Log Service.
+\item	By design Log Service will try to minimize the logging latency.
+\item	Log Service may not be able to log a record, if it is rejected due to filter or currently unavailable resources. For example, 
+Log File is full.
+\end{itemize}
+\end{Desc}
+
+
+\begin{Desc}
+\item
+[Archiver:] An entity that uses Log Service to archive a block of Log Records.
+\begin{itemize}
+\item Archiver uses \textit{clLogArchiveInitialze()} API to associate itself with a Log File to obtain the required data to retrieve records.
+\item 	As part of initialization, Archiver is provided information regarding:
+\begin{enumerate} \item The last record that was archived.
+\item	The current record number.
+\item	Associated meta data file size.
+\end{enumerate}
+\item	Archiver uses this information to create a buffer and invokes \textit{clLogGetRecords()} to obtain the records.
+\item	Archiver uses \textit{clLogGetMetadata()} API to obtain the associated meta data.
+\item	Archiver uses \textit{clLogArchiveFinalize()} API to update the archiving information maintained by the Log Service and 
+to close the association with the Log File.
+\end{itemize}
+\end{Desc}
+
+
+\begin{Desc}
+\item
+[LogFilter:] A pattern used by logger and Log Service to restrict entry of Log Records in the LogStreams.
+\begin{itemize}
+\item Filter criteria is set through administrative means. 
+\item Log Service provides \textit{clLogFilterSet()} API to set the filter, this API is invoked on the owner Log Service element. 
+\item Multicasting is used to propagate the filter criteria to other Log Service elements. The responsibility of the owner is to propagate the 
+filter criteria changes.
+\item The application obtains the filter criteria through \textit{clLogFilterSetCallback()} function.
+\item Log Service can interpret only the header of the Log Record. So, filtering can be performed only on header fields. Currently, 
+filtering is supported on:
+\begin{itemize}
+\item
+Severity Levels 
+\item
+Context Identifier 
+\item
+Message Identifier
+\end{itemize}
+\end{itemize}
+\end{Desc}
+
+
+
+
+
+\chapter{Service APIs}
+
+\section{Type Definitions}
+\index{Type Definitions@{Type Definitions}}
+
+\subsection{ClLogHandleT}
+\index{ClLogHandleT@{ClLogHandleT}}
+\textit{typedef ClHandleT ClLogHandleT;}
+\newline
+\newline
+The type of the handle that Log Service provides to a process when the Log Service library is initialized. 
+A process uses this handle when it invokes Log service functions so that the Log Service can recognize the process.
+
+
+\subsection{ClLogStreamHandleT}
+\index{ClLogStreamHandleT@{ClLogStreamHandleT}}
+\textit{typedef ClHandleT ClLogStreamHandleT;}
+\newline
+\newline
+The type of handle of a Log Stream that the Log Service provides to a process that has opened a stream for Logging or registered itself as a Handler for
+a stream. A process uses this handle while invoking functions of Log Service API on a Log Stream.
+
+
+\subsection{ClLogFileHandleT}
+\index{ClLogFileHandleT@{ClLogFileHandleT}}
+\textit{typedef ClHandleT ClLogFileHandleT;}
+\newline
+\newline
+The type of handle of a Log File that the Log Service provides to a process that has opened a Log File for consuming Log Records.
+A process uses this handle while invoking functions of Log Service API on a Log File.
+
+
+
+\subsection{ClLogCallbacksT}
+\index{ClLogCallbacksT@{ClLogCallbacksT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClLogStreamOpenCallbackT    clLogStreamOpenCallback;}\\
+\>\>\>\>\textit{ClLogFilterSetCallbackT          clLogFilterSetCallback;}\\
+\>\>\>\>\textit{ClLogWriteLogCallbackT         clLogStreamOpenCallback;}\\
+\>\>\>\>\textit{ClLogRecordDeliverCallbackT	clLogRecordDeliverCallback;}\\
+\textit{\} ClLogCallbacksT;}\end{tabbing}
+
+The callback structure that the process provides to the Log Service. Currently, 
+\textit{clLogWriteCallback} is not supported and setting this field does not 
+make any difference.
+
+
+\subsection{ClLogStreamScopeT}
+\index{ClLogStreamScopeT@{ClLogStreamScopeT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_LOG\_STREAM\_GLOBAL = 0,}\\
+\>\>\>\>\textit{CL\_LOG\_STREAM\_LOCAL = 1,}\\
+\textit{\} ClLogStreamScopeT;}\end{tabbing}
+The enumeration \textit{ClLogStreamScopeT} contains the scope of the Log Stream. You can specify the scope of a Log Stream using this enumeration.
+Log Stream can be local to a node (Local Log Stream) or global to the cluster (Global Log Stream).
+
+
+\subsection{ClLogFileFullActionT}
+\index{ClLogFileFullActionT@{ClLogFileFullActionT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum\{}\\
+\>\>\>\>\textit{CL\_LOG\_FILE\_FULL\_ACTION\_ROTATE = 0,}\\
+\>\>\>\>\textit{CL\_LOG\_FILE\_FULL\_ACTION\_WRAP = 1,}\\
+\>\>\>\>\textit{CL\_LOG\_FILE\_FULL\_ACTION\_HALT = 2,}\\
+\textit{\} ClLogFileFullActionT;}\end{tabbing}
+You can specify the action Log Service must take when the Log File becomes full using this enumeration. 
+\begin{itemize}
+\item \textit{CL\_\-LOG\_\-FILE\_\-FULL\_\-ACTION\_\-ROTATE} - Creates a new Log File Unit when the current Log File Unit 
+becomes full. The maxFilesRotated attribute of the Log Stream specifies the number of maximum Log File Units that can simultaneously exist.
+The Log service deletes the oldest Log File Unit and creates a new Log File Unit.
+\item
+\textit{CL\_\-LOG\_\-FILE\_\-FULL\_\-ACTION\_\-WRAP} - Treats the Log File as a circular buffer. Log Service starts overwriting the oldest records
+when the Log File becomes full.
+\item	\textit{CL\_\-LOG\_\-FILE\_\-FULL\_\-ACTION\_\-HALT} - Log Service stops inserting records into the
+Log File.
+\end{itemize}
+
+
+
+
+\subsection{ClLogStreamAttributesT}
+\index{ClLogStreamAttributesT@{ClLogStreamAttributesT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct\{}\\
+\>\>\>\>\textit{ClCharT		*fileName;}\\
+\>\>\>\>\textit{ClCharT		*filePath;}\\
+\>\>\>\>\textit{ClUint32T		maxFileSize;}\\
+\>\>\>\>\textit{ClUint32T		recordSize;}\\
+\>\>\>\>\textit{ClBoolT		haProperty;}\\
+\>\>\>\>\textit{ClFileFullActionT	fileFullAction;}\\
+\>\>\>\>\textit{ClUint32T		maxFilesRotated;}\\
+\>\>\>\>\textit{ClUint32T		flushFreq;}\\
+\>\>\>\>\textit{ClTimeT		flushInterval;}\\
+\>\>\>\>\textit{ClWatermarkT	highWatermark;}\\
+\textit{\} ClLogStreamAttributesT;}\end{tabbing}} 
+The structure \textit{ClLogStreamAttributesT}contains the attributes of a Log Stream. The fields of this structure have the following interpretation.
+\begin{itemize}
+\item
+\textit{fileName} - Prefix for the names of the Log File Units to be created. The name of a Log File Unit is \tt{fileName_<creationTime>} where creation
+time is the wall clock time when the File Unit is created. This name is also used to create the configuration file name fileName.cfg.
+\item
+\textit{filePath} - Path where Log File Units and configuration files are stored. This is a string with a pattern \tt{<nodeName>:<absolutePath>}, where
+the <nodeName> is the logical node name in the cluster where the file is stored and <absolutePath> is the absolute path on that node. This path must
+be pre-created. Log Service does not create any missing directories.
+\item
+\textit{maxFileSize} - Size of each Log File Unit for this Log Stream in bytes. If it is set to zero, there is no previously defined limit on 
+Log File Unit size.
+\item
+\textit{recordSize} - Size of each Log Record in this Log Stream in bytes.
+\item
+\textit{haProperty} - If this attribute is set to \tt{CL\_\-TRUE}, the Log File where this Log Stream is persistent and must always be available. 
+If it is set to \tt{CL\_\-FALSE} and if the node hosting this Log File fails, the Log File is not retained.
+\item
+\textit{fileFullAction} - Action that the Log Service should take when the Log File Unit becomes full. Refer to the enumeration 
+\textit{ClLogFileFullActionT} for details on this field.
+\item
+\textit{maxFileRotated} - Indicates the number of Log File Units in a Log File if the fileFullAction is set to 
+CL\_\-LOG\_\-FILE\_\-FULL\_\-ACTION\_\-ROTATE. If fileFullAction is set to any other value, this field is ignored. 
+A value of zero indicates no previously defined upper limit on the number of Log File Units in the Log File.
+\item
+\textit{flushFreq} - Number of Log Records after which the Log Stream must be flushed. This is the maximum number of records on a node which are still
+not persisted at any given point in time. Log Service guarantees that no more than flushFreq number of records will be lost if a node fails. A value of 
+zero indicates that this field is ignored and Log Records are flushed based on flushInterval. At least one of flushFreq and flushInterval must be 
+non-zero for a Log Stream.
+\item
+\textit{flushInterval} - Time in nanoseconds after which the Log Stream must be flushed. This is the maximum duration of time a Log Record can stay 
+in a Log Stream without being persisted. Log Service guarantees that Log Records generated in \textit{flushInterval} time are not lost on a node failure. 
+A value of zero indicates that this field is ignored and Log Records are flushed based on flushFreq. 
+Either flushFreq or flushInterval must be non-zero for a Log Stream.
+\item
+\textit{highWatermark} - If the Log File size reaches the higher value of this limit, an event is published and an alarm is issued. The archiver 
+combines the oldest Log Records into an archive to free up space in Log File before it becomes full. No new event is generated until the 
+Log File utilization goes below lower value of this limit. Both the values are specified in terms of percentage of Log File size.
+
+
+
+
+\subsection{ClLogStreamOpenFlagsT}
+\index{ClLogStreamOpenFlagsT@{ClLogStreamOpenFlagsT}}
+\textit{typedef ClUint8T ClLogStreamOpenFlagsT;}
+\newline
+\newline
+\textit{ClLogStreamOpenFlagsT} specifies the open attributes used in clLogStreamOpen() and clLogStreamOpenAsync() while opening a Log Stream for Logging.
+\newline 
+\newline
+\textit{\#define CL\_\-LOG\_\-STREAM\_\-CREATE 0x1} - A value or parameter of type ClLogStreamOpenFlagsT. It is either zero or bitwise OR of the following: 
+\begin{itemize}
+\item
+\textit{CL\_\-LOG\_\-STREAM\_\-CREATE} - This flag requests the creation of a Log Stream if the identified Log Stream does not exist.
+\end{itemize}
+	
+
+
+\subsection{ClLogStreamInfoT}
+\index{ClLogStreamInfoT@{ClLogStreamInfoT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct\{}\\
+\>\>\>\>\textit{ClNameT			streamName;}\\
+\>\>\>\>\textit{ClLogStreamScopeT		streamSope;}\\
+\>\>\>\>\textit{ClCharT			*pNodeName;}\\
+\>\>\>\>\textit{ClStreamAttributesT	streamAttributes;}\\
+\textit{\} ClLogStreamInfoT;}\end{tabbing}} 
+The structure \textit{ClLogStreamInfoT} contains information about a Log Stream. The fields of this structure have the following interpretation:
+\begin{itemize}
+\item
+\textit{streamName} - Name of the Log Stream that is unique within its namespace.
+\item
+\textit{streamScope} -Scope of the stream. It can take the values specified in \textit{ClLogStreamScopeT}.
+\item
+\textit{pNodeName} - Name of the node on which the Log Stream exists. This is valid if the streamScope is set to CL_LOG_STREAM_LOCAL. If 
+streamScope is set to CL_LOG_STREAM_GLOBAL, this field is ignored. It is a string that terminates with NULL.
+\item
+\textit{streamAttributes} - Attributes of the Log Stream identified by 3-tuple streamName, streamScope and pNodeName.
+\end{itemize}
+
+
+\subsection{ClLogStreamHandlerFlagsT}
+\index{ClLogStreamHandlerFlagsT@{ClLogStreamHandlerFlagsT}}
+\textit{typedef ClUint8T ClLogStreamHandlerFlagsT;}
+\newline
+\newline
+The following values specify the Log Handler options used in clLogStreamregister() while registering as a handler for a Log Stream.
+\newline 
+\newline
+\textit{#define CL_LOG_HANDLER_WILL_ACK	0x1} - A value or parameter of type ClLogStreamHandlerFlagsT. It is either zero or bitwise OR of the following: 
+\begin{itemize}
+\item
+\textit{CL_LOG_HANDLER_WILL_ACK} - This flag informs the Log Service that this handler acknowledges all the Log Records receives.
+\end{itemize}
+
+
+
+
+\subsection{ClLogSeverityT}
+\index{ClLogSeverityT@{ClLogSeverityT}}
+\textit{typedef ClUint8T ClLogSeverityT;}
+\newline
+\newline
+\textit{ClLogSeverityT} specifies the log severity levels supported by the Log Service. It can take one of the following values:
+\begin{itemize}
+\item \textit{CL\_\-LOG\_\-SEV\_\-EMERGENCY 0x1}
+	\item\textit{#define CL\_\-LOG\_\-SEV\_\-ALERT 0x2}
+	\item\textit{#define CL\_\-LOG\_\-SEV\_\-CRITICAL 0x3}
+	\item\textit{#define CL\_\-LOG\_\-SEV\_\-ERROR 0x4}
+	\item\textit{#define CL\_\-LOG\_\-SEV\_\-WARNING 0x5}
+	\item\textit{#define CL\_\-LOG\_\-SEV\_\-NOTICE 0x6}
+	\item\textit{#define CL\_\-LOG\_\-SEV\_\-INFO 0x7}
+	\item\textit{#define CL\_\-LOG\_\-SEV\_\-DEBUG 0x8}
+	\item\textit{#define CL\_\-LOG\_\-SEV\_\-MAX 0x15}
+\end{itemize}	
+
+
+\subsection{ClLogSeverityFilterT}
+\index{ClLogSeverityFilterT@{ClLogSeverityFilterT}}
+\textit{typedef ClUint16T ClLogSeverityFilterT;}
+\newline
+\newline
+A variable of this type is used as a bitmap. Values from ClLogSeverityT are used to set individual bits in this bitmap.
+
+
+
+
+\subsection{ClLogFilterFlagsT}
+\index{ClLogFilterFlagsT@{ClLogFilterFlagsT}}
+\textit{typedef ClUint8T ClLogFilterFlagsT;}
+\newline
+\newline
+\textit{ClLogFilterFlagsT} is used to determine if the new filter set is used to overwrite old filter or to
+modify the old filter. It can take one of the following values:
+\begin{itemize}
+\item
+\textit{#define CL_LOG_FILTER_ASSIGN 0x1} - Discards the old filter settings and uses the new settings.
+\item
+\textit{#define CL_LOG_FILTER_MERGE_ADD	0x2} - Adds to the old filter settings as per filter settings provided. This is achieved by ORing the new filter
+with old filter.
+\item
+\textit{#define CL_LOG_FILTER_MERGE_DELETE 0x3} - Deletes the old filter settings as per filter settings provided. This is achieved by clearing the 
+new filter bits from old filter.
+\end{itemize}	
+
+
+\subsection{ClLogFilterT}
+\index{ClLogFilterT@{ClLogFilterT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClLogSeverityFilterT	logSeverityFilter;}\\
+\>\>\>\>\textit{ClUint16T			logMsgIdSetLength;}\\
+\>\>\>\>\textit{ClUint8T			*pLogMsgIdSet;}\\
+\>\>\>\>\textit{ClUint16T			logCompIdSetLength;}\\
+\>\>\>\>\textit{ClUint8T			*pLogCompIdSet;}\\
+\textit{\} ClLogFilterT;}\end{tabbing}
+The structure contains the filter settings. The members of this structure have the following interpretation:
+\begin{itemize}
+\item
+\textit{logSeverityFilter} - This field identifies the severity levels to be masked. Each severity level has a bit identified in this
+bitmap. These bits identify the severity levels which must be masked or prevented from entering the Log Stream.
+\item
+\textit{logMsgIdSetLength} - Number of octets in the memory chunk pointed by pLogMsgIdSet field.
+\item
+\textit{pLogMsgIdSet} - Pointer to the memory chunk which is treated as a bitmap and set bits identify the message IDs to be masked. Bit numbers
+in this bitmap are same as the message ID.
+\item
+\textit{logCompIdSetLength} - Number of octets in the memory chunk pointed by pLogCompIdSet field.
+\item
+\textit{pLogCompIdSet} - Pointer to a memory chunk which is treated as a bitmap. The bits that are set identify the component IDs to be masked. 
+The lower octet of the component ID identifies the class of the component and higher octet identifies the node on which 
+it is running. Log Service sets the filter on the class of the component and so, only the lower octet is used. The bit number maps to the lower
+octet. This implies that the Log Records from a class of components are turned on or off.
+\end{itemize}	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{ClLogServiceHandleT}
+\textit{typedef ClHanldleT ClLog ServiceHandleT;}
+\newline
+\newline
+The type of the handle of the log service. It is returned to the process when the log service is initialized.
+It captures the Log Service and process association.
+	
+
+
+\subsection{ClLog FileHandleT}
+\textit{typedef ClHanldleT ClLog FileHandleT;}
+\newline
+\newline
+The type of the handle for a Log File.
+
+
+
+
+
+\subsection{ClLogSeverityFlagsT}
+\textit{typedef ClUint16T ClLogSeverityFlagsT;}
+\newline
+\newline
+The type of the bitmap for filtering records.
+\begin{itemize}
+\item
+\textit{CL\_\-LOG\_\-SEV\_\-<level>} identifies a bit position in bitmap to allow or disallow a Log Record of a specific severity.
+\end{itemize}	
+
+
+\subsection{ClLogAckFlagsT}
+\textit{typedef ClUint32T ClLogAckFlagsT;}
+\newline
+\newline
+The type of the acknowledgement required for \textit{clLogWriteRecordAsync} calls.
+\newline 
+\newline
+\textit{\#define CL\_\-LOG\_\-RECORD\_\-WRITE\_\-ACK    0x1}
+\newline 
+\newline
+\textit{CL\_\-LOG\_\-RECORD\_\-WRITE\_\-ACK} implies that the logging application requires an acknowledgement to confirm if the Log Service 
+ wrote the Log Record successfully.
+
+
+
+
+
+
+
+\subsection{ClLogFilterT}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct ClLogFileFullActionT\{}\\
+\>\>\>\>\textit{ClLogSeverityFlagsT *logSeverityMap;}\\
+\>\>\>\>\textit{ClUint32T                     *logMsgIdSet;}\\
+\>\>\>\>\textit{ClUint32T                     *logCtxIdSet;}\\
+\>\>\>\>\textit{ClUint8T                        logFilterFlags;}\\
+\textit{\} ClLogFilter;}\end{tabbing}
+The structure \textit{ClLogFilterT} contains the new filter criteria. A set of values is specified for filtering by message ID and context ID.
+The context ID is used to identify the application. The \textit{logFilterFlags} determine the way in which the existing filtering criteria is merged
+with the specified filtering criteria.
+\begin{itemize}
+\item
+\textit{CL\_\-LOG\_\-FILTER\_\-ASSIGN} - Overwrite the previous values of the filter.
+\item
+\textit{CL\_\-LOG\_\-FILTER\_\-MERGE} - Merge the existing filtering criteria with the specified criteria.
+\end{itemize}
+
+
+
+\subsection{ClLogStreamCreateAttributesT}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct ClLogStreamCreateAttributes\{}\\
+\>\>\>\>\textit{ClStringT                       logFileName;}\\
+\>\>\>\>\textit{ClStringT                       logFileURL;}\\
+\>\>\>\>\textit{ClUint32T                      maxLogFileSize;}\\
+\>\>\>\>\textit{ClUint32T                      maxLog RecordSize;}\\
+\>\>\>\>\textit{ClBoolT                          haProperty;}\\
+\>\>\>\>\textit{ClLog FileFullActionT    logFileFullAction;}\\
+\>\>\>\>\textit{ClUint16T                       maxFilesRotated;}\\
+\>\>\>\>\textit{ClUint32T                       flushFreq;}\\
+\>\>\>\>\textit{ClTimeT                          flushInterval;}\\
+\>\>\>\>\textit{ClUint32T                       highWatermark;}\\
+\textit{\} ClLogStreamCreateAttributesT;}\end{tabbing}
+The structure \textit{ClLogStreamCreateAttributesT} contains the Log File information required to create a new Log file.
+\begin{itemize}
+\item \textit{logFileName} - POSIX file name of the desired Log File.
+\item \textit{logFilePath} - URL specifying the location of the file.
+\item	\textit{maxLog FileSize} - Maximum size of a Log File.
+\item \textit{maxLog RecordSize} - Maximum size of the Log Record that can be written to this file. Bigger size records are truncated 
+to this size and smaller size records are padded to this size.
+\item \textit{haProperty} - This SAF specified attribute is currently ignored.
+\item	\textit{logFileFullAction} - Specifies the Log Service behavior when the maximum size of a file is reached.
+\item \textit{maxFilesRotated} - Specifies the number of files maintained at a time if the \textit{logFileFullAction} is 
+\textit{CL\_\-LOG\_\-FILE\_\-FULL\_\-ACTION\_\-ROTATE}, otherwise ignored.
+\item \textit{flushFreq} - Number of records after which flushing action should be performed.
+\item \textit{flushInterval} - Time period after which flushing action should be performed.
+\item \textit{highWatermark} - Notification is sent when the file size crosses the threshold.
+\end{itemize}
+
+
+
+
+
+\subsection{ClLogRecNumT}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct ClLogRecNum\{}\\
+\>\>\>\>\textit{ClUint32T    fileNum;}\\
+\>\>\>\>\textit{ClUint32T    recNum;}\\
+\textit{\} ClLogRecNumT;}\end{tabbing}
+The structure \textit{ClLogRecNumT} contains the record number. More than one file can exist, so, \textit{fileNum} indicates the file number and the
+\textit{recNum} indicates the record number in the file.
+
+
+
+\newpage
+\section{Library Life Cycle Functions}
+\subsection{clLogInitialize}
+\index{clLogInitialize@{clLogInitialize}}
+\hypertarget{pagelog101}{}\paragraph{cl\-Log\-Initialize}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:]Initializes the Log client library.\end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}        ClRcT clLogInitialize(
+           							CL_OUT ClLogHandleT *logHandle,
+           							CL_IN const ClLogCallbacksT *logCallbacks,
+           							CL_INOUT ClVersionT *version
+							  )
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logHandle}]:(out) Handle obtained through a previous call to clLogInitialize.
+\item[{\em logCallbacks}]:(in) Specifies callback function of the application that the Log Service may invoke. Only non-null callback functions in the 
+structure are registered.
+\item[{\em version}]:(in/out) As an input parameter, it points to the required Log Service version. As an output parameter, it is the version 
+supported by the Log. For details on this datatype, refer to the chapter, Common Type Definitions in the \textit{OpenClovis\_\-ApiRef\_\-Overview-2.3.pdf}.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-VERSION\_\-MISMATCH}]: The version parameter is not compatible with the version of the Log Service implementation.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NULL\_\-POINTER}]: Expecting pointer to valid memory space.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function initializes the Log Service. It registers the callback functions if specified.
+This function must be invoked before any Log Service function can be used. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog102}{clLogSelectionObjectGet()}, \hyperlink{pagelog103}{clLogDispatch()}, 
+\hyperlink{pagelog104}{clLogFinalize()}\end{Desc}
+\newpage
+
+
+
+\subsection{clLogSelectionObjectGet}
+\index{clLogSelectionObjectGet@{clLogSelectionObjectGet}}
+\hypertarget{pagelog102}{}\paragraph{cl\-Log\-Selection\-Object\-Get}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:] \end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}        	ClRcT clLogSelectionObjectGet(
+           						CL_IN ClLogHandleT logHandle,
+           						CL_OUT ClSelectionObjectT *selectionObject
+								     )
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logHandle}]:(in) Handle obtained through a previous call to clLogInitialize.
+\item[{\em selectionObject}]:(out) Pointer to operating system handle that the application uses to detect the pending callbacks.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NULL\_\-POINTER}]: Expecting pointer to valid memory space.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function returns the OS handle associated with the logHandle. In a POSIX environment, it is a file descriptor that can be used
+with select() and poll() to detect pending callbacks. \textit{selectionObject} is valid until \textit{clLogFinalize()} is invoked .
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog101}{clLogInitialize()}, \hyperlink{pagelog103}{clLogDispatch()}, \hyperlink{pagelog104}{clLogFinalize()}\end{Desc}
+\newpage
+
+
+\subsection{clLogDispatch}
+\index{clLogDispatch@{clLogDispatch}}
+\hypertarget{pagelog103}{}\paragraph{cl\-Log\-Dispatch}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:] \end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	ClRcT clLogDispatch(
+           					CL_IN    ClLogHandleT        logHandle,
+           					CL_IN    ClDispatchFlagsT    dispatchFlags
+							   )
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logHandle}]:(in) Handle obtained through a previous call to clLogInitialize.
+\item[{\em dispatchFlags}]:(in) Flags specifying the callback execution behavior of  the \textit{clLogDispatch()} function. Value can be one
+of the following:
+\begin{itemize}
+\item
+\textit{CL\_\-DISPATCH\_\-ONE}
+\item
+\textit{CL\_\-DISPATCH\_\-ALL} or 
+\item
+\textit{CL\_\-DISPATCH\_\-BLOCKING}
+\end{itemize}
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function invokes pending callbacks for the \textit{logHandle} in the context of the calling thread. This is 
+specified by the \textit{dispatchFlags} parameter.
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog101}{clLogInitialize()}, \hyperlink{pagelog102}{clLogSelectionObjectGet()}\end{Desc}
+\newpage
+
+
+\subsection{clLogFinalize}
+\index{clLogFinalize@{clLogFinalize}}
+\hypertarget{pagelog104}{}\paragraph{cl\-Log\-Finalize}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:]Finalizes the Log client library.\end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+						ClRcT clLogFinalize(
+           						CL_IN    ClLogHandleT        logHandle
+								   )
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logHandle}]:(in) Handle obtained through a previous call to clLogInitialize.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function closes the association between the application and the Log Service captured by \textit{logHandle}.
+The application must invoke this function once for each handle acquired by calling \textit{clLogInitialize()}. This should be performed before 
+the existing function releases all the resources acquired by \textit{clLogInitialize()}. \textit{clLogFinalize} closes all the Log Streams 
+that are open for this \textit{logHandle} and cancels all pending callbacks related to \textit{logHandle}. Some callbacks might still be processed as
+the callback invocation is asynchronous.
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog101}{clLogInitialize()}\end{Desc}
+\newpage
+
+
+\section{LogStream Lifecycle APIs}
+\subsection{clLogStreamOpen}
+\index{clLogStreamOpen@{clLogStreamOpen}}
+\hypertarget{pagelog105}{}\paragraph{cl\-Log\-Stream\-Open}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:] Opens the specified Log Stream   \end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+					ClRcT clLogStreamOpen(
+           					CL_IN ClLogHandleT logHandle,
+           					CL_IN ClNameT logStreamName,
+           					CL_IN ClLogStreamScopeT logStreamScope
+           					CL_IN ClLogStreamCreateAttributesT *logStreamCreateAttributes,
+           					CL_IN ClLogStreamOpenFlags logStreamOpenFlags,
+           					CL_IN ClTimeT timeout,
+           					CL_OUT ClLogStreamHandleT *logStreamHandle
+							     )
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logHandle}]:(in) Handle obtained through a previous call to clLogInitialize.
+\item[{\em logStreamName}]:(in) Name of the Log Stream to open.
+\item[{\em logStreamScope}]:(in) Stream can be local to node or global in cluster.
+\item[{\em logStreamCreateAttributes}]:(in) Various attributes of the Log Stream, required at the time of Log file creation.
+\item[{\em logStreamOpenFlags}]:(in) Specify if the Log Service should create the Log Stream, if it does not exist.
+\item[{\em timeout}]:(in) \textit{clLogStreamOpen()} is considered to have failed, if it does not complete by the specified time.
+\item[{\em logStreamHandleT}]:(out) Pointer to the Log Stream handle, allocated in the address space of the invoking application. 
+Identifies the stream in subsequent Log Service function calls.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+
+\item[{\em CL\_\-LOG\_\-ERR\_\-NULL\_\-POINTER}]: Expecting pointer to valid memory space.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NOT\_\-EXISTS}]: Requested resource exists.
+\item[{\em CL\_\-LOG\_\-ERR\_\-ALREADY\_\-EXIST}]: Request entry does not exist.
+\item[{\em CL\_\-LOG\_\-ERR\_\-BAD\_\-FLAG}]: The passed flag is invalid.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function opens the specified Log Stream. If the stream does not exist, then, the behavior is governed by \textit{logStreamOpenFlags}.
+If the intent is to open an existing Log Stream, then, \textit{logStreamCreateAttributes} can be specified as NULL and flag should not be set.
+If the application wants to create and open a Log Stream that does not exist, it should fill the \textit{logStreamCreateAttributes} and set the flag.
+If the application wants to open a (possibly) existing Log Stream, but still specify creation attribute values, then provided values must be 
+identical to those values given at the time of creation and set the flag.
+\par
+\par
+\textit{clLogStreamOpen()} is blocking and on successful completion a new Log Stream handle is returned. 
+A Log Stream can be opened multiple times from the same application or by different applications.
+A Log Stream can be opened multiple times with the same \textit{logHandle}. In this case, a new stream handle is returned every time.
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog108}{clLogStreamClose()}, \hyperlink{pagelog107}{ClLogStreamOpenCallbackT()}\end{Desc}
+\newpage
+
+
+
+\subsection{clLogStreamOpenAsync}
+\index{clLogStreamOpenAsync@{clLogStreamOpenAsync}}
+\hypertarget{pagelog106}{}\paragraph{cl\-Log\-Stream\-Open\-Async}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:] Opens the specified Log Stream asynchronously.    \end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+					ClRcT clLogStreamOpenAsync(
+					           CL_IN ClLogHandleT logHandle,
+           					   CL_IN ClNameT logStreamName,
+					           CL_IN ClLogStreamScopeT logStreamScope
+					           CL_IN ClLogStreamCreateAttributesT *logFileCreateAttributes,
+					           CL_IN ClLogStreamOpenFlags logStreamOpenFlags,
+					           CL_IN ClInvocationT invocation
+								  )
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logHandle}]:(in) Handle obtained through a previous call to clLogInitialize.
+\item[{\em logStreamName}]:(in) Name of the Log Stream to open.
+\item[{\em logStreamScope}]:(in) Stream can be local to node or global in cluster.
+\item[{\em logStreamCreateAttributes}]:(in) Various attributes of the Log Stream, required at the time of Log File creation.
+\item[{\em logStreamOpenFlags}]:(in) Specify if the Log Service should create the Log Stream if it does not exists.
+\item[{\em timeout}]:(in) clLogStreamOpen() is considered to have failed if it does not complete by the time specified.
+\item[{\em invocation}]:(in) Allows the invoking application to match this call with the corresponding \textit{(*ClLogStreamOpenCallbackT)().}
+\item[{\em logStreamHandleT}]:(out) Pointer to the Log Stream handle, allocated in the address space of the invoking application. 
+Identifies the stream in subsequent Log Service function calls.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NULL\_\-POINTER}]: Expecting pointer to valid memory space.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NOT\_\-EXISTS}]: Requested resource exists.
+\item[{\em CL\_\-LOG\_\-ERR\_\-ALREADY\_\-EXIST}]: Request entry does not exist.
+\item[{\em CL\_\-LOG\_\-ERR\_\-BAD\_\-FLAG}]: The passed flag is invalid.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function opens the specified Log Stream. If the stream does not exist then the behavior is governed by \textit{logStreamOpenFlags}.
+If the intent is to open an existing Log Stream then \textit{logStreamCreateAttributes} can be specified as NULL and flag should not be set.
+If the application wants to create and open a Log Stream that does not exits, it should fill the \textit{logStreamCreateAttributes} and set the flag.
+If the application wants to open a (possibly) existing Log Stream, but still specify creation attribute values, then provided values must be 
+identical to those values given at the time of creation and set the flag.
+\par
+\textit{clLogStreamOpenAsync()} is non-blocking and the corresponding callback function \textit{ClLogStreamOpenCallbackT()} should be passed 
+with \textit{clLogInitialize()}. \textit{Invocation} parameter compares the callback with the invocation. If the callback is not 
+specified during initialize, an error is returned.
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog108}{clLogStreamClose()}, \hyperlink{pagelog107}{ClLogStreamOpenCallbackT()}\end{Desc}
+\newpage
+
+
+
+
+
+\subsection{ClLogStreamOpenCallbackT}
+\index{ClLogStreamOpenCallbackT@{ClLogStreamOpenCallbackT}}
+\hypertarget{pagelog107}{}\paragraph{cl\-Log\-Stream\-Open\-Callback}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:].\end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+					typedef  void (*ClLogStreamOpenCallbackT) (
+					           			CL_IN ClInvocation invocation,
+					           			CL_IN ClLogStreamHandleT logStreamHandle,
+					           			CL_IN ClRcT error
+										  )
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em invocation}]:(in) Parameter given by the application in the corresponding call of \textit{clLogStreamOpenAsync()}.
+\item[{\em logStreamHandle}]:(in) Handle of the Log Stream opened.
+\item[{\em error}]:(in) Status of the \textit{clLogStreamOpenAsync()} call.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NOT\_\-EXISTS}]: Requested resource exists.
+\item[{\em CL\_\-LOG\_\-ERR\_\-ALREADY\_\-EXIST}]: Request entry does not exist.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] Log Service invokes this function on completion of \textit{clLogStreamOpenAsync()}. This function is called in the context of 
+the thread calling \textit{clLogDispatch()}.
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog101}{clLogInitialize()}, \hyperlink{pagelog103}{clLogDispatch()}, 
+\hyperlink{pagelog106}{clLogStreamOpenAsync()}\end{Desc}
+\newpage
+
+
+
+\subsection{clLogStreamClose}
+\index{clLogStreamClose@{clLogStreamClose}}
+\hypertarget{pagelog108}{}\paragraph{cl\-Log\-Stream\-Close}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:]Closes the Log Stream. \end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+					ClRcT clLogStreamClose(
+					           CL_IN ClLogStreamHandleT logStreamHandle
+							      )
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logStreamHandle}]:(in) Parameter given by application in the corresponding call of \textit{clLogStreamOpenAsync()}.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function closes the Log Stream identified by \textit{logStreamHandle}. 
+If the application writing to the stream is the final application, the Log File will be flushed and all the resources associated with the Log Stream 
+will be released. It cancels all callbacks that refer to the \textit{logStreamHandle}. Some callbacks might still be processed as the callback
+invocation is asynchronous.
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog105}{clLogStreamOpen()}, \hyperlink{pagelog106}{ClLogStreamOpenAsync()}\end{Desc}
+\newpage
+
+
+\section{Archiver Lifecycle API's}
+\subsection{clLogArchiveInit}
+\index{clLogArchiveInit@{clLogArchiveInit}}
+\hypertarget{pagelog109}{}\paragraph{cl\-Log\-Archive\-Init}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:].\end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+						ClRcT clLogArchiveInit(
+						           CL_IN ClLogHandleT logHandle,
+						           CL_IN ClNameT logFileName,
+						           CL_IN ClNameT logFileURL,
+						           CL_OUT ClLogRecNumT *lastArchivedRecNum,
+						           CL_OUT ClLogRecNumT *currRecNum,
+						           CL_OUT CLUint32T metaDataLen;
+						           CL_OUT ClLog FileHandleT *logFileHandle        
+								       )
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logHandle}]:(in) Handle obtained through a previous call to clLogInitialize.
+\item[{\em logFileName}]:(in) Identifies the Log File.
+\item[{\em logFileURL}]:(in) Specifies the Log File location.
+\item[{\em lastArchivedRecNum}]:(in) Record number where the last archive operation was performed.
+\item[{\em currRecNum}]:(out) Log File is filled till record number.
+\item[{\em metaDataLen}]:(out) Current length of the associated meta data file.
+\item[{\em logFileHandle}]:(out) Captures association of application with the file.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NULL\_\-POINTER}]: Expecting pointer to valid memory space.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function returns the file handle for further use along with the record range that is 
+not archived and the size of Metadata file.
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog101}{clLogInitialize()}, \hyperlink{pagelog115}{clLogGetRecords()}, \hyperlink{pagelog110}
+{clLogArchiveFinalize}
+\end{Desc}
+\newpage
+
+
+
+\subsection{clLogArchiveFinalize}
+\index{clLogArchiveFinalize@{clLogArchiveFinalize}}
+\hypertarget{pagelog110}{}\paragraph{cl\-Log\-Archive\-Finalize}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:]\end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+						ClRcT clLogArchiveFinalize(
+           						ClLog FileHandleT logFileHandle,
+           						ClRecNumT archiveRecNum        
+									  )
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logFileHandle}]:(in) Handle identifying Log File.
+\item[{\em archiveRecNum}]:(in) Record number at which the archiving is complete.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function updates Log Service data related to the archived record mark.
+Applications can then safely overwrite the records till the archived record number.
+This function closes the association between the process and the Log File.
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog109}{clLogArchiveInit()}, \hyperlink{pagelog115}{clLogGetRecords()}\end{Desc}
+\newpage
+
+
+\section{Functional APIs}
+\subsection{clLogWriteRecord,clLogWriteRecordAsync}
+\index{clLogWriteRecord,clLogWriteRecordAsync@{clLogWriteRecord,clLogWriteRecordAsync}}
+\hypertarget{pagelog111}{}\paragraph{cl\-Log\-Write\-Record}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:] Writes the Log Record into the stream.\end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+				ClRcT clLogWriteRecord(
+				           CL_IN    ClLogStreamHandleT    logStreamHandle,
+				           CL_IN    ClTimeT                         timeout,
+				           CL_IN    ClUint32T                       serviceId,
+				           CL_IN    ClUint32T                       msgId,
+				           . . .
+				)
+				ClRcT clLogWriteRecordAsync(
+				           CL_IN    ClLogStreamHandleT    logStreamHandle,
+				           CL_IN    ClInvocationT                 invocation,
+				           CL_IN    ClLogAckFlagsT            ackFlags,
+				           CL_IN    ClUint32T                       serviceId,
+				           CL_IN    ClUint32T                       msgId,
+				           . . .
+				)
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logStreamHandle}]:(in) Handle identifying the corresponding Log Stream.
+\item[{\em timeout}]:(in) \textit{clLogWriteRecord()} is considered to have failed if it does not complete by the time specified.
+\item[{\em invocation}]:(in) Allows the invoking application to match this call with the corresponding \textit{(*ClLogWriteRecordCallbackT)()}.
+\item[{\em ackFlags}]:(in) If the caller requires acknowledgement then it should be set to \textit{CL\_\-LOG\_\-RECORD\_\-WRITE\_\-ACK}.
+\item[{\em serviceId}]:(in) Part of the application identifier, application module identifier.
+\item[{\em msgId}]:(in) Identifies the message. Two msgIds are reserved:
+\begin{itemize}
+\item
+\textit{0xFFFFFFFF:} Specifies that length preceded binary buffer follows.
+\item
+\textit{0xFFFFFFFE:} Specifies C printf style format string and the corresponding value parameter follows.
+\end{itemize}
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NULL\_\-POINTER}]: Expecting pointer to valid memory space.
+\item[{\em CL\_\-LOG\_\-ERR\_\-BAD\_\-FLAG}]: The passed flag is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-FILE\_\-FULL}]: The Log File has reached its maximum capacity.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function writes the Log Record into the stream specified by \textit{logStreamHandle}.
+\textit{clLogWriteRecord()} is blocking and successful return denotes that the Log has been written to the stream. No assurance is made 
+on the persistence of it. \textit{clLogWriteRecordAsync()} is non-blocking and the completion can be optionally signalled by 
+invocation of \textit{ClLogWriteRecordCallbackT()} if the \textit{ackFlags} is appropriately set.
+If \textit{ackFlag} is set and callback is not specified, there is an error.
+\newline Three cases of message identifier exists:
+\begin{itemize}
+\item
+\textit{msgId == 0xFFFFFFFF}
+\begin{enumerate}
+\item
+\textit{msgId} is followed by length preceded binary buffer.
+ \footnotesize\begin{verbatim}
+     ....,
+     ClUint32T  msgId = OxFFFFFFFF, 
+     ClUint32T  bufLen, 
+     ClPtrT     buf)
+      \end{verbatim}
+      \normalsize
+where
+\item
+\textit{bufLen}(in) is the length of buffer.
+\item
+\textit{buf}(in) is the binary buffer.
+\end{enumerate}
+
+\item
+\textit{msgId == 0xFFFFFFFE}
+\begin{enumerate}
+\item
+\textit{msgId} is followed by C printf style format string and the data value.
+       \footnotesize\begin{verbatim}
+      ...,
+      ClUint32T  msgId = OxFFFFFFFE, 
+      ClCharT      *format, 
+      . . .)
+      \end{verbatim}
+            \normalsize
+where
+\item
+format(in) C printf style format specifier
+\end{enumerate}
+
+\item other messageIDs
+\begin{itemize}
+\item
+\textit{msgId} is followed by data in TLV format, that is, we have list of TAG, LENGTH, VALUE.
+\item List is terminated with special tag value of 0xFFFF
+\footnotesize\begin{verbatim}
+..., 
+ClUint16T  tag,
+ClUint16T  length,
+CPtrT          value,
+. . .
+CUint16T  tag = OxFFFF)
+      \end{verbatim}
+            \normalsize
+\item
+Log Service will not interpret the data
+\end{itemize}
+\end{itemize}
+\par
+Log Service provides a set of C MACROS for the ease of use of the service by the applications when logging using TLV format. 
+Macros defined are as follows:
+\begin{itemize}
+\item
+\textit{\#define CL\_\-LOG\_\-TLV\_\-CHAR(var)                          }
+             \newline \textit{     APP\_\-TAG\_\-CHAR, sizeof(char), \&(var)}
+\item	\textit{\#define CL\_\-LOG\_\-TLV\_\-SHORT(var)}                       
+                  \newline \textit{APP\_\-TAG\_\-SHORT, sizeof(short), \&(var)}
+\item	\textit{\#define CL\_\-LOG\_\-TLV\_\-INT(var)                               }
+                  \newline \textit{APP\_\-TAG\_\-INT, sizeof(int), \&(var)}
+\item	\textit{\#define CL\_\-LOG\_\-TLV\_\-LONG(var)                                     }
+                  \newline \textit{APP\_\-TAG\_\-LONG, sizeof(long), \&(var)}
+\item	\textit{\#define CL\_\-LOG\_\-TLV\_\-LONGLONG(var)                           }
+                 \newline \textit{APP\_\-TAG\_\-LONGLONG, sizeof(long long), \&(var) }
+\item	\textit{\#define CL\_\-LOG\_\-TLV\_\-FLOAT(var)                                      }
+                  \newline \textit{APP\_\-TAG\_\-FLOAT, sizeof(float), \&(var)}
+\item	\textit{\#define CL\_\-LOG\_\-TLV\_\-DOUBLE(var)                                  }
+                  \newline \textit{APP\_\-TAG\_\-DOUBLE, sizeof(double), \&(var)}
+\item	\textit{\#define CL\_\-LOG\_\-TLV\_\-STRING(str)                                     }
+                  \newline \textit{APP\_\-TAG\_\-STRING, strlen(str) + 1, str}
+\item	\textit{\#define CL\_\-LOG\_\-TLV\_\-GENERIC(tag, var)                           }
+                   \newline \textit{tag, sizeof((var)), \&(var)}
+    \end{itemize}
+ where, \textit{var} is any variable of type T, 
+ \newline for which \textit{\&(var)} is a pointer to type T, 
+ \newline \textit{sizeof(var) == sizeof(T)} is the number of bytes the value occupies, 
+ \newline \textit{str} is a variable of type pointer to char (char*),
+ \newline the buffer it points to is NULL terminated,
+ \newline \textit{APP\_\-TAG\_\-<type>} is the application specific tag defined for that type.
+
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog105}{clLogStreamOpen()}, \hyperlink{pagelog106}{clLogStreamOpenAsync()}, 
+\hyperlink{pagelog112}{ClLogWriteRecordCallbackT}, \hyperlink{pagelog108}{clLogStreamClose()}\end{Desc}
+\newpage
+
+
+
+\subsection{ClLogWriteRecordCallbackT}
+\index{ClLogWriteRecordCallbackT@{ClLogWriteRecordCallbackT}}
+\hypertarget{pagelog112}{}\paragraph{cl\-Log\-Write\-Record\-CallbackT}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:].\end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+			typedef  void (*ClLogWriteRecordCallbackT) (
+			           CL_IN    ClInvocation    invocation,
+			           CL_IN    ClRcT              error
+				)
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em invocation}]:(in) Parameter given by application in the corresponding call of \textit{clLogWriteLog RecordAsync()}.
+\item[{\em error}]:(in) Status of the \textit{clLogWriteLog RecordAsync()} call.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NULL\_\-POINTER}]: Expecting pointer to valid memory space.
+\item[{\em CL\_\-LOG\_\-ERR\_\-BAD\_\-FLAG}]: The passed flag is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-FILE\_\-FULL}]: The Log File has reached its maximum capacity.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] Log Service invokes this function on writing the Log Record to the Log Stream if
+\textit{ackFlags} are set appropriately when \textit{ClLogWriteRecordAsync()} is called.\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog101}{clLogInitialize()}, \hyperlink{pagelog103}{clLogDispatch()},
+\hyperlink{pagelog111}{clLogWriteRecordAsync()}\end{Desc}
+\newpage
+
+
+
+\subsection{clLogFilterSet}
+\index{clLogFilterSet@{clLogFilterSet}}
+\hypertarget{pagelog113}{}\paragraph{cl\-Log\-Filter\-Set}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:].\end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+		ClRcT clLogFilterSet(
+		           CL_IN    ClLogStreamHandleT    logStreamHandle,
+		           CL_IN    ClLogFilterT                  logFilter
+		)
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logStreamHandle}]:(in) Identifies the stream for which the filter is specified.
+\item[{\em logFilter}]:(in) Specifies the filter criteria. Currently we will filter on severity level, 
+context Id and the message Id fields of the Log Record.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NULL\_\-POINTER}]: Expecting pointer to valid memory space.
+\item[{\em CL\_\-LOG\_\-ERR\_\-BAD\_\-FLAG}]: The passed flag is invalid.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function may be invoked as a consequence of an administrative operation to set the filter for a particular Log Stream.
+The Log Server is responsible for propagating this filter criteria to all the log clients currently logging to this stream.
+The flags attribute of log Filter determines how the specified filtering criteria is used. It determines if the filtering criteria should be merged
+with the existing filtering criteria to create a superset or should the existing filtering criteria be ignored. If a filter is set successfully, the 
+log service will not write records to a Log Stream that satisfies the filter criteria.
+
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog114}{clLogFilterSetCallbackT()}\end{Desc}
+\newpage
+
+
+
+
+\subsection{ClLogFilterSetCallbackT}
+\index{ClLogFilterSetCallbackT@{ClLogFilterSetCallbackT}}
+\hypertarget{pagelog114}{}\paragraph{cl\-Log\-Filter\-Set\-CallbackT}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:].\end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+			typedef  void (*ClLogFilterSetCallbackT) (
+			           CL_IN    ClLogStreamHandleT    logStreamHandle,
+			           CL_IN    ClLogFilterT                  logFilter
+			)
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logStreamHandle}]:(in) Identifies the stream on which the filter is set.
+\item[{\em logFilter}]:(in) new Filter set for the specified stream. 
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+None.
+\end{Desc}
+\begin{Desc}
+\item[Description:] Log Service invokes this callback to update the application with the current filter criteria.
+The application does not log the records that fail the filter criteria. However, if the application tries to log 
+such a record, the Log Service performs the filtering operation and rejects the records that do not pass through the filter successfully.
+This function may be invoked as a consequence of an administrative operation to set the filter for a particular Log Stream.
+
+\end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog101}{clLogInitialize()}, \hyperlink{pagelog113}{clLogFilterSet()}\end{Desc}
+\newpage
+
+
+
+
+
+
+\subsection{clLogGetRecords}
+\index{clLogGetRecords@{clLogGetRecords}}
+\hypertarget{pagelog115}{}\paragraph{cl\-Log\-Get\-Records}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:]Copies the Log Records.\end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+			ClRcT clLogGetRecords(
+			           CL_IN ClLog FileHandleT logFileHandle,
+			           CL_IN ClLogRecNumT startRecNum,
+			           CL_OUT ClLogRecNumT *recCount,
+			           CL_IN ClUint32T bufLen,
+			           CL_INOUT ClUint8T *buf
+			)
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+\item[{\em logFileHandle}]:(in) Handle identifying the Log File.
+\item[{\em startRecNum}]:(in) Records starting from this record number are required by the application.
+\item[{\em recCount}]:(out) Number of records the service is returning.
+\item[{\em bufLen}]:(in) Length of the buffer given by application to copy records.
+\item[{\em buf}]:(in/out) Application supplied buffer to which the Log Service copies the records.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NULL\_\-POINTER}]: Expecting pointer to valid memory space.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] Function will copy the number of records that can fit into the buffer limited by the buffer length. \end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog109}{clLogArchiveInit()}, \hyperlink{pagelog110}{clLogArchiveFinalize()}\end{Desc}
+\newpage
+
+
+\subsection{clLogGetMetadata}
+\index{clLogGetMetadata@{clLogGetMetadata}}
+\hypertarget{pagelog116}{}\paragraph{cl\-Log\-Get\-Metadata}\label{pagelog101}
+\begin{Desc}
+\item[Synopsis:] Copies the Meta data.\end{Desc}
+\begin{Desc}
+\item[Header File:] clLogApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}        	
+			ClRcT clLogGetMetadata(
+			           CL_IN ClLog FileHandleT logFileHandle,
+			           CL_IN ClUint32T bufLen,
+			           CL_INOUT ClUint8T *buf
+			)
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:] \begin{description}
+
+\item[{\em logFileHandle}]:(in) Handle identifying the Log File whose meta data is required by the application.
+\item[{\em startRecNum}]:(in) Length of the buffer given by application to copy the meta data.
+\item[{\em recCount}]:(in/out) Application supplied buffer to which the Log Service copies the data.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK}]: Function completed successfully.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-HANDLE}]: The handle is invalid.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TRY\_\-AGAIN}]: The service cannot be provided at this time. The process can try later.
+\item[{\em CL\_\-LOG\_\-ERR\_\-INVALID\_\-PARAM}]: The parameter passed is not correct.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-MEMORY}]: Out of memory. Unable to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NO\_\-RESOURCE}]: Insufficient resources (other than memory) to provide the service.
+\item[{\em CL\_\-LOG\_\-ERR\_\-TIMEOUT}]: Timeout occurred before the call could complete.
+\item[{\em CL\_\-LOG\_\-ERR\_\-NULL\_\-POINTER}]: Expecting pointer to valid memory space.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] Function will copy the Meta data that can fit in the buffer limited by buffer length. \end{Desc}
+\begin{Desc}
+\item[Library File:] libLogClient\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagelog109}{clLogArchiveInit()}, \hyperlink{pagelog110}{clLogArchiveFinalize()}\end{Desc}
+\newpage
+
+
+
+\chapter{Service Notifications}
+\index{Service Notifications@{Service Notifications}}
+\section{Alarms}
+\subsection{Log Service Impaired}
+This alarm is sent when the Log Service becomes unusable due to reasons including:
+\begin{itemize}
+\item	Unavailability of memory.
+\item	Unavailability of other resources other than memory.
+\item	Communication failures.
+\end{itemize}
+
+\subsection{Capacity HighWaterMark Crossed}
+This is used to indicate if the Log File is reaching its capacity.
+\begin{itemize}
+\item	Sent when Log FileFullAction has come to a halt and the file is full.
+\item	Configured HighWatermark for capacity is crossed.
+\end{itemize}
+
+\subsection{LogStream Impacted}
+ This alarm is sent when the Log Stream is encountering problems such as:
+\begin{itemize}
+\item	Log Service element is not able to complete memory mapping operation.
+\item	Log Records are lost.
+\item	Failure occurs in some internal operations.
+\end{itemize}
+
+
+
+\section{Other Notifications}
+\subsection{LogStreamCreate}
+This notification is sent when a new stream is created.
+\subsection{Log ServiceDelete}
+This notification is sent when the last logger using the stream closes the stream.
+
+
+\section{Logs}
+The Log Streams in which logs are written. This is bootstrapping issue: where does the Log Service log. We rely on alarms to report error and other 
+conditions requiring attention. Once the Log Services are operations we can make use of itself for logging purpose. 
+ 
+
+
+\chapter*{Glossary}
+\index{Glossary@{Glossary}}
+\begin{Desc}
+\item[Glossary of Log Service Terms:]
+\par
+\par
+\begin{description}
+
+\item[Archiver] Program/entity that extracts records from the Log File and archives them.
+
+\item[Global Log Stream] A Log Stream visible in the cluster. Any component in the cluster can log into this stream.
+
+\item[Local Log Stream] A Log Stream local to one node. This stream is not visible on any other node in the system. Components running on the same
+node only can log into this stream.
+
+\item[Log Client] Part of the Log Service linked to the Logger. This provides Log Service interface to the Logger.
+
+\item[Log Service] ASP Service that provides logging facility for various applications and ASP components in the cluster.
+
+\item[Logger] Program using Log Service to write the Log Records or events of intrest into the Log Streams.
+
+\item[Log Record] Unit of information provided by the logger to be recorded in a particular Log Stream. One unit of information related to an event.
+This is an ordered set of information. Log Record has two parts - header and user data. 
+Header contains meta-information regarding the event and data part contains the actual information.
+
+\item[Log Server] Log Service component maintaining Log Streams and Log Files.
+
+\item[Log Stream] It is a conceptual flow of Log Records. Every Log Stream has a theme associated with it, based on which the viewer can decide 
+whether the events of interest are available in this stream on not. Streams have names for addressing.
+
+\item[Log File] A destination for Log Stream and persistent storage for Log Records.
+
+\item[Log Configuration File] Persistent storage for the configuration information of a Log File. Configuration of all Log Streams moving 
+into a specific Log File is identical. So, a single copy of such configuration per Log File needs to be maintained.
+A collection of Log Streams can flow into one Log File for the ease of management of data.
+
+\item[Local Log File] Log File that is collocated with the Logger on the same node.
+
+\item[Remote Log File] Log File that may be on a different node than the Logger.
+
+\item[Log Service Element] One process per ASP enabled node in the cluster that provides part of the functionality of the Log Service. All the Log 
+Service Elements along with Log Clients form the Log Service. This element is owner for all the Local Log Streams on its node.
+
+\item[Master Log Service Element] Log Service Element running on the System Controller node. This element is the owner of all the Global Log Streams 
+in the cluster.
+
+\item[Log Viewer] Application used for viewing the logged records. This is not part of Log Service.
+
+\item[Archiever] Application used for siphoning off the logged records to another form of persistent storage. This is not part of Log Service.
+
+\item[Log Reader] Application that programmatically consumes the logged records. Typical readers are applications looking for missing 
+Notifications/Events.
+
+\item[Filter] A pattern that controls the logging of records. Only the Log Records matching this pattern are actually logged into the Log Stream.
+
+\item[TLV format] \textit{TAG LENGTH VALUE} format. One of the formats in which data can be specified. 
+\begin{itemize}
+\item
+\textit{Tag} identifies the data type.
+\item
+\textit{Length} specifies the number of bytes in the value field.
+\item
+\textit{Value} indicates the data.
+\end{itemize}
+
+\item[MetaData File] File maintaining the data related to Log Records and Log Files.
+
+\end{description}
+\end{Desc}
+
+
+
+\end{flushleft}

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration:migrationInfo xmlns:migration="migration.ecore">
+  <update/><!-- snmpautocodegen.py -->
+  <update/><!-- cor.py -->
+  <update/><!-- om.py, alarmprofiles.py, clCompConfig.py -->
+  <update>
+    <change sourceXML="models/alarmdata.xml">
+      <migrationStep type="10" details="alarm:alarmInformation,AlarmProfile#SpecificProblem#0"/>
+    </change>
+  </update>
+  <update/><!-- alarmprofiles.py, alarmprofilesTemplate.py -->
+  <update/><!-- alarmprofilesTemplate.py -->
+  <update/><!-- deployImage.xml -->
+  <update>
+    <change sourceXML="models/componentdata.xml">
+      <migrationStep type="10" details="serviceGroup#autoAdjust#CL_FALSE"/>
+      <migrationStep type="10" details="serviceGroup#autoAdjustProbation#10000"/>
+    </change>
+    <change sourceXML="configs/clAmfDefinitions.xml">
+      <migrationStep type="11" details="sgType#autoAdjust"/>
+      <migrationStep type="14" details="autoAdjust#CL_FALSE"/>
+      <migrationStep type="11" details="sgType#autoAdjustProbation"/>
+      <migrationStep type="14" details="autoAdjustProbation#10000"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="configs/clGmsConfig.xml">
+      <migrationStep type="11" details="gms#bootElectionTimeout"/>
+      <migrationStep type="14" details="bootElectionTimeout#5"/>
+      <migrationStep type="11" details="gms#preferredActiveSCNodeName"/>
+      <migrationStep type="14" details="preferredActiveSCNodeName#none"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="models/componentdata.xml">
+      <migrationStep type="12" details="component:componentInformation,safComponent,timeouts#healthCheck"/>
+      <migrationStep type="10" details="component:componentInformation,safComponent,healthCheck#period#30"/>
+      <migrationStep type="10" details="component:componentInformation,safComponent,healthCheck#maxDuration#60"/>
+      <migrationStep type="12" details="component:componentInformation,nonSAFComponent,timeouts#healthCheck"/>
+      <migrationStep type="10" details="component:componentInformation,nonSAFComponent,healthCheck#period#30"/>
+      <migrationStep type="10" details="component:componentInformation,nonSAFComponent,healthCheck#maxDuration#60"/>
+    </change>
+    <change sourceXML="configs/clAmfDefinitions.xml">
+      <migrationStep type="12" details="amfDefinitions:amfTypes,compTypes,compType,timeouts#healthCheck"/>
+      <migrationStep type="11" details="amfDefinitions:amfTypes,compTypes,compType,healthCheck#period"/>
+      <migrationStep type="14" details="amfDefinitions:amfTypes,compTypes,compType,healthCheck,period#30"/>
+      <migrationStep type="11" details="amfDefinitions:amfTypes,compTypes,compType,healthCheck#maxDuration"/>
+      <migrationStep type="14" details="amfDefinitions:amfTypes,compTypes,compType,healthCheck,maxDuration#60"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="configs/clGmsConfig.xml">
+      <migrationStep type="41" details="linkName"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.MigrationHandler_31#convertHealthCheckToMillis"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="models/componentdata.xml">
+      <migrationStep type="31" details="serviceGroup#isCollocationAllowed#true#CL_TRUE"/>
+      <migrationStep type="31" details="serviceGroup#isCollocationAllowed#false#CL_FALSE"/>
+      <migrationStep type="31" details="serviceGroup#allowCollocatedActiveStandbyAssignments#true#CL_TRUE"/>
+      <migrationStep type="31" details="serviceGroup#allowCollocatedActiveStandbyAssignments#false#CL_FALSE"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="models/componentdata.xml">
+      <migrationStep type="31" details="component:componentInformation,safComponent#instantiateLevel#0#1"/>
+      <migrationStep type="31" details="component:componentInformation,nonSAFComponent#instantiateLevel#0#1"/>
+    </change>
+    <change sourceXML="configs/clAmfDefinitions.xml">
+      <migrationStep type="33" details="amfDefinitions:amfTypes,compTypes,compType,instantiateLevel#0#1"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="models/componentdata.xml">
+      <migrationStep type="10" details="serviceGroup#reductionProcedure#CL_FALSE"/>
+    </change>
+    <change sourceXML="configs/clAmfDefinitions.xml">
+      <migrationStep type="11" details="sgType#reductionProcedure"/>
+      <migrationStep type="14" details="reductionProcedure#CL_FALSE"/>
+    </change>
+  </update>
+  <update/><!-- clSnmpAppMain.c -->
+  <update>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.DBALConfigMigrationHandler"/>
+    </change>
+  </update>
+  <update/><!-- clSnmpAppMain.c, clCompAppMain.c, clProxyCompAppMain.c -->
+  <update>
+    <change sourceXML="configs/clAmfConfig.xml" checkString="amfConfig,serviceGroups,serviceGroup,serviceInstances,serviceInstance,componentServiceInstances,componentServiceInstance,dependencies#11">
+      <migrationStep type="11" details="amfConfig,serviceGroups,serviceGroup,serviceInstances,serviceInstance,componentServiceInstances,componentServiceInstance#dependencies"/>
+      <migrationStep type="10" details="amfConfig,serviceGroups,serviceGroup,serviceInstances,serviceInstance,componentServiceInstances,componentServiceInstance,dependencies#componentServiceInstance#"/>
+    </change>
+  </update>
+  <update/><!-- Makefile -->
+  <update/><!-- clSnmpAppMain.c, clCompAppMain.c, clProxyCompAppMain.c -->
+  <update/><!-- Makefile -->
+  <update>
+    <change sourceXML="models/componentdata.xml">
+      <migrationStep type="10" details="node#autoRepair#CL_TRUE"/>
+    </change>
+    <change sourceXML="configs/clAmfDefinitions.xml">
+      <migrationStep type="11" details="nodeType#autoRepair"/>
+      <migrationStep type="14" details="amfDefinitions:amfTypes,nodeTypes,nodeType,autoRepair#CL_TRUE"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="">
+      <migrationStep type="80" details="configs/log.xml"/>
+    </change>
+  </update>
+  <update/><!-- clSnmpAppMain.c, clCompAppMain.c, clProxyCompAppMain.c -->
+  <update/><!-- snmpautocodegen.py -->
+  <update>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.ConfigVersioningMigrationHandler"/>
+    </change>
+  </update>
+</migration:migrationInfo>

@@ -1,0 +1,157 @@
+
+\hypertarget{group__group11}{
+\chapter{Functional Overview}
+\label{group__group11}
+}
+
+\begin{flushleft}
+
+The OpenClovis Chassis Manager (CM) communicates with the chassis to obtain and control hardware platform status information. The CM uses Hardware 
+Platform Interface (HPI) to: 
+\begin{itemize}
+\item
+Interact with the hardware platform and thereby, monitor its status.
+\item
+Control the entities contained in it and Field Replaceable Units (FRUs), such as blades, AMCs, PMCs, and so on. 
+\end{itemize}
+
+Chassis Manager is designed to use HPI B.01.01 specification's implementation of OpenHPI (Open source of HPI implementation), and {\tt{libhcl}} (Radisys HPI 
+Client Library), and provide the platform management services to ASP. CM depends on the Shelf Manager to monitor and control operations on the
+chassis. The Shelf Manager is responsible for monitoring and control to ensure correct operation of boards and other Shelf components. CM resides on 
+the Shelf Manager to provide this system management functionality. The Chassis Manager controls the activation and de-activation of the blades based on 
+Shelf Manager's implementation during hotswap state transition, when a blade is inserted and removed.
+\par
+Chassis Manager detects arrival and departure of cards through HPI/IPMI events and other platform hardware related events, and reports it to the 
+appropriate ASP components. 
+\par
+It also takes management requests from various sources such as Availability Management. For instance, CM supports hot-swapping, where the 
+entities running on a node can shutdown before the node is physically removed.
+
+\chapter{Service Model}
+TBD
+
+\chapter{Service APIs}
+
+\section{Type Definitions}
+
+
+\subsection{ClCmFruOperationT}
+\index{ClCmFruOperationT@{ClCmFruOperationT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_CM\_POWERON\_REQUEST,}\\
+\>\>\>\>\textit{CL\_CM\_POWEROFF\_REQUEST,}\\
+\>\>\>\>\textit{CL\_CM\_POWER\_CYCLE\_REQUEST,}\\
+\>\>\>\>\textit{CL\_CM\_INSERT\_REQUEST,}\\
+\>\>\>\>\textit{CL\_CM\_EXTRACT\_REQUEST,}\\
+\>\>\>\>\textit{CL\_CM\_RESET\_REQUEST,}\\
+\>\>\>\>\textit{CL\_CM\_WARM\_RESET\_REQUEST,}\\
+\>\>\>\>\textit{CL\_CM\_RESET\_ASSERT\_REQUEST,}\\
+\>\>\>\>\textit{CL\_CM\_RESET\_DEASSERT\_REQUEST}\\
+\textit{\} ClCmFruOperationT;}\end{tabbing}
+The enumeration, {\tt{ClCmFruOperationT}}, contains the various chassis manager operations.
+
+
+\newpage
+
+\section{Functional APIs}
+
+
+\subsection{clCmVersionVerify}
+\index{clCmVersionVerify@{clCmVersionVerify}}
+\hypertarget{pagecm202}{}\paragraph{cl\-Cm\-Version\-Verify}\label{pagecm202}
+\begin{Desc}
+\item[Synopsis:]Verifies the version of the library supported by the CM.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}        ClRcT clCmVersionVerify(
+                         			ClVersionT *version  );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em version}](in/out): As an input parameter, it accepts the version being verified. As an output parameter, it returns the version that is 
+supported.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. \item[{\em CL\_\-ERR\_\-VERSION\_\-MISMATCH:}]The version provided is not supported.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to verify if the version of the client is supported. If the version is not supported, an error is returned 
+with the value of the supported version populated in the {\tt{out}} parameter. Typically, this function must be invoked at the initialization of the application.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cm\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+
+
+\newpage
+\subsection{clCmBladeOperationRequest}
+\index{clCmBladeOperationRequest@{clCmBladeOperationRequest}}
+\hypertarget{pagecm202}{}\paragraph{cl\-Cm\-Blade\-Operation\-Request}\label{pagecm202}
+\begin{Desc}
+\item[Synopsis:]Performs an operation on the blade or any platform hardware.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCmBladeOperationRequest(
+              				CL_IN  ClUint32T ChassisId,
+              				CL_IN  ClUint32T SlotId,
+              				CL_IN ClCmFruOperationT request);
+\end{verbatim}	
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em Chassis\-Id:}](in) {\tt{Chassis\-Id}} of the blade. 
+\item[{\em Slot\-Id:}](in) {\tt{Slot\-Id}} of the blade. 
+\item[{\em request:}](in) Operation requested on the hardware.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]An invalid parameter has been passed to this function. A parameter is not set correctly.
+\item[{\em CL\_\-ERR\_\-VERSION\_\-MISMATCH:}]The version of the client and server incompatible. 
+\item[{\em CL\_\-ERR\_\-CM\_\-HPI\_\-ERROR:}]An HPI error has occurred at the server. 
+\item[{\em CL\_\-ERR\_\-TRY\_\-AGAIN:}]CM is busy and cannot service the request immediately.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This API is used to operate on a BLADE or platform hardware. It accepts three arguments: {\tt{Chassis\-Id}}, {\tt{Slot\-Id}}
+of the FRU to operate, and the requested operation. The various operations are listed in the enumeration, {\tt{Cl\-Cm\-Fru\-Operation\-T}}.\end{Desc}
+\begin{Desc}
+\item[Warning:]Setting-up the hotswap state of the BLADE must conform to the HPI hotswap state transition sequence. Only valid state transitions are 
+allowed and any invalid state transition requests are rejected as {\tt{invalid}} requests.\end{Desc}
+\begin{Desc}
+\item[Note:]Refer to {\tt{DBG\_\-PRINTS}} on the Chassis Manager console or Log file for HPI errors.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cm\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+
+\chapter{Service Management Information Model}
+TBD
+
+\chapter{Service Notifications}
+TBD
+
+\chapter{Configuration}
+TBD
+
+\chapter{Debug CLI}
+TBD
+
+\end{flushleft}

@@ -1,0 +1,400 @@
+Manifest-Version: 1.0
+Bundle-Version: 3.3.3.r33x_r20080129-8y8eE9UEUWI6qujeED0xT7bc
+Created-By: 1.4.2 (IBM Corporation)
+Bundle-SymbolicName: org.eclipse.rcp.source; singleton=true
+Bundle-Name: %pluginName
+Bundle-Localization: plugin
+Bundle-Vendor: %providerName
+Ant-Version: Apache Ant 1.7.0
+
+Name: src/org.eclipse.equinox.preferences_3.2.101.R33x_v20080117/src.z
+ ip
+SHA1-Digest: B8D+JCeax/gZSECSCd6kUf3u+MQ=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/decorators.exsd
+SHA1-Digest: exNkZ8mogitg0+MnPpwKKft36xM=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/statusHandlers.ex
+ sd
+SHA1-Digest: 6y+oeDUetyv2JxfYUi7xBGZXnh4=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/viewActions.exsd
+SHA1-Digest: +0GHXuO0yevmaOUUiArpChSTXrU=
+
+Name: src/org.eclipse.help_3.3.2.v20071126_33x/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.equinox.registry_3.3.1.R33x_v20070802/src.zip
+SHA1-Digest: wqN73lai3TSNkPgx3XmhVM1IK3I=
+
+Name: src/org.eclipse.core.commands_3.3.0.I20070605-0010/src.zip
+SHA1-Digest: GJkBFDo6I2WfussFQua+eB7A85Q=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/contexts.exsd
+SHA1-Digest: /4zo+FJyULc8RZ1SRfgGe6HMI/E=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/importWizards.exs
+ d
+SHA1-Digest: a8BcPY6U2fhezFNmUgQVPrwoLN0=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/popupMenus.exsd
+SHA1-Digest: y/8jbpvgKpMXOKqq8dZcUtPEqjM=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/newWizards.exsd
+SHA1-Digest: pML4dF6cMFxWOOjf4JaQRphOoCI=
+
+Name: src/org.eclipse.equinox.app_1.0.1.R33x_v20070828/about_files/LIC
+ ENSE-2.0.txt
+SHA1-Digest: K4uBUimqimHkg/tLoFiLi2xJGJA=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/actionDefinitions
+ .exsd
+SHA1-Digest: 1v08qbwDsktdvK2yKhhL+wpnEqg=
+
+Name: src/org.eclipse.core.expressions_3.3.0.v20070606-0010/schema/def
+ initions.exsd
+SHA1-Digest: RZmKwcIPnwC3cpyrROsP7bgWmok=
+
+Name: src/org.eclipse.core.contenttype_3.2.100.v20070319/schema/conten
+ tTypes.exsd
+SHA1-Digest: Shdvl8DL6VZARru7zbr7duGUHNg=
+
+Name: src/org.eclipse.equinox.registry_3.3.1.R33x_v20070802/about_file
+ s/LICENSE-2.0.txt
+SHA1-Digest: K4uBUimqimHkg/tLoFiLi2xJGJA=
+
+Name: plugin.xml
+SHA1-Digest: I0t+o6kXbySrxIY1bLaTaeai3Vc=
+
+Name: src/org.eclipse.equinox.common_3.3.0.v20070426/src.zip
+SHA1-Digest: U5z2mSQn/trAhyW46or9Bu2nNi0=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/activitySupport.e
+ xsd
+SHA1-Digest: FlX+N8Cu4xlt5cEafpPtBM7WOLw=
+
+Name: plugin.properties
+SHA1-Digest: C/RrvF5+iX2PNZj8vF8WWKdB53k=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/activities.exsd
+SHA1-Digest: +MNJBTPsusrMU98zZu1YUF+dTqc=
+
+Name: src/org.eclipse.equinox.app_1.0.1.R33x_v20070828/about.html
+SHA1-Digest: iupxPluXwNGTf3q3zwJ5thd5ips=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/perspectives.exsd
+SHA1-Digest: i5/lrlH8eOwiSVwp9Vbe92PSHKU=
+
+Name: src/org.eclipse.core.contenttype_3.2.100.v20070319/src.zip
+SHA1-Digest: 1dAoJ0F2PlrntjSHWkN85StZlL8=
+
+Name: src/org.eclipse.equinox.launcher_1.0.1.R33x_v20080118/src.zip
+SHA1-Digest: fHHfpyIoq+Mv2TuVLflf0bINT8I=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/acceleratorSets.e
+ xsd
+SHA1-Digest: 4qVhCnZZddycHMgLwBqzJmCCd7c=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/commonAction.exsd
+SHA1-Digest: yJHHZt+xC7pLuo7jp+cQiyn40Ok=
+
+Name: src/org.eclipse.ui.workbench_3.3.2.M20080207-0800/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/workingSets.exsd
+SHA1-Digest: MDciCsaIIkFnjU0zXbIVJxDBtTk=
+
+Name: src/org.eclipse.help_3.3.2.v20071126_33x/schema/contentProducer.
+ exsd
+SHA1-Digest: DhQC7mtO/taiYnuoHvF/Dz6PDIM=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/editors.exsd
+SHA1-Digest: +XQTBJkjGXnDlt60t1dkaUYDu8E=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/keywords.exsd
+SHA1-Digest: iWSpWhRZYRwW1L6WIKPq961S+Cw=
+
+Name: src/org.eclipse.core.runtime_3.3.100.v20070530/schema/preference
+ s.exsd
+SHA1-Digest: j+nmdpk55UBVVnmxCgLuBOq7ar0=
+
+Name: about.mappings
+SHA1-Digest: fmNUJWCqpZ+4sPSyZxiYRSYdGZ0=
+
+Name: src/org.eclipse.core.runtime.compatibility.auth_3.2.100.v2007050
+ 2/src.zip
+SHA1-Digest: KqldXYyyCqYdLqB9hFMrMVdmkBo=
+
+Name: src/org.eclipse.equinox.registry_3.3.1.R33x_v20070802/about_file
+ s/NOTICE.txt
+SHA1-Digest: l8kmUOH5ziCwuegrbv+5ZT8NVUE=
+
+Name: META-INF/eclipse.inf
+SHA1-Digest: KyT9FF7C7t86NoBoa2kZT3ZJBfw=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/splashHandlers.ex
+ sd
+SHA1-Digest: fEMnUjVC4LO3aQYJE/woqfmhT8U=
+
+Name: src/org.eclipse.help_3.3.2.v20071126_33x/schema/helpData.exsd
+SHA1-Digest: mh3XWJIyRHXTnnysC8ZnKdrClZY=
+
+Name: src/org.eclipse.core.runtime_3.3.100.v20070530/schema/contentTyp
+ es.exsd
+SHA1-Digest: Shdvl8DL6VZARru7zbr7duGUHNg=
+
+Name: src/org.eclipse.osgi_3.3.2.R33x_v20080105/about.html
+SHA1-Digest: V9uiZs6eeScJ+VlmNclJX6gE1lc=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/presentationFacto
+ ries.exsd
+SHA1-Digest: 4ApS1v4VUW9A1uUv6eSyGCpMtnM=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/perspectiveExtens
+ ions.exsd
+SHA1-Digest: Ec8ICKmI5ZYaCrvw0B+yC6wlVr0=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/actionSetPartAsso
+ ciations.exsd
+SHA1-Digest: lt4AfPY+hNyGvuqz7hcDLqSmQ2M=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/menus.exsd
+SHA1-Digest: KkhaFFoULmifd1PXnRafvmiGnp8=
+
+Name: src/org.eclipse.core.runtime_3.3.100.v20070530/src.zip
+SHA1-Digest: xm0xdn7eZKVCQOmEeD2irgFGB8Y=
+
+Name: src/org.eclipse.core.expressions_3.3.0.v20070606-0010/schema/exp
+ ressionLanguage.exsd
+SHA1-Digest: e1wt1bmt46kJog/M5sLlSOLx26M=
+
+Name: src/org.eclipse.core.databinding_1.0.1.M20070822-0800/src.zip
+SHA1-Digest: KW2UxkzgPnZHOoWGLdZcHHWGjNU=
+
+Name: src/org.eclipse.ui.workbench_3.3.2.M20080207-0800/src.zip
+SHA1-Digest: rkhu/H0y4SouNb7r5vH0Qu8cJFY=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/encodings.exsd
+SHA1-Digest: NWAMT7ZkbH/JLR7N+uIKHx+xjIA=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/commands.exsd
+SHA1-Digest: TGNSAJLiUaoMQOR/ckL5qiXyGN0=
+
+Name: src/org.eclipse.core.expressions_3.3.0.v20070606-0010/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/acceleratorConfig
+ urations.exsd
+SHA1-Digest: VivJ+ILMYXeLLaPKUqIpIH11ZjM=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/src.zip
+SHA1-Digest: CX743F8o5xfkQVTMLDv69rAdBJg=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/preferencePages.e
+ xsd
+SHA1-Digest: Kgb1TLEjGa4eEAF7bpBiKPlv6g8=
+
+Name: src/org.eclipse.update.configurator_3.2.101.R33x_v20070810/src.z
+ ip
+SHA1-Digest: kZ5NDTg80SFHfqwto0FCac1Y4Xs=
+
+Name: src/org.eclipse.equinox.preferences_3.2.101.R33x_v20080117/about
+ .html
+SHA1-Digest: iupxPluXwNGTf3q3zwJ5thd5ips=
+
+Name: src/org.eclipse.core.jobs_3.3.1.R33x_v20070709/src.zip
+SHA1-Digest: YTvG/ggsp8n8SqBdd9SCkTGdH14=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/propertyPages.exs
+ d
+SHA1-Digest: x7dr4lMers3BPXM6VzPrhe7n288=
+
+Name: src/org.eclipse.equinox.app_1.0.1.R33x_v20070828/src.zip
+SHA1-Digest: otOF0V4hNBcO+W3sD0u7ZQpjnl0=
+
+Name: src/org.eclipse.core.jobs_3.3.1.R33x_v20070709/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/fontDefinitions.e
+ xsd
+SHA1-Digest: iFblBviG8kFrWHbT3VKZZdMNZwQ=
+
+Name: src/org.eclipse.core.runtime.compatibility.auth_3.2.100.v2007050
+ 2/about.html
+SHA1-Digest: majDfHR7wa8FvwM5tFX43NplqJo=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/exportWizards.exs
+ d
+SHA1-Digest: 0kYFpzI7xP/hkF1VcZ4ISX6xg/I=
+
+Name: src/org.eclipse.equinox.app_1.0.1.R33x_v20070828/schema/products
+ .exsd
+SHA1-Digest: +TP2Xy6yHxRIxHvODmD1XeFlDnQ=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/preferenceTransfe
+ r.exsd
+SHA1-Digest: KNeOI7VZ+Yj3QVGxuW7liRx5Zdg=
+
+Name: src/org.eclipse.core.databinding.beans_1.0.1.M20070910-0800b/abo
+ ut.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/browserSupport.ex
+ sd
+SHA1-Digest: WOCvHPuTOzflDyjahNh/vTWk0xc=
+
+Name: about.html
+SHA1-Digest: t15ZOHlrGDCeslNIq+PwNJ1tf+4=
+
+Name: src/org.eclipse.help_3.3.2.v20071126_33x/src.zip
+SHA1-Digest: 8sTi7BVdnMSeTr6YcSrhaiB9HTw=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/systemSummarySect
+ ions.exsd
+SHA1-Digest: ksnIm/gEKs2wngTyz7t4Yp6QbLY=
+
+Name: src/org.eclipse.equinox.preferences_3.2.101.R33x_v20080117/about
+ _files/LICENSE-2.0.txt
+SHA1-Digest: K4uBUimqimHkg/tLoFiLi2xJGJA=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/acceleratorScopes
+ .exsd
+SHA1-Digest: 9sM9rG24ctNFV19UAmFGmLpyCr4=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/views.exsd
+SHA1-Digest: 3G9oNfbEtOh/BFyeZxov4ZENPsQ=
+
+Name: src/org.eclipse.jface_3.3.2.M20080207-0800/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.core.expressions_3.3.0.v20070606-0010/src.zip
+SHA1-Digest: sfGBjW/tNPcTgJ+kkqRegPLkNzA=
+
+Name: src/org.eclipse.core.databinding.beans_1.0.1.M20070910-0800b/src
+ .zip
+SHA1-Digest: MCFWMqdlc+aGgaoPKM+kwUyYmzM=
+
+Name: src/org.eclipse.equinox.common_3.3.0.v20070426/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/actionSets.exsd
+SHA1-Digest: u03lDyH/nDWYCbivhj+tMLx5aoE=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/commandImages.exs
+ d
+SHA1-Digest: RpIYti8WVjLuCtlJ23XKoDoR0DU=
+
+Name: src/org.eclipse.core.runtime_3.3.100.v20070530/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/handlers.exsd
+SHA1-Digest: 0Z3RvVOufIicAyhCZpQ0OOSvGao=
+
+Name: src/org.eclipse.help_3.3.2.v20071126_33x/schema/contentExtension
+ .exsd
+SHA1-Digest: hqCMpUxoGRcHHBB6t7RCzPuepxk=
+
+Name: src/org.eclipse.core.contenttype_3.2.100.v20070319/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/bindings.exsd
+SHA1-Digest: zVovVEXKx8jCvMZv+ArvgpImwfY=
+
+Name: src/org.eclipse.jface.databinding_1.1.1.M20080207-0800/about.htm
+ l
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.core.expressions_3.3.0.v20070606-0010/schema/pro
+ pertyTesters.exsd
+SHA1-Digest: TR0GcQcWV7BI4+tPBeCY98IQ12A=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/dropActions.exsd
+SHA1-Digest: N2itBQATlqAAYG8RqgrIHtPwSiA=
+
+Name: src/org.eclipse.osgi_3.3.2.R33x_v20080105/src.zip
+SHA1-Digest: 0qQy/9Hj/E7RILmCUriADj1aGAI=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/editorActions.exs
+ d
+SHA1-Digest: ZumqaTS2VSXzIpMJsrZXwys28vc=
+
+Name: src/org.eclipse.jface.databinding_1.1.1.M20080207-0800/src.zip
+SHA1-Digest: 06Q1lGKRe3MX/Y3ps2sUeuhFE+I=
+
+Name: src/org.eclipse.update.configurator_3.2.101.R33x_v20070810/about
+ .html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: about.properties
+SHA1-Digest: RYzaqtIBjQgcG8+mHgUdFseXhII=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/startup.exsd
+SHA1-Digest: NabfHWdAO/YFhh/VtCmnUhBASv4=
+
+Name: src/org.eclipse.equinox.registry_3.3.1.R33x_v20070802/about.html
+SHA1-Digest: o16tDXq/7fInjpwz+qzCtchsnzY=
+
+Name: src/org.eclipse.help_3.3.2.v20071126_33x/schema/toc.exsd
+SHA1-Digest: Ymke1jojTd1FkGPFo7tDU9HEgnI=
+
+Name: src/org.eclipse.help_3.3.2.v20071126_33x/schema/contexts.exsd
+SHA1-Digest: XfPs2BX2cUT6EiHU9+OAYyeUcN8=
+
+Name: src/org.eclipse.osgi_3.3.2.R33x_v20080105/about_files/LICENSE-2.
+ 0.txt
+SHA1-Digest: K4uBUimqimHkg/tLoFiLi2xJGJA=
+
+Name: src/org.eclipse.jface_3.3.2.M20080207-0800/src.zip
+SHA1-Digest: 9clmERU0yVjj4ZDFgqD5u5ASjpI=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/intro.exsd
+SHA1-Digest: mqyVDMsB8Aw+XQawnwZYIvxzOb0=
+
+Name: src/org.eclipse.help_3.3.2.v20071126_33x/schema/index.exsd
+SHA1-Digest: QoZWiEFYELTwhxFFNc7t2B2x93s=
+
+Name: eclipse32.png
+SHA1-Digest: eCk/A3/COXL3S6qAVDOSrlsqmLw=
+
+Name: src/org.eclipse.core.runtime_3.3.100.v20070530/schema/adapters.e
+ xsd
+SHA1-Digest: kpczPCxCoHFbVz/iVgr2bqzfd5A=
+
+Name: src/org.eclipse.equinox.app_1.0.1.R33x_v20070828/schema/applicat
+ ions.exsd
+SHA1-Digest: Lx/7SHeR4n/nv+fnZQ7r3VRjrYw=
+
+Name: src/org.eclipse.core.databinding_1.0.1.M20070822-0800/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/commonExpression.
+ exsd
+SHA1-Digest: oV0DIMpr90nY+zV4UyJMSckCzAA=
+
+Name: src/org.eclipse.equinox.preferences_3.2.101.R33x_v20080117/schem
+ a/preferences.exsd
+SHA1-Digest: oOij943oxhsyG5qWD7kWJM6dv08=
+
+Name: src/org.eclipse.core.commands_3.3.0.I20070605-0010/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/themes.exsd
+SHA1-Digest: tPN8WG+KdmIhxKkgqzZZelhuaUs=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/internalTweaklets
+ .exsd
+SHA1-Digest: b0UtwqZaTTcMgbMJeQZtNYlZNOU=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/elementFactories.
+ exsd
+SHA1-Digest: Rq2336mmd0/78NreRoU4TeC4u6g=
+
+Name: about.ini
+SHA1-Digest: G1ZvU3W4XN9kdBX+aZVoXZhm/eQ=
+
+Name: src/org.eclipse.ui_3.3.1.M20071128-0800/schema/helpSupport.exsd
+SHA1-Digest: E81XyQ3hbbgdzhR0Q0fAgjruxTw=
+

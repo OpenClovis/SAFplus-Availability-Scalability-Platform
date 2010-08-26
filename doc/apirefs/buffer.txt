@@ -1,0 +1,148 @@
+/**
+ *  \defgroup buffer Buffer Management
+ *  \brief The OpenClovis Buffer Manager Library is designed to provide an
+ *  efficient method for management of user space buffer and memory in
+ *  order to increase the performance of communication intensive OpenClovis 
+ *  ASP components and user applications. It provides buffers that can expand 
+ *  or shrink dynamically based on application memory requirement. 
+ *
+ */
+ 
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup buffer_intro Functional Description
+ *  \brief Description of Buffer Management.
+ *  \ingroup buffer
+ *
+ *  The Buffer Manager functions enable you to perform various functions such
+ *  as, creating or deleting a message, reading, writing and trimming
+ *  any number of bytes from a message. 
+ *
+ *  The Buffer Management library also provides the facility of markers. 
+ *  You can set a marker at a specific offset in the message and can restore
+ *  the write pointer to that offset in the message.
+ *
+ *  The Buffer Management interacts with the Heap library for allocation
+ *  and de-allocation of memory.
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup buffer_usage API Usage Examples
+ *  \brief Code Examples.
+ *  \ingroup buffer
+ *
+ *  The following code example shows how to use few of the basic APIs of
+ *  the buffer library. The following code shows initializing the buffer
+ *  library, creation of a buffer message, writing and reading to the
+ *  buffer message and deleting it once the application is done with using
+ *  it.
+ *
+ *  \code
+ *   ClRcT errorCode = CL_OK;
+ *
+ *   // Initializes the buffer management library. The application has 
+ *   // to specify pool configuration through clBufferInitialize() API, 
+ *   // but if NULL is passed then the Buffer library will choose
+ *   // the default configuration for Pool.
+ *   errorCode = clBufferInitialize(NULL);
+ *   if(CL_OK != errorCode) {
+ *       //error occured. take appropriate action
+ *   }
+ *
+ *   // Creates a message. And the message handle will be returned
+ *   // in myMessage. To perform any buffer operations on the buffer 
+ *   // message this buffer message handle should be used.
+ *   ClBufferHandleT myMessage = 0;
+ *
+ *   errorCode = clBufferCreate(&myMessage);
+ *   if(CL_OK != errorCode) {
+ *       //error occured. take appropriate action
+ *   }
+ *
+ *   //Writes "n" number of bytes into the message
+ *   ClUint8T* pByteBuffer = clHeapAllocate(15);
+ *
+ *   strcpy(pByteBuffer, "Hello Clovis");
+ *   errorCode = clBufferNBytesWrite(myMessage, pByteBuffer, 15);
+ *   if(CL_OK != errorCode) {
+ *       //error occured. take appropriate action
+ *   }
+ *
+ *   //Returns the length of the message
+ *   ClUint32T length = 0;
+ *
+ *   errorCode = clBufferLengthGet(myMessage, &length)
+ *   if(CL_OK != errorCode) {
+ *       //error occured. take appropriate action
+ *   }
+ *
+ *   //Reads "n" number of bytes from the message
+ *   ClUint32T length = 15;
+ *   errorCode = clBufferNBytesRead(myMessage, pByteBuffer, &length);
+ *   if(CL_OK != errorCode) {
+ *       //error occured. take appropriate action
+ *   }
+ *
+ *   //Prepends data to the message
+ *
+ *   strcpy(pByteBuffer, "ABRAKADABRA");
+ *   errorCode = clBufferDataPrepend(myMessage, pByteBuffer,
+ *                                   strlen("ABRAKADABRA")+1);
+ *   if(CL_OK != errorCode) {
+ *       //error occured. take appropriate action
+ *   }
+ *
+ *   //Deletes the message
+ *   errorCode = clBufferDelete(&myMessage);
+ *   if(CL_OK != errorCode) {
+ *       //error occured. take appropriate action
+ *   }
+ *  \endcode
+ *
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup buffer_error Error/Return Codes
+ *  \brief Common and Component specific Error Codes.
+ *  \ingroup buffer
+ *
+ *  The majority of ASP API functions return a <b>Return Code</b> as their return value. 
+ *  A zero return code (CL_OK) always indicates success. Non-zero return codes 
+ *  always carry two types of information, masked into one single value: 
+ *  a <b>Component Identifier</b> and an <b>Error Code</b>. The component 
+ *  identifier identifies the component (or software layer) in which the problem 
+ *  occurred, while the error code describes the nature of the problem. 
+ *  Some error codes are common across all components, while others are 
+ *  component specific. 
+ *
+ *  The format of the Return Codes is 0xCCNNNN (given in hex),
+ *  where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ *
+ *  \note <b>Only the Error Codes are listed as Return values 
+ *  in the Function Documentation of the API Reference pages. The real 
+ *  return value also contains the Component Identifier!</b> 
+ *
+ *  The following links are useful while interpreting Buffer Manager 
+ *  generated return codes:
+ *  - \ref apirefs_errorcodes_compid_CL_CID_BUFFER "Buffer Manager Component Identifier"
+ *  - \ref apirefs_errorcodes_common
+ *
+ *  For further details and information about all error/return codes visit 
+ *  page \ref apirefs_errorcodes.
+ */
+
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup buffer_apis API Reference Pages
+ *  \brief Defines, Structures, Typedefs, Functions.
+ *  \ingroup buffer
+ */
+ 
+//-----------------------------------------------------------

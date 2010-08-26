@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration:migrationInfo xmlns:migration="migration.ecore">
+  <update>
+    <change sourceXML="configs/clIocConfig.xml">
+      <migrationStep type="40" details="ioc:BootConfig,ioc,transport,link#linkSupportsMulticast"/>
+      <migrationStep type="41" details="ioc:BootConfig,ioc,transport,link,location"/>
+    </change>
+    <change sourceXML="configs/clEoDefinitions.xml">
+      <migrationStep type="10" details="eoDefinitions,memoryConfiguration,bufferConfigPool,bufferConfig#mode#NM"/>
+    </change>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.LogConfigMigrationHandler"/>
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.GMSConfigMigrationHandler"/>
+    </change>
+    <change sourceXML="models/resourcedata.xml">
+      <migrationStep type="21" details="hardwareResource#softwareResource"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="configs/clEoDefinitions.xml">
+      <migrationStep type="31" details="memoryConfig#processUpperLimit#36700160#0"/>
+      <migrationStep type="31" details="memoryConfig#processUpperLimit#52428800#0"/>
+    </change>
+    <change sourceXML="models/resourcedata.xml">
+      <migrationStep type="40" details="softwareResource#deviceObject"/>
+      <migrationStep type="40" details="nodeHardwareResource#deviceObject"/>
+      <migrationStep type="40" details="systemController#deviceObject"/>
+      <migrationStep type="41" details="deviceObject"/>
+    </change>
+  </update>
+  <update/><!-- cor.py -->
+  <update>
+    <change sourceXML="configs/amfDefinitions.xml">
+      <migrationStep type="33" details="compRestartCountMax#0#1"/>
+      <migrationStep type="33" details="suRestartCountMax#0#1"/>
+    </change>
+    <change sourceXML="models/componentdata.xml">
+      <migrationStep type="31" details="serviceGroup#compRestartCountMax#0#1"/>
+      <migrationStep type="31" details="serviceGroup#suRestartCountMax#0#1"/>
+    </change>
+  </update>
+</migration:migrationInfo>

@@ -1,0 +1,126 @@
+Manifest-Version: 1.0
+Bundle-Version: 3.3.3.r33x_r20080129-7N7M5DQVIA_6oJsEFkEL
+Created-By: 1.4.2 (IBM Corporation)
+Bundle-SymbolicName: org.eclipse.pde.source; singleton=true
+Bundle-Name: %pluginName
+Bundle-Localization: plugin
+Bundle-Vendor: %providerName
+Ant-Version: Apache Ant 1.7.0
+
+Name: src/org.eclipse.pde.ui_3.3.1.v20070912-0800/schema/newExtension.
+ exsd
+SHA1-Digest: xGHjRcCyHD7zIJpMMbi0yMNCIZE=
+
+Name: src/org.eclipse.pde.build_3.3.2.v20071019/schema/fetchFactories.
+ exsd
+SHA1-Digest: cIqqn/oW38kOYqSn7DCLowrQnTc=
+
+Name: src/org.eclipse.pde.ui_3.3.1.v20070912-0800/src.zip
+SHA1-Digest: snCz3xqsBxfpYQYIZZvfu9rssUY=
+
+Name: src/org.eclipse.pde.ui_3.3.1.v20070912-0800/schema/targetProvisi
+ oners.exsd
+SHA1-Digest: SEuYWAmiIVUkDgo6ib+lbknJeTo=
+
+Name: src/org.eclipse.pde_3.3.1.r33x_r20080129/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.pde.build_3.3.2.v20071019/about.html
+SHA1-Digest: PTYI3wCEbgadLnCeEqDFZO2n2Bk=
+
+Name: about.properties
+SHA1-Digest: Q28I3PNNo1la9s8Aov0BWtNsmAA=
+
+Name: src/org.eclipse.pde.build_3.3.2.v20071019/pdebuildsrc.zip
+SHA1-Digest: p0O/5PISIvafkyS4OcON+5RG9Zw=
+
+Name: src/org.eclipse.pde.ui_3.3.1.v20070912-0800/schema/templates.exs
+ d
+SHA1-Digest: 3ngtLvHr87e2KGr2JnVftZ/wCbo=
+
+Name: src/org.eclipse.pde_3.3.1.r33x_r20080129/src.zip
+SHA1-Digest: TUd0F8ZxlAYwi7BUQJtN04yod3c=
+
+Name: about.html
+SHA1-Digest: t15ZOHlrGDCeslNIq+PwNJ1tf+4=
+
+Name: src/org.eclipse.pde.ui.templates_3.3.0.v20070608-1300/src.zip
+SHA1-Digest: 2o9VXZQcCIt8ijlwW7prIVD71pM=
+
+Name: about.mappings
+SHA1-Digest: gcwOl1J0TqiNHX9vR7J8a4Sjy4Q=
+
+Name: META-INF/eclipse.inf
+SHA1-Digest: KyT9FF7C7t86NoBoa2kZT3ZJBfw=
+
+Name: src/org.eclipse.pde.core_3.3.2.v20071121-0800/schema/source.exsd
+SHA1-Digest: qAmiD6H24FuhMAleVrxPvJAE5Hw=
+
+Name: src/org.eclipse.pde.ui_3.3.1.v20070912-0800/schema/osgiFramework
+ s.exsd
+SHA1-Digest: ULcwjQupK1TLGeGMmmi8FsQFIKM=
+
+Name: src/org.eclipse.pde.core_3.3.2.v20071121-0800/schema/targets.exs
+ d
+SHA1-Digest: Vio2c0BK7Q62ZoLgu5wtn44wWxw=
+
+Name: src/org.eclipse.pde.junit.runtime_3.3.0.v20070608-1300/src.zip
+SHA1-Digest: n8mxD6C4DuUXfV+dCt1u8R5CRk0=
+
+Name: src/org.eclipse.pde.runtime_3.3.0.v20070608-1300/src.zip
+SHA1-Digest: 5k5OO9E8jqkwQQepTiFiH11ygp8=
+
+Name: eclipse32.png
+SHA1-Digest: eCk/A3/COXL3S6qAVDOSrlsqmLw=
+
+Name: src/org.eclipse.pde.ui_3.3.1.v20070912-0800/schema/samples.exsd
+SHA1-Digest: C3C9Ri9Xq/EcCFDBre2AKyBHBSY=
+
+Name: plugin.xml
+SHA1-Digest: I0t+o6kXbySrxIY1bLaTaeai3Vc=
+
+Name: src/org.eclipse.pde.core_3.3.2.v20071121-0800/src.zip
+SHA1-Digest: MbecSpcxrYfCM9EdnuraVAlbubg=
+
+Name: src/org.eclipse.pde.ui.templates_3.3.0.v20070608-1300/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.pde.core_3.3.2.v20071121-0800/schema/javadoc.exs
+ d
+SHA1-Digest: xG8OXE+vXemhzh24xJbvp8yJDZw=
+
+Name: plugin.properties
+SHA1-Digest: YnX6pACTft/r7JvdaMHDtDh9auc=
+
+Name: src/org.eclipse.pde.build_3.3.2.v20071019/lib/pdebuild-antsrc.zi
+ p
+SHA1-Digest: v+cLxqmDyIfqX3n7kTlulRRvyP4=
+
+Name: src/org.eclipse.pde.ui_3.3.1.v20070912-0800/schema/launchShortcu
+ ts.exsd
+SHA1-Digest: baKMi9btLjBg1ggmpEsqKsrkB9k=
+
+Name: src/org.eclipse.pde.core_3.3.2.v20071121-0800/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.pde.ui_3.3.1.v20070912-0800/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: about.ini
+SHA1-Digest: TUoi4mbbBi/LUC9FQJ/y5uymusQ=
+
+Name: src/org.eclipse.pde.junit.runtime_3.3.0.v20070608-1300/about.htm
+ l
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.pde.runtime_3.3.0.v20070608-1300/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.pde.ui_3.3.1.v20070912-0800/schema/pluginContent
+ .exsd
+SHA1-Digest: QySeKUAdRk9hH5FkYDPbW9dfR0Q=
+
+Name: src/org.eclipse.pde.core_3.3.2.v20071121-0800/ant_tasks/pde-ants
+ rc.zip
+SHA1-Digest: YeDP9JmqmFVb/Tox4owJB3pOUF0=
+

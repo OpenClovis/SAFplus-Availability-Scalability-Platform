@@ -1,0 +1,942 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+      Copyright (C) 2002-2009 by OpenClovis Inc. All Rights Reserved.
+      
+      The source code for  this program is not published  or otherwise 
+      divested of  its trade secrets, irrespective  of  what  has been 
+      deposited with the U.S. Copyright office.
+
+      This program is  free software; you can redistribute it and / or
+      modify  it under  the  terms  of  the GNU General Public License
+      version 2 as published by the Free Software Foundation.
+
+      This program is distributed in the  hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+      General Public License for more details.
+
+      You  should  have  received  a  copy of  the  GNU General Public
+      License along  with  this program. If  not,  write  to  the 
+      Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+-->
+<!--
+    Build: 4.2.0
+-->
+<IDLSpecs name="AmsIDL">
+        <Comp name="ioc"/> 
+        <Include name="clIocApi.h"/>
+
+        <Comp name="ams"/>
+        <Include name="clMetricApi.h"/>
+        <Include name="clAmsEntities.h"/>
+        <Include name="clAmsMgmtCommon.h"/>
+        <Include name="clAmsNotifications.h"/>
+        <Include name="clAmsMgmtServerApi.h"/>
+
+        <Enum name="ClAmsEntityTypeT">
+            <EnumMember name="CL_AMS_ENTITY_TYPE_ENTITY" value="0"/>
+            <EnumMember name="CL_AMS_ENTITY_TYPE_NODE" value="1"/>
+            <EnumMember name="CL_AMS_ENTITY_TYPE_APP" value="2"/>
+            <EnumMember name="CL_AMS_ENTITY_TYPE_SG" value="3"/>
+            <EnumMember name="CL_AMS_ENTITY_TYPE_SU" value="4"/>
+            <EnumMember name="CL_AMS_ENTITY_TYPE_SI" value="5"/>
+            <EnumMember name="CL_AMS_ENTITY_TYPE_COMP" value="6"/>
+            <EnumMember name="CL_AMS_ENTITY_TYPE_CSI" value="7"/>
+            <EnumMember name="CL_AMS_ENTITY_TYPE_CLUSTER" value="8"/>
+        </Enum>
+
+        <Enum name="ClAmsNotificationTypeT">
+            <EnumMember name="CL_AMS_NOTIFICATION_NONE" value="0"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_FAULT" value="1"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_SU_INSTANTIATION_FAILURE" value="2"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_SU_HA_STATE_CHANGE" value="3"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_SI_FULLY_ASSIGNED" value="4"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_SI_PARTIALLY_ASSIGNED" value="5"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_SI_UNASSIGNED" value="6"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_COMP_ARRIVAL" value="7"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_COMP_DEPARTURE" value="8"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_NODE_ARRIVAL" value="9"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_NODE_DEPARTURE" value="10"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_ENTITY_CREATE" value="11"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_ENTITY_DELETE" value="12"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_OPER_STATE_CHANGE" value="13"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_ADMIN_STATE_CHANGE" value="14"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_MAX" value="15"/>
+        </Enum>
+
+        <Enum name="ClAmsCompCapModelT">
+            <EnumMember name="CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY" value="1"/>
+            <EnumMember name="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" value="2"/>
+            <EnumMember name="CL_AMS_COMP_CAP_ONE_ACTIVE_OR_X_STANDBY" value="3"/>
+            <EnumMember name="CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY" value="4"/>
+            <EnumMember name="CL_AMS_COMP_CAP_X_ACTIVE" value="5"/>
+            <EnumMember name="CL_AMS_COMP_CAP_ONE_ACTIVE" value="6"/>
+            <EnumMember name="CL_AMS_COMP_CAP_NON_PREINSTANTIABLE" value="7"/>
+        </Enum>
+
+
+        <Enum name="ClAmsCompPropertyT">
+            <EnumMember name="CL_AMS_COMP_PROPERTY_SA_AWARE" value="1"/>
+            <EnumMember name="CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE" value="2"/>
+            <EnumMember name="CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE" value="3"/>
+            <EnumMember name="CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE" value="4"/>
+        </Enum>
+
+
+        <Enum name="ClAmsRecoveryT">
+            <EnumMember name="CL_AMS_RECOVERY_NONE" value="0"/>
+            <EnumMember name="CL_AMS_RECOVERY_NO_RECOMMENDATION" value="1"/>
+            <EnumMember name="CL_AMS_RECOVERY_COMP_RESTART" value="2"/>
+            <EnumMember name="CL_AMS_RECOVERY_COMP_FAILOVER" value="3"/>
+            <EnumMember name="CL_AMS_RECOVERY_NODE_SWITCHOVER" value="4"/>
+            <EnumMember name="CL_AMS_RECOVERY_NODE_FAILOVER" value="5"/>
+            <EnumMember name="CL_AMS_RECOVERY_NODE_FAILFAST" value="6"/>
+            <EnumMember name="CL_AMS_RECOVERY_APP_RESTART" value="7"/>
+            <EnumMember name="CL_AMS_RECOVERY_CLUSTER_RESET" value="8"/>
+            <EnumMember name="CL_AMS_RECOVERY_INTERNALLY_RECOVERED" value="20"/>
+            <EnumMember name="CL_AMS_RECOVERY_SU_RESTART" value="21"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_RESET" value="30"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_REBOOT" value="31"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_POWER_ON" value="32"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_POWER_OFF" value="33"/>
+        </Enum>
+
+        <Enum name="ClAmsAdminStateT">
+            <EnumMember name="CL_AMS_ADMIN_STATE_NONE" value="0"/>
+            <EnumMember name="CL_AMS_ADMIN_STATE_UNLOCKED" value="1"/>
+            <EnumMember name="CL_AMS_ADMIN_STATE_LOCKED_A" value="2"/>
+            <EnumMember name="CL_AMS_ADMIN_STATE_LOCKED_I" value="3"/>
+            <EnumMember name="CL_AMS_ADMIN_STATE_SHUTTINGDOWN" value="4"/>
+        </Enum>
+
+
+        <Enum name="ClAmsNodeClassT">
+            <EnumMember name="CL_AMS_NODE_CLASS_NONE" value="0"/>
+            <EnumMember name="CL_AMS_NODE_CLASS_A" value="1"/>
+            <EnumMember name="CL_AMS_NODE_CLASS_B" value="2"/>
+            <EnumMember name="CL_AMS_NODE_CLASS_C" value="3"/>
+            <EnumMember name="CL_AMS_NODE_CLASS_D" value="4"/>
+        </Enum>
+
+        <Enum name="ClAmsSGRedundancyModelT">
+            <EnumMember name="CL_AMS_SG_REDUNDANCY_MODEL_NONE" value="0"/>
+            <EnumMember name="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" value="1"/>
+            <EnumMember name="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" value="2"/>
+            <EnumMember name="CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N" value="3"/>
+            <EnumMember name="CL_AMS_SG_REDUNDANCY_MODEL_N_WAY" value="4"/>
+            <EnumMember name="CL_AMS_SG_REDUNDANCY_MODEL_N_WAY_ACTIVE" value="5"/>
+        </Enum>
+
+        <Enum name="ClAmsSGLoadingStrategyT">
+            <EnumMember name="CL_AMS_SG_LOADING_STRATEGY_NONE" value="0"/>
+            <EnumMember name="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" value="1"/>
+            <EnumMember name="CL_AMS_SG_LOADING_STRATEGY_LEAST_SU_ASSIGNED" value="2"/>
+            <EnumMember name="CL_AMS_SG_LOADING_STRATEGY_LEAST_LOAD_PER_SU" value="3"/>
+            <EnumMember name="CL_AMS_SG_LOADING_STRATEGY_BY_SI_PREFERENCE" value="4"/>
+            <EnumMember name="CL_AMS_SG_LOADING_STRATEGY_USER_DEFINED" value="5"/>
+        </Enum>
+
+        <Enum name="ClAmsPresenceStateT">
+
+            <EnumMember name="CL_AMS_PRESENCE_STATE_NONE" value="0"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_UNINSTANTIATED" value="1"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_INSTANTIATING" value="2"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_INSTANTIATED" value="3"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_TERMINATING" value="4"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_RESTARTING" value="5"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED" value="6"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_TERMINATION_FAILED" value="7"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_ABSENT" value="0"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_FAULT" value="8"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_FAULT_WTC" value="9"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_FAULT_WTR" value="10"/>
+
+        </Enum>
+
+        <Enum name="ClAmsOperStateT">
+
+            <EnumMember name="CL_AMS_OPER_STATE_NONE" value="0"/>
+            <EnumMember name="CL_AMS_OPER_STATE_ENABLED" value="1"/>
+            <EnumMember name="CL_AMS_OPER_STATE_DISABLED" value="2"/>
+
+        </Enum>
+
+        <Enum name="ClAmsReadinessStateT">
+
+            <EnumMember name="CL_AMS_READINESS_STATE_NONE" value="0"/>
+            <EnumMember name="CL_AMS_READINESS_STATE_OUTOFSERVICE" value="1"/>
+            <EnumMember name="CL_AMS_READINESS_STATE_INSERVICE" value="2"/>
+            <EnumMember name="CL_AMS_READINESS_STATE_STOPPING" value="3"/>
+
+        </Enum>
+
+        <Enum name="ClAmsNodeClusterMemberT">
+
+            <EnumMember name="CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER" value="0"/>
+            <EnumMember name="CL_AMS_NODE_IS_CLUSTER_MEMBER" value="1"/>
+            <EnumMember name="CL_AMS_NODE_IS_LEAVING_CLUSTER" value="2"/>
+
+        </Enum>
+
+
+        <Enum name="ClAmsEntityListTypeT">
+
+            <EnumMember name="CL_AMS_START_LIST" value="0"/>
+            <EnumMember name="CL_AMS_NODE_CONFIG_NODE_DEPENDENT_LIST" value="1"/>
+            <EnumMember name="CL_AMS_NODE_CONFIG_NODE_DEPENDENCIES_LIST" value="2"/>
+            <EnumMember name="CL_AMS_NODE_CONFIG_SU_LIST" value="3"/>
+            <EnumMember name="CL_AMS_SG_CONFIG_SU_LIST" value="4"/>
+            <EnumMember name="CL_AMS_SG_CONFIG_SI_LIST" value="5"/>
+            <EnumMember name="CL_AMS_SU_CONFIG_COMP_LIST" value="6"/>
+            <EnumMember name="CL_AMS_SI_CONFIG_SU_RANK_LIST" value="7"/>
+            <EnumMember name="CL_AMS_SI_CONFIG_SI_DEPENDENTS_LIST" value="8"/>
+            <EnumMember name="CL_AMS_SI_CONFIG_SI_DEPENDENCIES_LIST" value="9"/>
+            <EnumMember name="CL_AMS_SI_CONFIG_CSI_LIST" value="10"/>
+            <EnumMember name="CL_AMS_CSI_CONFIG_NVP_LIST" value="11"/>
+            <EnumMember name="CL_AMS_SG_STATUS_INSTANTIABLE_SU_LIST" value="13"/>
+            <EnumMember name="CL_AMS_SG_STATUS_INSTANTIATED_SU_LIST" value="14"/>
+            <EnumMember name="CL_AMS_SG_STATUS_IN_SERVICE_SPARE_SU_LIST" value="15"/>
+            <EnumMember name="CL_AMS_SG_STATUS_ASSIGNED_SU_LIST" value="16"/>
+            <EnumMember name="CL_AMS_SG_STATUS_FAULTY_SU_LIST" value="17"/>
+            <EnumMember name="CL_AMS_SU_STATUS_SI_LIST" value="18"/>
+            <EnumMember name="CL_AMS_SI_STATUS_SU_LIST" value="19"/>
+            <EnumMember name="CL_AMS_COMP_STATUS_CSI_LIST" value="20"/>
+            <EnumMember name="CL_AMS_CSI_STATUS_PG_LIST" value="21"/>
+            <EnumMember name="CL_AMS_ENTITY_LIST_ALL_START" value="22" />
+            <EnumMember name="CL_AMS_SG_LIST" value="23"/>
+            <EnumMember name="CL_AMS_SI_LIST" value="24"/>
+            <EnumMember name="CL_AMS_NODE_LIST" value="25"/>
+            <EnumMember name="CL_AMS_SU_LIST" value="26"/>
+            <EnumMember name="CL_AMS_COMP_LIST" value="27"/>
+            <EnumMember name="CL_AMS_ENTITY_LIST_ALL_END" value="28"/>
+            <EnumMember name="CL_AMS_CSI_PGTRACK_CLIENT_LIST" value="29"/>
+            <EnumMember name="CL_AMS_END_LIST" value="30"/>
+        </Enum>
+
+        <Enum name="ClAmsHAStateT">
+
+            <EnumMember name="CL_AMS_HA_STATE_NONE" value="0"/>
+            <EnumMember name="CL_AMS_HA_STATE_ACTIVE" value="1"/>
+            <EnumMember name="CL_AMS_HA_STATE_STANDBY" value="2"/>
+            <EnumMember name="CL_AMS_HA_STATE_QUIESCED" value="3"/>
+            <EnumMember name="CL_AMS_HA_STATE_QUIESCING" value="4"/>
+
+        </Enum>
+
+        <Enum name="ClAmsCSITransitionDescriptorT">
+
+            <EnumMember name="CL_AMS_CSI_NEW_ASSIGN" value="1"/>
+            <EnumMember name="CL_AMS_CSI_QUIESCED" value="2"/>
+            <EnumMember name="CL_AMS_CSI_NOT_QUIESCED" value="3"/>
+            <EnumMember name="CL_AMS_CSI_STILL_ACTIVE" value="4"/>
+
+        </Enum>
+
+        <Enum name="ClAmsMgmtAdminOperT">
+            <EnumMember name="CL_AMS_MGMT_ADMIN_OPER_UNLOCK" value="0"/>
+            <EnumMember name="CL_AMS_MGMT_ADMIN_OPER_LOCKA" value="1"/>
+            <EnumMember name="CL_AMS_MGMT_ADMIN_OPER_LOCKI" value="2"/>
+            <EnumMember name="CL_AMS_MGMT_ADMIN_OPER_SHUTDOWN" value="3"/>
+            <EnumMember name="CL_AMS_MGMT_ADMIN_OPER_RESTART" value="4"/>
+            <EnumMember name="CL_AMS_MGMT_ADMIN_OPER_REPAIRED" value="5"/>
+            <EnumMember name="CL_AMS_MGMT_ADMIN_OPER_MAX" value="6"/>
+        </Enum>
+
+        <Enum name="ClMetricIdT">
+          <EnumMember name="CL_METRIC_ALL" value="0"/>
+          <EnumMember name="CL_METRIC_CPU" value="1"/>
+          <EnumMember name="CL_METRIC_MEM" value="2"/>
+        </Enum>
+
+        <Struct name="ClIocPhysicalAddressT">
+            <DataMember name="nodeAddress" type="ClUint32T"/>
+            <DataMember name="portId" type="ClUint32T"/>
+        </Struct>
+
+         <Union name="ClAmsMgmtIocAddressIDLT" defNeed="True" include="clCommon.h">
+            <DataMember name="iocPhyAddress" type="ClIocPhysicalAddressT"/>
+            <DataMember name="iocLogicalAddress" type="ClUint64T"/>
+            <DataMember name="iocMulticastAddress" type="ClUint64T"/>
+        </Union>
+
+        <Struct name="ClAmsEntityConfigT"> <!---->
+            <DataMember name="type" type="ClAmsEntityTypeT"/>
+            <DataMember name="name" type="ClNameT"/>
+            <DataMember name="debugFlags" type="ClUint8T"/>
+        </Struct>
+
+        <Struct name="ClAmsEntityStatusT"> <!---->
+            <DataMember name="epoch" type="ClInt64T"/>
+            <DataMember name="timerCount" type="ClUint32T"/>
+        </Struct>
+        
+        <Struct name="clAmsMgmtEntitySetConfigRequestT">
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="peInstantiateFlag" type="ClUint32T"/>
+            <DataMember name="entityConfig" type="ClAmsEntityConfigT" pointer="true" />
+        </Struct>
+        
+        <Struct name="clAmsMgmtEntitySetAlphaFactorRequestT">
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="alphaFactor" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityRepairedRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityRestartRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityShutdownRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityLockInstantiationRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityLockAssignmentRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityUnlockRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtSISwapRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtSGAdjustPreferenceRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="enable" type="ClUint32T"/>
+        </Struct>
+         
+        <Struct name="clAmsMgmtInitializeRequestT" defNeed="True" include="clCommon.h"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="srcAddress" type="ClAmsMgmtIocAddressIDLT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtInitializeResponseT" defNeed="True" include="clCommon.h"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtFinalizeRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtDebugEnableRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="debugFlags" type="ClUint8T"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtDebugDisableRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="debugFlags" type="ClUint8T"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtDebugGetRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtDebugGetResponseT"> <!---->
+            <DataMember name="debugFlags" type="ClUint8T"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtDebugEnableLogToConsoleRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtDebugDisableLogToConsoleRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBInitializeRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBInitializeResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBFinalizeRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBFinalizeResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBEntityCreateRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBEntityCreateResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBEntityDeleteRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBEntityDeleteResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBEntitySetConfigRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="bitmask" type="ClUint64T"/>
+            <DataMember name="entityConfig" type="ClAmsEntityConfigT" pointer="true" />
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBEntitySetConfigResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="ClAmsCompTimerDurationsT"> <!---->
+            <DataMember name="instantiate" type="ClInt64T"/>
+            <DataMember name="terminate" type="ClInt64T"/>
+            <DataMember name="cleanup" type="ClInt64T"/>
+            <DataMember name="amStart" type="ClInt64T"/>
+            <DataMember name="amStop" type="ClInt64T"/>
+            <DataMember name="quiescingComplete" type="ClInt64T"/>
+            <DataMember name="csiSet" type="ClInt64T"/>
+            <DataMember name="csiRemove" type="ClInt64T"/>
+            <DataMember name="proxiedCompInstantiate" type="ClInt64T"/>
+            <DataMember name="proxiedCompCleanup" type="ClInt64T"/>
+            <DataMember name="instantiateDelay" type="ClInt64T"/>
+        </Struct>
+
+        <Struct name="ClAmsCompConfigT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="numSupportedCSITypes" type="ClUint32T"/>
+            <DataMember name="pSupportedCSITypes" type="ClNameT" pointer="Single" lengthVar="numSupportedCSITypes" />
+            <DataMember name="proxyCSIType" type="ClNameT"/>
+            <DataMember name="capabilityModel" type="ClAmsCompCapModelT"/>
+            <DataMember name="property" type="ClAmsCompPropertyT"/>
+            <DataMember name="isRestartable" type="ClUint16T"/>
+            <DataMember name="nodeRebootCleanupFail" type="ClUint16T"/>
+            <DataMember name="instantiateLevel" type="ClUint32T"/>
+            <DataMember name="numMaxInstantiate" type="ClUint32T"/>
+            <DataMember name="numMaxInstantiateWithDelay" type="ClUint32T"/>
+            <DataMember name="numMaxTerminate" type="ClUint32T"/>
+            <DataMember name="numMaxAmStart" type="ClUint32T"/>
+            <DataMember name="numMaxAmStop" type="ClUint32T"/>
+            <DataMember name="numMaxActiveCSIs" type="ClUint32T"/>
+            <DataMember name="numMaxStandbyCSIs" type="ClUint32T"/>
+            <DataMember name="timeouts" type="ClAmsCompTimerDurationsT"/>
+            <DataMember name="recoveryOnTimeout" type="ClAmsRecoveryT"/>
+            <DataMember name="parentSU" type="ClAmsEntityConfigT"/>
+            <DataMember name="instantiateCommand" type="ClCharT" multiplicity="256" />
+        </Struct>
+
+
+        <Struct name="ClAmsNodeConfigT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="adminState" type="ClAmsAdminStateT"/>
+            <DataMember name="id" type="ClUint32T"/>
+            <DataMember name="classType" type="ClAmsNodeClassT"/>
+            <DataMember name="subClassType" type="ClNameT"/>
+            <DataMember name="isSwappable" type="ClUint16T"/>
+            <DataMember name="isRestartable" type="ClUint16T"/>
+            <DataMember name="autoRepair" type="ClUint16T"/>
+            <DataMember name="isASPAware" type="ClUint16T"/>
+            <DataMember name="suFailoverDuration" type="ClInt64T"/>
+            <DataMember name="suFailoverCountMax" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClAmsSUConfigT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="adminState" type="ClAmsAdminStateT"/>
+            <DataMember name="rank" type="ClUint32T"/>
+            <DataMember name="numComponents" type="ClUint32T"/>
+            <DataMember name="isPreinstantiable" type="ClUint16T"/>
+            <DataMember name="isRestartable" type="ClUint16T"/>
+            <DataMember name="isContainerSU" type="ClUint16T"/>
+            <DataMember name="parentSG" type="ClAmsEntityConfigT"/>
+            <DataMember name="parentNode" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="ClAmsSGConfigT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="adminState" type="ClAmsAdminStateT"/>
+            <DataMember name="redundancyModel" type="ClAmsSGRedundancyModelT"/>
+            <DataMember name="loadingStrategy" type="ClAmsSGLoadingStrategyT"/>
+            <DataMember name="failbackOption" type="ClUint16T"/>
+            <DataMember name="autoRepair" type="ClUint16T"/>
+            <DataMember name="instantiateDuration" type="ClInt64T"/>
+            <DataMember name="numPrefActiveSUs" type="ClUint32T"/>
+            <DataMember name="numPrefStandbySUs" type="ClUint32T"/>
+            <DataMember name="numPrefInserviceSUs" type="ClUint32T"/>
+            <DataMember name="numPrefAssignedSUs" type="ClUint32T"/>
+            <DataMember name="numPrefActiveSUsPerSI" type="ClUint32T"/>
+            <DataMember name="maxActiveSIsPerSU" type="ClUint32T"/>
+            <DataMember name="maxStandbySIsPerSU" type="ClUint32T"/>
+            <DataMember name="compRestartDuration" type="ClInt64T"/>
+            <DataMember name="compRestartCountMax" type="ClUint32T"/>
+            <DataMember name="suRestartDuration" type="ClInt64T"/>
+            <DataMember name="suRestartCountMax" type="ClUint32T"/>
+            <DataMember name="isCollocationAllowed" type="ClUint16T"/>
+            <DataMember name="alpha" type="ClUint32T"/>
+            <DataMember name="autoAdjust" type="ClUint16T"/>
+            <DataMember name="autoAdjustProbation" type="ClInt64T"/>
+            <DataMember name="reductionProcedure" type="ClUint16T"/>
+            <DataMember name="parentApp" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="ClAmsSGConfigT" version="4.1.0"> <!---->
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="adminState" type="ClAmsAdminStateT"/>
+            <DataMember name="redundancyModel" type="ClAmsSGRedundancyModelT"/>
+            <DataMember name="loadingStrategy" type="ClAmsSGLoadingStrategyT"/>
+            <DataMember name="failbackOption" type="ClUint16T"/>
+            <DataMember name="autoRepair" type="ClUint16T"/>
+            <DataMember name="instantiateDuration" type="ClInt64T"/>
+            <DataMember name="numPrefActiveSUs" type="ClUint32T"/>
+            <DataMember name="numPrefStandbySUs" type="ClUint32T"/>
+            <DataMember name="numPrefInserviceSUs" type="ClUint32T"/>
+            <DataMember name="numPrefAssignedSUs" type="ClUint32T"/>
+            <DataMember name="numPrefActiveSUsPerSI" type="ClUint32T"/>
+            <DataMember name="maxActiveSIsPerSU" type="ClUint32T"/>
+            <DataMember name="maxStandbySIsPerSU" type="ClUint32T"/>
+            <DataMember name="compRestartDuration" type="ClInt64T"/>
+            <DataMember name="compRestartCountMax" type="ClUint32T"/>
+            <DataMember name="suRestartDuration" type="ClInt64T"/>
+            <DataMember name="suRestartCountMax" type="ClUint32T"/>
+            <DataMember name="isCollocationAllowed" type="ClUint16T"/>
+            <DataMember name="alpha" type="ClUint32T"/>
+            <DataMember name="autoAdjust" type="ClUint16T"/>
+            <DataMember name="autoAdjustProbation" type="ClInt64T"/>
+            <DataMember name="reductionProcedure" type="ClUint16T"/>
+            <DataMember name="parentApp" type="ClAmsEntityConfigT"/>
+            <DataMember name="maxFailovers" type="ClUint32T"/>
+            <DataMember name="failoverDuration" type="ClInt64T"/>
+          </Struct>
+
+        <Struct name="ClAmsSIConfigT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="adminState" type="ClAmsAdminStateT"/>
+            <DataMember name="rank" type="ClUint32T"/>
+            <DataMember name="numCSIs" type="ClUint32T"/>
+            <DataMember name="numStandbyAssignments" type="ClUint32T"/>
+            <DataMember name="standbyAssignmentOrder" type="ClUint32T"/>
+            <DataMember name="parentSG" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="ClAmsCSIConfigT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="type" type="ClNameT"/>
+            <DataMember name="isProxyCSI" type="ClUint16T"/>
+            <DataMember name="rank" type="ClUint32T"/>
+            <DataMember name="parentSI" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="ClAmsCSINVPT"> <!---->
+            <DataMember name="csiName" type="ClNameT"/>
+            <DataMember name="paramName" type="ClNameT"/>
+            <DataMember name="paramValue" type="ClNameT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBCSISetNVPRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="csiName" type="ClAmsEntityConfigT"/>
+            <DataMember name="nvp" type="ClAmsCSINVPT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBCSISetNVPResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetNodeDependencyRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="nodeName" type="ClAmsEntityConfigT"/>
+            <DataMember name="dependencyNodeName" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetNodeDependencyResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetNodeSUListRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="nodeName" type="ClAmsEntityConfigT" />
+            <DataMember name="suName" type="ClAmsEntityConfigT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetNodeSUListResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSGSUListRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="sgName" type="ClAmsEntityConfigT" />
+            <DataMember name="suName" type="ClAmsEntityConfigT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSGSUListResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSGSIListRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="sgName" type="ClAmsEntityConfigT" />
+            <DataMember name="siName" type="ClAmsEntityConfigT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSGSIListResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSUCompListRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="suName" type="ClAmsEntityConfigT" />
+            <DataMember name="compName" type="ClAmsEntityConfigT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSUCompListResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSISURankListRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="siName" type="ClAmsEntityConfigT" />
+            <DataMember name="suName" type="ClAmsEntityConfigT" />
+            <DataMember name="suRank" type="ClUint32T" />
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSISURankListResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSISIDependencyRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="siName" type="ClAmsEntityConfigT" />
+            <DataMember name="dependencySIName" type="ClAmsEntityConfigT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSISIDependencyResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetCSICSIDependencyRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="csiName" type="ClAmsEntityConfigT" />
+            <DataMember name="dependencyCSIName" type="ClAmsEntityConfigT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetCSICSIDependencyResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSICSIListRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="siName" type="ClAmsEntityConfigT" />
+            <DataMember name="csiName" type="ClAmsEntityConfigT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBSetSICSIListResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBEnableEntityRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entityName" type="ClAmsEntityConfigT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBEnableEntityResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBDisableEntityRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entityName" type="ClAmsEntityConfigT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBDisableEntityResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBCommitRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtCCBCommitResponseT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="ClAmsNodeStatusT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityStatusT"/>
+            <DataMember name="presenceState" type="ClAmsPresenceStateT"/>
+            <DataMember name="operState" type="ClAmsOperStateT"/>
+            <DataMember name="isClusterMember" type="ClAmsNodeClusterMemberT"/>
+            <DataMember name="wasMemberBefore" type="ClUint16T"/>
+            <DataMember name="recovery" type="ClAmsRecoveryT"/>
+            <DataMember name="suFailoverCount" type="ClUint32T"/>
+            <DataMember name="numInstantiatedSUs" type="ClUint32T"/>
+            <DataMember name="numAssignedSUs" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClAmsSGStatusT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityStatusT"/>
+            <DataMember name="isStarted" type="ClUint16T"/>
+            <DataMember name="numCurrActiveSUs" type="ClUint32T"/>
+            <DataMember name="numCurrStandbySUs" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClAmsSGStatusT" version="4.1.0"> <!---->
+            <DataMember name="entity" type="ClAmsEntityStatusT"/>
+            <DataMember name="isStarted" type="ClUint16T"/>
+            <DataMember name="numCurrActiveSUs" type="ClUint32T"/>
+            <DataMember name="numCurrStandbySUs" type="ClUint32T"/>
+            <DataMember name="failoverHistoryIndex" type="ClUint32T"/>
+            <DataMember name="failoverHistoryCount" type="ClInt32T"/>
+        </Struct>
+
+        <Struct name="ClAmsSUStatusT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityStatusT"/>
+            <DataMember name="presenceState" type="ClAmsPresenceStateT"/>
+            <DataMember name="operState" type="ClAmsOperStateT"/>
+            <DataMember name="readinessState" type="ClAmsReadinessStateT"/>
+            <DataMember name="recovery" type="ClAmsRecoveryT"/>
+            <DataMember name="numActiveSIs" type="ClUint32T"/>
+            <DataMember name="numStandbySIs" type="ClUint32T"/>
+            <DataMember name="numQuiescedSIs" type="ClUint32T"/>
+            <DataMember name="compRestartCount" type="ClUint32T"/>
+            <DataMember name="suRestartCount" type="ClUint32T"/>
+            <DataMember name="numInstantiatedComp" type="ClUint32T"/>
+            <DataMember name="numPIComp" type="ClUint32T"/>
+            <DataMember name="instantiateLevel" type="ClUint32T"/>
+            <DataMember name="numWaitAdjustments" type="ClUint32T"/>
+            <DataMember name="numDelayAssignments" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClAmsSIStatusT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityStatusT"/>
+            <DataMember name="operState" type="ClAmsOperStateT"/>
+            <DataMember name="numActiveAssignments" type="ClUint32T"/>
+            <DataMember name="numStandbyAssignments" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClAmsCompStatusT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityStatusT"/>
+            <DataMember name="presenceState" type="ClAmsPresenceStateT"/>
+            <DataMember name="operState" type="ClAmsOperStateT"/>
+            <DataMember name="readinessState" type="ClAmsReadinessStateT"/>
+            <DataMember name="recovery" type="ClAmsRecoveryT"/>
+            <DataMember name="numActiveCSIs" type="ClUint32T"/>
+            <DataMember name="numStandbyCSIs" type="ClUint32T"/>
+            <DataMember name="numQuiescingCSIs" type="ClUint32T"/>
+            <DataMember name="numQuiescedCSIs" type="ClUint32T"/>
+            <DataMember name="restartCount" type="ClUint32T"/>
+            <DataMember name="instantiateCount" type="ClUint32T"/>
+            <DataMember name="instantiateDelayCount" type="ClUint32T"/>
+            <DataMember name="amStartCount" type="ClUint32T"/>
+            <DataMember name="amStopCount" type="ClUint32T"/>
+            <DataMember name="instantiateCookie" type="ClUint64T"/>
+        </Struct>
+
+
+        <Struct name="ClAmsCSIStatusT"> <!---->
+            <DataMember name="entity" type="ClAmsEntityStatusT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityGetRequestT"> 
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityGetResponseT"> 
+            <DataMember name="entity" type="ClAmsEntityConfigT" pointer="true" />
+        </Struct>
+
+        <Struct name="ClAmsNodeT"> <!---->
+            <DataMember name="config" type="ClAmsNodeConfigT"/>
+            <DataMember name="status" type="ClAmsNodeStatusT"/>
+        </Struct>
+
+        <Struct name="ClAmsSGT"> <!---->
+            <DataMember name="config" type="ClAmsSGConfigT"/>
+            <DataMember name="status" type="ClAmsSGStatusT"/>
+        </Struct>
+
+        <Struct name="ClAmsSGT" version="4.1.0"> <!---->
+            <DataMember name="config" type="ClAmsSGConfigT" version="4.1.0"/>
+            <DataMember name="status" type="ClAmsSGStatusT" version="4.1.0"/>
+        </Struct>
+
+        <Struct name="ClAmsSUT"> <!---->
+            <DataMember name="config" type="ClAmsSUConfigT"/>
+            <DataMember name="status" type="ClAmsSUStatusT"/>
+        </Struct>
+
+        <Struct name="ClAmsSIT"> <!---->
+            <DataMember name="config" type="ClAmsSIConfigT"/>
+            <DataMember name="status" type="ClAmsSIStatusT"/>
+        </Struct>
+
+        <Struct name="ClAmsCompT"> <!---->
+            <DataMember name="config" type="ClAmsCompConfigT"/>
+            <DataMember name="status" type="ClAmsCompStatusT"/>
+        </Struct>
+
+        <Struct name="ClAmsCSIT"> <!---->
+            <DataMember name="config" type="ClAmsCSIConfigT"/>
+            <DataMember name="status" type="ClAmsCSIStatusT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityGetConfigRequestT"> 
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityGetConfigResponseT"> 
+            <DataMember name="entityConfig" type="ClAmsEntityConfigT" pointer="true" />
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityGetStatusRequestT"> 
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="clAmsMgmtEntityGetStatusResponseT"> 
+            <DataMember name="entity" type="ClAmsEntityConfigT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtGetCSINVPListRequestT"> 
+            <DataMember name="handle" type="ClHandleT" />
+            <DataMember name="csi" type="ClAmsEntityConfigT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtGetEntityListRequestT"> 
+            <DataMember name="handle" type="ClHandleT" />
+            <DataMember name="entity" type="ClAmsEntityConfigT" />
+            <DataMember name="entityListName" type="ClAmsEntityListTypeT" />
+        </Struct>
+
+        <Struct name="clAmsMgmtGetOLEntityListRequestT"> 
+            <DataMember name="handle" type="ClHandleT" />
+            <DataMember name="entity" type="ClAmsEntityConfigT" />
+            <DataMember name="entityListName" type="ClAmsEntityListTypeT" />
+        </Struct>
+
+        <Struct name="ClAmsSUSIRefT"> 
+            <DataMember name="entityRef" type="ClAmsEntityConfigT" />
+            <DataMember name="haState" type="ClAmsHAStateT" />
+            <DataMember name="numActiveCSIs" type="ClUint32T" />
+            <DataMember name="numStandbyCSIs" type="ClUint32T" />
+            <DataMember name="numQuiescedCSIs" type="ClUint32T" />
+            <DataMember name="numQuiescingCSIs" type="ClUint32T" />
+            <DataMember name="rank" type="ClUint32T" />
+        </Struct>
+
+        <Struct name="ClAmsSISURefT"> 
+            <DataMember name="entityRef" type="ClAmsEntityConfigT" />
+            <DataMember name="rank" type="ClUint32T" />
+            <DataMember name="haState" type="ClAmsHAStateT" />
+        </Struct>
+
+        <Struct name="ClAmsCompCSIRefT"> 
+            <DataMember name="entityRef" type="ClAmsEntityConfigT" />
+            <DataMember name="haState" type="ClAmsHAStateT" />
+            <DataMember name="tdescriptor" type="ClAmsCSITransitionDescriptorT" />
+            <DataMember name="rank" type="ClUint32T" />
+            <DataMember name="activeComp" type="ClAmsEntityConfigT" pointer ="Single" />
+            <DataMember name="pendingOp" type="ClUint16T" />
+        </Struct>
+
+        <Struct name="ClAmsCSICompRefT">
+            <DataMember name="entityRef" type="ClAmsEntityConfigT" />
+            <DataMember name="haState" type="ClAmsHAStateT" />
+            <DataMember name="rank" type="ClUint32T" />
+        </Struct>
+
+        <Struct name="ClAmsNotificationDescriptorT"> <!---->
+            <DataMember name="type" type="ClAmsNotificationTypeT"/>
+            <DataMember name="entityType" type="ClAmsEntityTypeT"/>
+            <DataMember name="entityName" type="ClNameT"/>
+            <DataMember name="faultyCompName" type="ClNameT"/>
+            <DataMember name="siName" type="ClNameT"/>
+            <DataMember name="suName" type="ClNameT"/>
+            <DataMember name="lastHAState" type="ClAmsHAStateT"/>
+            <DataMember name="newHAState" type="ClAmsHAStateT"/>
+            <DataMember name="recoveryActionTaken" type="ClAmsRecoveryT"/>
+            <DataMember name="repairNecessary" type="ClUint16T"/>
+            <DataMember name="lastOperState" type="ClAmsOperStateT"/>
+            <DataMember name="newOperState" type="ClAmsOperStateT"/>
+            <DataMember name="lastAdminState" type="ClAmsAdminStateT"/>
+            <DataMember name="newAdminState" type="ClAmsAdminStateT"/>
+        </Struct>
+
+        <Struct name="ClAmsMgmtEntityAdminResponseT">
+            <DataMember name="mgmtHandle" type="ClHandleT"/>
+            <DataMember name="clientHandle" type="ClHandleT"/>
+            <DataMember name="oper" type="ClAmsMgmtAdminOperT"/>
+            <DataMember name="type" type="ClAmsEntityTypeT"/>
+            <DataMember name="retCode" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClMetricT">
+          <DataMember name="pType" type="ClWordT"/>
+          <DataMember name="id" type="ClMetricIdT"/>
+          <DataMember name="maxThreshold" type="ClUint32T"/>
+          <DataMember name="currentThreshold" type="ClUint32T"/>
+          <DataMember name="maxOccurences" type="ClUint32T"/>
+          <DataMember name="numOccurences" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClAmsEntityBufferT">
+          <DataMember name="count" type="ClUint32T"/>
+          <DataMember name="entity" type="ClAmsEntityConfigT" pointer="Single" lengthVar="count"/>
+        </Struct>
+
+        <Struct name="ClAmsMgmtMigrateRequestT">
+          <DataMember name="sg" type="ClNameT"/>
+          <DataMember name="prefix" type="ClNameT"/>
+          <DataMember name="activeSUs" type="ClUint32T"/>
+          <DataMember name="standbySUs" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClAmsMgmtMigrateListT">
+          <DataMember name="si" type="ClAmsEntityBufferT"/>
+          <DataMember name="csi" type="ClAmsEntityBufferT"/>
+          <DataMember name="node" type="ClAmsEntityBufferT"/>
+          <DataMember name="su" type="ClAmsEntityBufferT"/>
+          <DataMember name="comp" type="ClAmsEntityBufferT"/>
+        </Struct>
+
+        <Struct name="ClAmsMgmtMigrateResponseT">
+          <DataMember name="migrateList" type="ClAmsMgmtMigrateListT"/>
+        </Struct>
+
+        <Struct name="ClAmsMgmtSIAssignSUCustomRequestT">
+          <DataMember name="si" type="ClAmsEntityConfigT"/>
+          <DataMember name="activeSU" type="ClAmsEntityConfigT"/>
+          <DataMember name="standbySU" type="ClAmsEntityConfigT"/>
+        </Struct>
+
+        <Struct name="ClAmsInvocationIDLT" version="4.1.0" defNeed="True">
+          <DataMember name="invocation" type="ClUint64T"/>
+          <DataMember name="cmd" type="ClUint32T"/>
+          <DataMember name="compName" type="ClNameT"/>
+          <DataMember name="csiTargetOne" type="ClUint16T"/>
+          <DataMember name="csiName" type="ClNameT"/>
+          <DataMember name="reassignCSI" type="ClUint16T"/>
+        </Struct>
+</IDLSpecs>
+

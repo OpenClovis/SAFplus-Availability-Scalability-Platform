@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<categories:CATEGORIES xmlns:categories="categories">
+  <CATEGORY NAME="default">
+    <ATTRIBUTE NAME="FPGA_Attr0" TYPE="Int8"/>
+    <ATTRIBUTE NAME="FPGA_Attr1" TYPE="Uint64"/>
+  </CATEGORY>
+</categories:CATEGORIES>

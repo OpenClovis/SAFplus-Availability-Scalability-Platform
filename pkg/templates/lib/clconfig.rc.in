@@ -1,0 +1,12 @@
+#
+# OpenClovis SDK configuration; this file must always be defined under an
+# SDK installation lib directory.
+#
+
+# The root directory of the OpenClovis SDK installation; this is mainly for
+# sanity checking.
+SDKDIR=@SDKDIR@
+
+# Eclipse directory
+ECLIPSE=@ECLIPSE@
+

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="modelMap"
+    nsURI="modelMapping.ecore" nsPrefix="modelMap">
+  <eClassifiers xsi:type="ecore:EClass" name="link">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="linkType"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="linkType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="linkDetail" upperBound="-1"
+        eType="#//linkObjectType" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ModelType">
+    <eLiterals name="resource_model"/>
+    <eLiterals name="component_model" value="1"/>
+    <eLiterals name="alarm_model" value="2"/>
+    <eLiterals name="amf_model" value="3"/>
+    <eLiterals name="aspcomponent_model" value="4"/>
+    <eLiterals name="idl_model" value="5"/>
+    <eLiterals name="eo_model" value="6"/>
+    <eLiterals name="memory_model" value="7"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="mapInformation">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sourceModel" eType="#//ModelType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="targetModel" eType="#//ModelType"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="link" upperBound="-1" eType="#//link"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="linkObjectType">
+    <eAnnotations source="CWAnnotation">
+      <details key="changeTrackRequired" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="linkSource" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="linkSourceRdn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        transient="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="linkTarget" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+</ecore:EPackage>

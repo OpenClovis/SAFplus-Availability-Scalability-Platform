@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aspSUs="aspSUs.ecore" xsi:schemaLocation="aspSUs.ecore ../model/aspSUs.ecore">
+  <aspSUs:aspSUs NodeClassType="CL_AMS_NODE_CLASS_A" >
+  <aspSu name="gmsSU" level="1"/>
+  <aspSu name="eventSU" level="2"/>
+  <aspSu name="ckptSU" level="3"/>
+  <aspSu name="corSU" level="4"/>
+  <aspSu name="txnSU" level="5"/>
+  <aspSu name="oampSU" level="6"/>
+  <aspSu name="logSU" level="7"/>
+  <aspSu name="nameSU" level="8"/>
+  <aspSu name="msgSU" level="9"/>
+  </aspSUs:aspSUs>
+  <aspSUs:aspSUs NodeClassType="CL_AMS_NODE_CLASS_B" >
+  <aspSu name="gmsSU" level="1"/>
+  <aspSu name="eventSU" level="2"/>
+  <aspSu name="ckptSU" level="3"/>
+  <aspSu name="corSU" level="4"/>
+  <aspSu name="txnSU" level="5"/>
+  <aspSu name="oampSU" level="6"/>
+  <aspSu name="logSU" level="7"/>
+  <aspSu name="nameSU" level="8"/>
+  <aspSu name="msgSU" level="9"/>
+  </aspSUs:aspSUs>
+  <aspSUs:aspSUs NodeClassType="CL_AMS_NODE_CLASS_C" >
+  <aspSu name="gmsSU" level="1"/>
+  <aspSu name="eventSU" level="2"/>
+  <aspSu name="ckptSU" level="3"/>
+  <aspSu name="txnSU" level="4"/>
+  <aspSu name="oampSU" level="5"/>
+  <aspSu name="logSU" level="6"/>
+  <aspSu name="nameSU" level="7"/>
+  <aspSu name="msgSU" level="8"/>
+  </aspSUs:aspSUs>
+  <aspSUs:aspSUs NodeClassType="CL_AMS_NODE_CLASS_D" >
+  <aspSu name="gmsSU" level="1"/>
+  <aspSu name="eventSU" level="2"/>
+  <aspSu name="ckptSU" level="3"/>
+  <aspSu name="txnSU" level="4"/>
+  <aspSu name="oampSU" level="5"/>
+  <aspSu name="logSU" level="6"/>
+  <aspSu name="nameSU" level="7"/>
+  <aspSu name="msgSU" level="8"/>
+  </aspSUs:aspSUs>
+</xmi:XMI>

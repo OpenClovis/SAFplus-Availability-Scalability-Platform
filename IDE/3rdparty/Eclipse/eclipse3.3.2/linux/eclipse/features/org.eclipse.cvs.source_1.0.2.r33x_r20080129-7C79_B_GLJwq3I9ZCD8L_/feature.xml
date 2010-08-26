@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature id="org.eclipse.cvs.source" version="1.0.2.r33x_r20080129-7C79_B_GLJwq3I9ZCD8L_" label="%featureName" provider-name="%providerName"       primary="false" >
+	<description >
+		%description
+	</description>
+	<license url="%licenseURL">
+		%license
+	</license>
+	<url>
+		<update url="http://update.eclipse.org/updates/3.3" label="%updateSiteName"/>
+		<discovery url="http://update.eclipse.org/updates/3.3" label="%updateSiteName"/>
+	</url>
+	<plugin id="org.eclipse.cvs.source" version="1.0.2.r33x_r20080129-7C79_B_GLJwq3I9ZCD8L_" fragment="false"     download-size="0" install-size="0"/>
+</feature>

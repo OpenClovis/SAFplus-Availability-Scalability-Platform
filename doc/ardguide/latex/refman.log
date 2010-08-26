@@ -1,0 +1,761 @@
+This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=pdflatex 2008.6.25)  26 JUL 2009 11:34
+entering extended mode
+ %&-line parsing enabled.
+**refman.tex
+(./refman.tex
+LaTeX2e <2005/12/01>
+Babel <v3.8h> and hyphenation patterns for english, usenglishmax, dumylang, noh
+yphenation, loaded.
+(/usr/share/texmf-texlive/tex/latex/base/book.cls
+Document Class: book 2005/09/16 v1.4f Standard LaTeX document class
+(/usr/share/texmf-texlive/tex/latex/base/bk11.clo
+File: bk11.clo 2005/09/16 v1.4f Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@chapter=\count80
+\c@section=\count81
+\c@subsection=\count82
+\c@subsubsection=\count83
+\c@paragraph=\count84
+\c@subparagraph=\count85
+\c@figure=\count86
+\c@table=\count87
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/usr/share/texmf-texlive/tex/latex/geometry/geometry.sty
+Package: geometry 2002/07/08 v3.2 Page Geometry
+
+(/usr/share/texmf-texlive/tex/latex/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+\Gm@cnth=\count88
+\Gm@cntv=\count89
+\c@Gm@tempcnt=\count90
+\Gm@bindingoffset=\dimen103
+\Gm@wd@mp=\dimen104
+\Gm@odd@mp=\dimen105
+\Gm@even@mp=\dimen106
+\Gm@dimlist=\toks15
+)
+(/usr/share/texmf-texlive/tex/latex/fancyhdr/fancyhdr.sty
+\fancy@headwidth=\skip43
+\f@ncyO@elh=\skip44
+\f@ncyO@erh=\skip45
+\f@ncyO@olh=\skip46
+\f@ncyO@orh=\skip47
+\f@ncyO@elf=\skip48
+\f@ncyO@erf=\skip49
+\f@ncyO@olf=\skip50
+\f@ncyO@orf=\skip51
+) (./doxygen.sty
+Package: doxygen 
+
+(/usr/share/texmf-texlive/tex/latex/tools/calc.sty
+Package: calc 2005/08/06 v4.2 Infix arithmetic (KKT,FJ)
+\calc@Acount=\count91
+\calc@Bcount=\count92
+\calc@Adimen=\dimen107
+\calc@Bdimen=\dimen108
+\calc@Askip=\skip52
+\calc@Bskip=\skip53
+LaTeX Info: Redefining \setlength on input line 75.
+LaTeX Info: Redefining \addtolength on input line 76.
+\calc@Ccount=\count93
+\calc@Cskip=\skip54
+)
+(/usr/share/texmf-texlive/tex/latex/tools/array.sty
+Package: array 2005/08/23 v2.4b Tabular extension package (FMi)
+\col@sep=\dimen109
+\extrarowheight=\dimen110
+\NC@list=\toks16
+\extratabsurround=\skip55
+\backup@length=\skip56
+)
+\tmplength=\skip57
+)
+(/usr/share/texmf-texlive/tex/latex/base/fontenc.sty
+Package: fontenc 2005/09/27 v1.99g Standard LaTeX package
+
+(/usr/share/texmf-texlive/tex/latex/base/t1enc.def
+File: t1enc.def 2005/09/27 v1.99g Standard LaTeX file
+LaTeX Font Info:    Redeclaring font encoding T1 on input line 43.
+))
+\@indexfile=\write3
+\openout3 = `refman.idx'.
+
+
+Writing index file refman.idx
+(./clovisdoc.sty (/usr/share/texmf-texlive/tex/latex/base/makeidx.sty
+Package: makeidx 2000/03/29 v1.0m Standard LaTeX package
+)
+(/usr/share/texmf-texlive/tex/latex/float/float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count94
+\float@exts=\toks17
+\float@box=\box26
+\@float@everytoks=\toks18
+\@floatcapt=\box27
+)
+(/usr/share/texmf-texlive/tex/latex/tools/afterpage.sty
+Package: afterpage 1995/10/27 v1.08 After-Page Package (DPC)
+\AP@output=\toks19
+\AP@partial=\box28
+\AP@footins=\box29
+)
+(/usr/share/texmf-texlive/tex/latex/graphics/graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-texlive/tex/latex/graphics/graphics.sty
+Package: graphics 2006/02/20 v1.0o Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-texlive/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/etc/texmf/tex/latex/config/graphics.cfg
+File: graphics.cfg 2007/01/18 v1.5 graphics configuration of teTeX/TeXLive
+)
+Package graphics Info: Driver file: pdftex.def on input line 90.
+
+(/usr/share/texmf-texlive/tex/latex/pdftex-def/pdftex.def
+File: pdftex.def 2007/01/08 v0.04d Graphics/color for pdfTeX
+\Gread@gobject=\count95
+))
+\Gin@req@height=\dimen111
+\Gin@req@width=\dimen112
+)
+(/usr/share/texmf-texlive/tex/latex/hyperref/hyperref.sty
+Package: hyperref 2007/02/07 v6.75r Hypertext links for LaTeX
+\@linkdim=\dimen113
+\Hy@linkcounter=\count96
+\Hy@pagecounter=\count97
+
+(/usr/share/texmf-texlive/tex/latex/hyperref/pd1enc.def
+File: pd1enc.def 2007/02/07 v6.75r Hyperref: PDFDocEncoding definition (HO)
+)
+(/etc/texmf/tex/latex/config/hyperref.cfg
+File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive
+)
+(/usr/share/texmf-texlive/tex/latex/oberdiek/kvoptions.sty
+Package: kvoptions 2006/08/22 v2.4 Connects package keyval with LaTeX options (
+HO)
+)
+Package hyperref Info: Option `colorlinks' set `true' on input line 2238.
+Package hyperref Info: Hyper figures OFF on input line 2288.
+Package hyperref Info: Link nesting OFF on input line 2293.
+Package hyperref Info: Hyper index ON on input line 2296.
+Package hyperref Info: Plain pages OFF on input line 2303.
+Package hyperref Info: Backreferencing ON on input line 2306.
+
+Implicit mode ON; LaTeX internals redefined
+Package hyperref Info: Bookmarks ON on input line 2444.
+(/usr/share/texmf-texlive/tex/latex/hyperref/backref.sty
+Package: backref 2006/10/06 v1.27 Bibliographical back referencing
+)
+(/usr/share/texmf-texlive/tex/latex/ltxmisc/url.sty
+\Urlmuskip=\muskip10
+Package: url 2005/06/27  ver 3.2  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 2599.
+\Fld@menulength=\count98
+\Field@Width=\dimen114
+\Fld@charsize=\dimen115
+\Choice@toks=\toks20
+\Field@toks=\toks21
+Package hyperref Info: Hyper figures OFF on input line 3102.
+Package hyperref Info: Link nesting OFF on input line 3107.
+Package hyperref Info: Hyper index ON on input line 3110.
+Package hyperref Info: backreferencing ON on input line 3115.
+Package hyperref Info: Link coloring ON on input line 3120.
+\Hy@abspage=\count99
+\c@Item=\count100
+\c@Hfootnote=\count101
+)
+*hyperref using driver hpdftex*
+(/usr/share/texmf-texlive/tex/latex/hyperref/hpdftex.def
+File: hpdftex.def 2007/02/07 v6.75r Hyperref driver for pdfTeX
+\Fld@listcount=\count102
+)
+\docdate=\toks22
+\docversion=\toks23
+\docname=\toks24
+\docproduct=\toks25
+\docpartnum=\toks26
+
+(/usr/share/texmf-texlive/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 2002/01/22 v2.2d
+
+(/usr/share/texmf-texlive/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 2001/10/25 v2.2f
+\@emptytoks=\toks27
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 132.
+))
+(/usr/share/texmf-texlive/tex/latex/psnfss/pifont.sty
+Package: pifont 2005/04/12 PSNFSS-v9.2a Pi font support (SPQR) 
+LaTeX Font Info:    Try loading font information for U+pzd on input line 63.
+
+(/usr/share/texmf-texlive/tex/latex/psnfss/upzd.fd
+File: upzd.fd 2001/06/04 font definitions for U/pzd.
+)
+LaTeX Font Info:    Try loading font information for U+psy on input line 64.
+
+(/usr/share/texmf-texlive/tex/latex/psnfss/upsy.fd
+File: upsy.fd 2001/06/04 font definitions for U/psy.
+))
+(/usr/share/texmf-texlive/tex/latex/base/fontenc.sty
+Package: fontenc 2005/09/27 v1.99g Standard LaTeX package
+
+(/usr/share/texmf-texlive/tex/latex/base/t1enc.def
+File: t1enc.def 2005/09/27 v1.99g Standard LaTeX file
+LaTeX Font Info:    Redeclaring font encoding T1 on input line 43.
+))
+(/usr/share/texmf-texlive/tex/latex/base/inputenc.sty
+Package: inputenc 2006/05/05 v1.1b Input encoding file
+\inpenc@prehook=\toks28
+\inpenc@posthook=\toks29
+
+(/usr/share/texmf-texlive/tex/latex/base/latin1.def
+File: latin1.def 2006/05/05 v1.1b Input encoding file
+))
+\mainindent=\skip58
+\secindent=\skip59
+\@adjskip=\skip60
+\tmpitemindent=\dimen116
+\ssindent=\skip61
+\sssindent=\skip62
+\ssssindent=\skip63
+\sssssindent=\skip64
+\chindent=\skip65
+
+(/usr/share/texmf-texlive/tex/generic/babel/babel.sty
+Package: babel 2005/11/23 v3.8h The Babel package
+
+(/usr/share/texmf-texlive/tex/generic/babel/english.ldf
+Language: english 2005/03/30 v3.3o English support from the babel system
+
+(/usr/share/texmf-texlive/tex/generic/babel/babel.def
+File: babel.def 2005/11/23 v3.8h Babel common definitions
+\babel@savecnt=\count103
+\U@D=\dimen117
+)
+\l@british = a dialect from \language\l@english 
+\l@UKenglish = a dialect from \language\l@english 
+\l@canadian = a dialect from \language\l@american 
+\l@australian = a dialect from \language\l@british 
+\l@newzealand = a dialect from \language\l@british 
+))
+(/usr/share/texmf-texlive/tex/latex/eso-pic/eso-pic.sty
+Package: eso-pic 2006/07/14 v1.1d eso-pic (RN)
+
+(/usr/share/texmf-texlive/tex/latex/everyshi/everyshi.sty
+Package: everyshi 2001/05/15 v3.00 EveryShipout Package (MS)
+))
+(/usr/share/texmf-texlive/tex/latex/graphics/color.sty
+Package: color 2005/11/14 v1.0j Standard LaTeX Color (DPC)
+
+(/etc/texmf/tex/latex/config/color.cfg
+File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
+)
+Package color Info: Driver file: pdftex.def on input line 130.
+)
+\codeindent=\skip66
+
+(/usr/share/texmf-texlive/tex/latex/tools/longtable.sty
+Package: longtable 2004/02/01 v4.11 Multi-page Table package (DPC)
+\LTleft=\skip67
+\LTright=\skip68
+\LTpre=\skip69
+\LTpost=\skip70
+\LTchunksize=\count104
+\LTcapwidth=\dimen118
+\LT@head=\box30
+\LT@firsthead=\box31
+\LT@foot=\box32
+\LT@lastfoot=\box33
+\LT@cols=\count105
+\LT@rows=\count106
+\c@LT@tables=\count107
+\c@LT@chunks=\count108
+\LT@p@ftn=\toks30
+)) (./docparams.tex)
+(./refman.aux
+
+LaTeX Warning: Label `index_ardguide_SoftwareManagement' multiply defined.
+
+
+LaTeX Warning: Label `index_ardguide_SoftwareManagement' multiply defined.
+
+
+LaTeX Warning: Label `index_ardguide_SoftwareLifecycle' multiply defined.
+
+
+LaTeX Warning: Label `index_ardguide_SoftwareLibraryOverview' multiply defined.
+
+
+
+LaTeX Warning: Label `index_ardguide_AspApp' multiply defined.
+
+
+LaTeX Warning: Label `index_ardguide_AppDeploy' multiply defined.
+
+
+LaTeX Warning: Label `index_ardguide_ApplicationRemoval' multiply defined.
+
+
+LaTeX Warning: Label `index_ardguide_ApplicationUpgrade' multiply defined.
+
+
+LaTeX Warning: Label `index_ardguide_AdditionalUpgradeAPIs' multiply defined.
+
+)
+\openout1 = `refman.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Try loading font information for T1+ppl on input line 22.
+ (/usr/share/texmf-texlive/tex/latex/psnfss/t1ppl.fd
+File: t1ppl.fd 2001/06/04 font definitions for T1/ppl.
+)
+
+Package geometry Warning: The marginal notes would fall off the page.
+     Add 66.0945pt and more to the right margin.
+
+-------------------- Geometry parameters
+paper: letterpaper
+landscape: --
+twocolumn: --
+twoside: true
+asymmetric: --
+h-parts: 85.35826pt, 472.03123pt, 56.9055pt
+v-parts: 105.27519pt, 604.33653pt, 85.35826pt
+hmarginratio: --
+vmarginratio: --
+lines: --
+heightrounded: --
+bindingoffset: 0.0pt
+truedimen: --
+includehead: --
+includefoot: --
+includemp: --
+driver: pdftex
+-------------------- Page layout dimensions and switches
+\paperwidth  614.295pt
+\paperheight 794.96999pt
+\textwidth  472.03123pt
+\textheight 604.33653pt
+\oddsidemargin  13.08827pt
+\evensidemargin -15.36449pt
+\topmargin  4.55246pt
+\headheight 0.0pt
+\headsep    28.45274pt
+\footskip   34.1433pt
+\marginparwidth 116.0pt
+\marginparsep   7.0pt
+\columnsep  10.0pt
+\skip\footins  10.0pt plus 4.0pt minus 2.0pt
+\hoffset 0.0pt
+\voffset 0.0pt
+\mag 1000
+\@twosidetrue \@mparswitchtrue 
+(1in=72.27pt, 1cm=28.45pt)
+-----------------------
+Package hyperref Info: Link coloring ON on input line 22.
+(/usr/share/texmf-texlive/tex/latex/hyperref/nameref.sty
+Package: nameref 2006/12/27 v2.28 Cross-referencing by name of section
+
+(/usr/share/texmf-texlive/tex/latex/oberdiek/refcount.sty
+Package: refcount 2006/02/20 v3.0 Data extraction from references (HO)
+)
+\c@section@level=\count109
+)
+LaTeX Info: Redefining \ref on input line 22.
+LaTeX Info: Redefining \pageref on input line 22.
+ (./refman.out)
+(./refman.out)
+\@outlinefile=\write4
+\openout4 = `refman.out'.
+
+ ABD: EveryShipout initializing macros
+<openclovis_logo.png, id=131, 438.6789pt x 126.7134pt>
+File: openclovis_logo.png Graphic file (type png)
+
+<use openclovis_logo.png>
+LaTeX Font Info:    Try loading font information for U+msa on input line 24.
+ (/usr/share/texmf-texlive/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2002/01/19 v2.2g AMS font definitions
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 24.
+(/usr/share/texmf-texlive/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2002/01/19 v2.2g AMS font definitions
+)
+LaTeX Font Info:    Try loading font information for T1+phv on input line 24.
+
+(/usr/share/texmf-texlive/tex/latex/psnfss/t1phv.fd
+File: t1phv.fd 2001/06/04 scalable font definitions for T1/phv.
+)
+<bg3.png, id=132, 482.7636pt x 506.25134pt>
+File: bg3.png Graphic file (type png)
+ <use bg3.png> [1
+
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./bg3.png (PNG copy)> <./o
+penclovis_logo.png (PNG copy)>]
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <9> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 24.
+LaTeX Font Info:    Try loading font information for OMS+phv on input line 24.
+ (/usr/share/texmf-texlive/tex/latex/psnfss/omsphv.fd
+File: omsphv.fd 
+)
+
+LaTeX Font Warning: Font shape `OMS/phv/bx/n' undefined
+(Font)              using `OMS/phv/m/n' instead on input line 24.
+
+LaTeX Font Info:    Font shape `OMS/phv/m/n' in size <9> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 24.
+LaTeX Font Info:    Font shape `OMS/phv/bx/n' in size <9> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 24.
+LaTeX Font Info:    Font shape `T1/ppl/bx/n' in size <10> not available
+(Font)              Font shape `T1/ppl/b/n' tried instead on input line 24.
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <10> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 24.
+[2] (./refman.toc
+LaTeX Font Info:    Font shape `T1/ppl/bx/n' in size <10.95> not available
+(Font)              Font shape `T1/ppl/b/n' tried instead on input line 2.
+ [3
+
+])
+\tf@toc=\write5
+\openout5 = `refman.toc'.
+
+ [4] (./index.tex [1
+
+
+]
+LaTeX Font Info:    Try loading font information for T1+pcr on input line 23.
+
+(/usr/share/texmf-texlive/tex/latex/psnfss/t1pcr.fd
+File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
+)
+Underfull \vbox (badness 10000) detected at line 31
+ []
+
+<OpenClovis_Note.png, id=199, 28.105pt x 25.09375pt>
+File: OpenClovis_Note.png Graphic file (type png)
+ <use OpenClovis_Note.png>
+<OpenClovis_Caution.png, id=200, 25.09375pt x 24.09pt>
+File: OpenClovis_Caution.png Graphic file (type png)
+
+<use OpenClovis_Caution.png>
+<OpenClovis_Info.png, id=201, 26.0975pt x 25.09375pt>
+File: OpenClovis_Info.png Graphic file (type png)
+
+<use OpenClovis_Info.png>
+Underfull \hbox (badness 10000) detected at line 43
+[][][]
+ []
+
+[2 <./OpenClovis_Note.png> <./OpenClovis_Caution.png> <./OpenClovis_Info.png>]
+Underfull \hbox (badness 10000) detected at line 43
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 43
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 43
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 43
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 43
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 43
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 43
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 43
+[][][]
+ []
+
+
+Underfull \hbox (badness 2409) in paragraph at lines 46--46
+ []\T1/ppl/m/n/10.95 For ad-di-tional in-for-ma-tion about Tur-bo-Gears, the we
+b ap-pli-ca-tion mega-
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 47
+[][][]
+ []
+
+[3]
+Underfull \hbox (badness 1448) in paragraph at lines 53--54
+ \T1/ppl/m/n/10.95 OpenClovis cus-tomers and part-ners can reg-is-ter on our We
+b site and re-
+ []
+
+
+Underfull \hbox (badness 1092) in paragraph at lines 53--54
+ \T1/ppl/m/n/10.95 ceive per-son-al-ized ser-vices and in-for-ma-tion. If you n
+eed any sup-port or
+ []
+
+
+Underfull \hbox (badness 3240) in paragraph at lines 53--54
+ \T1/ppl/m/n/10.95 low-ing: URL: [][]\T1/pcr/m/n/10.95 http://www.openclovis.co
+m.[][] \T1/ppl/m/n/10.95 Send your queries to:
+ []
+
+
+Underfull \hbox (badness 2142) in paragraph at lines 58--59
+ \T1/ppl/m/n/10.95 vided with the prod-uct. Let us know your com-ments and sug-
+ges-tions
+ []
+
+[4]
+Chapter 1.
+LaTeX Font Info:    Font shape `T1/ppl/bx/n' in size <24.88> not available
+(Font)              Font shape `T1/ppl/b/n' tried instead on input line 62.
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <24.88> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 62.
+<awdHLD.png, id=234, 596.04124pt x 466.40227pt>
+File: awdHLD.png Graphic file (type png)
+ <use awdHLD.png>
+Overfull \hbox (124.00854pt too wide) in paragraph at lines 67--67
+[][] 
+ []
+
+[5
+
+] [6 <./awdHLD.png>] [7] [8
+
+]
+Chapter 2.
+[9] [10
+
+]
+Chapter 3.
+[11] [12
+
+]
+Chapter 4.
+[13] [14]
+Chapter 5.
+[15
+
+]pdfTeX warning (ext4): destination with the same identifier (name{index_ardgui
+de_SoftwareManagement}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.166 ...rget{index_ardguide_SoftwareManagement}{}
+                                                   [16]
+Chapter 6.
+<awdsoftwarelifecycle.png, id=315, 337.66487pt x 174.29823pt>
+File: awdsoftwarelifecycle.png Graphic file (type png)
+
+<use awdsoftwarelifecycle.png> [17
+
+ <./awdsoftwarelifecycle.png>] [18]
+Chapter 7.
+<awdAspApp.png, id=333, 321.26749pt x 241.10243pt>
+File: awdAspApp.png Graphic file (type png)
+ <use awdAspApp.png> [19
+
+]
+[20 <./awdAspApp.png>]
+Chapter 8.
+
+Underfull \hbox (badness 10000) detected at line 209
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 209
+[][][]
+ []
+
+[21
+
+] [22
+
+]
+Chapter 9.
+[23] [24
+
+]
+Chapter 10.
+
+Underfull \hbox (badness 10000) in paragraph at lines 263--264
+ \T1/ppl/m/n/10.95 There are also ad-di-tional APIs that al-low a pro-gram-mer 
+to have
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 263--264
+ \T1/ppl/m/n/10.95 more con-trol over the up-grade pro-cess. The "Up-grade" mem
+-ber
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 263--264
+ \T1/ppl/m/n/10.95 func-tion is ac-tu-ally a thin wrap-per around a "gen-er-a-t
+or" func-tion
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 263--264
+ \T1/ppl/m/n/10.95 ([][]\T1/pcr/m/n/10.95 http://docs.python.org/tutorial/class
+es.html#generators[][]\T1/ppl/m/n/10.95 )
+ []
+
+[25]pdfTeX warning (ext4): destination with the same identifier (name{index_ard
+guide_SoftwareManagement}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.268 ...rget{index_ardguide_SoftwareManagement}{}
+                                                  pdfTeX warning (ext4): destin
+ation with the same identifier (name{index_ardguide_SoftwareLifecycle}) has bee
+n already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.273 ...arget{index_ardguide_SoftwareLifecycle}{}
+                                                   [26]
+Chapter 11.
+File: awdsoftwarelifecycle.png Graphic file (type png)
+<use awdsoftwarelifecycle.png> [27
+
+]pdfTeX warning (ext4): destination with the same identifier (name{index_ardgui
+de_SoftwareLibraryOverview}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.293 ...index_ardguide_SoftwareLibraryOverview}{}
+                                                   [28]
+Chapter 12.
+pdfTeX warning (ext4): destination with the same identifier (name{index_ardguid
+e_AspApp}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.296 \hypertarget{index_ardguide_AspApp}{}
+                                           
+File: awdAspApp.png Graphic file (type png)
+ <use awdAspApp.png>pdfTeX warning (ext4): destination with the same identifier
+ (name{index_ardguide_AppDeploy}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.308 \hypertarget{index_ardguide_AppDeploy}{}
+                                               [29
+
+]
+Underfull \hbox (badness 10000) detected at line 311
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 311
+[][][]
+ []
+
+pdfTeX warning (ext4): destination with the same identifier (name{index_ardguid
+e_ApplicationRemoval}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.321 ...rget{index_ardguide_ApplicationRemoval}{}
+                                                   [30]pdfTeX warning (ext4): d
+estination with the same identifier (name{index_ardguide_ApplicationUpgrade}) h
+as been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.352 ...rget{index_ardguide_ApplicationUpgrade}{}
+                                                   [31]pdfTeX warning (ext4): d
+estination with the same identifier (name{index_ardguide_AdditionalUpgradeAPIs}
+) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.363 ...t{index_ardguide_AdditionalUpgradeAPIs}{}
+                                                  
+Underfull \hbox (badness 10000) in paragraph at lines 366--367
+ []\T1/ppl/m/n/10.95 There are also ad-di-tional APIs that al-low a pro-gram-me
+r to have
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 366--367
+ \T1/ppl/m/n/10.95 more con-trol over the up-grade pro-cess. The "Up-grade" mem
+-ber
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 366--367
+ \T1/ppl/m/n/10.95 func-tion is ac-tu-ally a thin wrap-per around a "gen-er-a-t
+or" func-tion
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 366--367
+ \T1/ppl/m/n/10.95 ([][]\T1/pcr/m/n/10.95 http://docs.python.org/tutorial/class
+es.html#generators[][]\T1/ppl/m/n/10.95 )
+ []
+
+[32]) (./refman.ind) [33] (./refman.aux)
+
+LaTeX Font Warning: Some font shapes were not available, defaults substituted.
+
+
+LaTeX Warning: There were multiply-defined labels.
+
+ ) 
+Here is how much of TeX's memory you used:
+ 4790 strings out of 95086
+ 65424 string characters out of 1183255
+ 123637 words of memory out of 1500000
+ 7686 multiletter control sequences out of 10000+50000
+ 46049 words of font info for 87 fonts, out of 1200000 for 2000
+ 28 hyphenation exceptions out of 8191
+ 35i,12n,43p,2882b,523s stack positions out of 5000i,500n,6000p,200000b,5000s
+{/usr/share/texmf-texlive/fonts/enc/dvips/base/8r.enc}</usr/share/texmf-texli
+ve/fonts/type1/bluesky/cm/cmmi10.pfb></usr/share/texmf-texlive/fonts/type1/blue
+sky/cm/cmsy9.pfb></usr/share/texmf-texlive/fonts/type1/urw/courier/ucrr8a.pfb><
+/usr/share/texmf-texlive/fonts/type1/urw/helvetic/uhvb8a.pfb></usr/share/texmf-
+texlive/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/share/texmf-texlive/fonts/typ
+e1/urw/palatino/uplb8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/palatino/u
+plr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/palatino/uplri8a.pfb></usr/
+share/texmf-texlive/fonts/type1/urw/symbol/usyr.pfb>
+Output written on refman.pdf (37 pages, 1395074 bytes).
+PDF statistics:
+ 486 PDF objects out of 1000 (max. 8388607)
+ 141 named destinations out of 1000 (max. 131072)
+ 305 words of extra memory for PDF output out of 10000 (max. 10000000)
+

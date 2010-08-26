@@ -1,0 +1,278 @@
+## -*- c -*-
+######################################################################
+## mib2c/clSnmp${name}Scalars.h
+######################################################################
+@open mib2c/clSnmp${name}Scalars.h@
+#ifndef _CL_SNMP_$name.uc_SCALARS_H
+#define _CL_SNMP_$name.uc_SCALARS_H
+
+#include <net-snmp/net-snmp-config.h>
+#include <net-snmp/net-snmp-includes.h>
+#include <net-snmp/agent/net-snmp-agent-includes.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* function declarations */
+void clSnmp${name}ScalarsInit(void);
+@foreach $s scalar@
+Netsnmp_Node_Handler clSnmp${s}Handler;
+@end@
+
+/* enum definitions */
+#include "clSnmp${name}Enums.h"
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _CL_SNMP_$name.uc_SCALARS_H */
+@close mib2c/clSnmp${name}Scalars.h@
+######################################################################
+## mib2c/clSnmp${name}Scalars.c
+######################################################################
+@open mib2c/clSnmp${name}Scalars.c@
+#include <clDebugApi.h>
+#include <clSnmpOp.h>
+#include <clSnmp${name}Scalars.h>
+
+  @foreach $s scalar@
+static oid ${s}Oid[] = { $s.commaoid };
+  @end@
+
+/** Initializes the $name module */
+void
+clSnmp${name}ScalarsInit(void)
+{
+  DEBUGMSGTL(("${name}Scalars", "Initializing\n"));
+
+  @foreach $s scalar@
+    netsnmp_register_scalar(
+        netsnmp_create_handler_registration("$s", clSnmp${s}Handler,
+                               ${s}Oid, OID_LENGTH(${s}Oid),
+    @if $s.settable@
+                               HANDLER_CAN_RWRITE
+    @else@
+                               HANDLER_CAN_RONLY
+    @end@
+        ));
+  @end@
+}
+
+@foreach $s scalar@
+int
+clSnmp${s}Handler(netsnmp_mib_handler *handler,
+                          netsnmp_handler_registration *reginfo,
+                          netsnmp_agent_request_info   *reqinfo,
+                          netsnmp_request_info         *requests)
+{
+    ClSNMPRequestInfoT requestInfo;
+    netsnmp_variable_list *reqVar = NULL;
+
+    if(!requests || !reqinfo)
+        return SNMP_ERR_GENERR;
+
+
+    reqVar = requests->requestvb;
+
+    /* We are never called for a GETNEXT if it's registered as a
+       "instance", as it's "magically" handled for us.  */
+
+    /* An instance handler also only hands us one request at a time, so
+       we don't need to loop over a list of requests; we'll only get one. */
+
+    memset(&requestInfo, 0, sizeof(ClSNMPRequestInfoT));
+
+### script-writer: The following portion could be a separate function common to all table/scalar handlers.
+/* Extract the scalar OID, convert it to string form and assign it to requestInfo.oid */
+
+    requestInfo.oidLen = OID_LENGTH(${s}Oid);
+    clSnmpOidCpy(&requestInfo, (ClUint32T *) reqVar->name);
+
+    requestInfo.tableType = CL_$name.uc_SCALARS;
+    
+    switch(reqinfo->mode) {
+
+        case MODE_GET:
+        {
+            ClInt32T retVal = 0, errorCode = 0;
+            void * pVal = NULL;
+            ### script-writer: check if this could be done as @define-@calldefine 
+            @if $s.type eq "ASN_OCTET_STR"@
+                @eval $str_var = $s@
+                @calldefine STR_UPPER_LIMIT@
+            ClCharT ${s}Val[$final_max];
+
+            requestInfo.dataLen = $final_max * sizeof(ClCharT);
+            @elsif $s.type eq "ASN_IPADDRESS"@
+            ClUint8T ${s}Val[4];
+
+            requestInfo.dataLen = 4 * sizeof(ClUint8T); /* IPv4 Address length */
+            @elsif $s.type eq "ASN_OBJECT_ID"@
+            ClUint32T ${s}Val[CL_SNMP_MAX_OID_LEN];
+
+            requestInfo.dataLen = sizeof(ClUint32T) * CL_SNMP_MAX_OID_LEN;
+            @else@
+                @eval $decl = '$s.decl'@
+                @calldefine GET_CLOVIS_CODING_CONV@
+            $c_type ${s}Val;
+
+            requestInfo.dataLen = sizeof($c_type);
+            @end@
+            requestInfo.index.scalarType = 0;
+            requestInfo.opCode = CL_SNMP_GET;
+
+            @if $s.type eq "ASN_OCTET_STR" || $s.type eq "ASN_IPADDRESS" || $s.type eq "ASN_OBJECT_ID"@
+            pVal = ${s}Val;
+            @else@
+            pVal = & ${s}Val;
+            @end@
+            retVal = clExecuteSnmp(&requestInfo, pVal, NULL, &errorCode);
+
+            if(retVal != 0 || errorCode < 0)
+            {
+                netsnmp_request_set_error (requests, errorCode);
+                return errorCode;
+            }
+            @if $s.type eq "ASN_OCTET_STR"@
+            requestInfo.dataLen = strlen(${s}Val) + 1;
+            @end@
+            snmp_set_var_typed_value(reqVar, $s.type, (u_char *)pVal, requestInfo.dataLen);
+            break;
+        }
+
+        @if $s.settable@
+        /*
+         * SET REQUEST
+         *
+         * multiple states in the transaction.  See:
+         * http://www.net-snmp.org/tutorial-5/toolkit/mib_module/set-actions.jpg
+         */
+        case MODE_SET_RESERVE1:
+        {
+            ClInt32T retVal = 0;
+            retVal = netsnmp_check_vb_type(reqVar, $s.type);
+            if(retVal != SNMP_ERR_NOERROR ) 
+            {
+                netsnmp_request_set_error(requests, retVal );
+                return retVal;
+            }
+            break;
+        }
+        case MODE_SET_RESERVE2:
+        {
+            ### Handle enums.
+            @if $s.enums == 1@
+            switch(*(reqVar->val.integer))
+            {
+                @foreach $l, $v enum@
+                case $s.uc_$l.uc:
+                    break;
+                @end@
+                /** not a legal enum value.  return an error */
+                default:
+                    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Inconsistent value."));
+                    netsnmp_request_set_error(requests, SNMP_ERR_WRONGVALUE);
+                    return SNMP_ERR_WRONGVALUE;
+            }
+            ### Handle $s with ranges.
+            @elsif $s.ranges == 1@
+            ClInt32T retVal = 0;
+                @foreach $min, $max range $s@
+                    ### script-writer: Observed that simply using $min does not print anything if $min = 0, hence the below statement.
+                    @eval $min = $min + 0@
+                    @if $s.type eq "ASN_OCTET_STR"@
+            ### Fine-tuning reqd.: if $max != CL_SNMP_MAX_STR_LEN.
+                        @eval $str_var = $s@
+                        @calldefine STR_UPPER_LIMIT@
+            retVal = netsnmp_check_vb_size_range(reqVar, $min, $final_max);
+            if(retVal != SNMP_ERR_NOERROR)
+            {
+                netsnmp_request_set_error(requests, retVal );
+                return retVal;
+            }
+                    @elsif $s.type eq "ASN_IPADDRESS"@
+            retVal = netsnmp_check_vb_size_range(reqVar, 4, 4); /* IPv4 address length */
+            if(retVal != SNMP_ERR_NOERROR)
+            {
+                netsnmp_request_set_error(requests, retVal );
+                return retVal;
+            }
+                    @elsif $s.type eq "ASN_OBJECT_ID"@
+            ### Fine-tuning reqd.: if $max != CL_SNMP_MAX_OID_LEN.
+            retVal = netsnmp_check_vb_size_range(reqVar, $min, CL_SNMP_MAX_OID_LEN);
+            if(retVal != SNMP_ERR_NOERROR)
+            {
+                netsnmp_request_set_error(requests, retVal );
+                return retVal;
+            }
+                    @else@
+            ### Fine-tuning reqd.: if $max < actual MAX. value mentioned in the MIB.
+            ### Fine-tuning reqd.: if $min < actual MIN. value mentioned in the MIB.
+                        @if $min > $max@
+                            @eval $tmp = $min@
+                            @eval $min = $max@
+                            @eval $max = $tmp@
+                        @end@
+            retVal = netsnmp_check_vb_range(reqVar, $min, $max);
+            if(retVal != SNMP_ERR_NOERROR)
+            {
+                netsnmp_request_set_error(requests, retVal );
+                return retVal;
+            }
+                    @end@
+                    @eval $min = 0@
+                    @eval $max = 0@
+                @end@
+            @end@
+            break;
+        }
+
+        case MODE_SET_FREE:
+            break;
+
+        case MODE_SET_ACTION:
+        {
+            ClInt32T retVal = 0, errorCode = 0, noOfOp = 1;
+            @if $s.type eq "ASN_OCTET_STR"@
+                @eval $str_var = $s@
+                @calldefine STR_UPPER_LIMIT@
+            requestInfo.dataLen = (strlen((char*)reqVar->val.string) + 1) * sizeof(ClCharT);
+            @elsif $s.type eq "ASN_IPADDRESS"@
+            requestInfo.dataLen = 4 * sizeof(ClUint8T);
+            @elsif $s.type eq "ASN_OBJECT_ID"@
+            requestInfo.dataLen = sizeof(ClUint32T) * CL_SNMP_MAX_OID_LEN;
+            @else@
+                @eval $decl = '$s.decl'@
+                @calldefine GET_CLOVIS_CODING_CONV@
+            requestInfo.dataLen = sizeof($c_type);
+            @end@
+            requestInfo.opCode = CL_SNMP_SET;
+            requestInfo.index.scalarType = 0;
+
+            retVal = clExecuteSnmp( &requestInfo, reqVar->val.integer, &noOfOp, &errorCode);
+
+            if (retVal != 0 || errorCode < 0)
+            {
+                netsnmp_request_set_error(requests, errorCode);
+                return errorCode;
+            }     
+            break;
+        }
+        case MODE_SET_COMMIT:
+            break;
+
+        case MODE_SET_UNDO:
+            break;
+        @end@
+
+        default:
+            /* we should never get here, so this is a really bad error */
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("unknown mode (%d) in clSnmp${s}Handler\n", reqinfo->mode) );
+            return SNMP_ERR_GENERR;
+    }
+
+    return SNMP_ERR_NOERROR;
+}
+@end@

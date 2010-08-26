@@ -1,0 +1,173 @@
+
+#include <stdio.h>
+
+#include <clCommon.h>
+#include <clOsalApi.h>
+#include <clIocServices.h>
+
+#include <clRmdApi.h>
+#include <clDebugApi.h>
+#include <clOmApi.h>
+#include <clOampRtApi.h>
+#include <clProvApi.h>
+#include <clAlarmApi.h>
+
+#include <clEoApi.h>
+#include <clCpmApi.h>
+#include <clIdlApi.h>
+#include <string.h>
+
+
+ClCpmHandleT		cpmHandle;
+ClRcT ${cpmName}_appTerminate(ClInvocationT invocation,
+			const ClNameT  *compName)
+{
+    ClRcT rc;
+    printf("Inside ${cpmName}_appTerminate \n");
+	/* Do the App Finalization */
+    printf("Unregister with CPM before Exit ................. %s\n", compName->value);
+    rc = clCpmComponentUnregister(cpmHandle, compName, NULL);
+    printf("Finalize before Exit ................. %s\n", compName->value);
+    rc = clCpmClientFinalize(cpmHandle);
+    clCpmResponse(cpmHandle, invocation, CL_OK);
+
+    return CL_OK;
+}
+
+ClRcT
+clAmsCSISetCallback(
+        ClInvocationT         invocation,
+        const ClNameT         *compName,
+        ClAmsHAStateT         haState,
+        ClAmsCSIDescriptorT   csiDescriptor)
+{
+    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("Inside Function %s \n",__FUNCTION__));
+                                                                                                                             
+    if(haState == CL_AMS_HA_STATE_QUIESCING)
+    {
+        clOsalPrintf("######## before clCpmCSIQuiescingComplete ########\n");
+        clCpmCSIQuiescingComplete(cpmHandle, invocation, CL_OK);
+    }
+    else
+    {
+        clOsalPrintf("######## before clCpmResponse ########\n");
+        clCpmResponse(cpmHandle, invocation, CL_OK);
+    }
+                                                                                                                             
+    return CL_OK;
+}
+                                                                                                                             
+ClRcT
+clAmsCSIRmvCallback(
+        ClInvocationT         invocation,
+        const ClNameT         *compName,
+        const ClNameT         *csiName,
+        ClAmsCSIFlagsT        csiFlags)
+{
+    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("Inside Function %s \n",__FUNCTION__));
+                                                                                                                             
+    clCpmResponse(cpmHandle, invocation, CL_OK);
+                                                                                                                             
+    return CL_OK;
+}
+
+ClRcT ${cpmName}_appInitialize(ClUint32T argc,  ClCharT *argv[])
+{
+    ClNameT			appName;
+	ClCpmCallbacksT	callbacks;
+	ClVersionT		version;
+	ClIocPortT			iocPort;
+	ClRcT	rc = CL_OK;
+
+    /* Do the App intialization */
+
+    /*  Do the CPM client init/Register */
+	version.releaseCode = 'B';
+	version.majorVersion = 01;
+	version.minorVersion = 01;
+	
+	callbacks.appHealthCheck = NULL;
+	callbacks.appTerminate = ${cpmName}_appTerminate;
+	callbacks.appCSISet = clAmsCSISetCallback;
+	callbacks.appCSIRmv = clAmsCSIRmvCallback;
+	callbacks.appProtectionGroupTrack = NULL;
+	callbacks.appProxiedComponentInstantiate = NULL;
+	callbacks.appProxiedComponentCleanup = NULL;
+		
+	clEoMyEoIocPortGet(&iocPort);
+	printf("Application Address 0x%x Port %x\n", clIocLocalAddressGet(), iocPort);
+	rc = clCpmClientInitialize(&cpmHandle, &callbacks, &version);
+	printf("After clCpmClientInitialize %d\t %x\n", cpmHandle, rc);
+	rc = clCpmComponentNameGet(cpmHandle, &appName);
+	printf("After clCpmComponentNameGet %d\t %s\n", cpmHandle, appName.value);
+	rc = clCpmComponentRegister(cpmHandle, &appName, NULL);
+	printf("After clCpmClientRegister %x\n", rc);
+        
+    /* Block and use the main thread if required other wise return */
+    
+    return CL_OK;
+}
+
+ClRcT ${cpmName}_appFinalize()
+{
+    
+   
+    return CL_OK;
+}
+ClRcT 	${cpmName}_appStateChange(ClEoStateT eoState)
+{
+    /* Application state change */
+    return CL_OK;
+}
+
+ClRcT   ${cpmName}_appHealthCheck(ClEoSchedFeedBackT* schFeedback)
+{
+    /* Modify following as per App requirement*/
+    schFeedback->freq   = CL_EO_BUSY_POLL; 
+    schFeedback->status = CL_CPM_EO_ALIVE;
+
+    return CL_OK;
+}
+
+ClEoConfigT clEoConfig = {
+    "${eoName}",       /* EO Name*/
+    ${eoThreadPriority},              /* EO Thread Priority */
+    ${eoNumThread},              /* No of EO thread needed */
+    0,         /* Required Ioc Port */
+    CL_EO_USER_CLIENT_ID_START, 
+    ${threadPolicy}, /* Whether to use main thread for eo Recv or not */
+    ${cpmName}_appInitialize,  /* Function CallBack  to initialize the Application */
+    ${cpmName}_appFinalize,    /* Function Callback to Terminate the Application */ 
+    ${cpmName}_appStateChange, /* Function Callback to change the Application state */
+    ${cpmName}_appHealthCheck, /* Function Callback to change the Application state */
+};
+
+/* What basic and client libraries do we need to use? The first 6
+   basic libraries are mandatory. */
+ClUint8T clEoBasicLibs[] = {
+    CL_TRUE,			/* osal */
+    CL_TRUE,			/* timer */    
+    CL_TRUE,			/* buffer */
+    CL_TRUE,			/* ioc */
+    CL_TRUE,			/* rmd */
+    CL_TRUE,			/* eo */
+    ${omLibEnable},			/* om */
+    ${halLibEnable},			/* hal */
+    ${dbalLibEnable},			/* dbal */
+};
+  
+ClUint8T clEoClientLibs[] = {
+    ${corClLib},			/* cor */
+    ${cmClLib},				/* cm */
+    ${nameClLib},			/* name */
+    ${logClLib},			/* log */
+    CL_FALSE,			/* trace */
+    CL_FALSE,			/* diag */
+    ${txnClLib},			/* txn */
+    CL_FALSE,			    /* NA */
+    ${provLib},			    /* Prov */
+    ${alarmClLib},			/* alarm */
+    ${debugClLib},			/* debug */
+    CL_FALSE				/* gms */
+};
+

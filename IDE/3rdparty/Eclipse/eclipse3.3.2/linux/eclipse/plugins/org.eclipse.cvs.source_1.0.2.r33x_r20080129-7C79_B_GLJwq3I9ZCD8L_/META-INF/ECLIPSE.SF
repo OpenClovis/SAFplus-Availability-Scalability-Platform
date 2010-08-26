@@ -1,0 +1,53 @@
+Signature-Version: 1.0
+SHA1-Digest-Manifest-Main-Attributes: qfQkqNgrXummTfeED9pZLdSZHsQ=
+Created-By: 1.5.0 (IBM Corporation)
+SHA1-Digest-Manifest: ZTULnePdk3MwmJJ2IuN26Sc63ww=
+
+Name: src/org.eclipse.team.cvs.core_3.3.2.r33x_20080128/src.zip
+SHA1-Digest: cROvRJr3SxX9JR3kOSdpPVgUFa4=
+
+Name: plugin.xml
+SHA1-Digest: BqMjC6S+iKHiyNJruqmTbMQTOLI=
+
+Name: src/org.eclipse.team.cvs.ui_3.3.1.r33x_20070807/src.zip
+SHA1-Digest: plA2C4m2uiDSahr3CpDj4r+UalU=
+
+Name: src/org.eclipse.team.cvs.ssh2_3.2.100.I20070604/src.zip
+SHA1-Digest: yuZXUlR/zo4vC1f2FG3V8x3VlXw=
+
+Name: about.properties
+SHA1-Digest: FhdGXzRDYq0D0phn5jJDPDoKEcA=
+
+Name: src/org.eclipse.team.cvs.ssh_3.2.100.I20061208/about.html
+SHA1-Digest: AC6SHqXt5Iz3H5n9FsWPWT+ifp4=
+
+Name: src/org.eclipse.team.cvs.ssh_3.2.100.I20061208/src.zip
+SHA1-Digest: wqmu4y4O/33znrgkwLuOAF2J5RQ=
+
+Name: plugin.properties
+SHA1-Digest: AxgZ0sqMJaLKKnLqM0iG38u/oRw=
+
+Name: about.html
+SHA1-Digest: nPN0wXb43sDZo80Tc64P623h2uo=
+
+Name: src/org.eclipse.team.cvs.ui_3.3.1.r33x_20070807/about.html
+SHA1-Digest: RuXzMmh9Ctpp5km93isgdK0f3ww=
+
+Name: src/org.eclipse.team.cvs.ssh2_3.2.100.I20070604/about.html
+SHA1-Digest: elFESzoUYTnXTxP6gtebZ034FfI=
+
+Name: about.mappings
+SHA1-Digest: xLslAuFI3Sz/V41Uv0DuSiQga4A=
+
+Name: src/org.eclipse.team.cvs.core_3.3.2.r33x_20080128/about.html
+SHA1-Digest: 1clzEXvYiRX1tXwTc45qoPv2R1A=
+
+Name: META-INF/eclipse.inf
+SHA1-Digest: SAqY+5ITAL0mkdYeijlSRhyIaZk=
+
+Name: about.ini
+SHA1-Digest: 95U+tUEzz1c2ddlvICyNNVBDrIU=
+
+Name: eclipse32.png
+SHA1-Digest: Yg2IAx+o7H2tbLyk4cwOAV+K+R4=
+

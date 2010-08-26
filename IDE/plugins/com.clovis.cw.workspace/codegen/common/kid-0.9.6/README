@@ -1,0 +1,75 @@
+Kid
+===
+
+<http://www.kid-templating.org>
+
+About
+-----
+
+Kid is a simple Python based template language for XML vocabularies. It was
+spawned as a result of a kinky love triangle between XSLT, TAL, and PHP.
+We believe many of the best features of these languages live on in Kid with
+much of the limitations and complexity stamped out.
+
+Copyright and License
+---------------------
+
+Kid is Copyright (c) 2004-2005, Ryan Tomayko and is licensed under a
+standard MIT license. For more information on copying see the file
+``COPYING`` in source distribution.
+
+System Requirements
+--------------------
+
+Kid has been tested with Python 2.3, 2.4 and 2.5 on Linux, Windows XP
+and Mac OS X.
+
+Install
+-------
+
+Extract the source tarball, change into the newly created directory, and
+execute `setup.py`. Something like the following should do::
+
+    $ gzip -dc kid-0.x.tar.gz | tar xvf -
+    $ cd kid-0.x
+    $ python setup.py install
+
+Without any extra arguments to ``setup.py``, this will install the following
+items:
+
+  1. Python libraries to your site-packages directory.
+
+  2. The ``kidc`` and ``kid`` commands to your "scripts" directory. This
+     is usually ``/usr/local/bin`` under Linux.
+
+Use ``python setup.py install --help`` for information on tweaking the
+install.
+
+More
+----
+
+Documentation specific to this release in both text and HTML formats can be
+found under the doc directory or on the web at:
+
+  http://www.kid-templating.org/doc/kid/
+
+More info can be found on the Kid project site, which includes a wiki and
+bug/enhancement tracker:
+
+  http://www.kid-templating.org
+
+To ask questions, discuss Kid usage, join the mailing list:
+
+  http://lists.sourceforge.net/lists/listinfo/kid-template-discuss
+
+Read my weblog:
+
+  http://naeblis.cx/rtomayko/
+
+Authors/Contributors
+--------------------
+
+* Ryan Tomayko (Original author of the Kid project)
+* David Stanek (Coding, current project maintainer)
+* Christoph Zwerschke (Coding)
+* Ross Burton (Debian package maintainer)

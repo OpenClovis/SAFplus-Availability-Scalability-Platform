@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:alarm="alarm.ecore">
+  <alarm:AlarmProfile CWKEY="32195911" AlarmID="LOS_GigePort" Category="CL_ALARM_CATEGORY_COMMUNICATIONS" ProbableCause="CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL" Severity="CL_ALARM_SEVERITY_CRITICAL" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="16492693" AlarmID="LOF_GigePort" Category="CL_ALARM_CATEGORY_COMMUNICATIONS" ProbableCause="CL_ALARM_PROB_CAUSE_LOSS_OF_FRAME" Severity="CL_ALARM_SEVERITY_MAJOR" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_LOGICAL_OR" MaxAlarm="0">
+      <AlarmIDs>32195911</AlarmIDs>
+      <AlarmIDs>16492693</AlarmIDs>
+    </GenerationRule>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="18556520" AlarmID="Framing_Error" Category="CL_ALARM_CATEGORY_COMMUNICATIONS" ProbableCause="CL_ALARM_PROB_CAUSE_FRAMING_ERROR" Severity="CL_ALARM_SEVERITY_MINOR" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0">
+      <AlarmIDs>32195911</AlarmIDs>
+    </SuppressionRule>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="32251974" AlarmID="Link_Failure_Gige" Category="CL_ALARM_CATEGORY_COMMUNICATIONS" ProbableCause="CL_ALARM_PROB_CAUSE_LAN_ERROR" Severity="CL_ALARM_SEVERITY_CRITICAL" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0">
+      <AlarmIDs>127611</AlarmIDs>
+    </SuppressionRule>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="9456702" AlarmID="Local_Node_Transmission_Error" Category="CL_ALARM_CATEGORY_COMMUNICATIONS" ProbableCause="CL_ALARM_PROB_CAUSE_LOCAL_NODE_TRANSMISSION_ERROR" Severity="CL_ALARM_SEVERITY_MAJOR" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="21307038" AlarmID="Response_Time_Excessive" Category="CL_ALARM_CATEGORY_QUALITY_OF_SERVICE" ProbableCause="CL_ALARM_PROB_CAUSE_RESPONSE_TIME_EXCESSIVE" Severity="CL_ALARM_SEVERITY_MINOR" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_LOGICAL_AND" MaxAlarm="0">
+      <AlarmIDs>21307038</AlarmIDs>
+      <AlarmIDs>18150024</AlarmIDs>
+    </GenerationRule>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="18150024" AlarmID="Low_Bandwidth" Category="CL_ALARM_CATEGORY_QUALITY_OF_SERVICE" ProbableCause="CL_ALARM_PROB_CAUSE_BANDWIDTH_REDUCED" Severity="CL_ALARM_SEVERITY_WARNING" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="127611" AlarmID="Buffer_Error" Category="CL_ALARM_CATEGORY_QUALITY_OF_SERVICE" ProbableCause="CL_ALARM_PROB_CAUSE_QUEUE_SIZE_EXCEEDED" Severity="CL_ALARM_SEVERITY_MAJOR" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="13668271" AlarmID="High_Traffic" Category="CL_ALARM_CATEGORY_QUALITY_OF_SERVICE" ProbableCause="CL_ALARM_PROB_CAUSE_CONGESTION" Severity="CL_ALARM_SEVERITY_MAJOR" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="21747597" AlarmID="InSufficient_Memory" Category="CL_ALARM_CATEGORY_PROCESSING_ERROR" ProbableCause="CL_ALARM_PROB_CAUSE_STORAGE_CAPACITY_PROBLEM" Severity="CL_ALARM_SEVERITY_MINOR" AssertSoakingTime="10000" ClearSoakingTime="5000" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="25380780" AlarmID="Corrupted_Data" Category="CL_ALARM_CATEGORY_PROCESSING_ERROR" ProbableCause="CL_ALARM_PROB_CAUSE_CORRUPT_DATA" Severity="CL_ALARM_SEVERITY_WARNING" AssertSoakingTime="5000" ClearSoakingTime="10000" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="4986108" AlarmID="Low_Power" Category="CL_ALARM_CATEGORY_EQUIPMENT" ProbableCause="CL_ALARM_PROB_CAUSE_POWER_PROBLEM" Severity="CL_ALARM_SEVERITY_CRITICAL" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="true">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="930426" AlarmID="Timing_Mismatch" Category="CL_ALARM_CATEGORY_EQUIPMENT" ProbableCause="CL_ALARM_PROB_CAUSE_TIMING_PROBLEM" Severity="CL_ALARM_SEVERITY_MAJOR" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="true">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="17004808" AlarmID="Recieve_Error" Category="CL_ALARM_CATEGORY_EQUIPMENT" ProbableCause="CL_ALARM_PROB_CAUSE_MULTIPLEXER_PROBLEM" Severity="CL_ALARM_SEVERITY_MINOR" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="true">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="8896802" AlarmID="Transmit_Error" Category="CL_ALARM_CATEGORY_EQUIPMENT" ProbableCause="CL_ALARM_PROB_CAUSE_PROCESSOR_PROBLEM" Severity="CL_ALARM_SEVERITY_WARNING" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="true">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="org.eclipse.emf.ecore.impl.EObjectImpl@1e5afb7 (eClass: org.eclipse.emf.ecore.impl.EClassImpl@3b4f79 (name: AlarmProfile) (instanceClassName: null) (abstract: false, interface: false))" AlarmID="LOS_T3Port" Category="CL_ALARM_CATEGORY_COMMUNICATIONS" ProbableCause="CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL" Severity="CL_ALARM_SEVERITY_CRITICAL" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="org.eclipse.emf.ecore.impl.EObjectImpl@733b3a (eClass: org.eclipse.emf.ecore.impl.EClassImpl@3b4f79 (name: AlarmProfile) (instanceClassName: null) (abstract: false, interface: false))" AlarmID="LOF_T3Port" Category="CL_ALARM_CATEGORY_COMMUNICATIONS" ProbableCause="CL_ALARM_PROB_CAUSE_LOSS_OF_FRAME" Severity="CL_ALARM_SEVERITY_CRITICAL" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="org.eclipse.emf.ecore.impl.EObjectImpl@5744d9 (eClass: org.eclipse.emf.ecore.impl.EClassImpl@3b4f79 (name: AlarmProfile) (instanceClassName: null) (abstract: false, interface: false))" AlarmID="Link_Failure_T3" Category="CL_ALARM_CATEGORY_COMMUNICATIONS" ProbableCause="CL_ALARM_PROB_CAUSE_LAN_ERROR" Severity="CL_ALARM_SEVERITY_MAJOR" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+  <alarm:AlarmProfile CWKEY="1961859" AlarmID="Processing_Failure" Category="CL_ALARM_CATEGORY_PROCESSING_ERROR" ProbableCause="CL_ALARM_PROB_CAUSE_CPU_CYCLES_LIMIT_EXCEEDED" Severity="CL_ALARM_SEVERITY_MAJOR" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false">
+    <GenerationRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+    <SuppressionRule Relation="CL_ALARM_RULE_NO_RELATION" MaxAlarm="0" AlarmIDs=""/>
+  </alarm:AlarmProfile>
+</xmi:XMI>

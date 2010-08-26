@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="eoDefinitions"
+    nsURI="eoDefinitions.ecore" nsPrefix="">
+  <eClassifiers xsi:type="ecore:EClass" name="HeapConfig">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.ListUniquenessValidator"/>
+      <details key="dependents" value="0@model/eoConfig.ecore!eoConfig,eoMemConfig%heapConfig|configs/clEoConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.MemoryConfigToEOConfigHandler"/>
+      <details key="isTreeDumbNode" value="name"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Name"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+        <details key="Dependency" value="Default;Disable:add=name|CorHeapConfig;Disable:add=name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="mode" lowerBound="1" eType="#//HeapConfigModeEnum"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Mode"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="Dependency" value="NM;Disable:add=pool|PAM;Disable:remove=pool|CM;Disable:add=pool"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lazyMode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Lazy Mode"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pool" upperBound="-1" eType="#//Pool"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Pool"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Disable" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BufferConfig">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.ListUniquenessValidator"/>
+      <details key="dependents" value="0@model/eoConfig.ecore!eoConfig,eoMemConfig%bufferConfig|configs/clEoConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.MemoryConfigToEOConfigHandler"/>
+      <details key="isTreeDumbNode" value="name"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Name"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+        <details key="Dependency" value="Default;Disable:add=name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="mode" lowerBound="1" eType="#//BufferConfigModeEnum"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Mode"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lazyMode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Lazy Mode"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pool" upperBound="-1" eType="#//Pool"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Pool"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Disable" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MemoryConfig">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.ListUniquenessValidator"/>
+      <details key="dependents" value="0@model/eoConfig.ecore!eoConfig,eoMemConfig%memoryConfig|configs/clEoConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.MemoryConfigToEOConfigHandler"/>
+      <details key="isTreeDumbNode" value="name"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Name"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+        <details key="Dependency" value="Default;Disable:add=name|CorMemoryConfig;Disable:add=name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="processUpperLimit" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"
+        defaultValueLiteral="0" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Process Upper Limit"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="highWaterMark" lowerBound="1"
+        eType="#//WaterMark" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="High Water Mark"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="mediumWaterMark" lowerBound="1"
+        eType="#//WaterMark" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Medium Water Mark"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="lowWaterMark" lowerBound="1"
+        eType="#//WaterMark" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Low Water Mark"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Disable" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IOCConfig">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.ListUniquenessValidator"/>
+      <details key="dependents" value="0@model/eoConfig.ecore!eoConfig,eoIocConfig%iocConfig|configs/clEoConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.MemoryConfigToEOConfigHandler"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Name"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="receiveQueue" lowerBound="1"
+        eType="#//Queue" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Receive Queue"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Queue">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="size" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"
+        defaultValueLiteral="0" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Size"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="waterMark" lowerBound="1"
+        eType="#//WaterMark" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Water Mark"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Pool">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="chunkSize"/>
+      <details key="initializationFields" value="chunkSize,None"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.MemoryPoolValidator"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="chunkSize" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"
+        defaultValueLiteral="0" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Chunk Size"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="initialSize" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"
+        defaultValueLiteral="0" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Initial Size"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="incrementSize" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"
+        defaultValueLiteral="0" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Increment Size"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxSize" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"
+        defaultValueLiteral="0" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum Size"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="HeapConfigModeEnum">
+    <eLiterals name="NM"/>
+    <eLiterals name="PAM" value="1"/>
+    <eLiterals name="CM" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="BufferConfigModeEnum">
+    <eLiterals name="NM"/>
+    <eLiterals name="PAM" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MemoryConfiguration">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="heapConfigPool" lowerBound="1"
+        eType="#//HeapConfigPool" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Heap Config List"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="bufferConfigPool" lowerBound="1"
+        eType="#//BufferConfigPool" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Buffer Config List"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="memoryConfigPool" lowerBound="1"
+        eType="#//MemoryConfigPool" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Memory Config List"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="WaterMark">
+    <eAnnotations source="CWAnnotation">
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.MemoryWaterMarkValidator"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lowLimit" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="35"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Low Limit"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="highLimit" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="90"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="High Limit"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="action" lowerBound="1"
+        eType="#//WaterMarkAction" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Action"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="WaterMarkAction">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="event" lowerBound="1" eType="#//EventAction"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Event"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="notification" lowerBound="1"
+        eType="#//NotificationAction" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Notification"/>
+        <details key="isTreeNode" value="false"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="log" lowerBound="1" eType="#//LogAction"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Log"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="custom" lowerBound="1"
+        eType="#//CustomAction" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Custom"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Action">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enable" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Enable"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EventAction" eSuperTypes="#//Action"/>
+  <eClassifiers xsi:type="ecore:EClass" name="NotificationAction" eSuperTypes="#//Action"/>
+  <eClassifiers xsi:type="ecore:EClass" name="LogAction">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enable" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Enable"/>
+        <details key="Dependency" value="false;Disable:add=enable"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Disable" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CustomAction" eSuperTypes="#//Action"/>
+  <eClassifiers xsi:type="ecore:EClass" name="HeapConfigPool">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="heapConfig" upperBound="-1"
+        eType="#//HeapConfig" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BufferConfigPool">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="bufferConfig" upperBound="-1"
+        eType="#//BufferConfig" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MemoryConfigPool">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="memoryConfig" upperBound="-1"
+        eType="#//MemoryConfig" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IOCConfigPool">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="iocConfig" upperBound="-1"
+        eType="#//IOCConfig" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="eoDefinitions">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="memoryConfiguration" lowerBound="1"
+        eType="#//MemoryConfiguration" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isTreeNode" value="true"/>
+        <details key="treeLabel" value="Memory Configuration"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="iocConfiguration" lowerBound="1"
+        eType="#//IOCConfiguration" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isTreeNode" value="true"/>
+        <details key="treeLabel" value="IOC Configuration"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IOCConfiguration">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="iocConfigPool" lowerBound="1"
+        eType="#//IOCConfigPool" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="IOC Config List"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+</ecore:EPackage>

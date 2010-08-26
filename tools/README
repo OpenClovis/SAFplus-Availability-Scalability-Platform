@@ -1,0 +1,7 @@
+This directory is a placeholder of various development tools that are
+independent of or orthogonal to ASP or IDE, and do not need to go to
+the target systems.
+
+Tools that should be available on the target systems should be kept
+under the ASP directory.
+

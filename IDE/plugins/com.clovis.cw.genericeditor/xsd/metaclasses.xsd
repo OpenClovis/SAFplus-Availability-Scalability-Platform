@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
+    <xs:complexType name="MetaClass">
+    	<xs:attribute name="label" type="xs:string" use="required"/>
+    	<xs:attribute name="shortDesc" type="xs:string" use="required"/>
+		<xs:attribute name="template" type="xs:string" use="required"/>
+		<xs:attribute name="iconSmall" type="xs:string" use="required"/>
+		<xs:attribute name="iconLarge" type="xs:string" use="required"/>
+		<xs:attribute name="editClass" type="xs:string" use="required"/>
+		<xs:attribute name="propertiesClass" type="xs:string" use="optional"/>
+		<xs:attribute name="keyStroke" type="xs:string" use="required"/>				
+		<xs:attribute name="groupName" type="xs:string" use="required"/>
+    </xs:complexType>
+    
+    <xs:element name="EditorInfo">
+    	<xs:complexType>
+    		<xs:sequence>
+    			<xs:element name="MenuFilePath" type="xs:string"/>
+    			<xs:element maxOccurs="unbounded" minOccurs="0" name="NodeInfo" type="MetaClass"/>
+    			<xs:element maxOccurs="unbounded" minOccurs="0" name="EdgeInfo" type="MetaClass"/>
+    		</xs:sequence>
+    	</xs:complexType>
+    </xs:element>
+</xs:schema>

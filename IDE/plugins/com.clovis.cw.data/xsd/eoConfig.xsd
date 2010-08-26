@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <!-- Top level class in the xml file -->
+  <xsd:complexType name="EOList">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="eoConfig" type="EOConfig"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="EOMemConfig">
+    <xsd:attribute default="Default" name="heapConfig" type="xsd:string"/>
+    <xsd:attribute default="Default" name="bufferConfig" type="xsd:string"/>
+    <xsd:attribute default="Default" name="memConfig" type="xsd:string"/>
+  </xsd:complexType>
+  <xsd:complexType name="EOIOCConfig">
+    <xsd:attribute default="Default" name="iocConfig" type="xsd:string"/>
+  </xsd:complexType>
+  <xsd:complexType name="EOConfig">
+    <xsd:sequence>
+      <xsd:element name="eoMemConfig" type="EOMemConfig"/>
+      <xsd:element name="eoIocConfig" type="EOIOCConfig"/>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="xsd:string"/>
+  </xsd:complexType>
+</xsd:schema>

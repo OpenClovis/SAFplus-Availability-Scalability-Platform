@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mibmap:Map xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:mibmap="compmibmap.ecore" compName="snmpSubAgent" moduleName="safAmf" mibPath="/usr/local/share/snmp/mibs:/tmp/mibs"/>

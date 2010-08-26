@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EOList xmlns="eoConfig.ecore">
+  <eoConfig name="ALM">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="AMF">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="CKP">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="CHM">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="COR">
+    <eoMemConfig heapConfig="CorHeapConfig" bufferConfig="Default" memoryConfig="CorMemoryConfig"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="DBG">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="EVT">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="FLT">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="GMS">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="LOG">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="NAM">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="SNS">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="TXN">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa101CompEO">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa112CompEO">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa113CompEO">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa212CompEO">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa213CompEO">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa201CompEO">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa102CompEO">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa203CompEO">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa103CompEO">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa104CompEO">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa112Comp_0EO0">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa101Comp_0EO0">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa103Comp_0EO0">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+  <eoConfig name="csa113Comp_0EO0">
+    <eoMemConfig heapConfig="Default" bufferConfig="Default" memoryConfig="Default"/>
+    <eoIocConfig/>
+  </eoConfig>
+</EOList>

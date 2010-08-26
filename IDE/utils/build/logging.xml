@@ -1,0 +1,28 @@
+<?xml version='1.0'?>
+<project name="logging" default="all" basedir="..">
+    <property name="lib.home"     value="lib"/>
+    <property name="src.home"     value="src"/>
+    <property name="src.logging"  value="${src.home}/com/clovis/common/log"/>
+    <property name="dist.home"    value="dist"/>
+    <property name="dist.logging" value="dist/logging"/>
+
+    <path id="logging.classpath">
+        <fileset dir="${lib.home}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="clean">
+        <delete dir="${dist.logging}"/>
+    </target>
+
+    <target name="all">
+        <mkdir dir="${dist.logging}"/>
+        <javac srcdir="${src.logging}"
+            destdir="${dist.logging}"
+			debug="${debug}" deprecation="${deprecation}" optimize="${optimize}">
+			<classpath refid="logging.classpath"/>
+		</javac>
+        <jar jarfile="${dist.home}/logging.jar" basedir="${dist.logging}"/>
+    </target>
+</project>

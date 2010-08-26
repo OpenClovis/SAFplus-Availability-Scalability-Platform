@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<MenuBars>
+    <Name>EditorMenubars</Name>
+	<MenuBar>
+    <Name>EditorMenubar</Name>
+   	<Menu>
+       	<Name>Properties</Name>
+       	<Label>Properties...</Label>
+       	<Hint>Properties Dialog</Hint>
+        <Icon>iconaas</Icon>
+       	<Default>true</Default>
+       	<ActionClass>
+           <ClassName>com.clovis.cw.editor.ca.dialog.ClassPropertiesAction</ClassName>
+           <CallOrder>2</CallOrder>
+           <Argument>shell</Argument>
+           <Argument>selection</Argument>
+           <ConstantArgument>adsd</ConstantArgument>
+       	</ActionClass>
+		<DisplayOrder>1</DisplayOrder>
+		<Separator>true</Separator>
+	</Menu>
+	<Menu>
+       	<Name>Properties</Name>
+       	<Label>Properties...</Label>
+       	<Hint>Properties Dialog</Hint>
+        <Icon>iconaas</Icon>
+       	<Default>true</Default>
+       	<ActionClass>
+           <ClassName>com.clovis.cw.editor.ca.action.ChassisPropertiesAction</ClassName>
+           <CallOrder>2</CallOrder>
+           <Argument>shell</Argument>
+           <Argument>selection</Argument>
+           <ConstantArgument>adsd</ConstantArgument>
+       	</ActionClass>
+		<DisplayOrder>1</DisplayOrder>
+		<Separator>true</Separator>
+	</Menu>
+	<Menu>
+       	<Name>NewBladeWizard</Name>
+       	<Label>Add New Blade Type...</Label>
+       	<Hint>Adds a new Blade class and its associated classes to the editor</Hint>
+        <Icon>iconaas</Icon>
+       	<Default>false</Default>
+       	<ActionClass>
+           <ClassName>com.clovis.cw.workspace:com.clovis.cw.workspace.action.AddNewBladeAction</ClassName>
+           <CallOrder>2</CallOrder>
+           <Argument>shell</Argument>
+           <Argument>project</Argument>
+           <ConstantArgument>adsd</ConstantArgument>
+       	</ActionClass>
+		<DisplayOrder>1</DisplayOrder>
+		<Separator>true</Separator>
+	</Menu>
+	<Menu>
+       	<Name>CreateModelTemplate</Name>
+       	<Label>Create Model Template...</Label>
+       	<Hint>Creates a model template from the classes of the editor</Hint>
+        <Icon>iconaas</Icon>
+       	<Default>false</Default>
+       	<ActionClass>
+           <ClassName>com.clovis.cw.workspace:com.clovis.cw.workspace.modelTemplate.CreateResourceModelTemplateAction</ClassName>
+           <CallOrder>2</CallOrder>
+           <Argument>shell</Argument>
+           <Argument>selection</Argument>
+           <ConstantArgument>adsd</ConstantArgument>
+       	</ActionClass>
+		<DisplayOrder>1</DisplayOrder>
+		<Separator>true</Separator>
+	</Menu>
+	</MenuBar>  
+</MenuBars>

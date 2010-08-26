@@ -1,0 +1,1 @@
+default:skip=3rdparty/openais/openais-0.68/test/:htags_options=-afngxsI --statistics --insert-header header.html:definition_header=right:tabs=4

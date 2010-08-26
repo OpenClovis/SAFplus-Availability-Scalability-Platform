@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compInstances xmlns="cpmconfig.ecore">
+  <compInst compName="GigeCompInstance">
+    <resource moID="\ethPort:0" toBeCreatedByComponent="true"/>
+  </compInst>
+</compInstances>

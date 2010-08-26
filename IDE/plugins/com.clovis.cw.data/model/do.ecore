@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="do"
+    nsURI="do.ecore" nsPrefix="DO">
+  <eClassifiers xsi:type="ecore:EClass" name="DeviceObject">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="DeviceID"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="DeviceID" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Device ID"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="MaxResponseTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="100" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Max Response Time"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="BootPriority" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Boot Priority"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="DeviceOperation" upperBound="-1"
+        eType="#//DeviceOperationType" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DeviceOperationType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="OperationName" eType="#//OperationNameType"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Operation Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="FunctionName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Function Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="OperationNameType">
+    <eLiterals name="OP1"/>
+    <eLiterals name="OP2" value="1"/>
+  </eClassifiers>
+</ecore:EPackage>

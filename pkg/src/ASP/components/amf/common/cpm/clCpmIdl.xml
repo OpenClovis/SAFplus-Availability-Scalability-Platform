@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+      Copyright (C) 2002-2009 by OpenClovis Inc. All Rights Reserved.
+      
+      The source code for  this program is not published  or otherwise 
+      divested of  its trade secrets, irrespective  of  what  has been 
+      deposited with the U.S. Copyright office.
+
+      This program is  free software; you can redistribute it and / or
+      modify  it under  the  terms  of  the GNU General Public License
+      version 2 as published by the Free Software Foundation.
+
+      This program is distributed in the  hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+      General Public License for more details.
+
+      You  should  have  received  a  copy of  the  GNU General Public
+      License along  with  this program. If  not,  write  to  the 
+      Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+-->
+<!--
+    Build: 4.2.0
+-->
+<IDLSpecs xmlns="rmd.ecore" name="cpmIDL">
+        <Comp name="ioc"/> 
+        <Include name="clIocApi.h"/>
+
+        <Comp name="amf"/> 
+        <Include name="clAmsTypes.h"/>
+        <Include name="clCpmApi.h"/>
+        <Include name="clCpmExtApi.h"/>
+        <Include name="clCpmIpi.h"/>
+
+        <Comp name="eo"/> 
+        <Include name="clEoConfigApi.h"/>
+
+        <!-- Structures related to the CPM-Component interaction -->
+
+        <!-- Structure definitions for clCpmClientInitialize -->
+
+        <Struct name="ClCpmCompInitSendT" defNeed="Yes">
+            <DataMember name="myPid" type="ClInt32T"/>
+            <DataMember name="eoPort" type="ClUint32T"/>
+            <DataMember name="cpmVersion" type="ClVersionT"/>
+            <DataMember name="compName" type="ClCharT" multiplicity="CL_MAX_NAME_LENGTH"/>
+        </Struct>
+
+        <Struct name="ClCpmCompInitRecvT" defNeed="Yes">
+            <DataMember name="cpmHandle" type="ClHandleT"/>
+            <DataMember name="cpmVersion" type="ClVersionT"/>
+        </Struct>
+
+        <!-- Structure definitions for clCpmClientFinalize -->
+
+        <Struct name="ClCpmCompFinalizeSendT" defNeed="Yes">
+            <DataMember name="cpmHandle" type="ClHandleT"/>
+            <DataMember name="compName" type="ClCharT" multiplicity="CL_MAX_NAME_LENGTH"/>
+        </Struct>
+
+        <!-- Structure definitions for clCpmComponentRegister and clCpmComponentUnregister -->
+
+        <Struct name="ClCpmCompRegisterT" defNeed="Yes">
+            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="proxyCompName" type="ClNameT"/>
+            <DataMember name="eoPort" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClEoExecutionObjIDLT" defNeed="Yes">
+          <DataMember name="name" type="ClCharT" multiplicity="32"/>
+          <DataMember name="eoID" type="ClUint64T"/>
+          <DataMember name="pri" type="ClUint32T"/>
+          <DataMember name="state" type="ClUint32T"/>
+          <DataMember name="threadRunning" type="ClUint32T"/>
+          <DataMember name="noOfThreads" type="ClUint32T"/>
+          <DataMember name="eoInitDone" type="ClUint32T"/>
+          <DataMember name="eoSetDoneCnt" type="ClUint32T"/>
+          <DataMember name="refCnt" type="ClUint32T"/>
+          <DataMember name="eoPort" type="ClUint32T"/>
+          <DataMember name="appType" type="ClUint32T"/>
+          <DataMember name="maxNoClients" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClCpmClientInfoIDLT" defNeed="Yes">
+          <DataMember name="version" type="ClUint32T"/>
+          <DataMember name="compName" type="ClNameT"/>
+          <DataMember name="eoObj" type="ClEoExecutionObjIDLT"/>
+        </Struct>
+        
+        <!-- Structure definitions for clCpmHealthcheckStart, clCpmHealthcheckStop and clCpmHealthcheckConfirm -->
+
+        <Struct name="ClAmsCompHealthcheckKeyT" defNeed="No">
+            <DataMember name="key" type="ClUint8T" multiplicity="32"/>
+            <DataMember name="keyLen" type="ClUint16T"/>
+        </Struct>
+        
+        <Enum name="ClAmsCompHealthcheckInvocationT" defNeed="No">
+            <EnumMember name="CL_AMS_COMP_HEALTHCHECK_AMF_INVOKED" value="1"/>
+            <EnumMember name="CL_AMS_COMP_HEALTHCHECK_CLIENT_INVOKED"/>
+        </Enum>
+        
+        <Enum name="ClAmsLocalRecoveryT" defNeed="No">
+            <EnumMember name="CL_AMS_RECOVERY_NONE"/>
+            <EnumMember name="CL_AMS_RECOVERY_NO_RECOMMENDATION"/>
+            <EnumMember name="CL_AMS_RECOVERY_COMP_RESTART"/>
+            <EnumMember name="CL_AMS_RECOVERY_COMP_FAILOVER"/>
+            <EnumMember name="CL_AMS_RECOVERY_NODE_SWITCHOVER"/>
+            <EnumMember name="CL_AMS_RECOVERY_NODE_FAILOVER"/>
+            <EnumMember name="CL_AMS_RECOVERY_NODE_FAILFAST"/>
+            <EnumMember name="CL_AMS_RECOVERY_APP_RESTART"/>
+            <EnumMember name="CL_AMS_RECOVERY_CLUSTER_RESET"/>
+            <EnumMember name="CL_AMS_RECOVERY_INTERNALLY_RECOVERED" value="20"/>
+            <EnumMember name="CL_AMS_RECOVERY_SU_RESTART"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_RESET" value="30"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_REBOOT"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_POWER_ON"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_POWER_OFF"/>
+        </Enum>
+
+        <Struct name="ClCpmCompHealthcheckT" defNeed="Yes">
+            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="proxyCompName" type="ClNameT"/>
+            <DataMember name="healthcheckKey" type="ClAmsCompHealthcheckKeyT"/>
+            <DataMember name="invocationType" type="ClAmsCompHealthcheckInvocationT"/>
+            <DataMember name="recommendedRecovery" type="ClAmsLocalRecoveryT"/>
+            <DataMember name="healthcheckResult" type="ClUint32T"/>
+        </Struct>
+
+        <!-- Structure definitions for clCpmComponentInstantiate -->
+
+        <Enum name="ClCpmCompRequestTypeT" defNeed="No">
+            <EnumMember name="CL_CPM_HEALTHCHECK"/>
+            <EnumMember name="CL_CPM_TERMINATE"/>
+            <EnumMember name="CL_CPM_PROXIED_INSTANTIATE"/>
+            <EnumMember name="CL_CPM_PROXIED_CLEANUP"/>
+            <EnumMember name="CL_CPM_EXTN_HEALTHCHECK"/>
+            <EnumMember name="CL_CPM_INSTANTIATE"/>
+            <EnumMember name="CL_CPM_CLEANUP"/>
+            <EnumMember name="CL_CPM_RESTART"/>
+        </Enum>
+
+        <Struct name="ClIocPhysicalAddressT" defNeed="No">
+            <DataMember name="nodeAddress" type="ClUint32T"/>
+            <DataMember name="portId" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClCpmLifeCycleOprT" defNeed="Yes">
+            <DataMember name="name" type="ClNameT"/>
+            <DataMember name="proxyCompName" type="ClNameT"/>
+            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="srcAddress" type="ClIocPhysicalAddressT"/>
+            <DataMember name="rmdNumber" type="ClUint32T"/>
+            <DataMember name="requestType" type="ClCpmCompRequestTypeT"/>
+            <DataMember name="instantiateCookie" type="ClUint64T"/>
+        </Struct>
+
+
+        <Enum name="ClAmsPresenceStateT" defNeed="No">
+            <EnumMember name="CL_AMS_PRESENCE_STATE_NONE"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_UNINSTANTIATED"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_INSTANTIATING"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_INSTANTIATED"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_TERMINATING"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_RESTARTING"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_TERMINATION_FAILED"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_ABSENT" value="0"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_FAULT" value="8"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_FAULT_WTC"/>
+            <EnumMember name="CL_AMS_PRESENCE_STATE_FAULT_WTR"/>
+        </Enum>
+
+        <Enum name="ClAmsOperStateT" defNeed="No">
+            <EnumMember name="CL_AMS_OPER_STATE_NONE"/>
+            <EnumMember name="CL_AMS_OPER_STATE_ENABLED"/>
+            <EnumMember name="CL_AMS_OPER_STATE_DISABLED"/>
+        </Enum>
+
+        <Struct name="ClCpmComponentStateT" defNeed="Yes">
+            <DataMember name="compOperState" type="ClAmsOperStateT"/>
+            <DataMember name="compPresenceState" type="ClAmsPresenceStateT"/>
+        </Struct>
+
+        <!-- Structure definitions for ClCpmClientCompTerminateT -->
+
+        <Struct name="ClCpmClientCompTerminateT" defNeed="Yes">
+            <DataMember name="invocation" type="ClUint64T"/>
+            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="requestType" type="ClCpmCompRequestTypeT"/>
+        </Struct>
+
+        <!-- Structure definitions for clCpmComponentAddressGet -->
+
+        <!-- This is the definition equivalent to ClUnion64T -->
+        <Struct name="DWord" defNeed="Yes">
+            <DataMember name="high" type="ClUint32T"/>
+            <DataMember name="low" type="ClUint32T"/>
+        </Struct>
+
+        <Union name="ClIocLogicalAddressIDLT" defNeed="Yes">
+            <DataMember name="dWord" type="DWord"/>
+            <DataMember name="dWords" type="ClUint32T" multiplicity="2"/>
+            <DataMember name="words" type="ClUint16T" multiplicity="4"/>
+            <DataMember name="bytes" type="ClInt8T" multiplicity="8"/>
+        </Union>
+        <!-- End of the definition of ClUnion64T -->
+
+        <Union name="ClIocAddressIDLT" defNeed="Yes">
+            <DataMember name="iocPhyAddress" type="ClIocPhysicalAddressT"/>
+            <DataMember name="iocLogicalAddress" type="ClIocLogicalAddressIDLT"/>
+        </Union>
+
+        <!-- Structure definitions for ClCpmCompLAUpdateT -->
+
+        <Struct name="ClCpmCompLAUpdateT" defNeed="Yes">
+            <DataMember name="compName" type="ClCharT" multiplicity="CL_MAX_NAME_LENGTH"/>
+            <DataMember name="logicalAddress" type="ClIocAddressIDLT"/>
+        </Struct>
+
+        <!-- Structure definitions for ClCpmLcmResponseT -->
+
+        <Struct name="ClCpmLcmResponseT" defNeed="No">
+            <DataMember name="name" type="ClCharT" multiplicity="CL_MAX_NAME_LENGTH"/>
+            <DataMember name="returnCode" type="ClUint32T"/>
+            <DataMember name="requestType" type="ClCpmCompRequestTypeT"/>
+        </Struct>
+
+        <!-- Structures related to the CPM-AMS interaction -->
+
+        <!-- Structure definitions for ClAmsCSIStateDescriptorT -->
+
+        <Struct name="ClAmsCSIStandbyDescriptorT" defNeed="No">
+            <DataMember name="activeCompName" type="ClNameT"/>
+            <DataMember name="standbyRank" type="ClUint32T"/>
+        </Struct>
+
+        <Enum name="ClAmsCSITransitionDescriptorT" defNeed="No">
+            <EnumMember name="CL_AMS_CSI_NEW_ASSIGN"/>
+            <EnumMember name="CL_AMS_CSI_QUIESCED"/>
+            <EnumMember name="CL_AMS_CSI_NOT_QUIESCED"/>
+            <EnumMember name="CL_AMS_CSI_STILL_ACTIVE"/>
+        </Enum>
+
+        <Struct name="ClAmsCSIActiveDescriptorT" defNeed="No">
+            <DataMember name="transitionDescriptor" type="ClAmsCSITransitionDescriptorT"/>
+            <DataMember name="activeCompName" type="ClNameT"/>
+        </Struct>
+
+        <Struct name="ClAmsCSIStateDescriptorT" defNeed="No">
+            <DataMember name="activeDescriptor" type="ClAmsCSIActiveDescriptorT"/>
+            <DataMember name="standbyDescriptor" type="ClAmsCSIStandbyDescriptorT"/>
+        </Struct>
+
+        <Enum name="ClCpmCSIDescriptorNameValueT" defNeed="Yes">
+            <EnumMember name="CL_CPM_CSI_ATTR_NONE"/>
+            <EnumMember name="CL_CPM_CSI_ATTR_NAME"/>
+            <EnumMember name="CL_CPM_CSI_ATTR_VALUE"/>
+        </Enum>
+
+        <!-- Structure definitions for cpmComponentCSISet -->
+
+        <Enum name="ClAmsHAStateT" defNeed="No">
+            <EnumMember name="CL_AMS_HA_STATE_NONE"/>
+            <EnumMember name="CL_AMS_HA_STATE_ACTIVE"/>
+            <EnumMember name="CL_AMS_HA_STATE_STANDBY"/>
+            <EnumMember name="CL_AMS_HA_STATE_QUIESCED"/>
+            <EnumMember name="CL_AMS_HA_STATE_QUIESCING"/>
+        </Enum>
+
+        <Struct name="ClCpmCompCSISetT" defNeed="Yes">
+            <DataMember name="invocation" type="ClUint64T"/>
+            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="proxyCompName" type="ClNameT"/>
+            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="haState" type="ClAmsHAStateT"/>
+            <DataMember name="bufferLength" type="ClUint32T"/>
+            <DataMember name="buffer" type="ClUint8T" pointer="Single" lengthVar="bufferLength"/>
+        </Struct>
+
+        <!-- Structure definitions for cpmComponentCSIRmv -->
+
+        <Struct name="ClCpmCompCSIRmvT" defNeed="Yes">
+            <DataMember name="invocation" type="ClUint64T"/>
+            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="proxyCompName" type="ClNameT"/>
+            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="csiName" type="ClNameT"/>
+            <DataMember name="csiFlags" type="ClUint32T"/>
+        </Struct>
+
+        <!-- Structure definitions for clCpmProtectionGroupTrack -->
+
+        <Struct name="ClCpmPGTrackT" defNeed="Yes">
+            <DataMember name="cpmHandle" type="ClHandleT"/>
+            <DataMember name="csiName" type="ClNameT"/>
+            <DataMember name="trackFlags" type="ClUint8T"/>
+            <DataMember name="iocAddress" type="ClIocAddressIDLT"/>
+            <DataMember name="responseNeeded" type="ClUint32T"/>
+        </Struct>
+
+        <Struct name="ClAmsPGMemberT" defNeed="No">
+            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="haState" type="ClAmsHAStateT"/>
+            <DataMember name="rank" type="ClUint32T"/>
+        </Struct>
+
+        <Enum name="ClAmsPGChangeT" defNeed="No">
+            <EnumMember name="CL_AMS_PG_NO_CHANGE"/>
+            <EnumMember name="CL_AMS_PG_ADDED"/>
+            <EnumMember name="CL_AMS_PG_REMOVED"/>
+            <EnumMember name="CL_AMS_PG_STATE_CHANGE"/>
+        </Enum>
+
+        <Struct name="ClAmsPGNotificationT" defNeed="No">
+            <DataMember name="member" type="ClAmsPGMemberT"/>
+            <DataMember name="change" type="ClAmsPGChangeT"/>
+        </Struct>
+
+        <Struct name="ClAmsPGNotificationBufferT" defNeed="No">
+            <DataMember name="numItems" type="ClUint32T"/>
+            <DataMember name="notification" type="ClAmsPGNotificationT" pointer="Single" lengthVar="numItems"/>
+        </Struct>
+
+        <Struct name="ClCpmPGResponseT" defNeed="Yes">
+            <DataMember name="cpmHandle" type="ClHandleT"/>
+            <DataMember name="csiName" type="ClNameT"/>
+            <DataMember name="numberOfMembers" type="ClUint32T"/>
+            <DataMember name="error" type="ClUint32T"/>
+            <DataMember name="bufferLength" type="ClUint32T"/>
+            <DataMember name="buffer" type="ClUint8T" pointer="Single" lengthVar="bufferLength"/>
+        </Struct>
+
+        <!-- Structure definitions for clCpmProtectionGroupTrackStop -->
+
+        <Struct name="ClCpmPGTrackStopT" defNeed="Yes">
+            <DataMember name="iocAddress" type="ClIocAddressIDLT"/>
+            <DataMember name="cpmHandle" type="ClHandleT"/>
+            <DataMember name="csiName" type="ClNameT"/>
+        </Struct>
+
+        <!-- Structure definitions for clCpmCSIQuiescingComplete -->
+
+        <Struct name="ClCpmQuiescingCompleteT" defNeed="Yes">
+            <DataMember name="cpmHandle" type="ClHandleT"/>
+            <DataMember name="invocation" type="ClUint64T"/>
+            <DataMember name="retCode" type="ClUint32T"/>
+      </Struct>
+
+        <!--Structure definitions for clCpmHAStateGet-->
+
+        <Struct name="ClCpmHAStateGetSendT" defNeed="Yes">
+            <DataMember name="cpmHandle" type="ClHandleT"/>
+            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="csiName" type="ClNameT"/>
+        </Struct>
+
+        <Struct name="ClCpmHAStateGetRecvT" defNeed="Yes">
+            <DataMember name="haState" type="ClAmsHAStateT"/>
+        </Struct>
+
+        <!-- Structure definitions for clCpmCBResponse -->
+        <Struct name="ClCpmResponseT" defNeed="Yes">
+            <DataMember name="cpmHandle" type="ClHandleT"/>
+            <DataMember name="invocation" type="ClUint64T"/>
+            <DataMember name="retCode" type="ClUint32T"/>
+        </Struct>
+
+        <!-- Definition of ClErrorReportT -->
+
+        <Enum name="ClAmsRecoveryT" defNeed="No">
+            <EnumMember name="CL_AMS_RECOVERY_NONE"/>
+            <EnumMember name="CL_AMS_RECOVERY_NO_RECOMMENDATION"/>
+            <EnumMember name="CL_AMS_RECOVERY_COMP_RESTART"/>
+            <EnumMember name="CL_AMS_RECOVERY_COMP_FAILOVER"/>
+            <EnumMember name="CL_AMS_RECOVERY_NODE_SWITCHOVER"/>
+            <EnumMember name="CL_AMS_RECOVERY_NODE_FAILOVER"/>
+            <EnumMember name="CL_AMS_RECOVERY_NODE_FAILFAST"/>
+            <EnumMember name="CL_AMS_RECOVERY_APP_RESTART"/>
+            <EnumMember name="CL_AMS_RECOVERY_CLUSTER_RESET"/>
+            <EnumMember name="CL_AMS_RECOVERY_INTERNALLY_RECOVERED" value="20"/>
+            <EnumMember name="CL_AMS_RECOVERY_SU_RESTART"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_RESET" value="30"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_REBOOT"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_POWER_ON"/>
+            <EnumMember name="CL_AMS_EXTERNAL_RECOVERY_POWER_OFF"/>
+        </Enum>
+
+        <Struct name="ClErrorReportT" defNeed="Yes">
+            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="time" type="ClInt64T"/>
+            <DataMember name="recommendedRecovery" type="ClAmsRecoveryT"/>
+            <DataMember name="handle" type="ClUint32T"/>
+            <DataMember name="instantiateCookie" type="ClUint64T"/>
+        </Struct>
+
+        <!-- Structures related to the CPM-CPM interaction -->
+
+        <!-- Structure definitions for clCpmCpmLocalRegister -->
+
+        <Struct name="ClCpmLocalInfoT" defNeed="Yes">
+            <DataMember name="nodeName" type="ClCharT" multiplicity="CL_MAX_NAME_LENGTH"/>
+            <DataMember name="nodeId" type="ClInt32T"/>
+            <DataMember name="cpmAddress" type="ClIocPhysicalAddressT"/>
+            <DataMember name="status" type="ClUint32T"/>
+            <DataMember name="version" type="ClVersionT"/>
+            <DataMember name="defaultBootLevel" type="ClUint32T"/>
+            <DataMember name="slotNumber" type="ClUint32T"/>
+            <DataMember name="nodeType" type="ClNameT"/>
+            <DataMember name="nodeIdentifier" type="ClNameT"/>
+            <DataMember name="nodeMoIdStr" type="ClNameT"/>
+        </Struct>
+
+        <!-- Structures related to CPM-BM interaction -->
+
+        <!-- Structure definitions for clCpmBootLevelGet -->
+
+        <Struct name="ClCpmBootOperationT" defNeed="Yes">
+            <DataMember name="bootLevel" type="ClUint32T"/>
+            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="srcAddress" type="ClIocPhysicalAddressT"/>
+            <DataMember name="rmdNumber" type="ClUint32T"/>
+            <DataMember name="requestType" type="ClCpmCompRequestTypeT"/>
+        </Struct>
+
+        <!-- Structure definitions for ClCpmBmSetLevelResponseT -->
+
+        <Struct name="ClCpmBmSetLevelResponseT" defNeed="No">
+            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="bootLevel" type="ClUint32T"/>
+            <DataMember name="retCode" type="ClUint32T"/>
+        </Struct>
+
+        <!-- Structures related to CPM-EVENT interaction -->
+
+        <Struct name="ClCpmEventNodePayLoadT" defNeed="No">
+            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="nodeIocAddress" type="ClUint32T"/>
+            <DataMember name="operation" type="ClCpmNodeEventT"/>
+        </Struct>
+
+        <Enum name="ClCpmNodeEventT" defNeed="No">
+            <EnumMember name="CL_CPM_NODE_ARRIVAL"/>
+            <EnumMember name="CL_CPM_NODE_DEPARTURE"/>
+            <EnumMember name="CL_CPM_NODE_DEATH"/>
+        </Enum>
+
+        <Enum name="ClCpmCompEventT" defNeed="No">
+            <EnumMember name="CL_CPM_COMP_ARRIVAL"/>
+            <EnumMember name="CL_CPM_COMP_DEPARTURE"/>
+            <EnumMember name="CL_CPM_COMP_DEATH"/>
+        </Enum>
+
+        <Struct name="ClCpmEventPayLoadT" defNeed="No">
+            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="compId" type="ClUint32T"/>
+            <DataMember name="eoId" type="ClUint64T"/>
+            <DataMember name="nodeIocAddress" type="ClUint32T"/>
+            <DataMember name="eoIocPort" type="ClUint32T"/>
+            <DataMember name="operation" type="ClCpmCompEventT"/>
+        </Struct>
+
+        <!-- Structures related to CPM-EO interaction -->
+
+        <Enum name="ClEoPollingTypeT" defNeed="No">
+            <EnumMember name="CL_EO_DONT_POLL"/>
+            <EnumMember name="CL_EO_BUSY_POLL"/>
+            <EnumMember name="CL_EO_DEFAULT_POLL"/>
+        </Enum>
+
+        <Enum name="ClEoStateT" defNeed="No">
+            <EnumMember name="CL_EO_STATE_INIT" value="1"/>
+            <EnumMember name="CL_EO_STATE_ACTIVE" value="2"/>
+            <EnumMember name="CL_EO_STATE_STDBY" value="4"/>
+            <EnumMember name="CL_EO_STATE_SUSPEND" value="8"/>
+            <EnumMember name="CL_EO_STATE_STOP" value="16"/>
+            <EnumMember name="CL_EO_STATE_KILL" value="32"/>
+            <EnumMember name="CL_EO_STATE_RESUME" value="64"/>
+            <EnumMember name="CL_EO_STATE_FAILED" value="128"/>
+        </Enum>
+
+        <Struct name="ClEoSchedFeedBackT" defNeed="No">
+            <DataMember name="freq" type="ClEoPollingTypeT"/>
+            <DataMember name="status" type="ClUint32T"/>
+        </Struct>
+
+        <!-- Structures related to CPM-CM interaction -->
+
+        <!-- Structures for the function clCpmSlotInfoGet -->
+
+        <Enum name="ClCpmSlotInfoFieldIdT" defNeed="No">
+            <EnumMember name="CL_CPM_SLOT_ID"/>
+            <EnumMember name="CL_CPM_IOC_ADDRESS"/>
+            <EnumMember name="CL_CPM_NODE_MOID"/>
+            <EnumMember name="CL_CPM_NODE_NAME"/>
+        </Enum>
+
+        <Struct name="ClCpmSlotInfoRecvT" defNeed="Yes">
+            <DataMember name="flag" type="ClCpmSlotInfoFieldIdT"/>
+            <DataMember name="slotId" type="ClUint32T"/>
+            <DataMember name="nodeIocAddress" type="ClUint32T"/>
+            <DataMember name="nodeMoIdStr" type="ClNameT"/>
+            <DataMember name="nodeName" type="ClNameT"/>
+        </Struct>
+
+        <Struct name="ClCpmNodeConfigT" defNeed="No">
+            <DataMember name="nodeName" type="ClCharT" multiplicity="256" />
+            <DataMember name="nodeType" type="ClNameT"/>
+            <DataMember name="nodeIdentifier" type="ClNameT"/>
+            <DataMember name="nodeMoIdStr" type="ClNameT"/>
+            <DataMember name="cpmType" type="ClCharT" multiplicity="256" />
+        </Struct>
+
+        <Struct name="ClCpmRestartSendT" defNeed="Yes">
+            <DataMember name="iocNodeAddress" type="ClUint32T"/>
+            <DataMember name="graceful" type="ClUint16T"/>
+        </Struct>
+
+        <Struct name="ClCpmCompSpecInfoRecvT" defNeed="Yes">
+            <DataMember name="numArgs" type="ClUint32T"/>
+            <DataMember name="args" type="ClStringT" pointer="Single"
+                        lengthVar="numArgs"/>
+            <DataMember name="period" type="ClUint32T"/>
+            <DataMember name="maxDuration" type="ClUint32T"/>
+            <DataMember name="recovery" type="ClAmsLocalRecoveryT"/>
+        </Struct>
+</IDLSpecs>
+        
+        <!-- Unused structures related to CPM-CM interaction -->
+        <!-- May be needed in the future -->
+
+        <!--
+
+        <Enum name="ClCpmFRUReqT" defNeed="Yes">
+            <EnumMember name="CL_CPM_FRU_EXTRACT"/>
+            <EnumMember name="CL_CPM_FRU_INSERT"/>
+        </Enum>
+
+        <Struct name="ClCpmCmReqT" defNeed="Yes">
+            <DataMember name="slotNumber" type="ClUint32T"/>
+            <DataMember name="reqType" type="ClCpmFRUReqT"/>
+        </Struct>
+
+        <Struct name="ClCpmCmEntryT" defNeed="Yes">
+            <DataMember name="slotNumber" type="ClUint32T"/>
+            <DataMember name="nodeClass" type="ClCharT" multiplicity="CL_MAX_NAME_LENGTH"/>
+        </Struct>
+
+        <Enum name="ClCmCpmMsgTypeT">
+            <EnumMember name="CL_CM_BLADE_SURPRISE_EXTRACTION"/>
+            <EnumMember name="CL_CM_BLADE_REQ_EXTRACTION"/>
+            <EnumMember name="CL_CM_BLADE_REQ_INSERTION"/>
+        </Enum>
+
+        <Struct name="ClCmCpmMsgT">
+            <DataMember name="CmCpmMsgType" type="ClCmCpmMsgTypeT"/>
+            <DataMember name="PhysicalSlot" type="ClUint32T"/>
+            <DataMember name="SubSlot" type="ClUint32T"/>
+            <DataMember name="ResourceId" type="ClUint32T"/>
+        </Struct>
+        
+        -->

@@ -1,0 +1,212 @@
+\hypertarget{group__group7}{
+\chapter{Functional Overview}
+\label{group__group7}
+}
+
+
+
+The Alarm Service provides functionality that enables application to notify erroneous condition occurring on a managed resource to north bound entity. 
+ASP Alarm Service is compliant with X.733 specification. ASP Alarm Service provides functionality to model, probable cause, severity and category 
+compliant to X.733 specification. Additionally ASP provides further filters on the alarm via providing a mechanism to specify soaking time, generation
+rule and suppression rule. Alarm service also enables application to poll the managed resource and raises alarms depending on the state of the resource.
+
+
+
+
+
+\chapter{Service APIs}
+
+\section{Type Definitions}
+
+
+\subsection{ClAlarmInfoT}
+\index{ClAlarmInfoT@{ClAlarmInfoT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClAlarmProbableCauseT probCause;}\\
+\>\>\>\>\textit{ClNameT compName;}\\
+\>\>\>\>\textit{ClCorMOIdT moId;}\\
+\>\>\>\>\textit{ClAlarmStateT AlarmState;}\\
+\>\>\>\>\textit{ClAlarmCategoryTypeT category;}\\
+\>\>\>\>\textit{ClAlarmSpecificProblemT specificProblem;}\\
+\>\>\>\>\textit{ClAlarmSeverityTypeT severity;}\\
+\>\>\>\>\textit{ClTimeT eventTime;}\\
+\>\>\>\>\textit{ClUint32T len;}\\
+\>\>\>\>\textit{ClUint8T buff \mbox{[}1\mbox{]};}\\
+\textit{\} ClAlarmInfoT;}\end{tabbing}
+\textit{ClAlarmInfoT} contains the entire list of Alarm attributes that include probable cause, MOID,
+category, severity, and event time along with additional information of the Alarm. It
+also indicates if the Alarm is asserted or cleared. The attributes of this structure have the following interpretation:
+\begin{itemize}
+\item
+\textit{AlarmState} - Flag to indicate if the Alarm was for assert or for clear. If isAssert is set, then the
+Alarm condition has occurred. If isAssert is zero, then the Alarm has cleared. 
+\item \textit{buff} - Additional information about the Alarm.
+\item \textit{category} - Represents the category of the Alarm.
+\item \textit{compName} - Represents the component name of the resource on which the Alarm occurred.
+\item \textit{eventTime} - Time stamp of the Alarm.
+\item \textit{len} - Length of the additional data about the Alarm.
+\item \textit{moId} - Resource on which the Alarm occurred.
+\item \textit{probCause} - Probable cause of the Alarm.
+\item \textit{severity} - Severity of the Alarm.
+\item \textit{specificProblem} - Specific-Problem of the Alarm.
+\end{itemize}
+
+
+
+\subsection{ClAlarmHandleT}
+\index{ClAlarmHandleT@{ClAlarmHandleT}}
+\textit{typedef ClUint32T ClAlarmHandleT;}
+\newline
+\newline
+The type of an Alarm handle definition for Alarm information container
+handle.
+
+\newpage
+
+
+\section{Library Life Cycle APIs}
+
+\subsection{clAlarmLibInitialize}
+\index{clAlarmLibInitialize@{clAlarmLibInitialize}}
+\hypertarget{pageam101}{}\paragraph{cl\-Alarm\-Lib\-Initialize}\label{pageam101}
+\begin{Desc}
+\item[Synopsis:]Initializes the Alarm Library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clAlarmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}       ClRcT clAlarmLibInitialize();
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ALARM\_\-CLIENT\_\-ERR\_\-INIT\_\-FAILED:}]If Alarm service initialization failed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to initialize the Alarm client library and start up the Alarm related services for a given component. It initializes the various callbacks and allocates resources. This function must be invoked before invoking any other Alarm-related function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Alarm\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageam102}{cl\-Alarm\-Lib\-Finalize} \end{Desc}
+\newpage
+
+\subsection{clAlarmLibFinalize}
+\index{clAlarmLibFinalize@{clAlarmLibFinalize}}
+\hypertarget{pageam102}{}\paragraph{cl\-Alarm\-Lib\-Finalize}\label{pageam102}
+\begin{Desc}
+\item[Synopsis:]Cleans up the Alarm Library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clAlarmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}       ClRcT clAlarmLibFinalize();
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None.\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ALARM\_\-CLIENT\_\-ERR\_\-FINALIZE\_\-FAILED:}]If Alarm service finalization failed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to clean-up Alarm library linked to the component and frees resources allocated to it at the time of initialization. It is called when the Alarm-related services are no longer required.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Alarm\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageam101}{cl\-Alarm\-Lib\-Initialize} \end{Desc}
+
+\newpage
+
+\section{Functional APIs}
+\subsection{clAlarmRaise}
+\index{clAlarmRaise@{clAlarmRaise}}
+\hypertarget{pageam103}{}\paragraph{cl\-Alarm\-Raise}\label{pageam103}
+\begin{Desc}
+\item[Synopsis:]Raises an Alarm on a component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clAlarmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clAlarmRaise(
+              CL_IN ClAlarmInfoT* almInfo
+                              CL_OUT ClAlarmHandleT *pAlarmHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em alm\-Info:}](in/out) Pointer to the structure that contains the Alarm information. Only the category and severity fields of this structure
+ are in/out parameters. If you give an invalid value of category and severity, AM
+ will return the proper values of the same, configured during modeling.
+\item[{\em p\-Alarm\-Handle:}](out) Pointer to the Alarm handle. The Alarm handle is used by FM to query Alarm information and pass the Alarm information to the repair handlers.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ALARM\_\-ERR\_\-INVALID\_\-MOID:}]On passing invalid {\em Mo\-Id\/}. \item[{\em CL\_\-ALARM\_\-ERR\_\-INVALID\_\-ALARM:}]On passing invalid {\em Alarm\-ID\/}. \item[{\em CL\_\-ALARM\_\-ERR\_\-RAISE\_\-ALARM\_\-FAILED:}]On failure of request to raise Alarm.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to generate an Alarm on a Managed Object (MO). It can be used by a component to raise an Alarm on a 
+resource having an erroneous condition.
+While invoking this function, you must fill the \textit{ClAlarmInfoT} structure which has 
+the following attributes:\par
+ \par
+ \begin{itemize}
+\item {\em mo\-Id:\/} The resource on which the Alarm is being raised. \item {\em comp\-Name:\/} This will be detected by the Alarm client itself. \par
+ \par
+ A unique Alarm handle is generated and provided back to the component that raised the Alarm. The Alarm handle is used by FM to query Alarm information and pass the Alarm information to the repair handlers.\end{itemize}
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Alarm\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+
+
+
+\newpage
+
+\subsection{clAlarmVersionVerify}
+\index{clAlarmVersionVerify@{clAlarmVersionVerify}}
+\hypertarget{pageam103}{}\paragraph{cl\-Alarm\-Version\-Verify}\label{pageam103}
+\begin{Desc}
+\item[Synopsis:]This function is used to verify if a version of the function is supported by AM.\end{Desc}
+\begin{Desc}
+\item[Header File:]clAlarmApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}        ClRcT clAlarmVersionVerify(
+                     ClVersionT *version);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em version}](in/out): As an input parameter, this contains the version you require to query or the current version. The output parameter is the Version supported.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ALARM\_\-ERR\_\-VERSION\_\-UNSUPPORTED:}]If current version of this function is not supported.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to verify if a version is supported or not. In case the version is not supported, then an error is returned with the value of version supported entered in the output parameter.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Alarm\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+
+

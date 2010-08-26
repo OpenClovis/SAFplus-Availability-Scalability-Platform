@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration:migrationInfo xmlns:migration="migration.ecore">
+  <update>
+    <change sourceXML="">
+      <migrationStep type="91" details="SISP,Sisp,sisp#ASP,Asp,asp"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.MigrationHandler_30_30#renameSispFiles"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.MigrationHandler_30_30#multipleCSIMigration"/>
+    </change>
+    <change sourceXML="configs/amfDefinitions.xml">
+      <migrationStep type="41" details="amfDefinitions:amfTypes,csiTypes,csiType,type"/>
+      <migrationStep type="12" details="amfDefinitions:amfTypes,compTypes,compType,proxyCSIType#csiTypes"/>
+      <migrationStep type="53" details="amfDefinitions:amfTypes,compTypes,compType#compType,csiType#compType,csiTypes"/>
+    </change>
+    <change sourceXML="models/componentdata.xml">
+      <migrationStep type="40" details="component:componentInformation,componentServiceInstance#type"/>
+      <migrationStep type="12" details="component:componentInformation,safComponent,timeouts#csiTypes"/>
+      <migrationStep type="54" details="component:componentInformation,safComponent#safComponent,csiType#safComponent,csiTypes"/>
+      <migrationStep type="12" details="component:componentInformation,nonSAFComponent,timeouts#csiTypes"/>
+      <migrationStep type="54" details="component:componentInformation,nonSAFComponent#nonSAFComponent,csiType#nonSAFComponent,csiTypes"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.MigrationHandler_30_30#migrateCSIName"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="configs/compileconfigs.xml">
+      <migrationStep type="41" details="CompileConfigs:ComponentsInfo,Timer"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.MigrationHandler_30_30#renameConfFiles"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="models/componentdata.xml">
+      <migrationStep type="10" details="component:componentInformation,safComponent,eoProperties,aspLib#Fault#CL_FALSE"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.MigrationHandler_30_30#updateUserDefinedTemplates"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.MigrationHandler_30_30#makeSrcLinkRelative"/>
+    </change>
+  </update>
+  <update/><!-- omTemplate.py -->
+  <update/><!-- clSnmpAppMain.c -->
+  <update>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.MigrationHandler_30_30#migrateAutoBackupMode"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="configs/clGmsConfig.xml">
+      <migrationStep type="21" details="ClusterName#clusterName"/>
+      <migrationStep type="21" details="MaxNoOfGroups#maxNoOfGroups"/>
+      <migrationStep type="21" details="linkname#linkName"/>
+      <migrationStep type="21" details="MulticastAddress#multicastAddress"/>
+      <migrationStep type="21" details="MulticastPort#multicastPort"/>
+      <migrationStep type="11" details="gms#openAisLoggingOption"/>
+      <migrationStep type="14" details="openAisLoggingOption#none"/>
+      <migrationStep type="41" details="consolelog"/>
+      <migrationStep type="41" details="loglevel"/>
+    </change>
+  </update>
+  <update>
+    <change sourceXML="configs/clAmfDefinitions.xml">
+      <migrationStep type="33" details="amfDefinitions:amfTypes,sgTypes,sgType,loadingStrategy# CL_AMS_SG_LOADING_STRATEGY_BY_SI_PREFERENCE#CL_AMS_SG_LOADING_STRATEGY_BY_SI_PREFERENCE"/>
+    </change>
+    <change sourceXML="models/componentdata.xml">
+      <migrationStep type="31" details="component:componentInformation,serviceGroup#loadingStrategy# CL_AMS_SG_LOADING_STRATEGY_BY_SI_PREFERENCE#CL_AMS_SG_LOADING_STRATEGY_BY_SI_PREFERENCE"/>
+    </change>
+  </update>
+  <update/><!-- alarmprofiles.py -->
+  <update/><!-- om templates -->
+  <update/><!-- om.py -->
+  <update>
+    <change sourceXML="">
+      <migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.MigrationHandler_30_30#removeInvalidAlarmSequence"/>
+    </change>
+  </update>
+</migration:migrationInfo>

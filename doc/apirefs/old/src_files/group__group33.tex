@@ -1,0 +1,583 @@
+
+\hypertarget{group__group33}{
+\chapter{Functional Overview}
+\label{group__group33}
+}
+
+\begin{flushleft}
+The OpenClovis Timer Library enables you to create multiple timers to execute application specific functionality 
+at certain intervals. It performs the following functions:
+
+\begin{itemize}
+\item Creates multiple timers. 
+\item Specifies a time-out value for each timer. 
+\item Creates one-shot or repetitive timers. \item Specifies an application specific function that should be executed every time the timer fires or 
+expires.
+\end{itemize}
+
+The operating systems such as Linux or BSD have a limit on the number of timers that can be created in an application. However, an 
+application such as OSPF and BGP require a lot of timers to be created at various points during the execution of the application. The Timer Library 
+enables you to create multiple timers that executes a user-defined function when the timer expires. The timer can be of two types: one-shot or repetitive. One-shot timers expire once and are not automatically restarted. Repetitive timers are automatically restarted by the timer library every time they expire. \par
+ \par
+ A user application needs to link to the timer library to utilize it. \par
+ \par
+ The timer library provides APIs to create, delete, start, stop, and restart a timer. \par
+ \par
+ The timer library creates a thread that handles expired timers for each application with which it is linked. As currently implemented, 
+ this thread processes expired timers every 10ms. \par
+
+
+\chapter{Service Model}
+TBD
+\chapter{Service APIs}
+
+
+\section{Type Definitions}
+
+
+\subsection{ClTimerTimeOutT }
+\index{ClTimerTimeOutT@{ClTimerTimeOutT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClUint32T tsMilliSec;}\\
+\>\>\>\>\textit{ClUint32T tsSec;}\\
+\textit{\} ClTimerTimeOutT;}\end{tabbing}
+The structure {\tt{ClTimerTimeOutT}} contains the timeout value in seconds and milliseconds.
+\begin{itemize}
+\item
+\textit{tsMilliSec} - The timeout value in milliseconds.
+\item
+\textit{tsSec} - The timeout value in seconds.
+\end{itemize}
+
+
+
+
+\subsection{ClTimerTypeT }
+\index{ClTimerTypeT@{ClTimerTypeT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_TIMER\_ONE\_SHOT=0,}\\
+\>\>\>\>\textit{CL\_TIMER\_REPETITIVE}\\
+\textit{\} ClTimerTypeT;}\end{tabbing}
+The enumeration, {\tt{ClTimerTypeT}}, contains the type of action to be performed on timer expiry. The attributes of the enumeration are:
+\begin{itemize}
+\item
+\textit{CL\_\-TIMER\_\-ONE\_\-SHOT} - Timer starts automatically after timeout.
+\item
+\textit{CL\_\-TIMER\_\-REPETITIVE} - Timer has not started after timeout.
+\end{itemize}
+
+
+
+\subsection{ClTimerContextT }
+\index{ClTimerContextT@{ClTimerContextT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_TIMER\_TASK\_CONTEXT=0,}\\
+\>\>\>\>\textit{CL\_TIMER\_SEPARATE\_CONTEXT}\\
+\textit{\} ClTimerContextT;}\end{tabbing}
+The enumeration, {\tt{ClTimerContextT}}, contains the method of invocation of the timer callback function on timer expiry.
+The attributes of the enumeration are:
+\begin{itemize}
+\item
+\textit{CL\_\-TIMER\_\-TASK\_\-CONTEXT} - Timer callback function is called in the same context.
+\item
+\textit{CL\_\-TIMER\_\-SEPARATE\_\-CONTEXT} - New thread is created to invoke the callback.
+\end{itemize}
+
+
+
+
+\subsection{ClTimerCallBackT }
+\index{ClTimerCallBackT@{ClTimerCallBackT}}
+\textit{typedef ClRcT(*ClTimerCallBackT)(void *);}
+\newline
+\newline
+Type of the function that is called on expiration of timer.
+
+\subsection{ClTimerHandleT}
+\index{ClTimerHandleT@{ClTimerHandleT}}
+\textit{typedef ClHandleT ClTimerHandleT;}
+\newline
+\newline
+The type of the callback function that is called on timer expiry.
+
+
+
+\newpage
+
+
+\section{Library Life Cycle functions}
+\subsection{clTimerConfigInitialize}
+\index{clTimerConfigInitialize@{clTimerConfigInitialize}}
+\hypertarget{pagetmr101}{}\paragraph{cl\-Timer\-Config\-Initialize}\label{pagetmr101}
+\begin{Desc}
+\item[Synopsis:]Configures the Timer library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTimerApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clTimerConfigInitialize(
+              				CL_IN void* pConfigData);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Config\-Data:}]Pointer to instance of configuration structure. You must pass 
+{\tt{ClTimerConfigT}} as an input.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-INVLD\_\-PARAM:}]An invalid parameter has been passed to the function. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pConfigData}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to configure the timer service library. The configurable parameters are: \par
+ \par
+ {\bf  1. Timer Resolution } \par
+ This value is in milliseconds and cannot be less than 10 milliseconds. Default value is 10 milliseconds. \par
+ \par
+ {\bf  2. Timer Task Priority } \par
+ This value can vary between 1 and 160. Default value is 150.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Timer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+
+
+\newpage
+
+
+\subsection{clTimerInitialize}
+\index{clTimerInitialize@{clTimerInitialize}}
+\hypertarget{pagetmr102}{}\paragraph{cl\-Timer\-Initialize}\label{pagetmr102}
+\begin{Desc}
+\item[Synopsis:]Initializes the Timer library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTimerApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTimerInitialize (void);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None.\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em ERROR:}]Failure initializing the Timer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to initialize the timer service library. After invoking this function the application can invoke other timer 
+related functions. \end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Timer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetmr103}{cl\-Timer\-Finalize} \end{Desc}
+
+
+\newpage
+
+\subsection{clTimerFinalize}
+\index{clIocCommPortDelete@{clIocCommPortDelete}}
+\hypertarget{pagetmr103}{}\paragraph{cl\-Timer\-Finalize}\label{pagetmr103}
+\begin{Desc}
+\item[Synopsis:]Frees the Timer library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTimerApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clTimerFinalize (void);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None.\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.
+\item[{\em ERROR:}]Failure finalizing the Timer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to free the resources acquired during the initialization of the timer service library. This function is invoked 
+during
+system shutdown or when the timer is not required. All timers that are currently running are stopped and the data structures required to hold the timer information
+are deletd.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Timer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetmr102}{cl\-Timer\-Initialize} \end{Desc}
+
+
+\newpage
+
+\section{Functional functions}
+\subsection{clTimerCreate}
+\index{clTimerCreate@{clTimerCreate}}
+\hypertarget{pagetmr104}{}\paragraph{cl\-Timer\-Create}\label{pagetmr104}
+\begin{Desc}
+\item[Synopsis:]Creates a timer.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTimerApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTimerCreate(
+               				CL_IN        ClTimerTimeOutT  timeOut,
+               				CL_IN        ClTimerTypeT type,
+               				CL_IN        ClTimerContextT timerTaskSpawn,
+               				CL_IN        ClTimerCallBackT  fpAction,
+               				CL_IN        void* pActionArgument,
+               				CL_INOUT     ClTimerHandleT*   pTimerHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em time\-Out:}](in) Timeout value of the timer. 
+\item[{\em type:}](in) Type of the timer to be created. It can be either one-shot or repetitive.
+\item[{\em timer\-Task\-Spawn:}](in) Determines whether the user-function invoked is in a separate task or in the same context as the timer-task. 
+\item[{\em fp\-Action:}](in) Function to be called after timer expiry. 
+\item[{\em p\-Action\-Argument:}](in) Argument to be passed to the callback function ({\tt{fpAction}}).
+\item[{\em p\-Timer\-Handle:}](out) Pointer to the memory location where the timer handle created is being copied.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-TIMER\_\-ERR\_\-INVLD\_\-PARAM:}]An invalid parameter has been passed to the function. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pActionArgument}} or {\tt{pTimerHandle}} contains a NULL pointer. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-NULL\_\-CALLBACK\_\-FUNCTION:}]The callback function passed to this function is NULL. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-INVALID\_\-TYPE:}]The type of the timer is invalid.
+\item[{\em CL\_\-TIMER\_\-ERR\_\-INVALID\_\-CONTEXT\_\-TYPE:}]The context is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to create a new timer. This timer remains inactive until the timer is started. The callback function is 
+executed in the context of the timer task, when the timer expires. This function returns a handle that needs to be specified when you need
+to start, stop, restart, or destroy the timer.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Timer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetmr105}{cl\-Timer\-Delete} , \hyperlink{pagetmr106}{cl\-Timer\-Start} , 
+\hyperlink{pagetmr109}{cl\-Timer\-Restart} , \hyperlink{pagetmr108}{cl\-Timer\-Create\-And\-Start} \end{Desc}
+
+
+\newpage
+
+\subsection{clTimerDelete}
+\index{clTimerDelete@{clTimerDelete}}
+\hypertarget{pagetmr105}{}\paragraph{cl\-Timer\-Delete}\label{pagetmr105}
+\begin{Desc}
+\item[Synopsis:]Deletes a timer.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTimerApi.h\end{Desc}
+\begin{Desc}
+\item[Note:]If the timer being deleted is active, then it is made inactive and deleted.\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTimerDelete ( CL_INOUT ClTimerHandleT* pTimerHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Timer\-Handle}]:(in/out) Pointer to timer handle being deleted. The contents are set to zero.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pTimerHandle}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]{\tt{timerHandle}} is an invalid handle. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-INVALID:}]The internal timer representation is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to delete an existing timer. It is invoked by the application after the timer has expired. This 
+function is usually called during the application exit, but it can also be called at any other time.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Timer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetmr104}{cl\-Timer\-Create} , \hyperlink{pagetmr109}{cl\-Timer\-Restart} , 
+\hyperlink{pagetmr108}{cl\-Timer\-Create\-And\-Start} , \hyperlink{pagetmr107}{cl\-Timer\-Stop} \end{Desc}
+
+
+\newpage
+
+\subsection{clTimerStart}
+\index{clTimerStart@{clTimerStart}}
+\hypertarget{pagetmr106}{}\paragraph{cl\-Timer\-Start}\label{pagetmr106}
+\begin{Desc}
+\item[Synopsis:]Starts a timer.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTimerApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clTimerStart (
+                         		ClTimerHandleT  timerHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em timer\-Handle:}]Handle of the timer being started.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]{\tt{timerHandle}} is an invalid handle. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-INVALID:}]The internal timer representation is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to start a timer. Before the timer can be started, the timer must be created and made active. The callback 
+function is executed when the timeout occurs. The callback function would be executed in the context of the timer task.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Timer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetmr104}{cl\-Timer\-Create} , \hyperlink{pagetmr109}{cl\-Timer\-Restart} , 
+\hyperlink{pagetmr108}{cl\-Timer\-Create\-And\-Start} , \hyperlink{pagetmr107}{cl\-Timer\-Stop} \end{Desc}
+
+
+\newpage
+
+
+\subsection{clTimerStop}
+\index{clTimerStop@{clTimerStop}}
+\hypertarget{pagetmr107}{}\paragraph{cl\-Timer\-Stop}\label{pagetmr107}
+\begin{Desc}
+\item[Synopsis:]Stops a timer.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTimerApi.h\end{Desc}
+\begin{Desc}
+\item[Note:]This function only stops the timer and does not destroy it.\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clTimerStop (
+                        		CL_IN ClTimerHandleT  timerHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em timer\-Handle:}](in) Handle of the timer being stopped.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]{\tt{timerHandle}} is an invalid handle. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-INVALID:}]The internal timer representation is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to stop a timer. After invoking this function, the timer becomes inactive, and can be started with 
+{\tt{clTimerStart()}} or {\tt{clTimerRestart()}} functions.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Timer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetmr104}{cl\-Timer\-Create} , \hyperlink{pagetmr106}{cl\-Timer\-Start} , 
+\hyperlink{group__group33}{cl\-Timer\-Create\-And\-Start} , \hyperlink{group__group33}{cl\-Timer\-Delete} 
+\end{Desc}
+
+
+\newpage
+
+\subsection{clTimerCreateAndStart}
+\index{clTimerCreateAndStart@{clTimerCreateAndStart}}
+\hypertarget{pagetmr108}{}\paragraph{cl\-Timer\-Create\-And\-Start}\label{pagetmr108}
+\begin{Desc}
+\item[Synopsis:]Creates a new timer and activates it.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTimerApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clTimerCreateAndStart (
+              				CL_IN           ClTimerTimeOutT  timeOut,
+              				CL_IN           ClTimerTypeT type,
+              				CL_IN           ClTimerContextT timerTaskSpawn,
+              				CL_IN           ClTimerCallBackT  fpAction,
+              				CL_IN           void  *pActionArgument,
+              				CL_INOUT        ClTimerHandleT *pTimerHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em time\-Out:}](in) Timeout value of the timer. 
+\item[{\em type:}](in) Type of the timer to be created. It can be either one-shot or repetitive.
+\item[{\em timer\-Task\-Spawn:}](in) Determines if the user-function invoked is in a separate task or in the same context as the timer-task. 
+\item[{\em fp\-Action:}](in) Function to be called after timer expiry. 
+\item[{\em action\-Argument:}](in) Argument to be passed to the callback function ({\tt{fp\-Action}}).
+\item[{\em p\-Timer\-Handle:}](in/out) Pointer to the memory location where the timer handle created is being copied.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]An invalid parameter has been passed to the function. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pActionArgument}} or {\tt{pTimerHandle}} contains a NULL pointer. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-NULL\_\-CALLBACK\_\-FUNCTION:}]An invalid callback function has been passed to the function. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-INVALID\_\-TYPE:}]The type of timer is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to create a new timer and activate it. It is essentially a combination of {\tt {ts\-Create()}} and 
+{\tt {ts\-Start()}} functions. 
+ \par
+ This function is useful when you have to create a new timer and activate it at the time of its creation.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Timer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{group__group33}{cl\-Timer\-Create} , \hyperlink{group__group33}{cl\-Timer\-Start} , \hyperlink{group__group33}{cl\-Timer\-Stop} , \hyperlink{group__group33}{cl\-Timer\-Delete} \end{Desc}
+\newpage
+
+\subsection{clTimerRestart}
+\index{clTimerRestart@{clTimerRestart}}
+\hypertarget{pagetmr109}{}\paragraph{cl\-Timer\-Restart}\label{pagetmr109}
+\begin{Desc}
+\item[Synopsis:]Restarts a timer.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTimerApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}      ClRcT clTimerRestart (
+            				CL_IN     ClTimerHandleT  timerHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em timer\-Handle:}](in) Handle of the timer being restarted.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]{\tt{timerHandle}} is an invalid handle. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-INVLD\_\-STATE:}]Timer is in an invalid state. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-INVALID:}]The internal timer representation is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to restart a timer that is created using the {\tt{clTimerCreate()}}, {\tt{clTimerStart()}}, or 
+{\tt{clTimerCreateAndStart()}} functions. \end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Timer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{group__group33}{cl\-Timer\-Create}, \hyperlink{group__group33}{cl\-Timer\-Start} , \hyperlink{group__group33}{cl\-Timer\-Create\-And\-Start} , \hyperlink{group__group33}{cl\-Timer\-Stop} , \hyperlink{group__group33}{cl\-Timer\-Delete} \end{Desc}
+\newpage
+
+
+\subsection{clTimerUpdate}
+\index{clTimerUpdate@{clTimerUpdate}}
+\hypertarget{pagetmr110}{}\paragraph{cl\-Timer\-Update}\label{pagetmr110}
+\begin{Desc}
+\item[Synopsis:]Updates a timer.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTimerApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clTimerUpdate(
+               				CL_IN               ClTimerHandleT timerHandle,
+               				CL_IN               ClTimerTimeOutT newTimeout);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em timer\-Handle:}](in) Handle of the timer being updated. \item[{\em new\-Timeout:}](in) New timeout value for the timer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]{\tt{timerHandle}} is an invalid handle. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-INVALID:}]The internal timer representation is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to update the timeout value of a timer. For this, a timer must be created using 
+{\tt{clTimerCreate()}} or {\tt{clTimerCreateAndStart()}} functions. After the timeout value is updated, the timer function is called according to 
+the new timer value.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Timer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{group__group33}{cl\-Timer\-Create} , \hyperlink{group__group33}{cl\-Timer\-Start} , \hyperlink{group__group33}{cl\-Timer\-Create\-And\-Start} , \hyperlink{group__group33}{cl\-Timer\-Stop} , \hyperlink{group__group33}{cl\-Timer\-Delete} \end{Desc}
+\newpage
+
+
+\subsection{clTimerTypeGet}
+\index{clTimerTypeGet@{clTimerTypeGet}}
+\hypertarget{pagetmr111}{}\paragraph{cl\-Timer\-Type\-Get}\label{pagetmr111}
+\begin{Desc}
+\item[Synopsis:]Returns the timer type.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTimerApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clTimerTypeGet (
+                 			CL_IN      ClTimerHandleT timerHandle,
+                 			CL_INOUT   ClUint32T* pTimerType);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em timer\-Handle:}](in) Handle of the timer. 
+\item[{\em p\-Timer\-Type:}](in/out) The pointer to the location to which the type of the timer is being copied. It can have two values: If the 
+value is: 
+\begin{itemize}
+\item 0: The timer type is one-shot. \item 1: The timer type is repetitive.\end{itemize}
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pTimerType}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]{\tt{timerHandle}} is an invalid handle. 
+\item[{\em CL\_\-TIMER\_\-ERR\_\-INVALID:}]The internal timer representation is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to query and return the type of timer, one-shot or repetitive. A one-shot timer is 
+invoked only once and then the timer stops operating. For a repetitive timer, the timeout occurs periodically until the timer is stopped.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Timer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{group__group33}{cl\-Timer\-Create} , \hyperlink{group__group33}{cl\-Timer\-Start} , \hyperlink{group__group33}{cl\-Timer\-Create\-And\-Start} , \hyperlink{group__group33}{cl\-Timer\-Stop} , \hyperlink{group__group33}{cl\-Timer\-Delete} \end{Desc}
+
+\chapter{Service Management Information Model}
+TBD
+\chapter{Service Notifications}
+TBD
+\chapter{Debug CLIs}
+TBD
+\end{flushleft}

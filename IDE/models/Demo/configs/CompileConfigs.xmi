@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompileConfigs:ComponentsInfo xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:CompileConfigs="Comps.ecore">
+  <COR savetype="CL_COR_DELTA_SAVE"/>
+  <FM localProbationPeriod="10">
+    <localSeqTableEntry Category="com" Severity="CR" EscalationLevel="Level1" Function="SeqTableEntryType0" IsExtern="false"/>
+  </FM>
+  <IOC maxpriorityQsize="1000000" maxpriorities="4" reassemblytimeout="1000" tlmaxentries="256" hearbeatinterval="1000"/>
+  <NS maxentries="256" maxglobalcontexts="10" maxlocalcontexts="2"/>
+  <RMD maxretries="8"/>
+  <Timer timerresolution="0" taskpriority="0"/>
+</CompileConfigs:ComponentsInfo>

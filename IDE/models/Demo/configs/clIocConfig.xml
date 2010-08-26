@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ioc:BootConfig xmlns:ioc="ioc.ecore">
+  <ioc>
+    <transport transportName="UDP" transportPriority="1">
+      <link linkName="Link0" linkPriority="1" linkInterface="eth0" linkId="6724" linkSupportsBroadcast="true" linkSupportsChksum="true"/>
+    </transport>
+  </ioc>
+</ioc:BootConfig>

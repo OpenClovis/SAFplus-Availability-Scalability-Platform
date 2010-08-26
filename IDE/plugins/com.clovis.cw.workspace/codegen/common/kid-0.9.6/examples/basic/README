@@ -1,0 +1,31 @@
+Kid Static File Demo
+====================
+
+The `sysinfo.kid` file illustrates some of the features of the kid
+template language. There are a variety of methods of executing the
+template. Try them all to get a feel for what's possible with kid
+templates:
+
+   * Execute using the `kid` command line utility:
+
+        $ kid sysinfo.kid
+        [template output to stdout]
+
+   * Play around using interactive python:
+
+        $ python
+        $ Python 2.3.3 (#2, Dec 23 2003, 22:56:29) 
+        [GCC 3.1 20020420 (prerelease)] on darwin
+        Type "help", "copyright", "credits" or "license" for more information.
+        >>> import kid
+        >>> kid.enable_import()
+        >>> import sysinfo
+        >>> s = sysinfo.serialize()
+        >>> print s
+        [lots of stuff to stdout]
+        >>> fo = open('/tmp/kid-test', 'wb')
+        >>> sysinfo.write(fo)
+        >>> fo.close()
+        >>> print open('/tmp/kid-test', 'r').read()
+        [lots of stuff to stdout]
+

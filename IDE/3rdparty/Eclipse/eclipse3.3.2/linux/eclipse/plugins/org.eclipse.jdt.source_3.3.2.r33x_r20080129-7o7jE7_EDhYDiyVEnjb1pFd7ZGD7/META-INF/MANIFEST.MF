@@ -1,0 +1,311 @@
+Manifest-Version: 1.0
+Bundle-Version: 3.3.2.r33x_r20080129-7o7jE7_EDhYDiyVEnjb1pFd7ZGD7
+Created-By: 1.4.2 (IBM Corporation)
+Bundle-SymbolicName: org.eclipse.jdt.source; singleton=true
+Bundle-Name: %pluginName
+Bundle-Localization: plugin
+Bundle-Vendor: %providerName
+Ant-Version: Apache Ant 1.7.0
+
+Name: src/org.eclipse.ant.ui_3.2.200.v20070825_r331/about_files/NOTICE
+SHA1-Digest: Mu3gQHJl963VZJ+BCE906ZAhmXY=
+
+Name: src/org.eclipse.ant.ui_3.2.200.v20070825_r331/about_files/asl-v2
+ 0.txt
+SHA1-Digest: K4uBUimqimHkg/tLoFiLi2xJGJA=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/dictionaries/en_US.di
+ ctionary
+SHA1-Digest: DHZeEIaxm+epAEKLTIz/JF5ooFI=
+
+Name: src/org.eclipse.ant.ui_3.2.200.v20070825_r331/src.zip
+SHA1-Digest: OWBW37YelgqAxhiNznCpA81Ps3M=
+
+Name: src/org.eclipse.jdt.debug_3.3.1.v20070719_r331/schema/jdiclient.
+ exsd
+SHA1-Digest: x2ZOe/n1nK4bmuZcSxr+ApAkUc8=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/schema/classpathAttri
+ buteConfiguration.exsd
+SHA1-Digest: OIh2ZOuROu1Y6EFFzF5zp3hFYyc=
+
+Name: src/org.eclipse.jdt.debug.ui_3.2.102.v20071002_r332/schema/vmIns
+ tallTypePage.exsd
+SHA1-Digest: ImfrBb9zO7ceJk9I0ojeU6me49M=
+
+Name: src/org.eclipse.jdt.launching_3.3.2.v20080115_r332/src.zip
+SHA1-Digest: c+3H0XSdko/zR6MDl9HO5eVd82k=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/schema/javadocComplet
+ ionProcessor.exsd
+SHA1-Digest: bOdm/iqsxUxE97JvRAdxiqE9Jxc=
+
+Name: src/org.eclipse.jdt.junit_3.3.2.r332_20080109-0800/schema/testRu
+ nListeners.exsd
+SHA1-Digest: O0kOh51mz6979ahvbK0mDUN97ss=
+
+Name: src/org.eclipse.jdt.apt.pluggable.core_1.0.1.R33x_v20071002-2100
+ /src.zip
+SHA1-Digest: ukvCyc60DN011A70pY+p9ufqvTg=
+
+Name: about.html
+SHA1-Digest: t15ZOHlrGDCeslNIq+PwNJ1tf+4=
+
+Name: src/org.eclipse.jdt.launching_3.3.2.v20080115_r332/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.jdt.core_3.3.3.v_793_R33x/schema/annotationProce
+ ssorManager.exsd
+SHA1-Digest: mQiBepfK/K+IWdkRwZi/LL7hBgY=
+
+Name: src/org.eclipse.jdt.debug.ui_3.2.102.v20071002_r332/snippetsuppo
+ rtsrc.zip
+SHA1-Digest: 48KXVUd8vYGq4hCdHH8/PrSNtZg=
+
+Name: src/org.eclipse.jdt.junit_3.3.2.r332_20080109-0800/schema/junitL
+ aunchConfigs.exsd
+SHA1-Digest: 796JaHk5H2sYg+Y/ez8Q9dRT8FU=
+
+Name: src/org.eclipse.jdt.compiler.tool_1.0.1.v_793_R33x/src.zip
+SHA1-Digest: NFd2vqx3vkS/uVPiFVoCtvmEVsY=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/schema/javaEditorText
+ Hovers.exsd
+SHA1-Digest: uxXoQLXBb8tVc0t6LdkdJ5Up96Q=
+
+Name: src/org.eclipse.jdt.compiler.apt_1.0.1.R33x_v20071002-2100/src.z
+ ip
+SHA1-Digest: +wFgqcbRPU/hO+RbiATeTXuqqnY=
+
+Name: src/org.eclipse.jdt.junit4.runtime_1.0.100.v20070606-0010/about.
+ html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.jdt.compiler.tool_1.0.1.v_793_R33x/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: plugin.xml
+SHA1-Digest: I0t+o6kXbySrxIY1bLaTaeai3Vc=
+
+Name: src/org.eclipse.jdt.core.manipulation_1.1.0.v20070606-0010/about
+ .html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.jdt.debug_3.3.1.v20070719_r331/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.jdt.apt.ui_3.3.1.R33x_v20071002-2100/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.jdt.apt.pluggable.core_1.0.1.R33x_v20071002-2100
+ /about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.jdt.launching_3.3.2.v20080115_r332/schema/vmInst
+ alls.exsd
+SHA1-Digest: ql9YgfaeXTIC0aafeN4fl/JTTS4=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/schema/javaElementFil
+ ters.exsd
+SHA1-Digest: VTpV74DyzvRGUiGAYywltPENWkE=
+
+Name: src/org.eclipse.jdt.debug_3.3.1.v20070719_r331/jdimodelsrc.zip
+SHA1-Digest: XIMK9YvEFprjidbNWShnUP2SpUU=
+
+Name: src/org.eclipse.jdt.junit_3.3.2.r332_20080109-0800/schema/intern
+ al_testKinds.exsd
+SHA1-Digest: AD7rx8u8NGHrJBE+BLZu6ANkZ+I=
+
+Name: src/org.eclipse.jdt.launching_3.3.2.v20080115_r332/lib/launching
+ supportsrc.zip
+SHA1-Digest: d7uV6VJ87ibLz/5GydR1In1FLEg=
+
+Name: plugin.properties
+SHA1-Digest: RGnBt4lrof3ZLxI7KS85AJrgUwI=
+
+Name: src/org.eclipse.jdt.debug_3.3.1.v20070719_r331/schema/javaLogica
+ lStructures.exsd
+SHA1-Digest: foPk2Ckmp49aWBOAjXjAKscMXb0=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/schema/quickFixProces
+ sors.exsd
+SHA1-Digest: lQOfWhkK2o1NUwO9pFUUrc4lTGA=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/schema/javaCompletion
+ ProposalComputer.exsd
+SHA1-Digest: LquRmihUcCABQJ5pQ1+T+e1FPXs=
+
+Name: src/org.eclipse.jdt.launching_3.3.2.v20080115_r332/schema/execut
+ ionEnvironments.exsd
+SHA1-Digest: t4W8Cw4EFI0pv37ov/LsQ2HGKmo=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/schema/queryParticipa
+ nts.exsd
+SHA1-Digest: OKSgptpSsCIw8dlAI53092C0mQQ=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/src.zip
+SHA1-Digest: aisRJpyaV+7xrWGo3rCVq9XcdsY=
+
+Name: src/org.eclipse.ant.ui_3.2.200.v20070825_r331/lib/antrunnersrc.z
+ ip
+SHA1-Digest: YcgHt7YQNUU1rqZDQkXyEP6Nits=
+
+Name: src/org.eclipse.jdt.core_3.3.3.v_793_R33x/schema/compilationPart
+ icipant.exsd
+SHA1-Digest: TggI/+lQG9cDhPACZezRHiI2y60=
+
+Name: src/org.junit4_4.3.1/about.html
+SHA1-Digest: thx2rDCdB3jaeR7gKZiU3CtR2ww=
+
+Name: src/org.eclipse.jdt.junit_3.3.2.r332_20080109-0800/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/schema/foldingStructu
+ reProviders.exsd
+SHA1-Digest: kxHsDBDBoc+AMGEH0/LiEkI81dE=
+
+Name: src/org.eclipse.jdt.debug.ui_3.2.102.v20071002_r332/src.zip
+SHA1-Digest: IiT9vSUNRGt3PGJgw6gnwLic44M=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/about.html
+SHA1-Digest: R8r7Y42Tfgk7u0HCM1nC9EL8gi0=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/schema/quickAssistPro
+ cessors.exsd
+SHA1-Digest: bKtw4zs3PLfBLUDkxidX8IV3c6o=
+
+Name: src/org.eclipse.jdt.junit.runtime_3.3.0.v20070606-0010/src.zip
+SHA1-Digest: 0sz02XOclN1bQHPpd4fa/EaTrvo=
+
+Name: src/org.eclipse.jdt.launching_3.3.2.v20080115_r332/schema/runtim
+ eClasspathEntries.exsd
+SHA1-Digest: j8o/Scb5FwOS+FbxpDKgGF6oSLc=
+
+Name: about.properties
+SHA1-Digest: FhXoLQOEBLBiOY85pzyb8GFv/QQ=
+
+Name: src/org.eclipse.jdt.debug_3.3.1.v20070719_r331/jdisrc.zip
+SHA1-Digest: /8LwQ8XdoiO2d0Fyuen8dU3fViw=
+
+Name: src/org.eclipse.jdt.core_3.3.3.v_793_R33x/schema/classpathContai
+ nerInitializer.exsd
+SHA1-Digest: +iyL00XP73gTw9Kajxv5EaS0qbY=
+
+Name: src/org.eclipse.jdt.core_3.3.3.v_793_R33x/jdtCompilerAdaptersrc.
+ zip
+SHA1-Digest: 038cPoyntK1epWzuVywx3Q+J0Y0=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/about_files/ispell-li
+ cense.txt
+SHA1-Digest: /ERZtcjGBTJ3j+68qSBm67kf+80=
+
+Name: src/org.eclipse.jdt.launching_3.3.2.v20080115_r332/schema/vmInst
+ allTypes.exsd
+SHA1-Digest: e2Ms7Tu5Tfj+hOBdbgjrs40wR30=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/serialsupportsrc.zip
+SHA1-Digest: kKIMQMZj/TbcCJMv6NsT0nJBTrI=
+
+Name: src/org.eclipse.jdt.core_3.3.3.v_793_R33x/schema/classpathVariab
+ leInitializer.exsd
+SHA1-Digest: EaG+fagTx13eLjoJRpUwvJ5miuY=
+
+Name: src/org.eclipse.jdt.junit.runtime_3.3.0.v20070606-0010/about.htm
+ l
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: about.mappings
+SHA1-Digest: GqTR3mqKqhLIO1m/b875XtFMV7g=
+
+Name: META-INF/eclipse.inf
+SHA1-Digest: KyT9FF7C7t86NoBoa2kZT3ZJBfw=
+
+Name: src/org.eclipse.jdt.launching_3.3.2.v20080115_r332/schema/runtim
+ eClasspathEntryResolvers.exsd
+SHA1-Digest: yC3nSWOy360i/y6TN1k5HjnM/zQ=
+
+Name: src/org.eclipse.jdt.apt.core_3.3.1.R33x_v20071112-2330/mirror-ap
+ i-license.txt
+SHA1-Digest: FjVXX82ehKZrW+gNEoVQJVT86y4=
+
+Name: src/org.eclipse.jdt.core_3.3.3.v_793_R33x/schema/compiler.dtd
+SHA1-Digest: ud1rnD34gv7rFlzZuqrMMI/RN7o=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/schema/classpathConta
+ inerPage.exsd
+SHA1-Digest: N3bk+SKuazDeHQf5Zsiyi8SIj4k=
+
+Name: eclipse32.png
+SHA1-Digest: eCk/A3/COXL3S6qAVDOSrlsqmLw=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/dictionaries/en_GB.di
+ ctionary
+SHA1-Digest: Tp59l1+3Q3g3z+GvhcoUaXMSdm8=
+
+Name: src/org.eclipse.jdt.launching_3.3.2.v20080115_r332/schema/classp
+ athProviders.exsd
+SHA1-Digest: piiwQxpN4XmP5dKEVeMD33Cit7A=
+
+Name: src/org.eclipse.jdt.apt.core_3.3.1.R33x_v20071112-2330/schema/an
+ notationProcessorFactory.exsd
+SHA1-Digest: 5f4WN0GZ+a5eXVFI90E31eORRsY=
+
+Name: src/org.eclipse.jdt.core_3.3.3.v_793_R33x/about.html
+SHA1-Digest: 8ujMT8pSPVOaXfPsdRR+Ww9Uuk0=
+
+Name: src/org.eclipse.ant.ui_3.2.200.v20070825_r331/lib/remoteAntsrc.z
+ ip
+SHA1-Digest: OIxxDb25O9OKYwQj9O8auW5H5KA=
+
+Name: src/org.eclipse.jdt.ui_3.3.2.r332_20080128/schema/javaCompletion
+ ProposalSorters.exsd
+SHA1-Digest: KgiZUuKKz280mfwOoYbozOnnvVg=
+
+Name: src/org.eclipse.jdt.apt.core_3.3.1.R33x_v20071112-2330/src.zip
+SHA1-Digest: SNlfi1BphLbLGXW6koDk0VZOvvo=
+
+Name: src/org.eclipse.jdt.core_3.3.3.v_793_R33x/schema/codeFormatter.e
+ xsd
+SHA1-Digest: TsIDaRwbfm7MSETr8U+38c9ytxk=
+
+Name: src/org.eclipse.jdt.apt.core_3.3.1.R33x_v20071112-2330/about.htm
+ l
+SHA1-Digest: gXY9Uy5xgY5d2+IG6l4WrFT4veA=
+
+Name: src/org.eclipse.jdt.apt.ui_3.3.1.R33x_v20071002-2100/src.zip
+SHA1-Digest: vxDLHUM8qBoGmIRQtOpmHm9kurs=
+
+Name: src/org.eclipse.ant.ui_3.2.200.v20070825_r331/about.html
+SHA1-Digest: 5atB+FopcZoZpyRB3Ktkwv1fyP8=
+
+Name: src/org.eclipse.jdt.core.manipulation_1.1.0.v20070606-0010/src.z
+ ip
+SHA1-Digest: UqawNQILRBIPveGJlEv0tsNOjeY=
+
+Name: src/org.eclipse.jdt.launching_3.3.2.v20080115_r332/schema/vmConn
+ ectors.exsd
+SHA1-Digest: WxK3I8cYwQCJexR2FunJQZ1MPS4=
+
+Name: src/org.eclipse.jdt.core_3.3.3.v_793_R33x/src.zip
+SHA1-Digest: zswoxggAbqqkMDik5djQBxpPZcE=
+
+Name: src/org.eclipse.jdt.debug.ui_3.2.102.v20071002_r332/about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: src/org.eclipse.jdt.junit4.runtime_1.0.100.v20070606-0010/src.zi
+ p
+SHA1-Digest: +8LC/LiUj24HHNguEmL+oo6FskE=
+
+Name: src/org.eclipse.jdt.compiler.apt_1.0.1.R33x_v20071002-2100/about
+ .html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: about.ini
+SHA1-Digest: 4+ZuAEXoOzgWrv1HOHHCd5TpkPs=
+
+Name: src/org.eclipse.jdt.junit_3.3.2.r332_20080109-0800/src.zip
+SHA1-Digest: /stVNMlHnRnAm+k41BlKelYMgeA=
+
+Name: src/org.junit4_4.3.1/junitsrc.zip
+SHA1-Digest: 7Fz6+0AZrKpXlwb0r0X1kftWlL0=
+

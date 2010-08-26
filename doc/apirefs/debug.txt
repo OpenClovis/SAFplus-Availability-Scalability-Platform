@@ -1,0 +1,272 @@
+/**
+ *  \defgroup debug Debug Service
+ *  \brief The OpenClovis Debug Infrastructure provides diagnostics access 
+ *   to all system components (including OpenClovis ASP service components,
+ *   ASP-based customer applications), irrespective of the location (node) 
+ *   where the component runs. 
+ */
+
+//-----------------------------------------------------------
+ 
+/**
+
+\defgroup debug_intro Functional Description
+\brief Description of Debug Service.
+\ingroup debug
+
+The OpenClovis Debug Infrastructure provides distributed diagnostics access to all system components, including OpenClovis ASP service components, as well as ASP-based customer applications.
+The software components can define and register any number of diagnostic routines or functions with the debug infrastructure.
+These routines are made accessible via a so-called ASP Console (<code>asp_console</code>) application.
+ASP Console can be launched from any of the system nodes.
+It allows the user to list the available nodes, list the accessible components on each node (those that registered with the debug service), and list all diagnostic functions registered by each component.
+Via a simple command line interface (CLI), the user can trigger any of these routines in an interactive way, and the results will be displayed on the console.
+ASP Console can be started on any of the ASP-enabled system nodes and the ASP Console provides unified access to any components on any nodes, irrespective of where it has been started.
+It simply routes the request to the given component based on the selected node and component context.
+
+This debug infrastructure and the companion ASP Console front-end can provide significant benefit to system designers trying to monitor the internals of the system or trigger natural or artificial events in the system for testing purposes. Specific examples include:
+\arg Show the content of internal data structures of a component
+\arg Allow the modification of such data structures
+\arg Trigger rarely occurring stimuli to components, simulating various fault scenarios
+
+All OpenClovis ASP service components offer diagnostic commands.
+
+\arg Using CLI commands, you can view or manipulate the data managed by OpenClovis ASP components. All these features are designed to assist the application developers and field engineers in testing and debugging applications. 
+
+\arg This CLI can be used for ASP-based customer applications. The CLI framework ensures that the application is accessible from the central CLI server. The actual CLI commands and the functionality are left for the application developers. 
+
+\arg The ASP Console provides a centralized access to all OpenClovis ASP components and ASP-based applications. Using custom CLI commands a wide variety of services and features can be exposed to the CLI framework, which allows sophisticated, multi-component tests orchestrated through the ASP Console. 
+
+Initially in ASP Console after establishing a connection, you are in OpenClovis ASP global context. You can then list all the nodes (called slots here for historic reasons) that are visible in the cluster. For each slot it also shows the ASP node instance running on that slot. From global context, you can set context to a particular blade.
+Once you are in a node's context, you can list all the components available on that blade and set
+context to a particular component. You can then start using the commands for that component. Once you are done working with a particular component, you 
+can unset the current context and switch to other blades or components. When a command is entered at the terminal, it is sent to the gateway as is. The 
+gateway parses the command and matches the command with the existing commands for the component for which the context is set. It then makes an RMD call 
+to the debug object in the EO for that component. The debug object then matches the command to a function as per the registering done earlier and calls 
+the appropriate function. The function is expected to return a string that is routed back to the terminal and displayed to the user. 
+
+*/
+ 
+//-----------------------------------------------------------
+
+/**
+
+\defgroup debug_usage API Usage Examples
+\brief Code Examples.
+\ingroup debug
+ 
+The following structure describes about the function:
+ 
+\code
+typedef struct ClDebugFuncEntry {
+   ClDebugCallbackT  callback;
+   ClCharT           funcName[CL_DEBUG_FUNC_NAME_LENGTH];
+   ClCharT           funcHelp[CL_DEBUG_FUNC_HELP_LENGTH];
+} ClDebugFuncEntryT;
+\endcode
+ 
+When the component registers with the debug gateway, the gateway
+becomes aware of the component. Thus when the user requests for
+a list of available components, all registered components are displayed.
+When the component comes up, it registers its debug APIs with
+the debug object. This API is as follows:
+
+\code
+typedef struct ClDebugModEntry {
+   ClCharT         modName[80];
+   ClCharT         modPrompt[20];
+   ClDebugFuncEntryT *cmdList;
+   ClCharT          help[80];
+} ClDebugModEntryT;
+ 
+ClRcT clDebugRegister(
+               struct clEoExecutionObj* pEoObj,
+               ClCharT* compName,
+               ClCharT* compPrompt,
+               ClDebugFuncEntryT* funcArray,
+               ClUint32T funcArrayLen);
+\endcode
+ 
+This is called on a per instance basis. This makes the debug object
+in the EO aware of the debug capabilities of the installed component.
+There are corresponding deregister functions provided for both the
+functions above.
+
+
+Following are the example of how to register commands with the CLI framework:
+
+\code
+
+/*Function which executes command one with name 'clDbgCmd1'*/
+static ClRcT
+clDbgCmd1Func(int argc, char **argv, ClCharT **ret)
+{
+    ClRcT               rc  =   CL_OK;
+    ClDebugPrintHandleT msg =   CL_HANDLE_INVALID_VALUE;
+
+    /*Print handle initialize*/
+    rc = clDebugPrintInitialize(&msg);
+    if(rc != CL_OK)
+    {
+        clLogError("EXP","DBG", "Debug print init Failed.");
+        return rc;
+    }
+
+    if(2 != argc)
+    {
+        /*Debug Print*/
+        rc = clDebugPrint(msg, 
+                          "\bUsage: clDbgCmd1 <Your Name>\n");
+
+        if(rc != CL_OK)
+        {
+            clLogError("EXP","DBG", "Debug print Failed.");
+            return rc;
+        }
+    }
+    /*Debug Print*/
+    rc = clDebugPrint(msg, "\nHello %s !", argv[1]);
+    if(rc != CL_OK)
+    {
+        clLogError("EXP","DBG", "Debug print Failed.");
+        return rc;
+    }
+
+    /*Dbg Print Finalize*/
+    rc = clDebugPrintFinalize(&msg, ret);
+    if(rc != CL_OK)
+    {
+        clLogError("EXP","DBG", "Debug print finalize Failed.");
+        return rc;
+    }
+
+    return rc;
+}
+
+
+/*Function which executes command two with name 'clDbgCmd2'*/
+
+static ClRcT
+clDbgCmd2Func(int argc, char **argv, ClCharT **ret)
+{
+    ClRcT               rc  =   CL_OK;
+    ClDebugPrintHandleT msg =   CL_HANDLE_INVALID_VALUE;
+    ClUint32T           id  =   0;
+
+    /*Print handle initialize*/
+    rc = clDebugPrintInitialize(&msg);
+    if(rc != CL_OK)
+    {
+        clLogError("EXP","DBG", "Debug print init Failed.");
+        return rc;
+    }
+
+    if(3 != argc)
+    {
+        /*Debug Print*/
+        rc = clDebugPrint(msg, 
+                          "\bUsage: clDbgCmd2 <Your Name> <Your ID>\n");
+
+        if(rc != CL_OK)
+        {
+            clLogError("EXP","DBG", "Debug print Failed.");
+            return rc;
+        }
+    }
+
+    id = atoi(argv[2]);
+    /*Debug Print*/
+    rc = clDebugPrint(msg, "\nHello [%s], your ID is [%d]\n", 
+                      argv[1], id);
+    if(rc != CL_OK)
+    {
+        clLogError("EXP","DBG", "Debug print Failed.");
+        return rc;
+    }
+
+    /*Dbg Print Finalize*/
+    rc = clDebugPrintFinalize(&msg, ret);
+    if(rc != CL_OK)
+    {
+        clLogError("EXP","DBG", "Debug print finalize Failed.");
+        return rc;
+    }
+
+    return rc;
+}
+
+/* Info about the Commands to be registered */
+static ClDebugFuncEntryT clRegisterCmdFuncs[] = {
+    {
+      (ClDebugCallbackT) clDbgCmd1Func,/* Function to be called when 
+                                          command 'clDbgCmd' is executed */
+      "clDbgCmd1",                     /* Command */
+      "DebugCommand : One"             /* Help */
+    },
+
+    {
+      (ClDebugCallbackT) clDbgCmd2Func,/* Function to be called when 
+                                          command 'clDbgCmd2' is executed */
+      "clDbgCmd2",                     /* Command */
+      "DebugCommand : Two"             /* Help */
+    }
+};
+
+/*Code to register commands 'clDbgCmd1' and 'clDbgCmd2'*/
+ClRcT               rc  =   CL_OK;
+ClHandleT clDbgHdl = CL_HANDLE_INVALID_VALUE;
+
+rc = clDebugRegister(RegisterCmdFuncs, 
+                     sizeof(clRegisterCmdFuncs) / 
+                     sizeof(clRegisterCmdFuncs[0]),
+                     &clDbgHdl)) == CL_OK,
+
+if(rc != CL_OK)
+{
+    clLogError("EXP","DBG", "Command registration Failed.");
+    return rc;
+}
+\endcode
+
+*/
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup debug_error Error/Return Codes
+ *  \brief Common and Component specific Error Codes.
+ *  \ingroup debug
+ *
+ *  The majority of ASP API functions return a <b>Return Code</b> as their return value. 
+ *  A zero return code (CL_OK) always indicates success. Non-zero return codes 
+ *  always carry two types of information, masked into one single value: 
+ *  a <b>Component Identifier</b> and an <b>Error Code</b>. The component 
+ *  identifier identifies the component (or software layer) in which the problem 
+ *  occurred, while the error code describes the nature of the problem. 
+ *  Some error codes are common across all components, while others are 
+ *  component specific. 
+ *
+ *  The format of the Return Codes is 0xCCNNNN (given in hex),
+ *  where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ *
+ *  \note <b>Only the Error Codes are listed as Return values 
+ *  in the Function Documentation of the API Reference pages. The real 
+ *  return value also contains the Component Identifier!</b> 
+ *
+ *  The following links are useful while interpreting Debug Service generated return codes:
+ *  - \ref apirefs_errorcodes_compid_CL_CID_DEBUG "Debug Component Identifier"
+ *  - \ref apirefs_errorcodes_common
+ *  - \ref apirefs_errorcodes_debug
+ *
+ *  For further details and information about all error/return codes visit 
+ *  page \ref apirefs_errorcodes.
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup debug_apis API Reference Pages
+ *  \brief Defines, Structures, Typedefs, Functions.
+ *  \ingroup debug
+ */
+
+//-----------------------------------------------------------

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="clSlotInfo"
+    nsURI="map.ecore" nsPrefix="clSlotInfo">
+  <eClassifiers xsi:type="ecore:EClass" name="slot">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="Node Admission Control"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="slot" upperBound="-1" eType="#//SlotType"
+        unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Slot Map"/>
+        <details key="editor" value="com.clovis.cw.workspace:com.clovis.cw.workspace.dialog.SlotsPushButtonCellEditor"/>
+        <details key="tooltip" value="Assign the node types to each slot on chassis. Max slot is calculated  from the field &quot;Number of slots&quot; in the chassis resource."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SlotType">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="slotNumber"/>
+      <details key="label" value="Slot Map"/>
+      <details key="Help" value="com.clovis.cw.help.boot_slotmap_map"/>
+      <details key="menuxml" value="no"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="slotNumber" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="1" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Slot Number"/>
+        <details key="canModify" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="classTypes" lowerBound="1"
+        eType="#//ClassTypes" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Class Types"/>
+        <details key="editor" value="com.clovis.cw.workspace:com.clovis.cw.workspace.dialog.SlotSelectionPushButtonCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BootConfig">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="slots" eType="#//slot"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ClassTypes">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="classType" upperBound="-1"
+        eType="#//ClassType" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ClassType">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="name"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true"/>
+  </eClassifiers>
+</ecore:EPackage>

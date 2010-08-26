@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<log:BootConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:log="log.ecore">
+  <log>
+    <logConfigData xsi:nil="true"/>
+    <perennialStreamsData>
+      <stream name="appStream">
+        <fileName>app</fileName>
+        <fileLocation>*:/tmp</fileLocation>
+        <fileUnitSize>1500000</fileUnitSize>
+        <recordSize>300</recordSize>
+        <fileFullAction>WRAP</fileFullAction>
+        <maximumFilesRotated>0</maximumFilesRotated>
+        <flushFreq>64</flushFreq>
+        <flushInterval>100000</flushInterval>
+      </stream>
+      <stream name="sysStream">
+        <fileName>sys</fileName>
+        <fileLocation>*:/tmp</fileLocation>
+        <fileUnitSize>1500000</fileUnitSize>
+        <recordSize>300</recordSize>
+        <fileFullAction>WRAP</fileFullAction>
+        <maximumFilesRotated>0</maximumFilesRotated>
+        <flushFreq>64</flushFreq>
+        <flushInterval>100000</flushInterval>
+      </stream>
+    </perennialStreamsData>
+    <precreatedStreamsData xsi:nil="true"/>
+  </log>
+</log:BootConfig>

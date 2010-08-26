@@ -1,0 +1,280 @@
+/**
+ * \addtogroup txn_aspconsole Transaction Manager ASP Console Commands
+ * \{
+ */
+
+/**
+*****************************************
+\brief Initialize transaction for test application.
+ 
+\par Usage: 
+\code  init \endcode 
+
+\par Output:
+\code 
+init
+Initializatin Done 
+\endcode 
+***************************************** 
+*/
+init;
+
+
+/**
+*****************************************
+\brief Create a new transaction.
+ 
+\par Usage: 
+\code createTxn \endcode 
+
+\par Output:
+\code 
+createTxn
+New transaction created. Txn-Handle: 0x81cf1c4 
+\endcode 
+***************************************** 
+*/
+createTxn;
+
+/**
+*****************************************
+\brief Add a job to the transaction.
+ 
+\par Usage: 
+\code addJob <txn_id> <op_type> <array_index> <value> \endcode 
+
+\param txn_handle[HEX] Transaction-Handle
+\param op_type[DEC] [1:ADD], [2:SUBTRACT]
+\param array_index[DEC] Index into test array
+\param value[DEC] New value used for operation
+
+\par Output:
+\code 
+addJob 0x81cf1c4 1 2 2
+New Job added. Job-Handle = 0x81cf96c 
+\endcode 
+***************************************** 
+*/
+addJob;
+
+/**
+*****************************************
+\brief Delete a job from the transaction.
+ 
+\par Usage: 
+\code deleteJob <txn_id> <job_id> \endcode
+
+\param txn_id[HEX] Transaction Handle
+\param job_id[HEX] Job Handle		
+
+\par Output:
+\code 
+cli[Test:SysNodeI0:Txn]-> deleteJob 0x1028e9c8 0x1028ffe8
+Job deleted 
+\endcode 
+***************************************** 
+*/
+deleteJob;
+
+/**
+*****************************************
+\brief Set component for the transaction-job.
+ 
+\par Usage: 
+\code setComponent <txn_handle> <job_handle> <comp_name> \endcode 
+
+\param txn_handle[HEX] Transaction Handle
+\param job_handle[HEX] Job Handle
+\param comp_name[NAME] Component Name
+
+\par Output:
+\code 
+setComponent 0x81cf1c4 0x81cf96c SysComp1_0
+Successfully added component addresss to txn-job 
+\endcode 
+***************************************** 
+*/
+setComponent;
+ 
+/**
+*****************************************
+\brief Run a given transaction
+ 
+\par Usage: 
+\code runTxn <txn_handle> \endcode 
+
+\param txn_handle[HEX] Transaction-Handle
+
+\par Output:
+\code 
+runTxn 0x81cf1c4
+Transaction completed successfully 
+\endcode 
+***************************************** 
+*/
+runTxn;
+
+/**
+*****************************************
+\brief Show active transactions.
+ 
+\par Usage: 
+\code showActiveTxn \endcode 
+
+\par Output:
+\code 
+showActiveTxn  
+Server TxnId | Client TxnId | Server TxnHandle | Txn-Status
+\endcode
+***************************************** 
+*/
+showActiveTxn;
+
+/**
+*****************************************
+\brief Show details of a transaction.
+ 
+\par Usage: 
+\code showTxnDetails <txnId> \endcode
+\param        txnId [HEX] - Server transaction Id
+
+\par Output:
+\code
+showTxnDetails 0x0
+
+Transaction Description:
+        Server TxnId    :       0x1:0x0
+        Client TxnId    :       0x1:0x0
+        CurrentState    :       CL_TXN_TRANSACTION_COMMITTED
+        Job Count       :       0x1
+        Configuration   :       0x0
+
+        Job Details:
+                Job-Id          :       0x0
+                Service Type    :       0x2
+                Configuration   :       0x2
+                Current State   :       CL_TXN_TRANSACTION_COMMITTED
+                Component Cnt   :       0x1
+                Component List  :
+                        Addr    :       [0x1:0xd]
+                        Config  :       0x2
+
+\endcode
+***************************************** 
+*/
+showTxnDetails;
+
+/**
+*****************************************
+\brief Show activity of a transaction
+ 
+\par Usage: 
+\code showTxnActivity <txnId> \endcode
+\param txnId[HEX] - Server transaction Id
+
+\par Output:
+\code 
+showTxnActivity 0x0
+
+Transaction Activity:
+        Server TxnId    :       0x1:0x0
+        Client TxnId    :       0x1:0x0
+        CurrentState    :       CL_TXN_TRANSACTION_COMMITTED
+        Job Count       :       0x1
+        Configuration   :       0x0
+
+        Recovery State  :
+                Retry   :       0x0
+
+        Execution State         :       Component[0x1:0xd]
+                Comp Cfg        :       0x2
+
+                Job-Id  :       0x0
+                PREPARE-PHASE   :       CMD_SENT
+                        RC:     :       SUCCESS RetCode[0x0]
+                COMMIT-PHASE    :       CMD_SENT
+                        RC:     :       SUCCESS RetCode[0x0]
+                ROLLBACK-PHASE  :       CMD_NOT_SENT
+                        RC:     :       NOT AVAILABLE RetCode[0x0]
+
+\endcode
+***************************************** 
+*/
+showTxnActivity;
+
+/**
+*****************************************
+\brief Show data used for test-transaction.
+ 
+\par Usage: 
+\code showTestData \endcode 
+
+\par Output:
+\code 
+showTestData  
+Item-No     Data-Value
+  0               0
+  1               1
+  2               2
+  3               3
+  4               4
+  5               5
+  6               6
+  7               7
+  8               8
+  9               9
+\endcode
+***************************************** 
+*/
+showTestData;
+
+/**
+*****************************************
+\brief Show agent details
+ 
+\par Usage: 
+\code showAgentState <comp_name> \endcode
+
+\param comp_name[NAME] Component Name
+
+\par Output:
+\code 
+showAgentState SysComp1_0 
+
+   TxnId        |   JobId   |  Job-Status
+----------------------------------------------------------------
+   0x1:0xf      |   0x0     |   CL_TXN_TRANSACTION_PREPARED
+----------------------------------------------------------------
+   Service-Id   |    Capability
+----------------------------------------------------------------
+        3       |   2PC Capable
+----------------------------------------------------------------
+\endcode
+***************************************** 
+*/
+showAgentState;
+
+/**
+*****************************************
+\brief Show transaction history.
+ 
+\par Usage: 
+\code showTxnHistory {ALL | COMMITTED | ROLLED_BACK | UNKNOWN} \endcode 
+
+\par Output:
+\code 
+showTxnHistory All 
+
+Server TxnId | Client TxnId | Server TxnHandle | Txn-Status
+----------------------------------------------------------------------
+    0x1:0x0  |   0x1:0x0    |   0x80c3a74      | CL_TXN_TRANSACTION_COMMITTED
+    0x1:0xa  |   0x1:0xa    |   0x80c448c      | CL_TXN_TRANSACTION_COMMITTED
+    0x1:0x1  |   0x1:0x1    |   0x80c35b4      |       
+\endcode
+***************************************** 
+*/
+showTxnHistory;
+
+/**
+ * \}
+ */

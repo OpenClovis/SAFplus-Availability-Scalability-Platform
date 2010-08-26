@@ -1,0 +1,788 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+      Copyright (C) 2002-2009 by OpenClovis Inc. All Rights Reserved.
+      
+      The source code for  this program is not published  or otherwise 
+      divested of  its trade secrets, irrespective  of  what  has been 
+      deposited with the U.S. Copyright office.
+
+      This program is  free software; you can redistribute it and / or
+      modify  it under  the  terms  of  the GNU General Public License
+      version 2 as published by the Free Software Foundation.
+
+      This program is distributed in the  hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+      General Public License for more details.
+
+      You  should  have  received  a  copy of  the  GNU General Public
+      License along  with  this program. If  not,  write  to  the 
+      Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+-->
+<!--
+    Build: 4.2.0
+-->
+<amfTypes>
+    <amfVersion version="B.01.01"/> <!-- ?? So that it can evolve -->
+        <suTypes>
+
+            <suType name="eventSU">                
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>1</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+
+            <suType name="msgSU">                
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>1</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+
+            <suType name="nameSU">                
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>1</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+
+            <suType name="ckptSU">                
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>1</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+
+            <suType name="corSU">                
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>1</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+
+            <suType name="txnSU">                
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>1</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+
+            <suType name="oampSU">                
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>2</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+
+            <suType name="cmSU">                
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>1</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+	    
+	    <!-- The iocSU is for OpenClovis internal use only -->
+	    <!--
+            <suType name="iocSU">                
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>1</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+	    -->
+
+            <suType name="logSU">                
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>1</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+
+            <suType name="gmsSU">               
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>1</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+
+            <suType name="cpmSU">
+
+                <adminState>CL_AMS_ADMIN_STATE_LOCKED_A</adminState>
+                <rank>10</rank>
+                <numComponents>1</numComponents>
+                <isPreinstantiable>CL_TRUE</isPreinstantiable>
+                <isRestartable>TRUE</isRestartable>
+                <isContainerSU>FALSE</isContainerSU>
+
+            </suType>
+
+        </suTypes>
+    
+        <compTypes>
+
+            <compType name="event">
+
+                <supportedCSITypes> 
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>50000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_event</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+            <compType name="msg">
+
+                <supportedCSITypes> 
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>50000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_msg</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+            <compType name="name">
+
+                <supportedCSITypes>
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>50000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_name</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+            <compType name="ckpt">
+
+                <supportedCSITypes>
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>50000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_ckpt</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+            <compType name="cor">
+
+                <supportedCSITypes>
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>100000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_cor</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+            <compType name="txn">
+
+                <supportedCSITypes>
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>100000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_txn</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+            <compType name="fault">
+
+                <supportedCSITypes>
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>50000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_fault</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+            <compType name="alarm">
+
+                <supportedCSITypes>
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>50000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_alarm</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+            <compType name="cm">
+
+                <supportedCSITypes>
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>1000000</instantiateTimeout>
+                	<terminateTimeout>1000000</terminateTimeout>
+                	<cleanupTimeout>1000</cleanupTimeout>
+                	<amStartTimeout>1000</amStartTimeout>
+                	<amStopTimeout>1000</amStopTimeout>
+                	<quiescingCompleteTimeout>1000</quiescingCompleteTimeout>
+                	<csiSetTimeout>1000</csiSetTimeout>
+                	<csiRemoveTimeout>1000</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>1000</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>1000</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_cm</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+	    <!-- The compType "ioc" is for OpenClovis internal use only -->
+	    <!--
+            <compType name="ioc">
+
+                <supportedCSITypes>
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>10000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_ioc</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <args>
+                </args>
+                <envs>
+                </envs>
+            </compType>
+	    -->
+
+            <compType name="log">
+
+                <supportedCSITypes>
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>50000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_logd</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+            <compType name="gms">
+
+                <supportedCSITypes>
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>50000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_gms</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                    <argument value="clGmsConfig.xml"/>
+                    <!--<argument value="1"/>
+                    <argument value="sysController0"/>
+                    <argument value="10"/>-->
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+            <compType name="cpm">
+
+                <supportedCSITypes>
+                <csiType>csitype1</csiType>
+                </supportedCSITypes>
+                <capabilityModel>CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY</capabilityModel>
+                <property>CL_AMS_SA_AWARE</property>
+                <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+                <isRestartable>TRUE</isRestartable>
+                <nodeRebootCleanupFail>FALSE</nodeRebootCleanupFail>
+                <instantiateLevel>2</instantiateLevel>
+                <instantiateDelay>10</instantiateDelay>
+                <numMaxInstantiate>5</numMaxInstantiate>
+                <numMaxInstantiateWithDelay>3</numMaxInstantiateWithDelay>
+                <numMaxTerminate>3</numMaxTerminate>
+                <numMaxAmStart>4</numMaxAmStart>
+                <numMaxAmStop>3</numMaxAmStop>
+                <numMaxActiveCSIs>5</numMaxActiveCSIs>
+                <numMaxStandbyCSIs>6</numMaxStandbyCSIs>
+                <timeouts>
+                	<instantiateTimeout>50000</instantiateTimeout>
+                	<terminateTimeout>10000</terminateTimeout>
+                	<cleanupTimeout>100</cleanupTimeout>
+                	<amStartTimeout>100</amStartTimeout>
+                	<amStopTimeout>100</amStopTimeout>
+                	<quiescingCompleteTimeout>100</quiescingCompleteTimeout>
+                	<csiSetTimeout>100</csiSetTimeout>
+                	<csiRemoveTimeout>100</csiRemoveTimeout>
+                	<proxiedCompInstantiateTimeout>100</proxiedCompInstantiateTimeout>
+                	<proxiedCompCleanupTimeout>100</proxiedCompCleanupTimeout>
+                </timeouts>
+                <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_RESTART</recoveryOnTimeout>
+                <instantiateCommand>asp_gms</instantiateCommand>
+                <terminateCommand></terminateCommand>
+                <cleanupCommand></cleanupCommand>
+                <amStartCommand>function_ptr_amstart</amStartCommand>
+                <amStopCommand>function_ptr_amstop</amStopCommand>
+                <!-- Optional, multivalue -->
+                <args>
+                </args>
+                <!-- Optional, multivalue -->
+                <envs>
+                </envs>
+            </compType>
+
+        </compTypes>
+
+        <sgTypes>
+
+            <sgType name="eventSG">                
+                <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NONE</redundancyModel>
+            </sgType>
+
+            <sgType name="nameSG">                
+                <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NONE</redundancyModel>
+            </sgType>
+
+            <sgType name="ckptSG">                
+                <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NONE</redundancyModel>
+            </sgType>
+
+            <sgType name="corSG">                
+                <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NONE</redundancyModel>
+            </sgType>
+
+            <sgType name="oampSG">                
+                <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NONE</redundancyModel>
+            </sgType>
+
+            <sgType name="cmSG">                
+                <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NONE</redundancyModel>
+            </sgType>
+
+        </sgTypes>
+
+</amfTypes>

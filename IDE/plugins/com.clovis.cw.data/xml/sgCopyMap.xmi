@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:copyMap="copyMap.ecore" xsi:schemaLocation="copyMap.ecore ../model/copyMap.ecore">
+  <copyMap:map source="name" dest="name"/>
+  <copyMap:map source="failbackOption" dest="failbackOption"/>
+  <copyMap:map source="restartDuration" dest="restartDuration"/>
+  <copyMap:map source="numPrefActiveSUs" dest="numPrefActiveSUs"/>
+  <copyMap:map source="numPrefStandbySUs" dest="numPrefStandbySUs"/>
+  <copyMap:map source="numPrefInserviceSUs" dest="numPrefInserviceSUs"/>
+  <copyMap:map source="numPrefAssignedSUs" dest="numPrefAssignedSUs"/>
+  <copyMap:map source="numPrefActiveSUsPerSI" dest="numPrefActiveSUsPerSI"/>
+  <copyMap:map source="maxActiveSIsPerSU" dest="maxActiveSIsPerSU"/>
+  <copyMap:map source="maxStandbySIsPerSU" dest="maxStandbySIsPerSU"/>
+  <copyMap:map source="compRestartDuration" dest="compRestartDuration"/>
+  <copyMap:map source="compRestartCountMax" dest="compRestartCountMax"/>
+  <copyMap:map source="suRestartDuration" dest="suRestartDuration"/>
+  <copyMap:map source="suRestartCountMax" dest="suRestartCountMax"/>
+  <copyMap:map source="failoverDuration" dest="failoverDuration"/>
+  <copyMap:map source="maxFailovers" dest="maxFailovers"/>
+  <copyMap:map source="adminState" dest="adminState"/>
+  <copyMap:map source="redundancyModel" dest="redundancyModel"/>
+  <copyMap:map source="loadingStrategy" dest="loadingStrategy"/>
+  <copyMap:map source="autoRepair" dest="autoRepair"/>
+  <copyMap:map source="isCollocationAllowed" dest="isCollocationAllowed"/>
+  <copyMap:map source="alphaFactor" dest="alphaFactor"/>
+  <copyMap:map source="autoAdjust" dest="autoAdjust"/>
+  <copyMap:map source="autoAdjustProbation" dest="autoAdjustProbation"/>
+  <copyMap:map source="reductionProcedure" dest="reductionProcedure"/>
+</xmi:XMI>

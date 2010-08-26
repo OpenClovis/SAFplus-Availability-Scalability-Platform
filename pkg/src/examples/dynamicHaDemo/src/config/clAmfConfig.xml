@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+  <cpmConfigs>
+    <cpmConfig nodeType="SysCtrl" cpmType="GLOBAL">
+      <bootConfigs>
+        <bootConfig name="default" maxBootLevel="6" defaultBootLevel="5"/>
+      </bootConfigs>
+      <aspServiceUnits>
+        <aspServiceUnit name="eventSU"/>
+        <aspServiceUnit name="nameSU"/>
+        <aspServiceUnit name="ckptSU"/>
+        <aspServiceUnit name="corSU"/>
+        <aspServiceUnit name="oampSU"/>
+        <aspServiceUnit name="logSU"/>
+        <aspServiceUnit name="txnSU"/>
+        <aspServiceUnit name="cmSU"/>
+        <aspServiceUnit name="gmsSU"/>
+      </aspServiceUnits>
+    </cpmConfig>
+    <cpmConfig nodeType="Worker" cpmType="LOCAL">
+      <bootConfigs>
+        <bootConfig name="default" maxBootLevel="6" defaultBootLevel="5"/>
+      </bootConfigs>
+      <aspServiceUnits>
+        <aspServiceUnit name="eventSU"/>
+        <aspServiceUnit name="nameSU"/>
+        <aspServiceUnit name="ckptSU"/>
+        <aspServiceUnit name="oampSU"/>
+        <aspServiceUnit name="logSU"/>
+        <aspServiceUnit name="txnSU"/>
+        <aspServiceUnit name="gmsSU"/>
+      </aspServiceUnits>
+    </cpmConfig>
+  </cpmConfigs>
+  <nodeInstances>
+    <nodeInstance name="SysCtrlI0" type="SysCtrl" nodeMoId="\Chassis:0\Controller:0">
+      <serviceUnitInstances/>
+      <dependencies node=""/>
+    </nodeInstance>
+    <nodeInstance name="SysCtrlI1" type="SysCtrl" nodeMoId="\Chassis:0\Controller:1">
+      <serviceUnitInstances/>
+      <dependencies node=""/>
+    </nodeInstance>
+    <nodeInstance name="WorkerI0" type="Worker" nodeMoId="\Chassis:0\Payload:0">
+      <serviceUnitInstances>
+        <serviceUnitInstance name="dhaDemoSU" type="dhaDemoSU" rank="0">
+          <componentInstances>
+            <componentInstance name="dhaDemo" type="dhaDemo"/>
+          </componentInstances>
+        </serviceUnitInstance>
+        <serviceUnitInstance name="dummyCompSU" type="dummyCompSU" rank="0">
+          <componentInstances>
+            <componentInstance name="dummyComp" type="dummyComp"/>
+          </componentInstances>
+        </serviceUnitInstance>
+      </serviceUnitInstances>
+      <dependencies node=""/>
+    </nodeInstance>
+    <nodeInstance name="WorkerI1" type="Worker" nodeMoId="\Chassis:0\Payload:1">
+      <serviceUnitInstances/>
+      <dependencies node=""/>
+    </nodeInstance>
+  </nodeInstances>
+  <serviceGroups>
+    <serviceGroup name="dhaDemoSG" type="dhaDemoSG">
+      <serviceInstances>
+        <serviceInstance name="dhaDemoSI" type="dhaDemoSI">
+          <componentServiceInstances>
+            <componentServiceInstance name="dhaDemoCSI" type="dhaDemoCSI">
+              <dependencies componentServiceInstance=""/>
+            </componentServiceInstance>
+          </componentServiceInstances>
+          <dependencies serviceInstance=""/>
+          <prefferedServiceUnits prefferedServiceUnit=""/>
+        </serviceInstance>
+      </serviceInstances>
+      <associatedServiceUnits>
+        <associatedServiceUnit>dhaDemoSU</associatedServiceUnit>
+      </associatedServiceUnits>
+    </serviceGroup>
+    <serviceGroup name="dummyCompSG" type="dummyCompSG">
+      <serviceInstances>
+        <serviceInstance name="dummyCompSI" type="dummyCompSI">
+          <componentServiceInstances>
+            <componentServiceInstance name="dummyCompCSI" type="dummyCompCSI">
+              <dependencies componentServiceInstance=""/>
+            </componentServiceInstance>
+          </componentServiceInstances>
+          <dependencies serviceInstance=""/>
+          <prefferedServiceUnits prefferedServiceUnit=""/>
+        </serviceInstance>
+      </serviceInstances>
+      <associatedServiceUnits>
+        <associatedServiceUnit>dummyCompSU</associatedServiceUnit>
+      </associatedServiceUnits>
+    </serviceGroup>
+  </serviceGroups>
+</amfConfig>

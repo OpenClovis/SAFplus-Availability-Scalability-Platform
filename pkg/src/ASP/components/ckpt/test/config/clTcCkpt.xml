@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<test_case_definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:noNamespaceSchemaLocation="clTcParamDef.xsd">
+	<test_cases>
+	<test_case subsystem="ckpt" test_name="ckpt_func"> 
+		<!-- checkpoint name -->
+		<tc_params>
+		 <param_name>ckpt_name</param_name>
+		 <param_id>0</param_id>
+		 <param_value><str>ckpt001</str></param_value>
+		</tc_params> 
+		<!-- checkpoint type: 0=sync|1=async_coll|2=async_non_coll -->
+		<tc_params>
+		 <param_name>ckpt_type</param_name>
+		 <param_id>1</param_id>
+		 <param_value><int>0</int></param_value>
+		</tc_params> 
+		<!-- number of sections in the checkpoint-->
+		<tc_params>
+		 <param_name>num_sects</param_name>
+		 <param_id>2</param_id>
+		 <param_value><int>10</int></param_value>
+		</tc_params> 
+		<!-- section size -->
+		<tc_params>
+		 <param_name>sect_size</param_name>
+		 <param_id>3</param_id>
+		 <param_value><int>1024</int></param_value>
+		</tc_params> 
+		<!-- number of times to repeat read/writes for functional testing -->
+		<tc_params>
+		 <param_name>num_rws</param_name>
+		 <param_id>4</param_id>
+		 <param_value><int>10</int></param_value>
+		</tc_params> 
+	</test_case>
+</test_cases>
+</test_case_definitions>

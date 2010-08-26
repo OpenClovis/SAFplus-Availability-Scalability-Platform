@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <amfDefinitions:amfTypes xmlns:amfDefinitions="amfDefinitions.ecore" version="B.01.01">
+      <nodeTypes>
+        <nodeType name="Ctlr">
+          <id>0</id>
+          <classType>CL_AMS_NODE_CLASS_B</classType>
+          <subClassType/>
+          <isSwappable>CL_TRUE</isSwappable>
+          <isRestartable>CL_TRUE</isRestartable>
+          <isASPAware>CL_TRUE</isASPAware>
+          <suFailoverDuration>10000</suFailoverDuration>
+          <suFailoverCountMax>10</suFailoverCountMax>
+          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+          <autoRepair>CL_TRUE</autoRepair>
+        </nodeType>
+        <nodeType name="Worker">
+          <id>0</id>
+          <classType>CL_AMS_NODE_CLASS_C</classType>
+          <subClassType/>
+          <isSwappable>CL_TRUE</isSwappable>
+          <isRestartable>CL_TRUE</isRestartable>
+          <isASPAware>CL_TRUE</isASPAware>
+          <suFailoverDuration>10000</suFailoverDuration>
+          <suFailoverCountMax>10</suFailoverCountMax>
+          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+          <autoRepair>CL_TRUE</autoRepair>
+        </nodeType>
+      </nodeTypes>
+      <sgTypes>
+        <sgType name="snmpSubAgentSG">
+          <failbackOption>CL_FALSE</failbackOption>
+          <restartDuration>10000</restartDuration>
+          <numPrefActiveSUs>1</numPrefActiveSUs>
+          <numPrefStandbySUs>1</numPrefStandbySUs>
+          <numPrefInserviceSUs>2</numPrefInserviceSUs>
+          <numPrefAssignedSUs>2</numPrefAssignedSUs>
+          <numPrefActiveSUsPerSI>1</numPrefActiveSUsPerSI>
+          <maxActiveSIsPerSU>1</maxActiveSIsPerSU>
+          <maxStandbySIsPerSU>1</maxStandbySIsPerSU>
+          <compRestartDuration>10000</compRestartDuration>
+          <compRestartCountMax>1</compRestartCountMax>
+          <suRestartDuration>10000</suRestartDuration>
+          <suRestartCountMax>1</suRestartCountMax>
+          <failoverDuration>300000</failoverDuration>
+          <maxFailovers>0</maxFailovers>
+          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+          <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_TWO_N</redundancyModel>
+          <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
+          <autoRepair>CL_FALSE</autoRepair>
+          <isCollocationAllowed>CL_TRUE</isCollocationAllowed>
+          <autoAdjust>CL_FALSE</autoAdjust>
+          <autoAdjustProbation>10000</autoAdjustProbation>
+          <reductionProcedure>CL_FALSE</reductionProcedure>
+        </sgType>
+        <sgType name="amfMgmtSG">
+          <failbackOption>CL_FALSE</failbackOption>
+          <restartDuration>10000</restartDuration>
+          <numPrefActiveSUs>1</numPrefActiveSUs>
+          <numPrefStandbySUs>1</numPrefStandbySUs>
+          <numPrefInserviceSUs>2</numPrefInserviceSUs>
+          <numPrefAssignedSUs>2</numPrefAssignedSUs>
+          <numPrefActiveSUsPerSI>1</numPrefActiveSUsPerSI>
+          <maxActiveSIsPerSU>1</maxActiveSIsPerSU>
+          <maxStandbySIsPerSU>1</maxStandbySIsPerSU>
+          <compRestartDuration>10000</compRestartDuration>
+          <compRestartCountMax>1</compRestartCountMax>
+          <suRestartDuration>10000</suRestartDuration>
+          <suRestartCountMax>1</suRestartCountMax>
+          <failoverDuration>300000</failoverDuration>
+          <maxFailovers>0</maxFailovers>
+          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+          <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_TWO_N</redundancyModel>
+          <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
+          <autoRepair>CL_TRUE</autoRepair>
+          <isCollocationAllowed>CL_FALSE</isCollocationAllowed>
+          <autoAdjust>CL_FALSE</autoAdjust>
+          <autoAdjustProbation>10000</autoAdjustProbation>
+          <reductionProcedure>CL_FALSE</reductionProcedure>
+        </sgType>
+      </sgTypes>
+      <suTypes>
+        <suType name="snmpSubAgentSU">
+          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+          <isPreinstantiable>CL_TRUE</isPreinstantiable>
+          <isRestartable>CL_TRUE</isRestartable>
+          <isContainerSU>CL_TRUE</isContainerSU>
+          <numComponents>1</numComponents>
+        </suType>
+        <suType name="amfMgmtSU">
+          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+          <isPreinstantiable>CL_TRUE</isPreinstantiable>
+          <isRestartable>CL_TRUE</isRestartable>
+          <isContainerSU>CL_TRUE</isContainerSU>
+          <numComponents>1</numComponents>
+        </suType>
+      </suTypes>
+      <siTypes>
+        <siType name="snmpSubAgentSI">
+          <rank>0</rank>
+          <numCSIs>1</numCSIs>
+          <numStandbyAssignments>1</numStandbyAssignments>
+          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+        </siType>
+        <siType name="amfMgmtSI">
+          <rank>0</rank>
+          <numCSIs>1</numCSIs>
+          <numStandbyAssignments>1</numStandbyAssignments>
+          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
+        </siType>
+      </siTypes>
+      <compTypes>
+        <compType name="snmpSubAgent">
+          <csiTypes>
+            <csiType name="snmpSubAgentCSI"/>
+          </csiTypes>
+          <proxyCSIType/>
+          <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
+          <property>CL_AMS_SA_AWARE</property>
+          <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+          <instantiateCommand>snmpSubAgent</instantiateCommand>
+          <args/>
+          <envs/>
+          <terminateCommand/>
+          <cleanupCommand/>
+          <isRestartable>CL_TRUE</isRestartable>
+          <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
+          <instantiateLevel>1</instantiateLevel>
+          <instantiateDelay>10000</instantiateDelay>
+          <numMaxInstantiate>1</numMaxInstantiate>
+          <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
+          <numMaxTerminate>1</numMaxTerminate>
+          <numMaxAmStart>1</numMaxAmStart>
+          <numMaxAmStop>1</numMaxAmStop>
+          <numMaxActiveCSIs>1</numMaxActiveCSIs>
+          <numMaxStandbyCSIs>1</numMaxStandbyCSIs>
+          <recoveryOnTimeout>CL_AMS_RECOVERY_NO_RECOMMENDATION</recoveryOnTimeout>
+          <amStartCommand/>
+          <amStopCommand/>
+          <timeouts>
+            <instantiateTimeout>10000</instantiateTimeout>
+            <terminateTimeout>10000</terminateTimeout>
+            <cleanupTimeout>10000</cleanupTimeout>
+            <amStartTimeout>10000</amStartTimeout>
+            <amStopTimeout>10000</amStopTimeout>
+            <quiescingCompleteTimeout>10000</quiescingCompleteTimeout>
+            <csiSetTimeout>10000</csiSetTimeout>
+            <csiRemoveTimeout>10000</csiRemoveTimeout>
+            <proxiedCompInstantiateTimeout>10000</proxiedCompInstantiateTimeout>
+            <proxiedCompCleanupTimeout>10000</proxiedCompCleanupTimeout>
+          </timeouts>
+          <healthCheck>
+            <period>30000</period>
+            <maxDuration>60000</maxDuration>
+          </healthCheck>
+        </compType>
+        <compType name="amfMgmt">
+          <csiTypes>
+            <csiType name="amfMgmtCSI"/>
+          </csiTypes>
+          <proxyCSIType/>
+          <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
+          <property>CL_AMS_SA_AWARE</property>
+          <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
+          <instantiateCommand>amfMgmt</instantiateCommand>
+          <args/>
+          <envs/>
+          <terminateCommand/>
+          <cleanupCommand/>
+          <isRestartable>CL_TRUE</isRestartable>
+          <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
+          <instantiateLevel>1</instantiateLevel>
+          <instantiateDelay>10000</instantiateDelay>
+          <numMaxInstantiate>1</numMaxInstantiate>
+          <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
+          <numMaxTerminate>1</numMaxTerminate>
+          <numMaxAmStart>1</numMaxAmStart>
+          <numMaxAmStop>1</numMaxAmStop>
+          <numMaxActiveCSIs>1</numMaxActiveCSIs>
+          <numMaxStandbyCSIs>1</numMaxStandbyCSIs>
+          <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_FAILOVER</recoveryOnTimeout>
+          <amStartCommand/>
+          <amStopCommand/>
+          <timeouts>
+            <instantiateTimeout>10000</instantiateTimeout>
+            <terminateTimeout>10000</terminateTimeout>
+            <cleanupTimeout>10000</cleanupTimeout>
+            <amStartTimeout>10000</amStartTimeout>
+            <amStopTimeout>10000</amStopTimeout>
+            <quiescingCompleteTimeout>10000</quiescingCompleteTimeout>
+            <csiSetTimeout>10000</csiSetTimeout>
+            <csiRemoveTimeout>10000</csiRemoveTimeout>
+            <proxiedCompInstantiateTimeout>10000</proxiedCompInstantiateTimeout>
+            <proxiedCompCleanupTimeout>10000</proxiedCompCleanupTimeout>
+          </timeouts>
+          <healthCheck>
+            <period>30000</period>
+            <maxDuration>60000</maxDuration>
+          </healthCheck>
+        </compType>
+      </compTypes>
+      <csiTypes>
+        <csiType name="snmpSubAgentCSI">
+          <rank>0</rank>
+          <nameValueLists/>
+        </csiType>
+        <csiType name="amfMgmtCSI">
+          <rank>0</rank>
+          <nameValueLists>
+            <nameValue name="model" value="twoN"/>
+            <nameValue name="role" value="OI"/>
+          </nameValueLists>
+        </csiType>
+      </csiTypes>
+    </amfDefinitions:amfTypes>
+  </version>
+</openClovisAsp>

@@ -1,0 +1,209 @@
+<contexts>
+
+	<context id="configure" title="Configuring Project Build Properties">
+		<topic href="contents/ideguide_sec_2_5.html" label="Configuring Project Build Properties"/>
+	</context>
+	
+	<context id="alarm_profile" title="Alarm Profile">
+		<topic href="contents/ideguide_sec_5.html" label="Defining Alarm Profiles"/>
+	</context>
+	<context id="alarm_rule" title="Alarm Rule">
+		<topic href="contents/ideguide_sec_4_2.html" label="Defining Alarm Rules"/>
+	</context>
+	
+	
+	<context id="chassis_resource" title="Chassis Properties">
+		<topic href="contents/ideguide_sec_4_1.html" label="Setting Chassis Properties"/>
+	</context>
+	<context id="system_controller" title="System Controller Properties">
+		<topic href="contents/ideguide_sec_4_2.html" label="Setting System Controller Properties"/>
+	</context>
+	<context id="data_structure" title="Data Structure Properties">
+		<topic href="contents/ideguide_sec_4_2.html" label="Setting Data Structure Properties"/>
+	</context>
+	<context id="node_hardware_resource" title="Node Hardware Resource Properties">
+		<topic href="contents/ideguide_sec_4_2.html" label="Setting Node Hardware Resource Properties"/>
+	</context>
+	<context id="hardware_resource" title="Hardware Resource Properties">
+		<topic href="contents/ideguide_sec_4_2.html" label="Setting Hardware Resource Properties"/>
+	</context>
+	<context id="software_resource" title="Software Resource Properties">
+		<topic href="contents/ideguide_sec_4_2.html" label="Setting Software Resource Properties"/>
+	</context>
+	<context id="import_mib" title="Import MIB Objects">
+		<topic href="contents/ideguide_sec_3_9.html" label="Import MIB Objects"/>
+	</context>
+	
+	<context id="cluster" title="Cluster Properties">
+		<topic href="contents/ideguide_sec_6_1.html" label="Setting Cluster Details"/>
+	</context>
+	<context id="node" title="Node Properties">
+		<topic href="contents/ideguide_sec_6_2.html" label="Setting Node details"/>
+	</context>
+	<context id="service_unit" title="Service Unit Properties">
+		<topic href="contents/ideguide_sec_6_3.html" label="Setting Service Unit Details"/>
+	</context>
+	<context id="service_group" title="Service Group Properties">
+		<topic href="contents/ideguide_sec_6_4.html" label="Setting Service Group Details"/>
+	</context>
+	<context id="service_instance" title="Service Instance Properties">
+		<topic href="contents/ideguide_sec_6_7.html" label="Setting Service Instance Details"/>
+	</context>
+	<context id="component_service_instance" title="Component Service Instance Properties">
+		<topic href="contents/ideguide_sec_6_8.html" label="Setting Component Service Instance Details"/>
+	</context>
+	<context id="saf_component" title="SAF Component Properties">
+		<topic href="contents/ideguide_sec_6_5.html" label="Setting SAF Component Details"/>
+	</context>
+	<context id="nonsaf_component" title="Non SAF Component Properties">
+		<topic href="contents/ideguide_sec_6_6.html" label="Setting Non SAF Component Details"/>
+	</context>
+	<context id="eo" title="EO Properties">
+		<topic href="contents/ideguide_sec_6_5_4.html" label="Specifying EO Properties"/>
+	</context>
+	<context id="commandline_argument" title="Command Line Argument">
+		<topic href="contents/ideguide_sec_6_5_1.html" label="Defining CommandLine Arguments"/>
+	</context>
+	<context id="environment_variable" title="Environment Variable">
+		<topic href="contents/ideguide_sec_6_5_2.html" label="Defining Environment Variables"/>
+	</context>
+	<context id="component_timeouts" title="Component Timeouts">
+		<topic href="contents/ideguide_sec_6_5_3.html" label="Specifying Timeout Details"/>
+	</context>
+	<context id="csi_workloads" title="CSI Workloads">
+		<topic href="contents/ideguide_sec_6_8.html" label="Setting CSI Workloads"/>
+	</context>
+	<context id="realize" title="Associate Resources">
+		<topic href="contents/ideguide_sec_6_5_5.html" label="Associate Resources"/>
+	</context>
+	
+	<context id="modeltemplate_create" title="Creating Model Template">
+		<topic href="contents/ideguide_sec_14_1.html" label="Creating Model Template"/>
+	</context>
+	<context id="modeltemplate_import" title="Importing Model Template">
+		<topic href="contents/ideguide_sec_14_3.html" label="Importing Model Template"/>
+	</context>
+	<context id="modeltemplate_export" title="Exporting Model Template">
+		<topic href="contents/ideguide_sec_14_4.html" label="Exporting Model Template"/>
+	</context>
+	
+	<context id="node_profile" title="AMF Configuration">
+		<topic href="contents/ideguide_sec_8.html" label="Configuring AMF"/>
+	</context>
+	<context id="nodeprofile_boot" title="Boot Config">
+		<topic href="contents/ideguide_sec_8.html" label="Configuring AMF"/>
+	</context>
+	<context id="nodeprofile_boot_level" title="Boot Level">
+		<topic href="contents/ideguide_sec_8.html" label="Configuring AMF"/>
+	</context>
+	<context id="nodeprofile_nodeinstance" title="Node Instance">
+		<topic href="contents/ideguide_sec_8_1_1.html" label="Configuring AMF"/>
+	</context>
+	<context id="nodeprofile_node_suinstance" title="SU Instance">
+		<topic href="contents/ideguide_sec_8_1_1.html" label="Configuring AMF"/>
+	</context>
+	<context id="nodeprofile_node_su_compinstance" title="Component Instance">
+		<topic href="contents/ideguide_sec_8_1_1.html" label="Configuring AMF"/>
+	</context>
+	<context id="nodeprofile_servicegroup" title="Service Group">
+		<topic href="contents/ideguide_sec_8_1_2.html" label="Configuring AMF"/>
+	</context>
+	<context id="nodeprofile_sg_serviceinstance" title="Service instance">
+		<topic href="contents/ideguide_sec_8_1_2.html" label="Configuring AMF"/>
+	</context>	
+	<context id="nodeprofile_sg_si_compserviceinstance" title="Configuring AMF">
+		<topic href="contents/ideguide_sec_8_1_2.html" label="AMF Configuration"/>
+	</context>	
+	
+	
+	<context id="build_config" title="ASP Components Config">
+		<topic href="contents/ideguide_sec_7.html" label="Configuring ASP Components"/>
+	</context>	
+	<context id="build_fm_seqtable" title="Sequence Table">
+		<topic href="contents/ideguide_sec_7_1_2.html" label="Setting FM Parameters"/>
+	</context>
+	
+	
+	<context id="boot_config" title="ASP Components Config">
+		<topic href="contents/ideguide_sec_7.html" label="Configuring ASP Components"/>
+	</context>		
+	<context id="boot_ckpt_ckpt" title="Checkpoint Config">
+		<topic href="contents/ideguide_sec_7.html" label="Configuring ASP Components"/>
+	</context>
+	<context id="boot_ckpt_ckpt_node" title="Node Config">
+		<topic href="contents/ideguide_sec_7.html" label="Configuring ASP Components"/>
+	</context>
+	<context id="boot_ioc_node" title="Node Config">
+		<topic href="contents/ideguide_sec_7_2_1.html" label="Setting IOC Link Parameters"/>
+	</context>
+	<context id="boot_ioc_node_transport" title="Transport Config">
+		<topic href="contents/ideguide_sec_7_2_1.html" label="Setting IOC Link Parameters"/>
+	</context>
+	<context id="boot_ioc_queue" title="Queue Config">
+		<topic href="contents/ideguide_sec_7_2_1.html" label="Setting IOC Link Parameters"/>
+	</context>
+	<context id="boot_ioc_watermark" title="Watermark Details">
+		<topic href="contents/ideguide_sec_7_2_1.html" label="Setting IOC Link Parameters"/>
+	</context>
+	<context id="boot_ioc_watermark_action" title="Watermark Action Details">
+		<topic href="contents/ideguide_sec_7_2_1.html" label="Setting IOC Link Parameters"/>
+	</context>
+	<context id="boot_ioc_node_transport_link" title="Link Config">
+		<topic href="contents/ideguide_sec_7_2_1.html" label="Setting IOC Link Parameters"/>
+	</context>
+	<context id="boot_log_stream" title="Log Stream Config">
+		<topic href="contents/ideguide_sec_7_2_4.html" label="Setting LOG Parameters"/>
+	</context>
+	<context id="boot_log_format" title="Log Format Config">
+		<topic href="contents/ideguide_sec_7_2_4.html" label="Setting LOG Parameters"/>
+	</context>
+	<context id="boot_log_format_field" title="Field Config">
+		<topic href="contents/ideguide_sec_7_2_4.html" label="Setting LOG Parameters"/>
+	</context>
+	<context id="boot_log_plugin" title="Log Config">
+		<topic href="contents/ideguide_sec_7_2_4.html" label="Setting LOG Parameters"/>
+	</context>
+	<context id="boot_slotmap_map" title="Slot Map Config">
+		<topic href="contents/ideguide_sec_7_2_2.html" label="Setting Node Admission Control Parameters"/>
+	</context>
+	
+		
+	<context id="idl" title="IDL Config">
+		<topic href="contents/ideguide_sec_11.html" label="Defining IDL"/>
+	</context>
+	<context id="idl_client" title="Client Details">
+		<topic href="contents/ideguide_sec_11.html" label="Defining IDL"/>
+	</context>
+	<context id="idl_service" title="Service Details">
+		<topic href="contents/ideguide_sec_11.html" label="Defining IDL"/>
+	</context>
+	<context id="idl_argument" title="Argument Deatails">
+		<topic href="contents/ideguide_sec_11.html" label="Defining Service List"/>
+	</context>
+	<context id="idl_specs" title="IDL Specs">
+		<topic href="contents/ideguide_sec_11.html" label="Defining IDL"/>
+	</context>
+	<context id="idl_data_member" title="Data Member Details">
+		<topic href="contents/ideguide_sec_11.html" label="Defining IDL"/>
+	</context>
+	<context id="idl_enum_member" title="Enum Member Details">
+		<topic href="contents/ideguide_sec_11.html" label="Defining Enum"/>
+	</context>
+	
+	<context id="memory" title="EO Def">
+		<topic href="contents/ideguide_sec_13_3_12.html" label="EO Definitions"/>
+	</context>
+	<context id="eoconfig" title="EO Config">
+		<topic href="contents/ideguide_sec_13_3_13.html" label="EO Configurations"/>
+	</context>
+	<context id="template_create" title="Create Template Group">
+		<topic href="contents/ideguide_sec_10_1.html" label="Creating Template Groups"/>
+	</context>
+	<context id="template_associate" title="Using Template Groups">
+		<topic href="contents/ideguide_sec_10_2.html" label="Using Template Groups"/>
+	</context>
+	<context id="migrate" title="Migrating Project">
+		<topic href="contents/ideguide_sec_3_10.html" label="Migrating Project"/>
+	</context>
+</contexts>
+

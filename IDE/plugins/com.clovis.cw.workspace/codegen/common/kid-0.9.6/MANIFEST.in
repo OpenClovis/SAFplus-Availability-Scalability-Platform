@@ -1,0 +1,7 @@
+include README COPYING HISTORY
+include run_tests.py
+recursive-include test *.kid *.py *.xml
+include misc/upgrade-0.6.py
+include ez_setup.py
+recursive-include doc *
+recursive-include examples *.cgi *.kid README

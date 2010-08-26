@@ -1,0 +1,268 @@
+/**
+ * \addtogroup name_aspconsole Name Service ASP Console Commands
+ * \{
+ */
+
+/**
+*****************************************
+\brief Register an entry with Name Service.
+ 
+\par Usage: 
+\code 
+NSRegister <context> <name> <objRefHigh><objRefLow> <compId> \
+           <compPriority> <attrCount> [<attrType attrVal>.. \
+           attrCount times]
+\endcode
+           
+\param context[INT]  Context in which to register
+\param name[STRING] Service name
+\param objRef[INT] Object reference
+\param compId[INT] Id of the component providing the service
+\param compPriority[INT] Priority of the component providing the service
+\param attrCount[INT] Attribute count
+
+\note 
+For adding to default global context use 0x0FFFFFFF (CL_NS_DEFT_GLOBAL_CONTEXT).            
+<br>For adding to default local  context use 0x0FFFFFFE (CL_NS_DEFT_LOCAL_CONTEXT) 
+
+\par Output:
+\code 
+NSRegister 0x0FFFFFFF test 0x0FFFFFFF 0x0FFFFFFF 1 2 1 attr1 1
+objReference registered is 65537:0 
+\endcode 
+***************************************** 
+*/
+NSRegister;
+
+/**
+*****************************************
+\brief Deregister all entries associated with a component.
+ 
+\par Usage: 
+\code NSComponentDeregister <compId> \endcode
+
+\param compId[INT] Id of the component providing the service.
+
+\par Output:
+\code NSComponentDeregister 1 \endcode 
+***************************************** 
+*/
+NSComponentDeregister;
+
+/**
+*****************************************
+\brief Deregister the service associated with the component. 
+ 
+\par Usage: 
+\code NSServiceDeregister <contextId> <compId> <serviceName> \endcode 
+
+\param contextId[INT] Context where service exists
+\param compId[INT] Id of the component providing the service
+\param serviceName[STRING] - Service name
+
+\note 
+For default global context use 0x0FFFFFFF (CL_NS_DEFT_GLOBAL_CONTEXT)
+<br>For default local context use 0x0FFFFFFE (CL_NS_DEFT_LOCAL_CONTEXT). 
+
+\par Output:
+\code NSServiceDeregister 0x0FFFFFFF 2 test \endcode 
+***************************************** 
+*/
+NSServiceDeregister;
+
+
+/**
+*****************************************
+\brief Create a context.
+ 
+\par Usage: 
+\code NSContextCreate <contextType> <contextMapCookie> \endcode
+
+\param contextType[INT] node local/global
+\arg 1 - user defined node local: 
+\arg 2 - user defined global
+\param contextMapCookie[INT] context cookie
+
+\par Output:
+\code 
+NSContextCreate 2 3
+Context created with Id = 0x1 
+\endcode 
+***************************************** 
+*/
+NSContextCreate;
+
+/**
+*****************************************
+\brief Delete a context.
+ 
+\par Usage: 
+\code NSContextDelete <contextId> \endcode
+
+\param contextId[INT] context to be deleted.
+
+\par Output:
+\code NSContextDelete 0x3 \endcode 
+
+***************************************** 
+*/
+NSContextDelete;
+
+/**
+*****************************************
+\brief List all the entries.
+ 
+\par Usage: 
+\code NSList <contextCookie> \endcode 
+
+\param contextMapCookie [INT] context cookie
+
+\note
+For default global context use 0x0FFFFFFF (CL_NS_DEFT_GLOBAL_MAP_COOKIE)
+<br>For default local  context use 0x0FFFFFFE (CL_NS_DEFT_LOCAL_MAP_COOKIE) 
+
+\par Output:
+\code 
+NSList 0x0FFFFFFF
+Name:   test  ObjReference: 065537:000003  CompId: 0002
+Priority: 2    attr1:  1 
+\endcode 
+***************************************** 
+*/
+NSList;
+
+
+/**
+*****************************************
+\brief Get object reference for a given name.
+ 
+\par Usage: 
+\code 
+NSObjRefQuery <name> <contextMapCookie> <attrCount> \
+              [<attrType attrVal>.. attrCount times]
+\endcode
+
+\param name[STRING] Service name
+\param contextMapCookie[INT] context cookie
+\param attrCount[INT] Attribute count
+
+\note 
+For default global context use 0x0FFFFFFF (CL_NS_DEFT_GLOBAL_MAP_COOKIE) 
+<br>For default local  context use 0x0FFFFFFE (CL_NS_DEFT_LOCAL_MAP_COOKIE)
+<br>If you do not know the attributes use attrCount  = 0x0FFFFFFF (CL_NS_DEFT_ATTR_LIST) 
+
+\par Output:
+\code 
+NSObjRefQuery tester 0x0fffffff 1 attr1 1
+Object Reference is 65537:1 
+\endcode 
+***************************************** 
+*/
+NSObjRefQuery;
+ 
+/**
+*****************************************
+\brief Get object mapping for a given name.
+ 
+\par Usage: 
+\code 
+NSObjMapQuery <name> <contextMapCookie> <attrCount> \
+              [<attrType attrVal>.. attrCount times]
+\endcode       
+       
+\param name[STRING] Service name
+\param contextMapCookie[INT] context cookie
+\param attrCount[INT]  Attribute count
+
+\note 
+For default global context use 0x0FFFFFFF (CL_NS_DEFT_GLOBAL_MAP_COOKIE)
+<br>For default local  context use 0x0FFFFFFE (CL_NS_DEFT_LOCAL_MAP_COOKIE)
+<br>If you dont know the attributes use attrCount = 0x0FFFFFFF (CL_NS_DEFT_ATTR_LIST) 
+
+\par Output:
+\code 
+NSObjMapQuery tester 0x0FFFFFFF 1 attr1 1
+Name:     tester  ObjReference: 65537:0001  CompId: 0001
+Priority: 2  attr1:  1 
+\endcode 
+***************************************** 
+*/
+NSObjMapQuery;
+
+
+/**
+*****************************************
+\brief Get all object mappings for a given name.
+ 
+\par Usage: 
+\code 
+NSAllObjMapsQuery <name> <contextMapCookie> <attrCount> \
+                  [<attrType attrVal>.. attrCount times]
+\endcode
+
+\param name[STRING] Service name
+\param contextMapCookie[INT] ] context cookie
+\param attrCount[INT] Attribute count
+
+\note
+For default global context use  0x0FFFFFFF (CL_NS_DEFT_GLOBAL_MAP_COOKIE)
+<br>For default local  context use  0x0FFFFFFE (CL_NS_DEFT_LOCAL_MAP_COOKIE) 
+***************************************** 
+*/
+NSAllObjMapsQuery;
+
+
+/**
+*****************************************
+\brief Attribute level query.
+ 
+\par Usage: 
+\code 
+NSAttribQuery <contextMapCookie> <attrCount>[<attrType attrVal> \
+              <AND/OR>.. attrCount times]
+\endcode
+       
+\param contextMapCookie[INT] context cookie
+\param attrCount[INT] Attribute count
+
+\note
+For default global context use 0x0FFFFFFF (CL_NS_DEFT_GLOBAL_MAP_COOKIE) 
+<br>For default local context use 0x0FFFFFFE (CL_NS_DEFT_LOCAL_MAP_COOKIE) 
+
+\par Output:
+\code 
+NSAttribQuery 0x0FFFFFFF 1 attr1 1 
+Name:       test  ObjReference: 065537:000000  CompId: 0001
+Priority: 2      attr1:      1
+Name:     tester  ObjReference: 065537:000001  CompId: 0001
+Priority: 2    attr1:       1 
+\endcode 
+***************************************** 
+*/
+NSAttribQuery;
+
+/**
+*****************************************
+\brief Initializes the Name Service Library.
+ 
+\par Usage: 
+\code NSInitialize \endcode 
+***************************************** 
+*/
+NSInitialize;
+ 
+
+/**
+*****************************************
+\brief Finalizes the Name Service Library.
+ 
+\par Usage: 
+\code NSFinalize \endcode 
+***************************************** 
+*/
+NSFinalize;
+
+/**
+ * \}
+ */
+ 

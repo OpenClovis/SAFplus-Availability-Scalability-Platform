@@ -1,0 +1,65 @@
+		<script type="text/javascript">
+			
+			function checkIfSame() {
+				
+				var txtPW1 = document.forms["create"].password.value;
+				var txtPW2 = document.forms["create"].password2.value;
+				
+				if (txtPW1 == txtPW2) {
+					if (txtPW2 != "") {
+						if (txtPW1.length <= 5) {
+							document.getElementById("imgPwSame").src="/static/images/error.png";
+						} else {
+							document.getElementById("imgPwSame").src="/static/images/check.png";
+						}
+					}
+				} else {
+					if (txtPW2 != "") {
+						document.getElementById("imgPwSame").src="/static/images/error.png";
+					}
+				}
+			}
+			
+			function checkEmail() {
+				var str = document.forms["create"].email.value;
+				filter = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+				
+				if (filter.test(str)) {
+					document.getElementById("imgEmail").src="/static/images/check.png";
+				} else {
+					document.getElementById("imgEmail").src="/static/images/error.png";
+				}
+				
+			}
+			
+			</script>
+	<div>
+		<div><h2>{{ greeting }}</h2></div>
+		<form id="create" name="create" method="post" action="/create">
+			<table>
+                <tr>
+					<td>*Email:</td>
+					<td><input name="email" type="text" id="email" onChange="checkEmail();" /></td>
+					<td><img src="/static/images/blank.png" id="imgEmail" width="16"></td>
+				</tr>
+				<tr>
+					<td>*Password:</td>
+					<td><input name="password" type="password" id="password" onChange="checkIfSame();" /></td>
+					<td><input name="password2" type="password" id="password2" onChange="checkIfSame();" /></td>
+					<td><img src="/static/images/blank.png" id="imgPwSame" width="16"></td>
+				</tr>
+
+                <tr>
+					<td>Phone Number:</td>
+					<td><input name="phoneNum" type="text" id="phoneNum"  /></td>
+				</tr>
+				<tr>
+					<td><input name="Create" type="submit" id="Create" value="Create" /></td>
+				</tr>
+			</table>
+		</form>
+		
+		<div>Passwords must be 6 or more characters</div>
+		<div>* Required</div>
+		
+	</div>

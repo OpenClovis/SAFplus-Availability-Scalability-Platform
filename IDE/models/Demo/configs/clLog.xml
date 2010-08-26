@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<log:BootConfig xmlns:log="log.ecore">
+  <log>
+    <stream type="app" name="appStream">
+      <logFileName>app</logFileName>
+      <logFileLocation>log/app</logFileLocation>
+      <logFileSize>1500000</logFileSize>
+      <logFileRecordSize>300</logFileRecordSize>
+    </stream>
+    <stream type="sys" name="sysStream">
+      <logFileName>sys</logFileName>
+      <logFileLocation>log/sys</logFileLocation>
+      <logFileSize>1500000</logFileSize>
+      <logFileRecordSize>300</logFileRecordSize>
+    </stream>
+    <modename>syslog</modename>
+    <distributed>CL_TRUE</distributed>
+  </log>
+</log:BootConfig>

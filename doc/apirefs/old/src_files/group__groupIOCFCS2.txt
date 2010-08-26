@@ -1,0 +1,2585 @@
+\hypertarget{group__group25}{
+\chapter{Functional Overview}
+\label{group__group25}
+}
+
+The OpenClovis IOC component provides a highly efficient transport mechanism between OpenClovis Objects. The IOC supports best-effort 
+communication mode, which provides a datagram-like service with better performance at the expense of reliable message delivery. To enable all the 
+functionality, IOC needs a broadcast enabled environment and all the nodes must be directly connected. \par
+ \par
+ IOC makes use of user-provided transport to send and receive messages over links. IOC has a routing layer to determine routes to reach objects in the 
+ system. The routing capability helps to communicate between objects which reside on blades that may or may not be connected to each other directly.
+ \begin{Desc}
+\item[Features of IOC]\end{Desc}
+\begin{itemize}
+\item Synchronous/Asynchronous Receive:\end{itemize}
+\begin{enumerate}
+\item IOC provides Synchronous Receive, The receive call will get blocked, waiting for some message to arrive and returns to the caller on a message 
+receive or on the timeout mention in the receive call.\item IOC also provides Asynchronous Receive, which checks for the availability of messages. If
+messages are present, it returns with the message else returns with an error immediately. The receiver can poll for the data availability on the 
+communication port.\end{enumerate}
+
+
+\begin{itemize}
+\item Asynchronous Send: IOC provides Asynchronous Send, which gives the message to underlying transport and returns immediately. Transport Object writers must ensure that they do not implement a blocking-send functionality in Transport Object.\par
+ \par
+ \item Routing Services: The IOC has a routing engine to enable it to select the path to reach the destination IOC address to send a packet across. Only one route per destination is supported in the current version of IOC. The route entries can be added at the boot-time statically, and if broadcast is enabled then the route is learnt automatically by IOC. In this release only direct routes are supported. If the nodes have more than one link per transport then the route module helps to select the appropriate link. Once the link is selected, the ARP module gives the link-level address to send out the message.\end{itemize}
+\begin{itemize}
+\item Priorities: IOC has multiple priority queues. If a message is sent with a high priority and there are lower priority messages pending, then the higher priority message is sent first. On the receive side the higher priority message is delivered first. User application must use the priorities appropriately.\end{itemize}
+\begin{itemize}
+\item Heartbeating: IOC provides link-level heartbeating support, when broadcast is enabled. It detects a link/node failure using heartbeating mechanism. On link failure, IOC will switch the traffic to the next high-priority link that is active.\end{itemize}
+\begin{itemize}
+\item Neighbor Discovery: IOC provides neighbor discovery mechanism if broadcast is enabled. At the time of node boot-up, IOC will broadcast discovery message and other existing nodes will respond to it. Because of this the IOC learns the addresses of the neighbors and builds ARP and Route database dynamically.\end{itemize}
+\begin{itemize}
+\item Port Unreachable errors: If a sender is trying to reach an object of a node that does not exist, then the IOC at the receiving node sends an IOC port unreachable message to the sending end.\end{itemize}
+\begin{itemize}
+\item Fragmentation and Reassembly: IOC supports send and receive of any size of messages. The fragmentation and reassembly is implemented in IOC, which takes care of messages of any size.\end{itemize}
+\begin{itemize}
+\item Physical/network Addressing: It is combination of a node address and a communication port that as a whole forms a unique address within the system. The IOC can dynamically assign physical addresses to nodes similar to DHCP, only if the Transport Object supports broadcasting. If there is no broadcast support then physical addresses are required to be preconfigured through a system-wide available XML file.\end{itemize}
+\begin{itemize}
+\item Logical Addressing IOC supports the use of logical addresses to facilitate location transparency and maintains the mapping from the logical address to the physical address. A service that is accessed by a connectionless protocol over IOC can be moved from one node to another and still be accessible by the same IOC logical address. Mapping is dynamically handled by IOC.\end{itemize}
+\begin{itemize}
+\item Location Transparency: Open\-Clovis ASP provides a generic scheme for using distributed resources that are location transparent. This is supported by logical addresses of the Open\-Clovis ASP communication layer. Most of the Open\-Clovis ASP components provide location transparent functions, making the client independent of the location from where the server provides the service. IOC supports two types of communication: \par
+ \par
+ 1. Session-based: After the first lookup subsequent calls go to the same physical location. If the receiver moves somewhere else then the error is returned to the user. \par
+ \par
+ 2. Sessionless: If the receiver moves to a new location every time the look-up occurs, the next call transparently goes to the new location and no error is returned to the user.\end{itemize}
+\begin{Desc}
+\item[Interaction with other components]The IOC depends on Buffer Manager (BM) for efficient message handling. Besides, it depends on the Open\-Clovis Operating System Abstraction Layer (OSAL) for the following operations: \par
+ \par
+ \begin{itemize}
+\item Task creation \item Inter process synchronization \item Any multi-address space translations \par
+\end{itemize}
+IOC also depends on Open\-Clovis Utilities like Queues, Buffers, Containers, and Timer.\end{Desc}
+\begin{Desc}
+\item[Configuration]\begin{itemize}
+\item Compile time configuration:\begin{enumerate}
+\item Maximum priority q size\item Number of priority queues\item Reassembly timeout\item Heart beat time interval\item IOC transparency layer maximum number of entries\end{enumerate}
+\end{itemize}
+\begin{itemize}
+\item Boot Time configuration:\begin{enumerate}
+\item Transport and Link information \end{enumerate}
+\end{itemize}
+\end{Desc}
+
+
+
+
+\chapter{Service APIs}
+
+\section{Type Definitions}
+
+\subsection{ClIocPortT}
+\index{ClIocPortT@{ClIocPortT}}
+\textit{typedef ClUint32T ClIocPortT;}
+\newline
+\newline
+The type of an identifier of the IOC communication port.
+
+
+
+\subsection{ClIocCommPortFlagsT}
+\index{ClIocCommPortFlagsT@{ClIocCommPortFlagsT}}
+\textit{typedef ClUint32T ClIocCommPortFlagsT;}
+\newline
+\newline
+ The type of a flag of the IOC communication port.
+It can be used to specify the attributes of the type of communication you want to use.
+ Currently unreliable messaging is supported:
+ \newline\textit{CL\_\-IOC\_\-UNRELIABLE\_\-MESSAGING} - for unreliable messaging.
+
+
+
+\subsection{ClIocCommPortHandleT}
+\index{ClIocCommPortHandleT@{ClIocCommPortHandleT}}
+\textit{typedef ClHandleT ClIocCommPortHandleT;}
+\newline
+\newline
+The type of the handle of the IOC communication port. After the port is opened all operations are performed on the handle.
+
+
+
+\subsection{ClIocSendOptionT}
+\index{ClIocSendOptionT@{ClIocSendOptionT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClHandleT linkHandle;}\\
+\>\>\>\>\textit{ClIocMessageOptionT msgOption;}\\
+\>\>\>\>\textit{ClUint8T priority;}\\
+\>\>\>\>\textit{ClUint8T sendType;}\\
+\>\>\>\>\textit{ClUint32T timeout;}\\
+\textit{\} ClIocSendOptionT;}\end{tabbing}
+The structure \textit{ClIocSendOptionT} contains the send related options. It provides various options for the invocation
+ of the clIocSend() function. The options are:
+ \begin{itemize}
+ \item
+\textit{msgOption} - The message type can be persistent or non-persistent.
+\item
+\textit{priority} - This is the priority of the Message being sent. This can have a value in the range from 1
+to maximum value configured by user for IOC at the time of initialization.
+\item
+\textit{sendType} - This is the type of transaction. The transaction can be session-based or non-session based.
+\item
+\textit{timeout} - The timeout interval in milliseconds.
+\item
+\textit{linkHandle} - The Handle for uniquely identifying Transport and Link.
+\end{itemize}
+
+
+
+\subsection{ClIocRecvParam}
+\index{ClIocRecvParam@{ClIocRecvParam}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClUint32T length;}\\
+\>\>\>\>\textit{ClUint8T priority;}\\
+\>\>\>\>\textit{ClUint8T protoType;}\\
+\>\>\>\>\textit{ClIocAddressT srcAddr;}\\
+\textit{\} ClIocRecvParamT;}\end{tabbing}
+The \textit{clIocReceive()} function returns structure \textit{ClIocRecvParamT} along with the message. 
+This structure contains the parameters of the received message. The parameters are:
+\begin{itemize}
+\item
+\textit{length} - Length of the received message.
+\item
+\textit{priority} - Priority of the received message.
+\item
+\textit{protoType} - Protocol used.
+\item
+\textit{srcAddr} - Address of the sender.
+\end{itemize}
+
+
+
+\subsection{ClIocRecvOption}
+\index{ClIocRecvOption@{ClIocRecvOption}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClUint32T recvTimeout;}\\
+\textit{\} ClIocRecvOptionT;}\end{tabbing}
+The \textit{ClIocRecvOptionT} structure contains the IOC receive options that can be used to customize the receive call.
+Currently Timeout value for blocking call is supported. 
+\begin{itemize}
+\item
+\textit{recvTimeout} - is the time-out value for blocking receive call. The receive call will be blocked until it
+receives some data or till it times out. The time-out value mentioned here is in milliseconds. The
+default value is CL\_\-IOC\_\-TIMEOUT\_\-FOREVER.
+\end{itemize}
+
+
+\subsection{ClIocTLInfoT}
+\index{ClIocTLInfoT@{ClIocTLInfoT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct ClIocTlInfo\{}\\
+\>\>\>\>\textit{ClIocLogicalAddressT logicalAddr;}\\
+\>\>\>\>\textit{ClUint32T compId;}\\
+\>\>\>\>\textit{ClIocTLContextT contextType;}\\
+\>\>\>\>\textit{ClIocTLReplicationT repliSemantics;}\\
+\>\>\>\>\textit{ClUint32T haState;}\\
+\>\>\>\>\textit{ClIocPhysicalAddressT physicalAddr;}\\
+\textit{\} ClIocTLInfoT;}\end{tabbing}
+The structure \textit{ClIocTlInfo} contains information that is required to create an entry in the transparency layer. 
+The information are:
+\begin{itemize}
+\item
+\textit{logicalAddr} - Logical address of the service.
+\item
+\textit{compId} - Id of the component providing the service.
+\item
+\textit{contextType} - Context, it can be either \c GLOBAL or \c LOCAL.
+\item
+\textit{repliSemantics} - Replication semantics.
+\item
+\textit{haState} - Active or Standby mode.
+
+\item
+\textit{physicalAddr} - Physical address of the component.
+
+\end{itemize}
+
+
+\subsection{ClIocLogicalAddressT}
+\index{ClIocLogicalAddressT@{ClIocLogicalAddressT}}
+\textit{typedef ClUint64T ClIocLogicalAddressT;}
+\newline
+\newline
+The type of the IOC Logical address.
+
+\subsection{ClIocTLMappingT}
+\index{ClIocTLMappingT@{ClIocTLMappingT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClUint32T haState;}\\
+\>\>\>\>\textit{ClIocPhysicalAddressT physicalAddr;}\\
+\textit{\} ClIocTLMappingT;}\end{tabbing}
+The structure \textit{ClIocTLMappingT} contains the physical address and its state. The
+physical address corresponds to a logical address in the transparency layer. The attributes of this structure are:
+\begin{itemize}
+\item
+\textit{haState} - State of the component corresponding to physicalAddr.
+\item
+\textit{physicalAddr} - Physical address of the component.
+\end{itemize}
+
+\subsection{ClIocToBindHandleT}
+\index{ClIocToBindHandleT@{ClIocToBindHandleT}}
+\textit{typedef ClHandleT ClIocToBindHandleT;}
+\newline
+\newline
+The type of the handle for transport object. It is used to send a packet using a specific Transport object.
+
+
+\subsection{ClIocRouteParamT}
+\index{ClIocRouteParamT@{ClIocRouteParamT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct ClIocRouteParam\{}\\
+\>\>\>\>\textit{ClIocNodeAddressT destAddr;}\\
+\>\>\>\>\textit{ClIocNodeAddressT nextHop;}\\
+\>\>\>\>\textit{ClUint16T prefixLen;}\\
+\>\>\>\>\textit{ClUint16T metrics;}\\
+\>\>\>\>\textit{ClCharT *pXportName;}\\
+\>\>\>\>\textit{ClCharT *pLinkName;}\\
+\>\>\>\>\textit{ClUint8T flags;}\\
+\>\>\>\>\textit{ClUint8T version;}\\
+\>\>\>\>\textit{ClUint8T status;}\\
+\>\>\>\>\textit{ClUint8T entryType;}\\
+\textit{\} ClIocRouteParamT;}\end{tabbing}
+The structure \textit{ClIocRouteParamT} contains the information required to add a route. The attributes of this structure are:
+\begin{itemize}
+\item
+\textit{destAddr} - The destination IOC address.
+ \item
+\textit{nextHop} - The next hop IOC address to reach the destination address.
+\item
+\textit{prefixLen} - The length of prefix.
+\item
+\textit{metrics} - The metrics of the route.
+\item
+\textit{pXportName} - The name of the transport, selected to reach the destination address.
+\item
+\textit{pLinkName} - The name of the link selected to reach the destination address. This link
+ should belong to the transport identified by \textit{ pXportName.}
+\item
+\textit{flags} - The route type.
+\item
+\textit{version} - The Version of IOC on next hop.
+\item
+\textit{status} - The route status.
+\item
+\textit{entryType} - The route type, it can be static or dynamic.
+\end{itemize}
+
+
+
+
+\subsection{ClIocTransportConfigT}
+\index{ClIocTransportConfigT@{ClIocTransportConfigT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct ClIocTransportConfig\{}\\
+\>\>\>\>\textit{ClUint8T version;}\\
+\>\>\>\>\textit{ClCharT pXportName \mbox{[}CL\_IOC\_MAX\_XPORT\_NAME\_LENGTH + 1\mbox{]};}\\
+\>\>\>\>\textit{ClUint8T priority;}\\
+\>\>\>\>\textit{ClUint8T xportType;}\\
+\>\>\>\>\textit{ClIocTransportFuncT initRoutine;}\\
+\>\>\>\>\textit{ClIocTransportSendFuncT sendRoutine;}\\
+\>\>\>\>\textit{ClIocTransportFuncT closeRoutine;}\\
+\>\>\>\>\textit{ClIocTransportAddrConvertFuncT addrConvertRoutine;}\\
+\>\>\>\>\textit{ClIocTransportAddrConvertFuncT addrExtractRoutine;}\\
+\textit{\} ClIocTransportConfigT;}\end{tabbing}
+The structure \textit{ClIocTransportConfigT} contains the configuration information of the Transport Object. The information include:
+\begin{itemize}
+\item
+\textit{version} - The IOC version.
+\item
+\textit{pXportName} - The transport Name.
+\item
+\textit{priority} - Type of the transport used for communication.
+\item
+\textit{xportType} - Type of the transport used for communication.
+\item
+\textit{initRoutine} - The initialization routine for the transport.
+\item
+\textit{sendRoutine} - The send routine of user transport. This will be called when some data
+ is to be sent on the transport.
+\item
+\textit{closeRoutine} - The close routine close the transport.
+\item
+\textit{addrConvertRoutine} - The address conversion routine.
+\item
+\textit{addrExtractRoutine} - Address extraction routine.
+\end{itemize}
+
+
+
+
+ \subsection{ClIocAddressT}
+\index{ClIocAddressT@{ClIocAddressT}}
+ \begin{tabbing}
+ xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+ \textit{typedef union ClIocAddress\{}\\
+ \>\>\>\>\textit{ClIocPhysicalAddressT iocPhyAddress;}\\
+ \>\>\>\>\textit{ClIocLogicalAddressT iocLogicalAddress;}\\
+ \>\>\>\>\textit{ClIocMulticastAddressT iocMulticastAddress;}\\
+ \textit{\} ClIocAddressT;}\end{tabbing}
+ The type of the IOC address. The types of addresses can be physical address, logical address,
+ multicast address, and broadcast address.
+\begin{itemize}
+\item
+\textit{iocPhyAddress} - Physical address.
+
+\item
+\textit{iocLogicalAddress} - Logical address.
+
+\item
+\textit{iocMulticastAddress} - Multicast address.
+\end{itemize}
+
+\subsection{ClIocNodeAddressT}
+\index{ClIocNodeAddressT@{ClIocNodeAddressT}}
+\textit{typedef ClUint32T ClIocNodeAddressT;}
+\newline
+\newline
+ The type of an identifier for the IOC node address.
+
+    
+    
+\subsection{ClIocArpParamT}
+\index{ClIocArpParamT@{ClIocArpParamT}}
+\begin{tabbing}
+ xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+ \textit{typedef struct ClIocArpParam\{}\\
+ \>\>\>\>\textit{ClIocNodeAddressT iocAddr;}\\
+ \>\>\>\>\textit{ClUint8T *pTransportAddr;}\\
+ \>\>\>\>\textit{ClUint32T addrSize;}\\
+ \>\>\>\>\textit{ClCharT *pXportName;}\\
+ \>\>\>\>\textit{ClCharT *pLinkName;}\\
+ \>\>\>\>\textit{ClUint8T status;}\\
+ \>\>\>\>\textit{ClUint8T entryType;}\\
+ \textit{\} ClIocArpParamT;}\end{tabbing}
+ The structure \textit{ClIocArpParamT} contains the information to add IOC ARP entries. This ARP is for the IOC physical blade
+ address to link with the address resolution. The information to add IOC ARP entries include:
+ \begin{itemize}
+ \item
+ \textit{iocAddr} - The IOC address whose ARP entry is to be added.
+\item
+ \textit{pTransportAddr} - The transport address (link address) of the IOC.
+\item
+ \textit{addrSize} - The address size.
+\item
+ \textit{pXportName} - The name of the transport to which the entry is associated.
+\item
+ \textit{pLinkName} - The name of the link to which the entry is associated. This link should
+     belong to the transport identified by \textit{pXportName}.
+\item
+ \textit{status} - The status of the remote node on this transport and link.
+
+\item
+ \textit{entryType} - The entry type, it can be static or dynamic ARP.
+ 
+ \end{itemize} 
+
+
+
+
+\subsection{ClIocTransportLinkConfigT}
+\index{ClIocTransportLinkConfigT@{ClIocTransportLinkConfigT}}
+\begin{tabbing}
+ xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+ \textit{typedef struct ClIocTransportLinkConfig\{}\\
+ \>\>\>\>\textit{ClCharT pXportName \mbox{[}CL\_IOC\_MAX\_XPORT\_NAME\_LENGTH + 1\mbox{]};}\\
+ \>\>\>\>\textit{ClCharT pXportLinkName \mbox{[}CL\_IOC\_MAX\_XPORT\_NAME\_LENGTH + 1\mbox{]};}\\
+ \>\>\>\>\textit{ClUint8T xportType;}\\
+ \>\>\>\>\textit{ClUint8T isChecksumReqd;}\\
+ \>\>\>\>\textit{ClUint8T addressSize;}\\
+ \>\>\>\>\textit{ClUint8T isBcastSupported;}\\
+ \>\>\>\>\textit{ClUint8T xportBcastAddress \mbox{[}CL\_IOC\_MAX\_XPORT\_NAME\_LENGTH + 1\mbox{]};}\\
+\>\>\>\>\textit{ClUint8T xportAddress \mbox{[}CL\_IOC\_MAX\_XPORT\_NAME\_LENGTH + 1\mbox{]};}\\
+ \>\>\>\>\textit{ClUint32T mtuSize;}\\
+ \>\>\>\>\textit{ClIocTransportStatsT *pIocXportStats;}\\
+ \>\>\>\>\textit{ClIocCoreFuncT iocCoreRecvRoutine;}\\
+ \>\>\>\>\textit{ClUint8T priority;}\\
+ \>\>\>\>\textit{ClUint8T isRegistered;}\\
+ \>\>\>\>\textit{void *pXportLinkPrivData;}\\
+ \>\>\>\>\textit{ClUint8T status;}\\
+ \textit{\} ;}\end{tabbing}
+ The structure \textit{ClIocTransportLinkConfigT} contains the attributes required to configure a link in a Transport Object. They include:
+ \begin{itemize}
+ \item
+\textit{pXportName} - Transport Name on which the link is present.
+\item
+\textit{pXportLinkName} - The name of the link.
+\item
+\textit{xportType} - Type of the transport used for communication. This need not be passed by you.
+\item
+\textit{isChecksumReqd} - Checksum support : enabled or disabled.
+\item
+\textit{addressSize} - Size of the address of the link.
+\item
+\textit{isBcastSupported} - Broadcast support : present or not present.
+\item
+\textit{xportBcastAddress} - Broadcast address.
+\item
+\textit{xportAddress} - Transport address.
+\item
+\textit{mtuSize} - Maximum transmission packet size of messages.
+ It must be more than \textit{CL\_\-IOC\_\-MIN\_\-MTU\_\-SIZE}.
+\item
+\textit{pIocXportStats} - Statistics of transport.
+\item
+\textit{iocCoreRecvRoutine} - This will be called when some data comes on this link. IOC fills it
+ and passes it back. This needs to be called each time you want
+ to pass the data to IOC.
+\item
+\textit{priority} - The priority of link.
+\item
+\textit{isRegistered} - Link registration information. This need not be passed by you.
+\item
+\textit{pXportLinkPrivData} - Transport link private data. Here you can keep you private information
+ related to the link.
+\item
+\textit{status} - The link status. This need not be passed by you.
+\end{itemize}
+
+
+
+
+
+\subsection{ClIocUserTransportConfigT}
+\index{ClIocUserTransportConfigT@{ClIocUserTransportConfigT}}
+\begin{tabbing}
+ xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+ \textit{typedef struct ClIocXportConfig\{}\\
+ \>\>\>\>\textit{ClCharT pName\mbox{[}CL\_IOC\_MAX\_XPORT\_NAME\_LENGTH + 1\mbox{]};}\\
+ \>\>\>\>\textit{ClUint8T priority;}\\
+ \>\>\>\>\textit{ClUint32T numOfLinks;}\\
+ \>\>\>\>\textit{ClIocUserLinkCfgT *pLink;}\\
+ \textit{\} ClIocUserTransportConfigT;}\end{tabbing}
+  The structure \textit{ClIocUserTransportConfigT} contains the Transport Configuration. The attributes of this structure include:
+  \begin{itemize}
+  \item
+\textit{pName} - Transport Name.
+  \item
+\textit{priority} - Transport Type: This need not be passed by you.
+  \item
+\textit{numOfLinks} - Total number of links on this transport.
+  \item
+\textit{pLink} - Pass the link configuration in this. If there is more than one link
+ pass the pointer to the array of \textit{ClIocUserLinkCfgT} structure.
+\end{itemize}
+
+
+ \subsection{ClIocQueueStatsT}
+ \index{ClIocQueueStatsT@{ClIocQueueStatsT}}
+ \begin{tabbing}
+ xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+ \textit{typedef struct ClIocQueueStats \{}\\
+ \>\>\>\>\textit{ClWaterMarkT queueWaterMark;}\\
+ \>\>\>\>\textit{ClUint32T queueSize;}\\
+ \>\>\>\>\textit{ClUint32T queueUtilisation;}\\
+\textit{\} ClIocQueueStatsT;}\end{tabbing}
+The structure \textit{ClIocQueueStatsT} contains the IOC queue statistics.
+\begin{itemize}
+\item
+\textit{queueWaterMark} - Low and high watermark limits for the IOC queues. This is a percentage of \textit{queueSize}.
+\item
+\textit{queueSize} - Maximum queue size in bytes.
+\item
+\textit{queueUtilisation} - Current queue utilization in bytes.
+\end{itemize}
+
+
+
+\subsection{ClIocQueueIdT}
+\index{ClIocQueueIdT@{ClIocQueueIdT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum ClIocQueueId \{}\\
+\>\>\>\>\textit{CL\_IOC\_SEND\_QUEUE,}\\
+\>\>\>\>\textit{CL\_IOC\_COMMPORT\_RECV\_QUEUE,}\\
+\>\>\>\>\textit{\} ClIocQueueIdT;}\end{tabbing}
+The values of the enumeration \textit{ClIocQueueIdT} contains the IOC queue IDs.
+\begin{itemize}
+\item
+\textit{CL\_\-IOC\_\-SEND\_\-QUEUE} - IOC send queue which is one per node.
+\item
+\textit{CL\_\-IOC\_\-COMMPORT\_\-RECV\_\-QUEUE} - IOC communication port receive queue, which is one per communication port.
+\end{itemize}
+
+
+
+\newpage
+
+\section{Functional APIs}
+\subsection{clIocCommPortCreate}
+\index{clIocCommPortCreate@{clIocCommPortCreate}}
+\hypertarget{pageioc101}{}\paragraph{cl\-Ioc\-Comm\-Port\-Create}\label{pageioc101}
+\begin{Desc}
+\item[Synopsis:]Creates a communication port.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocCommPortCreate(
+                           CL_IN  ClIocPortT portId,
+                           CL_IN  ClIocCommPortFlagsT portType,
+                           CL_OUT ClIocCommPortHandleT *pIocCommPortHdl);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em port\-Id:}](in) Id of the communication port to be created. If port\-Id is 0, then port\-Id is generated by IOC.\item[{\em port\-Type:}](in) This parameter refers to the type of communication that can be reliable or unreliable. This parameter can have the following two values: \begin{itemize}
+\item {\tt CL\_\-IOC\_\-UNRELIABLE\_\-MESSAGING}, for unreliable messaging. \item {\tt CL\_\-IOC\_\-RELIABLE\_\-MESSAGING}, for reliable messaging. \par
+ {\bf Note:} Open\-Clovis ASP supports only unreliable messaging.\end{itemize}
+\item[{\em p\-Ioc\-Comm\-Port\-Hdl:}](out) Handle to the communication port used by applications to send and receive the messages.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\em p\-Ioc\-Comm\-Port\-Hdl\/} is NULL. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-IMPLEMENTED:}]{\em port\-Type\/} is not {\tt CL\_\-IOC\_\-UNRELIABLE\_\-MESSAGING}. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]{\em port\-Id\/} is greater than {\tt CL\_\-IOC\_\-COMMPORT\_\-END}. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]0 is passed as {\em port\-Id\/} and no ephemeral communication port is free. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-COMMPORT\_\-REG\_\-FAIL:}]Communication port registration failed. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]The memory allocation or any other resource allocation failed. 
+\item[{\em CL\_\-ERR\_\-UNSPECIFIED:}]Other failures.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to create a communication port, which is used to send and receive data. This function needs to be invoked before any communication port related operations. The communication type can be reliable or unreliable. Open\-Clovis ASP supports only unreliable mode of communication. After creation, the communication port is in the blocking mode.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Ioc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc104}{cl\-Ioc\-Send} , \hyperlink{pageioc105}{cl\-Ioc\-Receive} , 
+\hyperlink{pageioc103}{cl\-Ioc\-Comm\-Port\-Delete} \end{Desc}
+\newpage
+
+
+\subsection{clIocCommPortDelete}
+\index{clIocCommPortDelete@{clIocCommPortDelete}}
+\hypertarget{pageioc103}{}\paragraph{cl\-Ioc\-Comm\-Port\-Delete}\label{pageioc103}
+\begin{Desc}
+\item[Synopsis:]Deletes the communication port.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocCommPortDelete(
+                      CL_IN ClIocCommPortHandleT iocCommPortHdl);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ioc\-Comm\-Port\-Hdl:}](in) Handle of the communication port to be deleted.\end{description}
+\end{Desc}
+
+
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If the IOC is not initialized 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}] Communication port handle is invalid. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-COMMPORT\_\-BLOCKED:}]The communication port is blocked.
+\end{description}
+\end{Desc}
+
+
+\begin{Desc}
+\item[Description:]This function is used to delete the communication port created using \textit{clIocCommPortCreate()}.
+Before deleting the communication port make sure no thread is using it or blocked for receive. If some thread is blocked on it then
+\textit{clIocCommPortDelete()} will return {\em CL\_\-IOC\_\-ERR\_\-COMMPORT\_\-BLOCKED\/} error. On successful 
+invocation, this {\em commport\/} will become invalid.\end{Desc}
+\begin{Desc}
+\item[Library Files:]Cl\-Ioc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc101}{cl\-Ioc\-Comm\-Port\-Create} , \hyperlink{pageioc104}{cl\-Ioc\-Send} , 
+\hyperlink{pageioc105}{cl\-Ioc\-Receive} \end{Desc}
+\newpage
+
+
+\subsection{clIocSend}
+\index{clIocSend@{clIocSend}}
+\hypertarget{pageioc104}{}\paragraph{cl\-Ioc\-Send}\label{pageioc104}
+\begin{Desc}
+\item[Synopsis:]Sends message on a communication port.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocSend(
+                  CL_IN ClIocCommPortHandleT commPortHandle,
+                  CL_IN ClBufferHandleT message,
+                  CL_IN ClUint8T protoType,
+                  CL_IN ClIocAddressT* pDestAddr,
+                  CL_IN ClIocSendOptionT* pSendOption);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em comm\-Port\-Handle:}](in) Handle to a communication port on which message is to be sent.\item[{\em message:}](in) The message to be sent 
+across the communication port. The message must be created by you and the data to be sent across is to be passed in this message. If the message is 
+persistent, it must be freed by you.\item[{\em proto\-Type:}](in) The protocol ID must be specified by you. \item[{\em p\-Dest\-Addr:}](in) A pointer to the 
+destination address where message need to be sent. \item[{\em p\-Send\-Option:}](in) The options available to send a message. If {\em p\-Send\-Option\/} is 
+NULL, the default values are used.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[The structure Cl\-Ioc\-Send\-Option\-T has the following fields:]\end{Desc}
+\begin{itemize}
+\item {\em priority:\/} The priority of the message. If the message priority is more than the maximum supported value, then the message will be sent with least priority.\end{itemize}
+\begin{itemize}
+\item {\em send\-Type:\/} If you want to maintain a session then you must pass\begin{enumerate}
+\item {\tt CL\_\-IOC\_\-SESSION\_\-BASED} : If user wants to maintain a session.\item {\tt CL\_\-IOC\_\-NO\_\-SESSION} : Default value.\end{enumerate}
+\end{itemize}
+\begin{itemize}
+\item {\em msg\-Option:\/} This parameters is used to define the message as persistent or non-persistent and can have any of the following two values:\begin{enumerate}
+\item {\tt CL\_\-IOC\_\-PERSISTENT\_\-MSG:} For persistent message, user is expected to free the message.\item {\tt CL\_\-IOC\_\-NON\_\-PERSISTENT\_\-MSG:} Default value. In this case, the message will be freed by IOC.\end{enumerate}
+\end{itemize}
+\begin{itemize}
+\item {\em timeout:\/} It is the timeout value in milliseconds. Default is 0. If zero is passed, the first error encountered is returned. If it is non-zero then this function, on seeing the flow control related messages, will try to resend the message until the timeout expires. And if the timeout expires in between, it will return the error. If a large message (greater than 64 KB) is sent then user level fragmentation will happen, if the finite timeout is specified then it may return the timeout error if the total time required to send all the fragments out is more than the 'timeout' period.\end{itemize}
+\begin{itemize}
+\item link\-Handle: It is a handle used by IOC to send a message through a link of a specific transport. This is obtained using the 
+\textit{clIocBind()} function. If it is set to zero, default transport object is used.\end{itemize}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}] Communication port handle is invalid. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]p\-Dest\-Addr is NULL. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-BUFFER:}]Message is invalid. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-PROTO\_\-IN\_\-USE\_\-WITH\_\-IOC:}]The protocol ID passed is in use by IOC. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-INVALID\_\-MSG\_\-OPTION:}]The message option passed in the p\-Send\-Option is invalid. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]The send\-Type passed in the p\-Send\-Option is invalid or the destination address is not of
+supported type, or the message size is 0. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]The logical address is passed and there is no mapping for it in the Transparency Layer. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-INVALID\_\-SESSION:}]A session based communication is requested and the destination is moved to a different location. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-FLOW\_\-XOFF\_\-STATE:}]The destination has sent an XOFF message. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-HOST\_\-UNREACHABLE:}]The host cannot be reached. 
+\item[{\em CL\_\-ERR\_\-BUFFER\_\-OVERRUN:}]The priority queue has no space left for this message. 
+\item[{\em CL\_\-ERR\_\-TIMEOUT:}]The send operation cannot be completed within the specified timeout interval. 
+\item[{\em CL\_\-ERR\_\-UNSPECIFIED:}]Other errors.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to send a message on the communication port. The message passed can be persistent or non persistent as specified in the {\em message\-Type\/} field of the {\em sendoption\/} structure. More than one thread can use the same commport to send the message. If the destination address is of Logical Address type IOC will send the message to the corresponding Physical Address. If destination node address is of broadcast address type, then message will be sent to all the existing nodes.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Ioc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc101}{cl\-Ioc\-Comm\-Port\-Create} ,\hyperlink{pageioc105}{cl\-Ioc\-Receive} , 
+\hyperlink{pageioc103}{cl\-Ioc\-Comm\-Port\-Delete} \end{Desc}
+\newpage
+
+
+
+\subsection{clIocReceive}
+\index{clIocReceive@{clIocReceive}}
+\hypertarget{pageioc105}{}\paragraph{cl\-Ioc\-Receive}\label{pageioc105}
+\begin{Desc}
+\item[Synopsis:]Receives message on communication port.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocReceive(
+                  CL_IN ClIocCommPortHandleT commPortHdl,
+                  CL_IN ClIocRecvOptionT *pRecvOption,
+                  CL_INOUT ClBufferHandleT userMsg,
+                  CL_OUT ClIocRecvParamT *pRecvParam );
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em comm\-Port\-Hdl:}](in) Handle of the given communication port. \item[{\em p\-Recv\-Option}]:(in)  This structure is used to pass receive 
+options. If NULL, the structure makes use of the default values. \item[{\em user\-Msg:}](in/out) Handle to the message. This must be freed by the user 
+once the call returns. After successfully receiving the data, the message contains the received data. \item[{\em p\-Recv\-Param:}](out) The parameter related to the message priority, origin of the message, length of the message, and protocol is returned here on successful receive. It cannot be NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}] Communication port handle is invalid. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\em p\-Recv\-Param\/} is NULL. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-BUFFER:}]{\em user\-Msg\/} is invalid. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-TRY\_\-AGAIN:}]There is no message present on the non-blocking communication port. 
+\item[{\em CL\_\-ERR\_\-TIMEOUT:}]No information received within timeout interval specified in the {\em p\-Recv\-Option\/}. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-RECV\_\-UNBLOCKED:}]Receiver is unblocked. 
+\item[{\em CL\_\-ERR\_\-UNSPECIFIED:}]Other errors. Information on such errors, that may have occurred but do not to the categories mentioned?$>$\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to receive a message on the communication port. The messages are received as per the priority. The behavior of this call depends on the current mode of the port, i.e., blocking or non-blocking mode. More than one thread can be blocked on the same commport for receiving data. \par
+ \par
+ If the mode is set to blocking and there is no data for the commport, the receiver is blocked. If the mode is non-blocking and there is no data then {\tt CL\_\-IOC\_\-ERR\_\-TRY\_\-AGAIN} error code is returned. To retrieve the data, the application needs to poll on the communication port.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Ioc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc101}{cl\-Ioc\-Comm\-Port\-Create} , \hyperlink{pageioc104}{cl\-Ioc\-Send}, 
+\hyperlink{pageioc103}{cl\-Ioc\-Comm\-Port\-Delete} \end{Desc}
+\newpage
+
+
+\subsection{clIocTransparencyRegister}
+\index{clIocTransparencyRegister@{clIocTransparencyRegister}}
+\hypertarget{pageioc118}{}\paragraph{cl\-Ioc\-Transparency\-Register}\label{pageioc118}
+\begin{Desc}
+\item[Synopsis:]Registers an application with Transparency Layer.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocTransparencyRegister(
+                  CL_INOUT ClIocTLInfoT*  pTLInfo);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-TLInfo:}](in/out) This parameter contains the registration related information, such as, logical address, component id, context, HA state, and replica semantics.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]If p\-TLInfo is NULL. 
+\item[{\em CL\_\-IOC\_\-TL\_\-ERR\_\-LIMIT\_\-EXCEEDED:}]There is no space left in registration database. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]If context passed in {\em p\-TLInfo\/} is not a valid type. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-IOC\_\-TL\_\-ERR\_\-DUPLICATE\_\-ENTRY:}]The entry already exists.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]The Application will use this function to register its logical address to physical address mapping. It also provides HA State, component id, context, replica semantics information as part of this mapping. IOC provides location transparency using this information. A given Logical Address can have multiple Physical Address mappings.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Ioc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc118}{cl\-Ioc\-Transparency\-Deregister},
+\hyperlink{pageioc120}{cl\-Ioc\-Transparency\-Logical\-To\-Physical\-Addr\-Get} \end{Desc}
+\newpage
+
+
+\subsection{clIocTransparencyDeregister}
+\index{clIocTransparencyDeregister@{clIocTransparencyDeregister}}
+\hypertarget{pageioc119}{}\paragraph{cl\-Ioc\-Transparency\-Deregister}\label{pageioc119}
+\begin{Desc}
+\item[Synopsis:]De-registers the application with Transparency Layer.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocTransparencyDeregister(
+                      CL_IN ClUint32T compId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em comp\-Id:}](in) Id of the component being de-registered.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is called to deregister the application identified by component Id, from the Transparency Layer. The IOC will remove the corresponding registered information for this component ID.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Ioc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc118}{cl\-Ioc\-Transparency\-Register} \end{Desc}
+\newpage
+
+
+\subsection{clIocTransparencyLogicalToPhysicalAddrGet}
+\index{clIocTransparencyLogicalToPhysicalAddrGet@{clIocTransparencyLogicalToPhysicalAddrGet}}
+\hypertarget{pageioc121}{}\paragraph{cl\-Ioc\-Transparency\-Logical\-To\-Physical\-Addr\-Get}
+\label{pageioc121}
+\begin{Desc}
+\item[Synopsis:]This function is used to get the Physical Addresses for a given Logical Address.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocTransparencyLogicalToPhysicalAddrGet(
+      CL_IN    ClIocLogicalAddressT   logicalAddr,
+      CL_OUT   ClIocTLMappingT        **pPhysicalAddr,
+      CL_OUT   ClUint32T              *pNoEntries);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em logical\-Addr:}](in) Logical Address of the component. \item[{\em p\-Physical\-Addr:}](out) List of the Physical Addresses and its HA state. 
+IOC will allocate the memory and application is expected to free it. \item[{\em p\-No\-Entries:}](out) Number of entries in {\em p\-Physical\-Addr\/}
+list.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]The Logical Address entry is not found in TL.
+\item[{\em CL\_\-IOC\_\-TL\_\-ACTIVE\_\-INST\_\-NOT\_\-PRESENT:}]No entry found for any ACTIVE instance.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to query for physical addresses. It returns all the physical addresses of the given Logical Address. The function allocates memory and returns it in {\em p\-Physical\-Addr\/} parameter, and it must be freed by the caller of the function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Ioc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc118}{cl\-Ioc\-Transparency\-Register} \end{Desc}
+\newpage
+
+
+\subsection{clIocLocalAddressGet}
+\index{clIocLocalAddressGet@{clIocLocalAddressGet}}
+\hypertarget{pageioc128}{}\paragraph{cl\-Ioc\-Local\-Address\-Get}\label{pageioc128}
+\begin{Desc}
+\item[Synopsis:]Returns the local IOC node address.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}            ClIocNodeAddressT clIocLocalAddressGet(void);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None.\end{Desc}
+\begin{Desc}
+\item[Return values:]On successful execution this function returns the local IOC node address. In case of error, the function returns zero.\end{Desc}
+\begin{Desc}
+\item[Description:]This function returns the IOC node address of the current node.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Ioc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+\newpage
+
+
+\subsection{clIocTransparencyDeregisterNode}
+\index{clIocTransparencyDeregisterNode@{clIocTransparencyDeregisterNode}}
+\hypertarget{pageioc120}{}\paragraph{cl\-Ioc\-Transparency\-Deregister\-Node}\label{pageioc120}
+\begin{Desc}
+\item[Synopsis:]De-registers the node with Transparency Layer.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}           ClRcT clIocTransparencyDeregisterNode(
+ 			                      CL_IN ClIocNodeAddressT nodeId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em node\-Id}](in) Id of the node going down.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully .
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This API is called to deregister the node identified by node Id,
+   from the Transparency Layer. The IOC will remove the corresponding
+    registered information for this node id.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Ioc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc209}{clIocTransparencyRegister} \end{Desc}
+\newpage
+
+
+\subsection{clIocBind}
+\index{clIocBind@{clIocBind}}
+\hypertarget{pageioc139}{}\paragraph{cl\-Ioc\-Bind}\label{pageioc139}
+\begin{Desc}
+\item[Synopsis:]Binds to a particular transport.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}           ClRcT clIocBind(
+					          CL_IN ClNameT *toName,
+					          CL_OUT ClIocToBindHandleT *pToHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em to\-Name}](in) Name of the transport to which user wants to bind.
+\item[{\em p\-To\-Handle}](out) Bind handle returned by IOC.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully .
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]One of the parameters passed is NULL.
+\item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-LINK\_\-NOT\_\-REGISTERED:}]There is no transport object or the link is registered.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function takes transport name as input and IOC gets bound to it(only
+ if it is a registered transport). Then the handle returned by it in the output
+ parameter can be used for sending the data through the corresponding
+ transport. By default IOC will get bound to the highest priority transport
+ and sending data on the same is possible.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Ioc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc104}{clIocSend} \end{Desc}
+\newpage
+
+
+\subsection{clIocArpInsert}
+\index{clIocArpInsert@{clIocArpInsert}}
+\hypertarget{pageioc208}{}\paragraph{cl\-Ioc\-Arp\-Insert}\label{pageioc208}
+\begin{Desc}
+\item[Synopsis:]Adds an ARP entry into the ARP table.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clIocArpInsert(
+                CL_IN ClIocArpParamT *pArpInfo);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Arp\-Info:}](in) The address resolution related parameters are passed in this structure.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]If {\em p\-Arp\-Info\/} is NULL. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]Address is local address or broadcast address, or the address size is greater than
+{\tt CL\_\-IOC\_\-MAX\_\-XPORT\_\-ADDR\_\-SIZE} or transport is never registered, or the status is not correct, or the entry type is invalid. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-LINK\_\-NOT\_\-REGISTERED:}]Link is not registered. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory is not available. 
+\item[{\em CL\_\-ERR\_\-ALREADY\_\-EXIST:}]A static type entry already exists while adding a dynamic entry.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to add an ARP entry into the ARP Table. This will get added only if the corresponding link of the current node is registered with IOC.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc209}{cl\-Ioc\-Arp\-Delete} \end{Desc}
+\newpage
+
+
+\subsection{clIocArpDelete}
+\index{clIocArpDelete@{clIocArpDelete}}
+\hypertarget{pageioc209}{}\paragraph{cl\-Ioc\-Arp\-Delete}\label{pageioc209}
+\begin{Desc}
+\item[Synopsis:]Deletes an ARP entry from the ARP table.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocArpDelete(
+        CL_IN ClIocNodeAddressT iocAddr,
+        CL_IN ClUint8T *pXportName,
+        CL_IN ClUint8T* pLinkName);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ioc\-Address:}](in) The address of the blade whose static ARP entry is deleted. \item[{\em p\-Xport\-Name:}](in) The name of transport. 
+\item[{\em p\-Link\-Name:}](in) The link name.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]{\em p\-Xport\-Name\/} or {\em p\-Link\-Name\/} size is more than 
+{\tt CL\_\-IOC\_\-MAX\_\-XPORT\_\-NAME\_\-LENGTH}. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-NOT\_\-REGISTERED:}]Transport does not exist. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This API is used to delete an ARP entry from the ARP Table. The p\-Xport\-Name and p\-Link\-Name are used to search the link in the Table.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc208}{cl\-Ioc\-Arp\-Insert} \end{Desc}
+\newpage
+
+
+
+\subsection{clIocCommPortWaterMarksGet}
+\index{clIocCommPortWaterMarksGet@{clIocCommPortWaterMarksGet}}
+\hypertarget{pageioc201}{}\paragraph{cl\-Ioc\-Comm\-Port\-Water\-Marks\-Get}\label{pageioc201}
+\begin{Desc}
+\item[Synopsis:]Returns the low and high watermark.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clIocCommPortWaterMarksGet(
+                CL_IN ClUint32T commPort,
+                CL_OUT ClUint32T* pLowWaterMark,
+                CL_OUT ClUint32T* pHighWaterMark);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em comm\-Port:}](in) Handle of the communication object returned after creation of the communication port. \item[{\em p\-Low\-Water\-Mark}](out): 
+The low watermark, in bytes. \item[{\em p\-High\-Water\-Mark}](out): The high watermark, in bytes.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]Communication port handle is invalid. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\em p\-Low\-Water\-Mark\/} or {\em p\-High\-Water\-Mark\/} is NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function returns the low and high watermark for corresponding communication port. These will tell the application when the flow control will come into the picture.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc202}{cl\-Ioc\-Comm\-Port\-Water\-Marks\-Set} \end{Desc}
+\newpage
+
+
+\subsection{clIocCommPortWaterMarksSet}
+\index{clIocCommPortWaterMarksSet@{clIocCommPortWaterMarksSet}}
+\hypertarget{pageioc202}{}\paragraph{cl\-Ioc\-Comm\-Port\-Water\-Marks\-Set}\label{pageioc202}
+\begin{Desc}
+\item[Synopsis:]Sets the low and high watermark.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clIocCommPortWaterMarksSet(
+                CL_IN ClUint32T commPort,
+                CL_IN ClUint32T lowWaterMark,
+                CL_IN ClUint32T highWaterMark);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em comm\-Port:}](in) Handle of the communication object returned after creation of the communication port. \item[{\em low\-Water\-Mark:}](in) The low 
+watermark, in bytes. \item[{\em high\-Water\-Mark:}](in) The high watermark, in bytes. If {\em high\-Water\-Mark\/} is 0, the flow control on given 
+communication port will be disabled.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]Communication port handle is invalid. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]Invalid parameter. 
+\item[{\em CL\_\-ERR\_\-OUT\_\-OF\_\-RANGE:}]Parameters are out-of-range.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set the low and high watermark of a communication port. This will allow the applications to set its own toggle levels for sending flow control XOFF/XON messages.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc201}{cl\-Ioc\-Comm\-Port\-Water\-Marks\-Get} \end{Desc}
+\newpage
+
+
+
+\subsection{clIocHeartBeatStart}
+\index{clIocHeartBeatStart@{clIocHeartBeatStart}}
+\hypertarget{pageioc217}{}\paragraph{cl\-Ioc\-Heart\-Beat\-Start}\label{pageioc217}
+\begin{Desc}
+\item[Synopsis:]Starts heartbeating.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}         ClRcT clIocHeartBeatStart();
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None.\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to start the heartbeating process. This will get started if all the links support the broadcast. If any of the links does not support broadcast then heartbeat should not be started.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc216}{cl\-Ioc\-Heart\-Beat\-Stop} \end{Desc}
+\newpage
+
+
+\subsection{clIocHeartBeatStop}
+\index{clIocHeartBeatStop@{clIocHeartBeatStop}}
+\hypertarget{pageioc216}{}\paragraph{cl\-Ioc\-Heart\-Beat\-Stop}\label{pageioc216}
+\begin{Desc}
+\item[Synopsis:]Stops heartbeating.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clIocHeartBeatStop();
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None.\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to stop the heartbeating process. This can be used to stop the IOC from sending the heartbeat of its. If any of the links doesn't support the heartbeat then this function can be used to stop the heartbeat process.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc217}{cl\-Ioc\-Heart\-Beat\-Start} \end{Desc}
+\newpage
+
+
+
+\subsection{clIocUdpXportConfigInitialize}
+\index{clIocUdpXportConfigInitialize@{clIocUdpXportConfigInitialize}}
+\hypertarget{pageioc401}{}\paragraph{cl\-Ioc\-Udp\-Xport\-Config\-Initialize}\label{pageioc401}
+\begin{Desc}
+\item[Synopsis:]Initializes and configures UDP transport and link.\end{Desc}
+\begin{Desc}
+\item[Header file:]clIocUdpTransportApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocUdpXportConfigInitialize(
+                   CL_IN ClIocUserTransportConfigT *pXportConfig);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Xport\-Config:}](in) Passes the UDP transport and link configuration.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description: ]This function is used to configure and initialize the UDP transport and link. The application calls this function once it retrieves all the required configurations needed by UDP.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc402}{cl\-Ioc\-Udp\-Xport\-Finalize} \end{Desc}
+\newpage
+
+
+\subsection{clIocUdpXportFinalize}
+\index{clIocUdpXportFinalize@{clIocUdpXportFinalize}}
+\hypertarget{pageioc402}{}\paragraph{cl\-Ioc\-Udp\-Xport\-Finalize}\label{pageioc402}
+\begin{Desc}
+\item[Synopsis:]Cleans up the UDP transport and link.\end{Desc}
+\begin{Desc}
+\item[Header file:]clIocUdpTransportApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}              ClRcT clIocUdpXportFinalize();
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None.\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If it is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description: ]This function is used to clean up the UDP transport and its links. Once this is done no communication is possible through this transport.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc401}{cl\-Ioc\-Udp\-Xport\-Config\-Initialize} \end{Desc}
+
+\newpage
+
+
+
+
+\subsection{clIocRouteInsert}
+\index{clIocRouteInsert@{clIocRouteInsert}}
+\hypertarget{pageioc203}{}\paragraph{cl\-Ioc\-Route\-Insert}\label{pageioc203}
+\begin{Desc}
+\item[Synopsis:]Adds a new route entry for the destination.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocRouteInsert(
+        CL_IN ClIocRouteParamT *pRouteInfo);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Route\-Info:}](in) A structure for the information related to the route. If NULL is passed, an appropriate error message will be returned.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]If {\em p\-Route\-Info\/} is NULL. \item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]If address is local address or broadcast address, or transport is never registered, or the flag is not correct, or the status is not correct, or the entry type is invalid, or prefix length is out-of-range. \item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-NOT\_\-REGISTERED:}]Transport is not registered. \item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-LINK\_\-NOT\_\-REGISTERED:}]Link is not registered. \item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory is not available. \item[{\em CL\_\-ERR\_\-ALREADY\_\-EXIST:}]If trying to add a dynamic entry and a static type entry already exist.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to add a new route entry into routing table. This will get added only if the corresponding link of the current node is registered with IOC.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc204}{cl\-Ioc\-Route\-Delete} \end{Desc}
+\newpage
+
+
+\subsection{clIocRouteDelete}
+\index{clIocRouteDelete@{clIocRouteDelete}}
+\hypertarget{pageioc204}{}\paragraph{cl\-Ioc\-Route\-Delete}\label{pageioc204}
+\begin{Desc}
+\item[Synopsis:]Deletes the route of given blade from the routing database.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocRouteDelete(
+        CL_IN ClIocNodeAddressT destAddr,
+        CL_IN ClUint16T  prefixLen);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em dest\-Address:}](in) The IOC destination address. \item[{\em prefix\-Len:}](in) The length of prefix.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]If the prefix length is incorrect, or dest\-Addr is local or broadcast address. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-ROUTE\_\-NOT\_\-EXIST:}]There is no matching route. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This API is used to delete the route to the given destination blade address from the routing database. The blade address and the prefix length are needed to search the route.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc203}{cl\-Ioc\-Route\-Insert} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clIocVersionCheck}
+\index{clIocVersionCheck@{clIocVersionCheck}}
+\hypertarget{pageioc140}{}\paragraph{cl\-Ioc\-Version\-Check}\label{pageioc140}
+\begin{Desc}
+\item[Synopsis:]Checks for appropriate version of IOC.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocVersionCheck(
+               CL_INOUT ClVersionT *pVersion);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Version:}](in/out) As pointer to the version information.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully . \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]NULL parameter is passed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function checks whether the application-specified version matches with any of the versions supported by IOC. If it does not match then IOC returns error and if any of them matches, the IOC fills in that matching version information into {\em p\-Version\/} and returns success.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Ioc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+\newpage
+
+
+
+
+
+\subsection{clIocLinkStatusGet}
+\index{clIocLinkStatusGet@{clIocLinkStatusGet}}
+\hypertarget{pageioc212}{}\paragraph{cl\-Ioc\-Link\-Status\-Get}\label{pageioc212}
+\begin{Desc}
+\item[Synopsis:]Returns the status of the link.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocLinkStatusGet(
+        CL_IN ClUint8T *pXportName,
+        CL_IN ClUint8T* pLinkName,
+        CL_OUT ClUint8T *pStatus);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Xport\-Name:}](in) The transport name used by the link. \item[{\em p\-Link\-Name:}](in) The link name whose status is queried. 
+\item[{\em p\-Status}](out): A pointer to the link status.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]NULL is passed as parameter.
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]If {\em p\-Xport\-Name\/} or {\em p\-Link\-Name\/} size is greater or equal than 
+{\tt CL\_\-IOC\_\-MAX\_\-XPORT\_\-NAME\_\-LENGTH} 
+\item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-NOT\_\-REGISTERED:}]Transport is not registered. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-LINK\_\-NOT\_\-REGISTERED:}]Link is not registered.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This API returns the status of the link. The p\-Xport\-Name and p\-Link\-Name are used to search link and transport tables. The status can be one of the following,\begin{enumerate}
+\item {\tt CL\_\-IOC\_\-LINK\_\-UP} \item {\tt CL\_\-IOC\_\-LINK\_\-DOWN} \end{enumerate}
+\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc212}{cl\-Ioc\-Link\-Status\-Set} \end{Desc}
+\newpage
+
+
+\subsection{clIocLinkStatusSet}
+\index{clIocLinkStatusSet@{clIocLinkStatusSet}}
+\hypertarget{pageioc213}{}\paragraph{cl\-Ioc\-Link\-Status\-Set}\label{pageioc213}
+\begin{Desc}
+\item[Synopsis:]Sets the status of the link.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clIocLinkStatusSet(
+                CL_IN ClUint8T *pXportName,
+                CL_IN ClUint8T* pLinkName,
+                CL_IN ClUint8T status);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Xport\-Name:}](in) The name of the transport used by the link. \item[{\em p\-Link\-Name:}](in) Name of the link whose status will be set. 
+\item[{\em status:}](in) The new status of the link. The status can be {\tt CL\_\-IOC\_\-ROUTE\_\-UP} or {\tt CL\_\-IOC\_\-ROUTE\_\-DOWN}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]NULL is passed as parameter. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]If p\-Xport\-Name or p\-Link\-Name size is greater or equal than 
+CL\_\-IOC\_\-MAX\_\-XPORT\_\-NAME\_\-LENGTH or status is not valid. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-NOT\_\-REGISTERED:}]Transport is not registered. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-LINK\_\-NOT\_\-REGISTERED:}]The link is not registered.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set the status of the link. The p\-Xport\-Name and p\-Link\-Name are used to search link and transport tables. The status can be one of the following,\begin{enumerate}
+\item {\tt CL\_\-IOC\_\-LINK\_\-UP} \item {\tt CL\_\-IOC\_\-LINK\_\-DOWN} \end{enumerate}
+\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc212}{cl\-Ioc\-Link\-Status\-Get} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clIocTransportRegister}
+\index{clIocTransportRegister@{clIocTransportRegister}}
+\hypertarget{pageioc301}{}\paragraph{cl\-Ioc\-Transport\-Register}\label{pageioc301}
+\begin{Desc}
+\item[Synopsis:]Registers a transport object with the IOC.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocTransportApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocTransportRegister(
+        CL_IN ClIocTransportConfigT *pXportObjConfig);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Xport\-Obj\-Config:}](in) The structure address that contains the transport related configuration.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-VERSION\_\-MISMATCH:}]On version mismatch. \item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-NOT\_\-REGISTERED:}]If transport registration fails. \item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-ALREADY\_\-REGISTERED:}]If transport is already registered.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to register a transport object with the IOC. It must be called after the initialization of the underlying device.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc119}{cl\-Ioc\-Transport\-Deregister} \end{Desc}
+\newpage
+
+
+\subsection{clIocTransportDeregister}
+\index{clIocTransportDeregister@{clIocTransportDeregister}}
+\hypertarget{pageioc302}{}\paragraph{cl\-Ioc\-Transport\-Deregister}\label{pageioc302}
+\begin{Desc}
+\item[Synopsis:]Deregisters the given transport.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocTransportApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clIocTransportDeregister(
+                CL_IN ClCharT *pXportName);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Xport\-Name:}](in) The transport name that can be a string of 128 bytes.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-NOT\_\-REGISTERED:}]If transport is not registered.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to deregister the given transport from the IOC. Once this is done the application will not be able to do any operations related to this transport.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc118}{cl\-Ioc\-Transport\-Register} \end{Desc}
+\newpage
+
+
+\subsection{clIocLinkRegister}
+\index{clIocLinkRegister@{clIocLinkRegister}}
+\hypertarget{pageioc303}{}\paragraph{cl\-Ioc\-Link\-Register}\label{pageioc303}
+\begin{Desc}
+\item[Synopsis:]Registers a transport link.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocTransportApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clIocLinkRegister(
+                CL_IN ClIocTransportLinkConfigT* pXportLinkConfig);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Xport\-Link\-Config:}](in) Pointer to a structure that contains the transport link related configuration.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]Invalid parameter. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-NOT\_\-REGISTERED:}]Transport is not registered. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function registers the link with the IOC of a transport that is already registered with the IOC. You must invoke this function after completing the registration of transport with the IOC.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc118}{cl\-Ioc\-Transport\-Register}, \hyperlink{pageioc119}{cl\-Ioc\-Link\-Deregister} \end{Desc}
+\newpage
+
+
+\subsection{clIocLinkDeregister}
+\index{clIocLinkDeregister@{clIocLinkDeregister}}
+\hypertarget{pageioc304}{}\paragraph{cl\-Ioc\-Link\-Deregister}\label{pageioc304}
+\begin{Desc}
+\item[Synopsis:]De-registers a transport.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocTransportApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocLinkDeregister(
+        CL_IN ClUint8T *pXportLinkName, 
+        CL_IN ClUint8T *pXportName);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Xport\-Link\-Name:}](in) The link name. It must be a string and can be up to 128 bytes. \item[{\em p\-Xport\-Name:}](in) The transport name, with which transport is registered.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-NOT\_\-REGISTERED:}]Transport is not registered. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-LINK\_\-NOT\_\-REGISTERED:}]Link is not registered. 
+\item[{\em CL\_\-IOC\_\-ERR\_\-XPORT\_\-LINK\_\-NOT\_\-DELETED:}]Link cannot be removed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to deregister a transport link from the IOC. This API needs to be called before the transport itself is deregistered.\end{Desc}
+\begin{Desc}
+\item[Library File:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pageioc118}{cl\-Ioc\-Transport\-Register}, \hyperlink{pageioc119}{cl\-Ioc\-Transport\-Deregister},
+\hyperlink{pageioc303}{cl\-Ioc\-Link\-Register} \end{Desc}
+\newpage
+
+
+
+\subsection{clIocCommPortGet}
+\index{clIocCommPortGet@{clIocCommPortGet}}
+\hypertarget{pageIOC102}{}\paragraph{cl\-Ioc\-Comm\-Port\-Get}\label{pageIOC102}
+\begin{Desc}
+\item[Synopsis: ]Returns the port ID.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim}   ClRcT clIocCommPortGet( 
+                      CL_IN ClIocCommPortHandleT pIocCommPort,  
+                      CL_OUT ClIocPortT* pPortId); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Ioc\-Comm\-Port:}](in) Handle to the communication port. 
+\item[{\em p\-Port\-Id:}](out) A pointer to the port Id, on successful execution.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]The IOC is not initialized.
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}] \textit{pPortId} is NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description: ]This API returns the port ID for a given communication port handle. It needs to be called when the communication port related
+parameters are required to be set. This API can be called only if the communication port is created through \textit{clIocCommPortCreate()}.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageioc101}{clIocCommPortCreate()}, \hyperlink{pageioc104}{clIocSend()}, 
+\hyperlink{pageioc105}{clIocReceive()}, \hyperlink{pageioc103}{clIocCommPortDelete()}, clIocLastErrorGet(). 
+\end{Desc}
+\newpage
+
+
+
+\subsection{clIocCommPortReceiverUnblock}
+\index{clIocCommPortReceiverUnblock@{clIocCommPortReceiverUnblock}}
+\hypertarget{pageIOC110}{}\paragraph{cl\-Ioc\-Comm\-Port\-Receiver\-Unblock}\label{pageIOC110}
+\begin{Desc}
+\item[Synopsis: ]Unblocks all receive calls.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim} ClRcT clIocCommPortReceiverUnblock( 
+                  			CL_IN ClIocCommPortHandleT commPortHdl); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em comm\-Port\-Hdl:}](in) Handle of the communication port to be unblocked.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}] The communication port handle is invalid.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This API is used to unblock all the \textit{receive} calls which are blocked inside IOC on the given communication port. The blocked 
+\textit{receive} calls are unblocked and returns {\tt CL\_\-IOC\_\-RECV\_\-UNBLOCKED}. The \textit{receive} on this communication port 
+stops after this call. To start the \textit{receive} again, you must call API \textit{clIocCommPortBlockRecvSet}.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageioc101}{clIocCommPortCreate()}, \hyperlink{pageioc103}{clIocCommPortDelete()}, 
+clIocCommPortModeSet(), clIocCommPortModeGet(), clIocCommPortBlockRecvSet(), clIocCommPortDebug(). \end{Desc}
+\newpage
+
+
+
+\subsection{clIocMaxPayloadSizeGet}
+\index{clIocMaxPayloadSizeGet@{clIocMaxPayloadSizeGet}}
+\hypertarget{pageIOC120}{}\paragraph{cl\-Ioc\-Max\-Payload\-Size\-Get}\label{pageIOC120}
+\begin{Desc}
+\item[Synopsis: ]Returns the maximum payload size.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim} ClRcT clIocMaxPayloadSizeGet( 
+                  			CL_OUT ClUint32T *pSize); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Size:}](out) Contains the maximum supported payload size. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}] p\-Size is NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This API returns the maximum payload size that can be sent over the IOC. It does not include the IOC header size.\end{Desc}
+\begin{Desc}
+\item[Note:]In this release, there is no limit over the payload size in IOC. So, this API may not be very useful.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]None.\end{Desc}
+\newpage
+
+
+
+\subsection{clIocTotalNeighborEntryGet}
+\index{clIocTotalNeighborEntryGet@{clIocTotalNeighborEntryGet}}
+\hypertarget{pageIOC122}{}\paragraph{cl\-Ioc\-Total\-Neighbor\-Entry\-Get}\label{pageIOC122}
+\begin{Desc}
+\item[Synopsis: ]Returns the total number of neighbor nodes.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim} ClRcT clIocTotalNeighborEntryGet( 
+                  CL_OUT ClUint32T  *pNumberOfEntries); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Number\-Of\-Entries:}](out) Number of neighbor nodes.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\em p\-Number\-Of\-Entries\/} is NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description: ]This API returns the total number of neighbor nodes (including duplicates and local) of the current node. This API should be called
+earlier to \textit{clIocNeighborListGet()}.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageIOC123}{clIocNeighborListGet()}. \end{Desc}
+
+\newpage
+
+\subsection{clIocNeighborListGet}
+\index{clIocNeighborListGet@{clIocNeighborListGet}}
+\hypertarget{pageIOC123}{}\paragraph{cl\-Ioc\-Neighbor\-List\-Get}\label{pageIOC123}
+\begin{Desc}
+\item[Synopsis: ]Returns the list of neighbor IOC nodes.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim} ClRcT clIocNeighborListGet( 
+               CL_INOUT ClUint32T *pNumberOfEntries, 
+               CL_OUT ClIocNodeAddressT *pAddrList); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Number\-Of\-Entries:}](in/out) The number of entries the array can hold. IOC modifies this number if it fills less
+number of entries in the \textit{p\-Addr\-List} array.
+\item[{\em p\-Addr\-List:}](out) The array of IOC node address.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]Either {\em p\-Number\-Of\-Entries\/} or {\em p\-Addr\-List\/} is NULL. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]The memory allocation or any other resource allocation has failed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This API returns the list of neighbor-IOC nodes including the local node. It takes as input, an array of 
+{\em Cl\-Ioc\-Node\-Address\-T\/} and the number of entries the array can hold. 
+If the number of entries is less than the given array size, p\-Number\-Of\-Entries is used to inform the exact number of entries.
+\par
+You must call the \textit{clIocTotalNeighborEntryGet()} API to get the total number of neighbors and 
+the space to get the addresses can be allocated.\end{Desc}
+
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageIOC122}{clIocTotalNeighborEntryGet()}. \end{Desc}
+
+\newpage
+
+
+\subsection{clIocAddressForPhySlotGet}
+\index{clIocAddressForPhySlotGet@{clIocAddressForPhySlotGet}}
+\hypertarget{pageIOC128}{}\paragraph{cl\-Ioc\-Address\-For\-Phy\-Slot\-Get}\label{pageIOC128}
+\begin{Desc}
+\item[Synopsis: ]Returns the IOC address of the node.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim} ClRcT clIocAddressForPhySlotGet( 
+                    CL_IN ClUint32T phySlotAddr, 
+                    CL_OUT ClIocNodeAddressT *pIocNodeAddr); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em phy\-Slot\-Addr:}](in) The physical slot whose IOC address is queried. 
+\item[{\em p\-Ioc\-Node\-Addr:}](out) IOC address of the node. You must 
+allocate memory for this.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]On successful execution. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized.
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]If {\em p\-Ioc\-Node\-Addr\/} is NULL. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]If the entry does not exist.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description: ]This API returns the IOC address of a node, whose physical slot number is known.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageIOC129}{clIocAddressForPhySlotSet()}, \hyperlink{pageIOC130}{clIocPhySlotForIocAddressGet()}. \end{Desc}
+
+\newpage
+
+
+
+\subsection{clIocAddressForPhySlotSet}
+\index{clIocAddressForPhySlotSet@{clIocAddressForPhySlotSet}}
+\hypertarget{pageIOC129}{}\paragraph{cl\-Ioc\-Address\-For\-Phy\-Slot\-Set}\label{pageIOC129}
+\begin{Desc}
+\item[Synopsis: ]Creates the mapping of IOC address of the node to the physical slot address.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim} ClRcT clIocAddressForPhySlotSet( 
+                    CL_IN ClUint32T phySlotAddr, 
+                    CL_IN ClIocNodeAddressT iocNodeAddr); 
+\end{verbatim}
+\normalsize
+ \end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em phy\-Slot\-Addr:}](in) The physical slot address of the node . 
+\item[{\em ioc\-Node\-Addr:}](in) The IOC node address.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]On successful execution \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description: ]This API creates the mapping of IOC address of the node to a given physical slot. This call overwrites the previous mapping of
+IOC node address to slot address.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageIOC128}{clIocAddressForPhySlotGet()}, \hyperlink{pageioc128}
+{clIocLocalAddressGet()}, \hyperlink{pageIOC130}{clIocPhySlotForIocAddressGet()}. \end{Desc}
+\newpage
+
+
+
+
+\subsection{clIocPhySlotForIocAddressGet}
+\index{clIocPhySlotForIocAddressGet@{clIocPhySlotForIocAddressGet}}
+\hypertarget{pageIOC130}{}\paragraph{cl\-Ioc\-Phy\-Slot\-For\-Ioc\-Address\-Get}\label{pageIOC130}
+\begin{Desc}
+\item[Synopsis: ]Returns the physical slot address of a given node.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim} ClRcT clIocPhySlotForIocAddressGet( 
+                  CL_IN ClIocNodeAddressT iocNodeAddr, 
+                  CL_OUT ClUint32T *pPhySlot ); 
+\end{verbatim}
+\normalsize
+ \end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ioc\-Node\-Addr:}](in) IOC address of the node. \item[{\em p\-Phy\-Slot:}](out) Physical slot address.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]on successful execution \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]If {\em p\-Phy\-SLot\/} is NULL \item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]If the entry does not exist.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description: ]This API returns the physical slot of a node, whose IOC node address is passed as the first parameter.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageIOC129}{clIocAddressForPhySlotSet()}, \hyperlink{pageIOC128}
+{clIocAddressForPhySlotGet()}. \end{Desc}
+
+\newpage
+
+
+
+\subsection{clIocLibInitialize}
+\index{clIocLibInitialize@{clIocLibInitialize}}
+\hypertarget{pageIOC131}{}\paragraph{cl\-Ioc\-Lib\-Initialize}\label{pageIOC131}
+\begin{Desc}
+\item[Synopsis: ]Configures and initializes the IOC.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim}                     ClRcT clIocLibInitialize(); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters: ]None\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-IOC\_\-ERR\_\-INIT\_\-FAILED:}]IOC initialization has failed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description: ]This API configures and initializes the IOC. This API must be called before any other function of IOC.
+This function also initiates the transport configuration and initialization.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageIOC132}{clIocLibFinalize()}, clIocLibConfigGet(). \end{Desc}
+
+\newpage
+
+
+\subsection{clIocLibFinalize}
+\index{clIocLibFinalize@{clIocLibFinalize}}
+\hypertarget{pageIOC132}{}\paragraph{cl\-Ioc\-Lib\-Finalize}\label{pageIOC132}
+\begin{Desc}
+\item[Synopsis: ]Cleans up the IOC.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim}                     ClRcT clIocLibFinalize(); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters: ]None\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully .\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description: ]This API is used to perform IOC clean up. \textit{clIocLibFinalize()} deregisters all the transport and cleans up all the data it contains.
+After this call no IOC call should be made.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageIOC131}{clIocLibInitialize()}. \end{Desc}
+
+\newpage
+
+
+\subsection{clIocGeographicalAddressGet}
+\index{clIocGeographicalAddressGet@{clIocGeographicalAddressGet}}
+\hypertarget{pageIOC125}{}\paragraph{cl\-Ioc\-Geographical\-Address\-Get}\label{pageIOC125}
+\begin{Desc}
+\item[Synopsis: ]Returns the geographical address of the node.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim} ClRcT clIocGeographicalAddressGet( 
+                  			CL_IN ClIocNodeAddressT iocNodeAddr,  
+                  			CL_OUT ClCharT *pGeoAddr); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ioc\-Node\-Addr:}](in) The Blade address of the node whose geographical address is queried. \item[{\em p\-Geo\-Addr:}](out) The geographical 
+address of the node is returned in this pointer. The memory, of size {\tt CL\_\-MAX\_\-GEO\_\-ADDR\_\-STRING\_\-LENGTH}, must be allocated by you.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized.
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}] {\em p\-Geo\-Addr\/} is passed as NULL or the {\em ioc\-Node\-Addr\/} is not of physical address 
+type. \item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]The node entry does not exist.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description: ]This API returns the geographical address of the node, whose node address is passed as input.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageIOC126}{clIocGeographicalAddressSet()}, \hyperlink{pageioc128}{clIocLocalAddressGet()}. \end{Desc}
+
+\newpage
+
+
+
+\subsection{clIocGeographicalAddressSet}
+\index{clIocGeographicalAddressSet@{clIocGeographicalAddressSet}}
+\hypertarget{pageIOC126}{}\paragraph{cl\-Ioc\-Geographical\-Address\-Set}\label{pageIOC126}
+\begin{Desc}
+\item[Synopsis: ]Sets the geographical address of the node.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax: ]
+
+\footnotesize\begin{verbatim}          ClRcT clIocGeographicalAddressSet( 
+                                 		CL_IN ClIocNodeAddressT iocNodeAddr, 
+                                 		CL_IN ClCharT *pGeoAddr); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ioc\-Node\-Addr:}](in) The blade address of the node whose geographical address is to be set. 
+\item[{\em p\-Geo\-Addr:}](in) The geographical address of the node. The maximum length of geographical address 
+can be {\tt CL\_\-MAX\_\-GEO\_\-ADDR\_\-STRING\_\-LENGTH}. If you pass NULL in the geographical
+address, the old entry is removed. If an entry already exists and another string is passed, a new entry will overwrite the old one.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}] {\em p\-Geo\-Addr\/} is NULL, or {\em ioc\-Node\-Address\/} is not a physical address or the length
+of geographical address is more than {\tt CL\_\-IOC\_\-GEO\_\-ADDR\_\-MAX\_\-LENGTH}. 
+\item[{\em CL\_\-ERR\_\-UNSPECIFIED:}]Other errors.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description: ]This API is used to set the geographical address of the node. This function removes the previously set geographical address and
+sets the new one. The can be used to set the geographical address of the local nodes only. The first parameter is from the
+\textit{clIocLocalAddressGet()} API.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageIOC125}{clIocGeographicalAddressGet()}, \hyperlink{pageioc128}{clIocLocalAddressGet()}. \end{Desc}
+
+\newpage
+
+
+
+\subsection{clIocRouteTablePrint}
+\index{clIocRouteTablePrint@{clIocRouteTablePrint}}
+\hypertarget{pageIOC206}{}\paragraph{cl\-Ioc\-Route\-Table\-Print}\label{pageIOC206}
+\begin{Desc}
+\item[Synopsis:]Prints the routing database on console.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocRouteTablePrint();
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This API is used to print the routing database on the console. It can be used to check if the route to the 
+destination exists.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageioc203}{clIocRouteInsert()}, \hyperlink{pageioc204}{clIocRouteDelete()}, 
+clIocRouteStatusChange(), clIocRoutingTableFlush(). \end{Desc}
+\newpage
+
+
+
+
+
+\subsection{clIocArpTablePrint}
+\index{clIocArpTablePrint@{clIocArpTablePrint}}
+\hypertarget{pageIOC211}{}\paragraph{cl\-Ioc\-Arp\-Table\-Print}\label{pageIOC211}
+\begin{Desc}
+\item[Synopsis:]Prints an ARP table.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clIocArpTablePrint();
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This API is used to print the ARP database on the console. It can be used to check if the ARP entry to the destination 
+exists.\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related APIs:]None.\end{Desc}
+\newpage
+
+
+
+\subsection{clIocTransparencyLayerBindingsListShow}
+\index{clIocTransparencyLayerBindingsListShow@{clIocTransparencyLayerBindingsListShow}}
+\hypertarget{pageIOC215}{}\paragraph{cl\-Ioc\-Transparency\-Layer\-Bindings\-List\-Show}\label{pageIOC215}
+\begin{Desc}
+\item[Synopsis:]Prints all entries in a given context.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clIocTransparencyLayerBindingsListShow(
+                       CL_IN ClUint32T contextId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em context\-Id:}](in) Id of the context.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}] IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}] context\-Id is invalid.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This API is used to print all the entries in a given context.\end{Desc}
+\begin{Desc}
+\item[Related APIs:]None.\end{Desc}
+\newpage
+
+
+
+
+\subsection{clIocSessionReset}
+\index{clIocSessionReset@{clIocSessionReset}}
+\hypertarget{pageIOC107}{}\paragraph{cl\-Ioc\-Session\-Reset}\label{pageIOC107}
+\begin{Desc}
+\item[Synopsis:]Resets the session with a logical address.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clIocSessionReset(
+                  CL_IN ClIocCommPortHandleT iocCommPortHdl,
+                  CL_IN ClIocLogicalAddressT *pIocLogicalAddress);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ioc\-Comm\-Port\-Hdl:}](in) Handle to the communication port where the session is maintained. 
+\item[{\em p\-Ioc\-Logical\-Address:}](in) The pointer to 
+the logical address for which the session needs to be cleared.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}] p\-Logical\-Address is NULL. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]If invalid 
+communication port handle is passed. \item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}] p\-Logical\-Address is not a logical address.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This API is used to reset the session with a logical address. If the session is requested with a logical address in a previous 
+\textit{IOCsend} API, that session can be reset using this API. If the mapping between logical to active physical address changes in a session, 
+all the \textit{send} calls return {\tt CL\_\-IOC\_\-ERR\_\-INVALID\_\-SESSION}. On viewing this error, this API can be used to restart the session with the 
+new active instance.\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageioc101}{clIocCommPortCreate()}, \hyperlink{pageIOC102}{clIocCommPortGet()}, {clIocLastErrorGet()}, 
+\hyperlink{pageioc103}{clIocCommPortDelete()}. \end{Desc}
+
+
+
+
+\subsection{clIocNodeWaterMarksSet}
+\index{clIocNodeWaterMarksSet@{clIocNodeWaterMarksSet}}
+\hypertarget{pageIOC108}{}\paragraph{cl\-Ioc\-Node\-Water\-Marks\-Set}\label{pageIOC108}
+\begin{Desc}
+\item[Synopsis:]Sets the watermark settings at the node level for send queue and receive queue. \end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim} 
+				ClRcT clIocNodeWaterMarksSet(
+					CL_IN ClIocQueueIdT queueId,
+					CL_IN ClWaterMarkT *pWM);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em queue\-Id:}](in) The IOC queue type for which the watermarks are to be set. The ID could be \textit{CL\_\-IOC\_\-SEND\_\-QUEUE}
+or \textit{CL\_\-IOC\_\-RECV\_\-QUEUE}.
+\item[{\em p\-WM:}](in) The watermarks are specified in this parameter.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized for this application or IOC has been finalized.
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]pWM is NULL.
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]Either \textit{queueId} is invalid or watermark configuration is invalid.
+The low limit is specified to be higher or equal to the high limit or either the low and high limit is less than zero or greater than 100.
+address.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set the watermark configuration for the IOC queues. The IOC queue is identified by queue ID. 
+Currently, the watermark of the of the send queue and communication port receive queue can be set. The send queue is one per node and receive 
+queue is one per communication port. For the receive queue, it is the default value for all ports on that node. Each port can override these
+settings by providing its own configuration.
+\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageioc202}{clIocCommPortWaterMarksSet()}\end{Desc}
+\newpage
+
+
+
+
+\subsection{clIocNodeQueueSizeSet}
+\index{clIocNodeQueueSizeSet@{clIocNodeQueueSizeSet}}
+\hypertarget{pageIOC108}{}\paragraph{cl\-Ioc\-Node\-Queue\-Size\-Set}\label{pageIOC108}
+\begin{Desc}
+\item[Synopsis:]Sets the size of the specified queue for the current node.\end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim} 
+				ClRcT clIocNodeQueueSizeSet(
+					CL_IN ClIocQueueIdT queueId,
+					CL_IN ClUint32T queueSize);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em queue\-Id:}](in) The IOC queue type for which the watermarks are to be set. The ID could be \textit{CL\_\-IOC\_\-SEND\_\-QUEUE}
+or \textit{CL\_\-IOC\_\-RECV\_\-QUEUE}.
+\item[{\em queue\-Size:}](in) New size for the given queue type specified in bytes.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized for this application or IOC has been finalized.
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]\textit{queueId} is invalid. 
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function is used to set the maximum queue size for the IOC queues. The IOC queue is identified by the queue ID. Currently,
+the size for the send queue and communication port receive queue can be set. The send queue is one per node and receive queue is one per 
+communication port. For the receive queue, it is the default value for all ports on that node and would take effect on subsequent
+commport creates. Each port can override these
+settings by providing its own configuration. If \textit{queueSize} is ‘0’, no upper limit exists on the queue size.
+\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related APIs:]clIocPortQueueSizeSet()\end{Desc}
+\newpage
+
+
+
+
+\subsection{clIocCommPortQueueSizeSet}
+\index{clIocCommPortQueueSizeSet@{clIocCommPortQueueSizeSet}}
+\hypertarget{pageIOC109}{}\paragraph{cl\-Ioc\-Comm\-Port\-Queue\-Size\-Set}\label{pageIOC109}
+\begin{Desc}
+\item[Synopsis:]Sets the size of the receive queue for the specified port. \end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim} 
+				ClRcT clIocCommPortQueueSizeSet(
+					CL_IN ClIocCommPortHandleT commPortHandle,
+					CL_IN ClUint32T queueSize);
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em comm\-Port\-Handle:}](in) Handle identifying the communication port for which the receive queue size is to be set.
+\item[{\em queue\-Size:}](in) New size for the given queue type specified in bytes.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized for this application or IOC has been finalized.
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}] The specified \textit{commPortHandle} is invalid. It was not obtained through a previous call to
+\textit{clIocCommPortHandleCreate} or it was deleted through a previous call to \textit{clIocCommPortHandleDelete}.
+\item[{\em CL\_\-ERR\_\-COMMPORT\_\-BLOCKED:}] The specified communication port is blocked.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function is used to set the maximum queue for the receive queue. The communication 
+port for which the queue size is to be set is provided as a parameter. If \textit{queueSize} is ‘0’, no upper limit exists on the queue size.
+\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageIOC108}{clIocNodeQueueSizeSet()}\end{Desc}
+
+\newpage
+
+
+\subsection{clIocNodeQueueStatsGet}
+\index{clIocNodeQueueStatsGet@{clIocNodeQueueStatsGet}}
+\hypertarget{pageIOC110}{}\paragraph{cl\-Ioc\-Node\-Queue\-Stats\-Get}\label{pageIOC110}
+\begin{Desc}
+\item[Synopsis:]Obtains the node level statistics of the queue belonging to the current node.  \end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim} 
+				ClRcT clIocNodeQueueStatsGet(
+					CL_OUT ClIocQueueStatsT* pSendQueueStats,
+					CL_OUT ClIocQueueStatsT* pRecvQueueStats);
+
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Send\-Queue\-Stats:}](out) Statistics related to the send queue.
+\item[{\em p\-Recv\-Queue\-Stats:}](out) Statistics related to the recv queue.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized for this application or IOC has been finalized.
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]\textit{pReceiveQueueStats} is NULL.
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}] The specified \textit{commPortHandle} is invalid. It was not obtained from a previous call to 
+\textit{clIocCommPortCreate} or it was not deleted through a previous call to \textit{clIocCommPortDelete}. 
+\item[{\em CL\_\-ERR\_\-COMMPORT\_\-BLOCKED:}] The specified communication port is blocked.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to get the current size, watermark settings, and current utilization of the receive queue for the specified 
+port. Memory to \textit{pQueueStats} is allocated by the caller.
+\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageioc202}{clIocCommPortWaterMarksSet()}, \hyperlink{pageIOC110}{clIocNodeQueueStatsGet()},
+\hyperlink{pageIOC111}{clIocCommPortQueueStatsGet()}\end{Desc}
+\newpage
+
+
+
+
+\subsection{clIocCommPortQueueStatsGet}
+\index{clIocCommPortQueueStatsGet@{clIocCommPortQueueStatsGet}}
+\hypertarget{pageIOC111}{}\paragraph{cl\-Ioc\-Comm\-Port\-Queue\-Stats\-Get}\label{pageIOC111}
+\begin{Desc}
+\item[Synopsis:]Obtains the statistics of the queues of the specified port.   \end{Desc}
+\begin{Desc}
+\item[Header File:]clIocManagementApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim} 
+				ClRcT clIocCommPortQueueStatsGet(
+					CL_IN ClIocCommPortHandleT commPortHandle,
+					CL_OUT ClIocQueueStatsT* pQueueStats);
+
+
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em comm\-Port\-Handle:}](in) Communication Port for which the receive queue statistics is to be retrieved.
+\item[{\em p\-Queue\-Stats:}](out) Statistics related to the receive queue.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully . 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]IOC is not initialized for this application or IOC has been finalized.
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]\textit{pSendQueueStats} or \textit{pRecvQueueStats} is NULL.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function gets the current size, watermark settings, and the current utilization of the send queue and 
+the current default size, default watermark settings of the receive queues. The send queue and receive queue belong of the node on 
+which this application is running. The \textit{queueUtilization} part of \textit{pRecvQueueStats} structure should be ignored. 
+Memory for \textit{pSendQueueStats} and \textit{pRecvQueueStats} is allocated by the caller.
+\end{Desc}
+\begin{Desc}
+\item[Library Files:]libClIoc\end{Desc}
+\begin{Desc}
+\item[Related APIs:]\hyperlink{pageIOC108}{clIocNodeQueueSizeSet()}, \hyperlink{pageIOC108}{clIocNodeWaterMarksSet()},
+\hyperlink{pageIOC111}{clIocCommPortQueueStatsGet()}\end{Desc}
+\newpage
+
+
+\chapter{Service Management Information Model}
+\section{Node}
+This section describes the management information model for the node.
+\subsection{Configuration attributes}
+The following configuration information is captured through IDE and provided to IOC through a configuration file called clIocConfig.xml. This 
+configuration is read by the IOC layer during \textit{clIocInitialize} and applied for the first initialization of the IOC node.
+\begin{itemize}
+\item
+sendQueueSize - Size of the send queue for each node. 
+\item
+recvQueueSize - The default receive queue size for each communication port receive queue on the node. This can be overridden by the communication port
+configuration. 
+\item
+maxTLEntries - Hash buckets for the transparency layer entries.
+\item
+heartBeatInterval - Timeout in milliseconds to broadcast the IOC heartbeat packets for checking the link status.
+\item
+reassemblyTimeout - Timeout in milliseconds to wait for a fragmented packet to arrive during fragment reassembly.
+\item
+sendQueueHighWaterMark - High watermark limit for the send queue.
+\item
+sendQueueLowWarterMark - Low watermark limit for the send queue.
+\item
+recvQueueHighWaterMark - The default high watermark limit for the communication port receive queue on the node. This can be overridden by 
+communication port configuration.
+\item
+recvQueueLowWaterMark - The default low watermark limit for the communication port receive queue on the node. This can be overridden by 
+communication port configuration.
+\end{itemize}
+The IOC configuration routine invoked by the EO would take a configuration attribute for the commport watermark limits and receive queue size.
+
+\subsection{Runtime attributes}
+ \begin{itemize}
+ \item
+sendQueueSize - Current size of the send queue for this node.
+\item
+recvQueueSize - Current default value of communication port receive queue size for this node.
+\item
+sendQueueWaterMarks  - Watermark limit configured for the send queue.
+\item
+recvQueueWaterMarks - The default watermark limit configured for the communication port receive queues of this node.
+\item
+currentSendQueueUtilization - Current utilization (in %) of the send queue of this node.
+\end{itemize}
+
+\subsection{Management interfaces}
+No management operation is supported on Node.
+
+\section{Communication Port}
+Following section describes the management information model for the Communication Port.
+\subsection{Configuration attributes}
+The following configuration information is captured through IDE and provided to the IOC while creating the communication port (clIocCommPortCreate):
+\begin{itemize}
+\item
+recvQueueSize - Receive queue size for this communication port. 
+\item
+recvQueueHighWaterMark - High watermark limit for the communication port receive queue.
+\item
+recvQueueLowWaterMark - Low watermark limit for the communication port receive queue.
+\end{itemize}
+This information is captured as configuration pools in IDE and each EO is configured to use one of the configuration pools.
+The EO reads this information at run-time from COR.
+
+\section{Runtime attributes}
+ \begin{itemize}
+ \item
+sendQueueSize - Current size of the send queue for the node of this port.
+\item
+recvQueueSize - Current size of communication port receive queue of this port.
+\item
+sendQueueWaterMarks - Watermark limit configured for the send queue of the node of this port.
+\item
+recvQueueWaterMarks - Watermark limit configured for the communication port receive queues of this port.
+\item
+currentSendQueueUtilization - Current utilization (in %) of the send queue of the node of this port.
+\item
+currentRecvQueueUtilization - Current utilization (in %) of the receive queue of this port.
+\end{itemize}
+
+\section{Management interfaces}
+
+No management operation is supported on Port.
+
+
+\chapter{Service Notifications}
+CPM/G is notified on the death of a node and send queue watermark events.
+CPM/L is notified on the death of a component.
+Every EO (including CPM/L and CPM/G) handles receive queue watermark events. The actions to be taken on watermark events can be configured for each EO.
+\section{Alarms}
+If send queue watermark limit is reached, IOC informs CPM/G and CPM/G publishes an alarm.
+If receive queue watermark limit is reached, IOC informs the owner of the communication port and the owner publishes an alarm.
+
+ \section{Other Notifications}
+If a component dies, IOC informs CPM/L and CPM/L publishes an event.
+In case of a node departure, IOC informs CPM/G and CPM/G publishes an event.
+
+chapter{Configuration}
+IOC Node level configuration is captured in a configuration file, clIocConfig.xml. The details of the same are given in 4.1.1.
+A sample XML file is shown below.
+\footnotesize\begin{verbatim} 
+<ioc:BootConfig xmlns:ioc="ioc.ecore">
+   <ioc maxTLEntries="256" heartBeatInterval = "1000" reassemblyTimeout="1000">
+	<sendQueue size="10000" highWaterMark="90" lowWaterMark="75"/>
+	<recvQueue size="10000" highWaterMark="90" lowWaterMark="80"/>
+     <transport transportName="UDP" transportPriority="1" transportId="12128">       <link linkName="Link0" linkPriority="1" linkInterface="eth0" linkMulticastAddress="224.0.0.28" linkSupportsMulticast="true" linkSupportsChksum="true" />
+     </transport>
+   </ioc>
+ </ioc:BootConfig>
+\end{verbatim}
+\normalsize

@@ -1,0 +1,706 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="CpmConfig"
+    nsURI="cpmconfig.ecore" nsPrefix="">
+  <eClassifiers xsi:type="ecore:EClass" name="BootConfigType">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="label" value="Boot Config"/>
+      <details key="Help" value="com.clovis.cw.help.nodeprofile_boot"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Boot Config Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Boot Config Name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxBootLevel" unique="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="6" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Maximum Boot Level"/>
+        <details key="pattern" value="^[1-4][0-9][0-9]*|[5-9][0-9]*$"/>
+        <details key="message" value="Maximum Boot Level should be > 4"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defaultBootLevel" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="5"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Default Boot Level"/>
+        <details key="pattern" value="^[1-4][0-9][0-9]*|[5-9][0-9]*$"/>
+        <details key="message" value="Default Boot Level should be > 4"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.customeditor.DefaultBootLevelComboBoxCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BootlevelType">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="level"/>
+      <details key="label" value="Boot Level"/>
+      <details key="Help" value="com.clovis.cw.help.nodeprofile_boot_level"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="level" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Boot Level"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="serviceUnits" lowerBound="1"
+        eType="#//SusType" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Service Units"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.SelectionPushButtonCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AspSusType">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="aspServiceUnit" upperBound="-1"
+        eType="#//aspSUType" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="ASP Service Unit"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="aspSUType">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral=" " unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ComponentInstance">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="label" value="Component Instance"/>
+      <details key="Help" value="com.clovis.cw.help.nodeprofile_node_su_compinstance"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.AMFListUniquenessValidator"/>
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+      <details key="initializationFields" value="name,$2%name$_ComponentInstance"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Component Instance Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Component Instance Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Component Type"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.CustomComboBoxCellEditor"/>
+        <details key="tooltip" value="Component types under SU type defined in the editor"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="resources" upperBound="-1"
+        eType="#//resourceType" transient="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Resources"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.ResourcesPushButtonCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SUInstances">
+    <eAnnotations source="CWAnnotation">
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="serviceUnitInstance" upperBound="-1"
+        eType="#//SUInstance" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NodeInstances">
+    <eAnnotations source="CWAnnotation">
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+      <details key="label" value="Node Instances List"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nodeInstance" upperBound="-1"
+        eType="#//NodeInstance" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NodeInstance">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name,nodeMoId"/>
+      <details key="NameField" value="name"/>
+      <details key="Help" value="com.clovis.cw.help.nodeprofile_nodeinstance"/>
+      <details key="dependentsFeatureNames" value="name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.NodeMoIdValidator"/>
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+      <details key="initializationFields" value="chassisId,0,nonUnique"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" unique="false" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Node Instance Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Node Instance Name"/>
+        <details key="dependents" value="2@None!nodeInstances,nodeInstance,dependencies%node|configs/clAmfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFInstanceHandler;2@None!serviceGroups,serviceGroup,associatedServiceUnits%associatedServiceUnit|configs/clAmfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFNodeSUHandler;2@None!serviceGroups,serviceGroup,serviceInstances,serviceInstance,prefferedServiceUnits%prefferedServiceUnit|configs/clAmfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFNodeSUHandler"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.TypesComboBoxCellEditor"/>
+        <details key="label" value="Node Type"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nodeMoId" unique="false"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral=" " unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="MOID"/>
+        <details key="pattern" value=" |(\\[a-zA-z][a-zA-z0-9_]*:[0-9][0-9]*)(\\[a-zA-z][a-zA-z0-9_]*:[0-9][0-9]*)*"/>
+        <details key="message" value="Invalid MOID"/>
+        <details key="editor" value="com.clovis.cw.workspace:com.clovis.cw.workspace.dialog.MoPathComboBoxCellEditor"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="tooltip" value="Node MOID is blade instance realized by this node instance. Replace all the * by numbers to complete the Node MO Id."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="chassisId" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral=""
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Chassis Id"/>
+        <details key="message" value="Invalid Chassis Id"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="slotId" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral=""
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Slot Id"/>
+        <details key="message" value="Invalid Solt Id"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="serviceUnitInstances" lowerBound="1"
+        eType="#//SUInstances" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.CpmPushButtonCellEditor"/>
+        <details key="label" value="SU Instances"/>
+        <details key="isTreeListNode" value="true"/>
+        <details key="isHidden" value="true"/>
+        <details key="treeLabel" value="SU Instance List"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dependencies" lowerBound="1"
+        eType="#//nodeDependencyType" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Dependencies"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.SelectionPushButtonCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="iocConfiguration" lowerBound="1"
+        eType="#//IOCConfiguration" transient="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="IOC Configuration"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="cpmConfig">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="CPM Config"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nodeType" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral=" "
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="cpmType" lowerBound="1"
+        eType="#//CpmType" defaultValueLiteral="LOCAL" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="CPM type"/>
+        <details key="canModify" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="bootConfigs" lowerBound="1"
+        eType="#//BootConfigsType" containment="true" resolveProxies="false">
+      <eAnnotations source="CWAnnotation">
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.BootConfigPushButtonCellEditor"/>
+        <details key="label" value="Boot configuration"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="aspServiceUnits" lowerBound="1"
+        eType="#//AspSusType" unsettable="true" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="ASP service units"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.SelectionPushButtonCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SUInstance">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="label" value="SU Instance"/>
+      <details key="Help" value="com.clovis.cw.help.nodeprofile_node_suinstance"/>
+      <details key="dependentsFeatureNames" value="name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.AMFListUniquenessValidator"/>
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+      <details key="initializationFields" value="name,$2%name$_SUInstance"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="SU Instance Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid SU Instance Name"/>
+        <details key="dependents" value="2@None!serviceGroups,serviceGroup,associatedServiceUnits%associatedServiceUnit|configs/clAmfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFInstanceHandler;2@None!serviceGroups,serviceGroup,serviceInstances,serviceInstance,prefferedServiceUnits%prefferedServiceUnit|configs/clAmfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFInstanceHandler"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="ServiceUnit Type"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.CustomComboBoxCellEditor"/>
+        <details key="tooltip" value="SU types under Node type defined in the editor"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rank" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Rank"/>
+        <details key="tooltip" value="Rank of the service unit instance"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="componentInstances" lowerBound="1"
+        eType="#//ComponentInstances" unsettable="true" containment="true" resolveProxies="false">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Component Instances"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.CpmPushButtonCellEditor"/>
+        <details key="isTreeListNode" value="true"/>
+        <details key="isHidden" value="true"/>
+        <details key="treeLabel" value="Component Instance List"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BootConfigsType">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="bootConfig" upperBound="-1"
+        eType="#//BootConfigType" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BootLevelsType">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="bootLevel" upperBound="-1"
+        eType="#//BootlevelType" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SusType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="serviceUnit" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ComponentInstances">
+    <eAnnotations source="CWAnnotation">
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="componentInstance" upperBound="-1"
+        eType="#//ComponentInstance" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Component-Instances"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NodesType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="node" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="CpmType">
+    <eLiterals name="LOCAL"/>
+    <eLiterals name="GLOBAL" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="resourceType">
+    <eAnnotations source="CWAnnotation">
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.MoInstanceIDValidator"/>
+      <details key="label" value="Resource"/>
+      <details key="validationfeatures" value="moID"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="moID" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral=" " unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="MO Instance ID"/>
+        <details key="pattern" value="^ |\\|(\\[a-zA-z][a-zA-z0-9_]*:[\*0-9][0-9]*)(\\[a-zA-z][a-zA-z0-9_]*:[\*0-9][0-9]*)*$"/>
+        <details key="message" value="Invalid MO Instance ID"/>
+        <details key="tooltip" value="Replace all the * by numbers to complete the Instance ID (/ for Blade Instance), paths of only associated resources of the component are shown"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="editor" value="com.clovis.cw.workspace:com.clovis.cw.workspace.dialog.ResourceInstanceIDComboBoxCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="autoCreate" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="true"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Auto Create"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="primaryOI" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Primary OI"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PreInstanceType">
+    <eLiterals name="CL_FALSE" value="1"/>
+    <eLiterals name="CL_TRUE"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="compInstances">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="compInst" upperBound="-1"
+        eType="#//compinstanceType" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="compinstanceType">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="compName"/>
+      <details key="NameField" value="compName"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="compName" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="resource" upperBound="-1"
+        eType="#//resourceType" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="amfConfig">
+    <eAnnotations source="CWAnnotation">
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="version" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral="B.01.01"
+        unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="cpmConfigs" lowerBound="1"
+        eType="#//cpmConfigs" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nodeInstances" lowerBound="1"
+        eType="#//NodeInstances" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Node Instance List"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="serviceGroups" lowerBound="1"
+        eType="#//ServiceGroupInstances" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isTreeListNode" value="true"/>
+        <details key="treeLabel" value="Service Group List"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ServiceGroupInstances">
+    <eAnnotations source="CWAnnotation">
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+      <details key="label" value="Service Group Instances List"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="serviceGroup" upperBound="-1"
+        eType="#//ServiceGroupInstance" unsettable="true" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ServiceGroupInstance">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="Help" value="com.clovis.cw.help.nodeprofile_servicegroup"/>
+      <details key="label" value="Service Group"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.AMFListUniquenessValidator"/>
+      <details key="dependentsFeatureNames" value="name"/>
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" unique="false" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="SG Instance Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid SG Instance Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+        <details key="dependents" value="2@None!serviceGroups,serviceGroup,serviceInstances,serviceInstance,dependencies%serviceInstance|configs/clAmfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFInstanceHandler"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="ServiceGroup Type"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.TypesComboBoxCellEditor"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="serviceInstances" lowerBound="1"
+        eType="#//ServiceInstances" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Service Instances"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.CpmPushButtonCellEditor"/>
+        <details key="isTreeListNode" value="true"/>
+        <details key="isHidden" value="true"/>
+        <details key="treeLabel" value="Service Instance List"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="associatedServiceUnits"
+        lowerBound="1" eType="#//associatedServiceUnitsType" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Associated Service Units"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.SelectionPushButtonCellEditor"/>
+        <details key="tooltip" value="SUInstances for SUType defined under SGType in the Editor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ServiceInstances">
+    <eAnnotations source="CWAnnotation">
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="serviceInstance" upperBound="-1"
+        eType="#//ServiceInstance" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="associatedServiceUnitsType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="associatedServiceUnit"
+        upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ServiceInstance">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="Help" value="com.clovis.cw.help.nodeprofile_sg_serviceinstance"/>
+      <details key="label" value="Service Instance"/>
+      <details key="dependentsFeatureNames" value="name"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.AMFListUniquenessValidator"/>
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+      <details key="initializationFields" value="name,$2%name$_ServiceInstance"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" unique="false" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Service Instance Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Service Instance Name"/>
+        <details key="dependents" value="2@None!serviceGroups,serviceGroup,serviceInstances,serviceInstance,dependencies%serviceInstance|configs/clAmfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFInstanceHandler"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="ServiceInstance Type"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.CustomComboBoxCellEditor"/>
+        <details key="tooltip" value="SITypes under SGType defined in the Editor"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="componentServiceInstances"
+        lowerBound="1" eType="#//ComponentServiceInstances" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Component Service Instances"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.CpmPushButtonCellEditor"/>
+        <details key="isTreeListNode" value="true"/>
+        <details key="isHidden" value="true"/>
+        <details key="treeLabel" value="Component Service Instance List"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dependencies" lowerBound="1"
+        eType="#//SIDependencyType" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Dependencies"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.SelectionPushButtonCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="prefferedServiceUnits"
+        lowerBound="1" eType="#//prefferedServiceUnitType" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Preferred Service Units"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.SelectionPushButtonCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ComponentServiceInstances">
+    <eAnnotations source="CWAnnotation">
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="componentServiceInstance"
+        upperBound="-1" eType="#//ComponentServiceInstance" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ComponentServiceInstance">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="name"/>
+      <details key="NameField" value="name"/>
+      <details key="Help" value="com.clovis.cw.help.nodeprofile_sg_si_compserviceinstance"/>
+      <details key="label" value="Component Service Instance"/>
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.AMFListUniquenessValidator"/>
+      <details key="actionClass" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.action.AMFNodeTreeAction"/>
+      <details key="initializationFields" value="name,$2%name$_ComponentServiceInstance"/>
+      <details key="dependentsFeatureNames" value="name"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" unique="false" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Component Service Instance Name"/>
+        <details key="pattern" value="^[a-zA-Z][a-zA-Z0-9_]*$"/>
+        <details key="message" value="Invalid Component Service Instance Name"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.PreferenceTextCellEditor"/>
+        <details key="dependents" value="2@None!serviceGroups,serviceGroup,serviceInstances,serviceInstance,componentServiceInstances,componentServiceInstance,dependencies%componentServiceInstance|configs/clAmfConfig.xml#com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.handler.AMFInstanceHandler"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="ComponentServiceInstance Type"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.CustomComboBoxCellEditor"/>
+        <details key="tooltip" value="CSI Types under SI Type defined in the Editor"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dependencies" lowerBound="1"
+        eType="#//CSIDependencyType" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Dependencies"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.SelectionPushButtonCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="nodeDependencyType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="node" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="prefferedServiceUnitType">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="Preffered Service Unit"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="prefferedServiceUnit" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="cpmConfigs">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="cpmConfig" upperBound="-1"
+        eType="#//cpmConfig" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SIDependencyType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="serviceInstance" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IOCConfiguration">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sendQueue" lowerBound="1"
+        eType="#//Queue" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Send Queue"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="receiveQueue" lowerBound="1"
+        eType="#//Queue" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Receive Queue"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Queue">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="size" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"
+        defaultValueLiteral="0" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Size"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="waterMark" lowerBound="1"
+        eType="#//WaterMark" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Water Mark"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="WaterMark">
+    <eAnnotations source="CWAnnotation">
+      <details key="validator" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.validator.MemoryWaterMarkValidator"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lowLimit" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="35"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Low Limit"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="highLimit" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="90"
+        unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="High Limit"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="action" lowerBound="1"
+        eType="#//WaterMarkAction" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Action"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="WaterMarkAction">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="event" lowerBound="1" eType="#//EventAction"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Event"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="notification" lowerBound="1"
+        eType="#//NotificationAction" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Notification"/>
+        <details key="isTreeNode" value="false"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="log" lowerBound="1" eType="#//LogAction"
+        containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Log"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="custom" lowerBound="1"
+        eType="#//CustomAction" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="treeLabel" value="Custom"/>
+        <details key="isTreeNode" value="true"/>
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Action">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enable" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Enable"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EventAction" eSuperTypes="#//Action"/>
+  <eClassifiers xsi:type="ecore:EClass" name="NotificationAction" eSuperTypes="#//Action"/>
+  <eClassifiers xsi:type="ecore:EClass" name="LogAction">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enable" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Enable"/>
+        <details key="Dependency" value="false;Disable:add=enable"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Disable" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" transient="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CustomAction" eSuperTypes="#//Action"/>
+  <eClassifiers xsi:type="ecore:EClass" name="CSIDependencyType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="componentServiceInstance"
+        upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        unsettable="true"/>
+  </eClassifiers>
+</ecore:EPackage>

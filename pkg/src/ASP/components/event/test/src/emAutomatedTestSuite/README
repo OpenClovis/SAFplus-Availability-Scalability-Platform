@@ -1,0 +1,54 @@
+The setup consits of 4 Nodes. The Master Node - sysController0 and Node A, Node B & Node C. 
+The EM test Applications App_A, App_B & App_C are run on NodeA, NodeB & NodeC respectively. 
+Once the setup is ready the test controller is instantiated which runs all the test cases.
+
+The config files are placed in config directory for convenience. The XML files from this
+location must be copied to $ASP_CONFIG.
+
+The following aliases may proves useful:
+
+export EVT_TEST=$CLOVIS_ROOT/ASP/components/event/test/unit-test/emAutomatedTestSuite
+
+alias cpxml="cp $EVT_TEST/config/*.xml $ASP_CONFIG/ -vf"
+alias emd="cd $EVT_TEST"
+
+CPM is instantiated using the following aliases:
+
+alias cpm="asp_cpm 0 1 1 sysController0 debug"
+alias cpa="asp_cpm 0 2 1 NodeA debug"
+alias cpb="asp_cpm 0 3 1 NodeB debug"
+alias cpc="asp_cpm 0 4 1 NodeC debug"
+
+
+! Following aliases are needed only if the test applicatins are not instantiated by CPM
+alias ema=". $EVT_TEST/config/a_bash.env && asp_emTestApp"
+alias emb=". $EVT_TEST/config/b_bash.env && asp_emTestApp"
+alias emc=". $EVT_TEST/config/c_bash.env && asp_emTestApp"
+
+Finally the Test Controller is instantiated using -
+
+alias emt=". $EVT_TEST/config/tc_bash.env && asp_emTestCont"
+
+
+The following aliases help run the CPM as daemons making it possible to execute all the commands in
+a shell script. The amf*.xml files need to be updated accordingly. Currently there is an issue in 
+this mode. Need to check on a faster machine.
+
+alias cpmd="cpm 1 &"
+alias cpad="cpa 1 &"
+alias cpbd="cpb 1 &"
+alias cpcd="cpc 1 &"
+
+The above aliases could be invoked in the same order (only constraint is that CPM Master must come up
+first followed by the other CPM instances and lastly by the Test Controller).
+
+An invocation as below should suffice :
+
+$ cpmd
+$ cpad
+$ cpbd
+$ cpcd
+$ emt
+
+NOTE:   This can be included as a part of shell script or an aggregate alias but there may be issues if
+        sufficient delay isn't provided between the calls.

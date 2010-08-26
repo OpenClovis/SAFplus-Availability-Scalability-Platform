@@ -1,0 +1,1005 @@
+\hypertarget{group__group28}{
+\chapter{Functional Overview}
+\label{group__group28}
+}
+
+\begin{flushleft}
+The OpenClovis Name service provides a mechanism that allows an object or a service to be referred by its name instead of the Object Reference 
+(Object Reference). This friendly name is agnostic to the topology and location. 
+\par
+The Object Reference can be the logical address, resource ID, and so on. Object Reference is opaque to Name Service. Name service returns the 
+logical address when the friendly name is provided to it. Hence, Name Service provides location transparency.
+Name Service maintains a mapping table between objects and the Object Reference (logical address) associated with the object. 
+\par
+An object consists of an object name, an object type, and object attributes. The object names are strings and are meaningful when considered along with
+the object type. Examples of object names are print service, file service, functions, and so on. Examples of object types include services, nodes, or 
+any other user-defined type. An object can have a number of attributes (limited by a configurable maximum number.) An object attribute consists of a 
+{\tt{<attribute type, attribute value>}} pair of strings. For example, {\tt{<version, 2.5>, <status, active>}}, and so on. 
+\par
+The Name Service provides functions to register/de-register object names, types, attributes, and associated addresses. A process can register multiple 
+services with a single address or multiple processes can register with a single service name and attributes. Some object names, attributes, and addresses 
+can also be statically defined. Each registration is associated with the priority of the process providing the service. It is the responsibility of the 
+process that registers an object, to remove the mapping when the object becomes invalid. However, a process can terminate abnormally. Name Service 
+subscribes to notifications that can be received when a process dies from the Component Manager (CPM) and deletes the entries of the process in the database 
+associated with the component. 
+\par
+The Name Service provides the ability to query the name database in various ways. 
+Clients can provide the object name and object type to the Name Service and query it to retrieve the address and attributes of that object. Alternatively, 
+clients can also provide attributes and query for object names that satisfy those attributes. Wild cards can also be used in the query. If two components
+provide the same service and have the same priority, the entry that is read first from the database is returned. Different components can provide
+different variants of a single service name with different attributes. For example, {\tt{comp1}} provides car wash (manual) and {\tt{comp2}} provides
+car wash (automatic). Manual and automatic are attributes of {\tt{comp1}} and {\tt{comp2}}, respectively. If the query is specified as {\tt{name = carwash}}
+and {\tt{attribute = manual}}, {\tt{comp1}} is returned. If the attribute, manual, is not specified, the Object Reference of the component with the highest priority is returned.
+\par
+Name Service supports different sets of name to Object Reference mappings (also called as Context of the mapping table). 
+They are:\begin{itemize}
+\item
+User-defined set: 150 Applications can choose to be a part of a specific set (or Context). This requires for the Context to be created. For example, the 
+OpenClovis ASP related services can be part of a separate Context. 
+\item
+Default set: 150 Name Service supports a default Context for services that are not part of a specific Context. Name is unique in a Context.
+\end{itemize}
+
+The Name Service to be registered can have two scopes:
+\begin{itemize}
+\item
+Nodelocal scope: The scope is local to the node. The service provider and the user should co-exist on the same blade. 
+\item
+Global or cluster-wide scope: The service is available to the user applications running on any of the blades. Any component residing anywhere in the cluster can access 
+it. When a component registers with Name Service, it has to provide the Context and the scope of its service.
+\end{itemize}
+
+
+\chapter{Service Model}
+\section{Usage Model}
+Name Service is based on the database model. Service providers can register their service name to Object Reference mapping with Name Service. This registration
+can be performed for all the services provided by the service provider. The service users query the Name Service for the Object Reference of the service providers. 
+When a service is unavailable, the service provider de-registers the entry with Name Service. When a service provider dies ungracefully, all the services provided by it are de-registered. 
+\par
+A service can be registered with global scope or local scope. If it is registered with global scope, the service is available to any service user within 
+the cluster. If the scope is local, the access to the services is limited to the Node. To support global and local scope, Name Service provides two types of Contexts:
+\begin{itemize}
+\item
+Global Context 
+\item
+Local Context
+\end{itemize}
+The service provider decides the Context in which service entry needs to be registered. The service users must know the Context in which the service entry
+needs to be queried. 
+\par
+Name Service is used when the address of the service provider is dynamic. For example, if the service A is running on only one Node at a known
+port, the service users can use the physical address to contact service A, and Name Service is not required.
+\par
+Name Service is used with Transparency Layer(TL) service provided by Intelligence Object Communication (IOC). Name Service contains Name to Object Reference Mapping and TL 
+contains Object Reference to physical address mapping.  
+\par
+Name Service not only stores the name to logical address mapping but also stores any mapping between name and other Object References. For example, semname to semid,
+name to message queue ID, and so on.
+
+\section{Functional Description}
+The purpose of the Name Service is to provide location transparency. The service providers can register the mapping between services (exported by them) and 
+Object Reference. To use the services of Name Service, the user application has to initialize the Name Service by invoking the {\tt{clNameLibInitialize()}}
+function. When this 
+service is not required, the association with Name Client can be closed by invoking the {\tt{clNameLibFinalize()}} function. Service users can create their own 
+Context or use the default Context. Service users can create their own Context using the {\tt{clNameContextCreate()}} function. {\tt{clNameContextCreate()}} returns a 
+{\tt{ContextId}} that can be used in {\tt{clNameRegister()}} function to identify the Context. Users can register their services with their unique name using the 
+{\tt{clNameRegister()}} function. A service can be registered by multiple components. As part of {\tt{clNameRegister()}}, the service provider can request Name Service to 
+generate an Object Reference or they can set the Object Reference to a particular name. When the service provider fails, it can de-register the service using the
+{\tt{clNameComponentDeregister()}} function. 
+\par
+Multiple components can register with a single name. The last component can de-register its service, using the {\tt{clNameServiceDeregister()}} function.
+A service provider can delete a Context using the {\tt{clNameContextDelete()}} function. The default Context cannot be deleted. Name Service deletes the default 
+Context when the service shuts down gracefully.
+\par
+Every Object Name is characterized by its name, attribute count, and a set of attributes. These attributes are specified when the service is registered 
+through the {\tt{ClNameSvcAttrEntryT}} structure.  
+\par
+The service users can query the Name Service for Object Reference using the {\tt{clNameToObjectReferenceGet()}} function.  The service users have to 
+provide the following:
+\begin{itemize}
+\item
+Name
+\item
+Name and Attributes
+\item
+Attributes 
+\end{itemize}
+The service users can also query the entire mapping of service Name to Object Reference using the {\tt{clNameToObjectMappingGet()}} function. This function returns all 
+the matching records. {\tt{clNameToObjectMappingGet()}} returns the following:
+\begin{itemize}
+\item
+Name
+\item
+Object Reference
+\item
+Attributes (if specified)
+\end{itemize}
+The mapping returned can be freed using the {\tt{clNameObjectMappingCleanup()}} function. 
+
+
+
+
+
+\chapter{Service Functions}
+
+
+\section{Type Definitions}
+\subsection{ClNameSvcRegisterT}
+\index{ClNameSvcRegisterT@{ClNameSvcRegisterT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClNameT                       name;}\\
+\>\>\>\>\textit{ClUint32T                      compId;}\\
+\>\>\>\>\textit{ClNameSvcPriorityT     priority;}\\
+\>\>\>\>\textit{ClUint32T                     attrCount;}\\
+\>\>\>\>\textit{ClNameSvcAttrEntryT   attr[1];}\\
+\textit{\} ClNameSvcRegisterT;}\end{tabbing}
+This {\tt{ServiceRegisterInfo}} structure is provided by a process to the Name Service to register a name. {\tt{ClNameSvcRegisterT}} contains the name service 
+registration information.  The attributes of this structure are:
+\begin{itemize}
+\item
+\textit{name} -  Name of the service entry to be registered.
+\item
+\textit{compId} - ID of the component invoking this function. 
+\item
+\textit{priority} - Priority of the service given by this component. The priority can be set to {\tt{CL\_\-NS\_\-PRIORITY\_\-LOW}}, 
+{\tt{CL\_\-NS\_\-PRIORITY\_\-MEDIUM}}, {\tt{CL\_\-NS\_\-PRIORITY\_\-HIGH}}. 
+\item
+\textit{attrCount} - Number of attributes associated with this entry by the component.
+\item
+\textit{attr} - List of attributes of this service.
+\end{itemize}
+
+
+
+
+
+\subsection{ClNameSvcContextT}
+\index{ClNameSvcContextT@{ClNameSvcContextT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum\{}\\
+\>\>\>\>\textit{CL\_NS\_USER\_NODELOCAL,}\\
+\>\>\>\>\textit{CL\_NS\_USER\_GLOBAL}\\
+\textit{\} ClNameSvcContextT;}\end{tabbing}
+This enumeration is used to specify the scope of the Context. The Context can be local to the node (Local NameContext) or global to the cluster 
+(Global NameContext).
+
+
+
+
+\subsection{ClNameSvcAttrEntryT}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct\{}\\
+\>\>\>\>\textit{ClUint8T type \mbox{[}CL\_Name service\_MAX\_STR\_LENGTH\mbox{]};}\\
+\>\>\>\>\textit{ClUint8T value \mbox{[}CL\_Name service\_MAX\_STR\_LENGTH\mbox{]};}\\
+\textit{\} ClNameSvcAttrEntryT;}\end{tabbing}
+The structure, {\tt{ClNameSvcAttrEntryT}}, is provided by the process when its name is being registered. The attributes of this structure are:
+\begin{itemize}
+\item
+\textit{type} - Type of the attribute.
+\item
+\textit{value} - Value of the attribute.
+\end{itemize}
+
+
+\subsection{ClNameSvcEntryPtrT}
+\index{ClNameSvcEntryPtrT@{ClNameSvcEntryPtrT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct\{}\\
+\>\>\>\>\textit{ClNameT             name;}\\
+\>\>\>\>\textit{ClUint64T          objReference;}\\
+\>\>\>\>\textit{ClUint32T           refCount;}\\
+\>\>\>\>\textit{ClNameSvcCompListT  compId;}\\
+\>\>\>\>\textit{ClUint32T         attrCount;}\\
+\>\>\>\>\textit{ClNameSvcAttrEntryT attr\mbox{[}1\mbox{]};}\\
+\textit{\} ClNameSvcEntryT;}\end{tabbing}
+\textit{typedef ClNameSvcEntryT* ClNameSvcEntryPtrT;}
+\newline
+\newline 
+This structure, {\tt{ClNameSvcEntryT}}, contains the Name Service entry. It contains attributes associated with a Name entry. They are:
+\begin{itemize}
+\item
+\textit{name} - Name of the service entry to be registered.
+\item
+\textit{objReference} - Unique reference to this object.
+\item
+\textit{refCount} - Number of components providing this service.
+\item
+\textit{compId} - List of components providing this service and their information such as {\tt{compId}}, {\tt{priority}}, and so on.
+\item
+\textit{attrCount} - Number of attributes associated with the entry.
+\item
+\textit{attr\mbox{[}1\mbox{]}} - List of attributes of this service.
+\end{itemize}
+
+
+
+\subsection{ClNameSvcConfigT}
+\index{ClNameSvcConfigT@{ClNameSvcConfigT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct\{}\\
+\>\>\>\>\textit{ClUint32T nsMaxNoEntries;}\\
+\>\>\>\>\textit{ClUint32T nsMaxNoGlobalContexts;}\\
+\>\>\>\>\textit{ClUint32T nsMaxNoLocalContexts;}\\
+\textit{\} ClNameSvcConfigT;}\end{tabbing}
+The structure, {\tt{ClNameSvcConfigT}}, contains the Name Service configuration information. 
+
+
+\subsection{ClNameSvcCompListT}
+\index{ClNameSvcCompListT@{ClNameSvcCompListT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct\{}\\
+\>\>\>\>\textit{ClUint32T               dsId;}\\
+\>\>\>\>\textit{ClUint32T               compId;}\\
+\>\>\>\>\textit{ClNameSvcPriority priority;}\\
+\>\>\>\>\textit{struct   ClNameSvcCompListT  *pNext;}\\        
+\textit{\} ClNameSvcCompListT;}\end{tabbing}                  
+The structure, {\tt{ClNameSvcCompListT}}, provides information about the component that is registering its name with Name Service. The attributes of this
+structure are:
+\begin{itemize}
+\item
+\textit{dsId} - {\tt{dataSetId}} in which the information must be checkpointed. This value will be assigned dynamically by Name Service.
+\item
+\textit{compId} - ID of the component providing this service. 
+\item
+\textit{priority} - Priority of the service.
+\item
+\textit{pNext} - Pointer to the next component providing the same service. This should always be set to NULL. 
+\end{itemize}
+
+
+\subsection{ClNameSvcOpT}
+\index{ClNameSvcOpT@{ClNameSvcOpT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum\{}\\
+\>\>\>\>\textit{CL\_NS\_COMPONENT\_DEREGISTER,}\\
+\>\>\>\>\textit{CL\_NS\_SERVICE\_DEREGISTER}\\
+\textit{\} ClNameSvcOpT;}  \end{tabbing}                                  
+The enumeration, {\tt{ClNameSvcOpT}}, is used to specify the operation code. This operation code can be set to component de-register or service de-register.
+
+
+
+\subsection{ClNameSvcEventInfoT}
+\index{ClNameSvcEventInfoT@{ClNameSvcEventInfoT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct\{}\\
+\>\>\>\>\textit{ClNameT              name;}\\
+\>\>\>\>\textit{ClUint64T            objReference;}\\
+\>\>\>\>\textit{ClNameSvcOpT   operation;}\\
+\>\>\>\>\textit{ClUint32T            ContextMapCookie;}\\
+\textit{\} ClNameSvcEventInfoT;}\end{tabbing}  
+The structure, {\tt{ClNameSvcEventInfoT}}, contains the payload (event data) of an event. This event is published
+when the service de-registers or a component of the service de-registers. The attributes of this structure are:
+\begin{itemize}
+\item
+\textit{name} - Name of the service to be de-registered. 
+\item
+\textit{objReference} - Object Reference of this name.
+\item
+\textit{operation} - Operation code that specifies if it is a component de-register or service de-register operation.
+\item
+\textit{contexMapCookie} - Context in which this service exists.
+\end{itemize}
+
+
+\subsection{ClNameSvcAttrSearchT}
+\index{ClNameSvcAttrSearchT@{ClNameSvcAttrSearchT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct\{}\\
+\>\>\>\>\textit{ClNameSvcAttrEntryT  attrList[CL\_Name service\_MAX\_NO\_ATTR];}\\
+\>\>\>\>\textit{ClUint32T                      attrCount;}\\
+\>\>\>\>\textit{ClUint32T                       opCode[CL\_Name service\_MAX\_NO\_ATTR -1];}\\
+\textit{\} ClNameSvcAttrSearchT;} \end{tabbing}                                  
+When the Name Service searches for an entry in the database, it uses this structure to compare the attributes of the entry with the entries of the 
+service provider. The attributes of this structure are:
+\begin{itemize}
+\item
+\textit{attrList} - List of attributes of the service.
+\item
+\textit{attrCount} - Number of attributes associated with the service .
+\end{itemize}
+
+
+\newpage
+
+
+\section{Library Life Cycle APIs}
+\subsection{clNameLibInitialize}
+\index{clNameLibInitialize@{clNameLibInitialize}}
+\hypertarget{pagens101}{}\paragraph{cl\-Name\-Lib\-Initialize}\label{pagens101}
+\begin{Desc}
+\item[Synopsis:]This function is used to initialize Name Service for the calling process.\end{Desc}
+\begin{Desc}
+\item[Header File:]clNameApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}       
+   				ClRcT clNameLibInitialize(void);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em None.}]\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-ALREADY\_\-INITIALIZED:}]The library is already initialized.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to initialize Name Service for the calling process. This function creates an association with the Name Service 
+and its client. This function must be invoked before any other function of Name Service function is used. 
+
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens102}{cl\-Name\-Lib\-Finalize} \end{Desc}
+\newpage
+
+
+\subsection{clNameLibFinalize}
+\index{clNameLibFinalize@{clNameLibFinalize}}
+\hypertarget{pagens102}{}\paragraph{cl\-Name\-Lib\-Finalize}\label{pagens102}
+\begin{Desc}
+\item[Synopsis:]This function is used to finalize the Name Service for the calling process.\end{Desc}
+\begin{Desc}
+\item[Header File:]clNameApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}       ClRcT clNameLibFinalize(void);
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em None.}]\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]The library is not initialized.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to finalize the Name Service for the calling process. This function deletes the association with the Name Service and its
+client. After this function is executed successfully, any operation on Name Service is invalid. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens101}{cl\-Name\-Lib\-Initialize} \end{Desc}
+\newpage
+
+
+\subsection{clNameInitialize}
+\index{clNameInitialize@{clNameInitialize}}
+\hypertarget{pagens201}{}\paragraph{cl\-Name\-Initialize}\label{pagens201}
+\begin{Desc}
+\item[Synopsis:]This function is used to initialize the Name Service component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clNameConfigApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}      ClRcT clNameInitialize (void);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Config:}]Pointer to the Name Service configuration data as defined in {\tt{ClNameSvcConfigT}}. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]pConfig contains a NULL pointer.
+\item[{\em CL\_\-Name Service\_\-ERR\_\-DUPLICATE:}]An instance of Name Service is running on a blade where this component is running.
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMObject ReferenceY:}]Memory allocation failure.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function initializes the Name Service server component and allocates resources to it. This function must be invoked before 
+Name Service can be used. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens102}{cl\-Name\-Finalize}. \end{Desc}
+\newpage
+
+
+\subsection{clNameFinalize}
+\index{clNameFinalize@{clNameFinalize}}
+\hypertarget{pagens202}{}\paragraph{cl\-Name\-Finalize}\label{pagens202}
+\begin{Desc}
+\item[Synopsis:]This function is used to free the resources acquired when the Name Service component is initialized.\end{Desc}
+\begin{Desc}
+\item[Header File:]clNameConfigApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clNameFinalize(void); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None.\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to free the resources acquired when the Name Service component is initialized. This must be called when the 
+services of the Name Service component are not required.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens101}{cl\-Name\-Initialize}. \end{Desc}
+\newpage
+
+
+\section{Functional APIs}
+\subsection{clNameRegister}
+\index{clNameRegister@{clNameRegister}}
+\hypertarget{pagens103}{}\paragraph{cl\-Name\-Register}\label{pagens103}
+\begin{Desc}
+\item[Synopsis:]This function is used to register a name to Object Reference mapping. \end{Desc}
+\begin{Desc}
+\item[Header File:]clNameApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}                  ClRcT clNameRegister(
+                                 			CL_IN ClUint32T  ContextId,
+                                 			CL_IN ClNameSvcRegisterT  * pName serviceRegisInfo,
+                                 			CL_INOUT ClUint64T  *pObjReference);
+
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em Context\-Id:}](in) Context in which the service is to be provided. Before a service is registered in the user-defined Context, the Context must be created      
+using {\tt{clNameContextCreate}} function. It can have the following values: \begin{itemize}
+\item
+ {\tt{CL\_\-NS\_\-DEFT\_\-GLOBAL\_\-CONTEXT}}: For registering in global Context. 
+\item
+{\tt{CL\_\-NS\_\-DEFT\_\-LOCAL\_\-CONTEXT}}: For registering in node local Context. 
+ \item
+ ID returned by {\tt{clNameContextCreate()}} for user-defined Contexts.
+\end{itemize}
+\item[{\em p\-Name serviceRegis\-Info:}](in) Pointer to registration information as defined in {\tt{ClNameSvcRegisterT}}.
+\item[{\em p\-Obj\-Reference:}](in/out) This contains the Object Reference. If Object Reference is known, {\tt{pObjReference}} contains the known value. If 
+Object Reference is unknown, {\tt{pObjReference}} must be set to {\tt{CL\_\-NS\_\-GET\_\-OBJ\_\-REF}}. The allocated Object Reference is returned in 
+{\tt{pObjReference}}.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pName}}, {\tt{serviceRegisInfo}}, or {\tt{pObjReference}}  contains a NULL pointer.
+\item[{\em CL\_\-Name Service\_\-ERR\_\-CONTEXT\_\-NOT\_\-CREATED:}]Cannot register, de-register, or query
+a Context that does not exist. 
+\item[{\em CL\_\-Name Service\_\-ERR\_\-LIMIT\_\-EXCEEDED:}]
+Cannot create or register Contexts and entries greater than the maximum allowed.
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMObject ReferenceY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]Name Service library is not initialized.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]A service provider can register a name to Object Reference mapping with Name Service using this function. It can register the name 
+using the default {\tt{ContextId}} or its own {\tt{ContextId}}. To register using its own {\tt{ContextId}}, the service provider must first create the Context. 
+The service can be registered in global Context or local Context. The service is accessible throughout the cluster if the service is registered in global 
+Context. If the service is registered in local Context, the access is limited to the node only.
+ \par
+ {\tt{pObjRef}} is an in/out (input/output) variable. A component can provide its logical address and Object Reference, or it can request Name Service to 
+ generate an Object Reference by setting the {\tt{CL\_\-NS\_\-GET\_\-OBJ\_\-REF}} flag.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens104}{cl\-Name\-Component\-Deregister}, \hyperlink{pagens105}{cl\-Name\-service\-Deregister}. \end{Desc}
+\newpage
+
+
+\subsection{clNameComponentDeregister}
+\index{clNameComponentDeregister@{clNameComponentDeregister}}
+\hypertarget{pagens104}{}\paragraph{cl\-Name\-Component\-Deregister}\label{pagens104}
+\begin{Desc}
+\item[Synopsis:]This function is used to de-register a component with Name Service.\end{Desc}
+\begin{Desc}
+\item[Header File:]clNameApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clNameComponentDeregister(
+						CL_IN ClUint32T compId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em comp\-Id:}](in) ID of the component.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]Name Service library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]A service provider can de-register all its services, when it shuts down gracefully using this function. On successful completion of this
+function, all the services registered by this component are de-registered. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens103}{cl\-Name\-Register}, \hyperlink{pagens105}{cl\-Name\-service\-Deregister}. \end{Desc}
+\newpage
+
+
+\subsection{clNameServiceDeregister}
+\index{clNameServiceDeregister@{clNameServiceDeregister}}
+\hypertarget{pagens105}{}\paragraph{cl\-Name\-service\-Deregister}\label{pagens105}
+\begin{Desc}
+\item[Synopsis:]This function is used to de-register a service provided by a component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clNameApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clNameServiceDeregister(
+                        			CL_IN ClUint32T ContextId,
+                        			CL_IN ClUint32T compId,
+                        			CL_IN ClNameT* serviceName);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em Context\-Id:}](in) Context in which the service is to be provided. Before a service is registered in the user-defined Context, the Context must be created      
+using {\tt{clNameContextCreate}} function. It can have the following values: \begin{itemize}
+\item
+ {\tt{CL\_\-Name Service\_\-DEFT\_\-GLOBAL\_\-CONTEXT}}: For registering in global Context. 
+\item
+{\tt{CL\_\-Name Service\_\-DEFT\_\-LOCAL\_\-CONTEXT}}: For registering in node local Context. 
+ \item
+ ID returned by {\tt{clNameContextCreate()}} for user-defined Contexts.
+\end{itemize}
+\item[{\em comp\-Id:}](in) ID of the component. 
+\item[{\em service\-Name:}](in) Pointer to the name of the service being de-registered.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]serviceName contains a NULL pointer.
+\item[{\em CL\_\-Name Service\_\-ERR\_\-CONTEXT\_\-NOT\_\-CREATED:}]Cannot register, de-register, or query
+a Context that does not exist. 
+\item[{\em CL\_\-Name Service\_\-ERR\_\-service\_\-NOT\_\-REGISTERED:}]Cannot de-register a service that is not registered. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]Name Service library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to de-register a service provided by a component in a specified Context. The de-registered service cannot be accessed and a 
+query to this service generates an error. This service can be de-registered only if it is previously registered by a component. Name Service frees the resources 
+acquired by this service registration. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens103}{cl\-Name\-Register}, \hyperlink{pagens105}{cl\-Name\-Service\-Deregister}, 
+\hyperlink{pagens104}{cl\-Name\-Component\-Deregister}. \end{Desc}
+\newpage
+
+
+\subsection{clNameContextCreate}
+\index{clNameContextCreate@{clNameContextCreate}}
+\hypertarget{pagens106}{}\paragraph{cl\-Name\-Context\-Create}\label{pagens106}
+\begin{Desc}
+\item[Synopsis:]Creates a Context.\end{Desc}
+\begin{Desc}
+\item[Header File:]clNameApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clNameContextCreate(
+					CL_IN ClNameSvcContextT ContextType,
+					CL_IN ClUint32T ContextMapCookie,
+					CL_OUT ClUint32T *ContextId);
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em Context\-Type:}](in) Indicates if the scope is global or node local. 
+\item[{\em Context\-Map\-Cookie:}](in) This is used during look-up. Look-up refers to a search operation for a name. There is a one-to-one mapping 
+between {\tt{ContextMapCookie}} and {\tt{ContextId}} that is returned by this function.
+This parameter can 
+accept the following values: 
+\begin{itemize}
+\item
+{\tt{CL\_\-NS\_\-DEFT\_\-GLOBAL\_\-MAP\_\-COOKIE}}: For querying the default global Context. 
+\item
+{\tt{CL\_\-NS\_\-DEFT\_\-LOCAL\_\-MAP\_\-COOKIE}}: For querying the default local Context.  
+\end{itemize}
+\item[{\em Context\-Id:}](out) Pointer to the ID of the created Context.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-Name Service\_\-ERR\_\-LIMIT\_\-EXCEEDED:}]Cannot create or register Contexts and entries more than the maximum allowed.
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMObject ReferenceY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]An invalid parameter is passed to the function. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{ContextId}}  contains a NULL pointer. 
+\item[{\em CL\_\-Name Service\_\-ERR\_\-CONTEXT\_\-ALREADY\_\-CREATED:}]Cannot create a Context with a {\tt{ContextMapCookie}} that is already in use.
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]Name Service library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function creates a user-defined Context (both global scope and node local scope). The service providers have to maintain a 
+separate name space for their set of services. They can create their own Context using this function and this creates an internal namespace for the Context. 
+The scope of the Context to be created can be specified. If the scope is global, the services registered in this Context are reachable within the cluster. 
+\par
+When this function is successfully executed, the corresponding Context ID is returned to the calling process. The service-users/providers should use this 
+Context ID for all other Context related operations. Every Context has a {\tt{ContextMapCookie}}, that uniquely identifies the Context. While querying, the 
+service user must specify the {\tt{ContextMapCookie}} associated with the Context while performing a look-up.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens107}{cl\-Name\-Context\-Delete}. \end{Desc}
+\newpage
+
+
+\subsection{clNameContextDelete}
+\index{clNameContextDelete@{clNameContextDelete}}
+\hypertarget{pagens107}{}\paragraph{cl\-Name\-Context\-Delete}\label{pagens107}
+\begin{Desc}
+\item[Synopsis:]This function is used to delete a Context.\end{Desc}
+\begin{Desc}
+\item[Header File:]clNameApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clNameContextDelete(
+					CL_IN ClUint32T ContextId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em Context\-Id:}](in) Context to be deleted.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-Name Service\_\-ERR\_\-CONTEXT\_\-NOT\_\-CREATED:}]Cannot register, de-register, or query a Context that does not exist.
+\item[{\em CL\_\-Name Service\_\-ERR\_\-OPERATION\_\-NOT\_\-PERMITTED:}]Cannot delete default Contexts.
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]Name Service library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function deletes the user-defined Context (both global scope and node local scope). This function frees the resources acquired when the
+Context was created and frees the Name Service entries registered in the Context. The contextId, acquired from {\tt{clNameContextCreate()}}, becomes invalid. 
+The registered names to Object Reference mapping in this ContextId are de-registered by Name Service. 
+The default predefined Context cannot be deleted using this function. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens106}{cl\-Name\-Context\-Create}. \end{Desc}
+\newpage
+
+
+\subsection{clNameToObjectReferenceGet}
+\index{clNameToObjectReferenceGet@{clNameToObjectReferenceGet}}
+\hypertarget{pagens108}{}\paragraph{cl\-Name\-To\-Object\-Reference\-Get}\label{pagens108}
+\begin{Desc}
+\item[Synopsis:]This function is used to return the Object Reference for a service.\end{Desc}
+\begin{Desc}
+\item[Header File:]clNameApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clNameToObjectReferenceGet( 
+						CL_IN ClNameT* pName, 
+						CL_IN ClUint32T attrCount, 
+						CL_IN ClNameSvcAttrEntryT *pAttr, 
+						CL_IN ClUint32T ContextMapCookie, 
+						CL_OUT ClUint64T* pObjReference); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Name:}](in) Pointer to the service name.
+\item[{\em attr\-Count:}](in) Number of attributes passed in the query. If the number of attributes is unknown, the value can be set to 
+{\tt{CL\_\-NS\_\-DEFT\_\-ATTR\_\-LIST}} and the Object Reference of the component with the highest priority is returned.
+\item[{\em p\-Attr:}](in) Pointer to the list of attributes. If {\tt{attrCount=CL\_\-NS\_\-DEFT\_\-ATTR\_\-LIST}}, {\tt{pAttr}} must be set to NULL. 
+\item[{\em Context\-Map\-Cookie:}](in) Cookie to find the Context. There is one-to-one mapping between {\tt{ContextMapCookie}} and Context. This parameter can 
+accept the following values: 
+\begin{itemize}
+\item
+{\tt{CL\_\-NS\_\-DEFT\_\-GLOBAL\_\-MAP\_\-COOKIE}}: For querying the default global Context. 
+\item
+{\tt{CL\_\-NS\_\-DEFT\_\-LOCAL\_\-MAP\_\-COOKIE}}: For querying the default local Context.  
+\end{itemize}
+\item[{\em p\-Obj\-Reference:}](out) Pointer to the Object Reference associated with the service. 
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-Name Service\_\-ERR\_\-CONTEXT\_\-NOT\_\-CREATED:}]Cannot register, de-register, or query a Context that does not exist.
+\item[{\em CL\_\-Name Service\_\-ERR\_\-ENTRY\_\-NOT\_\-FOUND:}]Cannot query an entry that does not exist.
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pName}}, {\tt{pAttr}}, or {\tt{pObjReference}} contains a NULL pointer.
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]Name Service library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to query and retrieve the Object Reference for a given service name. The service users can access any service 
+that is registered in Name Service. They can query the Object Reference to access a service 
+irrespective of its location. 
+The service user must know either the service name or service attributes, to retrieve the Object Reference of a name. 
+\par
+When this function is successfully executed, the Object Reference is returned. Using this Object Reference, the users can access a service. If the same service 
+is registered by multiple components, and the service user needs to retrieve the service with the highest priority, attrCount must be set to 
+{\tt{CL\_\-NS\_\-DEFT\_\-ATTR\_\-LIST}}. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens109}{cl\-Name\-To\-Object\-Mapping\-Get}. \end{Desc}
+\newpage
+
+
+\subsection{clNameToObjectMappingGet}
+\index{clNameToObjectMappingGet@{clNameToObjectMappingGet}}
+\hypertarget{pagens109}{}\paragraph{cl\-Name\-To\-Object\-Mapping\-Get}\label{pagens109}
+\begin{Desc}
+\item[Synopsis:]This function is used to return the Name Service entry of the service. \end{Desc}
+\begin{Desc}
+\item[Header File:]clNameApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clNameToObjectMappingGet( CL_IN ClNameT* pName, 
+						CL_IN ClUint32T attrCount, 
+						CL_IN ClNameSvcAttrEntryT *pAttr, 
+						CL_IN ClUint32T ContextMapCookie, 
+						CL_OUT ClNameSvcEntryPtrT* pOutBuff); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Name:}](in) Pointer to the service name.
+\item[{\em attr\-Count:}](in) Number of attributes passed in the query. If the number of attributes is unknown, the value can be set to 
+{\tt{CL\_\-Name Service\_\-DEFT\_\-ATTR\_\-LIST}} and the Object Reference of the component with the highest priority is returned. 
+\item[{\em p\-Attr:}](in) Pointer to list of attributes. This must be set to NULL if {\tt{attrCount=CL\_\-NS\_\-DEFT\_\-ATTR\_\-LIST}}. 
+\item[{\em Context\-Map\-Cookie:}](in) Cookie to find the Context. There is one-to-one mapping between {\tt{ContextMapCookie}} and Context. This parameter can 
+accept the following values: 
+\begin{itemize}
+\item
+{\tt{CL\_\-NS\_\-DEFT\_\-GLOBAL\_\-MAP\_\-COOKIE}}: For querying the default global Context. 
+\item
+{\tt{CL\_\-NS\_\-DEFT\_\-LOCAL\_\-MAP\_\-COOKIE}}: For querying the default local Context.  
+\end{itemize}
+\item[{\em p\-Out\-Buff:}](out) Contains the entry. The calling process/component must free the memory after successful execution of this function. 
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-Name Service\_\-ERR\_\-CONTEXT\_\-NOT\_\-CREATED:}]Cannot register, de-register, or query a Context that does not exist.
+\item[{\em CL\_\-Name Service\_\-ERR\_\-ENTRY\_\-NOT\_\-FOUND:}]Cannot query an entry that does not exist.
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pName}}, {\tt{pAttr}}, {\tt{pOutBuff}} contains a NULL pointer.
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]Name Service library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function provides the entire Name Service entry for the service Name provided.
+Details about a service can be retrieved using this function. This function returns the following information:
+\begin{itemize}
+\item
+Name of the service
+\item
+Corresponding Object Reference
+\item
+Associated attributes
+\end{itemize}
+If a single same service is registered by multiple service providers, Name Service returns all matched entries. The service users can query Name Service 
+using the service name, attributes, or a combination of both. The information provided in {\tt{ClNameSvcRegisterT}} (during registration) can be retrieved. If 
+multiple components have registered with the same name, the information about all such components can be retrieved. 
+On successful completion of this function, {\tt{pOutBuf}} is allocated and populated by Name Service. It is the responsibility of the calling component/process to 
+free the mapping information. This can be performed using the {\tt{clNameObjectMappingCleanup()}} function.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens110}{cl\-Name\-Object\-Mapping\-Cleanup}, 
+\hyperlink{pagens108}{cl\-Name\-To\-Object\-Reference\-Get}. \end{Desc}
+\newpage
+
+
+\subsection{clNameObjectMappingCleanup}
+\index{clNameObjectMappingCleanup@{clNameObjectMappingCleanup}}
+\hypertarget{pagens110}{}\paragraph{cl\-Name\-Object\-Mapping\-Cleanup}\label{pagens110}
+\begin{Desc}
+\item[Synopsis:]This function is used to free the object mapping entry.\end{Desc}
+\begin{Desc}
+\item[Header File:]clNameApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clNameObjectMappingCleanup(
+					CL_IN ClNameSvcEntryPtrT pObjMapping);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Obj\-Mapping:}](in) Pointer to the object mapping being deleted.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pObjMapping}} contains a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to free the memory the object mapping returned during the look-up or search. It frees the  memory allocated for 
+{\tt{clNameToObjectMappingGet()}}. To avoid memory leaks, every {\tt{clNameToObjectMappingGet()}} must be followed by a {\tt{clNameObjectMappingCleanup()}}. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagens109}{cl\-Name\-To\-Object\-Mapping\-Get}. \end{Desc}
+\newpage
+
+
+\subsection{clNameLibVersionVerify}
+\index{clNameLibVersionVerify@{clNameLibVersionVerify}}
+\hypertarget{pagens111}{}\paragraph{cl\-Name\-Lib\-Version\-Verify}\label{pagens111}
+\begin{Desc}
+\item[Synopsis:]This function is used to verify the version with the Name Service library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clNameApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}       ClRcT clNameLibVersionVerify(
+                           		CL_INOUT ClVersionT *pVersion)
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Version:}](in/out) iPointer to the version of Name Service Library required by the calling component. If the required version does not match the
+version of the Name Service library, the function returns the version supported by the Name Service library. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pVersion}} contains a NULL pointer.
+\item[{\em CL\_\-ERR\_\-VERSION\_\-MISMATCH:}]Version passed to the client is incorrect.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to verify the required version of the calling component with the implementation version of the Name Service. 
+If the implementation supports the required releaseCode (a member of {\tt{pVersion}}) and its majorVersion is greater than or equal to the required 
+{\tt{majorVersion}}, the functions returns {\tt{CL\_\-OK}} and pVersion is set to:
+\begin{itemize}
+\item
+{\tt{releaseCode}} = required {\tt{releaseCode}}.
+\item
+{\tt{majorVersion}} = highest major version supported for required {\tt{releaseCode}}.
+\item
+{\tt{minorVersion}} = highest minor version supported for the returned {\tt{releaseCode}} and {\tt{majorVersion}}.
+\end{itemize}
+If this condition is not met, the function returns {\tt{CL\_\-ERR\_\-VERSION\_\-MISMATCH}} and {\tt{pVersion}} is set to:
+\begin{itemize}
+\item
+releaseCode:
+	\begin{itemize}
+	\item
+	required {\tt{releaseCode}}, if it is supported.
+	\item
+	Lowest {\tt{releaseCode}} higher than required releaseCode, if the required {\tt{releaseCode}} is lower than any supported {\tt{releaseCode}}.
+	\item
+	Highest {\tt{releaseCode}} lower than required releaseCode, if the required {\tt{releaseCode}} is higher than any supported {\tt{releaseCode}}.
+	\end{itemize}
+\item
+{\tt{majorVersion}} = highest major version supported for returned {\tt{releaseCode}}.
+\item
+{\tt{minorVersion}} = highest minor version supported for returned {\tt{releaseCode}} and {\tt{majorVersion}}.
+\end{itemize}
+
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Name\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+
+\chapter{Service Management Information Model}
+TBD
+\chapter{Service Notifications}
+TBD
+\chapter{Debug CLIs}
+TBD
+\chapter*{Glossary}
+\index{Glossary@{Glossary}}
+\begin{Desc}
+\item[Glossary of Name Service Terms:]
+\begin{description}
+\item[Name Service(NS)] ASP Service that stores the Name to Object Reference mapping and provides the facility to query the same.
+\end{description}
+\begin{description}
+\item[Service provider]
+\end{description}
+\begin{description}
+\item[Service user]
+\end{description}
+\begin{description}
+\item[Object] Object can be any service or resource. 
+\end{description}
+\begin{description}
+\item[Object Name] A string that is one of the unique identifiers for an object.
+\end{description}
+\begin{description}
+\item[Object Reference] A reference to a particular object. It can be the logical address, resource ID, and so on.
+\end{description}
+\begin{description}
+\item[Context] A set of Name Service entries.
+\end{description}
+\begin{description}
+\item[Local Context] A set of mappings of node local services. 
+\end{description}
+\begin{description}
+\item[Global Context] A set of mappings of global services. 
+\end{description}
+\begin{description}
+\item[Name Service Client] Part of the Name Service linked to the user application. This provides Name Service interface to the users.
+\end{description}
+\begin{description}
+\item[NS Server] Server part of Name Service that performs the actual processing. The Name Service elements with Name clients form the Name 
+Service. 
+\end{description}
+\end{Desc}
+
+\end{flushleft}

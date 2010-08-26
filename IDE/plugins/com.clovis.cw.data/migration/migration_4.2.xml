@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration:migrationInfo xmlns:migration="migration.ecore">
+	<update/><!--including with sdk dir option while running configure script-->
+	<update><!-- removing old code generation files-->
+    	<change sourceXML="">
+      		<migrationStep type="0" details="com.clovis.cw.workspace:com.clovis.cw.workspace.migration.handler.MigrationHandler_42#removeOldCodeGenFiles"/>
+    	</change>
+  	</update>
+  	<update/><!-- changes in associate template support for the new template structure -->
+  	<update/><!-- creating common header file clCompPorts.h -->
+  	<update/><!-- changes in run.py for proper buildtools location -->
+</migration:migrationInfo>

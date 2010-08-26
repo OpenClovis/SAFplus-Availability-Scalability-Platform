@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+      Copyright (C) 2002-2009 by OpenClovis Inc. All Rights Reserved.
+      
+      The source code for  this program is not published  or otherwise 
+      divested of  its trade secrets, irrespective  of  what  has been 
+      deposited with the U.S. Copyright office.
+
+      This program is  free software; you can redistribute it and / or
+      modify  it under  the  terms  of  the GNU General Public License
+      version 2 as published by the Free Software Foundation.
+
+      This program is distributed in the  hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+      General Public License for more details.
+
+      You  should  have  received  a  copy of  the  GNU General Public
+      License along  with  this program. If  not,  write  to  the 
+      Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+-->
+<!--
+    Build: 4.2.0
+-->
+<IDLSpecs name="AlarmIDL">
+     <Comp name = "cor"/>
+     <Include name="clCorMetaData.h"/>
+
+     <Comp name = "alarm"/>
+     <Include name="clAlarmDefinitions.h"/>
+
+     <Enum name="ClAlarmCategoryTypeT">
+        <EnumMember name="CL_ALARM_CATEGORY_COMMUNICATIONS" value="1"/>
+		 <EnumMember name="CL_ALARM_CATEGORY_QUALITY_OF_SERVICE"/>
+		 <EnumMember name="CL_ALARM_CATEGORY_PROCESSING_ERROR"/>
+		 <EnumMember name="CL_ALARM_CATEGORY_EQUIPMENT"/>
+		 <EnumMember name="CL_ALARM_CATEGORY_ENVIRONMENTAL"/>
+		 <EnumMember name="CL_ALARM_CATEGORY_USER"/>
+     </Enum>
+     <Enum name="ClAlarmStateT">
+        <EnumMember name="CL_ALARM_STATE_CLEAR" value ="0"/>
+		 <EnumMember name="CL_ALARM_STATE_ASSERT"/>
+     </Enum>
+     <Enum name="ClAlarmSeverityTypeT">
+		 <EnumMember name="CL_ALARM_SEVERITY_CRITICAL" value="1"/>
+		 <EnumMember name="CL_ALARM_SEVERITY_MAJOR"/>
+		 <EnumMember name="CL_ALARM_SEVERITY_MINOR"/>
+		 <EnumMember name="CL_ALARM_SEVERITY_WARNING"/>
+		 <EnumMember name="CL_ALARM_SEVERITY_INDETERMINATE"/>
+		 <EnumMember name="CL_ALARM_SEVERITY_CLEAR"/>
+     </Enum>
+     <Enum name="ClAlarmProbableCauseT">
+		<EnumMember name="CL_ALARM_ID_INVALID" value ="0"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_LOSS_OF_FRAME"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_FRAMING_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_LOCAL_NODE_TRANSMISSION_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_REMOTE_NODE_TRANSMISSION_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_CALL_ESTABLISHMENT_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_DEGRADED_SIGNAL"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_COMMUNICATIONS_SUBSYSTEM_FAILURE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_COMMUNICATIONS_PROTOCOL_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_LAN_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_DTE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_RESPONSE_TIME_EXCESSIVE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_QUEUE_SIZE_EXCEEDED"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_BANDWIDTH_REDUCED"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_RETRANSMISSION_RATE_EXCESSIVE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_THRESHOLD_CROSSED"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_PERFORMANCE_DEGRADED"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_CONGESTION"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_RESOURCE_AT_OR_NEARING_CAPACITY"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_STORAGE_CAPACITY_PROBLEM"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_VERSION_MISMATCH"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_CORRUPT_DATA"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_CPU_CYCLES_LIMIT_EXCEEDED"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_SOFWARE_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_SOFTWARE_PROGRAM_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_SOFWARE_PROGRAM_ABNORMALLY_TERMINATED"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_FILE_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_OUT_OF_MEMORY"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_UNDERLYING_RESOURCE_UNAVAILABLE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_APPLICATION_SUBSYSTEM_FAILURE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_CONFIGURATION_OR_CUSTOMIZATION_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_POWER_PROBLEM"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_TIMING_PROBLEM"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_PROCESSOR_PROBLEM"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_DATASET_OR_MODEM_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_MULTIPLEXER_PROBLEM"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_RECEIVER_FAILURE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_TRANSMITTER_FAILURE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_RECEIVE_FAILURE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_TRANSMIT_FAILURE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_OUTPUT_DEVICE_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_INPUT_DEVICE_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_INPUT_OUTPUT_DEVICE_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_EQUIPMENT_MALFUNCTION"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_ADAPTER_ERROR"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_TEMPERATURE_UNACCEPTABLE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_HUMIDITY_UNACCEPTABLE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_HEATING_OR_VENTILATION_OR_COOLING_SYSTEM_PROBLEM"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_FIRE_DETECTED"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_FLOOD_DETECTED"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_TOXIC_LEAK_DETECTED"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_LEAK_DETECTED"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_PRESSURE_UNACCEPTABLE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_EXCESSIVE_VIBRATION"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_MATERIAL_SUPPLY_EXHAUSTED"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_PUMP_FAILURE"/>
+		<EnumMember name="CL_ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN"/>
+     </Enum>
+
+     <Struct name="ClCorMOHandleT">
+       <DataMember name="type" type="ClInt32T"/>
+       <DataMember name="instance" type="ClInt32T"/>
+     </Struct>
+
+     <Enum name="ClCorMoPathQualifierT">
+       <EnumMember name="CL_COR_MO_PATH_ABSOLUTE" value="0"/>
+       <EnumMember name="CL_COR_MO_PATH_RELATIVE" />
+       <EnumMember name="CL_COR_MO_PATH_RELATIVE_TO_BASE" />
+       <EnumMember name="CL_COR_MO_PATH_QUALIFIER_MAX"        type="CL_COR_MO_PATH_RELATIVE_TO_BAS"/>
+     </Enum>
+
+     <Struct name="ClCorMOIdT">
+       <DataMember name="node" type="ClCorMOHandleT" multiplicity="CL_COR_HANDLE_MAX_DEPTH" />
+       <DataMember name="svcId" type="ClInt16T"/>
+       <DataMember name="depth" type="ClUint16T"/>
+       <DataMember name="qualifier" type="ClCorMoPathQualifierT"/>
+       <DataMember name="version" type="ClVersionT"/>
+     </Struct>
+
+     <Struct name="ClAlarmInfoIDLT" defNeed="Yes">
+       <DataMember name="probCause" type="ClAlarmProbableCauseT"/>
+       <DataMember name="compName" type="ClNameT"/>
+       <DataMember name="moId" type="ClCorMOIdT"/>
+       <DataMember name="alarmState" type="ClAlarmStateT"/>
+       <DataMember name="category" type="ClAlarmCategoryTypeT"/>
+       <DataMember name="specificProblem" type="ClUint32T"/>
+       <DataMember name="severity" type="ClAlarmSeverityTypeT"/>
+       <DataMember name="eventTime" type="ClInt64T"/>
+       <DataMember name="len" type="ClUint32T"/>
+       <DataMember name="buff" type="ClUint8T" pointer="Single" lengthVar="len"/>
+     </Struct>
+
+     <Struct name="ClAlarmHandleInfoIDLT" defNeed="Yes">
+       <DataMember name="alarmHandle" type="ClUint32T"/>
+       <DataMember name="alarmInfo" type="ClAlarmInfoIDLT"/>
+     </Struct>
+
+     <Struct name="ClAlarmIdT" version="4.1.0">
+       <DataMember name="probableCause" type="ClAlarmProbableCauseT"/>
+       <DataMember name="specificProblem" type="ClUint32T"/>
+     </Struct>
+
+     <Struct name="ClAlarmIdIDLT" version="4.1.0" defNeed="Yes" >
+       <DataMember name="numEntries" type="ClUint32T" />
+       <DataMember name="pAlarmId" type="ClAlarmIdT" version="4.1.0" pointer="Single" lengthVar="numEntries" />
+     </Struct>
+
+</IDLSpecs>

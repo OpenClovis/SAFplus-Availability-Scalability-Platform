@@ -1,0 +1,21 @@
+Kid CGI Demo
+============
+
+The files in this directory provide a quick look at how one might use
+kid in a CGI environment. It is very much a work in progress.
+
+Configuration
+-------------
+
+1. Ensure that `kid_handler.cgi` is executable by Apache.
+
+2. Add the following to your `.htaccess` or `httpd.conf`:
+
+       Action kid-file /location/of/kid_handler.cgi
+       AddHandler kid-file .kid
+
+3. Put the `sysinfo.kid` somewhere reachable by the webserver
+   (/var/www, .../htdocs, etc).
+
+4. Hit it and see what happpens.
+

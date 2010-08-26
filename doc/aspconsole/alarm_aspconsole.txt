@@ -1,0 +1,124 @@
+/**
+ * \addtogroup alarm_aspconsole Alarm Manager ASP Console Commands
+ * \{
+ */
+
+/**
+*****************************************
+\brief To assert or clear an alarm.
+
+\par Usage: 
+\code raiseAlarm <Moid> <ProbableCause> <SpecificProblem> <Status> \endcode        
+
+\param Moid[STRING] This is the absolute path of the MOID i.e., \Class_Chassis:0\Class_GigeBlade:1
+\param ProbableCause[DEC] Probable cause of the alarm to be raised
+\param SpecificProblem[DEC] : Specific Problem of the alarm to be raised.
+\param Status[DEC] Whether the alarm is an assert(1) or clear(0) 
+
+\par Output:
+\code raiseAlarm \Chassis:0\GigeBlade:0\GigePort:0 1 0 1 \endcode 
+***************************************** 
+*/
+raiseAlarm;
+ 
+/**
+*****************************************
+\brief To show handles of raised alarms
+ 
+\par Usage: 
+\code showAllAlarmHandles \endcode 
+
+\par Output:
+\code 
+showAllAlarmHandles
+    Handle = 1
+    Handle = 2 
+\endcode 
+***************************************** 
+*/
+showAllAlarmHandles;
+
+/**
+*****************************************
+\brief To show detail alarm info
+ 
+\par Usage: 
+\code showAlarmInfo <AlarmHandle> \endcode
+
+\par Output:
+\code 
+showAlarmInfo 1
+    ProbCause = 1
+    alarmState = 1
+    category = 1
+    severity = 1
+    MoId = \Chassis:0\GigeBlade:0\GigePort:0 
+\endcode 
+***************************************** 
+*/
+showAlarmInfo;
+
+/**
+*****************************************
+\brief Find assert or clear for an alarm id or a probable cause 
+\par Usage: 
+\code queryAlarm <Moid> <ProbableCause> <SpecificProblem> \endcode
+
+\param Moid[STRING] This is the absolute path of the MOID i.e.,\Class_Chassis:0\Class_GigeBlade:1
+\param ProbableCause[DEC] Probable cause of the alarm to be raised.
+\param SpecificProblem[DEC] : Specific Problem of the alarm to query.
+
+\par Output:
+\code 
+queryAlarm \Chassis:0\GigeBlade:0\GigePort:0 1 0
+Status of the alarm : CL_ALARM_STATE_ASSERT
+\endcode 
+***************************************** 
+*/
+queryAlarm;
+
+/**
+*****************************************
+\brief Displays published alarms bitmap.
+ 
+\par Usage: 
+\code queryPublishedAlarms <Moid> \endcode
+        
+\param Moid[STRING] This is the absolute path of the MOID i.e., \Class_Chassis:0\Class_GigeBlade:1 
+
+\par Output:
+\code 
+cli[Test:WorkerNodeI0:ALARM]-> querypublishedAlarms
+\Chassis:0\GigeBlade:0\GigePort:0
+Published alarms Bitmap :3 
+\endcode 
+***************************************** 
+*/
+querypublishedAlarms;
+ 
+
+/**
+*****************************************
+\brief Displays published alarms bitmap by doing a walk on the entire MO tree.
+ 
+\par Usage: 
+\code showpublishedAlarms \endcode 
+
+\par Output:
+\code 
+showpublishedAlarms
+         MoId String : \Chassis:0\GigeBlade:0
+         Published alarms bitmap : [0]
+         MoId String : \Chassis:0\GigeBlade:0\GigePort:0
+         Published alarms bitmap : [3]
+         MoId String : \Chassis:0\GigeBlade:0\GigePort:1
+         Published alarms bitmap : [0] 
+\endcode 
+***************************************** 
+*/
+showpublishedAlarms;
+
+/**
+ * \}
+ */
+

@@ -1,0 +1,15 @@
+This is the Platform Support Package needed for all ATCA systems using
+AMC cards.
+
+It solves the problem of automatically mapping AMC physical location to
+traditional PhysicalSlot numbers that are used in ASP to also identify
+nodes.
+
+The content of this directory should be applied to a base installation of
+OpenClovis SDK in the following way:
+- The content of the pkg-overlay directory should be copied (recursively)
+  over to the installed SDK directory
+- Then each patch file (in alphabetical order) found in the patches
+  subdirectory should be applied from the top SDK  dir (e.g., sdk-3.0)
+
+The install.sh scripts automates that process.

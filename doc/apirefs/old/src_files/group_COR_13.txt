@@ -1,0 +1,3959 @@
+\hypertarget{group__group13}{
+\chapter{Functional Overview}
+\label{group__group13}
+}
+
+\begin{flushleft}
+The ASP COR service provides interfaces to access, modify and manage the life cycle of objects. These objects are called Managed Objects as they contain 
+management information about network elements such as a Chassis. They are used to exchange information between system management 
+applications and applications running on network elements. The applications running on a network element use or produce management information.
+COR objects and metadata associated with these Managed Objects are kept in an in-memory object storage.  
+\par
+System Management Applications reside outside the network and use the services of a local management agent to interface with COR. These local agents are
+referred to as Object Managers (OM).
+\par
+Applications in a network element that use or produce the management information are referred to as Object Implementers.
+An ASP Service can act as an Object Implementer for an object of interest.
+\par
+Object Manager and Object Implementer are roles performed by applications. In the current implementation of COR, COR is unaware of Object 
+Manager and Object Implementer roles and does not enforce any semantics related to these roles. It is assumed that the OM and OI roles
+are maintained by careful application design.        
+\par
+Currently, COR does not provide support for system management applications to use their own agents while interacting with network elements.
+Management agents would need to gain exclusive control of a set of managed objects temporarily to perform some change. In the current implementation, it 
+is assumed that multiple Object Managers, if present, co-operate with each other while managing or making changes to objects.
+
+\chapter{Service Model}
+\section{Usage model}
+The users of COR are:
+\begin{Desc}
+\item
+[Management Applications (North-bound)]
+
+
+COR provides services to enable create/delete/set operations that management applications would need to provide configuration values. 
+
+\item[Object Implementor]
+A component can register with COR to perform the role of an Object implementer. The OI contains CORs run-time attributes which provide the current status 
+of the object they implement. When a management application requires this run-time information, it must
+contact the OI of that object. An OI implements any change in the object provided to it during the life time of the object. 
+\par
+An OI requires the configuration information from COR during its initialization. It uses COR's {\tt{get}} functionality to obtain this information.
+\par
+COR provides notification services that triggers an event when specified objects are created, deleted, or set.  An application can subscribe 
+to these events and specify event filters to narrow down their scope of interest.
+
+\section{Functional Description}
+\subsection{Managed Object Class Characteristics}
+\subsubsection{COR MO-Class and MSO-Class}
+
+A MO COR-class is a collection of attributes. Each class has a name. An MO-class has two services associated with it:
+\begin{itemize}
+\item
+Provisioning service 
+\item
+Alarm service
+\end{itemize}
+
+COR groups related attributes of these two services in two different Managed Service Object Class (also called MSO class).
+Thus, an MO class has two different MSO classes. One corresponding to Provision-able attributes and the other corresponding to Alarm 
+attributes. The MSO class also has a name and a list of attributes.
+\par
+ASP Alarm service determines the structure of the Alarm MSO class and uses this class to model alarms. 
+\par
+The Provision-able MSO class structure is defined by the application. From the modeling perspective, it is only the Prov MSO class that is of interest 
+to the application. For example, a GigePort class can have a group of provision-able attributes (MTU size) and a group of alarms (such as LOS, LOF
+and so on). 
+COR considers these two groups as two distinct MSO classes associated with GigePort class. An MSO class is identified by an MO class and its Service-ID 
+The Service-ID indicates if the MSO is Provision-able or corresponding to Alarm. The enumeration, {\tt{ClCorServiceIdT}}, specifies the service ID of a class.
+
+\subsubsection{MO tree and Containment}
+
+All Managed Objects in COR are organized in a tree hierarchy called the MO tree. The relationship of an MO to its parent MO in the hierarchy is referred 
+to as its "containment" relationship. An MO can only be contained in MOs belonging to other MO classes. The rules related to permitted containment relations 
+are part of the definition of an MO Class.
+
+\par
+The containment relationship allows COR to organize all MOs in a tree and is therefore mandatory from COR's perspective.
+Containment relationship is of no other significance to COR. However, it can have some special significance to management applications as some OIs 
+can be interested in a group of related objects (in a sub-tree). For example, a sub-tree could reflect the containment of the 
+availability management service (AMS) related objects and this containment can have special significance to AMS.
+
+\subsubsection{Blueprint for the MO Tree}
+
+The MO Class definitions and the permitted containment relations in COR are also referred to as the "blueprint" for the MO tree. This blueprint 
+refers to the complete set of object metadata associated with a COR instance. COR permits objects to be created and attached to a tree according to the 
+blueprint. This blueprint can be constructed using the OpenClovis Integrated Development Environment (IDE). The blueprint is exported in the COR XML
+file and imported by COR when it is initialized for the first time. The blueprint is kept in the COR's persistent storage referred to as COR-DB. 
+COR obtains the blueprint from COR-DB during its subsequent startup.
+
+\subsection{MO Attributes}
+\subsubsection{Attribute characteristics}
+Each MO attribute has the following characteristics:
+\begin{itemize}
+\item
+Name
+\item
+Type associated with attribute values
+\item
+Default value
+\item
+Qualifier
+\item
+Sub qualifiers
+\end{itemize}
+The qualifiers supported are:
+\begin{itemize}
+\item
+CONFIG
+\item
+run-time
+\end{itemize}
+
+The sub-qualifiers supported are:
+\begin{itemize}
+\item
+cached
+\item
+persistent
+\item
+initialized
+\item
+writable
+\end{itemize}
+
+\subsubsection{Attribute Types Supported}
+\begin{Desc}
+\item[Integer and String types]\end{Desc}
+
+The supported types are signed and unsigned integers of various sizes. Arrays of these integer types are also supported.  For integer types, 
+a maximum, minimum, and default value can be specified.
+
+
+\subsubsection{Caching and Persistence of COR objects}
+All COR metadata and objects are persisted in the COR-DB. However, the attribute values are not always persisted. This control can be exercised at 
+the object attribute level. Persisted object attributes are restored in a COR instance automatically after a GMS-Cluster reboot.
+\par 
+COR stores the values of attribute in the memory. This is referred to as caching. Caching results in better read access times for cached attributes. Caching of 
+data is not required when the cached data can quickly become stale. Controls are provided to prevent caching of this type of data. These are explained in
+subsequent sections.  
+
+\subsubsection{Attribute Qualifiers}
+Every attribute must be qualified as a CONFIG, run-time or KEY. These qualifiers are mutually exclusive.
+
+
+\begin{Desc}
+\item
+[Configuration Attributes]
+A configuration attribute is always persisted and cached. Configuration attributes contain data provided by the Object Managers. They are read-only from
+the perspective of the Object Implementer.
+
+
+
+\begin{Desc}
+\item[Run-time Attributes]
+A run-time attribute is not persisted or cached by default. The following sub-qualifiers (either singly or in any combination) can be associated with a 
+run-time attribute:
+\begin{itemize}
+\item
+PERSISTENT - This sub-qualifier for run-time attributes indicates that the attribute must be made persistent by the COR Service.
+\item
+CACHED - This sub-qualifier for run-time attribute indicates that the attribute must be cached by the COR service.
+\end{itemize}
+Run-time attributes are used for data provided by Object Implementers. They are read only from an Object Manager's perspective.
+A run-time attribute that is cached is updated by the Object Implementer when the value changes. When a read request is made on such a run-time attribute, 
+COR reads the value from the cache.
+A read request on a run-time attribute that is not cached triggers a synchronous request to the Object Implementer that returns with the value of the
+attribute.
+\par
+For examples:\par
+{\tt{run-time + cached ->}} Attribute showing Application log stream file name implemented by the Log service.
+\par
+{\tt{run-time + cached + persistent ->}} Administrative state of a service unit implemented by AMF.
+\par
+{\tt{run-time + multi-valued ->}} List of Service Instances currently assigned to a Service Unit, implemented by AMF.
+
+\end{Desc}
+
+\subsection{Object Addressing}
+\subsubsection{MOID}
+
+Every object in the COR MO tree has a unique ID referred to as the MOID (Managed Object ID).
+Every object has a {\tt{relative\_\-ID}} that is formed from the tuple, {\tt{class\_\-ID}} and {\tt{instance\_\-ID}}, where:
+\begin{itemize}
+\item
+class\_\-ID - uniquely identifies the MO class of which this object is an instance and 
+\item
+instance\_\-ID - uniquely identifies this instance of the object from other instances having the same parent.
+\end{itemize}
+The MOID of an object is formed from the tuple, MOID of the parent and {\tt{relative\_\-ID}} of the object.
+For example, an AMF Service Unit instance can have the following MOID: 
+{\tt{COR\_\-ROOT\_\-CLASS\_\-ID:0/APPLICATION\_\-CLASS\_\-ID:0/SERVICE\_\-GROUP\_\-CLASS\_\-ID:1/SERVICE\_\-UNITCLASS\_\-ID:3}}
+\par
+COR provides APIs to manage the life cycle of an object and to read or modify its attributes. The user is required to know the MOID of the 
+object or its parents.
+\par
+A MOID uniquely identifies an object in COR tree. However, the MOID is also used to specify ranges of objects. These is called a wild card MOID. A 
+wild card {\tt{class\_\-ID}} can represent any class and a wild card {\tt{instance\_\-ID}} can represent any instance. The wild card MOID is used for OI 
+subscription and for specifying an MO instance search criteria. Following are some of the examples of a wild card MOID:
+\begin{itemize}
+\item
+{\tt{COR\_\-ROOT\_\-CLASS\_\-ID:0/APPLICATION\_\-CLASS\_\-ID:0/SERVICE\_\-GROUP\_\-CLASS\_\-ID:1/SERVICE\_\-UNITCLASS\_\-ID:*}}\par
+Specifies all the MO instances of {\tt{SERVICE\_\-UNITCLASS\_\-ID}} class under the hierarchy. \par
+{\tt{COR\_\-ROOT\_\-CLASS\_\-ID:0/APPLICATION\_\-CLASS\_\-ID:0/SERVICE\_\-GROUP\_\-CLASS\_\-ID:1}}
+\item
+{\tt{COR\_\-ROOT\_\-CLASS\_\-ID:0/APPLICATION\_\-CLASS\_\-ID:0/SERVICE\_\-GROUP\_\-CLASS\_\-ID:1/*:*}}\par
+Specifies all the MO instance of any class under the hierarchy.\par
+{\tt{COR\_\-ROOT\_\-CLASS\_\-ID:0/APPLICATION\_\-CLASS\_\-ID:0/SERVICE\_\-GROUP\_\-CLASS\_\-ID:1}}
+\item
+{\tt{COR\_\-ROOT\_\-CLASS\_\-ID:0/APPLICATION\_\-CLASS\_\-ID:0/SERVICE\_\-GROUP\_\-CLASS\_\-ID:*/*:*}}\par
+Specifies all the MO instance of any class under the sub-tree {\tt{COR\_\-ROOT\_\-CLASS\_\-ID:0/APPLICATION\_\-CLASS\_\-ID:0/SERVICE\_\-GROUP\_\-CLASS\_\-ID:*.}}\par
+The sub-tree specified by {\tt{COR\_\-ROOT\_\-CLASS\_\-ID:0/APPLICATION\_\-CLASS\_\-ID:0/SERVICE\_\-GROUP\_\-CLASS\_\-ID:*}} covers all the MO instances\par
+of {\tt{SERVICE\_\-GROUP\_\-CLASS\_\-ID under COR\_\-ROOT\_\-CLASS\_\-ID:0/APPLICATION\_\-CLASS\_\-ID:0/}}
+\end{itemize}
+
+
+\subsection{Object Management Interfaces}
+\begin{Desc}
+\item
+[OI and Primary OI]\end{Desc}
+An Object Implementer performs several distinct operations in relation to changes in objects. 
+\begin{itemize}
+\item
+Permits or denies an object creation or deletion request.
+\item
+Permits or denies changes to a configuration attribute value.
+\item
+Implements a change in a configuration attribute when the change has occurred in COR.
+\item
+Asynchronously updates a cached runtime attribute in COR as and when the related variable changes internally.
+\item
+Synchronously provides the value of a (non cached) run-time attribute when requested by COR.
+\end{itemize}
+Every object can have one or more object implementers. While multiple OI’s can perform the first three activities, there can be only one OI that is 
+allowed to perform the last two activities. 
+
+\begin{Desc}
+\item
+[OI Registration]\end{Desc}
+A component can act as an OI for an MO as specified a wild card MOID. For example,
+\begin{itemize}
+\item
+An MO Instance specified through its MoID. For example, the MoID can be 
+\par
+COR\_\-ROOT\_\-CLASS\_\-ID:0\/APPLICATION\_\-CLASS\_\-ID:0\/SERVICE\_\-GROUP\_\-CLASS\_\-ID:1\/SERVICE\_\-UNITCLASS\_\-ID:1\/
+\item
+Instances of a particular MO Class hanging from a particular hierarchy. 
+\par
+COR\_\-ROOT\_\-CLASS\_\-ID:0\/APPLICATION\_\-CLASS\_\-ID:0\/SERVICE\_\-GROUP\_\-CLASS\_\-ID:1\/SERVICE\_\-UNITCLASS\_\-ID:*
+\item
+A complete subTree. Acomponent can specify itself as the OI for the wild card
+\par
+COR\_\-ROOT\_\-CLASS\_\-ID:0\/APPLICATION\_\-CLASS\_\-ID:0\/SERVICE\_\-GROUP\_\-CLASS\_\-ID:*\/SERVICE\_\-UNITCLASS\_\-ID:*
+\end{itemize}
+As a component can act as an OI for multiple MO instances corresponding to different MO classes, COR provides a mechanism to associate an OI callback 
+functions for each MO class.
+\par
+The OI and MO association is performed during modeling. Following are the list of OI callback functions provided by COR:
+\begin{tabular}{|l|l|p{4in}|}
+\hline
+ {\bf No.} & {\bf OI Callback Function} & {\bf Description} \\
+\hline
+         1 & Constructor & COR invokes this function when an MO is required to be created.  An application can embed its custom logic to implement
+         MO creation. Currently, MO creation/deletion does not have a validate callback function. \\
+\hline
+         2 & Destructor & COR invokes this function when an MO is required to be deleted.  An application can embed its custom logic to implement MO
+         deletion. Currently, MO creation/deletion does not have a validate callback function. \\
+\hline
+         3 & Validate & COR invokes this function to validate the attribute that is being set. The semantics of validation is specific to the OI. 
+         This function also performs the role of \textit{preparation}. For example, needs to be applied in the 
+         \textit{apply} phase if the it is valid. The application of this attribute could require certain resources. Such resources are pre-acquired as a part of the 
+         \textit{prepare} semantic. This pre-acquisition reduces the possibility of  a failure in the \textit{apply} operation. \\
+\hline
+         4 & Rollback & This function frees the pre-allocated resources, acquired in the validate phase. The rollback function is called if another
+         \textit{attribute}, part of a transaction fails to validate. \\
+\hline
+         5 & Apply & This function applies the attribute to the resource. \\
+\hline
+\end{tabular}  
+
+
+\begin{Desc}
+\item
+[COR Session Capability]\end{Desc}
+
+The COR session capability provides a mechanism to execute groups of job in an efficient manner by minimizing the number of RMD calls between the COR 
+client, COR server, and Object Implementer. The COR session capability provides a mechanism to execute create/set/delete operations on a group of MOs with
+all-are-none semantics as described in this section.
+\par
+The COR server performs a basic validation on these jobs. If one of the job validation fails, the session becomes invalid and no
+operations are performed.
+
+\par
+COR determines the OI for each participating MO, and invokes the validate functionality of the OI. If the OIs successfully validate
+their MO operation, COR invokes the apply functionality of the OI. COR also internally updates its database with these changes on the MOs. On successful
+completion, COR sends a notification for the changed MOs.
+\par
+If an OI fails validation, COR does not proceed with the apply. COR determines the set of OIs that have completed validation and calls 
+the rollback functions.
+\par
+The following sequence diagrams describe the control flow between COR-client, COR-server, and OIs for the following two cases. 
+\begin{itemize}
+\item
+A session is initiated by \textit{comp1}. In the session \textit{<mod1,attr1> ,<moid2,attr2>} and \textit{<moid3,attr3>} are getting updated.
+\item
+Both \textit{comp1} and \textit{comp2} are OIs for \textit{<moid1>} ,\textit{<moid2>}, \textit{<moid2>}.
+\item
+All OIs have the same callback function name. The name of the validate, rollback and apply callbacks are {\tt{oiValidateFxn}}, {\tt{oiRollbackFxn}} and 
+{\tt{oiApplyFxn}}. 
+\item
+Case 1:
+\begin{itemize}
+\item
+Both OIs validate \textit{<moid1,attr1>} and \textit{<moid2,attr2>}, \textit{<moid3,attr3>} succesfully.
+\item
+Thus, the apply of these attributes is successful.
+\end{itemize}
+\item
+
+
+Case2:
+\begin{itemize}
+\item
+\textit{comp1} successfully validates \textit{<moid1,attr1> ,<moid2,attr2>}, and \textit{<moid3,attr3>}.
+\item
+\textit{comp2} successfully validates \textit{<moid1,attr1>} and fails validation in \textit{<moid2,attr2>}. A rollback can now be called.
+\item
+Rollback is called for \textit{comp1} for the attributes: \textit{<mod1,attr1> , \textit{<moid2,attr2>, and \textit{<moid3, attr3>.
+\item
+Rollback is called for \textit{comp2 for the attributes: \textit{<moid1,attr1> and \textit{<moid2,attr2>.
+\item
+No attributes are applied.
+\end{itemize}
+
+\end{itemize}
+\end{flushleft}
+\newpage
+\begin{center}
+\includegraphics{cor1.jpg}
+\end{center}
+
+\newpage
+\begin{center}
+\includegraphics{cor2.jpg}
+\end{center}
+
+
+
+\begin{flushleft}
+\begin{Desc}
+\item
+[COR Bundle Capability]\end{Desc}
+The COR bundle capability provides a mechanism to execute groups of jobs in an efficient manner by minimizing the number of RMD calls between COR client, 
+COR server, and Object Implementer.  
+\par
+A bundle can be transactional or non transactional. COR service ensures that the jobs in the transactional bundle execute successfully or
+fail. No such restriction exists on a non transactional bundle. A non transactional bundle could contain jobs that are not successfully executed.
+
+
+\par
+A transactional bundle comprises Create-Job, Set-Job, and Delete-Job. A non transactional bundle consists of get-jobs.  
+
+The bundle semantics of executing jobs is performed in four phases by the application:
+\begin{enumerate}
+\item
+Bundle Creation - A bundle is empty with no jobs associated when it is created. A bundle handle that identifies this bundle is returned.
+\item
+Job Population -  In the next phase, jobs are added to the bundle. These jobs are queued at the COR client. Every job has a status and
+a buffer descriptor. The buffer descriptor contains the value of the attribute to be {\tt{set}} or {\tt{get}}. The success or failure of jobs 
+ execution is reflected in the status.
+
+\item
+Bundle Apply - An application, upon completion of Job population phase, performs the apply operation synchronously. A synchronous apply sends the 
+bundle request to the COR server and waits for the COR server's response for a pre-determined time period. The bundle apply is complete when the response is
+received. For a read-Job containing configuration attributes or runtime-cached attributes, values are read from the COR database. Other values of 
+runtime attributes are read from the OI. COR merges the value of all these attributes corresponding to different read-jobs of
+a particular bundle, from different sources and responds back to the client.
+
+\item
+Bundle Finalize
+\end{enumerate}
+\end{flushleft}
+\newpage
+\begin{center}
+\includegraphics{cor3.jpg}
+\end{center}
+
+\begin{flushleft}
+
+\begin{Desc}
+\item
+[COR Search Capability]\end{Desc}
+COR provides the capability to retrieve objects matching a particular criterion. This criterion is called the filter and the search is termed as 
+object-walk based search. Following are the parameters for this search:
+\begin{itemize}
+\item
+Root - The root from where search needs to commence. The root is specified as MoID.
+\item
+Search criterion - This is also specified as MoID and can contain wild card entries. 
+\item
+Callback function - that is executed for each matched MO instance.
+\end{itemize}
+COR provides a mechanism to filter objects based on the value of their attributes. This search is called attribute-walk search.
+This search is used in conjunction with object-walk search. 
+Object-walk returns all the MO instances that match a particular search criterion. Each of these instance can be filtered based on a particular 
+attribute and its value. Following are the parameters for this search:
+\begin{itemize}
+\item
+MO - The MO tree on which the search is required to be performed.
+\item
+Attribute and its value - that is required to be compared.
+\item
+Callback function - that is required to be called when the attribute comparison is successful. 
+\end{itemize}
+
+\begin{Desc}
+\item
+[COR Event Generation and Subscription]\end{Desc}
+COR generates an event for every object creation/deletion/set operation on the {\tt{COR\_\-EVT\_\-CHANNEL}}. Applications can specify the 
+following filters to narrow down their event of interest.
+\begin{itemize}
+\item
+MoId: Specifies the set of objects which is of interest to the application. The MoID can be a wild card MoID.
+\item
+Operation: Specifies the operation(s) that is of interest to the application. An operation can be a combination of Object-create, Object-delete, and 
+Object-set activities.
+\item
+AttributeId: This specifies the attribute of interest.
+\end{itemize}
+
+
+
+
+
+\chapter{Service APIs}
+
+
+
+\section{Error Definitions}
+\index{Defines@{Defines}}
+
+\begin{CompactItemize}
+
+\item \# define CL\_\-COR\_\-ERR\_\-BUFFER\_\-OVERRUN (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-BUFFER\_\-OVERRUN)) 
+\item \# define CL\_\-COR\_\-ERR\_\-BUNDLE\_\-APPLY\_\-FAILURE (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-BUNDLE\_\-ERR\_\-MAX + 3)) 
+\item \# define CL\_\-COR\_\-ERR\_\-BUNDLE\_\-FINALIZE (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-BUNDLE\_\-ERR\_\-MAX + 6)) 
+\item \# define CL\_\-COR\_\-ERR\_\-BUNDLE\_\-IN\_\-EXECUTION (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-BUNDLE\_\-ERR\_\-MAX + 8)) 
+\item \# define CL\_\-COR\_\-ERR\_\-BUNDLE\_\-INIT\_\-FAILURE (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-BUNDLE\_\-ERR\_\-MAX + 2)) 
+\item \# define CL\_\-COR\_\-ERR\_\-BUNDLE\_\-INVALID\_\-TYPE (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-BUNDLE\_\-ERR\_\-MAX + 9)) 
+\item \# define CL\_\-COR\_\-ERR\_\-BUNDLE\_\-TIMED\_\-OUT (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-BUNDLE\_\-ERR\_\-MAX + 7)) 
+\item \# define CL\_\-COR\_\-ERR\_\-CLASS\_\-ATTR\_\-INVALID\_\-INDEX (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 16)) 
+\item \# define CL\_\-COR\_\-ERR\_\-CLASS\_\-ATTR\_\-INVALID\_\-RELATION (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 17)) 
+\item \# define CL\_\-COR\_\-ERR\_\-CLASS\_\-ATTR\_\-NOT\_\-PRESENT (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 13)) 
+\item \# define CL\_\-COR\_\-ERR\_\-DUPLICATE (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-DUPLICATE)) 
+\item \# define CL\_\-COR\_\-ERR\_\-GET\_\-DATA\_\-NOT\_\-FOUND (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-BUNDLE\_\-ERR\_\-MAX + 1)) 
+\item \# define CL\_\-COR\_\-ERR\_\-INVALID\_\-BUFFER (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-INVALID\_\-BUFFER)) 
+\item \# define CL\_\-COR\_\-ERR\_\-INVALID\_\-DEPTH (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 5)) 
+\item \# define CL\_\-COR\_\-ERR\_\-INVALID\_\-HANDLE (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-INVALID\_\-HANDLE)) 
+\item \# define CL\_\-COR\_\-ERR\_\-INVALID\_\-PARAM (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-INVALID\_\-PARAMETER)) 
+\item \# define CL\_\-COR\_\-ERR\_\-INVALID\_\-SIZE (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 34)) 
+\item \# define CL\_\-COR\_\-ERR\_\-MAX\_\-DEPTH (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 4)) 
+\item \# define CL\_\-COR\_\-ERR\_\-NO\_\-MEM (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-NO\_\-MEMORY)) 
+\item \# define CL\_\-COR\_\-ERR\_\-NO\_\-RESOURCE (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-NO\_\-RESOURCE)) 
+\item \# define CL\_\-COR\_\-ERR\_\-NOT\_\-EXIST (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-NOT\_\-EXIST)) 
+\item \# define CL\_\-COR\_\-ERR\_\-NOT\_\-INITIALIZED (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 30)) 
+\item \# define CL\_\-COR\_\-ERR\_\-NOT\_\-SUPPORTED (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 27)) 
+\item \# define CL\_\-COR\_\-ERR\_\-NULL\_\-PTR (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-NULL\_\-POINTER)) 
+\item \# define CL\_\-COR\_\-ERR\_\-OBJ\_\-ATTR\_\-INVALID\_\-SET (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 18)) 
+\item \# define CL\_\-COR\_\-ERR\_\-OBJ\_\-ATTR\_\-NOT\_\-PRESENT (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 31)) 
+\item \# define CL\_\-COR\_\-ERR\_\-OBJ\_\-NOT\_\-PRESENT (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 33)) 
+\item \# define CL\_\-COR\_\-ERR\_\-OI\_\-ALREADY\_\-REGISTERED (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-OI\_\-ERR\_\-MAX + 2)) 
+\item \# define CL\_\-COR\_\-ERR\_\-OI\_\-NOT\_\-REGISTERED (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-OI\_\-ERR\_\-MAX + 1)) 
+\item \# define CL\_\-COR\_\-ERR\_\-ROUTE\_\-NOT\_\-PRESENT (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 26)) 
+\item \# define CL\_\-COR\_\-ERR\_\-ROUTE\_\-PRESENT (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 21)) 
+\item \# define CL\_\-COR\_\-ERR\_\-RUNTIME\_\-ATTR\_\-WRITE (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-UTILS\_\-ERR\_\-MAX + 2)) 
+\item \# define CL\_\-COR\_\-ERR\_\-RUNTIME\_\-CACHED\_\-SET (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-INST\_\-ERR\_\-MAX + 11)) 
+\item \# define CL\_\-COR\_\-ERR\_\-VERSION\_\-UNSUPPORTED (CL\_\-COR\_\-SET\_\-RC(CL\_\-ERR\_\-COMMON\_\-MAX + 35)) 
+\item \# define CL\_\-COR\_\-ERR\_\-ZERO\_\-JOBS\_\-BUNDLE (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-BUNDLE\_\-ERR\_\-MAX + 4)) 
+\item \# define CL\_\-COR\_\-INST\_\-ERR\_\-CHILD\_\-MO\_\-EXIST (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-MAX + 9)) 
+\item \# define CL\_\-COR\_\-INST\_\-ERR\_\-INVALID\_\-MOID (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-MAX + 5)) 
+\item \# define CL\_\-COR\_\-INST\_\-ERR\_\-MAX\_\-INSTANCE (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-MAX + 11)) 
+\item \# define CL\_\-COR\_\-INST\_\-ERR\_\-MO\_\-ALREADY\_\-PRESENT (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-MAX + 3)) 
+\item \# define CL\_\-COR\_\-INST\_\-ERR\_\-MSO\_\-ALREADY\_\-PRESENT (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-MAX + 2)) 
+\item \# define CL\_\-COR\_\-INST\_\-ERR\_\-MSO\_\-EXIST (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-MAX + 10)) 
+\item \# define CL\_\-COR\_\-INST\_\-ERR\_\-MSO\_\-NOT\_\-PRESENT (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-MAX + 4)) 
+\item \# define CL\_\-COR\_\-INST\_\-ERR\_\-NODE\_\-ALREADY\_\-PRESENT (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-MAX + 7)) 
+\item \# define CL\_\-COR\_\-INST\_\-ERR\_\-NODE\_\-NOT\_\-FOUND (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-MAX + 1)) 
+\item \# define CL\_\-COR\_\-INST\_\-ERR\_\-PARENT\_\-MO\_\-NOT\_\-EXIST (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-MAX + 12)) 
+\item \# define CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-MAX\_\-INST (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-BASE\_\-ERR\_\-MAX + 7)) 
+\item \# define CL\_\-COR\_\-NOTIFY\_\-ERR\_\-CANNOT\_\-RESOLVE\_\-CLASS (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-TXN\_\-ERR\_\-MAX + 2)) 
+\item \# define CL\_\-COR\_\-NOTIFY\_\-ERR\_\-INVALID\_\-OP (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-TXN\_\-ERR\_\-MAX + 1)) 
+\item \# define CL\_\-COR\_\-SVC\_\-ERR\_\-INVALID\_\-ID (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-NOTIFY\_\-ERR\_\-MAX + 2)) 
+\item \# define CL\_\-COR\_\-UTILS\_\-ERR\_\-INVALID\_\-KEY (CL\_\-COR\_\-SET\_\-RC(CL\_\-COR\_\-SVC\_\-ERR\_\-MAX + 1)) 
+
+
+\end{CompactItemize}
+
+\newpage
+\section{Object Management Type Definitions}
+
+\subsection{ClCorTxnSessionIdT}
+\index{ClCorTxnSessionIdT@{ClCorTxnSessionIdT}}
+\textit{typedef ClhandleT ClCorTxnSessionIdT;}
+\newline
+\newline
+The type of the handle of a COR transaction session. It is used by functions that manipulate the COR object such as:
+\begin{itemize}
+\item
+Creating objects.
+\item
+Setting attributes.
+\item
+Deleting objects.
+\end{itemize}
+
+
+\section{Object Addressability Type Definitions}
+
+\subsection{ClCorServiceIdT}
+\index{ClCorServiceIdT@{ClCorServiceIdT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_COR\_INVALID\_SRVC\_ID,}\\
+\>\>\>\>\textit{CL\_COR\_SVC\_ID\_FAULT\_MANAGEMENT,}\\
+\>\>\>\>\textit{CL\_COR\_SVC\_ID\_ALARM\_MANAGEMENT,}\\
+\>\>\>\>\textit{CL\_COR\_SVC\_ID\_PROVISIONING\_MANAGEMENT,}\\
+\>\>\>\>\textit{CL\_COR\_SVC\_ID\_DUMMY\_MANAGEMENT,}\\
+\textit{\} ClCorServiceIdT;}\end{tabbing}
+The values of the {\tt{ClCorServiceIdT}} enumeration type contains the service IDs(fixed) for all the MSPs.
+\begin{itemize}
+\item
+\textit{CL\_\-COR\_\-SVC\_\-ID\_\-FAULT\_\-MANAGEMENT} - represents the OpenClovis Fault Manager.
+\item
+\textit{CL\_\-COR\_\-SVC\_\-ID\_\-ALARM\_\-MANAGEMENT} - represents the OpenClovis Alarm Agent.
+\item
+\textit{CL\_\-COR\_\-SVC\_\-ID\_\-PROVISIONING\_\-MANAGEMENT} - represents the OpenClovis Provisioning Manager.
+\item
+\textit{CL\_\-COR\_\-SVC\_\-ID\_\-DUMMY\_\-MANAGEMENT} - represents the OpenClovis Dummy MSP.
+\end{itemize}
+
+
+
+
+\subsection{ClCorMOServiceIdT}
+\index{ClCorMOServiceIdT@{ClCorMOServiceIdT}}
+\textit{typedef ClInt16T ClCorMOServiceIdT;}
+\newline
+\newline
+This type is a part of the {\tt{ClCorMOIdT}} structure to access the MO or MSO. This stores the service Id of the MO/MSO whose value is equal to 
+any of the values in the enumeration type {\tt{ClCorServiceIdT}}. For an MO, the service Id is CL\_\-COR\_\-INVALID\_\-SRVC\_\-ID but for MSO the service 
+Id is the service Id defined in the enumeration {\tt{ClCorServiceIdT}} based on the type of the MSO. 
+
+
+
+\subsection{ClCorMoPathQualifierT}
+\index{ClCorMoPathQualifierT@{ClCorMoPathQualifierT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_COR\_MO\_PATH\_ABSOLUTE = 0,}\\
+\>\>\>\>\textit{CL\_COR\_MO\_PATH\_RELATIVE,}\\
+\>\>\>\>\textit{CL\_COR\_MO\_PATH\_RELATIVE\_TO\_BASE, CL\_COR\_MO\_PATH\_QUALIFIER\_MAX =}\\
+\>\>\>\>\textit{CL\_COR\_MO\_PATH\_RELATIVE\_TO\_BASE}\\
+\textit{\} ClCorMoPathQualifierT;}\end{tabbing}
+
+The enumeration {\tt{ClCorMoPathQualifierT}} specifies if the {\tt{ClCorMOId}} or {\tt{corPath}} is relative or absolute.
+\begin{itemize}
+\item
+\textit{CL\_\-COR\_\-MO\_\-PATH\_\-ABSOLUTE = 0} - Specifies that the path is absolute. It is the equivalent to Unix '/'.
+\item
+\textit{CL\_\-COR\_\-MO\_\-PATH\_\-RELATIVE} - Specifies that the path is relative.
+\item
+\textit{CL\_\-COR\_\-MO\_\-PATH\_\-RELATIVE\_\-TO\_\-BASE, CL\_\-COR\_\-MO\_\-PATH\_\-QUALIFIER\_\-MAX = CL\_\-COR\_\-MO\_\-PATH\_\-RELATIVE\_\-TO\_\-BASE} - 
+Specifies that the path is relative to the position of the blade in the COR hierarchy. It is the equivalent to unix '~'.
+\end{itemize}
+This enumeration is also part of the {\tt{ClCorMOIdT}} structure. The values of the enumeration indicate the type of the MOID required 
+while working with the MOId. For example, If the flag is CL\_\-COR\_\-MO\_\-PATH\_\-ABSOLUTE, the MOId is always absolute and the first class Id in the 
+MOId is taken as root. If the flag is CL\_\-COR\_\-MO\_\-PATH\_\-RELATIVE the first class Id in the MOId is considered as the current location. 
+In the current implementation, only the flag CL\_\-COR\_\-MO\_\-PATH\_\-ABSOLUTE is valid.
+
+
+
+\subsection{ClCorAddrT}
+\index{ClCorAddrT@{ClCorAddrT}}
+
+\textit{typedef ClIocPhysicalAddressT ClCorAddrT;}
+\newline
+\newline
+This type definition contains the IOC physical address and the port address of the component that registers itself as an OI for a MO.
+
+
+\subsection{ClCorAddrPtrT}
+\index{ClCorAddrPtrT@{ClCorAddrPtrT}}
+
+\textit{typedef ClCorAddrT * ClCorAddrPtrT; }
+
+The type of an identifier which is a pointer to the structure of IOC physical address. This is populated with the IOC physical address of the component 
+that acts as an Object Implementor (OI) for a Managed Object (MO). It is passed as a parameter to the OI registration function.
+
+
+
+\subsection{ClCorMOId}
+\index{ClCorMOId@{ClCorMOId}}
+
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct ClCorMOId\{}\\
+\>\>\>\>\textit{ClCorMOhandleT        node[CL\_COR\_HANDLE\_MAX\_DEPTH];}\\
+\>\>\>\>\textit{ClCorMOServiceIdT     svcId;}\\
+\>\>\>\>\textit{ClUint16T        depth;}\\
+\>\>\>\>\textit{ClCorMoPathQualifierT qualifier;}\\
+\textit{\};}\end{tabbing}
+\#define CL\_\-COR\_\-CLASS\_\-WILD\_\-CARD ((ClCorClassTypeT) 0xFFFFFFFE)
+\newline
+\newline
+\#define CL\_\-COR\_\-INSTANCE\_\-WILD\_\-CARD 0xFFFFFFFE
+
+ The structure {\tt{ClCorMOId}} contains the {\tt{MoId}} of the object, which is the address of the COR object. It provides a unique
+ representation for the MO object. The type of Service Id is 16 bits in length. The attributes of this structure are:
+\begin{itemize}
+\item
+\textit{node} - MO handle address. This is the combination of class Id and instance Id that uniquely identifies a node and provides the path
+to access the object node. The class id and instance Id can take wild card entries by assigning the macros, 
+{\tt{CL\_\-COR\_\-CLASS\_\-WILD\_\-CARD}} and {\tt{CL\_\-COR\_\-INSTANCE\_\-WILD\_\-CARD}}.
+\item
+\textit{svcId} - Service ID. This takes the values of the enumeration {\tt{ClCorServiceIdT}}. 
+The service Id to access the MO is CL\_\-COR\_\-INVALID\_\-SRVC\_\-ID.
+The service Id to access the alarm MSO is CL\_\-COR\_\-SVC\_\-ID\_\-ALARM\_\-MANAGEMENT.
+The service Id to access the provisioning MSO is CL\_\-COR\_\-SVC\_\-ID\_\-PROVISIONING\_\-MANAGEMENT.
+\item
+\textit{depth} - Depth of the MoId. It is the number of elements in {\tt{ClCorMOhandleT}} - 1.
+\item
+\textit{qualifier} - handle qualifier. This must contain the value, CL\_\-COR\_\-MO\_\-PATH\_\-ABSOLUTE.
+\end{itemize}
+
+
+
+
+\subsection{ClCorMOIdPtrT}
+\index{ClCorMOIdPtrT@{ClCorMOIdPtrT}}
+\textit{typedef ClCorMOIdT* ClCorMOIdPtrT;}
+\newline
+\newline
+A pointer type to \textit{ClCorMOIdT}.
+
+
+\subsection{ClCorObjectHandleT}
+\index{ClCorObjectHandleT@{ClCorObjectHandleT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct ClCorObjectHandle \{ }\\
+\>\>\>\>\textit{ClUint8T tree [8]; }\\
+\textit{\} ClCorObjectHandleT;} \end{tabbing}
+
+The structure {\tt{ClCorObjectHandle}} contains the COR Object handle. The handle identifies the hierarchy in the object tree. objhandle hierarchy is 
+compressed and indicates the indexes. objTree handle represents the tree. The COR server returns this handle to the client after the object 
+is created. 
+
+
+
+\subsection{ClCorAttrPathT}
+\index{ClCorAttrPathT@{ClCorAttrPathT}}
+
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClUint16T depth;}\\
+\>\>\>\>\textit{ClCorAttrIdIdxPairT node \mbox{[}CL\_COR\_CONT\_ATTR\_MAX\_DEPTH\mbox{]};}\\
+\>\>\>\>\textit{ClUint16T tmp;}\\
+\textit{\}ClCorAttrPathT;}\end{tabbing}
+The structure {\tt{ClCorAttrPathT}} contains the path-list of the attribute.
+\begin{itemize}
+\item
+\textit{depth} - Depth of the path.
+\item
+\textit{node} - Attribute ID and index pair.
+\item
+\textit{tmp} - Used for padding.
+\end{itemize}
+
+
+
+
+\subsection{ClCorAttrPathPtrT}
+\index{ClCorAttrPathPtrT@{ClCorAttrPathPtrT}}
+
+\textit{typedef ClCorAttrPathT* ClCorAttrPathPtrT;}
+\newline
+\newline
+The type of the pointer to {\tt{ClCorAttrPathT}}.
+
+
+\subsection{ClCorMoIdClassGetFlagsT}
+\index{ClCorMoIdClassGetFlagsT@{ClCorMoIdClassGetFlagsT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_COR\_MO\_CLASS\_GET,}\\
+\>\>\>\>\textit{CL\_COR\_MSO\_CLASS\_GET}\\
+\textit{\} ClCorMoIdClassGetFlagsT;}\end{tabbing}
+The values of the {\tt{ClCorMoIdClassGetFlagsT}} enumeration type must be used in the 
+{\tt{clCorMoIdToClassGet()}} function to request for the class Id of the MO or MSO while providing the MoId.
+
+
+
+\subsection{ClCorObjTypesT}
+\index{ClCorObjTypesT@{ClCorObjTypesT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_COR\_OBJ\_TYPE\_SIMPLE,}\\
+\>\>\>\>\textit{CL\_COR\_OBJ\_TYPE\_MO,}\\
+\>\>\>\>\textit{CL\_COR\_OBJ\_TYPE\_MSO}\\
+\textit{\} ClCorObjTypesT;}\end{tabbing}
+The values of the {\tt{ClCorObjWalkFlagsT}} enumeration type is used to obtain the type of the COR object. A COR object can be of the type MO or MSO.
+This is used by the {\tt{clCorObjectHandleToTypeGet()}} function which takes the object handle as the IN parameter and returns the type of the object as 
+the OUT parameter.
+
+\section{Object Search Type definitions}
+ \subsection{ClCorAttrWalkOpT}
+\index{ClCorAttrWalkOpT@{ClCorAttrWalkOpT}}
+	    \begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum\{}\\
+	           \>\>\>\>\textit{CL\_COR\_ATTR\_INVALID\_OPTION = 0,}\\
+	                 \>\>\>\>\textit{CL\_COR\_ATTR\_WALK\_ALL\_ATTR,}\\
+	                 \>\>\>\>\textit{CL\_COR\_ATTR\_WALK\_ONLY\_MATCHED\_ATTR,}\\
+	                 \>\>\>\>\textit{CL\_COR\_ATTR\_WALK\_MAX}\\
+           \textit{\}ClCorAttrWalkOpT;}\end{tabbing}
+The enumeration {\tt{ClCorAttrWalkOpT}} contains the various options for walk operation on the attributes, if the filter condition is TRUE.         
+If {\tt{CL\_\-COR\_\-ATTR\_\-WALK\_\-ONLY\_\-MATCHED\_\-ATTR}} is specified, the walk is performed only on the matching attribute in the MO. If 
+{\tt{CL\_\-COR\_\-ATTR\_\-WALK\_\-ALL\_\-ATTR}} is specified, the walk is performed on all the attributes in the MO.
+
+
+
+
+\subsection{ClCorAttrCmpFlagT}
+\index{ClCorAttrCmpFlagT@{ClCorAttrCmpFlagT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum\{}\\
+\>\>\>\>\textit{CL\_COR\_ATTR\_CMP\_FLAG\_INVALID = 0,}\\
+\>\>\>\>\textit{CL\_COR\_ATTR\_CMP\_FLAG\_VALUE\_EQUAL\_TO,}\\
+              \>\>\>\>\textit{CL\_COR\_ATTR\_CMP\_FLAG\_VALUE\_LESS\_THAN,}\\
+              \>\>\>\>\textit{CL\_COR\_ATTR\_CMP\_FLAG\_VALUE\_LESS\_OR\_EQUALS,}\\
+              \>\>\>\>\textit{CL\_COR\_ATTR\_CMP\_FLAG\_VALUE\_GREATER\_THAN,}\\
+              \>\>\>\>\textit{CL\_COR\_ATTR\_CMP\_FLAG\_VALUE\_GREATER\_OR\_EQUALS,}\\
+              \>\>\>\>\textit{CL\_COR\_ATTR\_CMP\_FLAG\_MAX}\\
+       \>\>\>\>\textit{\}ClCorAttrCmpFlagT;}\end{tabbing}
+   The enumeration {\tt{ClCorAttrCmpFlagT}} contains the comparison flags used to compare the attribute values with a specified value.
+It is used to filter the attributes of the MO while performing the walk operation.
+
+
+\subsection{ClCorObjectWalkFunT}
+\index{ClCorObjectWalkFunT@{ClCorObjectWalkFunT}}
+
+\textit{typedef ClRcT(*ClCorObjectWalkFunT)(void *data, void *cookie);}
+\newline
+\newline
+This typedef is the prototype for the COR Object Walk callback Function. The callback function must be provided as a parameter to the object walk 
+function, {\tt{clCorObjectWalk}}. The callback function is defined by the applicaiton and is called for each object.
+
+
+
+\subsection{ClCorObjAttrWalkFilter}
+\index{ClCorObjAttrWalkFilter@{ClCorObjAttrWalkFilter}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct ClCorObjAttrWalkFilter\{}\\
+\>\>\>\>\textit{ClUint8T              baseAttrWalk;}\\
+\>\>\>\>\textit{ClCorAttrPathT       *pAttrPath;}\\
+\>\>\>\>\textit{ClCorAttrIdT          attrId;}\\
+\>\>\>\>\textit{ClInt32T              index;}\\
+\>\>\>\>\textit{ClCorAttrCmpFlagT     cmpFlag;}\\
+\>\>\>\>\textit{ClCorAttrWalkOpT      attrWalkOption;}\\
+\>\>\>\>\textit{ClUint32T             size;}\\
+\>\>\>\>\textit{void                 *value;}\\
+\textit{\};}\end{tabbing}
+\textit{typedef struct ClCorObjAttrWalkFilter ClCorObjAttrWalkFilterT;}
+\newline
+\newline
+The structure {\tt{ClCorObjAttrWalkFilter}} is used to specify filter properties while performing Object walk operation. The attributes of the structure are:
+\begin{itemize}
+\item
+\textit{baseAttrWalk} - This is a depreciated feature and must always be {\tt{CL\_\-TRUE}} for attribute walk.
+\item
+\textit{contAttrPath} - This is a depreciated feature and must always be {\tt{CL\_\-TRUE}} for attribute walk.
+\item
+\textit{pAttrPath} - This is a deprecated feature and must be set to NULL. 
+\item
+\textit{attrId} - This must contain either a valid attribute ID or {\tt{CL\_\-COR\_\-INVALID\_\-ATTR\_\-ID}}. If the value set to 
+{\tt{CL\_\-COR\_\-INVALID\_\-ATTR\_\-ID}}, no attribute value comparison is performed. 
+\item
+\textit{index} - It is used to specify the index for ARRAY attributes. For a SIMPLE attribute, the index is set to {\tt{CL\_\-COR\_\-INVALID\_\-ATTR\_\-IDX}}.
+\item
+\textit{cmpFlag} - The comparison flag is used to compare an attrId against a specified value. Following are the comparison operations:
+ 	\begin{itemize}
+ 	\item
+       {\tt{CL\_\-COR\_\-ATTR\_\-CMP\_\-FLAG\_\-VALUE\_\-EQUAL\_\-TO}}: The attributes whose value is equal to the specified value is matched.
+ 	\item
+       {\tt{CL\_\-COR\_\-ATTR\_\-CMP\_\-FLAG\_\-VALUE\_\-LESS\_\-THAN}}: The attributes whose value is greater than the specified value is matched.
+        	\item
+       {\tt{CL\_\-COR\_\-ATTR\_\-CMP\_\-FLAG\_\-VALUE\_\-LESS\_\-OR\_\-EQUALS}}: The attributes whose value is greater than or equal to the specified 
+       value is matched.
+        	\item
+       {\tt{CL\_\-COR\_\-ATTR\_\-CMP\_\-FLAG\_\-VALUE\_\-GREATER\_\-THAN}}: The attributes whose value is less than the specified value is matched.
+        	\item
+       {\tt{CL\_\-COR\_\-ATTR\_\-CMP\_\-FLAG\_\-VALUE\_\-GREATER\_\-OR\_\-EQUALS}}: The attributes whose value is less than or equal to the specified 
+       value is matched.
+	 	\end{itemize}
+\item
+\textit{attrWalkOption} - If comparison condition comes true, then {\tt{attrWalkOption}} can either
+ be {\tt{CL\_\-COR\_\-ATTR\_\-WALK\_\-ALL\_\-ATTR}} or {\tt{CL\_\-COR\_\-ATTR\_\-WALK\_\-ONLY\_\-MATCHED\_\-ATTR}}.
+\item
+\textit{size} - The size of the value.
+\item
+\textit{value} - Pointer to the value.
+\end{itemize}
+
+
+
+\subsection{ClCorObjAttrWalkFuncT}
+\index{ClCorObjAttrWalkFuncT@{ClCorObjAttrWalkFuncT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef ClRcT (ClCorObjAttrWalkFuncT) ( \{}\\
+\>\>\>\>\textit{ClCorAttrPathPtrT pAttrPath,}\\
+\>\>\>\>\textit{ClCorAttrIdT attrId,}\\
+\>\>\>\>\textit{ClCorAttrTypeT attrType,}\\
+\>\>\>\>\textit{ClCorTypeT attrDataType,}\\
+\>\>\>\>\textit{void *value,}\\
+\>\>\>\>\textit{ClUint32T size,}\\
+\>\>\>\>\textit{ClPtrT attrData,}\\
+\>\>\>\>\textit{void *cookie);}\\
+\end{tabbing}
+ The type of the callback function that is invoked for every attribute within a COR object, during the walk operation.
+ \begin{itemize}
+ \item
+ \textit{pAttrPath} - Path of contained object whose attribute is being walked. 
+This must be NULL for base object attributes. \item
+ \textit{attrId} - Attribute ID.
+ \item
+ \textit{attrType} - Attribute type. It can take one of the following values:
+ \begin{itemize}
+ \item
+ CL\_\-COR\_\-SIMPLE\_\-ATTR
+ \item
+ CL\_\-COR\_\-ARRAY\_\-ATTR
+ \item
+ CL\_\-COR\_\-ASSOCIATION\_\-ATTR
+\end{itemize}
+ \item
+ \textit{attrDataType} - Data type of the attribute. This is valid only for SIMPLE and ARRAY attributes. For ASSOCIATION attributes, {\tt{attrDataType}} is
+ {\tt{CL\_\-COR\_\-INVALID\_\-DATA\_\-TYPE}}.
+ \item
+ \textit{value} - ¬Pointer to the value of the attribute.
+ \item
+ \textit{size} - Size of the value.
+ \item
+\textit{attrData} - ¬Pointer to the attribute data, {\tt{ClCorAttrFlagT}} which contains the flags set for the attribute.
+ \item
+ \textit{cookie} - The user data (or cookie) that is passed as a parameter to the {\tt{clCorObjectAttributeWalk()}} function.
+ \end{itemize}
+
+
+
+
+\subsection{ClCorObjWalkFlagsT}
+\index{ClCorObjWalkFlagsT@{ClCorObjWalkFlagsT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_COR\_MOTREE\_WALK,}\\
+\>\>\>\>\textit{CL\_COR\_MO\_WALK,}\\
+\>\>\>\>\textit{CL\_COR\_MSO\_WALK,}\\
+\>\>\>\>\textit{CL\_COR\_MO\_SUBTREE\_WALK,}\\
+\>\>\>\>\textit{CL\_COR\_MSO\_SUBTREE\_WALK,}\\
+\>\>\>\>\textit{CL\_COR\_MO\_WALK\_UP,}\\
+\>\>\>\>\textit{CL\_COR\_MSO\_WALK\_UP}\\
+\textit{\} ClCorObjWalkFlagsT;}\end{tabbing}
+ The {\tt{ClCorObjWalkFlagsT}} enumeration type contains walk related definitions. It is used to perform a walk operation through an MO tree.
+ The following are currently supported:
+\begin{itemize}
+\item
+\textit{CL\_\-COR\_\-MO\_\-WALK} - Walks through the object tree and returns the MOs below the root MOId that satisfies the filter.
+criteria.
+\item
+\textit{CL\_\-COR\_\-MSO\_\-WALK} - Returns the object handle of all the MSO objects below the root MOId that satisfies the filter criteria.
+\end{itemize}
+
+
+\section{Managed Object Class Type Definitions}
+\subsection{ClCorClassTypeT}
+\index{ClCorClassTypeT@{ClCorClassTypeT}}
+\textit{typedef ClInt32T ClCorClassTypeT;}
+\newline
+\newline
+The type of an identifier for the COR class.
+
+
+\subsection{ClCorInstanceIdT}
+\index{ClCorInstanceIdT@{ClCorInstanceIdT}}
+\textit{typedef ClInt32T ClCorInstanceIdT;}
+\newline
+\newline
+The type of an identifier for a COR instance.
+
+
+\subsection{ClCorTypeT}
+\index{ClCorTypeT@{ClCorTypeT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum ClCorType\{}\\
+\>\>\>\>\textit{CL\_COR\_INVALID\_DATA\_TYPE = -1,}\\
+\>\>\>\>\textit{CL\_COR\_VOID,}\\
+\>\>\>\>\textit{CL\_COR\_INT8,}\\
+\>\>\>\>\textit{CL\_COR\_UINT8,}\\
+\>\>\>\>\textit{CL\_COR\_INT16,}\\
+\>\>\>\>\textit{CL\_COR\_UINT16,}\\
+\>\>\>\>\textit{CL\_COR\_INT32,}\\
+\>\>\>\>\textit{CL\_COR\_UINT32,}\\
+\>\>\>\>\textit{CL\_COR\_INT64,}\\
+\>\>\>\>\textit{CL\_COR\_UINT64,}\\
+\>\>\>\>\textit{CL\_COR\_FLOAT,}\\
+\>\>\>\>\textit{CL\_COR\_DOUBLE,}\\
+\>\>\>\>\textit{CL\_COR\_COUNTER32,}\\
+\>\>\>\>\textit{CL\_COR\_COUNTER64,}\\
+\>\>\>\>\textit{CL\_COR\_SEQUENCE32,}\\
+\textit{\} ClCorTypeT;}\end{tabbing}
+The {\tt{ClCorType}} enumeration contains the basic COR data types. Following are its values:
+\begin{itemize}
+\item
+\textit{CL\_\-COR\_\-VOID} - Void data type.
+\item
+\textit{ CL\_\-COR\_\-INT8} - Character data type.
+\item
+\textit{  CL\_\-COR\_\-UINT8} - Unsigned character.
+\item
+\textit{ CL\_\-COR\_\-INT16} - Short data type.
+\item
+\textit{  CL\_\-COR\_\-UINT16} - Unsigned short.
+\item
+\textit{  CL\_\-COR\_\-INT32} - Integer data type.
+\item
+\textit{  CL\_\-COR\_\-UINT32} - Unsigned integer data type.
+\item
+\textit{  CL\_\-COR\_\-INT64} - Long long data type.
+\item
+\textit{  CL\_\-COR\_\-UINT64} - Unsigned long long data type.
+\item
+\textit{  CL\_\-COR\_\-FLOAT} - Float data type. This data type will be supported in future releases, if used will default to {\tt{CL\_\-COR\_\-UINT32}}.
+\item
+\textit{  CL\_\-COR\_\-DOUBLE} - Double data type. This data type will be supported in future releases, if used will default to {\tt{CL\_\-COR\_\-UINT32}}.
+\item
+\textit{    CL\_\-COR\_\-COUNTER32} - Counter data type. This data type will be supported in future releases, if used will default to 
+{\tt{CL\_\-COR\_\-UINT32}}.
+\item
+\textit{  CL\_\-COR\_\-COUNTER64} -  Counter 64-bits data type. This data type will be supported in future releases, if used will default to 
+{\tt{CL\_\-COR\_\-UINT32}}.
+\item
+\textit{    CL\_\-COR\_\-SEQUENCE32} -  Sequence number data type. This data type will be supported in future releases, if used will default to 
+{\tt{CL\_\-COR\_\-UINT32}}.
+\end{itemize}
+
+
+\subsection{ClCorAttrTypeT}
+\index{ClCorAttrTypeT@{ClCorAttrTypeT}}
+
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_COR\_MAX\_TYPE,}\\
+\>\>\>\>\textit{CL\_COR\_SIMPLE\_ATTR,}\\
+\>\>\>\>\textit{CL\_COR\_ARRAY\_ATTR,}\\
+\>\>\>\>\textit{CL\_COR\_CONTAINMENT\_ATTR,}\\
+\>\>\>\>\textit{CL\_COR\_ASSOCIATION\_ATTR,}\\
+\>\>\>\>\textit{CL\_COR\_VIRTUAL\_ATTR}\\
+\textit{\} ClCorAttrTypeT;}\end{tabbing}
+The values of the {\tt{ClCorAttrTypeT}} enumeration type refer to the COR Attribute types. Following are its values:
+\begin{itemize}
+\item
+\textit{CL\_COR\_SIMPLE\_ATTR} - SIMPLE attribute type.
+\item
+\textit{CL\_COR\_ARRAY\_ATTR} - ARRAY attribute type.
+\item
+\textit{CL\_COR\_CONTAINMENT\_ATTR} - Containment attribute type. This is currently not supported.
+\item
+\textit{CL\_COR\_ASSOCIATION\_ATTR} - Association attribute type. This is currently not supported.
+\item
+\textit{CL\_COR\_VIRTUAL\_ATTR} - Virtual attribute type. This is currently not supported.
+\end{itemize}
+
+
+
+
+
+\subsection{ClCorOpsT}
+\index{ClCorOpsT@{ClCorOpsT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_COR\_OP\_RESERVED,}\\
+\>\>\>\>\textit{CL\_COR\_OP\_CREATE,}\\
+\>\>\>\>\textit{CL\_COR\_OP\_SET,}\\
+\>\>\>\>\textit{CL\_COR\_OP\_DELETE,}\\
+\>\>\>\>\textit{CL\_COR\_OP\_ALL}\\
+\textit{\} ClCorOpsT;}\end{tabbing}
+The values of the {\tt{ClCorOpsT}} enumeration type refer to the Operation IDs. A combination can be used.
+
+
+
+\subsection{ClCorAttrIdT}
+\index{ClCorAttrIdT@{ClCorAttrIdT}}
+\textit{typedef ClInt32T ClCorAttrIdT;}
+\newline
+\newline
+The type of an identifier for a COR attribute.
+\begin{itemize}
+\item
+\textit{\#define CL\_\-COR\_\-INVALID\_\-ATTR\_\-ID         -1}
+\item
+\textit{\#define CL\_\-COR\_\-INVALID\_\-ATTR\_\-IDX        -1}
+\end{itemize}
+
+The macro {\tt{CL\_\-COR\_\-INVALID\_\-ATTR\_\-ID}} defines an invalid attribute ID. This is used while specifying the search criterion during the object 
+attribute walk.
+
+The macro {\tt{CL\_\-COR\_\-INVALID\_\-ATTR\_\-IDX}} defines an invalid array index. This is used to specify the index of non array attribute.
+
+
+\subsection{ClCorAttrFlagT}
+\index{ClCorAttrFlagT@{ClCorAttrFlagT}}
+\textit{typedef ClUint32T ClCorAttrFlagT;}
+\newline
+\newline
+The type of an identifier for specifying the attribute flag. This is 32 bit value containing the ORed value of the valid combinations of the attribute
+Flags.
+\begin{itemize}
+\item
+\textit{\#define CL\_\-COR\_\-ATTR\_\-CACHED 0x00000100}
+\item
+\textit{\#define CL\_\-COR\_\-ATTR\_\-NON\_\-CACHED 0x00000200}
+\item
+\textit{\#define CL\_\-COR\_\-ATTR\_\-PERSISTENT 0x00000400}
+\item
+\textit{\#define CL\_\-COR\_\-ATTR\_\-NON\_\-PERSISTENT 0x00008400}
+\item
+\textit{\#define CL\_\-COR\_\-ATTR\_\-CONFIG 0x01000000}
+\item
+\textit{\#define CL\_\-COR\_\-ATTR\_\-RUNTIME 0x02000000}
+\end{itemize}
+
+
+\newpage
+\section{Library Life Cycle APIs}
+\subsection{clCorBundleInitialize}
+\index{clCorBundleInitialize@{clCorBundleInitialize}}
+\hypertarget{pagecor153}{}\paragraph{cl\-Cor\-Bundle\-Initialize}\label{pagecor153}
+\begin{Desc}
+\item[Synopsis:] Creates a bundle and returns a unique handle that identifies this bundle.
+\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorBundleInitialize ( 
+					CL_OUT ClCorBundleHandleT *bundleHandle,
+					CL_IN  ClCorBundleConfigT  *config);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em *bundle\-Handle:}](out) This parameter identifies the bundle.
+\item[{\em *config:}](in) The {\tt{config->bundleType}} element indicates if the bundle is transactional or nontransactional.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}] The function executed successfully. The Job was successfully queued in the bundle.
+\item[{\em CL\_\-COR\_\-ERR\_\-NO\_\-MEM:}] Bundle initialization failed due to insufficient memory.
+\item[{\em CL\_\-COR\_\-ERR\_\-BUNDLE\_\-INIT\_\-FAILURE:}] Generic bundle intialization failure.
+\item[{\em CL\_\-COR\_\-ERR\_\-BUNDLE\_\-INVALID\_\-CONFIG:}] The transactional bundle configuration is currently not supported.
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}] {\tt{bundleHandle}} is NULL.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This API creates a bundle and returns a unique handle that identifies this bundle. {\tt{clCorBundleObjectGet}}, 
+{\tt{clCorBundleApply}}, {\tt{clCorBundleApplyAsync}}, and {\tt{clCorBundleFinalize}} functions use this handle to uniquely identify the bundle.
+
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor151}{clCorBundleApply},
+\hyperlink{pagecor152}{clCorBundleApplyAsync}, \hyperlink{pagecor154}{clCorBundleFinalize}. 
+\end{Desc}
+\newpage
+
+
+
+\subsection{clCorBundleFinalize}
+\index{clCorBundleFinalize@{clCorBundleFinalize}}
+\hypertarget{pagecor154}{}\paragraph{cl\-Cor\-Bundle\-Finalize}\label{pagecor154}
+\begin{Desc}
+\item[Synopsis:] Finalizes the bundle.
+\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorBundleFinalize(
+   					CL_INOUT ClCorBundleHandleT *bundleHandle);
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em *bundle\-Handle:}](in/out) This parameter identifies the bundle.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}] Bundle is finalized successfully.
+\item[{\em CL\_\-COR\_\-ERR\_\-BUNDLE\_\-FINALIZE:}] Failure while deleting resources.
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-HANDLE:}] {\tt{bundleHandle}} is invalid.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This API finalizes the bundle and frees all the resources associated with the bundle. {\tt{bundleHandle}} is made invalid.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor153}{clCorBundleInitialize}.
+\end{Desc}
+\newpage
+
+
+
+
+
+\section{Object Management APIs}
+\index{clCorObjectCreate@{clCorObjectCreate}}
+\subsection{clCorObjectCreate}
+\hypertarget{pagecor100}{}\paragraph{cl\-Cor\-Object\-Create}\label{pagecor100}
+\begin{Desc}
+\item[Synopsis:]Creates a COR object.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clCorObjectCreate(
+                           		CL_INOUT ClCorTxnSessionIdT *txnSessionId,
+                           		CL_IN  ClCorMOIdPtrT moId,
+                           		CL_OUT ClCorObjectHandleT *handle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Session\-Id:}] (in/out) Transaction Session ID. A value of {\tt{CL\_\-COR\_\-SIMPLE\_\-TXN}} indicates the transaction is a SIMPLE 
+transaction. 
+\par 
+For a complex transaction, it is initialized to zero and passed to all the calls of the object-create function. Finally, it is passed to the 
+{\tt{clCorTxnSessionCommit()}} function. 
+\item[{\em MoId:}](in) ID of the object to be created. 
+\item[{\em handle:}](out) Pointer to the object handle.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{txnSessionId}} or {\tt{moId}} is a NULL pointer. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NO\_\-MEM:}]Memory allocation failure. 
+\item[{\em CL\_\-COR\_\-INST\_\-ERR\_\-INVALID\_\-MOID:}]{\tt{{\tt{MoId}}}} is invalid.
+\item[{\em CL\_\-COR\_\-ERR\_\-CLASS\_\-NOT\_\-PRESENT:}] The specified Class is not present. 
+\item[{\em CL\_\-COR\_\-INST\_\-ERR\_\-NODE\_\-NOT\_\-FOUND:}] Parent class is not present in the instance tree. 
+\item[{\em CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-NODE\_\-NOT\_\-FOUND:}]{\tt{mo\-Tree}} node is not present for the class. 
+\item[{\em CL\_\-COR\_\-INST\_\-ERR\_\-MAX\_\-INSTANCE:}]Maximum Instance count for this object is reached. 
+\item[{\em CL\_\-COR\_\-INST\_\-ERR\_\-MO\_\-ALREADY\_\-PRESENT:}]MO is present in the instance tree. 
+\item[{\em CL\_\-COR\_\-ERR\_\-VERSION\_\-UNSUPPORTED:}]Version is not supported. 
+\item[{\em CL\_\-COR\_\-INST\_\-ERR\_\-MSO\_\-ALREADY\_\-PRESENT:}]MSO is present in the Object Tree. 
+\item[{\em CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-CLASS\_\-NO\_\-PRESENT:}]MSO Class is not present in the MO Tree.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to create a COR object. It is used to create both the MO and MSO objects. {\tt{{\tt{MoId}}}}, passed to this
+function must be valid (the MO class tree must be present for that {\tt{{\tt{MoId}}}}. The service ID of an MSO object is valid in the {\tt{{\tt{MoId}}}}, 
+whereas the service ID of an MO object is invalid in the {\tt{{\tt{MoId}}}}. So, you must be careful while creating an MSO object. When
+an object-create involves multiple {\tt{{\tt{MoId}}s}} in one transaction, the {\tt{object}} handle becomes valid only after the transaction
+is committed without any errors.
+ \par
+ In the current implementation, an incorrect {\tt{{\tt{MoId}}}} results in incorrect completion of the transaction. All operations that
+ are queued before the failing operation are completed. However, operations queued up after the failing operation remains incomplete. 
+ \par
+ For a simple transaction, the transaction ID {\tt{txn\-Session\-Id}}, is set to {\tt{CL\_\-COR\_\-SIMPLE\_\-TXN}}. A transaction that involves setting
+ of multiple attributes for multiple MOs is termed as Complex Transaction. Through a transaction, an application can atomically create/delete MOs, and 
+ set the attributes. To initiate a complex transaction, you must initialize the {\tt{txn\-Session\-Id}} variable to zero and pass 
+ {\tt{txn\-Session\-ID}} as the first argument to the {\tt{clCorObjectCreate()}} function. The function in turn, returns a transaction ID through 
+ {\tt{txn\-Session}}. This ID must be passed as the first parameter for subsequent invocations of 
+  {\tt{cl\-Cor\-Object\-Attribute\-Set/cl\-Cor\-Object\-Create/cl\-Cor\-Object\-Delete}} functions. A Complex Transaction is terminated through a call to
+ \textit{clCorTxnSessionCommit()}.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor127}{cl\-Cor\-Object\-Attribute\-Get} , \hyperlink{pagecor101}{cl\-Cor\-Object\-Attribute\-Set} , 
+\hyperlink{pagecor130}{cl\-Cor\-Object\-Delete} \end{Desc}
+\newpage
+
+
+\subsection{clCorObjectAttributeSet}
+\index{clCorObjectAttributeSet@{clCorObjectAttributeSet}}
+\hypertarget{pagecor101}{}\paragraph{cl\-Cor\-Object\-Attribute\-Set}\label{pagecor101}
+\begin{Desc}
+\item[Synopsis:]Sets the attribute of a COR object\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}  ClRcT clCorObjectAttributeSet(
+                                  	CL_INOUT ClCorTxnSessionIdT *txnSessionId
+                                  	CL_IN    ClCorObjecthandleT phandle,
+                                  	CL_IN    ClCorAttrPathPtrT contAttrPath,
+                                  	CL_IN    ClCorAttrIdT attrId,
+                                  	CL_IN    ClUint32T index,
+                                  	CL_IN    void *value,
+                                  	CL_IN    ClUint32T size);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Session\-Id:}](in/out) Transaction Session ID. 
+\item[{\em p\-handle:}](in) handle of the object whose attribute is being set. 
+\item[{\em cont\-Attr\-Path:}](in) Containment hierarchy. 
+\item[{\em attr\-Id:}](in) ID of the attribute. 
+\item[{\em index:}](in) Attribute index. ({\tt {CL\_\-COR\_\-INVALID\_\-ATTR\_\-IDX}} for a SIMPLE attribute). 
+\item[{\em value:}](in) Pointer to the value required to be set. 
+\item[{\em size:}](in) Size of the value.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{txnSessionId}} or {\tt{value}} is a NULL pointer. 
+\item[{\em CL\_\-COR\_\-TXN\_\-ERR\_\-INVALID\_\-JOB\_\-ID:}] The job ID is invalid . 
+\item[{\em CL\_\-COR\_\-ERR\_\-CLASS\_\-ATTR\_\-INVALID\_\-INDEX:}] Index is used for the SIMPLE attribute. 
+\item[{\em CL\_\-COR\_\-ERR\_\-CLASS\_\-ATTR\_\-NOT\_\-PRESENT:}]The attribute ID is not present.
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-SIZE:}] For simple attributes, the parameter {\tt{size}} is less than the {\tt{size}} associated with the 
+attribute {\tt{attrId}}. For array attributes, this error is returned in one of the following cases.
+\begin{itemize}
+\item {\tt{size}} is greater than the size of the associated array elements that must be updated.
+\item the parameter {\tt{size}} is less than size of an individual array element.
+\item The parameter size is not an integer, multiple of the individual array element. 
+\end{itemize}
+\item[{\em CL\_\-COR\_\-ERR\_\-OBJ\_\-ATTR\_\-INVALID\_\-SET:}]This error code is returned in case of simple attributes, when the value is not within
+the range specified by {\em min\/} and {\em max\/} values associated with the attribute.
+\item[{\em CL\_\-COR\_\-ERR\_\-CLASS\_\-ATTR\_\-INVALID\_\-INDEX:}]Invalid index in case of complex attribute. 
+\item[{\em CL\_\-COR\_\-ERR\_\-CLASS\_\-ATTR\_\-INVALID\_\-RELATION:}]Size of the attribute is invalid. 
+\item[{\em CL\_\-COR\_\-ERR\_\-VERSION\_\-UNSUPPORTED:}]version is not supported.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This is a generic function which is used to set all types of attributes. The {\tt{clCorObjectAttributeSet()}} function uses 
+the transaction agent to set the object attribute. The first argument is the transaction ID. For a simple transaction, the transaction ID is set to
+{\tt{CL\_\-COR\_\-SIMPLE\_\-TXN}}. A transaction that involves setting of multiple attributes for multiple MOs is termed as Complex Transaction.
+An application can atomically create/delete MOs, and set attributes through a transaction. \par
+ To initiate a complex transaction, you must initialize the {\tt{txnSessionId}} variable to zero and pass {\tt{txnSessionId}} as first 
+ argument to the {\tt{clCorObjectAttributeSet()}} function. The function then returns a transaction ID, {\tt{txnSession}}. This ID must be passed as
+ the first parameter for subsequent invocations of {\tt{cl\-Cor\-Object\-Attribute\-Set/cl\-Cor\-Object\-Create()/cl\-Cor\-Object\-Delete()}} APIs.
+ \par 
+ A Complex transaction is terminated through a call to {\tt{clCorTxnSessionCommit()}}. 
+ \par
+ A simple attribute is defined by the enum {\tt{Cl\-Cor\-Type\-T}}. For simple attributes (such as {\tt{Cl\-Uint8T}}, {\tt{Cl\-Int32T}}), the index 
+ parameter is -1. The index parameter is used only for an array attribute. It specifies the element number of the array, that must be operated upon. For
+ simple attribute, {\tt{attrpath}} is NULL.
+ \end{Desc}
+\begin{Desc}
+\item[Note:]The {\tt{size}} of the value to be set must not be less than its actual size. In the current implementation, if an incorrect {\tt{MOID}} 
+is passed to this function, the transaction is incorrectly completed. All operations (queued before the failing operation) are complete. However, 
+operations enqueued after the failing operation remain incomplete.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-Object\-Create} , \hyperlink{pagecor127}{cl\-Cor\-Object\-Attribute\-Get} ,
+\hyperlink{pagecor130}{cl\-Cor\-Object\-Delete} \end{Desc}
+\newpage
+
+
+\subsection{clCorObjectDelete}
+\index{clCorObjectDelete@{clCorObjectDelete}}
+\hypertarget{pagecor102}{}\paragraph{cl\-Cor\-Object\-Delete}\label{pagecor102}
+\begin{Desc}
+\item[Synopsis:]Deletes a COR object.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorObjectDelete(
+                         		CL_INOUT  ClCorTxnSessionIdT *txnSessionId,
+                         		CL_IN     ClCorObjecthandleT handle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Session\-Id:}] (in/out) Transaction Session ID. 
+\item[{\em handle:}](in) handle of the object to be deleted.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{txnSessionId}} is a NULL pointer. 
+\item[{\em CL\_\-COR\_\-INVALID\_\-SRVC\_\-ID:}]Service ID is incorrect. 
+\item[{\em CL\_\-COR\_\-INST\_\-ERR\_\-INVALID\_\-MOID:}]{\tt{MoId}} is invalid. 
+\item[{\em CL\_\-COR\_\-INST\_\-ERR\_\-CHILD\_\-MO\_\-EXIST:}]Child MO exists for the MO object node. 
+\item[{\em CL\_\-COR\_\-INST\_\-ERR\_\-MSO\_\-EXIST:}]MSO exists for the MO object node. 
+\item[{\em CL\_\-COR\_\-INST\_\-ERR\_\-NODE\_\-NOT\_\-FOUND:}]Node not found in the object tree. 
+\item[{\em CL\_\-COR\_\-ERR\_\-VERSION\_\-UNSUPPORTED:}]Version is not supported. 
+\item[{\em CL\_\-COR\_\-MO\_\-TREE\_\-ERR\_\-NODE\_\-NOT\_\-FOUND:}]MO tree node not found.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to delete a COR object. The Object handle (second parameter) can be obtained using the function 
+{\tt{clCorObjecthandleGet()}}. All the MO/MSO children corresponding to the handle must be deleted prior to deleting the parent. To delete an 
+MSO, the appropriate service ID must be used in the {\tt{MoId}}. To delete an MO, service ID of the {\tt{MoId}} must be invalid. A deletion of MO 
+with children are not effected.\par
+ \par
+ In the current implementation, an incorrect {\tt{MoId}} passed to this function results in an incorrect completion of the transaction. The operations
+ (queued before the failing operation) are completed. However, operations enqueued after the failing operation are incomplete. \par
+ The first argument is the transaction ID. For a simple transaction, the transaction ID is {\tt{CL\_\-COR\_\-SIMPLE\_\-TXN}}. A transaction that involves 
+ setting of multiple attributes for multiple MOs is termed as Complex Transaction. 
+ Applications can atomically create/delete MOs and set attributes through a transaction. To initiate a complex transaction, you must initialize the 
+ {\tt{txnSessionId}} variable to zero and pass {\tt{txnSessionId}} as the first argument to the {\tt{cl\-Cor\-Object\-Delete()}} function. The
+ function in turn, returns a transaction ID, {\tt{txnSession}}.
+ \par
+ This ID must be passed as the first parameter for subsequent invocations of {\tt{cl\-Cor\-Object\-Attribute\-Set()}} or {\tt{cl\-Cor\-Object\-Create()}}
+ or {\tt{cl\-Cor\-Object\-Delete()}} functions. A complex transaction is terminated through a call to {\tt{clCorTxnSessionCommit()}}.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-Object\-Create} \end{Desc}
+\newpage
+
+
+
+\subsection{clCorUtilMoAndMSOCreate}
+\index{clCorUtilMoAndMSOCreate@{clCorUtilMoAndMSOCreate}}
+\hypertarget{pagecor103}{}\paragraph{cl\-Cor\-Util\-Mo\-And\-MSO\-Create}\label{pagecor103}
+\begin{Desc}
+\item[Synopsis:]Creates MO and MSO objects. \end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorUtilMoAndMSOCreate( 
+					CL_IN ClCorMOIdPtrT pMoId, 
+					CL_OUT ClCorObjecthandleT *pHandle); 
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Moid:}](in) MOId of the MO to be created.
+\item[{\em p\-Handle:}](out) Handle to the MO object to be created.\end{description}
+\end{Desc}
+
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}] MO class type does not exist.
+\end{description}
+\end{Desc}
+
+\begin{Desc}
+\item[Description:] This function is used to create MO and MSO objects associated with an MO. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor104}{clCorUtilMoAndMSODelete} \end{Desc}
+\newpage
+
+
+
+\subsection{clCorUtilMoAndMSODelete}
+\index{clCorUtilMoAndMSODelete@{clCorUtilMoAndMSODelete}}
+\hypertarget{pagecor104}{}\paragraph{cl\-Cor\-Util\-Mo\-And\-MSO\-Delete}\label{pagecor104}
+\begin{Desc}
+\item[Synopsis:] Deletes MO and MSO objects.  \end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h \end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorUtilMoAndMSODelete(
+					CL_IN ClCorMOIdPtrT pMoId);
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Moid:}](in) MOId of the MO to be deleted.
+\end{description}
+\end{Desc}
+
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}] MO class type does not exist.
+\end{description}
+\end{Desc}
+
+\begin{Desc}
+\item[Description:]This function is used to delete MO and MSO objects associated with an MO.  \end{Desc}
+
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor103}{clCorUtilMoAndMSOCreate} \end{Desc}
+\newpage
+
+
+
+
+
+\subsection{clCorObjectAttributeGet}
+\index{clCorObjectAttributeGet@{clCorObjectAttributeGet}}
+\hypertarget{pagecor105}{}\paragraph{cl\-Cor\-Object\-Attribute\-Get}\label{pagecor105}
+\begin{Desc}
+\item[Synopsis:]Retrieves the value of an attribute.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim} ClRcT clCorObjectAttributeGet(
+                                  CL_IN ClCorObjecthandleT pHandle,
+                                  CL_IN ClCorAttrPathPtrT contAttrPath,
+                                  CL_IN ClCorAttrIdT attrId,
+                                  CL_IN ClInt32T index,
+                                  CL_OUT void *value,
+                                  CL_INOUT ClUint32T *size);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Handle:}](in) handle of the object whose attribute is being read. 
+\item[{\em cont\-Attr\-Path:}](in) Containment hierarchy. 
+\item[{\em attr\-Id:}](in) ID of the attribute. 
+\item[{\em index:}](in) Attribute index. It is set to {\tt{CL\_\-COR\_\-INVALID\_\-ATTR\_\-IDX}} for a SIMPLE attribute. 
+\item[{\em value:}] (out) Pointer to the value. Attribute value is copied into {\tt{value}}. 
+\item[{\em size:}] (in/out) Size of the value.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{value}} or {\tt{size}} is a NULL pointer. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NO\_\-MEM:}]On memory allocation failure. 
+\item[{\em CL\_\-COR\_\-ERR\_\-CLASS\_\-ATTR\_\-NOT\_\-PRESENT:}]Attribute ID passed is not present. 
+\item[{\em CL\_\-COR\_\-ERR\_\-CLASS\_\-ATTR\_\-INVALID\_\-RELATION:}]Size of the attribute is invalid.
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-SIZE:}]For simple attributes, the parameter {\tt{size}}, should be less than the size associated with the 
+attribute {\tt{attrId}}. For array attributes, this error is returned in one of the following cases:
+\begin{itemize}
+\item {\tt{size}} is greater than the size of the associated array elements that must be updated.
+\item the parameter {\tt{size}} is less than size of an individual array element.
+\item The parameter size is not an integer that is multiple of the individual array element.
+\end{itemize}
+\item[{\em CL\_\-COR\_\-ERR\_\-CLASS\_\-ATTR\_\-INVALID\_\-INDEX:}]When {\tt{index}} is used in case of simple attribute. 
+\item[{\em CL\_\-COR\_\-ERR\_\-VERSION\_\-UNSUPPORTED:}] Version is not supported.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This is a generic function used to retrieve all types of attributes. The {\tt{phandle}} is the handle of the object for which the
+ value of the attribute is required to be set. This object handle is obtained when the object is created. The object handle can also be obtained by 
+ passing {\tt{MoId}} to the function {\tt{clCorObjecthandleGet()}}.\par
+ \par
+ \begin{itemize}
+\item If the size of the value passed through the {\tt{size}} parameter, is less than the actual size of the value of the attribute, this function 
+returns an error. 
+\item If the size given is greater than the actual size, the actual size is stored in the {\tt {\mbox{[}CL\_\-INOUT\mbox{]}}}size. For simple attributes,
+the {\tt{attrpath}} should be NULL. For containment attributes, {\tt{attrpath}} should be a valid containment path. 
+ \end{itemize}
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Note:]Before invoking the \textit{clCorObjectAttributeGet()} function, you must create the object. The attribute is created with default
+values of the attribute given, when the attribute is created.\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-Object\-Create} , \hyperlink{pagecor101}{cl\-Cor\-Object\-Attribute\-Set} \end{Desc}
+\newpage
+
+
+
+\subsection{clCorObjectAttributeWalk}
+\index{clCorObjectAttributeWalk@{clCorObjectAttributeWalk}}
+\hypertarget{pagecor108}{}\paragraph{cl\-Cor\-Object\-Attribute\-Walk}\label{pagecor108}
+\begin{Desc}
+\item[Synopsis:]Walks through the object attributes.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorObjectAttributeWalk( 
+					CL_IN ClCorObjecthandleT objH, 
+					CL_IN ClCorObjAttrWalkFilterT *pFilter, 
+					CL_IN ClCorObjAttrWalkFuncT fp, 
+					CL_IN void * cookie); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+
+
+
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em obj\-H:}](in) handle of the object.
+\item[{\em p\-Filter:}](in) Pointer to the attribute filter. You have to provide the values for this structure.
+\item[{\em fp:}](in) User callout.
+\item[{\em cookie}]:(in) Cookie passed to the user callout.
+\end{description}
+\end{Desc}
+
+
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-PARAM:}] A parameter is invalid.
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}] {\tt{pFilter}} or {\tt{cookie}} is a NULL pointer.
+\item[{\em CL\_\-COR\_\-ERR\_\-NO\_\-MEM:}] Failed to allocate memory. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NOT\_\-SUPPORTED:}] cmp\_\-flag is not invalid.
+\item[{\em CL\_\-COR\_\-ERR\_\-VERSION\_\-UNSUPPORTED:}] Client version not supported.
+\item[{\em CL\_\-COR\_\-UTILS\_\-ERR\_\-INVALID\_\-KEY:}] Invalid parameter passed.
+\item[{\em CL\_\-COR\_\-INST\_\-ERR\_\-INVALID\_\-MOID:}] Invalid MoId passed.
+\end{description}
+\end{Desc}
+
+\begin{Desc}
+
+\item[pFilter Usage:] pFilter is used to apply filters to the walk criteria. It can take the following values:
+
+	{\tt{pFilter = NULL}}
+No filter is applied and it walks through all the attributes of the object.
+	{\tt{pFilter>baseAttrWalk = CL\_\-TRUE}}
+Walks through the attributes of the base object (native attributes of the object pointed by objH).
+	{\tt{pFilter>baseAttrWalk = CL\_\-FALSE}}
+Does not walk through the native attributes.
+	{\tt{pFilter>contAttrPath = CL\_\-TRUE}}
+Walks through the attributes of the base object (native attributes of the object pointed by objH).
+	{\tt{pFilter>contAttrPath = CL\_\-FALSE}}
+Does not walk through the native attributes.
+	{\tt{pFilter>pAttrPath = NULL}}
+	No filter is applied on the attribute path. It walks through all possible attribute paths. The attribute path can be specified with wildcards 
+	either in attrId and index or in both. For example,{\tt{\*attrA*\*attrB\**}}. Specifying the attrPath refines the scope of the search.
+	{\tt{pFilter>cmpFlag} }
+This comparison flag is for attrId with a specified value which can be one of the following:
+     {\tt{CL\_\-COR\_\-ATTR\_\-CMP\_\-FLAG\_\-VALUE\_\-EQUAL\_\-TO}}: The attributes whose value is equal to the specified value are matched.
+      {\tt{CL\_\-COR\_\-ATTR\_\-CMP\_\-FLAG\_\-VALUE\_\-LESS\_\-THAN}}: The attributes whose value is greater than the specified value are matched.
+      {\tt{CL\_\-COR\_\-ATTR\_\-CMP\_\-FLAG\_\-VALUE\_\-LESS\_\-OR\_\-EQUALS}}:
+          The attributes whose value is greater than or equal to the specified value are matched.
+      {\tt{CL\_\-COR\_\-ATTR\_\-CMP\_\-FLAG\_\-VALUE\_\-GREATER\_\-THAN}}:
+          The attributes whose value is less than the specified value are matched.
+      {\tt{CL\_\-COR\_\-ATTR\_\-CMP\_\-FLAG\_\-VALUE\_\-GREATER\_\-OR\_\-EQUALS}}:
+          The attributes whose value is less than or equal to the specified value are matched.
+	{\tt{pFilter>attrWalkOption} }
+			This can have one of the following values:
+			{\tt{CL\_\-COR\_\-ATTR\_\-WALK\_\-ALL\_\-ATTR}}: All attributes of the base object are considered 
+						for walk operation if pFilter>cmpFlag.
+
+                 	{\tt{CL\_\-COR\_\-ATTR\_\-WALK\_\-ONLY\_\-MATCHED\_\-ATTR}}: 
+           	{\tt{pFilter>pValue}} 
+Pointer to the value for which the comparison needs to be performed. If it is set to NULL, an attribute value based search is not performed. Otherwise, 
+a value comparison is performed based on the cmpFlags of the filter for all the attributed walked.
+
+           	{\tt{pFilter>size}} 
+The size of the value to be compared.
+
+	           	{\tt{pFilter>index} }
+For a SIMPLE attribute, index id is set to {\tt{CL\_\-COR\_\-INVALID\_\-ATTR\_\-IDX}}.
+\end{Desc}
+
+\begin{Desc}
+\item[Description:] 
+This function is used to perform a walk through the object attributes (including the ones contained) based on the filter. The attribute walk takes the 
+object handle as the first parameter. This can be obtained from the MOID by using the function {\tt{clCorObjecthandleGet()}}. 
+\par
+The second parameter is the Filter for the attribute walk. This filter is NULL if there is no need for a filter. But if the search is based on filter, 
+all the elements of the filter are initialized. 
+One of the elements of the filter is {\tt{baseAttrWalk}}. It must be initialized to {\tt{CL\_\-TRUE}} if it is required 
+for the walk to be performed on the base class attributes along with the child objects.
+The element {\tt{contAttrPath}} is a boolean variable. It must be set to {\tt{CL\_\-TRUE}} if the walk should be performed through the contained MO
+and {\tt{CL\_\-FALSE}} if the walk should not be performed through the contained MO. 
+{\tt{pAttrPath}} is a pointer to the containment path if the search should begin from a particular contained MO.
+
+The element {\tt{attrWalkOption}} can be set to {\tt{CL\_\-COR\_\-ATTR\_\-WALK\_\-ALL\_\-ATTR}} or 
+
+If it is set to {\tt{CL\_\-COR\_\-ATTR\_\-WALK\_\-ALL\_\-ATTR}}, the walk is performed on all the attributes.
+If it is set to {\tt{CL\_\-COR\_\-ATTR\_\-WALK\_\-ONLY\_\-MATCHED\_\-ATTR}}, the comparison flags (when the attr value and its size 
+are also specified) are taken.
+
+\par
+The  callback function should be specified in the walk invoked for all attributes matching the filter criteria.  
+
+\par 
+The fourth parameter is a cookie. This is a parameter passed by the application developer to the callback function and can be used at the application 
+developer's discretion. 
+\par
+The memory allocated for all attributes matching the filter criteria are allocated by the library and are freed when the callback 
+function for all the attributes buffers is invoked.
+
+
+
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Note:]The last parameter can be used to pass the value used by the callback function. If the first and second parameters are NULL,
+all the MO/MSO objects are walked through irrespective of any specification in the flag.\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor106}{clCorObjecthandleGet}, \hyperlink{pagecor128}{clCorMoIdCompare} \end{Desc}
+\newpage
+   
+
+
+
+
+
+\subsection{clCorObjecthandleToTypeGet}
+\index{clCorObjecthandleToTypeGet@{clCorObjecthandleToTypeGet}}
+\hypertarget{pagecor109}{}\paragraph{cl\-Cor\-Object\-handle\-To\-Type\-Get}\label{pagecor109}
+\begin{Desc}
+\item[Synopsis:]Returns the type of an object when its object handle is given.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}  ClRcT clCorObjecthandleToTypeGet(
+                           		CL_IN   ClCorObjecthandleT pHandle,
+                           		CL_OUT  ClCorObjTypesT* type);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Handle:}] (in) Object handle. 
+\item[{\em type:}] (out) It can be set to {\tt{CL\_\-COR\_\-OBJ\_\-TYPE\_\-MO}} or {\tt{CL\_\-COR\_\-OBJ\_\-TYPE\_\-MSO}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function is executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{type}} is a NULL pointer. 
+\item[{\em CL\_\-COR\_\-UTILS\_\-ERR\_\-INVALID\_\-KEY:}]Invalid value of object handle. 
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-PARAM:}]On passing an invalid parameter. 
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-DEPTH:}]Invalid depth of the {\tt{MoId}}. 
+\item[{\em CL\_\-COR\_\-ERR\_\-CLASS\_\-INVALID\_\-PATH:}]Qualifiers are invalid. 
+\item[{\em CL\_\-COR\_\-SVC\_\-ERR\_\-INVALID\_\-ID:}]Service ID of the {\tt{MoId}} is invalid. 
+\item[{\em CL\_\-COR\_\-ERR\_\-VERSION\_\-UNSUPPORTED:}] Version is not supported.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the object type given a object handle. The type of an object indicates if it is an MO or an 
+MSO object.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor128}{cl\-Cor\-Object\-handle\-Get}
+\end{Desc}
+\newpage
+
+
+
+
+
+
+\subsection{clCorObjecthandleToMoIdGet}
+\index{clCorObjecthandleToMoIdGet@{clCorObjecthandleToMoIdGet}}
+\hypertarget{pagecor110}{}\paragraph{cl\-Cor\-Object\-handle\-To\-MoId\-Get}\label{pagecor110}
+\begin{Desc}
+\item[Synopsis:]Returns the MoId.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}       ClRcT clCorObjecthandleToMoIdGet(
+                           			CL_IN ClCorObjecthandleT objhandle,
+                           			CL_OUT ClCorMOIdPtrT moId,
+                           			CL_OUT ClCorServiceIdT *srvcId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em obj\-handle:}](in)  Object handle. 
+\item[{\em MoId:}] (out) {\tt{MoId}}. 
+\item[{\em srvc\-Id:}] (out) ID of the service.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{moid}} or {\tt{srvcId}} is a NULL pointer. 
+\item[{\em CL\_\-COR\_\-UTILS\_\-ERR\_\-INVALID\_\-KEY:}]Invalid value of object handle passed. 
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-PARAM:}]On passing an invalid parameter. 
+\item[{\em CL\_\-COR\_\-ERR\_\-VERSION\_\-UNSUPPORTED:}] Version is not supported.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function returns the {\tt{MoId}} of a given object handle. The service ID, a valid value for an MSO, is 
+set with the {\tt{MoId}} \end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor128}{cl\-Cor\-Object\-handle\-Get} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clCorTxnSessionCommit}
+\index{clCorTxnSessionCommit@{clCorTxnSessionCommit}}
+\hypertarget{pagecor140}{}\paragraph{cl\-Cor\-Txn\-Session\-Commit}\label{pagecor140}
+\begin{Desc}
+\item[Synopsis:]Commits an active transaction session.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorTxnApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT    clCorTxnSessionCommit(
+                          		CL_IN ClCorTxnSessionIdT txnSessionId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Session\-Id:}](in) The session Id is a unique ID which identifies a complex transaction obtained while calling object 
+create, attribute set, or object delete functions.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. \item[{\em CL\_\-COR\_\-TXN\_\-ERR\_\-ZERO\_\-JOBS:}]There are no jobs to commit.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]The transaction session Id would is obtained using the object create, object attribute set, or object delete functions. 
+After calling this function the transaction request is sent to the COR server for processing. The server contacts the OIs for the MOs in 
+the transaction Job and completes the transaction in a two phase commit manner. This is a synchronous operation so the thread calling this function is 
+be blocked till a response is received.\end{Desc}
+\begin{Desc}
+\item[Library Name:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor141}{cl\-Cor\-Txn\-Session\-Cancel} \end{Desc}
+\newpage
+
+
+\subsection{clCorTxnSessionCancel}
+\index{clCorTxnSessionCancel@{clCorTxnSessionCancel}}
+\hypertarget{pagecor141}{}\paragraph{cl\-Cor\-Txn\-Session\-Cancel}\label{pagecor141}
+\begin{Desc}
+\item[Synopsis:]Cancels a transaction session.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorTxnApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}       ClRcT    clCorTxnSessionCancel(
+                            			CL_IN    ClCorTxnSessionIdT  txnSessionId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Session\-Id:}](in) Transaction session ID.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to cancel the active transaction sessions whose session ID is sent to this function.\end{Desc}
+\begin{Desc}
+\item[Library Name:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor140}{cl\-Cor\-Txn\-Session\-Commit} \end{Desc}
+\newpage
+
+
+
+
+
+
+\subsection{clCorTxnSessionFinalize}
+\index{clCorTxnSessionFinalize@{clCorTxnSessionFinalize}}
+\hypertarget{pagecor142}{}\paragraph{cl\-Cor\-Txn\-Session\-Finalize}\label{pagecor142}
+\begin{Desc}
+\item[Synopsis:] Frees the COR-Txn modules client specific resources.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorTxnApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}       ClRcT clCorTxnSessionFinalize( 
+						CL_IN ClCorTxnSessionIdT txnSessionId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Session\-Id:}](in) Transaction session ID.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function is used to free all the resources that are allocated for a complex transaction only when the transaction fails. 
+It frees the allocated resources which include the client specific data and the failed jobs list.\end{Desc}
+\begin{Desc}
+\item[Library Name:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor140}{cl\-Cor\-Txn\-Session\-Commit} \end{Desc}
+\newpage
+
+
+
+
+
+\subsection{clCorTxnFailedJobGet}
+\index{clCorTxnFailedJobGet@{clCorTxnFailedJobGet}}
+\hypertarget{pagecor144}{}\paragraph{cl\-Cor\-Txn\-Failed\-Job\-Get}\label{pagecor144}
+\begin{Desc}
+\item[Synopsis:] Gets the information about the failed transaction job for a particular transaction ID.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorTxnApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}     ClRcT clCorTxnFailedJobGet( 
+					      CL_IN  ClCorTxnSessionIdT txnSessionId, 
+			                      CL_IN  ClCorTxnInfoT *pPrevTxnInfo, 
+			                      CL_OUT ClCorTxnInfoT *pNextTxnInfo)
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Session\-Id:}](in) The transaction session Id for which the transaction failed.
+\item[{\em p\-Prev\-Txn\-Info:}](in) If this is set to "NULL", the first transaction information about 
+                                   the failed transaction is sent in the second parameter. Otherwise, the next
+                                   entry with respect to it is sent.
+\item[{\em p\-Next\-Txn\-Info:}](out) The transaction information about the failed transaction is populated in this parameter.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. 
+\item[{\em CL\_\-COR\_\-TXN\_\-ERR\_\-FAILED\_\-JOB\_\-GET:}]For the transaction Id there is no failed job info available.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] Applications that initiate complex transaction to perform MO create/delete and attribute set operation, need
+ to use this API to obtain information regarding failures. Any component that participates in a transaction can
+ report failures through their agent callback functions. This function retrieves all such failures reported.
+ \par
+ In case of multiple failures (on different components), there would be more than one error
+ entries added in COR for a particular transaction. All the error entries are obtained through the
+ following mechanism: 
+ \begin{enumerate}
+ \item
+ Obtain First Entry:  Call the function with the parameter {\tt{pPrevTxnInfo}} specified as NULL. This function
+     would return the first error record in {\tt{pNextTxnInfo}} parameter.
+ \item
+ Obtain SubSequent Entries: Copy the  content of {\tt{pNextTxnInfo}} obtained in previous invocation of this function, 
+ and assign it to {\tt{pPrevTxnInfo}} and call {\tt{clCorTxnFailedJobGet}}.
+\end{enumerate}
+\end{Desc}
+\begin{Desc}
+\item[Note:]
+After receiving failed jobs, the API {\tt{clCorTxnSessionCancel}} must be called to free the memory.  
+\end{Desc}
+\begin{Desc}
+\item[Library Name:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor141}{clCorTxnSessionCancel}. \end{Desc}
+\newpage
+
+
+\subsection{clCorBundleObjectGet}
+\index{clCorBundleObjectGet@{clCorBundleObjectGet}}
+\hypertarget{pagecor150}{}\paragraph{cl\-Cor\-Bundle\-Object\-Get}\label{pagecor150}
+\begin{Desc}
+\item[Synopsis:] Populates a bundle with read-jobs.
+\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT  clCorBundleObjectGet ( 
+					CL_IN    ClCorBundleT bundleHandle,
+					CL_IN    ClCorObjHandleT  *objHandle,
+					CL_INOUT   ClCorAttrValueDescriptorListPtrT          pAttrDescList
+							    );
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em bundle\-Handle:}](in) This parameter identifies the bundle.
+\item[{\em obj\-Handle:}](in) This parameter contains the description of the job that needs to be operated.
+\item[{\em p\-Attr\-Desc\-List:}](in/out) This parameter describes the list of attributes on which read operation needs to be performed. {\tt{ObjHandle}}
+and {\tt{attrDescList}} together form a read-job.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}] The function executed successfully. The Job was successfully queued in the bundle.
+\item[{\em CL\_\-COR\_\-ERR\_\-NO\_\-MEM:}] Bundle unsuccessful due to insufficient memory. This job is not added to the bundle.
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}] {\tt{pAttrDescList}} or {\tt{objHandle}} is NULL or the data buffer corresponding to any of the attribute 
+is NULL. This job is not added into the bundle.
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-PARAM:}] {\tt{pAttrDescList->numOfDescriptor}} is NULL.
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-HANDLE:}] Invalid bundle handle. This job is not added to the bundle.
+\item[{\em CL\_\-COR\_\-ERR\_\-BUNDLE\_\-IN\_\-EXECUTION:}] The bundle specified by {\tt{<bundlehandle>}} is executing at the server while a new read-job is 
+being added at the client side.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This API populates a bundle with read-jobs. It can be called repeatedly to queue all the required read-jobs into a 
+bundle.
+The API returns after queuing the jobs in the bundle. If there is a failure encountered (as indicated by the return value 
+of this API),the jobs are not be added into the bundle. The status and the data associated with each attribute (specified in attribute value 
+descriptor) can be accessed only when the bundle execution is completed.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor153}{clCorBundleInitialize}, \hyperlink{pagecor151}{clCorBundleApply},
+\hyperlink{pagecor152}{clCorBundleApplyAsync}, \hyperlink{pagecor154}{clCorBundleFinalize}. 
+\end{Desc}
+\newpage
+
+
+
+\subsection{clCorBundleApply}
+\index{clCorBundleApply@{clCorBundleApply}}
+\hypertarget{pagecor151}{}\paragraph{cl\-Cor\-Bundle\-Apply}\label{pagecor151}
+\begin{Desc}
+\item[Synopsis:] Submits a bundle to the COR server for execution.
+\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorBundleApply( 
+  					CL_IN  ClCorBundleHandleT bundleHandle);
+
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em bundle\-Handle:}](in) This parameter identifies the bundle.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. The Job was successfully queued in the bundle.
+\item[{\em CL\_\-COR\_\-ERR\_\-NO\_\-MEM:}]Bundle unsuccessful due to insufficient memory. This job is not added to the bundle.
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}] {\tt{pAttrDescList}} or {\tt{objHandle}} is NULL or the data buffer corresponding to any of the attribute 
+is NULL. This job is not added into the bundle.
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-PARAM:}] {\tt{pAttrDescList->numOfDescriptor}} is NULL.
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-HANDLE:}] Invalid bundle handle. This job is not added to the bundle.
+\item[{\em CL\_\-COR\_\-ERR\_\-BUNDLE\_\-IN\_\-EXECUTION:}] The bundle specified by {\tt{<bundlehandle>}} is executing at the server while a new read-job is 
+being added at the client side.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] The API operates synchronously. This API submits the bundle to the server for execution. The application blocks till a timeout
+or the bundle is successfully executed. After the bundle is executed successfully, the attribute value descriptor corresponding to read-jobs in the
+bundle can be accessed. The application can then free the attribute value descriptor. The bundle cannot be applied if this API returns
+any errors described in the \textit{Return values} section.
+
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor150}{clCorBundleObjectGet}, \hyperlink{pagecor152}{clCorBundleApplyAsync}, 
+\hyperlink{pagecor154}{clCorBundleFinalize}.
+\end{Desc} 	
+\newpage
+
+
+
+\subsection{clCorBundleApplyAsync}
+\index{clCorBundleApply@{clCorBundleApplyAsync}}
+\hypertarget{pagecor152}{}\paragraph{cl\-Cor\-Bundle\-Apply\-Async}\label{pagecor152}
+\begin{Desc}
+\item[Synopsis:] Submits the bundle to the COR server for execution asynchronously.
+\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorBundleApplyAsync( 
+					CL_IN  ClCorBundleHandleT bundleHandle,
+					CL_IN  const ClCorBundleCallBackPtrT   bundleCallBack,
+					CL_IN  const ClPtrT bundleCookie);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em bundle\-Handle:}](in) This parameter identifies the bundle.
+\item[{\em bundle\-Call\-Back:}](in) Identifies the callback that is executed when the bundle operation completes. 
+\item[{\em bundle\-Cookie:}](in) Cookie associated with the callback for this bundle.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. The bundle is successfully queued in the IOC.
+\item[{\em CL\_\-COR\_\-ERR\_\-ZERO\_\-JOB\_\-BUNDLE:}]No read-jobs are present as a part of this bundle.
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-HANDLE:}] Invalid bundle handle.
+\item[{\em CL\_\-COR\_\-ERR\_\-NO\_\-MEM:}] Memory allocation failure.
+\item[{\em CL\_\-COR\_\-ERR\_\-BUNDLE\_\-APPLY\_\-FAILURE:}] Generic failure.
+\item[{\em CL\_\-COR\_\-ERR\_\-BUNDLE\_\-IN\_\-EXECUTION:}] Bundle corresponding to the bundle handle is executing.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This API queues the bundle in the IOC layer and returns. The bundle is submitted to the COR server asynchronously. On successfully 
+execution of the bundle, the {\tt{bundleCallback}} function is invoked and the attribute value descriptor corresponding to read-jobs in the bundle can be 
+accessed. The application can then free the attribute value descriptor. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor150}{clCorBundleObjectGet}, \hyperlink{pagecor154}{clCorBundleFinalize}.
+\end{Desc} 	
+\newpage
+
+
+
+
+\section{Object Addressing APIs}
+\subsection{clCorMoIdInitialize}
+\index{clCorMoIdInitialize@{clCorMoIdInitialize}}
+\hypertarget{pagecor112}{}\paragraph{cl\-Cor\-MoId\-Initialize}\label{pagecor112}
+\begin{Desc}
+\item[Synopsis:]Initializes an empty managed object ID ({\tt{MoId}}) or resets the content of an existing MOID.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorMoIdInitialize(
+             				CL_INOUT ClCorMOIdPtrT pMoId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in/out) A valid pointer to an existing {\tt{MoId}} structure.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{pMoid}} is a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to (re-)initialize a {\tt{ClCorMoId}} structure. It resets the path information, if present, and 
+re-initializes it to make it an empty path. It can be applied on {\tt{MoIds}} that have not been initialized and used before, and also on 
+{\tt{MoIds}} containing the path. The empty {\tt{MoIds}} can be manipulated using {\tt{clCorMoIdSet()}} and {\tt{clCorMoIdAppend()}}.
+\par
+This also initializes {\tt{ClCorMoId}}. It resets the path information, if present, and re-initializes it to make it an empty path. 
+This function must be called when you need to reset the {\tt{MoId}} to begin a fresh operation. \end{Desc}
+\begin{Desc}
+\item[Note:]This function need not be called after invoking the {\tt{clCorMoIdAlloc()}} function, since the latter initializes the {\tt{MoId}}.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, \hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, \hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, \hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, \hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, \hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get}, \hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+ \hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, \hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clCorMoIdAlloc}
+\index{clCorMoIdAlloc@{clCorMoIdAlloc}}
+\hypertarget{pagecor113}{}\paragraph{cl\-Cor\-MoId\-Alloc}\label{pagecor113}
+\begin{Desc}
+\item[Synopsis:]Creates an {\tt{MoId}}.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}  ClRcT clCorMoIdAlloc(
+             				CL_OUT ClCorMOIdPtrT *pMoId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](out) handle of the new {\tt{MoId}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NO\_\-MEM:}]Memory allocation failure. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{pMoid}} is a NULL pointer.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used as a constructor for \textit{ClCorMOId} as it creates an {\tt{MoId}}. It initializes the memory and returns 
+an empty \textit{ClCorMOId}. 
+ \par
+ By default, the values of both the instance ID and class ID is {\em -1\/}. The default depth for the {\tt{MoId}} is 20. This value is incremented 
+ dynamically when a new entry is added. This function allocates memory and initializes the {\tt{MoId}} structure.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Note:]The memory allocated by this function must be freed after usage, to avoid memory leaks. This memory can be freed by calling the 
+cl\-Cor\-{\tt{MoId}}\-Free().\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor228}{cl\-Cor\-{\tt{MoId}}\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdFree}
+\index{clCorMoIdFree@{clCorMoIdFree}}
+\hypertarget{pagecor114}{}\paragraph{cl\-Cor\-MoId\-Free}\label{pagecor114}
+\begin{Desc}
+\item[Synopsis:]Deletes the \textit{ClCorMOId} handle.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}  ClRcT clCorMoIdFree(
+             				CL_OUT ClCorMOIdPtrT pMoId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](out) handle of \textit{ClCorMOId}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{pMoid}} is a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used as destructor of \textit{ClCorMOId} as it deletes the handle of {\tt{MoId}}. It removes the handle and frees 
+the memory associated with it. To avoid memory leaks you must free the memory 
+using {\tt{clCorMoIdFree()}} function whenever you invoke the \textit{clCorMoIdAlloc()} function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor228}{cl\-Cor\-{\tt{MoId}}\-Initialize} ,
+\hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc},  \hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate} , 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set} , \hyperlink{pagecor117}{cl\-Cor\-MoId\-Append} , 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdTruncate}
+\index{clCorMoIdTruncate@{clCorMoIdTruncate}}
+\hypertarget{pagecor115}{}\paragraph{cl\-Cor\-MoId\-Truncate}\label{pagecor115}
+\begin{Desc}
+\item[Synopsis:]Removes the node after the specified level.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}  ClRcT clCorMoIdTruncate(
+             				CL_INOUT ClCorMOIdPtrT pMoId,
+             				CL_IN ClInt16T level);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in/out) handle of the {\tt{MoId}}. 
+\item[{\em level:}](in) Level to which the {\tt{MoId}} needs to be truncated.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-DEPTH:}]The level specified is invalid. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{pMoid}} is a NULL pointer.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to remove all the nodes and reset the {\tt{MoId}} until a specified level is reached. The level is specified
+based on the depth to which it is required to return.  so as to continue on the other sibling tree node.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+
+\subsection{clCorMoIdSet}
+\index{clCorMoIdSet@{clCorMoIdSet}}
+\hypertarget{pagecor116}{}\paragraph{cl\-Cor\-MoId\-Set}\label{pagecor116}
+\begin{Desc}
+\item[Synopsis:]Sets the class type and {\tt{instanceId}} at a given node or level.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}  ClRcT clCorMoIdSet(
+             CL_INOUT ClCorMOIdPtrT pMoId,
+             CL_IN ClUint16T level,
+             CL_IN ClCorClassTypeT type,
+             CL_IN ClCorInstanceIdT instance);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in/out) handle of {\tt{MoId}} Path. 
+\item[{\em level:}](in) Level of the node 
+\item[{\em type:}](in) Class type to be set. 
+\item[{\em instance:}](in) {\tt{InstanceId}} to be set.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-DEPTH:}]If the level specified is invalid. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{pMoid}} is a NULL pointer.
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-CLASS:}]Invalid class type to set.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set the class type and the {\tt{instanceId}} properties at a given node or level. This level should be 
+less than the current depth of the {\tt{MoId}}. This feature can be used to set the {\tt{MoId}} for a level when it is required to operate on that part 
+of the instance tree.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Note:]The second parameter level should be always less than the current depth of the {\tt{MoId}}.\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdAppend}
+\index{clCorMoIdAppend@{clCorMoIdAppend}}
+\hypertarget{pagecor117}{}\paragraph{cl\-Cor\-MoId\-Append}\label{pagecor117}
+\begin{Desc}
+\item[Synopsis:]Adds an entry to the {\tt{MoId}}.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorMoIdAppend(
+              CL_INOUT ClCorMOIdPtrT pMoId,
+              CL_IN ClCorClassTypeT type,
+              CL_IN ClCorInstanceIdT instance);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in/out) handle of the {\tt{MoId}}.
+\item[{\em type:}](in) Node type. 
+\item[{\em instance:}](in) ID of the node instance.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-MAX\_\-DEPTH:}]The depth exceeded the maximum limit. 
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-CLASS:}]Invalid class type for append. 
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-PARAM:}]Invalid parameter is passed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to add an entry to {\tt{ClCorMOId}}. You can specify the type and the instance for the entry. The 
+{\tt{classId}} and instance Id are appended at the end of the current {\tt{MoId}} and the depth of the {\tt{MoId}} is incremented.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdDepthGet}
+\index{clCorMoIdDepthGet@{clCorMoIdDepthGet}}
+\hypertarget{pagecor118}{}\paragraph{cl\-Cor\-MoId\-Depth\-Get}\label{pagecor118}
+
+\begin{Desc}
+\item[Synopsis:]Returns the node depth of the COR {\tt{MoId}}. \end{Desc}
+
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClInt16T clCorMoIdDepthGet(
+			              CL_IN ClCorMOIdPtrT pMoId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) handle of the {\tt{MoId}}.
+\end{description}
+\end{Desc}
+
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em ClInt16T:}]The number of elements.
+\end{description}
+\end{Desc}
+
+
+ \begin{Desc}
+\item[Description:]This function is used to return the number of nodes in the hierarchy within the COR {\tt{MoId}}.
+\end{Desc}
+
+
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]
+\hyperlink{pagecor112}{cl  Cor  MoId  Initialize}, 
+\hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free}, 
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get},
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get}, 
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}. \end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdShow}
+\index{clCorMoIdShow@{clCorMoIdShow}}
+\hypertarget{pagecor119}{}\paragraph{cl\-Cor\-MoId\-Show}\label{pagecor119}
+\begin{Desc}
+\item[Synopsis:]Displays the \textit{ClCorMOId} handle.\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   void clCorMoIdShow(
+              				CL_IN ClCorMOIdPtrT pMoId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) handle of the {\tt{MoId}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]{\tt{void}}, no value\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to display all the entries within the COR {\tt{MoId}}. The {\tt{MoId}} show will show all the current active nodes 
+(classId:instanceId format) in the {\tt{MoId}} and its service id.\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdClone}
+\index{clCorMoIdClone@{clCorMoIdClone}}
+\hypertarget{pagecor127}{}\paragraph{cl\-Cor\-MoId\-Clone}\label{pagecor127}
+\begin{Desc}
+\item[Synopsis:]Clones a particular {\tt{MoId}}.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorMoIdClone(
+                         		CL_IN ClCorMOIdPtrT pMoId,
+                         		CL_OUT ClCorMOIdPtrT* newH);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) handle of the {\tt{MoId}}. \item[{\em new\-H:}](out) handle of the new clone.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NO\_\-MEM:}]Memory allocation failure.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to clone a particular {\tt{MoId}}. It allocates and copies the contents of the given {\tt{MoId}}
+to a new {\tt{MoId}}.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare} \end{Desc}
+\newpage
+
+
+
+\subsection{clCorMoIdCompare}
+\index{clCorMoIdCompare@{clCorMoIdCompare}}
+\hypertarget{pagecor128}{}\paragraph{cl\-Cor\-MoId\-Compare}\label{pagecor128}
+\begin{Desc}
+\item[Synopsis:]Compares two {\tt{MoIds}} and verifies if they are equal.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClInt32T clCorMoIdCompare(
+                       CL_IN ClCorMOIdPtrT pMoId,
+                       CL_IN ClCorMOIdPtrT cmp);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) handle of the first ClCorMOId. 
+\item[{\em cmp:}](in) handle of the second \textit{ClCorMOId}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em 0:}]Both COR {\tt{MoId}}s, like wildcards are the same though they have the same instances. 
+\item[{\em -1:}]The {\tt{MoIds}} do not match. 
+\item[{\em 1:}]The wildcards are the same.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to compare two {\tt{ClCorMOId}} and verify if they are equal. This comparison is performed till the depth 
+specified in the MoId is reached.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare} \end{Desc}
+\newpage
+
+
+\subsection{clCorObjecthandleGet}
+\index{clCorObjecthandleGet@{clCorObjecthandleGet}}
+\hypertarget{pagecor106}{}\paragraph{cl\-Cor\-Object\-handle\-Get}\label{pagecor106}
+\begin{Desc}
+\item[Synopsis:]Returns the Object handle.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorObjecthandleGet(
+                            		CL_IN ClCorMOIdPtrT pMoId,
+                            		CL_OUT ClCorObjecthandleT *objhandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) Pointer to the MOId. 
+\item[{\em obj\-handle:}](out) Pointer to object handle.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{pMoId}} is a NULL pointer. 
+\item[{\em CL\_\-COR\_\-INST\_\-ERR\_\-INVALID\_\-MOID:}] {\tt{MoId}} is invalid. 
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-DEPTH:}] The configured maximum depth is less than {\tt{MoId}} depth. 
+\item[{\em CL\_\-COR\_\-UTILS\_\-ERR\_\-INVALID\_\-KEY:}] Failure to locate the node in the MO tree. 
+\item[{\em CL\_\-COR\_\-ERR\_\-INVALID\_\-PARAM:}]On passing an invalid parameter. 
+\item[{\em CL\_\-COR\_\-ERR\_\-VERSION\_\-UNSUPPORTED:}]Version is not supported.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the handle to the object of a given {\tt{MoId}}. This is the compressed value of {\tt{MoId}}, 
+which is represented through the object handle. This object handle is used for performing set, get, or delete operations on the MO.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor110}{cl\-Cor\-Object\-handle\-To\-MoId\-Get} , 
+\hyperlink{pagecor109}{cl\-Cor\-Object\-handle\-To\-Type\-Get} , \hyperlink{pagecor105}{cl\-Cor\-Object\-Attribute\-Get} \end{Desc}
+\newpage
+
+
+
+\section{Object Search APIs}
+
+\subsection{clCorMoIdFirstInstanceGet}
+\index{clCorMoIdFirstInstanceGet@{clCorMoIdFirstInstanceGet}}
+\hypertarget{pagecor123}{}\paragraph{cl\-Cor\-MoId\-First\-Instance\-Get}\label{pagecor123}
+\begin{Desc}
+\item[Synopsis:]Returns the first child.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorMoIdFirstInstanceGet(
+                         		CL_INOUT ClCorMOIdPtrT pMoId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in/out) Updated {\tt{ClCorMOId}} is returned. The {\tt{MoId}} pointed by the  {\tt{pMoId}} should be allocated before
+calling this API.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the first child instance from the {\tt{MoId}} tree. On successful execution, it updates the
+COR {\tt{MoId}}.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Note:]The last node class tag must be completed and {\tt{instanceId}} must be left at zero which will be updated by this function.\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdNextSiblingGet}
+\index{clCorMoIdNextSiblingGet@{clCorMoIdNextSiblingGet}}
+\hypertarget{pagecor124}{}\paragraph{cl\-Cor\-MoId\-Next\-Sibling\-Get}\label{pagecor124}
+\begin{Desc}
+\item[Synopsis:]Returns the next sibling.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorMoIdNextSiblingGet(
+                         		CL_INOUT ClCorMOIdPtrT pMoId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in/out) Updated {\tt{ClCorMOId}} is returned. You must allocate the memory for the {\tt{MoId}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the next sibling from the MOId tree. So for a given MOId, the COR server finds next 
+sibling of the MO, and returns the class and instance of the MO.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+\subsection{clCorObjectWalk}
+\index{clCorObjectWalk@{clCorObjectWalk}}
+\hypertarget{pagecor107}{}\paragraph{cl\-Cor\-Object\-Walk}\label{pagecor107}
+\begin{Desc}
+\item[Synopsis:]Walks through the object tree.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorObjectWalk(
+                           		CL_IN ClCorMOIdPtrT moIdRoot,
+                           		CL_IN ClCorMOIdPtrT moIdFilter,
+                           		CL_IN ClCorObjectWalkFunT fp,
+                           		CL_IN ClCorObjWalkFlagsT flags,
+                           		CL_IN void * cookie);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em {\tt{MoId}}\-Root:}](in) {\tt{MoId}} from where the walk begins. 
+\item[{\em {\tt{MoId}}\-Filter:}](in) {\tt{MoId}} with wild card. For example, if the {\tt{moIdRoot}} is {\tt /chassis}:0/blade:1/,  
+{\tt{moIdFilter}} can have a value such as {\tt /} chassis:0 / blade:1 / port:$\ast$ / channel:$\ast$ / 
+\item[{\em fp:}](in) Callback function.
+\item[{\em flags:}](in) Flags. This parameter accepts the following values: 
+\begin{itemize}
+\item {\tt CL\_\-COR\_\-MO\_\-WALK} - This provides the MO objects of object tree in the pre-order manner.
+\item {\tt CL\_\-COR\_\-MSO\_\-WALK} - This provides the MSO nodes of the object tree in the pre-order manner.
+\item {\tt CL\_\-COR\_\-MO\_\-SUBTREE\_\-WALK} - This provides the MO nodes of the objects in the MO post-order manner. 
+\end{itemize}
+\item[{\em cookie:}](in) Pointer to the user-defined data. With the help of this you can pass any information through the object walk.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{moIdRoot}} or {\tt{moIdFilter}} is a NULL pointer. 
+\item[{\em CL\_\-COR\_\-SVC\_\-ERR\_\-INVALID\_\-ID:}]Service ID is invalid. 
+\item[{\em CL\_\-COR\_\-ERR\_\-VERSION\_\-UNSUPPORTED:}]Version is not supported. 
+\item[{\em CL\_\-COR\_\-ERR\_\-NO\_\-MEM:}]Memory allocation failure.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to perform a walk through the COR objects in the object tree. The first parameter is the {\tt{MoId}} of the 
+root, from where the object walk begins. If the entire tree is involved, then this parameter can be NULL. 
+\par
+The next parameter is {\tt{moIdFilter}}, which is the filter for the search. This parameter can be a wild card entry or a pure {\tt{MoId}}. This 
+parameter must be set to NULL if a filter is not required for the object walk. 
+\par
+The third parameter {\em fp\/} is a callback function which has two parameters, the first of which, {\em data\/} is supplied with the object handle. 
+The second parameter {\em cookie\/} retrieves the cookie passed in the object walk function. 
+\par
+The fourth parameter {\em flags\/}, indicates the type of object walk that is required. 
+\par
+The final parameter is the user argument cookie.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Note:]The cookie parameter can be used to pass the value used in the callback function. If the first and second parameters are NULL,
+all the MO/MSO objects are walked through irrespective of any specification in the flag.\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor108}{cl\-Cor\-Object\-Attribute\-Walk} , \hyperlink{pagecor117}{cl\-Cor\-MoId\-Append} \end{Desc}
+\newpage
+
+
+
+
+\section{Moid Manipulation APIS}
+
+\subsection{clCorMoIdToMoClassGet}
+\index{clCorMoIdToMoClassGet@{clCorMoIdToMoClassGet}}
+\hypertarget{pagecor120}{}\paragraph{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}\label{pagecor120}
+\begin{Desc}
+\item[Synopsis:]Returns the class type.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorMoIdToClassGet(
+                         		CL_IN ClCorMOIdPtrT pMoId,
+                         		CL_IN ClCorMoIdClassGetFlagsT flag,
+                         		CL_OUT ClCorClassTypeT *pClassId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) handle of the {\tt{MoId}}. 
+\item[{\em flag:}](in) Specifies the type of MO class to be returned. Its value can be  
+{\tt{CL\_\-COR\_\-MO\_\-CLASS\_\-GET}} or {\tt{CL\_\-COR\_\-MSO\_\-CLASS\_\-GET}}. 
+\item[{\em p\-Class\-Id:}](out) The {\tt{classId}} of the class.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the class type within the COR {\tt{MoId}}. It refers to the class type at the end of the 
+hierarchy.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdNameToMoIdGet}
+\index{clCorMoIdNameToMoIdGet@{clCorMoIdNameToMoIdGet}}
+\hypertarget{pagecor121}{}\paragraph{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}\label{pagecor121}
+\begin{Desc}
+\item[Synopsis:]Retrieves the {\tt{MoId}} in {\tt{ClCorMOIdT}} format, when {\tt{MoId}} is provided in {\tt{ClNameT}} format.\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}  ClRcT clCorMoIdNameToMoIdGet
+                         		CL_IN ClNameT *moIdName,
+                         		CL_OUT ClCorMOIdT *moId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em MoId\-Name:}](in) {\tt{MoId}} in String format. 
+\item[{\em MoId:}](out) Returns the {\tt{MoId}}. It has to be allocated by user.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the{\tt{MoId}} in {\tt{ClCorMOIdT}} format, when {\tt{MoId}} is given in {\tt{ClNameT}} 
+format.
+\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdToMoIdNameGet}
+\index{clCorMoIdToMoIdNameGet@{clCorMoIdToMoIdNameGet}}
+\hypertarget{pagecor122}{}\paragraph{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}\label{pagecor122}
+\begin{Desc}
+\item[Synopsis:] Retrieves {\tt{MoId}} in {\tt{ClNameT}} format, when {\tt{MoId}} is provided in {\tt{ClCorMOIdT}} format.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}  ClRcT clCorMoIdToMoIdNameGet(
+                         		CL_IN ClCorMOIdT *moId,
+                         		CL_OUT ClNameT *moIdName);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em MoId:}](in) {\tt{MoId}} structure. \item[{\em MoId\-Name:}](out) {\tt{MoId}} in String format.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve {\tt{MoId}} in {\tt{ClNameT}} format, when {\tt{MoId}} is provided in {\tt{ClCorMOIdT}} format.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}
+\end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdToInstanceGet}
+\index{clCorMoIdToInstanceGet@{clCorMoIdToInstanceGet}}
+\hypertarget{pagecor125}{}\paragraph{cl\-Cor\-MoId\-To\-Instance\-Get}\label{pagecor125}
+\begin{Desc}
+\item[Synopsis:]Returns the instance.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClCorInstanceIdT clCorMoIdToInstanceGet(
+                          CL_IN ClCorMOIdPtrT pMoId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) handle of the {\tt{MoId}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em Cl\-Cor\-Instance\-Id\-T:}]associated Instance ID.\end{description}
+\end{Desc}
+
+\begin{Desc}
+\item[Description:]This function is used to return the instance that is queried. It refers to the class type and instance ID at the end of the 
+hierarchy.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdToMoClassPathGet}
+\index{clCorMoIdToMoClassPathGet@{clCorMoIdToMoClassPathGet}}
+\hypertarget{pagecor126}{}\paragraph{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}\label{pagecor126}
+\begin{Desc}
+\item[Synopsis:]Derives the COR path from given a {\tt{MoId}}.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorMoIdToMoClassPathGet(
+                 CL_IN ClCorMOIdPtrT moIdh,
+                 CL_OUT ClCorMOClassPathPtrT corIdh);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em {\tt{MoId}}h:}](in) handle of the {\tt{MoId}}. \item[{\em cor\-Idh:}](out) handle of the updated COR path.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to update the COR path based on the {\tt{MoId}}. You are required to allocate both {\tt{MoId}} 
+and COR path.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor100}{cl\-Cor\-MoId\-Initialize} , \hyperlink{pagecor113}{cl\-Cor\-MoId\-Alloc}, 
+\hyperlink{pagecor114}{cl\-Cor\-MoId\-Free},
+\hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate}, 
+\hyperlink{pagecor116}{cl\-Cor\-MoId\-Set}, 
+\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, 
+\hyperlink{pagecor118}{cl\-Cor\-MoId\-Depth\-Get}, 
+\hyperlink{pagecor119}{cl\-Cor\-MoId\-Show}, 
+\hyperlink{pagecor120}{cl\-Cor\-MoId\-To\-Mo\-Class\-Get}, 
+\hyperlink{pagecor121}{cl\-Cor\-MoId\-Name\-To\-MoId\-Get}, 
+\hyperlink{pagecor122}{cl\-Cor\-MoId\-To\-MoId\-Name\-Get}, 
+\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get},
+\hyperlink{pagecor124}{cl\-Cor\-MoId\-Next\-Sibling\-Get}, 
+\hyperlink{pagecor125}{cl\-Cor\-MoId\-To\-Instance\-Get}, 
+\hyperlink{pagecor126}{cl\-Cor\-MoId\-To\-Mo\-Class\-Path\-Get}, 
+\hyperlink{pagecor127}{cl\-Cor\-MoId\-Clone}, 
+\hyperlink{pagecor128}{cl\-Cor\-MoId\-Compare}\end{Desc}
+\newpage
+
+
+
+\subsection{clCorMoIdServiceGet}
+\index{clCorMoIdServiceGet@{clCorMoIdServiceGet}}
+\hypertarget{pagecor129}{}\paragraph{cl\-Cor\-MoId\-Service\-Get}\label{pagecor129}
+\begin{Desc}
+\item[Synopsis:]Returns the service ID.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClCorMOServiceIdT clCorMoIdServiceGet(
+                   			CL_IN ClCorMOIdPtrT pMoId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) handle of the {\tt{MoId}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return Values:]It returns the service ID through {\tt{Cl\-Cor\-MOService\-Id\-T}}.\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the service ID associated with the COR {\tt{MoId}}.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor246}{cl\-Cor\-{\tt{MoId}}\-Service\-Set} \end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdServiceSet}
+\index{clCorMoIdServiceSet@{clCorMoIdServiceSet}}
+\hypertarget{pagecor130}{}\paragraph{cl\-Cor\-MoId\-Service\-Set}\label{pagecor130}
+\begin{Desc}
+\item[Synopsis:]Sets the service ID.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorMoIdServiceSet(
+                         CL_INOUT ClCorMOIdPtrT pMoId,
+                         CL_IN ClCorMOServiceIdT svc);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in/out) handle of the {\tt{MoId}}. \item[{\em svc:}](in) Service ID.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set the service ID for a particular COR {\tt{MoId}}.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor129}{cl\-Cor\-MoId\-Service\-Get}, \hyperlink{pagecor248}{cl\-Cor\-Service\-Id\-Validate} \end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdInstanceSet}
+\index{clCorMoIdInstanceSet@{clCorMoIdInstanceSet}}
+\hypertarget{pagecor131}{}\paragraph{cl\-Cor\-MoId\-Instance\-Set}\label{pagecor131}
+\begin{Desc}
+\item[Synopsis:]Sets the Instance.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorMoIdInstanceSet(
+                         CL_INOUT ClCorMOIdPtrT pMoId,
+                         CL_IN ClUint16T ndepth,
+                         CL_IN ClCorInstanceIdT newInstance);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in/out) handle of the {\tt{MoId}}. \item[{\em ndepth:}](in) Depth at which the instance is to be set. 
+\item[{\em new\-Instance:}](in) The instance to be set.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set the instance field at a specified level of {\tt{MoId}}.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor123}{cl\-Cor\-MoId\-First\-Instance\-Get} \end{Desc}
+\newpage
+
+
+\subsection{clCorMoIdConcatenate}
+\index{clCorMoIdConcatenate@{clCorMoIdConcatenate}}
+\hypertarget{pagecor132}{}\paragraph{cl\-Cor\-MoId\-Concatenate}\label{pagecor132}
+\begin{Desc}
+\item[Synopsis:]Concatenates an {\tt{MoId}} to another.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorUtilityApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clCorMoIdConcatenate(
+                         		CL_INOUT ClCorMOIdPtrT moid1,
+                         		CL_INOUT ClCorMOIdPtrT moid2,
+                         		CL_IN ClInt32T copyWhere);
+\end{verbatim}
+\normalsize
+\end{Desc}
+
+\begin{Desc}
+\item[Parameters:]
+
+\begin{description}
+\item[{\em part1:}](in/out) First {\tt{MoId}}. 
+\item[{\em part2:}](in/out) Second {\tt{MoId}}. 
+\item[{\em copyWhere:}](in) Indicates where the concatenated {\tt{MoId}} is to be copied. 
+\par
+ If 0, {\em moid2} is concatenated with {\em moid1} and the result is stored in {\em moid1}.
+ \par
+ If 1, {\em moid1} is concatenated with {\em moid2} and the result is stored in {\em moid2}.
+\end{description}
+
+\end{Desc}
+
+
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-COR\_\-ERR\_\-MAX\_\-DEPTH:}]The depth exceeds the maximum limit.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to concatenate two {\tt{MoIds}}.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor117}{cl\-Cor\-MoId\-Append}, \hyperlink{pagecor115}{cl\-Cor\-MoId\-Truncate} \end{Desc}
+\newpage
+
+
+\section{COR-Event APIs}
+
+\subsection{clCorEventSubscribe}
+\index{clCorEventSubscribe@{clCorEventSubscribe}}
+\hypertarget{pagecor133}{}\paragraph{cl\-Cor\-Event\-Subscribe}\label{pagecor133}
+\begin{Desc}
+\item[Synopsis:]Subscribes for notifications when a change occurs in an attribute.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorNotifyApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}        ClRcT clCorEventSubscribe(
+                                 		CL_IN ClEvtChannelhandleT channelhandle,
+                                 		CL_IN ClCorMOIdPtr changedObj,
+                                 		CL_IN ClCorAttrPathPtrT  pAttrPath,
+                                 		CL_IN ClCorAttrListPtr attrList,
+                                 		CL_IN ClCorOpsT    flags,
+                                 		CL_IN void * cookie,
+                                 		CL_IN ClEvtSubscriptionIdT subscriptionId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+
+\item[{\em channel\-handle:}](in) handle of the COR channel. You are required to allocate this parameter.
+
+\item[{\em changed\-Obj:}](in) Subscriber (Caller) is interested in changes to this object (publisher). This is complete path to the object. Wildcards 
+can be used to specify a 'class' or 'subtree' of objects. Refer to {\tt{MoId}} documentation for further details.
+
+\item[{\em p\-Attr\-Path:}](in) To subscribe for contained attributes of contained objects an {\tt{attrPath}} which identifies a contained 
+object must be specified. If this path is specified as NULL, the attributes specified in 
+attr\-List belong to the object specified by changed\-Obj parameter. The {\tt{attrPath}} can have wildcards as instances.
+
+\item[{\em attr\-List:}](in) If the subscriber is interested in notification when certain attribute(s) of an object change, list of these attribute
+Ids can be specified here. If it is set to NULL, the subscriber receives notification when any attribute changes.
+\par
+ Following are the critical usage restrictions for this parameter:
+\par
+ This parameter is interpreted only if \#ops contains one or more {\tt {\_\-SET\_\-}} operations. Refer to {\tt{ClCorOpsT}} for all the possible 
+operations types.
+\par
+ Attribute Ids in {\tt{attrList}} make meaning, when the combination of {\tt{changed\-Obj}} and {\tt{svc\-Id}} resolve in one object 
+class. This implies that you are interested at a attribute level change.
+ \par
+ You cannot use a wildcard for the service ID.
+ \par
+ You cannot use a wildcard for any class value in {\tt{changed\-Obj}}.
+ \par
+ You can use a wildcard for instance value in {\tt{changed\-Obj}}.
+
+
+\item[{\em flags:}](in) The operation you can subscribe for can be:
+ \par
+
+ {\tt{CREATE}} 
+  \par
+
+ {\tt{DELETE}}
+  \par
+
+ {\tt{SET}}
+
+
+\item[{\em cookie:}](in) Subscriber can store an arbitrary cookie value. It is returned as is to the change notification callback.
+\item[{\em subscription\-Id:}](in) Subscription ID is provided by the caller of the API. The same subscription Id has to be used while un subscribing.
+
+\end{description}
+\end{Desc}
+
+
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+
+\item[{\em CL\_\-OK:}]The API executed successfully. 
+
+\item[{\em CL\_\-COR\_\-ERR\_\-NULL\_\-PTR:}]{\tt{changedObj}} is a NULL pointer. 
+
+\item[{\em CL\_\-COR\_\-NOTIFY\_\-ERR\_\-INVALID\_\-OP:}] The value indicating the required operation is not one of the following:
+\begin{itemize}
+\item
+CL\_\-COR\_\-OP\_\-CREATE
+\item
+CL\_\-COR\_\-OP\_\-SET
+\item
+CL\_\-COR\_\-OP\_\-DELETE
+\end{itemize}
+
+\item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}] {\tt{channelhandle}} is zero.
+
+\end{description}
+\end{Desc}
+Heartsongs:Live from home
+\begin{Desc}
+\item[Description:] You can subscribe to any of the operations such as Attribute Set, Object Create, and Object
+Delete using this function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor134}{cl\-Cor\-Event\-Unsubscribe} \end{Desc}
+\newpage
+
+
+\subsection{clCorEventUnsubscribe}
+\index{clCorEventUnsubscribe@{clCorEventUnsubscribe}}
+\hypertarget{pagecor134}{}\paragraph{cl\-Cor\-Event\-Unsubscribe}\label{pagecor134}
+\begin{Desc}
+\item[Synopsis:]Un subscribes for attribute change notification.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorNotifyApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}       ClRcT clCorEventUnsubscribe(
+                                		CL_IN ClEvtChannelhandleT channelhandle,
+                                		CL_IN ClEvtSubscriptionIdT subscriptionId);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em channel\-handle:}](in) Channel handle obtained when the COR channel was opened by the application. 
+\item[{\em subscription\-Id:}](in) Subscription ID, which was passed to COR while Subscribing.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. 
+ \item[{\em CL\_\-EVENT\_\-ERR\_\-INIT\_\-NOT\_\-DONE:}]Event library is not initialized. 
+ \item[{\em CL\_\-EVENT\_\-ERR\_\-BAD\_\-HANDLE:}]The handle is invalid. 
+ \item[{\em CL\_\-EVENT\_\-INTERNAL\_\-ERROR:}]An unexpected problem occurred with the Event Manager. 
+ \item[{\em CL\_\-EVENT\_\-ERR\_\-INVALID\_\-PARAM:}]On passing an invalid parameter. 
+ \item[{\em CL\_\-EVENT\_\-ERR\_\-NO\_\-MEM:}]Memory allocation failure.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]You can unsubscribe to any of the operations such as Attribute Set, Object Create, and Object
+Delete using this function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor133}{cl\-Cor\-Event\-Subscribe} \end{Desc}
+\newpage
+
+
+
+\section{OI Related APIs}
+
+\subsection{clCorOIRegister}
+\index{clCorOIRegister@{clCorOIRegister}}
+\hypertarget{pagecor135}{}\paragraph{cl\-Cor\-OI\-Register}\label{pagecor135}
+\begin{Desc}
+\item[Synopsis:]Registers a component to act as the OI.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorNotifyApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}         ClRcT clCorOIRegister( 
+    						CL_IN const ClCorMOIdPtrT pMoId,
+						CL_IN const ClCorAddrPtrT  pCompAddr);
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) This is pointer to MoID of the MO.
+\item[{\em p\-Comp\-Addr:}](in) IOC address of OI.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEM:}]Event library is not initialized. 
+ \item[{\em CL\_\-ERR\_\-TIMED\_\-OUT:}] The server failed to send the response within the time limit.  
+ \item[{\em CL\_\-ERR\_\-NULL\_\-PTR:}] pMoid or pCompAddr is NULL.
+
+ 
+ \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This API registers a component (specified by compAddr) to become the OI, for the MO pointed by *pMoID. 
+The MoID can be a qualified MoId or a wild card MoID.
+This API is synchronous in nature.
+
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor136}{clCorOIUnregister},  \hyperlink{pagecor138}{clCorPrimaryOIGet}, 
+\hyperlink{pagecor137}{clCorPrimaryOISet}\end{Desc}
+\newpage
+
+
+
+
+
+\subsection{clCorOIUnregister}
+\index{clCorOIUnregister@{clCorOIUnregister}}
+\hypertarget{pagecor136}{}\paragraph{cl\-Cor\-OI\-Unregister}\label{pagecor136}
+\begin{Desc}
+\item[Synopsis:]Un registers a component to act as the OI.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorNotifyApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}        ClRcT clCorOIUnRegister	(
+     						CL_IN ClCorMOIdPtrT pMoid,
+     						CL_IN ClCorAddrPtrT pCompAddr);
+
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) This is pointer to MoID of the MO.
+\item[{\em p\-Comp\-Addr:}](in) The component that needs to be unregistered as the OI.
+The MoID can be a qualified MoId or a wild card MoID.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+
+\item[{\em CL\_\-OK:}] If the OI un-registration operation is successful.
+ \item[{\em CL\_\-ERR\_\-OI\_\-NOT\_\-REGISTERED:}] Component was not registered as OI for this MO.
+ \item[{\em CL\_\-ERR\_\-NULL\_\-PTR:}] NULL pointer is passed for {\tt{pMoid}} or {\tt{pCompAddr}} or {\tt{pMoId}}.
+\item[{\em CL\_\-ERR\_\-TIMED\_\-OUT:}] The server failed to send the response within the time limit.
+ 
+ \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+On successful execution completion of the API , the component pointed to by {\tt{pCompAddr}} ceases to be the OI. If this component is the primaryOI, it 
+ceases to be the primaryOI.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor135}{clCorOIRegister}\end{Desc}
+\newpage
+
+
+
+
+\subsection{ClCorPrimaryOISet}
+\index{ClCorPrimaryOISet@{ClCorPrimaryOISet}}
+\hypertarget{pagecor137}{}\paragraph{cl\-Cor\-Primary\-OI\-Set}\label{pagecor137}
+\begin{Desc}
+\item[Synopsis:] Sets a component as a primary OI. \end{Desc}
+\begin{Desc}
+\item[Header File:]clCorNotifyApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}        ClRcT clCorPrimaryOISet(
+						CL_IN const ClCorMOIdPtrT pMoid,
+    						CL_IN const ClCorAddrPtrT pCompAddr);
+
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in)This is pointer to MoID of the MO. This can be a qualified MoID or wild card MoID.
+\item[{\em p\-Comp\-Addr:}](in) pointer to the component address structure.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+
+\item[{\em CL\_\-OK:}] if the call is successful, the OI given by the component address becomes the Primary OI for this MO.
+ \item[{\em CL\_\-ERR\_\-OI\_\-NOT\_\-REGISTERED:}] An OI can be made primary only if is registered as an OI. This error indicates that the OI 
+ is attempting to be made primary OI without registering as an OI.
+ \item[{\em CL\_\-ERR\_\-OI\_\-ALREADY\_\-SET:}] A Primary OI for the MO pointed by {\tt{pMoId}} exists.
+ \item[{\em CL\_\-ERR\_\-NULL\_\-PTR:}]  {\tt{pMoid}} or {\tt{pCompAddr}} or {\tt{pMoId}} is a NULL pointer.
+\item[{\em CL\_\-ERR\_\-TIMED\_\-OUT:}] Server failed to send the response within the time limit. 
+ 
+ \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function sets the OI specified by pCompAddr as a primaryOI. 
+A component can become a primary OI only if it has registered itself as OI using clCorOIRegister API.
+This is a synchronous function.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor135}{clCorOIRegister}, \hyperlink{pagecor138}{clCorPrimaryOIGet},
+\hyperlink{pagecor139}{clCorPrimaryOIUnset}
+\end{Desc}
+\newpage
+
+
+
+\subsection{ClCorPrimaryOIGet}
+\index{ClCorPrimaryOIGet@{ClCorPrimaryOIGet}}
+\hypertarget{pagecor138}{}\paragraph{cl\-Cor\-Primary\-OI\-Get}\label{pagecor138}
+\begin{Desc}
+\item[Synopsis:]Obtains the primaryOI for a given MO.\end{Desc}
+\begin{Desc}
+\item[Header File:]clCorNotifyApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}        ClRcT clCorPrimaryOIGet(
+      					CL_IN const ClCorMOIdPtrT pMoid, 		
+      					CL_OUT ClCorAddrPtrT pCompAddr);
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) This is pointer to  MoID of the MO.
+\item[{\em p\-Comp\-Addr:}](out) Pointer to the component address structure.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+
+\item[{\em CL\_\-OK:}] The call is successful and the component's address is populated in the second parameter
+ \item[{\em CL\_\-ERR\_\-OI\_\-NOT\_\-REGISTERED:}] There is no Primary OI registered for this MO.
+ \item[{\em CL\_\-ERR\_\-NULL\_\-PTR:}] {\tt{pCompAddr}} or {\tt{pMoId}} is NULL.
+\item[{\em CL\_\-ERR\_\-TIMED\_\-OUT:}] Server failed to send the response within the time limit. 
+ 
+
+ \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+Upon successful execution, this function obtains the primaryOI for the MO pointed by pMoid. The component address of the primaryOI is returned 
+in pCompAddr.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor135}{clCorOIRegister}, \hyperlink{pagecor138}{clCorPrimaryOIGet},
+\hyperlink{pagecor139}{clCorPrimaryOIUnset} 
+\end{Desc}
+\newpage
+
+
+
+\subsection{clCorPrimaryOIUnset}
+\index{clCorPrimaryOIUnset@{clCorPrimaryOIUnset}}
+\hypertarget{pagecor139}{}\paragraph{cl\-Cor\-Primary\-OI\-Unset}\label{pagecor139}
+\begin{Desc}
+\item[Synopsis:]Unregisters a component as a primary OI. \end{Desc}
+\begin{Desc}
+\item[Header File:]clCorNotifyApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}        ClRcT clCorPrimaryOIUnset(
+						CL_IN const ClCorMOIdPtrT pMoid, 		
+          					CL_IN const ClCorAddrPtrT pCompAddr);
+
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-MoId:}](in) This is pointer to {\tt{MoID}} of the MO.
+\item[{\em p\-Comp\-Addr:}](in) Pointer to the component address structure.
+
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+
+\item[{\em CL\_\-OK:}] The call is successful and the component's address is populated in the second parameter
+ \item[{\em CL\_\-ERR\_\-OI\_\-NOT\_\-REGISTERED:}] This OI is not the Primary OI.
+ \item[{\em CL\_\-ERR\_\-NULL\_\-PTR:}] {\tt{pCompAddr}} or {\tt{pMoId}} is NULL.
+\item[{\em CL\_\-ERR\_\-TIMED\_\-OUT:}] Server failed to send the response within the time limit. 
+ 
+
+ \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function Unregisters the component as the primary OI.
+Upon successfully execution of the API, the OI pointed by {\tt{pCompAddr}} will no longer act as primaryOI for the MO pointed by the {\tt{pMoId}}.
+This is a synchronous call.
+
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Cor\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecor135}{clCorOIRegister}, \hyperlink{pagecor138}{clCorPrimaryOIGet}
+
+\end{Desc}
+\newpage
+
+
+\chapter{Debug CLI}
+The debug CLI for COR provides bundle capability functionality. The bundle initialization, job en-queue, apply, and finalize commands are added. The 
+command wise description is given below:
+
+\subsection{clCorBundleInitialize}
+\index{clCorBundleInitialize@{clCorBundleInitialize}}
+\begin{Desc}
+\item
+[Parameters:]
+\begin{description}
+\item[{\em 1:}] For transactional bundle.
+\item[{\em 2:}] For non-transactional bundle.
+\end{description}
+\end{Desc}
+
+\begin{Desc}
+\item
+[Description:]
+This command creates a bundle and returns a bundle handle. It takes a parameter to create a transactional or a non-transactional bundle. Transactional 
+bundle is not supported in this release. This handle is unique for a given bundle. It should be used to add jobs into the bundle.
+\end{Desc}
+
+\begin{Desc}
+\item
+[Output:]
+\begin{itemize}
+\item
+The bundle Id is displayed on successful bundle initialization.
+\item
+An error code is displayed if a failure in bundle initialization occurs. The error codes are based on the error returned by {\tt{clCorBundleInitialize()}}
+API.
+\end{itemize}
+\end{Desc}
+
+
+
+\subsection{clCorBundleGetJobAdd}
+\index{clCorBundleGetJobAdd@{clCorBundleGetJobAdd}}
+
+\begin{Desc}
+\item
+[Parameters:]
+\begin{description}
+\item[{\em bundle\-Handle:}] Bundle Handle Obtained from the clCorBundleInitialize CLI.
+\item[{\em Mo\-ID:}] MoID for the object. For example, \\Chassis:0\\SysController:0 or \\0x10001:0\\0x10002:0
+\item[{\em Svc\-Id:}] Service Id of the MSO. {\tt{SvcId}} must have the value {\tt{3}} for PROV MSO and {\tt{2}} for alarm MSO
+\item[{\em attr\-Path:}] Attribute Path should be NULL for PROV MSOs.
+\item[{\em Attr\-Id:}] Attribute Id of the attribute for which get is performed.
+\item[{\em Index:}] In case of array attributes this specifies the index of the array from where the read must occur.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item
+[Description:] 
+This command queues up the {\tt{MoID+attribute}}.
+{\tt{clCorBundleApply()}} should to be called after adding all the jobs into the bundle,
+\end{Desc}	
+\begin{Desc}
+\item
+[Output:] 
+\begin{itemize}
+\item
+No message is printed on successful addition of jobs.
+\item
+An error code is displayed if a failure occurs. The error codes are based on the error returned by {\tt{clCorBundleJobAdd}} API.
+\end{itemize}
+\end{Desc}
+
+
+\subsection{clCorBundleApply}
+\index{clCorBundleApply@{clCorBundleApply}}
+
+\begin{Desc}
+\item
+[Parameters:] 
+\begin{description}
+\item[{\em bundle\-Handle:}] Handle to the bundle obtained from {\tt{clCorBundleInitialize}} CLI.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item
+[Description:]
+This command applies the bundle containing jobs to the server for processing.
+This command operates synchronously and on return of the command an appropriate message is printed on the console. If an error occurs, the message will
+be printed along with the error message.
+\end{Desc}
+\begin{Desc}
+\item
+[Output:]
+\begin{itemize}
+\item
+The data obtained is displayed on the console in the form of attribute ID and value. If it is an array attribute, the value for all its indexes are 
+displayed. For other operation only the job (along with error code) which caused failure of the bundle will be displayed.
+\item
+If any error occurs while processing a job, the {\tt{MoID}} and {\tt{attributeID}} of that job with the error codes is displayed. This error code 
+contains the value of {\tt{jobStatus}} parameter of {\tt{clCorBundleJob}}.\end{itemize}
+\end{Desc}
+
+
+
+\subsection{clCorBundleFinalize}
+\begin{Desc}
+\item
+[Parameters:] 
+\begin{description}
+\item[{\em bundle\-Handle:}] Handle to the bundle obtained from {\tt{clCorBundleInitialize}} CLI.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item
+[Description:] 
+This command finalizes a bundle and the bundleHandle becomes invalid.
+\end{Desc}
+\begin{Desc}
+\item
+[Output:] 
+\begin{itemize}
+\item No error is displayed if the command is executed successfully.
+\item An error code is displayed if a failure occurs. The error codes are based on the error returned by {\tt{clCorBundleFinalize()}} API
+\end{itemize}
+\end{Desc}
+
+
+\subsection{objectShow}
+\begin{Desc}
+\item
+[Parameters:] 
+\begin{description}
+\item[{\em Mo\-ID:}] MoID of the object. { Ex: \\Chassis:0\\SysController:0 or \\0x10001:0\\0x10002:0 }
+\item[{\em Svc\-Id:}] Service Id of the MSO or -1 if it is a MO.
+\item[{\em attr\-Path:}] Attribute Path of the MO if is a contained MO. Ex: 
+	\\attr1:0\\attr2:2 or \\0x1001:0\\0x1002:1 otherwise it is NULL.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item
+[Description:]
+The command provides the values of run-time and configuration attributes.
+\end{Desc}
+\begin{Desc}
+\item
+[Output:]
+\begin{itemize}
+\item The values of all the attributes are displayed on successful execution of the command.
+\item -	An error code is displayed if a failure occurs. The error codes are based on the {\tt{jobStatus}} parameter returned by {\tt{clCorBundleJobAdd()}}
+API.
+\end{itemize}
+\end{Desc}
+
+
+
+
+\subsection{rmShow}
+\begin{Desc}
+\item
+[Parameters:]
+None.
+\end{Desc}
+\begin{Desc}
+\item
+[Description:]
+This command displays the MOs and its registered OIs ( IOC address of the component). There are specific flags that are displayed with IOC address. They 
+are as follows:
+\textit{STATUS} - This flag provides the current status of the OI. Following are the values this flag can take and its significance:
+\begin{itemize}
+\item
+\textit{1} - OI is enabled and ready to serve the request.
+\item
+\textit{2} - OI is disabled. The OI is running but temporarily not serving the request.
+\item
+\textit{3} - OI is deleted. The OI has failed and cannot serve the request.
+\end{itemize}
+\textit{STN} - This flag provides the IOC address of the component.
+\textit{PRIMARY} - This status indicates if this OI is acting as the primary OI for the MO. 
+\begin{itemize}
+\item
+\textit{0} - The OI is not a primary OI.
+\item
+\textit{1} -  The OI is a primary OI.
+\end{itemize}
+
+\end{Desc}
+
+
+\subsection{dmShow}
+\begin{Desc}
+\item
+[Parameters:]
+\begin{description} 
+\item[{\em Class\-Id:}]Class Identifier.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item
+[Description:]
+This command provides the details of the Class and its attributes. If no argument is specified it displays all classes contained in COR.
+Following attributes of the a {\tt{ClassID}} are displayed: attribute Id, offset, size, type and user flags. The user flags displayed for each attribute 
+contains the following combination of characters that provide information about its type:
+\begin{itemize}
+\item
+CF 	- Configuration attribute.
+\item
+RT	- Runtime attribute.
+\item
+OP	- Operational attribute.
+\item
+R-O	- Read only attribute 
+\item
+R-W	- Read Write attribute..
+\item
+C\$	- Cached attribute. 
+\item
+N-C\$	- Non cached attribute. 
+\item
+PERS	- Persistent attribute.
+\item
+N-PERS - Non-persistent attribute.
+\item
+WRONCE - Writable
+\item
+INITED -  Initialized
+\end{itemize}
+\end{Desc}
+
+
+\chapter*{Glossary}
+\index{Glossary@{Glossary}}
+\begin{Desc}
+\item[Glossary of COR Service Terms:]
+\begin{description}
+
+\item[Configuration Attribute] Configuration attributes are the means by which system management applications provide input on the desired sets of 
+objects and their handling that an Object Implementer should implement.. 
+The set of configuration objects and attributes constitute the prescriptive part of the information model.
+\end{description}
+\begin{description}
+
+\item[Runtime Attribute] Runtime attributes are also called transient attributes and are read-only. They are owned by the Object Implementors. To read a
+runtime attribute the OI needs to be contacted. The run-time objects and attributes form the descriptive part of the Information Model.
+\end{description}
+
+\begin{description}
+\item[Object Implementer] An ASP service or component that implements an object.
+\end{description}
+
+\begin{description}
+\item[Job] A job is an entity that specifies a create/delete/set/get operation on a MO. A job that specifies MO creation is called Create-Job. A job that
+specifies MO deletion is called Delete-Job. A job that represents MO set/get is called Set-Job and Get-Job. A Get-Job has an MO and a list of attributes 
+that need to be read. 
+\end{description}
+
+\begin{description}
+\item[Bundle] A bundle is a group of jobs. A bundle enables efficient communication between the COR client, COR server, and OI by limiting the number of
+RMD calls between them. A bundle can either be operated as a transactional or a non transactional bundle. COR service ensures that all jobs in a 
+transactional bundle are either successful or unsuccessful (failures). A nontransactional bundle does not contain such restrictions and can
+contain unsuccessfully executed jobs due to error conditions.
+\end{description}
+
+\end{Desc}
+
+   \end{flushleft}

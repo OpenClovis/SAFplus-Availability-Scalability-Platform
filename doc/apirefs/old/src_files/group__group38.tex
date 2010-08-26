@@ -1,0 +1,705 @@
+\hypertarget{group__group38}{
+\chapter{Functional Overview}
+\label{group__group38}
+}
+\begin{flushleft}
+
+A Circular list is a chain of nodes, without any termination. The last node is linked back to the first node. A node is a data structure which contains 
+user data. The following are the operations supported by Circular List implementation: 
+ \par
+ \begin{itemize}
+\item Adds a node at the beginning of the list. \item Adds a node at the end of the list. \item Adds a node before a specific node in the list. \item 
+Adds a node after a specific node in the list. \item Returns the first node from the list. \item Returns the last node from the list. \item Returns the
+previous node from the list. \item Returns the next node from the list. \item Walks through the list, starting from a specific node. \item Deletes a node 
+from the list. \item Returns the number of nodes from the list. \item Retrieves the data from a node from the list. \item Destroys the list. 
+ \par
+\end{itemize}
+Before performing any of the above mentioned operations, you must create a list. While creating a list, you need to specify the maximum size for the list. If the 
+maximum size is specified as 0, then you can add any number of nodes. Otherwise, the number of nodes you can add is limited to the maximum size. At any 
+instant, the list can have a maximum of {\tt{max\-Size}} number of nodes, specified when the list is created. 
+ \par
+ This file contains the definitions and API prototypes for Circular Linked List.
+\section{Interaction with other components} Circular List APIs depend on Heap for memory allocation and functions to free the allocated memory. 
+
+\chapter{Service Model}
+TBD
+
+
+\chapter{Service APIs}
+
+
+\section{Type Definitions}
+
+\subsection{ClClistDropPolicyT}
+\index{ClClistDropPolicyT@{ClClistDropPolicyT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_NO\_DROP,}\\
+\>\>\>\>\textit{CL\_DROP\_FIRST,}\\
+\>\>\>\>\textit{CL\_DROP\_MAX\_TYPE}\\
+\textit{\} ClClistDropPolicyT;}\end{tabbing}
+The values of the \textit{ClClistDropPolicyT} enumeration contains/decides the action to be taken when the linked list is full.
+The values of this enumeration have the following interpretation:
+\begin{itemize}
+\item
+\textit{CL\_\-NO\_\-DROP} - The first node must not be dropped even if the list is full.
+\item
+\textit{CL\_\-DROP\_\-FIRST} - Drops the first node, if the list is full.
+\item
+\textit{CL\_\-DROP\_\-MAX\_\-TYPE} - Adds a new drop policy type before the first node.
+\end{itemize}
+
+
+\subsection{ClClistDeleteCallbackT}
+\index{ClClistDeleteCallbackT@{ClClistDeleteCallbackT}}
+\textit{typedef void(*ClClistDeleteCallbackT)(}
+\newline \textit{ClClistDataT userData);}
+\newline
+\newline
+The type of the callback function that is invoked when a node is deleted from the container. It deletes the callback function pointer.
+
+
+\subsection{ClClistT}
+\index{ClClistT@{ClClistT}}
+\textit{typedef ClHandleT ClClistT;}
+\newline
+\newline
+The type of the handle for the circular list.
+
+\subsection{ClClistDataT}
+\index{ClClistDataT@{ClClistDataT}}
+\textit{typedef ClHandleT ClClistDataT;}
+\newline
+\newline
+The type of the handle for the user-data.
+
+
+\subsection{ClClistNodeT}
+\index{ClClistNodeT@{ClClistNodeT}}
+\textit{typedef ClHandleT ClClistNodeT;}
+\newline
+\newline
+The type of the handle for the circular node.
+
+
+
+\subsection{ClClistWalkCallbackT}
+\index{ClClistWalkCallbackT@{ClClistWalkCallbackT}}
+\textit{typedef void(*ClClistWalkCallbackT)(}
+\newline \textit{ClClistDataT userData, }
+\newline \textit{void *userArg);}
+\newline
+\newline
+The type of the callback function to be used when iterating/walking through the elements of a container. 
+
+
+\newpage
+
+\section{Functional APIs}
+\subsection{clClistCreate}
+\index{clClistCreate@{clClistCreate}}
+\hypertarget{pagecl101}{}\paragraph{cl\-Clist\-Create}\label{pagecl101}
+\begin{Desc}
+\item[Synopsis:]Creates a Circular Linked list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistCreate(
+                      				CL_IN  ClUint32T maxSize,
+                      				CL_IN  ClClistDropPolicyT dropPolicy,
+                      				CL_IN  ClClistDeleteCallbackT fpUserDeleteCallBack,
+                      				CL_IN   ClClistDeleteCallbackT fpUserDestroyCallBack,
+                      				CL_OUT  ClClistT* pListHead);
+                      
+                    
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em max\-Size:}](in) Maximum size of the list. It specifies the maximum number of nodes that can exist at any instant in the list.
+This must be an unsigned integer. You can add nodes to the list until this maximum limit is reached. If the value of this parameter is set to 0, there 
+is no limit on the size of the list.
+\item[{\em drop\-Policy:}](in) Drop policy for the list. If you try to add a node into a list that has reached it maximum limit, and if the
+drop policy is set to {\tt{CL\_\-DROP\_\-FIRST}}, the first node is dropped and the specified node is added. If this parameter is set to
+{\tt{CL\_\-NO\_\-DROP}}, an error is returned. This parameter is valid, only if the list is of fixed size.
+\item[{\em fp\-User\-Delete\-Call\-Back:}](in) Pointer to the delete callback function of the user. This function accepts a parameter of type 
+{\tt Cl\-Clist\-Data\-T\/}. After deleting the specified node, the user-data stored in that node is passed as an argument to the callback function.
+\item[{\em fp\-User\-Destroy\-Call\-Bac\-K:}](in) Pointer to the destroy callback function. This function accepts a parameter of type 
+{\tt Cl\-Clist\-Data\-T}. When destroying, the user-data stored in each node is passed as an argument to the callback function, one by one.
+\item[{\em p\-List\-Head:}](out) Pointer to the variable of type {\tt{Cl\-Clist\-T}} in 
+which the function returns a valid list handle on successful creation of the list.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pListHead}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function creates and initializes the Circular Linked list.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecl114}{cl\-Clist\-Delete} \end{Desc}
+\newpage
+
+\subsection{clClistFirstNodeAdd}
+\index{clClistFirstNodeAdd@{clClistFirstNodeAdd}}
+\hypertarget{pagecl102}{}\paragraph{cl\-Clist\-First\-Node\-Add}\label{pagecl102}
+\begin{Desc}
+\item[Synopsis:]Adds a node at the beginning of the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistFirstNodeAdd(
+                         		CL_IN  ClClistT listHead,
+                         		CL_IN  ClClistDataT userData);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the {\tt{clClistCreate}} API. \item[{\em user\-Data:}](in) User-data. 
+You must allocate and de-allocate memory for this parameter.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-MAXSIZE\_\-REACHED:}]The maximum size is reached. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function adds a node at the beginning of the Circular Linked list.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecl103}{cl\-Clist\-Last\-Node\-Add}, \hyperlink{pagecl104}{cl\-Clist\-After\-Node\-Add},
+\hyperlink{pagecl105}{cl\-Clist\-Before\-Node\-Add} \end{Desc}
+\newpage
+
+
+\subsection{clClistLastNodeAdd}
+\index{clClistLastNodeAdd@{clClistLastNodeAdd}}
+\hypertarget{pagecl103}{}\paragraph{cl\-Clist\-Last\-Node\-Add}\label{pagecl103}
+\begin{Desc}
+\item[Synopsis:]Adds a node at the end of the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistLastNodeAdd(
+                          		CL_IN  ClClistT listHead,
+                          		CL_IN  ClClistDataT userData);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the create API. \item[{\em user\-Data:}](in) User-data. 
+You must allocate and de-allocate memory for this parameter.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-MAXSIZE\_\-REACHED:}]The maximum size is reached. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function adds a node at the end of the Circular Linked list.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecl104}{cl\-Clist\-After\-Node\-Add}, \hyperlink{pagecl105}{cl\-Clist\-Before\-Node\-Add} \end{Desc}
+\newpage
+
+
+\subsection{clClistAfterNodeAdd}
+\index{clClistAfterNodeAdd@{clClistAfterNodeAdd}}
+\hypertarget{pagecl104}{}\paragraph{cl\-Clist\-After\-Node\-Add}\label{pagecl104}
+\begin{Desc}
+\item[Synopsis:]Adds a node after a specified node in the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistAfterNodeAdd(
+                         		CL_IN  ClClistT listHead,
+                         		CL_IN  ClClistNodeT currentNode,
+                         		CL_IN  ClClistDataT userData);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the create API. \item[{\em current\-Node:}](in) Handle of the node after which the specified 
+data must be added. \item[{\em user\-Data:}](in) User-data. You must allocate and de-allocate memory for this parameter.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-MAXSIZE\_\-REACHED:}]The maximum size is reached. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function adds a node after a specified node in the Circular Linked list.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecl103}{cl\-Clist\-Last\-Node\-Add}, \hyperlink{pagecl105}{cl\-Clist\-Before\-Node\-Add} \end{Desc}
+\newpage
+
+\subsection{clClistBeforeNodeAdd}
+\index{clClistBeforeNodeAdd@{clClistBeforeNodeAdd}}
+\hypertarget{pagecl105}{}\paragraph{cl\-Clist\-Before\-Node\-Add}\label{pagecl105}
+\begin{Desc}
+\item[Synopsis:]Adds a node before a specified node in the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT  clClistBeforeNodeAdd(
+                         		CL_IN  ClClistT listHead,
+                         		CL_IN  ClClistNodeT currentNode,
+                         		CL_IN  ClClistDataT userData);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the create API. \item[{\em current\-Node:}](in) Handle of the node before which the specified
+data must be added. 
+\item[{\em user\-Data:}](in) User-data. You must perform memory allocation and de-allocation for this parameter.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-MAXSIZE\_\-REACHED:}]The maximum size is reached. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function adds a node before a specified node in the Circular Linked list.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecl103}{cl\-Clist\-Last\-Node\-Add}, \hyperlink{pagecl104}{cl\-Clist\-After\-Node\-Add} \end{Desc}
+\newpage
+
+
+\subsection{clClistNodeDelete}
+\index{clClistNodeDelete@{clClistNodeDelete}}
+\hypertarget{pagecl106}{}\paragraph{cl\-Clist\-Node\-Delete}\label{pagecl106}
+\begin{Desc}
+\item[Synopsis:]Deletes a node from the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}              
+                   	ClRcT clClistNodeDelete(
+                   		CL_IN ClClistT listHead,
+                   		CL_IN ClClistNodeT node);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the create API. \item[{\em node:}](in) Handle of the node which is to be deleted.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function deletes the specified node from the Circular Linked list. The delete callback function, registered during the creation is
+called with the data in the node to be deleted.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecl102}{cl\-Clist\-First\-Node\-Add}, \hyperlink{pagecl103}{cl\-Clist\-Last\-Node\-Add},
+\hyperlink{pagecl104}{cl\-Clist\-After\-Node\-Add}, \hyperlink{pagecl105}{cl\-Clist\-Before\-Node\-Add} \end{Desc}
+\newpage
+
+
+\subsection{clClistFirstNodeGet}
+\index{clClistFirstNodeGet@{clClistFirstNodeGet}}
+\hypertarget{pagecl107}{}\paragraph{cl\-Clist\-First\-Node\-Get}\label{pagecl107}
+\begin{Desc}
+\item[Synopsis:]Returns the first node from the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistFirstNodeGet(
+                           		CL_IN  ClClistT listHead,
+                           		CL_OUT  ClClistNodeT* pFirstNode);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the create API. 
+\item[{\em p\-First\-Node:}](out) Pointer to the variable of type {\tt{Cl\-Clist\-Node\-T}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pFirstNode}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]The list is empty.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function returns the first node from the Circular Linked list.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecl108}{cl\-Clist\-Last\-Node\-Get}, \hyperlink{pagecl109}{cl\-Clist\-Next\-Node\-Get}, 
+\hyperlink{pagecl110}{cl\-Clist\-Previous\-Node\-Get} \end{Desc}
+\newpage
+
+\subsection{clClistLastNodeGet}
+\index{clClistLastNodeGet@{clClistLastNodeGet}}
+\hypertarget{pagecl108}{}\paragraph{cl\-Clist\-Last\-Node\-Get}\label{pagecl108}
+\begin{Desc}
+\item[Synopsis:]Returns the last node from the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistLastNodeGet(
+                          		CL_IN  ClClistT listHead,
+                          		CL_OUT  ClClistNodeT* pLastNode);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the create API. 
+\item[{\em p\-Last\-Node:}](out) Pointer to the variable of type {\tt{Cl\-Clist\-Node\-T}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pLastNode}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function.
+\item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]The list is empty.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the last node from the Circular Linked list.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecl109}{cl\-Clist\-Next\-Node\-Get}, \hyperlink{pagecl110}{cl\-Clist\-Previous\-Node\-Get} \end{Desc}
+\newpage
+
+\subsection{clClistNextNodeGet}
+\index{clClistNextNodeGet@{clClistNextNodeGet}}
+\hypertarget{pagecl109}{}\paragraph{cl\-Clist\-Next\-Node\-Get}\label{pagecl109}
+\begin{Desc}
+\item[Synopsis:]Returns the next node from the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistNextNodeGet(
+                         		CL_IN  ClClistT listHead,
+                         		CL_IN  ClClistNodeT currentNode,
+                         		CL_OUT  ClClistNodeT* pNextNode);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the create API. \item[{\em current\-Node:}](in) Handle of the current node. 
+\item[{\em p\-Next\-Node:}](out) Pointer to the variable of type {\tt{Cl\-Clist\-Node\-T}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pNextNode}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]The list is empty.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the next node of the specified node from the Circular Linked list.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecl108}{cl\-Clist\-Last\-Node\-Get}, \hyperlink{pagecl110}{cl\-Clist\-Previous\-Node\-Get} \end{Desc}
+\newpage
+
+
+\subsection{clClistPreviousNodeGet}
+\index{clClistPreviousNodeGet@{clClistPreviousNodeGet}}
+\hypertarget{pagecl110}{}\paragraph{cl\-Clist\-Previous\-Node\-Get}\label{pagecl110}
+\begin{Desc}
+\item[Synopsis:]Returns the previous node from the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistPreviousNodeGet(
+                             		CL_IN  ClClistT listHead,
+                             		CL_IN  ClClistNodeT currentNode,
+                             		CL_OUT  ClClistNodeT* pPreviousNode);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the create API. \item[{\em current\-Node:}](in) Handle of the current node. 
+\item[{\em p\-Previous\-Node:}](out) Pointer to the variable of type {\tt{Cl\-Clist\-Node\-T}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pPreviousNode}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]The list is empty.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the previous node of the specified node from the Circular Linked list.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecl108}{cl\-Clist\-Last\-Node\-Get}, \hyperlink{pagecl109}{cl\-Clist\-Next\-Node\-Get} \end{Desc}
+\newpage
+
+\subsection{clClistWalk}
+\index{clClistWalk@{clClistWalk}}
+\hypertarget{pagecl111}{}\paragraph{cl\-Clist\-Walk}\label{pagecl111}
+\begin{Desc}
+\item[Synopsis:]Walks through the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistWalk(
+                   			CL_IN  ClClistT listHead,
+                   			CL_IN  ClClistWalkCallbackT fpUserWalkCallBack,
+                   			CL_IN  void* userArg);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the create API.
+\item[{\em fp\-User\-Walk\-Call\-Back:}](in) Pointer to the user callback function. It can have two values: \begin{itemize}
+\item The first parameter must be of type {\tt{Cl\-Clist\-Data\-T}}. \item The second parameter must be of type void $\ast$. \par
+ The user-data stored in each node is passed one-by-one as the first argument to the callback function.\end{itemize}
+\item[{\em user\-Arg:}](in) User-specified argument. This variable is passed as the second argument to the callback function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{userArg}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function performs a walk through on the Circular Linked list. The user-specified callback function is called with every node's data.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+\newpage
+
+\subsection{clClistDataGet}
+\index{clClistDataGet@{clClistDataGet}}
+\hypertarget{pagecl112}{}\paragraph{cl\-Clist\-Data\-Get}\label{pagecl112}
+\begin{Desc}
+\item[Synopsis:]Retrieves data from a node in the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistDataGet(
+                     			CL_IN  ClClistT listHead,
+                     			CL_IN  ClClistNodeT node,
+                     			CL_OUT  ClClistDataT* pUserData);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the create API. 
+\item[{\em node:}](in) Handle of the node. 
+\item[{\em p\-User\-Data:}](out) Pointer to the variable of type {\tt{Cl\-Clist\-Data\-T}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pUserData}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function retrieves data from the specified node in the list.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+\newpage
+
+
+\subsection{clClistSizeGet}
+\index{clClistSizeGet@{clClistSizeGet}}
+\hypertarget{pagecl113}{}\paragraph{cl\-Clist\-Size\-Get}\label{pagecl113}
+\begin{Desc}
+\item[Synopsis:]Returns the number of data elements (nodes) in the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistSizeGet(
+                     			CL_IN  ClClistT listHead,
+                     			CL_OUT  ClUint32T* pSize);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em list\-Head:}](in) Handle of the list returned by the create API. 
+\item[{\em p\-Size:}](out) Pointer to the variable of type {\em Cl\-Uint32T\/}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pSize}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in
+the {\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to return the number of data elements (nodes) in the list.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+\newpage
+
+
+\subsection{clClistDelete}
+\index{clClistDelete@{clClistDelete}}
+\hypertarget{pagecl114}{}\paragraph{cl\-Clist\-Delete}\label{pagecl114}
+\begin{Desc}
+\item[Synopsis:]Destroys the list.\end{Desc}
+\begin{Desc}
+\item[Header File:]clClistApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clClistDelete(
+                     			CL_IN  ClClistT* pListHead);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-List\-Head:}](in) Handle of the list returned by the create API.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pListHead}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]An invalid handle has been passed to the function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of the component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in the
+{\tt{clCommonErrors.h}} file to get the error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function deletes all the nodes in the list. The destroy callback function, registered during creation, is called for every node in the
+list with the corresponding data.\end{Desc}
+\begin{Desc}
+\item[Library File:]lib\-Cl\-Utils\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagecl101}{cl\-Clist\-Create} \end{Desc}
+
+
+\chapter{Service Management Information Model}
+TBD
+\chapter{Service Notifications}
+TBD
+\chapter{Debug CLIs}
+TBD
+\end{flushleft}

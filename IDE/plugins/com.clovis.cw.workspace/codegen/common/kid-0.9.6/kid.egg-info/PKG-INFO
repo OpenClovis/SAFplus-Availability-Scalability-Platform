@@ -1,0 +1,27 @@
+Metadata-Version: 1.0
+Name: kid
+Version: 0.9.6
+Summary: A simple and pythonic XML template language
+Home-page: http://www.kid-templating.org
+Author: Ryan Tomayko
+Author-email: rtomayko@gmail.com
+License: MIT
+Download-URL: http://www.kid-templating.org/dist/0.9.6/kid-0.9.6.tar.gz
+Description: Kid is a simple, Python-based template language for generating and
+        transforming XML vocabularies. Kid was spawned as a result of a kinky love
+        triangle between XSLT, TAL, and PHP. We believe many of the best features
+        of these languages live on in Kid with much of the limitations and
+        complexity stamped out (well, eventually :).
+Keywords: xml template html web
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Console
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Text Processing :: Markup :: XML

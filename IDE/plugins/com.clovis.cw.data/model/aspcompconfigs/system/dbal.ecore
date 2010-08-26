@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="clDbalConfig"
+    nsURI="dbal.ecore" nsPrefix="dbal">
+  <eClassifiers xsi:type="ecore:EClass" name="ENGINE">
+    <eAnnotations source="CWAnnotation">
+      <details key="dependentsFeatureNames" value="Type"/>
+      <details key="label" value="Database Engine"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="FileName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="none" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="isHidden" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Type" eType="#//DBEnum"
+        defaultValueLiteral="debug" unsettable="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="element"/>
+      </eAnnotations>
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Database"/>
+        <details key="isBlankAllowed" value="false"/>
+        <details key="dependents" value="1@None!None%FileName|None#com.clovis.cw.workspace:com.clovis.cw.workspace.handler.DBALTypeFileNameHandler"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BootConfig">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Dbal" lowerBound="1" eType="#//DBAL"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DBEnum">
+    <eLiterals name="SQLite"/>
+    <eLiterals name="GDBM" value="1"/>
+    <eLiterals name="Berkeley" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DBAL">
+    <eAnnotations source="CWAnnotation">
+      <details key="label" value="Database Configuration"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="Engine" lowerBound="1"
+        eType="#//ENGINE" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Database Engine"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+</ecore:EPackage>

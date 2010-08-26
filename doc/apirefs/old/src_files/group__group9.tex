@@ -1,0 +1,1000 @@
+
+\hypertarget{group__group9}{
+\chapter{Functional Overview}
+\label{group__group9}
+}
+
+
+
+
+The OpenClovis Buffer Manager Library is designed to provide an efficient method for management of user space buffer and memory in 
+order to increase the performance of communication intensive OpenClovis ASP components and user applications. It provides buffers that can expand 
+or shrink dynamically based on application memory requirement. \par
+ \par
+ The Buffer Manager functions enable you to perform various functions such as, creating or deleting a message, and reading, writing and trimming 
+ the number of bytes from a message. \par
+ \par
+ The Buffer Management library also provides the facility of markers. You can set a marker at a specific offset in the message and can restore 
+ the write pointer to that offset in the message.
+\par
+The Buffer Management interacts with the Heap library for allocation 
+and de-allocation of memory.
+
+
+
+
+
+\chapter{Service APIs}
+
+\section{Type Definitions}
+\subsection{ClBufferHandleT}
+\index{ClBufferHandleT@{ClBufferHandleT}}
+\textit{typedef ClHandleT ClBufferHandleT;}
+\newline
+\newline
+The type of the handle for the buffer message.
+
+
+
+\subsection{ClBufferSeekTypeT}
+\index{ClBufferSeekTypeT@{ClBufferSeekTypeT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef enum \{}\\
+\>\>\>\>\textit{CL\_BUFFER\_SEEK\_SET,}\\
+\>\>\>\>\textit{CL\_BUFFER\_SEEK\_CUR,}\\
+\>\>\>\>\textit{CL\_BUFFER\_SEEK\_END,}\\
+\>\>\>\>\textit{CL\_BUFFER\_SEEK\_MAX,}\\
+\textit{\} ClBufferSeekTypeT;}\end{tabbing}
+The \textit{ClBufferSeekTypeT} enumeration contains the seek types for buffer messages. 
+
+\subsection{ClBufferPoolConfigT}
+\index{ClBufferPoolConfigT@{ClBufferPoolConfigT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct BufferPoolConfigT \{}\\
+\>\>\>\>\textit{ClUint32T numPools;}\\
+\>\>\>\>\textit{ClPoolConfigT *pPoolConfig;}\\
+\>\>\>\>\textit{ClBoolT lazy;}\\
+\textit{\} ClBufferPoolConfigT;}\end{tabbing}
+The structure \textit{ClBufferPoolConfigT} contains the buffer configuration information.
+
+
+\newpage
+
+
+\section{Library Life Cycle}
+\subsection{clBufferInitialize}
+\index{clBufferInitialize@{clBufferInitialize}}
+ \hypertarget{pagebuf101}{}\paragraph{cl\-Buffer\-Initialize}\label{pagebuf101}
+\begin{Desc}
+\item[Synopsis:]Initializes the Buffer Management library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clBufferInitialize (const ClPtrT pConfig);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Config:}] 
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]On memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-INITIALIZED:}]If the Buffer Management library is already initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to initialize the Buffer Management library. It must be called before calling any other buffer management 
+function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf102}{cl\-Buffer\-Finalize} \end{Desc}
+
+
+\newpage
+
+\subsection{clBufferFinalize}
+\index{clBufferFinalize@{clBufferFinalize}}
+\hypertarget{pagebuf102}{}\paragraph{cl\-Buffer\-Finalize}\label{pagebuf102}
+\begin{Desc}
+\item[Synopsis:]Cleans up the Buffer Management library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clBufferFinalize (void);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]None\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is required to be called after you have completed using the buffer management library. It is
+called during the shutdown of components which use the Buffer Management library.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf102}{cl\-Buffer\-Initialize} \end{Desc}
+
+
+\newpage
+\section{Functional APIs}
+\subsection{clBufferCreate}
+\index{clBufferCreate@{clBufferCreate}}
+\hypertarget{pagebuf103}{}\paragraph{cl\-Buffer\-Create}\label{pagebuf103}
+\begin{Desc}
+\item[Synopsis:]Creates a new message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clBufferCreate(
+                            		CL_OUT ClBufferHandleT *pMessageHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Message\-Handle:}](out) A pointer to the handle of type {\em Cl\-Buffer\-Handle\-T\/} designating the message buffer created.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]On memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function creates a new message and pre-allocates a buffer of two kilobytes. It pre-allocates buffers even before a write 
+operation is performed. As you write into the message, the buffer management library uses the pre-allocated buffers. When there are no more buffers 
+to write, the buffer management library allocates the buffers.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf104}{cl\-Buffer\-Create\-And\-Allocate}, \hyperlink{pagebuf105}{cl\-Buffer\-Delete}, 
+\hyperlink{pagebuf106}{cl\-Buffer\-Clear} \end{Desc}
+
+
+\newpage
+\subsection{clBufferCreateAndAllocate}
+\index{clBufferCreateAndAllocate@{clBufferCreateAndAllocate}}
+\hypertarget{pagebuf104}{}\paragraph{cl\-Buffer\-Create\-And\-Allocate}\label{pagebuf104}
+\begin{Desc}
+\item[Synopsis:]Creates a new message and pre-allocates the buffers.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clBufferCreateAndAllocate(
+                                   CL_IN ClUint32T size,
+                                   CL_OUT ClBufferHandleT *pMessageHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em size:}](in) Initial size of message buffer in bytes. 
+\item[{\em p\-Message\-Handle:}](out) A pointer to the handle of type {\em Cl\-Buffer\-Handle\-T\/} designating the message buffer created.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]On memory allocation failure. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to create a new message and pre-allocate buffers. It pre-allocates buffers even before a write 
+operation is performed. As you write into the message, the buffer management library uses the pre-allocated buffers. When there are no more buffers 
+to write, the buffer management library allocates the buffers.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf105}{cl\-Buffer\-Delete}, \hyperlink{pagebuf106}{cl\-Buffer\-Clear} , 
+\hyperlink{pagebuf103}{cl\-Buffer\-Create} \end{Desc}
+
+
+\newpage
+\subsection{clBufferDelete} 
+\index{clBufferDelete@{clBufferDelete}}
+\hypertarget{pagebuf105}{}\paragraph{cl\-Buffer\-Delete}\label{pagebuf105}
+\begin{Desc}
+\item[Synopsis:]Deletes a message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clBufferDelete (
+                             CL_IN ClBufferHandleT *pMessageHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Message\-Handle:}](in) Pointer to the message handle returned by the \textit{clBufferCreate()} 
+function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to delete message buffer(s) designated by the handle obtained through 
+\textit{clBufferCreate()} function. All the markers associated with the message are deleted automatically 
+along with the message buffer(s). A successful invocation of this function will make the handle invalid.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf105}{cl\-Buffer\-Clear} , \hyperlink{pagebuf104}{cl\-Buffer\-Create\-And\-Allocate},
+\hyperlink{pagebuf103}{cl\-Buffer\-Create} \end{Desc}
+
+
+\newpage
+\subsection{clBufferClear}
+\index{clBufferClear@{clBufferClear}}
+\hypertarget{pagebuf106}{}\paragraph{cl\-Buffer\-Clear}\label{pagebuf106}
+\begin{Desc}
+\item[Synopsis:]Deletes the content of a message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clBufferClear(
+                             CL_IN ClBufferHandleT *pMessageHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Message\-Handle:}](in) Pointer to the message handle returned by \textit{clBufferCreate()} function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to delete message buffer(s) designated by the handle obtained through \textit{clBufferCreate()} function. All 
+the markers associated with the message are deleted automatically along with the message buffer(s). The handle is still available for re-use.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf105}{cl\-Buffer\-Delete}, \hyperlink{pagebuf104}{cl\-Buffer\-Create\-And\-Allocate},
+\hyperlink{pagebuf103}{cl\-Buffer\-Create} \end{Desc}
+
+
+\newpage
+
+\subsection{clBufferLengthGet}
+\index{clBufferLengthGet@{clBufferLengthGet}}
+\hypertarget{pagebuf107}{}\paragraph{cl\-Buffer\-Length\-Get}\label{pagebuf107}
+\begin{Desc}
+\item[Synopsis:]Returns the length of the message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clBufferLengthGet(
+                                CL_IN ClBufferHandleT messageHandle,
+                                CL_OUT ClUint32T *pMessageLength);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function. \item[{\em p\-Message\-Length:}](out) Pointer to a variable of type {\em Cl\-Uint32T\/}, in which the total length of the message is returned.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the total length of the message. There is no impact on the read and write offset of the message even
+on a subsequent invocation of this function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf109}{cl\-Buffer\-NBytes\-Write} \end{Desc}
+
+
+\newpage
+\subsection{clBufferNBytesRead}
+\index{clBufferNBytesRead@{clBufferNBytesRead}}
+\hypertarget{pagebuf108}{}\paragraph{cl\-Buffer\-NBytes\-Read}\label{pagebuf108}
+\begin{Desc}
+\item[Synopsis:]Reads the specified number of bytes of data from a message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clBufferNBytesRead(
+                      		      CL_IN ClBufferHandleT messageHandle,
+                      		      CL_OUT ClUint8T *pByteBuffer,
+                      		      CL_INOUT ClUint32T* pNumberOfBytesToRead);
+                     \end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()}. 
+\item[{\em p\-Byte\-Buffer:}](out) Pointer to a buffer of type {\em Cl\-Uint8T\/}, in which {\em number\-Of\-Bytes\-To\-Read\/} bytes of data is
+returned. Memory allocation/deallocation for this parameter must be done by the caller. 
+\item[{\em p\-Number\-Of\-Bytes\-To\-Read:}](in/out) Pointer to variable of type {\em Cl\-Uint32T\/} which contains number of bytes of data to be read.
+The number of bytes of data that is successfully read is returned in this parameter.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to read {\em p\-Number\-Of\-Bytes\-To\-Read\/} bytes of data from the message, starting from the 
+current read offset. The current read offset is automatically updated by {\em p\-Number\-Of\-Bytes\-To\-Read\/} bytes.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf106}{cl\-Buffer\-Clear} , \hyperlink{pagebuf109}{cl\-Buffer\-NBytes\-Write} , 
+\hyperlink{pagebuf103}{cl\-Buffer\-Create} \end{Desc}
+
+
+\newpage
+\subsection{clBufferNBytesWrite}
+\index{clBufferNBytesWrite@{clBufferNBytesWrite}}
+\hypertarget{pagebuf109}{}\paragraph{cl\-Buffer\-NBytes\-Write}\label{pagebuf109}
+\begin{Desc}
+\item[Synopsis:]Writes the specified number bytes of data to a message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clBufferNBytesWrite(
+                           		CL_IN ClBufferHandleT messageHandle,
+                           		CL_IN ClUint8T *pByteBuffer,
+                           		CL_IN ClUint32T numberOfBytesToWrite);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function into which n bytes of data is to be written.
+\item[{\em p\-Byte\-Buffer:}](in) Pointer to the byte buffer from which {\em number\-Of\-Bytes\-To\-Write\/} bytes are to be written into the message.
+\item[{\em number\-Of\-Bytes\-To\-Write:}](in) Number of bytes to be written.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to write n bytes of data into the message referred by the message handle, starting from the current write offset.
+The write offset is automatically updated by {\em number\-Of\-Bytes\-To\-Write\/} bytes.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf106}{cl\-Buffer\-Clear} , \hyperlink{pagebuf108}{cl\-Buffer\-NBytes\-Read} , 
+\hyperlink{pagebuf103}{cl\-Buffer\-Create} \end{Desc}
+
+
+\newpage
+\subsection{clBufferChecksum16Compute}
+\index{clBufferChecksum16Compute@{clBufferChecksum16Compute}}
+\hypertarget{pagebuf110}{}\paragraph{cl\-Buffer\-Checksum16Compute}\label{pagebuf110}
+\begin{Desc}
+\item[Synopsis:]Computes a 16-bit checksum on a message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clBufferChecksum16Compute(
+              				CL_IN ClBufferHandleT messageHandle,
+              				CL_IN ClUint32T startOffset,
+              				CL_IN ClUint32T length,
+              				CL_OUT ClUint16T* pChecksum);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function for which the checksum is to be computed. 
+\item[{\em start\-Offset:}](in) Offset from the beginning of the message, from which the data for computing the checksum begins. 
+\item[{\em length:}](in) Number of bytes of data for which the checksum is to be computed. 
+\item[{\em p\-Checksum:}](out) Pointer to variable of type {\em Cl\-Uint16T\/} in which the 
+computed checksum is returned.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to compute a 16-bit checksum on a message. This checksum can be used to check the validity of the message handle after passing through a network.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf111}{cl\-Buffer\-Checksum32Compute} \end{Desc}
+
+
+\newpage
+\subsection{clBufferChecksum32Compute}
+\index{clBufferChecksum32Compute@{clBufferChecksum32Compute}}
+\hypertarget{pagebuf111}{}\paragraph{cl\-Buffer\-Checksum32Compute}\label{pagebuf111}
+\begin{Desc}
+\item[Synopsis:]Computes a 32-bit checksum on a message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clBufferChecksum32Compute(
+              CL_IN ClBufferHandleT messageHandle,
+              CL_IN ClUint32T startOffset,
+              CL_IN ClUint32T length,
+              CL_OUT ClUint32T* pChecksum);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function for which the checksum is to be computed. 
+\item[{\em start\-Offset:}](in) Offset from the beginning of the message, from which the data for computing the checksum begins. 
+\item[{\em length:}](in) Number of bytes of data for which the checksum is to be computed. \item[{\em p\-Checksum:}](out) Pointer to variable of type {\em Cl\-Uint32T\/} in which the computed checksum is returned.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to compute a 32-bit checksum on a message. This checksum can be used to check the validity of the message handle after passing through a network.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf110}{cl\-Buffer\-Checksum16Compute} \end{Desc}
+
+
+
+\newpage
+\subsection{clBufferDataPrepend}
+\index{clBufferDataPrepend@{clBufferDataPrepend}}
+\hypertarget{pagebuf115}{}\paragraph{cl\-Buffer\-Data\-Prepend}\label{pagebuf115}
+\begin{Desc}
+\item[Synopsis:]Adds the specified number of bytes at the beginning of message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clBufferDataPrepend(
+                         CL_IN ClBufferHandleT messageHandle,
+                         CL_IN ClUint8T *pByteBuffer,
+                         CL_IN ClUint32T numberOfBytesToWrite);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function. \item[{\em p\-Byte\-Buffer:}](in) Pointer
+to a variable of type {\em Cl\-Uint8T\/}, in which {\em number\-Of\-Bytes\-To\-Read\/} bytes of data is returned. Memory allocation and de-allocation 
+must be done by you. \item[{\em number\-Of\-Bytes\-To\-Write:}](in) Number of bytes to be written.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to prepend the specified number of bytes at the beginning of the message. The write offset will be updated and will be equal to {\em number\-Of\-Bytes\-To\-Write\/}. That is, the next write will begin at {\em number\-Of\-Bytes\-To\-Write\/} bytes from the starting of the message. Note that the current write offset is lost. Hence, it is advisable to preserve the write offset before invoking this function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf114}{cl\-Buffer\-Data\-Append} , 
+\hyperlink{pagebuf105}{cl\-Buffer\-Delete}, \hyperlink{pagebuf116}{cl\-Buffer\-Concatenate} \end{Desc}
+
+
+\newpage
+\subsection{clBufferConcatenate}
+\index{clBufferConcatenate@{clBufferConcatenate}}
+\hypertarget{pagebuf116}{}\paragraph{cl\-Buffer\-Concatenate}\label{pagebuf116}
+\begin{Desc}
+\item[Synopsis:]Concatenates source message to destination message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clBufferConcatenate(
+                         		CL_IN ClBufferHandleT destination,
+                         		CL_INOUT ClBufferHandleT *pSource);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em destination:}](in) Message\-Handle of destination message. The handle of the concatenated message is returned in this parameter. 
+\item[{\em p\-Source:}](in/out) Pointer to {\em message\-Handle\/} of source message, which is to be concatenated with destination message. This handle 
+will be invalid and the source message will no longer exist after this function is called. All the markers in this message will be deleted.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to concatenate the source message to the destination message. All the markers in the source message will be 
+deleted. The write offset of the destination message will be set to end of the message. The read offset of the destination message will be set to 
+start of the message.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf114}{cl\-Buffer\-Data\-Append} , 
+\hyperlink{pagebuf105}{cl\-Buffer\-Delete}, \hyperlink{pagebuf115}{cl\-Buffer\-Data\-Prepend} \end{Desc}
+
+
+\newpage
+\subsection{clBufferReadOffsetGet}
+\index{clBufferReadOffsetGet@{clBufferReadOffsetGet}}
+\hypertarget{pagebuf117}{}\paragraph{cl\-Buffer\-Read\-Offset\-Get}\label{pagebuf117}
+\begin{Desc}
+\item[Synopsis:]Returns current read offset of the message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clBufferReadOffsetGet(
+                         CL_IN ClBufferHandleT messageHandle,
+                         CL_OUT ClUint32T *pReadOffset);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function. \item[{\em p\-Read\-Offset:}](out) Pointer to a variable of type {\em Cl\-Uint32T\/}, in which the current read offset is returned.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the current read offset of the message. This offset is updated on invoking the 
+\textit{clBufferNBytesRead()} function or directly through 
+\textit{clBufferReadOffsetSet()}.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf118}{cl\-Buffer\-Write\-Offset\-Get} , 
+\hyperlink{pagebuf105}{cl\-Buffer\-Delete}, \hyperlink{pagebuf119}{cl\-Buffer\-Read\-Offset\-Set} , 
+\hyperlink{pagebuf120}{cl\-Buffer\-Write\-Offset\-Set}, \hyperlink{pagebuf125}{cl\-Buffer\-Trailer\-Trim} , 
+\hyperlink{pagebuf124}{cl\-Buffer\-Header\-Trim}, \hyperlink{pagebuf108}{cl\-Buffer\-NBytes\-Read} \end{Desc}
+
+
+\newpage
+\subsection{clBufferWriteOffsetGet}
+\index{clBufferWriteOffsetGet@{clBufferWriteOffsetGet}}
+\hypertarget{pagebuf118}{}\paragraph{cl\-Buffer\-Write\-Offset\-Get}\label{pagebuf118}
+\begin{Desc}
+\item[Synopsis:]Returns current write offset of the message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clBufferWriteOffsetGet(
+                         CL_IN ClBufferHandleT messageHandle,
+                         CL_OUT ClUint32T *pWriteOffset);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by {\em cl\-Buffer\-Create\/} function \item[{\em p\-Write\-Offset:}](out) Pointer to a variable of type {\em Cl\-Uint32T\/}, in which the current write offset is returned.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to retrieve the current write offset of the message. This offset is updated on invoking the 
+\textit{clBufferNBytesWrite()} function or directly through 
+\textit{clBufferWriteOffsetSet()}.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf117}{cl\-Buffer\-Read\-Offset\-Get} , 
+\hyperlink{pagebuf105}{cl\-Buffer\-Delete}, \hyperlink{pagebuf119}{cl\-Buffer\-Read\-Offset\-Set} , 
+\hyperlink{pagebuf120}{cl\-Buffer\-Write\-Offset\-Set}, \hyperlink{pagebuf125}{cl\-Buffer\-Trailer\-Trim} , 
+\hyperlink{pagebuf124}{cl\-Buffer\-Header\-Trim} \end{Desc}
+
+
+\newpage
+\subsection{clBufferReadOffsetSet}
+\index{clBufferReadOffsetSet@{clBufferReadOffsetSet}}
+\hypertarget{pagebuf119}{}\paragraph{cl\-Buffer\-Read\-Offset\-Set}\label{pagebuf119}
+\begin{Desc}
+\item[Synopsis:]Sets current read offset of the message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clBufferReadOffsetSet(
+                         		CL_IN ClBufferHandleT messageHandle,
+                         		CL_IN ClInt32T newReadOffset,
+                         		CL_IN ClBufferSeekTypeT seekType);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function.
+\item[{\em new\-Read\-Offset:}](in) The offset at which the current read offset is to be set. 
+\item[{\em seek\-Type:}](in) This parameter accepts the following values: \begin{itemize}
+	\item {\tt CL\_\-BUFFER\_\-SEEK\_\-SET:} The read offset is set to {\em new\-Read\-Offset\/} bytes from the beginning of the message. 
+	\item {\tt CL\_\-BUFFER\_\-SEEK\_\-CUR:} The read offset is set to its current location in addition to {\em new\-Read\-Offset\/} bytes. 
+	\item {\tt CL\_\-BUFFER\_\-SEEK\_\-END:} The read offset is set to the end of the message.\end{itemize}
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized. \item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]On passing an invalid parameter.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set the current read offset of the message. This offset is also automatically updated on invoking the \textit{clBufferNBytesRead()} function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf118}{cl\-Buffer\-Write\-Offset\-Get} , 
+\hyperlink{pagebuf105}{cl\-Buffer\-Delete}, \hyperlink{pagebuf120}{cl\-Buffer\-Write\-Offset\-Set}, 
+\hyperlink{pagebuf125}{cl\-Buffer\-Trailer\-Trim} , \hyperlink{pagebuf124}{cl\-Buffer\-Header\-Trim}, 
+\hyperlink{pagebuf108}{cl\-Buffer\-NBytes\-Read} \end{Desc}
+
+
+\newpage
+\subsection{clBufferWriteOffsetSet}
+\index{clBufferWriteOffsetSet@{clBufferWriteOffsetSet}}
+\hypertarget{pagebuf120}{}\paragraph{cl\-Buffer\-Write\-Offset\-Set}\label{pagebuf120}
+\begin{Desc}
+\item[Synopsis:]Sets current write offset of the message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clBufferWriteOffsetSet(
+                         CL_IN ClBufferHandleT messageHandle,
+                         CL_IN ClInt32T newWriteOffset,
+                         CL_IN ClBufferSeekTypeT seekType);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function whose current write offset is to be set. 
+\item[{\em new\-Write\-Offset:}](in) The offset at which the current write offset is to be set. \item[{\em seek\-Type:}](in) This parameter can accept the following
+values: \begin{itemize}
+\item {\tt CL\_\-BUFFER\_\-SEEK\_\-SET:} The write offset is set to {\em new\-Write\-Offset\/} bytes from the beginning of the message. \item {\tt CL\_\-BUFFER\_\-SEEK\_\-CUR:} The write offset is set to its current location in addition to {\em new\-Write\-Offset\/} bytes. \item {\tt CL\_\-BUFFER\_\-SEEK\_\-END:} The write offset is set to the end of the message.\end{itemize}
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized. \item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]If an invalid parameter is passed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set the current write offset of the message. This offset is also automatically updated on invoking the
+\textit{clBufferNBytesWrite()}.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf118}{cl\-Buffer\-Write\-Offset\-Get} ,
+\hyperlink{pagebuf105}{cl\-Buffer\-Delete}, \hyperlink{pagebuf120}{cl\-Buffer\-Read\-Offset\-Set}, 
+\hyperlink{pagebuf125}{cl\-Buffer\-Trailer\-Trim} , \hyperlink{pagebuf124}{cl\-Buffer\-Header\-Trim}, 
+\hyperlink{pagebuf108}{cl\-Buffer\-NBytes\-Read} \end{Desc}
+\newpage
+
+
+
+\subsection{clBufferHeaderTrim}
+\index{clBufferHeaderTrim@{clBufferHeaderTrim}}
+\hypertarget{pagebuf124}{}\paragraph{cl\-Buffer\-Header\-Trim}\label{pagebuf124}
+\begin{Desc}
+\item[Synopsis:]Trims the start of the message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    
+					ClRcT clBufferHeaderTrim (
+						CL_IN ClBufferHandleT messageHandle, 
+						CL_IN ClUint32T numberOfBytes);
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function. \item[{\em number\-Of\-Bytes:}](in) Number of bytes to be deleted from the start of the message.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized. \item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]On passing an invalid parameter.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to delete a specific number of bytes from the start of the message. If a marker exists in the region being deleted, the marker becomes invalid and cannot be restored. If the read/write offset is in the region being deleted, the read/write offset will be set to zero (at the beginning of the message).\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf124}{cl\-Buffer\-Header\-Trim}, 
+\hyperlink{pagebuf105}{cl\-Buffer\-Delete} \end{Desc}
+
+
+\newpage
+\subsection{clBufferTrailerTrim}
+\index{clBufferTrailerTrim@{clBufferTrailerTrim}}
+\hypertarget{pagebuf125}{}\paragraph{cl\-Buffer\-Trailer\-Trim}\label{pagebuf125}
+\begin{Desc}
+\item[Synopsis:]Trims the tail of the message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clBufferTrailerTrim(
+                         CL_IN ClBufferHandleT messageHandle,
+                         CL_IN ClUint32T numberOfBytes);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function. \item[{\em number\-Of\-Bytes:}](in) Number of bytes to delete from the trail of the message.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized. \item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]On passing an invalid parameter.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to delete a specific number of bytes from the tail of the message. If a marker exists in the region that is
+being deleted, the marker becomes invalid and cannot be restored. If the read/write offset is in the region being deleted, the read/write offset is
+set to length of the message after the delete operation.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf124}{cl\-Buffer\-Header\-Trim}, 
+\hyperlink{pagebuf105}{cl\-Buffer\-Delete} \end{Desc}
+
+
+\newpage
+\subsection{clBufferToBufferCopy}
+\index{clBufferToBufferCopy@{clBufferToBufferCopy}}
+\hypertarget{pagebuf126}{}\paragraph{cl\-Buffer\-To\-Message\-Copy}\label{pagebuf126}
+\begin{Desc}
+\item[Synopsis:]Copies specific number of bytes from one message to another.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}    ClRcT clBufferToBufferCopy(
+                         CL_IN ClBufferHandleT sourceMessage,
+                         CL_IN ClUint32T sourceMessageOffset,
+                         CL_IN ClBufferHandleT destinationMessage,
+                         CL_IN ClUint32T numberOfBytes);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em source\-Message:}](in) Handle to the message returned by the \textit{clBufferCreate()} function, from which data is to be copied. 
+\item[{\em source\-Message\-Offset:}](in) Offset with respect to beginning of source message, from where the copying begins. 
+\item[{\em destination\-Message:}](in) Handle to the message returned by the \textit{clBufferCreate()} function, into which data is being copied.
+\item[{\em number\-Of\-Bytes:}](in) Number of bytes to be copied from the source message to the destination message.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. \item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized. \item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]If either of the messages is empty. \item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]On passing an invalid parameter. \item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]On memory allocation failure.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to copy the specified number of bytes from the source message, starting at the source offset specified by the caller. The data will be copied into the destination message starting from current write-offset of destination message.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf117}{cl\-Buffer\-Read\-Offset\-Get}, 
+\hyperlink{pagebuf105}{cl\-Buffer\-Delete}, \hyperlink{pagebuf118}{cl\-Buffer\-Write\-Offset\-Get}, 
+\hyperlink{pagebuf126}{cl\-Buffer\-To\-Buffer\-Copy}, \hyperlink{pagebuf127}{cl\-Buffer\-Duplicate} \end{Desc}
+
+
+\newpage
+\subsection{clBufferDuplicate}
+\index{clBufferDuplicate@{clBufferDuplicate}}
+\hypertarget{pagebuf127}{}\paragraph{cl\-Buffer\-Duplicate}\label{pagebuf127}
+\begin{Desc}
+\item[Synopsis:]Duplicates a message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   
+					ClRcT clBufferDuplicate(
+						CL_IN ClBufferHandleT messageHandle,
+						CL_OUT ClBufferHandleT *pDuplicatedMessage);
+
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function, which is to be duplicated. 
+\item[{\em p\-Duplicated\-Message:}](out) Pointer to variable of type {\em Cl\-Buffer\-Handle\-T\/}, in which handle of the duplicate message is returned.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]If either of the messages is empty. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]On passing an invalid parameter. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]On memory allocation failure.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to make a copy of a message. All the markers are preserved in the new message being created.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf105}{cl\-Buffer\-Delete}, 
+\hyperlink{pagebuf126}{cl\-Buffer\-To\-Buffer\-Copy}, \hyperlink{pagebuf128}{cl\-Buffer\-Share} \end{Desc}
+
+
+
+\newpage
+\subsection{clBufferShare}
+\index{clBufferShare@{clBufferShare}}
+\hypertarget{pagebuf128}{}\paragraph{cl\-Buffer\-Share}\label{pagebuf128}
+\begin{Desc}
+\item[Synopsis:]Shares a message.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   
+					ClRcT clBufferShare(
+						CL_IN ClBufferHandleT messageHandle,
+						CL_OUT ClBufferHandleT* pNewMessageHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to the message returned by \textit{clBufferCreate()} function, for which a reference is to be added. 
+\item[{\em p\-New\-Message\-Handle:}](out) Pointer to variable of type Cl\-Buffer\-Message\-Handle\-T, in which the reference to the message is returned.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. \item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to indicate that a message is to be shared. When you invoke the 
+\textit{clBufferDelete()} function, the message will not be deleted until all the users referring to this message
+call the \textit{clBufferDelete()} function.\end{Desc}
+\begin{Desc}
+\item[Note:]After this function is invoked, the read and write offsets for the new reference handle will be the same as the original message and all 
+markers will be preserved for the new reference.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf105}{cl\-Buffer\-Delete}, 
+\hyperlink{pagebuf126}{cl\-Buffer\-To\-Buffer\-Copy}, \hyperlink{pagebuf127}{cl\-Buffer\-Duplicate} \end{Desc}
+
+
+
+\newpage
+\subsection{clBufferFlatten}
+\index{clBufferFlatten@{clBufferFlatten}}
+\hypertarget{pagebuf131}{}\paragraph{cl\-Buffer\-Flatten}\label{pagebuf131}
+\begin{Desc}
+\item[Synopsis:]Flattens message into a single buffer.\end{Desc}
+\begin{Desc}
+\item[Header File:]clBufferApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   
+					ClRcT clBufferFlatten(
+						CL_IN ClBufferHandleT messageHandle,
+						CL_OUT ClUint8T** ppFlattenBuffer);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em message\-Handle:}](in) Handle to message returned by \textit{clBufferCreate()} function. 
+\item[{\em **pp\-Flatten\-Buffer:}](out) The flattened buffer is returned at this location. This must be a valid pointer and cannot be NULL.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-HANDLE:}]On passing an invalid handle. 
+\item[{\em CL\_\-ERR\_\-NOT\_\-INITIALIZED:}]If Buffer Management library is not initialized. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]On memory allocation failure.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to flatten the message into a single buffer. The flattened buffer will be freed when the message is deleted. No reference to flat buffer will be available once the message is deleted.\end{Desc}
+\begin{Desc}
+\item[Note:]This function must be invoked only once. After the successful invocation of this function, no other Buffer function must be invoked except
+\textit{clBufferDelete()} function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Buffer\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagebuf103}{cl\-Buffer\-Create}, \hyperlink{pagebuf105}{cl\-Buffer\-Delete} \end{Desc}
+
+

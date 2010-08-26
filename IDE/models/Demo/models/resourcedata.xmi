@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:resource="resource.ecore">
+  <resource:ChassisResource CWKEY="0" Name="Chassis" MaxInstances="1" NumSlots="5"/>
+  <resource:NodeHardwareResource CWKEY="java.lang.Object@e964fe" Name="SysBlade" Documentation="" Modifier="" IsAbstract="false" IsDistributed="false" IsPersistent="false" Multiplicity="" MaxInstances="1" DeviceObject="">
+    <AlarmManagement isEnabled="false" PollingInterval="100"/>
+    <Provisioning isEnabled="false"/>
+  </resource:NodeHardwareResource>
+  <resource:NodeHardwareResource CWKEY="java.lang.Object@11a6631" Name="WorkerBlade" Documentation="" Modifier="" IsAbstract="false" IsDistributed="false" IsPersistent="false" Multiplicity="" MaxInstances="1" DeviceObject="">
+    <AlarmManagement isEnabled="false" PollingInterval="100"/>
+    <Provisioning isEnabled="false"/>
+  </resource:NodeHardwareResource>
+  <resource:Composition CWKEY="java.lang.Object@1b0bf9a" source="0" target="java.lang.Object@e964fe" Source_Multiplicity="1" Target_Multiplicity="1"/>
+  <resource:Composition CWKEY="java.lang.Object@9ed5d6" source="0" target="java.lang.Object@11a6631" Source_Multiplicity="1" Target_Multiplicity="1"/>
+  <resource:SoftwareResource CWKEY="java.lang.Object@ef1df6" Name="File" Documentation="" Modifier="" IsAbstract="false" IsDistributed="false" IsPersistent="false" Multiplicity="" MaxInstances="1">
+    <AlarmManagement isEnabled="true" PollingInterval="100">
+      <AlarmIDs>3632323</AlarmIDs>
+    </AlarmManagement>
+    <Provisioning isEnabled="true">
+      <Attributes Name="fileName" Type="DisplayString" Multiplicity="1" MinValue="0" MaxValue="0" DefaultValue="0" CWKEY="7841094" IsTransient="false" IsImported="true" OID="1.3.6.1.4.1.21458.1.1.1.1"/>
+      <Attributes Name="accessPermission" Type="Int32" Multiplicity="1" MinValue="0" MaxValue="4095" DefaultValue="511" CWKEY="17028211" IsTransient="false" IsImported="true" OID="1.3.6.1.4.1.21458.1.1.1.2"/>
+      <Attributes Name="gid" Type="DisplayString" Multiplicity="1" MinValue="0" MaxValue="0" DefaultValue="0" CWKEY="3889755" IsTransient="false" IsImported="true" OID="1.3.6.1.4.1.21458.1.1.1.3"/>
+    </Provisioning>
+  </resource:SoftwareResource>
+  <resource:Composition CWKEY="java.lang.Object@135f0a" source="java.lang.Object@e964fe" target="java.lang.Object@ef1df6" Source_Multiplicity="1" Target_Multiplicity="1"/>
+  <resource:Composition CWKEY="java.lang.Object@1dbe72f" source="java.lang.Object@11a6631" target="java.lang.Object@ef1df6" Source_Multiplicity="1" Target_Multiplicity="1"/>
+</xmi:XMI>

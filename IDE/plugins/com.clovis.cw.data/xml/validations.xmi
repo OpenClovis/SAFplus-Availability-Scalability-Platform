@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:validation="validations.ecore" xsi:schemaLocation="validations.ecore ../model/validations.ecore">
+  <validation:InvalidScenario connectionName="Association" source="ComponentServiceInstance" target="Component">
+  <operation type="OR"> 
+  	<connection connectionName="Association" exists="false" source="ServiceGroup" target="ServiceUnit" sourceMultiplicity="n" targetMultiplicity="n" message="No valid parent SG for the CSI. Check if the SG is associated with both the SU having the component associated with the CSI and the SI containing the CSI.">
+  		<sourcePathInfo negate="false">
+	  		<sourcePath start="source">
+	  			<node connType="Containment" direction="IN" targetNodeName="ServiceInstance"/>
+	  			<node connType="Association" direction="IN" targetNodeName="ServiceGroup"/>
+	  		</sourcePath>
+  		</sourcePathInfo>
+  		<targetPathInfo negate="false">
+	  		<targetPath start="target">
+	  			<node connType="Containment" direction="IN" targetNodeName="ServiceUnit"/>
+	  		</targetPath>
+	  		<targetPath start="target">
+	  			<node connType="Proxy_Proxied" direction="IN" targetNodeName="SAFComponent"/>
+	  			<node connType="Containment" direction="IN" targetNodeName="ServiceUnit"/>
+	  		</targetPath>
+	  	</targetPathInfo>	
+  	 </connection>
+  	 <connection connectionName="Association" exists="true" source="ServiceGroup" target="ServiceUnit" sourceMultiplicity="n" targetMultiplicity="n" message="No valid parent SG for the CSI.Check if the SG is associated with both the SU having the component associated with the CSI and the SI associated with the CSI.">
+  	 	<sourcePathInfo negate="false">
+	  		<sourcePath start="source">
+	  			<node connType="Containment" direction="IN" targetNodeName="ServiceInstance"/>
+	  			<node connType="Association" direction="IN" targetNodeName="ServiceGroup"/>
+	  		</sourcePath>
+  		</sourcePathInfo>
+  		<targetPathInfo negate="true">
+	  		<targetPath start="target">
+	  			<node connType="Containment" direction="IN" targetNodeName="ServiceUnit"/>
+	  		</targetPath>
+	  		<targetPath start="target">
+	  			<node connType="Proxy_Proxied" direction="IN" targetNodeName="SAFComponent"/>
+	  			<node connType="Containment" direction="IN" targetNodeName="ServiceUnit"/>
+	  		</targetPath>
+	  	</targetPathInfo>
+  	 </connection>
+  	</operation>
+  </validation:InvalidScenario>
+</xmi:XMI>

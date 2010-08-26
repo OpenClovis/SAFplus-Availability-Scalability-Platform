@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="RESOURCEATTRCATEGORIES"
+    nsURI="categories" nsPrefix="categories">
+  <eClassifiers xsi:type="ecore:EClass" name="ATTRIBUTE">
+    <eAnnotations source="CWAnnotation">
+      <details key="NameField" value="NAME"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="NAME" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="TYPE" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CATEGORY">
+    <eAnnotations source="CWAnnotation">
+      <details key="validationfeatures" value="NAME"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="NAME" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Category Name"/>
+        <details key="isBlankAllowed" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="ATTRIBUTE" lowerBound="1"
+        upperBound="-1" eType="#//ATTRIBUTE" containment="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Attributes"/>
+        <details key="editor" value="com.clovis.cw.editor.ca:com.clovis.cw.editor.ca.customeditor.AttributePushButtonCellEditor"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CATEGORIES">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="CATEGORY" lowerBound="1"
+        upperBound="-1" eType="#//CATEGORY" containment="true"/>
+  </eClassifiers>
+</ecore:EPackage>

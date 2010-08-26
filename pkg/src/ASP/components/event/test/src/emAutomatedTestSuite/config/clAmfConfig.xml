@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<amfConfig xmlns="cpmconfig.ecore">
+  <cpmConfigs>
+    <cpmConfig nodeType="Node0">
+      <bootConfigs/>
+      <aspServiceUnits/>
+    </cpmConfig>
+
+    <cpmConfig nodeType="SysController" cpmType="GLOBAL" defaultTimeOut="2000" maxTimeOut="32000" logFilePath="/tmp/asp">
+      <bootConfigs>
+        <bootConfig name="debug" maxBootLevel="7" defaultBootLevel="3">
+          <bootLevels>
+            <bootLevel level="6">
+              <serviceUnits>
+                <serviceUnit>AppSU_0</serviceUnit>
+              </serviceUnits>
+            </bootLevel>
+          </bootLevels>
+        </bootConfig>
+      </bootConfigs>
+      <aspServiceUnits>
+        <aspServiceUnit name="logSU"/>
+        <aspServiceUnit name="eventSU"/>
+        <!--<aspServiceUnit name="txnSU"/>-->
+        <!--<aspServiceUnit name="corSU"/>-->
+      </aspServiceUnits>
+    </cpmConfig>
+
+    <cpmConfig nodeType="BladeType1" cpmType="LOCAL" defaultTimeOut="2000" maxTimeOut="32000" logFilePath="/tmp/asp">
+      <bootConfigs>
+        <bootConfig name="debug" maxBootLevel="7" defaultBootLevel="4">
+          <bootLevels>
+            <bootLevel level="4">
+              <serviceUnits>
+                <serviceUnit>AppSU_0</serviceUnit>
+              </serviceUnits>
+            </bootLevel>
+          </bootLevels>
+        </bootConfig>
+      </bootConfigs>
+      <aspServiceUnits>
+        <aspServiceUnit name="logSU"/>
+        <aspServiceUnit name="eventSU"/>
+      </aspServiceUnits>
+    </cpmConfig>
+
+    <cpmConfig nodeType="BladeType2" cpmType="LOCAL" defaultTimeOut="2000" maxTimeOut="32000" logFilePath="/tmp/asp">
+      <bootConfigs>
+        <bootConfig name="debug" maxBootLevel="7" defaultBootLevel="4">
+          <bootLevels>
+            <bootLevel level="4">
+              <serviceUnits>
+                <serviceUnit>AppSU_0</serviceUnit>
+              </serviceUnits>
+            </bootLevel>
+          </bootLevels>
+        </bootConfig>
+      </bootConfigs>
+      <aspServiceUnits>
+        <aspServiceUnit name="logSU"/>
+        <aspServiceUnit name="eventSU"/>
+      </aspServiceUnits>
+    </cpmConfig>
+
+    <cpmConfig nodeType="BladeType3" cpmType="LOCAL" defaultTimeOut="2000" maxTimeOut="32000" logFilePath="/tmp/asp">
+      <bootConfigs>
+        <bootConfig name="debug" maxBootLevel="7" defaultBootLevel="4">
+          <bootLevels>
+            <bootLevel level="4">
+              <serviceUnits>
+                <serviceUnit>AppSU_0</serviceUnit>
+              </serviceUnits>
+            </bootLevel>
+          </bootLevels>
+        </bootConfig>
+      </bootConfigs>
+      <aspServiceUnits>
+        <aspServiceUnit name="logSU"/>
+        <aspServiceUnit name="eventSU"/>
+      </aspServiceUnits>
+    </cpmConfig>
+  </cpmConfigs>
+
+  <nodeInstances>
+
+    <nodeInstance name="SysController_0" type="SysController" nodeMoId="\Chassis:0\SystemController:1">
+      <serviceUnitInstances>
+        <serviceUnitInstance name="EventTestAppSU_0" type="EventTestAppSU" level="4">
+          <componentInstances>
+            <componentInstance name="App_TC" type="App_TC"/>
+            <componentInstance name="EventSubscriber" type="sub"/>
+            <componentInstance name="EventPublisher" type="pub"/>
+            <componentInstance name="EventUnitTest" type="unitTest"/>
+          </componentInstances>
+        </serviceUnitInstance>
+      </serviceUnitInstances>
+      <dependencies/>
+    </nodeInstance>
+
+    <nodeInstance name="NodeA" type="BladeType1" nodeMoId="\Chassis:0\GigeBlade:1">
+      <serviceUnitInstances>
+        <serviceUnitInstance name="AppSU_0" type="AppSU" level="4">
+          <componentInstances>
+            <componentInstance name="App_A" type="App_A"/>
+          </componentInstances>
+        </serviceUnitInstance>
+      </serviceUnitInstances>
+      <dependencies/>
+    </nodeInstance>
+
+    <nodeInstance name="NodeB" type="BladeType1" nodeMoId="\Chassis:0\GigeBlade:2">
+      <serviceUnitInstances>
+        <serviceUnitInstance name="AppSU_0" type="AppSU" level="4">
+          <componentInstances>
+            <componentInstance name="App_B" type="App_B"/>
+          </componentInstances>
+        </serviceUnitInstance>
+      </serviceUnitInstances>
+      <dependencies/>
+    </nodeInstance>
+
+    <nodeInstance name="NodeC" type="BladeType1" nodeMoId="\Chassis:0\GigeBlade:3">
+      <serviceUnitInstances>
+        <serviceUnitInstance name="AppSU_0" type="AppSU" level="4">
+          <componentInstances>
+            <componentInstance name="App_C" type="App_C"/>
+          </componentInstances>
+        </serviceUnitInstance>
+      </serviceUnitInstances>
+      <dependencies/>
+    </nodeInstance>
+
+  </nodeInstances>
+
+  <serviceGroups/>
+</amfConfig>

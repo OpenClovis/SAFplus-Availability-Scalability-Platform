@@ -1,0 +1,653 @@
+
+\hypertarget{group__group34}{
+\chapter{Functional Overview}
+\label{group__group34}
+}
+
+
+\begin{flushleft}
+The OpenClovis Transaction Manager (TM) provides an infrastructure library for resource managers to use transaction semantics to manage 
+distributed data. Any component which requires to be part of transactions can link with this library and act as a resource manager. It automatically 
+tracks participants and provides ACID semantics to ensure that all participants are updated or will rollback to previous state assuring data integrity 
+despite component failures. \par
+ \par
+ The TM supports transactions that can re-start. For instance, if any transaction participant fails, data recovery mechanism helps to recover the 
+ application 
+ state using the transaction logs for enhanced availability. 
+
+\chapter{Service Model}
+TBD
+
+
+\chapter{Service APIs}
+
+
+
+\section{Type Definitions}
+
+\subsection{ClTxnAgentCallbacksT}
+\index{ClTxnAgentCallbacksT@{ClTxnAgentCallbacksT}}
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+\textit{typedef struct \{}\\
+\>\>\>\>\textit{ClTxnAgentTxnJobCommitCallbackT fpTxnAgentJobCommit;}\\
+\>\>\>\>\textit{ClTxnAgentTxnJobPrepareCallbackT fpTxnAgentJobPrepare;}\\
+\>\>\>\>\textit{ClTxnAgentTxnJobRollbackCallbackT fpTxnAgentJobRollback;}\\
+\textit{\} ClTxnAgentCallbacksT;}\end{tabbing}
+The structure, {\tt{ClTxnAgentCallbacksT}}, contains a list of callback functions provided by the application
+for transaction agent for their role in active transactions. Application developer needs to
+initialize this structure and use it while calling {\tt{clTxnAgentServiceRegister()}}.
+
+
+\subsection{ClTxnAgentServiceHandleT}
+\index{ClTxnAgentServiceHandleT@{ClTxnAgentServiceHandleT}}
+\textit{typedef ClHandleT ClTxnAgentServiceHandleT;}
+\newline
+\newline
+Handle to the service that registers with the transaction- agent.
+
+
+\subsection{ClTxnTransactionCompletionCallbackT}
+\index{ClTxnTransactionCompletionCallbackT@{ClTxnTransactionCompletionCallbackT}}
+\textit{typedef void(*ClTxnTransactionCompletionCallbackT)(ClTxnTransactionHandleT txnHandle,
+ClRcT retCode);}
+\newline
+\newline
+ The type of callback function for the completion of an asynchronously initiated
+ transaction. This callback is specified at the time of initialization of the client.
+ The first parameter is the handle returned during the
+ creation of the transaction. The second parameter is the return code indicating
+ the status of the transaction (success or failure).
+
+
+
+
+\subsection{ClTxnTransactionHandleT}
+\index{ClTxnTransactionHandleT@{ClTxnTransactionHandleT}}
+\textit{typedef ClHandleT ClTxnTransactionHandleT;}
+\newline
+\newline
+The type of handle used for an active transaction. This handle is returned during creation of a new transaction. It must be passed as the first parameter
+in all subsequent operations pertaining to this transaction session.
+
+
+\subsection{ClTxnClientHandleT}
+\index{ClTxnClientHandleT@{ClTxnClientHandleT}}
+\textit{typedef ClHandleT ClTxnClientHandleT;}
+\newline
+\newline
+  The type of the handle for a client accessing transaction service.
+  This handle is returned while the transaction client is initialized.
+  It must also be used while finalizing the transaction client.
+
+
+\subsection{ClTxnConfigMaskT}
+\index{ClTxnConfigMaskT@{ClTxnConfigMaskT}}
+\textit{typedef ClUint8T ClTxnConfigMaskT;}
+\newline
+\newline
+  The mask for specifying transaction configuration.
+  This type must be passed as an argument during the creation of a new
+  transaction.
+
+
+\subsection{ClTxnJobDefnHandleT}
+\index{ClTxnJobDefnHandleT@{ClTxnJobDefnHandleT}}
+\textit{typedef ClHandleT ClTxnJobDefnHandleT;}
+\newline
+\newline
+  The type of the handle used for user-defined job definition. This type
+  is passed only during creation of the job.
+
+
+\subsection{ClTxnJobHandleT}
+\index{ClTxnJobHandleT@{ClTxnJobHandleT}}
+\textit{typedef ClHandleT ClTxnJobHandleT;}
+\newline
+\newline
+   The type of the handle of transaction job. This type is returned
+   when a new transaction job is added. This type must be
+   passed as an argument during subsequent operations pertaining to the job.
+
+
+\subsection{ClTxnCompConfigMaskT}
+\index{ClTxnCompConfigMaskT@{ClTxnCompConfigMaskT}}
+\textit{typedef ClUint8T ClTxnCompConfigMaskT;}
+\newline
+\newline
+  The type of mask for specifying component configuration. This type must
+  be passed as an argument when you define information about
+  the components participating in the job.
+
+\newpage
+
+
+\section{Library Life Cycle APIs}
+\subsection{clTxnClientInitialize}
+\index{clTxnClientInitialize@{clTxnClientInitialize}}
+\hypertarget{pagetxn201}{}\paragraph{cl\-Txn\-Client\-Initialize}\label{pagetxn201}
+\begin{Desc}
+\item[Synopsis:]Initializes transaction client library and registers callbacks.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTxnAgentApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}   ClRcT clTxnClientInitialize(
+                            		CL_IN ClVersionT *pVersion,
+                            		CL_IN ClTxnTransactionCompletionCallbackT pTxnCallback,
+                            		CL_OUT ClTxnClientHandleT *pTxnLibHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em p\-Version:}](in) As an input parameter, {\tt{pVersion}} is a pointer
+ to the required version of Transaction library.  As an output
+ parameter, the version actually supported by the Transaction library
+ is delivered.
+\item[{\em p\-Txn\-Callback:}](in) This is an optional parameter, if no asynchronous
+  calls are made. This callback function is used to notify the completion of
+  transaction-job.
+\item[{\em p\-Txn\-Lib\-Handle:}](out) This handle identifies the 
+ initialization of the transaction library. This must be passed as the first
+ input argument in all further invocation of functions related to the
+ transaction library.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The function executed successfully. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pVersion}} and {\tt{pTxnLibHandle}} contains a NULL pointer.
+\item[{\em CL\_\-ERR\_\-VERSION\_\-MISMATCH:}] The version of the client and server is incompatible.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:]
+This function is used to initialize the transaction client library.
+ The application component integrated with transaction client library
+ uses this function to initialize the library. This function initializes
+  various callback functions and performs version verification for
+  invoking component.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Txn\-Agent\end{Desc}
+\begin{Desc}
+\item[Note:]
+Returned error is a combination of component-ID and error-code.
+ Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in {\tt{clCommonErrors.h}} to
+ retrieve the error code.
+\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetxn202}{cl\-Txn\-Agent\-Finalize} \end{Desc}
+\newpage
+
+
+\subsection{clTxnClientFinalize}
+\index{clTxnClientFinalize@{clTxnClientFinalize}}
+\hypertarget{pagetxn202}{}\paragraph{cl\-Txn\-Client\_Finalize}\label{pagetxn202}
+\begin{Desc}
+\item[Synopsis:]Finalizes the transaction client library.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTxnAgentApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+\footnotesize\begin{verbatim}   ClRcT clTxnClientFinalize(
+                                	CL_IN ClTxnClientHandleT txnLibHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters]
+\item[{\em txn\-Lib\-Handle:}](in) Handle of the transaction client library to
+    be finalized obtained from the {\tt{clTxnClientInitialize()}} function.
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Description:] This function is used to finalize the transaction client library. It frees all
+  information related to the transaction. It must be called when a component is terminated. To avoid memory leaks, every initialize
+  call must be eventually followed by a finalize call.
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Txn\-Agent\end{Desc}
+\begin{Desc}
+\item[Note:]
+Returned error is a combination of component ID and error code.
+ Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in {\tt{clCommonErrors.h}} to
+ retrieve the error code.
+\end{Desc}
+\begin{Desc}
+\item[Related Function(s):] \hyperlink{pagetxn201}{cl\-Txn\-Agent\-Initialize}, 
+\hyperlink{pagetxn204}{cl\-Txn\-Agent\-Service\-Un\-Register} \end{Desc}
+\newpage
+
+
+
+
+
+
+\section{Functional APIs}
+\subsection{clTxnAgentServiceRegister}
+\index{clTxnAgentServiceRegister@{clTxnAgentServiceRegister}}
+\hypertarget{pagetxn203}{}\paragraph{cl\-Txn\-Agent\-Service\-Register}\label{pagetxn203}
+\begin{Desc}
+\item[Synopsis:]Registers a service hosted in this component.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTxnAgentApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTxnAgentServiceRegister(
+                            		CL_IN ClInt32T serviceId, 
+                            		CL_IN ClTxnAgentCallbacksT tCallbacks, 
+                            		CL_OUT ClTxnAgentServiceHandleT *pServiceHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em service\-Id:}](in) ID of the service hosted by this application component. \item[{\em t\-Callbacks:}](in) Instance of callback functions 
+for this service. \item[{\em p\-Service\-Handle:}](out) Handle to registered service in Transaction Agent.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-DUPLICATE:}]An entry for this service already exists.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+{\tt{clCommonErrors.h}} to retrieve error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to register services hosted by a component. A component may consist of multiple services. A transaction 
+requires multiple services of components for its completion. The Transaction Agent provides services to register the required
+transactions, using this function.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Txn\-Agent\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetxn204}{cl\-Txn\-Agent\-Service\-Un\-Register} \end{Desc}
+\newpage
+
+
+\subsection{clTxnAgentServiceUnRegister}
+\index{clTxnAgentServiceUnRegister@{clTxnAgentServiceUnRegister}}
+\hypertarget{pagetxn204}{}\paragraph{cl\-Txn\-Agent\-Service\-Un\-Register}\label{pagetxn204}
+\begin{Desc}
+\item[Synopsis:]Cancels the registration of services provided by the component for its role in transaction.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTxnAgentApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTxnAgentServiceUnRegister(
+                          		CL_IN ClTxnAgentServiceHandleT serviceHandle); 
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em service\-Handle:}](in) Handle to the service has to be de-registered obtained from {\tt{lTxnAgentServiceRegister()}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. \item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]If the corresponding entry does not exist.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+{\tt{clCommonErrors.h}} to retrieve error code.
+\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to de-register the services of component from the Transaction Management. Applications register their role in
+transactions using {\tt{clTxnAgentServiceRegister()}} and provide application-specific callback functions.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Txn\-Agent\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetxn203}{cl\-Txn\-Agent\-Service\-Register} \end{Desc}
+\newpage
+
+
+
+
+\subsection{clTxnTransactionCreate}
+\index{clTxnTransactionCreate@{clTxnTransactionCreate}}
+\hypertarget{pagetxn103}{}\paragraph{cl\-Txn\-Transaction\-Create}\label{pagetxn103}
+\begin{Desc}
+\item[Synopsis:]Creates a new transaction.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTxnApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTxnTransactionCreate(
+                               		CL_IN ClTxnConfigMaskT txnConfig,
+                               		CL_OUT ClTxnTransactionHandleT *pTxnHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Config:}](in) Configuration for executing transaction-jobs. \item[{\em p\-Txn\-Handle:}](out) Handle to the newly created transaction.
+In all further operations pertaining to this transaction, this handle must be passed as the input argument.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pTxnHandle}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]A parameter is not set correctly.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+{\tt{clCommonErrors.h}} to retrieve error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This client function is used to create a new transaction in the transaction server. The new transaction created gets a unique
+identification which is used for reference. The application creates a new transaction and registers with the server before sending the request to execute
+the operation. \par
+ \par
+ The Transaction management provides different run-time configuration that are specified while defining it. 
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Txn\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetxn104}{cl\-Txn\-Transaction\-Cancel} , \hyperlink{pagetxn105}{cl\-Txn\-Transaction\-Start} ,
+\hyperlink{pagetxn106}{cl\-Txn\-Transaction\-Start\-Async} \end{Desc}
+\newpage
+
+\subsection{clTxnTransactionCancel}
+\index{clTxnTransactionCancel@{clTxnTransactionCancel}}
+\hypertarget{pagetxn104}{}\paragraph{cl\-Txn\-Transaction\-Cancel}\label{pagetxn104}
+\begin{Desc}
+\item[Synopsis:]Cancels the given transaction.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTxnApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTxnTransactionCancel(
+                               		CL_IN ClTxnTransactionHandleT txnHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Handle:}](in) Handle of the transaction to be deleted obtained from {\tt{clTxnTransactionCreate()}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. 
+\item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]On passing a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]An invalid parameter has been passed to the API. A parameter is not set correctly. 
+\item[{\em CL\_\-ERR\_\-TIMEOUT:}]The communication with the server failed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in
+{\tt{clCommonErrors.h}} to retrieve error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This client function is used to cancel the transaction in the transaction server. A transaction can be canceled, if it is in 
+{\tt{PRE-INIT}} state. The {\tt{PRE-INIT}} state is when the jobs are being defined and {\tt{COMMIT}} command has not been issued by the server to any one
+of the components participating in the transaction.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Txn\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetxn103}{cl\-Txn\-Transaction\-Create} , \hyperlink{pagetxn105}{cl\-Txn\-Transaction\-Start} , 
+\hyperlink{pagetxn106}{cl\-Txn\-Transaction\-Start\-Async} \end{Desc}
+\newpage
+
+
+\subsection{clTxnTransactionStart}
+\index{clTxnTransactionStart@{clTxnTransactionStart}}
+\hypertarget{pagetxn105}{}\paragraph{cl\-Txn\-Transaction\-Start}\label{pagetxn105}
+\begin{Desc}
+\item[Synopsis:]Starts a transaction identified by transaction ID (asynchronously).\end{Desc}
+\begin{Desc}
+\item[Header File:]clTxnApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTxnTransactionStart(
+                               		CL_IN ClTxnTransactionHandleT txnHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Handle:}](in) Handle of transaction to be started obtained from {\tt{clTxnTransactionCreate()}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. \item[{\em CL\_\-TXN\_\-ERR\_\-NOT\_\-INITIALIZED:}]The transaction is not initialized. 
+\item[{\em CL\_\-TXN\_\-ERR\_\-VALIDATE\_\-FAILED:}]The application-defined preparation for the transaction failed. 
+\item[{\em CL\_\-TXN\_\-ERR\_\-COMMIT\_\-FAILED:}]The transaction resulted in aborting the operation. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]An invalid parameter has been passed to the API. A parameter is not set correctly. 
+\item[{\em CL\_\-ERR\_\-TIMEOUT:}]The communication with the server failed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+{\tt{clCommonErrors.h}} to retrieve error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to start a transaction identified by transaction ID. The client creates a new transaction to execute the 
+intended operation. After the task is defined for this transaction, this function triggers the co-ordination to complete the transaction. This is a 
+blocking call.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Txn\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetxn103}{cl\-Txn\-Transaction\-Create} , \hyperlink{pagetxn104}{cl\-Txn\-Transaction\-Cancel} ,
+\hyperlink{pagetxn106}{cl\-Txn\-Transaction\-Start\-Async} \end{Desc}
+\newpage
+
+
+\subsection{clTxnTransactionStartAsync}
+\index{clTxnTransactionStartAsync@{clTxnTransactionStartAsync}}
+\hypertarget{pagetxn106}{}\paragraph{cl\-Txn\-Transaction\-Start\-Async}\label{pagetxn106}
+\begin{Desc}
+\item[Synopsis:]Asynchronously starts a transaction identified by the transaction ID.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTxnApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTxnTransactionStartAsync(
+                               		CL_IN ClTxnTransactionHandleT txnHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Handle:}](in) Handle of the transaction to be started asynchronously. This is created by 
+{\tt{clTxnTransactionCreate()}}.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. \item[{\em CL\_\-TXN\_\-ERR\_\-NOT\_\-INITIALIZED:}]The transaction is not initialized. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]An invalid parameter has been passed to the API. A parameter is not set correctly. 
+\item[{\em CL\_\-ERR\_\-TIMEOUT:}]The communication with the server failed.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+{\tt{clCommonErrors.h}} to retrieve error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to start a transaction asynchronously identified by a transaction ID. The client creates a new transaction 
+to execute the intended operation. Once the task is defined for this transaction, this function triggers the background coordination to complete the 
+transaction. This is non-blocking.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Txn\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetxn103}{cl\-Txn\-Transaction\-Create} , \hyperlink{pagetxn104}{cl\-Txn\-Transaction\-Cancel} , 
+\hyperlink{pagetxn105}{cl\-Txn\-Transaction\-Start} \end{Desc}
+\newpage
+
+
+\subsection{clTxnJobAdd}
+\index{clTxnJobAdd@{clTxnJobAdd}}
+\hypertarget{pagetxn107}{}\paragraph{cl\-Txn\-Job\-Add}\label{pagetxn107}
+\begin{Desc}
+\item[Synopsis:]Registers a new job as part of transaction. A transaction consists of at least one job description.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTxnApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTxnJobAdd(
+                              		CL_IN ClTxnTransactionHandleT      txnHandle,
+                              		CL_IN ClTxnJobDefnHandleT  jobDefn,
+                              		CL_IN ClUint32T             jobDefnSize,
+                              		CL_IN ClInt32T              serviceType,
+                              		CL_OUT ClTxnJobHandleT      *pJobHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Handle:}](in) Transaction handle to which the job is to be added. This is created by {\tt{clTxnTransactionCreate()}} function. 
+\item[{\em job\-Defn:}](in) Application-defined job description. 
+\item[{\em job\-Defn\-Size:}](in) Size of application defined job-definition. 
+\item[{\em service\-Type:}](in) Service within component involved in transaction (-1 for all services of component). 
+\item[{\em p\-Job\-Handle:}](out) Identification of job for later references.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. \item[{\em CL\_\-ERR\_\-NULL\_\-POINTER:}]{\tt{pJobHandle}} contains a NULL pointer. 
+\item[{\em CL\_\-ERR\_\-INVALID\_\-PARAMETER:}]An invalid parameter has been passed to the API. A parameter is not set correctly.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+{\tt{clCommonErrors.h}} to retrieve error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to register a new job as a part of a transaction. As part of modifying a data entity in distributed environment, 
+application provides necessary details termed as job-description. Flexibility is given to application developer to define jobs and pass-on definition as 
+a byte-stream. Hence details about jobs are transparent to the transaction management. Each job is identified using a unique job ID.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Txn\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetxn108}{cl\-Txn\-Job\-Remove} \end{Desc}
+\newpage
+
+
+\subsection{clTxnJobRemove}
+\index{clTxnJobRemove@{clTxnJobRemove}}
+\hypertarget{pagetxn108}{}\paragraph{cl\-Txn\-Job\-Remove}\label{pagetxn108}
+\begin{Desc}
+\item[Synopsis:]Removes a registered job from the transaction.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTxnApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTxnJobRemove(
+                              		CL_IN ClTxnTransactionHandleT txnHandle,
+                              		CL_IN ClTxnJobHandleT jobHandle);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Handle:}](in) Transaction handle from which the job is to be removed. This handle is created by the {\tt{clTxnTransactionCreate()}}
+function.
+\item[{\em job\-Handle:}](in) Handle of the job to be deleted. This handle is created by the {\tt{clTxnJobAdd()}} function.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. \item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]There is no transaction or job corresponding to the handle
+passed to the function.
+\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in
+{\tt{clCommonErrors.h}} to retrieve error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to remove an already registered job from transaction. As part of the defining a transaction, application 
+defines a transaction and manages jobs by registering and removing them. Each job registered in transaction is uniquely identified by a job ID.\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Txn\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]\hyperlink{pagetxn107}{cl\-Txn\-Job\-Add} \end{Desc}
+\newpage
+
+
+\subsection{clTxnComponentSet}
+\index{clTxnComponentSet@{clTxnComponentSet}}
+\hypertarget{pagetxn109}{}\paragraph{cl\-Txn\-Component\-Set}\label{pagetxn109}
+\begin{Desc}
+\item[Synopsis:]Sets a component to be involved in transaction-job.\end{Desc}
+\begin{Desc}
+\item[Header File:]clTxnApi.h\end{Desc}
+\begin{Desc}
+\item[Syntax:]
+
+\footnotesize\begin{verbatim}   ClRcT clTxnComponentSet(
+                       			CL_IN ClTxnTransactionHandleT  txnHandle,
+                       			CL_IN ClTxnJobHandleT  jobHandle,
+                       			CL_IN ClIocAddressT txnCompAddress,
+                       			CL_IN ClTxnCompConfigMaskT  configMask);
+\end{verbatim}
+\normalsize
+\end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em txn\-Handle}]:(in) Transaction handle of the job for which components are being added. This is created by the {\tt{clTxnTransactionCreate()}} function.
+\item[{\em job\-Handle:}](in) Transaction-job handle for which components is to be added. This is created by {\tt{clTxnJobAdd()}}. 
+\item[{\em txn\-Comp\-Address:}](in) IOC address of the component. 
+\item[{\em config\-Mask:}](in) Configuration information defining the role of this component in
+transaction.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em CL\_\-OK:}]The API executed successfully. \item[{\em CL\_\-ERR\_\-NOT\_\-EXIST:}]If there is no job corresponding to the handles passed. 
+\item[{\em CL\_\-ERR\_\-NO\_\-MEMORY:}]Memory allocation failure. \item[{\em CL\_\-ERR\_\-DUPLICATE:}]A duplicate entry exists.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Returned error is a combination of component ID and error code. Use {\tt{CL\_\-GET\_\-ERROR\_\-CODE(RET\_\-CODE)}} defined in 
+{\tt{clCommonErrors.h}} to retrieve error code.\end{Desc}
+\begin{Desc}
+\item[Description:]This function is used to set a component to be involved in a transaction-job. The application interfacing transaction-management using 
+these client functions needs to provide a list of components involved in transaction. This function can also control the order in which these 
+components are to be visited during execution of the transaction, as an option.
+
+\end{Desc}
+\begin{Desc}
+\item[Note:]Currently, the list of components are for the job. The application must explicitly specify, if the transaction contains
+multiple jobs for each job. Order in which a component participates in a given transaction is dependent on the capabilities of all components (for 1-PC Capable, 
+2-PC Capable) and other factors related to resource availability (For example, locks).
+\end{Desc}
+\begin{Desc}
+\item[Library File:]Cl\-Txn\-Client\end{Desc}
+\begin{Desc}
+\item[Related Function(s):]None. \end{Desc}
+
+\chapter{Service Management Information Model}
+TBD
+
+\chapter{Service Notifications}
+TBD
+
+\chapter{Configuration}
+TBD
+
+
+\chapter{Debug CLIs}
+TBD
+
+\end{flushleft}

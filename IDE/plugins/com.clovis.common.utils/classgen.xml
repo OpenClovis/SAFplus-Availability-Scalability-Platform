@@ -1,0 +1,32 @@
+<?xml version='1.0'?>
+<project name="classgen" default="full" basedir=".">
+    <property name="debug"              value="true"/>
+    <path id="castor.classpath">
+        <fileset dir="lib">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <taskdef name="castor" classpathref="castor.classpath" 
+        classname="CastorSourceGenTask"/>
+
+    <!-- Removes generated file and generates again -->
+    <target name="full" depends="clean, classgen"/>
+    <!-- Generates file if schema is changed -->
+    <target name="incremental" depends="classgen"/>
+    <!-- Removes all generated files -->
+    <target name="clean">
+        <delete dir="src/com/clovis/common/utils/menu/gen"/>
+    </target>
+
+    <!--
+        Target to generate classes. For each xsd a castor task has
+        to defined.
+    -->
+    <target name="classgen">
+        <castor file="xsd/menu.xsd" 
+            properties="lib/castor/castorbuilder.properties"
+            warnings="false"
+            types="j2" todir="src" package="com.clovis.common.utils.menu.gen"/>
+    </target>
+</project>

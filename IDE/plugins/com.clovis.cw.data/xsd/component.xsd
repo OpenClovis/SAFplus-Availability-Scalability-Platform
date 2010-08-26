@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component:schema xmlns:component="http://www.w3.org/2001/XMLSchema" >
+
+<component:complexType name="cluster">
+	<component:sequence>
+  		<component:element maxOccurs="unbounded" minOccurs="0" name="contains" type="containment"/>
+	</component:sequence>
+	<component:attributeGroup ref="nameRdn"/>
+</component:complexType>
+ 
+<component:attributeGroup name="nameRdn">
+<component:attribute name="name" type="component:string" use="required"/>
+<component:attribute name="rdn" type="component:string" use="required"/>
+</component:attributeGroup>
+
+<component:complexType name="containment">
+ <component:attribute name="target" type="component:string" use="required"/>
+</component:complexType>
+
+
+<component:complexType name="association">
+ <component:attribute name="target" type="component:string"/>
+</component:complexType>
+ 
+ <component:simpleType name="NodeClassType">
+  <component:restriction base="component:string">
+    <component:enumeration value="CL_AMS_NODE_CLASS_A"/>
+    <component:enumeration value="CL_AMS_NODE_CLASS_B"/>
+    <component:enumeration value="CL_AMS_NODE_CLASS_C"/>
+    <component:enumeration value="CL_AMS_NODE_CLASS_D"/>
+  </component:restriction>
+</component:simpleType>
+ 
+ <component:simpleType name="BooleanType">
+  <component:restriction base="component:string">
+    <component:enumeration value="CL_TRUE"/>
+    <component:enumeration value="CL_FALSE"/>
+  </component:restriction>
+</component:simpleType>
+ 
+ <component:simpleType name="AMSAdminStates">
+  <component:restriction base="component:string">
+    <component:enumeration value="CL_AMS_ADMIN_STATE_UNLOCKED"/>
+    <component:enumeration value="CL_AMS_ADMIN_STATE_LOCKED_A"/>
+    <component:enumeration value="CL_AMS_ADMIN_STATE_LOCKED_I"/>
+  </component:restriction>
+ </component:simpleType>
+ 
+<component:complexType name="node">
+ <component:sequence>
+   <component:element maxOccurs="unbounded" minOccurs="0" name="contains" type="containment"/>
+ </component:sequence>
+  <component:attributeGroup ref="nameRdn"/>
+ <component:attributeGroup ref="nodeAttr"/>
+</component:complexType>
+
+
+<component:attributeGroup name="nodeAttr">
+  <component:attribute name="id" type="component:string"/>
+  <component:attribute name="classType" type="NodeClassType"/>
+  <component:attribute name="subClassType" type="component:string"/>
+  <component:attribute name="isSwappable" type="BooleanType"/>
+  <component:attribute name="isRestartable" type="BooleanType"/>
+  <component:attribute name="isASPAware" type="BooleanType"/>
+  <component:attribute name="suFailoverDuration" type="component:long"/>
+  <component:attribute name="suFailoverCountMax" type="component:integer"/>
+  <component:attribute name="adminState" type="AMSAdminStates"/>
+</component:attributeGroup>
+
+<component:complexType name="serviceUnit">
+ <component:sequence>
+    <component:element maxOccurs="unbounded" minOccurs="0" name="contains" type="containment"/>
+ </component:sequence>
+ <component:attributeGroup ref="nameRdn"/>
+ <component:attributeGroup ref="SUAttr"/>
+</component:complexType>
+
+<component:attributeGroup name="SUAttr">
+  <component:attribute name="adminState" type="AMSAdminStates"/>
+  <component:attribute name="isPreinstantiable" type="BooleanType"/>
+  <component:attribute name="isRestartable" type="BooleanType"/>
+  <component:attribute name="isContainerSU" type="BooleanType"/>
+</component:attributeGroup>  
+
+
+ <component:simpleType name="CompCapabilityModel">
+  <component:restriction base="component:string">
+    <component:enumeration value="CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY"/>
+    <component:enumeration value="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY"/>
+    <component:enumeration value="CL_AMS_COMP_CAP_ONE_ACTIVE_OR_X_STANDBY"/>
+    <component:enumeration value="CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY"/>
+    <component:enumeration value="CL_AMS_COMP_CAP_X_ACTIVE"/>
+    <component:enumeration value="CL_AMS_COMP_CAP_ONE_ACTIVE"/>
+    <component:enumeration value="CL_AMS_COMP_CAP_NON_PREINSTANTIABLE"/>
+  </component:restriction>
+ </component:simpleType>
+
+<component:simpleType name="CompProperty">
+  <component:restriction base="component:string">
+    <component:enumeration value="CL_AMS_SA_AWARE"/>
+    <component:enumeration value="CL_AMS_PROXIED_PREINSTANTIABLE"/>
+    <component:enumeration value="CL_AMS_PROXIED_NON_PREINSTANTIABLE"/>
+    <component:enumeration value="CL_AMS_NON_PROXIED_NON_PREINSTANTIABLE"/>
+  </component:restriction>
+ </component:simpleType>
+
+<component:simpleType name="CompProcessRel">
+  <component:restriction base="component:string">
+    <component:enumeration value="CL_CPM_COMP_SINGLE_PROCESS"/>
+    <component:enumeration value="CL_CPM_COMP_NONE"/>
+    <component:enumeration value="CL_CPM_COMP_MULTI_PROCESS"/>
+    <component:enumeration value="CL_AMS_NON_PROXIED_NON_PREINSTANTIABLE"/>
+  </component:restriction>
+ </component:simpleType>
+
+<component:simpleType name="AMSLocalRecovery">
+  <component:restriction base="component:string">
+    <component:enumeration value="CL_AMS_RECOVERY_NO_RECOMMENDATION"/>
+    <component:enumeration value="CL_AMS_RECOVERY_COMP_RESTART"/>
+    <component:enumeration value="CL_AMS_RECOVERY_COMP_FAILOVER"/>
+    <component:enumeration value="CL_AMS_RECOVERY_NODE_SWITCHOVER"/>
+    <component:enumeration value="CL_AMS_RECOVERY_NODE_FAILOVER"/>
+    <component:enumeration value="CL_AMS_RECOVERY_NODE_FAILFAST"/>
+    <component:enumeration value="CL_AMS_RECOVERY_CLUSTER_RESET"/>
+  </component:restriction>
+ </component:simpleType>
+
+<component:complexType name="CompTimeouts">
+  <component:attribute name="instantiateTimeout" type="component:integer"/>
+  <component:attribute name="terminateTimeout" type="component:integer"/>
+  <component:attribute name="cleanupTimeout" type="component:integer"/>
+  <component:attribute name="amStartTimeout" type="component:integer"/>
+  <component:attribute name="amStopTimeout" type="component:integer"/>
+  <component:attribute name="csiSetTimeout" type="component:integer"/>
+  <component:attribute name="csiRemoveTimeout" type="component:integer"/>
+  <component:attribute name="quiescingCompleteTimeout" type="component:integer"/>
+  <component:attribute name="proxiedCompInstantiateTimeout" type="component:integer"/>
+  <component:attribute name="proxiedCompCleanupTimeout" type="component:integer"/>
+</component:complexType>
+
+<component:complexType name="CommandLineArgument">
+   <component:attribute name="value" type="component:string"/>
+</component:complexType>
+
+<component:complexType name="EnvironmentVariable">
+  <component:attribute name="name" type="component:string"/>
+  <component:attribute name="value" type="component:string"/>
+</component:complexType>
+
+<component:attributeGroup name="componentAttr">
+  <component:attribute name="csiType" type="component:string"/>
+  <component:attribute name="instantiateCommand" type="component:string"/>
+  <component:attribute name="terminateCommand" type="component:string"/>
+  <component:attribute name="cleanupCommand" type="component:string"/>
+  <component:attribute name="isRestartable" type="BooleanType"/>
+  <component:attribute name="nodeRebootCleanupFail" type="component:boolean"/>
+  <component:attribute name="instantiateLevel" type="component:integer"/>
+  <component:attribute name="instantiateDelay" type="component:integer"/>
+  <component:attribute name="numMaxInstantiate" type="component:integer"/>
+  <component:attribute name="numMaxInstantiateWithDelay" type="component:integer"/>
+  <component:attribute name="numMaxTerminate" type="component:integer"/>
+  <component:attribute name="numMaxAmStart" type="component:integer"/>
+  <component:attribute name="numMaxAmStop" type="component:integer"/>
+  <component:attribute name="numMaxActiveCSIs" type="component:integer"/>
+  <component:attribute name="numMaxStandbyCSIs" type="component:integer"/>
+  <component:attribute name="amStartCommand" type="component:string"/>
+  <component:attribute name="amStopCommand" type="component:string"/>
+  <component:attribute name="recoveryOnTimeout" type="AMSLocalRecovery" use="optional"/>
+</component:attributeGroup>
+
+<component:complexType name="component">  
+  <component:sequence>
+  	<component:element name="timeouts" type="CompTimeouts"/>
+  	<component:element maxOccurs="unbounded" minOccurs="0" name="commandLineArguments" type="CommandLineArgument"/>
+  	<component:element maxOccurs="unbounded" minOccurs="0" name="environmentVariables" type="EnvironmentVariable"/>
+  </component:sequence>
+  <component:attributeGroup ref="nameRdn"/>
+  <component:attributeGroup ref="componentAttr"/>
+</component:complexType>
+
+ <component:simpleType name="ThreadPriorityType">
+  <component:restriction base="component:string">
+    <component:enumeration value="PRIORITY_LOW"/>
+    <component:enumeration value="PRIORITY_MEDIUM"/>
+    <component:enumeration value="PRIORITY_HIGH"/>
+  </component:restriction>
+ </component:simpleType>
+
+<component:simpleType name="MainThreadUsagePolicy">
+  <component:restriction base="component:string">
+    <component:enumeration value="CL_EO_USE_THREAD_FOR_RECV"/>
+    <component:enumeration value="CL_EO_USE_THREAD_FOR_APP"/>
+  </component:restriction>
+ </component:simpleType>
+
+
+<component:complexType name="ASPLibType">
+  <component:attribute name="COR" type="BooleanType"/>
+  <component:attribute name="CM" type="BooleanType"/>
+  <component:attribute name="NameService" type="BooleanType"/>
+  <component:attribute name="LOG" type="BooleanType"/>
+  <component:attribute name="Trace" type="BooleanType"/>
+  <component:attribute name="Diagnostics" type="BooleanType"/>
+  <component:attribute name="Transaction" type="BooleanType"/>
+  <component:attribute name="OampRtParser" type="BooleanType"/>
+  <component:attribute name="Prov" type="BooleanType"/>
+  <component:attribute name="Alarm" type="BooleanType"/>
+  <component:attribute name="Debug" type="BooleanType"/>
+  <component:attribute name="OSAL" type="BooleanType"/>
+  <component:attribute name="Timer" type="BooleanType"/>
+  <component:attribute name="Buffer" type="BooleanType"/>
+  <component:attribute name="IOC" type="BooleanType"/>
+  <component:attribute name="RMD" type="BooleanType"/>
+  <component:attribute name="EO" type="BooleanType"/>
+  <component:attribute name="OM" type="BooleanType"/>
+  <component:attribute name="HAL" type="BooleanType"/>
+  <component:attribute name="DBAL" type="BooleanType"/>
+</component:complexType>
+
+<component:complexType name="EO">
+ <component:sequence>
+    <component:element name="aspLib" type="ASPLibType"/>
+ </component:sequence>
+ <component:attributeGroup ref="EOAttr"/>
+</component:complexType>
+
+<component:attributeGroup name="EOAttr">
+  <component:attribute name="eoName" type="component:string"/>
+  <component:attribute name="threadPriority" type="ThreadPriorityType"/>
+  <component:attribute name="threadCount" type="component:integer"/>
+  <component:attribute name="iocPortNumber" type="component:integer"/>
+  <component:attribute name="mainThreadUsagePolicy" type="MainThreadUsagePolicy"/>
+  <component:attribute name="maxNoClients" type="component:integer"/>
+</component:attributeGroup>
+
+<component:complexType name="safComponent">
+ <component:complexContent>
+  <component:extension base="component">
+   <component:sequence>
+    <component:element name="eoProperties" type="EO"/>
+    <component:element maxOccurs="unbounded" minOccurs="0" name="proxies" type="association"/>
+   </component:sequence>
+   <component:attribute name="isSNMPSubAgent" type="component:boolean"/>
+   <component:attribute name="isBuildCPP" type="component:boolean"/>
+   
+  </component:extension>
+ </component:complexContent>
+</component:complexType>
+
+<component:complexType name="NonSAFComponent">
+ <component:complexContent>
+  <component:extension base="component">
+   <component:sequence>
+     <component:element name="proxyCSIType" type="component:string"/>
+   </component:sequence>
+  </component:extension>
+ </component:complexContent>
+</component:complexType>
+
+<component:simpleType name="AmsSGRedundancyModel">
+  <component:restriction base="component:string">
+    <component:enumeration value="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY"/>
+    <component:enumeration value="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N"/>
+  </component:restriction>
+ </component:simpleType>
+ 
+ <component:simpleType name="AmsSGLoadingStrategy">
+  <component:restriction base="component:string">
+    <component:enumeration value="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU"/>
+    <component:enumeration value="CL_AMS_SG_LOADING_STRATEGY_LEAST_SU_ASSIGNED"/>
+    <component:enumeration value="CL_AMS_SG_LOADING_STRATEGY_LEAST_LOAD_PER_SU"/>
+    <component:enumeration value=" CL_AMS_SG_LOADING_STRATEGY_BY_SI_PREFERENCE"/>
+    <component:enumeration value="CL_AMS_SG_LOADING_STRATEGY_USER_DEFINED"/>
+  </component:restriction>
+ </component:simpleType>
+
+<component:complexType name="serviceGroup">
+ <component:sequence>
+  <component:element maxOccurs="unbounded" minOccurs="0" name="associatedTo" type="association"/>
+ </component:sequence>
+ <component:attributeGroup ref="nameRdn"/>
+ <component:attributeGroup ref="SGAttr"/>
+</component:complexType>
+
+<component:attributeGroup name="SGAttr">
+  <component:attribute name="redundancyModel" type="AmsSGRedundancyModel"/>
+  <component:attribute name="failbackOption" type="BooleanType"/>
+  <component:attribute name="restartDuration" type="component:integer"/>
+  <component:attribute name="numPrefActiveSUs" type="component:integer"/>
+  <component:attribute name="numPrefStandbySUs" type="component:integer"/>
+  <component:attribute name="numPrefInserviceSUs" type="component:integer"/>
+  <component:attribute name="numPrefAssignedSUs" type="component:integer"/>
+  <component:attribute name="numPrefActiveSUsPerSI" type="component:integer"/>
+  <component:attribute name="maxActiveSIsPerSU" type="component:integer"/>
+  <component:attribute name="maxStandbySIsPerSU" type="component:integer"/>
+  <component:attribute name="compRestartDuration" type="component:long"/>
+  <component:attribute name="compRestartCountMax" type="component:integer"/>
+  <component:attribute name="suRestartDuration" type="component:integer"/>
+  <component:attribute name="suRestartCountMax" type="component:integer"/>
+  <component:attribute name="adminState" type="AMSAdminStates"/>
+  <component:attribute name="loadingStrategy" type="AmsSGLoadingStrategy"/>
+  <component:attribute name="autoRepair" type="BooleanType"/>
+  <component:attribute name="allowCollocatedActiveStandbyAssignments" type="BooleanType"/>
+  <component:attribute name="isCollocationAllowed" type="BooleanType"/>
+  <component:attribute name="alphaFactor" type="component:integer"/>
+</component:attributeGroup>
+
+<component:complexType name="serviceInstance">
+ <component:sequence>
+   <component:element maxOccurs="unbounded" minOccurs="0" name="contains" type="containment"/>
+ </component:sequence>
+ <component:attributeGroup ref="nameRdn"/>
+ <component:attributeGroup ref="SIAttr"/>
+</component:complexType>
+
+<component:attributeGroup name="SIAttr">
+  <component:attribute name="rank" type="component:integer"/>
+  <component:attribute name="numCSIs" type="component:integer"/>
+  <component:attribute name="numStandbyAssignments" type="component:integer"/>
+  <component:attribute name="adminState" type="AMSAdminStates"/>
+</component:attributeGroup>
+
+
+<component:complexType name="componentServiceInstance">
+ <component:sequence>
+  <component:element maxOccurs="unbounded" minOccurs="0" name="associatedTo" type="association"/>
+ </component:sequence>
+ <component:attributeGroup ref="nameRdn"/>
+ <component:attributeGroup ref="CSIAttr"/>
+</component:complexType>
+
+<component:attributeGroup name="CSIAttr">
+  <component:attribute name="type" type="component:string"/>
+  <component:attribute name="rank" type="component:integer"/>
+</component:attributeGroup>
+
+<component:element name="componentInformation" >
+  <component:complexType>
+    <component:sequence>
+      <component:element maxOccurs="1" minOccurs="1" name="cluster" type="cluster"/>
+      <component:element maxOccurs="unbounded" minOccurs="0" name="node" type="node"/>
+      <component:element maxOccurs="unbounded" minOccurs="0" name="serviceUnit" type="serviceUnit"/>
+      <component:element maxOccurs="unbounded" minOccurs="0" name="safComponent" type="safComponent"/>
+      <component:element maxOccurs="unbounded" minOccurs="0" name="nonSAFComponent" type="NonSAFComponent"/>
+      <component:element maxOccurs="unbounded" minOccurs="0" name="serviceGroup" type="serviceGroup"/>
+      <component:element maxOccurs="unbounded" minOccurs="0" name="serviceInstance" type="serviceInstance"/>
+      <component:element maxOccurs="unbounded" minOccurs="0" name="componentServiceInstance" type="componentServiceInstance"/>
+    </component:sequence>
+  </component:complexType>
+</component:element>
+</component:schema>

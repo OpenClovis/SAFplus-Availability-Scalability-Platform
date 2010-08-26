@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CwWrapper>
+        <Nadeem>
+        </Nadeem>
+    <junk>
+        <name>TestData</name>
+        <CwKey>TestKey1</CwKey>
+        <als>1</als>
+        <JunkTemplate>10</JunkTemplate>
+    </junk>
+    <junk>
+        <name>TestData</name>
+        <CwKey>TestKey2</CwKey>
+        <als>2</als>
+        <JunkTemplate>20</JunkTemplate>
+    </junk>
+    <junk>
+        <name>TestData</name>
+        <CwKey>TestKey3</CwKey>
+
+        <MyChild>
+            <CwKey>1.2</CwKey>
+            <ChName>nadeem</ChName>
+        </MyChild>
+
+        <als>3</als>
+        <JunkTemplate>30</JunkTemplate>
+    </junk>
+</CwWrapper>

@@ -1,0 +1,434 @@
+/**
+ * \addtogroup ckpt_aspconsole Checkpointing Service ASP Console Commands
+ * \{
+ */
+
+/**
+*****************************************
+\brief Initialize the Checkpoint service.
+ 
+\par Usage: 
+\code init \endcode 
+
+\par Output:
+\code init \endcode 
+
+***************************************** 
+*/
+Init;
+
+  
+/**
+*****************************************
+\brief Displays the checkpoint information.
+ 
+\par Usage: 
+\code CkptShow \endcode 
+
+\par Output:
+\code 
+==============================================
+Checkpoint Name :AMS_CKPT
+Checkpoint Type :Local
+Primary Svr Addr:1
+         Control plane information.....
+                 Update Option: Collocated
+                 Retention Duration (in millisec) :0
+                 Presence List .....
+         Data plane information.....
+                 Max Size           : 1048576
+                 Max Section Size   : 1048576
+                 Sections Count     : 3
+                 Max Sections       : 3
+                 Max SectionId Size : 256
+                 Section Id   :Section Data :Data Length  :Last Updated:
+                 AMS_CKPT_DB_SECTION          0x8233e6c   55612     0
+                 Section Id   :Section Data :Data Length  :Last Updated:
+                 AMS_CKPT_INVOCATION_SECTION  0x80e7ff8      31     0
+                 Section Id   :Section Data :Data Length  :Last Updated:
+                 AMS_CKPT_VERSION_SECTION     0x80e60cc       7     0
+         Information at primary owner .....
+                 Reference Count    : 1
+                 Delete             : Not requested
+===============================================
+===============================================
+Checkpoint Name :CPM
+Checkpoint Type :Local
+Primary Svr Addr:1
+         Control plane information.....
+                 Update Option: Collocated
+                 Retention Duration (in millisec) :0
+                 Presence List .....
+         Data plane information.....
+                 Max Size           : 1048576
+                 Max Section Size   : 1048576
+                 Sections Count     : 0
+                 Max Sections       : 1
+                 Max SectionId Size : 256
+         Section Id   :Section Data :Data Length  :Last Updated:
+               0x80e77a8               1               0
+         Information at primary owner .....
+                 Reference Count    : 1
+       Delete             : Not requested
+====================================================
+\endcode
+***************************************** 
+*/
+CkptShow;
+
+
+/**
+*****************************************
+\brief Displays the list of peers.
+ 
+\par Usage: 
+\code ckptPeerShow \endcode 
+
+\par Output:
+\code 
+ckptPeerShow
+List of peers.....
+       1 
+\endcode 
+***************************************** 
+*/
+ckptPeerShow;
+
+/**
+*****************************************
+\brief Opens the checkpoint.
+ 
+\par Usage: 
+\code 
+ckptOpen <name> <openFlag> <mode><retentionDuration> \
+         <maxSize><maxSections> <maxSectionSize> <maxSecIdSize> 
+\endcode          
+
+\param Name[STRING] Name of the checkpoint
+\param OpenFlag[STRING] create/read/write
+\param Mode[STRING] sync/async/collocated
+\param RetentionDuration[INT] Retention time (in nano seconds)
+\param MaxSize[INT] Maximum Size of checkpoint
+\param MaxSections[INT] Maximum number of sections
+\param MaxSectionSize[INT] Maximum section size
+\param MaxSecIdSize[INT] Maximum Section Id Size
+
+\par Output:
+\code 
+ckptOpen ospf create sync 60000 6000 6 1000 255
+      Opening a checkpoint
+      Checkpoint Open completed: hdl 1 
+\endcode 
+***************************************** 
+*/
+ckptOpen;
+
+/**
+*****************************************
+\brief Deletes the checkpoint.
+ 
+\par Usage: 
+\code ckptDelete <name> \endcode 
+
+\param Name[STRING] Name of the checkpoint.
+
+\par Output:
+\code 
+ckptDelete ospf1
+    Deleting a checkpoint
+    clCkptCheckpointDelete Completed 
+\endcode 
+***************************************** 
+*/
+ckptDelete;
+
+/**
+*****************************************
+\brief Closes the checkpoint.
+ 
+\par Usage: 
+\code ckptClose <Handle> \endcode 
+
+\param Handle[INT] Handle of the checkpoint.
+
+\par Output:
+\code 
+ckptClose 1
+clCkptCheckpointClose Completed 
+\endcode 
+***************************************** 
+*/
+ckptClose;
+
+
+/**
+*****************************************
+\brief Writes the checkpoint data.
+ 
+\par Usage: 
+\code 
+ckptWrite <handle> <secName>  < offset> <data> \
+          [secName offset data] 
+\endcode
+
+\param Handle[INT] Handle of the checkpoint
+\param secName [STRING] Name of the section
+\param offset[INT] Offset in the section
+\param data [STRING] Data to be written
+
+\par Output:
+\code 
+ckptWrite 1 sec3 0 rameshis sec3 0 kavadulatheyavame
+    Writing to a checkpoint
+    Checkpoint write completed 
+\endcode 
+***************************************** 
+*/
+ckptWrite;
+
+/**
+*****************************************
+\brief Reads the checkpoint data.
+ 
+\par Usage: 
+\code ckptRead <handle> <secName> <offset> <size> [secName offset size] \endcode 
+
+\param Handle[INT] Handle of the checkpoint
+\param secName[STRING] Name of the section
+\param offset[INT] Offset in the section
+\param size[INT] size of data to be read (specify 0 if not known).
+
+\par Output:
+\code 
+ckptRead 1 sec2 3 15 sec3 4 15
+         Reading checkpoint
+         Read completed
+         eshis
+         5
+         dulatheyavame
+         13 
+\endcode 
+***************************************** 
+*/
+ckptRead;
+
+/**
+*****************************************
+\brief Creates a section in the checkpoint.
+ 
+\par Usage: 
+\code ckptSectionCreate <handle> <secName> <expiry Time> \endcode 
+
+\param Handle[INT] Handle of the checkpoint
+\param secName[STRING] Name of the section
+\param expiryTime[STRING] Expiry Time (in nano seconds). 0 for infinite expiry time.
+
+\par Output:
+\code 
+ckptSectionCreate 1 sec3 0
+Section Created 
+\endcode 
+***************************************** 
+*/
+ckptSectionCreate;
+
+/**
+*****************************************
+\brief Deletes a section in the checkpoint.
+ 
+\par Usage: 
+\code ckptSectionDelete <Handle> <secName> \endcode
+
+\param Handle[INT] Handle of the checkpoint
+\param secName[STRING] Name of the section
+
+\par Output:
+\code ckptSectionDelete 1 sec3 \endcode 
+***************************************** 
+*/
+ckptSectionDelete;
+
+/**
+*****************************************
+\brief Overwrites a section in the checkpoint.
+ 
+\par Usage: 
+\code ckptSectionOverwrite <handle> <secName> <data> \endcode
+
+\param Handle[INT] Handle of the checkpoint
+\param secName[STRING] Name of the section
+\param data [STRING] Data to be written
+
+\par Output:
+\code 
+ckptSectionOverwrite 1 sec3 test
+Section Overwritten 
+\endcode 
+***************************************** 
+*/
+ckptSectionOverwrite;
+
+/**
+*****************************************
+\brief Show the status of the checkpoint
+ 
+\par Usage: 
+\code ckptStatusGet <Handle> \endcode 
+
+\param Handle[INT] Handle of the checkpoint.
+
+\par Output:
+\code 
+ckptStatusGet 1
+    Creation Flag        :  1
+    Size                 :  6000
+    Retention Duration   :  60000
+    Max No of Sections   :  6
+    Max SectionSize      :  1000
+    SectionIdSize        :  255
+    No of Sections       :  2
+    Memory Used          :  32 
+\endcode 
+***************************************** 
+*/
+ckptStatusGet;
+
+/**
+*****************************************
+\brief Sets the local node to be the active replica for the checkpoint.
+ 
+\par Usage: 
+\code ckptActiveReplicaSet <Handle> \endcode 
+
+\param Handle[INT] Handle of the checkpoint
+
+\par Output:
+\code ckptActiveReplicaSet 2 \endcode 
+***************************************** 
+*/
+ckptActiveReplicaSet;
+
+/**
+*****************************************
+\brief Updates the retention duration of the checkpoint.
+ 
+\par Usage: 
+\code ckptRetentionDurationSet <Handle> <Time> \endcode
+
+\param Handle[INT] Handle of the checkpoint
+\param Time[INT] Retention time in millisec
+
+\par Output:
+\code 
+ckptRetentionDurationSet 2 50
+ckptRetentionDurationSet Completed 
+\endcode 
+***************************************** 
+*/
+ckptRetentionDurationSet;
+
+
+/**
+*****************************************
+\brief Initialize the section iterator.
+ 
+\par Usage: 
+\code ckptIterInit <Handle> <SecChosen> [Time] \endcode
+
+\param Handle[INT] Handle of the checkpoint
+\param SecChosen[INT]  Values:
+\arg 1-->sections without expiration time
+\arg 2-->sections with expiration time lesser than or equal to given time
+\arg 3-->sections with expiration time greater than or equal to given time
+\arg 4-->corrupted sections
+\arg 5-->all sections
+\param Time[INT] Expiration time in nanosec
+
+\par Output:
+\code 
+ckptIterinit 1 1
+Section Iteration is completed: secHandle: 2 
+\endcode 
+***************************************** 
+*/
+ckptIterInit;
+
+/**
+*****************************************
+\brief To get the next section.
+ 
+\par Usage: 
+\code ckptSecNext <secHandle>sec \endcode
+
+\param Handle[INT] Handle of the section
+
+\par Output:
+\code 
+ckptIterNext 2
+    Section Iteration is completed
+    Section Id   : sec2
+    Section Size : 8 
+\endcode 
+***************************************** 
+*/
+ckptIterNext;
+
+/**
+*****************************************
+\brief Finalize the iterator.
+ 
+\par Usage: 
+\code ckptSecFin <secHandle> \endcode
+
+\param secHandle[INT] Handle of the section.
+
+\par Output:
+\code 
+ckptIterFin 2
+Section Iteration finalize is completed 
+\endcode 
+***************************************** 
+*/
+ckptIterFin;
+
+
+/**
+*****************************************
+\brief Synchronize all the replicas of the Checkpoint.
+ 
+\par Usage: 
+\code ckptSync <Handle> <timeout> \endcode
+
+\param Handle[INT] Handle of the checkpoint
+\param timeout[INT] timeout in millisec
+
+\par Output:
+\code 
+ckptSync 2 50
+Ckpt Sync is completed 
+\endcode 
+***************************************** 
+*/
+ckptSync;
+
+/**
+*****************************************
+\brief Finalize the Checkpoint service.
+ 
+\par Usage: 
+\code ckptClientFin \endcode 
+
+\par Output:
+\code 
+ckptClientFin
+Ckpt Client finalize is completed
+\endcode 
+***************************************** 
+*/
+ckptClientFin;
+
+
+/**
+ * \}
+ */
+ 
