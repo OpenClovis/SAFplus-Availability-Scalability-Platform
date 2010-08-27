@@ -259,7 +259,9 @@ void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
                          ClUint32T                       numberOfMembers,
                          ClRcT                           rc)
 {
-    ClIocNodeAddressT deputy;
+    ClIocNodeAddressT deputy = 0;
+    ClIocNodeAddressT newDeputy = 0;
+
     /* Set Master and deputy addresses */
     if(!gCkptSvr) 
     {
@@ -268,9 +270,10 @@ void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
     }
     clOsalMutexLock(&gCkptSvr->ckptClusterSem);
     deputy = gCkptSvr->masterInfo.deputyAddr;
+    newDeputy = notificationBuffer->deputy;
     _clCkptAddressesUpdate(notificationBuffer);
     clOsalMutexUnlock(&gCkptSvr->ckptClusterSem);
-    if (gCkptSvr->localAddr == notificationBuffer->deputy 
+    if (gCkptSvr->localAddr == newDeputy
         && 
         deputy != gCkptSvr->localAddr)
     {
@@ -288,6 +291,14 @@ void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
         {
             clLogWarning(CL_CKPT_AREA_ACTIVE, "TIPC", "ckptMasterDatabaseSyncup succeeded");
         }
+
+        /*
+         * If the masterdbsyncup fetched an old deputy during a TIPC callback update 
+         * overlapping on the master, then just patch it with the right one here.
+         */
+        if(gCkptSvr->masterInfo.deputyAddr != newDeputy)
+            gCkptSvr->masterInfo.deputyAddr = newDeputy;
+
         CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
     }
 }
