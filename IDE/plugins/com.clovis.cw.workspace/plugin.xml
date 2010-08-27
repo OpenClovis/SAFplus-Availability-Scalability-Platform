@@ -384,6 +384,14 @@
 	        definitionId="com.clovis.cw.workbench.command.importMib"
 	        menubarPath="com.clovis.cw.workspace.clovis.clovisMenu/group5" 
 	        enablesFor="1"/>
+         <action
+            label="Import &amp;Application.."
+            icon="icons/import_application.png"
+	        class="com.clovis.cw.workspace.action.ImportApplicationAction"
+	        id="com.clovis.cw.workspace.ImportApplicationAction"
+	        definitionId="com.clovis.cw.workbench.command.importApplication"
+	        menubarPath="com.clovis.cw.workspace.clovis.clovisMenu/group5" 
+	        enablesFor="1"/>
         </viewerContribution>
      </extension>
      
@@ -631,6 +639,11 @@
             description="Associate Template Group"
             id="com.clovis.cw.workbench.command.associateTemplateGroup">
      	</command>
+     	<command
+        	name="Import Applications"
+            description="Import Applications"
+            id="com.clovis.cw.workbench.command.importApplication">
+     	</command>        	
      	<command
         	name="Import MIB objects"
             description="Import MIB objects/notifications"
@@ -881,6 +894,16 @@
 			   icon="icons/import_mib.gif"
 			   class="com.clovis.cw.workspace.action.ImportMibAction"
 			   definitionId="com.clovis.cw.workbench.command.importMib"
+			   enablesFor = "1">
+		   </action>
+		   <action id="com.clovis.cw.menu.clovis.importApplication"
+			   menubarPath="com.clovis.cw.menu.clovis/slot5"
+			   toolbarPath="com.clovis.cw.menu.clovis/slot5"
+			   tooltip="Import Application"
+			   label="Import &amp;Applications..."
+			   icon="icons/import_application.png"
+			   class="com.clovis.cw.workspace.action.ImportApplicationAction"
+			   definitionId="com.clovis.cw.workbench.command.importApplication"
 			   enablesFor = "1">
 		   </action>
 	   </actionSet>

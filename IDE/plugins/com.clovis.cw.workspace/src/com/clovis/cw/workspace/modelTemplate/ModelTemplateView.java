@@ -406,7 +406,7 @@ public class ModelTemplateView extends ViewPart implements
 	 * @param modelTemplate
 	 * @return the model template object
 	 */
-	private EObject readModelTemplate(String modelTemplate) {
+	public static EObject readModelTemplate(String modelTemplate) {
 		File modelTemplateFolder = new File(MODEL_TEMPLATE_FOLDER_PATH);
 		EObject modelTemplateObject = null;
 
@@ -439,15 +439,11 @@ public class ModelTemplateView extends ViewPart implements
 						.createFileURI(modelTemplateFilePath);
 
 				if(!new File(modelTemplateFilePath).exists()) {
-					if (MessageDialog
-							.openQuestion(
-									getSite().getShell(),
-									"File System has been modified",
-									"The corresponding file has been deleted from the file system.\n\n"
-											+ "Do you want to refresh the model template view to make it in sync with file system?")) {
-
-						refreshModelTemplateView();
-					}
+					MessageDialog
+							.openWarning(
+									Display.getCurrent().getActiveShell(),
+									"File not found",
+									"The corresponding file is not present in the file system.");
 					return null;
 				}
 
@@ -468,7 +464,7 @@ public class ModelTemplateView extends ViewPart implements
 	/**
 	 * Handles the use of model template object into the editor.
 	 */
-	public void useModelTemplate() {
+	public static void useModelTemplate(EObject modelTemplateObject) {
 		IWorkbenchPage page = WorkspacePlugin.getDefault().getWorkbench()
 				.getActiveWorkbenchWindow().getActivePage();
 		if (page != null) {
@@ -476,7 +472,7 @@ public class ModelTemplateView extends ViewPart implements
 			ClovisNavigator navigator = ((ClovisNavigator) page
 					.findView("com.clovis.cw.workspace.clovisWorkspaceView"));
 			if(navigator == null) {
-				MessageDialog.openWarning(getSite().getShell(),
+				MessageDialog.openWarning(Display.getCurrent().getActiveShell(),
 						"Empty Project Selection",
 						"Open Clovis Workspace View and Select OpenClovis Project to use model template in it.");
 				return;
@@ -501,15 +497,15 @@ public class ModelTemplateView extends ViewPart implements
 						&& project
 								.hasNature(SystemProjectNature.CLOVIS_SYSTEM_PROJECT_NATURE)) {
 
-					if (_modelTemplateObject == null) {
-						MessageDialog.openWarning(getSite().getShell(),
+					if (modelTemplateObject == null) {
+						MessageDialog.openWarning(Display.getCurrent().getActiveShell(),
 								"Empty Selection",
 								"Select model template to use.");
 						return;
 					}
 
 					String modelTemplateType = EcoreUtils.getValue(
-							_modelTemplateObject,
+							modelTemplateObject,
 							ModelTemplateConstants.FEATURE_MODEL_TYPE)
 							.toString();
 					ProjectDataModel pdm = ProjectDataModel
@@ -517,7 +513,7 @@ public class ModelTemplateView extends ViewPart implements
 					GenericEditorInput geInput = null;
 
 					EObject entityObj = (EObject) EcoreUtils.getValue(
-							_modelTemplateObject,
+							modelTemplateObject,
 							ModelTemplateConstants.FEATURE_ENTITIES);
 					entityObj = EcoreCloneUtils.cloneEObject(entityObj);
 					EObject editorEntityObj = null;
@@ -558,9 +554,9 @@ public class ModelTemplateView extends ViewPart implements
 
 						boolean resEntityAvailable = false;
 						GenericEditorInput resEditorInput = null;
-						if (getChildObjectList((EObject) EcoreUtils.getValue(
-								entityObj, ModelTemplateConstants.FEATURE_RESOURCE_INFORMATION))
-								.size() != 0) {
+						EObject resEntityObject= (EObject) EcoreUtils.getValue(
+								entityObj, ModelTemplateConstants.FEATURE_RESOURCE_INFORMATION);
+						if (resEntityObject != null && getChildObjectList(resEntityObject).size() != 0) {
 
 							resEntityAvailable = true;
 							OpenResourceEditorAction
@@ -598,7 +594,7 @@ public class ModelTemplateView extends ViewPart implements
 										resEditorInput, entityObj, pdm).size() == 0)) {
 							if (!MessageDialog
 									.openConfirm(
-											getSite().getShell(),
+											Display.getCurrent().getActiveShell(),
 											"Undo not supported",
 											"This operation will make changes to editor model for which undo support is not available."
 													+ " This operation will also not allow to undo earlier changes.")) {
@@ -611,7 +607,7 @@ public class ModelTemplateView extends ViewPart implements
 						} else {
 							boolean overwrite = MessageDialog
 									.openConfirm(
-											getSite().getShell(),
+											Display.getCurrent().getActiveShell(),
 											"Overwrite duplicate entities",
 											"Some entities in editor are having same name as the entities in model template."
 													+ " Overwrite will replace them in editor."
@@ -643,11 +639,11 @@ public class ModelTemplateView extends ViewPart implements
 						}
 
 						addEntitiesForComponentTemplate(geInput, entityObj, pdm, resEditorInput);
-						copyModelTemplateSource(project);
+						copyModelTemplateSource(project, modelTemplateObject);
 					}
 
 				} else {
-					MessageDialog.openWarning(getSite().getShell(),
+					MessageDialog.openWarning(Display.getCurrent().getActiveShell(),
 							"Empty Project Selection",
 							"Select OpenClovis Project to use model template in it.");
 				}
@@ -669,7 +665,7 @@ public class ModelTemplateView extends ViewPart implements
 	 * @return the duplicate entity list
 	 */
 	@SuppressWarnings("unchecked")
-	private List<String> getDuplicateEntitiesForResourceTemplate(
+	private static List<String> getDuplicateEntitiesForResourceTemplate(
 			GenericEditorInput geInput, EObject entityObj, ProjectDataModel pdm) {
 		List<String> duplicateList = new ArrayList<String>();
 
@@ -707,7 +703,7 @@ public class ModelTemplateView extends ViewPart implements
 	 * 
 	 * @param duplicateList
 	 */
-	private void displayDuplicateMessage(List<String> duplicateList) {
+	private static void displayDuplicateMessage(List<String> duplicateList) {
 		String msg = "";
 
 		Iterator<String> itr = duplicateList.iterator();
@@ -718,7 +714,7 @@ public class ModelTemplateView extends ViewPart implements
 		msg = msg.substring(0, msg.length() - 2) + ".";
 		MessageDialog
 				.openWarning(
-						getSite().getShell(),
+						Display.getCurrent().getActiveShell(),
 						"Duplicate Entries",
 						"Following entities are having duplicate entries.\n\n"
 								+ msg
@@ -732,39 +728,45 @@ public class ModelTemplateView extends ViewPart implements
 	 * @param entityObj
 	 * @param pdm
 	 */
-	private void addEntitiesForResourceTemplate(GenericEditorInput geInput,
+	private static void addEntitiesForResourceTemplate(GenericEditorInput geInput,
 			EObject entityObj, ProjectDataModel pdm) {
+
 		EObject alarmEntityObj = (EObject) EcoreUtils.getValue(entityObj,
 				ModelTemplateConstants.FEATURE_ALARM_INFORMATION);
-		List<EObject> alarmEntityList = ModelTemplateUtils
-				.getEObjListFromChildReferences(alarmEntityObj);
-		ModelTemplateUtils.setRDN(alarmEntityList, false);
-		EObject alarmInfo = pdm.getAlarmProfiles().getEObject();
-		ClovisUtils.addObjectsToModel(alarmEntityList, alarmInfo);
-		pdm.getAlarmProfiles().save(true);
+		if (alarmEntityObj != null) {
+			List<EObject> alarmEntityList = ModelTemplateUtils
+					.getEObjListFromChildReferences(alarmEntityObj);
+			ModelTemplateUtils.setRDN(alarmEntityList, false);
+			EObject alarmInfo = pdm.getAlarmProfiles().getEObject();
+			ClovisUtils.addObjectsToModel(alarmEntityList, alarmInfo);
+			pdm.getAlarmProfiles().save(true);
+		}
 
 		EObject alarmRuleEntityObj = (EObject) EcoreUtils.getValue(entityObj,
 				ModelTemplateConstants.FEATURE_ALARM_RULE_INFORMATION);
-		List<EObject> alarmRuleEntityList = ModelTemplateUtils
-				.getEObjListFromChildReferences(alarmRuleEntityObj);
-		EObject alarmRuleInfo = ((ClassAssociationEditor) geInput.getEditor())
-				.getAlarmRuleViewModel().getEObject();
-		ClovisUtils.addObjectsToModel(alarmRuleEntityList, alarmRuleInfo);
+		if (alarmEntityObj != null) {
+			List<EObject> alarmRuleEntityList = ModelTemplateUtils
+					.getEObjListFromChildReferences(alarmRuleEntityObj);
+			EObject alarmRuleInfo = ((ClassAssociationEditor) geInput
+					.getEditor()).getAlarmRuleViewModel().getEObject();
+			ClovisUtils.addObjectsToModel(alarmRuleEntityList, alarmRuleInfo);
+		}
 
 		EObject resAlarmMapEntityObj = (EObject) EcoreUtils.getValue(entityObj,
 				ModelTemplateConstants.FEATURE_RESOURCE_ALARM_MAP_INFORMATION);
-		EObject resAlarmLinkEntityObj = (EObject) ((List) EcoreUtils.getValue(
-				resAlarmMapEntityObj, "link")).get(0);
-		List resAlarmMapList = (List) EcoreUtils.getValue(resAlarmLinkEntityObj,
-				"linkDetail");
-		EObject resAlarmMapInfo = ((ClassAssociationEditor) geInput.getEditor())
-				.getLinkViewModel().getEObject();
-		EObject resAlarmLinkInfoObj = (EObject) ((List) EcoreUtils.getValue(
-				resAlarmMapInfo, "link")).get(0);
-		List resAlarmMapInfoList = (List) EcoreUtils.getValue(resAlarmLinkInfoObj,
-		"linkDetail");
-		resAlarmMapInfoList.addAll(resAlarmMapList);
-//		ClovisUtils.addObjectsToModel(resAlarmMapList, resAlarmLinkInfoObj);
+		if (resAlarmMapEntityObj != null) {
+			EObject resAlarmLinkEntityObj = (EObject) ((List) EcoreUtils
+					.getValue(resAlarmMapEntityObj, "link")).get(0);
+			List resAlarmMapList = (List) EcoreUtils.getValue(
+					resAlarmLinkEntityObj, "linkDetail");
+			EObject resAlarmMapInfo = ((ClassAssociationEditor) geInput
+					.getEditor()).getLinkViewModel().getEObject();
+			EObject resAlarmLinkInfoObj = (EObject) ((List) EcoreUtils
+					.getValue(resAlarmMapInfo, "link")).get(0);
+			List resAlarmMapInfoList = (List) EcoreUtils.getValue(
+					resAlarmLinkInfoObj, "linkDetail");
+			resAlarmMapInfoList.addAll(resAlarmMapList);
+		}
 	}
 
 	/**
@@ -775,57 +777,61 @@ public class ModelTemplateView extends ViewPart implements
 	 * @param pdm
 	 * @param resEditorInput
 	 */
-	private void addEntitiesForComponentTemplate(GenericEditorInput geInput,
+	private static void addEntitiesForComponentTemplate(GenericEditorInput geInput,
 			EObject entityObj, ProjectDataModel pdm,
 			GenericEditorInput resEditorInput) {
 
 		EObject resEntityObj = (EObject) EcoreUtils.getValue(entityObj,
 				ModelTemplateConstants.FEATURE_RESOURCE_INFORMATION);
-		FormatConversionUtils.convertToEditorSupportedData(resEntityObj,
-				resEntityObj, FormatConversionUtils.RESOURCE_EDITOR);
-		List<EObject> templateCompEntities = getChildObjectList(resEntityObj);
+		if(resEntityObj != null) {
+			FormatConversionUtils.convertToEditorSupportedData(resEntityObj,
+					resEntityObj, FormatConversionUtils.RESOURCE_EDITOR);
+			List<EObject> templateCompEntities = getChildObjectList(resEntityObj);
 
-		EditorModel resModel = resEditorInput.getEditor().getEditorModel();
-		for (EObject templateCompEntity : templateCompEntities) {
-			resModel.addEObject(templateCompEntity);
+			EditorModel resModel = resEditorInput.getEditor().getEditorModel();
+			for (EObject templateCompEntity : templateCompEntities) {
+				resModel.addEObject(templateCompEntity);
+			}
 		}
 
 		EObject compResMapEntityObj = (EObject) EcoreUtils
 				.getValue(
 						entityObj,
 						ModelTemplateConstants.FEATURE_COMPONENT_RESOURCE_MAP_INFORMATION);
-		EObject compResLinkEntityObj = (EObject) ((List) EcoreUtils.getValue(
-				compResMapEntityObj, "link")).get(0);
-		List<EObject> compResMapLinkDetailEntityList = (List<EObject>) EcoreUtils.getValue(compResLinkEntityObj,
-				"linkDetail");
+		if(compResMapEntityObj != null) {
+			EObject compResLinkEntityObj = (EObject) ((List) EcoreUtils.getValue(
+					compResMapEntityObj, "link")).get(0);
+			List<EObject> compResMapLinkDetailEntityList = (List<EObject>) EcoreUtils.getValue(compResLinkEntityObj,
+					"linkDetail");
 
-		EObject compResMapInfo = ((ComponentEditor) geInput.getEditor())
-				.getLinkViewModel().getEObject();
-		EObject compResLinkInfoObj = (EObject) ((List) EcoreUtils.getValue(
-				compResMapInfo, "link")).get(0);
-		List compResMapLinkDetailList = (List) EcoreUtils.getValue(
-				compResLinkInfoObj, "linkDetail");
+			EObject compResMapInfo = ((ComponentEditor) geInput.getEditor())
+					.getLinkViewModel().getEObject();
+			EObject compResLinkInfoObj = (EObject) ((List) EcoreUtils.getValue(
+					compResMapInfo, "link")).get(0);
+			List compResMapLinkDetailList = (List) EcoreUtils.getValue(
+					compResLinkInfoObj, "linkDetail");
 
-		for (EObject compResMapLinkDetailEntity : compResMapLinkDetailEntityList) {
-			EObject compResMapLinkDetail = ClovisUtils
-					.getEobjectWithFeatureVal(compResMapLinkDetailList,
-							"linkSource", EcoreUtils.getValue(
-									compResMapLinkDetailEntity, "linkSource")
-									.toString());
+			for (EObject compResMapLinkDetailEntity : compResMapLinkDetailEntityList) {
+				EObject compResMapLinkDetail = ClovisUtils
+						.getEobjectWithFeatureVal(compResMapLinkDetailList,
+								"linkSource", EcoreUtils.getValue(
+										compResMapLinkDetailEntity, "linkSource")
+										.toString());
 
-			if (compResMapLinkDetail == null) {
-				compResMapLinkDetailList.add(EcoreCloneUtils
-						.cloneEObject(compResMapLinkDetailEntity));
+				if (compResMapLinkDetail == null) {
+					compResMapLinkDetailList.add(EcoreCloneUtils
+							.cloneEObject(compResMapLinkDetailEntity));
 
-			} else {
-				List<String> compResMapLinkTargetEntityList = (List<String>) EcoreUtils
-						.getValue(compResMapLinkDetailEntity, "linkTarget");
-				List<String> compResMapLinkTargetList = (List<String>) EcoreUtils
-						.getValue(compResMapLinkDetail, "linkTarget");
+				} else {
+					List<String> compResMapLinkTargetEntityList = (List<String>) EcoreUtils
+							.getValue(compResMapLinkDetailEntity, "linkTarget");
+					List<String> compResMapLinkTargetList = (List<String>) EcoreUtils
+							.getValue(compResMapLinkDetail, "linkTarget");
 
-				for (String linkTargetEntity : compResMapLinkTargetEntityList) {
-					if (!compResMapLinkTargetList.contains(linkTargetEntity)) {
-						compResMapLinkTargetList.add(linkTargetEntity);
+					for (String linkTargetEntity : compResMapLinkTargetEntityList) {
+						if (!compResMapLinkTargetList.contains(linkTargetEntity)) {
+							compResMapLinkTargetList.add(linkTargetEntity);
+						}
 					}
 				}
 			}
@@ -839,13 +845,13 @@ public class ModelTemplateView extends ViewPart implements
 	 * 
 	 * @param project
 	 */
-	private void copyModelTemplateSource(IProject project) {
+	private static void copyModelTemplateSource(IProject project, EObject modelTemplateObject) {
 		File modelTemplateSourceFolder = new File(
 				ModelTemplateConstants.MODEL_TEMPLATE_FOLDER_PATH
 						+ File.separator
-						+ EcoreUtils.getName(_modelTemplateObject)
+						+ EcoreUtils.getName(modelTemplateObject)
 						+ "_"
-						+ EcoreUtils.getValue(_modelTemplateObject,
+						+ EcoreUtils.getValue(modelTemplateObject,
 								ModelTemplateConstants.FEATURE_MODEL_TYPE)
 						+ File.separator + "src");
 		if (!modelTemplateSourceFolder.exists()) {
@@ -857,7 +863,7 @@ public class ModelTemplateView extends ViewPart implements
 		if (projectSourceLocation.equals("")) {
 			MessageDialog
 					.openWarning(
-							getSite().getShell(),
+							Display.getCurrent().getActiveShell(),
 							"Model template source not copied",
 							"Project source location not configured. Configure source location or manually copy source from model template later.");
 			return;
@@ -879,7 +885,7 @@ public class ModelTemplateView extends ViewPart implements
 	 * @param topEditorObj
 	 * @return 
 	 */
-	private List<EObject> getChildObjectList(EObject topEditorObj) {
+	private static List<EObject> getChildObjectList(EObject topEditorObj) {
 
 		List refList = topEditorObj.eClass().getEAllReferences();
 		List<EObject> childObjList = new ArrayList<EObject>();
@@ -915,7 +921,7 @@ public class ModelTemplateView extends ViewPart implements
 	 *            List of duplicate objects between model template and editor.
 	 */
 	@SuppressWarnings("unchecked")
-	private void removeDuplicateConnectionsFromTemplate(
+	private static void removeDuplicateConnectionsFromTemplate(
 			List<EObject> templateCompEntities,
 			List<String> duplicateCompEntityNames) {
 
@@ -943,5 +949,14 @@ public class ModelTemplateView extends ViewPart implements
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns the currently selected model template object.
+	 * 
+	 * @return
+	 */
+	public EObject getModelTemplateObject() {
+		return _modelTemplateObject;
 	}
 }

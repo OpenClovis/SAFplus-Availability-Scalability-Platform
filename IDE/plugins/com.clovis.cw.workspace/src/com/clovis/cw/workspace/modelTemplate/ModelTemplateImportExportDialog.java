@@ -57,7 +57,7 @@ public class ModelTemplateImportExportDialog extends TitleAreaDialog implements
 
 	private int _dialogType;
 
-	private String _importExportType = "";
+	protected String _importExportType = "";
 
 	private ModelTemplateView _modelTemplateView;
 	
@@ -341,13 +341,18 @@ public class ModelTemplateImportExportDialog extends TitleAreaDialog implements
 
 		if (_dialogType == ModelTemplateConstants.DIALOG_TYPE_IMPORT) {
 			importTemplates(_importExportLocation.getText(), files);
-			_modelTemplateView.setFocus();
-			_modelTemplateView.refreshModelTemplateView();
+			if(_modelTemplateView != null) {
+				_modelTemplateView.refreshModelTemplateView();
+			}
 
 		} else if (_dialogType == ModelTemplateConstants.DIALOG_TYPE_EXPORT) {
 			exportTemplates(_importExportLocation.getText(), files);
 		}
 
+		super.okPressed();
+	}
+
+	protected void okClicked() {
 		super.okPressed();
 	}
 
@@ -357,7 +362,7 @@ public class ModelTemplateImportExportDialog extends TitleAreaDialog implements
 	 * @param path
 	 * @param templatesToImport
 	 */
-	private void importTemplates(String path, String[] templatesToImport) {
+	protected void importTemplates(String path, String[] templatesToImport) {
 		for (int i = 0; i < templatesToImport.length; i++) {
 
 			String templateName = templatesToImport[i];

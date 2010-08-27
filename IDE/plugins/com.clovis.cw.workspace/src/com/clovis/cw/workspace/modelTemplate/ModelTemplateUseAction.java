@@ -57,6 +57,7 @@ public class ModelTemplateUseAction extends Action {
 	 * @see org.eclipse.jface.action.Action#run()
 	 */
 	public void run() {
-		_modelTemplateView.useModelTemplate();
+		ModelTemplateView.useModelTemplate(_modelTemplateView
+				.getModelTemplateObject());
 	}
 }
