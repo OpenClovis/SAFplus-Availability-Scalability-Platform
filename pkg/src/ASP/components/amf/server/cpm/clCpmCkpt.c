@@ -450,6 +450,13 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
         CPM_CKPT_MAX_SECTION_SIZE,
         CPM_CKPT_MAX_SECTION_ID_SIZE
     };
+
+    if(gpClCpm->ckptOpenHandle != CL_HANDLE_INVALID_VALUE)
+    {
+        clLogWarning("CKP", "INI", "Standby checkpoint already initialized. Skipping initialization");
+        return CL_OK;
+    }
+
     ckptCallbacks.checkpointOpenCallback = NULL;
     ckptCallbacks.checkpointSynchronizeCallback= NULL;
 
@@ -501,6 +508,13 @@ ClRcT cpmCpmLActiveCheckpointInitialize(void)
         CPM_CKPT_MAX_SECTION_SIZE,
         CPM_CKPT_MAX_SECTION_ID_SIZE
     };
+
+    if(gpClCpm->ckptOpenHandle != CL_HANDLE_INVALID_VALUE)
+    {
+        clLogWarning("CKP", "INI", "Active checkpoint already initialized. Skipping initialization");
+        return CL_OK;
+    }
+
     ckptCallbacks.checkpointOpenCallback = NULL;
     ckptCallbacks.checkpointSynchronizeCallback= NULL;
     

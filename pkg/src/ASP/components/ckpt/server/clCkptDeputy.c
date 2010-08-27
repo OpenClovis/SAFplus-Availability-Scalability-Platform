@@ -220,6 +220,23 @@ ClRcT ckptXlatioEntryUnpack( ClUint32T           ckptCount,
         rc = clCntNodeAdd(gCkptSvr->masterInfo.nameXlationDBHdl,
                 (ClCntKeyHandleT ) pXlationEntry,
                 (ClCntDataHandleT ) pXlationEntry, NULL);
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)
+        {
+            CkptXlationDBEntryT  *pStoredXlation = NULL;
+            rc = clCntDataForKeyGet(gCkptSvr->masterInfo.nameXlationDBHdl,
+                                    (ClCntKeyHandleT) pXlationEntry,
+                                    (ClCntDataHandleT*)&pStoredXlation);
+            if(rc == CL_OK)
+            {
+                /*
+                 * Update the master handle in the db. from the received pack
+                 */
+                pStoredXlation->mastHdl = pXlationEntry->mastHdl;
+            }
+            clHeapFree(pXlationEntry);
+            pXlationEntry = pStoredXlation;
+        }
+
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
              ("Ckpt: Failed to add to the XlationEntry rc[0x %x]\n", rc), rc);
         clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, 
@@ -367,11 +384,12 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
      */
     for( count = 0; count < mastHdlCount; count++)
     {
-        if ( pMasterDBInfo == NULL)
+        if (pMasterDBInfo->ckptMasterHdl == CL_HANDLE_INVALID_VALUE)
         {
-            rc = CL_CKPT_ERR_INVALID_STATE;
-            CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                    ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
+            clLogWarning(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,
+                         "Skipping invalid 0 handle received during masterdb unpack");
+            ++pMasterDBInfo;
+            continue;
         }
 
         /*

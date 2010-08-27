@@ -1749,6 +1749,12 @@ _clAmsSACkptServerReady(
 {
     AMS_FUNC_ENTER (("\n"));
 
+    if(gAms.ckptServerReady)
+    {
+        clLogWarning("AMS", "CKP", "AMS checkpointing already ready. Skipping initialization");
+        return CL_OK;
+    }
+
     AMS_CALL (clAmsCkptInitialize(&gAms,ckptInitHandle,mode));
 
     gAms.ckptServerReady = CL_TRUE;

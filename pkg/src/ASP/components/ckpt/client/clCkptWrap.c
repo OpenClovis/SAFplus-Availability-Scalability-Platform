@@ -3078,7 +3078,7 @@ ClRcT  clCkptCheckpointRead(ClCkptHdlT              ckptHdl,
 
         tryAgain = clCkptHandleTypicalErrors(rc, ckptHdl,&nodeAddr);
         
-    } while(tryAgain == CL_TRUE && maxRetry++ < 5 && clOsalTaskDelay(delay) == CL_OK );
+    } while(tryAgain == CL_TRUE && maxRetry++ < 10 && clOsalTaskDelay(delay) == CL_OK );
 
     /*
      * Copy the value of error returned by the server.

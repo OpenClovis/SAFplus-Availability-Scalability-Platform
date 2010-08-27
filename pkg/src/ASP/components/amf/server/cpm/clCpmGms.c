@@ -465,6 +465,17 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                 }
             }
         }
+        else if( gpClCpm->haState == CL_AMS_HA_STATE_STANDBY
+                 &&
+                 notificationBuffer->deputy != pCpmLocalInfo->nodeId )
+        {
+            clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
+                        "HA state of node [%s] with node ID [%d] transitioning from standby to None, "
+                        "Master node is still [%d]", 
+                        pCpmLocalInfo->nodeName, pCpmLocalInfo->nodeId,
+                        gpClCpm->activeMasterNodeId);
+            gpClCpm->haState = CL_AMS_HA_STATE_NONE;
+        }
         else if ((gpClCpm->haState == CL_AMS_HA_STATE_NONE) &&
                  (notificationBuffer->deputy == pCpmLocalInfo->nodeId))
         {
@@ -487,6 +498,13 @@ static void cpmPayload2StandbySC(const ClGmsClusterNotificationBufferT *notifica
                                  ClCpmLocalInfoT *pCpmLocalInfo)
 {
     ClUint32T rc = CL_OK;
+
+    if(gpClCpm->haState == CL_AMS_HA_STATE_STANDBY)
+    {
+        clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
+                     "Payload node already promoted to Deputy. Skipping initialization of controller functions");
+        return;
+    }
 
     clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, 
                 "Payload node promoted to deputy. Initializing System controller functions on this node.");

@@ -181,6 +181,17 @@ clAmsInitialize(
     ClRcT   rc = CL_OK;
 
     AMS_CHECKPTR ( !ams || !cpmFuncs || !amsFuncs );
+    
+    /*
+     * Check if already in the mode.
+     */
+    if(ams->mode == mode)
+    {
+        clLogWarning("AMS", "INI", 
+                     "AMS mode is already [%s]. Skipping initialization", 
+                     mode == CL_AMS_INSTANTIATE_MODE_ACTIVE ? "active" : "standby");
+        return rc; 
+    }
 
     /*
      * This must be upfront, so all debug messages are caught and filtered.

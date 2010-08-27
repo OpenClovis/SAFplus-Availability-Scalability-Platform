@@ -314,14 +314,15 @@ clCkptTipcNodedownCallback(ClIocNotificationIdT eventId,
                            ClPtrT               pArg,
                            ClIocAddressT        *pAddress)
 {
-    ClIocNodeAddressT  masterAddr = 0;
-
+    ClIocNodeAddressT masterAddr = 0;
+    ClIocNodeAddressT deputyAddr = 0;
     if (gCkptSvr == NULL || gCkptSvr->serverUp == CL_FALSE) 
         return ; 
 
     /*
      * If master node is down, ask deputy to change the master address 
      */
+    clOsalMutexLock(&gCkptSvr->ckptClusterSem);
     CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
 
     if( eventId == CL_IOC_NODE_LEAVE_NOTIFICATION 
@@ -334,12 +335,14 @@ clCkptTipcNodedownCallback(ClIocNotificationIdT eventId,
          * master address, so calling the address update function with
          * deputyAddr and deputy as -1.
          */
-        clLogNotice(CL_CKPT_AREA_ACTIVE, "TIPC", 
-                    "Tipc callback invoked for node leave of [%#x]", 
-                    gCkptSvr->masterInfo.masterAddr);
         masterAddr = gCkptSvr->masterInfo.masterAddr;
-        clCkptMasterAddressUpdate(gCkptSvr->masterInfo.deputyAddr, -1);
+        deputyAddr = gCkptSvr->masterInfo.deputyAddr;
+        clLogNotice(CL_CKPT_AREA_ACTIVE, "TIPC", 
+                    "Tipc callback invoked for node leave of [%#x]. Current deputy [%#x]", 
+                    masterAddr, deputyAddr);
+        clCkptMasterAddressUpdate(deputyAddr, -1);
         CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+        clOsalMutexUnlock(&gCkptSvr->ckptClusterSem);
         /*
          * Call master down notification to make appropriate changes to active
          * address 
@@ -349,6 +352,7 @@ clCkptTipcNodedownCallback(ClIocNotificationIdT eventId,
     }
 
     CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+    clOsalMutexUnlock(&gCkptSvr->ckptClusterSem);
 
 }
 

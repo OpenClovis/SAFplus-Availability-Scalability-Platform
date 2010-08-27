@@ -48,6 +48,7 @@
 #include "clCkptIpi.h"
 #include <clCkptMaster.h>
 #include <clCkptLog.h>
+#include <clCpmExtApi.h>
 #include <ckptEockptServerPeerPeerClient.h>
 #include <ckptEockptServerCliServerFuncClient.h>
 #include <ipi/clHandleIpi.h>
@@ -1521,7 +1522,8 @@ void ckptPeerDown(ClIocNodeAddressT   peerAddr, ClUint32T flag,
                 "portId   :[%d]", peerAddr, flag, portId);
         if(gCkptSvr->masterInfo.masterAddr == gCkptSvr->localAddr || 
            gCkptSvr->masterInfo.deputyAddr == gCkptSvr->localAddr || 
-           gCkptSvr->masterInfo.prevMasterAddr == gCkptSvr->localAddr)
+           gCkptSvr->masterInfo.prevMasterAddr == gCkptSvr->localAddr ||
+           clCpmIsSCCapable())
         {
             /*
              * Master has to update its peer list and has to select new active

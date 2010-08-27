@@ -274,6 +274,11 @@ void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
         && 
         deputy != gCkptSvr->localAddr)
     {
+        /*
+         * Add the deputy to our masterinfo peer list and announce the master about our arrival
+         * and do the same.
+         */
+        ckptSvrArrvlAnnounce();
         CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
         if (CL_OK != ckptMasterDatabaseSyncup(gCkptSvr->masterInfo.masterAddr))
         {

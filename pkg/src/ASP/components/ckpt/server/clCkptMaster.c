@@ -3638,36 +3638,39 @@ exitOnErrorBeforeHdlCheckout:
  */
  
 ClRcT VDECL_VER(clCkptLeaderAddrUpdate, 4, 0, 0)(ClIocNodeAddressT masterAddr,
-                             ClIocNodeAddressT deputyAddr)
- {
-     ClRcT rc = CL_OK;
+                                                 ClIocNodeAddressT deputyAddr)
+{
+    ClRcT rc = CL_OK;
     
     /*
      * Check whether the server is fully up or not.
      */
     CL_CKPT_SVR_EXISTENCE_CHECK; 
 
-     /*
-      * Lock the master DB.
-      */
-     CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+    /*
+     * Lock the master DB.
+     */
+    clOsalMutexLock(&gCkptSvr->ckptClusterSem);
+    CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
 
-     /*
-      * Update the addresses.
-      */
-     gCkptSvr->masterInfo.deputyAddr = deputyAddr; 
-     if( gCkptSvr->masterInfo.masterAddr != masterAddr )
-     {
+    /*
+     * Update the addresses.
+     */
+    gCkptSvr->masterInfo.deputyAddr = deputyAddr; 
+    if( gCkptSvr->masterInfo.masterAddr != masterAddr )
+    {
         gCkptSvr->masterInfo.prevMasterAddr = gCkptSvr->masterInfo.masterAddr;
         gCkptSvr->masterInfo.masterAddr = masterAddr;
-     }
+    }
     
-     /*
-      * Unock the master DB.
-      */
-     CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
-     return rc;
- }
+    /*
+     * Unock the master DB.
+     */
+    CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+    clOsalMutexUnlock(&gCkptSvr->ckptClusterSem);
+
+    return rc;
+}
 
 
 ClRcT _ckptMasterCkptsLoadBalance(ClHandleDatabaseHandleT databaseHandle,
