@@ -784,9 +784,6 @@ int clGmsSendMsg(ClGmsViewMemberT       *memberNodeInfo,
         curVer.minorVersion = CL_VERSION_MINOR(clusterVersion);
     }
 
-    clLog(DBG,OPN,AIS,
-            "This node is sending join message for version %d, %d, %d",
-            curVer.releaseCode, curVer.majorVersion, curVer.minorVersion);
     /* Get the version and send it */
     req_exec_gms_nodejoin.version.releaseCode = curVer.releaseCode;
     req_exec_gms_nodejoin.version.majorVersion = curVer.majorVersion;
