@@ -87,8 +87,9 @@ def main():
         print 'Usage: %s <path-to-target.conf>' % sys.argv[0]
         sys.exit(1)
     
-    with open(sys.argv[1], 'r') as fh:
-        tconf_array = fh.readlines()
+    fh = open(sys.argv[1], 'r')
+    tconf_array = fh.readlines()
+    fh.close()
 
     depth = 0
     iprint('<?xml version="1.0" encoding="UTF-8"?>', depth)
