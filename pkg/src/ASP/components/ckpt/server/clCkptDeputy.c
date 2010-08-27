@@ -528,11 +528,13 @@ ClRcT ckptClientDBInfoUnpack(ClUint32T               clientHdlCount,
      */
     for( count = 0; count < clientHdlCount; count++)
     {
-        if ( pClientDBInfo == NULL)
+
+        if (pClientDBInfo->clientHdl == CL_HANDLE_INVALID_VALUE)
         {
-            rc = CL_CKPT_ERR_INVALID_STATE;
-            CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                    ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
+            clLogWarning(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,
+                         "Skipping invalid 0 handle received during clientdb unpack");
+            ++pClientDBInfo;
+            continue;
         }
         
         /*

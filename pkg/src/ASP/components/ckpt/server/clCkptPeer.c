@@ -1992,6 +1992,22 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
         CKPT_UNLOCK(gCkptSvr->ckptActiveSem );           
         return rc;            
     }
+    else if(CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)
+    {
+        ClCkptHdlT *pStoredHdl = NULL;
+        clHeapFree(pCkptHdl);
+        rc = clCntDataForKeyGet(gCkptSvr->ckptHdlList, (ClPtrT)(ClWordT)cksum,
+                                (ClCntDataHandleT*)&pStoredHdl);
+        if(rc != CL_OK)
+        {
+            CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Checkpointinfo data get failed for key [%#x]\n",
+                                            cksum));
+            return rc;
+        }
+        *pStoredHdl = ckptHdl; /* update the stored info. with the received handle */
+        pCkptHdl = pStoredHdl;
+    }
 
     clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, 
             "Adding ckpt hdl [%#llX] to ckpt hdls list rc[0x %x]", 
