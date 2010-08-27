@@ -850,9 +850,6 @@ public class ModelTemplateView extends ViewPart implements
 				ModelTemplateConstants.MODEL_TEMPLATE_FOLDER_PATH
 						+ File.separator
 						+ EcoreUtils.getName(modelTemplateObject)
-						+ "_"
-						+ EcoreUtils.getValue(modelTemplateObject,
-								ModelTemplateConstants.FEATURE_MODEL_TYPE)
 						+ File.separator + "src");
 		if (!modelTemplateSourceFolder.exists()) {
 			return;
