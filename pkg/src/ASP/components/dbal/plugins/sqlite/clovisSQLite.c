@@ -1181,14 +1181,23 @@ ClRcT clDbalInterface(ClDbalFunctionPtrsT  *funcDbPtr)
 {
     ClDbalConfigT* pDbalConfiguration = NULL;
     ClRcT          rc = CL_OK;
-
+    int            sqLiteSoNum;
+    
     clLogTrace("DBA", "INI", "SQLite version : %s", SQLITE_VERSION);
-
+    sqLiteSoNum = sqlite3_libversion_number();
+    
+    if (sqLiteSoNum != SQLITE_VERSION_NUMBER)
+    {        
+        clLogWarning("DBA", "INI", "SQLite was compiled with version [%d], but dynamically loaded library is different: version [%d].  You may have 2 versions of sqlite installed in different directories (for example, /usr/lib, /usr/local/lib), or have different versions installed in the build machine vs. this machine.  This issue may cause runtime instability.", 
+                  SQLITE_VERSION_NUMBER,sqLiteSoNum);
+    }
+    
     /* Check for the minimum sqlite version supported */
-    if (!(sqlite3_libversion_number() >= 3003013))
+    if (!(sqLiteSoNum >= 3003013))
     {
-        clLogError("DBA", "INI", "SQLite version (%s) found in the system is unsupported. "
-                "Please install the SQLite version >= 3.3.13.", SQLITE_VERSION);
+        
+        clLogError("DBA", "INI", "SQLite version [%d] found in the system is unsupported. "
+                "Please install the SQLite version >= 3.3.13.", sqLiteSoNum);
         return CL_DBAL_RC(CL_ERR_NOT_SUPPORTED);
     }
 
