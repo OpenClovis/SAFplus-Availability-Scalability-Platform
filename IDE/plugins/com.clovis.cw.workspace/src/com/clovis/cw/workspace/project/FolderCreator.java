@@ -12,9 +12,13 @@
 package com.clovis.cw.workspace.project;
 
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Iterator;
@@ -118,16 +122,54 @@ public class FolderCreator implements ICWProject
     	URL codegenURL = FileLocator.find(WorkspacePlugin.getDefault().getBundle(),
 				new Path(PROJECT_CODEGEN_FOLDER), null);
     	Path codegenPath = new Path(FileLocator.resolve(codegenURL).getPath());
-    	final String uris[] = new String[1];
-    	uris[0] = codegenPath.toOSString();
-    	Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				final CopyFilesAndFoldersOperation op = new CopyFilesAndFoldersOperation(new Shell());
-				op.copyFiles(uris, _project);
-				
-			}});
+    	copyFolder(codegenPath.toFile(), _project.getLocation().append(PROJECT_CODEGEN_FOLDER).toFile());
     }
     /**
+     * Copy Folder from one location to another location
+     * @param srcFolder source location	
+     * @param destFolder destination location
+     * @throws IOException
+     */
+    public void copyFolder(File srcFolder, File destFolder)
+			throws IOException {
+		if (srcFolder.isDirectory()) {
+			if (!destFolder.exists()) {
+				destFolder.mkdir();
+			}
+			String[] files = srcFolder.list();
+			for (int i = 0; i < files.length; i++) {
+				copyFolder(new File(srcFolder, files[i]), new File(
+						destFolder, files[i]));
+			}
+		} else {
+			if (destFolder.isDirectory()) {
+				copyFile(srcFolder, new File(destFolder, srcFolder.getName()));
+			} else {
+				copyFile(srcFolder, destFolder);
+			}
+		}
+	}
+    /**
+     * Copy File from one location to another location
+     * @param srcFile source file
+     * @param destFile destination file
+     * @throws IOException
+     */
+	public void copyFile(File srcFile, File destFile) throws IOException {
+		InputStream inStream = new FileInputStream(srcFile);
+		OutputStream outStream = new FileOutputStream(destFile);
+
+		byte[] oBytes = new byte[4096];
+		int nLength;
+		BufferedInputStream buffInputStream = new BufferedInputStream(
+				inStream);
+		while ((nLength = buffInputStream.read(oBytes)) != -1) {
+			outStream.write(oBytes, 0, nLength);
+		}
+		inStream.close();
+		outStream.close();
+	}
+	/**
      * Copy script and build files into project.
      * @param project        Project
      * @throws CoreException In create
