@@ -6,7 +6,7 @@
 # installation.
 #
 
-PACKAGE_NAME=sdk-4.0
+PACKAGE_NAME=sdk-5.0
 
 # Trap signals: cleanup & exit
 trap "trapped; exit 1" 1 2 3 15 20
