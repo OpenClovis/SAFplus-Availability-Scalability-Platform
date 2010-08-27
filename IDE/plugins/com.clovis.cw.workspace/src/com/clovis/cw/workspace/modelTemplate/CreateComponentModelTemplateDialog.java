@@ -133,6 +133,7 @@ public class CreateComponentModelTemplateDialog extends
 	@Override
 	protected void okPressed() {
 		populateModelTemplate();
+		EcoreUtils.setValue(_modelTemplateObject, "name", _nameText.getText());
 
 		if (saveModelTemplate()) {
 			updateModelTemplateView();
