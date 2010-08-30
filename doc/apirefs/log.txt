@@ -250,6 +250,22 @@ going in this file and streamId to streamName mapping
 
 /**
 
+\addtogroup syslog
+\brief Description on how to write the clovis stream logs to syslog.
+
+In order to send the particular stream logs to syslog, 
+while creating a stream, set syslog attribute to CL_TRUE in ClLogStreamAttributesT. 
+By default syslog attribute is set  to CL_FALSE.
+To set the syslog attribute for precreated streams you have to select the syslog option to "yes" 
+(by default "no") in Clovis IDE MenuBar:Clovis->ASP Component Configuration->
+Boot Configuration->Log->Perennial Streams Data->Edit->SysLog->(yes/no) 
+
+*/
+
+//-----------------------------------------------------------
+
+/**
+
 \addtogroup log_usage
 \brief Code Examples.
 
