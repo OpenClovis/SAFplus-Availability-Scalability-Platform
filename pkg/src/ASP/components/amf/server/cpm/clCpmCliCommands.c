@@ -561,7 +561,7 @@ ClRcT clCpmCompGet(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
             goto done;
         }
         strcpy(compName.value, argv[1]);
-        snprintf(compShmSegment, sizeof(compShmSegment), "/CL_%s_exception", compName.value);
+        snprintf(compShmSegment, sizeof(compShmSegment), "/CL_%s_exception_%d", compName.value, clIocLocalAddressGet());
         rc = clOsalShmOpen(compShmSegment, O_RDONLY, 0777, &fd);
         if(rc == CL_OK)
         {

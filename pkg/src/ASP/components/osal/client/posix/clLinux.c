@@ -752,7 +752,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
         ClCharT *compName = getenv("ASP_COMPNAME");
         ClCharT shmName[CL_MAX_NAME_LENGTH];
         CL_ASSERT(compName != NULL);
-        snprintf(shmName, sizeof(shmName), "/CL_%s_exception", compName);
+        snprintf(shmName, sizeof(shmName), "/CL_%s_exception_%d", compName, clIocLocalAddressGet());
         clOsalShmUnlink(shmName);
         rc = clOsalShmOpen(shmName, O_RDWR | O_CREAT | O_TRUNC, 0777, &fd);
         if(rc != CL_OK)
