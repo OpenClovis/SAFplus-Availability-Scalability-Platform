@@ -2693,10 +2693,10 @@ case $asp_build in
 
         cd $sand/buildtools
 
-        for tool in $(ls -1d */ )
+        for tool in `ls -1d *`
 	    do
-            echo "      /$tool"
-	    done
+            echo "      $tool"
+    	done
 
         cd -
 
@@ -2705,12 +2705,12 @@ case $asp_build in
 	    echo "white-space separated list of the above package names, [default: none]: "
         
         declare -a toolchain
-	    read -a toolchain
+    	read -a toolchain
 
         if [ ${#toolchain[@]} -gt 0 ]; then
-		    for tools in "${toolchain[@]}"
-		    do
-                if [ $tools = "local" ]; then
+		for tools in "${toolchain[@]}"
+        do
+                if [ $tools = "local" ] ; then
                     $sand/$PACKAGE_NAME/src/ASP/configure --with-asp-build > build.log &
                 else
                     $sand/$PACKAGE_NAME/src/ASP/configure --with-asp-build --with-cross-build=$tools > build.log &
