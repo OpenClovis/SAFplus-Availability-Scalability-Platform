@@ -151,10 +151,10 @@ from scripts import generatemoid
 from scripts import snmpautocodegen
 
 #----Copy static files
-copystaticfiles(staticdir, os.path.join(projectLoc, 'src/config'))
+copystaticfiles(staticdir, os.path.join(srcDir, 'config'))
 
 #----Copy config XML files----
-copyconfigfiles(configsDir, os.path.join(projectLoc, 'src/config'))
+copyconfigfiles(configsDir, os.path.join(srcDir, 'config'))
 
 buildconfigs.mainMethod(srcDir, buildConfigsXmi)
 appMain.mainMethod(resourcedataDoc, componentdataDoc, alarmdataDoc, associatedResDoc, associatedAlarmDoc, alarmRuleDoc, alarmAssociationDoc, staticdir, templatesdir, defaultTemplateDir, idlXml, templateGroupMap, codeGenModeDir, oldNewNameMap, codeGenMode)    
