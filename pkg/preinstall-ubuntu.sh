@@ -48,14 +48,18 @@ function installOneOf () {
 echo "Installing $1"
 apt-get -y --force-yes install $1
 if test $? != 0 ; then
-  echo "Installation of $1 failed."
+  echo "Installation of $1 failed, trying $2 instead..."
   apt-get -y --force-yes install $2
   if test $? != 0 ; then
-    echo "Installation of $3 failed."
+    echo "Installation of $2 failed, trying $3 instead..."
     apt-get -y --force-yes install $3
     if test $? != 0 ; then
-      echo "Installation of $3 failed.  You will have to install one of $1 $2 or $3 yourself before continuing."
-      exit 1
+        echo "Installation of $3 failed, trying $4 instead..."
+        apt-get -y --force-yes install $4
+        if test $? != 0 ; then
+            echo "Installation of $1 failed.  You will have to install one of $1 $2 $3 or $4 yourself before continuing."
+            exit 1
+        fi
     fi
   fi
 fi
@@ -77,7 +81,7 @@ installRequired gawk
 installRequired pkg-config
 installRequired libglib2.0-dev
 installRequired libgdbm-dev
-installOneOf libdb4.5-dev libdb4.4-dev libdb4.3-dev
+installOneOf libdb4.6-dev libdb4.5-dev libdb4.4-dev libdb4.3-dev
 installRequired libsqlite3-0 libsqlite3-dev
 installRequired e2fsprogs
 installRequired libperl-dev
