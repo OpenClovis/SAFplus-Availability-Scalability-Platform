@@ -50,7 +50,7 @@ ifeq "$(UNAME)" "Darwin"
 endif
 ifeq "$(UNAME)" "QNX"
     OPENAIS_COMPAT=QNX
-endif
+    endif
 ifeq "$(UNAME)" "VXWORKS"
     OPENAIS_COMPAT=VXWORKS
 endif
@@ -90,6 +90,9 @@ endif
 
 #LDFLAGS =
 #DYFLAGS =
+
+CFLAGS+=$(EXTRA_CFLAGS)
+LDFLAGS+=$(EXTRA_LDFLAGS)
 
 # build CFLAGS, LDFLAGS
 #

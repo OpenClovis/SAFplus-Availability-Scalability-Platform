@@ -45,8 +45,8 @@ endif
 
 # default CFLAGS, LDFLAGS
 #
-CFLAGS =
-LDFLAGS =
+CFLAGS+=$(EXTRA_CFLAGS)
+LDFLAGS+=$(EXTRA_LDFLAGS)
 DYFLAGS =
 
 # Adding the TS_CLASS flag enables not being scheduled RR

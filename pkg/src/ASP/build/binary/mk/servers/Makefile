@@ -73,7 +73,7 @@ else
 endif
 
 ASPLIBDIR = $(ASP_LIBDIR)
-LDFLAGS += -L$(ASPLIBDIR)
+LDFLAGS += $(EXTRA_LDFLAGS) -L$(ASPLIBDIR)
 
 LDLIBS	+= $(LDFLAGS) $(LD_LIBS) $(SYS_LIBS) $(THIRD_PARTY_LIBS) 
 
@@ -106,30 +106,27 @@ $(MODEL_BIN)/asp_ckpt: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ $(LDLIBS) -lClckptServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround
 
 $(MODEL_BIN)/asp_cor: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ $(LDLIBS) -lClcorServer $(LDLIBS) -lClGroundClient -lClGround
+	$(CC) -o $@ $(LDLIBS) -lClcorServer -lClGroundClient -lClGround
 
 $(MODEL_BIN)/asp_amf: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -L$(MODEL_LIB) -lClConfig -L$(ASPLIBDIR) -lClAmfClient -lClCorClient  \
+	$(CC) -o $@ $(LDLIBS) -lClConfig -lClAmfClient -lClCorClient  \
               -lClAmsXdr -lClAmsParser -lClAmsMgmt -lClAmsServer -lClamfServer  \
               -lClEo -lClTimer -lClBuffer -lClOsal -lClCnt -lClIoc -lClRmd -lClDbal       \
               -lClUtils -lClEventClient -lClDebugClient -lClNameClient -lClIdl -lClIdlPtr \
-              -lClCkpt -lClLogClient -lClFaultClient -lClGms -lClCm -L$(MODEL_LIB) -lClConfig \
-              -L $(ASPLIBDIR) $(THIRD_PARTY_LIBS) $(SYS_LIBS) \
-              -lClGroundClient -lClGround
+              -lClCkpt -lClLogClient -lClFaultClient -lClGms -lClCm -lClGroundClient -lClGround
 
 $(MODEL_BIN)/asp_debug: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ $(LDLIBS) -lCldebugServer $(LDLIBS) -lClGroundClient -lClGround
+	$(CC) -o $@ $(LDLIBS) -lCldebugServer -lClGroundClient -lClGround
 
 $(MODEL_BIN)/asp_gms: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ $(LDLIBS) -laisexec -ltotem_pg -lClgmsServer \
-    $(LDLIBS) -laisexec -ltotem_pg -lClGroundClient -lClGround
+	-laisexec -ltotem_pg -lClGroundClient -lClGround
 
 $(MODEL_BIN)/asp_event: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ $(LDLIBS) -lCleventServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround
 
 $(MODEL_BIN)/asp_fault: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ $(LDLIBS) -lClfaultServer \
-$(LDLIBS) -lClfaultServer -lClGroundClient -lClGround
+	$(CC) -o $@ $(LDLIBS) -lClfaultServer -lClGroundClient -lClGround
 
 $(MODEL_BIN)/asp_name: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ $(LDLIBS) -lClnameServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround
@@ -138,8 +135,8 @@ $(MODEL_BIN)/asp_msg: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ $(LDLIBS) -lClmsgServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround
 
 $(MODEL_BIN)/asp_cm: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@  -lglib-2.0 -lgthread-2.0 -lltdl  \
- $(LDLIBS) -lClcmServer -lClCm $(LDLIBS) -lClGroundClient -lClGround 
+	$(CC) -o $@  $(LDLIBS) -lglib-2.0 -lgthread-2.0 -lltdl  \
+	-lClcmServer -lClCm -lClGroundClient -lClGround 
 
 clean:
 	rm -rf $(MODEL_BIN)/asp_alarm \
