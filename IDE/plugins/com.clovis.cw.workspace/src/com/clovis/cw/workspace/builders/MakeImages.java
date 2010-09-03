@@ -94,7 +94,7 @@ public class MakeImages {
 			.append(actionCommand)
 			.append(" -Dproject.name=").append(project.getName());
 
-			ant.setBuildFileLocation(project.getLocation().append("build.xml")
+			ant.setBuildFileLocation(project.getLocation().append("makeImage.xml")
 					.toOSString());
 			ant.setArguments(buff.toString());
 			ant.setMessageOutputLevel(org.apache.tools.ant.Project.MSG_INFO);
