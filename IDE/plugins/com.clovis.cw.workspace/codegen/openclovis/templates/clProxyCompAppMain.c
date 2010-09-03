@@ -9,9 +9,7 @@
  *
  ***************************** Description ************************************
  *
- * This file provides a skeleton for writing a SAF aware component. Application
- * specific code should be added between the ---BEGIN_APPLICATION_CODE--- and
- * ---END_APPLICATION_CODE--- separators.
+ * This file provides a skeleton for writing a SAF aware component.
  *
  * Template Version: 1.0
  *
@@ -46,33 +44,12 @@
 
 #include <clCpmApi.h>
 #include <saAmf.h>
-${idlIncludeFile}
 
-
-/*
- * ---BEGIN_APPLICATION_CODE---
- */
- 
 #include "./clProxyCompAppMain.h"
-
-/*
- * ---END_APPLICATION_CODE---
- */
 
 /******************************************************************************
  * Optional Features
  *****************************************************************************/
-
-/*
- * This is necessary if the component wishes to provide a service that will
- * be used by other components.
- */
-
-#if HAS_EO_SERVICES
-
-extern ClRcT cl${eo}ClientInstall(void);
-
-#endif
 
 /*
  * This template has a few default clprintfs. These can be disabled by 
@@ -82,14 +59,6 @@ extern ClRcT cl${eo}ClientInstall(void);
 #define clprintf(severity, ...)   clAppLog(CL_LOG_HANDLE_APP, severity, 10, \
                                   CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,\
                                   __VA_ARGS__)
-
-/*
- * ---BEGIN_APPLICATION_CODE---
- */
-
-/*
- * ---END_APPLICATION_CODE---
- */
 
 /******************************************************************************
  * Global Variables.
@@ -123,16 +92,9 @@ int main(int argc, char *argv[])
     fd_set read_fds;
     
     /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    /*
      * Declare other local variables here.
      */
 
-    /*
-     * ---END_APPLICATION_CODE---
-     */
     
     /*
      * Get the pid for the process and store it in global variable.
@@ -178,27 +140,10 @@ int main(int argc, char *argv[])
     FD_SET(dispatch_fd, &read_fds);
     
     /*
-     * If this component will provide a service, register it now.
-     */
-
-#if HAS_EO_SERVICES
-    rc = cl${eo}ClientInstall();
-#endif
-
-    /*
      * Do the application specific initialization here.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    // ...
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
-
+    
     /*
      * Now register the component with AMF. At this point it is
      * ready to provide service, i.e. take work assignments.
@@ -235,16 +180,7 @@ int main(int argc, char *argv[])
      * Do the application specific finalization here.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    // ...
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
-
+    
     if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
     {
         clprintf (CL_LOG_SEV_ERROR, "AMF finalization error[0x%X]", rc);
@@ -289,16 +225,7 @@ clCompAppTerminate(
      * call the client finalize function.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE--- 
-     */
-
-    // ...
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
-    
+        
     /*
      * Unregister with AMF and send back a response
      */
@@ -336,31 +263,13 @@ clCompAppStateChange(
     {
         case CL_EO_STATE_SUSPEND:
         {
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
+            
             break;
         }
 
         case CL_EO_STATE_RESUME:
         {
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
+            
             break;
         }
         
@@ -389,17 +298,11 @@ clCompAppHealthCheck(
      * indicate EO is healthy and polling interval is unaltered.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
     
     schFeedback->freq   = CL_EO_DEFAULT_POLL; 
     schFeedback->status = CL_CPM_EO_ALIVE;
 
-    /*
-     * ---END_APPLICATION_CODE---
-     */
-
+    
     return CL_OK;
 }
 
@@ -421,16 +324,7 @@ clCompAppAMFCSISet(
     SaAmfHAStateT       haState,
     SaAmfCSIDescriptorT csiDescriptor)
 {
-    /*
-     * ---BEGIN_APPLICATION_CODE--- 
-     */
-
-    // ...
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
-
+    
     /*
      * Print information about the CSI Set
      */
@@ -453,16 +347,6 @@ clCompAppAMFCSISet(
              * for the CSI.
              */
 
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -473,18 +357,9 @@ clCompAppAMFCSISet(
              * AMF has requested application to take the standby HA state 
              * for this CSI.
              */
-
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
-            saAmfResponse(amfHandle, invocation, SA_AIS_OK);
+            
+            
+        	saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
 
@@ -496,17 +371,8 @@ clCompAppAMFCSISet(
              * must stop work associated with the CSI immediately.
              */
 
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
-            saAmfResponse(amfHandle, invocation, SA_AIS_OK);
+            
+        	saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
 
@@ -519,16 +385,7 @@ clCompAppAMFCSISet(
              * workloads while the work is being terminated.
              */
 
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
+            
             saAmfCSIQuiescingComplete(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -570,16 +427,7 @@ clCompAppAMFCSIRemove(
      * Add application specific logic for removing the work for this CSI.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    // ...
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
-
+    
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 
     return;
@@ -613,14 +461,7 @@ clProxiedCompInstantiate(
      * proxied component.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
     
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
 
     /*
      * If the instantiation of the proxied component was successful,
@@ -665,14 +506,7 @@ clProxiedCompCleanup(
      * between proxy and proxied component.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
     
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 
     return;

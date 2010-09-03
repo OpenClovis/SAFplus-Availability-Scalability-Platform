@@ -7,9 +7,7 @@
 
 /*******************************************************************************
  * Description :
- * This file provides a skeleton for writing a SAF aware component. Application
- * specific code should be added between the ---BEGIN_APPLICATION_CODE--- and
- * ---END_APPLICATION_CODE--- separators.
+ * This file provides a skeleton for writing a SAF aware component.
  *
  * Template Version: 1.0
  *
@@ -47,30 +45,13 @@
 #include <clSnmpOp.h>
 #include "clAppSubAgentConfig.h"
 
-/*
- * ---BEGIN_APPLICATION_CODE---
- */
- 
 #include "clSnmpAppMain.h"
 
-/*
- * ---END_APPLICATION_CODE---
- */
 
 /******************************************************************************
  * Optional Features
  *****************************************************************************/
 
-/*
- * This is necessary if the component wishes to provide a service that will
- * be used by other components.
- */
-
-#if HAS_EO_SERVICES
-
-extern ClRcT idlClientInstall(void);
-
-#endif
 
 /*
  * Subagent configuration file name <AGENT_CONFIG>.conf
@@ -86,13 +67,6 @@ extern ClRcT idlClientInstall(void);
                                    CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,\
                                    __VA_ARGS__)
 
-/*
- * ---BEGIN_APPLICATION_CODE---
- */
-
-/*
- * ---END_APPLICATION_CODE---
- */
 
 /******************************************************************************
  * Global Variables.

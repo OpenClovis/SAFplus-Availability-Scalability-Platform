@@ -28,4 +28,5 @@
   <update/><!-- openSAF code generation changes for license server -->
   <update/><!-- passing model name as arg in openSAF script to avoid license server code generation issue -->
   <update/><!-- Fixed static files copy issue -->
+  <update/><!-- removed customized part in clProxyCompAppMain.c and clSnmpAppMain.c -->
 </migration:migrationInfo>
