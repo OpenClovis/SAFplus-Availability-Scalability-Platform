@@ -107,7 +107,6 @@ extern ClAmsT gAms;
 #endif
 
 #define CPM_ASP_WELCOME_MSG "Welcome to OpenClovis ASP! Starting up middleware version"
-#define ASP_BUILD_FILE "BUILD"
 #define CL_CPM_RESTART_FILE "asp_restart"
 #define CL_CPM_REBOOT_FILE  "asp_reboot"
 #define CPM_NODECLEANUP_SCRIPT "node_cleanup.sh"
@@ -150,10 +149,9 @@ ClCpmT gClCpm;
 
 ClTaskPoolHandleT gCpmFaultPool;
 
-static ClCharT gAspBuildVersion[CL_MAX_NAME_LENGTH];
 static ClCharT gAspNodeIp[CL_MAX_NAME_LENGTH];
+static ClCharT gAspVersion[80];
 ClCharT gAspInstallInfo[128]; /*install key info. for ARD*/
-ClCharT *gpAspVersion = gAspBuildVersion;
 
 /**
  * Static variables.
@@ -4160,35 +4158,6 @@ ClUint8T clEoClientLibs[] =
     CL_FALSE,   /* PM */
 };
 
-static void loadAspVersion(void)
-{
-    ClCharT *config;
-    if((config = getenv("ASP_CONFIG")))
-    {
-        ClCharT aspBuildFile[CL_MAX_NAME_LENGTH];
-        snprintf(aspBuildFile, sizeof(aspBuildFile), "%s/%s", config, ASP_BUILD_FILE);
-        if(!access(aspBuildFile, F_OK))
-        {
-            FILE *fptr = fopen(aspBuildFile, "r");
-            if(fptr)
-            {
-                if(fgets(gAspBuildVersion, sizeof(gAspBuildVersion), fptr))
-                {
-                    if(gAspBuildVersion[strlen(gAspBuildVersion)-1] == '\n')
-                        gAspBuildVersion[strlen(gAspBuildVersion)-1] = 0;
-                    
-                    if( ( gpAspVersion = strchr(gAspBuildVersion, '=') )
-                        && gpAspVersion[1] )
-                        ++gpAspVersion;
-                    else 
-                        gpAspVersion = gAspBuildVersion;
-                }
-                fclose(fptr);
-            }
-        }
-    }
-}
-
 #ifndef POSIX_BUILD
 
 static void loadAspNodeIp(const ClCharT *intf)
@@ -4257,12 +4226,10 @@ static void loadAspInstallInfo(void)
         intf = "lo";
     if(!aspDir)
         aspDir = "/root/asp";
-    snprintf(gAspBuildVersion, sizeof(gAspBuildVersion), "%d.%d.%d",
-             CL_RELEASE_VERSION, CL_MAJOR_VERSION, CL_MINOR_VERSION);
-    loadAspVersion(); /* load the asp version */
+    clCpmTargetVersionGet(gAspVersion, sizeof(gAspVersion)-1); /* load the asp version */
     loadAspNodeIp(intf); /* load the ip address of the node pertaining to link name */
     snprintf(gAspInstallInfo, sizeof(gAspInstallInfo), "interface=%s:%s,version=%s,dir=%s",
-             intf, gAspNodeIp, gpAspVersion, aspDir);
+             intf, gAspNodeIp, gAspVersion, aspDir);
 }
 
 ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
@@ -4273,7 +4240,7 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
     loadAspInstallInfo();
 
     clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                "%s %s", CPM_ASP_WELCOME_MSG, gpAspVersion);
+                "%s %s", CPM_ASP_WELCOME_MSG, gAspVersion);
     
     clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
               "Process [%s] started. PID [%d]",

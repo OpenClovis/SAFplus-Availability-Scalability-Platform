@@ -60,7 +60,7 @@ typedef struct ClTargetSlotInfo
 
 typedef struct ClTargetInfo
 {
-    const ClCharT *version;
+    ClCharT version[80];
     ClCharT trapIp[40];
     ClBoolT installPrerequisites;
     ClBoolT instantiateImages;
@@ -356,6 +356,9 @@ clCpmTargetSlotInfoGet(const ClCharT *name, ClIocNodeAddressT addr, ClTargetSlot
 
 extern ClRcT 
 clCpmTargetInfoGet(ClTargetInfoT *targetInfo);
+
+extern ClRcT
+clCpmTargetVersionGet(ClCharT *aspVersion, ClUint32T maxBytes);
 
 extern ClBoolT 
 clCpmIsSCCapable(void);

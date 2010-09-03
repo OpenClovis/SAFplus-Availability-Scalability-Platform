@@ -2029,11 +2029,67 @@ failure:
     return rc;
 }
 
+ClRcT clCpmTargetVersionGet(ClCharT *aspVersion, ClUint32T maxBytes)
+{
+#define ASP_BUILD_FILE "BUILD"
+
+    ClCharT *config = NULL;
+    static ClCharT aspBuildVersion[CL_MAX_NAME_LENGTH];
+    static ClCharT *pAspVersion = NULL;
+
+    if(!aspVersion || !maxBytes)
+        return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+
+    if(pAspVersion)
+        goto out_copy;
+
+    pAspVersion = aspBuildVersion;
+    snprintf(aspBuildVersion, sizeof(aspBuildVersion)-1, "%d.%d.%d",
+             CL_RELEASE_VERSION, CL_MAJOR_VERSION, CL_MINOR_VERSION);
+
+    if((config = getenv("ASP_CONFIG")))
+    {
+        ClCharT aspBuildFile[CL_MAX_NAME_LENGTH];
+        snprintf(aspBuildFile, sizeof(aspBuildFile), "%s/%s", config, ASP_BUILD_FILE);
+        if(!access(aspBuildFile, F_OK))
+        {
+            FILE *fptr = fopen(aspBuildFile, "r");
+            if(fptr)
+            {
+                ClCharT *pAspBuild = aspBuildVersion;
+                if(fgets(aspBuildVersion, sizeof(aspBuildVersion), fptr))
+                {
+                    if(aspBuildVersion[strlen(aspBuildVersion)-1] == '\n')
+                        aspBuildVersion[strlen(aspBuildVersion)-1] = 0;
+                    
+                    if( ( pAspBuild = strchr(aspBuildVersion, '=') ) )
+                    {
+                        *pAspBuild = 0;
+                        if(pAspBuild[1])
+                            pAspVersion = pAspBuild+1;
+                    }
+                }
+                fclose(fptr);
+            }
+        }
+    }
+
+    /*
+     * Avoid strncpy. Its EVIL! So strncat's a better option for good measure
+     */
+    out_copy:
+    *aspVersion = 0;
+    strncat(aspVersion, pAspVersion, maxBytes-1);
+    return CL_OK;
+
+#undef ASP_BUILD_FILE
+}
+
 ClRcT clCpmTargetInfoInitialize(void)
 {
-#define CL_TARGET_INFO_VERSION {.releaseCode = 5, .majorVersion = 0, .minorVersion = 0 };
-#define CL_TARGET_INFO_VERSION_STR "5.0.0"
 #define CL_TARGET_INFO_FILE "targetconf.xml"
+#define CL_TARGET_INFO_VERSION {.releaseCode = 5, .majorVersion = 0, .minorVersion = 0 }
+
     ClParserPtrT file;
     ClParserPtrT child;
     ClParserPtrT val;
@@ -2057,8 +2113,11 @@ ClRcT clCpmTargetInfoInitialize(void)
         clLogError("TARGET", "INFO", "Unable to find tag [target_conf]");
         goto out_free;
     }
-
-    gClTargetClusterInfo.targetInfo.version = CL_TARGET_INFO_VERSION_STR;
+    
+    /*
+     * Get the current version of sdk
+     */
+    clCpmTargetVersionGet(gClTargetClusterInfo.targetInfo.version, sizeof(gClTargetClusterInfo.targetInfo.version)-1);
 
     if( ( val = clParserChild(child, "TRAP_IP") ) )
     {
@@ -2150,6 +2209,9 @@ ClRcT clCpmTargetInfoInitialize(void)
     
     out:
     return rc;
+
+#undef CL_TARGET_INFO_FILE
+#undef CL_TARGET_INFO_VERSION
 }
 
 ClRcT clCpmTargetSlotInfoGet(const ClCharT *name, ClIocNodeAddressT addr, ClTargetSlotInfoT *slotInfo)
