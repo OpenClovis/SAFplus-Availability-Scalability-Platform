@@ -16,20 +16,20 @@
 # * all links, unique header identifiers in doxygen file will contain this name,
 #   not visible for user
 # * It will also appear in the pdf file name
-export DOCID=sdk_5.0
+export DOCID=
 
 #-----------------------------------------------------------------------------
 # Documentation full name appears in Documentation HTML Main Page and 
 # Title PDF Page 
 #
-export DOCTITLE=SDK_5.0
+export DOCTITLE=
 
 #-----------------------------------------------------------------------------
 # Wiki page URL
 # e.g.:
 # http://192.168.0.94:8080/wiki/index.php/Doc:HaDemoModelGuide ---> WIKI_URL=Doc:HaDemoModelGuide
 # http://192.168.0.94:8080/wiki/index.php/Documentation ---> WIKI_URL=Documentation  
-export WIKI_URL=Doc:Sdk_5.0
+export WIKI_URL=
 
 #-----------------------------------------------------------------------------
 # Input wiki format
@@ -40,7 +40,7 @@ export WIKI_URL=Doc:Sdk_5.0
 #                Bulleted list identifies the toc.
 # NOTE: CONVERTER DOES NOT PICK UP WIKI PAGES REFERENCED ON ANY WIKI PAGE !!!!
 #
-export INPUT_WIKI_FORMAT=singlepage
+export INPUT_WIKI_FORMAT=
 
 #-----------------------------------------------------------------------------
 # Output html format
@@ -56,7 +56,7 @@ export INPUT_WIKI_FORMAT=singlepage
 # NOTE: IF YOU USE multipage1,2,3 - PDF FORMAT WILL LOSE HIERARCHY, IN PDF ALL
 #       HTML PAGES ARE ON THE SAME LEVEL. YOU HAVE TO REGENERATE PDF WITH 
 #       OUTPUT_HTML_FORMAT=singlepage TO GET CORRECT TABLE OF CONTENTS.
-export OUTPUT_HTML_FORMAT=singlepage
+export OUTPUT_HTML_FORMAT=
 
 #-----------------------------------------------------------------------------
 # html directory
@@ -86,7 +86,7 @@ export PDFDIR=../pdf
 # Numbers between 000101-000112 are already used for OpenClovis SDK Docs.
 # Numbers pm-00x is used by PM
 #
-export PARTNUMBER=50
+export PARTNUMBER=
 
 #-----------------------------------------------------------------------------
 # Documentation Revision Number appears in Documentation Main Page
