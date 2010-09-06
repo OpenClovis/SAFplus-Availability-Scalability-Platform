@@ -599,6 +599,15 @@ instantiate:
 	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/instantiate/scripts/instantiate.sh
 
 ################################################################################
+# post-images
+# Run model-specific post-images script if it exists so that customer
+# can further integrate the harvested image with their own build infrastructure
+################################################################################
+.PHONY: post-images
+post-images:
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/post-images/scripts/post-images.sh
+
+################################################################################
 # images
 # Create the complete images system conditioned on target.conf settings and
 # using the above make targets
@@ -609,6 +618,7 @@ ifeq ($(TARGET_QNX), 1)
 	@ make base-images
 	$(RUN_SCRIPT) $(MODEL_PATH)/target.conf;
 	@ if [ "$$INSTANTIATE_IMAGES" != "NO" ]; then make instantiate; else true; fi
+	@ make post-images
 else
     
 ifdef SOLARIS_BUILD
@@ -616,11 +626,13 @@ ifdef SOLARIS_BUILD
 	$(RUN_SCRIPT) $(MODEL_PATH)/target.conf;
 	mkdir -p ${PROJECT_ROOT}/target/${ASP_MODEL_NAME}/images/sun4u/SunOS.sun4u/share
 	@ gmake instantiate
+	@ gmake post-images
 else
 	@ make base-images
 	@ $(RUN_SCRIPT) $(MODEL_PATH)/target.conf;
 	@ if [ "$$INSTALL_PREREQUISITES" != "NO" ]; then make prerequisites; else true; fi
 	@ make instantiate
+	@ make post-images
 endif
 
 endif

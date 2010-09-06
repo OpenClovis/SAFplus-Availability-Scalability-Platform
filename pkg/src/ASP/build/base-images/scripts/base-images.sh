@@ -135,7 +135,7 @@ populate_image() {
     #
     # Invoke any model specific base-images.sh script
     #MODEL_SOURCE_DIR=${CLOVIS_ROOT}/ASP/models/${ASP_MODEL_NAME}
-    SCRIPT=${SOURCE_MODEL}/build/base-images/scripts/base-images.sh
+    SCRIPT=${SOURCE_MODEL}/build/scripts/base-images.sh
     if [ -f ${SCRIPT} ]
     then
         chmod a+x ${SCRIPT}

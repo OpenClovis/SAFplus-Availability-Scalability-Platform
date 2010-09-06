@@ -355,8 +355,8 @@ done
 
 #
 # Invoke any model specific instantiate.sh script
-MODEL_SOURCE_DIR=${CLOVIS_ROOT}/ASP/models/${ASP_MODEL_NAME}
-SCRIPT=${MODEL_SOURCE_DIR}/build/instantiate/scripts/instantiate.sh
+MODEL_SOURCE_DIR=${MODEL_PATH}
+SCRIPT=${MODEL_SOURCE_DIR}/build/scripts/instantiate.sh
 if [ -f ${SCRIPT} ]
 then
     chmod a+x ${SCRIPT}
