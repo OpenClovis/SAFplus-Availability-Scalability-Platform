@@ -109,11 +109,12 @@ $(MODEL_BIN)/asp_cor: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ $(LDLIBS) -lClcorServer -lClGroundClient -lClGround
 
 $(MODEL_BIN)/asp_amf: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ $(LDLIBS) -lClConfig -lClAmfClient -lClCorClient  \
-              -lClAmsXdr -lClAmsParser -lClAmsMgmt -lClAmsServer -lClamfServer  \
-              -lClEo -lClTimer -lClBuffer -lClOsal -lClCnt -lClIoc -lClRmd -lClDbal       \
-              -lClUtils -lClEventClient -lClDebugClient -lClNameClient -lClIdl -lClIdlPtr \
-              -lClCkpt -lClLogClient -lClFaultClient -lClGms -lClCm -lClGroundClient -lClGround
+	$(CC) -o $@ $(LDFLAGS) $(SYS_LIBS) $(THIRD_PARTY_LIBS) -L$(MODEL_LIB) -L$(ASP_LIBDIR) \
+		-lClConfig -lClAmfClient -lClCorClient  \
+	  	-lClAmsXdr -lClAmsParser -lClAmsMgmt -lClAmsServer -lClamfServer  \
+	  	-lClEo -lClTimer -lClBuffer -lClOsal -lClCnt -lClIoc -lClRmd -lClDbal       \
+	  	-lClUtils -lClEventClient -lClDebugClient -lClNameClient -lClIdl -lClIdlPtr \
+	  	-lClCkpt -lClLogClient -lClFaultClient -lClGms -lClCm -lClGroundClient -lClGround
 
 $(MODEL_BIN)/asp_debug: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ $(LDLIBS) -lCldebugServer -lClGroundClient -lClGround
