@@ -358,6 +358,9 @@ extern ClRcT
 clCpmTargetInfoGet(ClTargetInfoT *targetInfo);
 
 extern ClRcT
+clCpmTargetSlotListGet(ClTargetSlotInfoT *slotInfo, ClUint32T *numSlots);
+
+extern ClRcT
 clCpmTargetVersionGet(ClCharT *aspVersion, ClUint32T maxBytes);
 
 extern ClBoolT 

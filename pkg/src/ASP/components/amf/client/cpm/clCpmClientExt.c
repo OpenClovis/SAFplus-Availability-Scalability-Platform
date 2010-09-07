@@ -2252,6 +2252,18 @@ ClRcT clCpmTargetInfoGet(ClTargetInfoT *targetInfo)
     return CL_OK;
 }
 
+ClRcT clCpmTargetSlotListGet(ClTargetSlotInfoT *slotInfo, ClUint32T *numSlots)
+{
+    if(!slotInfo || !numSlots)
+        return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+
+    *numSlots = CL_MIN(gClTargetClusterInfo.targetInfo.numSlots, *numSlots);
+    if(!*numSlots)
+        return CL_OK;
+    memcpy(slotInfo, gClTargetClusterInfo.slots, sizeof(*slotInfo) * *numSlots);
+    return CL_OK;
+}
+
 /*
  * Check if the node is SC capable or not. (to be used with payloads)
  * No need to cache the values of rarely used functions as the callers neednt be thread-safe and its a waste
