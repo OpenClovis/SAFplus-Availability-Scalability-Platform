@@ -241,18 +241,22 @@ populate_prereqs() {
         fi
         res_array[${#res_array[@]}]=$?
         op_array[${#op_array[@]}]="copy in hpi libraries"
+        
         tar cfh - lib/*glib* | tar xf - -C $imagedir
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in glib libraries"
+        #res_array[${#res_array[@]}]=$?
+        #op_array[${#op_array[@]}]="copy in glib libraries"
+        
         tar cfh - lib/*gmodule* | tar xf - -C $imagedir
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in gmodule library files"
+        #res_array[${#res_array[@]}]=$?
+        #op_array[${#op_array[@]}]="copy in gmodule library files"
+        
         tar cfh - lib/*gobject* | tar xf - -C $imagedir
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in gobject library files"
+        #res_array[${#res_array[@]}]=$?
+        #op_array[${#op_array[@]}]="copy in gobject library files"
+        
         tar cfh - lib/*gthread* | tar xf - -C $imagedir
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in gthread library files"
+        #res_array[${#res_array[@]}]=$?
+        #op_array[${#op_array[@]}]="copy in gthread library files"
 
         # libhcl
         echo -n "hcl "
