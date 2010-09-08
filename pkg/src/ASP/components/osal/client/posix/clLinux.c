@@ -742,12 +742,9 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
     (void)uc;
     trace_size = get_backtrace(buffer, trace, 16, uc);
     
-    if(clDbgLogLevel > 0 && (logfd = open("/var/log/aspdbg.log", O_APPEND | O_RDWR | O_CREAT, 00644)) != -1)
-    {
-        if(write(logfd, (void *)logBuffer, strlen(logBuffer)) == strlen(logBuffer))
-            backtrace_symbols_fd(trace, trace_size, logfd);
-    }
-    
+    if(clDbgLogLevel > 0)
+        logfd = open("/var/log/aspdbg.log", O_APPEND | O_RDWR | O_CREAT);
+
     {
         ClCharT *compName = getenv("ASP_COMPNAME");
         ClCharT shmName[CL_MAX_NAME_LENGTH];
@@ -811,6 +808,8 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
                 }
             }
             registerDump(uc, exceptionSegment + bytes, segmentSize - bytes);
+            if(logfd > 0)
+                write(logfd, exceptionSegment, strlen(exceptionSegment));
             clOsalMsync(exceptionSegment, segmentSize, MS_SYNC);
             clOsalMunmap(exceptionSegment, segmentSize);
         }
