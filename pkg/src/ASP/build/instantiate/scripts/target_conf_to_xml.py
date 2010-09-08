@@ -40,7 +40,10 @@ def between(string, first, last):
 # prints instr to stdout with a given indentation, 
 # and an optional trailing newline character
 def iprint(instr, depth=0, newline=True):
-    print ' '*(depth*4) + instr.rstrip() + ('\n' if newline else ''),
+    if newline:
+        print ' '*(depth*4) + instr.rstrip() + '\n',
+    else:
+        print ' '*(depth*4) + instr.rstrip(),
 
 
 # a slot object
