@@ -190,6 +190,8 @@ ClRcT   ckptRemSvrCheckpointDel(ClCkptHdlT     ckptHdl);
 /* This routine announces the arrival of a checkpoint server */
 ClRcT   ckptSvrArrvlAnnounce();
 
+ClRcT   _ckptSvrArrvlAnnounce();
+
 /* This routine announces the departure of a checkpoint server */
 ClRcT   ckptSvrDepartureAnnounce();
 ClRcT   ckptInitialConsume(ClBufferHandleT inMsg);

@@ -155,6 +155,7 @@ typedef struct ckptSvrCb
     ClVersionDatabaseT     versionDatabase;
     ClBoolT                serverUp;
     ClBoolT                isAnnounced;
+    ClBoolT                isSynced; /* synced with master*/
     ClUint32T              compId;
     ClOsalMutexT           ckptClusterSem;
 }CkptSvrCbT; 

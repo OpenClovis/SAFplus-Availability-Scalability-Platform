@@ -961,10 +961,10 @@ exitOnErrorBeforeHdlCheckout:
 
 /* 
  *   This routine announces the arrival of a checkpoint server 
- *   to the Master.
+ *   to the Master. Called with masterDB lock held.
  */
- 
-ClRcT   ckptSvrArrvlAnnounce()
+
+ClRcT   _ckptSvrArrvlAnnounce()
 {
     ClRcT           rc           = CL_OK;
     ClUint8T        credential   = CL_CKPT_CREDENTIAL_POSITIVE;
@@ -973,10 +973,6 @@ ClRcT   ckptSvrArrvlAnnounce()
     ClTimerTimeOutT timeOut      = {0};
     ClCkptReplicateTimerArgsT *pTimerArgs = NULL;
 
-    /*
-     * Lock the master DB 
-     */
-    CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
     if( gCkptSvr->localAddr == gCkptSvr->masterInfo.masterAddr)
     {
         /*
@@ -1068,7 +1064,9 @@ ClRcT   ckptSvrArrvlAnnounce()
      */
     if( (gCkptSvr->localAddr != gCkptSvr->masterInfo.masterAddr) &&
         (gCkptSvr->masterInfo.masterAddr != CL_CKPT_UNINIT_VALUE) &&
-        (gCkptSvr->masterInfo.masterAddr != -1))
+        (gCkptSvr->masterInfo.masterAddr != -1)
+        &&
+        !gCkptSvr->isAnnounced)
     {    
 	clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_PEER_ANNOUNCE,
 	           "Ckpt server [%d] arrival announce to master [%d]",
@@ -1104,14 +1102,18 @@ ClRcT   ckptSvrArrvlAnnounce()
 
 exitOnError:
     {
-        /*
-         * Unlock the master DB 
-         */
-        CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
         return rc;
     }
 }
 
+ClRcT ckptSvrArrvlAnnounce(void)
+{
+    ClRcT rc;
+    CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+    rc = _ckptSvrArrvlAnnounce();
+    CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+    return rc;
+}
 
 /*This should be in deputy file */
 ClRcT    VDECL_VER(clCkptDeputyCkptInfoUpdate, 4, 0, 0)(ClVersionT *pVersion,

@@ -78,6 +78,9 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
     ClUint32T                ckptCount      = 0;
 
     CKPT_NULL_CHECK(gCkptSvr);
+
+    if(gCkptSvr->isSynced) return CL_OK; /*already synced*/
+
     memcpy(&ckptVersion,gCkptSvr->versionDatabase.versionsSupported,
            sizeof(ClVersionT));
     pMasterInfo = (CkptMasterDBInfoIDLT *) clHeapCalloc(1,
@@ -147,6 +150,7 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
     rc = ckptClientDBInfoUnpack(clntHdlCount,pClientDBInfo);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Ckpt: Failed to unpack the ClientDB Info rc[0x %x]\n", rc), rc);
+    gCkptSvr->isSynced = CL_TRUE;
 
 exitOnError:
     /*

@@ -260,8 +260,9 @@ void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
                          ClRcT                           rc)
 {
     ClIocNodeAddressT deputy = 0;
+    ClIocNodeAddressT master = 0;
     ClIocNodeAddressT newDeputy = 0;
-
+    ClIocNodeAddressT newMaster = 0;
     /* Set Master and deputy addresses */
     if(!gCkptSvr) 
     {
@@ -271,18 +272,21 @@ void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
     clOsalMutexLock(&gCkptSvr->ckptClusterSem);
     deputy = gCkptSvr->masterInfo.deputyAddr;
     newDeputy = notificationBuffer->deputy;
+    master = gCkptSvr->masterInfo.masterAddr;
+    newMaster = notificationBuffer->leader;
     _clCkptAddressesUpdate(notificationBuffer);
     clOsalMutexUnlock(&gCkptSvr->ckptClusterSem);
+
+    CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
     if (gCkptSvr->localAddr == newDeputy
         && 
-        deputy != gCkptSvr->localAddr)
+        !gCkptSvr->isSynced)
     {
         /*
          * Add the deputy to our masterinfo peer list and announce the master about our arrival
          * and do the same.
          */
-        ckptSvrArrvlAnnounce();
-        CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+        _ckptSvrArrvlAnnounce();
         if (CL_OK != ckptMasterDatabaseSyncup(gCkptSvr->masterInfo.masterAddr))
         {
             clLogWarning(CL_CKPT_AREA_ACTIVE, "TIPC", "ckptMasterDatabaseSyncup failed");
@@ -299,8 +303,8 @@ void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
         if(gCkptSvr->masterInfo.deputyAddr != newDeputy)
             gCkptSvr->masterInfo.deputyAddr = newDeputy;
 
-        CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
     }
+    CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
 }
 
 
