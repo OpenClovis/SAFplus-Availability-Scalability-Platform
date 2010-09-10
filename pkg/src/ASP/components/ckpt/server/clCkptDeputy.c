@@ -79,8 +79,6 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
 
     CKPT_NULL_CHECK(gCkptSvr);
 
-    if(gCkptSvr->isSynced) return CL_OK; /*already synced*/
-
     memcpy(&ckptVersion,gCkptSvr->versionDatabase.versionsSupported,
            sizeof(ClVersionT));
     pMasterInfo = (CkptMasterDBInfoIDLT *) clHeapCalloc(1,

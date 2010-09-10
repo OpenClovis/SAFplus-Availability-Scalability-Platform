@@ -1064,9 +1064,7 @@ ClRcT   _ckptSvrArrvlAnnounce()
      */
     if( (gCkptSvr->localAddr != gCkptSvr->masterInfo.masterAddr) &&
         (gCkptSvr->masterInfo.masterAddr != CL_CKPT_UNINIT_VALUE) &&
-        (gCkptSvr->masterInfo.masterAddr != -1)
-        &&
-        !gCkptSvr->isAnnounced)
+        (gCkptSvr->masterInfo.masterAddr != -1) )
     {    
 	clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_PEER_ANNOUNCE,
 	           "Ckpt server [%d] arrival announce to master [%d]",
