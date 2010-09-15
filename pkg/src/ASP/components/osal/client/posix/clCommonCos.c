@@ -74,7 +74,8 @@
 #include "clPosixDebug.h"
 #endif
 
-/* can't get time.h to define nanosleep for me! hence this animal-giri */
+#define CL_NODE_REP_STACK_SIZE (512<<10U)
+
 extern int nanosleep (__const struct timespec *__requested_time,
 		      struct timespec *__remaining);
 extern int kill(pid_t pid, int sig);
@@ -83,7 +84,7 @@ extern int kill(pid_t pid, int sig);
 /* Global flag to check if COS is already initiliazed */
 extern CosTaskControl_t gTaskControl;
 extern cosCompCfgInit_t sCosConfig;
-
+extern ClBoolT gIsNodeRepresentative;
     
 static void* cosPosixTaskWrapper(void* pArgument);
     
@@ -341,6 +342,13 @@ cosTaskCreate(const ClCharT* pTaskName, ClOsalSchedulePolicyT schedulePolicy, Cl
 	{
         stackSize = sCosConfig.cosTaskMinStackSize;
 	}
+
+#ifndef VXWORKS_BUILD
+    if(gIsNodeRepresentative && stackSize < CL_NODE_REP_STACK_SIZE)
+    {
+        stackSize = CL_NODE_REP_STACK_SIZE;
+    }
+#endif
         
     /* Check if the priority is with in the limits */
     if (schedulePolicy != CL_OSAL_SCHED_OTHER)
