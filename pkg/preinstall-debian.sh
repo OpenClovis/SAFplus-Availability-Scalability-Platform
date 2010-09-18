@@ -21,17 +21,23 @@
 # Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 ###############################################################################
+
 echo -e "\nPrerequisite installation\n\nThis script installs required software using your distribution's package manager.\nIt will either need your CDROMs or access the packages over the internet, depending on your package manager's configuration.\n\nIt must be run as root.\n\n"
+
+if [ `whoami` != "root" ] ; then
+/bin/echo -e "\nYou must be root to run this installer."
+exit 2
+fi
 
 function install () {
 echo "Installing $1 $2 $3 $4 $5"
-apt-get -y install $1 $2 $3 $4 $5
+apt-get -y --force-yes install $1 $2 $3 $4 $5
 return $?
 }
 
 function installRequired () {
 echo "Installing $1 $2 $3 $4 $5"
-apt-get -y install $1 $2 $3 $4 $5
+apt-get -y --force-yes install $1 $2 $3 $4 $5
 if test $? != 0 ; then
 echo "Installation of $1 $2 $3 $4 $5 failed.  You will have to install this yourself before continuing."
 exit 1
@@ -59,31 +65,32 @@ if test $? != 0 ; then
 fi
 }
 
+# Make sure the package list and server IPs are up-do-date
+apt-get update
+
+# Start installing packages
 installRequired build-essential
-installRequired pkg-config
+installRequired linux-headers-`uname -r`
+#installRequired pkg-config
 installRequired gettext
 installRequired uuid-dev
-installRequired unzip
+#installRequired unzip
+installRequired bison
+installRequired flex
 installRequired gawk
+installRequired pkg-config
+installRequired libglib2.0-dev
 installRequired libgdbm-dev
+installOneOf libdb4.6-dev libdb4.5-dev libdb4.4-dev libdb4.3-dev
+installRequired libsqlite3-0 libsqlite3-dev
 installRequired e2fsprogs
 installRequired libperl-dev
 installRequired libltdl3-dev
 installRequired e2fslibs-dev
 
-installOneOf libdb4.6-dev libdb4.5-dev libdb4.4-dev libdb4.3-dev
-installRequired kernel-headers-`uname -r`
-
-TWOSIX=`uname -a | grep -c "2.6"`
-if [ $TWOSIX == 0 ]; then
-echo "Linux kernel version 2.6.x is required.  To get this version, use apt-get,"
-echo "for example: apt-get install kernel-image-2.6.8-3-386 kernel-headers-2.6.8-386"
-echo "for 386 compatible machines.  You can do 'apt-cache search kernel-image' to see"
-echo "the list."
-echo ""
-echo "After installing the new kernel, you must REBOOT your system"
+if [ $(uname -m) ==  "x86_64" ]; then
+    installRequired ia32-libs
 fi
-
 
 echo -e "\nInstallation of prerequisite packages successful"
 exit 0
