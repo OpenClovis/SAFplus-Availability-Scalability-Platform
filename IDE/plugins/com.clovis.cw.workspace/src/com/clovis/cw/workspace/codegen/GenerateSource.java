@@ -148,7 +148,6 @@ public class GenerateSource {
 			ProjectDataModel projectModel = ProjectDataModel
 					.getProjectDataModel(project);
 				
-			String errMsg = "";
 			String location = CwProjectPropertyPage.getSDKLocation(project);
 			
 			String pythonlocation = CwProjectPropertyPage.getPythonLocation(project);
@@ -156,6 +155,12 @@ public class GenerateSource {
 			String sourceLocation = CwProjectPropertyPage.getSourceLocation(project);
 			
 			String codeGenMode = CwProjectPropertyPage.getCodeGenMode(project);
+			
+			String errMsg = validateProjectProperties(project, codeGenMode, location, sourceLocation, pythonlocation);
+			if (errMsg != null && !errMsg.equals("")) {
+				MessageDialog.openError(new Shell(), "Project settings errors for " + project.getName(), errMsg);
+				continue;
+			}
 			if(!codeGenMode.equals(ICWProject.CLOVIS_CODEGEN_OPTION)) {
 				LicenseInfo licInfo = com.clovis.cw.licensing.Activator.getLicenseInfo();
 				UserInfo userInfo = com.clovis.cw.licensing.Activator.getUserInfo();
@@ -164,7 +169,7 @@ public class GenerateSource {
 				String licType = licInfo.getLicenseType();
 				RemoteCodeGeneration codegen = new RemoteCodeGeneration();
 				if(userInfo.isVerifiedUser() && !loginName.equals("") && !passwd.equals("")) {
-					if(licType.equals(ILicensingConstants.OPENCLOVIS_FULL_LICENSE)) {
+					if(WorkspacePlugin.isLocalCodeGenOption(codeGenMode)) {
 						//Normal code generation
 					} else {
 						if(LicenseWarningDialog.getRetVal() != LicenseWarningDialog.RET_ALWAYS_OK) {
@@ -176,10 +181,10 @@ public class GenerateSource {
 						} else {
 							codegen.generateSource(project, codeGenMode, userInfo.getLoginName(), userInfo.getPassword());
 						}
+						continue;
 					}
 				} else {
-					if (licType
-							.equals(ILicensingConstants.OPENCLOVIS_FULL_LICENSE)) {
+					if (WorkspacePlugin.isLocalCodeGenOption(codeGenMode)) {
 						// Normal code generation
 					} else {
 						LoginDialog dialog = new LoginDialog(_shell);
@@ -189,6 +194,7 @@ public class GenerateSource {
 									userInfo.getLoginName(), userInfo
 											.getPassword());
 						}
+						continue;
 					}
 				}
 				try {
@@ -196,7 +202,6 @@ public class GenerateSource {
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
-				continue;
 			}
 
 			URL url = DataPlugin.getDefault().getBundle().getEntry("/");
@@ -208,10 +213,7 @@ public class GenerateSource {
 			String dataTypeXMILocation = url.getFile()
 					+ ICWProject.PLUGIN_XML_FOLDER + File.separator
 					+ SnmpConstants.DATA_TYPES_XMI_FILE_NAME;
-			
-			
-			if (!location.equals("") && !pythonlocation.equals("") && !sourceLocation.equals("")) {
-				
+							
 				File srcFolder = new File(sourceLocation);
 				if (!srcFolder.exists()) {
 					srcFolder.mkdirs();
@@ -274,38 +276,6 @@ public class GenerateSource {
 								sourceLocation, linkFile.getAbsolutePath());
 					}
 				}
-				boolean needsOverride = false;
-				/*File safFile = new Path(sourceLocation + File.separator + "." + ICWProject.PROJECT_DEFAULT_SAF_TEMPLATE_GROUP_FOLDER).toFile();
-				File nonSafFile = new Path(sourceLocation + File.separator + "." + ICWProject.PROJECT_DEFAULT_NONSAF_TEMPLATE_GROUP_FOLDER).toFile();
-				
-				try {
-					if (!CwProjectPropertyPage.getAlwaysOverrideMode(project)) {
-						if (nonSafFile.exists() && codeGenMode.equals("true")) {
-							nonSafFile.delete();
-							needsOverride = true;
-						} else if (safFile.exists() && codeGenMode.equals("false")) {
-							safFile.delete();
-							needsOverride = true;
-						}
-					}
-					if (codeGenMode.equals("true")) {
-						if (!safFile.exists()) {
-							safFile.createNewFile();
-						}
-						if (nonSafFile.exists()) {
-							nonSafFile.delete();
-						}
-					} else if (codeGenMode.equals("false")) {
-						if (!nonSafFile.exists()) {
-							nonSafFile.createNewFile();
-						}
-						if (safFile.exists()) {
-							safFile.delete();
-						}
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}*/
 				
 				IFolder idlFolder = project.getFolder(ICWProject.CW_PROJECT_IDL_DIR_NAME);
 				if(!idlFolder.exists()) {
@@ -346,13 +316,7 @@ public class GenerateSource {
 						return;
 					}
 				}
-
-				/*if(codeGenMode.equals("true")) {
-					codeGenMode = ICWProject.PROJECT_DEFAULT_SAF_TEMPLATE_GROUP_FOLDER; 
-				} else {
-					codeGenMode = ICWProject.PROJECT_DEFAULT_NONSAF_TEMPLATE_GROUP_FOLDER;
-				}*/
-
+				
 				String autoBackupMode = new String();
 
 				// check if we need to backup existing source files as part of code generation
@@ -363,7 +327,7 @@ public class GenerateSource {
 
 				try {
 					runAntBuilder(project, location, pythonlocation, dataTypeXMILocation, autoBackupMode,
-							codeGenMode, (CwProjectPropertyPage.getAlwaysOverrideMode(project) || needsOverride),
+							codeGenMode, CwProjectPropertyPage.getAlwaysOverrideMode(project),
 							false);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -389,7 +353,7 @@ public class GenerateSource {
 					}
 				}
 
-				if(!CwProjectPropertyPage.getAlwaysOverrideMode(project) && !needsOverride) {
+				if(!CwProjectPropertyPage.getAlwaysOverrideMode(project)) {
 					mergeGeneratedCode(project);
 				}
 				projectModel.getTrackingModel().clearAllLists();
@@ -402,35 +366,41 @@ public class GenerateSource {
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
-			} else {
-				// -------- error message if SDK location is null
-				if (location.equals("")) {
-					errMsg += "\n SDK location is not set on Project ["
-							+ project.getName()
-							+ "]. Use Project->Right Click->properties->Clovis System Project to set its value.\n";
-				}
-				//-------- error message if Project Area location is null
-				if (sourceLocation.equals("")) {
-					errMsg += "\n Project Area location is not set on Project ["
-							+ project.getName()
-							+ "]. Use Project->Right Click->properties->Clovis System Project to set its value.\n";
-				}
-				// -------- error message if python location is null
-				if (pythonlocation.equals("")) {
-					errMsg += "\n Python location is not set on Project ["
-							+ project.getName()
-							+ "]. Use Project->Right Click->properties->Clovis System Project to set its value.";
-				} 
-
-			}
-			if (errMsg != null && !errMsg.equals("")) {
-				MessageDialog.openError(new Shell(), "Project settings errors for " + project.getName(), errMsg);
-				return;
-			}
-			
 		}
 	}
-	
+	/**
+	 * Validate Project Properties
+	 * @param project IProject
+	 * @param codeGenMode Code gen mode
+	 * @param location SDK location
+	 * @param sourceLocation ProjectArea Location
+	 * @param pythonLocation Python Location
+	 * @return Error message
+	 */
+	private String validateProjectProperties(IProject project, String codeGenMode, String location, String sourceLocation, String pythonLocation) {
+		String errMsg = "";
+		if (codeGenMode.equals(ICWProject.CLOVIS_CODEGEN_OPTION)) {
+			// -------- error message if SDK location is null
+			if (location.equals("")) {
+				errMsg += "\n SDK location is not set on Project ["
+						+ project.getName()
+						+ "]. Use Project->Right Click->properties->Clovis System Project to set its value.\n";
+			}
+		}
+		// -------- error message if Project Area location is null
+		if (sourceLocation.equals("")) {
+			errMsg += "\n Project Area location is not set on Project ["
+					+ project.getName()
+					+ "]. Use Project->Right Click->properties->Clovis System Project to set its value.\n";
+		}
+		// -------- error message if python location is null
+		if (pythonLocation.equals("")) {
+			errMsg += "\n Python location is not set on Project ["
+					+ project.getName()
+					+ "]. Use Project->Right Click->properties->Clovis System Project to set its value.";
+		} 
+		return errMsg;
+	}
 	/*
 	 * Check whether or not the files in the ASP src directory should be backed up
 	 *  before code generation.

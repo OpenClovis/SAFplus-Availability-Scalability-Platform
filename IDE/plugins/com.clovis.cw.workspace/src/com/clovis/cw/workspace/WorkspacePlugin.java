@@ -55,7 +55,7 @@ public class WorkspacePlugin extends AbstractUIPlugin
 
     public static Log LOG = null;
     private static String _mergeScript;
-
+        
     static {
     	_mergeScript = "/usr/local/bin/clovismerge";
     }
@@ -229,11 +229,30 @@ public class WorkspacePlugin extends AbstractUIPlugin
 			if (file.isDirectory()
 					&& !file.getName().startsWith(".")
 					&& new File(file.getAbsolutePath() + File.separator
-							+ "run.py").exists()) {
+							+ "plugin.cfg").exists()) {
 				cgOptions.add(file.getName());
 			}
 		}
 		return (String[]) cgOptions.toArray(new String[0]);
 	}
+    /**
+     * Check if the option is local codegen mode or remote mode
+     * @param option codegen option
+     * @return true if the codegen option is local or false
+     */
+    public static boolean isLocalCodeGenOption(String option) {
+		URL codegenURL = FileLocator.find(getDefault().getBundle(), new Path(
+				ICWProject.PROJECT_CODEGEN_FOLDER), null);
+		File codegenFolder = null;
+		try {
+			codegenFolder = new Path(FileLocator.resolve(codegenURL).getPath())
+					.toFile();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return new File(codegenFolder.getAbsolutePath() + File.separator + option + File.separator
+				+ "run.py").exists();
+    }
 }
 

@@ -80,6 +80,7 @@
             <include name="**/*.png"/>
             <include name="**/*.JPG"/>
             <include name="**/*.css"/>
+	    <include name="**/*.cfg"/>
             <include name="about.*"/>
             <include name="plugin.*"/>
 	    <include name="**/*.bmp"/>
