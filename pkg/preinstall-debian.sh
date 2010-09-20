@@ -89,8 +89,6 @@ installRequired libltdl3-dev
 installRequired e2fslibs-dev
 install psmisc
 install unzip
-installRequired ia32-libs-gtk
-
 
 
 if [ $(uname -m) ==  "x86_64" ]; then
