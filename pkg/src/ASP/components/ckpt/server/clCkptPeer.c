@@ -2299,7 +2299,11 @@ ClRcT VDECL_VER(clCkptRemSvrCkptWrite, 4, 0, 0)(ClVersionT             *pVersion
     /*
      * Check whether the server is fully up or not.
      */
-    CL_CKPT_SVR_EXISTENCE_CHECK;
+    if (gCkptSvr == NULL || gCkptSvr->serverUp == CL_FALSE) 
+    {
+        rc = CL_CKPT_ERR_TRY_AGAIN;
+        goto exitOnError;
+    }
 
     /*
      * Verify the version.

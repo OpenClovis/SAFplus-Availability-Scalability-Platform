@@ -1851,14 +1851,15 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
     ClCntDataHandleT        dataHdl      = 0;
     ClIocNodeAddressT       peerAddr     = 0;
     ClVersionT              ckptVersion  = {0};
-    ClUint32T minReplicaCount = 0;
-    ClIocNodeAddressT localAddr = 0;
 
     /*
      * Check whether the server is fully up or not.
      */
-    CL_CKPT_SVR_EXISTENCE_CHECK;
-
+    if (gCkptSvr == NULL || gCkptSvr->serverUp == CL_FALSE) 
+    {
+        rc = CL_CKPT_ERR_TRY_AGAIN;
+        goto out_free;
+    }
     
     /*
      * Verify the version.
@@ -1866,7 +1867,8 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
     rc = clVersionVerify(&gCkptSvr->versionDatabase,(ClVersionT *)pVersion);
     if( CL_GET_ERROR_CODE(rc) == CL_ERR_VERSION_MISMATCH)
     {
-        return CL_OK;
+        rc = CL_OK;
+        goto out_free;
     }
     
     memset(pVersion,'\0',sizeof(ClVersionT));
@@ -1897,31 +1899,26 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
      * Update the local server. incase its not a write all replica. ckpt
      * in which case, all can be written parallely.
      */
-    if(!(pCkpt->pCpInfo->updateOption & CL_CKPT_WR_ALL_REPLICAS))
+    rc = _ckptCheckpointLocalWrite(ckptHdl,
+                                   numberOfElements,
+                                   pIoVector,pError,
+                                   nodeAddr, portId);
+    if( CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_STATE )
     {
-        rc = _ckptCheckpointLocalWrite(ckptHdl,
-                                       numberOfElements,
-                                       pIoVector,pError,
-                                       nodeAddr, portId);
-        if( CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_STATE )
-        {
-            /*
-             * Handle checkout failed at that function which didn't release the
-             * mutex so release and exit 
-             */
-            clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_SEC_OVERWRITE,
-                       "Failed to write on the local copy rc [0x %x]" ,rc);
-            goto exitOnError;
-        }
-        if( CL_OK != rc )
-        {
-            /* any other error, this would have unheld the lock there so just go
-             * out, return from here 
-             */
-            goto exitOnErrorWithoutUnlock;
-        }
-        minReplicaCount = 1;
-        localAddr = gCkptSvr->localAddr;
+        /*
+         * Handle checkout failed at that function which didn't release the
+         * mutex so release and exit 
+         */
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_SEC_OVERWRITE,
+                   "Failed to write on the local copy rc [0x %x]" ,rc);
+        goto exitOnError;
+    }
+    if( CL_OK != rc )
+    {
+        /* any other error, this would have unheld the lock there so just go
+         * out, return from here 
+         */
+        goto exitOnErrorWithoutUnlock;
     }
     
     /*
@@ -1931,7 +1928,7 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
      * replicated on other nodes.
      */
     clCntSizeGet(pCkpt->pCpInfo->presenceList,&peerCount);
-    if(peerCount > minReplicaCount)
+    if(peerCount > 1)
     {
         if((pCkpt->pCpInfo->updateOption & CL_CKPT_WR_ALL_REPLICAS))
         {
@@ -1949,7 +1946,7 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
                            ("Failed to Pack section rc[0x %x]\n", rc), rc);
             pCallInfo->rmdHdl    = idlDeferHdl;
             pCallInfo->delFlag   = CL_TRUE;
-            pCallInfo->cbCount   = peerCount - minReplicaCount ;
+            pCallInfo->cbCount   = peerCount - 1 ;
         }    
         memcpy(&ckptVersion,gCkptSvr->versionDatabase.versionsSupported,
                sizeof(ClVersionT));
@@ -1967,7 +1964,7 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                            ("Failed to update the handle rc[0x %x]\n", rc), rc);
 
-            if (peerAddr != localAddr)
+            if (peerAddr != gCkptSvr->localAddr)
             {
                 if((pCkpt->pCpInfo->updateOption & CL_CKPT_WR_ALL_REPLICAS))
                 {
@@ -2003,23 +2000,13 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
         }
     }
 
-    for( count = 0; count <  numberOfElements; count++)
-    {
-        if(pIoVector->sectionId.id != NULL)
-        {
-            clHeapFree(pIoVector->sectionId.id);
-            pIoVector->sectionId.id = NULL;
-        }
-        clHeapFree(pIoVector->dataBuffer);
-        pIoVector++;
-    }
+    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_INFORMATIONAL,CL_LOG_CKPT_SVR_NAME,
+               CL_CKPT_LOG_1_CKPT_WRITTEN, pCkpt->ckptName.value);
 
     /*
      * Inform the clients about immediate consumption.
      */
     //_ckptUpdateClientImmConsmptn(&pCkpt->ckptName);
-    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_INFORMATIONAL,CL_LOG_CKPT_SVR_NAME,
-               CL_CKPT_LOG_1_CKPT_WRITTEN, pCkpt->ckptName.value);
     exitOnError:
     {
         /*
@@ -2033,7 +2020,7 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
         {
             *pError = count;
         }
-        return rc;
+        goto out_free;
     }        
     exitOnErrorWithoutUnlock:
     {
@@ -2041,6 +2028,19 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
         *pError = count;
     }
     exitOnErrorBeforeHdlCheckout:
+
+    out_free:
+    for( count = 0; count <  numberOfElements; count++)
+    {
+        if(pIoVector->sectionId.id != NULL)
+        {
+            clHeapFree(pIoVector->sectionId.id);
+            pIoVector->sectionId.id = NULL;
+        }
+        clHeapFree(pIoVector->dataBuffer);
+        pIoVector++;
+    }
+
     return rc;
 }
 
