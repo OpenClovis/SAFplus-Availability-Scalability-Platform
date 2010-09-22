@@ -2716,7 +2716,6 @@ ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
                              ClSizeT                  dataSize)
 {
     ClCkptSectionIdT   tempSecId  = {0};
-    ClUint8T           *pTempData = NULL; 
     ClRcT              rc         = CL_OK;
     CkptInitInfoT      *pInitInfo = NULL;
     ClIocNodeAddressT  nodeAddr   = 0;
@@ -2744,14 +2743,12 @@ ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
     if(maxRetry++ >= 5)
     {
         if(tempSecId.id) clHeapFree(tempSecId.id);
-        if(pTempData) clHeapFree(pTempData);
         return rc;
     }
 
     if( gClntInfo.ckptDbHdl == 0 || gClntInfo.ckptSvcHdlCount == 0)
     {
         if(tempSecId.id) clHeapFree(tempSecId.id);
-        if(pTempData) clHeapFree(pTempData);
         CKPT_DEBUG_E(("CKPT Client is not yet initialized"));
         return CL_CKPT_ERR_NOT_INITIALIZED;
     }
@@ -2768,7 +2765,6 @@ ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
     {
         clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
         if(tempSecId.id) clHeapFree(tempSecId.id);
-        if(pTempData) clHeapFree(pTempData);
         return CL_CKPT_ERR_NOT_INITIALIZED;
     }
 
@@ -2776,7 +2772,6 @@ ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
     {
         clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
         if(tempSecId.id) clHeapFree(tempSecId.id);
-        if(pTempData) clHeapFree(pTempData);
         return rc;
     }
 
@@ -2857,31 +2852,8 @@ ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
             clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
             return rc;
         }
-        memcpy(tempSecId.id,pSectionId->id,tempSecId.idLen);
-        pTempData = (ClUint8T *)clHeapAllocate(dataSize);
-        if(pTempData == NULL) 
-        {
-            CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                            ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
-                       CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
-            rc = CL_CKPT_ERR_NO_MEMORY;
-            clHeapFree(tempSecId.id);
-        
-            /*
-             * Unlock the mutex.
-             */
-            clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
-
-            /* 
-             * Checkin the data associated with the service handle 
-             */
-            clHandleCheckin(gClntInfo.ckptDbHdl,ckptSvcHdl);
-            clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
-            return rc;
-        } 
-        memcpy(pTempData, pData, dataSize);
- 
+        if(pSectionId->id)
+            memcpy(tempSecId.id,pSectionId->id,tempSecId.idLen);
         /* 
          * Fill the supported version information 
          */ 
@@ -2929,7 +2901,6 @@ ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
     exitOnError:
     {
         if(tempSecId.id != NULL)  clHeapFree(tempSecId.id);
-        if(pTempData != NULL)     clHeapFree(pTempData); 
        
         /*
          * Unlock the mutex.
