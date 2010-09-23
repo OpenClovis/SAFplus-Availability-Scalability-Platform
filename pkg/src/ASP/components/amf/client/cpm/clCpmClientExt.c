@@ -2103,7 +2103,9 @@ ClRcT clCpmTargetInfoInitialize(void)
     file = clParserOpenFileWithVer(path, CL_TARGET_INFO_FILE, &version);
     if(!file)
     {
-        clLogError("TARGET", "INFO", "Unable to read file [%s] at path [%s]", CL_TARGET_INFO_FILE, path);
+        clLogInfo("TARGET", "INFO", "Unable to read file [%s] at path [%s]. "
+                  "ASP static target info cannot be fetched by the user", 
+                  CL_TARGET_INFO_FILE, path);
         goto out;
     }
     rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
