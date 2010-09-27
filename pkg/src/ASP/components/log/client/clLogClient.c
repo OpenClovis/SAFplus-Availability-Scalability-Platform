@@ -431,9 +431,16 @@ clLogInitialize(ClLogHandleT           *phLog,
 
     clEoMyEoIocPortGet(&port);
     if( (CL_TRUE == firstHandle) && (port != CL_IOC_LOG_PORT) )
-//    if( CL_TRUE == firstHandle )
     {
         rc = clLogClntStdStreamOpen(*phLog);
+        /*
+         * Initialize the sys and app streams assuming clLogLibInitialize wasn't called.
+         */
+        if(rc == CL_OK)
+        {
+            CL_LOG_HANDLE_APP = stdStreamList[0].hStream;
+            CL_LOG_HANDLE_SYS = stdStreamList[1].hStream;
+        }
     }
 
     CL_LOG_DEBUG_TRACE(("Exit"));
