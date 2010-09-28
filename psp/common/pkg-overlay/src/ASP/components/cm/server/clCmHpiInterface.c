@@ -1355,10 +1355,21 @@ static ClRcT clCmSensorEventProcess( SaHpiSessionIdT sessionId,
 {
     ClRcT           rc = CL_OK;
     ClAlarmInfoPtrT pAlarmPayload;
+    ClCmSensorEventInfoT *pSensorEventPayload;
     ClUint32T       size = 0;
 
     /* Publish Sensor Event to CM Event Channel */
-    size = sizeof(ClAlarmInfoT)+sizeof(SaHpiSensorEventT);
+    size = sizeof(ClAlarmInfoT)+sizeof(ClCmSensorEventInfoT);
+
+    pSensorEventPayload = clHeapAllocate(sizeof(ClCmSensorEventInfoT));
+    if (NULL == pSensorEventPayload)
+    {
+        return CL_ERR_NULL_POINTER;
+    }
+
+    pSensorEventPayload->rptEntry = *pRptentry;
+    pSensorEventPayload->rdr = *pRdr;
+    pSensorEventPayload->sensorEvent = pEvent->EventDataUnion.SensorEvent;
 
     pAlarmPayload = clHeapAllocate(size);
     if (NULL == pAlarmPayload)
@@ -1372,8 +1383,8 @@ static ClRcT clCmSensorEventProcess( SaHpiSessionIdT sessionId,
     pAlarmPayload->category = CL_ALARM_CATEGORY_EQUIPMENT;
     pAlarmPayload->probCause = CL_ALARM_PROB_CAUSE_EQUIPMENT_MALFUNCTION;
     pAlarmPayload->specificProblem = 0;
-    pAlarmPayload->len = sizeof(SaHpiSensorEventT);
-    memcpy(pAlarmPayload->buff, &pEvent->EventDataUnion.SensorEvent, sizeof(SaHpiSensorEventT));
+    pAlarmPayload->len = sizeof(ClCmSensorEventInfoT);
+    memcpy(pAlarmPayload->buff, pSensorEventPayload, sizeof(ClCmSensorEventInfoT));
 
     rc = clCmPublishEvent(CM_ALARM_EVENT,
                           size,
@@ -1385,6 +1396,7 @@ static ClRcT clCmSensorEventProcess( SaHpiSessionIdT sessionId,
     }
 
     clHeapFree(pAlarmPayload);
+    clHeapFree(pSensorEventPayload);
     
     /* Handle Non Service Impacting Events by calling user callbacks */
     if (pEvent->Severity > SAHPI_MAJOR)
