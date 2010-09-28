@@ -794,8 +794,16 @@ ClRcT  ckptEntryFree(CkptT  *pCkpt)
         /*
          * Free the associated control plane info, data plane info.
          */
-        if (pCkpt->pCpInfo != NULL) _ckptCplaneInfoFree(pCkpt->pCpInfo);
-        if (pCkpt->pDpInfo != NULL) _ckptDplaneInfoFree(pCkpt->pDpInfo);
+        if (pCkpt->pCpInfo != NULL)
+        {
+            _ckptCplaneInfoFree(pCkpt->pCpInfo);
+            pCkpt->pCpInfo = NULL;
+        }
+        if (pCkpt->pDpInfo != NULL)
+        {
+            _ckptDplaneInfoFree(pCkpt->pDpInfo);
+            pCkpt->pDpInfo = NULL;
+        }
         if( CL_HANDLE_INVALID_VALUE != pCkpt->ckptMutex )
         {
             clOsalMutexDelete(pCkpt->ckptMutex);
