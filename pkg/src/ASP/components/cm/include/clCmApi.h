@@ -107,6 +107,15 @@ typedef struct ClCmFruEventInfo {
 	 SaHpiHsStateT presentState;        
 } ClCmFruEventInfoT;
 
+/*
+ * Contents of buffer field in alarmPayload for sensor event payload.
+ */
+typedef struct ClCmSensorEventInfo {
+    SaHpiRptEntryT      rptEntry;
+    SaHpiRdrT           rdr;
+    SaHpiSensorEventT   sensorEvent;
+} ClCmSensorEventInfoT;
+
 
 typedef struct {
     SaHpiEntityPathT eventReporter;
@@ -125,7 +134,7 @@ typedef struct {
 
 /*
  * Event payload is \e ClAlarmInfoT defined in <em> clAlarmDefinitions.h </em>, the contents
- * of buffer field in alarmPayload is \e SaHpiSensorEventT defined in SaHpi.h .
+ * of buffer field in alarmPayload is \e ClCmSensorEventInfo defined above.
  */
 #define CL_CM_ALARM_EVENT_STR "cmAlarmEvent"
 
