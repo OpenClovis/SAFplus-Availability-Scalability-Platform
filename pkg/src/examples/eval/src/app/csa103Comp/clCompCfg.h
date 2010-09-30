@@ -26,7 +26,7 @@ extern "C" {
 #define COMP_EO_NUM_THREAD 2
 #define COMP_IOC_PORT 0
 #define COMP_EO_USER_CLIENT_ID (CL_EO_USER_CLIENT_ID_START + 0)
-#define COMP_EO_USE_THREAD_MODEL CL_EO_USE_THREAD_FOR_APP
+#define COMP_EO_USE_THREAD_MODEL CL_EO_USE_THREAD_FOR_RECV
                                                                                                                              
 /* Component EO Basic Libraries */
 #define COMP_EO_BASICLIB_OSAL   CL_TRUE
@@ -44,7 +44,7 @@ extern "C" {
 #define COMP_EO_CLIENTLIB_COR   CL_FALSE
 #define COMP_EO_CLIENTLIB_CM    CL_FALSE                  
 #define COMP_EO_CLIENTLIB_NAME    CL_FALSE                  
-#define COMP_EO_CLIENTLIB_LOG    CL_FALSE                  
+#define COMP_EO_CLIENTLIB_LOG    CL_TRUE
 #define COMP_EO_CLIENTLIB_TRACE    CL_FALSE                 
 #define COMP_EO_CLIENTLIB_DIAG    CL_FALSE
 #define COMP_EO_CLIENTLIB_TXN    CL_TRUE

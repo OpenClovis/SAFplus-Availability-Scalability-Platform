@@ -56,8 +56,8 @@ clEvalAppStreamAttrCopy(ClCharT                 *pAppName,
     pStreamAttr->recordSize   = 300;
     pStreamAttr->fileFullAction = CL_LOG_FILE_FULL_ACTION_ROTATE;
     pStreamAttr->maxFilesRotated = 3;
-    pStreamAttr->flushFreq       = 64;
-    pStreamAttr->flushInterval   = 100000; 
+    pStreamAttr->flushFreq       = 20;
+    pStreamAttr->flushInterval   = 20000000; 
 
     return ;
 }

@@ -34,39 +34,33 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <assert.h>
+#include <errno.h>
+#include <arpa/inet.h>
 
 /*
  * Basic ASP Includes.
  */
 
 #include <clCommon.h>
-#include <clOsalApi.h>
-#include <clIocServices.h>
+#include <clLogApi.h>
 
 /*
  * ASP Client Includes.
  */
 
-#include <clRmdApi.h>
 #include <clDebugApi.h>
-#include <clOmApi.h>
-#include <clOampRtApi.h>
-#include <clProvApi.h>
-#include <clAlarmApi.h>
-
-#include <clEoApi.h>
 #include <clCpmApi.h>
-#include <clIdlApi.h>
-
+#include <saAmf.h>
 
 /*
  * ---BEGIN_APPLICATION_CODE---
  */
  
-#include <clCkptApi.h>
+#include <saCkpt.h>
+#include <clTaskPool.h>
 #include "clCompAppMain.h"
 #include "../ev/ev.h"
-#include <arpa/inet.h>
 
 /*
  * ---END_APPLICATION_CODE---
@@ -100,20 +94,18 @@ extern ClRcT clcsa103CompEOClientInstall(void);
  * ---BEGIN_APPLICATION_CODE---
  */
 
-static int running = 1;
-static int exiting = 0;
 static ClCharT        appname[80];  /* Component instance name               */
 static ClUint32T      seq      = 0; /* Sequence number for print lines       */
-static ClAmsHAStateT  ha_state = CL_AMS_HA_STATE_NONE; /* HA state           */
+static SaAmfHAStateT  ha_state; /* HA state           */
 
 #define CKPT_NAME     "csa103Ckpt"  /* Checkpoint name for this application  */
-static ClCkptSvcHdlT  ckpt_svc_handle; /* Checkpointing service handle       */
-static ClCkptHdlT     ckpt_handle;  /* Checkpoint handle                     */
+static SaCkptHandleT  ckpt_svc_handle; /* Checkpointing service handle       */
+static SaCkptCheckpointHandleT     ckpt_handle;  /* Checkpoint handle                     */
 #define CKPT_SID_NAME "1"           /* Checkpoint section id                 */
 
-static ClCkptSectionIdT ckpt_sid = { /* Section id for checkpoints           */
-        (ClUint16T)sizeof(CKPT_SID_NAME)-1,
-        (ClUint8T*)CKPT_SID_NAME
+static SaCkptSectionIdT ckpt_sid = { /* Section id for checkpoints           */
+        (SaUint16T)sizeof(CKPT_SID_NAME)-1,
+        (SaUint8T*)CKPT_SID_NAME
 };
 static ClRcT checkpoint_initialize(void);
 static ClRcT checkpoint_finalize(void);
@@ -130,7 +122,8 @@ static ClRcT checkpoint_replica_activate(void);
  *****************************************************************************/
 
 ClPidT mypid;
-ClCpmHandleT cpmHandle;
+SaAmfHandleT amfHandle;
+ClBoolT unblockNow = CL_FALSE;
 ClLogStreamHandleT gEvalLogStream = CL_HANDLE_INVALID_VALUE;
 
 /*
@@ -141,67 +134,77 @@ ClLogStreamHandleT gEvalLogStream = CL_HANDLE_INVALID_VALUE;
  * Declare other global variables here.
  */
 
+static ClRcT csa103CkptTest(ClPtrT unused)
+{
+    ClRcT rc = CL_OK;
+
+    clprintf(CL_LOG_SEV_INFO,"csa103: Instantiated as component instance %s.", appname);
+
+    clprintf(CL_LOG_SEV_INFO,"%s: Waiting for CSI assignment...", appname);
+
+    /* Main loop: Keep printing something unless we are suspended */
+    if (ha_state != SA_AMF_HA_ACTIVE)
+    {
+        clprintf(CL_LOG_SEV_INFO,"%s: Waiting for CSI assignment...", appname);
+    }
+    if ((rc = checkpoint_initialize()) != CL_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR,"%s: Failed [0x%x] to initialize checkpoint",
+                    appname, rc);
+        return rc;
+    }
+    if ((rc = checkpoint_read_seq(&seq)) != CL_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR,"%s: Failed [0x%x] to read checkpoint",
+                    appname, rc);
+        checkpoint_finalize();
+        return rc;
+    }
+#ifdef CL_INST
+    if ((rc = clDataTapInit(DATA_TAP_DEFAULT_FLAGS, 103)) != CL_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR,"%s: Failed [0x%x] to initialize data tap",
+                    appname, rc);
+    }
+#endif
+    while (!unblockNow)
+    {
+        if (ha_state == SA_AMF_HA_ACTIVE)
+        {
+            clprintf(CL_LOG_SEV_INFO,"%s: Hello World! (seq=%d)", appname, seq++);
+
+#ifdef CL_INST
+            if ((rc = clDataTapSend(seq)) != CL_OK && (rc != CL_ERR_INVALID_PARAMETER))
+            {
+                clprintf(CL_LOG_SEV_ERROR,"%s: Failed [0x%x] to send data tap data",
+                        appname, rc);
+            }
+#endif
+            
+            /* Checkpoint new sequence number */
+            rc = checkpoint_write_seq(seq);
+            if (rc != CL_OK)
+            {
+                clprintf(CL_LOG_SEV_ERROR,"%s: ERROR: Checkpoint write failed. Exiting.", appname);
+                // break;
+            }
+        }
+        sleep(1);
+    }
+    return CL_OK;
+}
+
+static void csa103TestDispatcher(ClTaskPoolHandleT *pTestHandle)
+{
+    ClRcT rc = CL_OK;
+    rc = clTaskPoolCreate(pTestHandle, 1, NULL, NULL);
+    CL_ASSERT(rc == CL_OK);
+    clTaskPoolRun(*pTestHandle, csa103CkptTest, NULL);
+}
+
 /*
  * ---END_APPLICATION_CODE---
  */
-
-/*
- * Description of this EO
- */
-
-ClEoConfigT clEoConfig =
-{
-    COMP_EO_NAME,               /* EO Name                                  */
-    COMP_EO_THREAD_PRIORITY,    /* EO Thread Priority                       */
-    COMP_EO_NUM_THREAD,         /* No of EO thread needed                   */
-    COMP_IOC_PORT,              /* Required Ioc Port                        */
-    COMP_EO_USER_CLIENT_ID, 
-    COMP_EO_USE_THREAD_MODEL,   /* Thread Model                             */
-    clCompAppInitialize,        /* Application Initialize Callback          */
-    clCompAppFinalize,          /* Application Terminate Callback           */
-    clCompAppStateChange,       /* Application State Change Callback        */
-    clCompAppHealthCheck,       /* Application Health Check Callback        */
-};
-
-/*
- * Basic libraries used by this EO. The first 6 libraries are mandatory, the
- * others can be enabled or disabled by setting to CL_TRUE or CL_FALSE.
- */
-
-ClUint8T clEoBasicLibs[] =
-{
-    COMP_EO_BASICLIB_OSAL,      /* Lib: Operating System Adaptation Layer   */
-    COMP_EO_BASICLIB_TIMER,     /* Lib: Timer                               */
-    COMP_EO_BASICLIB_BUFFER,    /* Lib: Buffer Management                   */
-    COMP_EO_BASICLIB_IOC,       /* Lib: Intelligent Object Communication    */
-    COMP_EO_BASICLIB_RMD,       /* Lib: Remote Method Dispatch              */
-    COMP_EO_BASICLIB_EO,        /* Lib: Execution Object                    */
-    COMP_EO_BASICLIB_OM,        /* Lib: Object Management                   */
-    COMP_EO_BASICLIB_HAL,       /* Lib: Hardware Adaptation Layer           */
-    COMP_EO_BASICLIB_DBAL,      /* Lib: Database Adaptation Layer           */
-};
-
-/*
- * Client libraries used by this EO. All are optional and can be enabled
- * or disabled by setting to CL_TRUE or CL_FALSE.
- */
-
-ClUint8T clEoClientLibs[] =
-{
-    COMP_EO_CLIENTLIB_COR,      /* Lib: Common Object Repository            */
-    COMP_EO_CLIENTLIB_CM,       /* Lib: Chassis Management                  */
-    COMP_EO_CLIENTLIB_NAME,     /* Lib: Name Service                        */
-    COMP_EO_CLIENTLIB_LOG,      /* Lib: Log Service                         */
-    COMP_EO_CLIENTLIB_TRACE,    /* Lib: Trace Service                       */
-    COMP_EO_CLIENTLIB_DIAG,     /* Lib: Diagnostics                         */
-    COMP_EO_CLIENTLIB_TXN,      /* Lib: Transaction Management              */
-    CL_FALSE,                   /* NA */
-    COMP_EO_CLIENTLIB_PROV,     /* Lib: Provisioning Management             */
-    COMP_EO_CLIENTLIB_ALARM,    /* Lib: Alarm Management                    */
-    COMP_EO_CLIENTLIB_DEBUG,    /* Lib: Debug Service                       */
-    COMP_EO_CLIENTLIB_GMS,      /* Lib: Cluster/Group Membership Service    */
-    COMP_EO_CLIENTLIB_PM        /* Lib: Performance Management              */
-};
 
 /******************************************************************************
  * Application Life Cycle Management Functions
@@ -213,16 +216,17 @@ ClUint8T clEoClientLibs[] =
  * This function is invoked when the application is to be initialized.
  */
 
-ClRcT
-clCompAppInitialize(
-    ClUint32T argc,
-    ClCharT *argv[])
+int main(int argc, char *argv[])
 {
-    ClNameT             appName;
-    ClCpmCallbacksT     callbacks;
-    ClVersionT          version;
+    SaNameT             appName;
+    SaAmfCallbacksT     callbacks;
+    SaVersionT          version;
     ClIocPortT          iocPort;
     ClRcT               rc = CL_OK;
+
+    SaSelectionObjectT dispatch_fd;
+    fd_set read_fds;
+    ClTaskPoolHandleT testHandle = 0;
 
     /*
      * ---BEGIN_APPLICATION_CODE---
@@ -252,34 +256,25 @@ clCompAppInitialize(
     version.majorVersion                        = 01;
     version.minorVersion                        = 01;
     
-    callbacks.appHealthCheck                    = NULL;
-    callbacks.appTerminate                      = clCompAppTerminate;
-    callbacks.appCSISet                         = clCompAppAMFCSISet;
-    callbacks.appCSIRmv                         = clCompAppAMFCSIRemove;
-    callbacks.appProtectionGroupTrack           = NULL;
+    callbacks.saAmfHealthcheckCallback                    = NULL;
+    callbacks.saAmfComponentTerminateCallback             = clCompAppTerminate;
+    callbacks.saAmfCSISetCallback                         = clCompAppAMFCSISet;
+    callbacks.saAmfCSIRemoveCallback                      = clCompAppAMFCSIRemove;
+    callbacks.saAmfProtectionGroupTrackCallback           = NULL;
         
-    /*
-     * Get IOC Address, Port and Name. Register with AMF.
-     */
-
-    clEoMyEoIocPortGet(&iocPort);
-
-    if ( (rc = clCpmClientInitialize(&cpmHandle, &callbacks, &version)) ) 
+    if ( (rc = saAmfInitialize(&amfHandle, &callbacks, &version)) != SA_AIS_OK) 
         goto errorexit;
 
+    FD_ZERO(&read_fds);
+
     /*
-     * If this component will provide a service, register it now.
+     * Get the AMF dispatch FD for the callbacks
      */
+    if ( (rc = saAmfSelectionObjectGet(amfHandle, &dispatch_fd)) != SA_AIS_OK)
+        goto errorexit;
+    
+    FD_SET(dispatch_fd, &read_fds);
 
-#if HAS_EO_SERVICES
-
-    /* Uncomment the following line if the EO is providing services and the 
-       method implementations are available for all the methods defined for this EO.
-
-    rc = clcsa103CompEOClientInstall(void);
-
-    */
-#endif
 
     /*
      * Do the application specific initialization here.
@@ -289,7 +284,7 @@ clCompAppInitialize(
      * ---BEGIN_APPLICATION_CODE---
      */
 
-    clprintf(CL_LOG_SEV_INFO,"csa103: Initializing and registering with CPM...");
+    clprintf(CL_LOG_SEV_INFO,"csa103: Initializing and registering with AMF...");
 
     /*
      * ---END_APPLICATION_CODE---
@@ -300,14 +295,20 @@ clCompAppInitialize(
      * ready to provide service, i.e. take work assignments.
      */
 
-    if ( (rc = clCpmComponentNameGet(cpmHandle, &appName)) ) 
+    if ( (rc = saAmfComponentNameGet(amfHandle, &appName)) != SA_AIS_OK ) 
         goto errorexit;
-    if ( (rc = clCpmComponentRegister(cpmHandle, &appName, NULL)) ) 
+    if ( (rc = saAmfComponentRegister(amfHandle, &appName, NULL)) != SA_AIS_OK ) 
         goto errorexit;
 
+    /*
+     * Get IOC Address
+     */
+
+    clEoMyEoIocPortGet(&iocPort);
+
     memset(appname, 0, sizeof(appname));
-#define min(x,y) ((x<y)? x: y)
-    strncpy(appname, appName.value, min(sizeof(appname), appName.length));
+#define min(x,y) ((x) < (y) ? (x): (y))
+    strncpy(appname, (const char *)appName.value, min(sizeof(appname)-1, appName.length));
     appname[min(sizeof appname - 1, appName.length)] = 0;
 
     /* Set up console redirection for demo purposes */
@@ -328,73 +329,51 @@ clCompAppInitialize(
      * application specific initialization and registration. Main thread usage
      * policy can be set through IDE from Component porperty -> Eo properties.
      */
-
+    
     /*
      * ---BEGIN_APPLICATION_CODE---
      */
-
-
-
-    clprintf(CL_LOG_SEV_INFO,"csa103: Instantiated as component instance %s.", appname);
-
-    clprintf(CL_LOG_SEV_INFO,"%s: Waiting for CSI assignment...", appname);
-
-    /* Main loop: Keep printing something unless we are suspended */
-    if (ha_state != CL_AMS_HA_STATE_ACTIVE)
-    {
-        clprintf(CL_LOG_SEV_INFO,"%s: Waiting for CSI assignment...", appname);
-    }
-    if ((rc = checkpoint_initialize()) != CL_OK)
-    {
-        clprintf(CL_LOG_SEV_ERROR,"%s: Failed [0x%x] to initialize checkpoint",
-                    appname, rc);
-        return rc;
-    }
-    if ((rc = checkpoint_read_seq(&seq)) != CL_OK)
-    {
-        clprintf(CL_LOG_SEV_ERROR,"%s: Failed [0x%x] to read checkpoint",
-                    appname, rc);
-        checkpoint_finalize();
-        return rc;
-    }
-#ifdef CL_INST
-    if ((rc = clDataTapInit(DATA_TAP_DEFAULT_FLAGS, 103)) != CL_OK)
-    {
-        clprintf(CL_LOG_SEV_ERROR,"%s: Failed [0x%x] to initialize data tap",
-                    appname, rc);
-    }
-#endif
-    while (!exiting)
-    {
-        if (running && ha_state == CL_AMS_HA_STATE_ACTIVE)
-        {
-            clprintf(CL_LOG_SEV_INFO,"%s: Hello World! (seq=%d)", appname, seq++);
-
-#ifdef CL_INST
-            if ((rc = clDataTapSend(seq)) != CL_OK && (rc != CL_ERR_INVALID_PARAMETER))
-            {
-                clprintf(CL_LOG_SEV_ERROR,"%s: Failed [0x%x] to send data tap data",
-                        appname, rc);
-            }
-#endif
-            
-            /* Checkpoint new sequence number */
-            rc = checkpoint_write_seq(seq);
-            if (rc != CL_OK)
-            {
-                clprintf(CL_LOG_SEV_ERROR,"%s: ERROR: Checkpoint write failed. Exiting.", appname);
-                break;
-            }
-        }
-        sleep(1);
-    }
-
+    csa103TestDispatcher(&testHandle);
 
     /*
      * ---END_APPLICATION_CODE---
      */
 
-    return rc;
+    /*
+     * Block on AMF dispatch file descriptor for callbacks
+     */
+    do
+    {
+        if( select(dispatch_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
+        {
+            if (EINTR == errno)
+            {
+                continue;
+            }
+		    clprintf (CL_LOG_SEV_ERROR, "Error in select()");
+			perror("");
+            break;
+        }
+        saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+    }while(!unblockNow);      
+
+    /*
+     * Do the application specific finalization here.
+     */
+    clTaskPoolStop(testHandle);
+
+    checkpoint_finalize();
+
+    clEvalAppLogStreamClose(gEvalLogStream);
+    
+    if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
+	{
+        clprintf (CL_LOG_SEV_ERROR, "AMF finalization error[0x%X]", rc);
+	}
+
+    clprintf (CL_LOG_SEV_INFO, "AMF Finalized");
+
+    return 0;
 
 errorexit:
 
@@ -429,22 +408,19 @@ ClRcT clCompAppFinalize()
  * This function is invoked when the application is to be terminated.
  */
 
-ClRcT
+void
 clCompAppTerminate(
-    ClInvocationT       invocation,
-    const ClNameT       *compName)
+    SaInvocationT       invocation,
+    const SaNameT       *compName)
 {
-    ClRcT rc = CL_OK;
+    SaAisErrorT rc = SA_AIS_OK;
 
-    clprintf (CL_LOG_SEV_INFO, "Component [%s] : PID [%ld]. Terminating",
-              compName->value, mypid);
+    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%ld]. Terminating",
+              compName->length, compName->value, mypid);
 
     /*
      * ---BEGIN_APPLICATION_CODE--- 
      */
-
-    exiting = 1;
-    checkpoint_finalize();
 
     /*
      * ---END_APPLICATION_CODE---
@@ -454,24 +430,24 @@ clCompAppTerminate(
      * Unregister with AMF and send back a response
      */
 
-    if ( (rc = clCpmComponentUnregister(cpmHandle, compName, NULL)) )
-        goto errorexit;
-    if ( (rc = clCpmClientFinalize(cpmHandle)) )
+    if ( (rc = saAmfComponentUnregister(amfHandle, compName, NULL)) != SA_AIS_OK )
         goto errorexit;
 
-    clprintf (CL_LOG_SEV_INFO, "Component [%s] : PID [%ld]. Terminated", compName->value, mypid);
-    clCpmResponse(cpmHandle, invocation, CL_OK);
+    saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 
-    clEvalAppLogStreamClose(gEvalLogStream);
+    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%ld]. Terminated", 
+              compName->length, compName->value, mypid);
 
-    return rc;
+    unblockNow = CL_TRUE;
+
+    return;
 
 errorexit:
 
     clprintf (CL_LOG_SEV_ERROR, "Component [%s] : PID [%ld]. Termination error [0x%x]",
               compName->value, mypid, rc);
 
-    return rc;
+    return;
 }
 
 /*
@@ -495,8 +471,6 @@ clCompAppStateChange(
              * ---BEGIN_APPLICATION_CODE---
              */
 
-            running = 0;
-
             /*
              * ---END_APPLICATION_CODE---
              */
@@ -509,8 +483,6 @@ clCompAppStateChange(
             /*
              * ---BEGIN_APPLICATION_CODE---
              */
-
-            running = 1;
 
             /*
              * ---END_APPLICATION_CODE---
@@ -569,12 +541,10 @@ clCompAppHealthCheck(
  * of a CSI is changed.
  */
 
-ClRcT
-clCompAppAMFCSISet(
-    ClInvocationT       invocation,
-    const ClNameT       *compName,
-    ClAmsHAStateT       haState,
-    ClAmsCSIDescriptorT csiDescriptor)
+void clCompAppAMFCSISet(SaInvocationT       invocation,
+                        const SaNameT       *compName,
+                        SaAmfHAStateT       haState,
+                        SaAmfCSIDescriptorT csiDescriptor)
 {
     /*
      * ---BEGIN_APPLICATION_CODE--- 
@@ -588,7 +558,7 @@ clCompAppAMFCSISet(
     /*
      * Print information about the CSI Set
      */
-    strncpy(compname, compName->value, compName->length);
+    strncpy(compname, (const char*)compName->value, compName->length);
 
     clprintf (CL_LOG_SEV_INFO, "Component [%s] : PID [%ld]. CSI Set Received", 
               compname, mypid);
@@ -601,7 +571,7 @@ clCompAppAMFCSISet(
 
     switch ( haState )
     {
-        case CL_AMS_HA_STATE_ACTIVE:
+        case SA_AMF_HA_ACTIVE:
         {
             /*
              * AMF has requested application to take the active HA state 
@@ -616,7 +586,7 @@ clCompAppAMFCSISet(
                         appname, ha_state);
 
             checkpoint_replica_activate();
-            if (ha_state == CL_AMS_HA_STATE_STANDBY)
+            if (ha_state == SA_AMF_HA_STANDBY)
             {
                 /* Read checkpoint, make our replica the active replica */
                 clprintf(CL_LOG_SEV_INFO,"%s reading checkpoint", appname);
@@ -624,18 +594,18 @@ clCompAppAMFCSISet(
                 clprintf(CL_LOG_SEV_INFO,"%s read checkpoint: seq = %u", appname, seq);
             }
             
-            ha_state = CL_AMS_HA_STATE_ACTIVE;
+            ha_state = SA_AMF_HA_ACTIVE;
 
 
             /*
              * ---END_APPLICATION_CODE---
              */
 
-            clCpmResponse(cpmHandle, invocation, CL_OK);
+            saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
 
-        case CL_AMS_HA_STATE_STANDBY:
+        case SA_AMF_HA_STANDBY:
         {
             /*
              * AMF has requested application to take the standby HA state 
@@ -648,17 +618,17 @@ clCompAppAMFCSISet(
 
             clprintf(CL_LOG_SEV_INFO," Standby state requested from state %d",ha_state);
             
-            ha_state = CL_AMS_HA_STATE_STANDBY;
+            ha_state = SA_AMF_HA_STANDBY;
 
             /*
              * ---END_APPLICATION_CODE---
              */
 
-            clCpmResponse(cpmHandle, invocation, CL_OK);
+            saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
 
-        case CL_AMS_HA_STATE_QUIESCED:
+        case SA_AMF_HA_QUIESCED:
         {
             /*
              * AMF has requested application to quiesce the CSI currently
@@ -677,11 +647,11 @@ clCompAppAMFCSISet(
              * ---END_APPLICATION_CODE---
              */
 
-            clCpmResponse(cpmHandle, invocation, CL_OK);
+            saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
 
-        case CL_AMS_HA_STATE_QUIESCING:
+        case SA_AMF_HA_QUIESCING:
         {
             /*
              * AMF has requested application to quiesce the CSI currently
@@ -701,7 +671,7 @@ clCompAppAMFCSISet(
              * ---END_APPLICATION_CODE---
              */
 
-            clCpmCSIQuiescingComplete(cpmHandle, invocation, CL_OK);
+            saAmfCSIQuiescingComplete(amfHandle, invocation, SA_AIS_OK);
             break;
         }
 
@@ -711,7 +681,7 @@ clCompAppAMFCSISet(
         }
     }
 
-    return CL_OK;
+    return;
 }
 
 /*
@@ -720,21 +690,18 @@ clCompAppAMFCSISet(
  * This function is invoked when a CSI assignment is to be removed.
  */
 
-ClRcT
-clCompAppAMFCSIRemove(
-    ClInvocationT       invocation,
-    const ClNameT       *compName,
-    const ClNameT       *csiName,
-    ClAmsCSIFlagsT      csiFlags)
+void clCompAppAMFCSIRemove(SaInvocationT  invocation,
+                           const SaNameT  *compName,
+                           const SaNameT  *csiName,
+                           SaAmfCSIFlagsT csiFlags)
 {
     /*
      * Print information about the CSI Remove
      */
+    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%ld]. CSI Remove Received", 
+              compName->length, compName->value, mypid);
 
-    clprintf (CL_LOG_SEV_INFO, "Component [%s] : PID [%ld]. CSI Remove Received", 
-              compName->value, mypid);
-
-    clprintf (CL_LOG_SEV_INFO, "   CSI                     : %s", csiName->value);
+    clprintf (CL_LOG_SEV_INFO, "   CSI                     : %.*s", csiName->length, csiName->value);
     clprintf (CL_LOG_SEV_INFO, "   CSI Flags               : 0x%x", csiFlags);
 
     /*
@@ -751,9 +718,9 @@ clCompAppAMFCSIRemove(
      * ---END_APPLICATION_CODE---
      */
 
-    clCpmResponse(cpmHandle, invocation, CL_OK);
+    saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 
-    return CL_OK;
+    return;
 }
 
 /******************************************************************************
@@ -766,59 +733,61 @@ clCompAppAMFCSIRemove(
  * Print information received in a CSI set request.
  */
 
-ClRcT clCompAppAMFPrintCSI(ClAmsCSIDescriptorT csiDescriptor,
-                           ClAmsHAStateT haState)
+void clCompAppAMFPrintCSI(SaAmfCSIDescriptorT csiDescriptor,
+                          SaAmfHAStateT haState)
 {
-    clprintf (CL_LOG_SEV_INFO, "   CSI Flags               : [%s]",
+    clprintf (CL_LOG_SEV_INFO,
+              "CSI Flags : [%s]",
               STRING_CSI_FLAGS(csiDescriptor.csiFlags));
 
-    if (CL_AMS_CSI_FLAG_TARGET_ALL != csiDescriptor.csiFlags)
+    if (SA_AMF_CSI_TARGET_ALL != csiDescriptor.csiFlags)
     {
-        clprintf (CL_LOG_SEV_INFO, "   CSI Name                : [%s]", 
+        clprintf (CL_LOG_SEV_INFO, "CSI Name : [%s]", 
                   csiDescriptor.csiName.value);
     }
 
-    if (CL_AMS_CSI_FLAG_ADD_ONE == csiDescriptor.csiFlags)
+    if (SA_AMF_CSI_ADD_ONE == csiDescriptor.csiFlags)
     {
         ClUint32T i = 0;
         
-        clprintf (CL_LOG_SEV_INFO, "   Name Value Pairs        : ");
-        for (i = 0; i < csiDescriptor.csiAttributeList.numAttributes; i++)
+        clprintf (CL_LOG_SEV_INFO, "Name value pairs :");
+        for (i = 0; i < csiDescriptor.csiAttr.number; i++)
         {
-            clprintf (CL_LOG_SEV_INFO, "       Name            : [%s]",
-                      csiDescriptor.csiAttributeList.
-                      attribute[i].attributeName);
-            clprintf (CL_LOG_SEV_INFO, "       Value           : [%s]",
-                      csiDescriptor.csiAttributeList.
-                      attribute[i].attributeValue);
+            clprintf (CL_LOG_SEV_INFO, "Name : [%s]",
+                      csiDescriptor.csiAttr.
+                      attr[i].attrName);
+            clprintf (CL_LOG_SEV_INFO, "Value : [%s]",
+                      csiDescriptor.csiAttr.
+                      attr[i].attrValue);
         }
     }
     
-    clprintf (CL_LOG_SEV_INFO, "   HA State                : [%s]",
+    clprintf (CL_LOG_SEV_INFO, "HA state : [%s]",
               STRING_HA_STATE(haState));
 
-    if (CL_AMS_HA_STATE_ACTIVE == haState)
+    if (SA_AMF_HA_ACTIVE == haState)
     {
-        clprintf (CL_LOG_SEV_INFO, "   Active Descriptor       : ");
-        clprintf (CL_LOG_SEV_INFO, "     Transition Descriptor : [%d]",
+        clprintf (CL_LOG_SEV_INFO, "Active Descriptor :");
+        clprintf (CL_LOG_SEV_INFO,
+                  "Transition Descriptor : [%d]",
                   csiDescriptor.csiStateDescriptor.
                   activeDescriptor.transitionDescriptor);
-        clprintf (CL_LOG_SEV_INFO, "       Active Component    : [%s]",
+        clprintf (CL_LOG_SEV_INFO,
+                  "Active Component : [%s]",
                   csiDescriptor.csiStateDescriptor.
                   activeDescriptor.activeCompName.value);
     }
-    else if (CL_AMS_HA_STATE_STANDBY == haState)
+    else if (SA_AMF_HA_STANDBY == haState)
     {
-        clprintf (CL_LOG_SEV_INFO, "   Standby Descriptor      : ");
-        clprintf (CL_LOG_SEV_INFO, "       Standby Rank        : [%d]",
+        clprintf (CL_LOG_SEV_INFO, "Standby Descriptor :");
+        clprintf (CL_LOG_SEV_INFO,
+                  "Standby Rank : [%d]",
                   csiDescriptor.csiStateDescriptor.
                   standbyDescriptor.standbyRank);
-        clprintf (CL_LOG_SEV_INFO, "       Active Component    : [%s]",
+        clprintf (CL_LOG_SEV_INFO, "Active Component : [%s]",
                   csiDescriptor.csiStateDescriptor.
                   standbyDescriptor.activeCompName.value);
     }
-
-    return CL_OK;
 }
 
 /*
@@ -828,13 +797,13 @@ ClRcT clCompAppAMFPrintCSI(ClAmsCSIDescriptorT csiDescriptor,
 static ClRcT
 checkpoint_initialize()
 {
-    ClRcT      rc = CL_OK;
-    ClVersionT ckpt_version = {'B', 1, 1};
-    ClNameT    ckpt_name = { strlen(CKPT_NAME), CKPT_NAME };
+    SaAisErrorT      rc = CL_OK;
+    SaVersionT ckpt_version = {'B', 1, 1};
+    SaNameT    ckpt_name = { strlen(CKPT_NAME), CKPT_NAME };
     ClUint32T  seq_no;
-    ClCkptCheckpointCreationAttributesT create_atts = {
-        .creationFlags     = CL_CKPT_WR_ACTIVE_REPLICA_WEAK |
-                             CL_CKPT_CHECKPOINT_COLLOCATED,
+    SaCkptCheckpointCreationAttributesT create_atts = {
+        .creationFlags     = SA_CKPT_WR_ACTIVE_REPLICA_WEAK |
+                             SA_CKPT_CHECKPOINT_COLLOCATED,
         .checkpointSize    = sizeof(ClUint32T),
         .retentionDuration = (ClTimeT)10, 
         .maxSections       = 2, // two sections 
@@ -842,20 +811,20 @@ checkpoint_initialize()
         .maxSectionIdSize  = (ClSizeT)64
     };
 
-    ClCkptSectionCreationAttributesT section_atts = {
+    SaCkptSectionCreationAttributesT section_atts = {
         .sectionId = &ckpt_sid,
-        .expirationTime = CL_TIME_END
+        .expirationTime = SA_TIME_END
     };
 	  
     clprintf(CL_LOG_SEV_INFO,"%s: checkpoint_initialize", appname);
     /* Initialize checkpointing service instance */
-    rc = clCkptInitialize(&ckpt_svc_handle,	/* Checkpoint service handle */
+    rc = saCkptInitialize(&ckpt_svc_handle,	/* Checkpoint service handle */
 						  NULL,			    /* Optional callbacks table */
 						  &ckpt_version);   /* Required verison number */
-    if (rc != CL_OK)
+    if (rc != SA_AIS_OK)
     {
-        clprintf(CL_LOG_SEV_ERROR,"%s: ERROR: Failed to initialize checkpoint service",
-                    appname);
+        clprintf(CL_LOG_SEV_ERROR,"%s: ERROR: Failed to initialize checkpoint service with rc [%#x]",
+                 appname, rc);
         return rc;
     }
     clprintf(CL_LOG_SEV_INFO,"%s: Checkpoint service initialized (handle=0x%llx)",
@@ -863,20 +832,20 @@ checkpoint_initialize()
     
     //
     // Create the checkpoint for read and write.
-    rc = clCkptCheckpointOpen(ckpt_svc_handle,      // Service handle
-                                &ckpt_name,         // Checkpoint name
-                                &create_atts,       // Optional creation attr.
-                                (CL_CKPT_CHECKPOINT_READ |
-                                 CL_CKPT_CHECKPOINT_WRITE |
-                                 CL_CKPT_CHECKPOINT_CREATE),
-                                (ClTimeT)-1,        // No timeout
-                                &ckpt_handle);      // Checkpoint handle
+    rc = saCkptCheckpointOpen(ckpt_svc_handle,      // Service handle
+                              &ckpt_name,         // Checkpoint name
+                              &create_atts,       // Optional creation attr.
+                              (SA_CKPT_CHECKPOINT_READ |
+                               SA_CKPT_CHECKPOINT_WRITE |
+                               SA_CKPT_CHECKPOINT_CREATE),
+                              (SaTimeT)-1,        // No timeout
+                              &ckpt_handle);      // Checkpoint handle
 
-    if (rc != CL_OK)
+    if (rc != SA_AIS_OK)
     {
         clprintf(CL_LOG_SEV_ERROR,"%s: ERROR: Failed [0x%x] to open checkpoint",
                     appname, rc);
-        (void)clCkptFinalize(ckpt_svc_handle);
+        (void)saCkptFinalize(ckpt_svc_handle);
         return rc;
     }
     clprintf(CL_LOG_SEV_INFO,"%s: Checkpoint opened (handle=0x%llx)", appname, ckpt_handle);
@@ -894,26 +863,26 @@ checkpoint_initialize()
 
     // Creating the section
     checkpoint_replica_activate();
-    rc = clCkptSectionCreate(ckpt_handle,           // Checkpoint handle
+    rc = saCkptSectionCreate(ckpt_handle,           // Checkpoint handle
                              &section_atts,         // Section attributes
-                             (ClUint8T*)&seq_no,    // Initial data
-                             (ClSizeT)sizeof(seq_no)); // Size of data
-    if (rc != CL_OK && (CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST))
+                             (SaUint8T*)&seq_no,    // Initial data
+                             (SaSizeT)sizeof(seq_no)); // Size of data
+    if (rc != SA_AIS_OK && (CL_GET_ERROR_CODE(rc) != SA_AIS_ERR_EXIST))
     {
         clprintf(CL_LOG_SEV_ERROR,"%s: ERROR: Failed to create checkpoint section", appname);
-        (void)clCkptCheckpointClose(ckpt_handle);
-        (void)clCkptFinalize(ckpt_svc_handle);
+        (void)saCkptCheckpointClose(ckpt_handle);
+        (void)saCkptFinalize(ckpt_svc_handle);
         return rc;
     }
-    else if (rc != CL_OK && (CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST))
+    else if (rc != SA_AIS_OK && (CL_GET_ERROR_CODE(rc) == SA_AIS_ERR_EXIST))
     {
         rc = checkpoint_read_seq(&seq);
         if (rc != CL_OK)
         {
             clprintf(CL_LOG_SEV_ERROR,"%s: ERROR: Failed [0x%x] to read checkpoint section",
                         appname, rc);
-            (void)clCkptCheckpointClose(ckpt_handle);
-            (void)clCkptFinalize(ckpt_svc_handle);
+            (void)saCkptCheckpointClose(ckpt_handle);
+            (void)saCkptFinalize(ckpt_svc_handle);
             return rc;
         }
     }
@@ -922,22 +891,22 @@ checkpoint_initialize()
         clprintf(CL_LOG_SEV_INFO,"%s: Section created", appname);
     }
 
-    return rc;
+    return CL_OK;
 }
 
 static ClRcT 
 checkpoint_finalize(void)
 {
-    ClRcT rc;
+    SaAisErrorT rc;
 
-    rc = clCkptCheckpointClose(ckpt_handle);
-    if (rc != CL_OK)
+    rc = saCkptCheckpointClose(ckpt_handle);
+    if (rc != SA_AIS_OK)
     {
         clprintf(CL_LOG_SEV_ERROR,"%s: failed: [0x%x] to close checkpoint handle 0x%llx",
                     appname, rc, ckpt_handle);
     }
-    rc = clCkptFinalize(ckpt_svc_handle);
-    if (rc != CL_OK)
+    rc = saCkptFinalize(ckpt_svc_handle);
+    if (rc != SA_AIS_OK)
     {
         clprintf(CL_LOG_SEV_ERROR,"%s: failed: [0x%x] to finalize checkpoint",
                     appname, rc);
@@ -948,34 +917,38 @@ checkpoint_finalize(void)
 static ClRcT
 checkpoint_write_seq(ClUint32T seq)
 {
-    ClRcT rc = CL_OK;
+    SaAisErrorT rc = SA_AIS_OK;
     ClUint32T seq_no;
     
     /* Putting data in network byte order */
     seq_no = htonl(seq);
     
     /* Write checkpoint */
-    rc = clCkptSectionOverwrite(ckpt_handle,
+    retry:
+    rc = saCkptSectionOverwrite(ckpt_handle,
                                 &ckpt_sid,
                                 &seq_no,
                                 sizeof(ClUint32T));
-    if (rc != CL_OK)
+    if (rc != SA_AIS_OK)
     {
         clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to write to section", rc);
+        if(rc == SA_AIS_ERR_NOT_EXIST)
+            rc = checkpoint_replica_activate();
+        if(rc == CL_OK) goto retry;
     }
     else 
     {
         /*
          * Synchronize the checkpoint to all the replicas.
          */
-        rc = clCkptCheckpointSynchronize(ckpt_handle, CL_TIME_END );
-        if (rc != CL_OK)
+        rc = saCkptCheckpointSynchronize(ckpt_handle, SA_TIME_END );
+        if (rc != SA_AIS_OK)
         {
             clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to synchronize the checkpoint", rc);
         }
     }
 
-    return rc;
+    return CL_OK;
 }
 
 static ClRcT
@@ -984,7 +957,7 @@ checkpoint_read_seq(ClUint32T *seq)
     ClRcT rc = CL_OK;
     ClUint32T err_idx; /* Error index in ioVector */
     ClUint32T seq_no = 0xffffffff;
-    ClCkptIOVectorElementT iov = {
+    SaCkptIOVectorElementT iov = {
         .sectionId  = ckpt_sid,
         .dataBuffer = (ClPtrT)&seq_no,
         .dataSize   = sizeof(ClUint32T),
@@ -992,8 +965,8 @@ checkpoint_read_seq(ClUint32T *seq)
         .readSize   = sizeof(ClUint32T)
     };
         
-    rc = clCkptCheckpointRead(ckpt_handle, &iov, 1, &err_idx);
-    if (rc != CL_OK)
+    rc = saCkptCheckpointRead(ckpt_handle, &iov, 1, &err_idx);
+    if (rc != SA_AIS_OK)
     {
         clprintf(CL_LOG_SEV_ERROR,"Error: [0x%x] from checkpoint read, err_idx = %u",
                     rc, err_idx);
@@ -1002,20 +975,21 @@ checkpoint_read_seq(ClUint32T *seq)
     /* FIXME: How to process this err_idx? */
     *seq = ntohl(seq_no);
     
-    return rc;
+    return CL_OK;
 }
 
 static ClRcT
 checkpoint_replica_activate(void)
 {
-    ClRcT rc = CL_OK;
+    SaAisErrorT rc = SA_AIS_OK;
 
-    if ((rc = clCkptActiveReplicaSet(ckpt_handle)) != CL_OK)
+    if ((rc = saCkptActiveReplicaSet(ckpt_handle)) != SA_AIS_OK)
     {
         clprintf(CL_LOG_SEV_ERROR,
                 "checkpoint_replica_activate failed [0x%x] in ActiveReplicaSet",
                 rc);
     }
+    else rc = CL_OK;
 
     return rc;
 }

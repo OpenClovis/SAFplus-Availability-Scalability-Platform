@@ -41,17 +41,16 @@ extern "C" {
  *****************************************************************************/
 
 #define STRING_HA_STATE(S)                                                  \
-(   ((S) == CL_AMS_HA_STATE_ACTIVE)             ? "Active" :                \
-    ((S) == CL_AMS_HA_STATE_STANDBY)            ? "Standby" :               \
-    ((S) == CL_AMS_HA_STATE_QUIESCED)           ? "Quiesced" :              \
-    ((S) == CL_AMS_HA_STATE_QUIESCING)          ? "Quiescing" :             \
-    ((S) == CL_AMS_HA_STATE_NONE)               ? "None" :                  \
-                                                  "Unknown" )
+(   ((S) == SA_AMF_HA_ACTIVE)             ? "Active" :                \
+    ((S) == SA_AMF_HA_STANDBY)            ? "Standby" :               \
+    ((S) == SA_AMF_HA_QUIESCED)           ? "Quiesced" :              \
+    ((S) == SA_AMF_HA_QUIESCING)          ? "Quiescing" :             \
+                                            "Unknown" )
 
 #define STRING_CSI_FLAGS(S)                                                 \
-(   ((S) == CL_AMS_CSI_FLAG_ADD_ONE)            ? "Add One" :               \
-    ((S) == CL_AMS_CSI_FLAG_TARGET_ONE)         ? "Target One" :            \
-    ((S) == CL_AMS_CSI_FLAG_TARGET_ALL)         ? "Target All" :            \
+(   ((S) == SA_AMF_CSI_ADD_ONE)            ? "Add One" :               \
+    ((S) == SA_AMF_CSI_TARGET_ONE)         ? "Target One" :            \
+    ((S) == SA_AMF_CSI_TARGET_ALL)         ? "Target All" :            \
                                                   "Unknown" )
 
 /******************************************************************************
@@ -74,37 +73,28 @@ ClRcT
 clCompAppHealthCheck(
         ClEoSchedFeedBackT* schFeedback);
 
-ClRcT
-clCompAppTerminate(
-        ClInvocationT       invocation,
-        const ClNameT       *compName);
+void clCompAppTerminate(SaInvocationT invocation, const SaNameT *compName);
 
 /******************************************************************************
  * Application Work Assignment Functions
  *****************************************************************************/
 
-ClRcT
-clCompAppAMFCSISet(
-        ClInvocationT       invocation,
-        const ClNameT       *compName,
-        ClAmsHAStateT       haState,
-        ClAmsCSIDescriptorT csiDescriptor);
+void clCompAppAMFCSISet(SaInvocationT       invocation,
+                        const SaNameT       *compName,
+                        SaAmfHAStateT       haState,
+                        SaAmfCSIDescriptorT csiDescriptor);
 
-ClRcT
-clCompAppAMFCSIRemove(
-        ClInvocationT       invocation,
-        const ClNameT       *compName,
-        const ClNameT       *csiName,
-        ClAmsCSIFlagsT      csiFlags);
+void clCompAppAMFCSIRemove(SaInvocationT  invocation,
+                           const SaNameT  *compName,
+                           const SaNameT  *csiName,
+                           SaAmfCSIFlagsT csiFlags);
 
 /******************************************************************************
  * Utility functions 
  *****************************************************************************/
+void clCompAppAMFPrintCSI(SaAmfCSIDescriptorT csiDescriptor,
+                          SaAmfHAStateT haState);
 
-ClRcT
-clCompAppAMFPrintCSI(
-    ClAmsCSIDescriptorT csiDescriptor,
-    ClAmsHAStateT haState);
 #ifdef __cplusplus
 }
 #endif
