@@ -1957,14 +1957,21 @@ echo "$as_me: error:
     else
         export NET_SNMP_CONFIG=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/net-snmp-config
     fi
-    export CL_TARGET_PLATFORM=$ARCH
     export KERNEL_SOURCE=$BUILD_TOOLS_DIR/$CROSS_BUILD/src/$KERNEL
+
+    CL_TARGET_PLATFORM=$ARCH
 
     if [ -n "$BIN_MODE" ]; then
         export CL_BINMODE=$BIN_MODE
     fi
 
 fi;
+
+if [ -n "$CL_BINMODE" -a "$CL_BINMODE" != "default" ]
+then
+    CL_TARGET_PLATFORM="${CL_TARGET_PLATFORM}_$CL_BINMODE"
+fi
+export CL_TARGET_PLATFORM
 
 #
 # Set OPENHPILIBS and OPENHPICFLAGS based on crossbuild parameters
