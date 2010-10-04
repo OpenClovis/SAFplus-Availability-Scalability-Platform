@@ -168,6 +168,9 @@ ClRcT
 clBitmapBitSet(CL_IN ClBitmapHandleT  hBitmap,
                CL_IN ClUint32T        bitNum);
 
+ClRcT 
+clBitmapAllBitsSet(ClBitmapHandleT  hBitmap);
+
 /**
  ************************************************
  *  \brief Clear a bit of the bitmap.
@@ -201,6 +204,9 @@ clBitmapBitSet(CL_IN ClBitmapHandleT  hBitmap,
 ClRcT 
 clBitmapBitClear(CL_IN ClBitmapHandleT  hBitmap,
                  CL_IN ClUint32T        bitNum);
+
+ClRcT 
+clBitmapAllBitsClear(ClBitmapHandleT  hBitmap);
 
 /**
  ************************************************

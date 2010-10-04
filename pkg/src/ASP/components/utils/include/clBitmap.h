@@ -45,6 +45,8 @@ extern "C" {
 
 #define CL_BM_BITS_IN_BYTE          8
 
+#define CL_BM_BITS_IN_BYTE_SHIFT    (0x3)
+#define CL_BM_BITS_IN_BYTE_MASK     ( (1 << CL_BM_BITS_IN_BYTE_SHIFT) - 1 )
 #define CL_BM_BIT_UNDEF -1
 #define CL_BM_BIT_CLEAR  0
 #define CL_BM_BIT_SET    1

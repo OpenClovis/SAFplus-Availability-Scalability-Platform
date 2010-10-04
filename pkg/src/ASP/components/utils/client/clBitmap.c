@@ -194,10 +194,48 @@ clBitmapBitSet(ClBitmapHandleT  hBitmap,
     {
         pBitmapInfo->nBits = bitNum + 1;   
     }
-    elementIdx = bitNum / CL_BM_BITS_IN_BYTE;
-    bitIdx = bitNum % CL_BM_BITS_IN_BYTE;
+    elementIdx = bitNum >> CL_BM_BITS_IN_BYTE_SHIFT;
+    bitIdx = bitNum & CL_BM_BITS_IN_BYTE_MASK;
     (pBitmapInfo->pBitmap)[elementIdx] |= (0x1 << bitIdx);
     ++(pBitmapInfo->nBitsSet);
+
+    clOsalMutexUnlock(pBitmapInfo->bitmapLock);   
+    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Exit"));
+    return rc;
+}
+
+ClRcT 
+clBitmapAllBitsSet(ClBitmapHandleT  hBitmap)
+{
+    ClRcT          rc           = CL_OK;
+    ClBitmapInfoT  *pBitmapInfo = hBitmap;
+    ClUint32T      elementIdx   = 0;
+    ClUint32T      bitIdx       = 0;
+    ClUint32T i;
+
+    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Enter"));
+
+    if( CL_BM_INVALID_BITMAP_HANDLE == hBitmap )
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid Handle"));
+        return CL_BITMAP_RC(CL_ERR_INVALID_HANDLE);
+    }
+
+    rc = clOsalMutexLock(pBitmapInfo->bitmapLock);
+    if( CL_OK != rc )
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clOsalMutexLock() rc: %x", rc)); 
+        return rc;
+    }
+
+    for(i = 0; i < pBitmapInfo->nBits; ++i)
+    {
+        elementIdx = i >> CL_BM_BITS_IN_BYTE_SHIFT; 
+        bitIdx = i & CL_BM_BITS_IN_BYTE_MASK;
+        (pBitmapInfo->pBitmap)[elementIdx] |= (0x1 << bitIdx);
+    }
+
+    pBitmapInfo->nBitsSet = pBitmapInfo->nBits;
 
     clOsalMutexUnlock(pBitmapInfo->bitmapLock);   
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Exit"));
@@ -235,10 +273,48 @@ clBitmapBitClear(ClBitmapHandleT  hBitmap,
         return CL_BITMAP_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    elementIdx = bitNum / CL_BM_BITS_IN_BYTE;
-    bitIdx = bitNum % CL_BM_BITS_IN_BYTE;
-    (pBitmapInfo->pBitmap)[elementIdx] &= (~(0x1 << bitIdx));
+    elementIdx = bitNum >> CL_BM_BITS_IN_BYTE_SHIFT;
+    bitIdx = bitNum & CL_BM_BITS_IN_BYTE_MASK;
+    (pBitmapInfo->pBitmap)[elementIdx] &= ~(0x1 << bitIdx);
     --(pBitmapInfo->nBitsSet);
+        
+    clOsalMutexUnlock(pBitmapInfo->bitmapLock);   
+    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Exit"));
+    return rc;
+}
+
+ClRcT 
+clBitmapAllBitsClear(ClBitmapHandleT  hBitmap)
+{
+    ClRcT          rc           = CL_OK;
+    ClBitmapInfoT  *pBitmapInfo = hBitmap;
+    ClUint32T      elementIdx   = 0;
+    ClUint32T      bitIdx       = 0;
+    ClUint32T i;
+
+    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Enter"));
+
+    if( CL_BM_INVALID_BITMAP_HANDLE == hBitmap )
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid Handle"));
+        return CL_BITMAP_RC(CL_ERR_INVALID_HANDLE);
+    }
+
+    rc = clOsalMutexLock(pBitmapInfo->bitmapLock);
+    if( CL_OK != rc )
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clOsalMutexLock() rc: %x", rc)); 
+        return rc;
+    }
+
+    for(i = 0; i < pBitmapInfo->nBits; ++i)
+    {
+        elementIdx = i >> CL_BM_BITS_IN_BYTE_SHIFT;
+        bitIdx = i & CL_BM_BITS_IN_BYTE_MASK;
+        (pBitmapInfo->pBitmap)[elementIdx] &= ~(0x1 << bitIdx);
+    }
+
+    pBitmapInfo->nBitsSet = 0;
         
     clOsalMutexUnlock(pBitmapInfo->bitmapLock);   
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Exit"));
