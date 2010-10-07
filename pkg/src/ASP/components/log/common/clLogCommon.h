@@ -91,7 +91,8 @@ extern "C" {
 /* FIXME: The Data below should be read from configuration */
 #define CL_LOG_MAX_FLUSHERS             256
 #define CL_LOG_MAX_MSGS                 1024
-#define CL_LOG_DEFAULT_SEVERITY_FILTER  0xFF
+#define CL_LOG_DEFAULT_SEVERITY         (CL_LOG_SEV_DEBUG)
+#define CL_LOG_DEFAULT_SEVERITY_FILTER  ((1 << CL_LOG_DEFAULT_SEVERITY)-1)
 /*End of FIXME */
 
 #define CL_LOG_SHM_MODE                (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
@@ -383,6 +384,9 @@ clLogLockModeGet(void);
 ClRcT
 clLogSharedSemGet(const ClCharT *pShmName, const ClCharT *pSuffix, ClOsalSemIdT *pSemId);
 #endif
+
+ClUint32T
+clLogDefaultStreamSeverityGet(void);
 
 #ifdef __cplusplus
 }

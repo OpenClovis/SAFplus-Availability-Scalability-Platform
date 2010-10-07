@@ -937,7 +937,7 @@ clLogStreamOwnerFilterInit(ClLogFilterInfoT  *pFilter)
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    pFilter->severityFilter = CL_LOG_DEFAULT_SEVERITY_FILTER;
+    pFilter->severityFilter = clLogDefaultStreamSeverityGet();
     rc = clBitmapCreate(&pFilter->hMsgIdMap, 0);
     if( CL_OK != rc )
     {
@@ -1011,8 +1011,7 @@ clLogStreamOwnerEntryUpdate(ClLogSOEoDataT          *pSoEoEntry,
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     pStreamOwnerData->streamMcastAddr             = multiCastAddr;
-    pStreamOwnerData->streamFilter.severityFilter =
-                            CL_LOG_DEFAULT_SEVERITY_FILTER;
+    pStreamOwnerData->streamFilter.severityFilter = clLogDefaultStreamSeverityGet();
     pStreamOwnerData->streamId                    = streamId;
     pStreamOwnerData->nodeStatus                  = CL_LOG_NODE_STATUS_INIT;
     rc = clLogFilterFormatConvert(&pStreamOwnerData->streamFilter, pFilter);

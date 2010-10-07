@@ -98,9 +98,6 @@ typedef struct ClLogRules
 extern ClRcT
 clLogDbgFileClose(void);
 
-extern ClLogSeverityT
-clLogSeverityGet(ClCharT  *pSevName);
-
 extern ClRcT
 clLogRulesParse(void);
 

@@ -1776,6 +1776,9 @@ clLogStreamFilterGet(ClNameT                *pStreamName,
                         ClNameT             *pStreamScopeNode,
                         ClLogFilterT        *pFilter);
 
+ClLogSeverityT
+clLogSeverityGet(const ClCharT  *pSevName);
+
 #include <ipi/clLogIpiWrap.h> 
 #ifdef __cplusplus
 }

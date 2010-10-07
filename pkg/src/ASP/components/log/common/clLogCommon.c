@@ -652,7 +652,7 @@ clLogStreamShmSegInit(ClCharT                 *pShmName,
     (*ppSegHeader)->flushInterval                       = flushInterval;
     (*ppSegHeader)->streamMcastAddr.iocMulticastAddress = *pStreamMcastAddr;
     (*ppSegHeader)->streamStatus                        = CL_LOG_STREAM_ACTIVE;
-    (*ppSegHeader)->filter.severityFilter  = CL_LOG_DEFAULT_SEVERITY_FILTER;
+    (*ppSegHeader)->filter.severityFilter  = clLogDefaultStreamSeverityGet();
     (*ppSegHeader)->filter.msgIdSetLength  = 0;
     (*ppSegHeader)->filter.compIdSetLength = 0;
     (*ppSegHeader)->maxMsgs                = maxMsgs;
@@ -1484,4 +1484,19 @@ clLogFileIOVwrite(ClLogFilePtrT  fp,
     }
     fsync(fd);
     return rc;
+}
+
+ClUint32T clLogDefaultStreamSeverityGet(void)
+{
+    static ClUint32T defaultStreamSeverity;
+    ClLogSeverityT severity = 0;
+    if(!defaultStreamSeverity)
+    {
+        const ClCharT *sev = NULL;
+        if(!(sev = getenv("CL_LOG_STREAM_SEVERITY")) ) 
+            return CL_LOG_DEFAULT_SEVERITY_FILTER;
+        severity = clLogSeverityGet(sev);
+        defaultStreamSeverity = (1 << severity) - 1;
+    }
+    return defaultStreamSeverity;
 }

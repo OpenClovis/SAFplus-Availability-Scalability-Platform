@@ -694,7 +694,7 @@ clLogDbgFilePtrAssign(void)
 }
 
 ClLogSeverityT
-clLogSeverityGet(ClCharT  *pSevName)
+clLogSeverityGet(const ClCharT  *pSevName)
 {
     if( NULL == pSevName )
     {
