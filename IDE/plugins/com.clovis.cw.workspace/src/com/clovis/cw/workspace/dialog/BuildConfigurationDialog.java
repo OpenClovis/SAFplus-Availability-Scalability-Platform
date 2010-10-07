@@ -70,6 +70,10 @@ public class BuildConfigurationDialog extends TitleAreaDialog
     private static final String FORCE_CONFIGURE = "Force Configure";
     private Button _forceConfigureButton;
     
+    private static final String BUILD_WITH_BINARY_MODE = "With Binary Mode";
+    private Button _binaryButton;
+    private CCombo _binaryText;
+    
     private IResource _project;
     
     /**
@@ -312,7 +316,43 @@ public class BuildConfigurationDialog extends TitleAreaDialog
 						.displayHelp("com.clovis.cw.help.configure");
 			}
 		});	
-        return container;
+
+    	
+    	/******************************************************/
+    	/* Create binary mode controls                    */
+    	/******************************************************/
+    	_binaryButton = new Button(container, SWT.CHECK);
+    	_binaryButton.setText(BUILD_WITH_BINARY_MODE);
+    	_binaryButton.setAlignment(SWT.LEFT);
+    	_binaryButton.setLayoutData(data1);
+    	boolean binaryMode = new Boolean(
+    			ClovisConfigurator.getBinaryBuildMode(_project)).booleanValue();
+    	_binaryButton.setSelection(binaryMode);
+    	_binaryText = new CCombo(container, SWT.BORDER | SWT.READ_ONLY);
+    	_binaryText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    	_binaryText.add("32");
+    	_binaryText.add("64");
+    	if(binaryMode)
+    		_binaryText.select(_binaryText.indexOf(ClovisConfigurator.getBinaryModeValue(_project)));
+    	else {
+    		_binaryText.select(-1);
+    		_binaryText.setEnabled(false);
+    	}
+    	_binaryButton.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				if(_binaryButton.getSelection()) {
+					_binaryText.setEnabled(true);
+					_binaryText.select(0);
+				} else {
+					_binaryText.select(-1);
+					_binaryText.setEnabled(false);
+				}
+			}
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+    	});
+
+    	return container;
     }
 
 	/**
@@ -388,6 +428,12 @@ public class BuildConfigurationDialog extends TitleAreaDialog
 
             String ipcValue = "tipc";
 			ClovisConfigurator.setIPCValue(_project, ipcValue);
+
+			boolean binaryMode = _binaryButton.getSelection();
+			ClovisConfigurator.setBinaryBuildMode(_project, String.valueOf(binaryMode));
+
+            String binaryValue = _binaryText.getText();
+			ClovisConfigurator.setBinaryModeValue(_project, binaryValue);
 
 			String projectAreaLocation = CwProjectPropertyPage.getProjectAreaLocation(_project);
 			

@@ -65,6 +65,9 @@ public class ClovisConfigurator {
     public static final String BUILD_WITH_SDK_DIR = "--with-sdk-dir";
     public static final String SDK_LOCATION = "SDK_LOCATION";
     
+    public static final String BUILD_WITH_BINARY_MODE = "--with-binary-mode";
+    public static final String BUILD_WITH_BINARY_MODE_VALUE = "BUILD_WITH_BINARY_VALUE_MODE";
+    
     public static final String CHANGES_SINCE_LAST_CONFIG = "CHANGES_SINCE_LAST_CONFIG";
     
     private boolean _configureSuccess = true;
@@ -82,7 +85,7 @@ public class ClovisConfigurator {
 	 * @throws Exception
 	 */
 	public boolean configure(IProject project, String projectAreaLocation,
-			String aspLocation, String arg1, String arg2, String arg3, String arg4,  String arg5,  String arg6, String arg7, String arg8) throws Exception
+			String aspLocation, String arg1, String arg2, String arg3, String arg4,  String arg5,  String arg6, String arg7, String arg8, String arg9) throws Exception
 	{
 		boolean retVal = true;
 		
@@ -115,7 +118,8 @@ public class ClovisConfigurator {
 						" -Dconfig.option5=").append(arg5).append(
 						" -Dconfig.option6=").append(arg6).append(
 						" -Dconfig.option7=").append(arg7).append(
-						" -Dconfig.option8=").append(arg8);
+						" -Dconfig.option8=").append(arg8).append(
+						" -Dconfig.option9=").append(arg9);
 
 		ant.setBuildFileLocation(project.getLocation().append("config.xml")
 				.toOSString());
@@ -160,6 +164,8 @@ public class ClovisConfigurator {
 			String cmMode          = project.getPersistentProperty(new QualifiedName("true", BUILD_WITH_CM_MODE));
 			String forceConfigureMode = project.getPersistentProperty(new QualifiedName("true", FORCE_CONFIGURE_MODE));
 			String cmValue         = project.getPersistentProperty(new QualifiedName("true", BUILD_WITH_CM_VALUE_MODE));
+			String binaryMode      = project.getPersistentProperty(new QualifiedName("true", BUILD_WITH_BINARY_MODE));
+			String binaryValue     = project.getPersistentProperty(new QualifiedName("true", BUILD_WITH_BINARY_MODE_VALUE));
 			String aspLocation     = project.getPersistentProperty(new QualifiedName("", SDK_LOCATION)) + File.separator + "src" + File.separator + "ASP";
 			String configChanges   = project.getPersistentProperty(new QualifiedName("true", CHANGES_SINCE_LAST_CONFIG));
 
@@ -177,6 +183,7 @@ public class ClovisConfigurator {
             String option5 = "NO"; // with-asp-build / with-asp-installdir
             String option6 = "NO"; // with-ipc-build
             String option7 = "NO";
+            String option8 = "NO";
 
             if(Boolean.valueOf(aspPreBuildMode)) {
             	option5 = BUILD_WITH_PRE_ASP_MODE + "=" + preASPLocation;
@@ -205,12 +212,21 @@ public class ClovisConfigurator {
             }
             if(Boolean.valueOf(simulationMode))
             	option7 = BUILD_WITH_SIMULATION_MODE;
+
+            if(Boolean.valueOf(binaryMode)) {
+            	option8 = BUILD_WITH_BINARY_MODE;
+            	if(binaryValue.equals("32")) {
+            		option8 = option8 + "=32";
+            	} else if(binaryValue.equals("64")) {
+            		option8 = option8 + "=64";
+            	}
+            }
             
-            String option8 = BUILD_WITH_SDK_DIR + "=" + new File(project.getPersistentProperty(new QualifiedName("", SDK_LOCATION))).getParent(); 
+            String option9 = BUILD_WITH_SDK_DIR + "=" + new File(project.getPersistentProperty(new QualifiedName("", SDK_LOCATION))).getParent(); 
             // run the configuration
             boolean retVal = configure((IProject) project, projectAreaLocation,
 								aspLocation, option1, option2, option3, option4,
-								option5, option6, option7, option8);
+								option5, option6, option7, option8, option9);
             if (!retVal) _configureSuccess = false;
 
 		} catch (CoreException e) {
@@ -796,6 +812,82 @@ public class ClovisConfigurator {
             
             // if the value has changed then mark that configuration changes have been made
             if (checkValueChange(oldIpcValue, ipcValue, "radisys"))
+            {
+            	setConfigChanges(project, "true");
+            }
+        } catch (CoreException e) {
+        	e.printStackTrace();
+        }
+    }
+
+    /**
+     * Get Binary build mode for this Project.
+     * @param res Resource
+     * @return Binary build mode for this Project.
+     */
+    public static String getBinaryBuildMode(IResource res)
+    {
+        String mode  = null;
+        try {
+            mode = res.getPersistentProperty(
+                    new QualifiedName("true", BUILD_WITH_BINARY_MODE));
+        } catch (CoreException e) {
+        	e.printStackTrace();
+        }
+        return mode != null ? mode : "false";
+    }
+
+    /**
+     * Set the Binary build mode for this Project.
+     */
+    public static void setBinaryBuildMode(IResource project, String binaryBuildMode)
+    {
+        try {
+            String oldBinaryBuildMode = getBinaryBuildMode(project);
+            project.setPersistentProperty(
+               new QualifiedName("true", BUILD_WITH_BINARY_MODE), binaryBuildMode);
+            
+            // if the value has changed then mark that configuration changes have been made
+            if (checkValueChange(oldBinaryBuildMode, binaryBuildMode, "false"))
+            {
+            	setConfigChanges(project, "true");
+            }
+        } catch (CoreException e) {
+        	e.printStackTrace();
+        }
+    }
+
+    /**
+	 * Get Binary mode build value for this Project.
+	 * 
+	 * @param res
+	 *            Resource
+	 * @return Binary mode build value for this Project.
+	 */
+    public static String getBinaryModeValue(IResource res)
+    {
+        String mode  = null;
+        try {
+            mode = res.getPersistentProperty(
+                    new QualifiedName("true", BUILD_WITH_BINARY_MODE_VALUE));
+        } catch (CoreException e) {
+        	e.printStackTrace();
+        }
+        return mode != null ? mode : "32";
+    }
+
+    /**
+     * Set the Binary mode build value for this Project.
+     */
+    public static void setBinaryModeValue(IResource project, String binaryValue)
+    {
+        try {
+            String oldBinaryValue = getBinaryModeValue(project);
+            project.setPersistentProperty(
+               new QualifiedName("true", BUILD_WITH_BINARY_MODE_VALUE), binaryValue);
+            
+            // if the value has changed then mark that configuration changes have been made
+            if (checkValueChange(oldBinaryValue, binaryValue, "32"))
             {
             	setConfigChanges(project, "true");
             }

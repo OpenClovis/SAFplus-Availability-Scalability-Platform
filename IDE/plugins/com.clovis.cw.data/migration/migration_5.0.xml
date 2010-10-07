@@ -30,4 +30,5 @@
   <update/><!-- Fixed static files copy issue -->
   <update/><!-- removed customized part in clProxyCompAppMain.c and clSnmpAppMain.c -->
   <update/><!-- removed openSAF codegen folder -->
+  <update/><!-- binary mode support for configure -->
 </migration:migrationInfo>
