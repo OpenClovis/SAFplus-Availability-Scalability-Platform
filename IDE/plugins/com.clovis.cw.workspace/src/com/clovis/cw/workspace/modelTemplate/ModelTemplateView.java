@@ -728,8 +728,8 @@ public class ModelTemplateView extends ViewPart implements
 	 * @param entityObj
 	 * @param pdm
 	 */
-	private static void addEntitiesForResourceTemplate(GenericEditorInput geInput,
-			EObject entityObj, ProjectDataModel pdm) {
+	private static void addEntitiesForResourceTemplate(
+			GenericEditorInput geInput, EObject entityObj, ProjectDataModel pdm) {
 
 		EObject alarmEntityObj = (EObject) EcoreUtils.getValue(entityObj,
 				ModelTemplateConstants.FEATURE_ALARM_INFORMATION);
@@ -737,8 +737,28 @@ public class ModelTemplateView extends ViewPart implements
 			List<EObject> alarmEntityList = ModelTemplateUtils
 					.getEObjListFromChildReferences(alarmEntityObj);
 			ModelTemplateUtils.setRDN(alarmEntityList, false);
+
 			EObject alarmInfo = pdm.getAlarmProfiles().getEObject();
-			ClovisUtils.addObjectsToModel(alarmEntityList, alarmInfo);
+			List<EObject> alarmList = ModelTemplateUtils
+					.getEObjListFromChildReferences(alarmInfo);
+
+			EObject alarmObject;
+			List<String> featuresToSkip = new ArrayList<String>();
+			featuresToSkip.add(ModelConstants.RDN_FEATURE_NAME);
+
+			for (EObject alarmEntity : alarmEntityList) {
+				alarmObject = ClovisUtils.getEobjectWithFeatureVal(alarmList,
+						"alarmID", EcoreUtils.getValue(alarmEntity, "alarmID")
+								.toString());
+
+				if (alarmObject == null) {
+					alarmList.add(alarmEntity);
+				} else {
+					EcoreUtils.copyEObject(alarmEntity, alarmObject,
+							featuresToSkip);
+				}
+			}
+
 			pdm.getAlarmProfiles().save(true);
 		}
 
@@ -747,9 +767,38 @@ public class ModelTemplateView extends ViewPart implements
 		if (alarmEntityObj != null) {
 			List<EObject> alarmRuleEntityList = ModelTemplateUtils
 					.getEObjListFromChildReferences(alarmRuleEntityObj);
+
 			EObject alarmRuleInfo = ((ClassAssociationEditor) geInput
 					.getEditor()).getAlarmRuleViewModel().getEObject();
-			ClovisUtils.addObjectsToModel(alarmRuleEntityList, alarmRuleInfo);
+			List<EObject> alarmRuleList = ModelTemplateUtils
+					.getEObjListFromChildReferences(alarmRuleInfo);
+
+			EObject alarmRule, alarm;
+			for (EObject alarmRuleEntity : alarmRuleEntityList) {
+				alarmRule = ClovisUtils.getObjectFrmName(alarmRuleList,
+						EcoreUtils.getName(alarmRuleEntity));
+
+				if (alarmRule == null) {
+					alarmRuleList.add(alarmRuleEntity);
+
+				} else {
+					List<EObject> alarmEntityList = (List<EObject>) EcoreUtils
+							.getValue(alarmRuleEntity, "alarm");
+					List<EObject> alarmList = (List<EObject>) EcoreUtils
+							.getValue(alarmRule, "alarm");
+
+					for (EObject alarmEntity : alarmEntityList) {
+						alarm = ClovisUtils.getEobjectWithFeatureVal(alarmList,
+								"alarmID", EcoreUtils.getValue(alarmEntity,
+										"alarmID").toString());
+						if (alarm == null) {
+							alarmList.add(alarmEntity);
+						} else {
+							EcoreUtils.copyEObject(alarmEntity, alarm);
+						}
+					}
+				}
+			}
 		}
 
 		EObject resAlarmMapEntityObj = (EObject) EcoreUtils.getValue(entityObj,
@@ -757,15 +806,41 @@ public class ModelTemplateView extends ViewPart implements
 		if (resAlarmMapEntityObj != null) {
 			EObject resAlarmLinkEntityObj = (EObject) ((List) EcoreUtils
 					.getValue(resAlarmMapEntityObj, "link")).get(0);
-			List resAlarmMapList = (List) EcoreUtils.getValue(
-					resAlarmLinkEntityObj, "linkDetail");
+			List<EObject> resAlarmMapLinkDetailEntityList = (List<EObject>) EcoreUtils
+					.getValue(resAlarmLinkEntityObj, "linkDetail");
+
 			EObject resAlarmMapInfo = ((ClassAssociationEditor) geInput
 					.getEditor()).getLinkViewModel().getEObject();
 			EObject resAlarmLinkInfoObj = (EObject) ((List) EcoreUtils
 					.getValue(resAlarmMapInfo, "link")).get(0);
-			List resAlarmMapInfoList = (List) EcoreUtils.getValue(
+			List resAlarmMapLinkDetailList = (List) EcoreUtils.getValue(
 					resAlarmLinkInfoObj, "linkDetail");
-			resAlarmMapInfoList.addAll(resAlarmMapList);
+
+			for (EObject resAlarmMapLinkDetailEntity : resAlarmMapLinkDetailEntityList) {
+				EObject resAlarmMapLinkDetail = ClovisUtils
+						.getEobjectWithFeatureVal(resAlarmMapLinkDetailList,
+								"linkSource", EcoreUtils.getValue(
+										resAlarmMapLinkDetailEntity,
+										"linkSource").toString());
+
+				if (resAlarmMapLinkDetail == null) {
+					resAlarmMapLinkDetailList.add(EcoreCloneUtils
+							.cloneEObject(resAlarmMapLinkDetailEntity));
+
+				} else {
+					List<String> resAlarmMapLinkTargetEntityList = (List<String>) EcoreUtils
+							.getValue(resAlarmMapLinkDetailEntity, "linkTarget");
+					List<String> resAlarmMapLinkTargetList = (List<String>) EcoreUtils
+							.getValue(resAlarmMapLinkDetail, "linkTarget");
+
+					for (String linkTargetEntity : resAlarmMapLinkTargetEntityList) {
+						if (!resAlarmMapLinkTargetList
+								.contains(linkTargetEntity)) {
+							resAlarmMapLinkTargetList.add(linkTargetEntity);
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -786,11 +861,24 @@ public class ModelTemplateView extends ViewPart implements
 		if(resEntityObj != null) {
 			FormatConversionUtils.convertToEditorSupportedData(resEntityObj,
 					resEntityObj, FormatConversionUtils.RESOURCE_EDITOR);
-			List<EObject> templateCompEntities = getChildObjectList(resEntityObj);
+			List<EObject> templateResEntities = getChildObjectList(resEntityObj);
+
+			EObject editorResEntity;
+			List<String> featuresToSkip = new ArrayList<String>();
+			featuresToSkip.add(ModelConstants.RDN_FEATURE_NAME);
 
 			EditorModel resModel = resEditorInput.getEditor().getEditorModel();
-			for (EObject templateCompEntity : templateCompEntities) {
-				resModel.addEObject(templateCompEntity);
+			for (EObject templateResEntity : templateResEntities) {
+				editorResEntity = ClovisUtils
+						.getObjectFrmName(ResourceDataUtils
+								.getResourcesList(resModel.getEList()),
+								EcoreUtils.getName(templateResEntity));
+				if (editorResEntity == null) {
+					resModel.addEObject(templateResEntity);
+				} else {
+					EcoreUtils.copyEObject(templateResEntity,
+							editorResEntity, featuresToSkip);
+				}
 			}
 		}
 
