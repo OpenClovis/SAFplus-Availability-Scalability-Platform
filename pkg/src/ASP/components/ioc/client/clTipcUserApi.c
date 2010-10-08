@@ -1591,7 +1591,7 @@ ClRcT clIocReceive(ClIocCommPortHandleT commPortHdl,
     userHeader.srcAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
     userHeader.srcAddress.iocPhyAddress.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
 
-    if((rc = clIocCompStatusSet(userHeader.srcAddress.iocPhyAddress, TIPC_PUBLISHED)) != CL_OK){
+    if(!gIsNodeRepresentative && (rc = clIocCompStatusSet(userHeader.srcAddress.iocPhyAddress, TIPC_PUBLISHED)) != CL_OK){
         ClUint32T packetSize;
 
         packetSize = bytes - ((userHeader.flag == 0)? sizeof(ClTipcHeaderT): sizeof(ClTipcFragHeaderT));
