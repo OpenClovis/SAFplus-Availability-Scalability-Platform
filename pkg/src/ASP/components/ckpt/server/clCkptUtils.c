@@ -520,7 +520,7 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
     rc = clCntLlistCreate(ckptHdlNameCompare,
                          ckptSvrHdlDeleteCallback,
                          ckptSvrHdlDeleteCallback,
-                         CL_CNT_UNIQUE_KEY,
+                         CL_CNT_NON_UNIQUE_KEY,
                          &pSvrCb->ckptHdlList);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
        ("Linked list create for checkpoint handles failed rc[0x %x]\n", 
@@ -1730,3 +1730,28 @@ exitOnError:
     return rc;
 }
                            
+ClInt32T ckptHdlNonUniqueKeyCompare(ClCntDataHandleT givenData, ClCntDataHandleT data)
+{
+    ClNameT *pName = (ClNameT*)givenData;
+    ClCkptHdlT ckptHdl = *(ClCkptHdlT*)data;
+    CkptT *pCkpt = NULL;
+    ClRcT rc;
+    ClInt32T ret = 1;
+
+    rc = clHandleCheckout(gCkptSvr->ckptHdl, ckptHdl, (void**)&pCkpt);
+    if(rc != CL_OK)
+    {
+        clLogError("KEY", "CMP", "CKP handle non unique key compare checkout failed for handle [%#llx]",
+                   ckptHdl);
+        return ret;
+    }
+
+    if(pCkpt->ckptName.length != pName->length) 
+        goto out;
+
+    ret = strncmp((const ClCharT*)pCkpt->ckptName.value, (const ClCharT*)pName->value, pName->length);
+
+    out:
+    clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+    return ret;
+}

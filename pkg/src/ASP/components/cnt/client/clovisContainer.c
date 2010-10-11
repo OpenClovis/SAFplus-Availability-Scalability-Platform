@@ -657,3 +657,84 @@ clCntDelete(ClCntHandleT containerHandle)
   return (pContainer->fpFunctionContainerDestroy (containerHandle));
 }
 /*******************************************************/
+
+ClRcT clCntNonUniqueKeyDelete(ClCntHandleT container, ClCntKeyHandleT key, ClCntDataHandleT givenData, 
+                              ClInt32T (*cmp)(ClCntDataHandleT data1, ClCntDataHandleT data2))
+{
+    ClUint32T sz = 0;
+    ClRcT rc = CL_OK;
+    ClCntNodeHandleT node = 0;
+    ClCntNodeHandleT nextNode = 0;
+    ClCntDataHandleT data = 0;
+
+    if(!container || !key || !givenData || !cmp) 
+        return CL_CNT_RC(CL_ERR_INVALID_PARAMETER);
+
+    rc = clCntNodeFind(container, key, &node);
+    if(rc != CL_OK)
+        return rc;
+    rc = clCntKeySizeGet(container, key, &sz);
+    if(rc != CL_OK)
+        return rc;
+    while(sz-- > 0)
+    {
+        rc = clCntNodeUserDataGet(container, node, &data);
+        if(rc != CL_OK)
+            return rc;
+        if(!cmp(givenData, data))
+            return clCntNodeDelete(container, node);
+        if(sz > 0) 
+        {
+            nextNode = 0;
+            rc = clCntNextNodeGet(container, node, &nextNode);
+            if(rc != CL_OK)
+                break;
+            node = nextNode;
+        }
+    }
+    return CL_CNT_RC(CL_ERR_NOT_EXIST);
+}
+
+ClRcT clCntNonUniqueKeyFind(ClCntHandleT container, ClCntKeyHandleT key, ClCntDataHandleT givenData,
+                            ClInt32T (*cmp)(ClCntDataHandleT data1, ClCntDataHandleT data2), 
+                            ClCntDataHandleT *pDataHandle)
+{
+    ClRcT rc = CL_OK;
+    ClCntNodeHandleT node = 0;
+    ClCntNodeHandleT nextNode = 0;
+    ClCntDataHandleT data = 0;
+    ClUint32T sz = 0;
+
+    if(!container || !key || !givenData || !cmp || !pDataHandle)
+        return CL_CNT_RC(CL_ERR_INVALID_PARAMETER);
+
+    *pDataHandle = 0;
+
+    rc = clCntNodeFind(container, key, &node);
+    if(rc != CL_OK) return rc;
+
+    rc = clCntKeySizeGet(container, key, &sz);
+    if(rc != CL_OK) return rc;
+    
+    while(sz-- > 0 && node)
+    {
+        rc = clCntNodeUserDataGet(container, node, &data);
+        if(rc != CL_OK)
+            return rc;
+        nextNode = 0;
+        if(sz > 0)
+        {
+            rc = clCntNextNodeGet(container, node, &nextNode);
+            if(rc != CL_OK)
+                nextNode = 0;
+        }
+        if(!cmp(givenData, data))
+        {
+            *pDataHandle = data;
+            return CL_OK;
+        }
+        node = nextNode;
+    }
+    
+    return CL_CNT_RC(CL_ERR_NOT_EXIST);
+}

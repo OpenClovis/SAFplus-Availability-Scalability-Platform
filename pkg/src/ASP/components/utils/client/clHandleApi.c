@@ -166,7 +166,7 @@ typedef enum handle_state
 
 typedef struct handle_entry {
 	ClHdlStateT  state;
-	 void         *instance;
+    void         *instance;
 	ClUint32T    ref_count;
     ClCharT      flags;
 } ClHdlEntryT;
@@ -492,6 +492,123 @@ clHandleCreateSpecifiedHandle (
     clDbgResourceNotify(clDbgHandleResource, clDbgAllocate, hdbp, handle+1, ("Specific handle [%p:%#llX] allocated", (ClPtrT) hdbp, handle+1));
     hdbp->n_handles_used++;
 error_exit:
+
+	ec = pthread_mutex_unlock (&hdbp->mutex);
+    if (ec != 0)
+    {
+        return CL_HANDLE_RC(CL_ERR_MUTEX_ERROR); /* This can be devastating */
+    }
+	return rc;
+}
+
+ClRcT
+clHandleMove(
+    ClHandleDatabaseHandleT databaseHandle,
+    ClHandleT oldHandle,
+    ClHandleT newHandle)
+{
+	void           *instance = NULL;
+    ClRcT          rc        = CL_OK;
+    ClHdlDatabaseT *hdbp     = (ClHdlDatabaseT*) databaseHandle;
+    ClRcT          ec        = CL_OK;
+
+    hdlDbValidityChk(hdbp);
+    /* We allow handles to be created that are pointing to some other handle DB and node hdlValidityChk(handle,hdbp); */
+    oldHandle = CL_HDL_IDX(oldHandle); /* once we've verified it, we only care about the index */
+    newHandle = CL_HDL_IDX(newHandle);
+    
+    if (CL_HANDLE_INVALID_VALUE == oldHandle 
+        ||
+        CL_HANDLE_INVALID_VALUE == newHandle)
+    {
+        clLogError("HDL", "MOVE",
+                   "Passed [%s] handle is invalid",
+                   oldHandle ? "new" : "old");
+        clDbgPause();
+        return CL_HANDLE_RC(CL_ERR_INVALID_HANDLE); /* 0 no longer allowed */
+    }
+    /*
+     * Decrementing handle to ensure the non-zero handle interface.
+     */
+    --oldHandle;
+    --newHandle;
+    ec = pthread_mutex_lock (&hdbp->mutex);
+    if (ec != 0)
+    {
+        return CL_HANDLE_RC(CL_ERR_MUTEX_ERROR);
+    }
+
+    if(oldHandle >= hdbp->n_handles)
+    {
+        pthread_mutex_unlock(&hdbp->mutex);
+        clLogError("HDL", "MOVE", "Old handle [%#llx] passed is invalid", oldHandle);
+        return CL_HANDLE_RC(CL_ERR_INVALID_HANDLE);
+    }
+
+    if(hdbp->handles[oldHandle].ref_count != 1)
+    {
+        pthread_mutex_unlock(&hdbp->mutex);
+        clLogError("HDL", "MOVE", "Old handle [%#llx] is %s", 
+                   oldHandle, hdbp->handles[oldHandle].ref_count < 1 ? "invalid" : "in use");
+        return CL_HANDLE_RC(CL_ERR_INVALID_STATE);
+    }
+    
+    if(newHandle < hdbp->n_handles && hdbp->handles[newHandle].ref_count > 0)
+    {
+        pthread_mutex_unlock(&hdbp->mutex);
+        clLogError("HDL", "MOVE", "New handle [%#llx] is in use", newHandle);
+        return CL_HANDLE_RC(CL_ERR_ALREADY_EXIST);
+    }
+
+    instance = hdbp->handles[oldHandle].instance;
+    if(!instance)
+    {
+        pthread_mutex_unlock(&hdbp->mutex);
+        clLogError("HDL", "MOVE", "Old handle [%#llx] instance is NULL", oldHandle);
+        return CL_HANDLE_RC(CL_ERR_INVALID_STATE);
+    }
+
+    if(newHandle >= hdbp->n_handles)
+    {
+        /*
+         * Allocating space in Excess of to accomodate the value specified by the user.
+         * NOTE: User should ensure that a sane value is supplied for handle.
+         */
+        ClHandleT excess_handles = newHandle - hdbp->n_handles + 1;
+
+		ClHdlEntryT *new_handles = (ClHdlEntryT *)realloc (hdbp->handles,
+                                                           sizeof (ClHdlEntryT) * (hdbp->n_handles+excess_handles));
+		if (new_handles == NULL) 
+        {
+			ec = pthread_mutex_unlock (&hdbp->mutex);
+            if (ec != 0)
+            {
+                return CL_HANDLE_RC(CL_ERR_MUTEX_ERROR); /* This can be very bad */
+            }
+			return CL_HANDLE_RC(CL_ERR_NO_MEMORY);
+		}
+
+        /* 
+         * Initialize the excess space. HANDLE_STATE_EMPTY will remain 0 
+         * is assumed else need to set the excess entries explicitly in a 
+         * loop. 
+         */
+        memset(&new_handles[hdbp->n_handles], 0, sizeof (ClHdlEntryT) * excess_handles);
+
+        /* Update the values if success */
+		hdbp->n_handles += excess_handles;
+		hdbp->handles = new_handles;
+	}
+    /*
+     * Reset the old handle
+     */
+    memset(&hdbp->handles[oldHandle], 0, sizeof(hdbp->handles[oldHandle]));
+	hdbp->handles[newHandle].state = HANDLE_STATE_USED;
+	hdbp->handles[newHandle].instance = instance;
+	hdbp->handles[newHandle].ref_count = 1;
+
+    clDbgResourceNotify(clDbgHandleResource, clDbgAllocate, hdbp, newHandle+1, 
+                        ("Specific handle [%p:%#llX] allocated", (ClPtrT) hdbp, newHandle+1));
 
 	ec = pthread_mutex_unlock (&hdbp->mutex);
     if (ec != 0)

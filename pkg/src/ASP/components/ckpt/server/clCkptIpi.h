@@ -555,6 +555,9 @@ clCkptMasterAddressUpdate(ClIocNodeAddressT  leader,
                           ClIocNodeAddressT  deputy);
 extern ClRcT
 clCkptSectionTimeUpdate(ClTimeT   *pLastUpdate);
+extern
+ClInt32T ckptHdlNonUniqueKeyCompare(ClCntDataHandleT givenData, ClCntDataHandleT data);
+
 #ifdef __cplusplus
 }
 #endif

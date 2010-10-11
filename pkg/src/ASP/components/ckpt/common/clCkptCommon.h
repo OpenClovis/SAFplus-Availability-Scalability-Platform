@@ -210,6 +210,7 @@ typedef struct hdlDb
     ClCkptHdlT           ckptActiveHdl;   /* Active handle -
                                              for checkpoint handle type */
     ClUint32T            cksum;           /* Index into ckptHdl list */
+    ClNameT              ckptName;        /* name of the checkpoint */
     ClUint32T            openFlag;        /* Type of open */
     ClCkptCreationFlagsT creationFlag;    /* Creation flags */
     ClCkptNotificationCallbackT notificationCallback; 

@@ -320,6 +320,10 @@ extern ClRcT clHandleCheckin(
         CL_IN    ClHandleDatabaseHandleT   databaseHandle,
 	    CL_IN    ClHandleT                 handle);
 
+extern ClRcT clHandleMove(
+        CL_IN    ClHandleDatabaseHandleT   databaseHandle,
+	    CL_IN    ClHandleT                 oldHandle,
+        CL_IN    ClHandleT                 newHandle);
 
 #ifdef __cplusplus
 }

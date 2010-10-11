@@ -110,6 +110,9 @@ ClRcT _ckptLocalDataUpdate(ClCkptHdlT         ckptHdl,
      * information. All section/ckpt usgae/management calls are made
      * using this handle.
      */
+    (void)clCntNonUniqueKeyDelete(gCkptSvr->ckptHdlList, (ClCntKeyHandleT)(ClWordT)cksum,
+                                  (ClPtrT)pName, ckptHdlNonUniqueKeyCompare);
+
     rc = clCntNodeAdd( gCkptSvr->ckptHdlList,(ClCntKeyHandleT)(ClWordT)cksum,
             pCkptHdl,NULL); 
             
@@ -118,12 +121,6 @@ ClRcT _ckptLocalDataUpdate(ClCkptHdlT         ckptHdl,
      */
     CKPT_UNLOCK( gCkptSvr->ckptActiveSem );           
     
-    /*
-     * If error was of duplicate entry, not a problem.
-     */
-    if(CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)
-        rc = CL_OK;
-                   
     if(rc != CL_OK)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,
@@ -262,7 +259,8 @@ exitOnErrorBeforeHdlCheckout:
      * Failed to replicate the checkpoint info . Hence delete the
      * handle entry form the ckpt handle list.
      */
-    clCntAllNodesForKeyDelete(gCkptSvr->ckptHdlList, (ClPtrT)(ClWordT)cksum);
+    (void)clCntNonUniqueKeyDelete(gCkptSvr->ckptHdlList, (ClPtrT)(ClWordT)cksum,
+                                  (ClPtrT)pName, ckptHdlNonUniqueKeyCompare);
     
     /*
      * Unlock the active server's DB.
@@ -3620,8 +3618,9 @@ VDECL_VER(clCkptCheckpointReplicaRemove, 4, 0, 0)(ClHandleT  ckptHdl,
      */
     CKPT_LOCK(gCkptSvr->ckptActiveSem);
     
-    rc = clCntAllNodesForKeyDelete(gCkptSvr->ckptHdlList,
-                                   (ClCntKeyHandleT)(ClWordT)cksum);    
+    rc = clCntNonUniqueKeyDelete(gCkptSvr->ckptHdlList,
+                                 (ClCntKeyHandleT)(ClWordT)cksum,
+                                 (ClPtrT)&ckptName, ckptHdlNonUniqueKeyCompare);    
     if( CL_OK != rc )
     {
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_DEL, 
@@ -3989,9 +3988,9 @@ freeCkpt:
      * Lock the active server ds
      */ 
     CKPT_LOCK(gCkptSvr->ckptActiveSem);        
-    
-    rc = clCntAllNodesForKeyDelete(gCkptSvr->ckptHdlList,
-                                    (ClCntKeyHandleT)(ClWordT)cksum);    
+
+    rc = clCntNonUniqueKeyDelete(gCkptSvr->ckptHdlList, (ClCntKeyHandleT)(ClWordT)cksum,
+                                 (ClPtrT)&pCkpt->ckptName, ckptHdlNonUniqueKeyCompare);
     /*
      * Unlock the active server ds
      */ 

@@ -276,6 +276,7 @@ void  _ckptCheckpointOpenAsyncCallback(ClIdlHandleT ckptIdlHdl,
                 pCkptHdl,
                 NULL);
         pHdlInfo->cksum = cksum ;                 
+        clNameCopy(&pHdlInfo->ckptName, pName);
         pHdlInfo->openFlag = ckptOpenFlags;
         pHdlInfo->hdlType     = CL_CKPT_CHECKPOINT_HDL;
         ckptHandleInfoSet(*pCkptHdl,pHdlInfo);
@@ -652,7 +653,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
         hdlInfo.openFlag       = checkpointOpenFlags;
         hdlInfo.cksum          = cksum;
         hdlInfo.hdlType        = CL_CKPT_CHECKPOINT_HDL;
-        
+        clNameCopy(&hdlInfo.ckptName, pCkptName);
         clLogNotice(CL_CKPT_AREA_CLIENT, CL_LOG_CONTEXT_UNSPECIFIED, 
                 "Checkpoint [%.*s] is opened act address [%d]", 
                 pCkptName->length, pCkptName->value, hdlInfo.activeAddr);
@@ -866,7 +867,7 @@ ClRcT clCkptCheckpointClose(ClCkptHdlT ckptHdl)
          * Find the appropriate ckptHdl and delete it.
          */
         rc = clCntNodeUserDataGet(gClntInfo.ckptHdlList, nodeHdl, 
-                             (ClCntDataHandleT *)&pStoredHdl);
+                                  (ClCntDataHandleT *)&pStoredHdl);
         if( CL_OK != rc )
         {
             break;
@@ -4277,7 +4278,7 @@ void ckptEventCallback(ClEventSubscriptionIdT    subscriptionId,
                                 (void **)&pHdlInfo);
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                        ("Ckpt: Event Data Get failed  [Rc: 0x%x]" , rc), rc);
-
+        
         /*
          * Get the svc handle associated with the ckpt handle and lock the
          * mutex associated with that service handle.
@@ -4302,9 +4303,16 @@ void ckptEventCallback(ClEventSubscriptionIdT    subscriptionId,
         clOsalMutexLock(pInitInfo->ckptSvcMutex);
         
         /*
-         * Check the event type and take appropriate action.
+         * Check the event type and take appropriate action. 
+         * Also make sure that the checkpoint names match since there could be multiple ones 
+         * with the same checksum.
          */
-        if(ntohl(payLoad.eventType) == CL_CKPT_ACTIVE_REP_CHG_EVENT)
+        if(ntohl(payLoad.eventType) == CL_CKPT_ACTIVE_REP_CHG_EVENT
+           && 
+           pHdlInfo->ckptName.length == payLoad.name.length
+           &&
+           !strncmp((const ClCharT*)pHdlInfo->ckptName.value, 
+                    (const ClCharT*)payLoad.name.value, payLoad.name.length))
         {
             /*
              * Active replica change event. Update the active replica address
@@ -4480,7 +4488,12 @@ VDECL_VER(clCkptSectionUpdationNotification, 4, 0, 0)(ClNameT          *pName,
          */
         clHandleCheckin(gClntInfo.ckptDbHdl, svcHdl);
 
-        if( notifyCallback != NULL )
+        if( notifyCallback != NULL 
+            &&
+            pHdlInfo->ckptName.length == pName->length
+            &&
+            !strncmp((const ClCharT*)pHdlInfo->ckptName.value, 
+                     (const ClCharT*)pName->value, pName->length))
         {
             notifyCallback(*pCkptHdl, pName, &iov, 1, pCookie);
         }
@@ -4601,7 +4614,12 @@ VDECL_VER(clCkptWriteUpdationNotification, 4, 0, 0)(ClNameT                 *pNa
          */
         clHandleCheckin(gClntInfo.ckptDbHdl, svcHdl);
 
-        if( notifyCallback != NULL )
+        if( notifyCallback != NULL 
+            &&
+            pHdlInfo->ckptName.length == pName->length
+            &&
+            !strncmp((const ClCharT*)pHdlInfo->ckptName.value, 
+                     (const ClCharT*)pName->value, pName->length))
         {
             notifyCallback(*pCkptHdl, pName, pIoVector, numSections, 
                            pCookie);

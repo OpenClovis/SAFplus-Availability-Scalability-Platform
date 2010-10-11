@@ -1167,8 +1167,9 @@ ClRcT  ckptSingleEntryShow( ClNameT    *pName,
 
     clCksm32bitCompute ((ClUint8T *)pName->value,
                         strlen(pName->value), &cksum);
-    rc = clCntDataForKeyGet(gCkptSvr->ckptHdlList, 
-                            ( ClCntKeyHandleT)(ClWordT)cksum,&dataHdl);
+    rc = clCntNonUniqueKeyFind(gCkptSvr->ckptHdlList, 
+                               (ClCntKeyHandleT)(ClWordT)cksum, 
+                               (ClPtrT)pName, ckptHdlNonUniqueKeyCompare, &dataHdl);
     if (rc == CL_OK) ckptNameShow(0,dataHdl,&msg, sizeof(msg));
 /*    CKPT_UNLOCK(gCkptSvr->ckptSem);  Good citizen */
     return rc;

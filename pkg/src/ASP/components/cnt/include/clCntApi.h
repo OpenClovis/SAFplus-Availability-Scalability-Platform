@@ -849,6 +849,10 @@ extern ClRcT clCntNodeDelete(CL_IN ClCntHandleT containerHandle,
 extern ClRcT clCntNodeFind(CL_IN ClCntHandleT     containerHandle,
                            CL_IN ClCntKeyHandleT  userKey,
                            CL_IN ClCntNodeHandleT *pNodeHandle);
+
+extern ClRcT clCntNonUniqueKeyFind(ClCntHandleT container, ClCntKeyHandleT key, ClCntDataHandleT givenData,
+                                   ClInt32T (*cmp)(ClCntDataHandleT data1, ClCntDataHandleT data2), 
+                                   ClCntDataHandleT *pDataHandle);
 /**
  ************************************
  *  \brief Returns the first node from the Container.
@@ -1236,6 +1240,11 @@ extern ClRcT clCntKeySizeGet(CL_IN  ClCntHandleT containerHandle,
  *
  */
 extern ClRcT clCntDelete(CL_IN ClCntHandleT containerHandle);
+
+extern ClRcT clCntNonUniqueKeyDelete(CL_IN ClCntHandleT container, ClCntKeyHandleT key,
+                                     ClCntDataHandleT givenData, 
+                                     ClInt32T (*cmp)(ClCntDataHandleT, ClCntDataHandleT));
+
 /*************************************************************/
 /*
   Since the container doesnt have an empty equivalent, we live 

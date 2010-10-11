@@ -91,7 +91,7 @@ ClRcT ckptHandleInfoSet(ClCkptHdlT ckptLocalHdl,CkptHdlDbT *pData)
         pHdlInfo->creationFlag   = pData->creationFlag;
         pHdlInfo->cksum          = pData->cksum;
         pHdlInfo->ckptSvcHdl     = pData->ckptSvcHdl;
-
+        clNameCopy(&pHdlInfo->ckptName, &pData->ckptName);
     }
     else
     {
