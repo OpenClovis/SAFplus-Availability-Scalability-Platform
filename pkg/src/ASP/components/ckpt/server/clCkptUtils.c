@@ -216,7 +216,7 @@ void    ckptSvrHdlDeleteCallback(ClCntKeyHandleT userKey,
     ClCkptHdlT  ckptHdl = *(ClCkptHdlT *)userData;
     CkptT       *pCkpt  = NULL;
     ClRcT       rc      = CL_OK;
-
+    ClOsalMutexIdT ckptMutex;
     rc = clHandleCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
     if( (CL_OK != rc) || (NULL == pCkpt) )
     {
@@ -225,7 +225,12 @@ void    ckptSvrHdlDeleteCallback(ClCntKeyHandleT userKey,
                 ckptHdl, rc);
         return;
     }
+    ckptMutex = pCkpt->ckptMutex;
+    CKPT_LOCK(ckptMutex);
+    pCkpt->ckptMutex = CL_HANDLE_INVALID_VALUE;
     ckptEntryFree(pCkpt);
+    CKPT_UNLOCK(ckptMutex);
+    clOsalMutexDelete(ckptMutex);
     clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
     clHandleDestroy(gCkptSvr->ckptHdl,ckptHdl);
     clLogDebug(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_DEL, 
