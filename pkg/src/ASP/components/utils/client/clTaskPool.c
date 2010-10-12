@@ -68,13 +68,29 @@ static ClEoQueueT gClTaskPoolUnused = {                           \
 #endif
 
 static ClUint32T gClTaskPoolKey;
-
+static ClBoolT gClEoHeartbeatDisabled = CL_FALSE;
 /*
  * Create a pthread key for storing task pool info. for each thread.
  */
 
 ClRcT clTaskPoolInitialize(void)
 {
+    if(clParseEnvBoolean("CL_EO_TASK_MONITOR"))
+    {
+        static const ClCharT *const aspEOs[] = { 
+            "AMF", "LOG", "GMS", "EVT", "CKP", "MSG", "NAM", "FLT", "ALM", "COR", "TXN", NULL,
+        };
+        register ClInt32T i;
+        for(i = 0; aspEOs[i]; ++i)
+            if(!strncmp(CL_EO_NAME, aspEOs[i], strlen(aspEOs[i])))
+                break;
+
+        if(!aspEOs[i])
+        {
+            gClEoHeartbeatDisabled = CL_TRUE;
+            clLogNotice("TASK", "MONITOR", "Disabling task pool heartbeat for EO [%s]", CL_EO_NAME);
+        }
+    }
     return clOsalTaskKeyCreate(&gClTaskPoolKey, NULL);
 }
 
@@ -222,7 +238,7 @@ static void clTaskPoolNewTask(ClTaskPoolT *tp)
                 clLog(CL_LOG_SEV_TRACE,"TSK","POL", "Creating new task");
                 pArg->tp = tp;
                 pArg->pStats = tp->pStats + i;
-                tp->pStats[i].heartbeatDisabled = CL_FALSE;
+                tp->pStats[i].heartbeatDisabled = gClEoHeartbeatDisabled;
                 tp->pStats[i].startTime = 0;
                 rc = clOsalTaskCreateAttached("task pool", CL_OSAL_SCHED_OTHER, tp->priority, 0,
                                               (void* (*) (void*)) clTaskPoolEntry, pArg, &tp->pStats[i].tId);
