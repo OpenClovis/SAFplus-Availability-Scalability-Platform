@@ -2136,7 +2136,7 @@ ClRcT VDECL_VER(_ckptSectionOverwrite, 4, 0, 0)(ClCkptHdlT         ckptHdl,
     ClRcT         rc        = CL_OK; 
     CkptSectionT  *pSec     = NULL;
     ClUint32T     peerCount = 0;
-    ClBoolT sectionLockTaken = CL_TRUE;
+    ClBoolT sectionLockTaken = CL_FALSE;
 
     /* 
      * Verify the server existence.
@@ -2173,6 +2173,7 @@ ClRcT VDECL_VER(_ckptSectionOverwrite, 4, 0, 0)(ClCkptHdlT         ckptHdl,
     /*
      * Lock the checkpoint's mutex.
      */
+    clOsalMutexLock(&gCkptSvr->ckptClusterSem);
     CKPT_LOCK(pCkpt->ckptMutex);           
 
     /*
@@ -2185,13 +2186,13 @@ ClRcT VDECL_VER(_ckptSectionOverwrite, 4, 0, 0)(ClCkptHdlT         ckptHdl,
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_SEC_OVERWRITE, 
                 "Passed dataSize [%lld] is greater than stored size [%lld]", 
                 dataSize, pCkpt->pDpInfo->maxScnSize);
-        goto exitOnError;
+        goto exitOnWithoutUnlock;
     }
     /* take section level mutex */
     rc = clCkptSectionLevelLock(pCkpt, pSectionId, &sectionLockTaken);
     if( CL_OK != rc )
     {
-        goto exitOnError;
+        goto exitOnWithoutUnlock;
     }
     if(sectionLockTaken == CL_TRUE)
     {
@@ -2318,14 +2319,7 @@ ClRcT VDECL_VER(_ckptSectionOverwrite, 4, 0, 0)(ClCkptHdlT         ckptHdl,
      }
     /* Release section level mutex */
     clCkptSectionLevelUnlock(pCkpt, pSectionId, sectionLockTaken);
-    goto exitOnWithoutUnlock;
-exitOnError:
-    {
-        /*
-         * Unlock the checkpoint's mutex.
-         */
-        CKPT_UNLOCK(pCkpt->ckptMutex);           
-    }
+
 exitOnWithoutUnlock:    
     {
         clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
@@ -2333,6 +2327,7 @@ exitOnWithoutUnlock:
         {
             CKPT_UNLOCK(pCkpt->ckptMutex);
         }
+        clOsalMutexUnlock(&gCkptSvr->ckptClusterSem);
     }
 exitOnErrorBeforeHdlCheckout:
     {   

@@ -747,6 +747,7 @@ clCkptSectionLevelLock(CkptT             *pCkpt,
     rc = clOsalMutexLock((pCkpt->secMutex[index]));
     if( CL_OK != rc )
     {
+        *pSectionLockTaken = CL_FALSE;
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
                 "Failed to acquire the mutex for sectionId [%.*s] index [%d]", 
                 pSectionId->idLen, pSectionId->id, index);

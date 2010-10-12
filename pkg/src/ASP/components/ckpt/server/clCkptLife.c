@@ -298,12 +298,14 @@ ClRcT   ckptShutDown()
     /*
      * Cleanup the resources acquired bu the ckpt server.
      */
+    clOsalMutexLock(&gCkptSvr->ckptClusterSem);
     CKPT_LOCK(gCkptSvr->ckptActiveSem);
     /* the server is going down setting this flag as FALSE */
     gCkptSvr->serverUp = CL_FALSE;
     ckptActiveSem = gCkptSvr->ckptActiveSem;
     ckptSvrCbFree(gCkptSvr);
     CKPT_UNLOCK(ckptActiveSem);
+    clOsalMutexUnlock(&gCkptSvr->ckptClusterSem);
     clOsalMutexDelete(ckptActiveSem);
     
     return CL_OK;
