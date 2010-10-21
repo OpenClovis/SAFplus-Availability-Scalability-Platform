@@ -26,6 +26,7 @@
 #include <clLogApiExt.h>
 #include <clHandleApi.h>
 #include <clEoApi.h>
+#include <clDebugApi.h>
 
 ClBoolT               gUtilLibInitialized = CL_FALSE;
 ClOsalMutexT          gLogMutex ;
@@ -101,6 +102,9 @@ clLogUtilLibInitialize(void)
     return CL_OK;
 }
 
+/*
+ * Called with the logmutex held.
+ */
 static void
 clLogFlushRecords(void)
 {
@@ -108,25 +112,37 @@ clLogFlushRecords(void)
     ClUint32T numFlushed = 0;
     ClUint16T currentReadIdx = readIdx;
     ClUint16T currentWriteIdx = writeIdx;
+    ClUint16T saveWriteIdx = writeIdx;
     ClBoolT wrap = CL_FALSE;
     ClHandleT logHandle = 0;
     ClLogSeverityT severity = 0;
     ClRcT rc = CL_OK;
+    ClLogDeferredHeaderT *logBuffer = NULL;
 
-    if(readIdx >= writeIdx)
+    /*
+     * Just duplicate the entire range since the flush is one-time only and no need to do half-baked
+     * allocs based on the actual flush size.
+     */
+    logBuffer = clHeapCalloc(CL_LOG_MAX_NUM_MSGS, sizeof(*logBuffer));
+    CL_ASSERT(logBuffer != NULL);
+    memcpy(logBuffer, gLogMsgArray, sizeof(*logBuffer) * CL_LOG_MAX_NUM_MSGS);
+
+    clOsalMutexUnlock(&gLogMutex);
+    if(currentReadIdx >= currentWriteIdx)
     {
         wrap = CL_TRUE;
         currentWriteIdx = CL_LOG_MAX_NUM_MSGS;
     }
+
     for(i = currentReadIdx; i < currentWriteIdx; ++i)
     {
-        if(!(severity = gLogMsgArray[i].severity))
+        if(!(severity = logBuffer[i].severity))
             severity = CL_LOG_SEV_ALERT;
-        if(!(logHandle = gLogMsgArray[i].handle))
+        if(!(logHandle = logBuffer[i].handle))
             logHandle = CL_LOG_HANDLE_SYS;
         rc = clLogWriteWithHeader(logHandle, severity,
-                                  gLogMsgArray[i].serviceId, gLogMsgArray[i].msgId,
-                                  gLogMsgArray[i].msgHeader, "%s", gLogMsgArray[i].msg);
+                                  logBuffer[i].serviceId, logBuffer[i].msgId,
+                                  logBuffer[i].msgHeader, "%s", logBuffer[i].msg);
         if(rc != CL_OK)
             continue; /* do nothing now*/ 
     }
@@ -134,20 +150,24 @@ clLogFlushRecords(void)
     if(wrap)
     {
         currentReadIdx = 0;
-        currentWriteIdx = writeIdx;
+        currentWriteIdx = saveWriteIdx;
         for(i = currentReadIdx; i < currentWriteIdx; ++i)
         {
-            if(!(logHandle = gLogMsgArray[i].handle))
+            if(!(logHandle = logBuffer[i].handle))
                 logHandle = CL_LOG_HANDLE_SYS;
-            rc = clLogWriteWithHeader(logHandle, gLogMsgArray[i].severity,
-                                      gLogMsgArray[i].serviceId, gLogMsgArray[i].msgId,
-                                      gLogMsgArray[i].msgHeader,
-                                      "%s", gLogMsgArray[i].msg);
+            rc = clLogWriteWithHeader(logHandle, logBuffer[i].severity,
+                                      logBuffer[i].serviceId, logBuffer[i].msgId,
+                                      logBuffer[i].msgHeader,
+                                      "%s", logBuffer[i].msg);
             if(rc != CL_OK)
                 continue;
         }
         numFlushed += (currentWriteIdx - currentReadIdx);
     }
+
+    clHeapFree(logBuffer);
+
+    clOsalMutexLock(&gLogMutex);
     if(overWriteFlag) 
         overWriteFlag = 0;
     readIdx += numFlushed;
