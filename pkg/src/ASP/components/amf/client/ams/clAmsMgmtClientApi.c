@@ -4391,61 +4391,125 @@ static ClRcT clAmsMgmtSwitchoverSU(ClAmsMgmtHandleT handle, ClAmsEntityT *su)
     return rc;
 }
 
-static ClRcT clAmsMgmtSwitchoverActiveSU(ClAmsMgmtHandleT handle, ClAmsEntityT *su)
+static ClRcT clAmsMgmtSwitchoverActiveSU(ClAmsMgmtHandleT handle, ClAmsEntityT *su, ClAmsEntityT *activeSU)
 {
-    ClAmsSUSIRefBufferT suSIRefBuffer = {0};
-    ClAmsSISURefBufferT siSURefBuffer = {0};
+    ClAmsSUConfigT *suConfig = NULL;
+    ClAmsEntityBufferT suList = {0};
+    ClAmsSGStatusT *sgStatus = NULL;
+    ClAmsSUStatusT **suStatusList = NULL;
     ClRcT rc = CL_OK;
     ClInt32T i;
-    
-    rc = clAmsMgmtGetSUAssignedSIsList(handle, su, &suSIRefBuffer);
+
+    suConfig = clAmsMgmtServiceUnitGetConfig(handle, (const ClCharT*)su->name.value);
+    if(suConfig == NULL)
+    {
+        clLogError("SU", "ACT-SWITCHOVER", "SU [%s] config not found", 
+                   su->name.value);
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+    sgStatus = clAmsMgmtServiceGroupGetStatus(handle, (const ClCharT*)suConfig->parentSG.entity.name.value);
+    if(sgStatus == NULL)
+    {
+        clLogError("SU", "ACT-SWITCHOVER", "SG [%s] status not found", suConfig->parentSG.entity.name.value);
+        rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
+        goto out_free;
+    }
+
+    rc = clAmsMgmtGetSGAssignedSUList(handle, &suConfig->parentSG.entity, &suList);
     if(rc != CL_OK)
     {
-        clLogError("SU", "ACT-SWITCHOVER", "SU [%s] si list returned [%#x]",
-                   su->name.value, rc);
-        return rc;
+        clLogError("SU", "ACT-SWITCHOVER", "SG [%s] assigned su list returned [%#x]", 
+                   suConfig->parentSG.entity.name.value, rc);
+        goto out_free;
     }
-    if(!suSIRefBuffer.count) return rc;
-
-    for(i = 0; i < suSIRefBuffer.count; ++i)
+    suStatusList = clHeapCalloc(suList.count, sizeof(*suStatusList));
+    CL_ASSERT(suStatusList != NULL);
+    /*
+     * Lock out all the other standby's first except the target SU.
+     */
+    for(i = 0; i < suList.count; ++i)
     {
-        ClAmsSUSIRefT  *siRef = suSIRefBuffer.entityRef + i;
-        if(siRef->haState == CL_AMS_HA_STATE_STANDBY)
+        if(!strcmp((const ClCharT*)suList.entity[i].name.value, (const ClCharT*)su->name.value))
         {
-            ClInt32T j;
-            rc = clAmsMgmtGetSISUList(handle, &siRef->entityRef.entity, 
-                                      &siSURefBuffer);
+            suStatusList[i] = NULL;
+            continue;
+        }
+        suStatusList[i] = clAmsMgmtServiceUnitGetStatus(handle, 
+                                                        (const ClCharT*)
+                                                        suList.entity[i].name.value);
+        if(!suStatusList[i])
+        {
+            rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
+            clLogError("SU", "ACT-SWITCHOVER", "SU [%s] status get failed", 
+                       suList.entity[i].name.value);
+            goto unlock_standby;
+        }
+    
+        if(suStatusList[i]->numStandbySIs > 0)
+        {
+            rc = clAmsMgmtEntityLockAssignment(handle, &suList.entity[i]);
             if(rc != CL_OK)
             {
-                clLogError("SU", "ACT-SWITCHOVER", "SI [%s] su list returned [%#x]",
-                           siRef->entityRef.entity.name.value, rc);
-                goto out_free;
+                clLogError("SU", "ACT-SWITCHOVER", "Lock assignment on SU [%s] returned [%#x]",
+                           suList.entity[i].name.value, rc);
+                clHeapFree(suStatusList[i]);
+                suStatusList[i] = NULL;
             }
-            for(j = 0; j < siSURefBuffer.count; ++j)
-            {
-                ClAmsSISURefT *suRef = siSURefBuffer.entityRef+j;
-                if(suRef->haState == CL_AMS_HA_STATE_STANDBY)
-                {
-                    continue;
-                }
+        }
+    }
 
-                if(suRef->haState == CL_AMS_HA_STATE_ACTIVE)
-                {
-                    clLogInfo("SU", "ACT-SWITCHOVER", "Switching over active SU [%s]",
-                              suRef->entityRef.entity.name.value);
-                    rc = clAmsMgmtSwitchoverSU(handle, &suRef->entityRef.entity);
-                    goto out_free;
-                }
+    /*
+     * Now iterate through the active SUs and lock the required.
+     */
+    for(i = 0; i < suList.count; ++i)
+    {
+        if(suStatusList[i] && suStatusList[i]->numActiveSIs > 0)
+        {
+            ClBoolT canLock = CL_FALSE;
+            if(!activeSU) canLock = CL_TRUE;
+            else
+                canLock = !strncmp(activeSU->name.value, suList.entity[i].name.value,
+                                   strlen(activeSU->name.value));
+            if(canLock)
+                goto found;
+        }
+    }
+    
+    rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
+    clLogError("SU", "ACT-SWITCHOVER", "No active SU found for the SG [%s]", 
+               suConfig->parentSG.entity.name.value);
+    goto unlock_standby;
+
+    found:
+    clLogInfo("SU", "ACT-SWITCHOVER", "Switching over active SU [%s]",
+              suList.entity[i].name.value);
+    rc = clAmsMgmtSwitchoverSU(handle, &suList.entity[i]);
+
+    unlock_standby:
+    for(i = 0; i < suList.count; ++i)
+    {
+        if(suStatusList[i] && suStatusList[i]->numStandbySIs > 0)
+        {
+            ClRcT rc2 = clAmsMgmtEntityUnlock(handle, &suList.entity[i]);
+            if(rc2 != CL_OK)
+            {
+                clLogError("SU", "ACT-SWITCHOVER", "SU [%s] unlock returned with [%#x]",
+                           suList.entity[i].name.value, rc2);
             }
-            clHeapFree(siSURefBuffer.entityRef);
-            memset(&siSURefBuffer, 0, sizeof(siSURefBuffer));
         }
     }
 
     out_free:
-    if(suSIRefBuffer.entityRef) clHeapFree(suSIRefBuffer.entityRef);
-    if(siSURefBuffer.entityRef) clHeapFree(siSURefBuffer.entityRef);
-
+    if(suConfig) clHeapFree(suConfig);
+    if(sgStatus) clHeapFree(sgStatus);
+    for(i = 0; i < suList.count; ++i)
+    {
+        if(suStatusList[i])
+            clHeapFree(suStatusList[i]);
+    }
+    if(suStatusList) clHeapFree(suStatusList);
+    if(suList.entity) clHeapFree(suList.entity);
+    
     return rc;
 }
 
@@ -4484,7 +4548,7 @@ static ClRcT clAmsMgmtGetSUHAState(ClAmsMgmtHandleT handle,
     return CL_OK;
 }
 
-static ClRcT clAmsMgmtSetActiveSU(ClAmsMgmtHandleT handle, ClAmsEntityT *su)
+static ClRcT clAmsMgmtSetActiveSU(ClAmsMgmtHandleT handle, ClAmsEntityT *su, ClAmsEntityT *activeSU)
 {
     ClRcT rc = CL_OK;
     ClAmsHAStateT haState = CL_AMS_HA_STATE_NONE;
@@ -4496,14 +4560,14 @@ static ClRcT clAmsMgmtSetActiveSU(ClAmsMgmtHandleT handle, ClAmsEntityT *su)
 
     if(haState == CL_AMS_HA_STATE_STANDBY)
     {
-        rc = clAmsMgmtSwitchoverActiveSU(handle, su);
+        rc = clAmsMgmtSwitchoverActiveSU(handle, su, activeSU);
     }
 
     out:
     return rc;
 }
 
-ClRcT clAmsMgmtSetActive(ClAmsMgmtHandleT handle, ClAmsEntityT *entity)
+ClRcT clAmsMgmtSetActive(ClAmsMgmtHandleT handle, ClAmsEntityT *entity, ClAmsEntityT *activeSU)
 {
     ClAmsEntityBufferT entityBuffer = {0};
     ClRcT rc = CL_OK;
@@ -4543,11 +4607,9 @@ ClRcT clAmsMgmtSetActive(ClAmsMgmtHandleT handle, ClAmsEntityT *entity)
     for(i = 0; i < entityBuffer.count; ++i)
     {
         ClAmsEntityT *su = entityBuffer.entity+i;
-        rc = clAmsMgmtSetActiveSU(handle, su);
-        if(rc != CL_OK)
-        {
-            goto out_free;
-        }
+        if(!su->name.length) continue;
+        rc = clAmsMgmtSetActiveSU(handle, su, activeSU);
+        goto out_free;
     }
 
     out_free:
@@ -4623,3 +4685,4 @@ clAmsMgmtGetAspInstallInfo(ClAmsMgmtHandleT mgmtHandle, const ClCharT *nodeName,
     out:
     return rc;
 }
+

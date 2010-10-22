@@ -3472,7 +3472,7 @@ extern ClRcT clAmsMgmtEntityUserDataDeleteAll(ClAmsMgmtHandleT handle,
                                               ClAmsEntityT *entity);
 
 
-extern ClRcT clAmsMgmtSetActive(ClAmsMgmtHandleT handle, ClAmsEntityT *entity);
+extern ClRcT clAmsMgmtSetActive(ClAmsMgmtHandleT handle, ClAmsEntityT *entity, ClAmsEntityT *activeSU);
                      
 extern ClRcT clAmsMgmtSIAssignSU(const ClCharT *si, const ClCharT *activeSU, const ClCharT *standbySU);
 
