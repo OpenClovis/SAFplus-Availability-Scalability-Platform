@@ -671,8 +671,6 @@ clLogClientMsgArgCopy(ClUint16T   msgId,
 {
     ClRcT  rc = CL_OK;
 
-    CL_LOG_DEBUG_TRACE(("Enter: %u @ %p", bufLength, pBuffer));
-
     switch(msgId)
     {
         case CL_LOG_MSGID_BUFFER:
@@ -684,13 +682,11 @@ clLogClientMsgArgCopy(ClUint16T   msgId,
             pData   = va_arg(args, void *);
             if( NULL == pData )
             {
-                CL_LOG_DEBUG_ERROR(("Got NULL data pointer"));
                 return CL_LOG_RC(CL_ERR_NULL_POINTER);
             }
 
             if( bufLength > sizeof(ClUint32T) )
             {
-                CL_LOG_DEBUG_VERBOSE(("dataLen: %u", dataLen));
                 memcpy(pBuffer, &dataLen, sizeof(ClUint32T));
                 pBuffer   += sizeof(ClUint32T);
                 bufLength -= sizeof(ClUint32T);
@@ -711,7 +707,6 @@ clLogClientMsgArgCopy(ClUint16T   msgId,
                             args))) < 0 )
             {
                 rc = CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
-                CL_LOG_DEBUG_ERROR(("vsnprintf(): rc[0x %x]\n", rc));
                 return rc;
             }
             pBuffer[CL_MIN(nBytes, tempLen)] = '\n';
@@ -753,7 +748,6 @@ clLogClientMsgArgCopy(ClUint16T   msgId,
                 pVal = va_arg(args, void *);
                 if( NULL == pVal )
                 {
-                    CL_LOG_DEBUG_ERROR(("NULL pointer Value"));
                     return CL_LOG_RC(CL_ERR_NULL_POINTER);
                 }
                 if( bufLength >= valLength )
