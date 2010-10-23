@@ -123,7 +123,7 @@ clLogFlushRecords(void)
      * Just duplicate the entire range since the flush is one-time only and no need to do half-baked
      * allocs based on the actual flush size.
      */
-    logBuffer = clHeapCalloc(CL_LOG_MAX_NUM_MSGS, sizeof(*logBuffer));
+    logBuffer = calloc(CL_LOG_MAX_NUM_MSGS, sizeof(*logBuffer));
     CL_ASSERT(logBuffer != NULL);
     memcpy(logBuffer, gLogMsgArray, sizeof(*logBuffer) * CL_LOG_MAX_NUM_MSGS);
 
@@ -165,7 +165,7 @@ clLogFlushRecords(void)
         numFlushed += (currentWriteIdx - currentReadIdx);
     }
 
-    clHeapFree(logBuffer);
+    free(logBuffer);
 
     clOsalMutexLock(&gLogMutex);
     if(overWriteFlag) 
