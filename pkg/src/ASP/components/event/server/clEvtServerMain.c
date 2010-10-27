@@ -3223,13 +3223,13 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq,
                     }
 
 
-                    if ( (0 != (userType & CL_EVENT_CHANNEL_SUBSCRIBER)
-                                && (pEvtChannelDB->subscriberRefCount > 0)))
+                    if ( rc == CL_OK && (0 != (userType & CL_EVENT_CHANNEL_SUBSCRIBER)
+                                         && (pEvtChannelDB->subscriberRefCount > 0)))
                     {
                         pEvtChannelDB->subscriberRefCount--;
                     }
-                    if ( ( 0 != (userType & CL_EVENT_CHANNEL_PUBLISHER) 
-                                && (pEvtChannelDB->publisherRefCount > 0)) )
+                    if ( rc == CL_OK && ( 0 != (userType & CL_EVENT_CHANNEL_PUBLISHER) 
+                                          && (pEvtChannelDB->publisherRefCount > 0)) )
                     {
                         pEvtChannelDB->publisherRefCount--;
                     }

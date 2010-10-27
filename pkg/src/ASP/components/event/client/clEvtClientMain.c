@@ -2568,9 +2568,11 @@ ClRcT clEventChannelClose(ClEventChannelHandleT channelHandle)
     ClIocPortT eoIocPort = 0;
     ClEvtClientHeadT *pEvtClientHead;
     ClEvtClientChannelInfoT *pEvtChannelInfo = NULL;
+    ClEvtInitInfoT *pInitInfo = NULL;
     ClIocAddressT destAddr = {{0}};
     ClEoExecutionObjT *pEoObj = NULL;
     ClEvtHdlDbDataT * pEvtHdlDbData = NULL;
+    ClEventInitHandleT servEvtHandle = 0;
     ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500};
     ClInt32T tries = 0;
 
@@ -2612,6 +2614,22 @@ ClRcT clEventChannelClose(ClEventChannelHandleT channelHandle)
     /*
      * Pack the version Info 
      */
+    rc = clHandleCheckout(pEvtClientHead->evtClientHandleDatabase, pEvtChannelInfo->evtHandle, (void **)&pInitInfo);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, channelHandle);
+        rc = CL_EVENT_ERR_BAD_HANDLE;
+        goto failure;
+    }
+    servEvtHandle = pInitInfo->servHdl;
+    rc = clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, pEvtChannelInfo->evtHandle);
+    if(rc != CL_OK)
+    {
+        clLogError("EVT", "CCL", 
+                CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
+        goto failure;
+    }
+
     clEvtClientToServerVersionSet(unsubscribeRequest);
 
     /*
@@ -2632,11 +2650,10 @@ ClRcT clEventChannelClose(ClEventChannelHandleT channelHandle)
                 pEvtChannelInfo->evtChannelKey);
     unsubscribeRequest.subscriptionId = 0;
     unsubscribeRequest.userId.eoIocPort = pEoObj->eoID;
-    unsubscribeRequest.userId.evtHandle = pEvtChannelInfo->evtHandle;
+    unsubscribeRequest.userId.evtHandle = servEvtHandle;
     unsubscribeRequest.reqFlag = CL_EVT_CHANNEL_CLOSE;
     clEvtUtilsNameCpy(&unsubscribeRequest.evtChannelName,
             &pEvtChannelInfo->evtChannelName);
-
     rc = clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, channelHandle);
     if (CL_OK != rc)
     { 
