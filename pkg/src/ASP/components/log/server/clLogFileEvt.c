@@ -1423,14 +1423,17 @@ clLogEventDeliverCb(ClEventSubscriptionIdT  subscriptionId,
                 CL_LOG_DEBUG_ERROR(("clLogStreamOwnerNodedownStateUpdate(): rc[0x %x]", rc));
                 goto out_free;
             }
-                        
-            rc = clLogSvrCompdownStateUpdate(payLoad.eoIocPort);
-            if( CL_OK != rc )
+            
+            if(payLoad.nodeIocAddress == clIocLocalAddressGet())
             {
-                CL_LOG_DEBUG_ERROR(("clLogSvrCompdownStateUpdate(): rc[0x %x]", rc));
-                goto out_free;
+                rc = clLogSvrCompdownStateUpdate(payLoad.eoIocPort);
+                if( CL_OK != rc )
+                {
+                    CL_LOG_DEBUG_ERROR(("clLogSvrCompdownStateUpdate(): rc[0x %x]", rc));
+                    goto out_free;
+                }
             }
-                
+   
             break;
         }
     case CL_LOG_NODEDOWN_EVT_SUBID:
