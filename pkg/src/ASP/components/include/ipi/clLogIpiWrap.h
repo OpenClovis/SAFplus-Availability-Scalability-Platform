@@ -49,7 +49,7 @@
 #define CL_LOG_INFO           0x7
 #define CL_LOG_INFORMATIONAL  CL_LOG_INFO 
 #define CL_LOG_DEBUG          0x8
-#define CL_LOG_DEBUG1         CL_LOG_DEBUG      # DEBUG1 is same as DEBUG
+#define CL_LOG_DEBUG1         CL_LOG_DEBUG      // DEBUG1 is same as DEBUG
 #define CL_LOG_DEBUG2         0x9
 #define CL_LOG_DEBUG3         0xa
 #define CL_LOG_DEBUG4         0xb
