@@ -145,7 +145,7 @@ typedef enum {
 #define SA_NTF_HPI_EVENT_WATCHDOG_BIT              0x2000000
 #define SA_NTF_HPI_EVENT_DIMI_BIT                  0x4000000
 #define SA_NTF_HPI_EVENT_FUMI_BIT                  0x8000000
-#define SA_NTF_HPI_EVENT_OTHER                    0x10000000
+#define SA_NTF_HPI_EVENT_OTHER_BIT                    0x10000000
 #define SA_NTF_APPLICATION_EVENT_BIT          0x100000000000
 
 typedef SaUint64T SaNtfEventTypeBitmapT;
