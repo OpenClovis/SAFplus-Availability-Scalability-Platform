@@ -361,6 +361,7 @@ typedef struct
 typedef struct
 {
     ClGmsHandleT        gmsHandle;          /* GMS Handle of requestor */
+    ClGmsGroupIdT       groupId;            /* Id of the requested group */
     ClGmsLeadershipCredentialsT credentials;/* Leadership credentials */
     ClGmsNodeIdT        nodeId;             /* Node id of the joining node */
     ClNameT             nodeName;           /* Node name of joining node */
@@ -382,6 +383,7 @@ typedef struct
 typedef struct
 {
     ClGmsHandleT        gmsHandle;          /* GMS Handle of requestor */
+    ClGmsGroupIdT       groupId;            /* Id of the requested group */
     ClGmsNodeIdT        nodeId;             /* Node id of the leaving node */
     ClBoolT             sync;               /* Indicate if this is a sync call */
     ClVersionT          clientVersion;
@@ -535,7 +537,7 @@ typedef struct
 typedef struct
 {
     ClGmsHandleT        gmsHandle;          /* GMS Handle of requestor */
-    ClGmsGroupNameT        groupName;
+    ClGmsGroupNameT     groupName;
     ClVersionT          clientVersion;
 } ClGmsGroupInfoGetRequestT;
 

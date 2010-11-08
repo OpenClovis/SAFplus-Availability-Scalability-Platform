@@ -152,6 +152,11 @@ typedef enum {
 } ClGmsViewCompareT;
 
 
+ 
+// created to check for matching group name
+ClRcT _clGmsViewClusterGroupFind( CL_IN const char *name);
+
+
 /* View Db Handlers. */
 
 /* Creates a view and returns a handle which the caller has to use

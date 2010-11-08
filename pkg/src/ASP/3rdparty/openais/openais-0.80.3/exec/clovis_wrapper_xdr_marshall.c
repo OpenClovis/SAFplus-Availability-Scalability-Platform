@@ -130,6 +130,8 @@ ClRcT   marshallSyncMessage(struct VDECL(req_exec_gms_nodejoin) *req_exec_gms_no
     ClUint32T                    index = 0;
     ClGmsGroupInfoT             *groupInfo = NULL;
     ClGmsGroupMemberT           *groupMember = NULL;
+    // marshall also group id
+    ClGmsGroupInfoT     	*groupData = NULL;
 
     /* Marshall noOfGroups field */
     CHECK_RETURN(clXdrMarshallClInt32T(&(sync->noOfGroups),bufferHandle,0), CL_OK);
@@ -149,6 +151,9 @@ ClRcT   marshallSyncMessage(struct VDECL(req_exec_gms_nodejoin) *req_exec_gms_no
     {
         groupMember = &(sync->groupMemberList[index].viewMember.groupMember);
         CHECK_RETURN(marshallClGmsGroupMemberT(groupMember, bufferHandle), CL_OK);
+	// marshall also group id
+        groupData = &(sync->groupMemberList[index].viewMember.groupData);
+	CHECK_RETURN(marshallClGmsGroupInfoT(groupData,bufferHandle),CL_OK);
     }
 
     return CL_OK;
@@ -164,6 +169,9 @@ ClRcT   marshallHeader(struct VDECL(req_exec_gms_nodejoin) *req_exec_gms_nodejoi
 
     /* Marshall context handle field */
     CHECK_RETURN(clXdrMarshallClInt64T(&(req_exec_gms_nodejoin->contextHandle),bufferHandle,0), CL_OK);
+
+    /* Marshall gmsGroupId Field */
+    CHECK_RETURN(clXdrMarshallClInt32T(&(req_exec_gms_nodejoin->gmsGroupId),bufferHandle,0), CL_OK);
 
     /* Marshall Eject Reason field */
     CHECK_RETURN(clXdrMarshallClInt32T(&(req_exec_gms_nodejoin->ejectReason),bufferHandle,0), CL_OK);

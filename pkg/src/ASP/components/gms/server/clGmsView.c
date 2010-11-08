@@ -55,6 +55,30 @@
 #include <clLogApi.h>
 #include <clGmsLog.h>
 
+// check for given name is present or not
+ClRcT _clGmsViewClusterGroupFind( CL_IN  const char * name)
+{
+    const ClRcT rc = (CL_ERR_DOESNT_EXIST);
+    int index;
+
+    // search in each groups, for matching group name
+    for (index = 0; index < (gmsGlobalInfo.config.noOfGroups) ; index++)
+    {
+        if ((gmsGlobalInfo.db[index].view.isActive == CL_TRUE) )
+        {
+                // comapring the group names
+                if ( strcmp( (char *) gmsGlobalInfo.db[index].view.name.value, (char *) name) == 0 )
+                {
+                    clLog (DBG,GEN,NA, "Cluster Group Name %s &  group Id %d!", (char *) gmsGlobalInfo.db[index].view.name.value, gmsGlobalInfo.db[index].view.id);
+                        return (CL_ERR_ALREADY_EXIST);
+                }
+        }
+    }
+
+    return rc;
+}
+
+
 /* Find the view Db */
 
 ClRcT    _clGmsViewDbFind(

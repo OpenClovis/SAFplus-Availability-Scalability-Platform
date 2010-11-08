@@ -96,6 +96,7 @@ timerCallback( void *arg ){
             &leaderNodeId,
             &deputyNodeId
             );
+
     if (rc != CL_OK)
     {
         clLog(ERROR,LEA,NA,
@@ -116,7 +117,17 @@ timerCallback( void *arg ){
     }
 
     bootTimeElectionDone = CL_TRUE;
-    readyToServeGroups = CL_TRUE;
+
+    // comemnted to ensure during synch only the value is set
+    //readyToServeGroups = CL_TRUE;
+    // if there is no leader in the group or there is only 1 node in the cluster group, set to true 
+    clLog(INFO,LEA,NA, "leader [%d] & noOfViewMemebers [%d] is found!", view->leader, view->noOfViewMembers);
+    if (view->leader || view->noOfViewMembers == 1)
+    {
+    	clLog(INFO,LEA,NA,
+            "There is no leader in the default group; hence setting in current node readyToServeGroups as True");
+	readyToServeGroups = CL_TRUE;
+    }
 
     if (_clGmsViewUnlock(0x0) != CL_OK)
     {
@@ -480,7 +491,7 @@ _clGmsEngineLeaderElect(
 
     if ((rc != CL_OK) || (*leaderNodeId == CL_GMS_INVALID_NODE_ID))
     {
-        clLog(ERROR, CLM,NA,"Leader election failed. rc = 0x%x",rc);
+        clLog(ERROR, CLM,NA,"Leader election failed. rc = 0x%x", rc);
         goto done_return;
     }
 
@@ -581,6 +592,8 @@ _clGmsEnginePreferredLeaderElect(
 
     clLog(TRACE, CLM, NA,
             "_clGmsEnginePreferredLeaderElect is invoked");
+
+    // currently been done for default group only
     rc = _clGmsViewDbFind(0, &thisViewDb);
 
     if (rc != CL_OK)
@@ -681,10 +694,11 @@ error:
     }
     return rc;
 }
+
+
 /* Called from totem protocol when it receives a cluster join
  * message. Even this node join to cluster is called from 
  * totem protocol  */
-
 ClRcT _clGmsEngineClusterJoin(
                 CL_IN   const ClGmsGroupIdT   groupId,
                 CL_IN   const ClGmsNodeIdT    nodeId,
@@ -696,17 +710,11 @@ ClRcT _clGmsEngineClusterJoin(
     ClGmsNodeIdT       newLeader = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       newDeputy = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       currentDeputy = CL_GMS_INVALID_NODE_ID;
-    ClGmsGroupSyncNotificationT     syncNotification = {0};
-    ClUint32T          noOfItems = 0;
-    void*              buf = NULL;
-    ClGmsDbT*          thisViewDb = NULL;
-    ClUint32T          i = 0;
-    ClInt32T           result = 0;
     ClUint32T          len1 = 0;
     ClUint32T          len2 = 0;
 
     clLog(INFO,CLM,NA,
-            "GMS engine cluster join is invoked for node Id [%d]",nodeId);
+            "GMS engine cluster join is invoked for node Id [%d] for group [%d]", nodeId, groupId);
 
     /* See this node was the preferred leader. If so then set the tag to TRUE */
     len1 = strlen(gmsGlobalInfo.config.preferredActiveSCNodeName);
@@ -755,6 +763,7 @@ ClRcT _clGmsEngineClusterJoin(
      *  for the timer to fire , if the timer is not fired we simply return
      *  with out invoking the algorithm.
      */
+    clLogMultiline(INFO,CLM,NA, "DEBUG : boot time election done %s", (bootTimeElectionDone)?"yes!":"no!");
     if( bootTimeElectionDone != CL_TRUE)
     {
         clLogMultiline(INFO,CLM,NA,
@@ -768,13 +777,7 @@ ClRcT _clGmsEngineClusterJoin(
         return rc;
     }
 
-    rc = _clGmsEngineLeaderElect(
-            0x0,
-            node,
-            CL_GMS_MEMBER_JOINED,
-            &newLeader,
-            &newDeputy
-            );
+    rc = _clGmsEngineLeaderElect(groupId, node, CL_GMS_MEMBER_JOINED, &newLeader, &newDeputy);
 
     if (rc != CL_OK)
     {
@@ -782,7 +785,6 @@ ClRcT _clGmsEngineClusterJoin(
                 "Leader election failed during node join. rc 0x%x",rc);
         goto ENG_ADD_ERROR;
     }
-
 
     if ((newLeader != currentLeader) && (newLeader != CL_GMS_INVALID_NODE_ID))
     {
@@ -804,123 +806,6 @@ ClRcT _clGmsEngineClusterJoin(
 
     clLog (INFO,CLM,NA,
             "Node [%d] joined the cluster successfully",nodeId);
-
-    /* Since adding the new node is successful, and this point will be 
-     * reached only for other nodes joining the cluster (for self join
-     * it will not be reached. We need to see if we are leader or deputy
-     * and need to send the SYNC message with database
-     */
-    if ((newLeader == gmsGlobalInfo.config.thisNodeInfo.nodeId) ||
-            ((newLeader == nodeId) && 
-             (newDeputy == gmsGlobalInfo.config.thisNodeInfo.nodeId)))
-    {
-        clLog(INFO,GROUPS,NA,
-                "I am leader/deputy of the cluster. So sending Groups "
-                "Sync message for the new node.");
-        /* Send SYNC message with entire group database */
-        syncNotification.noOfGroups = 0;
-        syncNotification.noOfMembers = 0;
-
-        clGmsMutexLock(gmsGlobalInfo.dbMutex);
-        clLog(TRACE,CLM,NA,
-                "Acquired mutex. Now gathering groups info");
-        for (i=1; i < gmsGlobalInfo.config.noOfGroups; i++)
-        {
-            if ((gmsGlobalInfo.db[i].view.isActive == CL_TRUE) &&
-                    (gmsGlobalInfo.db[i].viewType == CL_GMS_GROUP))
-            {
-                ClInt32T j = 0;
-                /* These 2 conditions should indicate that the group exists
-                 * and is active.
-                 */
-                thisViewDb = &gmsGlobalInfo.db[i];
-                /* Get the group Info for thisViewDb */
-                syncNotification.groupInfoList = 
-                    (ClGmsGroupInfoT*)realloc(syncNotification.groupInfoList, 
-                                              sizeof(ClGmsGroupInfoT)*(syncNotification.noOfGroups+1));
-                if (syncNotification.groupInfoList == NULL)
-                {
-                    clLog(ERROR,CLM,NA,
-                            "Could not allocate memory while gathering group information");
-                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-                    rc = CL_ERR_NO_MEMORY;
-                    goto ENG_ADD_ERROR;
-                }
-
-                memcpy(&syncNotification.groupInfoList[syncNotification.noOfGroups],
-                        &(thisViewDb->groupInfo),sizeof(ClGmsGroupInfoT));
-
-                syncNotification.noOfGroups++;
-
-                /* Get the list of members of this group */
-                rc = _clGmsViewGetCurrentViewNotification(thisViewDb, &buf, &noOfItems);
-                if (rc != CL_OK)
-                {
-                    clLog(ERROR,CLM,NA,
-                            "_clGmsViewGetCurrentViewNotification failed "
-                             "while sending SYNC message. rc = 0x%x\n",rc);
-                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-                    goto ENG_ADD_ERROR;
-                }
-
-                if ((noOfItems == 0) || (buf == NULL))
-                {
-                    buf = NULL;
-                    noOfItems = 0;
-                    continue;
-                }
-
-                syncNotification.groupMemberList = (ClGmsViewNodeT*)realloc(syncNotification.groupMemberList,
-                        sizeof(ClGmsViewNodeT)*(noOfItems+syncNotification.noOfMembers));
-                if (syncNotification.groupMemberList == NULL)
-                {
-                    clLog(ERROR,CLM,NA,
-                            "Could not allocate memory while gathering group information");
-                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-                    rc = CL_ERR_NO_MEMORY;
-                    goto ENG_ADD_ERROR;
-                }
-                memset(&syncNotification.groupMemberList[syncNotification.noOfMembers], 0,
-                        sizeof(ClGmsViewNodeT)*noOfItems);
-                for (j = 0; j < noOfItems; j++)
-                {
-                    memcpy(&syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupMember, 
-                            &(((ClGmsGroupNotificationT*)buf)[j].groupMember),sizeof(ClGmsGroupMemberT));
-                    syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupData.groupId = 
-                        thisViewDb->groupInfo.groupId;
-                    syncNotification.noOfMembers++;
-                }
-                clHeapFree(buf);
-                buf = NULL;
-                noOfItems = 0;
-            }
-        }
-        clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-        clLog(TRACE,CLM,NA,
-                "Gathered group information. Now sending it over multicast");
-
-        /* Send the multicast message */
-        result = clGmsSendMsg(NULL, 0, CL_GMS_SYNC_MESSAGE, 0, 0, (void *)&syncNotification);
-        if (result < 0)
-        {
-            clLog(ERROR,GROUPS,NA,
-                    "Openais Sync Message Send failed");
-        }
-        clLog(TRACE,CLM,NA,
-                "Group information is sent over multicast");
-        /* Free the pointer used to gather the group member info.
-         * since the memory is allocated using realloc, free it 
-         * using normal free
-         */
-        if (syncNotification.noOfGroups > 0)
-        {
-            free(syncNotification.groupInfoList);
-            if (syncNotification.noOfMembers > 0)
-            {
-                free(syncNotification.groupMemberList);
-            }
-        }
-    }
 
 ENG_ADD_ERROR:
     if (_clGmsViewUnlock(groupId) != CL_OK)
@@ -1374,11 +1259,21 @@ ClRcT   _clGmsEngineGroupJoin(CL_IN     ClGmsGroupIdT       groupId,
     node->viewMember.groupMember.joinTimestamp = (ClTimeT)(t*CL_GMS_NANO_SEC);
 
     rc = _clGmsViewAddNode(groupId, node->viewMember.groupMember.memberId, node);
-    if ((rc != CL_OK) && (rc == CL_ERR_ALREADY_EXIST))
+    if ((rc != CL_OK) && (rc != CL_ERR_ALREADY_EXIST))
     {
+        clLog (ERROR,GROUPS,NA, "Member Join failed; return error code [0x%x]!", rc);
         clGmsMutexUnlock(thisViewDb->viewMutex);
         goto error_return;
     }
+    else if(rc == CL_ERR_ALREADY_EXIST)
+    {
+        clLog (INFO,GROUPS,NA, "Given Member already exist; returning success!");
+
+	rc = CL_OK;
+        clGmsMutexUnlock(thisViewDb->viewMutex);
+        goto error_return;
+    }
+
     thisViewDb->groupInfo.noOfMembers++;
 
     rc =  _clGmsTrackNotify(groupId);
@@ -1393,7 +1288,7 @@ error_return:
         {
             clLog(ERROR,GEN,NA,
                     "Bad handle... Context handle checkout "
-                     "failed with rc=0x%x",rc);
+                     "failed with rc=0x%x",_rc);
             return rc;
         }
         contextCondVar.cond = context_info->condVar.cond;
@@ -1640,6 +1535,7 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
     ClGmsGroupInfoT *thisGroupInfo = NULL;
     ClGmsDbT   *thisViewDb = NULL;
     ClUint32T   groupId = 0;
+    ClUint32T   tempgroupId = 0;
     time_t      t= 0x0;
     ClGmsViewNodeT  *thisNode = NULL;
 
@@ -1660,6 +1556,12 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
         thisGroupInfo = &syncNotification->groupInfoList[i];
         CL_ASSERT(thisGroupInfo != NULL);
 
+	if (thisGroupInfo->groupId == 0)
+	{
+	    clLog(DBG,GEN,NA, "Found group Id 0 being called for _clGmsEngineGroupInfoSync for create group; skipping and continuing.");
+	    continue;
+	}
+
         groupId = thisGroupInfo->groupId;
         CL_ASSERT(groupId != 0);
 
@@ -1678,9 +1580,29 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
         /* copy the group Info into thisViewDb */
         memcpy(&thisViewDb->groupInfo,thisGroupInfo,sizeof(ClGmsGroupInfoT));
 
+	#if 0
         /* Create an entry into name-id pair db */
         rc = _clGmsNameIdDbAdd(&gmsGlobalInfo.groupNameIdDb,
                                &thisGroupInfo->groupName,groupId);
+	#endif
+	
+	#if 1
+	// added check so that duplicate information is not added
+	rc = _clGmsNameIdDbFind(&gmsGlobalInfo.groupNameIdDb, &thisGroupInfo->groupName, &tempgroupId);
+        if ( CL_GET_ERROR_CODE( rc ) == CL_ERR_NOT_EXIST )
+	{	
+    	    clLog(DBG,GEN,NA, "Name-Id entry is not present for group [%s] Id [%d]", (char *) &thisGroupInfo->groupName.value, groupId);
+	    /* Create an entry into name-id pair db */
+            rc = _clGmsNameIdDbAdd(&gmsGlobalInfo.groupNameIdDb, &thisGroupInfo->groupName,groupId);
+            CL_ASSERT(rc == CL_OK);
+	}
+	else
+	{
+    	    clLog(DBG,GEN,NA, "Name-Id entry is present for group [%s] Id [%d]; return [0x%x] skipping!", (char *) &thisGroupInfo->groupName.value, groupId, rc);
+	    rc = CL_OK;
+	}	
+	#endif
+
         CL_ASSERT(rc == CL_OK);
     }
     clGmsMutexUnlock(gmsGlobalInfo.nameIdMutex);
@@ -1701,6 +1623,9 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
 
         thisNode->viewMember.groupMember.joinTimestamp = (ClTimeT)(t*CL_GMS_NANO_SEC);
         rc = _clGmsViewAddNode(groupId, thisNode->viewMember.groupMember.memberId, thisNode);
+	
+	clLog(DBG,GEN,NA, "added member ID [%d] to group [%d]", thisNode->viewMember.groupMember.memberId, groupId);
+
         CL_ASSERT((rc == CL_OK) || (rc == CL_ERR_ALREADY_EXIST));
     }
 
@@ -1723,7 +1648,10 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
     }
     clLog(DBG,GEN,NA,
             "Sync message processing is done.");
-       
+      
+    // VV on 26 Oct 2010; condition added to ensure sync will be executed
+    readyToServeGroups = CL_TRUE;
+ 
     clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
     return rc;
 }

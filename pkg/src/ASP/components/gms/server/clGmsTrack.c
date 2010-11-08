@@ -68,8 +68,6 @@ ClRcT  _clGmsTrackNotify(
     ClGmsTrackNotifyT   changeList = { NULL, 0};
     ClGmsTrackNotifyT   changeOnlyList = { NULL, 0};
 
-    
-
     rc = _clGmsViewDbFind(groupId, &thisViewDb);
 
     if (rc != CL_OK)
@@ -84,10 +82,9 @@ ClRcT  _clGmsTrackNotify(
 
     if (rc != CL_OK) goto TRACK_NOTIFY_ERROR;
 
-
-
     rc = _clGmsDbGetFirst(thisViewDb, CL_GMS_TRACK, &gmsOpaque, 
                                                 (void **)&trackNode);
+
 
     if (rc != CL_OK) goto TRACK_NOTIFY_ERROR;
 

@@ -98,6 +98,7 @@ typedef ClGmsLeadershipCredentialsT     ClTmsLeadershipCredentialsT;
 typedef ClGmsGroupNotificationBufferT   ClTmsGroupNotificationBufferT;
 typedef ClGmsGroupInfoListT             ClTmsGroupInfoListT;
 typedef ClGmsGroupInfoT                 ClTmsGroupInfoT;
+typedef ClGmsGroupMemberT               ClTmsGroupMemberT;
 
 /*=========================================================================
  * Callback Functions:

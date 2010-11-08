@@ -47,7 +47,8 @@
 #include <clGmsApiClient.h>
 #include <string.h>
 #include <unistd.h>
-
+// added for job queue
+#include "clJobQueue.h"
 
 /******************************************************************************
  * Common RMD Call Wrapper
@@ -2034,7 +2035,21 @@ VDECL (cl_gms_cluster_track_callback_rmd) (
      *  the callback from the application thread 
      */
 
-    return clGmsClusterTrackCallbackHandler(res);
+    // added cluster calllback to job queue
+    #if 1
+    // instead of directly invking the call back handler invoke through job queue
+    #define CL_NUM_JOB_QUEUES CL_IOC_MAX_PRIORITIES
+    extern ClJobQueueT gEoJobQueues[CL_NUM_JOB_QUEUES];
+
+    // response contents are already heap allocated by unmarhall func
+
+    rc = clJobQueuePush (&gEoJobQueues[CL_IOC_LOW_PRIORITY], (ClCallbackT) clGmsClusterTrackCallbackHandler, res);
+    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("clJobQueuePush rc [0x%x]\n",rc));
+
+    return rc;
+    #endif
+
+    //return clGmsClusterTrackCallbackHandler(res);
 }
 /******************************************************************************
  * RMD Async Callback Function Handler for Cluster Member Get Callback
@@ -2209,13 +2224,64 @@ VDECL (cl_gms_group_track_callback_rmd) (
     ClRcT rc = CL_OK;
     ClGmsGroupTrackCallbackDataT *res = NULL;
 
+    // added code for cluster simialr calling
+    ClGmsLibInstanceT *gmsInstance = NULL;
+    ClGmsHandleT gmsHandle = CL_HANDLE_INVALID_VALUE;
+
     rc = unmarshalClGmsGroupTrackCallbackData(in_buffer, &res);
     if (rc != CL_OK)
     {
         return rc;
     }
 
+    if (res == NULL)
+    {
+        return CL_ERR_UNSPECIFIED;
+    }
+
+    rc = clHandleCheckout(handle_database ,res->gmsHandle, (void *)&gmsInstance);
+    if(rc)
+    {
+        return CL_ERR_INVALID_HANDLE;
+    }
+
+    gmsHandle = res->gmsHandle;
+
+    #if 1
+    // instead of directly invking the call back handler invoke through job queue
+    #define CL_NUM_JOB_QUEUES CL_IOC_MAX_PRIORITIES
+    extern ClJobQueueT gEoJobQueues[CL_NUM_JOB_QUEUES];
+
+    // response contents are already heap allocated by unmarhall func
+
+    rc = clJobQueuePush (&gEoJobQueues[CL_IOC_LOW_PRIORITY], (ClCallbackT) clTmsGroupTrackCallbackHandler, res);
+    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("clJobQueuePush rc [0x%x]\n",rc));
+
+    return rc;
+    #endif
+
+    #if 0
+    // Start
+    /* 
+     * Before invoking the callback, set gmsHandle as a thread specific data.
+     * This will be used in SAF wrapper to keep the context. In other callbacks
+     * this will be ignored.
+     */
+    rc = clOsalTaskDataSet(clGmsPrivateDataKey, &gmsHandle);
+    if (rc != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                ("clOsalTaskDataSet on handle failed with rc 0x%x\n",rc));
+    }
+
+    /* if the library is in saf mode then queue the data in the callback queue
+     *  and return , dispatch api will dequeue the callback data and will call
+     *  the callback from the application thread 
+     */
+    // End
+
     return clTmsGroupTrackCallbackHandler(res);
+    #endif
 }
 
 #ifdef GMS_GROUP_SUPPORT
@@ -2277,6 +2343,21 @@ cl_gms_group_member_get_callback_rmd(
     {
         return rc;
     }
+
+    // Start
+    /*  
+     * Before invoking the callback, set gmsHandle as a thread specific data.
+     * This will be used in SAF wrapper to keep the context. In other callbacks
+     * this will be ignored.
+     */
+    rc = clOsalTaskDataSet(clGmsPrivateDataKey, &res->gmsHandle);
+    if (rc != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                ("clOsalTaskDataSet on handle failed with rc 0x%x\n",rc));
+    }
+    // End
+
 
     return clGmsGroupMemberGetCallbackHandler(res);
 }

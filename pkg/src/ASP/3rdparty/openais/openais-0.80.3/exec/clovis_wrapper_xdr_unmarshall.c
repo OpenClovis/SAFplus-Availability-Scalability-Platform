@@ -167,6 +167,8 @@ ClRcT   unmarshallSyncMessage(ClBufferHandleT bufferHandle, struct VDECL(req_exe
         for (index = 0; index < sync->noOfMembers; index++)
         {
             CHECK_RETURN(unmarshallClGmsGroupMemberT(bufferHandle, &(sync->groupMemberList[index].viewMember.groupMember)), CL_OK);
+	    // marshall also group id
+            CHECK_RETURN(unmarshallClGmsGroupInfoT(bufferHandle, &(sync->groupMemberList[index].viewMember.groupData)), CL_OK);
         }
     }
 
@@ -206,6 +208,9 @@ ClRcT   unmarshallHeader(ClBufferHandleT bufferHandle, struct VDECL(req_exec_gms
 
     /* Unmarshall context handle field */
     CHECK_RETURN(clXdrUnmarshallClInt64T(bufferHandle, &(req_exec_gms_nodejoin->contextHandle)), CL_OK);
+
+    /* Unmarshall gmsGroupId field */
+    CHECK_RETURN(clXdrUnmarshallClInt32T(bufferHandle, &(req_exec_gms_nodejoin->gmsGroupId)), CL_OK);
 
     /* Unmarshall Eject Reason field */
     CHECK_RETURN(clXdrUnmarshallClInt32T(bufferHandle, &(req_exec_gms_nodejoin->ejectReason)), CL_OK);

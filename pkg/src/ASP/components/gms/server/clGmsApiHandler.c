@@ -834,7 +834,7 @@ clGmsClusterJoinHandler(
 
     memcpy(&viewMember.clusterMember, &thisNode, sizeof(ClGmsClusterMemberT));
 
-    rc= clGmsSendMsg(&viewMember, 0, CL_GMS_CLUSTER_JOIN_MSG , 0x0, 0, NULL );
+    rc= clGmsSendMsg(&viewMember, req->groupId, CL_GMS_CLUSTER_JOIN_MSG , 0x0, 0, NULL );
 
     if (rc != CL_OK)
     {
@@ -965,7 +965,7 @@ clGmsClusterLeaveHandler(
 
     memcpy(&viewMember.clusterMember, &thisNode, sizeof(ClGmsClusterMemberT));
 
-    rc= clGmsSendMsg(&viewMember, 0, CL_GMS_CLUSTER_LEAVE_MSG , 0x0, 0, NULL);
+    rc= clGmsSendMsg(&viewMember, req->groupId, CL_GMS_CLUSTER_LEAVE_MSG , 0x0, 0, NULL);
 
     if (rc != CL_OK)
     {
@@ -1431,7 +1431,7 @@ clGmsGroupDestroyHandler(
     /* Aquire the cond mutex before doing mcast */
     clGmsMutexLock ( contextCondVar.mutex );
 
-    rc= clGmsSendMsg(&viewMember, 0 /*This is dummy*/,
+    rc= clGmsSendMsg(&viewMember, req->groupId,
             CL_GMS_GROUP_DESTROY_MSG , 0x0, 0, NULL );
 
     if (rc != CL_OK)
@@ -1556,7 +1556,7 @@ clGmsGroupJoinHandler(
 
     /* Aquire the cond mutex before doing mcast */
     clGmsMutexLock ( contextCondVar.mutex );
-    rc= clGmsSendMsg(&viewMember, 0 /*This is dummy*/,
+    rc= clGmsSendMsg(&viewMember, req->groupId, 
                         CL_GMS_GROUP_JOIN_MSG , 0x0, 0, NULL );
     if (rc != CL_OK)
     {
@@ -1668,7 +1668,7 @@ clGmsGroupLeaveHandler(
     /* Aquire the cond mutex before doing mcast */
     clGmsMutexLock ( contextCondVar.mutex );
 
-    rc= clGmsSendMsg(&viewMember, 0 /*This is dummy*/,
+    rc= clGmsSendMsg(&viewMember, req->groupId, 
             CL_GMS_GROUP_LEAVE_MSG , 0x0, 0, NULL );
     if (rc != CL_OK)
     {
@@ -1872,7 +1872,7 @@ clGmsGroupMcastHandler(
 
 
     /* Aquire the cond mutex before doing mcast */
-    rc= clGmsSendMsg(&viewMember, 0, //This is dummy
+    rc= clGmsSendMsg(&viewMember, req->groupId, 
                      CL_GMS_GROUP_MCAST_MSG, 0x0,
                      req->dataSize,
                      req->data);
