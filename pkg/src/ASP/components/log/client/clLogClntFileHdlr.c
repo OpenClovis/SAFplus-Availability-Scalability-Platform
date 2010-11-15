@@ -551,6 +551,7 @@ clLogClntStreamListGet(ClBufferHandleT   msg,
     ClUint32T            strmCnt      = 0;
     ClUint32T            numFiles     = 0;
     ClUint32T            numStreams   = 0;
+    ClUint32T            numStreamsUnpacked = 0;
     ClLogStreamAttrIDLT  streamAttr   = {{0}};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
@@ -568,6 +569,13 @@ clLogClntStreamListGet(ClBufferHandleT   msg,
         {
             break;
         }
+
+        if(streamAttr.fileName.pValue)
+            clHeapFree(streamAttr.fileName.pValue);
+
+        if(streamAttr.fileLocation.pValue)
+            clHeapFree(streamAttr.fileLocation.pValue);
+
         rc = clXdrUnmarshallClStringT(msg, &streamAttr.fileName); 
         if( CL_OK != rc )
         {
@@ -591,8 +599,9 @@ clLogClntStreamListGet(ClBufferHandleT   msg,
         for(strmCnt = 0; strmCnt < numStreams; strmCnt++)
         {
             rc = clLogClntStreamListEntryGet(msg, &streamAttr, pTempBuffer);
-            if( CL_LOG_RC(CL_ERR_INVALID_PARAMETER) == rc )
+            if(CL_LOG_RC(CL_ERR_INVALID_PARAMETER) == rc )
             {
+                rc = CL_OK;
                 continue;
             }
             if( CL_OK != rc )
@@ -602,6 +611,7 @@ clLogClntStreamListGet(ClBufferHandleT   msg,
                 return rc;
             }
             pTempBuffer += 1;
+            ++numStreamsUnpacked;
         }
 
         clHeapFree(streamAttr.fileLocation.pValue);
@@ -610,11 +620,13 @@ clLogClntStreamListGet(ClBufferHandleT   msg,
     /* Any failure, cleanup the filled Entries */
     if( CL_OK != rc )
     {
-       for( strmCnt = 0; strmCnt < count; strmCnt++) 
+       for( strmCnt = 0; strmCnt < numStreamsUnpacked; strmCnt++) 
        {
          pTempBuffer = pLogStreams + strmCnt; 
          clHeapFree(pTempBuffer->streamAttr.fileName);
          clHeapFree(pTempBuffer->streamAttr.fileLocation);
+         pTempBuffer->streamAttr.fileName = pTempBuffer->streamAttr.fileLocation = NULL;
+         
        }
     }
 
@@ -1054,6 +1066,15 @@ clLogStreamListGet(ClLogHandleT      hLog,
     }
     CL_LOG_DEBUG_VERBOSE(("NumRecords: %d", *pNumStreams));
     CL_LOG_CLEANUP(clIdlHandleFinalize(hLogIdl), CL_OK);
+
+    if(!*pNumStreams)
+    {
+        if(pBuffer)
+            clHeapFree(pBuffer);
+        if(ppLogStreams)
+            *ppLogStreams = NULL;
+        return CL_OK;
+    }
 
     rc = clLogClntStreamListUnpack(*pNumStreams, buffLen, pBuffer,
                                     ppLogStreams);
