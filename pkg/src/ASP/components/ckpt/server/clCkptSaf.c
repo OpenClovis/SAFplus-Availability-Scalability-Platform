@@ -1465,8 +1465,13 @@ VDECL_VER(clCkptSvrIterationInitialize, 4, 0, 0)(ClVersionT        *pVersion,
                 "Container size get failed rc[0x %x]", rc);
         goto exitOnError;
     }
-    CL_ASSERT(*pSecCount == pCkpt->pDpInfo->numScns);
-    *pSecCount = CL_MAX(*pSecCount, pCkpt->pDpInfo->numScns);
+    if(*pSecCount != pCkpt->pDpInfo->numScns)
+    {
+        rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
+                   "CKPT section has only the default section which cannot be iterated");
+        goto exitOnError;
+    }
     pTempSec   = (ClCkptSectionIdT *)clHeapCalloc(1,
             (*pSecCount) * sizeof(ClCkptSectionIdT));
     if( pTempSec == NULL )
