@@ -84,6 +84,10 @@ static ClVersionDatabaseT gEvtAppToClientVersionDb = {
 };
 
 static ClOsalMutexT gEvtReceiveMutex;
+/*
+ * Really need pthread_once abstraction in osal to avoid this shit but thats for another day
+ */
+static ClBoolT gEvtReceiveMutexInitialized; 
 
 # define clEvtClientToServerVersionSet(header) (header).releaseCode = 'B', \
                                                                       (header).majorVersion = 0x1,\
@@ -504,9 +508,22 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     ** unecessary here. Fields like channel handle, etc. can be initialized
     ** to 0.
     */
+    clOsalMutexLock(&gEvtReceiveMutex);
+    /*
+     * Recheck again as it could have been finalized behind our back.
+     */
+    if(!isInitDone())
+    {
+        clOsalMutexUnlock(&gEvtReceiveMutex);
+        clLogError("EVT", "VER", CL_LOG_MESSAGE_0_COMPONENT_UNINITIALIZED); 
+        rc = CL_EVENT_ERR_INIT_NOT_DONE;                                
+        goto inDataAllocated;
+    }
+
     rc = clHandleCreate(pEvtClientHead->evtClientHandleDatabase, sizeof(ClEvtEventHandleT), &eventHandle);
     if (CL_OK != rc)
     {
+        clOsalMutexUnlock(&gEvtReceiveMutex);
         clLogError("EVT", "EVR", 
                    CL_LOG_MESSAGE_1_HANDLE_CREATION_FAILED, rc);
         rc = CL_EVENT_ERR_NO_RESOURCE;
@@ -576,12 +593,10 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     /* 
      * Check out the InitInfo of this client from the Handle Database
      */
-    clOsalMutexLock(&gEvtReceiveMutex);
 
     rc = clHandleCheckout(pEvtClientHead->evtClientHandleDatabase, evtSecHeader.evtHandle, (void*)&pInitInfo);
     if (CL_OK != rc)
     {
-        clOsalMutexUnlock(&gEvtReceiveMutex);
         clLogError("EVT", "EVR", 
                    CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         rc = CL_EVENT_ERR_BAD_HANDLE;
@@ -592,7 +607,6 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
        ||
        !pInitInfo->pEvtCallbackTable)
     {
-        clOsalMutexUnlock(&gEvtReceiveMutex);
         /*
          * No callbacks defined
          */
@@ -681,16 +695,18 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     resetReceiveStatus:
 
     clOsalMutexLock(&gEvtReceiveMutex);
+
     pInitInfo->receiveStatus = CL_FALSE;
     if(pInitInfo->numReceiveWaiters)
         clOsalCondBroadcast(pInitInfo->receiveCond);
-    clOsalMutexUnlock(&gEvtReceiveMutex);
 
     eventBufferCreated:
     clBufferDelete(&pEventInfo->msgHandle);
 
     eventHdlAllocated:
     clHandleDestroy(pEvtClientHead->evtClientHandleDatabase, eventHandle);
+
+    clOsalMutexUnlock(&gEvtReceiveMutex);
 
     inDataAllocated:
     rc = CL_EVENTS_RC(rc);
@@ -749,7 +765,7 @@ void handleDestroyCallback(void * pInstance)
 }
 
 ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
-        ClEvtClientHeadT **ppEvtClientHead)
+                      ClEvtClientHeadT **ppEvtClientHead)
 {
     ClRcT rc = CL_OK;
 
@@ -762,7 +778,7 @@ ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
     if (CL_OK != rc)
     {
         clLogError("EVT", "INI", 
-                "Failed to get EO object [%#X]", rc);
+                   "Failed to get EO object [%#X]", rc);
         goto failure;
     }
     *ppEoObj = pEoObj;          /* Return the EO */
@@ -771,7 +787,7 @@ ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
     if (NULL == pEvtClientHead)
     {
         clLogError("EVT", "INI", 
-                CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+                   CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         rc = CL_EVENT_ERR_NO_MEM;
         goto failure;
     }
@@ -783,7 +799,7 @@ ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
     if (CL_OK != rc)
     {
         clLogError("EVT", "INI", 
-                "Installing EM client failed  [%#X]", rc);
+                   "Installing EM client failed  [%#X]", rc);
         goto clientHeadAllocated;
     }
     
@@ -804,11 +820,11 @@ ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
 	}
 
     rc = clEoPrivateDataSet(pEoObj, CL_EO_EVT_EVENT_DELIVERY_COOKIE_ID,
-            (void *) pEvtClientHead);
+                            (void *) pEvtClientHead);
     if (CL_OK != rc)
     {
         clLogError("EVT", "INI", 
-                "Unable to set EO private data [%#X]", rc);
+                   "Unable to set EO private data [%#X]", rc);
         goto clientInstalled;
     }
 
@@ -819,34 +835,37 @@ ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
     if (CL_OK != rc)
     {
         clLogError("EVT", "INI", 
-                CL_LOG_MESSAGE_1_HANDLE_DB_CREATION_FAILED, rc);
+                   CL_LOG_MESSAGE_1_HANDLE_DB_CREATION_FAILED, rc);
         rc = CL_EVENT_ERR_NO_RESOURCE;    
         goto clientInstalled;
     }
 
-    rc = clOsalMutexInit(&gEvtReceiveMutex);
-
-    if(CL_OK != rc)
+    if(!gEvtReceiveMutexInitialized)
     {
-        clLogError("EVT", "INI", "Evt receive mutex init returned [%#x]", rc);
-        goto clientInstalled;
+        rc = clOsalMutexInit(&gEvtReceiveMutex);
+        if(CL_OK != rc)
+        {
+            clLogError("EVT", "INI", "Evt receive mutex init returned [%#x]", rc);
+            goto clientInstalled;
+        }
+        gEvtReceiveMutexInitialized = CL_TRUE;
     }
-
-// success:
+    
+    // success:
     CL_FUNC_EXIT();
     return rc;
 
 
-clientInstalled:
+    clientInstalled:
     clEventClientUninstallTables(pEoObj);
 
-clientHeadAllocated:
+    clientHeadAllocated:
     clHeapFree(pEvtClientHead);
 
-failure:
+    failure:
     rc = CL_EVENTS_RC(rc);
     clLogError("EVT", "INI", 
-            "Event Client Init failed, rc[%#X]", rc);
+               "Event Client Init failed, rc[%#X]", rc);
     CL_FUNC_EXIT();
     return rc;
 }
@@ -1949,11 +1968,6 @@ ClRcT clEventFinalize(ClEventInitHandleT evtHandle)
     }
 
     clOsalMutexUnlock(&gEvtReceiveMutex);
-    if (isLastFinalize())       /* Init Count is 0 */
-    {
-        clOsalMutexDestroy(&gEvtReceiveMutex);
-        memset(&gEvtReceiveMutex, 0, sizeof(gEvtReceiveMutex));
-    }
 
 // success:
     clBufferDelete(&outMsgHandle);

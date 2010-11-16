@@ -337,5 +337,6 @@ ClRcT clAmsClientNotificationFinalize(void)
     clEventChannelClose(gClCpmEventChannelHandle);
     clEventChannelClose(gClCpmNodeEventChannelHandle);
     clEventFinalize(gClAmsEventNotificationHandle);
+    gClAmsEventNotificationHandle = 0;
     return CL_OK;
 }
