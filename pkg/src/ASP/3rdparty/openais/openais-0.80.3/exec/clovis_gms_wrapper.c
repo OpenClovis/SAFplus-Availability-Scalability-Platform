@@ -122,6 +122,11 @@ static void gms_exec_message_handler (
 static void gms_exec_message_endian_convert (void* message);
 
 
+/* This is a modified service to send synch before leader 
+ * election takes place; so that all nodes are synched. */
+static void synch_init(void);
+
+
 /* ------------------------------------------------------------------------
  * Openais specific data structure definitions below:
  * These are used for implementing GMS functionality
@@ -230,269 +235,24 @@ __attribute__ ((constructor)) static void gms_comp_register (void)
  * do anything for below functions.
  *------------------------------------------------------------------------*/
 
+/*
+ * This is a noop for this service
+ */
 static void gms_exec_dump_fn (void) 
 {
     /* Finalizing execution: As of now its noop */
     clLog(TRACE,OPN,AIS, "exec_dump function is called for ClovisGMS service");
-
-    // invoking sync so that node joined will always have latest info on GMS
-    ClRcT              rc = CL_OK;
-    ClGmsGroupSyncNotificationT     syncNotification = {0};
-    ClUint32T          noOfItems = 0;
-    void*              buf = NULL;
-    ClGmsDbT*          thisViewDb = NULL;
-    ClUint32T          i = 0;
-    ClInt32T           result = 0;
-
-    // Only leader should be sending out, synch Info (group => default cluster)
-    if (gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader)
-    {
-        clLog(INFO,GROUPS,NA, "I am leader of the cluster. So sending Groups Sync message for the new node.");
-
-        /* Send SYNC message with entire group database */
-        syncNotification.noOfGroups = 0;
-        syncNotification.noOfMembers = 0;
-
-        clGmsMutexLock(gmsGlobalInfo.dbMutex);
-        clLog(TRACE,CLM,NA, "Acquired mutex. Now gathering groups info");
-
-	// Sending updates only for other groups; default cluster group nodes update each other
-        for (i=1; i < gmsGlobalInfo.config.noOfGroups; i++)
-        {
-            if ((gmsGlobalInfo.db[i].view.isActive == CL_TRUE) &&
-                (gmsGlobalInfo.db[i].viewType == CL_GMS_GROUP || (gmsGlobalInfo.db[i].viewType == CL_GMS_CLUSTER)) )
-            {
-                ClInt32T j = 0;
-                /* These 2 conditions should indicate that the group exists and is active.
-                 */
-                thisViewDb = &gmsGlobalInfo.db[i];
-
-                /* Get the group Info for thisViewDb */
-                syncNotification.groupInfoList = (ClGmsGroupInfoT*)realloc(syncNotification.groupInfoList,
-                                                  sizeof(ClGmsGroupInfoT)*(syncNotification.noOfGroups+1));
-                if (syncNotification.groupInfoList == NULL)
-                {
-                    clLog(ERROR,CLM,NA, "Could not allocate memory while gathering group information, synch failed!");
-                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-                    rc = CL_ERR_NO_MEMORY;
-		    return;
-                }
-
-                memcpy(&syncNotification.groupInfoList[syncNotification.noOfGroups], &(thisViewDb->groupInfo),sizeof(ClGmsGroupInfoT));
-                syncNotification.noOfGroups++;
-
-                /* Get the list of members of this group */
-                rc = _clGmsViewGetCurrentViewNotification(thisViewDb, &buf, &noOfItems);
-                if (rc != CL_OK)
-                {
-                    clLog(ERROR,CLM,NA, "_clGmsViewGetCurrentViewNotification failed while sending SYNC message. rc = 0x%x\n",rc);
-                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-		    return;
-                }
-
-                clLog(TRACE,CLM,NA, "group info for group [%d]; with members [%d]", thisViewDb->groupInfo.groupId, noOfItems);
-
-                if ((noOfItems == 0) || (buf == NULL))
-                {
-                    buf = NULL;
-                    noOfItems = 0;
-                    continue;
-                }
-
-                syncNotification.groupMemberList = (ClGmsViewNodeT*)realloc(syncNotification.groupMemberList, 
-						    sizeof(ClGmsViewNodeT)*(noOfItems+syncNotification.noOfMembers));
-                if (syncNotification.groupMemberList == NULL)
-                {
-                    clLog(ERROR,CLM,NA, "Could not allocate memory while gathering group information");
-                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-                    rc = CL_ERR_NO_MEMORY;
-		    return;
-                }
-
-                memset(&syncNotification.groupMemberList[syncNotification.noOfMembers], 0, sizeof(ClGmsViewNodeT)*noOfItems);
-                for (j = 0; j < noOfItems; j++)
-                {
-                    memcpy(&syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupMember,
-                           &( ( (ClGmsGroupNotificationT*)buf )[j].groupMember ),
-			    sizeof(ClGmsGroupMemberT) );
-                    syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupData.groupId =
-                       thisViewDb->groupInfo.groupId;
-    		    clLog(DBG,GEN,NA, "Sync group Id [%d]", thisViewDb->groupInfo.groupId);
-                    syncNotification.noOfMembers++;
-                }
-
-                clHeapFree(buf);
-                buf = NULL;
-                noOfItems = 0;
-            }
-        }
-
-        clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-        clLog(TRACE,CLM,NA, "Gathered group information for [%d] groups with [%d] members. Now sending it over multicast", 
-			syncNotification.noOfGroups, syncNotification.noOfMembers);
-
-        /* Send the multicast message */
-        result = clGmsSendMsg(NULL, 0x0, CL_GMS_SYNC_MESSAGE, 0, 0, (void *)&syncNotification);
-        if (result < 0)
-        {
-            clLog(ERROR,GROUPS,NA, "Openais Sync Message Send failed");
-        }
-
-        clLog(TRACE,CLM,NA, "Group information is sent over multicast");
-
-        /* Free the pointer used to gather the group member info.
-         * since the memory is allocated using realloc, free it 
-         * using normal free
-         */
-        if (syncNotification.noOfGroups > 0)
-        {
-            free(syncNotification.groupInfoList);
-            if (syncNotification.noOfMembers > 0)
-            {
-                free(syncNotification.groupMemberList);
-            }
-        }
-    }
-    else
-    {
-        clLog(CRITICAL,CLM,NA, "Node is not a leader; so expecting the Synch message from Leader!");
-    }
-
     return;
 }
 
 
 /*
- * This is a modified service to send synch before leader election takes place 
+ * This is a noop for this service
  */
 static void gms_sync_init (void)
 {
     /* As of now it is noop */
     clLog(TRACE,OPN,AIS, "sync_init function is called for ClovisGMS service");
-
-    // VV on 26 Oct 2010; invoking sync so that node joined will always have latest info on GMS
-    ClRcT              rc = CL_OK;
-    ClGmsGroupSyncNotificationT     syncNotification = {0};
-    ClUint32T          noOfItems = 0;
-    void*              buf = NULL;
-    ClGmsDbT*          thisViewDb = NULL;
-    ClUint32T          i = 0;
-    ClInt32T           result = 0;
-
-    // Only leader should be sending out, synch Info (group => default cluster)
-    if (gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader)
-    {
-        clLog(INFO,GROUPS,NA, "I am leader of the cluster. So sending Groups Sync message for the new node.");
-
-        /* Send SYNC message with entire group database */
-        syncNotification.noOfGroups = 0;
-        syncNotification.noOfMembers = 0;
-
-        clGmsMutexLock(gmsGlobalInfo.dbMutex);
-        clLog(TRACE,CLM,NA, "Acquired mutex. Now gathering groups info");
-
-        // Sending updates only for other groups; default cluster group nodes update each other
-        for (i=1; i < gmsGlobalInfo.config.noOfGroups; i++)
-        {
-            if ((gmsGlobalInfo.db[i].view.isActive == CL_TRUE) &&
-                (gmsGlobalInfo.db[i].viewType == CL_GMS_GROUP || (gmsGlobalInfo.db[i].viewType == CL_GMS_CLUSTER)) )
-            {
-                ClInt32T j = 0;
-                /* These 2 conditions should indicate that the group exists and is active.
-                 */
-                thisViewDb = &gmsGlobalInfo.db[i];
-
-                /* Get the group Info for thisViewDb */
-                syncNotification.groupInfoList = (ClGmsGroupInfoT*)realloc(syncNotification.groupInfoList,
-                                                                           sizeof(ClGmsGroupInfoT)*(syncNotification.noOfGroups+1));
-                if (syncNotification.groupInfoList == NULL)
-                {
-                    clLog(ERROR,CLM,NA, "Could not allocate memory while gathering group information, synch failed!");
-                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-                    rc = CL_ERR_NO_MEMORY;
-                    return;
-                }
-
-                memcpy(&syncNotification.groupInfoList[syncNotification.noOfGroups], &(thisViewDb->groupInfo),sizeof(ClGmsGroupInfoT));
-                syncNotification.noOfGroups++;
-
-                /* Get the list of members of this group */
-                rc = _clGmsViewGetCurrentViewNotification(thisViewDb, &buf, &noOfItems);
-                if (rc != CL_OK)
-                {
-                    clLog(ERROR,CLM,NA, "_clGmsViewGetCurrentViewNotification failed while sending SYNC message. rc = 0x%x\n",rc);
-                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-                    return;
-                }
-
-                clLog(TRACE,CLM,NA, "group info for group [%d]; with members [%d]", thisViewDb->groupInfo.groupId, noOfItems);
-
-                if ((noOfItems == 0) || (buf == NULL))
-                {
-                    buf = NULL;
-                    noOfItems = 0;
-                    continue;
-                }
-
-                syncNotification.groupMemberList = (ClGmsViewNodeT*)realloc(syncNotification.groupMemberList, 
-                                                                            sizeof(ClGmsViewNodeT)*(noOfItems+syncNotification.noOfMembers));
-                if (syncNotification.groupMemberList == NULL)
-                {
-                    clLog(ERROR,CLM,NA, "Could not allocate memory while gathering group information");
-                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-                    rc = CL_ERR_NO_MEMORY;
-                    return;
-                }
-
-                memset(&syncNotification.groupMemberList[syncNotification.noOfMembers], 0, sizeof(ClGmsViewNodeT)*noOfItems);
-                for (j = 0; j < noOfItems; j++)
-                {
-                    memcpy(&syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupMember,
-                           &( ( (ClGmsGroupNotificationT*)buf )[j].groupMember ),
-                           sizeof(ClGmsGroupMemberT) );
-                    syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupData.groupId =
-                        thisViewDb->groupInfo.groupId;
-                    clLog(DBG,GEN,NA, "Sync group Id [%d]", thisViewDb->groupInfo.groupId);
-                    syncNotification.noOfMembers++;
-                }
-
-                clHeapFree(buf);
-                buf = NULL;
-                noOfItems = 0;
-            }
-        }
-
-        clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-        clLog(TRACE,CLM,NA, "Gathered group information for [%d] groups with [%d] members. Now sending it over multicast", 
-              syncNotification.noOfGroups, syncNotification.noOfMembers);
-
-        /* Send the multicast message */
-        if (syncNotification.noOfGroups > 0)
-        {
-            result = clGmsSendMsg(NULL, 0x0, CL_GMS_SYNC_MESSAGE, 0, 0, (void *)&syncNotification);
-            if (result < 0)
-            {
-                clLog(ERROR,GROUPS,NA, "Openais Sync Message Send failed");
-            }
-
-            clLog(TRACE,CLM,NA, "Group information is sent over multicast");
-
-            /* Free the pointer used to gather the group member info.
-             * since the memory is allocated using realloc, free it 
-             * using normal free
-             */
-            free(syncNotification.groupInfoList);
-            if (syncNotification.noOfMembers > 0)
-            {
-                free(syncNotification.groupMemberList);
-            }
-        }
-    }
-    else
-    {
-        clLog(CRITICAL,CLM,NA, "Node is not a leader; so expecting the Synch message from Leader!");
-    }
-
 	return;
 }
 
@@ -503,6 +263,11 @@ static void gms_sync_init (void)
 static void gms_sync_activate (void)
 {
     clLog(TRACE,OPN,AIS, "sync_activate function is called for ClovisGMS service");
+
+    // modifed to make call for synch
+    clLog(TRACE,OPN,AIS, "synch_init function is called!");
+    synch_init();
+
 	return;
 }
 
@@ -549,6 +314,140 @@ static int gms_exec_init_fn (struct objdb_iface_ver0 *objdb)
     clGmsWrapperUpdateMyIP();
 
     return (0);
+}
+
+
+/* This is a modified service to send synch before leader 
+ * election takes place; so that all nodes are synched. */
+static void synch_init(void)
+{
+
+    ClRcT              		rc 		 = CL_OK;
+    ClGmsGroupSyncNotificationT syncNotification = {0};
+    ClUint32T          		noOfItems 	 = 0;
+    void*              		buf 		 = NULL;
+    ClGmsDbT*          		thisViewDb 	 = NULL;
+    ClUint32T          		i 		 = 0;
+    ClInt32T           		result 		 = 0;
+
+    // Only leader should be sending out, synch Info (group => default cluster)
+    if (gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader)
+    {
+        clLog(INFO,GROUPS,NA, "I am leader of the cluster. So sending Groups Sync message for the new node.");
+
+        /* Send SYNC message with entire group database */
+        syncNotification.noOfGroups = 0;
+        syncNotification.noOfMembers = 0;
+
+        clGmsMutexLock(gmsGlobalInfo.dbMutex);
+        clLog(TRACE,CLM,NA, "Acquired mutex. Now gathering groups info");
+
+        // Sending updates only for other groups; default cluster group nodes update each other
+        for (i=1; i < gmsGlobalInfo.config.noOfGroups; i++)
+        {
+            if ((gmsGlobalInfo.db[i].view.isActive == CL_TRUE) &&
+                (gmsGlobalInfo.db[i].viewType == CL_GMS_GROUP || (gmsGlobalInfo.db[i].viewType == CL_GMS_CLUSTER)) )
+            {
+                ClInt32T j = 0;
+                /* These 2 conditions should indicate that the group exists and is active.
+                */
+                thisViewDb = &gmsGlobalInfo.db[i];
+
+                /* Get the group Info for thisViewDb */
+                syncNotification.groupInfoList = (ClGmsGroupInfoT*)realloc(syncNotification.groupInfoList,
+                                                  sizeof(ClGmsGroupInfoT)*(syncNotification.noOfGroups+1));
+                if (syncNotification.groupInfoList == NULL)
+                {
+                    clLog(ERROR,CLM,NA, "Could not allocate memory while gathering group information, synch failed!");
+                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
+                    rc = CL_ERR_NO_MEMORY;
+                    return;
+                }
+
+                memcpy(&syncNotification.groupInfoList[syncNotification.noOfGroups], &(thisViewDb->groupInfo),sizeof(ClGmsGroupInfoT));
+                syncNotification.noOfGroups++;
+
+                /* Get the list of members of this group */
+                rc = _clGmsViewGetCurrentViewNotification(thisViewDb, &buf, &noOfItems);
+                if (rc != CL_OK)
+                {
+                   clLog(ERROR,CLM,NA, "_clGmsViewGetCurrentViewNotification failed while sending SYNC message. rc = 0x%x\n",rc);
+                   clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
+                    return;
+                }
+
+                clLog(TRACE,CLM,NA, "group info for group [%d]; with members [%d]", thisViewDb->groupInfo.groupId, noOfItems);
+
+               if ((noOfItems == 0) || (buf == NULL))
+               {
+                   buf = NULL;
+                   noOfItems = 0;
+                   continue;
+               }
+
+               syncNotification.groupMemberList = (ClGmsViewNodeT*)realloc(syncNotification.groupMemberList,
+                                                    sizeof(ClGmsViewNodeT)*(noOfItems+syncNotification.noOfMembers));
+               if (syncNotification.groupMemberList == NULL)
+               {
+                    clLog(ERROR,CLM,NA, "Could not allocate memory while gathering group information");
+                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
+                    rc = CL_ERR_NO_MEMORY;
+                    return;
+               }
+
+                memset(&syncNotification.groupMemberList[syncNotification.noOfMembers], 0, sizeof(ClGmsViewNodeT)*noOfItems);
+                for (j = 0; j < noOfItems; j++)
+                {
+                    memcpy(&syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupMember,
+                           &( ( (ClGmsGroupNotificationT*)buf )[j].groupMember ),
+                            sizeof(ClGmsGroupMemberT) );
+                    syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupData.groupId =
+                        thisViewDb->groupInfo.groupId;
+                    clLog(DBG,GEN,NA, "Sync group Id [%d]", thisViewDb->groupInfo.groupId);
+                    syncNotification.noOfMembers++;
+                }
+
+                clHeapFree(buf);
+                buf = NULL;
+                noOfItems = 0;
+            }
+        }
+
+        clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
+        clLog(TRACE,CLM,NA, "Gathered group information for [%d] groups with [%d] members. Now sending it over multicast",
+                        syncNotification.noOfGroups, syncNotification.noOfMembers);
+
+        if (syncNotification.noOfGroups > 0)
+        {
+            /* Send the multicast message */
+            result = clGmsSendMsg(NULL, 0x0, CL_GMS_SYNC_MESSAGE, 0, 0, (void *)&syncNotification);
+            if (result < 0)
+            {
+                clLog(ERROR,GROUPS,NA, "Openais Sync Message Send failed");
+            }
+
+            clLog(TRACE,CLM,NA, "Group information is sent over multicast");
+        }
+
+        /* Free the pointer used to gather the group member info.
+         * since the memory is allocated using realloc, free it 
+         * using normal free
+         */
+        if (syncNotification.noOfGroups > 0)
+        {
+            free(syncNotification.groupInfoList);
+            if (syncNotification.noOfMembers > 0)
+            {
+                free(syncNotification.groupMemberList);
+            }
+        }
+    }
+    else
+    {
+        clLog(CRITICAL,CLM,NA, "Node is not a leader; so expecting the Synch message from Leader!");
+    }
+
+    return;
 }
 
 /*
