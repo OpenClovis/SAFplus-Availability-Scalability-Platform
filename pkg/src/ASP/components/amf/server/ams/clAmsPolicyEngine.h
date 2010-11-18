@@ -252,6 +252,13 @@ extern "C" {
 #define CL_AMS_ENTITY_SWITCHOVER_FAST       0x4
 #define CL_AMS_ENTITY_SWITCHOVER_SU         0x8
 #define CL_AMS_ENTITY_SWITCHOVER_SWAP       0x10
+
+typedef struct ClAmsSUAdjustList
+{
+    ClAmsSUT *su;
+    ClListHeadT list;
+}ClAmsSUAdjustListT;
+
 /******************************************************************************
  * Main entry and exit points to the AMS policy engine. 
  *****************************************************************************/
@@ -1382,12 +1389,6 @@ extern ClRcT
 clAmsPeEntityOpReplay(ClAmsEntityT *entity, ClAmsEntityStatusT *status, ClUint32T op, ClBoolT recovery);
 
 extern ClRcT
-clAmsPeEntityOpRemove(ClAmsEntityT *entity, void *data, ClUint32T dataSize, ClBoolT recovery);
-
-extern ClRcT
-clAmsPeEntityOpActiveRemove(ClAmsEntityT *entity, void *data, ClUint32T dataSize, ClBoolT recovery);
-
-extern ClRcT
 clAmsPeSUSwitchoverReplay(ClAmsSUT *su, ClAmsSUT *activeSU, ClUint32T error, ClUint32T switchoverMode);
 
 extern ClRcT
@@ -1405,11 +1406,47 @@ extern ClRcT clAmsPeSISUReassignEntryDelete(ClAmsSIT *si);
 
 extern ClRcT clAmsPeAddReassignOp(ClAmsSIT *targetSI, ClAmsSUT *targetSU);
 
-extern ClRcT clAmsPeSUSIDependentsListMPlusN(ClAmsSUT *su, 
-                                             ClAmsSUT **activeSU,
-                                             ClListHeadT *dependentSIList);
-
 extern ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standbySU);
+
+extern ClBoolT clAmsPeCheckDependencySIInNode(ClAmsSIT *si, ClAmsSUT *su, ClUint32T level);
+
+extern ClRcT
+clAmsPeSGCheckSUHigherRank(ClAmsSGT *sg, ClAmsSUT *su,ClAmsSIT *si);
+
+extern ClRcT clAmsPeSGCheckSUAssignmentDelay(ClAmsSGT *sg);
+
+extern ClRcT
+clAmsPeSUSwitchoverWorkActiveAndStandby(ClAmsSUT *su, ClListHeadT *standbyList, ClUint32T mode);
+
+static __inline__ ClBoolT clAmsPeSIReassignMatch(ClAmsSIT *si,
+                                                 ClListHeadT *siList)
+{
+    ClListHeadT *iter = NULL;
+
+    if(!siList) return CL_FALSE;
+
+    CL_LIST_FOR_EACH(iter, siList)
+    {
+        ClAmsSIReassignEntryT *reassignEntry = CL_LIST_ENTRY(iter, ClAmsSIReassignEntryT, list);
+        if(reassignEntry->si == si)
+            return CL_TRUE;
+    }
+
+    return CL_FALSE;
+}
+
+static __inline__ ClRcT clAmsPeSIReassignEntryListDelete(ClListHeadT *siList)
+{
+    if(!siList) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    while(!CL_LIST_HEAD_EMPTY(siList))
+    {
+        ClListHeadT *pNext = siList->pNext;
+        ClAmsSIReassignEntryT *reassignEntry = CL_LIST_ENTRY(pNext, ClAmsSIReassignEntryT, list);
+        clListDel(pNext);
+        clHeapFree(reassignEntry);
+    }
+    return CL_OK;
+}
 
 #ifdef __cplusplus
 }
