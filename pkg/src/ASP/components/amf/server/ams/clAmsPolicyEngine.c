@@ -14105,7 +14105,6 @@ clAmsPeCompReassignWork(
     {
         ClAmsCSIT *csi = (ClAmsCSIT *) entityRef->ptr;
         ClAmsSIT  *si  = NULL;
-        ClAmsSGT  *sg  = NULL;
 
         AMS_CHECKPTR(!csi);
 
@@ -14113,16 +14112,7 @@ clAmsPeCompReassignWork(
 
         AMS_CHECKPTR(!si);
 
-        sg = (ClAmsSGT*)si->config.parentSG.ptr;
-
-        AMS_CHECKPTR(!sg);
-
         entityRef = clAmsEntityListGetNext(&comp->status.csiList, entityRef);
-        
-        /*
-         * If the parent SI is already reassigned active, check if its within the configured limit.
-         */
-        if(si->status.numActiveAssignments >= sg->config.numPrefActiveSUsPerSI) continue;
 
         if(clAmsPeSIReassignMatch(si, siList))
         {
