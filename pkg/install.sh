@@ -33,8 +33,8 @@
 ################################################################################
 
 # values instantiated by the package script
-THIRDPARTYPKG=3rdparty-base-1.14.tar
-THIRDPARTYMD5=3rdparty-base-1.14.md5
+THIRDPARTYPKG=3rdparty-base-1.15.tar
+THIRDPARTYMD5=3rdparty-base-1.15.md5
 
 coloring=0
 
@@ -540,8 +540,8 @@ else
 	NET_SNMP_CONFIG=net-snmp-config
 fi
 
-export PATH=$PREFIX_BIN:$PREFIX/jre1.5.0_03/bin:$PATH
-export JAVA_HOME=$PREFIX/jre1.5.0_03
+export PATH=$PREFIX_BIN:$PREFIX/jre1.6.0_21/bin:$PATH
+export JAVA_HOME=$PREFIX/jre1.6.0_21
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PREFIX_LIB
 
 # this works on mounted file systems as well, yes I tried it.
@@ -981,8 +981,8 @@ if [ $INSTALLIDE == "YES" ]; then
 	fi
 
 	# java too writes the version information to STDERR
-	if [ -f $PREFIX/jre1.5.0_03/bin/java ]; then
-		JAVA=$PREFIX/jre1.5.0_03/bin/java
+	if [ -f $PREFIX/jre1.6.0_21/bin/java ]; then
+		JAVA=$PREFIX/jre1.6.0_21/bin/java
 	else
 		JAVA=java
 	fi
@@ -1271,7 +1271,7 @@ if test $DEPENDENCY -eq 1; then
 			printf "%17s  %-9s  %-16s\n" "Python" "2.4.1" "$PYTHON_COMMENT"
 		fi
 		if test $INSTALL_JRE -eq 0; then
-			printf "%17s  %-9s  %-16s\n" "JRE" "1.5.0_03" "$JAVA_COMMENT"
+			printf "%17s  %-9s  %-16s\n" "JRE" "1.6.0_21" "$JAVA_COMMENT"
 		fi
 		if test $INSTALL_ECLIPSE -eq 0; then
 			printf "%17s  %-9s  %-16s\n" "Eclipse SDK" "3.3.2" "$ECLIPSE_COMMENT"
@@ -1326,7 +1326,7 @@ if test $DEPENDENCY -eq 1; then
 		printf "%17s  %-9s  %-16s\n" "Python" "2.4.1" "$PYTHON_COMMENT"
 	fi
 	if test $INSTALL_JRE -eq 1; then
-		printf "%17s  %-9s  %-16s\n" "JRE" "1.5.0_03" "$JAVA_COMMENT"
+		printf "%17s  %-9s  %-16s\n" "JRE" "1.6.0_21" "$JAVA_COMMENT"
 	fi
 	if test $INSTALL_ECLIPSE -eq 1; then
 		printf "%17s  %-9s  %-16s\n" "Eclipse SDK" "3.3.2" "$ECLIPSE_COMMENT"
@@ -1412,7 +1412,7 @@ if test $DEPENDENCY -eq 1; then
 		count=`expr $count + 1`
 	fi
 	if test $INSTALL_JRE -eq 1; then
-		printf "%23s  %-17s  %-17s\n" "JRE V1.5.0_03" " < 1" "Pending"
+		printf "%23s  %-17s  %-17s\n" "JRE V1.6.0_21" " < 1" "Pending"
 		count=`expr $count + 1`
 	fi
 	if test $INSTALL_ECLIPSE -eq 1; then
@@ -2066,23 +2066,23 @@ if [ $INSTALL_PYTHON -eq 1 ]; then
 fi
 
 if [ $INSTALL_JRE -eq 1 ]; then
-	#echo -n "Installing JRE 1.5.0_03 ... "
+	#echo -n "Installing JRE 1.6.0_21 ... "
 	cd $PREFIX
 	tput cup $row 44
 	printf "%-17s" 'Extracting'
-	tar vxf $WORKING_ROOT/$THIRDPARTYPKG jre1.5.0_03.tar.gz \
-		> $WORKING_DIR/log/jre1.5.0_03.log 2>&1 || myexit $row $EXTRACT_ERROR &
+	tar vxf $WORKING_ROOT/$THIRDPARTYPKG jre1.6.0_21.tar.gz \
+		> $WORKING_DIR/log/jre1.6.0_21.log 2>&1 || myexit $row $EXTRACT_ERROR &
 	PS=$!
 	roll $PS
 	printf "\b"
 	tput cup $row 44
 	printf "%-17s" 'Copying'
-	tar zvxf jre1.5.0_03.tar.gz \
-		>> $WORKING_DIR/log/jre1.5.0_03.log 2>&1 || myexit $row $MAKE_ERROR &
+	tar zvxf jre1.6.0_21.tar.gz \
+		>> $WORKING_DIR/log/jre1.6.0_21.log 2>&1 || myexit $row $MAKE_ERROR &
 	PS=$!
 	roll $PS
 	printf "\b"
-	rm -f jre1.5.0_03.tar.gz
+	rm -f jre1.6.0_21.tar.gz
 	tput cup $row 44
 	printf "%-17s" 'Installed'
 	tput el
