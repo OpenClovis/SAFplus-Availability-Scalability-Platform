@@ -2257,23 +2257,15 @@ static ClRcT clBMBufferVectorize(ClBufferHeaderT *pBufferHeader,
 {
     struct iovec *pIOVector = NULL;
     ClInt32T numVectors=0;
-    ClInt32T batchAlloc = 4;
-    ClInt32T batchAllocMask = batchAlloc-1;
     register ClBufferHeaderT *pTemp;
-    ClRcT rc = CL_OK;
 
+    for(pTemp = pBufferHeader; pTemp && ++numVectors; pTemp = pTemp->pNextBufferHeader);
+
+    pIOVector = clHeapCalloc(numVectors, sizeof(*pIOVector));
+    CL_ASSERT(pIOVector != NULL);
+    numVectors = 0;
     for(pTemp = pBufferHeader; pTemp; pTemp = pTemp->pNextBufferHeader)
     {
-        if(!(numVectors & batchAllocMask))
-        {
-            pIOVector = (struct iovec*) clHeapRealloc(pIOVector,sizeof(struct iovec)*(numVectors+batchAlloc));
-            if(pIOVector == NULL)
-            {
-                rc = CL_BUFFER_RC(CL_ERR_NO_MEMORY);
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory of size:%d\n",(ClInt32T)sizeof(struct iovec) * (numVectors+batchAlloc)));
-                goto out;
-            }
-        }
         pIOVector[numVectors].iov_base = (ClPtrT)((ClUint8T*)pTemp + pTemp->startOffset);
         pIOVector[numVectors].iov_len = pTemp->dataLength - pTemp->startOffset;
         ++numVectors;
@@ -2281,8 +2273,7 @@ static ClRcT clBMBufferVectorize(ClBufferHeaderT *pBufferHeader,
     *ppIOVector = pIOVector;
     *pNumVectors = numVectors;
 
-    out:
-    return rc;
+    return CL_OK;
 }
 
 /*
