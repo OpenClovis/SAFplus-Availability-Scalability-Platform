@@ -707,15 +707,14 @@ static void gms_exec_message_handler (
     {
         clLogError(OPN,AIS,
                 "Failed to retrieve data from buffer. rc 0x%x",rc);
-        return;
+        goto out_delete;
     }
 
     rc = unmarshallReqExecGmsNodeJoin(bufferHandle, &req_exec_gms_nodejoin);
     if (rc != CL_OK)
     {
         clLogError(OPN,AIS,"Failed to unmarshall the data. rc 0x%x",rc);
-        //clBufferDelete(bufferHandle);
-        return ;
+        goto out_delete;
     }
 
     verCode = CL_VERSION_CODE(req_exec_gms_nodejoin.version.releaseCode, 
@@ -731,7 +730,7 @@ static void gms_exec_message_handler (
          * how to decode it. So it discarding it. */
         clLog(NOTICE,OPN,AIS,
                 "Version mismatch detected. Discarding the message ");
-        return;
+        goto out_delete;
     }
 
     // message type & message data
@@ -749,7 +748,7 @@ static void gms_exec_message_handler (
             if (node == NULL)
             {
                 clLog (ERROR,OPN,AIS, "clHeapAllocate failed");
-                return;
+                goto out_delete;
             }
             else {
                 rc = clVersionVerify(
@@ -842,7 +841,7 @@ static void gms_exec_message_handler (
             if (!node)
             {
                 log_printf (LOG_LEVEL_NOTICE, "clHeapAllocate failed");
-                return;
+                goto out_delete;
             }
             else {
                 /* FIXME: Need to verify version */
@@ -894,10 +893,12 @@ static void gms_exec_message_handler (
                     "Openais GMS wrapper received Message wih invalid [MsgType=%x]. \n"
                     "This could be because of multicast port clashes.",
                     req_exec_gms_nodejoin.gmsMessageType);
-            return;
+            goto out_delete;
     }
     clLog(TRACE,OPN,AIS,
             "Processed the received message. Returning");
+    out_delete:
+    clBufferDelete(&bufferHandle);
 }
 
 
@@ -1084,7 +1085,7 @@ buffer_delete_return:
     if (temp != NULL)
         clHeapFree(temp);
 
-    //clBufferDelete(&bufferHandle);
+    clBufferDelete(&bufferHandle);
     return result;
 }
 
