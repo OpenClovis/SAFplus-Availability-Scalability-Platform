@@ -410,12 +410,14 @@ static ClRcT clMsgEventFinalize(void)
 
 static ClRcT clMsgEventInitTimerThread(void *pParam)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
 
     rc = clMsgEventInitialize();
     if(rc != CL_OK)
     {
         clLogError("FIN", "BLOCK", "Failed to initialize event client. error code [0x%x].", rc);
+        if(gClMsgSrvInit && gMsgEvtTimerHdl)
+            clTimerStart(gMsgEvtTimerHdl); /*restart the timer again*/
         goto error_out;
     }
 
@@ -434,7 +436,7 @@ static ClRcT clMsgEventInitTimerStart(void)
     ClRcT rc;
     ClTimerTimeOutT timeout = {CL_MSG_EVT_UP_CHECK_PERIODE, 0};
 
-    rc = clTimerCreateAndStart(timeout, CL_TIMER_REPETITIVE, CL_TIMER_SEPARATE_CONTEXT, clMsgEventInitTimerThread, NULL, &gMsgEvtTimerHdl);
+    rc = clTimerCreateAndStart(timeout, CL_TIMER_ONE_SHOT, CL_TIMER_SEPARATE_CONTEXT, clMsgEventInitTimerThread, NULL, &gMsgEvtTimerHdl);
     if(rc != CL_OK)
         clLogError("FIN", "BLOCK", "Failed to create and start event inti timer. error code [0x%x].", rc);
 
