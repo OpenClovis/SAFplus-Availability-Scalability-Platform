@@ -257,7 +257,7 @@ findNodeWithHigestCredential (ClGmsClusterMemberT **nodes,
 }
 
 static ClRcT 
-computeLeaderDeputyWithLowestTimestamp (
+computeLeaderDeputyWithHighestCredential (
         const  ClGmsClusterNotificationBufferT* const buffer,
         ClGmsNodeIdT*   const                   leaderNodeId,
         ClGmsNodeIdT*   const                   deputyNodeId )
@@ -272,8 +272,6 @@ computeLeaderDeputyWithLowestTimestamp (
     ClGmsClusterMemberT *existingLeaders[64] = {0};
     ClUint32T            noOfExistingLeaders = 0;
     ClUint32T            i = 0;
-    ClBoolT              setThroughCli = CL_FALSE;
-    ClUint32T            preferredLeaderIndex = 0;
 
     CL_ASSERT( (buffer != (const void*)NULL) && (buffer->numberOfItems != 0x0) && (buffer->notification != NULL));
     CL_ASSERT( (leaderNodeId != NULL) && (deputyNodeId != NULL));
@@ -287,11 +285,16 @@ computeLeaderDeputyWithLowestTimestamp (
         if( currentNode->credential != CL_GMS_INELIGIBLE_CREDENTIALS )
         {
             eligibleNodes[noOfEligibleNodes] = currentNode;
-            if ((eligibleNodes[noOfEligibleNodes]->isPreferredLeader == CL_TRUE) &&
-                    (eligibleNodes[noOfEligibleNodes]->leaderPreferenceSet == CL_TRUE))
+            if (eligibleNodes[noOfEligibleNodes]->isPreferredLeader == CL_TRUE)
             {
-                preferredLeaderIndex = noOfEligibleNodes;
-                setThroughCli = CL_TRUE;
+                /*
+                 * If the leaderpreference was set from the debug cli, that has a higher affinity
+                 * then preferred ones as it overrides the preferred if any.
+                 */
+                eligibleNodes[noOfEligibleNodes]->credential = 
+                    CL_MAX_CREDENTIALS - (eligibleNodes[noOfEligibleNodes]->isPreferredLeader 
+                                          ^
+                                          eligibleNodes[noOfEligibleNodes]->leaderPreferenceSet);
             }
             noOfEligibleNodes++;
         }
@@ -305,16 +308,6 @@ computeLeaderDeputyWithLowestTimestamp (
         return rc;
     }
 
-    /* Among the list of system controllers elect a node which
-     * has the leadership preference set through CLI or through
-     * config file.
-     */
-
-    if (setThroughCli == CL_TRUE)
-    {
-        eligibleNodes[preferredLeaderIndex]->credential = CL_MAX_CREDENTIALS;
-    }
-
     /* A preferred leader node is not found. So we fall back to
      * our old algorithm:
      * Find a node with highest node id as the leader. If there is
@@ -322,10 +315,11 @@ computeLeaderDeputyWithLowestTimestamp (
      */
     for (i = 0; i < noOfEligibleNodes; i++)
     {
-        if (eligibleNodes[i]->isCurrentLeader == CL_TRUE)
+        if (eligibleNodes[i]->isCurrentLeader == CL_TRUE 
+            ||
+            eligibleNodes[i]->isPreferredLeader)
         {
-            existingLeaders[noOfExistingLeaders] = eligibleNodes[i];
-            noOfExistingLeaders++;
+            existingLeaders[noOfExistingLeaders++] = eligibleNodes[i];
         }
     }
 
@@ -406,7 +400,7 @@ _clGmsDefaultLeaderElectionAlgorithm (
         case CL_GMS_MEMBER_JOINED:
         case CL_GMS_MEMBER_LEFT:
         case CL_GMS_LEADER_ELECT_API_REQUEST:
-            rc = computeLeaderDeputyWithLowestTimestamp(
+            rc = computeLeaderDeputyWithHighestCredential(
                     &buffer,
                     leaderNodeId,
                     deputyNodeId
