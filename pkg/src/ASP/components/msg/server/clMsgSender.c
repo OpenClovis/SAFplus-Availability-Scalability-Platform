@@ -383,10 +383,13 @@ ClRcT VDECL_VER(clMsgClientMessageReply, 4, 0, 0)(SaMsgHandleT msgHandle, SaMsgM
         clLogError("MSG", "REPLY", "Failed to chechout the passed message handle. error code [0x%x].",rc);
         goto error_out_1;
     }
-
-    rc = clTimerDelete(&pReplyInfo->timerHandle);
-    if(rc != CL_OK)
-        clLogError("MSG", "REPLY", "Failed to delete the replier's timer. error code [0x%x].", rc);
+    
+    if(pReplyInfo->timerHandle)
+    {
+        rc = clTimerDelete(&pReplyInfo->timerHandle);
+        if(rc != CL_OK)
+            clLogError("MSG", "REPLY", "Failed to delete the replier's timer. error code [0x%x].", rc);
+    }
 
     if(pReplyInfo->senderNode == gClMyAspAddress)
     {
@@ -408,12 +411,12 @@ ClRcT VDECL_VER(clMsgClientMessageReply, 4, 0, 0)(SaMsgHandleT msgHandle, SaMsgM
     if(retCode != CL_OK)
         clLogError("MSG", "REPLY", "Failed to destroy replier handle. error code [0x%x].", retCode);
 
-error_out_1:
+    error_out_1:
     retCode = clHandleCheckin(gMsgClientHandleDb, msgHandle);
     if(retCode != CL_OK)
         clLogError("MSG", "REPLY", "Failed to checkin message client handle. error code [0x%x].", retCode);
 
-error_out:
+    error_out:
     return rc;
 }
 

@@ -136,11 +136,12 @@ static ClRcT clMsgDeleteDetailsStoredForReplier(void *pParam)
         clLogError("RPL", "DEL", "Failed to checkout replier handle. error code [0x%x].", rc);
         goto error_out;
     }
-
-    rc = clTimerDelete(&pSenderInfo->timerHandle);
-    if(rc != CL_OK)
-        clLogError("RPL", "DEL", "Failed to delete replier timer. error code [0x%x].", rc);
-
+    if(pSenderInfo->timerHandle)
+    {
+        rc = clTimerDelete(&pSenderInfo->timerHandle);
+        if(rc != CL_OK)
+            clLogError("RPL", "DEL", "Failed to delete replier timer. error code [0x%x].", rc);
+    }
     retCode = clHandleCheckin(gMsgReplyDetailsDb, replyHandle);
     if(retCode != CL_OK)
         clLogError("RPL", "DEL", "Failed to checkin replier handle. error code [0x%x].", retCode);
@@ -149,7 +150,7 @@ static ClRcT clMsgDeleteDetailsStoredForReplier(void *pParam)
     if(retCode != CL_OK)
         clLogError("RPL", "DEL", "Failed to destroy replier handle. error code [0x%x].", retCode);
 
-error_out:
+    error_out:
     return rc;
 }
 
@@ -160,7 +161,7 @@ static ClRcT clMsgStoreDetailsForReplier(SaNameT *pSenderName, ClHandleT senderH
     ClRcT retCode;
     ClMsgReplyDetailsT *pSenderInfo;
     ClHandleT replyHandle;
-    ClTimerTimeOutT tempTimeout;
+    ClTimerTimeOutT tempTimeout = {0};
     ClIocPhysicalAddressT srcAddr;
 
     rc = clRmdSourceAddressGet(&srcAddr);
@@ -189,14 +190,17 @@ static ClRcT clMsgStoreDetailsForReplier(SaNameT *pSenderName, ClHandleT senderH
     pSenderInfo->timeout = timeout;
     pSenderInfo->myOwnHandle = replyHandle; 
 
-    clMsgTimeConvert(&tempTimeout, timeout);
-
-    rc = clTimerCreateAndStart(tempTimeout, CL_TIMER_ONE_SHOT, CL_TIMER_SEPARATE_CONTEXT, 
-            clMsgDeleteDetailsStoredForReplier, (void*)&pSenderInfo->myOwnHandle, &pSenderInfo->timerHandle);
-    if(rc != CL_OK)
+    if(timeout != SA_TIME_MAX && timeout/1000 < CL_MAX_TIMEOUT)
     {
-        clLogCritical("MSG", "QUE", "Failed to start a timer for replier. error code [0x%x].", rc);
-        goto error_out_2;
+        clMsgTimeConvert(&tempTimeout, timeout);
+
+        rc = clTimerCreateAndStart(tempTimeout, CL_TIMER_ONE_SHOT, CL_TIMER_SEPARATE_CONTEXT, 
+                                   clMsgDeleteDetailsStoredForReplier, (void*)&pSenderInfo->myOwnHandle, &pSenderInfo->timerHandle);
+        if(rc != CL_OK)
+        {
+            clLogCritical("MSG", "QUE", "Failed to start a timer for replier. error code [0x%x].", rc);
+            goto error_out_2;
+        }
     }
 
     rc = clHandleCheckin(gMsgReplyDetailsDb, replyHandle);
@@ -210,20 +214,23 @@ static ClRcT clMsgStoreDetailsForReplier(SaNameT *pSenderName, ClHandleT senderH
 
     goto out;
 
-error_out_3:
-    retCode = clTimerDelete(&pSenderInfo->timerHandle);
-    if(retCode != CL_OK)
-        clLogError("MSG", "QUE", "Failed to delete the timer. error code [0x%x].", retCode);
-error_out_2:
+    error_out_3:
+    if(pSenderInfo->timerHandle)
+    {
+        retCode = clTimerDelete(&pSenderInfo->timerHandle);
+        if(retCode != CL_OK)
+            clLogError("MSG", "QUE", "Failed to delete the timer. error code [0x%x].", retCode);
+    }
+    error_out_2:
     retCode = clHandleCheckin(gMsgReplyDetailsDb, replyHandle);
     if(retCode != CL_OK)
         clLogError("MSG", "QUE", "Failed to checkin just created replier handle. error code [0x%x].", retCode);
-error_out_1:
+    error_out_1:
     retCode = clHandleDestroy(gMsgReplyDetailsDb, replyHandle);
     if(retCode != CL_OK)
         clLogError("MSG", "QUE", "Failed to destroy the reply handle. error code [0x%x].", rc);
-error_out:
-out:
+    error_out:
+    out:
     return rc;
 }
 
@@ -609,9 +616,9 @@ error_out:
 /***********************************************************************************************************/
 
 ClRcT clMsgQueueGetMessagesAndMove(
-        ClMsgQueueInfoT *pQInfo,
-        ClIocNodeAddressT destNodeAddr
-        )
+                                   ClMsgQueueInfoT *pQInfo,
+                                   ClIocNodeAddressT destNodeAddr
+                                   )
 {
     ClRcT rc = CL_OK;
     ClUint32T i;
@@ -653,11 +660,12 @@ ClRcT clMsgQueueGetMessagesAndMove(
                     clLogCritical("MSG", "RTV", "Couldnt retrieve packet for moving. Dropping a packet.");
                     goto error_continue;
                 }
-
-                rc = clTimerDelete(&pSendersInfo->timerHandle);
-                if(rc != CL_OK)
-                    clLogError("MSG", "RTV", "Failed to delete the timer started for a send-receive message. error code [0x%x].", rc);
- 
+                if(pSendersInfo->timerHandle)
+                {
+                    rc = clTimerDelete(&pSendersInfo->timerHandle);
+                    if(rc != CL_OK)
+                        clLogError("MSG", "RTV", "Failed to delete the timer started for a send-receive message. error code [0x%x].", rc);
+                }
                 memcpy(&senderInfo, pSendersInfo, sizeof(senderInfo));
 
                 rc = clHandleCheckin(gMsgReplyDetailsDb, pRecvInfo->replyId);
@@ -669,19 +677,19 @@ ClRcT clMsgQueueGetMessagesAndMove(
             }
 
             rc = clMsgSendMessage_idl(CL_MSG_SEND, destNodeAddr, &pQInfo->pQHashEntry->qName, pRecvInfo->pMessage,
-                    pRecvInfo->sendTime, senderInfo.senderHandle, 0, senderInfo.timeout); 
+                                      pRecvInfo->sendTime, senderInfo.senderHandle, 0, senderInfo.timeout); 
             if(rc != CL_OK)
             {
                 clLogError("MSG", "RTV", "Failed to move message of queue [%.*s]. error code [0x%x].", 
-                        pQInfo->pQHashEntry->qName.length, pQInfo->pQHashEntry->qName.value, rc);
+                           pQInfo->pQHashEntry->qName.length, pQInfo->pQHashEntry->qName.value, rc);
                 goto error_out;
             }
 
-error_continue:
+            error_continue:
             clMsgMessageFree(pRecvInfo->pMessage);
             clHeapFree(pRecvInfo);
 
-error_next_entry:
+            error_next_entry:
             rc = clCntNextNodeGet(pQInfo->pPriorityContainer[i], nodeHandle, &nextNodeHandle);
             clCntNodeDelete(pQInfo->pPriorityContainer[i], nodeHandle);
             nodeHandle = nextNodeHandle;
@@ -689,7 +697,7 @@ error_next_entry:
         rc = CL_OK;
     }
 
-error_out:
+    error_out:
     return rc;
 }
 
