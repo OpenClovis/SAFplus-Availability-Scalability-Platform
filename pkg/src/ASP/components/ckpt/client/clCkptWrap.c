@@ -455,6 +455,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
     ClCkptHdlT            *pCkptHdl     = NULL;
     ClCkptCheckpointCreationAttributesT ckptAttr = {0};
     ClInt32T              retryCount   = 0;
+    ClTimerTimeOutT t = {.tsSec = 0, .tsMilliSec=50};
 
     /*
      * Validate all input variables
@@ -527,7 +528,6 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
          */
         do
         {
-            ClTimerTimeOutT t = {.tsSec = 0, .tsMilliSec=50};
             rc = VDECL_VER(clCkptMasterCkptOpenClientSync, 4, 0, 0)(
                     pInitInfo->ckptIdlHdl,
                     &version,
@@ -538,12 +538,13 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
                     clIocLocalAddressGet(),
                     portId,
                     &hdlInfo);
-             clOsalTaskDelay(t);
         }while((CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN || 
                CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT ||
                CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE ||
                CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE) && 
-               (retryCount++ < CL_CKPT_MAX_RETRY));
+               (retryCount++ < CL_CKPT_MAX_RETRY
+               &&
+                clOsalTaskDelay(t) == CL_OK));
 
         /* 
          * Check for the version mismatch 
