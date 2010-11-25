@@ -829,7 +829,8 @@ ClRcT ckptCheckpointDelete(ClHandleT          clientHdl,
         clNameCopy(&lookup.name, &pStoredData->name);
         clCntDelete(pStoredData->replicaList);
         pStoredData->replicaList = 0;
-        clTimerDelete(&pStoredData->retenTimerHdl);
+        if(pStoredData->retenTimerHdl)
+            clTimerDelete(&pStoredData->retenTimerHdl);
     }    
     rc = clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl,
             masterHdl);
@@ -948,52 +949,52 @@ ClRcT ckptCheckpointRetenTimerStart(ClHandleT clientHdl,ClHandleT  masterHdl,
     CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
     
     rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-            clientHdl); 
+                         clientHdl); 
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            (" MasterCheckpointClose failed rc[0x %x]\n",rc),
-            rc);
+                                  (" MasterCheckpointClose failed rc[0x %x]\n",rc),
+                                  rc);
     gCkptSvr->masterInfo.clientHdlCount--;        
 
     rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList, (ClPtrT)(ClWordT)localAddr,
                             (ClCntDataHandleT *)&pPeerInfo); 
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Failed to get info of addr %d in peerList rc[0x %x]\n",
-                localAddr, rc), rc);
+                                  ("Failed to get info of addr %d in peerList rc[0x %x]\n",
+                                   localAddr, rc), rc);
     if ( CL_OK != (rc = clCntAllNodesForKeyDelete(pPeerInfo->ckptList,
-                                        (ClPtrT)(ClWordT)clientHdl)))
+                                                  (ClPtrT)(ClWordT)clientHdl)))
     {
         CKPT_DEBUG_E(("ClientHdl %#llX Delete from list failed", clientHdl));
     }
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl,
-            masterHdl, (void **)&pStoredData);
+                          masterHdl, (void **)&pStoredData);
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            (" MasterCheckpointClose failed rc[0x %x]\n",rc),
-            rc);
+                                  (" MasterCheckpointClose failed rc[0x %x]\n",rc),
+                                  rc);
     if(pStoredData != NULL)
     {
         memset(&timeOut, 0, sizeof(ClTimerTimeOutT));
         retenTime = pStoredData->attrib.retentionDuration;
         timeOut.tsMilliSec = (retenTime/
-                (CL_CKPT_NANO_TO_MICRO * CL_CKPT_NANO_TO_MICRO));
-                if( NULL != (pTimerArg = clHeapCalloc(1, sizeof(ClHandleT) )) )
-                {
-                    *pTimerArg = masterHdl;
-                }
+                              (CL_CKPT_NANO_TO_MICRO * CL_CKPT_NANO_TO_MICRO));
+        if( NULL != (pTimerArg = clHeapCalloc(1, sizeof(ClHandleT) )) )
+        {
+            *pTimerArg = masterHdl;
+        }
 
         rc = clTimerCreateAndStart(timeOut,
-                CL_TIMER_ONE_SHOT,
-                CL_TIMER_SEPARATE_CONTEXT,
-                _ckptRetentionTimerExpiry,
-                pTimerArg, 
-                &pStoredData->retenTimerHdl);
+                                   CL_TIMER_ONE_SHOT,
+                                   CL_TIMER_SEPARATE_CONTEXT,
+                                   _ckptRetentionTimerExpiry,
+                                   pTimerArg, 
+                                   &pStoredData->retenTimerHdl);
         clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN, 
                    "Retention timer has been started for [%d] sec [%d] millsec",
                    timeOut.tsSec, timeOut.tsMilliSec);
     }    
     clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl,
-            masterHdl);
+                    masterHdl);
             
-exitOnErrorBeforeHdlCheckout:
+    exitOnErrorBeforeHdlCheckout:
     /*
      * Unock the master DB.
      */

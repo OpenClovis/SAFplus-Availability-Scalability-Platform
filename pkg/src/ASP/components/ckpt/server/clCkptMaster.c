@@ -1869,11 +1869,11 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
      * Retrieve the information associated with the client handle.
      */
     rc = clHandleCheckout(gCkptSvr->masterInfo.clientDBHdl,
-            clientHdl,
-            (void **)&pClientEntry);
+                          clientHdl,
+                          (void **)&pClientEntry);
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            (" MasterCheckpointClose failed rc[0x %x]\n",rc),
-            rc);
+                                  (" MasterCheckpointClose failed rc[0x %x]\n",rc),
+                                  rc);
 
     /*
      * Get the associated master handle.
@@ -1881,19 +1881,19 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
     masterHdl = pClientEntry->masterHdl;
 
     rc = clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl, 
-            clientHdl);
+                         clientHdl);
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            (" MasterCheckpointClose failed rc[0x %x]\n",rc),
-            rc);
+                                  (" MasterCheckpointClose failed rc[0x %x]\n",rc),
+                                  rc);
 
     /* 
      * Delete the entry from clientDB database 
      */
     rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-            clientHdl); 
+                         clientHdl); 
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            (" MasterCheckpointClose failed rc[0x %x]\n",rc),
-            rc);
+                                  (" MasterCheckpointClose failed rc[0x %x]\n",rc),
+                                  rc);
 
     /*
      * Decrement the client handle count.
@@ -1906,10 +1906,10 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
     rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList, (ClPtrT)(ClWordT)localAddr,
                             (ClCntDataHandleT *)&pPeerInfo); 
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Failed to get info of addr %d in peerList rc[0x %x]\n",
-                localAddr, rc), rc);
+                                  ("Failed to get info of addr %d in peerList rc[0x %x]\n",
+                                   localAddr, rc), rc);
     if ( CL_OK != (rc = clCntAllNodesForKeyDelete(pPeerInfo->ckptList,
-                                        (ClPtrT)(ClWordT)clientHdl)))
+                                                  (ClPtrT)(ClWordT)clientHdl)))
     {
         CKPT_DEBUG_E(("ClientHdl %#llX Delete from list failed", clientHdl));
     }
@@ -1918,10 +1918,10 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
      * Retrieve the metadata associated with the master handle.
      */
     rc = ckptSvrHdlCheckout(gCkptSvr->masterInfo.masterDBHdl,
-            masterHdl, (void **)&pStoredData);
+                            masterHdl, (void **)&pStoredData);
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            (" MasterCheckpointClose failed rc[0x %x]\n",rc),
-            rc);
+                                  (" MasterCheckpointClose failed rc[0x %x]\n",rc),
+                                  rc);
             
     CL_ASSERT(pStoredData != NULL);
 
@@ -1930,21 +1930,21 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
      * is the local node), if the close has been called by the user and not
      * via event, remove th eentry from the node's masterHdl list.
      */
-     if((flag == CL_CKPT_MASTER_HDL) && 
-        (CL_CKPT_IS_SYNCHRONOUS(pStoredData->attrib.creationFlags) ||
+    if((flag == CL_CKPT_MASTER_HDL) && 
+       (CL_CKPT_IS_SYNCHRONOUS(pStoredData->attrib.creationFlags) ||
         (CL_CKPT_IS_COLLOCATED(pStoredData->attrib.creationFlags) &&
          (pStoredData->activeRepAddr == localAddr))))
-     {
-         _ckptPeerListMasterHdlAdd(masterHdl, CL_CKPT_UNINIT_ADDR,
-                                   CL_CKPT_UNINIT_ADDR);
-     }                                             
+    {
+        _ckptPeerListMasterHdlAdd(masterHdl, CL_CKPT_UNINIT_ADDR,
+                                  CL_CKPT_UNINIT_ADDR);
+    }                                             
      
     /* 
      * Decrement the checkpoint reference count.
      */
     pStoredData->refCount--;
     clLogInfo("CKP","MGT","Checkpoint [%s] reference count decremented.  Now [%d].",
-        	 pStoredData->name.value, pStoredData->refCount);
+              pStoredData->name.value, pStoredData->refCount);
 
     if(pStoredData->refCount == 0)
     {
@@ -1963,25 +1963,32 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
             /*
              * Delete the retention timer.
              */
-            if( pStoredData != 0)
+            if( pStoredData->retenTimerHdl)
                 clTimerDelete(&pStoredData->retenTimerHdl);
 
             /*
              * Delete the checkpoint locally and inform active replica .
              */
-             rc = ckptMasterLocalCkptDelete(masterHdl);
+            rc = ckptMasterLocalCkptDelete(masterHdl);
               
-             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("Failed to delete the checkpoint, rc[0x %x]\n",rc),
-                rc);
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                           ("Failed to delete the checkpoint, rc[0x %x]\n",rc),
+                           rc);
         }
         else 
         {
             /* 
-             * Unlink not yet called. Start the retention related timer.
+             * Unlink not yet called. Start the retention related timer for non distributed checkpoints.
              */
-            retenTime = pStoredData->attrib.retentionDuration;
-            if(retenTime != 0 )
+            if( (pStoredData->attrib.creationFlags & CL_CKPT_DISTRIBUTED) )
+                retenTime = 0;
+            else
+                retenTime = pStoredData->attrib.retentionDuration;
+
+            if(!retenTime)
+                goto out_delete;
+
+            if(retenTime != CL_TIME_END)
             {
                 memset(&timeOut, 0, sizeof(ClTimerTimeOutT));
                 timeOut.tsMilliSec = (retenTime/CL_CKPT_NANO_TO_MILLI);
@@ -1991,42 +1998,40 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
                     *pTimerArg = masterHdl;
                 }
                 rc = clTimerCreateAndStart(timeOut,
-                        CL_TIMER_ONE_SHOT,
-                        CL_TIMER_SEPARATE_CONTEXT,
-                        _ckptRetentionTimerExpiry,
-                        (ClPtrT) pTimerArg, 
-                        &pStoredData->retenTimerHdl);
-                if (rc != CL_OK)
+                                           CL_TIMER_ONE_SHOT,
+                                           CL_TIMER_SEPARATE_CONTEXT,
+                                           _ckptRetentionTimerExpiry,
+                                           (ClPtrT) pTimerArg, 
+                                           &pStoredData->retenTimerHdl);
+
+                /*
+                 * In case retention timer is 0 or retention timer start 
+                 * failed delete the checkpoint from all replicas and update
+                 * the master metadata.
+                 */
+                if(rc != CL_OK)
                 {
                     clHeapFree(pTimerArg);
                     clLogError("CKP","MGT","Checkpoint [%s] retention timer [%lldms] expired due to timer failure [0x%x].", pStoredData->name.value, retenTime/CL_CKPT_NANO_TO_MILLI,rc);
-                }
-            }
 
-            /*
-             * In case retention timer is 0 or retention timer start 
-             * failed delete the checkpoint from all replicas and update
-             * the master metadata.
-             */
-            if(((retenTime != 0) && (CL_OK != rc)) || 
-                    (retenTime == 0))
-            {
-                tag = CL_CKPT_CLOSE_MARKED_DELETE; 
+                    out_delete:
+                    tag = CL_CKPT_CLOSE_MARKED_DELETE; 
                 
-                clLogWarning("CKP","MGT","Checkpoint [%s] deleted due to retention timer [%llums] expiry.", pStoredData->name.value, retenTime/CL_CKPT_NANO_TO_MILLI);
-                /*
-                 * Delete the entry from name-tranalation table.
-                 */
-                rc = ckptDeleteEntryFromXlationTable(&pStoredData->name);
+                    clLogWarning("CKP","MGT","Checkpoint [%s] deleted due to retention timer [%llums] expiry.", pStoredData->name.value, retenTime/CL_CKPT_NANO_TO_MILLI);
+                    /*
+                     * Delete the entry from name-tranalation table.
+                     */
+                    rc = ckptDeleteEntryFromXlationTable(&pStoredData->name);
                 
-                /*
-                 * Delete the checkpoint locally and inform active replica .
-                 */
-                rc = ckptMasterLocalCkptDelete(masterHdl);
-                if( CL_OK != NULL)
-                {
-                    CKPT_DEBUG_E(("Failed to delete the checkpoint"));
-                }    
+                    /*
+                     * Delete the checkpoint locally and inform active replica .
+                     */
+                    rc = ckptMasterLocalCkptDelete(masterHdl);
+                    if( CL_OK != NULL)
+                    {
+                        CKPT_DEBUG_E(("Failed to delete the checkpoint"));
+                    }    
+                }
             }                            
         }
     }
@@ -2041,7 +2046,7 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
              * different application, we can't just go and delete for one
              * close
              */
-//            rc = clCkptMasterReplicaRemoveUpdate(masterHdl, localAddr);
+            //            rc = clCkptMasterReplicaRemoveUpdate(masterHdl, localAddr);
         }
     }
 
@@ -2051,8 +2056,8 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
     if(((gCkptSvr->masterInfo.deputyAddr != CL_CKPT_UNINIT_ADDR) &&
         (gCkptSvr->masterInfo.deputyAddr != -1)) &&
        (CL_OK == (ret =
-        clCkptIsServerRunning(gCkptSvr->masterInfo.deputyAddr, &isRun))
-         && (isRun == 1)))
+                  clCkptIsServerRunning(gCkptSvr->masterInfo.deputyAddr, &isRun))
+        && (isRun == 1)))
     {
         CkptUpdateInfoT   updateInfo = {0};
 
@@ -2063,16 +2068,16 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
         updateInfo.ckptUpdateInfoT.replicaAddr= localAddr;
 
         rc = ckptDynamicDeputyUpdate(tag,
-                clientHdl,
-                masterHdl,
-                &updateInfo);
+                                     clientHdl,
+                                     masterHdl,
+                                     &updateInfo);
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("Failed to update deputy master, rc[0x %x]\n",rc),
-                rc);
+                       ("Failed to update deputy master, rc[0x %x]\n",rc),
+                       rc);
     } 
-exitOnError:
+    exitOnError:
     clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl,masterHdl);
-exitOnErrorBeforeHdlCheckout:
+    exitOnErrorBeforeHdlCheckout:
     {
         return rc;
     }
@@ -2201,7 +2206,8 @@ ClRcT VDECL_VER(clCkptMasterCkptUnlink, 4, 0, 0)(ClNameT           *pName,
              /*
               * Delete the retention timerassociated with the checkpoint.
               */
-            clTimerDelete(&pStoredData->retenTimerHdl);
+            if(pStoredData->retenTimerHdl)
+                clTimerDelete(&pStoredData->retenTimerHdl);
             
             tag         = CL_CKPT_MARKED_DELETE;
 
@@ -3328,6 +3334,8 @@ _ckptMastHdlListWalk(ClCntKeyHandleT   userKey,
         /* 
          * Get the replica node.
          */
+        ClUint32T size = 0;
+        clCntSizeGet(pStoredData->replicaList, &size);
         clCntFirstNodeGet(pStoredData->replicaList, &nodeHdl);
         while(nodeHdl != 0)
         {
@@ -3585,7 +3593,7 @@ ClRcT _ckptMasterCkptsReplicate(ClHandleDatabaseHandleT databaseHandle,
     rc = clCntSizeGet(pStoredData->replicaList, &replicaCount);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                 ("Replica list in not yet created  rc[0x %x]\n", rc), rc);
-    if(replicaCount < 2)
+    if(replicaCount && replicaCount < 2)
     {
           /* 
            * Replication is required.
@@ -3700,7 +3708,7 @@ ClRcT _ckptMasterCkptsLoadBalance(ClHandleDatabaseHandleT databaseHandle,
     rc = clCntSizeGet(pStoredData->replicaList, &replicaCount);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Replica list in not yet created  rc[0x %x]\n", rc), rc);
-    if(replicaCount < 2)
+    if(replicaCount && replicaCount < 2)
     {
         rc = clCntFirstNodeGet(pStoredData->replicaList, &nodeHdl);
         if(nodeHdl != 0)
