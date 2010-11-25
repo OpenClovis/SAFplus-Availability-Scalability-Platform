@@ -1627,9 +1627,9 @@ exitOnErrorBeforeHdlCheckout:
  * ckptSectionIterationInitialize call.
  */
 ClRcT VDECL_VER(_ckptIterationNextGet, 4, 0, 0)(ClCkptHdlT               ckptHdl,
-                            ClCkptSectionIdT         *pSecId, 
-                            ClCkptSectionDescriptorT *pSecDescriptor,
-                            ClVersionT               *pVersion)
+                                                ClCkptSectionIdT         *pSecId, 
+                                                ClCkptSectionDescriptorT *pSecDescriptor,
+                                                ClVersionT               *pVersion)
 {
     CkptT         *pCkpt = NULL; 
     ClRcT         rc     = CL_OK; 
@@ -1655,15 +1655,15 @@ ClRcT VDECL_VER(_ckptIterationNextGet, 4, 0, 0)(ClCkptHdlT               ckptHdl
      */
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);  
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Failed to get ckpt from handle rc[0x %x]\n",rc), rc);
+                   ("Failed to get ckpt from handle rc[0x %x]\n",rc), rc);
 
     /* 
      * Verify the sanity of the data plane info.
      */
     if (pCkpt->pDpInfo == NULL) rc = CL_CKPT_ERR_INVALID_STATE;
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Dataplane info is absent for %s rc[0x %x]\n",
-             pCkpt->ckptName.value,rc), rc);
+                   ("Dataplane info is absent for %s rc[0x %x]\n",
+                    pCkpt->ckptName.value,rc), rc);
 
     /*
      * Get the pointer to the section.
@@ -1674,7 +1674,7 @@ ClRcT VDECL_VER(_ckptIterationNextGet, 4, 0, 0)(ClCkptHdlT               ckptHdl
         if ( CL_OK != rc )
         {
             clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-                    "Failed to get default section info. rc 0x%x",rc);
+                       "Failed to get default section info. rc 0x%x",rc);
             goto exitOnError;
         }
     }
@@ -1684,9 +1684,9 @@ ClRcT VDECL_VER(_ckptIterationNextGet, 4, 0, 0)(ClCkptHdlT               ckptHdl
         if( CL_OK != rc )
         {
             clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                    "Section [%.*s] does not exist in ckpt [%.*s]", 
-                    pSecId->idLen, pSecId->id,
-                    pCkpt->ckptName.length, pCkpt->ckptName.value);
+                       "Section [%.*s] does not exist in ckpt [%.*s]", 
+                       pSecId->idLen, pSecId->id,
+                       pCkpt->ckptName.length, pCkpt->ckptName.value);
             goto exitOnError;
         }
     }        
@@ -1699,32 +1699,28 @@ ClRcT VDECL_VER(_ckptIterationNextGet, 4, 0, 0)(ClCkptHdlT               ckptHdl
         if (pSecId != NULL)
         {
             pSecDescriptor->sectionId.idLen = pSecId->idLen;
-            if(pSecId->idLen == 0)
-            {
-                pSecDescriptor->sectionId.idLen = 1;
-            }
-        } else {
+        } 
+        else 
+        {
             pSecDescriptor->sectionId.idLen = strlen("defaultSection") + 1;
         }
-
+        
         pSecDescriptor->sectionId.id = (ClUint8T *)clHeapCalloc(
-                1, pSecDescriptor->sectionId.idLen);
-
+                                                                1, pSecDescriptor->sectionId.idLen ?
+                                                                pSecDescriptor->sectionId.idLen : 1);
         if(pSecDescriptor->sectionId.id == NULL)
         {
             rc = CL_CKPT_ERR_NO_MEMORY;
             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                    ("Memory allocation failed %s rc[0x %x]\n",
-                     pCkpt->ckptName.value,rc), rc);
+                           ("Memory allocation failed %s rc[0x %x]\n",
+                            pCkpt->ckptName.value,rc), rc);
         }
 
         if (pSecId != NULL)
         {
             if(pSecId->idLen != 0)
                 memcpy(pSecDescriptor->sectionId.id, pSecId->id,
-                        pSecId->idLen);
-            else
-                memcpy(pSecDescriptor->sectionId.id, "a", 1);
+                       pSecId->idLen);
         }
         else 
         {
@@ -1736,7 +1732,7 @@ ClRcT VDECL_VER(_ckptIterationNextGet, 4, 0, 0)(ClCkptHdlT               ckptHdl
         pSecDescriptor->sectionState   = pSec->state;
         pSecDescriptor->lastUpdate     = pSec->lastUpdated;
     } 
-exitOnError:
+    exitOnError:
     {
         clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
         return rc;

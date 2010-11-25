@@ -2403,10 +2403,9 @@ ClRcT clCkptSectionIterationNext(ClHandleT                secIterHdl,
     }while(rc == CL_CKPT_ERR_NOT_EXIST);
     CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_TRACE, 
             ("Ckpt: Section is not exist error rc[0x %x]\n",rc), rc);
-            
-    if(pSecDescriptor->sectionId.idLen == 1)
+
+    if(pSecDescriptor->sectionId.idLen == 0)
     {
-        pSecDescriptor->sectionId.idLen = 0 ;
         if(pSecDescriptor->sectionId.id != NULL) 
             clHeapFree(pSecDescriptor->sectionId.id);
         pSecDescriptor->sectionId.id = NULL;
