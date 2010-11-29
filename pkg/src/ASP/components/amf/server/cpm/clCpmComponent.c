@@ -3897,9 +3897,9 @@ ClRcT cpmComponentEventPublish(ClCpmComponentT *comp,
     ClBufferHandleT payLoadMsg = 0;
     ClUint8T *payLoadBuffer = NULL;
     ClUint32T msgLength = 0;
-    ClUint32T arrivalPattern = CL_CPM_COMP_ARRIVAL_PATTERN;
-    ClUint32T deathPattern = CL_CPM_COMP_DEATH_PATTERN;
-    ClUint32T departurePattern = CL_CPM_COMP_DEPART_PATTERN;
+    ClUint32T arrivalPattern = htonl(CL_CPM_COMP_ARRIVAL_PATTERN);
+    ClUint32T deathPattern = htonl(CL_CPM_COMP_DEATH_PATTERN);
+    ClUint32T departurePattern = htonl(CL_CPM_COMP_DEPART_PATTERN);
     ClEventPatternT compArrivalPattern[] = 
         { {0, (ClSizeT)sizeof(arrivalPattern), (ClUint8T*)&arrivalPattern } };
     ClEventPatternT compDeparturePattern[] = 

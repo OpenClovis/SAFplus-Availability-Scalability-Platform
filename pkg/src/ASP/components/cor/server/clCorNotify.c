@@ -118,11 +118,11 @@ corEventInit(void)
 	ClRcT rc;
 	ClNameT evtChannelName;
 	ClVersionT ver = CL_EVENT_VERSION;
-    ClUint32T                 compDeathPattern   = CL_CPM_COMP_DEATH_PATTERN;
-    ClUint32T                 compDeparturePattern   = CL_CPM_COMP_DEPART_PATTERN;
+    ClUint32T                 compDeathPattern   = htonl(CL_CPM_COMP_DEATH_PATTERN);
+    ClUint32T                 compDeparturePattern   = htonl(CL_CPM_COMP_DEPART_PATTERN);
 
-    ClUint32T                 nodeDeathPattern = CL_CPM_NODE_DEATH_PATTERN;
-    ClUint32T                 nodeDeparturePattern = CL_CPM_NODE_DEPART_PATTERN;
+    ClUint32T                 nodeDeathPattern = htonl(CL_CPM_NODE_DEATH_PATTERN);
+    ClUint32T                 nodeDeparturePattern = htonl(CL_CPM_NODE_DEPART_PATTERN);
 
     ClEventFilterT            compDeathFilter[]  = {{CL_EVENT_EXACT_FILTER, 
                                                 {0, (ClSizeT)sizeof(compDeathPattern), (ClUint8T*)&compDeathPattern}}

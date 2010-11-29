@@ -43,11 +43,10 @@ typedef struct ClLogFileEvent
     ClUint32T flags;
 } ClLogFileEventT;
 
-
 static ClTaskPoolHandleT gClLogFileEventTaskPool;
 static ClBoolT gClLogEventInitialize;
 
-void
+static void
 clLogEventChanOpenCb(ClInvocationT          invocation,
                      ClEventChannelHandleT  ClEventChannelHandle,
                      ClRcT                  error)
@@ -56,59 +55,59 @@ clLogEventChanOpenCb(ClInvocationT          invocation,
     return;
 }
 
-void
+static void
 clLogEventDeliverCb(ClEventSubscriptionIdT  subscriptionId,
                     ClEventHandleT          eventHandle,
                     ClSizeT                 eventDataSize);
 
-ClVersionT   gLogEvtVersion            = {'B', 0x1, 0x1 };
+static ClVersionT   gLogEvtVersion            = {'B', 0x1, 0x1 };
 
-ClUint32T    gStreamCreatedPattern     = 0x1;
-ClUint32T    gStreamClosedPattern      = 0x2;
-ClUint32T    gFileCreationPattern      = 0x3;
-ClUint32T    gFileClosedPattern        = 0x4;
-ClUint32T    gFileUnitFullPattern      = 0x5;
-ClUint32T    gFileHWMarkCrossedPattern = 0x6;
-ClUint32T    gCompAddPattern           = 0x7;
+static ClUint32T    gStreamCreatedPattern     = 0x1;
+static ClUint32T    gStreamClosedPattern      = 0x2;
+static ClUint32T    gFileCreationPattern      = 0x3;
+static ClUint32T    gFileClosedPattern        = 0x4;
+static ClUint32T    gFileUnitFullPattern      = 0x5;
+static ClUint32T    gFileHWMarkCrossedPattern = 0x6;
+static ClUint32T    gCompAddPattern           = 0x7;
 
-ClEventPatternT gLogStreamCreatedEventPattern[] = {
+static ClEventPatternT gLogStreamCreatedEventPattern[] = {
     {0, sizeof(gStreamCreatedPattern), (ClUint8T *)&gStreamCreatedPattern}
 };
 
-ClEventPatternArrayT gLogStreamCreatedPattArray =
+static ClEventPatternArrayT gLogStreamCreatedPattArray =
 {
     0,
     sizeof(gLogStreamCreatedEventPattern)/sizeof(ClEventPatternT),
     gLogStreamCreatedEventPattern
 };
     
-ClEventPatternT gLogStreamClosedEventPattern[] = {
+static ClEventPatternT gLogStreamClosedEventPattern[] = {
     {0, sizeof(gStreamClosedPattern), (ClUint8T *)&gStreamClosedPattern}
 };
 
-ClEventPatternArrayT gLogStreamClosedPattArray =
+static ClEventPatternArrayT gLogStreamClosedPattArray =
 {
     0,
     sizeof(gLogStreamClosedEventPattern)/sizeof(ClEventPatternT),
     gLogStreamClosedEventPattern
 };
 
-ClEventPatternT gLogFileCreationEventPattern[] = {
+static ClEventPatternT gLogFileCreationEventPattern[] = {
     {0, sizeof(gFileCreationPattern), (ClUint8T *)&gFileCreationPattern}
 };
 
-ClEventPatternArrayT gLogFileCreationPattArray =
+static ClEventPatternArrayT gLogFileCreationPattArray =
 {
     0,
     sizeof(gLogFileCreationEventPattern)/sizeof(ClEventPatternT),
     gLogFileCreationEventPattern
 };
 
-ClEventPatternT gLogFileClosedEventPattern[] = {
+static ClEventPatternT gLogFileClosedEventPattern[] = {
     {0, sizeof(gFileClosedPattern), (ClUint8T *)&gFileClosedPattern}
 };
 
-ClEventPatternArrayT gLogFileClosedPattArray =
+static ClEventPatternArrayT gLogFileClosedPattArray =
 {
     0,
     sizeof(gLogFileClosedEventPattern)/sizeof(ClEventPatternT),
@@ -116,49 +115,65 @@ ClEventPatternArrayT gLogFileClosedPattArray =
 
 };
 
-ClEventPatternT gLogFileFullEventPattern[] = {
+static ClEventPatternT gLogFileFullEventPattern[] = {
     {0, sizeof(gFileUnitFullPattern), (ClUint8T *)&gFileUnitFullPattern}
 };
 
-ClEventPatternArrayT gLogFileFullPattArray =
+static ClEventPatternArrayT gLogFileFullPattArray =
 {
     0,
     sizeof(gLogFileFullEventPattern)/sizeof(ClEventPatternT),
     gLogFileFullEventPattern
 };
 
-ClEventPatternT gLogFileHWMarkCrossedEvtPattern[] = {
+static ClEventPatternT gLogFileHWMarkCrossedEvtPattern[] = {
     {0, sizeof(gFileHWMarkCrossedPattern),
      (ClUint8T *)&gFileHWMarkCrossedPattern}
 };
 
-ClEventPatternArrayT gLogFileHWMarkCrossedPattArray =
+static ClEventPatternArrayT gLogFileHWMarkCrossedPattArray =
 {
     0,
     sizeof(gLogFileHWMarkCrossedEvtPattern)/sizeof(ClEventPatternT),
     gLogFileHWMarkCrossedEvtPattern
 };
 
-ClEventPatternT gLogCompAddEvtPattern[] = {
+static ClEventPatternT gLogCompAddEvtPattern[] = {
     {0, sizeof(gCompAddPattern),
      (ClUint8T *) &gCompAddPattern}
 };
 
-ClEventPatternArrayT gLogCompAddPattArray =
+static ClEventPatternArrayT gLogCompAddPattArray =
 {
     0,
     sizeof(gLogCompAddEvtPattern)/sizeof(ClEventPatternT),
     gLogCompAddEvtPattern
 };
 
-ClEventCallbacksT gclLogEventCallbacks = { clLogEventChanOpenCb,
-                                          clLogEventDeliverCb };
+static ClEventCallbacksT gclLogEventCallbacks = { clLogEventChanOpenCb,
+                                                  clLogEventDeliverCb };
+
+static __inline__ void logEventPatternSwap(void)
+{
+    static ClBoolT logEventPatternSwapped = CL_FALSE;
+    if(!logEventPatternSwapped)
+    {
+        gStreamCreatedPattern = htonl(gStreamCreatedPattern);
+        gStreamClosedPattern = htonl(gStreamClosedPattern);
+        gFileCreationPattern = htonl(gFileCreationPattern);
+        gFileClosedPattern = htonl(gFileClosedPattern);
+        gFileUnitFullPattern = htonl(gFileUnitFullPattern);
+        gFileHWMarkCrossedPattern = htonl(gFileHWMarkCrossedPattern);
+        gCompAddPattern = htonl(gCompAddPattern);
+        logEventPatternSwapped = CL_TRUE;
+    }
+}
 
 /*
  * Function will set the appropriate pattern for the particular
  * Event   
  */
-ClRcT
+static ClRcT
 clLogEventPatternSet(ClLogSvrCommonEoDataT  *pSvrCommonEoEntry,
                      ClUint32T              patternType)
 {
@@ -256,6 +271,8 @@ clLogEventInitialize(ClLogSvrCommonEoDataT  *pSvrCommonEoEntry)
         clEventFinalize(pSvrCommonEoEntry->hEventInitHandle);
         return rc;
     }
+
+    logEventPatternSwap();
 
     /*
      * Create the event task pool.
@@ -1237,12 +1254,12 @@ clLogFileOwnerEventSubscribe(void)
     ClLogSvrCommonEoDataT  *pSvrCommonEoEntry = NULL; 
     ClEventFilterT         createFilter[]     = { {CL_EVENT_EXACT_FILTER,  
            {0, sizeof(gStreamCreatedPattern), 
-                    (ClUint8T *) &gStreamCreatedPattern}}
+            (ClUint8T *) &gStreamCreatedPattern}}
                                                 };
     ClEventFilterArrayT    createFilterArray  = 
                                {
-                                sizeof(createFilter) / sizeof(ClEventFilterT), 
-                                createFilter 
+                                   sizeof(createFilter) / sizeof(ClEventFilterT), 
+                                   createFilter 
                                };
     ClEventFilterT         closeFilter[]      = { {CL_EVENT_EXACT_FILTER,  
            {0, sizeof(gStreamClosedPattern), 
@@ -1250,16 +1267,16 @@ clLogFileOwnerEventSubscribe(void)
                                                 };
     ClEventFilterArrayT    closeFilterArray   = 
                                {
-                                sizeof(closeFilter) / sizeof(ClEventFilterT), 
-                                closeFilter 
+                                   sizeof(closeFilter) / sizeof(ClEventFilterT), 
+                                   closeFilter 
                                };
     ClEventFilterT         compFilter[]      = { {CL_EVENT_EXACT_FILTER,  
            {0, sizeof(gCompAddPattern), (ClUint8T *) &gCompAddPattern}}
                                                };
     ClEventFilterArrayT    compFilterArray   = 
                                {
-                                sizeof(compFilter) / sizeof(ClEventFilterT), 
-                                compFilter
+                                   sizeof(compFilter) / sizeof(ClEventFilterT), 
+                                   compFilter
                                };
 
     rc = clLogSvrEoEntryGet(NULL, &pSvrCommonEoEntry);
@@ -1267,6 +1284,8 @@ clLogFileOwnerEventSubscribe(void)
     {
         return rc;
     }
+
+    logEventPatternSwap();
 
     rc = clEventSubscribe(pSvrCommonEoEntry->hLogEvtChannel,
                           &createFilterArray, CL_LOG_STREAMCREAT_EVT_SUBID,
@@ -1306,7 +1325,7 @@ clLogCompDownSubscribe(ClEventInitHandleT  hEvtSvcInit,
     ClRcT                     rc           = 0;
     ClNameT                   cpmChnlName  = {0};
     ClEventChannelOpenFlagsT  openFlags    = 0;
-    ClUint32T                 deathPattern   = CL_CPM_COMP_DEATH_PATTERN;
+    ClUint32T                 deathPattern   = htonl(CL_CPM_COMP_DEATH_PATTERN);
     ClEventFilterT            compDeathFilter[]  = {{CL_EVENT_EXACT_FILTER, 
                                                 {0, (ClSizeT)sizeof(deathPattern), (ClUint8T*)&deathPattern}}
     };
@@ -1348,8 +1367,7 @@ clLogNodeDownSubscribe(ClEventInitHandleT hEvtSvcInit,
     ClRcT                     rc           = CL_OK;
     ClEventChannelOpenFlagsT  openFlags    = 0;
     ClNameT                   cpmChnlName  = {0};
-    ClUint32T                 nodeDeparturePattern = CL_CPM_NODE_DEATH_PATTERN;
-
+    ClUint32T                 nodeDeparturePattern = htonl(CL_CPM_NODE_DEATH_PATTERN);
     ClEventFilterT            nodeDepartureFilter[]         = { {CL_EVENT_EXACT_FILTER,
                                                                 {0, (ClSizeT)sizeof(nodeDeparturePattern),
                                                                 (ClUint8T*)&nodeDeparturePattern}}
@@ -1387,7 +1405,7 @@ clLogNodeDownSubscribe(ClEventInitHandleT hEvtSvcInit,
     return rc;
 }
 
-void
+static void
 clLogEventDeliverCb(ClEventSubscriptionIdT  subscriptionId,
                     ClEventHandleT          eventHandle,
                     ClSizeT                 eventDataSize)

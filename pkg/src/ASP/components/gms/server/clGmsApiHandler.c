@@ -2033,8 +2033,8 @@ void clGmsEventInit(void)
                                 NULL,
                                 clEvtSubsTestDeliverCallback
                              };
-    ClUint32T                 deathPattern   = CL_CPM_COMP_DEATH_PATTERN;
-    ClUint32T                 nodeDeparturePattern = CL_CPM_NODE_DEATH_PATTERN;
+    ClUint32T                 deathPattern   = htonl(CL_CPM_COMP_DEATH_PATTERN);
+    ClUint32T                 nodeDeparturePattern = htonl(CL_CPM_NODE_DEATH_PATTERN);
     ClEventFilterT            compDeathFilter[]  = {{CL_EVENT_EXACT_FILTER, 
                                                 {0, (ClSizeT)sizeof(deathPattern), (ClUint8T*)&deathPattern}}
     };

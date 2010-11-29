@@ -349,7 +349,7 @@ static ClRcT clMsgEventInitialize(void)
     ClNameT cpmEvtCh = {0};
     ClEventChannelOpenFlagsT cpmChOpenFlags = CL_EVENT_CHANNEL_SUBSCRIBER | CL_EVENT_GLOBAL_CHANNEL;
 
-    ClUint32T nodeDepPattern = CL_CPM_NODE_DEPART_PATTERN;
+    ClUint32T nodeDepPattern = htonl(CL_CPM_NODE_DEPART_PATTERN);
     ClEventFilterT nodeDepFilter[] = {{CL_EVENT_EXACT_FILTER, {0, (ClSizeT)sizeof(nodeDepPattern), (ClUint8T*)&nodeDepPattern}}};
     ClEventFilterArrayT nodeDepFltArray = {sizeof(nodeDepFilter)/sizeof(nodeDepFilter[0]), nodeDepFilter};
 

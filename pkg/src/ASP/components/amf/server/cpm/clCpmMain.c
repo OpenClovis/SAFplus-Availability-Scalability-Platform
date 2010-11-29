@@ -342,17 +342,17 @@ ClRcT nodeArrivalDeparturePublish(ClIocNodeAddressT iocAddress,
     switch(operation)
     {
         case CL_CPM_NODE_ARRIVAL:
-            pattern = CL_CPM_NODE_ARRIVAL_PATTERN;
+            pattern = htonl(CL_CPM_NODE_ARRIVAL_PATTERN);
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ALERT, NULL,
                     CL_CPM_LOG_1_EVT_PUB_NODE_ARRIVAL_INFO, nodeName.value);
             break;
         case CL_CPM_NODE_DEATH:
-            pattern = CL_CPM_NODE_DEATH_PATTERN;
+            pattern = htonl(CL_CPM_NODE_DEATH_PATTERN);
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ALERT, NULL,
                     CL_CPM_LOG_1_EVT_PUB_NODE_DEPART_INFO, nodeName.value);
             break;
         case CL_CPM_NODE_DEPARTURE:
-            pattern = CL_CPM_NODE_DEPART_PATTERN;
+            pattern = htonl(CL_CPM_NODE_DEPART_PATTERN);
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ALERT, NULL,
                     CL_CPM_LOG_1_EVT_PUB_NODE_DEPART_INFO, nodeName.value);
             break;
