@@ -3425,7 +3425,10 @@ static ClRcT clEoPriorityQueuesInitialize(void)
     {
         for(index = 0; index < sizeof(priorityQueues)/sizeof(priorityQueues[0]); ++index)
         {
-            priorityQueues[index].maxThreads = clEoConfig.noOfThreads;
+            if(priorityQueues[index].priority != CL_IOC_NOTIFICATION_PRIORITY
+               &&
+               priorityQueues[index].priority != CL_IOC_ORDERED_PRIORITY)
+                priorityQueues[index].maxThreads = clEoConfig.noOfThreads;
         }
     }
 
