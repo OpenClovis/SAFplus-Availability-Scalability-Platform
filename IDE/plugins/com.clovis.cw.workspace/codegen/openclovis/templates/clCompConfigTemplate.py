@@ -102,7 +102,7 @@ ClEoConfigT clEoConfig =
     NULL,                       /* Application State Change Callback        */
     NULL,                       /* Application Health Check Callback        */
     NULL,
-    CL_FALSE,
+    ${needSerialization},
 };
 
 /*

@@ -63,6 +63,10 @@ def processComponent(cmpList):
 		symbolMap["eoThreadPri"]   = eo.attributes["threadPriority"].value
 		eoThreadCount = int(eo.attributes["threadCount"].value)
 		symbolMap["eoNumThread"]   = eoThreadCount
+		needSerialization = 'CL_FALSE'
+		if eoThreadCount != 2:
+			needSerialization = 'CL_TRUE'
+		symbolMap["needSerialization"] = needSerialization
 		iocPort = eo.attributes["iocPortNumber"].value
 		symbolMap["iocPort"]       = iocPort
 		symbolMap["threadPolicy"]  = eo.attributes["mainThreadUsagePolicy"].value

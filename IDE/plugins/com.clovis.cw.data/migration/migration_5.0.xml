@@ -31,4 +31,5 @@
   <update/><!-- removed customized part in clProxyCompAppMain.c and clSnmpAppMain.c -->
   <update/><!-- removed openSAF codegen folder -->
   <update/><!-- binary mode support for configure -->
+  <update/><!-- changes in eo config for needInitialization field -->
 </migration:migrationInfo>

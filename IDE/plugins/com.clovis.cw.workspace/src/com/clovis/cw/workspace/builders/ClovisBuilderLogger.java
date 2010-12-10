@@ -73,4 +73,16 @@ public class ClovisBuilderLogger extends ClovisActionLogger {
         err = new PrintStream(_errS);
         out = new PrintStream(_outS);
      }
+    /**
+     * (non-Javadoc)
+     * @see com.clovis.cw.workspace.builders.ClovisActionLogger#checkForCustomError()
+     */
+    protected String checkForCustomError() {
+		String docText = _MC.getDocument().get().toLowerCase();
+
+		if (docText.indexOf("Error:") != -1 || docText.indexOf("error:") != -1 ) {
+			return "";
+		}
+		return null;
+	}
 }

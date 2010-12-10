@@ -964,10 +964,9 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="threadCount" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
         unsettable="true">
       <eAnnotations source="CWAnnotation">
-        <details key="label" value="Thread count"/>
+        <details key="label" value="Number of threads per priority"/>
         <details key="pattern" value="^[0]*[1-9][0-9]*"/>
         <details key="message" value="Thread count should be > 0"/>
-        <details key="isHidden" value="true"/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="iocPortNumber" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
