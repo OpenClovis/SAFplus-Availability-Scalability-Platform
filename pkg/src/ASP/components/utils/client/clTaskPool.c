@@ -34,6 +34,7 @@
 #include <clTaskPool.h>
 #include <clCommonErrors.h>
 #include <clDebugApi.h>
+#include <clCpmIpi.h>
 
 #define CL_TASK_POOL_UNUSED_TASKS (0x20)
 #define CL_TASK_POOL_UNUSED_IDLE_TIME {.tsSec=0,.tsMilliSec=500}
@@ -69,6 +70,8 @@ static ClEoQueueT gClTaskPoolUnused = {                           \
 
 static ClUint32T gClTaskPoolKey;
 static ClBoolT gClEoHeartbeatDisabled = CL_FALSE;
+static ClTaskPoolStatsT gClNullTaskPoolStats;
+static ClTaskPoolT gClNullTaskPool = { .pStats = &gClNullTaskPoolStats };
 /*
  * Create a pthread key for storing task pool info. for each thread.
  */
@@ -117,7 +120,8 @@ static ClRcT clTaskPoolDataGet(ClPtrT *pData)
         return CL_TASKPOOL_RC(CL_ERR_INVALID_PARAMETER);
     if( (rc = clOsalTaskDataGet(gClTaskPoolKey, pThreadData) ) != CL_OK)
     {
-        clLogWarning("DATA", "GET", "Task pool data get returned [%#x]", rc);
+        *pData = &gClNullTaskPool;
+        rc = CL_OK;
     }
     return rc;
 }
@@ -563,8 +567,20 @@ static ClRcT clTaskPoolMonitor(void *pArg)
             if(monitorCallback && tp->pStats[i].tId && !tp->pStats[i].heartbeatDisabled)
             {
                 clLogNotice("TASK", "MONITOR", 
-                            "Task pool tid [%lld] seems to be deadlocked. Invoking monitor callback",
-                            tp->pStats[i].tId);
+                            "Task pool tid [%lld], task [%lld] seems to be deadlocked",
+                            tp->pStats[i].tId, GET_TASK_ID(&tp->pStats[i]));
+                if(tp->pStats[i].iocSendTime 
+                   && 
+                   (currentTime - tp->pStats[i].iocSendTime) >= (threshold>>1))
+                {
+                    clLogNotice("TASK", "MONITOR", "Task pool task [%lld] seems to be deadlocked in IOC send because of a "
+                                "potential TIPC broadcast-link permanent congestion bug.",
+                                GET_TASK_ID(&tp->pStats[i]));
+                    clCpmWatchdogRestart(CL_TRUE);
+                    /*
+                     * unreached mostly depending on arch.
+                     */
+                }
                 rc = monitorCallback(GET_TASK_ID(&tp->pStats[i]), currentTime - startTime, threshold);
             }
             clOsalMutexLock(&tp->mutex);
@@ -754,6 +770,50 @@ ClRcT clTaskPoolMonitorDisable(void)
 ClRcT clTaskPoolMonitorEnable(void)
 {
     return taskPoolMonitorSet(CL_FALSE);
+}
+
+ClRcT clTaskPoolRecordIOCSend(ClBoolT start)
+{
+    ClRcT rc = CL_OK;
+    ClTaskPoolT *tp = NULL;
+    ClOsalTaskIdT tid = 0;
+    ClUint32T i;
+
+    rc = clTaskPoolDataGet((ClPtrT*)&tp);
+
+    if(rc != CL_OK || !tp) return CL_OK; /*not in the task pool*/
+
+    if((rc = clOsalSelfTaskIdGet(&tid)) != CL_OK)
+        return rc;
+
+    clOsalMutexLock(&tp->mutex);
+    if(!(tp->flags & CL_TASK_POOL_RUNNING) || 
+       !(tp->flags & CL_TASK_POOL_ACTIVE) || 
+       !tp->monitorCallback || !tp->monitorTimer)
+    {
+        clOsalMutexUnlock(&tp->mutex);
+        return CL_OK;
+    }
+
+    for(i = 0; i < tp->maxTasks.value; ++i)
+    {
+        if(tp->pStats[i].tId && tp->pStats[i].tId == tid)
+        {
+            if(start)
+            {
+                tp->pStats[i].iocSendTime = clOsalStopWatchTimeGet();
+            }
+            else
+            {
+                tp->pStats[i].iocSendTime = 0;
+            }
+            goto out_unlock;
+        }
+    }
+    rc = CL_TASKPOOL_RC(CL_ERR_NOT_EXIST);
+    out_unlock:
+    clOsalMutexUnlock(&tp->mutex);
+    return rc;
 }
 
 ClRcT clTaskPoolStatsGet(ClTaskPoolHandleT handle, ClTaskPoolUsageT *poolUsage)

@@ -28,6 +28,7 @@ import sys
 import time
 
 ASP_RESTART_FILE = 'asp_restart'
+ASP_WATCHDOG_RESTART_FILE='asp_restart_watchdog'
 ASP_REBOOT_FILE = 'asp_reboot'
 ASP_RESTART_DISABLE_FILE = 'asp_restart_disable'
 
@@ -48,6 +49,7 @@ def amf_watchdog_loop():
     monitor_interval = 5
     run_dir = asp.get_asp_run_dir()
     restart_file = run_dir + '/' + ASP_RESTART_FILE
+    watchdog_restart_file = run_dir + '/' + ASP_WATCHDOG_RESTART_FILE
     reboot_file  = run_dir + '/' + ASP_REBOOT_FILE
     restart_disable_file = run_dir + '/' + ASP_RESTART_DISABLE_FILE
     safe_remove(restart_file)
@@ -59,11 +61,15 @@ def amf_watchdog_loop():
         if pid == 0:
             asp.log.critical('AMF watchdog invoked on %s' %\
                              time.strftime('%a %d %b %Y %H:%M:%S'))
-            if os.access(restart_file, os.F_OK):
-                safe_remove(restart_file)                    
+            is_restart = os.access(restart_file, os.F_OK)
+            is_forced_restart = os.access(watchdog_restart_file, os.F_OK)
+            if is_restart or is_forced_restart:
+                safe_remove(restart_file) 
+                safe_remove(watchdog_restart_file)
                 asp.log.debug('AMF watchdog restarting ASP...')
                 asp.zap_asp()
-
+                if is_forced_restart:
+                    time.sleep(3) ## give time for the coredump to complete
                 ## we unload the TIPC module and let ASP start reload it, 
                 ## since its been observed with tipc 1.5.12 that ASP starts 
                 ## after a link re-establishment results in multicast link

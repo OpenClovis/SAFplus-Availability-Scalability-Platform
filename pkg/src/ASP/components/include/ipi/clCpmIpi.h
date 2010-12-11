@@ -48,6 +48,9 @@ extern "C" {
  * Version supported for the EO library by CPM.
  */
 #define CL_CPM_EO_VERSION_NO                0x0100
+#define CL_CPM_RESTART_FILE "asp_restart"
+#define CL_CPM_REBOOT_FILE  "asp_reboot"
+#define CL_CPM_WATCHDOG_RESTART_FILE "asp_restart_watchdog"
 
 /**
  *  The structure ClCpmFuncWalkT is passed as an argument to function compoFuncEOWalk.
@@ -613,6 +616,8 @@ extern ClRcT clCpmComponentRestart(ClNameT *pCompName,
                                    CL_IN ClCpmLcmReplyT *pSrcInfo);
 
 extern ClRcT clCpmTargetInfoInitialize(void);
+
+extern void clCpmWatchdogRestart(ClBoolT abort);
 
 #ifdef __cplusplus
 }

@@ -33,7 +33,10 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#ifdef __linux__
+#include <signal.h>
+#include <sys/wait.h>
+#endif
 /*
  * ASP header files 
  */
@@ -2278,3 +2281,25 @@ ClBoolT clCpmIsSCCapable(void)
         return CL_TRUE;
     return clParseEnvBoolean("ASP_SC_PROMOTE");
 }
+
+#ifdef __linux__
+
+void clCpmWatchdogRestart(ClBoolT abort)
+{
+    pid_t amf = getppid();
+    FILE *fptr ;
+    fptr = fopen(CL_CPM_WATCHDOG_RESTART_FILE, "w");
+    fclose(fptr);
+    clLogNotice("WATCHDOG", "RESTART", "Recovering cluster through a node restart with TIPC module reload");
+    /*
+     * Kill the parent or amf 
+     */
+    kill(amf, SIGKILL);
+    CL_ASSERT(0); /*crash self*/
+}
+
+#else
+
+void clCpmWatchdogRestart(ClBoolT abort) { return; }
+
+#endif

@@ -1355,6 +1355,7 @@ static ClRcT internalSend(ClTipcCommPortT *pTipcCommPort,
     struct msghdr msgHdr;
     ClUint32T priority;
     ClInt32T tries = 0;
+    static ClInt32T recordIOCSend = -1;
 
 #ifdef BCAST_SOCKET_NEEDED
     ClUint32T sendFDFlag = 1;
@@ -1435,8 +1436,20 @@ static ClRcT internalSend(ClTipcCommPortT *pTipcCommPort,
         clLeakyBucketFill(gClLeakyBucket, len);
     }
 
+    if(recordIOCSend < 0)
+    {
+        ClBoolT record = clParseEnvBoolean("CL_ASP_RECORD_IOC_SEND");
+        recordIOCSend = record ? 1 : 0;
+    }
+    
     retry:
+
+    if(recordIOCSend) clTaskPoolRecordIOCSend(CL_TRUE);
+
     bytes = sendmsg(fd,&msgHdr,0);
+
+    if(recordIOCSend) clTaskPoolRecordIOCSend(CL_FALSE);
+
     if(bytes <= 0 )
     {
         if(errno == EINTR)

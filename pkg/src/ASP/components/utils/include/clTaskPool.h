@@ -33,6 +33,7 @@ typedef struct ClTaskPoolStats
     ClOsalTaskIdT tId;
     DECL_TASK_ID(taskId)
     ClTimeT       startTime;
+    ClTimeT       iocSendTime;
     ClBoolT       heartbeatDisabled;
 }ClTaskPoolStatsT;
 
@@ -109,6 +110,8 @@ ClRcT clTaskPoolMonitorDisable(void);
 ClRcT clTaskPoolMonitorEnable(void);
 
 ClRcT clTaskPoolStatsGet(ClTaskPoolHandleT handle, ClTaskPoolUsageT *pStats);
+
+ClRcT clTaskPoolRecordIOCSend(ClBoolT start);
 
 #ifdef __cplusplus
 }

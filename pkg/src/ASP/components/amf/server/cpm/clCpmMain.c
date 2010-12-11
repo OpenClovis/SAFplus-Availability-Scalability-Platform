@@ -107,8 +107,6 @@ extern ClAmsT gAms;
 #endif
 
 #define CPM_ASP_WELCOME_MSG "Welcome to OpenClovis ASP! Starting up middleware version"
-#define CL_CPM_RESTART_FILE "asp_restart"
-#define CL_CPM_REBOOT_FILE  "asp_reboot"
 #define CPM_NODECLEANUP_SCRIPT "node_cleanup.sh"
 #ifndef WIFCONTINUED
 #define WIFCONTINUED(status) (0)
