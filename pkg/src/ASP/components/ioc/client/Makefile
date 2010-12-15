@@ -50,7 +50,7 @@ CPPFLAGS       += -I$(COMP_ROOT)/include/ipi -I$(COMP_ROOT)/ioc/server
 
 
 #CPPFLAGS	   += -I$(TIPC_INCLUDE)
-EXTRA_CPPFLAGS += -I$(TIPC_INCLUDE)
+EXTRA_CPPFLAGS += -D__EXPORTED_HEADERS__ -I$(TIPC_INCLUDE)
 EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable 
 
 
