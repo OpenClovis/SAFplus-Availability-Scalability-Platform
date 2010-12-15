@@ -402,6 +402,14 @@
         <details key="message" value="Alpha factor value is not valid. Value should be 1-100"/>
       </eAnnotations>
     </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="betaFactor" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="0" unsettable="true">
+      <eAnnotations source="CWAnnotation">
+        <details key="label" value="Beta factor"/>
+        <details key="pattern" value="^[0]*[0-9][0-9]?|(100)$"/>
+        <details key="message" value="Beta factor value is not valid. Value should be 0-100"/>
+      </eAnnotations>
+    </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="autoAdjust" eType="#//PreInstanceType"
         defaultValueLiteral="CL_FALSE" unsettable="true">
       <eAnnotations source="CWAnnotation">

@@ -22,6 +22,7 @@
   <copyMap:map source="autoRepair" dest="autoRepair"/>
   <copyMap:map source="isCollocationAllowed" dest="isCollocationAllowed"/>
   <copyMap:map source="alphaFactor" dest="alphaFactor"/>
+  <copyMap:map source="betaFactor" dest="betaFactor"/>	
   <copyMap:map source="autoAdjust" dest="autoAdjust"/>
   <copyMap:map source="autoAdjustProbation" dest="autoAdjustProbation"/>
   <copyMap:map source="reductionProcedure" dest="reductionProcedure"/>
