@@ -1332,6 +1332,7 @@ ClRcT _ckptMasterActiveAddressGet(ClCkptHdlT         ckptHdl,
                                   ClIocNodeAddressT* pNodeAddr)
 {
     ClRcT              rc          = CL_OK;
+    ClRcT              rc2         = CL_OK;
     ClCkptHdlT         mastHdl     = CL_CKPT_INVALID_HDL;
     CkptHdlDbT         *pHdlInfo   = NULL;
     ClIocNodeAddressT  mastAddr    = 0;
@@ -1379,6 +1380,7 @@ ClRcT _ckptMasterActiveAddressGet(ClCkptHdlT         ckptHdl,
                                       &ckptVersion,
                                       mastHdl,
                                       pNodeAddr);
+        rc2 = rc;
         /*
          * Check for version mismatch.
          */
@@ -1396,7 +1398,12 @@ ClRcT _ckptMasterActiveAddressGet(ClCkptHdlT         ckptHdl,
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL,(void **)&pHdlInfo);
     if (rc == CL_OK)
       {
-        pHdlInfo->activeAddr = *pNodeAddr; 
+          /*
+           * Update the active handle ONLY if the master active address get was a success
+           * otherwise retry with the same active address again as ckpt server could be busy
+           */
+          if(rc2 == CL_OK) 
+              pHdlInfo->activeAddr = *pNodeAddr; 
         rc = clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
       }
     else
@@ -2780,7 +2787,7 @@ ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
      * Lock the mutex.
      */
     clOsalMutexLock(pInitInfo->ckptSvcMutex);
-    tempSecId.id = NULL;
+
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
     CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
