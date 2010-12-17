@@ -1326,10 +1326,15 @@ cosPosixMutexCreateDebug (ClOsalMutexIdT* pMutexId, const ClCharT *file, ClInt32
 ClRcT
 cosPosixCondInit(ClOsalCondT *pCond)
 {
+    pthread_condattr_t attr;
     nullChkRet(pCond);
-
+    
     CL_FUNC_ENTER();
-    sysRetErrChkRet(pthread_cond_init(pCond,NULL));
+    sysRetErrChkRet(pthread_condattr_init(&attr));
+#ifdef __linux__
+    sysRetErrChkRet(pthread_condattr_setclock(&attr, CLOCK_MONOTONIC));
+#endif
+    sysRetErrChkRet(pthread_cond_init(pCond, &attr));
     CL_FUNC_EXIT();
 
     return (CL_OK);
@@ -1354,6 +1359,10 @@ cosPosixProcessSharedCondInit (ClOsalCondT* ptr)
       clDbgCodeError(retCode, ("pthread_condattr initialization error: %d", retCode));
       return CL_OSAL_RC(CL_ERR_LIBRARY);
     }
+
+#ifdef __linux__
+  sysRetErrChkRet(pthread_condattr_setclock(&mattr, CLOCK_MONOTONIC));
+#endif
 
   retCode = (ClUint32T) pthread_cond_init (ptr, &mattr);
 
@@ -1396,6 +1405,9 @@ cosPosixCondInitEx (ClOsalCondT* pCond, ClOsalCondAttrT *pAttr)
     nullChkRet(pAttr);
 
     CL_FUNC_ENTER();
+#ifdef __linux__
+    sysRetErrChkRet(pthread_condattr_setclock(pAttr, CLOCK_MONOTONIC));
+#endif    
     sysRetErrChkRet(pthread_cond_init(pCond, pAttr));
     CL_FUNC_EXIT();
 
@@ -1520,7 +1532,6 @@ cosPosixCondWait (ClOsalCondIdT conditionId, ClOsalMutexIdT mutexId, ClTimerTime
     pthread_cond_t* pConditionVar = (pthread_cond_t*) conditionId;
     ClOsalMutexT *pMutexId = (ClOsalMutexT*) mutexId;
     ClUint64T nanoSecTime = 0;
-    struct timeval current;
     struct timespec timeOut;
     
     nullChkRet(pConditionVar);
@@ -1528,8 +1539,7 @@ cosPosixCondWait (ClOsalCondIdT conditionId, ClOsalMutexIdT mutexId, ClTimerTime
 
     CL_FUNC_ENTER();
     
-    memset(&current, 0, sizeof(struct timeval));
-    memset(&timeOut, 0, sizeof(struct timespec));
+    memset(&timeOut, 0, sizeof(timeOut));
     
     if( (pMutexId->flags & CL_OSAL_SHARED_NORMAL) )
     {
@@ -1539,15 +1549,18 @@ cosPosixCondWait (ClOsalCondIdT conditionId, ClOsalMutexIdT mutexId, ClTimerTime
         }
         else
         {
-            int result;
-            gettimeofday (&current, NULL);
-	    
-            nanoSecTime = 	((((ClUint64T)current.tv_usec) + ((ClUint64T)timer.tsMilliSec) * 1000LL ) * 1000LL);
+            struct timespec current = {0};
+            int result = 0;
+#ifdef __linux__
+            sysRetErrChkRet(clock_gettime(CLOCK_MONOTONIC, &current));
+#else
+            sysRetErrChkRet(clock_gettime(CLOCK_REALTIME,  &current));
+#endif
+            nanoSecTime = 	((ClUint64T)current.tv_nsec) + ((ClUint64T)timer.tsMilliSec * 1000LL * 1000LL);
 	    
             timeOut.tv_nsec = (nanoSecTime % 1000000000);
             timeOut.tv_sec = (current.tv_sec + timer.tsSec + (nanoSecTime / 1000000000));
 
-            /* Stone: Bug when the time of day changes? */
             result = pthread_cond_timedwait (pConditionVar, &pMutexId->shared_lock.mutex, &timeOut);
             if(result == ETIMEDOUT )
             {
@@ -1577,7 +1590,6 @@ cosPosixCondWaitDebug (ClOsalCondIdT conditionId, ClOsalMutexIdT mutexId, ClTime
     pthread_cond_t* pConditionVar = (pthread_cond_t*) conditionId;
     ClOsalMutexT *pMutexId = (ClOsalMutexT*) mutexId;
     ClUint64T nanoSecTime = 0;
-    struct timeval current;
     struct timespec timeOut;
     int result = 0;
     nullChkRet(pConditionVar);
@@ -1585,8 +1597,7 @@ cosPosixCondWaitDebug (ClOsalCondIdT conditionId, ClOsalMutexIdT mutexId, ClTime
 
     CL_FUNC_ENTER();
     
-    memset(&current, 0, sizeof(struct timeval));
-    memset(&timeOut, 0, sizeof(struct timespec));
+    memset(&timeOut, 0, sizeof(timeOut));
     
     if( (pMutexId->flags & CL_OSAL_SHARED_NORMAL) )
     {
@@ -1609,10 +1620,14 @@ cosPosixCondWaitDebug (ClOsalCondIdT conditionId, ClOsalMutexIdT mutexId, ClTime
         }
         else
         {
-            int result;
-            gettimeofday (&current, NULL);
-	    
-            nanoSecTime = 	((((ClUint64T)current.tv_usec) + ((ClUint64T)timer.tsMilliSec) * 1000LL ) * 1000LL);
+            struct timespec current = {0};
+            int result = 0;
+#ifdef __linux__
+            sysRetErrChkRet(clock_gettime(CLOCK_MONOTONIC, &current));
+#else
+            sysRetErrChkRet(clock_gettime(CLOCK_REALTIME,  &current));
+#endif
+            nanoSecTime = 	((ClUint64T)current.tv_nsec) + ((ClUint64T)timer.tsMilliSec * 1000LL * 1000LL);
 	    
             timeOut.tv_nsec = (nanoSecTime % 1000000000);
             timeOut.tv_sec = (current.tv_sec + timer.tsSec + (nanoSecTime / 1000000000));
@@ -1620,7 +1635,6 @@ cosPosixCondWaitDebug (ClOsalCondIdT conditionId, ClOsalMutexIdT mutexId, ClTime
             if(!(pMutexId->flags & (CL_OSAL_SHARED_RECURSIVE | CL_OSAL_SHARED_PROCESS)))
                 cosPosixMutexPoolUnlock(pMutexId, file, line);
 
-            /* Stone: Bug when the time of day changes? */
             result = pthread_cond_timedwait (pConditionVar, &pMutexId->shared_lock.mutex, &timeOut);
             if(result)
             {

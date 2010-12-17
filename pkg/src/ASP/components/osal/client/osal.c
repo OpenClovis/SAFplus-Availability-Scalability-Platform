@@ -623,8 +623,8 @@ ClRcT
 clOsalCondInitEx(ClOsalCondT *pCond, ClOsalCondAttrT *pAttr)
 {
     CL_OSAL_DEPRECATED();
-    CHK_INIT_RET(fpFunctionCondInit);
-    return (gOsalFunction.fpFunctionCondInit(pCond));
+    CHK_INIT_RET(fpFunctionCondInitEx);
+    return (gOsalFunction.fpFunctionCondInitEx(pCond, pAttr));
 }
 
 ClRcT 
