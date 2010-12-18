@@ -93,7 +93,19 @@ VDECL_VER(_clAmsMgmtEntitySetConfig, 4, 1, 0)(
         CL_OUT  ClBufferHandleT  out_buffer);
 
 extern ClRcT
+VDECL_VER(_clAmsMgmtEntitySetConfig, 5, 0, 0)( 
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in_buffer,
+        CL_OUT  ClBufferHandleT  out_buffer);
+
+extern ClRcT
 VDECL(_clAmsMgmtEntitySetAlphaFactor)( 
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in_buffer,
+        CL_OUT  ClBufferHandleT  out_buffer);
+
+extern ClRcT
+VDECL(_clAmsMgmtEntitySetBetaFactor)( 
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in_buffer,
         CL_OUT  ClBufferHandleT  out_buffer);
@@ -244,6 +256,12 @@ VDECL_VER(_clAmsMgmtCCBEntitySetConfig, 4, 1, 0)(
         CL_OUT  ClBufferHandleT  out );
 
 extern ClRcT
+VDECL_VER(_clAmsMgmtCCBEntitySetConfig, 5, 0, 0)( 
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out );
+
+extern ClRcT
 VDECL(_clAmsMgmtCCBCSISetNVP)( 
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in,
@@ -386,6 +404,12 @@ VDECL_VER(_clAmsMgmtEntityGet, 4, 1, 0)(
         CL_OUT  ClBufferHandleT  out );
 
 extern ClRcT 
+VDECL_VER(_clAmsMgmtEntityGet, 5, 0, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out );
+
+extern ClRcT 
 VDECL_VER(_clAmsMgmtEntityGetConfig, 4, 0, 0)(
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in,
@@ -393,6 +417,12 @@ VDECL_VER(_clAmsMgmtEntityGetConfig, 4, 0, 0)(
 
 extern ClRcT 
 VDECL_VER(_clAmsMgmtEntityGetConfig, 4, 1, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out );
+
+extern ClRcT 
+VDECL_VER(_clAmsMgmtEntityGetConfig, 5, 0, 0)(
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in,
         CL_OUT  ClBufferHandleT  out );

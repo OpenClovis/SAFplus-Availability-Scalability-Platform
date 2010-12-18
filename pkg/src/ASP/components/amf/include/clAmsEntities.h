@@ -490,11 +490,14 @@ typedef struct
     ClAmsEntityRefT         parentApp;              /**< member of this app    */
     ClUint32T               maxFailovers;           /* max failovers configured for the SG*/
     ClTimeT                 failoverDuration;       /* failover protection duration*/
+    ClUint32T               beta;                   /** % of standby SUs based on the current cluster config */
     ClAmsEntityListT        suList;                 /**< all configured SU     */
     ClAmsEntityListT        siList;                 /**< all configured SI     */
 } ClAmsSGConfigT;
 
 typedef ClAmsSGConfigT VDECL_VER(ClAmsSGConfigT, 4, 1, 0);
+typedef ClAmsSGConfigT VDECL_VER(ClAmsSGConfigT, 5, 0, 0);
+
 typedef struct ClAmsSGFailoverHistoryKey
 {
     ClAmsEntityT entity;
@@ -554,6 +557,7 @@ typedef struct
 } ClAmsSGT;
 
 typedef ClAmsSGT VDECL_VER(ClAmsSGT, 4, 1, 0);
+typedef ClAmsSGT VDECL_VER(ClAmsSGT, 5, 0, 0);
 
 /******************************************************************************
  * AMS SERVICE UNIT

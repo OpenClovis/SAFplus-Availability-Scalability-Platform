@@ -101,6 +101,11 @@ clAmsEntitySetAlphaFactor(
         CL_IN  ClAmsEntityT *entity,
         CL_IN  ClUint32T alphaFactor );
 
+extern ClRcT
+clAmsEntitySetBetaFactor(
+        CL_IN  ClAmsEntityT *entity,
+        CL_IN  ClUint32T betaFactor );
+
 /**********************************************************************/
 extern ClRcT
 clAmsEntitySetAdminState(

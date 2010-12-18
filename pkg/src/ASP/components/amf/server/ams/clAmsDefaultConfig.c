@@ -165,6 +165,7 @@ ClAmsSGConfigT gClAmsSGDefaultConfig =
     },
     0,                                           /* max failovers */
     300000,                                     /*  failover duration */
+    0,                                         /* beta factor*/
     {                                           /* suList                    */
         CL_AMS_ENTITY_TYPE_SU,                  /*      .type                */
         CL_TRUE,                                /*      .isRanked            */

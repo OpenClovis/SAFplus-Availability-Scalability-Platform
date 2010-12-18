@@ -1531,6 +1531,7 @@ clAmsPeSGComputeMaxActiveSU(
 {
     ClUint32T instantiable, maxSUs, threshold;
     ClUint32T alpha = sg->config.alpha;
+    ClUint32T beta = sg->config.beta;
 
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
@@ -1544,6 +1545,18 @@ clAmsPeSGComputeMaxActiveSU(
     maxSUs       = ( instantiable >= threshold ) ? 
                         sg->config.numPrefActiveSUs : 
                         sg->config.numPrefActiveSUs * alpha / 100;
+
+    /*
+     *Scale down for standbys.
+     */
+    if(beta 
+       &&
+       instantiable <= sg->config.numPrefActiveSUs)
+    {
+        beta = sg->config.numPrefStandbySUs * beta / 100;
+        beta = CL_MIN(beta, instantiable) ;
+        maxSUs = instantiable - beta;
+    }
 
     if ( !maxSUs && instantiable )
     {
@@ -1565,9 +1578,12 @@ ClUint32T
 clAmsPeSGComputeMaxStandbySU(
         CL_IN ClAmsSGT *sg)
 {
+    ClUint32T beta = sg->config.beta;
+    ClUint32T standbySUs = sg->config.numPrefStandbySUs;
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
-
-    return sg->config.numPrefStandbySUs;
+    if(standbySUs && beta)
+        standbySUs = standbySUs * beta / 100;
+    return standbySUs;
 }
 
 /*
@@ -17591,6 +17607,7 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
         ClAmsInvocationT *pInvocation = pInvocations+i;
         ClAmsEntityRefT entityRef;
         ClAmsEntityRefT *pEntityRef = NULL;
+        ClAmsEntityRefT *pNext = NULL;
 
         memset(&entityRef, 0, sizeof(entityRef));
 
@@ -17620,7 +17637,9 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
          * list containing only that CSI, so rest of the logic in the function 
          * can be written once for a list of CSIs.
          */
-
+        clAmsEntityTimerStopIfCountZero(
+                                        (ClAmsEntityT *) comp,
+                                        CL_AMS_COMP_TIMER_CSIREMOVE);
         affectedcsi = pInvocation->csi;
         if ( affectedcsi )
         {
@@ -17641,7 +17660,7 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
 
         for ( pEntityRef = clAmsEntityListGetFirst(csiList);
               pEntityRef != (ClAmsEntityRefT *) NULL;
-              pEntityRef = clAmsEntityListGetNext(csiList, pEntityRef) )
+              pEntityRef = pNext )
         {
             ClAmsCSIT *csi;
             ClAmsSIT *si;
@@ -17649,31 +17668,35 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
             ClAmsSUSIRefT *siRef;
             ClUint32T invocationsPendingForSI;
 
+            pNext = clAmsEntityListGetNext(csiList, pEntityRef);
+
             AMS_CHECK_CSI ( csi = (ClAmsCSIT *) pEntityRef->ptr );
             AMS_CHECK_SI ( si = (ClAmsSIT *) csi->config.parentSI.ptr );
 
-            AMS_CALL ( clAmsEntityListFindEntityRef2(
+            if ( clAmsEntityListFindEntityRef2(
                                                      &comp->status.csiList,
                                                      &csi->config.entity,
                                                      0,
-                                                     (ClAmsEntityRefT **)&csiRef) );
+                                                     (ClAmsEntityRefT **)&csiRef) != CL_OK)
+                goto next;
 
-            AMS_CALL ( clAmsEntityListFindEntityRef2(
+            if ( clAmsEntityListFindEntityRef2(
                                                      &su->status.siList,
                                                      &si->config.entity,
                                                      0,
-                                                     (ClAmsEntityRefT **)&siRef) );
-
+                                                     (ClAmsEntityRefT **)&siRef) != CL_OK)
+                goto next;
             /*
              * Update the Component, CSI, SI and SU view of this assignment.
              */
 
-            AMS_CALL ( clAmsPeCSITransitionHAStateExtended(
+            if ( clAmsPeCSITransitionHAStateExtended(
                                                    csi,
                                                    comp,
                                                    csiRef->haState,
                                                    CL_AMS_HA_STATE_NONE,
-                                                   CL_AMS_ENTITY_SWITCHOVER_FAST) );
+                                                   CL_AMS_ENTITY_SWITCHOVER_FAST) != CL_OK)
+                goto next;
 
             AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
                             ("Confirming CSI [%s] assigned to Component [%s] is [Removed]\n",
@@ -17697,11 +17720,15 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
 
             if ( csi->config.isProxyCSI )
             {
-                AMS_CALL ( clAmsPeCompUpdateProxiedComponents(comp, csiRef) );
+                if(clAmsPeCompUpdateProxiedComponents(comp, csiRef) != CL_OK)
+                    goto next;
             }
 
-            AMS_CALL (clAmsCompDeleteCSIRefFromCSIList(&comp->status.csiList, csi));
-            AMS_CALL (clAmsCSIDeleteCompRefFromPGList(&csi->status.pgList, comp));
+            if(clAmsCompDeleteCSIRefFromCSIList(&comp->status.csiList, csi) != CL_OK)
+                goto next;
+
+            if(clAmsCSIDeleteCompRefFromPGList(&csi->status.pgList, comp) != CL_OK)
+                goto next;
 
             invocationsPendingForSI = clAmsInvocationsPendingForSI(si, su);
         
@@ -17709,15 +17736,18 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
                  (siRef->haState == CL_AMS_HA_STATE_NONE) &&
                  !invocationsPendingForSI )
             {
-                AMS_CALL ( clAmsSUDeleteSIRefFromSIList(&su->status.siList, si) );
-                AMS_CALL ( clAmsSIDeleteSURefFromSUList(&si->status.suList, su) );
+                if(clAmsSUDeleteSIRefFromSIList(&su->status.siList, si) != CL_OK)
+                    goto next;
+                    
+                if(clAmsSIDeleteSURefFromSUList(&si->status.suList, su) != CL_OK)
+                    goto next;
             }
         }
 
         /*
          * If dummy csi list was created, delete it
          */
-
+    next:
         if ( affectedcsi )
         {
             AMS_CALL ( clAmsCompDeleteCSIRefFromCSIList(csiList, affectedcsi) );

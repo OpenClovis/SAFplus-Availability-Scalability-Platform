@@ -1929,6 +1929,15 @@ clAmsParserSGDefParser(
               sg,
               "alphaFactor");
 
+
+      /*
+       * betaFactor for standbys
+       */
+      clAmsParserUint32Parser (
+              &sgConfig->beta,
+              sg,
+              "betaFactor");
+
       /*
        * auto adjust 
        */

@@ -441,6 +441,47 @@ clAmsEntitySetAlphaFactor(
     return CL_OK;
 }
 
+ClRcT
+clAmsEntitySetBetaFactor( 
+                          CL_IN ClAmsEntityT *entity,
+                          CL_IN ClUint32T betaFactor
+                           )
+{
+    ClAmsSGT *sg = (ClAmsSGT*) entity;
+    ClRcT rc = CL_OK;
+
+    AMS_CHECKPTR( !sg);
+
+    AMS_FUNC_ENTER(("\n"));
+
+    if(betaFactor > 100)
+    {
+        AMS_LOG(CL_DEBUG_ERROR, ("Invalid beta factor value [%d]. "\
+                                 "Should be between 0 and 100\n", 
+                                 betaFactor));
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    }
+
+    /*
+     * We accept any valid values of beta factor here. A reduction in 
+     * alpha factor would result in active assignments getting reduced as and
+     * when the service units are taken down and re-evaluated.
+     * An alpha factor of 0 would result in 1 active SU incase there are less
+     * number of available SUs than the preferred active SUs.
+     */
+
+    sg->config.beta = betaFactor;
+
+    clAmsCkptDBWrite();
+
+    if( (rc = clAmsPeSGEvaluateWork( sg ) ) != CL_OK )
+    {
+        AMS_LOG(CL_DEBUG_ERROR, ("SG work evaluation returned [%#x]\n", rc));
+    }
+
+    return CL_OK;
+}
+
 static ClRcT clAmsRankUpdate(ClAmsEntityT *entity, ClUint32T newRank)
 {
     ClRcT rc = CL_OK;
@@ -773,6 +814,11 @@ clAmsEntitySetConfigNew(
             if( (allAttr) || (bitMask & SG_CONFIG_ALPHA_FACTOR) )
             {
                 sgConfig->alpha = newSGConfig->alpha;
+            }
+
+            if( (allAttr) || (bitMask & SG_CONFIG_BETA_FACTOR) )
+            {
+                sgConfig->beta = newSGConfig->beta;
             }
 
             if( (allAttr) || (bitMask & SG_CONFIG_MAX_FAILOVERS) )
@@ -5221,7 +5267,7 @@ clAmsEntityDBMarshall(ClAmsEntityDbT *entityDb, ClBufferHandleT inMsgHdl, ClBool
 static ClRcT
 clAmsDBMarshallVersion(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl, ClUint32T *pVersionCode)
 {
-    ClUint32T versionCode = CL_VERSION_CODE(CL_RELEASE_VERSION, 1, CL_MINOR_VERSION);
+    ClUint32T versionCode = CL_VERSION_CODE(5, 0, 0);
     ClVersionT version = {0};
 
     if(!pVersionCode)
@@ -7046,9 +7092,11 @@ clAmsInvocationCSIRemoveWalkCallback(ClAmsInvocationT *pInvocation,
 
     AMS_CHECK_NODE( node = (ClAmsNodeT*)su->config.parentNode.ptr);
 
-    if(strncmp(node->config.entity.name.value,
-                pCSIRemoveInvocation->pNodeName->value,
-                pCSIRemoveInvocation->pNodeName->length))
+    if(pCSIRemoveInvocation->pNodeName
+       &&
+       strncmp(node->config.entity.name.value,
+               pCSIRemoveInvocation->pNodeName->value,
+               pCSIRemoveInvocation->pNodeName->length))
     {
         return CL_OK;
     }

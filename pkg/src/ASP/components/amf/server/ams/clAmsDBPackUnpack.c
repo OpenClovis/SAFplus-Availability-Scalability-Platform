@@ -5540,9 +5540,12 @@ clAmsDBSGMarshallConfigVersion(ClAmsSGConfigT *pSGConfig, ClBufferHandleT inMsgH
     case CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE):
             AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsSGConfigT, 4, 0, 0)(pSGConfig, inMsgHdl, 0));
             break;
-    default:
+    case CL_VERSION_CODE(4, 1, 0):
             AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsSGConfigT, 4, 1, 0)(pSGConfig, inMsgHdl, 0));
             break;
+    default:
+        AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsSGConfigT, 5, 0, 0)(pSGConfig, inMsgHdl, 0));
+        break;
     }
 
     exitfn:
@@ -5706,6 +5709,7 @@ clAmsDBSGXMLize(
     ClCharT  *autoRepair = NULL;
     ClCharT  *isCollocationAllowed = NULL;
     ClCharT  *alphaFactor = NULL;
+    ClCharT  *betaFactor = NULL;
 
     AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
                 sg->config.adminState,
@@ -5782,6 +5786,10 @@ clAmsDBSGXMLize(
     AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
                 sg->config.alpha,
                 &alphaFactor) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
+                sg->config.beta,
+                &betaFactor) );
 
     CL_PARSER_SET_ATTR (
             configPtr,
@@ -5877,6 +5885,11 @@ clAmsDBSGXMLize(
             configPtr,
             "alphaFactor",
             alphaFactor);
+
+    CL_PARSER_SET_ATTR (
+            configPtr,
+            "betaFactor",
+            betaFactor);
 
     /*
      * Write the suList and siList
@@ -6004,10 +6017,15 @@ clAmsDBSGConfigUnmarshallVersion(ClBufferHandleT inMsgHdl, ClAmsSGConfigT *pSGCo
         AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 0, 0)(inMsgHdl, pSGConfig));
         pSGConfig->maxFailovers =  0; /*disables the feature*/
         pSGConfig->failoverDuration = gClAmsSGDefaultConfig.failoverDuration;
+        pSGConfig->beta = 0;
         break;
 
-    default:
+    case CL_VERSION_CODE(4, 1, 0):
         AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 1, 0)(inMsgHdl, pSGConfig));
+        pSGConfig->beta = 0; /*disables the feature*/
+        break;
+    default:
+        AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 5, 0, 0)(inMsgHdl, pSGConfig));
         break;
     }
 
@@ -6177,7 +6195,7 @@ clAmsDBSGDeXMLize(
     const ClCharT  *autoRepair = NULL;
     const ClCharT  *isCollocationAllowed = NULL;
     const ClCharT  *alphaFactor = NULL;
-
+    const ClCharT  *betaFactor = NULL;
 
     adminState = clParserAttr(
             configPtr,
@@ -6255,6 +6273,9 @@ clAmsDBSGDeXMLize(
             configPtr,
             "alphaFactor");
 
+    betaFactor = clParserAttr(
+            configPtr,
+            "betaFactor");
 
     if ( !adminState || !redundancyModel || !loadingStrategy
             || !failbackOption || !instantiateDuration || !numPrefActiveSUs
@@ -6262,7 +6283,8 @@ clAmsDBSGDeXMLize(
             || !numPrefActiveSUsPerSI || !maxActiveSIsPerSU || !maxStandbySIsPerSU
             || !compRestartDuration || !compRestartCountMax || !suRestartDuration
             || !suRestartCountMax || !autoRepair || !isCollocationAllowed 
-            || !alphaFactor )
+            || !alphaFactor 
+            || !betaFactor)
     {
         AMS_LOG (CL_DEBUG_ERROR,("SG[%s] has a missing config attribute \n",name));
         rc = CL_ERR_NULL_POINTER;
@@ -6342,6 +6364,7 @@ clAmsDBSGDeXMLize(
     sg.config.suRestartCountMax= atoi (suRestartCountMax);
     sg.config.isCollocationAllowed = atoi (isCollocationAllowed);
     sg.config.alpha = atoi (alphaFactor);
+    sg.config.beta = atoi(betaFactor);
 
     AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig (
                 &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SG],
@@ -7797,6 +7820,7 @@ clAmsDBUnmarshall(ClBufferHandleT inMsgHdl)
     {
     case CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE):
     case CL_VERSION_CODE(CL_RELEASE_VERSION, 1, CL_MINOR_VERSION):
+    case CL_VERSION_CODE(5, 0, 0):
         {
             rc = clAmsDBUnmarshallVersion(inMsgHdl, versionCode);
         }

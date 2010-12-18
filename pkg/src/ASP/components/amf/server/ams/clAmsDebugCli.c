@@ -220,6 +220,75 @@ clAmsDebugCliEntityAlphaFactor(
 }
 
 ClRcT
+clAmsDebugCliEntityBetaFactor(
+                               CL_IN  ClUint32T  argc,
+                               CL_IN  ClCharT  **argv,
+                               CL_OUT  ClCharT  **ret )
+{
+
+    ClRcT  rc = CL_OK;
+    ClAmsEntityT  entity = {0};
+    ClUint32T betaFactor = 0;
+
+    AMS_FUNC_ENTER (("\n"));
+
+    *ret = clHeapAllocate(MAX_BUFFER_SIZE+1);
+    if(!*ret)
+    {
+        return CL_AMS_RC(CL_ERR_NO_MEMORY);
+    }
+
+    if(argc != 2 && argc != 3)
+    {
+        strncpy(*ret, "amsbeta sgname  [ beta factor]\n", MAX_BUFFER_SIZE);
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    }
+
+    rc = clAmsDebugCliMakeEntityStruct(
+                                       &entity,
+                                       "sg",
+                                       argv[1]);
+
+    if(rc != CL_OK)
+    {
+        snprintf(*ret, MAX_BUFFER_SIZE, "entity struct make failed with [%#x]\n", rc);
+        return rc;
+    }
+
+    if(argc == 3)
+    {
+        betaFactor = atoi(argv[2]);
+
+        if ( ( rc = clAmsMgmtEntitySetBetaFactor(
+                                                  gHandle,
+                                                  &entity, betaFactor ))
+             != CL_OK)
+        {
+            snprintf (*ret, MAX_BUFFER_SIZE, 
+                      "entity set beta factor failed with [%#x]\n",
+                      rc);
+            return rc;
+        }
+    }
+    else
+    {
+        ClAmsSGConfigT *sgConfig = NULL;
+        rc = clAmsMgmtEntityGetConfig(gHandle, &entity, 
+                                      (ClAmsEntityConfigT**)&sgConfig);
+        if(rc != CL_OK)
+        {
+            snprintf(*ret, MAX_BUFFER_SIZE, 
+                     "entity get config failed with [%#x]\n", rc);
+            return rc;
+        }
+        snprintf(*ret, MAX_BUFFER_SIZE, "%d\n", sgConfig->beta);
+        clAmsFreeMemory(sgConfig);
+    }
+    return rc;
+    
+}
+
+ClRcT
 clAmsDebugCliEntityLockAssignment(
        CL_IN  ClUint32T  argc,
        CL_IN  ClCharT  **argv,

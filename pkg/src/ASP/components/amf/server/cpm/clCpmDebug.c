@@ -258,7 +258,13 @@ static ClDebugFuncEntryT cpmSCDebugFuncList[] =
     {
         clAmsDebugCliEntityAlphaFactor,
         "amsAlpha",
-        "Utility API for setting or fetching the alpha factor for the given SG"
+        "Utility API for setting or fetching the alpha factor for the given SG for active SUs"
+    },
+
+    {
+        clAmsDebugCliEntityBetaFactor,
+        "amsBeta",
+        "Utility API for setting or fetching the beta factor for the given SG for standby SUs"
     },
 
     {

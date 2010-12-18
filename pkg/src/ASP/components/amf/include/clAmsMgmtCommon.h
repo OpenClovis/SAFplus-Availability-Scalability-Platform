@@ -127,6 +127,7 @@ typedef enum
     CL_AMS_MGMT_CCB_SET_CSI_CSI_DEPENDENCY        = 62,
     CL_AMS_MGMT_CCB_DELETE_CSI_CSI_DEPENDENCY        = 63,
     CL_AMS_MGMT_SI_ASSIGN_SU_CUSTOM                 = 65,
+    CL_AMS_MGMT_ENTITY_SET_BETA_FACTOR = 66,
 } ClAmsMgmtClientCallbackRmdInterfaceT;
 
 /*
@@ -225,8 +226,15 @@ typedef struct
     ClUint32T                           alphaFactor;
 } clAmsMgmtEntitySetAlphaFactorRequestT;    
 
-typedef clAmsMgmtDummyResponseT  clAmsMgmtEntitySetAlphaFactorResponseT;
+typedef struct
+{
+    ClAmsMgmtHandleT                    handle;
+    ClAmsEntityT                        entity;
+    ClUint32T                           betaFactor;
+} clAmsMgmtEntitySetBetaFactorRequestT;    
 
+typedef clAmsMgmtDummyResponseT  clAmsMgmtEntitySetAlphaFactorResponseT;
+typedef clAmsMgmtDummyResponseT  clAmsMgmtEntitySetBetaFactorResponseT;
 typedef clAmsMgmtDummyResponseT  clAmsMgmtEntitySetConfigResponseT;
 
 typedef struct
@@ -757,6 +765,7 @@ typedef ClAmsEntityRefBufferT clAmsMgmtGetOLEntityListResponseT;
 #define SG_CONFIG_ALPHA_FACTOR                      CL_AMS_CONFIG_ATTR_ALL<<22
 #define SG_CONFIG_MAX_FAILOVERS                     CL_AMS_CONFIG_ATTR_ALL<<23
 #define SG_CONFIG_FAILOVER_DURATION                 CL_AMS_CONFIG_ATTR_ALL<<24
+#define SG_CONFIG_BETA_FACTOR                       CL_AMS_CONFIG_ATTR_ALL<<25
 
 #define SU_CONFIG_ADMIN_STATE                       CL_AMS_CONFIG_ATTR_ALL<<1
 #define SU_CONFIG_RANK                              CL_AMS_CONFIG_ATTR_ALL<<2

@@ -1336,6 +1336,64 @@ clAmsMgmtEntitySetAlphaFactor( CL_IN ClAmsMgmtHandleT amsHandle,
                                CL_IN ClAmsEntityT *entity,
                                CL_IN ClUint32T alphaFactor );
 
+
+/**
+ ************************************
+ *
+ *  \brief Changes the beta factor configured for a given SG
+ *
+ *  \par Header File: 
+ *  clAmsMgmtClientApi.h 
+ *
+ *  \param amsHandle (in) Handle identifying the initialization of the AML by the
+ *  application obtained through earlier invocation of clAmsMgmtInitialize API.  
+ *
+ *  \param entity (in) Name of the SG and type should be CL_AMS_ENTITY_TYPE_SG 
+ *  to get current alpha factor configured for the SG
+ *
+ *  \param betaFactor (in) The value for the betaFactor which should be 
+ *  between 0 and 100.
+ *
+ *  \retval CL_OK The function completed successfully.  
+ *
+ *  \retval CL_ERR_INVALID_HANDLE Handle passed is not a valid handle obtained
+ *  through an earlier call to clAmsMgmtInitialize API.  
+ *
+ *  \retval CL_ERR_TIMEOUT Timeout occurred before the call could be completed. It is
+ *  unspecified whether the call succeeded or whether it did not.  
+ *
+ *  \retval CL_ERR_NO_MEMORY Either the AMS library or the provider of service is
+ *  out of memory and cannot provide the service.  
+ *  
+ *  \retval CL_ERR_INVALID_PARAMETER The beta factor provided was invalid.
+ *
+ *  \retval CL_ERR_NOT_EXIST The SG wasnt found in the AMS DB to change the beta factor
+ *
+ *  \par Description: 
+ *  This API is used to change the SGs beta factor configuration. This variable
+ *  limits the standby number of service units incase the available service units
+ *  are less than the preferred standby service units. This variable helps to 
+ *  dynamically limit the standby service units that can be assigned work. 
+ *  Judicious usage of this variable would allow dynamic changes to redundancy 
+ *  mode at runtime without disrupting service. For example with a 10+1 model, 
+ *  one can start with an beta factor of 100 to get 1+1 incase nodes are going 
+ *  to be added dynamically or incase the active service units are supposed to
+ *  be restricted. As nodes enter the cluster, it would increase slowly from 2+1 to 3+1,4+1,... 10+1. 
+ *  By default the value is set to 0 or disabled.
+ *  The acceptable values for beta factor are between 0 and 100. 
+ *
+ *  \par Library  File: 
+ *  libClAmsMgmt 
+ *
+ *  \sa clAmsMgmtEntityGetConfig
+ *
+ */
+
+extern ClRcT
+clAmsMgmtEntitySetBetaFactor( CL_IN ClAmsMgmtHandleT amsHandle,
+                              CL_IN ClAmsEntityT *entity,
+                              CL_IN ClUint32T betaFactor );
+
 /**
  ************************************
  *  \brief Initializes the AMS management control library.

@@ -226,7 +226,7 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
     ClIocNotificationT notification = {0};
     ClIocPhysicalAddressT compAddr={0};
     ClUint8T buff[CL_TIPC_BYTES_FOR_COMPS_PER_NODE];
-    ClUint32T nodeVersion = CL_VERSION_CODE(CL_RELEASE_VERSION, 1, CL_MINOR_VERSION);
+    ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
 
     switch(socketType)
     {

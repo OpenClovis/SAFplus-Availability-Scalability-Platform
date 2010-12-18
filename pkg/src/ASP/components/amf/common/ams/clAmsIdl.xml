@@ -282,6 +282,12 @@
             <DataMember name="alphaFactor" type="ClUint32T"/>
         </Struct>
 
+        <Struct name="clAmsMgmtEntitySetBetaFactorRequestT">
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="betaFactor" type="ClUint32T"/>
+        </Struct>
+
         <Struct name="clAmsMgmtEntityRepairedRequestT"> <!---->
             <DataMember name="handle" type="ClHandleT"/>
             <DataMember name="entity" type="ClAmsEntityConfigT"/>
@@ -527,6 +533,36 @@
             <DataMember name="parentApp" type="ClAmsEntityConfigT"/>
             <DataMember name="maxFailovers" type="ClUint32T"/>
             <DataMember name="failoverDuration" type="ClInt64T"/>
+          </Struct>
+
+        <Struct name="ClAmsSGConfigT" version="5.0.0"> <!---->
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="adminState" type="ClAmsAdminStateT"/>
+            <DataMember name="redundancyModel" type="ClAmsSGRedundancyModelT"/>
+            <DataMember name="loadingStrategy" type="ClAmsSGLoadingStrategyT"/>
+            <DataMember name="failbackOption" type="ClUint16T"/>
+            <DataMember name="autoRepair" type="ClUint16T"/>
+            <DataMember name="instantiateDuration" type="ClInt64T"/>
+            <DataMember name="numPrefActiveSUs" type="ClUint32T"/>
+            <DataMember name="numPrefStandbySUs" type="ClUint32T"/>
+            <DataMember name="numPrefInserviceSUs" type="ClUint32T"/>
+            <DataMember name="numPrefAssignedSUs" type="ClUint32T"/>
+            <DataMember name="numPrefActiveSUsPerSI" type="ClUint32T"/>
+            <DataMember name="maxActiveSIsPerSU" type="ClUint32T"/>
+            <DataMember name="maxStandbySIsPerSU" type="ClUint32T"/>
+            <DataMember name="compRestartDuration" type="ClInt64T"/>
+            <DataMember name="compRestartCountMax" type="ClUint32T"/>
+            <DataMember name="suRestartDuration" type="ClInt64T"/>
+            <DataMember name="suRestartCountMax" type="ClUint32T"/>
+            <DataMember name="isCollocationAllowed" type="ClUint16T"/>
+            <DataMember name="alpha" type="ClUint32T"/>
+            <DataMember name="autoAdjust" type="ClUint16T"/>
+            <DataMember name="autoAdjustProbation" type="ClInt64T"/>
+            <DataMember name="reductionProcedure" type="ClUint16T"/>
+            <DataMember name="parentApp" type="ClAmsEntityConfigT"/>
+            <DataMember name="maxFailovers" type="ClUint32T"/>
+            <DataMember name="failoverDuration" type="ClInt64T"/>
+            <DataMember name="beta" type="ClUint32T"/>
           </Struct>
 
         <Struct name="ClAmsSIConfigT"> <!---->
@@ -777,6 +813,11 @@
 
         <Struct name="ClAmsSGT" version="4.1.0"> <!---->
             <DataMember name="config" type="ClAmsSGConfigT" version="4.1.0"/>
+            <DataMember name="status" type="ClAmsSGStatusT" version="4.1.0"/>
+        </Struct>
+
+        <Struct name="ClAmsSGT" version="5.0.0"> <!---->
+            <DataMember name="config" type="ClAmsSGConfigT" version="5.0.0"/>
             <DataMember name="status" type="ClAmsSGStatusT" version="4.1.0"/>
         </Struct>
 

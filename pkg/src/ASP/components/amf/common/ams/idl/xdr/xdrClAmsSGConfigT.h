@@ -108,6 +108,32 @@ clXdrMarshallPtr((pointer), sizeof(ClAmsSGConfigT_4_1_0), (multiplicity), clXdrM
 clXdrUnmarshallPtr((msg),(pointer), sizeof(ClAmsSGConfigT_4_1_0),multiplicity, clXdrUnmarshallClAmsSGConfigT_4_1_0)
 
 
+struct _ClAmsSGConfigT_5_0_0;
+
+
+ClRcT  clXdrMarshallClAmsSGConfigT_5_0_0(void *,ClBufferHandleT , ClUint32T);
+
+ClRcT  clXdrUnmarshallClAmsSGConfigT_5_0_0(ClBufferHandleT, void *);
+
+#define clXdrMarshallArrayClAmsSGConfigT_5_0_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallArray((pointer), sizeof(ClAmsSGConfigT_5_0_0), (multiplicity), clXdrMarshallClAmsSGConfigT_5_0_0, (msg), (isDelete))
+
+#define clXdrUnmarshallArrayClAmsSGConfigT_5_0_0(msg,pointer, multiplicity) \
+clXdrUnmarshallArray((msg),(pointer), sizeof(ClAmsSGConfigT_5_0_0), (multiplicity), clXdrUnmarshallClAmsSGConfigT_5_0_0)
+
+#define clXdrMarshallPointerClAmsSGConfigT_5_0_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPointer((pointer), sizeof(ClAmsSGConfigT_5_0_0), (multiplicity), clXdrMarshallClAmsSGConfigT_5_0_0, (msg), (isDelete))
+
+#define clXdrUnmarshallPointerClAmsSGConfigT_5_0_0(msg,pointer) \
+clXdrUnmarshallPointer((msg),(pointer), sizeof(ClAmsSGConfigT_5_0_0), clXdrUnmarshallClAmsSGConfigT_5_0_0)
+
+#define clXdrMarshallPtrClAmsSGConfigT_5_0_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPtr((pointer), sizeof(ClAmsSGConfigT_5_0_0), (multiplicity), clXdrMarshallClAmsSGConfigT_5_0_0, (msg), (isDelete))
+
+#define clXdrUnmarshallPtrClAmsSGConfigT_5_0_0(msg,pointer,multiplicity) \
+clXdrUnmarshallPtr((msg),(pointer), sizeof(ClAmsSGConfigT_5_0_0),multiplicity, clXdrUnmarshallClAmsSGConfigT_5_0_0)
+
+
 
 #ifdef __cplusplus
 }

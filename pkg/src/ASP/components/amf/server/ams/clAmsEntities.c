@@ -1325,6 +1325,8 @@ clAmsEntityPrint(
                     "%s",CL_AMS_STRING_BOOLEAN(sg->config.isCollocationAllowed));
             CL_AMS_PRINT_TWO_COL("Alpha Factor", "%d",sg->config.alpha);
 
+            CL_AMS_PRINT_TWO_COL("Beta Factor", "%d",sg->config.beta);
+
             CL_AMS_PRINT_TWO_COL("Reduction procedure",
                                  "%s",CL_AMS_STRING_BOOLEAN(sg->config.reductionProcedure));
 
@@ -2067,6 +2069,9 @@ clAmsEntityXMLPrint(
                                                          isCollocationAllowed));
             CL_AMS_PRINT_TAG_VALUE("alpha_factor", "%d",
                                    sg->config.alpha);
+
+            CL_AMS_PRINT_TAG_VALUE("beta_factor", "%d",
+                                   sg->config.beta);
 
             CL_AMS_PRINT_TAG_VALUE("reduction_procedure", "%s",
                                    CL_AMS_STRING_BOOLEAN(sg->config.reductionProcedure));

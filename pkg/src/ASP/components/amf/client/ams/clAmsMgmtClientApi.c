@@ -749,6 +749,51 @@ clAmsMgmtEntitySetAlphaFactor(
 
 }
 
+ClRcT
+clAmsMgmtEntitySetBetaFactor(
+                         CL_IN  ClAmsMgmtHandleT  amsHandle,
+                         CL_IN  ClAmsEntityT  *entity,
+                         CL_IN  ClUint32T betaFactor)
+{
+
+    ClRcT  rc = CL_OK;
+    clAmsMgmtEntitySetBetaFactorRequestT  req;
+    clAmsMgmtEntitySetBetaFactorResponseT  *res = NULL;
+    struct ams_instance  *ams_instance = NULL;
+
+    AMS_CHECKPTR_SILENT( !entity );
+
+    if(entity->type != CL_AMS_ENTITY_TYPE_SG || betaFactor > 100)
+    {
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    }
+
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
+                                         (ClPtrT)&ams_instance));
+
+    req.handle = ams_instance->server_handle;
+    memcpy( &req.entity, entity, sizeof(ClAmsEntityT));
+    CL_AMS_NAME_LENGTH_CHECK(req.entity);
+
+    req.betaFactor = betaFactor;
+    
+    rc = cl_ams_mgmt_entity_set_beta_factor( &req, &res);
+
+    if(rc != CL_OK)
+    {
+        clHandleCheckin( handle_database, amsHandle);
+        goto exitfn;
+    }
+
+    AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
+
+    exitfn:
+
+    clAmsFreeMemory (res);
+    return rc;
+
+}
+
 /*
  * clAmsMgmtEntitySetRef
  * ------------------------

@@ -127,6 +127,7 @@ extern "C" {
 #include <xdrClAmsMgmtInitializeResponseT.h>
 #include <xdrClAmsMgmtEntityAdminResponseT.h>
 #include <xdrClAmsMgmtEntitySetAlphaFactorRequestT.h>
+#include <xdrClAmsMgmtEntitySetBetaFactorRequestT.h>
 #include <xdrClAmsEntityBufferT.h>
 #include <xdrClAmsMgmtMigrateRequestT.h>
 #include <xdrClAmsMgmtMigrateListT.h>

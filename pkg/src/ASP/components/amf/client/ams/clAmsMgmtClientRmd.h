@@ -79,6 +79,10 @@ extern ClRcT cl_ams_mgmt_entity_set_alpha_factor(
         CL_IN   clAmsMgmtEntitySetAlphaFactorRequestT   *req,
         CL_OUT  clAmsMgmtEntitySetAlphaFactorResponseT **res);
 
+extern ClRcT cl_ams_mgmt_entity_set_beta_factor(
+        CL_IN   clAmsMgmtEntitySetBetaFactorRequestT   *req,
+        CL_OUT  clAmsMgmtEntitySetBetaFactorResponseT **res);
+
 extern ClRcT cl_ams_mgmt_entity_lock_assignment(
         CL_IN   clAmsMgmtEntityLockAssignmentRequestT   *req,
         CL_OUT  clAmsMgmtEntityLockAssignmentResponseT **res);

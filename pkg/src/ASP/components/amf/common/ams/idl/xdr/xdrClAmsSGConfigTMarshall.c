@@ -376,3 +376,186 @@ ClRcT clXdrMarshallClAmsSGConfigT_4_1_0(void* pGenVar, ClBufferHandleT msg, ClUi
 }
 
 
+ClRcT clXdrMarshallClAmsSGConfigT_5_0_0(void* pGenVar, ClBufferHandleT msg, ClUint32T isDelete)
+{
+    ClAmsSGConfigT_5_0_0* pVar = (ClAmsSGConfigT_5_0_0*)pGenVar;
+    ClRcT rc         = CL_OK;
+    ClUint32T length = 0;    
+
+    if ((void*)0 == pVar)
+    {
+        clXdrMarshallClUint32T(&length, msg, 0);
+    }
+    else
+    {
+        length = 1;
+        clXdrMarshallClUint32T(&length, msg, 0);
+
+    rc = clXdrMarshallClAmsEntityConfigT_4_0_0(&(pVar->entity),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClAmsAdminStateT_4_0_0(&(pVar->adminState),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClAmsSGRedundancyModelT_4_0_0(&(pVar->redundancyModel),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClAmsSGLoadingStrategyT_4_0_0(&(pVar->loadingStrategy),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint16T(&(pVar->failbackOption),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint16T(&(pVar->autoRepair),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClInt64T(&(pVar->instantiateDuration),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->numPrefActiveSUs),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->numPrefStandbySUs),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->numPrefInserviceSUs),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->numPrefAssignedSUs),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->numPrefActiveSUsPerSI),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->maxActiveSIsPerSU),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->maxStandbySIsPerSU),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClInt64T(&(pVar->compRestartDuration),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->compRestartCountMax),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClInt64T(&(pVar->suRestartDuration),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->suRestartCountMax),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint16T(&(pVar->isCollocationAllowed),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->alpha),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint16T(&(pVar->autoAdjust),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClInt64T(&(pVar->autoAdjustProbation),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint16T(&(pVar->reductionProcedure),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClAmsEntityConfigT_4_0_0(&(pVar->parentApp),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->maxFailovers),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClInt64T(&(pVar->failoverDuration),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->beta),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    }
+
+    return rc;
+}
+
+

@@ -220,7 +220,7 @@ ClRcT clNodeCacheInitialize(ClBoolT createFlag)
            sizeof(CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->nodeMap));
 
     clNodeCacheUpdate(clIocLocalAddressGet(), 
-                      CL_VERSION_CODE(CL_RELEASE_VERSION, 1, CL_MINOR_VERSION));
+                      CL_VERSION_CODE(5, 0, 0));
 
     rc = clOsalMsync(gpClNodeCache, CL_NODE_CACHE_SEGMENT_SIZE, MS_ASYNC);
     if(rc != CL_OK)

@@ -383,3 +383,190 @@ ClRcT clXdrUnmarshallClAmsSGConfigT_4_1_0(ClBufferHandleT msg , void* pGenVar)
 }
 
 
+ClRcT clXdrUnmarshallClAmsSGConfigT_5_0_0(ClBufferHandleT msg , void* pGenVar)
+{
+    ClAmsSGConfigT_5_0_0* pVar = (ClAmsSGConfigT_5_0_0*)pGenVar;
+    ClRcT     rc     = CL_OK;
+    ClUint32T length = 0;
+
+    if ((void*)0 == pVar)
+    {
+        return CL_XDR_RC(CL_ERR_NULL_POINTER);
+    }
+
+    clXdrUnmarshallClUint32T(msg, &length);
+    if( 0 == length)
+    {
+        pGenVar = NULL;
+    }
+    else
+    {
+
+    rc = clXdrUnmarshallClAmsEntityConfigT_4_0_0(msg,&(pVar->entity));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClAmsAdminStateT_4_0_0(msg,&(pVar->adminState));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClAmsSGRedundancyModelT_4_0_0(msg,&(pVar->redundancyModel));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClAmsSGLoadingStrategyT_4_0_0(msg,&(pVar->loadingStrategy));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint16T(msg,&(pVar->failbackOption));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint16T(msg,&(pVar->autoRepair));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClInt64T(msg,&(pVar->instantiateDuration));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->numPrefActiveSUs));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->numPrefStandbySUs));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->numPrefInserviceSUs));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->numPrefAssignedSUs));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->numPrefActiveSUsPerSI));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->maxActiveSIsPerSU));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->maxStandbySIsPerSU));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClInt64T(msg,&(pVar->compRestartDuration));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->compRestartCountMax));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClInt64T(msg,&(pVar->suRestartDuration));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->suRestartCountMax));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint16T(msg,&(pVar->isCollocationAllowed));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->alpha));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint16T(msg,&(pVar->autoAdjust));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClInt64T(msg,&(pVar->autoAdjustProbation));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint16T(msg,&(pVar->reductionProcedure));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClAmsEntityConfigT_4_0_0(msg,&(pVar->parentApp));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->maxFailovers));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClInt64T(msg,&(pVar->failoverDuration));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->beta));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    }
+
+    return rc;
+}
+
+

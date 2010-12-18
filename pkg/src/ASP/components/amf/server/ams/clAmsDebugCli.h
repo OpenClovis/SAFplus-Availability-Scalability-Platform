@@ -280,6 +280,12 @@ clAmsDebugCliEntityAlphaFactor(
         CL_OUT  ClCharT  **ret );
 
 extern ClRcT
+clAmsDebugCliEntityBetaFactor(
+        CL_IN  ClUint32T  argc,
+        CL_IN  ClCharT  **argv,
+        CL_OUT  ClCharT  **ret );
+
+extern ClRcT
 clAmsDebugCliEntityTrigger(
                            CL_IN  ClUint32T  argc,
                            CL_IN  ClCharT  **argv,
