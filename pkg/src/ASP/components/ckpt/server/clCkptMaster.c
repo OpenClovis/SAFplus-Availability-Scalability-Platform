@@ -2353,15 +2353,15 @@ ClRcT VDECL_VER(clCkptMasterCkptRetentionDurationSet, 4, 0, 0)(ClCkptHdlT  clien
     memset(pVersion,'\0',sizeof(ClVersionT));
     
     /*
-     * Lock the master DB.
-     */
-    CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
-
-    /*
      * Check whether the server is fully up or not.
      */
     CL_CKPT_SVR_EXISTENCE_CHECK; 
     
+    /*
+     * Lock the master DB.
+     */
+
+    CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
     /*
      * Retrieve the information assocaited with the client handle.
      */

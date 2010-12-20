@@ -1677,6 +1677,7 @@ cliCorBundleApply(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
         return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
     }
 
+    /*Acquiring the lock which will be unlocked by the calling function */
     clOsalMutexLock(pCorGetBundle->corGetMutexId);
 
     rc = clCorBundleApplyAsync(bundleHandle, 

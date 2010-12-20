@@ -196,6 +196,7 @@ ClRcT clMsgQDatabaseUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
+    ClRcT temp_rc;
     ClMsgSyncActionT_4_0_0  syncupType;
     ClNameT  pQName;
     ClIocPhysicalAddressT_4_0_0  pCompAddr;
@@ -291,11 +292,11 @@ L4:    return rc;
 LL3:  clXdrMarshallClIocPhysicalAddressT_4_0_0(&(pNewOwner), 0, 1);
 LL2:  clXdrMarshallClIocPhysicalAddressT_4_0_0(&(pCompAddr), 0, 1);
 LL1:  clXdrMarshallClNameT(&(pQName), 0, 1);
-LL0:  clXdrMarshallClMsgSyncActionT_4_0_0(&(syncupType), 0, 1);
+LL0:  temp_rc = clXdrMarshallClMsgSyncActionT_4_0_0(&(syncupType), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClMsgSyncActionT_4_0_0(&(syncupType), 0, 1);
+L0:  temp_rc = clXdrMarshallClMsgSyncActionT_4_0_0(&(syncupType), 0, 1);
 L1:  clXdrMarshallClNameT(&(pQName), 0, 1);
 L2:  clXdrMarshallClIocPhysicalAddressT_4_0_0(&(pCompAddr), 0, 1);
 L3:  clXdrMarshallClIocPhysicalAddressT_4_0_0(&(pNewOwner), 0, 1);
@@ -333,6 +334,7 @@ ClRcT clMsgGroupDatabaseUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inM
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
+    ClRcT temp_rc;
     ClMsgSyncActionT_4_0_0  syncupType;
     ClNameT  pGroupName;
     SaMsgQueueGroupPolicyT_4_0_0  policy;
@@ -411,15 +413,15 @@ ClRcT clMsgGroupDatabaseUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inM
     
 L3:    return rc;
 
-LL2:  clXdrMarshallSaMsgQueueGroupPolicyT_4_0_0(&(policy), 0, 1);
+LL2:  temp_rc = clXdrMarshallSaMsgQueueGroupPolicyT_4_0_0(&(policy), 0, 1);
 LL1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
-LL0:  clXdrMarshallClMsgSyncActionT_4_0_0(&(syncupType), 0, 1);
+LL0:  temp_rc = clXdrMarshallClMsgSyncActionT_4_0_0(&(syncupType), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClMsgSyncActionT_4_0_0(&(syncupType), 0, 1);
+L0:  temp_rc = clXdrMarshallClMsgSyncActionT_4_0_0(&(syncupType), 0, 1);
 L1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
-L2:  clXdrMarshallSaMsgQueueGroupPolicyT_4_0_0(&(policy), 0, 1);
+L2:  temp_rc = clXdrMarshallSaMsgQueueGroupPolicyT_4_0_0(&(policy), 0, 1);
 
 
     return rc;
@@ -454,6 +456,7 @@ ClRcT clMsgGroupMembershipUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT i
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
+    ClRcT temp_rc;
     ClMsgSyncActionT_4_0_0  syncAct;
     ClNameT  pGroupName;
     ClNameT  pQueueName;
@@ -534,11 +537,11 @@ L3:    return rc;
 
 LL2:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
 LL1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
-LL0:  clXdrMarshallClMsgSyncActionT_4_0_0(&(syncAct), 0, 1);
+LL0:  temp_rc = clXdrMarshallClMsgSyncActionT_4_0_0(&(syncAct), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClMsgSyncActionT_4_0_0(&(syncAct), 0, 1);
+L0:  temp_rc = clXdrMarshallClMsgSyncActionT_4_0_0(&(syncAct), 0, 1);
 L1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
 L2:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
 

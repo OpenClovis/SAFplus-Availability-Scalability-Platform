@@ -514,9 +514,11 @@ clAmsCkptDBRead(void)
     rc = clCkptLibraryCkptDataSetRead(gClAmsCkptDBHdl, &gClAmsCkptDBName, CL_AMS_CKPT_CONFIG_DS_ID, NULL);
     if(rc != CL_OK)
     {
+		ClRcT ret;
         clAmsDbTerminate(&gAms.db);
-        clAmsDbInstantiate(&gAms.db);
         AMS_LOG(CL_DEBUG_ERROR, ("AMS config data set read returned [%#x]\n", rc));
+        if ((ret = clAmsDbInstantiate(&gAms.db)) != CL_OK) 
+            clLogError("CKPT", "NOTIFY", "AMS db instantiate returned [%#x]", ret);
         goto out;
     }
 

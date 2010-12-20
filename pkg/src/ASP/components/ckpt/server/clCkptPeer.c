@@ -1452,6 +1452,7 @@ ClRcT _ckptSectionDataPack(CkptSectionT      *pSec,
               * Copy the expiration timer.
               */
              pSection->expiryTime = pSec->exprTime;
+			/* Break not required since "CREATE" option is superset of "OVERWRITE" */
         case CKPT_SECTION_OVERWRITE:
             /*
              * Copy the data and datasize.

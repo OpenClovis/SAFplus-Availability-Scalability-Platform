@@ -1439,6 +1439,7 @@ ClRcT clCkptDeputyDynamicUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
+    ClRcT temp_rc;
     ClVersionT  pVersion;
     CkptDynamicSyncupT_4_0_0  updateFlag;
     CkptDynamicInfoT_4_0_0  pDynamicInfo;
@@ -1519,11 +1520,11 @@ L3:    return rc;
 
 LL2:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
 LL1:  clXdrMarshallCkptDynamicInfoT_4_0_0(&(pDynamicInfo), 0, 1);
-LL0:  clXdrMarshallCkptDynamicSyncupT_4_0_0(&(updateFlag), 0, 1);
+LL0:  temp_rc = clXdrMarshallCkptDynamicSyncupT_4_0_0(&(updateFlag), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallCkptDynamicSyncupT_4_0_0(&(updateFlag), 0, 1);
+L0:  temp_rc = clXdrMarshallCkptDynamicSyncupT_4_0_0(&(updateFlag), 0, 1);
 L1:  clXdrMarshallCkptDynamicInfoT_4_0_0(&(pDynamicInfo), 0, 1);
 
 L2:  clXdrMarshallClVersionT(&(pVersion), 0, 1);

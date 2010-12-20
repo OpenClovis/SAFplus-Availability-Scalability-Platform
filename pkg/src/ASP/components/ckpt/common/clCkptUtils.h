@@ -67,8 +67,7 @@ void clCkptLogError(ClUint32T   logLvl,
  */
 #define CL_CKPT_SVR_EXISTENCE_CHECK \
     if (gCkptSvr == NULL || gCkptSvr->serverUp == CL_FALSE) \
-        return CL_CKPT_ERR_TRY_AGAIN; \
-        
+		return CL_CKPT_ERR_TRY_AGAIN; \
     
 
 /* 

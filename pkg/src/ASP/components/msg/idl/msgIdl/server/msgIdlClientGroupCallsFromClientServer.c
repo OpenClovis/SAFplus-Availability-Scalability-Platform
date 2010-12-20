@@ -27,6 +27,7 @@ ClRcT clMsgClientQueueGroupCreateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT 
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
+    ClRcT temp_rc;
     ClHandleT  msgHandle;
     ClNameT  pGroupName;
     SaMsgQueueGroupPolicyT_4_0_0  groupPolicy;
@@ -105,7 +106,7 @@ ClRcT clMsgClientQueueGroupCreateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT 
     
 L3:    return rc;
 
-LL2:  clXdrMarshallSaMsgQueueGroupPolicyT_4_0_0(&(groupPolicy), 0, 1);
+LL2:  temp_rc = clXdrMarshallSaMsgQueueGroupPolicyT_4_0_0(&(groupPolicy), 0, 1);
 LL1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
 LL0:  clXdrMarshallClHandleT(&(msgHandle), 0, 1);
 
@@ -113,7 +114,7 @@ LL0:  clXdrMarshallClHandleT(&(msgHandle), 0, 1);
 
 L0:  clXdrMarshallClHandleT(&(msgHandle), 0, 1);
 L1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
-L2:  clXdrMarshallSaMsgQueueGroupPolicyT_4_0_0(&(groupPolicy), 0, 1);
+L2:  temp_rc = clXdrMarshallSaMsgQueueGroupPolicyT_4_0_0(&(groupPolicy), 0, 1);
 
 
     return rc;

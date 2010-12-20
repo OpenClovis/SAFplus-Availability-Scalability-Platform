@@ -27,6 +27,7 @@ ClRcT clMsgClientQueueOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
+    ClRcT temp_rc;
     ClHandleT  msgHandle;
     ClNameT  pQueueName;
     SaMsgQueueCreationAttributesT_4_0_0  pCreationAttributes;
@@ -142,7 +143,7 @@ ClRcT clMsgClientQueueOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
 L6:    return rc;
 
 LL4:  clXdrMarshallClInt64T(&(timeout), 0, 1);
-LL3:  clXdrMarshallSaMsgQueueOpenFlagsT_4_0_0(&(openFlags), 0, 1);
+LL3:  temp_rc = clXdrMarshallSaMsgQueueOpenFlagsT_4_0_0(&(openFlags), 0, 1);
 LL2:  clXdrMarshallSaMsgQueueCreationAttributesT_4_0_0(&(pCreationAttributes), 0, 1);
 LL1:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
 LL0:  clXdrMarshallClHandleT(&(msgHandle), 0, 1);
@@ -152,7 +153,7 @@ LL0:  clXdrMarshallClHandleT(&(msgHandle), 0, 1);
 L0:  clXdrMarshallClHandleT(&(msgHandle), 0, 1);
 L1:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
 L2:  clXdrMarshallSaMsgQueueCreationAttributesT_4_0_0(&(pCreationAttributes), 0, 1);
-L3:  clXdrMarshallSaMsgQueueOpenFlagsT_4_0_0(&(openFlags), 0, 1);
+L3:  temp_rc = clXdrMarshallSaMsgQueueOpenFlagsT_4_0_0(&(openFlags), 0, 1);
 L4:  clXdrMarshallClInt64T(&(timeout), 0, 1);
 
 L5:  clXdrMarshallClHandleT(&(pQHandle), 0, 1);

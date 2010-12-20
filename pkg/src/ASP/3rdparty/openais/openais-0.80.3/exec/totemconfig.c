@@ -286,7 +286,8 @@ int totem_config_validate (
 		/*
 		 * Some error checking of parsed data to make sure its valid
 		 */
-		if ((int *)totem_config->interfaces[i].mcast_addr.addr == 0) {
+	 // if ((int *)totem_config->interfaces[i].mcast_addr.addr == 0) {//debug-pradeep fix for the coverity issue ("NO_EFFECT")(doubtfull)
+		if (totem_config->interfaces[i].mcast_addr.addr == 0) {
 			error_reason = "No multicast address specified";
 			goto parse_error;
 		}

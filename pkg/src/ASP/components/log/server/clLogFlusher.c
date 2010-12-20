@@ -574,7 +574,12 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
         }
     }
 
-    clLogServerStreamMutexUnlock(pStreamData);
+    rc = clLogServerStreamMutexUnlock(pStreamData);
+	if( CL_OK != rc )
+    {
+        clLogError("SVR", "FLU", "Faild to unlock the stream");
+    }
+
     logRecordsFlush(&flushRecord);
     clLogServerStreamMutexLockFlusher(pStreamData);
 

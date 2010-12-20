@@ -1063,11 +1063,9 @@ void openais_ipc_init (
 #if defined(OPENAIS_BSD) || defined(OPENAIS_DARWIN)
 	un_addr.sun_len = sizeof(struct sockaddr_un);
 #endif
-#if defined(OPENAIS_LINUX)
-	strncpy (un_addr.sun_path + 1, socketname, sizeof(un_addr.sun_path));
-#else
-	strncpy (un_addr.sun_path, socketname, sizeof(un_addr.sun_path));
-#endif
+	strncpy (un_addr.sun_path, socketname, sizeof(un_addr.sun_path) -1);
+
+    un_addr.sun_path[sizeof(un_addr.sun_path)-1] = 0;
 
 	res = bind (libais_server_fd, (struct sockaddr *)&un_addr, AIS_SUN_LEN(&un_addr));
 	if (res) {
