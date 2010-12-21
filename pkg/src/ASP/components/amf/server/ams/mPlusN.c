@@ -1561,6 +1561,19 @@ clAmsPeSURemoveStandbyMPlusN(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMod
                clAmsEntityOpPending(&standbySU->config.entity, &standbySU->status.entity, CL_AMS_ENTITY_OP_REMOVE_MPLUSN))
 
             {
+                clLogNotice("SI", "REPLAY", "Standby SU [%s] has [%d] pending ops. Mode [%#x]", 
+                            standbySU->config.entity.name.value, standbySU->status.entity.opStack.numOps,
+                            switchoverMode);
+                if( (switchoverMode & CL_AMS_ENTITY_SWITCHOVER_CONTROLLER) )
+                {
+                    clLogNotice("SI", "REPLAY", 
+                                "Skipping SI remove replay operation during controller switchover phase for SU "
+                                "[%s]", standbySU->config.entity.name.value);
+                    clAmsEntityOpClear(&standbySU->config.entity, &standbySU->status.entity, 
+                                       CL_AMS_ENTITY_OP_REMOVE_MPLUSN, NULL, NULL);
+                    *activeSU = standbySU;
+                    *reassignWork = CL_TRUE;
+                }
                 goto out_free;
             }
 

@@ -6994,6 +6994,7 @@ clAmsAssignCSICallback(ClAmsInvocationT *invocationData,ClPtrT arg)
     ClAmsCSIT *csi = NULL;
     ClAmsEntityRefT entityRef = {{0}};
     ClAmsCompT *comp = NULL;
+    ClBoolT scFailover = CL_FALSE;
     ClRcT rc = CL_OK;
 
     AMS_FUNC_ENTER(("\n"));
@@ -7026,7 +7027,10 @@ clAmsAssignCSICallback(ClAmsInvocationT *invocationData,ClPtrT arg)
      * Make a call to the policy Engine to replay the CSI for this 
      * pending invocation instance
      */
-    if( (rc = clAmsPeReplayCSI(comp,invocationData)) != CL_OK)
+    if(arg)
+        scFailover = *(ClBoolT*)arg;
+
+    if( (rc = clAmsPeReplayCSI(comp,invocationData, scFailover)) != CL_OK)
     {
         clLogError("REPLAY", "CSI", "Replaying CSI for Component [%.*s] returned [%#x]",
                    comp->config.entity.name.length-1, comp->config.entity.name.value, rc);
@@ -7042,11 +7046,11 @@ clAmsAssignCSICallback(ClAmsInvocationT *invocationData,ClPtrT arg)
 }
 
 ClRcT
-clAmsReplayAssignCSIInvocation(void)
+clAmsReplayAssignCSIInvocation(ClPtrT arg)
 {
     AMS_FUNC_ENTER(("\n"));
 
-    AMS_CALL ( clAmsInvocationListWalkAll(clAmsAssignCSICallback,NULL,CL_TRUE) );
+    AMS_CALL ( clAmsInvocationListWalkAll(clAmsAssignCSICallback,arg,CL_TRUE) );
 
     return CL_OK;
     
@@ -7109,10 +7113,10 @@ clAmsInvocationCSIRemoveWalkCallback(ClAmsInvocationT *pInvocation,
                                                            sizeof(ClAmsInvocationT)
                                                            *
                                                            (currentIndex + 4));
-        if(pCSIRemoveInvocation->pInvocations == NULL)
-            return CL_AMS_RC(CL_ERR_NO_MEMORY);
+        CL_ASSERT(pCSIRemoveInvocation->pInvocations != NULL);
     }
-    
+    clLogDebug("INVOCATION", "RMV", "Invocation [%#llx] pending for component [%s], csi [%s]",
+               pInvocation->invocation, pInvocation->compName.value, pInvocation->csiName.value);
     memcpy(pCSIRemoveInvocation->pInvocations + currentIndex,
            pInvocation, sizeof(ClAmsInvocationT));
 

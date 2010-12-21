@@ -602,7 +602,8 @@ _clAmsSANodeJoin(
 extern ClRcT 
 _clAmsSANodeLeave(
         CL_IN  ClNameT  *nodeName,
-        CL_IN  ClCpmNodeLeaveT  request);
+        CL_IN  ClCpmNodeLeaveT  request,
+        CL_IN  ClBoolT scFailover);
 
 /*
  * _clAmsSANodeLeaveCompleted

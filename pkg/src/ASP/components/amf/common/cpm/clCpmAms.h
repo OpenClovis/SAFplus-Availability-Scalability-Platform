@@ -234,7 +234,8 @@ typedef ClRcT (*ClAmsNodeJoinT) (CL_IN ClNameT *nodeName);
  * Inform AMS that node is leaving/left the cluster.
  */
 typedef ClRcT (*ClAmsNodeLeaveT) (CL_IN ClNameT *nodeName,
-                                  CL_IN ClCpmNodeLeaveT nodeLeave);
+                                  CL_IN ClCpmNodeLeaveT nodeLeave,
+                                  CL_IN ClBoolT scFailover);
 
 /**
  * Inform AMS that protection group track request has been received

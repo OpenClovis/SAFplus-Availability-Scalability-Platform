@@ -1623,7 +1623,8 @@ exitfn:
 ClRcT 
 _clAmsSANodeLeave(
         CL_IN  ClNameT  *nodeName,
-        CL_IN  ClCpmNodeLeaveT  request)
+        CL_IN  ClCpmNodeLeaveT  request,
+        CL_IN  ClBoolT scFailover)
 {
 
     ClRcT  rc = CL_OK;
@@ -1659,8 +1660,8 @@ _clAmsSANodeLeave(
 
                 auditEpilogue = CL_TRUE;
                 AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(
-                        clAmsPeNodeHasLeftCluster( node),
-                        gAms.mutex );
+                                                    clAmsPeNodeHasLeftCluster( node, scFailover),
+                                                    gAms.mutex );
                 
                 break;
 
@@ -1670,8 +1671,8 @@ _clAmsSANodeLeave(
             {
 
                 AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX (
-                        clAmsPeNodeIsLeavingCluster( node),
-                        gAms.mutex );
+                                                     clAmsPeNodeIsLeavingCluster( node, scFailover),
+                                                     gAms.mutex );
 
                 break;
 

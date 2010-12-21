@@ -953,7 +953,7 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
             {
                 CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Calling AMS node leave..."));
                 rc = gpClCpm->cpmToAmsCallback->nodeLeave(&nodeName, 
-                                                          CL_CPM_NODE_LEAVING);
+                                                          CL_CPM_NODE_LEAVING, CL_FALSE);
                 if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
                 {
                     CL_DEBUG_PRINT(CL_DEBUG_INFO, 
@@ -1359,7 +1359,7 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
                 {
                     cpmEnqueueCmRequest(&nodeName, &cmCpmMsg);
                     rc = cpmToAmsCallback->nodeLeave(&nodeName, 
-                                                     CL_CPM_NODE_LEAVING);
+                                                     CL_CPM_NODE_LEAVING, CL_FALSE);
                     if (CL_OK != rc)
                     {
                         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
@@ -1374,7 +1374,7 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
                 {
                     cpmEnqueueCmRequest(&nodeName, &cmCpmMsg);
                     rc = cpmToAmsCallback->nodeLeave(&nodeName, 
-                                                     CL_CPM_NODE_LEFT);
+                                                     CL_CPM_NODE_LEFT, CL_FALSE);
                     if (CL_OK != rc)
                     {
                         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
@@ -1594,7 +1594,7 @@ ClRcT cpmUpdateNodeState(ClCpmLocalInfoT *pCpmLocalInfo)
     return rc;
 }
 
-ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId)
+ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover)
 {
     ClRcT rc = CL_OK;
     ClCpmLT *cpmL = NULL;
@@ -1657,7 +1657,8 @@ ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId)
         (NULL != gpClCpm->cpmToAmsCallback->nodeLeave))
     {
         rc = gpClCpm->cpmToAmsCallback->nodeLeave(&nodeName,
-                                                  CL_CPM_NODE_LEFT);
+                                                  CL_CPM_NODE_LEFT,
+                                                  scFailover);
         if (CL_OK != rc)
         {
             clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,

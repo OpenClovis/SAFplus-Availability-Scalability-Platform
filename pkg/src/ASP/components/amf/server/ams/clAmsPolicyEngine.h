@@ -202,6 +202,8 @@ extern "C" {
 
 #define CL_AMS_NOTIFICATION_PUBLISH(entity, targetEntityRef, lastHAState, ntfType, \
                                     switchoverMode)  do {               \
+    if( !( (switchoverMode) & CL_AMS_ENTITY_SWITCHOVER_REPLAY) )        \
+    {                                                                   \
         ClAmsNotificationDescriptorT notification = {0};                \
                                                                         \
         clAmsNotificationEventPayloadSet((const ClAmsEntityT*)entity,   \
@@ -210,6 +212,7 @@ extern "C" {
                                          ntfType,                       \
                                          &notification);                \
         clAmsNotificationEventPublish(&notification);                   \
+    }                                                                   \
 }while(0)
 
 #define CL_AMS_SET_H_STATE(ENTITY, ENTITYREF, STATE, SWITCHOVERMODE)    \
@@ -252,6 +255,8 @@ extern "C" {
 #define CL_AMS_ENTITY_SWITCHOVER_FAST       0x4
 #define CL_AMS_ENTITY_SWITCHOVER_SU         0x8
 #define CL_AMS_ENTITY_SWITCHOVER_SWAP       0x10
+#define CL_AMS_ENTITY_SWITCHOVER_REPLAY     0x20
+#define CL_AMS_ENTITY_SWITCHOVER_CONTROLLER 0x40
 
 typedef struct ClAmsSUAdjustList
 {
@@ -464,7 +469,8 @@ extern ClRcT clAmsPeNodeJoinCluster(
         CL_IN       ClAmsNodeT          *node);
 
 extern ClRcT clAmsPeNodeHasLeftCluster(
-        CL_IN       ClAmsNodeT          *node);
+                                       CL_IN       ClAmsNodeT          *node,
+                                       CL_IN       ClBoolT scFailover);
 
 extern ClRcT clAmsPeNodeHasLeftClusterCallback_Step1(
         CL_IN       ClAmsNodeT          *node,
@@ -475,7 +481,8 @@ extern ClRcT clAmsPeNodeHasLeftClusterCallback_Step2(
         CL_IN       ClRcT               error);
 
 extern ClRcT clAmsPeNodeIsLeavingCluster(
-        CL_IN       ClAmsNodeT          *node);
+                                         CL_IN       ClAmsNodeT          *node,
+                                         CL_IN       ClBoolT scFailover);
 
 extern ClRcT clAmsPeNodeIsLeavingClusterCallback_Step1(
         CL_IN       ClAmsNodeT          *node,
@@ -1375,7 +1382,8 @@ extern ClRcT clAmsPeEntityRecoveryScopeLarger(
 
 extern ClRcT clAmsPeReplayCSI(
                                CL_IN ClAmsCompT *comp,
-                               CL_IN ClAmsInvocationT *invocationData);
+                               CL_IN ClAmsInvocationT *invocationData,
+                               CL_IN ClBoolT scFailover);
 
 extern ClRcT clAmsPeSGRealignSU(
                                 CL_IN ClAmsSGT *sg,

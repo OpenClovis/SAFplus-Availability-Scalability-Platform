@@ -461,7 +461,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                     notificationBuffer->notification->clusterChange)
                 {
                     cpmFailoverNode(notificationBuffer->notification->
-                                    clusterNode.nodeId);
+                                    clusterNode.nodeId, CL_FALSE);
                 }
             }
         }

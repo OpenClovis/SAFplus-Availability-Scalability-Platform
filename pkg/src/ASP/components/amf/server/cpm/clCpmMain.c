@@ -2468,7 +2468,7 @@ void cpmCpmLHBFailure(ClCpmLocalInfoT *cpmL)
                cpmL->nodeId,
                buffer);
 
-    cpmFailoverNode(cpmL->nodeId);
+    cpmFailoverNode(cpmL->nodeId, CL_FALSE);
 }
 
 void cpmLocalHealthFeedBack(ClRcT retCode,
@@ -2904,7 +2904,7 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
     gpClCpm->activeMasterNodeId = pCpmLocalInfo->nodeId;
     gpClCpm->deputyNodeId = deputyNodeId;
 
-    cpmFailoverNode(prevMasterNodeId);
+    cpmFailoverNode(prevMasterNodeId, CL_TRUE);
 
     cpmInvokeStandby2ActiveHook();
 
@@ -3519,7 +3519,7 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
                                    "6. AMF was shutdown.",
                                    nodeId, nodeId);
                                
-                    cpmFailoverNode(nodeId);
+                    cpmFailoverNode(nodeId, CL_FALSE);
                 }
                 else if ((CL_CPM_IS_STANDBY()) &&
                          (nodeId == gpClCpm->activeMasterNodeId))

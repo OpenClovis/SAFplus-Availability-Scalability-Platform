@@ -72,36 +72,6 @@
 
 extern ClAmsT   gAms;
 
-static ClRcT
-clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
-                                ClInt32T numInvocations);
-
-static ClRcT 
-clAmsPeSGFailoverHistoryRecover(ClAmsNodeT *node, ClAmsCompT *faultyComp);
-
-static ClRcT
-amsPeCompUpdateProxiedComponents(
-                                 CL_IN ClAmsCompT *proxy,
-                                 CL_IN ClAmsCompCSIRefT *proxyCSIRef,
-                                 ClBoolT reassignCSI);
-
-static ClRcT
-clAmsPeNodeComputeAdminStateExtended(
-        CL_IN   ClAmsNodeT *node,
-        CL_OUT  ClAmsAdminStateT *adminState,
-        CL_IN   ClAmsAdminStateT nodeAdminState);
-
-static ClRcT
-clAmsPeSUComputeAdminStateExtended(
-        CL_IN       ClAmsSUT *su,
-        CL_OUT      ClAmsAdminStateT *adminState,
-        CL_IN       ClAmsAdminStateT suAdminState);
-
-ClRcT
-clAmsPeRemoteProxiedSUsForNode(ClAmsNodeT *node,
-                               ClListHeadT *proxiedSUList);
-
-
 /******************************************************************************
  * Global Definitions
  *****************************************************************************/
@@ -116,6 +86,12 @@ typedef struct ClAmsRemoteProxiedSUsWalkArg
     ClAmsNodeT *node;
     ClListHeadT *proxiedSUList;
 }ClAmsRemoteProxiedSUsWalkArgT;
+
+typedef struct ClAmsCSIReplayFilter
+{
+    ClNameT *node;
+    ClBoolT clearInvocation;
+} ClAmsCSIReplayFilterT;
 
 ClAmsEntityMethodsT gClAmsPeEntityDefaultMethods = 
 {
@@ -205,6 +181,39 @@ ClAmsCSIMethodsT gClAmsPeCSIDefaultMethods =
         clAmsCSIValidateRelationships,
     },
 };
+
+static ClRcT
+clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
+                                ClInt32T numInvocations,
+                                ClAmsCSIReplayFilterT *filters,
+                                ClUint32T numFilters,
+                                ClUint32T switchoverMode);
+
+static ClRcT 
+clAmsPeSGFailoverHistoryRecover(ClAmsNodeT *node, ClAmsCompT *faultyComp);
+
+static ClRcT
+amsPeCompUpdateProxiedComponents(
+                                 CL_IN ClAmsCompT *proxy,
+                                 CL_IN ClAmsCompCSIRefT *proxyCSIRef,
+                                 ClBoolT reassignCSI);
+
+static ClRcT
+clAmsPeNodeComputeAdminStateExtended(
+        CL_IN   ClAmsNodeT *node,
+        CL_OUT  ClAmsAdminStateT *adminState,
+        CL_IN   ClAmsAdminStateT nodeAdminState);
+
+static ClRcT
+clAmsPeSUComputeAdminStateExtended(
+        CL_IN       ClAmsSUT *su,
+        CL_OUT      ClAmsAdminStateT *adminState,
+        CL_IN       ClAmsAdminStateT suAdminState);
+
+ClRcT
+clAmsPeRemoteProxiedSUsForNode(ClAmsNodeT *node,
+                               ClListHeadT *proxiedSUList);
+
 
 /******************************************************************************
  * Cluster Functions
@@ -2408,6 +2417,66 @@ clAmsPeNodeJoinCluster(
 }
 
 /*
+ * Replay the removing non-SC invocations.
+ */
+static void clAmsPeReplayCSIRemove2(ClAmsNodeT *node,
+                                    ClAmsInvocationT *pInvocations,
+                                    ClUint32T numInvocations,
+                                    ClBoolT scFailover)
+{
+    if(scFailover)
+    {
+        ClAmsCSIReplayFilterT filters[] = {
+            {
+                .node = NULL,
+                .clearInvocation = CL_TRUE,
+            },
+        };
+        clAmsPeReplayCSIRemoveCallbacks(pInvocations, numInvocations, filters, 1, 
+                                        CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE | CL_AMS_ENTITY_SWITCHOVER_REPLAY);
+    }
+}
+
+static void
+clAmsPeReplayCSIRemoveInvocations(ClAmsNodeT *node, ClAmsInvocationT *pInvocations, 
+                                  ClUint32T numInvocations, ClBoolT scFailover)
+{
+    if(pInvocations)
+    {
+        /*
+         * Run the remove callbacks for the node that has left and the node becoming active
+         */
+        if(scFailover)
+        {
+            ClNameT localNodeName = {0};
+            ClAmsCSIReplayFilterT filters[] = {
+                { 
+                    .node = &node->config.entity.name,
+                    .clearInvocation = CL_FALSE,
+                },
+                {
+                    .node = &localNodeName,
+                    .clearInvocation = CL_TRUE,
+                },
+            };
+            clCpmLocalNodeNameGet(&localNodeName);
+            clAmsPeReplayCSIRemoveCallbacks(pInvocations, 
+                                            numInvocations, 
+                                            filters,
+                                            2,
+                                            CL_AMS_ENTITY_SWITCHOVER_FAST | CL_AMS_ENTITY_SWITCHOVER_REPLAY
+                                            );
+            clAmsPeReplayCSIRemove2(node, pInvocations, numInvocations, scFailover);
+        }
+        else
+        {
+            clAmsPeReplayCSIRemoveCallbacks(pInvocations, numInvocations, NULL, 0,
+                                            CL_AMS_ENTITY_SWITCHOVER_FAST | CL_AMS_ENTITY_SWITCHOVER_REPLAY);
+        }
+    }
+}
+
+/*
  * clAmsPeNodeHasLeftCluster
  * -------------------------
  * This fn provides AMS with event input that a node has left the cluster. 
@@ -2417,9 +2486,11 @@ clAmsPeNodeJoinCluster(
 
 ClRcT
 clAmsPeNodeHasLeftCluster(
-        CL_IN   ClAmsNodeT *node)
+                          CL_IN   ClAmsNodeT *node,
+                          CL_IN   ClBoolT scFailover)
 {
     ClRcT rc = CL_OK;
+    ClNameT *csiRemoveReplayNode = NULL;
     ClAmsInvocationT *pInvocations = NULL;
     ClInt32T numInvocations = 0;
 
@@ -2428,7 +2499,17 @@ clAmsPeNodeHasLeftCluster(
     AMS_CHECK_NODE ( node );
 
     AMS_FUNC_ENTER ( ("Node [%s]\n",node->config.entity.name.value) );
- 
+
+    if(!scFailover)
+        csiRemoveReplayNode = &node->config.entity.name;
+
+    /*
+     * Get pending CSI remove invocations for this node
+     */
+    clAmsGetCSIRemoveInvocations(csiRemoveReplayNode,
+                                 &pInvocations,
+                                 &numInvocations);
+
     /*
      * This handles the case when multiple HasLeftCluster messages are
      * generated for the same node as well as when a HasLeftCluster message
@@ -2441,18 +2522,21 @@ clAmsPeNodeHasLeftCluster(
          node->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
     {
         AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-            ("Node [%s] is not a cluster member. Ignoring 'node has left' request..\n",
-            node->config.entity.name.value));
+                        ("Node [%s] is not a cluster member. Ignoring 'node has left' request..\n",
+                         node->config.entity.name.value));
         /*
          * Replay any pending assign CSI invocation for the node becoming active
          */
-        clAmsReplayAssignCSIInvocation();
+        clAmsPeReplayCSIRemoveInvocations(node, pInvocations, numInvocations, scFailover);
+        if(scFailover)
+            clAmsReplayAssignCSIInvocation(&scFailover);
+        if(pInvocations) clHeapFree(pInvocations);
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
     }
 
     AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-             ("Node [%s] has left cluster: Step 1: Failing over all SUs on Node\n",
-              node->config.entity.name.value));
+                    ("Node [%s] has left cluster: Step 1: Failing over all SUs on Node\n",
+                     node->config.entity.name.value));
 
     CL_AMS_RESET_EPOCH(node);
 
@@ -2477,17 +2561,19 @@ clAmsPeNodeHasLeftCluster(
 #endif
 
     /*
-     * First replay any pending CSI sets. from the invocation
+     * Replay the remove CSI pending invocations first for the node going out
+     * and the SC becoming active
      */
-    clAmsReplayAssignCSIInvocation();
+    clAmsPeReplayCSIRemoveInvocations(node, pInvocations, numInvocations, scFailover);
+    if(pInvocations) 
+        clHeapFree(pInvocations);
 
     /*
-     * Get pending CSI remove invocations for this node
+     * First replay any pending CSI sets. from the invocation
      */
-    clAmsGetCSIRemoveInvocations(&node->config.entity.name,
-                                 &pInvocations,
-                                 &numInvocations);
-    
+    if(scFailover)
+        clAmsReplayAssignCSIInvocation(&scFailover);
+
     /*
      * Stop all possible timers that could be running for this node _and_
      * its SUs. Clear the invocation list for these components as we won't
@@ -2502,21 +2588,14 @@ clAmsPeNodeHasLeftCluster(
                                  "with rc [%#x]\n", 
                                  node->config.entity.name.length,
                                  node->config.entity.name.value, rc));
-
-        if(pInvocations) clHeapFree(pInvocations);
-        
         return rc;
 
     }
 
-    if(pInvocations)
-    {
-        clAmsPeReplayCSIRemoveCallbacks(pInvocations, numInvocations);
-        clHeapFree(pInvocations);
-    }
-
-    AMS_CALL ( clAmsPeNodeSwitchoverWork(node, CL_AMS_ENTITY_SWITCHOVER_FAST) );
-
+    AMS_CHECK_RC_ERROR ( clAmsPeNodeSwitchoverWork(node, 
+                                                   CL_AMS_ENTITY_SWITCHOVER_FAST | CL_AMS_ENTITY_SWITCHOVER_CONTROLLER) );
+    
+    exitfn:
     return CL_OK;
 }
 
@@ -2574,7 +2653,8 @@ clAmsPeNodeHasLeftClusterCallback_Step2(
 
 ClRcT
 clAmsPeNodeIsLeavingCluster(
-        CL_IN   ClAmsNodeT *node)
+                            CL_IN   ClAmsNodeT *node,
+                            CL_IN   ClBoolT scFailover)
 {
     ClAmsInvocationT *pInvocations = NULL;
     ClInt32T numInvocations = 0;
@@ -2609,16 +2689,22 @@ clAmsPeNodeIsLeavingCluster(
     node->status.wasMemberBefore = CL_TRUE;
 
     /*
-     * First replay any pending CSI sets. from the invocation
-     */
-    clAmsReplayAssignCSIInvocation();
-
-    /*
-     * Get pending CSI remove invocations for this node
+     * Get pending CSI remove invocations for this node and replay first
      */
     clAmsGetCSIRemoveInvocations(&node->config.entity.name,
                                  &pInvocations,
                                  &numInvocations);
+
+    clAmsPeReplayCSIRemoveInvocations(node, pInvocations, numInvocations, CL_FALSE);
+
+    if(pInvocations)
+        clHeapFree(pInvocations);
+
+    /*
+     * Then replay any pending CSI sets. from the invocation
+     */
+    if(scFailover)
+        clAmsReplayAssignCSIInvocation(NULL);
     
     /*
      * Stop all possible timers that could be running for this node _and_
@@ -2634,16 +2720,7 @@ clAmsPeNodeIsLeavingCluster(
                                  "with rc [%#x]\n", 
                                  node->config.entity.name.length,
                                  node->config.entity.name.value, rc));
-
-        if(pInvocations) clHeapFree(pInvocations);
-        
         return rc;
-    }
-
-    if(pInvocations)
-    {
-        clAmsPeReplayCSIRemoveCallbacks(pInvocations, numInvocations);
-        clHeapFree(pInvocations);
     }
 
     AMS_CALL ( clAmsPeNodeSwitchoverWork(node, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE) );
@@ -11511,13 +11588,13 @@ clAmsPeCompComputeSwitchoverMode(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n", comp->config.entity.name.value) );
 
-    computedSwitchoverMode = *switchoverMode;
+    computedSwitchoverMode = *switchoverMode & ( CL_AMS_ENTITY_SWITCHOVER_REPLAY | CL_AMS_ENTITY_SWITCHOVER_CONTROLLER);
 
     if ( node->status.isClusterMember == CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER 
          &&
          node->config.isASPAware)
     {
-        computedSwitchoverMode = CL_AMS_ENTITY_SWITCHOVER_FAST;   
+        computedSwitchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;   
     }
 
     /*
@@ -11527,7 +11604,7 @@ clAmsPeCompComputeSwitchoverMode(
     {
         if(clAmsPeCheckNodeHasLeft(node) == CL_TRUE)
         {
-            computedSwitchoverMode = CL_AMS_ENTITY_SWITCHOVER_FAST;
+            computedSwitchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;
         }
     }
 
@@ -11535,26 +11612,26 @@ clAmsPeCompComputeSwitchoverMode(
          &&
          node->config.isASPAware)
     {
-        computedSwitchoverMode = CL_AMS_ENTITY_SWITCHOVER_FAST;   
+        computedSwitchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;   
     }
 
     if(!node->config.isASPAware
        &&
        comp->config.property == CL_AMS_COMP_PROPERTY_SA_AWARE)
     {
-        computedSwitchoverMode = CL_AMS_ENTITY_SWITCHOVER_FAST;
+        computedSwitchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;
     }
 
     if ( su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING )
     {
-        computedSwitchoverMode = CL_AMS_ENTITY_SWITCHOVER_FAST;   
+        computedSwitchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;   
     }
 
     if ( (comp->status.operState == CL_AMS_OPER_STATE_DISABLED) || 
          (comp->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED) || 
          (comp->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        computedSwitchoverMode = CL_AMS_ENTITY_SWITCHOVER_FAST;   
+        computedSwitchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;   
     }
 
     *switchoverMode = computedSwitchoverMode;
@@ -14268,7 +14345,7 @@ clAmsPeCompReassignWork(
 
 
 ClRcT
-clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData)
+clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData, ClBoolT scFailover)
 {
     ClRcT rc  = CL_OK;
     ClAmsNodeT *node = NULL;
@@ -14318,9 +14395,12 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData)
     if(csiRef->pendingOp != invocationData->cmd)
     {
         AMS_ENTITY_LOG(comp,CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_ERROR,
-                       ("Error:CSI [%s] does not match pending invocation command 0x%x\n",csi->config.entity.name.value, invocationData->cmd));
-
-        return CL_OK;
+                       ("CSI [%s],pending op [%#x] does not match pending invocation cmd [%#x]."
+                        " [%s] replay",
+                        csi->config.entity.name.value, csiRef->pendingOp, invocationData->cmd,
+                        csiRef->pendingOp ? "Skipping" : "Going ahead with the csi set"));
+        if(csiRef->pendingOp)
+            return CL_OK;
     }
 
     AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_INFO,
@@ -14335,6 +14415,9 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData)
     {
         type = CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE;
     }
+
+    if(scFailover) 
+        switchoverMode |= CL_AMS_ENTITY_SWITCHOVER_CONTROLLER;
 
     /*
      * Now make the actual call to replay the CSI to the component. This 
@@ -17586,178 +17669,6 @@ clAmsPeCompRemoveCSI(
     return CL_OK;
 }
 
-static ClRcT
-clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
-                                ClInt32T numInvocations)
-{
-    ClRcT rc = CL_OK;
-    ClInt32T i;
-
-    AMS_FUNC_ENTER(("\n"));
-
-    AMS_LOG(CL_DEBUG_CRITICAL, ("Replaying [%d] CSI remove invocations\n",
-                                numInvocations));
-
-    for(i = 0; i < numInvocations; ++i)
-    {
-        ClAmsSUT *su = NULL;
-        ClAmsCompT *comp = NULL;
-        ClAmsCSIT *affectedcsi = NULL;
-        ClAmsEntityListT *csiList = NULL;
-        ClAmsInvocationT *pInvocation = pInvocations+i;
-        ClAmsEntityRefT entityRef;
-        ClAmsEntityRefT *pEntityRef = NULL;
-        ClAmsEntityRefT *pNext = NULL;
-
-        memset(&entityRef, 0, sizeof(entityRef));
-
-        memcpy(&entityRef.entity.name,
-               &pInvocation->compName,
-               sizeof(entityRef.entity.name));
-
-        entityRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
-    
-        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
-                                     &entityRef);
-
-        if(rc != CL_OK)
-        {
-            AMS_LOG(CL_DEBUG_ERROR, ("Unable to find comp [%.*s]\n",
-                                     pInvocation->compName.length,
-                                     pInvocation->compName.value));
-            continue;
-        }
-    
-        AMS_CHECK_COMP( comp = (ClAmsCompT*) entityRef.ptr);
-        
-        AMS_CHECK_SU( su = (ClAmsSUT*) comp->config.parentSU.ptr);
-
-        /*
-         * Is this remove for one CSI or all CSI? If for one CSI, create a dummy 
-         * list containing only that CSI, so rest of the logic in the function 
-         * can be written once for a list of CSIs.
-         */
-        clAmsEntityTimerStopIfCountZero(
-                                        (ClAmsEntityT *) comp,
-                                        CL_AMS_COMP_TIMER_CSIREMOVE);
-        affectedcsi = pInvocation->csi;
-        if ( affectedcsi )
-        {
-            csiList = clHeapAllocate(sizeof (ClAmsEntityListT));
-
-            AMS_CALL ( clAmsEntityListInstantiate(csiList,
-                                                  CL_AMS_ENTITY_TYPE_CSI));
-
-            AMS_CALL ( clAmsCompAddCSIRefToCSIList(csiList,
-                                                   affectedcsi,
-                                                   CL_AMS_HA_STATE_QUIESCING,
-                                                   CL_AMS_CSI_NEW_ASSIGN));
-        }
-        else
-        {
-            csiList = &comp->status.csiList;
-        }
-
-        for ( pEntityRef = clAmsEntityListGetFirst(csiList);
-              pEntityRef != (ClAmsEntityRefT *) NULL;
-              pEntityRef = pNext )
-        {
-            ClAmsCSIT *csi;
-            ClAmsSIT *si;
-            ClAmsCompCSIRefT *csiRef;
-            ClAmsSUSIRefT *siRef;
-            ClUint32T invocationsPendingForSI;
-
-            pNext = clAmsEntityListGetNext(csiList, pEntityRef);
-
-            AMS_CHECK_CSI ( csi = (ClAmsCSIT *) pEntityRef->ptr );
-            AMS_CHECK_SI ( si = (ClAmsSIT *) csi->config.parentSI.ptr );
-
-            if ( clAmsEntityListFindEntityRef2(
-                                                     &comp->status.csiList,
-                                                     &csi->config.entity,
-                                                     0,
-                                                     (ClAmsEntityRefT **)&csiRef) != CL_OK)
-                goto next;
-
-            if ( clAmsEntityListFindEntityRef2(
-                                                     &su->status.siList,
-                                                     &si->config.entity,
-                                                     0,
-                                                     (ClAmsEntityRefT **)&siRef) != CL_OK)
-                goto next;
-            /*
-             * Update the Component, CSI, SI and SU view of this assignment.
-             */
-
-            if ( clAmsPeCSITransitionHAStateExtended(
-                                                   csi,
-                                                   comp,
-                                                   csiRef->haState,
-                                                   CL_AMS_HA_STATE_NONE,
-                                                   CL_AMS_ENTITY_SWITCHOVER_FAST) != CL_OK)
-                goto next;
-
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-                            ("Confirming CSI [%s] assigned to Component [%s] is [Removed]\n",
-                             csi->config.entity.name.value,
-                             comp->config.entity.name.value));
-
-#ifdef AMS_CPM_INTEGRATION
-
-            _clAmsSAMarshalPGTrackDispatch(
-                                           csi,
-                                           comp,
-                                           CL_AMS_PG_REMOVED);
-
-#endif
-
-            /*
-             * If this is a proxy CSI then components proxied by this CSI need to
-             * be updated depending on the ha state of this assignment. The ha
-             * state is checked in the fn called.
-             */
-
-            if ( csi->config.isProxyCSI )
-            {
-                if(clAmsPeCompUpdateProxiedComponents(comp, csiRef) != CL_OK)
-                    goto next;
-            }
-
-            if(clAmsCompDeleteCSIRefFromCSIList(&comp->status.csiList, csi) != CL_OK)
-                goto next;
-
-            if(clAmsCSIDeleteCompRefFromPGList(&csi->status.pgList, comp) != CL_OK)
-                goto next;
-
-            invocationsPendingForSI = clAmsInvocationsPendingForSI(si, su);
-        
-            if ( siRef && 
-                 (siRef->haState == CL_AMS_HA_STATE_NONE) &&
-                 !invocationsPendingForSI )
-            {
-                if(clAmsSUDeleteSIRefFromSIList(&su->status.siList, si) != CL_OK)
-                    goto next;
-                    
-                if(clAmsSIDeleteSURefFromSUList(&si->status.suList, su) != CL_OK)
-                    goto next;
-            }
-        }
-
-        /*
-         * If dummy csi list was created, delete it
-         */
-    next:
-        if ( affectedcsi )
-        {
-            AMS_CALL ( clAmsCompDeleteCSIRefFromCSIList(csiList, affectedcsi) );
-            AMS_CALL ( clAmsEntityListTerminate(csiList) );
-            clAmsFreeMemory (csiList);
-        }
-    }
-
-    return CL_OK;
-}
 
 /*
  * clAmsPeCompRemoveCSICallback
@@ -18065,7 +17976,7 @@ amsPeCompRemoveCSICallback(
         clAmsFreeMemory (csiList);
     }
 
-    if(!(switchoverMode & CL_AMS_ENTITY_SWITCHOVER_SWAP))
+    if(!(switchoverMode & (CL_AMS_ENTITY_SWITCHOVER_SWAP)))
     {
         /*
          * We evaluate the work for the SG since this could be a remove for a standby
@@ -18097,6 +18008,225 @@ clAmsPeCompRemoveCSICallback(
     }
 
     return amsPeCompRemoveCSICallback(comp, invocation, error, switchoverMode);
+}
+
+static ClRcT
+clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
+                                ClInt32T numInvocations,
+                                ClAmsCSIReplayFilterT *filters,
+                                ClUint32T numFilters,
+                                ClUint32T switchoverMode)
+{
+    ClRcT rc = CL_OK;
+    ClInt32T i;
+
+    AMS_FUNC_ENTER(("\n"));
+
+    AMS_LOG(CL_DEBUG_CRITICAL, ("Replaying [%d] CSI remove invocations\n",
+                                numInvocations));
+
+    for(i = 0; i < numInvocations; ++i)
+    {
+        ClAmsSUT *su = NULL;
+        ClAmsCompT *comp = NULL;
+        ClAmsNodeT *node = NULL;
+        ClAmsCSIT *affectedcsi = NULL;
+        ClAmsEntityListT *csiList = NULL;
+        ClAmsInvocationT *pInvocation = pInvocations+i;
+        ClAmsEntityRefT entityRef;
+        ClAmsEntityRefT *pEntityRef = NULL;
+        ClAmsEntityRefT *pNext = NULL;
+        ClBoolT clearInvocation = CL_FALSE;
+
+        if(!pInvocation->invocation) continue; /*skip cleared/processed invocations*/
+
+        memset(&entityRef, 0, sizeof(entityRef));
+
+        memcpy(&entityRef.entity.name,
+               &pInvocation->compName,
+               sizeof(entityRef.entity.name));
+
+        entityRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
+    
+        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
+                                     &entityRef);
+
+        if(rc != CL_OK)
+        {
+            pInvocation->invocation = 0;
+            AMS_LOG(CL_DEBUG_ERROR, ("Unable to find comp [%.*s]\n",
+                                     pInvocation->compName.length,
+                                     pInvocation->compName.value));
+            continue;
+        }
+    
+        AMS_CHECK_COMP( comp = (ClAmsCompT*) entityRef.ptr);
+        
+        AMS_CHECK_SU( su = (ClAmsSUT*) comp->config.parentSU.ptr);
+
+        AMS_CHECK_NODE ( node = (ClAmsNodeT*) su->config.parentNode.ptr);
+
+        if(filters)
+        {
+            ClUint32T c;
+            for(c = 0; c < numFilters; ++c)
+                if(!filters[c].node ||
+                   !strncmp(node->config.entity.name.value, filters[c].node->value,
+                            filters[c].node->length))
+                {
+                    clearInvocation = filters[c].clearInvocation;
+                    goto matched;
+                }
+
+            continue; /*unmatched*/
+        }
+
+        matched:
+        if(clearInvocation)
+        {
+            ClAmsInvocationT invocationData = {0};
+            if( !(switchoverMode & CL_AMS_ENTITY_SWITCHOVER_FAST) )
+            {
+                (void)amsPeCompRemoveCSICallback(comp, pInvocation->invocation, CL_OK, switchoverMode);
+                pInvocation->invocation = 0;
+                continue;
+            }
+            clAmsInvocationGetAndDelete(pInvocation->invocation, &invocationData);
+        }
+        
+        clLogNotice("CSI", "REPLAY", "Replaying CSI [%s] remove invocation [%#llx] for component [%.*s]",
+                    pInvocation->csi ? pInvocation->csi->config.entity.name.value : "All",
+                    pInvocation->invocation, 
+                    comp->config.entity.name.length,
+                    comp->config.entity.name.value);
+
+        pInvocation->invocation = 0;
+
+        /*
+         * Is this remove for one CSI or all CSI? If for one CSI, create a dummy 
+         * list containing only that CSI, so rest of the logic in the function 
+         * can be written once for a list of CSIs.
+         */
+        clAmsEntityTimerStopIfCountZero(
+                                        (ClAmsEntityT *) comp,
+                                        CL_AMS_COMP_TIMER_CSIREMOVE);
+        affectedcsi = pInvocation->csi;
+        if ( affectedcsi )
+        {
+            csiList = clHeapAllocate(sizeof (ClAmsEntityListT));
+
+            AMS_CALL ( clAmsEntityListInstantiate(csiList,
+                                                  CL_AMS_ENTITY_TYPE_CSI));
+
+            AMS_CALL ( clAmsCompAddCSIRefToCSIList(csiList,
+                                                   affectedcsi,
+                                                   CL_AMS_HA_STATE_QUIESCING,
+                                                   CL_AMS_CSI_NEW_ASSIGN));
+        }
+        else
+        {
+            csiList = &comp->status.csiList;
+        }
+
+        for ( pEntityRef = clAmsEntityListGetFirst(csiList);
+              pEntityRef != (ClAmsEntityRefT *) NULL;
+              pEntityRef = pNext )
+        {
+            ClAmsCSIT *csi;
+            ClAmsSIT *si;
+            ClAmsCompCSIRefT *csiRef;
+            ClAmsSUSIRefT *siRef;
+            ClUint32T invocationsPendingForSI;
+
+            pNext = clAmsEntityListGetNext(csiList, pEntityRef);
+
+            AMS_CHECK_CSI ( csi = (ClAmsCSIT *) pEntityRef->ptr );
+            AMS_CHECK_SI ( si = (ClAmsSIT *) csi->config.parentSI.ptr );
+
+            if ( clAmsEntityListFindEntityRef2(
+                                                     &comp->status.csiList,
+                                                     &csi->config.entity,
+                                                     0,
+                                                     (ClAmsEntityRefT **)&csiRef) != CL_OK)
+                goto next;
+
+            if ( clAmsEntityListFindEntityRef2(
+                                                     &su->status.siList,
+                                                     &si->config.entity,
+                                                     0,
+                                                     (ClAmsEntityRefT **)&siRef) != CL_OK)
+                goto next;
+            /*
+             * Update the Component, CSI, SI and SU view of this assignment.
+             */
+
+            if ( clAmsPeCSITransitionHAStateExtended(
+                                                   csi,
+                                                   comp,
+                                                   csiRef->haState,
+                                                   CL_AMS_HA_STATE_NONE,
+                                                   switchoverMode) != CL_OK)
+                goto next;
+
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                            ("Confirming CSI [%s] assigned to Component [%s] is [Removed]\n",
+                             csi->config.entity.name.value,
+                             comp->config.entity.name.value));
+
+#ifdef AMS_CPM_INTEGRATION
+
+            _clAmsSAMarshalPGTrackDispatch(
+                                           csi,
+                                           comp,
+                                           CL_AMS_PG_REMOVED);
+
+#endif
+
+            /*
+             * If this is a proxy CSI then components proxied by this CSI need to
+             * be updated depending on the ha state of this assignment. The ha
+             * state is checked in the fn called.
+             */
+
+            if ( csi->config.isProxyCSI )
+            {
+                if(clAmsPeCompUpdateProxiedComponents(comp, csiRef) != CL_OK)
+                    goto next;
+            }
+
+            if(clAmsCompDeleteCSIRefFromCSIList(&comp->status.csiList, csi) != CL_OK)
+                goto next;
+
+            if(clAmsCSIDeleteCompRefFromPGList(&csi->status.pgList, comp) != CL_OK)
+                goto next;
+
+            invocationsPendingForSI = clAmsInvocationsPendingForSI(si, su);
+        
+            if ( siRef && 
+                 (siRef->haState == CL_AMS_HA_STATE_NONE) &&
+                 !invocationsPendingForSI )
+            {
+                if(clAmsSUDeleteSIRefFromSIList(&su->status.siList, si) != CL_OK)
+                    goto next;
+                    
+                if(clAmsSIDeleteSURefFromSUList(&si->status.suList, su) != CL_OK)
+                    goto next;
+            }
+        }
+
+        /*
+         * If dummy csi list was created, delete it
+         */
+    next:
+        if ( affectedcsi )
+        {
+            AMS_CALL ( clAmsCompDeleteCSIRefFromCSIList(csiList, affectedcsi) );
+            AMS_CALL ( clAmsEntityListTerminate(csiList) );
+            clAmsFreeMemory (csiList);
+        }
+    }
+
+    return CL_OK;
 }
 
 /*

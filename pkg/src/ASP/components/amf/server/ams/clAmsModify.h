@@ -575,7 +575,7 @@ clAmsUpdateAlarmHandle(
         CL_IN  ClUint32T  alarmHandle );
 
 extern ClRcT
-clAmsReplayAssignCSIInvocation(void);
+clAmsReplayAssignCSIInvocation(ClPtrT arg);
 
 extern ClRcT
 clAmsGetCSIRemoveInvocations(ClNameT *pNodeName,

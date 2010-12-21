@@ -650,7 +650,7 @@ extern ClRcT cpmUpdateNodeState(ClCpmLocalInfoT *cpmL);
 
 extern void cpmWriteNodeStatToFile(const ClCharT *who, ClBoolT isUp);
 
-extern ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId);
+extern ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover);
 
 extern void cpmShutdownAllNodes(void);
 
