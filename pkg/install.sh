@@ -2648,7 +2648,7 @@ echo "done"
 
 # Build ASP libraries for the local machine and/or installed crossbuild toolchains
 
-DEFAULT_ASP_BUILD_DIR="./asp_build"
+DEFAULT_ASP_BUILD_DIR=$sand/$PACKAGE_NAME/prebuild
 echo -n "Build ASP libraries for the local machine and/or installed crossbuild toolchains ? <y|n> [y] : "
 read asp_build dummy
 [ -z $asp_build ] && asp_build='y'
