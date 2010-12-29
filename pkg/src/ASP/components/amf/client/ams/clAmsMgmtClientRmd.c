@@ -843,6 +843,7 @@ cl_ams_mgmt_entity_set_config(
                                    CL_VERSION_CODE(4, 1, 0));
 
     default:
+        minVersion = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
         break;
     }
 
@@ -1465,6 +1466,7 @@ cl_ams_mgmt_ccb_entity_set_config(
                                    CL_VERSION_CODE(4, 1, 0));
 
     default:
+        minVersion = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
         break;
     }
 
@@ -2272,6 +2274,7 @@ cl_ams_mgmt_entity_get(
                                     CL_VERSION_CODE(4, 1, 0));
 
     default:
+        minVersion = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
         break;
     }
 
@@ -2612,6 +2615,7 @@ cl_ams_mgmt_entity_get_config(
                                    CL_VERSION_CODE(4, 1, 0));
         
     default:
+        minVersion = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
         break;
     }
 
@@ -2827,6 +2831,7 @@ cl_ams_mgmt_entity_get_status(
                                                            CL_MAJOR_VERSION_BASE,
                                                            CL_MINOR_VERSION_BASE), minVersion);
     default:
+        minVersion = CL_VERSION_CODE(CL_RELEASE_VERSION, 1, CL_MINOR_VERSION);
         break;
     }
 
