@@ -221,16 +221,24 @@ void    ckptSvrHdlDeleteCallback(ClCntKeyHandleT userKey,
     if( (CL_OK != rc) || (NULL == pCkpt) )
     {
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_DEL, 
-                "Failed to checkout handle [%#llX] while deleting rc [0x %x]",
-                ckptHdl, rc);
+                   "Failed to checkout handle [%#llX] while deleting rc [0x %x]",
+                   ckptHdl, rc);
         return;
     }
     ckptMutex = pCkpt->ckptMutex;
-    CKPT_LOCK(ckptMutex);
-    pCkpt->ckptMutex = CL_HANDLE_INVALID_VALUE;
+    /*
+     * Check if the ckpt mutex is already locked. by the caller who would nuke it
+     */
+    if(ckptMutex != CL_HANDLE_INVALID_VALUE) 
+    {
+        CKPT_LOCK(ckptMutex);
+        pCkpt->ckptMutex = CL_HANDLE_INVALID_VALUE;
+    }
     ckptEntryFree(pCkpt);
-    CKPT_UNLOCK(ckptMutex);
-    clOsalMutexDelete(ckptMutex);
+    if(ckptMutex != CL_HANDLE_INVALID_VALUE)
+        CKPT_UNLOCK(ckptMutex);
+    if(ckptMutex != CL_HANDLE_INVALID_VALUE)
+        clOsalMutexDelete(ckptMutex);
     clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
     clHandleDestroy(gCkptSvr->ckptHdl,ckptHdl);
     clLogDebug(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_DEL, 
