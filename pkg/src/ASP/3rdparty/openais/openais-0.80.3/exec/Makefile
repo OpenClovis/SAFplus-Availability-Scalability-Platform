@@ -43,7 +43,7 @@ ifeq ($(BUILD_SHARED), 1)
  override CFLAGS += -fPIC
 endif
 LDFLAGS += -L./
-
+override CFLAGS += -DUSE_CLOCK_GETTIME
 ifeq (${BUILD_DYNAMIC}, 1) 
 	override LDFLAGS += ${DYFLAGS}
 endif

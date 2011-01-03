@@ -665,7 +665,7 @@ static void gms_exec_message_endian_convert (void *msg)
      */
     mar_req_header_t              *header = msg;
 
-    clLog(DEBUG,OPN,AIS, "Converting endianness for this message");
+    clLog(DBG,OPN,AIS, "Converting endianness for this message");
 
     swab_mar_req_header_t (header);
 }
@@ -742,7 +742,9 @@ static void gms_exec_message_handler (
         case CL_GMS_CLUSTER_JOIN_MSG:
 
             clLog(DBG,OPN,AIS,
-                    "Received multicast message for cluster join");
+                  "Received multicast message for cluster join from ioc node [%#x:%#x]",
+                  req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
+                  req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
 
             node = (ClGmsViewNodeT *) clHeapAllocate(sizeof(ClGmsViewNodeT));
             if (node == NULL)
@@ -796,7 +798,9 @@ static void gms_exec_message_handler (
             break;
         case CL_GMS_CLUSTER_EJECT_MSG:
             clLog (DBG,OPN,AIS,
-                    "Received cluster eject multicast message");
+                   "Received cluster eject multicast message from ioc node [%#x:%#x]",
+                   req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
+                   req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
             /* inform the member about the eject by invoking the ejection
              *  callback registered with the reason UKNOWN */
             /* The below logic is same for the leave as well so we just
@@ -815,27 +819,37 @@ static void gms_exec_message_handler (
             }
         case CL_GMS_CLUSTER_LEAVE_MSG:
             clLog(DBG,OPN,AIS,
-                    "Received cluster leave multicast message");
+                  "Received cluster leave multicast message from ioc node [%#x:%#x]",
+                  req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
+                  req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
             rc = _clGmsEngineClusterLeave(CL_GMS_CLUSTER_ID,
                     req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId);
             break;
         case CL_GMS_GROUP_CREATE_MSG:
             clLog(DBG,OPN,AIS,
-                    "Received group create multicast message");
+                  "Received group create multicast message from ioc node [%#x:%#x]",
+                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
+                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
+
             rc = _clGmsEngineGroupCreate(req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupName,
                     req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupParams,
                     req_exec_gms_nodejoin.contextHandle, isLocalMsg);
             break;
         case CL_GMS_GROUP_DESTROY_MSG:
             clLog(DBG,OPN,AIS,
-                    "Received group destroy multicast message");
+                  "Received group destroy multicast message from ioc node [%#x:%#x]",
+                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
+                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
+
             rc = _clGmsEngineGroupDestroy(req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupId,
                     req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupName,
                     req_exec_gms_nodejoin.contextHandle, isLocalMsg);
             break;
         case CL_GMS_GROUP_JOIN_MSG:
             clLog(DBG,OPN,AIS,
-                    "Received group join multicast message");
+                  "Received group join multicast message from ioc node [%#x:%#x]",
+                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
+                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
 
             node = (ClGmsViewNodeT *) clHeapAllocate(sizeof(ClGmsViewNodeT));
             if (!node)
@@ -855,19 +869,24 @@ static void gms_exec_message_handler (
             break;
         case CL_GMS_GROUP_LEAVE_MSG:
             clLog(DBG,OPN,AIS,
-                    "Received group leave multicast message");
+                  "Received group leave multicast message from ioc node [%#x:%#x]",
+                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
+                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
+
             rc = _clGmsEngineGroupLeave(req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupId,
                     req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberId,
                     req_exec_gms_nodejoin.contextHandle, isLocalMsg);
             break;
         case CL_GMS_COMP_DEATH:
             clLog(DBG,OPN,AIS,
-                    "Received comp death multicast message");
+                  "Received comp death multicast message");
             rc = _clGmsRemoveMemberOnCompDeath(req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberId);
             break;
         case CL_GMS_LEADER_ELECT_MSG:
             clLog(DBG,OPN,AIS,
-                    "Received leader elect multicast message");
+                  "Received leader elect multicast message from ioc node [%#x:%#x]",
+                  req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
+                  req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
             rc = _clGmsEnginePreferredLeaderElect(req_exec_gms_nodejoin.specificMessage.gmsClusterNode, 
                     req_exec_gms_nodejoin.contextHandle,
                     isLocalMsg);

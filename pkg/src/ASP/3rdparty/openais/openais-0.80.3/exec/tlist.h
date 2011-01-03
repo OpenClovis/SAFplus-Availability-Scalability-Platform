@@ -72,10 +72,16 @@ static inline void timerlist_init (struct timerlist *timerlist)
 static inline unsigned long long timerlist_nano_from_epoch (void)
 {
 	unsigned long long nano_from_epoch;
+#ifndef USE_CLOCK_GETTIME	/* LGER MOD */
 	struct timeval time_from_epoch;
 	gettimeofday (&time_from_epoch, 0);
 
 	nano_from_epoch = ((time_from_epoch.tv_sec * 1000000000ULL) + (time_from_epoch.tv_usec * 1000ULL));
+#else
+	struct timespec time;
+	clock_gettime( CLOCK_MONOTONIC, &time );
+	nano_from_epoch = (time.tv_sec * 1000000000ULL) + time.tv_nsec;
+#endif
 	return (nano_from_epoch);
 }
 

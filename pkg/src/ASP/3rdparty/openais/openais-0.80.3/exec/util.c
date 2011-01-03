@@ -38,7 +38,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#ifndef	USE_CLOCK_GETTIME	/* LGER MOD */
 #include <sys/time.h>
+#else
+#include <time.h>
+#endif
 
 #include "../include/saAis.h"
 #include "../include/list.h"
@@ -71,8 +75,9 @@ int mar_name_match(mar_name_t *name1, mar_name_t *name2)
  */
 SaTimeT clust_time_now(void)
 {
-	struct timeval tv;
 	SaTimeT time_now;
+#ifndef USE_CLOCK_GETTIME	/* LGER MOD */
+	struct timeval tv;
 
 	if (gettimeofday(&tv, 0)) {
 		return 0ULL;
@@ -80,6 +85,15 @@ SaTimeT clust_time_now(void)
 
 	time_now = (SaTimeT)(tv.tv_sec) * 1000000000ULL;
 	time_now += (SaTimeT)(tv.tv_usec) * 1000ULL;
+#else
+	struct timespec time;
+
+	if( clock_gettime( CLOCK_MONOTONIC, &time ) ) {
+		return 0ULL;
+	}
+	time_now =  (SaTimeT)(time.tv_sec) * 1000000000ULL;
+    time_now += (SaTimeT)time.tv_nsec;
+#endif
 
 	return time_now;
 }
