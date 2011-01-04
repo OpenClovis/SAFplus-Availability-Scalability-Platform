@@ -84,8 +84,11 @@ cclRBTreeContainerNodeAdd (ClCntHandleT rbtHandle,
                            ClRuleExprT* pExp);
 /******************************************************************************/
 static ClRcT
+cclRBTreeContainerKeyDeleteWithLock (CclRBTreeHead_t *pRBTreeHead,
+                                     ClCntKeyHandleT  userKey);
+static ClRcT
 cclRBTreeContainerKeyDelete (ClCntHandleT  rbtHandle, 
-	                     ClCntKeyHandleT  userKey);
+                             ClCntKeyHandleT  userKey);
 /******************************************************************************/
 static ClRcT
 cclRBTreeContainerNodeDelete (ClCntHandleT  rbtHandle, 
@@ -476,12 +479,13 @@ cclRBTreeBaseCntDelete(CclRBTreeHead_t  *pRBTreeHead,
     return errorCode;
 }
 
-/*****************************************************************************/
+/*
+ * Called with lock held in case of thread safe container.
+ */
 static ClRcT
-cclRBTreeContainerKeyDelete (ClCntHandleT     rbtHandle,
-                             ClCntKeyHandleT  userKey)
+cclRBTreeContainerKeyDeleteWithLock (CclRBTreeHead_t *pRBTreeHead,
+                                     ClCntKeyHandleT  userKey)
 {
-    CclRBTreeHead_t  *pRBTreeHead = NULL; /* Pointer to the first node */
     ElementHandle_t  *pTemp       = NULL; /* Pointer to the node to be deleted */
     ElementHandle_t  *pLastNode   = NULL; /* Temporary pointer to the last node */
     ElementHandle_t  *pChild      = NULL; /* Temporary pointer to rt/left child */
@@ -489,9 +493,6 @@ cclRBTreeContainerKeyDelete (ClCntHandleT     rbtHandle,
     ClInt32T         keyCmpRet    = 0;
     ClRcT            errorCode    = CL_OK;
 
-    pRBTreeHead = (CclRBTreeHead_t*) rbtHandle;
-
-    CL_CNT_LOCK(pRBTreeHead->treeMutex);
     for (pTemp = pRBTreeHead->pFirstNode; pTemp != pRBTreeHead->pSentinel; )
     {
         if( 0 == (keyCmpRet = pRBTreeHead->container.fpFunctionContainerKeyCompare(
@@ -512,7 +513,6 @@ cclRBTreeContainerKeyDelete (ClCntHandleT     rbtHandle,
     if(pTemp == pRBTreeHead->pSentinel)
     {
         /* Node not found. No such userKey exist */
-        CL_CNT_UNLOCK(pRBTreeHead->treeMutex);
         returnCntError(CL_ERR_NOT_EXIST, "No such user key exist");
     }
 
@@ -525,7 +525,6 @@ cclRBTreeContainerKeyDelete (ClCntHandleT     rbtHandle,
 
         cclRBTreeBaseCntDelete(pRBTreeHead, pTemp->containerHandle);
         clHeapFree(pTemp);
-        CL_CNT_UNLOCK(pRBTreeHead->treeMutex);
         return (CL_OK);
     }
 
@@ -572,7 +571,6 @@ cclRBTreeContainerKeyDelete (ClCntHandleT     rbtHandle,
     errorCode = cclRBTreeBaseCntDelete(pRBTreeHead, pTemp->containerHandle);
     if(errorCode != CL_OK)
     {
-        CL_CNT_UNLOCK(pRBTreeHead->treeMutex);
         return(errorCode);
     }
 
@@ -589,7 +587,6 @@ cclRBTreeContainerKeyDelete (ClCntHandleT     rbtHandle,
 
         if (pLlHead == NULL)
         {
-            CL_CNT_UNLOCK(pRBTreeHead->treeMutex);
             returnCntError(CL_ERR_NOT_EXIST, "Node does not exist");
         }
 
@@ -606,12 +603,28 @@ cclRBTreeContainerKeyDelete (ClCntHandleT     rbtHandle,
     }
     if(pChild->color == CCL_RBTREE_BLACK)	
     {
-        cclRBTreeDeleteBalance(rbtHandle, pLastNode, pParent);
+        cclRBTreeDeleteBalance((ClCntHandleT)pRBTreeHead, pLastNode, pParent);
     }
 
     clHeapFree(pChild); 
-    CL_CNT_UNLOCK(pRBTreeHead->treeMutex);
     return (CL_OK);
+}
+
+/*****************************************************************************/
+static ClRcT
+cclRBTreeContainerKeyDelete (ClCntHandleT     rbtHandle,
+                             ClCntKeyHandleT  userKey)
+{
+    CclRBTreeHead_t  *pRBTreeHead = NULL; /* Pointer to the first node */
+    ClRcT            errorCode    = CL_OK;
+
+    pRBTreeHead = (CclRBTreeHead_t*) rbtHandle;
+
+    CL_CNT_LOCK(pRBTreeHead->treeMutex);
+    errorCode= cclRBTreeContainerKeyDeleteWithLock(pRBTreeHead, userKey);
+    CL_CNT_UNLOCK(pRBTreeHead->treeMutex);
+
+    return errorCode;
 }
 
 /******************************************************************************/
@@ -1621,7 +1634,7 @@ cclRBTreeContainerNodeDelete (ClCntHandleT  rbtHandle,
     if(clCntFirstNodeGet(tempContainerHandle, &tempNodeHandle) != CL_OK) 
     {
       /* delete the tree node also */
-        errorCode = clCntAllNodesForKeyDelete(rbtHandle,rbtKey);
+        errorCode = cclRBTreeContainerKeyDeleteWithLock(pRBTHead, rbtKey);
         if(errorCode != CL_OK)
         {
             CL_CNT_UNLOCK(pRBTHead->treeMutex);
