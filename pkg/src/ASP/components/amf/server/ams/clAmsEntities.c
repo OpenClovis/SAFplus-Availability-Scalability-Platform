@@ -1461,6 +1461,8 @@ clAmsEntityPrint(
                     "%u",su->status.numQuiescedSIs);
             CL_AMS_PRINT_TWO_COL("Num Instantiated Components",
                     "%u",su->status.numInstantiatedComp);
+            CL_AMS_PRINT_TWO_COL("Num Pre-Instantiated Components",
+                    "%u",su->status.numPIComp);
             CL_AMS_PRINT_TWO_COL("Comp Restart Probation Time",
                     "%s", su->status.compRestartTimer.count ?
                             "Running" : "Inactive");
@@ -2230,6 +2232,9 @@ clAmsEntityXMLPrint(
 
             CL_AMS_PRINT_TAG_VALUE("num_instantiated_comps", "%u",
                                    su->status.numInstantiatedComp);
+
+            CL_AMS_PRINT_TAG_VALUE("num_instantiated_comps", "%u",
+                                   su->status.numPIComp);
 
             CL_AMS_PRINT_TAG_VALUE("comp_restart_timer", "%s",
                                    su->status.compRestartTimer.count ?
