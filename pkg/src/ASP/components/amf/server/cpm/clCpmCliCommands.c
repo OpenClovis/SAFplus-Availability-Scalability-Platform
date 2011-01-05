@@ -45,6 +45,7 @@
 #include <clCpmInternal.h>
 #include <clCpmCliCommands.h>
 #include <clCpmIpi.h>
+#include <clCpmExtApi.h>
 
 static ClUint32T cpmCliStrToInt(const ClCharT *str)
 {
@@ -982,6 +983,93 @@ ClRcT clCpmClusterListAll(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
         rc = CL_CPM_RC(CL_ERR_BAD_OPERATION);
     }
 
+    return rc;
+}
+
+static ClRcT nodeErrorAssert(ClIocNodeAddressT nodeAddress, ClBoolT assertFlag)
+{
+    ClCmCpmMsgT cpmMsg;
+    memset(&cpmMsg, 0, sizeof(cpmMsg));
+    cpmMsg.physicalSlot = nodeAddress;
+    cpmMsg.cmCpmMsgType = assertFlag ? CL_CM_BLADE_NODE_ERROR_REPORT : CL_CM_BLADE_NODE_ERROR_CLEAR;
+    return clCpmHotSwapEventHandle(&cpmMsg);
+}
+
+ClRcT clCpmNodeErrorClear(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
+{
+    ClUint32T rc = CL_OK;
+    if (2 == argc)
+    {
+        ClIocNodeAddressT nodeAddress = 0;
+        nodeAddress = (ClIocNodeAddressT) cpmCliStrToInt(argv[1]);
+        if (nodeAddress <= 0) 
+        {
+            cpmCliPrint(retStr, "Invalid node address [%s]", argv[1]);
+            rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+            goto failure;
+        }
+
+        rc = nodeErrorAssert(nodeAddress, CL_FALSE);
+        if (CL_OK != rc)
+        {
+            cpmCliPrint(retStr,
+                        "Node error clear failed, error [%#x]",
+                        rc);
+            goto failure;
+        }
+    }
+    else
+    {
+        rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+        cpmCliPrint(retStr,
+                    "Usage : nodeErrorClear <node address>\n"
+                    "\tnode address[in decimal] - IOC/TIPC address "
+                    "of the node");
+        goto failure;
+    }
+
+    return CL_OK;
+
+ failure:
+    return rc;
+}
+
+ClRcT clCpmNodeErrorReport(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
+{
+    ClUint32T rc = CL_OK;
+    if (2 == argc)
+    {
+        ClIocNodeAddressT nodeAddress = 0;
+        nodeAddress = (ClIocNodeAddressT) cpmCliStrToInt(argv[1]);
+        if (nodeAddress <= 0) 
+        {
+            cpmCliPrint(retStr, "Invalid node address [%s]", argv[1]);
+            rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+            goto failure;
+        }
+
+        rc = nodeErrorAssert(nodeAddress, CL_TRUE);
+        if (CL_OK != rc)
+        {
+            cpmCliPrint(retStr,
+                        "Node error report failed, error [%#x]",
+                        rc);
+            goto failure;
+        }
+    }
+    else
+    {
+        rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+        cpmCliPrint(retStr,
+                    "Usage : nodeErrorReport <node address>\n"
+                    "\tnode address[in decimal] - IOC/TIPC address "
+                    "of the node");
+        goto failure;
+    }
+
+    return CL_OK;
+
+ failure:
     return rc;
 }
 

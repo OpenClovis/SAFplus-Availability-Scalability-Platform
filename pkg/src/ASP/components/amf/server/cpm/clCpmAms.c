@@ -818,7 +818,7 @@ ClRcT _cpmNodeDepartureAllowed(ClNameT *nodeName,
     rc = cpmDequeueCmRequest(nodeName, &cmRequest);
     if (rc == CL_OK)
     {
-        clLogMultiline(CL_LOG_INFO, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
+        clLogMultiline(CL_LOG_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
                        "After dequeueing the message from CM queue:\n"
                        "Message type : [%s]\n"
                        "Physical slot : [%d]\n"
@@ -841,7 +841,8 @@ ClRcT _cpmNodeDepartureAllowed(ClNameT *nodeName,
         memcpy(&(cpmResponse.cmCpmMsg), &cmRequest, sizeof(ClCmCpmMsgT));
         cpmResponse.cpmCmMsgType = CL_CPM_ALLOW_USER_ACTION;
         
-        if ((cmRequest.cmCpmMsgType != CL_CM_BLADE_NODE_ERROR_REPORT) ||
+        if ((cmRequest.cmCpmMsgType != CL_CM_BLADE_NODE_ERROR_REPORT) 
+            &&
             (cmRequest.cmCpmMsgType != CL_CM_BLADE_NODE_ERROR_CLEAR))
         {
             rc = clCmCpmResponseHandle(&cpmResponse);

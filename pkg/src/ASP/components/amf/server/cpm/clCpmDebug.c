@@ -310,6 +310,18 @@ static ClDebugFuncEntryT cpmSCDebugFuncList[] =
         "shutdown down a node"
     },
 
+    {
+        clCpmNodeErrorReport,
+        "nodeErrorReport",
+        "shutdown down a node"
+    },
+
+    {
+        clCpmNodeErrorClear,
+        "nodeErrorClear",
+        "shutdown down a node"
+    },
+
     CPM_DEBUG_CLI_COMMON_FUNC_LIST,
     
     {
