@@ -857,8 +857,8 @@ fi
 export sdk_dir=
 export buildtool_dir=
 
-if [ -f .config ]; then
-    source $PWD/.config
+if [ -f .openclovis.conf ]; then
+    source $PWD/.openclovis.conf
 fi
 
 # Check whether --with-sdk-dir is specified
@@ -905,10 +905,10 @@ if test -n "$ac_init_help"; then
      short | recursive ) echo "Configuration of asp 5.0:";;
    esac
 
-   # AA: if there is no .config file (i.e. we are creating a new project area),
+   # AA: if there is no .openclovis.conf file (i.e. we are creating a new project area),
    #     create it based on sdk installation's install.cache
 
-    cat << EOF > .config
+    cat << EOF > .openclovis.conf
 # This file was created by cl-create-project-area
 
 # Location of the installed SDK directory from which this area was created:
@@ -918,7 +918,7 @@ CL_SDKDIR=$sdk_dir
 CL_BUILDTOOLS=$buildtool_dir
 
 EOF
-   source $PWD/.config
+   source $PWD/.openclovis.conf
     
    sdk_modeldir=$sdk_dir/src/ASP/models
  
@@ -1425,7 +1425,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 #Initialize Environment variables
 
-# source ../.config to derive pkg_config_path
+# source ../.openclovis.conf to derive pkg_config_path
 
 # remove stale config.status and config.log
 
@@ -1437,7 +1437,7 @@ if [ -c config.log ]; then
     rm -f config.log
 fi
 
-# AA: if there is no .config file (i.e. we are creating a new project area),
+# AA: if there is no .openclovis.conf file (i.e. we are creating a new project area),
 #     create it based on sdk installation's install.cache, failing which,
 #     try and use the location of the configure script, failing which prompt
 #     user to specify location using --with-sdk-dir=LOCATION
@@ -1469,8 +1469,8 @@ else
     fi
 fi
 
-if [ ! -f .config ]; then
-    cat << EOF > .config
+if [ ! -f .openclovis.conf ]; then
+    cat << EOF > .openclovis.conf
 # This file was created by cl-create-project-area
 
 # Location of the installed SDK directory from which this area was created:
@@ -1482,7 +1482,7 @@ CL_BUILDTOOLS=$buildtool_dir
 EOF
 fi
 
-source $PWD/.config  # AA
+source $PWD/.openclovis.conf # MS
 
 if [ -f $CL_BUILDTOOLS/local/bin/net-snmp-config ]; then
 	export NET_SNMP_CONFIG=$CL_BUILDTOOLS/local/bin/net-snmp-config
