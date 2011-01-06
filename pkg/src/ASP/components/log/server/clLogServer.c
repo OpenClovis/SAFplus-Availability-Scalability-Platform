@@ -22,7 +22,7 @@
  * Build: 4.2.0
  */
 #include <string.h>
-
+#include <sys/stat.h>
 #include <clXdrApi.h>
 #include <clCkptApi.h>
 #include <clHandleApi.h>

@@ -23,6 +23,7 @@
  */
 #include <string.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include <clOsalApi.h>
 #include <clLogFileOwnerUtils.h>
 #include <clLogOsal.h>
