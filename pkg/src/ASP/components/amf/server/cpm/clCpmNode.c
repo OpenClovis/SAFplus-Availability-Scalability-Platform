@@ -843,6 +843,31 @@ out:
  * If permission is required from master then the request is forwarded to
  * master, else selfShutDown is done.
  */
+static ClRcT cpmNodeShutdownTimeout(void *unused)
+{
+    ClCharT cmdbuf[0xff+1];
+    const ClCharT *aspDir = getenv("ASP_DIR");
+    if(!aspDir) aspDir = "/root/asp";
+    snprintf(cmdbuf, sizeof(cmdbuf), "%s/etc/init.d/asp zap", aspDir);
+    clLogNotice("SHUTDOWN", "TIMER", "Node shutdown timer running cmd [ %s ]", cmdbuf);
+    if(system(cmdbuf))
+    {
+        clLogWarning("SHUTDOWN", "TIMER", "Shutdown cmd returned with error [%s]", strerror(errno));
+    }
+    return CL_OK;
+}
+static void startShutdownTimer(ClIocNodeAddressT nodeAddress)
+{
+    ClTimerHandleT timer;
+    ClTimerTimeOutT timeout = {.tsSec = 120, .tsMilliSec = 0 };
+    ClRcT rc = clTimerCreateAndStart(timeout, CL_TIMER_VOLATILE, CL_TIMER_TASK_CONTEXT, 
+                                     cpmNodeShutdownTimeout, NULL, &timer);
+    if(rc != CL_OK)
+        clLogWarning("SHUTDOWN", "TIMER", "Timer start for node [%#x] shutdown failed with [%#x]", nodeAddress, rc);
+    else clLogNotice("SHUTDOWN", "TIMER", "Node [%#x] shutdown timer set to fire in [%d] seconds", 
+                     nodeAddress, timeout.tsSec);
+}
+
 ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
                                     ClBufferHandleT inMsgHandle,
                                     ClBufferHandleT outMsgHandle)
@@ -884,6 +909,7 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
             }
             return rc;
         }
+        startShutdownTimer(iocAddress);
     }
 
     cpmNodeDepartureEventPublish(iocAddress);
@@ -1304,7 +1330,7 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
         CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid Buffer Passed \n"),
                      CL_CPM_RC(CL_ERR_INVALID_BUFFER));
 
-    clLogMultiline(CL_LOG_INFO, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
+    clLogMultiline(CL_LOG_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
                    "Got the following message from CM :\n"
                    "Message type : [%s]\n"
                    "Physical slot : [%d]\n"
@@ -1362,10 +1388,10 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
                                                      CL_CPM_NODE_LEAVING, CL_FALSE);
                     if (CL_OK != rc)
                     {
+                        cpmDequeueCmRequest(&nodeName, &cmCpmMsg);
                         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
-                                   "AMS node leave[leaving] failed, "
-                                   "error [%#x]",
-                                   rc);
+                                   "AMS node leave[leaving] failed for node [%s] with "
+                                   "error [%#x]", nodeName.value, rc);
                         goto failure;
                     }
                 }
@@ -1377,10 +1403,10 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
                                                      CL_CPM_NODE_LEFT, CL_FALSE);
                     if (CL_OK != rc)
                     {
+                        cpmDequeueCmRequest(&nodeName, &cmCpmMsg);
                         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
-                                   "AMS node leave[left] failed, "
-                                   "error [%#x]",
-                                   rc);
+                                   "AMS node leave[left] failed for node [%s] with "
+                                   "error [%#x]", nodeName.value, rc);
                         goto failure;
                     }
                 }
@@ -1391,7 +1417,8 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
                     if (CL_OK != rc)
                     {
                         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
-                                   "AMS node join failed, error [%#x]", rc);
+                                   "AMS node join failed for node [%s] with error [%#x]", 
+                                   nodeName.value, rc);
                         goto failure;
                     }
                 }
