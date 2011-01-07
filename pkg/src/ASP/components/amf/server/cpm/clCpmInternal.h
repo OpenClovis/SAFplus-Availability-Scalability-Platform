@@ -116,6 +116,9 @@ extern ClTaskPoolHandleT gCpmFaultPool;
 #define CL_CPM_RESTART_NODE 0x2
 #define CL_CPM_HALT_ASP     0x3
 
+#define CL_CPM_RESTART_FLAG_STR(flag)   ( (flag) == CL_CPM_RESTART_ASP ? "ASP_RESTART" : \
+                                        ( (flag) == CL_CPM_RESTART_NODE ) ? "NODE_RESET" : \
+                                        ( (flag) == CL_CPM_HALT_ASP ) ? "NODE_HALT" : "NODE_STOPPED" )
 /*
  * Disable watchdog ASP restarts on node failover/failfast with 
  * ASP_NODE_REBOOT_DISABLE set.
@@ -512,6 +515,10 @@ extern ClRcT cpmCmRequestDSFinalize();
 extern ClRcT cpmEnqueueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest);
 
 extern ClRcT cpmDequeueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest);
+
+extern ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, ClBoolT nodeReset);
+
+extern ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClBoolT *nodeReset);
 
 /**
  ************************************

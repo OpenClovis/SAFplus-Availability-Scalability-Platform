@@ -2433,6 +2433,7 @@ _clAmsSANodeRestart(const ClNameT *nodeName, ClBoolT graceful)
 
     if(recovery == CL_AMS_RECOVERY_NONE)
     {
+        rc = CL_AMS_RC(CL_ERR_NO_OP);
         clLogNotice(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_RESTART_NODE,
                     "Ignoring restart for node [%s] as recovery is already in progress",
                     node->config.entity.name.value);

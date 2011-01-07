@@ -1163,7 +1163,7 @@ ClRcT clCpmHeartbeat(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
 
-    *retStr = clHeapAllocate(50);
+    *retStr = clHeapAllocate(50+1);
     if(!*retStr)
     {
         goto out;
@@ -1200,7 +1200,7 @@ ClRcT clCpmLogFileRotate(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
 
-    *retStr = clHeapAllocate(50);
+    *retStr = clHeapAllocate(50+1);
     if(!*retStr)
     {
         goto out;
@@ -1221,7 +1221,7 @@ ClRcT clCpmRestart(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
 
-    *retStr = clHeapAllocate(2*CL_MAX_NAME_LENGTH);
+    *retStr = clHeapAllocate(2*CL_MAX_NAME_LENGTH+1);
     if (!*retStr)
     {
         goto out;
@@ -1230,10 +1230,10 @@ ClRcT clCpmRestart(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
     if (argc < 2 || argc > 3)
     {
-        strncpy(*retStr,
+        strncpy(*retStr, 
                 "Usage : nodeRestart node-address [graceful]\n"
                 "        node-address - Address of the node to be restarted\n"
-                "        graceful - value > 1 indicates graceful restart\n"
+                "        graceful - value >= 1 indicates graceful restart\n"
                 "                 - value 0 indicates ungraceful restart\n"
                 "                 default value is 1\n",
                 2*CL_MAX_NAME_LENGTH);
@@ -1243,9 +1243,10 @@ ClRcT clCpmRestart(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
         rc = clCpmNodeRestart(cpmCliStrToInt(argv[1]), CL_TRUE);
         if (rc != CL_OK)
         {
-            strncpy(*retStr,
-                    "Restarting node failed with error [%#x]",
-                    rc);
+            snprintf(*retStr,
+                     2*CL_MAX_NAME_LENGTH,
+                     "Restarting node failed with error [%#x]",
+                     rc);
             goto out;
         }
     }
@@ -1255,9 +1256,10 @@ ClRcT clCpmRestart(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
                               cpmCliStrToInt(argv[2]) ? CL_TRUE: CL_FALSE);
         if (rc != CL_OK)
         {
-            strncpy(*retStr,
-                    "Restarting node failed with error [%#x]",
-                    rc);
+            snprintf(*retStr,
+                     2*CL_MAX_NAME_LENGTH,
+                     "Restarting node failed with error [%#x]",
+                     rc);
             goto out;
         }
     }
@@ -1265,5 +1267,59 @@ ClRcT clCpmRestart(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     return CL_OK;
     
 out:
+    return rc;
+}
+
+ClRcT clCpmMiddlewareRestartCommand(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
+{
+    ClRcT rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
+    ClIocNodeAddressT nodeAddress = 0;
+    ClBoolT graceful = CL_TRUE;
+    ClBoolT nodeReset = CL_FALSE;
+
+    *retStr = clHeapAllocate(2*CL_MAX_NAME_LENGTH+1);
+    if (!*retStr)
+    {
+        goto out;
+    }
+
+    rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+    if (argc < 2 || argc > 4)
+    {
+        strncpy(*retStr,
+                "Usage : middlewareRestart node-address [graceful] [node-reset]\n"
+                "        node-address - Address of the node to be restarted\n"
+                "        graceful - value >= 1 indicates graceful restart\n"
+                "                 - value 0 indicates ungraceful restart\n"
+                "                 default value is 1\n"
+                "        node-reset - value >= 1 indicates node is reset\n"
+                "                   - value 0 indicates middleware is restarted\n"
+                "                 default value is 0\n",
+                2*CL_MAX_NAME_LENGTH);
+        goto out;
+    }
+
+    if(argc >= 2)
+        nodeAddress = cpmCliStrToInt(argv[1]);
+    
+    if(argc >= 3)
+        graceful = cpmCliStrToInt(argv[2]) ? CL_TRUE : CL_FALSE;
+
+    if(argc >= 4)
+        nodeReset = cpmCliStrToInt(argv[3]) ? CL_TRUE : CL_FALSE;
+
+    rc = clCpmMiddlewareRestart(nodeAddress, graceful, nodeReset);
+    if (rc != CL_OK)
+    {
+        snprintf(*retStr,
+                 2*CL_MAX_NAME_LENGTH,
+                 "Restarting middleware failed with error [%#x]",
+                 rc);
+        goto out;
+    }
+
+    return CL_OK;
+    
+    out:
     return rc;
 }

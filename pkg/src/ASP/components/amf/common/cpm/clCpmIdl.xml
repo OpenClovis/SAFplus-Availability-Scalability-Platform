@@ -516,6 +516,12 @@
             <DataMember name="graceful" type="ClUint16T"/>
         </Struct>
 
+        <Struct name="ClCpmMiddlewareResetT" defNeed="Yes">
+            <DataMember name="iocNodeAddress" type="ClUint32T"/>
+            <DataMember name="graceful" type="ClUint16T"/>
+            <DataMember name="nodeReset" type="ClUint16T"/>
+        </Struct>
+
         <Struct name="ClCpmCompSpecInfoRecvT" defNeed="Yes">
             <DataMember name="numArgs" type="ClUint32T"/>
             <DataMember name="args" type="ClStringT" pointer="Single"

@@ -75,6 +75,14 @@ extern ClRcT clCpmShutDown(ClUint32T argc,
                            ClCharT **argv,
                            ClCharT **retStr);
 
+extern ClRcT clCpmMiddlewareRestartCommand(ClUint32T argc,
+                                           ClCharT **argv,
+                                           ClCharT **retStr);
+
+extern ClRcT clCpmShutDown(ClUint32T argc,
+                           ClCharT **argv,
+                           ClCharT **retStr);
+
 extern ClRcT clCpmNodeErrorReport(ClUint32T argc, ClCharT **argv, ClCharT **result);
 
 extern ClRcT clCpmNodeErrorClear(ClUint32T argc, ClCharT **argv, ClCharT **result);

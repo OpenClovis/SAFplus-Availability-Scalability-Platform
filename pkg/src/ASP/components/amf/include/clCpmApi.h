@@ -1372,7 +1372,16 @@ extern ClRcT clCpmNodeRestart(CL_IN ClIocNodeAddressT iocNodeAddress,
  *
  */
 extern ClRcT clCpmNodeSwitchover(CL_IN ClIocNodeAddressT iocNodeAddress);
-    
+
+/*
+ * This API is the same as clCpmNodeRestart. However with a few differences.
+ * The middleware restart reboots the node or restarts asp if nodeReset flag is CL_FALSE.
+ * It works irrespective of the environment variables that one can use to override the node reset behavior.
+ * If you want to get environment variable behavior for node resets, then clCpmNodeRestart is the API to use.
+ */
+
+extern ClRcT clCpmMiddlewareRestart(ClIocNodeAddressT iocNodeAddress, ClBoolT graceful, ClBoolT nodeReset);
+
 /**
  ************************************
  *  \brief Returns the name of the local node.

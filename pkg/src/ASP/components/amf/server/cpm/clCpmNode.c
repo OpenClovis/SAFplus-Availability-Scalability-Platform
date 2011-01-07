@@ -53,6 +53,7 @@
 #include <clCpmLog.h>
 #include <clCpmCkpt.h>
 #include <clCpmIpi.h>
+#include <clHash.h>
 /*
  * XDR header files 
  */
@@ -63,7 +64,36 @@
 #include "xdrClIocAddressIDLT.h"
 #include "xdrClCpmNodeConfigT.h"
 #include "xdrClCpmRestartSendT.h"
+#include "xdrClCpmMiddlewareResetT.h"
 
+typedef struct ClCpmAspResetMsg
+{
+    ClIocNodeAddressT nodeAddress;
+    ClBoolT nodeReset; /* if false, then restart middleware*/
+}ClCpmAspResetMsgT;
+
+typedef struct ClCpmResetMsg
+{
+#define _CM_RESET_MSG  0x1
+#define _ASP_RESET_MSG 0x2
+    ClUint8T msgType;
+    ClNameT nodeName;
+    struct hashStruct hash;
+    union
+    {
+        ClCmCpmMsgT cmMsg;
+        ClCpmAspResetMsgT aspMsg;
+    } resetMsg;
+
+#define cmResetMsg  resetMsg.cmMsg
+#define aspResetMsg resetMsg.aspMsg
+
+} ClCpmResetMsgT;
+
+#define CPM_RESET_TABLE_BITS (5)
+#define CPM_RESET_TABLE_SIZE ( 1 << CPM_RESET_TABLE_BITS )
+#define CPM_RESET_TABLE_MASK (CPM_RESET_TABLE_SIZE - 1)
+static struct hashStruct *cpmResetMsgTable[CPM_RESET_TABLE_SIZE];
 static ClVersionT clCpmServerToServerVersionsSupported[] =
 {
     {'B', 0x1, 0x1}
@@ -77,6 +107,7 @@ static ClVersionDatabaseT clCpmServerToServerVersionDb =
 };
 
 typedef ClRcT (*funcArray[]) (void);
+
 
 ClRcT CL_CPM_CALL_RMD_SYNC(ClIocNodeAddressT destAddr,
                            ClIocPortT eoPort,
@@ -812,18 +843,22 @@ failure:
 
 
 
-static void cpmNodeDepartureEventPublish(ClIocNodeAddressT node)
+static void cpmNodeDepartureEventPublish(ClIocNodeAddressT node, ClBoolT graceful, ClBoolT doSelf)
 {
     ClRcT rc;
     ClNameT nodeName;
+    ClCpmNodeEventT nodeEvent = CL_CPM_NODE_DEPARTURE;
 
-    if(node != clIocLocalAddressGet())
+    if(doSelf
+       &&
+       node != clIocLocalAddressGet())
         goto out;
 
     memcpy(&nodeName.value, &gpClCpm->pCpmLocalInfo->nodeName, CL_MAX_NAME_LENGTH);
     nodeName.length = (strlen(nodeName.value) > CL_MAX_NAME_LENGTH)? CL_MAX_NAME_LENGTH :strlen(nodeName.value);
-
-    rc = nodeArrivalDeparturePublish(node, nodeName, CL_CPM_NODE_DEPARTURE);
+    if(!graceful)
+        nodeEvent = CL_CPM_NODE_DEATH;
+    rc = nodeArrivalDeparturePublish(node, nodeName, nodeEvent);
     if(rc != CL_OK)
     {
         clLogError("NOD", "DEP", "Failed to publish node [0x%x] departure event. error code [0x%x].", node, rc);
@@ -912,7 +947,7 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
         startShutdownTimer(iocAddress);
     }
 
-    cpmNodeDepartureEventPublish(iocAddress);
+    cpmNodeDepartureEventPublish(iocAddress, CL_TRUE, CL_TRUE);
     
     /* For Cpm\L and standby CPM/G 
      * Check if need to ask master for departure, if so
@@ -1162,29 +1197,45 @@ failure:
     return rc;
 }
 
-void cpmCmRequestDelete(ClCntKeyHandleT userKey, ClCntDataHandleT userData)
+static void cpmCmRequestDelete(ClCntKeyHandleT userKey, ClCntDataHandleT userData)
 {
     
 }
 
-unsigned int cpmCmRequestHashFunc(ClCntKeyHandleT key)
+static unsigned int cpmCmRequestHashFunc(ClCntKeyHandleT key)
 {
     return ((ClWordT)key % CL_CPM_CPML_TABLE_BUCKET_SIZE);
 }
 
-int cpmCmRequestCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
+static int cpmCmRequestCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
     return ((ClWordT)key1 - (ClWordT)key2);
+}
+
+static ClRcT cpmResetRequestFinalize(void)
+{
+    struct hashStruct *iter;
+    ClUint32T i;
+    for(i = 0; i < CPM_RESET_TABLE_SIZE; ++i)
+    {
+        struct hashStruct *next;
+        for(iter = cpmResetMsgTable[i]; iter; iter = next)
+        {
+            ClCpmResetMsgT *msg;
+            next = iter->pNext;
+            msg = hashEntry(iter, ClCpmResetMsgT, hash);
+            clHeapFree(msg);
+        }
+        cpmResetMsgTable[i] = NULL;
+    }
+    return CL_OK;
 }
 
 ClRcT cpmCmRequestDSFinalize(void)
 {
     ClRcT   rc = CL_OK;
-    
+    cpmResetRequestFinalize();
     clCntDelete(gpClCpm->cmRequestTable);
-    
-    clOsalMutexDelete(gpClCpm->cmRequestMutex);
-
     return rc;
 }
 
@@ -1204,103 +1255,98 @@ ClRcT cpmCmRequestDSInitialize(void)
     return rc;
 }
 
-ClRcT cpmEnqueueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest)
+static ClCpmResetMsgT *cpmResetRequestFind(const ClNameT *nodeName, ClUint32T msgType, ClUint32T *key)
 {
-    
-    ClCpmCmQueuedataT *queueData = NULL;
-    ClUint16T nodeKey = 0;
-    ClRcT rc = CL_OK;
-    
-    rc = clOsalMutexLock(gpClCpm->cmRequestMutex);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, 
-            CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc,
-            rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+    struct hashStruct *iter;
+    ClUint16T hashKey = 0;
+    clCksm16bitCompute((ClUint8T*)nodeName->value, strlen(nodeName->value), &hashKey);
+    hashKey &= CPM_RESET_TABLE_MASK;
+    if(key) *key = hashKey;
+    for(iter = cpmResetMsgTable[hashKey]; iter; iter = iter->pNext)
+    {
+        ClCpmResetMsgT *msg = hashEntry(iter, ClCpmResetMsgT, hash);
+        if(msg->msgType == msgType
+           &&
+           !strcmp( (const ClCharT*)nodeName->value, (const ClCharT*)msg->nodeName.value ) )
+            return msg;
+    }
+    return NULL;
+}
 
-    queueData = (ClCpmCmQueuedataT *)clHeapAllocate(sizeof(ClCpmCmQueuedataT));
-    if(queueData == NULL)
-        CL_CPM_CHECK_0(CL_DEBUG_ERROR,
-                CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_DEBUG,
-                CL_LOG_HANDLE_APP);
-    memcpy(&(queueData->cmMsg),  pRequest, sizeof(queueData->cmMsg));
-    memcpy(&(queueData->nodeName), pNodeName, sizeof(queueData->nodeName));
-
-    rc = clCksm16bitCompute((ClUint8T *) pNodeName->value,
-            strlen(pNodeName->value), &nodeKey);
-    CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_CKSM_ERR,
-            pNodeName->value, rc, rc, CL_LOG_DEBUG,
-            CL_LOG_HANDLE_APP);
-
-    rc = clCntNodeAdd(gpClCpm->cmRequestTable,
-            (ClCntKeyHandleT)(ClWordT)nodeKey,
-            (ClCntDataHandleT) queueData, NULL);
-
-    clOsalMutexUnlock(gpClCpm->cmRequestMutex);
-    return rc;
-    
-failure:
-    if(queueData != NULL)
-        clHeapFree(queueData);
-    clOsalMutexUnlock(gpClCpm->cmRequestMutex);
-    return rc;
+static ClRcT cpmEnqueueResetRequest(ClCpmResetMsgT *resetMsg)
+{
+    ClCpmResetMsgT *msg;
+    ClUint32T hashKey = 0;
+    if( ( msg = cpmResetRequestFind(&resetMsg->nodeName, resetMsg->msgType, &hashKey) ) )
+        return CL_ERR_ALREADY_EXIST;
+    hashAdd(cpmResetMsgTable, hashKey, &resetMsg->hash);
+    return CL_OK;
 }
 
 ClRcT cpmDequeueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest)
 {
-    ClRcT rc = CL_OK;
-    ClCntNodeHandleT hNode = 0;
-    ClUint16T nodeKey = 0;
-    ClCpmCmQueuedataT *tempRequest = NULL;
-    ClUint32T numNode = 0;
-
-    rc = clOsalMutexLock(gpClCpm->cmRequestMutex);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
-    
-    rc = clCksm16bitCompute((ClUint8T *) pNodeName->value, 
-            strlen(pNodeName->value), &nodeKey);
-    CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_CKSM_ERR, 
-            pNodeName->value, rc, rc,
-            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
-    
-    rc = clCntNodeFind(gpClCpm->cmRequestTable, (ClCntKeyHandleT)(ClWordT)nodeKey, 
-            &hNode);
-    CL_CPM_CHECK_3(CL_DEBUG_WARN, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR, 
-            "CM Request", pNodeName->value, rc, rc, CL_LOG_DEBUG, 
-            CL_LOG_HANDLE_APP);
-    
-    rc = clCntKeySizeGet(gpClCpm->cmRequestTable, (ClCntKeyHandleT)(ClWordT)nodeKey,
-                         &numNode);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_CNT_KEY_SIZE_GET_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
-
-    while (numNode > 0)
+    ClCpmResetMsgT *msg;
+    clOsalMutexLock(gpClCpm->cmRequestMutex);
+    msg = cpmResetRequestFind(pNodeName, _CM_RESET_MSG, NULL);
+    if(!msg)
     {
-
-        rc = clCntNodeUserDataGet(gpClCpm->cmRequestTable, hNode,
-                          (ClCntDataHandleT *) &tempRequest);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR,
-                       rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
-        if (!strcmp(tempRequest->nodeName.value, pNodeName->value))
-        {
-            memcpy(pRequest , &(tempRequest->cmMsg), sizeof(*pRequest));
-            clCntNodeDelete(gpClCpm->cmRequestTable, hNode);
-            clOsalMutexUnlock(gpClCpm->cmRequestMutex);
-            clHeapFree(tempRequest);
-            return CL_OK;
-        }
-        if(--numNode)
-        {
-            rc = clCntNextNodeGet(gpClCpm->cmRequestTable,hNode,&hNode);
-            if(rc != CL_OK)
-            {
-                break;
-            }
-        }
+        clOsalMutexUnlock(gpClCpm->cmRequestMutex);
+        return CL_ERR_NOT_EXIST;
     }
-    rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
-failure:
+    hashDel(&msg->hash);
     clOsalMutexUnlock(gpClCpm->cmRequestMutex);
+    memcpy(pRequest, &msg->cmResetMsg, sizeof(*pRequest));
+    clHeapFree(msg);
+    return CL_OK;
+}
+
+ClRcT cpmEnqueueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest)
+{
+    ClRcT rc;
+    ClCpmResetMsgT *resetMsg = clHeapCalloc(1, sizeof(*resetMsg));
+    CL_ASSERT(resetMsg != NULL);
+    resetMsg->msgType = _CM_RESET_MSG;
+    memcpy(&resetMsg->cmResetMsg, pRequest, sizeof(resetMsg->cmResetMsg));
+    memcpy(&resetMsg->nodeName, pNodeName, sizeof(resetMsg->nodeName));
+    clOsalMutexLock(gpClCpm->cmRequestMutex);
+    rc = cpmEnqueueResetRequest(resetMsg);
+    clOsalMutexUnlock(gpClCpm->cmRequestMutex);
+    if(rc != CL_OK)
+        clHeapFree(resetMsg);
+    return rc;
+}
+
+ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClBoolT *nodeReset)
+{
+    ClCpmResetMsgT *msg;
+    clOsalMutexLock(gpClCpm->cmRequestMutex);
+    if ( !(msg = cpmResetRequestFind(pNodeName, _ASP_RESET_MSG, NULL) ) )
+    {
+        clOsalMutexUnlock(gpClCpm->cmRequestMutex);
+        return CL_ERR_NOT_EXIST;
+    }
+    hashDel(&msg->hash);
+    clOsalMutexUnlock(gpClCpm->cmRequestMutex);
+    if(nodeReset) 
+        *nodeReset = msg->aspResetMsg.nodeReset;
+    clHeapFree(msg);
+    return CL_OK;
+}
+
+ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, ClBoolT nodeReset)
+{
+    ClRcT rc = CL_OK;
+    ClCpmResetMsgT *resetMsg = clHeapCalloc(1, sizeof(*resetMsg));
+    CL_ASSERT(resetMsg != NULL);
+    resetMsg->msgType = _ASP_RESET_MSG;
+    memcpy(&resetMsg->nodeName, pNodeName, sizeof(resetMsg->nodeName));
+    resetMsg->aspResetMsg.nodeAddress = nodeAddress;
+    resetMsg->aspResetMsg.nodeReset = nodeReset;
+    clOsalMutexLock(gpClCpm->cmRequestMutex);
+    rc = cpmEnqueueResetRequest(resetMsg);
+    clOsalMutexUnlock(gpClCpm->cmRequestMutex);
+    if(rc != CL_OK)
+        clHeapFree(resetMsg);
     return rc;
 }
 
@@ -2173,19 +2219,80 @@ ClRcT VDECL(cpmNodeConfigGet)(ClEoDataT data,
     return rc;
 }
 
+ClRcT VDECL(cpmMiddlewareRestart)(ClEoDataT data,
+                                  ClBufferHandleT inMsgHdl,
+                                  ClBufferHandleT outMsgHdl)
+{
+    ClRcT rc = CL_OK;
+    ClCpmMiddlewareResetT cpmMiddlewareReset = {0};
+    ClIocNodeAddressT iocNodeAddress = 0;
+    ClBoolT graceful = CL_FALSE;
+    ClBoolT nodeReset = CL_FALSE;
+    ClCpmLT *cpm = NULL;
+    ClNameT nodeName = {0};
+    ClRmdResponseContextHandleT responseHandle = 0;
+
+    if (!CL_CPM_IS_ACTIVE())
+        return CL_CPM_RC(CL_ERR_OP_NOT_PERMITTED);
+
+    rc = VDECL_VER(clXdrUnmarshallClCpmMiddlewareResetT, 4, 0, 0)(inMsgHdl,
+                                                                  &cpmMiddlewareReset);
+    if (rc != CL_OK)
+        goto out;
+
+    iocNodeAddress = cpmMiddlewareReset.iocNodeAddress;
+    graceful = cpmMiddlewareReset.graceful;
+    nodeReset = cpmMiddlewareReset.nodeReset;
+    rc = cpmNodeFindByIocAddress(iocNodeAddress, &cpm);
+    if (rc != CL_OK)
+        goto out;
+
+    strcpy(nodeName.value, cpm->pCpmLocalInfo->nodeName);
+    nodeName.length = strlen(nodeName.value) + 1;
+
+    /*
+     * Fake a deferred sync response so that we do respond before processing the restart.
+     * Because even if we make the node restart callback async through a taskpool, we still
+     * have very very little windows where we could miss sending the response incase the
+     * node restart beats us in sending the response whilst we are preempted.
+     */
+    rc = clRmdResponseDefer(&responseHandle);
+    if(rc != CL_OK)
+    {
+        clLogError("NODE", "RESTART", "RMD response defer failed with error [%#x]", rc);
+        return rc;
+    }
+    rc = clRmdSyncResponseSend(responseHandle, 0, CL_OK);
+    if(rc != CL_OK)
+    {
+        clLogError("NODE", "RESTART", "RMD response send returned [%#x]", rc);
+    }
+
+    cpmNodeDepartureEventPublish(iocNodeAddress, graceful, CL_FALSE); 
+
+    cpmEnqueueAspRequest(&nodeName, iocNodeAddress, nodeReset);
+
+    clLogNotice("NODE", "RESTART", "Processing middleware restart request for node [%d]", iocNodeAddress);
+
+    rc = gpClCpm->cpmToAmsCallback->nodeRestart(&nodeName, graceful);
+    if(rc != CL_OK)
+        cpmDequeueAspRequest(&nodeName, NULL);
+
+out:
+    return rc;
+}
+
 ClRcT VDECL(cpmNodeRestart)(ClEoDataT data,
                             ClBufferHandleT inMsgHdl,
                             ClBufferHandleT outMsgHdl)
 {
     ClRcT rc = CL_OK;
-    ClCpmRestartSendT cpmRestartSend;
+    ClCpmRestartSendT cpmRestartSend = {0};
     ClIocNodeAddressT iocNodeAddress = 0;
     ClBoolT graceful = CL_FALSE;
     ClCpmLT *cpm = NULL;
     ClNameT nodeName = {0};
     ClRmdResponseContextHandleT responseHandle = 0;
-
-    memset(&cpmRestartSend, 0, sizeof(ClCpmRestartSendT));
 
     if (!CL_CPM_IS_ACTIVE())
         return CL_CPM_RC(CL_ERR_OP_NOT_PERMITTED);
@@ -2223,7 +2330,9 @@ ClRcT VDECL(cpmNodeRestart)(ClEoDataT data,
         clLogError("NODE", "RESTART", "RMD response send returned [%#x]", rc);
     }
 
-    clLogDebug("NODE", "RESTART", "Processing restart request for node [%d]", iocNodeAddress);
+    cpmNodeDepartureEventPublish(iocNodeAddress, graceful, CL_FALSE); 
+
+    clLogNotice("NODE", "RESTART", "Processing restart request for node [%d]", iocNodeAddress);
 
     return gpClCpm->cpmToAmsCallback->nodeRestart(&nodeName, graceful);
 

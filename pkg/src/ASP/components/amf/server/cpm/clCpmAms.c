@@ -936,28 +936,41 @@ static __inline__ void cpmRebootNode(void)
 void cpmResetNodeElseCommitSuicide(ClUint32T restartFlag)
 {
     ClBoolT watchdogRestart = CL_TRUE;
+    ClUint32T overrideFlag = 0;
+
+    overrideFlag = ((restartFlag >> 16) & 0xffff);
+    
     /*
      * Treat restart ASP opcode as a restart NODE as its a switchover
      * with autorepair which should reboot the node - SAF
      */
-    if(restartFlag == CL_CPM_RESTART_ASP)
-        restartFlag = CL_CPM_RESTART_NODE;
-
-    if(restartFlag == CL_CPM_RESTART_NODE
-       && clParseEnvBoolean("ASP_NODE_REBOOT_DISABLE") == CL_TRUE)
+    if(!overrideFlag)
     {
-        /*
-         * We also disable watchdog restarts here
-         */
-        watchdogRestart = CL_FALSE;
-        restartFlag = CL_CPM_RESTART_NONE;
-    }
+        if(restartFlag == CL_CPM_RESTART_ASP)
+            restartFlag = CL_CPM_RESTART_NODE;
 
-    /*
-     * ASP node restart is defined, than only restart ASP.  
-     */
-    if(clParseEnvBoolean("ASP_NODE_RESTART") == CL_TRUE)
-        restartFlag = CL_CPM_RESTART_ASP;
+        if(restartFlag == CL_CPM_RESTART_NODE
+           && clParseEnvBoolean("ASP_NODE_REBOOT_DISABLE") == CL_TRUE)
+        {
+            /*
+             * We also disable watchdog restarts here
+             */
+            watchdogRestart = CL_FALSE;
+            restartFlag = CL_CPM_RESTART_NONE;
+        }
+
+        /*
+         * ASP node restart is defined, than only restart ASP.  
+         */
+        if(clParseEnvBoolean("ASP_NODE_RESTART") == CL_TRUE)
+            restartFlag = CL_CPM_RESTART_ASP;
+    }
+    else
+    {
+        restartFlag = overrideFlag;
+        clLogNotice("NODE", "RESET", "Node environment reset override flag [%s] used for recovery", 
+                    CL_CPM_RESTART_FLAG_STR(restartFlag));
+    }
 
     /*
      * Overrides everything else above.
@@ -1054,9 +1067,22 @@ static ClRcT _cpmNodeFailFastRestart(ClNameT *nodeName, ClUint32T restartFlag)
         
     if (CL_CPM_IS_ACTIVE())
     {
+        ClBoolT nodeReset = CL_FALSE;
+
         clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
                       "Node failfast/failover called for node [%*s]...",
                       nodeName->length, nodeName->value);
+        
+        if(cpmDequeueAspRequest(nodeName, &nodeReset) == CL_OK)
+        {
+            /*
+             * Save an env. override hint in the top 16 bits of the restart flag
+             */
+            if(nodeReset) 
+                restartFlag |= ( CL_CPM_RESTART_NODE << 16 );
+            else
+                restartFlag |= ( CL_CPM_RESTART_ASP <<  16 );
+        }
 
         if (!strcmp(nodeName->value,
                     gpClCpm->pCpmLocalInfo->nodeName))

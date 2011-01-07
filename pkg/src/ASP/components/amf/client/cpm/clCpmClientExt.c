@@ -76,6 +76,7 @@
 #include "xdrClCpmSlotInfoFieldIdT.h"
 #include "xdrClCpmNodeConfigT.h"
 #include "xdrClCpmRestartSendT.h"
+#include "xdrClCpmMiddlewareResetT.h"
 #include "xdrClCpmCompSpecInfoRecvT.h"
 #include "xdrClErrorReportT.h"
 #include "xdrClCpmClientInfoIDLT.h"
@@ -1803,11 +1804,9 @@ ClRcT clCpmNodeRestart(ClIocNodeAddressT iocNodeAddress, ClBoolT graceful)
 {
     ClRcT rc = CL_OK;
     ClIocNodeAddressT masterAddress = 0;
-    ClCpmRestartSendT cpmRestartSend;
+    ClCpmRestartSendT cpmRestartSend = {0};
     ClTimerTimeOutT delay = {.tsSec = 2, .tsMilliSec = 0};
     ClInt32T tries = 0;
-
-    memset(&cpmRestartSend, 0, sizeof(ClCpmRestartSendT));
 
     do
     {
@@ -1836,7 +1835,15 @@ ClRcT clCpmNodeRestart(ClIocNodeAddressT iocNodeAddress, ClBoolT graceful)
                                    MARSHALL_FN(ClCpmRestartSendT, 4, 0, 0),
                                    NULL);
 
-    } while(rc != CL_OK && ++tries < 4 && clOsalTaskDelay(delay) == CL_OK);
+    } while(rc != CL_OK 
+            && 
+            CL_GET_ERROR_CODE(rc) != CL_ERR_DOESNT_EXIST
+            &&
+            CL_GET_ERROR_CODE(rc) != CL_ERR_NO_OP
+            &&
+            ++tries < 4 
+            && 
+            clOsalTaskDelay(delay) == CL_OK);
 
     if (rc != CL_OK)
     {
@@ -1853,6 +1860,69 @@ ClRcT clCpmNodeRestart(ClIocNodeAddressT iocNodeAddress, ClBoolT graceful)
 ClRcT clCpmNodeSwitchover(ClIocNodeAddressT iocNodeAddress)
 {
     return clCpmNodeRestart(iocNodeAddress, CL_TRUE);
+}
+
+/*
+ * The middleware restart reboots the node or restarts asp if nodeReset flag is CL_FALSE.
+ * It works irrespective of the environment variables that one can use to override the node reset behavior.
+ * If you want to get environment variable behavior for node resets, then clCpmNodeRestart is the API to use.
+ */
+ClRcT clCpmMiddlewareRestart(ClIocNodeAddressT iocNodeAddress, ClBoolT graceful, ClBoolT nodeReset)
+{
+    ClRcT rc = CL_OK;
+    ClIocNodeAddressT masterAddress = 0;
+    ClCpmMiddlewareResetT cpmMiddlewareReset = {0};
+    ClTimerTimeOutT delay = {.tsSec = 2, .tsMilliSec = 0};
+    ClInt32T tries = 0;
+
+    do
+    {
+        rc = clCpmMasterAddressGet(&masterAddress);
+        if (rc != CL_OK)
+        {
+            clLogError("CPM", "CPM",
+                       "Unable to get master address, error [%#x]",
+                       rc);
+            goto out;
+        }
+
+        cpmMiddlewareReset.iocNodeAddress = iocNodeAddress;
+        cpmMiddlewareReset.graceful = graceful;
+        cpmMiddlewareReset.nodeReset = nodeReset;
+
+        rc = clCpmClientRMDSyncNew(masterAddress,
+                                   CPM_MGMT_MIDDLEWARE_RESTART,
+                                   (ClUint8T *)&cpmMiddlewareReset,
+                                   sizeof(ClCpmMiddlewareResetT),
+                                   NULL,
+                                   NULL,
+                                   CL_RMD_CALL_ATMOST_ONCE,
+                                   3000,
+                                   1,
+                                   0,
+                                   MARSHALL_FN(ClCpmMiddlewareResetT, 4, 0, 0),
+                                   NULL);
+
+    } while(rc != CL_OK 
+            && 
+            CL_GET_ERROR_CODE(rc) != CL_ERR_DOESNT_EXIST
+            &&
+            CL_GET_ERROR_CODE(rc) != CL_ERR_NO_OP
+            &&
+            ++tries < 4 
+            && 
+            clOsalTaskDelay(delay) == CL_OK);
+
+    if (rc != CL_OK)
+    {
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+                   "Failed to restart middleware with address [%d], error [%#x]",
+                   iocNodeAddress,
+                   rc);
+    }
+
+    out:
+    return rc;
 }
 
 ClBoolT clCpmIsSC(void)

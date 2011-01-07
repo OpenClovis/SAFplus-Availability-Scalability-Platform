@@ -111,12 +111,18 @@ ClHandleT  gCpmDebugReg = CL_HANDLE_INVALID_VALUE;
         clCpmLogFileRotate,                                             \
         "logrotate",                                                    \
         "Utility command for forcing nodename log file rotations",      \
-        },                                                              \
+    },                                                                  \
     {                                                                   \
         clCpmRestart,                                                   \
         "nodeRestart",                                                  \
-        "restart a node"                                                \
+        "Restart a node. Behavior is affected by the node reset env. variables in asp. conf file" \
+    },                                                                  \
+    {                                                                   \
+        clCpmMiddlewareRestartCommand,                                  \
+        "middlewareRestart",                                            \
+        "Restart the middleware. Behavior is unaffected by the node reset env. variables in asp conf. file" \
     }
+
 
 static ClDebugFuncEntryT cpmSCDebugFuncList[] =
 {

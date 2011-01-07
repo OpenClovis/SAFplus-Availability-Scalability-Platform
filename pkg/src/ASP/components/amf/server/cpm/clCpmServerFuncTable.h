@@ -128,6 +128,7 @@ CL_EO_CALLBACK_TABLE_DECL(cpmMgmtFuncList)[] =
     VSYM(cpmNodeConfigSet, CPM_MGMT_NODE_CONFIG_SET),  /* 0 */
     VSYM(cpmNodeConfigGet, CPM_MGMT_NODE_CONFIG_GET),  /* 1 */
     VSYM(cpmNodeRestart, CPM_MGMT_NODE_RESTART),       /* 2 */
+    VSYM(cpmMiddlewareRestart, CPM_MGMT_MIDDLEWARE_RESTART),       /* 3 */
     VSYM_NULL,
 };
 
