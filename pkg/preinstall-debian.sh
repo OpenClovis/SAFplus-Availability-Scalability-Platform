@@ -74,8 +74,11 @@ installRequired linux-headers-`uname -r`
 #installRequired pkg-config
 installRequired gettext
 installRequired uuid-dev
+
 installRequired unzip
 installRequired ia32-libs-gtk
+installRequired psmisc
+
 installRequired bison
 installRequired flex
 installRequired gawk
@@ -88,9 +91,6 @@ installRequired e2fsprogs
 installRequired libperl-dev
 installRequired libltdl3-dev
 installRequired e2fslibs-dev
-install psmisc
-install unzip
-
 
 if [ $(uname -m) ==  "x86_64" ]; then
     installRequired ia32-libs
