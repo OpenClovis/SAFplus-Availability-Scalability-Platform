@@ -74,7 +74,8 @@ installRequired linux-headers-`uname -r`
 #installRequired pkg-config
 installRequired gettext
 installRequired uuid-dev
-#installRequired unzip
+installRequired unzip
+installRequired ia32-libs-gtk
 installRequired bison
 installRequired flex
 installRequired gawk
