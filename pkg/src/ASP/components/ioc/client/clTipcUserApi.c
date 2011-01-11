@@ -684,7 +684,7 @@ ClRcT clIocCommPortCreate(ClUint32T portId, ClIocCommPortFlagsT portType,
         
         myAddress.nodeAddress = gIocLocalBladeAddress;
         myAddress.portId = pTipcCommPort->portId;
-        rc = clIocCompStatusSet(myAddress, CL_IOC_NODE_UP);
+        rc = clIocCompStatusSet(myAddress, TIPC_PUBLISHED);
         if (rc !=  CL_OK) {
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to set component 0x%x status. error code 0x%x", pTipcCommPort->portId, rc));
             return rc;
@@ -3775,6 +3775,10 @@ void clIocQueueNotificationUnpack(ClIocQueueNotificationT *pSrcQueue,
     return;
 }
 
+ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT addr)
+{
+    return clIocCompStatusSet(addr, TIPC_PUBLISHED);
+}
 
 #if 0
 ClRcT clIocStatisticsPrint(void)

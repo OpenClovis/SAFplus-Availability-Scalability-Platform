@@ -37,6 +37,8 @@
 #include <clHandleApi.h>
 #include <clLogApi.h>
 #include <clCpmApi.h>
+#include <clIocIpi.h>
+#include <clRmdIpi.h>
 #include <ipi/clHandleIpi.h>
 #include <clEoApi.h>
 #include <clDebugApi.h>
@@ -347,6 +349,7 @@ ClRcT VDECL(clDebugGetContext)(ClEoDataT        data,
     ClRcT        rc         = CL_OK;
     ClDebugObjT  *pDebugObj = (ClDebugObjT *) data;
     ClVersionT   version    = {0};
+    ClIocPhysicalAddressT srcAddr = {0};
 
     if ((NULL == pDebugObj) || (0 == outMsgHdl) || (0 == inMsgHdl))
     {
@@ -355,6 +358,14 @@ ClRcT VDECL(clDebugGetContext)(ClEoDataT        data,
         return CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
     }
 
+    /*
+     * Enable the comp status for the debug client to avoid
+     * response failures from node representative in case the bit isnt enabled for cases when
+     * the comp arrival from peer noderep. reaches late.
+     */
+    if(clRmdSourceAddressGet(&srcAddr) == CL_OK)
+        clIocCompStatusEnable(srcAddr);
+    
     rc = clXdrUnmarshallClVersionT(inMsgHdl,&version);
     if (CL_OK != rc)
     {

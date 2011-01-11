@@ -701,8 +701,7 @@ extern "C"
     
 
 ClRcT clIocCompStatusGet(ClIocPhysicalAddressT compAddr, ClUint8T *pStatus);
-
-
+ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
 
 /** 
  ************************************** 
