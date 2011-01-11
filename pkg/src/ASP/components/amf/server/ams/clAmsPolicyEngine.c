@@ -5512,7 +5512,6 @@ clAmsPeSUInstantiate2(ClAmsSUT *su, ClUint32T *pNumComponents)
     ClUint32T limit = su->status.instantiateLevel + 1;
     ClUint32T lastInstantiateLevel = 0;
     ClUint32T numComponents = 0;
-
     for ( entityRef = clAmsEntityListGetFirst(&su->config.compList);
           entityRef != (ClAmsEntityRefT *) NULL;
           entityRef = clAmsEntityListGetNext(&su->config.compList, entityRef) )
@@ -5527,7 +5526,8 @@ clAmsPeSUInstantiate2(ClAmsSUT *su, ClUint32T *pNumComponents)
               CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE) )
         {
             ClUint32T instantiateLevel = comp->config.instantiateLevel;
-            
+            ClUint32T curInstantiateCount = comp->status.instantiateCount;
+
             if(instantiateLevel < limit) continue;
 
             if(!lastInstantiateLevel)
@@ -5539,8 +5539,14 @@ clAmsPeSUInstantiate2(ClAmsSUT *su, ClUint32T *pNumComponents)
                 break;
             }
             AMS_CALL ( clAmsPeCompInstantiate(comp) );
-            su->status.numPIComp++;
-            ++numComponents;
+            if(comp->status.instantiateCount != curInstantiateCount
+               ||
+               clAmsEntityTimerIsRunning((ClAmsEntityT*)comp, 
+                                         CL_AMS_COMP_TIMER_INSTANTIATEDELAY))
+            {
+                su->status.numPIComp++;
+                ++numComponents;
+            }
         }
     }
 
@@ -5892,7 +5898,9 @@ ClRcT clAmsPeSUTerminate2(ClAmsSUT *su)
 {
     ClAmsEntityRefT *entityRef = NULL;
     ClUint32T lastInstantiateLevel = 0;
+    ClUint32T curInstantiateLevel = 0;
     ClBoolT responsePending = CL_FALSE;
+    ClBoolT reset = CL_TRUE;
     ClRcT rc = CL_OK;
     static ClBoolT reentrant = CL_FALSE;
     
@@ -5930,9 +5938,19 @@ ClRcT clAmsPeSUTerminate2(ClAmsSUT *su)
         if(!lastInstantiateLevel) 
             lastInstantiateLevel = instantiateLevel;
 
+        curInstantiateLevel = su->status.instantiateLevel;
         AMS_CHECK_RC_ERROR ( clAmsPeCompShutdown(sucomp, &responsePending) );
+        /*
+         * Instantiate level has changed which mostly implies that the SU was instantiated
+         * or restarted. Avoid resetting the instantiate level. 
+         * If instantiate level flipped back and forth, then its a restart for the SU which is taken
+         * care by a suinstantiate2 in instantiatecallback
+         */
+        if(curInstantiateLevel != su->status.instantiateLevel)
+            reset = CL_FALSE;
     }
-    su->status.instantiateLevel = 0;
+    if(reset)
+        su->status.instantiateLevel = 0;
 
     exitfn:
     reentrant = CL_FALSE;
