@@ -75,6 +75,7 @@ extern "C"
     } ClIocCommPortModeT;
 
     typedef ClRcT (*ClIocNotificationRegisterCallbackT)(ClIocNotificationT *notification, ClPtrT cookie);
+    extern ClBoolT gClIocTrafficShaper;
 
 /*****************communication port  management APIs***********************************/
 

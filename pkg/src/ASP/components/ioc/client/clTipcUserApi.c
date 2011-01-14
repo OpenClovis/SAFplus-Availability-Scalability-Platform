@@ -126,6 +126,24 @@ ClLeakyBucketHandleT gClLeakyBucket;
 #define CL_TIPC_COMPRESSION_BOUNDARY (0x1000U) /*mark 4K to be the compression limit*/
 #endif
 
+/*
+ * Update the reassembly timer after receiving the below length for a reassembly node.
+ * Should be a power of 2. 
+ */
+#define CL_IOC_REASSEMBLY_ADAPTIVE_LENGTH (64 << 20)  /* default at 64 mb */
+#define CL_IOC_MAX_PAYLOAD_BITS (16) /* 64k default */
+#define CL_IOC_REASSEMBLY_FRAGMENTS ( CL_IOC_REASSEMBLY_ADAPTIVE_LENGTH >> CL_IOC_MAX_PAYLOAD_BITS )
+#define CL_IOC_REASSEMBLY_FRAGMENTS_MASK (CL_IOC_REASSEMBLY_FRAGMENTS-1)
+
+/*
+ * To use this leaky bucket volume, you are effectively looking at very large traffic or checkpoints of size
+ * over 200 megs. Also this entails to increase the /proc/sys/net/core/rmem_{default,max} values to 500 megs or
+ * above to avoid tipc skbuffs being dropped by the kernel from queueing on hitting the backlog queue limit.
+ */
+#define CL_LEAKY_BUCKET_DEFAULT_VOL (50 << 20)
+#define CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE (25 << 20)
+#define CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL (500)
+
 extern ClUint32T clAspLocalId;
 
 ClIocNodeAddressT gIocLocalBladeAddress;
@@ -140,6 +158,7 @@ static ClOsalMutexIdT ClIocFragMutex;
 static ClUint32T currFragId;
 static ClIocUserObjectT userObj;
 static ClTimerTimeOutT userReassemblyTimerExpiry = { 0 };
+ClBoolT gClIocTrafficShaper;
 
 typedef struct
 {
@@ -186,6 +205,7 @@ typedef struct ClIocReassembleNode
     struct hashStruct hash; /*hash linkage*/
     ClUint32T currentLength;
     ClUint32T expectedLength;
+    ClUint32T numFragments; /* number of fragments received*/
     ClIocReassembleKeyT key;
     ClTimerHandleT reassembleTimer;
     ClUint64T timerId;
@@ -328,8 +348,17 @@ static ClTipcNeighborT *clIocNeighborFind(ClIocNodeAddressT address);
 
 #define longTimeDiff(tm1, tm2) ((tm2.tsSec - tm1.tsSec) * 1000 + (tm2.tsMilliSec - tm1.tsMilliSec))
 #define clIocInternalMaxPayloadSizeGet()  (CL_TIPC_PACKET_SIZE - sizeof(ClTipcHeaderT) - sizeof(ClTipcHeaderT) - 1)
-static ClRcT internalSend(ClTipcCommPortT *pTipcCommPort,
+
+static ClRcT internalSendSlow(ClTipcCommPortT *pTipcCommPort,
                           ClBufferHandleT message, 
+                          ClUint32T tempPriority, 
+                          ClIocAddressT *pIocAddress,
+                          ClUint32T *pTimeout);
+
+static ClRcT internalSend(ClTipcCommPortT *pTipcCommPort,
+                          struct iovec *target,
+                          ClUint32T targetVectors,
+                          ClUint32T messageLen,
                           ClUint32T tempPriority, 
                           ClIocAddressT *pIocAddress,
                           ClUint32T *pTimeout);
@@ -598,7 +627,7 @@ ClRcT clIocCommPortCreate(ClUint32T portId, ClIocCommPortFlagsT portType,
         CL_ASSERT(0);
         return CL_IOC_RC(CL_ERR_UNSPECIFIED);
     }
-
+    
     ret = fcntl(pTipcCommPort->fd, F_SETFD, FD_CLOEXEC);
     CL_ASSERT(ret == 0);
 
@@ -609,7 +638,7 @@ ClRcT clIocCommPortCreate(ClUint32T portId, ClIocCommPortFlagsT portType,
     address.addr.name.domain=0;
     address.addr.name.name.instance = gIocLocalBladeAddress;
 
-
+    
     rc = clTipcCheckAndGetPortId(&portId);
     if(rc != CL_OK)
         goto out_free;
@@ -1045,6 +1074,113 @@ static ClRcT doCompress(ClUint8T *uncompressedStream, ClUint32T uncompressedStre
 }
 #endif
 
+typedef struct IOVecIterator
+{
+    struct iovec *src;
+    struct iovec *target;
+    ClUint32T srcVectors;
+    ClUint32T maxTargetVectors;
+    struct iovec *header;
+    struct iovec *curIOVec;
+    ClOffsetT offset; /* linear offset within the cur iovec*/
+} IOVecIteratorT;
+
+static ClRcT iovecIteratorInit(IOVecIteratorT *iter, 
+                               struct iovec *src, ClUint32T srcVectors, 
+                               struct iovec *header)
+{
+    ClRcT rc = CL_ERR_INVALID_PARAMETER;
+    if(!srcVectors) 
+        goto out;
+    iter->src = src;
+    iter->srcVectors = srcVectors;
+    iter->curIOVec = src;
+    iter->header = header;
+    iter->offset = 0;
+    /*
+     * Divide by half to accomodate the fragmented vectors in the src.
+     */
+    iter->maxTargetVectors = 16; /* go in steps of 16 target vectors including header vector */
+    iter->target = clHeapCalloc(iter->maxTargetVectors, sizeof(*iter->target)); 
+    CL_ASSERT(iter->target != NULL);
+    if(header)
+    {
+        iter->target[0].iov_base = header->iov_base;
+        iter->target[0].iov_len =  header->iov_len;
+    }
+    rc = CL_OK;
+    out:
+    return rc;
+}
+
+static ClRcT iovecIteratorNext(IOVecIteratorT *iter, ClUint32T *payload, struct iovec **target, ClUint32T *targetVectors)
+{
+    ClUint32T numVectors = 0;
+    size_t size;
+    struct iovec *curIOVec;
+    ClRcT rc = CL_ERR_INVALID_PARAMETER;
+    if(!payload)
+        goto out;
+    rc = CL_ERR_NO_SPACE;
+    if(!(curIOVec = iter->curIOVec))
+        goto out;
+    size = (size_t)*payload;
+
+    if(iter->header)
+        numVectors = 1;
+
+    while(size > 0 && curIOVec)
+    {
+        size_t len = curIOVec->iov_len - iter->offset;
+        ClUint8T *base = curIOVec->iov_base + iter->offset;
+        while(size > 0 && len > 0)
+        {
+            size_t tgtLen = CL_MIN(size, len);
+            if(numVectors >= iter->maxTargetVectors)
+            {
+                iter->target = clHeapRealloc(iter->target, sizeof(*iter->target) * (numVectors + 16));
+                CL_ASSERT(iter->target != NULL);
+                memset(iter->target + numVectors, 0, sizeof(*iter->target) * 16);
+                iter->maxTargetVectors += 16;
+            }
+            iter->target[numVectors].iov_base = base;
+            iter->target[numVectors].iov_len = tgtLen;
+            ++numVectors;
+            size -= tgtLen;
+            len -= tgtLen;
+            if(!len)
+            {
+                iter->offset = 0;
+                ++curIOVec;
+                if( (curIOVec - iter->src) >= iter->srcVectors )
+                    curIOVec = NULL;
+                break;
+            }
+            base += tgtLen;
+            iter->offset += tgtLen;
+        }
+    }
+    iter->curIOVec = curIOVec;
+    *target = iter->target;
+    *targetVectors = numVectors;
+    if(size > 0)
+        *payload -= size;
+    rc = CL_OK;
+    out:
+    return rc;
+}
+
+static ClRcT iovecIteratorExit(IOVecIteratorT *iter)
+{
+    if(iter->target) 
+    {
+        clHeapFree(iter->target);
+        iter->target = NULL;
+    }
+    memset(iter, 0, sizeof(*iter)); /* reset all*/
+    return CL_OK;
+}
+
 /*
  * Function : clIocSend Description : This function will take the message and
  * enqueue to IOC queues for transmission. 
@@ -1053,6 +1189,271 @@ static ClRcT doCompress(ClUint8T *uncompressedStream, ClUint32T uncompressedStre
 ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
                 ClBufferHandleT message, ClUint8T protoType,
                 ClIocAddressT *destAddress, ClIocSendOptionT *pSendOption)
+{
+    ClRcT retCode, rc;
+    ClTipcCommPortT *pTipcCommPort = (ClTipcCommPortT *)commPortHandle;
+    ClUint32T timeout = 0;
+    ClUint8T priority = 0;
+    ClUint32T msgLength;
+    ClUint32T maxPayload, fragId, bytesRead = 0;
+    ClUint32T totalFragRequired, fraction;
+#ifdef CL_TIPC_COMPRESSION
+    ClUint8T *decompressedStream = NULL;
+    ClUint8T *compressedStream = NULL;
+    ClUint32T compressedStreamLen = 0;
+    ClTimeT pktTime = 0;
+    ClTimeValT tv = {0};
+#endif
+    if (!pTipcCommPort || !destAddress)
+        return CL_IOC_RC(CL_ERR_NULL_POINTER);
+
+    if(CL_IOC_ADDRESS_TYPE_GET(destAddress) == CL_IOC_PHYSICAL_ADDRESS_TYPE &&
+       ((ClIocPhysicalAddressT *)destAddress)->nodeAddress != CL_IOC_BROADCAST_ADDRESS)
+    {
+        ClIocNodeAddressT node;
+        ClUint8T status;
+
+        node = ((ClIocPhysicalAddressT *)destAddress)->nodeAddress;
+
+        if (CL_IOC_RESERVED_ADDRESS == node) {
+            clDbgCodeError(CL_IOC_RC(CL_ERR_INVALID_PARAMETER),("Error : Invalid destination address %x:%x is passed.", 
+                                                                ((ClIocPhysicalAddressT *)destAddress)->nodeAddress, 
+                                                                ((ClIocPhysicalAddressT *)destAddress)->portId));            
+            return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
+        }
+    
+        retCode = clIocCompStatusGet(*(ClIocPhysicalAddressT *)destAddress, &status);
+        if (retCode !=  CL_OK) {
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to get the status of the component. error code 0x%x", retCode));
+            return retCode;
+        }
+        if(status == CL_IOC_NODE_DOWN)
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
+                           ("Port [0x%x] is trying to reach component [0x%x:0x%x] "
+                            "but the component is not reachable.",
+                            pTipcCommPort->portId,
+                            ((ClIocPhysicalAddressT *)destAddress)->nodeAddress, 
+                            ((ClIocPhysicalAddressT *)destAddress)->portId));
+            return CL_IOC_RC(CL_IOC_ERR_COMP_UNREACHABLE);
+        }
+            
+    }
+
+    if (pSendOption)
+    {
+        priority = pSendOption->priority;
+        timeout = pSendOption->timeout;
+    }
+
+#ifdef CL_TIPC_COMPRESSION
+    clTimeServerGet(NULL, &tv);
+    pktTime = tv.tvSec*1000000LL + tv.tvUsec;
+#endif
+
+    retCode = clBufferLengthGet(message, &msgLength);
+    if (retCode != CL_OK || msgLength == 0)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
+                       ("Failed to get the lenght of the messege. error code 0x%x",retCode));
+        return CL_IOC_RC(CL_ERR_INVALID_BUFFER);
+    }
+    
+    maxPayload = clIocInternalMaxPayloadSizeGet();
+
+#ifdef CL_TIPC_COMPRESSION
+    if(protoType != CL_IOC_PORT_NOTIFICATION_PROTO 
+       &&
+       protoType != CL_IOC_PROTO_CTL
+       &&
+       msgLength >= gTipcCompressionBoundary)
+    {
+        retCode = clBufferFlatten(message, &decompressedStream);
+        CL_ASSERT(retCode == CL_OK);
+        retCode = doCompress(decompressedStream, msgLength, &compressedStream, &compressedStreamLen);
+        clHeapFree((ClPtrT)decompressedStream);
+
+        if(retCode == CL_OK)
+        {
+            /*
+             * We don't want to use compression for large payloads.
+             */
+            if(compressedStreamLen && 
+               compressedStreamLen <= maxPayload)
+            {
+                ClBufferHandleT cmsg = 0;
+                msgLength = compressedStreamLen;
+                retCode = clBufferCreateAndAllocate(compressedStreamLen, &cmsg);
+                CL_ASSERT(retCode == CL_OK);
+                retCode = clBufferNBytesWrite(cmsg, compressedStream, compressedStreamLen);
+                CL_ASSERT(retCode == CL_OK);
+                message = cmsg;
+            }
+            else
+            {
+                compressedStreamLen = 0;
+            }
+            clHeapFree(compressedStream);
+            compressedStream = NULL;
+        }
+    }
+#endif
+
+    if (msgLength > maxPayload)
+    {
+        /*
+         * Fragment it to 64 K size and return
+         */
+        ClTipcFragHeaderT userFragHeader = {{0}};
+        struct iovec  header = { .iov_base = (void*)&userFragHeader, .iov_len = sizeof(userFragHeader) };
+        struct iovec *target = NULL;
+        IOVecIteratorT iovecIterator = {0};
+        struct iovec *src= NULL;
+        ClInt32T srcVectors = 0;
+        ClUint32T targetVectors = 0;
+        ClUint32T frags = 0;
+        rc = clBufferVectorize(message, &src, &srcVectors);
+        CL_ASSERT(rc == CL_OK);
+        rc = iovecIteratorInit(&iovecIterator, src, srcVectors, &header);
+        CL_ASSERT(rc == CL_OK);
+        totalFragRequired = msgLength / maxPayload;
+        fraction = msgLength % maxPayload;
+        if (fraction)
+            totalFragRequired = totalFragRequired + 1;
+        
+        clOsalMutexLock(ClIocFragMutex);
+        fragId = currFragId;
+        ++currFragId;
+        clOsalMutexUnlock(ClIocFragMutex);
+
+        userFragHeader.header.version = CL_IOC_HEADER_VERSION;
+        userFragHeader.header.protocolType = protoType;
+        userFragHeader.header.priority = priority;
+        userFragHeader.header.flag = IOC_MORE_FRAG;
+        userFragHeader.header.srcAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
+        userFragHeader.header.srcAddress.iocPhyAddress.portId = htonl(pTipcCommPort->portId);
+        userFragHeader.header.reserved = 0;
+#ifdef CL_TIPC_COMPRESSION
+        userFragHeader.header.pktTime = clHtonl64(pktTime);
+#endif
+        userFragHeader.msgId = htonl(fragId);
+        userFragHeader.fragOffset = 0;
+        userFragHeader.fragLength = htonl(maxPayload);
+
+        while (totalFragRequired > 1)
+        {
+            ClUint32T payload = maxPayload;
+            retCode = iovecIteratorNext(&iovecIterator, &payload, &target, &targetVectors);
+            CL_ASSERT(retCode == CL_OK);
+            CL_ASSERT(payload == maxPayload);
+            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
+                           ("Sending id %d flag 0x%x length %d offset %d\n",
+                            ntohl(userFragHeader.msgId), userFragHeader.header.flag,
+                            ntohl(userFragHeader.fragLength),
+                            ntohl(userFragHeader.fragOffset)));
+            /*
+             *clLogNotice("FRAG", "SEND", "Sending [%d] bytes with [%d] vectors representing [%d] bytes", 
+                          msgLength, targetVectors, maxPayload);
+            */
+            retCode = internalSend(pTipcCommPort, target, targetVectors, payload + sizeof(userFragHeader), 
+                                   priority, destAddress, &timeout);
+            if (retCode != CL_OK || retCode == CL_IOC_RC(CL_ERR_TIMEOUT))
+            {
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                               ("Failed to send the message. error code = 0x%x\n", retCode));
+                goto frag_error;
+            }
+
+            bytesRead += payload;
+            userFragHeader.fragOffset = htonl(bytesRead);   /* updating for the
+                                                             * next packet */
+            --totalFragRequired;
+
+#ifdef CL_TIPC_COMPRESSION            
+            if(userFragHeader.header.pktTime)
+                userFragHeader.header.pktTime = 0;
+#endif
+            ++frags;
+            if(0 && !(frags & 511))
+                sleep(1);
+        }                       /* while */
+        /*
+         * sending the last fragment
+         */
+        if (fraction)
+        {
+            maxPayload = fraction;
+            userFragHeader.fragLength = htonl(maxPayload);
+        }
+        else fraction = maxPayload;
+        userFragHeader.header.flag = IOC_LAST_FRAG;
+        retCode = iovecIteratorNext(&iovecIterator, &fraction, &target, &targetVectors);
+        CL_ASSERT(retCode == CL_OK);
+        CL_ASSERT(fraction == maxPayload);
+        clLogTrace("FRAG", "SEND", "Sending last frag at offset [%d], length [%d]",
+                   ntohl(userFragHeader.fragOffset), fraction);
+        retCode = internalSend(pTipcCommPort, target, targetVectors, fraction + sizeof(userFragHeader), 
+                               priority, destAddress, &timeout);
+        frag_error:
+        {
+            ClRcT rc;
+            rc = iovecIteratorExit(&iovecIterator);
+            CL_ASSERT(rc == CL_OK);
+            if(src) clHeapFree(src);
+        }
+    }
+    else
+    {
+        ClTipcHeaderT userHeader = { 0 };
+
+        userHeader.version = CL_IOC_HEADER_VERSION;
+        userHeader.protocolType = protoType;
+        userHeader.priority = priority;
+        userHeader.srcAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
+        userHeader.srcAddress.iocPhyAddress.portId = htonl(pTipcCommPort->portId);
+        userHeader.reserved = 0;
+
+#ifdef CL_TIPC_COMPRESSION
+        if(compressedStreamLen)
+            userHeader.reserved = htonl(1); /*mark compression flag*/
+        userHeader.pktTime = clHtonl64(pktTime);
+#endif
+
+        retCode =
+            clBufferDataPrepend(message, (ClUint8T *) &userHeader,
+                                sizeof(ClTipcHeaderT));
+        if(retCode != CL_OK)	
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                           ("\nERROR: Prepend buffer data failed = 0x%x\n", retCode));
+            return retCode;
+        }
+
+        retCode = internalSendSlow(pTipcCommPort, message, priority, destAddress, &timeout);
+
+        rc = clBufferHeaderTrim(message, sizeof(ClTipcHeaderT));
+        if(rc != CL_OK)
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                           ("\nERROR: Buffer header trim failed RC = 0x%x\n", rc));
+
+#ifdef CL_TIPC_COMPRESSION
+        if(compressedStreamLen)
+        {
+            /*
+             * delete the compressed message stream.
+             */
+            clBufferDelete(&message);
+        }
+#endif
+
+    }
+
+    return retCode;
+}
+
+ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
+                    ClBufferHandleT message, ClUint8T protoType,
+                    ClIocAddressT *destAddress, ClIocSendOptionT *pSendOption)
 {
     ClRcT retCode, rc;
     ClTipcCommPortT *pTipcCommPort = (ClTipcCommPortT *)commPortHandle;
@@ -1170,7 +1571,7 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
          * Fragment it to 64 K size and return
          */
         ClTipcFragHeaderT userFragHeader = {{0}};
-
+        ClUint32T frags = 0;
         retCode = clBufferCreate(&tempMsg);
         if (retCode != CL_OK)
         {
@@ -1231,7 +1632,7 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
                 goto frag_error;
             }
 
-            retCode = internalSend(pTipcCommPort, tempMsg, priority, destAddress, &timeout);
+            retCode = internalSendSlow(pTipcCommPort, tempMsg, priority, destAddress, &timeout);
             if (retCode != CL_OK || retCode == CL_IOC_RC(CL_ERR_TIMEOUT))
             {
                 CL_DEBUG_PRINT(CL_DEBUG_ERROR,
@@ -1251,6 +1652,9 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
             if(userFragHeader.header.pktTime)
                 userFragHeader.header.pktTime = 0;
 #endif
+            ++frags;
+            if(!(frags & 511))
+                sleep(1);
             /*usleep(CL_IOC_MICRO_SLEEP_INTERVAL);*/
         }                       /* while */
         /*
@@ -1281,8 +1685,9 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
                            ("\nERROR: Prepend buffer data failed = 0x%x\n", retCode));
             goto frag_error;
         }
-
-        retCode = internalSend(pTipcCommPort, tempMsg, priority, destAddress, &timeout);
+        clLogTrace("FRAG", "SEND2", "Sending last frag at offset [%d], length [%d]",
+                   ntohl(userFragHeader.fragOffset), maxPayload);
+        retCode = internalSendSlow(pTipcCommPort, tempMsg, priority, destAddress, &timeout);
 
         frag_error:
         {
@@ -1318,7 +1723,7 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
             return retCode;
         }
 
-        retCode = internalSend(pTipcCommPort, message, priority, destAddress, &timeout);
+        retCode = internalSendSlow(pTipcCommPort, message, priority, destAddress, &timeout);
 
         rc = clBufferHeaderTrim(message, sizeof(ClTipcHeaderT));
         if(rc != CL_OK)
@@ -1341,10 +1746,133 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
 }
 
 static ClRcT internalSend(ClTipcCommPortT *pTipcCommPort,
-                          ClBufferHandleT message, 
+                          struct iovec *target,
+                          ClUint32T targetVectors,
+                          ClUint32T messageLen,
                           ClUint32T tempPriority, 
                           ClIocAddressT *pIocAddress,
                           ClUint32T *pTimeout)
+{
+    ClRcT rc;
+    struct sockaddr_tipc tipcAddress;
+    ClInt32T fd ;
+    ClInt32T bytes;
+    struct msghdr msgHdr;
+    ClUint32T priority;
+    ClInt32T tries = 0;
+    static ClInt32T recordIOCSend = -1;
+
+#ifdef BCAST_SOCKET_NEEDED
+    ClUint32T sendFDFlag = 1;
+#endif
+
+    rc = CL_IOC_RC(CL_ERR_NULL_POINTER);
+
+    if(pTipcCommPort == NULL)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid port id\n"));
+        goto out;
+    }
+
+    /*map the address to a TIPC address before sending*/
+#ifdef BCAST_SOCKET_NEEDED
+    rc = clTipcGetAddress(&tipcAddress,pIocAddress, &sendFDFlag);
+#else
+    rc = clTipcGetAddress(&tipcAddress,pIocAddress);
+#endif
+    if(rc != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in tipc get address.rc=0x%x\n",rc));
+        goto out;
+    }
+
+    fd = pTipcCommPort->fd;
+
+#ifdef BCAST_SOCKET_NEEDED
+    if(sendFDFlag == 2)
+        fd = pTipcCommPort->bcastFd;
+#endif
+
+    priority = CL_IOC_TIPC_DEFAULT_PRIORITY;
+    if(pTipcCommPort->portId == CL_IOC_CPM_PORT  ||
+       pTipcCommPort->portId == CL_IOC_TIPC_PORT ||
+       tempPriority == CL_IOC_HIGH_PRIORITY)
+    {
+        priority = CL_IOC_TIPC_HIGH_PRIORITY;
+    }
+    if ((tipcPriorityChangePossible) && (pTipcCommPort->priority != priority))
+    {
+        if(!setsockopt(fd,SOL_TIPC,TIPC_IMPORTANCE,(char *)&priority,sizeof(priority)))
+        {
+            pTipcCommPort->priority = priority;
+        }
+        else
+        {
+            int err = errno;
+
+            if (err == ENOPROTOOPT)
+            {
+                tipcPriorityChangePossible = CL_FALSE;
+                CL_DEBUG_PRINT(CL_DEBUG_WARN,("Message priority not available in this version of TIPC."));
+                tipcPriorityChangePossible = CL_FALSE;
+            }            
+            else CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in setting TIPC message priority. errno [%d]",err));
+        }
+    }
+    bzero((char*)&msgHdr,sizeof(msgHdr));
+    msgHdr.msg_name = (ClPtrT)&tipcAddress;
+    msgHdr.msg_namelen = sizeof(tipcAddress);
+    msgHdr.msg_iov = target;
+    msgHdr.msg_iovlen = targetVectors;
+    /*
+     * If the leaky bucket is defined, then 
+     * respect the traffic signal
+     */
+    if(gClIocTrafficShaper && gClLeakyBucket)
+    {
+        clLeakyBucketFill(gClLeakyBucket, messageLen);
+    }
+
+    if(recordIOCSend < 0)
+    {
+        ClBoolT record = clParseEnvBoolean("CL_ASP_RECORD_IOC_SEND");
+        recordIOCSend = record ? 1 : 0;
+    }
+    
+    retry:
+
+    if(recordIOCSend) clTaskPoolRecordIOCSend(CL_TRUE);
+
+    bytes = sendmsg(fd,&msgHdr,0);
+
+    if(recordIOCSend) clTaskPoolRecordIOCSend(CL_FALSE);
+
+    if(bytes <= 0 )
+    {
+        if(errno == EINTR)
+            goto retry;
+     
+        if(errno == EAGAIN)
+        {
+            if(++tries < 10)
+            {
+                usleep(100);
+                goto retry;
+            }
+        }
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed at sendmsg. errno = %d\n",errno));
+        rc = CL_IOC_RC(CL_ERR_UNSPECIFIED);
+    }
+
+    out:
+    return rc;
+}
+
+static ClRcT internalSendSlow(ClTipcCommPortT *pTipcCommPort,
+                              ClBufferHandleT message, 
+                              ClUint32T tempPriority, 
+                              ClIocAddressT *pIocAddress,
+                              ClUint32T *pTimeout)
 {
     ClRcT rc;
     struct sockaddr_tipc tipcAddress;
@@ -1717,6 +2245,10 @@ ClRcT clIocReceive(ClIocCommPortHandleT commPortHdl,
         /*
          * Will be used once fully tested as its faster than earlier method
          */
+        if(userFragHeader.header.flag == IOC_LAST_FRAG)
+            clLogTrace("FRAG", "RECV", "Got Last frag at offset [%d], size [%d], received [%d]",
+                       userFragHeader.fragOffset, userFragHeader.fragLength, bytes);
+
         rc = __iocUserFragmentReceive(pBuffer, &userFragHeader, 
                                       pTipcCommPort->portId, bytes);
 #endif
@@ -1786,6 +2318,25 @@ ClRcT clIocLibFinalize()
     return CL_OK;
 }
 
+static ClRcT clIocLeakyBucketInitialize(void)
+{
+    ClRcT rc = CL_OK;
+    gClIocTrafficShaper = clParseEnvBoolean("CL_ASP_TRAFFIC_SHAPER");
+    if(gClIocTrafficShaper)
+    {
+        ClInt64T leakyBucketVol = getenv("CL_LEAKY_BUCKET_VOL") ? 
+            (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_VOL")) : CL_LEAKY_BUCKET_DEFAULT_VOL;
+        ClInt64T leakyBucketLeakSize = getenv("CL_LEAKY_BUCKET_LEAK_SIZE") ?
+            (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_LEAK_SIZE")) : CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE;
+        ClTimerTimeOutT leakyBucketInterval = {.tsSec = 0, .tsMilliSec = CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL };
+        leakyBucketInterval.tsMilliSec = getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL") ? atoi(getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL")) :
+            CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL;
+        clLogInfo("LEAKY", "BUCKET-INI", "Creating a leaky bucket with vol [%lld], leak size [%lld], interval [%d ms]",
+                  leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval.tsMilliSec);
+        rc = clLeakyBucketCreate(leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval, &gClLeakyBucket);
+    }
+    return rc;
+}
 
 ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
 {
@@ -1854,6 +2405,8 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Node cache initialize returned [%#x]", retCode));
         goto error_5;
     }
+
+    clIocLeakyBucketInitialize();
 
 #ifdef CL_TIPC_COMPRESSION
     if( (pTipcCompressionBoundary = getenv("CL_TIPC_COMPRESSION_BOUNDARY") ) )
@@ -2061,6 +2614,8 @@ static ClRcT __iocReassembleTimer(void *key)
         clOsalMutexUnlock(&iocReassembleLock);
         goto out;
     }
+    clLogTrace("FRAG", "RECV", "Running the reassembly timer for sender node [%#x:%#x] with length [%d] bytes", 
+               node->key.sendAddr.nodeAddress, node->key.sendAddr.portId, node->currentLength);
     while( (fragHead = clRbTreeMin(&node->reassembleTree) ) )
     {
         ClIocFragmentNodeT *fragNode = CL_RBTREE_ENTRY(fragHead, ClIocFragmentNodeT, tree);
@@ -2084,7 +2639,6 @@ static ClRcT __iocReassembleDispatch(ClIocReassembleNodeT *node, ClTipcFragHeade
     ClUint32T len = 0;
     rc = clBufferCreate(&msg);
     CL_ASSERT(rc == CL_OK);
-
     while( (iter = clRbTreeMin(&node->reassembleTree)) )
     {
         ClIocFragmentNodeT *fragNode = CL_RBTREE_ENTRY(iter, ClIocFragmentNodeT, tree);
@@ -2097,7 +2651,6 @@ static ClRcT __iocReassembleDispatch(ClIocReassembleNodeT *node, ClTipcFragHeade
         clHeapFree(fragNode);
     }
     hashDel(&node->hash);
-
     clBufferLengthGet(msg, &len);
     if(!len)
     {
@@ -2131,7 +2684,6 @@ static ClRcT __iocFragmentCallback(ClPtrT job)
     ClIocFragmentNodeT *fragmentNode = NULL;
     ClUint8T flag = 0;
     ClRcT rc = CL_OK;
-
     clOsalMutexLock(&iocReassembleLock);
     flag = fragmentJob->fragHeader.header.flag;
     key.fragId = fragmentJob->fragHeader.msgId;
@@ -2161,6 +2713,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job)
         CL_ASSERT(rc == CL_OK);
         node->currentLength = 0;
         node->expectedLength = 0;
+        node->numFragments = 0;
         hashAdd(iocReassembleHashTable, hashKey, &node->hash);
         clTimerStart(node->reassembleTimer);
     }
@@ -2170,6 +2723,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job)
     fragmentNode->fragLength = fragmentJob->fragHeader.fragLength;
     fragmentNode->fragBuffer = fragmentJob->buffer;
     node->currentLength += fragmentNode->fragLength;
+    ++node->numFragments;
     clRbTreeInsert(&node->reassembleTree, &fragmentNode->tree);
     if(flag == IOC_LAST_FRAG)
     {
@@ -2182,12 +2736,29 @@ static ClRcT __iocFragmentCallback(ClPtrT job)
             /*
              * we update the expected length.
              */
+            clLogTrace("FRAG", "RECV", "Out of order last fragment received for offset [%d], len [%d] bytes, "
+                       "current length [%d] bytes",
+                       fragmentNode->fragOffset, fragmentNode->fragLength, node->currentLength);
             node->expectedLength = fragmentNode->fragOffset + fragmentNode->fragLength;
         }
     }
     else if(node->currentLength == node->expectedLength)
     {
         __iocReassembleDispatch(node, &fragmentJob->fragHeader);
+    }
+    else
+    {
+        /*
+         * Now increase the timer based on the number of fragments being received or the node length.
+         * Since the sender could be doing flow control, be have an adaptive reassembly timer.
+         */
+        if( !( node->numFragments & CL_IOC_REASSEMBLY_FRAGMENTS_MASK ) )
+        {
+            clLogDebug("FRAG", "RECV", "Updating the reassembly timer to refire after [%d] secs for node length [%d], "
+                       "num fragments [%d]",
+                       userReassemblyTimerExpiry.tsSec, node->currentLength, node->numFragments);
+            clTimerUpdate(node->reassembleTimer, userReassemblyTimerExpiry);
+        }
     }
     clOsalMutexUnlock(&iocReassembleLock);
     clHeapFree(job);

@@ -1077,7 +1077,6 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
 {
     ClRcT retVal = 0, retCode = 0;
     ClUint8T i = 0;
-
     ClRmdRecordSendT sendRecord = {0};
     ClRmdRecordSendT *pSendRecord = &sendRecord;
 
@@ -1139,6 +1138,40 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
         return retVal;
     }
 
+    if(gClIocTrafficShaper && locTimeOut && locTimeOut != CL_RMD_TIMEOUT_FOREVER)
+    {
+        ClUint32T msgLength = 0;
+        retVal = clBufferLengthGet(inMsg, &msgLength);
+        if(retVal != CL_OK)
+        {
+            clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle,
+                                      (ClPtrT)(ClWordT)nwMsgId);
+            RMD_STAT_INC(pRmdObject->rmdStats.nFailedCalls);            
+            clOsalMutexUnlock(pRmdObject->semaForSendHashTable);
+            clLogError("RMD", "SND", "Buffer length get failed with [%#x]", retVal);
+            return retVal;
+        }
+        /*
+         * If over the 200 mb limit, the below timeout might not be sufficient.
+         * Set it to a bigger timeout based on msg length
+         */
+        if(msgLength >= (200 << 20U))
+        {
+            ClUint32T factor = 1;
+            ClUint32T delay = msgLength/(20 << 20U);
+            if(msgLength >= (1<<30L))
+                factor <<= 1 ; /* double it for larger sizes */
+            delay *= factor;
+            delay += CL_RMD_DEFAULT_TIMEOUT;
+            if(delay > 100) 
+                delay = 100; /* this should be enough for worst case */
+            if(locTimeOut < delay)
+                locTimeOut = delay;
+            if(retries > 1) retries = 1; /* retry such large transfers only once */
+            condTimeout = locTimeOut;
+        }
+    }
+
     /*
      * Make retries+1 attempts to make the sync call.
      * '+1' is the orignial call and is at denoted by
@@ -1170,8 +1203,8 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
         {
             clLogWarning("RMD","SND","In RMD, IOC call failed with error [%x].  MsgId [0x%x]", retVal, nwMsgId);
             retCode =           /* Delete Send Record Refer Async send */
-            clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle,
-                                      (ClPtrT)(ClWordT)nwMsgId);
+                clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle,
+                                          (ClPtrT)(ClWordT)nwMsgId);
             CL_ASSERT(retCode == CL_OK);
             RMD_STAT_INC(pRmdObject->rmdStats.nFailedCalls);            
             retCode = clOsalMutexUnlock(pRmdObject->semaForSendHashTable);
@@ -1191,15 +1224,15 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
         }
 
         retVal =
-        clOsalCondWait(&pSendRecord->recType.syncRec.syncCond,
-                       pRmdObject->semaForSendHashTable, condTsTimeout);
+            clOsalCondWait(&pSendRecord->recType.syncRec.syncCond,
+                           pRmdObject->semaForSendHashTable, condTsTimeout);
         if (retVal == CL_OK)
         {
             retVal = pSendRecord->recType.syncRec.retVal;
 
             retCode =
-            clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle,
-                                      (ClPtrT)(ClWordT)nwMsgId);
+                clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle,
+                                          (ClPtrT)(ClWordT)nwMsgId);
             CL_ASSERT(retCode == CL_OK);
             retCode = clOsalMutexUnlock(pRmdObject->semaForSendHashTable);
             CL_ASSERT(retCode == CL_OK);
