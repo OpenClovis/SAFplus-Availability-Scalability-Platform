@@ -666,7 +666,7 @@ fi
 
 # Source our project area config file and target.conf
 
-source $PROJECT_ROOT/.config
+source $PROJECT_ROOT/.openclovis.conf
 source $MODEL_PATH/target.conf
 
 # don't continue if we don't need to
