@@ -2493,6 +2493,7 @@ clAmsPeNodeHasLeftCluster(
     ClNameT *csiRemoveReplayNode = NULL;
     ClAmsInvocationT *pInvocations = NULL;
     ClInt32T numInvocations = 0;
+    ClUint32T switchoverMode = CL_AMS_ENTITY_SWITCHOVER_FAST;
 
     AMS_OP_INCR(&gAms.ops);
 
@@ -2592,8 +2593,11 @@ clAmsPeNodeHasLeftCluster(
 
     }
 
+    if(scFailover)
+        switchoverMode |= CL_AMS_ENTITY_SWITCHOVER_CONTROLLER;
+
     AMS_CHECK_RC_ERROR ( clAmsPeNodeSwitchoverWork(node, 
-                                                   CL_AMS_ENTITY_SWITCHOVER_FAST | CL_AMS_ENTITY_SWITCHOVER_CONTROLLER) );
+                                                   switchoverMode) );
     
     exitfn:
     return CL_OK;
