@@ -35,6 +35,11 @@
 #   target model dir    - base directory of destination dir
 #   architecture name   - e.g. i386, i686, ppc
 #   system name         - linux version.  e.g. linux-2.6.14
+#   stripped            - whether to strip images or not. default unstripped
+strip_image="0"
+if [ $# -eq 1 ]; then
+    strip_image="$1"
+fi
 populate_image() {
     if [ $# -ne 4 ]
     then
@@ -181,6 +186,13 @@ populate_image() {
 
     if [ -d ${SOURCE_MODEL}/scripts ]; then
         ${INSTALL} $exe_flags ${SOURCE_MODEL}/scripts/* $imagedir/bin
+    fi
+
+    ## check if we are supposed to strip 
+    if [ "$strip_image" -ne "0" ]; then
+        echo "  Stripping the libraries and binaries..."
+        strip ${ASP_STRIP_ARGS} $imagedir/lib/* 2>/dev/null
+        strip ${ASP_STRIP_ARGS} $imagedir/bin/* 2>/dev/null
     fi
 
     ${INSTALL} $exe_flags $CLOVIS_ROOT/ASP/build/base-images/scripts/asp_run $imagedir/bin

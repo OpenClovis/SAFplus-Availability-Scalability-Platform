@@ -578,9 +578,13 @@ binary:
 # create run-time images from binaries
 ################################################################################
 .PHONY: base-images
+ifeq ($(STRIP), 1)
 base-images:
-	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/base-images/scripts/base-images.sh
-
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/base-images/scripts/base-images.sh 1
+else
+base-images:
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/base-images/scripts/base-images.sh 0
+endif
 ################################################################################
 # prerequisites
 # populate run-time images with 3rd party prerequisites
@@ -612,7 +616,7 @@ post-images:
 # Create the complete images system conditioned on target.conf settings and
 # using the above make targets
 ################################################################################
-.PHONY: images
+.PHONY: images images-stripped
 images:
 ifeq ($(TARGET_QNX), 1)
 	@ make base-images
@@ -636,6 +640,9 @@ else
 endif
 
 endif
+
+images-stripped:
+	@ make images STRIP=1
 
 ################################################################################
 # asp-libs
@@ -687,6 +694,7 @@ help:
 	@echo  '                    file are configured to complete this step.'
 	@echo  '                    Currently configured location of this file is:'
 	@echo  '                    $(MODEL_PATH)/target.conf'
+	@echo  '  images-stripped - Create run-time images with stripped binaries and libraries.'
 	@echo  ''
 	@echo  'Architecture specific targets:'
 	@echo  '  [coming soon]'
