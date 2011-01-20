@@ -174,7 +174,9 @@ static ClRcT iocUserFragmentReceive(ClBufferHandleT *pOrigMsg,
 static ClRcT __iocUserFragmentReceive(ClUint8T *pBuffer,
                                       ClTipcFragHeaderT *userHdr,
                                       ClIocPortT portId,
-                                      ClUint32T length) __attribute__((unused));
+                                      ClUint32T length,
+                                      ClBufferHandleT msg,
+                                      ClBoolT sync) __attribute__((unused));
 static ClRcT userReassemblyTimer(void *data);
 static ClRcT iocUserReassemblePacket(ClBufferHandleT *pOrigMsg,
         ClCntNodeHandleT nodeHandle,
@@ -1999,9 +2001,10 @@ static ClRcT internalSendSlow(ClTipcCommPortT *pTipcCommPort,
     return rc;
 }
 
-ClRcT clIocReceive(ClIocCommPortHandleT commPortHdl,
-                   ClIocRecvOptionT *pRecvOption,
-                   ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
+static ClRcT __clIocReceive(ClIocCommPortHandleT commPortHdl,
+                            ClIocRecvOptionT *pRecvOption,
+                            ClBufferHandleT message, ClIocRecvParamT *pRecvParam, 
+                            ClBoolT sync)
 {
     ClUint32T timeout;
     ClRcT rc = CL_OK;
@@ -2250,7 +2253,7 @@ ClRcT clIocReceive(ClIocCommPortHandleT commPortHdl,
                        userFragHeader.fragOffset, userFragHeader.fragLength, bytes);
 
         rc = __iocUserFragmentReceive(pBuffer, &userFragHeader, 
-                                      pTipcCommPort->portId, bytes);
+                                      pTipcCommPort->portId, bytes, message, sync);
 #endif
         /*
          * recalculate timeouts
@@ -2290,6 +2293,20 @@ ClRcT clIocReceive(ClIocCommPortHandleT commPortHdl,
 
     out:
     return rc;
+}
+
+ClRcT clIocReceive(ClIocCommPortHandleT commPortHdl,
+                   ClIocRecvOptionT *pRecvOption,
+                   ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
+{
+    return __clIocReceive(commPortHdl, pRecvOption, message, pRecvParam, CL_TRUE);
+}
+
+ClRcT clIocReceiveAsync(ClIocCommPortHandleT commPortHdl,
+                        ClIocRecvOptionT *pRecvOption,
+                        ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
+{
+    return __clIocReceive(commPortHdl, pRecvOption, message, pRecvParam, CL_FALSE);
 }
 
 ClRcT clIocCommPortModeGet(ClIocCommPortHandleT iocCommPort,
@@ -2631,14 +2648,23 @@ static ClRcT __iocReassembleTimer(void *key)
     return CL_OK;
 }
 
-static ClRcT __iocReassembleDispatch(ClIocReassembleNodeT *node, ClTipcFragHeaderT *fragHeader)
+static ClRcT __iocReassembleDispatch(ClIocReassembleNodeT *node, ClTipcFragHeaderT *fragHeader, 
+                                     ClBufferHandleT message, ClBoolT sync)
 {
     ClBufferHandleT msg = 0;
     ClRcT rc = CL_OK;
+    ClRcT retCode = CL_IOC_RC(IOC_MSG_QUEUED);
     ClRbTreeT *iter = NULL;
     ClUint32T len = 0;
-    rc = clBufferCreate(&msg);
-    CL_ASSERT(rc == CL_OK);
+    if(message)
+    {
+        msg = message;
+    }
+    else
+    {
+        rc = clBufferCreate(&msg);
+        CL_ASSERT(rc == CL_OK);
+    }
     while( (iter = clRbTreeMin(&node->reassembleTree)) )
     {
         ClIocFragmentNodeT *fragNode = CL_RBTREE_ENTRY(iter, ClIocFragmentNodeT, tree);
@@ -2654,9 +2680,12 @@ static ClRcT __iocReassembleDispatch(ClIocReassembleNodeT *node, ClTipcFragHeade
     clBufferLengthGet(msg, &len);
     if(!len)
     {
-        clBufferDelete(&msg);
+        if(!message)
+        {
+            clBufferDelete(&msg);
+        }
     }
-    else
+    else if(!sync)
     {
         /*
          * Call the EO job queue handler here.
@@ -2669,14 +2698,22 @@ static ClRcT __iocReassembleDispatch(ClIocReassembleNodeT *node, ClTipcFragHeade
         rc = clEoEnqueueReassembleJob(msg, &recvParam);
         if(rc != CL_OK)
         {
-            clBufferDelete(&msg);
+            if(!message)
+            {
+                clBufferDelete(&msg);
+            }
         }
     }
+    else
+    {
+        /* sync. reassemble success */
+        retCode = CL_OK; 
+    }
     clHeapFree(node);
-    return rc;
+    return retCode;
 }
 
-static ClRcT __iocFragmentCallback(ClPtrT job)
+static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT sync)
 {
     ClIocReassembleKeyT key = {0};
     ClIocReassembleNodeT *node = NULL;
@@ -2684,7 +2721,8 @@ static ClRcT __iocFragmentCallback(ClPtrT job)
     ClIocFragmentNodeT *fragmentNode = NULL;
     ClUint8T flag = 0;
     ClRcT rc = CL_OK;
-    clOsalMutexLock(&iocReassembleLock);
+    ClRcT retCode = CL_IOC_RC(IOC_MSG_QUEUED);
+
     flag = fragmentJob->fragHeader.header.flag;
     key.fragId = fragmentJob->fragHeader.msgId;
     key.destAddr.nodeAddress = gIocLocalBladeAddress;
@@ -2729,7 +2767,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job)
     {
         if(fragmentNode->fragOffset + fragmentNode->fragLength == node->currentLength)
         {
-            __iocReassembleDispatch(node, &fragmentJob->fragHeader);
+            retCode = __iocReassembleDispatch(node, &fragmentJob->fragHeader, message, sync);
         }
         else
         {
@@ -2744,7 +2782,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job)
     }
     else if(node->currentLength == node->expectedLength)
     {
-        __iocReassembleDispatch(node, &fragmentJob->fragHeader);
+        retCode = __iocReassembleDispatch(node, &fragmentJob->fragHeader, message, sync);
     }
     else
     {
@@ -2760,15 +2798,25 @@ static ClRcT __iocFragmentCallback(ClPtrT job)
             clTimerUpdate(node->reassembleTimer, userReassemblyTimerExpiry);
         }
     }
-    clOsalMutexUnlock(&iocReassembleLock);
     clHeapFree(job);
+    return retCode;
+}
+
+static ClRcT iocFragmentCallback(ClPtrT job)
+{
+    ClRcT rc = CL_OK;
+    clOsalMutexLock(&iocReassembleLock);
+    rc = __iocFragmentCallback(job, 0, CL_FALSE);
+    clOsalMutexUnlock(&iocReassembleLock);
     return rc;
 }
 
 static ClRcT __iocUserFragmentReceive(ClUint8T *pBuffer,
                                       ClTipcFragHeaderT *userHdr,
                                       ClIocPortT portId,
-                                      ClUint32T length)
+                                      ClUint32T length,
+                                      ClBufferHandleT message,
+                                      ClBoolT sync)
 {
     ClIocFragmentJobT *job = clHeapCalloc(1, sizeof(*job));
     ClUint8T *buffer = NULL;
@@ -2781,10 +2829,18 @@ static ClRcT __iocUserFragmentReceive(ClUint8T *pBuffer,
     memcpy(&job->fragHeader, userHdr, sizeof(job->fragHeader));
     job->portId = portId;
     job->length = length;
-    rc = clJobQueuePush(&iocFragmentJobQueue, __iocFragmentCallback, (ClPtrT)job);
-    if(rc != CL_OK)
-        return rc;
-    return CL_IOC_RC(IOC_MSG_QUEUED);
+    if(!sync)
+    {
+        rc = clJobQueuePush(&iocFragmentJobQueue, iocFragmentCallback, (ClPtrT)job);
+        if(rc != CL_OK)
+            return rc;
+        rc = CL_IOC_RC(IOC_MSG_QUEUED);
+    }
+    else
+    {
+        rc = __iocFragmentCallback((ClPtrT)job, message, CL_TRUE);
+    }
+    return rc;
 }
 
 /*************************************************************************

@@ -3628,7 +3628,7 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
         /*
          * Block on this to recv message 
          */
-        rc = clIocReceive(pThis->commObj, &recvOption, eoRecvMsg, &recvParam);
+        rc = clIocReceiveAsync(pThis->commObj, &recvOption, eoRecvMsg, &recvParam);
         priority = recvParam.priority;
         srcAddr.nodeAddress = recvParam.srcAddr.iocPhyAddress.nodeAddress;
         srcAddr.portId = recvParam.srcAddr.iocPhyAddress.portId;
