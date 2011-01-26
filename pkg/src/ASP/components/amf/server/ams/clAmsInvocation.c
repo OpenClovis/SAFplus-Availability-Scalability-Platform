@@ -1069,8 +1069,6 @@ clAmsInvocationListDelete(
  * Delete all the invocation entries in a list.
  */
 
-// XXX This is not used currently?
-
 ClRcT
 clAmsInvocationListDeleteAllInvocations(
         ClCntHandleT  listHandle)

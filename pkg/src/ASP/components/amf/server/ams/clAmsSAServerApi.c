@@ -1866,7 +1866,9 @@ _clAmsSAStateChangeActive2Standby(
 
     clOsalMutexLock(gAms.mutex);
 
-    clAmsCkptWrite(&gAms,CL_AMS_CKPT_WRITE_ALL);
+    clAmsCkptWriteSync(&gAms,CL_AMS_CKPT_WRITE_ALL);
+
+    clAmsInvocationListDeleteAllInvocations(gAms.invocationList);
 
     clAmsDbTerminate(&gAms.db);
 
