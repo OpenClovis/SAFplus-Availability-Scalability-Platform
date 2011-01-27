@@ -1509,7 +1509,8 @@ clAmsPeSURemoveStandbyMPlusN(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMod
     ClUint32T numOtherSIs = 0;
     ClUint32T i = 0;
     ClAmsEntityRemoveOpT removeOp = {{0}};
-
+    ClAmsEntityRemoveOpT *pendingRemoveOp = NULL;
+    
     if(!sg || !su || !activeSU || !reassignWork) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
 
     *activeSU = NULL;
@@ -1558,12 +1559,14 @@ clAmsPeSURemoveStandbyMPlusN(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMod
              */
             if(standbySU->status.entity.opStack.numOps > 0 
                && 
-               clAmsEntityOpPending(&standbySU->config.entity, &standbySU->status.entity, CL_AMS_ENTITY_OP_REMOVE_MPLUSN))
+               clAmsEntityOpGet(&standbySU->config.entity, &standbySU->status.entity, 
+                                CL_AMS_ENTITY_OP_REMOVE_MPLUSN, (void**)&pendingRemoveOp, NULL) == CL_OK)
 
             {
                 clLogNotice("SI", "REPLAY", "Standby SU [%s] has [%d] pending ops. Mode [%#x]", 
                             standbySU->config.entity.name.value, standbySU->status.entity.opStack.numOps,
                             switchoverMode);
+                *activeSU = standbySU;
                 if( (switchoverMode & CL_AMS_ENTITY_SWITCHOVER_CONTROLLER) )
                 {
                     clLogNotice("SI", "REPLAY", 
@@ -1571,8 +1574,19 @@ clAmsPeSURemoveStandbyMPlusN(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMod
                                 "[%s]", standbySU->config.entity.name.value);
                     clAmsEntityOpClear(&standbySU->config.entity, &standbySU->status.entity, 
                                        CL_AMS_ENTITY_OP_REMOVE_MPLUSN, NULL, NULL);
-                    *activeSU = standbySU;
                     *reassignWork = CL_TRUE;
+                }
+                /*
+                 * If the standby SU has a pending remove OP for another SU, then bail this SU out
+                 */
+                if(strncmp((const ClCharT*)pendingRemoveOp->entity.name.value,
+                            (const ClCharT*)su->config.entity.name.value,
+                            su->config.entity.name.length))
+                {
+                    clLogNotice("SI", "REPLAY", "Standby SU [%s] has pending removes against active SU [%s]. "
+                                "Skipping reassign for SU [%s]", standbySU->config.entity.name.value,
+                                pendingRemoveOp->entity.name.value, su->config.entity.name.value);
+                    *activeSU = NULL;
                 }
                 goto out_free;
             }

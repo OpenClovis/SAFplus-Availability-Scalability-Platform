@@ -1385,6 +1385,41 @@ clAmsPeSGFindSIForActiveAssignment(
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
     if (*targetSI) lookAfter = *targetSI;
+
+    /*
+     * For SI preference loading strategy, try to find the SI which has an assignable preferred SU first
+     */
+    if(!sg->config.autoAdjust && sg->config.loadingStrategy == CL_AMS_SG_LOADING_STRATEGY_BY_SI_PREFERENCE)
+    {
+        for (entityRef = clAmsEntityListGetFirst(&sg->config.siList);
+             entityRef !=  NULL;
+             entityRef = clAmsEntityListGetNext(&sg->config.siList, entityRef)) 
+        {
+            ClAmsEntityRefT *suRef;
+            ClAmsSIT *si = (ClAmsSIT*)entityRef->ptr;
+            AMS_CHECK_SI(si);
+            if(lookAfter == si) continue;
+            if(clAmsPeSIIsActiveAssignable(si) != CL_OK)
+                continue;
+            for(suRef = clAmsEntityListGetFirst(&si->config.suList);
+                suRef != NULL;
+                suRef = clAmsEntityListGetNext(&si->config.suList, suRef))
+            {
+                ClAmsSUT *su = (ClAmsSUT*)suRef->ptr;
+                if(clAmsPeSUIsAssignable(su) != CL_OK) 
+                    continue;
+                if(su->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE)
+                    continue;
+                if(su->status.numStandbySIs || su->status.numQuiescedSIs)
+                    continue;
+                if(su->status.numActiveSIs >= sg->config.maxActiveSIsPerSU)
+                    continue;
+                *targetSI = si;
+                return CL_OK;
+            }
+        }
+        lookAfter = NULL;
+    }
     
     *targetSI = NULL;
 
@@ -7695,9 +7730,12 @@ clAmsPeSUSwitchoverCallback(
             /*
              * if reassign work is false, we have an entity op pending.
              */
-            clLogInfo("SU", "SWITCHOVER", "Deferring SU switchover till standby assignment "
-                      "is removed from SU [%s]", activeSU ? activeSU->config.entity.name.value : "None");
-            return CL_OK;
+            if(activeSU)
+            {
+                clLogInfo("SU", "SWITCHOVER", "Deferring SU switchover till standby assignment "
+                          "is removed from SU [%s]", activeSU->config.entity.name.value);
+                return CL_OK;
+            }
         }
 
 #if 0
