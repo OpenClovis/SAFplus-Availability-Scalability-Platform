@@ -8844,7 +8844,12 @@ clAmsPeSURemoveSI(
 
         AMS_CHECK_CSI ( csi );
         
-        if(csi->config.csiDependentsList.numEntities > 0 
+        /*
+         * No need to skip dependencies on switchover mode of fast.
+         */
+        if(!(switchoverMode & CL_AMS_ENTITY_SWITCHOVER_FAST)
+           &&
+           csi->config.csiDependentsList.numEntities > 0 
            &&
            clAmsPeCheckCSIDependentsAssigned(su, csi))
             continue;
@@ -11648,7 +11653,7 @@ clAmsPeCompComputeSwitchoverMode(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n", comp->config.entity.name.value) );
 
-    computedSwitchoverMode = *switchoverMode & ( CL_AMS_ENTITY_SWITCHOVER_REPLAY | CL_AMS_ENTITY_SWITCHOVER_CONTROLLER);
+    computedSwitchoverMode = *switchoverMode;
 
     if ( node->status.isClusterMember == CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER 
          &&
@@ -11693,6 +11698,9 @@ clAmsPeCompComputeSwitchoverMode(
     {
         computedSwitchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;   
     }
+
+    if( (computedSwitchoverMode & CL_AMS_ENTITY_SWITCHOVER_FAST) )
+        computedSwitchoverMode &= ~(CL_AMS_ENTITY_SWITCHOVER_GRACEFUL | CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE);
 
     *switchoverMode = computedSwitchoverMode;
 
