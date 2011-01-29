@@ -2340,11 +2340,11 @@ ClRcT clAmsPeSISwapMPlusN(ClAmsSIT *si, ClAmsSGT *sg)
     for(i = 0; i < numSwapSIs; ++i)
     {
         ClAmsSIT *targetSI = swapSIList[i];
-        clLogError("SI", "OP-SWAP", "SI swap - SI [%.*s] standby assignment to SU [%.*s]",
-                   targetSI->config.entity.name.length-1,
-                   targetSI->config.entity.name.value, 
-                   activeSU->config.entity.name.length-1,
-                   activeSU->config.entity.name.value);
+        clLogNotice("SI", "OP-SWAP", "SI swap - SI [%.*s] standby assignment to SU [%.*s]",
+                    targetSI->config.entity.name.length-1,
+                    targetSI->config.entity.name.value, 
+                    activeSU->config.entity.name.length-1,
+                    activeSU->config.entity.name.value);
 
         if( (rc = clAmsPeSUAssignSI(activeSU, targetSI, CL_AMS_HA_STATE_STANDBY)) != CL_OK)
         {
