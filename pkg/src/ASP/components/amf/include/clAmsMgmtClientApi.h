@@ -3301,6 +3301,17 @@ extern ClRcT clAmsMgmtGetCompCSIList(
         CL_IN   ClAmsEntityT    *comp,
         CL_OUT  ClAmsCompCSIRefBufferT  *csiBuffer);
 
+ClRcT clAmsMgmtGetSIHAState(ClAmsMgmtHandleT handle,
+                            const ClCharT *si,
+                            const ClCharT *su,
+                            ClAmsHAStateT *haState,
+                            ClBoolT *fullyAssigned);
+
+ClRcT clAmsMgmtGetSUHAState(ClAmsMgmtHandleT handle,
+                            const ClCharT *su,
+                            ClBoolT checkAllSIs,
+                            ClAmsHAStateT *haState,
+                            ClBoolT *fullyAssigned);
 
 /**
  *
