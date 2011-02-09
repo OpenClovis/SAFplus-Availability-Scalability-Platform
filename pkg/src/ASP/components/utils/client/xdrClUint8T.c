@@ -120,10 +120,22 @@ ClRcT clXdrMarshallArrayClUint8T(void* pPyld, ClUint32T count, ClBufferHandleT m
     if (NULL == pPyld)
     {
         CL_XDR_EXIT()
-        return CL_XDR_RC(CL_ERR_NULL_POINTER);
+            return CL_XDR_RC(CL_ERR_NULL_POINTER);
     }
     if( msg != 0)
+    {
+#if 0
+        rc = clBufferNBytesWrite(msg, (ClUint8T*)pPyld, count);
+#else
+        /*
+         * Try stiching the chunk to the buffer. In case of failure, dup.
+         */
+        if(clBufferAppendHeap(msg, (ClUint8T*)pPyld, count) != CL_OK)
+        {
             rc = clBufferNBytesWrite(msg, (ClUint8T*)pPyld, count);
+        }
+#endif
+    }
     CL_XDR_EXIT()
     return rc;
 }

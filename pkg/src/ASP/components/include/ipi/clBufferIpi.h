@@ -77,6 +77,7 @@
 /*
   This is the header thats associated with each buffer
  */
+#define CL_BUFFER_HEAP_MARKER ( (ClPtrT)(ClWordT)0x4321 )
 typedef struct ClBufferHeader {
     ClUint32T startOffset; /* data start */
     ClUint32T dataLength; /* data end */
@@ -100,6 +101,8 @@ typedef struct ClBufferCtrlHeader {
     ClBufferHeaderT *pCurrentWriteBuffer;
     ClUint32T currentReadOffset;
     ClUint32T currentWriteOffset;
+    ClUint32T refCnt;
+    struct ClBufferCtrlHeader *parent;
 } ClBufferCtrlHeaderT;
 
 #endif

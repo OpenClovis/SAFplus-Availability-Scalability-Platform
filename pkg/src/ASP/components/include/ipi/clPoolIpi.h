@@ -109,6 +109,7 @@ clPoolStartGet(CL_IN void *pCookie,CL_OUT void **ppAddress);
 /************************************************************************/
 ClRcT clPoolDestroyForce( CL_IN ClPoolT poolHandle );
 /************************************************************************/
+ClRcT clHeapReferenceLargeChunk(ClPtrT chunk, ClUint32T size);
 
 #ifdef __cplusplus
 }

@@ -835,12 +835,23 @@ clBMBufferChainFree(ClBufferCtrlHeaderT *pCtrlHeader,
         ClUint32T chunkSize = pTemp->chunkSize;
         ClPtrT cookie = pTemp->pCookie;
         pNext = pTemp->pNextBufferHeader;
-        rc = gClBufferFromPoolFree((ClUint8T*)pTemp, chunkSize, cookie);
-        if(rc != CL_OK)
+        if(pTemp->pool == CL_BUFFER_HEAP_MARKER)
         {
-            clLogError("CHAIN", "FREE", 
-                       "Freeing buffer [%p] of size [%d] returned [%#x]",
-                       (ClPtrT)pTemp, chunkSize, rc);
+            /*
+             * Its a sticky heap chain
+             */
+            clHeapFree(pTemp->pCookie);
+            clHeapFree(pTemp);
+        }
+        else
+        {
+            rc = gClBufferFromPoolFree((ClUint8T*)pTemp, chunkSize, cookie);
+            if(rc != CL_OK)
+            {
+                clLogError("CHAIN", "FREE", 
+                           "Freeing buffer [%p] of size [%d] returned [%#x]",
+                           (ClPtrT)pTemp, chunkSize, rc);
+            }
         }
     }
 
@@ -848,6 +859,7 @@ clBMBufferChainFree(ClBufferCtrlHeaderT *pCtrlHeader,
     {
         ClUint32T chunkSize = pBufferHeader->chunkSize;
         ClPtrT cookie = pBufferHeader->pCookie;
+        CL_ASSERT(pBufferHeader->pool != CL_BUFFER_HEAP_MARKER);
         rc = gClBufferFromPoolFree((ClUint8T*)pCtrlHeader, chunkSize, cookie);
         if(rc != CL_OK)
         {
@@ -903,13 +915,21 @@ clBMBufferChainFree(ClBufferCtrlHeaderT *pCtrlHeader,
                                           pCtrlHeader->length
                                           );
         }
-	    /* Free the byte buffer attached to the current buffer header */
-        rc = gClBufferFromPoolFree(pFreeAddress,pTemp->chunkSize,pTemp->pCookie);
-
-        if(rc != CL_OK)
+        if(pTemp->pool == CL_BUFFER_HEAP_MARKER)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in freeing buffer:%p\n",(ClPtrT)pFreeAddress));
-            goto out;
+            clHeapFree(pTemp->pCookie);
+            clHeapFree(pTemp);
+        }
+        else
+        {
+            /* Free the byte buffer attached to the current buffer header */
+            rc = gClBufferFromPoolFree(pFreeAddress,pTemp->chunkSize,pTemp->pCookie);
+
+            if(rc != CL_OK)
+            {
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in freeing buffer:%p\n",(ClPtrT)pFreeAddress));
+                goto out;
+            }
         }
         if(ctrlHeaderSize > 0 )
         {
@@ -1354,8 +1374,14 @@ clBMBufferNBytesWrite(ClBufferCtrlHeaderT *pCtrlHeader,
         remainingSpace = pBufferHeader->actualLength - writeOffset;
         remainingSpace = CL_MIN(remainingSpace,remainingBytes);
 
-        pCopyLocation = (ClUint8T*)((ClUint8T*)pBufferHeader + writeOffset);
-
+        if(pBufferHeader->pool == CL_BUFFER_HEAP_MARKER)
+        {
+            pCopyLocation = pBufferHeader->pCookie;
+        }
+        else
+        {
+            pCopyLocation = (ClUint8T*)((ClUint8T*)pBufferHeader + writeOffset);
+        }
         memcpy(pCopyLocation, pTemp, remainingSpace);
         writeOffset += remainingSpace;
         /*update the current write offset*/
@@ -1416,8 +1442,15 @@ clBMBufferNBytesRead(ClBufferCtrlHeaderT *pCtrlHeader,
     do {
         ClUint8T* pTemp;
         ClInt32T bytesRead;
-
-        pTemp = (ClUint8T*)pBufferHeader + readOffset;
+        
+        if(pBufferHeader->pool == CL_BUFFER_HEAP_MARKER)
+        {
+            pTemp = pBufferHeader->pCookie;
+        }
+        else
+        {
+            pTemp = (ClUint8T*)pBufferHeader + readOffset;
+        }
         bytesRead = pBufferHeader->dataLength - readOffset;
         bytesRead = CL_MIN(bytesRead,bytesRemaining);
 
@@ -2272,8 +2305,16 @@ static ClRcT clBMBufferVectorize(ClBufferHeaderT *pBufferHeader,
     numVectors = 0;
     for(pTemp = pBufferHeader; pTemp; pTemp = pTemp->pNextBufferHeader)
     {
-        pIOVector[numVectors].iov_base = (ClPtrT)((ClUint8T*)pTemp + pTemp->startOffset);
-        pIOVector[numVectors].iov_len = pTemp->dataLength - pTemp->startOffset;
+        if(pTemp->pool == CL_BUFFER_HEAP_MARKER)
+        {
+            pIOVector[numVectors].iov_base = pTemp->pCookie;
+            pIOVector[numVectors].iov_len =  pTemp->chunkSize;
+        }
+        else
+        {
+            pIOVector[numVectors].iov_base = (ClPtrT)((ClUint8T*)pTemp + pTemp->startOffset);
+            pIOVector[numVectors].iov_len = pTemp->dataLength - pTemp->startOffset;
+        }
         ++numVectors;
     }
     *ppIOVector = pIOVector;
@@ -3307,6 +3348,96 @@ clBufferToBufferCopy(ClBufferHandleT source, ClUint32T sourceOffset, ClBufferHan
     return(CL_OK);
 }
 
+/*
+ * Just append an existing heap buffer into the chain. This should be a fast way of merging in large
+ * buffers during the IDL/XDR marshall step over duplicating large heaps slowing down performance
+ * The heap buffer is expected to be a large chunk on the heap to avoid compromising on heap performance
+ */
+ClRcT
+clBufferAppendHeap (ClBufferHandleT source, ClUint8T *buffer, ClUint32T size)
+{
+    ClRcT errorCode = CL_OK;
+    ClBufferCtrlHeaderT* pCtrlHeader = NULL;
+    ClBufferHeaderT* pBufferHeader = NULL;
+
+    CL_FUNC_ENTER();
+
+    if(gBufferManagementInfo.isInitialized == CL_FALSE) 
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
+        CL_FUNC_EXIT();
+        return(errorCode);
+    }
+
+    if(!buffer)
+    {
+        errorCode = CL_BUFFER_RC(CL_ERR_INVALID_PARAMETER);
+        CL_FUNC_EXIT();
+        return errorCode;
+    }
+
+    /*
+     * IDL/XDR sometimes passes it. So ignore.
+     */
+    if(!size)
+    {
+        CL_FUNC_EXIT();
+        return CL_OK;
+    }
+
+    pCtrlHeader = (ClBufferCtrlHeaderT *)source;
+    NULL_CHECK(pCtrlHeader);
+
+    BUFFER_VALIDITY_CHECK(pCtrlHeader);
+
+    if(pCtrlHeader->refCnt > 1 || pCtrlHeader->parent)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Can't append a heap chain to a cloned buffer\n"));
+        errorCode = CL_BUFFER_RC(CL_ERR_NOT_SUPPORTED);
+        CL_FUNC_EXIT();
+        return errorCode;
+    }
+    if(!pCtrlHeader->pCurrentWriteBuffer)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Can't append a heap chain without a write buffer\n"));
+        errorCode = CL_BUFFER_RC(CL_ERR_INVALID_STATE);
+        CL_FUNC_EXIT();
+        return errorCode;
+    }
+    /*
+     * Check if the appended heap buffer is a large chunk.
+     */
+    if( ( errorCode = clHeapReferenceLargeChunk((ClPtrT)buffer, size) ) != CL_OK)
+    {
+        CL_FUNC_EXIT();
+        return errorCode;
+    }
+
+    /*
+     * Create a new buffer header to hold the heap. reference
+     */
+    pBufferHeader = (ClBufferHeaderT*)clHeapCalloc(1, sizeof(*pBufferHeader));
+    CL_ASSERT(pBufferHeader != NULL);
+
+    pBufferHeader->readOffset = pBufferHeader->startOffset = 0;
+    pBufferHeader->dataLength  = size;
+    pBufferHeader->actualLength = pBufferHeader->dataLength;
+    pBufferHeader->chunkSize = size;
+    pBufferHeader->pCookie = (void*)buffer;
+    pBufferHeader->pool = CL_BUFFER_HEAP_MARKER; /* note that its a heap chain */
+    pBufferHeader->pNextBufferHeader = pCtrlHeader->pCurrentWriteBuffer->pNextBufferHeader;
+    pBufferHeader->pPreviousBufferHeader = pCtrlHeader->pCurrentWriteBuffer;
+    pCtrlHeader->pCurrentWriteBuffer->pNextBufferHeader = pBufferHeader;
+    pCtrlHeader->pCurrentWriteBuffer = pBufferHeader;
+    pCtrlHeader->currentWriteOffset += size;
+    pCtrlHeader->length += size;
+    pBufferHeader->writeOffset = pBufferHeader->dataLength;
+
+    CL_FUNC_EXIT();
+    return(CL_OK);
+}
+
 ClRcT
 clBufferClone (ClBufferHandleT source, ClBufferHandleT *pDuplicate)
 {
@@ -3330,13 +3461,14 @@ clBufferClone (ClBufferHandleT source, ClBufferHandleT *pDuplicate)
     NULL_CHECK(pDuplicate);
 
     pCtrlHeader = (ClBufferCtrlHeaderT *)source;
+    NULL_CHECK(pCtrlHeader);
+    BUFFER_VALIDITY_CHECK(pCtrlHeader);
+
     /*
      * Find the actual parent as we could also clone an already cloned source.
      */
     while(pCtrlHeader->parent)
         pCtrlHeader = pCtrlHeader->parent;
-
-    NULL_CHECK(pCtrlHeader);
 
     BUFFER_VALIDITY_CHECK(pCtrlHeader);
 

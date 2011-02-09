@@ -43,6 +43,7 @@
 #include <clHeapApi.h>
 #include <clEoIpi.h>
 #include <clUtilsIpi.h>
+#include <clRbTree.h>
 
 #ifdef VXWORKS_BUILD
 #include <clMemPart.h>
@@ -56,6 +57,11 @@
 #else
 #define CL_HEAP_OVERHEAD (sizeof (ClPtrT))
 #endif
+
+/*
+ * Track 1 MB allocations as a large chunk which can share references with buffer
+ */
+#define CL_HEAP_LARGE_CHUNK_SIZE (0<<10)
 
 #define CL_HEAP_SET_ADDRESS(address,overhead)               \
     (address) = (ClPtrT*) ((ClUint8T*)(address) + (overhead))
@@ -514,8 +520,24 @@ typedef struct
     ClMemStatsT memStats; /*heap stats go here*/
     ClOsalMutexT mutex;/*mutex for heap op.*/
     ClBoolT initialized;/*whether the pool system is initialized or not*/
+    ClUint32T numLargeChunks; /* count of large chunks */
+    ClRbTreeRootT largeChunkTree; /* heap allocation tracker for large chunks*/
 } ClHeapListT;
 
+struct ClHeapLargeChunk
+{
+    ClRbTreeT tree;
+    ClUint32T magic;
+    ClPtrT chunk; /* the chunk itself */
+    ClUint16T refCnt; /* 16 bit references are fine */
+} __attribute__((__aligned__(16)));
+
+#define CL_HEAP_LARGE_CHUNK_OVERHEAD ( sizeof(ClHeapLargeChunkT) )
+#define CL_HEAP_LARGE_CHUNK_MAGIC  (0x78563412)
+
+typedef struct ClHeapLargeChunk ClHeapLargeChunkT;
+
+static ClInt32T heapCmpLargeChunk(ClRbTreeT *, ClRbTreeT *);
 static ClPtrT (*gClHeapAllocate) ( ClUint32T size );
 static void   (*gClHeapFree) (ClPtrT);
 static ClPtrT (*gClHeapRealloc) ( ClPtrT,ClUint32T size );
@@ -1011,6 +1033,8 @@ clHeapLibInitialize(const ClHeapConfigT *pHeapConfig)
         goto out;
     }
 
+    clRbTreeInit(&gHeapList.largeChunkTree, heapCmpLargeChunk);
+    
     gClHeapCheckerRequired = clParseEnvBoolean("CL_HEAP_CHECKER");
     CL_HEAP_CHECKER_INITIALIZE;
 
@@ -1457,6 +1481,10 @@ void clHeapFenceFree(void *addr, ClUint32T bytes)
     return ;/*not supported for vxworks*/
 }
 
+ClRcT clHeapReferenceLargeChunk(ClPtrT addr, ClUint32T size)
+{
+    return CL_HEAP_RC(CL_ERR_NOT_SUPPORTED);
+}
 #else
 
 /*Faster here*/
@@ -1828,6 +1856,95 @@ static void heapFreePreAllocated(ClPtrT pAddress)
     }
 }
 
+static ClInt32T heapCmpLargeChunk(ClRbTreeT *chunk, ClRbTreeT *entry)
+{
+    ClHeapLargeChunkT *addedChunk = CL_RBTREE_ENTRY(chunk, ClHeapLargeChunkT, tree);
+    ClHeapLargeChunkT *presentChunk = CL_RBTREE_ENTRY(entry, ClHeapLargeChunkT, tree);
+    if(addedChunk->chunk > presentChunk->chunk )
+        return 1;
+    else if(addedChunk->chunk < presentChunk->chunk )
+        return -1;
+    return 0;
+}
+
+static ClPtrT heapAddLargeChunk(ClPtrT pAddress)
+{
+    ClHeapLargeChunkT *largeChunk = (ClHeapLargeChunkT*)pAddress;
+    memset(largeChunk, 0, sizeof(*largeChunk));
+    largeChunk->magic = CL_HEAP_LARGE_CHUNK_MAGIC;
+    largeChunk->refCnt = 1;
+    largeChunk->chunk = pAddress;
+    clOsalMutexLock(&gHeapList.mutex);
+    clRbTreeInsert(&gHeapList.largeChunkTree, &largeChunk->tree);
+    ++gHeapList.numLargeChunks;
+    clOsalMutexUnlock(&gHeapList.mutex);
+    return (ClPtrT)((ClUint8T*)pAddress + CL_HEAP_LARGE_CHUNK_OVERHEAD);
+}
+
+static ClRcT heapDeleteLargeChunk(ClPtrT pAddress)
+{
+    ClRcT rc = CL_OK;
+    ClHeapLargeChunkT *largeChunk = (ClHeapLargeChunkT*)pAddress;
+    clOsalMutexLock(&gHeapList.mutex);
+    if(largeChunk->magic == CL_HEAP_LARGE_CHUNK_MAGIC)
+    {
+        /*
+         * If the chunk has references, don't delete it yet.
+         */
+        if(!--largeChunk->refCnt)
+        {
+            clRbTreeDelete(&gHeapList.largeChunkTree, &largeChunk->tree);
+            memset(largeChunk, 0, sizeof(*largeChunk));
+            --gHeapList.numLargeChunks;
+        }
+        else rc = CL_ERR_INUSE;
+    }
+    else rc = CL_ERR_INVALID_STATE;
+    clOsalMutexUnlock(&gHeapList.mutex);
+    return rc;
+}
+
+ClRcT clHeapReferenceLargeChunk(ClPtrT pAddress, ClUint32T size)
+{
+    ClRcT rc = CL_OK;
+    ClHeapLargeChunkT chunkEntry = {{0}};
+    ClHeapLargeChunkT *largeChunk = NULL;
+    ClRbTreeT *pTreeChunk;
+    /*
+     * Only supported for native mode.
+     */
+    if(gClHeapAllocate != heapAllocateNative)
+        return CL_HEAP_RC(CL_ERR_NOT_SUPPORTED);
+
+    if(size < CL_HEAP_LARGE_CHUNK_SIZE)
+        return CL_HEAP_RC(CL_ERR_NOT_EXIST);
+    /*
+     * We trace the large chunk in the tree since we cannot assume that the chunk was allocated from heap.
+     */
+    chunkEntry.chunk =  ( (ClUint8T*)pAddress - CL_HEAP_OVERHEAD - CL_HEAP_LARGE_CHUNK_OVERHEAD );
+    clOsalMutexLock(&gHeapList.mutex);
+    pTreeChunk = clRbTreeFind(&gHeapList.largeChunkTree, &chunkEntry.tree);
+    if(!pTreeChunk)
+    {
+        rc = CL_HEAP_RC(CL_ERR_NOT_EXIST);
+        goto out_unlock;
+    }
+    largeChunk = CL_RBTREE_ENTRY(pTreeChunk, ClHeapLargeChunkT, tree);
+    if(largeChunk->magic != CL_HEAP_LARGE_CHUNK_MAGIC 
+       ||
+       !largeChunk->refCnt)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Large chunk at [%p] of size [%d] already freed\n", 
+                                           chunkEntry.chunk, size));
+        rc = CL_HEAP_RC(CL_ERR_INVALID_STATE);
+        goto out_unlock;
+    }
+    ++largeChunk->refCnt;
+    out_unlock:
+    clOsalMutexUnlock(&gHeapList.mutex);
+    return rc;
+}
+
 /*Include the hooks for system mode*/
 static
 ClPtrT
@@ -1835,8 +1952,17 @@ heapAllocateNative(
         ClUint32T size)
 {
     ClPtrT pAddress = NULL;
+    ClBoolT largeChunk = CL_FALSE;
+    ClUint32T overhead = CL_HEAP_OVERHEAD;
+
     /* Patch the size for system mode and check if we can allocate.  */
-    size += CL_HEAP_OVERHEAD;
+    if(size >= CL_HEAP_LARGE_CHUNK_SIZE)
+    {
+        largeChunk = CL_TRUE;
+        overhead += CL_HEAP_LARGE_CHUNK_OVERHEAD;
+    }
+
+    size += overhead;
 
     if(CL_HEAP_GRANT_SIZE(size) == CL_FALSE)
     {
@@ -1848,7 +1974,7 @@ heapAllocateNative(
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
         goto out;
     }
-
+    
     pAddress = malloc(size);
     if(pAddress == NULL)
     {
@@ -1859,8 +1985,18 @@ heapAllocateNative(
         goto out;
     }
 
+    /*
+     * Enable tracking/reference the chunk since we could stich this to a buffer
+     */
+    overhead = 0;
+    if(largeChunk)
+    {
+        pAddress = heapAddLargeChunk(pAddress);
+        overhead = CL_HEAP_LARGE_CHUNK_OVERHEAD;
+    }
+
     /*Zero off the contents till ASP is cured of its diseases*/
-    memset(pAddress,0,size);
+    memset(pAddress,0,size - overhead);
 
     /*Set the cookie for system mode here*/
     CL_HEAP_SET_NATIVE_COOKIE(pAddress,size);
@@ -1872,7 +2008,47 @@ heapAllocateNative(
 static ClPtrT heapReallocNative(ClPtrT pAddress,ClUint32T size)
 {
     ClPtrT pRetAddress = NULL;
-    size += CL_HEAP_OVERHEAD;
+    ClUint32T overhead = CL_HEAP_OVERHEAD;
+    ClBoolT largeChunk = CL_FALSE;
+    ClUint32T osize = 0;
+    if(pAddress)
+    {
+        ClHeapLargeChunkT *largeChunkEntry = NULL;
+        clHeapSizeGet((ClUint8T*)pAddress + CL_HEAP_OVERHEAD, &osize);
+        /*
+         * Check if largechunk already exists. and delete it from the tree since if realloc reallocates the chunk,
+         * we are fucked !!
+         */
+        if(osize >= CL_HEAP_LARGE_CHUNK_SIZE + CL_HEAP_LARGE_CHUNK_OVERHEAD + CL_HEAP_OVERHEAD)
+        {
+            pAddress = (ClPtrT)((ClUint8T*)pAddress - CL_HEAP_LARGE_CHUNK_OVERHEAD);
+            largeChunkEntry = (ClHeapLargeChunkT*)pAddress;
+            if(largeChunkEntry->magic != CL_HEAP_LARGE_CHUNK_MAGIC)
+            {
+                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Trying to realloc an invalid large chunk at [%p] of size [%d]\n",
+                                                   pAddress, osize));
+                goto out;
+            }
+            if(largeChunkEntry->refCnt > 1)
+            {
+                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Trying to realloc a large chunk at [%p] of size [%d] "
+                                                   "with [%d] references\n", 
+                                                   pAddress, osize, largeChunkEntry->refCnt));
+                goto out;
+            }
+            clOsalMutexLock(&gHeapList.mutex);
+            clRbTreeDelete(&gHeapList.largeChunkTree, &largeChunkEntry->tree);
+            memset(largeChunkEntry, 0, sizeof(*largeChunkEntry));
+            --gHeapList.numLargeChunks;
+            clOsalMutexUnlock(&gHeapList.mutex);
+        }
+    }
+    if(size >= CL_HEAP_LARGE_CHUNK_SIZE)
+    {
+        overhead += CL_HEAP_LARGE_CHUNK_OVERHEAD;
+        largeChunk = CL_TRUE;
+    }
+    size += overhead;
     if(CL_HEAP_GRANT_SIZE(size) == CL_FALSE)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("%d bytes realloc would exceed process wide limit\n",size));
@@ -1893,6 +2069,11 @@ static ClPtrT heapReallocNative(ClPtrT pAddress,ClUint32T size)
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
         goto out;
     }
+    if(largeChunk)
+    {
+            pRetAddress = heapAddLargeChunk(pRetAddress);
+    }
+
     CL_HEAP_SET_NATIVE_COOKIE(pRetAddress,size);
     out:
     return pRetAddress;
@@ -1902,8 +2083,14 @@ static ClPtrT heapCallocNative(ClUint32T chunk,ClUint32T chunkSize)
 {
     ClPtrT pAddress = NULL;
     ClUint32T size = chunk*chunkSize;
-
-    size += CL_HEAP_OVERHEAD;
+    ClBoolT largeChunk = CL_FALSE;
+    ClUint32T overhead = CL_HEAP_OVERHEAD;
+    if(size >= CL_HEAP_LARGE_CHUNK_SIZE)
+    {
+        overhead += CL_HEAP_LARGE_CHUNK_OVERHEAD;
+        largeChunk = CL_TRUE;
+    }
+    size += overhead;
     if(CL_HEAP_GRANT_SIZE(size) == CL_FALSE)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("%d bytes would exceed process upper limit\n",size));
@@ -1923,6 +2110,10 @@ static ClPtrT heapCallocNative(ClUint32T chunk,ClUint32T chunkSize)
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
         goto out;
     }
+    if(largeChunk)
+    {
+        pAddress = heapAddLargeChunk(pAddress);
+    }
     CL_HEAP_SET_NATIVE_COOKIE(pAddress,size);
     out:
     return pAddress;
@@ -1934,6 +2125,20 @@ static void heapFreeNative(ClPtrT pAddress)
     if(pAddress != NULL)
     {
         __CL_HEAP_GET_NATIVE_COOKIE(pAddress,size);
+        /*
+         * Check if its a large chunk.
+         */
+        if(size >= CL_HEAP_LARGE_CHUNK_SIZE + CL_HEAP_OVERHEAD + CL_HEAP_LARGE_CHUNK_OVERHEAD)
+        {
+            pAddress = (ClPtrT)((ClUint8T*)pAddress - CL_HEAP_LARGE_CHUNK_OVERHEAD);
+            /*
+             * If the large chunk has a reference, skip the free.
+             */
+            if(heapDeleteLargeChunk(pAddress) == CL_ERR_INUSE)
+            {
+                return;
+            }
+        }
         CL_HEAP_REVOKE_SIZE(size);
     }
     free(pAddress);

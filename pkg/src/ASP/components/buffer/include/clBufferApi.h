@@ -932,6 +932,12 @@ clBufferDuplicate (ClBufferHandleT messageHandle, ClBufferHandleT *pDuplicatedMe
 ClRcT
 clBufferClone (ClBufferHandleT source, ClBufferHandleT *pClone);
 
+/*
+ * Stich a heap allocated chunk to the buffer chain without duplication.
+ */
+ClRcT
+clBufferAppendHeap (ClBufferHandleT source, ClUint8T *buffer, ClUint32T size);
+
 /*****************************************************************************/
 
 /**
