@@ -118,7 +118,9 @@ ClUint8T clEoClientLibs[] = {
     CL_FALSE,            /* cli */
     CL_FALSE,            /* alarm */
     CL_TRUE,            /* debug */
-    CL_FALSE            /* gms */
+    CL_FALSE,            /* gms */
+    CL_FALSE            /* PM */
+
 };
 
 
