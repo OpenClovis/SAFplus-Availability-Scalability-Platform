@@ -639,7 +639,7 @@ eventDetailsToString(SaHpiEventT *event, SaHpiEntityPathT *epath)
 /* Event listener loop listens for the Events from the HPI */
 static ClRcT hpiEventProcessingLoop(void *ptr)
 {
-
+#define SAHPI_EVENT_TIMEOUT (2 * 1000 * 1000 * 1000LL) /* 2 seconds*/
     SaHpiRptEntryT rptentry ; 
     SaHpiRdrT        rdr;
     SaHpiEventT    event;
@@ -679,6 +679,7 @@ static ClRcT hpiEventProcessingLoop(void *ptr)
     while(! gClCmChassisMgrContext.platformInfo.stopEventProcessing )
     {
         /* Get the events from the Domain Event Table */
+#if 0
         if((error = _saHpiEventGet(sessionid, 
                             SAHPI_TIMEOUT_BLOCK,
                             &event, 
@@ -692,7 +693,25 @@ static ClRcT hpiEventProcessingLoop(void *ptr)
             _saHpiUnsubscribe( sessionid );
             return CL_CM_ERROR(CL_ERR_CM_HPI_ERROR);
         }
+#else
 
+        error = _saHpiEventGet(sessionid, 
+                               SAHPI_EVENT_TIMEOUT,
+                               &event, 
+                               &rdr,
+                               &rptentry,
+                               &qstatus);
+        if(error != SA_OK)
+        {
+            if(error == SA_ERR_HPI_TIMEOUT)
+                continue;
+            clLog(CL_LOG_CRITICAL, AREA_HPI, CTX_EVT,
+                "saHpiEventGet failed: %s", oh_lookup_error(error));
+            _saHpiUnsubscribe( sessionid );
+            return CL_CM_ERROR(CL_ERR_CM_HPI_ERROR);
+        }
+        
+#endif
 
         /* Check whether we lost any events due to queue filling */
         if( qstatus == SAHPI_EVT_QUEUE_OVERFLOW )
@@ -796,6 +815,8 @@ static ClRcT hpiEventProcessingLoop(void *ptr)
     
     _saHpiUnsubscribe( sessionid );
     return SA_OK;
+
+#undef SAHPI_EVENT_TIMEOUT
 }
 
 
