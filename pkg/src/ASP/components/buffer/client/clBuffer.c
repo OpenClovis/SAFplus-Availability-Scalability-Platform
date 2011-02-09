@@ -365,14 +365,20 @@ clBufferPoolNativeCacheInitialize(const ClBufferPoolConfigT *pBufferPoolConfig)
     ClRcT rc = CL_OK;
     ClInt32T i;
     clOsalMutexInit(&gBufferPoolNativeCacheMutex);
-    for(i = 0; i < pBufferPoolConfig->numPools; ++i)
+    /*
+     * Don't use the cache when running with valgrind
+     */
+    if(!getenv("ASP_VALGRIND_CMD"))
     {
-        ClPoolConfigT *pPoolConfig = pBufferPoolConfig->pPoolConfig + i;
-        ClInt32T j;
-        for(j = 0; j < CL_BUFFER_POOL_NATIVE_CACHE_SIZE; ++j)
+        for(i = 0; i < pBufferPoolConfig->numPools; ++i)
         {
-            ClUint8T *chunk = nativeChunkAlloc(pPoolConfig->chunkSize);
-            __bufferPoolNativeCacheAdd(chunk, pPoolConfig->chunkSize, CL_FALSE);
+            ClPoolConfigT *pPoolConfig = pBufferPoolConfig->pPoolConfig + i;
+            ClInt32T j;
+            for(j = 0; j < CL_BUFFER_POOL_NATIVE_CACHE_SIZE; ++j)
+            {
+                ClUint8T *chunk = nativeChunkAlloc(pPoolConfig->chunkSize);
+                __bufferPoolNativeCacheAdd(chunk, pPoolConfig->chunkSize, CL_FALSE);
+            }
         }
     }
     gBufferPoolNativeCacheLimit = gBufferPoolNativeCacheEntries;
@@ -2393,6 +2399,8 @@ clBufferCreateAndAllocate (ClUint32T size, ClBufferHandleT *pBufferHandle)
     pCtrlHeader = (ClBufferCtrlHeaderT *) ((char*)pFirstBufferHeader - 
                                            CL_BUFFER_OVERHEAD_CTRL);
 
+    pCtrlHeader->parent = NULL;
+    pCtrlHeader->refCnt = 1;
     pCtrlHeader->bufferValidity = BUFFER_VALIDITY;
     pCtrlHeader->pCurrentWriteBuffer = pFirstBufferHeader;
     pCtrlHeader->pCurrentReadBuffer = pFirstBufferHeader;
@@ -2436,10 +2444,43 @@ clBufferDelete (ClBufferHandleT *pBufferHandle)
             rc = CL_BUFFER_RC(CL_ERR_INVALID_HANDLE);
             if (pCtrlHeader->bufferValidity == BUFFER_VALIDITY)
             {
+                /*
+                 * If this buffer has references, don't delete the chain.
+                 */
+                --pCtrlHeader->refCnt;
+                if(pCtrlHeader->refCnt > 0)
+                {
+                    *pBufferHandle = 0;
+                    return CL_OK;
+                }
+                /*
+                 * Check if its a clone. and claim parent or decrement reference.
+                 */
+                if(pCtrlHeader->parent)
+                {
+                    --pCtrlHeader->parent->refCnt;
+                    if(!pCtrlHeader->parent->refCnt)
+                    {
+                        pCtrlHeader->parent->bufferValidity = 0;
+                        pBufferHeader = (ClBufferHeaderT*)((ClUint8T*)pCtrlHeader->parent + 
+                                                           CL_BUFFER_OVERHEAD_CTRL);
+                        pBufferHeader->pPreviousBufferHeader = NULL;
+                        rc = clBMBufferChainFree(pCtrlHeader->parent, pBufferHeader);
+                    }
+                }
                 pCtrlHeader->bufferValidity = 0;
                 pBufferHeader = (ClBufferHeaderT*)((ClUint8T*)pCtrlHeader +
                                                    CL_BUFFER_OVERHEAD_CTRL);
-
+                /*
+                 * Just an invalid address/value check. before freeing only the ctrl header
+                 * for a cloned chunk.
+                 */
+                if(pCtrlHeader->parent)
+                {
+                    pCtrlHeader->parent = NULL;
+                    pBufferHeader->pNextBufferHeader = NULL;
+                    pBufferHeader->pPreviousBufferHeader = NULL;
+                }
                 rc = clBMBufferChainFree(pCtrlHeader,pBufferHeader);
 
                 *pBufferHandle = 0;
@@ -2683,6 +2724,120 @@ clBufferNBytesWrite (ClBufferHandleT bufferHandle, ClUint8T *pByteBuffer,
 
     NULL_CHECK(pByteBuffer);
 
+    if(pCtrlHeader->parent)
+    {
+        ClBufferCtrlHeaderT *dupCtrlHeader = NULL;
+        ClBufferHeaderT *dupBufferHeader = NULL;
+        ClBufferHeaderT *bufferHeader = NULL;
+        ClUint32T resetMode = 0;
+
+        /*
+         * If the parent is already deleted and has only a single reference, just use the parent buffer.
+         * instead of duplicating it.
+         */
+        if(pCtrlHeader->parent->refCnt > 1)
+        {
+            errorCode = clBMBufferChainDuplicate(pCtrlHeader->parent, &dupCtrlHeader,
+                                                 (ClBufferHeaderT*)
+                                                 ((ClUint8T*)pCtrlHeader->parent + CL_BUFFER_OVERHEAD_CTRL),
+                                                 &dupBufferHeader);
+            if(errorCode != CL_OK)
+            {
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error [%#x] duplicating a cloned buffer\n", errorCode));
+                CL_FUNC_EXIT();
+                return errorCode;
+            }
+        }
+        else
+        {
+            dupCtrlHeader = pCtrlHeader->parent;
+            dupBufferHeader = (ClBufferHeaderT*)( (ClUint8T*)pCtrlHeader->parent + CL_BUFFER_OVERHEAD_CTRL );
+        }
+        bufferHeader = (ClBufferHeaderT*)((ClUint8T*)pCtrlHeader + CL_BUFFER_OVERHEAD_CTRL);
+        if(dupCtrlHeader->pCurrentReadBuffer == dupBufferHeader)
+        {
+            pCtrlHeader->pCurrentReadBuffer = bufferHeader;
+        }
+        if(dupCtrlHeader->pCurrentWriteBuffer == dupBufferHeader)
+        {
+            pCtrlHeader->pCurrentWriteBuffer = bufferHeader;
+        }
+        pCtrlHeader->currentReadOffset = dupCtrlHeader->currentReadOffset;
+        pCtrlHeader->currentWriteOffset = dupCtrlHeader->currentWriteOffset;
+        pCtrlHeader->length = dupCtrlHeader->length;
+        /*
+         * Copy the data from the first header.
+         */
+        memcpy((ClUint8T*)bufferHeader + CL_BUFFER_OVERHEAD,
+               (ClUint8T*)dupBufferHeader + CL_BUFFER_OVERHEAD,
+               bufferHeader->chunkSize - CL_BUFFER_OVERHEAD_CTRL - CL_BUFFER_OVERHEAD);
+        bufferHeader->startOffset = dupBufferHeader->startOffset;
+        bufferHeader->dataLength =  dupBufferHeader->dataLength;
+        bufferHeader->readOffset =  dupBufferHeader->readOffset;
+        bufferHeader->writeOffset = dupBufferHeader->writeOffset;
+        bufferHeader->actualLength = dupBufferHeader->actualLength;
+        --pCtrlHeader->parent->refCnt;
+        pCtrlHeader->parent = NULL;
+        pCtrlHeader->refCnt = 1;
+        bufferHeader->pPreviousBufferHeader = NULL;
+        bufferHeader->pNextBufferHeader = dupBufferHeader->pNextBufferHeader;
+        if(bufferHeader->pNextBufferHeader)
+            bufferHeader->pNextBufferHeader->pPreviousBufferHeader = bufferHeader;
+        dupBufferHeader->pNextBufferHeader = NULL;
+        /*  
+         * Free the first chain now.
+         */
+        errorCode = clBMBufferChainFree(dupCtrlHeader, dupBufferHeader);
+        if(CL_OK != errorCode)
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error [%#x] freeing the cloned duplicate chain error\n", errorCode));
+        }
+        /*
+         * Update the read buffer in the new COW chain.
+         */
+        if(pCtrlHeader->currentReadOffset <= pCtrlHeader->length)
+        {
+            errorCode = clBMBufferReadOffsetSet(pCtrlHeader, bufferHeader, 
+                                                pCtrlHeader->currentReadOffset, CL_BUFFER_SEEK_SET);
+            if(CL_OK != errorCode)
+            {
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error [%#x] setting read offset to [%d] bytes in the cloned buffer\n",
+                                                errorCode, pCtrlHeader->currentReadOffset));
+                resetMode |= 1;
+            }
+        }
+        else
+        {
+            resetMode |= 1;
+        }
+        if(pCtrlHeader->currentWriteOffset <= pCtrlHeader->length)
+        {
+            errorCode = clBMBufferWriteOffsetSet(pCtrlHeader, bufferHeader,
+                                                 pCtrlHeader->currentWriteOffset, CL_BUFFER_SEEK_SET);
+            if(CL_OK != errorCode)
+            {
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error [%#x] setting write offset to [%d] bytes in the cloned buffer\n",
+                                                errorCode, pCtrlHeader->currentWriteOffset));
+                resetMode |= 2;
+            }
+        }
+        else
+        {
+            resetMode |= 2;
+        }
+        if( (resetMode & 1) )
+        {
+            pCtrlHeader->currentReadOffset = 0;
+            pCtrlHeader->pCurrentReadBuffer = bufferHeader;
+            bufferHeader->readOffset = bufferHeader->startOffset;
+        }
+        if( (resetMode & 2) )
+        {
+            pCtrlHeader->currentWriteOffset = 0;
+            pCtrlHeader->pCurrentWriteBuffer = bufferHeader;
+            bufferHeader->writeOffset = bufferHeader->startOffset;
+        }
+    }
     errorCode = clBMBufferNBytesWrite (pCtrlHeader,
                                        pCtrlHeader->pCurrentWriteBuffer, 
                                        pByteBuffer, 
@@ -2840,6 +2995,14 @@ clBufferConcatenate (ClBufferHandleT destination, ClBufferHandleT *pSource)
     BUFFER_VALIDITY_CHECK(pSourceHeader);
 
     BUFFER_VALIDITY_CHECK(pDestinationHeader);
+
+    if(pSourceHeader->parent || pDestinationHeader->parent)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nCannot concatenate cloned buffers\n"));
+        errorCode = CL_BUFFER_RC(CL_ERR_INVALID_PARAMETER);
+        CL_FUNC_EXIT();
+        return errorCode;
+    }
 
     pSourceBuffer = (ClBufferHeaderT*)((char*)*pSource + CL_BUFFER_OVERHEAD_CTRL);
     pDestinationBuffer = (ClBufferHeaderT*)((char*)destination + CL_BUFFER_OVERHEAD_CTRL);
@@ -3144,6 +3307,74 @@ clBufferToBufferCopy(ClBufferHandleT source, ClUint32T sourceOffset, ClBufferHan
     return(CL_OK);
 }
 
+ClRcT
+clBufferClone (ClBufferHandleT source, ClBufferHandleT *pDuplicate)
+{
+    ClRcT errorCode = CL_OK;
+    ClBufferCtrlHeaderT* pCtrlHeader = NULL;
+    ClBufferCtrlHeaderT *pCloneHeader = NULL;
+    ClBufferHeaderT* pBufferHeader = NULL;
+    ClBufferHeaderT* pFirstBufferHeader = NULL;
+    ClPtrT pCookie = NULL;
+
+    CL_FUNC_ENTER();
+
+    if(gBufferManagementInfo.isInitialized == CL_FALSE) 
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
+        CL_FUNC_EXIT();
+        return(errorCode);
+    }
+    
+    NULL_CHECK(pDuplicate);
+
+    pCtrlHeader = (ClBufferCtrlHeaderT *)source;
+    /*
+     * Find the actual parent as we could also clone an already cloned source.
+     */
+    while(pCtrlHeader->parent)
+        pCtrlHeader = pCtrlHeader->parent;
+
+    NULL_CHECK(pCtrlHeader);
+
+    BUFFER_VALIDITY_CHECK(pCtrlHeader);
+
+    pBufferHeader = (ClBufferHeaderT*)((ClUint8T*)pCtrlHeader +
+                                       CL_BUFFER_OVERHEAD_CTRL);
+    
+    /*
+     * Just clone the first and COW the rest.
+     */
+    errorCode = gClBufferFromPoolAllocate(pBufferHeader->pool,
+                                          pBufferHeader->chunkSize,
+                                          (ClUint8T**)&pCloneHeader, &pCookie);
+
+    if(errorCode != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in buffer clone allocate\n"));
+        CL_FUNC_EXIT();
+        return (errorCode);
+    }
+    /*
+     * Just copy the ctrl header chunk. The cloned chunk can read in the forward direction.
+     */
+    memcpy(pCloneHeader, pCtrlHeader, pBufferHeader->chunkSize);
+    pFirstBufferHeader = (ClBufferHeaderT*) ((ClUint8T*)pCloneHeader + CL_BUFFER_OVERHEAD_CTRL);
+    pFirstBufferHeader->pCookie = pCookie;
+    pFirstBufferHeader->pPreviousBufferHeader = NULL;
+    pCloneHeader->refCnt = 1;
+    pCloneHeader->parent = pCtrlHeader; /* point to the parent*/
+    ++pCloneHeader->parent->refCnt;
+    /*
+     * The previous for the first chain would be pointing to the parent and we can leave it untouched.
+     */
+    *pDuplicate = pCloneHeader;
+
+    CL_FUNC_EXIT();
+    return(CL_OK);
+}
+
 /*****************************************************************************/
 
 ClRcT
@@ -3198,6 +3429,8 @@ clBufferDuplicate (ClBufferHandleT source, ClBufferHandleT *pDuplicate)
     }
 
     pDuplicateHeader->bufferValidity = BUFFER_VALIDITY;
+    pDuplicateHeader->refCnt = 1;
+    pDuplicateHeader->parent = NULL;
     *pDuplicate = pDuplicateHeader;
 
     CL_FUNC_EXIT();
@@ -3505,3 +3738,80 @@ clBufferMessageDuplicate(ClBufferHandleT source,
 /*
  * Deprecated functions end
  */
+#ifdef BUFFER_CLONE_TEST
+ClRcT clBufferCloneTest(void)
+{
+    ClRcT rc;
+    ClBufferHandleT buffer;
+    ClBufferHandleT cloneBuffers[2];
+    ClUint8T buf[4096];
+    ClUint8T readBuff[4096];
+    ClUint8T readBuff2[4096<<1];
+    ClUint32T c;
+    ClUint32T i;
+    rc = clBufferCreate(&buffer);
+    CL_ASSERT(rc == CL_OK);
+    memset(buf, 0xa5, sizeof(buf));
+    rc = clBufferNBytesWrite(buffer, buf, sizeof(buf));
+    CL_ASSERT(rc == CL_OK);
+    for(i = 0; i < sizeof(cloneBuffers)/sizeof(cloneBuffers[0]); ++i)
+    {
+        rc = clBufferClone(buffer, &cloneBuffers[i]);
+        CL_ASSERT(rc == CL_OK);
+        rc = clBufferReadOffsetSet(cloneBuffers[i], 0, CL_BUFFER_SEEK_SET);
+        CL_ASSERT(rc == CL_OK);
+        c = sizeof(readBuff);
+        rc = clBufferNBytesRead(cloneBuffers[i], readBuff, &c);
+        CL_ASSERT(rc == CL_OK);
+        CL_ASSERT(c == sizeof(readBuff));
+        CL_ASSERT(memcmp(buf, readBuff, c) == 0);
+        /* 
+         *optional. delete.
+         */
+        if(i + 1 == sizeof(cloneBuffers)/sizeof(cloneBuffers[0]))
+        {
+            rc = clBufferDelete(&buffer);
+            CL_ASSERT(rc == CL_OK);
+        }
+        rc = clBufferReadOffsetSet(cloneBuffers[i], 0, CL_BUFFER_SEEK_SET);
+        CL_ASSERT(rc == CL_OK);
+        rc = clBufferNBytesRead(cloneBuffers[i], readBuff, &c);
+        CL_ASSERT(rc == CL_OK);
+        CL_ASSERT(c == sizeof(readBuff));
+        CL_ASSERT(memcmp(readBuff, buf, c) == 0);
+        /*
+         * Force a COW on the clone buffer.
+         */
+        rc = clBufferNBytesWrite(cloneBuffers[i], buf, c);
+        CL_ASSERT(rc == CL_OK);
+        rc = clBufferWriteOffsetGet(cloneBuffers[i], &c);
+        CL_ASSERT(rc == CL_OK);
+        clLogNotice("CLONE", "TEST", "Write offset at [%d] for clone buffer [%d]", c, i);
+        rc = clBufferLengthGet(cloneBuffers[i], &c);
+        CL_ASSERT(rc == CL_OK);
+        clLogNotice("CLONE", "TEST", "Len [%d] for clone buffer [%d]", c, i);
+        rc = clBufferReadOffsetSet(cloneBuffers[i], 0, CL_BUFFER_SEEK_SET);
+        CL_ASSERT(rc == CL_OK);
+        c = sizeof(readBuff2);
+        rc = clBufferNBytesRead(cloneBuffers[i], readBuff2, &c);
+        CL_ASSERT(rc == CL_OK);
+        clLogNotice("CLONE", "TEST", "Expected [%d], read [%d] bytes for clone buffer [%d]", 
+                    (ClUint32T)sizeof(readBuff2), c, i);
+        CL_ASSERT(c == sizeof(readBuff2));
+        CL_ASSERT(memcmp(readBuff2, buf, c>>1) == 0);
+        CL_ASSERT(memcmp(readBuff2 + (c>>1), buf, c>>1) == 0);
+    }
+    if(buffer)
+    {
+        rc = clBufferDelete(&buffer);
+        CL_ASSERT(rc == CL_OK);
+    }
+    for(i = 0; i < sizeof(cloneBuffers)/sizeof(cloneBuffers[0]); ++i)
+    {
+        rc = clBufferDelete(&cloneBuffers[i]);
+        CL_ASSERT(rc == CL_OK);
+    }
+    clLogNotice("CLONE", "TEST", "Buffer clone success");
+    return rc;
+}
+#endif

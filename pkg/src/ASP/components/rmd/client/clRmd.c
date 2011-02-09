@@ -533,10 +533,10 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
             message = inMsgHdl;
         else
         {
-            retCode = clBufferDuplicate(inMsgHdl, &message);
+            retCode = clBufferClone(inMsgHdl, &message);
             if (retCode != CL_OK)
             {
-                RMD_DBG1(("clBufferDuplicate: Failed in duplicate  message Rc :0x%x\n", (retCode)));
+                RMD_DBG1(("clBufferClone: Failed in duplicate  message Rc :0x%x\n", (retCode)));
                 CL_FUNC_EXIT();
                 RMD_STAT_INC(pRmdObject->rmdStats.nFailedCalls);
                 return retCode;

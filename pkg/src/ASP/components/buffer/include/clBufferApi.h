@@ -924,6 +924,14 @@ clBufferToBufferCopy(ClBufferHandleT sourceMessage, ClUint32T sourceMessageOffse
 ClRcT
 clBufferDuplicate (ClBufferHandleT messageHandle, ClBufferHandleT *pDuplicatedMessage);
 
+/*
+ * Same as duplicate but just shares the chain with the source and copies only the first chain,
+ * so any metadata prepended would be local. However a write to the cloned buffer would result in a COW
+ * or copy on write of the cloned destination buffer from the parent.
+*/
+ClRcT
+clBufferClone (ClBufferHandleT source, ClBufferHandleT *pClone);
+
 /*****************************************************************************/
 
 /**
