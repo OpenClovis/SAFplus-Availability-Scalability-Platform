@@ -119,7 +119,9 @@ extern "C" {
 #include <xdrClAmsMgmtGetEntityListRequestT.h>
 #include <xdrClAmsMgmtGetOLEntityListRequestT.h>
 #include <xdrClAmsSUSIRefT.h>
+#include <xdrClAmsSUSIExtendedRefT.h>
 #include <xdrClAmsSISURefT.h>
+#include <xdrClAmsSISUExtendedRefT.h>
 #include <xdrClAmsCompCSIRefT.h>
 #include <xdrClAmsCSICompRefT.h>
 #include <xdrClAmsNotificationDescriptorT.h>

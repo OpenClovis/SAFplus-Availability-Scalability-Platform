@@ -4829,9 +4829,19 @@ VDECL(_clAmsMgmtGetOLEntityList)(
         size = sizeof (ClAmsSUSIRefT);
     }
 
+    else if ( req.entityListName == CL_AMS_SU_STATUS_SI_EXTENDED_LIST )
+    {
+        size = sizeof (ClAmsSUSIExtendedRefT);
+    }
+
     else if (req.entityListName == CL_AMS_SI_STATUS_SU_LIST)
     {
         size = sizeof (ClAmsSISURefT);
+    }
+
+    else if (req.entityListName == CL_AMS_SI_STATUS_SU_EXTENDED_LIST)
+    {
+        size = sizeof (ClAmsSISUExtendedRefT);
     }
 
     else if (req.entityListName == CL_AMS_COMP_STATUS_CSI_LIST)
@@ -4854,9 +4864,19 @@ VDECL(_clAmsMgmtGetOLEntityList)(
             AMS_CHECK_RC_ERROR( VDECL_VER(clXdrMarshallClAmsSUSIRefT, 4, 0, 0)( 
                         (ClInt8T *)res.entityRef + i*size,out,0));
         }
+        else if ( req.entityListName == CL_AMS_SU_STATUS_SI_EXTENDED_LIST )
+        {
+            AMS_CHECK_RC_ERROR( VDECL_VER(clXdrMarshallClAmsSUSIExtendedRefT, 4, 0, 0)( 
+                        (ClInt8T *)res.entityRef + i*size,out,0));
+        }
         else if ( req.entityListName == CL_AMS_SI_STATUS_SU_LIST )
         {
             AMS_CHECK_RC_ERROR( VDECL_VER(clXdrMarshallClAmsSISURefT, 4, 0, 0)( 
+                        (ClInt8T *)res.entityRef + i*size,out,0));
+        }
+        else if ( req.entityListName == CL_AMS_SI_STATUS_SU_EXTENDED_LIST )
+        {
+            AMS_CHECK_RC_ERROR( VDECL_VER(clXdrMarshallClAmsSISUExtendedRefT, 4, 0, 0)( 
                         (ClInt8T *)res.entityRef + i*size,out,0));
         }
         else if ( req.entityListName == CL_AMS_COMP_STATUS_CSI_LIST )

@@ -652,8 +652,20 @@ typedef struct
 typedef struct
 {
     ClUint32T  count;
+    ClAmsSUSIExtendedRefT  *entityRef;
+}ClAmsSUSIExtendedRefBufferT;
+
+typedef struct
+{
+    ClUint32T  count;
     ClAmsSISURefT  *entityRef;
 }ClAmsSISURefBufferT;
+
+typedef struct
+{
+    ClUint32T  count;
+    ClAmsSISUExtendedRefT  *entityRef;
+}ClAmsSISUExtendedRefBufferT;
 
 typedef struct
 {

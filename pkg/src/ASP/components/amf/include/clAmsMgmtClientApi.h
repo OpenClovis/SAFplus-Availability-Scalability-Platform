@@ -3251,6 +3251,10 @@ extern ClRcT clAmsMgmtGetSUAssignedSIsList(
         CL_IN   ClAmsEntityT    *su,
         CL_OUT  ClAmsSUSIRefBufferT  *siBuffer);
 
+extern ClRcT clAmsMgmtGetSUAssignedSIsExtendedList(
+        CL_IN   ClAmsMgmtHandleT handle,
+        CL_IN   ClAmsEntityT    *su,
+        CL_OUT  ClAmsSUSIExtendedRefBufferT  *siBuffer);
 
     /**
  * returns the su list for si 
@@ -3277,6 +3281,10 @@ extern ClRcT clAmsMgmtGetSISUList(
         CL_IN   ClAmsEntityT    *si,
         CL_OUT  ClAmsSISURefBufferT  *suBuffer);
 
+extern ClRcT clAmsMgmtGetSISUExtendedList(
+        CL_IN   ClAmsMgmtHandleT handle,
+        CL_IN   ClAmsEntityT    *si,
+        CL_OUT  ClAmsSISUExtendedRefBufferT  *suBuffer);
 
 /**
  *

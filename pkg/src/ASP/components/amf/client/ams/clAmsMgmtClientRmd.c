@@ -3013,9 +3013,21 @@ unmarshalClAmsMgmtGetOLEntityList(
                 break;
             }
 
+        case CL_AMS_SU_STATUS_SI_EXTENDED_LIST:
+            {
+                size =  sizeof (ClAmsSUSIExtendedRefT);
+                break;
+            }
+
         case CL_AMS_SI_STATUS_SU_LIST:
             {
                 size =  sizeof (ClAmsSISURefT);
+                break;
+            }
+
+        case CL_AMS_SI_STATUS_SU_EXTENDED_LIST:
+            {
+                size =  sizeof (ClAmsSISUExtendedRefT);
                 break;
             }
 
@@ -3049,9 +3061,21 @@ unmarshalClAmsMgmtGetOLEntityList(
                         ((ClInt8T *)(*res)-> entityRef) + i*size));
         }
 
+        else if ( entityListType == CL_AMS_SU_STATUS_SI_EXTENDED_LIST )
+        {
+            AMS_CHECK_RC_ERROR( VDECL_VER(clXdrUnmarshallClAmsSUSIExtendedRefT, 4, 0, 0)(buf, 
+                        ((ClInt8T *)(*res)-> entityRef) + i*size));
+        }
+
         else if ( entityListType == CL_AMS_SI_STATUS_SU_LIST )
         {
             AMS_CHECK_RC_ERROR( VDECL_VER(clXdrUnmarshallClAmsSISURefT, 4, 0, 0)(buf, 
+                        ((ClInt8T *)(*res)-> entityRef) + i*size));
+        }
+
+        else if ( entityListType == CL_AMS_SI_STATUS_SU_EXTENDED_LIST )
+        {
+            AMS_CHECK_RC_ERROR( VDECL_VER(clXdrUnmarshallClAmsSISUExtendedRefT, 4, 0, 0)(buf, 
                         ((ClInt8T *)(*res)-> entityRef) + i*size));
         }
 

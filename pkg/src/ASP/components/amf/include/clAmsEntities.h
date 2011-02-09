@@ -346,6 +346,10 @@ typedef enum
     /* Internal entity list types.*/
     CL_AMS_CSI_PGTRACK_CLIENT_LIST,
 
+    CL_AMS_SU_STATUS_SI_EXTENDED_LIST                              ,
+
+    CL_AMS_SI_STATUS_SU_EXTENDED_LIST                              ,
+
     CL_AMS_END_LIST                                      ,
 
 }ClAmsEntityListTypeT;
@@ -581,9 +585,23 @@ typedef struct
     ClUint32T               rank;               /**< rank associated with SI   */
 } ClAmsSUSIRefT;
 
-    /**
-     * Service Unit configuration information
-     */  
+typedef struct
+{
+    ClAmsEntityRefT         entityRef;
+    ClAmsHAStateT           haState;
+    ClUint32T               numActiveCSIs;      /**< active csis in this si    */
+    ClUint32T               numStandbyCSIs;     /**< standby csis in this si   */
+    ClUint32T               numQuiescedCSIs;    /**< quiesced csis in this si  */
+    ClUint32T               numQuiescingCSIs;   /**< quiescing csis in this si */
+    ClUint32T               numCSIs;            /*   num configured csis in this si*/
+    ClUint32T               rank;               /**< rank associated with SI   */
+    ClUint32T               pendingInvocations; /* number of pending invocations for this si*/
+} ClAmsSUSIExtendedRefT;
+
+
+/**
+ * Service Unit configuration information
+ */  
 typedef struct
 {
     ClAmsEntityConfigT      entity;             /**< base class                */
@@ -664,6 +682,14 @@ typedef struct
     ClUint32T               rank;               /**< rank associated with SU   */
     ClAmsHAStateT           haState;            /**< hastate assigned to SU    */
 } ClAmsSISURefT;
+
+typedef struct
+{
+    ClAmsEntityRefT         entityRef;          /**< base reference to SU      */
+    ClUint32T               rank;               /**< rank associated with SU   */
+    ClAmsHAStateT           haState;            /**< hastate assigned to SU    */
+    ClUint32T               pendingInvocations; /* pending invocations against this SU */
+} ClAmsSISUExtendedRefT;
 
     /**
      * Service Unit configuration information

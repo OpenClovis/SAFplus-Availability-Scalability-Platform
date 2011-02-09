@@ -4171,6 +4171,34 @@ exitfn:
 
 }
 
+ClRcT clAmsMgmtGetSUAssignedSIsExtendedList(
+        CL_IN   ClAmsMgmtHandleT handle,
+        CL_IN   ClAmsEntityT    *su,
+        CL_OUT  ClAmsSUSIExtendedRefBufferT  *siBuffer)
+{
+
+    ClRcT  rc = CL_OK;
+    clAmsMgmtGetEntityListRequestT  req;
+    clAmsMgmtGetOLEntityListResponseT  *res = NULL;
+
+    AMS_CHECKPTR_SILENT( !su || !siBuffer );
+
+    req.handle = handle;
+    memcpy ( &req.entity, su, sizeof(ClAmsEntityT) );
+    CL_AMS_NAME_LENGTH_CHECK(req.entity);
+    req.entityListName = CL_AMS_SU_STATUS_SI_EXTENDED_LIST;
+
+    AMS_CHECK_RC_ERROR( cl_ams_mgmt_get_ol_entity_list( &req, &res) );
+
+    siBuffer->count = res->count;
+    siBuffer->entityRef = (ClAmsSUSIExtendedRefT *)res->entityRef;
+
+exitfn:
+
+    clAmsFreeMemory (res);
+    return rc;
+
+}
 
 /*
  *
@@ -4226,6 +4254,34 @@ exitfn:
 
 }
 
+ClRcT clAmsMgmtGetSISUExtendedList(
+        CL_IN   ClAmsMgmtHandleT handle,
+        CL_IN   ClAmsEntityT    *si,
+        CL_OUT  ClAmsSISUExtendedRefBufferT  *suBuffer)
+{
+
+    ClRcT  rc = CL_OK;
+    clAmsMgmtGetEntityListRequestT  req;
+    clAmsMgmtGetOLEntityListResponseT  *res = NULL;
+
+    AMS_CHECKPTR_SILENT(!si || !suBuffer );
+
+    req.handle = handle;
+    memcpy ( &req.entity, si, sizeof(ClAmsEntityT) );
+    CL_AMS_NAME_LENGTH_CHECK(req.entity);
+    req.entityListName = CL_AMS_SI_STATUS_SU_EXTENDED_LIST;
+
+    AMS_CHECK_RC_ERROR( cl_ams_mgmt_get_ol_entity_list( &req, &res) );
+
+    suBuffer->count = res->count;
+    suBuffer->entityRef = (ClAmsSISUExtendedRefT *)res->entityRef;
+
+exitfn:
+
+    clAmsFreeMemory (res);
+    return rc;
+
+}
 
 /*
  *
@@ -4561,26 +4617,13 @@ static ClRcT clAmsMgmtSwitchoverActiveSU(ClAmsMgmtHandleT handle, ClAmsEntityT *
 static ClRcT clAmsMgmtGetSISUHAState(ClAmsMgmtHandleT handle,
                                      ClAmsEntityT *siEntity,
                                      ClAmsEntityT *suEntity,
-                                     ClAmsSIConfigT *siConfig,
                                      ClAmsHAStateT *haState,
                                      ClBoolT *fullyAssigned)
 {
-    ClAmsSUSIRefBufferT suSIRefBuffer = {0};
+    ClAmsSUSIExtendedRefBufferT suSIRefBuffer = {0};
     ClInt32T i;
     ClRcT rc = CL_OK;
-    ClBoolT freeSIConfig = CL_FALSE;
-    if(!siConfig)
-    {
-        rc = clAmsMgmtEntityGetConfig(handle, siEntity, (ClAmsEntityConfigT**)&siConfig);
-        if(rc != CL_OK)
-        {
-            clLogError("STATE", "GET", "SI config for [%s] returned with [%#x]", 
-                       siConfig->entity.name.value, rc);
-            goto out_free;
-        }
-        freeSIConfig = CL_TRUE;
-    }
-    rc = clAmsMgmtGetSUAssignedSIsList(handle, suEntity, &suSIRefBuffer);
+    rc = clAmsMgmtGetSUAssignedSIsExtendedList(handle, suEntity, &suSIRefBuffer);
     if(rc != CL_OK)
     {
         clLogError("STATE", "GET", "Assigned SI list for SU [%s] returned with [%#x]",
@@ -4590,7 +4633,7 @@ static ClRcT clAmsMgmtGetSISUHAState(ClAmsMgmtHandleT handle,
 
     for(i = 0; i < suSIRefBuffer.count; ++i)
     {
-        ClAmsSUSIRefT *suSIRef = suSIRefBuffer.entityRef + i;
+        ClAmsSUSIExtendedRefT *suSIRef = suSIRefBuffer.entityRef + i;
         if(!strcmp((const ClCharT*)suSIRef->entityRef.entity.name.value,
                    (const ClCharT*)siEntity->name.value))
         {
@@ -4604,13 +4647,23 @@ static ClRcT clAmsMgmtGetSISUHAState(ClAmsMgmtHandleT handle,
             {
                 if(suSIRef->haState == CL_AMS_HA_STATE_ACTIVE
                    &&
-                   suSIRef->numActiveCSIs < siConfig->numCSIs)
+                   (
+                    suSIRef->pendingInvocations > 0
+                    ||
+                    suSIRef->numActiveCSIs < suSIRef->numCSIs
+                    )
+                   )
                 {
                     *fullyAssigned = CL_FALSE;
                 }
                 else if(suSIRef->haState == CL_AMS_HA_STATE_STANDBY
                         &&
-                        suSIRef->numStandbyCSIs < siConfig->numCSIs)
+                        (
+                         suSIRef->pendingInvocations > 0
+                         ||
+                         suSIRef->numStandbyCSIs < suSIRef->numCSIs
+                         )
+                        )
                 {
                     *fullyAssigned = CL_FALSE;
                 }
@@ -4621,8 +4674,6 @@ static ClRcT clAmsMgmtGetSISUHAState(ClAmsMgmtHandleT handle,
     rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
 
     out_free:
-    if(freeSIConfig && siConfig)
-        clHeapFree(siConfig);
     if(suSIRefBuffer.entityRef)
         clHeapFree(suSIRefBuffer.entityRef);
 
@@ -4638,7 +4689,6 @@ static ClRcT clAmsMgmtGetSIHAStateHard(ClAmsMgmtHandleT handle,
     ClInt32T i;
     ClAmsHAStateT currentHAState = CL_AMS_HA_STATE_NONE;
     ClAmsSISURefBufferT siSURefBuffer = {0};
-    ClAmsSIConfigT *siConfig = NULL;
     ClRcT rc = CL_OK;
 
     if(!siEntity || !haState || siEntity->type != CL_AMS_ENTITY_TYPE_SI) 
@@ -4650,13 +4700,6 @@ static ClRcT clAmsMgmtGetSIHAStateHard(ClAmsMgmtHandleT handle,
     *haState = CL_AMS_HA_STATE_NONE;
     if(fullyAssigned)
         *fullyAssigned = CL_TRUE;
-
-    rc = clAmsMgmtEntityGetConfig(handle, siEntity, (ClAmsEntityConfigT**)&siConfig);
-    if(rc != CL_OK)
-    {
-        clLogError("STATE", "GET", "SI [%s] config get returned with [%#x]", siEntity->name.value, rc);
-        return rc;
-    }
 
     if(!suEntity)
     {
@@ -4675,7 +4718,7 @@ static ClRcT clAmsMgmtGetSIHAStateHard(ClAmsMgmtHandleT handle,
         for(i = 0; i < siSURefBuffer.count; ++i)
         {
             rc = clAmsMgmtGetSISUHAState(handle, siEntity, &siSURefBuffer.entityRef[i].entityRef.entity, 
-                                         siConfig, &currentHAState, fullyAssigned);
+                                         &currentHAState, fullyAssigned);
             if(rc != CL_OK)
             {
                 clLogError("STATE", "GET", "SI SU ha state get for SI [%s], SU [%s] returned with [%#x]",
@@ -4686,7 +4729,7 @@ static ClRcT clAmsMgmtGetSIHAStateHard(ClAmsMgmtHandleT handle,
     }
     else
     {
-        rc = clAmsMgmtGetSISUHAState(handle, siEntity, suEntity, siConfig, &currentHAState, fullyAssigned);
+        rc = clAmsMgmtGetSISUHAState(handle, siEntity, suEntity, &currentHAState, fullyAssigned);
         if(rc != CL_OK)
         {
             clLogError("STATE", "GET", "SI SU ha state get for SI [%s], SU [%s] returned with [%#x]",
@@ -4700,8 +4743,6 @@ static ClRcT clAmsMgmtGetSIHAStateHard(ClAmsMgmtHandleT handle,
     out_free:
     if(siSURefBuffer.entityRef)
         clHeapFree(siSURefBuffer.entityRef);
-    if(siConfig)
-        clHeapFree(siConfig);
 
     return rc;
 }
@@ -4714,10 +4755,9 @@ static ClRcT clAmsMgmtGetSUHAStateHard(ClAmsMgmtHandleT handle,
 {
     ClInt32T i;
     ClAmsHAStateT currentHAState = CL_AMS_HA_STATE_NONE;
-    ClAmsSUSIRefBufferT suSIRefBuffer = {0};
+    ClAmsSUSIExtendedRefBufferT suSIRefBuffer = {0};
     ClAmsSUConfigT *suConfig = NULL;
     ClAmsSGConfigT *sgConfig = NULL;
-    ClAmsSIConfigT *siConfig = NULL;
     ClUint32T activeSIsPerSU = 0;
     ClUint32T standbySIsPerSU = 0;
     ClRcT rc = CL_OK;
@@ -4752,38 +4792,36 @@ static ClRcT clAmsMgmtGetSUHAStateHard(ClAmsMgmtHandleT handle,
         standbySIsPerSU = sgConfig->maxStandbySIsPerSU;
     }
 
-    rc = clAmsMgmtGetSUAssignedSIsList(handle, entity, &suSIRefBuffer);
+    rc = clAmsMgmtGetSUAssignedSIsExtendedList(handle, entity, &suSIRefBuffer);
     if(rc != CL_OK) goto out_free;
 
     if(!suSIRefBuffer.count) goto out_free;
 
     for(i = 0; i < suSIRefBuffer.count; ++i)
     {
-        ClAmsSUSIRefT *suSIRef = suSIRefBuffer.entityRef + i;
+        ClAmsSUSIExtendedRefT *suSIRef = suSIRefBuffer.entityRef + i;
         currentHAState = suSIRef->haState;
         if(fullyAssigned)
         {
-            if(siConfig)
-            {
-                clHeapFree(siConfig);
-                siConfig = NULL;
-            }
-            rc = clAmsMgmtEntityGetConfig(handle, &suSIRef->entityRef.entity, (ClAmsEntityConfigT**)&siConfig);
-            if(rc != CL_OK)
-            {
-                clLogError("STATE", "GET", "Failed to get entity config for SI [%s] with error [%#x]",
-                           suSIRef->entityRef.entity.name.value, rc);
-                goto out_free;
-            }
             if(suSIRef->haState == CL_AMS_HA_STATE_ACTIVE
                &&
-               suSIRef->numActiveCSIs < siConfig->numCSIs)
+               (
+                suSIRef->pendingInvocations > 0
+                ||
+                suSIRef->numActiveCSIs < suSIRef->numCSIs
+                )
+               )
             {
                 *fullyAssigned = CL_FALSE;
             }
             else if(suSIRef->haState == CL_AMS_HA_STATE_STANDBY
                     &&
-                    suSIRef->numStandbyCSIs < siConfig->numCSIs)
+                    (
+                     suSIRef->pendingInvocations > 0
+                     ||
+                     suSIRef->numStandbyCSIs < suSIRef->numCSIs
+                     )
+                    )
             {
                 *fullyAssigned = CL_FALSE;
             }
@@ -4809,8 +4847,6 @@ static ClRcT clAmsMgmtGetSUHAStateHard(ClAmsMgmtHandleT handle,
     *haState = currentHAState;
 
     out_free:
-    if(siConfig)
-        clHeapFree(siConfig);
     if(suConfig)
         clHeapFree(suConfig);
     if(sgConfig)
@@ -4877,7 +4913,10 @@ ClRcT clAmsMgmtTestHAState(const ClCharT *filename)
         filename = "/tmp/test_ha_state";
     fptr = fopen(filename, "r");
     if(!fptr)
-        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    {
+        rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
+        goto out_finalize;
+    }
     while(fgets(buf, sizeof(buf), fptr))
     {
         ClBoolT fullyAssigned = CL_FALSE;
@@ -4963,6 +5002,8 @@ ClRcT clAmsMgmtTestHAState(const ClCharT *filename)
         }
     }
     fclose(fptr);
+    out_finalize:
+    clAmsMgmtFinalize(handle);
     return CL_OK;
 }
 #endif

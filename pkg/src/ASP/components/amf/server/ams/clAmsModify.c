@@ -2690,9 +2690,9 @@ clAmsGetEntityList(
 
 ClRcT
 clAmsGetOLEntityList(
-        CL_IN  ClAmsEntityT  *entity,
-        CL_IN  ClAmsEntityListTypeT  entityListName,
-        CL_OUT  ClAmsEntityRefBufferT  *entityListBuffer)
+                     CL_IN  ClAmsEntityT  *entity,
+                     CL_IN  ClAmsEntityListTypeT  entityListName,
+                     CL_OUT  ClAmsEntityRefBufferT  *entityListBuffer)
 
 {
     ClAmsEntityRefT  entityRef = { {0},0 };
@@ -2706,8 +2706,8 @@ clAmsGetOLEntityList(
     memcpy ( &entityRef.entity, entity, sizeof(ClAmsEntityT) );
 
     AMS_CALL ( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[entity->type],
-                &entityRef) );
+                                       &gAms.db.entityDb[entity->type],
+                                       &entityRef) );
 
     AMS_CHECKPTR (!entityRef.ptr);
 
@@ -2715,35 +2715,50 @@ clAmsGetOLEntityList(
     {
 
 
-        case CL_AMS_SU_STATUS_SI_LIST:
-            {
-                ClAmsSUT  *su = (ClAmsSUT *)entityRef.ptr;
-                entityList = &su->status.siList;
-                size = sizeof (ClAmsSUSIRefT);
-                break;
-            }
+    case CL_AMS_SU_STATUS_SI_LIST:
+        {
+            ClAmsSUT  *su = (ClAmsSUT *)entityRef.ptr;
+            entityList = &su->status.siList;
+            size = sizeof (ClAmsSUSIRefT);
+            break;
+        }
 
+    case CL_AMS_SU_STATUS_SI_EXTENDED_LIST:
+        {
+            ClAmsSUT  *su = (ClAmsSUT *)entityRef.ptr;
+            entityList = &su->status.siList;
+            size = sizeof (ClAmsSUSIExtendedRefT);
+            break;
+        }
 
-        case CL_AMS_SI_STATUS_SU_LIST:
-            {
-                ClAmsSIT  *si = (ClAmsSIT *)entityRef.ptr;
-                entityList = &si->status.suList;
-                size = sizeof (ClAmsSISURefT);
-                break;
-            }
+    case CL_AMS_SI_STATUS_SU_LIST:
+        {
+            ClAmsSIT  *si = (ClAmsSIT *)entityRef.ptr;
+            entityList = &si->status.suList;
+            size = sizeof (ClAmsSISURefT);
+            break;
+        }
 
-        case CL_AMS_COMP_STATUS_CSI_LIST:
-            {
-                ClAmsCompT  *comp = (ClAmsCompT *)entityRef.ptr;
-                entityList = &comp->status.csiList;
-                size = sizeof (ClAmsCompCSIRefT);
-                break;
-            }
+    case CL_AMS_SI_STATUS_SU_EXTENDED_LIST:
+        {
+            ClAmsSIT  *si = (ClAmsSIT *)entityRef.ptr;
+            entityList = &si->status.suList;
+            size = sizeof (ClAmsSISUExtendedRefT);
+            break;
+        }
 
-        default:
-            {
-                break;
-            }
+    case CL_AMS_COMP_STATUS_CSI_LIST:
+        {
+            ClAmsCompT  *comp = (ClAmsCompT *)entityRef.ptr;
+            entityList = &comp->status.csiList;
+            size = sizeof (ClAmsCompCSIRefT);
+            break;
+        }
+
+    default:
+        {
+            break;
+        }
 
     }
 
@@ -2751,14 +2766,40 @@ clAmsGetOLEntityList(
 
     entityListBuffer->count = entityList->numEntities;
     entityListBuffer->entityRef = clHeapAllocate ((entityListBuffer->count)*
-            size);
+                                                  size);
 
     for ( eRef = clAmsEntityListGetFirst(entityList);
           eRef != (ClAmsEntityRefT *) NULL;
           eRef = clAmsEntityListGetNext(entityList, eRef) )
     {
-
-        memcpy( (ClInt8T *)(entityListBuffer->entityRef) + i*size, eRef, size );
+        if(entityListName == CL_AMS_SU_STATUS_SI_EXTENDED_LIST)
+        {
+            ClAmsSUSIExtendedRefT *targetRef = (ClAmsSUSIExtendedRefT*)((ClUint8T*)entityListBuffer->entityRef + i*size);
+            ClAmsSUSIRefT *suSIRef = (ClAmsSUSIRefT*)eRef;
+            ClAmsSIT *si = (ClAmsSIT*)eRef->ptr;
+            memcpy(&targetRef->entityRef, &suSIRef->entityRef, sizeof(targetRef->entityRef));
+            targetRef->haState = suSIRef->haState;
+            targetRef->numActiveCSIs = suSIRef->numActiveCSIs;
+            targetRef->numStandbyCSIs = suSIRef->numStandbyCSIs;
+            targetRef->numQuiescedCSIs = suSIRef->numQuiescedCSIs;
+            targetRef->numQuiescingCSIs = suSIRef->numQuiescingCSIs;
+            targetRef->numCSIs = si->config.numCSIs;
+            targetRef->rank = suSIRef->rank;
+            targetRef->pendingInvocations = clAmsInvocationsPendingForSI(si, (ClAmsSUT*)entityRef.ptr);
+        }
+        else if(entityListName == CL_AMS_SI_STATUS_SU_EXTENDED_LIST)
+        {
+            ClAmsSISUExtendedRefT *targetRef = (ClAmsSISUExtendedRefT*)((ClUint8T*)entityListBuffer->entityRef + i*size );
+            ClAmsSISURefT *siSURef = (ClAmsSISURefT*)eRef;
+            memcpy(&targetRef->entityRef, &siSURef->entityRef, sizeof(targetRef->entityRef));
+            targetRef->rank = siSURef->rank;
+            targetRef->haState = siSURef->haState;
+            targetRef->pendingInvocations = clAmsInvocationsPendingForSU((ClAmsSUT*)eRef->ptr);
+        }
+        else
+        {
+            memcpy( (ClInt8T *)(entityListBuffer->entityRef) + i*size, eRef, size );
+        }
         i++;
     }
 
