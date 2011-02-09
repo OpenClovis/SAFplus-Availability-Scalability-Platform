@@ -121,8 +121,13 @@ ClRcT clXdrMarshallArrayClInt8T(void* pPyld, ClUint32T count, ClBufferHandleT ms
     }
     
     if(0 != msg)
+    {
+        if(clBufferAppendHeap(msg, pPyld, count) != CL_OK)
+        {
             rc = clBufferNBytesWrite(msg, (ClUint8T*)pPyld, count);
-    CL_XDR_EXIT()
+        }
+    }
+    CL_XDR_EXIT();
     return rc;
 }
 /*********************************************************************************************/

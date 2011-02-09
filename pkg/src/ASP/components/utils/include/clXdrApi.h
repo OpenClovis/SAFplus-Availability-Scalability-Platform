@@ -66,17 +66,9 @@ extern "C" {
 #include <clIocApi.h>
 #include <clEoApi.h>
 
-#if 0
-#include <clOsalApi.h>
-#define CL_XDR_ENTER(x) clOsalPrintf("entering %s\n", __FUNCTION__);
-#define CL_XDR_EXIT(x) clOsalPrintf("exiting %s\n", __FUNCTION__);
-#define CL_XDR_PRINT(x) clOsalPrintf x;
-#else
 #define CL_XDR_ENTER(x)
 #define CL_XDR_EXIT(x)
 #define CL_XDR_PRINT(x)
-#endif
-
 
 typedef ClRcT (*ClXdrMarshallFuncT) (void* pPyld,
                                      ClBufferHandleT msg,
