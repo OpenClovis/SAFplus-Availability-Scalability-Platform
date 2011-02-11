@@ -100,7 +100,8 @@ ClRcT clCmHpiInterfaceInitialize(void )
     if( hpiVersion != SAHPI_INTERFACE_VERSION )
     {
         clLog(CL_LOG_CRITICAL, AREA_HPI, CTX_INI,
-                "HPI version mismatch between HPI library and CM");
+              "HPI version mismatch between HPI library version [%#x] and CM version [%#x]",
+              hpiVersion, SAHPI_INTERFACE_VERSION);
         return CL_CM_ERROR(CL_ERR_VERSION_MISMATCH);
     }
 
