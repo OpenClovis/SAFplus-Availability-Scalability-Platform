@@ -2676,11 +2676,44 @@ clAmsEntityGetKey(
 
 }
 
+static ClRcT amsCompClearOps(ClAmsCompT *comp)
+{
+    /*
+     * Clear the invocation list of entries for this component. We are
+     * not going to get a response for these invocations.
+     */
+    AMS_CALL ( clAmsInvocationDeleteAll(comp) );
+
+    /*
+     * Stop all possible timers that could be running for the component.
+     */
+    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_INSTANTIATE) );
+    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_INSTANTIATEDELAY) );
+    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_TERMINATE) );
+    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_CLEANUP));
+    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE) );
+    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP));
+    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_CSISET));
+    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_CSIREMOVE));
+    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE));
+
+    return CL_OK;
+}
+
 /*
- * If this is a proxy, then stop healthcheck for all its proxied.
+ * If this is a proxy, then clearops for all the proxied including healthchecks
  */
 static ClRcT
-clAmsProxiedHealthcheckStop(ClAmsCompT *comp)
+clAmsProxiedClearOps(ClAmsCompT *comp)
 {
     ClAmsEntityRefT *eRef = NULL;
     ClAmsCSIT *proxyCSI = NULL;
@@ -2719,6 +2752,7 @@ clAmsProxiedHealthcheckStop(ClAmsCompT *comp)
         {
             cpmProxiedHealthcheckStop(&compRef->config.entity.name);
         }
+        amsCompClearOps(compRef);
         nodeHandle = nextNodeHandle;
     }
     return CL_OK;
@@ -2815,37 +2849,8 @@ clAmsEntityClearOps(
         {
             ClAmsCompT  *comp = (ClAmsCompT *) entity;
 
-            /*
-             * Clear the invocation list of entries for this component. We are
-             * not going to get a response for these invocations.
-             */
-
-            AMS_CALL ( clAmsInvocationDeleteAll(comp) );
-
-            /*
-             * Stop all possible timers that could be running for the component.
-             */
-
-            AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                           CL_AMS_COMP_TIMER_INSTANTIATE) );
-            AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                           CL_AMS_COMP_TIMER_INSTANTIATEDELAY) );
-            AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                           CL_AMS_COMP_TIMER_TERMINATE) );
-            AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                           CL_AMS_COMP_TIMER_CLEANUP));
-            AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                           CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE) );
-            AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                           CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP));
-            AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                           CL_AMS_COMP_TIMER_CSISET));
-            AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                           CL_AMS_COMP_TIMER_CSIREMOVE));
-            AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                           CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE));
-            clAmsProxiedHealthcheckStop(comp);
-
+            AMS_CALL( amsCompClearOps(comp) );
+            clAmsProxiedClearOps(comp);
             break;
         }
 
