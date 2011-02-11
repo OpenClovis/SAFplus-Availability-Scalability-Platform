@@ -205,7 +205,15 @@ ClRcT ckptIdlHandleUpdate(ClIocNodeAddressT nodeId,
     ClIdlHandleObjT  idlObj  = CL_IDL_HANDLE_INVALID_VALUE;
     ClIdlAddressT    address = {0};
     ClRcT            rc      = CL_OK;
-	 
+    ClUint32T timeout  = CKPT_RMD_DFLT_TIMEOUT;
+    /*
+     * If running with traffic shaper, bump up the timeout since the payload is
+     * expected to be large and CKPT is one of the key reasons. So respect!
+     */
+    if(gClIocTrafficShaper)
+    {
+        timeout = CL_MIN(60000, timeout*5);
+    }
     /*
      * Set the idlObj.
      */
@@ -215,7 +223,7 @@ ClRcT ckptIdlHandleUpdate(ClIocNodeAddressT nodeId,
     address.address.iocAddress.iocPhyAddress.portId       = CL_IOC_CKPT_PORT;
     idlObj.address          = address;
     idlObj.flags            = CL_RMD_CALL_DO_NOT_OPTIMIZE;
-    idlObj.options.timeout  = CKPT_RMD_DFLT_TIMEOUT;
+    idlObj.options.timeout  = timeout;
     idlObj.options.priority = CL_RMD_DEFAULT_PRIORITY;
     idlObj.options.retries  = numRetries;
     

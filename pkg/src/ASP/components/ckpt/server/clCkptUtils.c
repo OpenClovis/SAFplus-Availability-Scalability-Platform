@@ -43,6 +43,7 @@
 #include <clDebugApi.h>
 #include <clVersionApi.h>
 #include <clIocApi.h>
+#include <clIocIpi.h>
 #include <clLogApi.h>
 #include <clIdlApi.h>
 #include <clVersion.h>
@@ -1645,7 +1646,11 @@ ClRcT clCkptAppIdlHandleInit(ClIdlHandleT  *pHdl)
     ClIdlHandleObjT  idlObj  = CL_IDL_HANDLE_INVALID_VALUE;
     ClIdlAddressT    address = {0};
     ClRcT            rc      = CL_OK;
-	 
+    ClUint32T timeout = CKPT_RMD_DFLT_TIMEOUT;
+    if(gClIocTrafficShaper)
+    {
+        timeout = CL_MIN(timeout*5, 60000);
+    }
     /*
      * Set the idlObj.
      */
@@ -1655,7 +1660,7 @@ ClRcT clCkptAppIdlHandleInit(ClIdlHandleT  *pHdl)
     address.address.iocAddress.iocPhyAddress.portId       = CL_IOC_CKPT_PORT;
     idlObj.address          = address;
     idlObj.flags            = CL_RMD_CALL_DO_NOT_OPTIMIZE;
-    idlObj.options.timeout  = CKPT_RMD_DFLT_TIMEOUT;
+    idlObj.options.timeout  = timeout;
     idlObj.options.priority = CL_RMD_DEFAULT_PRIORITY;
     idlObj.options.retries  = 0;
     
@@ -1672,7 +1677,11 @@ ClRcT clCkptAppIdlHandleUpdate(ClIdlHandleT       idlHdl,
     ClIdlHandleObjT  idlObj  = CL_IDL_HANDLE_INVALID_VALUE;
     ClIdlAddressT    address = {0};
     ClRcT            rc      = CL_OK;
-	 
+    ClUint32T timeout = CKPT_RMD_DFLT_TIMEOUT;
+    if(gClIocTrafficShaper)
+    {
+        timeout = CL_MIN(60000, timeout*5);
+    }
     /*
      * Set the idlObj.
      */
@@ -1682,7 +1691,7 @@ ClRcT clCkptAppIdlHandleUpdate(ClIdlHandleT       idlHdl,
     address.address.iocAddress.iocPhyAddress.portId       = portId;
     idlObj.address          = address;
     idlObj.flags            = CL_RMD_CALL_DO_NOT_OPTIMIZE;
-    idlObj.options.timeout  = CKPT_RMD_DFLT_TIMEOUT;
+    idlObj.options.timeout  = timeout;
     idlObj.options.priority = CL_RMD_DEFAULT_PRIORITY;
     idlObj.options.retries  = numRetries;
     
