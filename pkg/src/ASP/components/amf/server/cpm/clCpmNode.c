@@ -854,7 +854,10 @@ static void cpmNodeDepartureEventPublish(ClIocNodeAddressT node, ClBoolT gracefu
        node != clIocLocalAddressGet())
         goto out;
 
-    memcpy(&nodeName.value, &gpClCpm->pCpmLocalInfo->nodeName, CL_MAX_NAME_LENGTH);
+    if(node == clIocLocalAddressGet())
+        memcpy(nodeName.value, gpClCpm->pCpmLocalInfo->nodeName, CL_MAX_NAME_LENGTH);
+    else
+        _cpmNodeNameForNodeAddressGet(node, &nodeName);
     nodeName.length = (strlen(nodeName.value) > CL_MAX_NAME_LENGTH)? CL_MAX_NAME_LENGTH :strlen(nodeName.value);
     if(!graceful)
         nodeEvent = CL_CPM_NODE_DEATH;
@@ -2119,6 +2122,13 @@ void cpmGoBackToRegister(void)
                       rc);
         cpmSelfShutDown();
     }
+    else
+    {
+        /*
+         *Reset to republish this nodes arrival
+         */
+        gpClCpm->nodeEventPublished = 0; 
+    }
 }
 
 ClRcT VDECL(cpmNodeConfigSet)(ClEoDataT data,
@@ -2268,8 +2278,6 @@ ClRcT VDECL(cpmMiddlewareRestart)(ClEoDataT data,
         clLogError("NODE", "RESTART", "RMD response send returned [%#x]", rc);
     }
 
-    cpmNodeDepartureEventPublish(iocNodeAddress, graceful, CL_FALSE); 
-
     cpmEnqueueAspRequest(&nodeName, iocNodeAddress, nodeReset);
 
     clLogNotice("NODE", "RESTART", "Processing middleware restart request for node [%d]", iocNodeAddress);
@@ -2329,8 +2337,6 @@ ClRcT VDECL(cpmNodeRestart)(ClEoDataT data,
     {
         clLogError("NODE", "RESTART", "RMD response send returned [%#x]", rc);
     }
-
-    cpmNodeDepartureEventPublish(iocNodeAddress, graceful, CL_FALSE); 
 
     clLogNotice("NODE", "RESTART", "Processing restart request for node [%d]", iocNodeAddress);
 
