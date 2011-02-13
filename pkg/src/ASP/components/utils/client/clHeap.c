@@ -59,9 +59,10 @@
 #endif
 
 /*
- * Track 1 MB allocations as a large chunk which can share references with buffer
+ * Below size for large chunk should be optimal considering we are 50% of the max. buffer or
+ * fragmentation limit.
  */
-#define CL_HEAP_LARGE_CHUNK_SIZE (0<<10)
+#define CL_HEAP_LARGE_CHUNK_SIZE (16384)
 
 #define CL_HEAP_SET_ADDRESS(address,overhead)               \
     (address) = (ClPtrT*) ((ClUint8T*)(address) + (overhead))
