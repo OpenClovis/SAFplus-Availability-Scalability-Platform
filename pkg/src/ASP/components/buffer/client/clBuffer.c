@@ -759,6 +759,25 @@ clBMChainReset(ClBufferCtrlHeaderT *pCtrlHeader,
         {
             prependSpace = 0;
         }
+        /*
+         * If we had a stitched heap chain, just unlink the heap chain.
+         */
+        if(pTemp->pool == CL_BUFFER_HEAP_MARKER)
+        {
+            ClBufferHeaderT *pNext = pTemp->pNextBufferHeader;
+            if(pTemp->pPreviousBufferHeader)
+            {
+                pTemp->pPreviousBufferHeader->pNextBufferHeader = pNext;
+            }
+            if(pNext)
+            {
+                pNext->pPreviousBufferHeader = pTemp->pPreviousBufferHeader;
+            }
+            clHeapFree(pTemp->pCookie);
+            clHeapFree(pTemp);
+            pTemp = pNext;
+            continue;
+        }
         pTemp->readOffset = pTemp->startOffset;
         pTemp->writeOffset = pTemp->startOffset;
         pTemp->dataLength = pTemp->startOffset;
