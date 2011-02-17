@@ -33,6 +33,8 @@
 # Component name (using all lowercase):
 COMPNAME	:= Amsxdr 
 
+AMF_PATH        = $(CLOVIS_ROOT)/ASP/components/amf
+
 # List local source files needed for the component server:
 
 SRC_FILES	:= $(wildcard *.c)
@@ -40,7 +42,9 @@ SRC_FILES	:= $(wildcard *.c)
 # List other ASP components of which client libraries your component
 # depends on:
 
-DEP_COMP_LIST	:= utils osal timer buffer ioc cnt eo debug rmd idl name ams
+DEP_COMP_LIST	:= utils osal timer buffer ioc cnt eo debug rmd idl name amf event
+
+EXTRA_CPPFLAGS  += -I$(AMF_PATH)/common/ams -I$(AMF_PATH)/server/ams
 
 # Library name:
 

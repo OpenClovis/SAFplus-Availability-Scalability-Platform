@@ -196,7 +196,7 @@ extern ClRcT clRmdObjClose(ClRmdObjHandleT p);
  *
  */
 
-    ClRcT clRmdLibInitialize(void);
+    ClRcT clRmdLibInitialize(ClPtrT config);
 
 
 /*****************************************************************************/

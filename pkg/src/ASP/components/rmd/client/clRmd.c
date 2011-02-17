@@ -900,7 +900,7 @@ error_out:
     return retVal1;
 }
 
-ClRcT clRmdLibInitialize(void)
+ClRcT clRmdLibInitialize(ClPtrT config)
 {
     ClRcT retCode;
 
