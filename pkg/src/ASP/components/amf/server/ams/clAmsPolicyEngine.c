@@ -4447,6 +4447,65 @@ clAmsPeSULockAssignment(
 }
 
 /*
+ * Force a recovery specific soft lock/unlock assignment. on the SU which would be succeeded
+ * by a lock instantiation. This is to enable back-doors to disable an assignment component restart loop where
+ * the escalation policy is purposely disabled and operator maintenance is required to lock instantiate 
+ * the service unit
+ */
+ClRcT
+clAmsPeSUForceLockOperation(
+                            CL_IN       ClAmsSUT *su,
+                            CL_IN       ClBoolT lock)
+{
+    ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_NONE;
+    ClAmsSGT *sg = NULL;
+    ClAmsNodeT *node = NULL;
+
+    AMS_CHECK_SU ( su );
+    AMS_CHECK_SG ( sg = (ClAmsSGT*)su->config.parentSG.ptr);
+    AMS_CHECK_NODE( node = (ClAmsNodeT*)su->config.parentNode.ptr);
+    AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
+
+    clLogNotice("SU", "LOCK-FORCE", "Admin Operation [Forced Soft %s Assignment] on SU [%s]",
+                lock ? "Lock" : "Unlock", su->config.entity.name.value);
+
+    if(lock)
+    {
+        AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+
+        if(adminState != CL_AMS_ADMIN_STATE_UNLOCKED)
+        {
+            clLogError("SU", "LOCK-FORCE", "Admin state of the SU has to be unlocked for force lock to work. "
+                       "Current admin state [%s]", CL_AMS_STRING_A_STATE(adminState));
+            return CL_AMS_RC(CL_ERR_INVALID_STATE);
+        }
+
+        /*
+         * Schedule a soft admin state. transition so that the next recovery restart loop fault transitions to a 
+         * component failover
+         */
+        su->config.adminState = CL_AMS_ADMIN_STATE_LOCKED_A;
+    }
+    else
+    {
+        if(su->config.adminState != CL_AMS_ADMIN_STATE_LOCKED_A)
+        {
+            clLogError("SU", "LOCK-FORCE", "Admin state of the SU has to be locked for force unlock to work. "
+                       "Current admin state [%s]", CL_AMS_STRING_A_STATE(su->config.adminState));
+            return CL_AMS_RC(CL_ERR_INVALID_STATE);
+        }
+
+        /*
+         * Schedule a soft admin state. transition so that the next recovery restart loop fault transitions to a 
+         * component failover
+         */
+        su->config.adminState = CL_AMS_ADMIN_STATE_UNLOCKED;
+    }
+
+    return CL_OK;
+}
+
+/*
  * clAmsPeSULockAassignmentCallback
  * --------------------------------
  * This fn is called when a Lock A operation has completed

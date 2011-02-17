@@ -80,10 +80,18 @@ sizeof(clVersionSupported)/sizeof(ClVersionT),
 clVersionSupported
 }; 
 
+typedef struct ClDebugDeferContext
+{
+    ClBufferHandleT outMsgHdl;
+    ClBoolT defer;
+} ClDebugDeferContextT;
+
+
 #ifdef SOLARIS_BUILD
 #include <ucontext.h>
 #include <stdlib.h>
 #include <string.h>
+
 /* 
  * dump stack trace up to length count into buffer 
  */
@@ -161,6 +169,102 @@ clDebugFuncInvokeCallback(ClHandleDatabaseHandleT  hHandleDB,
     return rc; 
 }
 
+ClRcT clDebugResponseDefer(ClRmdResponseContextHandleT *pResponseHandle, ClBufferHandleT *pOutMsgHandle)
+{
+    ClDebugDeferContextT *deferContext = NULL;
+    ClRcT rc;
+    ClEoExecutionObjT *pEoObj = NULL;
+    ClDebugObjT *pDebugObj = NULL;
+
+    if(!pResponseHandle)
+        return CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
+
+    rc = clEoMyEoObjectGet(&pEoObj);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clEoPrivateDataGet( pEoObj, CL_EO_DEBUG_OBJECT_COOKIE_ID,
+                             (void**) &pDebugObj);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+    
+    rc = clOsalTaskDataGet(pDebugObj->debugTaskKey, (ClOsalTaskDataT*)&deferContext);
+    if(rc != CL_OK || !deferContext)
+    {
+        clLogError("DEFER", "CLI", "Task data get failed on the debug defer context");
+        return rc;
+    }
+    
+    rc = clRmdResponseDefer(pResponseHandle);
+    if(rc != CL_OK)
+    {
+        return rc;
+    }
+    deferContext->defer = CL_TRUE;
+    if(pOutMsgHandle)
+        *pOutMsgHandle = deferContext->outMsgHdl;
+
+    return rc;
+}
+
+static ClRcT clDebugResponseMarshall(ClCharT *resp, ClRcT retCode, ClBufferHandleT outMsgHdl)
+{
+    ClRcT rc = CL_OK;
+    if(resp && outMsgHdl)
+    {
+        ClUint32T i = strlen(resp);
+        rc = clXdrMarshallClUint32T(&i,outMsgHdl,0);
+        if (CL_OK != rc)
+        {
+            return rc;
+        }
+        rc = clXdrMarshallArrayClCharT(resp,i,outMsgHdl,0);  
+        if (CL_OK != rc)
+        {
+            return rc;
+        }
+        rc = clXdrMarshallClUint32T(&retCode, outMsgHdl, 0);
+        if( CL_OK != rc )
+        {
+            return rc;
+        }
+    }
+    return rc;
+}
+
+ClRcT clDebugResponseSend(ClRmdResponseContextHandleT responseHandle,
+                          ClBufferHandleT *pOutMsgHandle,
+                          ClCharT *respBuffer,
+                          ClRcT retCode)
+{
+    ClRcT rc = CL_OK;
+    ClBufferHandleT outMsgHandle = 0;
+    if(!responseHandle)
+        return CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
+
+    if(pOutMsgHandle)
+    {
+        outMsgHandle = *pOutMsgHandle;
+        *pOutMsgHandle = 0;
+    }
+    rc = clDebugResponseMarshall(respBuffer, retCode, outMsgHandle);
+    if(rc != CL_OK)
+    {
+        if(outMsgHandle)
+        {
+            if(clBufferDelete(&outMsgHandle) != CL_OK)
+                clHeapFree((void*)outMsgHandle);
+        }
+        return rc;
+    }
+    rc = clRmdSyncResponseSend(responseHandle, outMsgHandle, retCode);
+    return rc;
+}
+
 ClRcT VDECL(clDebugInvoke)(ClEoDataT        data,
                            ClBufferHandleT  inMsgHdl,
                            ClBufferHandleT  outMsgHdl)
@@ -174,6 +278,7 @@ ClRcT VDECL(clDebugInvoke)(ClEoDataT        data,
     ClCharT   	          *resp        = NULL;
     ClVersionT            version      = {0};
     ClDebugInvokeCookieT  invokeCookie = {0};
+    ClDebugDeferContextT  deferContext = {0};
     ClRcT                 retCode      = CL_OK;
 
     if ((NULL == pDebugObj) || (0 == outMsgHdl))
@@ -256,6 +361,9 @@ ClRcT VDECL(clDebugInvoke)(ClEoDataT        data,
 
     if (invokeCookie.pFuncEntry && invokeCookie.pFuncEntry->fpCallback)
     {
+        deferContext.outMsgHdl = outMsgHdl;
+        deferContext.defer = CL_FALSE;
+        clOsalTaskDataSet(pDebugObj->debugTaskKey, (ClOsalTaskDataT)&deferContext);
         rc = invokeCookie.pFuncEntry->fpCallback(argc, argv, &resp);
     }
     else
@@ -274,24 +382,11 @@ L1:
     
     if (NULL != resp)
     {
-        i = strlen(resp);
-        rc = clXdrMarshallClUint32T(&i,outMsgHdl,0);
-        if (CL_OK != rc)
-        {
-            return rc;
-        }
-
-        rc = clXdrMarshallArrayClCharT(resp,i,outMsgHdl,0);  
-        if (CL_OK != rc)
-        {
-            return rc;
-        }
-        rc = clXdrMarshallClUint32T(&retCode, outMsgHdl, 0);
-        if( CL_OK != rc )
-        {
-            return rc;
-        }
-
+        /*
+         * Marshall the response to the out buffer if we aren't deferred.
+         */
+        if(!deferContext.defer)
+            rc = clDebugResponseMarshall(resp, retCode, outMsgHdl);
         clHeapFree(resp);
         resp = NULL;
     }
@@ -430,6 +525,14 @@ ClRcT clDebugLibInitialize(void)
         clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_DEBUG_LIB_CLIENT,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         return CL_DEBUG_RC(CL_ERR_NO_MEMORY);
+    }
+
+    rc = clOsalTaskKeyCreate(&pDebugObj->debugTaskKey, NULL);
+    if(rc != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Debug task key create returned with [%#x]\n", rc));
+        clHeapFree(pDebugObj);
+        return CL_DEBUG_RC(CL_GET_ERROR_CODE(rc));
     }
 
     rc = clHandleDatabaseCreate(NULL, &pDebugObj->hDebugFnDB);

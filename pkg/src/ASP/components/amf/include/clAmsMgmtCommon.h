@@ -128,6 +128,7 @@ typedef enum
     CL_AMS_MGMT_CCB_DELETE_CSI_CSI_DEPENDENCY        = 63,
     CL_AMS_MGMT_SI_ASSIGN_SU_CUSTOM                 = 65,
     CL_AMS_MGMT_ENTITY_SET_BETA_FACTOR = 66,
+    CL_AMS_MGMT_ENTITY_FORCE_LOCK     =  67,
 } ClAmsMgmtClientCallbackRmdInterfaceT;
 
 /*
@@ -262,6 +263,15 @@ typedef struct
 } clAmsMgmtEntityLockAssignmentRequestT;    
 
 typedef clAmsMgmtDummyResponseT  clAmsMgmtEntityLockAssignmentResponseT;
+
+typedef struct
+{
+    ClAmsMgmtHandleT                    handle;
+    ClAmsEntityT                        entity;
+    ClBoolT                             lock;
+} clAmsMgmtEntityForceLockRequestT;
+
+typedef clAmsMgmtDummyResponseT  clAmsMgmtEntityForceLockResponseT;
 
 typedef struct
 {

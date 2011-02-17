@@ -44,6 +44,7 @@
 #include <clAmsModify.h>
 #include <clAmsServerUtils.h>
 #include <clAmsEntityTrigger.h>
+#include <clTaskPool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -71,6 +72,13 @@ static  ClVersionT  gVersion = {'B', 01, 01 };
 static  ClBoolT gClInitialized = CL_FALSE;
 FILE  *debugPrintFP = NULL;
 ClBoolT debugPrintAll = CL_NO;
+typedef struct ClAmsForceLockContext
+{
+    ClRmdResponseContextHandleT responseHandle;
+    ClBufferHandleT outMsgHandle;
+    ClCharT *respBuffer;
+    ClCharT entity[CL_MAX_NAME_LENGTH];
+}ClAmsForceLockContextT;
 
 #if defined (CL_AMS_MGMT_HOOKS)
 static ClRcT clAmsMgmtEntityAdminResponse(ClAmsEntityTypeT type,
@@ -702,6 +710,110 @@ ClRcT clAmsDebugCliSISwap(
     }
 
     return CL_OK;
+}
+
+static ClRcT amsForceLockTask(ClPtrT cookie)
+{
+    ClAmsForceLockContextT *lockContext = (ClAmsForceLockContextT*)cookie;
+    ClCharT *respBuffer = lockContext->respBuffer;
+    ClBufferHandleT outMsgHandle = lockContext->outMsgHandle;
+    ClRmdResponseContextHandleT responseHandle = lockContext->responseHandle;
+    ClAmsEntityT entity = {0};
+    ClRcT rc;
+    entity.type = CL_AMS_ENTITY_TYPE_SU;
+    clNameSet(&entity.name, lockContext->entity);
+    clHeapFree(lockContext);
+    respBuffer[0] = 0; /*zero off the response buffer*/
+    rc = clAmsMgmtEntityLockInstantiation(gHandle, (const ClAmsEntityT*)&entity);
+    if(rc != CL_OK)
+    {
+        snprintf(respBuffer, MAX_BUFFER_SIZE, "Force lock instantiation returned with [%#x]", rc);
+        clAmsMgmtEntityForceLockExtended(gHandle, (const ClAmsEntityT*)&entity, 0); /* force unlock*/
+    }
+    rc = clDebugResponseSend(responseHandle, &outMsgHandle, respBuffer, rc);
+    clHeapFree(respBuffer);
+    return rc;
+}
+
+ClRcT clAmsDebugCliForceLock(
+                          CL_IN  ClUint32T argc,
+                          CL_IN  ClCharT **argv,
+                          CL_OUT ClCharT **ret)
+{
+    ClRcT rc = CL_OK;
+    ClAmsEntityT entity = {0};
+    ClAmsForceLockContextT *lockContext = NULL;
+    ClRmdResponseContextHandleT responseHandle = 0;
+    ClBufferHandleT outMsgHandle = 0;
+    static ClTaskPoolHandleT pool = 0;
+
+    AMS_FUNC_ENTER(("\n"));
+
+    if(ret == NULL) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+
+    *ret = clHeapCalloc(1, MAX_BUFFER_SIZE+1);
+
+    CL_ASSERT(*ret != NULL);
+    
+    if(argc != 2)
+    {
+        strncat(*ret, "amsforcelock [suname]\n", MAX_BUFFER_SIZE);
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    }
+
+    /*
+     * Defer the context before firing the first RMD since that would overwrite the current
+     * rmdrecv threadspecific context.
+     */
+    lockContext = clHeapCalloc(1, sizeof(*lockContext));
+    CL_ASSERT(lockContext != NULL);
+    strncpy(lockContext->entity, argv[1], sizeof(lockContext->entity)-1);
+    lockContext->respBuffer = *ret;
+    rc = clDebugResponseDefer(&lockContext->responseHandle, &lockContext->outMsgHandle);
+    if(rc != CL_OK)
+    {
+        clLogError("ADM", "LOCK-FORCE", "Debug response defer returned with [%#x]", rc);
+        strncat(*ret, "Failed to defer force-lock request\n", MAX_BUFFER_SIZE);
+        clHeapFree(lockContext);
+        return rc;
+    }
+    responseHandle = lockContext->responseHandle;
+    outMsgHandle = lockContext->outMsgHandle;
+
+    entity.type = CL_AMS_ENTITY_TYPE_SU;
+    clNameSet(&entity.name, (const ClCharT*)argv[1]);
+    
+    if ( ( rc = clAmsMgmtEntityForceLockExtended(
+                                                 gHandle,
+                                                 (const ClAmsEntityT*)&entity,
+                                                 1) )
+         != CL_OK)
+    {
+        strncat (*ret, "admin operation[force lock] failed\n", MAX_BUFFER_SIZE);
+        clHeapFree(lockContext);
+        return clDebugResponseSend(responseHandle, &outMsgHandle, *ret, rc);
+    }
+    if(!pool)
+    {
+        rc = clTaskPoolCreate(&pool, 1, NULL, NULL);
+        if(rc != CL_OK)
+        {
+            clLogError("ADM", "LOCK-FORCE", "Task pool create returned with [%#x]", rc);
+            clAmsMgmtEntityForceLockExtended(gHandle, (const ClAmsEntityT*)&entity, 0);
+            strncat(*ret, "admin operation [force lock] failed to create defer task\n", MAX_BUFFER_SIZE);
+            clHeapFree(lockContext);
+            return clDebugResponseSend(responseHandle, &outMsgHandle, *ret, rc);
+        }
+    }
+    if( (rc = clTaskPoolRun(pool, amsForceLockTask, (void*)lockContext) ) != CL_OK)
+    {
+        snprintf(*ret, MAX_BUFFER_SIZE, "Debug cli deferred lock taskpool run failed with [%#x]", rc);
+        clAmsMgmtEntityForceLockExtended(gHandle, (const ClAmsEntityT*)&entity, 0);
+        clHeapFree(lockContext);
+        return clDebugResponseSend(responseHandle, &outMsgHandle, *ret, rc);
+    }
+    *ret = NULL; /* let it be done by the task pool task*/
+    return rc;
 }
 
 void 

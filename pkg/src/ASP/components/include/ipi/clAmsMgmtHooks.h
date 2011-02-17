@@ -69,6 +69,15 @@ ClRcT clAmsMgmtHookDel(ClAmsEntityT *pEntity,ClAmsMgmtAdminOperT oper,ClRcT retC
 
 #endif
 
+extern ClRcT
+clAmsMgmtEntityForceLock(ClAmsMgmtHandleT amsHandle,
+                         const ClAmsEntityT *entity);
+
+extern ClRcT
+clAmsMgmtEntityForceLockExtended(ClAmsMgmtHandleT amsHandle,
+                                 const ClAmsEntityT *entity,
+                                 ClUint32T lockFlags);
+
 #ifdef __cplusplus
 }
 #endif

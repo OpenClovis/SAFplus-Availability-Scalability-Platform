@@ -85,7 +85,8 @@ static ClEoExecutionObjT *gpEOObj;
             clOsalTaskDelay(delay) == CL_OK);               \
     if(rc != CL_OK)                                         \
     {                                                       \
-        clHandleCheckin(handle_database, (amsHandle));      \
+        if( (amsHandle) )                                   \
+            clHandleCheckin(handle_database, (amsHandle));  \
         goto exitfn;                                        \
     }                                                       \
 }while(0)                                                   
@@ -968,6 +969,99 @@ clAmsMgmtEntityLockAssignment(
     return clAmsMgmtEntityLockAssignmentExtended(amsHandle, entity, CL_TRUE);
 }
 
+static ClRcT amsLockInstantiation(ClAmsMgmtHandleT serverHandle, 
+                                  const ClAmsEntityT *entity,
+                                  ClBoolT retry)
+{
+    ClRcT  rc = CL_OK;
+    clAmsMgmtEntityLockInstantiationRequestT  req;
+    clAmsMgmtEntityLockInstantiationResponseT  *res = NULL;
+
+    req.handle = serverHandle,
+    memcpy ( &req.entity , entity, sizeof(ClAmsEntityT) );
+    CL_AMS_NAME_LENGTH_CHECK(req.entity);
+
+    AMS_ADMIN_API_CALL( 0, retry, rc, cl_ams_mgmt_entity_lock_instantiation( &req, &res));
+
+     exitfn:
+     clAmsFreeMemory(res);
+     return rc;
+}
+
+ClRcT
+clAmsMgmtEntityForceLockExtended(
+                                 CL_IN  ClAmsMgmtHandleT  amsHandle,
+                                 CL_IN  const ClAmsEntityT  *entity,
+                                 CL_IN  ClUint32T lockFlags)
+{
+
+    ClRcT  rc = CL_OK;
+    clAmsMgmtEntityForceLockRequestT req = {0};
+    clAmsMgmtEntityForceLockResponseT  *res = NULL;
+    struct ams_instance  *ams_instance = NULL;
+
+    AMS_CHECKPTR_SILENT( !entity );
+
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
+                                         (ClPtrT)&ams_instance));
+
+    req.handle = ams_instance->server_handle;
+    req.lock  = (lockFlags & 1) ? CL_TRUE : CL_FALSE;
+    memcpy ( &req.entity , entity, sizeof(ClAmsEntityT));
+    CL_AMS_NAME_LENGTH_CHECK(req.entity);
+
+    /*
+     * Force force lock and then take it to locked instantiation. 
+     * If that fails, unlock the soft lock taken.
+     */
+    rc = cl_ams_mgmt_entity_force_lock( &req, &res );
+    if(rc != CL_OK)
+    {
+        clLogError("OP", "FORCE-LOCK", "Force lock operation failed on entity [%s] with [%#x]",
+                   req.entity.name.value, rc);
+        goto exit_checkin;
+    }
+
+    /*
+     * LockA + LockI
+     */
+    if(!(lockFlags ^ 3 ))
+    {
+        rc = amsLockInstantiation(req.handle, entity, CL_TRUE);
+
+        if(rc != CL_OK)
+        {
+            clLogError("OP", "FORCE-LOCK", "Lock instantiation failed on entity [%s] with [%#x]",
+                       req.entity.name.value, rc);
+            clLogNotice("OP", "FORCE-LOCK", "Force lock reverting the soft lock");
+            req.lock = CL_FALSE;
+            clAmsFreeMemory(res);
+            rc = cl_ams_mgmt_entity_force_lock(&req, &res);
+            if(rc != CL_OK)
+            {
+                clLogError("OP", "FORCE-LOCK", "Force lock unlock also failed with [%#x] on entity [%s]",
+                           rc, req.entity.name.value);
+                goto exit_checkin;
+            }
+        }
+    }
+
+    exit_checkin:
+    AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
+
+    exitfn:
+    clAmsFreeMemory (res);
+    return rc;
+}
+
+ClRcT
+clAmsMgmtEntityForceLock(
+                         CL_IN  ClAmsMgmtHandleT  amsHandle,
+                         CL_IN  const ClAmsEntityT  *entity)
+{
+    return clAmsMgmtEntityForceLockExtended(amsHandle, entity, 3);
+}
+
 /*
  * clAmsMgmtEntityLockInstantiation
  * --------------------------------
@@ -1001,29 +1095,19 @@ clAmsMgmtEntityLockInstantiationExtended(
 {
 
     ClRcT  rc = CL_OK;
-    clAmsMgmtEntityLockInstantiationRequestT  req;
-    clAmsMgmtEntityLockInstantiationResponseT  *res = NULL;
     struct ams_instance  *ams_instance = NULL;
-
 
     AMS_CHECKPTR_SILENT( !entity );
 
     AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
                 (ClPtrT)&ams_instance));
 
-    req.handle = ams_instance->server_handle;
-    memcpy ( &req.entity , entity, sizeof(ClAmsEntityT) );
-    CL_AMS_NAME_LENGTH_CHECK(req.entity);
-
-    AMS_ADMIN_API_CALL( amsHandle, retry, rc, cl_ams_mgmt_entity_lock_instantiation( &req, &res));
+    rc = amsLockInstantiation(ams_instance->server_handle, entity, retry);
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
 
 exitfn:
-
-    clAmsFreeMemory (res);
     return rc;
-
 }
 
 ClRcT
@@ -5180,4 +5264,3 @@ clAmsMgmtGetAspInstallInfo(ClAmsMgmtHandleT mgmtHandle, const ClCharT *nodeName,
     out:
     return rc;
 }
-

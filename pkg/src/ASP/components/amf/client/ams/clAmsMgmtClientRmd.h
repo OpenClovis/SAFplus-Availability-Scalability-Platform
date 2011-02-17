@@ -87,6 +87,10 @@ extern ClRcT cl_ams_mgmt_entity_lock_assignment(
         CL_IN   clAmsMgmtEntityLockAssignmentRequestT   *req,
         CL_OUT  clAmsMgmtEntityLockAssignmentResponseT **res);
 
+extern ClRcT cl_ams_mgmt_entity_force_lock(
+        CL_IN   clAmsMgmtEntityForceLockRequestT   *req,
+        CL_OUT  clAmsMgmtEntityForceLockResponseT **res);
+
 extern ClRcT cl_ams_mgmt_entity_lock_instantiation(
         CL_IN   clAmsMgmtEntityLockInstantiationRequestT   *req,
         CL_OUT  clAmsMgmtEntityLockInstantiationResponseT **res);

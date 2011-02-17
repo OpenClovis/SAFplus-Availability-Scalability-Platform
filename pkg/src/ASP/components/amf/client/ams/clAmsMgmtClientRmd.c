@@ -904,6 +904,32 @@ cl_ams_mgmt_entity_lock_assignment(
             (ClPtrT*)res, &unmarshalClAmsMgmtEntityLockAssignment);
 }
 
+ClRcT
+marshalClAmsMgmtEntityForceLock(
+        CL_IN  ClPtrT  ptr,
+        CL_INOUT  ClBufferHandleT  buf)
+{
+    return VDECL_VER(clXdrMarshallclAmsMgmtEntityForceLockRequestT, 4, 0, 0)(ptr,buf,0);
+}
+
+static ClRcT
+unmarshalClAmsMgmtEntityForceLock(
+        CL_IN  ClBufferHandleT  buf,
+        CL_INOUT  ClPtrT  *pptr)
+{
+    return CL_OK;
+}
+
+ClRcT
+cl_ams_mgmt_entity_force_lock(
+        CL_IN  clAmsMgmtEntityForceLockRequestT  *req,
+        CL_OUT clAmsMgmtEntityForceLockResponseT  **res)
+{
+    return cl_ams_call_rmd(( ClUint32T)CL_AMS_MGMT_ENTITY_FORCE_LOCK,
+                           (ClPtrT)req, &marshalClAmsMgmtEntityForceLock,
+                           (ClPtrT*)res, &unmarshalClAmsMgmtEntityForceLock);
+}
+
 /******************************************************************************/
 
 ClRcT
@@ -3465,6 +3491,12 @@ emulate_rmd_call(
         case CL_AMS_MGMT_ENTITY_LOCK_ASSIGNMENT:
             {
                 rc = VDECL(_clAmsMgmtEntityLockAssignment)(data,in_buffer, out_buffer);
+                break;
+            }
+
+        case CL_AMS_MGMT_ENTITY_FORCE_LOCK:
+            {
+                rc = VDECL(_clAmsMgmtEntityForceLock)(data, in_buffer, out_buffer);
                 break;
             }
 

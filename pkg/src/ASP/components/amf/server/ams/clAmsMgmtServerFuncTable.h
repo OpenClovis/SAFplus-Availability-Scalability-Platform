@@ -109,6 +109,7 @@ CL_EO_CALLBACK_TABLE_DECL(amsMgmtServerFuncList2)[]=
     VSYM_EMPTY(NULL, 0),
     VSYM(_clAmsMgmtSIAssignSUCustom, __AMS_FUNC_ID2(CL_AMS_MGMT_SI_ASSIGN_SU_CUSTOM)),
     VSYM(_clAmsMgmtEntitySetBetaFactor, __AMS_FUNC_ID2(CL_AMS_MGMT_ENTITY_SET_BETA_FACTOR)),
+    VSYM(_clAmsMgmtEntityForceLock, __AMS_FUNC_ID2(CL_AMS_MGMT_ENTITY_FORCE_LOCK)),
     VSYM_NULL,
 };
 

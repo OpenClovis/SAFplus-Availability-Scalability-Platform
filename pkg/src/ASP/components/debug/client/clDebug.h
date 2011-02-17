@@ -67,7 +67,11 @@ typedef struct ClDebugObjT
  * Handle Database which holds list of all commands and their respective functions and help.
  */
     ClHandleDatabaseHandleT  hDebugFnDB;
-
+    
+    /*
+     * Debug response context key.
+     */
+    ClUint32T          debugTaskKey;
 /**
  * Number of commands provided.
  */

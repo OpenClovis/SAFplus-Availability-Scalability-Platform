@@ -54,6 +54,7 @@ extern "C" {
 #include <clDebugErrors.h>
 #include <clHandleApi.h>
 #include <clLogApi.h>
+#include <clRmdIpi.h>
 #ifndef __KERNEL__
 #include <stdio.h>
 #include <unistd.h>
@@ -599,6 +600,12 @@ ClRcT clDebugPrintDestroy(CL_INOUT ClDebugPrintHandleT* msg);
  */
 
 ClRcT clDebugVersionCheck(CL_INOUT ClVersionT *pVersion);
+
+ClRcT clDebugResponseSend(ClRmdResponseContextHandleT responseHandle,
+                          ClBufferHandleT *pOutMsgHandle,
+                          ClCharT *respBuffer,
+                          ClRcT retCode);
+ClRcT clDebugResponseDefer(ClRmdResponseContextHandleT *pResponseHandle, ClBufferHandleT *pOutMsgHandle);
 
 #ifdef __cplusplus
 }

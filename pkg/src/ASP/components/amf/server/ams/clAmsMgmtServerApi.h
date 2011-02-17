@@ -117,6 +117,12 @@ VDECL(_clAmsMgmtEntityLockAssignment)(
         CL_OUT  ClBufferHandleT  out_buffer);
 
 extern ClRcT
+VDECL(_clAmsMgmtEntityForceLock)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in_buffer,
+        CL_OUT ClBufferHandleT  out_buffer);
+
+extern ClRcT
 VDECL(_clAmsMgmtEntityLockInstantiation)( 
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in_buffer,

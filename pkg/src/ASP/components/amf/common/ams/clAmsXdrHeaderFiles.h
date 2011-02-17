@@ -50,6 +50,7 @@ extern "C" {
 #include <xdrClAmsMgmtEntityShutdownRequestT.h>
 #include <xdrClAmsMgmtEntityLockInstantiationRequestT.h>
 #include <xdrClAmsMgmtEntityLockAssignmentRequestT.h>
+#include <xdrClAmsMgmtEntityForceLockRequestT.h>
 #include <xdrClAmsMgmtSISwapRequestT.h>
 #include <xdrClAmsMgmtSGAdjustPreferenceRequestT.h>
 #include <xdrClAmsMgmtInitializeRequestT.h>

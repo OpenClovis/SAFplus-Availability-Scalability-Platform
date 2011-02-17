@@ -313,6 +313,12 @@
             <DataMember name="entity" type="ClAmsEntityConfigT"/>
         </Struct>
 
+        <Struct name="clAmsMgmtEntityForceLockRequestT"> <!---->
+            <DataMember name="handle" type="ClHandleT"/>
+            <DataMember name="entity" type="ClAmsEntityConfigT"/>
+            <DataMember name="lock" type="ClUint16T"/>
+        </Struct>
+
         <Struct name="clAmsMgmtEntityUnlockRequestT"> <!---->
             <DataMember name="handle" type="ClHandleT"/>
             <DataMember name="entity" type="ClAmsEntityConfigT"/>

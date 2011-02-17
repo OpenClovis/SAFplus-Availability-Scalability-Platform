@@ -186,6 +186,12 @@ static ClDebugFuncEntryT cpmSCDebugFuncList[] =
         "Admin API for reporting arrival of a node"
     },
 
+    {
+        clAmsDebugCliForceLock,
+        "amsForceLock",
+        "Admin API for forcefully locking an SU in a fault restart loop",
+    },
+
 #ifdef AMS_TEST_CLI_COMMANDS
     {
         clAmsDebugCliPGTrackAdd,
@@ -327,7 +333,7 @@ static ClDebugFuncEntryT cpmSCDebugFuncList[] =
         "nodeErrorClear",
         "shutdown down a node"
     },
-
+     
     CPM_DEBUG_CLI_COMMON_FUNC_LIST,
     
     {
