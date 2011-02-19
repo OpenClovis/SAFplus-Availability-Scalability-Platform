@@ -970,6 +970,10 @@ ClRcT  clMedCorOpPerform(ClMedObjT          *pMm,
         /* Get the handle of the MSO for all operations but CL_COR_CREATE */
         if (pTmpOp->opCode != CL_COR_CREATE && pTmpOp->opCode != CL_COR_DELETE)
         {
+            if(objHdl)
+            {
+                clCorObjectHandleFree(&objHdl);
+            }
             rc = clCorObjectHandleGet(pMoId, &objHdl);
             if (rc != CL_OK)
             {
@@ -1131,6 +1135,10 @@ ClRcT  clMedCorOpPerform(ClMedObjT          *pMm,
                     medErrIdXlate(pMm, rc, pVarInfo);
                     goto exitOnError;
                 }
+                if(objHdl)
+                {
+                    clCorObjectHandleFree(&objHdl);
+                }
                 if( (rc = clCorObjectHandleGet(pMoId, &objHdl)) != CL_OK)
                 {
                     clLog(CL_LOG_ERROR, CL_MED_AREA, CL_MED_CTX_CFG, "Could not get object handle RC : [%x]",rc);
@@ -1216,6 +1224,10 @@ ClRcT  clMedCorOpPerform(ClMedObjT          *pMm,
                 }
                 break;
             case CL_COR_CREATE:
+                if(objHdl)
+                {
+                    clCorObjectHandleFree(&objHdl);
+                }
                 rc = clCorObjectHandleGet(pMoId, &objHdl);
                 if(rc != CL_OK)
                 {
@@ -1292,6 +1304,10 @@ ClRcT  clMedCorOpPerform(ClMedObjT          *pMm,
                     rc = clCorMoIdServiceSet(pMoId, j+1);
                     if (rc == CL_OK)
                     {
+                        if(objHdl)
+                        {
+                            clCorObjectHandleFree(&objHdl);
+                        }
                         rc = clCorObjectHandleGet(pMoId, &objHdl);
                         if (rc == CL_OK)
                         {
@@ -1364,6 +1380,7 @@ ClRcT  clMedCorOpPerform(ClMedObjT          *pMm,
         {
             ClCorTxnInfoT txnNext;
             clCorAttrPathInitialize(&txnNext.attrPath);
+            clLogNotice("MED", "TXN", "Finishing the mediation transaction for SET");
             if (CL_OK != (rc = clMedTxnFinish(txnSessionId)))
             {
                 if(pCorAttrValDescList && pCorAttrValDescList->pAttributeValue)
@@ -1434,6 +1451,10 @@ exitOnError:
     {
         clLogTrace(CL_MED_AREA, CL_MED_CTX_CFG,
                 "Entering exit block");
+        if(objHdl)
+        {
+            clCorObjectHandleFree(&objHdl);
+        }
         /* Clean up of COR attribute value descriptor list. */
         if(pCorAttrValDescList) 
         {

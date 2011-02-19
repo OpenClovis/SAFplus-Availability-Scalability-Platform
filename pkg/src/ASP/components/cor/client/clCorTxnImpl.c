@@ -369,7 +369,7 @@ clCorTxnNewSessionCreate(ClCorTxnSessionT   *pTxnSession)
         /* Multi operation transaction - Create llist for cor-txn descriptor objects */
         rc = clCntRbtreeCreate (_clCorTxnTreeCompare,
                                _clCorTxnJobHeaderNodeDelete,
-                               NULL, CL_CNT_UNIQUE_KEY, 
+                               _clCorTxnJobHeaderNodeDelete, CL_CNT_UNIQUE_KEY, 
                                (ClCntHandleT *) &(pTxnHandle->tree));
 
         rc = clCntLlistCreate (_clCorTxnListCompare,
@@ -416,7 +416,6 @@ clCorTxnSessionDelete(ClCorTxnSessionT txnSession)
     else
     {
         ClCorTxnHandleT* pTxnHandle = (ClCorTxnHandleT *) txnSession.txnSessionId;
-
         clCntDelete(pTxnHandle->tree);
         clCntDelete(pTxnHandle->list);
 
@@ -2608,6 +2607,7 @@ ClRcT _clCorBundleStart (
     else
     {
         COR_CALL_RMD_SYNC_WITH_MSG(COR_EO_BUNDLE_OP, inMsgHandle, outMsgHandle, rc);
+        clBufferDelete(&inMsgHandle);
         if (CL_OK != rc)
         {
             clBufferDelete(&outMsgHandle);
