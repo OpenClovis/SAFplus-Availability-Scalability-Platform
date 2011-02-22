@@ -1364,7 +1364,7 @@ DEL_ERROR:
 
     rc = _clGmsDbDelete(thisViewDb, CL_GMS_CURRENT_VIEW, dbKey);
 
-    thisViewDb->view.viewNumber++;
+    thisViewDb->view.viewNumber--;
 
     return rc;
 }
