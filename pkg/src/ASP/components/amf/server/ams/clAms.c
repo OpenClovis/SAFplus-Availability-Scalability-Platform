@@ -630,7 +630,7 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
        || 
        gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE)
     {
-        clLogInfo("NODE", "JOIN", "Returning try again for node join as ams state is not up");
+        clLogNotice("NODE", "JOIN", "Returning try again for node join as ams state is not up");
         rc = CL_AMS_RC(CL_ERR_TRY_AGAIN);
         goto out_unlock;
     } 
@@ -654,8 +654,19 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
            &&
            node->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATED)
         {
-            clLogInfo("NODE", "JOIN", "Returning try again as node [%s] is being failed over", pNodeName);
+            clLogNotice("NODE", "JOIN", "Returning try again as node [%s] is being failed over", pNodeName);
             rc = CL_AMS_RC(CL_ERR_TRY_AGAIN);
+            goto out_unlock;
+        }
+        /*
+         * Got a registration request from a node which is already a member of the cluster.
+         */
+        if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+        {
+            clLogWarning("NODE", "JOIN", "Node [%s] already member of the cluster. "
+                         "Forcing an invalid state error to have the node restarted since it appears to be recovering "
+                         "from a split brain", pNodeName);
+            rc = CL_AMS_RC(CL_ERR_INVALID_STATE);
             goto out_unlock;
         }
     }

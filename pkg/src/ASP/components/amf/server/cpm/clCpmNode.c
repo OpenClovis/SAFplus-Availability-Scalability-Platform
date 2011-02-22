@@ -819,7 +819,8 @@ ClRcT VDECL(cpmNodeShutDown)(ClEoDataT data,
         if(CL_CPM_IS_WB())
         {
             ClTimerTimeOutT delay = {.tsSec = 5, .tsMilliSec = 0 };
-
+            clLogNotice("NODE", "SHUTDOWN", "Worker node got a restart request from the master."
+                        "This should be mostly from a split brain recovery");
             cpmRestart(&delay, "payload");
 
             /*
@@ -1980,6 +1981,17 @@ void cpmRegisterWithActive(void)
     }
     else if (CL_OK != rc)
     {
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_STATE)
+        {
+            ClTimerTimeOutT delay = { .tsSec = 3, .tsMilliSec = 0 };
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
+                          "This node failed to register with master because of invalid state. "
+                          "Scheduling a restart to recover from a potential split brain and merge of the worker.");
+            cpmRestart(&delay, "registration");
+            /*
+             * Unreached.
+             */
+        }
         clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
                       "CPM/G standby/Worker blade registration "
                       "with the CPM/G active failed, error [%#x]",
