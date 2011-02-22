@@ -1473,6 +1473,8 @@ clAmsEntityPrint(
                             "Running" : "Inactive");
             CL_AMS_PRINT_TWO_COL("SU Restart Count",
                     "%d", su->status.suRestartCount);
+            CL_AMS_PRINT_TWO_COL("SU instantiate level",
+                    "%d", su->status.instantiateLevel);
 
             CL_AMS_PRINT_TWO_COL("SI List",
                     "Count[%u]",
