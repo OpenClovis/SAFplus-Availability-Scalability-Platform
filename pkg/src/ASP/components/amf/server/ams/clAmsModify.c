@@ -1101,9 +1101,9 @@ clAmsEntitySetConfigNew(
             ClAmsCSIT  *csi = (ClAmsCSIT *) entity;
             ClAmsCSIConfigT  *csiConfig = &csi->config;
             ClAmsCSIConfigT  *newCSIConfig = (ClAmsCSIConfigT *)entityConfig;
-
             if ( (allAttr) || (bitMask&CSI_CONFIG_TYPE) )
             {
+                newCSIConfig->type.length = strlen(newCSIConfig->type.value) + 1;
                 memcpy (&csiConfig->type, &newCSIConfig->type, sizeof(ClNameT));
             }
 
