@@ -2140,6 +2140,7 @@ void cpmGoBackToRegister(void)
          *Reset to republish this nodes arrival
          */
         gpClCpm->nodeEventPublished = 0; 
+        cpmWriteNodeStatToFile("CPM", CL_NO);
     }
 }
 
