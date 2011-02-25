@@ -292,8 +292,7 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
     
     /* First check if this is system controller node. If not then use
      * default 5 seconds timeout */
-    temp = NULL;
-    if ((temp != NULL) && (!strncmp(temp, "1", 1)))
+    if (clCpmIsSC())
     {
         bootElectionTimeout = clParserChild(gmsConfig, "bootElectionTimeout");
         if (bootElectionTimeout == NULL)
@@ -305,9 +304,13 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
         } 
         else 
         {
-            gmsGlobalInfo.config.bootElectionTimeout = atoi(bootElectionTimeout->txt);
-            clLogMultiline(NOTICE, GEN, NA,
-                    "bootElectionTimeout is set to %d seconds", gmsGlobalInfo.config.bootElectionTimeout);
+            ClInt32T electionTimeout = atoi(bootElectionTimeout->txt);
+            if(electionTimeout && electionTimeout > CL_GMS_DEFAULT_BOOT_ELECTION_TIMEOUT)
+            {
+                gmsGlobalInfo.config.bootElectionTimeout = electionTimeout;
+                clLogMultiline(NOTICE, GEN, NA,
+                               "bootElectionTimeout is set to %d seconds", gmsGlobalInfo.config.bootElectionTimeout);
+            }
         }
     }
 
