@@ -1623,7 +1623,10 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
                    info.compName.value, info.eoPort);
 
         cpmComponentEventPublish(comp, CL_CPM_COMP_DEPARTURE, CL_FALSE);
-
+        /*
+         * Cleanup the components event channel if any.
+         */
+        cpmComponentEventCleanup(comp);
         /*
          * Cleanup the EOs of that Component 
          */
@@ -3872,7 +3875,7 @@ ClRcT cpmComponentEventCleanup(ClCpmComponentT *comp)
      * so that it can cleanup any data structures related
      * to the component.
      */
-    clLogInfo("EVT", "CLEANUP", "Event cleanup done for component [%s], "
+    clLogNotice("EVT", "CLEANUP", "Event cleanup done for component [%s], "
               "compId [%#x], eoId [%#llx], eoPort [%#x]", comp->compConfig->compName,
               comp->compId, comp->eoID, comp->eoPort);
     rc = clEventCpmCleanup(&cpmPayLoadData);
