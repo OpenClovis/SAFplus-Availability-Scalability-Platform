@@ -152,7 +152,7 @@ static void cpmInitializeStandby(void)
 }
 
 static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notificationBuffer,
-                            ClCpmLocalInfoT *pCpmLocalInfo)
+                                    ClCpmLocalInfoT *pCpmLocalInfo)
 {
     ClUint32T rc = CL_OK;
     ClGmsNodeIdT prevMasterNodeId = gpClCpm->activeMasterNodeId;
@@ -174,8 +174,8 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
         if (notificationBuffer->leader == pCpmLocalInfo->nodeId)
         {
             clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
-                       "Node [%d] has become the leader of the cluster",
-                       pCpmLocalInfo->nodeId);
+                      "Node [%d] has become the leader of the cluster",
+                      pCpmLocalInfo->nodeId);
 
             if(gpClCpm->haState != CL_AMS_HA_STATE_ACTIVE)
             {
@@ -191,14 +191,14 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
         else if (notificationBuffer->deputy == pCpmLocalInfo->nodeId)
         {
             clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
-                       "Node [%d] has become the deputy of the cluster",
-                       pCpmLocalInfo->nodeId);
+                      "Node [%d] has become the deputy of the cluster",
+                      pCpmLocalInfo->nodeId);
 
             rc = cpmUpdateTL(CL_AMS_HA_STATE_STANDBY);
             if (rc != CL_OK)
             {
                 clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
-                        CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
+                           CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
             }
         }
 
@@ -351,7 +351,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                                   "Unable to initialize AMS, "
                                   "error = [%#x]", rc);
                      
-                     cpmSelfShutDown();
+                    cpmSelfShutDown();
                 }
                 return;
             }
@@ -440,7 +440,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                     pCpmLocalInfo->nodeId,
                     gpClCpm->haState == CL_AMS_HA_STATE_ACTIVE  ? "Active":
                     gpClCpm->haState == CL_AMS_HA_STATE_STANDBY ? "Standby":
-                                                                  "None",
+                    "None",
                     gpClCpm->activeMasterNodeId);
     }
     else
@@ -463,6 +463,20 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                     cpmFailoverNode(notificationBuffer->notification->
                                     clusterNode.nodeId, CL_FALSE);
                 }
+                else
+                {
+                    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, 
+                                "Ignoring notification of type [%d] for node [%d]",
+                                notificationBuffer->notification->clusterChange,
+                                notificationBuffer->notification->clusterNode.nodeId);
+                }
+            }
+            else if(notificationBuffer->notification)
+            {
+                clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, 
+                            "Ignoring notification with number of items [%d], first type [%d]",
+                            notificationBuffer->numberOfItems,
+                            notificationBuffer->notification->clusterChange);
             }
         }
         else if( gpClCpm->haState == CL_AMS_HA_STATE_STANDBY

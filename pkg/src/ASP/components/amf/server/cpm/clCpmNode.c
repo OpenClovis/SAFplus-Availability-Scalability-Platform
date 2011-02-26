@@ -1709,7 +1709,7 @@ ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover)
 
     clLogCritical(CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED,
                   "Got a node shutdown/failure for standby/worker blade, "
-                  "Failing over node [%s] with node ID [%#x]",    
+                  "Failing over node [%s] with node ID [%d]",    
                   pCpmLocalInfo->nodeName,
                   nodeId);
 
