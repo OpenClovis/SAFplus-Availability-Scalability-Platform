@@ -15100,7 +15100,7 @@ clAmsPeCompAssignCSIExtended(
                                              CL_AMS_COMP_TIMER_CSISET) );
 
 #ifdef AMS_CPM_INTEGRATION
- 
+
             error = _clAmsSACSISet(
                                    &comp->config.entity.name,
                                    &comp->config.entity.name,
@@ -21298,6 +21298,10 @@ clAmsPeEntityOpReplay(ClAmsEntityT *entity, ClAmsEntityStatusT *status, ClUint32
         goto out;
     }
 
+    /*
+     * Clear and re-fetch. 
+     */
+    data = NULL;
     rc = clAmsEntityOpClear(entity, status, op,
                             &data, &dataSize);
     if(data)
