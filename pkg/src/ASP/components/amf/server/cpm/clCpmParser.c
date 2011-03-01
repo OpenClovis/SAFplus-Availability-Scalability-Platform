@@ -2554,6 +2554,13 @@ static void cpmParseGmsConfig(void)
 
     gpClCpm->cpmGmsTimeout = CL_CPM_GMS_DEFAULT_TIMEOUT;
 
+    if( (str = getenv("CL_ASP_BOOT_ELECTION_TIMEOUT")))
+    {
+        gpClCpm->cpmGmsTimeout = atoi(str);
+        clLogInfo("CPM", "GMS", "Using GMS timeout of [%d] secs",
+                  gpClCpm->cpmGmsTimeout);
+        return ;
+    }
     if(!(str = getenv("ASP_CONFIG")))
     {
         return ;
