@@ -124,9 +124,8 @@ clCntAllNodesDelete(ClCntHandleT containerHandle)
 {
   CclContainer_t   *pContainer       = NULL;
   ClCntNodeHandleT containerNode     = CL_HANDLE_INVALID_VALUE;
-  ClCntNodeHandleT freeContainerNode = CL_HANDLE_INVALID_VALUE;
+  ClCntNodeHandleT nextContainerNode = CL_HANDLE_INVALID_VALUE;
   ClRcT            errorCode         = CL_OK;
-  ClUint32T        size              = 0;
   
   pContainer = (CclContainer_t *) containerHandle;
   nullChkRet(pContainer);
@@ -136,32 +135,30 @@ clCntAllNodesDelete(ClCntHandleT containerHandle)
               "Passed container handle is invalid");
   }
 
-  errorCode = clCntSizeGet(containerHandle, &size);
+  errorCode = clCntFirstNodeGet(containerHandle, &containerNode);
   if(CL_OK != errorCode) 
   {
-    return(errorCode);
+      /*
+       * Check if container is empty.
+       */
+      if(CL_GET_ERROR_CODE(errorCode) == CL_ERR_NOT_EXIST)
+          return CL_OK;
+      return errorCode;
   }
 
-  while(size != 0)
+  while(containerNode)
   {
-      errorCode = clCntFirstNodeGet(containerHandle,&containerNode);
-	  if(errorCode != CL_OK)
-	  {
-		  return (CL_OK);
-	  }
+      if(clCntNextNodeGet(containerHandle, containerNode, &nextContainerNode) != CL_OK)
+      {
+          nextContainerNode = 0;
+      }
   
-      freeContainerNode = containerNode;
-	  
-      errorCode = clCntNodeDelete(containerHandle,freeContainerNode);
+      errorCode = clCntNodeDelete(containerHandle, containerNode);
 	  if(errorCode != CL_OK)
 	  {
 		  return(errorCode);
 	  }
-  
-      errorCode = clCntSizeGet(containerHandle, &size);
-      if(CL_OK != errorCode) {
-        return(errorCode);
-      }
+      containerNode = nextContainerNode;
   }
 
   return (CL_OK);
