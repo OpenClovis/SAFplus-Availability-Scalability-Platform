@@ -864,8 +864,8 @@ ClRcT _clGmsEngineClusterLeaveWrapper(
         return _clGmsEngineClusterLeave(groupId,foundNodeId);
     }
     else {
-        clLog(INFO,CLM,NA, 
-                "Could not find node with IP %s gms databse",nodeIp);
+        clLogWarning(CLM,NA, 
+                     "Could not find node with IP %s in gms database",nodeIp);
         /* Returning CL_OK because this might also have caused due to
          * inference of multicast ports with other nodes running on
          * the network, or also when active node goes down, CPM gives

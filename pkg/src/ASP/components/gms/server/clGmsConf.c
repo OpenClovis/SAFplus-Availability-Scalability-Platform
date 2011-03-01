@@ -76,13 +76,14 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
 #endif
     ClUint32T    i;
     ClCharT     *temp = NULL;
+    ClInt32T electionTimeout = 0;
 
     temp = getenv("ASP_CONFIG");
     if (temp == NULL)
     {
         clLog(EMER,GEN,NA,
-                "ASP_CONFIG environment variable is not set. It must be set "
-                "to the location of the ASP xml config files.");
+              "ASP_CONFIG environment variable is not set. It must be set "
+              "to the location of the ASP xml config files.");
         exit(-1);
     }
     strncpy(env, temp,1023);
@@ -91,8 +92,8 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
     if (xmlConfig == NULL)
     {
         clLogMultiline(EMER,GEN,NA,
-                "GMS Configuration file [%s] is not present in "
-                "any of the dirs pointed by ASP_CONFIG env variable (%s) ",env, gmsConfigFile);
+                       "GMS Configuration file [%s] is not present in "
+                       "any of the dirs pointed by ASP_CONFIG env variable (%s) ",env, gmsConfigFile);
         exit(-1);
     }
 
@@ -101,8 +102,8 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
     if (gmsConfig == NULL)
     {
         clLogMultiline(EMER,GEN,NA,
-                "Improper config file [%s] detected. \'gms\' "
-                "section entry is missing in the config file",gmsConfigFile);
+                       "Improper config file [%s] detected. \'gms\' "
+                       "section entry is missing in the config file",gmsConfigFile);
         exit(-1);
     }
 
@@ -117,14 +118,14 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
         if (cluster_name == NULL)
         {
             clLogMultiline(EMER,GEN,NA,
-                    "Improper config file [%s] detected. \'clusterName\' "
-                    "entry is not found",gmsConfigFile);
+                           "Improper config file [%s] detected. \'clusterName\' "
+                           "entry is not found",gmsConfigFile);
             exit(-1);
         } else {
             clLogMultiline(NOTICE,GEN,NA,
-                    "tag names in %s have changed. You are using the old config file."
-                    "As per new convention, 'ClusterName' tag is renamed to 'clusterName'",
-                    gmsConfigFile);
+                           "tag names in %s have changed. You are using the old config file."
+                           "As per new convention, 'ClusterName' tag is renamed to 'clusterName'",
+                           gmsConfigFile);
         }
     }
 
@@ -144,14 +145,14 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
         if (max_group_num == NULL)
         {
             clLogMultiline(EMER,GEN,NA,
-                    "Improper config file [%s] detected. \'maxNoOfGroups\' "
-                    "entry is not found",gmsConfigFile);
+                           "Improper config file [%s] detected. \'maxNoOfGroups\' "
+                           "entry is not found",gmsConfigFile);
             exit(-1);
         } else {
             clLogMultiline(NOTICE,GEN,NA,
-                    "tag names in %s have changed. You are using the old config file."
-                    "As per new convention, 'MaxNoOfGroups' tag is renamed to 'maxNoOfGroups'",
-                    gmsConfigFile);
+                           "tag names in %s have changed. You are using the old config file."
+                           "As per new convention, 'MaxNoOfGroups' tag is renamed to 'maxNoOfGroups'",
+                           gmsConfigFile);
         }
     }
 
@@ -161,8 +162,8 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
     if (errno != 0)
     {
         clLogMultiline(EMER,GEN,NA,
-                "Improper value is specified for \'maxNoOfGroups\' "
-                "entry in the config file [%s]",gmsConfigFile);
+                       "Improper value is specified for \'maxNoOfGroups\' "
+                       "entry in the config file [%s]",gmsConfigFile);
         exit(-1);
     }
 
@@ -173,21 +174,21 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
     if (temp == NULL)
     {
         clLogMultiline(NOTICE,GEN,NA,
-                "LINK_NAME environment variable is not exported. Using 'eth0' "
-                "interface as default");
+                       "LINK_NAME environment variable is not exported. Using 'eth0' "
+                       "interface as default");
     } else {
         clLog(DBG,GEN,NA,
-                "LINK_NAME env is exported. Value is %s",temp);
+              "LINK_NAME env is exported. Value is %s",temp);
         strncpy(net_addr, temp, 63);
     }
 
     /* Get the IP address from the interface name */
     if (_clGmsGetIfAddress (net_addr, 
-                &gmsGlobalInfo.config.bind_net.sin_addr) != CL_TRUE)
+                            &gmsGlobalInfo.config.bind_net.sin_addr) != CL_TRUE)
     {
         clLogMultiline(EMER,GEN,NA,
-                "Could not get interface address from given interface name."
-                "Please check if LINK_NAME env variable is exported properly");
+                       "Could not get interface address from given interface name."
+                       "Please check if LINK_NAME env variable is exported properly");
         exit(-1);
     }
 
@@ -200,27 +201,27 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
         if (mcast_addr == NULL)
         {
             clLog(EMER,GEN,NA,
-                    "Improper config file [%s] detected. \'multicastAddress\'"
-                    "entry is not found",gmsConfigFile);
+                  "Improper config file [%s] detected. \'multicastAddress\'"
+                  "entry is not found",gmsConfigFile);
             exit(-1);
         } else {
             clLogMultiline(NOTICE,GEN,NA,
-                    "tag names in %s have changed. You are using the old config file."
-                    "As per new convention, 'MulticastAddress' tag is renamed to 'multicastAddress'",
-                    gmsConfigFile);
+                           "tag names in %s have changed. You are using the old config file."
+                           "As per new convention, 'MulticastAddress' tag is renamed to 'multicastAddress'",
+                           gmsConfigFile);
         }
     }
 
     for (start = mcast_addr->txt; isspace(*start); start++) 
-       /* Do nothing */ ;
+        /* Do nothing */ ;
 
 #ifndef SOLARIS_BUILD
     /* Get the multicast address value into inet format from text format */
     if (inet_aton(start, &gmsGlobalInfo.config.mcast_addr.sin_addr) == 0)
     {
         clLog(EMER,GEN,NA,
-                "Invalid Multicast Address Specified [%s] in config file [%s]",
-                start,gmsConfigFile);
+              "Invalid Multicast Address Specified [%s] in config file [%s]",
+              start,gmsConfigFile);
         exit(-1);
     }
 #endif
@@ -233,14 +234,14 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
         if (mcast_port == NULL)
         {
             clLog(EMER,GEN,NA, 
-                    "Improper config file [%s] detected. \'multicastPort\' "
-                    "entry is not found",gmsConfigFile);
+                  "Improper config file [%s] detected. \'multicastPort\' "
+                  "entry is not found",gmsConfigFile);
             exit(-1);
         } else {
             clLogMultiline(NOTICE,GEN,NA,
-                    "tag names in %s have changed. You are using the old config file."
-                    "As per new convention, 'MulticastPort' tag is renamed to 'multicastPort'",
-                    gmsConfigFile);
+                           "tag names in %s have changed. You are using the old config file."
+                           "As per new convention, 'MulticastPort' tag is renamed to 'multicastPort'",
+                           gmsConfigFile);
         }
     }
     gmsGlobalInfo.config.mcast_port =atoi(mcast_port->txt);
@@ -253,15 +254,15 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
     if (openais_logging == NULL)
     {
         clLogMultiline(NOTICE,GEN,NA,
-                "\'openAisLoggingOption\' is not specified in the config file. "
-                "Assuming 'none' as default. So openais logs will not be "
-                "generated for this run");
+                       "\'openAisLoggingOption\' is not specified in the config file. "
+                       "Assuming 'none' as default. So openais logs will not be "
+                       "generated for this run");
         strncpy(gmsGlobalInfo.config.aisLogOption,"none",CL_MAX_NAME_LENGTH-1);
     } 
     else 
     {
         clLogMultiline(DBG,GEN,NA,
-                "AIS Logging option provided in the config file is %s",openais_logging->txt);
+                       "AIS Logging option provided in the config file is %s",openais_logging->txt);
         strncpy(gmsGlobalInfo.config.aisLogOption,openais_logging->txt,CL_MAX_NAME_LENGTH-1);
     }
 
@@ -273,14 +274,14 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
     if (preferredActiveSCNodeName == NULL)
     {
         clLogMultiline(NOTICE,GEN,NA,
-                "\'preferredActiveSCNodeName\' tag is is not specified in the config file or\n"
-                "the value is null. So using default leader election algorithm.");
+                       "\'preferredActiveSCNodeName\' tag is is not specified in the config file or\n"
+                       "the value is null. So using default leader election algorithm.");
         strncpy(gmsGlobalInfo.config.preferredActiveSCNodeName,"none",CL_MAX_NAME_LENGTH-1);
     } 
     else 
     {
         clLogMultiline(NOTICE,GEN,NA,
-                "preferred Active System controller is [%s]", preferredActiveSCNodeName->txt);
+                       "preferred Active System controller is [%s]", preferredActiveSCNodeName->txt);
         strncpy(gmsGlobalInfo.config.preferredActiveSCNodeName,preferredActiveSCNodeName->txt,CL_MAX_NAME_LENGTH-1);
     }
 
@@ -292,35 +293,40 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
     
     /* First check if this is system controller node. If not then use
      * default 5 seconds timeout */
-    if (clCpmIsSC())
+    if((temp = getenv("CL_ASP_BOOT_ELECTION_TIMEOUT")))
+    {
+        electionTimeout = atoi(temp);
+    }
+    else
     {
         bootElectionTimeout = clParserChild(gmsConfig, "bootElectionTimeout");
         if (bootElectionTimeout == NULL)
         {
             clLogMultiline(NOTICE,GEN,NA,
-                    "\'bootElectionTimeout\' tag is is not specified in the config file or"
-                    "the value is null. So using default value of 5 seconds for the boot "
-                    "election timeout");
+                           "\'bootElectionTimeout\' tag is is not specified in the config file or"
+                           "the value is null. So using default value of 5 seconds for the boot "
+                           "election timeout");
         } 
-        else 
+        else
         {
-            ClInt32T electionTimeout = atoi(bootElectionTimeout->txt);
-            if(electionTimeout && electionTimeout > CL_GMS_DEFAULT_BOOT_ELECTION_TIMEOUT)
-            {
-                gmsGlobalInfo.config.bootElectionTimeout = electionTimeout;
-                clLogMultiline(NOTICE, GEN, NA,
-                               "bootElectionTimeout is set to %d seconds", gmsGlobalInfo.config.bootElectionTimeout);
-            }
+            electionTimeout = atoi(bootElectionTimeout->txt);
         }
+
+    }
+    if(electionTimeout && electionTimeout > CL_GMS_DEFAULT_BOOT_ELECTION_TIMEOUT)
+    {
+        gmsGlobalInfo.config.bootElectionTimeout = electionTimeout;
+        clLogNotice(GEN, NA,
+                    "bootElectionTimeout is set to %d seconds", gmsGlobalInfo.config.bootElectionTimeout);
     }
 
     gmsGlobalInfo.config.leaderAlgDb = 
         clHeapAllocate(sizeof(ClGmsLeaderElectionAlgorithmT)*
-                (gmsGlobalInfo.config.noOfGroups+1));
+                       (gmsGlobalInfo.config.noOfGroups+1));
     if (gmsGlobalInfo.config.leaderAlgDb == NULL )
     {
         clLog(EMER,GEN,NA,
-                "Memory allocation failed while loading the leader election algorithm");
+              "Memory allocation failed while loading the leader election algorithm");
         exit(-1);
     }
 
@@ -344,23 +350,23 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
                 if (atoi(groupid->txt) > gmsGlobalInfo.config.noOfGroups )
                 {
                     clLogMultiline(ERROR,GEN,NA,
-                            "Invalid group id [%s] specified while loading group"
-                            "specific leader election algorithm",
-                            groupid->txt);
+                                   "Invalid group id [%s] specified while loading group"
+                                   "specific leader election algorithm",
+                                   groupid->txt);
                     continue;
                 } 
                 _clGmsLoadUserAlgorithm(atoi(groupid->txt), plugin_path->txt);
             }
             else {
                 clLogMultiline(CRITICAL,GEN,NA,
-                        "Incomplete Group Configuration section in config file. "
-                        "Leader Election Algorithm path is not given"); 
+                               "Incomplete Group Configuration section in config file. "
+                               "Leader Election Algorithm path is not given"); 
             }
         }
         else {
             clLogMultiline(CRITICAL,GEN,NA,
-                    "Incomplete Group Configuration section in config file. "
-                    "group id is not specified.");
+                           "Incomplete Group Configuration section in config file. "
+                           "group id is not specified.");
         }
         /* go to the next group if any */ 
         group= group->next;
