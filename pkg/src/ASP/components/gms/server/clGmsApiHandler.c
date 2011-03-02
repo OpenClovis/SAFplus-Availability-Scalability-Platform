@@ -90,8 +90,6 @@ clGmsClientLibInitHandler(
         return CL_ERR_NULL_POINTER;
     }
 
-    CL_GMS_VERIFY_CLIENT_VERSION( req , res );
-
     /* if the server is not in a servicable state then ask the client to retry
      *  again after some time */
     if(0 == (ClInt32T)_clGmsIsReadyToServe())
@@ -99,6 +97,9 @@ clGmsClientLibInitHandler(
         rc = CL_GMS_RC(CL_ERR_TRY_AGAIN);
         return rc;
     }
+    
+    CL_GMS_VERIFY_CLIENT_VERSION( req , res );
+
     return rc;
 }
 
