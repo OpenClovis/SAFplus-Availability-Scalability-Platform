@@ -159,6 +159,7 @@ static ClUint32T currFragId;
 static ClIocUserObjectT userObj;
 static ClTimerTimeOutT userReassemblyTimerExpiry = { 0 };
 ClBoolT gClIocTrafficShaper;
+static ClBoolT gClTipcReplicast;
 
 typedef struct
 {
@@ -190,6 +191,7 @@ static ClInt32T iocUserFragKeyCompare(ClCntKeyHandleT key1,
 static void iocUserFragDeleteCallBack(ClCntKeyHandleT userKey,
         ClCntDataHandleT userData);
 static ClRcT userReassemblyTimer(void *data);
+static ClRcT clIocReplicastGet(ClIocPortT portId, ClIocAddressT **pAddressList, ClUint32T *pNumEntries);
 
 #define IOC_REASSEMBLE_HASH_BITS (12)
 #define IOC_REASSEMBLE_HASH_SIZE ( 1 << IOC_REASSEMBLE_HASH_BITS)
@@ -357,6 +359,13 @@ static ClRcT internalSendSlow(ClTipcCommPortT *pTipcCommPort,
                           ClIocAddressT *pIocAddress,
                           ClUint32T *pTimeout);
 
+static ClRcT internalSendSlowReplicast(ClTipcCommPortT *pTipcCommPort,
+                          ClBufferHandleT message, 
+                          ClUint32T tempPriority, 
+                          ClUint32T *pTimeout,
+                          ClIocAddressT *replicastList,
+                          ClUint32T numReplicasts);
+
 static ClRcT internalSend(ClTipcCommPortT *pTipcCommPort,
                           struct iovec *target,
                           ClUint32T targetVectors,
@@ -364,6 +373,15 @@ static ClRcT internalSend(ClTipcCommPortT *pTipcCommPort,
                           ClUint32T tempPriority, 
                           ClIocAddressT *pIocAddress,
                           ClUint32T *pTimeout);
+
+static ClRcT internalSendReplicast(ClTipcCommPortT *pTipcCommPort,
+                          struct iovec *target,
+                          ClUint32T targetVectors,
+                          ClUint32T messageLen,
+                          ClUint32T tempPriority, 
+                          ClUint32T *pTimeout,
+                          ClIocAddressT *replicastList,
+                          ClUint32T numReplicasts);
 
 static ClUint32T gClTipcPacketSize = CL_TIPC_PACKET_SIZE;
 
@@ -1199,6 +1217,10 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
     ClUint32T msgLength;
     ClUint32T maxPayload, fragId, bytesRead = 0;
     ClUint32T totalFragRequired, fraction;
+    ClUint32T addrType;
+    ClBoolT isBcast = CL_FALSE;
+    ClIocAddressT *replicastList = NULL;
+    ClUint32T numReplicasts = 0;
 #ifdef CL_TIPC_COMPRESSION
     ClUint8T *decompressedStream = NULL;
     ClUint8T *compressedStream = NULL;
@@ -1209,8 +1231,16 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
     if (!pTipcCommPort || !destAddress)
         return CL_IOC_RC(CL_ERR_NULL_POINTER);
 
-    if(CL_IOC_ADDRESS_TYPE_GET(destAddress) == CL_IOC_PHYSICAL_ADDRESS_TYPE &&
-       ((ClIocPhysicalAddressT *)destAddress)->nodeAddress != CL_IOC_BROADCAST_ADDRESS)
+    addrType = CL_IOC_ADDRESS_TYPE_GET(destAddress);
+    isBcast =  (addrType == CL_IOC_PHYSICAL_ADDRESS_TYPE && 
+                ( (ClIocPhysicalAddressT*)destAddress)->nodeAddress == CL_IOC_BROADCAST_ADDRESS);
+    if(isBcast && gClTipcReplicast)
+    {
+        clIocReplicastGet( ((ClIocPhysicalAddressT*)destAddress)->portId, &replicastList, &numReplicasts);
+    }
+    if(addrType == CL_IOC_PHYSICAL_ADDRESS_TYPE
+       &&
+       !isBcast)
     {
         ClIocNodeAddressT node;
         ClUint8T status;
@@ -1258,7 +1288,8 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
                        ("Failed to get the lenght of the messege. error code 0x%x",retCode));
-        return CL_IOC_RC(CL_ERR_INVALID_BUFFER);
+        retCode = CL_IOC_RC(CL_ERR_INVALID_BUFFER);
+        goto out_free;
     }
     
     maxPayload = clIocInternalMaxPayloadSizeGet();
@@ -1355,10 +1386,18 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
                             ntohl(userFragHeader.fragOffset)));
             /*
              *clLogNotice("FRAG", "SEND", "Sending [%d] bytes with [%d] vectors representing [%d] bytes", 
-                          msgLength, targetVectors, maxPayload);
-            */
-            retCode = internalSend(pTipcCommPort, target, targetVectors, payload + sizeof(userFragHeader), 
-                                   priority, destAddress, &timeout);
+             msgLength, targetVectors, maxPayload);
+            */                                                          
+            if(replicastList)
+            {
+                retCode = internalSendReplicast(pTipcCommPort, target, targetVectors, payload + sizeof(userFragHeader),
+                                                priority, &timeout, replicastList, numReplicasts);
+            }
+            else
+            {
+                retCode = internalSend(pTipcCommPort, target, targetVectors, payload + sizeof(userFragHeader), 
+                                       priority, destAddress, &timeout);
+            }
             if (retCode != CL_OK || retCode == CL_IOC_RC(CL_ERR_TIMEOUT))
             {
                 CL_DEBUG_PRINT(CL_DEBUG_ERROR,
@@ -1394,8 +1433,17 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
         CL_ASSERT(fraction == maxPayload);
         clLogTrace("FRAG", "SEND", "Sending last frag at offset [%d], length [%d]",
                    ntohl(userFragHeader.fragOffset), fraction);
-        retCode = internalSend(pTipcCommPort, target, targetVectors, fraction + sizeof(userFragHeader), 
-                               priority, destAddress, &timeout);
+        if(replicastList)
+        {
+            retCode = internalSendReplicast(pTipcCommPort, target, targetVectors, fraction + sizeof(userFragHeader), 
+                                            priority, &timeout, replicastList, numReplicasts);
+        }
+        else
+        {
+            retCode = internalSend(pTipcCommPort, target, targetVectors, fraction + sizeof(userFragHeader), 
+                                   priority, destAddress, &timeout);
+        }
+
         frag_error:
         {
             ClRcT rc;
@@ -1428,10 +1476,18 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
         {
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                            ("\nERROR: Prepend buffer data failed = 0x%x\n", retCode));
-            return retCode;
+            goto out_free;
         }
-
-        retCode = internalSendSlow(pTipcCommPort, message, priority, destAddress, &timeout);
+        
+        if(replicastList)
+        {
+            retCode = internalSendSlowReplicast(pTipcCommPort, message, priority, &timeout, 
+                                                replicastList, numReplicasts);
+        }
+        else
+        {
+            retCode = internalSendSlow(pTipcCommPort, message, priority, destAddress, &timeout);
+        }
 
         rc = clBufferHeaderTrim(message, sizeof(ClTipcHeaderT));
         if(rc != CL_OK)
@@ -1449,6 +1505,10 @@ ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
 #endif
 
     }
+
+    out_free:
+    if(replicastList)
+        clHeapFree(replicastList);
 
     return retCode;
 }
@@ -1870,6 +1930,48 @@ static ClRcT internalSend(ClTipcCommPortT *pTipcCommPort,
     return rc;
 }
 
+static ClRcT internalSendReplicast(ClTipcCommPortT *pTipcCommPort,
+                                   struct iovec *target,
+                                   ClUint32T targetVectors,
+                                   ClUint32T messageLen,
+                                   ClUint32T tempPriority, 
+                                   ClUint32T *pTimeout,
+                                   ClIocAddressT *replicastList,
+                                   ClUint32T numReplicasts)
+{
+    ClRcT rc;
+    ClUint32T i;
+    ClUint32T success = 0;
+
+    rc = CL_IOC_RC(CL_ERR_NULL_POINTER);
+    if(pTipcCommPort == NULL)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid port id\n"));
+        goto out;
+    }
+
+    for(i = 0; i < numReplicasts; ++i)
+    {
+        rc = internalSend(pTipcCommPort, target, targetVectors, messageLen, tempPriority,
+                          &replicastList[i], pTimeout);
+        if(rc != CL_OK)
+        {
+            clLogError("TIPC", "REPLICAST", "Replicast to destination [%d: %#x] failed with [%#x]",
+                       replicastList[i].iocPhyAddress.nodeAddress,
+                       replicastList[i].iocPhyAddress.portId, rc);
+        }
+        else
+        {
+            ++success;
+        }
+    }        
+    if(success > 0)
+        rc = CL_OK;
+
+    out:
+    return rc;
+}
+
 static ClRcT internalSendSlow(ClTipcCommPortT *pTipcCommPort,
                               ClBufferHandleT message, 
                               ClUint32T tempPriority, 
@@ -1997,6 +2099,43 @@ static ClRcT internalSendSlow(ClTipcCommPortT *pTipcCommPort,
         rc = CL_IOC_RC(CL_ERR_UNSPECIFIED);
     }
     clHeapFree(pIOVector);
+    out:
+    return rc;
+}
+
+static ClRcT internalSendSlowReplicast(ClTipcCommPortT *pTipcCommPort,
+                                       ClBufferHandleT message, 
+                                       ClUint32T tempPriority, 
+                                       ClUint32T *pTimeout,
+                                       ClIocAddressT *replicastList,
+                                       ClUint32T numReplicasts)
+{
+    ClRcT rc = CL_IOC_RC(CL_ERR_NULL_POINTER);
+    ClUint32T i;
+    ClUint32T success = 0;
+    if(!pTipcCommPort)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid port\n"));
+        goto out;
+    }
+    for(i = 0; i < numReplicasts; ++i)
+    {
+        rc = internalSendSlow(pTipcCommPort, message, tempPriority, 
+                              &replicastList[i], pTimeout);
+        if(rc != CL_OK)
+        {
+            clLogError("TIPC", "REPLICAST", "Slow send to destination [%d: %#x] failed with [%#x]",
+                       replicastList[i].iocPhyAddress.nodeAddress,
+                       replicastList[i].iocPhyAddress.portId, rc);
+        }
+        else
+        {
+            ++success;
+        }
+    }
+    if(success > 0)
+        rc = CL_OK;
+
     out:
     return rc;
 }
@@ -2424,6 +2563,8 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
     }
 
     clIocLeakyBucketInitialize();
+
+    gClTipcReplicast = clParseEnvBoolean("CL_ASP_TIPC_REPLICAST");
 
 #ifdef CL_TIPC_COMPRESSION
     if( (pTipcCompressionBoundary = getenv("CL_TIPC_COMPRESSION_BOUNDARY") ) )
@@ -3413,6 +3554,36 @@ ClRcT clIocNeighborListGet(ClUint32T *pNumberOfEntries,
     }
     if(numEntries != *pNumberOfEntries)
         *pNumberOfEntries = numEntries;
+    return CL_OK;
+}
+
+static ClRcT clIocReplicastGet(ClIocPortT portId, ClIocAddressT **pAddressList, ClUint32T *pNumEntries)
+{
+    ClUint32T numEntries = 0;
+    ClIocAddressT *addressList = NULL;
+    ClUint32T i;
+    ClUint8T status = 0;
+    if(!pAddressList || !pNumEntries)
+        return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
+    addressList = clHeapCalloc(CL_IOC_MAX_NODES, sizeof(*addressList));
+    CL_ASSERT(addressList != NULL);
+    for(i = 1; i < CL_IOC_MAX_NODES; ++i)
+    {
+        clIocRemoteNodeStatusGet(i, &status);
+        if(status == CL_IOC_NODE_UP)
+        {
+            addressList[numEntries].iocPhyAddress.nodeAddress = i;
+            addressList[numEntries].iocPhyAddress.portId = portId;
+            ++numEntries;
+        }
+    }
+    if(!numEntries)
+    {
+        clHeapFree(addressList);
+        addressList = NULL;
+    }
+    *pAddressList = addressList;
+    *pNumEntries = numEntries;
     return CL_OK;
 }
 
