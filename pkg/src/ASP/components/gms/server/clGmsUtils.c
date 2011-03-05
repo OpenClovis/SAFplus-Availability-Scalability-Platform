@@ -323,7 +323,7 @@ int OpenAisConfFileCreate(char* ipAddr,
             "\t    secauth: off\n"
             "\t    threads: 0\n"
 #ifdef OPENAIS_TIPC
-            "\t    net_mtu: 9000\n"
+            "\t    netmtu: 9000\n"
 #endif
             "\t    interface {\n"
             "\t\t        ringnumber: 0\n"
