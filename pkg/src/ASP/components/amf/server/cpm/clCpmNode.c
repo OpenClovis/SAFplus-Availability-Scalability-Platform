@@ -1860,7 +1860,7 @@ void cpmRegisterWithActive(void)
         "in the cluster or somebody else is not "
         "using the same GMS port as yours. \n";
     ClInt32T tries = 0;
-
+    
     retry:
     rc = clCpmCpmLocalRegister(gpClCpm->pCpmLocalInfo);
     if ((CL_GET_ERROR_CODE(rc) == CL_ERR_DOESNT_EXIST) ||
@@ -1902,6 +1902,7 @@ void cpmRegisterWithActive(void)
             ClRcT rc1 = CL_OK;
             static ClUint32T retries;
             ClTimerTimeOutT timeOut = {2, 0};
+            ClGmsNodeIdT leaderNode = CL_GMS_INVALID_NODE_ID;
 
             /* Will fail if you accidently are running 2 of the same nodes, or
                if this cluster can "hear" another cluster's traffic.
@@ -1931,7 +1932,19 @@ void cpmRegisterWithActive(void)
 
             do 
             {
-                rc1 = clCpmCpmLocalRegister(gpClCpm->pCpmLocalInfo);
+                clOsalMutexLock(&gpClCpm->clusterMutex);
+                leaderNode = gpClCpm->activeMasterNodeId;
+                clOsalMutexUnlock(&gpClCpm->clusterMutex);
+                if(leaderNode && leaderNode != CL_GMS_INVALID_NODE_ID)
+                {
+                    rc1 = clCpmCpmLocalRegister(gpClCpm->pCpmLocalInfo);
+                }
+                else
+                {
+                    if(!(retries & 15))
+                        clLogWarning("CPM", "BOOT", "AMF leader not present in the cluster. Deferring registration to master");
+                    rc1 = CL_CPM_RC(CL_ERR_TRY_AGAIN);
+                }
                 if ((CL_GET_ERROR_CODE(rc1) == CL_ERR_DOESNT_EXIST) ||
                     (CL_GET_ERROR_CODE(rc1) == CL_ERR_TIMEOUT) ||
                     (CL_GET_ERROR_CODE(rc1) == CL_ERR_TRY_AGAIN) ||

@@ -609,19 +609,24 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT
                           "currently we are not supporting promoting Payload to Active SC directly");
             CL_ASSERT(0);
         }
-        else if (gpClCpm->bmTable->currentBootLevel > CL_CPM_BOOT_LEVEL_2
-                 &&
-                 (gpClCpm->bmTable->currentBootLevel <=
-                  pCpmLocalInfo->defaultBootLevel))
+        else
         {
-            if (-1 == notificationBuffer->leader)
+            gpClCpm->activeMasterNodeId = notificationBuffer->leader;
+            gpClCpm->deputyNodeId = notificationBuffer->deputy;
+            if (gpClCpm->bmTable->currentBootLevel > CL_CPM_BOOT_LEVEL_2
+                &&
+                (gpClCpm->bmTable->currentBootLevel <=
+                 pCpmLocalInfo->defaultBootLevel))
             {
-                clLogMultiline(CL_LOG_CRITICAL,
-                               CPM_LOG_AREA_CPM,
-                               CPM_LOG_CTX_CPM_GMS,
-                               "The cluster has no leader !! "
-                               "Recovering...");
-                cpmGoBackToRegister();
+                if (-1 == notificationBuffer->leader)
+                {
+                    clLogMultiline(CL_LOG_CRITICAL,
+                                   CPM_LOG_AREA_CPM,
+                                   CPM_LOG_CTX_CPM_GMS,
+                                   "The cluster has no leader !! "
+                                   "Recovering...");
+                    cpmGoBackToRegister();
+                }
             }
         }
     }
@@ -630,7 +635,7 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT
         CL_ASSERT(0);
     }
 
-failure:
+    failure:
     clOsalMutexUnlock(&gpClCpm->clusterMutex);
     return;
 }

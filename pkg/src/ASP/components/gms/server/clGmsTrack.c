@@ -103,7 +103,11 @@ ClRcT  _clGmsTrackNotify(
                                                  trackNode,groupId); 
         }
 
-        if (rc != CL_OK)
+        if (rc != CL_OK 
+            && 
+            CL_GET_ERROR_CODE(rc) != CL_IOC_ERR_COMP_UNREACHABLE
+            &&
+            CL_GET_ERROR_CODE(rc) != CL_IOC_ERR_HOST_UNREACHABLE)
         {
             goto TRACK_NOTIFY_ERROR;
         }
