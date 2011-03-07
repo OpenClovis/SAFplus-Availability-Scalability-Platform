@@ -609,8 +609,10 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT
                           "currently we are not supporting promoting Payload to Active SC directly");
             CL_ASSERT(0);
         }
-        else if (gpClCpm->bmTable->currentBootLevel <=
-            pCpmLocalInfo->defaultBootLevel)
+        else if (gpClCpm->bmTable->currentBootLevel > CL_CPM_BOOT_LEVEL_2
+                 &&
+                 (gpClCpm->bmTable->currentBootLevel <=
+                  pCpmLocalInfo->defaultBootLevel))
         {
             if (-1 == notificationBuffer->leader)
             {

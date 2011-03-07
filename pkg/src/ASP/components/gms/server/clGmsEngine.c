@@ -66,7 +66,7 @@
 
 static      ClTimerHandleT  timerHandle = NULL;
 ClBoolT     bootTimeElectionDone = CL_FALSE;
-
+static ClBoolT reElect = CL_FALSE;
 
 /*
    timerCallback
@@ -84,26 +84,29 @@ timerCallback( void *arg ){
     ClGmsViewT   *view = NULL;
     
     clLog(INFO,LEA,NA,
-            "Running boot time leader election after 5 secs of GMS startup");
+          "Running boot time leader election after 5 secs of GMS startup");
 
     rc = _clGmsViewFindAndLock( 0x0 , &view );
     CL_ASSERT( (rc == CL_OK) && (view != NULL));
 
+    reElect = CL_FALSE; /* reset re-election trigger*/
+
     rc = _clGmsEngineLeaderElect ( 
-            0x0,
-            NULL , 
-            CL_GMS_MEMBER_JOINED,
-            &leaderNodeId,
-            &deputyNodeId
-            );
+                                  0x0,
+                                  NULL , 
+                                  CL_GMS_MEMBER_JOINED,
+                                  &leaderNodeId,
+                                  &deputyNodeId
+                                   );
 
     if (rc != CL_OK)
     {
         clLog(ERROR,LEA,NA,
-                "Error in boot time leader election. rc [0x%x]",rc);
+              "Error in boot time leader election. rc [0x%x]",rc);
     }
 
-    if (view->leader != leaderNodeId ){
+    if (view->leader != leaderNodeId )
+    {
         view->leader = leaderNodeId;
         view->leadershipChanged = CL_TRUE;
         view->deputy = deputyNodeId;
@@ -112,7 +115,7 @@ timerCallback( void *arg ){
         if (_clGmsTrackNotify ( 0x0 ) != CL_OK)
         {
             clLog(ERROR,LEA,NA,
-                    "_clGmsTrackNotify failed in leader election timer callback");
+                  "_clGmsTrackNotify failed in leader election timer callback");
         }
     }
 
@@ -129,22 +132,40 @@ timerCallback( void *arg ){
 	readyToServeGroups = CL_TRUE;
     }
 
+    clTimerDeleteAsync(&timerHandle); /*delete the timer*/
+
     if (_clGmsViewUnlock(0x0) != CL_OK)
     {
         clLog(ERROR,LEA,NA,
-                ("_clGmsViewUnlock failed in leader election timer callback"));
+              ("_clGmsViewUnlock failed in leader election timer callback"));
     }
 
     clLog(INFO,LEA,NA,
-            "Initial boot time leader election complete");
+          "Initial boot time leader election complete");
     return rc;
+}
+
+static ClRcT leaderElectionTimerRun(ClBoolT restart)
+{
+    ClTimerTimeOutT timeOut = {.tsSec = gmsGlobalInfo.config.bootElectionTimeout, .tsMilliSec=0 };
+    if(restart && timerHandle)
+        clTimerDeleteAsync(&timerHandle);
+    clLogNotice(GEN, NA,
+                "Starting boot time election timer for [%d] secs", timeOut.tsSec);
+    return clTimerCreateAndStart(
+            timeOut,
+            CL_TIMER_ONE_SHOT,
+            CL_TIMER_TASK_CONTEXT,
+            timerCallback,
+            NULL,
+            &timerHandle 
+            );
 }
 
 ClRcT
 _clGmsEngineStart()
 {
     ClRcT       rc = CL_OK;
-    ClTimerTimeOutT timeOut = { gmsGlobalInfo.config.bootElectionTimeout , 0x0 };
     ClGmsNodeIdT    thisNodeId = 0;
     ClNameT         thisNodeName = {0};
     ClGmsLeadershipCredentialsT     credentials = 0;
@@ -182,17 +203,7 @@ _clGmsEngineStart()
        there is a change in the leadership.Timer is a one shot timer and is
        delted after it fires .
      */
-    clLog(INFO,GEN,NA,
-            "Starting boot time election timer for [%d] secs",timeOut.tsSec);
-    rc = clTimerCreateAndStart(
-            timeOut,
-            CL_TIMER_ONE_SHOT,
-            CL_TIMER_TASK_CONTEXT,
-            timerCallback,
-            NULL,
-            &timerHandle 
-            );
-
+    rc = leaderElectionTimerRun(CL_FALSE);
     if(rc != CL_OK)
     {
         clLogMultiline(EMER,GEN,NA,
@@ -485,6 +496,7 @@ _clGmsEngineLeaderElect(
 
     if ((rc != CL_OK) || (*leaderNodeId == CL_GMS_INVALID_NODE_ID))
     {
+        reElect = CL_TRUE; /* trigger reelection*/
         clLog(ERROR, CLM,NA,"Leader election failed. rc = 0x%x", rc);
         goto done_return;
     }
@@ -694,9 +706,9 @@ error:
  * message. Even this node join to cluster is called from 
  * totem protocol  */
 ClRcT _clGmsEngineClusterJoin(
-                CL_IN   const ClGmsGroupIdT   groupId,
-                CL_IN   const ClGmsNodeIdT    nodeId,
-                CL_IN   ClGmsViewNodeT* const node)
+                              CL_IN   const ClGmsGroupIdT   groupId,
+                              CL_IN   const ClGmsNodeIdT    nodeId,
+                              CL_IN   ClGmsViewNodeT* const node)
 {
     ClRcT              rc = CL_OK, add_rc = CL_OK;
     ClGmsViewT        *thisClusterView = NULL;
@@ -708,21 +720,21 @@ ClRcT _clGmsEngineClusterJoin(
     ClUint32T          len2 = 0;
 
     clLog(INFO,CLM,NA,
-            "GMS engine cluster join is invoked for node Id [%d] for group [%d]", nodeId, groupId);
+          "GMS engine cluster join is invoked for node Id [%d] for group [%d]", nodeId, groupId);
 
     /* See this node was the preferred leader. If so then set the tag to TRUE */
     len1 = strlen(gmsGlobalInfo.config.preferredActiveSCNodeName);
     len2 = node->viewMember.clusterMember.nodeName.length;
     if ((len1 == len2) &&
         (!strncmp(node->viewMember.clusterMember.nodeName.value, 
-                gmsGlobalInfo.config.preferredActiveSCNodeName,len1)))
+                  gmsGlobalInfo.config.preferredActiveSCNodeName,len1)))
     {
         /* This node is a preferred Leader. So set ifPreferredLeader flag to TRUE */
         node->viewMember.clusterMember.isPreferredLeader = CL_TRUE;
         clLog(DBG,CLM,NA,
-                "Node [%s] is marked as preferred leader in the in the config file"
-                " So marking this node as preferred leader",
-                gmsGlobalInfo.config.preferredActiveSCNodeName);
+              "Node [%s] is marked as preferred leader in the in the config file"
+              " So marking this node as preferred leader",
+              gmsGlobalInfo.config.preferredActiveSCNodeName);
     }
 
     rc = _clGmsViewFindAndLock(groupId, &thisClusterView);
@@ -730,7 +742,7 @@ ClRcT _clGmsEngineClusterJoin(
     if ((rc != CL_OK) || (thisClusterView == NULL))
     {
         clLog(ERROR,CLM,NA,
-                "Could not get current GMS view. Join failed. rc 0x%x",rc);
+              "Could not get current GMS view. Join failed. rc 0x%x",rc);
         return rc;
     }
 
@@ -742,13 +754,13 @@ ClRcT _clGmsEngineClusterJoin(
     if ((add_rc != CL_OK) && (add_rc != CL_GMS_RC(CL_ERR_ALREADY_EXIST)))
     {
         clLog(ERROR,CLM,NA,
-                "Error while adding new node to GMS view. rc 0x%x",rc);
+              "Error while adding new node to GMS view. rc 0x%x",rc);
         goto ENG_ADD_ERROR;
     }
     else if ( add_rc == CL_GMS_RC(CL_ERR_ALREADY_EXIST))
     {
         clLog(INFO,CLM,NA,
-                "Node already exists in GMS view. Returning OK");
+              "Node already exists in GMS view. Returning OK");
         add_rc = CL_OK;
         goto ENG_ADD_ERROR;
     }
@@ -761,13 +773,46 @@ ClRcT _clGmsEngineClusterJoin(
     if( bootTimeElectionDone != CL_TRUE)
     {
         clLogMultiline(INFO,CLM,NA,
-                "Boot time election is not done. So not invoking cluster \n"
-                "track callback for this node join. Unblocking and returning");
+                       "Boot time election is not done. So not invoking cluster \n"
+                       "track callback for this node join. Unblocking and returning");
         if (_clGmsViewUnlock(groupId) != CL_OK)
         {
             clLog(ERROR,GEN,NA,
-                    "_clGmsViewUnlock failed");
-        } 
+                  "_clGmsViewUnlock failed");
+        }
+        return rc;
+    }
+    /*
+     * Trigger re-election if scheduled.
+     */
+    if(reElect)
+    {
+        if (_clGmsViewUnlock(groupId) != CL_OK)
+        {
+            clLog(ERROR,GEN,NA,
+                  "_clGmsViewUnlock failed");
+        }
+        /*
+         * Skip if re-election timer is already on.
+         */
+        if(!timerHandle)
+        {
+            rc = leaderElectionTimerRun(CL_TRUE);
+            if(rc == CL_OK)
+            {
+                clLogNotice(GEN, NA, "Leader re-election timer restarted");
+            }
+            else
+            {
+                clLogError(GEN, NA, "Leader re-election timer restart failed with error [%#x]. "
+                           "The GMS cluster view could be inconsistent", rc);
+            }
+        }
+        else
+        {
+            clLogNotice(GEN, NA, "Leader re-election timer is running. "
+                        "Skipping leader election for node [%d], group [%d]", nodeId, groupId);
+        }
         return rc;
     }
 
@@ -776,7 +821,7 @@ ClRcT _clGmsEngineClusterJoin(
     if (rc != CL_OK)
     {
         clLog(ERROR,CLM,NA,
-                "Leader election failed during node join. rc 0x%x",rc);
+              "Leader election failed during node join. rc 0x%x",rc);
         goto ENG_ADD_ERROR;
     }
 
@@ -793,22 +838,22 @@ ClRcT _clGmsEngineClusterJoin(
     if( rc!= CL_OK )
     {
         clLog(ERROR,CLM,NA,
-                 "Cluster track notification failed for node join [%d] rc [0x%x]",
-                 nodeId,rc);
+              "Cluster track notification failed for node join [%d] rc [0x%x]",
+              nodeId,rc);
         goto ENG_ADD_ERROR;
     }
 
     clLog (INFO,CLM,NA,
-            "Node [%d] joined the cluster successfully",nodeId);
+           "Node [%d] joined the cluster successfully",nodeId);
 
-ENG_ADD_ERROR:
+    ENG_ADD_ERROR:
     if (_clGmsViewUnlock(groupId) != CL_OK)
     {
         clLog(ERROR,GROUPS,NA,
-                "_clGmsViewUnlock failed");
+              "_clGmsViewUnlock failed");
     }
     clLog(TRACE,CLM,NA,
-            "Unlocked the view DB. Now returning from cluster join");
+          "Unlocked the view DB. Now returning from cluster join");
 
     if (add_rc)
     {
@@ -927,7 +972,8 @@ ClRcT _clGmsEngineClusterLeave(
             goto unlock_and_exit;
         }
 
-        if( nodeId == thisClusterView->leader ){
+        if( nodeId == thisClusterView->leader )
+        {
             thisClusterView->leader = new_leader;
             thisClusterView->leadershipChanged = CL_TRUE;
         }
@@ -968,7 +1014,6 @@ unlock_and_exit:
            clLog(ERROR,CLM,NA,
                      "Initial Leader Election Soak Timer deletion Failed");
         }
-        timerHandle = NULL;
     }
 
     clLog(INFO,CLM,NA, 
