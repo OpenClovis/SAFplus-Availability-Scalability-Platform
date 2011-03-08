@@ -1332,7 +1332,9 @@ cosPosixCondInit(ClOsalCondT *pCond)
     CL_FUNC_ENTER();
     sysRetErrChkRet(pthread_condattr_init(&attr));
 #ifdef __linux__
+#if __GNUC__ > 3
     sysRetErrChkRet(pthread_condattr_setclock(&attr, CLOCK_MONOTONIC));
+#endif
 #endif
     sysRetErrChkRet(pthread_cond_init(pCond, &attr));
     CL_FUNC_EXIT();
@@ -1361,7 +1363,9 @@ cosPosixProcessSharedCondInit (ClOsalCondT* ptr)
     }
 
 #ifdef __linux__
+#if __GNUC__ > 3
   sysRetErrChkRet(pthread_condattr_setclock(&mattr, CLOCK_MONOTONIC));
+#endif
 #endif
 
   retCode = (ClUint32T) pthread_cond_init (ptr, &mattr);
@@ -1406,7 +1410,9 @@ cosPosixCondInitEx (ClOsalCondT* pCond, ClOsalCondAttrT *pAttr)
 
     CL_FUNC_ENTER();
 #ifdef __linux__
+#if __GNUC__ > 3
     sysRetErrChkRet(pthread_condattr_setclock(pAttr, CLOCK_MONOTONIC));
+#endif
 #endif    
     sysRetErrChkRet(pthread_cond_init(pCond, pAttr));
     CL_FUNC_EXIT();
@@ -1551,11 +1557,13 @@ cosPosixCondWait (ClOsalCondIdT conditionId, ClOsalMutexIdT mutexId, ClTimerTime
         {
             struct timespec current = {0};
             int result = 0;
+            clockid_t clock = CLOCK_REALTIME;
 #ifdef __linux__
-            sysRetErrChkRet(clock_gettime(CLOCK_MONOTONIC, &current));
-#else
-            sysRetErrChkRet(clock_gettime(CLOCK_REALTIME,  &current));
+#if __GNUC__ > 3
+            clock = CLOCK_MONOTONIC;
 #endif
+#endif
+            sysRetErrChkRet(clock_gettime(clock,  &current));
             nanoSecTime = 	((ClUint64T)current.tv_nsec) + ((ClUint64T)timer.tsMilliSec * 1000LL * 1000LL);
 	    
             timeOut.tv_nsec = (nanoSecTime % 1000000000);
@@ -1622,11 +1630,13 @@ cosPosixCondWaitDebug (ClOsalCondIdT conditionId, ClOsalMutexIdT mutexId, ClTime
         {
             struct timespec current = {0};
             int result = 0;
+            clockid_t clock = CLOCK_REALTIME;
 #ifdef __linux__
-            sysRetErrChkRet(clock_gettime(CLOCK_MONOTONIC, &current));
-#else
-            sysRetErrChkRet(clock_gettime(CLOCK_REALTIME,  &current));
+#if __GNUC__ > 3
+            clock = CLOCK_MONOTONIC;
 #endif
+#endif
+            sysRetErrChkRet(clock_gettime(clock,  &current));
             nanoSecTime = 	((ClUint64T)current.tv_nsec) + ((ClUint64T)timer.tsMilliSec * 1000LL * 1000LL);
 	    
             timeOut.tv_nsec = (nanoSecTime % 1000000000);
