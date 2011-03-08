@@ -851,7 +851,7 @@ static ClRcT resourceHotSwapEventProcess( SaHpiSessionIdT sessionid,
         "entity:            %s\n"
         "new-state:         %s\n"
         "previous-state:    %s",
-        pRptEntry->ResourceId,
+        pEvent->Source,
         epath,
         oh_lookup_hsstate(pEvent->EventDataUnion.HotSwapEvent.HotSwapState),
         oh_lookup_hsstate(pEvent->
@@ -864,7 +864,7 @@ static ClRcT resourceHotSwapEventProcess( SaHpiSessionIdT sessionid,
         return CL_ERR_NULL_POINTER;
     }
 
-    pFruEventPayload->fruId = pRptEntry->ResourceId;
+    pFruEventPayload->fruId = pEvent->Source;
     pFruEventPayload->physicalSlot = clCmPhysicalSlotFromEntityPath(&(pRptEntry->ResourceEntity));
     pFruEventPayload->previousState = pEvent->EventDataUnion.HotSwapEvent.PreviousHotSwapState;
     pFruEventPayload->presentState = pEvent->EventDataUnion.HotSwapEvent.HotSwapState;
