@@ -34,7 +34,7 @@ extern "C" {
 #include <clLogSvrCommon.h>
 
 #define CL_LOG_MASTER_START_MCAST_ADDR    0x00000000000000FF
-#define CL_LOG_MASTER_MAX_FILES           256
+#define CL_LOG_MASTER_MAX_FILES           1024
 #define CL_LOG_MASTER_MAX_SECTIONID_SIZE  1024
 #define CL_LOG_MASTER_COMPID_START        32
 #define CL_LOG_MASTER_STREAMID_START        32
