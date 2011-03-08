@@ -611,8 +611,8 @@ ClRcT clTxnAgentProcessJob(
  
             clLogDebug("AGT", NULL,
                     "Prepare failed for agent[0x%x:0x%x] with error[0x%x]. Appending payload to send to TM. TXNID [0x%x:0x%x]\n", 
-                    pMsgHdr->destAddr.nodeAddress,
-                    pMsgHdr->destAddr.portId,
+                    pMsgHdr->srcAddr.nodeAddress,
+                    pMsgHdr->srcAddr.portId,
                     txnCmd.resp,
                     txnCmd.txnId.txnMgrNodeAddress,
                     txnCmd.txnId.txnId);
