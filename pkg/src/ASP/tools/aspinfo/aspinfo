@@ -459,6 +459,12 @@ def load_amf_db():
     _amf_db_timestamp = time.time()
     return _amf_db
     
+
+def safe_remove(f):
+    try:
+        os.remove(f)
+    except:
+        os.system('rm -f %s' %f)
     
 def asp_console_execute(cmds, use_file=False):
     """Executes the list of commands in ASP asp_console (debug cli) and
@@ -470,17 +476,23 @@ def asp_console_execute(cmds, use_file=False):
        to create a deadlock.
     """
     prompt = r'cli\[[^[]+\]->\s+'
+    out_file = None
     rex_cmdline = re.compile(prompt+r'(?P<cmd>.*)', re.M)
     
     cmd = '%s "%s" | %s/bin/asp_console' % \
           (sys_asp['echo_cmd'], '\\n'.join(cmds + ['status', 'bye']), _asp_dir)
     if use_file:
-        cmd += '> %s/var/run/tmp.aspinfo' % _asp_dir
+        out_file = '%s/var/run/tmp.aspinfo_' % _asp_dir + str(time.time())
+        cmd += '> %s' %out_file
         
     (ec, output, signal, core) = system(cmd)
     if ec == NO_SUCH_FILE_OR_DIR:
+        if out_file:
+            safe_remove(out_file)
         raise DebugCliError('Could not find asp_console')
     if ec and ec != PROC_GOT_SIGKILL:
+        if out_file:
+            safe_remove(out_file)
         output = ' '.join(output)
         if output.find('instance is already running') >= 0:
             raise DebugCliError('Another asp_console is already running on this node')
@@ -488,10 +500,11 @@ def asp_console_execute(cmds, use_file=False):
             raise DebugCliError('Could run asp_console: %s' % output)
     
     if use_file:
-        f = file('%s/var/run/tmp.aspinfo' % _asp_dir, 'r')
+        f = file(out_file, 'r')
         output = f.read()
         f.close()
-        
+        safe_remove(out_file)
+ 
     res = rex_cmdline.split(''.join(output))
     res2 = [res[res.index(c.strip())+1].strip() for c in cmds]
     trailer_res = res[res.index(cmds[-1].strip())+2:]
