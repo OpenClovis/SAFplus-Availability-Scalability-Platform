@@ -257,6 +257,8 @@ static ClRcT gmsCliGroupsInfoListGet (
     ClCharT          name[256]      = "";
     ClCharT          timeBuffer[256]= {0};
     ClTimeT          ti             = 0;
+    ClInt32T maxBytes = 0;
+    ClInt32T curBytes = 0;
 
     if (argc > 1)
     {
@@ -264,14 +266,8 @@ static ClRcT gmsCliGroupsInfoListGet (
         return CL_OK;
     }
 
-    /* Allocate maximum possible */ 
-    *ret = clHeapAllocate(1020);
-    if( *ret == NULL ){
-        clLog (ERROR,GEN,NA,
-                "Memory allocation failed");
-        return CL_ERR_NO_MEMORY;
-    }
-
+    *ret = NULL;
+    
     /* Take the lock on the database */
     clGmsMutexLock(gmsGlobalInfo.dbMutex);
     for (index = 0; index < gmsGlobalInfo.config.noOfGroups; index++)
@@ -293,25 +289,31 @@ static ClRcT gmsCliGroupsInfoListGet (
     }
     clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
 
-    _clGmsCliPrint(ret, "-------------------------------------------------------------------------\n");
-    _clGmsCliPrint(ret, "Total No Of Groups : %d\n",numberOfGroups);
-    _clGmsCliPrint(ret, "-------------------------------------------------------------------------\n");
+    _clGmsCliPrintExtended(ret, &maxBytes, &curBytes, 
+                           "-------------------------------------------------------------------------\n");
+    _clGmsCliPrintExtended(ret, &maxBytes, &curBytes,
+                           "Total No Of Groups : %d\n",numberOfGroups);
+    _clGmsCliPrintExtended(ret, &maxBytes, &curBytes,
+                           "-------------------------------------------------------------------------\n");
     if (numberOfGroups == 0)
     {
         goto done_ret;
     }
 
-    _clGmsCliPrint(ret, "GroupName     GId  noOfMembers  setForDelete  IocMCAddr       creationTime\n");
-    _clGmsCliPrint(ret, "-------------------------------------------------------------------------\n");
+    _clGmsCliPrintExtended(ret, &maxBytes, &curBytes,
+                           "GroupName     GId  noOfMembers  setForDelete  IocMCAddr       creationTime\n");
+    _clGmsCliPrintExtended(ret, &maxBytes, &curBytes,
+                           "-------------------------------------------------------------------------\n");
     for (index = 0; index < numberOfGroups; index++)
     {
         getNameString(&groupInfoList[index].groupName, name);
         ti = groupInfoList[index].creationTimestamp/CL_GMS_NANO_SEC;
-        _clGmsCliPrint(ret, "%-13s %3d  %11d  %12s  %16llx %s",
-                       name, groupInfoList[index].groupId, groupInfoList[index].noOfMembers,
-                       groupInfoList[index].setForDelete == CL_TRUE ? "Yes": "No",
-                       groupInfoList[index].iocMulticastAddr,
-                       ctime_r((const time_t*)&ti,timeBuffer));
+        _clGmsCliPrintExtended(ret, &maxBytes, &curBytes,
+                               "%-13s %3d  %11d  %12s  %16llx %s",
+                               name, groupInfoList[index].groupId, groupInfoList[index].noOfMembers,
+                               groupInfoList[index].setForDelete == CL_TRUE ? "Yes": "No",
+                               groupInfoList[index].iocMulticastAddr,
+                               ctime_r((const time_t*)&ti,timeBuffer));
     }
 
 done_ret:

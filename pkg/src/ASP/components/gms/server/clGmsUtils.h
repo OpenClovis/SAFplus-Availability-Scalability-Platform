@@ -51,6 +51,11 @@ extern void _clGmsLoadUserAlgorithm(ClUint32T groupid,
 void _clGmsCliPrint (char  **retstr, 
                      char *format , ... );
 
+void _clGmsCliPrintExtended (ClCharT  **retstr, 
+                             ClInt32T *maxBytes,
+                             ClInt32T *curBytes,
+                             const ClCharT *format , ... ) CL_PRINTF_FORMAT(4, 5);
+
 ClBoolT _clGmsGetIfAddress(char *,
                            struct in_addr *);
 
