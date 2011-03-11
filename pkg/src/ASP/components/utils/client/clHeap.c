@@ -2011,39 +2011,47 @@ static ClPtrT heapReallocNative(ClPtrT pAddress,ClUint32T size)
     ClPtrT pRetAddress = NULL;
     ClUint32T overhead = CL_HEAP_OVERHEAD;
     ClBoolT largeChunk = CL_FALSE;
+    ClHeapLargeChunkT *largeChunkEntry = NULL;
+    ClUint8T reallocChunkBackup[CL_HEAP_LARGE_CHUNK_OVERHEAD] = {0};
     ClUint32T osize = 0;
+
     if(pAddress)
     {
-        ClHeapLargeChunkT *largeChunkEntry = NULL;
         clHeapSizeGet((ClUint8T*)pAddress + CL_HEAP_OVERHEAD, &osize);
-        /*
-         * Check if largechunk already exists. and delete it from the tree since if realloc reallocates the chunk,
-         * we are fucked !!
-         */
-        if(osize >= CL_HEAP_LARGE_CHUNK_SIZE + CL_HEAP_LARGE_CHUNK_OVERHEAD + CL_HEAP_OVERHEAD)
-        {
-            pAddress = (ClPtrT)((ClUint8T*)pAddress - CL_HEAP_LARGE_CHUNK_OVERHEAD);
-            largeChunkEntry = (ClHeapLargeChunkT*)pAddress;
-            if(largeChunkEntry->magic != CL_HEAP_LARGE_CHUNK_MAGIC)
-            {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Trying to realloc an invalid large chunk at [%p] of size [%d]\n",
-                                                   pAddress, osize));
-                goto out;
-            }
-            if(largeChunkEntry->refCnt > 1)
-            {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Trying to realloc a large chunk at [%p] of size [%d] "
-                                                   "with [%d] references\n", 
-                                                   pAddress, osize, largeChunkEntry->refCnt));
-                goto out;
-            }
-            clOsalMutexLock(&gHeapList.mutex);
-            clRbTreeDelete(&gHeapList.largeChunkTree, &largeChunkEntry->tree);
-            memset(largeChunkEntry, 0, sizeof(*largeChunkEntry));
-            --gHeapList.numLargeChunks;
-            clOsalMutexUnlock(&gHeapList.mutex);
-        }
     }
+    /*
+     * Check if largechunk already exists. and delete it from the tree since if realloc reallocates the chunk,
+     * we are fucked !!
+     */
+    if(osize >= CL_HEAP_LARGE_CHUNK_SIZE + CL_HEAP_LARGE_CHUNK_OVERHEAD + CL_HEAP_OVERHEAD)
+    {
+        /*
+         * Take a backup just incase we are getting truncated and the large chunk to sudden small chunk
+         * move has to be adjusted for the mirror since the old chunk could be freed on a migration to small chunk
+         */
+        memcpy(reallocChunkBackup, pAddress, sizeof(reallocChunkBackup));
+        pAddress = (ClPtrT)((ClUint8T*)pAddress - CL_HEAP_LARGE_CHUNK_OVERHEAD);
+        largeChunkEntry = (ClHeapLargeChunkT*)pAddress;
+        if(largeChunkEntry->magic != CL_HEAP_LARGE_CHUNK_MAGIC)
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Trying to realloc an invalid large chunk at [%p] of size [%d]\n",
+                                               pAddress, osize));
+            goto out;
+        }
+        if(largeChunkEntry->refCnt > 1)
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Trying to realloc a large chunk at [%p] of size [%d] "
+                                               "with [%d] references\n", 
+                                               pAddress, osize, largeChunkEntry->refCnt));
+            goto out;
+        }
+        clOsalMutexLock(&gHeapList.mutex);
+        clRbTreeDelete(&gHeapList.largeChunkTree, &largeChunkEntry->tree);
+        memset(largeChunkEntry, 0, sizeof(*largeChunkEntry));
+        --gHeapList.numLargeChunks;
+        clOsalMutexUnlock(&gHeapList.mutex);
+    }
+
     if(size >= CL_HEAP_LARGE_CHUNK_SIZE)
     {
         overhead += CL_HEAP_LARGE_CHUNK_OVERHEAD;
@@ -2059,6 +2067,7 @@ static ClPtrT heapReallocNative(ClPtrT pAddress,ClUint32T size)
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
         goto out;
     }
+
     pRetAddress = realloc(pAddress,size);
     if(pRetAddress == NULL)
     {
@@ -2072,7 +2081,29 @@ static ClPtrT heapReallocNative(ClPtrT pAddress,ClUint32T size)
     }
     if(largeChunk)
     {
-            pRetAddress = heapAddLargeChunk(pRetAddress);
+        /*
+         * See if this is a new large chunk addition in which case we have to move existing chunk
+         * to accomodate for the large chunk.
+         */
+        if(pAddress && !largeChunkEntry && osize)
+        {
+            memmove((ClCharT*)pRetAddress + CL_HEAP_LARGE_CHUNK_OVERHEAD, 
+                    pRetAddress, 
+                    CL_MIN(osize, size - CL_HEAP_LARGE_CHUNK_OVERHEAD));
+        }
+        pRetAddress = heapAddLargeChunk(pRetAddress);
+    }
+    else if(pAddress && largeChunkEntry)
+    {
+        /*
+         * If we are moving from large chunk to small one, then truncate the large chunk overhead
+         * in the mirrored chunk
+         */
+        if(size >= CL_HEAP_LARGE_CHUNK_OVERHEAD)
+            memmove(pRetAddress, (ClCharT*)pRetAddress + CL_HEAP_LARGE_CHUNK_OVERHEAD,
+                    size - CL_HEAP_LARGE_CHUNK_OVERHEAD);
+        else
+            memcpy(pRetAddress, reallocChunkBackup, size);
     }
 
     CL_HEAP_SET_NATIVE_COOKIE(pRetAddress,size);
