@@ -918,6 +918,11 @@
             <DataMember name="pendingInvocations" type="ClUint32T" />
         </Struct>
 
+        <Struct name="ClAmsSISURefBufferT">
+          <DataMember name="count" type="ClUint32T"/>
+          <DataMember name="entityRef" type="ClAmsSISURefT" pointer="Single" lengthVar="count"/>
+        </Struct>
+
         <Struct name="ClAmsCompCSIRefT"> 
             <DataMember name="entityRef" type="ClAmsEntityConfigT" />
             <DataMember name="haState" type="ClAmsHAStateT" />

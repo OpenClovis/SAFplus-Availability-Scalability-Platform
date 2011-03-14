@@ -137,6 +137,7 @@ extern "C" {
 #include <xdrClAmsMgmtMigrateResponseT.h>
 #include <xdrClAmsMgmtSIAssignSUCustomRequestT.h>
 #include <xdrClAmsInvocationIDLT.h>
+#include <xdrClAmsSISURefBufferT.h>
 
 #ifdef __cplusplus
 }

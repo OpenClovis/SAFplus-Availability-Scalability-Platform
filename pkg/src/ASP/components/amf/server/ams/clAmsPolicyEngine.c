@@ -66,6 +66,9 @@
 #include <clAmsNotifications.h>
 #include <clList.h>
 #include <mPlusN.h>
+#include <custom.h>
+#include <clAmsEntityUserData.h>
+#include <clAmsXdrHeaderFiles.h>
 
 #define AMS_CPM_INTEGRATION
 #define INVOCATION
@@ -1282,7 +1285,6 @@ clAmsPeSGInstantiateSUs(
     return CL_OK;
 }
 
-
 /*
  * clAmsPeSGAssignSUs
  * ------------------
@@ -1341,8 +1343,9 @@ clAmsPeSGAssignSUs(
         case CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM:
         {
             /*
-             * User controlled redundancy. Hence a pass through.
+             * User controlled redundancy.
              */
+            AMS_CALL ( clAmsPeSGAssignSUCustom(sg) );
             break;
         }
         
@@ -21478,6 +21481,112 @@ static ClRcT clAmsPeSUSIHAStateCustom(ClAmsSIT *si, ClAmsSUT *su, ClAmsHAStateT 
     return CL_OK;
 }
 
+ClRcT clAmsPeEnqueueAssignment(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsHAStateT haState)
+{
+    ClNameT customAssignmentKey = { .value = "CUSTOM_ASSIGNMENT", 
+                                    .length = sizeof("CUSTOM_ASSIGNMENT")-1 
+    };
+    ClUint8T *customAssignmentBuffer = NULL;
+    ClUint32T customAssignmentBufferLen = 0;
+    ClAmsSISURefBufferT buffer = {0};
+    ClBufferHandleT inMsgHdl = 0;
+    ClUint32T i;
+    ClRcT rc;
+
+    rc = clBufferCreate(&inMsgHdl);
+    if(rc != CL_OK)
+        goto out;
+
+    rc = _clAmsEntityUserDataGetKey(&si->config.entity.name, &customAssignmentKey,
+                                    (ClCharT**)&customAssignmentBuffer, &customAssignmentBufferLen);
+    if(rc == CL_OK)
+    {
+        rc = clBufferNBytesWrite(inMsgHdl, (ClUint8T*)customAssignmentBuffer, customAssignmentBufferLen);
+        if(rc != CL_OK)
+            goto out_free;
+        rc = VDECL_VER(clXdrUnmarshallClAmsSISURefBufferT, 4, 0, 0)(inMsgHdl, &buffer);
+        if(rc != CL_OK)
+        {
+            clLogError("CUSTOM", "ASSIGNMENT", "Unmarshalling entity buffer for SI [%s] returned with [%#x]",
+                       si->config.entity.name.value, rc);
+            goto out_free;
+        }
+        /*
+         * Check if the su is already part of the queue.
+         */
+        for(i = 0; i < buffer.count; ++i)
+        {
+            if(!strncmp(buffer.entityRef[i].entityRef.entity.name.value,
+                        activeSU->config.entity.name.value,
+                        activeSU->config.entity.name.length))
+            {
+                clLogNotice("CUSTOM", "ASSIGNMENT", "Skipping enqueueing SU [%s] to SI [%s] as its already enqueued",
+                            activeSU->config.entity.name.value, si->config.entity.name.value);
+                goto out_free;
+            }
+        }
+        /*
+         * Reallocate the entity buffer to add the new one.
+         */
+        buffer.entityRef = clHeapRealloc(buffer.entityRef, sizeof(*buffer.entityRef) * (buffer.count+1));
+        CL_ASSERT(buffer.entityRef != NULL);
+        memset(buffer.entityRef + buffer.count, 0, sizeof(*buffer.entityRef));
+        memcpy(&buffer.entityRef[buffer.count].entityRef.entity, &activeSU->config.entity, 
+               sizeof(buffer.entityRef[buffer.count].entityRef.entity));
+        buffer.entityRef[buffer.count].haState = haState;
+        ++buffer.count;
+    }
+    else
+    {
+        buffer.entityRef = clHeapCalloc(1, sizeof(*buffer.entityRef));
+        CL_ASSERT(buffer.entityRef != NULL);
+        memcpy(&buffer.entityRef->entityRef.entity, &activeSU->config.entity, 
+               sizeof(buffer.entityRef->entityRef.entity));
+        buffer.entityRef->haState = haState;
+        buffer.count = 1;
+    }
+
+    rc = VDECL_VER(clXdrMarshallClAmsSISURefBufferT, 4, 0, 0)(
+                                                              (void*)&buffer, inMsgHdl, 0);
+    if(rc != CL_OK)
+    {
+        clLogError("CUSTOM", "ASSIGNMENT", "Marshalling custom assignment preference for hastate [%s], "
+                   "entity [%s] returned with [%#x]", CL_AMS_STRING_H_STATE(haState),
+                   activeSU->config.entity.name.value, rc);
+        goto out_free;
+    }
+    rc = clBufferLengthGet(inMsgHdl, &customAssignmentBufferLen);
+    if(rc != CL_OK)
+        goto out_free;
+
+    rc = clBufferFlatten(inMsgHdl, &customAssignmentBuffer);
+    if(rc != CL_OK)
+    {
+        clLogError("CUSTOM", "ASSIGNMENT", "Custom assignment buffer flatten for entity [%s], haState [%s] "
+                   "returned with [%#x]", activeSU->config.entity.name.value, 
+                   CL_AMS_STRING_H_STATE(haState), rc);
+        goto out_free;
+    }
+    rc = _clAmsEntityUserDataSetKey(&si->config.entity.name,
+                                    &customAssignmentKey, (ClCharT*)customAssignmentBuffer, customAssignmentBufferLen);
+    if(rc != CL_OK)
+    {
+        clLogError("CUSTOM", "ASSIGNMENT", "Custom assignment data set for SU [%s] with hastate [%s] "
+                   "returned with [%#x]", activeSU->config.entity.name.value, 
+                   CL_AMS_STRING_H_STATE(haState), rc);
+        goto out_free;
+    }
+
+    out_free:
+    if(inMsgHdl)
+        clBufferDelete(&inMsgHdl);
+    if(buffer.entityRef) 
+        clHeapFree(buffer.entityRef);
+
+    out:
+    return rc;
+}
+
 ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standbySU)
 {
     ClAmsSGT *sg = NULL;
@@ -21581,9 +21690,10 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
         if(clAmsPeSUIsAssignable(suSIAssignmentMap[i].su) != CL_OK)
         {
             clLogWarning("CUSTOM", "SI-ASSIGN-SU", "SU [%s] is unassignable. "
-                         "Skipping SI [%s] assignment",
+                         "Deferring SI [%s] assignment",
                          suSIAssignmentMap[i].su->config.entity.name.value,
                          si->config.entity.name.value);
+            /*            clAmsPeEnqueueAssignment(si, suSIAssignmentMap[i].su, suSIAssignmentMap[i].haState);*/
             continue;
         }
 
