@@ -2752,9 +2752,23 @@ clAmsProxiedClearOps(ClAmsCompT *comp)
         if(!memcmp(compRef->config.proxyCSIType.value, proxyCSI->config.type.value,
                    proxyCSI->config.type.length) )
         {
-            cpmProxiedHealthcheckStop(&compRef->config.entity.name);
+            /*
+             * If the proxied matches the proxy that took the fault,
+             * then clear pending operations for the proxied.
+             */
+            if(compRef->status.proxyComp
+               &&
+               !strncmp(compRef->status.proxyComp->name.value,
+                        comp->config.entity.name.value,
+                        comp->config.entity.name.length))
+            {
+                clLogNotice("PROXIED", "CLEAR", "Clearing pending operations for proxied [%s] with proxy [%s]",
+                            compRef->config.entity.name.value,
+                            compRef->status.proxyComp->name.value);
+                cpmProxiedHealthcheckStop(&compRef->config.entity.name);
+                amsCompClearOps(compRef);
+            }
         }
-        amsCompClearOps(compRef);
         nodeHandle = nextNodeHandle;
     }
     return CL_OK;

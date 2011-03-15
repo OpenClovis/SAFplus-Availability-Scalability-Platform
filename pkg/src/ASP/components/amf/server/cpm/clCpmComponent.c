@@ -2851,7 +2851,7 @@ ClRcT cpmProxiedHealthcheckStop(ClNameT *pCompName)
                    compName);
         return rc;
     }
-    clLogInfo("HB", "STOP", "Stopping healthcheck for proxied comp [%s]", compName);
+    clLogNotice("HB", "STOP", "Stopping healthcheck for proxied comp [%s]", compName);
     clOsalMutexLock(comp->compMutex);
     if (CL_HANDLE_INVALID_VALUE != comp->cpmHealthcheckTimerHandle)
     {
