@@ -219,7 +219,7 @@ static ClRcT clAmsMgmtEntityAdminResponse(ClEoDataT data,
     struct ams_instance *ams_instance = NULL;
     memset(&response,0,sizeof(response));
     
-    rc = clXdrUnmarshallClAmsMgmtEntityAdminResponseT(inMsg,(void*)&response);
+    rc = VDECL_VER(clXdrUnmarshallClAmsMgmtEntityAdminResponseT, 4, 0, 0)(inMsg,(void*)&response);
     if(rc != CL_OK)
     {
         clLogError(AMSAREA,AMSCTXT,"Admin response unmarshall returned [0x%x]",rc);
@@ -361,19 +361,19 @@ clAmsMgmtInitialize(
 {
 
     ClRcT  rc = CL_OK; 
+#if defined(CL_AMS_MGMT_HOOKS)
     clAmsMgmtInitializeRequestT  req;
     clAmsMgmtInitializeResponseT  *res = NULL;
+#endif
     struct ams_instance  *ams_instance = NULL;
 
     AMS_CHECKPTR_SILENT ( !amsHandle || !version );
    
     AMS_CHECK_RC_ERROR( check_lib_init() );
 
-    memset(&req,0,sizeof(req));
-
-    req.srcAddress.discriminant = CLAMSMGMTIOCADDRESSIDLTIOCPHYADDRESS;
-
 #if defined (CL_AMS_MGMT_HOOKS)
+    memset(&req,0,sizeof(req));
+    req.srcAddress.discriminant = CLAMSMGMTIOCADDRESSIDLTIOCPHYADDRESS;
     req.srcAddress.clAmsMgmtIocAddressIDLT.iocPhyAddress.nodeAddress=clIocLocalAddressGet();
     req.srcAddress.clAmsMgmtIocAddressIDLT.iocPhyAddress.portId = gpEOObj->eoPort;
 #endif
@@ -401,16 +401,22 @@ clAmsMgmtInitialize(
 
     AMS_CHECK_RC_ERROR( clOsalMutexCreate(&ams_instance->response_mutex) );
 
+#if defined(CL_AMS_MGMT_HOOKS)
     req.handle = *amsHandle;
-
     AMS_CHECK_RC_ERROR( cl_ams_mgmt_initialize(&req, &res) );
-
     ams_instance->server_handle = res->handle;
+#else
+    ams_instance->server_handle = *amsHandle;
+#endif
+
     AMS_CHECK_RC_ERROR( clHandleCheckin(handle_database,*amsHandle) );
 
 exitfn:
 
+#if defined(CL_AMS_MGMT_HOOKS)
     clAmsFreeMemory(res);
+#endif
+
     return rc;
 }
 
@@ -434,8 +440,10 @@ clAmsMgmtFinalize(
 {
 
     ClRcT  rc = CL_OK;
+#if defined(CL_AMS_MGMT_HOOKS)
     clAmsMgmtFinalizeRequestT  req;
     clAmsMgmtFinalizeResponseT  *res = NULL;
+#endif
     struct ams_instance  *ams_instance = NULL;
 
     AMS_CHECK_RC_ERROR( clHandleCheckout( handle_database, amsHandle, 
@@ -456,8 +464,10 @@ clAmsMgmtFinalize(
 
     AMS_CHECK_RC_ERROR( clOsalMutexUnlock(ams_instance->response_mutex) );
 
+#if defined(CL_AMS_MGMT_HOOKS)
     req.handle = ams_instance->server_handle;
     AMS_CHECK_RC_ERROR( cl_ams_mgmt_finalize( &req, &res));
+#endif
 
     AMS_CHECK_RC_ERROR( clOsalMutexDelete(ams_instance->response_mutex) );
 
@@ -467,7 +477,10 @@ clAmsMgmtFinalize(
 
 exitfn:
 
+#if defined(CL_AMS_MGMT_HOOKS)
     clAmsFreeMemory(res);
+#endif
+
     return rc;
 
 }
