@@ -86,7 +86,8 @@
 #define QUEUE_RTR_ITEMS_SIZE_MAX		256 /* allow 256 retransmit items */
 #define RETRANS_MESSAGE_QUEUE_SIZE_MAX		500 /* allow 500 messages to be queued */
 #define RECEIVED_MESSAGE_QUEUE_SIZE_MAX		500 /* allow 500 messages to be queued */
-#define MAXIOVS					5	
+#define MAXIOVS					10
+#define SORT_QUEUE_ITEM_MAXIOVS MAXIOVS + 1
 #define RETRANSMIT_ENTRIES_MAX			30
 #define TOKEN_SIZE_MAX				64000 /* bytes */
 
@@ -280,7 +281,7 @@ struct message_item {
 };
 
 struct sort_queue_item {
-	struct iovec iovec[MAXIOVS];
+	struct iovec iovec[SORT_QUEUE_ITEM_MAXIOVS];
 	int iov_len;
 };
 
@@ -1921,7 +1922,7 @@ static void memb_state_recovery_enter (
 	strncat (is_originated, seqno_string_hex, (sizeof(is_originated)-strlen(is_originated)-1));
 	sort_queue_item = ptr;
 	assert (sort_queue_item->iov_len > 0);
-	assert (sort_queue_item->iov_len <= MAXIOVS);
+	assert (sort_queue_item->iov_len <= SORT_QUEUE_ITEM_MAXIOVS);
 	messages_originated++;
 	memset (&message_item, 0, sizeof (struct message_item));
 // TODO	 LEAK
@@ -2034,6 +2035,8 @@ int totemsrp_mcast (
 
 	message_item.mcast->guarantee = guarantee;
 	srp_addr_copy (&message_item.mcast->system_from, &instance->my_id);
+
+    assert(iov_len <= MAXIOVS);
 
 	for (i = 0; i < iov_len; i++) {
 // TODO LEAK
