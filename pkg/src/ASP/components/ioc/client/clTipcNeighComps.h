@@ -47,7 +47,6 @@ void clTipcPutPortId(ClIocPortT portId);
 #define CL_IOC_NEIGH_NODE_STATUS_GET(node) \
         (CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_CPM_PORT) && \
         CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_CKPT_PORT) && \
-        CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_COR_PORT) && \
         CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_GMS_PORT) && \
         CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_LOG_PORT))
 
