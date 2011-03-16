@@ -3933,29 +3933,30 @@ ClRcT clIocMcastIsRegistered(ClIocMcastUserInfoT *pMcastInfo)
     pMcast = clTipcGetMcast(pMcastInfo->mcastAddr);
     if(pMcast == NULL)
     {
-        clOsalMutexUnlock(&gClTipcMcastMutex);
-        clOsalMutexUnlock(&gClTipcPortMutex);
         rc = CL_IOC_RC(CL_ERR_NOT_EXIST);
-        goto out;
+        goto out_unlock;
     }
     else
     {
         register ClListHeadT *pTemp = NULL;
         CL_LIST_FOR_EACH(pTemp,&pMcast->portList)
+        {
+            pMcastPort = CL_LIST_ENTRY(pTemp,ClTipcMcastPortT,listMcast);
+            if(pMcastPort->pTipcCommPort->portId == pMcastInfo->physicalAddr.portId)
             {
-                pMcastPort = CL_LIST_ENTRY(pTemp,ClTipcMcastPortT,listMcast);
-                if(pMcastPort->pTipcCommPort->portId == pMcastInfo->physicalAddr.portId)
-                {
-                    clOsalMutexUnlock(&gClTipcMcastMutex);
-                    clOsalMutexUnlock(&gClTipcPortMutex);
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Port 0x%x is already registered for the multicast address 0x%llx\n",pMcastInfo->physicalAddr.portId, pMcastInfo->mcastAddr));
-                    rc = CL_IOC_RC(CL_ERR_ALREADY_EXIST);
-                    goto out;
-                }
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Port 0x%x is already registered for the multicast address 0x%llx\n",pMcastInfo->physicalAddr.portId, pMcastInfo->mcastAddr));
+                rc = CL_IOC_RC(CL_ERR_ALREADY_EXIST);
+                goto out_unlock;
             }
+        }
         rc = CL_IOC_RC(CL_ERR_NOT_EXIST);
     }
-out:
+
+    out_unlock:
+    clOsalMutexUnlock(&gClTipcMcastMutex);
+    clOsalMutexUnlock(&gClTipcPortMutex);
+
+    out:
     return rc;
 }
     
