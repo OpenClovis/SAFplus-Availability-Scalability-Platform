@@ -1675,7 +1675,7 @@ clGmsGroupLeaveHandler(
     {
     	clGmsMutexUnlock ( contextCondVar.mutex );
         clLog(ERROR,GROUPS,NA,
-                "Group Leave Multicast messaging through openais failed");
+              "Group Leave Multicast messaging through openais failed with error [%d]", rc);
         res->rc = rc;
         return rc;
     }

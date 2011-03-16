@@ -564,6 +564,7 @@ static inline void mcast_sendmsg (
     {
         if(++tries < 10)
         {
+            printf("Warning: TOTEM mcast sendmsg returned with EAGAIN. Retrying ...\n");
             usleep(100);
             goto retry;
         }
@@ -571,7 +572,10 @@ static inline void mcast_sendmsg (
     }
     
     if (res < 0)
+    {
+        printf("ERROR: TOTEM mcast sendmsg failed with error [%s] ...\n", strerror(errno));
         perror("sendmsg failed");
+    }
 }
 
 static void totemnet_mcast_thread_state_constructor (
@@ -1760,11 +1764,14 @@ error_exit:
 extern void totemnet_net_mtu_adjust (struct totem_config *totem_config)
 {
 #define UDPIP_HEADER_SIZE (20 + 8) /* 20 bytes for ip 8 bytes for udp */
+    int hdr_size = 0;
+#ifndef OPENAIS_TIPC
+    hdr_size = UDPIP_HEADER_SIZE;
+#endif
 	if (totem_config->secauth == 1) {
-		totem_config->net_mtu -= sizeof (struct security_header) +
-			UDPIP_HEADER_SIZE;
+		totem_config->net_mtu -= sizeof (struct security_header) + hdr_size;
 	} else {
-		totem_config->net_mtu -= UDPIP_HEADER_SIZE;
+		totem_config->net_mtu -= hdr_size;
 	}
 }
 
