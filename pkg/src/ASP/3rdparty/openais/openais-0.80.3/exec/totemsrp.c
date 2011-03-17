@@ -86,7 +86,7 @@
 #define QUEUE_RTR_ITEMS_SIZE_MAX		256 /* allow 256 retransmit items */
 #define RETRANS_MESSAGE_QUEUE_SIZE_MAX		500 /* allow 500 messages to be queued */
 #define RECEIVED_MESSAGE_QUEUE_SIZE_MAX		500 /* allow 500 messages to be queued */
-#define MAXIOVS					10
+#define MAXIOVS					5
 #define SORT_QUEUE_ITEM_MAXIOVS MAXIOVS + 1
 #define RETRANSMIT_ENTRIES_MAX			30
 #define TOKEN_SIZE_MAX				64000 /* bytes */
