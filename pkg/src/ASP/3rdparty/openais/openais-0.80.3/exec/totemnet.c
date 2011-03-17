@@ -1764,7 +1764,11 @@ error_exit:
 extern void totemnet_net_mtu_adjust (struct totem_config *totem_config)
 {
 #define UDPIP_HEADER_SIZE (20 + 8) /* 20 bytes for ip 8 bytes for udp */
-    int hdr_size = 0;
+    /* 
+     * just retaining an adjustment as openais has places like message_handler_mcast
+     * that expect/assert the received mcast message to be less than FRAME_SIZE_MAX
+     */
+    int hdr_size = UDPIP_HEADER_SIZE; 
 #ifndef OPENAIS_TIPC
     hdr_size = UDPIP_HEADER_SIZE;
 #endif
