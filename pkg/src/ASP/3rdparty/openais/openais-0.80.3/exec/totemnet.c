@@ -492,6 +492,12 @@ static inline void mcast_sendmsg (
 	struct iovec iovec_encrypt[20];
 	struct iovec *iovec_sendmsg;
     int tries = 0;
+    /*
+     * We retry the tipc link stalls upto a certain threshold of the token timeout
+     * to kinda do a best effort.
+     */
+    int max_tries = instance->totem_config->token_timeout/300;
+    int sleep_latency = 10000; 
 #ifdef OPENAIS_TIPC
     struct sockaddr_tipc sockaddr;
 #else
@@ -499,6 +505,9 @@ static inline void mcast_sendmsg (
 #endif
 	int iov_len;
 	int addrlen;
+    
+    if(!max_tries)
+        max_tries = 10;
 
     memset(&sockaddr, 0, sizeof(sockaddr));
 	if (instance->totem_config->secauth == 1) {
@@ -562,10 +571,10 @@ static inline void mcast_sendmsg (
         goto retry;
     if (res < 0 && errno == EAGAIN)
     {
-        if(++tries < 10)
+        if(++tries < max_tries)
         {
             printf("Warning: TOTEM mcast sendmsg returned with EAGAIN. Retrying ...\n");
-            usleep(100);
+            usleep(sleep_latency);
             goto retry;
         }
     }
