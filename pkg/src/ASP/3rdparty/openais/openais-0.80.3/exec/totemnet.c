@@ -568,7 +568,6 @@ static inline void mcast_sendmsg (
             usleep(100);
             goto retry;
         }
-        res = 0;
     }
     
     if (res < 0)
