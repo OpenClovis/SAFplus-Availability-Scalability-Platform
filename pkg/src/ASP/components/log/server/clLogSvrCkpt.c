@@ -100,6 +100,8 @@ static ClRcT
 clLogSvrShmOpenNFlusherCreate(CL_IN  ClLogSvrEoDataT   *pSvrEoEntry, 
                               CL_IN  ClNameT           *pStreamName,
                               CL_IN  ClNameT           *pStreamNodeName,
+                              CL_IN  ClStringT         *pFileName,
+                              CL_IN  ClStringT         *pFileLocation,
                               CL_IN  ClCntNodeHandleT  svrStreamNode,
                               CL_IN  ClUint32T         dsId);
 
@@ -545,6 +547,13 @@ clLogSvrStreamInfoPack(ClLogSvrEoDataT     *pSvrEoEntry,
         CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
         return rc;
     }
+    /*
+     * Copy file name and file location keys to reconstruct back the fileowner address
+     */
+    clXdrMarshallClStringT(&pSvrStreamData->fileName, msg, 0);
+
+    clXdrMarshallClStringT(&pSvrStreamData->fileLocation, msg, 0);
+
     rc = clCntSizeGet(pSvrStreamData->hComponentTable, &size);
     if( CL_OK != rc )
     {
@@ -667,6 +676,8 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
     ClCntNodeHandleT  hSvrStreamNode   = CL_HANDLE_INVALID_VALUE;
     ClLogStreamKeyT   *pStreamKey     = NULL;
     ClStringT shmName = {0};
+    ClStringT fileName = {0};
+    ClStringT fileLocation = {0};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -693,6 +704,19 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
     }
     CL_LOG_DEBUG_VERBOSE(("streamScopeNode: %*s", streamScopeNode.length,
                           streamScopeNode.value));
+
+    rc = clXdrUnmarshallClStringT(msg, &fileName);
+    if(CL_OK != rc)
+    {
+        CL_LOG_DEBUG_ERROR(("clXdrUnmarshallClStringT(): rc[%#x]\n", rc));
+        return rc;
+    }
+    rc = clXdrUnmarshallClStringT(msg, &fileLocation);
+    if(CL_OK != rc)
+    {
+        CL_LOG_DEBUG_ERROR(("clXdrUnmarshallClStringT(): rc[%#x]\n", rc));
+        return rc;
+    }
 
     rc = clXdrUnmarshallClUint32T(msg, &compTableSize);
     if( CL_OK != rc )
@@ -732,8 +756,8 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
     }
 
     rc = clLogSvrShmOpenNFlusherCreate(pSvrEoEntry, &streamName, 
-                                       &streamScopeNode, hSvrStreamNode,
-                                       dsId);
+                                       &streamScopeNode, &fileName,
+                                       &fileLocation, hSvrStreamNode, dsId);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clLogSvrShmOpenAndFlusherCreate(): rc[0x %x]\n", rc));
@@ -756,6 +780,8 @@ static ClRcT
 clLogSvrShmOpenNFlusherCreate(ClLogSvrEoDataT   *pSvrEoEntry, 
                               ClNameT           *pStreamName,
                               ClNameT           *pStreamNodeName,
+                              ClStringT         *pFileName,
+                              ClStringT         *pFileLocation,
                               ClCntNodeHandleT  hSvrStreamNode,
                               ClUint32T         dsId)
 {
@@ -781,6 +807,14 @@ clLogSvrShmOpenNFlusherCreate(ClLogSvrEoDataT   *pSvrEoEntry,
         CL_LOG_DEBUG_ERROR(("clCntDataForNodeGet(): rc[0x %x]\n", rc));
         return rc;
     }
+    
+    if(pFileLocation->pValue)
+        pSvrStreamData->fileOwnerAddr = clLogFileOwnerAddressFetch(pFileLocation);
+    else
+        pSvrStreamData->fileOwnerAddr = CL_IOC_RESERVED_ADDRESS;
+
+    memcpy(&pSvrStreamData->fileName, pFileName, sizeof(pSvrStreamData->fileName));
+    memcpy(&pSvrStreamData->fileLocation, pFileLocation, sizeof(pSvrStreamData->fileLocation));
 
     rc = clLogShmNameCreate(pStreamName, pStreamNodeName,
                                &(pSvrStreamData->shmName));
