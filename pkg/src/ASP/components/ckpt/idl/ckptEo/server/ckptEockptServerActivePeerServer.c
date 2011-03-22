@@ -333,7 +333,6 @@ ClRcT clCkptRemSvrSectionInfoUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandle
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClRcT temp_rc;
     ClVersionT  pVersion;
     ClHandleT  ckptActHdl;
     CkptUpdateFlagT_4_0_0  updateFlag;
@@ -421,20 +420,18 @@ ClRcT clCkptRemSvrSectionInfoUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandle
     rc = clXdrMarshallClVersionT(&(pVersion), outMsgHdl, 1);
     if (CL_OK != rc)
     {
-        goto L4;
+		return rc;
     }
-
-L4:    return rc;
 
 LL3:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
 LL2:  clXdrMarshallCkptSectionInfoT_4_0_0(&(pSecInfo), 0, 1);
-LL1:  temp_rc = clXdrMarshallCkptUpdateFlagT_4_0_0(&(updateFlag), 0, 1);
+LL1:  clXdrMarshallCkptUpdateFlagT_4_0_0(&(updateFlag), 0, 1);
 LL0:  clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
-L1:  temp_rc = clXdrMarshallCkptUpdateFlagT_4_0_0(&(updateFlag), 0, 1);
+L1:  clXdrMarshallCkptUpdateFlagT_4_0_0(&(updateFlag), 0, 1);
 L2:  clXdrMarshallCkptSectionInfoT_4_0_0(&(pSecInfo), 0, 1);
 
 L3:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
