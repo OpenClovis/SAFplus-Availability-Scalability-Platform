@@ -2398,7 +2398,7 @@ static int orf_token_rtr (
 			orf_token->rtr_list_entries -= 1;
 			assert (orf_token->rtr_list_entries >= 0);
 			memmove (&rtr_list[i], &rtr_list[i + 1],
-				sizeof (struct rtr_item) * (orf_token->rtr_list_entries));
+				sizeof (struct rtr_item) * (orf_token->rtr_list_entries - i));
 
 			instance->fcc_remcast_current++;
 		} else {
