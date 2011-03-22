@@ -86,7 +86,7 @@
 #define QUEUE_RTR_ITEMS_SIZE_MAX		16384 /* allow 16384 retransmit items */
 #define RETRANS_MESSAGE_QUEUE_SIZE_MAX		500 /* allow 500 messages to be queued */
 #define RECEIVED_MESSAGE_QUEUE_SIZE_MAX		500 /* allow 500 messages to be queued */
-#define MAXIOVS					5
+#define MAXIOVS					10
 #define SORT_QUEUE_ITEM_MAXIOVS MAXIOVS + 1
 #define RETRANSMIT_ENTRIES_MAX			30
 #define TOKEN_SIZE_MAX				64000 /* bytes */
@@ -120,7 +120,7 @@
  * #define TEST_DROP_COMMIT_TOKEN_PERCENTAGE 30
  * #define TEST_DROP_MCAST_PERCENTAGE 50
  * #define TEST_RECOVERY_MSG_COUNT 300
- */
+*/
 
 /*
  * we compare incoming messages to determine if their endian is
@@ -199,7 +199,6 @@ struct mcast {
  *
  * This layer can only handle packets of MTU size.
  */
-#define FRAGMENT_SIZE (FRAME_SIZE_MAX - sizeof (struct mcast) - 20 - 8)
 
 struct rtr_item  {
 	struct memb_ring_id ring_id;
@@ -1926,7 +1925,7 @@ static void memb_state_recovery_enter (
 	messages_originated++;
 	memset (&message_item, 0, sizeof (struct message_item));
 // TODO	 LEAK
-	message_item.mcast = malloc (sizeof (struct mcast));
+	message_item.mcast = malloc (FRAME_SIZE_MAX);
 	assert (message_item.mcast);
 	memcpy (&message_item.mcast->ring_id, &instance->my_ring_id,
 		sizeof (struct memb_ring_id));
@@ -2019,7 +2018,7 @@ int totemsrp_mcast (
 	 * Allocate pending item
 	 */
 // TODO LEAK
-	message_item.mcast = malloc (sizeof (struct mcast));
+	message_item.mcast = malloc (FRAME_SIZE_MAX);
 	if (message_item.mcast == 0) {
 		goto error_mcast;
 	}
@@ -2176,7 +2175,7 @@ static void messages_free (
 
 	range = release_to - instance->last_released;
 	assert (range < QUEUE_RTR_ITEMS_SIZE_MAX);
-    
+
 	/*
 	 * Release retransmit list items if group aru indicates they are transmitted
 	 */
@@ -3599,7 +3598,7 @@ static int message_handler_mcast (
 		sort_queue = &instance->regular_sort_queue;
 	}
 
-	assert (msg_len < FRAME_SIZE_MAX);
+	assert (msg_len <= FRAME_SIZE_MAX);
 
 #ifdef TEST_DROP_MCAST_PERCENTAGE
 	if (random()%100 < TEST_DROP_MCAST_PERCENTAGE) {
@@ -3663,7 +3662,7 @@ static int message_handler_mcast (
 	 * Add mcast message to rtr queue if not already in rtr queue
 	 * otherwise free io vectors
 	 */
-	if (msg_len > 0 && msg_len < FRAME_SIZE_MAX &&
+	if (msg_len > 0 && msg_len <= FRAME_SIZE_MAX &&
 		sq_in_range (sort_queue, mcast_header.seq) && 
 		sq_item_inuse (sort_queue, mcast_header.seq) == 0) {
 
@@ -3678,7 +3677,7 @@ static int message_handler_mcast (
 		memcpy (sort_queue_item.iovec[0].iov_base, msg, msg_len);
 		sort_queue_item.iovec[0].iov_len = msg_len;
 		assert (sort_queue_item.iovec[0].iov_len > 0);
-		assert (sort_queue_item.iovec[0].iov_len < FRAME_SIZE_MAX);
+		assert (sort_queue_item.iovec[0].iov_len <= FRAME_SIZE_MAX);
 		sort_queue_item.iov_len = 1;
 		
 		if (sq_lt_compare (instance->my_high_seq_received,
