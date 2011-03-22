@@ -1930,7 +1930,7 @@ ClRcT   clGroupMemberLeaveOnCompDeath(
     if (rc != CL_OK)
     {
         clLog(ERROR,GROUPS,NA,
-                "Group Leave Multicast messaging through openais failed");
+                "Group Leave Multicast messaging through openais failed with error [%d]", rc);
     }
 
     return rc;
