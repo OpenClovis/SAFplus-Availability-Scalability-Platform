@@ -107,7 +107,7 @@ clLogFileOwnerStreamEntryAdd(ClNameT             *pStreamName,
     ClCntNodeHandleT        hFileNode           = CL_HANDLE_INVALID_VALUE;
     ClCntNodeHandleT        hStreamNode         = CL_HANDLE_INVALID_VALUE;
     ClHandleT               hFileOwner         = CL_HANDLE_INVALID_VALUE;
-
+    
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     CL_LOG_PARAM_CHK((NULL == pStreamName), CL_LOG_RC(CL_ERR_NULL_POINTER));
@@ -156,9 +156,12 @@ clLogFileOwnerStreamEntryAdd(ClNameT             *pStreamName,
         return rc;
     }
 
-    retCode = clLogHandlerRegister(pFileOwnerEoEntry->hLog, *pStreamName, 
-                              streamScope, *pStreamScopeNode,
-                              CL_LOG_HANDLER_WILL_ACK, &hFileOwner);
+    if(streamScope != CL_LOG_STREAM_LOCAL)
+    {
+        retCode = clLogHandlerRegister(pFileOwnerEoEntry->hLog, *pStreamName, 
+                                       streamScope, *pStreamScopeNode,
+                                       0, &hFileOwner);
+    }
     rc = clOsalMutexLock_L(&pFileOwnerEoEntry->fileTableLock);
     if( (CL_OK != rc) || (CL_OK != retCode) )
     {
@@ -178,7 +181,8 @@ clLogFileOwnerStreamEntryAdd(ClNameT             *pStreamName,
                                           pStreamScopeNode, &hStreamNode);
     if( CL_OK != rc )
     {
-        CL_LOG_CLEANUP(clLogHandlerDeregister(hFileOwner), CL_OK);
+        if(streamScope != CL_LOG_STREAM_LOCAL)
+            clLogHandlerDeregister(hFileOwner);
         CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),
                 CL_OK);
         return rc;

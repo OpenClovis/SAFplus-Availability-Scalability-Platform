@@ -138,7 +138,7 @@ clLogFileOwnerStreamDataDeleteCb(ClCntKeyHandleT   key,
     CL_LOG_DEBUG_TRACE(("hFileOwner: %#llX", pData->hFileOwner));
     if( CL_HANDLE_INVALID_VALUE != pData->hFileOwner )
     {
-        CL_LOG_CLEANUP(clLogHandlerDeregister(pData->hFileOwner), CL_OK);
+        clLogHandlerDeregister(pData->hFileOwner);
         CL_LOG_CLEANUP(clHandleDestroy(pFileOwnerEoEntry->hStreamDB,
                     pData->hFileOwner), CL_OK);
         pData->hFileOwner = CL_HANDLE_INVALID_VALUE;
@@ -2172,6 +2172,7 @@ clLogFileOwnerStreamCreateEvent(ClNameT              *pStreamName,
     ClCntNodeHandleT        hFileNode         = CL_HANDLE_INVALID_VALUE;
     ClCntNodeHandleT        hStreamNode       = CL_HANDLE_INVALID_VALUE;
     ClHandleT               hFileOwner        = CL_HANDLE_INVALID_VALUE;
+    ClBoolT                 logHandlerRegister = doHandlerRegister;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -2246,11 +2247,14 @@ clLogFileOwnerStreamCreateEvent(ClNameT              *pStreamName,
         return rc;
     }
 
-    if( CL_TRUE == doHandlerRegister )
+    if(streamScope == CL_LOG_STREAM_LOCAL)
+        logHandlerRegister = CL_FALSE;
+
+    if( CL_TRUE == logHandlerRegister)
     {
-        /* No acknowledgements to reduce the traffic */
+            /* No acknowledgements to reduce the traffic */
         retCode = clLogHandlerRegister(pFileOwnerEoEntry->hLog, *pStreamName, 
-                streamScope, *pStreamScopeNode, 0, &hFileOwner);
+                                       streamScope, *pStreamScopeNode, 0, &hFileOwner);
     }
 
     rc = clOsalMutexLock_L(&pFileOwnerEoEntry->fileTableLock);
@@ -2272,7 +2276,8 @@ clLogFileOwnerStreamCreateEvent(ClNameT              *pStreamName,
                                           pStreamScopeNode, &hStreamNode);
     if( CL_OK != rc )
     {
-        CL_LOG_CLEANUP(clLogHandlerDeregister(hFileOwner), CL_OK);
+        if(logHandlerRegister)
+            clLogHandlerDeregister(hFileOwner);
         CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),
                 CL_OK);
         return rc;
