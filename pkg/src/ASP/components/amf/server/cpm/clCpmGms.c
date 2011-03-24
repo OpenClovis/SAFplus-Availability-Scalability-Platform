@@ -52,6 +52,7 @@
 #include <clCpmCkpt.h>
 #include <clCpmLog.h>
 #include <clAms.h>
+#include <clIocIpi.h>
 
 extern ClAmsT gAms;
 
@@ -117,6 +118,14 @@ ClRcT cpmUpdateTL(ClAmsHAStateT haState)
      * Update the TL with the CPM's logical address 
      */
     rc = clIocTransparencyRegister(&tlInfo);
+    if(haState == CL_AMS_HA_STATE_ACTIVE)
+    {
+        /*
+         * Reset the master segment cache for all components
+         */
+        clIocMasterCacheReset();
+    }
+
     if (CL_IOC_ERR_TL_DUPLICATE_ENTRY == CL_GET_ERROR_CODE(rc)
         ||
         CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc))

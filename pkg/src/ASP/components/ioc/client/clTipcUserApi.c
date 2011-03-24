@@ -4579,6 +4579,13 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT addr)
     return clIocCompStatusSet(addr, TIPC_PUBLISHED);
 }
 
+void clIocMasterCacheReset(void)
+{
+    ClIocPhysicalAddressT compAddr = {0};
+    compAddr.portId = CL_IOC_TIPC_PORT;
+    clTipcMasterSegmentUpdate(compAddr);
+}
+
 #if 0
 ClRcT clIocStatisticsPrint(void)
 {

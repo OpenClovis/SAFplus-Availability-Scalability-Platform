@@ -748,6 +748,8 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
 
     ClRcT clIocNotificationRegistrantsDelete(void);
 
+    void clIocMasterCacheReset(void);
+
 # ifndef __KERNEL__
 
 #  ifdef __cplusplus
