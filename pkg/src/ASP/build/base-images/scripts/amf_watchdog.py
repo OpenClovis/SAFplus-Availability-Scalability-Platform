@@ -68,15 +68,14 @@ def amf_watchdog_loop():
                 safe_remove(watchdog_restart_file)
                 asp.log.debug('AMF watchdog restarting ASP...')
                 asp.zap_asp()
-                if is_forced_restart:
-                    time.sleep(3) ## give time for the coredump to complete
+                time.sleep(3) ## give time for pending ops to complete
                 ## we unload the TIPC module and let ASP start reload it, 
                 ## since its been observed with tipc 1.5.12 that ASP starts 
                 ## after a link re-establishment results in multicast link
                 ## retransmit failures due to pending ACK thereby resulting
                 ## in all the TIPC links being reset.
-
-                asp.unload_tipc_module()
+                if not asp.is_simulation():
+                    asp.unload_tipc_module()
                 asp.start_asp(stop_watchdog=False)
                 asp.create_asp_cmd_marker('start')
                 sys.exit(1)
