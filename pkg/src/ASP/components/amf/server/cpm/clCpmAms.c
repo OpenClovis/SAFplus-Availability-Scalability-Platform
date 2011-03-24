@@ -869,7 +869,7 @@ ClRcT _cpmNodeDepartureAllowed(ClNameT *nodeName,
         
         if (cmRequest.cmCpmMsgType != CL_CM_BLADE_NODE_ERROR_REPORT)
         {
-            cpmActiveInitiatedSwitchOver();
+            cpmInitiatedSwitchOver(CL_TRUE);
             cpmSelfShutDown();
         }
     }
@@ -993,8 +993,17 @@ void cpmResetNodeElseCommitSuicide(ClUint32T restartFlag)
         {
         case CL_CPM_RESTART_ASP:
             {
-                ClTimerTimeOutT delay = {.tsSec = 5, .tsMilliSec = 0 };
+                ClTimerTimeOutT delay = {.tsSec = 6, .tsMilliSec = 0 };
                 const ClCharT *personality = "controller";
+                if(gpClCpm->bmTable
+                   &&
+                   gpClCpm->bmTable->currentBootLevel >= CL_CPM_BOOT_LEVEL_2)
+                {
+                    /*
+                     * Eject the node out of the cluster from GMS view. for an early switchover
+                     */
+                    cpmInitiatedSwitchOver(CL_FALSE);
+                }
                 if(CL_CPM_IS_WB())
                     personality = "payload";
                 clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,

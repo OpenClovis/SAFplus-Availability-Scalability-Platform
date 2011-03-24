@@ -818,7 +818,7 @@ ClRcT VDECL(cpmNodeShutDown)(ClEoDataT data,
 
         if(CL_CPM_IS_WB())
         {
-            ClTimerTimeOutT delay = {.tsSec = 5, .tsMilliSec = 0 };
+            ClTimerTimeOutT delay = {.tsSec = 6, .tsMilliSec = 0 };
             clLogNotice("NODE", "SHUTDOWN", "Worker node got a restart request from the master."
                         "This should be mostly from a split brain recovery");
             cpmRestart(&delay, "payload");
@@ -1566,7 +1566,7 @@ failure:
     return rc;
 }
 
-ClRcT cpmActiveInitiatedSwitchOver(void)
+ClRcT cpmInitiatedSwitchOver(ClBoolT checkDeputy)
 {
     ClRcT rc = CL_OK;
     
@@ -1575,7 +1575,7 @@ ClRcT cpmActiveInitiatedSwitchOver(void)
      * Do the cluster leave only if there is a
      * CPM/G standby in the cluster.
      */
-    if (gpClCpm->deputyNodeId != -1)
+    if (!checkDeputy || (checkDeputy && gpClCpm->deputyNodeId != -1))
     {
         /* Leave the GMS group, this will result in the switchover */
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,

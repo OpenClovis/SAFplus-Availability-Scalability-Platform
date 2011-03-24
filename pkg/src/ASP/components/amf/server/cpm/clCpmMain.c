@@ -2652,6 +2652,9 @@ void cpmRestart(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
 
     if( !pDelay || !pPersonality)
         return;
+
+    if(pDelay->tsSec >= 3)
+        pDelay->tsSec >>= 1;
     /*
      *
      * We give a delay here, coz if it was a link snap and a 

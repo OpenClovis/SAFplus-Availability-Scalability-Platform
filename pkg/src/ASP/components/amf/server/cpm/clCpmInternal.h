@@ -635,7 +635,7 @@ extern ClRcT clCpmExecutionObjectRegister(CL_IN ClEoExecutionObjT *pThis);
  */
 extern ClRcT clCpmExecutionObjectStateUpdate(CL_IN ClEoExecutionObjT *pEOptr);
 
-extern ClRcT cpmActiveInitiatedSwitchOver(void);
+extern ClRcT cpmInitiatedSwitchOver(ClBoolT checkDeputy);
  
 extern ClRcT cpmGmsTimerCallback(void *arg);
 
