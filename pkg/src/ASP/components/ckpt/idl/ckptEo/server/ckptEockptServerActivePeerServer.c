@@ -420,8 +420,10 @@ ClRcT clCkptRemSvrSectionInfoUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandle
     rc = clXdrMarshallClVersionT(&(pVersion), outMsgHdl, 1);
     if (CL_OK != rc)
     {
-		return rc;
+        goto L4;
     }
+
+L4:    return rc;
 
 LL3:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
 LL2:  clXdrMarshallCkptSectionInfoT_4_0_0(&(pSecInfo), 0, 1);

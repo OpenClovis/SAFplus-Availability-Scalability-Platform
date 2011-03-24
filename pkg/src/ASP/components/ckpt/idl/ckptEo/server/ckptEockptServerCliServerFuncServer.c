@@ -1569,7 +1569,6 @@ ClRcT clCkptSvrIterationInitializeServer_4_0_0(ClEoDataT eoData, ClBufferHandleT
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClRcT temp_rc;
     ClVersionT  pVersion;
     ClHandleT  ckptHandle;
     ClInt32T  secChosen;
@@ -1681,13 +1680,13 @@ L6:    return rc;
 
 LL3:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
 LL2:  clXdrMarshallClInt64T(&(exprTime), 0, 1);
-LL1:  temp_rc = clXdrMarshallClInt32T(&(secChosen), 0, 1);
+LL1:  clXdrMarshallClInt32T(&(secChosen), 0, 1);
 LL0:  clXdrMarshallClHandleT(&(ckptHandle), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallClHandleT(&(ckptHandle), 0, 1);
-L1:  temp_rc = clXdrMarshallClInt32T(&(secChosen), 0, 1);
+L1:  clXdrMarshallClInt32T(&(secChosen), 0, 1);
 L2:  clXdrMarshallClInt64T(&(exprTime), 0, 1);
 
 L3:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
