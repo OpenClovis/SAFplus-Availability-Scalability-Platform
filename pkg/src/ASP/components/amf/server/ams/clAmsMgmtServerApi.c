@@ -59,7 +59,9 @@
 #include <clAmsCkpt.h>
 #include <clAmsMgmtMigrate.h>
 #include <clAmsEntityUserData.h>
+#include <custom.h>
 #include <clCpmInternal.h>
+
 /******************************************************************************
  * Data structures
  *****************************************************************************/

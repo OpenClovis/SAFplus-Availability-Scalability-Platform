@@ -1418,8 +1418,6 @@ extern ClRcT clAmsPeSISUReassignEntryDelete(ClAmsSIT *si);
 
 extern ClRcT clAmsPeAddReassignOp(ClAmsSIT *targetSI, ClAmsSUT *targetSU);
 
-extern ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standbySU);
-
 extern ClBoolT clAmsPeCheckDependencySIInNode(ClAmsSIT *si, ClAmsSUT *su, ClUint32T level);
 
 extern ClRcT

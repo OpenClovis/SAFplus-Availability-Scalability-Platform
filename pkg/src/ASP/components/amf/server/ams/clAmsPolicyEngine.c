@@ -67,8 +67,6 @@
 #include <clList.h>
 #include <mPlusN.h>
 #include <custom.h>
-#include <clAmsEntityUserData.h>
-#include <clAmsXdrHeaderFiles.h>
 
 #define AMS_CPM_INTEGRATION
 #define INVOCATION
@@ -1901,7 +1899,7 @@ clAmsPeSGIsInstantiated(
 
 ClRcT
 clAmsPeNodeUnlock(
-        CL_IN       ClAmsNodeT        *node)
+                  CL_IN       ClAmsNodeT        *node)
 {
     ClAmsAdminStateT adminState;
 
@@ -1912,15 +1910,15 @@ clAmsPeNodeUnlock(
     if ( !node->config.isASPAware )
     {
         AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
-                 ("Node [%s] is not ASP aware. Nothing to do.\n",
-                  node->config.entity.name.value));
+                        ("Node [%s] is not ASP aware. Nothing to do.\n",
+                         node->config.entity.name.value));
         
         return CL_AMS_RC(CL_ERR_NO_OP);
     }
 
     AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-            ("Admin Operation [Unlock] on Node [%s]\n",
-             node->config.entity.name.value));
+                     ("Admin Operation [Unlock] on Node [%s]\n",
+                      node->config.entity.name.value));
 
     if(clAmsInvocationsPendingForNode(node))
     {
@@ -1934,15 +1932,20 @@ clAmsPeNodeUnlock(
 
     if(adminState == CL_AMS_ADMIN_STATE_UNLOCKED
        &&
-       node->config.isASPAware
-       &&
-       node->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED)
+       node->config.isASPAware)
     {
-        clLogInfo("NODE", "UNLOCK",
-                  "Node [%s] has presence state [%s]. Deferring unlock",
-                  node->config.entity.name.value, 
-                  CL_AMS_STRING_P_STATE(node->status.presenceState));
-        return CL_AMS_RC(CL_ERR_TRY_AGAIN);
+        if(node->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATING
+           ||
+           node->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING
+           ||
+           node->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING)
+        {
+            clLogInfo("NODE", "UNLOCK",
+                      "Node [%s] has presence state [%s]. Deferring unlock",
+                      node->config.entity.name.value, 
+                      CL_AMS_STRING_P_STATE(node->status.presenceState));
+            return CL_AMS_RC(CL_ERR_TRY_AGAIN);
+        }
     }
 
     CL_AMS_SET_A_STATE(node, CL_AMS_ADMIN_STATE_UNLOCKED);
@@ -4312,7 +4315,7 @@ clAmsPeNodeReset(
 
 ClRcT
 clAmsPeSUUnlock(
-        CL_IN   ClAmsSUT    *su) 
+                CL_IN   ClAmsSUT    *su) 
 {
     ClAmsAdminStateT adminState = 0;
 
@@ -4321,8 +4324,8 @@ clAmsPeSUUnlock(
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
     AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
-            ("Admin Operation [Unlock] on SU [%s]\n",
-             su->config.entity.name.value));
+                    ("Admin Operation [Unlock] on SU [%s]\n",
+                     su->config.entity.name.value));
 
     if(clAmsInvocationsPendingForSU(su))
     {
@@ -4333,15 +4336,18 @@ clAmsPeSUUnlock(
 
     AMS_CALL ( clAmsPeSUComputeAdminStateExtended(su, &adminState, CL_AMS_ADMIN_STATE_UNLOCKED) );
 
-    if(adminState == CL_AMS_ADMIN_STATE_UNLOCKED
-       &&
-       su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED
-       &&
-       su->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING)
+    if(adminState == CL_AMS_ADMIN_STATE_UNLOCKED)
     {
-        clLogInfo("SU", "UNLOCK", "SU [%s] has presence state [%s]. Deferring unlock",
-                  su->config.entity.name.value, CL_AMS_STRING_P_STATE(su->status.presenceState));
-        return CL_AMS_RC(CL_ERR_TRY_AGAIN);
+        if(su->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATING
+           ||
+           su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING
+           ||
+           su->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING)
+        {
+            clLogInfo("SU", "UNLOCK", "SU [%s] has presence state [%s]. Deferring unlock",
+                      su->config.entity.name.value, CL_AMS_STRING_P_STATE(su->status.presenceState));
+            return CL_AMS_RC(CL_ERR_TRY_AGAIN);
+        }
     }
 
     CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_UNLOCKED);
@@ -21407,338 +21413,6 @@ ClRcT clAmsPeSGCheckSUAssignmentDelay(ClAmsSGT *sg)
         if(su->status.numDelayAssignments) return CL_OK;
     }
     return CL_AMS_RC(CL_ERR_NOT_EXIST);
-}
-
-/*
- * From the SI, get the SU having haState.
- */
-static ClRcT clAmsPeSISUHAStateCustom(ClAmsSIT *si, ClAmsHAStateT haState, ClAmsSUT **targetSU)
-{
-    ClAmsEntityRefT *ref = NULL;
-
-    *targetSU = NULL;
-    for(ref = clAmsEntityListGetFirst(&si->status.suList);
-        ref != NULL;
-        ref = clAmsEntityListGetNext(&si->status.suList, ref))
-    {
-        ClAmsSISURefT *siSURef = (ClAmsSISURefT*)ref;
-        ClAmsSUT *su = (ClAmsSUT*)siSURef->entityRef.ptr;
-        ClAmsEntityRefT *compRef = NULL;
-
-        for(compRef = clAmsEntityListGetFirst(&su->config.compList);
-            compRef != NULL;
-            compRef = clAmsEntityListGetNext(&su->config.compList, compRef))
-        {
-            ClAmsCompT *comp = (ClAmsCompT*)compRef->ptr;
-            ClAmsEntityRefT *csiRef = NULL;
-            for(csiRef = clAmsEntityListGetFirst(&comp->status.csiList);
-                csiRef != NULL;
-                csiRef = clAmsEntityListGetNext(&comp->status.csiList, csiRef))
-            {
-                ClAmsCompCSIRefT *compCSIRef = (ClAmsCompCSIRefT*)csiRef;
-                ClAmsCSIT *csi = (ClAmsCSIT*)compCSIRef->entityRef.ptr;
-                ClAmsSIT *targetSI = (ClAmsSIT*)csi->config.parentSI.ptr;
-
-                if(targetSI == si && compCSIRef->haState == haState)
-                {
-                    *targetSU = su;
-                    return CL_OK;
-                }
-            }
-        }
-    }
-
-    return CL_AMS_RC(CL_ERR_NOT_EXIST);
-}
-
-static ClRcT clAmsPeSUSIHAStateCustom(ClAmsSIT *si, ClAmsSUT *su, ClAmsHAStateT *haState)
-{
-    ClAmsEntityRefT *ref = NULL;
-
-    if(*haState != CL_AMS_HA_STATE_NONE) return CL_OK;
-
-    for(ref = clAmsEntityListGetFirst(&su->config.compList);
-        ref != NULL;
-        ref = clAmsEntityListGetNext(&su->config.compList, ref))
-    {
-        ClAmsCompT *comp = (ClAmsCompT*)ref->ptr;
-        ClAmsCompCSIRefT *csiRef = NULL;
-        for(csiRef = (ClAmsCompCSIRefT*)clAmsEntityListGetFirst(&comp->status.csiList);
-            csiRef != NULL;
-            csiRef = (ClAmsCompCSIRefT*)clAmsEntityListGetNext(&comp->status.csiList, 
-                                                               (ClAmsEntityRefT*)csiRef))
-        {
-            ClAmsCSIT *csi = (ClAmsCSIT*)csiRef->entityRef.ptr;
-            ClAmsSIT *parentSI = (ClAmsSIT*)csi->config.parentSI.ptr;
-            if(parentSI == si)
-            {
-                *haState = csiRef->haState;
-                break;
-            }
-        }
-    }
-
-    return CL_OK;
-}
-
-ClRcT clAmsPeEnqueueAssignment(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsHAStateT haState)
-{
-    ClNameT customAssignmentKey = { .value = "CUSTOM_ASSIGNMENT", 
-                                    .length = sizeof("CUSTOM_ASSIGNMENT")-1 
-    };
-    ClUint8T *customAssignmentBuffer = NULL;
-    ClUint32T customAssignmentBufferLen = 0;
-    ClAmsSISURefBufferT buffer = {0};
-    ClBufferHandleT inMsgHdl = 0;
-    ClUint32T i;
-    ClRcT rc;
-
-    rc = clBufferCreate(&inMsgHdl);
-    if(rc != CL_OK)
-        goto out;
-
-    rc = _clAmsEntityUserDataGetKey(&si->config.entity.name, &customAssignmentKey,
-                                    (ClCharT**)&customAssignmentBuffer, &customAssignmentBufferLen);
-    if(rc == CL_OK)
-    {
-        rc = clBufferNBytesWrite(inMsgHdl, (ClUint8T*)customAssignmentBuffer, customAssignmentBufferLen);
-        if(rc != CL_OK)
-            goto out_free;
-        rc = VDECL_VER(clXdrUnmarshallClAmsSISURefBufferT, 4, 0, 0)(inMsgHdl, &buffer);
-        if(rc != CL_OK)
-        {
-            clLogError("CUSTOM", "ASSIGNMENT", "Unmarshalling entity buffer for SI [%s] returned with [%#x]",
-                       si->config.entity.name.value, rc);
-            goto out_free;
-        }
-        /*
-         * Check if the su is already part of the queue.
-         */
-        for(i = 0; i < buffer.count; ++i)
-        {
-            if(!strncmp(buffer.entityRef[i].entityRef.entity.name.value,
-                        activeSU->config.entity.name.value,
-                        activeSU->config.entity.name.length))
-            {
-                clLogNotice("CUSTOM", "ASSIGNMENT", "Skipping enqueueing SU [%s] to SI [%s] as its already enqueued",
-                            activeSU->config.entity.name.value, si->config.entity.name.value);
-                goto out_free;
-            }
-        }
-        /*
-         * Reallocate the entity buffer to add the new one.
-         */
-        buffer.entityRef = clHeapRealloc(buffer.entityRef, sizeof(*buffer.entityRef) * (buffer.count+1));
-        CL_ASSERT(buffer.entityRef != NULL);
-        memset(buffer.entityRef + buffer.count, 0, sizeof(*buffer.entityRef));
-        memcpy(&buffer.entityRef[buffer.count].entityRef.entity, &activeSU->config.entity, 
-               sizeof(buffer.entityRef[buffer.count].entityRef.entity));
-        buffer.entityRef[buffer.count].haState = haState;
-        ++buffer.count;
-    }
-    else
-    {
-        buffer.entityRef = clHeapCalloc(1, sizeof(*buffer.entityRef));
-        CL_ASSERT(buffer.entityRef != NULL);
-        memcpy(&buffer.entityRef->entityRef.entity, &activeSU->config.entity, 
-               sizeof(buffer.entityRef->entityRef.entity));
-        buffer.entityRef->haState = haState;
-        buffer.count = 1;
-    }
-
-    rc = VDECL_VER(clXdrMarshallClAmsSISURefBufferT, 4, 0, 0)(
-                                                              (void*)&buffer, inMsgHdl, 0);
-    if(rc != CL_OK)
-    {
-        clLogError("CUSTOM", "ASSIGNMENT", "Marshalling custom assignment preference for hastate [%s], "
-                   "entity [%s] returned with [%#x]", CL_AMS_STRING_H_STATE(haState),
-                   activeSU->config.entity.name.value, rc);
-        goto out_free;
-    }
-    rc = clBufferLengthGet(inMsgHdl, &customAssignmentBufferLen);
-    if(rc != CL_OK)
-        goto out_free;
-
-    rc = clBufferFlatten(inMsgHdl, &customAssignmentBuffer);
-    if(rc != CL_OK)
-    {
-        clLogError("CUSTOM", "ASSIGNMENT", "Custom assignment buffer flatten for entity [%s], haState [%s] "
-                   "returned with [%#x]", activeSU->config.entity.name.value, 
-                   CL_AMS_STRING_H_STATE(haState), rc);
-        goto out_free;
-    }
-    rc = _clAmsEntityUserDataSetKey(&si->config.entity.name,
-                                    &customAssignmentKey, (ClCharT*)customAssignmentBuffer, customAssignmentBufferLen);
-    if(rc != CL_OK)
-    {
-        clLogError("CUSTOM", "ASSIGNMENT", "Custom assignment data set for SU [%s] with hastate [%s] "
-                   "returned with [%#x]", activeSU->config.entity.name.value, 
-                   CL_AMS_STRING_H_STATE(haState), rc);
-        goto out_free;
-    }
-
-    out_free:
-    if(inMsgHdl)
-        clBufferDelete(&inMsgHdl);
-    if(buffer.entityRef) 
-        clHeapFree(buffer.entityRef);
-
-    out:
-    return rc;
-}
-
-ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standbySU)
-{
-    ClAmsSGT *sg = NULL;
-    ClRcT rc = CL_OK;
-    ClInt32T i;
-    ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_NONE;
-    struct ClAmsSUSIAssignmentMap
-    {
-        ClAmsSUT *su;
-        ClAmsHAStateT haState;
-        ClAmsHAStateT currentHAState;
-    } suSIAssignmentMap[2] = {
-        {
-            .su = activeSU,
-            .haState = CL_AMS_HA_STATE_ACTIVE,
-            .currentHAState = CL_AMS_HA_STATE_NONE,
-        },
-        {
-            .su = standbySU,
-            .haState = CL_AMS_HA_STATE_STANDBY,
-            .currentHAState = CL_AMS_HA_STATE_NONE,
-        },
-    };
-
-    sg = (ClAmsSGT*)si->config.parentSG.ptr;
-    if(sg->config.redundancyModel != CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM)
-    {
-        clLogError("CUSTOM", "SI-ASSIGN-SU", "SG redundancy mode is invalid [%d]",
-                   sg->config.redundancyModel);
-        goto out;
-    }
-
-    clAmsPeSIComputeAdminState(si, &adminState);
-    if(adminState != CL_AMS_ADMIN_STATE_UNLOCKED)
-    {
-        clLogError("CUSTOM", "SI-ASSIGN-SU", "SI admin state is [%s]. "
-                   "Expected to be unlocked", CL_AMS_STRING_A_STATE(adminState));
-        goto out;
-    }
-    
-    if(activeSU == NULL)
-    {
-        rc = clAmsPeSISUHAStateCustom(si, CL_AMS_HA_STATE_ACTIVE, &suSIAssignmentMap[0].su);
-        if(rc != CL_OK)
-        {
-            clLogWarning("CUSTOM", "SI-ASSIGN-SU", "No active SU found for SI [%s]. "
-                         "Skipping active SU remove", si->config.entity.name.value);
-        }
-        else
-        {
-            activeSU = suSIAssignmentMap[0].su;
-            suSIAssignmentMap[0].haState = CL_AMS_HA_STATE_NONE; /*mark for removal*/
-            suSIAssignmentMap[0].currentHAState = CL_AMS_HA_STATE_ACTIVE;
-        }
-    }
-
-    if(standbySU == NULL)
-    {
-        rc = clAmsPeSISUHAStateCustom(si, CL_AMS_HA_STATE_STANDBY, &suSIAssignmentMap[1].su);
-        if(rc != CL_OK)
-        {
-            clLogWarning("CUSTOM", "SI-ASSIGN-SU", "No standby SU found for SI [%s]. "
-                         "Skipping standby SU remove", si->config.entity.name.value);
-        }
-        else
-        {
-            standbySU = suSIAssignmentMap[1].su;
-            suSIAssignmentMap[1].haState = CL_AMS_HA_STATE_NONE;
-            suSIAssignmentMap[1].currentHAState = CL_AMS_HA_STATE_STANDBY;
-        }
-    }
-
-    if (suSIAssignmentMap[0].su) clAmsPeSUSIHAStateCustom(si, suSIAssignmentMap[0].su,  &suSIAssignmentMap[0].currentHAState);
-    if (suSIAssignmentMap[1].su) clAmsPeSUSIHAStateCustom(si, suSIAssignmentMap[1].su,  &suSIAssignmentMap[1].currentHAState);
-
-    if(suSIAssignmentMap[1].currentHAState == CL_AMS_HA_STATE_ACTIVE)
-    {
-        /*
-         * Flip assignment sequence.
-         */
-        struct ClAmsSUSIAssignmentMap saveMap = {0};
-        
-        memcpy(&saveMap, &suSIAssignmentMap[0], sizeof(saveMap));
-
-        memcpy(&suSIAssignmentMap[0], &suSIAssignmentMap[1], 
-               (ClUint32T)sizeof(suSIAssignmentMap[0]));
-
-        memcpy(&suSIAssignmentMap[1], &saveMap, 
-               (ClUint32T)sizeof(suSIAssignmentMap[1]));
-
-    }
-
-    for(i = 0; i < 2; ++i)
-    {
-        if(!suSIAssignmentMap[i].su)
-        {
-            clLogWarning("CUSTOM", "SI-ASSIGN-SU", "Skipping assignment index [%d]", i);
-            continue;
-        }
-
-        if(clAmsPeSUIsAssignable(suSIAssignmentMap[i].su) != CL_OK)
-        {
-            clLogWarning("CUSTOM", "SI-ASSIGN-SU", "SU [%s] is unassignable. "
-                         "Deferring SI [%s] assignment",
-                         suSIAssignmentMap[i].su->config.entity.name.value,
-                         si->config.entity.name.value);
-            /*            clAmsPeEnqueueAssignment(si, suSIAssignmentMap[i].su, suSIAssignmentMap[i].haState);*/
-            continue;
-        }
-
-        if(suSIAssignmentMap[i].currentHAState != suSIAssignmentMap[i].haState)
-        {
-            const ClCharT *op = "Assigning";
-            const ClCharT *target = "to";
-            ClRcT (*csiFn)(ClAmsSUT *su, ClAmsSIT *si, ClUint32T mode);
-            ClAmsHAStateT haState = suSIAssignmentMap[i].haState;
-
-            csiFn = clAmsPeSUAssignSI;
-
-            if(haState == CL_AMS_HA_STATE_NONE)
-            {
-                target = "from";
-                csiFn = clAmsPeSURemoveSI;
-                op = "Removing";
-#if 0
-                if(suSIAssignmentMap[i].currentHAState == CL_AMS_HA_STATE_ACTIVE)
-                {
-                    csiFn = clAmsPeSUQuiesceSI;
-                    op = "Quiescing";
-                }
-#endif
-            }
-
-            clLogInfo("CUSTOM", "SI-ASSIGN-SU", "%s SI [%s] %s %s SU [%s]",
-                      op,
-                      si->config.entity.name.value, 
-                      haState != CL_AMS_HA_STATE_NONE ? CL_AMS_STRING_H_STATE(haState) : "",
-                      target,
-                      suSIAssignmentMap[i].su->config.entity.name.value);
-
-            rc = csiFn(suSIAssignmentMap[i].su, si, haState);
-            if(rc != CL_OK)
-            {
-                clLogError("CUSTOM", "SI-ASSIGN-SU", "SU SI [%s] operation returned [%#x]",
-                           op, rc);
-                goto out;
-            }
-        }
-    }
-
-    out:
-    return rc;
 }
 
 static ClRcT clAmsPeSGFailoverHistoryRecover(ClAmsNodeT *node, ClAmsCompT *faultyComp)
