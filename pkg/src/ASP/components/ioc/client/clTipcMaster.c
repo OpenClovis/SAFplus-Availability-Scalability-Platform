@@ -134,6 +134,11 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
     ClInt32T retryCnt = CL_TIPC_MASTER_ADDRESS_RETRIES;
     ClTimerTimeOutT delay = {.tsMilliSec = 100, .tsSec = 0 }; 
     ClIocNodeAddressT node = 0;
+    ClInt32T nodeStatus = 1;
+    ClInt32T mask = 1;
+
+    if(portId >= CL_IOC_MAX_COMPONENTS_PER_NODE)
+        return CL_IOC_RC(CL_ERR_OUT_OF_RANGE);
 
     if(!gpClTipcMasterSeg)
         return CL_IOC_RC(CL_ERR_NOT_INITIALIZED);
@@ -148,15 +153,47 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
         delay = *pDelay;
 
     clOsalSemLock(gClTipcMasterSem);
+
     node = gpClTipcMasterSeg[portId]; 
 
-    if (node && !CL_IOC_NEIGH_NODE_STATUS_GET(node))
+    if(node)
     {
-        node = 0;
+        switch(portId)
+        {
+        case CL_IOC_CKPT_PORT:
+            nodeStatus <<= CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_CKPT_PORT);
+            mask <<= 1;
+            /*
+             * fall through
+             */
+        case CL_IOC_GMS_PORT:
+            nodeStatus <<= CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_GMS_PORT);
+            mask <<= 1;
+            /*
+             * fall through
+             */
+        case CL_IOC_LOG_PORT:
+            nodeStatus <<= CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_LOG_PORT);
+            mask <<= 1;
+            /*
+             *fall through
+             */
+        case CL_IOC_CPM_PORT:
+            nodeStatus <<= CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_CPM_PORT);
+            mask <<= 1;
+            nodeStatus &= mask;
+            break;
+
+        default:
+            nodeStatus = CL_IOC_NEIGH_NODE_STATUS_GET(node);
+            break;
+        }
+     
+        if(!nodeStatus)
+            node = 0;
     }
 
     clOsalSemUnlock(gClTipcMasterSem);
-
 
     if(node == 0)
     {
