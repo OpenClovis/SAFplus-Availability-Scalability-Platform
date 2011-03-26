@@ -83,8 +83,8 @@ typedef struct ClTimerBase
     ClRbTreeRootT timerTree;
     ClOsalTaskIdT timerId;
     ClUint32T runningTimers;
-    ClTaskPoolHandleT timerCallbackPool;
-    ClTaskPoolHandleT timerFunctionsPool;
+    ClJobQueueT timerCallbackQueue;
+    ClJobQueueT timerFunctionsQueue;
     ClTimeT frequency;
     ClOsalMutexT clusterListLock;
     ClListHeadT clusterList;
@@ -1090,7 +1090,7 @@ static __inline__ void clTimerSpawn(ClTimerT *pTimer)
     /*
      * Invoke the callback in the task pool context
      */
-    clTaskPoolRun(gTimerBase.timerCallbackPool, clTimerCallbackTask, pTimer);
+    clJobQueuePush(&gTimerBase.timerCallbackQueue, clTimerCallbackTask, pTimer);
 }
 
 /*
@@ -1184,8 +1184,8 @@ static __inline__ void clTimerRunRepetitiveQueue(ClListHeadT *list)
         }
         CL_LIST_HEAD_INIT(repetitiveList);
         clListMoveInit(list, repetitiveList);
-        clTaskPoolRun(gTimerBase.timerFunctionsPool, clTimerRepetitiveTask, 
-                      repetitiveList);
+        clJobQueuePush(&gTimerBase.timerFunctionsQueue, clTimerRepetitiveTask, 
+                       repetitiveList);
     }
 }
 
@@ -1390,8 +1390,8 @@ void *clTimerTask(void *pArg)
 static ClRcT clTimerBaseInitialize(ClTimerBaseT *pBase)
 {
     ClRcT rc = CL_OK;
-    pBase->timerCallbackPool = 0;
-    pBase->timerFunctionsPool = 0;
+    pBase->timerCallbackQueue.flags = 0;
+    pBase->timerFunctionsQueue.flags = 0;
     pBase->frequency = CL_TIMER_FREQUENCY;
     clOsalMutexInit(&pBase->timerListLock);
     clOsalMutexInit(&pBase->clusterListLock);
@@ -1422,17 +1422,16 @@ ClRcT clTimerInitialize(ClPtrT config)
     {
         goto out;
     }
-
-    rc = clTaskPoolCreate(&gTimerBase.timerCallbackPool, CL_TIMER_MAX_CALLBACK_TASKS, 0, 0);
+    rc = clJobQueueInit(&gTimerBase.timerCallbackQueue, 0, CL_TIMER_MAX_CALLBACK_TASKS);
     if(rc != CL_OK)
     {
-        clLogError("TIMER", "INI", "Timer callback pool create returned [%#x]", rc);
+        clLogError("TIMER", "INI", "Timer callback jobqueue create returned [%#x]", rc);
         goto out_free;
     }
-    rc = clTaskPoolCreate(&gTimerBase.timerFunctionsPool, 1, 0, 0);
+    rc = clJobQueueInit(&gTimerBase.timerFunctionsQueue, 0, 1);
     if(rc != CL_OK)
     {
-        clLogError("TIMER", "INI", "Timer functions pool create returned [%#x]", rc);
+        clLogError("TIMER", "INI", "Timer functions jobqueue create returned [%#x]", rc);
         goto out_free;
     }
 
@@ -1455,10 +1454,10 @@ ClRcT clTimerInitialize(ClPtrT config)
 
     out_free:
 
-    if(gTimerBase.timerCallbackPool)
-        clTaskPoolDelete(gTimerBase.timerCallbackPool);
-    if(gTimerBase.timerFunctionsPool)
-        clTaskPoolDelete(gTimerBase.timerFunctionsPool);
+    if(gTimerBase.timerCallbackQueue.flags)
+        clJobQueueDelete(&gTimerBase.timerCallbackQueue);
+    if(gTimerBase.timerFunctionsQueue.flags)
+        clJobQueueDelete(&gTimerBase.timerFunctionsQueue);
     
     if(gTimerBase.timerId)
     {
@@ -1495,10 +1494,10 @@ ClRcT clTimerFinalize(void)
         }
     }
     
-    if(gTimerBase.timerCallbackPool)
-        clTaskPoolDelete(gTimerBase.timerCallbackPool);
-    if(gTimerBase.timerFunctionsPool)
-        clTaskPoolDelete(gTimerBase.timerFunctionsPool);
+    if(gTimerBase.timerCallbackQueue.flags)
+        clJobQueueDelete(&gTimerBase.timerCallbackQueue);
+    if(gTimerBase.timerFunctionsQueue.flags)
+        clJobQueueDelete(&gTimerBase.timerFunctionsQueue);
 
     clOsalMutexLock(&gTimerBase.clusterListLock);
     if(gTimerBase.clusterTimers && gTimerBase.clusterJobQueue.flags)
