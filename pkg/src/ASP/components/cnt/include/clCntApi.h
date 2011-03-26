@@ -1037,6 +1037,11 @@ extern ClRcT clCntWalk(CL_IN ClCntHandleT        containerHandle,
                        CL_IN ClCntArgHandleT     userArg,
                        CL_IN ClInt32T            length);
 
+extern ClRcT clCntWalkFailSafe(CL_IN ClCntHandleT        containerHandle,
+                       CL_IN ClCntWalkCallbackT  fpUserWalkCallback,
+                       CL_IN ClCntArgHandleT     userArg,
+                       CL_IN ClInt32T            length);
+
 /**
  ************************************
  *  \brief Returns the user-key from the node.

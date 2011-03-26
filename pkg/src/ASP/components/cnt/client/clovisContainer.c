@@ -511,11 +511,12 @@ clCntPreviousNodeGet(ClCntHandleT containerHandle,
 							  currentNodeHandle, pPreviousNodeHandle));
 }
 /*******************************************************/
-ClRcT
-clCntWalk(ClCntHandleT        containerHandle,
-          ClCntWalkCallbackT  fpUserWalkCallback,
-          ClCntArgHandleT     userDataArg,
-          ClInt32T            dataLength)
+static ClRcT
+__clCntWalk(ClCntHandleT        containerHandle,
+            ClCntWalkCallbackT  fpUserWalkCallback,
+            ClCntArgHandleT     userDataArg,
+            ClInt32T            dataLength,
+            ClBoolT failSafe)
 {
     CclContainer_t       *pContainer   = NULL;
     ClCntNodeHandleT     containerNode = CL_HANDLE_INVALID_VALUE;
@@ -561,7 +562,7 @@ clCntWalk(ClCntHandleT        containerHandle,
             errorCode = clCntNodeUserDataGet (containerHandle, containerNode, &userData);
   
             errorCode = fpUserWalkCallback(userKey, userData, userDataArg,dataLength);
-            if(CL_OK != errorCode)
+            if(!failSafe && (CL_OK != errorCode))
             {
                 return (errorCode);
             }
@@ -571,6 +572,25 @@ clCntWalk(ClCntHandleT        containerHandle,
 
     return(CL_OK);
 }
+
+ClRcT
+clCntWalk(ClCntHandleT        containerHandle,
+          ClCntWalkCallbackT  fpUserWalkCallback,
+          ClCntArgHandleT     userDataArg,
+          ClInt32T            dataLength)
+{
+    return __clCntWalk(containerHandle, fpUserWalkCallback, userDataArg, dataLength, CL_FALSE);
+}
+
+ClRcT
+clCntWalkFailSafe(ClCntHandleT        containerHandle,
+          ClCntWalkCallbackT  fpUserWalkCallback,
+          ClCntArgHandleT     userDataArg,
+          ClInt32T            dataLength)
+{
+    return __clCntWalk(containerHandle, fpUserWalkCallback, userDataArg, dataLength, CL_TRUE);
+}
+
 /*******************************************************/
 ClRcT
 clCntSizeGet(ClCntHandleT containerHandle,

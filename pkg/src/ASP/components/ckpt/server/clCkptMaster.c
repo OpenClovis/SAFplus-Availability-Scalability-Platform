@@ -3213,9 +3213,9 @@ ClRcT clCkptMasterReplicaListUpdateNoLock(ClIocNodeAddressT peerAddr)
      * Walk through the name Xlation table and delete teh node from
      * checkpoint's replica list.
      */
-    clCntWalk(gCkptSvr->masterInfo.nameXlationDBHdl, 
-              ckptMasterReplicaListDelete,
-              &peerAddr,sizeof(ClIocNodeAddressT));
+    clCntWalkFailSafe(gCkptSvr->masterInfo.nameXlationDBHdl, 
+                      ckptMasterReplicaListDelete,
+                      &peerAddr,sizeof(ClIocNodeAddressT));
               
     return CL_OK;
 }

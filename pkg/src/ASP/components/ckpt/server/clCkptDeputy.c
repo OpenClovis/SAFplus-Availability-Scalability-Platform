@@ -804,11 +804,14 @@ ClRcT ckptCheckpointDelete(ClHandleT          clientHdl,
 
         rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList, (ClPtrT)(ClWordT)localAddr,
                 (ClCntDataHandleT  *)&pPeerInfo); 
-        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("Failed to get info of addr %d in peerList rc[0x %x]\n",
-                 localAddr, rc), rc);
-        if ( CL_OK != (rc = clCntAllNodesForKeyDelete(pPeerInfo->ckptList,
-                        (ClPtrT)(ClWordT)clientHdl)))
+        if(rc != CL_OK)
+        {
+            clLogWarning(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_DEL,
+                         "Failed to get info of addr %d in peerList rc[0x%x]",
+                         localAddr, rc);
+        }
+        else if ( CL_OK != (rc = clCntAllNodesForKeyDelete(pPeerInfo->ckptList,
+                                                           (ClPtrT)(ClWordT)clientHdl)))
         {
             CKPT_DEBUG_E(("ClientHdl %#llX Delete from list failed", clientHdl));
         }
@@ -834,7 +837,6 @@ ClRcT ckptCheckpointDelete(ClHandleT          clientHdl,
     }    
     rc = clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl,
             masterHdl);
-
     /* 
      * No need of checking rc. 
      * It might have been deleted during call unlink.
