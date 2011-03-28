@@ -1053,6 +1053,7 @@ def start_asp(stop_watchdog=True):
             start_snmp_daemon()
         if is_simulation():
             setup_gms_config()
+        time.sleep(5) ## delay for possible tipc unload/reload bugs resulting in tipc split brain
         proc_lock_file('touch')
         run_custom_scripts('start')
         start_amf()
@@ -1156,6 +1157,9 @@ def stop_asp():
     kill_asp()
 
     proc_lock_file('remove')
+    if not is_simulation():
+        log.info('Unloading TIPC ...')
+        unload_tipc_module()
 
 def cleanup_asp():
     cmd_list = [sys_asp['get_cleanup_asp_cmd']( get_asp_node_addr())]
@@ -1214,6 +1218,9 @@ def kill_asp():
 def zap_asp():
     run_custom_scripts('zap')
     kill_asp()
+    if not is_simulation():
+        log.info('Unloading TIPC ...')
+        unload_tipc_module()
 
 def restart_asp():
     pass
