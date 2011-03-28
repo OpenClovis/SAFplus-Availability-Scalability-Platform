@@ -2818,8 +2818,8 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
     if(comp->compConfig->cleanupCMD[0])
     {
         ClCharT cleanupCmdBuf[CL_MAX_NAME_LENGTH];
-        snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "%s %s",
-                 comp->compConfig->cleanupCMD, comp->compConfig->compName);
+        snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "ASP_COMPNAME=%s %s",
+                 comp->compConfig->compName, comp->compConfig->cleanupCMD);
         if(system(cleanupCmdBuf))
         {
             clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
