@@ -150,6 +150,11 @@ public class GenerateSource {
 				
 			String location = CwProjectPropertyPage.getSDKLocation(project);
 			
+			if(!location.equals("") && !new File(location).canExecute()) {
+				MessageDialog.openError(new Shell(), "Project settings errors for " + project.getName(), "The SDK location specified for this project [" + location + "] does not have a permission to access.");
+				continue;
+			}
+			
 			String pythonlocation = CwProjectPropertyPage.getPythonLocation(project);
 			
 			String sourceLocation = CwProjectPropertyPage.getSourceLocation(project);

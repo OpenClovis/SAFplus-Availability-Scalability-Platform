@@ -147,6 +147,8 @@ public class ClovisBuilder extends IncrementalProjectBuilder {
 		if(sdkLocation.equals("")) {
 			message = message + "SDK location is not set on Project [" + project.getName()
 			+ "]. Use Project->Right Click->properties->Clovis System Project to set its value.\n\n";
+		} else if (new File(sdkLocation).isDirectory() && !new File(sdkLocation).canExecute()) { 
+			message = message + "The SDK location specified for this project [" + sdkLocation + "] does not have a permission to access.";
 		} else if (!new File(sdkLocation + File.separator + "src"
 				+ File.separator + "ASP" + File.separator + "configure")
 				.exists()) {

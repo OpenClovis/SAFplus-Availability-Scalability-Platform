@@ -128,7 +128,10 @@ public class ClovisWizardNewProjectCreationPage extends WizardNewProjectCreation
 				String fileName = dialog.open();
 				UtilsPlugin.saveDialogSettings("SDKLOCATION1", fileName);
 				if (fileName != null) {
-					if (isValidSDKLocation(fileName)) {
+					if (!new File(fileName).canExecute()) {
+						MessageDialog.openError(getShell(), "Warning", fileName
+								+ " does not have permission to access.");
+					} else if (isValidSDKLocation(fileName)) {
 						_locationText.setText(fileName);
 						_locationSDK = fileName;
 						if (_pythonLocationText.getText().trim().equals("")) {
@@ -146,7 +149,7 @@ public class ClovisWizardNewProjectCreationPage extends WizardNewProjectCreation
 							}
 						}
 					} else {
-						MessageDialog.openError(getShell(), "Warning", fileName
+						MessageDialog.openError(getShell(), "Error", fileName
 								+ " is not a valid SDK location.");
 					}
 				}
@@ -302,6 +305,14 @@ public class ClovisWizardNewProjectCreationPage extends WizardNewProjectCreation
 		if (_locationText != null) {
 			String fileName = _locationText.getText().trim();
 			if (!fileName.equals("")) {
+				if(!new File(fileName).isDirectory()) {
+					setErrorMessage(fileName + " is not a valid SDK location.");
+					return false;
+				}
+				if(!new File(fileName).canExecute()) {
+					setErrorMessage(fileName + " does not have permission to access.");
+					return false;
+				}
 				File file1 = new File(fileName + File.separator + "IDE" + File.separator + "ASP" + File.separator + "static");
 				File file2 = new File(fileName + File.separator + "IDE" + File.separator + "ASP" + File.separator + "templates");
 				if (file1.exists() && file2.exists()) {

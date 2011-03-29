@@ -414,21 +414,35 @@ public class CwProjectPropertyPage extends PropertyPage
 				String fileName = dialog.open();
 				UtilsPlugin.saveDialogSettings("SDKLOCATION", fileName);
 				if (fileName != null) {
-					File file1 = new File(fileName + File.separator + "IDE" + File.separator + "ASP" + File.separator + "static");
-					File file2 = new File(fileName + File.separator + "IDE" + File.separator + "ASP" + File.separator + "templates");
-					if(file1.exists() && file2.exists()) {
-						_locationText.setText(fileName);
-						if(_pythonLocationText.getText().trim().equals("")) {
-							String installLocation = new File(fileName).getParentFile().getAbsolutePath();
-							if(new File(installLocation + File.separator + "buildtools" + File.separator + "local" + File.separator + "bin" + File.separator + "python").exists()) {
-								_pythonLocationText.setText(installLocation + File.separator + "buildtools" + File.separator + "local" + File.separator + "bin");
+					if (!new File(fileName).canExecute()) {
+						MessageDialog.openError(getShell(), "Warning", fileName
+								+ " does not have permission to access.");
+					} else {
+						File file1 = new File(fileName + File.separator + "IDE"
+								+ File.separator + "ASP" + File.separator
+								+ "static");
+						File file2 = new File(fileName + File.separator + "IDE"
+								+ File.separator + "ASP" + File.separator
+								+ "templates");
+						if (file1.exists() && file2.exists()) {
+							_locationText.setText(fileName);
+							if (_pythonLocationText.getText().trim().equals("")) {
+								String installLocation = new File(fileName)
+										.getParentFile().getAbsolutePath();
+								if (new File(installLocation + File.separator
+										+ "buildtools" + File.separator
+										+ "local" + File.separator + "bin"
+										+ File.separator + "python").exists()) {
+									_pythonLocationText.setText(installLocation
+											+ File.separator + "buildtools"
+											+ File.separator + "local"
+											+ File.separator + "bin");
+								}
 							}
+						} else {
+							MessageDialog.openError(getShell(), "Warning",
+									fileName + " is not a valid SDK location.");
 						}
-					}
-					else {
-						MessageDialog
-						.openError(getShell(), "Warning",
-								fileName + " is not a valid SDK location.");
 					}
 				}
 			}
@@ -581,6 +595,14 @@ public class CwProjectPropertyPage extends PropertyPage
     protected boolean validatePage() {
 		String fileName = _locationText.getText().trim();
 		if (!fileName.equals("")) {
+			if(!new File(fileName).isDirectory()) {
+				setErrorMessage(fileName + " is not a valid SDK location.");
+				return false;
+			}
+			if(!new File(fileName).canExecute()) {
+				setErrorMessage(fileName + " does not have permission to access.");
+				return false;
+			}
 			File file1 = new File(fileName + File.separator + "IDE" + File.separator + "ASP" + File.separator + "static");
 			File file2 = new File(fileName + File.separator + "IDE" + File.separator + "ASP" + File.separator + "templates");
 			if (!file1.exists() || !file2.exists()) {
