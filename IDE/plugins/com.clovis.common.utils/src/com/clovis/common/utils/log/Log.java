@@ -11,6 +11,7 @@
 
 package com.clovis.common.utils.log;
 
+import java.io.File;
 import  java.util.Hashtable;
 
 import  org.apache.log4j.Level;
@@ -45,6 +46,12 @@ public class Log implements org.apache.commons.logging.Log
 	private Log(ILog log, String id) {
 		_log = log;
 		_pluginID = id;
+		
+		// Check .clovis folder in ${user.home} location and creates if does not exist
+		File logFileLoc = new File(System.getProperty("user.home") + File.separator + ".clovis");
+		if(!logFileLoc.exists())
+			logFileLoc.mkdir();
+		
 		_logger = Logger.getLogger(id);
 		LOGS.put(_pluginID, this);
 	}
