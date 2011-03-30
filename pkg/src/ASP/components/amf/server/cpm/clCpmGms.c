@@ -202,7 +202,13 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                       "Node [%d] has become the deputy of the cluster",
                       pCpmLocalInfo->nodeId);
-
+            /*
+             * Deregister the active registration if going from active to standby.
+             */
+            if(gpClCpm->haState == CL_AMS_HA_STATE_ACTIVE)
+            {
+                clIocTransparencyDeregister(pCpmLocalInfo->nodeId << CL_CPM_IOC_SLOT_BITS);
+            }
             rc = cpmUpdateTL(CL_AMS_HA_STATE_STANDBY);
             if (rc != CL_OK)
             {
@@ -592,7 +598,17 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT
     clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
 
     if(!nodeUp)
+    {
+        if(gpClCpm->haState == CL_AMS_HA_STATE_ACTIVE && gpClCpm->nodeLeaving)
+        {
+            clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS, 
+                        "Deregistering the active entry for component id [%#x]",
+                        clAspLocalId << CL_CPM_IOC_SLOT_BITS);
+            clIocTransparencyDeregister(clAspLocalId << CL_CPM_IOC_SLOT_BITS);
+            gpClCpm->haState = CL_AMS_HA_STATE_STANDBY; /*soft ha state as its going down anyway*/
+        }
         goto failure;
+    }
 
     clOsalMutexLock(&gpClCpm->cpmMutex);
     pCpmLocalInfo = gpClCpm->pCpmLocalInfo;
