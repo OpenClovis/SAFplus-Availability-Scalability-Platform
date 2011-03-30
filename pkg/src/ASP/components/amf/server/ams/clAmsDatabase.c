@@ -2242,11 +2242,16 @@ clAmsSGDeleteSURefFromSUList(
     AMS_CHECK_SU ( su );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
+    if ( (rc = clAmsEntityRefGetKey(
                 &su->config.entity,
                 su->config.rank,
                 &entityKeyHandle,
-                entityList->isRankedList ));
+                entityList->isRankedList) ) != CL_OK)
+    {
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+            rc = CL_OK;
+        return rc;
+    }
 
     memcpy(&suRef.entity, &su->config.entity, sizeof(ClAmsEntityT) ); 
 
