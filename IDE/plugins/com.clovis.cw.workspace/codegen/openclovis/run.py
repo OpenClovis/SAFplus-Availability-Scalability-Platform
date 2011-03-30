@@ -1,4 +1,5 @@
 import sys
+import commands
 import xml.dom.minidom
 import os
 import shutil
@@ -38,6 +39,12 @@ def copystaticfiles(src, dst):
 				shutil.copy2(srcfile, dst)
 			except (IOError, os.error), why:
 				print "Can't copy %s to %s: %s" % (`srcfile`, `dst`, str(why))
+				
+			# change the file permission
+			try:
+				commands.getstatusoutput('chmod a+w ' + dstfile)
+			except (IOError, os.error), why:
+				print "Can't change the permission %s: %s" % (`dstfile`, str(why))				
  
 projectLoc = sys.argv[1]
 pkgLoc = sys.argv[2]

@@ -41,4 +41,5 @@
       		<migrationStep type="14" details="betaFactor#0"/>
     	</change>
     </update>
+    <update/><!-- changing file permission for the static files after copy -->
 </migration:migrationInfo>
