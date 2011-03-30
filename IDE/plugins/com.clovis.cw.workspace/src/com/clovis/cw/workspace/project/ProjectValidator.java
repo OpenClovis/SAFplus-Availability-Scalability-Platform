@@ -1593,15 +1593,16 @@ public class ProjectValidator implements IProjectValidator, ValidationConstants
 		ArrayList<String> csiTypes = new ArrayList<String>();
 		
 		EObject serviceGroupTypeObject = _compNameObjectMap.get(serviceGroupType);
-		List serviceGroupChildren = _compUtils.getChildren(serviceGroupTypeObject);
+		//List serviceGroupChildren = _compUtils.getChildren(serviceGroupTypeObject);
+		List serviceGroupChildren = (List)getChildrens(serviceGroupTypeObject);
 		for (int i=0; i<serviceGroupChildren.size(); i++)
 		{
 			EObject serviceInstanceTypeObject = (EObject)serviceGroupChildren.get(i);
 			String childType = serviceInstanceTypeObject.eClass().getName();
 			if (childType.equals(ComponentEditorConstants.SERVICEINSTANCE_NAME))
 			{
-				List serviceInstanceChildren = _compUtils.getChildren(serviceInstanceTypeObject);
-				
+				//List serviceInstanceChildren = _compUtils.getChildren(serviceInstanceTypeObject);
+				List serviceInstanceChildren = (List)getChildrens(serviceInstanceTypeObject);
 				for (int j=0; j<serviceInstanceChildren.size(); j++)
 				{
 					EObject componentServiceInstanceTypeObject = (EObject)serviceInstanceChildren.get(j);
