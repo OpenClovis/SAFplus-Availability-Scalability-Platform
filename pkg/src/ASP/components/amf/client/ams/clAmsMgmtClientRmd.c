@@ -137,8 +137,8 @@ cl_ams_call_rmd_ver(
      */
     do
     {
-        rc = clCpmMasterAddressGet( &dest_addr.iocPhyAddress.nodeAddress);
-    } while(rc != CL_OK && ++tries < 3 && clOsalTaskDelay(delay) == CL_OK);
+        rc = clCpmMasterAddressGetExtended( &dest_addr.iocPhyAddress.nodeAddress, 5, NULL);
+    } while(rc != CL_OK && ++tries < 2 && clOsalTaskDelay(delay) == CL_OK);
 
     if(rc != CL_OK) return rc;
 
