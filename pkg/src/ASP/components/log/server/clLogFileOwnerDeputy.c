@@ -94,11 +94,11 @@ clLogFileOwnerStreamReopen(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 
 ClRcT
 clLogFileOwnerStreamEntryAdd(ClNameT             *pStreamName,
-                              ClLogStreamScopeT    streamScope, 
-                              ClNameT              *pStreamScopeNode,
-                              ClUint16T            streamId,
-                              ClLogStreamAttrIDLT  *pStreamAttr, 
-                              ClBoolT              logRestart)
+                             ClLogStreamScopeT    streamScope, 
+                             ClNameT              *pStreamScopeNode,
+                             ClUint16T            streamId,
+                             ClLogStreamAttrIDLT  *pStreamAttr, 
+                             ClBoolT              logRestart)
 {
     ClRcT                   rc                  = CL_OK;
     ClRcT                   retCode             = CL_OK;
@@ -120,7 +120,7 @@ clLogFileOwnerStreamEntryAdd(ClNameT             *pStreamName,
         return rc;
     }
     rc = clLogFileOwnerLocationVerify(pFileOwnerEoEntry, &pStreamAttr->fileLocation,
-                                     &fileOwner);  
+                                      &fileOwner);  
     if( (CL_OK != rc) || (CL_FALSE == fileOwner) )
     {
         return rc;
@@ -145,12 +145,12 @@ clLogFileOwnerStreamEntryAdd(ClNameT             *pStreamName,
     }
 
     rc = clLogFileOwnerStreamReopen(pFileOwnerEoEntry, pStreamName,
-                                     streamScope, pStreamScopeNode, streamId,
-                                     pStreamAttr, logRestart, &hFileNode, 
-                                     &hStreamNode);
+                                    streamScope, pStreamScopeNode, streamId,
+                                    pStreamAttr, logRestart, &hFileNode, 
+                                    &hStreamNode);
 
     CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),
-                                 CL_OK);
+                   CL_OK);
     if( CL_OK != rc )
     {
         return rc;
@@ -172,7 +172,7 @@ clLogFileOwnerStreamEntryAdd(ClNameT             *pStreamName,
         if( CL_OK == rc )
         {
             CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),
-                    CL_OK);
+                           CL_OK);
         }
         return rc;
     }
@@ -184,26 +184,30 @@ clLogFileOwnerStreamEntryAdd(ClNameT             *pStreamName,
         if(streamScope != CL_LOG_STREAM_LOCAL)
             clLogHandlerDeregister(hFileOwner);
         CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),
-                CL_OK);
+                       CL_OK);
         return rc;
     }
 
-    rc = clLogFileOwnerHandlerRegister(pFileOwnerEoEntry, hFileOwner, 
-                                       pStreamName, streamScope,
-                                       pStreamScopeNode, streamId,
-                                       hFileNode, hStreamNode, CL_FALSE);
-    if( CL_OK != rc )
+    if(streamScope != CL_LOG_STREAM_LOCAL)
     {
-        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),
-                CL_OK);
-        CL_LOG_CLEANUP(clLogFileOwnerStreamEntryRemove(pFileOwnerEoEntry, 
-                                                       hFileNode, pStreamName, 
-                                                       streamScope,
-                                                       pStreamScopeNode), CL_OK);
-        return rc;
+        rc = clLogFileOwnerHandlerRegister(pFileOwnerEoEntry, hFileOwner, 
+                                           pStreamName, streamScope,
+                                           pStreamScopeNode, streamId,
+                                           hFileNode, hStreamNode, CL_FALSE);
+        if( CL_OK != rc )
+        {
+            CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),
+                           CL_OK);
+            CL_LOG_CLEANUP(clLogFileOwnerStreamEntryRemove(pFileOwnerEoEntry, 
+                                                           hFileNode, pStreamName, 
+                                                           streamScope,
+                                                           pStreamScopeNode), CL_OK);
+            return rc;
+        }
     }
+
     CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),
-                                 CL_OK);
+                   CL_OK);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;

@@ -2027,14 +2027,14 @@ clLogFileOwnerHandlerRegister(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     rc = clCntNodeUserDataGet(pFileOwnerEoEntry->hFileTable, hFileNode,
-                             (ClCntDataHandleT *) &pFileOwnerData);
+                              (ClCntDataHandleT *) &pFileOwnerData);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCntNodeUserDataGet(): rc[0x %x]", rc));
         return rc;
     }
     rc = clCntNodeUserDataGet(pFileOwnerData->hStreamTable, hStreamNode,
-                             (ClCntDataHandleT *) &pStreamData);
+                              (ClCntDataHandleT *) &pStreamData);
     if( CL_OK != rc )
     {
         /* this case should not arise, something went wrong */
@@ -2252,7 +2252,7 @@ clLogFileOwnerStreamCreateEvent(ClNameT              *pStreamName,
 
     if( CL_TRUE == logHandlerRegister)
     {
-            /* No acknowledgements to reduce the traffic */
+        /* No acknowledgements to reduce the traffic */
         retCode = clLogHandlerRegister(pFileOwnerEoEntry->hLog, *pStreamName, 
                                        streamScope, *pStreamScopeNode, 0, &hFileOwner);
     }
@@ -2283,7 +2283,7 @@ clLogFileOwnerStreamCreateEvent(ClNameT              *pStreamName,
         return rc;
     }
 
-    if( doHandlerRegister == CL_TRUE )
+    if(logHandlerRegister)
     {
         rc = clLogFileOwnerHandlerRegister(pFileOwnerEoEntry, hFileOwner, 
                 pStreamName, streamScope,
