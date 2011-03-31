@@ -527,6 +527,9 @@ extern ClRcT clCkptAppIdlHandleUpdate(ClIdlHandleT       idlHdl,
 extern ClRcT
 clCkptSectionLevelMutexCreate(ClOsalMutexIdT  *pSecMutexArray, 
                               ClUint32T       numMutexs);
+extern void
+clCkptSectionLevelMutexDelete(ClOsalMutexIdT  *pSecMutexArray, 
+                              ClUint32T       numMutex);
 extern ClRcT
 clCkptSectionLevelUnlock(CkptT             *pCkpt,
                          ClCkptSectionIdT  *pSectionId,

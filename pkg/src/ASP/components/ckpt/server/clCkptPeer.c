@@ -2750,7 +2750,7 @@ clCkptRemSvrSectionCreate(ClCkptHdlT                        ckptHdl,
         rc = clCntNodeUserKeyGet (pCkpt->pCpInfo->presenceList, nodeHdl, 
                 (ClCntKeyHandleT *) &dataHdl);
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("Cant update peer rc[0x %x]\n", rc), rc);
+                ("Cant update peer during remote section create. rc[0x %x]\n", rc), rc);
         peerAddr = (ClIocNodeAddressT)(ClWordT)dataHdl;
         clCntNextNodeGet(pCkpt->pCpInfo->presenceList, nodeHdl, &nodeHdl);
 
@@ -2880,7 +2880,8 @@ clCkptRemSvrSectionOverwrite(ClCkptHdlT        ckptHdl,
     {
         rc = clCntNodeUserKeyGet (pCkpt->pCpInfo->presenceList, nodeHdl, &dataHdl);
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("Cant update peer rc[0x %x]\n", rc), rc);
+                ("Cant update peer during remote section overwrite for section [%.*s]. rc[0x %x]\n",
+                 pSectionId->idLen, (ClCharT*)pSectionId->id, rc), rc);
         peerAddr = (ClIocNodeAddressT)(ClWordT)dataHdl;
         clCntNextNodeGet(pCkpt->pCpInfo->presenceList, nodeHdl, &nodeHdl);
 
@@ -3015,7 +3016,8 @@ clCkptRemSvrSectionDelete(ClCkptHdlT        ckptHdl,
         rc = clCntNodeUserKeyGet (pCkpt->pCpInfo->presenceList, nodeHdl, 
                 (ClCntKeyHandleT *) &dataHdl);
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("Cant update peer rc[0x %x]\n", rc), rc);
+                ("Cant update peer during section delete for section [%.*s]. rc[0x %x]\n", 
+                 pSecId->idLen, (ClCharT*)pSecId->id, rc), rc);
         peerAddr = (ClIocNodeAddressT)(ClWordT)dataHdl;
         clCntNextNodeGet(pCkpt->pCpInfo->presenceList, nodeHdl, &nodeHdl);
 

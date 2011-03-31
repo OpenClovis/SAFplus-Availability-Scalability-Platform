@@ -1337,7 +1337,8 @@ ClRcT VDECL_VER(_ckptSectionExpirationTimeSet, 4, 0, 0)(ClCkptHdlT        ckptHd
     {
         rc = clCntNodeUserKeyGet (pCkpt->pCpInfo->presenceList, nodeHdl, &dataHdl);
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
-                ("Cant update peer rc[0x %x]\n", rc), rc);
+                       ("Cant update peer during expiration time set for section [%.*s]. Error [0x %x]\n", 
+                        pSectionId->idLen, (ClCharT*)pSectionId->id, rc), rc);
         peerAddr = (ClIocNodeAddressT)(ClWordT) dataHdl;
         clCntNextNodeGet(pCkpt->pCpInfo->presenceList, nodeHdl, &nodeHdl);
         
@@ -1359,7 +1360,8 @@ ClRcT VDECL_VER(_ckptSectionExpirationTimeSet, 4, 0, 0)(ClCkptHdlT        ckptHd
                                                           pSectionId,
                                                           exprTime, NULL, 0);
             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                  ("Cant update peer rc[0x %x]\n", rc), rc);
+                  ("Cant update peer during remote expirationtimeset for section [%.*s]. Error [0x %x]\n",
+                   pSectionId->idLen, (ClCharT*)pSectionId->id, rc), rc);
         }
     }
 
@@ -1893,7 +1895,14 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
-    
+    if(pCkpt->ckptMutex == CL_HANDLE_INVALID_VALUE)
+    {
+        /*
+         * Bail out as ckpt was deleted 
+         */
+        rc = CL_CKPT_RC(CL_ERR_NOT_EXIST);
+        goto exitOnErrorWithoutUnlock;
+    }
     /*
      * Update the local server. incase its not a write all replica. ckpt
      * in which case, all can be written parallely.
@@ -1955,7 +1964,7 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
             rc = clCntNodeUserKeyGet (pCkpt->pCpInfo->presenceList, nodeHdl,
                                       &dataHdl);
             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                           ("Cant update peer rc[0x %x]\n", rc), rc);
+                           ("Cant update peer during checkpoint write. Error [0x %x]\n", rc), rc);
             peerAddr = (ClIocNodeAddressT)(ClWordT)dataHdl;
             clCntNextNodeGet(pCkpt->pCpInfo->presenceList, nodeHdl, &nodeHdl);
 
@@ -2176,7 +2185,15 @@ ClRcT VDECL_VER(_ckptSectionOverwrite, 4, 0, 0)(ClCkptHdlT         ckptHdl,
      */
     clOsalMutexLock(&gCkptSvr->ckptClusterSem);
     CKPT_LOCK(pCkpt->ckptMutex);           
-
+    if(pCkpt->ckptMutex == CL_HANDLE_INVALID_VALUE)
+    {
+        /*
+         * Bail out as the ckpt is deleted.
+         */
+        rc = CL_CKPT_RC(CL_ERR_NOT_EXIST);
+        sectionLockTaken = CL_TRUE;
+        goto exitOnWithoutUnlock;
+    }
     /*
      * Return ERROR if data size exceeds the max section
      * size.

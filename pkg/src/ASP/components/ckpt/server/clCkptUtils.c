@@ -218,6 +218,9 @@ void    ckptSvrHdlDeleteCallback(ClCntKeyHandleT userKey,
     CkptT       *pCkpt  = NULL;
     ClRcT       rc      = CL_OK;
     ClOsalMutexIdT ckptMutex;
+    ClOsalMutexIdT *secMutex;
+    ClUint32T numMutex;
+    ClInt32T i;
     rc = clHandleCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
     if( (CL_OK != rc) || (NULL == pCkpt) )
     {
@@ -235,9 +238,28 @@ void    ckptSvrHdlDeleteCallback(ClCntKeyHandleT userKey,
         CKPT_LOCK(ckptMutex);
         pCkpt->ckptMutex = CL_HANDLE_INVALID_VALUE;
     }
+    numMutex = pCkpt->numMutex;
+    secMutex = pCkpt->secMutex;
+    pCkpt->numMutex = 0;
+    /*
+     * Grab the section locks for all the available sections to avoid a race
+     */
+    if(numMutex > 1)
+    {
+        for(i = 0; i < numMutex; ++i)
+            if(secMutex[i] != CL_HANDLE_INVALID_VALUE)
+                clOsalMutexLock(secMutex[i]);
+    }
     ckptEntryFree(pCkpt);
+    if(numMutex > 1)
+    {
+        for(i = numMutex-1; i >= 0; --i)
+            if(secMutex[i] != CL_HANDLE_INVALID_VALUE)
+                clOsalMutexUnlock(secMutex[i]);
+    }
     if(ckptMutex != CL_HANDLE_INVALID_VALUE)
         CKPT_UNLOCK(ckptMutex);
+    clCkptSectionLevelMutexDelete(secMutex, numMutex);
     if(ckptMutex != CL_HANDLE_INVALID_VALUE)
         clOsalMutexDelete(ckptMutex);
     clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
@@ -1355,6 +1377,14 @@ ClRcT _ckptCheckpointLocalWrite(ClCkptHdlT             ckptHdl,
         if(sectionLockTaken == CL_TRUE)
         {
             CKPT_LOCK(pCkpt->ckptMutex);
+            if(pCkpt->ckptMutex == CL_HANDLE_INVALID_VALUE)
+            {
+                /*
+                 * Bail out as ckpt is deleted.
+                 */
+                rc = CL_CKPT_RC(CL_ERR_NOT_EXIST);
+                goto exitOnErrorWithoutUnlock;
+            }
         }
         pIoVector++;
     }
@@ -1388,6 +1418,7 @@ sectionUnlockNExit:
         CKPT_UNLOCK(pCkpt->ckptMutex);
     }
     /* Already released CKPT_LOCK, error occured so release section lock */
+exitOnErrorWithoutUnlock:
     *pError = count;
     clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
     return rc;
