@@ -426,6 +426,11 @@ ClRcT clTaskPoolStopAsync(ClTaskPoolHandleT handle)
     clOsalMutexLock(&tp->mutex);
     /* set the flag and then wake them all up */
     tp->flags &= ~CL_TASK_POOL_RUNNING;
+    /*
+     * Clear on deck function.
+     */
+    tp->onDeckFn = NULL;
+    tp->onDeckCookie = NULL;
     clOsalCondBroadcast(&tp->cond);
 
     clOsalMutexUnlock(&tp->mutex);
