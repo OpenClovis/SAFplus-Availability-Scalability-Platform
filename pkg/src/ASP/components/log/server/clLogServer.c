@@ -2353,10 +2353,16 @@ clLogTimerCallback(void *pData)
         {
             CL_LOG_CLEANUP(clLogSvrStdStreamClose(errIndex), CL_OK);
             CL_LOG_CLEANUP(clLogFileOwnerShutdown(), CL_OK);
-            CL_LOG_CLEANUP(clLogFileOwnerEoDataFree(), CL_OK);
+            /* CL_LOG_CLEANUP(clLogFileOwnerEoDataFree(), CL_OK);*/
             CL_LOG_CLEANUP(clLogGlobalCkptDestroy(), CL_OK);
             CL_LOG_CLEANUP(clLogEvtFinalize(CL_FALSE), CL_OK);
             CL_LOG_CLEANUP(clLogGmsFinalize(), CL_OK);
+            pSvrEoEntry->logInit = CL_FALSE;
+            pSvrEoEntry->ckptOpen = CL_FALSE;
+            pSvrEoEntry->ckptInit = CL_FALSE;
+            pSvrEoEntry->gmsInit = CL_FALSE;
+            pSvrEoEntry->evtInit = CL_FALSE;
+            clLogSvrTimerDeleteNStart(pSvrEoEntry, pData);
             return rc;
         }
         clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
