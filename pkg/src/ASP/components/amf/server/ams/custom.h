@@ -19,7 +19,16 @@ clAmsPeSIIsActiveAssignableCustom(CL_IN ClAmsSIT *si);
 extern ClRcT
 clAmsPeSGFindSIForActiveAssignmentCustom(
         CL_IN ClAmsSGT *sg,
-        CL_INOUT ClAmsSIT **targetSI);
+        CL_INOUT ClAmsSIT **targetSI,
+        CL_OUT ClAmsSUT **targetSU);
+
+extern ClRcT
+clAmsPeSGFindSIForStandbyAssignmentCustom(
+                                          CL_IN ClAmsSGT *sg,
+                                          CL_OUT ClAmsSIT **targetSI,
+                                          CL_OUT ClAmsSUT **targetSU,
+                                          CL_IN ClAmsSIT **scannedSIList,
+                                          CL_IN ClUint32T numScannedSIs);
 
 extern ClRcT
 clAmsPeSGFindSUForActiveAssignmentCustom(CL_IN ClAmsSGT *sg,

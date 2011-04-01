@@ -9,14 +9,14 @@ typedef struct ClAmsCustomAssignmentIter
     ClAmsSIT *si;
 }ClAmsCustomAssignmentIterT;
 
-ClRcT 
-clAmsPeCustomAssignmentIterInit(ClAmsCustomAssignmentIterT *iter, ClAmsSIT *si);
+static ClRcT 
+clAmsCustomAssignmentIterInit(ClAmsCustomAssignmentIterT *iter, ClAmsSIT *si);
 
-ClAmsSISURefT *
-clAmsPeCustomAssignmentIterNext(ClAmsCustomAssignmentIterT *iter);
+static ClAmsSISURefT *
+clAmsCustomAssignmentIterNext(ClAmsCustomAssignmentIterT *iter);
 
-void
-clAmsPeCustomAssignmentIterEnd(ClAmsCustomAssignmentIterT *iter);
+static void
+clAmsCustomAssignmentIterEnd(ClAmsCustomAssignmentIterT *iter);
 
 ClRcT
 clAmsPeSIIsActiveAssignableCustom(CL_IN ClAmsSIT *si)
@@ -59,7 +59,8 @@ ClBoolT clAmsPeCheckAssignedCustom(ClAmsSUT *su, ClAmsSIT *si)
 ClRcT
 clAmsPeSGFindSIForActiveAssignmentCustom(
         CL_IN ClAmsSGT *sg,
-        CL_INOUT ClAmsSIT **targetSI) 
+        CL_INOUT ClAmsSIT **targetSI,
+        CL_INOUT ClAmsSUT **targetSU) 
 {
     ClAmsEntityRefT *entityRef;
     ClAmsSIT* lookAfter = NULL;
@@ -70,6 +71,7 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
     if (*targetSI) lookAfter = *targetSI;
+    if (targetSU) *targetSU = NULL;
 
     /*
      * For SI preference loading strategy, try to find the SI which has an assignable preferred SU first
@@ -105,9 +107,101 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
         }
         lookAfter = NULL;
     }
-    
+    else
+    {
+        /*
+         * Check assignment preference enqueued in each of the SIs
+         */
+        *targetSI = NULL;
+        for(entityRef = clAmsEntityListGetFirst(&sg->config.siList);
+            entityRef != NULL;
+            entityRef = clAmsEntityListGetNext(&sg->config.siList, entityRef))
+        {
+            ClAmsSISURefT *siSURef = NULL;
+            ClAmsSIT *si = (ClAmsSIT*)entityRef->ptr;
+            ClAmsCustomAssignmentIterT iter = {0};
+            if(!si) 
+                continue;
+            if(clAmsPeSIIsActiveAssignableCustom(si) != CL_OK) 
+                continue;
+            clAmsCustomAssignmentIterInit(&iter, si);
+            while( (siSURef = clAmsCustomAssignmentIterNext(&iter)) )
+            {
+                ClAmsSUT *su;
+                if(siSURef->haState != CL_AMS_HA_STATE_ACTIVE) continue;
+                su = (ClAmsSUT*)siSURef->entityRef.ptr;
+                if(su->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE)
+                    continue;
+                if(clAmsPeCheckAssignedCustom(su, si))
+                    continue;
+                if(su->status.numActiveSIs >= sg->config.maxActiveSIsPerSU)
+                    continue;
+                *targetSI = si;
+                if(targetSU)
+                    *targetSU = su;
+                break;
+            }
+            clAmsCustomAssignmentIterEnd(&iter);
+            if(*targetSI) return CL_OK;
+        }
+    }
     *targetSI = NULL;
     return CL_AMS_RC(CL_ERR_NOT_EXIST);
+}
+
+ClRcT
+clAmsPeSGFindSIForStandbyAssignmentCustom(
+                                          CL_IN ClAmsSGT *sg,
+                                          CL_OUT ClAmsSIT **targetSI,
+                                          CL_OUT ClAmsSUT **targetSU,
+                                          CL_IN ClAmsSIT **scannedSIList,
+                                          CL_IN ClUint32T numScannedSIs)
+{
+    ClAmsEntityRefT *entityRef = NULL;
+
+    AMS_CHECK_SG ( sg );
+    AMS_CHECKPTR ( !targetSI );
+
+    AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
+
+    *targetSI = NULL;
+    if(targetSU)
+        *targetSU = NULL;
+
+    for(entityRef = clAmsEntityListGetFirst(&sg->config.siList);
+        entityRef != NULL;
+        entityRef = clAmsEntityListGetNext(&sg->config.siList, entityRef))
+    {
+        ClAmsSIT *si = (ClAmsSIT*)entityRef->ptr;
+        ClAmsSISURefT *siSURef = NULL;
+        ClAmsCustomAssignmentIterT iter = {0};
+        if(clAmsPeSIIsStandbyAssignable(si) != CL_OK)
+            continue;
+        clAmsCustomAssignmentIterInit(&iter, si);
+        while ( (siSURef = clAmsCustomAssignmentIterNext(&iter) ) )
+        {
+            ClAmsSUT *su ;
+            if(siSURef->haState != CL_AMS_HA_STATE_STANDBY)
+                continue;
+            su = (ClAmsSUT*)siSURef->entityRef.ptr;
+            if(clAmsPeSUIsAssignable(su) != CL_OK)
+                continue;
+            if(su->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE)
+                continue;
+            if(clAmsPeCheckAssignedCustom(su, si))
+                continue;
+            if(su->status.numStandbySIs >= sg->config.maxStandbySIsPerSU)
+                continue;
+            *targetSI = si;
+            if(targetSU)
+                *targetSU = su;
+            break;
+        }
+        clAmsCustomAssignmentIterEnd(&iter);
+        if(*targetSI)
+            return CL_OK;
+    }
+    return clAmsPeSGFindSIForStandbyAssignment(sg, targetSI, scannedSIList, numScannedSIs);
 }
 
 ClRcT
@@ -213,15 +307,9 @@ clAmsPeSGFindSUForStandbyAssignmentCustom(
         }
 
         default:
-        {
-            AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
-                    ("Error: Loading strategy [%d] for SG [%s] is not supported. Exiting..\n",
-                     sg->config.loadingStrategy,
-                     sg->config.entity.name.value));
-
-            return CL_AMS_RC(CL_ERR_NOT_IMPLEMENTED);
-        }
+            break;
     }
+    return CL_AMS_RC(CL_ERR_NOT_EXIST);
 }
 
 ClRcT
@@ -332,16 +420,9 @@ clAmsPeSGFindSUForActiveAssignmentCustom(
         }
 
         default:
-        {
-            AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
-                    ("Error: Loading strategy [%d] for SG [%s] is not supported. Exiting..\n",
-                     sg->config.loadingStrategy,
-                     sg->config.entity.name.value));
-
-            return CL_AMS_RC(CL_ERR_NOT_IMPLEMENTED);
-
-        }
+            break;
     }
+    return CL_AMS_RC(CL_ERR_NOT_EXIST);
 }
 
 ClRcT
@@ -372,22 +453,26 @@ clAmsPeSGAssignSUCustom(
             ClAmsSUT *su = NULL;
             ClAmsSIT *si=NULL;
 
-            rc1 = clAmsPeSGFindSIForActiveAssignmentCustom(sg, &si);
+            rc1 = clAmsPeSGFindSIForActiveAssignmentCustom(sg, &si, &su);
 
             if ( rc1 != CL_OK ) 
             {
                 break;
             }
+            
             clLogInfo("SG", "ASI",
-                              "SI [%.*s] needs assignment...",
-                              si->config.entity.name.length-1,
-                              si->config.entity.name.value);
-
-            rc2 = clAmsPeSGFindSUForActiveAssignmentCustom(sg, &su, si);
-
-            if ( rc2 != CL_OK )
+                      "SI [%.*s] needs assignment...",
+                      si->config.entity.name.length-1,
+                      si->config.entity.name.value);
+            
+            if(!su)
             {
-                break;
+                rc2 = clAmsPeSGFindSUForActiveAssignmentCustom(sg, &su, si);
+
+                if ( rc2 != CL_OK )
+                {
+                    break;
+                }
             }
 
             if( (lastSI == si) && (lastSU == su) )
@@ -430,18 +515,21 @@ clAmsPeSGAssignSUCustom(
             ClAmsSIT *si = NULL;
             ClAmsSUT *su = NULL;
 
-            rc1 = clAmsPeSGFindSIForStandbyAssignment(sg, &si, scannedSIList, numScannedSIs);
+            rc1 = clAmsPeSGFindSIForStandbyAssignmentCustom(sg, &si, &su, scannedSIList, numScannedSIs);
 
             if ( rc1 != CL_OK ) 
             {
                 break;
             }
 
-            rc2 = clAmsPeSGFindSUForStandbyAssignmentCustom(sg, &su, si);
-
-            if ( rc2 != CL_OK )
+            if(!su)
             {
-                break;
+                rc2 = clAmsPeSGFindSUForStandbyAssignmentCustom(sg, &su, si);
+
+                if ( rc2 != CL_OK )
+                {
+                    break;
+                }
             }
 
             if( (lastSI == si) && (lastSU == su) )
@@ -513,10 +601,10 @@ clAmsPeSGAssignSUCustom(
     return CL_OK;
 }
 
-ClRcT clAmsPeCustomAssignmentIterInit(ClAmsCustomAssignmentIterT *iter, ClAmsSIT *si)
+ClRcT clAmsCustomAssignmentIterInit(ClAmsCustomAssignmentIterT *iter, ClAmsSIT *si)
 {
     ClNameT customAssignmentKey = { .value = CUSTOM_ASSIGNMENT_KEY,
-                                    .length = sizeof(CUSTOM_ASSIGNMENT_KEY)
+                                    .length = sizeof(CUSTOM_ASSIGNMENT_KEY) -1
     };
     ClRcT rc;
     ClUint8T *customAssignmentBuffer = NULL;
@@ -546,6 +634,7 @@ ClRcT clAmsPeCustomAssignmentIterInit(ClAmsCustomAssignmentIterT *iter, ClAmsSIT
         }
         goto out_free;
     }
+
     iter->si = si;
 
     out_free:
@@ -557,7 +646,7 @@ ClRcT clAmsPeCustomAssignmentIterInit(ClAmsCustomAssignmentIterT *iter, ClAmsSIT
     return rc;
 }
 
-ClAmsSISURefT *clAmsPeCustomAssignmentIterNext(ClAmsCustomAssignmentIterT *iter)
+ClAmsSISURefT *clAmsCustomAssignmentIterNext(ClAmsCustomAssignmentIterT *iter)
 {
     ClAmsSISURefT *ref = NULL;
     ClRcT rc = CL_OK;
@@ -577,7 +666,7 @@ ClAmsSISURefT *clAmsPeCustomAssignmentIterNext(ClAmsCustomAssignmentIterT *iter)
     return ref;
 }
 
-void clAmsPeCustomAssignmentIterEnd(ClAmsCustomAssignmentIterT *iter)
+void clAmsCustomAssignmentIterEnd(ClAmsCustomAssignmentIterT *iter)
 {
     if(iter->buffer.entityRef)
     {
@@ -616,6 +705,7 @@ ClRcT clAmsPeDequeueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU)
                        si->config.entity.name.value, rc);
             goto out_free;
         }
+        clBufferClear(inMsgHdl);
         /*
          * Check if the su is already part of the queue.
          */
@@ -646,7 +736,7 @@ ClRcT clAmsPeDequeueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU)
                 {
                     memmove(buffer.entityRef + i, 
                             buffer.entityRef + i + 1,
-                            sizeof(*buffer.entityRef) * ( buffer.count - 1) );
+                            sizeof(*buffer.entityRef) * ( buffer.count - i) );
                 }
                 memcpy(newRef, buffer.entityRef, buffer.count * sizeof(*buffer.entityRef));
             }
@@ -753,6 +843,7 @@ ClRcT clAmsPeEnqueueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsHASt
                        si->config.entity.name.value, rc);
             goto out_free;
         }
+        clBufferClear(inMsgHdl);
         /*
          * Check if the su is already part of the queue.
          */
@@ -788,6 +879,11 @@ ClRcT clAmsPeEnqueueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsHASt
         buffer.count = 1;
     }
 
+    clLogInfo("CUSTOM", "ASSIGNMENT", "Enqueued SU [%s] to SI [%s] with ha state [%s]. Queued entities [%d]",
+              activeSU->config.entity.name.value, 
+              si->config.entity.name.value,
+              CL_AMS_STRING_H_STATE(haState), buffer.count);
+
     rc = VDECL_VER(clXdrMarshallClAmsSISURefBufferT, 4, 0, 0)(
                                                               (void*)&buffer, inMsgHdl, 0);
     if(rc != CL_OK)
@@ -796,6 +892,12 @@ ClRcT clAmsPeEnqueueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsHASt
                    "entity [%s] returned with [%#x]", CL_AMS_STRING_H_STATE(haState),
                    activeSU->config.entity.name.value, rc);
         goto out_free;
+    }
+    if(customAssignmentBuffer)
+    {
+        clHeapFree(customAssignmentBuffer);
+        customAssignmentBuffer = NULL;
+        customAssignmentBufferLen = 0;
     }
     rc = clBufferLengthGet(inMsgHdl, &customAssignmentBufferLen);
     if(rc != CL_OK)
@@ -918,14 +1020,14 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
     } suSIAssignmentMap[2] = {
         {
             .su = activeSU,
-            .haState = CL_AMS_HA_STATE_ACTIVE,
-            .currentHAState = CL_AMS_HA_STATE_NONE,
+                .haState = CL_AMS_HA_STATE_ACTIVE,
+                .currentHAState = CL_AMS_HA_STATE_NONE,
         },
-        {
-            .su = standbySU,
-            .haState = CL_AMS_HA_STATE_STANDBY,
-            .currentHAState = CL_AMS_HA_STATE_NONE,
-        },
+            {
+                .su = standbySU,
+                    .haState = CL_AMS_HA_STATE_STANDBY,
+                    .currentHAState = CL_AMS_HA_STATE_NONE,
+            },
     };
 
     sg = (ClAmsSGT*)si->config.parentSG.ptr;
@@ -937,42 +1039,42 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
     }
 
     clAmsPeSIComputeAdminState(si, &adminState);
-    if(adminState != CL_AMS_ADMIN_STATE_UNLOCKED)
-    {
-        clLogError("CUSTOM", "SI-ASSIGN-SU", "SI admin state is [%s]. "
-                   "Expected to be unlocked", CL_AMS_STRING_A_STATE(adminState));
-        goto out;
-    }
     
     if(activeSU == NULL)
     {
-        rc = clAmsPeSISUHAStateCustom(si, CL_AMS_HA_STATE_ACTIVE, &suSIAssignmentMap[0].su);
-        if(rc != CL_OK)
+        if(adminState == CL_AMS_ADMIN_STATE_UNLOCKED)
         {
-            clLogWarning("CUSTOM", "SI-ASSIGN-SU", "No active SU found for SI [%s]. "
-                         "Skipping active SU remove", si->config.entity.name.value);
-        }
-        else
-        {
-            activeSU = suSIAssignmentMap[0].su;
-            suSIAssignmentMap[0].haState = CL_AMS_HA_STATE_NONE; /*mark for removal*/
-            suSIAssignmentMap[0].currentHAState = CL_AMS_HA_STATE_ACTIVE;
+            rc = clAmsPeSISUHAStateCustom(si, CL_AMS_HA_STATE_ACTIVE, &suSIAssignmentMap[0].su);
+            if(rc != CL_OK)
+            {
+                clLogWarning("CUSTOM", "SI-ASSIGN-SU", "No active SU found for SI [%s]. "
+                             "Skipping active SU remove", si->config.entity.name.value);
+            }
+            else
+            {
+                activeSU = suSIAssignmentMap[0].su;
+                suSIAssignmentMap[0].haState = CL_AMS_HA_STATE_NONE; /*mark for removal*/
+                suSIAssignmentMap[0].currentHAState = CL_AMS_HA_STATE_ACTIVE;
+            }
         }
     }
 
     if(standbySU == NULL)
     {
-        rc = clAmsPeSISUHAStateCustom(si, CL_AMS_HA_STATE_STANDBY, &suSIAssignmentMap[1].su);
-        if(rc != CL_OK)
+        if(adminState == CL_AMS_ADMIN_STATE_UNLOCKED)
         {
-            clLogWarning("CUSTOM", "SI-ASSIGN-SU", "No standby SU found for SI [%s]. "
-                         "Skipping standby SU remove", si->config.entity.name.value);
-        }
-        else
-        {
-            standbySU = suSIAssignmentMap[1].su;
-            suSIAssignmentMap[1].haState = CL_AMS_HA_STATE_NONE;
-            suSIAssignmentMap[1].currentHAState = CL_AMS_HA_STATE_STANDBY;
+            rc = clAmsPeSISUHAStateCustom(si, CL_AMS_HA_STATE_STANDBY, &suSIAssignmentMap[1].su);
+            if(rc != CL_OK)
+            {
+                clLogWarning("CUSTOM", "SI-ASSIGN-SU", "No standby SU found for SI [%s]. "
+                             "Skipping standby SU remove", si->config.entity.name.value);
+            }
+            else
+            {
+                standbySU = suSIAssignmentMap[1].su;
+                suSIAssignmentMap[1].haState = CL_AMS_HA_STATE_NONE;
+                suSIAssignmentMap[1].currentHAState = CL_AMS_HA_STATE_STANDBY;
+            }
         }
     }
 
@@ -1006,11 +1108,12 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
 
         if(clAmsPeSUIsAssignable(suSIAssignmentMap[i].su) != CL_OK)
         {
-            clLogWarning("CUSTOM", "SI-ASSIGN-SU", "SU [%s] is unassignable. "
-                         "Deferring SI [%s] assignment",
-                         suSIAssignmentMap[i].su->config.entity.name.value,
-                         si->config.entity.name.value);
-            /*            clAmsPeEnqueueAssignmentCustom(si, suSIAssignmentMap[i].su, suSIAssignmentMap[i].haState);*/
+            clLogNotice("CUSTOM", "SI-ASSIGN-SU", "SU [%s] is unassignable. "
+                        "Deferring SI [%s] assignment to [%s]",
+                        suSIAssignmentMap[i].su->config.entity.name.value,
+                        si->config.entity.name.value,
+                        CL_AMS_STRING_H_STATE(suSIAssignmentMap[i].haState));
+            clAmsPeEnqueueAssignmentCustom(si, suSIAssignmentMap[i].su, suSIAssignmentMap[i].haState);
             continue;
         }
 
