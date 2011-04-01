@@ -233,17 +233,29 @@ ClRcT ckptXlatioEntryUnpack( ClUint32T           ckptCount,
                 /*
                  * Update the master handle in the db. from the received pack
                  */
+                clLogWarning("DEP", "XLATION", "Duplicate ckpt [%.*s] with master handle [%#llx] "
+                             "found while unpacking ckpt entry [%.*s] "
+                             "with master hdl [%#llx], sum [%d]",
+                             pStoredXlation->name.length, pStoredXlation->name.value, 
+                             pStoredXlation->mastHdl, pXlationEntry->name.length, 
+                             pXlationEntry->name.value, pXlationEntry->mastHdl,
+                             pXlationEntry->cksum);
                 pStoredXlation->mastHdl = pXlationEntry->mastHdl;
+                clHeapFree(pXlationEntry);
+                pXlationEntry = pStoredXlation;
             }
-            clHeapFree(pXlationEntry);
-            pXlationEntry = pStoredXlation;
+            else 
+            {
+                rc = CL_OK;
+            }
         }
 
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
              ("Ckpt: Failed to add to the XlationEntry rc[0x %x]\n", rc), rc);
         clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, 
-              "Checkpoint [%.*s] has been created", pXlationEntry->name.length,
-              pXlationEntry->name.value);
+                   "Checkpoint [%.*s] has been created with master handle [%#llx], cksum [%d]", 
+                   pXlationEntry->name.length, pXlationEntry->name.value, pXlationEntry->mastHdl,
+                   pXlationEntry->cksum);
         pXlationInfo++;      
     }
 exitOnError:    

@@ -1270,6 +1270,18 @@ ClRcT VDECL_VER(clCkptMasterActiveReplicaSetSwitchOver, 4, 0, 0)(ClCkptHdlT     
          * remove MasterHdl from oldAddr and add to the newAddr.
          */
         _ckptPeerListMasterHdlAdd(masterHdl, prevActiveAddr, localAddr);
+        /*
+         * Remove the previous stored replica from the master handle. 
+         * Just as a split brain protection, don't remove the replica if it means switching over ourselves
+         */
+        if(pStoredData && 
+           pStoredData->replicaList && 
+           prevActiveAddr != clIocLocalAddressGet())
+        {
+            clLogNotice("REP", "SWITCHOVER", "Deleting the replica address [%d] for checkpoint [%.*s]",
+                        prevActiveAddr, pStoredData->name.length, pStoredData->name.value);
+            clCntAllNodesForKeyDelete(pStoredData->replicaList, (ClCntKeyHandleT)(ClWordT)prevActiveAddr);
+        }
     }
     
     /* 
@@ -3183,12 +3195,14 @@ ClRcT ckptMasterReplicaListDelete(ClCntKeyHandleT    userKey,
         if( CL_OK == rc && pStoredData != NULL)
         {
             rc = clCntNodeFind(pStoredData->replicaList, (ClPtrT)(ClWordT)peerAddr,
-                    &pNodeHandle);
+                               &pNodeHandle);
             if(rc == CL_OK)
             {
                 /*
                  * Delete the entry.
                  */
+                clLogDebug("REP", "DELETE", "Deleting the replica address [%d] for checkpoint [%.*s]",
+                            peerAddr, pXlation->name.length, pXlation->name.value);
                 clCntNodeDelete(pStoredData->replicaList, pNodeHandle);
             }   
             rc = clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
