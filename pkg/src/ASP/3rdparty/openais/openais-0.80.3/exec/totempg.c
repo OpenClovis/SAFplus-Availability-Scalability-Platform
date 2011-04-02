@@ -416,7 +416,7 @@ static inline void app_deliver_fn (
 			assert (iov_len == 1);
 			if (group_matches (&aligned_iovec, iov_len, instance->groups, instance->groups_cnt, &adjust_iovec)) {
 				stripped_iovec.iov_len = aligned_iovec.iov_len - adjust_iovec;
-//				stripped_iovec.iov_base = (char *)aligned_iovec.iov_base + adjust_iovec;
+				stripped_iovec.iov_base = (char *)aligned_iovec.iov_base + adjust_iovec;
 
 				/*
 				 * Align data structure for sparc and ia64
@@ -530,8 +530,8 @@ static void totempg_deliver_fn (
 		 * The message originated from local processor  
 		 * because there is greater than one iovec for the full msg.
 		 */
+        a_i = assembly->index;
 		for (i = 2; i < iov_len; i++) {
-			a_i = assembly->index;
 			assert (iovec[i].iov_len + a_i <= MESSAGE_SIZE_MAX);
 			memcpy (&assembly->data[a_i], iovec[i].iov_base, iovec[i].iov_len);
 			a_i += msg_lens[i - 2];
@@ -572,7 +572,7 @@ static void totempg_deliver_fn (
 
 		if ((assembly->index == 0) ||
 			(!continuation && assembly->index)) {
-
+            
 			log_printf (totempg_log_level_error,
 				"Throwing away broken message: continuation %u, index %u\n",
 				continuation, assembly->index);
