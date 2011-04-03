@@ -22,6 +22,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl;
 
 import com.clovis.common.utils.ecore.EcoreModels;
 import com.clovis.common.utils.ecore.EcoreUtils;
@@ -63,7 +64,9 @@ public class ResourceMappingModelTrackListener extends MappingModelTrackListener
 	@Override
 	public void notifyChanged(Notification notification) {
 		super.notifyChanged(notification);
-
+		if (notification.isTouch()
+				|| notification.getNotifier() instanceof XMLResourceImpl)
+			return;
 		if (notification.getEventType() == Notification.ADD
 				|| notification.getEventType() == Notification.ADD_MANY) {
             Object newVal = notification.getNewValue();

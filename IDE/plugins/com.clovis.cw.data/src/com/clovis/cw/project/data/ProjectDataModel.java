@@ -118,6 +118,7 @@ public class ProjectDataModel
     
 	private TemplateMappingModelTrackListener _templateModelTrackListener;
 	
+	private AMFModelTrackListener _amfModelTrackListener;
 	
 	//Alarm Rule 
 	private	Model	_alarmRules;
@@ -126,6 +127,10 @@ public class ProjectDataModel
 	
 	//PM Config Model
 	private Model _pmConfigModel;
+	
+	private boolean _modifiedAfterValidation = true;
+	
+	private List _modelProblems;
 	
     /**
      * Private Constructor. Use getProjectDataModel(IContainer) to get the
@@ -794,6 +799,8 @@ public class ProjectDataModel
 					.getContents(), pack);
 			EcoreUtils.addListener(_nodeProfiles.getEList(),
 					_dependencyListener, -1);
+			_amfModelTrackListener = new AMFModelTrackListener(this);
+			EcoreUtils.addListener(_nodeProfiles.getEList(), _amfModelTrackListener, -1);
 		} catch (Exception exception) {
 			LOG.error("Error while Loading Node Profiles", exception);
 		}
@@ -981,7 +988,7 @@ public class ProjectDataModel
             Model model = new Model(resource, (NotifyingList) resource
                     .getContents(), pack);
             _trackingModel = new TrackingModel(model);
-            _trackListener = new ModelTrackListener(_trackingModel);
+            _trackListener = new ModelTrackListener(_trackingModel, this);
             _alarmMapModelTrackListener = new AlarmMappingModelTrackListener(this);
             _resourceMapModelTrackListener = new ResourceMappingModelTrackListener(this);
         } catch (Exception exception) {
@@ -1179,6 +1186,7 @@ public class ProjectDataModel
         }
         if (_nodeProfiles != null) {
             EcoreUtils.removeListener(_nodeProfiles.getEList(), _dependencyListener, -1);
+            EcoreUtils.removeListener(_nodeProfiles.getEList(), _amfModelTrackListener, -1);
         }
         if (_eoDefinitions != null) {
             EcoreUtils.removeListener(_eoDefinitions.getEList(), _dependencyListener, -1);
@@ -1263,5 +1271,33 @@ public class ProjectDataModel
 			}
 		}
 		return _loadedMibs;
+	}
+	/**
+	 * Sets modified flag
+	 * @param modified
+	 */
+	public void setModified(boolean modified) {
+		_modifiedAfterValidation = modified;
+	}
+	/**
+	 * Returns modified flag
+	 * @return
+	 */
+	public boolean isModified() {
+		return _modifiedAfterValidation;
+	}
+	/**
+	 * Returns model problems
+	 * @return
+	 */
+	public List getModelProblems() {
+		return _modelProblems;
+	}
+	/**
+	 * Set model problems
+	 * @param problems
+	 */
+	public void setModelProblems(List problems) {
+		_modelProblems = problems;
 	}
 }

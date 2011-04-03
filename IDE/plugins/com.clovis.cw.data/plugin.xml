@@ -20,6 +20,7 @@
       <import plugin="org.eclipse.emf"/>
       <import plugin="org.eclipse.emf.ecore"/>
       <import plugin="com.clovis.common.utils"/>
+      <import plugin="org.eclipse.emf.ecore.xmi"/>
    </requires>
 	<extension
          id="ClovisWorks"

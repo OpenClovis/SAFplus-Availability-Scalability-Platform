@@ -22,6 +22,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl;
 
 import com.clovis.common.utils.constants.ModelConstants;
 import com.clovis.common.utils.ecore.EcoreUtils;
@@ -37,6 +38,8 @@ public class ModelTrackListener extends AdapterImpl {
 	private List _addList, _removeList/*, _modifyList*/;
 	
     private TrackingModel _trackingModel;
+    
+    private ProjectDataModel _projectDataModel;
 
 	/**
 	 * Constructor
@@ -45,8 +48,9 @@ public class ModelTrackListener extends AdapterImpl {
 	 * @param resource
 	 * @param list
 	 */
-	public ModelTrackListener(TrackingModel track) {
+	public ModelTrackListener(TrackingModel track, ProjectDataModel dataModel) {
 		_trackingModel = track;
+		_projectDataModel = dataModel;
 		Model model = _trackingModel.getTrackModel();
 		_package = model.getEPackage();
 		_resource = model.getResource();
@@ -78,7 +82,8 @@ public class ModelTrackListener extends AdapterImpl {
 	 *            Notofication event
 	 */
 	public void notifyChanged(Notification notification) {
-		if (notification.isTouch())
+		if (notification.isTouch()
+				|| notification.getNotifier() instanceof XMLResourceImpl)
 			return;
 		switch (notification.getEventType()) {
 		case Notification.SET:
@@ -120,6 +125,7 @@ public class ModelTrackListener extends AdapterImpl {
 					}
 				}
 			}
+			_projectDataModel.setModified(true);
 			break;
 		case Notification.ADD:
 			if (notification.getNewValue() instanceof EObject) {
@@ -140,6 +146,7 @@ public class ModelTrackListener extends AdapterImpl {
 					}
 				}
 			}
+			_projectDataModel.setModified(true);
 			break;
 		case Notification.REMOVE:
 			if (notification.getOldValue() instanceof EObject) {
@@ -160,6 +167,7 @@ public class ModelTrackListener extends AdapterImpl {
 					}
 				}
 			}
+			_projectDataModel.setModified(true);
 			break;
 
 		case Notification.ADD_MANY:
@@ -185,6 +193,7 @@ public class ModelTrackListener extends AdapterImpl {
 					}
 				}
 			}
+			_projectDataModel.setModified(true);
 			break;
 		case Notification.REMOVE_MANY:
 			List objects = (List) notification.getOldValue();
@@ -211,6 +220,7 @@ public class ModelTrackListener extends AdapterImpl {
 					}
 				}
 			}
+			_projectDataModel.setModified(true);
 			break;
 		}
 	}

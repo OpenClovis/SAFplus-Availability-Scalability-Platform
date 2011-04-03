@@ -172,6 +172,7 @@ public class BootTime extends PreferenceDialog
                 ((Model) nodeVector.get(j)).save(true);
             }
         }
+        _pdm.setModified(true);
     }
     /**
      * Add preference nodes in the page.

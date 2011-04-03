@@ -145,6 +145,7 @@ public class SNMPCodeGenConfigDialog extends TitleAreaDialog {
 		String moduleName = _moduleNamesText.getText().trim();
 		EcoreUtils.setValue(_mapObject, "moduleName", moduleName);
 		EcoreUtils.setValue(_mapObject, "mibPath", dirsLocation);
+		ProjectDataModel.getProjectDataModel(_project).setModified(true);
 		super.okPressed();
 	}
 	/**

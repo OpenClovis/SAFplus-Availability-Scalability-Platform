@@ -403,9 +403,15 @@ public class ProblemsView extends ViewPart implements ISelectionChangedListener
 			}
 			AutoCorrectAction.setProject(_project);
 			_clickListener.setProject(_project);
-			ProjectValidatorThread validatorThread = new ProjectValidatorThread(_project);
-			Display.getDefault().syncExec(validatorThread);
-			addProblems(validatorThread.getProblems());
+			List problems = pdm.getModelProblems();
+			if(problems == null || pdm.isModified()) {
+				ProjectValidatorThread validatorThread = new ProjectValidatorThread(_project);
+				Display.getDefault().syncExec(validatorThread);
+				problems = validatorThread.getProblems();
+				pdm.setModelProblems(problems);
+				pdm.setModified(false);
+			}
+			addProblems(problems);
 			updateColorsForProblems();
             if (_label != null) {
     			if(MigrationUtils.isMigrationRequired(_project)) {
@@ -416,17 +422,22 @@ public class ProblemsView extends ViewPart implements ISelectionChangedListener
                             + _project.getName() + "]");
     			}
             }
-    	}
+    	} 
     }
     /**
-     * SetFocus method.
+     * Set Focus method.
      */
     public void setFocus()
     {
-    	if(_isDirty) {
-        	refreshProblemsList();
-        	_isDirty = false;
-    	}
+    	if (_isDirty
+				|| (_project != null && ProjectDataModel.getProjectDataModel(
+						_project).isModified())) {
+			refreshProblemsList();
+			_isDirty = false;
+		} else if(_project == null) {
+			_problemsList.clear();
+			_label.setText("Problems not available");
+		}
         _tableViewer.getTable().setFocus();
         
     }
@@ -473,6 +484,7 @@ public class ProblemsView extends ViewPart implements ISelectionChangedListener
 				}
 
 			} else {
+				_project = null;
 				if (isVisible()) {
 					_problemsList.clear();
 					_label

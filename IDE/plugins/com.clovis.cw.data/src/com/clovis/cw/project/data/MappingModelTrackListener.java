@@ -22,6 +22,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl;
 
 import com.clovis.common.utils.constants.ModelConstants;
 import com.clovis.common.utils.ecore.EcoreUtils;
@@ -89,7 +90,8 @@ public abstract class MappingModelTrackListener extends AdapterImpl {
 	 *            Notofication event
 	 */
 	public void notifyChanged(Notification notification) {
-		if (notification.isTouch())
+		if (notification.isTouch()
+				|| notification.getNotifier() instanceof XMLResourceImpl)
 			return;
 		createResourcesList();
 		switch (notification.getEventType()) {
@@ -98,6 +100,7 @@ public abstract class MappingModelTrackListener extends AdapterImpl {
 			if (notifier instanceof EObject) {
 				
 			}
+			_dataModel.setModified(true);
 			break;
 		case Notification.ADD:
 			if (notification.getNewValue() instanceof EObject) {
@@ -109,6 +112,7 @@ public abstract class MappingModelTrackListener extends AdapterImpl {
 				String name = (String) EcoreUtils.getValue(obj, LINK_SOURCE);
 				trackModifiedObject(name);
 			}
+			_dataModel.setModified(true);
 			break;
 		case Notification.REMOVE:
 			if (notification.getOldValue() instanceof EObject) {
@@ -120,6 +124,7 @@ public abstract class MappingModelTrackListener extends AdapterImpl {
 				String name = (String) EcoreUtils.getValue(obj, LINK_SOURCE);
 				trackModifiedObject(name);
 			}
+			_dataModel.setModified(true);
 			break;
 		case Notification.ADD_MANY:
 			List objs = (List) notification.getNewValue();
@@ -134,6 +139,7 @@ public abstract class MappingModelTrackListener extends AdapterImpl {
 					trackModifiedObject(name);
 				}
 			}
+			_dataModel.setModified(true);
 			break;
 		case Notification.REMOVE_MANY:
 			List objects = (List) notification.getOldValue();
@@ -150,6 +156,7 @@ public abstract class MappingModelTrackListener extends AdapterImpl {
 					}
 				}
 			}
+			_dataModel.setModified(true);
 			break;
 		}
 	}
