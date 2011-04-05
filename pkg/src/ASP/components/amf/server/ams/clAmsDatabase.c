@@ -2254,9 +2254,6 @@ clAmsSGDeleteSURefFromSUList(
 
     rc = clAmsEntityListDeleteEntityRef( entityList, &suRef, entityKeyHandle);
 
-    if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
-        rc = CL_OK;
-
     return rc;
 }
 

@@ -71,6 +71,13 @@
 #define AMS_CPM_INTEGRATION
 #define INVOCATION
 
+#define CL_COMP_UNREACHABLE_ERROR(rc) (0)
+#if 0
+#define CL_COMP_UNREACHABLE_ERROR(rc) ( CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE || \
+                                        CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE || \
+                                        CL_GET_ERROR_CODE(rc) == CL_CPM_ERR_FORWARDING_FAILED)
+#endif
+        
 extern ClAmsT   gAms;
 
 /******************************************************************************
@@ -6596,13 +6603,19 @@ clAmsPeSUCleanupError(
     pstate = su->status.presenceState;
 
     if ( (su->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING) ||
-         (su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING) )
+         (su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING)  ||
+         (su->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATED) )
     {
         if ( node->status.numInstantiatedSUs )
         {
             node->status.numInstantiatedSUs-- ;
         }
-
+        if( su->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATED)
+        {
+            AMS_CALL ( clAmsPeSUMarkUnassigned(su) );
+            AMS_CALL ( clAmsPeSUMarkNotReady(su) );
+            AMS_CALL ( clAmsPeSUMarkUninstantiated(su) );
+        }
         AMS_CALL ( clAmsPeSUMarkUninstantiable(su) );
     }
 
@@ -9686,7 +9699,7 @@ clAmsPeSUMarkUninstantiable(
         CL_IN   ClAmsSUT    *su)
 {
     ClAmsSGT *sg;
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
@@ -9727,13 +9740,21 @@ clAmsPeSUMarkInstantiated(
         CL_IN   ClAmsSUT    *su)
 {
     ClAmsSGT *sg;
-    
+    ClRcT rc = CL_OK;
+
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsSGDeleteSURefFromSUList(&sg->status.instantiableSUList, su) );
+    rc = clAmsSGDeleteSURefFromSUList(&sg->status.instantiableSUList, su);
+
+    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST)
+        return rc;
+
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+        return CL_OK;
+
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.instantiatedSUList, su) );
 
     AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
@@ -9749,7 +9770,7 @@ clAmsPeSUMarkUninstantiated(
         CL_IN   ClAmsSUT    *su)
 {
     ClAmsSGT *sg;
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
@@ -9779,7 +9800,8 @@ clAmsPeSUMarkReady(
         CL_IN   ClAmsSUT    *su)
 {
     ClAmsSGT *sg;
-    
+    ClRcT rc = CL_OK;
+
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
 
@@ -9797,7 +9819,14 @@ clAmsPeSUMarkReady(
     }
     */
 
-    AMS_CALL ( clAmsSGDeleteSURefFromSUList(&sg->status.instantiatedSUList, su) );
+    rc = clAmsSGDeleteSURefFromSUList(&sg->status.instantiatedSUList, su);
+
+    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST)
+        return rc;
+
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+        return CL_OK;
+
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.inserviceSpareSUList, su) );
 
     AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
@@ -9813,14 +9842,22 @@ clAmsPeSUMarkNotReady(
         CL_IN   ClAmsSUT    *su)
 {
     ClAmsSGT *sg;
-    
+    ClRcT rc = CL_OK;
+
     AMS_CHECK_SU ( su );
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
 
-    AMS_CALL ( clAmsSGDeleteSURefFromSUList(&sg->status.inserviceSpareSUList, su) );
+    rc = clAmsSGDeleteSURefFromSUList(&sg->status.inserviceSpareSUList, su);
+
+    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST)
+        return rc;
+
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+        return CL_OK;
+
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.instantiatedSUList, su) );
 
     AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
@@ -9837,14 +9874,22 @@ clAmsPeSUMarkAssigned(
 {
     ClAmsSGT *sg;
     ClAmsNodeT *node;
-    
+    ClRcT rc = CL_OK;
+
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
     AMS_CHECK_NODE ( node = (ClAmsNodeT *) su->config.parentNode.ptr );
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsSGDeleteSURefFromSUList(&sg->status.inserviceSpareSUList, su) );
+    rc = clAmsSGDeleteSURefFromSUList(&sg->status.inserviceSpareSUList, su);
+
+    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST)
+        return rc;
+
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+        return CL_OK;
+
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.assignedSUList, su) );
 
     node->status.numAssignedSUs ++;
@@ -9864,7 +9909,7 @@ clAmsPeSUMarkUnassigned(
 {
     ClAmsSGT *sg;
     ClAmsNodeT *node;
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
@@ -9932,7 +9977,8 @@ clAmsPeSUMarkRestarting(
         CL_IN   ClAmsSUT    *su)
 {
     ClAmsSGT *sg;
-    
+    ClRcT rc = CL_OK;
+
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
 
@@ -9943,7 +9989,14 @@ clAmsPeSUMarkRestarting(
          su->config.entity.name.value,
          sg->config.entity.name.value));
 
-    AMS_CALL ( clAmsSGDeleteSURefFromSUList(&sg->status.assignedSUList, su) );
+    rc = clAmsSGDeleteSURefFromSUList(&sg->status.assignedSUList, su);
+    
+    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST)
+        return rc;
+
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+        return CL_OK;
+
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.instantiatedSUList, su) );
 
     return CL_OK;
@@ -9963,7 +10016,8 @@ clAmsPeSUMarkFaulty(
         CL_IN   ClAmsSUT    *su)
 {
     ClAmsSGT *sg;
-    
+    ClRcT rc = CL_OK;
+
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
 
@@ -9975,7 +10029,11 @@ clAmsPeSUMarkFaulty(
 
     if ( su->status.numActiveSIs || su->status.numStandbySIs )
     {
-        AMS_CALL ( clAmsSGDeleteSURefFromSUList(&sg->status.assignedSUList, su) );
+        rc = clAmsSGDeleteSURefFromSUList(&sg->status.assignedSUList, su);
+        if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST)
+            return rc;
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+            return CL_OK;
     }
 
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.faultySUList, su) );
@@ -9994,13 +10052,18 @@ clAmsPeSUMarkRepaired(
         CL_IN   ClAmsSUT    *su)
 {
     ClAmsSGT *sg;
-    
+    ClRcT rc = CL_OK;
+
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsSGDeleteSURefFromSUList(&sg->status.faultySUList, su) );
+    rc = clAmsSGDeleteSURefFromSUList(&sg->status.faultySUList, su);
+    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST)
+        return rc;
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+        return CL_OK;
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.instantiableSUList, su) );
 
     AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
@@ -13536,6 +13599,9 @@ clAmsPeCompCleanup(
                             &comp->config.entity.name,
                             &comp->config.entity.name);
 
+            if(CL_COMP_UNREACHABLE_ERROR(error))
+                error = CL_OK;
+
             if ( error )
             {
                 AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
@@ -13568,6 +13634,8 @@ clAmsPeCompCleanup(
                         &comp->config.entity.name);
 
 #endif
+            if(CL_COMP_UNREACHABLE_ERROR(error))
+                error = CL_OK;
 
             if ( error )
             {
@@ -13619,6 +13687,11 @@ clAmsPeCompCleanup(
                             &comp->config.entity.name,
                             &proxy->config.entity.name);
 #endif
+
+            if(CL_COMP_UNREACHABLE_ERROR(error))
+            {
+                return clAmsPeCompProxiedCompCleanupCallback(comp, CL_OK);
+            }
 
             if ( error )
             {
