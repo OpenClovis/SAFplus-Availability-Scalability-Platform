@@ -466,11 +466,11 @@ static void totempg_deliver_fn (
 	int endian_conversion_required)
 {
 	struct totempg_mcast *mcast;
-	unsigned short *msg_lens_from_msg;
-	unsigned short msg_lens[1500];
-	unsigned short mcast_msg_count;
+	unsigned short *msg_lens;
 	int i;
 	struct assembly *assembly;
+    char header[FRAME_SIZE_MAX];
+    int h_index;
 	int a_i = 0;
 	int msg_count;
 	int continuation;
@@ -478,14 +478,6 @@ static void totempg_deliver_fn (
 
 	assembly = assembly_ref (nodeid);
 	assert (assembly);
-
-	mcast = (struct totempg_mcast *)iovec[0].iov_base;
-	if (endian_conversion_required) {
-		mcast_msg_count = swab16 (mcast->msg_count);
-	} else {
-		mcast_msg_count = mcast->msg_count;
-	}
-	msg_count = mcast_msg_count;
 
 	/*
 	 * assemble the packet contents into one block of data to simplify delivery
@@ -497,39 +489,45 @@ static void totempg_deliver_fn (
 		 */
 		char *data;
 		int datasize;
+        
+        mcast = (struct totempg_mcast *)iovec[0].iov_base;
+		if (endian_conversion_required) {
+			mcast->msg_count = swab16 (mcast->msg_count);
+		}
 
-		msg_lens_from_msg = (unsigned short *) (iovec[0].iov_base +
-			sizeof (struct totempg_mcast));
+		msg_count = mcast->msg_count;
  		datasize = sizeof (struct totempg_mcast) +
-			mcast_msg_count * sizeof (unsigned short);
+			msg_count * sizeof (unsigned short);
 
         if(iovec[0].iov_len < datasize) return;
-
-		for (i = 0; i < mcast_msg_count; i++) {
-			msg_lens[i] = swab16 (msg_lens_from_msg[i]);
-		}
-		
+        
+        memcpy(header, iovec[0].iov_base, datasize);
 		assert(iovec);
-		data = iovec[0].iov_base;
+
+        data = iovec[0].iov_base;
+        msg_lens = (unsigned short*) (header + sizeof (struct totempg_mcast));
+        if(endian_conversion_required) {
+            for (i = 0; i < mcast->msg_count; i++) {
+                msg_lens[i] = swab16 (msg_lens[i]);
+            }
+		}
 
 		memcpy (&assembly->data[assembly->index], &data[datasize],
 			iovec[0].iov_len - datasize);
 	} else {
-		msg_lens_from_msg = (unsigned short *)iovec[1].iov_base;
-		if (endian_conversion_required) {
-			for (i = 0; i < mcast_msg_count; i++) {
-				msg_lens[i] = swab16 (msg_lens_from_msg[i]);
-			}
-		} else {
-			for (i = 0; i < mcast_msg_count; i++) {
-				msg_lens[i] = msg_lens_from_msg[i];
-			}
-		}
-
 		/* 
 		 * The message originated from local processor  
 		 * because there is greater than one iovec for the full msg.
 		 */
+        h_index = 0;
+        for(i = 0; i < 2; i++) {
+            memcpy(&header[h_index], iovec[i].iov_base, iovec[i].iov_len);
+            h_index += iovec[i].iov_len;
+        }
+
+        mcast = (struct totempg_mcast *)header;
+        msg_lens = (unsigned short *) (header + sizeof (struct totempg_mcast));
+
         a_i = assembly->index;
 		for (i = 2; i < iov_len; i++) {
 			assert (iovec[i].iov_len + a_i <= MESSAGE_SIZE_MAX);
@@ -545,7 +543,7 @@ static void totempg_deliver_fn (
 	 * then adjust the assembly buffer so we can add the rest of the 
 	 * fragment when it arrives.
 	 */
-	msg_count = mcast->fragmented ? mcast_msg_count - 1 : mcast_msg_count;
+	msg_count = mcast->fragmented ? mcast->msg_count - 1 : mcast->msg_count;
 	continuation = mcast->continuation;
 	iov_delv.iov_base = &assembly->data[0];
 	iov_delv.iov_len = assembly->index + msg_lens[0];
@@ -614,7 +612,7 @@ static void totempg_deliver_fn (
 		 * Message is fragmented, keep around assembly list
 		 */
 		assembly->last_frag_num = mcast->fragmented;
-		if (mcast_msg_count > 1) {
+		if (mcast->msg_count > 1) {
 			memmove (&assembly->data[0],
 				&assembly->data[assembly->index],
 				msg_lens[msg_count]);
