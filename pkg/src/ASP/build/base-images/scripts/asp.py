@@ -819,7 +819,7 @@ def load_config_tipc_module():
         (1, 1, 1) : tipc_valid_state,
     }
 
-
+    time.sleep(5) ## delay for possible tipc unload/reload bugs resulting in tipc split brain
     if not is_root():
         if not is_tipc_loaded():
             fail_and_exit('ASP is not being run in root user mode '
@@ -1053,7 +1053,6 @@ def start_asp(stop_watchdog=True):
             start_snmp_daemon()
         if is_simulation():
             setup_gms_config()
-        time.sleep(5) ## delay for possible tipc unload/reload bugs resulting in tipc split brain
         proc_lock_file('touch')
         run_custom_scripts('start')
         start_amf()
@@ -1158,6 +1157,7 @@ def stop_asp():
 
     proc_lock_file('remove')
     if not is_simulation():
+        time.sleep(1)
         log.info('Unloading TIPC ...')
         unload_tipc_module()
 
@@ -1219,6 +1219,7 @@ def zap_asp():
     run_custom_scripts('zap')
     kill_asp()
     if not is_simulation():
+        time.sleep(2) ## delay to give time for the zapped processes to exit
         log.info('Unloading TIPC ...')
         unload_tipc_module()
 
