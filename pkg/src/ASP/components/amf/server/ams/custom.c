@@ -1020,14 +1020,14 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
     } suSIAssignmentMap[2] = {
         {
             .su = activeSU,
-                .haState = CL_AMS_HA_STATE_ACTIVE,
-                .currentHAState = CL_AMS_HA_STATE_NONE,
+            .haState = CL_AMS_HA_STATE_ACTIVE,
+            .currentHAState = CL_AMS_HA_STATE_NONE,
         },
-            {
-                .su = standbySU,
-                    .haState = CL_AMS_HA_STATE_STANDBY,
-                    .currentHAState = CL_AMS_HA_STATE_NONE,
-            },
+        {
+            .su = standbySU,
+            .haState = CL_AMS_HA_STATE_STANDBY,
+            .currentHAState = CL_AMS_HA_STATE_NONE,
+        },
     };
 
     sg = (ClAmsSGT*)si->config.parentSG.ptr;
@@ -1047,6 +1047,7 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
             rc = clAmsPeSISUHAStateCustom(si, CL_AMS_HA_STATE_ACTIVE, &suSIAssignmentMap[0].su);
             if(rc != CL_OK)
             {
+                rc = CL_OK;
                 clLogWarning("CUSTOM", "SI-ASSIGN-SU", "No active SU found for SI [%s]. "
                              "Skipping active SU remove", si->config.entity.name.value);
             }
@@ -1066,6 +1067,7 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
             rc = clAmsPeSISUHAStateCustom(si, CL_AMS_HA_STATE_STANDBY, &suSIAssignmentMap[1].su);
             if(rc != CL_OK)
             {
+                rc = CL_OK;
                 clLogWarning("CUSTOM", "SI-ASSIGN-SU", "No standby SU found for SI [%s]. "
                              "Skipping standby SU remove", si->config.entity.name.value);
             }
@@ -1140,12 +1142,12 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
 #endif
             }
 
-            clLogInfo("CUSTOM", "SI-ASSIGN-SU", "%s SI [%s] %s %s SU [%s]",
-                      op,
-                      si->config.entity.name.value, 
-                      haState != CL_AMS_HA_STATE_NONE ? CL_AMS_STRING_H_STATE(haState) : "",
-                      target,
-                      suSIAssignmentMap[i].su->config.entity.name.value);
+            clLogNotice("CUSTOM", "SI-ASSIGN-SU", "%s SI [%s] %s %s SU [%s]",
+                        op,
+                        si->config.entity.name.value, 
+                        haState != CL_AMS_HA_STATE_NONE ? CL_AMS_STRING_H_STATE(haState) : "",
+                        target,
+                        suSIAssignmentMap[i].su->config.entity.name.value);
 
             rc = csiFn(suSIAssignmentMap[i].su, si, haState);
             if(rc != CL_OK)
