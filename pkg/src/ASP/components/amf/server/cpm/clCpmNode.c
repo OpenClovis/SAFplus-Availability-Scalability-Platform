@@ -897,10 +897,19 @@ static ClRcT cpmNodeShutdownTimeout(void *unused)
 }
 static void startShutdownTimer(ClIocNodeAddressT nodeAddress)
 {
+#define ASP_SHUTDOWN_DEFAULT_TIMEOUT (120)
     ClTimerHandleT timer;
-    ClTimerTimeOutT timeout = {.tsSec = 120, .tsMilliSec = 0 };
-    ClRcT rc = clTimerCreateAndStart(timeout, CL_TIMER_VOLATILE, CL_TIMER_TASK_CONTEXT, 
-                                     cpmNodeShutdownTimeout, NULL, &timer);
+    ClTimerTimeOutT timeout = {.tsSec = ASP_SHUTDOWN_DEFAULT_TIMEOUT, .tsMilliSec = 0 };
+    ClRcT rc;
+    ClCharT *str;
+    if( (str = getenv("ASP_SHUTDOWN_TIMEOUT") ) )
+    {
+        timeout.tsSec = atoi(str);
+        if(!timeout.tsSec)
+            timeout.tsSec = ASP_SHUTDOWN_DEFAULT_TIMEOUT;
+    }
+    rc = clTimerCreateAndStart(timeout, CL_TIMER_VOLATILE, CL_TIMER_TASK_CONTEXT, 
+                               cpmNodeShutdownTimeout, NULL, &timer);
     if(rc != CL_OK)
         clLogWarning("SHUTDOWN", "TIMER", "Timer start for node [%#x] shutdown failed with [%#x]", nodeAddress, rc);
     else clLogNotice("SHUTDOWN", "TIMER", "Node [%#x] shutdown timer set to fire in [%d] seconds", 
