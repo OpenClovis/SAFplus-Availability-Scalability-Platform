@@ -233,17 +233,6 @@ fi
 #
 ##############################################################################
 
-# Make sure we have write permissions in the current directory (ie where we
-# have executed cl-ide from so that openclovis_ide.log can be created
-
-if [ ! -w $(pwd) ]; then
-	echo "You do not have permission to write in the current directory.  Please"
-	echo "switch to a directory you have permission to write to and run cl-ide"
-	echo "again"
-
-	exit 1
-fi
-
 # If we've installed Java, use that instead of a potentially incompatible
 # local copy
 
