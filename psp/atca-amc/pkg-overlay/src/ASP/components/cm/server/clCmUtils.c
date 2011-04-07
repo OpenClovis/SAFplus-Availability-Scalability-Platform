@@ -159,6 +159,7 @@ clCmPhysicalSlotFromEntityPath( SaHpiEntityPathT * pEpath )
 {
     ClUint32T i;
     ClInt32T amc_slot = -1;
+    ClInt32T other_slot = -1;
 
     for(i=0; i<SAHPI_MAX_ENTITY_PATH; i++)
     {
@@ -166,19 +167,30 @@ clCmPhysicalSlotFromEntityPath( SaHpiEntityPathT * pEpath )
         {
             amc_slot = pEpath->Entry[i].EntityLocation;
         }
+        else if( pEpath->Entry[i].EntityType == SAHPI_ENT_OTHER)
+        {
+            other_slot = pEpath->Entry[i].EntityLocation;
+        }
         else if( pEpath->Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT)
         {
-            if (amc_slot == -1)
+            /* 
+             * Check if AMC, and report according to formula 
+             */
+            if(other_slot > 0)
+            {
+                _AMC_BASE_ADDRESS + 10*pEpath->Entry[i].EntityLocation + other_slot;
+            }
+            else if(amc_slot > 0)
+            {   
+                return _AMC_BASE_ADDRESS +
+                    10*pEpath->Entry[i].EntityLocation +
+                    amc_slot;
+            }
+            else
             {   /* not an AMC, report physical slot */
                 return pEpath->Entry[i].EntityLocation;
             }
-            else
-            {   /* AMC, report according to formula */
-                return _AMC_BASE_ADDRESS +
-                        10*pEpath->Entry[i].EntityLocation +
-                        amc_slot;
-            }
-        }
+        }            
     }
 
     return CL_CM_INVALID_PHYSICAL_SLOT;
