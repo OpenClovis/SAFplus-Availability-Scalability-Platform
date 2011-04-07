@@ -158,7 +158,13 @@ ClRcT _ckptLocalDataUpdate(ClCkptHdlT         ckptHdl,
      */
     clOsalMutexCreate(&pCkpt->ckptMutex);         
     CKPT_LOCK(pCkpt->ckptMutex);           
-
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Ckpt with handle [%#llx] already delete", 
+                     ckptHdl);
+        return CL_OK;
+    }
     /*
      * Allocate memory for Control plane and Dataplane.
      */
@@ -500,6 +506,12 @@ ClRcT VDECL_VER(_ckptCheckpointStatusGet, 4, 0, 0)(ClCkptHdlT                  c
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning("STATUS", "GET", "Ckpt with handle [%#llx] already delete", ckptHdl);
+        return CL_CKPT_ERR_NOT_EXIST;
+    }
     
     /* 
      * Read the control and data plane information and copy the desired 
@@ -909,6 +921,13 @@ ClRcT VDECL_VER(_ckptSectionCreate, 4, 0, 0)(ClCkptHdlT         ckptHdl,
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning("SEC", "CREATE", "Ckpt handle [%#llx] already deleted", ckptHdl);
+        memset(pVersion,0,sizeof(ClVersionT));
+        return CL_CKPT_ERR_NOT_EXIST;
+    }
 
     if(pCkpt->isPending == CL_TRUE)
     {
@@ -1218,7 +1237,12 @@ ClRcT _ckptLocalSectionExpirationTimeSet(ClVersionT        *pVersion,
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
-    
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning("EXP", "SET", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+        return CL_OK;
+    }
     /* 
      * Verify the sanity of the data length.
      */
@@ -1327,6 +1351,12 @@ ClRcT VDECL_VER(_ckptSectionExpirationTimeSet, 4, 0, 0)(ClCkptHdlT        ckptHd
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning("EXP", "SET", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+        return CL_OK;
+    }
 
     /*
      * Walk through the presence list and update all the replica
@@ -1457,6 +1487,13 @@ VDECL_VER(clCkptSvrIterationInitialize, 4, 0, 0)(ClVersionT        *pVersion,
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Ckpt handle [%#llx] already got deleted", ckptHdl);
+        return CL_CKPT_ERR_NOT_EXIST;
+    }
+
     /*
      * Copy the no. of sections and allocate memory for max no. of sections.
      */
@@ -1782,6 +1819,12 @@ void  ckptRemSvrWriteCallback(ClHandleT              ckptIdlHdl,
         goto send_resp;
     }
     CKPT_LOCK(pCkpt->ckptMutex);
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning("SEC", "OVERWRITE", "Ckpt handle [%#llx] already deleted", ckptHdl);
+        pCkpt = NULL;
+    }
     /*
      * Decrement the callback count associated with checkpoint write
      * If the count reaches 0, inform the client about SUCCESS
@@ -2412,6 +2455,13 @@ ClRcT VDECL_VER(_ckptCheckpointRead, 4, 0, 0)(ClCkptHdlT               ckptHdl,
      */
 
     CKPT_LOCK(pCkpt->ckptMutex);
+    if(!pCkpt->ckptMutex)
+    {
+        clLogWarning("SEC", "READ", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+        rc = CL_CKPT_ERR_NOT_EXIST;
+        sectionLockTaken = CL_TRUE;
+        goto exitOnErrorWithoutUnlock;
+    }
 
     for (vecCount = 0; vecCount < numberOfElements; vecCount++)
     {
@@ -2661,6 +2711,12 @@ ClRcT VDECL_VER(_ckptCheckpointSynchronize, 4, 0, 0)(ClCkptHdlT      ckptHdl,
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning("SEC", "SYNC", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+        return CL_CKPT_ERR_NOT_EXIST;
+    }
     
     /*
      * Validate control plane info.
@@ -3597,6 +3653,13 @@ VDECL_VER(clCkptCheckpointReplicaRemove, 4, 0, 0)(ClHandleT  ckptHdl,
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning("REP", "REM", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+        return CL_OK;
+    }
+
     /*
      * to notify container destroy callback that, this function will take care
      * of deleting the mutex variable, this variable is being copied to local
@@ -3749,6 +3812,12 @@ VDECL_VER(clCkptReplicaAppInfoNotify, 4, 0, 0)(ClCkptHdlT  ckptHdl,
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning("APP", "NOTIFY", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+        return CL_OK;
+    }
 
     rc = clCkptActiveAppInfoUpdate(pCkpt, nodeAddr, portId, &pData);
     if( CL_OK != rc )
@@ -3811,6 +3880,11 @@ clCkptSectionLevelDelete(ClCkptHdlT        ckptHdl,
 
     /* Take the Ckpt Mutex */
     CKPT_LOCK(pCkpt->ckptMutex);
+    if(!pCkpt->ckptMutex)
+    {
+        return CL_OK;
+    }
+
     /* take the section level mutex */
     rc = clCkptSectionLevelLock(pCkpt, pSecId, &sectionLockTaken);
     if( CL_OK != rc )
@@ -3889,6 +3963,11 @@ clCkptSvrReplicaDelete(CkptT       *pCkpt,
 
     /* acquire the mutex */
     CKPT_LOCK(pCkpt->ckptMutex);
+    if(!pCkpt->ckptMutex)
+    {
+        clLogWarning("REP", "DEL", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+        return CL_OK;
+    }
 
     /* walk thru section table */
     rc = clCntFirstNodeGet(pCkpt->pDpInfo->secHashTbl, &nodeHdl);

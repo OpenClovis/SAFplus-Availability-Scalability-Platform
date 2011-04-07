@@ -1302,7 +1302,16 @@ ClRcT  VDECL_VER(clCkptRemSvrCkptInfoSync, 4, 0, 0)(ClVersionT  *pVersion,
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);
-                  
+    /*
+     * Check if we raced with a delete.
+     */
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning("INFO", "SYNC", "Ckpt [%.*s] already deleted for handle [%#llx]", 
+                     pName->length, pName->value, ckptHdl);
+        return CL_OK;
+    }
     /*
      * Copy the checkpoint name.
      */
@@ -1383,12 +1392,13 @@ ClRcT  VDECL_VER(clCkptRemSvrCkptInfoSync, 4, 0, 0)(ClVersionT  *pVersion,
               }
     }
     pDpInfo->pSection = (CkptSectionInfoT *)pTemp;
-exitOnError:
 
+    exitOnError:
     /*
      * Unlock the checkpoint's mutex.
      */
     CKPT_UNLOCK(pCkpt->ckptMutex);
+
     clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
     
     return rc;
@@ -1674,7 +1684,15 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 4, 0, 0)(ClVersionT         *pVersion,
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK( pCkpt->ckptMutex);
-    
+    /*
+     * Check if we raced with a delete
+     */
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Ckpt with handle [%#llx] was deleted", ckptHdl);
+        return CL_CKPT_ERR_NOT_EXIST;
+    }
     pCkptInfo->pCpInfo = NULL;
     pCkptInfo->pDpInfo = NULL;
 
@@ -1791,6 +1809,15 @@ ClRcT VDECL_VER(clCkptAllReplicaPresenceListUpdate, 4, 0, 0)(ClVersionT        v
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
+    /*
+     * Check if we raced with a delete
+     */
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptActHdl);
+        clLogWarning(CL_CKPT_AREA_PEER, "PRE", "Ckpt with handle [%#llx] got deleted", ckptActHdl);
+        return CL_OK;
+    }
 
     /*
      * Update the checkpoint's presence list with the passed address.
@@ -2065,7 +2092,16 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
-
+    /*
+     * Check if we raced with a ckpt delete
+     */
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Ckpt [%.*s] already deleted for handle [%#llx]",
+                     pCkptInfo->pName->length, pCkptInfo->pName->value, ckptHdl);
+        return CL_OK;
+    }
     clNameCopy(&pCkpt->ckptName, pCkptInfo->pName);
 
     /*
@@ -2306,6 +2342,16 @@ ClRcT VDECL_VER(clCkptRemSvrCkptWrite, 4, 0, 0)(ClVersionT             *pVersion
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);
+    /*
+     * Check if we raced with a delete
+     */
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_SEC_OVERWRITE, 
+                     "Ckpt with handle [%#llx] is already deleted", ckptHdl);
+        goto exitOnError;
+    }
 
     /*
      * Update the checkpoint data.
@@ -2451,6 +2497,15 @@ void clCkptRemSvcSecCreateCb(ClIdlHandleT                     ckptIdlHdl,
 
     CKPT_LOCK(pCkpt->ckptMutex);
     /*
+     * Check for a race with a ckpt delete.
+     */
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        pCkpt = NULL;
+        clLogWarning("CREATE", "CB", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+    }
+    /*
      * Decrement the callback count associated with the section
      * updation. If the count reaches 0, inform the client about SUCCESS
      * or FAILURE.
@@ -2535,6 +2590,16 @@ void clCkptRemSvrSecOverwriteCb(ClIdlHandleT      ckptIdlHdl,
         goto process_resp;
     }
     CKPT_LOCK(pCkpt->ckptMutex);
+    /*
+     * Check if racing with a delete.
+     */
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning("OVERWRITE", "CB", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+        pCkpt = NULL;
+        goto process_resp;
+    }
     rc = clCkptSectionLevelLock(pCkpt, pSectionId,  &sectionLockTaken);
     if(rc != CL_OK)
     {
@@ -2627,6 +2692,13 @@ void clCkptRemSvrSecDeleteCb(ClIdlHandleT      ckptIdlHdl,
         goto process_resp;
     }
     CKPT_LOCK(pCkpt->ckptMutex);
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning("DELETE", "CB", "Ckpt with handle [%#llx] found deleted", ckptHdl);
+        pCkpt = NULL;
+        goto process_resp;
+    }
     rc = clCkptSectionLevelLock(pCkpt, pSectionId,  &sectionLockTaken);
     if(rc != CL_OK)
     {
@@ -3124,7 +3196,15 @@ ClRcT VDECL_VER(clCkptRemSvrSectionInfoUpdate, 4, 0, 0)(ClVersionT       *pVersi
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
-
+    /*
+     * Check if racing with a delete.
+     */
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Ckpt handle [%#llx] deleted", ckptHdl);
+        return CL_OK;
+    }
     memcpy( &ckptVersion, gCkptSvr->versionDatabase.versionsSupported,
             sizeof(ClVersionT));
 
@@ -3219,6 +3299,12 @@ VDECL_VER(clCkptActiveCallbackNotify, 4, 0, 0)(ClCkptHdlT        ckptHdl,
      * Lock the checkpoint's mutex.
      */
     CKPT_LOCK(pCkpt->ckptMutex);           
+    if(!pCkpt->ckptMutex)
+    {
+        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Ckpt handle [%#llx] deleted", ckptHdl);
+        return CL_OK;
+    }
 
     appInfo.nodeAddress = nodeAddr;
     appInfo.portId      = portId;
