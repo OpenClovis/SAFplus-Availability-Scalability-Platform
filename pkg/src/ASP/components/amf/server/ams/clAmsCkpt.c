@@ -558,7 +558,7 @@ clAmsCkptInitialize(
     const ClTimeT  timeout = CL_TIME_END;
     const ClCkptOpenFlagsT  flags = 
         CL_CKPT_CHECKPOINT_CREATE|CL_CKPT_CHECKPOINT_WRITE|CL_CKPT_CHECKPOINT_READ;
-    const ClCkptCheckpointCreationAttributesT  ckptAttributes = 
+    ClCkptCheckpointCreationAttributesT  ckptAttributes = 
         {
             CL_CKPT_WR_ALL_REPLICAS | CL_CKPT_DISTRIBUTED,
             AMS_CKPT_SIZE,
@@ -572,6 +572,12 @@ clAmsCkptInitialize(
     rc = clJobQueueInit(&gClAmsCkptJobQueue, 0, 1);
     if(rc != CL_OK)
         return rc;
+
+    if( clParseEnvBoolean("CL_AMF_CKPT_ASYNC") )
+    {
+        clLogNotice("CKPT", "INIT", "Setting up AMF checkpointing in async distributed mode");
+        ckptAttributes.creationFlags &= ~CL_CKPT_WR_ALL_REPLICAS;
+    }
 
     memset (&ckptName,0,sizeof (ClNameT));
     strcpy (ckptName.value,CL_AMS_CKPT_NAME);
@@ -1124,20 +1130,38 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
 #endif
 #define AMS_CKPT_FREQUENCY_MSEC (AMS_CKPT_FREQUENCY*1000LL)
 #define AMS_CKPT_FREQUENCY_USEC (AMS_CKPT_FREQUENCY_MSEC * 1000LL)
+#define AMS_CKPT_WRITE_PAUSE_MSEC (50)
+#define AMS_CKPT_MIN_FREQUENCY_USEC (5000000LL)
+#define AMS_CKPT_WRITE_THRESHOLD_FAST (5)
+#define AMS_CKPT_WRITE_FREQUENCY_USEC (1000000LL)
+#define AMS_CKPT_WRITE_THRESHOLD_SLOW (10)
 
 static ClRcT amsCkptWriteCallback(ClPtrT unused)
 {
     static ClTimeT lastTime;
+    static ClTimeT lastWriteTime;
+    static ClUint32T numErrors;
+    static ClUint32T numWrites;
+    static ClTimerTimeOutT writePause = {.tsSec = 0, .tsMilliSec = AMS_CKPT_WRITE_PAUSE_MSEC };
+    ClRcT rc;
     ClTimeT currentTime;
     currentTime = clOsalStopWatchTimeGet();
-    if(lastTime && 
-       currentTime - lastTime < AMS_CKPT_FREQUENCY_USEC)
+    if((lastTime 
+        && 
+        currentTime - lastTime < AMS_CKPT_FREQUENCY_USEC)
+       ||
+       (numErrors && !(numErrors & 3)))
     {
         ClUint32T elapsedMsec = (currentTime - lastTime)/1000;
-        ClUint32T remainMsec = AMS_CKPT_FREQUENCY_MSEC - elapsedMsec;
+        ClUint32T remainMsec = 0;
         ClTimerTimeOutT delay;
+        if(AMS_CKPT_FREQUENCY_MSEC > 0)
+            remainMsec = AMS_CKPT_FREQUENCY_MSEC - elapsedMsec;
+        else
+            remainMsec = 1000;
         delay.tsSec = 0;
         delay.tsMilliSec = remainMsec;
+        numWrites = 0;
         clOsalTaskDelay(delay);
     }
     /*
@@ -1145,9 +1169,58 @@ static ClRcT amsCkptWriteCallback(ClPtrT unused)
      */
     clLogTrace("CKP", "WRITE", "Write at [%lld] usecs", clOsalStopWatchTimeGet());
     clOsalMutexLock(gAms.mutex);
-    amsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_ALL);
+    rc = amsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_ALL);
     clOsalMutexUnlock(gAms.mutex);
     lastTime = clOsalStopWatchTimeGet();
+    /*
+     * If its a timeout, schedule a pause before the next write. 
+     * For all other errors, retry again.
+     */
+    if(rc != CL_OK)
+    {
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT)
+        {
+            numErrors += 3;
+            numErrors &= ~3;
+        }
+        else
+        {
+            ++numErrors;
+        }
+    }
+    else
+    { 
+        numErrors = 0;
+        /*
+         * Check the write rate. If its too slow or very fast, pause
+         */
+        if(!AMS_CKPT_FREQUENCY)
+        {
+            ClBoolT pauseOn = CL_FALSE;
+            if(!numWrites++)
+                lastWriteTime = lastTime;
+
+            if( lastTime - currentTime  >= AMS_CKPT_MIN_FREQUENCY_USEC )
+            {
+                pauseOn = CL_TRUE;
+            }
+            else if(numWrites >= AMS_CKPT_WRITE_THRESHOLD_FAST
+                    &&
+                    (lastTime - lastWriteTime) <= AMS_CKPT_WRITE_FREQUENCY_USEC)
+            {
+                pauseOn = CL_TRUE;
+            }
+            else if(numWrites >= AMS_CKPT_WRITE_THRESHOLD_SLOW)
+            {
+                pauseOn = CL_TRUE;
+            }
+            if(pauseOn)
+            {
+                numWrites = 0;
+                clOsalTaskDelay(writePause);
+            }
+        }
+    }
     return CL_OK;
 }
 
