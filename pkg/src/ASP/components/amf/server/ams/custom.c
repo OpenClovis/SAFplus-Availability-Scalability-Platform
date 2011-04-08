@@ -879,10 +879,10 @@ ClRcT clAmsPeEnqueueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsHASt
         buffer.count = 1;
     }
 
-    clLogInfo("CUSTOM", "ASSIGNMENT", "Enqueued SU [%s] to SI [%s] with ha state [%s]. Queued entities [%d]",
-              activeSU->config.entity.name.value, 
-              si->config.entity.name.value,
-              CL_AMS_STRING_H_STATE(haState), buffer.count);
+    clLogNotice("CUSTOM", "ASSIGNMENT", "Enqueued SU [%s] to SI [%s] with ha state [%s]. Queued entities [%d]",
+                activeSU->config.entity.name.value, 
+                si->config.entity.name.value,
+                CL_AMS_STRING_H_STATE(haState), buffer.count);
 
     rc = VDECL_VER(clXdrMarshallClAmsSISURefBufferT, 4, 0, 0)(
                                                               (void*)&buffer, inMsgHdl, 0);
@@ -1108,6 +1108,13 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
             continue;
         }
 
+        if(suSIAssignmentMap[i].haState == CL_AMS_HA_STATE_ACTIVE
+           ||
+           suSIAssignmentMap[i].haState == CL_AMS_HA_STATE_STANDBY)
+        {
+            clAmsPeEnqueueAssignmentCustom(si, suSIAssignmentMap[i].su, suSIAssignmentMap[i].haState);
+        }
+
         if(clAmsPeSUIsAssignable(suSIAssignmentMap[i].su) != CL_OK)
         {
             clLogNotice("CUSTOM", "SI-ASSIGN-SU", "SU [%s] is unassignable. "
@@ -1115,7 +1122,6 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
                         suSIAssignmentMap[i].su->config.entity.name.value,
                         si->config.entity.name.value,
                         CL_AMS_STRING_H_STATE(suSIAssignmentMap[i].haState));
-            clAmsPeEnqueueAssignmentCustom(si, suSIAssignmentMap[i].su, suSIAssignmentMap[i].haState);
             continue;
         }
 
