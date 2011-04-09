@@ -159,11 +159,17 @@ static void (*totempg_log_printf) (char *file, int line, int level, char *format
 
 struct totem_config *totempg_totem_config;
 
+enum throw_away_mode {
+	THROW_AWAY_INACTIVE,
+	THROW_AWAY_ACTIVE
+};
+
 struct assembly {
 	unsigned int nodeid;
 	unsigned char data[MESSAGE_SIZE_MAX];
 	int index;
 	unsigned char last_frag_num;
+	enum throw_away_mode throw_away_mode;
 	struct list_head list;
 };
 
@@ -257,6 +263,9 @@ static struct assembly *assembly_ref (unsigned int nodeid)
 		list_del (&assembly->list);
 		list_add (&assembly->list, &assembly_list_inuse);
 		assembly->nodeid = nodeid;
+		assembly->index = 0;
+		assembly->last_frag_num = 0;
+		assembly->throw_away_mode = THROW_AWAY_INACTIVE;
 		return (assembly);
 	}
 
@@ -264,12 +273,15 @@ static struct assembly *assembly_ref (unsigned int nodeid)
 	 * Nothing available in inuse or free list, so allocate a new one
 	 */
 	assembly = malloc (sizeof (struct assembly));
+	assert (assembly);
 	memset (assembly, 0, sizeof (struct assembly));
 	/*
 	 * TODO handle memory allocation failure here
 	 */
-	assert (assembly);
 	assembly->nodeid = nodeid;
+	assembly->index = 0;
+	assembly->last_frag_num = 0;
+	assembly->throw_away_mode = THROW_AWAY_INACTIVE;
 	list_init (&assembly->list);
 	list_add (&assembly->list, &assembly_list_inuse);
 
@@ -559,6 +571,156 @@ static void totempg_deliver_fn (
 	 * the continued message.
 	 */
 	start = 0;
+	if (assembly->throw_away_mode == THROW_AWAY_ACTIVE) {
+		 /* Throw away the first msg block */
+		if (mcast->fragmented == 0 || mcast->fragmented == 1) {
+			assembly->throw_away_mode = THROW_AWAY_INACTIVE;
+
+			assembly->index += msg_lens[0];
+			iov_delv.iov_base = (void *)&assembly->data[assembly->index];
+			iov_delv.iov_len = msg_lens[1];
+			start = 1;
+		}
+	} else
+	if (assembly->throw_away_mode == THROW_AWAY_INACTIVE) {
+		if (continuation == assembly->last_frag_num) {
+			assembly->last_frag_num = mcast->fragmented;
+			for  (i = start; i < msg_count; i++) {
+				app_deliver_fn(nodeid, &iov_delv, 1, endian_conversion_required);
+				assembly->index += msg_lens[i];
+				iov_delv.iov_base = (void *)&assembly->data[assembly->index];
+				if (i < (msg_count - 1)) {
+					iov_delv.iov_len = msg_lens[i + 1];
+				}
+			}
+		} else {
+			assembly->throw_away_mode = THROW_AWAY_ACTIVE;
+		}
+	}
+
+	if (mcast->fragmented == 0) {
+		/*
+		 * End of messages, dereference assembly struct
+		 */
+		assembly->last_frag_num = 0;
+		assembly->index = 0;
+		assembly_deref (assembly);
+	} else {
+		/*
+		 * Message is fragmented, keep around assembly list
+		 */
+		if (mcast->msg_count > 1) {
+			memmove (&assembly->data[0],
+				&assembly->data[assembly->index],
+				msg_lens[msg_count]);
+
+			assembly->index = 0;
+		}
+		assembly->index += msg_lens[msg_count];
+	}
+}
+
+#if 0
+static void totempg_deliver_fn (
+	unsigned int nodeid,
+	struct iovec *iovec,
+	int iov_len,
+	int endian_conversion_required)
+{
+	struct totempg_mcast *mcast;
+	unsigned short *msg_lens;
+	int i;
+	struct assembly *assembly;
+    char header[FRAME_SIZE_MAX];
+    int h_index;
+	int a_i = 0;
+	int msg_count;
+	int continuation;
+	int start;
+
+	assembly = assembly_ref (nodeid);
+	assert (assembly);
+
+	/*
+	 * assemble the packet contents into one block of data to simplify delivery
+	 */
+	if (iov_len == 1) {
+		/* 
+		 * This message originated from external processor 
+		 * because there is only one iovec for the full msg.
+		 */
+		char *data;
+		int datasize;
+        
+        mcast = (struct totempg_mcast *)iovec[0].iov_base;
+		if (endian_conversion_required) {
+			mcast->msg_count = swab16 (mcast->msg_count);
+		}
+
+		msg_count = mcast->msg_count;
+ 		datasize = sizeof (struct totempg_mcast) +
+			msg_count * sizeof (unsigned short);
+
+        if(iovec[0].iov_len < datasize) return;
+        
+        memcpy(header, iovec[0].iov_base, datasize);
+		assert(iovec);
+
+        data = iovec[0].iov_base;
+        msg_lens = (unsigned short*) (header + sizeof (struct totempg_mcast));
+        if(endian_conversion_required) {
+            for (i = 0; i < mcast->msg_count; i++) {
+                msg_lens[i] = swab16 (msg_lens[i]);
+            }
+		}
+
+		memcpy (&assembly->data[assembly->index], &data[datasize],
+			iovec[0].iov_len - datasize);
+	} else {
+		/* 
+		 * The message originated from local processor  
+		 * because there is greater than one iovec for the full msg.
+		 */
+        h_index = 0;
+        for(i = 0; i < 2; i++) {
+            memcpy(&header[h_index], iovec[i].iov_base, iovec[i].iov_len);
+            h_index += iovec[i].iov_len;
+        }
+
+        mcast = (struct totempg_mcast *)header;
+        msg_lens = (unsigned short *) (header + sizeof (struct totempg_mcast));
+
+        a_i = assembly->index;
+		for (i = 2; i < iov_len; i++) {
+			assert (iovec[i].iov_len + a_i <= MESSAGE_SIZE_MAX);
+			memcpy (&assembly->data[a_i], iovec[i].iov_base, iovec[i].iov_len);
+			a_i += msg_lens[i - 2];
+		}
+		iov_len -= 2;
+	}
+
+	/*
+	 * If the last message in the buffer is a fragment, then we
+	 * can't deliver it.  We'll first deliver the full messages
+	 * then adjust the assembly buffer so we can add the rest of the 
+	 * fragment when it arrives.
+	 */
+	msg_count = mcast->fragmented ? mcast->msg_count - 1 : mcast->msg_count;
+	continuation = mcast->continuation;
+	iov_delv.iov_base = &assembly->data[0];
+	iov_delv.iov_len = assembly->index + msg_lens[0];
+
+	/*
+	 * Make sure that if this message is a continuation, that it
+	 * matches the sequence number of the previous fragment.
+	 * Also, if the first packed message is a continuation
+	 * of a previous message, but the assembly buffer
+	 * is empty, then we need to discard it since we can't
+	 * assemble a complete message. Likewise, if this message isn't a 
+	 * continuation and the assembly buffer is empty, we have to discard
+	 * the continued message.
+	 */
+	start = 0;
 	if (continuation) {
 
 		if (continuation != assembly->last_frag_num) {
@@ -622,6 +784,7 @@ static void totempg_deliver_fn (
 		assembly->index += msg_lens[msg_count];
 	}
 }
+#endif
 
 /*
  * Totem Process Group Abstraction
@@ -629,7 +792,6 @@ static void totempg_deliver_fn (
  */
 
 void *callback_token_received_handle;
-
 int callback_token_received_fn (enum totem_callback_token_type type,
 	void *data)
 {
@@ -638,6 +800,7 @@ int callback_token_received_fn (enum totem_callback_token_type type,
 	int res;
 
 	pthread_mutex_lock (&mcast_msg_mutex);
+
 	if (mcast_packed_msg_count == 0) {
 		pthread_mutex_unlock (&mcast_msg_mutex);
 		return (0);
@@ -757,7 +920,7 @@ static int mcast_msg (
 		pthread_mutex_unlock (&mcast_msg_mutex);
 		return(-1);
 	}
-
+    
 	for (i = 0; i < iov_len; ) {
 		mcast.fragmented = 0;
 		mcast.continuation = fragment_continuation;
