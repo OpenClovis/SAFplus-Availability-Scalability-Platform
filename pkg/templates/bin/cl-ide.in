@@ -123,16 +123,7 @@ if [ -z $ECLIPSE ]; then
     exit 1
 fi
 
-INI_FILE=$CL_SDKDIR/IDE/scripts/config.ini
-
-if [ ! -f $INI_FILE ]; then
-    echo "[ERROR] Could not find $INI_FILE in your installation directory"
-    echo "        This can be a signal of an incomplete installation"
-    exit 1
-fi
-
 feedback 1 "SDK installation directory: $SDKDIR"
-feedback 1 "Template config.ini file:   $INI_FILE"
 feedback 1 "Eclipse directory:          $ECLIPSE"
 
 ##############################################################################
@@ -156,75 +147,41 @@ if [ ! -f $DOTDIR/$CL_SDK/eclipse ]; then
     feedback 1 "Created $DOTDIR/$CL_SDK/eclipse directory"
 fi
 
-# See if $DOTDIR/$CL_SDK/project-area.rc exists. If yes, source it.
-# That should have a reference to CL_PROJECT_AREA.  If not, create
+# See if $DOTDIR/$CL_SDK/project-area.rc exists. If not, create
 # default project area at $HOME/clovis/project
 
 if [ -f $DOTDIR/$CL_SDK/project-area.rc ]; then
     feedback 1 "Found $DOTDIR/$CL_SDK/project-area.rc"
-    source $DOTDIR/$CL_SDK/project-area.rc
 else
-    if [ ! -d $HOME/clovis/project ]; then
-        feedback 0 "No project area found, creating default project area"
-        feedback 0 "at $HOME/clovis/project..."
+    DEF_PROJECT_AREA=$HOME/clovis/project
+    echo -en "Enter Project area location[default: $DEF_PROJECT_AREA] : "
+    read project_area
+    if [ "x${project_area}" == "x" ]; then
+	project_area=$DEF_PROJECT_AREA
+    else
+	project_area=`echo $project_area | perl -n -e 's/(\/*)$//; print "$_"'`
+    fi
+		
+    if [ ! -d $project_area ]; then
+        feedback 0 "No project area found, creating project area at $project_area..."
         
-        mkdir -p $HOME/clovis/project
+        mkdir -p $project_area
         if [ $? -ne 0 ]; then
-            echo "[ERROR] Could not create $HOME/clovis/project.  Please check permissions." >&2
+            echo "[ERROR] Could not create $project_area.  Please check permissions." >&2
             exit 1
         fi
-        cd $HOME/clovis/project
+        cd $project_area
         $CL_SDKDIR/src/ASP/configure > /dev/null 2>&1
         cd - > /dev/null
         feedback 0 "done."
     else
-        feedback 0 "Configuring default project area at $HOME/clovis/project..."
-        cd $HOME/clovis/project
+        feedback 0 "Configuring project area at $project_area..."
+        cd $project_area
         $CL_SDKDIR/src/ASP/configure > /dev/null 2>&1
         cd - > /dev/null
         feedback 0 "done."
-    fi        
-fi
-
-# Copy config.ini ($INI_FILE). Also, if project area is defined and it
-# actually exists, modify the config.ini so that it points to
-# CL_PROJECT_AREA/ide_workspace as default workspace.
-
-feedback 1 "CL_PROJECT_AREA is:         $CL_PROJECT_AREA"
-
-if [ $CL_PROJECT_AREA ] && [ -d $CL_PROJECT_AREA/ide_workspace ]; then
-    newini=$DOTDIR/$CL_SDK/eclipse/config.ini
-    egrep -v '(^osgi.instance.area.default)|(eof=eof)|(End of file marker)' \
-        $INI_FILE > $newini
-    cat << EOF >> $newini
-osgi.instance.area.default=$CL_PROJECT_AREA/ide_workspace
-
-# End of file marker - must be here
-eof=eof
-EOF
-    feedback 1 "Modified eclipse config.ini file:   $INI_FILE"
-else
-    cp $INI_FILE $DOTDIR/$CL_SDK/eclipse
-    feedback 1 "Unmodified Eclipse config.ini file: $INI_FILE"
-fi
-
-# Delete help cache if the build we are launching cl-ide from is newer than
-# the build we last launched cl-ide from
-
-if [ -f $DOTDIR/$CL_SDK/eclipse/BUILD ]; then
-    source $DOTDIR/$CL_SDK/eclipse/BUILD
-    export LASTBUILD=$BUILD_NUMBER
-    source $CL_SDKDIR/src/ASP/BUILD
-    export CURBUILD=$BUILD_NUMBER
-    if [ "$CURBUILD" == "$LASTBUILD" ]; then
-        echo "do nothing" > /dev/null
-    else
-        cp $CL_SDKDIR/src/ASP/BUILD $DOTDIR/$CL_SDK/eclipse/.
-        rm -rf $DOTDIR/$CL_SDK/eclipse/org.eclipse.help.base
     fi
-else
-    cp $CL_SDKDIR/src/ASP/BUILD $DOTDIR/$CL_SDK/eclipse/.
-    rm -rf $DOTDIR/$CL_SDK/eclipse/org.eclipse.help.base
+    echo "Project area created in $project_area"
 fi
 
 ##############################################################################

@@ -2438,12 +2438,36 @@ if [ $overwrite_openclovis_sdk == 'y' ] || [ $overwrite_openclovis_sdk == 'Y' ];
 		# remove plugins directory from IDE installation as it no more required
 		rm -rf plugins
 
+		# update config.ini		
 		cd $IDE_ROOT/scripts
-		# fix the eclipse path in the openclovisIDE.sh file
-		sed -i -e 's/\.\.\/eclipse/$PACKAGE_ROOT\/eclipse/' -e 's/-configuration \./-configuration $IDE_ROOT\/scripts/' openclovisIDE.sh
-		#mv -f * $IDE_ROOT
-		cd $IDE_ROOT
-		#rmdir openclovisIDE
+		cp -rf config.ini $ECLIPSE/configuration
+		echo "done"
+
+		# Delete help cache if the build we are installing is newer than
+		# the build we last installed
+		if [ -f $CACHE_DIR/eclipse/BUILD ]; then
+    			source $CACHE_DIR/eclipse/BUILD
+    			export LASTBUILD=$BUILD_NUMBER
+    			source $PACKAGE_ROOT/src/ASP/BUILD
+    			export CURBUILD=$BUILD_NUMBER
+    			if [ "$CURBUILD" == "$LASTBUILD" ]; then
+        			echo "do nothing" > /dev/null
+    			else
+        			cp $PACKAGE_ROOT/src/ASP/BUILD $CACHE_DIR/eclipse/.
+        			rm -rf $CACHE_DIR/eclipse/org.eclipse.help.base
+    			fi
+		else
+			if [ ! -f $CACHE_DIR/eclipse ]; then
+    				mkdir -p $CACHE_DIR/eclipse
+    				if [ $? -ne 0 ]; then
+        			echo "[ERROR] Could not create $CACHE_DIR/eclipse. Check permissions."
+    				fi
+    				echo "Created $CACHE_DIR/eclipse directory" >&2
+			fi
+
+    			cp $PACKAGE_ROOT/src/ASP/BUILD $CACHE_DIR/eclipse/.
+    			rm -rf $CACHE_DIR/eclipse/org.eclipse.help.base
+		fi
 		echo "done"
 	fi
 
