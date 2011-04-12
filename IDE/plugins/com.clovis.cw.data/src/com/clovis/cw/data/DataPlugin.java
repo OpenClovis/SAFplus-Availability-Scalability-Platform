@@ -22,7 +22,6 @@ import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -247,7 +246,7 @@ public class DataPlugin extends AbstractUIPlugin
     	if (_projectAreaLocation != null)
 			return _projectAreaLocation;
 
-    	// get the ide workspace location's parent directory and see if it is
+    	/*// get the ide workspace location's parent directory and see if it is
     	//  a project area
     	IPath workspacePath = Platform.getLocation();
     	File dir = workspacePath.toFile();
@@ -260,7 +259,7 @@ public class DataPlugin extends AbstractUIPlugin
     			_projectAreaLocation = dir.getParentFile().getAbsolutePath();
     			return _projectAreaLocation;
     		}
-    	}
+    	}*/
     	
 		String aspLocFile = System.getProperty("user.home") + File.separator
 				+ ".clovis" + File.separator + "sdk-"
