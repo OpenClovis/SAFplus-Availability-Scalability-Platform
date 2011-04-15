@@ -870,19 +870,6 @@ clLogSvrShmOpenNFlusherCreate(ClLogSvrEoDataT   *pSvrEoEntry,
     }
 #endif
 
-    rc = clOsalTaskCreateAttached(pSvrStreamData->shmName.pValue, 
-                                  CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE,
-                                  CL_OSAL_MIN_STACK_SIZE, clLogFlusherStart, 
-                                  pSvrStreamData, &pSvrStreamData->flusherId);
-    if( CL_OK != rc )
-    {
-        CL_LOG_CLEANUP(clOsalMunmap_L((ClPtrT) pStreamHeader, pStreamHeader->shmSize),
-                       CL_OK);
-        pSvrStreamData->pStreamHeader = NULL;
-        CL_LOG_CLEANUP(clLogSvrShmNameDelete(&pSvrStreamData->shmName), CL_OK);
-        return rc;
-    }
-
     pSvrStreamData->dsId           = dsId;
     /* 
      * streamHeader  |--------------------|
@@ -897,10 +884,22 @@ clLogSvrShmOpenNFlusherCreate(ClLogSvrEoDataT   *pSvrEoEntry,
     headerSize                     =
         CL_LOG_HEADER_SIZE_GET(pSvrCommonEoEntry->maxMsgs, 
                                pSvrCommonEoEntry->maxComponents);
-    pSvrStreamData->pStreamHeader  = pStreamHeader;
     pSvrStreamData->pStreamRecords = 
         ((ClUint8T *) (pSvrStreamData->pStreamHeader)) + headerSize; 
-    
+
+    rc = clOsalTaskCreateAttached(pSvrStreamData->shmName.pValue, 
+                                  CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE,
+                                  CL_OSAL_MIN_STACK_SIZE, clLogFlusherStart, 
+                                  pSvrStreamData, &pSvrStreamData->flusherId);
+    if( CL_OK != rc )
+    {
+        CL_LOG_CLEANUP(clOsalMunmap_L((ClPtrT) pStreamHeader, pStreamHeader->shmSize),
+                       CL_OK);
+        pSvrStreamData->pStreamHeader = NULL;
+        CL_LOG_CLEANUP(clLogSvrShmNameDelete(&pSvrStreamData->shmName), CL_OK);
+        return rc;
+    }
+
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
 }

@@ -3133,6 +3133,7 @@ void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
                  * node shutdown if the 3rd failure is greater than 100 seconds
                  * window.
                  */
+                comp->restartPending = 0;
                 if((t1 - comp->compRestartTime) >
                    CL_CPM_ASP_COMP_RESTART_WINDOW)
                 {
@@ -3151,21 +3152,20 @@ void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
                     if((t1 - comp->compRestartTime) < 
                        CL_CPM_ASP_COMP_RESTART_WINDOW)
                     {
-                        /* Bug 4803:
+                        /* 
                          * incrementing the compRestartRecoveryCount so that 
                          * node will be shutdown in case of 3rd time failure 
-                         * within the window of 100 seconds.
+                         * within the restart window.
                          */
                         comp->compRestartRecoveryCount += 1;
-                        comp->compRestartTime = t1;
                         /*clOsalPrintf("Restart Time %d \n", 
                           comp->compRestartTime);*/
                     }
                     else
                     {
-                        /*  Bug 4803:
-                         *  First HB failure of the component in the window
-                         *  of 100 seconds .Start of the 100 seconds window.
+                        /*  
+                         *  First HB failure of the component in the restart window
+                         *  Start of the restart window.
                          */
                         comp->compRestartRecoveryCount = 1;
                         comp->compRestartTime = t1;
