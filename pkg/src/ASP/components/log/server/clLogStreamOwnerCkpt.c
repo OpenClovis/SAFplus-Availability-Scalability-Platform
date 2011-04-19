@@ -25,12 +25,14 @@
 #include <clCkptExtApi.h>
 #include <clCkptErrors.h>
 #include <clHandleApi.h>
-
+#include <clCkptIpi.h>
 #include <clLogCommon.h>
 #include <clLogStreamOwnerCkpt.h>
 #include <xdrClLogCompKeyT.h>
 #include <xdrClLogSOCompDataT.h>
 #include <xdrClLogStreamOwnerDataIDLT.h>
+
+#define CL_STREAMOWNER_CKPT_RETENTION_DURATION (0)
 
 const ClCharT  soSecPrefix[] = "cl_log_so_section_";    
 
@@ -215,7 +217,7 @@ clLogStreamOwnerGlobalEntryRecover(ClLogSOEoDataT            *pSoEoEntry,
  *  Recreate the entry 
  */
 ClRcT
-clLogStreamOwnerGlobalStateRecover(ClIocNodeAddressT  masterAddr)
+clLogStreamOwnerGlobalStateRecover(ClIocNodeAddressT  masterAddr, ClBoolT switchover)
 {
     ClRcT                     rc            = CL_OK;
     ClHandleT                 hSecIter      = CL_HANDLE_INVALID_VALUE;
@@ -231,7 +233,20 @@ clLogStreamOwnerGlobalStateRecover(ClIocNodeAddressT  masterAddr)
     {
         return rc;
     }
+    if(switchover)
+    {
+        rc = clCkptActiveReplicaSetSwitchOver(pSoEoEntry->hCkpt);
+    }
+    else
+    {
+        rc = clCkptActiveReplicaSet(pSoEoEntry->hCkpt);
+    }
 
+    if (CL_OK != rc)
+    {
+        CL_LOG_DEBUG_ERROR(("clCkptActiveReplicaSet(): rc[%#x], switchover flag [%d]", rc, switchover));
+        return rc;
+    }
     rc = clCkptSectionIterationInitialize(pSoEoEntry->hCkpt,
                                           CL_CKPT_SECTIONS_ANY, 
                                           CL_TIME_END, &hSecIter);
@@ -873,10 +888,10 @@ clLogStreamOwnerCheckpointCreate(ClLogSOEoDataT  *pSoEoEntry,
         return rc;
     }
 
-    creationAtt.creationFlags     = CL_CKPT_WR_ACTIVE_REPLICA;
+    creationAtt.creationFlags     = CL_CKPT_CHECKPOINT_COLLOCATED;
     creationAtt.checkpointSize    = 
         pCommonEoData->maxStreams * CL_LOG_SO_SEC_SIZE; 
-    creationAtt.retentionDuration = 60000000000LL; /* 10 secs */
+    creationAtt.retentionDuration = CL_STREAMOWNER_CKPT_RETENTION_DURATION;
     creationAtt.maxSections       = pCommonEoData->maxStreams;
     sectionSize                   = pCommonEoData->maxComponents * 
                                     sizeof(ClLogCompKeyT); 
@@ -1429,7 +1444,7 @@ clLogStreamOwnerGlobalCkptGet(ClLogSOEoDataT         *pSoEoEntry,
   //  }
     if( pCommonEoData->masterAddr == clIocLocalAddressGet() )
     {
-        rc = clLogStreamOwnerGlobalStateRecover(pCommonEoData->masterAddr);
+        rc = clLogStreamOwnerGlobalStateRecover(pCommonEoData->masterAddr, CL_FALSE);
     if( CL_OK != rc )
     {
             CL_LOG_CLEANUP(clCkptCheckpointClose(pSoEoEntry->hCkpt), CL_OK);

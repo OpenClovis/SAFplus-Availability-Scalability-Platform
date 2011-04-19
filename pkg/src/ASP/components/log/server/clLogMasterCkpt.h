@@ -60,9 +60,10 @@ clLogMasterDataCheckpoint(CL_IN ClLogMasterEoDataT  *pMasterEoEntry,
 
 ClRcT
 clLogMasterStateRecover(CL_IN ClLogSvrCommonEoDataT  *pCommonEoEntry,
-            			CL_IN ClLogMasterEoDataT     *pMasterEoEntry);
+            			CL_IN ClLogMasterEoDataT     *pMasterEoEntry,
+                        CL_IN ClBoolT switchover);
 extern ClRcT
-clLogMasterGlobalCkptRead(ClLogSvrCommonEoDataT  *pCommonEoEntry);
+clLogMasterGlobalCkptRead(ClLogSvrCommonEoDataT  *pCommonEoEntry, ClBoolT switchover);
 
 extern ClRcT
 clLogMasterCompDataCheckpoint(ClLogMasterEoDataT   *pMasterEoEntry, 

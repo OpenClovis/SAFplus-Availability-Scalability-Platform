@@ -180,12 +180,12 @@ clLogAddrUpdate(ClIocNodeAddressT  leader,
             CL_LOG_DEBUG_ERROR(("failed to update the TL entry"));
             return rc;
         }
-        rc = clLogStreamOwnerGlobalStateRecover(leader);
+        rc = clLogStreamOwnerGlobalStateRecover(leader, CL_TRUE);
         if( CL_OK != rc )
         {
             return rc;
         }    
-        rc = clLogMasterGlobalCkptRead(pSvrCommonEoData);
+        rc = clLogMasterGlobalCkptRead(pSvrCommonEoData, CL_TRUE);
         if( CL_OK != rc )
         {
             /*

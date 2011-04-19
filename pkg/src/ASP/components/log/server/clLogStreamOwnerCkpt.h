@@ -179,7 +179,7 @@ clLogStreamOwnerEntryRecreate(ClLogSvrCommonEoDataT  *pCommonEoData,
                               ClAddrT                pBuffer,
                               ClUint32T              size);
 extern ClRcT
-clLogStreamOwnerGlobalStateRecover(ClIocNodeAddressT  masterAddr);
+clLogStreamOwnerGlobalStateRecover(ClIocNodeAddressT  masterAddr, ClBoolT switchover);
 #ifdef __cplusplus
 }
 #endif

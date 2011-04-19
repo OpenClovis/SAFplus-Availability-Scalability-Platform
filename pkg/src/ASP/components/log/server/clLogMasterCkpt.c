@@ -25,11 +25,14 @@
 #include <clCpmApi.h>
 #include <clCpmExtApi.h>
 #include <clCkptApi.h>
+#include <clCkptIpi.h>
 #include <clLogCommon.h>
 #include <clLogMasterEo.h>
 #include <clLogMasterCkpt.h>
 #include <clLogMaster.h>
 #include <xdrClLogCompDataT.h>
+
+#define CL_LOGMASTER_CKPT_RETENTION_DURATION (0)
 
 static ClRcT
 clLogMasterEoEntryCheckpoint(ClLogMasterEoDataT *pMasterEoEntry);
@@ -113,43 +116,43 @@ clLogMasterCkptGet(void)
     {
         return rc;
     }
-    ckptAttr.creationFlags     = CL_CKPT_WR_ACTIVE_REPLICA;
+    ckptAttr.creationFlags     = CL_CKPT_CHECKPOINT_COLLOCATED;
     ckptAttr.checkpointSize    = pMasterEoEntry->maxFiles
-                                     * pMasterEoEntry->sectionSize;
-    ckptAttr.retentionDuration = 60000000000LL; /* 10 sec */ 
+        * pMasterEoEntry->sectionSize;
+    ckptAttr.retentionDuration = CL_LOGMASTER_CKPT_RETENTION_DURATION;
     ckptAttr.maxSections       = pMasterEoEntry->maxFiles;
     ckptAttr.maxSectionSize    = pMasterEoEntry->sectionSize;
     ckptAttr.maxSectionIdSize  = pMasterEoEntry->sectionIdSize;
 
- //   openFlags = CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
+    //   openFlags = CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
     //rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName, 
     //                          NULL, openFlags, 0,  &pMasterEoEntry->hCkpt);
-//    if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
-  //  {
-        openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE
-                        | CL_CKPT_CHECKPOINT_READ;
-        rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName,
-                                  &ckptAttr,openFlags, timeout,
-                                  &pMasterEoEntry->hCkpt);
-        if( (CL_OK != rc) && (CL_ERR_ALREADY_EXIST != rc) )
-        {
-            CL_LOG_DEBUG_ERROR(("clCkptCheckpointOpen(): rc[0x%x]", rc));
-            return rc;
-        }
-   //     if( CL_ERR_ALREADY_EXIST != CL_GET_ERROR_CODE(rc))
-        {/* Create default section */
-        }
+    //    if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
+    //  {
+    openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE
+        | CL_CKPT_CHECKPOINT_READ;
+    rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName,
+                              &ckptAttr,openFlags, timeout,
+                              &pMasterEoEntry->hCkpt);
+    if( (CL_OK != rc) && (CL_ERR_ALREADY_EXIST != rc) )
+    {
+        CL_LOG_DEBUG_ERROR(("clCkptCheckpointOpen(): rc[0x%x]", rc));
+        return rc;
+    }
+    //     if( CL_ERR_ALREADY_EXIST != CL_GET_ERROR_CODE(rc))
+    {/* Create default section */
+    }
     //    return rc;
-//    }
+    //    }
 
     if( pCommonEoEntry->masterAddr == clIocLocalAddressGet() )
     {
-       rc = clLogMasterStateRecover(pCommonEoEntry, pMasterEoEntry);
-       if( CL_OK != rc )
-       {
-           CL_LOG_CLEANUP(clCkptCheckpointClose(pMasterEoEntry->hCkpt),
-                   CL_OK);
-       }
+        rc = clLogMasterStateRecover(pCommonEoEntry, pMasterEoEntry, CL_FALSE);
+        if( CL_OK != rc )
+        {
+            CL_LOG_CLEANUP(clCkptCheckpointClose(pMasterEoEntry->hCkpt),
+                           CL_OK);
+        }
     } /* else you are standby so just keep the ckpt opened */
 
     CL_LOG_DEBUG_TRACE(("Exit: rc[0x%x]", rc));
@@ -606,7 +609,7 @@ clLogMasterStreamEntryPack(ClCntKeyHandleT   key,
 }
 
 ClRcT
-clLogMasterGlobalCkptRead(ClLogSvrCommonEoDataT  *pCommonEoEntry)
+clLogMasterGlobalCkptRead(ClLogSvrCommonEoDataT  *pCommonEoEntry, ClBoolT switchover)
 {
     ClRcT               rc              = CL_OK;
     ClLogMasterEoDataT  *pMasterEoEntry = NULL;
@@ -619,7 +622,7 @@ clLogMasterGlobalCkptRead(ClLogSvrCommonEoDataT  *pCommonEoEntry)
         return rc;
     }
       
-    rc = clLogMasterStateRecover(pCommonEoEntry, pMasterEoEntry);
+    rc = clLogMasterStateRecover(pCommonEoEntry, pMasterEoEntry, switchover);
     if( CL_OK != rc )
     {
        return rc;
@@ -631,7 +634,8 @@ clLogMasterGlobalCkptRead(ClLogSvrCommonEoDataT  *pCommonEoEntry)
 
 ClRcT
 clLogMasterStateRecover(ClLogSvrCommonEoDataT  *pCommonEoEntry,
-                        ClLogMasterEoDataT    *pMasterEoEntry)
+                        ClLogMasterEoDataT    *pMasterEoEntry,
+                        ClBoolT switchover)
 {
     ClRcT                             rc             = CL_OK;
     ClHandleT                         hSecIter       = CL_HANDLE_INVALID_VALUE;
@@ -647,6 +651,20 @@ clLogMasterStateRecover(ClLogSvrCommonEoDataT  *pCommonEoEntry,
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clLogMasterEoEntrySet(): rc[0x %x]", rc));
+        return rc;
+    }
+
+    if(switchover)
+    {
+        rc = clCkptActiveReplicaSetSwitchOver(pMasterEoEntry->hCkpt);
+    }
+    else
+    {
+        rc = clCkptActiveReplicaSet(pMasterEoEntry->hCkpt);
+    }
+    if (CL_OK != rc)
+    {
+        CL_LOG_DEBUG_ERROR(("clCkptActiveReplicaSet(): rc[%#x],switchover flag [%d]", rc, switchover));
         return rc;
     }
 
