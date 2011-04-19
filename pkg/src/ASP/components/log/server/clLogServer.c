@@ -47,6 +47,7 @@
 #include <LogPortStreamOwnerClient.h>
 #include <LogPortMasterClient.h>
 #include <LogPortSvrServer.h>
+#include <AppclientPortclientClient.h>
 #include <xdrClLogCompDataT.h>
 #include <clLogOsal.h>
 
@@ -1785,6 +1786,8 @@ clLogSvrDebugFilterSet(ClNameT *pStreamName,
     ClLogSvrStreamDataT    *pSvrStreamData    = NULL;
     ClLogSvrCommonEoDataT  *pSvrCommonEoEntry = NULL;
     ClNameT streamScopeNode = {0};
+    ClLogSvrFilterCbDataT  filterCbData       = {0};
+    ClLogStreamScopeT streamScope = CL_LOG_STREAM_LOCAL;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -1856,6 +1859,19 @@ clLogSvrDebugFilterSet(ClNameT *pStreamName,
     {
         CL_LOG_DEBUG_ERROR(("clOsalMutexLock_L(): rc[0x %x]", rc));
         CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock), CL_OK);
+    }
+
+    filterCbData.pStreamName      = pStreamName;
+    filterCbData.pStreamScope     = &streamScope;
+    filterCbData.pStreamScopeNode = pStreamScopeNode;
+    filterCbData.pFilter          = pFilter;
+
+    rc = clCntWalk(pSvrStreamData->hComponentTable, 
+                   clLogSvrFilterSetClientInformCb, &filterCbData,
+                   sizeof(filterCbData));
+    if( CL_OK != rc )
+    {
+        CL_LOG_DEBUG_ERROR(("clCntWalk(): rc[0x %x]\n", rc));
     }
 
     rc = clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock);
@@ -1980,7 +1996,8 @@ clLogSvrFilterSetClientInformCb(ClCntKeyHandleT   key,
     ClRcT                  rc             = CL_OK;
     ClLogSvrCompDataT      *pData         = (ClLogSvrCompDataT *) data;
     ClIdlHandleT           hLogIdl        = CL_HANDLE_INVALID_VALUE;
-    
+    ClLogSvrFilterCbDataT *pFilterCbData = (ClLogSvrFilterCbDataT*)arg;
+
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     rc = clLogSvrClientIdlHandleInitialize(pData->portId, &hLogIdl);
@@ -1988,16 +2005,16 @@ clLogSvrFilterSetClientInformCb(ClCntKeyHandleT   key,
     {
         return rc;
     }
-#if 0 
-    rc = clLogClientFilterSetNotifysync(hLogIdl, *(pFilterCbData->pStreamName),
-                                       *(pFilterCbData->pStreamScope), 
-                                       *(pFilterCbData->pFilter), NULL, NULL); 
+
+
+    rc = VDECL_VER(clLogClientFilterSetNotifyClientAsync, 4, 0, 0)(hLogIdl, *pFilterCbData->pStreamName,
+                                                                   *pFilterCbData->pStreamScope, 
+                                                                   *pFilterCbData->pStreamScopeNode,
+                                                                   *pFilterCbData->pFilter, NULL, NULL); 
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clLogClntFilterSetClientAsync(): rc[0x %x]", rc));
     }
-    /*FIXME-client filter set */
-#endif
     
     CL_LOG_CLEANUP(clIdlHandleFinalize(hLogIdl), CL_OK);
 
