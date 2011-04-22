@@ -1342,9 +1342,9 @@ def asp_driver(cmd):
                }
 
     if cmd_map.has_key(cmd):
-        if cmd == 'zap':
-            create_asp_cmd_marker('zap')
-            cmd_map['zap']()
+        if cmd in ['zap','stop']:
+            create_asp_cmd_marker(cmd)
+            cmd_map[cmd]()
         else:
             cmd_map[cmd]()
             create_asp_cmd_marker(cmd)

@@ -94,9 +94,9 @@ def amf_watchdog_loop():
                 asp.zap_asp()
                 sys.exit(1)
             else:
-                asp.zap_asp()
 
                 if not asp_admin_stop():
+                    asp.zap_asp()
                     if asp.should_restart_asp():
                         asp.start_asp(stop_watchdog=False)
                         asp.create_asp_cmd_marker('start')
