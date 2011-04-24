@@ -109,6 +109,7 @@
 #endif
 
 extern ClBoolT gIsNodeRepresentative;
+extern ClUint32T clEoWithOutCpm;
 /*
  * Global leaky bucket overridden on a per-process basis.
  */
@@ -2274,18 +2275,25 @@ static ClRcT __clIocReceive(ClIocCommPortHandleT commPortHdl,
     userHeader.srcAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
     userHeader.srcAddress.iocPhyAddress.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
 
-    if(!gIsNodeRepresentative && (rc = clIocCompStatusSet(userHeader.srcAddress.iocPhyAddress, TIPC_PUBLISHED)) != CL_OK){
-        ClUint32T packetSize;
+    if(clEoWithOutCpm
+       ||
+       userHeader.srcAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress)
+    {
+        if( (rc = clIocCompStatusSet(userHeader.srcAddress.iocPhyAddress, TIPC_PUBLISHED)) != CL_OK)
 
-        packetSize = bytes - ((userHeader.flag == 0)? sizeof(ClTipcHeaderT): sizeof(ClTipcFragHeaderT));
+        {
+            ClUint32T packetSize;
 
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Dropping a received packet."
-                                           "Failed to SET the staus of the packet-sender-component "
-                                           "[node 0x%x : port 0x%x]. Packet size is %d. error code 0x%x ",
-                                           userHeader.srcAddress.iocPhyAddress.nodeAddress,
-                                           userHeader.srcAddress.iocPhyAddress.portId, 
-                                           packetSize, rc));
-        goto retry;
+            packetSize = bytes - ((userHeader.flag == 0)? sizeof(ClTipcHeaderT): sizeof(ClTipcFragHeaderT));
+
+            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Dropping a received packet."
+                                               "Failed to SET the staus of the packet-sender-component "
+                                               "[node 0x%x : port 0x%x]. Packet size is %d. error code 0x%x ",
+                                               userHeader.srcAddress.iocPhyAddress.nodeAddress,
+                                               userHeader.srcAddress.iocPhyAddress.portId, 
+                                               packetSize, rc));
+            goto retry;
+        }
     }
 
     if(userHeader.flag == 0)
