@@ -2315,6 +2315,26 @@ public class ProjectValidator implements IProjectValidator, ValidationConstants
                        SafConstants.ASSOCIATED_SERVICEUNIT_LIST);
         		   
         		   if(redundancyModel.endsWith(ComponentEditorConstants.
+                           NO_REDUNDANCY_MODEL)) {
+	                  if (suList != null && suList.size() > 1) {
+	                	  EObject problemDataObj = (EObject) _problemNumberObjMap.get(new Integer(108));
+	                	  EObject minSUsProblem = EcoreCloneUtils.cloneEObject(problemDataObj);
+	                       EcoreUtils.setValue(minSUsProblem, PROBLEM_MESSAGE,
+	                               "ServiceGroup instance can have "
+	                               + "maximum one ServiceUnit instance"
+	                               + " associated if its redundancy model is NO_REDUNDANCY");
+	                       
+	                       EStructuralFeature srcFeature = minSUsProblem.eClass().
+	                           getEStructuralFeature(PROBLEM_SOURCE);
+	                       minSUsProblem.eSet(srcFeature, sg);
+	                       HashSet suInstList = getAvailableSUsForSG(sg, suList);
+	                       List relatedObjects = (List) EcoreUtils.getValue(
+	                    		   minSUsProblem, PROBLEM_RELATED_OBJECTS);
+	                        relatedObjects.add(new Vector(suInstList));
+	                        relatedObjects.add(new Vector(suList));
+	                       probsList.add(minSUsProblem);
+	                   }
+	               }else if(redundancyModel.endsWith(ComponentEditorConstants.
                            TWO_N_REDUNDANCY_MODEL)) {
 	                  if (suList != null && suList.size() < 2) {
 	                	  EObject problemDataObj = (EObject) _problemNumberObjMap.get(new Integer(38));

@@ -302,7 +302,10 @@ public class TableDoubleClickListener implements IDoubleClickListener
            		selectEditorProblemSource(ComponentEditorConstants.EDITOR_TYPE, compInput, source);
            		SNMPCodeGenPropertiesAction.openSNMPConfigDialog(source, _project, null);
         		break;
-        		
+        case 108: //ServiceGroup instance can have maximum one ServiceUnit
+            	//instance associated if it's redundancy model is NO_REDUNDANCY
+        		NodeProfileAction.openNodeProfileDialog(shell, _project, source);
+        		break;		
         default:
         	break;
         }
