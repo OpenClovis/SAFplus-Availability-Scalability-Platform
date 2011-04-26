@@ -809,7 +809,8 @@ clLogTimeGet(ClCharT   *pStrTime, ClUint32T maxBytes)
 }
 
 ClRcT
-clLogHeaderGet(ClCharT *pMsgHeader, ClUint32T maxHeaderSize)
+clLogHeaderGetWithContext(const ClCharT *pArea, const ClCharT *pContext, 
+                          ClCharT *pMsgHeader, ClUint32T maxHeaderSize)
 {
     ClRcT rc = CL_OK;
     static ClNameT nodeName = {0};
@@ -825,11 +826,24 @@ clLogHeaderGet(ClCharT *pMsgHeader, ClUint32T maxHeaderSize)
             return rc;
     }
 
+    if(!pArea)
+        pArea = CL_LOG_AREA_UNSPECIFIED;
+
+    if(!pContext)
+        pContext = CL_LOG_CONTEXT_UNSPECIFIED;
+
     clLogTimeGet(timeStr, (ClUint32T)sizeof(timeStr));
     snprintf(pMsgHeader, maxHeaderSize, CL_LOG_PRNT_FMT_STR_WO_FILE, timeStr,
              nodeName.length, nodeName.value, (int)getpid(),
-             CL_EO_NAME, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED);
+             CL_EO_NAME, pArea, pContext);
     return CL_OK;
+}
+
+ClRcT
+clLogHeaderGet(ClCharT *pMsgHeader, ClUint32T maxHeaderSize)
+{
+    return clLogHeaderGetWithContext(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                                     pMsgHeader, maxHeaderSize);
 }
 
 static ClRcT

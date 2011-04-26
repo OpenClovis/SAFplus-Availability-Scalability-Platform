@@ -189,6 +189,10 @@ clLogWriteWithHeader(ClLogStreamHandleT   hStream,
 extern ClRcT
 clLogHeaderGet(ClCharT *pMsgHeader, ClUint32T maxHeaderSize);
 
+extern ClRcT
+clLogHeaderGetWithContext(const ClCharT *pArea, const ClCharT *pContext, 
+                          ClCharT *pMsgHeader, ClUint32T maxHeaderSize);
+
 extern ClCharT * 
 clLogSeverityStrGet(ClLogSeverityT severity);
 

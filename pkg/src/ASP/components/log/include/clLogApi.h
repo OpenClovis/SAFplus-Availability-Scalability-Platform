@@ -1106,6 +1106,15 @@ clLogWriteAsyncWithHeader(ClLogStreamHandleT   hStream,
                           ClUint16T            msgId,
                           ...);
 
+extern ClRcT
+clLogWriteAsyncWithContextHeader(ClLogStreamHandleT   hStream,
+                                 ClLogSeverityT       severity,
+                                 const ClCharT        *pArea,
+                                 const ClCharT        *pContext,
+                                 ClUint16T            serviceId,
+                                 ClUint16T            msgId,
+                                 ...);
+
 /**
  **********************************************************************
  *  \brief Changes the filter settings of a Log Stream.

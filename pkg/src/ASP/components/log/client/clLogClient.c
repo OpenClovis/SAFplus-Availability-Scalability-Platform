@@ -729,6 +729,36 @@ clLogWriteWithHeader(ClLogStreamHandleT   hStream,
 }
 
 ClRcT
+clLogWriteAsyncWithContextHeader(ClLogStreamHandleT   hStream,
+                                 ClLogSeverityT       logSeverity,
+                                 const ClCharT        *pArea,
+                                 const ClCharT        *pContext,
+                                 ClUint16T            serviceId,
+                                 ClUint16T            msgId,
+                                 ...)
+{
+    ClRcT    rc = CL_OK;
+    ClCharT msgHeader[CL_MAX_NAME_LENGTH];
+    va_list  args;
+
+    CL_LOG_DEBUG_TRACE(("Enter"));
+
+    if( (rc = clLogHeaderGetWithContext(pArea, pContext, msgHeader, (ClUint32T)sizeof(msgHeader)) ) != CL_OK)
+    {
+        msgHeader[0] = 0;
+    }
+
+    va_start(args, msgId);
+
+    rc = clLogVWriteAsyncWithHeader(hStream, logSeverity, serviceId, msgId, msgHeader, args);
+
+    va_end(args);
+
+    CL_LOG_DEBUG_TRACE(("Exit: rc[0x %x]", rc));
+    return rc;
+}
+
+ClRcT
 clLogWriteAsyncWithHeader(ClLogStreamHandleT   hStream,
                           ClLogSeverityT       logSeverity,
                           ClUint16T            serviceId,
@@ -741,7 +771,8 @@ clLogWriteAsyncWithHeader(ClLogStreamHandleT   hStream,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    if( (rc = clLogHeaderGet(msgHeader, (ClUint32T)sizeof(msgHeader)) ) != CL_OK)
+    if( (rc = clLogHeaderGetWithContext(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                                        msgHeader, (ClUint32T)sizeof(msgHeader)) ) != CL_OK)
     {
         msgHeader[0] = 0;
     }
