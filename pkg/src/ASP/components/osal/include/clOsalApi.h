@@ -1009,6 +1009,8 @@ extern ClRcT clOsalMutexLockDebug(ClOsalMutexIdT mutexId, const ClCharT *file, C
 
 #endif
 
+ClRcT clOsalMutexLockSilent (ClOsalMutexIdT mutexId);
+
 ClRcT
 clOsalMutexUnlockNonDebug(ClOsalMutexIdT mutexId);
 
@@ -1043,7 +1045,7 @@ extern ClRcT clOsalMutexUnlockDebug(ClOsalMutexIdT mutexId, const ClCharT *file,
 
 #endif
 
-
+ClRcT clOsalMutexUnlockSilent (ClOsalMutexIdT mutexId);
 
 /**
  ****************************************

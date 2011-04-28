@@ -6,7 +6,11 @@ ClRcT cosSysvProcessSharedSemInit(ClOsalMutexT *pMutex, ClUint8T *pKey, ClUint32
 ClRcT cosSysvMutexValueSet(ClOsalMutexIdT mutexId, ClInt32T value);
 ClRcT cosSysvMutexValueGet(ClOsalMutexIdT mutexId, ClInt32T *pValue);
 ClRcT cosSysvMutexLock (ClOsalMutexIdT mutexId);
+ClRcT __cosSysvMutexLock(ClOsalMutexIdT mutexId, ClBoolT verbose);
+
 ClRcT cosSysvMutexUnlock (ClOsalMutexIdT mutexId);
+ClRcT __cosSysvMutexUnlock (ClOsalMutexIdT mutexId, ClBoolT verbose);
+
 ClRcT cosSysvMutexDestroy (ClOsalMutexT *pMutex);
 
 ClRcT cosSysvSemCreate (ClUint8T* pName, ClUint32T count, ClOsalSemIdT* pSemId);

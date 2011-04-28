@@ -155,13 +155,20 @@ cosPosixMutexValueGet(ClOsalMutexIdT mutexId, ClInt32T *pValue)
 /**************************************************************************/
 
 ClRcT 
-cosPosixMutexLock (ClOsalMutexIdT mutexId)
+__cosPosixMutexLock (ClOsalMutexIdT mutexId, ClBoolT verbose)
 {
     ClRcT rc = CL_OK;
     ClOsalMutexT *pMutex = (ClOsalMutexT*)mutexId;
     ClInt32T err=0;
 
-    nullChkRet(pMutex);
+    if(verbose)
+    {
+        nullChkRet(pMutex);
+    }
+    else if(!pMutex)
+    {
+        return CL_OSAL_RC(CL_ERR_NULL_POINTER);
+    }
 
     CL_FUNC_ENTER();   
 retry:
@@ -171,11 +178,20 @@ retry:
         if(errno == EINTR)
             goto retry;
         rc = CL_OSAL_RC(CL_ERR_LIBRARY);
-        clDbgCodeError(rc,("sem_wait returned [%s]\n",strerror(errno)));
+        if(verbose)
+        {
+            clDbgCodeError(rc,("sem_wait returned [%s]\n",strerror(errno)));
+        }
     }
 
     CL_FUNC_EXIT();
     return (CL_OK);
+}
+
+ClRcT 
+cosPosixMutexLock (ClOsalMutexIdT mutexId)
+{
+    return __cosPosixMutexLock(mutexId, CL_TRUE);
 }
 
 ClRcT 
@@ -206,7 +222,7 @@ retry:
 /**************************************************************************/
 
 ClRcT 
-cosPosixMutexUnlock (ClOsalMutexIdT mutexId)
+__cosPosixMutexUnlock (ClOsalMutexIdT mutexId, ClBoolT verbose)
 {
     ClRcT rc = CL_OK;
     ClUint32T retCode = 0;
@@ -217,14 +233,17 @@ cosPosixMutexUnlock (ClOsalMutexIdT mutexId)
     
     if (NULL == pMutex)
 	{
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex Unlock : FAILED, mutex is NULL (used after delete?)"));
-        clDbgPause();
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
+        if(verbose)
+        {
+            CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex Unlock : FAILED, mutex is NULL (used after delete?)"));
+            clDbgPause();
+        }
         CL_FUNC_EXIT();
         return(retCode);
 	}
 
-retry:
+    retry:
     err = sem_post(&pMutex->shared_lock.sem.posSem);
     if(err < 0)
     {
@@ -233,15 +252,21 @@ retry:
             goto retry;
         }
         rc = CL_OSAL_RC(CL_ERR_LIBRARY);
-        clDbgCodeError(rc,("sem_post unlock returned [%s]\n",strerror(errno)));
+        if(verbose)
+        {
+            clDbgCodeError(rc,("sem_post unlock returned [%s]\n",strerror(errno)));
+        }
     }
 
-    /* Nobody wants to know whenever ANY mutex is locked/unlocked; now if this was a particular mutex...
-       CL_DEBUG_PRINT (CL_DEBUG_TRACE, ("\nMutex Unlock : DONE")); */
     CL_FUNC_EXIT();
     return (rc);
 }
 
+ClRcT 
+cosPosixMutexUnlock (ClOsalMutexIdT mutexId)
+{
+    return __cosPosixMutexUnlock(mutexId, CL_TRUE);
+}
 
 ClRcT 
 cosPosixMutexDestroy (ClOsalMutexT *pMutex)

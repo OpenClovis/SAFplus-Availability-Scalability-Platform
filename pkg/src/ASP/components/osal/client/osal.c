@@ -511,6 +511,22 @@ clOsalMutexValueSet (ClOsalMutexIdT mutexId, ClInt32T value)
     return (gOsalFunction.fpFunctionMutexValueSet(mutexId, value));
 }
 
+ClRcT
+clOsalMutexLockSilent(ClOsalMutexIdT mutexId)
+{
+    if(!gOsalFunction.fpFunctionMutexLockSilent)
+        return CL_OSAL_RC(CL_OSAL_ERR_OS_ERROR);
+    return gOsalFunction.fpFunctionMutexLockSilent(mutexId);
+}
+
+ClRcT
+clOsalMutexUnlockSilent(ClOsalMutexIdT mutexId)
+{
+    if(!gOsalFunction.fpFunctionMutexUnlockSilent)
+        return CL_OSAL_RC(CL_OSAL_ERR_OS_ERROR);
+    return gOsalFunction.fpFunctionMutexUnlockSilent(mutexId);
+}
+
 /**************************************************************************/
 #ifndef CL_OSAL_DEBUG
 

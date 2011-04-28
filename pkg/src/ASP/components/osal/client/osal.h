@@ -167,6 +167,12 @@ typedef ClRcT
 (*fpCosMutexLock)(ClOsalMutexIdT mutexId);
 /**************************************************************************/
 typedef ClRcT
+(*fpCosMutexLockSilent)(ClOsalMutexIdT mutexId);
+/**************************************************************************/
+typedef ClRcT
+(*fpCosMutexUnlockSilent)(ClOsalMutexIdT mutexId);
+/**************************************************************************/
+typedef ClRcT
 (*fpCosMutexTryLock)(ClOsalMutexIdT mutexId);
 /**************************************************************************/
 typedef ClRcT
@@ -420,7 +426,8 @@ typedef struct osalFunction_t
     fpCosMutexTryLock       fpFunctionMutexTryLock;
     fpCosMutexErrorCheckInit       fpFunctionMutexErrorCheckInit;
     fpCosMutexErrorCheckCreate     fpFunctionMutexErrorCheckCreate;
-
+	fpCosMutexLockSilent		   fpFunctionMutexLockSilent;
+	fpCosMutexUnlockSilent	       fpFunctionMutexUnlockSilent;
 } osalFunction_t;
 
 /* Task structure needed for task wrapper function */

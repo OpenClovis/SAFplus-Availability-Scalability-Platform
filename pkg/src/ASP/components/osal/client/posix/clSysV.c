@@ -193,7 +193,7 @@ cosSysvMutexValueGet(ClOsalMutexIdT mutexId, ClInt32T *pValue)
 /**************************************************************************/
 
 ClRcT 
-cosSysvMutexLock (ClOsalMutexIdT mutexId)
+__cosSysvMutexLock (ClOsalMutexIdT mutexId, ClBoolT verbose)
 {
     ClRcT rc = CL_OK;
     ClOsalMutexT *pMutex = (ClOsalMutexT*)mutexId;
@@ -208,17 +208,26 @@ retry:
         if(errno == EINTR)
             goto retry;
         rc = CL_OSAL_RC(CL_ERR_LIBRARY);
-        clDbgCodeError(rc,("semop returned [%s]\n",strerror(errno)));
+        if(verbose)
+        {
+            clDbgCodeError(rc,("semop returned [%s]\n",strerror(errno)));
+        }
     }
 
     CL_FUNC_EXIT();
     return (CL_OK);
 }
 
+ClRcT 
+cosSysvMutexLock (ClOsalMutexIdT mutexId)
+{
+    return __cosSysvMutexLock(mutexId, CL_TRUE);
+}
+
 /**************************************************************************/
 
 ClRcT 
-cosSysvMutexUnlock (ClOsalMutexIdT mutexId)
+__cosSysvMutexUnlock (ClOsalMutexIdT mutexId, ClBoolT verbose)
 {
     ClRcT rc = CL_OK;
     ClOsalMutexT* pMutex = (ClOsalMutexT*) mutexId;
@@ -236,15 +245,21 @@ retry:
             goto retry;
         }
         rc = CL_OSAL_RC(CL_ERR_LIBRARY);
-        clDbgCodeError(rc,("semop unlock returned [%s]\n",strerror(errno)));
+        if(verbose)
+        {
+            clDbgCodeError(rc,("semop unlock returned [%s]\n",strerror(errno)));
+        }
     }
 
-    /* Nobody wants to know whenever ANY mutex is locked/unlocked; now if this was a particular mutex...
-       CL_DEBUG_PRINT (CL_DEBUG_TRACE, ("\nMutex Unlock : DONE")); */
     CL_FUNC_EXIT();
     return (rc);
 }
 
+ClRcT 
+cosSysvMutexUnlock (ClOsalMutexIdT mutexId)
+{
+    return __cosSysvMutexUnlock(mutexId, CL_TRUE);
+}
 
 ClRcT 
 cosSysvMutexDestroy (ClOsalMutexT *pMutex)

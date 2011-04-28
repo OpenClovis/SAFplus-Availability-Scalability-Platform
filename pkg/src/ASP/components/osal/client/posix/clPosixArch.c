@@ -218,12 +218,19 @@ cosMutexValueGet(ClOsalMutexIdT mutexId, ClInt32T *pValue)
 /**************************************************************************/
 
 static ClRcT 
-cosMutexLock (ClOsalMutexIdT mutexId)
+__cosMutexLock (ClOsalMutexIdT mutexId, ClBoolT verbose)
 {
     ClRcT rc = CL_OK;
     ClOsalMutexT *pMutex = (ClOsalMutexT*)mutexId;
 
-    nullChkRet(pMutex);
+    if(verbose)
+    {
+        nullChkRet(pMutex);
+    }
+    else if(!pMutex)
+    {
+        return CL_OSAL_RC(CL_OSAL_ERR_OS_ERROR);
+    }
 
     CL_FUNC_ENTER();   
     if( (pMutex->flags & CL_OSAL_SHARED_NORMAL) )
@@ -238,11 +245,23 @@ cosMutexLock (ClOsalMutexIdT mutexId)
     }
     else
     {
-        rc = cosPosixMutexLock(mutexId);
+        rc = __cosPosixMutexLock(mutexId, verbose);
     }
 
     CL_FUNC_EXIT();
     return (CL_OK);
+}
+
+static ClRcT 
+cosMutexLock (ClOsalMutexIdT mutexId)
+{
+    return __cosMutexLock(mutexId, CL_TRUE);
+}
+
+static ClRcT 
+cosMutexLockSilent (ClOsalMutexIdT mutexId)
+{
+    return __cosMutexLock(mutexId, CL_FALSE);
 }
 
 static ClRcT 
@@ -276,7 +295,7 @@ cosMutexTryLock (ClOsalMutexIdT mutexId)
 /**************************************************************************/
 
 static ClRcT 
-cosMutexUnlock (ClOsalMutexIdT mutexId)
+__cosMutexUnlock (ClOsalMutexIdT mutexId, ClBoolT verbose)
 {
     ClRcT rc = CL_OK;
     ClUint32T retCode = 0;
@@ -286,28 +305,50 @@ cosMutexUnlock (ClOsalMutexIdT mutexId)
     
     if (NULL == pMutex)
 	{
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex Unlock : FAILED, mutex is NULL (used after delete?)"));
-        clDbgPause();
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
+        if(verbose)
+        {
+            CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex Unlock : FAILED, mutex is NULL (used after delete?)"));
+            clDbgPause();
+        }
         CL_FUNC_EXIT();
         return(retCode);
 	}
 
     if( (pMutex->flags & CL_OSAL_SHARED_NORMAL))
     {
-        sysRetErrChkRet(pthread_mutex_unlock (&pMutex->shared_lock.mutex));
+        if(verbose)
+        {
+            sysRetErrChkRet(pthread_mutex_unlock (&pMutex->shared_lock.mutex));
+        }
+        else
+        {
+            if(pthread_mutex_unlock(&pMutex->shared_lock.mutex))
+            {
+                rc = CL_OSAL_RC(CL_ERR_LIBRARY);
+            }
+        }
     }
     else
     {
-        rc = cosPosixMutexUnlock(mutexId);
+        rc = __cosPosixMutexUnlock(mutexId, verbose);
     }
 
-    /* Nobody wants to know whenever ANY mutex is locked/unlocked; now if this was a particular mutex...
-       CL_DEBUG_PRINT (CL_DEBUG_TRACE, ("\nMutex Unlock : DONE")); */
     CL_FUNC_EXIT();
     return (rc);
 }
 
+static ClRcT 
+cosMutexUnlock (ClOsalMutexIdT mutexId)
+{
+    return __cosMutexUnlock(mutexId, CL_TRUE);
+}
+
+static ClRcT 
+cosMutexUnlockSilent(ClOsalMutexIdT mutexId)
+{
+    return __cosMutexUnlock(mutexId, CL_FALSE);
+}
 
 static ClRcT 
 cosMutexDestroy (ClOsalMutexT *pMutex)
@@ -765,6 +806,9 @@ cosPosixCleanup (osalFunction_t *pOsalFunction)
     pOsalFunction->fpFunctionSharedMutexCreate = NULL;
     pOsalFunction->fpFunctionMutexLock = NULL;
     pOsalFunction->fpFunctionMutexUnlock = NULL;
+    pOsalFunction->fpFunctionMutexLockSilent = NULL;
+    pOsalFunction->fpFunctionMutexUnlockSilent = NULL;
+
     pOsalFunction->fpFunctionMutexDelete = NULL;
     pOsalFunction->fpFunctionMutexDestroy = NULL;
 
@@ -890,6 +934,10 @@ cosPosixInit ()
     /*    gOsalFunction.fpFunctionMutexInitEx = cosPosixMutexInitEx; */
     gOsalFunction.fpFunctionMutexLock = cosMutexLock;
     gOsalFunction.fpFunctionMutexUnlock = cosMutexUnlock;
+
+    gOsalFunction.fpFunctionMutexLockSilent = cosMutexLockSilent;
+    gOsalFunction.fpFunctionMutexUnlockSilent = cosMutexUnlockSilent;
+
     gOsalFunction.fpFunctionMutexDelete = cosMutexDelete;
     gOsalFunction.fpFunctionMutexDestroy = cosMutexDestroy;
 

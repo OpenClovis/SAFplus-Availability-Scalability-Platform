@@ -7,8 +7,11 @@ ClRcT cosPosixMutexValueSet(ClOsalMutexIdT mutexId, ClInt32T value);
 ClRcT cosPosixMutexValueGet(ClOsalMutexIdT mutexId, ClInt32T *pValue);
 
 ClRcT cosPosixMutexLock (ClOsalMutexIdT mutexId);
+ClRcT __cosPosixMutexLock (ClOsalMutexIdT mutexId, ClBoolT verbose);
+
 ClRcT cosPosixMutexTryLock (ClOsalMutexIdT mutexId);
 ClRcT cosPosixMutexUnlock (ClOsalMutexIdT mutexId);
+ClRcT __cosPosixMutexUnlock (ClOsalMutexIdT mutexId, ClBoolT verbose);
 ClRcT cosPosixMutexDestroy (ClOsalMutexT *pMutex);
 
 #ifdef CL_OSAL_DEBUG
