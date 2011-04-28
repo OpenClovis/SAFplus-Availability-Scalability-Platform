@@ -1130,7 +1130,6 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
     retVal =
         clCntNodeAdd(pRmdObject->sndRecContainerHandle, (ClPtrT)(ClWordT)nwMsgId,
                      (ClCntDataHandleT) pSendRecord, NULL);
-    CL_ASSERT(retVal == CL_OK);
     if (retVal != CL_OK)
     {
         clOsalMutexUnlock(pRmdObject->semaForSendHashTable);
@@ -1202,10 +1201,8 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
         if (retVal != CL_OK)
         {
             clLogWarning("RMD","SND","In RMD, IOC call failed with error [%x].  MsgId [0x%x]", retVal, nwMsgId);
-            retCode =           /* Delete Send Record Refer Async send */
-                clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle,
-                                          (ClPtrT)(ClWordT)nwMsgId);
-            CL_ASSERT(retCode == CL_OK);
+            clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle,
+                                      (ClPtrT)(ClWordT)nwMsgId);
             RMD_STAT_INC(pRmdObject->rmdStats.nFailedCalls);            
             retCode = clOsalMutexUnlock(pRmdObject->semaForSendHashTable);
             CL_ASSERT(retCode == CL_OK);
@@ -1229,11 +1226,8 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
         if (retVal == CL_OK)
         {
             retVal = pSendRecord->recType.syncRec.retVal;
-
-            retCode =
-                clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle,
-                                          (ClPtrT)(ClWordT)nwMsgId);
-            CL_ASSERT(retCode == CL_OK);
+            clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle,
+                                      (ClPtrT)(ClWordT)nwMsgId);
             retCode = clOsalMutexUnlock(pRmdObject->semaForSendHashTable);
             CL_ASSERT(retCode == CL_OK);
             return retVal;

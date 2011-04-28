@@ -455,32 +455,44 @@ ClRcT clRmdObjClose(ClRmdObjHandleT p)
         return ((CL_RMD_RC(CL_ERR_INVALID_PARAMETER)));
     }
 
+    /*
+     * Avoid deleting the mutexes so its still valid in case any context is abusing the terminate
+     * and initiating or not quitting the rmd sends.
+     */
+#if 0
     retCode = clOsalMutexDelete(pRmdObject->semaForRecvHashTable);
 
     if (CL_OK != retCode)
     {
         RMD_DBG1((" RMD Recv mutex delete failed\n"));
     }
+    
     retCode = clOsalMutexDelete(pRmdObject->semaForSendHashTable);
 
     if (CL_OK != retCode)
     {
         RMD_DBG1((" RMD Send mutex delete failed\n"));
     }
+#endif
 
+    clOsalMutexLock(pRmdObject->semaForRecvHashTable);
     retCode = clCntDelete(pRmdObject->rcvRecContainerHandle);
     if (CL_OK != retCode)
     {
         RMD_DBG1((" RMD rcv hash table destroy failed\n"));
-
     }
+    pRmdObject->rcvRecContainerHandle = 0;
+    clOsalMutexUnlock(pRmdObject->semaForRecvHashTable);
 
+    clOsalMutexLock(pRmdObject->semaForSendHashTable);
     retCode = clCntDelete(pRmdObject->sndRecContainerHandle);
     if (CL_OK != retCode)
     {
         RMD_DBG1((" RMD snd hash table destroy failed\n"));
 
     }
+    pRmdObject->sndRecContainerHandle = 0;
+    clOsalMutexUnlock(pRmdObject->semaForSendHashTable);
 
     retCode = clHandleDatabaseDestroy(pRmdObject->responseCntxtDbHdl);
     if (CL_OK != retCode)
@@ -490,8 +502,14 @@ ClRcT clRmdObjClose(ClRmdObjHandleT p)
     }
     pRmdObject->responseCntxtDbHdl = 0;
 
+#if 0
+    /*
+     * Don't release the rmd context to respect abusers or initiators of rmd send outside
+     * terminate callback contexts.
+     */
     clHeapFree(pRmdObject);
-    pRmdObject = NULL;
+#endif
+
     CL_FUNC_EXIT();
     return (CL_OK);
 }

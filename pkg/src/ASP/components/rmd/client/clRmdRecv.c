@@ -1168,9 +1168,7 @@ ClRcT clRmdHandleSyncReply(ClEoExecutionObjT *pThis, ClRmdPktT *pRepl, ClUint32T
                 /*
                  * Wake the caller
                  */
-                 rc = clOsalCondSignal(&rec->recType.syncRec.syncCond);
-                 CL_ASSERT(rc == CL_OK);   
-
+                 clOsalCondSignal(&rec->recType.syncRec.syncCond);
             }
             else
             {
