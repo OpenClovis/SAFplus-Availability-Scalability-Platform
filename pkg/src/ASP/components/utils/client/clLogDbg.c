@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include <sys/stat.h>
+#include <signal.h>
 #include <ctype.h>
 #include <clDebugApi.h>
 #include <clLogUtilApi.h>
@@ -88,6 +89,9 @@ static  ClBoolT          gClLogCodeLocationEnable = CL_FALSE;
 static  ClBoolT          clLogTimeEnable      = CL_TRUE;
 static  ClLogRulesInfoT  gpLogRulesInfo = {0};
 static  ClCharT          gLogFilterFile[CL_MAX_NAME_LENGTH];
+static  volatile ClInt32T gClLogParseFilter;
+static  ClOsalMutexT gClRuleLock;
+static  ClBoolT gClRuleLockValid = CL_FALSE;
 
 #define  CL_LOG_CLNT_RECUR_DETECT(threadId)\
 do\
@@ -102,25 +106,6 @@ do\
 
 #define CL_LOG_PRNT_FMT_STR_WO_FILE         "%-26s (%.*s.%d : %s.%3s.%3s"
 #define CL_LOG_PRNT_FMT_STR_WO_FILE_CONSOLE "%-26s (%.*s.%d : %s.%3s.%3s.%05d : %6s) "
-
-#define CL_LOG_RULES_LOCK(mutex)  \
-{\
-    {\
-        if( CL_OK != clOsalMutexLock(mutex) ) \
-        {\
-            return CL_OK;\
-        }\
-    }\
-}
-#define CL_LOG_RULES_UNLOCK(mutex)  \
-{\
-    {\
-        if( CL_OK != clOsalMutexUnlock(mutex) ) \
-        {\
-            return CL_OK;\
-        }\
-    }\
-}
 
 static
 ClCharT *logGetLogRulesFile(void)
@@ -203,7 +188,7 @@ static __inline__ void clLogRulesDisplay(void)
     }
 }
 
-static ClRcT clLogParse(const ClCharT *file)
+static ClRcT clLogParse(const ClCharT *file, ClLogRulesFilterT **ppFilters, ClUint32T *pNumFilters)
 {
     ClLogRulesFilterT *pFilters = NULL;
     ClUint32T         i         = 0;
@@ -324,12 +309,20 @@ static ClRcT clLogParse(const ClCharT *file)
         ++i;
         ++line;
     }
-    gClLogRules.pFilters   = pFilters;
-    gClLogRules.numFilters = i;
+
+    if(ppFilters && pNumFilters)
+    {
+        *ppFilters = pFilters;
+        *pNumFilters = i;
+    }
+    else
+    {
+        gClLogRules.pFilters   = pFilters;
+        gClLogRules.numFilters = i;
+    }
     fclose(fptr);
     return CL_OK;
 }
-
 
 ClRcT
 clLogRulesParse(void)
@@ -340,18 +333,7 @@ clLogRulesParse(void)
     FILE        *fp                 = NULL;
     ClCharT     *pTemp              = NULL;
     ClCharT     *tempStr            = NULL;
-#if defined(CL_LOG_RULES_UPDATE)
-    ClTimerTimeOutT  timeOut        = {30, 0};
-    ClTimerHandleT   timer          = CL_HANDLE_INVALID_VALUE;
 
-   if( gpLogRulesInfo.mutex == CL_HANDLE_INVALID_VALUE )
-   {
-       if( CL_OK != clOsalMutexCreate(&gpLogRulesInfo.mutex) )
-       {
-           return CL_OK;
-       }
-   }
-#endif
     if( NULL == (fp = fopen(CL_LOG_RULES_FILE, "r")) )  
     {
         return CL_OK;
@@ -367,13 +349,10 @@ clLogRulesParse(void)
        fclose(fp);
        return CL_OK;
    }
-#if defined(CL_LOG_RULES_UPDATE)
-   CL_LOG_RULES_LOCK(gpLogRulesInfo.mutex);
-#endif
    gpLogRulesInfo.numRules = numRules;
    if( gpLogRulesInfo.pRules != NULL )
    {
-       clHeapFree(gpLogRulesInfo.pRules);
+       free(gpLogRulesInfo.pRules);
        gpLogRulesInfo.pRules = NULL;
    }
    gpLogRulesInfo.pRules   = pRules;
@@ -420,9 +399,6 @@ clLogRulesParse(void)
       pRules++;
       memset(buffer, 0, sizeof(buffer));
    }
-#if defined(CL_LOG_RULES_UPDATE)
-   CL_LOG_RULES_UNLOCK(gpLogRulesInfo.mutex);
-#endif
 #if defined(CL_RULE_DEBUG)
    pRules = gpLogRulesInfo.pRules;   
    for( ClUint32T i = 0; i < numRules; i++ )
@@ -439,12 +415,6 @@ clLogRulesParse(void)
     *  Even if we are not able to create the timer, we can live without that
     *  not checking the rc.
     */
-#if defined(CL_LOG_RULES_UPDATE)
-   clTimerCreateAndStart(timeOut, CL_TIMER_REPETITIVE, 
-                         CL_TIMER_SEPARATE_CONTEXT,
-                         clLogRulesChkCallback, NULL,
-                          &timer);
-#endif
    
    fclose(fp);
 
@@ -508,8 +478,68 @@ clLogRulesTest(ClCharT         *pNodeName,
     ClBoolT      matchFlag   = CL_FALSE;
     ClInt32T filterIndex = -1;
     ClInt32T maxMatches = 0;
+    ClBoolT retVal = CL_FALSE;
+    ClBoolT ruleLockValid = gClRuleLockValid;
 
     *pMatched = CL_FALSE;
+    
+    if(ruleLockValid)
+    {
+        /*
+         * Skip recursion or deadlock error returns on the mutex
+         */
+        if(clOsalMutexLockSilent(&gClRuleLock) != CL_OK)
+            return CL_FALSE;
+    }
+    
+    if(gClLogParseFilter)
+    {
+        gClLogParseFilter = 0;
+        if(!ruleLockValid)
+        {
+            ClLogRulesFilterT *firstFilter;
+            ClUint32T lastFilters;
+            ClLogRulesFilterT *newFilter = NULL;
+            ClUint32T numFilters = 0;
+            /*
+             * We only start taking the lock from the time of the first signal.
+             * We do this wih the assumption that a signal trigger to reparse the ruleset is effectively
+             * a debug mode where we can take a hit trying to take the lock for a filter check.
+             * We do this with a penalty for a first time signal by leaking out the first filter
+             * to be safe w.r.t to threads that have sneaked in for a lockless rule test.
+             */
+            if(clOsalMutexLockSilent(&gClRuleLock) != CL_OK)
+                return CL_FALSE;
+            ruleLockValid = gClRuleLockValid = CL_TRUE;
+            firstFilter = gClLogRules.pFilters;
+            lastFilters = gClLogRules.numFilters;
+            clLogParse(CL_LOG_RULES_FILE, &newFilter, &numFilters);
+            if(newFilter && numFilters)
+            {
+                if(numFilters < lastFilters)
+                {
+                    newFilter = realloc(newFilter, sizeof(*newFilter) * lastFilters);
+                    CL_ASSERT(newFilter != NULL);
+                    memset(newFilter + numFilters, 0, sizeof(*newFilter) * (lastFilters - numFilters));
+                }
+                gClLogRules.pFilters = newFilter;
+                gClLogRules.numFilters = numFilters;
+            }
+        }
+        else
+        {
+            /*
+             * We are here when the lock is valid. So we are safe.
+             */
+            if(pRulesInfo->pFilters)
+            {
+                free(pRulesInfo->pFilters);
+                pRulesInfo->pFilters = NULL;
+            }
+            pRulesInfo->numFilters = 0;
+            clLogParse(CL_LOG_RULES_FILE, NULL, NULL);
+        }
+    }
 
     if( (NULL == pRulesInfo->pFilters) || 
         ( 0   == pRulesInfo->numFilters) )
@@ -520,14 +550,10 @@ clLogRulesTest(ClCharT         *pNodeName,
         if(severity <= clLogDefaultSeverity)
         {
             *pMatched = CL_TRUE;
-            return CL_TRUE;
+            retVal = CL_TRUE;
         }
-        return CL_FALSE;
+        goto out;
     }
-
-#if defined(CL_LOG_RULES_UPDATE)
-    CL_LOG_RULES_LOCK(gpLogRulesInfo.mutex);
-#endif
 
     /*
      * Find the filter with the maximum matches.
@@ -588,11 +614,10 @@ clLogRulesTest(ClCharT         *pNodeName,
         }
     }
 
-#if defined(CL_LOG_RULES_UPDATE)
-    CL_LOG_RULES_UNLOCK(gpLogRulesInfo.mutex);
-#endif
-    
-    if(!matchFlag) return CL_FALSE;
+    if(!matchFlag) 
+    {
+        goto out;
+    }
 
     *pMatched = CL_TRUE;
 
@@ -601,10 +626,17 @@ clLogRulesTest(ClCharT         *pNodeName,
      * with the best filter that got matched.
      */
     
-    if(severity > pRulesInfo->pFilters[filterIndex].severity)
-        return CL_FALSE;
+    if(severity <= pRulesInfo->pFilters[filterIndex].severity)
+    {
+        retVal = CL_TRUE;
+    }
 
-    return CL_TRUE;
+    out:
+    if(ruleLockValid)
+    {
+        clOsalMutexUnlockSilent(&gClRuleLock);
+    }
+    return retVal;
 }
 
 ClBoolT
@@ -621,9 +653,7 @@ clLogRulesValidate(ClCharT         *pNodeName,
    ClBoolT          matchFlag   = CL_FALSE;
 
    if( NULL == pRules ) return CL_FALSE;
-#if defined(CL_LOG_RULES_UPDATE)
-   CL_LOG_RULES_LOCK(gpLogRulesInfo.mutex);
-#endif
+
    for( cnt = 0; cnt < pRulesInfo->numRules; cnt++, pRules++ )
    {
       if( !clLogSingleMemEvaluate(&pRules->ruleMems[0], pNodeName) )
@@ -654,15 +684,10 @@ clLogRulesValidate(ClCharT         *pNodeName,
       goto returnSeverity;
    }
    *pLogSeverity = CL_LOG_SEV_MAX;
-#if defined(CL_LOG_RULES_UPDATE)
-   CL_LOG_RULES_UNLOCK(gpLogRulesInfo.mutex);
-#endif
+
    return matchFlag;
 returnSeverity: 
    *pLogSeverity = pRules->severity;
-#if defined(CL_LOG_RULES_UPDATE)
-   CL_LOG_RULES_UNLOCK(gpLogRulesInfo.mutex);
-#endif
    return matchFlag;
 }
 
@@ -846,6 +871,27 @@ clLogHeaderGet(ClCharT *pMsgHeader, ClUint32T maxHeaderSize)
                                      pMsgHeader, maxHeaderSize);
 }
 
+static void logRuleSigHandler(int sig)
+{
+    gClLogParseFilter = 1;
+}
+
+void clLogDebugFilterInitialize(void)
+{
+    struct sigaction act;
+    clOsalMutexErrorCheckInit(&gClRuleLock);
+    memset(&act, 0, sizeof(act));
+    act.sa_handler = logRuleSigHandler;
+    act.sa_flags = SA_RESTART;
+    printf("Installing SIGNAL handler for SIGHUP for pid [%d]\n", getpid());
+    sigaction(SIGHUP, &act, NULL);
+}
+
+void clLogDebugFilterFinalize(void)
+{
+    gClRuleLockValid = CL_FALSE;
+}
+
 static ClRcT
 logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
                      ClLogSeverityT  severity,
@@ -885,7 +931,7 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
             /* how do we return error */
         }
         clLogEnvironmentVariablesGet();
-        clLogParse(CL_LOG_RULES_FILE);
+        clLogParse(CL_LOG_RULES_FILE, NULL, NULL);
     }
     msgIdCnt++;
     pSevName = clLogSeverityStrGet(severity);

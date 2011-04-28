@@ -87,6 +87,9 @@ clLogUtilLibInitialize(void)
     {
         gClLogServer = CL_TRUE;
     }
+
+    clLogDebugFilterInitialize();
+
     gUtilLibInitialized = CL_TRUE;
     rc = clOsalTaskCreateAttached((ClCharT *)CL_LOG_UTIL_TASK_NAME, CL_OSAL_SCHED_OTHER,
             CL_OSAL_THREAD_PRI_NOT_APPLICABLE, CL_OSAL_MIN_STACK_SIZE,
@@ -392,6 +395,7 @@ clLogUtilLibFinalize(ClBoolT  logLibInit)
         return rc;
     }
     gUtilLibInitialized = CL_FALSE;
+    clLogDebugFilterFinalize();
     /* 
      * signalling to that guy to wake up
      */
@@ -399,6 +403,7 @@ clLogUtilLibFinalize(ClBoolT  logLibInit)
     clOsalMutexUnlock(&gLogMutex);
     /* Wait till that thread finishes its own job */
     clOsalTaskJoin(taskId);
+
     /*
      * This is hardcoded, have to find out the best way to solve this problem
      * once all the data have been flushed, log library will be finalized.

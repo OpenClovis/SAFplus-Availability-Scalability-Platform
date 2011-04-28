@@ -122,6 +122,10 @@ clLogWriteDeferredWithHeader(ClHandleT       handle,
                              ClCharT         *pFmtStr,
                              ...);
 
+extern void clLogDebugFilterInitialize(void);
+
+extern void clLogDebugFilterFinalize(void);
+
 #ifdef __cplusplus
 }
 #endif
