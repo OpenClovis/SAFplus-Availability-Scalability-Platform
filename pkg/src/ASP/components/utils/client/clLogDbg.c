@@ -883,7 +883,6 @@ void clLogDebugFilterInitialize(void)
     memset(&act, 0, sizeof(act));
     act.sa_handler = logRuleSigHandler;
     act.sa_flags = SA_RESTART;
-    printf("Installing SIGNAL handler for SIGHUP for pid [%d]\n", getpid());
     sigaction(SIGHUP, &act, NULL);
 }
 
