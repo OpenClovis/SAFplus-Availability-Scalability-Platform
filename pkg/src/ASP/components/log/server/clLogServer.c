@@ -1866,9 +1866,9 @@ clLogSvrDebugFilterSet(ClNameT *pStreamName,
     filterCbData.pStreamScopeNode = pStreamScopeNode;
     filterCbData.pFilter          = pFilter;
 
-    rc = clCntWalk(pSvrStreamData->hComponentTable, 
-                   clLogSvrFilterSetClientInformCb, &filterCbData,
-                   sizeof(filterCbData));
+    rc = clCntWalkFailSafe(pSvrStreamData->hComponentTable, 
+                           clLogSvrFilterSetClientInformCb, &filterCbData,
+                           sizeof(filterCbData));
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCntWalk(): rc[0x %x]\n", rc));
@@ -1969,9 +1969,9 @@ VDECL_VER(clLogSvrFilterSet, 4, 0, 0)(
     filterCbData.pStreamScopeNode = pStreamScopeNode;
     filterCbData.pFilter          = pFilter;
 
-    rc = clCntWalk(pSvrStreamData->hComponentTable, 
-                   clLogSvrFilterSetClientInformCb, &filterCbData,
-                   sizeof(filterCbData));
+    rc = clCntWalkFailSafe(pSvrStreamData->hComponentTable, 
+                           clLogSvrFilterSetClientInformCb, &filterCbData,
+                           sizeof(filterCbData));
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCntWalk(): rc[0x %x]\n", rc));
