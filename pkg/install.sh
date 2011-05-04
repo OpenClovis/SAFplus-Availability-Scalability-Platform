@@ -529,7 +529,7 @@ TIPCUTILS_VERSION=tipcutils-1.0.4
 
 # Changed the JRE bin distribution format to tar.gz to make the installation
 # non interactive
-JRE_VERSION=1.5.0.03
+JRE_VERSION=1.6.0_21
 
 ECLIPSE_SDK_VERSION=3.3.2
 export ECLIPSE=$PREFIX/eclipse
@@ -540,8 +540,8 @@ else
 	NET_SNMP_CONFIG=net-snmp-config
 fi
 
-export PATH=$PREFIX_BIN:$PREFIX/jre1.6.0_21/bin:$PATH
-export JAVA_HOME=$PREFIX/jre1.6.0_21
+export PATH=$PREFIX_BIN:$PREFIX/jre$JRE_VERSION/bin:$PATH
+export JAVA_HOME=$PREFIX/jre$JRE_VERSION
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PREFIX_LIB
 
 # this works on mounted file systems as well, yes I tried it.
@@ -981,8 +981,8 @@ if [ $INSTALLIDE == "YES" ]; then
 	fi
 
 	# java too writes the version information to STDERR
-	if [ -f $PREFIX/jre1.6.0_21/bin/java ]; then
-		JAVA=$PREFIX/jre1.6.0_21/bin/java
+	if [ -f $PREFIX/jre$JRE_VERSION/bin/java ]; then
+		JAVA=$PREFIX/jre$JRE_VERSION/bin/java
 	else
 		JAVA=java
 	fi
@@ -2070,19 +2070,19 @@ if [ $INSTALL_JRE -eq 1 ]; then
 	cd $PREFIX
 	tput cup $row 44
 	printf "%-17s" 'Extracting'
-	tar vxf $WORKING_ROOT/$THIRDPARTYPKG jre1.6.0_21.tar.gz \
-		> $WORKING_DIR/log/jre1.6.0_21.log 2>&1 || myexit $row $EXTRACT_ERROR &
+	tar vxf $WORKING_ROOT/$THIRDPARTYPKG jre$JRE_VERSION.tar.gz \
+		> $WORKING_DIR/log/jre$JRE_VERSION.log 2>&1 || myexit $row $EXTRACT_ERROR &
 	PS=$!
 	roll $PS
 	printf "\b"
 	tput cup $row 44
 	printf "%-17s" 'Copying'
-	tar zvxf jre1.6.0_21.tar.gz \
-		>> $WORKING_DIR/log/jre1.6.0_21.log 2>&1 || myexit $row $MAKE_ERROR &
+	tar zvxf jre$JRE_VERSION.tar.gz \
+		>> $WORKING_DIR/log/jre$JRE_VERSION.log 2>&1 || myexit $row $MAKE_ERROR &
 	PS=$!
 	roll $PS
 	printf "\b"
-	rm -f jre1.6.0_21.tar.gz
+	rm -f jre$JRE_VERSION.tar.gz
 	tput cup $row 44
 	printf "%-17s" 'Installed'
 	tput el
