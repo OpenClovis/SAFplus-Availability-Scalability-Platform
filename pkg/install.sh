@@ -1,24 +1,16 @@
 #!/bin/bash
 ################################################################################
 #
-# Copyright (C) 2002-2009 by OpenClovis Inc. All  Rights Reserved.
+#   Copyright (C) 2002-2009 by OpenClovis Inc. All Rights  Reserved.
 # 
-# The source code for  this program is not published  or otherwise 
-# divested of  its trade secrets, irrespective  of  what  has been 
-# deposited with the U.S. Copyright office.
+#   The source code for this program is not published or otherwise divested
+#   of its trade secrets, irrespective of what has been deposited with  the
+#   U.S. Copyright office.
 # 
-# This program is  free software; you can redistribute it and / or
-# modify  it under  the  terms  of  the GNU General Public License
-# version 2 as published by the Free Software Foundation.
-# 
-# This program is distributed in the  hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
-# General Public License for more details.
-# 
-# You  should  have  received  a  copy of  the  GNU General Public
-# License along  with  this program. If  not,  write  to  the 
-# Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+#   No part of the source code  for this  program may  be use,  reproduced,
+#   modified, transmitted, transcribed, stored  in a retrieval  system,  or
+#   translated, in any form or by  any  means,  without  the prior  written
+#   permission of OpenClovis Inc
 ################################################################################
 #
 # Build: 5.0.0
@@ -1271,7 +1263,7 @@ if test $DEPENDENCY -eq 1; then
 			printf "%17s  %-9s  %-16s\n" "Python" "2.4.1" "$PYTHON_COMMENT"
 		fi
 		if test $INSTALL_JRE -eq 0; then
-			printf "%17s  %-9s  %-16s\n" "JRE" "1.6.0_21" "$JAVA_COMMENT"
+			printf "%17s  %-9s  %-16s\n" "JRE" "$JRE_VERSION" "$JAVA_COMMENT"
 		fi
 		if test $INSTALL_ECLIPSE -eq 0; then
 			printf "%17s  %-9s  %-16s\n" "Eclipse SDK" "3.3.2" "$ECLIPSE_COMMENT"
@@ -1326,7 +1318,7 @@ if test $DEPENDENCY -eq 1; then
 		printf "%17s  %-9s  %-16s\n" "Python" "2.4.1" "$PYTHON_COMMENT"
 	fi
 	if test $INSTALL_JRE -eq 1; then
-		printf "%17s  %-9s  %-16s\n" "JRE" "1.6.0_21" "$JAVA_COMMENT"
+		printf "%17s  %-9s  %-16s\n" "JRE" "$JRE_VERSION" "$JAVA_COMMENT"
 	fi
 	if test $INSTALL_ECLIPSE -eq 1; then
 		printf "%17s  %-9s  %-16s\n" "Eclipse SDK" "3.3.2" "$ECLIPSE_COMMENT"
@@ -1412,7 +1404,7 @@ if test $DEPENDENCY -eq 1; then
 		count=`expr $count + 1`
 	fi
 	if test $INSTALL_JRE -eq 1; then
-		printf "%23s  %-17s  %-17s\n" "JRE V1.6.0_21" " < 1" "Pending"
+		printf "%23s  %-17s  %-17s\n" "JRE V$JRE_VERSION" " < 1" "Pending"
 		count=`expr $count + 1`
 	fi
 	if test $INSTALL_ECLIPSE -eq 1; then
@@ -2066,7 +2058,6 @@ if [ $INSTALL_PYTHON -eq 1 ]; then
 fi
 
 if [ $INSTALL_JRE -eq 1 ]; then
-	#echo -n "Installing JRE 1.6.0_21 ... "
 	cd $PREFIX
 	tput cup $row 44
 	printf "%-17s" 'Extracting'
