@@ -1124,6 +1124,19 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
                         CL_AMS_STRING_H_STATE(suSIAssignmentMap[i].haState));
             continue;
         }
+        /*
+         * If the SU is not instantiated, defer assignments.
+         */
+        if(suSIAssignmentMap[i].su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED)
+        {
+            clLogNotice("CUSTOM", "SI-ASSIGN-SU", "Deferring SI [%s] assignment to [%s] "
+                        "sg [%s] started state [%d], SU presence state [%s]",
+                        si->config.entity.name.value,
+                        suSIAssignmentMap[i].su->config.entity.name.value,
+                        sg->config.entity.name.value, sg->status.isStarted,
+                        CL_AMS_STRING_P_STATE(suSIAssignmentMap[i].su->status.presenceState));
+            continue;
+        }
 
         if(suSIAssignmentMap[i].currentHAState != suSIAssignmentMap[i].haState)
         {
