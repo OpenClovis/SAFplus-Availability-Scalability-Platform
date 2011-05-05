@@ -5639,12 +5639,14 @@ clAmsMgmtCommitCCBOperations(
                 clAmsMgmtCCBSetNodeSUListRequestT  *req = 
                     (clAmsMgmtCCBSetNodeSUListRequestT *)opData->payload;
 
-                    
+                ClAmsEntityT *sourceEntity = NULL;
+                ClAmsEntityT *targetEntity = NULL;
                 
-                rc =                  clAmsAddToEntityList(
+                rc =                  clAmsAddGetEntityList(
                                                         &req->nodeName,
                                                         &req->suName,
-                                                        CL_AMS_NODE_CONFIG_SU_LIST);
+                                                        CL_AMS_NODE_CONFIG_SU_LIST,
+                                                        &sourceEntity, &targetEntity);
                 if (rc != CL_OK)
                 {
                     AMS_LOG(CL_DEBUG_ERROR,("Unable to add SU [%.*s] to node [%.*s], return code [0x%x]",req->suName.name.length-1,req->suName.name.value,req->nodeName.name.length-1,req->nodeName.name.value,rc));
@@ -5665,7 +5667,13 @@ clAmsMgmtCommitCCBOperations(
                     AMS_LOG(CL_DEBUG_CRITICAL,("Unable to set SU's [%.*s] parent node to [%.*s] return code [0x%x]. AMF database is inconsistent.",req->suName.name.length-1,req->suName.name.value,req->nodeName.name.length-1,req->nodeName.name.value, rc));
                     AMS_CHECK_RC_ERROR(rc);
                 }
-                
+                if(targetEntity)
+                {
+                    /*
+                     * Mark the SU as instantiable. Would be skipped if its already uninstantiable
+                     */
+                    clAmsPeSUMarkInstantiable((ClAmsSUT*)targetEntity);
+                }
 
                 break;
 
@@ -5710,13 +5718,15 @@ clAmsMgmtCommitCCBOperations(
 
                 clAmsMgmtCCBSetSGSUListRequestT  *req = 
                     (clAmsMgmtCCBSetSGSUListRequestT *)opData->payload;
+                ClAmsEntityT *sourceEntity = NULL;
+                ClAmsEntityT *targetEntity = NULL;
 
-                    
                 AMS_CHECK_RC_ERROR(
-                                   clAmsAddToEntityList(
+                                   clAmsAddGetEntityList(
                                                         &req->sgName,
                                                         &req->suName,
-                                                        CL_AMS_SG_CONFIG_SU_LIST));
+                                                        CL_AMS_SG_CONFIG_SU_LIST,
+                                                        &sourceEntity, &targetEntity));
 
                 /*
                  * Add the parentSG reference for the SU
@@ -5728,7 +5738,17 @@ clAmsMgmtCommitCCBOperations(
                 memcpy (&suRef.entity,&req->suName,sizeof(ClAmsEntityT));
                 AMS_CHECK_RC_ERROR( clAmsEntitySetRefPtr(
                                                          suRef, sgRef));
-
+             
+                /*
+                 * Move the newly added SU to instantiable list. Mark instantiable
+                 * already checks if SU and node is instantiable before moving it.
+                 * So default case would be a no-op in case the SU is locked or 
+                 * parent SG or node is locked.
+                 */
+                if(targetEntity)
+                {
+                    clAmsPeSUMarkInstantiable((ClAmsSUT*)targetEntity);
+                }
                 break;
 
             }

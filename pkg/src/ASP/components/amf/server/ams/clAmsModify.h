@@ -156,6 +156,14 @@ clAmsAddToEntityList(
         ClAmsEntityT  *targetEntity,
         ClAmsEntityListTypeT  entityListName );
 
+extern ClRcT 
+clAmsAddGetEntityList(
+        ClAmsEntityT  *sourceEntity,
+        ClAmsEntityT  *targetEntity,
+        ClAmsEntityListTypeT  entityListName,
+        ClAmsEntityT **ppSourceRef,
+        ClAmsEntityT **ppTargetRef);
+
 /*********************************************************************/
 
 extern ClRcT 

@@ -3208,10 +3208,12 @@ clAmsEntityCompareLists(
  */
 
 ClRcT 
-clAmsAddToEntityList(
-        ClAmsEntityT  *sourceEntity,
-        ClAmsEntityT  *targetEntity,
-        ClAmsEntityListTypeT  entityListName )
+clAmsAddGetEntityList(
+                      ClAmsEntityT  *sourceEntity,
+                      ClAmsEntityT  *targetEntity,
+                      ClAmsEntityListTypeT  entityListName,
+                      ClAmsEntityT **ppSourceRef,
+                      ClAmsEntityT **ppTargetRef)
 {
 
     ClRcT  rc = CL_OK;
@@ -3222,6 +3224,11 @@ clAmsAddToEntityList(
     AMS_FUNC_ENTER (("\n"));
 
     AMS_CHECKPTR ( !sourceEntity || !targetEntity );
+
+    if(ppSourceRef) 
+        *ppSourceRef =  NULL;
+    if(ppTargetRef)
+        *ppTargetRef =  NULL;
 
     targetEntityRef = clHeapAllocate ( sizeof (ClAmsEntityRefT));
 
@@ -3234,12 +3241,12 @@ clAmsAddToEntityList(
     targetEntityRef->ptr = NULL;
 
     AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[sourceEntity->type],
-                &sourceEntityRef) );
+                                                 &gAms.db.entityDb[sourceEntity->type],
+                                                 &sourceEntityRef) );
 
     AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[targetEntity->type],
-                targetEntityRef) );
+                                                 &gAms.db.entityDb[targetEntity->type],
+                                                 targetEntityRef) );
 
     /*
      * Add the targetEntityRef in the sourceEntityRef list
@@ -3250,551 +3257,569 @@ clAmsAddToEntityList(
     switch(entityListName)
     {
 
-        case CL_AMS_NODE_CONFIG_NODE_DEPENDENT_LIST:
-            {
+    case CL_AMS_NODE_CONFIG_NODE_DEPENDENT_LIST:
+        {
                 
-                ClAmsNodeT  *node = (ClAmsNodeT *) sourceEntityRef.ptr;
+            ClAmsNodeT  *node = (ClAmsNodeT *) sourceEntityRef.ptr;
 
-                AMS_CHECK_RC_ERROR ( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            0,
-                            &entityKey,
-                            CL_FALSE) ); 
+            AMS_CHECK_RC_ERROR ( clAmsEntityRefGetKey(
+                                                      &targetEntityRef->entity,
+                                                      0,
+                                                      &entityKey,
+                                                      CL_FALSE) ); 
 
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef(
-                            &node->config.nodeDependentsList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-        case CL_AMS_NODE_CONFIG_NODE_DEPENDENCIES_LIST:
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
             {
-                
-                ClAmsNodeT  *node = (ClAmsNodeT *) sourceEntityRef.ptr;
-
-                AMS_CHECK_RC_ERROR ( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            0,
-                            &entityKey,
-                            CL_FALSE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef(
-                            &node->config.nodeDependenciesList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-        case CL_AMS_NODE_CONFIG_SU_LIST:
-            {
-               
-                ClAmsNodeT  *node = (ClAmsNodeT *) sourceEntityRef.ptr;
-                ClAmsSUT  *su =   (ClAmsSUT *)targetEntityRef->ptr;
-
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            su->config.rank,
-                            &entityKey,
-                            CL_FALSE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &node->config.suList,
-                            targetEntityRef,
-                            entityKey) );
-                
-                break;
-
-            }
-
-        case CL_AMS_SG_CONFIG_SU_LIST:
-            {
-
-                ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
-                ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
-
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            su->config.rank,
-                            &entityKey,
-                            CL_TRUE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR (clAmsEntityListAddEntityRef(
-                            &sg->config.suList,
-                            targetEntityRef,
-                            entityKey) ) ;
-
-                break;
-
-            }
-
-        case CL_AMS_SG_CONFIG_SI_LIST:
-            {
-
-                ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
-                ClAmsSIT  *si = (ClAmsSIT *)targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            si->config.rank,
-                            &entityKey,
-                            CL_TRUE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef(
-                            &sg->config.siList,
-                            targetEntityRef,
-                            entityKey) ) ;
-
-                break;
-
-             }
-
-        case CL_AMS_SG_STATUS_INSTANTIABLE_SU_LIST:
-            {
-
-                ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
-                ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            su->config.rank,
-                            &entityKey,
-                            CL_TRUE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef(
-                            &sg->status.instantiableSUList,
-                            targetEntityRef,
-                            entityKey) ) ;
-
-                break;
-
-            }
-
-        case CL_AMS_SG_STATUS_INSTANTIATED_SU_LIST:
-            {
-
-                ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
-                ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            su->config.rank,
-                            &entityKey,
-                            CL_TRUE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &sg->status.instantiatedSUList,
-                            targetEntityRef,
-                            entityKey) ) ;
-                break;
-
-            }
-
-        case CL_AMS_SG_STATUS_IN_SERVICE_SPARE_SU_LIST:
-            {
-
-                ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
-                ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            su->config.rank,
-                            &entityKey,
-                            CL_TRUE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &sg->status.inserviceSpareSUList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-        case CL_AMS_SG_STATUS_ASSIGNED_SU_LIST:
-            {
-
-                ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
-                ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            su->config.rank,
-                            &entityKey,
-                            CL_TRUE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &sg->status.assignedSUList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-        case CL_AMS_SG_STATUS_FAULTY_SU_LIST:
-            {
-
-                ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
-                ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            su->config.rank,
-                            &entityKey,
-                            CL_FALSE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &sg->status.faultySUList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-        case CL_AMS_SU_CONFIG_COMP_LIST:
-            {
-
-                ClAmsSUT  *su = (ClAmsSUT *) sourceEntityRef.ptr;
-                ClAmsCompT  *comp = (ClAmsCompT *) targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            comp->config.instantiateLevel,
-                            &entityKey,
-                            CL_TRUE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &su->config.compList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-            case CL_AMS_SI_CONFIG_SU_RANK_LIST: 
-            {
-
-                ClAmsSIT  *si = (ClAmsSIT *) sourceEntityRef.ptr;
-                ClAmsSUT  *su = (ClAmsSUT *) targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            su->config.rank,
-                            &entityKey,
-                            CL_TRUE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &si->config.suList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-            case CL_AMS_SI_CONFIG_SI_DEPENDENTS_LIST:
-            {
-
-                ClAmsSIT  *si = (ClAmsSIT *) sourceEntityRef.ptr;
-                ClAmsSIT  *targetSI = (ClAmsSIT *) targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            targetSI->config.rank,
-                            &entityKey,
-                            CL_FALSE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &si->config.siDependentsList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-            case CL_AMS_SI_CONFIG_SI_DEPENDENCIES_LIST:
-            {
-
-                ClAmsSIT  *si = (ClAmsSIT *) sourceEntityRef.ptr;
-                ClAmsSIT  *targetSI= (ClAmsSIT *) targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            targetSI->config.rank,
-                            &entityKey,
-                            CL_FALSE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &si->config.siDependenciesList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-            case CL_AMS_SI_CONFIG_CSI_LIST:
-            {
-
-                ClAmsSIT  *si  = (ClAmsSIT *) sourceEntityRef.ptr;
-                ClAmsCSIT  *csi = (ClAmsCSIT *)targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            csi->config.rank,
-                            &entityKey,
-                            CL_FALSE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &si->config.csiList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-            case CL_AMS_CSI_CONFIG_CSI_DEPENDENTS_LIST:
-            {
-
-                ClAmsCSIT  *csi = (ClAmsCSIT *) sourceEntityRef.ptr;
-                ClAmsCSIT  *targetCSI = (ClAmsCSIT *) targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            targetCSI->config.rank,
-                            &entityKey,
-                            CL_FALSE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &csi->config.csiDependentsList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-            case CL_AMS_CSI_CONFIG_CSI_DEPENDENCIES_LIST:
-            {
-
-                ClAmsCSIT  *csi = (ClAmsCSIT *) sourceEntityRef.ptr;
-                ClAmsCSIT  *targetCSI= (ClAmsCSIT *) targetEntityRef->ptr;
-               
-                AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
-                            &targetEntityRef->entity,
-                            targetCSI->config.rank,
-                            &entityKey,
-                            CL_FALSE) );
-
-                if ( clAmsCheckIfRefExist(
-                            sourceEntity,
-                            targetEntity,
-                            entityListName ) 
-                        == CL_TRUE )
-                {
-                    rc = CL_ERR_ALREADY_EXIST;
-                    goto exitfn;
-                }
-
-                AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
-                            &csi->config.csiDependenciesList,
-                            targetEntityRef,
-                            entityKey) );
-
-                break;
-
-            }
-
-            default:
-            {
-
-                AMS_LOG (CL_DEBUG_ERROR,("invalid entity list[%d] \n",entityListName));
-                rc =  CL_AMS_ERR_INVALID_ENTITY_LIST;
+                rc = CL_ERR_ALREADY_EXIST;
                 goto exitfn;
             }
 
+            AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef(
+                                                             &node->config.nodeDependentsList,
+                                                             targetEntityRef,
+                                                             entityKey) );
+
+            break;
+
         }
 
-        return CL_OK;
+    case CL_AMS_NODE_CONFIG_NODE_DEPENDENCIES_LIST:
+        {
+                
+            ClAmsNodeT  *node = (ClAmsNodeT *) sourceEntityRef.ptr;
 
-exitfn: 
+            AMS_CHECK_RC_ERROR ( clAmsEntityRefGetKey(
+                                                      &targetEntityRef->entity,
+                                                      0,
+                                                      &entityKey,
+                                                      CL_FALSE) );
 
-        clAmsFreeMemory(targetEntityRef);
-        return CL_AMS_RC (rc);
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef(
+                                                             &node->config.nodeDependenciesList,
+                                                             targetEntityRef,
+                                                             entityKey) );
+
+            break;
+
+        }
+
+    case CL_AMS_NODE_CONFIG_SU_LIST:
+        {
+               
+            ClAmsNodeT  *node = (ClAmsNodeT *) sourceEntityRef.ptr;
+            ClAmsSUT  *su =   (ClAmsSUT *)targetEntityRef->ptr;
+
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     su->config.rank,
+                                                     &entityKey,
+                                                     CL_FALSE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &node->config.suList,
+                                                            targetEntityRef,
+                                                            entityKey) );
+                
+            break;
+
+        }
+
+    case CL_AMS_SG_CONFIG_SU_LIST:
+        {
+
+            ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
+            ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
+
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     su->config.rank,
+                                                     &entityKey,
+                                                     CL_TRUE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR (clAmsEntityListAddEntityRef(
+                                                            &sg->config.suList,
+                                                            targetEntityRef,
+                                                            entityKey) ) ;
+
+            break;
+
+        }
+
+    case CL_AMS_SG_CONFIG_SI_LIST:
+        {
+
+            ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
+            ClAmsSIT  *si = (ClAmsSIT *)targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     si->config.rank,
+                                                     &entityKey,
+                                                     CL_TRUE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef(
+                                                             &sg->config.siList,
+                                                             targetEntityRef,
+                                                             entityKey) ) ;
+
+            break;
+
+        }
+
+    case CL_AMS_SG_STATUS_INSTANTIABLE_SU_LIST:
+        {
+
+            ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
+            ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     su->config.rank,
+                                                     &entityKey,
+                                                     CL_TRUE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef(
+                                                             &sg->status.instantiableSUList,
+                                                             targetEntityRef,
+                                                             entityKey) ) ;
+
+            break;
+
+        }
+
+    case CL_AMS_SG_STATUS_INSTANTIATED_SU_LIST:
+        {
+
+            ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
+            ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     su->config.rank,
+                                                     &entityKey,
+                                                     CL_TRUE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &sg->status.instantiatedSUList,
+                                                            targetEntityRef,
+                                                            entityKey) ) ;
+            break;
+
+        }
+
+    case CL_AMS_SG_STATUS_IN_SERVICE_SPARE_SU_LIST:
+        {
+
+            ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
+            ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     su->config.rank,
+                                                     &entityKey,
+                                                     CL_TRUE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &sg->status.inserviceSpareSUList,
+                                                            targetEntityRef,
+                                                            entityKey) );
+
+            break;
+
+        }
+
+    case CL_AMS_SG_STATUS_ASSIGNED_SU_LIST:
+        {
+
+            ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
+            ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     su->config.rank,
+                                                     &entityKey,
+                                                     CL_TRUE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &sg->status.assignedSUList,
+                                                            targetEntityRef,
+                                                            entityKey) );
+
+            break;
+
+        }
+
+    case CL_AMS_SG_STATUS_FAULTY_SU_LIST:
+        {
+
+            ClAmsSGT  *sg = (ClAmsSGT *) sourceEntityRef.ptr;
+            ClAmsSUT  *su = (ClAmsSUT *)targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     su->config.rank,
+                                                     &entityKey,
+                                                     CL_FALSE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &sg->status.faultySUList,
+                                                            targetEntityRef,
+                                                            entityKey) );
+
+            break;
+
+        }
+
+    case CL_AMS_SU_CONFIG_COMP_LIST:
+        {
+
+            ClAmsSUT  *su = (ClAmsSUT *) sourceEntityRef.ptr;
+            ClAmsCompT  *comp = (ClAmsCompT *) targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     comp->config.instantiateLevel,
+                                                     &entityKey,
+                                                     CL_TRUE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &su->config.compList,
+                                                            targetEntityRef,
+                                                            entityKey) );
+
+            break;
+
+        }
+
+    case CL_AMS_SI_CONFIG_SU_RANK_LIST: 
+        {
+
+            ClAmsSIT  *si = (ClAmsSIT *) sourceEntityRef.ptr;
+            ClAmsSUT  *su = (ClAmsSUT *) targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     su->config.rank,
+                                                     &entityKey,
+                                                     CL_TRUE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &si->config.suList,
+                                                            targetEntityRef,
+                                                            entityKey) );
+
+            break;
+
+        }
+
+    case CL_AMS_SI_CONFIG_SI_DEPENDENTS_LIST:
+        {
+
+            ClAmsSIT  *si = (ClAmsSIT *) sourceEntityRef.ptr;
+            ClAmsSIT  *targetSI = (ClAmsSIT *) targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     targetSI->config.rank,
+                                                     &entityKey,
+                                                     CL_FALSE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &si->config.siDependentsList,
+                                                            targetEntityRef,
+                                                            entityKey) );
+
+            break;
+
+        }
+
+    case CL_AMS_SI_CONFIG_SI_DEPENDENCIES_LIST:
+        {
+
+            ClAmsSIT  *si = (ClAmsSIT *) sourceEntityRef.ptr;
+            ClAmsSIT  *targetSI= (ClAmsSIT *) targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     targetSI->config.rank,
+                                                     &entityKey,
+                                                     CL_FALSE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &si->config.siDependenciesList,
+                                                            targetEntityRef,
+                                                            entityKey) );
+
+            break;
+
+        }
+
+    case CL_AMS_SI_CONFIG_CSI_LIST:
+        {
+
+            ClAmsSIT  *si  = (ClAmsSIT *) sourceEntityRef.ptr;
+            ClAmsCSIT  *csi = (ClAmsCSIT *)targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     csi->config.rank,
+                                                     &entityKey,
+                                                     CL_FALSE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &si->config.csiList,
+                                                            targetEntityRef,
+                                                            entityKey) );
+
+            break;
+
+        }
+
+    case CL_AMS_CSI_CONFIG_CSI_DEPENDENTS_LIST:
+        {
+
+            ClAmsCSIT  *csi = (ClAmsCSIT *) sourceEntityRef.ptr;
+            ClAmsCSIT  *targetCSI = (ClAmsCSIT *) targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     targetCSI->config.rank,
+                                                     &entityKey,
+                                                     CL_FALSE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &csi->config.csiDependentsList,
+                                                            targetEntityRef,
+                                                            entityKey) );
+
+            break;
+
+        }
+
+    case CL_AMS_CSI_CONFIG_CSI_DEPENDENCIES_LIST:
+        {
+
+            ClAmsCSIT  *csi = (ClAmsCSIT *) sourceEntityRef.ptr;
+            ClAmsCSIT  *targetCSI= (ClAmsCSIT *) targetEntityRef->ptr;
+               
+            AMS_CHECK_RC_ERROR( clAmsEntityRefGetKey(
+                                                     &targetEntityRef->entity,
+                                                     targetCSI->config.rank,
+                                                     &entityKey,
+                                                     CL_FALSE) );
+
+            if ( clAmsCheckIfRefExist(
+                                      sourceEntity,
+                                      targetEntity,
+                                      entityListName ) 
+                 == CL_TRUE )
+            {
+                rc = CL_ERR_ALREADY_EXIST;
+                goto exitfn;
+            }
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListAddEntityRef(
+                                                            &csi->config.csiDependenciesList,
+                                                            targetEntityRef,
+                                                            entityKey) );
+
+            break;
+
+        }
+
+    default:
+        {
+
+            AMS_LOG (CL_DEBUG_ERROR,("invalid entity list[%d] \n",entityListName));
+            rc =  CL_AMS_ERR_INVALID_ENTITY_LIST;
+            goto exitfn;
+        }
+
+    }
+
+    if(ppSourceRef)
+        *ppSourceRef = sourceEntityRef.ptr;
+    if(ppTargetRef)
+        *ppTargetRef = targetEntityRef->ptr;
+
+    return CL_OK;
+
+    exitfn: 
+
+    clAmsFreeMemory(targetEntityRef);
+    return CL_AMS_RC (rc);
 
 }
 
+/*
+ *clAmsAddToEntityList 
+ * -------------------
+ */
+
+ClRcT 
+clAmsAddToEntityList(
+                      ClAmsEntityT  *sourceEntity,
+                      ClAmsEntityT  *targetEntity,
+                      ClAmsEntityListTypeT  entityListName)
+{
+    return clAmsAddGetEntityList(sourceEntity, targetEntity, entityListName, NULL, NULL);
+}
 
 ClRcT 
 clAmsDeleteFromEntityList(
