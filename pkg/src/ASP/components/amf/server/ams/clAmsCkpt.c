@@ -77,6 +77,17 @@
      gClAmsCkptCurrentDbInvocationPair %= CL_AMS_DB_INVOCATION_PAIRS,   \
      pair)
 
+
+#define AMS_CKPT_FREQUENCY (gClAmsCkptFrequency)
+#define AMS_CKPT_FREQUENCY_MSEC (AMS_CKPT_FREQUENCY * 1000LL)
+#define AMS_CKPT_FREQUENCY_USEC (AMS_CKPT_FREQUENCY_MSEC * 1000LL)
+#define AMS_CKPT_WRITE_PAUSE_MSEC (200)
+#define AMS_CKPT_MIN_FREQUENCY_USEC (5000000LL)
+#define AMS_CKPT_WRITE_THRESHOLD_FAST (5)
+#define AMS_CKPT_WRITE_FREQUENCY_USEC (1000000LL)
+#define AMS_CKPT_WRITE_THRESHOLD_SLOW (10)
+
+static ClUint32T gClAmsCkptFrequency;
 static ClCharT gClAmsCkptVersionBuf[CL_MAX_NAME_LENGTH];
 static ClJobQueueT gClAmsCkptJobQueue;
 static ClCkptSvcHdlT gClAmsCkptDBHdl;
@@ -568,7 +579,17 @@ clAmsCkptInitialize(
             AMS_CKPT_MAX_SECTION_ID_SIZE
         };
     ClInt32T i;
-
+    ClCharT *freq;
+    if( (freq = getenv("CL_AMF_CKPT_FREQUENCY") ) )
+    {
+        gClAmsCkptFrequency = atoi(freq);
+    }
+#ifdef QNX_BUILD
+    if(!gClAmsCkptFrequency)
+    {
+        gClAmsCkptFrequency = 3; /* set it to 3 seconds for qnx */
+    }
+#endif
     rc = clJobQueueInit(&gClAmsCkptJobQueue, 0, 1);
     if(rc != CL_OK)
         return rc;
@@ -1122,19 +1143,6 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
     exitfn:
     return CL_AMS_RC (rc);
 }
-
-#ifdef QNX_BUILD
-#define AMS_CKPT_FREQUENCY (5)
-#else
-#define AMS_CKPT_FREQUENCY (0)
-#endif
-#define AMS_CKPT_FREQUENCY_MSEC (AMS_CKPT_FREQUENCY*1000LL)
-#define AMS_CKPT_FREQUENCY_USEC (AMS_CKPT_FREQUENCY_MSEC * 1000LL)
-#define AMS_CKPT_WRITE_PAUSE_MSEC (50)
-#define AMS_CKPT_MIN_FREQUENCY_USEC (5000000LL)
-#define AMS_CKPT_WRITE_THRESHOLD_FAST (5)
-#define AMS_CKPT_WRITE_FREQUENCY_USEC (1000000LL)
-#define AMS_CKPT_WRITE_THRESHOLD_SLOW (10)
 
 static ClRcT amsCkptWriteCallback(ClPtrT unused)
 {
