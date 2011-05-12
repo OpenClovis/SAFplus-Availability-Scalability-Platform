@@ -622,6 +622,7 @@ extern ClRcT clAmsPeSURestartCallback_Step2(
 
 extern ClRcT clAmsPeSUFaultReport(
         CL_IN       ClAmsSUT *su,
+        CL_IN       ClAmsCompT *faultyComp,
         CL_INOUT    ClAmsLocalRecoveryT *recovery,
         CL_INOUT    ClUint32T *escalation);
 

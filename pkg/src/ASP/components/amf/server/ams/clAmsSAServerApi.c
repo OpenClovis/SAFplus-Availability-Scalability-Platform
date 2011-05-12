@@ -998,7 +998,8 @@ _clAmsSAFaultReportCallback(
                 }
             }
         }
-        
+        memcpy(&faultyCompName, &entity->name, sizeof(entity->name));        
+
         update_alarm_handle:
         alarmHandle = node->status.alarmHandle;
     }

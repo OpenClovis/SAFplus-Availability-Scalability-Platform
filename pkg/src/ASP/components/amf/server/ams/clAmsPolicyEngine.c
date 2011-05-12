@@ -4920,7 +4920,7 @@ clAmsPeSURestartCallback_Step2(
 
         escalation = clAmsPeEntityComputeFaultEscalation((ClAmsEntityT*) su);
         recovery = CL_AMS_RECOVERY_COMP_FAILOVER;
-        return clAmsPeSUFaultReport(su, &recovery, &escalation);
+        return clAmsPeSUFaultReport(su, NULL, &recovery, &escalation);
     }
 
     if ( su->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE )
@@ -4967,13 +4967,13 @@ clAmsPeSURestartCallback_Step3(
 
 ClRcT
 clAmsPeSUFaultReport(
-        CL_IN       ClAmsSUT                    *su,
-        CL_INOUT    ClAmsLocalRecoveryT         *recovery,
-        CL_INOUT    ClUint32T                   *escalation)
+                     CL_IN       ClAmsSUT                    *su,
+                     CL_IN       ClAmsCompT                  *faultyComp,
+                     CL_INOUT    ClAmsLocalRecoveryT         *recovery,
+                     CL_INOUT    ClUint32T                   *escalation)
 {
     ClAmsSGT *sg;
     ClAmsNodeT *node;
-    ClAmsCompT *faultyComp = NULL;
     ClAmsEntityRefT *entityRef;
     ClAmsLocalRecoveryT recommendedRecovery;
     
@@ -5010,12 +5010,8 @@ clAmsPeSUFaultReport(
     /*
      * Find the component on which the fault was reported.
      */
-
-    if ( *escalation == CL_TRUE )
+    if(!faultyComp)
     {
-        /*
-         * This is true when a component fault is escalated to a SU fault
-         */
 
         for ( entityRef = clAmsEntityListGetFirst(&su->config.compList);
               entityRef != (ClAmsEntityRefT *) NULL;
@@ -5030,7 +5026,7 @@ clAmsPeSUFaultReport(
             }
         }
 
-        if ( !faultyComp )
+        if (!faultyComp )
         {
             clLogInfo(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU,
                       "Fault on SU [%s]/Component [Unknown]."\
@@ -5038,30 +5034,27 @@ clAmsPeSUFaultReport(
                       su->config.entity.name.value);
 
             *escalation = CL_FALSE;
+
+            /*
+             * This is true when a fault is reported for a SU. The following is a
+             * hack. Since FM does not understand SUs, we will select the first 
+             * component in the SU as the supposed cause of the problem.
+             */
+
+            entityRef = clAmsEntityListGetFirst(&su->config.compList);
+
+            if ( !entityRef )
+            {
+                clLogError(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU,
+                           "Fault on SU [%s] but SU has no components?"\
+                           " Ignoring Fault..",
+                           su->config.entity.name.value);
+
+                return CL_OK;
+            }
+
+            AMS_CHECK_COMP ( faultyComp = (ClAmsCompT *) entityRef->ptr );
         }
-    }
-
-    if ( *escalation == CL_FALSE )
-    {
-        /*
-         * This is true when a fault is reported for a SU. The following is a
-         * hack. Since FM does not understand SUs, we will select the first 
-         * component in the SU as the supposed cause of the problem.
-         */
-
-        entityRef = clAmsEntityListGetFirst(&su->config.compList);
-
-        if ( !entityRef )
-        {
-            clLogError(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU,
-                       "Fault on SU [%s] but SU has no components?"\
-                       " Ignoring Fault..",
-                       su->config.entity.name.value);
-
-            return CL_OK;
-        }
-
-        AMS_CHECK_COMP ( faultyComp = (ClAmsCompT *) entityRef->ptr );
     }
 
     /*
@@ -5122,12 +5115,12 @@ clAmsPeSUFaultReport(
 
     switch ( *recovery )
     {
-        case CL_AMS_RECOVERY_SU_RESTART:
+    case CL_AMS_RECOVERY_SU_RESTART:
         {
             if ( !su->status.suRestartTimer.count )
             {
                 AMS_CALL ( clAmsEntityTimerStart((ClAmsEntityT *) su,
-                                CL_AMS_SU_TIMER_SURESTART) );
+                                                 CL_AMS_SU_TIMER_SURESTART) );
             }
 
             CL_AMS_SET_O_STATE(faultyComp, CL_AMS_OPER_STATE_ENABLED);
@@ -5138,7 +5131,7 @@ clAmsPeSUFaultReport(
             break;
         }
 
-        case CL_AMS_RECOVERY_COMP_FAILOVER:
+    case CL_AMS_RECOVERY_COMP_FAILOVER:
         {
             /*
              * A component failover implies a SU failover+switchover. Switch
@@ -5150,32 +5143,32 @@ clAmsPeSUFaultReport(
             if ( !node->status.suFailoverTimer.count )
             {
                 AMS_CALL ( clAmsEntityTimerStart((ClAmsEntityT *) node,
-                                CL_AMS_NODE_TIMER_SUFAILOVER) );
+                                                 CL_AMS_NODE_TIMER_SUFAILOVER) );
             }
 
             AMS_CALL ( clAmsPeSUSwitchoverWork(su,
-                            CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE) );
+                                               CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE) );
 
             break;
         }
 
-        case CL_AMS_RECOVERY_NODE_SWITCHOVER:
-        case CL_AMS_RECOVERY_NODE_FAILOVER:
-        case CL_AMS_RECOVERY_NODE_FAILFAST:
+    case CL_AMS_RECOVERY_NODE_SWITCHOVER:
+    case CL_AMS_RECOVERY_NODE_FAILOVER:
+    case CL_AMS_RECOVERY_NODE_FAILFAST:
         {
             AMS_CALL ( clAmsPeNodeFaultReport(node, faultyComp, recovery, escalation) );
 
             break;
         }
 
-        case CL_AMS_RECOVERY_CLUSTER_RESET:
+    case CL_AMS_RECOVERY_CLUSTER_RESET:
         {
             AMS_CALL ( clAmsPeClusterFaultReport(&gAms, recovery, escalation) );
 
             break;
         }
 
-        default:
+    default:
         {
             return CL_AMS_RC(CL_ERR_NOT_IMPLEMENTED);
         }
@@ -11379,13 +11372,13 @@ clAmsPeCompFaultReport(
 
     case CL_AMS_RECOVERY_SU_RESTART:
         {
-            AMS_CALL( clAmsPeSUFaultReport(su, recovery, escalation) );
+            AMS_CALL( clAmsPeSUFaultReport(su, comp, recovery, escalation) );
             break;
         }
 
     case CL_AMS_RECOVERY_COMP_FAILOVER:
         {
-            AMS_CALL ( clAmsPeSUFaultReport(su, recovery, escalation) );
+            AMS_CALL ( clAmsPeSUFaultReport(su, comp, recovery, escalation) );
 
             break;
         }
