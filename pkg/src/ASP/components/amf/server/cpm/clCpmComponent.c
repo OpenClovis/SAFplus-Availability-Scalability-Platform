@@ -872,7 +872,10 @@ void cpmResponse(ClRcT retCode,
             {
                 clOsalMutexLock(comp->compMutex);
                 comp->hbInvocationPending = CL_NO;
-                clTimerStop(comp->cpmHealthcheckTimerHandle);
+                if(comp->cpmHealthcheckTimerHandle != CL_HANDLE_INVALID_VALUE)
+                {
+                    clTimerStop(comp->cpmHealthcheckTimerHandle);
+                }
                 clOsalMutexUnlock(comp->compMutex);
                 break;
             }
@@ -2820,6 +2823,9 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
         ClCharT cleanupCmdBuf[CL_MAX_NAME_LENGTH];
         snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "ASP_COMPNAME=%s %s",
                  comp->compConfig->compName, comp->compConfig->cleanupCMD);
+        clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
+                   "Invoking cleanup command [%s] for Component [%s]",
+                   cleanupCmdBuf, comp->compConfig->compName);
         if(system(cleanupCmdBuf))
         {
             clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
@@ -2838,12 +2844,13 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
 
 ClRcT cpmProxiedHealthcheckStop(ClNameT *pCompName)
 {
-    ClCharT compName[CL_MAX_NAME_LENGTH] = {0};
+    ClCharT compName[CL_MAX_NAME_LENGTH];
     ClCpmComponentT *comp = NULL;
     ClRcT rc = CL_OK;
     if(!pCompName)
         return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-    strncpy(compName, pCompName->value, pCompName->length);
+    compName[0] = 0;
+    strncat(compName, pCompName->value, pCompName->length);
     rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
     if(rc != CL_OK)
     {
@@ -4491,29 +4498,15 @@ failure:
     return rc;
 }
 
-ClRcT VDECL(cpmComponentHealthcheckStop)(ClEoDataT data,
-                                         ClBufferHandleT inMsgHandle,
-                                         ClBufferHandleT outMsgHandle)
+ClRcT cpmCompHealthcheckStop(ClNameT *pCompName)
 {
     ClRcT rc = CL_OK;
-    ClCpmCompHealthcheckT cpmCompHealthcheck = {{0}};
-    ClCharT compName[CL_MAX_NAME_LENGTH] = {0};
+    ClCharT compName[CL_MAX_NAME_LENGTH];
     ClCpmComponentT *comp = NULL;
-    
-    rc = VDECL_VER(clXdrUnmarshallClCpmCompHealthcheckT, 4, 0, 0)(inMsgHandle,
-                                              &cpmCompHealthcheck);
-    if (CL_OK != rc)
-    {
-        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
-                   "Unable to unmarshall buffer, error [%#x]",
-                   rc);
-        goto failure;
-    }
+    ClBoolT stopped = CL_FALSE;
 
-    strncpy(compName,
-            cpmCompHealthcheck.compName.value,
-            cpmCompHealthcheck.compName.length);
-
+    compName[0] = 0;
+    strncat(compName, pCompName->value, pCompName->length);
     rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
     if (CL_OK != rc)
     {
@@ -4527,21 +4520,51 @@ ClRcT VDECL(cpmComponentHealthcheckStop)(ClEoDataT data,
     clOsalMutexLock(comp->compMutex);
     if (CL_HANDLE_INVALID_VALUE != comp->hbTimerHandle)
     {
+        stopped = CL_TRUE;
         clTimerStop(comp->hbTimerHandle);
         clTimerDelete(&comp->hbTimerHandle);
         comp->hbTimerHandle = CL_HANDLE_INVALID_VALUE;
     }
     if (CL_HANDLE_INVALID_VALUE != comp->cpmHealthcheckTimerHandle)
     {
+        stopped = CL_TRUE;
         clTimerStop(comp->cpmHealthcheckTimerHandle);
         clTimerDelete(&comp->cpmHealthcheckTimerHandle);
         comp->cpmHealthcheckTimerHandle = CL_HANDLE_INVALID_VALUE;
     }
     clOsalMutexUnlock(comp->compMutex);
     
+    if(stopped)
+    {
+        clLogNotice("HEALTH", "CHECK", "Health check stopped for component [%s]", compName);
+    }
+
     return CL_OK;
 
-failure:
+    failure:
+    return rc;
+}
+
+ClRcT VDECL(cpmComponentHealthcheckStop)(ClEoDataT data,
+                                         ClBufferHandleT inMsgHandle,
+                                         ClBufferHandleT outMsgHandle)
+{
+    ClRcT rc = CL_OK;
+    ClCpmCompHealthcheckT cpmCompHealthcheck = {{0}};
+    
+    rc = VDECL_VER(clXdrUnmarshallClCpmCompHealthcheckT, 4, 0, 0)(inMsgHandle,
+                                              &cpmCompHealthcheck);
+    if (CL_OK != rc)
+    {
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
+                   "Unable to unmarshall buffer, error [%#x]",
+                   rc);
+        goto failure;
+    }
+
+    rc = cpmCompHealthcheckStop(&cpmCompHealthcheck.compName);
+
+    failure:
     return rc;
 }
 

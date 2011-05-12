@@ -16138,6 +16138,12 @@ clAmsPeCompAssignCSITimeout(
             ("CSI Assign Timer popped for Component [%s]\n",
              comp->config.entity.name.value));
 
+    /*
+     * Stop the pending healthchecks if any for the component on timeout as the 
+     * component is presumably locked up in the dispatcher.
+     */
+    cpmCompHealthcheckStop(&comp->config.entity.name);
+
     return clAmsPeCompAssignCSIError(comp, CL_AMS_RC(CL_ERR_TIMEOUT));
 }
 
@@ -17569,6 +17575,12 @@ clAmsPeCompQuiescingCompleteTimeout(
             ("CSI Quiescing Timer popped for Component [%s]\n",
              comp->config.entity.name.value));
 
+    /*
+     * Stop the pending healthchecks if any for the component on timeout as the 
+     * component is presumably locked up in the dispatcher.
+     */
+    cpmCompHealthcheckStop(&comp->config.entity.name);
+
     return clAmsPeCompQuiesceCSIGracefullyError(comp, CL_AMS_RC(CL_ERR_TIMEOUT));
 }
 
@@ -18533,6 +18545,12 @@ clAmsPeCompRemoveCSITimeout(
     AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
             ("CSI Remove Timer popped for Component [%s]\n",
              comp->config.entity.name.value));
+
+    /*
+     * Stop the healthchecks if any for the component on timeout as the 
+     * component is presumably locked up in the dispatcher.
+     */
+    cpmCompHealthcheckStop(&comp->config.entity.name);
 
     return clAmsPeCompRemoveCSIError(comp, CL_AMS_RC(CL_ERR_TIMEOUT));
 }

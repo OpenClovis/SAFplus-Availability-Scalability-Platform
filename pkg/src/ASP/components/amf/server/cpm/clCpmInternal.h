@@ -705,6 +705,8 @@ extern ClRcT cpmLoggerRotateEnable(void);
 
 extern ClRcT cpmProxiedHealthcheckStop(ClNameT *compName);
 
+extern ClRcT cpmCompHealthcheckStop(ClNameT *compName);
+
 extern void cpmResetNodeElseCommitSuicide(ClUint32T restartFlag);
 
 #ifdef __cplusplus
