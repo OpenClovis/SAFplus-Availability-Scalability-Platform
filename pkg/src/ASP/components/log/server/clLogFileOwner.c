@@ -1352,29 +1352,29 @@ clLogFileOwnerWaterMarkChkNPublish(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
  * severity filters
  */
 
-static void doSyslog(const ClCharT *buf, ClInt32T len)
+static void doSyslog(ClLogSeverityT logSev, const ClCharT *buf, ClInt32T len)
 {
 #define SYSLOG_SEV_DEFAULT (LOG_INFO) /*which is the default in var/log/messages for most linux systems */
     static struct ClSyslogSeverityMap
     {
-        const ClCharT *severity;
+        const ClLogSeverityT severity;
         ClInt32T syslogSev;
     } clSyslogSeverityMap[] = {
-        {"EMRGN)", LOG_EMERG},
-        {"ALERT)", LOG_ALERT},
-        {"CRITIC)", LOG_CRIT},
-        {"ERROR)", LOG_ERR},
-        {"WARN)", LOG_WARNING},
-        {"NOTICE)", LOG_NOTICE},
-        {"INFO)", LOG_INFO},
-        {"DEBUG)", SYSLOG_SEV_DEFAULT},
-        {"TRACE)", SYSLOG_SEV_DEFAULT},
-        {NULL, 0},
+        {CL_LOG_SEV_EMERGENCY, LOG_EMERG},
+        {CL_LOG_SEV_ALERT, LOG_ALERT},
+        {CL_LOG_SEV_CRITICAL, LOG_CRIT},
+        {CL_LOG_SEV_ERROR, LOG_ERR},
+        {CL_LOG_SEV_WARNING, LOG_WARNING},
+        {CL_LOG_SEV_NOTICE, LOG_NOTICE},
+        {CL_LOG_SEV_INFO, LOG_INFO},
+        {CL_LOG_SEV_DEBUG, SYSLOG_SEV_DEFAULT},
+        {CL_LOG_SEV_TRACE, SYSLOG_SEV_DEFAULT},
+        {0, 0},
     };
     static ClBoolT syslogSevDisabled = (ClBoolT)-1;
     register ClInt32T i;
-    const ClCharT *severity;
-    ClInt32T syslogSev = LOG_INFO; 
+    ClLogSeverityT severity;
+    ClInt32T syslogSev = SYSLOG_SEV_DEFAULT; 
 
     if(syslogSevDisabled == (ClBoolT)-1)
     {
@@ -1385,7 +1385,7 @@ static void doSyslog(const ClCharT *buf, ClInt32T len)
     {
         for(i = 0; (severity = clSyslogSeverityMap[i].severity); ++i)
         {
-            if(strstr(buf, severity))
+            if(severity == logSev)
             {
                 syslogSev = clSyslogSeverityMap[i].syslogSev;
                 break;
@@ -1404,6 +1404,8 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
 {
     ClRcT      rc         = CL_OK;
     ClUint8T   endian     = 0;
+    ClLogSeverityT severity = 0;
+    ClUint8T *pRecordIter = NULL;
     struct iovec iov[*pNumRecords];
     ClUint32T  idx        = 0;
     ClInt32T count        = 0;
@@ -1422,19 +1424,34 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
     {
         memcpy(&endian, pRecords, sizeof(endian));
         if( pFileOwnerData->pFileHeader->fileType == 
-                CL_LOG_FILE_TYPE_ASCII )
+            CL_LOG_FILE_TYPE_ASCII )
         {
-            if( (endian == '1' || endian == '0') )
+            pRecordIter = pRecords + LOG_ASCII_ENDIAN_LEN;
+            sscanf((ClCharT*)pRecordIter, LOG_ASCII_SEV_FMT, &severity);
+            pRecordIter += LOG_ASCII_SEV_LEN;
+            if( endian == '1' || endian == '0' || (severity > 0  && severity <= CL_LOG_SEV_MAX) )
 
             {
-                iov[idx].iov_base = (char*)pRecords + 1;
-                iov[idx].iov_len  = strlen((ClCharT *)pRecords + 1);
-                /* Ensure that the record is CR terminated.
-                   All ASCII records should have a \n from the client, but
-                   may not if the message len was chopped during the send */
-                *(((ClCharT *)iov[idx].iov_base) + iov[idx].iov_len - 1) = '\n';
-                if(syslogEnabled) 
-                    doSyslog((const ClCharT*)iov[idx].iov_base, iov[idx].iov_len);
+                ClUint32T hdrLen = 0, len = 0;
+                sscanf((char*)pRecordIter, LOG_ASCII_HDR_LEN_FMT, &hdrLen);
+                pRecordIter += LOG_ASCII_HDR_LEN;
+                sscanf((char*)pRecordIter, LOG_ASCII_DATA_LEN_FMT, &len);
+                pRecordIter += LOG_ASCII_DATA_LEN;
+                if((ClInt32T)hdrLen > 0 && (ClInt32T)len > 0 
+                   && 
+                   (hdrLen + len + LOG_ASCII_METADATA_LEN <= recordSize))
+                {
+                    iov[idx].iov_base = (char*)pRecordIter;
+                    iov[idx].iov_len  = CL_MIN(hdrLen + len + 1, recordSize - LOG_ASCII_METADATA_LEN);
+                    /* Ensure that the record is CR terminated.
+                       All ASCII records should have a \n from the client, but
+                       may not if the message len was chopped during the send */
+                    *((ClCharT *)iov[idx].iov_base + iov[idx].iov_len - 1) = '\n';
+                    if(syslogEnabled) 
+                    {
+                        doSyslog(severity, (const ClCharT*)iov[idx].iov_base, iov[idx].iov_len);
+                    }
+                }
                 
             }
             else
@@ -1448,9 +1465,9 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
         {
             if( (endian != '1') && (endian != '0') )
             {
-            /*
-             * found a binary record,  
-             */
+                /*
+                 * found a binary record,  
+                 */
                 iov[idx].iov_base = (char*)pRecords;
                 iov[idx].iov_len  = recordSize; 
                 idx++;

@@ -792,26 +792,55 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
     ClUint8T          *pRecStart    = pRecord;
     ClUint16T         tmp           = 1;
     ClUint8T          endian        = *(ClUint8T *) &tmp;
-
     CL_LOG_DEBUG_TRACE(("Enter: recSize: %u @ %p", recSize, pRecord));
 
     memset(pRecord, 0, recSize);
     if( CL_LOG_MSGID_PRINTF_FMT == msgId )
     {
-        ClUint32T  nbytes;
+        ClInt32T nbytes = 0;
 
+        if(recSize < LOG_ASCII_MIN_REC_SIZE ) /* just a minimum record size taking care of the headers*/
+        {
+            printf("LOG record size has to be minimum [%d] bytes. Got [%d] bytes\n", 
+                   LOG_ASCII_MIN_REC_SIZE, recSize);
+            return CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
+        }
         /*
          * In ASCII logging, we dont need header, so just keeping only the
          * required fields
          */
-        nbytes = snprintf((ClCharT *)pRecord, recSize, "%01u", endian); 
+        nbytes = snprintf((ClCharT *)pRecord, recSize, LOG_ASCII_HDR_FMT, endian, severity & 0x1f); 
         pRecord += nbytes;
         if(pMsgHeader && pMsgHeader[0])
         {
             ClCharT *pSeverity = clLogSeverityStrGet(severity);
-            nbytes = snprintf((ClCharT*)pRecord, recSize - nbytes, "%s.%05lld : %6s) ",
+            ClCharT c = 0;
+            ClInt32T hdrLen = 0;
+            ClInt32T len = 0;
+            va_list argsCopy;
+            ClCharT *pFmtStr ;
+            va_copy(argsCopy, args);
+            pFmtStr = va_arg(argsCopy, ClCharT *);
+            hdrLen = snprintf(&c, 1, "%s.%05lld : %6s) ",
                               pMsgHeader, sequenceNum, pSeverity ? pSeverity : "DEBUG");
+            if(hdrLen < 0) hdrLen = 0;
+            len = vsnprintf(&c, 1, pFmtStr, argsCopy);
+            va_end(argsCopy);
+            if(len < 0) len = 0;
+            hdrLen = CL_MIN(hdrLen, recSize - nbytes - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - 1);
+            len = CL_MIN(len, recSize - nbytes - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - hdrLen - 1);
+            nbytes = snprintf((ClCharT*)pRecord, recSize - nbytes - 1, LOG_ASCII_HDR_LEN_FMT, hdrLen);
             pRecord += nbytes;
+            nbytes = snprintf((ClCharT*)pRecord, recSize - nbytes - 1, LOG_ASCII_DATA_LEN_FMT, len);
+            pRecord += nbytes;
+            nbytes = snprintf((ClCharT*)pRecord, recSize - nbytes - 1, "%s.%05lld : %6s) ",
+                              pMsgHeader, sequenceNum, pSeverity ? pSeverity : "DEBUG");
+            if(nbytes < 0) nbytes = 0;
+            pRecord += nbytes;
+            pFmtStr = va_arg(args, ClCharT *);
+            nbytes = vsnprintf((ClCharT*)pRecord, recSize - nbytes - 1, pFmtStr, args);
+            if(nbytes < 0) nbytes = 0;
+            pRecord[nbytes] = 0;
         }
     }
     else
@@ -854,8 +883,8 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
         pRecord += sizeof(sequenceNum);
         CL_LOG_DEBUG_VERBOSE(("sequenceNum: %lld", sequenceNum));
 
+        rc = clLogClientMsgArgCopy(msgId, args, recSize - (pRecord - pRecStart), pRecord);
     }
-    rc = clLogClientMsgArgCopy(msgId, args, recSize - (pRecord - pRecStart), pRecord);
 
     CL_LOG_DEBUG_TRACE(("Exit: rc: [Ox %x]", rc));
     return rc;
