@@ -3107,17 +3107,13 @@ unmarshalClAmsMgmtGetOLEntityList(
 
         else if ( entityListType == CL_AMS_COMP_STATUS_CSI_LIST )
         {
-
             ClAmsCompCSIRefT  *compcsiRef = 
                 (ClAmsCompCSIRefT *)(((ClInt8T *)(*res)-> entityRef) + i*size );
 
-            compcsiRef->activeComp = clHeapAllocate (sizeof(ClAmsEntityT));
-
-            AMS_CHECK_NO_MEMORY_AND_EXIT (compcsiRef->activeComp);
+            compcsiRef->activeComp = NULL;
 
             AMS_CHECK_RC_ERROR( VDECL_VER(clXdrUnmarshallClAmsCompCSIRefT, 4, 0, 0)(buf, 
                         compcsiRef));
-
         }
 
     }
