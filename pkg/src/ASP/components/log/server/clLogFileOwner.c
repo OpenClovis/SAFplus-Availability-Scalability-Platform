@@ -1427,7 +1427,7 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
             CL_LOG_FILE_TYPE_ASCII )
         {
             pRecordIter = pRecords + LOG_ASCII_ENDIAN_LEN;
-            sscanf((ClCharT*)pRecordIter, LOG_ASCII_SEV_FMT, &severity);
+            sscanf((ClCharT*)pRecordIter, LOG_ASCII_SEV_FMT, (ClUint32T*)&severity);
             pRecordIter += LOG_ASCII_SEV_LEN;
             if( endian == '1' || endian == '0' || (severity > 0  && severity <= CL_LOG_SEV_MAX) )
 
