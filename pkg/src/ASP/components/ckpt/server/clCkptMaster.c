@@ -3011,6 +3011,17 @@ ClRcT _ckptMasterDBEntryPack(ClHandleDatabaseHandleT databaseHandle,
         rc = ckptMasterDBEntryCopy(handle,pMasterEntry);
         ++pWalkArgs->index;
     }
+    else
+    {
+        pMasterEntry = clHeapRealloc(pMasterEntry, sizeof(*pMasterEntry) * (pWalkArgs->count + 1));
+        CL_ASSERT(pMasterEntry != NULL);
+        pMasterEntry = pMasterEntry + pWalkArgs->index;
+        memset(pMasterEntry, 0, sizeof(*pMasterEntry));
+        ++pWalkArgs->index;
+        ++pWalkArgs->count;
+        rc = ckptMasterDBEntryCopy(handle, pMasterEntry);
+        clLogNotice("MASTER", "PACK", "Master db extended to index [%d]", pWalkArgs->index);
+    }
     return rc;
 }
 
@@ -3106,6 +3117,10 @@ ClRcT VDECL_VER(clCkptDeputyMasterInfoSyncup, 4, 0, 0)(ClVersionT              *
      rc = clHandleWalk( gCkptSvr->masterInfo.masterDBHdl,
                        _ckptMasterDBEntryPack,
                         (ClPtrT)&walkArgs);
+     if(walkArgs.count > gCkptSvr->masterInfo.masterHdlCount)
+     {
+         gCkptSvr->masterInfo.masterHdlCount = *pMastHdlCount = walkArgs.count;
+     }
      gMstEntryCnt = 0;
      CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Ckpt: Failed to allocate the memory rc[0x %x]\n", rc), rc);
@@ -3915,11 +3930,11 @@ clCkptAppInfoReplicaNotify(CkptMasterDBEntryT  *pMasterData,
  */ 
  
 void clCkptReplicaCopyCallback( ClIdlHandleT       ckptIdlHdl,
-                                 ClVersionT         *pVersion,
-                                 ClHandleT          ckptActHdl,
-                                 ClIocNodeAddressT  activeAddr,
-                                 ClRcT              rc,
-                                 void               *pData)
+                                ClVersionT         *pVersion,
+                                ClHandleT          ckptActHdl,
+                                ClIocNodeAddressT  activeAddr,
+                                ClRcT              rc,
+                                void               *pData)
 {
     ClRcT                   ret             = CL_OK;
     CkptMasterDBEntryT      *pMasterDBEntry = NULL;
@@ -3933,62 +3948,62 @@ void clCkptReplicaCopyCallback( ClIdlHandleT       ckptIdlHdl,
     if( NULL == pRepInfo ) 
     {
         clLogCritical(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY, 
-                "Cookie is NULL in replica copy callback rc [0x %x]", rc);
+                      "Cookie is NULL in replica copy callback rc [0x %x]", rc);
         CL_ASSERT(CL_FALSE);
         return;
     }
     peerAddr = pRepInfo->destAddr;
     clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY,
-            "Replica copy callback RetCode [%x] tryOtherNode [%d]"
-            "peerAddr [%d]", rc, pRepInfo->tryOtherNode, peerAddr);
+               "Replica copy callback RetCode [%x] tryOtherNode [%d]"
+               "peerAddr [%d]", rc, pRepInfo->tryOtherNode, peerAddr);
     hdlDbInfo.ckptMasterHdl = pRepInfo->clientHdl;
     hdlDbInfo.activeAddr    = pRepInfo->activeAddr;
     hdlDbInfo.ckptActiveHdl    = pRepInfo->activeHdl;
     hdlDbInfo.creationFlag = pRepInfo->creationFlags;
-
     if( (pVersion->releaseCode != '\0')  && (CL_OK == retCode) )
     {
         clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY, 
-                "Version mismatch happened at server [%d] rc [0x %x]", 
-                peerAddr, rc); 
+                   "Version mismatch happened at server [%d] rc [0x %x]", 
+                   peerAddr, rc); 
     }
     else if( (gCkptSvr != NULL) && (gCkptSvr->serverUp != CL_FALSE) )
     {
+        /*
+         * Lock the master BD.
+         */
+        CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+        /*
+         * Checkout the checkpoint related metadata.
+         */
+        rc = ckptSvrHdlCheckout( gCkptSvr->masterInfo.masterDBHdl,
+                                 ckptActHdl,
+                                 (void **)&pMasterDBEntry);
+        if( CL_OK != rc )
+        {
+            clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY, 
+                       "CkptHdl [%#llX] does not exist, rc [0x %x]",
+                       ckptActHdl, rc);
+            goto exitOnErrorBeforeHdlCheckout;
+        }
+
         if( CL_OK == retCode )
         {
-            /*
-             * Lock the master BD.
-             */
-            CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
-            /*
-             * Checkout the checkpoint related metadata.
-             */
-            rc = ckptSvrHdlCheckout( gCkptSvr->masterInfo.masterDBHdl,
-                    ckptActHdl,
-                    (void **)&pMasterDBEntry);
-            if( CL_OK != rc )
-            {
-                clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY, 
-                        "CkptHdl [%#llX] does not exist, rc [0x %x]",
-                        ckptActHdl, rc);
-                goto exitOnErrorBeforeHdlCheckout;
-            }
             /*
              * Add the replica address to the replica list of the checkpoint. 
              */         
             clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY, 
-                    "Checkpoint [%.*s] has been replicated on [%d]", 
-                    pMasterDBEntry->name.length, pMasterDBEntry->name.value, 
-                    peerAddr);
+                       "Checkpoint [%.*s] has been replicated on [%d]", 
+                       pMasterDBEntry->name.length, pMasterDBEntry->name.value, 
+                       peerAddr);
             rc = clCntNodeAdd( pMasterDBEntry->replicaList,
-                    (ClCntKeyHandleT)(ClWordT)peerAddr, 
-                    (ClCntDataHandleT)(ClWordT)peerAddr, NULL);
+                               (ClCntKeyHandleT)(ClWordT)peerAddr, 
+                               (ClCntDataHandleT)(ClWordT)peerAddr, NULL);
             if (CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)   rc = CL_OK;
             if( CL_OK != rc )
             {
                 clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY, 
-                        "While updating replica list for checkpoint handle [%#llX]"
-                        "rc [0x %x]", ckptActHdl, rc);
+                           "While updating replica list for checkpoint handle [%#llX]"
+                           "rc [0x %x]", ckptActHdl, rc);
                 goto exitOnError;
             }
 
@@ -3996,13 +4011,13 @@ void clCkptReplicaCopyCallback( ClIdlHandleT       ckptIdlHdl,
              * Increment the replica count.
              */
             rc = clCntDataForKeyGet( gCkptSvr->masterInfo.peerList,
-                    (ClCntDataHandleT)(ClWordT)peerAddr,
-                    (ClCntDataHandleT *)&pPeerInfo);
+                                     (ClCntDataHandleT)(ClWordT)peerAddr,
+                                     (ClCntDataHandleT *)&pPeerInfo);
             if( CL_OK != rc )
             {
                 clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY, 
-                        "While updating replica list for checkpoint handle [%#llX]"
-                        "rc [0x %x]", ckptActHdl, rc);
+                           "While updating replica list for checkpoint handle [%#llX]"
+                           "rc [0x %x]", ckptActHdl, rc);
                 goto exitOnError;
             }
             pPeerInfo->replicaCount++;
@@ -4010,20 +4025,20 @@ void clCkptReplicaCopyCallback( ClIdlHandleT       ckptIdlHdl,
              * Update the deputy
              */
             if(((gCkptSvr->masterInfo.deputyAddr != CL_CKPT_UNINIT_ADDR) &&
-                        (gCkptSvr->masterInfo.deputyAddr != -1)) &&
-                    (CL_OK == (ret =
-                               clCkptIsServerRunning(gCkptSvr->masterInfo.deputyAddr, &isRun))
-                     && (isRun == 1)))
+                (gCkptSvr->masterInfo.deputyAddr != -1)) &&
+               (CL_OK == (ret =
+                          clCkptIsServerRunning(gCkptSvr->masterInfo.deputyAddr, &isRun))
+                && (isRun == 1)))
 
             {
                 ClVersionT version;
                 rc = ckptIdlHandleUpdate(gCkptSvr->masterInfo.deputyAddr, 
-                        gCkptSvr->ckptIdlHdl, 0);
+                                         gCkptSvr->ckptIdlHdl, 0);
                 if( CL_OK != rc )
                 {
                     clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY, 
-                            "Idl handle update failed for handle [%#llX]"
-                            "rc [0x %x]", ckptActHdl, rc);
+                               "Idl handle update failed for handle [%#llX]"
+                               "rc [0x %x]", ckptActHdl, rc);
                     goto exitOnError;
                 }
 
@@ -4031,51 +4046,93 @@ void clCkptReplicaCopyCallback( ClIdlHandleT       ckptIdlHdl,
                         sizeof(ClVersionT));
 
                 rc = VDECL_VER(clCkptDeputyReplicaListUpdateClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
-                        &version,
-                        ckptActHdl,
-                        peerAddr,
-                        pRepInfo->addToList,
-                        NULL,NULL);
+                                                                                  &version,
+                                                                                  ckptActHdl,
+                                                                                  peerAddr,
+                                                                                  pRepInfo->addToList,
+                                                                                  NULL,NULL);
                 if( CL_OK != rc )
                 {
                     clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY, 
-                            "Deputy update for handle [%#llX]"
-                            "rc [0x %x]", ckptActHdl, rc);
+                               "Deputy update for handle [%#llX]"
+                               "rc [0x %x]", ckptActHdl, rc);
                     goto exitOnError;
                 }
             }
-            /*
-             * Checkin the checkpoint related metadata.
-             */
-            clHandleCheckin( gCkptSvr->masterInfo.masterDBHdl, ckptActHdl);
-            /*
-             * Unlock the master DB.
-             */
-            CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
         }
         else
         {
-            rc = _clCkptMasterClose(hdlDbInfo.ckptMasterHdl, peerAddr, 
-                    !CL_CKPT_MASTER_HDL);
+
+            if(pRepInfo->tryOtherNode == CL_CKPT_RETRY)
+            {
+                /*
+                 * Failed to update the info in peerAddr.
+                 * Choose some other node from the peerList.
+                 */
+                rc = clCkptNextReplicaGet(pMasterDBEntry->replicaList, &activeAddr);
+                /*
+                 * Start the replication process with the newly selected node.
+                 */
+                if( (activeAddr != CL_CKPT_UNINIT_ADDR) && (activeAddr != peerAddr) )
+                {
+                    clLogNotice(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
+                                "[Try other node] Notifying address [%d] to pull info from [%d] for handle [%#llX]", 
+                                peerAddr, activeAddr, ckptActHdl);
+
+                    rc = clCkptReplicaCopyWithContext(peerAddr, activeAddr, hdlDbInfo.activeAddr, pRepInfo, pVersion); 
+                    clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, ckptActHdl);
+                    CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+                    if( CL_OK != rc )
+                    {
+                        retCode = rc;
+                        clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY,
+                                   "While updating replica on peerAddr [%d] from"
+                                   "active addr [%d] failed rc [0x %x]", peerAddr,
+                                   activeAddr, rc);
+                        goto out_respond;
+                    }
+                    return;
+                }
+                goto out_close;
+            }
+            else
+            {
+                out_close:
+                clHandleCheckin( gCkptSvr->masterInfo.masterDBHdl, ckptActHdl);
+                CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+                rc = _clCkptMasterClose(hdlDbInfo.ckptMasterHdl, peerAddr, 
+                                        !CL_CKPT_MASTER_HDL);
+                goto out_respond;
+            }
         }
+        /*
+         * Checkin the checkpoint related metadata.
+         */
+        clHandleCheckin( gCkptSvr->masterInfo.masterDBHdl, ckptActHdl);
+        /*
+         * Unlock the master DB.
+         */
+        CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
     }
+
+    out_respond:
     clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY, 
-            "Responding to client, clientHdl [%#llX] activeAddr [%d]", 
-            hdlDbInfo.ckptMasterHdl, hdlDbInfo.activeAddr);
+               "Responding to client, clientHdl [%#llX] activeAddr [%d]", 
+               hdlDbInfo.ckptMasterHdl, hdlDbInfo.activeAddr);
     VDECL_VER(clCkptMasterCkptOpenResponseSend, 4, 0, 0)(pRepInfo->idlHdl, retCode, *pVersion,
-            hdlDbInfo);
+                                                         hdlDbInfo);
     /*
      * Free the cookie.
      */
     if(pRepInfo != NULL)
         clHeapFree(pRepInfo);
     return;
-exitOnError:
+    exitOnError:
     /*
      * Checkin the checkpoint related metadata.
      */
     clHandleCheckin( gCkptSvr->masterInfo.masterDBHdl, ckptActHdl);
-exitOnErrorBeforeHdlCheckout:
+    exitOnErrorBeforeHdlCheckout:
     /*
      * Unlock the master DB.
      */
@@ -4085,7 +4142,7 @@ exitOnErrorBeforeHdlCheckout:
      * Free the cookie.
      */
     VDECL_VER(clCkptMasterCkptOpenResponseSend, 4, 0, 0)(pRepInfo->idlHdl, rc, *pVersion,
-            hdlDbInfo);
+                                                         hdlDbInfo);
     if(pRepInfo != NULL)
         clHeapFree(pRepInfo);
     return;
@@ -4095,79 +4152,102 @@ exitOnErrorBeforeHdlCheckout:
  * This function informs the node to pull the checkpoint from the 
  * active replica.
  */
+
+ClRcT clCkptReplicaCopyWithContext(ClIocNodeAddressT destAddr,
+                                   ClIocNodeAddressT replicaAddr,
+                                   ClIocNodeAddressT activeAddr,
+                                   ClCkptReplicateInfoT *pRepInfo,
+                                   ClVersionT *pVersion)
+{
+    ClRcT                rc          = CL_OK;
+    ClVersionT           ckptVersion = {0};
+   
+    if(!pVersion) pVersion = &ckptVersion;
+
+    /*
+     * Update the idl handle with the destination address.
+     */
+    rc = ckptIdlHandleUpdate( destAddr, gCkptSvr->ckptIdlHdl, 2);
+    if( CL_OK != rc )
+    {
+        clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN,
+                   "Failed to update the idl handle [%#llX] rc[%#x]",
+                   gCkptSvr->ckptIdlHdl, rc);
+        return rc;
+    }
+    /*
+     * Set the supported version.
+     */
+    memcpy(pVersion,
+           gCkptSvr->versionDatabase.versionsSupported,
+           sizeof(ClVersionT));
+
+    pRepInfo->destAddr     = destAddr;
+    pRepInfo->activeAddr   = activeAddr;
+    pRepInfo->tryOtherNode = CL_TRUE;
+
+    /*
+     *  Send the RMD.
+     */ 
+    rc = VDECL_VER(clCkptReplicaNotifyClientAsync, 4, 0, 0)( gCkptSvr->ckptIdlHdl,
+                                                             pVersion,
+                                                             pRepInfo->activeHdl,
+                                                             replicaAddr,
+                                                             clCkptReplicaCopyCallback,
+                                                             (void *)pRepInfo);
+    if( CL_OK != rc )
+    {
+        clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
+                   "Replica copy to peerAddr [%d] failed rc[0x %x]", destAddr, rc);
+        return rc;
+    }
+    return CL_OK;
+}
  
 ClRcT clCkptReplicaCopy(ClIocNodeAddressT destAddr,
                         ClIocNodeAddressT replicaAddr,
                         ClHandleT         activeHdl, 
                         ClHandleT         clientHdl,
                         ClIocNodeAddressT activeAddr,
-		        CkptHdlDbT        *pHdlInfo)
+                        CkptHdlDbT        *pHdlInfo)
 {
-   ClRcT                rc          = CL_OK;
-   ClVersionT           ckptVersion = {0};
-   ClCkptReplicateInfoT *pRepInfo   = NULL;
-   CkptHdlDbT           hdlDbInfo   = {0};
+    ClRcT                rc          = CL_OK;
+    ClVersionT           ckptVersion = {0};
+    ClCkptReplicateInfoT *pRepInfo   = NULL;
+    CkptHdlDbT           hdlDbInfo   = {0};
    
-   /*
-    * Update the idl handle with the destination address.
-    */
-   rc = ckptIdlHandleUpdate( destAddr, gCkptSvr->ckptIdlHdl, 2);
-   if( CL_OK != rc )
-   {
-       clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN,
-         "Failed to update the idl handle for ckptHdl [%#llX] rc[0x %x]",
-         activeHdl, rc);
-       return rc;
-   }
-   /*
-    * Set the supporeted version.
-    */
-   memcpy(&ckptVersion,
-          gCkptSvr->versionDatabase.versionsSupported,
-          sizeof(ClVersionT));
-   /*
-    * Fill the cookie to be passed to the callback.
-    */
-   pRepInfo = (ClCkptReplicateInfoT *) clHeapCalloc(1,
-                                        sizeof(ClCkptReplicateInfoT));
-   if(pRepInfo == NULL)
-   {
-       clLogCritical(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
-               "Failed to allocated while trying to update the replica");
-       rc = CL_CKPT_ERR_NO_MEMORY;
-       return rc;
-   }
-   rc = clCkptEoIdlSyncDefer(&pRepInfo->idlHdl);
-   if( CL_OK != rc )
-   {
-       clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
-               "Idl Defer failed rc[0x %x]", rc);
-       clHeapFree(pRepInfo);
-       return rc;
-   }
-   pRepInfo->destAddr     = destAddr;
-   pRepInfo->clientHdl    = clientHdl;
-   pRepInfo->activeAddr   = activeAddr;
-   pRepInfo->activeHdl    = pHdlInfo->ckptActiveHdl;
-   pRepInfo->creationFlags = pHdlInfo->creationFlag;
-   
-   /*
-    *  Send the RMD.
-    */ 
-   rc = VDECL_VER(clCkptReplicaNotifyClientAsync, 4, 0, 0)( gCkptSvr->ckptIdlHdl,
-           &ckptVersion,
-           activeHdl,
-           replicaAddr,
-           clCkptReplicaCopyCallback,
-           (void *)pRepInfo);
-   if( CL_OK != rc )
-   {
-       clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
-               "Replica copy to peerAddr [%d] failed rc[0x %x]", destAddr, rc);
-       VDECL_VER(clCkptMasterCkptOpenResponseSend, 4, 0, 0)(pRepInfo->idlHdl, rc, ckptVersion,
-                                     hdlDbInfo);
-       clHeapFree(pRepInfo);
-       return rc;
-   }
-   return CL_OK;
+    /*
+     * Fill the cookie to be passed to the callback.
+     */
+    pRepInfo = (ClCkptReplicateInfoT *) clHeapCalloc(1,
+                                                     sizeof(ClCkptReplicateInfoT));
+    if(pRepInfo == NULL)
+    {
+        clLogCritical(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
+                      "Failed to allocated while trying to update the replica");
+        rc = CL_CKPT_ERR_NO_MEMORY;
+        return rc;
+    }
+    rc = clCkptEoIdlSyncDefer(&pRepInfo->idlHdl);
+    if( CL_OK != rc )
+    {
+        clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
+                   "Idl Defer failed rc[0x %x]", rc);
+        clHeapFree(pRepInfo);
+        return rc;
+    }
+    pRepInfo->clientHdl    = clientHdl;
+    pRepInfo->activeHdl    = pHdlInfo->ckptActiveHdl;
+    pRepInfo->creationFlags = pHdlInfo->creationFlag;
+
+    rc = clCkptReplicaCopyWithContext(destAddr, replicaAddr, activeAddr, pRepInfo, &ckptVersion);
+
+    if( CL_OK != rc )
+    {
+        VDECL_VER(clCkptMasterCkptOpenResponseSend, 4, 0, 0)(pRepInfo->idlHdl, rc, ckptVersion,
+                                                             hdlDbInfo);
+        clHeapFree(pRepInfo);
+        return rc;
+    }
+    return CL_OK;
 }

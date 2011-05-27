@@ -223,12 +223,20 @@ clCkptAppInfoReplicaNotify(CkptMasterDBEntryT  *pMasterData,
                            ClHandleT           masterHdl,
                            ClIocNodeAddressT   appAddr,
                            ClIocPortT          appPortId);
+
 extern ClRcT clCkptReplicaCopy(ClIocNodeAddressT destAddr,
                         ClIocNodeAddressT replicaAddr,
                         ClHandleT         activeHdl, 
                         ClHandleT         clientHdl,
                         ClIocNodeAddressT activeAddr,
                         CkptHdlDbT        *pHdlInfo);
+
+extern ClRcT clCkptReplicaCopyWithContext(ClIocNodeAddressT destAddr,
+                                          ClIocNodeAddressT replicaAddr,
+                                          ClIocNodeAddressT activeAddr,
+                                          ClCkptReplicateInfoT *pRepInfo,
+                                          ClVersionT *pVersion);
+
 extern ClRcT
 _ckptMasterPeerListInfoCreate(ClIocNodeAddressT nodeAddr,
                               ClUint32T         credential,
