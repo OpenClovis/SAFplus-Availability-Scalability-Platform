@@ -173,9 +173,19 @@ ClRcT      _clGmsViewAddNode(
                     CL_IN   ClGmsNodeIdT    nodeId,
                     CL_IN   ClGmsViewNodeT  *node);
 
+ClRcT      _clGmsViewAddNodeExtended(
+                    CL_IN   ClGmsGroupIdT   groupId,
+                    CL_IN   ClGmsNodeIdT    nodeId,
+                    CL_IN   ClGmsViewNodeT  **node);
+
 ClRcT      _clGmsViewDeleteNode(
                     CL_IN   ClGmsGroupIdT    groupId,
                     CL_IN   ClGmsNodeIdT    nodeId);
+
+ClRcT      _clGmsViewDeleteNodeExtended(
+                    CL_IN   ClGmsGroupIdT    groupId,
+                    CL_IN   ClGmsNodeIdT    nodeId,
+                    CL_IN   ClBoolT viewCache);
 
 /* This API does not lock the node. */
 

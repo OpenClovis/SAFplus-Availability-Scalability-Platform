@@ -58,11 +58,16 @@ extern ClRcT _clGmsEngineStart();
 ClRcT _clGmsEngineClusterJoin(
         CL_IN   const ClGmsGroupIdT   groupId,
         CL_IN   const ClGmsNodeIdT    nodeId,
-        CL_IN   ClGmsViewNodeT* const node);
+        CL_IN   ClGmsViewNodeT* node);
 
 ClRcT _clGmsEngineClusterLeave(
         CL_IN   const ClGmsGroupIdT   groupId,
         CL_IN   const ClGmsNodeIdT    nodeId);
+
+ClRcT _clGmsEngineClusterLeaveExtended(
+        CL_IN   const ClGmsGroupIdT   groupId,
+        CL_IN   const ClGmsNodeIdT    nodeId,
+        CL_IN   ClBoolT viewCache);
 
 ClRcT   _clGmsEngineGroupCreate(
         CL_IN    ClGmsGroupNameT     groupName,

@@ -162,6 +162,49 @@ static ClRcT leaderElectionTimerRun(ClBoolT restart)
             );
 }
 
+/*
+ * Try to keep the totem and xport notification view in sync.
+ */
+
+static ClHandleT  gNotificationCallbackHandle = CL_HANDLE_INVALID_VALUE;
+
+static void gmsNotificationCallback(ClIocNotificationIdT eventId,
+                                    ClPtrT unused,
+                                    ClIocAddressT *pAddress)
+{
+    ClRcT rc = CL_OK;
+    if(gmsGlobalInfo.opState != CL_GMS_STATE_RUNNING)
+        return;
+    if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION)
+    {
+        clLogNotice("NOTIF", "LEAVE", "Triggering node leave from tipc level for node [%#x], port [%#x]",
+                    pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
+        rc = _clGmsEngineClusterLeaveExtended(0, pAddress->iocPhyAddress.nodeAddress, CL_TRUE);
+    }
+    else
+    {
+#if 0
+        if(pAddress->iocPhyAddress.portId != CL_IOC_CPM_PORT)
+            return;
+#endif
+        clLogNotice("NOTIF", "JOIN", "Triggering node join from tipc level for node [%#x], port [%#x]",
+                    pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
+        rc = _clGmsEngineClusterJoin(0, pAddress->iocPhyAddress.nodeAddress, NULL);
+    }
+    if(rc != CL_OK)
+    {
+        clLogError("NOTIF", "CALLBACK", "GMS engine processing through tipc returned with [%#x]", rc);
+    }
+}
+
+static void gmsNotificationInitialize(void)
+{
+    ClIocPhysicalAddressT compAddr = {0};
+    compAddr.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    compAddr.portId = CL_IOC_CPM_PORT;
+    clCpmNotificationCallbackInstall(compAddr, gmsNotificationCallback, NULL, &gNotificationCallbackHandle);
+}
+
 ClRcT
 _clGmsEngineStart()
 {
@@ -211,6 +254,7 @@ _clGmsEngineStart()
         exit(0);
     }
 
+    gmsNotificationInitialize();
 
     clLogMultiline(INFO,GEN,NA,
             "Invoking aisexec_main call of openais. This thread will continue\n"
@@ -708,7 +752,7 @@ error:
 ClRcT _clGmsEngineClusterJoin(
                               CL_IN   const ClGmsGroupIdT   groupId,
                               CL_IN   const ClGmsNodeIdT    nodeId,
-                              CL_IN   ClGmsViewNodeT* const node)
+                              CL_IN   ClGmsViewNodeT* node)
 {
     ClRcT              rc = CL_OK, add_rc = CL_OK;
     ClGmsViewT        *thisClusterView = NULL;
@@ -723,18 +767,21 @@ ClRcT _clGmsEngineClusterJoin(
           "GMS engine cluster join is invoked for node Id [%d] for group [%d]", nodeId, groupId);
 
     /* See this node was the preferred leader. If so then set the tag to TRUE */
-    len1 = strlen(gmsGlobalInfo.config.preferredActiveSCNodeName);
-    len2 = node->viewMember.clusterMember.nodeName.length;
-    if ((len1 == len2) &&
-        (!strncmp(node->viewMember.clusterMember.nodeName.value, 
-                  gmsGlobalInfo.config.preferredActiveSCNodeName,len1)))
+    if(node)
     {
-        /* This node is a preferred Leader. So set ifPreferredLeader flag to TRUE */
-        node->viewMember.clusterMember.isPreferredLeader = CL_TRUE;
-        clLog(DBG,CLM,NA,
-              "Node [%s] is marked as preferred leader in the in the config file"
-              " So marking this node as preferred leader",
-              gmsGlobalInfo.config.preferredActiveSCNodeName);
+        len1 = strlen(gmsGlobalInfo.config.preferredActiveSCNodeName);
+        len2 = node->viewMember.clusterMember.nodeName.length;
+        if ((len1 == len2) &&
+            (!strncmp(node->viewMember.clusterMember.nodeName.value, 
+                      gmsGlobalInfo.config.preferredActiveSCNodeName,len1)))
+        {
+            /* This node is a preferred Leader. So set ifPreferredLeader flag to TRUE */
+            node->viewMember.clusterMember.isPreferredLeader = CL_TRUE;
+            clLog(DBG,CLM,NA,
+                  "Node [%s] is marked as preferred leader in the in the config file"
+                  " So marking this node as preferred leader",
+                  gmsGlobalInfo.config.preferredActiveSCNodeName);
+        }
     }
 
     rc = _clGmsViewFindAndLock(groupId, &thisClusterView);
@@ -743,26 +790,32 @@ ClRcT _clGmsEngineClusterJoin(
     {
         clLog(ERROR,CLM,NA,
               "Could not get current GMS view. Join failed. rc 0x%x",rc);
+        if(node) clHeapFree(node);
         return rc;
     }
 
     currentLeader = thisClusterView->leader;
     currentDeputy = thisClusterView->deputy;
 
-    add_rc = _clGmsViewAddNode(groupId, nodeId, node);
+    add_rc = _clGmsViewAddNodeExtended(groupId, nodeId, &node);
 
-    if ((add_rc != CL_OK) && (add_rc != CL_GMS_RC(CL_ERR_ALREADY_EXIST)))
+    if (add_rc != CL_OK)
     {
-        clLog(ERROR,CLM,NA,
-              "Error while adding new node to GMS view. rc 0x%x",rc);
-        goto ENG_ADD_ERROR;
-    }
-    else if ( add_rc == CL_GMS_RC(CL_ERR_ALREADY_EXIST))
-    {
-        clLog(INFO,CLM,NA,
-              "Node already exists in GMS view. Returning OK");
-        add_rc = CL_OK;
-        goto ENG_ADD_ERROR;
+        if(node) clHeapFree(node);
+        if(CL_GET_ERROR_CODE(add_rc) != CL_ERR_ALREADY_EXIST)
+        {
+            clLog(ERROR,CLM,NA,
+                  "Error while adding new node to GMS view. rc 0x%x",rc);
+     
+            goto ENG_ADD_ERROR;
+        }
+        else
+        {
+            clLog(INFO,CLM,NA,
+                  "Node already exists in GMS view. Returning OK");
+            add_rc = CL_OK;
+            goto ENG_ADD_ERROR;
+        }
     }
 
     /* If the group id is zero then its a cluster booting so we should wait
@@ -862,10 +915,9 @@ ClRcT _clGmsEngineClusterJoin(
     return rc;
 }
 
-
 ClRcT _clGmsEngineClusterLeaveWrapper(
-                CL_IN   ClGmsGroupIdT   groupId,
-                CL_IN   ClCharT*        nodeIp)
+                                      CL_IN   ClGmsGroupIdT   groupId,
+                                      CL_IN   ClCharT*        nodeIp)
 {
     /* This function will find the node in the database
      * which has given IP address and then calls cluster
@@ -885,30 +937,41 @@ ClRcT _clGmsEngineClusterLeaveWrapper(
     clGmsMutexLock(thisViewDb->viewMutex);
 
     rc = _clGmsDbGetFirst(thisViewDb, CL_GMS_CURRENT_VIEW, &gmsOpaque,
-            (void **)&foundNode);
+                          (void **)&foundNode);
     j = 0;
     while ((rc == CL_OK) && (j < thisViewDb->view.noOfViewMembers)
-            && (foundNode != NULL))
+           && (foundNode != NULL))
     {
         if(!strcmp(nodeIp,(char*)foundNode->viewMember.clusterMember.nodeIpAddress.value))
         {
             clLog(INFO,CLM,NA,
-                    "Node with IP %s is leaving the cluster\n",
-                    foundNode->viewMember.clusterMember.nodeIpAddress.value);
+                  "Node with IP %s is leaving the cluster\n",
+                  foundNode->viewMember.clusterMember.nodeIpAddress.value);
             foundNodeId = foundNode->viewMember.clusterMember.nodeId;
             break;
         }
         rc = _clGmsDbGetNext(thisViewDb, CL_GMS_CURRENT_VIEW, &gmsOpaque,
-                (void **)&foundNode);
+                             (void **)&foundNode);
         j++;
     }
 
     clGmsMutexUnlock(thisViewDb->viewMutex);
     if (foundNodeId != 0)
     {
-        return _clGmsEngineClusterLeave(groupId,foundNodeId);
+        ClUint8T status = CL_IOC_NODE_DOWN;
+        clIocRemoteNodeStatusGet(foundNodeId, &status);
+        if(status == CL_IOC_NODE_DOWN)
+        {
+            return _clGmsEngineClusterLeave(groupId,foundNodeId);
+        }
+        else
+        {
+            clLogNotice("LEAVE", "WRAPPER", "Received leave for node [%#x] still in AMF view. "
+                        "Ignoring the leave", foundNodeId);
+        }
     }
-    else {
+    else 
+    {
         clLogWarning(CLM,NA, 
                      "Could not find node with IP %s in gms database",nodeIp);
         /* Returning CL_OK because this might also have caused due to
@@ -916,13 +979,14 @@ ClRcT _clGmsEngineClusterLeaveWrapper(
          * the network, or also when active node goes down, CPM gives
          * explicit cluster leave and the node is deleted before getting
          * this call from openais. */
-        return CL_OK;
     }
+    return CL_OK;
 }
 
-ClRcT _clGmsEngineClusterLeave(
-        CL_IN   const ClGmsGroupIdT   groupId,
-        CL_IN   const ClGmsNodeIdT    nodeId)
+ClRcT _clGmsEngineClusterLeaveExtended(
+                                       CL_IN   const ClGmsGroupIdT   groupId,
+                                       CL_IN   const ClGmsNodeIdT    nodeId,
+                                       CL_IN   ClBoolT viewCache)
 {
     ClRcT               rc = CL_OK ;
     ClGmsViewT         *thisClusterView = NULL;
@@ -936,10 +1000,13 @@ ClRcT _clGmsEngineClusterLeave(
     if (rc != CL_OK)
         return rc;
 
-    rc = _clGmsViewDeleteNode(groupId, nodeId);
+    rc = _clGmsViewDeleteNodeExtended(groupId, nodeId, viewCache);
 
     if (rc != CL_OK)
+    {
+        clLogError("ENGINE", "LEAVE", "Node leave for [%#x] returned with [%#x]", nodeId, rc);
         goto unlock_and_exit;
+    }
 
     /* condition should never happen */
     CL_ASSERT(!((thisClusterView->leader == nodeId) && 
@@ -1019,6 +1086,13 @@ unlock_and_exit:
     clLog(INFO,CLM,NA, 
             "Cluster node [%d] left the cluster",nodeId);
     return rc;
+}
+
+ClRcT _clGmsEngineClusterLeave(
+        CL_IN   const ClGmsGroupIdT   groupId,
+        CL_IN   const ClGmsNodeIdT    nodeId)
+{
+    return _clGmsEngineClusterLeaveExtended(groupId, nodeId, CL_FALSE);
 }
 
 

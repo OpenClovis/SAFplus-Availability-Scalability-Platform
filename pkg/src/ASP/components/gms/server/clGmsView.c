@@ -54,6 +54,91 @@
 #include <clCntErrors.h>
 #include <clLogApi.h>
 #include <clGmsLog.h>
+#include <clHash.h>
+
+#define GMS_VIEW_CACHE_BITS (0x8)
+#define GMS_VIEW_CACHE_ENTRIES ( 1 << GMS_VIEW_CACHE_BITS )
+#define GMS_VIEW_CACHE_MASK (GMS_VIEW_CACHE_ENTRIES - 1)
+#define GMS_VIEW_CACHE_HASH(node) ( (node) & GMS_VIEW_CACHE_MASK )
+/*
+ * 2 seconds for a leave+join for a node seems acceptable.
+ */
+#define GMS_VIEW_CACHE_JOIN_LATENCY (2000000L)
+
+static struct hashStruct *gmsViewCache[GMS_VIEW_CACHE_ENTRIES];
+
+typedef struct ClGmsTipcViewCache
+{
+    ClGmsViewNodeT nodeMember;
+    ClIocNodeAddressT nodeAddress;
+    ClTimeT leaveTime;
+    struct hashStruct hash;
+} ClGmsTipcViewCacheT;
+
+static ClGmsTipcViewCacheT *gmsViewCacheFind(ClIocNodeAddressT nodeId)
+{
+    ClUint32T hash = GMS_VIEW_CACHE_HASH(nodeId);
+    struct hashStruct *iter;
+    for(iter = gmsViewCache[hash]; iter; iter = iter->pNext)
+    {
+        ClGmsTipcViewCacheT *cache = hashEntry(iter, ClGmsTipcViewCacheT, hash);
+        if(cache->nodeAddress == nodeId)
+            return cache;
+    }
+    return NULL;
+}
+
+/*
+ * When the node leaves, add it to the view cache.
+ */
+static void gmsViewCacheAdd(ClIocNodeAddressT nodeId, ClGmsViewNodeT *node)
+{
+    ClGmsTipcViewCacheT *cache;
+    if( !(cache = gmsViewCacheFind(nodeId) ) )
+    {
+        cache = clHeapCalloc(1, sizeof(*cache));
+        CL_ASSERT(cache != NULL);
+        cache->nodeAddress = nodeId;
+        hashAdd(gmsViewCache, GMS_VIEW_CACHE_HASH(nodeId), &cache->hash);
+    }
+    memcpy(&cache->nodeMember, node, sizeof(cache->nodeMember));
+    cache->leaveTime = clOsalStopWatchTimeGet();
+}
+
+static void gmsViewCacheGet(ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMember)
+{
+    ClGmsTipcViewCacheT *cache;
+    if(nodeMember)
+        *nodeMember = NULL;
+    cache = gmsViewCacheFind(nodeId);
+    if(cache)
+    {
+        ClTimeT curTime;
+        ClTimeT leaveTime;
+        hashDel(&cache->hash);
+        if(nodeMember)
+            *nodeMember = &cache->nodeMember;
+        leaveTime = cache->leaveTime;
+        curTime = clOsalStopWatchTimeGet();
+        /*
+         * Reset if the join latency is acceptable to detect and elect with the last view
+         * during split brain merges.
+         */
+        if(curTime - leaveTime >= GMS_VIEW_CACHE_JOIN_LATENCY)
+        {
+            cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_FALSE;
+            cache->nodeMember.viewMember.clusterMember.isPreferredLeader = CL_FALSE;
+            cache->nodeMember.viewMember.clusterMember.leaderPreferenceSet = CL_FALSE;
+            clLogNotice("VIEW", "CACHE", "Resetting the view cache entry for node [%d]", cache->nodeAddress);
+        }
+        else
+        {
+            clLogNotice("VIEW", "CACHE", "View cache join for node [%d] was faster than expected. "
+                        "Retaining the leader election states during the last leave of the node",
+                        cache->nodeAddress);
+        }
+    }
+}
 
 // check for given name is present or not
 ClRcT _clGmsViewClusterGroupFind( CL_IN  const char * name)
@@ -741,7 +826,7 @@ ClRcT   _clGmsViewGetTrackAsync(
             ClGmsClusterNotificationT   *changeOnlyNotif = (ClGmsClusterNotificationT*)((ClGmsTrackNotifyT*)changeOnlyList)->buffer;
             ClUint32T                   nodeSize = sizeof(ClGmsClusterNotificationT);
 
-            if (changeOnlyNotif[index].clusterChange == CL_GMS_MEMBER_LEFT)
+            if (changeOnlyNotif[index].clusterChange == (ClInt32T)CL_GMS_MEMBER_LEFT)
             {
                 notification = clHeapRealloc(notification, (nodeSize * (numEntries+1)));
                 if (notification == NULL)
@@ -1193,19 +1278,21 @@ _clGmsViewUpdateNodePrivate(
  * function.
  */
 
-ClRcT   _clGmsViewAddNode(
+ClRcT   _clGmsViewAddNodeExtended(
         CL_IN   const ClGmsGroupIdT    groupId,
         CL_IN   const ClGmsNodeIdT     nodeId,
-        CL_IN   ClGmsViewNodeT*  const node)
+        CL_IN   ClGmsViewNodeT**       ppNode)
 {
     ClRcT               rc = CL_OK;
     ClGmsDbT            *thisViewDb = NULL;
     ClGmsViewNodeT      *foundNode = NULL;
+    ClGmsViewNodeT      *node = NULL;
 
-    if (node == NULL)
+    if (!ppNode) 
     {
         return CL_ERR_NULL_POINTER;
     }
+
     rc = _clGmsViewDbFind(groupId, &thisViewDb);
 
     if (rc != CL_OK)
@@ -1214,6 +1301,17 @@ ClRcT   _clGmsViewAddNode(
     }
 
     CL_ASSERT(thisViewDb != NULL);
+
+    if(!(node = *ppNode))
+    {
+        gmsViewCacheGet(nodeId, ppNode);
+        node = *ppNode;
+        if(!node)
+        {
+            rc = CL_ERR_ALREADY_EXIST;
+            goto ADD_ERROR;
+        }
+    }
 
     rc = _clGmsViewFindNodePrivate(thisViewDb, nodeId, CL_GMS_CURRENT_VIEW, 
             &foundNode);
@@ -1233,6 +1331,7 @@ ClRcT   _clGmsViewAddNode(
             rc = _clGmsViewUpdateNodePrivate(thisViewDb, nodeId, node, 
                     foundNode);
             clHeapFree((void*)node);
+            *ppNode = NULL;
             break;
         default:
             break; 
@@ -1242,12 +1341,21 @@ ADD_ERROR:
     return rc;
 }
 
+ClRcT   _clGmsViewAddNode(
+        CL_IN   const ClGmsGroupIdT    groupId,
+        CL_IN   const ClGmsNodeIdT     nodeId,
+        CL_IN   ClGmsViewNodeT* node)
+{
+    return _clGmsViewAddNodeExtended(groupId, nodeId, &node);
+}
+
 /* Deletes a node from the given view.
  */
 
-ClRcT   _clGmsViewDeleteNode(
+ClRcT   _clGmsViewDeleteNodeExtended(
         CL_IN   const ClGmsGroupIdT       groupId,
-        CL_IN   const ClGmsNodeIdT        nodeId)
+        CL_IN   const ClGmsNodeIdT        nodeId,
+        CL_IN   ClBoolT viewCache)
 {
     ClRcT           rc = CL_OK;
     ClGmsDbKeyT     dbKey  = {{0}}; 
@@ -1280,6 +1388,14 @@ ClRcT   _clGmsViewDeleteNode(
     else
     {
         foundNode->viewMember.groupMember.memberActive = CL_FALSE;
+    }
+
+    /*
+     * Add it to the view cache.
+     */
+    if(viewCache)
+    {
+        gmsViewCacheAdd(nodeId, foundNode);
     }
 
     /* Decrement the active view member count */
@@ -1367,6 +1483,13 @@ DEL_ERROR:
     thisViewDb->view.viewNumber--;
 
     return rc;
+}
+
+ClRcT   _clGmsViewDeleteNode(
+        CL_IN   const ClGmsGroupIdT       groupId,
+        CL_IN   const ClGmsNodeIdT        nodeId)
+{
+    return _clGmsViewDeleteNodeExtended(groupId, nodeId, CL_FALSE);
 }
 
 /*
