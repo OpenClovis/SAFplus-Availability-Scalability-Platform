@@ -550,6 +550,13 @@ static void totempg_deliver_fn (
 
         mcast = (struct totempg_mcast *)header;
         msg_lens = (unsigned short *) (header + sizeof (struct totempg_mcast));
+        if(endian_conversion_required) {
+            mcast->msg_count = swab16(mcast->msg_count);
+            for(i = 0; i < mcast->msg_count; i++) {
+                msg_lens[i] = swab16(msg_lens[i]);
+            }
+        }
+        msg_count = mcast->msg_count;
 
         a_i = assembly->index;
 		for (i = 2; i < iov_len; i++) {
