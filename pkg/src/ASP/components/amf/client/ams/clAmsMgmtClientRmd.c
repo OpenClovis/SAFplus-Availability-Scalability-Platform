@@ -3439,6 +3439,55 @@ ClRcT cl_ams_mgmt_si_assign_su_custom(ClAmsMgmtSIAssignSUCustomRequestT *req)
                             (ClPtrT*)req, &unmarshallClAmsMgmtSIAssignSUCustomResponse);
 }
 
+static ClRcT
+marshallClAmsMgmtDBGet(ClPtrT req, ClBufferHandleT inMsg)
+{
+    static ClUint32T unused = 0;
+    clXdrMarshallClUint32T(&unused, inMsg, 0);
+    return CL_OK;
+}
+
+static ClRcT
+unmarshallClAmsMgmtDBGet(ClBufferHandleT outMsg, ClPtrT *res)
+{
+    ClAmsMgmtDBGetResponseT *dbResponse = (ClAmsMgmtDBGetResponseT*)res;
+    ClRcT rc;
+    dbResponse->buffer = NULL;
+    rc = clXdrUnmarshallClUint32T(outMsg, &dbResponse->len);
+    if(rc != CL_OK)
+        goto out;
+    if(dbResponse->len)
+    {
+        dbResponse->buffer = clHeapCalloc(1, dbResponse->len);
+        if(dbResponse->buffer == NULL)
+        {
+            rc = CL_AMS_RC(CL_ERR_NO_MEMORY);
+            goto out;
+        }
+        rc = clXdrUnmarshallArrayClUint8T(outMsg, dbResponse->buffer, dbResponse->len);
+        if(rc != CL_OK)
+            goto out_free;
+    }
+    return rc;
+
+    out_free:
+    clHeapFree(dbResponse->buffer);
+    dbResponse->buffer = NULL;
+
+    out:
+    return rc;
+}
+
+ClRcT
+cl_ams_mgmt_db_get(CL_OUT ClAmsMgmtDBGetResponseT *res)
+{
+    return cl_ams_call_rmd_ver((ClUint32T)CL_AMS_MGMT_DB_GET,
+                               (ClPtrT)res, &marshallClAmsMgmtDBGet,
+                               (ClPtrT*)res, &unmarshallClAmsMgmtDBGet,
+                               CL_VERSION_CODE(5, 0, 0));
+}
+
+
 #ifdef AMS_EMULATE_RMD_CALLS
 
 static ClRcT

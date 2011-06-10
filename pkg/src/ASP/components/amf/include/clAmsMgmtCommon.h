@@ -129,6 +129,7 @@ typedef enum
     CL_AMS_MGMT_SI_ASSIGN_SU_CUSTOM                 = 65,
     CL_AMS_MGMT_ENTITY_SET_BETA_FACTOR = 66,
     CL_AMS_MGMT_ENTITY_FORCE_LOCK     =  67,
+    CL_AMS_MGMT_DB_GET     =  68,
 } ClAmsMgmtClientCallbackRmdInterfaceT;
 
 /*
@@ -741,6 +742,12 @@ typedef struct ClAmsMgmtSIAssignSUCustomRequest
     ClAmsEntityT activeSU;
     ClAmsEntityT standbySU;
 }ClAmsMgmtSIAssignSUCustomRequestT;
+
+typedef struct ClAmsMgmtDBGetResponse
+{
+    ClUint32T len;
+    ClUint8T *buffer;
+}ClAmsMgmtDBGetResponseT;
 
 typedef ClAmsEntityBufferT clAmsMgmtGetEntityListResponseT;
 typedef clAmsMgmtGetEntityListRequestT clAmsMgmtGetOLEntityListRequestT;

@@ -49,6 +49,7 @@
 #include <clAmsDBPackUnpack.h>
 #include <clAmsSAServerApi.h>
 #include <clAmsEntityUserData.h>
+#include <clAmsXdrHeaderFiles.h>
 #include <clCpmExtApi.h>
 #include <clList.h>
 #include <clNodeCache.h>
@@ -1179,7 +1180,7 @@ clAmsCCBValidateOperation(
             AMS_CHECK_ENTITY_TYPE_AND_EXIT (opData->entity.type);
 
             memcpy (&entityRef.entity,&opData->entity,sizeof(ClAmsEntityT));
-                
+            clLogNotice("ENTITY","VALIDATE","Delete validation for entity [%s]", opData->entity.name.value);
             AMS_CHECK_RC_ERROR( clAmsEntityDbFindEntity( 
                                                         &gAms.db.entityDb[opData->entity.type], &entityRef )); 
 
@@ -8250,4 +8251,210 @@ ClRcT clAmsFailoverHistoryFind(ClAmsEntityT *entity, ClUint32T index,
     }
 
     return CL_AMS_RC(CL_ERR_NOT_EXIST);
+}
+
+static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listType, ClBufferHandleT msg)
+{
+    ClRcT rc;
+    ClAmsEntityBufferT buffer = {0};
+    ClAmsEntityRefT entityRef;
+    ClAmsEntityT entity = {0};
+    ClUint32T i;
+
+    rc = VDECL_VER(clXdrMarshallClAmsEntityListTypeT, 4, 0, 0)(&listType, msg, 0);
+    if(rc != CL_OK)
+    {
+        goto out_free;
+    }
+    rc = clAmsGetEntityList(&entity, listType, &buffer);
+    if(rc != CL_OK)
+    {
+        goto out_free;
+    }
+    rc = VDECL_VER(clXdrMarshallClAmsEntityBufferT, 4, 0, 0)(&buffer, msg, 0);
+    if(rc != CL_OK)
+    {
+        goto out_free;
+    }
+    /*
+     * For each node in the list, marshall config and status.
+     */
+    for(i = 0; i < buffer.count; ++i)
+    {
+        entityRef.ptr = NULL;
+        memcpy(&entityRef.entity, &buffer.entity[i], sizeof(entityRef.entity));
+        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[type], 
+                                     &entityRef);
+        if(rc != CL_OK)
+        {
+            clLogError("GET", "CONFIG", "Unable to get config for %s [%s]",
+                       CL_AMS_STRING_ENTITY_TYPE(type) ,buffer.entity[i].name.value);
+            goto out_free;
+        }
+
+        switch(type)
+        {
+        case CL_AMS_ENTITY_TYPE_NODE:
+            {
+                ClAmsNodeT *node = (ClAmsNodeT*)entityRef.ptr;
+                rc = VDECL_VER(clXdrMarshallClAmsNodeConfigT, 4, 0, 0)(&node->config, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                rc = VDECL_VER(clXdrMarshallClAmsNodeStatusT, 4, 0, 0)(&node->status, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+            }
+            break;
+
+        case CL_AMS_ENTITY_TYPE_SU:
+            {
+                ClAmsSUT *su = (ClAmsSUT*)entityRef.ptr;
+                rc = VDECL_VER(clXdrMarshallClAmsSUConfigT, 4, 0, 0)(&su->config, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                rc = VDECL_VER(clXdrMarshallClAmsSUStatusT, 4, 0, 0)(&su->status, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+            }
+            break;
+
+        case CL_AMS_ENTITY_TYPE_SG:
+            {
+                ClAmsSGT *sg = (ClAmsSGT*)entityRef.ptr;
+                rc = VDECL_VER(clXdrMarshallClAmsSGConfigT, 5, 0, 0)(&sg->config, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                rc = VDECL_VER(clXdrMarshallClAmsSGStatusT, 4, 1, 0)(&sg->status, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+            }
+            break;
+
+        case CL_AMS_ENTITY_TYPE_SI:
+            {
+                ClAmsSIT *si = (ClAmsSIT *)entityRef.ptr;
+                rc = VDECL_VER(clXdrMarshallClAmsSIConfigT, 4, 0, 0)(&si->config, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                rc = VDECL_VER(clXdrMarshallClAmsSIStatusT, 4, 0, 0)(&si->status, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+            }
+            break;
+            
+        case CL_AMS_ENTITY_TYPE_CSI:
+            {
+                ClAmsCSIT *csi = (ClAmsCSIT *)entityRef.ptr;
+                rc = VDECL_VER(clXdrMarshallClAmsCSIConfigT, 4, 0, 0)(&csi->config, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                rc = VDECL_VER(clXdrMarshallClAmsCSIStatusT, 4, 0, 0)(&csi->status, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+            }
+            break;
+
+        case CL_AMS_ENTITY_TYPE_COMP:
+            {
+                ClAmsCompT *comp = (ClAmsCompT*)entityRef.ptr;
+                ClAmsEntityRefT *eRef;
+                rc = VDECL_VER(clXdrMarshallClAmsCompConfigT, 4, 0, 0)(&comp->config, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                rc = VDECL_VER(clXdrMarshallClAmsCompStatusT, 4, 0, 0)(&comp->status, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                /*
+                 * Also stuff the comp status csi list.
+                 */
+                listType = CL_AMS_COMP_STATUS_CSI_LIST;
+                rc = VDECL_VER(clXdrMarshallClAmsEntityListTypeT, 4, 0, 0)(&listType, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                rc = clXdrMarshallClUint32T(&comp->status.csiList.numEntities, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                for(eRef = clAmsEntityListGetFirst(&comp->status.csiList); eRef; 
+                    eRef = clAmsEntityListGetNext(&comp->status.csiList, eRef))
+                {
+                    ClAmsCompCSIRefT *csiRef = (ClAmsCompCSIRefT*)eRef;
+                    rc = VDECL_VER(clXdrMarshallClAmsCompCSIRefT, 4, 0, 0)(csiRef, msg, 0);
+                    if(rc != CL_OK)
+                    {
+                        goto out_free;
+                    }
+                }
+            }
+            break;
+            
+        default:
+            break;
+        }
+    }
+
+    out_free:
+    if(buffer.entity)
+        clHeapFree(buffer.entity);
+
+    return rc;
+}
+
+/*
+ * Get the states of the cluster entities.
+ */
+ClRcT
+clAmsDBGet(ClBufferHandleT msg)
+{
+    ClRcT rc;
+    struct EntityListMap
+    {
+        ClAmsEntityTypeT type;
+        ClAmsEntityListTypeT listType;
+    }map[] = { {.type = CL_AMS_ENTITY_TYPE_NODE, .listType = CL_AMS_NODE_LIST},
+               {.type = CL_AMS_ENTITY_TYPE_SU,   .listType = CL_AMS_SU_LIST},
+               {.type = CL_AMS_ENTITY_TYPE_SG,   .listType = CL_AMS_SG_LIST},
+               {.type = CL_AMS_ENTITY_TYPE_SI,   .listType = CL_AMS_SI_LIST},
+               {.type = CL_AMS_ENTITY_TYPE_CSI,  .listType = CL_AMS_CSI_LIST},
+               {.type = CL_AMS_ENTITY_TYPE_COMP, .listType = CL_AMS_COMP_LIST},
+    };
+    ClUint32T i;
+    for(i = 0; i < sizeof(map)/sizeof(map[0]); ++i)
+    {
+        rc = clAmsDBGetEntity(map[i].type, map[i].listType, msg);
+        if(rc != CL_OK)
+        {
+            goto out;
+        }
+    }
+
+    out:
+    return rc;
 }

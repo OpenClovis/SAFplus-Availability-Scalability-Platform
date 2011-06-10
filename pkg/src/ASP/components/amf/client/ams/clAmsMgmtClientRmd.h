@@ -373,6 +373,9 @@ cl_ams_mgmt_user_data_deleteall(ClAmsMgmtUserDataDeleteRequestT *req);
 extern ClRcT 
 cl_ams_mgmt_si_assign_su_custom(ClAmsMgmtSIAssignSUCustomRequestT *req);
 
+extern ClRcT
+cl_ams_mgmt_db_get(ClAmsMgmtDBGetResponseT *res);
+
 #ifdef __cplusplus
 }
 #endif

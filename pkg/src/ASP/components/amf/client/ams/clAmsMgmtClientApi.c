@@ -45,7 +45,7 @@
  *****************************************************************************/
 #include <string.h>
 #include <stdarg.h>
-
+#include <crc.h>
 #include <clAmsDebug.h>
 #include <clAmsErrors.h>
 #include <clAmsMgmtCommon.h>
@@ -4433,6 +4433,22 @@ exitfn:
 
 }
 
+ClRcT clAmsMgmtFreeCompCSIRefBuffer(ClAmsCompCSIRefBufferT *buffer)
+{
+    ClUint32T i;
+    for(i = 0; i < buffer->count; ++i)
+    {
+        if(buffer->entityRef[i].activeComp)
+        {
+            clHeapFree(buffer->entityRef[i].activeComp);
+            buffer->entityRef[i].activeComp = NULL;
+        }
+    }
+    clHeapFree(buffer->entityRef);
+    buffer->entityRef = NULL;
+    return CL_OK;
+}
+
 ClRcT clAmsMgmtMigrateSG(ClAmsMgmtHandleT handle,
                          const ClCharT *sg,
                          const ClCharT *prefix,
@@ -5276,4 +5292,1043 @@ clAmsMgmtGetAspInstallInfo(ClAmsMgmtHandleT mgmtHandle, const ClCharT *nodeName,
     
     out:
     return rc;
+}
+
+typedef struct ClAmsNodeCache
+{
+    struct hashStruct hash; /* hash index */
+    ClListHeadT list; /* list index*/
+    ClAmsNodeConfigT config;
+    ClAmsNodeStatusT status;
+    ClListHeadT suList;
+}ClAmsNodeCacheT;
+
+typedef struct ClAmsSUCache
+{
+    struct hashStruct hash;
+    ClListHeadT list; 
+    ClAmsSUConfigT config;
+    ClAmsSUStatusT status;
+    ClListHeadT compList;
+    ClListHeadT nodeList; /*to the parent node*/
+    ClListHeadT sgList; /* to the parent sg*/
+}ClAmsSUCacheT;
+
+typedef struct ClAmsSGCache
+{
+    struct hashStruct hash;
+    ClListHeadT list;
+    ClAmsSGConfigT config;
+    ClAmsSGStatusT status;
+    ClListHeadT siList;
+    ClListHeadT suList;
+}ClAmsSGCacheT;
+
+typedef struct ClAmsSICache
+{
+    struct hashStruct hash;
+    ClListHeadT list;
+    ClAmsSIConfigT config;
+    ClAmsSIStatusT status;
+    ClListHeadT csiList;
+    ClListHeadT sgList; /* index into the parent sg */
+}ClAmsSICacheT;
+
+typedef struct ClAmsCSICache
+{
+    struct hashStruct hash;
+    ClListHeadT list;
+    ClAmsCSIConfigT config;
+    ClAmsCSIStatusT status;
+    ClListHeadT siList; /* index into the parent si*/
+}ClAmsCSICacheT;
+
+typedef struct ClAmsCompCache
+{
+    struct hashStruct hash;
+    ClListHeadT list;
+    ClAmsCompConfigT config;
+    ClAmsCompStatusT status;
+    ClAmsCompCSIRefBufferT csiBuffer;
+    ClListHeadT suList;
+}ClAmsCompCacheT;
+
+typedef struct ClAmsMgmtEntityCache
+{
+#define CL_AMS_MGMT_DB_CACHE_BITS (0x8)
+#define CL_AMS_MGMT_DB_CACHE_SIZE (1 << CL_AMS_MGMT_DB_CACHE_BITS)
+#define CL_AMS_MGMT_DB_CACHE_MASK (CL_AMS_MGMT_DB_CACHE_SIZE - 1)
+    struct hashStruct *entityMap[CL_AMS_MGMT_DB_CACHE_SIZE];
+}ClAmsMgmtEntityCacheT;
+
+typedef struct ClAmsMgmtDBCache
+{
+    ClAmsMgmtEntityCacheT entityCache[CL_AMS_ENTITY_TYPE_MAX+1]; /* hash map */
+    ClListHeadT entityList[CL_AMS_ENTITY_TYPE_MAX+1]; /*direct list*/
+}ClAmsMgmtDBCacheT;
+
+static void amsMgmtDBCacheInitialize(ClAmsMgmtDBCacheT *cache)
+{
+    ClUint32T i;
+    for(i = 0; i <= CL_AMS_ENTITY_TYPE_MAX; ++i)
+    {
+        CL_LIST_HEAD_INIT(cache->entityList+i);
+    }
+}
+
+static __inline__ ClUint32T amsMgmtDBEntityHash(ClAmsEntityT *entity)
+{
+    ClUint32T key = 0, keyLen = 0;
+    crc( (ClUint8T*)entity->name.value, entity->name.length, &key, &keyLen);
+    return key & CL_AMS_MGMT_DB_CACHE_MASK;
+}
+
+static ClRcT amsMgmtDBCompCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT *cache, ClBufferHandleT msg)
+{
+    ClUint32T i;
+    ClRcT rc = CL_OK;
+    for(i = 0; i < buffer->count; ++i)
+    {
+        ClAmsCompCacheT *comp = clHeapCalloc(1, sizeof(*comp));
+        ClUint32T hash;
+        ClAmsEntityListTypeT type = 0;
+        CL_ASSERT(comp != NULL);
+        rc = VDECL_VER(clXdrUnmarshallClAmsCompConfigT, 4, 0, 0)(msg, &comp->config);
+        if(rc != CL_OK)
+        {
+            clHeapFree(comp);
+            return rc;
+        }
+        rc = VDECL_VER(clXdrUnmarshallClAmsCompStatusT, 4, 0, 0)(msg, &comp->status);
+        if(rc != CL_OK)
+        {
+            clHeapFree(comp);
+            return rc;
+        }
+        rc = VDECL_VER(clXdrUnmarshallClAmsEntityListTypeT, 4, 0, 0)(msg, &type);
+        if(rc != CL_OK)
+        {
+            clHeapFree(comp);
+            return rc;
+        }
+        if(type == CL_AMS_COMP_STATUS_CSI_LIST)
+        {
+            ClUint32T j;
+            rc = clXdrUnmarshallClUint32T(msg, &comp->csiBuffer.count);
+            if(rc != CL_OK)
+            {
+                clHeapFree(comp);
+                return rc;
+            }
+            comp->csiBuffer.entityRef = clHeapCalloc(comp->csiBuffer.count,
+                                                     sizeof(*comp->csiBuffer.entityRef));
+            CL_ASSERT(comp->csiBuffer.entityRef != NULL);
+            for(j = 0; j < comp->csiBuffer.count; ++j)
+            {
+                rc |= VDECL_VER(clXdrUnmarshallClAmsCompCSIRefT, 4, 0, 0)(msg, &comp->csiBuffer.entityRef[j]);
+            }
+            if(rc != CL_OK)
+            {
+                clHeapFree(comp->csiBuffer.entityRef);
+                clHeapFree(comp);
+                return rc;
+            }
+        }
+        clListAddTail(&comp->list, &cache->entityList[CL_AMS_ENTITY_TYPE_COMP]);
+        hash = amsMgmtDBEntityHash(&comp->config.entity);
+        hashAdd(cache->entityCache[CL_AMS_ENTITY_TYPE_COMP].entityMap, hash, &comp->hash);
+    }
+    return rc;
+}
+
+static ClRcT amsMgmtDBCSICacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT *cache, ClBufferHandleT msg)
+{
+    ClUint32T i;
+    ClRcT rc = CL_OK;
+    for(i = 0; i < buffer->count; ++i)
+    {
+        ClAmsCSICacheT *csi = clHeapCalloc(1, sizeof(*csi));
+        ClUint32T hash;
+        CL_ASSERT(csi != NULL);
+        rc = VDECL_VER(clXdrUnmarshallClAmsCSIConfigT, 4, 0, 0)(msg, &csi->config);
+        if(rc != CL_OK)
+        {
+            clHeapFree(csi);
+            return rc;
+        }
+        rc = VDECL_VER(clXdrUnmarshallClAmsCSIStatusT, 4, 0, 0)(msg, &csi->status);
+        if(rc != CL_OK)
+        {
+            clHeapFree(csi);
+            return rc;
+        }
+        clListAddTail(&csi->list, &cache->entityList[CL_AMS_ENTITY_TYPE_CSI]);
+        hash = amsMgmtDBEntityHash(&csi->config.entity);
+        hashAdd(cache->entityCache[CL_AMS_ENTITY_TYPE_CSI].entityMap, hash, &csi->hash);
+    }
+    return rc;
+}
+
+static ClRcT amsMgmtDBSICacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT *cache, ClBufferHandleT msg)
+{
+    ClUint32T i;
+    ClRcT rc = CL_OK;
+    for(i = 0; i < buffer->count; ++i)
+    {
+        ClAmsSICacheT *si = clHeapCalloc(1, sizeof(*si));
+        ClUint32T hash;
+        CL_ASSERT(si != NULL);
+        rc = VDECL_VER(clXdrUnmarshallClAmsSIConfigT, 4, 0, 0)(msg, &si->config);
+        if(rc != CL_OK)
+        {
+            clHeapFree(si);
+            return rc;
+        }
+        rc = VDECL_VER(clXdrUnmarshallClAmsSIStatusT, 4, 0, 0)(msg, &si->status);
+        if(rc != CL_OK)
+        {
+            clHeapFree(si);
+            return rc;
+        }
+        CL_LIST_HEAD_INIT(&si->csiList);
+        clListAddTail(&si->list, &cache->entityList[CL_AMS_ENTITY_TYPE_SI]);
+        hash = amsMgmtDBEntityHash(&si->config.entity);
+        hashAdd(cache->entityCache[CL_AMS_ENTITY_TYPE_SI].entityMap, hash, &si->hash);
+    }
+    return rc;
+}
+
+static ClRcT amsMgmtDBSGCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT *cache, ClBufferHandleT msg)
+{
+    ClUint32T i;
+    ClRcT rc = CL_OK;
+    for(i = 0; i < buffer->count; ++i)
+    {
+        ClAmsSGCacheT *sg = clHeapCalloc(1, sizeof(*sg));
+        ClUint32T hash;
+        CL_ASSERT(sg != NULL);
+        rc = VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 5, 0, 0)(msg, &sg->config);
+        if(rc != CL_OK)
+        {
+            clHeapFree(sg);
+            return rc;
+        }
+        rc = VDECL_VER(clXdrUnmarshallClAmsSGStatusT, 4, 1, 0)(msg, &sg->status);
+        if(rc != CL_OK)
+        {
+            clHeapFree(sg);
+            return rc;
+        }
+        CL_LIST_HEAD_INIT(&sg->siList);
+        CL_LIST_HEAD_INIT(&sg->suList);
+        clListAddTail(&sg->list, &cache->entityList[CL_AMS_ENTITY_TYPE_SG]);
+        hash = amsMgmtDBEntityHash(&sg->config.entity);
+        hashAdd(cache->entityCache[CL_AMS_ENTITY_TYPE_SG].entityMap, hash, &sg->hash);
+    }
+    return rc;
+}
+
+static ClRcT amsMgmtDBSUCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT *cache, ClBufferHandleT msg)
+{
+    ClUint32T i;
+    ClRcT rc = CL_OK;
+    for(i = 0; i < buffer->count; ++i)
+    {
+        ClAmsSUCacheT *su = clHeapCalloc(1, sizeof(*su));
+        ClUint32T hash;
+        CL_ASSERT(su != NULL);
+        rc = VDECL_VER(clXdrUnmarshallClAmsSUConfigT, 4, 0, 0)(msg, &su->config);
+        if(rc != CL_OK)
+        {
+            clHeapFree(su);
+            return rc;
+        }
+        rc = VDECL_VER(clXdrUnmarshallClAmsSUStatusT, 4, 0, 0)(msg, &su->status);
+        if(rc != CL_OK)
+        {
+            clHeapFree(su);
+            return rc;
+        }
+        CL_LIST_HEAD_INIT(&su->compList);
+        clListAddTail(&su->list, &cache->entityList[CL_AMS_ENTITY_TYPE_SU]);
+        hash = amsMgmtDBEntityHash(&su->config.entity);
+        hashAdd(cache->entityCache[CL_AMS_ENTITY_TYPE_SU].entityMap, hash, &su->hash);
+    }
+    return rc;
+}
+
+static ClRcT amsMgmtDBNodeCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT *cache, ClBufferHandleT msg)
+{
+    ClUint32T i;
+    ClRcT rc = CL_OK;
+    for(i = 0; i < buffer->count; ++i)
+    {
+        ClAmsNodeCacheT *node = clHeapCalloc(1, sizeof(*node));
+        ClUint32T hash;
+        CL_ASSERT(node != NULL);
+        rc = VDECL_VER(clXdrUnmarshallClAmsNodeConfigT, 4, 0, 0)(msg, &node->config);
+        if(rc != CL_OK)
+        {
+            clHeapFree(node);
+            return rc;
+        }
+        rc = VDECL_VER(clXdrUnmarshallClAmsNodeStatusT, 4, 0, 0)(msg, &node->status);
+        if(rc != CL_OK)
+        {
+            clHeapFree(node);
+            return rc;
+        }
+        CL_LIST_HEAD_INIT(&node->suList);
+        clListAddTail(&node->list, &cache->entityList[CL_AMS_ENTITY_TYPE_NODE]);
+        hash = amsMgmtDBEntityHash(&node->config.entity);
+        hashAdd(cache->entityCache[CL_AMS_ENTITY_TYPE_NODE].entityMap, hash, &node->hash);
+    }
+    return rc;
+}
+
+#define amsMgmtDBCacheFind(search, cast, ent, cache) do {               \
+    struct hashStruct *__iter;                                          \
+    struct hashStruct **__table = (cache)->entityCache[(ent)->type].entityMap; \
+    cast *__index = NULL;                                               \
+    ClUint32T __hash = amsMgmtDBEntityHash((ent));                      \
+    search = NULL;                                                      \
+    for(__iter = __table[__hash]; __iter; __iter = __iter->pNext)       \
+    {                                                                   \
+        __index = hashEntry(__iter, cast, hash);                        \
+        if(!strncmp(__index->config.entity.name.value, (ent)->name.value, (ent)->name.length)) \
+        {                                                               \
+            search = __index;                                           \
+            break;                                                      \
+        }                                                               \
+    }                                                                   \
+}while(0)
+
+/*
+ * Set the relation for the various entities.
+ */
+static ClRcT amsMgmtDBCacheRelationSet(ClAmsMgmtDBCacheT *cache)
+{
+    ClListHeadT *iter;
+    /*
+     * Set NODE su list and SG su list as well
+     */
+    CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_SU])
+    {
+        ClAmsSUCacheT *su = CL_LIST_ENTRY(iter, ClAmsSUCacheT, list);
+        ClAmsNodeCacheT *node = NULL;
+        ClAmsSGCacheT *sg = NULL;
+        amsMgmtDBCacheFind(node, ClAmsNodeCacheT, &su->config.parentNode.entity, cache);
+        if(!node)
+        {
+            clLogError("DB", "SET", "Node [%s] not found in the amf db cache. Cache looks stale",
+                       su->config.parentNode.entity.name.value);
+            return CL_AMS_RC(CL_ERR_INVALID_STATE);
+        }
+        clListAddTail(&su->nodeList, &node->suList);
+        amsMgmtDBCacheFind(sg, ClAmsSGCacheT, &su->config.parentSG.entity, cache);
+        if(!sg)
+        {
+            clLogError("DB", "SET", "SG [%s] not found in the amf db cache. Cache looks stale",
+                       su->config.parentSG.entity.name.value);
+            return CL_AMS_RC(CL_ERR_INVALID_STATE);
+        }
+        clListAddTail(&su->sgList, &sg->suList);
+    }
+    /*
+     * Set SG si list.
+     */
+    CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_SI])
+    {
+        ClAmsSICacheT *si = CL_LIST_ENTRY(iter, ClAmsSICacheT, list);
+        ClAmsSGCacheT *sg = NULL;
+        amsMgmtDBCacheFind(sg, ClAmsSGCacheT, &si->config.parentSG.entity, cache);
+        if(!sg)
+        {
+            clLogError("DB", "SET", "SG [%s] not found in the amf db cache. Cache looks stale",
+                       si->config.parentSG.entity.name.value);
+            return CL_AMS_RC(CL_ERR_INVALID_STATE);
+        }
+        clListAddTail(&si->sgList, &sg->siList);
+    }
+    /*
+     * Set SI csi list.
+     */
+    CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_CSI])
+    {
+        ClAmsCSICacheT *csi = CL_LIST_ENTRY(iter, ClAmsCSICacheT, list);
+        ClAmsSICacheT *si = NULL;
+        amsMgmtDBCacheFind(si, ClAmsSICacheT, &csi->config.parentSI.entity, cache);
+        if(!si)
+        {
+            clLogError("DB", "SET", "SI [%s] not found in the amf db cache. Cache looks stale",
+                       csi->config.parentSI.entity.name.value);
+            return CL_AMS_RC(CL_ERR_INVALID_STATE);
+        }
+        clListAddTail(&csi->siList, &si->csiList);
+    }
+    /*
+     * Set SU comp list.
+     */
+    CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_COMP])
+    {
+        ClAmsCompCacheT *comp = CL_LIST_ENTRY(iter, ClAmsCompCacheT, list);
+        ClAmsSUCacheT *su = NULL;
+        amsMgmtDBCacheFind(su, ClAmsSUCacheT, &comp->config.parentSU.entity, cache);
+        if(!su)
+        {
+            clLogError("DB", "SET", "SU [%s] not found in the amf db cache. Cache looks stale",
+                       comp->config.parentSU.entity.name.value);
+            return CL_AMS_RC(CL_ERR_INVALID_STATE);
+        }
+        clListAddTail(&comp->suList, &su->compList);
+    }
+    return CL_OK;
+}
+
+static ClRcT amsMgmtDBCacheLoad(ClUint8T *db, ClUint32T len, ClAmsMgmtDBCacheT *cache)
+{
+    ClRcT rc;
+    ClBufferHandleT msg = 0;
+    ClUint32T lastOffset = 0;
+    ClUint32T dbSize = len;
+    ClAmsEntityBufferT buffer = {0};
+
+    amsMgmtDBCacheInitialize(cache);
+    rc = clBufferCreate(&msg);
+    if(rc != CL_OK)
+        goto out;
+    /*
+     * FIXME: Could stitch this directly to the heap
+     */
+    rc = clBufferNBytesWrite(msg, db, len);
+    if(rc != CL_OK)
+        goto out_free;
+    while(len > 0)
+    {
+        ClAmsEntityListTypeT type = 0;
+        ClUint32T curOffset = 0;
+        if(buffer.entity)
+        {
+            clHeapFree(buffer.entity);
+            buffer.entity = NULL;
+        }
+        buffer.count = 0;
+        rc = VDECL_VER(clXdrUnmarshallClAmsEntityListTypeT, 4, 0, 0)(msg, &type);
+        if(rc != CL_OK)
+            goto out_free;
+        rc = VDECL_VER(clXdrUnmarshallClAmsEntityBufferT, 4, 0, 0)(msg, &buffer);
+        if(rc != CL_OK)
+            goto out_free;
+        switch(type)
+        {
+        case CL_AMS_NODE_LIST:
+            {
+                rc = amsMgmtDBNodeCacheLoad(&buffer, cache, msg);
+            }
+            break;
+        case CL_AMS_SU_LIST:
+            {
+                rc = amsMgmtDBSUCacheLoad(&buffer, cache, msg);
+            }
+            break;
+        case CL_AMS_SG_LIST:
+            {
+                rc = amsMgmtDBSGCacheLoad(&buffer, cache, msg);
+            }
+            break;
+        case CL_AMS_SI_LIST:
+            {
+                rc = amsMgmtDBSICacheLoad(&buffer, cache, msg);
+            }
+            break;
+        case CL_AMS_CSI_LIST:
+            {
+                rc = amsMgmtDBCSICacheLoad(&buffer, cache, msg);
+            }
+            break;
+        case CL_AMS_COMP_LIST:
+            {
+                rc = amsMgmtDBCompCacheLoad(&buffer, cache, msg);
+            }
+            break;
+        default:
+            break;
+        }
+        rc = clBufferReadOffsetGet(msg, &curOffset);
+        if(rc != CL_OK)
+            goto out_free;
+        if(curOffset == lastOffset)
+        {
+            rc = CL_AMS_RC(CL_ERR_LIBRARY);
+            clLogError("DB", "GET", "AMF db cache load not reading/progressing successfully");
+            goto out_free;
+        }
+        lastOffset = curOffset;
+        len = dbSize - curOffset;
+    }
+
+    amsMgmtDBCacheRelationSet(cache);
+
+    out_free:
+    clBufferDelete(&msg);
+    if(buffer.entity)
+        clHeapFree(buffer.entity);
+    out:
+    return rc;
+}
+
+#define amsMgmtDBListFree(cast, listHead) do {          \
+    while(!CL_LIST_HEAD_EMPTY((listHead)))              \
+    {                                                   \
+        ClListHeadT *top = (listHead)->pNext;           \
+        cast *__entry = CL_LIST_ENTRY(top, cast, list); \
+        clListDel(&__entry->list);                      \
+        clHeapFree(__entry);                            \
+    }                                                   \
+}while(0)
+ 
+static ClRcT amsMgmtDBCacheFree(ClAmsMgmtDBCacheT *cache)
+{
+    ClListHeadT *head = &cache->entityList[CL_AMS_ENTITY_TYPE_COMP];
+    while(!CL_LIST_HEAD_EMPTY(head))
+    {
+        ClListHeadT *top = head->pNext;
+        ClAmsCompCacheT *comp = CL_LIST_ENTRY(top, ClAmsCompCacheT, list);
+        clListDel(&comp->list);
+        clAmsMgmtFreeCompCSIRefBuffer(&comp->csiBuffer);
+        clHeapFree(comp);
+    }
+    amsMgmtDBListFree(ClAmsCSICacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_CSI]);
+    amsMgmtDBListFree(ClAmsSICacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_SI]);
+    amsMgmtDBListFree(ClAmsSUCacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_SU]);
+    amsMgmtDBListFree(ClAmsSGCacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_SG]);
+    amsMgmtDBListFree(ClAmsNodeCacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_NODE]);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBCacheDump(ClAmsMgmtDBHandleT db)
+{
+    ClListHeadT *iter;
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    if(!db) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_NODE])
+    {
+        ClAmsNodeCacheT *node = CL_LIST_ENTRY(iter, ClAmsNodeCacheT, list);
+        ClListHeadT *child;
+        clLogNotice("DB", "DUMP", "Node [%s]", node->config.entity.name.value);
+        CL_LIST_FOR_EACH(child, &node->suList)
+        {
+            ClAmsSUCacheT *su = CL_LIST_ENTRY(child, ClAmsSUCacheT, nodeList);
+            clLogNotice("DB", "DUMP", "Node has SU [%s]", su->config.entity.name.value);
+        }
+    }
+    CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_SG])
+    {
+        ClAmsSGCacheT *sg = CL_LIST_ENTRY(iter, ClAmsSGCacheT, list);
+        ClListHeadT *child;
+        clLogNotice("DB", "DUMP", "SG [%s]", sg->config.entity.name.value);
+        CL_LIST_FOR_EACH(child, &sg->siList)
+        {
+            ClAmsSICacheT *si = CL_LIST_ENTRY(child, ClAmsSICacheT, sgList);
+            clLogNotice("DB", "DUMP", "SG has SI [%s]", si->config.entity.name.value);
+        }
+        CL_LIST_FOR_EACH(child, &sg->suList)
+        {
+            ClAmsSUCacheT *su = CL_LIST_ENTRY(child, ClAmsSUCacheT, sgList);
+            clLogNotice("DB", "DUMP", "SG has SU [%s]", su->config.entity.name.value);
+        }
+    }
+    CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_SI])
+    {
+        ClAmsSICacheT *si = CL_LIST_ENTRY(iter, ClAmsSICacheT, list);
+        ClListHeadT *child;
+        clLogNotice("DB", "DUMP", "SI [%s]", si->config.entity.name.value);
+        CL_LIST_FOR_EACH(child, &si->csiList)
+        {
+            ClAmsCSICacheT *csi = CL_LIST_ENTRY(child, ClAmsCSICacheT, siList);
+            clLogNotice("DB", "DUMP", "SI has CSI [%s]", csi->config.entity.name.value);
+        }
+    }
+    CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_CSI])
+    {
+        ClAmsCSICacheT *csi = CL_LIST_ENTRY(iter, ClAmsCSICacheT, list);
+        clLogNotice("DB", "DUMP", "CSI [%s]", csi->config.entity.name.value);
+    }
+    CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_SU])
+    {
+        ClAmsSUCacheT *su = CL_LIST_ENTRY(iter, ClAmsSUCacheT, list);
+        ClListHeadT *child;
+        clLogNotice("DB", "DUMP", "SU [%s]", su->config.entity.name.value);
+        CL_LIST_FOR_EACH(child, &su->compList)
+        {
+            ClAmsCompCacheT *comp = CL_LIST_ENTRY(child, ClAmsCompCacheT, suList);
+            clLogNotice("DB", "DUMP", "SU has COMP [%s]", comp->config.entity.name.value);
+        }
+    }
+    CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_COMP])
+    {
+        ClAmsCompCacheT *comp = CL_LIST_ENTRY(iter, ClAmsCompCacheT, list);
+        ClUint32T i;
+        clLogNotice("DB", "DUMP", "COMP [%s]", comp->config.entity.name.value);
+        for(i = 0; i < comp->csiBuffer.count; ++i)
+        {
+            ClAmsCompCSIRefT *csiRef = comp->csiBuffer.entityRef + i;
+            clLogNotice("DB", "DUMP", "COMP has CSI reference [%s] with ha state [%s]",
+                        csiRef->entityRef.entity.name.value, CL_AMS_STRING_H_STATE(csiRef->haState));
+        }
+    }
+    return CL_OK;
+}
+
+
+#define amsMgmtDBCacheGetList(list, cast, field, buffer) do {           \
+    ClListHeadT *__iter;                                                \
+    (buffer)->count = 0;                                                \
+    (buffer)->entity = NULL;                                            \
+    CL_LIST_FOR_EACH(__iter, (list))                                    \
+    {                                                                   \
+        cast *__entry = CL_LIST_ENTRY(__iter, cast, field);             \
+        if(!( (buffer)->count & 15) )                                   \
+        {                                                               \
+            (buffer)->entity = clHeapRealloc((buffer)->entity, sizeof(*(buffer)->entity)*((buffer)->count+16)); \
+            CL_ASSERT((buffer)->entity != NULL);                        \
+            memset((buffer)->entity + (buffer)->count, 0, sizeof(*(buffer)->entity) * 16); \
+        }                                                               \
+        memcpy((buffer)->entity+(buffer)->count, &__entry->config.entity, sizeof(*(buffer)->entity)); \
+        ++(buffer)->count;                                              \
+    }                                                                   \
+}while(0)
+
+ClRcT clAmsMgmtDBGetNodeList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    if(!cache || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    amsMgmtDBCacheGetList(&cache->entityList[CL_AMS_ENTITY_TYPE_NODE], ClAmsNodeCacheT, list, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetSUList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    if(!cache || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    amsMgmtDBCacheGetList(&cache->entityList[CL_AMS_ENTITY_TYPE_SU], ClAmsSUCacheT, list, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetSGList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    if(!cache || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    amsMgmtDBCacheGetList(&cache->entityList[CL_AMS_ENTITY_TYPE_SG], ClAmsSGCacheT, list, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetSIList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    if(!cache || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    amsMgmtDBCacheGetList(&cache->entityList[CL_AMS_ENTITY_TYPE_SI], ClAmsSICacheT, list, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetCSIList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    if(!cache || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    amsMgmtDBCacheGetList(&cache->entityList[CL_AMS_ENTITY_TYPE_CSI], ClAmsCSICacheT, list, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetCompList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    if(!cache || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    amsMgmtDBCacheGetList(&cache->entityList[CL_AMS_ENTITY_TYPE_COMP], ClAmsCompCacheT, list, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetEntityConfig(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityConfigT **entityConfig)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    ClAmsEntityConfigT *config = NULL;
+    ClAmsEntityT searchEntity;
+    ClUint32T sz = 0;
+    ClRcT rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
+
+    if(!cache || !entity || !entityConfig) 
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+
+    memcpy(&searchEntity, entity, sizeof(searchEntity));
+    CL_AMS_NAME_LENGTH_CHECK(searchEntity); /* patch the name length if required */
+
+    switch(entity->type)
+    {
+    case CL_AMS_ENTITY_TYPE_NODE:
+        {
+            ClAmsNodeCacheT *node = NULL;
+            sz = sizeof(ClAmsNodeConfigT);
+            amsMgmtDBCacheFind(node, ClAmsNodeCacheT, &searchEntity, cache);
+            if(!node)
+            {
+                goto out;
+            }
+            config = &node->config.entity;
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_SU:
+        {
+            ClAmsSUCacheT *su = NULL;
+            sz = sizeof(ClAmsSUConfigT);
+            amsMgmtDBCacheFind(su, ClAmsSUCacheT, &searchEntity, cache);
+            if(!su)
+            {
+                goto out;
+            }
+            config = &su->config.entity;
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_SG:
+        {
+            ClAmsSGCacheT *sg = NULL;
+            sz = sizeof(ClAmsSGConfigT);
+            amsMgmtDBCacheFind(sg, ClAmsSGCacheT, &searchEntity, cache);
+            if(!sg)
+            {
+                goto out;
+            }
+            config = &sg->config.entity;
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_SI:
+        {
+            ClAmsSICacheT *si = NULL;
+            sz = sizeof(ClAmsSIConfigT);
+            amsMgmtDBCacheFind(si, ClAmsSICacheT, &searchEntity, cache);
+            if(!si)
+            {
+                goto out;
+            }
+            config = &si->config.entity;
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_CSI:
+        {
+            ClAmsCSICacheT *csi = NULL;
+            sz = sizeof(ClAmsCSIConfigT);
+            amsMgmtDBCacheFind(csi, ClAmsCSICacheT, &searchEntity, cache);
+            if(!csi)
+            {
+                goto out;
+            }
+            config = &csi->config.entity;
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_COMP:
+        {
+            ClAmsCompCacheT *comp = NULL;
+            sz = sizeof(ClAmsCompConfigT);
+            amsMgmtDBCacheFind(comp, ClAmsCompCacheT, &searchEntity, cache);
+            if(!comp)
+            {
+                goto out;
+            }
+            config = &comp->config.entity;
+        }
+        break;
+    default:
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+
+    *entityConfig = clHeapCalloc(1, sz);
+    CL_ASSERT(*entityConfig != NULL);
+    memcpy(*entityConfig, config, sz);
+    
+    rc = CL_OK;
+
+    out:
+    return rc;
+}
+
+ClRcT clAmsMgmtDBGetEntityStatus(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityStatusT **entityStatus)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    ClAmsEntityStatusT *status = NULL;
+    ClAmsEntityT searchEntity;
+    ClUint32T sz = 0;
+    ClRcT rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
+
+    if(!cache || !entity || !entityStatus) 
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+
+    memcpy(&searchEntity, entity, sizeof(searchEntity));
+    CL_AMS_NAME_LENGTH_CHECK(searchEntity); /* patch the name length if required */
+
+    switch(entity->type)
+    {
+    case CL_AMS_ENTITY_TYPE_NODE:
+        {
+            ClAmsNodeCacheT *node = NULL;
+            sz = sizeof(ClAmsNodeStatusT);
+            amsMgmtDBCacheFind(node, ClAmsNodeCacheT, &searchEntity, cache);
+            if(!node)
+            {
+                goto out;
+            }
+            status = &node->status.entity;
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_SU:
+        {
+            ClAmsSUCacheT *su = NULL;
+            sz = sizeof(ClAmsSUStatusT);
+            amsMgmtDBCacheFind(su, ClAmsSUCacheT, &searchEntity, cache);
+            if(!su)
+            {
+                goto out;
+            }
+            status = &su->status.entity;
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_SG:
+        {
+            ClAmsSGCacheT *sg = NULL;
+            sz = sizeof(ClAmsSGStatusT);
+            amsMgmtDBCacheFind(sg, ClAmsSGCacheT, &searchEntity, cache);
+            if(!sg)
+            {
+                goto out;
+            }
+            status = &sg->status.entity;
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_SI:
+        {
+            ClAmsSICacheT *si = NULL;
+            sz = sizeof(ClAmsSIStatusT);
+            amsMgmtDBCacheFind(si, ClAmsSICacheT, &searchEntity, cache);
+            if(!si)
+            {
+                goto out;
+            }
+            status = &si->status.entity;
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_CSI:
+        {
+            ClAmsCSICacheT *csi = NULL;
+            sz = sizeof(ClAmsCSIStatusT);
+            amsMgmtDBCacheFind(csi, ClAmsCSICacheT, &searchEntity, cache);
+            if(!csi)
+            {
+                goto out;
+            }
+            status = &csi->status.entity;
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_COMP:
+        {
+            ClAmsCompCacheT *comp = NULL;
+            sz = sizeof(ClAmsCompStatusT);
+            amsMgmtDBCacheFind(comp, ClAmsCompCacheT, &searchEntity, cache);
+            if(!comp)
+            {
+                goto out;
+            }
+            status = &comp->status.entity;
+        }
+        break;
+    default:
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+
+    *entityStatus = clHeapCalloc(1, sz);
+    CL_ASSERT(*entityStatus != NULL);
+    memcpy(*entityStatus, status, sz);
+    
+    rc = CL_OK;
+
+    out:
+    return rc;
+}
+
+ClRcT clAmsMgmtDBGetNodeSUList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    ClAmsNodeCacheT *node = NULL;
+    ClAmsEntityT searchEntity;
+    if(!cache || !entity || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    memcpy(&searchEntity, entity, sizeof(searchEntity));
+    CL_AMS_NAME_LENGTH_CHECK(searchEntity);
+    amsMgmtDBCacheFind(node, ClAmsNodeCacheT, &searchEntity, cache);
+    if(!node)
+    {
+        clLogError("DB", "GET", "Node [%s] not found in the amf db cache", searchEntity.name.value);
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+    amsMgmtDBCacheGetList(&node->suList, ClAmsSUCacheT, nodeList, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetSGSUList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    ClAmsSGCacheT *sg = NULL;
+    ClAmsEntityT searchEntity;
+    if(!cache || !entity || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    memcpy(&searchEntity, entity, sizeof(searchEntity));
+    CL_AMS_NAME_LENGTH_CHECK(searchEntity);
+    amsMgmtDBCacheFind(sg, ClAmsSGCacheT, &searchEntity, cache);
+    if(!sg)
+    {
+        clLogError("DB", "GET", "SG [%s] not found in the amf db cache", searchEntity.name.value);
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+    amsMgmtDBCacheGetList(&sg->suList, ClAmsSUCacheT, sgList, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetSGSIList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    ClAmsSGCacheT *sg = NULL;
+    ClAmsEntityT searchEntity;
+    if(!cache || !entity || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    memcpy(&searchEntity, entity, sizeof(searchEntity));
+    CL_AMS_NAME_LENGTH_CHECK(searchEntity);
+    amsMgmtDBCacheFind(sg, ClAmsSGCacheT, &searchEntity, cache);
+    if(!sg)
+    {
+        clLogError("DB", "GET", "SG [%s] not found in the amf db cache", searchEntity.name.value);
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+    amsMgmtDBCacheGetList(&sg->siList, ClAmsSICacheT, sgList, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetSICSIList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    ClAmsSICacheT *si = NULL;
+    ClAmsEntityT searchEntity;
+    if(!cache || !entity || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    memcpy(&searchEntity, entity, sizeof(searchEntity));
+    CL_AMS_NAME_LENGTH_CHECK(searchEntity);
+    amsMgmtDBCacheFind(si, ClAmsSICacheT, &searchEntity, cache);
+    if(!si)
+    {
+        clLogError("DB", "GET", "SI [%s] not found in the amf db cache", searchEntity.name.value);
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+    amsMgmtDBCacheGetList(&si->csiList, ClAmsCSICacheT, siList, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetSUCompList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    ClAmsSUCacheT *su = NULL;
+    ClAmsEntityT searchEntity;
+    if(!cache || !entity || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    memcpy(&searchEntity, entity, sizeof(searchEntity));
+    CL_AMS_NAME_LENGTH_CHECK(searchEntity);
+    amsMgmtDBCacheFind(su, ClAmsSUCacheT, &searchEntity, cache);
+    if(!su)
+    {
+        clLogError("DB", "GET", "SU [%s] not found in the amf db cache", searchEntity.name.value);
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+    amsMgmtDBCacheGetList(&su->compList, ClAmsCompCacheT, suList, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetCompCSIList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsCompCSIRefBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    ClAmsCompCacheT *comp = NULL;
+    ClAmsEntityT searchEntity;
+    if(!cache || !entity || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    memcpy(&searchEntity, entity, sizeof(searchEntity));
+    CL_AMS_NAME_LENGTH_CHECK(searchEntity);
+    amsMgmtDBCacheFind(comp, ClAmsCompCacheT, &searchEntity, cache);
+    if(!comp)
+    {
+        clLogError("DB", "GET", "COMP [%s] not found in the amf db cache", searchEntity.name.value);
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+    buffer->count = comp->csiBuffer.count;
+    buffer->entityRef = clHeapCalloc(comp->csiBuffer.count, sizeof(*comp->csiBuffer.entityRef));
+    CL_ASSERT(buffer->entityRef != NULL);
+    memcpy(buffer->entityRef, comp->csiBuffer.entityRef, sizeof(*buffer->entityRef) * buffer->count);
+    for(ClUint32T i = 0; i < buffer->count; ++i)
+    {
+        if(comp->csiBuffer.entityRef[i].activeComp)
+        {
+            buffer->entityRef[i].activeComp = clHeapCalloc(1, sizeof(*buffer->entityRef[i].activeComp));
+            CL_ASSERT(buffer->entityRef[i].activeComp != NULL);
+            memcpy(buffer->entityRef[i].activeComp, comp->csiBuffer.entityRef[i].activeComp,
+                   sizeof(*buffer->entityRef[i].activeComp));
+        }
+    }
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGet(ClAmsMgmtDBHandleT *db)
+{
+    ClRcT rc;
+    ClAmsMgmtDBGetResponseT dbResponse = {0};
+    ClAmsMgmtDBCacheT *cache;
+    rc = cl_ams_mgmt_db_get(&dbResponse);
+    if(rc != CL_OK)
+    {
+        clLogError("DB", "GET", "AMF db get returned with [%#x]", rc);
+        goto out;
+    }
+    cache = clHeapCalloc(1, sizeof(*cache));
+    CL_ASSERT(cache != NULL);
+    rc = amsMgmtDBCacheLoad(dbResponse.buffer, dbResponse.len, cache);
+    if(rc != CL_OK)
+    {
+        goto out_free;
+    }
+    if(!db)
+    {
+        clAmsMgmtDBCacheDump((ClAmsMgmtDBHandleT)cache);
+        goto out_free;
+    }
+    *db = (ClAmsMgmtDBHandleT)cache;
+    cache = NULL;
+
+    out_free:
+    if(cache)
+    {
+        amsMgmtDBCacheFree(cache);
+        clHeapFree(cache);
+    }
+    if(dbResponse.buffer)
+        clHeapFree(dbResponse.buffer);
+    out:
+    return rc;
+}
+
+ClRcT clAmsMgmtDBFinalize(ClAmsMgmtDBHandleT *db)
+{
+    ClAmsMgmtDBCacheT *cache = NULL;
+    if(!db || !(cache = (ClAmsMgmtDBCacheT*)*db))
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    amsMgmtDBCacheFree(cache);
+    clHeapFree(cache);
+    *db = 0;
+    return CL_OK;
 }

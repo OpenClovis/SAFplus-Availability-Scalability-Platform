@@ -859,6 +859,9 @@ extern ClRcT clAmsFailoverHistoryFind(ClAmsEntityT *entity, ClUint32T index,
 
 extern ClRcT clAmsSGFailoverHistoryDelete(ClAmsSGT *sg);
 
+extern ClRcT
+clAmsDBGet(ClBufferHandleT msg);
+
 #ifdef __cplusplus
 }
 #endif

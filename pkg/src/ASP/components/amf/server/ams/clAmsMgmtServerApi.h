@@ -512,6 +512,12 @@ VDECL(_clAmsMgmtSIAssignSUCustom)(
         CL_IN  ClBufferHandleT  in,
         CL_OUT  ClBufferHandleT  out );
 
+extern ClRcT
+VDECL_VER(_clAmsMgmtDBGet, 5, 0, 0)( 
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out );
+
 #ifdef __cplusplus
 }
 #endif

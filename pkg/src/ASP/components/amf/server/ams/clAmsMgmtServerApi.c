@@ -5419,6 +5419,60 @@ VDECL(_clAmsMgmtSIAssignSUCustom)(ClEoDataT userData,
     return rc;
 }
 
+ClRcT 
+VDECL_VER(_clAmsMgmtDBGet, 5, 0, 0)(ClEoDataT userData,
+                                    ClBufferHandleT inMsgHdl,
+                                    ClBufferHandleT outMsgHdl)
+{
+    ClRcT rc = CL_OK;
+    ClBufferHandleT msg = 0;
+    ClUint32T len = 0;
+    ClUint8T *dbBuffer = NULL;
+
+    if(gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING
+       &&
+       gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN)
+        return CL_AMS_RC(CL_ERR_BAD_OPERATION);
+
+    rc = clBufferCreate(&msg);
+    if(rc != CL_OK)
+    {
+        goto out;
+    }
+
+    clOsalMutexLock(gAms.mutex);
+    rc = clAmsDBGet(msg);
+    clOsalMutexUnlock(gAms.mutex);
+
+    if(rc != CL_OK)
+    {
+        clLogError("DB", "GET", "AMF mgmt db get returned with [%#x]", rc);
+        goto out_free;
+    }
+    
+    rc = clBufferLengthGet(msg, &len);
+    if(rc != CL_OK)
+        goto out_free;
+
+    rc = clBufferFlatten(msg, &dbBuffer);
+    if(rc != CL_OK)
+        goto out_free;
+
+    rc = clXdrMarshallClUint32T(&len, outMsgHdl, 0);
+    if(rc != CL_OK)
+        goto out_free;
+
+    rc = clXdrMarshallArrayClUint8T(dbBuffer, len, outMsgHdl, 0);
+    
+    out_free:
+    clBufferDelete(&msg);
+
+    if(dbBuffer) clHeapFree(dbBuffer);
+
+    out:
+    return rc;
+}
+
 ClRcT
 clAmsMgmtCommitCCBOperations(
                              CL_IN  ClCntHandleT  *opListHandle )
@@ -5463,7 +5517,7 @@ clAmsMgmtCommitCCBOperations(
 
                 memcpy(&entityRef.entity, &req->entity ,
                        sizeof (ClAmsEntityT));
-                    
+                clLogNotice("ENTITY", "CREATE", "Create entity [%s]", req->entity.name.value);
                 AMS_CHECK_RC_ERROR( clAmsEntityDbAddEntity(
                                                            &gAms.db.entityDb[req->entity.type],&entityRef));
                 
@@ -5489,6 +5543,8 @@ clAmsMgmtCommitCCBOperations(
 
                 memcpy(&entityRef.entity, &req->entity,
                        sizeof (ClAmsEntityT));
+
+                clLogNotice("ENTITY", "DELETE", "Delete entity [%s]", req->entity.name.value);
                 
                 AMS_CHECK_RC_ERROR( clAmsEntityDbFindEntity(&gAms.db.entityDb[req->entity.type],
                                                             &entityRef));

@@ -3556,6 +3556,56 @@ extern ClRcT clAmsMgmtSIAssignSU(const ClCharT *si, const ClCharT *activeSU, con
 extern ClRcT clAmsMgmtGetAspInstallInfo(ClAmsMgmtHandleT handle, const ClCharT *nodeName,
                                         ClCharT *aspInstallInfo, ClUint32T len);
 
+extern ClRcT clAmsMgmtFreeCompCSIRefBuffer(ClAmsCompCSIRefBufferT *buffer);
+
+extern ClRcT clAmsMgmtDBGet(ClAmsMgmtDBHandleT *db);
+
+extern 
+ClRcT clAmsMgmtDBGetNodeList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetSUList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetSGList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetSIList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetCSIList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetCompList(ClAmsMgmtDBHandleT db, ClAmsEntityBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetEntityConfig(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityConfigT **entityConfig);
+
+extern
+ClRcT clAmsMgmtDBGetEntityStatus(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityStatusT **entityStatus);
+
+extern
+ClRcT clAmsMgmtDBGetNodeSUList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetSGSUList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetSGSIList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetSICSIList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetSUCompList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetCompCSIList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsCompCSIRefBufferT *buffer);
+
+extern ClRcT clAmsMgmtDBCacheDump(ClAmsMgmtDBHandleT db);
+
+extern ClRcT clAmsMgmtDBFinalize(ClAmsMgmtDBHandleT *db);
+
 #ifdef __cplusplus
 }
 #endif
