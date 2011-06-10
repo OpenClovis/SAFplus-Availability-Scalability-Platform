@@ -1437,22 +1437,17 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
                 pRecordIter += LOG_ASCII_HDR_LEN;
                 sscanf((char*)pRecordIter, LOG_ASCII_DATA_LEN_FMT, &len);
                 pRecordIter += LOG_ASCII_DATA_LEN;
-                if((ClInt32T)hdrLen > 0 && (ClInt32T)len > 0 
-                   && 
-                   (hdrLen + len + LOG_ASCII_METADATA_LEN <= recordSize))
+                iov[idx].iov_base = (char*)pRecordIter;
+                iov[idx].iov_len  = CL_MIN(hdrLen + len + 1, recordSize - LOG_ASCII_METADATA_LEN);
+                /* Ensure that the record is CR terminated.
+                   All ASCII records should have a \n from the client, but
+                   may not if the message len was chopped during the send 
+                */
+                *((ClCharT *)iov[idx].iov_base + iov[idx].iov_len - 1) = '\n';
+                if(syslogEnabled) 
                 {
-                    iov[idx].iov_base = (char*)pRecordIter;
-                    iov[idx].iov_len  = CL_MIN(hdrLen + len + 1, recordSize - LOG_ASCII_METADATA_LEN);
-                    /* Ensure that the record is CR terminated.
-                       All ASCII records should have a \n from the client, but
-                       may not if the message len was chopped during the send */
-                    *((ClCharT *)iov[idx].iov_base + iov[idx].iov_len - 1) = '\n';
-                    if(syslogEnabled) 
-                    {
-                        doSyslog(severity, (const ClCharT*)iov[idx].iov_base, iov[idx].iov_len);
-                    }
+                    doSyslog(severity, (const ClCharT*)iov[idx].iov_base, iov[idx].iov_len);
                 }
-                
             }
             else
             {

@@ -787,6 +787,14 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
                               ClUint32T          recSize,
                               ClUint8T           *pRecord)
 {
+#define __UPDATE_REC_SIZE do {                  \
+        if(recSize < nbytes )                   \
+            recSize = nbytes;                   \
+        recSize -= nbytes;                      \
+        if(!recSize)                            \
+            return CL_OK;                       \
+}while(0)
+
     ClRcT             rc            = CL_OK;
     ClTimeT           timeStamp     = 0;
     ClUint8T          *pRecStart    = pRecord;
@@ -811,6 +819,7 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
          */
         nbytes = snprintf((ClCharT *)pRecord, recSize, LOG_ASCII_HDR_FMT, endian, severity & 0x1f); 
         pRecord += nbytes;
+        __UPDATE_REC_SIZE;
         if(pMsgHeader && pMsgHeader[0])
         {
             ClCharT *pSeverity = clLogSeverityStrGet(severity);
@@ -827,18 +836,21 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
             len = vsnprintf(&c, 1, pFmtStr, argsCopy);
             va_end(argsCopy);
             if(len < 0) len = 0;
-            hdrLen = CL_MIN(hdrLen, recSize - nbytes - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - 1);
-            len = CL_MIN(len, recSize - nbytes - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - hdrLen - 1);
-            nbytes = snprintf((ClCharT*)pRecord, recSize - nbytes - 1, LOG_ASCII_HDR_LEN_FMT, hdrLen);
+            hdrLen = CL_MIN(hdrLen, recSize - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - 1);
+            len = CL_MIN(len, recSize - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - hdrLen - 1);
+            nbytes = snprintf((ClCharT*)pRecord, recSize - 1, LOG_ASCII_HDR_LEN_FMT, hdrLen);
             pRecord += nbytes;
-            nbytes = snprintf((ClCharT*)pRecord, recSize - nbytes - 1, LOG_ASCII_DATA_LEN_FMT, len);
+            __UPDATE_REC_SIZE;
+            nbytes = snprintf((ClCharT*)pRecord, recSize - 1, LOG_ASCII_DATA_LEN_FMT, len);
             pRecord += nbytes;
-            nbytes = snprintf((ClCharT*)pRecord, recSize - nbytes - 1, "%s.%05lld : %6s) ",
+            __UPDATE_REC_SIZE;
+            nbytes = snprintf((ClCharT*)pRecord, recSize - 1, "%s.%05lld : %6s) ",
                               pMsgHeader, sequenceNum, pSeverity ? pSeverity : "DEBUG");
             if(nbytes < 0) nbytes = 0;
             pRecord += nbytes;
+            __UPDATE_REC_SIZE;
             pFmtStr = va_arg(args, ClCharT *);
-            nbytes = vsnprintf((ClCharT*)pRecord, recSize - nbytes - 1, pFmtStr, args);
+            nbytes = vsnprintf((ClCharT*)pRecord, recSize - 1, pFmtStr, args);
             if(nbytes < 0) nbytes = 0;
             pRecord[nbytes] = 0;
         }
@@ -888,6 +900,8 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
 
     CL_LOG_DEBUG_TRACE(("Exit: rc: [Ox %x]", rc));
     return rc;
+
+#undef __UPDATE_REC_SIZE
 }
 
 ClRcT
