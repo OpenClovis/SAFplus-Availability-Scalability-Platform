@@ -45,7 +45,6 @@
  *****************************************************************************/
 #include <string.h>
 #include <stdarg.h>
-#include <crc.h>
 #include <clAmsDebug.h>
 #include <clAmsErrors.h>
 #include <clAmsMgmtCommon.h>
@@ -58,6 +57,7 @@
 #include <clAmsUtils.h>
 #include <clAmsMgmtHooks.h>
 #include <clEoApi.h>
+#include <clHash.h>
 static ClEoExecutionObjT *gpEOObj;
 
 /******************************************************************************
@@ -5378,8 +5378,8 @@ static void amsMgmtDBCacheInitialize(ClAmsMgmtDBCacheT *cache)
 
 static __inline__ ClUint32T amsMgmtDBEntityHash(ClAmsEntityT *entity)
 {
-    ClUint32T key = 0, keyLen = 0;
-    crc( (ClUint8T*)entity->name.value, entity->name.length, &key, &keyLen);
+    ClUint32T key = 0;
+    clCksm32bitCompute( (ClUint8T*)entity->name.value, entity->name.length, &key);
     return key & CL_AMS_MGMT_DB_CACHE_MASK;
 }
 
