@@ -8312,6 +8312,7 @@ static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listTy
 
         case CL_AMS_ENTITY_TYPE_SU:
             {
+                ClAmsEntityRefT *eRef = NULL;
                 ClAmsSUT *su = (ClAmsSUT*)entityRef.ptr;
                 rc = VDECL_VER(clXdrMarshallClAmsSUConfigT, 4, 0, 0)(&su->config, msg, 0);
                 if(rc != CL_OK)
@@ -8323,6 +8324,39 @@ static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listTy
                 {
                     goto out_free;
                 }
+                listType = CL_AMS_SU_STATUS_SI_EXTENDED_LIST;
+                rc = VDECL_VER(clXdrMarshallClAmsEntityListTypeT, 4, 0, 0)(&listType, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                rc = clXdrMarshallClUint32T(&su->status.siList.numEntities, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                for(eRef = clAmsEntityListGetFirst(&su->status.siList); eRef;
+                    eRef = clAmsEntityListGetNext(&su->status.siList, eRef))
+                {
+                    ClAmsSUSIExtendedRefT targetRef = {{{0}}};
+                    ClAmsSUSIRefT *suSIRef = (ClAmsSUSIRefT*)eRef;
+                    ClAmsSIT *si = (ClAmsSIT*)eRef->ptr;
+                    memcpy(&targetRef.entityRef, &suSIRef->entityRef, sizeof(targetRef.entityRef));
+                    targetRef.haState = suSIRef->haState;
+                    targetRef.numActiveCSIs = suSIRef->numActiveCSIs;
+                    targetRef.numStandbyCSIs = suSIRef->numStandbyCSIs;
+                    targetRef.numQuiescedCSIs = suSIRef->numQuiescedCSIs;
+                    targetRef.numQuiescingCSIs = suSIRef->numQuiescingCSIs;
+                    targetRef.numCSIs = si->config.numCSIs;
+                    targetRef.rank = suSIRef->rank;
+                    targetRef.pendingInvocations = clAmsInvocationsPendingForSI(si, su);
+                    rc = VDECL_VER(clXdrMarshallClAmsSUSIExtendedRefT, 4, 0, 0)(&targetRef, msg, 0);
+                    if(rc != CL_OK)
+                    {
+                        goto out_free;
+                    }
+                }
+
             }
             break;
 
@@ -8345,6 +8379,7 @@ static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listTy
         case CL_AMS_ENTITY_TYPE_SI:
             {
                 ClAmsSIT *si = (ClAmsSIT *)entityRef.ptr;
+                ClAmsEntityRefT *eRef = NULL;
                 rc = VDECL_VER(clXdrMarshallClAmsSIConfigT, 4, 0, 0)(&si->config, msg, 0);
                 if(rc != CL_OK)
                 {
@@ -8354,6 +8389,32 @@ static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listTy
                 if(rc != CL_OK)
                 {
                     goto out_free;
+                }
+                listType = CL_AMS_SI_STATUS_SU_EXTENDED_LIST;
+                rc = VDECL_VER(clXdrMarshallClAmsEntityListTypeT, 4, 0, 0)(&listType, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                rc = clXdrMarshallClUint32T(&si->status.suList.numEntities, msg, 0);
+                if(rc != CL_OK)
+                {
+                    goto out_free;
+                }
+                for(eRef = clAmsEntityListGetFirst(&si->status.suList); eRef;
+                    eRef = clAmsEntityListGetNext(&si->status.suList, eRef))
+                {
+                    ClAmsSISUExtendedRefT targetRef = {{{0}}};
+                    ClAmsSISURefT *siSURef = (ClAmsSISURefT*)eRef;
+                    memcpy(&targetRef.entityRef, &siSURef->entityRef, sizeof(targetRef.entityRef));
+                    targetRef.rank = siSURef->rank;
+                    targetRef.haState = siSURef->haState;
+                    targetRef.pendingInvocations = clAmsInvocationsPendingForSU((ClAmsSUT*)eRef->ptr);
+                    rc = VDECL_VER(clXdrMarshallClAmsSISUExtendedRefT, 4, 0, 0)(&targetRef, msg, 0);
+                    if(rc != CL_OK)
+                    {
+                        goto out_free;
+                    }
                 }
             }
             break;

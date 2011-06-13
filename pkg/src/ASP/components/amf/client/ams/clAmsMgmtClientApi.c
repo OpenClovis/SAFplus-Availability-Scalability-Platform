@@ -5312,6 +5312,7 @@ typedef struct ClAmsSUCache
     ClListHeadT compList;
     ClListHeadT nodeList; /*to the parent node*/
     ClListHeadT sgList; /* to the parent sg*/
+    ClAmsSUSIExtendedRefBufferT siBuffer;
 }ClAmsSUCacheT;
 
 typedef struct ClAmsSGCache
@@ -5332,6 +5333,7 @@ typedef struct ClAmsSICache
     ClAmsSIStatusT status;
     ClListHeadT csiList;
     ClListHeadT sgList; /* index into the parent sg */
+    ClAmsSISUExtendedRefBufferT suBuffer; /* si su buffer list */
 }ClAmsSICacheT;
 
 typedef struct ClAmsCSICache
@@ -5476,7 +5478,8 @@ static ClRcT amsMgmtDBSICacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT 
     for(i = 0; i < buffer->count; ++i)
     {
         ClAmsSICacheT *si = clHeapCalloc(1, sizeof(*si));
-        ClUint32T hash;
+        ClUint32T hash, j = 0;
+        ClAmsEntityListTypeT listType = 0;
         CL_ASSERT(si != NULL);
         rc = VDECL_VER(clXdrUnmarshallClAmsSIConfigT, 4, 0, 0)(msg, &si->config);
         if(rc != CL_OK)
@@ -5489,6 +5492,34 @@ static ClRcT amsMgmtDBSICacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT 
         {
             clHeapFree(si);
             return rc;
+        }
+        rc = VDECL_VER(clXdrUnmarshallClAmsEntityListTypeT, 4, 0, 0)(msg, &listType);
+        if(rc != CL_OK)
+        {
+            clHeapFree(si);
+            return rc;
+        }
+        if(listType == CL_AMS_SI_STATUS_SU_EXTENDED_LIST)
+        {
+            rc = clXdrUnmarshallClUint32T(msg, &si->suBuffer.count);
+            if(rc != CL_OK)
+            {
+                clHeapFree(si);
+                return rc;
+            }
+            si->suBuffer.entityRef = clHeapCalloc(si->suBuffer.count, sizeof(*si->suBuffer.entityRef));
+            CL_ASSERT(si->suBuffer.entityRef != NULL);
+            for(j = 0; j < si->suBuffer.count; ++j)
+            {
+                rc |= VDECL_VER(clXdrUnmarshallClAmsSISUExtendedRefT, 4, 0, 0)(msg, 
+                                                                               si->suBuffer.entityRef + j);
+            }
+            if(rc != CL_OK)
+            {
+                clHeapFree(si->suBuffer.entityRef);
+                clHeapFree(si);
+                return rc;
+            }
         }
         CL_LIST_HEAD_INIT(&si->csiList);
         clListAddTail(&si->list, &cache->entityList[CL_AMS_ENTITY_TYPE_SI]);
@@ -5535,7 +5566,8 @@ static ClRcT amsMgmtDBSUCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT 
     for(i = 0; i < buffer->count; ++i)
     {
         ClAmsSUCacheT *su = clHeapCalloc(1, sizeof(*su));
-        ClUint32T hash;
+        ClUint32T hash, j;
+        ClAmsEntityListTypeT listType = 0;
         CL_ASSERT(su != NULL);
         rc = VDECL_VER(clXdrUnmarshallClAmsSUConfigT, 4, 0, 0)(msg, &su->config);
         if(rc != CL_OK)
@@ -5548,6 +5580,34 @@ static ClRcT amsMgmtDBSUCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT 
         {
             clHeapFree(su);
             return rc;
+        }
+        rc = VDECL_VER(clXdrUnmarshallClAmsEntityListTypeT, 4, 0, 0)(msg, &listType);
+        if(rc != CL_OK)
+        {
+            clHeapFree(su);
+            return rc;
+        }
+        if(listType == CL_AMS_SU_STATUS_SI_EXTENDED_LIST)
+        {
+            rc = clXdrUnmarshallClUint32T(msg, &su->siBuffer.count);
+            if(rc != CL_OK)
+            {
+                clHeapFree(su);
+                return rc;
+            }
+            su->siBuffer.entityRef = clHeapCalloc(su->siBuffer.count, sizeof(*su->siBuffer.entityRef));
+            CL_ASSERT(su->siBuffer.entityRef != NULL);
+            for(j = 0; j < su->siBuffer.count; ++j)
+            {
+                rc |= VDECL_VER(clXdrUnmarshallClAmsSUSIExtendedRefT, 4, 0, 0)(msg, 
+                                                                               su->siBuffer.entityRef + j);
+            }
+            if(rc != CL_OK)
+            {
+                clHeapFree(su->siBuffer.entityRef);
+                clHeapFree(su);
+                return rc;
+            }
         }
         CL_LIST_HEAD_INIT(&su->compList);
         clListAddTail(&su->list, &cache->entityList[CL_AMS_ENTITY_TYPE_SU]);
@@ -5777,32 +5837,64 @@ static ClRcT amsMgmtDBCacheLoad(ClUint8T *db, ClUint32T len, ClAmsMgmtDBCacheT *
     return rc;
 }
 
-#define amsMgmtDBListFree(cast, listHead) do {          \
-    while(!CL_LIST_HEAD_EMPTY((listHead)))              \
-    {                                                   \
-        ClListHeadT *top = (listHead)->pNext;           \
-        cast *__entry = CL_LIST_ENTRY(top, cast, list); \
-        clListDel(&__entry->list);                      \
-        clHeapFree(__entry);                            \
-    }                                                   \
+#define amsMgmtDBListFree(cast, listHead, destroy_cb) do {  \
+    while(!CL_LIST_HEAD_EMPTY((listHead)))                  \
+    {                                                       \
+        ClListHeadT *top = (listHead)->pNext;               \
+        cast *__entry = CL_LIST_ENTRY(top, cast, list);     \
+        clListDel(&__entry->list);                          \
+        destroy_cb(&__entry->hash);                         \
+    }                                                       \
 }while(0)
- 
+
+static void amsMgmtEntityCacheFree(struct hashStruct *hash)
+{
+    hashDel(hash);
+    clHeapFree((ClPtrT)hash);
+}
+
+static void amsMgmtCompCacheFree(struct hashStruct *hash)
+{
+    ClAmsCompCacheT *comp = (ClAmsCompCacheT*)hash;
+    clAmsMgmtFreeCompCSIRefBuffer(&comp->csiBuffer);
+    if(comp->config.pSupportedCSITypes)
+    {
+        clHeapFree(comp->config.pSupportedCSITypes);
+        comp->config.pSupportedCSITypes = NULL;
+    }
+    amsMgmtEntityCacheFree(hash);
+}
+
+static void amsMgmtSICacheFree(struct hashStruct *hash)
+{
+    ClAmsSICacheT *si = (ClAmsSICacheT*)hash;
+    if(si->suBuffer.entityRef)
+    {
+        clHeapFree(si->suBuffer.entityRef);
+        si->suBuffer.entityRef = NULL;
+    }
+    amsMgmtEntityCacheFree(hash);
+}
+
+static void amsMgmtSUCacheFree(struct hashStruct *hash)
+{
+    ClAmsSUCacheT *su = (ClAmsSUCacheT*)hash;
+    if(su->siBuffer.entityRef)
+    {
+        clHeapFree(su->siBuffer.entityRef);
+        su->siBuffer.entityRef = NULL;
+    }
+    amsMgmtEntityCacheFree(hash);
+}
+
 static ClRcT amsMgmtDBCacheFree(ClAmsMgmtDBCacheT *cache)
 {
-    ClListHeadT *head = &cache->entityList[CL_AMS_ENTITY_TYPE_COMP];
-    while(!CL_LIST_HEAD_EMPTY(head))
-    {
-        ClListHeadT *top = head->pNext;
-        ClAmsCompCacheT *comp = CL_LIST_ENTRY(top, ClAmsCompCacheT, list);
-        clListDel(&comp->list);
-        clAmsMgmtFreeCompCSIRefBuffer(&comp->csiBuffer);
-        clHeapFree(comp);
-    }
-    amsMgmtDBListFree(ClAmsCSICacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_CSI]);
-    amsMgmtDBListFree(ClAmsSICacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_SI]);
-    amsMgmtDBListFree(ClAmsSUCacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_SU]);
-    amsMgmtDBListFree(ClAmsSGCacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_SG]);
-    amsMgmtDBListFree(ClAmsNodeCacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_NODE]);
+    amsMgmtDBListFree(ClAmsCompCacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_COMP], amsMgmtCompCacheFree);
+    amsMgmtDBListFree(ClAmsCSICacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_CSI], amsMgmtEntityCacheFree);
+    amsMgmtDBListFree(ClAmsSICacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_SI], amsMgmtSICacheFree);
+    amsMgmtDBListFree(ClAmsSUCacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_SU], amsMgmtSUCacheFree);
+    amsMgmtDBListFree(ClAmsSGCacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_SG], amsMgmtEntityCacheFree);
+    amsMgmtDBListFree(ClAmsNodeCacheT, &cache->entityList[CL_AMS_ENTITY_TYPE_NODE], amsMgmtEntityCacheFree);
     return CL_OK;
 }
 
@@ -5842,11 +5934,19 @@ ClRcT clAmsMgmtDBCacheDump(ClAmsMgmtDBHandleT db)
     {
         ClAmsSICacheT *si = CL_LIST_ENTRY(iter, ClAmsSICacheT, list);
         ClListHeadT *child;
+        ClUint32T i;
         clLogNotice("DB", "DUMP", "SI [%s]", si->config.entity.name.value);
         CL_LIST_FOR_EACH(child, &si->csiList)
         {
             ClAmsCSICacheT *csi = CL_LIST_ENTRY(child, ClAmsCSICacheT, siList);
             clLogNotice("DB", "DUMP", "SI has CSI [%s]", csi->config.entity.name.value);
+        }
+        for(i = 0; i < si->suBuffer.count; ++i)
+        {
+            ClAmsSISUExtendedRefT *siSURef = si->suBuffer.entityRef + i;
+            clLogNotice("DB", "DUMP", "SI has SU [%s] assigned with ha state [%s], invocations [%d]",
+                        siSURef->entityRef.entity.name.value, 
+                        CL_AMS_STRING_H_STATE(siSURef->haState), siSURef->pendingInvocations);
         }
     }
     CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_CSI])
@@ -5858,11 +5958,23 @@ ClRcT clAmsMgmtDBCacheDump(ClAmsMgmtDBHandleT db)
     {
         ClAmsSUCacheT *su = CL_LIST_ENTRY(iter, ClAmsSUCacheT, list);
         ClListHeadT *child;
+        ClUint32T i;
         clLogNotice("DB", "DUMP", "SU [%s]", su->config.entity.name.value);
         CL_LIST_FOR_EACH(child, &su->compList)
         {
             ClAmsCompCacheT *comp = CL_LIST_ENTRY(child, ClAmsCompCacheT, suList);
             clLogNotice("DB", "DUMP", "SU has COMP [%s]", comp->config.entity.name.value);
+        }
+        for(i = 0; i < su->siBuffer.count; ++i)
+        {
+            ClAmsSUSIExtendedRefT *suSIRef = su->siBuffer.entityRef + i;
+            clLogNotice("DB", "DUMP", "SU has SI [%s] assigned with ha state [%s], active csis [%d], "
+                        "standby csis [%d], quiesced csis [%d], quiescing csis [%d], numcsis [%d], "
+                        "pending invocations [%d]",
+                        suSIRef->entityRef.entity.name.value, 
+                        CL_AMS_STRING_H_STATE(suSIRef->haState), suSIRef->numActiveCSIs,
+                        suSIRef->numStandbyCSIs, suSIRef->numQuiescedCSIs, suSIRef->numQuiescingCSIs,
+                        suSIRef->numCSIs, suSIRef->pendingInvocations);
         }
     }
     CL_LIST_FOR_EACH(iter, &cache->entityList[CL_AMS_ENTITY_TYPE_COMP])
@@ -6249,6 +6361,58 @@ ClRcT clAmsMgmtDBGetSUCompList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAm
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
     }
     amsMgmtDBCacheGetList(&su->compList, ClAmsCompCacheT, suList, buffer);
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetSUAssignedSIsList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsSUSIExtendedRefBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    ClAmsSUCacheT *su = NULL;
+    ClAmsEntityT searchEntity;
+    if(!cache || !entity || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    memcpy(&searchEntity, entity, sizeof(searchEntity));
+    CL_AMS_NAME_LENGTH_CHECK(searchEntity);
+    amsMgmtDBCacheFind(su, ClAmsSUCacheT, &searchEntity, cache);
+    if(!su)
+    {
+        clLogError("DB", "GET", "SU [%s] not found in the amf db cache", searchEntity.name.value);
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+    buffer->count = su->siBuffer.count;
+    buffer->entityRef = NULL;
+    if(buffer->count > 0)
+    {
+        buffer->entityRef = clHeapCalloc(su->siBuffer.count, sizeof(*su->siBuffer.entityRef));
+        CL_ASSERT(buffer->entityRef != NULL);
+        memcpy(buffer->entityRef, su->siBuffer.entityRef, sizeof(*buffer->entityRef) * buffer->count);
+    }
+    return CL_OK;
+}
+
+ClRcT clAmsMgmtDBGetSISUList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsSISUExtendedRefBufferT *buffer)
+{
+    ClAmsMgmtDBCacheT *cache = (ClAmsMgmtDBCacheT*)db;
+    ClAmsSICacheT *si = NULL;
+    ClAmsEntityT searchEntity;
+    if(!cache || !entity || !buffer)
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    memcpy(&searchEntity, entity, sizeof(searchEntity));
+    CL_AMS_NAME_LENGTH_CHECK(searchEntity);
+    amsMgmtDBCacheFind(si, ClAmsSICacheT, &searchEntity, cache);
+    if(!si)
+    {
+        clLogError("DB", "GET", "SI [%s] not found in the amf db cache", searchEntity.name.value);
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+    buffer->count = si->suBuffer.count;
+    buffer->entityRef = NULL;
+    if(buffer->count > 0)
+    {
+        buffer->entityRef = clHeapCalloc(si->suBuffer.count, sizeof(*si->suBuffer.entityRef));
+        CL_ASSERT(buffer->entityRef != NULL);
+        memcpy(buffer->entityRef, si->suBuffer.entityRef, sizeof(*buffer->entityRef) * buffer->count);
+    }
     return CL_OK;
 }
 

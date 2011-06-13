@@ -3600,6 +3600,12 @@ extern
 ClRcT clAmsMgmtDBGetSUCompList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsEntityBufferT *buffer);
 
 extern
+ClRcT clAmsMgmtDBGetSUAssignedSIsList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsSUSIExtendedRefBufferT *buffer);
+
+extern
+ClRcT clAmsMgmtDBGetSISUList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsSISUExtendedRefBufferT *buffer);
+
+extern
 ClRcT clAmsMgmtDBGetCompCSIList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsCompCSIRefBufferT *buffer);
 
 extern ClRcT clAmsMgmtDBCacheDump(ClAmsMgmtDBHandleT db);
