@@ -616,30 +616,43 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
              (CL_CKPT_IS_COLLOCATED(pStoredData->attrib.creationFlags)) )
              
         {
-            /* 
-             * Choose a node for storing the checkpoint replica.
-             */
             if(localAddr != CL_CKPT_UNINIT_ADDR)
             {
-                rc = clCkptFirstReplicaGet(pStoredData->replicaList,
-                        &nodeAddr);
-                if( CL_OK != rc )
-                {
-                    clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN,
-                          "No replicas available for this checkpoint rc[0x %x]", rc);
-                    goto exitOnError;
-                }
-                /* 
-                 * Ask the chosen node to pull the ckptInfo 
-                 * from active replica.No need of error checking,
-                 * even it fails,checkpoint server can proceed this 
-                 * operation.
+                ClCntNodeHandleT node = 0;
+                ClCntKeyHandleT key = (ClCntKeyHandleT)(ClWordT)localAddr;
+                /*
+                 * First check if the ckpt is already replicated in localAddr
                  */
-                clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
-                        "Notifying address [%d] to pull info from [%d] for handle [%#llX]", 
-                        localAddr, nodeAddr, storedDBHdl);
-                clCkptReplicaCopy(localAddr, nodeAddr, storedDBHdl, 
-                                  clientHdl, activeAddr, pHdlInfo);
+                rc = clCntNodeFind(pStoredData->replicaList, key, &node);
+                if(rc != CL_OK)
+                {
+                    rc = clCkptFirstReplicaGet(pStoredData->replicaList,
+                                               &nodeAddr);
+                    if( CL_OK != rc )
+                    {
+                        clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN,
+                                   "No replicas available for this checkpoint rc[0x %x]", rc);
+                        goto exitOnError;
+                    }
+                    /* 
+                     * Ask the chosen node to pull the ckptInfo 
+                     * from active replica.No need of error checking,
+                     * even it fails,checkpoint server can proceed this 
+                     * operation.
+                     */
+                    clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
+                               "Notifying address [%d] to pull info from [%d] for handle [%#llX]", 
+                               localAddr, nodeAddr, storedDBHdl);
+                    clCkptReplicaCopy(localAddr, nodeAddr, storedDBHdl, 
+                                      clientHdl, activeAddr, pHdlInfo);
+                }
+                else
+                {
+                    clLogNotice(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN,
+                                "Checkpoint [%.*s] is already replicated on opening node [%d]",
+                                pStoredData->name.length, pStoredData->name.value,
+                                localAddr);
+                }
             }
         }
     }
