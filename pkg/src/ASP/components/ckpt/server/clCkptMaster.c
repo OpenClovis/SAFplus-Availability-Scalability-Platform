@@ -449,11 +449,10 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
              *  coz, this flags specifies the reader application should open
              *  the checkpoint, so we will create the replica on where the
              *  standby application runs.
-             *  Removed Collocation flag check, as we need to ensure that we 
-             *  are having two replicas for a checkpoint at any point of the
-             *  time. 
              */
-            if( ! (pCreateAttr->creationFlags & CL_CKPT_DISTRIBUTED) )
+            if( (!(pCreateAttr->creationFlags & CL_CKPT_DISTRIBUTED))
+                &&
+                !(gCkptSvr->collocateReplicaOnOpen && CL_CKPT_IS_COLLOCATED(pCreateAttr->creationFlags)))
             {
                 /* 
                  * Choose a node for storing the checkpoint replica.

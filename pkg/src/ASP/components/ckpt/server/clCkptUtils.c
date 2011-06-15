@@ -525,7 +525,7 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
      */
     memset(&address, '\0', sizeof(address));
     pSvrCb->localAddr = clIocLocalAddressGet();
-
+    pSvrCb->collocateReplicaOnOpen = clParseEnvBoolean("CL_ASP_COLLOCATE_REPLICA_ON_OPEN");
     /* 
      * Initialize the event related info.
      */

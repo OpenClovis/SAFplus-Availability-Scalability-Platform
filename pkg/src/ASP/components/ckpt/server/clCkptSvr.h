@@ -158,6 +158,7 @@ typedef struct ckptSvrCb
     ClBoolT                isSynced; /* synced with master*/
     ClUint32T              compId;
     ClOsalMutexT           ckptClusterSem;
+    ClBoolT                collocateReplicaOnOpen;
 }CkptSvrCbT; 
 
 #ifdef __cplusplus
