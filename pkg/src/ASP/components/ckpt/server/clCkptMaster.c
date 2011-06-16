@@ -3625,6 +3625,23 @@ ClRcT _ckptMasterCkptsReplicate(ClHandleDatabaseHandleT databaseHandle,
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                 ("Failed to sync up the info  rc[0x %x]\n", rc), rc);
                 
+
+    /*
+     * Skip replicating collocated and distributed checkpoints since they are
+     * replicated explicitly on open. For collocated, we use the global replicate on open
+     * indicator before we decide to skip.
+     */
+    if( (pStoredData->attrib.creationFlags & CL_CKPT_DISTRIBUTED)
+        ||
+        (gCkptSvr->collocateReplicaOnOpen && 
+         CL_CKPT_IS_COLLOCATED(pStoredData->attrib.creationFlags)))
+    {
+        clLogNotice("REP", "BALANCE", "Skipping balancing of checkpoint [%.*s]. "
+                    "Deferring replica allocation to ckpt open", 
+                    pStoredData->name.length, pStoredData->name.value);
+        goto exitOnError;
+    }
+
     /*
      * Replicate the checkpoints that are not replicated. This is determined 
      * by looking at the no. of elements in the replica list of the ckpt.
@@ -3742,13 +3759,30 @@ ClRcT _ckptMasterCkptsLoadBalance(ClHandleDatabaseHandleT databaseHandle,
             (void **)&pStoredData);
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Failed to sync up the info  rc[0x %x]\n", rc), rc);
-            
+
+    /*
+     * Skip load balancing collocated and distributed checkpoints since they are
+     * replicated explicitly on open. For collocated, we use the global replicate on open
+     * indicator before we decide to skip.
+     */
+    if( (pStoredData->attrib.creationFlags & CL_CKPT_DISTRIBUTED)
+        ||
+        (gCkptSvr->collocateReplicaOnOpen && 
+         CL_CKPT_IS_COLLOCATED(pStoredData->attrib.creationFlags)))
+    {
+        clLogNotice("LOAD", "BALANCE", "Skipping balancing of checkpoint [%.*s]. "
+                    "Deferring replica allocation to ckpt open", 
+                    pStoredData->name.length, pStoredData->name.value);
+        goto exitOnError;
+    }
+
     /*
      * Check if the checkpoint needs to be replicated.
      */
     rc = clCntSizeGet(pStoredData->replicaList, &replicaCount);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Replica list in not yet created  rc[0x %x]\n", rc), rc);
+
     if(replicaCount && replicaCount < 2)
     {
         rc = clCntFirstNodeGet(pStoredData->replicaList, &nodeHdl);
