@@ -938,7 +938,7 @@ void cpmResetNodeElseCommitSuicide(ClUint32T restartFlag)
     ClBoolT watchdogRestart = CL_TRUE;
     ClUint32T overrideFlag = 0;
 
-    overrideFlag = ((restartFlag >> 16) & 0xffff);
+    overrideFlag = CL_CPM_GET_RESTART_OVERRIDE(restartFlag);
     
     /*
      * Treat restart ASP opcode as a restart NODE as its a switchover
@@ -1088,9 +1088,9 @@ static ClRcT _cpmNodeFailFastRestart(ClNameT *nodeName, ClUint32T restartFlag)
              * Save an env. override hint in the top 16 bits of the restart flag
              */
             if(nodeReset) 
-                restartFlag |= ( CL_CPM_RESTART_NODE << 16 );
+                restartFlag |= CL_CPM_SET_RESTART_OVERRIDE(CL_CPM_RESTART_NODE);
             else
-                restartFlag |= ( CL_CPM_RESTART_ASP <<  16 );
+                restartFlag |= CL_CPM_SET_RESTART_OVERRIDE(CL_CPM_RESTART_ASP);
         }
 
         if (!strcmp(nodeName->value,

@@ -2000,11 +2000,11 @@ _clAmsSAStateChangeStandby2Active(
     clLogCritical("STATE", "CHANGE", 
                   "This node [ %d:%s] cannot become active as its not in the cluster."
                   "Node Cluster Member state [%s]."
-                  "Immediately terminating the node and its components.",
+                  "Immediately terminating the node and its components and scheduling a restart",
                   clIocLocalAddressGet(), thisNodeRef.entity.name.length > 0 ? 
                   thisNodeRef.entity.name.value:"",
                   CL_AMS_STRING_NODE_ISCLUSTERMEMBER(nodeStatus));
-    cpmResetNodeElseCommitSuicide(CL_CPM_RESTART_NODE);
+    cpmResetNodeElseCommitSuicide(CL_CPM_SET_RESTART_OVERRIDE(CL_CPM_RESTART_ASP));
     return CL_CPM_RC(CL_ERR_INVALID_STATE);
 
 }

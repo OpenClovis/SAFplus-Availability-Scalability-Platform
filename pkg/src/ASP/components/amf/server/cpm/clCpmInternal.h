@@ -116,6 +116,9 @@ extern ClTaskPoolHandleT gCpmFaultPool;
 #define CL_CPM_RESTART_NODE 0x2
 #define CL_CPM_HALT_ASP     0x3
 
+#define CL_CPM_SET_RESTART_OVERRIDE(flag) ( (flag) << 16 )
+#define CL_CPM_GET_RESTART_OVERRIDE(flag) ( ( (flag) >> 16) & 0xffff )
+
 #define CL_CPM_RESTART_FLAG_STR(flag)   ( (flag) == CL_CPM_RESTART_ASP ? "ASP_RESTART" : \
                                         ( (flag) == CL_CPM_RESTART_NODE ) ? "NODE_RESET" : \
                                         ( (flag) == CL_CPM_HALT_ASP ) ? "NODE_HALT" : "NODE_STOPPED" )
