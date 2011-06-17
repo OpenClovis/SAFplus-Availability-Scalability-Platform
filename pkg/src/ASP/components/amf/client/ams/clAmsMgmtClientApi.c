@@ -535,7 +535,12 @@ clAmsMgmtEntityCreate(
 
     CL_AMS_NAME_LENGTH_CHECK(req.entity);
 
-    AMS_CHECK_RC_ERROR( cl_ams_mgmt_entity_instantiate( &req, &res) );
+    rc = cl_ams_mgmt_entity_instantiate( &req, &res);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, amsHandle);
+        goto exitfn;
+    }
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
    
@@ -595,7 +600,12 @@ clAmsMgmtEntityDelete(
     memcpy ( &req.entity , entity, sizeof(ClAmsEntityT));
     CL_AMS_NAME_LENGTH_CHECK(req.entity);
 
-    AMS_CHECK_RC_ERROR( cl_ams_mgmt_entity_terminate( &req, &res) );
+    rc = cl_ams_mgmt_entity_terminate( &req, &res);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, amsHandle);
+        goto exitfn;
+    }
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
 
@@ -685,7 +695,12 @@ clAmsMgmtEntitySetConfig(
     req.peInstantiateFlag = peInstantiateFlag;
     req.entityConfig = entityConfig;
 
-    AMS_CHECK_RC_ERROR( cl_ams_mgmt_entity_set_config( &req, &res) );
+    rc = cl_ams_mgmt_entity_set_config( &req, &res);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, amsHandle);
+        goto exitfn;
+    }
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
 
@@ -852,7 +867,12 @@ clAmsMgmtEntitySetRef(
     memcpy ( &req.sourceEntity, sourceEntity, sizeof(ClAmsEntityT));
     memcpy ( &req.targetEntity, targetEntity, sizeof(ClAmsEntityT));
 
-    AMS_CHECK_RC_ERROR( cl_ams_mgmt_entity_set_ref( &req, &res) );
+    rc = cl_ams_mgmt_entity_set_ref( &req, &res);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, amsHandle);
+        goto exitfn;
+    }
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
 
@@ -910,7 +930,12 @@ clAmsMgmtCSISetNVP(
     memcpy ( &req.sourceEntity, sourceEntity, sizeof(ClAmsEntityT));
     memcpy ( &req.nvp, &nvp , sizeof(ClAmsCSINameValuePairT));
 
-    AMS_CHECK_RC_ERROR( cl_ams_mgmt_csi_set_nvp( &req, &res) );
+    rc = cl_ams_mgmt_csi_set_nvp( &req, &res);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, amsHandle);
+        goto exitfn;
+    }
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
 
@@ -1054,13 +1079,13 @@ clAmsMgmtEntityForceLockExtended(
             {
                 clLogError("OP", "FORCE-LOCK", "Force lock unlock also failed with [%#x] on entity [%s]",
                            rc, req.entity.name.value);
-                goto exit_checkin;
             }
+            goto exitfn; /* handle already checked in by this point */
         }
     }
 
     exit_checkin:
-    AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
+    clHandleCheckin(handle_database, amsHandle);
 
     exitfn:
     clAmsFreeMemory (res);
@@ -1116,8 +1141,12 @@ clAmsMgmtEntityLockInstantiationExtended(
                 (ClPtrT)&ams_instance));
 
     rc = amsLockInstantiation(ams_instance->server_handle, entity, retry);
+    if(rc != CL_OK)
+    {
+        goto exitfn; /* a failure would have already checked in the handle */
+    }
 
-    AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
+    AMS_CHECK_RC_ERROR(clHandleCheckin( handle_database, amsHandle));
 
 exitfn:
     return rc;
@@ -1572,7 +1601,12 @@ clAmsMgmtEntityListEntityRefAdd(
     memcpy (&req.targetEntity,targetEntity, sizeof (ClAmsEntityT));
     req.entityListName = entityListName;
 
-    AMS_CHECK_RC_ERROR( cl_ams_mgmt_entity_list_entity_ref_add( &req, &res) );
+    rc = cl_ams_mgmt_entity_list_entity_ref_add( &req, &res);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, amsHandle);
+        goto exitfn;
+    }
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
 
@@ -1634,7 +1668,12 @@ clAmsMgmtDebugEnable(
         req.debugFlags = debugFlags;
     }
 
-    AMS_CHECK_RC_ERROR( cl_ams_mgmt_debug_enable( &req, &res) );
+    rc = cl_ams_mgmt_debug_enable( &req, &res);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, amsHandle);
+        goto exitfn;
+    }
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
 
@@ -1694,7 +1733,12 @@ clAmsMgmtDebugDisable(
         req.debugFlags = debugFlags;
     }
 
-    AMS_CHECK_RC_ERROR( cl_ams_mgmt_debug_disable( &req, &res) );
+    rc = cl_ams_mgmt_debug_disable( &req, &res);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, amsHandle);
+        goto exitfn;
+    }
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
 
@@ -1759,7 +1803,12 @@ clAmsMgmtDebugGet(
         memcpy ( &req.entity, entity, sizeof (ClAmsEntityT));
     }
 
-    AMS_CHECK_RC_ERROR( cl_ams_mgmt_debug_get( &req, &res) );
+    rc = cl_ams_mgmt_debug_get( &req, &res);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, amsHandle);
+        goto exitfn;
+    }
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
 
@@ -1804,7 +1853,12 @@ clAmsMgmtDebugEnableLogToConsole(
 
     req.handle = amsHandle;
 
-    AMS_CHECK_RC_ERROR( cl_ams_mgmt_debug_enable_log_to_console( &req, &res) );
+    rc = cl_ams_mgmt_debug_enable_log_to_console( &req, &res);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, amsHandle);
+        goto exitfn;
+    }
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
 
@@ -1848,7 +1902,12 @@ clAmsMgmtDebugDisableLogToConsole(
 
     req.handle = amsHandle;
 
-    AMS_CHECK_RC_ERROR( cl_ams_mgmt_debug_disable_log_to_console( &req, &res) );
+    rc = cl_ams_mgmt_debug_disable_log_to_console( &req, &res);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, amsHandle);
+        goto exitfn;
+    }
 
     AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
 
