@@ -26,6 +26,8 @@
 #include <clLogStreamOwner.h>
 #include <LogPortSvrClient.h>
 #include <AppclientPortclientClient.h>
+#include <LogPortSvrServer.h>
+
 /*
  * Function - clLogStreamOwnerSvrIntimate()
  *  - Initialize the Idl handle
@@ -92,19 +94,27 @@ clLogStreamOwnerSvrIntimate(ClCntKeyHandleT   key,
         }
         filterInfo.compIdSetLength = length;
         filterInfo.severityFilter  = pFilter->severityFilter;
-        rc = VDECL_VER(clLogSvrFilterSetClientAsync, 4, 0, 0)(hLogIdl, &pStreamKey->streamName,
-                                         streamScope, &pStreamKey->streamScopeNode,
-                                         &filterInfo, NULL, 0);
+        if(pCompKey->nodeAddr == clIocLocalAddressGet())
+        {
+            rc = VDECL_VER(clLogSvrFilterSet, 4, 0, 0)(&pStreamKey->streamName, streamScope,
+                                                       &pStreamKey->streamScopeNode, &filterInfo);
+        }
+        else
+        {
+            rc = VDECL_VER(clLogSvrFilterSetClientAsync, 4, 0, 0)(hLogIdl, &pStreamKey->streamName,
+                                                                  streamScope, &pStreamKey->streamScopeNode,
+                                                                  &filterInfo, NULL, 0);
+        }
         clHeapFree(filterInfo.pCompIdSet);
         clHeapFree(filterInfo.pMsgIdSet);
     }
     else
     {
         rc = VDECL_VER(clLogSvrStreamHandleFlagsUpdateClientAsync, 4, 0, 0)(hLogIdl, &pStreamKey->streamName,
-                                                        streamScope,
-                                                        &pStreamKey->streamScopeNode,
-                                                        pData->handlerFlags,
-                                                        pData->setFlags, NULL, 0);
+                                                                            streamScope,
+                                                                            &pStreamKey->streamScopeNode,
+                                                                            pData->handlerFlags,
+                                                                            pData->setFlags, NULL, 0);
     }
     if( CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE || CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE )
     {

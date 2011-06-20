@@ -1939,6 +1939,12 @@ VDECL_VER(clLogSvrFilterSet, 4, 0, 0)(
         return rc;
     }
 
+    if(!pSvrStreamData->pStreamHeader)
+    {
+        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock), CL_OK);
+        return CL_LOG_RC(CL_ERR_NOT_INITIALIZED);
+    }
+
     rc = clLogServerStreamMutexLock(pSvrStreamData);
     if( CL_OK != rc )
     {
