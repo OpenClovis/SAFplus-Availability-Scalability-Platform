@@ -32,7 +32,7 @@
 #include <clLogMaster.h>
 #include <xdrClLogCompDataT.h>
 
-#define CL_LOGMASTER_CKPT_RETENTION_DURATION (0)
+#define CL_LOGMASTER_CKPT_RETENTION_DURATION (CL_TIME_END)
 
 static ClRcT
 clLogMasterEoEntryCheckpoint(ClLogMasterEoDataT *pMasterEoEntry);

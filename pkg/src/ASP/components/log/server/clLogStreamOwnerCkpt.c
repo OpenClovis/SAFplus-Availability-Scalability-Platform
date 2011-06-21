@@ -32,7 +32,7 @@
 #include <xdrClLogSOCompDataT.h>
 #include <xdrClLogStreamOwnerDataIDLT.h>
 
-#define CL_STREAMOWNER_CKPT_RETENTION_DURATION (0)
+#define CL_STREAMOWNER_CKPT_RETENTION_DURATION (CL_TIME_END)
 
 const ClCharT  soSecPrefix[] = "cl_log_so_section_";    
 
@@ -508,7 +508,7 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
         return rc;
     }    
     CL_LOG_DEBUG_TRACE(("streamName: %*s", streamName.length,
-                          streamName.value));
+                        streamName.value));
     
     rc = clXdrUnmarshallClNameT(msg, &streamScopeNode);
     if( CL_OK != rc )
@@ -517,7 +517,7 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
         return rc;
     }    
     CL_LOG_DEBUG_TRACE(("streamScopeNode: %*s", streamScopeNode.length,
-                          streamScopeNode.value));
+                        streamScopeNode.value));
     
     rc = clLogStreamScopeGet(&streamScopeNode, &streamScope);
     if( CL_OK != rc )
@@ -542,12 +542,12 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
     }
 
     rc = clLogSOLock(pSoEoEntry, streamScope);
-        if( CL_OK != rc )
-        {
+    if( CL_OK != rc )
+    {
         clHeapFree(soData.streamAttr.fileName.pValue);
         clHeapFree(soData.streamAttr.fileLocation.pValue);
-            return rc;
-        }
+        return rc;
+    }
     rc = clLogStreamKeyCreate(&streamName, &streamScopeNode, 
                               pCommonEoData->maxStreams, &pStreamKey);
     if( CL_OK != rc )
@@ -559,8 +559,8 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
     }
    
     hStreamTable = (CL_LOG_STREAM_GLOBAL == streamScope)
-                   ? pSoEoEntry->hGStreamOwnerTable 
-                   : pSoEoEntry->hLStreamOwnerTable ;
+        ? pSoEoEntry->hGStreamOwnerTable 
+        : pSoEoEntry->hLStreamOwnerTable ;
     rc = clLogStreamOwnerEntryAdd(hStreamTable, streamScope, pStreamKey,
                                   &hStreamOwnerNode); 
     if( CL_OK != rc )
@@ -573,9 +573,9 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
     }
 
     rc = clCntNodeUserDataGet(hStreamTable, hStreamOwnerNode,
-                            (ClCntDataHandleT *) &pStreamOwnerData);
+                              (ClCntDataHandleT *) &pStreamOwnerData);
     if( CL_OK != rc )
-{
+    {
         CL_LOG_CLEANUP(clCntNodeDelete(hStreamTable, hStreamOwnerNode), CL_OK);
         clHeapFree(soData.streamAttr.fileName.pValue);
         clHeapFree(soData.streamAttr.fileLocation.pValue);
@@ -620,13 +620,20 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
     for(count = 0; count < size; count++)
     {    
         rc = clLogCompEntryUnpackNAdd(msg, pStreamOwnerData);
-    if( CL_OK != rc )
-    {
-            CL_LOG_CLEANUP(clCntNodeDelete(hStreamTable, hStreamOwnerNode),
-                    CL_OK);
-            CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
-        return rc;
-    }    
+        if( CL_OK != rc )
+        {
+            if(CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)
+            {
+                rc = CL_OK;
+            }
+            else
+            {
+                CL_LOG_CLEANUP(clCntNodeDelete(hStreamTable, hStreamOwnerNode),
+                               CL_OK);
+                CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
+                return rc;
+            }
+        }    
     }
     CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
 
@@ -668,7 +675,10 @@ clLogSOStreamEntryRecreate(ClUint32T  dsId,
     rc = clLogSOStreamEntryUnpackNAdd(pCommonEoData, msg);
 
     CL_LOG_CLEANUP(clBufferDelete(&msg), CL_OK);
-    
+
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)
+        rc = CL_OK;
+
     CL_LOG_DEBUG_TRACE(("Exit: rc[0x %x]", rc));
     return rc;
 }
