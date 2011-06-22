@@ -147,10 +147,22 @@ typedef enum {
     CL_TIMER_MAX_CONTEXT,
 } ClTimerContextT;
 
+#define CL_TIMER_TYPE_STR(type) ( (type) == CL_TIMER_ONE_SHOT ? "one shot" : \
+                                  ((type) == CL_TIMER_REPETITIVE) ? "repetitive" : "volatile" )
+
+#define CL_TIMER_CONTEXT_STR(ctxt) ( (ctxt) == CL_TIMER_SEPARATE_CONTEXT ? "thread": "inline" )
+
+typedef struct ClTimerStats
+{
+    ClTimerTypeT type;
+    ClTimerContextT context;
+    ClTimeT timeOut;
+    ClTimeT expiry;
+} ClTimerStatsT;
+
 /*****************************************************************************
  *  Functions
  *****************************************************************************/
-
 
 /**
  ************************************
@@ -470,7 +482,9 @@ ClRcT clTimerClusterRegister(ClTimerCallBackT clusterCallback,
 ClRcT clTimerIsRunning(ClTimerHandleT timerHandle, ClBoolT *pState);
 
 ClRcT clTimerIsStopped(ClTimerHandleT timerHandle, ClBoolT *pState);
-    
+
+ClRcT clTimerStatsGet(ClTimerStatsT **ppStats, ClUint32T *pNumTimers);
+
 #ifdef __cplusplus
 }
 #endif

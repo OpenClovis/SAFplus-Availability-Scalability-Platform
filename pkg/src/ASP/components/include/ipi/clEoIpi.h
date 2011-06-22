@@ -435,6 +435,10 @@ extern ClRcT clEoEnqueueReassembleJob(ClBufferHandleT recvMsg, ClIocRecvParamT *
 
 extern ClRcT clEoEnqueueReplyJob(ClEoExecutionObjT *pThis, ClCallbackT job, ClPtrT invocation);
 
+extern ClRcT clTimerDebugRegister(void);    
+
+extern ClRcT clTimerDebugDeregister(void);
+
 #ifdef __cplusplus
 }
 #endif

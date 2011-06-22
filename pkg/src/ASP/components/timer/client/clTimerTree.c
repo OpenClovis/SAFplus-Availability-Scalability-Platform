@@ -17,6 +17,7 @@
 #include <clLogApi.h>
 #include <clDbg.h>
 #include <clXdrApi.h>
+#include <clEoIpi.h>
 
 #define CL_TIMER_INITIALIZED_CHECK(rc,label) do {   \
     if(gTimerBase.initialized == CL_FALSE)          \
@@ -29,6 +30,24 @@
 #define CL_TIMER_SET_EXPIRY(timer) do {                         \
     ClTimeT currentTime = gTimerBase.now ;                      \
     (timer)->timerExpiry = currentTime + (timer)->timerTimeOut; \
+}while(0)
+
+#define CL_REPETITIVE_TIMER_SET_EXPIRY(timer) do {      \
+    if (CL_TIMER_REPETITIVE == (timer)->timerType)      \
+    {                                                   \
+        ClTimeT currentTime = gTimerBase.now;           \
+        ClTimeT timerExpiry = (timer)->timerExpiry;     \
+        if (timerExpiry > currentTime)                  \
+        {                                               \
+           timerExpiry = currentTime;                   \
+        }                                               \
+        (timer)->timerExpiry = timerExpiry              \
+                               + (timer)->timerTimeOut; \
+    }                                                   \
+    else                                                \
+    {                                                   \
+        CL_TIMER_SET_EXPIRY(timer);                     \
+    }                                                   \
 }while(0)
 
 #define CL_TIMER_FREQUENCY (10)  /*10 millisecs*/
@@ -49,8 +68,6 @@ typedef struct ClTimer
 
     /*index into the timer tree*/
     ClRbTreeT timerList;
-    /*index into the repetitive list*/
-    ClListHeadT timerRepList;
     /*index into the cluster list*/
     ClListHeadT timerClusterList;
     ClTimerTypeT timerType;
@@ -84,7 +101,6 @@ typedef struct ClTimerBase
     ClOsalTaskIdT timerId;
     ClUint32T runningTimers;
     ClJobQueueT timerCallbackQueue;
-    ClJobQueueT timerFunctionsQueue;
     ClTimeT frequency;
     ClOsalMutexT clusterListLock;
     ClListHeadT clusterList;
@@ -103,6 +119,8 @@ typedef struct ClTimerBase
 
 static ClBoolT gClTimerDebug = CL_FALSE;
 static ClOsalMutexT gClTimerDebugLock;
+static ClHandleT gTimerDebugReg;
+
 static ClInt32T clTimerCompare(ClRbTreeT *node, ClRbTreeT *entry);
 static ClTimerBaseT gTimerBase = { 
     .timerTree = CL_RBTREE_INITIALIZER(gTimerBase.timerTree, clTimerCompare),
@@ -114,7 +132,11 @@ static ClInt32T clTimerCompare(ClRbTreeT *refTimer, ClRbTreeT *timer)
 {
     ClTimerT *timer1  = CL_RBTREE_ENTRY(refTimer, ClTimerT, timerList);
     ClTimerT *timer2 =  CL_RBTREE_ENTRY(timer, ClTimerT, timerList);
-    return (ClInt32T) (timer1->timerExpiry - timer2->timerExpiry);
+    if(timer1->timerExpiry > timer2->timerExpiry)
+        return 1;
+    else if(timer1->timerExpiry < timer2->timerExpiry)
+        return -1;
+    return 0;
 }
 
 static __inline__ void clTimeUpdate(void)
@@ -645,6 +667,7 @@ static ClRcT timerStart(ClTimerHandleT timerHandle, ClTimeT expiry, ClBoolT clus
     }
     else
     {
+        clTimeUpdate();
         CL_TIMER_SET_EXPIRY(pTimer);
     }
     
@@ -764,6 +787,7 @@ ClRcT clTimerUpdate(ClTimerHandleT timerHandle, ClTimerTimeOutT newTimeOut)
 
     pTimer->timerFlags &= ~CL_TIMER_STOPPED;
     pTimer->timerTimeOut = (ClTimeT)((ClTimeT)newTimeOut.tsSec * 1000000 + newTimeOut.tsMilliSec * 1000);
+    clTimeUpdate();
     CL_TIMER_SET_EXPIRY(pTimer);
     
     clRbTreeInsert(&gTimerBase.timerTree, &pTimer->timerList);
@@ -885,7 +909,7 @@ static ClRcT timerDelete(ClTimerHandleT *pTimerHandle, ClBoolT asyncFlag)
             clOsalMutexUnlock(&gTimerBase.clusterListLock);
             if(runCounter 
                && 
-               !(runCounter & 511))
+               !(runCounter & 255))
             {
                 clLogWarning("TIMER", "DEL", "Task [%#llx] waiting for timer callback task to exit",
                              selfId);
@@ -897,12 +921,6 @@ static ClRcT timerDelete(ClTimerHandleT *pTimerHandle, ClBoolT asyncFlag)
             clOsalMutexLock(&gTimerBase.timerListLock);
         }
     }
-    /*
-     * Take it out of the repetitive queue as it 
-     * could be waiting in the repetitive queue.
-     */
-    if(pTimer->timerType == CL_TIMER_REPETITIVE)
-        clListDel(&pTimer->timerRepList);
 
     clOsalMutexUnlock(&gTimerBase.timerListLock);
     clOsalMutexUnlock(&gTimerBase.clusterListLock);
@@ -985,7 +1003,7 @@ static ClRcT clTimerCallbackTask(ClPtrT invocation)
                     (ClTimeT)((pTimer->endTime - pTimer->startTime)/1000000L),
                     (ClTimeT)((pTimer->endTime - pTimer->startTime) % 1000000L),
                     pTimer->timerTimeOut, pTimer->timerFlags);
-        pTimer->startTime = pTimer->startRepTime;
+        pTimer->startTime = 0;
         pTimer->startRepTime = 0;
         pTimer->endTime = 0;
         clOsalMutexUnlock(&gClTimerDebugLock);
@@ -994,24 +1012,13 @@ static ClRcT clTimerCallbackTask(ClPtrT invocation)
     /*
      * Check if we had a delete or stop while we were getting conceived.
      */
-
     if( (pTimer->timerFlags & CL_TIMER_DELETED ) )
     {
         if(--pTimer->timerRefCnt <= 0)
-            canFree = CL_TRUE;
-        if(type == CL_TIMER_REPETITIVE
-           && 
-           (pTimer->timerFlags & CL_TIMER_RUNNING)
-           &&
-           pTimer->timerRepList.pNext)
         {
-            /*
-             * Let the repetitive task delete it
-             */
-            canFree = CL_FALSE;
-        }
-        if(pTimer->timerRefCnt <= 0)
+            canFree = CL_TRUE;
             pTimer->timerFlags &= ~CL_TIMER_RUNNING;
+        }
         clOsalMutexUnlock(&gTimerBase.timerListLock);
         clOsalMutexUnlock(&gTimerBase.clusterListLock);
         if(canFree == CL_TRUE)
@@ -1030,10 +1037,30 @@ static ClRcT clTimerCallbackTask(ClPtrT invocation)
 
     ++gTimerBase.runningTimers;
     callbackTaskIndex = timerAddCallbackTask(pTimer);
+
+    /*
+     * If its a repetitive timer, add back into the list just before callback invocation.
+     */
+    if(type == CL_TIMER_REPETITIVE)
+    {
+        clTimeUpdate();
+        CL_REPETITIVE_TIMER_SET_EXPIRY(pTimer);
+        clRbTreeInsert(&gTimerBase.timerTree, &pTimer->timerList);
+    }
+
     clOsalMutexUnlock(&gTimerBase.timerListLock);
     clOsalMutexUnlock(&gTimerBase.clusterListLock);
 
     pTimer->timerCallback(pTimer->timerData);
+    if (gClTimerDebug)
+    {
+        if (CL_TIMER_REPETITIVE == type)
+        {
+            clOsalMutexLock(&gClTimerDebugLock);
+            pTimer->startTime = clOsalStopWatchTimeGet();
+            clOsalMutexUnlock(&gClTimerDebugLock);
+        }
+    }
 
     canFree = CL_FALSE;
 
@@ -1052,14 +1079,6 @@ static ClRcT clTimerCallbackTask(ClPtrT invocation)
     {
         if(pTimer->timerRefCnt <= 0)
             canFree = CL_TRUE;
-        if( type == CL_TIMER_REPETITIVE
-            &&
-            (pTimer->timerFlags & CL_TIMER_RUNNING) 
-            &&
-            pTimer->timerRepList.pNext)
-        {
-            canFree = CL_FALSE;
-        }
     }
     else if(type == CL_TIMER_VOLATILE)
     {
@@ -1094,114 +1113,17 @@ static __inline__ void clTimerSpawn(ClTimerT *pTimer)
 }
 
 /*
-* Okay reque repetitive timers.
-*/
-static ClRcT clTimerRepetitiveTask(ClPtrT invocation)
-{
-    ClListHeadT *pHead = invocation;
-    ClBoolT clusterSync = CL_TRUE;
-
-    clOsalMutexLock(&gTimerBase.clusterListLock);
-    clOsalMutexLock(&gTimerBase.timerListLock);
-
-    while(!CL_LIST_HEAD_EMPTY(pHead))
-    {
-        ClListHeadT *pTimerListEntry = pHead->pNext;
-
-        ClTimerT *pTimer = CL_LIST_ENTRY(pTimerListEntry,ClTimerT,timerRepList);
-        
-        clListDel(pTimerListEntry);
-
-        /*
-         * Check if the repetitive timer was deleted. or stopped.
-         */
-        if((pTimer->timerFlags & CL_TIMER_DELETED))
-        {
-            if( (pTimer->timerFlags & CL_TIMER_RUNNING) )
-            {
-                pTimer->timerFlags &= ~CL_TIMER_RUNNING;
-            }
-            else
-            {
-                timerFree(pTimer);
-            }
-            continue;
-        }
-
-        if( (pTimer->timerFlags & CL_TIMER_STOPPED) )
-        {
-            continue;
-        }
-
-        CL_TIMER_SET_EXPIRY(pTimer);
-        
-        clRbTreeInsert(&gTimerBase.timerTree, &pTimer->timerList);
-
-        if(pTimer->timerFlags & CL_TIMER_CLUSTER)
-        {
-            clusterSync = CL_TRUE;
-        }
-
-        if(gClTimerDebug)
-        {
-            clOsalMutexLock(&gClTimerDebugLock);
-            /*
-             * Required for debugging if the separate spawn for the 
-             * callback landed late than the requeue of the repetitive timer.
-             *
-             */
-            if(pTimer->startTime)
-            {
-                pTimer->startRepTime = clOsalStopWatchTimeGet();
-            }
-            else
-            {
-                pTimer->startTime = clOsalStopWatchTimeGet();
-            }
-            clOsalMutexUnlock(&gClTimerDebugLock);
-        }
-
-    }
-
-    if(clusterSync)
-        timerClusterTaskSchedule(NULL, CL_FALSE);
-
-    clOsalMutexUnlock(&gTimerBase.timerListLock);
-    clOsalMutexUnlock(&gTimerBase.clusterListLock);
-    clHeapFree(pHead);
-    return CL_OK;
-}
-
-static __inline__ void clTimerRunRepetitiveQueue(ClListHeadT *list)
-{
-    if(!CL_LIST_HEAD_EMPTY(list))
-    {
-        ClListHeadT *repetitiveList = clHeapCalloc(1, sizeof(*repetitiveList));
-        if(!repetitiveList) 
-        {
-            clLogError("TIMER", "TASK", "Repetitive list allocation failed");
-            return;
-        }
-        CL_LIST_HEAD_INIT(repetitiveList);
-        clListMoveInit(list, repetitiveList);
-        clJobQueuePush(&gTimerBase.timerFunctionsQueue, clTimerRepetitiveTask, 
-                       repetitiveList);
-    }
-}
-
-/*
  * Run the sorted timer list expiring timers. 
  * Called with the timer list lock held.
  */
 static ClRcT clTimerRun(void)
 {
-    ClListHeadT repetitiveList = CL_LIST_HEAD_INITIALIZER(repetitiveList);
-    ClInt32T recalcInterval = 63; /*recalculate time after expiring this much*/
+    ClInt32T recalcInterval = 15; /*recalculate time after expiring this much*/
     ClInt64T timers = 0;
     ClRbTreeT *iter = NULL;
     ClRbTreeRootT *root = &gTimerBase.timerTree;
     ClTimeT now = gTimerBase.now;
-
+    ClBoolT clusterSync = CL_FALSE;
     /*
      * We take the minimum treenode at each iteration since we will drop the lock
      * while invoking the callback and it could so happen that the next
@@ -1231,9 +1153,14 @@ static ClRcT clTimerRun(void)
         timerData = pTimer->timerData;
         timerType = pTimer->timerType;
         timerContext = pTimer->timerContext;
-        pTimer->timerExpiry = 0;
         /*Knock off from this list*/
         clRbTreeDelete(root, iter);
+        
+        if(timerType == CL_TIMER_REPETITIVE && timerContext == CL_TIMER_TASK_CONTEXT)
+        {
+            CL_REPETITIVE_TIMER_SET_EXPIRY(pTimer);
+            clRbTreeInsert(root, iter);
+        }
 
         /* 
          * Mark it running to prevent a moron from killing us
@@ -1244,19 +1171,12 @@ static ClRcT clTimerRun(void)
          * reference count the timer fired
          */
         ++pTimer->timerRefCnt;
-        /*
-         * We add it to the repetitive list incase its a repetitive
-         * timer so that the separate callback timer task doesnt free
-         * this timer behind our back incase its scheduled before 
-         * the timer gets added to the repetitive list.
-         */
-        if(timerType == CL_TIMER_REPETITIVE)
-        {
-            clListAddTail(&pTimer->timerRepList, &repetitiveList);
-        }
 
         if(timerType != CL_TIMER_VOLATILE && timerContext == CL_TIMER_TASK_CONTEXT)
             callbackTaskIndex = timerAddCallbackTask(pTimer);
+        
+        if( (pTimer->timerFlags & CL_TIMER_CLUSTER) )
+            clusterSync = CL_TRUE;
 
         /*
          * Drop the lock now.
@@ -1291,6 +1211,13 @@ static ClRcT clTimerRun(void)
                 pTimer->endTime = 0;
             }
             timerCallback(timerData);
+            if (gClTimerDebug)
+            {
+               if (CL_TIMER_REPETITIVE == timerType)
+               {
+                   pTimer->startTime = clOsalStopWatchTimeGet();
+               }
+            }
             break;
         }
 
@@ -1328,26 +1255,23 @@ static ClRcT clTimerRun(void)
                 timerDelCallbackTask(pTimer, callbackTaskIndex);
 
             --pTimer->timerRefCnt;
-            
-            if(timerType == CL_TIMER_ONE_SHOT)
+
+            pTimer->timerFlags &= ~CL_TIMER_RUNNING;
+            if( (pTimer->timerFlags & CL_TIMER_DELETED) )
             {
-                pTimer->timerFlags &= ~CL_TIMER_RUNNING;
-                if( (pTimer->timerFlags & CL_TIMER_DELETED) )
-                {
-                    clOsalMutexUnlock(&gTimerBase.timerListLock);
-                    clOsalMutexUnlock(&gTimerBase.clusterListLock);
-                    timerFree(pTimer);
-                    clOsalMutexLock(&gTimerBase.clusterListLock);
-                    clOsalMutexLock(&gTimerBase.timerListLock);
-                }
-            }
-            else if(timerType == CL_TIMER_REPETITIVE)
-            {
-                pTimer->timerFlags &= ~CL_TIMER_RUNNING;
+                clOsalMutexUnlock(&gTimerBase.timerListLock);
+                clOsalMutexUnlock(&gTimerBase.clusterListLock);
+                timerFree(pTimer);
+                clOsalMutexLock(&gTimerBase.clusterListLock);
+                clOsalMutexLock(&gTimerBase.timerListLock);
             }
         }
     }
-    clTimerRunRepetitiveQueue(&repetitiveList);
+
+    if(clusterSync)
+    {
+        timerClusterTaskSchedule(NULL, CL_FALSE);
+    }
     return CL_OK;
 }
 
@@ -1391,13 +1315,74 @@ static ClRcT clTimerBaseInitialize(ClTimerBaseT *pBase)
 {
     ClRcT rc = CL_OK;
     pBase->timerCallbackQueue.flags = 0;
-    pBase->timerFunctionsQueue.flags = 0;
     pBase->frequency = CL_TIMER_FREQUENCY;
     clOsalMutexInit(&pBase->timerListLock);
     clOsalMutexInit(&pBase->clusterListLock);
     gTimerBase.clusterTimers = 0;
     CL_LIST_HEAD_INIT(&pBase->clusterList);
     CL_LIST_HEAD_INIT(&pBase->clusterSyncList);
+    return rc;
+}
+
+static ClRcT cliTimersShow(int argc, char **argv, char **ret)
+{
+    ClTimerStatsT *pStats = NULL;
+    ClDebugPrintHandleT msgHandle = 0;
+    ClUint32T numTimers = 0;
+    ClRcT rc = CL_OK;
+    ClUint32T i;
+
+    if(argc != 1) return CL_ERR_INVALID_PARAMETER;
+    *ret = NULL;
+    if((rc = clDebugPrintInitialize(&msgHandle)) != CL_OK)
+        return rc;
+    if( (rc = clTimerStatsGet(&pStats, &numTimers)) != CL_OK)
+    {
+        goto out_free;
+    }
+    clDebugPrint(msgHandle, "%-10s%-12s%-10s%-17s%-17s\n",
+                 "INDEX", "TYPE", "CONTEXT", "TIMEOUT (usecs)", "EXPIRY (usecs)");
+    clDebugPrint(msgHandle, "%.*s\n", 68,
+                 "------------------------------------------------------------------------");
+    for(i = 0; i < numTimers; ++i)
+    {
+        clDebugPrint(msgHandle, "%-10d%-12s%-10s%-17lld%-17lld\n", 
+                     i+1, CL_TIMER_TYPE_STR(pStats[i].type), CL_TIMER_CONTEXT_STR(pStats[i].context),
+                     pStats[i].timeOut, pStats[i].expiry);
+    }
+
+    out_free:
+    clDebugPrintFinalize(&msgHandle, ret);
+
+    if(pStats)
+        clHeapFree(pStats);
+    return CL_OK;
+}
+
+static ClDebugFuncEntryT gClTimerCliTab[] = {
+    {(ClDebugCallbackT) cliTimersShow, "timersShow", "Show started timers"} ,
+};
+
+ClRcT clTimerDebugRegister(void)
+{
+    ClRcT rc = CL_OK;
+    if(!gTimerDebugReg)
+    {
+        rc = clDebugRegister(gClTimerCliTab,
+                             sizeof(gClTimerCliTab) / sizeof(gClTimerCliTab[0]), 
+                             &gTimerDebugReg);
+    }
+    return rc;
+}
+
+ClRcT clTimerDebugDeregister()
+{
+    ClRcT rc = CL_OK;
+    if(gTimerDebugReg)
+    {
+        rc = clDebugDeregister(gTimerDebugReg);
+        gTimerDebugReg = CL_HANDLE_INVALID_VALUE;
+    }
     return rc;
 }
 
@@ -1428,12 +1413,6 @@ ClRcT clTimerInitialize(ClPtrT config)
         clLogError("TIMER", "INI", "Timer callback jobqueue create returned [%#x]", rc);
         goto out_free;
     }
-    rc = clJobQueueInit(&gTimerBase.timerFunctionsQueue, 0, 1);
-    if(rc != CL_OK)
-    {
-        clLogError("TIMER", "INI", "Timer functions jobqueue create returned [%#x]", rc);
-        goto out_free;
-    }
 
     gTimerBase.timerRunning = CL_TRUE;
 
@@ -1447,7 +1426,7 @@ ClRcT clTimerInitialize(ClPtrT config)
         clLogError("TIMER", "INIT", "Timer task create returned [%#x]", rc);
         goto out_free;
     }
-
+    
     gTimerBase.initialized = CL_TRUE;
 
     return rc;
@@ -1456,8 +1435,6 @@ ClRcT clTimerInitialize(ClPtrT config)
 
     if(gTimerBase.timerCallbackQueue.flags)
         clJobQueueDelete(&gTimerBase.timerCallbackQueue);
-    if(gTimerBase.timerFunctionsQueue.flags)
-        clJobQueueDelete(&gTimerBase.timerFunctionsQueue);
     
     if(gTimerBase.timerId)
     {
@@ -1496,14 +1473,12 @@ ClRcT clTimerFinalize(void)
     
     if(gTimerBase.timerCallbackQueue.flags)
         clJobQueueDelete(&gTimerBase.timerCallbackQueue);
-    if(gTimerBase.timerFunctionsQueue.flags)
-        clJobQueueDelete(&gTimerBase.timerFunctionsQueue);
 
     clOsalMutexLock(&gTimerBase.clusterListLock);
     if(gTimerBase.clusterTimers && gTimerBase.clusterJobQueue.flags)
         clJobQueueDelete(&gTimerBase.clusterJobQueue);
     clOsalMutexUnlock(&gTimerBase.clusterListLock);
-
+    
     rc = CL_OK;
 
     out:
@@ -1839,3 +1814,42 @@ ClRcT clTimerClusterConfigure(ClTimerHandleT *pTimerHandle)
     return rc;
 }
 
+ClRcT clTimerStatsGet(ClTimerStatsT **ppStats, ClUint32T *pNumTimers)
+{
+    ClUint32T numTimers = 0;
+    ClRbTreeT *iter;
+    ClTimerStatsT *pStats = NULL;
+
+    if(!ppStats || !pNumTimers)
+        return CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
+    
+    pStats = clHeapCalloc(16, sizeof(*pStats));
+    CL_ASSERT(pStats != NULL);
+
+    clOsalMutexLock(&gTimerBase.clusterListLock);
+    clOsalMutexLock(&gTimerBase.timerListLock);
+    clTimeUpdate();
+    CL_RBTREE_FOR_EACH(iter, &gTimerBase.timerTree)
+    {
+        ClTimerT *entry = CL_RBTREE_ENTRY(iter, ClTimerT, timerList);
+        pStats[numTimers].timeOut = entry->timerTimeOut;
+        if(gTimerBase.now >= entry->timerExpiry)
+            pStats[numTimers].expiry = 0;
+        else
+            pStats[numTimers].expiry =  entry->timerExpiry - gTimerBase.now;
+        pStats[numTimers].type = entry->timerType;
+        pStats[numTimers].context = entry->timerContext;
+        ++numTimers;
+        if(!(numTimers & 15))
+        {
+            pStats = clHeapRealloc(pStats, sizeof(*pStats) * (numTimers+16));
+            CL_ASSERT(pStats != NULL);
+        }
+    }
+    clOsalMutexUnlock(&gTimerBase.timerListLock);
+    clOsalMutexUnlock(&gTimerBase.clusterListLock);
+
+    *pNumTimers = numTimers;
+    *ppStats = pStats;
+    return CL_OK;
+}

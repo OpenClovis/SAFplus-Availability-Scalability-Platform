@@ -41,6 +41,7 @@
 #include <clRmdIpi.h>
 #include <ipi/clHandleIpi.h>
 #include <clEoApi.h>
+#include <clEoIpi.h>
 #include <clDebugApi.h>
 #include <clXdrApi.h>
 #include <clVersionApi.h>
@@ -605,6 +606,8 @@ ClRcT clDebugLibInitialize(void)
         clHeapFree(pDebugObj);
         return rc;
     }
+    
+    clTimerDebugRegister();
 
     return rc;
 }
@@ -627,6 +630,9 @@ ClRcT clDebugLibFinalize(void)
     {
         return rc;
     }
+
+    clTimerDebugDeregister();
+
     if( CL_OK != (rc = clHandleDatabaseDestroy(pDebugObj->hDebugFnDB))) 
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleDatabaseDestroy(): "
