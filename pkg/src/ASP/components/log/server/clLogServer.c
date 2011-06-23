@@ -2347,7 +2347,10 @@ clLogTimerCallback(void *pData)
         }
         else
         {
-            CL_LOG_CLEANUP(clCkptFinalize(pSvrCommonEoEntry->hSvrCkpt), CL_OK);
+            if(clParseEnvBoolean("CL_ASP_COLLOCATE_REPLICA_ON_OPEN"))
+            {
+                CL_LOG_CLEANUP(clCkptFinalize(pSvrCommonEoEntry->hSvrCkpt), CL_OK);
+            }
         }
         pSvrEoEntry->ckptOpen = CL_TRUE;
     }

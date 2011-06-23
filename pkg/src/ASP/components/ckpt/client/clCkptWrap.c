@@ -4022,7 +4022,7 @@ ClRcT clCkptFinalize(ClCkptSvcHdlT ckptSvcHdl)
      */
     if( !gClntInfo.ckptSvcHdlCount)
     {
-        clEventChannelClose(gClntInfo.ckptChannelSubHdl);
+        clEventUnsubscribe(gClntInfo.ckptChannelSubHdl, 2);
         /*
          * Drop the ckpt clnt mutex as if the ckpteventcallback
          * is blocked on this mutex, the event finalize in flight
