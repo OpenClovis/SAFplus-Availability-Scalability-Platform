@@ -130,6 +130,8 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
                 ClAmsSUT *su;
                 if(siSURef->haState != CL_AMS_HA_STATE_ACTIVE) continue;
                 su = (ClAmsSUT*)siSURef->entityRef.ptr;
+                if(clAmsPeSUIsAssignable(su) != CL_OK)
+                    continue;
                 if(su->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE)
                     continue;
                 if(clAmsPeCheckAssignedCustom(su, si))
