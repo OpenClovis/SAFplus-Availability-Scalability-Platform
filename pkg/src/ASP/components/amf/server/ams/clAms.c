@@ -663,6 +663,14 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
          */
         if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
         {
+            /*  
+             * Reset in case the node had split just at the time at which the node joined.
+             */
+            if(node->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
+            {
+                node->status.wasMemberBefore = CL_TRUE;
+                node->status.isClusterMember = CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER;
+            }
             clLogWarning("NODE", "JOIN", "Node [%s] already member of the cluster. "
                          "Forcing an invalid state error to have the node restarted since it appears to be recovering "
                          "from a split brain", pNodeName);
