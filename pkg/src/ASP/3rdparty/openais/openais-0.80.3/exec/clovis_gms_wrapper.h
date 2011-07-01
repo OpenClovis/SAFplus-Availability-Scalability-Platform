@@ -58,7 +58,7 @@
 #include "../../../../components/include/ipi/clNodeCache.h"
 #include "../../../../components/buffer/include/clBufferApi.h"
 #include "../../../../components/utils/include/clXdrApi.h"
-
+#include "../../../../components/include/ipi/clIocIpi.h"
 /* ------------------------------------------------------------------------
  * Clovis data structures as extern declarations
  *------------------------------------------------------------------------*/

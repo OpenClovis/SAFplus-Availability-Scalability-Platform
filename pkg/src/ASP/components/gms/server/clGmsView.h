@@ -280,6 +280,8 @@ ClRcT      _clGmsViewInitialize();
 
 ClRcT      _clGmsViewFinalize(void);
 
+ClRcT clGmsViewCacheCheckAndAdd(ClIocNodeAddressT nodeAddress, ClGmsViewNodeT **pNode);
+
 #ifdef  __cplusplus
 }
 #endif

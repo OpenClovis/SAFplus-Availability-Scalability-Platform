@@ -32,6 +32,7 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <clNodeCache.h>
+#include <clCpmExtApi.h>
 
 #define CL_NODE_CACHE_SEGMENT "/CL_NODE_CACHE"
 
@@ -78,8 +79,11 @@ typedef struct ClNodeCacheHeader
 typedef struct ClNodeCacheEntry
 {
     ClUint32T version; /*entry address is the index into the segment.*/
+    ClUint32T capability; /* node capability mask */
+    ClCharT nodeName[CL_NODE_CACHE_NODENAME_MAX];
 }ClNodeCacheEntryT;
 
+static ClBoolT gClAspNativeLeaderElection;
 
 static ClRcT clNodeCacheCreate(void)
 {
@@ -144,7 +148,6 @@ static ClRcT clNodeCacheCreate(void)
     return rc;
 }
     
-
 static ClRcT clNodeCacheOpen(void)
 {
     ClRcT rc = CL_OK;
@@ -185,9 +188,13 @@ static ClRcT clNodeCacheOpen(void)
 ClRcT clNodeCacheInitialize(ClBoolT createFlag)
 {
     ClRcT rc = CL_OK;
+    ClUint32T capability = 0;
+    ClNameT nodeName = {0};
 
     if(gpClNodeCache)
         goto out;
+
+    gClAspNativeLeaderElection = clParseEnvBoolean("CL_ASP_NATIVE_LEADER_ELECTION");
 
     snprintf(gClNodeCacheSegment, sizeof(gClNodeCacheSegment)-1,
              "%s_%d", CL_NODE_CACHE_SEGMENT, clIocLocalAddressGet());
@@ -219,8 +226,26 @@ ClRcT clNodeCacheInitialize(ClBoolT createFlag)
     memset(CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->nodeMap, 0, 
            sizeof(CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->nodeMap));
 
+    if(clCpmIsSC())
+    {
+        CL_NODE_CACHE_SC_CAPABILITY_SET(capability);
+        CL_NODE_CACHE_SC_PROMOTE_CAPABILITY_SET(capability);
+    }
+    else if(clCpmIsSCCapable())
+    {
+        CL_NODE_CACHE_SC_PROMOTE_CAPABILITY_SET(capability);
+        CL_NODE_CACHE_PL_CAPABILITY_SET(capability);
+    }
+    else
+    {
+        CL_NODE_CACHE_PL_CAPABILITY_SET(capability);
+    }
+    
+    clCpmLocalNodeNameGet(&nodeName);
+
     clNodeCacheUpdate(clIocLocalAddressGet(), 
-                      CL_VERSION_CODE(5, 0, 0));
+                      CL_VERSION_CODE(5, 0, 0), capability,
+                      &nodeName);
 
     rc = clOsalMsync(gpClNodeCache, CL_NODE_CACHE_SEGMENT_SIZE, MS_ASYNC);
     if(rc != CL_OK)
@@ -246,12 +271,10 @@ ClRcT clNodeCacheFinalize(void)
     clOsalSemLock(gClNodeCacheSem);
     if( (cacheOwner = gClNodeCacheOwner) )
     {
-        rc = clOsalMsync(gpClNodeCache, CL_NODE_CACHE_SEGMENT_SIZE, MS_SYNC);
-        CL_ASSERT(rc == CL_OK);
+        clOsalMsync(gpClNodeCache, CL_NODE_CACHE_SEGMENT_SIZE, MS_SYNC);
     }
 
-    rc = clOsalMunmap(gpClNodeCache, CL_NODE_CACHE_SEGMENT_SIZE);
-    CL_ASSERT(rc == CL_OK);
+    clOsalMunmap(gpClNodeCache, CL_NODE_CACHE_SEGMENT_SIZE);
 
     gpClNodeCache = NULL;
 
@@ -311,9 +334,244 @@ static void nodeCacheMinVersionSet(void)
 
 }
 
-ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version)
+static ClRcT nodeCacheViewGetWithFilterFast(ClNodeCacheMemberT *pMembers, 
+                                            ClUint32T *pMaxMembers, ClUint32T capFilter,
+                                            ClBoolT compat)
+{
+    ClInt32T i;
+    ClInt32T j;
+    ClUint32T maxMembers = 0;
+    ClUint32T currentMembers = 0;
+
+    if(!pMembers || !pMaxMembers || !(maxMembers = *pMaxMembers))
+        return CL_ERR_INVALID_PARAMETER;
+
+    if(!gpClNodeCache)
+        return CL_ERR_NOT_INITIALIZED;
+
+    if(compat)
+    {
+        ClUint32T minVersion = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion;
+        if(minVersion && minVersion < CL_VERSION_CODE(5, 0, 0))
+        {
+            *pMaxMembers = 0;
+            return CL_OK;
+        }
+        if(!gClAspNativeLeaderElection)
+        {
+            *pMaxMembers = 0;
+            return CL_OK;
+        }
+    }
+
+    if(!capFilter) capFilter = ~capFilter;
+
+    for(i = 0; i < CL_NODE_MAP_WORDS; ++i)
+    {
+        ClUint32T mask = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->nodeMap[i];
+        if(!mask) continue;
+        for(j = 0; j < 32; ++j)
+        {
+            ClIocNodeAddressT node = (i << 5) + j;
+            if( (mask & ( 1 << j)) )
+            {
+                if((CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[node].capability & capFilter))
+                {
+                    pMembers[currentMembers].address = node;
+                    pMembers[currentMembers].version = CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[node].version;
+                    pMembers[currentMembers].capability = CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[node].capability;
+                    pMembers[currentMembers].name[0] = 0;
+                    strncat(pMembers[currentMembers].name,
+                            CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[node].nodeName,
+                            sizeof(pMembers[currentMembers].name)-1);
+
+                    if(++currentMembers >= maxMembers)
+                        goto out;
+                }
+            }
+        }
+    }
+
+    out:
+    *pMaxMembers = currentMembers;
+    return CL_OK;
+}
+
+ClRcT clNodeCacheViewGetWithFilterFast(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers, ClUint32T capFilter)
+{
+    return nodeCacheViewGetWithFilterFast(pMembers, pMaxMembers, capFilter, CL_FALSE);
+}
+
+ClRcT clNodeCacheViewGetWithFilterFastSafe(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers, ClUint32T capFilter)
+{
+    return nodeCacheViewGetWithFilterFast(pMembers, pMaxMembers, capFilter, CL_TRUE);
+}
+
+ClRcT clNodeCacheViewGetWithFilter(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers,
+                                   ClUint32T capMask)
+{
+    ClRcT rc = CL_OK;
+    clOsalSemLock(gClNodeCacheSem);
+    rc = nodeCacheViewGetWithFilterFast(pMembers, pMaxMembers, capMask, CL_FALSE);
+    clOsalSemUnlock(gClNodeCacheSem);
+    return rc;
+}
+
+ClRcT clNodeCacheViewGetWithFilterSafe(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers,
+                                       ClUint32T capMask)
+{
+    ClRcT rc = CL_OK;
+    clOsalSemLock(gClNodeCacheSem);
+    rc = nodeCacheViewGetWithFilterFast(pMembers, pMaxMembers, capMask, CL_TRUE);
+    clOsalSemUnlock(gClNodeCacheSem);
+    return rc;
+}
+
+ClRcT clNodeCacheViewGet(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers)
+{
+    ClRcT rc = CL_OK;
+    clOsalSemLock(gClNodeCacheSem);
+    rc = nodeCacheViewGetWithFilterFast(pMembers, pMaxMembers, 0, CL_FALSE);
+    clOsalSemUnlock(gClNodeCacheSem);
+    return rc;
+}
+
+ClRcT clNodeCacheViewGetSafe(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers)
+{
+    ClRcT rc = CL_OK;
+    clOsalSemLock(gClNodeCacheSem);
+    rc = nodeCacheViewGetWithFilterFast(pMembers, pMaxMembers, 0, CL_TRUE);
+    clOsalSemUnlock(gClNodeCacheSem);
+    return rc;
+}
+
+ClRcT clNodeCacheViewGetFast(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers)
+{
+    return clNodeCacheViewGetWithFilterFast(pMembers, pMaxMembers, 0);
+}
+
+/*  
+ * Check for the min. vesion of the code to be the supported one before returning the view.
+ * for the sake of backward compat.
+ */
+ClRcT clNodeCacheViewGetFastSafe(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers)
+{
+    return nodeCacheViewGetWithFilterFast(pMembers, pMaxMembers, 0, CL_TRUE);
+}
+
+static ClRcT nodeCacheMemberGetFast(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
+                                    ClBoolT compat)
+{
+    ClRcT rc = CL_OK;
+
+    if(!node || node >= CL_IOC_MAX_NODES || !pMember)
+        return CL_ERR_INVALID_PARAMETER;
+
+    if(!gpClNodeCache)
+        return CL_ERR_NOT_INITIALIZED;
+
+    if(compat)
+    {
+        ClUint32T minVersion = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion;
+        if(minVersion && minVersion < CL_VERSION_CODE(5, 0, 0))
+        {
+            return CL_ERR_NOT_SUPPORTED;
+        }
+        if(!gClAspNativeLeaderElection)
+        {
+            return CL_ERR_NOT_SUPPORTED;
+        }
+    }
+
+    if(CL_NODE_MAP_TEST(CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->nodeMap, node))
+    {
+        ClNodeCacheEntryT *entry = &CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[node];
+        pMember->address = node;
+        pMember->name[0] = 0;
+        strncat(pMember->name, entry->nodeName, sizeof(entry->nodeName)-1);
+        pMember->version = entry->version;
+        pMember->capability = entry->capability;
+    }
+    else
+    {
+        rc = CL_ERR_NOT_EXIST;
+    }
+    return rc;
+}
+
+ClRcT clNodeCacheMemberGetFast(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember)
+{
+    return nodeCacheMemberGetFast(node, pMember, CL_FALSE);
+}
+
+ClRcT clNodeCacheMemberGetFastSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember)
+{
+    return nodeCacheMemberGetFast(node, pMember, CL_TRUE);
+}
+
+ClRcT clNodeCacheMemberGet(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember)
+{
+    ClRcT rc;
+    clOsalSemLock(gClNodeCacheSem);
+    rc = nodeCacheMemberGetFast(node, pMember, CL_FALSE);
+    clOsalSemUnlock(gClNodeCacheSem);
+    return rc;
+}
+
+ClRcT clNodeCacheMemberGetSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember)
+{
+    ClRcT rc;
+    clOsalSemLock(gClNodeCacheSem);
+    rc = nodeCacheMemberGetFast(node, pMember, CL_TRUE);
+    clOsalSemUnlock(gClNodeCacheSem);
+    return rc;
+}
+
+static ClRcT nodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
+                                        ClUint32T retries, ClUint32T msecDelay,
+                                        ClBoolT compat)
+{
+    ClRcT rc = CL_OK;
+    ClUint32T i = 0;
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = msecDelay};
+    clOsalSemLock(gClNodeCacheSem);
+    while(i++ <= retries)
+    {
+        rc = nodeCacheMemberGetFast(node, pMember, compat);
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+        {
+            clOsalSemUnlock(gClNodeCacheSem);
+            if(i > retries)
+                goto out;
+            clOsalTaskDelay(delay);
+            clOsalSemLock(gClNodeCacheSem);
+        }
+        else break;
+    }
+    clOsalSemUnlock(gClNodeCacheSem);
+
+    out:
+    return rc;
+}
+
+ClRcT clNodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
+                                   ClUint32T retries, ClUint32T msecDelay)
+{
+    return nodeCacheMemberGetExtended(node, pMember, retries, msecDelay, CL_FALSE);
+}
+
+ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
+                                       ClUint32T retries, ClUint32T msecDelay)
+{
+    return nodeCacheMemberGetExtended(node, pMember, retries, msecDelay, CL_TRUE);
+}
+
+ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, 
+                        ClUint32T capability, ClNameT *nodeName)
 {
     ClRcT   rc = CL_OK;
+    ClNodeCacheEntryT *entry;
+
     if(nodeAddress >= CL_IOC_MAX_NODES) return CL_ERR_INVALID_PARAMETER;
 
     rc = clOsalSemLock(gClNodeCacheSem);
@@ -332,13 +590,21 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version)
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentNodes += 1;
     }
 
-    CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].version = version;
+    entry = &CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress];
+    entry->version = version;
+    entry->capability = capability;
+    entry->nodeName[0] = 0;
+    strncat(entry->nodeName, (const ClCharT*)nodeName->value, 
+            CL_MIN(nodeName->length, sizeof(entry->nodeName)-1));
+
+    clLogNotice("CACHE", "SET", "Updating node cache entry for node [%d: %s] with version [%#x], capability [%#x]",
+                nodeAddress, entry->nodeName, entry->version, entry->capability);
 
     /*
      * Update node min version/address.
      */
     if(!CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion || 
-            version < CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion)
+       version < CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion)
     {
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion = version;
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersionNode = nodeAddress;
@@ -387,12 +653,75 @@ ClRcT clNodeCacheReset(ClIocNodeAddressT nodeAddress)
     return CL_OK;
 }
 
-ClRcT clNodeCacheVersionGet(ClIocNodeAddressT nodeAddress, ClUint32T *pVersion)
+ClRcT clNodeCacheCapabilitySet(ClIocNodeAddressT nodeAddress, ClUint32T capability, ClUint32T flag)
+{
+    if(nodeAddress >= CL_IOC_MAX_NODES || !gpClNodeCache)
+        return CL_ERR_INVALID_PARAMETER;
+
+    clOsalSemLock(gClNodeCacheSem);
+    switch(flag)
+    {
+    case CL_NODE_CACHE_CAP_ASSIGN:
+        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].capability = capability;
+        break;
+
+    case CL_NODE_CACHE_CAP_AND:
+        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].capability &= capability;
+        break;
+
+    case CL_NODE_CACHE_CAP_MERGE:
+        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].capability |= capability;
+        break;
+
+    case CL_NODE_CACHE_CAP_CLEAR:
+        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].capability &= ~capability;
+        break;
+
+    default:
+        break;
+    }
+    clLogNotice("CAP", "SET", "Node cache capability set to [%#x] for node [%d]",
+                CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].capability, nodeAddress);
+    clOsalSemUnlock(gClNodeCacheSem);
+    return CL_OK;
+}
+
+ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
+                              ClIocNodeAddressT currentLeader)
+{
+    if(!gpClNodeCache)
+        return CL_ERR_INVALID_PARAMETER;
+
+    clOsalSemLock(gClNodeCacheSem);
+    if((ClInt32T)lastLeader > 0 && lastLeader < CL_IOC_MAX_NODES)
+    {
+        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability &= ~__LEADER_CAPABILITY_MASK;
+        clLogNotice("CAP", "SET", "Node cache capability for last leader [%d] is [%#x]",
+                    lastLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability);
+    }
+    if((ClInt32T)currentLeader > 0 && currentLeader < CL_IOC_MAX_NODES)
+    {
+        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability |= __LEADER_CAPABILITY_MASK;
+        clLogNotice("CAP", "SET", "Node cache capability for current leader [%d] is [%#x]",
+                    currentLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability);
+    }
+    clOsalSemUnlock(gClNodeCacheSem);
+    return CL_OK;
+}
+
+ClRcT clNodeCacheVersionAndCapabilityGet(ClIocNodeAddressT nodeAddress, 
+                                         ClUint32T *pVersion,
+                                         ClUint32T *pCapability)
 {
     ClRcT rc = CL_OK;
-    if(nodeAddress >= CL_IOC_MAX_NODES || !pVersion) return CL_ERR_INVALID_PARAMETER;
+    if(nodeAddress >= CL_IOC_MAX_NODES) return CL_ERR_INVALID_PARAMETER;
+    
+    if(!pVersion && !pCapability)
+        return CL_ERR_INVALID_PARAMETER;
 
-    *pVersion = 0;
+    if(pVersion)
+        *pVersion = 0;
+
     rc = clOsalSemLock(gClNodeCacheSem);
     if (rc != CL_OK)
         return rc;
@@ -405,7 +734,10 @@ ClRcT clNodeCacheVersionGet(ClIocNodeAddressT nodeAddress, ClUint32T *pVersion)
 
     if(CL_NODE_MAP_TEST(CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->nodeMap, nodeAddress))
     {
-        *pVersion = CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].version;
+        if(pVersion)
+            *pVersion = CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].version;
+        if(pCapability)
+            *pCapability = CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].capability;
     }
     else
     {
@@ -416,6 +748,11 @@ ClRcT clNodeCacheVersionGet(ClIocNodeAddressT nodeAddress, ClUint32T *pVersion)
     return rc;
 }
 
+ClRcT clNodeCacheVersionGet(ClIocNodeAddressT nodeAddress, 
+                            ClUint32T *pVersion)
+{
+    return clNodeCacheVersionAndCapabilityGet(nodeAddress, pVersion, NULL);
+}
 
 ClRcT clNodeCacheMinVersionGet(ClIocNodeAddressT *pNodeAddress, ClUint32T *pVersion)
 {
@@ -439,4 +776,9 @@ ClRcT clNodeCacheMinVersionGet(ClIocNodeAddressT *pNodeAddress, ClUint32T *pVers
     clOsalSemUnlock(gClNodeCacheSem);
 
     return CL_OK;
+}
+
+ClBoolT clAspNativeLeaderElection(void)
+{
+    return gClAspNativeLeaderElection;
 }

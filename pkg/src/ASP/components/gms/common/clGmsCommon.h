@@ -75,6 +75,7 @@ extern "C" {
 #define NOTICE      CL_LOG_NOTICE
 #define INFO        CL_LOG_INFO
 #define DBG         CL_LOG_DEBUG
+#undef TRACE
 #define TRACE       CL_LOG_TRACE
 
 /* Shortcuts for log context */

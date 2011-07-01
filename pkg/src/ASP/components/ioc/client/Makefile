@@ -43,8 +43,18 @@ COMPNAME	:= ioc
 export BUILD_WITHOUT_C99=1
 
 # List local source files needed for the component server:
-SRC_FILES := $(wildcard *.c) 
+TRANSPORT_OBJS := $(wildcard clTipcUserApi*.c)
+SRC_FILES := $(filter-out $(TRANSPORT_OBJS), $(wildcard *.c))
 
+ifeq ($(BUILD_UDP), 1)
+	SRC_FILES += clTipcUserApi_UDP.c
+else
+ ifeq ($(BUILD_HYBRID), 1)
+	SRC_FILES += clTipcUserApi_HYBRID.c
+ else
+	SRC_FILES += clTipcUserApi.c
+ endif
+endif
 # List any third party libs needed to get this server built (or None):
 CPPFLAGS       += -I$(COMP_ROOT)/include/ipi -I$(COMP_ROOT)/ioc/server
 
@@ -62,7 +72,7 @@ endif
 
 # List other ASP components of which client libraries your component
 # depends on:
-DEP_COMP_LIST	:= utils osal timer buffer cnt debug eo rmd
+DEP_COMP_LIST	:= utils osal timer buffer cnt debug eo rmd amf event cor
 
 # Library name:
 LIB_NAMES	= libClIoc

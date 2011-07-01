@@ -55,6 +55,7 @@
 #include <clLogApi.h>
 #include <clGmsLog.h>
 #include <clHash.h>
+#include <clNodeCache.h>
 
 #define GMS_VIEW_CACHE_BITS (0x8)
 #define GMS_VIEW_CACHE_ENTRIES ( 1 << GMS_VIEW_CACHE_BITS )
@@ -138,6 +139,50 @@ static void gmsViewCacheGet(ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMembe
                         cache->nodeAddress);
         }
     }
+}
+
+/*
+ * On a new node join, check if the node is in the view cache left to see determine faster joins    
+ * after splits. If no, fetch the footprint from the node cache for the new node.
+ * Called with the view lock held.
+ */
+
+ClRcT clGmsViewCacheCheckAndAdd(ClIocNodeAddressT nodeAddress, ClGmsViewNodeT **pNode)
+{
+    ClGmsViewNodeT *node = NULL;
+    if(!nodeAddress || !pNode)
+        return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
+    gmsViewCacheGet(nodeAddress, &node);
+    if(!node)
+    {
+        ClNodeCacheMemberT member = {0};
+        if(clNodeCacheMemberGetExtendedSafe(nodeAddress, &member, 5, 200) != CL_OK)
+        {
+            clLogWarning("VIEW", "CHECK", "Node view for [%d] not yet updated in the node cache", nodeAddress);
+            return CL_GMS_RC(CL_ERR_NOT_INITIALIZED);
+        }
+        node = clHeapCalloc(1, sizeof(*node));
+        CL_ASSERT(node !=  NULL);
+        node->viewMember.clusterMember.nodeId = member.address;
+        node->viewMember.clusterMember.nodeAddress.iocPhyAddress.nodeAddress = member.address;
+        clNameSet(&node->viewMember.clusterMember.nodeName, member.name);
+        node->viewMember.clusterMember.isCurrentLeader = 
+            CL_NODE_CACHE_LEADER_CAPABILITY(member.capability);
+        node->viewMember.clusterMember.credential = CL_GMS_INELIGIBLE_CREDENTIALS;
+        if(CL_NODE_CACHE_SC_CAPABILITY(member.capability))
+        {
+            node->viewMember.clusterMember.credential = member.address + CL_IOC_MAX_NODES + 1;
+        }
+        else if(CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(member.capability))
+        {
+            node->viewMember.clusterMember.credential = member.address;
+        }
+        clLogNotice("VIEW", "CHECK", "Node [%d] added to the view with capability [%#x] "
+                    "credentials [%d]", member.address, member.capability, 
+                    node->viewMember.clusterMember.credential);
+    }
+    *pNode = node;
+    return CL_OK;
 }
 
 // check for given name is present or not
@@ -1086,7 +1131,6 @@ _clGmsViewAddNodePrivate(
         }
 
         memcpy((void*)joinNode, (void*)node, sizeof(ClGmsViewNodeT));
-
         rc =  _clGmsDbAdd(thisViewDb, CL_GMS_JOIN_LEFT_VIEW, dbKey, joinNode);
         if ((CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) ||
                 (CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE))

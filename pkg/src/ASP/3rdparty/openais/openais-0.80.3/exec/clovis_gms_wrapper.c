@@ -134,6 +134,8 @@ static void synch_init(void);
 ClVersionT          ringVersion;
 ClGmsNodeAddressT   myAddress;
 
+static ClBoolT gAspNativeLeaderElection;
+
 /* Below message types define type of messages "THIS" service
  * would receive and interpret.*/
 enum gms_message_req_types
@@ -295,6 +297,9 @@ static int gms_exec_init_fn (struct objdb_iface_ver0 *objdb)
 
     log_init ("GMS");
     clLog (DBG,OPN,AIS,"Initializing clovis GMS service");
+
+    gAspNativeLeaderElection = clAspNativeLeaderElection();
+
     rc = clCpmComponentRegister(
             gmsGlobalInfo.cpmHandle,
             &gmsGlobalInfo.gmsComponentName,
@@ -624,6 +629,7 @@ static void gms_confchg_fn (
 	int     i = 0;
     char    iface_string[256 * INTERFACE_MAX] = "";
     ClRcT   rc = CL_OK;
+    ClUint32T minVersion = CL_VERSION_CODE(5, 0, 0);
 
 	clLog (NOTICE,OPN,AIS, "GMS CONFIGURATION CHANGE");
 	clLog (NOTICE,OPN,AIS, "GMS Configuration:");
@@ -639,6 +645,13 @@ static void gms_confchg_fn (
 	for (i = 0; i < joined_list_entries; i++) {
 		clLog (NOTICE,OPN,AIS, "\t%s", totempg_ifaces_print (joined_list[i]));
 	}
+
+    clNodeCacheMinVersionGet(NULL, &minVersion);
+    if(minVersion >= CL_VERSION_CODE(5, 0, 0) && gAspNativeLeaderElection)
+    {
+        clLog(DBG, OPN, AIS, "Skipping node leave processing since node cache is used to sync cluster views");
+        return ;
+    }
 
     for (i = 0; i < left_list_entries; i++) 
     {
@@ -671,8 +684,8 @@ static void gms_exec_message_endian_convert (void *msg)
 }
 
 static void gms_exec_message_handler (
-	void *message,
-	unsigned int nodeid)
+                                      void *message,
+                                      unsigned int nodeid)
 {
     mar_req_header_t              header = {0};
     struct VDECL(req_exec_gms_nodejoin) req_exec_gms_nodejoin = {{0}};
@@ -696,7 +709,7 @@ static void gms_exec_message_handler (
     if (rc != CL_OK)
     {
         clLogError(OPN,AIS,
-                "Failed to create buffer while unmarshalling the received message. rc 0x%x",rc);
+                   "Failed to create buffer while unmarshalling the received message. rc 0x%x",rc);
         return;
     }
 
@@ -706,7 +719,7 @@ static void gms_exec_message_handler (
     if (rc != CL_OK)
     {
         clLogError(OPN,AIS,
-                "Failed to retrieve data from buffer. rc 0x%x",rc);
+                   "Failed to retrieve data from buffer. rc 0x%x",rc);
         goto out_delete;
     }
 
@@ -718,18 +731,18 @@ static void gms_exec_message_handler (
     }
 
     verCode = CL_VERSION_CODE(req_exec_gms_nodejoin.version.releaseCode, 
-            req_exec_gms_nodejoin.version.majorVersion,
-            req_exec_gms_nodejoin.version.minorVersion);
+                              req_exec_gms_nodejoin.version.majorVersion,
+                              req_exec_gms_nodejoin.version.minorVersion);
     clLog(DBG,OPN,AIS,
-            "Received a %d message from version [%d.%d.%d].",req_exec_gms_nodejoin.gmsMessageType,
-            req_exec_gms_nodejoin.version.releaseCode, req_exec_gms_nodejoin.version.majorVersion, 
-            req_exec_gms_nodejoin.version.minorVersion);
+          "Received a %d message from version [%d.%d.%d].",req_exec_gms_nodejoin.gmsMessageType,
+          req_exec_gms_nodejoin.version.releaseCode, req_exec_gms_nodejoin.version.majorVersion, 
+          req_exec_gms_nodejoin.version.minorVersion);
     /* Verify version */
     if (verCode > CL_VERSION_CODE(curVer.releaseCode, curVer.majorVersion, curVer.minorVersion)) {
         /* I received a message from higher version and it dont know
          * how to decode it. So it discarding it. */
         clLog(NOTICE,OPN,AIS,
-                "Version mismatch detected. Discarding the message ");
+              "Version mismatch detected. Discarding the message ");
         goto out_delete;
     }
 
@@ -739,13 +752,20 @@ static void gms_exec_message_handler (
     /* This message is from same version. So processing it */
     switch (req_exec_gms_nodejoin.gmsMessageType)
     {
-        case CL_GMS_CLUSTER_JOIN_MSG:
-
+    case CL_GMS_CLUSTER_JOIN_MSG:
+        {
+            ClUint32T minVersion = CL_VERSION_CODE(5, 0, 0);
             clLog(DBG,OPN,AIS,
                   "Received multicast message for cluster join from ioc node [%#x:%#x]",
                   req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
                   req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
-
+            clNodeCacheMinVersionGet(NULL, &minVersion);
+            if(minVersion >= CL_VERSION_CODE(5, 0, 0) && gAspNativeLeaderElection)
+            {
+                clLog(DBG, OPN, AIS,
+                      "Skipping multicast join since node cache view is used to form the cluster ring");
+                goto out_delete;
+            }
             node = (ClGmsViewNodeT *) clHeapAllocate(sizeof(ClGmsViewNodeT));
             if (node == NULL)
             {
@@ -754,9 +774,9 @@ static void gms_exec_message_handler (
             }
             else {
                 rc = clVersionVerify(
-                        &(gmsGlobalInfo.config.versionsSupported),
-                        &(req_exec_gms_nodejoin.specificMessage.gmsClusterNode.gmsVersion)
-                        );
+                                     &(gmsGlobalInfo.config.versionsSupported),
+                                     &(req_exec_gms_nodejoin.specificMessage.gmsClusterNode.gmsVersion)
+                                     );
                 ringVersion.releaseCode =
                     req_exec_gms_nodejoin.specificMessage.gmsClusterNode.gmsVersion.releaseCode;
                 ringVersion.majorVersion=
@@ -769,13 +789,13 @@ static void gms_exec_message_handler (
                     /* copy the ring version */
                     clGmsCsLeave( &joinCs );
                     clLog (ERROR,OPN,AIS,
-                            "Server Version Mismatch detected for this join message");
+                           "Server Version Mismatch detected for this join message");
                     break;
                 }
 
                 _clGmsGetThisNodeInfo(&thisGmsClusterNode);
                 if( thisGmsClusterNode.nodeId !=
-                        req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId)
+                    req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId)
                 {
                     /* TODO This will never happen... */
                     clGmsCsLeave( &joinCs );
@@ -785,137 +805,138 @@ static void gms_exec_message_handler (
                     req_exec_gms_nodejoin.specificMessage.gmsClusterNode;
                 /* If this is local join, then update the IP address */
                 if (thisGmsClusterNode.nodeId ==
-                        req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId)
+                    req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId)
                 {
                     memcpy(&node->viewMember.clusterMember.nodeIpAddress,
-                            &myAddress, sizeof(ClGmsNodeAddressT));
+                           &myAddress, sizeof(ClGmsNodeAddressT));
                 }
 
                 rc = _clGmsEngineClusterJoin(req_exec_gms_nodejoin.gmsGroupId,
-                        req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId,
-                        node);
+                                             req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId,
+                                             node);
             }
-            break;
-        case CL_GMS_CLUSTER_EJECT_MSG:
-            clLog (DBG,OPN,AIS,
-                   "Received cluster eject multicast message from ioc node [%#x:%#x]",
-                   req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
-                   req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
-            /* inform the member about the eject by invoking the ejection
-             *  callback registered with the reason UKNOWN */
-            /* The below logic is same for the leave as well so we just
-             *  fall through the case */
-            _clGmsGetThisNodeInfo(&thisGmsClusterNode);
-            if( req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId ==
-                    thisGmsClusterNode.nodeId)
+        }
+        break;
+    case CL_GMS_CLUSTER_EJECT_MSG:
+        clLog (DBG,OPN,AIS,
+               "Received cluster eject multicast message from ioc node [%#x:%#x]",
+               req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
+               req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
+        /* inform the member about the eject by invoking the ejection
+         *  callback registered with the reason UKNOWN */
+        /* The below logic is same for the leave as well so we just
+         *  fall through the case */
+        _clGmsGetThisNodeInfo(&thisGmsClusterNode);
+        if( req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId ==
+            thisGmsClusterNode.nodeId)
+        {
+            rc = _clGmsCallClusterMemberEjectCallBack(
+                                                      req_exec_gms_nodejoin.ejectReason);
+            if( rc != CL_OK )
             {
-                rc = _clGmsCallClusterMemberEjectCallBack(
-                        req_exec_gms_nodejoin.ejectReason);
-                if( rc != CL_OK )
-                {
-                    clLog(ERROR,OPN,AIS,"_clGmsCallEjectCallBack failed with"
-                            "rc:0x%x",rc);
-                }
+                clLog(ERROR,OPN,AIS,"_clGmsCallEjectCallBack failed with"
+                      "rc:0x%x",rc);
             }
-        case CL_GMS_CLUSTER_LEAVE_MSG:
-            clLog(DBG,OPN,AIS,
-                  "Received cluster leave multicast message from ioc node [%#x:%#x]",
-                  req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
-                  req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
-            rc = _clGmsEngineClusterLeave(CL_GMS_CLUSTER_ID,
-                    req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId);
-            break;
-        case CL_GMS_GROUP_CREATE_MSG:
-            clLog(DBG,OPN,AIS,
-                  "Received group create multicast message from ioc node [%#x:%#x]",
-                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
-                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
+        }
+    case CL_GMS_CLUSTER_LEAVE_MSG:
+        clLog(DBG,OPN,AIS,
+              "Received cluster leave multicast message from ioc node [%#x:%#x]",
+              req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
+              req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
+        rc = _clGmsEngineClusterLeave(CL_GMS_CLUSTER_ID,
+                                      req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId);
+        break;
+    case CL_GMS_GROUP_CREATE_MSG:
+        clLog(DBG,OPN,AIS,
+              "Received group create multicast message from ioc node [%#x:%#x]",
+              req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
+              req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
 
-            rc = _clGmsEngineGroupCreate(req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupName,
-                    req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupParams,
-                    req_exec_gms_nodejoin.contextHandle, isLocalMsg);
-            break;
-        case CL_GMS_GROUP_DESTROY_MSG:
-            clLog(DBG,OPN,AIS,
-                  "Received group destroy multicast message from ioc node [%#x:%#x]",
-                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
-                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
+        rc = _clGmsEngineGroupCreate(req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupName,
+                                     req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupParams,
+                                     req_exec_gms_nodejoin.contextHandle, isLocalMsg);
+        break;
+    case CL_GMS_GROUP_DESTROY_MSG:
+        clLog(DBG,OPN,AIS,
+              "Received group destroy multicast message from ioc node [%#x:%#x]",
+              req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
+              req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
 
-            rc = _clGmsEngineGroupDestroy(req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupId,
-                    req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupName,
-                    req_exec_gms_nodejoin.contextHandle, isLocalMsg);
-            break;
-        case CL_GMS_GROUP_JOIN_MSG:
-            clLog(DBG,OPN,AIS,
-                  "Received group join multicast message from ioc node [%#x:%#x]",
-                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
-                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
+        rc = _clGmsEngineGroupDestroy(req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupId,
+                                      req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupName,
+                                      req_exec_gms_nodejoin.contextHandle, isLocalMsg);
+        break;
+    case CL_GMS_GROUP_JOIN_MSG:
+        clLog(DBG,OPN,AIS,
+              "Received group join multicast message from ioc node [%#x:%#x]",
+              req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
+              req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
 
-            node = (ClGmsViewNodeT *) clHeapAllocate(sizeof(ClGmsViewNodeT));
-            if (!node)
-            {
-                log_printf (LOG_LEVEL_NOTICE, "clHeapAllocate failed");
-                goto out_delete;
-            }
-            else {
-                /* FIXME: Need to verify version */
-                memcpy(&node->viewMember.groupMember,&req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode,
-                        sizeof(ClGmsGroupMemberT));
-                memcpy(&node->viewMember.groupData, &req_exec_gms_nodejoin.specificMessage.groupMessage.groupData,
-                        sizeof(ClGmsGroupInfoT));
-                rc = _clGmsEngineGroupJoin(req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupId,
-                        node, req_exec_gms_nodejoin.contextHandle, isLocalMsg);
-            }
-            break;
-        case CL_GMS_GROUP_LEAVE_MSG:
-            clLog(DBG,OPN,AIS,
-                  "Received group leave multicast message from ioc node [%#x:%#x]",
-                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
-                  req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
-
-            rc = _clGmsEngineGroupLeave(req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupId,
-                    req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberId,
-                    req_exec_gms_nodejoin.contextHandle, isLocalMsg);
-            break;
-        case CL_GMS_COMP_DEATH:
-            clLog(DBG,OPN,AIS,
-                  "Received comp death multicast message");
-            rc = _clGmsRemoveMemberOnCompDeath(req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberId);
-            break;
-        case CL_GMS_LEADER_ELECT_MSG:
-            clLog(DBG,OPN,AIS,
-                  "Received leader elect multicast message from ioc node [%#x:%#x]",
-                  req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
-                  req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
-            rc = _clGmsEnginePreferredLeaderElect(req_exec_gms_nodejoin.specificMessage.gmsClusterNode, 
-                    req_exec_gms_nodejoin.contextHandle,
-                    isLocalMsg);
-            break;
-        case CL_GMS_SYNC_MESSAGE:
-            clLog(DBG,OPN,AIS,
-                    "Received gms synch multicast message");
-            rc = _clGmsEngineGroupInfoSync((ClGmsGroupSyncNotificationT *)(req_exec_gms_nodejoin.dataPtr));
-            clHeapFree(((ClGmsGroupSyncNotificationT *)req_exec_gms_nodejoin.dataPtr)->groupInfoList);
-            clHeapFree(((ClGmsGroupSyncNotificationT *)req_exec_gms_nodejoin.dataPtr)->groupMemberList);
-            clHeapFree(req_exec_gms_nodejoin.dataPtr);
-            break;
-
-        case CL_GMS_GROUP_MCAST_MSG:
-            _clGmsEngineMcastMessageHandler(
-                    &(req_exec_gms_nodejoin.specificMessage.mcastMessage.groupInfo.gmsGroupNode),
-                    &(req_exec_gms_nodejoin.specificMessage.mcastMessage.groupInfo.groupData),
-                    req_exec_gms_nodejoin.specificMessage.mcastMessage.userDataSize,
-                    req_exec_gms_nodejoin.dataPtr);
-            break;
-        default:
-            clLogMultiline(ERROR,OPN,AIS,
-                    "Openais GMS wrapper received Message wih invalid [MsgType=%x]. \n"
-                    "This could be because of multicast port clashes.",
-                    req_exec_gms_nodejoin.gmsMessageType);
+        node = (ClGmsViewNodeT *) clHeapAllocate(sizeof(ClGmsViewNodeT));
+        if (!node)
+        {
+            log_printf (LOG_LEVEL_NOTICE, "clHeapAllocate failed");
             goto out_delete;
+        }
+        else {
+            /* FIXME: Need to verify version */
+            memcpy(&node->viewMember.groupMember,&req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode,
+                   sizeof(ClGmsGroupMemberT));
+            memcpy(&node->viewMember.groupData, &req_exec_gms_nodejoin.specificMessage.groupMessage.groupData,
+                   sizeof(ClGmsGroupInfoT));
+            rc = _clGmsEngineGroupJoin(req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupId,
+                                       node, req_exec_gms_nodejoin.contextHandle, isLocalMsg);
+        }
+        break;
+    case CL_GMS_GROUP_LEAVE_MSG:
+        clLog(DBG,OPN,AIS,
+              "Received group leave multicast message from ioc node [%#x:%#x]",
+              req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress,
+              req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberAddress.iocPhyAddress.portId);
+
+        rc = _clGmsEngineGroupLeave(req_exec_gms_nodejoin.specificMessage.groupMessage.groupData.groupId,
+                                    req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberId,
+                                    req_exec_gms_nodejoin.contextHandle, isLocalMsg);
+        break;
+    case CL_GMS_COMP_DEATH:
+        clLog(DBG,OPN,AIS,
+              "Received comp death multicast message");
+        rc = _clGmsRemoveMemberOnCompDeath(req_exec_gms_nodejoin.specificMessage.groupMessage.gmsGroupNode.memberId);
+        break;
+    case CL_GMS_LEADER_ELECT_MSG:
+        clLog(DBG,OPN,AIS,
+              "Received leader elect multicast message from ioc node [%#x:%#x]",
+              req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
+              req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
+        rc = _clGmsEnginePreferredLeaderElect(req_exec_gms_nodejoin.specificMessage.gmsClusterNode, 
+                                              req_exec_gms_nodejoin.contextHandle,
+                                              isLocalMsg);
+        break;
+    case CL_GMS_SYNC_MESSAGE:
+        clLog(DBG,OPN,AIS,
+              "Received gms synch multicast message");
+        rc = _clGmsEngineGroupInfoSync((ClGmsGroupSyncNotificationT *)(req_exec_gms_nodejoin.dataPtr));
+        clHeapFree(((ClGmsGroupSyncNotificationT *)req_exec_gms_nodejoin.dataPtr)->groupInfoList);
+        clHeapFree(((ClGmsGroupSyncNotificationT *)req_exec_gms_nodejoin.dataPtr)->groupMemberList);
+        clHeapFree(req_exec_gms_nodejoin.dataPtr);
+        break;
+
+    case CL_GMS_GROUP_MCAST_MSG:
+        _clGmsEngineMcastMessageHandler(
+                                        &(req_exec_gms_nodejoin.specificMessage.mcastMessage.groupInfo.gmsGroupNode),
+                                        &(req_exec_gms_nodejoin.specificMessage.mcastMessage.groupInfo.groupData),
+                                        req_exec_gms_nodejoin.specificMessage.mcastMessage.userDataSize,
+                                        req_exec_gms_nodejoin.dataPtr);
+        break;
+    default:
+        clLogMultiline(ERROR,OPN,AIS,
+                       "Openais GMS wrapper received Message wih invalid [MsgType=%x]. \n"
+                       "This could be because of multicast port clashes.",
+                       req_exec_gms_nodejoin.gmsMessageType);
+        goto out_delete;
     }
     clLog(TRACE,OPN,AIS,
-            "Processed the received message. Returning");
+          "Processed the received message. Returning");
     out_delete:
     clBufferDelete(&bufferHandle);
 }
@@ -945,6 +966,17 @@ int clGmsSendMsg(ClGmsViewMemberT       *memberNodeInfo,
     ClPtrT          temp = NULL;
 
     rc = clNodeCacheMinVersionGet(NULL, &clusterVersion);
+    if(clusterVersion >= CL_VERSION_CODE(5, 0, 0) 
+       && 
+       gAspNativeLeaderElection
+       &&
+       msgType == CL_GMS_CLUSTER_JOIN_MSG)
+    {
+        clLog(DBG, OPN, AIS, 
+              "Skipping sending node join since node cache is used to form the cluster view");
+        return 0;
+    }
+
     if (rc != CL_OK)
     {
         clLog(ERROR,OPN,AIS,

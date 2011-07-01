@@ -57,10 +57,12 @@
 #include <clLogApi.h>
 #include <clGmsLog.h>
 #include <clIocIpi.h>
+#include <clNodeCache.h>
 #include <clGmsDb.h>
 #include <clGmsMsg.h>
 #include <clGmsApiHandler.h>
 #include <clGmsRmdServer.h>
+#include <clNodeCache.h>
 
 # define CL_MAX_CREDENTIALS     (~0U)
 
@@ -75,16 +77,44 @@ static ClBoolT reElect = CL_FALSE;
    Invoke the leader election algorithm .
    mark that boottime election is done. 
  */
+
+static ClRcT gmsViewPopulate(void)
+{
+    ClNodeCacheMemberT *pMembers = NULL;
+    ClUint32T maxNodes = CL_IOC_MAX_NODES;
+    ClRcT rc = CL_OK;
+    ClUint32T i;
+    pMembers = clHeapCalloc(CL_IOC_MAX_NODES, sizeof(*pMembers));
+    CL_ASSERT(pMembers != NULL);
+    rc = clNodeCacheViewGetFastSafe(pMembers, &maxNodes);
+    if(rc != CL_OK)
+    {
+        clLogError("CACHE", "GET", "Node cache view get failed with [%#x]", rc);
+        goto out_free;
+    }
+    for(i = 0; i < maxNodes; ++i)
+    {
+        _clGmsEngineClusterJoin(0, pMembers[i].address, NULL);
+    }
+
+    out_free:
+    clHeapFree(pMembers);
+    return rc;
+}
+
 static ClRcT 
 timerCallback( void *arg ){
 
     ClRcT rc = CL_OK;
     ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
+    ClGmsNodeIdT lastLeader = CL_GMS_INVALID_NODE_ID;
     ClGmsViewT   *view = NULL;
     
     clLog(INFO,LEA,NA,
           "Running boot time leader election after 5 secs of GMS startup");
+
+    gmsViewPopulate(); 
 
     rc = _clGmsViewFindAndLock( 0x0 , &view );
     CL_ASSERT( (rc == CL_OK) && (view != NULL));
@@ -104,12 +134,14 @@ timerCallback( void *arg ){
         clLog(ERROR,LEA,NA,
               "Error in boot time leader election. rc [0x%x]",rc);
     }
-
+    lastLeader = view->leader;
     if (view->leader != leaderNodeId )
     {
         view->leader = leaderNodeId;
         view->leadershipChanged = CL_TRUE;
         view->deputy = deputyNodeId;
+        clNodeCacheLeaderUpdate(lastLeader, leaderNodeId);
+
         rc = clEoMyEoObjectSet ( gmsGlobalInfo.gmsEoObject );
         CL_ASSERT( rc == CL_OK );
         if (_clGmsTrackNotify ( 0x0 ) != CL_OK)
@@ -255,6 +287,8 @@ _clGmsEngineStart()
     }
 
     gmsNotificationInitialize();
+
+    gmsViewPopulate(); /* preload a default view for aspinfo */
 
     clLogMultiline(INFO,GEN,NA,
             "Invoking aisexec_main call of openais. This thread will continue\n"
@@ -704,6 +738,7 @@ _clGmsEnginePreferredLeaderElect(
         /* leader changed */
         thisViewDb->view.leader = leaderNode;
         thisViewDb->view.leadershipChanged = CL_TRUE;
+        clNodeCacheLeaderUpdate(oldLeaderNode, leaderNode);
     }
 
     thisViewDb->view.deputy = deputyNode;
@@ -766,24 +801,6 @@ ClRcT _clGmsEngineClusterJoin(
     clLog(INFO,CLM,NA,
           "GMS engine cluster join is invoked for node Id [%d] for group [%d]", nodeId, groupId);
 
-    /* See this node was the preferred leader. If so then set the tag to TRUE */
-    if(node)
-    {
-        len1 = strlen(gmsGlobalInfo.config.preferredActiveSCNodeName);
-        len2 = node->viewMember.clusterMember.nodeName.length;
-        if ((len1 == len2) &&
-            (!strncmp(node->viewMember.clusterMember.nodeName.value, 
-                      gmsGlobalInfo.config.preferredActiveSCNodeName,len1)))
-        {
-            /* This node is a preferred Leader. So set ifPreferredLeader flag to TRUE */
-            node->viewMember.clusterMember.isPreferredLeader = CL_TRUE;
-            clLog(DBG,CLM,NA,
-                  "Node [%s] is marked as preferred leader in the in the config file"
-                  " So marking this node as preferred leader",
-                  gmsGlobalInfo.config.preferredActiveSCNodeName);
-        }
-    }
-
     rc = _clGmsViewFindAndLock(groupId, &thisClusterView);
 
     if ((rc != CL_OK) || (thisClusterView == NULL))
@@ -792,6 +809,36 @@ ClRcT _clGmsEngineClusterJoin(
               "Could not get current GMS view. Join failed. rc 0x%x",rc);
         if(node) clHeapFree(node);
         return rc;
+    }
+    /*
+     * Get from the view cache.
+     */
+    if(!node)
+    {
+        rc = clGmsViewCacheCheckAndAdd(nodeId, &node);
+        if(rc != CL_OK || !node)
+        {
+            if(node) 
+            {
+                clHeapFree(node);
+            }
+            goto ENG_ADD_ERROR;
+        }
+    }
+
+    /* See this node was the preferred leader. If so then set the tag to TRUE */
+    len1 = strlen(gmsGlobalInfo.config.preferredActiveSCNodeName);
+    len2 = node->viewMember.clusterMember.nodeName.length;
+    if ((len1 == len2) &&
+        (!strncmp(node->viewMember.clusterMember.nodeName.value, 
+                  gmsGlobalInfo.config.preferredActiveSCNodeName,len1)))
+    {
+        /* This node is a preferred Leader. So set ifPreferredLeader flag to TRUE */
+        node->viewMember.clusterMember.isPreferredLeader = CL_TRUE;
+        clLog(DBG,CLM,NA,
+              "Node [%s] is marked as preferred leader in the in the config file"
+              " So marking this node as preferred leader",
+              gmsGlobalInfo.config.preferredActiveSCNodeName);
     }
 
     currentLeader = thisClusterView->leader;
@@ -884,9 +931,11 @@ ClRcT _clGmsEngineClusterJoin(
         thisClusterView->leader = newLeader;
         thisClusterView->leadershipChanged = CL_TRUE;
         thisClusterView->deputy = newDeputy;
+        clNodeCacheLeaderUpdate(currentLeader, newLeader);
     }
 
     thisClusterView->deputy = newDeputy;
+    
     rc =  _clGmsTrackNotify(groupId);
     if( rc!= CL_OK )
     {
@@ -1038,7 +1087,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
         {
             goto unlock_and_exit;
         }
-
+        clNodeCacheLeaderUpdate(thisClusterView->leader, new_leader);
         if( nodeId == thisClusterView->leader )
         {
             thisClusterView->leader = new_leader;
@@ -1092,7 +1141,7 @@ ClRcT _clGmsEngineClusterLeave(
         CL_IN   const ClGmsGroupIdT   groupId,
         CL_IN   const ClGmsNodeIdT    nodeId)
 {
-    return _clGmsEngineClusterLeaveExtended(groupId, nodeId, CL_FALSE);
+    return _clGmsEngineClusterLeaveExtended(groupId, nodeId, CL_TRUE);
 }
 
 
