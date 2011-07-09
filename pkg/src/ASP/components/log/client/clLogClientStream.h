@@ -121,6 +121,12 @@ clLogClntStreamClose(ClCntNodeHandleT    hClntStreamNode,
                      ClLogStreamHandleT  hStream,
                      ClBoolT             notifySvr);
 
+ClRcT
+clLogClntStreamCloseLocked(ClLogClntEoDataT   *pClntEoEntry,
+                           ClCntNodeHandleT    hClntStreamNode,
+                           ClLogStreamHandleT  hStream,
+                           ClBoolT             notifySvr);
+
 #ifdef __cplusplus
 }
 #endif

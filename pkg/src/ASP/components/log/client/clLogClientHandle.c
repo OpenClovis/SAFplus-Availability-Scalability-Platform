@@ -26,15 +26,12 @@
 #include <clLogClient.h>
 #include <clLogClientHandle.h>
 #include <clLogClientHandler.h>
+#include <clLogClientStream.h>
 
 /*FIXME: These declaration will go */
 extern ClRcT
 clLogStreamClose(ClLogStreamHandleT hStream);
 
-extern ClRcT
-clLogClntStreamClose(ClCntNodeHandleT    hClntStreamNode,
-                     ClLogStreamHandleT  hStream,
-                     ClBoolT             notifySvr);
 ClRcT
 clLogClntHandleTypeGet(ClLogHandleT      hLog,
                        ClLogHandleTypeT  *pType)
@@ -478,10 +475,18 @@ clLogHandleStreamHandleClose(ClLogStreamHandleT  hStream,
         return rc;
     }
 
+    rc = clOsalMutexLock_L(&pClntEoEntry->clntStreamTblLock);
+
+    if(CL_OK != rc)
+    {
+        return rc;
+    }
+
     rc = clHandleCheckout(pClntEoEntry->hClntHandleDB, hStream,
                           (void **) (&pData));
     if( CL_OK != rc )
     {
+        clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock);
         CL_LOG_DEBUG_ERROR(("clHandleCheckout(): rc[0x %x]", rc));
         return rc;
     }
@@ -492,6 +497,7 @@ clLogHandleStreamHandleClose(ClLogStreamHandleT  hStream,
     rc = clHandleCheckin(pClntEoEntry->hClntHandleDB, hStream);
     if( CL_OK != rc )
     {
+        clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock);
         CL_LOG_DEBUG_ERROR(("clHandleCheckin(): rc[0x %x]", rc));
         return rc;
     }
@@ -499,6 +505,7 @@ clLogHandleStreamHandleClose(ClLogStreamHandleT  hStream,
     rc = clHandleDestroy(pClntEoEntry->hClntHandleDB, hStream);
     if( CL_OK != rc )
     {
+        clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock);
         CL_LOG_DEBUG_ERROR(("clHandleDestroy(): rc[0x %x]", rc));
         return rc;
     }
@@ -507,12 +514,15 @@ clLogHandleStreamHandleClose(ClLogStreamHandleT  hStream,
         rc = clLogHandleInitHandleStreamRemove(hLog, hStream);
         if( CL_OK != rc )
         {
+            clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock);
             return rc;
         }
     }
 
-    CL_LOG_CLEANUP(clLogClntStreamClose(hClntStreamNode, hStream, notifySvr),
+    CL_LOG_CLEANUP(clLogClntStreamCloseLocked(pClntEoEntry, hClntStreamNode, hStream, notifySvr),
                    CL_OK);
+
+    clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;

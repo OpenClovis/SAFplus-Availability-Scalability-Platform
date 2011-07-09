@@ -919,12 +919,12 @@ clLogClientMsgWrite(ClLogSeverityT     severity,
 }
 
 ClRcT
-clLogClntStreamClose(ClCntNodeHandleT    hClntStreamNode,
-                     ClLogStreamHandleT  hStream,
-                     ClBoolT             notifySvr)
+clLogClntStreamCloseLocked(ClLogClntEoDataT *pClntEoEntry,
+                           ClCntNodeHandleT    hClntStreamNode,
+                           ClLogStreamHandleT  hStream,
+                           ClBoolT             notifySvr)
 {
     ClRcT                 rc            = CL_OK;
-    ClLogClntEoDataT      *pClntEoEntry = NULL;
     ClLogStreamKeyT       *pUserKey     = NULL;
     ClLogClntStreamDataT  *pStreamData  = NULL;
     ClUint32T             nBits         = 0;
@@ -933,26 +933,11 @@ clLogClntStreamClose(ClCntNodeHandleT    hClntStreamNode,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    rc = clLogClntEoEntryGet(&pClntEoEntry);
-    if( CL_OK != rc )
-    {
-        return rc;
-    }
-
-    rc = clOsalMutexLock_L(&(pClntEoEntry->clntStreamTblLock));
-    if( CL_OK != rc )
-    {
-        CL_LOG_DEBUG_ERROR(("clOsalMutexLock(): rc[0x %x]", rc));
-        return rc;
-    }
-
     rc = clCntNodeUserKeyGet(pClntEoEntry->hClntStreamTable, hClntStreamNode,
                              (ClCntKeyHandleT *) &pUserKey);
     if( CL_OK != rc)
     {
         CL_LOG_DEBUG_ERROR(("clCntNodeUserKeyGet(): rc[0x %x]", rc));
-        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&(pClntEoEntry->clntStreamTblLock)),
-                             CL_OK);
         return rc;
     }
 
@@ -963,24 +948,18 @@ clLogClntStreamClose(ClCntNodeHandleT    hClntStreamNode,
     if( CL_OK != rc)
     {
         CL_LOG_DEBUG_ERROR(("clCntNodeForKeyGet(): rc[0x %x]", rc));
-        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&(pClntEoEntry->clntStreamTblLock)),
-                             CL_OK);
         return rc;
     }
 
     rc = clLogStreamScopeGet(&(key.streamScopeNode), &scope);
     if( CL_OK != rc )
     {
-        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock),
-                             CL_OK);
         return rc;
     }
 
     rc = clBitmapBitClear(pStreamData->hStreamBitmap, hStream);
     if( CL_OK != rc)
     {
-        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock),
-                             CL_OK);
         return rc;
     }
 
@@ -990,6 +969,7 @@ clLogClntStreamClose(ClCntNodeHandleT    hClntStreamNode,
         CL_LOG_DEBUG_ERROR(("clBitmapNumBitsSet(): rc[0x %x]", rc));
         return rc;
     }
+
     if( 0 == nBits )
     {
         CL_LOG_DEBUG_VERBOSE(("Deleting the node for: %.*s",
@@ -998,17 +978,8 @@ clLogClntStreamClose(ClCntNodeHandleT    hClntStreamNode,
         if( CL_OK != rc )
         {
             CL_LOG_DEBUG_ERROR(("clCntNodeDelete(): rc[0x %x]", rc));
-            CL_LOG_CLEANUP(
-               clOsalMutexUnlock_L(&(pClntEoEntry->clntStreamTblLock)), CL_OK);
             return rc;
         }
-    }
-
-    rc = clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock);
-    if( CL_OK != rc )
-    {
-        CL_LOG_DEBUG_ERROR(("clOsalMutexUnlock(): rc[0x %x]", rc));
-        return rc;
     }
 
     /* Async without response at-most-once */
@@ -1031,6 +1002,37 @@ clLogClntStreamClose(ClCntNodeHandleT    hClntStreamNode,
             return rc;
         }
     }
+
+    CL_LOG_DEBUG_TRACE(("Exit"));
+    return rc;
+}
+
+ClRcT
+clLogClntStreamClose(ClCntNodeHandleT    hClntStreamNode,
+                     ClLogStreamHandleT  hStream,
+                     ClBoolT             notifySvr)
+{
+    ClRcT                 rc            = CL_OK;
+    ClLogClntEoDataT      *pClntEoEntry = NULL;
+
+    CL_LOG_DEBUG_TRACE(("Enter"));
+
+    rc = clLogClntEoEntryGet(&pClntEoEntry);
+    if( CL_OK != rc )
+    {
+        return rc;
+    }
+
+    rc = clOsalMutexLock_L(&(pClntEoEntry->clntStreamTblLock));
+    if( CL_OK != rc )
+    {
+        CL_LOG_DEBUG_ERROR(("clOsalMutexLock(): rc[0x %x]", rc));
+        return rc;
+    }
+
+    rc = clLogClntStreamCloseLocked(pClntEoEntry, hClntStreamNode, hStream, notifySvr);
+
+    clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;

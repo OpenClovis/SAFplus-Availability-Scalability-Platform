@@ -819,14 +819,6 @@ clLogVWriteAsyncWithHeader(ClLogStreamHandleT  hStream,
         return rc;
     }
 
-    rc = clHandleCheckout(pClntEoEntry->hClntHandleDB, hStream,
-                          (void **) (&pInfo));
-    if( CL_OK != rc )
-    {
-        CL_LOG_DEBUG_ERROR(("clHandleCheckout(): rc[0x %x]", rc));
-        return rc;
-    }
-
     rc = clOsalMutexLock_L(&pClntEoEntry->clntStreamTblLock);
     if(CL_GET_ERROR_CODE(rc) == CL_ERR_INUSE)
     {
@@ -841,33 +833,47 @@ clLogVWriteAsyncWithHeader(ClLogStreamHandleT  hStream,
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clntStreamTblLock(): rc[0x %x]", rc));
-        CL_LOG_CLEANUP(clHandleCheckin(pClntEoEntry->hClntHandleDB, hStream),
-                CL_OK);
         return rc;
     }
 
-    rc = clLogClntStreamWriteWithHeader(pClntEoEntry, severity, serviceId,
-                                        msgId, pMsgHeader, args, pInfo->hClntStreamNode);
+    rc = clHandleCheckout(pClntEoEntry->hClntHandleDB, hStream,
+                          (void **) (&pInfo));
     if( CL_OK != rc )
     {
         if(unlock)
             CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock),
                            CL_OK);
+        CL_LOG_DEBUG_ERROR(("clHandleCheckout(): rc[0x %x]", rc));
+        return rc;
+    }
+
+
+    rc = clLogClntStreamWriteWithHeader(pClntEoEntry, severity, serviceId,
+                                        msgId, pMsgHeader, args, pInfo->hClntStreamNode);
+    if( CL_OK != rc )
+    {
         CL_LOG_CLEANUP(clHandleCheckin(pClntEoEntry->hClntHandleDB, hStream),
                 CL_OK);
+        if(unlock)
+            CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock),
+                           CL_OK);
+        return rc;
+    }
+
+
+    rc = clHandleCheckin(pClntEoEntry->hClntHandleDB, hStream);
+    if( CL_OK != rc )
+    {
+        if(unlock)
+            CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock),
+                           CL_OK);
+        CL_LOG_DEBUG_ERROR(("clHandleCheckin(): rc[0x %x]", rc));
         return rc;
     }
 
     if(unlock)
         CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pClntEoEntry->clntStreamTblLock),
                        CL_OK);
-
-    rc = clHandleCheckin(pClntEoEntry->hClntHandleDB, hStream);
-    if( CL_OK != rc )
-    {
-        CL_LOG_DEBUG_ERROR(("clHandleCheckin(): rc[0x %x]", rc));
-        return rc;
-    }
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
