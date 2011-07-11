@@ -162,7 +162,7 @@ clLogClntStreamOpen(ClLogHandleT        hLog,
     }
     CL_LOG_DEBUG_VERBOSE(("Got stream entry"));
 
-    rc = clBitmapBitSet(pUserData->hStreamBitmap, *phStream);
+    rc = clBitmapBitSet(pUserData->hStreamBitmap, CL_HDL_IDX(*phStream));
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clHandleDestroy(pClntEoEntry->hClntHandleDB, *phStream),
@@ -187,7 +187,7 @@ clLogClntStreamOpen(ClLogHandleT        hLog,
     rc = clLogHandleInitHandleStreamAdd(hLog, *phStream);
     if( CL_OK != rc )
     {
-        CL_LOG_CLEANUP(clBitmapBitClear(pUserData->hStreamBitmap, *phStream),
+        CL_LOG_CLEANUP(clBitmapBitClear(pUserData->hStreamBitmap, CL_HDL_IDX(*phStream)),
                        CL_OK);
         CL_LOG_CLEANUP(clHandleDestroy(pClntEoEntry->hClntHandleDB, *phStream),
                        CL_OK);
@@ -957,7 +957,7 @@ clLogClntStreamCloseLocked(ClLogClntEoDataT *pClntEoEntry,
         return rc;
     }
 
-    rc = clBitmapBitClear(pStreamData->hStreamBitmap, hStream);
+    rc = clBitmapBitClear(pStreamData->hStreamBitmap, CL_HDL_IDX(hStream));
     if( CL_OK != rc)
     {
         return rc;

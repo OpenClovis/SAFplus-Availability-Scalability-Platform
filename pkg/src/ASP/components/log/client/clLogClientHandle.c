@@ -400,6 +400,7 @@ clLogHandleStreamDataInitialize(ClHandleDatabaseHandleT  hClntHandleDB,
     pData->type            = CL_LOG_STREAM_HANDLE;
     pData->hLog            = hLog;
     pData->hClntStreamNode = hClntStreamNode;
+    pData->hStream         = hStream;
 
     rc = clHandleCheckin(hClntHandleDB, hStream);
     if( CL_OK != rc )

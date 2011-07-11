@@ -1517,7 +1517,7 @@ ClRcT clLogClntFilterSetCb(ClBitmapHandleT  hBitmap,
     if( (NULL != pInit->pCallbacks) &&
         (NULL != pInit->pCallbacks->clLogFilterSetCb) )
     {
-        pInit->pCallbacks->clLogFilterSetCb(bitNum, *pFilter);
+        pInit->pCallbacks->clLogFilterSetCb(pStream->hStream, *pFilter);
     }
 
     CL_LOG_CLEANUP(clHandleCheckin(pClntEoEntry->hClntHandleDB, pStream->hLog),

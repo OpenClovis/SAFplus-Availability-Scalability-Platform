@@ -97,7 +97,8 @@ extern "C"
  */
 
 #define CL_HANDLE_INVALID_VALUE     0x0
-
+#define CL_HDL_IDX_MASK     0x00000000FFFFFFFFULL
+#define CL_HDL_IDX(hdl) (ClUint32T)( (hdl) & CL_HDL_IDX_MASK)
 /**
  *  Handle database handle.
  */

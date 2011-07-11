@@ -57,6 +57,7 @@ typedef struct
     ClLogHandleTypeT  type;
     ClHandleT         hLog;
     ClCntNodeHandleT  hClntStreamNode;
+    ClLogStreamHandleT         hStream;
 } ClLogStreamHandleDataT;
 
 typedef struct

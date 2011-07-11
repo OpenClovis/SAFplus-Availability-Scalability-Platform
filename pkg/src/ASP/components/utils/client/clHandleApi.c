@@ -94,12 +94,10 @@
 /* Reserve the top 16 bits to indicate the DB handle */
 #define CL_HDL_NODE_MASK    0xFFFF000000000000ULL /* (((1<<16)-1)<<(63-16)) */
 #define CL_HDL_DB_MASK      0x0000FFFF00000000ULL
-#define CL_HDL_IDX_MASK     0x00000000FFFFFFFFULL
 
 /* macros to manipulate handles */
 #define CL_HDL_DB(hdl) (((ClUint64T)hdl)>>48)
 #define CL_HDL_NODE(hdl) ((((ClUint64T)hdl)&CL_HDL_DB_MASK)>>32)
-#define CL_HDL_IDX(hdl) (hdl & CL_HDL_IDX_MASK)
 #define CL_HDL_MAKE(node,dbid, idx) (((ClHandleT) idx) | (((ClHandleT) node)<<48) | (((ClHandleT) dbid)<<32))
 
 
