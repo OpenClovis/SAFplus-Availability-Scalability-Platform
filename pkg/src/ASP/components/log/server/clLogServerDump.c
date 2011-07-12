@@ -65,14 +65,14 @@ clLogCompTableWalkForPrint(ClCntKeyHandleT   key,
 {
     ClRcT                rc        = CL_OK;
     ClLogCompKeyT        *pCompKey = (ClLogCompKeyT *) key;
-    ClUint32T            *pData    = (ClUint32T *) data;
+    ClLogSOCompDataT            *pData    = (ClLogSOCompDataT *) data;
     ClDebugPrintHandleT  msg       = *((ClDebugPrintHandleT *) arg);
-        
+    
     CL_LOG_DEBUG_TRACE(("Enter"));
     
     clDebugPrint(msg, "NodeAddress:  %d \n", pCompKey->nodeAddr);
     clDebugPrint(msg, "CompId     :  %d \n", pCompKey->compId);
-    clDebugPrint(msg, "RefCount   :  %d \n", *pData);
+    clDebugPrint(msg, "RefCount   :  %d \n", pData->refCount);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;

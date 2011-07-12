@@ -59,23 +59,10 @@ clLogSvrCompEntryAdd(CL_IN  ClLogSvrEoDataT        *pSvrEoEntry,
                      CL_IN  ClIocPortT             portId);
 
 static ClRcT
-clLogSvrCompRefCountIncrement(CL_IN  ClLogSvrEoDataT        *pSvrEoEntry,
-                              CL_IN  ClLogSvrCommonEoDataT  *pSvrCommonEoEntry,
-                              CL_IN  ClCntNodeHandleT       hSvrStreamNode,
-			                  CL_IN  ClUint32T              componentId,
-                              CL_IN  ClIocPortT             portId);
-
-static ClRcT
 clLogSvrCompEntrySearch(CL_IN  ClLogSvrEoDataT     *pSvrEoEntry,
                         CL_IN  ClCntNodeHandleT    svrStreamNode,
                         CL_IN  ClUint32T           componentId);
 
-
-static ClRcT
-clLogSvrCompRefCountDecrement(CL_IN   ClLogSvrEoDataT     *pSvrEoEntry,
-                              CL_IN   ClCntNodeHandleT    svrStreamNode,
-                              CL_IN   ClUint32T           componentId,
-                              CL_OUT  ClUint16T           *pTableStatus);
 
 static ClRcT
 clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
@@ -608,7 +595,7 @@ clLogSvrCompEntrySearch(ClLogSvrEoDataT     *pSvrEoEntry,
     return rc;
 }
 
-static ClRcT
+ClRcT
 clLogSvrCompRefCountDecrement(ClLogSvrEoDataT   *pSvrEoEntry,
                               ClCntNodeHandleT  hSvrStreamNode,
                               ClUint32T         componentId,
@@ -645,12 +632,11 @@ clLogSvrCompRefCountDecrement(ClLogSvrEoDataT   *pSvrEoEntry,
                             (ClCntDataHandleT *) &pCompData);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clCntDataForKeyGet(): rc[0x %x]", rc));
         return rc;
     }
 
     pCompData->refCount--;
-    if( 0 == pCompData->refCount )
+    if( 0 >= (ClInt32T)pCompData->refCount )
     {
         rc = clCntAllNodesForKeyDelete(pSvrStreamData->hComponentTable,
                                        (ClCntKeyHandleT) &svrCompKey);
@@ -1108,7 +1094,7 @@ clLogSvrCompEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
     return rc;
 }
 
-static ClRcT
+ClRcT
 clLogSvrCompRefCountIncrement(ClLogSvrEoDataT        *pSvrEoEntry,
                               ClLogSvrCommonEoDataT  *pSvrCommonEoEntry,
                               ClCntNodeHandleT       hSvrStreamNode,

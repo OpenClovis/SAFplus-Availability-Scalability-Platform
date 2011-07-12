@@ -197,6 +197,19 @@ clLogSvrDebugFilterSet(ClNameT *pStreamName, ClNameT *pStreamNodeName, ClLogFilt
 extern ClRcT
 clLogSvrDebugSeverityGet(ClNameT *pStreamName, ClNameT *pStreamNodeName, ClLogSeverityFilterT *pSeverityFilter);
 
+extern ClRcT
+clLogSvrCompRefCountIncrement(CL_IN  ClLogSvrEoDataT        *pSvrEoEntry,
+                              CL_IN  ClLogSvrCommonEoDataT  *pSvrCommonEoEntry,
+                              CL_IN  ClCntNodeHandleT       hSvrStreamNode,
+			                  CL_IN  ClUint32T              componentId,
+                              CL_IN  ClIocPortT             portId);
+
+extern ClRcT
+clLogSvrCompRefCountDecrement(CL_IN   ClLogSvrEoDataT     *pSvrEoEntry,
+                              CL_IN   ClCntNodeHandleT    svrStreamNode,
+                              CL_IN   ClUint32T           componentId,
+                              CL_OUT  ClUint16T           *pTableStatus);
+
 #ifdef __cplusplus
 }
 #endif
