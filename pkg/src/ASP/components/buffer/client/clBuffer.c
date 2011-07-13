@@ -1464,7 +1464,7 @@ clBMBufferNBytesRead(ClBufferCtrlHeaderT *pCtrlHeader,
         
         if(pBufferHeader->pool == CL_BUFFER_HEAP_MARKER)
         {
-            pTemp = pBufferHeader->pCookie;
+            pTemp = (ClUint8T*)pBufferHeader->pCookie + readOffset;
         }
         else
         {
@@ -2169,7 +2169,14 @@ clBMBufferChainCopy(ClBufferHeaderT* pStartBufferHeader,
     
     while(pCurrentBufferHeader != NULL) {
 
-        pTemp = (ClUint8T*)pCurrentBufferHeader + pCurrentBufferHeader->startOffset + offset;
+        if(pCurrentBufferHeader->pool == CL_BUFFER_HEAP_MARKER)
+        {
+            pTemp = (ClUint8T*)pCurrentBufferHeader->pCookie + pCurrentBufferHeader->startOffset + offset;
+        }
+        else
+        {
+            pTemp = (ClUint8T*)pCurrentBufferHeader + pCurrentBufferHeader->startOffset + offset;
+        }
         bytesToWrite = (ClInt32T)(pCurrentBufferHeader->dataLength - pCurrentBufferHeader->startOffset - offset);
         CL_ASSERT(bytesToWrite >= 0);
         bytesToWrite = CL_MIN(bytesToWrite,numberOfBytes);
