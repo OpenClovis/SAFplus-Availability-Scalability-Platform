@@ -852,7 +852,6 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
             pFmtStr = va_arg(args, ClCharT *);
             nbytes = vsnprintf((ClCharT*)pRecord, recSize - 1, pFmtStr, args);
             if(nbytes < 0) nbytes = 0;
-            pRecord[nbytes] = 0;
         }
     }
     else
