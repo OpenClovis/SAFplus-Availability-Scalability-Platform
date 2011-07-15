@@ -591,6 +591,37 @@ static ClRcT clAmsRankUpdate(ClAmsEntityT *entity, ClUint32T newRank)
     return rc;
 }
 
+static void
+amsUpdateCompTimers(ClAmsCompT *comp, ClAmsCompTimerDurationsT *oldTimeouts)
+{
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_INSTANTIATE,
+                           oldTimeouts->instantiate);
+
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_TERMINATE,
+                           oldTimeouts->terminate);
+
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_CLEANUP,
+                           oldTimeouts->cleanup);
+
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE,
+                           oldTimeouts->quiescingComplete);
+
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_CSISET,
+                           oldTimeouts->csiSet);
+
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_CSIREMOVE,
+                           oldTimeouts->csiRemove);
+
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE,
+                           oldTimeouts->proxiedCompInstantiate);
+
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP,
+                           oldTimeouts->proxiedCompCleanup);
+
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_INSTANTIATEDELAY,
+                           oldTimeouts->instantiateDelay);
+}
+
 /***************************************************************************
  * clAmsEntitySetConfigNew 
  * -------------------
@@ -1062,8 +1093,11 @@ clAmsEntitySetConfigNew(
 
             if ( (allAttr) || (bitMask&COMP_CONFIG_TIMEOUTS) )
             {
+                ClAmsCompTimerDurationsT oldConfig = {0};
+                memcpy(&oldConfig, &compConfig->timeouts, sizeof(oldConfig));
                 memcpy (&compConfig->timeouts, &newCompConfig->timeouts,
                         sizeof(ClAmsCompTimerDurationsT) );
+                amsUpdateCompTimers(comp, &oldConfig);
             }
 
             if ( (allAttr) || (bitMask&COMP_CONFIG_RECOVERY_ON_TIMEOUT))

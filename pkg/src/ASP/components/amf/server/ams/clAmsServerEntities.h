@@ -188,6 +188,12 @@ extern ClRcT clAmsEntityTimerStart(
         CL_IN       ClAmsEntityT *entity, 
         CL_IN       ClAmsEntityTimerTypeT timerType);
 
+extern ClRcT
+clAmsEntityTimerUpdate(
+                       CL_IN  ClAmsEntityT  *entity, 
+                       CL_IN  ClAmsEntityTimerTypeT  timerType,
+                       CL_IN  ClTimeT oldDuration);
+
 extern ClRcT clAmsEntityTimerStop(
         CL_IN       ClAmsEntityT *entity, 
         CL_IN       ClAmsEntityTimerTypeT timerType);

@@ -4275,6 +4275,75 @@ clAmsEntityTimerStart(
 
 }
 
+ClRcT
+clAmsEntityTimerUpdate(
+                       CL_IN  ClAmsEntityT  *entity, 
+                       CL_IN  ClAmsEntityTimerTypeT timerType,
+                       CL_IN  ClTimeT oldDuration)
+{
+    ClTimeT duration = 0;
+    ClTimerCallBackT  fn = {0};
+    ClTimerTimeOutT  timeout= {0};
+    ClAmsEntityTimerT  *entityTimer = NULL;
+
+    AMS_CHECKPTR ( !entity );
+
+    AMS_CALL ( clAmsEntityTimerGetValues(
+                                         entity,
+                                         timerType,
+                                         &duration,
+                                         &entityTimer,
+                                         &fn) );
+
+    /*
+     * If timer doesn't exist, just return as it would be created on start.
+     */
+    if(!entityTimer->handle )
+    {
+        return CL_OK;
+    }
+
+    /*
+     * Nothing to update.
+     */
+    if(duration == oldDuration)
+    {
+        return CL_OK;
+    }
+
+    /*
+     * If timer is already running, then just update the running timer.
+     */
+    if(entityTimer->count > 0)
+    {
+        CL_AMS_TIMER_CONVERT(duration, timeout);
+    
+        if ( !duration )
+        {
+            AMS_ENTITY_LOG(entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+                           ("Timer Create: Entity [%s] Type [%s] has duration of [0s]. Timer will never pop\n",
+                            entity->name.value,
+                            CL_AMS_STRING_TIMER(timerType)));
+        }
+
+        clLogNotice("ENTITY", "TIMER", "Restarting [%s] timer with updated duration [%lld] millisecs for entity [%.*s]",
+                    CL_AMS_STRING_TIMER(timerType), duration,
+                    entity->name.length, entity->name.value);
+
+        clTimerUpdate(entityTimer->handle, timeout);
+    }
+    else
+    {
+        /*
+         * Delete the timer to cause a refresh create on the next timer start
+         */
+        entityTimer->count = 0;
+        clTimerDelete (&entityTimer->handle);
+        entityTimer->handle = 0;
+    }
+
+    return CL_OK;
+}
 
 ClRcT
 clAmsEntityTimerStop(
