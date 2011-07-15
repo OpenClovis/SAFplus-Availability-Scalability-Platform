@@ -109,6 +109,11 @@ extern ClRcT cl_gms_cluster_leave_rmd(
         CL_IN   ClUint32T                             timeout, /* [ms] */
         CL_OUT  ClGmsClusterLeaveResponseT          **res);
 
+extern ClRcT cl_gms_cluster_leave_rmd_native(
+        CL_IN   ClGmsClusterLeaveRequestT            *req,
+        CL_IN   ClUint32T                             timeout, /* [ms] */
+        CL_OUT  ClGmsClusterLeaveResponseT          **res);
+
 extern ClRcT cl_gms_cluster_leader_elect_rmd(
         CL_IN   ClGmsClusterLeaderElectRequestT      *req,
         CL_IN   ClUint32T                             timeout, /* [ms] */

@@ -67,7 +67,7 @@ static ClRcT emulate_rmd_call(
  * The common RMD call
  */
 static ClRcT
-cl_gms_call_rmd(
+__cl_gms_call_rmd(
         CL_IN const ClUint32T  fn_id,            /* RMD function identifier */
         CL_IN  void* const     req,              /* Pointer to input argument root */
         CL_IN ClRcT    (*const marshal_req)(void*, ClBufferHandleT),
@@ -75,7 +75,8 @@ cl_gms_call_rmd(
         CL_OUT void**    const res,              /* Pointer to response argument root */
         CL_IN  ClRcT  (*const unmarshal_res)(ClBufferHandleT, void**),
         /* Unmarshaling function pointer */
-        CL_IN const ClUint32T  timeout)          /* [ms]; if 0, use default value */
+        CL_IN const ClUint32T  timeout,          /* [ms]; if 0, use default value */
+        CL_IN ClBoolT nodeLocal)
 {
     ClRcT                       rc = CL_OK;
     ClBufferHandleT      in_buffer = {0};
@@ -124,7 +125,14 @@ cl_gms_call_rmd(
      * FIXME: This now uses the physical address, instead of a logical
      * address.
      */
-    dest_addr.iocPhyAddress.nodeAddress = clIocLocalAddressGet();
+    if(nodeLocal)
+    {
+        dest_addr.iocPhyAddress.nodeAddress = clIocLocalAddressGet();
+    }
+    else
+    {
+        dest_addr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    }
     dest_addr.iocPhyAddress.portId = CL_IOC_GMS_PORT;
     rmd_options.timeout = (timeout > 0) ? timeout: CL_GMS_RMD_DEFAULT_TIMEOUT;
     rmd_options.retries = CL_GMS_RMD_DEFAULT_RETRIES;
@@ -199,6 +207,20 @@ error_free_inbuffer:
     }
 
     return rc;
+}
+
+static ClRcT
+cl_gms_call_rmd(
+        CL_IN const ClUint32T  fn_id,            /* RMD function identifier */
+        CL_IN  void* const     req,              /* Pointer to input argument root */
+        CL_IN ClRcT    (*const marshal_req)(void*, ClBufferHandleT),
+        /* Marshaling function pointer */
+        CL_OUT void**    const res,              /* Pointer to response argument root */
+        CL_IN  ClRcT  (*const unmarshal_res)(ClBufferHandleT, void**),
+        /* Unmarshaling function pointer */
+        CL_IN const ClUint32T  timeout)          /* [ms]; if 0, use default value */
+{
+    return __cl_gms_call_rmd(fn_id, req, marshal_req, res, unmarshal_res, timeout, CL_TRUE);
 }
 
 /******************************************************************************
@@ -1001,11 +1023,24 @@ cl_gms_cluster_leave_rmd(
         CL_IN   const ClUint32T                  timeout, /* [ms] */
         CL_OUT  ClGmsClusterLeaveResponseT**const res)
 {
-    return cl_gms_call_rmd(
+    return __cl_gms_call_rmd(
             (ClUint32T)CL_GMS_CLIENT_CLUSTER_LEAVE,
             (void*)req, &marshalClGmsClusterLeaveRequest,
             (void**)res, &unmarshalClGmsClusterLeaveResponse,
-            timeout);
+            timeout, CL_TRUE);
+}
+
+ClRcT
+cl_gms_cluster_leave_rmd_native(
+        CL_IN   ClGmsClusterLeaveRequestT* const req,
+        CL_IN   const ClUint32T                  timeout, /* [ms] */
+        CL_OUT  ClGmsClusterLeaveResponseT**const res)
+{
+    return __cl_gms_call_rmd(
+            (ClUint32T)CL_GMS_CLIENT_CLUSTER_LEAVE,
+            (void*)req, &marshalClGmsClusterLeaveRequest,
+            (void**)res, &unmarshalClGmsClusterLeaveResponse,
+            timeout, CL_FALSE);
 }
 
 /******************************************************************************

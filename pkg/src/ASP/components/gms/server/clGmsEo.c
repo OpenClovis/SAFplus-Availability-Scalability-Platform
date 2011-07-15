@@ -69,34 +69,34 @@ void *pluginHandle = NULL;
  */
 static ClRcT 
 clGmsServerTerminate(
-        const ClInvocationT invocation,
-        const ClNameT* const  compName)
+                     const ClInvocationT invocation,
+                     const ClNameT* const  compName)
 {
     ClRcT   rc = CL_OK;
 
     gmsGlobalInfo.opState = CL_GMS_STATE_SHUTING_DOWN;
 
     clLog(CRITICAL,GEN,NA,
-            "Server Got Termination Request. Started Shutting Down...");
+          "Server Got Termination Request. Started Shutting Down...");
 
 
     rc = clEoClientUninstallTables (gmsGlobalInfo.gmsEoObject,
-            CL_EO_SERVER_SYM_MOD(gAspFuncTable, GMS));
+                                    CL_EO_SERVER_SYM_MOD(gAspFuncTable, GMS));
     if (rc != CL_OK)
     {
         clLog(ERROR,GEN,NA,
-                "clEoClientUninstall failed with rc = 0x%x", rc);
+              "clEoClientUninstall failed with rc = 0x%x", rc);
     }
 
     rc = clCpmComponentUnregister(
-            gmsGlobalInfo.cpmHandle, 
-            compName, 
-            NULL
-            );
+                                  gmsGlobalInfo.cpmHandle, 
+                                  compName, 
+                                  NULL
+                                  );
     if (rc != CL_OK)
     {
         clLog(ERROR,GEN,NA,
-                "clCpmComponentUnregister failed with rc = 0x%x", rc);
+              "clCpmComponentUnregister failed with rc = 0x%x", rc);
     }
 
     rc = clCpmClientFinalize(gmsGlobalInfo.cpmHandle);
@@ -104,7 +104,7 @@ clGmsServerTerminate(
     if (rc != CL_OK)
     {
         clLog(ERROR,GEN,NA,
-                "clCpmClientFinalize failed with rc = 0x%x", rc);
+              "clCpmClientFinalize failed with rc = 0x%x", rc);
     }
 
 
@@ -112,18 +112,18 @@ clGmsServerTerminate(
     if (rc != CL_OK)
     {
         clLog(ERROR,GEN,NA,
-                "clDebugDeregister failed with rc = 0x%x", rc);
+              "clDebugDeregister failed with rc = 0x%x", rc);
     }
 
     rc = clCpmResponse ( 
-            gmsGlobalInfo.cpmHandle ,
-            invocation  , 
-            CL_OK 
-            );
+                        gmsGlobalInfo.cpmHandle ,
+                        invocation  , 
+                        CL_OK 
+                         );
     if (rc != CL_OK)
     {
         clLog(ERROR,GEN,NA,
-                "clCpmResponse failed with rc = 0x%x", rc);
+              "clCpmResponse failed with rc = 0x%x", rc);
     }
 
     /* Close the leader election algorithm dl if open */
@@ -133,14 +133,18 @@ clGmsServerTerminate(
         dlclose(pluginHandle);
     }
 #endif
-    /* We need to invoke openais finalize function instead of signal
-     * handler here */
-    totempg_finalize();
 
-    /* Waiting for 10ms before invoking exit() */
-    usleep(10000);
+    if(gClTotemRunning)
+    {
+        /* We need to invoke openais finalize function instead of signal
+         * handler here */
+        totempg_finalize();
+
+        /* Waiting for 10ms before invoking exit() */
+        usleep(10000);
+    }
     clLog(CRITICAL,GEN,NA,
-            "GMS server exiting");
+          "GMS server exiting");
     exit(0);
 }
 
@@ -330,7 +334,7 @@ ClEoConfigT clEoConfig = {
     1,                	     
     CL_IOC_GMS_PORT,   	                 /* Service port for recieving reqs */
     CL_EO_USER_CLIENT_ID_START,           
-    CL_EO_USE_THREAD_FOR_APP,            /* application is blocking         */
+    CL_EO_USE_THREAD_FOR_RECV,            /* application is blocking         */
     clGmsServerInitialize,               /* service initialization func     */
     clGmsServerFinalize,   	             /* service finalize function       */  
     clGmsServerStateChange,              /* state change callback           */

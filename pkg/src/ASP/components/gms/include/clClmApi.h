@@ -279,6 +279,11 @@ extern ClRcT clGmsClusterLeave(
         CL_IN ClTimeT                           timeout,
         CL_IN ClGmsNodeIdT                      nodeId);
 
+extern ClRcT clGmsClusterLeaveNative(
+        CL_IN ClGmsHandleT                      gmsHandle,
+        CL_IN ClTimeT                           timeout,
+        CL_IN ClGmsNodeIdT                      nodeId);
+
 
 /*
  ************************************

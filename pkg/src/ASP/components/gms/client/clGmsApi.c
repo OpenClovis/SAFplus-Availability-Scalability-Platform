@@ -552,10 +552,11 @@ error_unlock_checkin:
 /*-----------------------------------------------------------------------------
  * Cluster Leave API
  *---------------------------------------------------------------------------*/
-ClRcT clGmsClusterLeave(
-    CL_IN const ClGmsHandleT                      gmsHandle,
-    CL_IN const ClTimeT                           timeout,
-    CL_IN const ClGmsNodeIdT                      nodeId)
+static ClRcT gmsClusterLeave(
+                             CL_IN const ClGmsHandleT                      gmsHandle,
+                             CL_IN const ClTimeT                           timeout,
+                             CL_IN const ClGmsNodeIdT                      nodeId,
+                             CL_IN ClBoolT native)
 {
     ClRcT                                rc = CL_OK;
     struct gms_instance                 *gms_instance_ptr = NULL;
@@ -580,11 +581,19 @@ ClRcT clGmsClusterLeave(
     
     req.gmsHandle = gmsHandle;
     req.nodeId    = nodeId;
-    req.sync      = CL_TRUE;
+    req.sync      = native ? CL_FALSE : CL_TRUE;
     
     clGmsMutexLock(gms_instance_ptr->response_mutex);
 
-    rc = cl_gms_cluster_leave_rmd(&req, (ClUint32T)(timeout/NS_IN_MS), &res);
+    if(native)
+    {
+        rc = cl_gms_cluster_leave_rmd_native(&req, (ClUint32T)(timeout/NS_IN_MS), &res);
+    }
+    else
+    {
+        rc = cl_gms_cluster_leave_rmd(&req, (ClUint32T)(timeout/NS_IN_MS), &res);
+    }
+
     if ((rc != CL_OK) || (res == NULL)) /* If there was an error, res isn't allocated */
     {
         goto error_unlock_checkin;
@@ -605,6 +614,22 @@ error_unlock_checkin:
 
     
     return rc;
+}
+
+ClRcT clGmsClusterLeave(
+                        CL_IN const ClGmsHandleT                      gmsHandle,
+                        CL_IN const ClTimeT                           timeout,
+                        CL_IN const ClGmsNodeIdT                      nodeId)
+{
+    return gmsClusterLeave(gmsHandle, timeout, nodeId, CL_FALSE);
+}
+
+ClRcT clGmsClusterLeaveNative(
+                        CL_IN const ClGmsHandleT                      gmsHandle,
+                        CL_IN const ClTimeT                           timeout,
+                        CL_IN const ClGmsNodeIdT                      nodeId)
+{
+    return gmsClusterLeave(gmsHandle, timeout, nodeId, CL_TRUE);
 }
 
 

@@ -237,6 +237,54 @@ static void gmsNotificationInitialize(void)
     clCpmNotificationCallbackInstall(compAddr, gmsNotificationCallback, NULL, &gNotificationCallbackHandle);
 }
 
+static ClRcT gmsClusterStart(void)
+{
+    ClRcT rc = CL_OK;
+    ClUint32T version = CL_VERSION_CODE(5, 0, 0);
+    
+    clNodeCacheMinVersionGet(NULL, &version);
+
+    if(clAspNativeLeaderElection() && version >= CL_VERSION_CODE(5, 0, 0))
+    {
+        rc = clCpmComponentRegister(
+                                    gmsGlobalInfo.cpmHandle,
+                                    &gmsGlobalInfo.gmsComponentName,
+                                    NULL
+                                    );
+        if(rc != CL_OK)
+        {
+            clLogError("CLUSTER", "START",
+                       "clCpmComponent register failed with rc 0x%x", rc);
+        }
+        else
+        {
+            clLogMultiline(DBG,"CLUSTER", "START",
+                           "clCpmComponentRegister successful. Updating GMS state as RUNNING");
+            gmsGlobalInfo.opState = CL_GMS_STATE_RUNNING;
+        }
+
+    }
+    else
+    {
+        gClTotemRunning = CL_TRUE;
+        clLogMultiline(INFO,GEN,NA,
+                       "Invoking aisexec_main call of openais. This thread will continue\n"
+                       "to run in openais context until finalize");
+
+        /* The follwoing call into openais will initialize _and_ run the openais
+         * code and will block as long as it is interrupted or it crashes
+         * (normally it does not exit by itself..
+         */
+        rc = aisexec_main(0,NULL); /* Will run forever! */
+        if (rc != 0)
+        {
+            rc = CL_GMS_RC(CL_GMS_ERR_TOTEM_PROTOCOL_ERROR);
+        }
+    }
+
+    return rc;
+}    
+
 ClRcT
 _clGmsEngineStart()
 {
@@ -289,21 +337,9 @@ _clGmsEngineStart()
     gmsNotificationInitialize();
 
     gmsViewPopulate(); /* preload a default view for aspinfo */
-
-    clLogMultiline(INFO,GEN,NA,
-            "Invoking aisexec_main call of openais. This thread will continue\n"
-            "to run in openais context until finalize");
-
-    /* The follwoing call into openais will initialize _and_ run the openais
-     * code and will block as long as it is interrupted or it crashes
-     * (normally it does not exit by itself..
-     */
-    rc = aisexec_main(0,NULL); /* Will run forever! */
-    if (rc != 0)
-    {
-        rc = CL_GMS_RC(CL_GMS_ERR_TOTEM_PROTOCOL_ERROR);
-    }
     
+    rc = gmsClusterStart();
+
     return rc;
 }
 

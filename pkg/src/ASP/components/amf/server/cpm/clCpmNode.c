@@ -1597,8 +1597,8 @@ ClRcT cpmInitiatedSwitchOver(ClBoolT checkDeputy)
          * easier
          */
         gpClCpm->nodeLeaving = CL_TRUE;
-        clGmsClusterLeave(gpClCpm->cpmGmsHdl, 10000000000LL, 
-                gpClCpm->pCpmLocalInfo->nodeId);
+        clGmsClusterLeaveNative(gpClCpm->cpmGmsHdl, 10000000000LL, 
+                                gpClCpm->pCpmLocalInfo->nodeId);
 
         return rc;
     }

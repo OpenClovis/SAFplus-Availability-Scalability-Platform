@@ -59,6 +59,7 @@ ClGmsCsSectionT groupJoinCs;
 ClGmsNodeT gmsGlobalInfo;
 ClBoolT    readyToServeGroups = CL_FALSE;
 ClHandleDatabaseHandleT contextHandleDatabase;
+ClBoolT gClTotemRunning = CL_FALSE;
 
 static ClVersionT versions_supported[] = {
 	{ 'B', 0x01, 0x01 }

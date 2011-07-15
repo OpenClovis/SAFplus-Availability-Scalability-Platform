@@ -63,6 +63,8 @@ extern "C" {
 #define OPTION_STR_SIZE 4
 
 
+extern ClBoolT gClTotemRunning;
+
 /* Stores the config info from the xml file */
 
 typedef struct {

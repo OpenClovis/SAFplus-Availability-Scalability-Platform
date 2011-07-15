@@ -926,8 +926,8 @@ JOIN_FAILED:
  *---------------------------------------------------------------------------*/
 ClRcT
 clGmsClusterLeaveHandler(
-    CL_IN  const ClGmsClusterLeaveRequestT*   const req,
-    CL_OUT       ClGmsClusterLeaveResponseT*  const res)
+                         CL_IN  const ClGmsClusterLeaveRequestT*   const req,
+                         CL_OUT       ClGmsClusterLeaveResponseT*  const res)
 {
     ClRcT		              rc         = CL_OK;
     ClGmsClusterMemberT       thisNode   = {0};
@@ -949,9 +949,9 @@ clGmsClusterLeaveHandler(
         return rc;
     }
 
-    clLogMultiline(DBG,CLM,NA,
-            "Received Cluster Leave request for [nodeId = %d]",
-            req->nodeId);
+    clLogNotice("CLUSTER", "LEAVE",
+                "Received Cluster Leave request for [nodeId = %d], sync flag [%s]",
+                req->nodeId, req->sync ? "yes" : "no");
 
     /* Try to see if the node is part of the cluster view if not then send the
      *  caller an invalid parameter return code . */
@@ -962,21 +962,28 @@ clGmsClusterLeaveHandler(
         return (res->rc);
     }
 
-    _clGmsGetThisNodeInfo(&thisNode);
-
-    memcpy(&viewMember.clusterMember, &thisNode, sizeof(ClGmsClusterMemberT));
-
-    rc= clGmsSendMsg(&viewMember, req->groupId, CL_GMS_CLUSTER_LEAVE_MSG , 0x0, 0, NULL);
-
-    if (rc != CL_OK)
+    if(req->sync)
     {
-        clLog(ERROR,CLM,NA,
-                "Cluster Leave multicase messaging through openais failed.");
-        res->rc = rc;
-        goto LEAVE_FAILED;
-    } 
+        _clGmsGetThisNodeInfo(&thisNode);
 
-LEAVE_FAILED:
+        memcpy(&viewMember.clusterMember, &thisNode, sizeof(ClGmsClusterMemberT));
+
+        rc= clGmsSendMsg(&viewMember, req->groupId, CL_GMS_CLUSTER_LEAVE_MSG , 0x0, 0, NULL);
+
+        if (rc != CL_OK)
+        {
+            clLog(ERROR,CLM,NA,
+                  "Cluster Leave multicase messaging through openais failed.");
+            res->rc = rc;
+            goto LEAVE_FAILED;
+        } 
+    }
+    else
+    {
+        rc = _clGmsEngineClusterLeave(req->groupId, req->nodeId);
+    }
+
+    LEAVE_FAILED:
     return rc;
 }
 
