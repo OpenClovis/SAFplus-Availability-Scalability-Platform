@@ -660,10 +660,10 @@ static ClRcT cpmCompSetConfig(ClAmsEntityConfigT *entityConfig,
         /*
          * Acceptable if this comp. is part of another node.
          */
-        clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
-                     "Failed to find component [%s], error [%#x]",
-                     entityConfig->name.value,
-                     rc);
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
+                   "Failed to find component [%s], error [%#x]",
+                   entityConfig->name.value,
+                   rc);
         goto failure;
     }
 
