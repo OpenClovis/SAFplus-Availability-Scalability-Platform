@@ -3285,6 +3285,23 @@ static int message_handler_orf_token (
 		 * Discard retransmitted tokens
 		 */
 		if (sq_lte_compare (token->token_seq, instance->my_token_seq)) {
+			/*
+			 * If this processor receives a retransmitted token, it is sure
+		 	 * the previous processor is still alive.  As a result, it can
+			 * reset its token timeout.  If some processor previous to that
+			 * has failed, it will eventually not execute a reset of the
+			 * token timeout, and will cause a reconfiguration to occur.
+			 */
+			reset_token_timeout (instance);
+
+			if ((forward_token)
+				&& instance->use_heartbeat) {
+				reset_heartbeat_timeout(instance);
+			}
+			else {
+				cancel_heartbeat_timeout(instance);
+			}
+
 			return (0); /* discard token */
 		}		
 		last_aru = instance->my_last_aru;
@@ -3590,10 +3607,6 @@ static int message_handler_mcast (
 //		printf ("accepting message %d\n", mcast_header.seq);
 	}
 #endif
-
-        if (srp_addr_equal (&mcast_header.system_from, &instance->my_id) == 0) {
-		cancel_token_retransmit_timeout (instance);
-	}
 
 	/*
 	 * If the message is foreign execute the switch below
