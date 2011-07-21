@@ -56,6 +56,10 @@ typedef struct ClTargetSlotInfo
     ClInt32T addr;
     ClCharT linkname[40];
     ClCharT arch[80];
+    /*
+     * A private data store per node/slot referenced from the private xml tag
+     */
+    ClCharT customData[256];
 } ClTargetSlotInfoT;
 
 typedef struct ClTargetInfo

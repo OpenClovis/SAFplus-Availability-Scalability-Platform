@@ -1925,15 +1925,14 @@ ClRcT clCpmMiddlewareRestart(ClIocNodeAddressT iocNodeAddress, ClBoolT graceful,
     return rc;
 }
 
+
 ClBoolT clCpmIsSC(void)
 {
-    ClCharT *sc = getenv("SYSTEM_CONTROLLER");
-    ClBoolT isSC = CL_NO;
-
-    if (sc && !strncmp(sc, "1", 1))
-        isSC = CL_YES;
-
-    return isSC;
+    static ClInt32T cachedState = -1;
+    if(cachedState >= 0) goto out;
+    cachedState = (ClInt32T)clParseEnvBoolean("SYSTEM_CONTROLLER");
+    out:
+    return cachedState ? CL_TRUE : CL_FALSE;
 }
 
 ClRcT clCpmCompInfoGet(const ClNameT *compName,
@@ -2271,7 +2270,12 @@ ClRcT clCpmTargetInfoInitialize(void)
             slots[numSlots].arch[0] = 0;
             strncat(slots[numSlots].arch, val->txt, sizeof(slots[numSlots].arch)-1);
         }
-
+        
+        if( (val = clParserChild(child, "CUSTOM") ) )
+        {
+            slots[numSlots].customData[0] = 0;
+            strncat(slots[numSlots].customData, val->txt, sizeof(slots[numSlots].customData)-1);
+        }
         ++numSlots;
         child = child->next;
     }
@@ -2347,9 +2351,14 @@ ClRcT clCpmTargetSlotListGet(ClTargetSlotInfoT *slotInfo, ClUint32T *numSlots)
  */
 ClBoolT clCpmIsSCCapable(void)
 {
+    static ClInt32T cachedState = -1;
     if(clCpmIsSC())
         return CL_TRUE;
-    return clParseEnvBoolean("ASP_SC_PROMOTE");
+    if(cachedState >= 0)
+        goto out;
+    cachedState = (ClInt32T)clParseEnvBoolean("ASP_SC_PROMOTE");
+    out:
+    return cachedState ? CL_TRUE : CL_FALSE;
 }
 
 #ifdef __linux__
