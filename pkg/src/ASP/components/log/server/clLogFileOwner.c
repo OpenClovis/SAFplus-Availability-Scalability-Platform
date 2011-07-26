@@ -1392,7 +1392,7 @@ static void doSyslog(ClLogSeverityT logSev, const ClCharT *buf, ClInt32T len)
             }
         }
     } 
-    syslog(syslogSev, buf, len);
+    syslog(syslogSev, "%.*s", len, buf);
 #undef SYSLOG_SEV_DEFAULT
 }
 
