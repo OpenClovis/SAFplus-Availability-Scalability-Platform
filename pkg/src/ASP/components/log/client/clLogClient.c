@@ -691,18 +691,26 @@ clLogWriteAsync(ClLogStreamHandleT   hStream,
                 ...)
 {
     ClRcT    rc = CL_OK;
+    ClCharT msgHeader[CL_MAX_NAME_LENGTH];
     va_list  args;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
+    if( (rc = clLogHeaderGetWithContext(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                                        msgHeader, (ClUint32T)sizeof(msgHeader)) ) != CL_OK)
+    {
+        msgHeader[0] = 0;
+    }
+
     va_start(args, msgId);
 
-    rc = clLogVWriteAsync(hStream, logSeverity, serviceId, msgId, args);
+    rc = clLogVWriteAsyncWithHeader(hStream, logSeverity, serviceId, msgId, msgHeader, args);
 
     va_end(args);
 
     CL_LOG_DEBUG_TRACE(("Exit: rc[0x %x]", rc));
     return rc;
+
 }
 
 ClRcT
