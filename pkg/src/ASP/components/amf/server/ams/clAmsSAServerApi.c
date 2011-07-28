@@ -1591,6 +1591,8 @@ _clAmsSANodeJoin(
 
     AMS_CHECKPTR_AND_UNLOCK ( !node, gAms.mutex );
 
+    clAmsEntityOpsClearNode(&node->config.entity, &node->status.entity);
+
     AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
             clAmsPeNodeJoinCluster(node), 
             gAms.mutex );

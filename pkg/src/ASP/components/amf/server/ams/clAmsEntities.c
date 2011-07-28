@@ -4993,6 +4993,69 @@ ClRcT clAmsEntityOpsClear(ClAmsEntityT *entity, ClAmsEntityStatusT *status)
     return CL_OK;
 }
 
+ClRcT clAmsEntityOpsClearNode(ClAmsEntityT *entity, ClAmsEntityStatusT *status)
+{
+    ClAmsEntityRefT *ref;
+    ClAmsNodeT *node = (ClAmsNodeT*)entity;
+    if(!entity || 
+       entity->type != CL_AMS_ENTITY_TYPE_NODE) 
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    if(!status)
+        status = clAmsEntityGetStatusStruct(entity);
+    for(ref = clAmsEntityListGetFirst(&node->config.suList);
+        ref != NULL;
+        ref = clAmsEntityListGetNext(&node->config.suList, ref))
+    {
+        ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+        if(!su->status.entity.opStack.numOps) continue;
+        while(!CL_LIST_HEAD_EMPTY(&su->status.entity.opStack.opList))
+        {
+            ClListHeadT *entry = su->status.entity.opStack.opList.pNext;
+            ClAmsEntityOpT *opBlock = CL_LIST_ENTRY(entry, ClAmsEntityOpT, list);
+            clListDel(entry);
+            if((opBlock->op == CL_AMS_ENTITY_OP_ACTIVE_REMOVE_REF_MPLUSN
+               ||
+                opBlock->op == CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN)
+               && 
+               opBlock->data)
+            {
+                ClRcT rc;
+                ClAmsEntityRefT entityRef = {{0}};
+                ClAmsSUT *targetSU;
+                void *targetData = NULL;
+                ClUint32T targetOp;
+                ClAmsEntityRemoveOpT *activeRemoveOp = (ClAmsEntityRemoveOpT*)opBlock->data;
+                memcpy(&entityRef.entity, &activeRemoveOp->entity, sizeof(entityRef.entity));
+                rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU],
+                                             &entityRef);
+                if(rc != CL_OK)
+                {
+                    clLogWarning("SU", "ACTIVE-REMOVE-CLEAR", "SU [%s] pending remove replay wasn't found",
+                                 activeRemoveOp->entity.name.value);
+                    goto next;
+                }
+                targetSU = (ClAmsSUT*)entityRef.ptr;
+                targetOp = (opBlock->op == CL_AMS_ENTITY_OP_ACTIVE_REMOVE_REF_MPLUSN) ?
+                    CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN :
+                    CL_AMS_ENTITY_OP_ACTIVE_REMOVE_REF_MPLUSN;
+                clLogNotice("SU", "ACTIVE-REMOVE-CLEAR", 
+                            "Clearing SU [%s] back reference op [%d] through SU [%s]",
+                            targetSU->config.entity.name.value, targetOp,
+                            su->config.entity.name.value);
+                clAmsEntityOpClear(&targetSU->config.entity, &targetSU->status.entity, 
+                                   targetOp, &targetData, NULL);
+                if(targetData) clHeapFree(targetData);
+            }
+            next:
+            if(opBlock->data) clHeapFree(opBlock->data);
+            clHeapFree(opBlock);
+        }
+        su->status.entity.opStack.numOps = 0;
+    }
+    clAmsEntityOpsClear(entity, status);
+    return CL_OK;
+}
+
 #ifdef POST_RC2
 
 /******************************************************************************

@@ -160,6 +160,7 @@ typedef struct ClAmsEntityOp
 
 #define CL_AMS_ENTITY_OP_SWAP_ACTIVE_MPLUSN           0x10
 #define CL_AMS_ENTITY_OP_SI_REASSIGN_MPLUSN           0x20
+#define CL_AMS_ENTITY_OP_ACTIVE_REMOVE_REF_MPLUSN     0x40
     ClUint32T op;
     ClUint32T dataSize;
     void *data;

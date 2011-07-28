@@ -381,6 +381,9 @@ clAmsEntityOpClear(ClAmsEntityT *entity, ClAmsEntityStatusT *status, ClUint32T o
 extern ClRcT
 clAmsEntityOpsClear(ClAmsEntityT *entity, ClAmsEntityStatusT *status);
 
+extern ClRcT
+clAmsEntityOpsClearNode(ClAmsEntityT *entity, ClAmsEntityStatusT *status);
+
 #ifdef __cplusplus
 }
 #endif

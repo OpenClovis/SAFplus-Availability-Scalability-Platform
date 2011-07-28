@@ -7311,6 +7311,13 @@ clAmsPeSUSwitchoverReplay(ClAmsSUT *su, ClAmsSUT *activeSU, ClUint32T error, ClU
                           (void*)&activeRemoveOp,
                           (ClUint32T)sizeof(activeRemoveOp),
                           CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN);
+        /*
+         * Store a back ref.
+         */
+        memcpy(&activeRemoveOp.entity, &activeSU->config.entity, sizeof(activeRemoveOp.entity));
+        clAmsEntityOpPush(&su->config.entity, &su->status.entity, 
+                          (void*)&activeRemoveOp, sizeof(activeRemoveOp),
+                          CL_AMS_ENTITY_OP_ACTIVE_REMOVE_REF_MPLUSN);
         return CL_OK;
     }
 
@@ -7792,6 +7799,13 @@ clAmsPeSUSwitchoverCallback(
                                   (void*)&activeRemoveOp, 
                                   (ClUint32T)sizeof(activeRemoveOp),
                                   CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN);
+                memcpy(&activeRemoveOp.entity, &activeSU->config.entity, sizeof(activeRemoveOp.entity));
+                /*
+                 * Store a back reference.
+                 */
+                clAmsEntityOpPush(&su->config.entity, &su->status.entity,
+                                  (void*)&activeRemoveOp, (ClUint32T)sizeof(activeRemoveOp),
+                                  CL_AMS_ENTITY_OP_ACTIVE_REMOVE_REF_MPLUSN);
                 clLogInfo("SU", "SWITCHOVER", "Deferring SU [%s] CSI removes after "
                           "reassignment to SU [%s] as active", 
                           su->config.entity.name.value,
