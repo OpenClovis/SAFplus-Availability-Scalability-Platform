@@ -435,6 +435,13 @@ ClRcT clCkptMasterPeerUpdateNoLock(ClIocPortT        portId,
             CL_ASSERT(pPeerInfo->ckptList != 0);
             pPeerInfo->credential = credential;
             pPeerInfo->available  = CL_CKPT_NODE_AVAIL;
+            if(localAddr != gCkptSvr->localAddr)
+            {
+                clLogNotice("PEER", "UPDATE", 
+                            "Resetting the replica list for the peer [%#x] being welcomed", localAddr);
+                clCkptMasterReplicaListUpdateNoLock(localAddr);
+                pPeerInfo->replicaCount = 0;
+            }
         }
         else
         {
