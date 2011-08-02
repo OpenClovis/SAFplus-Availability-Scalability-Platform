@@ -112,7 +112,11 @@ extern "C" {
 #define CL_LOG_SHM_OPEN_FLAGS          (O_RDWR)
 #define CL_LOG_SHM_CREATE_FLAGS        (O_RDWR | O_CREAT)
 #define CL_LOG_SHM_EXCL_CREATE_FLAGS   (O_RDWR | O_CREAT | O_EXCL)
+#ifdef MAP_POPULATE
+#define CL_LOG_MMAP_FLAGS              (MAP_SHARED | MAP_POPULATE)
+#else
 #define CL_LOG_MMAP_FLAGS              (MAP_SHARED)
+#endif
 #define CL_LOG_MMAP_PROT_FLAGS         (PROT_READ | PROT_WRITE)
 
 #define  CL_LOG_DEFAULT_FILE_SIZE          20 * 4096
