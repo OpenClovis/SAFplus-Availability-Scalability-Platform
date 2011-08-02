@@ -591,20 +591,25 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version,
     }
 
     entry = &CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress];
-    entry->version = version;
-    entry->capability = capability;
-    entry->nodeName[0] = 0;
-    strncat(entry->nodeName, (const ClCharT*)nodeName->value, 
-            CL_MIN(nodeName->length, sizeof(entry->nodeName)-1));
-
+    if(version)
+        entry->version = version;
+    if(capability)
+        entry->capability = capability;
+    if(nodeName)
+    {
+        entry->nodeName[0] = 0;
+        strncat(entry->nodeName, (const ClCharT*)nodeName->value, 
+                CL_MIN(nodeName->length, sizeof(entry->nodeName)-1));
+    }
     clLogNotice("CACHE", "SET", "Updating node cache entry for node [%d: %s] with version [%#x], capability [%#x]",
                 nodeAddress, entry->nodeName, entry->version, entry->capability);
 
     /*
      * Update node min version/address.
      */
-    if(!CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion || 
-       version < CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion)
+    if(version && 
+       (!CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion || 
+        version < CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion))
     {
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion = version;
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersionNode = nodeAddress;
@@ -615,7 +620,7 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version,
     return CL_OK;
 }
 
-ClRcT clNodeCacheReset(ClIocNodeAddressT nodeAddress)
+static ClRcT __nodeCacheReset(ClIocNodeAddressT nodeAddress, ClBoolT soft)
 {
     ClRcT   rc = CL_OK;
 
@@ -635,8 +640,10 @@ ClRcT clNodeCacheReset(ClIocNodeAddressT nodeAddress)
     {
         CL_NODE_MAP_CLEAR(CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->nodeMap, nodeAddress);
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentNodes -= 1;
-        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].version = 0;
-
+        if(!soft)
+        {
+            CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].version = 0;
+        }
         if(CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersionNode == nodeAddress)
         {
             CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersionNode = 0;
@@ -651,6 +658,16 @@ ClRcT clNodeCacheReset(ClIocNodeAddressT nodeAddress)
     clOsalSemUnlock(gClNodeCacheSem);
 
     return CL_OK;
+}
+
+ClRcT clNodeCacheReset(ClIocNodeAddressT nodeAddress)
+{
+    return __nodeCacheReset(nodeAddress, CL_FALSE);
+}
+
+ClRcT clNodeCacheSoftReset(ClIocNodeAddressT nodeAddress)
+{
+    return __nodeCacheReset(nodeAddress, CL_TRUE);
 }
 
 ClRcT clNodeCacheCapabilitySet(ClIocNodeAddressT nodeAddress, ClUint32T capability, ClUint32T flag)

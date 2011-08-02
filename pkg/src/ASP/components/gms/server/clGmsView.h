@@ -176,6 +176,7 @@ ClRcT      _clGmsViewAddNode(
 ClRcT      _clGmsViewAddNodeExtended(
                     CL_IN   ClGmsGroupIdT   groupId,
                     CL_IN   ClGmsNodeIdT    nodeId,
+                    CL_IN   ClBoolT         reElection,
                     CL_IN   ClGmsViewNodeT  **node);
 
 ClRcT      _clGmsViewDeleteNode(

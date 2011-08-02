@@ -70,6 +70,13 @@ static      ClTimerHandleT  timerHandle = NULL;
 ClBoolT     bootTimeElectionDone = CL_FALSE;
 static ClBoolT reElect = CL_FALSE;
 
+static ClRcT _clGmsEngineClusterJoinWrapper(
+                                      CL_IN   const ClGmsGroupIdT   groupId,
+                                      CL_IN   const ClGmsNodeIdT    nodeId,
+                                      CL_IN   ClGmsViewNodeT* node,
+                                      CL_IN   ClBoolT reElection,
+                                      CL_IN   ClBoolT *pTrackNotify);
+
 /*
    timerCallback
    -------------
@@ -78,7 +85,7 @@ static ClBoolT reElect = CL_FALSE;
    mark that boottime election is done. 
  */
 
-static ClRcT gmsViewPopulate(void)
+static ClRcT gmsViewPopulate(ClBoolT *pTrackNotify)
 {
     ClNodeCacheMemberT *pMembers = NULL;
     ClUint32T maxNodes = CL_IOC_MAX_NODES;
@@ -94,7 +101,7 @@ static ClRcT gmsViewPopulate(void)
     }
     for(i = 0; i < maxNodes; ++i)
     {
-        _clGmsEngineClusterJoin(0, pMembers[i].address, NULL);
+        _clGmsEngineClusterJoinWrapper(0, pMembers[i].address, NULL, CL_TRUE, pTrackNotify);
     }
 
     out_free:
@@ -110,11 +117,13 @@ timerCallback( void *arg ){
     ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT lastLeader = CL_GMS_INVALID_NODE_ID;
     ClGmsViewT   *view = NULL;
-    
+    ClBoolT trackNotify = CL_FALSE;
+    ClBoolT leadershipChanged = CL_FALSE;
+
     clLog(INFO,LEA,NA,
           "Running boot time leader election after 5 secs of GMS startup");
 
-    gmsViewPopulate(); 
+    gmsViewPopulate(&trackNotify); 
 
     rc = _clGmsViewFindAndLock( 0x0 , &view );
     CL_ASSERT( (rc == CL_OK) && (view != NULL));
@@ -135,19 +144,27 @@ timerCallback( void *arg ){
               "Error in boot time leader election. rc [0x%x]",rc);
     }
     lastLeader = view->leader;
-    if (view->leader != leaderNodeId )
+    leadershipChanged = (lastLeader != leaderNodeId);
+    if(leadershipChanged
+       ||
+       (view->deputy != deputyNodeId))
+        
     {
-        view->leader = leaderNodeId;
-        view->leadershipChanged = CL_TRUE;
-        view->deputy = deputyNodeId;
-        clNodeCacheLeaderUpdate(lastLeader, leaderNodeId);
-
-        rc = clEoMyEoObjectSet ( gmsGlobalInfo.gmsEoObject );
-        CL_ASSERT( rc == CL_OK );
-        if (_clGmsTrackNotify ( 0x0 ) != CL_OK)
+        if(!trackNotify)
         {
-            clLog(ERROR,LEA,NA,
-                  "_clGmsTrackNotify failed in leader election timer callback");
+            view->leader = leaderNodeId;
+            view->deputy = deputyNodeId;
+            view->leadershipChanged = leadershipChanged;
+            if(leadershipChanged)
+            {
+                clNodeCacheLeaderUpdate(lastLeader, leaderNodeId);
+            }
+            clEoMyEoObjectSet ( gmsGlobalInfo.gmsEoObject );
+            if (_clGmsTrackNotify ( 0x0 ) != CL_OK)
+            {
+                clLog(ERROR,LEA,NA,
+                      "_clGmsTrackNotify failed in leader election timer callback");
+            }
         }
     }
 
@@ -177,11 +194,12 @@ timerCallback( void *arg ){
     return rc;
 }
 
-static ClRcT leaderElectionTimerRun(ClBoolT restart)
+static ClRcT leaderElectionTimerRun(ClBoolT restart, ClTimerTimeOutT *pTimeOut)
 {
     ClTimerTimeOutT timeOut = {.tsSec = gmsGlobalInfo.config.bootElectionTimeout, .tsMilliSec=0 };
     if(restart && timerHandle)
         clTimerDeleteAsync(&timerHandle);
+    if(pTimeOut)  timeOut = *pTimeOut;
     clLogNotice(GEN, NA,
                 "Starting boot time election timer for [%d] secs", timeOut.tsSec);
     return clTimerCreateAndStart(
@@ -221,7 +239,7 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId,
 #endif
         clLogNotice("NOTIF", "JOIN", "Triggering node join from tipc level for node [%#x], port [%#x]",
                     pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
-        rc = _clGmsEngineClusterJoin(0, pAddress->iocPhyAddress.nodeAddress, NULL);
+        rc = _clGmsEngineClusterJoinWrapper(0, pAddress->iocPhyAddress.nodeAddress, NULL, CL_FALSE, NULL);
     }
     if(rc != CL_OK)
     {
@@ -326,7 +344,7 @@ _clGmsEngineStart()
        there is a change in the leadership.Timer is a one shot timer and is
        delted after it fires .
      */
-    rc = leaderElectionTimerRun(CL_FALSE);
+    rc = leaderElectionTimerRun(CL_FALSE, NULL);
     if(rc != CL_OK)
     {
         clLogMultiline(EMER,GEN,NA,
@@ -336,7 +354,7 @@ _clGmsEngineStart()
 
     gmsNotificationInitialize();
 
-    gmsViewPopulate(); /* preload a default view for aspinfo */
+    gmsViewPopulate(NULL); /* preload a default view for aspinfo */
     
     rc = gmsClusterStart();
 
@@ -442,8 +460,11 @@ computeLeaderDeputyWithHighestCredential (
     {
         if (eligibleNodes[i]->isCurrentLeader == CL_TRUE 
             ||
+            CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(eligibleNodes[i]->isCurrentLeader)
+            ||
             eligibleNodes[i]->isPreferredLeader)
         {
+            eligibleNodes[i]->isCurrentLeader &= ~__SC_PROMOTE_CAPABILITY_MASK;
             existingLeaders[noOfExistingLeaders++] = eligibleNodes[i];
         }
     }
@@ -820,10 +841,12 @@ error:
 /* Called from totem protocol when it receives a cluster join
  * message. Even this node join to cluster is called from 
  * totem protocol  */
-ClRcT _clGmsEngineClusterJoin(
-                              CL_IN   const ClGmsGroupIdT   groupId,
-                              CL_IN   const ClGmsNodeIdT    nodeId,
-                              CL_IN   ClGmsViewNodeT* node)
+static ClRcT _clGmsEngineClusterJoinWrapper(
+                                      CL_IN   const ClGmsGroupIdT   groupId,
+                                      CL_IN   const ClGmsNodeIdT    nodeId,
+                                      CL_IN   ClGmsViewNodeT* node,
+                                      CL_IN   ClBoolT reElection,
+                                      CL_IN   ClBoolT *pTrackNotify)
 {
     ClRcT              rc = CL_OK, add_rc = CL_OK;
     ClGmsViewT        *thisClusterView = NULL;
@@ -833,7 +856,9 @@ ClRcT _clGmsEngineClusterJoin(
     ClGmsNodeIdT       currentDeputy = CL_GMS_INVALID_NODE_ID;
     ClUint32T          len1 = 0;
     ClUint32T          len2 = 0;
-
+    ClTimerTimeOutT    timeout = {.tsSec = gmsGlobalInfo.config.bootElectionTimeout,
+                                  .tsMilliSec = 0
+    };
     clLog(INFO,CLM,NA,
           "GMS engine cluster join is invoked for node Id [%d] for group [%d]", nodeId, groupId);
 
@@ -854,11 +879,20 @@ ClRcT _clGmsEngineClusterJoin(
         rc = clGmsViewCacheCheckAndAdd(nodeId, &node);
         if(rc != CL_OK || !node)
         {
-            if(node) 
+            if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN
+               &&
+               (!reElect && bootTimeElectionDone))
             {
-                clHeapFree(node);
+                timeout.tsSec = 3;
+                rc = CL_OK;
+                reElect = CL_TRUE;
             }
-            goto ENG_ADD_ERROR;
+            else 
+            {
+                if(node)
+                    clHeapFree(node);
+                goto ENG_ADD_ERROR;
+            }
         }
     }
 
@@ -880,7 +914,7 @@ ClRcT _clGmsEngineClusterJoin(
     currentLeader = thisClusterView->leader;
     currentDeputy = thisClusterView->deputy;
 
-    add_rc = _clGmsViewAddNodeExtended(groupId, nodeId, &node);
+    add_rc = _clGmsViewAddNodeExtended(groupId, nodeId, reElection, &node);
 
     if (add_rc != CL_OK)
     {
@@ -933,10 +967,11 @@ ClRcT _clGmsEngineClusterJoin(
          */
         if(!timerHandle)
         {
-            rc = leaderElectionTimerRun(CL_TRUE);
+            rc = leaderElectionTimerRun(CL_TRUE, &timeout);
             if(rc == CL_OK)
             {
-                clLogNotice(GEN, NA, "Leader re-election timer restarted");
+                clLogNotice(GEN, NA, "Leader re-election timer set to restart after [%d] secs",
+                            timeout.tsSec);
             }
             else
             {
@@ -971,7 +1006,10 @@ ClRcT _clGmsEngineClusterJoin(
     }
 
     thisClusterView->deputy = newDeputy;
-    
+
+    if(pTrackNotify)
+        *pTrackNotify = CL_TRUE;
+
     rc =  _clGmsTrackNotify(groupId);
     if( rc!= CL_OK )
     {
@@ -998,6 +1036,14 @@ ClRcT _clGmsEngineClusterJoin(
         return add_rc;
     }
     return rc;
+}
+
+ClRcT _clGmsEngineClusterJoin(
+                              CL_IN   const ClGmsGroupIdT   groupId,
+                              CL_IN   const ClGmsNodeIdT    nodeId,
+                              CL_IN   ClGmsViewNodeT* node)
+{
+    return _clGmsEngineClusterJoinWrapper(groupId, nodeId, node, CL_FALSE, NULL);
 }
 
 ClRcT _clGmsEngineClusterLeaveWrapper(

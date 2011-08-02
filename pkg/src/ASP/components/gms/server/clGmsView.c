@@ -106,39 +106,44 @@ static void gmsViewCacheAdd(ClIocNodeAddressT nodeId, ClGmsViewNodeT *node)
     cache->leaveTime = clOsalStopWatchTimeGet();
 }
 
-static void gmsViewCacheGet(ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMember)
+static ClRcT gmsViewCacheGet(ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMember)
 {
     ClGmsTipcViewCacheT *cache;
+    ClRcT rc = CL_OK;
     if(nodeMember)
         *nodeMember = NULL;
     cache = gmsViewCacheFind(nodeId);
     if(cache)
     {
-        ClTimeT curTime;
-        ClTimeT leaveTime;
         hashDel(&cache->hash);
-        if(nodeMember)
-            *nodeMember = &cache->nodeMember;
-        leaveTime = cache->leaveTime;
-        curTime = clOsalStopWatchTimeGet();
         /*
-         * Reset if the join latency is acceptable to detect and elect with the last view
-         * during split brain merges.
+         *If its the current leader and we are already the leader ourselves.
+         *then schedule a re-election.
          */
-        if(curTime - leaveTime >= GMS_VIEW_CACHE_JOIN_LATENCY)
+        if(!gClTotemRunning
+           &&
+           cache->nodeMember.viewMember.clusterMember.credential != CL_GMS_INELIGIBLE_CREDENTIALS
+           &&
+           !CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(cache->nodeMember.viewMember.clusterMember.isCurrentLeader))
         {
-            cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_FALSE;
-            cache->nodeMember.viewMember.clusterMember.isPreferredLeader = CL_FALSE;
-            cache->nodeMember.viewMember.clusterMember.leaderPreferenceSet = CL_FALSE;
-            clLogNotice("VIEW", "CACHE", "Resetting the view cache entry for node [%d]", cache->nodeAddress);
+            rc = CL_GMS_RC(CL_ERR_TRY_AGAIN);
+            cache->nodeMember.viewMember.clusterMember.isCurrentLeader = 
+                __SC_PROMOTE_CAPABILITY_MASK;
         }
         else
         {
-            clLogNotice("VIEW", "CACHE", "View cache join for node [%d] was faster than expected. "
-                        "Retaining the leader election states during the last leave of the node",
-                        cache->nodeAddress);
+            /*
+             * Reset the last view capability
+             */
+            clLogNotice("VIEW", "CACHE", "Resetting the view cache entry for node [%d]", cache->nodeAddress);
+            cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_FALSE;
         }
+        cache->nodeMember.viewMember.clusterMember.isPreferredLeader = CL_FALSE;
+        cache->nodeMember.viewMember.clusterMember.leaderPreferenceSet = CL_FALSE;
+        if(nodeMember)
+            *nodeMember = &cache->nodeMember;
     }
+    return rc;
 }
 
 /*
@@ -150,9 +155,11 @@ static void gmsViewCacheGet(ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMembe
 ClRcT clGmsViewCacheCheckAndAdd(ClIocNodeAddressT nodeAddress, ClGmsViewNodeT **pNode)
 {
     ClGmsViewNodeT *node = NULL;
+    ClRcT rc = CL_OK;
     if(!nodeAddress || !pNode)
         return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
-    gmsViewCacheGet(nodeAddress, &node);
+    rc = gmsViewCacheGet(nodeAddress, &node);
+    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_TRY_AGAIN) return rc;
     if(!node)
     {
         ClNodeCacheMemberT member = {0};
@@ -182,7 +189,7 @@ ClRcT clGmsViewCacheCheckAndAdd(ClIocNodeAddressT nodeAddress, ClGmsViewNodeT **
                     node->viewMember.clusterMember.credential);
     }
     *pNode = node;
-    return CL_OK;
+    return rc;
 }
 
 // check for given name is present or not
@@ -1325,6 +1332,7 @@ _clGmsViewUpdateNodePrivate(
 ClRcT   _clGmsViewAddNodeExtended(
         CL_IN   const ClGmsGroupIdT    groupId,
         CL_IN   const ClGmsNodeIdT     nodeId,
+        CL_IN   ClBoolT          reElection,
         CL_IN   ClGmsViewNodeT**       ppNode)
 {
     ClRcT               rc = CL_OK;
@@ -1372,6 +1380,15 @@ ClRcT   _clGmsViewAddNodeExtended(
             }
             break;
         case CL_OK:
+            /*  
+             * If not a reelection, then clear the temporary sc promotion mask if found
+             * since it could be a join trigger from amf up notification indicating
+             * that its not a temporary split
+             */
+            if(!reElection)
+            {
+                foundNode->viewMember.clusterMember.isCurrentLeader &= ~__SC_PROMOTE_CAPABILITY_MASK;
+            }
             rc = _clGmsViewUpdateNodePrivate(thisViewDb, nodeId, node, 
                     foundNode);
             clHeapFree((void*)node);
@@ -1390,7 +1407,7 @@ ClRcT   _clGmsViewAddNode(
         CL_IN   const ClGmsNodeIdT     nodeId,
         CL_IN   ClGmsViewNodeT* node)
 {
-    return _clGmsViewAddNodeExtended(groupId, nodeId, &node);
+    return _clGmsViewAddNodeExtended(groupId, nodeId, CL_FALSE, &node);
 }
 
 /* Deletes a node from the given view.

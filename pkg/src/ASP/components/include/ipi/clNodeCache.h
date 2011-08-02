@@ -25,6 +25,7 @@ extern "C" {
 #define __LEADER_CAPABILITY_MASK  (__LEADER_CAPABILITY_VAL << __LEADER_CAPABILITY_OFFSET )
 
 #define CL_NODE_CACHE_SC_CAPABILITY(cap) (!!( (cap) & __SC_CAPABILITY_MASK))
+#define CL_NODE_CACHE_SC_SOFT_CAPABILITY(cap) (!!( (cap) & ( __SC_CAPABILITY_MASK | __SC_PROMOTE_CAPABILITY_MASK)))
 #define CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(cap) (!!( (cap) & __SC_PROMOTE_CAPABILITY_MASK))
 #define CL_NODE_CACHE_PL_CAPABILITY(cap) (!!( (cap) & __PL_CAPABILITY_MASK ) )
 #define CL_NODE_CACHE_LEADER_CAPABILITY(cap) (!!( (cap) & __LEADER_CAPABILITY_MASK))
@@ -59,6 +60,7 @@ ClRcT clNodeCacheViewGetWithFilterSafe(ClNodeCacheMemberT *pMembers, ClUint32T *
 ClRcT clNodeCacheViewGetWithFilterFast(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers, ClUint32T capabilityMask);
 ClRcT clNodeCacheViewGetWithFilterFastSafe(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers, ClUint32T capabilityMask);
 ClRcT clNodeCacheReset(ClIocNodeAddressT nodeAddress);
+ClRcT clNodeCacheSoftReset(ClIocNodeAddressT nodeAddress);
 ClRcT clNodeCacheVersionGet(ClIocNodeAddressT nodeAddress, ClUint32T *pVersion);
 ClRcT clNodeCacheVersionAndCapabilityGet(ClIocNodeAddressT nodeAddress, 
                                          ClUint32T *pVersion,
