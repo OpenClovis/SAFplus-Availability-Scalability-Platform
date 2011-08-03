@@ -76,6 +76,11 @@ typedef struct ClGmsTipcViewCache
     struct hashStruct hash;
 } ClGmsTipcViewCacheT;
 
+/*
+ * Stores the last leader cache node
+ */
+static ClIocNodeAddressT gClLastLeaderViewNode;
+
 static ClGmsTipcViewCacheT *gmsViewCacheFind(ClIocNodeAddressT nodeId)
 {
     ClUint32T hash = GMS_VIEW_CACHE_HASH(nodeId);
@@ -92,6 +97,34 @@ static ClGmsTipcViewCacheT *gmsViewCacheFind(ClIocNodeAddressT nodeId)
 /*
  * When the node leaves, add it to the view cache.
  */
+static __inline__ void gmsViewCacheLastLeaderUpdate(ClIocNodeAddressT nodeId,
+                                                    ClGmsViewNodeT *node)
+{
+    if(!gClLastLeaderViewNode 
+       && 
+       node->viewMember.clusterMember.isCurrentLeader == CL_TRUE)
+    {
+        gClLastLeaderViewNode = nodeId;
+        clLogNotice("LAST", "LEADER", "Last leader view cache set to node [%d]", nodeId);
+    }
+    else if(gClLastLeaderViewNode 
+            && 
+            nodeId == gClLastLeaderViewNode
+            &&
+            !node->viewMember.clusterMember.isCurrentLeader)
+    {
+        gClLastLeaderViewNode = 0;
+    }
+}
+
+static __inline__ void gmsViewCacheLastLeaderReset(ClIocNodeAddressT nodeId)
+{
+    if(gClLastLeaderViewNode == nodeId)
+    {
+        gClLastLeaderViewNode = 0;
+    }
+}
+
 static void gmsViewCacheAdd(ClIocNodeAddressT nodeId, ClGmsViewNodeT *node)
 {
     ClGmsTipcViewCacheT *cache;
@@ -104,9 +137,10 @@ static void gmsViewCacheAdd(ClIocNodeAddressT nodeId, ClGmsViewNodeT *node)
     }
     memcpy(&cache->nodeMember, node, sizeof(cache->nodeMember));
     cache->leaveTime = clOsalStopWatchTimeGet();
+    gmsViewCacheLastLeaderUpdate(nodeId, node);
 }
 
-static ClRcT gmsViewCacheGet(ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMember)
+static ClRcT gmsViewCacheGet(ClGmsNodeIdT currentLeader, ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMember)
 {
     ClGmsTipcViewCacheT *cache;
     ClRcT rc = CL_OK;
@@ -127,8 +161,31 @@ static ClRcT gmsViewCacheGet(ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMemb
            !CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(cache->nodeMember.viewMember.clusterMember.isCurrentLeader))
         {
             rc = CL_GMS_RC(CL_ERR_TRY_AGAIN);
-            cache->nodeMember.viewMember.clusterMember.isCurrentLeader = 
-                __SC_PROMOTE_CAPABILITY_MASK;
+            /*
+             * If we are leaderless, we retain the states.
+             * If its a split brain on the controllers, then the payloads would anyway be restarted
+             * If its a split only on the payloads, then the payloads restore back the last views
+             */
+            if(currentLeader != CL_GMS_INVALID_NODE_ID)
+            {
+                cache->nodeMember.viewMember.clusterMember.isCurrentLeader = 
+                    __SC_PROMOTE_CAPABILITY_MASK;
+            }
+            else
+            {
+                /*
+                 * Retain the last views. There could be multiple views with currentleader set
+                 * but we retain the first or the last leader cache view.
+                 */
+                if(gClLastLeaderViewNode == nodeId)
+                {
+                    cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_TRUE;
+                }
+                else
+                {
+                    cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_FALSE;
+                }
+            }
         }
         else
         {
@@ -141,7 +198,13 @@ static ClRcT gmsViewCacheGet(ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMemb
         cache->nodeMember.viewMember.clusterMember.isPreferredLeader = CL_FALSE;
         cache->nodeMember.viewMember.clusterMember.leaderPreferenceSet = CL_FALSE;
         if(nodeMember)
+        {
             *nodeMember = &cache->nodeMember;
+        }
+        /*
+         * Keep the node cache also in sync.
+         */
+        clNodeCacheUpdate(nodeId, 0, 0, NULL);
     }
     return rc;
 }
@@ -152,13 +215,13 @@ static ClRcT gmsViewCacheGet(ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMemb
  * Called with the view lock held.
  */
 
-ClRcT clGmsViewCacheCheckAndAdd(ClIocNodeAddressT nodeAddress, ClGmsViewNodeT **pNode)
+ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT nodeAddress, ClGmsViewNodeT **pNode)
 {
     ClGmsViewNodeT *node = NULL;
     ClRcT rc = CL_OK;
     if(!nodeAddress || !pNode)
         return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
-    rc = gmsViewCacheGet(nodeAddress, &node);
+    rc = gmsViewCacheGet(currentLeader, nodeAddress, &node);
     if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_TRY_AGAIN) return rc;
     if(!node)
     {
@@ -1356,7 +1419,7 @@ ClRcT   _clGmsViewAddNodeExtended(
 
     if(!(node = *ppNode))
     {
-        gmsViewCacheGet(nodeId, ppNode);
+        gmsViewCacheGet(0, nodeId, ppNode);
         node = *ppNode;
         if(!node)
         {
@@ -1381,13 +1444,22 @@ ClRcT   _clGmsViewAddNodeExtended(
             break;
         case CL_OK:
             /*  
-             * If not a reelection, then clear the temporary sc promotion mask if found
+             * If not a reelection, then clear the current leader states
              * since it could be a join trigger from amf up notification indicating
              * that its not a temporary split
              */
             if(!reElection)
             {
                 foundNode->viewMember.clusterMember.isCurrentLeader &= ~__SC_PROMOTE_CAPABILITY_MASK;
+                foundNode->viewMember.clusterMember.isCurrentLeader =
+                    node->viewMember.clusterMember.isCurrentLeader;
+            }
+            if(!foundNode->viewMember.clusterMember.isCurrentLeader
+               &&
+               gClLastLeaderViewNode == nodeId)
+            {
+                clLogNotice("LAST", "LEADER", "Resetting last leader view cache for node [%d]", nodeId);
+                gmsViewCacheLastLeaderReset(nodeId);
             }
             rc = _clGmsViewUpdateNodePrivate(thisViewDb, nodeId, node, 
                     foundNode);

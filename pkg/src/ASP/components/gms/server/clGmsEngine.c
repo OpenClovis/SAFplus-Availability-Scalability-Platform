@@ -876,16 +876,19 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
      */
     if(!node)
     {
-        rc = clGmsViewCacheCheckAndAdd(nodeId, &node);
+        rc = clGmsViewCacheCheckAndAdd(thisClusterView->leader, nodeId, &node);
         if(rc != CL_OK || !node)
         {
             if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN
                &&
-               (!reElect && bootTimeElectionDone))
+               bootTimeElectionDone)
             {
                 timeout.tsSec = 3;
+                if(!reElect)
+                {
+                    reElect = CL_TRUE;
+                }
                 rc = CL_OK;
-                reElect = CL_TRUE;
             }
             else 
             {
