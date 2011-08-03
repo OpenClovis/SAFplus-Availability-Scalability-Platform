@@ -333,7 +333,7 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                     /* Recieved Node LEAVE notification. */
                     clTipcMasterSegmentUpdate(compAddr);
                     clIocNodeCompsReset(compAddr.nodeAddress);
-                    clNodeCacheReset(compAddr.nodeAddress);
+                    clNodeCacheSoftReset(compAddr.nodeAddress);
                     notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
                 }
                 notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
