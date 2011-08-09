@@ -191,18 +191,28 @@ ClRcT   nameSvcFinalize(ClInvocationT invocation,
     ClRcT             rc      = CL_OK;
     ClEoExecutionObjT *pEOObj = NULL;
 
+    /* take the semaphore */
+    if(clOsalMutexLock(gSem)  != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Couldnt get Lock successfully--\n"));
+    }
+    
     /* Do NS related cleanup */
 
     /* Delete all the entries in all the contexts */
     /* Delete all the per context has tables */
     clCntWalk(gNSHashTable, _nameSvcContextLevelWalkForFinalize, NULL, 0);
     clCntDelete(gNSHashTable);
+    gNSHashTable = 0;
     /* Finalize ckpt lib */    
     clNameSvcCkptFinalize();
     clHeapFree(gpContextIdArray);
     clHeapFree(gNSClientToServerVersionInfo.versionsSupported);
     clHeapFree(gNSServerToServerVersionInfo.versionsSupported);
 
+    /* Release the semaphore */
+    clOsalMutexUnlock(gSem);
+    
     /* Uninstall the native table */
     (void)clEoMyEoObjectGet(&pEOObj);
     (void)clEoClientUninstallTables(pEOObj, CL_EO_SERVER_SYM_MOD(gAspFuncTable, NAM));
@@ -505,11 +515,19 @@ ClRcT nameSvcContextFromCookieGet(ClUint32T contextMapCookie,
     memset(&cookieInfo, '\0', sizeof(ClNameSvcCookieInfoT));
     cookieInfo.cookie = contextMapCookie;
     cookieInfo.contextId = CL_NS_CONTEXT_NOT_FOUND;
-
+    
+    /* take the semaphore */
+    if(clOsalMutexLock(gSem)  != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Couldnt get Lock successfully--\n"));
+    }
+    
     ret = clCntWalk(gNSHashTable, _nameSvcContextGetCallback, 
                     (ClCntArgHandleT) &cookieInfo, 
                     sizeof(ClNameSvcCookieInfoT));
-   
+    /* Release the semaphore */
+    clOsalMutexUnlock(gSem);
+    
     if(cookieInfo.contextId == CL_NS_CONTEXT_NOT_FOUND)
     {
         clLogError("SVR", "LOOKUP", "ContextMapCookie [%#X] to context find failed rc [0x %x]", cookieInfo.cookie, ret);
@@ -534,12 +552,22 @@ ClRcT nameSvcContextGet(ClUint32T contextId,
 
     else if(contextId == CL_NS_DEFT_LOCAL_CONTEXT)
         contextId = CL_NS_DEFAULT_NODELOCAL_CONTEXT;
-
+    
+    /* take the semaphore */
+    if(clOsalMutexLock(gSem)  != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Couldnt get Lock successfully--\n"));
+    }
+    
     rc = clCntNodeFind(gNSHashTable, (ClPtrT)(ClWordT)contextId, &pNodeHandle);
     if(rc != CL_OK)
         return rc;
 
     rc = clCntNodeUserDataGet(gNSHashTable, pNodeHandle, (ClCntDataHandleT*)pCtxData);
+    
+    /* Release the semaphore */
+    clOsalMutexUnlock(gSem);
+    
     return rc;
 }
 
@@ -2600,8 +2628,6 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
         break;
     default: 
         rc = CL_NS_RC(CL_ERR_INVALID_PARAMETER); 
-        /* Release the semaphore */
-        clOsalMutexUnlock(gSem);
         if(nsInfo->attr) clHeapFree(nsInfo->attr);
         clHeapFree(nsInfo);
         /* delete the message */
@@ -2915,7 +2941,7 @@ ClRcT VDECL(nameSvcContextDelete)(ClEoDataT data, ClBufferHandleT inMsgHandle,
 }
 
 
-ClRcT _nameSvcContextDelete(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
+ClRcT _nameSvcContextDeleteLocked(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
                             ClNameVersionT *pVersion)
 {
     ClBufferHandleT   inMsgHdl;
@@ -2998,12 +3024,6 @@ ClRcT _nameSvcContextDelete(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
         }
     }
 
-    /* take the semaphore */
-    if(clOsalMutexLock(gSem)  != CL_OK)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Could not get Lock successfully---\n"));
-    }
- 
     ret = clCntNodeFind(gNSHashTable, (ClPtrT)(ClWordT)nsInfo->contextId, &pNodeHandle);
     if(ret != CL_OK)
     {
@@ -3012,8 +3032,6 @@ ClRcT _nameSvcContextDelete(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
                              nsInfo->contextId));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret);
-        /* Release the semaphore */
-        clOsalMutexUnlock(gSem);
         /* delete the message created for updating peers */
         clBufferDelete(&inMsgHdl);
         CL_FUNC_EXIT();
@@ -3047,8 +3065,6 @@ ClRcT _nameSvcContextDelete(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
         {
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                     CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret);
-            /* Release the semaphore */
-            clOsalMutexUnlock(gSem);
             /* delete the message created for updating peers */
             clBufferDelete(&inMsgHdl);
             return ret;
@@ -3058,8 +3074,6 @@ ClRcT _nameSvcContextDelete(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
         {
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                     CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret);
-            /* Release the semaphore */
-            clOsalMutexUnlock(gSem);
             /* delete the message created for updating peers */
             clBufferDelete(&inMsgHdl);
             return ret;
@@ -3135,9 +3149,6 @@ ClRcT _nameSvcContextDelete(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
         }    
     }
 
-    /* Release the semaphore */
-    clOsalMutexUnlock(gSem);
-
     clHeapFree(freeDsIdMap);
 
     /* delete the message created for updating peers */
@@ -3148,6 +3159,24 @@ ClRcT _nameSvcContextDelete(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
    return ret;
 }
 
+ClRcT _nameSvcContextDelete(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
+                            ClNameVersionT *pVersion)
+{
+    ClRcT rc = CL_OK;
+    
+    /* take the semaphore */
+    if(clOsalMutexLock(gSem)  != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Could not get Lock successfully---\n"));
+    }
+    
+    rc = _nameSvcContextDeleteLocked(nsInfo, flag, pVersion);
+            
+    /* Release the semaphore */
+    clOsalMutexUnlock(gSem);    
+    
+    return rc;    
+}
 
     
 /*************************************************************************/
@@ -3384,11 +3413,7 @@ ClRcT _nameSvcAttributeQuery(ClUint32T contextMapCookie,
     CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n NS: Inside nameSvcAttributeQuery\n"));
 
     sdAddr = clIocLocalAddressGet();
-    /* take the semaphore */
-    if(clOsalMutexLock(gSem)  != CL_OK)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Could not get Lock successfully---\n"));
-    }
+
     if(contextMapCookie == CL_NS_DEFT_GLOBAL_MAP_COOKIE)
         contextMapCookie = CL_NS_DEFAULT_GLOBAL_MAP_COOKIE;
     else if(contextMapCookie == CL_NS_DEFT_LOCAL_MAP_COOKIE)
@@ -3401,12 +3426,16 @@ ClRcT _nameSvcAttributeQuery(ClUint32T contextMapCookie,
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Context not found in NS \n"));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_NS_LOG_1_NS_QUERY_FAILED, ret);
-        /* Release the semaphore */
-        clOsalMutexUnlock(gSem);
         CL_FUNC_EXIT();
         return ret;
     }
 
+    /* take the semaphore */
+    if(clOsalMutexLock(gSem)  != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Could not get Lock successfully---\n"));
+    }
+    
     ret = clCntNodeFind(gNSHashTable, (ClPtrT)(ClWordT)contextId, &pNodeHandle);
     if(ret != CL_OK)
     {
@@ -3633,12 +3662,6 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
         return ret;
     }
 
-    /* take the semaphore */
-    if(clOsalMutexLock(gSem)  != CL_OK)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Could not get Lock successfully---\n"));
-    }
-
     clLogDebug("SVR", "LOOKUP", "Looking up service [%.*s] at contextCookie [%#x] at addr [%d]",
             nsInfo->name.length, nsInfo->name.value, nsInfo->contextMapCookie, clIocLocalAddressGet());
     if(nsInfo->contextMapCookie == CL_NS_DEFT_GLOBAL_MAP_COOKIE)
@@ -3653,13 +3676,18 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Context not found in NS \n"));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_NS_LOG_1_NS_QUERY_FAILED, ret);
-        /* Release the semaphore */
-        clOsalMutexUnlock(gSem);
         CL_FUNC_EXIT();
         return ret;
     }
     clLogDebug("SVR", "LOOKUP", "Searching service [%.*s] at context [%d]", nsInfo->name.length,
             nsInfo->name.value, contextId);
+    
+    /* take the semaphore */
+    if(clOsalMutexLock(gSem)  != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Could not get Lock successfully---\n"));
+    }
+    
     ret = clCntNodeFind(gNSHashTable, (ClPtrT)(ClWordT)contextId, &pNodeHandle);
     if(ret != CL_OK)
     {
@@ -3951,13 +3979,6 @@ ClRcT _nameSvcPerContextInfo(ClUint32T contextMapCookie,
     CL_FUNC_ENTER();
     CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n NS: Inside nameSvcPerContextInfo \n"));
 
-    /* take the semaphore */
-    if(clOsalMutexLock(gSem)  != CL_OK)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Could not get Lock successfully---\n"));
-    }
-
-
     /* Find the "context" to look into */
     if(contextMapCookie == CL_NS_DEFT_GLOBAL_MAP_COOKIE)
         contextMapCookie = CL_NS_DEFAULT_GLOBAL_MAP_COOKIE;
@@ -3971,12 +3992,16 @@ ClRcT _nameSvcPerContextInfo(ClUint32T contextMapCookie,
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Context not found in NS 1\n"));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                 CL_NS_LOG_1_NS_DISPLAY_FAILED, ret);
-        /* Release the semaphore */
-        clOsalMutexUnlock(gSem);
         CL_FUNC_EXIT();
         return ret;
     }
 
+    /* take the semaphore */
+    if(clOsalMutexLock(gSem)  != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Could not get Lock successfully---\n"));
+    }
+    
     ret = clCntNodeFind(gNSHashTable, (ClPtrT)(ClWordT)contextId, &pNodeHandle);
     if(ret != CL_OK)
     {
@@ -4993,7 +5018,7 @@ ClRcT _nameSvcContextLevelWalkForFinalize(ClCntKeyHandleT    userKey,
     nsInfo.version      = CL_NS_VERSION_NO;
     nsInfo.contextId    = (ClUint32T)(ClWordT)userKey;
     nsInfo.source       = CL_NS_LOCAL;
-    ret = _nameSvcContextDelete(&nsInfo, 1, NULL);
+    ret = _nameSvcContextDeleteLocked(&nsInfo, 1, NULL);
     if(ret != CL_OK)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Context deletion failed :%x \n",
@@ -5014,6 +5039,12 @@ clNameSvcCtxRecreate(ClUint32T   key)
     ClRcT                  rc        = CL_OK;
     ClNameSvcContextInfoT  *pCtxData = NULL;
 
+    /* take the semaphore */
+    if(clOsalMutexLock(gSem)  != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Could not get Lock successfully---\n"));
+    }
+    
     clLogDebug("SVR", "RESTART", "Context [%d] is to be created", 
             key);
     rc = clCntDataForKeyGet(gNSHashTable, (ClCntKeyHandleT)(ClWordT)key,
@@ -5023,6 +5054,9 @@ clNameSvcCtxRecreate(ClUint32T   key)
         pCtxData = clHeapCalloc(1, sizeof(ClNameSvcContextInfoT));
         if( NULL == pCtxData )
         {
+            /* Release the semaphore */
+            clOsalMutexUnlock(gSem);
+            
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                     ("clHeapCalloc()"));
             return CL_NS_RC(CL_ERR_NO_MEMORY);
@@ -5035,6 +5069,9 @@ clNameSvcCtxRecreate(ClUint32T   key)
                 CL_CNT_UNIQUE_KEY, &pCtxData->hashId);
         if( CL_OK != rc )
         {
+            /* Release the semaphore */
+            clOsalMutexUnlock(gSem);
+
             clHeapFree(pCtxData);
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                     ("clCntHashtblCreate(): rc[0x %x]", rc));
@@ -5044,6 +5081,9 @@ clNameSvcCtxRecreate(ClUint32T   key)
                          (ClCntDataHandleT) pCtxData, NULL);
         if( CL_OK != rc )
         {
+            /* Release the semaphore */
+            clOsalMutexUnlock(gSem);
+            
             clCntDelete(pCtxData->hashId);
             clHeapFree(pCtxData);
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,
@@ -5059,6 +5099,9 @@ clNameSvcCtxRecreate(ClUint32T   key)
             sNoUserLocalCxt++;
         gpContextIdArray[key] = CL_NS_SLOT_ALLOCATED;
     }    
+    
+    /* Release the semaphore */
+    clOsalMutexUnlock(gSem);
         
     CL_NAME_DEBUG_TRACE(("Exit"));
     return rc;
