@@ -9507,6 +9507,17 @@ clAmsPeSUComputeAdminState(
     return clAmsPeSUComputeAdminStateExtended(su, adminState, su->config.adminState);
 }
 
+ClRcT clAmsPeCompComputeAdminState(
+                                   CL_IN ClAmsCompT *comp,
+                                   CL_OUT ClAmsAdminStateT *adminState)
+{
+    ClAmsSUT *su;
+    if(!comp)
+        return CL_AMS_RC(CL_ERR_NULL_POINTER);
+    AMS_CHECK_SU ( su = (ClAmsSUT*)comp->config.parentSU.ptr );
+    return clAmsPeSUComputeAdminStateExtended(su, adminState, su->config.adminState);
+}
+
 /*
  * clAmsPeSUComputeReadinessState
  * ------------------------------

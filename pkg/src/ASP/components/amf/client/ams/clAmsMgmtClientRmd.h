@@ -376,6 +376,9 @@ cl_ams_mgmt_si_assign_su_custom(ClAmsMgmtSIAssignSUCustomRequestT *req);
 extern ClRcT
 cl_ams_mgmt_db_get(ClAmsMgmtDBGetResponseT *res);
 
+extern ClRcT
+cl_ams_mgmt_cas_get(CL_OUT ClAmsMgmtCASGetRequestT *req);
+
 #ifdef __cplusplus
 }
 #endif

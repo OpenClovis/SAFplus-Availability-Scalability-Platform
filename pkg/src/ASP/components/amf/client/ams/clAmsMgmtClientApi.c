@@ -5180,6 +5180,31 @@ ClRcT clAmsMgmtTestHAState(const ClCharT *filename)
 }
 #endif
 
+#ifdef CL_AMS_TEST_CAS
+
+ClRcT clAmsMgmtTestCAS(const ClCharT *e, const ClCharT *type)
+{
+    ClAmsEntityT entity = {0};
+    ClAmsAdminStateT cas = CL_AMS_ADMIN_STATE_NONE;
+    ClRcT rc;
+    if(!e || !type) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    if(!strncasecmp(type, "sg", 2)) entity.type = CL_AMS_ENTITY_TYPE_SG;
+    else if(!strncasecmp(type, "si", 2)) entity.type = CL_AMS_ENTITY_TYPE_SI;
+    else if(!strncasecmp(type, "csi", 3)) entity.type = CL_AMS_ENTITY_TYPE_CSI;
+    else if(!strncasecmp(type, "node", 4)) entity.type = CL_AMS_ENTITY_TYPE_NODE;
+    else if(!strncasecmp(type, "su", 2)) entity.type = CL_AMS_ENTITY_TYPE_SU;
+    else if(!strncasecmp(type, "comp", 4)) entity.type = CL_AMS_ENTITY_TYPE_COMP;
+    else return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    clNameSet(&entity.name, e);
+    rc = clAmsMgmtComputedAdminStateGet(0, &entity, &cas);
+    if(rc != CL_OK) return rc;
+    clLogNotice("CAS", "GET", "Computed admin state for entity [%s: %s] is [%s]",
+                type, e, CL_AMS_STRING_A_STATE(cas));
+    return rc;
+}
+
+#endif
+
 static ClRcT clAmsMgmtGetSUHAStateSoft(ClAmsMgmtHandleT handle,
                                        ClAmsEntityT *entity,
                                        ClAmsHAStateT *haState)
@@ -6554,4 +6579,26 @@ ClRcT clAmsMgmtDBFinalize(ClAmsMgmtDBHandleT *db)
     clHeapFree(cache);
     *db = 0;
     return CL_OK;
+}
+
+ClRcT clAmsMgmtComputedAdminStateGet(ClAmsMgmtHandleT handle,
+                                     ClAmsEntityT *entity,
+                                     ClAmsAdminStateT *adminState)
+{
+    ClRcT rc = CL_OK;
+    ClAmsMgmtCASGetRequestT cas;
+    if(!entity || !adminState) 
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER); 
+
+    memset(&cas, 0, sizeof(cas));
+    memcpy(&cas.entity, entity, sizeof(cas.entity));
+    cas.computedAdminState = CL_AMS_ADMIN_STATE_NONE;
+    CL_AMS_NAME_LENGTH_CHECK(cas.entity);
+
+    rc = cl_ams_mgmt_cas_get(&cas);
+    if(rc != CL_OK)
+        return rc;
+
+    *adminState = cas.computedAdminState;
+    return rc;
 }

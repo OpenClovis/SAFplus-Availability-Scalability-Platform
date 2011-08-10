@@ -5473,6 +5473,96 @@ VDECL_VER(_clAmsMgmtDBGet, 5, 0, 0)(ClEoDataT userData,
     return rc;
 }
 
+ClRcT 
+VDECL_VER(_clAmsMgmtComputedAdminStateGet, 5, 0, 0)(ClEoDataT userData,
+                                                    ClBufferHandleT inMsgHdl,
+                                                    ClBufferHandleT outMsgHdl)
+{
+    ClRcT rc = CL_OK;
+    ClAmsAdminStateT computedAdminState = CL_AMS_ADMIN_STATE_NONE;
+    ClAmsEntityRefT entityRef = {{0}};
+
+    if(gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING
+       &&
+       gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN)
+        return CL_AMS_RC(CL_ERR_BAD_OPERATION);
+
+    AMS_CALL( VDECL_VER(clXdrUnmarshallClAmsEntityConfigT, 4, 0, 0)(inMsgHdl, &entityRef.entity) );
+        
+    clOsalMutexLock(gAms.mutex);
+
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityRef.entity.type], &entityRef);
+    if(rc != CL_OK)
+    {
+        clLogError("CAS", "GET", "Entity [%.*s] not found in the amf db", entityRef.entity.name.length,
+                   entityRef.entity.name.value);
+        goto out_unlock;
+    }
+
+    switch(entityRef.entity.type)
+    {
+    case CL_AMS_ENTITY_TYPE_SG:
+        {
+            ClAmsSGT *sg = (ClAmsSGT*)entityRef.ptr;
+            AMS_CHECKPTR(!sg);
+            rc = clAmsPeSGComputeAdminState(sg, &computedAdminState);
+        }
+        break;
+
+    case CL_AMS_ENTITY_TYPE_SI:
+        {
+            ClAmsSIT *si = (ClAmsSIT*)entityRef.ptr;
+            AMS_CHECKPTR(!si);
+            rc = clAmsPeSIComputeAdminState(si, &computedAdminState);
+        }
+        break;
+
+    case CL_AMS_ENTITY_TYPE_CSI:
+        {
+            ClAmsCSIT *csi = (ClAmsCSIT*)entityRef.ptr;
+            AMS_CHECKPTR(!csi);
+            rc = clAmsPeCSIComputeAdminState(csi, &computedAdminState);
+        }
+        break;
+
+    case CL_AMS_ENTITY_TYPE_NODE:
+        {
+            ClAmsNodeT *node = (ClAmsNodeT*)entityRef.ptr;
+            AMS_CHECKPTR(!node);
+            rc = clAmsPeNodeComputeAdminState(node, &computedAdminState);
+        }
+        break;
+
+    case CL_AMS_ENTITY_TYPE_SU:
+        {
+            ClAmsSUT *su = (ClAmsSUT*)entityRef.ptr;
+            AMS_CHECKPTR(!su);
+            rc = clAmsPeSUComputeAdminState(su, &computedAdminState);
+        }
+        break;
+
+    case CL_AMS_ENTITY_TYPE_COMP:
+        {
+            ClAmsCompT *comp = (ClAmsCompT*)entityRef.ptr;
+            AMS_CHECKPTR(!comp);
+            rc = clAmsPeCompComputeAdminState(comp, &computedAdminState);
+        }
+        break;
+
+    default:
+        rc = CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+        goto out_unlock;
+    }
+
+    out_unlock:
+    clOsalMutexUnlock(gAms.mutex);
+    if(rc != CL_OK)
+        return rc;
+
+    rc = VDECL_VER(clXdrMarshallClAmsAdminStateT, 4, 0, 0)(&computedAdminState, outMsgHdl, 0);
+    return rc;
+}
+
 ClRcT
 clAmsMgmtCommitCCBOperations(
                              CL_IN  ClCntHandleT  *opListHandle )

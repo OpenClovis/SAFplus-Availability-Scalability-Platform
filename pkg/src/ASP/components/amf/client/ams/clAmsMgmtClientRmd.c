@@ -3487,6 +3487,26 @@ cl_ams_mgmt_db_get(CL_OUT ClAmsMgmtDBGetResponseT *res)
                                CL_VERSION_CODE(5, 0, 0));
 }
 
+static ClRcT marshallClAmsMgmtCASGet(ClPtrT req, ClBufferHandleT inMsgHdl)
+{
+    ClAmsMgmtCASGetRequestT *cas = req;
+    return VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(&cas->entity, inMsgHdl, 0);
+}
+
+static ClRcT unmarshallClAmsMgmtCASGet(ClBufferHandleT outMsgHdl, ClPtrT *res)
+{
+    ClAmsMgmtCASGetRequestT *cas = (ClAmsMgmtCASGetRequestT*)res;
+    return VDECL_VER(clXdrUnmarshallClAmsAdminStateT, 4, 0, 0)(outMsgHdl, &cas->computedAdminState);
+}
+
+ClRcT
+cl_ams_mgmt_cas_get(CL_OUT ClAmsMgmtCASGetRequestT *req)
+{
+    return cl_ams_call_rmd_ver((ClUint32T)CL_AMS_MGMT_COMPUTED_ADMIN_STATE_GET,
+                               (ClPtrT)req, &marshallClAmsMgmtCASGet,
+                               (ClPtrT*)req, &unmarshallClAmsMgmtCASGet,
+                               CL_VERSION_CODE(5, 0, 0));
+}
 
 #ifdef AMS_EMULATE_RMD_CALLS
 
@@ -3831,9 +3851,22 @@ emulate_rmd_call(
                 break;
             }
 
+        case CL_AMS_MGMT_DB_GET:
+            {
+                rc = VDECL_VER(_clAmsMgmtDBGet, 5, 0, 0)(data, in_buffer, out_buffer);
+                break;
+            }
+
+        case CL_AMS_MGMT_COMPUTED_ADMIN_STATE_GET:
+            {
+                rc = VDECL_VER(_clAmsMgmtComputedAdminStateGet, 5, 0, 0)(data, in_buffer, out_buffer);
+                break;
+            }
+
         default:
             {
                 rc = CL_AMS_ERR_INVALID_OPERATION;
+                break;
             } 
     
     }

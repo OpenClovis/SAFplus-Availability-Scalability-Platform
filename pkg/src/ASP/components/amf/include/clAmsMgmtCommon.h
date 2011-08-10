@@ -130,6 +130,7 @@ typedef enum
     CL_AMS_MGMT_ENTITY_SET_BETA_FACTOR = 66,
     CL_AMS_MGMT_ENTITY_FORCE_LOCK     =  67,
     CL_AMS_MGMT_DB_GET     =  68,
+    CL_AMS_MGMT_COMPUTED_ADMIN_STATE_GET     =  69,
 } ClAmsMgmtClientCallbackRmdInterfaceT;
 
 /*
@@ -748,6 +749,12 @@ typedef struct ClAmsMgmtDBGetResponse
     ClUint32T len;
     ClUint8T *buffer;
 }ClAmsMgmtDBGetResponseT;
+
+typedef struct ClAmsMgmtCASGetRequest
+{
+    ClAmsEntityT entity;
+    ClAmsAdminStateT computedAdminState;
+}ClAmsMgmtCASGetRequestT;
 
 typedef ClAmsEntityBufferT clAmsMgmtGetEntityListResponseT;
 typedef clAmsMgmtGetEntityListRequestT clAmsMgmtGetOLEntityListRequestT;

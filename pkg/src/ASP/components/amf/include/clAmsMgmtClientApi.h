@@ -3612,6 +3612,11 @@ extern ClRcT clAmsMgmtDBCacheDump(ClAmsMgmtDBHandleT db);
 
 extern ClRcT clAmsMgmtDBFinalize(ClAmsMgmtDBHandleT *db);
 
+extern ClRcT 
+clAmsMgmtComputedAdminStateGet(ClAmsMgmtHandleT handle,
+                               ClAmsEntityT *entity,
+                               ClAmsAdminStateT *adminState);
+
 #ifdef __cplusplus
 }
 #endif

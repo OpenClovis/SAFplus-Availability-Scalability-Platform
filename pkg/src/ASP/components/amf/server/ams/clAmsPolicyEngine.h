@@ -792,6 +792,10 @@ extern ClRcT clAmsPeSUComputeAdminState(
         CL_IN   ClAmsSUT *su,
         CL_OUT  ClAmsAdminStateT *adminState);
 
+extern ClRcT clAmsPeCompComputeAdminState(
+        CL_IN ClAmsCompT *comp,
+        CL_OUT ClAmsAdminStateT *adminState);
+
 extern ClRcT clAmsPeSUComputeReadinessState(
         CL_IN   ClAmsSUT *su,
         CL_OUT  ClAmsReadinessStateT *suState);
