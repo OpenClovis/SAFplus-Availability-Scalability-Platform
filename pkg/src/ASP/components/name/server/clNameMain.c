@@ -553,20 +553,11 @@ ClRcT nameSvcContextGet(ClUint32T contextId,
     else if(contextId == CL_NS_DEFT_LOCAL_CONTEXT)
         contextId = CL_NS_DEFAULT_NODELOCAL_CONTEXT;
     
-    /* take the semaphore */
-    if(clOsalMutexLock(gSem)  != CL_OK)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Couldnt get Lock successfully--\n"));
-    }
-    
     rc = clCntNodeFind(gNSHashTable, (ClPtrT)(ClWordT)contextId, &pNodeHandle);
     if(rc != CL_OK)
         return rc;
 
     rc = clCntNodeUserDataGet(gNSHashTable, pNodeHandle, (ClCntDataHandleT*)pCtxData);
-    
-    /* Release the semaphore */
-    clOsalMutexUnlock(gSem);
     
     return rc;
 }
@@ -2192,12 +2183,20 @@ ClRcT VDECL(nameSvcServiceDeregister)(ClEoDataT data,
         ret = clCntDataForKeyGet(gHashTableHdl, gUserKey, 
                                 &pDataHdl);
         if(ret != CL_OK)
+        {
+            /* Release the semaphore */
+            clOsalMutexUnlock(gSem);
             return ret;
+        }
         pBindingDetail = (ClNameSvcBindingDetailsT *)pDataHdl;
         dsId = pBindingDetail->dsId;
         ret = clCntAllNodesForKeyDelete(gHashTableHdl, gUserKey);
         if(ret != CL_OK)
+        {
+            /* Release the semaphore */
+            clOsalMutexUnlock(gSem);
             return ret;
+        }
         gHashTableHdl   = 0;
         gDelete         = 0;
         gHashTableIndex = 0;
@@ -2220,7 +2219,11 @@ ClRcT VDECL(nameSvcServiceDeregister)(ClEoDataT data,
         dsId = pStoredNSBinding->dsId;
         ret = clCntNodeDelete(pStoredInfo, pNodeHandle);
         if(ret != CL_OK)
+        {
+            /* Release the semaphore */
+            clOsalMutexUnlock(gSem);
             return ret;
+        }
         gNameEntryDelete    = 0;
         gNameEntryHashTable = 0;
         gNameEntryUserKey   = 0;
@@ -5039,12 +5042,6 @@ clNameSvcCtxRecreate(ClUint32T   key)
     ClRcT                  rc        = CL_OK;
     ClNameSvcContextInfoT  *pCtxData = NULL;
 
-    /* take the semaphore */
-    if(clOsalMutexLock(gSem)  != CL_OK)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Could not get Lock successfully---\n"));
-    }
-    
     clLogDebug("SVR", "RESTART", "Context [%d] is to be created", 
             key);
     rc = clCntDataForKeyGet(gNSHashTable, (ClCntKeyHandleT)(ClWordT)key,
@@ -5054,9 +5051,6 @@ clNameSvcCtxRecreate(ClUint32T   key)
         pCtxData = clHeapCalloc(1, sizeof(ClNameSvcContextInfoT));
         if( NULL == pCtxData )
         {
-            /* Release the semaphore */
-            clOsalMutexUnlock(gSem);
-            
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                     ("clHeapCalloc()"));
             return CL_NS_RC(CL_ERR_NO_MEMORY);
@@ -5069,9 +5063,6 @@ clNameSvcCtxRecreate(ClUint32T   key)
                 CL_CNT_UNIQUE_KEY, &pCtxData->hashId);
         if( CL_OK != rc )
         {
-            /* Release the semaphore */
-            clOsalMutexUnlock(gSem);
-
             clHeapFree(pCtxData);
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                     ("clCntHashtblCreate(): rc[0x %x]", rc));
@@ -5081,9 +5072,6 @@ clNameSvcCtxRecreate(ClUint32T   key)
                          (ClCntDataHandleT) pCtxData, NULL);
         if( CL_OK != rc )
         {
-            /* Release the semaphore */
-            clOsalMutexUnlock(gSem);
-            
             clCntDelete(pCtxData->hashId);
             clHeapFree(pCtxData);
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,
@@ -5100,9 +5088,6 @@ clNameSvcCtxRecreate(ClUint32T   key)
         gpContextIdArray[key] = CL_NS_SLOT_ALLOCATED;
     }    
     
-    /* Release the semaphore */
-    clOsalMutexUnlock(gSem);
-        
     CL_NAME_DEBUG_TRACE(("Exit"));
     return rc;
 }    
