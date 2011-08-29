@@ -704,14 +704,18 @@ static ClRcT hpiEventProcessingLoop(void *ptr)
                                &qstatus);
         if(error != SA_OK)
         {
+            static ClTimerTimeOutT delay = { .tsSec = 2, .tsMilliSec = 0 };
+            static int errcnt;
             if(error == SA_ERR_HPI_TIMEOUT)
                 continue;
-            clLog(CL_LOG_CRITICAL, AREA_HPI, CTX_EVT,
-                "saHpiEventGet failed: %s", oh_lookup_error(error));
-            _saHpiUnsubscribe( sessionid );
-            return CL_CM_ERROR(CL_ERR_CM_HPI_ERROR);
+            if(!(errcnt++ & 15))
+            {
+                clLog(CL_LOG_CRITICAL, AREA_HPI, CTX_EVT,
+                      "saHpiEventGet failed: %s", oh_lookup_error(error));
+            }
+            clOsalTaskDelay(delay);
+            continue;
         }
-        
 #endif
 
         /* Check whether we lost any events due to queue filling */
