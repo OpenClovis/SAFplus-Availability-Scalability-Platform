@@ -166,25 +166,14 @@ static ClRcT gmsViewCacheGet(ClGmsNodeIdT currentLeader, ClIocNodeAddressT nodeI
              * If its a split brain on the controllers, then the payloads would anyway be restarted
              * If its a split only on the payloads, then the payloads restore back the last views
              */
-            if(currentLeader != CL_GMS_INVALID_NODE_ID)
+            if(gClLastLeaderViewNode == nodeId)
             {
                 cache->nodeMember.viewMember.clusterMember.isCurrentLeader = 
                     __SC_PROMOTE_CAPABILITY_MASK;
             }
             else
             {
-                /*
-                 * Retain the last views. There could be multiple views with currentleader set
-                 * but we retain the first or the last leader cache view.
-                 */
-                if(gClLastLeaderViewNode == nodeId)
-                {
-                    cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_TRUE;
-                }
-                else
-                {
-                    cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_FALSE;
-                }
+                cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_FALSE;
             }
         }
         else
@@ -1053,7 +1042,7 @@ ClRcT   _clGmsViewCliPrint(
 
     if (thisViewDb->viewType == CL_GMS_CLUSTER)
     {
-        rc = clDebugPrint(msg, "NodeId NodeName        HostAddr Port Leader Credentials PrefLead LeadshipSet BootTime\n"
+        rc = clDebugPrint(msg, "NodeId NodeName        HostAddr Port Leader     Credentials PrefLead LeadshipSet BootTime\n"
                 "--------------------------------------------------------------------------------------------------------\n");
     }
     else
@@ -1077,13 +1066,15 @@ ClRcT   _clGmsViewCliPrint(
         {
             ti = node->viewMember.clusterMember.bootTimestamp/CL_GMS_NANO_SEC;
 
-            rc = clDebugPrint(msg, "%-6d %-15s %-8d %-4d %-6s %-11d %-8s %-11s %s", 
+            rc = clDebugPrint(msg, "%-6d %-15s %-8d %-4d %-10s %-11d %-8s %-11s %s", 
                     node->viewMember.clusterMember.nodeId, 
                     node->viewMember.clusterMember.nodeName.value, 
                     node->viewMember.clusterMember.nodeAddress.
                     iocPhyAddress.nodeAddress,
                     node->viewMember.clusterMember.nodeAddress.iocPhyAddress.portId,
-                    node->viewMember.clusterMember.isCurrentLeader ? "Yes":"No",
+                    (node->viewMember.clusterMember.isCurrentLeader == CL_TRUE) ? "Yes":
+                    CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(node->viewMember.clusterMember.isCurrentLeader) ? 
+                    "(Pending)": "No",
                     node->viewMember.clusterMember.credential,
                     node->viewMember.clusterMember.isPreferredLeader ? "Yes":"No",
                     node->viewMember.clusterMember.leaderPreferenceSet ? "Yes":"No",

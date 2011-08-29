@@ -65,6 +65,7 @@
 #include <clNodeCache.h>
 
 # define CL_MAX_CREDENTIALS     (~0U)
+#define __SC_PROMOTE_CREDENTIAL_BIAS (CL_IOC_MAX_NODES+1)
 
 static      ClTimerHandleT  timerHandle = NULL;
 ClBoolT     bootTimeElectionDone = CL_FALSE;
@@ -464,6 +465,10 @@ computeLeaderDeputyWithHighestCredential (
             ||
             eligibleNodes[i]->isPreferredLeader)
         {
+            if(CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(eligibleNodes[i]->isCurrentLeader))
+            {
+                eligibleNodes[i]->credential += __SC_PROMOTE_CREDENTIAL_BIAS;
+            }
             eligibleNodes[i]->isCurrentLeader &= ~__SC_PROMOTE_CAPABILITY_MASK;
             existingLeaders[noOfExistingLeaders++] = eligibleNodes[i];
         }

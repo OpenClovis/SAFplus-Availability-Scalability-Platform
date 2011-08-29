@@ -813,6 +813,9 @@ def get_cluster_info():
             if leader == 'Yes':
                 n.hastate = 'active'
             else:
+              if leader == '(Pending)':
+                n.hastate = 'unassigned'
+              else:
                 n.hastate = 'standby'
         else:
              n.nodetype = 'worker'
