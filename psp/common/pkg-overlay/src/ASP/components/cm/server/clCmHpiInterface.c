@@ -636,6 +636,25 @@ eventDetailsToString(SaHpiEventT *event, SaHpiEntityPathT *epath)
     return (char*)buffer.Data;
 }
     
+static ClRcT openHpiSessionReopen(SaHpiSessionIdT *sessionId)
+{
+    SaErrorT error = SA_OK;
+    ClRcT rc = openHpiSession(sessionId, SAHPI_UNSPECIFIED_DOMAIN_ID);
+    if(rc != CL_OK)
+    {
+        clLogError(AREA_HPI, "REOPEN", "Could not reopen hpi session. Error [%#x]", rc);
+        return rc;
+    }
+    error = _saHpiSubscribe(*sessionId);
+    if(error != SA_OK)
+    {
+        clLogError(AREA_HPI, "REOPEN", "saHpiSubscribe failed with error [%s]", oh_lookup_error(error));
+        _saHpiSessionClose(*sessionId);
+        *sessionId = 0;
+        return CL_CM_ERROR(CL_ERR_CM_HPI_ERROR);
+    }
+    return CL_OK;
+}
 
 /* Event listener loop listens for the Events from the HPI */
 static ClRcT hpiEventProcessingLoop(void *ptr)
@@ -648,13 +667,12 @@ static ClRcT hpiEventProcessingLoop(void *ptr)
     ClRcT            rc = CL_OK;
     SaHpiSessionIdT sessionid = 0x0;
     SaHpiEvtQueueStatusT     qstatus; 
-
+    static int errcnt;
 
     memset(&rptentry, 0, sizeof(rptentry));
     memset(&rdr, 0, sizeof(rdr));
     memset(&event, 0, sizeof(event));
-    memcpy(&sessionid, ptr, sizeof(SaHpiSessionIdT));
-    
+    sessionid = *(SaHpiSessionIdT*)ptr;
 
     /* set the execution object handle of Chassis manager */
     if((rc = clEoMyEoObjectSet(gClCmChassisMgrContext.executionObjHandle))
@@ -680,22 +698,6 @@ static ClRcT hpiEventProcessingLoop(void *ptr)
     while(! gClCmChassisMgrContext.platformInfo.stopEventProcessing )
     {
         /* Get the events from the Domain Event Table */
-#if 0
-        if((error = _saHpiEventGet(sessionid, 
-                            SAHPI_TIMEOUT_BLOCK,
-                            &event, 
-                            &rdr,
-                            &rptentry,
-                            &qstatus
-                            ))!= SA_OK )
-        {
-            clLog(CL_LOG_CRITICAL, AREA_HPI, CTX_EVT,
-                "saHpiEventGet failed: %s", oh_lookup_error(error));
-            _saHpiUnsubscribe( sessionid );
-            return CL_CM_ERROR(CL_ERR_CM_HPI_ERROR);
-        }
-#else
-
         error = _saHpiEventGet(sessionid, 
                                SAHPI_EVENT_TIMEOUT,
                                &event, 
@@ -705,18 +707,29 @@ static ClRcT hpiEventProcessingLoop(void *ptr)
         if(error != SA_OK)
         {
             static ClTimerTimeOutT delay = { .tsSec = 2, .tsMilliSec = 0 };
-            static int errcnt;
             if(error == SA_ERR_HPI_TIMEOUT)
                 continue;
-            if(!(errcnt++ & 15))
+            /*
+             * Try reopening the session some finite number of times
+             * before giving up.
+             */
+            clLog(CL_LOG_CRITICAL, AREA_HPI, CTX_EVT,
+                  "saHpiEventGet failed: %s", oh_lookup_error(error));
+            _saHpiUnsubscribe(sessionid);
+            if(++errcnt >= 4)
             {
-                clLog(CL_LOG_CRITICAL, AREA_HPI, CTX_EVT,
-                      "saHpiEventGet failed: %s", oh_lookup_error(error));
+                return CL_CM_ERROR(CL_ERR_CM_HPI_ERROR);
             }
             clOsalTaskDelay(delay);
+            if( (rc = openHpiSessionReopen((SaHpiSessionIdT*)ptr)) != CL_OK)
+            {
+                return rc;
+            }
+            sessionid = *(SaHpiSessionIdT*)ptr;
             continue;
         }
-#endif
+
+        errcnt = 0;
 
         /* Check whether we lost any events due to queue filling */
         if( qstatus == SAHPI_EVT_QUEUE_OVERFLOW )
