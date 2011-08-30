@@ -184,7 +184,7 @@ static ClRcT amsEntityBoolFromStrGet(const ClCharT *s, ClBoolT *boolValue)
 
 static ClRcT amsMgmtUpdateConfig(ClAmsEntityT *srcEntity,
                                  ClAmsEntityT *targetEntity,
-                                 ClAmsClientCallbackRmdInterfaceT op)
+                                 ClInt32T op)
 {
     ClAmsEntityBufferT entityBuffer = {0};
     ClAmsEntityConfigT *entityConfig = NULL;

@@ -2425,8 +2425,8 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
         return rc;
     }
     if((sdAddr != gMasterAddress) && 
-       (nsInfo->contextType == CL_NS_USER_GLOBAL) &&
-       (nsInfo->source != CL_NS_MASTER))
+       (nsInfo->contextType == (ClInt32T)CL_NS_USER_GLOBAL) &&
+       (nsInfo->source != (ClInt32T)CL_NS_MASTER))
     {
         CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n request has come to slave for entry with" \
                " global wide. Forwarding it to master ..... \n"));
@@ -2655,8 +2655,8 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
         return rc;
     }
     /* Update the slaves */
-    if((nsInfo->source != CL_NS_MASTER)  &&
-       (nsInfo->contextType == CL_NS_USER_GLOBAL))
+    if((nsInfo->source != (ClInt32T)CL_NS_MASTER)  &&
+       (nsInfo->contextType == (ClInt32T)CL_NS_USER_GLOBAL))
     {
         isPeer = 0;
         rc = clIocTotalNeighborEntryGet(&noEntries);
@@ -3757,7 +3757,7 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
 
         if (ret == CL_OK)
         {
-            if(nsInfo->op == CL_NS_QUERY_OBJREF)
+            if(nsInfo->op == (ClInt32T)CL_NS_QUERY_OBJREF)
             {
                 clXdrMarshallClUint64T((void *)&pStoredNSEntry->objReference,
                                     outMsgHandle, 0);            

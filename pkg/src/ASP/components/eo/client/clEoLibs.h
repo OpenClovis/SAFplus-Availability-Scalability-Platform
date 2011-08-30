@@ -106,7 +106,7 @@ extern "C" {
 #define isLogSet(_libId, _wmId)  isBitMapSet(_libId, _wmId, CL_EO_ACTION_LOG)
 #define isNotificationSet(_libId, _wmId)  isBitMapSet(_libId, _wmId, CL_EO_ACTION_NOT)
 
-    __inline__ static ClEoLibIdT eoCompId2LibId(ClEoLibIdT compId)
+    __inline__ static ClEoLibIdT eoCompId2LibId(ClInt32T compId)
     {
         switch(compId)
         {

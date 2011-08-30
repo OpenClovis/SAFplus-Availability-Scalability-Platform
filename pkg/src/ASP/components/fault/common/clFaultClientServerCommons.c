@@ -166,7 +166,7 @@ ClCharT *clFaultProbableCauseString[]={
 ClRcT 
 clFaultCategory2IndexTranslate(ClAlarmCategoryTypeT category, ClUint8T *pCatIndex){
     
-    switch(category)
+    switch((ClInt32T)category)
     {
        case CL_FM_CAT_COM_INTERNAL:
             *pCatIndex = CL_FM_CAT_COM_X;
@@ -205,7 +205,7 @@ clFaultCategory2IndexTranslate(ClAlarmCategoryTypeT category, ClUint8T *pCatInde
 ClRcT 
 clFaultSeverity2IndexTranslate(ClAlarmSeverityTypeT severity, ClUint8T *pSevIndex){
     
-    switch(severity)
+    switch((ClInt32T)severity)
     {
        case CL_FM_SEV_IN_INTERNAL:
             *pSevIndex = CL_FM_SEV_IN_X;
@@ -246,7 +246,7 @@ clFaultSeverity2IndexTranslate(ClAlarmSeverityTypeT severity, ClUint8T *pSevInde
 ClRcT 
 clFaultCategory2InternalTranslate(ClAlarmCategoryTypeT category){
     
-    switch(category)
+    switch((ClInt32T)category)
     {
        case CL_ALARM_CATEGORY_COMMUNICATIONS :
             return CL_FM_CAT_COM_INTERNAL;
@@ -313,7 +313,7 @@ clFaultSeverity2InternalTranslate(ClAlarmSeverityTypeT severity){
 ClRcT 
 clFaultInternal2CategoryTranslate(ClAlarmCategoryTypeT category){
     
-    switch(category)
+    switch((ClInt32T)category)
     {
        case CL_FM_CAT_COM_INTERNAL:
             return CL_ALARM_CATEGORY_COMMUNICATIONS;
@@ -346,7 +346,7 @@ clFaultInternal2CategoryTranslate(ClAlarmCategoryTypeT category){
 ClRcT 
 clFaultInternal2SeverityTranslate(ClAlarmSeverityTypeT severity){
     
-    switch(severity)
+    switch((ClInt32T)severity)
     {
        case CL_FM_SEV_IN_INTERNAL:
             return CL_ALARM_SEVERITY_INDETERMINATE;

@@ -1083,7 +1083,7 @@ _clCorDisplayInfoAppend(ClCorDbgBundleDataPtrT pBundleData, ClBufferHandleT bufH
         while((noOfItems--) > 0)
         {
             corStr[0] = '\0';
-            switch(type)
+            switch((ClInt32T)type)
             {
                 case CL_COR_UINT8:
                 case CL_COR_INT8:
@@ -1700,7 +1700,7 @@ _clCorBundleJobEnqueue(ClCorBundleHandleT bundleHandle, ClCharT *path, ClInt32T 
     attrDesc.pAttrPath = pAttrPath;
     
     
-    if(CL_COR_ARRAY_ATTR == pTempData->attrType)
+    if((ClInt32T)CL_COR_ARRAY_ATTR == pTempData->attrType)
     { 
         if( CL_COR_INVALID_ATTR_IDX != index)
         {
@@ -2035,7 +2035,7 @@ ClRcT _clCorDbgUtilsCorObjCreateAndSet ( ClCorClientCliOpT cliOp, ClUint32T argc
         pAttrList->pAttrInfo[index].corType  = attrH->attrType.u.arrType;
 
         if((attrH->attrType.type == CL_COR_ARRAY_ATTR) && 
-                (attrH->attrType.u.arrType == CL_COR_UINT8 || attrH->attrType.u.arrType == CL_COR_INT8))
+                (attrH->attrType.u.arrType == (ClInt32T)CL_COR_UINT8 || attrH->attrType.u.arrType == (ClInt32T)CL_COR_INT8))
         {
             attrSize = strlen(argv[currIndex]);
 

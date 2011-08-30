@@ -343,7 +343,7 @@ clCorClassAttributeArrayCreate(ClCorClassTypeT classId,
           CL_DEBUG_PRINT(CL_DEBUG_ERROR, ( "clCorClassAttributeArrayCreate Invalid Attribute Type"));
           return CL_COR_SET_RC(CL_COR_ERR_INVALID_CLASS);
     }
-    if ((0 >= attrType) || (CL_COR_MAX_TYPE <= attrType) || (0 > attrId))
+    if ((0 >= attrType) || ((ClInt32T)CL_COR_MAX_TYPE <= attrType) || (0 > attrId))
     {
           CL_DEBUG_PRINT(CL_DEBUG_ERROR, ( "ClassAttrCreate Invalid Attribute Type"));
           return CL_COR_SET_RC(CL_COR_ERR_CLASS_ATTR_INVALID_TYPE);
@@ -414,17 +414,17 @@ _corClassAttrCreate(ClCorClassTypeT  classId,
           return CL_COR_SET_RC(CL_COR_ERR_CLASS_ATTR_INVALID_TYPE);
     }
 
-    if ((attrType != CL_COR_CONTAINMENT_ATTR) && 
-        (attrType != CL_COR_ASSOCIATION_ATTR))
+    if ((attrType != (ClInt32T)CL_COR_CONTAINMENT_ATTR) && 
+        (attrType != (ClInt32T)CL_COR_ASSOCIATION_ATTR))
     {
-        if (CL_COR_MAX_TYPE <= attrType)
+        if ((ClInt32T)CL_COR_MAX_TYPE <= attrType)
         {
             CL_DEBUG_PRINT(CL_DEBUG_ERROR, ( "ClassAttrCreate Invalid Attribute Type"));
             return CL_COR_SET_RC(CL_COR_ERR_CLASS_ATTR_INVALID_TYPE);
         }
     }
     /* Extra checks for special attributes  */
-    if ((attrType == CL_COR_CONTAINMENT_ATTR) || (attrType == CL_COR_ASSOCIATION_ATTR))
+    if ((attrType == (ClInt32T)CL_COR_CONTAINMENT_ATTR) || (attrType == (ClInt32T)CL_COR_ASSOCIATION_ATTR))
     {
         if (0 > subClass)
         {

@@ -1479,54 +1479,54 @@ ClRcT _corPrintInvalidAttrRange(
         return (CL_COR_SET_RC(CL_COR_ERR_NULL_PTR));
     }
     
-    if (attrType == CL_COR_INT8)
+    if (attrType == (ClInt32T)CL_COR_INT8)
     {
         clLogError("TXN", "SET",
             " Data Manager Attribute Range Validation Failed for Attr [0x%x] in MO [%s]. \
             Value specified is [%d], rc [0x%x] ", attrId, moIdName, *(ClInt8T*) pValue,  rc);
     }
-    else if (attrType == CL_COR_UINT8)
+    else if (attrType == (ClInt32T)CL_COR_UINT8)
     {
         clLogError( "TXN", "SET",
             "Data Manager Attribute Range Validation Failed for Attr [0x%x] in MO (%s). \
             Value specified is [%u]U, rc [0x%x] \n", attrId, moIdName, *(ClUint8T*) pValue,  rc);
     }
-    else if (attrType == CL_COR_INT16)
+    else if (attrType == (ClInt32T)CL_COR_INT16)
     {
         clLogError( "TXN", "SET",
             "Data Manager Attribute Range Validation Failed for Attr [0x%x] in MO (%s). \
             Value specified is [%d], rc [0x%x] \n", attrId, moIdName, \
             (ClInt16T) CL_BIT_N2H16(*(ClInt16T*) pValue),  rc);
     }
-    else if (attrType == CL_COR_UINT16)
+    else if (attrType == (ClInt32T)CL_COR_UINT16)
     {
         clLogError( "TXN", "SET",
             "Data Manager Attribute Range Validation Failed for Attr [0x%x] in MO [%s]. \
             Value specified is [%u]U, rc [0x%x] \n", attrId, moIdName, 
             (ClUint16T) CL_BIT_N2H16(*(ClUint16T*) pValue),  rc);
     }
-    else if (attrType == CL_COR_INT32)
+    else if (attrType == (ClInt32T)CL_COR_INT32)
     {
         clLogError( "TXN", "SET", 
             "Data Manager Attribute Range Validation Failed for Attr [0x%x] in MO [%s]. \
             Value specified is [%d], rc [0x%x] \n", attrId, moIdName, 
             (ClInt32T) CL_BIT_N2H32(*(ClInt32T*) pValue),  rc);
     }
-    else if (attrType == CL_COR_UINT32)
+    else if (attrType == (ClInt32T)CL_COR_UINT32)
     {
         clLogError("TXN", "SET", 
             " Data Manager Attribute Range Validation Failed for Attr [0x%x] in MO [%s]. \
             Value specified is [%u]U, rc [0x%x] ", attrId, moIdName, 
             (ClUint32T) CL_BIT_N2H32(*(ClUint32T*) pValue),  rc);
     }
-    else if (attrType == CL_COR_INT64)
+    else if (attrType == (ClInt32T)CL_COR_INT64)
     {
         clLogError( "TXN", "SET", 
             "Data Manager Attribute Range Validation Failed for Attr [0x%x] in MO [%s]. \
             Value specified is [%lld], rc [0x%x] \n", attrId, moIdName, 
             (ClInt64T) CL_BIT_N2H64(*(ClInt64T*) pValue),  rc);
     }
-    else if (attrType == CL_COR_UINT64)
+    else if (attrType == (ClInt32T)CL_COR_UINT64)
     {
         clLogError( "TXN", "SET", 
             "Data Manager Attribute Range Validation Failed for Attr [0x%x] in MO [%s]. \

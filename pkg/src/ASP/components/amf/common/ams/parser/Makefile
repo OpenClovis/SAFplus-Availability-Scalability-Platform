@@ -33,6 +33,8 @@
 
 COMPNAME	:= amf
 
+AMF_PATH        := $(CLOVIS_ROOT)/ASP/components/amf
+
 ##### Source files for the client of this component
 
 SRC_FILES	:= clAmsParser.c $(AMF_PATH)/server/ams/clAmsDefaultConfig.c  \

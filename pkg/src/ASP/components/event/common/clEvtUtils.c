@@ -148,7 +148,7 @@ ClRcT clEvtUtilsFilter2Rbe(const ClEventFilterArrayT *pFilterArray,
         /*
          * Fillin corresponding flag in RBE expres sion 
          */
-        switch (pFilters->filterType)
+        switch ((ClInt32T)pFilters->filterType)
         {
             case CL_EVENT_EXACT_FILTER:
                 rc = clRuleExprFlagsSet(rbeExprArray[i],

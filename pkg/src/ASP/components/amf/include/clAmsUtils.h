@@ -324,11 +324,11 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
                                                   "Unknown" )
 
 #define CL_AMS_STRING_H_STATE(S)                                            \
-(   ((S) == CL_AMS_HA_STATE_ACTIVE)             ? "Active" :                \
-    ((S) == CL_AMS_HA_STATE_STANDBY)            ? "Standby" :               \
-    ((S) == CL_AMS_HA_STATE_QUIESCED)           ? "Quiesced" :              \
-    ((S) == CL_AMS_HA_STATE_QUIESCING)          ? "Quiescing" :             \
-    ((S) == CL_AMS_HA_STATE_NONE)               ? "None" :                  \
+(   ((ClAmsHAStateT)(S) == CL_AMS_HA_STATE_ACTIVE)             ? "Active" :                \
+    ((ClAmsHAStateT)(S) == CL_AMS_HA_STATE_STANDBY)            ? "Standby" :               \
+    ((ClAmsHAStateT)(S) == CL_AMS_HA_STATE_QUIESCED)           ? "Quiesced" :              \
+    ((ClAmsHAStateT)(S) == CL_AMS_HA_STATE_QUIESCING)          ? "Quiescing" :             \
+    ((ClAmsHAStateT)(S) == CL_AMS_HA_STATE_NONE)               ? "None" :                  \
                                                   "Unknown" )
 
 #define CL_AMS_STRING_TIMER(S)                                          \

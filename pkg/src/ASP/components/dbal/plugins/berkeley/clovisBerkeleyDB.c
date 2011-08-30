@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <db.h>
-
+#include <sys/stat.h>
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <clOsalApi.h>

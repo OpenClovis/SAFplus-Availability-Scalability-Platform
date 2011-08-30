@@ -43,7 +43,7 @@ ClRcT   unmarshallNtfAdditionalInfoT(ClBufferHandleT bufferHandle, SaNtfAddition
 /* Marshalling function for SaNtfValueT structure types */
 ClRcT   marshallNtfValueTypeT(SaNtfValueTypeT infoType, SaNtfValueT *infoValue, ClBufferHandleT bufferHandle)
 {
-    switch (infoType)
+    switch ((ClInt32T)infoType)
     {
         case 0:
             /* This indicates that the variable fo type SaNtfValueT was just created
@@ -104,7 +104,7 @@ ClRcT   marshallNtfValueTypeT(SaNtfValueTypeT infoType, SaNtfValueT *infoValue, 
 /* UnMarshalling function for SaNtfValueT structure types */
 ClRcT   unmarshallNtfValueTypeT(ClBufferHandleT bufferHandle, SaNtfValueTypeT infoType, SaNtfValueT *infoValue)
 {
-    switch (infoType)
+    switch ((ClInt32T)infoType)
     {
         case 0:
             /* This indicates that the variable fo type SaNtfValueT was just created

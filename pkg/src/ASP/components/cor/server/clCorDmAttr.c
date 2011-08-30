@@ -160,7 +160,7 @@ dmClassAttrTypeSize(CORAttrInfo_t    at,
     CL_FUNC_ENTER();
 
  compute_size:  
-    switch(typ) 
+    switch((ClInt32T)typ) 
       {
         /* Primitive types */
         case CL_COR_INT8:
@@ -442,7 +442,7 @@ dmObjectAttrValidate(CORAttr_h this,
     min = this->attrValue.min;
     max = this->attrValue.max;
 
-    switch(this->attrType.type) 
+    switch((ClInt32T)this->attrType.type) 
     {
         case CL_COR_INT8: 
             { 
@@ -1185,7 +1185,7 @@ ClRcT clCorPrintAttr2Buffer(ClBufferHandleT  msgBufHdl,CORAttr_h attrH,ClUint8T 
     ClCharT                 corStr[CL_COR_CLI_STR_LEN]  = {0};
     ClUint32T               nElements   = 1, sz = 0;
     
-    if(type == CL_COR_ARRAY_ATTR)
+    if(type == (ClInt32T)CL_COR_ARRAY_ATTR)
     {
         sprintf(corStr, "[Array nElements:%-3lld] [", attrH->attrValue.min * 
                 (attrH->attrValue.max > 0 ? attrH->attrValue.max : 1));
@@ -1201,7 +1201,7 @@ ClRcT clCorPrintAttr2Buffer(ClBufferHandleT  msgBufHdl,CORAttr_h attrH,ClUint8T 
 
     if (1)
     {
-        if (type==CL_COR_ARRAY_ATTR)
+        if (type==(ClInt32T)CL_COR_ARRAY_ATTR)
         {
             type = attrH->attrType.u.arrType;
             nElements = attrH->attrValue.min * (attrH->attrValue.max > 0 ? attrH->attrValue.max : 1);
@@ -1235,7 +1235,7 @@ ClRcT clCorPrintAttr2Buffer(ClBufferHandleT  msgBufHdl,CORAttr_h attrH,ClUint8T 
         while(nElements) 
         {
             corStr[0]=0; /* Clear corStr just in case no case is taken because at the end we will write it to the buffer */
-            switch(type) 
+            switch((ClInt32T)type) 
             {
                 /* Primitive types */
                 case CL_COR_INT8:
@@ -1614,7 +1614,7 @@ _dmAttrRangeValidate(CORAttrInfo_t attrType,
     CL_FUNC_ENTER();
 
 
-    switch(attrType.type) 
+    switch((ClInt32T)attrType.type) 
     {
         /* Primitive types */ 
         case CL_COR_INT8: 
@@ -1921,15 +1921,15 @@ ClRcT dmClassAttrCreate(CORClass_h   classHdl, corAttrIntf_t  *pAttr)
           Check for the related class existence
        If Containment/assoc/arry initialise the attr values
      */
-    if ((CL_COR_CONTAINMENT_ATTR == pAttr->attrType) ||
-        (CL_COR_ASSOCIATION_ATTR== pAttr->attrType))
+    if (((ClInt32T)CL_COR_CONTAINMENT_ATTR == pAttr->attrType) ||
+        ((ClInt32T)CL_COR_ASSOCIATION_ATTR== pAttr->attrType))
     {
         if (NULL == dmClassGet(pAttr->subClassId))
             return CL_COR_SET_RC(CL_COR_ERR_CLASS_NOT_PRESENT) ;
         attr.u.remClassId = pAttr->subClassId;
             
     }
-    else if (CL_COR_ARRAY_ATTR == pAttr->attrType)
+    else if ((ClInt32T)CL_COR_ARRAY_ATTR == pAttr->attrType)
         attr.u.arrType = pAttr->subAttrType;
 
     if (CL_OK != (rc = dmClassAttrAdd(classHdl, pAttr->attrId, attr, &attrHdl)))
@@ -1938,12 +1938,12 @@ ClRcT dmClassAttrCreate(CORClass_h   classHdl, corAttrIntf_t  *pAttr)
         return rc;
     }
 
-    if ((CL_COR_ASSOCIATION_ATTR== pAttr->attrType)  ||
-        (CL_COR_ARRAY_ATTR == pAttr->attrType))
+    if (((ClInt32T)CL_COR_ASSOCIATION_ATTR== pAttr->attrType)  ||
+        ((ClInt32T)CL_COR_ARRAY_ATTR == pAttr->attrType))
     {
         rc = dmClassAttrInit(attrHdl, 0, pAttr->min, pAttr->max);
     }
-    else if (CL_COR_CONTAINMENT_ATTR == pAttr->attrType)
+    else if ((ClInt32T)CL_COR_CONTAINMENT_ATTR == pAttr->attrType)
     {
         rc = dmClassAttrInit(attrHdl, pAttr->min, pAttr->min, pAttr->max);
     }
@@ -2048,7 +2048,7 @@ ClRcT clCorDmAttrValCompare(CORAttr_h attrH,
             {
                 ClUint32T sz = 0;
                 /* kludge */
-                switch (attrH->attrType.u.arrType)
+                switch ((ClInt32T)attrH->attrType.u.arrType)
                 {
                     case CL_COR_INT8:
                     case CL_COR_UINT8:
@@ -2442,7 +2442,7 @@ void * dmObjectAttrConvert(void *buf, ClInt64T value, CORAttrInfo_t attrType, Cl
 	ClCorTypeT typ = attrType.type;
 	ClUint8T arr = 0;
 computeType:
-	switch(typ)
+	switch((ClInt32T)typ)
 	{
 		case CL_COR_INT8:
 			{
