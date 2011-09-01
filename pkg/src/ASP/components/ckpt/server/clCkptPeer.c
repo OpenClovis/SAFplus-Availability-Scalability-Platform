@@ -2272,12 +2272,15 @@ ClRcT VDECL_VER(clCkptRemSvrCkptDelete, 4, 0, 0)(ClVersionT  *pVersion,
                 "Version mismatch happened rc[0x %x]", rc);
         return rc;
     }
+
+    CKPT_LOCK(gCkptSvr->ckptActiveSem);
     /* 
      * Retrieve the info associated with the active handle.
      */
     rc = clHandleCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
     if( CL_OK != rc )
     {
+        CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
         clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_CKPT_DEL, 
                 "Failed to checkout handle [%#llX] rc [0x %x]", 
                  ckptHdl, rc);
@@ -2287,6 +2290,7 @@ ClRcT VDECL_VER(clCkptRemSvrCkptDelete, 4, 0, 0)(ClVersionT  *pVersion,
     {
         rc = CL_CKPT_ERR_INVALID_STATE;
         clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
         return rc;
     }
 
@@ -2295,6 +2299,8 @@ ClRcT VDECL_VER(clCkptRemSvrCkptDelete, 4, 0, 0)(ClVersionT  *pVersion,
      */
     rc = clCkptSvrReplicaDelete(pCkpt, ckptHdl, CL_FALSE);
     clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+
+    CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
     return rc;
 }
 

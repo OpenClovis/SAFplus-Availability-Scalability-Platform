@@ -357,12 +357,16 @@ ClRcT  VDECL_VER(clCkptActiveCkptDelete, 4, 0, 0)(ClVersionT     version,
                 "Version mismatch during ckpt delete rc[0x %x]", rc);
         return rc;
     }
+
+    CKPT_LOCK(gCkptSvr->ckptActiveSem);        
+
     /*
      * Retrieve the data associated with the active handle.
      */
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
     if( CL_OK != rc )
     {
+        CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
                 "Failed to checkout handle [%#llX] rc[0x %x]", ckptHdl, rc);
         return rc;
@@ -370,6 +374,9 @@ ClRcT  VDECL_VER(clCkptActiveCkptDelete, 4, 0, 0)(ClVersionT     version,
     rc = clCkptSvrReplicaDelete(pCkpt, ckptHdl, CL_TRUE);
 
     clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
+
+    CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
+
     return rc;
 }
 
@@ -3643,6 +3650,11 @@ VDECL_VER(clCkptCheckpointReplicaRemove, 4, 0, 0)(ClHandleT  ckptHdl,
     CL_CKPT_SVR_EXISTENCE_CHECK;
 
     /*
+     * Lock the active server ds
+     */
+    CKPT_LOCK(gCkptSvr->ckptActiveSem);
+
+    /*
      * Retrieve the data associated with the active handle.
      */
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
@@ -3656,6 +3668,7 @@ VDECL_VER(clCkptCheckpointReplicaRemove, 4, 0, 0)(ClHandleT  ckptHdl,
     if(!pCkpt->ckptMutex)
     {
         clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
         clLogWarning("REP", "REM", "Ckpt with handle [%#llx] already deleted", ckptHdl);
         return CL_OK;
     }
@@ -3689,11 +3702,6 @@ VDECL_VER(clCkptCheckpointReplicaRemove, 4, 0, 0)(ClHandleT  ckptHdl,
          goto exitOnError;
      }
     
-    /*
-     * Lock the active server ds
-     */
-    CKPT_LOCK(gCkptSvr->ckptActiveSem);
-    
     rc = clCntNonUniqueKeyDelete(gCkptSvr->ckptHdlList,
                                  (ClCntKeyHandleT)(ClWordT)cksum,
                                  (ClPtrT)&ckptName, ckptHdlNonUniqueKeyCompare);    
@@ -3705,20 +3713,18 @@ VDECL_VER(clCkptCheckpointReplicaRemove, 4, 0, 0)(ClHandleT  ckptHdl,
     }
 
     /*
-     * Unlock the active server ds
-     */
-    CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
-               
-    /*
      * Unlock and delete the checkpoint's mutex.
      */
     CKPT_UNLOCK(ckptMutex);           
     clOsalMutexDelete(ckptMutex);
     clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
+    CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
+
     clLogInfo(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_DEL,
         "Checkpoint [%.*s] replica has been removed from replicaAddr [%d]",
         ckptName.length, ckptName.value, localAddr);
     return rc;
+
 exitOnError:
     /*
      * Unlock the checkpoint's mutex.
@@ -3726,7 +3732,10 @@ exitOnError:
     CKPT_UNLOCK(ckptMutex);           
     
     clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
+
 exitOnErrorBeforeHdlCheckout:
+
+    CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
     return rc;
 }
 
@@ -3944,6 +3953,9 @@ clCkptSectionLevelDelete(ClCkptHdlT        ckptHdl,
     return rc;
 }
 
+/*
+ * Called with ckpt server activeSem held.
+ */
 ClRcT
 clCkptSvrReplicaDelete(CkptT       *pCkpt, 
                        ClCkptHdlT  ckptHdl,
@@ -4076,17 +4088,8 @@ freeCkpt:
     clCksm32bitCompute ((ClUint8T *)pCkpt->ckptName.value,
                         pCkpt->ckptName.length, &cksum);
     
-    /*
-     * Lock the active server ds
-     */ 
-    CKPT_LOCK(gCkptSvr->ckptActiveSem);        
-
     rc = clCntNonUniqueKeyDelete(gCkptSvr->ckptHdlList, (ClCntKeyHandleT)(ClWordT)cksum,
                                  (ClPtrT)&pCkpt->ckptName, ckptHdlNonUniqueKeyCompare);
-    /*
-     * Unlock the active server ds
-     */ 
-    CKPT_UNLOCK(gCkptSvr->ckptActiveSem);        
                                     
     /*
      * Unlock and delete the checkpoint's mutex.
