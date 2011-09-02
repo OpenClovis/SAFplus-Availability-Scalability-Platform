@@ -131,6 +131,7 @@ typedef enum
     CL_AMS_MGMT_ENTITY_FORCE_LOCK     =  67,
     CL_AMS_MGMT_DB_GET     =  68,
     CL_AMS_MGMT_COMPUTED_ADMIN_STATE_GET     =  69,
+    CL_AMS_MGMT_ENTITY_FORCE_LOCK_INSTANTIATION     =  70,
 } ClAmsMgmtClientCallbackRmdInterfaceT;
 
 /*

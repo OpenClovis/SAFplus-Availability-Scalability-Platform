@@ -1007,9 +1007,10 @@ clAmsMgmtEntityLockAssignment(
     return clAmsMgmtEntityLockAssignmentExtended(amsHandle, entity, CL_TRUE);
 }
 
-static ClRcT amsLockInstantiation(ClAmsMgmtHandleT serverHandle, 
-                                  const ClAmsEntityT *entity,
-                                  ClBoolT retry)
+static ClRcT __amsLockInstantiation(ClAmsMgmtHandleT serverHandle, 
+                                    const ClAmsEntityT *entity,
+                                    ClBoolT retry,
+                                    ClBoolT forceFlag)
 {
     ClRcT  rc = CL_OK;
     clAmsMgmtEntityLockInstantiationRequestT  req;
@@ -1019,11 +1020,25 @@ static ClRcT amsLockInstantiation(ClAmsMgmtHandleT serverHandle,
     memcpy ( &req.entity , entity, sizeof(ClAmsEntityT) );
     CL_AMS_NAME_LENGTH_CHECK(req.entity);
 
-    AMS_ADMIN_API_CALL( 0, retry, rc, cl_ams_mgmt_entity_lock_instantiation( &req, &res));
+    AMS_ADMIN_API_CALL( 0, retry, rc, cl_ams_mgmt_entity_lock_instantiation( &req, forceFlag, &res));
 
      exitfn:
      clAmsFreeMemory(res);
      return rc;
+}
+
+static ClRcT amsLockInstantiation(ClAmsMgmtHandleT serverHandle, 
+                                  const ClAmsEntityT *entity,
+                                  ClBoolT retry)
+{
+    return __amsLockInstantiation(serverHandle, entity, retry, CL_FALSE);
+}
+
+static ClRcT amsForceLockInstantiation(ClAmsMgmtHandleT serverHandle, 
+                                  const ClAmsEntityT *entity,
+                                  ClBoolT retry)
+{
+    return __amsLockInstantiation(serverHandle, entity, retry, CL_TRUE);
 }
 
 ClRcT
@@ -1098,6 +1113,41 @@ clAmsMgmtEntityForceLock(
                          CL_IN  const ClAmsEntityT  *entity)
 {
     return clAmsMgmtEntityForceLockExtended(amsHandle, entity, 3);
+}
+
+ClRcT
+clAmsMgmtEntityForceLockInstantiationExtended(
+        CL_IN  ClAmsMgmtHandleT  amsHandle,
+        CL_IN  const ClAmsEntityT  *entity,
+        CL_IN  ClBoolT retry)
+{
+
+    ClRcT  rc = CL_OK;
+    struct ams_instance  *ams_instance = NULL;
+
+    AMS_CHECKPTR_SILENT( !entity );
+
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
+                (ClPtrT)&ams_instance));
+
+    rc = amsForceLockInstantiation(ams_instance->server_handle, entity, retry);
+    if(rc != CL_OK)
+    {
+        goto exitfn; /* a failure would have already checked in the handle */
+    }
+
+    AMS_CHECK_RC_ERROR(clHandleCheckin( handle_database, amsHandle));
+
+exitfn:
+    return rc;
+}
+
+ClRcT
+clAmsMgmtEntityForceLockInstantiation(
+        CL_IN  ClAmsMgmtHandleT  amsHandle,
+        CL_IN  const ClAmsEntityT  *entity)
+{
+    return clAmsMgmtEntityForceLockInstantiationExtended(amsHandle, entity, CL_TRUE);
 }
 
 /*

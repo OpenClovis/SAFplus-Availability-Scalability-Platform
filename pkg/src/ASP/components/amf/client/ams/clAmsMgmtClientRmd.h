@@ -93,6 +93,7 @@ extern ClRcT cl_ams_mgmt_entity_force_lock(
 
 extern ClRcT cl_ams_mgmt_entity_lock_instantiation(
         CL_IN   clAmsMgmtEntityLockInstantiationRequestT   *req,
+        CL_IN   ClBoolT forceFlag,
         CL_OUT  clAmsMgmtEntityLockInstantiationResponseT **res);
 
 extern ClRcT cl_ams_mgmt_entity_unlock(

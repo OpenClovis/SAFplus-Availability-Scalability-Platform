@@ -1278,6 +1278,9 @@ extern ClRcT clAmsPeSUForceLockOperation(
                                          CL_IN       ClAmsSUT        *entity,
                                          CL_IN       ClBoolT lock);
 
+extern ClRcT clAmsPeSUForceLockInstantiationOperation(
+                                                      CL_IN       ClAmsSUT        *entity);
+
 /*
  * clAmsPeEntityShutdown
  * ---------------------

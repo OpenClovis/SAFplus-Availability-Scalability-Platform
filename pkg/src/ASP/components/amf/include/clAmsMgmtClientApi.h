@@ -402,6 +402,15 @@ extern ClRcT clAmsMgmtEntityLockInstantiationExtended(
         CL_IN       const ClAmsEntityT          *entity,
         CL_IN       ClBoolT retry);
 
+extern ClRcT clAmsMgmtEntityForceLockInstantiation(
+        CL_IN       ClAmsMgmtHandleT            amsHandle,
+        CL_IN       const ClAmsEntityT          *entity);
+
+extern ClRcT clAmsMgmtEntityForceLockInstantiationExtended(
+        CL_IN       ClAmsMgmtHandleT            amsHandle,
+        CL_IN       const ClAmsEntityT          *entity,
+        CL_IN       ClBoolT retry);
+
 
 /**
  ************************************

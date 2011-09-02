@@ -4521,6 +4521,65 @@ clAmsPeSUForceLockOperation(
     return CL_OK;
 }
 
+ClRcT
+clAmsPeSUForceLockInstantiationOperation(
+                                         CL_IN       ClAmsSUT *su)
+{
+    ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_NONE;
+    ClAmsSGT *sg = NULL;
+    ClAmsNodeT *node = NULL;
+    ClAmsRecoveryT recovery = CL_AMS_RECOVERY_INTERNALLY_RECOVERED;
+    ClUint32T escalation = (ClUint32T)CL_FALSE;
+
+    AMS_CHECK_SU ( su );
+    AMS_CHECK_SG ( sg = (ClAmsSGT*)su->config.parentSG.ptr);
+    AMS_CHECK_NODE( node = (ClAmsNodeT*)su->config.parentNode.ptr);
+    AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
+
+    clLogNotice("SU", "LOCK-FORCE", "Admin Operation [Forced lock instantiation trigger] on SU [%s]",
+                su->config.entity.name.value);
+
+    if(su->status.recovery != CL_AMS_RECOVERY_NONE)
+    {
+        clLogNotice("SU", "LOCKI", "SU [%s] already has a forced lock instantiation recovery pending",
+                    su->config.entity.name.value);
+        return CL_AMS_RC(CL_ERR_NO_OP);
+    }
+
+    if(clAmsInvocationsPendingForSU(su))
+    {
+        clLogInfo("SU", "LOCKI", "SU [%s] has invocations pending. Deferring force lock instantiation",
+                  su->config.entity.name.value);
+        return CL_AMS_RC(CL_ERR_TRY_AGAIN);
+    }
+
+    if(clAmsInvocationsPendingForSG(sg))
+    {
+        clLogInfo("SU", "LOCKI", 
+                  "SG [%s] containing SU [%s] has pending invocations. Deferring force lock instantiation",
+                  sg->config.entity.name.value, su->config.entity.name.value);
+        return CL_AMS_RC(CL_ERR_TRY_AGAIN);
+    }
+
+    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+
+    if(adminState != CL_AMS_ADMIN_STATE_UNLOCKED)
+    {
+        clLogError("SU", "LOCK-FORCE", "Admin of the SU has to be unlocked for force lock instantiation to work. "
+                   "Current admin state [%s]", CL_AMS_STRING_A_STATE(adminState));
+        return CL_AMS_RC(CL_ERR_INVALID_STATE);
+    }
+
+    /*
+     * Schedule a soft admin state. transition so that the next recovery restart loop fault transitions to a 
+     * component failover
+     */
+    su->config.adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+    clAmsPeSUFaultReport(su, NULL, &recovery, &escalation);
+
+    return CL_OK;
+}
+
 /*
  * clAmsPeSULockAassignmentCallback
  * --------------------------------
@@ -5018,7 +5077,7 @@ clAmsPeSUFaultReport(
               entityRef = clAmsEntityListGetNext(&su->config.compList, entityRef) )
         {
             ClAmsCompT *comp = (ClAmsCompT *) entityRef->ptr;
-
+            
             if ( comp->status.recovery )
             {
                 faultyComp = comp;
@@ -5106,8 +5165,10 @@ clAmsPeSUFaultReport(
      */
     clAmsEntityOpsClear((ClAmsEntityT*)su, &su->status.entity);
 
-
-    CL_AMS_SET_O_STATE(su, CL_AMS_OPER_STATE_DISABLED);
+    if(*recovery != CL_AMS_RECOVERY_INTERNALLY_RECOVERED)
+    {
+        CL_AMS_SET_O_STATE(su, CL_AMS_OPER_STATE_DISABLED);
+    }
 
     /*
      * Undertake recovery actions
@@ -5131,23 +5192,35 @@ clAmsPeSUFaultReport(
             break;
         }
 
-    case CL_AMS_RECOVERY_COMP_FAILOVER:
+    case CL_AMS_RECOVERY_INTERNALLY_RECOVERED:
         {
+            su->status.operState = CL_AMS_OPER_STATE_DISABLED;
+            for ( entityRef = clAmsEntityListGetFirst(&su->config.compList);
+                  entityRef != (ClAmsEntityRefT *) NULL;
+                  entityRef = clAmsEntityListGetNext(&su->config.compList, entityRef) )
+            {
+                ClAmsCompT *comp = (ClAmsCompT*)entityRef->ptr;
+                comp->status.operState = CL_AMS_OPER_STATE_DISABLED;
+            }
+
+            AMS_CALL ( clAmsPeSUSwitchoverWork(su, CL_AMS_ENTITY_SWITCHOVER_FAST) );
             /*
              * A component failover implies a SU failover+switchover. Switch
              * over the CSIs that are assigned to working components, and fail
              * over the ones assigned to the failed component. Then terminate
              * and/or cleanup the SU.
              */
-            
+            break;
+        }
+
+    case CL_AMS_RECOVERY_COMP_FAILOVER:
+        {
             if ( !node->status.suFailoverTimer.count )
             {
                 AMS_CALL ( clAmsEntityTimerStart((ClAmsEntityT *) node,
                                                  CL_AMS_NODE_TIMER_SUFAILOVER) );
             }
-
-            AMS_CALL ( clAmsPeSUSwitchoverWork(su,
-                                               CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE) );
+            AMS_CALL ( clAmsPeSUSwitchoverWork(su, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE) );
 
             break;
         }
@@ -5225,14 +5298,15 @@ clAmsPeSUFaultCallback_Step1(
 
 ClRcT
 clAmsPeSUFaultCallback_Step2(
-        CL_IN       ClAmsSUT            *su,
-        CL_IN       ClUint32T           error)
+                             CL_IN       ClAmsSUT            *su,
+                             CL_IN       ClUint32T           error)
 {
     ClAmsSGT *sg;
     ClAmsEntityRefT *entityRef;
     ClBoolT repairNecessary;
     ClAmsRecoveryT recovery;
     ClAmsCompT *faultyComp = NULL;
+    ClBoolT faultReport = CL_TRUE;
 
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
@@ -5344,31 +5418,45 @@ clAmsPeSUFaultCallback_Step2(
                 }
             }
         }
+
+        if ( su->status.recovery == CL_AMS_RECOVERY_INTERNALLY_RECOVERED )
+        {
+            clLogDebug(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU,
+                       "SU [%s] underwent internal fast recovery: ",
+                       su->config.entity.name.value);
+            AMS_CALL ( clAmsPeSUReset(su) );
+            AMS_CALL ( clAmsPeSUMarkInstantiable(su) );
+            faultReport = CL_FALSE;
+        }
+
     }
 
 #ifdef AMS_CPM_INTEGRATION
 
-    ClRcT rc = CL_OK;
+    if(faultReport)
+    {
+        ClRcT rc = CL_OK;
 
-    clLogDebug(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU,
-               "Fault on SU [%s]/Component [%s]: Reporting fault to FM. "\
-               "Recovery [%s], Repair Necessary [%s]",
-               su->config.entity.name.value,
-               faultyComp->config.entity.name.value,
-               CL_AMS_STRING_RECOVERY(recovery),
-               CL_AMS_STRING_BOOLEAN(repairNecessary));
+        clLogDebug(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU,
+                   "Fault on SU [%s]/Component [%s]: Reporting fault to FM. "\
+                   "Recovery [%s], Repair Necessary [%s]",
+                   su->config.entity.name.value,
+                   faultyComp->config.entity.name.value,
+                   CL_AMS_STRING_RECOVERY(recovery),
+                   CL_AMS_STRING_BOOLEAN(repairNecessary));
 
-    if ( (rc = _clAmsSAFaultReportCallback(
-                        (ClAmsEntityT *)faultyComp,
-                        recovery,
-                        repairNecessary)) != CL_OK )
-    { 
-        clLogWarning(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU,
-                     "Fault on SU [%s]/Component [%s]: Error [0x%x] "   \
-                     "when reporting fault to FM. Continuing..",
-                     su->config.entity.name.value,
-                     faultyComp->config.entity.name.value,
-                     rc);
+        if ( (rc = _clAmsSAFaultReportCallback(
+                                               (ClAmsEntityT *)faultyComp,
+                                               recovery,
+                                               repairNecessary)) != CL_OK )
+        { 
+            clLogWarning(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU,
+                         "Fault on SU [%s]/Component [%s]: Error [0x%x] "   \
+                         "when reporting fault to FM. Continuing..",
+                         su->config.entity.name.value,
+                         faultyComp->config.entity.name.value,
+                         rc);
+        }
     }
 
 #endif
@@ -5454,6 +5542,11 @@ clAmsPeSUComputeRecoveryAction(
             *recovery = CL_AMS_RECOVERY_NODE_FAILOVER;
             *escalation = CL_TRUE;
         }
+    }
+
+    if( *recovery == CL_AMS_RECOVERY_INTERNALLY_RECOVERED )
+    {
+        match = CL_TRUE;
     }
 
     if ( *recovery == CL_AMS_RECOVERY_NODE_SWITCHOVER )
@@ -6535,7 +6628,9 @@ clAmsPeSUCleanupCallback(
             CL_AMS_SET_P_STATE(su, CL_AMS_PRESENCE_STATE_UNINSTANTIATED);
         }
 
-        if ( su->status.recovery == CL_AMS_RECOVERY_COMP_FAILOVER )
+        if ( su->status.recovery == CL_AMS_RECOVERY_COMP_FAILOVER 
+             ||
+             su->status.recovery == CL_AMS_RECOVERY_INTERNALLY_RECOVERED)
         {
             AMS_CALL ( clAmsPeSUFaultCallback_Step2(su, CL_OK) );
         }
@@ -6635,7 +6730,9 @@ clAmsPeSUCleanupError(
     }
     else
     {
-        if ( su->status.recovery == CL_AMS_RECOVERY_COMP_FAILOVER )
+        if ( su->status.recovery == CL_AMS_RECOVERY_COMP_FAILOVER 
+             ||
+             su->status.recovery == CL_AMS_RECOVERY_INTERNALLY_RECOVERED)
         {
             AMS_CALL ( clAmsPeSUFaultCallback_Step2(su, error) );
         }
@@ -7097,7 +7194,9 @@ static ClRcT clAmsPeSUSwitchoverPrologue(ClAmsSUT *su, ClUint32T error, ClUint32
             AMS_CALL ( clAmsPeSUShutdownCallback(su, error) );
         }
 
-        if ( su->status.recovery == CL_AMS_RECOVERY_COMP_FAILOVER )
+        if ( su->status.recovery == CL_AMS_RECOVERY_COMP_FAILOVER 
+             ||
+             su->status.recovery == CL_AMS_RECOVERY_INTERNALLY_RECOVERED)
         {
             AMS_CALL ( clAmsPeSUFaultCallback_Step1(su, error) );
         }
@@ -8308,7 +8407,8 @@ clAmsPeSUAssignSIDependencyCallback(
                 {
                     clLogDebug("SU", "DEP-ASSIGN-SI", "Removing CSI [%s] from component [%s]",
                                csiRef->config.entity.name.value, comp->config.entity.name.value);
-                    clAmsPeCompRemoveCSI(comp, csiRef, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE);
+                    switchoverMode = CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE;
+                    clAmsPeCompRemoveCSI(comp, csiRef, switchoverMode);
                 }
                 break;
             default:
@@ -14086,56 +14186,9 @@ clAmsPeCompRemoveWork(
      * and the recovery is a SU/comp failover.
      */
 
-    // The switchover checks should be moved to a separate function
-
     switchoverMode &= ~CL_AMS_ENTITY_SWITCHOVER_FAST;
 
-    if ( node->status.isClusterMember == CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER 
-         &&
-         node->config.isASPAware)
-    {
-        switchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;   
-        switchoverMode &= ~(CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE | CL_AMS_ENTITY_SWITCHOVER_GRACEFUL);
-    }
-
-    if ( node->status.isClusterMember == CL_AMS_NODE_IS_LEAVING_CLUSTER )
-    {
-        if(clAmsPeCheckNodeHasLeft(node) == CL_TRUE)
-        {
-            switchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;
-            switchoverMode &= ~(CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE | CL_AMS_ENTITY_SWITCHOVER_GRACEFUL);
-        }
-    }
-
-    if ( node->status.operState == CL_AMS_OPER_STATE_DISABLED
-         &&
-         node->config.isASPAware)
-    {
-        switchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;   
-        switchoverMode &= ~(CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE | CL_AMS_ENTITY_SWITCHOVER_GRACEFUL);
-    }
-
-    if(!node->config.isASPAware 
-       &&
-       comp->config.property == CL_AMS_COMP_PROPERTY_SA_AWARE)
-    {
-        switchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;
-        switchoverMode &= ~(CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE | CL_AMS_ENTITY_SWITCHOVER_GRACEFUL);
-    }
-    
-    if ( su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING )
-    {
-        switchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;   
-        switchoverMode &= ~(CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE | CL_AMS_ENTITY_SWITCHOVER_GRACEFUL);
-    }
-
-    if ( (comp->status.operState == CL_AMS_OPER_STATE_DISABLED) || 
-         (comp->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED) ||
-         (comp->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING) )
-    {
-        switchoverMode |= CL_AMS_ENTITY_SWITCHOVER_FAST;   
-        switchoverMode &= ~(CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE | CL_AMS_ENTITY_SWITCHOVER_GRACEFUL);
-    }
+    clAmsPeCompComputeSwitchoverMode(comp, &switchoverMode);
 
     AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
                     ("Component [%s] Remove Work Request with switchover mode %d",
@@ -20819,6 +20872,7 @@ clAmsPeEntityRecoveryScopeLarger(
         }
 
         case CL_AMS_RECOVERY_COMP_FAILOVER:
+        case CL_AMS_RECOVERY_INTERNALLY_RECOVERED:
         {
             if ( (b == CL_AMS_RECOVERY_NONE)            ||
                  (b == CL_AMS_RECOVERY_COMP_RESTART)    ||
@@ -20836,6 +20890,7 @@ clAmsPeEntityRecoveryScopeLarger(
                  (b == CL_AMS_RECOVERY_COMP_RESTART)    ||
                  (b == CL_AMS_RECOVERY_SU_RESTART)      ||
                  (b == CL_AMS_RECOVERY_COMP_FAILOVER)   ||
+                 (b == CL_AMS_RECOVERY_INTERNALLY_RECOVERED) ||
                  (b == CL_AMS_RECOVERY_APP_RESTART) )
             {
                 return CL_TRUE;
@@ -20850,6 +20905,7 @@ clAmsPeEntityRecoveryScopeLarger(
                  (b == CL_AMS_RECOVERY_COMP_RESTART)    ||
                  (b == CL_AMS_RECOVERY_SU_RESTART)      ||
                  (b == CL_AMS_RECOVERY_COMP_FAILOVER)   ||
+                 (b == CL_AMS_RECOVERY_INTERNALLY_RECOVERED) ||
                  (b == CL_AMS_RECOVERY_NODE_SWITCHOVER) ||
                  (b == CL_AMS_RECOVERY_NODE_FAILOVER)   ||
                  (b == CL_AMS_RECOVERY_APP_RESTART) )
@@ -20866,6 +20922,7 @@ clAmsPeEntityRecoveryScopeLarger(
                  (b == CL_AMS_RECOVERY_COMP_RESTART)    ||
                  (b == CL_AMS_RECOVERY_SU_RESTART)      ||
                  (b == CL_AMS_RECOVERY_COMP_FAILOVER)   ||
+                 (b == CL_AMS_RECOVERY_INTERNALLY_RECOVERED) ||
                  (b == CL_AMS_RECOVERY_NODE_SWITCHOVER) ||
                  (b == CL_AMS_RECOVERY_NODE_FAILOVER)   ||
                  (b == CL_AMS_RECOVERY_APP_RESTART) )
@@ -20891,6 +20948,7 @@ clAmsPeEntityRecoveryScopeLarger(
                  (b == CL_AMS_RECOVERY_COMP_RESTART)    ||
                  (b == CL_AMS_RECOVERY_SU_RESTART)      ||
                  (b == CL_AMS_RECOVERY_COMP_FAILOVER)   ||
+                 (b == CL_AMS_RECOVERY_INTERNALLY_RECOVERED) ||
                  (b == CL_AMS_RECOVERY_NODE_SWITCHOVER) ||
                  (b == CL_AMS_RECOVERY_NODE_FAILOVER)   ||
                  (b == CL_AMS_RECOVERY_NODE_FAILFAST) )

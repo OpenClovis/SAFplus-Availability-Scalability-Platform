@@ -816,6 +816,99 @@ ClRcT clAmsDebugCliForceLock(
     return rc;
 }
 
+static ClRcT amsForceLockInstantiationTask(ClPtrT cookie)
+{
+    ClAmsForceLockContextT *lockContext = (ClAmsForceLockContextT*)cookie;
+    ClCharT *respBuffer = lockContext->respBuffer;
+    ClBufferHandleT outMsgHandle = lockContext->outMsgHandle;
+    ClRmdResponseContextHandleT responseHandle = lockContext->responseHandle;
+    ClAmsEntityT entity = {0};
+    ClRcT rc;
+    entity.type = CL_AMS_ENTITY_TYPE_SU;
+    clNameSet(&entity.name, lockContext->entity);
+    clHeapFree(lockContext);
+    respBuffer[0] = 0; /*zero off the response buffer*/
+    rc = clAmsMgmtEntityForceLockInstantiation(gHandle, (const ClAmsEntityT*)&entity);
+    if(rc != CL_OK)
+    {
+        snprintf(respBuffer, MAX_BUFFER_SIZE, "Force lock instantiation returned with [%#x]", rc);
+    }
+    rc = clDebugResponseSend(responseHandle, &outMsgHandle, respBuffer, rc);
+    clHeapFree(respBuffer);
+    return rc;
+}
+
+ClRcT clAmsDebugCliForceLockInstantiation(
+                          CL_IN  ClUint32T argc,
+                          CL_IN  ClCharT **argv,
+                          CL_OUT ClCharT **ret)
+{
+    ClRcT rc = CL_OK;
+    ClAmsEntityT entity = {0};
+    ClAmsForceLockContextT *lockContext = NULL;
+    ClRmdResponseContextHandleT responseHandle = 0;
+    ClBufferHandleT outMsgHandle = 0;
+    static ClTaskPoolHandleT pool = 0;
+
+    AMS_FUNC_ENTER(("\n"));
+
+    if(ret == NULL) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+
+    *ret = clHeapCalloc(1, MAX_BUFFER_SIZE+1);
+
+    CL_ASSERT(*ret != NULL);
+    
+    if(argc != 2)
+    {
+        strncat(*ret, "amsForceLockInstantiation [suname]\n", MAX_BUFFER_SIZE);
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    }
+
+    /*
+     * Defer the context before firing the first RMD since that would overwrite the current
+     * rmdrecv threadspecific context.
+     */
+    lockContext = clHeapCalloc(1, sizeof(*lockContext));
+    CL_ASSERT(lockContext != NULL);
+    lockContext->entity[0] = 0;
+    strncat(lockContext->entity, argv[1], sizeof(lockContext->entity)-1);
+    lockContext->respBuffer = *ret;
+    rc = clDebugResponseDefer(&lockContext->responseHandle, &lockContext->outMsgHandle);
+    if(rc != CL_OK)
+    {
+        clLogError("ADM", "LOCKI-FORCE", "Debug response defer returned with [%#x]", rc);
+        strncat(*ret, "Failed to defer force-locki request\n", MAX_BUFFER_SIZE);
+        clHeapFree(lockContext);
+        return rc;
+    }
+    responseHandle = lockContext->responseHandle;
+    outMsgHandle = lockContext->outMsgHandle;
+    entity.type = CL_AMS_ENTITY_TYPE_SU;
+    clNameSet(&entity.name, (const ClCharT*)argv[1]);
+    if(!pool)
+    {
+        rc = clTaskPoolCreate(&pool, 1, NULL, NULL);
+        if(rc != CL_OK)
+        {
+            clLogError("ADM", "LOCKI-FORCE", "Task pool create returned with [%#x]", rc);
+            clAmsMgmtEntityForceLockInstantiationExtended(gHandle, (const ClAmsEntityT*)&entity, CL_FALSE);
+            strncat(*ret, "admin operation [force locki] failed to create defer task\n", MAX_BUFFER_SIZE);
+            clHeapFree(lockContext);
+            return clDebugResponseSend(responseHandle, &outMsgHandle, *ret, rc);
+        }
+    }
+    if( (rc = clTaskPoolRun(pool, amsForceLockInstantiationTask, (void*)lockContext) ) != CL_OK)
+    {
+        snprintf(*ret, MAX_BUFFER_SIZE, 
+                 "Debug cli deferred lock instantiation taskpool run failed with [%#x]", rc);
+        clAmsMgmtEntityForceLockInstantiationExtended(gHandle, (const ClAmsEntityT*)&entity, CL_FALSE);
+        clHeapFree(lockContext);
+        return clDebugResponseSend(responseHandle, &outMsgHandle, *ret, rc);
+    }
+    *ret = NULL; /* let it be done by the task pool task*/
+    return rc;
+}
+
 void 
 clAmsDebugCliUsage(
         CL_INOUT  ClCharT  *ret,

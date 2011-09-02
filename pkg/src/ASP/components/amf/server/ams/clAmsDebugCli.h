@@ -79,6 +79,12 @@ clAmsDebugCliForceLock(
         CL_IN  ClCharT  **argv,
         CL_OUT  ClCharT  **ret);
 
+extern ClRcT   
+clAmsDebugCliForceLockInstantiation(
+        CL_IN  ClUint32T  argc,
+        CL_IN  ClCharT  **argv,
+        CL_OUT  ClCharT  **ret);
+
 extern ClRcT
 clAmsDebugCliEntityLockInstantiation(
         CL_IN  ClUint32T  argc,

@@ -950,12 +950,21 @@ unmarshalClAmsMgmtEntityLockInstantiation(
 
 ClRcT
 cl_ams_mgmt_entity_lock_instantiation(
-        CL_IN  clAmsMgmtEntityLockInstantiationRequestT  *req,
-        CL_OUT  clAmsMgmtEntityLockInstantiationResponseT  **res)
+                                      CL_IN  clAmsMgmtEntityLockInstantiationRequestT  *req,
+                                      CL_IN  ClBoolT forceFlag,
+                                      CL_OUT  clAmsMgmtEntityLockInstantiationResponseT  **res)
 {
-    return cl_ams_call_rmd(( ClUint32T)CL_AMS_MGMT_ENTITY_LOCK_INSTANTIATION,
-            (ClPtrT)req, &marshalClAmsMgmtEntityLockInstantiation,
-            (ClPtrT*)res, &unmarshalClAmsMgmtEntityLockInstantiation);
+    if(!forceFlag)
+    {
+        return cl_ams_call_rmd(( ClUint32T)CL_AMS_MGMT_ENTITY_LOCK_INSTANTIATION,
+                               (ClPtrT)req, &marshalClAmsMgmtEntityLockInstantiation,
+                               (ClPtrT*)res, &unmarshalClAmsMgmtEntityLockInstantiation);
+    }
+    return cl_ams_call_rmd_ver(( ClUint32T)CL_AMS_MGMT_ENTITY_FORCE_LOCK_INSTANTIATION,
+                               (ClPtrT)req, &marshalClAmsMgmtEntityLockInstantiation,
+                               (ClPtrT*)res, &unmarshalClAmsMgmtEntityLockInstantiation,
+                               CL_VERSION_CODE(5, 0, 0));
+
 }
 
 /******************************************************************************/

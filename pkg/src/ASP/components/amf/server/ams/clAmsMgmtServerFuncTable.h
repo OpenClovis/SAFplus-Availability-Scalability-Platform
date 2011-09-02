@@ -112,6 +112,7 @@ CL_EO_CALLBACK_TABLE_DECL(amsMgmtServerFuncList2)[]=
     VSYM(_clAmsMgmtEntityForceLock, __AMS_FUNC_ID2(CL_AMS_MGMT_ENTITY_FORCE_LOCK)),
     VSYM_VER(_clAmsMgmtDBGet, 5, 0, 0, __AMS_FUNC_ID2(CL_AMS_MGMT_DB_GET)),
     VSYM_VER(_clAmsMgmtComputedAdminStateGet, 5, 0, 0, __AMS_FUNC_ID2(CL_AMS_MGMT_COMPUTED_ADMIN_STATE_GET)),
+    VSYM_VER(_clAmsMgmtEntityForceLockInstantiation, 5, 0, 0, __AMS_FUNC_ID2(CL_AMS_MGMT_ENTITY_FORCE_LOCK_INSTANTIATION)),
     VSYM_NULL,
 };
 
