@@ -4541,11 +4541,14 @@ clAmsPeSUForceLockInstantiationOperation(
 
     if(su->status.recovery != CL_AMS_RECOVERY_NONE)
     {
-        clLogNotice("SU", "LOCKI", "SU [%s] already has a forced lock instantiation recovery pending",
-                    su->config.entity.name.value);
+        clLogNotice("SU", "LOCKI", "SU [%s] already has a [%s] recovery pending."
+                    "Skipping forced lock instantiation",
+                    su->config.entity.name.value,
+                    CL_AMS_STRING_RECOVERY(su->status.recovery));
         return CL_AMS_RC(CL_ERR_NO_OP);
     }
 
+#if 0
     if(clAmsInvocationsPendingForSU(su))
     {
         clLogInfo("SU", "LOCKI", "SU [%s] has invocations pending. Deferring force lock instantiation",
@@ -4560,23 +4563,32 @@ clAmsPeSUForceLockInstantiationOperation(
                   sg->config.entity.name.value, su->config.entity.name.value);
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
+#endif
 
     AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
 
-    if(adminState != CL_AMS_ADMIN_STATE_UNLOCKED)
+    if(adminState == CL_AMS_ADMIN_STATE_LOCKED_I)
     {
-        clLogError("SU", "LOCK-FORCE", "Admin of the SU has to be unlocked for force lock instantiation to work. "
-                   "Current admin state [%s]", CL_AMS_STRING_A_STATE(adminState));
-        return CL_AMS_RC(CL_ERR_INVALID_STATE);
+        return CL_AMS_RC(CL_ERR_NO_OP);
     }
 
-    /*
-     * Schedule a soft admin state. transition so that the next recovery restart loop fault transitions to a 
-     * component failover
-     */
     su->config.adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
-    clAmsPeSUFaultReport(su, NULL, &recovery, &escalation);
 
+    if(adminState == CL_AMS_ADMIN_STATE_UNLOCKED)
+    {
+        /*
+         * Schedule a soft admin state. transition so that the next recovery restart loop fault transitions to a 
+         * component failover
+         */
+        clAmsPeSUFaultReport(su, NULL, &recovery, &escalation);
+    }
+    else if(adminState == CL_AMS_ADMIN_STATE_LOCKED_A)
+    {
+        /*
+         * Directly force cleanup the SU
+         */
+        clAmsPeSUCleanup(su);
+    }
     return CL_OK;
 }
 
