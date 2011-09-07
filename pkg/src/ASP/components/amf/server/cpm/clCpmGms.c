@@ -636,6 +636,7 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT
         }
         else
         {
+            ClGmsNodeIdT lastActive = gpClCpm->activeMasterNodeId;
             gpClCpm->activeMasterNodeId = notificationBuffer->leader;
             gpClCpm->deputyNodeId = notificationBuffer->deputy;
             clIocMasterCacheReset();
@@ -648,6 +649,17 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT
                                    CPM_LOG_CTX_CPM_GMS,
                                    "The cluster has no leader !! "
                                    "Recovering...");
+                    cpmGoBackToRegister();
+                }
+                else if(lastActive != CL_GMS_INVALID_NODE_ID
+                        &&
+                        lastActive == notificationBuffer->deputy)
+                {
+                    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
+                                "Recovering this payload back to instantiation phase by "
+                                "re-registering with the master as it had lost its link "
+                                "from the active at [%d] as a result of a split cluster", 
+                                notificationBuffer->leader);
                     cpmGoBackToRegister();
                 }
             }
