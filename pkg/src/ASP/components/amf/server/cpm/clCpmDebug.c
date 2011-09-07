@@ -192,6 +192,12 @@ static ClDebugFuncEntryT cpmSCDebugFuncList[] =
         "Admin API for forcefully locking an SU in a fault restart loop",
     },
 
+    {
+        clAmsDebugCliForceLockInstantiation,
+        "amsForceLockInstantiation",
+        "Admin API for forcefully lock instantiating an SU",
+    },
+
 #ifdef AMS_TEST_CLI_COMMANDS
     {
         clAmsDebugCliPGTrackAdd,
