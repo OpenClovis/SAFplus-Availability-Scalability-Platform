@@ -411,6 +411,12 @@ populate_prereqs() {
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="copy in gdbm"
             cd - >/dev/null 2>&1
+        elif [ -f /usr/lib/`uname -m`-linux-gnu/libgdbm.so ]; then
+            cd /usr/lib/`uname -m`-linux-gnu
+            tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gdbm"
+            cd - >/dev/null 2>&1
         else
             cd /usr/lib
             tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
@@ -563,9 +569,9 @@ populate_prereqs() {
 
         echo -n " glib-2.0"
         export PKG_CONFIG_PATH=${toolchaindir}/lib/pkgconfig:$PKG_CONFIG_PATH
-        GLIB_LIB_DIR=$(pkg-config --libs-only-L glib-2.0 | sed -e 's/^.*-L//g')
+        GLIB_LIB_DIR=$(pkg-config --libs-only-L glib-2.0 | sed -e 's/^.*-L//g' -e 's/lib//g')
 	if [ -z ${GLIB_LIB_DIR} ]; then # glib-2.0 is installed in the system standard path
-		GLIB_LIB_DIR="/usr/lib"
+		GLIB_LIB_DIR="/usr/"
 	fi
         GLIB_DIR=$(dirname ${GLIB_LIB_DIR})
         if [ -z "${GLIB_LIB_DIR}" -o -z "${GLIB_DIR}"  -o ! -d ${GLIB_DIR} ]
