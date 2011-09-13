@@ -79,6 +79,8 @@ ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMember
 ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
                               ClIocNodeAddressT currentLeader);
 
+ClRcT clNodeCacheLeaderGet(ClIocNodeAddressT *pCurrentLeader);
+
 #ifdef __cplusplus
 }
 #endif

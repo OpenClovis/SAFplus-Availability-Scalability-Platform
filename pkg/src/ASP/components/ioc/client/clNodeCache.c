@@ -73,6 +73,7 @@ typedef struct ClNodeCacheHeader
     ClInt32T currentNodes;
     ClIocNodeAddressT minVersionNode;
     ClUint32T minVersion;
+    ClIocNodeAddressT currentLeader;
     ClUint32T nodeMap[CL_NODE_MAP_WORDS];
 }ClNodeCacheHeaderT;
 
@@ -654,6 +655,10 @@ static ClRcT __nodeCacheReset(ClIocNodeAddressT nodeAddress, ClBoolT soft)
              */
             nodeCacheMinVersionSet();
         }
+        if(CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader == nodeAddress)
+        {
+            CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader = 0;
+        }
     }
     clOsalSemUnlock(gClNodeCacheSem);
 
@@ -713,17 +718,42 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
     if((ClInt32T)lastLeader > 0 && lastLeader < CL_IOC_MAX_NODES)
     {
         CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability &= ~__LEADER_CAPABILITY_MASK;
+        CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader = 0;
         clLogNotice("CAP", "SET", "Node cache capability for last leader [%d] is [%#x]",
                     lastLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability);
     }
     if((ClInt32T)currentLeader > 0 && currentLeader < CL_IOC_MAX_NODES)
     {
         CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability |= __LEADER_CAPABILITY_MASK;
+        CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader = currentLeader;
         clLogNotice("CAP", "SET", "Node cache capability for current leader [%d] is [%#x]",
                     currentLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability);
     }
     clOsalSemUnlock(gClNodeCacheSem);
     return CL_OK;
+}
+
+ClRcT clNodeCacheLeaderGet(ClIocNodeAddressT *pCurrentLeader)
+{
+    ClRcT rc = CL_OK;
+
+    if(!pCurrentLeader)
+        return CL_ERR_INVALID_PARAMETER;
+
+    clOsalSemLock(gClNodeCacheSem);
+    if(!gpClNodeCache)
+    {
+        clOsalSemUnlock(gClNodeCacheSem);
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    if( !(*pCurrentLeader = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader) )
+    {
+        rc = CL_ERR_NOT_EXIST;
+    }
+    clOsalSemUnlock(gClNodeCacheSem);
+
+    return rc;
 }
 
 ClRcT clNodeCacheVersionAndCapabilityGet(ClIocNodeAddressT nodeAddress, 
