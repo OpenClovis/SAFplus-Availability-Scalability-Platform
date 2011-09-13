@@ -485,8 +485,11 @@ populate_prereqs() {
             install $exe_flags $toolchaindir/bin/*hpi* $imagedir/bin
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="install openhpi"
+            # there may be no *oh* (openhpi 2.16.0) so don't remember any error from the next line 
+            if [ -f lib/*oh* ]; then
+              tar chf - lib/*oh* | tar xf - -C $imagedir
+            fi
             tar chf - lib/*hpi* | tar xf - -C $imagedir
-            tar chf - lib/*oh* | tar xf - -C $imagedir
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="copy in openhpi libraries"
             cd - >/dev/null 2>&1
