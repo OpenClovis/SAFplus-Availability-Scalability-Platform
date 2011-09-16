@@ -251,6 +251,12 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId,
 static void gmsNotificationInitialize(void)
 {
     ClIocPhysicalAddressT compAddr = {0};
+    /*
+     * Don't register for notifications if running under totem to avoid clashes
+     * between the two with node views getting synced from different sources
+     */
+    if(!clAspNativeLeaderElection())
+        return;
     compAddr.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     compAddr.portId = CL_IOC_CPM_PORT;
     clCpmNotificationCallbackInstall(compAddr, gmsNotificationCallback, NULL, &gNotificationCallbackHandle);
