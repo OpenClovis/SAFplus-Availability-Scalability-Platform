@@ -461,6 +461,7 @@ clXdrUnmarshallPtr( ClBufferHandleT msg,void** pointer,
     if (CL_OK != rc)
     {
         clHeapFree(*pointer);
+        *pointer = NULL;
     }
 
     CL_XDR_EXIT();
