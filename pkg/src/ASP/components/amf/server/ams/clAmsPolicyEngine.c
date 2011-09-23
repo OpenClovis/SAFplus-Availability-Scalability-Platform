@@ -13984,7 +13984,7 @@ clAmsPeCompCleanupError(
     ClRcT rc = CL_OK;
     ClAmsSUT *su;
     ClAmsLocalRecoveryT recovery;
-    ClUint32T escalation;
+    ClUint32T escalation = 0;
 
     AMS_CHECK_COMP ( comp );
     AMS_CHECK_SU ( su = (ClAmsSUT *) comp->config.parentSU.ptr );
@@ -14042,13 +14042,19 @@ clAmsPeCompCleanupError(
                         CL_AMS_RECOVERY_NODE_FAILOVER: 
                         CL_AMS_RECOVERY_COMP_FAILOVER;
 
-    escalation = clAmsPeEntityComputeFaultEscalation((ClAmsEntityT*) comp);
+    /*
+     * Don't raise the fault again if we are already inside a fault
+    */
+    if(recovery != comp->status.recovery)
+    {
+        escalation = clAmsPeEntityComputeFaultEscalation((ClAmsEntityT*) comp);
 
-    clAmsFaultQueueAdd((ClAmsEntityT*)comp);
+        clAmsFaultQueueAdd((ClAmsEntityT*)comp);
 
-    rc = clAmsPeCompFaultReport(comp, &recovery, &escalation);
+        rc = clAmsPeCompFaultReport(comp, &recovery, &escalation);
 
-    clAmsFaultQueueDelete((ClAmsEntityT*)comp);
+        clAmsFaultQueueDelete((ClAmsEntityT*)comp);
+    }
 
     return rc;
 }
