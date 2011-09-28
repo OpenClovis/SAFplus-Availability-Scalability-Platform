@@ -59,6 +59,7 @@
 #define CTX_EVT     "EVT"   /* HPI event handler context */
 #define CTX_DIS     "DIS"   /* discovery context */
 #define CTX_REQ     "REQ"   /* client request context */
+#define _OPENHPI_SESSION_RETRIES_DEFAULT (30)
 
 static ClRcT DiscoverPlatform ( SaHpiSessionIdT  session_id );
 static ClRcT hpiEventProcessingLoop  ( void *ptr );
@@ -75,7 +76,7 @@ static ClRcT clCmSensorEventProcess( SaHpiSessionIdT sessionid,
 
 /* Chassis manager context information */
 extern ClCmContextT gClCmChassisMgrContext;
-
+static ClUint32T gMaxSessionRetries = _OPENHPI_SESSION_RETRIES_DEFAULT;
 
 /* Called by the Chassis manager to initialize the HPI Interface */
 ClRcT clCmHpiInterfaceInitialize(void )
@@ -84,6 +85,7 @@ ClRcT clCmHpiInterfaceInitialize(void )
     ClRcT rc = CL_OK;
     SaHpiVersionT hpiVersion = 0x0 ; 
     ClInt16T button;
+    ClCharT *sessionStr = NULL;
 
     /* Try to find whether the HPI environment is set,if not freak out */
 
@@ -104,6 +106,14 @@ ClRcT clCmHpiInterfaceInitialize(void )
               hpiVersion, SAHPI_INTERFACE_VERSION);
         return CL_CM_ERROR(CL_ERR_VERSION_MISMATCH);
     }
+
+    if((sessionStr = getenv("CL_ASP_OPENHPI_SESSION_RETRIES")))
+    {
+        gMaxSessionRetries = atoi(sessionStr);
+    }
+
+    if(!gMaxSessionRetries)
+        gMaxSessionRetries = _OPENHPI_SESSION_RETRIES_DEFAULT;
 
     clLog(CL_LOG_INFO, AREA_HPI, CTX_INI,
         "HPI Version found: [%c.0%d.0%d]",
@@ -636,38 +646,21 @@ eventDetailsToString(SaHpiEventT *event, SaHpiEntityPathT *epath)
     return (char*)buffer.Data;
 }
     
-static ClRcT openHpiSessionReopen(SaHpiSessionIdT *sessionId)
-{
-    SaErrorT error = SA_OK;
-    ClRcT rc = openHpiSession(sessionId, SAHPI_UNSPECIFIED_DOMAIN_ID);
-    if(rc != CL_OK)
-    {
-        clLogError(AREA_HPI, "REOPEN", "Could not reopen hpi session. Error [%#x]", rc);
-        return rc;
-    }
-    error = _saHpiSubscribe(*sessionId);
-    if(error != SA_OK)
-    {
-        clLogError(AREA_HPI, "REOPEN", "saHpiSubscribe failed with error [%s]", oh_lookup_error(error));
-        _saHpiSessionClose(*sessionId);
-        *sessionId = 0;
-        return CL_CM_ERROR(CL_ERR_CM_HPI_ERROR);
-    }
-    return CL_OK;
-}
-
 /* Event listener loop listens for the Events from the HPI */
 static ClRcT hpiEventProcessingLoop(void *ptr)
 {
-#define SAHPI_EVENT_TIMEOUT (2 * 1000 * 1000 * 1000LL) /* 2 seconds*/
-    SaHpiRptEntryT rptentry ; 
-    SaHpiRdrT        rdr;
-    SaHpiEventT    event;
-    SaErrorT       error = SA_OK ;
-    ClRcT            rc = CL_OK;
-    SaHpiSessionIdT sessionid = 0x0;
-    SaHpiEvtQueueStatusT     qstatus; 
-    static int errcnt;
+#define SAHPI_EVENT_TIMEOUT (5 * 1000 * 1000 * 1000LL) 
+    SaHpiRptEntryT        rptentry ; 
+    SaHpiRdrT             rdr;
+    SaHpiEventT           event;
+    SaErrorT              error = SA_OK ;
+    ClUint32T             errcnt = 0;
+    ClRcT                 rc = CL_OK;
+    SaHpiSessionIdT       sessionid = 0x0;
+    ClBoolT               sessionidValid = CL_FALSE;
+    
+    SaHpiEvtQueueStatusT  qstatus; 
+
 
     memset(&rptentry, 0, sizeof(rptentry));
     memset(&rdr, 0, sizeof(rdr));
@@ -682,71 +675,83 @@ static ClRcT hpiEventProcessingLoop(void *ptr)
             "Unable to set execution object handle, error [0x%x]", rc);
         return rc;
     }
-
-
-    /* call hpi event subscribe to subscribe for platform events */
-    if( (error = _saHpiSubscribe( sessionid ))!= SA_OK  )
-    {
-        clLog(CL_LOG_CRITICAL, AREA_HPI, CTX_INI,
-            "saHpiSubscribe failed: %s", oh_lookup_error(error));
-            return CL_CM_ERROR(CL_ERR_CM_HPI_ERROR);
-    }
     
     clLog(CL_LOG_INFO, AREA_HPI, CTX_INI,
         "Entering HPI event receive loop");
     
     while(! gClCmChassisMgrContext.platformInfo.stopEventProcessing )
     {
-        /* Get the events from the Domain Event Table */
-        error = _saHpiEventGet(sessionid, 
-                               SAHPI_EVENT_TIMEOUT,
-                               &event, 
-                               &rdr,
-                               &rptentry,
-                               &qstatus);
-        if(error != SA_OK)
+        /* Don't loop forever waiting; fail over! */
+        errcnt++;  /* errcnt will be set to 0 if we ever receive an event */
+        if (errcnt > gMaxSessionRetries)
         {
-            static ClTimerTimeOutT delay = { .tsSec = 2, .tsMilliSec = 0 };
-            if(error == SA_ERR_HPI_TIMEOUT)
+            clLog(CL_LOG_CRITICAL, AREA_HPI, CTX_EVT, "Cannot connect to HPI events within a reasonable time period.  Aborting to cause failover.");
+            exit(1);
+        }
+        
+        /* If we don't have a session, then call hpi event subscribe to subscribe for platform events */
+        if (!sessionidValid)
+        {
+            if ((error = openHpiSession (&sessionid, SAHPI_UNSPECIFIED_DOMAIN_ID))!= CL_OK )
+            {
+                clLog(CL_LOG_WARNING, AREA_HPI, CTX_INI, "openHPI session reopen failed.");
+                sleep(5);
                 continue;
-            /*
-             * Try reopening the session some finite number of times
-             * before giving up.
-             */
-            clLog(CL_LOG_CRITICAL, AREA_HPI, CTX_EVT,
-                  "saHpiEventGet failed: %s", oh_lookup_error(error));
-            _saHpiUnsubscribe(sessionid);
-            if(++errcnt >= 4)
-            {
-                return CL_CM_ERROR(CL_ERR_CM_HPI_ERROR);
             }
-            clOsalTaskDelay(delay);
-            if( (rc = openHpiSessionReopen((SaHpiSessionIdT*)ptr)) != CL_OK)
+            if ((error = _saHpiSubscribe( sessionid )) != SA_OK  )
             {
-                return rc;
+                _saHpiSessionClose(sessionid);
+                sessionid = 0;
+                clLog(CL_LOG_WARNING, AREA_HPI, CTX_INI, "saHpiSubscribe failed: %s. Retrying...", oh_lookup_error(error));
+                sleep(5);
+                continue;
             }
-            sessionid = *(SaHpiSessionIdT*)ptr;
-            continue;
         }
 
+        sessionidValid = CL_TRUE;
+        
+        /* Get the events from the Domain Event Table */
+        error = _saHpiEventGet(sessionid, SAHPI_EVENT_TIMEOUT, &event, &rdr, &rptentry, &qstatus);
+        if(error != SA_OK)
+        {
+            /* No events came in; no big deal */
+            if(error == SA_ERR_HPI_TIMEOUT)
+            {
+                errcnt=0;
+                continue; 
+            }
+            
+            sleep(5);            
+            
+            clLog(CL_LOG_WARNING, AREA_HPI, CTX_EVT, "saHpiEventGet failed: %s", oh_lookup_error(error));
+            _saHpiUnsubscribe( sessionid );
+            _saHpiSessionClose( sessionid );
+            sessionid = 0;
+            sessionidValid = CL_FALSE;            
+            /* the rest of the code processes the event.  So do not run it. */
+            continue;
+            
+        }
+        
+        /* We got a good event, so reset the sequential error count */ 
         errcnt = 0;
-
+        
+        
         /* Check whether we lost any events due to queue filling */
         if( qstatus == SAHPI_EVT_QUEUE_OVERFLOW )
         {
             clLog(CL_LOG_WARNING, AREA_HPI, CTX_EVT,
-                "HPI event queue overflow (some event may have been lost)");
+                "HPI event queue overflow (some events may have been lost)");
         }
 
         /* only the active system contoller card supposed to generate events */
         /* (void)oh_fprint_event(stdout, &event, &(rdr.Entity), 12); */
-        clLogMultiline(CL_LOG_DEBUG, AREA_HPI, CTX_EVT,
+        clLogMultiline(CL_LOG_INFO, AREA_HPI, CTX_EVT,
             "HPI event received:%s", eventDetailsToString(&event, &(rdr.Entity)));
-            
+
         if (CL_TRUE != clCpmIsMaster())
         {
-            clLog(CL_LOG_DEBUG, AREA_HPI, CTX_EVT,
-                "Standby CM ignores event");
+            clLog(CL_LOG_DEBUG, AREA_HPI, CTX_EVT, "Standby CM ignores event");
         }
         else
         {
@@ -830,13 +835,16 @@ static ClRcT hpiEventProcessingLoop(void *ptr)
 
     clLog(CL_LOG_INFO, AREA_HPI, CL_LOG_CONTEXT_UNSPECIFIED,
         "Leaving HPI event receive loop");
-    
-    _saHpiUnsubscribe( sessionid );
+    if(sessionidValid)
+    {
+        _saHpiUnsubscribe( sessionid );
+        _saHpiSessionClose( sessionid );
+    }
+
     return SA_OK;
 
 #undef SAHPI_EVENT_TIMEOUT
 }
-
 
 /* Resource hotswap processing :
    -----------------------------
