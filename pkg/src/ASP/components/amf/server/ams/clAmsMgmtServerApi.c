@@ -5849,7 +5849,7 @@ clAmsMgmtCommitCCBOperations(
 
                 ClAmsEntityT *sourceEntity = NULL;
                 ClAmsEntityT *targetEntity = NULL;
-                
+                ClAmsSUT *targetSU = NULL;
                 rc =                  clAmsAddGetEntityList(
                                                         &req->nodeName,
                                                         &req->suName,
@@ -5875,12 +5875,15 @@ clAmsMgmtCommitCCBOperations(
                     AMS_LOG(CL_DEBUG_CRITICAL,("Unable to set SU's [%.*s] parent node to [%.*s] return code [0x%x]. AMF database is inconsistent.",req->suName.name.length-1,req->suName.name.value,req->nodeName.name.length-1,req->nodeName.name.value, rc));
                     AMS_CHECK_RC_ERROR(rc);
                 }
-                if(targetEntity)
+                targetSU = (ClAmsSUT*)targetEntity;
+                if(targetSU && 
+                   targetSU->config.parentSG.ptr && 
+                   targetSU->config.parentNode.ptr)
                 {
                     /*
                      * Mark the SU as instantiable. Would be skipped if its already uninstantiable
                      */
-                    clAmsPeSUMarkInstantiable((ClAmsSUT*)targetEntity);
+                    clAmsPeSUMarkInstantiable(targetSU);
                 }
 
                 break;
@@ -5928,7 +5931,7 @@ clAmsMgmtCommitCCBOperations(
                     (clAmsMgmtCCBSetSGSUListRequestT *)opData->payload;
                 ClAmsEntityT *sourceEntity = NULL;
                 ClAmsEntityT *targetEntity = NULL;
-
+                ClAmsSUT *targetSU = NULL;
                 AMS_CHECK_RC_ERROR(
                                    clAmsAddGetEntityList(
                                                         &req->sgName,
@@ -5952,10 +5955,14 @@ clAmsMgmtCommitCCBOperations(
                  * already checks if SU and node is instantiable before moving it.
                  * So default case would be a no-op in case the SU is locked or 
                  * parent SG or node is locked.
+                 * Do it only if the SU is associated with both the node and the sg.
                  */
-                if(targetEntity)
+                targetSU = (ClAmsSUT*)targetEntity;
+                if(targetSU && 
+                   targetSU->config.parentSG.ptr && 
+                   targetSU->config.parentNode.ptr)
                 {
-                    clAmsPeSUMarkInstantiable((ClAmsSUT*)targetEntity);
+                    clAmsPeSUMarkInstantiable(targetSU);
                 }
                 break;
 
