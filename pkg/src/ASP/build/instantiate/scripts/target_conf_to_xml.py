@@ -25,15 +25,18 @@
 #
 
 # This script converts target.conf into xml.
-# It dumps to stdout, so redirect output to myfile.xml
+# It dumps to stdout, so redirect output to somefile.xml
 
 import sys, os
 from xml.sax.saxutils import escape
 
+TARGET_CONF_SYNTAX_INVALID = "Error: Possibly invalid target.conf file, attempting to recover"
+
 
 # returns a substring between two characters
-# no error checking
 def between(string, first, last):
+    if string.find(first) < 0 or string.find(last) < 0:
+        return ''
     return string[string.find(first)+1:string.find(last)]
 
 
@@ -49,19 +52,22 @@ def iprint(instr, depth=0, newline=True):
 # a slot object
 # link defaults to eth0
 class Slot:
-    def __init__(self, name, addr, link='eth0', arch=''):
+    def __init__(self, name, addr, link='eth0', arch='', custom=''):
         self.name = name
         self.addr = addr
         self.link = link
         self.arch = arch
-    
+        self.custom = custom
+
     def set_link(self, link):
         self.link = link
 
     def set_arch(self, arch):
         self.arch = arch
 
-    
+    def set_custom(self, custom):
+        self.custom = custom
+
     def print_xml(self, depth):
         iprint('<slot>', depth)
         depth += 1
@@ -69,6 +75,7 @@ class Slot:
         iprint('<ADDR>%s</ADDR>' % self.addr, depth)
         iprint('<LINK>%s</LINK>' % self.link, depth)
         iprint('<ARCH>%s</ARCH>' % self.arch, depth)
+        iprint('<CUSTOM>%s</CUSTOM>' % self.custom, depth)
         depth -= 1
         iprint('</slot>', depth)
 
@@ -103,8 +110,9 @@ def main():
 
     depth += 1
 
-    slots = {} # dictionary to hold all slots indexed by name
-    default_arch = ''
+    slots = {}  # dictionary to hold all slots indexed by name
+    default_arch = 'Unknown'
+    default_custom = ''
 
     for line in tconf_array:
     
@@ -125,7 +133,6 @@ def main():
             # create new slot object with default link              
             # put it into dictionary
             slots[name] = Slot(name, addr)
-            
         elif line.lower().startswith('link'):
         
             # we've got a link line
@@ -134,7 +141,7 @@ def main():
             s = slots[name]
             
             if not s:
-                # error
+                print >> sys.stderr, TARGET_CONF_SYNTAX_INVALID
                 continue
                 
             s.set_link(line_array[1])
@@ -148,14 +155,27 @@ def main():
                 default_arch = line_array[1]
             else:
                 # 'arch_name=XYZ' line
+                name = between(line, '_', '=')
                 s = slots[name]
             
                 if not s:
-                    # error
+                    print >> sys.stderr, TARGET_CONF_SYNTAX_INVALID
                     continue
                 
                 s.set_arch(line_array[1])            
-        
+        elif line.lower().startswith('custom'):
+            # custom line per slot
+            
+            if not '_' in line_array[0]:
+                #custom='foo' line
+                default_custom = line_array[1]
+            else:
+                name = between(line, '_', '=')
+                s = slots[name]
+                if not s:
+                    print >> sys.stderr, TARGET_CONF_SYNTAX_INVALID
+                    continue
+                s.set_custom(line_array[1])
         else:
             # a non-slot and non-link line
             
@@ -166,20 +186,17 @@ def main():
             
             iprint(xml_line, depth)
 
-
     iprint('<slots count="%d">' % len(slots), depth)
 
     depth += 1
-
-    if not default_arch:
-        # error
-        pass
 
     # set blank arch's to default arch
     # print all slots
     for s in slots.keys():
         if slots[s].arch == '':
             slots[s].set_arch(default_arch)
+        if slots[s].custom == '':
+            slots[s].set_custom(default_custom)
         slots[s].print_xml(depth)
 
     depth -= 1
@@ -193,8 +210,7 @@ def main():
     iprint('</version>', depth)
 
 
-
+# start program
 if __name__ == '__main__':
     main()
-
 
