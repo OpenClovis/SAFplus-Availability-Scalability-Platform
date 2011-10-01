@@ -1869,7 +1869,9 @@ void cpmRegisterWithActive(void)
         "in the cluster or somebody else is not "
         "using the same GMS port as yours. \n";
     ClInt32T tries = 0;
-    
+
+    cpmBmRespTimerStop();
+
     retry:
     rc = clCpmCpmLocalRegister(gpClCpm->pCpmLocalInfo);
     if ((CL_GET_ERROR_CODE(rc) == CL_ERR_DOESNT_EXIST) ||
