@@ -69,8 +69,30 @@ def init_sys_asp():
 
 def system(cmd): return sys_asp['system'](cmd)
 
-def fail_and_exit(msg):
+def proc_lock_file(cmd):
+    if not is_root():
+        return
+
+    d = '/var/lock/subsys'
+    if not os.path.exists(d):
+        return
+
+    f = 'asp'
+    asp_file = d + os.sep + f
+
+    if cmd == 'touch':
+        fn = touch_lock_file
+    elif cmd == 'remove':
+        fn = remove_lock_file
+    else:
+        assert(0)
+
+    fn(asp_file)
+    
+def fail_and_exit(msg, lock_remove = True):
     log.critical(msg)
+    if lock_remove:
+        proc_lock_file('remove')
     sys.exit(1)
 
 def execute_shell_cmd(cmd, err_msg, fail_on_error=True):
@@ -328,9 +350,8 @@ def set_up_asp_config():
             if not os.path.exists(tipc_config_cmd):
                 log.critical('The tipc-config command is not found in %s !!' %
                              d['bin_dir'])
-                log.critical('This indicates some serious configuration '
+                fail_and_exit('This indicates some serious configuration '
                              'problem while deploying ASP image on target.')
-                sys.exit(1)
             else:
                 return tipc_config_cmd
         else:
@@ -544,7 +565,7 @@ def run_custom_scripts(cmd):
                     log.info('Script [%s] exitted abnormally with status [%d].'
                              % (f, os.WEXITSTATUS(st)))
                     if cmd == 'start':
-                        sys.exit(1)
+                        fail_and_exit('Custom script execution failure')
 
 def setup_gms_config():
     os.putenv('ASP_MULTINODE', '1')
@@ -1011,38 +1032,22 @@ def check_if_root():
                       os.environ['USER'])
 
 def touch_lock_file(asp_file):
-    cmd = 'touch %s' % asp_file
-    ret, output, signal, core = system(cmd)
-    if ret:
-        fail_and_exit('Failed to touch lock file: attempted: %s '
-                      'output was: %s' % (cmd, output))
+    try:
+        f = os.open(asp_file, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+    except OSError, e:
+        if e.errno != errno.EEXIST:
+            raise
+        fail_and_exit("ASP startup script instance already running. "
+                      "To force startup, remove %s lockfile and retry." % asp_file, 
+                      False)
 
 def remove_lock_file(asp_file):
     cmd = '[ -f %s ] && rm -f %s' % (asp_file, asp_file)
     system(cmd)
 
-def proc_lock_file(cmd):
-    if not is_root():
-        return
-
-    d = '/var/lock/subsys'
-    if not os.path.exists(d):
-        return
-
-    f = 'asp'
-    asp_file = d + os.sep + f
-
-    if cmd == 'touch':
-        fn = touch_lock_file
-    elif cmd == 'remove':
-        fn = remove_lock_file
-    else:
-        assert(0)
-
-    fn(asp_file)
-    
 def start_asp(stop_watchdog=True):
     try:
+        proc_lock_file('touch')
         check_asp_status()
         kill_asp()
         cleanup_asp()
@@ -1053,9 +1058,9 @@ def start_asp(stop_watchdog=True):
             start_snmp_daemon()
         if is_simulation():
             setup_gms_config()
-        proc_lock_file('touch')
         run_custom_scripts('start')
         start_amf()
+        proc_lock_file('remove')
         if is_system_controller() and not is_simulation():
             start_hpi_subagent()
         if not is_simulation():
@@ -1079,9 +1084,8 @@ def get_amf_pid():
             log.critical('Contents of this sandbox directory were deleted '
                          'without stopping ASP which was started '
                          'from it.')
-            log.critical('Please kill all the ASP processes manually '
-                         'before proceeding any further.')
-            sys.exit(1)
+            fail_and_exit('Please kill all the ASP processes manually '
+                          'before proceeding any further.')
 
         return cwd == get_asp_run_dir()
     
@@ -1268,6 +1272,7 @@ def get_asp_status(to_shell=True):
     # I (vshenoy) don't know of any other way to propagate this
     # value back to shell
     if to_shell:
+        proc_lock_file('remove')
         sys.exit(v)
     else:
         return v
