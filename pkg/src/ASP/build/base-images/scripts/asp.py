@@ -73,9 +73,11 @@ def proc_lock_file(cmd):
     if not is_root():
         return
 
-    d = '/var/lock/subsys'
+    d = '/var/lock/asp'
     if not os.path.exists(d):
-        return
+        try:
+            os.mkdir(d)
+        except: pass
 
     f = 'asp'
     asp_file = d + os.sep + f
@@ -1049,7 +1051,7 @@ def start_asp(stop_watchdog=True):
     try:
         proc_lock_file('touch')
         check_asp_status()
-        kill_asp()
+        kill_asp(False)
         cleanup_asp()
         save_asp_runtime_files()
         load_config_tipc_module()
@@ -1171,7 +1173,7 @@ def cleanup_asp():
     for cmd in cmd_list:
         os.system(cmd)
 
-def kill_asp():
+def kill_asp(lock_remove = True):
     amf_pid = get_amf_pid() # Dummy, to guard against deletion of sandbox
 
     b = get_asp_bin_dir()
@@ -1217,7 +1219,8 @@ def kill_asp():
                             raise
 
     stop_led_controller()
-    proc_lock_file('remove')
+    if lock_remove:
+        proc_lock_file('remove')
 
 def zap_asp():
     run_custom_scripts('zap')
