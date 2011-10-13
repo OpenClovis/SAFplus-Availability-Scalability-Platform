@@ -1039,17 +1039,18 @@ def touch_lock_file(asp_file):
     except OSError, e:
         if e.errno != errno.EEXIST:
             raise
-        fail_and_exit("ASP startup script instance already running. "
-                      "To force startup, remove %s lockfile and retry." % asp_file, 
+        fail_and_exit("ASP instance already running. "
+                      "To force startup, try removing %s lockfile at your own risk and retry." % asp_file, 
                       False)
 
 def remove_lock_file(asp_file):
     cmd = '[ -f %s ] && rm -f %s' % (asp_file, asp_file)
     system(cmd)
 
-def start_asp(stop_watchdog=True):
+def start_asp(stop_watchdog=True, force_start = False):
     try:
-        proc_lock_file('touch')
+        if not force_start:
+            proc_lock_file('touch')
         check_asp_status()
         kill_asp(False)
         cleanup_asp()
@@ -1062,7 +1063,6 @@ def start_asp(stop_watchdog=True):
             setup_gms_config()
         run_custom_scripts('start')
         start_amf()
-        proc_lock_file('remove')
         if is_system_controller() and not is_simulation():
             start_hpi_subagent()
         if not is_simulation():
@@ -1222,9 +1222,9 @@ def kill_asp(lock_remove = True):
     if lock_remove:
         proc_lock_file('remove')
 
-def zap_asp():
+def zap_asp(lock_remove = True):
     run_custom_scripts('zap')
-    kill_asp()
+    kill_asp(lock_remove)
     if not is_simulation():
         time.sleep(2) ## delay to give time for the zapped processes to exit
         log.info('Unloading TIPC ...')
@@ -1241,13 +1241,13 @@ def check_asp_status():
     v = is_asp_running()
     if v == 0:
         fail_and_exit('ASP is already running on node [%s], pid [%s]' %\
-                      (get_asp_node_addr(), get_amf_pid()))
+                      (get_asp_node_addr(), get_amf_pid()), False)
     elif v == 2:
         fail_and_exit('ASP is still booting up/shutting down on node [%s], '
                       'pid [%s]. '
                       'Please give \'stop\' or \'zap\' command and '
                       'then continue' %\
-                      (get_asp_node_addr(), get_amf_pid()))
+                      (get_asp_node_addr(), get_amf_pid()), False)
     elif v == 3:
         fail_and_exit('ASP is already running with pid [%s], but it was not '
                       'started from this sandbox [%s]. Please check if '
@@ -1275,7 +1275,6 @@ def get_asp_status(to_shell=True):
     # I (vshenoy) don't know of any other way to propagate this
     # value back to shell
     if to_shell:
-        proc_lock_file('remove')
         sys.exit(v)
     else:
         return v

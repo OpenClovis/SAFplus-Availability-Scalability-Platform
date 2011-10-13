@@ -67,7 +67,7 @@ def amf_watchdog_loop():
                 safe_remove(restart_file) 
                 safe_remove(watchdog_restart_file)
                 asp.log.debug('AMF watchdog restarting ASP...')
-                asp.zap_asp()
+                asp.zap_asp(False)
                 ## give time for pending ops to complete
                 ## we unload the TIPC module and let ASP start reload it, 
                 ## since its been observed with tipc 1.5.12 that ASP starts 
@@ -75,7 +75,7 @@ def amf_watchdog_loop():
                 ## retransmit failures due to pending ACK thereby resulting
                 ## in all the TIPC links being reset.
 
-                asp.start_asp(stop_watchdog=False)
+                asp.start_asp(stop_watchdog=False, force_start=True)
                 asp.create_asp_cmd_marker('start')
                 sys.exit(1)
             elif os.access(reboot_file, os.F_OK):
@@ -83,6 +83,7 @@ def amf_watchdog_loop():
                 asp.log.debug('AMF watchdog rebooting %s...'
                               % asp.get_asp_node_name())
                 asp.run_custom_scripts('reboot')
+                asp.proc_lock_file('remove')
                 os.system('reboot')
             elif os.access(restart_disable_file, os.F_OK):
                 safe_remove(restart_disable_file)
@@ -96,11 +97,12 @@ def amf_watchdog_loop():
             else:
 
                 if not asp_admin_stop():
-                    asp.zap_asp()
+                    asp.zap_asp(False)
                     if asp.should_restart_asp():
-                        asp.start_asp(stop_watchdog=False)
+                        asp.start_asp(stop_watchdog=False, force_start = True)
                         asp.create_asp_cmd_marker('start')
-
+                    else:
+                        asp.proc_lock_file('remove')
                 sys.exit(1)
 
         time.sleep(monitor_interval)
