@@ -9,7 +9,7 @@ load_tipc_cmd = 'modprobe tipc'
 
 is_tipc_loaded_cmd = 'lsmod | grep tipc'
 
-get_amf_pid_cmd = 'ps -A'
+get_amf_pid_cmd = 'ps -o pid,cmd -A'
 
 shm_dir = os.getenv('ASP_SHM_DIR') or '/dev/shm'
 

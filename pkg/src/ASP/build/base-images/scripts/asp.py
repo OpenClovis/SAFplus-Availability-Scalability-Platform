@@ -1049,9 +1049,9 @@ def remove_lock_file(asp_file):
 
 def start_asp(stop_watchdog=True, force_start = False):
     try:
-        if not force_start:
+        if False and not force_start:
             proc_lock_file('touch')
-        check_asp_status()
+        check_asp_status(not force_start)
         kill_asp(False)
         cleanup_asp()
         save_asp_runtime_files()
@@ -1071,26 +1071,27 @@ def start_asp(stop_watchdog=True, force_start = False):
     except:
         raise
 
-def get_amf_pid():
-    def get_pid_for_this_sandbox(pid):
-        proc_file = '/proc/%s/cwd' % pid
-        
-        try:
-            cwd = os.readlink(proc_file)
-        except OSError, e:
-            log.debug('Failed to read [%s] : %s' %\
+def get_pid_for_this_sandbox(pid):
+    proc_file = '/proc/%s/cwd' % pid
+    
+    try:
+        cwd = os.readlink(proc_file)
+    except OSError, e:
+        log.debug('Failed to read [%s] : %s' %\
                       (proc_file, e))
-            cwd = ''
+        cwd = ''
 
-        if cwd.endswith(' (deleted)'):
-            log.critical('Contents of this sandbox directory were deleted '
-                         'without stopping ASP which was started '
-                         'from it.')
-            fail_and_exit('Please kill all the ASP processes manually '
+    if cwd.endswith(' (deleted)'):
+        log.critical('Contents of this sandbox directory were deleted '
+                     'without stopping ASP which was started '
+                     'from it.')
+        fail_and_exit('Please kill all the ASP processes manually '
                           'before proceeding any further.')
 
-        return cwd == get_asp_run_dir()
+    return cwd == get_asp_run_dir()
     
+def get_amf_pid(watchdog_pid = False):
+
     if is_valgrind_build():
         l = os.popen('ps -eo pid,cmd | grep asp_amf').readlines()
         l = [e for e in l if 'grep asp_amf' not in e]
@@ -1109,6 +1110,7 @@ def get_amf_pid():
                     l = out
                     break
 
+    temp_l = l
     l = [e for e in l if 'asp_amf' in e]
     l = [e for e in l if 'grep asp_amf' not in e]
     l = [int(e.split()[0]) for e in l]
@@ -1118,7 +1120,19 @@ def get_amf_pid():
         l = filter(get_pid_for_this_sandbox, l)
 
     if len(l) == 0:
-        return 0
+        if not watchdog_pid:
+            return 0
+        ## check for amf watchdog
+        l = temp_l
+        l = [e for e in l if 'amf_watchdog.py' in e ]
+        l = [e for e in l if 'grep amf_watchdog.py' not in e ]
+        l = [int(e.split()[0]) for e in l]
+        l = list(set(l))
+        if is_simulation():
+            l = filter(get_pid_for_this_sandbox, l)
+        if len(l) == 0:
+            return 0
+        return int(l[0])
     else:
         return int(l[0])
     
@@ -1237,30 +1251,30 @@ def start_asp_console():
     os.putenv('ASP_CPM_LOGFILE', 'console')
     start_asp()
     
-def check_asp_status():
-    v = is_asp_running()
+def check_asp_status(watchdog_pid = False):
+    v = is_asp_running(watchdog_pid)
     if v == 0:
         fail_and_exit('ASP is already running on node [%s], pid [%s]' %\
-                      (get_asp_node_addr(), get_amf_pid()), False)
+                      (get_asp_node_addr(), get_amf_pid(watchdog_pid)), False)
     elif v == 2:
         fail_and_exit('ASP is still booting up/shutting down on node [%s], '
                       'pid [%s]. '
                       'Please give \'stop\' or \'zap\' command and '
                       'then continue' %\
-                      (get_asp_node_addr(), get_amf_pid()), False)
+                      (get_asp_node_addr(), get_amf_pid(watchdog_pid)), False)
     elif v == 3:
         fail_and_exit('ASP is already running with pid [%s], but it was not '
                       'started from this sandbox [%s]. Please check if '
                       'ASP was already started from some other '
                       'sandbox directory.' %\
-                      (get_amf_pid(), get_asp_sandbox_dir()))
+                      (get_amf_pid(watchdog_pid), get_asp_sandbox_dir()))
 
 def get_asp_status(to_shell=True):
-    v = is_asp_running()
+    v = is_asp_running(watchdog_pid = True)
 
     if v == 0:
         log.info('ASP is running on node [%s], pid [%s]' %\
-                 (get_asp_node_addr(), get_amf_pid()))
+                 (get_asp_node_addr(), get_amf_pid(True)))
     elif v == 1:
         log.info('ASP is not running on node [%s]' %\
                  get_asp_node_addr())
@@ -1269,7 +1283,7 @@ def get_asp_status(to_shell=True):
     elif v == 3:
         log.info('ASP is running with pid [%s], but it was not '
                  'started from this sandbox [%s].' %\
-                 (get_amf_pid(), get_asp_sandbox_dir()))
+                 (get_amf_pid(True), get_asp_sandbox_dir()))
 
     # Hack, hack, hack !!!
     # I (vshenoy) don't know of any other way to propagate this
@@ -1279,7 +1293,7 @@ def get_asp_status(to_shell=True):
     else:
         return v
     
-def is_asp_running():
+def is_asp_running(watchdog_pid = False):
     '''
     Return value meaning :
     0 -> running
@@ -1288,7 +1302,7 @@ def is_asp_running():
     3 -> running without status file, this is a bug.
     '''
 
-    amf_pid = get_amf_pid()
+    amf_pid = get_amf_pid(watchdog_pid)
 
     if amf_pid == 0:
         return 1
