@@ -1442,12 +1442,15 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
                 case CL_CM_BLADE_REQ_EXTRACTION:
                 case CL_CM_BLADE_NODE_ERROR_REPORT:
                 {
-                    cpmEnqueueCmRequest(&nodeName, &cmCpmMsg);
+                    ClRcT rc2 = cpmEnqueueCmRequest(&nodeName, &cmCpmMsg);
                     rc = cpmToAmsCallback->nodeLeave(&nodeName, 
                                                      CL_CPM_NODE_LEAVING, CL_FALSE);
                     if (CL_OK != rc)
                     {
-                        cpmDequeueCmRequest(&nodeName, &cmCpmMsg);
+                        if(rc2 == CL_OK)
+                        {
+                            cpmDequeueCmRequest(&nodeName, &cmCpmMsg);
+                        }
                         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
                                    "AMS node leave[leaving] failed for node [%s] with "
                                    "error [%#x]", nodeName.value, rc);
@@ -1457,12 +1460,15 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
                 break;
                 case CL_CM_BLADE_SURPRISE_EXTRACTION:
                 {
-                    cpmEnqueueCmRequest(&nodeName, &cmCpmMsg);
+                    ClRcT rc2 = cpmEnqueueCmRequest(&nodeName, &cmCpmMsg);
                     rc = cpmToAmsCallback->nodeLeave(&nodeName, 
                                                      CL_CPM_NODE_LEFT, CL_FALSE);
                     if (CL_OK != rc)
                     {
-                        cpmDequeueCmRequest(&nodeName, &cmCpmMsg);
+                        if(rc2 == CL_OK)
+                        {
+                            cpmDequeueCmRequest(&nodeName, &cmCpmMsg);
+                        }
                         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
                                    "AMS node leave[left] failed for node [%s] with "
                                    "error [%#x]", nodeName.value, rc);
