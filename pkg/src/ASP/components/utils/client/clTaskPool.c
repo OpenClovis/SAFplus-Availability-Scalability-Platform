@@ -46,6 +46,13 @@
 #define CL_TASK_POOL_RUNNING (0x1)
 #define CL_TASK_POOL_ACTIVE (0x2)
 
+#ifndef VXWORKS_BUILD
+#define CL_TASK_POOL_IDLE_TIMEOUT (45)
+#else
+#define CL_TASK_POOL_IDLE_TIMEOUT (0)
+#endif
+#define CL_TASK_POOL_IDLE_TIMEOUT_USECS (1000000L * CL_TASK_POOL_IDLE_TIMEOUT)
+
 #ifdef __linux__
 #define GET_TASK_ID(pStats) ( (pStats)->taskId )
 #define SET_TASK_ID(pStats) do { (pStats)->taskId = (ClOsalTaskIdT)syscall(SYS_gettid); } while(0)
@@ -131,21 +138,24 @@ void clTaskPoolEntry(ClTaskPoolArgT *pArg)
 {
     ClTaskPoolT *tp = pArg->tp;
     ClTaskPoolStatsT *pStats = pArg->pStats;
+    ClTimeT lastWakeup = 0;
+    ClTimeT currentWakeup = 0;
+    ClTimeT delta = 0;
 
     clHeapFree(pArg);
 
     SET_TASK_ID(pStats);
     clTaskPoolDataSet((ClPtrT)tp);
     clOsalMutexLock(&tp->mutex);
-    
+    /*
+     * clLogDebug("TASK", "STAT", "Started task [%d]", (int)GET_TASK_ID(pStats));
+    */
     while( (tp->flags & CL_TASK_POOL_RUNNING) ) /* Gas TODO, trigger tasks to quit*/
     {      
         ClRcT clrc = CL_OK;
-#ifdef VXWORKS_BUILD
-        ClTimerTimeOutT timer = { 0, 0 };  /* should be configurable? */
-#else
-        ClTimerTimeOutT timer = { 45, 0 }; /* should be configurable? */
-#endif
+        ClTimerTimeOutT timer = { .tsSec = CL_TASK_POOL_IDLE_TIMEOUT, 
+                                  .tsMilliSec = 0 
+        };  /* should be configurable? */
         if (tp->preIdleFn) 
         {
             clOsalMutexUnlock(&tp->mutex);
@@ -161,9 +171,9 @@ void clTaskPoolEntry(ClTaskPoolArgT *pArg)
             if (CL_GET_ERROR_CODE(clrc) == CL_ERR_TIMEOUT)
             {
                 /*
-                 * Keep atleast 2 tasks in the taskpool ready to process clashing incoming requests.
+                 * Keep atleast 1 task in the taskpool ready to process clashing incoming requests.
                  */
-                if(tp->numTasks.value > 2)
+                if(tp->numTasks.value > 1)
                 {
                     /*
                      * Quit this task if its idle for quite sometime.
@@ -171,6 +181,37 @@ void clTaskPoolEntry(ClTaskPoolArgT *pArg)
                     break;
                 }
             }
+        }
+        lastWakeup = currentWakeup;
+        currentWakeup = clOsalStopWatchTimeGet();
+
+        if( (tp->flags & CL_TASK_POOL_RUNNING)
+            &&
+            !tp->onDeckFn)
+        {
+            /*
+             * Wakeup with no on-deck. So an idle wakeup.
+             * Measure idle wakeup times across to see if it adds up
+             */
+            if(CL_TASK_POOL_IDLE_TIMEOUT_USECS > 0 
+               &&
+               lastWakeup)
+            {
+                delta += currentWakeup - lastWakeup;
+                if(delta >= CL_TASK_POOL_IDLE_TIMEOUT_USECS 
+                   &&
+                   tp->numTasks.value > 1)
+                {
+                    break;
+                }
+            }
+        }
+        else
+        {
+            /*
+             * reset idle measure.
+             */
+            delta = 0;
         }
 
         while ( (tp->flags & CL_TASK_POOL_RUNNING) 
@@ -220,8 +261,12 @@ void clTaskPoolEntry(ClTaskPoolArgT *pArg)
 
     }
     pStats->tId = 0;
+    /*    
+     * clLogDebug("TASK", "DELETE", "Task [%d] is exiting. Remaining [%d]", 
+     (int)GET_TASK_ID(pStats), tp->numTasks.value-1);
+    */
     CLEAR_TASK_ID(pStats);
-    clMetricAdjust(&tp->numTasks, -1);              
+    clMetricAdjust(&tp->numTasks, -1);  
     clOsalMutexUnlock(&tp->mutex);
 }
 
@@ -252,7 +297,7 @@ static void clTaskPoolNewTask(ClTaskPoolT *tp)
                  */
                 rc = clOsalTaskDetach(tp->pStats[i].tId);
                 CL_ASSERT(rc == CL_OK);
-                clMetricAdjust(&tp->numTasks, 1);              
+                clMetricAdjust(&tp->numTasks, 1);
                 return;
             }
         } 
@@ -309,7 +354,7 @@ ClRcT clTaskPoolRun(ClTaskPoolHandleT handle, ClCallbackT func, ClPtrT cookie)
 
     tp->onDeckFn = func;
     tp->onDeckCookie = cookie;
-    clOsalCondBroadcast(&tp->cond);  /* Wake up tasks! */
+    clOsalCondSignal(&tp->cond);  /* Wake up tasks! */
 
     clOsalMutexUnlock(&tp->mutex);
     return CL_OK;  
@@ -556,7 +601,6 @@ static ClRcT clTaskPoolMonitor(void *pArg)
     ClInt32T i;
     ClTimeT threshold = (ClTimeT)tp->monitorThreshold.tsSec*1000000;
     threshold += (ClTimeT)tp->monitorThreshold.tsMilliSec*1000;
-
     clOsalMutexLock(&tp->mutex);
     tp->monitorActive = CL_TRUE;
     for(i = 0; i < tp->maxTasks.value; ++i)
