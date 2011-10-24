@@ -1103,17 +1103,7 @@ ClRcT _clGmsEngineClusterLeaveWrapper(
     clGmsMutexUnlock(thisViewDb->viewMutex);
     if (foundNodeId != 0)
     {
-        ClUint8T status = CL_IOC_NODE_DOWN;
-        clIocRemoteNodeStatusGet(foundNodeId, &status);
-        if(status == CL_IOC_NODE_DOWN)
-        {
-            return _clGmsEngineClusterLeave(groupId,foundNodeId);
-        }
-        else
-        {
-            clLogNotice("LEAVE", "WRAPPER", "Received leave for node [%#x] still in AMF view. "
-                        "Ignoring the leave", foundNodeId);
-        }
+        return _clGmsEngineClusterLeave(groupId,foundNodeId);
     }
     else 
     {
