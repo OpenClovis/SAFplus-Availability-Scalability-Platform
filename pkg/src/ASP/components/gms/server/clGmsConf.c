@@ -290,7 +290,17 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
      * 5 seconds
      */
     gmsGlobalInfo.config.bootElectionTimeout = CL_GMS_DEFAULT_BOOT_ELECTION_TIMEOUT;
-    
+    gmsGlobalInfo.config.leaderSoakInterval = CL_GMS_DEFAULT_BOOT_ELECTION_TIMEOUT;
+
+    if( (temp = getenv("CL_ASP_LEADER_SOAK_INTERVAL") ) )
+    {
+        ClUint32T leaderSoakInterval = atoi(temp);
+        if(leaderSoakInterval > 0)
+        {
+            gmsGlobalInfo.config.leaderSoakInterval = leaderSoakInterval;
+        }
+    }
+
     /* First check if this is system controller node. If not then use
      * default 5 seconds timeout */
     if((temp = getenv("CL_ASP_BOOT_ELECTION_TIMEOUT")))

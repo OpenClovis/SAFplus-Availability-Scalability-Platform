@@ -113,6 +113,7 @@ typedef struct {
      * have any effect on payload nodes. */
     ClUint32T               bootElectionTimeout;
 
+    ClUint32T               leaderSoakInterval;
 }  ClGmsConfigT;
 
 

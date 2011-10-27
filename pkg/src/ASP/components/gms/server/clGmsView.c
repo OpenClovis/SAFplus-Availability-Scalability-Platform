@@ -236,6 +236,7 @@ ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT no
         {
             node->viewMember.clusterMember.credential = member.address;
         }
+        node->viewMember.clusterMember.bootTimestamp = clOsalStopWatchTimeGet();
         clLogNotice("VIEW", "CHECK", "Node [%d] added to the view with capability [%#x] "
                     "credentials [%d]", member.address, member.capability, 
                     node->viewMember.clusterMember.credential);
@@ -1452,6 +1453,7 @@ ClRcT   _clGmsViewAddNodeExtended(
                 clLogNotice("LAST", "LEADER", "Resetting last leader view cache for node [%d]", nodeId);
                 gmsViewCacheLastLeaderReset(nodeId);
             }
+            foundNode->viewMember.clusterMember.bootTimestamp = node->viewMember.clusterMember.bootTimestamp;
             rc = _clGmsViewUpdateNodePrivate(thisViewDb, nodeId, node, 
                     foundNode);
             clHeapFree((void*)node);
@@ -1504,6 +1506,8 @@ ClRcT   _clGmsViewDeleteNodeExtended(
         return rc;
     }
     CL_ASSERT(foundNode != NULL);
+
+    foundNode->viewMember.clusterMember.bootTimestamp = 0;
 
     if (thisViewDb->viewType == CL_GMS_CLUSTER)
     {

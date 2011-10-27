@@ -236,7 +236,7 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId,
     {
 #if 0
         if(pAddress->iocPhyAddress.portId != CL_IOC_CPM_PORT)
-            return;
+           return;
 #endif
         clLogNotice("NOTIF", "JOIN", "Triggering node join from tipc level for node [%#x], port [%#x]",
                     pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
@@ -366,6 +366,38 @@ _clGmsEngineStart()
     rc = gmsClusterStart();
 
     return rc;
+}
+
+
+static __inline__ ClBoolT canElectNodeAsLeader(ClGmsNodeIdT lastLeader, ClGmsClusterMemberT *member)
+{
+#define CL_GMS_LEADER_SOAK_INTERVAL (gmsGlobalInfo.config.leaderSoakInterval * 1000000L)
+    ClTimeT curTimestamp = 0;
+
+    if(gClTotemRunning) return CL_TRUE;
+
+    curTimestamp = clOsalStopWatchTimeGet();
+    if(member->bootTimestamp 
+       && 
+       (curTimestamp - member->bootTimestamp) < CL_GMS_LEADER_SOAK_INTERVAL)
+    {
+        /*
+         * If there is an existing leader and we are trying to flip within the soak time,
+         * disallow as we are in the failover window where the standby cannot become active.
+         */
+        if(lastLeader 
+           &&
+           lastLeader != CL_GMS_INVALID_NODE_ID
+           && 
+           lastLeader != member->nodeId)
+        {
+            clLogNotice("CHECK", "LEADER", 
+                        "Node [%d] cannot yet become a leader is it is within the leader election soak time",
+                        member->nodeId);
+            return CL_FALSE;
+        }
+    }
+    return CL_TRUE;
 }
 
 /*
@@ -588,6 +620,7 @@ _clGmsEngineLeaderElect(
     ClGmsDbT    *thisViewDb = NULL;
     ClGmsViewNodeT      *viewNode  = NULL;
     ClGmsClusterMemberT *currentNode = NULL;
+    ClGmsNodeIdT lastLeader = 0;
     ClUint32T           i = 0;
 
     if ((leaderNodeId == NULL) || (deputyNodeId == NULL))
@@ -657,6 +690,7 @@ _clGmsEngineLeaderElect(
         goto done_return;
     }
     CL_ASSERT(thisViewDb != NULL);
+    lastLeader = thisViewDb->view.leader;
 
     /* 
      * Unset the isCurrentLeader flag if set for any other node,
@@ -697,7 +731,28 @@ _clGmsEngineLeaderElect(
                 goto done_return;
             }
 
-            viewNode->viewMember.clusterMember.isCurrentLeader = CL_TRUE;
+            /*
+             * Now check if this elected node can really become the leader or not
+             * in case we are switching too fast within the switchover soak time
+             */
+            if(canElectNodeAsLeader(lastLeader, &viewNode->viewMember.clusterMember))
+            {
+                viewNode->viewMember.clusterMember.isCurrentLeader = CL_TRUE;
+            }
+            else
+            {
+                /*
+                 * But mark the node with a promotion capability in case it doesn't get reset
+                 * due to the premature switchover again. Also trigger re-election
+                 */
+                ClTimerTimeOutT reElectTimeout = 
+                { .tsSec = gmsGlobalInfo.config.bootElectionTimeout + gmsGlobalInfo.config.leaderSoakInterval,
+                  .tsMilliSec = 0 
+                };
+                viewNode->viewMember.clusterMember.isCurrentLeader = __SC_PROMOTE_CAPABILITY_MASK;
+                *leaderNodeId = CL_GMS_INVALID_NODE_ID;
+                leaderElectionTimerRun(CL_TRUE, &reElectTimeout);
+            }
         }
 
         /* If I am the leader then I need to update my global data structure */
@@ -894,9 +949,9 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
                &&
                bootTimeElectionDone)
             {
-                timeout.tsSec = 3;
                 if(!reElect)
                 {
+                    timeout.tsSec = 3;
                     reElect = CL_TRUE;
                 }
                 rc = CL_OK;
