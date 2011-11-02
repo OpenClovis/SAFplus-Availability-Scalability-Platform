@@ -436,12 +436,11 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
             {
                 ckptIdlHandleUpdate( gCkptSvr->masterInfo.deputyAddr,
                         gCkptSvr->ckptIdlHdl,0);
-                VDECL_VER(clCkptDeputyCkptCreateClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
+                VDECL_VER(clCkptDeputyCkptCreateClientSync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
                         masterHdl, clientHdl,
                         pName, pCreateAttr,
-                        localAddr, localPort,
-                        &ckptVersion,
-                        NULL,NULL);
+                        localAddr, localPort, 
+                        &ckptVersion);
             } 
 
             /* 
@@ -597,10 +596,9 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                     clientHdl, storedDBHdl);
             ckptIdlHandleUpdate( gCkptSvr->masterInfo.deputyAddr,
                     gCkptSvr->ckptIdlHdl,0);
-            VDECL_VER(clCkptDeputyCkptOpenClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
-                    storedDBHdl, clientHdl, localAddr,
-                    localPort, &ckptVersion,
-                    NULL,NULL);
+            VDECL_VER(clCkptDeputyCkptOpenClientSync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
+                    storedDBHdl, clientHdl, localAddr, 
+                    localPort, &ckptVersion);
         }    
         /* 
          *  Inform about application Info to all the replicas of this checkpoint
@@ -2331,12 +2329,12 @@ ClRcT ckptDynamicDeputyUpdate(CkptDynamicSyncupT updateFlag,
     /*
      * Send the call to the deputy master.
      */
-    rc = VDECL_VER(clCkptDeputyDynamicUpdateClientAsync, 4, 0, 0)(
+    rc = VDECL_VER(clCkptDeputyDynamicUpdateClientSync, 4, 0, 0)(
                             gCkptSvr->ckptIdlHdl,
                             &ckptVersion,
                             updateFlag,
-                            &dynamicInfo,
-                            NULL,0);
+                            &dynamicInfo);
+
     if( CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE || 
         CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE )
     {

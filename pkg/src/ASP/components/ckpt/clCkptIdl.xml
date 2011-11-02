@@ -452,7 +452,7 @@
             </Group>
             <Group name="MasterActive">
             <!-- 21) -->
-                <Operation name="clCkptDeputyCkptCreate" type="async">
+                <Operation name="clCkptDeputyCkptCreate" type="sync">
                     <Argument ParameterType="CL_IN" name="ckptMastHdl"
                     type="ClHandleT"/>
                     <Argument ParameterType="CL_IN" name="ckptClntHdl"
@@ -469,7 +469,7 @@
                     <Argument ParameterType="CL_INOUT" name="pVersion"
                      type="ClVersionT" pointer="Single"/>
                 </Operation>	
-                <Operation name="clCkptDeputyCkptOpen" type="async">
+                <Operation name="clCkptDeputyCkptOpen" type="sync">
                     <Argument ParameterType="CL_IN" name="ckptMastHdl"
                     type="ClHandleT"/>
                     <Argument ParameterType="CL_IN" name="ckptClntHdl"
@@ -559,7 +559,7 @@
                     <Argument ParameterType="CL_IN" name="activeAddr"
                     type="ClUint32T"/>
                 </Operation>	
-                <Operation name="clCkptDeputyDynamicUpdate" type="async">
+                <Operation name="clCkptDeputyDynamicUpdate" type="sync">
                     <Argument ParameterType="CL_INOUT"  name="pVersion" 
                     type="ClVersionT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"  name="updateFlag" 

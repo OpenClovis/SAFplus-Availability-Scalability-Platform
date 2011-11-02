@@ -39,17 +39,9 @@ extern "C" {
 
 
 
-typedef void (*CkptEoClCkptDeputyCkptCreateAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClHandleT  ckptMastHdl, CL_IN ClHandleT  ckptClntHdl, CL_IN ClNameT* pCkptName, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0* pCkptCreatAtrr, CL_IN ClUint32T  localAddr, CL_IN ClUint32T  portId, CL_INOUT ClVersionT* pVersion, CL_IN ClRcT rc, CL_IN void* pCookie);
+ClRcT clCkptDeputyCkptCreateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT ckptMastHdl, CL_IN ClHandleT ckptClntHdl, CL_IN ClNameT* pCkptName, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0* pCkptCreatAtrr, CL_IN ClUint32T localAddr, CL_IN ClUint32T portId, CL_INOUT ClVersionT* pVersion);
 
-typedef CkptEoClCkptDeputyCkptCreateAsyncCallbackT_4_0_0 CkptEoClCkptDeputyCkptCreateAsyncCallbackT;
-
-ClRcT clCkptDeputyCkptCreateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT  ckptMastHdl, CL_IN ClHandleT  ckptClntHdl, CL_IN ClNameT* pCkptName, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0* pCkptCreatAtrr, CL_IN ClUint32T  localAddr, CL_IN ClUint32T  portId, CL_INOUT ClVersionT* pVersion,CL_IN CkptEoClCkptDeputyCkptCreateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
-
-typedef void (*CkptEoClCkptDeputyCkptOpenAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClHandleT  ckptMastHdl, CL_IN ClHandleT  ckptClntHdl, CL_IN ClUint32T  localAddr, CL_IN ClUint32T  portId, CL_INOUT ClVersionT* pVersion, CL_IN ClRcT rc, CL_IN void* pCookie);
-
-typedef CkptEoClCkptDeputyCkptOpenAsyncCallbackT_4_0_0 CkptEoClCkptDeputyCkptOpenAsyncCallbackT;
-
-ClRcT clCkptDeputyCkptOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT  ckptMastHdl, CL_IN ClHandleT  ckptClntHdl, CL_IN ClUint32T  localAddr, CL_IN ClUint32T  portId, CL_INOUT ClVersionT* pVersion,CL_IN CkptEoClCkptDeputyCkptOpenAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clCkptDeputyCkptOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT ckptMastHdl, CL_IN ClHandleT ckptClntHdl, CL_IN ClUint32T localAddr, CL_IN ClUint32T portId, CL_INOUT ClVersionT* pVersion);
 
 ClRcT clCkptDeputyCkptInfoUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClUint32T numOfCkpts, CL_IN CkptInfoT_4_0_0* pCkptInfo);
 
@@ -99,11 +91,7 @@ typedef CkptEoClCkptActiveAddrInformAsyncCallbackT_4_0_0 CkptEoClCkptActiveAddrI
 
 ClRcT clCkptActiveAddrInformClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClVersionT  inVersion, CL_IN ClHandleT  masterHdl, CL_IN ClUint32T  activeAddr,CL_IN CkptEoClCkptActiveAddrInformAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
-typedef void (*CkptEoClCkptDeputyDynamicUpdateAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN CkptDynamicSyncupT_4_0_0  updateFlag, CL_IN CkptDynamicInfoT_4_0_0* pDynamicInfo, CL_IN ClRcT rc, CL_IN void* pCookie);
-
-typedef CkptEoClCkptDeputyDynamicUpdateAsyncCallbackT_4_0_0 CkptEoClCkptDeputyDynamicUpdateAsyncCallbackT;
-
-ClRcT clCkptDeputyDynamicUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN CkptDynamicSyncupT_4_0_0  updateFlag, CL_IN CkptDynamicInfoT_4_0_0* pDynamicInfo,CL_IN CkptEoClCkptDeputyDynamicUpdateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clCkptDeputyDynamicUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN CkptDynamicSyncupT_4_0_0 updateFlag, CL_IN CkptDynamicInfoT_4_0_0* pDynamicInfo);
 
 typedef void (*CkptEoClCkptDeputyPeerListUpdateAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClVersionT  version, CL_IN ClUint32T  peerAddr, CL_IN ClUint8T  credential, CL_IN ClRcT rc, CL_IN void* pCookie);
 
