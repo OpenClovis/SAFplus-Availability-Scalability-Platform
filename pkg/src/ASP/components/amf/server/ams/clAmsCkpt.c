@@ -1007,7 +1007,9 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
     ClCharT *readData = NULL;
     ClUint32T dbInvocationPair;
 
-    if ( ams->ckptServerReady == CL_FALSE || !ams->isEnabled)
+    if ( ams->ckptServerReady == CL_FALSE || 
+         ams->serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE || 
+         !ams->isEnabled)
     { 
         AMS_LOG (CL_DEBUG_TRACE,("Checkpoint server not ready\n")); 
         return CL_OK; 
