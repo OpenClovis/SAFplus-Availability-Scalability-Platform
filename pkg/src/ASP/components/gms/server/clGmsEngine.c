@@ -543,10 +543,7 @@ computeLeaderDeputyWithHighestCredential (
 
     findNodeWithHigestCredential(eligibleNodes, noOfEligibleNodes, deputyNodeId);
 
-    clLog(INFO,LEA,NA,
-            "Results of leader election: Leader [%d], Deputy [%d]",
-            *leaderNodeId,*deputyNodeId);
-    clLogNotice("---","---",
+    clLogNotice(LEA, "ELECT",
             "Results of leader election: Leader [%d], Deputy [%d]",
             *leaderNodeId,*deputyNodeId);
     return rc;
