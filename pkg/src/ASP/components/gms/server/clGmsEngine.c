@@ -63,6 +63,7 @@
 #include <clGmsApiHandler.h>
 #include <clGmsRmdServer.h>
 #include <clNodeCache.h>
+#include <clCpmExtApi.h>
 
 # define CL_MAX_CREDENTIALS     (~0U)
 #define __SC_PROMOTE_CREDENTIAL_BIAS (CL_IOC_MAX_NODES+1)
@@ -375,7 +376,7 @@ static __inline__ ClBoolT canElectNodeAsLeader(ClGmsNodeIdT lastLeader, ClGmsClu
     ClTimeT curTimestamp = 0;
 
     if(gClTotemRunning) return CL_TRUE;
-
+    if(clCpmIsSCCapable()) return CL_TRUE;
     curTimestamp = clOsalStopWatchTimeGet();
     if(member->bootTimestamp 
        && 
