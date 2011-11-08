@@ -186,8 +186,10 @@ clLogFileOwnerLocationVerify(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
             *pFileOwner = CL_TRUE;
         }
     }
-    else if( !(strncmp(pFileOwnerEoEntry->nodeName.value, nodeStr,
-                       pFileOwnerEoEntry->nodeName.length)) ) 
+    else if( pFileOwnerEoEntry->nodeName.length == strlen(nodeStr)
+             &&
+             !(strncmp(pFileOwnerEoEntry->nodeName.value, nodeStr,
+                       pFileOwnerEoEntry->nodeName.length)) )
     {
         *pFileOwner = CL_TRUE;
     }

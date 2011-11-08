@@ -731,7 +731,9 @@ clLogFileOwnerAddressFetch(ClStringT  *pFileLocation)
     {
         return pSvrCommonEoEntry->masterAddr;
     }
-    else if( !(strncmp(nodeName.value, nodeStr, nodeName.length)) ) 
+    else if( nodeName.length == strlen(nodeStr) 
+             && 
+             !(strncmp(nodeName.value, nodeStr, nodeName.length)) )
     {
         return localAddr;
     }
