@@ -71,7 +71,7 @@
 static      ClTimerHandleT  timerHandle = NULL;
 ClBoolT     bootTimeElectionDone = CL_FALSE;
 static ClBoolT reElect = CL_FALSE;
-
+static ClBoolT timerRestarted = CL_FALSE;
 static ClRcT _clGmsEngineClusterJoinWrapper(
                                       CL_IN   const ClGmsGroupIdT   groupId,
                                       CL_IN   const ClGmsNodeIdT    nodeId,
@@ -131,6 +131,7 @@ timerCallback( void *arg ){
     CL_ASSERT( (rc == CL_OK) && (view != NULL));
 
     reElect = CL_FALSE; /* reset re-election trigger*/
+    timerRestarted = CL_FALSE;
 
     rc = _clGmsEngineLeaderElect ( 
                                   0x0,
@@ -183,7 +184,10 @@ timerCallback( void *arg ){
 	readyToServeGroups = CL_TRUE;
     }
 
-    clTimerDeleteAsync(&timerHandle); /*delete the timer*/
+    if(!timerRestarted)
+    {
+        clTimerDeleteAsync(&timerHandle); /*delete the timer*/
+    }
 
     if (_clGmsViewUnlock(0x0) != CL_OK)
     {
@@ -202,6 +206,7 @@ static ClRcT leaderElectionTimerRun(ClBoolT restart, ClTimerTimeOutT *pTimeOut)
     if(restart && timerHandle)
         clTimerDeleteAsync(&timerHandle);
     if(pTimeOut)  timeOut = *pTimeOut;
+    timerRestarted = CL_TRUE;
     clLogNotice(GEN, NA,
                 "Starting boot time election timer for [%d] secs", timeOut.tsSec);
     return clTimerCreateAndStart(
@@ -1208,6 +1213,8 @@ ClRcT _clGmsEngineClusterLeaveExtended(
     if ((nodeId == thisClusterView->leader) || 
             (nodeId == thisClusterView ->deputy))
     {
+        timerRestarted = CL_FALSE;
+
         rc = _clGmsEngineLeaderElect(
                 0x0,
                 NULL,   /* FIXME: need to send the node leaving the cluster*/
@@ -1248,6 +1255,20 @@ ClRcT _clGmsEngineClusterLeaveExtended(
      _clGmsRemoveAllMembersOnShutdown (nodeId);
 
 
+    /*Delete the callback timer used while joining.*/
+    if (timerHandle &&
+        (timerRestarted == CL_FALSE) &&
+        (nodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId))
+    {
+        rc = clTimerDeleteAsync(&timerHandle);
+
+        if(rc != CL_OK)
+        {
+           clLog(ERROR,CLM,NA,
+                 "Initial Leader Election Soak Timer deletion Failed with [%#x] for node [%d]", rc, nodeId);
+        }
+    }
+
 unlock_and_exit:
 
     if (_clGmsViewUnlock(groupId) != CL_OK)
@@ -1258,18 +1279,7 @@ unlock_and_exit:
 
     if (rc)
         return rc;
-    /*Delete the callback timer used while joining.*/
-    if ((timerHandle != NULL) && 
-            (nodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId))
-    {
-        rc = clTimerDelete ( &timerHandle );
 
-        if(rc != CL_OK)
-        {
-           clLog(ERROR,CLM,NA,
-                     "Initial Leader Election Soak Timer deletion Failed");
-        }
-    }
 
     clLog(INFO,CLM,NA, 
             "Cluster node [%d] left the cluster",nodeId);

@@ -143,6 +143,7 @@ typedef struct clGmsGroupSyncNotification {
 
 #define CL_GMS_NANO_SEC         1000000000ULL
 
+#define CL_GMS_MICRO_SEC        1000000ULL
 
 /* View compare enums */
 

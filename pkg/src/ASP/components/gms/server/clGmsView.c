@@ -186,6 +186,7 @@ static ClRcT gmsViewCacheGet(ClGmsNodeIdT currentLeader, ClIocNodeAddressT nodeI
         }
         cache->nodeMember.viewMember.clusterMember.isPreferredLeader = CL_FALSE;
         cache->nodeMember.viewMember.clusterMember.leaderPreferenceSet = CL_FALSE;
+        cache->nodeMember.viewMember.clusterMember.bootTimestamp = clOsalStopWatchTimeGet();
         if(nodeMember)
         {
             *nodeMember = &cache->nodeMember;
@@ -1065,7 +1066,7 @@ ClRcT   _clGmsViewCliPrint(
     {
         if (thisViewDb->viewType == CL_GMS_CLUSTER) 
         {
-            ti = node->viewMember.clusterMember.bootTimestamp/CL_GMS_NANO_SEC;
+            ti = node->viewMember.clusterMember.bootTimestamp/CL_GMS_MICRO_SEC;
 
             rc = clDebugPrint(msg, "%-6d %-15s %-8d %-4d %-10s %-11d %-8s %-11s %s", 
                     node->viewMember.clusterMember.nodeId, 
@@ -1453,7 +1454,10 @@ ClRcT   _clGmsViewAddNodeExtended(
                 clLogNotice("LAST", "LEADER", "Resetting last leader view cache for node [%d]", nodeId);
                 gmsViewCacheLastLeaderReset(nodeId);
             }
-            foundNode->viewMember.clusterMember.bootTimestamp = node->viewMember.clusterMember.bootTimestamp;
+            if(!foundNode->viewMember.clusterMember.bootTimestamp)
+            {
+                foundNode->viewMember.clusterMember.bootTimestamp = node->viewMember.clusterMember.bootTimestamp;
+            }
             rc = _clGmsViewUpdateNodePrivate(thisViewDb, nodeId, node, 
                     foundNode);
             clHeapFree((void*)node);

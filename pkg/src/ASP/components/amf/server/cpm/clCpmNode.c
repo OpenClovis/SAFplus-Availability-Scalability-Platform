@@ -2004,6 +2004,10 @@ void cpmRegisterWithActive(void)
                         if(rc1 == CL_OK)
                             continue;
                     }
+
+                    if(CL_GET_ERROR_CODE(rc1) == CL_ERR_INVALID_STATE)
+                        goto invalid_state;
+
                     clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
                                   "CPM/G standby/Worker blade registration "
                                   "with the CPM/G active failed, error [%#x]",
@@ -2024,10 +2028,12 @@ void cpmRegisterWithActive(void)
     {
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_STATE)
         {
-            ClTimerTimeOutT delay = { .tsSec = 3, .tsMilliSec = 0 };
+            static ClTimerTimeOutT delay = { .tsSec = 3, .tsMilliSec = 0 };
+            invalid_state:
             clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
                           "This node failed to register with master because of invalid state. "
-                          "Scheduling a restart to recover from a potential split brain and merge of the worker.");
+                          "Scheduling a restart recovery to recover from an inconsistent cluster state "
+                          "mostly caused by flipping controllers or inconsistent tipc notifications");
             cpmRestart(&delay, "registration");
             /*
              * Unreached.
