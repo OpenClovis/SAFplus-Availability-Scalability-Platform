@@ -195,7 +195,7 @@ ClRcT clNodeCacheInitialize(ClBoolT createFlag)
     if(gpClNodeCache)
         goto out;
 
-    gClAspNativeLeaderElection = clParseEnvBoolean("CL_ASP_NATIVE_LEADER_ELECTION");
+    gClAspNativeLeaderElection = !clParseEnvBoolean("CL_ASP_OPENAIS_LEADER_ELECTION");
 
     snprintf(gClNodeCacheSegment, sizeof(gClNodeCacheSegment)-1,
              "%s_%d", CL_NODE_CACHE_SEGMENT, clIocLocalAddressGet());

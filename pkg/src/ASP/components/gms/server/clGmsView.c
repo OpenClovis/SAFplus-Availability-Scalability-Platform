@@ -1066,7 +1066,7 @@ ClRcT   _clGmsViewCliPrint(
     {
         if (thisViewDb->viewType == CL_GMS_CLUSTER) 
         {
-            ti = node->viewMember.clusterMember.bootTimestamp/CL_GMS_MICRO_SEC;
+            ti = node->viewMember.clusterMember.bootTimestamp/CL_GMS_NANO_SEC;
 
             rc = clDebugPrint(msg, "%-6d %-15s %-8d %-4d %-10s %-11d %-8s %-11s %s", 
                     node->viewMember.clusterMember.nodeId, 
