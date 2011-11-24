@@ -47,6 +47,7 @@
 #include <clGmsApiClient.h>
 #include <string.h>
 #include <unistd.h>
+#include <clXdrApi.h>
 // added for job queue
 #include "clJobQueue.h"
 
@@ -965,8 +966,10 @@ marshalClGmsClusterLeaveRequest(
     ClGmsClusterLeaveRequestT* const req = (ClGmsClusterLeaveRequestT*)ptr;
 
     CL_ASSERT(req!=NULL);
-
-    rc = clBufferNBytesWrite(buf, (void*)req, sizeof(*req));
+    rc |= clXdrMarshallClVersionT(&req->clientVersion, buf, 0);
+    rc |= clXdrMarshallClUint32T(&req->groupId, buf, 0);
+    rc |= clXdrMarshallClUint32T(&req->nodeId, buf, 0);
+    rc |= clXdrMarshallClUint16T(&req->sync, buf, 0);
 
     return rc;
 }
@@ -979,39 +982,33 @@ unmarshalClGmsClusterLeaveResponse(
 {
     ClRcT rc = CL_OK;
     ClGmsClusterLeaveResponseT** const res = (ClGmsClusterLeaveResponseT**)pptr;
-    ClUint32T len = 0x0U;
 
     if (res == NULL)
     {
         return CL_ERR_NULL_POINTER;
     }
 
-    rc = clBufferLengthGet(buf, &len);
-    if ((rc != CL_OK) || (len < sizeof(**res)))
-    {
-        return CL_GMS_RC(CL_GMS_ERR_UNMARSHALING_FAILED);
-    }
-
     /* ... we have at least a full ClGmsClusterLeaveResponseT */
 
-    *res = (ClGmsClusterLeaveResponseT*)clHeapAllocate(sizeof(**res));
+    *res = (ClGmsClusterLeaveResponseT*)clHeapCalloc(1, sizeof(**res));
     if (*res == NULL)
     {
         return CL_GMS_RC(CL_ERR_NO_MEMORY);
     }
 
-    len = sizeof(**res);
-    rc = clBufferNBytesRead(buf, (void*)*res, &len);
+    rc |= clXdrUnmarshallClVersionT(buf, &(*res)->serverVersion);
+    rc |= clXdrUnmarshallClUint32T(buf, &(*res)->rc);
+
     if (rc != CL_OK)
     {
         goto error_exit;
     }
-    CL_ASSERT(len == sizeof(**res)); /* to never happen */
 
     return rc;
 
 error_exit:
     clHeapFree((void*)*res);
+    *res = NULL;
 
     return rc;
 }

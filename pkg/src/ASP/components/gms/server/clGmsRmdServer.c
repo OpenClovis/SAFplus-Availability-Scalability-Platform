@@ -49,6 +49,7 @@
 #include <clGmsErrors.h>
 #include <clGmsApiHandler.h>
 #include <clLogApi.h>
+#include <clXdrApi.h>
 #include "clGmsRmdServer.h"
 
 /******************************************************************************
@@ -1162,21 +1163,15 @@ unmarshalClGmsClusterLeaveRequest(
     CL_INOUT ClGmsClusterLeaveRequestT*  const       req)
 {
     ClRcT rc = CL_OK;
-    ClUint32T len = 0x0;
 
-    rc = clBufferLengthGet(buf, &len);
-    if ((rc != CL_OK) || (len < sizeof(*req)))
-    {
-        return CL_GMS_RC(CL_GMS_ERR_UNMARSHALING_FAILED);
-    }
-    
-    len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc |= clXdrUnmarshallClVersionT(buf, &req->clientVersion);
+    rc |= clXdrUnmarshallClUint32T(buf, &req->groupId);
+    rc |= clXdrUnmarshallClUint32T(buf, &req->nodeId);
+    rc |= clXdrUnmarshallClUint16T(buf, &req->sync);
     if (rc != CL_OK)
     {
         goto error_exit;
     }
-    CL_ASSERT(len == sizeof(*req)); /* to never happen */
     
 error_exit:
 
@@ -1193,7 +1188,8 @@ marshalClGmsClusterLeaveResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc |= clXdrMarshallClVersionT(&res->serverVersion, buf, 0);
+    rc |= clXdrMarshallClUint32T(&res->rc, buf, 0);
 
     return rc;
 }
