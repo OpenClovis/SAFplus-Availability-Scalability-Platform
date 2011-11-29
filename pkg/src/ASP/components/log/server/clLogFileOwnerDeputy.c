@@ -483,7 +483,20 @@ clLogFileOwnerStateRecover(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 
     if( CL_FALSE == logRestart )
     {
-        rc = VDECL_VER(clLogMasterCompListGetClientSync, 4, 0, 0)(hLogIdl, &numEntries, &buffLen, &pBuffer);
+        retryCnt = 0;
+        do
+        {
+            rc = VDECL_VER(clLogMasterCompListGetClientSync, 4, 0, 0)(hLogIdl, &numEntries, &buffLen, &pBuffer);
+            if(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT)
+            {
+                clOsalTaskDelay(delay);
+            }
+            else
+            {
+                break;
+            }
+        } while(retryCnt++ < 3);
+
         if( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
         {
             /*its temporay fix..clean solution is needed.FIXME */
