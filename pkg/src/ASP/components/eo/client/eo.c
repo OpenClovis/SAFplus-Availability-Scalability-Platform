@@ -2581,6 +2581,7 @@ ClRcT clEoPrivateDataGet(ClEoExecutionObjT *pThis, ClUint32T key, void **pData)
 {
     ClCntNodeHandleT nodeHandle;
     ClRcT retCode = CL_OK;
+    ClBoolT locked = CL_TRUE;
 
     /* CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("\n EO: Inside clEoPrivateDataGet \n")); */
 
@@ -2601,10 +2602,18 @@ ClRcT clEoPrivateDataGet(ClEoExecutionObjT *pThis, ClUint32T key, void **pData)
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
+    if(pThis->state == CL_EO_STATE_STOP)
+    {
+        locked = CL_FALSE;
+    }
+    else
+    {
+        clOsalMutexLock(&pThis->eoMutex);
+    }
+
     /*
      * Find the node related to the type 
      */
-    clOsalMutexLock(&pThis->eoMutex);
     retCode =
         clCntNodeFind(pThis->pEOPrivDataHdl, (ClCntKeyHandleT) (ClWordT)key,
                 &nodeHandle);
@@ -2617,7 +2626,8 @@ ClRcT clEoPrivateDataGet(ClEoExecutionObjT *pThis, ClUint32T key, void **pData)
             clCntNodeUserDataGet(pThis->pEOPrivDataHdl, nodeHandle,
                     (ClCntDataHandleT *) pData);
     }
-    clOsalMutexUnlock(&pThis->eoMutex);
+    if(locked)
+        clOsalMutexUnlock(&pThis->eoMutex);
 
     return retCode;
 }
