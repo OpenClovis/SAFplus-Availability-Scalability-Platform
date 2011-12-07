@@ -245,6 +245,21 @@ static ClRcT clTipcNotificationPacketSend(ClIocNotificationT *pNotificationInfo,
     return retCode;
 }
 
+static ClRcT clTipcNodeVersionSend(ClIocAddressT *destAddress, 
+                                   ClUint32T nodeVersion, ClUint32T myCapability)
+{
+    ClIocNotificationT notification = {0};
+    notification.id = htonl(CL_IOC_NODE_VERSION_NOTIFICATION);
+    notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
+    notification.nodeVersion = htonl(nodeVersion);
+    notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
+    notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
+    clLogNotice("NODE", "VERSION", "Sending node version [%#x], capability [%#x] "
+                "to node [%#x], port [%#x]", nodeVersion, myCapability, 
+                destAddress->iocPhyAddress.nodeAddress, destAddress->iocPhyAddress.portId);
+    return clTipcNotificationPacketSend(&notification, destAddress, CL_FALSE);
+}
+
 static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
 {
     ClRcT rc = CL_OK;
@@ -288,12 +303,7 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                          * Send the node version to all node reps.
                          */
                         clIocCompStatusSet(compAddr, event.event);
-                        notification.id = htonl(CL_IOC_NODE_VERSION_NOTIFICATION);
-                        notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
-                        notification.nodeVersion = htonl(nodeVersion);
-                        notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
-                        notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
-                        clTipcNotificationPacketSend(&notification, &allNodeReps, CL_FALSE);
+                        clTipcNodeVersionSend(&allNodeReps, nodeVersion, myCapability);
                     }
                     return CL_OK;
                 }
@@ -301,6 +311,14 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                 clIocCompStatusSet(compAddr, event.event);
 
                 if(event.event == TIPC_PUBLISHED) {
+                    /* 
+                     * Received NODE ARRIVAL notification.
+                     * Send back node version again for consistency or link syncup point
+                     * and comp bitmap for this node
+                     */
+                    clTipcNodeVersionSend((ClIocAddressT*)&compAddr,
+                                          nodeVersion, myCapability);
+
                     /* Received NODE ARRIVAL notification. */
                     ClBufferHandleT message;
                     ClRcT retCode = clBufferCreate(&message);
@@ -395,7 +413,8 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
             /* Packet is received from the other node asp_amfs/NODE-REPS*/
             ClTipcHeaderT userHeader = {0};
             ClUint32T event = 0;
-                
+            ClIocPhysicalAddressT srcAddr = {0};
+
 #ifdef SOLARIS_BUILD
             bcopy(pMsgHdr->msg_iov->iov_base,(ClPtrT)&userHeader,sizeof(userHeader));
 #else
@@ -409,8 +428,13 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                 return CL_IOC_RC(CL_ERR_VERSION_MISMATCH);
             }
 
+            srcAddr.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
+            srcAddr.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
+            
+            clIocCompStatusSet(srcAddr, TIPC_PUBLISHED);
+
             if(userHeader.protocolType == CL_IOC_PROTO_CTL) {
-                clIocNodeCompsSet(ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress), pMsgHdr->msg_iov->iov_base + sizeof(userHeader));
+                clIocNodeCompsSet(srcAddr.nodeAddress, pMsgHdr->msg_iov->iov_base + sizeof(userHeader));
                 break;
             }
 
@@ -437,8 +461,8 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                 ClUint8T *nodeInfo = NULL;
                 ClUint32T nodeInfoLen = 0;
                 ClBoolT compat = CL_FALSE;
-                destAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
-                destAddress.iocPhyAddress.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
+                destAddress.iocPhyAddress.nodeAddress = srcAddr.nodeAddress;
+                destAddress.iocPhyAddress.portId = srcAddr.portId;
                 
                 if(destAddress.iocPhyAddress.nodeAddress == gIocLocalBladeAddress)
                 {
