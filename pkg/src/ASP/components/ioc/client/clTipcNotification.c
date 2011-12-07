@@ -221,7 +221,7 @@ static ClRcT clTipcNotificationPacketSend(ClIocNotificationT *pNotificationInfo,
                 len = htons(nodeName.length);
             }
             retCode = clBufferNBytesWrite(message, (ClUint8T*)&len, sizeof(len));
-            retCode |= clBufferNBytesWrite(message, (ClUint8T*)nodeName.value, (ClUint32T)len);
+            retCode |= clBufferNBytesWrite(message, (ClUint8T*)nodeName.value, (ClUint32T)nodeName.length);
             if(retCode != CL_OK)
             {
                 CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Nodename marshall for notification version send failed with [%#x]\n", 
