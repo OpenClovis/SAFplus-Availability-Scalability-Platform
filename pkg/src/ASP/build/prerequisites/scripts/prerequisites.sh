@@ -572,7 +572,7 @@ populate_prereqs() {
 
         echo -n " glib-2.0"
         export PKG_CONFIG_PATH=${toolchaindir}/lib/pkgconfig:$PKG_CONFIG_PATH
-        GLIB_LIB_DIR=$(pkg-config --libs-only-L glib-2.0 | sed -e 's/^.*-L//g' -e 's/lib//g')
+        GLIB_LIB_DIR=$(pkg-config --libs-only-L glib-2.0 | sed -e 's/^.*-L//g')
 	if [ -z ${GLIB_LIB_DIR} ]; then # glib-2.0 is installed in the system standard path
 		GLIB_LIB_DIR="/usr/"
 	fi
