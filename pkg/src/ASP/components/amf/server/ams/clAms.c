@@ -219,6 +219,7 @@ clAmsInitialize(
      */ 
     
     ams->isEnabled = CL_TRUE;
+    ams->cpmRecoveryQuiesced = CL_FALSE;
     ams->mode = mode;
     ams->timerCount = 0;
     ams->serverepoch = time(NULL); 

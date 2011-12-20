@@ -141,7 +141,7 @@ typedef struct
     ClBoolT                 ckptServerReady;
 
     ClHandleDatabaseHandleT ccbHandleDB;
-        
+    ClBoolT                 cpmRecoveryQuiesced; /* if cpm has disabled amf recovery */
 } ClAmsT;
 
 extern ClAmsT   gAms;

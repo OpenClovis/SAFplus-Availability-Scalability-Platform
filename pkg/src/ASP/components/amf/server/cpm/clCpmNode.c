@@ -1603,6 +1603,7 @@ ClRcT cpmInitiatedSwitchOver(ClBoolT checkDeputy)
          * easier
          */
         gpClCpm->nodeLeaving = CL_TRUE;
+        gAms.cpmRecoveryQuiesced = CL_TRUE; /* disable AMF recovery as we are ejecting out*/
         clGmsClusterLeaveNative(gpClCpm->cpmGmsHdl, 10000000000LL, 
                                 gpClCpm->pCpmLocalInfo->nodeId);
 

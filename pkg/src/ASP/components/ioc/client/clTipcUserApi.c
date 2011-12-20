@@ -4594,6 +4594,13 @@ void clIocMasterCacheReset(void)
     clTipcMasterSegmentUpdate(compAddr);
 }
 
+void clIocMasterCacheSet(ClIocNodeAddressT master)
+{
+    ClIocPhysicalAddressT compAddr = {0};
+    compAddr.portId = CL_IOC_TIPC_PORT;
+    clTipcMasterSegmentSet(compAddr, master);
+}
+
 #if 0
 ClRcT clIocStatisticsPrint(void)
 {

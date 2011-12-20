@@ -4483,6 +4483,13 @@ clAmsEntityTimeout(
     ClAmsEntityTimerT  *entityTimer = NULL;
     ClAmsT  *ams = &gAms;
 
+    if(ams->cpmRecoveryQuiesced)
+    {
+        clLogNotice("RECOVERY", "STATE", "AMF recovery has been quiesced. "
+                    "Skipping timer recovery");
+        goto check_service_state;
+    }
+
     AMS_CHECKPTR ( !timer );
     AMS_CHECKPTR ( !timer->entity);
 
@@ -4540,7 +4547,8 @@ clAmsEntityTimeout(
     }
 
     AMS_CALL ( clOsalMutexUnlock(ams->mutex) );
-
+    
+    check_service_state:
     if ( !ams->timerCount && (ams->serviceState == CL_AMS_SERVICE_STATE_STOPPED) )
     {
         AMS_LOG (CL_DEBUG_TRACE,

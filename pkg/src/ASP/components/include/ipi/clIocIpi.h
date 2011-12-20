@@ -749,7 +749,9 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
     ClRcT clIocNotificationRegistrantsDelete(void);
 
     void clIocMasterCacheReset(void);
-    
+
+    void clIocMasterCacheSet(ClIocNodeAddressT master);    
+
     ClBoolT clAspNativeLeaderElection(void);
 
 # ifndef __KERNEL__

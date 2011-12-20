@@ -245,11 +245,12 @@ void clTipcMasterSegmentFinalize(void)
     gpClTipcMasterSeg = NULL;
 }
 
-void clTipcMasterSegmentUpdate(ClIocPhysicalAddressT compAddr)
+void clTipcMasterSegmentSet(ClIocPhysicalAddressT compAddr, ClIocNodeAddressT master)
 {
     ClUint32T i;
 
-    if(!gpClTipcMasterSeg) return;
+    if(!gpClTipcMasterSeg || compAddr.portId >= CL_IOC_MAX_COMPONENTS_PER_NODE) 
+        return;
 
     clOsalSemLock(gClTipcMasterSem);
     if(compAddr.portId == CL_IOC_TIPC_PORT)
@@ -258,25 +259,54 @@ void clTipcMasterSegmentUpdate(ClIocPhysicalAddressT compAddr)
         if(!compAddr.nodeAddress)
         {
             resetAll = CL_TRUE;
-            clLogInfo("IOC", "MASTER", "Resetting node info of master for all components");
+            if(!master)
+            {
+                clLogInfo("IOC", "MASTER", "Resetting node info of master for all components");
+            }
+            else
+            {
+                clLogInfo("IOC", "MASTER", "Resetting node master for all components to node [%d]",
+                          master);
+            }
         }
         for(i = CL_IOC_MIN_COMP_PORT ; i < CL_IOC_MAX_COMPONENTS_PER_NODE ; i++)
         {
             if(resetAll)
             {
-                gpClTipcMasterSeg[i] = 0;
+                gpClTipcMasterSeg[i] = master;
             }
             else if(gpClTipcMasterSeg[i] == compAddr.nodeAddress)
             {
-                gpClTipcMasterSeg[i] = 0;
-                clLogInfo("IOC", "MASTER", "Resetting node info of master for comp [%d].", i);
-            } 
+                gpClTipcMasterSeg[i] = master;
+                if(!master)
+                {
+                    clLogInfo("IOC", "MASTER", "Resetting node info of master for comp [%d].", i);
+                }
+                else
+                {
+                    clLogInfo("IOC", "MASTER", "Resetting node master for comp [%d] to node [%d]",
+                              i, master);
+                }
+            }
         }
     }
     else if(gpClTipcMasterSeg[compAddr.portId] == compAddr.nodeAddress)
     {
-        gpClTipcMasterSeg[compAddr.portId] = 0;
-        clLogInfo("IOC", "MASTER", "Resetting segment info of master for comp [%d].", compAddr.portId);
+        gpClTipcMasterSeg[compAddr.portId] = master;
+        if(!master)
+        {
+            clLogInfo("IOC", "MASTER", "Resetting segment info of master for comp [%d].", compAddr.portId);
+        }
+        else
+        {
+            clLogInfo("IOC", "MASTER", "Resetting segment master for comp [%d] to node [%d]",
+                      compAddr.portId, master);
+        }
     }
     clOsalSemUnlock(gClTipcMasterSem);
+}
+
+void clTipcMasterSegmentUpdate(ClIocPhysicalAddressT compAddr)
+{
+    return clTipcMasterSegmentSet(compAddr, 0);
 }

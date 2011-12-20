@@ -62,7 +62,7 @@ ClRcT cpmUpdateTL(ClAmsHAStateT haState)
 {
     ClIocTLInfoT tlInfo = {0};
     ClRcT rc = CL_OK;
-
+    ClIocNodeAddressT localAddr = clIocLocalAddressGet();
     /*
      * Populate the TL structure 
      */
@@ -76,7 +76,7 @@ ClRcT cpmUpdateTL(ClAmsHAStateT haState)
     tlInfo.compId = tlInfo.compId << CL_CPM_IOC_SLOT_BITS;
 
     tlInfo.contextType = CL_IOC_TL_GLOBAL_SCOPE;
-    tlInfo.physicalAddr.nodeAddress = clIocLocalAddressGet();
+    tlInfo.physicalAddr.nodeAddress = localAddr;
     tlInfo.physicalAddr.portId = CL_IOC_CPM_PORT;
     tlInfo.haState = haState;
 
@@ -123,7 +123,7 @@ ClRcT cpmUpdateTL(ClAmsHAStateT haState)
         /*
          * Reset the master segment cache for all components
          */
-        clIocMasterCacheReset();
+        clIocMasterCacheSet(localAddr);
     }
 
     if (CL_IOC_ERR_TL_DUPLICATE_ENTRY == CL_GET_ERROR_CODE(rc)

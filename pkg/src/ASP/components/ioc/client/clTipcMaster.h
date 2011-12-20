@@ -32,6 +32,6 @@
 void clTipcMasterSegmentInitialize(void *pMasgerSegment, ClOsalSemIdT masterSem);
 void clTipcMasterSegmentFinalize(void);
 void clTipcMasterSegmentUpdate(ClIocPhysicalAddressT compAddr);
-
+void clTipcMasterSegmentSet(ClIocPhysicalAddressT compAddr, ClIocNodeAddressT master);
 
 #endif
