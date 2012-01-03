@@ -599,10 +599,14 @@ static ClRcT clTaskPoolMonitor(void *pArg)
 {
     ClTaskPoolT *tp = pArg;
     ClInt32T i;
-    ClTimeT threshold = (ClTimeT)tp->monitorThreshold.tsSec*1000000;
-    threshold += (ClTimeT)tp->monitorThreshold.tsMilliSec*1000;
+    ClTimeT threshold = 0;
     clOsalMutexLock(&tp->mutex);
-    tp->monitorActive = CL_TRUE;
+    if(!tp->monitorActive)
+    {
+        goto out_unlock;
+    }
+    threshold = (ClTimeT)tp->monitorThreshold.tsSec*1000000;
+    threshold += (ClTimeT)tp->monitorThreshold.tsMilliSec * 1000;
     for(i = 0; i < tp->maxTasks.value; ++i)
     {
         ClTimeT startTime = tp->pStats[i].startTime;
@@ -643,10 +647,8 @@ static ClRcT clTaskPoolMonitor(void *pArg)
             }
         }
     }
-    tp->monitorActive = CL_FALSE;
+    out_unlock:
     clOsalMutexUnlock(&tp->mutex);
-
-
     return CL_OK;
 }
 
@@ -683,7 +685,7 @@ ClRcT clTaskPoolMonitorStart(ClTaskPoolHandleT handle, ClTimerTimeOutT monitorTh
     }
 
     tp->monitorCallback = monitorCallback;
-
+    tp->monitorActive = CL_TRUE;
     if(!tp->monitorTimer)
     {
         rc = clTimerCreateAndStart(monitorInterval, CL_TIMER_REPETITIVE, CL_TIMER_SEPARATE_CONTEXT, 
@@ -715,7 +717,10 @@ ClRcT clTaskPoolMonitorStop(ClTaskPoolHandleT handle)
     
     clOsalMutexLock(&tp->mutex);
     if(tp->monitorTimer)
+    {
         clTimerStop(tp->monitorTimer);
+        tp->monitorActive = CL_FALSE;
+    }
     clOsalMutexUnlock(&tp->mutex);
 
     return rc;
@@ -725,24 +730,24 @@ ClRcT clTaskPoolMonitorDelete(ClTaskPoolHandleT handle)
 {
     ClRcT rc = CL_OK;
     ClTaskPoolT *tp = handle;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerHandleT monitorTimer = 0;
 
     if(!tp) return CL_TASKPOOL_RC(CL_ERR_INVALID_PARAMETER);
 
     clOsalMutexLock(&tp->mutex);
-    if(tp->monitorTimer)
-        clTimerStop(tp->monitorTimer);
-
-    while(tp->monitorActive)
+    if( (monitorTimer = tp->monitorTimer) )
     {
-        clOsalMutexUnlock(&tp->mutex);
-        clOsalTaskDelay(delay);
-        clOsalMutexLock(&tp->mutex);
+        tp->monitorActive = CL_FALSE;
+        tp->monitorTimer = 0;
     }
-    if(tp->monitorTimer)
-        clTimerDelete(&tp->monitorTimer);
     clOsalMutexUnlock(&tp->mutex);
-
+    if(monitorTimer)
+    {
+        /*
+         * Synchronous delete. Won't return if the timer callback is running
+         */
+        clTimerDelete(&monitorTimer);
+    }
     return rc;
 }
 
