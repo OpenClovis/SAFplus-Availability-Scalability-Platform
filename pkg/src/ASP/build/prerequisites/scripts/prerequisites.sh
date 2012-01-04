@@ -574,9 +574,9 @@ populate_prereqs() {
         export PKG_CONFIG_PATH=${toolchaindir}/lib/pkgconfig:$PKG_CONFIG_PATH
         GLIB_LIB_DIR=$(pkg-config --libs-only-L glib-2.0 | sed -e 's/^.*-L//g')
 	if [ -z ${GLIB_LIB_DIR} ]; then # glib-2.0 is installed in the system standard path
-		GLIB_LIB_DIR="/usr/"
+		GLIB_LIB_DIR="/usr/lib/"
 	fi
-        GLIB_DIR=$(dirname ${GLIB_LIB_DIR})
+        GLIB_DIR=${GLIB_LIB_DIR}
         if [ -z "${GLIB_LIB_DIR}" -o -z "${GLIB_DIR}"  -o ! -d ${GLIB_DIR} ]
         then
             echo ""
@@ -585,16 +585,16 @@ populate_prereqs() {
             exit 1
         fi
         cd ${GLIB_DIR}; #echo $GLIB_DIR
-        tar chf - lib/*glib* | tar xf - -C $imagedir
+        tar chf - *glib* | tar xf - -C $imagedir/lib
         res_array[${#res_array[@]}]=$?
         op_array[${#op_array[@]}]="copy in glib libraries"
-        tar chf - lib/*gmodule* | tar xf - -C $imagedir
+        tar chf - *gmodule* | tar xf - -C $imagedir/lib
         res_array[${#res_array[@]}]=$?
         op_array[${#op_array[@]}]="copy in gmodule library files"
-        tar chf - lib/*gobject* | tar xf - -C $imagedir
+        tar chf - *gobject* | tar xf - -C $imagedir/lib
         res_array[${#res_array[@]}]=$?
         op_array[${#op_array[@]}]="copy in gobject library files"
-        tar chf - lib/*gthread* | tar xf - -C $imagedir
+        tar chf - *gthread* | tar xf - -C $imagedir/lib
         res_array[${#res_array[@]}]=$?
         op_array[${#op_array[@]}]="copy in gthread library files"
         cd - >/dev/null 2>&1
