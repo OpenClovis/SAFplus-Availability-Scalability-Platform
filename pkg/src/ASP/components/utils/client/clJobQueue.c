@@ -80,12 +80,11 @@ ClRcT clJobQueuePreIdle(ClPtrT cookie)
     ClJobQueueT* hdl =  (ClJobQueueT*) cookie;
     if(! (hdl->flags & Running) ) return CL_JOBQUEUE_RC(CL_ERR_INVALID_STATE);
     JQ_PFX(hdl);
-    ClJobT* jb=0;
-    ClQueueDataT temp;
+    ClJobT* jb = NULL;
+    ClQueueDataT temp = NULL;
     ClRcT rc = clQueueNodeDelete(hdl->queue, &temp);
-    if (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST)
+    if (rc == CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Adding Job to Task Pool")); 
         jb = (ClJobT*) temp;
         CL_ASSERT(jb);
         clTaskPoolRun(hdl->pool,jb->job, jb->data);
