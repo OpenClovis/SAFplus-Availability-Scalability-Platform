@@ -63,6 +63,11 @@
 #define CLEAR_TASK_ID(pStats) do {;}while(0)
 #endif
 
+typedef struct ClTaskPoolRef
+{
+    ClTaskPoolT *tp;
+} ClTaskPoolRefT;
+
 typedef struct ClTaskPoolArg
 {
     ClTaskPoolT *tp;
@@ -79,12 +84,19 @@ static ClUint32T gClTaskPoolKey;
 static ClBoolT gClEoHeartbeatDisabled = CL_FALSE;
 static ClTaskPoolStatsT gClNullTaskPoolStats;
 static ClTaskPoolT gClNullTaskPool = { .pStats = &gClNullTaskPoolStats };
+static ClTaskPoolRefT gClNullTaskPoolRef = { .tp = &gClNullTaskPool };
 /*
  * Create a pthread key for storing task pool info. for each thread.
  */
+static void taskPoolKeyDestructor(void *v)
+{
+    free(v);
+}
 
 ClRcT clTaskPoolInitialize(void)
 {
+    clOsalMutexInit(&gClNullTaskPool.mutex);
+    clOsalCondInit(&gClNullTaskPool.cond);
     if(clParseEnvBoolean("CL_EO_TASK_MONITOR"))
     {
         static const ClCharT *const aspEOs[] = { 
@@ -101,7 +113,7 @@ ClRcT clTaskPoolInitialize(void)
             clLogNotice("TASK", "MONITOR", "Disabling task pool heartbeat for EO [%s]", CL_EO_NAME);
         }
     }
-    return clOsalTaskKeyCreate(&gClTaskPoolKey, NULL);
+    return clOsalTaskKeyCreate(&gClTaskPoolKey, taskPoolKeyDestructor);
 }
 
 ClRcT clTaskPoolFinalize(void)
@@ -127,12 +139,11 @@ static ClRcT clTaskPoolDataGet(ClPtrT *pData)
         return CL_TASKPOOL_RC(CL_ERR_INVALID_PARAMETER);
     if( (rc = clOsalTaskDataGet(gClTaskPoolKey, pThreadData) ) != CL_OK)
     {
-        *pData = &gClNullTaskPool;
+        *pData = (ClPtrT)&gClNullTaskPoolRef;
         rc = CL_OK;
     }
     return rc;
 }
-
 
 void clTaskPoolEntry(ClTaskPoolArgT *pArg)
 {
@@ -141,11 +152,13 @@ void clTaskPoolEntry(ClTaskPoolArgT *pArg)
     ClTimeT lastWakeup = 0;
     ClTimeT currentWakeup = 0;
     ClTimeT delta = 0;
-
+    ClTaskPoolRefT *tRef = calloc(1, sizeof(*tRef));
+    CL_ASSERT(tRef != NULL);
+    tRef->tp = tp;
     clHeapFree(pArg);
 
     SET_TASK_ID(pStats);
-    clTaskPoolDataSet((ClPtrT)tp);
+    clTaskPoolDataSet((ClPtrT)tRef);
     clOsalMutexLock(&tp->mutex);
     /*
      * clLogDebug("TASK", "STAT", "Started task [%d]", (int)GET_TASK_ID(pStats));
@@ -754,16 +767,17 @@ ClRcT clTaskPoolMonitorDelete(ClTaskPoolHandleT handle)
 static ClRcT taskPoolMonitorSet(ClBoolT disable)
 {
     ClRcT rc = CL_OK;
+    ClTaskPoolRefT *tRef = NULL;
     ClTaskPoolT *tp = NULL;
     ClOsalTaskIdT tid = 0;
     ClUint32T i;
-    rc = clTaskPoolDataGet((ClPtrT*)&tp);
+    rc = clTaskPoolDataGet((ClPtrT*)&tRef);
     if(rc != CL_OK)
     {
         clLogError("MONITOR", "DISABLE", "Task pool monitor disable failed with [%#x]", rc);
         return rc;
     }
-    if(!tp)
+    if(!(tp = tRef->tp))
     {
         return CL_TASKPOOL_RC(CL_ERR_NOT_EXIST);
     }
@@ -829,13 +843,14 @@ ClRcT clTaskPoolMonitorEnable(void)
 ClRcT clTaskPoolRecordIOCSend(ClBoolT start)
 {
     ClRcT rc = CL_OK;
+    ClTaskPoolRefT *tRef = NULL;
     ClTaskPoolT *tp = NULL;
     ClOsalTaskIdT tid = 0;
     ClUint32T i;
 
-    rc = clTaskPoolDataGet((ClPtrT*)&tp);
+    rc = clTaskPoolDataGet((ClPtrT*)&tRef);
 
-    if(rc != CL_OK || !tp) return CL_OK; /*not in the task pool*/
+    if(rc != CL_OK || !(tp = tRef->tp)) return CL_OK; /*not in the task pool*/
 
     if((rc = clOsalSelfTaskIdGet(&tid)) != CL_OK)
         return rc;
