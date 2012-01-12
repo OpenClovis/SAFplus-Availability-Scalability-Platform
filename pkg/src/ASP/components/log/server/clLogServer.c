@@ -1132,6 +1132,8 @@ clLogSvrCompRefCountIncrement(ClLogSvrEoDataT        *pSvrEoEntry,
     }
     else if( CL_OK == rc )
     {
+        if(pCompData->refCount > 1) 
+            pCompData->refCount = 0;
         pCompData->refCount++;
     }
 

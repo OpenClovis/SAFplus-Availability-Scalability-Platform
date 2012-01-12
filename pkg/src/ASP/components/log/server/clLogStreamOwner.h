@@ -55,6 +55,7 @@ typedef enum
     CL_LOG_NODE_STATUS_UN_INIT = 1,
     CL_LOG_NODE_STATUS_WIP     = 2,
     CL_LOG_NODE_STATUS_INIT    = 3,
+    CL_LOG_NODE_STATUS_REINIT  = 4,
 }ClLogNodeStatusT;    
     
 typedef struct

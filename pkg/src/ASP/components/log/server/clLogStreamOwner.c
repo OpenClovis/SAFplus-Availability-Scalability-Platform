@@ -1490,10 +1490,12 @@ clLogStreamOwnerEntryProcess(ClLogSOEoDataT          *pSoEoEntry,
         *  (use case compDown, after it has
         *  sent open request to Master)
         */
-       return CL_LOG_RC(CL_ERR_NOT_EXIST);
+        return CL_LOG_RC(CL_ERR_NOT_EXIST);
     }    
 
-    if( CL_LOG_NODE_STATUS_UN_INIT == pStreamOwnerData->nodeStatus )
+    if( pStreamOwnerData->nodeStatus == CL_LOG_NODE_STATUS_UN_INIT
+        ||
+        pStreamOwnerData->nodeStatus == CL_LOG_NODE_STATUS_REINIT)
     {
         if( openFlags != CL_LOG_STREAM_CREATE )
         {
@@ -1695,6 +1697,15 @@ clLogStreamOwnerCompEntryAdd(ClLogStreamOwnerDataT  *pStreamOwnerData,
     /* Exist, Just increment the refCount */
     ++pData->refCount;
     ++pStreamOwnerData->openCnt;
+    if(pData->refCount > 1)
+    {
+        --pData->refCount;
+        --pStreamOwnerData->openCnt;
+        if(pStreamOwnerData->nodeStatus == CL_LOG_NODE_STATUS_INIT)
+        {
+            pStreamOwnerData->nodeStatus = CL_LOG_NODE_STATUS_REINIT;
+        }
+    }
 
     CL_LOG_DEBUG_TRACE(( "Exit: rc[0x%x]", rc));
     return rc;
@@ -2114,6 +2125,10 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
          * Should not be any error check, coz on success it may return 
          * this CL_LOG_ERR_STREAM_DELETE
          */
+        if(pStreamOwnerData->nodeStatus == CL_LOG_NODE_STATUS_REINIT)
+        {
+            pStreamOwnerData->nodeStatus = CL_LOG_NODE_STATUS_INIT;
+        }
         CL_LOG_CLEANUP(
                 clLogStreamOwnerCompEntryDelete(pStreamOwnerData, nodeAddr,  
                                                 *pCompId, &tableSize), 
