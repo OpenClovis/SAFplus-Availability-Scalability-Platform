@@ -482,7 +482,7 @@ def asp_console_execute(cmds, use_file=False):
     cmd = '%s "%s" | %s/bin/asp_console' % \
           (sys_asp['echo_cmd'], '\\n'.join(cmds + ['status', 'bye']), _asp_dir)
     if use_file:
-        out_file = '%s/var/run/tmp.aspinfo_' % _asp_dir + str(time.time())
+        out_file = '%s/var/run/tmp.aspinfo_' % _asp_dir + str(os.getpid())
         cmd += '> %s' %out_file
         
     (ec, output, signal, core) = system(cmd)
