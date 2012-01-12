@@ -1098,6 +1098,8 @@ clLogFileClose_L(ClLogFilePtrT fp)
     
     CL_LOG_DEBUG_TRACE(("Enter"));
 
+    if(!fp) return CL_LOG_RC(CL_ERR_NOT_EXIST);
+
     if( 0 != fclose(fp) )
     {
         if( errno == ENOENT )
@@ -1117,6 +1119,8 @@ clLogFileWrite(ClLogFilePtrT  fp, void *pData, ClUint32T  size)
     ClRcT  rc = CL_OK;
     
     CL_LOG_DEBUG_TRACE(("Enter"));
+
+    if(!fp) return CL_LOG_RC(CL_ERR_NOT_EXIST);
 
     if( 0 == (size = fwrite(pData, 1, size, fp)) )
     {
@@ -1139,6 +1143,8 @@ clLogFileRead(ClLogFilePtrT  fp, void *pData, ClUint32T *pNumOfBytes)
     
     CL_LOG_DEBUG_TRACE(("Enter"));
    
+    if(!fp) return CL_LOG_RC(CL_ERR_NOT_EXIST);
+
     if( 0 == (*pNumOfBytes = fread(pData, *pNumOfBytes, 1, fp)) )
     {
         if( errno == ENOENT )
@@ -1159,6 +1165,8 @@ clLogFileSeek(ClLogFilePtrT  fp, ClUint32T  offSet)
     ClUint32T err = 0;
     
     CL_LOG_DEBUG_TRACE(("Enter: %u  %d", offSet, offSet));
+
+    if(!fp) return CL_LOG_RC(CL_ERR_NOT_EXIST);
 
     if( 0 != (err = fseek(fp, offSet, SEEK_SET)) )
     {

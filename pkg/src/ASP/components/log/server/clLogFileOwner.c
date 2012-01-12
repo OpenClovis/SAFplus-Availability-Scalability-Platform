@@ -84,6 +84,7 @@ clLogFileTableDeleteCb(ClCntKeyHandleT   key,
 
     pFileOwnerData = (ClLogFileOwnerDataT *) data;
     
+    clOsalMutexLock(&pFileOwnerData->fileEntryLock);
     if( NULL != pFileOwnerData->fileUnitPtr )
     {
         CL_LOG_CLEANUP(clLogFileClose_L(pFileOwnerData->fileUnitPtr), CL_OK);
@@ -94,6 +95,7 @@ clLogFileTableDeleteCb(ClCntKeyHandleT   key,
                                CL_LOG_FILEOWNER_CFG_FILE_SIZE), CL_OK);
     
     pFileOwnerData->pFileHeader = NULL;
+    clOsalMutexUnlock(&pFileOwnerData->fileEntryLock);
     CL_LOG_CLEANUP(clOsalMutexDestroy_L(&pFileOwnerData->fileEntryLock),
             CL_OK);
     if( CL_HANDLE_INVALID_VALUE != pFileOwnerData->hStreamTable )
@@ -577,6 +579,7 @@ clLogFileOwnerFileOpenNPopulate(ClCharT               *fileName,
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clLogFileClose_L(pFileOwnerData->fileUnitPtr), CL_OK);
+        pFileOwnerData->fileUnitPtr = NULL;
         CL_LOG_CLEANUP(clOsalMunmap_L(pFileOwnerData->pFileHeader, 
                                       CL_LOG_FILEOWNER_CFG_FILE_SIZE), CL_OK);
         clHeapFree(pSoftLinkName);
@@ -806,6 +809,8 @@ clLogFileOwnerFileEntryFree(ClLogFileOwnerDataT  *pFileOwnerData)
     CL_LOG_CLEANUP(clOsalMunmap_L(pFileOwnerData->pFileHeader, 
                                   CL_LOG_FILEOWNER_CFG_FILE_SIZE), CL_OK);
     CL_LOG_CLEANUP(clLogFileClose_L(pFileOwnerData->fileUnitPtr), CL_OK);
+    
+    pFileOwnerData->fileUnitPtr = NULL;
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
@@ -1011,6 +1016,7 @@ clLogFileOwnerFileEntryGet(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
             }
             CL_LOG_CLEANUP(clLogFileClose_L(pFileOwnerData->fileUnitPtr),
                            CL_OK);
+            pFileOwnerData->fileUnitPtr = NULL;
             CL_LOG_CLEANUP(clOsalMsync_L(pFileOwnerData->pFileHeader, 
                                CL_LOG_FILEOWNER_CFG_FILE_SIZE, MS_SYNC),
                            CL_OK);
@@ -1414,6 +1420,8 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
     ClUint32T  numBytes   = 0;
     ClBoolT syslogEnabled = pFileOwnerData->streamAttr.syslog;
 
+    if(!pFileOwnerData->fileUnitPtr) return CL_LOG_RC(CL_ERR_NOT_EXIST);
+
     if( pFileOwnerData->pFileHeader->fileType == CL_LOG_FILE_TYPE_INVALID )
     {
         /* File type is not yet decied to find out that */
@@ -1587,6 +1595,8 @@ clLogFileOwnerFileFullAction(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
+    if(!pFileOwnerData->fileUnitPtr) return CL_LOG_RC(CL_ERR_NOT_EXIST);
+
     rc = clCntNodeUserKeyGet(pFileOwnerEoEntry->hFileTable, hFileNode, 
                             (ClCntDataHandleT *) &pFileKey);
     if( CL_OK != rc )
@@ -1642,6 +1652,7 @@ clLogFileOwnerFileFullAction(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
             {
                 return rc;
             }
+            pFileOwnerData->fileUnitPtr = NULL;
             rc = clLogFileOwnerNewFunitCreate(hFileNode, pFileOwnerData);
             if( CL_OK != rc )
             {
