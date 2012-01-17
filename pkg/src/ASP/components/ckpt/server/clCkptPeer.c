@@ -45,7 +45,7 @@
 #include <clCkptPeer.h>
 #include <clCkptUtils.h>
 #include <clCkptCommon.h>
-#include "clCkptIpi.h"
+#include "clCkptSvrIpi.h"
 #include <clCkptMaster.h>
 #include <clCkptLog.h>
 #include <clCpmExtApi.h>

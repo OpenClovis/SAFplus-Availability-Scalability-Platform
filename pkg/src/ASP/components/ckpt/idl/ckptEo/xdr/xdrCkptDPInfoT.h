@@ -43,8 +43,8 @@ extern "C" {
 #include "clXdrApi.h"
 
 #include "clCkptApi.h"
+#include "clCkptCommon.h"
 #include "xdrCkptSectionInfoT.h"
-#include "../common/clCkptCommon.h"
 
 struct _CkptDPInfoT_4_0_0;
 

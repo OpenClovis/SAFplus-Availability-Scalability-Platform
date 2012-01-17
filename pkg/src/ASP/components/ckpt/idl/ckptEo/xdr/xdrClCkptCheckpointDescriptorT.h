@@ -43,8 +43,8 @@ extern "C" {
 #include "clXdrApi.h"
 
 #include "clCkptApi.h"
+#include "clCkptCommon.h"
 #include "xdrClCkptCheckpointCreationAttributesT.h"
-#include "../common/clCkptCommon.h"
 
 struct _ClCkptCheckpointDescriptorT_4_0_0;
 

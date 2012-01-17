@@ -2836,3 +2836,108 @@ Label0:
     return rc;
 }
 
+ClRcT _ckptSectionCheckServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl)
+{
+    ClIdlContextInfoT *pIdlCtxInfo = NULL;
+    ClRcT rc = CL_OK;
+    ClHandleT  ckptHandle;
+    ClCkptSectionIdT_4_0_0  pSecId;
+
+    memset(&(ckptHandle), 0, sizeof(ClHandleT));
+    memset(&(pSecId), 0, sizeof(ClCkptSectionIdT_4_0_0));
+
+
+    rc = clXdrUnmarshallClHandleT( inMsgHdl,&(ckptHandle));
+    if (CL_OK != rc)
+    {
+        goto LL0;
+    }
+
+    rc = clXdrUnmarshallClCkptSectionIdT_4_0_0( inMsgHdl,&(pSecId));
+    if (CL_OK != rc)
+    {
+        goto LL1;
+    }
+
+    pIdlCtxInfo = (ClIdlContextInfoT *)clHeapAllocate(sizeof(ClIdlContextInfoT));
+    if(pIdlCtxInfo == NULL)
+    {
+       return CL_IDL_RC(CL_ERR_NO_MEMORY);
+    }
+    memset(pIdlCtxInfo, 0, sizeof(ClIdlContextInfoT));
+    pIdlCtxInfo->idlDeferMsg = outMsgHdl; 
+    pIdlCtxInfo->inProgress  = CL_FALSE;
+    rc = clIdlSyncPrivateInfoSet(ckptEoidlSyncKey, (void *)pIdlCtxInfo);
+    if (CL_OK != rc)
+    {
+        clHeapFree(pIdlCtxInfo);
+        goto L0;
+    }
+    rc = _ckptSectionCheck_5_0_0(ckptHandle, &(pSecId));
+    if(pIdlCtxInfo->inProgress == CL_FALSE)
+    {
+      clHeapFree(pIdlCtxInfo);
+      pIdlCtxInfo = NULL;
+    }
+    if (CL_OK != rc)
+    {
+       goto L0;
+    }
+    
+    rc = clXdrMarshallClHandleT(&(ckptHandle), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L1;
+    }
+
+    rc = clXdrMarshallClCkptSectionIdT_4_0_0(&(pSecId), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L2;
+    }
+
+    if(pIdlCtxInfo != NULL)
+    {
+      clHeapFree(pIdlCtxInfo);
+      return rc;
+    }
+    
+L2:    return rc;
+
+LL1:  clXdrMarshallClCkptSectionIdT_4_0_0(&(pSecId), 0, 1);
+LL0:  clXdrMarshallClHandleT(&(ckptHandle), 0, 1);
+
+    return rc;
+
+L0:  clXdrMarshallClHandleT(&(ckptHandle), 0, 1);
+L1:  clXdrMarshallClCkptSectionIdT_4_0_0(&(pSecId), 0, 1);
+
+
+    return rc;
+}
+
+ClRcT _ckptSectionCheckResponseSend_5_0_0(ClIdlHandleT idlHdl,ClRcT retCode)
+{
+    ClIdlSyncInfoT    *pIdlSyncDeferInfo = NULL;
+    ClRcT              rc                = CL_OK;
+    ClBufferHandleT outMsgHdl     = 0;
+    
+    rc = clHandleCheckout(ckptEoidlDatabaseHdl,idlHdl,(void **)&pIdlSyncDeferInfo);
+    if( rc != CL_OK)
+    {
+      goto Label0; 
+    }
+    outMsgHdl = pIdlSyncDeferInfo->idlRmdDeferMsg;
+    
+    rc = clIdlSyncResponseSend(pIdlSyncDeferInfo->idlRmdDeferHdl,outMsgHdl,
+                                retCode);
+    
+
+    
+
+    clHandleCheckin(ckptEoidlDatabaseHdl, idlHdl);
+    clHandleDestroy(ckptEoidlDatabaseHdl, idlHdl);
+Label0:
+    return rc;
+}
+

@@ -68,6 +68,7 @@ extern ClRcT _ckptCheckpointSynchronizeServer_4_0_0(ClEoDataT eoData, ClBufferHa
 extern ClRcT _ckptSectionExpirationTimeSetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptMasterActiveAddrGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptServerFinalizeServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
+extern ClRcT _ckptSectionCheckServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptDeputyMasterInfoSyncupServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptLeaderAddrUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptDeputyCkptCreateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);

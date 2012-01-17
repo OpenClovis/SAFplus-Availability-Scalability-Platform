@@ -103,6 +103,10 @@ ClRcT clCkptServerFinalize_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClUint32T
 
 ClRcT clCkptServerFinalizeResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
 
+ClRcT _ckptSectionCheck_5_0_0(CL_IN ClHandleT  ckptHandle, CL_IN ClCkptSectionIdT_4_0_0*  pSecId);
+
+ClRcT _ckptSectionCheckResponseSend_5_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
+
 
 #ifdef __cplusplus
 }

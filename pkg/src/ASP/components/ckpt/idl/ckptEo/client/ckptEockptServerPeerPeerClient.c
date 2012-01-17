@@ -77,7 +77,7 @@ ClRcT clCkptAllReplicaPresenceListUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT han
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 32);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 33);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -251,7 +251,7 @@ ClRcT clCkptRemSvrWelcomeClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT C
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 33);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 34);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -431,7 +431,7 @@ ClRcT clCkptRemSvrByeClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClVersio
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 34);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 35);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -599,7 +599,7 @@ ClRcT clCkptNackReceiveClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClVers
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 35);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 36);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -714,7 +714,7 @@ ClRcT clCkptMasterStatusInfoGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 36);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 37);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};

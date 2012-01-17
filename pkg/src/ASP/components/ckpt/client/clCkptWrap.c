@@ -2526,7 +2526,110 @@ exitOnError:
     }
 }
 
+ClRcT clCkptSectionCheck(ClCkptHdlT             ckptHdl,
+                         ClCkptSectionIdT       *pSectionId)
+{
+    ClRcT                  rc                 = CL_OK;
+    CkptInitInfoT          *pInitInfo         = NULL;
+    ClCkptHdlT             actHdl             = CL_CKPT_INVALID_HDL;
+    ClIocNodeAddressT      nodeAddr           = 0;
+    ClCkptSvcHdlT          ckptSvcHdl         = CL_CKPT_INVALID_HDL;
+    ClBoolT                tryAgain           = CL_FALSE;
+    ClUint32T              maxRetry           = 0;
+    ClUint8T               status = CL_IOC_NODE_DOWN;
+    ClTimerTimeOutT        delay = {.tsSec = 0, .tsMilliSec = 50};
+        
+    /*
+     * Verify the input parameters.
+     */
+    if(!pSectionId) return CL_CKPT_ERR_INVALID_PARAMETER;
 
+    retry:
+    if(maxRetry++ >= 3)
+    {
+        return rc;
+    }
+    
+    if( gClntInfo.ckptDbHdl == 0 || gClntInfo.ckptSvcHdlCount == 0)
+    {
+        CKPT_DEBUG_E(("CKPT Client is not yet initialized"));
+        return CL_CKPT_ERR_NOT_INITIALIZED;
+    }
+
+    if(maxRetry > 1)
+        clOsalTaskDelay(delay);
+
+    /*
+     * Safe to grab incase svc handle count is non zero or ckpt is initialized.
+     */
+    clOsalMutexLock(&gClntInfo.ckptClntMutex);
+
+    if(!gClntInfo.ckptSvcHdlCount)
+    {
+        clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+        return CL_CKPT_ERR_NOT_INITIALIZED;
+    }
+
+    if ((rc = ckptVerifyAndCheckout(ckptHdl, &ckptSvcHdl, &pInitInfo)) != CL_OK)
+    {
+        clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+        return rc;
+    }
+
+    /*
+     * Lock the mutex.
+     */
+    clOsalMutexLock(pInitInfo->ckptSvcMutex);
+    
+    /*
+     * Get the active handle and the active replica address associated
+     * with that local ckptHdl.
+     */
+    rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
+    rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
+
+    clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
+    clHandleCheckin(gClntInfo.ckptDbHdl, ckptSvcHdl);
+    clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+
+    rc = clIocRemoteNodeStatusGet(nodeAddr, &status);
+    if(status == CL_IOC_NODE_DOWN)
+    {
+        rc = CL_CKPT_ERR_NOT_EXIST;
+        goto retry;
+    }
+    
+    /*
+     * Send the call to the checkpoint active server.
+     * Retry if the server is not not reachable.
+     */
+    rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl, 1);
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                                  ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
+    rc = VDECL_VER(_ckptSectionCheckClientSync, 5, 0, 0)( pInitInfo->ckptIdlHdl,
+                                                          actHdl,
+                                                          pSectionId);
+    tryAgain = clCkptHandleTypicalErrors(rc, ckptHdl, &nodeAddr);
+
+    if(tryAgain)
+    {
+        goto retry;
+    }
+    
+    return rc;
+    
+    exitOnError:
+    clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
+    clHandleCheckin(gClntInfo.ckptDbHdl, ckptSvcHdl);
+    clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+
+    exitOnErrorBeforeHdlCheckout:
+    return rc;
+}
 
 /*
  * Writes multiple sections on to a given checkpoint.

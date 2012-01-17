@@ -52,7 +52,7 @@
 #include "clCkptSvr.h"
 #include "clCkptUtils.h"
 #include "clCkptErrors.h"
-#include "clCkptIpi.h"
+#include "clCkptSvrIpi.h"
 #include "clCkptLog.h"
 #include "clCkptMaster.h"
 #include "xdrCkptXlationDBEntryT.h"

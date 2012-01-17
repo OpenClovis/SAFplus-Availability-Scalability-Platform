@@ -35,7 +35,7 @@
 *****************************************************************************/
 #include <clCommon.h>
 #include <clCkptSvr.h>
-#include "clCkptIpi.h"
+#include "clCkptSvrIpi.h"
 #include <clCkptUtils.h>
 #include <clEoApi.h>
 #include "clCkptMaster.h"

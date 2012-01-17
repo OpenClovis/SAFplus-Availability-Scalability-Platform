@@ -42,7 +42,7 @@ extern "C" {
 
 #include "clXdrApi.h"
 #include "clCkptApi.h"
-#include "../common/clCkptCommon.h"
+#include "clCkptCommon.h"
 
 
 

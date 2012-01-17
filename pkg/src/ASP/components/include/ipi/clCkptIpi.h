@@ -79,6 +79,8 @@ extern "C" {
 extern ClRcT clCkptActiveReplicaSetSwitchOver(
     CL_IN ClCkptHdlT checkpointHandle);
 
+extern ClRcT clCkptSectionCheck(ClCkptHdlT ckptHdl, ClCkptSectionIdT *pSectionId);
+
 #ifdef  __cplusplus
 }
 #endif

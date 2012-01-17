@@ -38,7 +38,7 @@
 #include <netinet/in.h> 
 #include <clCommon.h>
 #include <clCkptSvr.h>
-#include "clCkptIpi.h"
+#include "clCkptSvrIpi.h"
 #include "clCkptMaster.h"
 #include <clCkptUtils.h>
 #include <clClmApi.h>

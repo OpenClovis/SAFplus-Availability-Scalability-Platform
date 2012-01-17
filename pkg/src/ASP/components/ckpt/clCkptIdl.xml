@@ -26,7 +26,7 @@
     <Service name="ckptEo">
         <Include name="clCkptApi.h"/>
         <Comp name="ckpt"/>
-        <Include name="../common/clCkptCommon.h"/>
+        <Include name="clCkptCommon.h"/>
         <Enum name="CkptUpdateFlagT" defNeed="true">
             <EnumMember name="CKPT_SECTION_CREAT" value ="1"/>
             <EnumMember name="CKPT_SECTION_OVERWRITE"/>
@@ -412,6 +412,10 @@
                     <Argument ParameterType="CL_INOUT"  name="pVersion" type="ClVersionT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="nodeAddr" type="ClUint32T"/>
                     <Argument ParameterType="CL_IN" name="iocPort" type="ClUint32T"/>
+                </Operation>	
+                <Operation name="_ckptSectionCheck" version="5.0.0">
+                    <Argument ParameterType="CL_IN" name="ckptHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN"  name="pSecId" type="ClCkptSectionIdT" pointer="Single"/>
                 </Operation>	
             </Group>
             <Group name="MasterDeputy">

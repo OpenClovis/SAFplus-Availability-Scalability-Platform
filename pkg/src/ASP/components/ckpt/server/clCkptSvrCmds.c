@@ -48,7 +48,7 @@
 /* Ckpt specific includes */
 #include "clCkptSvr.h"
 #include "clCkptUtils.h"
-#include "clCkptIpi.h"
+#include "clCkptSvrIpi.h"
 #include "clCkptApi.h"
 #include "clCkptPeer.h"
 #include "clCkptMaster.h"

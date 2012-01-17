@@ -42,7 +42,7 @@
 #include <clCkptSvr.h>
 #include <clCkptExtApi.h>
 #include <clCkptUtils.h>
-#include "clCkptIpi.h"
+#include "clCkptSvrIpi.h"
 #include <clEventExtApi.h>
 #include <clCpmExtApi.h>
 #include <clCkptPeer.h>

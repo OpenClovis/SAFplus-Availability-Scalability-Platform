@@ -44,7 +44,7 @@
 #include <clEoQueue.h>
 #include <clCkptUtils.h>
 #include <clCkptSvr.h>
-#include "clCkptIpi.h"
+#include "clCkptSvrIpi.h"
 #include "clCkptMaster.h"
 #include "clCkptDs.h"
 

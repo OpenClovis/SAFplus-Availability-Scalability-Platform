@@ -43,7 +43,7 @@ File        : clCkptDeputy.c
 
 #include "clCkptSvr.h"
 #include <clCkptLog.h>
-#include "clCkptIpi.h"
+#include "clCkptSvrIpi.h"
 #include "clCkptUtils.h"
 #include "clCkptMasterUtils.h"
 #include "clCkptMaster.h"

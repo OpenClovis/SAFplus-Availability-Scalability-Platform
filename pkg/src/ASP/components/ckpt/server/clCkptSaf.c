@@ -46,7 +46,7 @@
 #include <clCkptExtApi.h>
 #include <clCkptUtils.h>
 #include <clCkptErrors.h>
-#include "clCkptIpi.h"
+#include "clCkptSvrIpi.h"
 #include <clCkptCommon.h>
 #include <clCkptSvr.h>
 #include <clCkptPeer.h>
@@ -1795,6 +1795,65 @@ ClRcT _ckptSectionIterationFinalize(ClHandleT sectionIterationHandle)
     return CL_OK;
 }
 
+ClRcT VDECL_VER(_ckptSectionCheck, 5, 0, 0)(ClCkptHdlT               ckptHdl,
+                                            ClCkptSectionIdT         *pSecId)
+{
+    CkptT         *pCkpt = NULL; 
+    ClRcT         rc     = CL_OK; 
+    CkptSectionT  *pSec  = NULL;
+
+    /* 
+     * Verify the server's existence.
+     */
+    CL_CKPT_SVR_EXISTENCE_CHECK;
+
+    /*
+     * Retrieve the data associated with the active handle.
+     */
+    rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl, ckptHdl, (void **)&pCkpt);  
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                                  ("Failed to get ckpt from handle rc[0x %x]\n",rc), rc);
+
+    CKPT_LOCK(pCkpt->ckptMutex);
+    if(!pCkpt->ckptMutex)
+    {
+        clLogWarning("SEC", "CHECK", "Ckpt handle [%#llx] deleted", ckptHdl);
+        rc = CL_CKPT_ERR_NOT_EXIST;
+        goto exitWithoutUnlock;
+    }
+
+    /* 
+     * Verify the sanity of the data plane info.
+     */
+    if (pCkpt->pDpInfo == NULL) rc = CL_CKPT_ERR_INVALID_STATE;
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                   ("Dataplane info is absent for %s rc[0x %x]\n",
+                    pCkpt->ckptName.value,rc), rc);
+
+    clLogDebug("SECTION", "CHK", "Ckpt [%.*s] section check [%.*s]",
+               pCkpt->ckptName.length, pCkpt->ckptName.value, 
+               pSecId->idLen, pSecId->id);
+    /*
+     * Get the pointer to the section.
+     */
+    if(!pSecId || !pSecId->idLen || !pSecId->id)
+    {
+        rc = clCkptDefaultSectionInfoGet(pCkpt, &pSec);
+    }
+    else
+    {
+        rc = clCkptSectionInfoGet(pCkpt, pSecId, &pSec);
+    }        
+
+    exitOnError:
+    CKPT_UNLOCK(pCkpt->ckptMutex);
+
+    exitWithoutUnlock:
+    clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
+    
+    exitOnErrorBeforeHdlCheckout:
+    return rc;
+}
 
 /*
  * Defer sync funda for writing  multiple sections on to a given checkpoint.

@@ -173,6 +173,12 @@ typedef CkptEoClCkptServerFinalizeAsyncCallbackT_4_0_0 CkptEoClCkptServerFinaliz
 
 ClRcT clCkptServerFinalizeClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClUint32T  nodeAddr, CL_IN ClUint32T  iocPort,CL_IN CkptEoClCkptServerFinalizeAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
+ClRcT _ckptSectionCheckClientSync_5_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT ckptHandle, CL_IN ClCkptSectionIdT_4_0_0* pSecId);
+
+typedef void (*CkptEo_ckptSectionCheckAsyncCallbackT_5_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClHandleT  ckptHandle, CL_IN ClCkptSectionIdT_4_0_0* pSecId, CL_IN ClRcT rc, CL_IN void* pCookie);
+
+ClRcT _ckptSectionCheckClientAsync_5_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT  ckptHandle, CL_IN ClCkptSectionIdT_4_0_0* pSecId,CL_IN CkptEo_ckptSectionCheckAsyncCallbackT_5_0_0 fpAsyncCallback, CL_IN void *cookie);
+
 
 #ifdef __cplusplus
 }

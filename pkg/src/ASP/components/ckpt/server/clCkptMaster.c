@@ -51,7 +51,7 @@ File        : clCkptMaster.c
 #include "clCkptPeer.h"
 #include "clCkptSvr.h"
 #include <clCkptLog.h>
-#include "clCkptIpi.h"
+#include "clCkptSvrIpi.h"
 #include "clCkptUtils.h"
 #include "clCkptMasterUtils.h"
 
