@@ -441,7 +441,7 @@ def load_amf_db():
     """
     
     global _amf_db, _amf_db_timestamp
-    if _amf_db and time.time() <= _amf_db_timestamp + AMF_DB_CACHE_TIMEOUT:
+    if _amf_db: # and time.time() <= _amf_db_timestamp + AMF_DB_CACHE_TIMEOUT:
         dbmsg(1, 'working from cached AMF DB')
         return _amf_db
     dbmsg(1, 'Getting fresh AMF DB')
@@ -1820,16 +1820,8 @@ class Cli(cmd.Cmd):
     ##
     def do_forest(self, msg):
         """print the HA hierarchy for each SG in the cluster (call 'tree' for each SG)"""
-        global AMF_DB_CACHE_TIMEOUT
-
-        last_db_cache_timeout = AMF_DB_CACHE_TIMEOUT
-
         for sgname in get_sg_names():
             self.onecmd('tree %s' % sgname)
-            if AMF_DB_CACHE_TIMEOUT == last_db_cache_timeout:
-              AMF_DB_CACHE_TIMEOUT = AMF_DB_CACHE_TIMEOUT * 5
-
-        AMF_DB_CACHE_TIMEOUT = last_db_cache_timeout
         
     ##  
     ## unlock command
