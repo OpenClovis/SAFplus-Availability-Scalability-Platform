@@ -374,6 +374,11 @@ static ClRcT resendMsg(ClRmdRecordSendT  *rec,
                    CL_IOC_RMD_ASYNC_REQUEST_PROTO,
                    &rec->recType.asyncRec.destAddr, 
                    &sndOption);
+    if(rc != CL_OK)
+    {
+        RMD_STAT_INC(pRmdObj->rmdStats.nFailedResendRequests);
+    }
+
     CL_FUNC_EXIT();
     return rc;
 }

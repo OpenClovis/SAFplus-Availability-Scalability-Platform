@@ -3021,9 +3021,7 @@ static ClRcT clEoDropPkt(ClEoExecutionObjT *pThis,
         ClUint8T protoType, ClUint32T length,
         ClIocPhysicalAddressT srcAddr)
 {
-    ClRcT retCode = 0;
-
-    retCode = clBufferDelete(&eoRecvMsg);
+    clBufferDelete(&eoRecvMsg);
     CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: Unknown Protocol ID\n"));
     return CL_OK;
 }
@@ -3330,8 +3328,11 @@ static ClRcT clEoShowRmdStats(ClUint32T data,
         ClBufferHandleT inMsgHandle,
         ClBufferHandleT outMsgHandle)
 {
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside rmdStates for pThis->eoPort \n"));
-    return clRmdStatsGet(outMsgHandle);
+    ClRmdStatsT stats = {0};
+    if(!outMsgHandle) 
+        return CL_EO_RC(CL_ERR_INVALID_BUFFER);
+    clRmdStatsGet(&stats);
+    return clBufferNBytesWrite(outMsgHandle, (ClUint8T *) &stats, sizeof(stats));
 }
 
 static ClRcT clEoIsAlive(ClUint32T data, ClBufferHandleT inMsgHandle,
