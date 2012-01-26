@@ -384,8 +384,6 @@ static ClRcT internalSendReplicast(ClTipcCommPortT *pTipcCommPort,
                           ClIocAddressT *replicastList,
                           ClUint32T numReplicasts);
 
-static ClUint32T gClTipcPacketSize = CL_TIPC_PACKET_SIZE;
-
 ClUint32T clTipcMcastType(ClUint32T type)
 {
     CL_ASSERT((type + CL_TIPC_BASE_TYPE) < 0xffffffff);
@@ -2062,7 +2060,7 @@ static ClRcT internalSendSlow(ClTipcCommPortT *pTipcCommPort,
      * If the leaky bucket is defined, then 
      * respect the traffic signal
      */
-    if(gClLeakyBucket && gClTipcPacketSize <= 1500)
+    if(gClIocTrafficShaper && gClLeakyBucket)
     {
         ClUint32T len = 0;
         clBufferLengthGet(message, &len);
