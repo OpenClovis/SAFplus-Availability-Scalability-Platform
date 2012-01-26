@@ -85,6 +85,8 @@ static ClBoolT gClEoHeartbeatDisabled = CL_FALSE;
 static ClTaskPoolStatsT gClNullTaskPoolStats;
 static ClTaskPoolT gClNullTaskPool = { .pStats = &gClNullTaskPoolStats };
 static ClTaskPoolRefT gClNullTaskPoolRef = { .tp = &gClNullTaskPool };
+static ClBoolT gClTaskPoolInitialized;
+
 /*
  * Create a pthread key for storing task pool info. for each thread.
  */
@@ -95,6 +97,7 @@ static void taskPoolKeyDestructor(void *v)
 
 ClRcT clTaskPoolInitialize(void)
 {
+    ClRcT rc = CL_OK;
     clOsalMutexInit(&gClNullTaskPool.mutex);
     clOsalCondInit(&gClNullTaskPool.cond);
     if(clParseEnvBoolean("CL_EO_TASK_MONITOR"))
@@ -113,11 +116,17 @@ ClRcT clTaskPoolInitialize(void)
             clLogNotice("TASK", "MONITOR", "Disabling task pool heartbeat for EO [%s]", CL_EO_NAME);
         }
     }
-    return clOsalTaskKeyCreate(&gClTaskPoolKey, taskPoolKeyDestructor);
+    rc = clOsalTaskKeyCreate(&gClTaskPoolKey, taskPoolKeyDestructor);
+    if(rc != CL_OK) 
+        return rc;
+    gClTaskPoolInitialized = CL_TRUE;
+    return rc;
 }
 
 ClRcT clTaskPoolFinalize(void)
 {
+    if(!gClTaskPoolInitialized) return CL_OK;
+    gClTaskPoolInitialized = CL_FALSE;
     return clOsalTaskKeyDelete(gClTaskPoolKey);
 }
 
@@ -135,6 +144,8 @@ static ClRcT clTaskPoolDataGet(ClPtrT *pData)
 {
     ClOsalTaskDataT *pThreadData = (ClOsalTaskDataT*)pData;
     ClRcT rc = CL_OK;
+    if(!gClTaskPoolInitialized) 
+        return CL_TASKPOOL_RC(CL_ERR_NOT_INITIALIZED);
     if(!pData)
         return CL_TASKPOOL_RC(CL_ERR_INVALID_PARAMETER);
     if( (rc = clOsalTaskDataGet(gClTaskPoolKey, pThreadData) ) != CL_OK)
