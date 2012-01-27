@@ -390,6 +390,7 @@ static ClRcT clCmServerAddressGet(ClIocNodeAddressT *pIocAddress)
 
 ClRcT clCmCpmResponseHandle(ClCpmCmMsgT * pClCpmCmMsg)
 {
+    return CL_OK; /* currently CM doesn't do anything on receiving AMF response */
     ClRcT rc = CL_OK;
 	ClBufferHandleT inputMsg;
     ClRmdAsyncOptionsT  rmdAsyncOptions;
