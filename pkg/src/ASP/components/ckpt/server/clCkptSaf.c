@@ -3451,6 +3451,13 @@ ClRcT ckptPresenceListNodeDelete( ClCntKeyHandleT   key,
     rc = clHandleCheckout(gCkptSvr->ckptHdl, ckptHdl, (void **)&pCkpt);
     if (rc == CL_OK && pCkpt != NULL)
     {
+        CKPT_LOCK(pCkpt->ckptMutex);
+        if(!pCkpt->ckptMutex)
+        {
+            clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+            clLogWarning("NODE", "DELETE", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+            return rc;
+        }
         if (pCkpt->pCpInfo != NULL)
         {
             if (pCkpt->pCpInfo->presenceList != 0)
@@ -3470,6 +3477,7 @@ ClRcT ckptPresenceListNodeDelete( ClCntKeyHandleT   key,
                                           pAappInfo);
             }
         }
+        CKPT_UNLOCK(pCkpt->ckptMutex);
         rc = clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
     }
     return rc;

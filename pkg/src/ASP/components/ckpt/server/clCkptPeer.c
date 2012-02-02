@@ -1521,51 +1521,54 @@ void ckptPeerDown(ClIocNodeAddressT   peerAddr, ClUint32T flag,
                   ClIocPortT portId) 
 {
     ClCkptAppInfoT  appInfo = {0};
+    if(!gCkptSvr) return;
 
-    if( (gCkptSvr != NULL ) && (gCkptSvr->serverUp != CL_FALSE) )
+    CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+    CKPT_LOCK(gCkptSvr->ckptActiveSem);
+    if(!gCkptSvr->serverUp)
     {
-        CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
-        CKPT_LOCK(gCkptSvr->ckptActiveSem);
-        clLogMultiline(CL_LOG_SEV_DEBUG, CL_CKPT_AREA_PEER, CL_CKPT_CTX_PEER_DOWN, 
-                "Recieved peer down notification\n"
-                "PeerAddr :[%d]\n"
-                "flag     :[%d]\n"
-                "portId   :[%d]", peerAddr, flag, portId);
-        if(gCkptSvr->masterInfo.masterAddr == gCkptSvr->localAddr || 
-           gCkptSvr->masterInfo.deputyAddr == gCkptSvr->localAddr || 
-           gCkptSvr->masterInfo.prevMasterAddr == gCkptSvr->localAddr ||
-           clCpmIsSCCapable())
-        {
-            /*
-             * Master has to update its peer list and has to select new active
-             * replica depending on checkpoint type and the node/component going 
-             * down being active replica.
-             */
-            clCkptMasterPeerUpdateNoLock(portId, flag, peerAddr, 
-                                         CL_CKPT_CREDENTIAL_POSITIVE); 
-            if( flag != CL_CKPT_COMP_DOWN)
-            {
-                clCkptMasterReplicaListUpdateNoLock(peerAddr);
-            }
-        }    
-        /*
-         * Delete the node from the presence list maintained by replica nodes.
-         */
-        if( flag != CL_CKPT_COMP_DOWN)
-        {
-            appInfo.nodeAddress = peerAddr;
-            appInfo.portId   = portId; 
-            /*
-             * Walk through the presence list of checkpoints and pass the address
-             * of node/ckptserver going down in the cookie.
-             */
-            clCntWalk(gCkptSvr->ckptHdlList, ckptPresenceListNodeDelete, 
-                    &appInfo, sizeof(appInfo));
-        }        
         CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
         CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+        return;
     }
-    return;
+    clLogMultiline(CL_LOG_SEV_DEBUG, CL_CKPT_AREA_PEER, CL_CKPT_CTX_PEER_DOWN, 
+                   "Recieved peer down notification\n"
+                   "PeerAddr :[%d]\n"
+                   "flag     :[%d]\n"
+                   "portId   :[%d]", peerAddr, flag, portId);
+    if(gCkptSvr->masterInfo.masterAddr == gCkptSvr->localAddr || 
+       gCkptSvr->masterInfo.deputyAddr == gCkptSvr->localAddr || 
+       gCkptSvr->masterInfo.prevMasterAddr == gCkptSvr->localAddr ||
+       clCpmIsSCCapable())
+    {
+        /*
+         * Master has to update its peer list and has to select new active
+         * replica depending on checkpoint type and the node/component going 
+         * down being active replica.
+         */
+        clCkptMasterPeerUpdateNoLock(portId, flag, peerAddr, 
+                                     CL_CKPT_CREDENTIAL_POSITIVE); 
+        if( flag != CL_CKPT_COMP_DOWN)
+        {
+            clCkptMasterReplicaListUpdateNoLock(peerAddr);
+        }
+    }    
+    /*
+     * Delete the node from the presence list maintained by replica nodes.
+     */
+    if( flag != CL_CKPT_COMP_DOWN)
+    {
+        appInfo.nodeAddress = peerAddr;
+        appInfo.portId   = portId; 
+        /*
+         * Walk through the presence list of checkpoints and pass the address
+         * of node/ckptserver going down in the cookie.
+         */
+        clCntWalk(gCkptSvr->ckptHdlList, ckptPresenceListNodeDelete, 
+                  &appInfo, sizeof(appInfo));
+    }        
+    CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
+    CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
 }
 
 
