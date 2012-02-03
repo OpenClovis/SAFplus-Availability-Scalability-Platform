@@ -108,6 +108,9 @@ clLogMasterCkptGet(void)
     ClLogSvrCommonEoDataT                *pCommonEoEntry = NULL;
     ClLogMasterEoDataT                   *pMasterEoEntry = NULL;
     ClTimeT                              timeout         = 5000L;
+    ClIocNodeAddressT                    localAddr = clIocLocalAddressGet();
+    ClInt32T tries = 0;
+    static ClTimerTimeOutT delay = { .tsSec = 0, .tsMilliSec = 100 };
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -131,11 +134,30 @@ clLogMasterCkptGet(void)
     //  {
     openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE
         | CL_CKPT_CHECKPOINT_READ;
+
+    reopen:
     rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName,
                               &ckptAttr,openFlags, timeout,
                               &pMasterEoEntry->hCkpt);
     if( (CL_OK != rc) && (CL_ERR_ALREADY_EXIST != rc) )
     {
+        /*
+         * No replica found and we are the only master.
+         * Delete and try re-opening the checkpoint
+         */
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_RESOURCE &&
+           pCommonEoEntry->masterAddr == localAddr)
+        {
+            if(tries++ < 1)
+            {
+                clLogNotice("CKP", "GET", "No replica for log checkpoint."
+                            "Deleting ckpt [%.*s] and retrying the ckpt open",
+                            gLogMasterCkptName.length, gLogMasterCkptName.value);
+                clCkptCheckpointDelete(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName);
+                clOsalTaskDelay(delay);
+                goto reopen;
+            }
+        }
         CL_LOG_DEBUG_ERROR(("clCkptCheckpointOpen(): rc[0x%x]", rc));
         return rc;
     }
@@ -145,7 +167,7 @@ clLogMasterCkptGet(void)
     //    return rc;
     //    }
 
-    if( pCommonEoEntry->masterAddr == clIocLocalAddressGet() )
+    if(pCommonEoEntry->masterAddr == localAddr)
     {
         rc = clLogMasterStateRecover(pCommonEoEntry, pMasterEoEntry, CL_FALSE);
         if( CL_OK != rc )

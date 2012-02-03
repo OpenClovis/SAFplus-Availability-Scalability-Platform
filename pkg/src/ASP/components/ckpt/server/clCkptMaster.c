@@ -145,6 +145,44 @@ clCkptNextReplicaGet(ClCntHandleT  replicaList,
     return rc;
 }
 
+static ClRcT ckptCloseOpenFailure(ClHandleT         clientHdl, 
+                                  ClIocNodeAddressT localAddr)
+{
+    ClRcT                   rc              = CL_OK;
+    CkptPeerInfoT           *pPeerInfo      = NULL;
+
+    /* 
+     * Delete the entry from clientDB database 
+     */
+    rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
+                         clientHdl); 
+    CKPT_ERR_CHECK(CL_CKPT_SVR, CL_DEBUG_ERROR,
+                   ("MasterOpen ckpt close failed rc[0x %x]\n",rc),
+                   rc);
+
+    /*
+     * Decrement the client handle count.
+     */
+    gCkptSvr->masterInfo.clientHdlCount--;        
+
+    /*
+     * Delete the client handle from the node's ckptHdl list.
+     */
+    rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList, (ClPtrT)(ClWordT)localAddr,
+                            (ClCntDataHandleT *)&pPeerInfo); 
+    CKPT_ERR_CHECK(CL_CKPT_SVR, CL_DEBUG_ERROR,
+                   ("MasterOpen ckpt close: Failed to get info of addr %d in peerList rc[0x %x]\n",
+                    localAddr, rc), rc);
+    if ( CL_OK != (rc = clCntAllNodesForKeyDelete(pPeerInfo->ckptList,
+                                                  (ClPtrT)(ClWordT)clientHdl)))
+    {
+        CKPT_DEBUG_E(("Master open ckpt close: ClientHdl %#llX Delete from list failed", clientHdl));
+    }
+                    
+    exitOnError:
+    return rc;
+}
+
 /*
  * Server implementation of checkpoint open functionality.
  */
@@ -555,9 +593,10 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                         CL_CKPT_OPEN, 0)))
         {
             clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-                    clientHdl);
+                            clientHdl);
+            --gCkptSvr->masterInfo.clientHdlCount;
             clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
-                    storedDBHdl);
+                            storedDBHdl);
             CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
             return rc;                
         }
@@ -629,6 +668,11 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                     {
                         clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN,
                                    "No replicas available for this checkpoint rc[0x %x]", rc);
+                        ckptCloseOpenFailure(clientHdl, localAddr);
+                        --pStoredData->refCount;
+                        clLogNotice("CKP","MGT","Checkpoint [%s] reference count decremented. Now [%d].", 
+                                    pStoredData->name.value, pStoredData->refCount);
+                        rc = CL_CKPT_ERR_NO_RESOURCE;
                         goto exitOnError;
                     }
                     /* 

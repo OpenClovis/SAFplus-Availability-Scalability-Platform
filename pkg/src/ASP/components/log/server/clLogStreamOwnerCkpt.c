@@ -889,6 +889,9 @@ clLogStreamOwnerCheckpointCreate(ClLogSOEoDataT  *pSoEoEntry,
     ClCkptOpenFlagsT                     openFlags      = 0;
     ClLogSvrCommonEoDataT                *pCommonEoData = NULL;
     ClUint32T                            sectionSize    = 0;
+    ClInt32T                             tries = 0;
+    ClIocNodeAddressT                    localAddr = clIocLocalAddressGet();
+    static ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 100};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
@@ -904,17 +907,36 @@ clLogStreamOwnerCheckpointCreate(ClLogSOEoDataT  *pSoEoEntry,
     creationAtt.retentionDuration = CL_STREAMOWNER_CKPT_RETENTION_DURATION;
     creationAtt.maxSections       = pCommonEoData->maxStreams;
     sectionSize                   = pCommonEoData->maxComponents * 
-                                    sizeof(ClLogCompKeyT); 
+        sizeof(ClLogCompKeyT); 
     creationAtt.maxSectionSize    = CL_LOG_SO_SEC_SIZE + sectionSize;
     creationAtt.maxSectionIdSize  = CL_LOG_SO_SEC_ID_SIZE;
 
     openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE |
-                CL_CKPT_CHECKPOINT_READ;
+        CL_CKPT_CHECKPOINT_READ;
+
+    reopen:
     rc = clCkptCheckpointOpen(pCommonEoData->hSvrCkpt, 
                               pCkptName, &creationAtt, openFlags, 5000L,
                               &pSoEoEntry->hCkpt);
     if( rc != CL_OK )
     {
+        /*
+         * No replica found and we are the only master.
+         * Delete and try re-opening the checkpoint
+         */
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_RESOURCE &&
+           pCommonEoData->masterAddr == localAddr)
+        {
+            if(tries++ < 1)
+            {
+                clLogNotice("CKP", "GET", "No replica for log checkpoint."
+                            "Deleting ckpt [%.*s] and retrying the ckpt open",
+                            pCkptName->length, pCkptName->value);
+                clCkptCheckpointDelete(pCommonEoData->hSvrCkpt, pCkptName);
+                clOsalTaskDelay(delay);
+                goto reopen;
+            }
+        }
         CL_LOG_DEBUG_ERROR(("clCkptCheckpointOpen(): rc[0x %x]", rc));
     }    
 
