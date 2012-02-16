@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modelMap:mapInformation xmlns:modelMap="modelMapping.ecore" targetModel="alarm_model">
+  <link linkType="associatedAlarm">
+    <linkDetail linkSource="SCNodeRes"/>
+    <linkDetail linkSource="PayloadNodeRes"/>
+    <linkDetail linkSource="csa104Res"/>
+    <linkDetail linkSource="csa105Res">
+      <linkTarget>csa105CounterThreshold</linkTarget>
+    </linkDetail>
+  </link>
+</modelMap:mapInformation>

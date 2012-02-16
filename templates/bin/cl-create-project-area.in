@@ -1,0 +1,180 @@
+#!/usr/bin/env bash
+# Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
+# This file is available  under  a  commercial  license  from  the
+# copyright  holder or the GNU General Public License Version 2.0.
+#
+# The source code for  this program is not published  or otherwise 
+# divested of  its trade secrets, irrespective  of  what  has been 
+# deposited with the U.S. Copyright office.
+# 
+# This program is distributed in the  hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# General Public License for more details.
+# 
+# For more  information,  see the  file COPYING provided with this
+# material.
+#
+# cl-create-project-area
+#
+# Usage:
+#   cl-create-project-area [options] <path>
+#
+# Creates a new OpenClovis SDK project area with the top-level directory
+# specified by <path>
+#
+# Outline of script:
+#
+# Step 1: Initializing and command line parsing
+# Step 2: Allow the user to select what demo models to copy or not copy.
+# Step 3: Populating the project area, taking into consideration of what
+#         models the user eleced to copy and not to copy.
+# Step 4: Registering the project area path at an ~/.clovis/${CL_SDK} rc file
+# Step 5: Print summary and next steps
+#
+##############################################################################
+
+# These variables is hard-coded into the script at install time.
+
+CL_SDK=@CL_SDK@
+CL_SDKDIR=@CL_SDKDIR@
+CL_BUILDTOOLS=`dirname $CL_SDKDIR`/buildtools
+
+##############################################################################
+#
+# Step 1: Initializing and command line parsing
+#
+##############################################################################
+
+# Trapping some critical signals, so that the script stops promptly and
+# with proper error message.
+trap 'echo ***Error***: abnormal exit, project area creation aborted >&2; exit 1' 1 2 3 15
+
+script=`which $0`
+
+usage () {
+	echo "$(basename $0) - OpenClovis SDK Project Area Creator and Initializer"
+	echo ""
+	echo "Creates a new OpenClovis SDK project area with the top-level directory"
+	echo "specified as an argument, and it initializes the area with relevant"
+	echo "source code and default settings."
+	echo ""
+	echo "Usage:"
+	echo "    $(basename $0) [<options>] <project-area-path>"
+	echo ""
+	echo "Where <options> are:"
+	echo "    -h            - print this help text"
+	echo "    -v            - be more verbose"
+	echo ""
+}
+
+# Print a feedback if verbosity level is high enough
+# Args: 1: The desired verbosity level
+#       2: The actual message
+feedback () {
+	if [ $verbosity -ge ${1} ]; then
+		echo "${2}"
+	fi
+}
+
+# Initialization
+
+verbosity=0             # verbosity level
+quite=0			# quite mode - no interactive questions, no models
+eval=0			# eval mode - quite and copy eval model
+
+# Command line parsing
+
+while getopts :hvne options; do
+	case $options in
+		h)
+			usage
+			exit 0
+			;;
+		v)
+			verbosity=$(( $verbosity + 1 ))
+			;;
+		?)
+			echo "***Error***: Invalid argument, type $(basename $0) -h for help" >&2; exit 1
+			;;
+	esac
+done
+shift $(( $OPTIND - 1 ))
+
+
+if [ $# == 1 ]; then
+	PROJECT_AREA=$1
+else
+	usage
+	exit 1
+fi
+
+feedback 2 "PROJECT_AREA as specified by the user: $PROJECT_AREA"
+
+# Handle ~*, and remove double and trailing /'s:
+PROJECT_AREA=`expr $PROJECT_AREA | sed -e 's/\/*$//g' -e 's/\/\/*/\//g'`
+
+if [ -a $PROJECT_AREA ]; then
+	# Allow to proceed only if this is a dir and it is empty
+	if [ -d $PROJECT_AREA ] && [ $(ls $PROJECT_AREA | wc -w) -eq 0 ]; then
+		echo "Directory $PROJECT_AREA exists already, but it's empty, so we proceed."
+	else
+		echo "[ERROR] Directory or file $PROJECT_AREA exists," >&2
+        echo "        which we do not want to corrupt." >&2
+		echo "        Please move it out of the way, or select another path." >&2
+		exit 1
+	fi
+fi
+
+# Lets create the directory now
+
+mkdir -p $PROJECT_AREA
+if [ $? -ne 0 ]; then
+	echo "[ERROR] Could not create directory $PROJECT_AREA. Please check permissions." >&2
+	exit 1
+fi
+
+# Obtain absolute path, in case it included ^./ and /../ patterns
+
+cd $PROJECT_AREA
+PROJECT_AREA=$PWD
+cd - > /dev/null
+
+feedback 0 "Creating new project area at $PROJECT_AREA"
+
+##############################################################################
+#
+# Step 2: Call configure to create project area in this directory
+#
+##############################################################################
+
+cd $PROJECT_AREA
+
+feedback 2 "Running configure script at $CL_SDKDIR/src/ASP/configure"
+
+$CL_SDKDIR/src/ASP/configure
+
+cd - > /dev/null
+
+##############################################################################
+#
+# Step 3: Print summary and next steps
+#
+##############################################################################
+
+cat << EOF
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+OpenClovis Project Area created under $PROJECT_AREA
+
+Possible next steps:
+  Run 'cl-ide' to launch the OpenClovis IDE to model your own system
+
+Read more in the OpenClovis user documentation. You should find the user
+documents under $CL_SDKDIR/doc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+EOF
+
+exit 0
+

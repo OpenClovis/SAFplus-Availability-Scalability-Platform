@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<log:BootConfig xmlns:log="log.ecore">
+  <log>
+    <logConfigData>
+      <maximumStreams>256</maximumStreams>
+      <maximumComponents>256</maximumComponents>
+      <maximumSharedMemoryPages>20</maximumSharedMemoryPages>
+      <maximumRecordsInPacket>100</maximumRecordsInPacket>
+    </logConfigData>
+    <perennialStreamsData>
+      <stream name="appStream">
+        <fileName>app</fileName>
+        <fileLocation>.:var/log</fileLocation>
+        <fileUnitSize>1500000</fileUnitSize>
+        <recordSize>300</recordSize>
+        <fileFullAction>WRAP</fileFullAction>
+        <maximumFilesRotated>0</maximumFilesRotated>
+        <flushFreq>64</flushFreq>
+        <flushInterval>100000</flushInterval>
+      </stream>
+      <stream name="sysStream">
+        <fileName>sys</fileName>
+        <fileLocation>.:var/log</fileLocation>
+        <fileUnitSize>1500000</fileUnitSize>
+        <recordSize>300</recordSize>
+        <fileFullAction>WRAP</fileFullAction>
+        <maximumFilesRotated>0</maximumFilesRotated>
+        <flushFreq>64</flushFreq>
+        <flushInterval>100000</flushInterval>
+      </stream>
+    </perennialStreamsData>
+    <precreatedStreamsData stream=""/>
+  </log>
+</log:BootConfig>

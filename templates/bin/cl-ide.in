@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+# Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
+# This file is available  under  a  commercial  license  from  the
+# copyright  holder or the GNU General Public License Version 2.0.
+#
+# The source code for  this program is not published  or otherwise 
+# divested of  its trade secrets, irrespective  of  what  has been 
+# deposited with the U.S. Copyright office.
+# 
+# This program is distributed in the  hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# General Public License for more details.
+# 
+# For more  information,  see the  file COPYING provided with this
+# material.
+#
+# cl-ide
+#
+# Usage:
+#   cl-ide
+#
+##############################################################################
+
+CL_SDK=@CL_SDK@
+CL_SDKDIR=@CL_SDKDIR@
+CL_BUILDTOOLS=`dirname $CL_SDKDIR`/buildtools
+
+##############################################################################
+#
+# Step 1: Initializing and command line parsing
+#
+##############################################################################
+
+# Trapping some critical signals, so that the script stops promptly and
+# with proper error message.
+trap 'echo ***Error***: abnormal exit, could not start IDE; exit 1' 1 2 3 15
+
+script=`which $0`
+
+usage () {
+    echo "$(basename $0) - OpenClovis IDE starter script"
+    echo ""
+    echo "Usage:"
+	echo "    $(basename $0) [<options>]"
+    echo ""
+    echo "Where <options> are:"
+    echo "    -h            - print this help text"
+    echo "    -v            - be more verbose"
+    echo ""
+}
+
+# Print a feedback if verbosity level is high enough
+# Args: 1: The desired verbosity level
+#       2: The actual message
+feedback () {
+    if [ $verbosity -ge ${1} ]; then
+        echo "${2}"
+    fi
+}
+ 
+# Initialization
+
+verbosity=0             # verbosity level
+
+# Command line parsing
+
+while getopts :hv options; do
+	case $options in
+		h)
+			usage
+            exit 0
+			;;
+        v)
+            verbosity=$(( $verbosity + 1 ))
+            ;;
+		?)
+			echo "***Error***: Invalid argument, type $(basename $0) -h for help"; exit 1
+			;;
+	esac
+done
+shift $(( $OPTIND - 1 ))
+
+##############################################################################
+#
+# Step 2: Sanity checks; we expect a working ecliple/IDE installation
+#
+##############################################################################
+
+SDK_CONFIG=$CL_SDKDIR/lib/clconfig.rc
+if [ ! -f $SDK_CONFIG ]; then
+    echo "[ERROR] Could not find $SDK_CONFIG. You may have an incomplete installation."
+    exit 1
+fi
+source $SDK_CONFIG
+
+if [ -z $SDKDIR ]; then
+    echo "[ERROR] Corrupt $SDK_CONFIG file: no SDKDIR defined"
+    echo "        This can be a signal of an incomplete installation"
+    exit 1
+fi
+
+if [ $SDKDIR != $CL_SDKDIR ]; then
+    echo "[ERROR] SDKDIR mismatch. This suggests that the installation does"
+    echo "        not match this script. Please reinstall the SDK."
+    exit 1
+fi
+
+if [ -z $ECLIPSE ]; then
+    echo "[ERROR] $SDK_CONFIG does not define ECLIPSE."
+    echo "        This can be a signal of an incomplete installation"
+    exit 1
+fi
+
+feedback 1 "SDK installation directory: $SDKDIR"
+feedback 1 "Eclipse directory:          $ECLIPSE"
+
+##############################################################################
+#
+# Step 3: Create an eclipse var directory under ~/.clovis/sdk, so that eclipse
+#         can mock with its run-time files there.
+#         Also, check if project area exists and adjust default workspace to
+#         point there if it does.
+#
+##############################################################################
+
+# Create ~/.clovis/sdk/eclipse if it does not yet exist
+
+DOTDIR=$HOME/.clovis
+
+if [ ! -f $DOTDIR/$CL_SDK/eclipse ]; then
+    mkdir -p $DOTDIR/$CL_SDK/eclipse
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Could not create $DOTDIR/$CL_SDK/eclipse. Check permissions."
+    fi
+    feedback 1 "Created $DOTDIR/$CL_SDK/eclipse directory"
+fi
+
+# See if $DOTDIR/$CL_SDK/project-area.rc exists. If not, create
+# default project area at $HOME/clovis/project
+
+if [ -f $DOTDIR/$CL_SDK/project-area.rc ]; then
+    feedback 1 "Found $DOTDIR/$CL_SDK/project-area.rc"
+else
+    DEF_PROJECT_AREA=$HOME/clovis/project
+    echo -en "Enter Project area location[default: $DEF_PROJECT_AREA] : "
+    read project_area
+    if [ "x${project_area}" == "x" ]; then
+	project_area=$DEF_PROJECT_AREA
+    else
+	project_area=`echo $project_area | perl -n -e 's/(\/*)$//; print "$_"'`
+    fi
+		
+    if [ ! -d $project_area ]; then
+        feedback 0 "No project area found, creating project area at $project_area..."
+        
+        mkdir -p $project_area
+        if [ $? -ne 0 ]; then
+            echo "[ERROR] Could not create $project_area.  Please check permissions." >&2
+            exit 1
+        fi
+        cd $project_area
+        $CL_SDKDIR/src/ASP/configure > /dev/null 2>&1
+        cd - > /dev/null
+        feedback 0 "done."
+    else
+        feedback 0 "Configuring project area at $project_area..."
+        cd $project_area
+        $CL_SDKDIR/src/ASP/configure > /dev/null 2>&1
+        cd - > /dev/null
+        feedback 0 "done."
+    fi
+    echo "Project area created in $project_area"
+fi
+
+##############################################################################
+#
+# Step 4: Launch Eclipse with the IDE
+#
+##############################################################################
+
+
+# If we've installed Java, use that instead of a potentially incompatible
+# local copy
+
+if [ -d $CL_BUILDTOOLS/local/jre1.6.0_21 ]; then
+	export PATH=$CL_BUILDTOOLS/local/jre1.6.0_21/bin:$PATH
+fi
+
+export PATH=$CL_BUILDTOOLS/local/bin:$PATH
+
+APPLICATION_NAME=org.eclipse.ui.ide.workbench
+PERSPECTIVE=com.clovis.cw.ui.CWPerspective
+CMD_ARGS="-application $APPLICATION_NAME -perspective $PERSPECTIVE -configuration $DOTDIR/$CL_SDK/eclipse"
+
+feedback 1 "Staring eclipse as:"
+feedback 1 "    $ECLIPSE/eclipse $CMD_ARGS $@"
+
+exec $ECLIPSE/eclipse $CMD_ARGS $@
+
+echo $?
+
+echo "IDE Started"
+
+exit 0

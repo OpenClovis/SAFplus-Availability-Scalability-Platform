@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alarmRule:alarmRuleInformation xmlns:alarmRule="alarmRule.ecore">
+  <resource name="saAmfTrapObject">
+    <alarm alarmID="saAmfAlarmServiceImpaired">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfAlarmServiceImpaired</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfAlarmCompInstantiationFailed">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfAlarmCompInstantiationFailed</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfAlarmCompCleanupFailed">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfAlarmCompCleanupFailed</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfAlarmClusterReset">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfAlarmClusterReset</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfAlarmSIUnassigned">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfAlarmSIUnassigned</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfAlarmProxiedCompUnproxied">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfAlarmProxiedCompUnproxied</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgClusterAdmin">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgClusterAdmin</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgApplicationAdmin">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgApplicationAdmin</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgNodeAdmin">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgNodeAdmin</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgSGAdmin">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgSGAdmin</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgSUAdmin">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgSUAdmin</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgSIAdmin">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgSIAdmin</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgNodeOper">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgNodeOper</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgSUOper">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgSUOper</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgSUPresence">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgSUPresence</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgSUHaState">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgSUHaState</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgSIAssignment">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgSIAssignment</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+    <alarm alarmID="saAmfStateChgUnproxiedCompProxied">
+      <generationRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0">
+        <alarmIDs>saAmfStateChgUnproxiedCompProxied</alarmIDs>
+      </generationRule>
+      <suppressionRule relationType="CL_ALARM_RULE_NO_RELATION" maxAlarm="0" alarmIDs=""/>
+    </alarm>
+  </resource>
+</alarmRule:alarmRuleInformation>

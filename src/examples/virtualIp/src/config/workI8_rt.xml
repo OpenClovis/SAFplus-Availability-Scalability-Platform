@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compInstances xmlns="cpmconfig.ecore">
+  <compInst compName="App2NI8"/>
+  <compInst compName="App9plus3I10"/>
+  <compInst compName="App11plus1I22"/>
+</compInstances>

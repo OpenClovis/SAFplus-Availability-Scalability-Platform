@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mibmap:Map xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:mibmap="compmibmap.ecore" compName="SNMPSubAgent" moduleName="ocTrain" mibPath="/home/deepak/clovis/buildtools/local/share/snmp/mibs:/home/deepak/mibs/"/>

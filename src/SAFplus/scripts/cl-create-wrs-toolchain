@@ -1,0 +1,773 @@
+#!/bin/bash
+################################################################################
+#
+#   Copyright (C) 2002-2009 by OpenClovis Inc. All Rights  Reserved.
+# 
+# The source code for  this program is not published  or otherwise 
+# divested of  its trade secrets, irrespective  of  what  has been 
+# deposited with the U.S. Copyright office.
+# 
+# This program is  free software; you can redistribute it and / or
+# modify  it under  the  terms  of  the GNU General Public License
+# version 2 as published by the Free Software Foundation.
+# 
+# This program is distributed in the  hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# General Public License for more details.
+# 
+# You  should  have  received  a  copy of  the  GNU General Public
+# License along  with  this program. If  not,  write  to  the 
+# Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+################################################################################
+#
+# Build: 4.2.0
+#
+#
+##############################################################################
+#
+# cl-create-wrs-toolchain
+#
+# Usage:
+#
+#   [TODO:...]
+
+######################
+## Useful Functions ##
+######################
+#
+# usage - displays usage information
+#
+usage() {
+    echo ""
+    echo "cl-create-wrs-toolchain - OpenClovis SDK Toolchain creation utility"
+    echo "                          for use with WindRiver Workbench"
+    echo ""
+    echo "Creates an OpenClovis SDK crossbuild toolchain using a WindRiver"
+    echo "Workbench 1.4 installation."
+    echo ""
+    echo "Usage:"
+    echo "  $(basename $0) -w <workbench-install-path> -b <wrs-board-name> \\"
+    echo "      [ -l <libhcl-tarball-path> ] <toolchain-name>"
+    echo ""
+}
+#
+# retexit - exits if return code is not zero
+#
+retexit() {
+    retval=$1
+    if [ $retval -ne 0 ]; then
+        exit $retval
+    fi
+}
+#
+# update_status [status_file_dir] [variable] [value]
+#
+update_status() {
+    thisdir=$(pwd)
+    workdir=$1
+    var=$2
+    val=$3
+    
+    cd $workdir
+    sed -e "s/^$var=./$var=$val/g" < .status > .status.foo
+    mv .status.foo .status
+    cd $thisdir
+}
+
+######################
+## Set up variables ##
+######################
+
+COPY_KERNEL=0
+PACKAGE_VERSION=4.2
+
+INSTALL_LIBHCL=0
+INSTALL_PPS=0
+
+unset SDK_DIR
+
+#set -x
+
+#############################################
+## Parse and validate command-line options ##
+#############################################
+#
+# parse
+while getopts :w:b:s:l:p:kh options; do
+    case $options in
+        h)
+            usage
+            exit 0
+            ;;
+        w)
+            WRS_INSTALL=$OPTARG
+            ;;
+        b)
+            WRS_BOARD=$OPTARG
+            ;;
+        s)
+            SDK_DIR=$OPTARG
+            ;;
+        p)
+            INSTALL_PPS=1
+            PPS_TARBALL=$OPTARG
+            ;;
+        l)
+            INSTALL_LIBHCL=1
+            LIBHCL_TARBALL=$OPTARG
+            LIBHCLPKG=$(basename $LIBHCL_TARBALL)
+            ;;
+        k)
+            COPY_KERNEL=1
+            ;;
+        ?)
+            echo ""
+            echo "Invalid option"
+            usage
+            exit 1
+    esac
+done
+shift $(( $OPTIND - 1 ))
+
+TOOLCHAIN_NAME=$1
+
+#
+# validate
+if [ ! $WRS_INSTALL ]; then
+    echo ""
+    echo "No WindRiver Workbench installation directory specified."
+    usage
+    exit 1
+fi
+
+if [ ! $WRS_BOARD ]; then
+    echo ""
+    echo "No WindRiver board name specified."
+    usage
+    exit 1
+fi
+
+if [ ! $TOOLCHAIN_NAME ]; then
+    echo ""
+    echo "No target toolchain name specified."
+    usage
+    exit 1
+fi
+
+if [ $INSTALL_LIBHCL -eq 1 ]; then
+    if [ ! -f $LIBHCL_TARBALL ]; then
+        echo ""
+        echo "$LIBHCL_TARBALL does not exist."
+        usage
+        exit 1
+    fi
+fi
+
+if [ $INSTALL_PPS -eq 1 ]; then
+    if [ ! -f $PPS_TARBALL ]; then
+        echo "failed"
+        usage
+        exit 1
+    fi
+fi
+
+############################
+## Source our status file ##
+############################
+
+TCDIR_DONE=0
+LINKS_DONE=0
+UNTAR_PKG_DONE=0
+NETSNMP_DONE=0
+OPENHPI_DONE=0
+SUBAGENT_DONE=0
+LIBHCL_DONE=0
+SQLITE_DONE=0
+PYTHON_DONE=1 # disabled until pyhpi bug is fixed
+
+if [ -f .status ]; then
+    echo -n "Reading status file ... "
+    source .status
+    echo "done"
+else
+    echo -n "Creating status file ... "
+    cat << EOF > .status
+# wrs toolchain creation status file
+TCDIR_DONE=$TCDIR_DONE
+LINKS_DONE=$LINKS_DONE
+UNTAR_PKG_DONE=$UNTAR_PKG_DONE
+NETSNMP_DONE=$NETSNMP_DONE
+OPENHPI_DONE=$OPENHPI_DONE
+SUBAGENT_DONE=$SUBAGENT_DONE
+LIBHCL_DONE=$LIBHCL_DONE
+SQLITE_DONE=$SQLITE_DONE
+PYTHON_DONE=$PYTHON_DONE
+export TCDIR_DONE LINKS_DONE UNTAR_PKG_DONE NETSNMP_DONE OPENHPI_DONE
+export SUBAGENT_DONE SQLITE_DONE LIBHCL_DONE PYTHON_DONE
+EOF
+    echo "done"
+fi
+##########################################
+## Ensure 3rd party package is in place ##
+##########################################
+
+THIRDPARTYPKG=3rdparty-base-1.15.tar
+
+if [ ! -f $THIRDPARTYPKG ]; then
+    echo ""
+    echo "Please run this script in the same location as the third-party"
+    echo "package tarball $THIRDPARTYPKG"
+    exit 1
+fi
+
+######################################################
+## Check if WindRiver Workbench installation exists ##
+######################################################
+#
+if [ ! -d $WRS_INSTALL/wrlinux-1.4 ]; then
+    echo ""
+    echo "No WindRiver Workbench 1.4 installation found at $WRS_INSTALL"
+    echo "Please verify the installation is at this location, or specify"
+    echo "the location of a WindRiver Workbench 1.4 installation, and try"
+    echo "this script again."
+    exit 1
+fi
+
+#################################################
+## Check if named board support package exists ##
+#################################################
+#
+if [ ! -d $WRS_INSTALL/wrlinux-1.4/wrlinux/templates/board/$WRS_BOARD ]; then
+    echo ""
+    echo "Board Support Package $WRS_BOARD not found in WindRiver Workbench"
+    echo "installation at $WRS_INSTALL.  Please verify the board name specified."
+    exit 1
+fi
+
+##################################################
+## Setup buildtool symlinks and write config.mk ##
+##################################################
+#
+# TODO: Harvest target information, assuming intel for now
+echo -n "Harvesting target data ... "
+
+CPU=$(cat $WRS_INSTALL/wrlinux-1.4/wrlinux/templates/board/$WRS_BOARD/include | cut -d/ -f 2)
+echo -n "CPU ($CPU) "
+
+ARCH=$(cat $WRS_INSTALL/wrlinux-1.4/wrlinux/templates/cpu/$CPU/include | cut -d/ -f 2)
+echo -n "ARCH ($ARCH) "
+
+TARGET_ARCH=$(grep TARGET_ARCH $WRS_INSTALL/wrlinux-1.4/wrlinux/templates/arch/$ARCH/config.sh | cut -d= -f 2 | sed -e 's/"//g')
+echo -n "TARGET_ARCH ($TARGET_ARCH) "
+
+TARGET=${TARGET_ARCH}-wrs-linux-gnu
+echo -n "TARGET ($TARGET) "
+
+MACH=$ARCH
+if [ ! $SDK_DIR ]; then
+    if [ -f ~/.clovis/sdk-$PACKAGE_VERSION/install.cache ]; then
+        sdk_inst=$(cat ~/.clovis/sdk-$PACKAGE_VERSION/install.cache)/sdk-$PACKAGE_VERSION
+        thisdir=$(pwd)
+        cd $sdk_inst/..
+        SDK_DIR=$(pwd)
+        cd $thisdir
+    else
+        echo ""
+        echo "Cannot find SDK installation.  Please rerun this script with the"
+        echo "-s option to specify the SDK install directory."
+        exit 1
+    fi
+fi
+echo -n "SDK ($SDK_DIR) "
+echo "... done"
+
+TC_DIR=$SDK_DIR/buildtools/$TOOLCHAIN_NAME
+echo "Creating new toolchain at $TC_DIR"
+TC_VER=0.1
+export WIND_HOME=$WRS_INSTALL
+export WIND_LIC_PROXY=$WRS_INSTALL/setup/x86-linux2/bin
+
+#
+# setup symlinks
+curdir=$(pwd)
+
+if [ $TCDIR_DONE = 0 ]; then
+    echo -n "Creating toolchain directory ... "
+    mkdir -p $TC_DIR
+    retexit $?
+    echo "done"
+    TCDIR_DONE=1
+    update_status $curdir TCDIR_DONE $TCDIR_DONE
+fi
+
+cd $TC_DIR
+
+if [ $LINKS_DONE = 0 ]; then
+    echo -n "Setting up symlinks ... "
+    ln -s $WRS_INSTALL/gnu/3.4.4-wrlinux-1.4/x86-linux2/bin .
+
+    mkdir $TARGET
+    cd $TARGET
+
+    ln -s $WRS_INSTALL/gnu/3.4.4-wrlinux-1.4/x86-linux2/$TARGET/bin .
+    ln -s $WRS_INSTALL/gnu/3.4.4-wrlinux-1.4/x86-linux2/$TARGET/lib .
+    ln -s $WRS_INSTALL/gnu/3.4.4-wrlinux-1.4/x86-linux2/$TARGET/libc .
+    
+    # Need to handle case for powerpc CPUs separately so we can
+    # strip 'ppc_' before the cpu name
+    if [ $ARCH = ppc ]; then
+        if [ $CPU == "ppc_7400" ]; then
+            CPU="ppc7400"
+        elif [ $CPU == "ppc_e500v2" ]; then
+            CPU="e500v2"
+        fi
+    elif [ $ARCH = ia32 ]; then
+        intelcpu=$(echo $CPU | sed -e 's/_//g')
+        CPU=$intelcpu
+    fi
+    ln -s $WRS_INSTALL/wrlinux-1.4/wrlinux/target-libs/glibc_cgl/$TARGET-$CPU/include .
+
+    cd ..
+
+    ln -s $WRS_INSTALL/wrlinux-1.4/wrlinux/target-libs/glibc_cgl/$TARGET-$CPU/lib .
+    
+    echo "done"
+
+    #
+    # create local directory for toolchain-built 3rd party dependencies
+    echo -n "Creating local directory for crossbuilt third party packages ... "
+    mkdir local
+    echo "done"
+
+    #
+    # write config.mk
+    echo -n "Writing toolchain configuration file ... "
+    if [ $ARCH = ia32 ]; then
+        config_mk_arch=i386
+        config_mk_mach=i386
+    else
+        config_mk_arch=$ARCH
+        config_mk_mach=$MACH
+    fi
+    cat << EOF > config.mk
+# Includig this file in a Makefile will properly set the ARCH and MARCH
+# variables for this toolchain.
+
+ARCH=$config_mk_arch
+MACH=$config_mk_mach
+TARGET=$TARGET
+TOOLCHAIN_VERSION=$TC_VER
+WIND_VER=1.4
+WIND_HOME=$WRS_INSTALL
+WIND_LIC_PROXY=$WRS_INSTALL/setup/x86-linux2/bin
+export ARCH MACH TARGET TOOLCHAIN WIND_VER WIND_HOME WIND_LIC_PROXY
+
+EOF
+    echo "done"
+
+    LINKS_DONE=1
+    update_status $curdir LINKS_DONE $LINKS_DONE
+fi
+
+cd $curdir
+
+########################################
+## extract the packages we care about ##
+########################################
+
+    NETSNMP=net-snmp-5.4.2
+    NETSNMPPKG=$NETSNMP.tar.gz
+    OPENHPI=openhpi-2.14.0
+    if [ $INSTALL_PPS -eq 1 ]; then
+        OPENHPIPKG=$(basename $PPS_TARBALL)
+    else
+        OPENHPIPKG=$OPENHPI.tar.gz
+    fi
+    OPENHPISUBAGENT=openhpi-subagent-2.3.4
+    OPENHPISUBAGENTPKG=$OPENHPISUBAGENT.tar.gz
+    PYTHON=pyhpi
+    PYTHONPKG=$PYTHON.tar.gz
+    TIPC=tipc-1.5.12
+    TIPCPKG=$TIPC.tar.gz
+    SQLITE=sqlite-3.6.7
+    SQLITEPKG=$SQLITE.tar.gz
+
+if [ $UNTAR_PKG_DONE = 0 ]; then
+    if [ ! -d packages ]; then
+        mkdir packages
+    fi
+    cd packages
+
+    #
+    # net-snmp
+    echo -n "Extracting $NETSNMPPKG ... "
+    tar xf ../$THIRDPARTYPKG $NETSNMPPKG
+    echo "done"
+
+    #
+    # openhpi
+    if [ $INSTALL_PPS -eq 0 ]; then
+        echo -n "Extracting $OPENHPIPKG ... "
+        tar xf ../$THIRDPARTYPKG $OPENHPIPKG
+        echo "done"
+    else
+        echo -n "Copying $OPENHPIPKG ... "
+        cp $PPS_TARBALL .
+        echo "done"
+    fi
+
+    #
+    # openhpi-subagent
+    echo -n "Extracting $OPENHPISUBAGENTPKG ... "
+    tar xf ../$THIRDPARTYPKG $OPENHPISUBAGENTPKG
+    echo "done"
+
+    #
+    # tipc
+    echo -n "Extracting $TIPC ... "
+    tar xf ../$THIRDPARTYPKG $TIPCPKG
+    echo "done"
+
+    #
+    # Python
+    echo -n "Extracting $PYTHONPKG ... "
+    tar xf ../$THIRDPARTYPKG $PYTHONPKG
+    echo "done"
+
+    #
+    # libhcl
+    if [ $INSTALL_LIBHCL -eq 1 ]; then
+        echo -n "Copying $LIBHCL_TARBALL ... "
+        cp $LIBHCL_TARBALL .
+        echo "done"
+    fi
+
+    #
+    # sqlite
+    echo -n "Extracting $SQLITEPKG ... "
+    tar xf ../$THIRDPARTYPKG $SQLITEPKG
+    echo "done"
+
+    UNTAR_PKG_DONE=1
+    update_status $curdir UNTAR_PKG_DONE $UNTAR_PKG_DONE
+fi
+
+cd $curdir
+
+########################################################
+## Build third party dependencies with this toolchain ##
+########################################################
+export PREFIX=$TC_DIR/local
+export PATH=$PREFIX/bin:$TC_DIR/bin:$PATH
+export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig:$TC_DIR/lib/pkgconfig
+
+#
+# net-snmp
+#
+if [ $NETSNMP_DONE = 0 ]; then
+    mkdir tmp
+    cd tmp
+    tar xzf ../packages/$NETSNMPPKG
+    cd $NETSNMP
+
+    if [ $ARCH = ia32 ]; then
+        CPPFLAGS=-I$TC_DIR/$TARGET/include LDFLAGS=-L$TC_DIR/lib CC=$TARGET-gcc ./configure \
+                --prefix=$PREFIX \
+                --with-default-snmp-version="2" \
+                --without-rpm \
+                --with-defaults \
+                --disable-embedded-perl \
+                --without-perl-modules
+        retexit $?
+    else
+        CPPFLAGS=-I$TC_DIR/$TARGET/include LDFLAGS=-L$TC_DIR/lib CC=$TARGET-gcc ./configure \
+                --prefix=$PREFIX \
+                --with-default-snmp-version="2" \
+                --without-rpm \
+                --with-defaults \
+                --disable-embedded-perl \
+                --without-perl-modules \
+                --host=$TARGET \
+                --with-endianness=big
+        retexit $?
+    fi
+    make
+    retexit $?
+    #sudo make install
+    make install
+    retexit $?
+    cd ../..
+    rm -rf tmp
+
+    NETSNMP_DONE=1
+    update_status $curdir NETSNMP_DONE $NETSNMP_DONE
+fi
+
+#
+# openhpi
+#
+if [ $OPENHPI_DONE = 0 ]; then
+    cd $curdir
+    mkdir tmp
+    cd tmp
+    tar xzf ../packages/$OPENHPIPKG
+    cd $OPENHPI
+
+    if [ $INSTALL_PPS -eq 1 ]; then
+        cp PPS.cache.orig config.cache
+    fi
+
+    sed -i.bak -e 's/\-Werror//g' configure
+
+    if [ $ARCH = ia32 ]; then
+        if [ $INSTALL_PPS -eq 1 ]; then
+            CPPFLAGS="-I$PREFIX/include -I$TC_DIR/$TARGET/include -I$TC_DIR/$TARGET/include/glib-2.0 -I$TC_DIR/lib/glib-2.0/include" \
+                LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib" \
+                CC=$TARGET-gcc \
+                CXX=$TARGET-g++ \
+                ./configure \
+                    -C \
+                    --build=$TARGET \
+                    --prefix=$PREFIX \
+                    --enable-ipmi=no
+            retexit $?
+        else
+            CPPFLAGS="-I$PREFIX/include -I$TC_DIR/$TARGET/include -I$TC_DIR/$TARGET/include/glib-2.0 -I$TC_DIR/lib/glib-2.0/include" \
+                LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib" \
+                CC=$TARGET-gcc \
+                CXX=$TARGET-g++ \
+                ./configure \
+                    --build=$TARGET \
+                    --prefix=$PREFIX \
+                    --enable-ipmi=no
+            retexit $?
+        fi
+    else
+        if [ $INSTALL_PPS -eq 1 ]; then
+            CPPFLAGS="-I$PREFIX/include -I$TC_DIR/$TARGET/include -I$TC_DIR/$TARGET/include/glib-2.0 -I$TC_DIR/lib/glib-2.0/include" \
+                LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib" \
+                CC=$TARGET-gcc \
+                CXX=$TARGET-g++ \
+                ./configure \
+                    -C \
+                    --prefix=$PREFIX \
+                    --enable-ipmi=no \
+                    --host=$TARGET
+            retexit $?
+        else
+            CPPFLAGS="-I$PREFIX/include -I$TC_DIR/$TARGET/include -I$TC_DIR/$TARGET/include/glib-2.0 -I$TC_DIR/lib/glib-2.0/include" \
+                LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib" \
+                CC=$TARGET-gcc \
+                CXX=$TARGET-g++ \
+                ./configure \
+                    --prefix=$PREFIX \
+                    --enable-ipmi=no \
+                    --host=$TARGET
+            retexit $?
+        fi
+    fi
+    make
+    retexit $?
+    sed -e "s; /bin/bash; /bin/bash\nPATH=$PREFIX/bin:$TC_DIR/bin:$PATH;g" < libtool > libtool.alt
+    mv libtool.alt libtool
+    #sudo make install
+    make install
+    retexit $?
+
+    cd ../..
+    rm -rf tmp
+
+    OPENHPI_DONE=1
+    update_status $curdir OPENHPI_DONE $OPENHPI_DONE
+fi
+
+#
+# openhpi-subagent
+#
+if [ $SUBAGENT_DONE = 0 ]; then
+    cd $curdir
+    mkdir tmp
+    cd tmp
+    tar xzf ../packages/$OPENHPISUBAGENTPKG
+    cd $OPENHPISUBAGENT
+    export HOST_CROSS_INCLUDE_DIR=$TC_DIR/$TARGET/include
+    export HOST_CROSS_LIB_DIR=$TC_DIR/lib
+    
+    if [ $ARCH = ia32 ]; then
+        CFLAGS="-I$PREFIX/include -I$TC_DIR/$TARGET/include" \
+            LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib -Xlinker -R -Xlinker $PREFIX/lib -Xlinker -R -Xlinker $TC_DIR/lib -Xlinker -R -Xlinker $TC_DIR/$TARGET/lib" \
+            CC=$TARGET-gcc \
+            PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig:$TC_DIR/lib/pkgconfig \
+            ./configure \
+                --build=$TARGET \
+                --prefix=$PREFIX \
+                --host=$ARCH
+        retexit $?
+    else
+        CFLAGS="-I$PREFIX/include -I$TC_DIR/$TARGET/include -w" \
+            LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib -Xlinker -R -Xlinker $PREFIX/lib -Xlinker -R -Xlinker $TC_DIR/lib -Xlinker -R -Xlinker $TC_DIR/$TARGET/lib" \
+            CC=$TARGET-gcc \
+            PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig:$TC_DIR/lib/pkgconfig \
+            ./configure \
+                --prefix=$PREFIX \
+                --host=$TARGET
+        retexit $?
+    fi
+    make
+    retexit $?
+    #sudo make install
+    make install
+    retexit $?
+    cd ../..
+    rm -rf tmp
+
+    SUBAGENT_DONE=1
+    update_status $curdir SUBAGENT_DONE $SUBAGENT_DONE
+fi
+
+#
+# libhcl
+#
+if [ $INSTALL_LIBHCL -eq 1 ]; then
+    if [ $LIBHCL_DONE = 0 ]; then
+        cd $curdir
+        mkdir tmp
+        cd tmp
+        tar xzf ../packages/$LIBHCLPKG
+        cd libhcl*
+
+        export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig:$TC_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
+        CPPFLAGS="-I$PREFIX/include -I$TC_DIR/$TARGET/include -I$TC_DIR/$TARGET/include/glib-2.0 -I$TC_DIR/lib/glib-2.0/include" \
+            LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib" \
+            CC=$TARGET-gcc \
+            ./configure --host=$TARGET --prefix=$PREFIX
+        retexit $?
+        make
+        retexit $?
+        make install
+        retexit $?
+
+        # copy header files to appropriate location
+        mkdir -p $PREFIX/include/radisys
+        find . -name '*.h' -exec cp '{}' $PREFIX/include/radisys ';'
+
+        cd ../..
+        rm -rf tmp
+    fi
+fi
+
+#
+# sqlite3
+#
+if [ $SQLITE_DONE = 0 ]; then
+    cd $curdir
+    mkdir tmp
+    cd tmp
+    tar xzf ../packages/$SQLITEPKG
+    cd $SQLITE
+    CPPFLAGS="-I$PREFIX/include -I$TC_DIR/$TARGET/include -I$TC_DIR/$TARGET/include/glib-2.0 -I$TC_DIR/lib/glib-2.0/include" \
+        LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib" \
+        CC=$TARGET-gcc \
+        CXX=$TARGET-g++ \
+	CROSS_COMPILE=$TARGET- \
+        ./configure \
+            --prefix=$PREFIX \
+            --host=$TARGET \
+            --disable-tcl \
+            --disable-readline
+        retexit $?
+
+        make
+        retexit $?
+
+        make install
+        retexit $?
+
+        cd ../..
+        rm -rf tmp
+
+        SQLITE_DONE=1
+        update_status $curdir SQLITE_DONE $SQLITE_DONE
+fi
+
+#
+# pyhpi wrapper
+#
+if [ $PYTHON_DONE = 0 ]; then
+    # Do not build 
+    if [ ! $ARCH = ia32 ]; then
+        echo ""
+        echo "Not building pyhpi wrapper for powerpc targets."
+        PYTHON_DONE=1
+        update_status $curdir PYTHON_DONE $PYTHON_DONE
+        exit 0
+    fi
+
+    cd $curdir
+    mkdir tmp
+    cd tmp
+    tar xzf ../packages/$PYTHONPKG
+    cd $PYTHON
+    export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig:$TC_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
+    CPPFLAGS="-I$PREFIX/include -I$PREFIX/include/opehpi -I$TC_DIR/$TARGET/include -I$TC_DIR/$TARGET/include/glib-2.0 -I$TC_DIR/lib/glib-2.0/include" \
+        LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib -Xlinker -R -Xlinker $PREFIX/lib -Xlinker -R -Xlinker $TC_DIR/lib -Xlinker -R -Xlinker $TC_DIR/$TARGET/lib" \
+        CC=$TARGET-gcc \
+        python setup.py build
+    retexit $?
+    #sudo python setup.py install --prefix=$PREFIX
+    python setup.py install --prefix=$PREFIX
+    retexit $?
+    sed -e "s/module openhpi/module libhcl/g" openhpi.i > libhcl.i
+    CPPFLAGS="-I$PREFIX/include -I$PREFIX/include/opehpi -I$TC_DIR/$TARGET/include -I$TC_DIR/$TARGET/include/glib-2.0 -I$TC_DIR/lib/glib-2.0/include" \
+        LDFLAGS="-L$PREFIX/lib -L$TC_DIR/lib -L$TC_DIR/$TARGET/lib -Xlinker -R -Xlinker $PREFIX/lib -Xlinker -R -Xlinker $TC_DIR/lib -Xlinker -R -Xlinker $TC_DIR/$TARGET/lib" \
+        CC=$TARGET-gcc \
+        python setup-libhcl.py build
+    retexit $?
+    #sudo python setup-libhcl.py install --prefix=$PREFIX
+    python setup-libhcl.py install --prefix=$PREFIX
+    #(cd $PREFIX/lib; rm -rf python; sudo mv python?.? python)
+    (cd $PREFIX/lib; rm -rf python; mv python?.? python)
+    cd $curdir
+
+    PYTHON_DONE=1
+    udpate_status $curdir PYTHON_DONE $PYTHON_DONE
+fi
+
+##########################################
+## Last steps, manual workarounds, etc. ##
+##########################################
+#
+# Symlink PREFIX's include directory to top-level include 
+#
+echo -n "Setting toolchain include directory symlink ... "
+cd $TC_DIR
+ln -s local/include .
+cd $curdir
+echo "done"
+
+#
+# Copy tipc header files 
+#
+
+cd $curdir
+mkdir tmp
+cd tmp
+tar xzf ../packages/$TIPCPKG
+cd $TIPC
+
+mkdir -p $PREFIX/include/linux > /dev/null 2>&1
+cp include/net/tipc/*.h $PREFIX/include
+cp include/net/tipc/*.h $PREFIX/include/linux
+
+cd ../..
+rm -rf tmp
+
+###########
+## done! ##
+###########
+cd $curdir
+rm -rf packages tmp
+echo ""
+echo "We are done."
+

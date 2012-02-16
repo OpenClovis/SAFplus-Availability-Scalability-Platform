@@ -1,0 +1,66 @@
+--------------------------
+README for ASP RT package
+--------------------------
+The directory contains  all the binaries and script required to install
+ASP on a target machine . 
+
+--------------------
+To Install ASP RT 
+---------------------
+
+1) Run ./install.sh (As root user)
+    
+   Follow the instructions on screen and answer the questions accrosingly.
+----------------------
+To Uninstall ASP RT 
+----------------------
+
+1) Go to the location where ASP was installed . By default it is installed in
+   /usr/local/clovis
+   
+2) Run ./uninstall.sh from this directory
+
+--------------
+To Start ASP
+--------------
+
+1) Run /etc/init.d/asp start ( As root user) .
+   
+
+Note :
+
+   If you would like to change any runtime settings , modify the following
+   variables in /etc/asp-rt-2.2.conf
+
+   a) IPMI_AVAILABLE
+      Set this to 'y' if IPMI is installed on the system and 'n' otherwise.
+
+   b) CHASSIS_ID
+      Set this to the chassis id of the chassis on which the blade resides
+      (default 0).
+   
+   c) LOCALSLOT_ID
+      Set this to the slot id of the blade in the chassis ( default 1).
+
+   d) ASP_NODENAME
+      Set this to the node name of the blade (default SysController_0).
+   
+   e) BOOT_PROFILE
+      Set this to the default boot profile of the blade (default debug).
+
+   f) CM_ENABLED
+      Set this to 'y' if CM server is enabled on this blade and 'n' otherwise
+
+   g) OPENHPI_PATH
+      Set this to the location of rt-env.sh (Reqd to start CM server).
+
+   h) SNMP_ENABLED
+      Set this to 'y' if SNMP server is enabled on this blade and 'n' otherwise
+
+--------------
+To Stop ASP
+--------------
+
+1) Run /etc/init.d/asp stop ( As root user) .
+
+

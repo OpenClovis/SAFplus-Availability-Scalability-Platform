@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
+
+This file is available  under  a  commercial  license  from  the
+copyright  holder or the GNU General Public License Version 2.0.
+
+The source code for  this program is not published  or otherwise 
+divested of  its trade secrets, irrespective  of  what  has been 
+deposited with the U.S. Copyright office.
+
+This program is distributed in the  hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+General Public License for more details.
+
+For more  information,  see the  file COPYING provided with this
+material.
+-->
+<IDLSpecs xmlns="rmd.ecore" name="evtIDL">
+<!--
+        <Comp name="ioc"/> 
+        <Include name="clIocApi.h"/>
+
+        <Comp name="amf"/> 
+        <Include name="clAmsTypes.h"/>
+        <Include name="clCpmApi.h"/>
+        <Include name="clCpmExtApi.h"/>
+        <Include name="clCpmIpi.h"/>
+
+        <Comp name="eo"/> 
+        <Include name="clEoConfigApi.h"/>
+-->
+        <Include name="clEventCommonIpi.h"/>
+
+        <!-- 
+           Please run idl script like this:
+           python /path/to/clIdlGen.py -t -a /path/to/ASP clEventIdl.xml idl
+          -->
+        <!-- Structures related to the event -->
+
+        <!-- Structure definitions for clEventSubscribe -->
+
+        <Struct name="ClEvtUserIdT" defNeed="No">
+          <DataMember name="eoIocPort" type="ClEoIdT"/>
+          <DataMember name="evtHandle" type="ClEventInitHandleT"/>
+          <DataMember name="clientHandle" type="ClHandleT"/>
+        </Struct>
+
+        <Struct name="ClEvtSubscribeEventRequestT" defNeed="No">
+          <DataMember name="releaseCode" type="ClUint8T"/>
+          <DataMember name="majorVersion" type="ClUint8T"/>
+          <DataMember name="minorVersion" type="ClUint8T"/>
+          <DataMember name="reserved" type="ClUint8T"/>
+          <DataMember name="evtChannelHandle" type="ClEventChannelHandleT"/>
+          <DataMember name="subscriberCommPort" type="ClIocPortT"/>
+          <DataMember name="userId" type="ClEvtUserIdT"/>
+          <DataMember name="subscriptionId" type="ClEventSubscriptionIdT"/>
+          <DataMember name="pCookie" type="ClUint64T"/>
+          <DataMember name="evtChannelName" type="ClNameT"/>
+          <DataMember name="packedRbeLen" type="ClUint32T"/>
+          <DataMember name="packedRbe" type="ClUint8T" pointer="Single" lengthVar="packedRbeLen"/>
+        </Struct>
+
+        <!-- Structure definitions for clEventInitialize -->
+
+        <Struct name="ClEvtInitRequestT" defNeed="No">
+          <DataMember name="releaseCode" type="ClUint8T"/>
+          <DataMember name="majorVersion" type="ClUint8T"/>
+          <DataMember name="minorVersion" type="ClUint8T"/>
+          <DataMember name="reserved" type="ClUint8T"/>
+          <DataMember name="userId" type="ClEvtUserIdT"/>
+          <DataMember name="clientHdl" type="ClHandleT"/>
+       </Struct>
+
+        <!-- Structure definitions for clEventInitialize -->
+
+        <Struct name="ClEvtChannelOpenRequestT" defNeed="No">
+          <DataMember name="releaseCode" type="ClUint8T"/>
+          <DataMember name="majorVersion" type="ClUint8T"/>
+          <DataMember name="minorVersion" type="ClUint8T"/>
+          <DataMember name="reserved" type="ClUint8T"/>
+          <DataMember name="evtChannelHandle" type="ClEventChannelHandleT"/>
+          <DataMember name="userId" type="ClEvtUserIdT"/>
+          <DataMember name="evtChannelName" type="ClNameT"/>
+       </Struct>
+
+        <!-- Structure definitions for clEventUnsubscribe -->
+
+        <Struct name="ClEvtUnsubscribeEventRequestT" defNeed="No">
+          <DataMember name="releaseCode" type="ClUint8T"/>
+          <DataMember name="majorVersion" type="ClUint8T"/>
+          <DataMember name="minorVersion" type="ClUint8T"/>
+          <DataMember name="reserved" type="ClUint8T"/>
+          <DataMember name="evtChannelHandle" type="ClEventChannelHandleT"/>
+          <DataMember name="userId" type="ClEvtUserIdT"/>
+          <DataMember name="subscriptionId" type="ClEventSubscriptionIdT"/>
+          <DataMember name="evtChannelName" type="ClNameT"/>
+          <DataMember name="reqFlag" type="ClUint8T"/>
+        </Struct>
+
+</IDLSpecs>

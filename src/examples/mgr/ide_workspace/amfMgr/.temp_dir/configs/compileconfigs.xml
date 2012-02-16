@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<CompileConfigs:ComponentsInfo xmlns:CompileConfigs="Comps.ecore">
+  <COR savetype="CL_COR_DELTA_SAVE"/>
+  <FM localProbationPeriod="10">
+    <localSeqTableEntry Category="com" EscalationLevel="Level1" Function="foo1" IsExtern="false" Severity="MN"/>
+  </FM>
+  <NS maxentries="256" maxglobalcontexts="10" maxlocalcontexts="2"/>
+  <RMD maxretries="8"/>
+  <PM>
+    <appConfigInterval applicationName="snmpSubAgent" value="3000"/>
+    <appConfigInterval applicationName="amfMgmt" value="3000"/>
+    <compConfigInterval componentName="snmpSubAgentI0" type="snmpSubAgent" value="0"/>
+    <compConfigInterval componentName="amfMgmtI0" type="amfMgmt" value="0"/>
+    <compConfigInterval componentName="snmpSubAgentI1" type="snmpSubAgent" value="0"/>
+    <compConfigInterval componentName="amfMgmtI1" type="amfMgmt" value="0"/>
+  </PM>
+</CompileConfigs:ComponentsInfo>

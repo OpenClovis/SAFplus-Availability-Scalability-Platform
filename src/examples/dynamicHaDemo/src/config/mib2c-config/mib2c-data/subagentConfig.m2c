@@ -1,0 +1,323 @@
+##################################################
+### mib2c/clSnmpSubAgent${name}Config.h
+##################################################
+@open mib2c/clSnmpSubAgent${name}Config.h@
+#ifndef _CL_SNMP_SUBAGENT_$name.uc_CONFIG_H_
+#define _CL_SNMP_SUBAGENT_$name.uc_CONFIG_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/***************************
+* General ASP header files
+****************************/
+#include <clCorMetaData.h>
+#include <clMedApi.h>
+#include <clSnmpDefs.h>
+#include <clSnmpDataDefinition.h>
+
+/***************************
+* Constant definition 
+****************************/
+#define MODULE_NAME    "${name}"    /*Module name as specified in the MIB file.*/
+
+/*
+ * Information regarding all the tables on which the sub-agent is operating.
+ */
+enum CL_SNMP_$name.uc_OBJECTS {
+@if $scalars_exist == 1@
+    CL_$name.uc_SCALARS, 
+@end@
+@foreach $t table@
+    CL_$t.uc,
+@end@
+    CL_SNMP_TABLE_MAX
+} clSnmp${name}EnumType;
+
+/*
+ * Index information for all tables.
+ */
+
+@foreach $t table@
+typedef struct clSnmp${t}IndexInfo
+{
+### TO DO: Handling string/OID indexes when the table has multiple indexes while satisfying the condition of max. OID length 128.
+    @foreach $idx index@
+        ### FUTURE USE: ClUint32T ${idx}Length;
+        @if $idx.type eq "ASN_OCTET_STR"@
+### CL_SNMP_MAX_STR_LEN should have a value such that the max. OID length (which has OID prefix 
+### plus the index component), should not exceed 128.
+### Also need to handle the condition when CL_SNMP_MAX_STR_LEN != max. string length mentioned in MIB. 
+            @eval $str_var = $idx@
+            @calldefine STR_UPPER_LIMIT@
+    ClCharT $idx[$final_max];
+
+        @elsif $idx.type eq "ASN_IPADDRESS"@
+    ClUint8T $idx[4]; /* IPv4 address length */
+
+        @elsif $idx.type eq "ASN_OBJECT_ID"@
+    ClUint32T $idx[CL_SNMP_MAX_OID_LEN];
+
+        @elsif $idx.type eq "ASN_INTEGER"@
+    ClInt32T $idx;
+        @elsif $idx.type eq "ASN_UNSIGNED" || $idx.type eq "ASN_GAUGE" || $idx.type eq "ASN_COUNTER" || $idx.type eq "ASN_TIMETICKS"@
+    ClUint32T $idx;
+        @else@
+            @eval $decl = '$idx.decl'@
+            @calldefine GET_CLOVIS_CODING_CONV@
+    $c_type $idx;
+        @end@
+    @end@
+} ClSnmp${t}IndexInfoT;
+
+@end@
+
+
+### Define ClSNMPRequestInfo structure.
+/* The union part of this structure will change according to application MIB
+ * indices. The first 5 fields before the union should not be changed. */
+ 
+### TO DO: This should go into clSnmpDefs.h
+#define CL_SNMP_MAX_OID_STR_LEN (CL_SNMP_MAX_OID_LEN * sizeof(unsigned long))
+
+typedef struct ClSNMPRequestInfo
+{
+    /* This is the application independent part*/
+    ClInt32T    tableType;
+    ClCharT     oid[CL_SNMP_MAX_OID_STR_LEN];
+    ClInt32T    oidLen;
+    ClSnmpOpCodeT    opCode;
+    ClUint32T   dataLen;    
+    /* Change the definition of union based on the indices for the application
+     * MIB*/
+    union
+    {
+@if $scalars_exist == 1@
+        ClUint32T scalarType;
+@end@
+@foreach $t table@
+        ClSnmp${t}IndexInfoT ${t}Info;
+@end@
+    }index;
+}ClSNMPRequestInfoT;
+
+/* function prototypes.*/
+@if $scalars_exist == 1@
+ClInt32T  clSnmp${name}DefaultInstCompare (ClCntKeyHandleT key1,
+                            ClCntKeyHandleT key2);
+@end@
+@foreach $t table@
+ClInt32T  clSnmp${t}InstCompare (ClCntKeyHandleT key1,
+                            ClCntKeyHandleT key2);
+@end@
+
+extern void init_appMIB(void);
+/* Global structures.*/
+extern ClSnmpOidInfoT appOidInfo[];
+extern ClSnmpNtfyCallbackTableT clSnmpAppCallback[];
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _CL_SNMP_SUBAGENT_$name.uc_CONFIG_H_ */
+@close mib2c/clSnmpSubAgent${name}Config.h@
+
+##################################################
+### mib2c/clAppSubAgentConfig.h
+##################################################
+@open mib2c/clAppSubAgentConfig.h@
+#ifndef _CL_APP_SUBAGENT_CONFIG_H_
+#define _CL_APP_SUBAGENT_CONFIG_H_
+
+#include <clSnmpSubAgent${name}Config.h>
+
+#endif /* _CL_APP_SUBAGENT_CONFIG_H_ */
+
+@close mib2c/clAppSubAgentConfig.h@
+##################################################
+### mib2c/clSnmpSubAgent${name}Config.c
+##################################################
+@open mib2c/clSnmpSubAgent${name}Config.c@
+
+#include <string.h>
+#include <clLogApi.h>
+#include <clSnmpLog.h>
+#include <clDebugApi.h>
+#include <clSnmpOp.h>
+@if $scalars_exist == 1@
+#include <clSnmp${name}Scalars.h>
+@end@
+@if $tables_exist == 1@
+#include <clSnmp${name}Tables.h>
+@end@
+@if $notifications_exist == 1@
+#include <clSnmp${name}Notifications.h>
+@end@
+#include <clSnmp${name}Util.h>
+#include <clSnmp${name}InstXlation.h>
+#include <clSnmpSubAgent${name}Config.h>
+
+
+/*
+ * This structure contains information regarding oid of the table and the 
+ * type of index. The index  can  either be  a string value or a non-string value.
+ * Any SNMP type apart from string is treated as non-string.
+ */
+
+ClSnmpOidInfoT appOidInfo[] =
+{
+@if $scalars_exist == 1@
+    @foreach $s scalar@
+	    @eval $s_oid = "$s.objectID"@
+	    @perleval $vars{'s_oid'} =~ s/^\.//; 0;@
+    {    CL_$name.uc_SCALARS, "$s_oid", 1, { { 0, 0 } }, NULL, clSnmp${name}DefaultInstXlator, clSnmp${name}DefaultInstCompare },
+    @end@
+@end@
+@foreach $t table@
+	@eval $t_oid = "$t.objectID"@
+	@perleval $vars{'t_oid'} =~ s/^\.//; 0;@
+    {    CL_$t.uc, "$t_oid",
+    @eval $index_count = 0@
+    @foreach $idx index@
+        @eval $index_count = $index_count + 1@
+    @end@
+        $index_count /* no. of indexes */,
+        {
+    @foreach $idx index@
+        @if $idx.type eq "ASN_OCTET_STR"@
+            @eval $str_var = $idx@
+            @calldefine STR_UPPER_LIMIT@
+            { CL_SNMP_STRING_ATTR, $final_max } ,
+        ### TO DO: May need to handle this condition as well: @elsif $idx.type eq "ASN_OBJECT_ID"@
+        @else@
+        ### TO DO: May need to handle all the possible SMI data types here. @
+        ### script-writer: Not sure if 1 is the right value.
+            { CL_SNMP_NON_STRING_ATTR, 4 } ,
+        @end@
+    @end@
+        },
+    @eval $can_create_row = 0@
+    @foreach $c column@
+        @if $c.rowstatus == 1@
+            @eval $can_create_row = 1@
+        @end@
+    @end@
+    @if $can_create_row == 1@
+        clSnmp${t}IndexCorAttrGet, clSnmp${t}InstXlator, clSnmp${t}InstCompare
+    @else@
+        NULL, clSnmp${t}InstXlator, clSnmp${t}InstCompare
+    @end@
+    },
+@end@
+    {0, NULL, 0, {{0,0}}, NULL, NULL}
+};
+
+/*
+ * This provides mapping between trap oid and the notification call back function 
+ * generated by mib2c. When an alarm is raised this mapping is used to call the
+ * corresponding notification function.
+ */
+ClSnmpNtfyCallbackTableT clSnmpAppCallback[]= {
+@foreach $n notifications@
+	@eval $n_oid = "$n.objectID"@
+	@perleval $vars{'n_oid'} =~ s/^\.//; 0;@
+    {".$n_oid", clSnmp${n}IndexGet, clSnmpSend${n}Trap},    
+@end@
+    {NULL, NULL, NULL}
+};
+
+/*
+ * This function needs to be written for every application MIB sub-agent. From
+ * this function call the app MIB specific init functions. The app MIB
+ * specific init functions are generated by mib2c
+ */
+ 
+void init_appMIB(void)
+{
+    
+
+    /*Application needs to replace the below function with  mib2c generated init function.*/
+@if $scalars_exist == 1@
+    clSnmp${name}ScalarsInit();
+@end@
+@if $tables_exist == 1@
+    clSnmp${name}TablesInit();
+@end@
+}
+
+ClInt32T  clSnmp${name}DefaultInstCompare (CL_IN ClCntKeyHandleT key1,
+                            CL_IN ClCntKeyHandleT key2)
+{
+    return 0;
+}
+@foreach $t table@
+/*
+ * This function needs to be written for every table in the MIB.
+ * The information for MIB table index is stored in container, so the user
+ * needs to provide logic for key comparison of the container.
+ */
+ClInt32T  clSnmp${t}InstCompare (CL_IN ClCntKeyHandleT key1,
+                            CL_IN ClCntKeyHandleT key2)
+{
+    ClSNMPRequestInfoT *pTabIdx1 = NULL;
+    ClSNMPRequestInfoT *pTabIdx2 = NULL;
+    ClInt32T retVal = 0;
+    
+    if (key1 != 0) pTabIdx1 = (ClSNMPRequestInfoT *)key1;
+    if (key2 != 0) pTabIdx2 = (ClSNMPRequestInfoT *)key2;
+
+    if(!pTabIdx1 || !pTabIdx2)
+    {
+        /* return non-zero value  in case of error condition. */
+        return(-1);
+    }
+
+    @eval $strindex = 0@
+    @foreach $idx index@
+        @if $idx.type eq "ASN_OCTET_STR" || $idx.type eq "ASN_OBJECT_ID"@
+            @eval $strindex = 1@
+        @end@
+    @end@
+    ### If none of the indices is of string type.
+    @if $strindex == 0@
+    clLog(CL_LOG_DEBUG, CL_SNMP_AREA, CL_SNMP_GEN_CMP_COTX, "Data1 : [%d] Data2 : [%d]", *(ClUint32T*)&pTabIdx1->index.${t}Info, *(ClUint32T*)&pTabIdx2->index.${t}Info);
+    retVal = memcmp(&(pTabIdx1->index.${t}Info), 
+                &(pTabIdx2->index.${t}Info), 
+                sizeof(pTabIdx1->index.${t}Info));
+    return retVal;
+    @else@
+    ### Comparison of individual indexes if at least one index is of string type.
+        @foreach $idx index@
+            @if $idx.type eq "ASN_OCTET_STR"@
+    {
+        ClUint32T len1 = strlen(pTabIdx1->index.${t}Info.$idx);
+        ClUint32T len2 = strlen(pTabIdx2->index.${t}Info.$idx);
+
+        clLog(CL_LOG_DEBUG, CL_SNMP_AREA, CL_SNMP_GEN_CMP_COTX, "String Lenght1 : [%d] Lenght2 : [%d] Str1 : [%s] Str2 : [%s] ",len1, len2, pTabIdx1->index.${t}Info.$idx, pTabIdx2->index.${t}Info.$idx); 
+        if(len1 != len2)
+            return (len1 - len2);
+    }
+    if((retVal = strncmp(pTabIdx1->index.${t}Info.$idx,
+                    pTabIdx2->index.${t}Info.$idx,
+                    sizeof(pTabIdx1->index.${t}Info.$idx))) != 0)
+        return retVal;
+        @elsif eq "ASN_OBJECT_ID"@
+    ### TO DO: For OID indexes, need to check length of OIDs with different lengths.
+    if((retVal = memcmp(pTabIdx1->index.${t}Info.$idx,
+                    pTabIdx2->index.${t}Info.$idx,
+                    sizeof(pTabIdx1->index.${t}Info.$idx))) != 0)
+        return retVal;
+        @else@
+    if((retVal = memcmp(& (pTabIdx1->index.${t}Info.$idx),
+                    & (pTabIdx2->index.${t}Info.$idx),
+                    sizeof(pTabIdx1->index.${t}Info.$idx))) != 0)
+        return retVal;
+            @end@
+        @end@
+    @end@
+    return 0;
+}
+@end@
+@close mib2c/clSnmpSubAgent${name}Config.c@

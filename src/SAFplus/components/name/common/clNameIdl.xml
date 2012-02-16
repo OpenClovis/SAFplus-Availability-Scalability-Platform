@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
+
+This file is available  under  a  commercial  license  from  the
+copyright  holder or the GNU General Public License Version 2.0.
+
+The source code for  this program is not published  or otherwise 
+divested of  its trade secrets, irrespective  of  what  has been 
+deposited with the U.S. Copyright office.
+
+This program is distributed in the  hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+General Public License for more details.
+
+For more  information,  see the  file COPYING provided with this
+material.
+-->
+<IDLSpecs xmlns="rmd.ecore" name="nameIDL">
+        <Comp name="nameCommon"/>
+
+        <Enum name="ClNameSvcPriorityIDLT" defNeed="true">
+            <EnumMember name="CL_NS_PRIORITY_IDL_LOW"/>
+            <EnumMember name="CL_NS_PRIORITY_IDL_MEDIUM"/>
+            <EnumMember name="CL_NS_PRIORITY_IDL_HIGH"/>
+        </Enum>
+
+        <Struct name="ClNameSvcAttrEntryWithSizeIDLT" defNeed ="true">
+            <DataMember name="attrLen" type="ClUint32T"/>
+            <DataMember name="attrCount" type="ClUint32T"/>
+            <DataMember name="attr" type="ClNameSvcAttrEntryIDLT"
+            pointer="Single" lengthVar="attrCount"/>
+        </Struct>
+
+        <Enum name="ClNameSvcSourceIDLT" defNeed="true">
+            <EnumMember name="CL_NS_IDL_MASTER"/>
+            <EnumMember name="CL_NS_IDL_LOCAL"/>
+            <EnumMember name="CL_NS_IDL_CLIENT"/>
+        </Enum>
+
+        <Enum name="ClNameSvcOpsIDLT" defNeed="true">
+            <EnumMember name="CL_NS_QUERY_IDL_OBJREF"/>
+            <EnumMember name="CL_NS_QUERY_IDL_MAPPING"/>
+            <EnumMember name="CL_NS_QUERY_IDL_ALL_MAPPINGS"/>
+            <EnumMember name="CL_NS_QUERY_IDL_ATTRIBUTE"/>
+            <EnumMember name="CL_NS_LIST_IDL_NAMES"/>
+            <EnumMember name="CL_NS_LIST_IDL_BINDINGS"/>
+        </Enum>
+
+        <Enum name="ClNameSvcContextIDLT" defNeed="true">
+            <EnumMember name="CL_NS_USER_IDL_NODELOCAL"/>
+            <EnumMember name="CL_NS_USER_IDL_GLOBAL"/>
+        </Enum>
+
+        <Struct name="ClNameSvcAttrSearchIDLT" defNeed="true">
+            <DataMember name="attrList" type="ClNameSvcAttrEntryIDLT" multiplicity="5"/>
+            <DataMember name="attrCount" type="ClUint32T"/>
+            <DataMember name="opCode" type="ClUint32T" multiplicity="4"/>
+        </Struct>
+
+        <Struct name="ClNameVersionT" defNeed="true">
+            <DataMember name="releaseCode" type="ClUint8T"/>
+            <DataMember name="majorVersion" type="ClUint8T"/>
+            <DataMember name="minorVersion" type="ClUint8T"/>
+            <DataMember name="reserved"     type="ClUint8T"/>
+        </Struct>
+
+        <Struct name="ClNameSvcInfoIDLT" defNeed="true">
+            <DataMember name="version" type="ClUint32T"/>
+            <DataMember name="dsIdCnt" type="ClUint32T"/>
+            <DataMember name="dsId" type="ClUint32T"/>
+            <DataMember name="name" type="ClNameT"/>
+            <DataMember name="objReference" type="ClUint64T"/>
+            <DataMember name="source" type="ClNameSvcSourceIDLT"/>
+            <DataMember name="compId" type="ClUint32T"/>
+            <DataMember name="eoID" type="ClUint64T"/>
+            <DataMember name="nodeAddress" type="ClUint32T"/>
+            <DataMember name="clientIocPort" type="ClUint32T"/>
+            <DataMember name="priority" type="ClNameSvcPriorityIDLT"/>
+            <DataMember name="contextId" type="ClUint32T"/>
+            <DataMember name="op" type="ClNameSvcOpsIDLT"/>
+            <DataMember name="contextType" type="ClNameSvcContextIDLT"/>
+            <DataMember name="contextMapCookie" type="ClUint32T"/>
+            <DataMember name="attrQuery" type="ClNameSvcAttrSearchIDLT"/>
+            <DataMember name="attrCount" type="ClUint32T"/>
+            <DataMember name="attrLen" type="ClUint32T"/>
+            <DataMember name="attr" type="ClNameSvcAttrEntryIDLT" pointer="Single" lengthVar="attrCount"/>
+        </Struct>
+
+        <Struct name="ClNameSvcContextInfoIDLT" defNeed="true">
+            <DataMember name="hashId" type="ClInt32T"/>
+            <DataMember name="entryCount" type="ClUint32T"/>
+            <DataMember name="contextMapCookie" type="ClUint32T"/>
+            <DataMember name="dsIdCnt" type="ClUint32T"/>
+            <DataMember name="dsIdCntMax" type="ClUint32T"/>
+            <DataMember name="freeDsIdMap" type="ClUint8T" multiplicity="32"/>
+        </Struct>
+
+        <Struct name="ClNameSvcBindingIDLT" defNeed="true">
+            <DataMember name="cksum" type="ClUint32T"/>
+            <DataMember name="name" type="ClNameT"/>
+            <DataMember name="refCount" type="ClUint32T"/>
+            <DataMember name="dsId"     type="ClUint32T"/>
+            <DataMember name="hashId" type="ClInt32T"/>
+            <DataMember name="priority" type="ClUint32T"/>
+            <DataMember name="nodeHdl" type="ClInt32T"/>
+        </Struct>
+
+
+        <Struct name="ClNameSvcCompListIDLT" defNeed="true">
+            <DataMember name="dsId"     type="ClUint32T"/>
+            <DataMember name="compId" type="ClUint32T"/>
+            <DataMember name="eoID" type="ClUint64T"/>
+            <DataMember name="nodeAddress" type="ClUint32T"/>
+            <DataMember name="clientIocPort" type="ClUint32T"/>
+            <DataMember name="priority" type="ClNameSvcPriorityIDLT"/>
+            <DataMember name="pNext" type="ClWordT" />
+        </Struct>
+
+        <Struct name="ClNameSvcAttrEntryIDLT" defNeed="true">
+            <DataMember name="type" type="ClCharT" multiplicity="20"/>
+            <DataMember name="value" type="ClCharT" multiplicity="20"/>
+        </Struct>
+
+        <Struct name="ClNameSvcBindingDetailsIDLT" defNeed="true">
+            <DataMember name="cksum" type="ClUint32T"/>
+            <DataMember name="objReference" type="ClUint64T"/>
+            <DataMember name="refCount" type="ClUint32T"/>
+            <DataMember name="dsId"     type="ClUint32T"/>
+            <DataMember name="compId" type="ClNameSvcCompListIDLT"/>
+            <DataMember name="attrCount" type="ClUint32T"/>
+            <DataMember name="attrLen" type="ClUint32T"/>
+            <DataMember name="attr" type="ClNameSvcAttrEntryIDLT" pointer="Single" lengthVar="attrCount"/>
+        </Struct>
+</IDLSpecs>

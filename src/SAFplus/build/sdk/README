@@ -1,0 +1,143 @@
+------------------------------
+README for ASP source package
+------------------------------
+
+The directory contains the ASP all the source files required to build
+ASP for a given target-platform/target-os. 
+
+To install ASP SDK:
+
+1)  ./configure (./configure --help lists all options)
+
+2)  make
+
+3)  make install (This needs to be executed as 'root' and installs the 
+    ASP SDK under '/usr/local/clovis/sdk/2.2'.)
+
+---------------------------
+Configure options supported
+---------------------------
+
+The following options are supported with the configure script. Further
+information can be obtained by running ./configure --help
+
+1) --prefix=PREFIX
+    
+    This option will set the directory where ASP SDK will be installed.
+    By default this is set to /usr/local
+
+2) --without-cm-build
+
+    This option will disable CM server compilation.
+
+3) --without-snmp-build
+
+    This option will disable SNMP server compilation
+
+4) --with-model-name=MODEL-NAME
+
+     By default , ASP will be compiled for SampleModel. This will change 
+     the model to be compiled to MODEL-NAME and will check if it is present
+     under ASP/models directory.
+
+5) --with-cross-build=TOOLCHAIN-NAME
+
+    This option will enable cross compilation and will pick up the build tools
+    from /opt/clovis/buildtools/TOOLCHAIN-NAME
+
+6) --with-kernel-build=kernel-dir
+
+    This option is used in conjuction with --with-cross-build option and is used
+    to compile ASP for a kernel other than the standard one in the build tools
+    directory. 
+
+    eg:- if /opt/clovis/buildtools/ppc-linux-yd26 has two kernels i.e
+    linux-2.6.12 and linux-2.6.13 , to specify linux-2.6.12 , the following
+    options are passed to configure
+
+    ./configure --with-cross-build=ppc-linux-yd26 --with-kernel-build=linux-2.6.12
+    
+----------------------
+Make targets supported 
+----------------------
+
+1) make
+
+    This will compile the ASP binaries with the options passed to configure.
+
+2) make install
+    
+    
+    This will install ASP SDK to the directory PREFIX (as set by the configure
+    script). By default , this will be installed in /usr/local.
+    
+    This step is executed only after issuing a 'make'
+
+    Note : If binaries for multiple architectures are required to be installed ,
+    the following steps are to be taken .
+
+    a) Run configure with the appropriate options passed to it .
+    b) Run make and make install
+    c) Run make clean .
+    d) Repeat Steps a to c by passing different arguments to configure script
+       to install multiple architectures.
+
+3) make uninstall
+
+    This will uninstall ASP SDK which was previously installed .
+
+    This step is executed only after issuing 'make install'
+
+4) make binary
+
+    This will create a binary ASP SDK package which can be used to install for
+    a particular architecture.
+
+    This step is executed only after issuing 'make'
+
+5) make rt-package
+    
+    This will create a ASP RT (Runtime) package which can be deployed on
+    a target machine.
+
+    This step is executed only after issuing 'make'
+
+6) make clean
+
+    This will remove all the binaries compiled for the particular architecture.
+
+--------------------------
+NOTE for cross-compilation
+--------------------------
+Cross-compiling and installing ASP SDK for a particular 
+target-platform/target-os, would require installing the buildtools for 
+that target-platform/target-os under /opt/clovis. Assuming that relevant
+toolchain is installed for 'ppc-linux-yd26' (in '/opt/clovis/builtools'),
+the following is the sequence of steps to be followed:
+
+1)  ./configure --with-cross-build=ppc-linux-yd26
+
+2)  make
+
+3)  make install
+
+-------------------
+Steps To Start ASP
+-------------------
+
+1) After ASP has been compiled by issuing a make , source clasp.env
+   source clasp.env
+
+2) Load IOC Kernel modules (as root user) by running clIocLoadModule.sh script
+   under scripts directory .
+   
+   source scripts/clIocLoadModule.sh
+
+3) Change to $ASP_BIN directory
+   cd $ASP_BIN
+
+4) Run the following command to start ASP
+
+   ./asp_amf --chassis=0 --localslot=1 --nodename=SysController_0 --profile=debug
+   Substitute the various parameters to asp_amf accordingly.
+ 

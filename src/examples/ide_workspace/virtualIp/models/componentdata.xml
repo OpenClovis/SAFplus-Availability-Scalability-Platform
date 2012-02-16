@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component:componentInformation xmlns:component="component.ecore">
+  <cluster name="cluster" rdn="java.lang.Object@1dd1752">
+    <contains target="ctrl"/>
+    <contains target="work"/>
+  </cluster>
+  <node name="ctrl" rdn="16384148" id="0" classType="CL_AMS_NODE_CLASS_B" subClassType=" " isSwappable="CL_TRUE" isRestartable="CL_TRUE" isASPAware="CL_TRUE" suFailoverDuration="10000" suFailoverCountMax="10" Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE">
+    <contains target="vipSU"/>
+  </node>
+  <node name="work" rdn="18068557" id="0" classType="CL_AMS_NODE_CLASS_C" subClassType=" " isSwappable="CL_TRUE" isRestartable="CL_TRUE" isASPAware="CL_TRUE" suFailoverDuration="10000" suFailoverCountMax="10" Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE">
+    <contains target="vipSU"/>
+  </node>
+  <serviceUnit name="vipSU" rdn="1090100" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="vip"/>
+  </serviceUnit>
+  <safComponent name="vip" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="vip" commandLineArgument="" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="21902194" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="10000" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="vipWork_0"/>
+    </csiTypes>
+    <timeouts instantiateTimeout="10000" terminateTimeout="10000" cleanupTimeout="10000" amStartTimeout="10000" amStopTimeout="10000" csiSetTimeout="10000" csiRemoveTimeout="10000" quiescingCompleteTimeout="10000" proxiedCompInstantiateTimeout="10000" proxiedCompCleanupTimeout="10000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="vip_EO" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0">
+      <aspLib COR="CL_TRUE" CM="CL_FALSE" NameService="CL_TRUE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" Alarm="CL_FALSE" Debug="CL_TRUE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_FALSE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+    </eoProperties>
+  </safComponent>
+  <serviceGroup name="vipSG" rdn="11829690" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N" failbackOption="CL_FALSE" restartDuration="10000" numPrefActiveSUs="1" numPrefStandbySUs="1" numPrefInserviceSUs="2" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="10" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="vipSU"/>
+    <associatedTo target="vipSI"/>
+  </serviceGroup>
+  <serviceInstance name="vipSI" rdn="20412177" rank="0" numCSIs="1" numStandbyAssignments="1" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="vipWork_0"/>
+  </serviceInstance>
+  <componentServiceInstance name="vipWork_0" rdn="java.lang.Object@f582e4" rank="0">
+    <nameValueLists name="VirtualIpAddress" value="192.168.3.10"/>
+    <nameValueLists name="VirtualNetMask" value="255.255.255.0"/>
+    <nameValueLists name="VirtualDevice" value="eth0:10"/>
+    <associatedTo target="vip"/>
+  </componentServiceInstance>
+</component:componentInformation>

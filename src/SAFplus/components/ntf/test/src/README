@@ -1,0 +1,11 @@
+To run these unit test cases following these instructions below:
+
+1. We need to run only one node for this test case. However, running more than
+   one node will not harm.
+2. Compile ASP and deploy it on the target machine. Lest assume that ASP is
+   deployed on /root/asp directory on the target machine
+3. Do make in this directory. It will generate test_gms_cluster binary in $ASP_BINDIR.
+4. Copy test_gms_group binary to /root/asp/bin directory on the target machine.
+5. In this directory you have a shell script - 'gms_cluster_test'. Copy this file also to /root/asp/bin.
+6. Start ASP on the target machine
+7. Run 'gms_cluster_test' script on the target.

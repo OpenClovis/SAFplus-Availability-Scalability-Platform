@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+CL_SDK=@CL_SDK@
+CL_SDKDIR=@CL_SDKDIR@
+CL_BUILDTOOLS=`dirname $CL_SDKDIR`/buildtools
+
+if [ -d $CL_BUILDTOOLS/local/jre1.5.0_03 ]; then
+	export PATH=$CL_BUILDTOOLS/local/jre1.5.0_03/bin:$PATH
+fi
+
+export LOGTOOLPATH=$CL_SDKDIR/logviewer
+export CLASSPATH=$CLASSPATH:$LOGTOOLPATH/lib/swt.jar:$LOGTOOLPATH/lib/org.eclipse.jface_3.2.0.I20060605-1400.jar:$LOGTOOLPATH/lib/org.eclipse.core.commands_3.2.0.I20060605-1400.jar:$LOGTOOLPATH/lib/org.eclipse.equinox.common_3.2.0.v20060603.jar:$LOGTOOLPATH/lib/castor-0.9.6.jar:$LOGTOOLPATH/lib/commons-logging-api.jar:$LOGTOOLPATH/lib/xerces-J_1.4.0.jar:$LOGTOOLPATH/lib/LogTool.jar
+cd $LOGTOOLPATH
+java com.clovis.logtool.ui.LogDisplay

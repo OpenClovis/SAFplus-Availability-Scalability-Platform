@@ -1,0 +1,148 @@
+################################################################################
+# ModuleName  : common
+# $File$
+# $Author$
+# $Date$
+################################################################################
+# Description :
+################################################################################
+#!/bin/sh
+
+check_install_dir()
+{
+    dir=$1
+   
+    if [ -d $dir ]
+    then
+        return 
+    else
+        echo "ASP has not been installed for:"
+        echo "platform=$platform"
+        echo "os=$os"
+        exit 1
+    fi
+    
+}
+
+ASP_VERSION=2.3
+prefix=/usr/local/clovis/sdk
+ASP_PREFIX=${prefix}/${ASP_VERSION}/ASP
+ASP_INCLUDEDIR=${ASP_PREFIX}/include
+ASP_MKFILESDIR=${ASP_PREFIX}/mk
+ASP_LDFLAGS=""
+ASP_LIBDIR=""
+asp_libs="-lClAlarmClient -lClAmfClient -lClAmsMgmt -lClAmsXdr -lClAmsSA -lClBuffer -lClCkpt -lClCm -lClCnt -lClCorClient -lClDbal -lClDebugClient -lClEo -lClEventClient -lClFaultClient -lClGms -lClHal -lClIdl -lClIoc -lClLogClient -lClMedClient -lClNameClient -lClOmClient -lClOsal -lClProv -lClRmd -lClSm -lClTimer -lClTxnAgent -lClTxnClient -lClUtils -lMetaStruct"
+ASP_SRCDIR=""
+THIRDPARTY_LIBS="-l3rdpartyutils -laisexec -lezxml -ltotem_pg"
+SYS_LIBS="-lpthread -lgdbm -ldl"
+platform=""
+os=""
+
+if test "x$1" = "x" | test "x$2" = "x" | test "x$3" = "x"; then
+    usage="yes"
+else
+    platform=$1
+    os=$2
+    install_dir=${ASP_PREFIX}/${platform}/${os}
+    check_install_dir $install_dir
+    ASP_LIBDIR=${install_dir}/lib
+    ASP_LIBS="-L ${asp_libs}"
+    case $3 in
+        --prefix=*)
+            echo $ASP_PREFIX
+            ;;
+        --env-vars|env*)
+            echo "CLOVIS_ROOT=${prefix}/${ASP_VERSION}"
+            echo "ASP_LIB=${prefix}/${ASP_VERSION}/${platform}/${os}"
+            echo "MODEL_LIB=<build_directory>/target/<platform>/<os>/lib"
+            echo "MODEL_BIN=<build_directory>/target/<platform>/<os>/bin"
+            echo "MODEL_CONFIG=<build_directory>/target/<platform>/<os>/config"
+            ;;
+        ##### compile
+        --include-dir|include*)
+            echo $ASP_INCLUDEDIR
+            ;;
+        --cflags|--cf*)
+            echo -g -O2 -Dlinux -I. -I${ASP_INCLUDEDIR}
+            ;;
+        --mkfiles-dir|mk*)
+            echo $ASP_MKFILESDIR
+            ;;
+        #### linking
+        --libdir|--lib-dir)
+            echo $ASP_LIBDIR
+            ;;
+        --ldflags|--ld*)
+            ld_flags=${ASP_LDFLAGS}${ASP_LIBS}
+            echo $ld_flags
+            ;;
+        #### libs
+        --asp-libs)
+            echo $ASP_LIBS
+            ;;
+        --thirdparty-libs|--thirdparty*)
+            echo $THIRDPARTY_LIBS
+            ;;
+        --sys-libs)
+            echo $SYS_LIBS
+            ;;
+        #### general
+        --version|--ver*)
+            echo $ASP_VERSION
+            ;;
+        --help)
+            usage="yes"
+            ;;
+        --prefix|--pre*)
+            echo $ASP_PREFIX
+            ;;
+        *)
+            echo "unknown option $1"
+            usage="yes"
+            ;;
+    esac        
+fi
+
+if test "x$usage" = "xyes"; then
+  echo ""
+  echo "Usage:"
+  echo "  asp-sdk-config PLATFORM OS"
+  echo "                  [--cflags] [--libs] [--version]"
+  echo "                  ... [see below for complete flag list]"
+  echo ""
+  echo "    --help            displays usage, options for this script"
+  echo ""
+  echo "    --version         displays the ASP version number"
+  echo ""
+  echo "  These are the list of env variables to be set"
+  echo ""
+  echo "    --env-vars        display list of env variables to be set"
+  echo ""
+  echo "  These options produce the various compilation flags needed when"
+  echo "  building ASP applications:"
+  echo ""
+  echo "    --cflags          lists additional compilation flags needed"
+  echo "                      (includes -I. and extra developer warning flags)"
+  echo ""
+  echo "  These options produce various link flags broken down into parts."
+  echo ""
+  echo "    --libdir              path to ASP libraries"
+  echo ""
+  echo "    --include-dir         path to ASP header files"
+  echo ""
+  echo "    --mkfiles-dir         path to ASP Makefiles"
+  echo ""
+  echo "    --ldflags             link flags for external libraries"
+  echo ""
+  echo "    --asp-libs            list of ASP client libraries"
+  echo ""
+  echo "    --thirdparty-libs     list of 3rdParty libraries"
+  echo ""
+  echo "    --sys-libs            list of system libraries"
+  echo ""
+  echo "  Details on how the ASP package was installed:"
+  echo ""
+  echo "    --prefix              Display the installation prefix"
+  echo ""
+  exit
+fi  

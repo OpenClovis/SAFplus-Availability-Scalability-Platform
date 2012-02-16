@@ -1,0 +1,56 @@
+
+saNtfInitialize_3                                   -- done
+
+saNtfSelectionObjectGet                             -- done
+
+saNtfDispatch                                       -- done
+
+saNtfFinalize                                       -- done
+
+saNtfObjectCreateDeleteNotificationAllocate         -- done
+
+saNtfAttributeChangeNotificationAllocate            -- done
+
+saNtfStateChangeNotificationAllocate                -- done
+
+saNtfAlarmNotificationAllocate                      -- done
+
+saNtfSecurityAlarmNotificationAllocate              -- Has some issue
+
+saNtfNotificationFree                               -- done
+
+saNtfObjectCreateDeleteNotificationFilterAllocate   -- done
+
+saNtfAttributeChangeNotificationFilterAllocate      -- done
+
+saNtfStateChangeNotificationFilterAllocate_2        -- done
+
+saNtfAlarmNotificationFilterAllocate                -- done
+
+saNtfSecurityAlarmNotificationFilterAllocate        -- done
+
+saNtfNotificationFilterFree                         -- done
+
+saNtfPtrValAllocate                                 -- TBD
+
+saNtfArrayValAllocate                               -- TBD
+
+saNtfNotificationSend                               -- TBD
+
+SaNtfVariableDataSizeGet                            -- TBD  
+
+saNtfPtrValGet                                      -- TBD
+
+saNtfArrayValGet                                    -- TBD
+
+saNtfNotificationSubscribe_3                        -- TBD
+
+saNtfNotificationUnsubscribe_2                      -- TBD
+
+saNtfNotificationReadInitialize_3                   -- NA
+
+saNtfNotificationReadNext                           -- NA
+
+saNtfLocalizedMessageGet                            -- NA
+
+saNtfLocalizedMessageFree_2                         -- NA

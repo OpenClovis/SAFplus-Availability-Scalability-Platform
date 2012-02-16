@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compInstances xmlns="cpmconfig.ecore">
+  <compInst compName="csa101I0"/>
+  <compInst compName="csa201CompI0"/>
+  <compInst compName="csa102CompI0"/>
+  <compInst compName="csa102CompI1"/>
+  <compInst compName="csa203CompI0"/>
+  <compInst compName="csa112CompI2"/>
+  <compInst compName="csa212CompI2"/>
+  <compInst compName="csa213CompI2"/>
+  <compInst compName="csa113CompI2"/>
+  <compInst compName="csa103CompI0"/>
+  <compInst compName="csa103CompI1"/>
+  <compInst compName="csa104CompI0">
+    <resource moID="\Chassis:0\csa104Res:0" autoCreate="true" primaryOI="false"/>
+  </compInst>
+  <compInst compName="csa104CompI1">
+    <resource moID="\Chassis:0\csa104Res:0" autoCreate="false" primaryOI="false"/>
+  </compInst>
+  <compInst compName="csa105CompI0">
+    <resource moID="\Chassis:0\csa105Res:0" autoCreate="true" primaryOI="false"/>
+  </compInst>
+  <compInst compName="csa105CompI1">
+    <resource moID="\Chassis:0\csa105Res:0" autoCreate="false" primaryOI="false"/>
+  </compInst>
+  <compInst compName="csa105AlmLstnerComp"/>
+</compInstances>

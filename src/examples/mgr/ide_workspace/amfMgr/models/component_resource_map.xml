@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modelMap:mapInformation xmlns:modelMap="modelMapping.ecore" sourceModel="component_model" targetModel="resource_model">
+  <link linkType="associatedResource">
+    <linkDetail linkSource="snmpSubAgent"/>
+    <linkDetail linkSource="amfMgmt">
+      <linkTarget>saAmfApplicationTable</linkTarget>
+      <linkTarget>saAmfNodeTable</linkTarget>
+      <linkTarget>saAmfSGTable</linkTarget>
+      <linkTarget>saAmfSUTable</linkTarget>
+      <linkTarget>saAmfSITable</linkTarget>
+      <linkTarget>saAmfSUsperSIRankTable</linkTarget>
+      <linkTarget>saAmfSGSIRankTable</linkTarget>
+      <linkTarget>saAmfSGSURankTable</linkTarget>
+      <linkTarget>saAmfSISIDepTable</linkTarget>
+      <linkTarget>saAmfCompTable</linkTarget>
+      <linkTarget>saAmfCompCSTypeSupportedTable</linkTarget>
+      <linkTarget>saAmfCSITable</linkTarget>
+      <linkTarget>saAmfCSICSIDepTable</linkTarget>
+      <linkTarget>saAmfCSINameValueTable</linkTarget>
+      <linkTarget>saAmfCSTypeAttrNameTable</linkTarget>
+      <linkTarget>saAmfSUSITable</linkTarget>
+      <linkTarget>saAmfHealthCheckTable</linkTarget>
+      <linkTarget>saAmfSCompCsiTable</linkTarget>
+      <linkTarget>saAmfProxyProxiedTable</linkTarget>
+      <linkTarget>saAmfScalars</linkTarget>
+      <linkTarget>saAmfTrapObject</linkTarget>
+    </linkDetail>
+  </link>
+</modelMap:mapInformation>

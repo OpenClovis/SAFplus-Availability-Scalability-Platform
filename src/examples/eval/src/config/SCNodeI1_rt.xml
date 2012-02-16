@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compInstances xmlns="cpmconfig.ecore">
+  <compInst compName="csa101I1"/>
+  <compInst compName="csa201CompI1"/>
+  <compInst compName="csa212CompI2"/>
+  <compInst compName="csa213CompI2"/>
+  <compInst compName="csa102CompI2"/>
+  <compInst compName="csa203CompI2"/>
+  <compInst compName="csa112CompI2"/>
+  <compInst compName="csa113CompI2"/>
+  <compInst compName="csa103CompI2"/>
+</compInstances>
