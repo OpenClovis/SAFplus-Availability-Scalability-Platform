@@ -2341,6 +2341,13 @@ static ClRcT clBMBufferVectorize(ClBufferHeaderT *pBufferHeader,
             pIOVector[numVectors].iov_base = (ClPtrT)((ClUint8T*)pTemp + pTemp->startOffset);
             pIOVector[numVectors].iov_len = pTemp->dataLength - pTemp->startOffset;
         }
+        if(pIOVector[numVectors].iov_len == 0)
+        {
+            /*
+             * Skip a null vector.
+             */
+            continue;
+        }
         ++numVectors;
     }
     *ppIOVector = pIOVector;
