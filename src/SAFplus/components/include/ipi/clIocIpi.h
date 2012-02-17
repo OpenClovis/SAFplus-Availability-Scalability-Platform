@@ -756,6 +756,8 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
 
     ClRcT clIocNotificationDeregister(ClIocNotificationRegisterCallbackT callback);
 
+    ClRcT clIocNotificationRegistrants(ClIocNotificationT *notification);
+
     ClRcT clIocNotificationRegistrantsDelete(void);
 
     ClRcT clIocNotificationPacketSend(ClIocCommPortHandleT commPort, 

@@ -542,8 +542,8 @@ static ClRcT _clXportDestNodeLUTUpdateNotification(ClIocNotificationT *notificat
 {
     ClIocNotificationIdT notificationId = ntohl(notification->id);
     ClIocNodeAddressT iocAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
-    if (ntohl(notification->nodeAddress.iocPhyAddress.portId) == CL_IOC_XPORT_PORT
-            || ntohl(notification->nodeAddress.iocPhyAddress.portId) == CL_IOC_CPM_PORT)
+    ClIocPortT portId = ntohl(notification->nodeAddress.iocPhyAddress.portId);
+    if (!portId || portId == CL_IOC_CPM_PORT || portId == CL_IOC_XPORT_PORT)
     {
         clTransportDestNodeLUTUpdate(notificationId, iocAddress);
     }

@@ -35,6 +35,7 @@ typedef struct ClIocUdpMap
 #define __ipv4_addr _addr.sin_addr
 #define __ipv6_addr _addr.sin6_addr
     ClIocNodeAddressT slot;
+    ClBoolT bridge;
     int family;
     int sendFd;
     union 
@@ -129,6 +130,13 @@ ClRcT iocUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *co
     for(iter = gIocUdpMapList.pNext; iter != &gIocUdpMapList; iter = iter->pNext)
     {
         map = CL_LIST_ENTRY(iter, ClIocUdpMapT, list);
+        /*
+         * If the entry is through a bridge, the broadcast should be proxied
+         * by the bridge node.
+         */
+        if(map->bridge)
+            continue;
+
         if(!(numEntries & growMask))
         {
             addrMap = clHeapRealloc(addrMap, sizeof(*addrMap) * (numEntries + growMask + 1));
@@ -156,11 +164,47 @@ ClRcT iocUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *co
     return rc;
 }
 
-static ClIocUdpMapT *iocUdpMapAdd(const ClCharT *addr, ClIocNodeAddressT slot)
+static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
 {
-    ClIocUdpMapT *map = calloc(1, sizeof(*map));
+    ClIocUdpMapT *map = NULL;
+    ClCharT addrStr[CL_MAX_NAME_LENGTH];
+    ClIocNodeAddressT nodeBridge = slot;
+    map = calloc(1, sizeof(*map));
     CL_ASSERT(map != NULL);
+    if(!addr)
+    {
+        ClCharT *xportType = NULL;
+        ClIocAddressT dstBridge = {{0}};
+        addr = addrStr;
+        /*
+         * Find the bridge slot for the target and add the ip for that slot
+         * as the target
+         */
+        if(slot != gIocLocalBladeAddress && 
+           clFindTransport(slot, &dstBridge, &xportType) == CL_OK)
+        {
+            /*
+             * Add this to the UDP map only the node transport type
+             * matches ours. Else its a hybrid/multi-xport setup where
+             * the node should be accessible through another transport.
+             */
+            if(strcmp(gClUdpXportType, xportType))
+            {
+                clLogInfo("UDP", "MAP", "Skipping map update as "
+                          "node [%d] is through bridge [%d] and xport [%s]. "
+                          "Native xport [%s]",
+                          slot, dstBridge.iocPhyAddress.nodeAddress, 
+                          xportType, gClUdpXportType);
+                goto out_free;
+            }
+            nodeBridge = dstBridge.iocPhyAddress.nodeAddress;
+        }
+        clPluginHelperGetIpAddress(gVirtualIp.ipAddressMask, nodeBridge, addr);
+        clLogTrace("UDP", "MAP", "Node [%d] at [%s] uses bridge [%d] through xport [%s]", 
+                   slot, addr, nodeBridge, xportType);
+    }
     map->slot = slot;
+    map->bridge = nodeBridge != slot ? CL_TRUE : CL_FALSE;
     map->family = PF_INET;
     map->addrstr[0] = 0;
     strncat(map->addrstr, addr, sizeof(map->addrstr)-1);
@@ -243,15 +287,13 @@ static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtr
     ClIocNotificationIdT notificationId = ntohl(notification->id);
     ClIocNodeAddressT nodeAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
     clOsalMutexLock(&gXportCtrl.mutex);
-    switch (notificationId) {
+    switch (notificationId) 
+    {
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
             if (!(map = iocUdpMapFind(nodeAddress)))
             {
-                ClCharT addr[CL_MAX_NAME_LENGTH] = { 0 };
-                clPluginHelperGetIpAddress(gVirtualIp.ipAddressMask, nodeAddress,
-                        addr);
-                iocUdpMapAdd(addr, nodeAddress);
+                iocUdpMapAdd(NULL, nodeAddress);
             }
             break;
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
@@ -279,6 +321,13 @@ ClRcT xportIpAddressAssign(void)
 ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
 {
     ClRcT rc = CL_OK;
+
+    if(xportType)
+    {
+        gClUdpXportType[0] = 0;
+        strncat(gClUdpXportType, xportType, sizeof(gClUdpXportType)-1);
+    }
+    gClUdpXportId = xportId;
 
     clPluginHelperGetVirtualAddressInfo("UDP", &gVirtualIp);
 
@@ -331,22 +380,13 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     {
         if (pNodes[i] != clIocLocalAddressGet())
         {
-            ClCharT addr[CL_MAX_NAME_LENGTH] = { 0 };
-            clPluginHelperGetIpAddress(gVirtualIp.ipAddressMask, pNodes[i],
-                    addr);
-            iocUdpMapAdd(addr, pNodes[i]);
+            iocUdpMapAdd(NULL, pNodes[i]);
         }
     }
 
     clHeapFree(pNodes);
 
     out:
-    gClUdpXportId = xportId;
-    if(xportType)
-    {
-        gClUdpXportType[0] = 0;
-        strncat(gClUdpXportType, xportType, sizeof(gClUdpXportType)-1);
-    }
     gUdpInit = CL_TRUE;
     rc = CL_OK;
     return rc;
@@ -749,9 +789,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
         map = iocUdpMapFind(address->iocPhyAddress.nodeAddress);
         if(!map)
         {
-            ClCharT addr[CL_MAX_NAME_LENGTH] = {0};
-            clPluginHelperGetIpAddress(gVirtualIp.ipAddressMask, address->iocPhyAddress.nodeAddress, addr);
-            map = iocUdpMapAdd(addr, address->iocPhyAddress.nodeAddress);
+            map = iocUdpMapAdd(NULL, address->iocPhyAddress.nodeAddress);
             if(!map)
             {
                 clOsalMutexUnlock(&gXportCtrl.mutex);

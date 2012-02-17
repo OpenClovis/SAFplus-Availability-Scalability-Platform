@@ -66,7 +66,7 @@ ClRcT clIocNotificationDeregister(ClIocNotificationRegisterCallbackT callback)
     return CL_OK;
 }
 
-static ClRcT clIocNotificationRegistrants(ClIocNotificationT *notification)
+ClRcT clIocNotificationRegistrants(ClIocNotificationT *notification)
 {
     ClListHeadT *iter = NULL;
     ClListHeadT *list = &gIocNotificationRegisterList;

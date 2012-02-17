@@ -96,7 +96,6 @@
 #include <clTimeServer.h>
 #include <clTransport.h>
 
-extern ClBoolT gIsNodeRepresentative;
 extern ClUint32T clEoWithOutCpm;
 extern ClUint32T clAspLocalId;
 extern ClIocNodeAddressT gIocLocalBladeAddress;
@@ -769,7 +768,7 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
         if(rc != CL_OK)
             goto out;
     }
-    rc = tipcConfigInitialize(gIsNodeRepresentative);
+    rc = tipcConfigInitialize(nodeRep);
     if(rc != CL_OK)
         goto out;
     gTipcInit = CL_TRUE;
