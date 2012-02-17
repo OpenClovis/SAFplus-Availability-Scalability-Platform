@@ -282,10 +282,10 @@ class OS:
         
         ECLIPSE = objects.BuildDep()
         ECLIPSE.name           = 'eclipse'
-        ECLIPSE.version        = '3.3.2'
-        ECLIPSE.pkg_name       = 'eclipse-SDK-3.3.2-linux-gtk.tar.gz'
+        ECLIPSE.version        = '3.7.1'
+        ECLIPSE.pkg_name       = 'eclipse-SDK-3.7.1-linux-gtk.tar.gz'
         if self.bit == 64:
-            ECLIPSE.pkg_name       = 'eclipse-SDK-3.3.2-linux-gtk-x86_64.tar.gz'
+            ECLIPSE.pkg_name       = 'eclipse-SDK-3.7.1-linux-gtk-x86_64.tar.gz'
        
         log = self.log_string_for_dep(ECLIPSE.name)
         
@@ -306,8 +306,8 @@ class OS:
         
         EMF = objects.BuildDep()
         EMF.name           = 'EMF'
-        EMF.version        = '2.3.2'
-        EMF.pkg_name       = 'emf-sdo-runtime-2.3.2.tar.gz'
+        EMF.version        = '2.7.1'
+        EMF.pkg_name       = 'emf-runtime-2.7.1.zip'
         
         log = self.log_string_for_dep(EMF.name)
 
@@ -315,7 +315,7 @@ class OS:
 
         initial_commands = ['cd ${PREFIX}',
                           'tar xf ${THIRDPARTYPKG} %s' % EMF.pkg_name,
-                          'tar zxf %s' % EMF.pkg_name,
+                          'unzip -qq -o -u %s' % EMF.pkg_name,                            
                           'rm -f %s' % EMF.pkg_name]
 
         EMF.build_cmds = [';'.join(initial_commands)]
@@ -328,8 +328,8 @@ class OS:
         
         GEF = objects.BuildDep()
         GEF.name           = 'GEF'
-        GEF.version        = '3.3.1'
-        GEF.pkg_name       = 'GEF-runtime-3.3.1.tar.gz'
+        GEF.version        = '3.7.2'
+        GEF.pkg_name       = 'GEF-runtime-3.7.2.zip'
         
         log = self.log_string_for_dep(GEF.name)
 
@@ -337,7 +337,7 @@ class OS:
         
         initial_commands = ['cd ${PREFIX}',
                           'tar xf ${THIRDPARTYPKG} %s' % GEF.pkg_name,
-                          'tar zxf %s' % GEF.pkg_name,
+                          'unzip -qq -o -u %s' % GEF.pkg_name,  
                           'rm -f %s' % GEF.pkg_name]
 
         GEF.build_cmds = [';'.join(initial_commands)]
@@ -350,8 +350,8 @@ class OS:
         
         CDT = objects.BuildDep()
         CDT.name           = 'CDT'
-        CDT.version        = '4.0.3'
-        CDT.pkg_name       = 'cdt-master-4.0.3.tar.gz'
+        CDT.version        = '8.0.1'
+        CDT.pkg_name       = 'cdt-master-8.0.1.zip'
         
         log = self.log_string_for_dep(CDT.name)
 
@@ -363,7 +363,7 @@ class OS:
                           'cd eclipse/cdt/eclipse',
                           'echo "path=$PREFIX/eclipse/cdt" > $PREFIX/eclipse/links/cdt.link',
                           'tar xvf ${THIRDPARTYPKG} %s' % CDT.pkg_name,
-                          'tar zvxf %s' % CDT.pkg_name,
+                          'unzip -qq -o -u %s' % CDT.pkg_name,
                           'rm -f %s' % CDT.pkg_name]
 
         CDT.build_cmds = [';'.join(initial_commands)]
