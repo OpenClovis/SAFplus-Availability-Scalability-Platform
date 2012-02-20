@@ -49,7 +49,14 @@ else
              -d "$$asp_dir"/3rdparty ]; then \
             echo 1; \
         else \
+        asp_dir1=$$(pwd|awk '{if(match($$0,".*/SAFplus/")){print substr($$0,0,RLENGTH-1)}}'); \
+        if [ -d "$$asp_dir1" -a \
+             -d "$$asp_dir1"/components -a \
+             -d "$$asp_dir1"/3rdparty ]; then \
+            echo 1; \
+        else \
             echo 0; \
+        fi \
         fi)
 endif
 endif
@@ -73,6 +80,7 @@ endif
 #$(warning BUILD_SUBPATH:$(BUILD_SUBPATH))
 
 ifeq ("$(IS_ASP_COMP)","1")
+$(warning OpenClovis SAFplus internal component)  
 	OBJ_DIR		:= $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/obj/$(BUILD_SUBPATH)
 	DEP_DIR		:= $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/dep/$(BUILD_SUBPATH)
 	INC_DIR		:= $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/inc/$(BUILD_SUBPATH)
@@ -81,7 +89,7 @@ ifeq ("$(IS_ASP_COMP)","1")
 else
 	OBJ_DIR 	:= $(MODEL_TARGET)/obj/$(BUILD_SUBPATH)
 	DEP_DIR 	:= $(MODEL_TARGET)/dep/$(BUILD_SUBPATH)
-	INC_DIR	    := $(MODEL_TARGET)/inc/$(BUILD_SUBPATH)
+	INC_DIR	        := $(MODEL_TARGET)/inc/$(BUILD_SUBPATH)
 	LIB_DIR		:= $(MODEL_TARGET)/lib
 	ETC_DIR		:= $(MODEL_TARGET)/etc
 

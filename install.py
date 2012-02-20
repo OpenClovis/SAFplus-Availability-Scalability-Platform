@@ -26,16 +26,16 @@ except ImportError:
 # Settings
 # ------------------------------------------------------------------------------
 
-THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.21'                # Look for PKG starting with this name
-THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.21.tar'            # search this package if no 3rdPartyPkg found
+THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.22'                # Look for PKG starting with this name
+THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.22.tar'            # search this package if no 3rdPartyPkg found
 if determine_bit() == 64:
-  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.21-x86_64'       # Look for PKG starting with this name
-  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.21-x86_64.tar'
+  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.22-x86_64'       # Look for PKG starting with this name
+  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.22-x86_64.tar'
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
 INSTALL_LOCKFILE             = '/tmp/.openclovis_installer'        # installer lockfile location
 
 class ASPInstaller:
-    """ Installer for OpenClovis ASP """
+    """ Installer for OpenClovis SAFplus Availabliity Scalability Platform """
     
     def __init__(self):
         
@@ -263,9 +263,9 @@ class ASPInstaller:
             
     
     def usage(self):
-        msg = '\ninstall.py - Installation tool for OpenClovis SDK %s\n\n' \
-            'Installs OpenClovis SDK %s to a system intended for use\n' \
-            'for OpenClovis ASP development.\n\n' \
+        msg = '\ninstall.py - Installation tool for OpenClovis SAFplus %s\n\n' \
+            'Installs OpenClovis SAFplus %s to a system intended for use\n' \
+            'for OpenClovis SAFplus development.\n\n' \
             'Usage:\n' \
             '    %s [ --help ]                         # Prints this information\n' \
             '    %s [ --preinstall ]                   # Sets the script to run the preinstall phase only\n' \
@@ -503,10 +503,10 @@ class ASPInstaller:
             
             self.print_install_header()
             
-            self.feedback('Welcome to the OpenClovis SDK %s Installer\n' % self.ASP_VERSION)
+            self.feedback('Welcome to the OpenClovis SAFplus %s Installer\n' % self.ASP_VERSION)
             self.feedback('This program helps you to install:')
             self.feedback('    - Required 3rd-party Packages')
-            self.feedback('    - The OpenClovis SDK\n')
+            self.feedback('    - The OpenClovis SAFplus Availabiltiy Scalability Platform\n')
             self.feedback('Installation Directory Prerequisites')
             self.feedback('    - At least 512MB free disk space')
             self.feedback('    - Write permission to the installation directory\n')
@@ -593,7 +593,7 @@ class ASPInstaller:
             self.DOC_ROOT        = os.path.join(self.PACKAGE_ROOT, 'doc')        # DOCS are copied here
             self.BIN_ROOT        = os.path.join(self.PACKAGE_ROOT, 'bin')        # scripts are copied here    
             self.LIB_ROOT        = os.path.join(self.PACKAGE_ROOT, 'lib')        # copy rc scripts in this directory
-            self.ASP_ROOT        = os.path.join(self.PACKAGE_ROOT, 'src/ASP')    # ASP sources are copied here
+            self.ASP_ROOT        = os.path.join(self.PACKAGE_ROOT, 'src/SAFplus')    # ASP sources are copied here
             self.MODULES         = os.path.join(self.PREFIX, 'modules')
             self.ECLIPSE         = os.path.join(self.PACKAGE_ROOT, 'eclipse')
             self.ECLIPSE_ROOT    = os.path.join(self.PREFIX, 'eclipse')
@@ -1016,17 +1016,17 @@ class ASPInstaller:
   
 
     def install_ASP(self):
-        self.feedback('Installing ASP...')
+        self.feedback('Installing SAFplus...')
 
         cmds = ['cd $WORKING_DIR',
-                'tar cf - src/ASP src/examples |( cd $PACKAGE_ROOT; tar xfm -)',
+                'tar cf - src/SAFplus src/ASP src/examples |( cd $PACKAGE_ROOT; tar xfm -)',
                 'cp VERSION $PACKAGE_ROOT',
                 """sed -e "s;buildtools_dir:=/opt/clovis/buildtools;buildtools_dir:=$BUILDTOOLS;g"
                     -e "s;NET_SNMP_CONFIG = net-snmp-config;NET_SNMP_CONFIG = $NET_SNMP_CONFIG;g"
-                    $PACKAGE_ROOT/src/ASP/build/common/templates/make-cross.mk.in >
-                $PACKAGE_ROOT/src/ASP/build/common/templates/make-cross.mk.in.modified""",
-                """mv  -f $PACKAGE_ROOT/src/ASP/build/common/templates/make-cross.mk.in.modified
-                       $PACKAGE_ROOT/src/ASP/build/common/templates/make-cross.mk.in"""]
+                    $PACKAGE_ROOT/src/SAFplus/build/common/templates/make-cross.mk.in >
+                $PACKAGE_ROOT/src/SAFplus/build/common/templates/make-cross.mk.in.modified""",
+                """mv  -f $PACKAGE_ROOT/src/SAFplus/build/common/templates/make-cross.mk.in.modified
+                       $PACKAGE_ROOT/src/SAFplus/build/common/templates/make-cross.mk.in"""]
 
         self.run_command_list(cmds) 
 
@@ -1079,8 +1079,8 @@ class ASPInstaller:
                 """sed -e "s;@CL_SDK@;$ESC_PKG_NAME;g"
                     -e "s;@CL_SDKDIR@;$ESC_PKG_ROOT;g"
                     $WORKING_DIR/templates/bin/cl-migrate-project.in > $BIN_ROOT/cl-migrate-project""",
-                'ln -s $PACKAGE_ROOT/src/ASP/scripts/cl-create-wrs-toolchain $BIN_ROOT/.',
-                'ln -s $PACKAGE_ROOT/src/ASP/scripts/cl-create-wrs2.0-toolchain $BIN_ROOT/.',
+                'ln -s $PACKAGE_ROOT/src/SAFplus/scripts/cl-create-wrs-toolchain $BIN_ROOT/.',
+                'ln -s $PACKAGE_ROOT/src/SAFplus/scripts/cl-create-wrs2.0-toolchain $BIN_ROOT/.',
                 'chmod +x $BIN_ROOT/*',
                 'cd - >/dev/null 2>&1',
                 'cd $BIN_ROOT',
@@ -1193,7 +1193,7 @@ class ASPInstaller:
 
     def prebuild(self):
         # ask about this early on
-        strin = self.get_user_feedback('Build ASP libraries for the local machine and/or installed crossbuild toolchains ? <y|n> [y]: ')
+        strin = self.get_user_feedback('Build SAFplus libraries for the local machine and/or installed crossbuild toolchains ? <y|n> [y]: ')
 
         if not strin or strin.lower().startswith('y'):
            strin = self.get_user_feedback('Where to build ? [default: %s]: ' % self.ASP_PREBUILD_DIR)
@@ -1220,9 +1220,9 @@ class ASPInstaller:
            builds = re.split('\W+', strin)
            for b in builds:
              if b == 'local':
-               syscall ("%s/src/ASP/configure --with-asp-build > build.log" % self.PACKAGE_ROOT)
+               syscall ("%s/src/SAFplus/configure --with-asp-build > build.log" % self.PACKAGE_ROOT)
              else: 
-               syscall ("%s/src/ASP/configure --with-asp-build --with-cross-build=%s > build.log" % (self.PACKAGE_ROOT, b) )
+               syscall ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s > build.log" % (self.PACKAGE_ROOT, b) )
            
              self.feedback('Building asp %s' % b)
              cmd = 'asp/build/%s' % b
@@ -1507,7 +1507,7 @@ class ASPInstaller:
     def print_install_header(self):
         """ UI header used during install """
         
-        title = 'OpenClovis SDK/ASP %s %s Installer - %s %s-bit' % \
+        title = 'OpenClovis SAFplus %s %s Installer - %s %s-bit' % \
             (self.ASP_VERSION, self.ASP_REVISION, self.OS.name, self.OS.bit)
         
         if self.DEBUG_ENABLED:
