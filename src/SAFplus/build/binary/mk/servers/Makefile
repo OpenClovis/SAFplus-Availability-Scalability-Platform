@@ -20,10 +20,6 @@
 # Description :
 ################################################################################
 
-#ifdef (CROSS_BUILD)
-#LDFLAGS:=/opt/clovis/buildtools/ppc-linux-yd26/lib
-#endif
-
 DEP_LIBS	:= -lClTimer -lClBuffer -lClOsal -lClIoc -lClUtils -lClEo -lClMain\
 -lClLogClient -lClTxnClient -lClTxnAgent -lClSm -lClCnt -lClIdl -lClRmd \
 -lClCorClient -lClAmfClient -lClAmsMgmt -lClAmsXdr -lClDebugClient -lClFaultClient \
@@ -76,6 +72,9 @@ $(MODEL_BIN)/safplus_amf $(MODEL_BIN)/safplus_logd $(MODEL_BIN)/safplus_msg
 
 ifeq ($(CM_BUILD), 1)
         ASP_SERVERS += $(MODEL_BIN)/safplus_cm
+        CM_LIB := -lClCm
+else
+        CM_LIB :=
 endif
 
 all: $(ASP_SERVERS)
@@ -105,7 +104,7 @@ $(MODEL_BIN)/safplus_amf: $(MODEL_LIB)/libClConfig.a
 	  	-lClAmsXdr -lClAmsParser -lClAmsMgmt -lClAmsServer -lClamfServer  \
 	  	-lClEo -lClTimer -lClBuffer -lClOsal -lClCnt -lClIoc -lClRmd -lClDbal       \
 	  	-lClUtils -lClEventClient -lClDebugClient -lClNameClient -lClIdl -lClIdlPtr \
-	  	-lClCkpt -lClLogClient -lClFaultClient -lClGms -lClCm -lClGroundClient -lClGround -Wl,--end-group
+	  	-lClCkpt -lClLogClient -lClFaultClient -lClGms $(CM_LIB) -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_debug: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -lCldebugServer -lClGroundClient -lClGround -Wl,--end-group
@@ -128,7 +127,7 @@ $(MODEL_BIN)/safplus_msg: $(MODEL_LIB)/libClConfig.a
 
 $(MODEL_BIN)/safplus_cm: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@  -Wl,--start-group,--no-as-needed $(LDLIBS) -lglib-2.0 -lgthread-2.0 -lltdl  \
-	-lClcmServer -lClCm -lClGroundClient -lClGround -Wl,--end-group
+	-lClcmServer $(CM_LIB) -lClGroundClient -lClGround -Wl,--end-group
 
 clean:
 	rm -rf $(MODEL_BIN)/safplus_alarm \
