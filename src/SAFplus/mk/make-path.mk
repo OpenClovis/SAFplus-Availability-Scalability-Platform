@@ -80,7 +80,9 @@ endif
 #$(warning BUILD_SUBPATH:$(BUILD_SUBPATH))
 
 ifeq ("$(IS_ASP_COMP)","1")
-$(warning OpenClovis SAFplus internal component)  
+ifndef OBJ_DIR
+$(warning OpenClovis SAFplus internal component)  # Only print this once per run
+endif
 	OBJ_DIR		:= $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/obj/$(BUILD_SUBPATH)
 	DEP_DIR		:= $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/dep/$(BUILD_SUBPATH)
 	INC_DIR		:= $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/inc/$(BUILD_SUBPATH)
