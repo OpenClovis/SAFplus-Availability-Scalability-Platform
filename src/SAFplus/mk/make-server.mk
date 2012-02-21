@@ -229,7 +229,7 @@ ifeq ($(ASP_BUILD),1)
                $(libs) -L$(COMP_ROOT)/ground/client 
   else
     LDLIBS  +=-L$(ASP_LIB) -L$(MODEL_LIB) \
-         -Wl,--start-group $(libs) -Wl,--end-group\
+         -Wl,--start-group,--no-as-needed $(libs) -Wl,--end-group\
                   -L$(COMP_ROOT)/ground/client 
   endif
 else
@@ -238,7 +238,7 @@ else
               $(libs) -L$(ASP_LIBDIR)
   else
     LDLIBS  +=-L$(ASP_LIB) -L$(MODEL_LIB) \
-         -Wl,--start-group $(libs) -Wl,--end-group\
+         -Wl,--start-group,--no-as-needed $(libs) -Wl,--end-group\
                   -L$(ASP_LIBDIR)
   endif
 endif
