@@ -102,17 +102,12 @@ clTransportDispatch(ClIocPortT port, ClUint8T *buffer, ClUint32T bufSize);
 extern ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAddress,
         ClCharT **typeXport);
 
-extern ClRcT clTransportNodeAddrGet(ClUint32T *pNumberOfEntries,
-        ClIocNodeAddressT *pAddrList);
-
 extern ClCharT *clTransportMcastAddressGet();
 extern ClUint32T clTransportMcastPortGet();
 extern ClUint32T clTransportHeartBeatIntervalGet();
 extern ClUint32T clTransportHeartBeatIntervalCompGet();
 extern ClUint32T clTransportHeartBeatRetriesGet();
 extern ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node);
-extern ClRcT clTransportNodeAddrGet(ClUint32T *pNumberOfEntries,
-                                    ClIocNodeAddressT *pAddrList);
 extern ClRcT clTransportBroadcastListGet(const ClCharT *hostXport, 
                                          ClIocPhysicalAddressT *hostAddr,
                                          ClUint32T *pNumEntries, ClIocAddressT **ppDestSlots);
