@@ -28,7 +28,7 @@ CM_SEARCH_PATH := $(CLOVIS_ROOT)/../PSP/src/cm $(CLOVIS_ROOT)/../../PSP/src/cm
 USING_CM := $(wildcard $(CM_SEARCH_PATH))
 ifneq ($(USING_CM),)
 $(warning Using the actual chassis manager from the Platform Support Package located at $(USING_CM))
-CM_DIR    := $(USING_CM)
+CM_DIR    := $(realpath $(USING_CM))
 CL_CM     := -lClCm
 CM_CFLAGS := -DCL_USE_CHASSIS_MANAGER -I$(CM_DIR)/include
 else

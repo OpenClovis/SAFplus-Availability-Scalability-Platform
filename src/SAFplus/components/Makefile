@@ -14,18 +14,11 @@
 # For more  information,  see the  file COPYING provided with this
 # material.
 
+include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 
-# If the chassis manager exists then use it
-USING_CM := $(wildcard $(CLOVIS_ROOT)/../../psp/src/cm)
-ifneq ($(USING_CM),)
-$(warning Using the actual chassis manager from the Platform Support Package located at $(USING_CM))
-CM_DIR := $(CLOVIS_ROOT)/../../psp/src/cm
-else
-$(warning Not using the chassis manager)
-endif
 
 SUBDIRS    = $(CM_DIR) ground \
              cnt    \
@@ -66,4 +59,4 @@ SUBDIRS += mw
 # target-prerequisite pairs.
 # 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
