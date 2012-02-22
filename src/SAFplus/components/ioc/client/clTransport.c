@@ -386,7 +386,7 @@ static void _clXportNodeAddrMapFree()
  */
 static __inline__ void _clXportDestNodeLUTMapAdd(ClXportDestNodeLUTDataT *entry)
 {
-    clLogInfo(
+    clLogTrace(
                "IOC",
                "LUT",
                "Add new entry for LUT, dest node [%#x] bridge [%#x] protocol [%s]", 
@@ -1210,23 +1210,23 @@ static void _clSetupDestNodeLUTData(void)
 ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAddress,
                       ClCharT **typeXport) 
 {
+    ClBoolT bridgeUpdate = CL_FALSE;
     ClCharT *preferredXport = NULL;
-    ClXportDestNodeLUTDataT *destNodeLUTData = NULL;
 
     if(!typeXport) return CL_ERR_INVALID_PARAMETER;
     preferredXport = *typeXport;
-
     clOsalMutexLock(&gXportNodeAddrListmutex);
-    if (! (destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress) ) )
+    if (!_clXportNodeAddrMapFind(dstIocAddress)) 
     {
-        if(!_clXportNodeAddrMapFind(dstIocAddress))
-        {
-            _clXportUpdateNodeConfig(dstIocAddress);
-        }
-        _clSetupDestNodeLUTData();
-        destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress);
+        _clXportUpdateNodeConfig(dstIocAddress);
+        bridgeUpdate = CL_TRUE;
     }
 
+    if(bridgeUpdate)
+    {
+        _clSetupDestNodeLUTData();
+    }
+    ClXportDestNodeLUTDataT *destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress);
     if (!destNodeLUTData) 
     {
         clOsalMutexUnlock(&gXportNodeAddrListmutex);
