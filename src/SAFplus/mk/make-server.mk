@@ -65,7 +65,7 @@
 #
 ################################################################################
 
-include $(CLOVIS_ROOT)/ASP/mk/make-path.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-path.mk
 
 ASP_EXE_PREFIX		:= safplus
 
@@ -155,7 +155,7 @@ CPPFLAGS		+= -I.
 # Now we add the include directories of all components we depend on:
 CPPFLAGS		+= $(addprefix -I,$(comp_include_dirs))
 
-CPPFLAGS		+= -I$(CLOVIS_ROOT)/ASP/include
+CPPFLAGS		+= -I$(CLOVIS_ROOT)/SAFplus/include
 else
 CPPFLAGS		+= $(addprefix -I,$(comp_include_dirs))
 CPPFLAGS		+= -I$(ASP_INCLUDE) -I$(ASP_INCLUDE)/ipi -L$(ASP_LIBDIR)
@@ -163,7 +163,8 @@ CPPFLAGS		+= -I.
 endif
 ################################################################################
 # Building the linker flags
-MODEL_CONFIG_LIBRARY := libClConfig.a
+MODEL_CONFIG_LIBRARY := 
+#libClConfig.a
 
 ASP_AMF_LIBS := libClAmfClient.a libClAmsMgmt.a libClAmsXdr.a libClGms.a
 
@@ -229,7 +230,7 @@ ifeq ($(ASP_BUILD),1)
                $(libs) -L$(COMP_ROOT)/ground/client 
   else
     LDLIBS  +=-L$(ASP_LIB) -L$(MODEL_LIB) \
-         -Wl,--start-group $(libs) -Wl,--end-group\
+         -Wl,--start-group$(SPECIAL_LDFLAGS) $(libs) -Wl,--end-group\
                   -L$(COMP_ROOT)/ground/client 
   endif
 else
@@ -238,7 +239,7 @@ else
               $(libs) -L$(ASP_LIBDIR)
   else
     LDLIBS  +=-L$(ASP_LIB) -L$(MODEL_LIB) \
-         -Wl,--start-group $(libs) -Wl,--end-group\
+         -Wl,--start-group$(SPECIAL_LDFLAGS) $(libs) -Wl,--end-group\
                   -L$(ASP_LIBDIR)
   endif
 endif

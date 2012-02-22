@@ -185,9 +185,9 @@ ifdef BUILD_TIPC
   endif
 endif
 
-include $(CLOVIS_ROOT)/ASP/mk/make-cross.mk
-include $(CLOVIS_ROOT)/ASP/mk/make-path.mk
-include $(CLOVIS_ROOT)/ASP/mk/make-distro.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-cross.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-path.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-distro.mk
 
 ################################################################################
 # Tool chain definitions go here
@@ -210,7 +210,7 @@ else
     ifeq ($(WIND_VER),0)
         TOP_CFLAGS  = -c -Wall -D_GNU_SOURCE
     else
-        TOP_CFLAGS  = -c -Wall -Werror -D_GNU_SOURCE
+        TOP_CFLAGS  = -c -Wall -Werror -D_GNU_SOURCE $(SPECIAL_CFLAGS)
     endif
 endif
 ifeq ($(BUILD_WARNINGS),1)
@@ -517,11 +517,11 @@ tags: FORCE
 	$(call cmd,tags)
 
 ifneq ($(findstring check,$(MAKECMDGOALS)),)
-    include $(CLOVIS_ROOT)/ASP/mk/make-check.mk
+    include $(CLOVIS_ROOT)/SAFplus/mk/make-check.mk
 endif
 
 ifneq ($(findstring cov,$(MAKECMDGOALS)),)
-    include $(CLOVIS_ROOT)/ASP/mk/make-gcov.mk
+    include $(CLOVIS_ROOT)/SAFplus/mk/make-gcov.mk
 endif
 
 #-------------------------------------------------------------------------------
@@ -554,21 +554,21 @@ splint-summary:
 	$(Q)find . -name splint.log -printf '%p: ' -exec tail -n 1 \{\} \; | sort
 
 splint-report-tarball:
-	$(Q)(find $(CLOVIS_ROOT)/ASP/components -name splint.log) | xargs tar czf splint-logs.tgz
+	$(Q)(find $(CLOVIS_ROOT)/SAFplus/components -name splint.log) | xargs tar czf splint-logs.tgz
 ################################################################################
 #package: create the binary package from the source
 ################################################################################
 .PHONY: install
 install:
-	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/sdk/scripts/install.sh
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/SAFplus/build/sdk/scripts/install.sh
 
 .PHONY: uninstall
 uninstall:
-	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/common/scripts/uninstall.sh
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/SAFplus/build/common/scripts/uninstall.sh
 
 .PHONY: binary
 binary:
-	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/sdk/scripts/binary.sh
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/SAFplus/build/sdk/scripts/binary.sh
 
 ################################################################################
 # base-images
@@ -577,10 +577,10 @@ binary:
 .PHONY: base-images
 ifeq ($(STRIP), 1)
 base-images:
-	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/base-images/scripts/base-images.sh 1
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/SAFplus/build/base-images/scripts/base-images.sh 1
 else
 base-images:
-	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/base-images/scripts/base-images.sh 0
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/SAFplus/build/base-images/scripts/base-images.sh 0
 endif
 ################################################################################
 # prerequisites
@@ -588,7 +588,7 @@ endif
 ################################################################################
 .PHONY: prerequisites
 prerequisites:
-	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/prerequisites/scripts/prerequisites.sh
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/SAFplus/build/prerequisites/scripts/prerequisites.sh
 
 ################################################################################
 # instantiate
@@ -597,7 +597,7 @@ prerequisites:
 ################################################################################
 .PHONY: instantiate
 instantiate: 
-	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/instantiate/scripts/instantiate.sh
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/SAFplus/build/instantiate/scripts/instantiate.sh
 
 ################################################################################
 # post-images
@@ -606,7 +606,7 @@ instantiate:
 ################################################################################
 .PHONY: post-images
 post-images:
-	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/post-images/scripts/post-images.sh
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/SAFplus/build/post-images/scripts/post-images.sh
 
 ################################################################################
 # images
@@ -654,7 +654,7 @@ asp-libs: libs
 ################################################################################
 .PHONY: asp-install
 asp-install:
-	$(RUN_SCRIPT) $(CLOVIS_ROOT)/ASP/build/libs-install/scripts/libs-install.sh
+	$(RUN_SCRIPT) $(CLOVIS_ROOT)/SAFplus/build/libs-install/scripts/libs-install.sh
 
 
 ################################################################################
@@ -676,13 +676,13 @@ help:
 	@echo  ''
 	@echo  'Static analysers:'
 	@$(MAKE) --no-print-directory \
-		               -f $(CLOVIS_ROOT)/ASP/mk/make-check.mk help
+		               -f $(CLOVIS_ROOT)/SAFplus/mk/make-check.mk help
 	@echo  ''
 	@$(MAKE) --no-print-directory \
-		               -f $(CLOVIS_ROOT)/ASP/mk/make-gcov.mk gcovhelp
+		               -f $(CLOVIS_ROOT)/SAFplus/mk/make-gcov.mk gcovhelp
 	@echo  'Cross-build and cross-compilation:'
 	@$(MAKE) --no-print-directory \
-		               -f $(CLOVIS_ROOT)/ASP/mk/make-cross.mk crosshelp
+		               -f $(CLOVIS_ROOT)/SAFplus/mk/make-cross.mk crosshelp
 	@echo  ''
 	@echo  'Packaging:'
 	@echo  '  images          - Create run-time images for target platform.'
