@@ -153,6 +153,7 @@ static ClOsalMutexT gClXportNodeAddrListMutex;
 static void _clSetupDestNodeLUTData(void);
 
 static ClXportNodeAddrDataT gClXportDefaultNodeName;
+static ClNameT gClLocalNodeName;
 /*
  * Global xports ID
  */
@@ -359,7 +360,7 @@ static __inline__ ClXportNodeAddrDataT *_clXportNodeAddrMapFind(const ClCharT *n
     for(iter = gClXportNodeAddrHashTable[CL_XPORT_NODEADDR_TABLE_HASH(hashKey)]; iter; iter = iter->pNext)
     {
         ClXportNodeAddrDataT *entry = hashEntry(iter, ClXportNodeAddrDataT, hash);
-        if(!strncmp(entry->nodeName, nodeName, strlen(nodeName)))
+        if(!strcmp(entry->nodeName, nodeName))
         {
             return entry;
         }
@@ -447,7 +448,9 @@ static ClXportNodeAddrDataT *_clXportUpdateNodeConfig(ClIocNodeAddressT iocAddre
 {
     ClUint32T i = 0;
     ClXportNodeAddrDataT *nodeAddrConfig = _clXportNodeAddrMapFind(nodeName);
-    if(nodeAddrConfig) return nodeAddrConfig;
+    if(nodeAddrConfig) 
+        goto out;
+
     nodeAddrConfig = clHeapCalloc(1, sizeof(*nodeAddrConfig));
     CL_ASSERT(nodeAddrConfig != NULL);
     nodeAddrConfig->iocAddress = iocAddress;
@@ -456,12 +459,16 @@ static ClXportNodeAddrDataT *_clXportUpdateNodeConfig(ClIocNodeAddressT iocAddre
     nodeAddrConfig->bridge = gClXportDefaultNodeName.bridge;
     nodeAddrConfig->xports = (ClCharT **) clHeapCalloc(nodeAddrConfig->numXport, sizeof(ClCharT *));
     CL_ASSERT(nodeAddrConfig->xports != NULL);
-    for (i = 0; i < nodeAddrConfig->numXport; i++) {
+    for (i = 0; i < nodeAddrConfig->numXport; i++) 
+    {
         nodeAddrConfig->xports[i] = clStrdup(gClXportDefaultNodeName.xports[i]);
     }
     clLogDebug("IOC", "LUT", "Add configuration for node address [%#x] and node name [%s]", iocAddress, nodeName);
     _clXportNodeAddrMapAdd(nodeAddrConfig);
-    return NULL;
+    nodeAddrConfig = NULL;
+
+    out:
+    return nodeAddrConfig;
 }
 
 static ClRcT _clTransportGmsTimerInitCallback() {
@@ -509,7 +516,7 @@ static ClRcT _clTransportGmsTimerInitCallback() {
 static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, ClIocNodeAddressT nodeAddr)
 {
     register ClListHeadT *iter;
-    ClXportNodeAddrDataT *nodeConfigAddrDataT = NULL;
+    ClXportNodeAddrDataT *nodeConfigAddrData = NULL;
     ClNodeCacheMemberT member = {0};
     clOsalMutexLock(&gClXportNodeAddrListMutex);
     switch (notificationId)
@@ -519,21 +526,24 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
         {
             if (clNodeCacheMemberGetExtendedSafe(nodeAddr, &member, 5, 200) == CL_OK)
             {
-                if (!(nodeConfigAddrDataT = _clXportNodeAddrMapFind((const ClCharT *)member.name)))
+                if (!(nodeConfigAddrData = _clXportUpdateNodeConfig(nodeAddr,
+                                                                     (const ClCharT *)member.name)))
                 {
                     clLogDebug("IOC", "LUT", "Triggering node join for node [0x%x]", nodeAddr);
-                    _clXportUpdateNodeConfig(nodeAddr, (const ClCharT *)member.name);
                     _clSetupDestNodeLUTData();
                 }
-                else if (!nodeConfigAddrDataT->iocAddress)
+                else if (!nodeConfigAddrData->iocAddress)
                 {
-                    clLogDebug("IOC", "LUT", "Update node address for node join for node [0x%x] name [%s]", nodeAddr, member.name);
-                    nodeConfigAddrDataT->iocAddress = nodeAddr;
+                    clLogDebug("IOC", "LUT", 
+                               "Update node address for node join for node [0x%x] name [%s]",
+                               nodeAddr, member.name);
+                    nodeConfigAddrData->iocAddress = nodeAddr;
                     _clSetupDestNodeLUTData();
                 }
                 else
                 {
-                    clLogDebug("IOC", "LUT", "Nothing update for node [%#x] name [%s]", nodeAddr, member.name);
+                    clLogDebug("IOC", "LUT", "Nothing updated for node [%#x] name [%s]", 
+                               nodeAddr, member.name);
                 }
             }
             break;
@@ -1211,7 +1221,7 @@ static void _clSetupDestNodeLUTData(void)
         ClXportDestNodeLUTDataT *entryLUTData = clHeapCalloc(1, sizeof(*entryLUTData));
         CL_ASSERT(entryLUTData != NULL);
 
-        // Don't update if it exits or node address not defined
+        // Don't update if it exists or node address not defined
         if (!map->iocAddress || _clXportDestNodeLUTMapFind(map->iocAddress)) {
             clHeapFree(entryLUTData);
             goto loop;
@@ -1275,7 +1285,7 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
 {
     ClCharT *preferredXport = NULL;
     ClXportDestNodeLUTDataT *destNodeLUTData = NULL;
-    ClXportNodeAddrDataT *nodeConfigAddrDataT = NULL;
+    ClXportNodeAddrDataT *nodeConfigAddrData = NULL;
     ClNodeCacheMemberT member = {0};
 
     if(!typeXport) return CL_ERR_INVALID_PARAMETER;
@@ -1286,13 +1296,10 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
     {
         if (clNodeCacheMemberGetExtendedSafe(dstIocAddress, &member, 5, 200) == CL_OK)
         {
-            if (!(nodeConfigAddrDataT = _clXportNodeAddrMapFind((const ClCharT*)member.name)))
+            if ((nodeConfigAddrData = _clXportUpdateNodeConfig(dstIocAddress,
+                                                               (const ClCharT*)member.name)))
             {
-                _clXportUpdateNodeConfig(dstIocAddress, (const ClCharT*)member.name);
-            }
-            else
-            {
-                nodeConfigAddrDataT->iocAddress = dstIocAddress;
+                nodeConfigAddrData->iocAddress = dstIocAddress;
             }
             _clSetupDestNodeLUTData();
         }
@@ -1328,10 +1335,8 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
         else
         {
             ClXportNodeAddrDataT *nodeAddrConfig;
-            ClNameT localNodeName = {0};
-            clCpmLocalNodeNameGet(&localNodeName);
 
-            nodeAddrConfig = _clXportNodeAddrMapFind((const ClCharT*) localNodeName.value);
+            nodeAddrConfig = _clXportNodeAddrMapFind((const ClCharT*) gClLocalNodeName.value);
 
             if(!nodeAddrConfig)
             {
@@ -1402,9 +1407,6 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
         goto default_xport_node;
     }
 
-    ClNameT localNodeName = {0};
-    clCpmLocalNodeNameGet(&localNodeName);
-
     while (node)
     {
         numxn = 0;
@@ -1427,8 +1429,8 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
         {
             ClTransportLayerT *xport = findTransport(token);
 
-            /* On destination node there maybe existing protocol which not available this blade */
-            if (xport || strncmp(name, localNodeName.value, localNodeName.length))
+            /* On destination node there maybe existing protocol not available in this blade */
+            if (xport || strcmp(name, gClLocalNodeName.value))
             {
                 xports[numxn++] = token;
             }
@@ -1506,13 +1508,13 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
     /*
      * Add local node into LUT
      */
-    if (!(nodeAddrConfig = _clXportNodeAddrMapFind((const ClCharT*)localNodeName.value)))
+    if (!(nodeAddrConfig = _clXportNodeAddrMapFind((const ClCharT*)gClLocalNodeName.value)))
     {
         ClListHeadT *iter;
         i = 0;
         nodeAddrConfig = clHeapCalloc(1, sizeof(*nodeAddrConfig));
         CL_ASSERT(nodeAddrConfig != NULL);
-        nodeAddrConfig->nodeName = clStrdup(localNodeName.value);
+        nodeAddrConfig->nodeName = clStrdup(gClLocalNodeName.value);
         nodeAddrConfig->numXport = 0;
         nodeAddrConfig->bridge = CL_FALSE;
         CL_LIST_FOR_EACH(iter, &gClTransportList) 
@@ -1577,6 +1579,11 @@ ClRcT clTransportLayerInitialize(void)
     ClParserPtrT parent;
     ClParserPtrT xports;
     ClParserPtrT xport;
+
+    /*
+     * Cache the local nodename
+     */
+    clCpmLocalNodeNameGet(&gClLocalNodeName);
 
     configPath = getenv("ASP_CONFIG");
     if(!configPath) configPath = ".";
