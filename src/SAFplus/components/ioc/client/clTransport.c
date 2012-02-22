@@ -1375,7 +1375,6 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
 {
 #define MAX_XPORTS_PER_SLOT (8)
     ClParserPtrT protocol = clParserChild(parent, "protocol");
-    ClParserPtrT nodes;
     ClParserPtrT node;
 
     ClCharT xportType[CL_MAX_NAME_LENGTH] = { 0 };
@@ -1394,13 +1393,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
 
     const ClCharT *xportDefault = clParserAttr(protocol, "default");
 
-    nodes = clParserChild(protocol, "nodes");
-    if (!nodes)
-    {
-        goto default_xport_node;
-    }
-
-    node = clParserChild(nodes, "node");
+    node = clParserChild(protocol, "node");
     if (!node)
     {
         goto default_xport_node;
