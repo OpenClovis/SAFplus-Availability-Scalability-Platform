@@ -768,24 +768,7 @@ done:
     return CL_OK;
 }
 /******************************************************************************/
-static ClHandleT gClEoNotificationHandle;
-static void eoNotificationCallback(ClIocNotificationIdT eventId,
-                                   ClPtrT unused,
-                                   ClIocAddressT *pAddress)
-{
-    ClIocNotificationT notification = {0};
-    notification.id = htonl(eventId);
-    notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
-    notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(pAddress->iocPhyAddress.nodeAddress);
-    notification.nodeAddress.iocPhyAddress.portId = htonl(pAddress->iocPhyAddress.portId);
-    /*
-     * Invoke all the registrants
-     */
-    clLogDebug("IOC", "NOTIF", "Invoking notification registrants for id [%d],"
-               "node [%d], port [%d]", eventId,
-               pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
-    clIocNotificationRegistrants(&notification);
-}
+
 
 /**
  *  NAME: clEoCreateSystemCallout
@@ -806,19 +789,6 @@ static ClRcT clEoCreateSystemCallout(ClEoExecutionObjT *pThis)
         EO_CHECK(CL_DEBUG_ERROR, ("Improper reference to EO Object \n"),
                 CL_EO_RC(CL_ERR_NULL_POINTER));
 
-    /*
-     * Register for node notification for all EO's other than amf or node representative
-     * as the node rep anyway is directly accessible to notifications through the 
-     * fast listen interface
-     */
-    if(!gIsNodeRepresentative)
-    {
-        ClIocPhysicalAddressT compAddr = {.nodeAddress = CL_IOC_BROADCAST_ADDRESS,
-                                          .portId = CL_IOC_CPM_PORT
-        };
-        clCpmNotificationCallbackInstall(compAddr, eoNotificationCallback, 
-                                         NULL, &gClEoNotificationHandle);
-    }
     /*
      * Registration with component manager 
      */
@@ -2923,11 +2893,6 @@ ClRcT clEoLibFinalize()
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("\n EO: Inside %s \n", __FUNCTION__));
 
     CL_EO_LIB_VERIFY();
-
-    if(gClEoNotificationHandle)
-    {
-        clCpmNotificationCallbackUninstall(&gClEoNotificationHandle);
-    }
 
     rc = clCntDelete(gEOObjHashTable);
     if (rc != CL_OK)
