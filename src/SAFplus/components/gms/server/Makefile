@@ -92,8 +92,8 @@ endif
 
 OPENAIS_OBJDIR = $(ASP_TARGET)/obj/3rdparty/openais/$(OPENAIS_DIR)/exec
 
-THIRDPARTY_LIBS	:= -L$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable/ -lezxml \
-                   -L$(CLOVIS_ROOT)/ASP/3rdparty/openais/$(OPENAIS_DIR)/exec \
+THIRDPARTY_LIBS	:= -L$(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable/ -lezxml \
+                   -L$(CLOVIS_ROOT)/SAFplus/3rdparty/openais/$(OPENAIS_DIR)/exec \
                    
 ifeq ($(TARGET_QNX), 0)
 ifeq ($(TARGET_VXWORKS), 0)
@@ -102,8 +102,8 @@ endif
 endif
 
 ifdef SOLARIS_BUILD
-  THIRDPARTY_LIBS += $(CLOVIS_ROOT)/ASP/3rdparty/openais/openais-0.82/exec/objdb.o \
-                      $(CLOVIS_ROOT)/ASP/3rdparty/openais/openais-0.82/exec/aisparser.o 
+  THIRDPARTY_LIBS += $(CLOVIS_ROOT)/SAFplus/3rdparty/openais/openais-0.82/exec/objdb.o \
+                      $(CLOVIS_ROOT)/SAFplus/3rdparty/openais/openais-0.82/exec/aisparser.o 
 else
   THIRDPARTY_LIBS += $(OPENAIS_OBJDIR)/objdb.o \
                    $(OPENAIS_OBJDIR)/aisparser.o \
@@ -141,3 +141,4 @@ EXE_NAME	= $(ASP_EXE_PREFIX)_$(COMPNAME)
 
 
 include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+$(warning OBJ_DIR: $(OBJ_DIR))

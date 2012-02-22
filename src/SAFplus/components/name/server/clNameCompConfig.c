@@ -35,9 +35,9 @@
 
 /*local ioc address*/
 extern ClUint32T	myId;
-extern ClUint32T gClnsMaxNoEntries;
-extern ClUint32T gClnsMaxNoGlobalContexts;
-extern ClUint32T gClnsMaxNoLocalContexts;
+ClUint32T gClnsMaxNoEntries        = 256;
+ClUint32T gClnsMaxNoGlobalContexts = 10;
+ClUint32T gClnsMaxNoLocalContexts  = 2;
 
 
 /**

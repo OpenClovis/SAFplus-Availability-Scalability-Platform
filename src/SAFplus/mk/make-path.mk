@@ -26,7 +26,7 @@
 #
 ################################################################################
 
-COMP_ROOT		:= $(CLOVIS_ROOT)/ASP/components
+COMP_ROOT		:= $(CLOVIS_ROOT)/SAFplus/components
 
 ifdef SOLARIS_BUILD
         AWK=gawk
@@ -40,7 +40,7 @@ export AWK
 # "components" and a "3rdparty" subdir.
 ifndef IS_ASP_COMP
 ifdef SOLARIS_BUILD
-    IS_ASP_COMP := $(shell pwd | grep -c "ASP/components")
+    IS_ASP_COMP := $(shell pwd | grep -c "SAFplus/components")
 else
     IS_ASP_COMP := $(shell \
         asp_dir=$$(pwd|awk '{if(match($$0,".*/ASP/")){print substr($$0,0,RLENGTH-1)}}'); \
@@ -67,14 +67,12 @@ endif
 ifeq ("$(IS_ASP_COMP)","1")
     # $(warning Building ASP component)
     # In this case we create the BUILD_SUBPATH as the subdirectory under ASP
-    BUILD_SUBPATH := $(shell \
-        pwd | $(AWK) '{match($$0,".*/ASP/"); print substr($$0,RLENGTH+1)}')
+    BUILD_SUBPATH := $(shell pwd | $(AWK) '{match($$0,".*/SAFplus/"); print substr($$0,RLENGTH+1)}')
 else
     # $(warning Building user component)
-	# in this case we create the BUILD_SUBPATH as the subdirectory under the
-	# model directory
-    BUILD_SUBPATH := $(shell \
-        pwd | $(AWK) '{match($$0,regex); print substr($$0,RLENGTH+1)}' regex=".*/$(ASP_MODEL_NAME)/")
+#	# in this case we create the BUILD_SUBPATH as the subdirectory under the
+#	# model directory
+    BUILD_SUBPATH := $(shell pwd | $(AWK) '{match($$0,regex); print substr($$0,RLENGTH+1)}' regex=".*/$(ASP_MODEL_NAME)/")
 endif
 
 #$(warning BUILD_SUBPATH:$(BUILD_SUBPATH))
