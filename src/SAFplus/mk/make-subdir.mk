@@ -55,7 +55,7 @@
 #
 ################################################################################
 
-include $(CLOVIS_ROOT)/ASP/mk/make-path.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-path.mk
 
 .PHONY: libs depend $(SUBDIRS)
 
@@ -159,4 +159,4 @@ export OBJ_DIR
 export LIB_DIR
 export CLOVIS_ROOT
 
-include $(CLOVIS_ROOT)/ASP/mk/make-common.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-common.mk
