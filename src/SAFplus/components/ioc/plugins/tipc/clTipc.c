@@ -96,7 +96,6 @@
 #include <clTimeServer.h>
 #include <clTransport.h>
 
-extern ClBoolT gIsNodeRepresentative;
 extern ClUint32T clEoWithOutCpm;
 extern ClUint32T clAspLocalId;
 extern ClIocNodeAddressT gIocLocalBladeAddress;
@@ -205,7 +204,7 @@ static ClRcT tipcDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
         goto out;
     }
 
-    rc = clIocDispatchAsync(xportPrivate->portId, buffer, bytes);
+    rc = clIocDispatchAsync(gClTipcXportType, xportPrivate->portId, buffer, bytes);
 
     out:
     return rc;
@@ -570,7 +569,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         break;
     }
 
-    rc = clIocDispatch(commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
+    rc = clIocDispatch(gClTipcXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
 
     if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
         goto retry;
@@ -769,7 +768,7 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
         if(rc != CL_OK)
             goto out;
     }
-    rc = tipcConfigInitialize(gIsNodeRepresentative);
+    rc = tipcConfigInitialize(nodeRep);
     if(rc != CL_OK)
         goto out;
     gTipcInit = CL_TRUE;

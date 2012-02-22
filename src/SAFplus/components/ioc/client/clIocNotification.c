@@ -7,6 +7,7 @@
 #include <clIocServices.h>
 #include <clIocIpi.h>
 #include <clNodeCache.h>
+#include <clTransport.h>
 #include <clCpmApi.h>
 #include "clIocUserApi.h"
 #include "clIocSetup.h"
@@ -66,7 +67,7 @@ ClRcT clIocNotificationDeregister(ClIocNotificationRegisterCallbackT callback)
     return CL_OK;
 }
 
-static ClRcT clIocNotificationRegistrants(ClIocNotificationT *notification)
+ClRcT clIocNotificationRegistrants(ClIocNotificationT *notification)
 {
     ClListHeadT *iter = NULL;
     ClListHeadT *list = &gIocNotificationRegisterList;
@@ -96,6 +97,53 @@ ClRcT clIocNotificationRegistrantsDelete(void)
     }
     clOsalMutexUnlock(&gIocNotificationRegisterLock);
     return CL_OK;
+}
+
+ClRcT clIocNotificationProxySend(ClIocCommPortHandleT commPort,
+                                 ClIocNotificationIdT id,
+                                 ClIocPhysicalAddressT *srcAddr, 
+                                 ClIocAddressT *destAddr,
+                                 ClCharT *xportType)
+{
+    ClRcT retCode = CL_OK;
+    ClBufferHandleT message = 0;
+    ClIocNotificationT notification = {0};
+
+    notification.id = htonl(id);
+    notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
+    notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(srcAddr->nodeAddress);
+    notification.nodeAddress.iocPhyAddress.portId = htonl(srcAddr->portId);
+
+    retCode = clBufferCreate(&message);
+    if(retCode != CL_OK)
+    {   
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Buffer creation failed. rc=0x%x\n",retCode));
+        goto out;
+    }   
+
+    retCode = clBufferNBytesWrite(message,(ClUint8T *)&notification, sizeof(notification));
+    if (CL_OK != retCode)
+    {   
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                       ("\nERROR: clBufferNBytesWrite failed with rc = %x\n",
+                        retCode));
+        goto err_out;
+    }   
+
+    clLogTrace("PROXY", "SEND", "Proxying [%d] notification to the peer node reps "
+               "for node [%d:%d]", id, srcAddr->nodeAddress, srcAddr->portId);
+
+    retCode = clIocSendWithXport(commPort, message, CL_IOC_PROTO_ARP,
+                                 destAddr, &sendOption, xportType, CL_TRUE);
+    if(retCode != CL_OK)
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to send proxy notification. "
+                                       "Error [%#x]", retCode));
+
+    err_out:
+    clBufferDelete(&message);
+
+    out:
+    return retCode;
 }
 
 ClRcT clIocNotificationPacketSend(ClIocCommPortHandleT commPort, 
@@ -147,7 +195,7 @@ ClRcT clIocNotificationPacketSend(ClIocCommPortHandleT commPort,
     }
 
     retCode = clIocSendWithXport(commPort, message, CL_IOC_PORT_NOTIFICATION_PROTO, 
-                                 destAddress, &sendOption, xportType);
+                                 destAddress, &sendOption, xportType, CL_FALSE);
     if(retCode != CL_OK)
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to send notification. error code 0x%x", retCode));
 
@@ -179,7 +227,7 @@ static ClRcT clIocNotificationNodeMapSend(ClIocCommPortHandleT commPort,
     }
 
     rc = clIocSendWithXport(commPort, message, CL_IOC_PROTO_CTL, 
-                            compAddress, &sendOption, xportType);
+                            compAddress, &sendOption, xportType, CL_FALSE);
 
     if(rc != CL_OK)
     {
@@ -211,6 +259,88 @@ static ClRcT clIocNodeVersionSend(ClIocCommPortHandleT commPort,
                 "to node [%#x], port [%#x]", nodeVersion, myCapability, 
                 destAddress->iocPhyAddress.nodeAddress, destAddress->iocPhyAddress.portId);
     return clIocNotificationPacketSend(commPort, &notification, destAddress, 
+                                       CL_FALSE, xportType);
+}
+
+static ClRcT clIocNotificationProxyRecv(ClIocCommPortHandleT commPort, ClUint8T *buff,
+                                        ClIocAddressT *allLocalComps,
+                                        ClIocAddressT *allNodeReps, ClCharT *xportType)
+{
+    ClIocNotificationT notification = {0};
+    ClIocNotificationT notificationBuffer = {0};
+    ClUint32T status = 0;
+    memcpy(&notificationBuffer, buff, sizeof(notificationBuffer));
+    notification.id = ntohl(notificationBuffer.id);
+    notification.protoVersion = ntohl(notificationBuffer.protoVersion);
+    notification.nodeAddress.iocPhyAddress.nodeAddress = 
+        ntohl(notificationBuffer.nodeAddress.iocPhyAddress.nodeAddress);
+    notification.nodeAddress.iocPhyAddress.portId = 
+        ntohl(notificationBuffer.nodeAddress.iocPhyAddress.portId);
+    if(notification.protoVersion != CL_IOC_NOTIFICATION_VERSION)
+    {
+        clLogError("PROXY", "RECV", "Invalid proxy notification packet received "
+                   "with version [%d]", notification.protoVersion);
+        return CL_ERR_VERSION_MISMATCH;
+    }
+    clLogTrace("PROXY", "RECV", "Received proxy notification [%d] for node [%d:%d]",
+               notification.id, notification.nodeAddress.iocPhyAddress.nodeAddress,
+               notification.nodeAddress.iocPhyAddress.portId);
+    if(notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION
+       ||
+       notification.id == CL_IOC_COMP_ARRIVAL_NOTIFICATION)
+    {
+        status = CL_IOC_NODE_UP;
+    }
+    else
+    {
+        status = CL_IOC_NODE_DOWN;
+    }
+    clIocCompStatusSet(notification.nodeAddress.iocPhyAddress, status);
+
+    if(status == CL_IOC_NODE_UP)
+    {
+        /* 
+         * Received NODE ARRIVAL notification.
+         * Send back node version again for consistency or link syncup point
+         * and comp bitmap for this node
+         */
+        if(notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION)
+        {
+            clIocNodeVersionSend(commPort, 
+                                 (ClIocAddressT*)&notification.nodeAddress, xportType);
+            clIocNotificationNodeMapSend(commPort, 
+                                         (ClIocAddressT*)&notification.nodeAddress, 
+                                         xportType);
+        }
+#ifdef CL_IOC_COMP_ARRIVAL_NOTIFICATION_DISABLE 
+        return CL_OK;
+#endif
+    }
+    else 
+    {
+        /* Received Node/comp LEAVE notification. */
+        clIocMasterSegmentUpdate(notification.nodeAddress.iocPhyAddress);
+        if(notification.id == CL_IOC_NODE_LEAVE_NOTIFICATION)
+        {
+            notificationBuffer.nodeAddress.iocPhyAddress.portId = 0;
+            clIocNodeCompsReset(notification.nodeAddress.iocPhyAddress.nodeAddress);
+            clNodeCacheSoftReset(notification.nodeAddress.iocPhyAddress.nodeAddress);
+        }
+    }
+    
+    /*
+     * Notify the registrants for this notification who might want to do a fast
+     * pass early than relying on the slightly slower notification proto callback.
+     */
+    if(notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION
+       ||
+       notification.id == CL_IOC_NODE_LEAVE_NOTIFICATION)
+    {
+        clIocNotificationRegistrants(&notificationBuffer);
+    }
+
+    /* Need to send a notification packet to all the components on this node */
+    return clIocNotificationPacketSend(commPort, &notificationBuffer, allLocalComps, 
                                        CL_FALSE, xportType);
 }
 
@@ -255,7 +385,8 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, ClUint32T s
          * and comp bitmap for this node
         */
         clIocNodeVersionSend(commPort, (ClIocAddressT*)&notificationCompAddr, xportType);
-        clIocNotificationNodeMapSend(commPort, (ClIocAddressT*)&notificationCompAddr, xportType);
+        clIocNotificationNodeMapSend(commPort, (ClIocAddressT*)&notificationCompAddr, 
+                                     xportType);
 
 #ifdef CL_IOC_COMP_ARRIVAL_NOTIFICATION_DISABLE 
         return CL_OK;
@@ -271,6 +402,12 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, ClUint32T s
         clNodeCacheSoftReset(notificationNodeAddr);
         notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
     }
+    if(clTransportBridgeEnabled(gIocLocalBladeAddress) && allNodeReps)
+    {
+        clIocNotificationProxySend(commPort, ntohl(notification.id), &notificationCompAddr, 
+                                   allNodeReps, xportType);
+    }
+
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
     notification.nodeAddress.iocPhyAddress.portId = 0;
     notification.nodeAddress.iocPhyAddress.nodeAddress =  htonl(notificationNodeAddr);
@@ -359,6 +496,27 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
 
     srcAddr.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
     srcAddr.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
+
+    if(userHeader.protocolType == CL_IOC_PROTO_ARP)
+    {
+        /*
+         * Ignore self notification.
+         */
+        if(srcAddr.nodeAddress == gIocLocalBladeAddress)
+        {
+            return CL_OK;
+        }
+        recvLen -= sizeof(userHeader);
+        if(recvLen < sizeof(ClIocNotificationT))
+        {
+            clLogError("PROXY", "RECV", "Invalid proxy notification packet received "
+                       "of size [%d]. Expected [%d] bytes", 
+                       recvLen, (ClUint32T)sizeof(ClIocNotificationT));
+            return CL_ERR_NO_SPACE;
+        }
+        return clIocNotificationProxyRecv(commPort, pRecvBase + sizeof(userHeader),
+                                          allLocalComps, allNodeReps, xportType);
+    }
 
     /*
      * Enable the destination status bit when a notification packet is received from a peer node.
@@ -523,6 +681,13 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
     /* Need to send the above notification to all the components on this node */
     rc = clIocNotificationPacketSend(commPort, &notification, allLocalComps, CL_FALSE,
                                      xportType);
+
+    if(clTransportBridgeEnabled(gIocLocalBladeAddress) && allNodeReps
+       && compAddr.nodeAddress != gIocLocalBladeAddress)
+    {
+        clIocNotificationProxySend(commPort, ntohl(notification.id), &compAddr,
+                                   allNodeReps, xportType);
+    }
 
     out:
     return rc;

@@ -1141,6 +1141,15 @@ static ClRcT iovecIteratorNext(IOVecIteratorT *iter, ClUint32T *payload, struct 
 
     while(size > 0 && curIOVec)
     {
+        if(curIOVec->iov_len == 0)
+        {
+            ++curIOVec;
+            if( (curIOVec - iter->src) >= iter->srcVectors )
+            {
+                curIOVec = NULL;
+            }
+            continue;
+        }
         size_t len = curIOVec->iov_len - iter->offset;
         ClUint8T *base = curIOVec->iov_base + iter->offset;
         while(size > 0 && len > 0)

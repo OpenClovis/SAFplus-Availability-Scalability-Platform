@@ -95,7 +95,8 @@ extern ClIocNodeAddressT gIocLocalBladeAddress;
 extern ClUint32T
 clIocSetType(ClUint32T portId, ClBoolT setFlag);
 extern ClRcT 
-__iocUserFragmentReceive(ClUint8T *pBuffer,
+__iocUserFragmentReceive(const ClCharT *xportType,
+                         ClUint8T *pBuffer,
                          ClIocFragHeaderT *userHdr,
                          ClIocPortT portId,
                          ClUint32T length,
