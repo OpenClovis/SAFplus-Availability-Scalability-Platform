@@ -210,7 +210,7 @@ else
     ifeq ($(WIND_VER),0)
         TOP_CFLAGS  = -c -Wall -D_GNU_SOURCE
     else
-        TOP_CFLAGS  = -c -Wall -Werror -Wno-error=unused-but-set-variable -D_GNU_SOURCE
+        TOP_CFLAGS  = -c -Wall -Werror -D_GNU_SOURCE $(SPECIAL_CFLAGS)
     endif
 endif
 ifeq ($(BUILD_WARNINGS),1)
