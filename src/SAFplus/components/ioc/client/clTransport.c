@@ -451,7 +451,7 @@ static ClXportNodeAddrDataT *_clXportUpdateNodeConfig(ClIocNodeAddressT iocAddre
     nodeAddrConfig = clHeapCalloc(1, sizeof(*nodeAddrConfig));
     CL_ASSERT(nodeAddrConfig != NULL);
     nodeAddrConfig->iocAddress = iocAddress;
-    nodeAddrConfig->nodeName = strdup(nodeName);
+    nodeAddrConfig->nodeName = clStrdup(nodeName);
     nodeAddrConfig->numXport = gClXportDefaultNodeName.numXport;
     nodeAddrConfig->bridge = gClXportDefaultNodeName.bridge;
     nodeAddrConfig->xports = (ClCharT **) clHeapCalloc(nodeAddrConfig->numXport, sizeof(ClCharT *));
@@ -1438,7 +1438,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
         ClXportNodeAddrDataT *entry = clHeapCalloc(1, sizeof(*entry));
         CL_ASSERT(entry != NULL);
         entry->iocAddress = 0;
-        entry->nodeName = strdup(name);
+        entry->nodeName = clStrdup(name);
         entry->numXport = numxn;
         if (bridge && numxn > 1 && (!strncmp(bridge, "1", 1) ||
                         !strncasecmp(bridge, "yes", 3) ||
@@ -1512,7 +1512,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
         i = 0;
         nodeAddrConfig = clHeapCalloc(1, sizeof(*nodeAddrConfig));
         CL_ASSERT(nodeAddrConfig != NULL);
-        nodeAddrConfig->nodeName = strdup(localNodeName.value);
+        nodeAddrConfig->nodeName = clStrdup(localNodeName.value);
         nodeAddrConfig->numXport = 0;
         nodeAddrConfig->bridge = CL_FALSE;
         CL_LIST_FOR_EACH(iter, &gClTransportList) 
