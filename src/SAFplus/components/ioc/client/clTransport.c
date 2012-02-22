@@ -115,7 +115,8 @@ static struct hashStruct *gXportPrivateTable[CL_XPORT_PRIVATE_TABLE_MAX];
 
 typedef struct ClXportNodeAddrData
 {
-    ClIocNodeAddressT slot;
+    ClIocNodeAddressT iocAddress;
+    ClCharT *nodeName;
     ClCharT **xports;
     ClUint32T numXport;
     ClBoolT bridge;
@@ -140,14 +141,14 @@ typedef struct ClXportDestNodeLUTData
  */
 static struct hashStruct *gClXportNodeAddrHashTable[CL_XPORT_NODEADDR_TABLE_MAX];
 static CL_LIST_HEAD_DECLARE(gClXportNodeAddrList);
-
+static ClUint32T gClNodeAddrListEntries;
 /*
  * Global hash table to store destination node address
  */
 static struct hashStruct *gClXportDestNodeLUTHashTable[CL_XPORT_NODEADDR_TABLE_MAX];
 static CL_LIST_HEAD_DECLARE(gClXportDestNodeLUTList);
 
-static ClOsalMutexT gXportNodeAddrListmutex;
+static ClOsalMutexT gClXportNodeAddrListMutex;
 
 static void _clSetupDestNodeLUTData(void);
 
@@ -327,9 +328,11 @@ static ClRcT xportMulticastDeregisterFake(ClIocPortT port, ClIocMulticastAddress
 
 static __inline__ void _clXportNodeAddrMapAdd(ClXportNodeAddrDataT *entry)
 {
-    ClUint32T hash = CL_XPORT_NODEADDR_TABLE_HASH(entry->slot);
-    hashAdd(gClXportNodeAddrHashTable, hash, &entry->hash);
+    ClUint32T hashKey = 0;
+    clCksm32bitCompute((ClUint8T*)entry->nodeName, strlen(entry->nodeName), &hashKey);
+    hashAdd(gClXportNodeAddrHashTable, CL_XPORT_NODEADDR_TABLE_HASH(hashKey), &entry->hash);
     clListAddTail(&entry->list, &gClXportNodeAddrList);
+    ++gClNodeAddrListEntries;
 }
 
 static __inline__ void _clXportNodeAddrMapDel(ClXportNodeAddrDataT *entry)
@@ -342,17 +345,21 @@ static __inline__ void _clXportNodeAddrMapDel(ClXportNodeAddrDataT *entry)
     hashDel(&entry->hash);
     clListDel(&entry->list);
     clHeapFree(entry->xports);
+    clHeapFree(entry->nodeName);
     clHeapFree(entry);
+    if(gClNodeAddrListEntries > 0)
+        --gClNodeAddrListEntries;
 }
 
-static __inline__ ClXportNodeAddrDataT *_clXportNodeAddrMapFind(ClIocNodeAddressT slot)
+static __inline__ ClXportNodeAddrDataT *_clXportNodeAddrMapFind(const ClCharT *nodeName)
 {
-    ClUint32T hash = CL_XPORT_NODEADDR_TABLE_HASH(slot);
+    ClUint32T hashKey = 0;
+    clCksm32bitCompute((ClUint8T*)nodeName, strlen(nodeName), &hashKey);
     register struct hashStruct *iter;
-    for(iter = gClXportNodeAddrHashTable[hash]; iter; iter = iter->pNext)
+    for(iter = gClXportNodeAddrHashTable[CL_XPORT_NODEADDR_TABLE_HASH(hashKey)]; iter; iter = iter->pNext)
     {
         ClXportNodeAddrDataT *entry = hashEntry(iter, ClXportNodeAddrDataT, hash);
-        if (entry->slot == slot)
+        if(!strncmp(entry->nodeName, nodeName, strlen(nodeName)))
         {
             return entry;
         }
@@ -386,11 +393,9 @@ static void _clXportNodeAddrMapFree()
  */
 static __inline__ void _clXportDestNodeLUTMapAdd(ClXportDestNodeLUTDataT *entry)
 {
-    clLogInfo(
-               "IOC",
-               "LUT",
-               "Add new entry for LUT, dest node [%#x] bridge [%#x] protocol [%s]", 
-               entry->destIocNodeAddress, entry->bridgeIocNodeAddress, entry->xportType);
+    clLogInfo("IOC", "LUT",
+              "Add new entry for LUT, dest node [%#x] bridge [%#x] protocol [%s]", 
+              entry->destIocNodeAddress, entry->bridgeIocNodeAddress, entry->xportType);
     ClUint32T hash = CL_XPORT_NODEADDR_TABLE_HASH(entry->destIocNodeAddress);
     hashAdd(gClXportDestNodeLUTHashTable, hash, &entry->hash);
     clListAddTail(&entry->list, &gClXportDestNodeLUTList);
@@ -438,13 +443,15 @@ static __inline__ ClXportDestNodeLUTDataT *_clXportDestNodeLUTMapFind(ClIocNodeA
     return NULL;
 }
 
-static void _clXportUpdateNodeConfig(ClIocNodeAddressT node)
+static ClXportNodeAddrDataT *_clXportUpdateNodeConfig(ClIocNodeAddressT iocAddress, const ClCharT *nodeName)
 {
     ClUint32T i = 0;
-
-    ClXportNodeAddrDataT *nodeAddrConfig = clHeapCalloc(1, sizeof(*nodeAddrConfig));
+    ClXportNodeAddrDataT *nodeAddrConfig = _clXportNodeAddrMapFind(nodeName);
+    if(nodeAddrConfig) return nodeAddrConfig;
+    nodeAddrConfig = clHeapCalloc(1, sizeof(*nodeAddrConfig));
     CL_ASSERT(nodeAddrConfig != NULL);
-    nodeAddrConfig->slot = node;
+    nodeAddrConfig->iocAddress = iocAddress;
+    nodeAddrConfig->nodeName = strdup(nodeName);
     nodeAddrConfig->numXport = gClXportDefaultNodeName.numXport;
     nodeAddrConfig->bridge = gClXportDefaultNodeName.bridge;
     nodeAddrConfig->xports = (ClCharT **) clHeapCalloc(nodeAddrConfig->numXport, sizeof(ClCharT *));
@@ -452,8 +459,9 @@ static void _clXportUpdateNodeConfig(ClIocNodeAddressT node)
     for (i = 0; i < nodeAddrConfig->numXport; i++) {
         nodeAddrConfig->xports[i] = clStrdup(gClXportDefaultNodeName.xports[i]);
     }
-    clLogDebug("IOC", "LUT", "Add Ioc node address config [%#x]", node);
+    clLogDebug("IOC", "LUT", "Add configuration for node address [%#x] and node name [%s]", iocAddress, nodeName);
     _clXportNodeAddrMapAdd(nodeAddrConfig);
+    return NULL;
 }
 
 static ClRcT _clTransportGmsTimerInitCallback() {
@@ -501,18 +509,32 @@ static ClRcT _clTransportGmsTimerInitCallback() {
 static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, ClIocNodeAddressT nodeAddr)
 {
     register ClListHeadT *iter;
-    clOsalMutexLock(&gXportNodeAddrListmutex);
+    ClXportNodeAddrDataT *nodeConfigAddrDataT = NULL;
+    ClNodeCacheMemberT member = {0};
+    clOsalMutexLock(&gClXportNodeAddrListMutex);
     switch (notificationId)
     {
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
         {
-            clLogDebug("IOC", "LUT", "Triggering node join for node [0x%x]", nodeAddr);
-            if (!_clXportNodeAddrMapFind(nodeAddr)) {
-                _clXportUpdateNodeConfig(nodeAddr);
-                _clSetupDestNodeLUTData();
-            } else {
-                clLogDebug("IOC", "LUT", "Nothing update for node [%#x]", nodeAddr);
+            if (clNodeCacheMemberGetExtendedSafe(nodeAddr, &member, 5, 200) == CL_OK)
+            {
+                if (!(nodeConfigAddrDataT = _clXportNodeAddrMapFind((const ClCharT *)member.name)))
+                {
+                    clLogDebug("IOC", "LUT", "Triggering node join for node [0x%x]", nodeAddr);
+                    _clXportUpdateNodeConfig(nodeAddr, (const ClCharT *)member.name);
+                    _clSetupDestNodeLUTData();
+                }
+                else if (!nodeConfigAddrDataT->iocAddress)
+                {
+                    clLogDebug("IOC", "LUT", "Update node address for node join for node [0x%x] name [%s]", nodeAddr, member.name);
+                    nodeConfigAddrDataT->iocAddress = nodeAddr;
+                    _clSetupDestNodeLUTData();
+                }
+                else
+                {
+                    clLogDebug("IOC", "LUT", "Nothing update for node [%#x] name [%s]", nodeAddr, member.name);
+                }
             }
             break;
         }
@@ -534,7 +556,7 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
             break;
         }
     }
-    clOsalMutexUnlock(&gXportNodeAddrListmutex);
+    clOsalMutexUnlock(&gClXportNodeAddrListMutex);
     return CL_OK;
 }
 
@@ -553,7 +575,7 @@ static ClRcT _clXportDestNodeLUTUpdateNotification(ClIocNotificationT *notificat
 static ClRcT xportMaxPayloadSizeGetDefault(ClUint32T *size)
 {
     if(size)
-        *size = CL_XPORT_MAX_PAYLOAD_SIZE_DEFAULT - 100;
+        *size = CL_XPORT_MAX_PAYLOAD_SIZE_DEFAULT;
     return CL_OK;
 }
 
@@ -858,24 +880,66 @@ static ClRcT transportBreaker(ClInt32T fd, ClInt32T events, void *cookie)
     return bytes > 0 ? CL_OK : CL_ERR_LIBRARY;
 }
 
-/*
- * Usage to get the list node config in clTransport.xml
- */
-ClRcT clTransportNodeAddrGet(ClUint32T *pNumberOfEntries,
-        ClIocNodeAddressT *pAddrList) {
-    ClUint32T   numEntries = 0;
-    register ClListHeadT *iterNodeAddr;
+ClRcT clTransportBroadcastListGet(const ClCharT *hostXport, ClIocPhysicalAddressT *hostAddr,
+                                  ClUint32T *pNumEntries, ClIocAddressT **ppDestSlots)
+{
+    ClRcT rc = CL_OK;
 
-    CL_LIST_FOR_EACH(iterNodeAddr, &gClXportNodeAddrList)
+    if(gClNodeAddrListEntries <= 2 ) 
+        return CL_ERR_NOT_EXIST; /*not enough slots to proxy */
+
+    if(!hostXport || !hostAddr || !pNumEntries || !ppDestSlots) 
+        return CL_ERR_INVALID_PARAMETER;
+
+    /*
+     * If its a self originator of the broadcast, then ignore it 
+     * for its not a proxy
+     */
+    if(hostAddr->nodeAddress == gIocLocalBladeAddress)
+        return CL_ERR_INVALID_STATE;
+
+    clOsalMutexLock(&gClXportNodeAddrListMutex);
+    ClListHeadT *iter = NULL;
+    ClUint32T numEntries = 0, i;
+    ClIocAddressT *destSlots = clHeapCalloc(gClNodeAddrListEntries, 
+                                            sizeof(*destSlots));
+    CL_ASSERT(destSlots != NULL);
+    CL_LIST_FOR_EACH(iter, &gClXportNodeAddrList)
     {
-        ClXportNodeAddrDataT *entry = CL_LIST_ENTRY(iterNodeAddr, ClXportNodeAddrDataT, list);
-        pAddrList[numEntries++] = entry->slot;
+        ClXportNodeAddrDataT *entry = CL_LIST_ENTRY(iter, ClXportNodeAddrDataT, list);
+        ClUint8T status = CL_IOC_NODE_DOWN;
+
+        if(entry->iocAddress == gIocLocalBladeAddress
+           ||
+           entry->iocAddress == hostAddr->nodeAddress)
+            continue;
+        /*
+         * Find a slot that doesn't support the host xport type.
+         */
+        for(i = 0; i < entry->numXport; ++i)
+        {
+            if(!strcmp(hostXport, entry->xports[i])) 
+                goto skip;
+        }
+        clIocRemoteNodeStatusGet(entry->iocAddress, &status);
+        if(status == CL_IOC_NODE_UP)
+        {
+            destSlots[numEntries].iocPhyAddress.nodeAddress = entry->iocAddress;
+            destSlots[numEntries].iocPhyAddress.portId = hostAddr->portId;
+            ++numEntries;
+        }
+        skip: continue;
     }
-
-    if(numEntries != *pNumberOfEntries)
-        *pNumberOfEntries = numEntries;
-
-    return CL_OK;
+    clOsalMutexUnlock(&gClXportNodeAddrListMutex);
+    if(!numEntries)
+    {
+        clHeapFree(destSlots);
+        destSlots = NULL;
+        rc = CL_ERR_NOT_EXIST;
+    }
+    *ppDestSlots = destSlots;
+    *pNumEntries = numEntries;
+    return rc;
 }
 
 ClRcT clTransportListenerRegister(ClInt32T fd, ClRcT (*dispatchCallback)(ClInt32T fd, ClInt32T events, void *cookie),
@@ -1105,8 +1169,6 @@ static ClBoolT _clNodeCanBeBridge(ClCharT *srcProto, ClCharT *dstProto,
 
     for (j = 0; j < entry->numXport && matches < 2; j++)
     {
-        if(!findTransport(entry->xports[j]))
-            continue;
         if(!strcmp(srcProto, entry->xports[j]))
             ++matches;
         if(!strcmp(dstProto, entry->xports[j]))
@@ -1128,7 +1190,7 @@ static void _clFindNodeBridge(ClCharT *srcProto, ClCharT *dstProto, ClIocNodeAdd
         map = CL_LIST_ENTRY(iterNodeAddr, ClXportNodeAddrDataT, list);
         if (_clNodeCanBeBridge(srcProto, dstProto, map))
         {
-            *iocAddress = map->slot;
+            *iocAddress = map->iocAddress;
             return;
         }
     }
@@ -1149,16 +1211,17 @@ static void _clSetupDestNodeLUTData(void)
         ClXportDestNodeLUTDataT *entryLUTData = clHeapCalloc(1, sizeof(*entryLUTData));
         CL_ASSERT(entryLUTData != NULL);
 
-        // Don't update if it exits
-        if (_clXportDestNodeLUTMapFind(map->slot)) {
+        // Don't update if it exits or node address not defined
+        if (!map->iocAddress || _clXportDestNodeLUTMapFind(map->iocAddress)) {
             clHeapFree(entryLUTData);
             goto loop;
         }
 
         // The order protocol base on the config instead of available protocol
-        if (map->slot == gIocLocalBladeAddress) {
-            entryLUTData->bridgeIocNodeAddress = map->slot;
-            entryLUTData->destIocNodeAddress = map->slot;
+        if (map->iocAddress == gIocLocalBladeAddress)
+        {
+            entryLUTData->bridgeIocNodeAddress = map->iocAddress;
+            entryLUTData->destIocNodeAddress = map->iocAddress;
             entryLUTData->xportType = clStrdup(map->xports[0]);
             _clXportDestNodeLUTMapAdd(entryLUTData);
             goto loop;
@@ -1172,8 +1235,8 @@ static void _clSetupDestNodeLUTData(void)
                 // Source and destination share a protocol
                 if (!strcmp(entry->xportType, map->xports[i]))
                 {
-                    entryLUTData->bridgeIocNodeAddress = map->slot;
-                    entryLUTData->destIocNodeAddress = map->slot;
+                    entryLUTData->bridgeIocNodeAddress = map->iocAddress;
+                    entryLUTData->destIocNodeAddress = map->iocAddress;
                     if(entryLUTData->xportType)
                     {
                         clHeapFree(entryLUTData->xportType);
@@ -1193,9 +1256,9 @@ static void _clSetupDestNodeLUTData(void)
             }
         }
 
-        if (entryLUTData->bridgeIocNodeAddress != entryLUTData->destIocNodeAddress) 
+        if (entryLUTData->bridgeIocNodeAddress != entryLUTData->destIocNodeAddress)
         {
-            entryLUTData->destIocNodeAddress = map->slot;
+            entryLUTData->destIocNodeAddress = map->iocAddress;
             _clXportDestNodeLUTMapAdd(entryLUTData);
         }
 
@@ -1212,35 +1275,44 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
 {
     ClCharT *preferredXport = NULL;
     ClXportDestNodeLUTDataT *destNodeLUTData = NULL;
+    ClXportNodeAddrDataT *nodeConfigAddrDataT = NULL;
+    ClNodeCacheMemberT member = {0};
 
     if(!typeXport) return CL_ERR_INVALID_PARAMETER;
     preferredXport = *typeXport;
 
-    clOsalMutexLock(&gXportNodeAddrListmutex);
+    clOsalMutexLock(&gClXportNodeAddrListMutex);
     if (! (destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress) ) )
     {
-        if(!_clXportNodeAddrMapFind(dstIocAddress))
+        if (clNodeCacheMemberGetExtendedSafe(dstIocAddress, &member, 5, 200) == CL_OK)
         {
-            _clXportUpdateNodeConfig(dstIocAddress);
+            if (!(nodeConfigAddrDataT = _clXportNodeAddrMapFind((const ClCharT*)member.name)))
+            {
+                _clXportUpdateNodeConfig(dstIocAddress, (const ClCharT*)member.name);
+            }
+            else
+            {
+                nodeConfigAddrDataT->iocAddress = dstIocAddress;
+            }
+            _clSetupDestNodeLUTData();
         }
-        _clSetupDestNodeLUTData();
         destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress);
     }
 
     if (!destNodeLUTData) 
     {
-        clOsalMutexUnlock(&gXportNodeAddrListmutex);
+        clOsalMutexUnlock(&gClXportNodeAddrListMutex);
         return CL_ERR_NOT_EXIST;
     }
 
     ((ClIocPhysicalAddressT *)rdstIocAddress)->nodeAddress = destNodeLUTData->bridgeIocNodeAddress;
     *typeXport = destNodeLUTData->xportType;
     /*
-     * If a preferred xport was specified and there is a mismatch for 
+     * If a preferred xport was specified and there is a mismatch for
      * local node destination xport on the preferred, check if we can route
      * through preferred
      */
-    if(preferredXport && 
+    if(preferredXport &&
        dstIocAddress == gIocLocalBladeAddress &&
        strcmp(*typeXport, preferredXport))
     {
@@ -1256,7 +1328,11 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
         else
         {
             ClXportNodeAddrDataT *nodeAddrConfig;
-            nodeAddrConfig = _clXportNodeAddrMapFind(gIocLocalBladeAddress);
+            ClNameT localNodeName = {0};
+            clCpmLocalNodeNameGet(&localNodeName);
+
+            nodeAddrConfig = _clXportNodeAddrMapFind((const ClCharT*) localNodeName.value);
+
             if(!nodeAddrConfig)
             {
                 clLogWarning("LUT", "FIND", "Node entry for this node not found");
@@ -1278,7 +1354,7 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
             }
         }
     }
-    clOsalMutexUnlock(&gXportNodeAddrListmutex);
+    clOsalMutexUnlock(&gClXportNodeAddrListMutex);
 #if 0 /* debug */
     if(dstIocAddress != gIocLocalBladeAddress)
     {
@@ -1302,7 +1378,6 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
 {
 #define MAX_XPORTS_PER_SLOT (8)
     ClParserPtrT protocol = clParserChild(parent, "protocol");
-    ClParserPtrT nodes;
     ClParserPtrT node;
 
     ClCharT xportType[CL_MAX_NAME_LENGTH] = { 0 };
@@ -1321,32 +1396,28 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
 
     const ClCharT *xportDefault = clParserAttr(protocol, "default");
 
-    nodes = clParserChild(protocol, "nodes");
-    if (!nodes)
-    {
-        goto default_xport_node;
-    }
-
-    node = clParserChild(nodes, "node");
+    node = clParserChild(protocol, "node");
     if (!node)
     {
         goto default_xport_node;
     }
 
+    ClNameT localNodeName = {0};
+    clCpmLocalNodeNameGet(&localNodeName);
+
     while (node)
     {
         numxn = 0;
-        const ClCharT *slot = clParserAttr(node, "slot");
+        const ClCharT *name = clParserAttr(node, "name");
         const ClCharT *protocols = clParserAttr(node, "protocol");
         const ClCharT *bridge = clParserAttr(node, "bridge");
 
-        if (!slot || !protocols)
+        if (!name || !protocols)
         {
                goto next;
         }
 
-        ClIocNodeAddressT iocAddress = atoi(slot);
-        clLogDebug("LUT", "MAP", "Adding entry for slot [%d]", iocAddress);
+        clLogDebug("LUT", "MAP", "Adding entry for node [%s]", name);
         // Split the protocol into xports
         xportType[0] = 0;
         strncat(xportType, protocols, sizeof(xportType)-1);
@@ -1357,7 +1428,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
             ClTransportLayerT *xport = findTransport(token);
 
             /* On destination node there maybe existing protocol which not available this blade */
-            if (xport || iocAddress != gIocLocalBladeAddress)
+            if (xport || strncmp(name, localNodeName.value, localNodeName.length))
             {
                 xports[numxn++] = token;
             }
@@ -1366,7 +1437,8 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
 
         ClXportNodeAddrDataT *entry = clHeapCalloc(1, sizeof(*entry));
         CL_ASSERT(entry != NULL);
-        entry->slot = iocAddress;
+        entry->iocAddress = 0;
+        entry->nodeName = strdup(name);
         entry->numXport = numxn;
         if (bridge && numxn > 1 && (!strncmp(bridge, "1", 1) ||
                         !strncasecmp(bridge, "yes", 3) ||
@@ -1434,13 +1506,13 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
     /*
      * Add local node into LUT
      */
-    if (!(nodeAddrConfig = _clXportNodeAddrMapFind(gIocLocalBladeAddress))) 
+    if (!(nodeAddrConfig = _clXportNodeAddrMapFind((const ClCharT*)localNodeName.value)))
     {
         ClListHeadT *iter;
         i = 0;
         nodeAddrConfig = clHeapCalloc(1, sizeof(*nodeAddrConfig));
         CL_ASSERT(nodeAddrConfig != NULL);
-        nodeAddrConfig->slot = gIocLocalBladeAddress;
+        nodeAddrConfig->nodeName = strdup(localNodeName.value);
         nodeAddrConfig->numXport = 0;
         nodeAddrConfig->bridge = CL_FALSE;
         CL_LIST_FOR_EACH(iter, &gClTransportList) 
@@ -1458,6 +1530,8 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
         clLogDebug("IOC", "LUT", "Add Ioc local node address config [%#x]", gIocLocalBladeAddress);
         _clXportNodeAddrMapAdd(nodeAddrConfig);
     }
+    nodeAddrConfig->iocAddress = gIocLocalBladeAddress;
+
     gLocalNodeBridge = nodeAddrConfig->bridge;
     if(gLocalNodeBridge)
     {
@@ -1542,7 +1616,7 @@ ClRcT clTransportLayerInitialize(void)
         addTransport(CL_XPORT_DEFAULT_TYPE, CL_XPORT_DEFAULT_PLUGIN);
     }
 
-    clOsalMutexInit(&gXportNodeAddrListmutex);
+    clOsalMutexInit(&gClXportNodeAddrListMutex);
 
     rc = setDefaultXport(parent);
     if(rc != CL_OK)
@@ -2439,7 +2513,48 @@ ClRcT clTransportSend(const ClCharT *type, ClIocPortT port, ClUint32T priority, 
     return rc;
 }
 
-static ClRcT transportRecv(ClTransportLayerT *xport, ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption, 
+ClRcT clTransportSendProxy(const ClCharT *type, ClIocPortT port, ClUint32T priority, 
+                           ClIocAddressT *address, struct iovec *iov,
+                           ClInt32T iovlen, ClInt32T flags, ClBoolT proxy)
+{
+    ClTransportLayerT *xport = NULL;
+    register ClListHeadT *iter;
+    ClRcT rc = CL_OK;
+    if(!proxy) 
+    {
+        return clTransportSend(type, port, priority, address, iov, iovlen, flags);
+    }
+    CL_LIST_FOR_EACH(iter, &gClTransportList)
+    {
+        xport = CL_LIST_ENTRY(iter, ClTransportLayerT, xportList);
+        if((xport->xportState & XPORT_STATE_INITIALIZED))
+        {
+            if(!type || strcmp(type, xport->xportType))
+            {
+                ClRcT err = xport->xportSend(port, priority, address, iov, iovlen, flags);
+                if(err != CL_OK)
+                {
+                    if(CL_GET_ERROR_CODE(err) == CL_ERR_NOT_EXIST)
+                    {
+                        err = CL_OK;
+                        clLogNotice("XPORT", "SEND", "Port [%d] for transport [%s] "
+                                    "not yet initialized", port, xport->xportType);
+                    }
+                    else
+                    {
+                        clLogError("XPORT", "SEND", 
+                                   "Transport [%s] send failed with [%#x]", xport->xportType, err);
+                    }
+                    rc |= err;
+                }
+            }
+        }
+    }
+    return rc;
+}
+
+static ClRcT transportRecv(ClTransportLayerT *xport, ClIocCommPortHandleT commPort, 
+                           ClIocDispatchOptionT *pRecvOption, 
                            ClUint8T *buffer, ClUint32T bufSize,
                            ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 {
@@ -2569,10 +2684,10 @@ ClRcT clTransportLayerFinalize(void)
     ClTransportLayerT *xport;
     CL_LIST_HEAD_DECLARE(transportBatch);
 
-    clOsalMutexLock(&gXportNodeAddrListmutex);
+    clOsalMutexLock(&gClXportNodeAddrListMutex);
     _clXportNodeAddrMapFree();
     _clXportDestNodeLUTMapFree();
-    clOsalMutexUnlock(&gXportNodeAddrListmutex);
+    clOsalMutexUnlock(&gClXportNodeAddrListMutex);
 
     if (gXportHandleGms)
     {
@@ -2611,10 +2726,14 @@ ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node)
     ClBoolT bridge = CL_FALSE;
     if(node == gIocLocalBladeAddress)
         return gLocalNodeBridge;
-    clOsalMutexLock(&gXportNodeAddrListmutex);
-    nodeAddrConfig = _clXportNodeAddrMapFind(node);
+    clOsalMutexLock(&gClXportNodeAddrListMutex);
+    ClNodeCacheMemberT member = {0};
+    if (clNodeCacheMemberGetExtendedSafe(node, &member, 5, 200) == CL_OK)
+    {
+        nodeAddrConfig = _clXportNodeAddrMapFind((const ClCharT*) member.name);
+    }
     if(nodeAddrConfig)
         bridge = nodeAddrConfig->bridge;
-    clOsalMutexUnlock(&gXportNodeAddrListmutex);
+    clOsalMutexUnlock(&gClXportNodeAddrListMutex);
     return bridge;
 }

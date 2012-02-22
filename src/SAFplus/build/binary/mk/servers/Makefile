@@ -84,22 +84,22 @@ all: $(ASP_SERVERS)
 libs:
 
 $(MODEL_BIN)/safplus_txn: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -lCltxnServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClConfig -lClGroundClient -lClGround -Wl,--end-group
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lCltxnServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClConfig -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_logd: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -lCllogdServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lCllogdServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_alarm: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -lClalarmServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lClalarmServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_ckpt: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -lClckptServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lClckptServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_cor: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -lClcorServer -lClGroundClient -lClGround -Wl,--end-group
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lClcorServer -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_amf: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDFLAGS) $(SYS_LIBS) $(THIRD_PARTY_LIBS) -L$(MODEL_LIB) -L$(ASP_LIBDIR) \
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDFLAGS) $(SYS_LIBS) $(THIRD_PARTY_LIBS) -L$(MODEL_LIB) -L$(ASP_LIBDIR) \
 		-lClConfig -lClAmfClient -lClCorClient  \
 	  	-lClAmsXdr -lClAmsParser -lClAmsMgmt -lClAmsServer -lClamfServer  \
 	  	-lClEo -lClTimer -lClBuffer -lClOsal -lClCnt -lClIoc -lClRmd -lClDbal       \
@@ -107,26 +107,26 @@ $(MODEL_BIN)/safplus_amf: $(MODEL_LIB)/libClConfig.a
 	  	-lClCkpt -lClLogClient -lClFaultClient -lClGms $(CM_LIB) -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_debug: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -lCldebugServer -lClGroundClient -lClGround -Wl,--end-group
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lCldebugServer -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_gms: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -laisexec -ltotem_pg -lClgmsServer \
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -laisexec -ltotem_pg -lClgmsServer \
 	-laisexec -ltotem_pg -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_event: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -lCleventServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lCleventServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_fault: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -lClfaultServer -lClGroundClient -lClGround -Wl,--end-group
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lClfaultServer -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_name: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -lClnameServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lClnameServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
     
 $(MODEL_BIN)/safplus_msg: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group,--no-as-needed $(LDLIBS) -lClmsgServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
+	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lClmsgServer -lClConfig $(DEP_LIBS) $(DEP_LIBS) -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/safplus_cm: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@  -Wl,--start-group,--no-as-needed $(LDLIBS) -lglib-2.0 -lgthread-2.0 -lltdl  \
+	$(CC) -o $@  -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lglib-2.0 -lgthread-2.0 -lltdl  \
 	-lClcmServer $(CM_LIB) -lClGroundClient -lClGround -Wl,--end-group
 
 clean:

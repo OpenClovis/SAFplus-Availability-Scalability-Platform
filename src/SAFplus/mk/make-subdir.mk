@@ -128,6 +128,29 @@ $(SPLINT):
 	$(Q)$(MAKE) -C $(basename $@) splint
 
 ################################################################################
+GCC_VERSION := $(shell gcc -dumpversion)
+GCC_MAJOR_VERSION := $(shell gcc -dumpversion | cut -f1 -d.)
+GCC_MINOR_VERSION := $(shell gcc -dumpversion | cut -f2 -d.)
+GCC_MAJOR_VERSION_MAX_RANGE := $(shell expr 5 \<= $(GCC_MAJOR_VERSION))
+GCC_MAJOR_VERSION_MIN_RANGE := $(shell expr 4 \== $(GCC_MAJOR_VERSION))
+GCC_MINOR_VERSION_MIN_RANGE := $(shell expr 5 \< $(GCC_MINOR_VERSION))
+
+SPECIAL_CFLAGS =
+SPECIAL_LDFLAGS =
+
+ifeq ("$(GCC_MAJOR_VERSION_MIN_RANGE)", "1")
+    ifeq ("$(GCC_MINOR_VERSION_MIN_RANGE)", "1")
+        SPECIAL_CFLAGS = -Wno-error=unused-but-set-variable
+        SPECIAL_LDFLAGS =,--no-as-needed
+    endif
+endif
+
+ifeq ("$(GCC_MAJOR_VERSION_MAX_RANGE)", "1")
+    SPECIAL_CFLAGS = -Wno-error=unused-but-set-variable
+    SPECIAL_LDFLAGS =,--no-as-needed
+endif
+
+export SPECIAL_CFLAGS SPECIAL_LDFLAGS
 
 export CC
 export AR

@@ -432,7 +432,7 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
         goto out;
     }
 
-    rc = clIocDispatchAsync(xportPrivate->port, buffer, bytes);
+    rc = clIocDispatchAsync(gClUdpXportType, xportPrivate->port, buffer, bytes);
 
     out:
     return rc;
@@ -694,7 +694,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         break;
     }
 
-    rc = clIocDispatch(commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
+    rc = clIocDispatch(gClUdpXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
 
     if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
         goto retry;
