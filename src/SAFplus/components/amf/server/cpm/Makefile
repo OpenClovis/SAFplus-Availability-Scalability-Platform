@@ -61,7 +61,7 @@ CPPFLAGS += -DCL_CPM_AMS
 
 # List ASP libraries needed to get this server built (or None):
 
-ASP_LIBS	:=                              \
+ASP_LIBS	:=                          \
                 libClTimer.a                \
                 libClBuffer.a               \
                 libClOsal.a                 \
@@ -83,18 +83,17 @@ ASP_LIBS	:=                              \
                 libClCorClient.a            \
                 libClAmsXdr.a               \
                 libClAmsParser.a            \
-                libClAmsMgmt.a        \
+                libClAmsMgmt.a              \
                 libClAmsServer.a            \
                 libClGms.a                  \
-                libClCm.a                   \
+                $(CL_CM)
 
 # List any third party libs needed to get this server built (or None):
 
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
 THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/utils/
 
-THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml \
-			-L$(THIRD_PARTY_UTILS_PATH) -l3rdpartyutils
+THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml -L$(THIRD_PARTY_UTILS_PATH) -l3rdpartyutils
 
 EXTRA_CPPFLAGS  := -I$(THIRD_PARTY_EZXML_PATH) -I$(THIRD_PARTY_UTILS_PATH)
 
