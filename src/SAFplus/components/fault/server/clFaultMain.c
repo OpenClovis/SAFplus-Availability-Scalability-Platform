@@ -62,6 +62,18 @@
 ClFaultSeqTblT ***faultactiveSeqTbls;
 ClEoExecutionObjT gFmEoObj;
 
+ClUint32T clFaultLocalProbationPeriod=10;
+
+ClFaultSeqTblT  **fmSeqTbls[] =
+{
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+
 /* static */
 static ClNameT sFaultCompName;
 static ClUint32T sFaultCompId;
@@ -168,6 +180,7 @@ VDECL (clFaultServerRepairAction)(
         ClBufferHandleT   outMsgHdl)
 {
     ClRcT          rc = CL_OK;
+#if 0    // Fault manager deprecated
     ClAlarmInfoT  *pAlarmInfo=NULL;
     ClCorClassTypeT type=(ClCorClassTypeT )0;
     ClUint32T      index=0;
@@ -238,7 +251,7 @@ VDECL (clFaultServerRepairAction)(
 
     clHeapFree(pAlarmInfo);
     clHeapFree(faultVersionInfo);
-
+#endif
     return rc;
 }
 

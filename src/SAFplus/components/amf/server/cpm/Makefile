@@ -19,6 +19,7 @@
 ################################################################################
 # Description :
 ################################################################################
+include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 
 # Component name (using all lowercase):
 COMPNAME	:= amf
@@ -27,15 +28,6 @@ SERVER_LIB_NAME := amf
 
 AMF_PATH = $(CLOVIS_ROOT)/safplus/components/amf
 
-# If the chassis manager exists then use it
-USING_CM := $(wildcard $(CLOVIS_ROOT)/../../psp/src/cm)
-ifneq ($(USING_CM),)
-$(warning Using the actual chassis manager from the Platform Support Package located at $(USING_CM))
-CM_CFLAGS := -DCL_USE_CHASSIS_MANAGER -I$(CLOVIS_ROOT)/../../psp/src/cm/include
-else
-$(warning Not using the chassis manager)
-CM_CFLAGS := 
-endif
 CPPFLAGS += $(CM_CFLAGS)
 
 SRC_FILES :=        $(wildcard $(AMF_PATH)/common/cpm/*.c)   \
@@ -95,7 +87,7 @@ ASP_LIBS	:=                              \
                 libClAmsServer.a            \
                 libClGms.a                  \
                 libClCm.a                   \
-                   
+
 # List any third party libs needed to get this server built (or None):
 
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
@@ -115,4 +107,4 @@ EXTRA_CPPFLAGS  := -I$(THIRD_PARTY_EZXML_PATH) -I$(THIRD_PARTY_UTILS_PATH)
 EXE_NAME	= $(ASP_EXE_PREFIX)_$(COMPNAME)
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk

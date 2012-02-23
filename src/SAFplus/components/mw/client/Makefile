@@ -28,6 +28,7 @@
 #
 #
 ################################################################################
+include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 
 # Component name (using all lowercase):
 
@@ -72,16 +73,6 @@ DEP_COMP_LIST	:= ground \
 			 pm     \
              ntf
 
-# If the chassis manager exists then use it
-USING_CM := $(wildcard $(CLOVIS_ROOT)/../../psp/src/cm)
-ifneq ($(USING_CM),)
-$(warning Using the chassis manager from the Platform Support Package located at $(USING_CM))
-CL_CM := -lClCm
-else
-$(warning Not using the chassis manager)
-CL_CM := 
-endif
-
 ALL_ASP_LIBS    :=         -lClTimer -lClBuffer -lClOsal -lClIoc -lClUtils -lClEo -lClMsoClient -lClProv \
 			   -lClLogClient -lClTxnClient -lClTxnAgent -lClSm -lClCnt -lClIdl -lClRmd \
 			   -lClCorClient -lClAmfClient -lClAmsMgmt -lClAmsXdr -lClDebugClient -lClFaultClient \
@@ -110,4 +101,4 @@ LIB_NAMES	= libmw
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

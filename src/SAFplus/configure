@@ -1755,7 +1755,7 @@ fi
 
 # Check whether --with-cm-build or --without-cm-build was specified
 if [ "${with_cm_build+set}" = set ]; then
-    if [ ! -d $CLOVIS_ROOT/../../psp/src/cm ]; then
+    if [ ! -d $CLOVIS_ROOT/../../PSP/src/cm ]; then
         echo ""
         echo "Your OpenClovis SDK does not contain a Platform Support Package (PSP),"
         echo "hence you cannot use the --with-cm-build option to build the OpenClovis"
