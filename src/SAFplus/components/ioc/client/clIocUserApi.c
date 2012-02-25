@@ -552,27 +552,34 @@ error_out:
     return rc;
 }
 
-ClRcT clIocCommPortCreateStatic(ClUint32T portId, ClIocCommPortFlagsT portType,
-                                ClIocCommPortT *pIocCommPort, const ClCharT *xportType)
+static ClRcT iocCommPortCreate(ClUint32T portId, ClIocCommPortFlagsT portType,
+                               ClIocCommPortT *pIocCommPort, const ClCharT *xportType, 
+                               ClBoolT bindFlag)
 {
-    ClRcT rc = CL_OK;
     ClIocPhysicalAddressT myAddress;
+    ClRcT rc = CL_OK;
 
     NULL_CHECK(pIocCommPort);
 
-    if(portId >= (CL_IOC_RESERVED_PORTS + CL_IOC_USER_RESERVED_PORTS)) {
-        clDbgCodeError(CL_IOC_RC(CL_ERR_INVALID_PARAMETER),("Requested commport [%d] is out of range. OpenClovis ASP ports should be between [1-%d].  Application ports between [%d-%d]", portId,CL_IOC_RESERVED_PORTS,CL_IOC_RESERVED_PORTS+1,CL_IOC_RESERVED_PORTS + CL_IOC_USER_RESERVED_PORTS));
+    if(portId >= (CL_IOC_RESERVED_PORTS + CL_IOC_USER_RESERVED_PORTS)) 
+    {
+        clDbgCodeError(CL_IOC_RC(CL_ERR_INVALID_PARAMETER),
+                       ("Requested commport [%d] is out of range."
+                        "OpenClovis ASP ports should be between [1-%d]."
+                        "Application ports between [%d-%d]", 
+                        portId, CL_IOC_RESERVED_PORTS, CL_IOC_RESERVED_PORTS+1,
+                        CL_IOC_RESERVED_PORTS + CL_IOC_USER_RESERVED_PORTS));
         return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
     }
 
     rc = clIocCheckAndGetPortId(&portId);
-    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST)
+    if(rc != CL_OK)
+    {
         goto out;
-
+    }
 
     CL_LIST_HEAD_INIT(&pIocCommPort->logicalAddressList);
     CL_LIST_HEAD_INIT(&pIocCommPort->multicastAddressList);
-
     pIocCommPort->portId = portId;
 
     clOsalMutexLock(&gClIocPortMutex);
@@ -584,13 +591,17 @@ ClRcT clIocCommPortCreateStatic(ClUint32T portId, ClIocCommPortFlagsT portType,
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Port hash add error.rc=0x%x\n",rc));
         goto out_put;
     }
-    
-    rc = clTransportBind(xportType, portId);
-    
-    if(rc != CL_OK)
+
+    if(!bindFlag && clTransportBridgeEnabled(gIocLocalBladeAddress))
     {
-        goto out_del;
+        rc = clTransportListen(xportType, portId);
     }
+    else
+    {
+        rc = clTransportBind(xportType, portId);
+    }
+    if(rc != CL_OK)
+        goto out_del;
 
     myAddress.nodeAddress = gIocLocalBladeAddress;
     myAddress.portId = pIocCommPort->portId;
@@ -607,10 +618,20 @@ ClRcT clIocCommPortCreateStatic(ClUint32T portId, ClIocCommPortFlagsT portType,
 
     out_del:
     clIocPortHashDel(pIocCommPort);
+
     out_put:
     clIocPutPortId(portId);
 
     out:
+    return rc;
+}
+
+ClRcT clIocCommPortCreateStatic(ClUint32T portId, ClIocCommPortFlagsT portType,
+                                ClIocCommPortT *pIocCommPort, const ClCharT *xportType)
+{
+    ClRcT rc = iocCommPortCreate(portId, portType, pIocCommPort, xportType, CL_TRUE);
+    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST)
+        rc = CL_OK;
     return rc;
 }
 
@@ -618,93 +639,42 @@ ClRcT clIocCommPortCreate(ClUint32T portId, ClIocCommPortFlagsT portType,
                           ClIocCommPortHandleT *pIocCommPortHandle)
 {
     ClIocCommPortT *pIocCommPort = NULL;
-    ClIocPhysicalAddressT myAddress;
     ClRcT rc = CL_OK;
 
     NULL_CHECK(pIocCommPortHandle);
 
-    if(portId >= (CL_IOC_RESERVED_PORTS + CL_IOC_USER_RESERVED_PORTS)) {
-        clDbgCodeError(CL_IOC_RC(CL_ERR_INVALID_PARAMETER),("Requested commport [%d] is out of range. OpenClovis ASP ports should be between [1-%d].  Application ports between [%d-%d]", portId,CL_IOC_RESERVED_PORTS,CL_IOC_RESERVED_PORTS+1,CL_IOC_RESERVED_PORTS + CL_IOC_USER_RESERVED_PORTS));
-        return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
-    }
-
     pIocCommPort = clHeapCalloc(1,sizeof(*pIocCommPort));
     CL_ASSERT(pIocCommPort != NULL);
     
-    rc = clIocCheckAndGetPortId(&portId);
+    rc = iocCommPortCreate(portId, portType, pIocCommPort, NULL, CL_FALSE);
     if(rc != CL_OK)
-        goto out;
-
-    CL_LIST_HEAD_INIT(&pIocCommPort->logicalAddressList);
-    CL_LIST_HEAD_INIT(&pIocCommPort->multicastAddressList);
-    pIocCommPort->portId = portId;
-
-    clOsalMutexLock(&gClIocPortMutex);
-    rc = clIocPortHashAdd(pIocCommPort);
-    clOsalMutexUnlock(&gClIocPortMutex);
-
-    if(rc != CL_OK)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Port hash add error.rc=0x%x\n",rc));
-        goto out_put;
-    }
-
-    if(clTransportBridgeEnabled(gIocLocalBladeAddress))
-    {
-        rc = clTransportListen(NULL, portId);
-    }
-    else
-    {
-        rc = clTransportBind(NULL, portId);
-    }
-    if(rc != CL_OK)
-        goto out_del;
-
-    myAddress.nodeAddress = gIocLocalBladeAddress;
-    myAddress.portId = pIocCommPort->portId;
-    clIocCompStatusSet(myAddress, CL_IOC_NODE_UP);
+        goto out_free;
 
     *pIocCommPortHandle = (ClIocCommPortHandleT)pIocCommPort;
+    return rc;
 
-    rc = clOsalMutexInit(&pIocCommPort->unblockMutex);
-    CL_ASSERT(rc == CL_OK);
-    rc = clOsalCondInit(&pIocCommPort->unblockCond);
-    CL_ASSERT(rc == CL_OK);
-    rc = clOsalCondInit(&pIocCommPort->recvUnblockCond);
-    CL_ASSERT(rc == CL_OK);
-
-    goto out;
-
-    out_del:
-    clIocPortHashDel(pIocCommPort);
-    out_put:
-    clIocPutPortId(portId);
+    out_free:
     clHeapFree(pIocCommPort);
-
-    out:
+    *pIocCommPortHandle = 0;
     return rc;
 }
 
-ClRcT clIocCommPortDelete(ClIocCommPortHandleT portId)
+static ClRcT iocCommPortDelete(ClIocCommPortT *pIocCommPort, const ClCharT *xportType,
+                               ClBoolT bindFlag)
 {
-    ClIocCommPortT *pIocCommPort  = (ClIocCommPortT*)portId;
     register ClListHeadT *pTemp = NULL;
     ClListHeadT *pHead= NULL;
     ClListHeadT *pNext = NULL;
     ClIocCompT *pComp = NULL;
 
-    NULL_CHECK(pIocCommPort);
-
-    clIocCommPortReceiverUnblock(portId);
-
     /*This would withdraw all the binds*/
-    if(clTransportBridgeEnabled(gIocLocalBladeAddress))
+    if(!bindFlag && clTransportBridgeEnabled(gIocLocalBladeAddress))
     {
-        clTransportListenStop(NULL, pIocCommPort->portId);
+        clTransportListenStop(xportType, pIocCommPort->portId);
     }
     else
     {
-        clTransportBindClose(NULL, pIocCommPort->portId);
+        clTransportBindClose(xportType, pIocCommPort->portId);
     }
     clIocPutPortId(pIocCommPort->portId);
 
@@ -760,8 +730,29 @@ ClRcT clIocCommPortDelete(ClIocCommPortHandleT portId)
     clIocPortHashDel(pIocCommPort);
     clOsalMutexUnlock(&gClIocCompMutex);
     clOsalMutexUnlock(&gClIocPortMutex);
-    clHeapFree(pIocCommPort);
     return CL_OK;
+}
+
+ClRcT clIocCommPortDeleteStatic(ClIocCommPortT *pIocCommPort, const ClCharT *xportType)
+{
+    ClRcT rc = CL_OK;
+    NULL_CHECK(pIocCommPort);
+    rc = iocCommPortDelete(pIocCommPort, xportType, CL_TRUE);
+    clOsalMutexDestroy(&pIocCommPort->unblockMutex);
+    clOsalCondDestroy(&pIocCommPort->unblockCond);
+    clOsalCondDestroy(&pIocCommPort->recvUnblockCond);
+    return rc;
+}
+
+ClRcT clIocCommPortDelete(ClIocCommPortHandleT portId)
+{
+    ClIocCommPortT *pIocCommPort  = (ClIocCommPortT*)portId;
+    ClRcT rc = CL_OK;
+    NULL_CHECK(pIocCommPort);
+    clIocCommPortReceiverUnblock(portId);
+    rc = iocCommPortDelete(pIocCommPort, NULL, CL_FALSE);
+    clHeapFree(pIocCommPort);
+    return rc;
 }
 
 ClRcT clIocCommPortFdGet(ClIocCommPortHandleT portHandle, ClInt32T *pFd)

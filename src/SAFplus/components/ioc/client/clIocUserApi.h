@@ -102,8 +102,12 @@ __iocUserFragmentReceive(const ClCharT *xportType,
                          ClUint32T length,
                          ClBufferHandleT msg,
                          ClBoolT sync);
+
 extern ClRcT 
 clIocCommPortCreateStatic(ClUint32T portId, ClIocCommPortFlagsT portType,
                           ClIocCommPortT *pIocCommPort, const ClCharT *xportType);
+
+extern ClRcT 
+clIocCommPortDeleteStatic(ClIocCommPortT *pIocCommPort, const ClCharT *xportType);
 
 #endif

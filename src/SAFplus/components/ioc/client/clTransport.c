@@ -1309,6 +1309,14 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
     if (!destNodeLUTData) 
     {
         clOsalMutexUnlock(&gClXportNodeAddrListMutex);
+        if(preferredXport)
+        {
+            *typeXport = preferredXport;
+            clLogNotice("XPORT", "SEL", 
+                        "Falling back to using preferred transport [%s] for destination [%d]",
+                        preferredXport, dstIocAddress);
+            return CL_OK;
+        }
         return CL_ERR_NOT_EXIST;
     }
 
