@@ -1294,7 +1294,7 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
     clOsalMutexLock(&gClXportNodeAddrListMutex);
     if (! (destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress) ) )
     {
-        if (clNodeCacheMemberGetExtendedSafe(dstIocAddress, &member, 5, 200) == CL_OK)
+        if (clNodeCacheMemberGetFast(dstIocAddress, &member) == CL_OK)
         {
             if ((nodeConfigAddrData = _clXportUpdateNodeConfig(dstIocAddress,
                                                                (const ClCharT*)member.name)))
@@ -2743,7 +2743,7 @@ ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node)
         return gLocalNodeBridge;
     clOsalMutexLock(&gClXportNodeAddrListMutex);
     ClNodeCacheMemberT member = {0};
-    if (clNodeCacheMemberGetExtendedSafe(node, &member, 5, 200) == CL_OK)
+    if (clNodeCacheMemberGetFast(node, &member) == CL_OK)
     {
         nodeAddrConfig = _clXportNodeAddrMapFind((const ClCharT*) member.name);
     }
