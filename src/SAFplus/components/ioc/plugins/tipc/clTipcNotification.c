@@ -335,7 +335,8 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
             }         
         }
         break;
-    case 1:
+
+    case 2:
         {
             /* Packet is received from the other node amfs/NODE-REPS*/
             rc = clIocNotificationPacketRecv((ClIocCommPortHandleT)&dummyCommPort,
