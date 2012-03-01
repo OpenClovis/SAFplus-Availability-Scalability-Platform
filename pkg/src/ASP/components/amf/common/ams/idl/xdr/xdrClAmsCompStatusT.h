@@ -48,10 +48,10 @@ extern "C" {
 #include "clIocApi.h"
 #include "clAmsNotifications.h"
 #include "clAmsMgmtServerApi.h"
-#include "xdrClAmsPresenceStateT.h"
-#include "xdrClAmsRecoveryT.h"
-#include "xdrClAmsEntityStatusT.h"
 #include "xdrClAmsReadinessStateT.h"
+#include "xdrClAmsPresenceStateT.h"
+#include "xdrClAmsEntityStatusT.h"
+#include "xdrClAmsRecoveryT.h"
 #include "xdrClAmsOperStateT.h"
 
 struct _ClAmsCompStatusT_4_0_0;
@@ -81,6 +81,32 @@ clXdrUnmarshallPtr((msg),(pointer), sizeof(ClAmsCompStatusT_4_0_0),multiplicity,
 
 
 typedef ClAmsCompStatusT ClAmsCompStatusT_4_0_0;
+
+
+struct _ClAmsCompStatusT_5_1_0;
+
+
+ClRcT  clXdrMarshallClAmsCompStatusT_5_1_0(void *,ClBufferHandleT , ClUint32T);
+
+ClRcT  clXdrUnmarshallClAmsCompStatusT_5_1_0(ClBufferHandleT, void *);
+
+#define clXdrMarshallArrayClAmsCompStatusT_5_1_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallArray((pointer), sizeof(ClAmsCompStatusT_5_1_0), (multiplicity), clXdrMarshallClAmsCompStatusT_5_1_0, (msg), (isDelete))
+
+#define clXdrUnmarshallArrayClAmsCompStatusT_5_1_0(msg,pointer, multiplicity) \
+clXdrUnmarshallArray((msg),(pointer), sizeof(ClAmsCompStatusT_5_1_0), (multiplicity), clXdrUnmarshallClAmsCompStatusT_5_1_0)
+
+#define clXdrMarshallPointerClAmsCompStatusT_5_1_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPointer((pointer), sizeof(ClAmsCompStatusT_5_1_0), (multiplicity), clXdrMarshallClAmsCompStatusT_5_1_0, (msg), (isDelete))
+
+#define clXdrUnmarshallPointerClAmsCompStatusT_5_1_0(msg,pointer) \
+clXdrUnmarshallPointer((msg),(pointer), sizeof(ClAmsCompStatusT_5_1_0), clXdrUnmarshallClAmsCompStatusT_5_1_0)
+
+#define clXdrMarshallPtrClAmsCompStatusT_5_1_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPtr((pointer), sizeof(ClAmsCompStatusT_5_1_0), (multiplicity), clXdrMarshallClAmsCompStatusT_5_1_0, (msg), (isDelete))
+
+#define clXdrUnmarshallPtrClAmsCompStatusT_5_1_0(msg,pointer,multiplicity) \
+clXdrUnmarshallPtr((msg),(pointer), sizeof(ClAmsCompStatusT_5_1_0),multiplicity, clXdrUnmarshallClAmsCompStatusT_5_1_0)
 
 
 

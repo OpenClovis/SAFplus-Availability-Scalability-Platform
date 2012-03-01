@@ -67,3 +67,36 @@ ClRcT clXdrMarshallClAmsCompT_4_0_0(void* pGenVar, ClBufferHandleT msg, ClUint32
 }
 
 
+ClRcT clXdrMarshallClAmsCompT_5_1_0(void* pGenVar, ClBufferHandleT msg, ClUint32T isDelete)
+{
+    ClAmsCompT_5_1_0* pVar = (ClAmsCompT_5_1_0*)pGenVar;
+    ClRcT rc         = CL_OK;
+    ClUint32T length = 0;    
+
+    if ((void*)0 == pVar)
+    {
+        clXdrMarshallClUint32T(&length, msg, 0);
+    }
+    else
+    {
+        length = 1;
+        clXdrMarshallClUint32T(&length, msg, 0);
+
+    rc = clXdrMarshallClAmsCompConfigT_4_0_0(&(pVar->config),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClAmsCompStatusT_5_1_0(&(pVar->status),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    }
+
+    return rc;
+}
+
+

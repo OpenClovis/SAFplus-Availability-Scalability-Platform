@@ -145,3 +145,120 @@ ClRcT clXdrMarshallClAmsCompStatusT_4_0_0(void* pGenVar, ClBufferHandleT msg, Cl
 }
 
 
+ClRcT clXdrMarshallClAmsCompStatusT_5_1_0(void* pGenVar, ClBufferHandleT msg, ClUint32T isDelete)
+{
+    ClAmsCompStatusT_5_1_0* pVar = (ClAmsCompStatusT_5_1_0*)pGenVar;
+    ClRcT rc         = CL_OK;
+    ClUint32T length = 0;    
+
+    if ((void*)0 == pVar)
+    {
+        clXdrMarshallClUint32T(&length, msg, 0);
+    }
+    else
+    {
+        length = 1;
+        clXdrMarshallClUint32T(&length, msg, 0);
+
+    rc = clXdrMarshallClAmsEntityStatusT_4_0_0(&(pVar->entity),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClAmsPresenceStateT_4_0_0(&(pVar->presenceState),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClAmsOperStateT_4_0_0(&(pVar->operState),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClAmsReadinessStateT_4_0_0(&(pVar->readinessState),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClAmsRecoveryT_4_0_0(&(pVar->recovery),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->numActiveCSIs),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->numStandbyCSIs),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->numQuiescingCSIs),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->numQuiescedCSIs),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->restartCount),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->instantiateCount),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->instantiateDelayCount),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->amStartCount),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->amStopCount),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint64T(&(pVar->instantiateCookie),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->failoverCount),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    }
+
+    return rc;
+}
+
+

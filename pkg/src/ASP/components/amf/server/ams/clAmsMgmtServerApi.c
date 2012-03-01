@@ -520,11 +520,12 @@ exitfn:
  *
  */
 
-ClRcT
-VDECL_VER(_clAmsMgmtEntitySetConfig, 4, 0, 0)( 
-        CL_IN  ClEoDataT  data,
-        CL_IN  ClBufferHandleT  in,
-        CL_OUT ClBufferHandleT  out)
+static ClRcT
+__clAmsMgmtEntitySetConfig(
+                           CL_IN  ClEoDataT  data,
+                           CL_IN  ClBufferHandleT  in,
+                           CL_OUT ClBufferHandleT  out,
+                           ClUint32T versionCode)
 {
 
     AMS_FUNC_ENTER (("\n"));
@@ -576,14 +577,37 @@ VDECL_VER(_clAmsMgmtEntitySetConfig, 4, 0, 0)(
 
         case CL_AMS_ENTITY_TYPE_SG:
             { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                /*
-                 * Disable the feature/
-                */
-                ((ClAmsSGConfigT*)entityConfig)->maxFailovers = 0;
-                ((ClAmsSGConfigT*)entityConfig)->failoverDuration = gClAmsSGDefaultConfig.failoverDuration;
-                ((ClAmsSGConfigT*)entityConfig)->beta = 0;
+                switch(versionCode)
+                {
+                case CL_VERSION_CODE(4, 0, 0):
+                    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 0, 0)(
+                                                                                         in, 
+                                                                                         (ClPtrT)entityConfig) );
+                    /*
+                     * Disable the feature/
+                     */
+                    ((ClAmsSGConfigT*)entityConfig)->maxFailovers = 0;
+                    ((ClAmsSGConfigT*)entityConfig)->failoverDuration = 
+                        gClAmsSGDefaultConfig.failoverDuration;
+                    ((ClAmsSGConfigT*)entityConfig)->beta = 0;
+                break;
+
+                case CL_VERSION_CODE(4, 1, 0):
+                    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 1, 0)(
+                                                                                         in, 
+                                                                                         (ClPtrT)entityConfig) );
+                    /*
+                     * Disable the feature/
+                     */
+                    ((ClAmsSGConfigT*)entityConfig)->beta = 0;
+                    break;
+ 
+               default:
+                    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 5, 0, 0)(
+                                                                                         in, 
+                                                                                         (ClPtrT)entityConfig) );
+                    break;
+                }
                 break;
             }
 
@@ -653,6 +677,16 @@ exitfn:
 
     clAmsFreeMemory (req.entityConfig);
     return rc;
+}
+
+ClRcT
+VDECL_VER(_clAmsMgmtEntitySetConfig, 4, 0, 0)( 
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT ClBufferHandleT  out)
+{
+
+    return __clAmsMgmtEntitySetConfig(data, in, out, CL_VERSION_CODE(4, 0, 0));
 }
 
 ClRcT
@@ -662,127 +696,7 @@ VDECL_VER(_clAmsMgmtEntitySetConfig, 4, 1, 0)(
         CL_OUT ClBufferHandleT  out)
 {
 
-    AMS_FUNC_ENTER (("\n"));
-
-    ClAmsEntityTypeT entityType = CL_AMS_ENTITY_TYPE_ENTITY;
-    ClAmsEntityConfigT *entityConfig = NULL;
-    ClRcT  rc = CL_OK;
-    clAmsMgmtEntitySetConfigRequestT  req = { 0 };
-    ClHandleT handle = CL_HANDLE_INVALID_VALUE;
-
-    req.entityConfig = clHeapCalloc(1, sizeof(ClAmsEntityConfigT));
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (req.entityConfig);
-
-    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallclAmsMgmtEntitySetConfigRequestT, 4, 0, 0)(
-                in, (ClPtrT)&req) );
-
-    entityType = req.entityConfig->type;
-
-    if(entityType > CL_AMS_ENTITY_TYPE_MAX)
-    {
-        AMS_LOG( CL_DEBUG_ERROR, ("EntitySetConfig: invalid entity type "\
-                                  "[%d]\n", entityType));
-        goto exitfn;
-    }
-
-    handle = req.handle;
-
-#ifdef HANDLE_VALIDATE
-
-    AMS_CHECK_RC_ERROR( clHandleValidateHandle(handle_database, handle) );
-
-#endif
-
-    entityConfig = clHeapAllocate( gClAmsEntityParams[entityType].configSize );
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (entityConfig);
-
-    clAmsFreeMemory (req.entityConfig);
-
-    switch (entityType)
-    {
-        case CL_AMS_ENTITY_TYPE_NODE:
-            { 
-                AMS_CHECK_RC_ERROR( VDECL_VER(clXdrUnmarshallClAmsNodeConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SG:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 1, 0)(
-                            in, (ClPtrT)entityConfig) );
-                ((ClAmsSGConfigT*)entityConfig)->beta = 0;
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SU:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSUConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SI:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSIConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_COMP:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_CSI:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSIConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        default:
-            { 
-                rc = CL_AMS_ERR_INVALID_ENTITY;
-                goto exitfn;
-            }
-    
-    }
- 
-    req.entityConfig = entityConfig;
-
-    AMS_CALL ( clOsalMutexLock(gAms.mutex) );
-
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-            clAmsEntitySetConfig(
-                &gAms.db.entityDb[entityType],
-                (ClAmsEntityT*)req.entityConfig,
-                req.entityConfig),
-            gAms.mutex );
-
-    AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
-
-    /*  
-     * Call the PE based on the PE Instantiate flag in the request 
-     */
-
-#ifdef DYNAMIC_CONFIG 
-
-    if ( req.peInstantiateFlag )
-    {
-        AMS_CALL( clAmsPeEntityAdd( (ClAmsEntityT*)req.entityConfig ) );
-    }
-
-#endif
-
-exitfn:
-
-    clAmsFreeMemory (req.entityConfig);
-    return rc;
+    return __clAmsMgmtEntitySetConfig(data, in, out, CL_VERSION_CODE(4, 1, 0));
 }
 
 ClRcT
@@ -792,126 +706,7 @@ VDECL_VER(_clAmsMgmtEntitySetConfig, 5, 0, 0)(
         CL_OUT ClBufferHandleT  out)
 {
 
-    AMS_FUNC_ENTER (("\n"));
-
-    ClAmsEntityTypeT entityType = CL_AMS_ENTITY_TYPE_ENTITY;
-    ClAmsEntityConfigT *entityConfig = NULL;
-    ClRcT  rc = CL_OK;
-    clAmsMgmtEntitySetConfigRequestT  req = { 0 };
-    ClHandleT handle = CL_HANDLE_INVALID_VALUE;
-
-    req.entityConfig = clHeapCalloc(1, sizeof(ClAmsEntityConfigT));
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (req.entityConfig);
-
-    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallclAmsMgmtEntitySetConfigRequestT, 4, 0, 0)(
-                in, (ClPtrT)&req) );
-
-    entityType = req.entityConfig->type;
-
-    if(entityType > CL_AMS_ENTITY_TYPE_MAX)
-    {
-        AMS_LOG( CL_DEBUG_ERROR, ("EntitySetConfig: invalid entity type "\
-                                  "[%d]\n", entityType));
-        goto exitfn;
-    }
-
-    handle = req.handle;
-
-#ifdef HANDLE_VALIDATE
-
-    AMS_CHECK_RC_ERROR( clHandleValidateHandle(handle_database, handle) );
-
-#endif
-
-    entityConfig = clHeapAllocate( gClAmsEntityParams[entityType].configSize );
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (entityConfig);
-
-    clAmsFreeMemory (req.entityConfig);
-
-    switch (entityType)
-    {
-        case CL_AMS_ENTITY_TYPE_NODE:
-            { 
-                AMS_CHECK_RC_ERROR( VDECL_VER(clXdrUnmarshallClAmsNodeConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SG:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 5, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SU:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSUConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SI:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSIConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_COMP:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_CSI:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSIConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        default:
-            { 
-                rc = CL_AMS_ERR_INVALID_ENTITY;
-                goto exitfn;
-            }
-    
-    }
- 
-    req.entityConfig = entityConfig;
-
-    AMS_CALL ( clOsalMutexLock(gAms.mutex) );
-
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-            clAmsEntitySetConfig(
-                &gAms.db.entityDb[entityType],
-                (ClAmsEntityT*)req.entityConfig,
-                req.entityConfig),
-            gAms.mutex );
-
-    AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
-
-    /*  
-     * Call the PE based on the PE Instantiate flag in the request 
-     */
-
-#ifdef DYNAMIC_CONFIG 
-
-    if ( req.peInstantiateFlag )
-    {
-        AMS_CALL( clAmsPeEntityAdd( (ClAmsEntityT*)req.entityConfig ) );
-    }
-
-#endif
-
-exitfn:
-
-    clAmsFreeMemory (req.entityConfig);
-    return rc;
+    return __clAmsMgmtEntitySetConfig(data, in, out, CL_VERSION_CODE(5, 0, 0));
 }
 
 /*
@@ -2487,7 +2282,6 @@ exitfn:
     return rc;
 }
 
-
 /*
  *
  * _clAmsMgmtCCBEntitySetConfig
@@ -2497,11 +2291,12 @@ exitfn:
  *
  */
 
-ClRcT 
-VDECL_VER(_clAmsMgmtCCBEntitySetConfig, 4, 0, 0)(
-        CL_IN  ClEoDataT  data,
-        CL_IN  ClBufferHandleT  in,
-        CL_OUT  ClBufferHandleT  out )
+static ClRcT 
+__clAmsMgmtCCBEntitySetConfig(
+                              CL_IN  ClEoDataT  data,
+                              CL_IN  ClBufferHandleT  in,
+                              CL_OUT  ClBufferHandleT  out,
+                              ClUint32T versionCode)
 
 {
     AMS_FUNC_ENTER (("\n"));
@@ -2553,11 +2348,31 @@ VDECL_VER(_clAmsMgmtCCBEntitySetConfig, 4, 0, 0)(
 
         case CL_AMS_ENTITY_TYPE_SG:
             { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                ((ClAmsSGConfigT*)entityConfig)->maxFailovers = 0;
-                ((ClAmsSGConfigT*)entityConfig)->failoverDuration = gClAmsSGDefaultConfig.failoverDuration;
-                ((ClAmsSGConfigT*)entityConfig)->beta = 0;
+                switch(versionCode)
+                {
+                case CL_VERSION_CODE(4, 0, 0):
+                    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 0, 0)(
+                                                                                         in, 
+                                                                                         (ClPtrT)entityConfig) );
+                    ((ClAmsSGConfigT*)entityConfig)->maxFailovers = 0;
+                    ((ClAmsSGConfigT*)entityConfig)->failoverDuration = 
+                        gClAmsSGDefaultConfig.failoverDuration;
+                    ((ClAmsSGConfigT*)entityConfig)->beta = 0;
+                    break;
+
+                case CL_VERSION_CODE(4, 1, 0):
+                    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 1, 0)(
+                                                                                         in, 
+                                                                                         (ClPtrT)entityConfig) );
+                    ((ClAmsSGConfigT*)entityConfig)->beta = 0;
+                    break;
+
+                default:
+                    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 5, 0, 0)(
+                                                                                         in, 
+                                                                                         (ClPtrT)entityConfig) );
+                    break;
+                }
                 break;
             }
 
@@ -2638,6 +2453,16 @@ exitfn:
     clAmsFreeMemory (opData);
 
     return rc;
+}
+
+ClRcT 
+VDECL_VER(_clAmsMgmtCCBEntitySetConfig, 4, 0, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out )
+
+{
+    return __clAmsMgmtCCBEntitySetConfig(data, in, out, CL_VERSION_CODE(4, 0, 0));
 }
 
 ClRcT 
@@ -2647,278 +2472,17 @@ VDECL_VER(_clAmsMgmtCCBEntitySetConfig, 4, 1, 0)(
         CL_OUT  ClBufferHandleT  out )
 
 {
-    AMS_FUNC_ENTER (("\n"));
-
-    clAmsMgmtCCBEntitySetConfigRequestT  *req = NULL;
-    ClAmsEntityConfigT  *entityConfig = NULL;
-    ClAmsEntityTypeT  entityType = {0};
-    clAmsMgmtCCBOperationDataT  *opData = NULL;
-    ClAmsMgmtCCBHandleT  handle;
-    clAmsMgmtCCBT  *ccbInstance = NULL;
-    ClRcT  rc = CL_OK;
-
-    req = clHeapAllocate (sizeof(clAmsMgmtCCBEntitySetConfigRequestT));
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (req);
-
-    req->entityConfig = NULL;
-    req->entityConfig = clHeapAllocate(sizeof(ClAmsEntityConfigT));
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (req->entityConfig);
-
-    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBEntitySetConfigRequestT, 4, 0, 0)(
-                in, (ClPtrT)req) );
-
-
-    entityType = req->entityConfig->type;
-
-    if(entityType > CL_AMS_ENTITY_TYPE_MAX)
-    {
-        AMS_LOG(CL_DEBUG_ERROR, ("CCBEntitySetConfig - invalid entity type "\
-                                 " [ %d ]\n", entityType));
-        goto exitfn;
-    }
-
-    entityConfig = clHeapAllocate( gClAmsEntityParams[entityType].configSize );
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (entityConfig);
-
-    clAmsFreeMemory (req->entityConfig);
-
-    switch (entityType)
-    {
-        case CL_AMS_ENTITY_TYPE_NODE:
-            { 
-                AMS_CHECK_RC_ERROR( VDECL_VER(clXdrUnmarshallClAmsNodeConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SG:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 1, 0)(
-                            in, (ClPtrT)entityConfig) );
-                ((ClAmsSGConfigT*)entityConfig)->beta = 0;
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SU:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSUConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SI:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSIConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_COMP:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_CSI:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSIConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        default:
-            { 
-                rc = CL_AMS_ERR_INVALID_ENTITY;
-                goto exitfn;
-            }
-    
-    }
- 
-    req->entityConfig = entityConfig;
-    handle = req->handle;
-    ccbInstance = NULL;
-    if(entityConfig->name.length == strlen(entityConfig->name.value))
-        ++entityConfig->name.length;
-
-    AMS_CHECK_RC_ERROR( clAmsCCBValidateOperation( (ClPtrT)req,
-                CL_AMS_MGMT_CCB_OPERATION_SET_CONFIG ));
-
-    AMS_CHECK_RC_ERROR(clHandleCheckout(
-                gAms.ccbHandleDB,handle,(ClPtrT)&ccbInstance)); 
-
-    AMS_CHECKPTR_AND_EXIT (!ccbInstance);
-
-    opData= clHeapAllocate (sizeof(clAmsMgmtCCBOperationDataT));  
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (opData);
-
-    opData->opId = CL_AMS_MGMT_CCB_OPERATION_SET_CONFIG;
-    opData->payload = (ClPtrT)req;
-    
-    AMS_CALL( clOsalMutexLock(gAms.mutex) );
-
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX ( clAmsCCBAddOperation(
-                ccbInstance->ccbOpListHandle, opData, 0), gAms.mutex );
-
-    AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
-
-    return CL_OK;
-
-exitfn:
-
-    if ( req && req->entityConfig )
-    {
-        clAmsFreeMemory (req->entityConfig);
-    }
-
-    clAmsFreeMemory (req);
-    clAmsFreeMemory (opData);
-
-    return rc;
+    return __clAmsMgmtCCBEntitySetConfig(data, in, out, CL_VERSION_CODE(4, 1, 0));
 }
 
 ClRcT 
 VDECL_VER(_clAmsMgmtCCBEntitySetConfig, 5, 0, 0)(
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in,
-        CL_OUT ClBufferHandleT  out )
+        CL_OUT  ClBufferHandleT  out )
 
 {
-    AMS_FUNC_ENTER (("\n"));
-
-    clAmsMgmtCCBEntitySetConfigRequestT  *req = NULL;
-    ClAmsEntityConfigT  *entityConfig = NULL;
-    ClAmsEntityTypeT  entityType = {0};
-    clAmsMgmtCCBOperationDataT  *opData = NULL;
-    ClAmsMgmtCCBHandleT  handle;
-    clAmsMgmtCCBT  *ccbInstance = NULL;
-    ClRcT  rc = CL_OK;
-
-    req = clHeapAllocate (sizeof(clAmsMgmtCCBEntitySetConfigRequestT));
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (req);
-
-    req->entityConfig = NULL;
-    req->entityConfig = clHeapAllocate(sizeof(ClAmsEntityConfigT));
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (req->entityConfig);
-
-    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBEntitySetConfigRequestT, 4, 0, 0)(
-                in, (ClPtrT)req) );
-
-
-    entityType = req->entityConfig->type;
-
-    if(entityType > CL_AMS_ENTITY_TYPE_MAX)
-    {
-        AMS_LOG(CL_DEBUG_ERROR, ("CCBEntitySetConfig - invalid entity type "\
-                                 " [ %d ]\n", entityType));
-        goto exitfn;
-    }
-
-    entityConfig = clHeapAllocate( gClAmsEntityParams[entityType].configSize );
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (entityConfig);
-
-    clAmsFreeMemory (req->entityConfig);
-
-    switch (entityType)
-    {
-        case CL_AMS_ENTITY_TYPE_NODE:
-            { 
-                AMS_CHECK_RC_ERROR( VDECL_VER(clXdrUnmarshallClAmsNodeConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SG:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 5, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SU:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSUConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SI:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSIConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_COMP:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_CSI:
-            { 
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSIConfigT, 4, 0, 0)(
-                            in, (ClPtrT)entityConfig) );
-                break;
-            }
-
-        default:
-            { 
-                rc = CL_AMS_ERR_INVALID_ENTITY;
-                goto exitfn;
-            }
-    
-    }
- 
-    req->entityConfig = entityConfig;
-    handle = req->handle;
-    ccbInstance = NULL;
-    if(entityConfig->name.length == strlen(entityConfig->name.value))
-        ++entityConfig->name.length;
-
-    AMS_CHECK_RC_ERROR( clAmsCCBValidateOperation( (ClPtrT)req,
-                CL_AMS_MGMT_CCB_OPERATION_SET_CONFIG ));
-
-    AMS_CHECK_RC_ERROR(clHandleCheckout(
-                gAms.ccbHandleDB,handle,(ClPtrT)&ccbInstance)); 
-
-    AMS_CHECKPTR_AND_EXIT (!ccbInstance);
-
-    opData= clHeapAllocate (sizeof(clAmsMgmtCCBOperationDataT));  
-
-    AMS_CHECK_NO_MEMORY_AND_EXIT (opData);
-
-    opData->opId = CL_AMS_MGMT_CCB_OPERATION_SET_CONFIG;
-    opData->payload = (ClPtrT)req;
-    
-    AMS_CALL( clOsalMutexLock(gAms.mutex) );
-
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX ( clAmsCCBAddOperation(
-                ccbInstance->ccbOpListHandle, opData, 0), gAms.mutex );
-
-    AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
-
-    return CL_OK;
-
-exitfn:
-
-    if ( req && req->entityConfig )
-    {
-        clAmsFreeMemory (req->entityConfig);
-    }
-
-    clAmsFreeMemory (req);
-    clAmsFreeMemory (opData);
-
-    return rc;
+    return __clAmsMgmtCCBEntitySetConfig(data, in, out, CL_VERSION_CODE(5, 0, 0));
 }
 
 /*
@@ -3853,11 +3417,12 @@ VDECL(_clAmsMgmtCCBDeleteCSICSIDependency)(
  *
  */
 
-ClRcT 
-VDECL_VER(_clAmsMgmtEntityGet, 4, 0, 0)(
-        CL_IN  ClEoDataT  data,
-        CL_IN  ClBufferHandleT  in,
-        CL_OUT  ClBufferHandleT  out )
+static ClRcT 
+__clAmsMgmtEntityGet(
+                     CL_IN  ClEoDataT  data,
+                     CL_IN  ClBufferHandleT  in,
+                     CL_OUT  ClBufferHandleT  out,
+                     ClUint32T versionCode)
 
 {
 
@@ -3896,7 +3461,6 @@ VDECL_VER(_clAmsMgmtEntityGet, 4, 0, 0)(
 
         case CL_AMS_ENTITY_TYPE_NODE:
             {
-
                 AMS_CALL( VDECL_VER(clXdrMarshallClAmsNodeT, 4, 0, 0)( entityRef.ptr, out, 0));
                 break;
 
@@ -3904,10 +3468,20 @@ VDECL_VER(_clAmsMgmtEntityGet, 4, 0, 0)(
 
         case CL_AMS_ENTITY_TYPE_SG:
             { 
+                switch(versionCode)
+                {
+                case CL_VERSION_CODE(4, 0, 0):
+                    AMS_CALL( VDECL_VER(clXdrMarshallClAmsSGT, 4, 0, 0)( entityRef.ptr, out, 0));
+                    break;
+                case CL_VERSION_CODE(4, 1, 0):
+                    AMS_CALL( VDECL_VER(clXdrMarshallClAmsSGT, 4, 1, 0)( entityRef.ptr, out, 0));
+                    break;
+                default:
+                    AMS_CALL( VDECL_VER(clXdrMarshallClAmsSGT, 5, 0, 0)( entityRef.ptr, out, 0));
+                    break;
+                }
 
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsSGT, 4, 0, 0)( entityRef.ptr, out, 0));
                 break;
-
             }
 
         case CL_AMS_ENTITY_TYPE_SU:
@@ -3928,10 +3502,17 @@ VDECL_VER(_clAmsMgmtEntityGet, 4, 0, 0)(
 
         case CL_AMS_ENTITY_TYPE_COMP:
             { 
+                switch(versionCode)
+                {
+                case CL_VERSION_CODE(5, 1, 0):
+                    AMS_CALL( VDECL_VER(clXdrMarshallClAmsCompT, 5, 1, 0)( entityRef.ptr, out, 0));
+                    break;
+                default:
+                    AMS_CALL( VDECL_VER(clXdrMarshallClAmsCompT, 4, 0, 0)( entityRef.ptr, out, 0));
+                    break;
+                }
 
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsCompT, 4, 0, 0)( entityRef.ptr, out, 0));
                 break;
-
             }
 
         case CL_AMS_ENTITY_TYPE_CSI:
@@ -3953,6 +3534,16 @@ exitfn:
 
     return rc;
 
+}
+
+ClRcT 
+VDECL_VER(_clAmsMgmtEntityGet, 4, 0, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out )
+
+{
+    return __clAmsMgmtEntityGet(data, in, out, CL_VERSION_CODE(4, 0, 0));
 }
 
 ClRcT 
@@ -3962,99 +3553,7 @@ VDECL_VER(_clAmsMgmtEntityGet, 4, 1, 0)(
         CL_OUT  ClBufferHandleT  out )
 
 {
-
-    AMS_FUNC_ENTER (("\n"));
-
-    clAmsMgmtEntityGetRequestT  req;
-    ClAmsEntityTypeT  entityType;
-    ClAmsEntityRefT  entityRef;
-    ClRcT  rc = CL_OK;
-
-
-    AMS_CALL( VDECL_VER(clXdrUnmarshallclAmsMgmtEntityGetRequestT, 4, 0, 0)( in, (ClPtrT)&req) );
-
-    entityType = req.entity.type;
-
-    AMS_CHECK_ENTITY_TYPE (entityType);
-
-    memcpy ( &entityRef.entity, &req.entity, sizeof (ClAmsEntityT) );
-
-    AMS_CALL ( clOsalMutexLock(gAms.mutex) );
-
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-            clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[entityType],
-                &entityRef),
-            gAms.mutex);
-
-    AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
-
-    AMS_CHECKPTR (!entityRef.ptr); 
-    
-    AMS_CALL( VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)( &entityRef.entity, out, 0));
-
-    switch (entityType)
-    {
-
-        case CL_AMS_ENTITY_TYPE_NODE:
-            {
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsNodeT, 4, 0, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        case CL_AMS_ENTITY_TYPE_SG:
-            { 
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsSGT, 4, 1, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        case CL_AMS_ENTITY_TYPE_SU:
-            { 
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsSUT, 4, 0, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        case CL_AMS_ENTITY_TYPE_SI:
-            { 
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsSIT, 4, 0, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        case CL_AMS_ENTITY_TYPE_COMP:
-            { 
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsCompT, 4, 0, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        case CL_AMS_ENTITY_TYPE_CSI:
-            { 
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsCSIT, 4, 0, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        default:
-            {
-                break; 
-            }
-    
-    }
-
-exitfn:
-
-    return rc;
-
+    return __clAmsMgmtEntityGet(data, in, out, CL_VERSION_CODE(4, 1, 0));
 }
 
 ClRcT 
@@ -4064,99 +3563,17 @@ VDECL_VER(_clAmsMgmtEntityGet, 5, 0, 0)(
         CL_OUT ClBufferHandleT  out )
 
 {
+    return __clAmsMgmtEntityGet(data, in, out, CL_VERSION_CODE(5, 0, 0));
+}
 
-    AMS_FUNC_ENTER (("\n"));
+ClRcT 
+VDECL_VER(_clAmsMgmtEntityGet, 5, 1, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT ClBufferHandleT  out )
 
-    clAmsMgmtEntityGetRequestT  req;
-    ClAmsEntityTypeT  entityType;
-    ClAmsEntityRefT  entityRef;
-    ClRcT  rc = CL_OK;
-
-
-    AMS_CALL( VDECL_VER(clXdrUnmarshallclAmsMgmtEntityGetRequestT, 4, 0, 0)( in, (ClPtrT)&req) );
-
-    entityType = req.entity.type;
-
-    AMS_CHECK_ENTITY_TYPE (entityType);
-
-    memcpy ( &entityRef.entity, &req.entity, sizeof (ClAmsEntityT) );
-
-    AMS_CALL ( clOsalMutexLock(gAms.mutex) );
-
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-            clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[entityType],
-                &entityRef),
-            gAms.mutex);
-
-    AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
-
-    AMS_CHECKPTR (!entityRef.ptr); 
-    
-    AMS_CALL( VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)( &entityRef.entity, out, 0));
-
-    switch (entityType)
-    {
-
-        case CL_AMS_ENTITY_TYPE_NODE:
-            {
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsNodeT, 4, 0, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        case CL_AMS_ENTITY_TYPE_SG:
-            { 
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsSGT, 5, 0, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        case CL_AMS_ENTITY_TYPE_SU:
-            { 
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsSUT, 4, 0, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        case CL_AMS_ENTITY_TYPE_SI:
-            { 
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsSIT, 4, 0, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        case CL_AMS_ENTITY_TYPE_COMP:
-            { 
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsCompT, 4, 0, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        case CL_AMS_ENTITY_TYPE_CSI:
-            { 
-
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsCSIT, 4, 0, 0)( entityRef.ptr, out, 0));
-                break;
-
-            }
-
-        default:
-            {
-                break; 
-            }
-    
-    }
-
-exitfn:
-
-    return rc;
-
+{
+    return __clAmsMgmtEntityGet(data, in, out, CL_VERSION_CODE(5, 1, 0));
 }
 
 
@@ -4228,11 +3645,12 @@ aspGetEntityConfig(ClAmsCompConfigT *compConfig)
  *
  */
 
-ClRcT 
-VDECL_VER(_clAmsMgmtEntityGetConfig, 4, 0, 0)(
-        CL_IN  ClEoDataT  data,
-        CL_IN  ClBufferHandleT  in,
-        CL_OUT  ClBufferHandleT  out )
+static ClRcT 
+__clAmsMgmtEntityGetConfig(
+                           CL_IN  ClEoDataT  data,
+                           CL_IN  ClBufferHandleT  in,
+                           CL_OUT  ClBufferHandleT  out,
+                           ClUint32T versionCode)
 
 {
     AMS_FUNC_ENTER (("\n"));
@@ -4295,9 +3713,27 @@ VDECL_VER(_clAmsMgmtEntityGetConfig, 4, 0, 0)(
         case CL_AMS_ENTITY_TYPE_SG:
             { 
                 ClAmsSGT  *sg = (ClAmsSGT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsSGConfigT, 4, 0, 0)( &sg->config, out, 0),
-                                                    gAms.mutex);
+                switch(versionCode)
+                {
+                case CL_VERSION_CODE(4, 0, 0):
+                    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
+                                                        VDECL_VER(clXdrMarshallClAmsSGConfigT, 4, 0, 0)
+                                                        ( &sg->config, out, 0),
+                                                        gAms.mutex);
+                    break;
+                case CL_VERSION_CODE(4, 1, 0):
+                    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
+                                                        VDECL_VER(clXdrMarshallClAmsSGConfigT, 4, 1, 0)
+                                                        ( &sg->config, out, 0),
+                                                        gAms.mutex);
+                    break;
+                default:
+                    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
+                                                        VDECL_VER(clXdrMarshallClAmsSGConfigT, 5, 0, 0)
+                                                        ( &sg->config, out, 0),
+                                                        gAms.mutex);
+                    break;
+                }
                 break;
             }
 
@@ -4349,6 +3785,16 @@ VDECL_VER(_clAmsMgmtEntityGetConfig, 4, 0, 0)(
 
     exitfn:
     return rc;
+}
+
+ClRcT 
+VDECL_VER(_clAmsMgmtEntityGetConfig, 4, 0, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out )
+
+{
+    return __clAmsMgmtEntityGetConfig(data, in, out, CL_VERSION_CODE(4, 0, 0));
 }
 
 ClRcT 
@@ -4358,120 +3804,7 @@ VDECL_VER(_clAmsMgmtEntityGetConfig, 4, 1, 0)(
         CL_OUT  ClBufferHandleT  out )
 
 {
-    AMS_FUNC_ENTER (("\n"));
-
-    clAmsMgmtEntityGetConfigRequestT  req ;
-    ClAmsEntityTypeT  entityType;
-    ClAmsEntityRefT  entityRef;
-    ClAmsCompConfigT aspEntityConfig = {{0}};
-    ClRcT  rc = CL_OK;
-
-    AMS_CALL( VDECL_VER(clXdrUnmarshallclAmsMgmtEntityGetConfigRequestT, 4, 0, 0)( in, 
-                (ClPtrT)&req) );
-
-    entityType = req.entity.type;
-    
-    AMS_CHECK_ENTITY_TYPE (entityType);
-
-    memcpy ( &entityRef.entity, &req.entity, sizeof (ClAmsEntityT) );
-
-    AMS_CALL ( clOsalMutexLock(gAms.mutex) );
-
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityType],
-                                 &entityRef);
-    if(rc != CL_OK)
-    {
-        if(entityType != CL_AMS_ENTITY_TYPE_COMP)
-            goto out_unlock;
-
-        /*
-         * Check if its an ASP component/entity
-         */
-        entityRef.ptr = (ClAmsEntityT*)&aspEntityConfig;
-        memcpy(&aspEntityConfig.entity, &req.entity, sizeof(ClAmsEntityConfigT));
-        AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(aspGetEntityConfig(&aspEntityConfig),
-                                            gAms.mutex);
-    }
-
-    if(!entityRef.ptr)
-    {
-        rc = CL_AMS_RC(CL_ERR_NULL_POINTER);
-        goto out_unlock;
-    }
-
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                        VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(&entityRef.entity, out, 0),
-                                        gAms.mutex );
-    switch (entityType)
-    {
-
-        case CL_AMS_ENTITY_TYPE_NODE:
-            {
-                ClAmsNodeT  *node = (ClAmsNodeT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsNodeConfigT, 4, 0, 0)(&node->config, out,
-                                                                                                      0),
-                                                    gAms.mutex);
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SG:
-            { 
-                ClAmsSGT  *sg = (ClAmsSGT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsSGConfigT, 4, 1, 0)( &sg->config, out, 0),
-                                                    gAms.mutex);
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SU:
-            { 
-                ClAmsSUT  *su = (ClAmsSUT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsSUConfigT, 4, 0, 0)( &su->config, out, 0),
-                                                     gAms.mutex);
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SI:
-            { 
-                ClAmsSIT  *si = (ClAmsSIT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsSIConfigT, 4, 0, 0)( &si->config, out, 0),
-                                                     gAms.mutex);
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_COMP:
-            { 
-                ClAmsCompT  *comp = (ClAmsCompT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsCompConfigT, 4, 0, 0)( &comp->config, out, 
-                                                                                                       0),
-                                                     gAms.mutex);
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_CSI:
-            { 
-                ClAmsCSIT  *csi = (ClAmsCSIT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsCSIConfigT, 4, 0, 0)( &csi->config, out, 0),
-                                                    gAms.mutex);
-                break;
-            }
-
-        default:
-            {
-                break; 
-            } 
-    }
-
-    out_unlock:
-    clOsalMutexUnlock(gAms.mutex);
-
-    exitfn:
-    return rc;
+    return __clAmsMgmtEntityGetConfig(data, in, out, CL_VERSION_CODE(4, 1, 0));
 }
 
 ClRcT 
@@ -4481,120 +3814,7 @@ VDECL_VER(_clAmsMgmtEntityGetConfig, 5, 0, 0)(
         CL_OUT ClBufferHandleT  out )
 
 {
-    AMS_FUNC_ENTER (("\n"));
-
-    clAmsMgmtEntityGetConfigRequestT  req ;
-    ClAmsEntityTypeT  entityType;
-    ClAmsEntityRefT  entityRef;
-    ClAmsCompConfigT aspEntityConfig = {{0}};
-    ClRcT  rc = CL_OK;
-
-    AMS_CALL( VDECL_VER(clXdrUnmarshallclAmsMgmtEntityGetConfigRequestT, 4, 0, 0)( in, 
-                (ClPtrT)&req) );
-
-    entityType = req.entity.type;
-    
-    AMS_CHECK_ENTITY_TYPE (entityType);
-
-    memcpy ( &entityRef.entity, &req.entity, sizeof (ClAmsEntityT) );
-
-    AMS_CALL ( clOsalMutexLock(gAms.mutex) );
-
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityType],
-                                 &entityRef);
-    if(rc != CL_OK)
-    {
-        if(entityType != CL_AMS_ENTITY_TYPE_COMP)
-            goto out_unlock;
-
-        /*
-         * Check if its an ASP component/entity
-         */
-        entityRef.ptr = (ClAmsEntityT*)&aspEntityConfig;
-        memcpy(&aspEntityConfig.entity, &req.entity, sizeof(ClAmsEntityConfigT));
-        AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(aspGetEntityConfig(&aspEntityConfig),
-                                            gAms.mutex);
-    }
-
-    if(!entityRef.ptr)
-    {
-        rc = CL_AMS_RC(CL_ERR_NULL_POINTER);
-        goto out_unlock;
-    }
-
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                        VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(&entityRef.entity, out, 0),
-                                        gAms.mutex );
-    switch (entityType)
-    {
-
-        case CL_AMS_ENTITY_TYPE_NODE:
-            {
-                ClAmsNodeT  *node = (ClAmsNodeT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsNodeConfigT, 4, 0, 0)(&node->config, out,
-                                                                                                      0),
-                                                    gAms.mutex);
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SG:
-            { 
-                ClAmsSGT  *sg = (ClAmsSGT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsSGConfigT, 5, 0, 0)( &sg->config, out, 0),
-                                                    gAms.mutex);
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SU:
-            { 
-                ClAmsSUT  *su = (ClAmsSUT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsSUConfigT, 4, 0, 0)( &su->config, out, 0),
-                                                     gAms.mutex);
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SI:
-            { 
-                ClAmsSIT  *si = (ClAmsSIT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsSIConfigT, 4, 0, 0)( &si->config, out, 0),
-                                                     gAms.mutex);
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_COMP:
-            { 
-                ClAmsCompT  *comp = (ClAmsCompT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsCompConfigT, 4, 0, 0)( &comp->config, out, 
-                                                                                                       0),
-                                                     gAms.mutex);
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_CSI:
-            { 
-                ClAmsCSIT  *csi = (ClAmsCSIT *)entityRef.ptr;
-                AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-                                                    VDECL_VER(clXdrMarshallClAmsCSIConfigT, 4, 0, 0)( &csi->config, out, 0),
-                                                    gAms.mutex);
-                break;
-            }
-
-        default:
-            {
-                break; 
-            } 
-    }
-
-    out_unlock:
-    clOsalMutexUnlock(gAms.mutex);
-
-    exitfn:
-    return rc;
+    return __clAmsMgmtEntityGetConfig(data, in, out, CL_VERSION_CODE(5, 0, 0));
 }
 
 /*
@@ -4607,11 +3827,12 @@ VDECL_VER(_clAmsMgmtEntityGetConfig, 5, 0, 0)(
  *
  */
 
-ClRcT 
-VDECL_VER(_clAmsMgmtEntityGetStatus, 4, 0, 0)(
-        CL_IN  ClEoDataT  data,
-        CL_IN  ClBufferHandleT  in,
-        CL_OUT  ClBufferHandleT  out )
+static ClRcT 
+__clAmsMgmtEntityGetStatus(
+                           CL_IN  ClEoDataT  data,
+                           CL_IN  ClBufferHandleT  in,
+                           CL_OUT  ClBufferHandleT  out,
+                           ClUint32T versionCode)
 
 {
     AMS_FUNC_ENTER (("\n"));
@@ -4658,7 +3879,15 @@ VDECL_VER(_clAmsMgmtEntityGetStatus, 4, 0, 0)(
         case CL_AMS_ENTITY_TYPE_SG:
             { 
                 ClAmsSGT  *sg = (ClAmsSGT *)entityRef.ptr;
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsSGStatusT, 4, 0, 0)( &sg->status, out, 0));
+                switch(versionCode)
+                {
+                case CL_VERSION_CODE(4, 0, 0):
+                    AMS_CALL( VDECL_VER(clXdrMarshallClAmsSGStatusT, 4, 0, 0)( &sg->status, out, 0));
+                    break;
+                default:
+                    AMS_CALL( VDECL_VER(clXdrMarshallClAmsSGStatusT, 4, 1, 0)( &sg->status, out, 0));
+                    break;
+                }
                 break;
             }
 
@@ -4679,8 +3908,17 @@ VDECL_VER(_clAmsMgmtEntityGetStatus, 4, 0, 0)(
         case CL_AMS_ENTITY_TYPE_COMP:
             { 
                 ClAmsCompT  *comp = (ClAmsCompT *)entityRef.ptr;
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsCompStatusT, 4, 0, 0)( &comp->status, out, 
-                            0));
+                switch(versionCode)
+                {
+                case CL_VERSION_CODE(5, 1, 0):
+                    AMS_CALL( VDECL_VER(clXdrMarshallClAmsCompStatusT, 5, 1, 0)( &comp->status, out, 
+                                                                                 0));
+                    break;
+                default:
+                    AMS_CALL( VDECL_VER(clXdrMarshallClAmsCompStatusT, 4, 0, 0)( &comp->status, out, 
+                                                                                 0));
+                    break;
+                }
                 break;
             }
 
@@ -4703,6 +3941,16 @@ VDECL_VER(_clAmsMgmtEntityGetStatus, 4, 0, 0)(
 exitfn:
 
     return rc;
+}
+
+ClRcT 
+VDECL_VER(_clAmsMgmtEntityGetStatus, 4, 0, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out )
+
+{
+    return __clAmsMgmtEntityGetStatus(data, in, out, CL_VERSION_CODE(4, 0, 0));
 }
 
 ClRcT 
@@ -4712,98 +3960,18 @@ VDECL_VER(_clAmsMgmtEntityGetStatus, 4, 1, 0)(
         CL_OUT  ClBufferHandleT  out )
 
 {
-    AMS_FUNC_ENTER (("\n"));
-
-    clAmsMgmtEntityGetStatusRequestT  req ;
-    ClAmsEntityTypeT  entityType;
-    ClAmsEntityRefT  entityRef;
-    ClRcT  rc = CL_OK;
-
-    AMS_CALL( VDECL_VER(clXdrUnmarshallclAmsMgmtEntityGetStatusRequestT, 4, 0, 0)( in, 
-                (ClPtrT)&req) );
-
-    entityType = req.entity.type;
-
-    AMS_CHECK_ENTITY_TYPE (entityType);
-
-    memcpy ( &entityRef.entity, &req.entity, sizeof (ClAmsEntityT) );
-
-    AMS_CALL ( clOsalMutexLock(gAms.mutex) );
-
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-            clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[entityType],
-                &entityRef),
-            gAms.mutex);
-
-    AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
-
-    AMS_CHECKPTR (!entityRef.ptr); 
-    
-    AMS_CALL( VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)( &entityRef.entity, out, 0));
-
-    switch (entityType)
-    {
-
-        case CL_AMS_ENTITY_TYPE_NODE:
-            {
-                ClAmsNodeT  *node = (ClAmsNodeT *)entityRef.ptr;
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsNodeStatusT, 4, 0, 0)( &node->status, out, 
-                            0));
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SG:
-            { 
-                ClAmsSGT  *sg = (ClAmsSGT *)entityRef.ptr;
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsSGStatusT, 4, 1, 0)( &sg->status, out, 0));
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SU:
-            { 
-                ClAmsSUT  *su = (ClAmsSUT *)entityRef.ptr;
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsSUStatusT, 4, 0, 0)( &su->status, out, 0));
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_SI:
-            { 
-                ClAmsSIT  *si = (ClAmsSIT *)entityRef.ptr;
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsSIStatusT, 4, 0, 0)( &si->status, out, 0));
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_COMP:
-            { 
-                ClAmsCompT  *comp = (ClAmsCompT *)entityRef.ptr;
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsCompStatusT, 4, 0, 0)( &comp->status, out, 
-                            0));
-                break;
-            }
-
-        case CL_AMS_ENTITY_TYPE_CSI:
-            { 
-                ClAmsCSIT  *csi = (ClAmsCSIT *)entityRef.ptr;
-                AMS_CALL( VDECL_VER(clXdrMarshallClAmsCSIStatusT, 4, 0, 0)( &csi->status, out, 0));
-                break;
-            }
-
-        default:
-            {
-                break; 
-            }
-    
-    }
-
-    return CL_OK;
-
-exitfn:
-
-    return rc;
+    return __clAmsMgmtEntityGetStatus(data, in, out, CL_VERSION_CODE(4, 1, 0));
 }
 
+ClRcT 
+VDECL_VER(_clAmsMgmtEntityGetStatus, 5, 1, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out )
 
+{
+    return __clAmsMgmtEntityGetStatus(data, in, out, CL_VERSION_CODE(5, 1, 0));
+}
 
 /*
  *
@@ -5482,7 +4650,7 @@ VDECL(_clAmsMgmtSIAssignSUCustom)(ClEoDataT userData,
 }
 
 ClRcT 
-VDECL_VER(_clAmsMgmtDBGet, 5, 0, 0)(ClEoDataT userData,
+VDECL_VER(_clAmsMgmtDBGet, 5, 1, 0)(ClEoDataT userData,
                                     ClBufferHandleT inMsgHdl,
                                     ClBufferHandleT outMsgHdl)
 {

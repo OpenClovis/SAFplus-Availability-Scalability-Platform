@@ -245,7 +245,7 @@ ClRcT clNodeCacheInitialize(ClBoolT createFlag)
     clCpmLocalNodeNameGet(&nodeName);
 
     clNodeCacheUpdate(clIocLocalAddressGet(), 
-                      CL_VERSION_CODE(5, 0, 0), capability,
+                      CL_VERSION_CURRENT, capability,
                       &nodeName);
 
     rc = clOsalMsync(gpClNodeCache, CL_NODE_CACHE_SEGMENT_SIZE, MS_ASYNC);

@@ -70,3 +70,40 @@ ClRcT clXdrUnmarshallClAmsCompT_4_0_0(ClBufferHandleT msg , void* pGenVar)
 }
 
 
+ClRcT clXdrUnmarshallClAmsCompT_5_1_0(ClBufferHandleT msg , void* pGenVar)
+{
+    ClAmsCompT_5_1_0* pVar = (ClAmsCompT_5_1_0*)pGenVar;
+    ClRcT     rc     = CL_OK;
+    ClUint32T length = 0;
+
+    if ((void*)0 == pVar)
+    {
+        return CL_XDR_RC(CL_ERR_NULL_POINTER);
+    }
+
+    clXdrUnmarshallClUint32T(msg, &length);
+    if( 0 == length)
+    {
+        pGenVar = NULL;
+    }
+    else
+    {
+
+    rc = clXdrUnmarshallClAmsCompConfigT_4_0_0(msg,&(pVar->config));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClAmsCompStatusT_5_1_0(msg,&(pVar->status));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    }
+
+    return rc;
+}
+
+

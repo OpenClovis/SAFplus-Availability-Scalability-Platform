@@ -2117,7 +2117,7 @@ ClRcT clCpmTargetVersionGet(ClCharT *aspVersion, ClUint32T maxBytes)
 
     pAspVersion = aspBuildVersion;
     snprintf(aspBuildVersion, sizeof(aspBuildVersion)-1, "%d.%d.%d",
-             CL_RELEASE_VERSION, CL_MAJOR_VERSION, CL_MINOR_VERSION);
+             CL_RELEASE_VERSION_CURRENT, CL_MAJOR_VERSION_CURRENT, CL_MINOR_VERSION_CURRENT);
 
     if((config = getenv("ASP_CONFIG")))
     {

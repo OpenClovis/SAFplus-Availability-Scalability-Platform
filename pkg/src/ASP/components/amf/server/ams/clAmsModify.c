@@ -5368,7 +5368,7 @@ clAmsEntityDBMarshall(ClAmsEntityDbT *entityDb, ClBufferHandleT inMsgHdl, ClBool
 static ClRcT
 clAmsDBMarshallVersion(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl, ClUint32T *pVersionCode)
 {
-    ClUint32T versionCode = CL_VERSION_CODE(5, 0, 0);
+    ClUint32T versionCode = CL_VERSION_CURRENT;
     ClVersionT version = {0};
 
     if(!pVersionCode)
@@ -8478,7 +8478,7 @@ static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listTy
                 {
                     goto out_free;
                 }
-                rc = VDECL_VER(clXdrMarshallClAmsCompStatusT, 4, 0, 0)(&comp->status, msg, 0);
+                rc = VDECL_VER(clXdrMarshallClAmsCompStatusT, 5, 1, 0)(&comp->status, msg, 0);
                 if(rc != CL_OK)
                 {
                     goto out_free;

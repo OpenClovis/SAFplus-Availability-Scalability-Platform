@@ -5535,7 +5535,7 @@ static ClRcT amsMgmtDBCompCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCache
             clHeapFree(comp);
             return rc;
         }
-        rc = VDECL_VER(clXdrUnmarshallClAmsCompStatusT, 4, 0, 0)(msg, &comp->status);
+        rc = VDECL_VER(clXdrUnmarshallClAmsCompStatusT, 5, 1, 0)(msg, &comp->status);
         if(rc != CL_OK)
         {
             clHeapFree(comp);

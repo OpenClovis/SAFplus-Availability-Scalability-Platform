@@ -793,6 +793,25 @@
             <DataMember name="instantiateCookie" type="ClUint64T"/>
         </Struct>
 
+        <Struct name="ClAmsCompStatusT" version="5.1.0"> <!---->
+            <DataMember name="entity" type="ClAmsEntityStatusT"/>
+            <DataMember name="presenceState" type="ClAmsPresenceStateT"/>
+            <DataMember name="operState" type="ClAmsOperStateT"/>
+            <DataMember name="readinessState" type="ClAmsReadinessStateT"/>
+            <DataMember name="recovery" type="ClAmsRecoveryT"/>
+            <DataMember name="numActiveCSIs" type="ClUint32T"/>
+            <DataMember name="numStandbyCSIs" type="ClUint32T"/>
+            <DataMember name="numQuiescingCSIs" type="ClUint32T"/>
+            <DataMember name="numQuiescedCSIs" type="ClUint32T"/>
+            <DataMember name="restartCount" type="ClUint32T"/>
+            <DataMember name="instantiateCount" type="ClUint32T"/>
+            <DataMember name="instantiateDelayCount" type="ClUint32T"/>
+            <DataMember name="amStartCount" type="ClUint32T"/>
+            <DataMember name="amStopCount" type="ClUint32T"/>
+            <DataMember name="instantiateCookie" type="ClUint64T"/>
+            <DataMember name="failoverCount" type="ClUint32T"/>
+        </Struct>
+
 
         <Struct name="ClAmsCSIStatusT"> <!---->
             <DataMember name="entity" type="ClAmsEntityStatusT"/>
@@ -840,6 +859,11 @@
         <Struct name="ClAmsCompT"> <!---->
             <DataMember name="config" type="ClAmsCompConfigT"/>
             <DataMember name="status" type="ClAmsCompStatusT"/>
+        </Struct>
+
+        <Struct name="ClAmsCompT" version="5.1.0"> <!---->
+            <DataMember name="config" type="ClAmsCompConfigT"/>
+            <DataMember name="status" type="ClAmsCompStatusT" version="5.1.0"/>
         </Struct>
 
         <Struct name="ClAmsCSIT"> <!---->

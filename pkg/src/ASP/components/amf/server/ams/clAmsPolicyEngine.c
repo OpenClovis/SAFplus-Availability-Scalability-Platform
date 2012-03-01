@@ -11843,6 +11843,7 @@ clAmsPeCompComputeRecoveryAction(
     if ( computedRecovery == CL_AMS_RECOVERY_COMP_FAILOVER )
     {
         match = CL_TRUE;
+        comp->status.failoverCount++;
     }
 
     if ( computedRecovery == CL_AMS_RECOVERY_NODE_SWITCHOVER )
