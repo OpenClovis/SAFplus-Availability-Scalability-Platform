@@ -2484,15 +2484,14 @@ clAmsDBCompMarshallStatusVersion(ClAmsCompStatusT *pCompStatus,
                                  ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
     ClRcT rc = CL_OK;
-    
-    switch(versionCode)
+
+    if(versionCode <= CL_VERSION_CODE(5, 0, 0))
     {
-    case CL_VERSION_CODE(5, 1, 0):
-        AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsCompStatusT, 5, 1, 0)(pCompStatus, inMsgHdl, 0));
-        break;
-    default:
         AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsCompStatusT, 4, 0, 0)(pCompStatus, inMsgHdl, 0));
-        break;
+    }
+    else
+    {
+        AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsCompStatusT, 5, 1, 0)(pCompStatus, inMsgHdl, 0));
     }
 
     exitfn:
@@ -3210,17 +3209,15 @@ clAmsDBCompStatusUnmarshallVersion(ClBufferHandleT inMsgHdl,
 {
     ClRcT rc = CL_OK;
 
-    switch(versionCode)
+    if(versionCode <= CL_VERSION_CODE(5, 0, 0))
     {
-    case CL_VERSION_CODE(5, 1, 0):
-        AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompStatusT, 5, 1, 0)(inMsgHdl, 
-                                                                               pCompStatus));
-        break;
-
-    default:
         AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompStatusT, 4, 0, 0)(inMsgHdl, 
                                                                                pCompStatus));
-        break;
+    }
+    else
+    {
+        AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompStatusT, 5, 1, 0)(inMsgHdl, 
+                                                                               pCompStatus));
     }
 
     exitfn:
@@ -6088,6 +6085,7 @@ clAmsDBSGConfigUnmarshallVersion(ClBufferHandleT inMsgHdl, ClAmsSGConfigT *pSGCo
         AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 1, 0)(inMsgHdl, pSGConfig));
         pSGConfig->beta = 0; /*disables the feature*/
         break;
+
     default:
         AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 5, 0, 0)(inMsgHdl, pSGConfig));
         break;
@@ -7880,24 +7878,16 @@ clAmsDBUnmarshall(ClBufferHandleT inMsgHdl)
 
     AMS_CHECK_RC_ERROR(clXdrUnmarshallClVersionT(inMsgHdl, &version));
 
-    switch((versionCode = CL_VERSION_CODE(version.releaseCode, version.majorVersion, version.minorVersion)))
+    versionCode = CL_VERSION_CODE(version.releaseCode, version.majorVersion, version.minorVersion);
+    if(versionCode <= CL_VERSION_CURRENT)
     {
-    case CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE):
-    case CL_VERSION_CODE(CL_RELEASE_VERSION, 1, CL_MINOR_VERSION):
-    case CL_VERSION_CODE(5, 0, 0):
-    case CL_VERSION_CODE(5, 1, 0):
-        {
-            rc = clAmsDBUnmarshallVersion(inMsgHdl, versionCode);
-        }
-        break;
-
-    default:
-        {
-            clLogError("DB", "UNMARSHALL", "AMS db unsupported version [%d.%d.%d]",
-                       version.releaseCode, version.majorVersion, version.minorVersion);
-            rc = CL_AMS_RC(CL_ERR_VERSION_MISMATCH);
-            break;
-        }
+        rc = clAmsDBUnmarshallVersion(inMsgHdl, versionCode);
+    }
+    else
+    {
+        clLogError("DB", "UNMARSHALL", "AMS db unsupported version [%d.%d.%d]",
+                   version.releaseCode, version.majorVersion, version.minorVersion);
+        rc = CL_AMS_RC(CL_ERR_VERSION_MISMATCH);
     }
 
     exitfn:
