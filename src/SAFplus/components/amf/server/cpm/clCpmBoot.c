@@ -1201,10 +1201,11 @@ ClRcT cpmBmRespTimerCallback(ClPtrT unused)
             clOsalMutexLock(&gpClCpm->cpmMutex);
             if(rc != CL_OK)
             {
+                ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
                 clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                           "CPM/G standby/worker blade registration failed with [%#x] "
-                           "Shutting down node", rc);
-                cpmSelfShutDown();
+                           "CPM/G standby/worker blade registration with master failed with [%#x]. "
+                           "Restarting node", rc);
+                cpmRestart(&delay, "registration");
             }
             else
             {
