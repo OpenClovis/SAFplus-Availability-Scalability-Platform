@@ -46,8 +46,8 @@ extern "C" {
 #include "clIocApi.h"
 #include "clAmsNotifications.h"
 #include "clAmsMgmtServerApi.h"
-#include "xdrClAmsCompStatusT.h"
 #include "xdrClAmsCompConfigT.h"
+#include "xdrClAmsCompStatusT.h"
 
 struct _ClAmsCompT_4_0_0;
 
@@ -76,6 +76,32 @@ clXdrUnmarshallPtr((msg),(pointer), sizeof(ClAmsCompT_4_0_0),multiplicity, clXdr
 
 
 typedef ClAmsCompT ClAmsCompT_4_0_0;
+
+
+struct _ClAmsCompT_5_1_0;
+
+
+ClRcT  clXdrMarshallClAmsCompT_5_1_0(void *,ClBufferHandleT , ClUint32T);
+
+ClRcT  clXdrUnmarshallClAmsCompT_5_1_0(ClBufferHandleT, void *);
+
+#define clXdrMarshallArrayClAmsCompT_5_1_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallArray((pointer), sizeof(ClAmsCompT_5_1_0), (multiplicity), clXdrMarshallClAmsCompT_5_1_0, (msg), (isDelete))
+
+#define clXdrUnmarshallArrayClAmsCompT_5_1_0(msg,pointer, multiplicity) \
+clXdrUnmarshallArray((msg),(pointer), sizeof(ClAmsCompT_5_1_0), (multiplicity), clXdrUnmarshallClAmsCompT_5_1_0)
+
+#define clXdrMarshallPointerClAmsCompT_5_1_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPointer((pointer), sizeof(ClAmsCompT_5_1_0), (multiplicity), clXdrMarshallClAmsCompT_5_1_0, (msg), (isDelete))
+
+#define clXdrUnmarshallPointerClAmsCompT_5_1_0(msg,pointer) \
+clXdrUnmarshallPointer((msg),(pointer), sizeof(ClAmsCompT_5_1_0), clXdrUnmarshallClAmsCompT_5_1_0)
+
+#define clXdrMarshallPtrClAmsCompT_5_1_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPtr((pointer), sizeof(ClAmsCompT_5_1_0), (multiplicity), clXdrMarshallClAmsCompT_5_1_0, (msg), (isDelete))
+
+#define clXdrUnmarshallPtrClAmsCompT_5_1_0(msg,pointer,multiplicity) \
+clXdrUnmarshallPtr((msg),(pointer), sizeof(ClAmsCompT_5_1_0),multiplicity, clXdrUnmarshallClAmsCompT_5_1_0)
 
 
 

@@ -2474,8 +2474,28 @@ exitfn:
 
 }
 
+static ClRcT
+clAmsDBCompMarshallStatusVersion(ClAmsCompStatusT *pCompStatus, 
+                                 ClBufferHandleT inMsgHdl, ClUint32T versionCode)
+{
+    ClRcT rc = CL_OK;
+
+    if(versionCode <= CL_VERSION_CODE(5, 0, 0))
+    {
+        AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsCompStatusT, 4, 0, 0)(pCompStatus, inMsgHdl, 0));
+    }
+    else
+    {
+        AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsCompStatusT, 5, 1, 0)(pCompStatus, inMsgHdl, 0));
+    }
+
+    exitfn:
+    return rc;
+}
+
 ClRcT   
-clAmsDBCompMarshall(ClAmsCompT *comp, ClBufferHandleT inMsgHdl, ClUint32T marshallMask, ClUint32T versionCode)
+clAmsDBCompMarshall(ClAmsCompT *comp, ClBufferHandleT inMsgHdl, 
+                    ClUint32T marshallMask, ClUint32T versionCode)
 {
     ClRcT rc = CL_OK;
     ClAmsCkptOperationT op = CL_AMS_CKPT_OPERATION_START_GROUP;
@@ -2501,7 +2521,7 @@ clAmsDBCompMarshall(ClAmsCompT *comp, ClBufferHandleT inMsgHdl, ClUint32T marsha
     
         AMS_CHECK_RC_ERROR(clXdrMarshallClInt32T(&op, inMsgHdl, 0));
     
-        AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsCompStatusT, 4, 0, 0)(&comp->status, inMsgHdl, 0));
+        AMS_CHECK_RC_ERROR(clAmsDBCompMarshallStatusVersion(&comp->status, inMsgHdl, versionCode));
 
         AMS_CHECK_RC_ERROR(clAmsDBEntityOpMarshall(&comp->config.entity, &comp->status.entity, inMsgHdl, versionCode));
 
@@ -2914,6 +2934,7 @@ clAmsDBCompXMLize(
     ClCharT  *alarmHandle = NULL;
     ClCharT  *numQuiescingCSIs = NULL;
     ClCharT  *numQuiescedCSIs = NULL;
+    ClCharT  *failoverCount = NULL;
 
 
     AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
@@ -2971,6 +2992,10 @@ clAmsDBCompXMLize(
     AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
                 comp->status.numQuiescedCSIs,
                 &numQuiescedCSIs) );
+
+     AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
+                comp->status.failoverCount,
+                &failoverCount) );
 
     CL_PARSER_SET_ATTR (
             statusPtr,
@@ -3041,6 +3066,11 @@ clAmsDBCompXMLize(
             statusPtr,
             "numQuiescedCSIs",
             numQuiescedCSIs);
+
+    CL_PARSER_SET_ATTR (
+            statusPtr,
+            "failoverCount",
+            failoverCount);
 
     if ( comp->status.proxyComp )
     {
@@ -3162,9 +3192,31 @@ exitfn:
     clAmsFreeMemory(numQuiescingCSIs);
     clAmsFreeMemory(numQuiescedCSIs);
     clAmsFreeMemory(numSupportedCSITypes);
+    clAmsFreeMemory(failoverCount);
 
     return CL_AMS_RC (rc);
 
+}
+
+static ClRcT
+clAmsDBCompStatusUnmarshallVersion(ClBufferHandleT inMsgHdl, 
+                                   ClAmsCompStatusT *pCompStatus, ClUint32T versionCode)
+{
+    ClRcT rc = CL_OK;
+
+    if(versionCode <= CL_VERSION_CODE(5, 0, 0))
+    {
+        AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompStatusT, 4, 0, 0)(inMsgHdl, 
+                                                                               pCompStatus));
+    }
+    else
+    {
+        AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompStatusT, 5, 1, 0)(inMsgHdl, 
+                                                                               pCompStatus));
+    }
+
+    exitfn:
+    return rc;
 }
 
 static ClRcT   
@@ -3226,8 +3278,11 @@ clAmsDBCompUnmarshall(ClAmsEntityT *entity,
         case CL_AMS_CKPT_OPERATION_SET_STATUS:
             {
                 ClAmsCompStatusT compStatus = {{0}};
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompStatusT, 4, 0, 0)(inMsgHdl, &compStatus));
-                AMS_CHECK_RC_ERROR(clAmsDBEntityOpUnmarshall(entity, &compStatus.entity, inMsgHdl, versionCode));
+                AMS_CHECK_RC_ERROR(clAmsDBCompStatusUnmarshallVersion(inMsgHdl, 
+                                                                      &compStatus,
+                                                                      versionCode));
+                AMS_CHECK_RC_ERROR(clAmsDBEntityOpUnmarshall(entity, &compStatus.entity, 
+                                                             inMsgHdl, versionCode));
                 AMS_CHECK_RC_ERROR(clAmsEntitySetStatus(&gAms.db.entityDb[entity->type],
                                                         entity,
                                                         &compStatus.entity));
@@ -3513,6 +3568,7 @@ clAmsDBCompDeXMLize(
     const ClCharT  *alarmHandle = NULL;
     const ClCharT  *numQuiescingCSIs = NULL;
     const ClCharT  *numQuiescedCSIs = NULL;
+    const ClCharT  *failoverCount = NULL;
 
     presenceState = clParserAttr (
             statusPtr,
@@ -3570,11 +3626,15 @@ clAmsDBCompDeXMLize(
             statusPtr,
             "numQuiescedCSIs");
 
+    failoverCount = clParserAttr (
+            statusPtr,
+            "failoverCount");
+
     if ( !presenceState || !operState || !readinessState || !recovery
             || !numActiveCSIs || !numStandbyCSIs || !restartCount 
             || !instantiateCount || !instantiateDelayCount || !amStartCount
             || !amStopCount || !alarmHandle || !numQuiescingCSIs 
-            || !numQuiescedCSIs )
+            || !numQuiescedCSIs || !failoverCount)
     {
         rc = CL_ERR_NULL_POINTER;
         AMS_LOG (CL_DEBUG_ERROR,("COMP[%s] has a missing status attribute \n",
@@ -3660,6 +3720,7 @@ clAmsDBCompDeXMLize(
     comp.status.alarmHandle = atoi(alarmHandle);
     comp.status.numQuiescingCSIs = atoi(numQuiescingCSIs);
     comp.status.numQuiescedCSIs = atoi(numQuiescedCSIs);
+    comp.status.failoverCount = atoi (failoverCount);
 
     AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus(
                 &comp.status.entity,
@@ -6019,6 +6080,7 @@ clAmsDBSGConfigUnmarshallVersion(ClBufferHandleT inMsgHdl, ClAmsSGConfigT *pSGCo
         AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 1, 0)(inMsgHdl, pSGConfig));
         pSGConfig->beta = 0; /*disables the feature*/
         break;
+
     default:
         AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 5, 0, 0)(inMsgHdl, pSGConfig));
         break;
@@ -7811,23 +7873,16 @@ clAmsDBUnmarshall(ClBufferHandleT inMsgHdl)
 
     AMS_CHECK_RC_ERROR(clXdrUnmarshallClVersionT(inMsgHdl, &version));
 
-    switch((versionCode = CL_VERSION_CODE(version.releaseCode, version.majorVersion, version.minorVersion)))
+    versionCode = CL_VERSION_CODE(version.releaseCode, version.majorVersion, version.minorVersion);
+    if(versionCode <= CL_VERSION_CURRENT)
     {
-    case CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE):
-    case CL_VERSION_CODE(CL_RELEASE_VERSION, 1, CL_MINOR_VERSION):
-    case CL_VERSION_CODE(5, 0, 0):
-        {
-            rc = clAmsDBUnmarshallVersion(inMsgHdl, versionCode);
-        }
-        break;
-
-    default:
-        {
-            clLogError("DB", "UNMARSHALL", "AMS db unsupported version [%d.%d.%d]",
-                       version.releaseCode, version.majorVersion, version.minorVersion);
-            rc = CL_AMS_RC(CL_ERR_VERSION_MISMATCH);
-            break;
-        }
+        rc = clAmsDBUnmarshallVersion(inMsgHdl, versionCode);
+    }
+    else
+    {
+        clLogError("DB", "UNMARSHALL", "AMS db unsupported version [%d.%d.%d]",
+                   version.releaseCode, version.majorVersion, version.minorVersion);
+        rc = CL_AMS_RC(CL_ERR_VERSION_MISMATCH);
     }
 
     exitfn:
