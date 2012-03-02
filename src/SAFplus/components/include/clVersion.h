@@ -16,7 +16,7 @@
 #define CL_MINOR_VERSION 0
 
 #define CL_RELEASE_VERSION_CURRENT 6
-#define CL_MAJOR_VERSION_CURRENT   0
+#define CL_MAJOR_VERSION_CURRENT   1
 #define CL_MINOR_VERSION_CURRENT   0
 
 #define CL_VERSION_CODE(rel, major, minor) ( ( ( (rel) << 16) ) | ( ( (major) << 8 )  ) | ( (minor) ) )
