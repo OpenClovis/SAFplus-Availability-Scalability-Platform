@@ -417,6 +417,12 @@ VDECL_VER(_clAmsMgmtEntityGet, 5, 0, 0)(
         CL_OUT  ClBufferHandleT  out );
 
 extern ClRcT 
+VDECL_VER(_clAmsMgmtEntityGet, 5, 1, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out );
+
+extern ClRcT 
 VDECL_VER(_clAmsMgmtEntityGetConfig, 4, 0, 0)(
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in,
@@ -442,6 +448,12 @@ VDECL_VER(_clAmsMgmtEntityGetStatus, 4, 0, 0)(
 
 extern ClRcT 
 VDECL_VER(_clAmsMgmtEntityGetStatus, 4, 1, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out );
+
+extern ClRcT 
+VDECL_VER(_clAmsMgmtEntityGetStatus, 5, 1, 0)(
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in,
         CL_OUT  ClBufferHandleT  out );
@@ -514,7 +526,7 @@ VDECL(_clAmsMgmtSIAssignSUCustom)(
         CL_OUT  ClBufferHandleT  out );
 
 extern ClRcT
-VDECL_VER(_clAmsMgmtDBGet, 5, 0, 0)( 
+VDECL_VER(_clAmsMgmtDBGet, 5, 1, 0)( 
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in,
         CL_OUT  ClBufferHandleT  out );
