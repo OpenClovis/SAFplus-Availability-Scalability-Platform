@@ -53,9 +53,11 @@ extern ClRcT clTransportNotifyClose(ClIocPortT port);
 extern ClRcT clTransportNotifyRegister(ClTransportNotifyCallbackT callback, ClPtrT arg);
 extern ClRcT clTransportNotifyDeregister(ClTransportNotifyCallbackT callback);
 extern ClRcT
-clTransportNotificationOpen(const ClCharT *type, ClIocPortT port);
+clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node, 
+                            ClIocPortT port, ClIocNotificationIdT event);
 extern ClRcT
-clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAddress, ClIocPortT port);
+clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAddress, 
+                             ClIocPortT port, ClIocNotificationIdT event);
 extern ClRcT 
 clTransportSend(const ClCharT *type, ClIocPortT port, ClUint32T priority, ClIocAddressT *address, 
                 struct iovec *iov, ClInt32T iovlen, ClInt32T flags);

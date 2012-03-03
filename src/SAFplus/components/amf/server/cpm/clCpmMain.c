@@ -3518,6 +3518,7 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
     switch(notificationId)
     {
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
+        case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
             /*
              * Fall through !!
              */
@@ -3585,6 +3586,7 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
         break;
         
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
+        case CL_IOC_NODE_LINK_UP_NOTIFICATION:
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
             /*
              * Ignore it on the CPM side.

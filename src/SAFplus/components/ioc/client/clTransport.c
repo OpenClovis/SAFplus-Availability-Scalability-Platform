@@ -42,8 +42,10 @@ typedef struct ClTransportLayer
     ClRcT (*xportFinalize)(ClInt32T xportId, ClBoolT nodeRep);
     ClRcT (*xportNotifyInit)(void);
     ClRcT (*xportNotifyFinalize)(void);
-    ClRcT (*xportNotifyOpen)(ClIocPortT port);
-    ClRcT (*xportNotifyClose)(ClIocNodeAddressT nodeAddress, ClIocPortT port);
+    ClRcT (*xportNotifyOpen)(ClIocNodeAddressT nodeAddress, ClIocPortT port, 
+                             ClIocNotificationIdT event);
+    ClRcT (*xportNotifyClose)(ClIocNodeAddressT nodeAddress, ClIocPortT port, 
+                              ClIocNotificationIdT event);
     /*
      * Use bind and bindclose if you want to do a synchronous xport recv. 
      * over an async listen.
@@ -232,12 +234,14 @@ static ClRcT xportListenStopFake(ClIocPortT port)
     return CL_OK;
 }
 
-static ClRcT xportNotifyOpenFake(ClIocPortT port)
+static ClRcT xportNotifyOpenFake(ClIocNodeAddressT node, ClIocPortT port, 
+                                 ClIocNotificationIdT event)
 {
     return CL_ERR_NOT_SUPPORTED;
 }
 
-static ClRcT xportNotifyCloseFake(ClIocNodeAddressT nodeAddress, ClIocPortT port)
+static ClRcT xportNotifyCloseFake(ClIocNodeAddressT nodeAddress, ClIocPortT port, 
+                                  ClIocNotificationIdT event)
 {
     return CL_ERR_NOT_SUPPORTED;
 }
@@ -505,6 +509,7 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
     switch (notificationId)
     {
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
+        case CL_IOC_NODE_LINK_UP_NOTIFICATION:
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
         {
             clLogDebug("IOC", "LUT", "Triggering node join for node [0x%x]", nodeAddr);
@@ -517,6 +522,7 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
             break;
         }
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
+        case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
         {
             clLogNotice("IOC", "LUT", "Triggering node leave for node [0x%x]", nodeAddr);
             CL_LIST_FOR_EACH(iter, &gClXportDestNodeLUTList) {
@@ -1970,7 +1976,8 @@ ClRcT clTransportNotificationFinalize(const ClCharT *type)
     return rc;
 }
 
-ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocPortT port)
+ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node, 
+                                  ClIocPortT port, ClIocNotificationIdT event)
 {
     ClTransportLayerT *xport = NULL;
     register ClListHeadT *iter;
@@ -1988,7 +1995,7 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocPortT port)
             clLogError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
-        rc = xport->xportNotifyOpen(port);
+        rc = xport->xportNotifyOpen(node, port, event);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_SUPPORTED)
         {
             rc = clTransportNotifyOpen(port);
@@ -2006,7 +2013,7 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocPortT port)
         xport = CL_LIST_ENTRY(iter, ClTransportLayerT, xportList);
         if(xport->xportState & XPORT_STATE_INITIALIZED)
         {
-            rc = xport->xportNotifyOpen(port);
+            rc = xport->xportNotifyOpen(node, port, event);
             if(rc == CL_OK) break;
         }
     }
@@ -2020,7 +2027,8 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocPortT port)
     return rc;
 }
 
-ClRcT clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAddress, ClIocPortT port)
+ClRcT clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAddress, 
+                                   ClIocPortT port, ClIocNotificationIdT event)
 {
     ClTransportLayerT *xport = NULL;
     register ClListHeadT *iter;
@@ -2038,7 +2046,7 @@ ClRcT clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAd
             clLogError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
-        rc = xport->xportNotifyClose(nodeAddress, port);
+        rc = xport->xportNotifyClose(nodeAddress, port, event);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_SUPPORTED)
         {
             rc = clTransportNotifyClose(port);
@@ -2056,7 +2064,7 @@ ClRcT clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAd
         xport = CL_LIST_ENTRY(iter, ClTransportLayerT, xportList);
         if(xport->xportState & XPORT_STATE_INITIALIZED)
         {
-            rc = xport->xportNotifyClose(nodeAddress, port);
+            rc = xport->xportNotifyClose(nodeAddress, port, event);
             if(rc == CL_OK) break;
         }
     }
@@ -2077,7 +2085,7 @@ ClRcT clTransportBind(const ClCharT *type, ClIocPortT port)
     register ClListHeadT *iter;
     ClRcT rc = CL_OK;
 
-    rc = clTransportNotificationOpen(type, port);
+    rc = clTransportNotificationOpen(type, 0, port, CL_IOC_COMP_ARRIVAL_NOTIFICATION);
     if(rc != CL_OK)
         return rc;
 
@@ -2153,7 +2161,8 @@ ClRcT clTransportBindClose(const ClCharT *type, ClIocPortT port)
         return rc;
 
     out_close:
-    rc = clTransportNotificationClose(type, gIocLocalBladeAddress, port);
+    rc = clTransportNotificationClose(type, gIocLocalBladeAddress, 
+                                      port, CL_IOC_COMP_DEATH_NOTIFICATION);
 
     return rc;
 }
@@ -2164,7 +2173,7 @@ ClRcT clTransportListen(const ClCharT *type, ClIocPortT port)
     register ClListHeadT *iter;
     ClRcT rc = CL_OK;
 
-    rc = clTransportNotificationOpen(type, port);
+    rc = clTransportNotificationOpen(type, 0, port, CL_IOC_COMP_ARRIVAL_NOTIFICATION);
     if(rc != CL_OK)
         return rc;
 
@@ -2241,7 +2250,8 @@ ClRcT clTransportListenStop(const ClCharT *type, ClIocPortT port)
         return rc;
     
     out_close:
-    rc = clTransportNotificationClose(type, gIocLocalBladeAddress, port);
+    rc = clTransportNotificationClose(type, gIocLocalBladeAddress, 
+                                      port, CL_IOC_COMP_DEATH_NOTIFICATION);
 
     return rc;
 }

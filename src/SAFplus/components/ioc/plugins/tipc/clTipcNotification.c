@@ -114,7 +114,8 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
 
                 rc = clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
                                                      event.event == TIPC_PUBLISHED ? 
-                                                     CL_IOC_NODE_UP : CL_IOC_NODE_DOWN,
+                                                     CL_IOC_NODE_ARRIVAL_NOTIFICATION : 
+                                                     CL_IOC_NODE_LEAVE_NOTIFICATION,
                                                      compAddr.nodeAddress, 
                                                      (ClIocAddressT*)&allLocalComps, 
                                                      (ClIocAddressT*)&allNodeReps,
