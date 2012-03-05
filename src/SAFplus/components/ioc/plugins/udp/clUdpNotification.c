@@ -396,7 +396,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     struct sockaddr_in groupSock;
     ClIocNotificationT notification = { 0 };
     static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
-    int fd; 
+    static int fd = -1; 
 
     memset(&groupSock, 0, sizeof(groupSock));
     groupSock.sin_family = PF_INET;
@@ -423,20 +423,28 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     msg.msg_controllen = 0;
     msg.msg_flags = 0;
 
-    fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(fd < 0)
     {
-        return CL_ERR_NO_RESOURCE;
+        fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        if(fd < 0)
+        {
+            return CL_ERR_NO_RESOURCE;
+        }
+        if(fcntl(fd, F_SETFD, FD_CLOEXEC) < 0)
+        {
+            clLogError("XPORT", "NOTIFY", "fcntl on udp socket failed with [%s]",
+                       strerror(errno));
+            return CL_ERR_LIBRARY;
+        }
     }
 
     if (sendmsg(fd, &msg, 0) < 0) {
         clLogError(
-                "UDP",
-                "NOTIF",
-                "sendmsg failed with error [%s]", strerror(errno));
+                   "UDP",
+                   "NOTIF",
+                   "sendmsg failed with error [%s]", strerror(errno));
         rc = CL_ERR_NO_RESOURCE;
     }
-    close(fd);
 
     return rc;
 }
