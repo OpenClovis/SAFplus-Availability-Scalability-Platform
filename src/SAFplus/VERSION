@@ -1,4 +1,4 @@
-BUILD_NUMBER=openclovis-sdk-6.0-6849
+BUILD_NUMBER=openclovis-sdk-6.0-6850
 PACKAGE_VERSION=6.0
 PACKAGE_NAME=asp
 REVISION=maint
