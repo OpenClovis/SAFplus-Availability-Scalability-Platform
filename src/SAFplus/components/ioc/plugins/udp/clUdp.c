@@ -323,7 +323,7 @@ static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtr
     return CL_OK;
 }
 
-ClRcT xportIpAddressAssign(void)
+ClRcT xportAddressAssign(void)
 {
     ClRcT rc = CL_OK;
 

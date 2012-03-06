@@ -32,7 +32,7 @@ extern ClRcT clTransportFinalize(const ClCharT *type, ClBoolT nodeRep);
 
 extern ClRcT clTransportNotifyInitialize(void);
 extern ClRcT clTransportNotifyFinalize(void);
-extern ClRcT clTransportIpAddressAssign(const ClCharT *type);
+extern ClRcT clTransportAddressAssign(const ClCharT *type);
 extern ClRcT clTransportNotificationInitialize(const ClCharT *type);
 extern ClRcT clTransportNotificationFinalize(const ClCharT *type);
 

@@ -37,7 +37,7 @@ typedef struct ClTransportLayer
     ClCharT *xportPlugin;
     ClPtrT xportPluginHandle;
     ClInt32T xportState;
-    ClRcT (*xportIpAddressAssign)(void);
+    ClRcT (*xportAddressAssign)(void);
     ClRcT (*xportInit)(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep);
     ClRcT (*xportFinalize)(ClInt32T xportId, ClBoolT nodeRep);
     ClRcT (*xportNotifyInit)(void);
@@ -192,9 +192,9 @@ static ClBoolT gXportNodeRep;
 
 #define XPORT_CONFIG_FILE "clTransport.xml"
 
-static ClRcT xportIpAddressAssignFake(void)
+static ClRcT xportAddressAssignFake(void)
 {
-    clLogNotice("XPORT", "IP_ASSIGN", "Inside fake transport initialize");
+    clLogNotice("XPORT", "ASSIGN", "Inside fake transport initialize");
     return CL_OK;
 }
 
@@ -589,7 +589,7 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
         clLogError("XPORT", "LOAD", "Unable to load plugin [%s]. Error [%s]", plugin, error ? error : "unknown");
         goto out_free;
     }
-    *(void**)&xport->xportIpAddressAssign = dlsym(xport->xportPluginHandle, "xportIpAddressAssign");
+    *(void**)&xport->xportAddressAssign = dlsym(xport->xportPluginHandle, "xportAddressAssign");
     *(void**)&xport->xportInit = dlsym(xport->xportPluginHandle, "xportInit");
     *(void**)&xport->xportFinalize = dlsym(xport->xportPluginHandle, "xportFinalize");
 
@@ -612,7 +612,7 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
     *(void**)&xport->xportMulticastRegister = dlsym(xport->xportPluginHandle, "xportMulticastRegister");
     *(void**)&xport->xportMulticastDeregister = dlsym(xport->xportPluginHandle, "xportMulticastDeregister");
 
-    if(!xport->xportIpAddressAssign) xport->xportIpAddressAssign = xportIpAddressAssignFake;
+    if(!xport->xportAddressAssign) xport->xportAddressAssign = xportAddressAssignFake;
     if(!xport->xportInit) xport->xportInit = xportInitFake;
     if(!xport->xportFinalize) xport->xportFinalize = xportFinalizeFake;
     if(!xport->xportNotifyInit) xport->xportNotifyInit = xportNotifyInitFake;
@@ -1641,7 +1641,7 @@ ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep)
     out_notify:
     if (nodeRep) 
     {
-        rc = clTransportIpAddressAssign(type);
+        rc = clTransportAddressAssign(type);
     }
 
     if(nodeRep && rc == CL_OK)
@@ -1888,7 +1888,7 @@ ClRcT clTransportNotificationInitialize(const ClCharT *type)
 /*
  * Node representative specific api.
  */
-ClRcT clTransportIpAddressAssign(const ClCharT *type)
+ClRcT clTransportAddressAssign(const ClCharT *type)
 {
     ClTransportLayerT *xport = NULL;
     register ClListHeadT *iter;
@@ -1898,13 +1898,13 @@ ClRcT clTransportIpAddressAssign(const ClCharT *type)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "IP_ASSIGN", "Transport [%s] not registered", type);
+            clLogError("XPORT", "ASSIGN", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
-        rc = xport->xportIpAddressAssign();
+        rc = xport->xportAddressAssign();
         if(rc != CL_OK)
         {
-            clLogError("XPORT", "IP_ASSIGN", "Transport [%s] ip address assign failed with [%#x]",
+            clLogError("XPORT", "ASSIGN", "Transport [%s] address assign failed with [%#x]",
                        type, rc);
         }
         return rc;
@@ -1913,10 +1913,10 @@ ClRcT clTransportIpAddressAssign(const ClCharT *type)
     CL_LIST_FOR_EACH(iter, &gClTransportList)
     {
         xport = CL_LIST_ENTRY(iter, ClTransportLayerT, xportList);
-        rc = xport->xportIpAddressAssign();
+        rc = xport->xportAddressAssign();
         if(rc != CL_OK)
         {
-            clLogError("XPORT", "IP_ASSIGN", "Transport [%s] ip address assign failed with [%#x]",
+            clLogError("XPORT", "ASSIGN", "Transport [%s] address assign failed with [%#x]",
                        type, rc);
         }
     }

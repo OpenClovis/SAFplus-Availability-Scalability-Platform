@@ -323,6 +323,10 @@ static ClRcT _clIocHeartBeatSend() {
             {
                 entry->retryCount = 0;
                 entry->status = CL_IOC_NODE_UP;
+                /*
+                 *Reassign the interface addresses back on link up for available transports
+                 */
+                clTransportAddressAssign(NULL);
                 clLogNotice("SPLIT", "CLUSTER", "Sending node arrival for slot [%d]", entry->linkIndex);
                 clTransportNotificationOpen(NULL, entry->linkIndex, 
                                             CL_IOC_XPORT_PORT, 
