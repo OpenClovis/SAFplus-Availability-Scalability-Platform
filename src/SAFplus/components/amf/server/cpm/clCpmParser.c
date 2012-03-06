@@ -280,11 +280,11 @@ static void cpmValgrindFilterInitialize(void)
 
 ClBoolT cpmIsValgrindBuild(ClCharT *instantiationCMD)
 {
-    ClCharT *valgrindCmdStr = getenv("ASP_VALGRIND_CMD");
+    ClCharT *valgrindCmdStr = clParseEnvStr("ASP_VALGRIND_CMD");
     ClCharT *binary = NULL;
     ClInt32T i;
 
-    if(!valgrindCmdStr || !strlen(valgrindCmdStr)) return CL_NO;
+    if(!valgrindCmdStr) return CL_NO;
     if(!instantiationCMD) return CL_YES;
     if(!cpmValgrindFilterList) cpmValgrindFilterInitialize();
     if(!cpmValgrindFilterList[0]) 
@@ -314,7 +314,7 @@ ClBoolT cpmIsValgrindBuild(ClCharT *instantiationCMD)
 void cpmModifyCompArgs(ClCpmCompConfigT *newConfig, ClUint32T *pArgIndex)
 {
     ClCharT valgrindCmd[CL_MAX_NAME_LENGTH] = {0};
-    ClCharT *valgrindCmdStr = getenv("ASP_VALGRIND_CMD");
+    ClCharT *valgrindCmdStr = clParseEnvStr("ASP_VALGRIND_CMD");
     ClCharT *delim = " ";
     ClCharT *valCmd = NULL;
     ClUint32T argIndex = *pArgIndex;
