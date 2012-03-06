@@ -273,10 +273,14 @@ static void clUdpEventHandler(ClPtrT pArg) {
                         continue;
                     }
                     clUdpReceivedPacket(i, &msgHdr);
-                } else if ((pollfds[i].revents & (POLLHUP | POLLERR | POLLNVAL))) {
+                }
+                  /*
+                   *  to avoid overwhelming the log files when link down
+                   */
+                /* else if ((pollfds[i].revents & (POLLHUP | POLLERR | POLLNVAL))) {
                     CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                             ("Error : Handler \"poll\" hangup.\n"));
-                }
+                } */
             }
         } else if (pollStatus < 0) {
             if (errno != EINTR) /* If the system call is interrupted just loop, its not an error */
