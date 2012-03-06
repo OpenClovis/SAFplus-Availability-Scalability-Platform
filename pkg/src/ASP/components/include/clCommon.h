@@ -242,6 +242,8 @@ ClCharT *clStrdup(const ClCharT *str);
 
 ClBoolT clParseEnvBoolean(ClCharT* envvar);
 
+ClCharT *clParseEnvStr(const ClCharT* envvar);
+
 ClInt32T clCreatePipe(ClInt32T fds[2], ClUint32T numMsgs, ClUint32T msgSize);
 
 ClUint32T clBinaryPower(ClUint32T size);

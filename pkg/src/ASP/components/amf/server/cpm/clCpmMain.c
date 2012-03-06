@@ -586,21 +586,17 @@ static ClRcT cpmAllocate(void)
     /*
      * Mark if we are running under valgrind.
      */
-    if( (str = getenv("ASP_VALGRIND_CMD") ) )
+    if( (str = clParseEnvStr("ASP_VALGRIND_CMD") ) )
     {
-        while(*str && isspace(*str)) ++str;
-        if(*str)
-        {
-            cpmValgrindTimeout = CPM_VALGRIND_DEFAULT_DELAY;
-            if( (str = getenv("ASP_VALGRIND_DELAY") ) )
+        cpmValgrindTimeout = CPM_VALGRIND_DEFAULT_DELAY;
+        if( (str = clParseEnvStr("ASP_VALGRIND_DELAY") ) )
 
-            {
-                cpmValgrindTimeout = (ClInt32T)strtoul(str, &str, 10);
-                if(*str || cpmValgrindTimeout < 0) /*invalid delay*/
-                    cpmValgrindTimeout = CPM_VALGRIND_DEFAULT_DELAY; 
-            }
-            clLogNotice("VALGRIND", "DELAY", "DELAY configured is [%d] secs", cpmValgrindTimeout);
+        {
+            cpmValgrindTimeout = (ClInt32T)strtoul(str, &str, 10);
+            if(*str || cpmValgrindTimeout < 0) /*invalid delay*/
+                cpmValgrindTimeout = CPM_VALGRIND_DEFAULT_DELAY; 
         }
+        clLogNotice("VALGRIND", "DELAY", "DELAY configured is [%d] secs", cpmValgrindTimeout);
     }
         
     return CL_OK;

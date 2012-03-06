@@ -184,7 +184,7 @@ def is_simulation():
     return bool(int(asp_env['simulation']))
 
 def is_valgrind_build():
-    return bool(len(asp_env['asp_valgrind_cmd']))
+    return bool(len(asp_env['asp_valgrind_cmd'].strip()))
 
 def enforce_tipc_settings():
     return 'enforce_tipc_settings' in asp_env
