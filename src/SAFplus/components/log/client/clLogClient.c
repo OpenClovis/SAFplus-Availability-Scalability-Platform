@@ -1573,11 +1573,11 @@ VDECL_VER(clLogClientFilterSetNotify, 4, 0, 0)(
     }
     clLogStreamKeyDestroy(pStreamKey);
 
-    rc = clBitmapWalk(pStreamData->hStreamBitmap, clLogClntFilterSetCb,
-                      (void *) &filter);
+    rc = clBitmapWalkUnlocked(pStreamData->hStreamBitmap, clLogClntFilterSetCb,
+                              (void *) &filter);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clBitmapWalk(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clBitmapWalkUnlocked(): rc[0x %x]", rc));
         return rc;
     }
 
