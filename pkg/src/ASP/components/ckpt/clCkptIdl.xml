@@ -413,10 +413,6 @@
                     <Argument ParameterType="CL_IN" name="nodeAddr" type="ClUint32T"/>
                     <Argument ParameterType="CL_IN" name="iocPort" type="ClUint32T"/>
                 </Operation>	
-                <Operation name="_ckptSectionCheck" version="5.0.0">
-                    <Argument ParameterType="CL_IN" name="ckptHandle" type="ClHandleT"/>
-                    <Argument ParameterType="CL_IN"  name="pSecId" type="ClCkptSectionIdT" pointer="Single"/>
-                </Operation>	
             </Group>
             <Group name="MasterDeputy">
             <!-- 19) --> 
@@ -724,6 +720,13 @@
                     <Argument ParameterType="CL_IN"  name="portId" 
                     type="ClUint32T"/>
                 </Operation>	
+            </Group>
+            <Group name="ExtServerFunc">
+                <Operation name="_ckptSectionCheck" version="5.0.0">
+                    <Argument ParameterType="CL_IN" name="ckptHandle" type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN"  name="pSecId" type="ClCkptSectionIdT" pointer="Single"/>
+                </Operation>	
+
             </Group>
         </Port>            
     </Service>

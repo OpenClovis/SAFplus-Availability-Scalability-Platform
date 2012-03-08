@@ -1838,6 +1838,131 @@ done_return:
     return rc;
 }
 
+static void
+_viewMemberUpgradeCopy(ClGmsViewMemberT *dst, 
+                       VDECL_VER(ClGmsViewMemberT, 4, 0, 0) *src)
+{
+    memcpy(&dst->clusterMember, &src->clusterMember, sizeof(dst->clusterMember));
+    dst->contextHandle = src->contextHandle;
+    memcpy(&dst->groupData, &src->groupData, sizeof(dst->groupData));
+    dst->groupMember.handle = 0;
+    dst->groupMember.memberId = src->groupMember.memberId;
+    dst->groupMember.memberAddress = src->groupMember.memberAddress;
+    memcpy(&dst->groupMember.memberName, &src->groupMember.memberName,
+           sizeof(dst->groupMember.memberName));
+    dst->groupMember.memberActive = src->groupMember.memberActive;
+    dst->groupMember.joinTimestamp = src->groupMember.joinTimestamp;
+    dst->groupMember.initialViewNumber = src->groupMember.initialViewNumber;
+    dst->groupMember.credential = src->groupMember.credential;
+}
+
+ClRcT  
+_clGmsEngineGroupInfoSyncBase(VDECL_VER(ClGmsGroupSyncNotificationT, 4, 0, 0) *syncNotification)
+{
+    ClRcT       rc = CL_OK;
+    ClUint32T   i = 0;
+    ClGmsGroupInfoT *thisGroupInfo = NULL;
+    ClGmsDbT   *thisViewDb = NULL;
+    ClUint32T   groupId = 0;
+    time_t      t= 0x0;
+    VDECL_VER(ClGmsViewNodeT, 4, 0, 0)  *thisNode = NULL;
+    ClGmsViewNodeT *migrateNode = NULL;
+
+    if (readyToServeGroups == CL_TRUE)
+    {
+        clLog(INFO,GEN,NA,
+                "This sync message is not intended for this node\n");
+        return rc;
+    }
+
+    clGmsMutexLock(gmsGlobalInfo.dbMutex);
+    clGmsMutexLock(gmsGlobalInfo.nameIdMutex);
+    clLog(DBG,GEN,NA,
+            "Processing the sync message.");
+    /* Create the groups as per the number of groups */
+    for (i = 0; i < syncNotification->noOfGroups; i++)
+    {
+        thisGroupInfo = &syncNotification->groupInfoList[i];
+        CL_ASSERT(thisGroupInfo != NULL);
+
+        groupId = thisGroupInfo->groupId;
+        CL_ASSERT(groupId != 0);
+
+        rc = _clGmsDbCreateOnIndex(groupId,gmsGlobalInfo.db,&thisViewDb);
+        CL_ASSERT(rc == CL_OK);
+
+        thisViewDb->view.bootTime = (ClTimeT)(t*CL_GMS_NANO_SEC);
+        thisViewDb->view.lastModifiedTime = (ClTimeT)(t*CL_GMS_NANO_SEC);
+        thisViewDb->view.isActive   = CL_TRUE;
+        thisViewDb->viewType        = CL_GMS_GROUP;
+        thisViewDb->view.id         = groupId;
+        strncpy(thisViewDb->view.name.value,thisGroupInfo->groupName.value,
+                thisGroupInfo->groupName.length);
+        thisViewDb->view.name.length = thisGroupInfo->groupName.length;
+
+        /* copy the group Info into thisViewDb */
+        memcpy(&thisViewDb->groupInfo,thisGroupInfo,sizeof(ClGmsGroupInfoT));
+        clLogNotice("GROUP", "INFO", "Copying group [%.*s]",
+                    thisViewDb->view.name.length, thisViewDb->view.name.value);
+
+        /* Create an entry into name-id pair db */
+        rc = _clGmsNameIdDbAdd(&gmsGlobalInfo.groupNameIdDb,
+                               &thisGroupInfo->groupName,groupId);
+        CL_ASSERT(rc == CL_OK);
+    }
+    clGmsMutexUnlock(gmsGlobalInfo.nameIdMutex);
+
+    /* Add the group members */
+    for (i = 0; i < syncNotification->noOfMembers; i++)
+    {
+        thisNode = clHeapCalloc(1, sizeof(*thisNode));
+        migrateNode = clHeapCalloc(1, sizeof(*migrateNode));
+        CL_ASSERT(thisNode != NULL);
+        CL_ASSERT(migrateNode != NULL);
+        clLogNotice("CLUSTER", "INFO", "Copying cluster info...");
+        memcpy(thisNode, &syncNotification->groupMemberList[i], sizeof(*thisNode));
+        clLogNotice("CLUSTER", "INFO", "Copied cluster info [%d]",
+                    thisNode->viewMember.groupData.groupId);
+
+        groupId = thisNode->viewMember.groupData.groupId;
+
+        rc = _clGmsViewDbFind(groupId, &thisViewDb);
+
+        CL_ASSERT((rc == CL_OK) && (thisViewDb != NULL));
+
+        thisNode->viewMember.groupMember.joinTimestamp = (ClTimeT)(t*CL_GMS_NANO_SEC);
+        migrateNode->trackFlags = thisNode->trackFlags;
+        migrateNode->flags = thisNode->flags;
+        _viewMemberUpgradeCopy(&migrateNode->viewMember, &thisNode->viewMember);
+        clHeapFree(thisNode);
+        rc = _clGmsViewAddNode(groupId, migrateNode->viewMember.groupMember.memberId, migrateNode);
+        CL_ASSERT((rc == CL_OK) || (rc == CL_ERR_ALREADY_EXIST));
+    }
+
+    /* Do a track notify to make sure that JOIN_LEFT_VIEW is emptied */
+    for (i = 0; i < syncNotification->noOfGroups; i++)
+    {
+        thisGroupInfo = &syncNotification->groupInfoList[i];
+        CL_ASSERT(thisGroupInfo != NULL);
+
+        groupId = thisGroupInfo->groupId;
+        CL_ASSERT(groupId != 0);
+
+        rc =  _clGmsTrackNotify(groupId);
+        if (rc != CL_OK)
+        {
+            clLog(ERROR,GEN,NA,
+                    "Track notification for groupId = %d failed with rc = 0x%x\n",
+                     groupId, rc);
+        }
+    }
+    clLog(DBG,GEN,NA,
+            "Sync message processing is done.");
+       
+    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
+    return rc;
+}
+
 ClRcT  
 _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
 {
