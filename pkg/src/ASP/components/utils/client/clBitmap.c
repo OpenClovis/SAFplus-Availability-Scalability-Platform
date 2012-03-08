@@ -404,7 +404,6 @@ clBitmapWalk(ClBitmapHandleT  hBitmap,
     rc = clOsalMutexLock(pBitmapInfo->bitmapLock);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clOsalMutexLock() rc: %x", rc)); 
         return rc;
     }
 
@@ -417,8 +416,6 @@ clBitmapWalk(ClBitmapHandleT  hBitmap,
             rc = fpUserSetBitWalkCb(hBitmap, bitNum, pCookie);
             if( CL_OK != rc )
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                               ("fpBitmapWalkCb() rc: %x", rc));
                 break;
             }
         }
@@ -439,7 +436,9 @@ clBitmapWalkUnlocked(ClBitmapHandleT  hBitmap,
     ClUint32T      elementIdx   = 0;
     ClUint32T      bitIdx       = 0;
     ClUint32T      bitNum       = 0;
-    
+    ClUint8T *copyMap = NULL;
+    ClUint32T nBits = 0;
+
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Enter"));
 
     if( CL_BM_INVALID_BITMAP_HANDLE == hBitmap )
@@ -460,36 +459,30 @@ clBitmapWalkUnlocked(ClBitmapHandleT  hBitmap,
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clOsalMutexLock() rc: %x", rc)); 
         return rc;
     }
+    nBits = pBitmapInfo->nBits;
+    copyMap = clHeapCalloc(pBitmapInfo->nBytes, sizeof(*copyMap));
+    CL_ASSERT(copyMap != NULL);
+    memcpy(copyMap, pBitmapInfo->pBitmap, pBitmapInfo->nBytes);
+    clOsalMutexUnlock(pBitmapInfo->bitmapLock);
 
-    for (bitNum = 0; bitNum < pBitmapInfo->nBits; ++bitNum)
+    for (bitNum = 0; bitNum < nBits; ++bitNum)
     { 
         elementIdx = bitNum / CL_BM_BITS_IN_BYTE;
         bitIdx = bitNum % CL_BM_BITS_IN_BYTE;
-        if( (pBitmapInfo->pBitmap)[elementIdx] & (0x1 << bitIdx) )
+        if( copyMap[elementIdx] & (0x1 << bitIdx) )
         {
-            rc = clOsalMutexUnlock(pBitmapInfo->bitmapLock);
-            if( CL_OK != rc )
-            {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clOsalMutexUnlock() rc: %x", rc)); 
-                return rc;
-            }   
             rc = fpUserSetBitWalkCb(hBitmap, bitNum, pCookie);
             if( CL_OK != rc )
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                               ("fpBitmapWalkCb() rc: %x", rc));
-                return rc;
-            }
-            rc = clOsalMutexLock(pBitmapInfo->bitmapLock);
-            if( CL_OK != rc )
-            {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clOsalMutexLock() rc: %x", rc)); 
-                return rc;
+                goto out_free;
             }
         }
     }
         
-    clOsalMutexUnlock(pBitmapInfo->bitmapLock);
+    out_free:
+    if(copyMap)
+        clHeapFree(copyMap);
+
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Exit"));
     return rc;
 }
@@ -551,7 +544,6 @@ clBitmapNextClearBitSetNGet(ClBitmapHandleT  hBitmap,
 
     if( length >= pBitmapInfo->nBits )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid length"));
         clOsalMutexUnlock(pBitmapInfo->bitmapLock);
         return CL_BITMAP_RC(CL_ERR_INVALID_PARAMETER);
     }
@@ -597,7 +589,6 @@ clBitmap2BufferGet(ClBitmapHandleT  hBitmap,
     *ppPositionList = clHeapCalloc(pBitmapInfo->nBytes, sizeof(ClUint8T));
     if( NULL == *ppPositionList )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHeapCalloc()"));
         clOsalMutexUnlock(pBitmapInfo->bitmapLock);
         return rc;
     }
@@ -650,8 +641,6 @@ clBitmapBuffer2BitmapGet(ClUint32T        listLen,
                            rc));
                if( (rc2 = clBitmapDestroy(*phBitmap) ) != CL_OK )
                {
-                   CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clBitmapDestroy(): rc[%#x]",
-                                                   rc2));
                }
                return rc;
            }
@@ -689,7 +678,6 @@ clBitmap2PositionListGet(ClBitmapHandleT  hBitmap,
     *ppPositionList = clHeapCalloc(pBitmapInfo->nBitsSet, sizeof(ClUint32T));
     if( NULL == *ppPositionList )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHeapCalloc()"));
         clOsalMutexUnlock(pBitmapInfo->bitmapLock);
         return rc;
     }
