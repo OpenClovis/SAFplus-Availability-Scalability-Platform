@@ -98,6 +98,10 @@ static ClRcT clAmsCkptDBConfigDeserialize(ClUint32T dsId, ClAddrT pData, ClUint3
                                        
 static ClUint32T gClAmsCkptCurrentDbInvocationPair;
 static ClUint32T gClAmsCkptLastDbInvocationPair;
+static ClNameT gClAmsCkptDBSectionCache[CL_AMS_DB_INVOCATION_PAIRS];
+static ClNameT gClAmsCkptInvocationSectionCache[CL_AMS_DB_INVOCATION_PAIRS];
+static ClNameT gClAmsCkptCurrentSectionCache;
+static ClInt32T gClAmsPersistentDBDisabled = -1;
 
 static ClRcT
 clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
@@ -159,6 +163,56 @@ static void amsCkptDifferenceVectorKeyGet(ClDifferenceVectorKeyT *key, ClNameT *
     key->sectionKey->pValue = clStrdup((const ClCharT*)pSection->value);
     CL_ASSERT(key->sectionKey->pValue != NULL);
     key->sectionKey->length = strlen(key->sectionKey->pValue);
+}
+
+static ClRcT clAmsCkptSectionOverwriteNoLock(ClCkptHdlT ckptHandle,
+                                             ClNameT *pSection,
+                                             ClUint8T *pData,
+                                             ClUint32T dataLen,
+                                             ClUint32T mode
+                                             )
+{
+    ClCkptSectionCreationAttributesT sectionAttribs;
+    ClRcT rc = CL_OK;
+
+    AMS_CHECKPTR(!pSection);
+    AMS_CHECKPTR(!pData);
+
+    memset(&sectionAttribs,0,sizeof(sectionAttribs));
+    rc = CL_AMS_RC(CL_ERR_NO_MEMORY);
+    sectionAttribs.sectionId=(ClCkptSectionIdT*)clHeapAllocate(sizeof(ClCkptSectionIdT));
+    if(sectionAttribs.sectionId == NULL)
+    {
+        goto error;
+    }
+    sectionAttribs.sectionId->idLen = strlen(pSection->value);
+    sectionAttribs.sectionId->id=(ClUint8T *) clHeapAllocate(sectionAttribs.sectionId->idLen);
+    if(sectionAttribs.sectionId->id == NULL)
+    {
+        clAmsFreeMemory(sectionAttribs.sectionId);
+        goto error;
+    }
+    memcpy(sectionAttribs.sectionId->id,(ClUint8T*)pSection->value,sectionAttribs.sectionId->idLen);
+
+    rc = clCkptSectionOverwriteLinear(
+                                      ckptHandle,
+                                      sectionAttribs.sectionId,
+                                      pData,
+                                      dataLen);
+
+    if(rc != CL_OK )
+    { 
+        AMS_LOG(CL_DEBUG_ERROR,("AMS Ckpt section overwrite failed for Section [%s] with error [0x%x]\n",
+                                pSection->value, rc));
+        goto out_free;
+    }
+
+    out_free:
+    clAmsFreeMemory(sectionAttribs.sectionId->id);
+    clAmsFreeMemory(sectionAttribs.sectionId);
+
+    error:
+    return rc;
 }
 
 static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
@@ -378,6 +432,14 @@ static ClRcT clAmsCkptDBInitialize(void)
     ClCharT dbPath[CL_MAX_NAME_LENGTH+1];
     ClCharT ckptCtrlDBName[CL_MAX_NAME_LENGTH+1];
     ClInt32T err = 0;
+    
+    gClAmsPersistentDBDisabled = (ClInt32T)clParseEnvBoolean("CL_AMF_PERSISTENT_DB_DISABLED");
+    
+    if(gClAmsPersistentDBDisabled)
+    {
+        clLogNotice("PERSISTENT", "DB", "AMF persistent db disabled");
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
 
     if(gClAmsCkptDBInitialized == CL_TRUE) return CL_OK;
 
@@ -520,6 +582,16 @@ clAmsCkptDBWrite(void)
     static ClRcT dbInitialized = CL_OK;
     static ClRcT datasetInitialized = CL_OK;
 
+    if(gClAmsPersistentDBDisabled == -1)
+    {
+        gClAmsPersistentDBDisabled = (ClInt32T)clParseEnvBoolean("CL_AMF_PERSISTENT_DB_DISABLED");
+    }
+
+    if(gClAmsPersistentDBDisabled)
+    {
+        return CL_OK;
+    }
+
     if(gClAmsCkptDBInitialized == CL_FALSE)
     {
         if( (dbInitialized == CL_OK) && 
@@ -552,7 +624,6 @@ clAmsCkptDBRead(void)
     rc = clAmsCkptDBInitialize();
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Ckpt DB initialize returned [%#x]\n", rc));
         goto out;
     }
     rc = clCkptLibraryDoesCkptExist(gClAmsCkptDBHdl, &gClAmsCkptDBName, &present);
@@ -685,6 +756,10 @@ clAmsCkptInitialize(
         strncpy (ams->ckptInvocationSections[i].value,buf,
                  sizeof(ams->ckptInvocationSections[i].value)-1);
         ams->ckptInvocationSections[i].length = strlen(buf)+1;
+        memcpy(&gClAmsCkptDBSectionCache[i], &ams->ckptDBSections[i], 
+               sizeof(gClAmsCkptDBSectionCache[i]));
+        memcpy(&gClAmsCkptInvocationSectionCache[i], &ams->ckptInvocationSections[i],
+               sizeof(gClAmsCkptInvocationSectionCache[i]));
         amsCkptDifferenceVectorKeyGet(&ams->ckptDifferenceVectorKeys[i],
                                       &ams->ckptDBSections[i]);
     }
@@ -694,7 +769,8 @@ clAmsCkptInitialize(
     strncpy(ams->ckptCurrentSection.value,AMS_CKPT_CURRENT_SECTION,
             sizeof(ams->ckptCurrentSection.value)-1);
     ams->ckptCurrentSection.length = strlen(AMS_CKPT_CURRENT_SECTION) + 1;
-
+    memcpy(&gClAmsCkptCurrentSectionCache, &ams->ckptCurrentSection, 
+           sizeof(gClAmsCkptCurrentSectionCache));
     memset (&ams->ckptVersionSection,0,sizeof (ClNameT));
     strncpy (ams->ckptVersionSection.value, AMS_CKPT_VERSION_SECTION,
              sizeof(ams->ckptVersionSection.value)-1);
@@ -1232,6 +1308,161 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
     return CL_AMS_RC (rc);
 }
 
+static ClRcT
+amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
+{ 
+    ClRcT   rc = CL_OK;
+    ClCharT *ckptData = NULL;
+    ClUint32T dataLen = 0, invocationLen = 0;
+    ClCharT *invocationData = NULL;
+    ClUint32T dbInvocationPair = 0;
+    ClBoolT updateInvocationPair = CL_FALSE;
+    ClCkptHdlT ckptHandle = 0;
+
+    clOsalMutexLock(gAms.mutex);
+    if ( ams->ckptServerReady == CL_FALSE || 
+         ams->serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE || 
+         !ams->isEnabled)
+    { 
+        clOsalMutexUnlock(gAms.mutex);
+        AMS_LOG (CL_DEBUG_TRACE,("Checkpoint server not ready\n")); 
+        return CL_OK; 
+    }
+
+    ckptHandle = ams->ckptOpenHandle;
+    /*
+     * First get the current DB Invocation Pair to write to
+     */
+    if(mode == CL_AMS_CKPT_WRITE_ALL)
+    {
+        dbInvocationPair = CL_AMS_CKPT_GET_DB_INVOCATION_PAIR(dbInvocationPair);
+    }
+    else
+    {
+        /*
+         * Avoid update-Use the last so that we retain the 
+         * coupling between the pair
+         */
+        dbInvocationPair = gClAmsCkptCurrentDbInvocationPair;
+    }
+
+    if ( (mode == CL_AMS_CKPT_WRITE_DB) || (mode == CL_AMS_CKPT_WRITE_ALL) )
+    {
+        ClBufferHandleT dataBuf = 0;
+        rc = clBufferCreate(&dataBuf);
+        if(rc != CL_OK)
+        {
+            goto out_unlock;
+        }
+        rc = clAmsDBMarshall(&ams->db, dataBuf);
+        if(rc != CL_OK)
+        {
+            clBufferDelete(&dataBuf);
+            AMS_LOG(CL_DEBUG_ERROR, ("DB marshall returned [%#x]\n", rc));
+            goto out_unlock;
+        }
+        clBufferLengthGet(dataBuf, &dataLen);
+        AMS_LOG(CL_DEBUG_INFO, ("DB marshall done for [%d] bytes\n", dataLen));
+        rc = clBufferFlatten(dataBuf, (ClUint8T**)&ckptData);
+        if(rc != CL_OK)
+        {
+            clBufferDelete(&dataBuf);
+            AMS_LOG(CL_DEBUG_ERROR, ("Buffer flatten returned [%#x]\n", rc));
+            goto out_unlock;
+        }
+        clBufferDelete(&dataBuf);
+    }
+
+    if ( (mode == CL_AMS_CKPT_WRITE_INVOCATION) || (mode == CL_AMS_CKPT_WRITE_ALL) )
+    {
+        ClBufferHandleT invocationBuf = 0;
+
+        rc = clBufferCreate(&invocationBuf);
+        if(rc != CL_OK)
+            goto out_unlock;
+
+        rc = clAmsInvocationMarshall(ams, ams->ckptInvocationSections[dbInvocationPair].value, 
+                                     invocationBuf);
+        if(rc != CL_OK)
+        {
+            clBufferDelete(&invocationBuf);
+            goto out_unlock;
+        }
+
+        clBufferLengthGet(invocationBuf, &invocationLen);
+        AMS_LOG(CL_DEBUG_INFO, ("Invocation DB marshall done for [%d] bytes\n", invocationLen));
+        rc = clBufferFlatten(invocationBuf, (ClUint8T**)&invocationData);
+        if(rc != CL_OK)
+        {
+            AMS_LOG(CL_DEBUG_ERROR, ("Invocation buffer flatten returned [%#x]\n", rc));
+            clBufferDelete(&invocationBuf);
+            goto out_unlock;
+        }
+        clBufferDelete(&invocationBuf);
+    }
+
+    /*
+     * Now sync the active invocation pair incase there is a shift.
+     */
+    if(gClAmsCkptLastDbInvocationPair != dbInvocationPair)
+    {
+        gClAmsCkptLastDbInvocationPair = dbInvocationPair;
+        updateInvocationPair = CL_TRUE;
+    }
+
+    clOsalMutexUnlock(gAms.mutex);
+
+    if(dataLen > 0)
+    {
+        AMS_CHECK_RC_ERROR(clAmsCkptSectionOverwriteNoLock(
+                                                           ckptHandle,
+                                                           &gClAmsCkptDBSectionCache[dbInvocationPair],
+                                                           (ClUint8T*)ckptData,
+                                                           dataLen,
+                                                           CL_AMS_CKPT_WRITE_DB));
+    }
+
+    if(invocationLen > 0)
+    {
+        AMS_CHECK_RC_ERROR(clAmsCkptSectionOverwriteNoLock(
+                                                           ckptHandle,
+                                                           &gClAmsCkptInvocationSectionCache[dbInvocationPair],
+                                                           (ClUint8T *)invocationData,
+                                                           invocationLen,
+                                                           CL_AMS_CKPT_WRITE_INVOCATION));
+    }
+
+    if(updateInvocationPair)
+    {
+        AMS_LOG(CL_DEBUG_TRACE,
+                ("AMS CKPT Section overwrite for [%s],dbInvocation pair [0x%x]",
+                 gClAmsCkptCurrentSectionCache.value, dbInvocationPair));
+
+        AMS_CHECK_RC_ERROR(clAmsCkptSectionOverwriteNoLock(
+                                                           ckptHandle,
+                                                           &gClAmsCkptCurrentSectionCache,
+                                                           (ClUint8T*)&dbInvocationPair,
+                                                           sizeof(dbInvocationPair),
+                                                           CL_AMS_CKPT_WRITE_INVOCATION));
+    }
+
+    goto out_free;
+
+    out_unlock:
+    clOsalMutexUnlock(gAms.mutex);
+
+    exitfn:
+    rc = CL_AMS_RC (rc);
+
+    out_free:
+    if(ckptData)
+        clHeapFree(ckptData);
+    if(invocationData)
+        clHeapFree(invocationData);
+
+    return rc;
+}
+
 static ClRcT amsCkptWriteCallback(ClPtrT unused)
 {
     static ClTimeT lastTime;
@@ -1264,9 +1495,17 @@ static ClRcT amsCkptWriteCallback(ClPtrT unused)
      * Fire the ams ckpt write now.
      */
     clLogTrace("CKP", "WRITE", "Write at [%lld] usecs", clOsalStopWatchTimeGet());
-    clOsalMutexLock(gAms.mutex);
-    rc = amsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_ALL);
-    clOsalMutexUnlock(gAms.mutex);
+    if(AMS_CKPT_FREQUENCY < 3)
+    {
+        clOsalMutexLock(gAms.mutex);
+        rc = amsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_ALL);
+        clOsalMutexUnlock(gAms.mutex);
+    }
+    else
+    {
+        rc = amsCkptWriteNoLock(&gAms, CL_AMS_CKPT_WRITE_ALL);
+    }
+
     lastTime = clOsalStopWatchTimeGet();
     /*
      * If its a timeout, schedule a pause before the next write. 
