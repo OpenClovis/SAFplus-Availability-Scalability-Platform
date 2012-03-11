@@ -162,6 +162,13 @@ clAmsNotificationEventInitialize (void)
     {
         gClAmsNotificationMask &= ~__AMS_NOTIFICATION_ENTITY_MASK;
     }
+    /*
+     * Disable notifications in general
+     */
+    if(clParseEnvBoolean("CL_AMF_NOTIFICATION_DISABLED"))
+    {
+        gClAmsNotificationMask = 0;
+    }
 
     return CL_OK;
 
