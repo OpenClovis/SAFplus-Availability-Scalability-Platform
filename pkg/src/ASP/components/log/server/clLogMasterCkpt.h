@@ -54,6 +54,9 @@ ClRcT
 clLogMasterCkptDestroy(void);
 
 ClRcT
+clLogMasterCkptDelete(void);
+
+ClRcT
 clLogMasterDataCheckpoint(CL_IN ClLogMasterEoDataT  *pMasterEoEntry,
                           CL_IN ClCntNodeHandleT     hFileNode,
                           CL_IN ClBoolT              addCkptEntry);

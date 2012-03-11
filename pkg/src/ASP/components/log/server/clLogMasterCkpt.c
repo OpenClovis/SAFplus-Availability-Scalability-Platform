@@ -202,6 +202,22 @@ clLogMasterCkptDestroy(void)
 }
 
 ClRcT
+clLogMasterCkptDelete(void)
+{
+    ClRcT                  rc              = CL_OK;
+    ClLogSvrCommonEoDataT  *pCommonEoEntry = NULL;
+
+    rc = clLogMasterEoEntryGet(NULL, &pCommonEoEntry);
+    if( CL_OK != rc )
+    {
+        return rc;
+    }
+    CL_LOG_CLEANUP(clCkptCheckpointDelete(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName), CL_OK);
+
+    return rc;
+}
+
+ClRcT
 clLogMasterDataCheckpoint(ClLogMasterEoDataT  *pMasterEoEntry,
                           ClCntNodeHandleT    hFileNode,
                           ClBoolT             addCkptEntry)

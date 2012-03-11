@@ -50,6 +50,7 @@
 #include <AppclientPortclientClient.h>
 #include <xdrClLogCompDataT.h>
 #include <clLogOsal.h>
+#include <clNodeCache.h>
 
 static ClRcT
 clLogSvrCompEntryAdd(CL_IN  ClLogSvrEoDataT        *pSvrEoEntry,
@@ -144,6 +145,8 @@ clLogLocalFlusherSetup(ClNameT              *pStreamName,
 
 ClRcT
 clLogSvrPrecreatedStreamsOpen(void);
+
+static ClTimerHandleT gLogUpgradeTimer;
 
 /******************************** Log Svr *************************************/
 
@@ -2180,7 +2183,7 @@ clLogSvrTimerDeleteNStart(ClLogSvrEoDataT  *pSvrEoEntry,
                           void             *pData)
 {
     ClRcT            rc      = CL_OK;
-    ClTimerTimeOutT  timeout = {0, 1000};
+    ClTimerTimeOutT  timeout = {.tsSec = 1, .tsMilliSec = 0};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -2201,6 +2204,110 @@ clLogSvrTimerDeleteNStart(ClLogSvrEoDataT  *pSvrEoEntry,
     if(gClLogSvrExiting)
         return rc;
 
+    rc = clTimerCreateAndStart(timeout, CL_TIMER_ONE_SHOT,
+                               CL_TIMER_SEPARATE_CONTEXT,
+                               clLogTimerCallback, 
+                               pData, &pSvrEoEntry->hTimer);
+    if( CL_OK != rc )
+    {
+        CL_LOG_DEBUG_ERROR(("clTimerCreateAndStart(): rc[0x %x]", rc));
+        return rc;
+    }
+    clLogDebug(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
+      "Timer has been started...");
+
+    CL_LOG_DEBUG_TRACE(("Exit"));
+    return rc;
+}
+
+static ClRcT clLogUpgradeTimerCallback(void *data)
+{
+    ClRcT rc = CL_OK;
+    ClUint32T version = 0;
+    ClTimerTimeOutT upgradeTimeout = {.tsSec = 3, .tsMilliSec = 0};
+    static ClBoolT upgradeDone = CL_FALSE;
+
+    if(gLogUpgradeTimer != CL_HANDLE_INVALID_VALUE)
+        clTimerDelete(&gLogUpgradeTimer);
+
+    if(gClLogSvrExiting)
+        return CL_OK;
+
+    clNodeCacheMinVersionGet(NULL, &version);
+    if(version >= CL_VERSION_CODE(5, 0, 0))
+    {
+        ClLogSvrEoDataT *pSvrEoData = NULL;
+        ClLogSvrCommonEoDataT *pSvrCommonEoData = NULL;
+        if(!upgradeDone)
+        {
+            upgradeDone = CL_TRUE;
+            goto timer_restart;
+        }
+        /*
+         * Delete the affected or upgraded checkpoints first
+         */
+        clLogStreamOwnerGlobalCkptDelete();
+        clLogMasterCkptDelete();
+        /*
+         * Set the retry timeout only after ckpt retention time which was 60 seconds
+         * for old checkpoints.
+         */
+        rc = clLogSvrEoEntryGet(&pSvrEoData, &pSvrCommonEoData);
+        if(rc != CL_OK)
+            return rc;
+        clLogNotice("ROL", "UPGRADE", "Log server now continuing with the bootup "
+                    "as cluster has been upgraded");
+        return clLogSvrTimerDeleteNStart(pSvrEoData, data);
+    }
+
+    timer_restart:
+    return clTimerCreateAndStart(upgradeTimeout, CL_TIMER_ONE_SHOT, CL_TIMER_SEPARATE_CONTEXT,
+                                 clLogUpgradeTimerCallback, data, &gLogUpgradeTimer);
+}
+
+static ClRcT
+clLogSvrRollingUpgradeCheck(ClLogSvrCommonEoDataT *pSvrCommonEoEntry,
+                            ClLogSvrEoDataT  *pSvrEoEntry,
+                            void             *pData)
+{
+    ClRcT            rc      = CL_OK;
+    ClIocNodeAddressT node = 0;
+    ClUint32T version = 0;
+    ClTimerTimeOutT timeout = {.tsSec = 3, .tsMilliSec = 0 };
+
+    if( CL_HANDLE_INVALID_VALUE != pSvrEoEntry->hTimer )
+    {
+        clTimerDelete(&pSvrEoEntry->hTimer);
+        pSvrEoEntry->hTimer = CL_HANDLE_INVALID_VALUE;
+    }
+
+    /*
+     * Before restarting the timer, check for log server exit status.
+     */
+    if(gClLogSvrExiting)
+        return rc;
+
+    clNodeCacheMinVersionGet(&node, &version);
+    if(version < CL_VERSION_CODE(5, 0, 0) 
+       &&
+       node == pSvrCommonEoEntry->masterAddr)
+    {
+        ClTimerTimeOutT upgradeTimeout = {.tsSec= 5, .tsMilliSec = 0};
+        if(gLogUpgradeTimer != CL_HANDLE_INVALID_VALUE)
+        {
+            clTimerDelete(&gLogUpgradeTimer);
+        }
+        clLogNotice("ROL", "UPGRADE", "Log server waiting for the cluster to be upgraded "
+                    "as master node is at version [%d.%d.%d]",
+                    CL_VERSION_RELEASE(version), CL_VERSION_MAJOR(version),
+                    CL_VERSION_MINOR(version));
+        rc = clTimerCreateAndStart(upgradeTimeout, CL_TIMER_ONE_SHOT,
+                                   CL_TIMER_SEPARATE_CONTEXT, clLogUpgradeTimerCallback,
+                                   pData, &gLogUpgradeTimer);
+        if(rc == CL_OK)
+            return rc;
+    }
+    
     rc = clTimerCreateAndStart(timeout, CL_TIMER_ONE_SHOT,
                                CL_TIMER_SEPARATE_CONTEXT,
                                clLogTimerCallback, 
@@ -2299,6 +2406,10 @@ clLogTimerCallback(void *pData)
             (pSvrCommonEoEntry->deputyAddr == localAddress) )
         {
             rc = clLogGlobalCkptGet();
+            if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST)
+            {
+                return clLogSvrRollingUpgradeCheck(pSvrCommonEoEntry, pSvrEoEntry, pData);
+            }
             if( CL_OK != rc )
             {
                 CL_LOG_DEBUG_ERROR(("clLogGlobalCkptGet(): rc[0x %x]", rc));
@@ -2328,6 +2439,9 @@ clLogTimerCallback(void *pData)
             rc = clLogGlobalCkptGet();
             if( CL_OK != rc )
             {
+                if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST)
+                    return clLogSvrRollingUpgradeCheck(pSvrCommonEoEntry,
+                                                       pSvrEoEntry, pData);
                 CL_LOG_DEBUG_ERROR(("clLogGlobalCkptGet(): rc[0x %x]", rc));
                 rc = clLogSvrTimerDeleteNStart(pSvrEoEntry, pData);
                 return rc;

@@ -7860,7 +7860,16 @@ static ClRcT clAmsDBUnmarshallVersion(ClBufferHandleT inMsgHdl, ClUint32T versio
             return CL_OK;
 
         default:
-            AMS_LOG(CL_DEBUG_ERROR, ("AMS db unmarshall returned [%#x]\n", rc));
+            if(versionCode < CL_VERSION_CODE(5, 0, 0))
+            {
+                /*
+                 * Should be the end ckpt operation op.
+                 */
+                clLogInfo("ROL", "UNPACK", "Unmarshalling done for amf db");
+                return CL_OK;
+            }
+            AMS_LOG(CL_DEBUG_ERROR, ("AMS db unmarshall for unknown op [%#x]\n", op));
+            rc = CL_AMS_RC(CL_ERR_NOT_SUPPORTED);
             goto exitfn;
         }
     }
