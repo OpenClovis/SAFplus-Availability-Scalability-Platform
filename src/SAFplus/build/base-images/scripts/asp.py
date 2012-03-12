@@ -182,7 +182,7 @@ def is_simulation():
     return bool(int(asp_env['simulation']))
 
 def is_valgrind_build():
-    return bool(len(asp_env['asp_valgrind_cmd']))
+    return bool(len(asp_env['asp_valgrind_cmd'].strip()))
 
 def enforce_tipc_settings():
     return 'enforce_tipc_settings' in asp_env
@@ -235,10 +235,12 @@ def gen_asp_run_env_file(run_file, d):
     print >> f, 'ASP_LOGDIR=%s' % d['log_dir']
     print >> f, 'ASP_NODENAME=%s' % d['node_name']
     print >> f, 'ASP_NODEADDR=%s' % d['node_addr']
+    print >> f, 'ASP_MULTINODE=%s' %d['simulation']
+    print >> f, 'ASP_SIMULATION=%s' %d['simulation']
+
     f.close()
     
 def set_up_asp_config():
-
     def get_sandbox_dir():
         p = os.path.dirname(os.path.realpath(__file__))
         p = os.path.split(p)[0]
@@ -402,7 +404,8 @@ def set_up_asp_config():
 
     os.putenv('ASP_CONFIG', d['etc_dir'])
     os.putenv('ASP_BINDIR', d['bin_dir'])
-
+    os.putenv('ASP_MULTINODE', d['simulation'])
+    os.putenv('ASP_SIMULATION', d['simulation'])
     gen_asp_run_env_file(d['etc_dir']+'/asp_run.env', d)
     
     return d
@@ -568,7 +571,7 @@ def run_custom_scripts(cmd):
                         fail_and_exit('Custom script execution failure')
 
 def setup_gms_config():
-    os.putenv('ASP_MULTINODE', '1')
+    return
 
 def start_snmp_daemon():
     def set_snmp_conf_path():

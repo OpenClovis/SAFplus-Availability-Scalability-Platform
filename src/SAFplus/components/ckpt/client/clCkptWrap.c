@@ -42,6 +42,7 @@
 #include <clCkptIpi.h>
 #include  <clCpmApi.h>
 #include  "ckptEockptServerCliServerFuncClient.h"
+#include  "ckptEockptServerExtServerFuncClient.h"
 #include  "ckptEockptServerExtCliServerFuncClient.h"
 #include "ckptEockptServerActivePeerClient.h"
 #include  "ckptClntEoServer.h"

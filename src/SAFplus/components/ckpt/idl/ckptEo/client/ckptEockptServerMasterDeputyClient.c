@@ -27,7 +27,7 @@ ClRcT clCkptDeputyMasterInfoSyncupClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 19);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 18);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -304,7 +304,7 @@ ClRcT clCkptDeputyMasterInfoSyncupClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 19);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 18);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -413,7 +413,7 @@ ClRcT clCkptLeaderAddrUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 20);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 19);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -526,7 +526,7 @@ ClRcT clCkptLeaderAddrUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN C
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 20);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 19);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};

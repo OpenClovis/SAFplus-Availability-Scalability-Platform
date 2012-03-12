@@ -52,8 +52,25 @@
         ((S) == CL_AMS_NOTIFICATION_SI_UNASSIGNED)          ? "unassigned" : \
         "Unknown" )
 
+#define __AMS_NOTIFICATION_ENTITY_CREATE_MASK (1 << (ClInt32T)CL_AMS_NOTIFICATION_ENTITY_CREATE )
+#define __AMS_NOTIFICATION_ENTITY_DELETE_MASK (1 << (ClInt32T)CL_AMS_NOTIFICATION_ENTITY_DELETE )
+#define __AMS_NOTIFICATION_OPER_STATE_MASK (1 << (ClInt32T) \
+                                            CL_AMS_NOTIFICATION_OPER_STATE_CHANGE )
+#define __AMS_NOTIFICATION_ADMIN_STATE_MASK (1 << (ClInt32T) \
+                                             CL_AMS_NOTIFICATION_ADMIN_STATE_CHANGE )
+
+#define __AMS_NOTIFICATION_ENTITY_MASK (__AMS_NOTIFICATION_ENTITY_CREATE_MASK | \
+                                        __AMS_NOTIFICATION_ENTITY_DELETE_MASK )
+
+#define __AMS_NOTIFICATION_STATE_CHANGE_MASK (__AMS_NOTIFICATION_OPER_STATE_MASK | \
+                                              __AMS_NOTIFICATION_ADMIN_STATE_MASK)
+
+#define __AMS_NOTIFICATION_STATUS(type) (gClAmsNotificationMask & \
+                                         (1 << (ClInt32T)(type) ) )
+
 ClVersionT eventVersion = {'B',01,01};
 static ClBoolT gClAmsNotificationDebug = CL_FALSE;
+static ClUint32T gClAmsNotificationMask = ~0U;
 
 /*****************************************************************************
  * Notification related functions 
@@ -135,7 +152,23 @@ clAmsNotificationEventInitialize (void)
             != CL_OK )
         goto error;
 
-    gClAmsNotificationDebug = clParseEnvBoolean("AMS_NOTIFICATION_DEBUG");
+    gClAmsNotificationDebug = clParseEnvBoolean("CL_AMF_NOTIFICATION_DEBUG");
+    gClAmsNotificationMask = ~0U;
+    if(clParseEnvBoolean("CL_AMF_NOTIFICATION_STATE_DISABLED"))
+    {
+        gClAmsNotificationMask &= ~__AMS_NOTIFICATION_STATE_CHANGE_MASK;
+    }
+    if(clParseEnvBoolean("CL_AMF_NOTIFICATION_ENTITY_DISABLED"))
+    {
+        gClAmsNotificationMask &= ~__AMS_NOTIFICATION_ENTITY_MASK;
+    }
+    /*
+     * Disable notifications in general
+     */
+    if(clParseEnvBoolean("CL_AMF_NOTIFICATION_DISABLED"))
+    {
+        gClAmsNotificationMask = 0;
+    }
 
     return CL_OK;
 
@@ -144,7 +177,6 @@ error:
     return CL_AMS_RC (rc);
 
 }
-
 
 static void clAmsNotificationLog(ClAmsNotificationDescriptorT *notification)
 {
@@ -234,6 +266,13 @@ ClRcT clAmsNotificationEventPublish(
     if ( ams->eventServerReady == CL_FALSE )
     {
         AMS_LOG (CL_DEBUG_TRACE,("Event server not ready\n"));
+        return CL_OK;
+    }
+
+    if(!__AMS_NOTIFICATION_STATUS(notification->type))
+    {
+        clLogTrace("NOT", "EVT", "Notification type [%d] disabled for event notification",
+                   (ClInt32T)notification->type);
         return CL_OK;
     }
 
