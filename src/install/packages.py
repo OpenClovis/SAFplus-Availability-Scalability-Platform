@@ -194,8 +194,7 @@ class OS:
         
         openhpisubagent.use_build_dir = False
         
-        
-        openhpisubagent.build_cmds     = [EXPORT + ' && ./configure --prefix=${PREFIX} CFLAGS=-I${BUILDTOOLS}/local/include' + log,
+        openhpisubagent.build_cmds     = [EXPORT + ' && ./configure --prefix=${PREFIX} CFLAGS="-I${BUILDTOOLS}/local/include -Wno-error=unused-but-set-variable"' + log,
                                           EXPORT + ' && make' + log, 
                                           EXPORT + ' && make install' + log]
         
@@ -406,7 +405,7 @@ class Ubuntu(OS):
                  'pkg-config',
                  'libglib2.0-dev',
                  'libgdbm-dev',
-                 'libdb4.6-dev',
+                 'libdb-dev',
                  'libsqlite3-0',
                  'libsqlite3-dev',
                  'e2fsprogs',
