@@ -26,11 +26,11 @@ except ImportError:
 # Settings
 # ------------------------------------------------------------------------------
 
-THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.22'                # Look for PKG starting with this name
-THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.22.tar'            # search this package if no 3rdPartyPkg found
+THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.23'                # Look for PKG starting with this name
+THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.23.tar'            # search this package if no 3rdPartyPkg found
 if determine_bit() == 64:
-  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.22-x86_64'       # Look for PKG starting with this name
-  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.22-x86_64.tar'
+  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.23-x86_64'       # Look for PKG starting with this name
+  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.23-x86_64.tar'
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
 INSTALL_LOCKFILE             = '/tmp/.openclovis_installer'        # installer lockfile location
 
@@ -478,7 +478,7 @@ class ASPInstaller:
         
         # define some essential packages we most definitely need...
         # fixme, maybe we should install these if they aren't found?
-        essentials = ('gcc', 'pkg-config', 'perl', 'md5sum')
+        essentials = ('perl', 'md5sum')
         
         fatal = False
         
@@ -765,9 +765,9 @@ class ASPInstaller:
             
             self.feedback('Error: Cannot find \'%s\' in directory \'%s\'\n' % (thirdPartyPkg, WORKING_ROOT))
             
-            THIRDPARTYPKG_FTPURL = os.path.join('ftp://ftp.openclovis.com/pub/release/', thirdPartyPkg)        
+            #THIRDPARTYPKG_FTPURL = os.path.join('ftp://ftp.openclovis.com/pub/release/', thirdPartyPkg)        
             #THIRDPARTYMD5_FTPURL = os.path.join('ftp://ftp.openclovis.com/pub/release/', THIRDPARTYMD5)        
-            
+            THIRDPARTYPKG_FTPURL = os.path.join("https://github.com/downloads/OpenClovis/SAFplus-Availability-Scalability-Platform/", thirdPartyPkg) 
             # attempt to download the package. Requires wget
             
             cmd = ''
