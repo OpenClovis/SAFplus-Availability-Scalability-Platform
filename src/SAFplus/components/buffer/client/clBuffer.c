@@ -363,7 +363,7 @@ clBufferPoolNativeCacheInitialize(const ClBufferPoolConfigT *pBufferPoolConfig)
     /*
      * Don't use the cache when running with valgrind
      */
-    if(!getenv("ASP_VALGRIND_CMD"))
+    if(!clParseEnvStr("ASP_VALGRIND_CMD"))
     {
         for(i = 0; i < pBufferPoolConfig->numPools; ++i)
         {

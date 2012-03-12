@@ -18,9 +18,8 @@
  */
 #include "clCommon.h"
 #include "clDebugApi.h"
-
-#ifdef VXWORKS_BUILD
 #include <ctype.h>
+#ifdef VXWORKS_BUILD
 #include <sysLib.h>
 #include <tickLib.h>
 #include <sys/select.h>
@@ -145,6 +144,16 @@ ClBoolT clParseEnvBoolean(ClCharT* envvar)
     }
 
     return rc;
+}
+
+ClCharT *clParseEnvStr(const ClCharT *envvar)
+{
+    ClCharT *val = NULL;
+    if(!envvar || !(val = getenv(envvar)))
+        return NULL;
+    while(*val && isspace(*val)) ++val;
+    if(!*val) return NULL;
+    return val;
 }
 
 ClCharT *clStrdup(const ClCharT *str)

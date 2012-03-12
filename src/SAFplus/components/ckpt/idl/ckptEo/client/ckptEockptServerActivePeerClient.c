@@ -98,7 +98,7 @@ ClRcT clCkptRemSvrCkptInfoSyncClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 38);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 37);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -302,7 +302,7 @@ ClRcT clCkptRemSvrCkptInfoSyncClientAsync_5_0_0(CL_IN ClIdlHandleT handle, CL_IN
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {5, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 38);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 37);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -435,7 +435,7 @@ ClRcT clCkptRemSvrCkptInfoGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOU
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 39);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 38);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -598,7 +598,7 @@ ClRcT clCkptRemSvrCkptInfoGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INO
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 39);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 38);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -719,7 +719,7 @@ ClRcT clCkptRemSvrCkptInfoGetClientSync_5_0_0(CL_IN ClIdlHandleT handle, CL_INOU
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {5, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 39);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 38);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -882,7 +882,7 @@ ClRcT clCkptRemSvrCkptInfoGetClientAsync_5_0_0(CL_IN ClIdlHandleT handle, CL_INO
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {5, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 39);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 38);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -1065,7 +1065,7 @@ ClRcT clCkptRemSvrSectionInfoUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, 
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 40);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 39);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -1236,7 +1236,7 @@ ClRcT clCkptRemSvrCkptDeleteClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOU
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 41);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 40);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -1431,7 +1431,7 @@ ClRcT clCkptRemSvrCkptWriteClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 42);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 41);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -1632,7 +1632,7 @@ ClRcT clCkptRemSvrSectionExpTimeSetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, 
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 43);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 42);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -1800,7 +1800,7 @@ ClRcT clCkptCheckpointReplicaRemoveClientAsync_4_0_0(CL_IN ClIdlHandleT handle, 
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 44);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 43);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -1965,7 +1965,7 @@ ClRcT clCkptReplicaAppInfoNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 45);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 44);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -2086,7 +2086,7 @@ ClRcT clCkptActiveCallbackNotifyClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 46);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 45);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};
@@ -2214,7 +2214,7 @@ ClRcT clCkptActiveCallbackNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
-    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 46);
+    ClUint32T funcNo = CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 45);
     ClBufferHandleT inMsgHdl = 0;
     ClBufferHandleT outMsgHdl = 0;
     ClIocAddressT address = {{0}};

@@ -352,7 +352,9 @@ amsEntityReset(
             comp->status.amStopCount           = 0;
 
             //comp->status.proxyComp             = NULL;
-            
+
+            if(init) comp->status.failoverCount = 0;
+
             if(!init
                &&
                (lastOperState != newOperState))
@@ -1661,6 +1663,8 @@ clAmsEntityPrint(
                     "%u",comp->status.numQuiescedCSIs);
             CL_AMS_PRINT_TWO_COL("Component Restart Count",
                     "%u",comp->status.restartCount);
+            CL_AMS_PRINT_TWO_COL("Component Failover Count",
+                    "%u",comp->status.failoverCount);
             CL_AMS_PRINT_TWO_COL("Instantiate Count",
                     "%u",comp->status.instantiateCount);
             CL_AMS_PRINT_TWO_COL("Instantiate with Delay Count",
@@ -2483,6 +2487,9 @@ clAmsEntityXMLPrint(
 
             CL_AMS_PRINT_TAG_VALUE("component_restart_count", "%u",
                                    comp->status.restartCount);
+
+            CL_AMS_PRINT_TAG_VALUE("component_failover_count", "%u",
+                                   comp->status.failoverCount);
 
             CL_AMS_PRINT_TAG_VALUE("instantiate_count", "%u",
                                    comp->status.instantiateCount);

@@ -856,6 +856,9 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
 
     localAddr = clIocLocalAddressGet();
     startIdx = pHeader->startAck % pHeader->maxRecordCount;
+    if(nRecords > pHeader->maxRecordCount)
+        nRecords = pHeader->maxRecordCount;
+
     buffLen = nRecords * pHeader->recordSize;
 
     clLogDebug(CL_LOG_AREA_SVR, "FLU", "startIdx: %u maxRec: %u nRecords: %u startIdx: %d recordIdx: %d", startIdx,
@@ -964,6 +967,9 @@ clLogFlusherRecordsMcast(ClLogSvrStreamDataT  *pStreamData,
 
     localAddr = clIocLocalAddressGet();
     startIdx = pHeader->startAck % pHeader->maxRecordCount;
+    if(nRecords > pHeader->maxRecordCount)
+        nRecords = pHeader->maxRecordCount;
+
     buffLen = nRecords * pHeader->recordSize;
     /*
      * Drop the server stream mutex unlock now and grab it again after file owner writes

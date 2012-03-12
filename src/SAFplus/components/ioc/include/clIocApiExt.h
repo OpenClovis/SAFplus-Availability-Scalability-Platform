@@ -82,6 +82,8 @@ extern "C"
         CL_IOC_NODE_VERSION_NOTIFICATION,
         CL_IOC_NODE_VERSION_REPLY_NOTIFICATION,
         CL_IOC_NODE_DISCOVER_NOTIFICATION,
+        CL_IOC_NODE_LINK_UP_NOTIFICATION,    
+        CL_IOC_NODE_LINK_DOWN_NOTIFICATION,
     } ClIocNotificationIdT;
     
     typedef struct ClIocQueueNotification

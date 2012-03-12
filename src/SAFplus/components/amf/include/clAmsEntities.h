@@ -823,6 +823,7 @@ typedef struct
     ClUint32T               numQuiescingCSIs;   /**< num quiescing CSIs        */
     ClUint32T               numQuiescedCSIs;    /**< num quiesced CSIs         */
     ClUint32T               restartCount;       /**< current comp failure count*/
+    ClUint32T               failoverCount;      /**< current comp failure count*/
     ClUint32T               instantiateCount;   /**< current inst count        */
     ClUint32T               instantiateDelayCount; /**< inst count with delay  */
     ClUint32T               amStartCount;       /**< current am start count    */
@@ -833,6 +834,8 @@ typedef struct
     ClAmsEntityListT        csiList;            /**< assigned act/standby CSIs */
     ClAmsSAClientCallbacksT clientCallbacks;    /**< fns registered by client  */
 } ClAmsCompStatusT;
+
+typedef ClAmsCompStatusT VDECL_VER(ClAmsCompStatusT, 5, 1, 0);
 
 typedef struct
 {
@@ -857,6 +860,8 @@ typedef struct
     ClAmsCompStatusT        status;
     ClAmsCompMethodsT       methods;
 } ClAmsCompT;
+
+typedef ClAmsCompT VDECL_VER(ClAmsCompT, 5, 1, 0);
 
 /******************************************************************************
  * AMS COMPONENT SERVICE INSTANCE
