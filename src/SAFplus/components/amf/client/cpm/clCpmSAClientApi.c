@@ -3007,6 +3007,7 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
 
     if(clEoWithOutCpm != CL_TRUE)
     {
+        static ClUint8T priority = CL_IOC_CPM_INSTANTIATE_PRIORITY;
         rc = clCpmClientRMDSyncNew(clIocLocalAddressGet(), 
                                    CPM_COMPONENT_REGISTER,
                                    (ClUint8T *) &compReg,
@@ -3016,7 +3017,7 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
                                    CL_RMD_CALL_ATMOST_ONCE,
                                    0,
                                    0,
-                                   0,
+                                   priority,
                                    MARSHALL_FN(ClCpmCompRegisterT, 4, 0, 0),
                                    NULL);
         if (rc != CL_OK)
@@ -3105,6 +3106,7 @@ ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
     }
     if(clEoWithOutCpm != CL_TRUE)
     {
+        static ClUint32T priority = CL_IOC_CPM_TERMINATE_PRIORITY;
         rc = clCpmClientRMDAsyncNew(clIocLocalAddressGet(),
                                     CPM_COMPONENT_UNREGISTER,
                                     (ClUint8T *) &compReg,
@@ -3114,7 +3116,7 @@ ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
                                     0,
                                     0,
                                     0,
-                                    CL_IOC_HIGH_PRIORITY,
+                                    priority,
                                     MARSHALL_FN(ClCpmCompRegisterT, 4, 0, 0));
         if (rc != CL_OK)
         {
@@ -3583,6 +3585,7 @@ ClRcT clCpmResponse(CL_IN ClCpmHandleT cpmHandle,
     ClRcT               rc = CL_OK;
     ClCpmResponseT      sendBuff;
     ClUint32T           cbType = 0;
+    ClUint32T priority = 0;
 
     rc = clHandleValidate(handle_database, cpmHandle);
     if (CL_OK != rc)
@@ -3599,10 +3602,11 @@ ClRcT clCpmResponse(CL_IN ClCpmHandleT cpmHandle,
     sendBuff.retCode = retCode;
     
     CL_CPM_INVOCATION_CB_TYPE_GET(sendBuff.invocation, cbType);
-
+    priority = CL_IOC_CPM_PRIORITY(cbType);
+    
     rc = clCpmClientRMDAsyncNew(clIocLocalAddressGet(), CPM_CB_RESPONSE,
             (ClUint8T *) &sendBuff, sizeof(ClCpmResponseT),
-            NULL, NULL, 0, 0, 0, CL_IOC_HIGH_PRIORITY,
+            NULL, NULL, 0, 0, 0, priority,
             MARSHALL_FN(ClCpmResponseT, 4, 0, 0)
             );
 
@@ -3627,6 +3631,7 @@ ClRcT clCpmCSIQuiescingComplete(CL_IN ClCpmHandleT cpmHandle,
 {
     ClRcT rc = CL_OK;
     ClCpmQuiescingCompleteT sendBuff;
+    static ClUint32T priority = CL_IOC_CPM_CSIQUIESCING_PRIORITY;
 
     rc = clHandleValidate(handle_database, cpmHandle);
     if (CL_OK != rc)
@@ -3646,7 +3651,7 @@ ClRcT clCpmCSIQuiescingComplete(CL_IN ClCpmHandleT cpmHandle,
             CPM_COMPONENT_QUIESCING_COMPLETE,
             (ClUint8T *) &sendBuff,
             sizeof(ClCpmQuiescingCompleteT), NULL, NULL, 0,
-            0, 0, 0, MARSHALL_FN(ClCpmQuiescingCompleteT, 4, 0, 0)
+            0, 0, priority, MARSHALL_FN(ClCpmQuiescingCompleteT, 4, 0, 0)
             );
     
     if (rc != CL_OK)

@@ -23,7 +23,7 @@ typedef struct ClJobQueueUsage
     ClTaskPoolUsageT taskPoolUsage;
 }ClJobQueueUsageT;
 
-typedef void (*ClJobQueueWalkCallbackT)(ClCallbackT cb, ClPtrT data, ClPtrT arg);
+typedef ClRcT (*ClJobQueueWalkCallbackT)(ClCallbackT cb, ClPtrT data, ClPtrT arg);
 
 extern ClRcT clJobQueueInit(ClJobQueueT* handle, ClUint32T maxJobs, ClUint32T maxTasks);
 
@@ -53,6 +53,8 @@ extern ClRcT clJobQueueMonitorDelete(ClJobQueueT *handle);
 
 extern ClRcT clJobQueueStatsGet(ClJobQueueT *handle, ClJobQueueWalkCallbackT cb, ClPtrT arg, 
                                 ClJobQueueUsageT *pJobQueueUsage);
+
+extern ClRcT clJobQueueWalk(ClJobQueueT *handle, ClJobQueueWalkCallbackT cb, ClPtrT arg);
 
 #ifdef __cplusplus
 }

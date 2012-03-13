@@ -430,6 +430,8 @@ extern ClRcT clEoEnqueueReassembleJob(ClBufferHandleT recvMsg, ClIocRecvParamT *
 
 extern ClRcT clEoEnqueueReplyJob(ClEoExecutionObjT *pThis, ClCallbackT job, ClPtrT invocation);
 
+extern ClBoolT clEoQueueAmfResponseFind(ClUint32T pri);
+
 extern ClRcT clEoDebugRegister(void);
 
 extern ClRcT clEoDebugDeregister(void);
