@@ -290,14 +290,16 @@ ClRcT clJobQueueQuiesce(ClJobQueueT* hdl)
 
 }
 
-static void jobQueueWalkCallback(ClQueueDataT data, ClPtrT arg)
+static ClRcT jobQueueWalkCallback(ClQueueDataT data, ClPtrT arg)
 {
     ClJobT *job = (ClJobT*)data;
     ClJobQueueWalkArgT *walkArg = arg;
+    ClRcT rc = CL_OK;
     if(walkArg->cb)
     {
-        walkArg->cb(job->job, job->data, walkArg->cbArg);
+        rc = walkArg->cb(job->job, job->data, walkArg->cbArg);
     }
+    return rc;
 }
 
 ClRcT clJobQueueStatsGet(ClJobQueueT *hdl, ClJobQueueWalkCallbackT cb, ClPtrT arg, ClJobQueueUsageT *pJobQueueUsage)
@@ -326,5 +328,21 @@ ClRcT clJobQueueStatsGet(ClJobQueueT *hdl, ClJobQueueWalkCallbackT cb, ClPtrT ar
 
     out:
     JQ_SFX(hdl);
+    return rc;
+}
+
+ClRcT clJobQueueWalk(ClJobQueueT *hdl, ClJobQueueWalkCallbackT cb, ClPtrT arg)
+{
+    ClRcT rc = CL_OK;
+    ClJobQueueWalkArgT walkArg = {0};
+    if(!hdl || !cb) return CL_JOBQUEUE_RC(CL_ERR_INVALID_PARAMETER);
+    if(!(hdl->flags & CreatedQueue)) return CL_JOBQUEUE_RC(CL_ERR_INVALID_STATE);
+
+    JQ_PFX(hdl);
+    walkArg.cb = cb;
+    walkArg.cbArg = arg;
+    rc = clQueueWalk(hdl->queue, jobQueueWalkCallback, &walkArg);
+    JQ_SFX(hdl);
+
     return rc;
 }

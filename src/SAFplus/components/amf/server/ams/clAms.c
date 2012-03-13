@@ -231,6 +231,8 @@ clAmsInitialize(
 
     AMS_CALL (clOsalMutexInit(&ams->ckptMutex));
 
+    clAmsEntityInitialize();
+
     clAmsEntityUserDataInitialize();
 
     /*

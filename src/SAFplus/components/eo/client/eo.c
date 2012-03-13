@@ -3885,14 +3885,20 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
     pJob->msg = recvMsg;
     memcpy(&pJob->msgParam, pRecvParam, sizeof(pJob->msgParam));
 
-    priority = CL_EO_RECV_QUEUE_PRI(pJob->msgParam);
-    
-    if(priority >= CL_IOC_MAX_PRIORITIES)
+    if(pJob->msgParam.priority > CL_IOC_MAX_PRIORITIES)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid priority [%d]", priority));
-        goto out_free;
+        priority = CL_IOC_HIGH_PRIORITY;
     }
-
+    else
+    {
+        priority = CL_EO_RECV_QUEUE_PRI(pJob->msgParam);
+    
+        if(priority >= CL_IOC_MAX_PRIORITIES)
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid priority [%d]", priority));
+            goto out_free;
+        }
+    }
 
     /*
      * Take the global job mutex. We would only take this in priqueue finalize
@@ -3963,7 +3969,7 @@ void clEoQueuesQuiesce(void)
     }
 }
 
-static void eoQueueStatsCallback(ClCallbackT cb, ClPtrT data, ClPtrT pArg)
+static ClRcT eoQueueStatsCallback(ClCallbackT cb, ClPtrT data, ClPtrT pArg)
 {
     ClEoQueueDetailsT *pEoQueueDetails = pArg;
     /*
@@ -4020,6 +4026,7 @@ static void eoQueueStatsCallback(ClCallbackT cb, ClPtrT data, ClPtrT pArg)
         priorityUsage->bytes += recvParam->length;
         ++priorityUsage->numMsgs;
     }
+    return CL_OK;
 }
 
 static ClCharT *eoProtoNameGet(ClUint8T proto)
@@ -4122,3 +4129,58 @@ ClRcT clEoQueueStatsGet(ClEoQueueDetailsT *pEoQueueDetails)
     
     return rc;
 }
+
+static ClRcT eoQueueAmfMsgCallback(ClCallbackT cb, ClPtrT data, ClPtrT arg)
+{
+    /*
+     * Handle eo jobqueue requests.
+     */
+    if(cb == (ClCallbackT)clEoJobHandler && data && arg)
+    {
+        ClUint32T pri = *(ClUint32T*)arg;
+        ClEoJobT *job = data;
+        ClIocRecvParamT *recvParam = &job->msgParam;
+        if(pri == recvParam->priority)
+        {
+            /*
+             * Msg found in the queue; break walk
+             */
+            return CL_ERR_INUSE;
+        }
+    }
+    return CL_OK;
+}
+
+
+/*
+ * Find the message in the amf queue.
+ */
+ClBoolT clEoQueueAmfResponseFind(ClUint32T pri)
+{
+    ClJobQueueT *pJobQueue;
+    ClBoolT status = CL_FALSE;
+    ClRcT rc = CL_OK;
+
+    clOsalMutexLock(&gClEoJobMutex);
+    if(!gpExecutionObject 
+       || 
+       gpExecutionObject->state != CL_EO_STATE_ACTIVE)
+    {
+        /*
+         * The EO is being stopped/terminated. Back out
+         */
+        goto out_unlock;
+    }
+    pJobQueue = &gEoJobQueues[CL_IOC_HIGH_PRIORITY];
+    rc = clJobQueueWalk(pJobQueue, eoQueueAmfMsgCallback, &pri);
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_INUSE)
+    {
+        status = CL_TRUE;
+    }
+
+    out_unlock:
+    clOsalMutexUnlock(&gClEoJobMutex);
+
+    return status;
+}
+
