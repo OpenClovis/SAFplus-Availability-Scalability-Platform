@@ -207,6 +207,8 @@ extern void clAmsSetInstantiateCommand(ClInt32T argc, ClCharT **argv);
 
 extern const ClCharT *clAmsGetInstantiateCommand(void);
 
+extern void clAmsEntityInitialize(void);
+
 #ifdef __cplusplus
 }
 #endif

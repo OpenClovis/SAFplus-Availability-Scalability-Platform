@@ -224,6 +224,7 @@ typedef enum
     CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE            = 48,
     CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP                = 49,
     CL_AMS_COMP_TIMER_INSTANTIATEDELAY                  = 50,
+    CL_AMS_COMP_TIMER_MAX,
 } ClAmsEntityTimerTypeT;
 
 typedef struct

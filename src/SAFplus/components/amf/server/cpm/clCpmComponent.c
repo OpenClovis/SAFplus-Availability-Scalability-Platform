@@ -73,7 +73,6 @@
 #include "xdrClCpmEventPayLoadT.h"
 #include "xdrClCpmCompHealthcheckT.h"
 #include "xdrClCpmCompSpecInfoRecvT.h"
-
 #ifdef VXWORKS_BUILD
 #define CL_RTP_STACK_SIZE (1<<20)
 #endif
@@ -793,12 +792,22 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
     }
     else if (comp->requestSrcAddress.portId == 0x0)
     {
-        ;                   /* No Reply required in this case */
+        ;
     }
     else
     {
+        ClUint8T priority = 0;
         ClNameT compName = {0};
         clNameSet(&compName, comp->compConfig->compName);
+        if(requestType == CL_CPM_INSTANTIATE)
+        {
+            priority = CL_IOC_CPM_INSTANTIATE_PRIORITY;
+        }
+        else if(requestType == CL_CPM_TERMINATE)
+        {
+            priority = CL_IOC_CPM_TERMINATE_PRIORITY;
+        }
+
         rc = CL_CPM_CALL_RMD_ASYNC_NEW(comp->requestSrcAddress.nodeAddress,
                                        comp->requestSrcAddress.portId,
                                        comp->requestRmdNumber,
@@ -809,7 +818,7 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
                                        CL_RMD_CALL_ATMOST_ONCE,
                                        0,
                                        0,
-                                       0,
+                                       priority,
                                        NULL,
                                        NULL,
                                        MARSHALL_FN(ClCpmLcmResponseT, 4, 0, 0));
@@ -843,7 +852,7 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
                                                CL_RMD_CALL_ATMOST_ONCE,
                                                0,
                                                0,
-                                               0,
+                                               priority,
                                                NULL,
                                                NULL,
                                                MARSHALL_FN(ClCpmLcmResponseT, 4, 0, 0));
