@@ -18,39 +18,39 @@
  */
 /*******************************************************************************
  * ModuleName  : ground
- * File        : clGroundRmd.c
+ * File        : clGroundCustom.c
  *******************************************************************************/
 
 /*******************************************************************************
- * Description :
+ * Description : The grounding definitions for customer or config module.
+ * Some of the routines return OK or error but are not assertive.
+ * These routines are meant to be defined by the user incase they are
+ * required.
  *******************************************************************************/
-
-#include <assert.h>
 
 #include <clCommon.h>
 #include <clCommonErrors.h>
+#include <assert.h>
 
-ClRcT clRmdLibInitialize(ClPtrT pConfig) CL_WEAK;
-ClRcT clRmdLibFinalize(void) CL_WEAK;
+/*
+ * The below are weak and could be overriden by others
+ */
+ClRcT clHeapLibCustomInitialize(const ClPtrT pConfig) CL_WEAK;
+ClRcT clHeapLibCustomFinalize(void) CL_WEAK;
 
-/* These files are only used to compile clEo.c in the main component.
-   If a library is being used by a component and it fills out the
-   ASP_LIBS part in Makefile properly, then this file will not get
-   linked into the executable by 'ld'. Yes, 'ld' is more intelligent
-   than us. */
-ClRcT clRmdLibInitialize(ClPtrT pConfig)
+/*
+ * clHeapLibCustomInitialize and Finalize for users own heap.
+ *
+ */
+
+ClRcT clHeapLibCustomInitialize(const ClPtrT pConfig)
 {
-    /* empty function to satisfy linker, but this should never get
-       called. */
-    assert(CL_FALSE);
-    return CL_OK;
+    return CL_ERR_NOT_IMPLEMENTED;
 }
 
-ClRcT clRmdLibFinalize(void)
+ClRcT clHeapLibCustomFinalize(void)
 {
-    /* empty function to satisfy linker, but this should never get
-       called. */
-    assert(CL_FALSE);
-    return CL_OK;
+    return CL_ERR_NOT_IMPLEMENTED;
 }
 
+ClUint16T gClRmdMaxRetries=8;
