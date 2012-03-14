@@ -4,6 +4,7 @@ import re
 import pdb
 import fnmatch
 import errno
+import types
 
 # make sure they have a proper version of python
 if sys.version_info[:3] < (2, 4, 3):
@@ -286,7 +287,7 @@ class ASPInstaller:
         # ------------------------------------------------------------------------------   
         # Determine which packages this user needs
         # ------------------------------------------------------------------------------   
-        
+          
         # for each dep this OS requires,
         for dep in self.OS.dep_list:
             
@@ -774,7 +775,7 @@ class ASPInstaller:
             
             cmd = ''
             if syscall('which wget 2>/dev/null'):
-                cmd = 'wget -t 3 '
+                cmd = 'wget -t 3 --no-check-certificate '
             elif syscall('which curl 2>/dev/null'):
                 cmd = 'curl -OL '
             
@@ -885,10 +886,9 @@ class ASPInstaller:
         
         
         else:
-            
-            self.debug('Yum Installing: ' + install_str)
-            result = syscall('yum -y --assumeyes install %s 2>&1' % install_str)
-            
+            cmd = 'yum -y install %s 2>&1' % install_str
+            self.debug('Yum Installing: ' + cmd)
+            result = syscall(cmd)            
             self.debug(str(result))
             
             #yum -y update kernel
@@ -927,7 +927,10 @@ class ASPInstaller:
                     self.create_dir('build')                                            # create a build dir
                     os.chdir('build')                                                   # move into build dir
 
-            
+            # For some reason these build commands had to be deferred (they may rely on previously build stuff, or preinstall)
+            if type(dep.build_cmds) == types.FunctionType:
+                dep.build_cmds = dep.build_cmds()
+                
             # execute commands to build package
             for cmd in dep.build_cmds:
                 
