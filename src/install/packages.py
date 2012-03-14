@@ -45,6 +45,17 @@ class OS:
         # ex 'make ' + ' > /root/log/openhpi.log 2>&1'
         return log_string
 
+    def tipcConfigBuild(self):
+        kernName = syscall('uname -r')
+        kernHdrPath = '/lib/modules/%s/build' % kernName
+        tipcHdrFile = kernHdrPath + "/include/linux/tipc_config.h"
+        if not os.path.exists(kernHdrPath):
+          assert 0, "Did not find headers for your kernel %s at %s.  On some Linux distributions this can be resolved by updating you kernel.  On others, the kernel name as found by 'uname -r' and the directory are different.  To continue, you must create a symlink from the correct kernel headers to the expected location." % (kernName,kernHdrPath)
+        if not os.path.exists(tipcHdrFile):
+          assert 0, "Did not find the TIPC header in your kernel's header files located at %s.  You must find your kernel's TIPC headers and install them (or install TIPC from source)." % tipcHdrFile
+        EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % syscall('uname -r')
+        return [EXPORT + ' && make','mkdir -p $PREFIX/bin', 'cp tipc-config $PREFIX/bin']
+
     def openHpiSubagentBuildCmds(self,EXPORT,log):
         squelchWarn = ""
         if not self.gccVer:
@@ -261,10 +272,8 @@ class OS:
         
         TIPC_CONFIG.use_build_dir = False
 
-        TIPC_CONFIG.build_cmds = [EXPORT + ' && make',
-                                  'mkdir -p $PREFIX/bin',
-                                  'cp tipc-config $PREFIX/bin']
-
+        TIPC_CONFIG.build_cmds = lambda s=self:self.tipcConfigBuild()
+        
 
         # ------------------------------------------------------------------------------
         # JRE
