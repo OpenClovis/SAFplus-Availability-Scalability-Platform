@@ -3,6 +3,8 @@ import os, sys
 import re
 import pdb
 import fnmatch
+import errno
+
 # make sure they have a proper version of python
 if sys.version_info[:3] < (2, 4, 3):
     print "Error: Must use Python 2.4.3 or greater for this script"
@@ -1262,9 +1264,15 @@ class ASPInstaller:
             #self.feedback("%s -> %s" % (src,dst))
             try:
               os.remove(dst)  # remove it since it may point to another SDK version
-            except OSError:
+            except OSError,e:
               pass # its ok if the file does not exist
-            os.symlink(src,dst)
+            try:
+              os.symlink(src,dst)
+            except OSError,e:  
+              if e.errno == errno.EPERM or e.errno == errno.EEXIST:  # EEXIST means that os.remove() failed for some reason
+                self.feedback('No permission to change %s' % dst)
+              else:
+                self.feedback('Cannot create symlink %s, error %s' % (dst,str(e)))  
 
         self.feedback('Symbolic links for the  binaries are created in %s\n' % self.DEFAULT_SYM_LINK)
 
