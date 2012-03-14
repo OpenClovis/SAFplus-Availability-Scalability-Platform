@@ -16,6 +16,7 @@ class OS:
         self.apt                    = False
         self.yum                    = False
         self.pwd                    = syscall('pwd')
+        self.gccVer                 = [int(x) for x in syscall('gcc --version')[0].split()[3].split(".")]
         
         self.bit = determine_bit()
         
@@ -193,8 +194,12 @@ class OS:
         # this is tricky because there is no version; we just test for its existence... install.py handles this special case
         
         openhpisubagent.use_build_dir = False
-        
-        openhpisubagent.build_cmds     = [EXPORT + ' && ./configure --prefix=${PREFIX} CFLAGS="-I${BUILDTOOLS}/local/include -Wno-error=unused-but-set-variable"' + log,
+        if self.gccVer[0] > 4 or (self.gccVer[0] == 4 and self.gccVer[1] > 5):
+          squelchWarn = "-Wno-error=unused-but-set-variable"
+        else:
+          squelchWarn = ""
+
+        openhpisubagent.build_cmds     = [EXPORT + ' && ./configure --prefix=${PREFIX} CFLAGS="-I${BUILDTOOLS}/local/include %s"' % squelchWarn + log,
                                           EXPORT + ' && make' + log, 
                                           EXPORT + ' && make install' + log]
         
