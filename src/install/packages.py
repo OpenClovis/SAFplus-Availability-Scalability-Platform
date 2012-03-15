@@ -16,7 +16,10 @@ class OS:
         self.apt                    = False
         self.yum                    = False
         self.pwd                    = syscall('pwd')
-        self.gccVer                 = [int(x) for x in syscall('gcc --version')[0].split()[3].split(".")]
+        try:
+          self.gccVer                 = [int(x) for x in syscall('gcc --version')[0].split()[3].split(".")]
+        except IndexError:  # Most likely no gcc installed
+          self.gccVer = None
         
         self.bit = determine_bit()
         
@@ -41,7 +44,32 @@ class OS:
         log_string = ' >> %s 2>&1' % os.path.join(os.path.join(self.pwd, 'log'), dep + '.log')
         # ex 'make ' + ' > /root/log/openhpi.log 2>&1'
         return log_string
+
+    def tipcConfigBuild(self):
+        kernName = syscall('uname -r')
+        kernHdrPath = '/lib/modules/%s/build' % kernName
+        tipcHdrFile = kernHdrPath + "/include/linux/tipc_config.h"
+        if not os.path.exists(kernHdrPath):
+          assert 0, "Did not find headers for your kernel %s at %s.  On some Linux distributions this can be resolved by updating you kernel.  On others, the kernel name as found by 'uname -r' and the directory are different.  To continue, you must create a symlink from the correct kernel headers to the expected location." % (kernName,kernHdrPath)
+        if not os.path.exists(tipcHdrFile):
+          assert 0, "Did not find the TIPC header in your kernel's header files located at %s.  You must find your kernel's TIPC headers and install them (or install TIPC from source)." % tipcHdrFile
+        EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % syscall('uname -r')
+        return [EXPORT + ' && make','mkdir -p $PREFIX/bin', 'cp tipc-config $PREFIX/bin']
+
+    def openHpiSubagentBuildCmds(self,EXPORT,log):
+        squelchWarn = ""
+        if not self.gccVer:
+          try:
+            self.gccVer                 = [int(x) for x in syscall('gcc --version')[0].split()[3].split(".")]
+            if self.gccVer[0] > 4 or (self.gccVer[0] == 4 and self.gccVer[1] > 5):
+              squelchWarn = "-Wno-error=unused-but-set-variable"            
+          except Exception, e:
+            #assert e, "Cannot determine C compiler version"
+            pass
     
+        return [EXPORT + ' && ./configure --prefix=${PREFIX} CFLAGS="-I${BUILDTOOLS}/local/include %s"' % squelchWarn + log,
+                                          EXPORT + ' && make' + log, 
+                                          EXPORT + ' && make install' + log]
     
     def load_install_deps(self):
         """ this function loads the install() phase deps """
@@ -155,14 +183,14 @@ class OS:
         # ------------------------------------------------------------------------------
         # net-snmp
         # ------------------------------------------------------------------------------
-        EXPORT = ''
+        EXPORT = 'export PATH=${PREFIX}/bin:${PATH}'
         
         netsnmp = objects.BuildDep()
         netsnmp.name           = 'net-snmp'
         netsnmp.version        = '5.4.2'    
         netsnmp.pkg_name       = 'net-snmp-5.4.2.tar.gz'
         
-        netsnmp.ver_test_cmd   = 'net-snmp-config --version 2>/dev/null'
+        netsnmp.ver_test_cmd   = EXPORT +' && net-snmp-config --version 2>/dev/null'
         
         log = self.log_string_for_dep(netsnmp.name)
         
@@ -194,15 +222,9 @@ class OS:
         # this is tricky because there is no version; we just test for its existence... install.py handles this special case
         
         openhpisubagent.use_build_dir = False
-        if self.gccVer[0] > 4 or (self.gccVer[0] == 4 and self.gccVer[1] > 5):
-          squelchWarn = "-Wno-error=unused-but-set-variable"
-        else:
-          squelchWarn = ""
 
-        openhpisubagent.build_cmds     = [EXPORT + ' && ./configure --prefix=${PREFIX} CFLAGS="-I${BUILDTOOLS}/local/include %s"' % squelchWarn + log,
-                                          EXPORT + ' && make' + log, 
-                                          EXPORT + ' && make install' + log]
-        
+        openhpisubagent.build_cmds     = lambda x=self,e=EXPORT,log=log:self.openHpiSubagentBuildCmds(e,log)
+                
                                           #'cp Makefile Makefile.bak' + log,
                                           #'sed --in-place -e "s;`net-snmp-config --prefix`;$PREFIX;g" Makefile' + log,
 
@@ -250,10 +272,8 @@ class OS:
         
         TIPC_CONFIG.use_build_dir = False
 
-        TIPC_CONFIG.build_cmds = [EXPORT + ' && make',
-                                  'mkdir -p $PREFIX/bin',
-                                  'cp tipc-config $PREFIX/bin']
-
+        TIPC_CONFIG.build_cmds = lambda s=self:self.tipcConfigBuild()
+        
 
         # ------------------------------------------------------------------------------
         # JRE
@@ -518,7 +538,8 @@ class CentOS4(OS):
                  'gdbm',
                  'gdbm-devel',
                  'sqlite', 
-                 'sqlite-devel']
+                 'sqlite-devel',
+                 'zlib-devel']
             
             
         for name in deps:
@@ -551,7 +572,8 @@ class CentOS5(OS):
                  'gdbm',
                  'gdbm-devel',
                  'sqlite', 
-                 'sqlite-devel']
+                 'sqlite-devel',
+                 'zlib-devel']
             
             
         for name in deps:
