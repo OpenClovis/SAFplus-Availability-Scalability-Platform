@@ -20,7 +20,7 @@
 # config files, etc. from the local system or toolchain as necessary.
 ##############################################################################
 
-
+MACH=`uname -m`
 populate_prereqs() {
     if [ $# -ne 4 ]
     then
@@ -380,6 +380,18 @@ populate_prereqs() {
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="copy in db"
             cd - >/dev/null 2>&1
+        elif [ -f /usr/lib/${MACH}-linux-gnu/libdb.so ]; then
+            cd /usr/lib/${MACH}-linux-gnu
+            tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in db"
+            cd - >/dev/null 2>&1
+        elif [ -f /usr/lib/`uname -i`-linux-gnu/libdb.so ]; then
+            cd /usr/lib/`uname -i`-linux-gnu
+            tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in db"
+            cd - >/dev/null 2>&1
         else
             cd /usr/lib
             tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
@@ -402,8 +414,14 @@ populate_prereqs() {
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="copy in gdbm"
             cd - >/dev/null 2>&1
-        elif [ -f /usr/lib/`uname -m`-linux-gnu/libgdbm.so ]; then
-            cd /usr/lib/`uname -m`-linux-gnu
+        elif [ -f /usr/lib/${MACH}-linux-gnu/libgdbm.so ]; then
+            cd /usr/lib/${MACH}-linux-gnu
+            tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gdbm"
+            cd - >/dev/null 2>&1
+        elif [ -f /usr/lib/`uname -i`-linux-gnu/libgdbm.so.3 ]; then
+            cd /usr/lib/`uname -i`-linux-gnu
             tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="copy in gdbm"
@@ -568,12 +586,19 @@ populate_prereqs() {
         if [ -f ${toolchaindir}/lib/libglib-2.0.so ]; then
           GLIB_LIB_DIR=${toolchaindir}/lib
         else
-          export PKG_CONFIG_PATH=${toolchaindir}/lib/pkgconfig:$PKG_CONFIG_PATH
-          GLIB_LIB_DIR=$(pkg-config --libs-only-L glib-2.0 | sed -e 's/^.*-L//g')
-          if [ -z ${GLIB_LIB_DIR} ]; then # glib-2.0 is installed in the system standard path
-            GLIB_LIB_DIR="/usr/lib/"
+          if [ -f /usr/lib/`uname -i`-linux-gnu/libglib-2.0.so ]; then
+            GLIB_LIB_DIR=/usr/lib/`uname -i`-linux-gnu
+          elif [ -f /usr/lib/${MACH}-linux-gnu/libglib-2.0.so ]; then
+            GLIB_LIB_DIR=/usr/lib/${MACH}-linux-gnu
+          else
+            export PKG_CONFIG_PATH=${toolchaindir}/lib/pkgconfig:$PKG_CONFIG_PATH
+            GLIB_LIB_DIR=$(pkg-config --libs-only-L glib-2.0 | sed -e 's/^.*-L//g')
+            if [ -z ${GLIB_LIB_DIR} ]; then # glib-2.0 is installed in the system standard path
+              GLIB_LIB_DIR="/usr/lib/"
+            fi
           fi
         fi
+
         GLIB_DIR=${GLIB_LIB_DIR}
         if [ -z "${GLIB_LIB_DIR}" -o -z "${GLIB_DIR}"  -o ! -d ${GLIB_DIR} ]
         then
@@ -583,19 +608,64 @@ populate_prereqs() {
             exit 1
         fi
         cd ${GLIB_DIR}; #echo $GLIB_DIR
-        tar chf - *glib* | tar xf - -C $imagedir/lib
+
+        tar chf - *glib* | tar xf - -C $imagedir
         res_array[${#res_array[@]}]=$?
         op_array[${#op_array[@]}]="copy in glib libraries"
-        tar chf - *gmodule* | tar xf - -C $imagedir/lib
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in gmodule library files"
-        tar chf - *gobject* | tar xf - -C $imagedir/lib
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in gobject library files"
-        tar chf - *gthread* | tar xf - -C $imagedir/lib
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in gthread library files"
         cd - >/dev/null 2>&1
+
+        if [ -f /usr/lib/`uname -i`-linux-gnu/libgmodule-2.0.so ]; then
+            tar chf - /usr/lib/`uname -i`-linux-gnu/*gmodule* | tar xf - -C $imagedir
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gmodule library files"
+            cd - >/dev/null 2>&1
+        elif [ -f /usr/lib/`uname -m`-linux-gnu/libgmodule-2.0.so ]; then
+            tar chf - /usr/lib/`uname -m`-linux-gnu/*gmodule* | tar xf - -C $imagedir
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gmodule library files"
+            cd - >/dev/null 2>&1
+        else
+            tar chf - /usr/lib/*gmodule* | tar xf - -C $imagedir
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gmodule library files"
+            cd - >/dev/null 2>&1
+        fi
+
+        if [ -f /usr/lib/`uname -i`-linux-gnu/libgobject-2.0.so ]; then
+            tar chf - /usr/lib/`uname -i`-linux-gnu/*gobject* | tar xf - -C $imagedir
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gobject library files"
+            cd - >/dev/null 2>&1
+        elif [ -f /usr/lib/`uname -m`-linux-gnu/libgobject-2.0.so ]; then
+            tar chf - /usr/lib/`uname -m`-linux-gnu/*gobject* | tar xf - -C $imagedir
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gobject library files"
+            cd - >/dev/null 2>&1
+        else
+            tar chf - /usr/lib/*gobject* | tar xf - -C $imagedir
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gobject library files"
+            cd - >/dev/null 2>&1
+        fi
+
+        if [ -f /usr/lib/`uname -i`-linux-gnu/libgthread-2.0.so ]; then
+            tar chf - /usr/lib/`uname -i`-linux-gnu/*gthread* | tar xf - -C $imagedir
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gthread library files"
+            cd - >/dev/null 2>&1
+        elif [ -f /usr/lib/`uname -m`-linux-gnu/libgthread-2.0.so ]; then
+            tar chf - /usr/lib/`uname -m`-linux-gnu/*gthread* | tar xf - -C $imagedir
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gthread library files"
+            cd - >/dev/null 2>&1
+        else
+            tar chf - /usr/lib/*gthread* | tar xf - -C $imagedir
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gthread library files"
+            cd - >/dev/null 2>&1
+        fi
+
+
         #libw3c
         if [ $(ls -1 $toolchaindir/lib/libwww*.* 2>/dev/null | wc -l) -gt 0 ]; then
             echo "w3c-libwww "
