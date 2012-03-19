@@ -2317,7 +2317,8 @@ clAmsPeSUStartProbation(ClAmsEntityT *entity)
     if(!su) return CL_OK;
     sg = (ClAmsSGT*)su->config.parentSG.ptr;
     if(!sg) return CL_OK;
-    if(sg->config.autoAdjust && su->config.rank)
+    if(sg->config.autoAdjust && 
+       (su->config.rank || sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM))
     {
         clLogInfo("SG", "ADJUST", "Starting SU [%s] adjustment probation timer after node repair",
                   su->config.entity.name.value);
@@ -5411,7 +5412,8 @@ clAmsPeSUFaultCallback_Step2(
                  */
                 if(sg->config.autoAdjust 
                    && 
-                   su->config.rank)
+                   (su->config.rank ||
+                    sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM))
                 {
                     clLogInfo("SG", "ADJUST", "Starting SU [%s] adjustment probation timer after SU fault repair",
                               su->config.entity.name.value);
@@ -5695,7 +5697,8 @@ clAmsPeSURepaired(
     /*
      * Start the auto adjust probation for this SU after the repair.
      */
-    if(sg->config.autoAdjust && su->config.rank)
+    if(sg->config.autoAdjust && 
+       (su->config.rank || sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM))
     {
         clLogInfo("SG", "ADJUST", "Starting SU [%s] adjustment probation timer after SU repair",
                   su->config.entity.name.value);
@@ -21168,6 +21171,8 @@ ClRcT clAmsPeSGAutoAdjust(ClAmsSGT *sg)
     case CL_AMS_SG_REDUNDANCY_MODEL_TWO_N:
     case CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N:
         return clAmsPeSGAutoAdjustMPlusN(sg);
+    case CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM:
+        return clAmsPeSGAutoAdjustCustom(sg);
     default:
         break;
     }

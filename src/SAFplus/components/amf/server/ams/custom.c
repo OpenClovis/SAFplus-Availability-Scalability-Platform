@@ -9,6 +9,14 @@ typedef struct ClAmsCustomAssignmentIter
     ClAmsSIT *si;
 }ClAmsCustomAssignmentIterT;
 
+typedef struct ClAmsSUAdjustCustom
+{
+    ClAmsSUT *su;
+    ClAmsSIT *si;
+    ClAmsHAStateT haState;
+    ClListHeadT list;
+}ClAmsSUAdjustCustomT;
+
 static ClRcT 
 clAmsCustomAssignmentIterInit(ClAmsCustomAssignmentIterT *iter, ClAmsSIT *si);
 
@@ -84,10 +92,17 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
         {
             ClAmsEntityRefT *suRef;
             ClAmsSIT *si = (ClAmsSIT*)entityRef->ptr;
+            ClAmsSGT *sg;
             AMS_CHECK_SI(si);
+            sg = (ClAmsSGT*)si->config.parentSG.ptr;
+            if(!sg) continue;
             if(lookAfter == si) continue;
-            if(clAmsPeSIIsActiveAssignableCustom(si) != CL_OK)
+            if(clAmsPeSIIsActiveAssignableCustom(si) != CL_OK
+               ||
+               sg->status.adjustTimer.count > 0)
+            {
                 continue;
+            }
             for(suRef = clAmsEntityListGetFirst(&si->config.suList);
                 suRef != NULL;
                 suRef = clAmsEntityListGetNext(&si->config.suList, suRef))
@@ -119,11 +134,18 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
         {
             ClAmsSISURefT *siSURef = NULL;
             ClAmsSIT *si = (ClAmsSIT*)entityRef->ptr;
+            ClAmsSGT *sg = NULL;
             ClAmsCustomAssignmentIterT iter = {0};
             if(!si) 
                 continue;
-            if(clAmsPeSIIsActiveAssignableCustom(si) != CL_OK) 
+            sg = (ClAmsSGT*)si->config.parentSG.ptr;
+            if(!sg) continue;
+            if(clAmsPeSIIsActiveAssignableCustom(si) != CL_OK
+               ||
+               sg->status.adjustTimer.count > 0) 
+            {
                 continue;
+            }
             clAmsCustomAssignmentIterInit(&iter, si);
             while( (siSURef = clAmsCustomAssignmentIterNext(&iter)) )
             {
@@ -175,10 +197,15 @@ clAmsPeSGFindSIForStandbyAssignmentCustom(
         entityRef = clAmsEntityListGetNext(&sg->config.siList, entityRef))
     {
         ClAmsSIT *si = (ClAmsSIT*)entityRef->ptr;
+        ClAmsSGT *sg = (ClAmsSGT*)si->config.parentSG.ptr;
         ClAmsSISURefT *siSURef = NULL;
         ClAmsCustomAssignmentIterT iter = {0};
-        if(clAmsPeSIIsStandbyAssignable(si) != CL_OK)
+        if(clAmsPeSIIsStandbyAssignable(si) != CL_OK
+           ||
+           sg->status.adjustTimer.count > 0)
+        {
             continue;
+        }
         clAmsCustomAssignmentIterInit(&iter, si);
         while ( (siSURef = clAmsCustomAssignmentIterNext(&iter) ) )
         {
@@ -1187,4 +1214,206 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
 
     out:
     return rc;
+}
+
+ClRcT
+clAmsPeSGAutoAdjustCustom(ClAmsSGT *sg)
+{
+    ClRcT rc = CL_OK;
+    ClAmsEntityRefT *eRef = NULL;
+    ClUint32T numActiveSUs = 0;
+    ClUint32T numStandbySUs = 0;
+    ClUint32T numAdjustSUs = 0;
+    ClUint32T suPendingInvocations = 0;
+    ClBoolT reAdjust = CL_FALSE;
+    CL_LIST_HEAD_DECLARE(suActiveAdjustList);
+    CL_LIST_HEAD_DECLARE(suStandbyAdjustList);
+
+    if(!sg->config.autoAdjust)
+        return CL_OK;
+
+    if(sg->status.adjustTimer.count)
+    {
+        reAdjust = CL_TRUE;
+        clAmsEntityTimerStop((ClAmsEntityT*)sg, CL_AMS_SG_TIMER_ADJUST);
+    }
+
+    clLogInfo("SG", "ADJUST", "Adjusting SG [%.*s]",
+              sg->config.entity.name.length-1,
+              sg->config.entity.name.value);
+    
+    /*
+     * We scan in the normal way looking out for the least preferred actives.
+     * and switching them over with more preferred standbys
+     */
+
+    /* But first see if I need to defer */
+    for(eRef = clAmsEntityListGetFirst(&sg->config.siList);
+        eRef != NULL;
+        eRef = clAmsEntityListGetNext(&sg->config.siList, eRef))
+    {
+        ClAmsSIT *si = (ClAmsSIT*)eRef->ptr;
+        ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_NONE;
+        clAmsPeSIComputeAdminState(si, &adminState);
+        if(adminState != CL_AMS_ADMIN_STATE_UNLOCKED
+           ||
+           si->status.operState == CL_AMS_OPER_STATE_DISABLED)
+        {
+            clLogInfo("SG", "ADJUST", "SI [%s] is not assignable. Skipping adjustment.",
+                      si->config.entity.name.value);
+            continue;
+        }
+        ClAmsCustomAssignmentIterT iter = {0};
+        ClAmsSISURefT *siSURef = NULL;
+        clAmsCustomAssignmentIterInit(&iter, si);
+        while ( (siSURef = clAmsCustomAssignmentIterNext(&iter) ) )
+        {
+            ClAmsSUT *su = (ClAmsSUT*)siSURef->entityRef.ptr;
+            ClAmsHAStateT haState = CL_AMS_HA_STATE_NONE;
+            /*
+             * Skip SU in the probation time.
+             */
+            if(su->status.suProbationTimer.count) continue;
+
+            suPendingInvocations = clAmsInvocationsPendingForSU(su);
+            
+            if(suPendingInvocations)
+            {
+                /*
+                 * Deferring adjustment as we dont want to risk causing unnecessary 
+                 * active-standby switches while we are in an intermediate state.
+                 */
+                clLogInfo("SG", "ADJUST", "SU [%.*s] has pending invocations. "
+                          "Deferring SG [%.*s] adjustment by [%d] secs",
+                          su->config.entity.name.length-1,
+                          su->config.entity.name.value,
+                          sg->config.entity.name.length-1,
+                          sg->config.entity.name.value,
+                          CL_AMS_SG_ADJUST_DURATION/1000);
+                clAmsCustomAssignmentIterEnd(&iter);
+                goto out_defer;
+            }
+            clAmsPeSUSIHAStateCustom(si, su, &haState);
+            clLogInfo("SG", "ADJUST", "SU [%s] ha state for SI [%s] is [%s]",
+                      su->config.entity.name.value, si->config.entity.name.value,
+                      CL_AMS_STRING_H_STATE(haState));
+            if(siSURef->haState != haState)
+            {
+                ClAmsSUAdjustCustomT *customEntry = NULL;
+                if(haState == CL_AMS_HA_STATE_NONE &&
+                   (clAmsPeSUIsAssignable(su) != CL_OK
+                    ||
+                    su->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE))
+                {
+                    clLogInfo("SG", "ADJUST", "SU [%s] ha state for SI [%s] not assignable",
+                              su->config.entity.name.value, si->config.entity.name.value);
+                    continue;
+                }
+                customEntry = clHeapCalloc(1, sizeof(*customEntry));
+                CL_ASSERT(customEntry != NULL);
+                customEntry->su = su;
+                customEntry->si = si;
+                customEntry->haState = haState;
+                if(haState == CL_AMS_HA_STATE_ACTIVE)
+                {
+                    clLogInfo("SG", "ADJUST", "Adjustment target SU [%s], SI [%s], haState [%s]",
+                              su->config.entity.name.value, si->config.entity.name.value,
+                              CL_AMS_STRING_H_STATE(haState));
+                    clListAddTail(&customEntry->list, &suActiveAdjustList);
+                    ++numActiveSUs;
+                }
+                else
+                {
+                    clLogInfo("SG", "ADJUST", "Adjustment target SU [%s], SI [%s] haState [%s]",
+                              su->config.entity.name.value, si->config.entity.name.value,
+                              CL_AMS_STRING_H_STATE(haState));
+                    clListAddTail(&customEntry->list, &suStandbyAdjustList);
+                    ++numStandbySUs;
+                }
+            }
+        }
+        clAmsCustomAssignmentIterEnd(&iter);
+    }
+    numAdjustSUs = numActiveSUs + numStandbySUs;
+    if(numAdjustSUs 
+       && 
+       numActiveSUs == numStandbySUs)
+    {
+        clLogInfo("SG", "ADJUST", "SUs to be adjusted is [%d]", numAdjustSUs);
+        reAdjust = CL_TRUE;
+        while(!CL_LIST_HEAD_EMPTY(&suStandbyAdjustList))
+        {
+            ClListHeadT *head = suStandbyAdjustList.pNext;
+            ClAmsSUAdjustCustomT *adjustEntry = CL_LIST_ENTRY(head, ClAmsSUAdjustCustomT, list);
+            ClAmsSUT *su = adjustEntry->su;
+            ClAmsSIT *si = adjustEntry->si;
+            ClAmsHAStateT haState = adjustEntry->haState;
+            clListDel(head);
+            clHeapFree(adjustEntry);
+            if(haState == CL_AMS_HA_STATE_STANDBY
+               &&
+               !clAmsInvocationsPendingForSU(su))
+            {
+                clLogInfo("SG", "ADJUST", "Removing standby assignments from SU [%.*s] "
+                          "for SI [%.*s]",
+                          su->config.entity.name.length-1, su->config.entity.name.value,
+                          si->config.entity.name.length-1, si->config.entity.name.value);
+                clAmsPeSURemoveSI(su, si, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE);
+            } 
+        }
+        while(!CL_LIST_HEAD_EMPTY(&suActiveAdjustList))
+        {
+            ClListHeadT *head = suActiveAdjustList.pNext;
+            ClAmsSUAdjustCustomT *adjustEntry = CL_LIST_ENTRY(head, ClAmsSUAdjustCustomT, list);
+            ClAmsSUT *su = adjustEntry->su;
+            ClAmsSIT *si = adjustEntry->si;
+            clListDel(head);
+            clHeapFree(adjustEntry);
+            if(!clAmsInvocationsPendingForSU(su))
+            {
+                clLogInfo("SG", "ADJUST", "Removing active assignments from SU [%.*s] "
+                          "for SI [%.*s]",
+                          su->config.entity.name.length-1, su->config.entity.name.value,
+                          si->config.entity.name.length-1, si->config.entity.name.value);
+                clAmsPeSURemoveSI(su, si, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE);
+            }
+        }
+    }
+    rc = CL_OK;
+
+    if(reAdjust)
+    {        
+        out_defer:  /* Must clean up the lists even if we defer */
+        reAdjust = CL_FALSE;
+        clLogInfo("SG", "ADJUST", 
+                  "Starting SG [%.*s] adjust timer of [%d] secs to readjust SG in a clean state",
+                  sg->config.entity.name.length-1,
+                  sg->config.entity.name.value,
+                  CL_AMS_SG_ADJUST_DURATION/1000);
+        clAmsEntityTimerStart((ClAmsEntityT*)sg,
+                              CL_AMS_SG_TIMER_ADJUST);
+    }
+    
+    while(!CL_LIST_HEAD_EMPTY(&suActiveAdjustList))
+    {
+        ClListHeadT *head = suActiveAdjustList.pNext;
+        ClAmsSUAdjustCustomT *adjustEntry = CL_LIST_ENTRY(head, ClAmsSUAdjustCustomT, list);
+        clListDel(head);
+        clHeapFree(adjustEntry);
+    }
+
+    while(!CL_LIST_HEAD_EMPTY(&suStandbyAdjustList))
+    {
+        ClListHeadT *head = suStandbyAdjustList.pNext;
+        ClAmsSUAdjustCustomT *adjustEntry = CL_LIST_ENTRY(head, ClAmsSUAdjustCustomT, list);
+        clListDel(head);
+        clHeapFree(adjustEntry);
+    }
+    
+    clLogInfo("SG", "ADJUST", "Done Adjusting SG [%.*s]",
+              sg->config.entity.name.length-1,
+              sg->config.entity.name.value);
+   
+    return rc;
+
 }
