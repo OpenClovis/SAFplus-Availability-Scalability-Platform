@@ -49,6 +49,8 @@ clAmsPeSGAssignSUCustom(
 extern ClRcT 
 clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standbySU);
 
+extern ClRcT clAmsPeSGAutoAdjustCustom(ClAmsSGT *sg);
+
 #ifdef __cplusplus
 }
 #endif
