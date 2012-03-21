@@ -485,6 +485,7 @@ typedef ClHandleT                   ClAmsEventHandleT;
 typedef ClHandleT                   ClAmsFaultHandleT;
 typedef ClHandleT                   ClAmsEntityHandleT;
 typedef ClPtrT                      ClAmsMgmtDBHandleT;
+typedef ClPtrT                      ClAmsMgmtCCBBatchHandleT;
 
 /******************************************************************************
  * Temporary Notes

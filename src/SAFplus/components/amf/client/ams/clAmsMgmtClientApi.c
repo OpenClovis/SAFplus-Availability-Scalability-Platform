@@ -62,13 +62,6 @@ static ClEoExecutionObjT *gpEOObj;
 #define AMSAREA "AMS"
 #define AMSCTXT "MGT"
 
-#define CL_AMS_NAME_LENGTH_CHECK(entity) do {               \
-    if((entity).name.length == strlen((entity).name.value)) \
-    {                                                       \
-        ++(entity).name.length;                             \
-    }                                                       \
-}while(0)
-
 #define AMS_ADMIN_API_CALL(amsHandle, retry, rc, fn) do {   \
     ClInt32T iter = 0;                                      \
     ClTimerTimeOutT delay = {.tsSec=2,.tsMilliSec=0};       \

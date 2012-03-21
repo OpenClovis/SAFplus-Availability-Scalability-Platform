@@ -375,6 +375,18 @@ cl_ams_mgmt_db_get(ClAmsMgmtDBGetResponseT *res);
 extern ClRcT
 cl_ams_mgmt_cas_get(CL_OUT ClAmsMgmtCASGetRequestT *req);
 
+extern ClRcT
+__marshalClAmsMgmtCCBEntitySetConfig(
+                                     CL_IN  ClPtrT  ptr,
+                                     CL_INOUT  ClBufferHandleT  buf,
+                                     ClUint32T versionCode);
+
+extern
+ClRcT cl_ams_ccb_batch_rmd(
+                           CL_IN ClUint32T  fn_id,  
+                           CL_IN ClBufferHandleT buffer,
+                           CL_IN ClUint32T versionCode);
+
 #ifdef __cplusplus
 }
 #endif
