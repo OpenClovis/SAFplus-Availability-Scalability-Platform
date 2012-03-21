@@ -529,8 +529,9 @@ __clAmsMgmtEntitySetConfig(
     ClAmsEntityConfigT *entityConfig = NULL;
     ClRcT  rc = CL_OK;
     clAmsMgmtEntitySetConfigRequestT  req = { 0 };
-    ClHandleT handle = CL_HANDLE_INVALID_VALUE;
-
+#ifdef HANDLE_VALIDATE
+    ClAmsMgmtCCBHandleT handle = 0;
+#endif
     req.entityConfig = clHeapCalloc(1, sizeof(ClAmsEntityConfigT));
 
     AMS_CHECK_NO_MEMORY_AND_EXIT (req.entityConfig);
@@ -547,12 +548,9 @@ __clAmsMgmtEntitySetConfig(
         goto exitfn;
     }
 
-    handle = req.handle;
-
 #ifdef HANDLE_VALIDATE
-
+    handle = req.handle;
     AMS_CHECK_RC_ERROR( clHandleValidateHandle(handle_database, handle) );
-
 #endif
 
     entityConfig = clHeapAllocate( gClAmsEntityParams[entityType].configSize );
@@ -2121,7 +2119,7 @@ VDECL(_clAmsMgmtCCBCommit)(
 
     clAmsMgmtCCBCommitRequestT  req = {0};
     clAmsMgmtCCBT  *ccbInstance = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     ClRcT  rc = CL_OK;
 
     AMS_CALL( VDECL_VER(clXdrUnmarshallclAmsMgmtCCBCommitRequestT, 4, 0, 0)( in, (ClPtrT)&req) );
@@ -2130,14 +2128,14 @@ VDECL(_clAmsMgmtCCBCommit)(
 
     AMS_CALL( clOsalMutexLock(gAms.mutex) );
 
-    AMS_CHECK_RC_ERROR(clHandleCheckout(gAms.ccbHandleDB,handle,(ClPtrT)&ccbInstance)); 
+    AMS_CHECK_RC_ERROR(clHandleCheckout(gAms.ccbHandleDB, handle,(ClPtrT)&ccbInstance)); 
 
     /*
      * Go through the list of operations for the CCB and commit them in
      * the AMS database
      */
 
-    AMS_CHECK_RC_ERROR(clAmsMgmtCommitCCBOperations(&ccbInstance->ccbOpListHandle)); 
+    AMS_CHECK_RC_ERROR(clAmsMgmtCommitCCBOperations(ccbInstance->ccbOpListHandle)); 
 
     /*
      * Write the configuration changes to the DB persistently.
@@ -2156,7 +2154,12 @@ VDECL(_clAmsMgmtCCBCommit)(
         goto exitfn;
     }
 
-exitfn:
+    exitfn:
+    if(ccbInstance)
+    {
+        clCntAllNodesDelete(ccbInstance->ccbOpListHandle);
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
     return rc;
@@ -2184,6 +2187,7 @@ VDECL(_clAmsMgmtCCBEntityCreate)(
     clAmsMgmtCCBEntityCreateRequestT  *req = NULL;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
+    ClAmsMgmtCCBHandleT handle = 0;
     ClRcT  rc = CL_OK;
 
     req = clHeapAllocate (sizeof(clAmsMgmtCCBEntityCreateRequestT));
@@ -2196,6 +2200,7 @@ VDECL(_clAmsMgmtCCBEntityCreate)(
     AMS_CHECK_RC_ERROR( clAmsCCBValidateOperation( (ClPtrT)req,
                 CL_AMS_MGMT_CCB_OPERATION_CREATE ));
 
+    handle = req->handle;
     AMS_CHECK_RC_ERROR(clHandleCheckout(
                 gAms.ccbHandleDB,req->handle,(ClPtrT)&ccbInstance)); 
 
@@ -2213,10 +2218,19 @@ VDECL(_clAmsMgmtCCBEntityCreate)(
     AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX ( clAmsCCBAddOperation(
                 ccbInstance->ccbOpListHandle, opData, 0), gAms.mutex );
 
+    opData = NULL;
+
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
+    if(opData)
+    {
+        clAmsCCBDeleteCallback((ClCntKeyHandleT)0, (ClCntDataHandleT)opData);
+    }
     return rc;
 }
 
@@ -2241,6 +2255,7 @@ VDECL(_clAmsMgmtCCBEntityDelete)(
     clAmsMgmtCCBEntityDeleteRequestT  *req = NULL;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
+    ClAmsMgmtCCBHandleT handle = 0;
     ClRcT  rc = CL_OK;
 
     req = clHeapAllocate (sizeof(clAmsMgmtCCBEntityDeleteRequestT));
@@ -2252,6 +2267,8 @@ VDECL(_clAmsMgmtCCBEntityDelete)(
     
     AMS_CHECK_RC_ERROR( clAmsCCBValidateOperation( (ClPtrT)req,
                 CL_AMS_MGMT_CCB_OPERATION_DELETE ));
+
+    handle = req->handle;
 
     AMS_CHECK_RC_ERROR(clHandleCheckout(
                 gAms.ccbHandleDB,req->handle,(ClPtrT)&ccbInstance)); 
@@ -2270,10 +2287,19 @@ VDECL(_clAmsMgmtCCBEntityDelete)(
     AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX ( clAmsCCBAddOperation(
                 ccbInstance->ccbOpListHandle, opData, 0), gAms.mutex );
 
+    opData = NULL;
+
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
+    if(opData)
+    {
+        clAmsCCBDeleteCallback((ClCntKeyHandleT)0, (ClCntDataHandleT)opData);
+    }
     return rc;
 }
 
@@ -2285,6 +2311,132 @@ exitfn:
  * Sets one or more scalar attributes of an AMS entity
  *
  */
+
+static ClRcT 
+__clAmsMgmtCCBBatchEntitySetConfig(
+                                   CL_IN  ClBufferHandleT  in,
+                                   ClUint32T versionCode,
+                                   CL_OUT clAmsMgmtCCBEntitySetConfigRequestT *req)
+
+{
+    ClAmsEntityConfigT  *entityConfig = NULL;
+    ClAmsEntityTypeT  entityType = {0};
+    ClRcT  rc = CL_OK;
+
+    AMS_CHECKPTR_AND_EXIT(!req);
+
+    req->entityConfig = clHeapCalloc(1, sizeof(ClAmsEntityConfigT));
+
+    AMS_CHECK_NO_MEMORY_AND_EXIT (req->entityConfig);
+
+    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBEntitySetConfigRequestT, 4, 0, 0)(
+                in, (ClPtrT)req) );
+
+    entityType = req->entityConfig->type;
+
+    if(entityType > CL_AMS_ENTITY_TYPE_MAX)
+    {
+        AMS_LOG(CL_DEBUG_ERROR, ("CCBEntitySetConfig - invalid entity type "\
+                                 " [ %d ]\n", entityType));
+        goto exitfn;
+    }
+
+    entityConfig = clHeapAllocate( gClAmsEntityParams[entityType].configSize );
+
+    AMS_CHECK_NO_MEMORY_AND_EXIT (entityConfig);
+
+    clAmsFreeMemory (req->entityConfig);
+
+    switch (entityType)
+    {
+        case CL_AMS_ENTITY_TYPE_NODE:
+            { 
+                AMS_CHECK_RC_ERROR( VDECL_VER(clXdrUnmarshallClAmsNodeConfigT, 4, 0, 0)(
+                            in, (ClPtrT)entityConfig) );
+                break;
+            }
+
+        case CL_AMS_ENTITY_TYPE_SG:
+            { 
+                switch(versionCode)
+                {
+                case CL_VERSION_CODE(4, 0, 0):
+                    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 0, 0)(
+                                                                                         in, 
+                                                                                         (ClPtrT)entityConfig) );
+                    ((ClAmsSGConfigT*)entityConfig)->maxFailovers = 0;
+                    ((ClAmsSGConfigT*)entityConfig)->failoverDuration = 
+                        gClAmsSGDefaultConfig.failoverDuration;
+                    ((ClAmsSGConfigT*)entityConfig)->beta = 0;
+                    break;
+
+                case CL_VERSION_CODE(4, 1, 0):
+                    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 4, 1, 0)(
+                                                                                         in, 
+                                                                                         (ClPtrT)entityConfig) );
+                    ((ClAmsSGConfigT*)entityConfig)->beta = 0;
+                    break;
+
+                default:
+                    AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 5, 0, 0)(
+                                                                                         in, 
+                                                                                         (ClPtrT)entityConfig) );
+                    break;
+                }
+                break;
+            }
+
+        case CL_AMS_ENTITY_TYPE_SU:
+            { 
+                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSUConfigT, 4, 0, 0)(
+                            in, (ClPtrT)entityConfig) );
+                break;
+            }
+
+        case CL_AMS_ENTITY_TYPE_SI:
+            { 
+                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSIConfigT, 4, 0, 0)(
+                            in, (ClPtrT)entityConfig) );
+                break;
+            }
+
+        case CL_AMS_ENTITY_TYPE_COMP:
+            { 
+                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompConfigT, 4, 0, 0)(
+                            in, (ClPtrT)entityConfig) );
+                break;
+            }
+
+        case CL_AMS_ENTITY_TYPE_CSI:
+            { 
+                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSIConfigT, 4, 0, 0)(
+                            in, (ClPtrT)entityConfig) );
+                break;
+            }
+
+        default:
+            { 
+                rc = CL_AMS_ERR_INVALID_ENTITY;
+                goto exitfn;
+            }
+    
+    }
+ 
+    req->entityConfig = entityConfig;
+    if(entityConfig->name.length == strlen(entityConfig->name.value))
+        ++entityConfig->name.length;
+
+    return CL_OK;
+
+exitfn:
+
+    if ( req && req->entityConfig )
+    {
+        clAmsFreeMemory (req->entityConfig);
+    }
+
+    return rc;
+}
 
 static ClRcT 
 __clAmsMgmtCCBEntitySetConfig(
@@ -2300,7 +2452,7 @@ __clAmsMgmtCCBEntitySetConfig(
     ClAmsEntityConfigT  *entityConfig = NULL;
     ClAmsEntityTypeT  entityType = {0};
     clAmsMgmtCCBOperationDataT  *opData = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     ClRcT  rc = CL_OK;
 
@@ -2434,19 +2586,24 @@ __clAmsMgmtCCBEntitySetConfig(
                 ccbInstance->ccbOpListHandle, opData, 0), gAms.mutex );
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
-
+    
+    clHandleCheckin(gAms.ccbHandleDB, handle);
     return CL_OK;
 
 exitfn:
 
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
+
     if ( req && req->entityConfig )
     {
         clAmsFreeMemory (req->entityConfig);
+        clAmsFreeMemory (req);
     }
 
-    clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
-
     return rc;
 }
 
@@ -2501,7 +2658,7 @@ VDECL(_clAmsMgmtCCBCSISetNVP)(
 
     ClRcT  rc = CL_OK;
     clAmsMgmtCCBCSISetNVPRequestT  *req = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
 
@@ -2535,11 +2692,16 @@ VDECL(_clAmsMgmtCCBCSISetNVP)(
                 ccbInstance->ccbOpListHandle, opData, 0), gAms.mutex );
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
+    
+    clHandleCheckin(gAms.ccbHandleDB, handle);
 
     return CL_OK;
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
     clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
     return rc;
@@ -2567,7 +2729,7 @@ VDECL(_clAmsMgmtCCBCSIDeleteNVP)(
 
     ClRcT  rc = CL_OK;
     clAmsMgmtCCBCSISetNVPRequestT  *req = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
 
@@ -2602,10 +2764,15 @@ VDECL(_clAmsMgmtCCBCSIDeleteNVP)(
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
 
+    clHandleCheckin(gAms.ccbHandleDB, handle);
+
     return CL_OK;
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
     clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
     return rc;
@@ -2635,7 +2802,7 @@ _clAmsMgmtCCBSetNodeDependencyOp(
 
     ClRcT  rc = CL_OK;
     clAmsMgmtCCBSetNodeDependencyRequestT  *req = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
 
@@ -2671,10 +2838,15 @@ _clAmsMgmtCCBSetNodeDependencyOp(
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
 
+    clHandleCheckin(gAms.ccbHandleDB, handle);
+
     return CL_OK;
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
     clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
     return rc;
@@ -2758,11 +2930,15 @@ _clAmsMgmtCCBSetNodeSUListOp(
                 ccbInstance->ccbOpListHandle, opData, 0), gAms.mutex );
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
-   
+
+    clHandleCheckin(gAms.ccbHandleDB, handle);
     return CL_OK;
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
     clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
     return rc;
@@ -2811,7 +2987,7 @@ _clAmsMgmtCCBSetSGSUListOp(
 
     ClRcT  rc = CL_OK;
     clAmsMgmtCCBSetSGSUListRequestT  *req = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
 
@@ -2846,10 +3022,15 @@ _clAmsMgmtCCBSetSGSUListOp(
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
 
+    clHandleCheckin(gAms.ccbHandleDB, handle);
+
     return CL_OK;
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
     clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
     return rc;
@@ -2899,7 +3080,7 @@ _clAmsMgmtCCBSetSGSIListOp(
 
     ClRcT  rc = CL_OK;
     clAmsMgmtCCBSetSGSIListRequestT  *req = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
 
@@ -2934,10 +3115,15 @@ _clAmsMgmtCCBSetSGSIListOp(
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
 
+    clHandleCheckin(gAms.ccbHandleDB, handle);
+        
     return CL_OK;
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
     clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
     return rc;
@@ -2986,7 +3172,7 @@ _clAmsMgmtCCBSetSUCompListOp(
 
     ClRcT  rc = CL_OK;
     clAmsMgmtCCBSetSUCompListRequestT  *req = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
 
@@ -3021,10 +3207,15 @@ _clAmsMgmtCCBSetSUCompListOp(
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
 
+    clHandleCheckin(gAms.ccbHandleDB, handle);
+
     return CL_OK;
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
     clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
     return rc;
@@ -3073,7 +3264,7 @@ _clAmsMgmtCCBSetSISURankListOp(
 
     ClRcT  rc = CL_OK;
     clAmsMgmtCCBSetSISURankListRequestT  *req = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
 
@@ -3107,11 +3298,16 @@ _clAmsMgmtCCBSetSISURankListOp(
                 ccbInstance->ccbOpListHandle, opData, 0), gAms.mutex );
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
+    
+    clHandleCheckin(gAms.ccbHandleDB, handle);
 
     return CL_OK;
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
     clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
     return rc;
@@ -3160,7 +3356,7 @@ _clAmsMgmtCCBSetSISIDependencyOp(
 
     ClRcT  rc = CL_OK;
     clAmsMgmtCCBSetSISIDependencyRequestT  *req = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
 
@@ -3194,11 +3390,16 @@ _clAmsMgmtCCBSetSISIDependencyOp(
                 ccbInstance->ccbOpListHandle, opData, 0), gAms.mutex );
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
+    
+    clHandleCheckin(gAms.ccbHandleDB, handle);
 
     return CL_OK;
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
     clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
     return rc;
@@ -3247,7 +3448,7 @@ _clAmsMgmtCCBSetSICSIListOp(
 
     ClRcT  rc = CL_OK;
     clAmsMgmtCCBSetSICSIListRequestT  *req = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
 
@@ -3283,10 +3484,15 @@ _clAmsMgmtCCBSetSICSIListOp(
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
 
+    clHandleCheckin(gAms.ccbHandleDB, handle);
+
     return CL_OK;
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
     clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
     return rc;
@@ -3336,7 +3542,7 @@ _clAmsMgmtCCBSetCSICSIDependencyOp(
 
     ClRcT  rc = CL_OK;
     clAmsMgmtCCBSetCSICSIDependencyRequestT  *req = NULL;
-    ClAmsMgmtCCBHandleT  handle;
+    ClAmsMgmtCCBHandleT  handle = 0;
     clAmsMgmtCCBT  *ccbInstance = NULL;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
 
@@ -3371,10 +3577,15 @@ _clAmsMgmtCCBSetCSICSIDependencyOp(
 
     AMS_CALL( clOsalMutexUnlock(gAms.mutex) );
 
+    clHandleCheckin(gAms.ccbHandleDB, handle);
+
     return CL_OK;
 
 exitfn:
-
+    if(ccbInstance)
+    {
+        clHandleCheckin(gAms.ccbHandleDB, handle);
+    }
     clAmsFreeMemory (req);
     clAmsFreeMemory (opData);
     return rc;
@@ -4794,21 +5005,17 @@ static ClRcT evaluateDirtySGCallback(ClAmsEntityT *entity)
      return CL_OK;
 }
 
-ClRcT
-clAmsMgmtCommitCCBOperations(
-                             CL_IN  ClCntHandleT  *opListHandle )
-
+ClRcT 
+clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
 {
-
     AMS_FUNC_ENTER(("\n"));
-
+    ClRcT  rc = CL_OK;
     clAmsMgmtCCBOperationDataT  *opData = NULL;
     ClCntNodeHandleT  nodeHandle = 0;
     ClCntNodeHandleT  nextNodeHandle = 0;
     ClAmsEntityRefT  entityRef = {{0},0};
-    ClRcT  rc = CL_OK;
     ClAmsEntityRefT  nodeRef = {{0}} ,suRef = {{0}};
-    ClAmsEntityListT dirtySGList;
+    ClAmsEntityListT dirtySGList = {0};
 
     AMS_CHECKPTR (!opListHandle);
 
@@ -4819,8 +5026,8 @@ clAmsMgmtCommitCCBOperations(
      */ 
     
     for ( opData = clAmsCCBGetFirstElement(opListHandle, &nextNodeHandle);
-          opData != NULL; opData = 
-              clAmsCCBGetNextElement(opListHandle,&nodeHandle,&nextNodeHandle))
+          opData != NULL; 
+          opData = clAmsCCBGetNextElement(opListHandle, nodeHandle, &nextNodeHandle))
     {
 
         AMS_CHECKPTR (!opData);
@@ -5586,7 +5793,189 @@ clAmsMgmtCommitCCBOperations(
         AMS_LOG(CL_DEBUG_ERROR,("Failure [%x] when committing CCB operations.  Application may not be notified as this operation may occur asynchronously.",rc));
     }
 
-    AMS_CALL (clCntAllNodesDelete(*opListHandle)) ;
     clAmsEntityListTerminate(&dirtySGList);
+    return rc;
+}
+
+
+ClRcT 
+VDECL_VER(_clAmsMgmtCCBBatchCommit, 5, 1, 0)(ClEoDataT userData,
+                                             ClBufferHandleT inMsgHdl,
+                                             ClBufferHandleT outMsgHdl)
+{
+    ClRcT  rc = CL_OK;
+    ClUint32T versionCode = 0;
+    ClUint32T items = 0;
+    clAmsMgmtCCBT *ccbInstance = NULL;
+    clAmsMgmtCCBOperationDataT *opData = NULL;
+
+    AMS_CHECK_RC_ERROR(clXdrUnmarshallClUint32T(inMsgHdl, &versionCode));
+    AMS_CHECK_RC_ERROR(clXdrUnmarshallClUint32T(inMsgHdl, &items));
+    if(!items)
+    {
+        clLogWarning("BATCH", "COMMIT", "AMF commit called with no items");
+        goto exitfn;
+    }
+    clLogInfo("BATCH", "COMMIT", "AMF batch commit called with [%d] entities", items);
+    ccbInstance = clHeapCalloc(1, sizeof(*ccbInstance));
+    CL_ASSERT(ccbInstance != NULL);
+    AMS_CHECK_RC_ERROR(clAmsCCBOpListInstantiate(&ccbInstance->ccbOpListHandle));
+
+    clOsalMutexLock(gAms.mutex);
+    while(items-- > 0)
+    {
+        ClAmsMgmtCCBOperationsT opId = 0;
+        AMS_CHECK_RC_UNLOCK(clXdrUnmarshallClInt32T(inMsgHdl, &opId));
+
+        opData = clHeapCalloc(1, sizeof(*opData));
+        CL_ASSERT(opData != NULL);
+        opData->opId = opId;
+
+        switch(opId)
+        {
+        case CL_AMS_MGMT_CCB_OPERATION_CREATE:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBEntityCreateRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBEntityCreateRequestT, 
+                                          4, 0, 0)(inMsgHdl, opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBEntityDeleteRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBEntityDeleteRequestT, 4, 0, 0)
+                                (inMsgHdl, opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_SET_CONFIG:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBEntitySetConfigRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(__clAmsMgmtCCBBatchEntitySetConfig(inMsgHdl, versionCode, 
+                                                                   (clAmsMgmtCCBEntitySetConfigRequestT*)
+                                                                   opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_CSI_SET_NVP:
+        case CL_AMS_MGMT_CCB_OPERATION_CSI_DELETE_NVP:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBCSISetNVPRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBCSISetNVPRequestT, 4, 0, 0)
+                                (inMsgHdl,
+                                 opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_SET_NODE_DEPENDENCY:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_NODE_DEPENDENCY:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBSetNodeDependencyRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBSetNodeDependencyRequestT, 4, 0, 0)
+                                (inMsgHdl,
+                                 opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_SET_NODE_SU_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_NODE_SU_LIST:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBSetNodeSUListRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBSetNodeSUListRequestT, 4, 0, 0)
+                                (inMsgHdl,
+                                 opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_SET_SG_SU_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SU_LIST:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBSetSGSUListRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBSetSGSUListRequestT, 4, 0, 0)
+                                (inMsgHdl,
+                                 opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_SET_SG_SI_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SI_LIST:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBSetSGSIListRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBSetSGSIListRequestT, 4, 0, 0)
+                                (inMsgHdl,
+                                 opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_SET_SU_COMP_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SU_COMP_LIST:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBSetSUCompListRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBSetSUCompListRequestT, 4, 0, 0)
+                                (inMsgHdl,
+                                 opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_SET_SI_SU_RANK_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SU_RANK_LIST:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBSetSISURankListRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBSetSISURankListRequestT, 4, 0, 0)
+                                (inMsgHdl,
+                                 opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_SET_SI_SI_DEPENDENCY_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SI_DEPENDENCY_LIST:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBSetSISIDependencyRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBSetSISIDependencyRequestT, 4, 0, 0)
+                                (inMsgHdl, 
+                                 opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_SET_SI_CSI_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_CSI_LIST:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBSetSICSIListRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER(clXdrUnmarshallclAmsMgmtCCBSetSICSIListRequestT, 4, 0, 0)
+                                (inMsgHdl,
+                                 opData->payload));
+            break;
+        case CL_AMS_MGMT_CCB_OPERATION_SET_CSI_CSI_DEPENDENCY_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_CSI_CSI_DEPENDENCY_LIST:
+            opData->payload = clHeapCalloc(1, sizeof(clAmsMgmtCCBSetCSICSIDependencyRequestT));
+            CL_ASSERT(opData->payload != NULL);
+            AMS_CHECK_RC_UNLOCK(VDECL_VER
+                                (clXdrUnmarshallclAmsMgmtCCBSetCSICSIDependencyRequestT, 4, 0, 0)
+                                (inMsgHdl,
+                                 opData->payload));
+            break;
+        default:
+            clLogWarning("BATCH", "COMMIT", "Unknown commit operation [%d]", opId);
+            continue;
+        }
+        AMS_CHECK_RC_UNLOCK(clAmsCCBValidateOperationLocked(opData->payload, opId));
+        /*
+         * Add to the ccb list if validation succeeds for this entity.
+         */
+        AMS_CHECK_RC_UNLOCK(clAmsCCBAddOperation(ccbInstance->ccbOpListHandle,
+                                                 opData, 0));
+    }
+    opData = NULL;
+    AMS_CHECK_RC_UNLOCK(clAmsMgmtCommitCCBOperations(ccbInstance->ccbOpListHandle));
+
+    /*
+     * Checkpoint to persistent db and in-memory
+     */
+    clAmsCkptDBWrite();
+
+    rc = clAmsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_DB);
+
+    if(rc != CL_OK)
+    {
+        clLogError("BATCH", "COMMIT","Ams ckpt write returned [%#x]", rc);
+        goto out_unlock;
+    }
+
+    out_unlock:
+    clOsalMutexUnlock(gAms.mutex);
+
+    exitfn:
+    if(opData)
+    {
+        clAmsCCBDeleteCallback((ClCntKeyHandleT)0, (ClCntDataHandleT)opData);
+    }
+
+    if(ccbInstance)
+    {
+        if(ccbInstance->ccbOpListHandle)
+        {
+            clAmsCCBOpListTerminate(&ccbInstance->ccbOpListHandle);
+        }
+        clHeapFree(ccbInstance);
+    }
     return rc;
 }

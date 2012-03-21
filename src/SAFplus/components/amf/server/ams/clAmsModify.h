@@ -645,7 +645,7 @@ clAmsCCBAddOperation(
 
 extern ClPtrT
 clAmsCCBGetFirstElement(
-        CL_IN  ClCntHandleT  *listHandle,
+        CL_IN  ClCntHandleT  listHandle,
         CL_OUT  ClCntNodeHandleT  *nodeHandle );
 
 
@@ -675,8 +675,8 @@ clAmsCCBGetFirstElement(
 
 extern ClPtrT
 clAmsCCBGetNextElement(
-        CL_IN  ClCntHandleT  *listHandle,
-        CL_IN  ClCntNodeHandleT  *nodeHandle, 
+        CL_IN  ClCntHandleT  listHandle,
+        CL_IN  ClCntNodeHandleT  nodeHandle, 
         CL_OUT  ClCntNodeHandleT  *nextNodeHandle );
 
 
@@ -783,38 +783,6 @@ clAmsGetOLEntityList(
         CL_IN  ClAmsEntityListTypeT  entityListName,
         CL_OUT  ClAmsEntityRefBufferT  *entityListBuffer);
 
-/*
- * AMS CCB operations type 
- */
-
-typedef enum
-{
-    CL_AMS_MGMT_CCB_OPERATION_CREATE = 1,
-    CL_AMS_MGMT_CCB_OPERATION_DELETE ,
-    CL_AMS_MGMT_CCB_OPERATION_SET_CONFIG,
-    CL_AMS_MGMT_CCB_OPERATION_CSI_SET_NVP ,
-    CL_AMS_MGMT_CCB_OPERATION_SET_NODE_DEPENDENCY,
-    CL_AMS_MGMT_CCB_OPERATION_SET_NODE_SU_LIST ,
-    CL_AMS_MGMT_CCB_OPERATION_SET_SG_SU_LIST ,
-    CL_AMS_MGMT_CCB_OPERATION_SET_SG_SI_LIST ,
-    CL_AMS_MGMT_CCB_OPERATION_SET_SU_COMP_LIST ,
-    CL_AMS_MGMT_CCB_OPERATION_SET_SI_SU_RANK_LIST,
-    CL_AMS_MGMT_CCB_OPERATION_SET_SI_SI_DEPENDENCY_LIST,
-    CL_AMS_MGMT_CCB_OPERATION_SET_SI_CSI_LIST ,
-    CL_AMS_MGMT_CCB_OPERATION_SET_CSI_CSI_DEPENDENCY_LIST,
-    CL_AMS_MGMT_CCB_OPERATION_CSI_DELETE_NVP,
-    CL_AMS_MGMT_CCB_OPERATION_DELETE_NODE_DEPENDENCY,
-    CL_AMS_MGMT_CCB_OPERATION_DELETE_NODE_SU_LIST,
-    CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SU_LIST,
-    CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SI_LIST,
-    CL_AMS_MGMT_CCB_OPERATION_DELETE_SU_COMP_LIST,
-    CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SU_RANK_LIST,
-    CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SI_DEPENDENCY_LIST,
-    CL_AMS_MGMT_CCB_OPERATION_DELETE_CSI_CSI_DEPENDENCY_LIST,
-    CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_CSI_LIST,
-    CL_AMS_MGMT_CCB_OPERATION_MAX,
-}ClAmsMgmtCCBOperationsT;
-
 typedef struct
 {
     ClAmsMgmtCCBOperationsT  opId;
@@ -823,6 +791,11 @@ typedef struct
 
 extern ClRcT
 clAmsCCBValidateOperation(
+        CL_IN  ClPtrT  req,
+        CL_IN  ClAmsMgmtCCBOperationsT  opId );
+
+extern ClRcT
+clAmsCCBValidateOperationLocked(
         CL_IN  ClPtrT  req,
         CL_IN  ClAmsMgmtCCBOperationsT  opId );
 

@@ -1168,17 +1168,15 @@ exitfn:
 }
 
 ClRcT
-clAmsCCBValidateOperation(
-                          CL_IN  ClPtrT  req,
-                          CL_IN  ClAmsMgmtCCBOperationsT  opId )
+clAmsCCBValidateOperationLocked(
+                                CL_IN  ClPtrT  req,
+                                CL_IN  ClAmsMgmtCCBOperationsT  opId )
 {
     ClRcT  rc = CL_OK;
     ClAmsEntityRefT  entityRef = {{0},0};
 
     AMS_CHECKPTR (!req); 
     
-    AMS_CALL ( clOsalMutexLock(gAms.mutex) );
-
     switch (opId)
     {
 
@@ -1694,14 +1692,24 @@ clAmsCCBValidateOperation(
     
     exitfn:
 
-    AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
-
     if(rc != CL_OK)
     {
         clLogError("CCB", "VALIDATE", "AMF validate operation returned [%#x] for operation [%d]",
                    rc, opId);
     }
 
+    return rc;
+}
+
+ClRcT
+clAmsCCBValidateOperation(
+                          CL_IN  ClPtrT  req,
+                          CL_IN  ClAmsMgmtCCBOperationsT  opId )
+{
+    ClRcT  rc = CL_OK;
+    clOsalMutexLock(gAms.mutex);
+    rc = clAmsCCBValidateOperationLocked(req, opId);
+    clOsalMutexUnlock(gAms.mutex);
     return rc;
 }
 
@@ -7308,13 +7316,11 @@ clAmsCCBDeleteCallback(
 
     opData = (clAmsMgmtCCBOperationDataT *)data;
 
-    if( (opData== NULL) || (opData->payload == NULL) ) 
-    {
-        AMS_LOG(CL_DEBUG_ERROR,
-                ("ALERT [%s:%d] : Expression (opData) is True. Null Pointer\n",
-                 __FUNCTION__, __LINE__));                              
+    if(!opData)
         return;
-    }
+
+    if(!opData->payload)
+        goto out;
 
     switch (opData->opId)
     {
@@ -7354,8 +7360,9 @@ clAmsCCBDeleteCallback(
     }
 
     clAmsFreeMemory (opData->payload);
-    clAmsFreeMemory (opData);
 
+    out:
+    clAmsFreeMemory (opData);
 }
 
 
@@ -7387,20 +7394,13 @@ clAmsCCBAddOperation(
 {
 
     ClRcT  rc = CL_OK;
-
     AMS_CHECK_RC_ERROR ( clCntNodeAdd(
                 listHandle,
                 key, 
                 (ClCntDataHandleT)element,
                 NULL) );
-
-    return CL_OK;
-
-exitfn:
-
-    clAmsFreeMemory(element);
+    exitfn:
     return rc;
-
 }
 
 
@@ -7457,7 +7457,7 @@ clAmsCCBDeleteOperation(
 
 ClPtrT
 clAmsCCBGetFirstElement(
-        CL_IN  ClCntHandleT  *listHandle,
+        CL_IN  ClCntHandleT  listHandle,
         CL_OUT  ClCntNodeHandleT  *nodeHandle )
 
 {
@@ -7473,12 +7473,12 @@ clAmsCCBGetFirstElement(
             return NULL;
     }
 
-    rc = clCntFirstNodeGet( *listHandle, nodeHandle);
+    rc = clCntFirstNodeGet( listHandle, nodeHandle);
 
     if ( rc == CL_OK )
     {
          rc2 = clCntNodeUserDataGet(
-                 *listHandle,
+                 listHandle,
                  *nodeHandle,
                  (ClCntDataHandleT *)&element);
 
@@ -7528,9 +7528,9 @@ clAmsCCBGetFirstElement(
 
 ClPtrT
 clAmsCCBGetNextElement(
-        CL_IN  ClCntHandleT  *listHandle,
-        CL_IN  ClCntNodeHandleT  *nodeHandle, 
-        CL_OUT  ClCntNodeHandleT  *nextNodeHandle )
+        CL_IN  ClCntHandleT  listHandle,
+        CL_IN  ClCntNodeHandleT  nodeHandle, 
+        CL_OUT  ClCntNodeHandleT *nextNodeHandle )
 
 {
 
@@ -7545,12 +7545,12 @@ clAmsCCBGetNextElement(
             return NULL;
     }
 
-    rc = clCntNextNodeGet( *listHandle, *nodeHandle, nextNodeHandle);
+    rc = clCntNextNodeGet(listHandle, nodeHandle, nextNodeHandle);
 
     if ( rc == CL_OK )
     {
          rc2 = clCntNodeUserDataGet(
-                 *listHandle,
+                 listHandle,
                  *nextNodeHandle,
                  (ClCntDataHandleT *)&element);
 

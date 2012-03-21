@@ -114,6 +114,14 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
     }                                           \
 }
 
+#define AMS_CHECK_RC_UNLOCK(fn)                  do {   \
+    rc = (fn);                                          \
+    if ( (rc) != CL_OK )                                \
+    {                                                   \
+        goto out_unlock;                                \
+    }                                                   \
+}while(0)
+
 #define AMS_CHECKPTR_SILENT(x)                  \
 {                                               \
     if ( (x) != CL_FALSE )                      \

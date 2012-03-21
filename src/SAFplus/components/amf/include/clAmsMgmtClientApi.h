@@ -60,6 +60,12 @@ extern "C" {
  *****************************************************************************/
 
 #define ASP_INSTALL_KEY "ASP_INSTALL_INFO"
+#define CL_AMS_NAME_LENGTH_CHECK(entity) do {               \
+    if((entity).name.length == strlen((entity).name.value)) \
+    {                                                       \
+        ++(entity).name.length;                             \
+    }                                                       \
+}while(0)
 
 typedef struct
 {
@@ -3642,6 +3648,125 @@ extern ClRcT
 clAmsMgmtComputedAdminStateGet(ClAmsMgmtHandleT handle,
                                ClAmsEntityT *entity,
                                ClAmsAdminStateT *adminState);
+
+/*
+ * AMS mgmt CCB batch apis.
+ */    
+ClRcT clAmsMgmtCCBBatchInitialize(ClAmsMgmtHandleT mgmtHandle, ClAmsMgmtCCBBatchHandleT *batchHandle);
+
+ClRcT clAmsMgmtCCBBatchFinalize(ClAmsMgmtCCBBatchHandleT *batchHandle);
+
+ClRcT clAmsMgmtCCBBatchEntityCreate(ClAmsMgmtCCBBatchHandleT batchHandle,
+                                    const ClAmsEntityT *entity);
+
+ClRcT clAmsMgmtCCBBatchEntityDelete(ClAmsMgmtCCBBatchHandleT batchHandle,
+                                    const ClAmsEntityT *entity);
+
+ClRcT clAmsMgmtCCBBatchEntitySetConfig(ClAmsMgmtCCBBatchHandleT batchHandle,
+                                       ClAmsEntityConfigT *entityConfig,
+                                       ClUint64T bitmask);
+
+ClRcT clAmsMgmtCCBBatchCSISetNVP(ClAmsMgmtCCBBatchHandleT batchHandle,
+                                 CL_IN   ClAmsEntityT    *csiName,
+                                 CL_IN   ClAmsCSINVPT    *nvp );
+
+ClRcT clAmsMgmtCCBBatchCSIDeleteNVP(
+                                    CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                    CL_IN   ClAmsEntityT    *csiName,
+                                    CL_IN   ClAmsCSINVPT    *nvp );
+
+ClRcT clAmsMgmtCCBBatchSetNodeDependency(
+                                         CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                         CL_IN   ClAmsEntityT    *nodeName,
+                                         CL_IN   ClAmsEntityT    *dependencyNodeName );
+
+ClRcT clAmsMgmtCCBBatchDeleteNodeDependency(
+                                            CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                            CL_IN   ClAmsEntityT    *nodeName,
+                                            CL_IN   ClAmsEntityT    *dependencyNodeName );
+
+ClRcT clAmsMgmtCCBBatchSetNodeSUList(
+                                     CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                     CL_IN   ClAmsEntityT    *nodeName,
+                                     CL_IN   ClAmsEntityT    *suName);
+
+ClRcT clAmsMgmtCCBBatchDeleteNodeSUList(
+                                        CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                        CL_IN   ClAmsEntityT    *nodeName,
+                                        CL_IN   ClAmsEntityT    *suName );
+
+ClRcT clAmsMgmtCCBBatchSetSGSUList(
+                                   CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                   CL_IN   ClAmsEntityT    *sgName,
+                                   CL_IN   ClAmsEntityT    *suName);
+
+ClRcT clAmsMgmtCCBBatchDeleteSGSUList(
+                                      CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                      CL_IN   ClAmsEntityT    *sgName,
+                                      CL_IN   ClAmsEntityT    *suName );
+
+ClRcT clAmsMgmtCCBBatchSetSGSIList(
+                                   CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                   CL_IN   ClAmsEntityT    *sgName,
+                                   CL_IN   ClAmsEntityT    *siName);
+
+ClRcT clAmsMgmtCCBBatchDeleteSGSIList(
+                                      CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                      CL_IN   ClAmsEntityT    *sgName,
+                                      CL_IN   ClAmsEntityT    *siName);
+
+ClRcT clAmsMgmtCCBBatchSetSUCompList(
+                                CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                CL_IN   ClAmsEntityT    *suName,
+                                CL_IN   ClAmsEntityT    *compName);
+
+ClRcT clAmsMgmtCCBBatchDeleteSUCompList(
+                                        CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                        CL_IN   ClAmsEntityT    *suName,
+                                        CL_IN   ClAmsEntityT    *compName);
+
+ClRcT clAmsMgmtCCBBatchSetSISURankList(
+                                       CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                       CL_IN   ClAmsEntityT    *siName,
+                                       CL_IN   ClAmsEntityT    *suName);
+
+ClRcT clAmsMgmtCCBBatchDeleteSISURankList(
+                                          CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                          CL_IN   ClAmsEntityT    *siName,
+                                          CL_IN   ClAmsEntityT    *suName);
+
+ClRcT clAmsMgmtCCBBatchSetSIDependency(
+                                     CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                     CL_IN   ClAmsEntityT    *siName,
+                                     CL_IN   ClAmsEntityT    *dependencySIName);
+
+ClRcT clAmsMgmtCCBBatchDeleteSIDependency(
+                                          CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                          CL_IN   ClAmsEntityT    *siName,
+                                          CL_IN   ClAmsEntityT    *dependencySIName);
+
+ClRcT clAmsMgmtCCBBatchSetCSIDependency(
+                                        CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                        CL_IN   ClAmsEntityT    *csiName,
+                                        CL_IN   ClAmsEntityT    *dependencyCSIName);
+
+ClRcT clAmsMgmtCCBBatchDeleteCSIDependency(
+                                           CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                           CL_IN   ClAmsEntityT    *csiName,
+                                           CL_IN   ClAmsEntityT    *dependencyCSIName);
+
+ClRcT clAmsMgmtCCBBatchSetSICSIList(
+                                    CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                    CL_IN   ClAmsEntityT    *siName,
+                                    CL_IN   ClAmsEntityT    *csiName);
+
+ClRcT clAmsMgmtCCBBatchDeleteSICSIList(
+                                       CL_IN   ClAmsMgmtCCBBatchHandleT batchHandle,
+                                       CL_IN   ClAmsEntityT    *siName,
+                                       CL_IN   ClAmsEntityT    *csiName);
+
+ClRcT
+clAmsMgmtCCBBatchCommit(CL_IN ClAmsMgmtCCBBatchHandleT batchHandle);
 
 #ifdef __cplusplus
 }

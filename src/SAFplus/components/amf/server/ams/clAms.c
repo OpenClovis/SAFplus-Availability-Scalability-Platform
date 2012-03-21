@@ -165,6 +165,44 @@ static ClRcT amsClusterTimerCallback(void *arg)
     return CL_OK;
 }
 
+static void dumpEntityUsage(void)
+{
+    ClUint32T i;
+    static struct entitySizeMap
+    {
+        const ClCharT *entityType;
+        ClUint32T entitySize;
+        ClUint32T configSize;
+        ClUint32T statusSize;
+    } entitySizeMap[CL_AMS_ENTITY_TYPE_MAX+1] = {
+        {.entityType = "entity", .entitySize = sizeof(ClAmsEntityT),
+             .configSize = sizeof(ClAmsEntityConfigT), .statusSize = sizeof(ClAmsEntityStatusT)},
+        {.entityType = "node", .entitySize = sizeof(ClAmsNodeT),
+             .configSize = sizeof(ClAmsNodeConfigT), .statusSize = sizeof(ClAmsNodeStatusT)},
+        {.entityType = NULL,},
+        {.entityType = "sg", .entitySize = sizeof(ClAmsSGT),
+             .configSize = sizeof(ClAmsSGConfigT), .statusSize = sizeof(ClAmsSGStatusT)},
+        {.entityType = "su", .entitySize = sizeof(ClAmsSUT),
+             .configSize = sizeof(ClAmsSUConfigT), .statusSize = sizeof(ClAmsSUStatusT)},
+        {.entityType = "si", .entitySize = sizeof(ClAmsSIT),
+             .configSize = sizeof(ClAmsSIConfigT), .statusSize = sizeof(ClAmsSIStatusT)},
+        {.entityType = "comp", .entitySize = sizeof(ClAmsCompT),
+             .configSize = sizeof(ClAmsCompConfigT), .statusSize = sizeof(ClAmsCompStatusT)},
+        {.entityType = "csi", .entitySize = sizeof(ClAmsCSIT),
+             .configSize = sizeof(ClAmsCSIConfigT), .statusSize = sizeof(ClAmsCSIStatusT)},
+    };      
+    for(i = 0; i <= CL_AMS_ENTITY_TYPE_MAX ; ++i)
+    {
+        if(entitySizeMap[i].entityType)
+        {
+            clLogNotice("ENTITY", "SIZES", "Type [%s], size [%d], config [%d], status [%d]",
+                        entitySizeMap[i].entityType, entitySizeMap[i].entitySize,
+                        entitySizeMap[i].configSize, entitySizeMap[i].statusSize);
+        }
+    }
+    clLogNotice("ENTITY", "SIZES", "Entity reference size [%d]", (ClUint32T)sizeof(ClAmsEntityRefT));
+}
+
 ClRcT
 clAmsInitialize(
                 CL_IN       ClAmsT              *ams,
@@ -175,7 +213,7 @@ clAmsInitialize(
     ClRcT   rc = CL_OK;
 
     AMS_CHECKPTR ( !ams || !cpmFuncs || !amsFuncs );
-    
+    dumpEntityUsage();
     /*
      * This must be upfront, so all debug messages are caught and filtered.
      */
