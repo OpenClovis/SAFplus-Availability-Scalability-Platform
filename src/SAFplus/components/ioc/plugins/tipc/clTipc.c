@@ -204,7 +204,7 @@ static ClRcT tipcDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
         goto out;
     }
 
-    rc = clIocDispatchAsync(gClTipcXportType, xportPrivate->portId, buffer, bytes);
+    rc = clIocDispatchAsync(xportPrivate->portId, buffer, bytes);
 
     out:
     return rc;
@@ -569,7 +569,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         break;
     }
 
-    rc = clIocDispatch(gClTipcXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
+    rc = clIocDispatch(commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
 
     if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
         goto retry;

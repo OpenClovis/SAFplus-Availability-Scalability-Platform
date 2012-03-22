@@ -95,19 +95,14 @@ extern ClIocNodeAddressT gIocLocalBladeAddress;
 extern ClUint32T
 clIocSetType(ClUint32T portId, ClBoolT setFlag);
 extern ClRcT 
-__iocUserFragmentReceive(const ClCharT *xportType,
-                         ClUint8T *pBuffer,
+__iocUserFragmentReceive(ClUint8T *pBuffer,
                          ClIocFragHeaderT *userHdr,
                          ClIocPortT portId,
                          ClUint32T length,
                          ClBufferHandleT msg,
                          ClBoolT sync);
-
 extern ClRcT 
 clIocCommPortCreateStatic(ClUint32T portId, ClIocCommPortFlagsT portType,
                           ClIocCommPortT *pIocCommPort, const ClCharT *xportType);
-
-extern ClRcT 
-clIocCommPortDeleteStatic(ClIocCommPortT *pIocCommPort, const ClCharT *xportType);
 
 #endif

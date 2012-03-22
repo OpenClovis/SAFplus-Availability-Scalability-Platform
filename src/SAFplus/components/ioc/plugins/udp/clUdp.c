@@ -14,6 +14,7 @@
 #include <clDebugApi.h>
 #include <clPluginHelper.h>
 #include <clIocNeighComps.h>
+#include <clTaskPool.h>
 #include "clUdpSetup.h"
 #include "clUdpNotification.h"
 
@@ -29,6 +30,8 @@ static CL_LIST_HEAD_DECLARE(gIocUdpMapList);
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 static ClPluginHelperVirtualIpAddressT gVirtualIp;
 static ClBoolT gUdpInit = CL_FALSE;
+static ClBoolT gClSimulationMode = CL_FALSE;
+static ClUint32T gClBindOffset;
 
 typedef struct ClIocUdpMap
 {
@@ -68,7 +71,14 @@ typedef struct ClXportCtrl
     ClInt32T family;
 }ClXportCtrlT;
 
+typedef struct ClLinkNotificationArgs
+{
+    ClIocNodeAddressT node;
+    ClIocNotificationIdT event;
+} ClLinkNotificationArgsT;
+
 static ClXportCtrlT gXportCtrl;
+static ClTaskPoolHandleT gXportLinkNotifyTask;
 
 #define UDP_MAP_HASH(addr) ( (addr) & IOC_UDP_MAP_MASK )
 
@@ -119,10 +129,11 @@ ClRcT iocUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *co
 {
     ClIocUdpMapT *map;
     register ClListHeadT *iter;
-    ClRcT rc = CL_OK;
+    ClRcT rc = CL_OK, retCode = CL_OK;
     ClIocUdpMapT *addrMap = NULL;
     ClUint32T numEntries = 0, i;
     static ClUint32T growMask = 7;
+
     /*
      * Accumulate the map first and then send all lockless. This would be faster
      * then playing lock/unlock futex wait/wakeup games.
@@ -150,18 +161,19 @@ ClRcT iocUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *co
     for(i = 0; i < numEntries; ++i)
     {
         rc = callback(addrMap+i, cookie);
-        if( (rc != CL_OK) 
-            &&
-            (flags & __STOP_WALK_ON_ERROR) )
-            goto out_free;
+        if(rc != CL_OK)
+        {
+            retCode = rc;
+            if( (flags & __STOP_WALK_ON_ERROR) )
+                goto out_free;
+        }
     }
-    rc = CL_OK;
 
     out_free:
     if(addrMap)
         clHeapFree(addrMap);
 
-    return rc;
+    return retCode;
 }
 
 static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
@@ -291,12 +303,14 @@ static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtr
     {
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
+        case CL_IOC_NODE_LINK_UP_NOTIFICATION:
             if (!(map = iocUdpMapFind(nodeAddress)))
             {
                 iocUdpMapAdd(NULL, nodeAddress);
             }
             break;
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
+        case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
             if (nodeAddress != gIocLocalBladeAddress)
             {
                 clIocUdpMapDel(nodeAddress);
@@ -309,7 +323,7 @@ static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtr
     return CL_OK;
 }
 
-ClRcT xportIpAddressAssign(void)
+ClRcT xportAddressAssign(void)
 {
     ClRcT rc = CL_OK;
 
@@ -328,7 +342,13 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
         strncat(gClUdpXportType, xportType, sizeof(gClUdpXportType)-1);
     }
     gClUdpXportId = xportId;
-
+    gClBindOffset = gIocLocalBladeAddress;
+    gClSimulationMode = clParseEnvBoolean("ASP_MULTINODE");
+    if(gClSimulationMode)
+    {
+        clLogNotice("XPORT", "INIT", "Simulation mode is enabled for the runtime");
+        gClBindOffset <<= 10;
+    }
     clPluginHelperGetVirtualAddressInfo("UDP", &gVirtualIp);
 
     clLogDebug(
@@ -340,6 +360,13 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     /*
      * To do a fast pass early update node entry table
      */
+    rc = clTaskPoolCreate(&gXportLinkNotifyTask, 1, 0, 0);
+    if(rc != CL_OK)
+    {
+        clLogError("UDP", "INIT", "Link notify task pool creation failed with [%#x]. "
+                   "Link level or split brain recovery wont function", rc);
+    }
+
     clIocNotificationRegister(_clUdpMapUpdateNotification, NULL);
 
     // TODO: identify from linkName
@@ -432,7 +459,7 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
         goto out;
     }
 
-    rc = clIocDispatchAsync(gClUdpXportType, xportPrivate->port, buffer, bytes);
+    rc = clIocDispatchAsync(xportPrivate->port, buffer, bytes);
 
     out:
     return rc;
@@ -446,20 +473,21 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
     struct sockaddr *addr = (struct sockaddr*)&ipv4_addr;
     int fd = -1;
     int flag = 1;
+
     switch(gXportCtrl.family)
     {
     case PF_INET6:
         fd = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
         addr = (struct sockaddr*)&ipv6_addr;
         ipv6_addr.sin6_addr = in6addr_any;
-        ipv6_addr.sin6_port = htons(port + CL_TRANSPORT_BASE_PORT   + (gIocLocalBladeAddress<<10));
+        ipv6_addr.sin6_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
         ipv6_addr.sin6_family = PF_INET6;
         break;
     case PF_INET:
     default:
         fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
         ipv4_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-        ipv4_addr.sin_port = htons(port + CL_TRANSPORT_BASE_PORT  +(gIocLocalBladeAddress <<10));
+        ipv4_addr.sin_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
         ipv4_addr.sin_family = PF_INET;
         break;
     }
@@ -694,7 +722,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         break;
     }
 
-    rc = clIocDispatch(gClUdpXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
+    rc = clIocDispatch(commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
 
     if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
         goto retry;
@@ -732,16 +760,21 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
     socklen_t addrlen = 0;
     struct msghdr msghdr;
     ClRcT rc = CL_OK;
+    int portOffset = map->slot;
 
+    if(gClSimulationMode)
+    {
+        portOffset <<= 10;
+    }
     if(map->family == PF_INET)
     {
-        map->__ipv4_addr.sin_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port + (map->slot << 10));
+        map->__ipv4_addr.sin_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
         destaddr = (struct sockaddr*)&map->__ipv4_addr;
         addrlen = sizeof(struct sockaddr_in);
     }
     else
     {
-        map->__ipv6_addr.sin6_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port  + (map->slot << 10));
+        map->__ipv6_addr.sin6_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port  + portOffset);
         destaddr = (struct sockaddr*)&map->__ipv6_addr;
         addrlen = sizeof(struct sockaddr_in6);
     }
@@ -753,13 +786,15 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
     if(sendmsg(map->sendFd, &msghdr, sendArgs->flags) < 0)
     {
         clLogError("UDP", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
-                   strerror(errno), map->addrstr, sendArgs->port, CL_TRANSPORT_BASE_PORT + sendArgs->port + (map->slot << 10));
+                   strerror(errno), map->addrstr, sendArgs->port, 
+                   CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
         rc = CL_ERR_LIBRARY;
     }
     else
     {
         clLogTrace("UDP", "SEND", "UDP send successful for [%d] iovs, addr [%s], port [0x%x:%d]",
-                   sendArgs->iovlen, map->addrstr, sendArgs->port, CL_TRANSPORT_BASE_PORT + sendArgs->port + (map->slot << 10));
+                   sendArgs->iovlen, map->addrstr, sendArgs->port, 
+                   CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
     }
     return rc;
 }
@@ -772,6 +807,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
     ClIocUdpArgsT sendArgs = {0};
     ClUint8T buff[CL_IOC_BYTES_FOR_COMPS_PER_NODE];
     ClUint32T i = 0;
+    ClRcT rc = CL_OK;
 
     if(!address || !iovlen)
         return CL_OK;
@@ -797,20 +833,20 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
                         "UDP",
                         "SEND",
                         "Unable to add mapping for ioc slot [%d]. ", address->iocPhyAddress.nodeAddress);
-                return CL_ERR_NOT_EXIST;
-
+                rc = CL_ERR_NOT_EXIST;
+                goto out;
             }
         }
         sendArgs.port = address->iocPhyAddress.portId;
         memcpy(&addrMap, map, sizeof(addrMap));
         clOsalMutexUnlock(&gXportCtrl.mutex);
-        iocUdpSend(&addrMap, &sendArgs);
+        rc = iocUdpSend(&addrMap, &sendArgs);
         goto out;
 
     case CL_IOC_BROADCAST_ADDRESS_TYPE:
     bcast_send:
         sendArgs.port = address->iocPhyAddress.portId;
-        iocUdpMapWalk(iocUdpSend, &sendArgs, 0);
+        rc = iocUdpMapWalk(iocUdpSend, &sendArgs, 0);
         goto out;
         /*
          * Unhandled till now.
@@ -834,7 +870,11 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
                 if (i != port && (buff[i>>3] & (1 << (i&7))))
                 {
                     sendArgs.port = i;
-                    iocUdpSend(&addrMap, &sendArgs);
+                    ClRcT retCode = iocUdpSend(&addrMap, &sendArgs);
+                    if(retCode != CL_OK)
+                    {
+                        rc = retCode;
+                    }
                 }
             }
             goto out;
@@ -846,7 +886,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
     clOsalMutexUnlock(&gXportCtrl.mutex);
 
     out:
-    return CL_OK;
+    return rc;
 }
 
 ClRcT xportNotifyInit(void)
@@ -864,10 +904,34 @@ ClRcT xportNotifyFinalize(void)
     return clUdpEventHandlerFinalize();
 }
 
+static ClRcT linkNotify(ClPtrT args)
+{
+    ClLinkNotificationArgsT *linkNotification = args;
+    ClRcT rc = clUdpNodeNotification(linkNotification->node, linkNotification->event);
+    clHeapFree(linkNotification);
+    return rc;
+}
+
+static ClRcT xportLinkNotify(ClIocNodeAddressT node, ClIocNotificationIdT id)
+{
+    ClRcT rc = CL_OK;
+    ClLinkNotificationArgsT *linkNotification = clHeapCalloc(1, sizeof(*linkNotification));
+    CL_ASSERT(linkNotification != NULL);
+    linkNotification->node = node;
+    linkNotification->event = id;
+    rc = clTaskPoolRun(gXportLinkNotifyTask, linkNotify, linkNotification);
+    if(rc != CL_OK)
+    {
+        clHeapFree(linkNotification);
+    }
+    return rc;
+}
+
 /*
  * Notify the port used
  */
-ClRcT xportNotifyOpen(ClIocPortT port)
+ClRcT xportNotifyOpen(ClIocNodeAddressT node, ClIocPortT port, 
+                      ClIocNotificationIdT event)
 {
     ClRcT rc = CL_OK;
     if(port != CL_IOC_XPORT_PORT)
@@ -875,16 +939,38 @@ ClRcT xportNotifyOpen(ClIocPortT port)
         rc = clUdpNotify(gIocLocalBladeAddress, port, CL_IOC_COMP_ARRIVAL_NOTIFICATION);
         clTransportNotifyOpen(port);
     }
+    else if(node)
+    {
+        if(node != gIocLocalBladeAddress && event == CL_IOC_NODE_LINK_UP_NOTIFICATION)
+        {
+            rc = xportLinkNotify(node, event);
+        }
+        else
+        {
+            rc = clUdpNotify(node, port, CL_IOC_COMP_ARRIVAL_NOTIFICATION);
+        }
+    }
     return rc;
 }
 
 /*
  * Notify the port unused
  */
-ClRcT xportNotifyClose(ClIocNodeAddressT nodeAddress, ClIocPortT port)
+ClRcT xportNotifyClose(ClIocNodeAddressT nodeAddress, ClIocPortT port, 
+                       ClIocNotificationIdT event)
 {
-    ClRcT rc = clUdpNotify(nodeAddress, port, CL_IOC_COMP_DEATH_NOTIFICATION);
-    clTransportNotifyClose(port);
+    ClRcT rc = CL_OK;
+    if(nodeAddress != gIocLocalBladeAddress && 
+       port == CL_IOC_XPORT_PORT && 
+       event == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+    {
+        rc = xportLinkNotify(nodeAddress, event);
+    }
+    else
+    {
+        clUdpNotify(nodeAddress, port, CL_IOC_COMP_DEATH_NOTIFICATION);
+        clTransportNotifyClose(port);
+    }
     return rc;
 }
 

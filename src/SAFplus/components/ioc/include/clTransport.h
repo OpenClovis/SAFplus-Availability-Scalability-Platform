@@ -32,7 +32,7 @@ extern ClRcT clTransportFinalize(const ClCharT *type, ClBoolT nodeRep);
 
 extern ClRcT clTransportNotifyInitialize(void);
 extern ClRcT clTransportNotifyFinalize(void);
-extern ClRcT clTransportIpAddressAssign(const ClCharT *type);
+extern ClRcT clTransportAddressAssign(const ClCharT *type);
 extern ClRcT clTransportNotificationInitialize(const ClCharT *type);
 extern ClRcT clTransportNotificationFinalize(const ClCharT *type);
 
@@ -53,17 +53,14 @@ extern ClRcT clTransportNotifyClose(ClIocPortT port);
 extern ClRcT clTransportNotifyRegister(ClTransportNotifyCallbackT callback, ClPtrT arg);
 extern ClRcT clTransportNotifyDeregister(ClTransportNotifyCallbackT callback);
 extern ClRcT
-clTransportNotificationOpen(const ClCharT *type, ClIocPortT port);
+clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node, 
+                            ClIocPortT port, ClIocNotificationIdT event);
 extern ClRcT
-clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAddress, ClIocPortT port);
-
+clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAddress, 
+                             ClIocPortT port, ClIocNotificationIdT event);
 extern ClRcT 
 clTransportSend(const ClCharT *type, ClIocPortT port, ClUint32T priority, ClIocAddressT *address, 
                 struct iovec *iov, ClInt32T iovlen, ClInt32T flags);
-extern ClRcT 
-clTransportSendProxy(const ClCharT *type, ClIocPortT port, ClUint32T priority, ClIocAddressT *address, 
-                     struct iovec *iov, ClInt32T iovlen, ClInt32T flags, ClBoolT proxy);
-
 extern ClRcT 
 clTransportRecv(const ClCharT *type, ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption,
                 ClUint8T *buffer, ClUint32T bufSize,
@@ -102,15 +99,15 @@ clTransportDispatch(ClIocPortT port, ClUint8T *buffer, ClUint32T bufSize);
 extern ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAddress,
         ClCharT **typeXport);
 
+extern ClRcT clTransportNodeAddrGet(ClUint32T *pNumberOfEntries,
+        ClIocNodeAddressT *pAddrList);
+
 extern ClCharT *clTransportMcastAddressGet();
 extern ClUint32T clTransportMcastPortGet();
 extern ClUint32T clTransportHeartBeatIntervalGet();
 extern ClUint32T clTransportHeartBeatIntervalCompGet();
 extern ClUint32T clTransportHeartBeatRetriesGet();
 extern ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node);
-extern ClRcT clTransportBroadcastListGet(const ClCharT *hostXport, 
-                                         ClIocPhysicalAddressT *hostAddr,
-                                         ClUint32T *pNumEntries, ClIocAddressT **ppDestSlots);
 
 #ifdef __cplusplus
 }

@@ -319,16 +319,15 @@ clCkptIocNodedownCallback(ClIocNotificationIdT eventId,
 
     if (gCkptSvr == NULL || gCkptSvr->serverUp == CL_FALSE) 
         return ; 
+
     /*
      * If master node is down, ask deputy to change the master address 
      */
     clOsalMutexLock(&gCkptSvr->ckptClusterSem);
     CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
-    clLogDebug("ACT", "IOC", "Received ioc notification [%d] for node [%d], port [%d]. "
-               "Current ckpt master is node [%d]",
-               eventId, pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId,
-               gCkptSvr->masterInfo.masterAddr);
-    if( eventId == CL_IOC_NODE_LEAVE_NOTIFICATION 
+
+    if( (eventId == CL_IOC_NODE_LEAVE_NOTIFICATION ||
+         eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
         &&
         pAddress->iocPhyAddress.nodeAddress == gCkptSvr->masterInfo.masterAddr)
     {
@@ -366,9 +365,11 @@ clCkptIocNodedownCallback(ClIocNotificationIdT eventId,
          ckptPeerDown(masterAddr, CL_CKPT_NODE_DOWN, 0);
          return;
     }
-    else if( eventId == CL_IOC_NODE_LEAVE_NOTIFICATION 
-        &&
-        pAddress->iocPhyAddress.nodeAddress == gCkptSvr->masterInfo.deputyAddr)
+    else if( (eventId == CL_IOC_NODE_LEAVE_NOTIFICATION  
+              || 
+              eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+             &&
+             pAddress->iocPhyAddress.nodeAddress == gCkptSvr->masterInfo.deputyAddr)
     {
         gCkptSvr->masterInfo.deputyAddr = CL_IOC_RESERVED_ADDRESS;
         CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);

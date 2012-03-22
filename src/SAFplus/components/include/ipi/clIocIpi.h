@@ -739,26 +739,14 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
     ClUint8T * pStatus
     );
 
-    ClRcT clIocSendWithRelay(ClIocCommPortHandleT commPortHandle,
-                             ClBufferHandleT message, ClUint8T protoType,
-                             ClIocAddressT *srcAddress, ClIocAddressT *destAddress, 
-                             ClIocSendOptionT *pSendOption);
-
     ClRcT clIocSendWithXport(
                              CL_IN ClIocCommPortHandleT commPortHandle,
                              CL_IN ClBufferHandleT message,
                              CL_IN ClUint8T protoType,
                              CL_IN ClIocAddressT * pDestAddr,
                              CL_IN ClIocSendOptionT * pSendOption,
-                             CL_IN ClCharT *xportType,
-                             CL_IN ClBoolT proxy
+                             CL_IN ClCharT *xportType
     );
-
-    ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
-                                  ClBufferHandleT message, ClUint8T protoType,
-                                  ClIocAddressT *originAddress, ClIocAddressT *destAddress, 
-                                  ClIocSendOptionT *pSendOption,
-                                  ClCharT *xportType, ClBoolT proxy);
 
     ClRcT clIocServerReady(ClIocAddressT *pAddress);
 
@@ -777,7 +765,8 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
                                       ClIocAddressT *destAddress, 
                                       ClBoolT compat, ClCharT *xportType);
 
-    ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, ClUint32T status,
+    ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, 
+                                          ClIocNotificationIdT id,
                                           ClIocNodeAddressT notificationNodeAddr,
                                           ClIocAddressT *allLocalComps, 
                                           ClIocAddressT *allNodeReps,
@@ -808,13 +797,11 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
     
     ClBoolT clAspNativeLeaderElection(void);
 
-    ClRcT clIocDispatch(const ClCharT *xportType, 
-                        ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption,
+    ClRcT clIocDispatch(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption,
                         ClUint8T *buffer, ClUint32T bufSize, ClBufferHandleT message,
                         ClIocRecvParamT *pRecvParam);
     
-    ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, 
-                             ClUint8T *buffer, ClUint32T bufSize);
+    ClRcT clIocDispatchAsync(ClIocPortT port, ClUint8T *buffer, ClUint32T bufSize);
 
 # ifndef __KERNEL__
 
