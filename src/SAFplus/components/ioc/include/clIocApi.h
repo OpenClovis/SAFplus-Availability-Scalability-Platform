@@ -151,12 +151,12 @@ extern "C"
 /**
  * The link is up.
  */
-# define CL_IOC_LINK_UP 2
+# define CL_IOC_LINK_UP 1
 
 /**
  * The link is down.
  */
-# define CL_IOC_LINK_DOWN 3
+# define CL_IOC_LINK_DOWN 0
 
 
 

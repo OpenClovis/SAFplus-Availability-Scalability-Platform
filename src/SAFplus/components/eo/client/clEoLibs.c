@@ -244,14 +244,12 @@ ClRcT clEoProcessIocRecvPortNotification(ClEoExecutionObjT* pThis, ClBufferHandl
             }
             break;
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
-        case CL_IOC_NODE_LINK_UP_NOTIFICATION:
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
             /* Need to add functionality if the components wants a specific operation...*/
             clEoClientNotification(&notificationInfo);
             rc = CL_OK;
             break;
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
-        case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
         case CL_IOC_COMP_DEATH_NOTIFICATION:
             rc = clBufferDelete(&eoRecvMsg);
             CL_ASSERT(rc == CL_OK);
@@ -460,10 +458,8 @@ static ClRcT clEoClientNotification(ClIocNotificationT *notification)
     node = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
     port = ntohl(notification->nodeAddress.iocPhyAddress.portId);
 
-    if(event == CL_IOC_NODE_ARRIVAL_NOTIFICATION ||
-       event == CL_IOC_NODE_LINK_UP_NOTIFICATION ||
-       event == CL_IOC_NODE_LEAVE_NOTIFICATION ||
-       event == CL_IOC_NODE_LINK_DOWN_NOTIFICATION) 
+    if(event == CL_IOC_NODE_ARRIVAL_NOTIFICATION || 
+       event == CL_IOC_NODE_LEAVE_NOTIFICATION) 
     {
         port = 0;
     }

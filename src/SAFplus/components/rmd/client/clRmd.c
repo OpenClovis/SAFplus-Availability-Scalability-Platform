@@ -1380,12 +1380,11 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
             {
 
                 case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
-                case CL_IOC_NODE_LINK_UP_NOTIFICATION:
                 case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
                     goto notif_not_handled;
 
                 case CL_IOC_NODE_LEAVE_NOTIFICATION:
-                case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
+
                     if(addrType == CL_IOC_PHYSICAL_ADDRESS_TYPE)
                     {
                         match = 
@@ -1491,12 +1490,11 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
             switch(notification.id) 
             {
                 case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
-                case CL_IOC_NODE_LINK_UP_NOTIFICATION:
                 case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
                     goto notif_not_handled;
 
                 case CL_IOC_NODE_LEAVE_NOTIFICATION:
-                case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
+
                     if(addrType == CL_IOC_PHYSICAL_ADDRESS_TYPE)
                     {
                         match = 

@@ -228,9 +228,7 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId,
     ClRcT rc = CL_OK;
     if(gmsGlobalInfo.opState != CL_GMS_STATE_RUNNING)
         return;
-    if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION
-       ||
-       eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+    if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION)
     {
         clLogNotice("NOTIF", "LEAVE", "Triggering node leave for node [%#x], port [%#x]",
                     pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);

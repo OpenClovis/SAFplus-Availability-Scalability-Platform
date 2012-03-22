@@ -25,5 +25,5 @@
 ClRcT clUdpEventHandlerInitialize(void);
 ClRcT clUdpEventHandlerFinalize(void);
 ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotificationIdT notifyId);
-ClRcT clUdpNodeNotification(ClIocNodeAddressT node, ClIocNotificationIdT id);
+
 #endif

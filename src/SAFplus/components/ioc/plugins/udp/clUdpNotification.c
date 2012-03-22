@@ -88,43 +88,6 @@ static void udpSyncCallback(ClIocPhysicalAddressT *srcAddr, ClPtrT arg)
     }
 }
 
-ClRcT clUdpNodeNotification(ClIocNodeAddressT node, ClIocNotificationIdT event)
-{
-    ClRcT rc = CL_OK;
-    ClIocNotificationIdT id = event;
-
-    /* This is for NODE ARRIVAL/DEPARTURE */
-    if(id == CL_IOC_COMP_ARRIVAL_NOTIFICATION || id == CL_IOC_NODE_LINK_UP_NOTIFICATION )
-        id = CL_IOC_NODE_ARRIVAL_NOTIFICATION;
-
-    if(id == CL_IOC_COMP_DEATH_NOTIFICATION || id == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
-        id = CL_IOC_NODE_LEAVE_NOTIFICATION;
-
-    clLogInfo("UDP", "NOTIF", "Got node [%s] notification for node [0x%x]",
-              id == CL_IOC_NODE_ARRIVAL_NOTIFICATION ? "arrival" : "death", node);
-
-    rc = clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
-                                         event,
-                                         node,
-                                         (ClIocAddressT*)&allLocalComps,
-                                         (ClIocAddressT*)&allNodeReps,
-                                         gClUdpXportType);
-                
-    if(id == CL_IOC_NODE_LEAVE_NOTIFICATION)
-    {
-        if (node == gIocLocalBladeAddress)
-        {
-            threadContFlag = 0;
-        }
-        else
-        {
-            clIocUdpMapDel(node); /*remove entry from the map*/
-        }
-    }
-
-    return rc;
-}
-
 static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
     ClRcT rc = CL_OK;
     ClUint8T *pRecvBase = (ClUint8T*) pMsgHdr->msg_iov->iov_base;
@@ -162,7 +125,28 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             if (compAddr.portId == CL_IOC_XPORT_PORT)
             {
                 /* This is for NODE ARRIVAL/DEPARTURE */
-                rc = clUdpNodeNotification(compAddr.nodeAddress, id);
+                clLogInfo("UDP", "NOTIF", "Got node [%s] notification for node [0x%x]",
+                          id == CL_IOC_COMP_ARRIVAL_NOTIFICATION ? "arrival" : "death", compAddr.nodeAddress);
+
+                rc = clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
+                                                     id == CL_IOC_COMP_ARRIVAL_NOTIFICATION ?
+                                                     CL_IOC_NODE_UP : CL_IOC_NODE_DOWN,
+                                                     compAddr.nodeAddress,
+                                                     (ClIocAddressT*)&allLocalComps,
+                                                     (ClIocAddressT*)&allNodeReps,
+                                                     gClUdpXportType);
+                
+                if(id == CL_IOC_COMP_DEATH_NOTIFICATION)
+                {
+                    if (compAddr.nodeAddress == gIocLocalBladeAddress)
+                    {
+                        threadContFlag = 0;
+                    }
+                    else
+                    {
+                        clIocUdpMapDel(compAddr.nodeAddress); /*remove entry from the map*/
+                    }
+                }
             }
             else
             {
@@ -187,8 +171,7 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
                         /*
                          * self shutdown.
                          */
-                        clTransportNotificationClose(NULL, gIocLocalBladeAddress, 
-                                                     CL_IOC_XPORT_PORT, CL_IOC_COMP_DEATH_NOTIFICATION);
+                        clTransportNotificationClose(NULL, gIocLocalBladeAddress, CL_IOC_XPORT_PORT);
                         threadContFlag = 0;
                     }
                 }
@@ -273,14 +256,10 @@ static void clUdpEventHandler(ClPtrT pArg) {
                         continue;
                     }
                     clUdpReceivedPacket(i, &msgHdr);
-                }
-                  /*
-                   *  to avoid overwhelming the log files when link down
-                   */
-                /* else if ((pollfds[i].revents & (POLLHUP | POLLERR | POLLNVAL))) {
+                } else if ((pollfds[i].revents & (POLLHUP | POLLERR | POLLNVAL))) {
                     CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                             ("Error : Handler \"poll\" hangup.\n"));
-                } */
+                }
             }
         } else if (pollStatus < 0) {
             if (errno != EINTR) /* If the system call is interrupted just loop, its not an error */
@@ -402,7 +381,10 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
     static int fd = -1; 
 
-    memset(&groupSock, 0, sizeof(groupSock));
+    if(fd < 0)
+        fd = handlerFd[0];
+
+    memset((char *) &groupSock, 0, sizeof(groupSock));
     groupSock.sin_family = PF_INET;
 
     groupSock.sin_addr.s_addr = inet_addr(clTransportMcastAddressGet());
@@ -427,27 +409,16 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     msg.msg_controllen = 0;
     msg.msg_flags = 0;
 
-    if(fd < 0)
+    if(fd <= 0)
     {
         fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-        if(fd < 0)
-        {
-            return CL_ERR_NO_RESOURCE;
-        }
-        if(fcntl(fd, F_SETFD, FD_CLOEXEC) < 0)
-        {
-            clLogError("XPORT", "NOTIFY", "fcntl on udp socket failed with [%s]",
-                       strerror(errno));
-            return CL_ERR_LIBRARY;
-        }
     }
-
     if (sendmsg(fd, &msg, 0) < 0) {
         clLogError(
-                   "UDP",
-                   "NOTIF",
-                   "sendmsg failed with error [%s]", strerror(errno));
-        rc = CL_ERR_NO_RESOURCE;
+                "UDP",
+                "NOTIF",
+                "sendmsg failed with error [%s]", strerror(errno));
+        return CL_ERR_NO_RESOURCE;
     }
 
     return rc;
