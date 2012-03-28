@@ -52,6 +52,9 @@ extern ClRcT
 clAmsNotificationEventInitialize(void);
 
 extern ClRcT
+clAmsNotificationEventFinalize(void);
+
+extern ClRcT
 clAmsNotificationEventPayloadSet(const ClAmsEntityT *entity,
                                  const ClAmsEntityRefT *entityRef,
                                  const ClAmsHAStateT lastHAState,
