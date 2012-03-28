@@ -392,6 +392,29 @@ class OS:
 
         CDT.build_cmds = [';'.join(initial_commands)]
         
+        # ------------------------------------------------------------------------------
+        # sqlite
+        # ------------------------------------------------------------------------------
+        EXPORT = ''
+
+        sqlite = objects.BuildDep()
+        sqlite.name          = 'sqlite'
+        sqlite.version       = '3.6.7'
+        sqlite.pkg_name      = 'sqlite-3.6.7.tar.gz'
+
+        log = self.log_string_for_dep(sqlite.name)
+
+        initial_commands = ['cd ${PREFIX}',
+                          'rm -rf sqlite-*',
+                          'tar xfm ${THIRDPARTYPKG} %s' % sqlite.pkg_name,
+                          'tar zxf %s' % sqlite.pkg_name,
+                          'rm -f %s' % sqlite.pkg_name,
+                          'cd sqlite-*',
+                          './configure --prefix=$PREFIX' + log, 
+                          'make' + log,
+                          'make install' + log]
+
+        sqlite.build_cmds = [';'.join(initial_commands)]
         
         # ------------------------------------------------------------------------------
         # Collect all the objects we built
@@ -400,7 +423,7 @@ class OS:
         
         # this list defines the order of installation
       
-        self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JRE, ECLIPSE, EMF, GEF, CDT]
+        self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
     
     
     def load_install_specific_deps(self):
