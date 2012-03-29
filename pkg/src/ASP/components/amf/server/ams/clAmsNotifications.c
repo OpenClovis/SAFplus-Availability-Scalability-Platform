@@ -49,6 +49,7 @@
 
 #include <clFaultDefinitions.h>
 #include <clEventApi.h>
+#include <clJobQueue.h>
 #include <clCommon.h>
 
 #define CL_AMS_STRING_NTF(S)                                            \
@@ -76,10 +77,41 @@
 ClVersionT eventVersion = {'B',01,01};
 static ClBoolT gClAmsNotificationDebug = CL_FALSE;
 static ClUint32T gClAmsNotificationMask = ~0U;
+static ClJobQueueT *gClAmsNotificationTaskPool;
+static ClTimeT gClAmsNotificationLatency;
+static ClUint32T gClAmsNotificationThreshold;
+static ClUint32T gClAmsNotificationDelay = 1;
+typedef struct ClAmsNotificationTaskArgs
+{
+    ClPtrT data;
+    ClUint32T dataLen;
+}ClAmsNotificationTaskArgsT;
 
 /*****************************************************************************
  * Notification related functions 
  ****************************************************************************/
+
+static ClRcT 
+clAmsNotificationTaskPoolInitialize(void)
+{
+    ClRcT rc = CL_OK;
+    if(!gClAmsNotificationTaskPool)
+    {
+        rc = clJobQueueCreate(&gClAmsNotificationTaskPool, 0, 1);
+    }
+    return rc;
+}
+
+static ClRcT 
+clAmsNotificationTaskPoolFinalize(void)
+{
+    if(gClAmsNotificationTaskPool)
+    {
+        clJobQueueDelete(gClAmsNotificationTaskPool);
+        gClAmsNotificationTaskPool = NULL;
+    }
+    return CL_OK;
+}
 
 ClRcT 
 clAmsNotificationEventInitialize (void)
@@ -100,6 +132,7 @@ clAmsNotificationEventInitialize (void)
         0,sizeof(clAmsEventPattern)/sizeof(ClEventPatternT),clAmsEventPattern 
     };
 
+    ClCharT *envStr = NULL;
 
     /*
      * Initialize the event client library for AMS notifications
@@ -175,12 +208,53 @@ clAmsNotificationEventInitialize (void)
         gClAmsNotificationMask = 0;
     }
 
-    return CL_OK;
+    if( (envStr = getenv("CL_AMF_NOTIFICATION_LATENCY") ) )
+    {
+        ClUint32T latency = atoi(envStr);
+        if(latency)
+        {
+            gClAmsNotificationLatency = latency * 1000000LL;
+        }
+    }
+
+    if( (envStr = getenv("CL_AMF_NOTIFICATION_THRESHOLD") ) )
+    {
+        gClAmsNotificationThreshold = atoi(envStr);
+    }
+
+    if( (envStr = getenv("CL_AMF_NOTIFICATION_DELAY") ) )
+    {
+        gClAmsNotificationDelay = atoi(envStr);
+    }
+
+    return clAmsNotificationTaskPoolInitialize();
 
 error:
 
     return CL_AMS_RC (rc);
 
+}
+
+ClRcT clAmsNotificationEventFinalize(void)
+{
+    ClAmsT *ams = &gAms;
+    clAmsNotificationTaskPoolFinalize();
+    if(ams->eventHandle)
+    {
+        AMS_CALL(clEventFree(ams->eventHandle));
+        ams->eventHandle = 0;
+    }
+    if(ams->eventChannelOpenHandle)
+    {
+        AMS_CALL(clEventChannelClose(ams->eventChannelOpenHandle));
+        ams->eventChannelOpenHandle = 0;
+    }
+    if(ams->eventInitHandle)
+    {
+        AMS_CALL(clEventFinalize(ams->eventInitHandle));
+        ams->eventInitHandle = 0;
+    }
+    return CL_OK;
 }
 
 static void clAmsNotificationLog(ClAmsNotificationDescriptorT *notification)
@@ -256,15 +330,98 @@ static void clAmsNotificationLog(ClAmsNotificationDescriptorT *notification)
     }
 }
 
+static ClRcT
+amsNotificationTask(ClPtrT arg)
+{
+    ClAmsNotificationTaskArgsT *work = arg;
+    ClPtrT data = work->data;
+    ClUint32T dataLen = work->dataLen;
+    ClEventIdT eventId = 0;
+    ClTimeT startEventTime = 0;
+    static ClTimeT lastEventTime = 0;
+    static ClUint32T numEvents = 0;
+    ClRcT rc = CL_OK;
+
+    clHeapFree(work);
+
+    if(!gAms.eventServerReady)
+    {
+        clLogNotice("NOTIF", "TASK", "Event server down. Hence skipping amf notification publishes");
+        goto exitfn;
+    }
+    if(!gAms.eventHandle)
+    {
+        clLogWarning("NOTIF", "TASK", "Event client not initialized."
+                     "Hence skipping amf notification publishes");
+        goto exitfn;
+    }
+
+    if(gClAmsNotificationLatency && gClAmsNotificationThreshold)
+    {
+        startEventTime = clOsalStopWatchTimeGet();
+        if(lastEventTime)
+        {
+            if( (startEventTime - lastEventTime) <= gClAmsNotificationLatency)
+            {
+                if(numEvents >= gClAmsNotificationThreshold 
+                   && 
+                   gClAmsNotificationDelay)
+                {
+                    static ClTimerTimeOutT delay;
+                    if(!delay.tsSec)
+                        delay.tsSec = gClAmsNotificationDelay;
+
+                    clLogNotice("NOTIF", "TASK", "Throttling event publish after [%d] publishes "
+                                "within [%lld] usecs for [%d] secs", 
+                                numEvents, gClAmsNotificationLatency, delay.tsSec);
+                    clOsalTaskDelay(delay);
+                    startEventTime = clOsalStopWatchTimeGet();
+                    numEvents = 0;
+                }
+            }
+            else
+            {
+                numEvents = 0;
+            }
+        }
+        lastEventTime = startEventTime;
+        ++numEvents;
+    }
+
+    AMS_CHECK_RC_ERROR(clEventPublish(gAms.eventHandle, (const void *) data,
+                                      dataLen, &eventId) );
+
+    exitfn:
+    clHeapFree(data);
+    return rc;
+}
+
+static ClRcT
+clAmsNotificationEnqueue(ClPtrT data, ClUint32T dataLen)
+{
+    ClRcT rc = CL_OK;
+    ClAmsNotificationTaskArgsT *work = NULL;
+    if(!gClAmsNotificationTaskPool) 
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    work = clHeapCalloc(1, sizeof(*work));
+    CL_ASSERT(work != NULL);
+    work->data = data;
+    work->dataLen = dataLen;
+    rc = clJobQueuePush(gClAmsNotificationTaskPool, amsNotificationTask, work);
+    if(rc != CL_OK)
+        clHeapFree(work);
+    return rc;
+}
+
 ClRcT clAmsNotificationEventPublish(
         ClAmsNotificationDescriptorT  *notification )
 {
 
-    ClEventIdT eventID = 0;
     ClAmsT  *ams = &gAms;
     ClPtrT  data = NULL;
     ClUint32T  msgLength = 0;
-    ClBufferHandleT  out = {0};
+    ClBufferHandleT  out = 0;
+    ClRcT rc = CL_OK;
 
     AMS_CHECKPTR (!notification );
 
@@ -286,18 +443,24 @@ ClRcT clAmsNotificationEventPublish(
 
     AMS_CALL ( clBufferCreate(&out) );
 
-    AMS_CALL ( clAmsNotificationMarshalNtfDescr(notification,&data,&msgLength,
-                out) );
+    AMS_CHECK_RC_ERROR ( clAmsNotificationMarshalNtfDescr(notification,&data,&msgLength,
+                                                          out) );
 
-    AMS_CALL ( clEventPublish ( ams->eventHandle, (const void *) data, 
-                msgLength, &eventID));
+    AMS_CHECK_RC_ERROR(clAmsNotificationEnqueue(data, msgLength));
 
-    AMS_CALL ( clBufferDelete(&out) );
+    data = NULL;
+
+    rc = CL_OK;
+
+    exitfn:
+    clBufferDelete(&out);
     
-    clHeapFree(data);
+    if(data)
+    {
+        clHeapFree(data);
+    }
 
-    return CL_OK;
-
+    return rc;
 }
 
 ClRcT clAmsMgmtCCBNotificationEventPayloadSet(ClAmsNotificationTypeT type,

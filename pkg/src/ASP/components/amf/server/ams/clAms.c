@@ -509,9 +509,7 @@ clAmsFinalize(
 
     if ( ams->eventServerInitialized == CL_TRUE )
     {
-        AMS_CALL (clEventFree (ams->eventHandle));
-        AMS_CALL (clEventChannelClose(ams->eventChannelOpenHandle));
-        AMS_CALL (clEventFinalize(ams->eventInitHandle));
+        clAmsNotificationEventFinalize();
     }
 
     AMS_CALL (clHandleDatabaseDestroy(ams->ccbHandleDB));
