@@ -49,6 +49,18 @@ def asp_admin_stop():
 
     return last_asp_cmd in ['stop', 'zap']
 
+def wdSleep(amt):
+    """Sleep and refuse to let anything kick me awake"""
+    start = time.time()
+    while (time.time() - start) < amt:
+      leftover = amt - (time.time() - start)
+      try:
+        time.sleep(leftover)
+      except:
+        try:
+          select.select([],[],[],leftover)
+        except:
+          pass
 
 # now includes openhpid as well
 def amf_watchdog_loop():
@@ -141,7 +153,7 @@ def amf_watchdog_loop():
 
 
 
-        time.sleep(monitor_interval)
+        wdSleep(monitor_interval)
 
 def redirect_file():
 
