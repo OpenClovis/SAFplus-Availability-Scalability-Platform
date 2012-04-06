@@ -4740,10 +4740,11 @@ clAmsCSIMarshalCSIDescriptorExtended(
         ClAmsCSINameValuePairT  *pNVP = NULL;
 
         /*
-         * Send TARGET_ONE in case of CSI reassignment after component restart
+         * Send TARGET_ONE and ADD_ONE in case of CSI reassignment after component restart
+         * to allow differentiating with non-restart cases
          */
         if(reassignCSI) 
-            csiDescriptor->csiFlags = CL_AMS_CSI_FLAG_TARGET_ONE; 
+            csiDescriptor->csiFlags = CL_AMS_CSI_FLAG_ADD_ONE | CL_AMS_CSI_FLAG_TARGET_ONE; 
 
         /*
          * Get the number of NVP's in the NVP list

@@ -146,7 +146,7 @@ static ClRcT _cpmCsiDescriptorPack(ClAmsCSIDescriptorT csiDescriptor,
         CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
     }
     
-    if (CL_AMS_CSI_FLAG_ADD_ONE == csiDescriptor.csiFlags)
+    if (CL_AMS_CSI_FLAG_ADD_ONE & csiDescriptor.csiFlags)
     {
         attrList = &(csiDescriptor.csiAttributeList);
 
