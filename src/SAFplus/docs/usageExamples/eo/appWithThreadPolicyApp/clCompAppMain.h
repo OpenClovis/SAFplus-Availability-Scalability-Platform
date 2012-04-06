@@ -67,9 +67,9 @@ extern "C" {
                                                   "Unknown" )
 
 #define STRING_CSI_FLAGS(S)                                                 \
-(   ((S) == CL_AMS_CSI_FLAG_ADD_ONE)            ? "Add One" :               \
-    ((S) == CL_AMS_CSI_FLAG_TARGET_ONE)         ? "Target One" :            \
-    ((S) == CL_AMS_CSI_FLAG_TARGET_ALL)         ? "Target All" :            \
+(   ((S) & CL_AMS_CSI_FLAG_ADD_ONE)            ? "Add One" :               \
+    ((S) & CL_AMS_CSI_FLAG_TARGET_ONE)         ? "Target One" :            \
+    ((S) & CL_AMS_CSI_FLAG_TARGET_ALL)         ? "Target All" :            \
                                                   "Unknown" )
 
 /******************************************************************************

@@ -1143,7 +1143,7 @@ static ClRcT _cpmCsiDescriptorUnpack(ClAmsCSIDescriptorT *csiDescriptor,
         CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to read the message \n"), rc);
     }
 
-    if (CL_AMS_CSI_FLAG_ADD_ONE == tempCsi.csiFlags)
+    if (CL_AMS_CSI_FLAG_ADD_ONE & tempCsi.csiFlags)
     {
         rc = clXdrUnmarshallClUint32T(message, 
                                       (void *)&(tempCsi.csiAttributeList.numAttributes));

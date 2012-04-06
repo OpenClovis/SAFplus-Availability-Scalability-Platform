@@ -427,9 +427,9 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
                                                           "Unknown" )
 
 #define CL_AMS_STRING_CSI_FLAGS(S)                                          \
-(   ((S) == CL_AMS_CSI_FLAG_ADD_ONE)        ? "ADD_ONE" :                   \
-    ((S) == CL_AMS_CSI_FLAG_TARGET_ONE)     ? "TARGET_ONE" :                \
-    ((S) == CL_AMS_CSI_FLAG_TARGET_ALL)     ? "TARGET_ALL" :                \
+(   ((S) & CL_AMS_CSI_FLAG_ADD_ONE)        ? "ADD_ONE" :                   \
+    ((S) & CL_AMS_CSI_FLAG_TARGET_ONE)     ? "TARGET_ONE" :                \
+    ((S) & CL_AMS_CSI_FLAG_TARGET_ALL)     ? "TARGET_ALL" :                \
                                               "Unknown" )
 
 #define CL_AMS_STRING_CSI_TRAN_DESCR(S)                                     \

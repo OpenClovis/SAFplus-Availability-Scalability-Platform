@@ -640,7 +640,7 @@ ClRcT clCompAppAMFPrintCSI(ClAmsCSIDescriptorT csiDescriptor,
                   csiDescriptor.csiName.value);
     }
 
-    if (CL_AMS_CSI_FLAG_ADD_ONE == csiDescriptor.csiFlags)
+    if (CL_AMS_CSI_FLAG_ADD_ONE & csiDescriptor.csiFlags)
     {
         ClUint32T i = 0;
         
