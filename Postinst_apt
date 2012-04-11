@@ -1,0 +1,7 @@
+#!/bin/sh
+
+cd /opt/clovis
+
+tar -xvzf sdk-6.0.tar.gz
+rm -rf sdk-6.0.tar.gz
+
