@@ -75,6 +75,9 @@ class ASPInstaller:
         self.DO_SYMLINKS         = True
         self.HOME                = self.expand_path('~')
         self.OFFLINE             = False
+        self.APT_INSTALL         = False
+        self.APT_INSTALL_DIR     = None
+        self.APT_DEB_DIR         = None
 
         # ------------------------------------------------------------------------------
         self.NEED_TIPC_CONFIG    = False
@@ -190,7 +193,11 @@ class ASPInstaller:
             
             # make sure we have trailing slash for consistency
             assert self.INSTALL_DIR[-1] == '/'
-        
+
+        if '--apt-install' in sys.argv:
+            sys.argv.remove('--apt-install')
+            self.APT_INSTALL = True
+
         
         if len(sys.argv) > 1:
             self.print_install_header()
@@ -1019,6 +1026,9 @@ class ASPInstaller:
         if self.DO_SYMLINKS:
             self.do_symlinks()
   
+        if self.APT_INSTALL:
+            self.do_apt_install()
+
 
     def install_ASP(self):
         self.feedback('Installing SAFplus...')
@@ -1279,6 +1289,59 @@ class ASPInstaller:
 
         self.feedback('Symbolic links for the  binaries are created in %s\n' % self.DEFAULT_SYM_LINK)
 
+    def do_apt_install(self):
+        self.feedback('Packaging source changes debian package...')
+        self.APT_INSTALL_DIR  = self.INSTALL_DIR + '/apt_install'
+        self.APT_DEB_DIR  = 'safplus-dev-' + self.ASP_VERSION
+        self.INC_ROOT = os.path.join(self.PACKAGE_ROOT, 'include')
+        self.SRC_ROOT = os.path.join(self.PACKAGE_ROOT, 'src')
+        self.TAR_ROOT = os.path.join(self.PACKAGE_ROOT, 'target')
+
+        cmds = []
+
+        cmds.append('rm -rf %s' % self.APT_INSTALL_DIR)
+        cmds.append('mkdir -p %s' % self.APT_INSTALL_DIR)
+        cmds.append('cp %s/Makefile_apt %s' % (self.WORKING_DIR, self.APT_INSTALL_DIR))
+        cmds.append('cp %s/Postinst_apt %s' % (self.WORKING_DIR, self.APT_INSTALL_DIR))
+        cmds.append('cp %s/Postrm_apt %s' % (self.WORKING_DIR, self.APT_INSTALL_DIR))
+        cmds.append('cp %s/Control_apt %s' % (self.WORKING_DIR, self.APT_INSTALL_DIR))
+
+        cmds.append('mkdir -p %s/%s' % (self.APT_INSTALL_DIR, self.APT_DEB_DIR))
+        cmds.append('cd %s/%s' % (self.APT_INSTALL_DIR, self.APT_DEB_DIR))
+
+        #cmds.append('cp -rf %s .' % self.BUILDTOOLS)
+        #cmds.append('tar -czf buildtools.tar.gz buildtools')
+        #cmds.append('rm -rf buildtools')
+        cmds.append('cp -rf %s .' % self.PACKAGE_ROOT)
+        cmds.append('cd %s' % self.PACKAGE_NAME)
+        cmds.append('rm -rf prebuild')
+
+        cmds.append('cd src')
+        cmds.append('rm -rf src/SAFplus/3rdparty')
+        cmds.append('rm -rf src/SAFplus/components')
+        cmds.append('rm -rf src/SAFplus/scripts')
+
+        cmds.append('cd ../../')
+        cmds.append('tar -czf %s.tar.gz %s' % (self.PACKAGE_NAME, self.PACKAGE_NAME))
+        cmds.append('rm -rf %s' % self.PACKAGE_NAME)
+
+        cmds.append('mv ../Makefile_apt Makefile')
+        cmds.append('cd ..')
+        cmds.append('tar -czf %s.tar.gz %s' % (self.APT_DEB_DIR,  self.APT_DEB_DIR))
+        cmds.append('cd %s' % self.APT_DEB_DIR)
+        cmds.append('dh_make -c gpl -s -e nguyen.hoang@openclovis.com -f ../%s.tar.gz' % self.APT_DEB_DIR)
+        cmds.append('rm debian/*.ex debian/*.EX')
+        cmds.append('mv ../Postinst_apt debian/postinst')
+        cmds.append('mv ../Postrm_apt debian/postrm')
+        cmds.append('mv ../Control_apt debian/control')
+        cmds.append('sed -i -e \'s/unstable/lucid/g\' debian/changelog')
+        cmds.append('sed -i -e \'s/unknown/devel/g\' debian/control')
+        cmds.append('debuild -kC4E67FA1 -S')
+        cmds.append('pbuilder build ../*.dsc')
+        cmds.append('cd ..')
+        cmds.append('rm -rf %s' % self.APT_DEB_DIR)
+
+        self.run_command_list(cmds)
 
     def read_file(self, filepath):
         """ returns a list of the contents of filepath
