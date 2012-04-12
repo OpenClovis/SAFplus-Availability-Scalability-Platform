@@ -1,0 +1,14 @@
+MKDIR_P   = /bin/mkdir -p
+clovisdir = /opt/clovis
+
+PACKAGE_ROOT = sdk-6.0
+
+.PHONY: install
+
+all:
+	echo "Packing debian package"
+
+install:
+	test -z "$(DESTDIR)$(clovisdir)" || $(MKDIR_P) "$(DESTDIR)$(clovisdir)"
+	cp -r $(PACKAGE_ROOT).tar.gz "$(DESTDIR)$(clovisdir)"
+
