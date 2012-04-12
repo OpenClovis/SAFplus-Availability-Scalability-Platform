@@ -133,6 +133,8 @@ clAmsDBWriteEntityTimer(
 
 extern ClRcT clAmsDBMarshall(ClAmsDbT *db, ClBufferHandleT inMsgHdl);
 
+extern ClRcT clAmsDBMarshallDirty(ClAmsDbT *db, ClBufferHandleT inMsgHdl);
+
 extern ClRcT clAmsDBUnmarshall(ClBufferHandleT inMsgHdl);
 
 extern ClRcT clAmsServerDataMarshall(ClAmsT *ams, ClBufferHandleT inMsgHdl, ClUint32T versionCode);

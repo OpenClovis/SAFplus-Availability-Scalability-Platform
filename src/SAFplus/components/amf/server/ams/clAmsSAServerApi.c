@@ -527,6 +527,8 @@ _clAmsSACSIQuiescingComplete(
 
     comp = (ClAmsCompT *)compRef.ptr;
 
+    AMS_CHECK_ENTITY_AND_UNLOCK(comp, CL_AMS_ENTITY_TYPE_COMP, gAms.mutex);
+
     AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX ( 
             clAmsPeCompQuiescingCompleteCallback(
                 comp,
@@ -823,6 +825,8 @@ _clAmsSACSIOperationResponse(
 
     comp = (ClAmsCompT *)compRef.ptr;
 
+    AMS_CHECK_COMP(comp);
+
     switch (callbackType)
     {
 
@@ -874,13 +878,11 @@ _clAmsSACSIOperationResponse(
 
     AMS_CALL_CKPT_WRITE (clAmsCkptWrite(&gAms,CL_AMS_CKPT_WRITE_ALL));
 	
-
     AMS_CALL ( clOsalMutexUnlock(gAms.mutex));
 
 exitfn:
 
     return CL_AMS_RC (rc);
-
 }
 
 /*
@@ -1410,7 +1412,6 @@ _clAmsSAComponentOperationResponse(
 exitfn:
 
     return CL_AMS_RC (rc);
-
 }
 
 /*
@@ -1582,8 +1583,8 @@ _clAmsSANodeJoin(
             gAms.mutex );
 
     node = (ClAmsNodeT *)nodeRef.ptr;
-
-    AMS_CHECKPTR_AND_UNLOCK ( !node, gAms.mutex );
+    
+    AMS_CHECK_ENTITY_AND_UNLOCK(node, CL_AMS_ENTITY_TYPE_NODE, gAms.mutex);
 
     clAmsEntityOpsClearNode(&node->config.entity, &node->status.entity);
 
@@ -1596,7 +1597,6 @@ _clAmsSANodeJoin(
     AMS_CALL ( clOsalMutexUnlock(gAms.mutex));
 
 exitfn:
-
     return CL_AMS_RC (rc);
 
 }
@@ -1648,7 +1648,7 @@ _clAmsSANodeLeave(
 
     node = (ClAmsNodeT *)nodeRef.ptr;
 
-    AMS_CHECKPTR_AND_UNLOCK ( !node,gAms.mutex );
+    AMS_CHECK_ENTITY_AND_UNLOCK(node, CL_AMS_ENTITY_TYPE_NODE, gAms.mutex);
 
     switch (request)
     {
@@ -1689,7 +1689,6 @@ _clAmsSANodeLeave(
     clOsalMutexUnlock(gAms.mutex);
 
 exitfn:
-    
     if(auditEpilogue)
         clAmsAuditDbEpilogue(nodeName, scFailover);
 

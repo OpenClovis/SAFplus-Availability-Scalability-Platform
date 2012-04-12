@@ -6,6 +6,7 @@
 #include <clAmsEntities.h>
 #include <clAmsServerUtils.h>
 #include <clAmsPolicyEngine.h>
+#include <clAmsModify.h>
 #include <clAmsEntityUserData.h>
 #include <clAmsXdrHeaderFiles.h>
 

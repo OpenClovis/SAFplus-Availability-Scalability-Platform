@@ -10679,6 +10679,8 @@ ClRcT
 clAmsPeSGReductionProcedure(ClAmsSGT *sg, ClAmsSIT *si)
 {
     if(!sg->config.reductionProcedure) return CL_AMS_RC(CL_ERR_OP_NOT_PERMITTED);
+    
+    AMS_CHECK_SG(sg);
 
     switch(sg->config.redundancyModel)
     {
@@ -12340,6 +12342,7 @@ clAmsPeCompInstantiate2(
              * is expected from the component.
              */
             ClAmsSUT *su = (ClAmsSUT*)comp->config.parentSU.ptr;
+            AMS_CHECK_SU(su);
 
             comp->status.instantiateCount++;
 
@@ -21165,6 +21168,7 @@ clAmsPePreprocessDb(
 ClRcT clAmsPeSGAutoAdjust(ClAmsSGT *sg)
 {
     if(!sg->config.autoAdjust) return CL_OK;
+    AMS_CHECK_SG(sg);
     switch(sg->config.redundancyModel)
     {
     case CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY:
@@ -21183,6 +21187,7 @@ ClRcT clAmsPeSGAdjust(ClAmsSGT *sg, ClUint32T enable)
 {
     if(!enable)
     {
+        AMS_CHECK_SG(sg);
         sg->config.autoAdjust = CL_FALSE;
         return CL_OK;
     }

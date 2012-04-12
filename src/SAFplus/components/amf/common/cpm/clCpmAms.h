@@ -40,7 +40,7 @@ extern "C"
 #define CL_AMS_INSTANTIATE_MODE_ACTIVE           1
 #define CL_AMS_INSTANTIATE_MODE_STANDBY          1<<1
 #define CL_AMS_INSTANTIATE_USE_CHECKPOINT        1<<2
-
+#define CL_AMS_MODE_CKPT_ALL                     1<<3
 #define CL_AMS_TERMINATE_MODE_GRACEFUL           1
 #define CL_AMS_TERMINATE_MODE_IMMEDIATE          1<<1
 #define CL_AMS_TERMINATE_MODE_SC_ONLY            1<<2

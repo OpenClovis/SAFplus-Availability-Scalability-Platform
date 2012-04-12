@@ -269,11 +269,11 @@ clAmsStart(
     /*
      * Check if already in the mode.
      */
-    if(ams->mode == mode)
+    if((ams->mode & mode))
     {
         clLogWarning("AMS", "INI", 
                      "AMS mode is already [%s]. Skipping initialization", 
-                     mode == CL_AMS_INSTANTIATE_MODE_ACTIVE ? "active" : "standby");
+                     mode & CL_AMS_INSTANTIATE_MODE_ACTIVE ? "active" : "standby");
         return rc; 
     }
 
@@ -289,7 +289,7 @@ clAmsStart(
      * argument.
      */ 
     ams->isEnabled = CL_TRUE;
-    ams->mode = mode;
+    ams->mode |= mode;
     ams->serverepoch = time(NULL); 
 
     AMS_OP_INCR(&gAms.ops);

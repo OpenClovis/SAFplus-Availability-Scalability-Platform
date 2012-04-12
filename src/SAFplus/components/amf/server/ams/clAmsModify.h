@@ -830,6 +830,15 @@ extern ClRcT clAmsSGFailoverHistoryDelete(ClAmsSGT *sg);
 extern ClRcT
 clAmsDBGet(ClBufferHandleT msg);
 
+extern void
+clAmsDirtyListInitialize(void);
+
+extern ClRcT 
+clAmsMarkEntityDirty(ClAmsEntityT *entity);
+
+extern ClRcT 
+clAmsBuildDirtyList(ClListHeadT *entityList);
+
 #ifdef __cplusplus
 }
 #endif

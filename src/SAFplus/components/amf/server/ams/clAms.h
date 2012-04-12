@@ -119,7 +119,7 @@ typedef struct
     ClOsalMutexT            ckptMutex;      /* mutex to serialize ckpt write */
 
 
-#define CL_AMS_DB_INVOCATION_PAIRS      0x2
+#define CL_AMS_DB_INVOCATION_PAIRS      0x3
 
     ClEoExecutionObjT       *eoObject;     /* Execution objects for threads */
     ClCkptSvcHdlT           ckptInitHandle;
@@ -131,6 +131,7 @@ typedef struct
     ClBoolT                 eventServerInitialized;
     ClNameT                 ckptName;
     ClNameT                 ckptDBSections[CL_AMS_DB_INVOCATION_PAIRS];
+    ClNameT                 ckptDirtySections[CL_AMS_DB_INVOCATION_PAIRS];
     ClNameT                 ckptInvocationSections[CL_AMS_DB_INVOCATION_PAIRS];
     ClDifferenceVectorKeyT  ckptDifferenceVectorKeys[CL_AMS_DB_INVOCATION_PAIRS];
     ClNameT                 ckptCurrentSection;
