@@ -306,6 +306,8 @@ clAmsStart(
         ClInt32T retries = 0;
         ClTimerTimeOutT delay = {.tsSec = 2, .tsMilliSec = 0};
 
+        ams->mode &= ~CL_AMS_INSTANTIATE_MODE_STANDBY;
+
         rc = clCpmMasterAddressGet(&masterAddress);
 
         if (CL_OK != rc)

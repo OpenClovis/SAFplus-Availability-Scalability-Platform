@@ -4944,38 +4944,35 @@ clAmsIsValidList (
 
 ClRcT   
 clAmsEntitySetRefPtr(
-        // coverity[pass_by_value]
-        ClAmsEntityRefT  sourceEntityRef,
-        // coverity[pass_by_value]
-        ClAmsEntityRefT  targetEntityRef )
+        ClAmsEntityRefT  *sourceEntityRef,
+        ClAmsEntityRefT  *targetEntityRef )
 
 {
-
     ClAmsEntityTypeT  sourceEntityType = {0};
     ClAmsEntityTypeT  targetEntityType = {0};
 
     AMS_FUNC_ENTER (("\n"));
 
-    sourceEntityType = sourceEntityRef.entity.type;
-    targetEntityType = targetEntityRef.entity.type;
+    sourceEntityType = sourceEntityRef->entity.type;
+    targetEntityType = targetEntityRef->entity.type;
 
     AMS_CALL( clAmsEntityDbFindEntity(
                 &gAms.db.entityDb[sourceEntityType],
-                &sourceEntityRef) );
+                sourceEntityRef) );
 
     AMS_CALL( clAmsEntityDbFindEntity(
                 &gAms.db.entityDb[targetEntityType],
-                &targetEntityRef) );
+                targetEntityRef) );
 
-    AMS_CHECKPTR ( !sourceEntityRef.ptr || !targetEntityRef.ptr );
+    AMS_CHECKPTR ( !sourceEntityRef->ptr || !targetEntityRef->ptr );
 
     if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_SG) &&
             (targetEntityType == CL_AMS_ENTITY_TYPE_APP) )
     {
 
-        ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef.ptr;
-        sg->config.parentApp.ptr = targetEntityRef.ptr;
-        memcpy ( &sg->config.parentApp.entity, &targetEntityRef.entity, 
+        ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef->ptr;
+        sg->config.parentApp.ptr = targetEntityRef->ptr;
+        memcpy ( &sg->config.parentApp.entity, &targetEntityRef->entity, 
                 sizeof (ClAmsEntityT));
 
     }
@@ -4986,9 +4983,9 @@ clAmsEntitySetRefPtr(
         if ( targetEntityType == CL_AMS_ENTITY_TYPE_SG )
         {
 
-            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
-            su->config.parentSG.ptr = targetEntityRef.ptr;
-            memcpy ( &su->config.parentSG.entity, &targetEntityRef.entity, 
+            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
+            su->config.parentSG.ptr = targetEntityRef->ptr;
+            memcpy ( &su->config.parentSG.entity, &targetEntityRef->entity, 
                     sizeof (ClAmsEntityT));
 
         }
@@ -4996,9 +4993,9 @@ clAmsEntitySetRefPtr(
         else if ( targetEntityType == CL_AMS_ENTITY_TYPE_NODE )
         {
 
-            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
-            su->config.parentNode.ptr = targetEntityRef.ptr;
-            memcpy ( &su->config.parentNode.entity, &targetEntityRef.entity,
+            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
+            su->config.parentNode.ptr = targetEntityRef->ptr;
+            memcpy ( &su->config.parentNode.entity, &targetEntityRef->entity,
                     sizeof (ClAmsEntityT));
 
          }
@@ -5009,9 +5006,9 @@ clAmsEntitySetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_SG) )
     {
 
-        ClAmsSIT      *si = (ClAmsSIT *)sourceEntityRef.ptr;
-        si->config.parentSG.ptr = targetEntityRef.ptr;
-        memcpy ( &si->config.parentSG.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
+        ClAmsSIT      *si = (ClAmsSIT *)sourceEntityRef->ptr;
+        si->config.parentSG.ptr = targetEntityRef->ptr;
+        memcpy ( &si->config.parentSG.entity, &targetEntityRef->entity, sizeof (ClAmsEntityT));
 
     }
 
@@ -5019,9 +5016,9 @@ clAmsEntitySetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_SU) )
     {
 
-        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef.ptr;
-        comp->config.parentSU.ptr = targetEntityRef.ptr;
-        memcpy ( &comp->config.parentSU.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
+        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef->ptr;
+        comp->config.parentSU.ptr = targetEntityRef->ptr;
+        memcpy ( &comp->config.parentSU.entity, &targetEntityRef->entity, sizeof (ClAmsEntityT));
 
     }
 
@@ -5029,8 +5026,8 @@ clAmsEntitySetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_COMP) )
     {
 
-        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef.ptr;
-        comp->status.proxyComp = targetEntityRef.ptr;
+        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef->ptr;
+        comp->status.proxyComp = targetEntityRef->ptr;
 
     }
 
@@ -5038,9 +5035,9 @@ clAmsEntitySetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_SI) )
     {
 
-        ClAmsCSIT     *csi = (ClAmsCSIT *)sourceEntityRef.ptr;
-        csi->config.parentSI.ptr = targetEntityRef.ptr;
-        memcpy ( &csi->config.parentSI.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
+        ClAmsCSIT     *csi = (ClAmsCSIT *)sourceEntityRef->ptr;
+        csi->config.parentSI.ptr = targetEntityRef->ptr;
+        memcpy ( &csi->config.parentSI.entity, &targetEntityRef->entity, sizeof (ClAmsEntityT));
 
     }
 
@@ -5057,10 +5054,8 @@ clAmsEntitySetRefPtr(
 
 ClRcT   
 clAmsEntityUnsetRefPtr(
-        // coverity[pass_by_value]
-        ClAmsEntityRefT  sourceEntityRef,
-        // coverity[pass_by_value]
-        ClAmsEntityRefT  targetEntityRef )
+        ClAmsEntityRefT  *sourceEntityRef,
+        ClAmsEntityRefT  *targetEntityRef )
 
 {
 
@@ -5069,24 +5064,24 @@ clAmsEntityUnsetRefPtr(
 
     AMS_FUNC_ENTER (("\n"));
 
-    sourceEntityType = sourceEntityRef.entity.type;
-    targetEntityType = targetEntityRef.entity.type;
+    sourceEntityType = sourceEntityRef->entity.type;
+    targetEntityType = targetEntityRef->entity.type;
 
     AMS_CALL( clAmsEntityDbFindEntity(
                 &gAms.db.entityDb[sourceEntityType],
-                &sourceEntityRef) );
+                sourceEntityRef) );
 
     AMS_CALL( clAmsEntityDbFindEntity(
                 &gAms.db.entityDb[targetEntityType],
-                &targetEntityRef) );
+                targetEntityRef) );
 
-    AMS_CHECKPTR ( !sourceEntityRef.ptr || !targetEntityRef.ptr );
+    AMS_CHECKPTR ( !sourceEntityRef->ptr || !targetEntityRef->ptr );
 
     if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_SG) &&
             (targetEntityType == CL_AMS_ENTITY_TYPE_APP) )
     {
 
-        ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef.ptr;
+        ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef->ptr;
         sg->config.parentApp.ptr = NULL;
     }
 
@@ -5096,14 +5091,14 @@ clAmsEntityUnsetRefPtr(
         if ( targetEntityType == CL_AMS_ENTITY_TYPE_SG )
         {
 
-            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
+            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
             su->config.parentSG.ptr = NULL;
         }
 
         else if ( targetEntityType == CL_AMS_ENTITY_TYPE_NODE )
         {
 
-            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
+            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
             su->config.parentNode.ptr = NULL;
          }
 
@@ -5113,7 +5108,7 @@ clAmsEntityUnsetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_SG) )
     {
 
-        ClAmsSIT      *si = (ClAmsSIT *)sourceEntityRef.ptr;
+        ClAmsSIT      *si = (ClAmsSIT *)sourceEntityRef->ptr;
         si->config.parentSG.ptr = NULL;
     }
 
@@ -5121,7 +5116,7 @@ clAmsEntityUnsetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_SU) )
     {
 
-        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef.ptr;
+        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef->ptr;
         comp->config.parentSU.ptr = NULL;
     }
 
@@ -5129,7 +5124,7 @@ clAmsEntityUnsetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_COMP) )
     {
 
-        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef.ptr;
+        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef->ptr;
         comp->status.proxyComp = NULL;
 
     }
@@ -5138,7 +5133,7 @@ clAmsEntityUnsetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_SI) )
     {
 
-        ClAmsCSIT     *csi = (ClAmsCSIT *)sourceEntityRef.ptr;
+        ClAmsCSIT     *csi = (ClAmsCSIT *)sourceEntityRef->ptr;
         csi->config.parentSI.ptr = NULL;
     }
 
@@ -8956,6 +8951,13 @@ ClRcT clAmsBuildDirtyList(ClListHeadT *entityList)
  */
 ClRcT clAmsMarkEntityDirty(ClAmsEntityT *entity)
 {
+    if(gAms.mode == CL_AMS_SERVICE_STATE_HOT_STANDBY
+       ||
+       gAms.mode == CL_AMS_SERVICE_STATE_UNAVAILABLE)
+    {
+        return CL_OK;
+    }
+
     /*
      * Already dirty
      */

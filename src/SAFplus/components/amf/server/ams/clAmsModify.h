@@ -194,15 +194,15 @@ clAmsIsValidList (
 
 extern ClRcT   
 clAmsEntitySetRefPtr(
-        ClAmsEntityRefT  sourceEntityRef,
-        ClAmsEntityRefT  targetEntityRef );
+        ClAmsEntityRefT  *sourceEntityRef,
+        ClAmsEntityRefT  *targetEntityRef );
 
 /*********************************************************************/
 
 extern ClRcT   
 clAmsEntityUnsetRefPtr(
-        ClAmsEntityRefT  sourceEntityRef,
-        ClAmsEntityRefT  targetEntityRef );
+        ClAmsEntityRefT  *sourceEntityRef,
+        ClAmsEntityRefT  *targetEntityRef );
 
 /*********************************************************************/
 

@@ -1033,303 +1033,6 @@ clAmsEntityGetStatusStruct(
 
 }
 
-ClRcT
-clAmsEntityInstantiate(ClAmsEntityT *entity,
-                       ClBoolT terminate)
-{
-
-    ClRcT  rc = CL_OK;
-
-    /*
-     * Setup entity methods and create entity specific lists.
-     * 
-     * Note: Entity timers are deliberately not created now as they would then
-     * pick up the currently set duration values (Clovis OSAL restriction). It 
-     * is possible that these will be configured after the entity has been 
-     * malloc'd.
-     */
-
-    if ( (type < 0) || (type > CL_AMS_ENTITY_TYPE_MAX) )
-    { 
-        AMS_LOG(CL_DEBUG_ERROR,
-                ("ERROR: Invalid entity type = %d\n", type));
-        goto exitfn;
-    }
-
-    switch ( type )
-    {
-       
-        case CL_AMS_ENTITY_TYPE_NODE:
-        {
-            ClAmsNodeT  *node = (ClAmsNodeT *) newEntity;
-
-            /*
-             * Methods
-             */
-
-            memcpy(&node->methods,
-                    (ClAmsNodeMethodsT *) useMethods,
-                    sizeof(ClAmsNodeMethodsT));
-
-            /*
-             * Config
-             */ 
-            
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &node->config.nodeDependentsList,
-                        CL_AMS_ENTITY_TYPE_NODE) );
-
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &node->config.nodeDependenciesList,
-                        CL_AMS_ENTITY_TYPE_NODE) );
-
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate( 
-                        &node->config.suList,
-                        CL_AMS_ENTITY_TYPE_SU) );
-
-            break;
-        }
-
-#ifdef POST_RC2
-
-        case CL_AMS_ENTITY_TYPE_APP:
-        {
-            ClAmsAppT  *app = (ClAmsAppT *) newEntity;
-
-            /*
-             * Methods
-             */
-
-            memcpy(&app->methods,
-                    (ClAmsAppMethodsT *) useMethods,
-                    sizeof(ClAmsAppMethodsT));
-
-            break;
-        }
-
-#endif
-
-        case CL_AMS_ENTITY_TYPE_SG:
-        {
-            ClAmsSGT  *sg = (ClAmsSGT *) newEntity;
-
-            /*
-             * Methods
-             */
-
-            memcpy(&sg->methods,
-                    (ClAmsSGMethodsT *) useMethods,
-                    sizeof(ClAmsSGMethodsT));
-
-            /*
-             * Config
-             */
-
-            AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
-                        &sg->config.suList,
-                        CL_AMS_ENTITY_TYPE_SU) );
-
-            AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
-                        &sg->config.siList,
-                        CL_AMS_ENTITY_TYPE_SI) );
-
-            /*
-             * Status
-             */
-
-            AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
-                        &sg->status.instantiableSUList,
-                        CL_AMS_ENTITY_TYPE_SU) );
-
-            AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
-                        &sg->status.instantiatedSUList,
-                        CL_AMS_ENTITY_TYPE_SU) );
-
-            AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
-                        &sg->status.inserviceSpareSUList,
-                        CL_AMS_ENTITY_TYPE_SU) );
-
-            AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
-                        &sg->status.assignedSUList,
-                        CL_AMS_ENTITY_TYPE_SU) );
-
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &sg->status.faultySUList,
-                        CL_AMS_ENTITY_TYPE_SU) );
-
-            CL_LIST_HEAD_INIT(&sg->status.failoverHistory);
-
-            sg->status.failoverHistoryIndex = 0;
-            sg->status.failoverHistoryCount = 0;
-
-            break;
-
-        }
-
-        case CL_AMS_ENTITY_TYPE_SU:
-        {
-            ClAmsSUT  *su = (ClAmsSUT *) newEntity;
-
-            /*
-             * Methods
-             */
-
-            memcpy(&su->methods,
-                    (ClAmsSUMethodsT *) useMethods,
-                    sizeof(ClAmsSUMethodsT));
-
-            /*
-             * Config
-             */
-
-            AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
-                        &su->config.compList,
-                        CL_AMS_ENTITY_TYPE_COMP) );
-
-            /*
-             * Status
-             */
-
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &su->status.siList,
-                        CL_AMS_ENTITY_TYPE_SI) );
-
-            break;
-
-        }
-
-        case CL_AMS_ENTITY_TYPE_SI:
-        {
-            ClAmsSIT  *si = (ClAmsSIT *) newEntity;
-
-            /*
-             * Methods
-             */
-
-            memcpy(&si->methods,
-                    (ClAmsSIMethodsT *) useMethods,
-                    sizeof(ClAmsSIMethodsT));
-
-            /*
-             * Config
-             */
-
-            AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
-                        &si->config.suList,
-                        CL_AMS_ENTITY_TYPE_SU) );
-
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &si->config.siDependentsList,
-                        CL_AMS_ENTITY_TYPE_SI) );
-
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &si->config.siDependenciesList,
-                        CL_AMS_ENTITY_TYPE_SI) );
-
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &si->config.csiList,
-                        CL_AMS_ENTITY_TYPE_CSI) );
-
-            /*
-             * Status
-             */
-
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &si->status.suList,
-                        CL_AMS_ENTITY_TYPE_SU) );
-
-            break;
-        }
-
-        case CL_AMS_ENTITY_TYPE_COMP:
-        {
-            ClAmsCompT  *comp = (ClAmsCompT *) newEntity;
-
-            /*
-             * Methods
-             */
-
-            memcpy(&comp->methods,
-                    (ClAmsCompMethodsT *) useMethods,
-                    sizeof(ClAmsCompMethodsT));
-
-            /*
-             * Status
-             */
-
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &comp->status.csiList,
-                        CL_AMS_ENTITY_TYPE_CSI) );
-
-            break;
-        }
-
-        case CL_AMS_ENTITY_TYPE_CSI:
-        {
-            ClAmsCSIT  *csi = (ClAmsCSIT *) newEntity;
-
-            /*
-             * Methods
-             */
-
-            memcpy(&csi->methods,
-                    (ClAmsCSIMethodsT *) useMethods,
-                    sizeof(ClAmsCSIMethodsT));
-
-            /*
-             * Config
-             */
-
-           AMS_CHECK_RC_ERROR( clAmsCSINVPListInstantiate(
-                       &csi->config.nameValuePairList,
-                       CL_AMS_ENTITY_TYPE_CSI) );
-
-           AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &csi->config.csiDependentsList,
-                        CL_AMS_ENTITY_TYPE_CSI) );
-
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &csi->config.csiDependenciesList,
-                        CL_AMS_ENTITY_TYPE_CSI) );
-
-           /*
-            * Status
-            */
-
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
-                        &csi->status.pgList,
-                        CL_AMS_ENTITY_TYPE_COMP) );
-
-            AMS_CHECK_RC_ERROR( clAmsCSIPGTrackListInstantiate(
-                        &csi->status.pgTrackList,
-                        CL_AMS_ENTITY_TYPE_CSI) );
-
-            break;
-        }
-
-        default:
-        {
-            /*
-             * Nothing to be done for entity type entity, App and cluster
-             */
-        }
-    }
-
-    /*
-     * Setup default status for entity.
-     */
-
-    amsEntityReset(newEntity, CL_TRUE);
-
-    return newEntity;
-
-exitfn:
-
-    clHeapFree(newEntity);
-    return (ClAmsEntityT *) NULL;
-
-}
-
 /*
  * clAmsEntityTerminate
  * ----------------
@@ -1338,8 +1041,10 @@ exitfn:
 
 ClRcT
 clAmsEntityTerminate(
-        CL_IN  ClAmsEntityT  *entity )
+                     CL_IN  ClAmsEntityT  *entity,
+                     ClBoolT instantiate)
 {
+    ClRcT rc = CL_OK;
 
     AMS_CHECKPTR ( !entity );
 
@@ -1348,18 +1053,38 @@ clAmsEntityTerminate(
     switch ( entity->type )
     {
 
-        case CL_AMS_ENTITY_TYPE_NODE:
+    case CL_AMS_ENTITY_TYPE_NODE:
         {
             ClAmsNodeT  *node = (ClAmsNodeT *) entity;
-            AMS_CALL (clAmsEntityListTerminate(&node->config.nodeDependentsList));
-            AMS_CALL (clAmsEntityListTerminate(&node->config.nodeDependenciesList));
-            AMS_CALL (clAmsEntityListTerminate(&node->config.suList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&node->config.nodeDependentsList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&node->config.nodeDependenciesList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&node->config.suList));
+
+            if(instantiate)
+            {
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &node->config.nodeDependentsList,
+                                                               CL_AMS_ENTITY_TYPE_NODE) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &node->config.nodeDependenciesList,
+                                                               CL_AMS_ENTITY_TYPE_NODE) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate( 
+                                                               &node->config.suList,
+                                                               CL_AMS_ENTITY_TYPE_SU) );
+
+                AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                                                  (ClAmsEntityT *) node,
+                                                  CL_AMS_NODE_TIMER_SUFAILOVER) );
+            }
+
             break;
         }
 
 #ifdef POST_RC2
 
-        case CL_AMS_ENTITY_TYPE_APP:
+    case CL_AMS_ENTITY_TYPE_APP:
         {
             //ClAmsAppT    *app = (ClAmsAppT *) entity;
             break;
@@ -1367,62 +1092,269 @@ clAmsEntityTerminate(
 
 #endif
 
-        case CL_AMS_ENTITY_TYPE_SG:
+    case CL_AMS_ENTITY_TYPE_SG:
         {
             ClAmsSGT  *sg = (ClAmsSGT *) entity;
-            AMS_CALL (clAmsEntityListTerminate(&sg->config.siList));
-            AMS_CALL (clAmsEntityListTerminate(&sg->config.suList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&sg->config.siList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&sg->config.suList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&sg->status.instantiableSUList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&sg->status.instantiatedSUList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&sg->status.inserviceSpareSUList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&sg->status.assignedSUList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&sg->status.faultySUList));
+            AMS_CHECK_RC_ERROR ( clAmsSGFailoverHistoryDelete(sg) );
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) sg,
+                        CL_AMS_SG_TIMER_INSTANTIATE) );
+            
+            AMS_CHECK_RC_ERROR (clAmsEntityTimerDelete(
+                                             (ClAmsEntityT*)sg,
+                                             CL_AMS_SG_TIMER_ADJUST) );
 
-            AMS_CALL (clAmsEntityListTerminate(&sg->status.instantiableSUList));
-            AMS_CALL (clAmsEntityListTerminate(&sg->status.instantiatedSUList));
-            AMS_CALL (clAmsEntityListTerminate(&sg->status.inserviceSpareSUList));
-            AMS_CALL (clAmsEntityListTerminate(&sg->status.assignedSUList));
-            AMS_CALL (clAmsEntityListTerminate(&sg->status.faultySUList));
+            AMS_CHECK_RC_ERROR (clAmsEntityTimerDelete(
+                                             (ClAmsEntityT*)sg,
+                                             CL_AMS_SG_TIMER_ADJUST_PROBATION) );
+
+
+            if(instantiate)
+            {
+                AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
+                                                                      &sg->config.suList,
+                                                                      CL_AMS_ENTITY_TYPE_SU) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
+                                                                      &sg->config.siList,
+                                                                      CL_AMS_ENTITY_TYPE_SI) );
+
+                /*
+                 * Status
+                 */
+
+                AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
+                                                                      &sg->status.instantiableSUList,
+                                                                      CL_AMS_ENTITY_TYPE_SU) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
+                                                                      &sg->status.instantiatedSUList,
+                                                                      CL_AMS_ENTITY_TYPE_SU) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
+                                                                      &sg->status.inserviceSpareSUList,
+                                                                      CL_AMS_ENTITY_TYPE_SU) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
+                                                                      &sg->status.assignedSUList,
+                                                                      CL_AMS_ENTITY_TYPE_SU) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &sg->status.faultySUList,
+                                                               CL_AMS_ENTITY_TYPE_SU) );
+
+                CL_LIST_HEAD_INIT(&sg->status.failoverHistory);
+            }
 
             break;
         }
 
-        case CL_AMS_ENTITY_TYPE_SU:
+    case CL_AMS_ENTITY_TYPE_SU:
         {
             ClAmsSUT  *su = (ClAmsSUT *) entity;
-            AMS_CALL (clAmsEntityListTerminate(&su->config.compList));
-            AMS_CALL (clAmsEntityListTerminate(&su->status.siList));
+
+            clAmsPeSUSIReassignEntryDelete(su);
+
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&su->config.compList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&su->status.siList));
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) su,
+                        CL_AMS_SU_TIMER_SURESTART) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) su,
+                        CL_AMS_SU_TIMER_COMPRESTART) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                                              (ClAmsEntityT*) su,
+                                              CL_AMS_SU_TIMER_PROBATION) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                                              (ClAmsEntityT*) su,
+                                              CL_AMS_SU_TIMER_ASSIGNMENT) );
+
+            if(instantiate)
+            {
+                AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
+                                                                      &su->config.compList,
+                                                                      CL_AMS_ENTITY_TYPE_COMP) );
+
+                /*
+                 * Status
+                 */
+
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &su->status.siList,
+                                                               CL_AMS_ENTITY_TYPE_SI) );
+            }
+
             break;
         }
 
-        case CL_AMS_ENTITY_TYPE_SI:
+    case CL_AMS_ENTITY_TYPE_SI:
         {
             ClAmsSIT  *si = (ClAmsSIT *) entity;
-            AMS_CALL (clAmsEntityListTerminate(&si->config.suList));
-            AMS_CALL (clAmsEntityListTerminate(&si->config.siDependentsList));
-            AMS_CALL (clAmsEntityListTerminate(&si->config.siDependenciesList));
-            AMS_CALL (clAmsEntityListTerminate(&si->config.csiList));
-            AMS_CALL (clAmsEntityListTerminate(&si->status.suList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&si->config.suList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&si->config.siDependentsList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&si->config.siDependenciesList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&si->config.csiList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&si->status.suList));
+
+            if(instantiate)
+            {
+                AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
+                                                                      &si->config.suList,
+                                                                      CL_AMS_ENTITY_TYPE_SU) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &si->config.siDependentsList,
+                                                               CL_AMS_ENTITY_TYPE_SI) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &si->config.siDependenciesList,
+                                                               CL_AMS_ENTITY_TYPE_SI) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &si->config.csiList,
+                                                               CL_AMS_ENTITY_TYPE_CSI) );
+
+                /*
+                 * Status
+                 */
+
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &si->status.suList,
+                                                               CL_AMS_ENTITY_TYPE_SU) );
+            }
 
             break;
         }
 
-        case CL_AMS_ENTITY_TYPE_COMP:
+    case CL_AMS_ENTITY_TYPE_COMP:
         {
             ClAmsCompT  *comp = (ClAmsCompT *) entity;
-            AMS_CALL (clAmsEntityListTerminate(&comp->status.csiList));
+
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&comp->status.csiList));
+
+            if(comp->config.pSupportedCSITypes)
+            {
+                clAmsFreeMemory(comp->config.pSupportedCSITypes);
+            }
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) comp,
+                        CL_AMS_COMP_TIMER_INSTANTIATE) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) comp,
+                        CL_AMS_COMP_TIMER_TERMINATE) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) comp,
+                        CL_AMS_COMP_TIMER_CLEANUP) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) comp,
+                        CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) comp,
+                        CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) comp,
+                        CL_AMS_COMP_TIMER_AMSTART) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) comp,
+                        CL_AMS_COMP_TIMER_AMSTOP) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) comp,
+                        CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) comp,
+                        CL_AMS_COMP_TIMER_CSISET) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) comp,
+                        CL_AMS_COMP_TIMER_CSIREMOVE) );
+
+            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+                        (ClAmsEntityT *) comp,
+                        CL_AMS_COMP_TIMER_INSTANTIATEDELAY) );
+
+            if(instantiate)
+            {
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &comp->status.csiList,
+                                                               CL_AMS_ENTITY_TYPE_CSI) );
+            }
             break;
         }
 
-        case CL_AMS_ENTITY_TYPE_CSI:
+    case CL_AMS_ENTITY_TYPE_CSI:
         {
             ClAmsCSIT  *csi = (ClAmsCSIT *) entity;
-            AMS_CALL (clCntAllNodesDelete(csi->config.nameValuePairList));
-            AMS_CALL (clCntDelete(csi->config.nameValuePairList));
+            
+            AMS_CHECK_RC_ERROR( clAmsEntityListTerminate(
+                                                         &csi->config.csiDependentsList ) );
+
+            AMS_CHECK_RC_ERROR( clAmsEntityListTerminate(
+                                                         &csi->config.csiDependenciesList) );
+
+            AMS_CHECK_RC_ERROR (clCntAllNodesDelete(csi->config.nameValuePairList));
+            AMS_CHECK_RC_ERROR (clCntDelete(csi->config.nameValuePairList));
             csi->config.nameValuePairList = 0;
-            AMS_CALL (clAmsEntityListTerminate(&csi->status.pgList));
-            AMS_CALL (clCntAllNodesDelete(csi->status.pgTrackList));
-            AMS_CALL (clCntDelete(csi->status.pgTrackList));
+            AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&csi->status.pgList));
+            AMS_CHECK_RC_ERROR (clCntAllNodesDelete(csi->status.pgTrackList));
+            AMS_CHECK_RC_ERROR (clCntDelete(csi->status.pgTrackList));
             csi->status.pgTrackList = 0;
+
+            if(instantiate)
+            {
+                /*
+                 * Config
+                 */
+
+                AMS_CHECK_RC_ERROR( clAmsCSINVPListInstantiate(
+                                                               &csi->config.nameValuePairList,
+                                                               CL_AMS_ENTITY_TYPE_CSI) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &csi->config.csiDependentsList,
+                                                               CL_AMS_ENTITY_TYPE_CSI) );
+
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &csi->config.csiDependenciesList,
+                                                               CL_AMS_ENTITY_TYPE_CSI) );
+
+                /*
+                 * Status
+                 */
+
+                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                                                               &csi->status.pgList,
+                                                               CL_AMS_ENTITY_TYPE_COMP) );
+
+                AMS_CHECK_RC_ERROR( clAmsCSIPGTrackListInstantiate(
+                                                                   &csi->status.pgTrackList,
+                                                                   CL_AMS_ENTITY_TYPE_CSI) );
+            }
+
             break;
         }
 
-        default:
+    default:
         {
             /*
              * Nothing to be done for entity type entity, App, cluster
@@ -1430,8 +1362,18 @@ clAmsEntityTerminate(
         }
     }
 
-    return CL_OK;
+    exitfn:
 
+    _clAmsEntityUserDataDelete(&entity->name, CL_TRUE);
+
+    clAmsEntityOpsClear(entity, NULL);
+    
+    if(entity->dirtyList.pNext && entity->dirtyList.pPrev)
+    {
+        clListDel(&entity->dirtyList);
+    }
+
+    return CL_OK;
 }
 
 static ClCharT *clAmsEpochString(ClTimeT epoch, ClCharT *pStr)
@@ -4533,7 +4475,6 @@ clAmsEntityTimerStart(
     ClAmsT  *ams = &gAms;
 
     AMS_CHECKPTR ( !entity );
-
     AMS_CALL ( clAmsEntityTimerGetValues(
                 entity,
                 timerType,

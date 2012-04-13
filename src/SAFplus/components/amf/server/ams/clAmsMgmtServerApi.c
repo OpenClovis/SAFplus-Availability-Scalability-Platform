@@ -1561,8 +1561,8 @@ VDECL(_clAmsMgmtEntitySetRef)(
 
     AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(
             clAmsEntitySetRefPtr(
-                sourceEntityRef,
-                targetEntityRef),
+                &sourceEntityRef,
+                &targetEntityRef),
             gAms.mutex)
 
     AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
@@ -5248,7 +5248,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
 
                 memcpy (&nodeRef.entity,&req->nodeName,sizeof(ClAmsEntityT));
                 memcpy (&suRef.entity,&req->suName,sizeof(ClAmsEntityT));
-                rc = clAmsEntitySetRefPtr(suRef,nodeRef);
+                rc = clAmsEntitySetRefPtr(&suRef, &nodeRef);
                 if (rc != CL_OK)
                 {
                     AMS_LOG(CL_DEBUG_CRITICAL,("Unable to set SU's [%.*s] parent node to [%.*s] return code [0x%x]. AMF database is inconsistent.",req->suName.name.length-1,req->suName.name.value,req->nodeName.name.length-1,req->nodeName.name.value, rc));
@@ -5294,7 +5294,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 memcpy (&nodeRef.entity,&req->nodeName,sizeof(ClAmsEntityT));
                 memcpy (&suRef.entity,&req->suName,sizeof(ClAmsEntityT));
                 AMS_CHECK_RC_ERROR( clAmsEntityUnsetRefPtr(
-                                                           suRef,nodeRef));
+                                                           &suRef, &nodeRef));
 
                 break;
 
@@ -5327,7 +5327,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 memcpy (&sgRef.entity,&req->sgName,sizeof(ClAmsEntityT));
                 memcpy (&suRef.entity,&req->suName,sizeof(ClAmsEntityT));
                 AMS_CHECK_RC_ERROR( clAmsEntitySetRefPtr(
-                                                         suRef, sgRef));
+                                                         &suRef, &sgRef));
              
                 /*
                  * Move the newly added SU to instantiable list. Mark instantiable
@@ -5388,7 +5388,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 memcpy (&sgRef.entity,&req->sgName,sizeof(ClAmsEntityT));
                 memcpy (&suRef.entity,&req->suName,sizeof(ClAmsEntityT));
                 AMS_CHECK_RC_ERROR( clAmsEntityUnsetRefPtr(
-                                                           suRef, sgRef));
+                                                           &suRef, &sgRef));
 
                 break;
 
@@ -5422,7 +5422,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 memcpy (&sgRef.entity,&req->sgName,sizeof(ClAmsEntityT));
                 memcpy (&siRef.entity,&req->siName,sizeof(ClAmsEntityT));
                 AMS_CHECK_RC_ERROR( clAmsEntitySetRefPtr(
-                                                         siRef, sgRef));
+                                                         &siRef, &sgRef));
 
                 /* Add dirty SG into the list to be re-evaluated */
                 if(sourceEntity)
@@ -5470,7 +5470,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 memcpy (&sgRef.entity,&req->sgName,sizeof(ClAmsEntityT));
                 memcpy (&siRef.entity,&req->siName,sizeof(ClAmsEntityT));
                 AMS_CHECK_RC_ERROR( clAmsEntityUnsetRefPtr(
-                                                           siRef, sgRef));
+                                                           &siRef, &sgRef));
 
                 break;
 
@@ -5504,7 +5504,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 memcpy (&compRef.entity,&req->compName,sizeof(ClAmsEntityT));
                 memcpy (&suRef.entity,&req->suName,sizeof(ClAmsEntityT));
                 AMS_CHECK_RC_ERROR( clAmsEntitySetRefPtr(
-                                                         compRef, suRef));
+                                                         &compRef, &suRef));
 
                 /* Add dirty SG into the list to be re-evaluated */
                 if(sourceEntity)
@@ -5558,7 +5558,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 memcpy (&compRef.entity,&req->compName,sizeof(ClAmsEntityT));
                 memcpy (&suRef.entity,&req->suName,sizeof(ClAmsEntityT));
                 AMS_CHECK_RC_ERROR( clAmsEntityUnsetRefPtr(
-                                                           compRef, suRef));
+                                                           &compRef, &suRef));
 
                 break;
 
@@ -5682,7 +5682,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 memcpy (&siRef.entity,&req->siName,sizeof(ClAmsEntityT));
                 memcpy (&csiRef.entity,&req->csiName,sizeof(ClAmsEntityT));
                 AMS_CHECK_RC_ERROR( clAmsEntitySetRefPtr(
-                                                         csiRef, siRef));
+                                                         &csiRef, &siRef));
 
                 break;
 
@@ -5715,7 +5715,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 memcpy (&siRef.entity,&req->siName,sizeof(ClAmsEntityT));
                 memcpy (&csiRef.entity,&req->csiName,sizeof(ClAmsEntityT));
                 AMS_CHECK_RC_ERROR( clAmsEntityUnsetRefPtr(
-                                                           csiRef, siRef));
+                                                           &csiRef, &siRef));
 
                 break;
 
