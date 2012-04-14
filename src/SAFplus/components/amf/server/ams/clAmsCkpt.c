@@ -1011,9 +1011,9 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
         }
         else
         {
-            clLogNotice("CKPT", "NOTIFY", "AMS db unmarshall success for section [%s], "
-                        "bytes [%d], mode [%d]",
-                        pSectionName, (ClUint32T)pIOVector->dataSize, dbMode);
+            clLogDebug("CKPT", "NOTIFY", "AMS db unmarshall success for section [%s], "
+                       "bytes [%d], mode [%d]",
+                       pSectionName, (ClUint32T)pIOVector->dataSize, dbMode);
         }
 
         /*
@@ -1367,8 +1367,8 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
             goto exitfn;
         }
         clBufferLengthGet(dataBuf, &dataLen);
-        clLogNotice("PACK", "CKPT", "DB %smarshall done for [%d] bytes\n", 
-                    dirty ? "dirty ":"", dataLen);
+        clLogDebug("PACK", "CKPT", "DB %smarshall done for [%d] bytes\n", 
+                   dirty ? "dirty ":"", dataLen);
         rc = clBufferFlatten(dataBuf, (ClUint8T**)&readData);
         if(rc != CL_OK)
         {

@@ -1165,21 +1165,21 @@ clAmsEntityTerminate(
             AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&su->config.compList));
             AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&su->status.siList));
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+            clAmsEntityTimerDelete(
                         (ClAmsEntityT *) su,
-                        CL_AMS_SU_TIMER_SURESTART) );
+                        CL_AMS_SU_TIMER_SURESTART);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
+            clAmsEntityTimerDelete(
                         (ClAmsEntityT *) su,
-                        CL_AMS_SU_TIMER_COMPRESTART) );
+                        CL_AMS_SU_TIMER_COMPRESTART);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                                              (ClAmsEntityT*) su,
-                                              CL_AMS_SU_TIMER_PROBATION) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT*) su,
+                                   CL_AMS_SU_TIMER_PROBATION);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                                              (ClAmsEntityT*) su,
-                                              CL_AMS_SU_TIMER_ASSIGNMENT) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT*) su,
+                                   CL_AMS_SU_TIMER_ASSIGNMENT);
 
             if(instantiate)
             {
@@ -1248,50 +1248,51 @@ clAmsEntityTerminate(
             {
                 clAmsFreeMemory(comp->config.pSupportedCSITypes);
             }
+            comp->config.numSupportedCSITypes = 0;
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) comp,
-                        CL_AMS_COMP_TIMER_INSTANTIATE) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_INSTANTIATE);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) comp,
-                        CL_AMS_COMP_TIMER_TERMINATE) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_TERMINATE);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) comp,
-                        CL_AMS_COMP_TIMER_CLEANUP) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_CLEANUP);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) comp,
-                        CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) comp,
-                        CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) comp,
-                        CL_AMS_COMP_TIMER_AMSTART) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_AMSTART);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) comp,
-                        CL_AMS_COMP_TIMER_AMSTOP) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_AMSTOP);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) comp,
-                        CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) comp,
-                        CL_AMS_COMP_TIMER_CSISET) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_CSISET);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) comp,
-                        CL_AMS_COMP_TIMER_CSIREMOVE) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_CSIREMOVE);
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) comp,
-                        CL_AMS_COMP_TIMER_INSTANTIATEDELAY) );
+            clAmsEntityTimerDelete(
+                                   (ClAmsEntityT *) comp,
+                                   CL_AMS_COMP_TIMER_INSTANTIATEDELAY);
 
             if(instantiate)
             {

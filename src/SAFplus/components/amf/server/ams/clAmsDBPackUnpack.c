@@ -1347,6 +1347,7 @@ clAmsDBNodeUnmarshall(ClAmsEntityRefT *entityRef,
             {
                 ClAmsNodeConfigT nodeConfig = { {0} };
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsNodeConfigT, 4, 0, 0)(inMsgHdl, &nodeConfig) );
+                AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
                 AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
                                                         entity,
                                                         &nodeConfig.entity));
@@ -1997,6 +1998,13 @@ clAmsDBSUUnmarshall(ClAmsEntityRefT *entityRef,
                 ClAmsSUConfigT suConfig = {{0}};
                 ClAmsEntityRefT targetEntityRef = {{0}};
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSUConfigT, 4, 0, 0)(inMsgHdl, &suConfig));
+                /*
+                 * Reset if it was present before.
+                 */
+                if(su->config.parentSG.ptr)
+                {
+                    AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
+                }
                 AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
                                                         entity,
                                                         &suConfig.entity));
@@ -3283,6 +3291,13 @@ clAmsDBCompUnmarshall(ClAmsEntityRefT *entityRef,
                 ClAmsCompConfigT compConfig = {{0}};
                 ClAmsEntityRefT targetEntityRef = {{0}};
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompConfigT, 4, 0, 0)(inMsgHdl, &compConfig));
+                /*
+                 * Terminate if present before.
+                 */
+                if(comp->config.parentSU.ptr)
+                {
+                    AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
+                }
                 AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
                                                         entity,
                                                         &compConfig.entity));
@@ -4344,6 +4359,13 @@ clAmsDBSIUnmarshall(ClAmsEntityRefT *entityRef,
                 ClAmsSIConfigT siConfig = {{0}};
                 ClAmsEntityRefT targetEntityRef = {{0}};
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSIConfigT, 4, 0, 0)(inMsgHdl, &siConfig));
+                /*
+                 * Terminate if it was present before.
+                 */
+                if(si->config.parentSG.ptr)
+                {
+                    AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
+                }
                 AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
                                                         entity,
                                                         &siConfig.entity));
@@ -5119,6 +5141,13 @@ clAmsDBCSIUnmarshall(ClAmsEntityRefT *entityRef,
                 ClAmsEntityRefT targetEntityRef = {{0}};
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSIConfigT, 4, 0, 0)(inMsgHdl, 
                                                                                       &csiConfig));
+                /*
+                 * Terminate if it already existed.
+                 */
+                if(csi->config.parentSI.ptr)
+                {
+                    AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
+                }
                 AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
                                                         entity,
                                                         &csiConfig.entity));
@@ -6187,6 +6216,7 @@ clAmsDBSGUnmarshall(ClAmsEntityRefT *entityRef,
             {
                 ClAmsSGConfigT sgConfig = {{0}};
                 AMS_CHECK_RC_ERROR(clAmsDBSGConfigUnmarshallVersion(inMsgHdl, &sgConfig, versionCode));
+                AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
                 AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
                                                         entity,
                                                         &sgConfig.entity));
@@ -7806,18 +7836,10 @@ clAmsEntityDBUnmarshall(ClAmsEntityT *entity,
     memcpy(&entityRef.entity, entity, sizeof(entityRef.entity));
 
     rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type], &entityRef);
-    if(rc == CL_OK)
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
     {
-        AMS_CHECK_RC_ERROR(clAmsEntityTerminate(entityRef.ptr, CL_TRUE));
+        rc = clAmsEntityDbAddEntity(&gAms.db.entityDb[entity->type], &entityRef);
     }
-    else
-    {
-        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
-        {
-            rc = clAmsEntityDbAddEntity(&gAms.db.entityDb[entity->type], &entityRef);
-        }
-    }
-
     if(rc != CL_OK || !entityRef.ptr)
     {
         clLogError("DB", "UNMARSHALL", "Entity [%s] being unmarshalled in standby does not exist",

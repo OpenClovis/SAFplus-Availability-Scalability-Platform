@@ -223,6 +223,11 @@ clAmsEntitySetConfig(
 
     AMS_CHECKPTR ( !entity );
 
+    /*
+     * Save entity portion
+     */
+    memcpy(&entityRef.entity, entity, sizeof(entityRef.entity));
+
     switch ( entityDb->type )
     {
         case CL_AMS_ENTITY_TYPE_ENTITY:
@@ -266,7 +271,7 @@ clAmsEntitySetConfig(
             memcpy (&suList,&nodeConfig->suList,sizeof (ClAmsEntityListT));
 
             memcpy (nodeConfig, entityConfig, sizeof (ClAmsNodeConfigT));
-
+            
             memcpy (&nodeConfig->nodeDependentsList,&nodeDependentsList,sizeof (ClAmsEntityListT));
             memcpy (&nodeConfig->nodeDependenciesList,&nodeDependenciesList,sizeof (ClAmsEntityListT));
             memcpy (&nodeConfig->suList,&suList,sizeof (ClAmsEntityListT));
@@ -386,6 +391,11 @@ clAmsEntitySetConfig(
 
         }
     }
+
+    /*
+     * Restore back the entity portion  
+     */
+    memcpy(entity, &entityRef.entity, sizeof(*entity));
 
 exitfn:
 
@@ -639,8 +649,8 @@ clAmsEntitySetConfigNew(
     ClRcT  rc = CL_OK;
     ClAmsEntityRefT entityRef = {{0},0,0};
     ClAmsEntityT  *entity  = NULL;
+    ClAmsEntityT entityCopy = {0};
     ClBoolT  allAttr = CL_FALSE;
-
 
     AMS_CHECKPTR ( !entityConfig );
 
@@ -664,6 +674,11 @@ clAmsEntitySetConfigNew(
         allAttr = CL_TRUE;
 
     }
+
+    /*
+     * Save entity copy as dirty bits could be modified by the overwrites below
+     */
+    memcpy(&entityCopy, entity, sizeof(entityCopy));
 
     switch ( entityConfig->type )
     {
@@ -1165,6 +1180,11 @@ clAmsEntitySetConfigNew(
         }
     }
 
+    /*
+     * Restore back
+     */
+    memcpy(entity, &entityCopy, sizeof(*entity));
+
 exitfn:
 
     return CL_AMS_RC (rc);
@@ -1211,7 +1231,6 @@ clAmsCCBValidateOperationLocked(
             AMS_CHECK_ENTITY_TYPE_AND_EXIT (opData->entity.type);
 
             memcpy (&entityRef.entity,&opData->entity,sizeof(ClAmsEntityT));
-            clLogNotice("ENTITY","VALIDATE","Delete validation for entity [%s]", opData->entity.name.value);
             AMS_CHECK_RC_ERROR( clAmsEntityDbFindEntity( 
                                                         &gAms.db.entityDb[opData->entity.type], &entityRef )); 
 
@@ -5472,7 +5491,7 @@ clAmsDBMarshallDirty(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl)
         {
             entity = CL_LIST_ENTRY(iter, ClAmsEntityT, dirtyList);
             entity->flags &= ~(CL_AMS_FLAG_DIRTY | CL_AMS_FLAG_SEEN);
-            clLogNotice("PACK", "DIRTY", "Packing config for entity [%s]", entity->name.value);
+            clLogDebug("PACK", "DIRTY", "Packing config for entity [%s]", entity->name.value);
             AMS_CALL (clAmsEntityConfigMarshall(entity, &args));
         }
     }
@@ -5489,7 +5508,7 @@ clAmsDBMarshallDirty(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl)
             ClListHeadT *iter = list->pNext;
             entity = CL_LIST_ENTRY(iter, ClAmsEntityT, dirtyList);
             clListDel(&entity->dirtyList);
-            clLogNotice("PACK", "DIRTY", "Packing status for entity [%s]", entity->name.value);
+            clLogDebug("PACK", "DIRTY", "Packing status for entity [%s]", entity->name.value);
             AMS_CALL(clAmsEntityStatusMarshall(entity, &args));
         }
     }
@@ -8642,9 +8661,9 @@ static __inline__ void amsEnqueueDirty(ClAmsEntityT *entity, ClUint32T gflags)
            &&
            entity->type <= CL_AMS_ENTITY_TYPE_MAX)
         {
-            clLogNotice("BUILD", "DIRTY", 
-                        "Enqueueing entity [%s] with flags [%#x]",
-                        entity->name.value, entity->flags);
+            clLogDebug("BUILD", "DIRTY", 
+                       "Enqueueing entity [%s] with flags [%#x]",
+                       entity->name.value, entity->flags);
             clListAddTail(&entity->dirtyList, &gClAmsDirtyEntityList[(ClInt32T)entity->type]);
         }
     }
@@ -8660,7 +8679,7 @@ ClRcT clAmsGatherDirty(ClAmsEntityT *entity, ClUint32T flags,
     if(level > maxLevel) return CL_OK;
 
     entity->flags |= CL_AMS_FLAG_SEEN;
-    clLogNotice("BUILD", "DIRTY", "Gathering dirty list for entity [%s]", entity->name.value);
+    clLogDebug("BUILD", "DIRTY", "Gathering dirty list for entity [%s]", entity->name.value);
     switch(entity->type)
     {
     case CL_AMS_ENTITY_TYPE_SU:
@@ -8891,14 +8910,14 @@ ClRcT clAmsGatherDirty(ClAmsEntityT *entity, ClUint32T flags,
 static ClRcT amsBuildDirty(ClAmsEntityT *entity)
 {
     if(entity->type != CL_AMS_ENTITY_TYPE_NODE) return CL_OK;
-    clLogNotice("BUILD", "DIRTY", "Building the dirty list for node [%s]", entity->name.value);
+    clLogDebug("BUILD", "DIRTY", "Building the dirty list for node [%s]", entity->name.value);
     return clAmsGatherDirty(entity, CL_AMS_FLAG_DIRTY, 0, 1024);
 }
 
 static ClRcT clAmsBuildDirtyAll(void)
 {
     return CL_OK;
-    clLogNotice("BUILD", "DIRTY", "Building the entire entity dirty list for checkpointing.");
+    clLogDebug("BUILD", "DIRTY", "Building the entire entity dirty list for checkpointing.");
     return clAmsEntityDbWalk(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], amsBuildDirty);
 }
 
@@ -8922,8 +8941,8 @@ ClRcT clAmsBuildDirtyList(ClListHeadT *entityList)
     {
         ClListHeadT *head = entityList->pNext;
         gClAmsDirtyEntities[numEntities++] = CL_LIST_ENTRY(head, ClAmsEntityT, dirtyList);
-        clLogNotice("BUILD", "DIRTY", "Adding node [%s] to the dirty list", 
-                    gClAmsDirtyEntities[numEntities-1]->name.value);
+        clLogDebug("BUILD", "DIRTY", "Adding node [%s] to the dirty list", 
+                   gClAmsDirtyEntities[numEntities-1]->name.value);
         clListDel(head);
     }
     clLogDebug("BUILD", "DIRTY", "Adding dirty end");
@@ -8987,8 +9006,8 @@ ClRcT clAmsMarkEntityDirty(ClAmsEntityT *entity)
     case CL_AMS_ENTITY_TYPE_NODE:
         if(!entity->dirtyList.pNext && !entity->dirtyList.pPrev)
         {
-            clLogNotice("MARK", "DIRTY", "Enqueueing node [%s] to dirty list",
-                        entity->name.value);
+            clLogDebug("MARK", "DIRTY", "Enqueueing node [%s] to dirty list",
+                       entity->name.value);
             clListAddTail(&entity->dirtyList, &gClAmsDirtyNodeList);
         }
         break;
@@ -9024,8 +9043,8 @@ ClRcT clAmsMarkEntityDirty(ClAmsEntityT *entity)
                 AMS_CHECKPTR(!entity);
                 if(entity->dirtyList.pNext || entity->dirtyList.pPrev)
                     continue;
-                clLogNotice("MARK", "DIRTY", "Enqueueing node [%s] to dirty list",
-                            entity->name.value);
+                clLogDebug("MARK", "DIRTY", "Enqueueing node [%s] to dirty list",
+                           entity->name.value);
                 clListAddTail(&entity->dirtyList, &gClAmsDirtyNodeList);
             }
         }
