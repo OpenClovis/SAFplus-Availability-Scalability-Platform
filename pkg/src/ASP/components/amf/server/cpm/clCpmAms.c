@@ -1076,21 +1076,18 @@ static ClRcT _cpmNodeFailFastRestart(ClNameT *nodeName, ClUint32T restartFlag)
         
     if (CL_CPM_IS_ACTIVE())
     {
-        ClBoolT nodeReset = CL_FALSE;
+        ClUint32T nodeRequest = 0;
 
         clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
                       "Node failfast/failover called for node [%*s]...",
                       nodeName->length, nodeName->value);
         
-        if(cpmDequeueAspRequest(nodeName, &nodeReset) == CL_OK)
+        if(cpmDequeueAspRequest(nodeName, &nodeRequest) == CL_OK)
         {
             /*
              * Save an env. override hint in the top 16 bits of the restart flag
              */
-            if(nodeReset) 
-                restartFlag |= CL_CPM_SET_RESTART_OVERRIDE(CL_CPM_RESTART_NODE);
-            else
-                restartFlag |= CL_CPM_SET_RESTART_OVERRIDE(CL_CPM_RESTART_ASP);
+            restartFlag |= CL_CPM_SET_RESTART_OVERRIDE(nodeRequest);
         }
 
         if (!strcmp(nodeName->value,

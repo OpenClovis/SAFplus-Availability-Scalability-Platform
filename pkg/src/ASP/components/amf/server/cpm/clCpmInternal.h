@@ -116,7 +116,7 @@ extern ClTaskPoolHandleT gCpmFaultPool;
 #define CL_CPM_RESTART_NODE 0x2
 #define CL_CPM_HALT_ASP     0x3
 
-#define CL_CPM_SET_RESTART_OVERRIDE(flag) ( (flag) << 16 )
+#define CL_CPM_SET_RESTART_OVERRIDE(flag) ( ((flag) & 0xffff) << 16 )
 #define CL_CPM_GET_RESTART_OVERRIDE(flag) ( ( (flag) >> 16) & 0xffff )
 
 #define CL_CPM_RESTART_FLAG_STR(flag)   ( (flag) == CL_CPM_RESTART_ASP ? "ASP_RESTART" : \
@@ -519,9 +519,10 @@ extern ClRcT cpmEnqueueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest);
 
 extern ClRcT cpmDequeueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest);
 
-extern ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, ClBoolT nodeReset);
+extern ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, 
+                                  ClUint32T nodeRequest);
 
-extern ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClBoolT *nodeReset);
+extern ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClUint32T *nodeRequest);
 
 /**
  ************************************

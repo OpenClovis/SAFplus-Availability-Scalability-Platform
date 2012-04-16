@@ -69,7 +69,7 @@
 typedef struct ClCpmAspResetMsg
 {
     ClIocNodeAddressT nodeAddress;
-    ClBoolT nodeReset; /* if false, then restart middleware*/
+    ClUint32T nodeRequest; /* node reset hint */
 }ClCpmAspResetMsgT;
 
 typedef struct ClCpmResetMsg
@@ -1021,7 +1021,11 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
         {
             strcpy(nodeName.value, cpmL->pCpmLocalInfo->nodeName);
             nodeName.length = strlen(nodeName.value) + 1;
-
+            /*
+             * Setup a restart override to halt the node in case we are interrupted 
+             * by process faults/escalations during node shutdown process.
+             */
+            cpmEnqueueAspRequest(&nodeName, iocAddress, CL_CPM_HALT_ASP);
             if(gpClCpm->cpmToAmsCallback != NULL &&  
                     gpClCpm->cpmToAmsCallback->nodeLeave != NULL)
             {
@@ -1329,7 +1333,7 @@ ClRcT cpmEnqueueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest)
     return rc;
 }
 
-ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClBoolT *nodeReset)
+ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClUint32T *nodeRequest)
 {
     ClCpmResetMsgT *msg;
     clOsalMutexLock(gpClCpm->cmRequestMutex);
@@ -1340,13 +1344,13 @@ ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClBoolT *nodeReset)
     }
     hashDel(&msg->hash);
     clOsalMutexUnlock(gpClCpm->cmRequestMutex);
-    if(nodeReset) 
-        *nodeReset = msg->aspResetMsg.nodeReset;
+    if(nodeRequest) 
+        *nodeRequest = msg->aspResetMsg.nodeRequest;
     clHeapFree(msg);
     return CL_OK;
 }
 
-ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, ClBoolT nodeReset)
+ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, ClUint32T nodeRequest)
 {
     ClRcT rc = CL_OK;
     ClCpmResetMsgT *resetMsg = clHeapCalloc(1, sizeof(*resetMsg));
@@ -1354,7 +1358,7 @@ ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, Cl
     resetMsg->msgType = _ASP_RESET_MSG;
     memcpy(&resetMsg->nodeName, pNodeName, sizeof(resetMsg->nodeName));
     resetMsg->aspResetMsg.nodeAddress = nodeAddress;
-    resetMsg->aspResetMsg.nodeReset = nodeReset;
+    resetMsg->aspResetMsg.nodeRequest = nodeRequest;
     clOsalMutexLock(gpClCpm->cmRequestMutex);
     rc = cpmEnqueueResetRequest(resetMsg);
     clOsalMutexUnlock(gpClCpm->cmRequestMutex);
@@ -2339,7 +2343,8 @@ ClRcT VDECL(cpmMiddlewareRestart)(ClEoDataT data,
         clLogError("NODE", "RESTART", "RMD response send returned [%#x]", rc);
     }
 
-    cpmEnqueueAspRequest(&nodeName, iocNodeAddress, nodeReset);
+    cpmEnqueueAspRequest(&nodeName, iocNodeAddress, 
+                         nodeReset ? CL_CPM_RESTART_NODE : CL_CPM_RESTART_ASP);
 
     clLogNotice("NODE", "RESTART", "Processing middleware restart request for node [%d]", iocNodeAddress);
 
