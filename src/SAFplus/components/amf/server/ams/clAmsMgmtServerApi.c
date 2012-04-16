@@ -1604,9 +1604,9 @@ VDECL(_clAmsMgmtCSISetNVP)(
 
     AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(
             clAmsCSISetNVP (
-                gAms.db.entityDb[req.sourceEntity.type],
-                req.sourceEntity,
-                req.nvp),
+                            &gAms.db.entityDb[req.sourceEntity.type],
+                            &req.sourceEntity,
+                            &req.nvp),
             gAms.mutex );
 
     AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
@@ -5045,14 +5045,20 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 clAmsMgmtCCBEntityCreateRequestT  *req = 
                     (clAmsMgmtCCBEntityCreateRequestT *)opData->payload;
                 ClAmsNotificationDescriptorT descriptor = {0};
-
+                ClAmsEntityT *targetEntity = NULL;
                 memcpy(&entityRef.entity, &req->entity ,
                        sizeof (ClAmsEntityT));
                 clLogNotice("ENTITY", "CREATE", "Create entity [%s]", req->entity.name.value);
-                AMS_CHECK_RC_ERROR( clAmsEntityDbAddEntity(
-                                                           &gAms.db.entityDb[req->entity.type],&entityRef));
+                AMS_CHECK_RC_ERROR( clAmsEntityDbAddEntityAndGet(
+                                                                 &gAms.db.entityDb[req->entity.type],
+                                                                 &entityRef, &targetEntity));
                 
                 AMS_CHECK_RC_ERROR(_clAmsSAEntityAdd(&entityRef) );
+
+                if(targetEntity)
+                {
+                    clAmsMarkEntityDirty(targetEntity);
+                }
 
                 if(clAmsMgmtCCBNotificationEventPayloadSet(CL_AMS_NOTIFICATION_ENTITY_CREATE, &req->entity, 
                                                            &descriptor) == CL_OK)
@@ -5141,10 +5147,11 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_CSI_SET_NVP\n"));
                     
                 AMS_CHECK_RC_ERROR(
-                                   clAmsCSISetNVP (
-                                                   gAms.db.entityDb[req->csiName.type],
-                                                   req->csiName,
-                                                   req->nvp));
+                                   clAmsCSISetNVPAndMark (
+                                                   &gAms.db.entityDb[req->csiName.type],
+                                                   &req->csiName,
+                                                   &req->nvp,
+                                                   CL_TRUE));
 
                 break;
 

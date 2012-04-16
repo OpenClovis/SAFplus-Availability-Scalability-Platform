@@ -131,9 +131,16 @@ clAmsEntityGetAdminState(
 
 extern ClRcT
 clAmsCSISetNVP(
-        CL_IN  ClAmsEntityDbT  entityDb,
-        CL_IN  ClAmsEntityT  entity,
-        CL_IN  ClAmsCSINameValuePairT  nvp );
+        CL_IN  ClAmsEntityDbT  *entityDb,
+        CL_IN  ClAmsEntityT  *entity,
+        CL_IN  ClAmsCSINameValuePairT  *nvp );
+
+extern ClRcT
+clAmsCSISetNVPAndMark(
+        CL_IN  ClAmsEntityDbT  *entityDb,
+        CL_IN  ClAmsEntityT  *entity,
+        CL_IN  ClAmsCSINameValuePairT  *nvp,
+        ClBoolT mark );
 
 /*********************************************************************/
 

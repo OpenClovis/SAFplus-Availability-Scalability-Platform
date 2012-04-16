@@ -1185,6 +1185,8 @@ clAmsEntitySetConfigNew(
      */
     memcpy(entity, &entityCopy, sizeof(*entity));
 
+    clAmsMarkEntityDirty(entity);
+
 exitfn:
 
     return CL_AMS_RC (rc);
@@ -2135,15 +2137,12 @@ exitfn:
  *
  */
 
-
 ClRcT
-clAmsCSISetNVP(
-        // coverity[pass_by_value]
-        CL_IN  ClAmsEntityDbT  entityDb,
-        // coverity[pass_by_value]
-        CL_IN  ClAmsEntityT  entity,
-        // coverity[pass_by_value]
-        CL_IN  ClAmsCSINameValuePairT  nvp )
+clAmsCSISetNVPAndMark(
+        CL_IN  ClAmsEntityDbT  *entityDb,
+        CL_IN  ClAmsEntityT  *entity,
+        CL_IN  ClAmsCSINameValuePairT  *nvp,
+        ClBoolT markCSI)
 
 {
 
@@ -2162,19 +2161,24 @@ clAmsCSISetNVP(
 
     entityRef.ptr = NULL;
 
-    memcpy (&entityRef.entity, &entity, sizeof (ClAmsEntityT));
+    memcpy (&entityRef.entity, entity, sizeof (ClAmsEntityT));
 
     AMS_CALL (clAmsEntityDbFindEntity(
-                &entityDb,
+                entityDb,
                 &entityRef) );
 
     AMS_CHECKPTR ( !entityRef.ptr );
 
     ClAmsCSIT  *csi = (ClAmsCSIT *)entityRef.ptr;
 
+    if(markCSI)
+    {
+        clAmsMarkEntityDirty(&csi->config.entity);
+    }
+
     AMS_CALL ( crc(
-                ( ClUint8T *)nvp.paramName.value, 
-                nvp.paramName.length,
+                ( ClUint8T *)nvp->paramName.value, 
+                nvp->paramName.length,
                 &entityKey,
                 &keyLength));
 
@@ -2203,9 +2207,9 @@ clAmsCSISetNVP(
         {
             AMS_CHECKPTR (!pNVP); 
             
-            if ( !memcmp(&pNVP->paramName, &nvp.paramName, sizeof(ClNameT)))
+            if ( !memcmp(&pNVP->paramName, &nvp->paramName, sizeof(ClNameT)))
             {
-                memcpy ( &pNVP->paramValue, &nvp.paramValue, sizeof(ClNameT));
+                memcpy ( &pNVP->paramValue, &nvp->paramValue, sizeof(ClNameT));
                 return CL_OK;
             } 
         }
@@ -2221,7 +2225,7 @@ clAmsCSISetNVP(
 
     AMS_CHECK_NO_MEMORY (pNVP);
 
-    memcpy (pNVP, &nvp, sizeof (ClAmsCSINameValuePairT));
+    memcpy (pNVP, nvp, sizeof (ClAmsCSINameValuePairT));
 
     AMS_CHECK_RC_ERROR ( clCntNodeAddAndNodeGet(
                 nvpListHandle,
@@ -2239,7 +2243,16 @@ exitfn:
 
 }
 
-        
+ClRcT
+clAmsCSISetNVP(
+        CL_IN  ClAmsEntityDbT  *entityDb,
+        CL_IN  ClAmsEntityT  *entity,
+        CL_IN  ClAmsCSINameValuePairT  *nvp)
+
+{
+    return clAmsCSISetNVPAndMark(entityDb, entity, nvp, CL_FALSE);
+}
+
 /*
  * clAmsCSIGetNVP
  * -------------------
@@ -2353,6 +2366,8 @@ clAmsCSIDeleteNVP(
     AMS_CHECKPTR_AND_EXIT ( !entityRef.ptr );
 
     ClAmsCSIT  *csi = (ClAmsCSIT *)entityRef.ptr;
+
+    clAmsMarkEntityDirty(&csi->config.entity);
 
     AMS_CHECK_RC_ERROR ( crc( ( ClUint8T *)nvp.paramName.value, 
                 nvp.paramName.length, &entityKey, &keyLength));
@@ -5476,7 +5491,7 @@ clAmsDBMarshallDirty(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl)
     /*
      * Build the dirty list
      */
-    clAmsBuildDirtyList(&gClAmsDirtyNodeList);
+    //    clAmsBuildDirtyList(&gClAmsDirtyNodeList);
 
     args.inMsgHdl = inMsgHdl;
     args.versionCode = versionCode;
@@ -8661,7 +8676,7 @@ static __inline__ void amsEnqueueDirty(ClAmsEntityT *entity, ClUint32T gflags)
            &&
            entity->type <= CL_AMS_ENTITY_TYPE_MAX)
         {
-            clLogDebug("BUILD", "DIRTY", 
+            clLogDebug("MARK", "DIRTY", 
                        "Enqueueing entity [%s] with flags [%#x]",
                        entity->name.value, entity->flags);
             clListAddTail(&entity->dirtyList, &gClAmsDirtyEntityList[(ClInt32T)entity->type]);
@@ -8970,9 +8985,29 @@ ClRcT clAmsBuildDirtyList(ClListHeadT *entityList)
  */
 ClRcT clAmsMarkEntityDirty(ClAmsEntityT *entity)
 {
-    if(gAms.mode == CL_AMS_SERVICE_STATE_HOT_STANDBY
+    if(gAms.serviceState && 
+       (gAms.serviceState == CL_AMS_SERVICE_STATE_HOT_STANDBY
        ||
-       gAms.mode == CL_AMS_SERVICE_STATE_UNAVAILABLE)
+        gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE))
+    {
+        return CL_OK;
+    }
+
+    if(entity->flags & (CL_AMS_FLAG_DIRTY | CL_AMS_FLAG_SEEN))
+    {
+        return CL_OK;
+    }
+
+    amsEnqueueDirty(entity, CL_AMS_FLAG_DIRTY | CL_AMS_FLAG_SEEN);
+    return CL_OK;
+}
+
+ClRcT __clAmsMarkEntityDirty(ClAmsEntityT *entity)
+{
+    if(gAms.serviceState &&
+       (gAms.serviceState == CL_AMS_SERVICE_STATE_HOT_STANDBY
+       ||
+        gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE))
     {
         return CL_OK;
     }

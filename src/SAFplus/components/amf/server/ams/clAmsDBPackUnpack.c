@@ -5403,9 +5403,9 @@ clAmsDBCSIListDeXMLize(
             csiEntity.name.length = strlen (name) + 1;
 
             AMS_CHECK_RC_ERROR ( clAmsCSISetNVP(
-                        gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                        csiEntity,
-                        nvp) );
+                        &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
+                        &csiEntity,
+                        &nvp) );
 
             nvpPtr = nvpPtr->next;
 
@@ -6875,9 +6875,9 @@ clAmsDBListUnmarshall(ClAmsEntityT *entity,
                 ClAmsCSINVPT nvp;
                 memset(&nvp, 0, sizeof(nvp));
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSINVPT, 4, 0, 0)(inMsgHdl, &nvp));
-                AMS_CHECK_RC_ERROR(clAmsCSISetNVP(gAms.db.entityDb[entity->type],
-                                                  entityRef.entity,
-                                                  nvp));
+                AMS_CHECK_RC_ERROR(clAmsCSISetNVP(&gAms.db.entityDb[entity->type],
+                                                  &entityRef.entity,
+                                                  &nvp));
                 break;
             }
 

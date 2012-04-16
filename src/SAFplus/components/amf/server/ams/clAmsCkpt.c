@@ -734,7 +734,6 @@ amsCkptStandbyInitialize(ClAmsT *ams)
         ams->isEnabled = CL_TRUE;
     }
     ams->serviceState = CL_AMS_SERVICE_STATE_HOT_STANDBY;
-    ams->mode |= CL_AMS_INSTANTIATE_MODE_CKPT_ALL;
 
     AMS_CHECK_RC_ERROR(clCkptImmediateConsumptionRegister(ams->ckptOpenHandle, 
                                                           clAmsCkptNotifyCallback, NULL) );
