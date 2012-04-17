@@ -28,13 +28,17 @@ CM_SEARCH_PATH := $(CLOVIS_ROOT)/../PSP/src/cm $(CLOVIS_ROOT)/../../PSP/src/cm
 USING_CM := $(wildcard $(CM_SEARCH_PATH))
 ifneq ($(USING_CM),)
 $(warning Using the actual chassis manager from the Platform Support Package located at $(USING_CM))
-CM_DIR    := $(realpath $(USING_CM))
-CL_CM     := -lClCm
-CM_CFLAGS := -DCL_USE_CHASSIS_MANAGER -I$(CM_DIR)/include
+CM_DIR      := $(realpath $(USING_CM))
+CL_CM       := -lClCm
+CM_CFLAGS   := -DCL_USE_CHASSIS_MANAGER -I$(CM_DIR)/include
+CM_COMP_DEP := cm/client
+CM_CONFLICT_RESOLVE_OBJS :=
 else
 CM_DIR :=
 CL_CM  :=
 CM_CFLAGS :=
+CM_COMP_DEP :=
+CM_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ground/client/clGroundCm.o
 $(warning Not using the chassis manager)
 endif
 
