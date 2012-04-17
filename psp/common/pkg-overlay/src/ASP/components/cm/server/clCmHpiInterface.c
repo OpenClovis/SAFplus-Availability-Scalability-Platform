@@ -73,6 +73,10 @@ static ClRcT clCmSensorEventProcess( SaHpiSessionIdT sessionid,
                                      SaHpiEventT * pEvent, 
                                      SaHpiRptEntryT  *rptentry,
                                      SaHpiRdrT *pRdr);
+static ClRcT clCmWatchdogEventProcess( SaHpiSessionIdT sessionid,
+                                       SaHpiEventT * pEvent, 
+                                       SaHpiRptEntryT * pRptEntry,
+                                       SaHpiRdrT *pRdr);
 
 /* Chassis manager context information */
 extern ClCmContextT gClCmChassisMgrContext;
@@ -808,7 +812,10 @@ static ClRcT hpiEventProcessingLoop(void *ptr)
                 continue;
 
             case  SAHPI_ET_WATCHDOG:
-                clLog(CL_LOG_DEBUG, AREA_HPI, CTX_EVT, "Watchdog events ignored by CM");
+                if((rc = clCmWatchdogEventProcess(sessionid, &event, &rptentry, &rdr)) != CL_OK)
+                {
+                    clLogError(AREA_HPI, CTX_EVT, "Watchdog event processing failed with [%#x]", rc);
+                }
                 continue;
 
             case  SAHPI_ET_OEM     :
@@ -932,8 +939,6 @@ static ClRcT resourceHotSwapEventProcess( SaHpiSessionIdT sessionid,
     }
     return rc;
 }
-
-
 
 /* 
    Description
@@ -1459,3 +1464,49 @@ static ClRcT clCmSensorEventProcess( SaHpiSessionIdT sessionId,
     }
     return rc;
 }
+
+/*
+ * Publish watchdog event to CM event channel.
+ */
+static ClRcT clCmWatchdogEventProcess( SaHpiSessionIdT sessionId,
+                                       SaHpiEventT *pEvent,
+                                       SaHpiRptEntryT *pRptEntry,
+                                       SaHpiRdrT *pRdr)
+{
+    ClRcT           rc = CL_OK;
+    ClCmWatchdogEventInfoT *pWatchdogEventPayload;
+    ClCharT *epath = NULL;
+
+    epath = clCmEpath2String(&pRptEntry->ResourceEntity);
+
+    clLogMultiline(CL_LOG_NOTICE, AREA_HPI, CTX_EVT,
+                   "Watchdog event received for resource [0x%x]:\n"
+                   "entity:            %s\n",
+                   pEvent->Source,
+                   epath);
+
+    pWatchdogEventPayload = clHeapCalloc(1, sizeof(*pWatchdogEventPayload));
+    if (NULL == pWatchdogEventPayload)
+    {
+        return CL_ERR_NULL_POINTER;
+    }
+
+    pWatchdogEventPayload->rptEntry = *pRptEntry;
+    pWatchdogEventPayload->rdr = *pRdr;
+    memcpy(&pWatchdogEventPayload->watchdogEvent, &pEvent->EventDataUnion.WatchdogEvent,
+           sizeof(pWatchdogEventPayload->watchdogEvent));
+
+    rc = clCmPublishEvent(CM_WATCHDOG_EVENT,
+                          (ClUint32T)sizeof(*pWatchdogEventPayload),
+                          pWatchdogEventPayload);
+                          
+    if (CL_OK != rc)
+    {
+        clLog(CL_LOG_CRITICAL, AREA_HPI, CTX_EVT, "Failed to publish watchdog event, error[0x%x]", rc);
+    }
+
+    clHeapFree(pWatchdogEventPayload);
+
+    return rc;
+}
+

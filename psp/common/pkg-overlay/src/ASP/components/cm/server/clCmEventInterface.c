@@ -151,26 +151,28 @@ ClRcT clCmPublishEvent( CmEventIdT cmEventId,
     ClNameT chassisManagerEvent ;
     ClEventPatternT evtPattern ;
     ClEventPatternArrayT evtPatternArray;
+    static ClNameT cmEventMap[CM_MAX_EVENTS] = { 
+        {.length=sizeof(CL_CM_FRU_STATE_TRANSITION_EVENT_STR)-1,
+         .value=CL_CM_FRU_STATE_TRANSITION_EVENT_STR
+        },
+        {.length=sizeof(CL_CM_ALARM_EVENT_STR)-1,
+         .value=CL_CM_ALARM_EVENT_STR
+        },
+        {.length=sizeof(CL_CM_WATCHDOG_EVENT_STR)-1,
+         .value=CL_CM_WATCHDOG_EVENT_STR
+        },
+    };
 
     memset(&chassisManagerEvent, 0, sizeof(ClNameT));
 
-    if (CM_FRU_STATE_TRANSITION_EVENT == cmEventId)
+    if(cmEventId >= CM_MAX_EVENTS)
     {
-        chassisManagerEvent.length = (ClUint16T)strlen(CL_CM_FRU_STATE_TRANSITION_EVENT_STR);
-        memcpy(chassisManagerEvent.value, CL_CM_FRU_STATE_TRANSITION_EVENT_STR,
-               chassisManagerEvent.length);              
-    }
-    else if (CM_ALARM_EVENT == cmEventId) {
-        chassisManagerEvent.length = (ClUint16T)strlen(CL_CM_ALARM_EVENT_STR),
-        memcpy(chassisManagerEvent.value, CL_CM_ALARM_EVENT_STR,
-               chassisManagerEvent.length);  
-    }
-    else{
         clLog(CL_LOG_ERROR, AREA_EVT, CL_LOG_CONTEXT_UNSPECIFIED,
-            "Invalid event type [%u]", cmEventId);
+              "Invalid event type [%u]", cmEventId);
         return CL_CM_ERROR(CL_ERR_INVALID_PARAMETER);
     }
-    
+
+    memcpy(&chassisManagerEvent, &cmEventMap[cmEventId], sizeof(chassisManagerEvent));
 	
     evtPattern.allocatedSize = 0;
     evtPattern.patternSize = (ClSizeT)chassisManagerEvent.length + 1;
