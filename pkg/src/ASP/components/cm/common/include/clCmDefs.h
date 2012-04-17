@@ -222,7 +222,9 @@ ClRcT WalkThroughResource (SaHpiRptEntryT* ,
 typedef enum 
 {
     CM_FRU_STATE_TRANSITION_EVENT =0,
-    CM_ALARM_EVENT 
+    CM_ALARM_EVENT,
+    CM_WATCHDOG_EVENT,
+    CM_MAX_EVENTS,
 }CmEventIdT;
 
 

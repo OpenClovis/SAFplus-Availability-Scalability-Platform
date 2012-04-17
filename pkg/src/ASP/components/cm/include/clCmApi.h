@@ -117,6 +117,17 @@ typedef struct ClCmSensorEventInfo {
 } ClCmSensorEventInfoT;
 
 
+#define CL_CM_WATCHDOG_EVENT_STR "cmWatchdogEvent"
+
+/*
+ * Contents of watchdog event payload buffer
+ */
+typedef struct ClCmWatchdogEventInfo {
+    SaHpiRptEntryT      rptEntry;
+    SaHpiRdrT           rdr;
+    SaHpiWatchdogEventT watchdogEvent;
+} ClCmWatchdogEventInfoT;
+
 typedef struct {
     SaHpiEntityPathT eventReporter;
     SaHpiEntityPathT *pImpactedEntities;
