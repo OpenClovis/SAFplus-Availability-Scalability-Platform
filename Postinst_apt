@@ -4,4 +4,6 @@ cd /opt/clovis
 
 tar -xvzf sdk-6.0.tar.gz
 rm -rf sdk-6.0.tar.gz
-
+cdtLinkFile="/opt/clovis/sdk-6.0/eclipse/links/cdt.link"
+cdtLink="path=/opt/clovis/sdk-6.0/eclipse/cdt"
+echo $cdtLink > $cdtLinkFile
