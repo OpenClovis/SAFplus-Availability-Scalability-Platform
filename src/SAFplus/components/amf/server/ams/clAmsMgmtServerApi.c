@@ -5048,7 +5048,6 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 ClAmsEntityT *targetEntity = NULL;
                 memcpy(&entityRef.entity, &req->entity ,
                        sizeof (ClAmsEntityT));
-                clLogNotice("ENTITY", "CREATE", "Create entity [%s]", req->entity.name.value);
                 AMS_CHECK_RC_ERROR( clAmsEntityDbAddEntityAndGet(
                                                                  &gAms.db.entityDb[req->entity.type],
                                                                  &entityRef, &targetEntity));
@@ -5081,10 +5080,11 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 memcpy(&entityRef.entity, &req->entity,
                        sizeof (ClAmsEntityT));
 
-                clLogNotice("ENTITY", "DELETE", "Delete entity [%s]", req->entity.name.value);
-                
                 AMS_CHECK_RC_ERROR( clAmsEntityDbFindEntity(&gAms.db.entityDb[req->entity.type],
                                                             &entityRef));
+                
+                if(!(gAms.mode & CL_AMS_INSTANTIATE_MODE_CKPT_ALL))
+                    gAms.mode |= CL_AMS_INSTANTIATE_MODE_CKPT_ALL;
 
                 /*
                  * Dont do error check here since the entities might not have been added
@@ -5150,8 +5150,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                                    clAmsCSISetNVPAndMark (
                                                    &gAms.db.entityDb[req->csiName.type],
                                                    &req->csiName,
-                                                   &req->nvp,
-                                                   CL_TRUE));
+                                                   &req->nvp) );
 
                 break;
 
@@ -5182,21 +5181,33 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
 
                 clAmsMgmtCCBSetNodeDependencyRequestT  *req = 
                     (clAmsMgmtCCBSetNodeDependencyRequestT *)opData->payload;
-
+                ClAmsEntityT *sourceEntity = NULL;
+                ClAmsEntityT *targetEntity = NULL;
                 AMS_LOG(CL_DEBUG_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_NODE_DEPENDENCY\n"));
                     
                 AMS_CHECK_RC_ERROR(
-                                   clAmsAddToEntityList(
+                                   clAmsAddGetEntityList(
                                                         &req->nodeName,
                                                         &req->dependencyNodeName,
-                                                        CL_AMS_NODE_CONFIG_NODE_DEPENDENCIES_LIST));
+                                                        CL_AMS_NODE_CONFIG_NODE_DEPENDENCIES_LIST,
+                                                        &sourceEntity,
+                                                        &targetEntity));
 
                 AMS_CHECK_RC_ERROR(
                                    clAmsAddToEntityList(
-                                                        &req->dependencyNodeName,
-                                                        &req->nodeName,
-                                                        CL_AMS_NODE_CONFIG_NODE_DEPENDENT_LIST));
+                                                         &req->dependencyNodeName,
+                                                         &req->nodeName,
+                                                         CL_AMS_NODE_CONFIG_NODE_DEPENDENT_LIST) );
+                if(sourceEntity)
+                {
+                    clAmsMarkEntityDirty(sourceEntity);
+                }
+
+                if(targetEntity)
+                {
+                    clAmsMarkEntityDirty(targetEntity);
+                }
                 break;
 
             }
@@ -5247,7 +5258,15 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                     AMS_CHECK_RC_ERROR(rc);
                 }
                 
-
+                if(sourceEntity)
+                {
+                    clAmsMarkEntityDirty(sourceEntity);
+                }
+                
+                if(targetEntity)
+                {
+                    clAmsMarkEntityDirty(targetEntity);
+                }
                 /*
                  * Add the parentNode reference for the SU
                  */ 
@@ -5336,6 +5355,10 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 AMS_CHECK_RC_ERROR( clAmsEntitySetRefPtr(
                                                          &suRef, &sgRef));
              
+                if(targetEntity)
+                {
+                    clAmsMarkEntityDirty(targetEntity);
+                }
                 /*
                  * Move the newly added SU to instantiable list. Mark instantiable
                  * already checks if SU and node is instantiable before moving it.
@@ -5355,6 +5378,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 if(sourceEntity)
                 {
                     ClAmsSGT *sg = (ClAmsSGT*)sourceEntity;
+                    clAmsMarkEntityDirty(sourceEntity);
                     if (sg->config.entity.type == CL_AMS_ENTITY_TYPE_SG)
                     {                    
                         ClAmsEntityRefT *eRef = clHeapCalloc(1, sizeof(*eRef));
@@ -5431,10 +5455,16 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 AMS_CHECK_RC_ERROR( clAmsEntitySetRefPtr(
                                                          &siRef, &sgRef));
 
+                if(targetEntity)
+                {
+                    clAmsMarkEntityDirty(targetEntity);
+                }
+
                 /* Add dirty SG into the list to be re-evaluated */
                 if(sourceEntity)
                 {
                     ClAmsSGT *sg = (ClAmsSGT*)sourceEntity;
+                    clAmsMarkEntityDirty(sourceEntity);
                     if (sg->config.entity.type == CL_AMS_ENTITY_TYPE_SG)
                     {                    
                         ClAmsEntityRefT *eRef = clHeapCalloc(1, sizeof(*eRef));
@@ -5513,11 +5543,18 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 AMS_CHECK_RC_ERROR( clAmsEntitySetRefPtr(
                                                          &compRef, &suRef));
 
+                if(targetEntity)
+                {
+                    clAmsMarkEntityDirty(targetEntity);
+                }
+
                 /* Add dirty SG into the list to be re-evaluated */
                 if(sourceEntity)
                 {
                     ClAmsSUT *su = (ClAmsSUT*)sourceEntity;
-                    
+                  
+                    clAmsMarkEntityDirty(sourceEntity);
+
                     if (su->config.parentSG.ptr)
                     {
                         ClAmsSGT *sg = (ClAmsSGT *) su->config.parentSG.ptr;
@@ -5580,12 +5617,18 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 clAmsMgmtCCBSetSISURankListRequestT  *req = 
                     (clAmsMgmtCCBSetSISURankListRequestT *)opData->payload;
 
-                    
+                ClAmsEntityT *sourceEntity = NULL, *targetEntity = NULL;
+
                 AMS_CHECK_RC_ERROR(
-                                   clAmsAddToEntityList(
+                                   clAmsAddGetEntityList(
                                                         &req->siName,
                                                         &req->suName,
-                                                        CL_AMS_SI_CONFIG_SU_RANK_LIST));
+                                                        CL_AMS_SI_CONFIG_SU_RANK_LIST,
+                                                        &sourceEntity, &targetEntity));
+                if(sourceEntity)
+                {
+                    clAmsMarkEntityDirty(sourceEntity);
+                }
 
                 break;
 
@@ -5619,19 +5662,28 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
 
                 clAmsMgmtCCBSetSISIDependencyRequestT  *req = 
                     (clAmsMgmtCCBSetSISIDependencyRequestT *)opData->payload;
-
+                ClAmsEntityT *sourceEntity = NULL, *targetEntity = NULL;
                     
                 AMS_CHECK_RC_ERROR(
-                                   clAmsAddToEntityList(
+                                   clAmsAddGetEntityList(
                                                         &req->siName,
                                                         &req->dependencySIName,
-                                                        CL_AMS_SI_CONFIG_SI_DEPENDENCIES_LIST));
+                                                        CL_AMS_SI_CONFIG_SI_DEPENDENCIES_LIST,
+                                                        &sourceEntity, &targetEntity));
 
                 AMS_CHECK_RC_ERROR(
                                    clAmsAddToEntityList(
                                                         &req->dependencySIName,
                                                         &req->siName,
                                                         CL_AMS_SI_CONFIG_SI_DEPENDENTS_LIST));
+                if(sourceEntity)
+                {
+                    clAmsMarkEntityDirty(sourceEntity);
+                }
+                if(targetEntity)
+                {
+                    clAmsMarkEntityDirty(targetEntity);
+                }
 
                 break;
 
@@ -5672,13 +5724,15 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
 
                 clAmsMgmtCCBSetSICSIListRequestT  *req = 
                     (clAmsMgmtCCBSetSICSIListRequestT *)opData->payload;
-
+                ClAmsEntityT *sourceEntity = NULL, *targetEntity = NULL;
                     
                 AMS_CHECK_RC_ERROR(
-                                   clAmsAddToEntityList(
+                                   clAmsAddGetEntityList(
                                                         &req->siName,
                                                         &req->csiName,
-                                                        CL_AMS_SI_CONFIG_CSI_LIST));
+                                                        CL_AMS_SI_CONFIG_CSI_LIST,
+                                                        &sourceEntity,
+                                                        &targetEntity));
 
                 /*
                  * Add the parentSI reference for the CSI 
@@ -5690,6 +5744,15 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 memcpy (&csiRef.entity,&req->csiName,sizeof(ClAmsEntityT));
                 AMS_CHECK_RC_ERROR( clAmsEntitySetRefPtr(
                                                          &csiRef, &siRef));
+
+                if(sourceEntity)
+                {
+                    clAmsMarkEntityDirty(sourceEntity);
+                }
+                if(targetEntity)
+                {
+                    clAmsMarkEntityDirty(targetEntity);
+                }
 
                 break;
 
@@ -5736,19 +5799,30 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
 
                 clAmsMgmtCCBSetCSICSIDependencyRequestT  *req = 
                     (clAmsMgmtCCBSetCSICSIDependencyRequestT *)opData->payload;
-
+                ClAmsEntityT *sourceEntity = NULL, *targetEntity = NULL;
                     
                 AMS_CHECK_RC_ERROR(
-                                   clAmsAddToEntityList(
+                                   clAmsAddGetEntityList(
                                                         &req->csiName,
                                                         &req->dependencyCSIName,
-                                                        CL_AMS_CSI_CONFIG_CSI_DEPENDENCIES_LIST));
+                                                        CL_AMS_CSI_CONFIG_CSI_DEPENDENCIES_LIST,
+                                                        &sourceEntity,
+                                                        &targetEntity));
 
                 AMS_CHECK_RC_ERROR(
                                    clAmsAddToEntityList(
                                                         &req->dependencyCSIName,
                                                         &req->csiName,
                                                         CL_AMS_CSI_CONFIG_CSI_DEPENDENTS_LIST));
+                if(sourceEntity)
+                {
+                    clAmsMarkEntityDirty(sourceEntity);
+                }
+
+                if(targetEntity)
+                {
+                    clAmsMarkEntityDirty(targetEntity);
+                }
 
                 break;
 

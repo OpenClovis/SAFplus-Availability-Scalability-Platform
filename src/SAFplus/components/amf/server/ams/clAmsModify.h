@@ -139,8 +139,7 @@ extern ClRcT
 clAmsCSISetNVPAndMark(
         CL_IN  ClAmsEntityDbT  *entityDb,
         CL_IN  ClAmsEntityT  *entity,
-        CL_IN  ClAmsCSINameValuePairT  *nvp,
-        ClBoolT mark );
+        CL_IN  ClAmsCSINameValuePairT  *nvp);
 
 /*********************************************************************/
 
@@ -845,6 +844,9 @@ clAmsMarkEntityDirty(ClAmsEntityT *entity);
 
 extern ClRcT 
 clAmsBuildDirtyList(ClListHeadT *entityList);
+
+extern void 
+clAmsResetDirtyList(void);
 
 #ifdef __cplusplus
 }

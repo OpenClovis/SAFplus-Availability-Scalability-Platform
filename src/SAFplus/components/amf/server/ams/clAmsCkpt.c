@@ -1353,6 +1353,7 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
             dirty = CL_FALSE;
             dirtySection = &ams->ckptDBSections[dbInvocationPair];
             ams->mode &= ~CL_AMS_INSTANTIATE_MODE_CKPT_ALL;
+            clAmsResetDirtyList();
             rc = clAmsDBMarshall(&ams->db, dataBuf);
         }
         else
@@ -1512,6 +1513,7 @@ amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
             dirty = CL_FALSE;
             dirtySection = &gClAmsCkptDBSectionCache[dbInvocationPair];
             ams->mode &= ~CL_AMS_INSTANTIATE_MODE_CKPT_ALL;
+            clAmsResetDirtyList();
             rc = clAmsDBMarshall(&ams->db, dataBuf);
         }
         else

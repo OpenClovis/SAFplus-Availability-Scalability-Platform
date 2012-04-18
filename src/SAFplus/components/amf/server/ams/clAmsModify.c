@@ -983,7 +983,8 @@ clAmsEntitySetConfigNew(
                         clAmsFreeMemory(newCompConfig->pSupportedCSITypes);
                     rc = CL_AMS_RC(CL_AMS_ERR_BAD_CONFIG);
                     AMS_LOG(CL_DEBUG_ERROR,
-                            ("Comp config set: Invalid supported csitype: numTypes %s",newCompConfig->numSupportedCSITypes));
+                            ("Comp config set: Invalid supported csitype: numTypes %d",
+                             newCompConfig->numSupportedCSITypes));
                     goto exitfn;
                 }
                 /*
@@ -2137,8 +2138,8 @@ exitfn:
  *
  */
 
-ClRcT
-clAmsCSISetNVPAndMark(
+static ClRcT
+amsCSISetNVP(
         CL_IN  ClAmsEntityDbT  *entityDb,
         CL_IN  ClAmsEntityT  *entity,
         CL_IN  ClAmsCSINameValuePairT  *nvp,
@@ -2250,7 +2251,17 @@ clAmsCSISetNVP(
         CL_IN  ClAmsCSINameValuePairT  *nvp)
 
 {
-    return clAmsCSISetNVPAndMark(entityDb, entity, nvp, CL_FALSE);
+    return amsCSISetNVP(entityDb, entity, nvp, CL_FALSE);
+}
+
+ClRcT
+clAmsCSISetNVPAndMark(
+        CL_IN  ClAmsEntityDbT  *entityDb,
+        CL_IN  ClAmsEntityT  *entity,
+        CL_IN  ClAmsCSINameValuePairT  *nvp)
+
+{
+    return amsCSISetNVP(entityDb, entity, nvp, CL_TRUE);
 }
 
 /*
@@ -3934,6 +3945,8 @@ clAmsDeleteFromEntityList(
 
     AMS_CHECKPTR_AND_EXIT ( !sourceEntityRef.ptr );
 
+    clAmsMarkEntityDirty(sourceEntityRef.ptr);
+
     switch(entityListName)
     {
 
@@ -5110,6 +5123,8 @@ clAmsEntityUnsetRefPtr(
                 targetEntityRef) );
 
     AMS_CHECKPTR ( !sourceEntityRef->ptr || !targetEntityRef->ptr );
+
+    clAmsMarkEntityDirty(sourceEntityRef->ptr);
 
     if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_SG) &&
             (targetEntityType == CL_AMS_ENTITY_TYPE_APP) )
@@ -7831,6 +7846,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ref = clAmsEntityListGetNext(&sg->config.suList, ref))
             {
                 ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                AMS_CHECK_SU(su);
                 su->config.parentSG.ptr = NULL;
                 clNameSet(&su->config.parentSG.entity.name,
                           "ParentSGUndefined");
@@ -7842,6 +7858,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ref = clAmsEntityListGetNext(&sg->config.siList, ref))
             {
                 ClAmsSIT *si = (ClAmsSIT*)ref->ptr;
+                AMS_CHECK_SI(si);
                 si->config.parentSG.ptr = NULL;
                 clNameSet(&si->config.parentSG.entity.name,
                           "ParentSGUndefined");
@@ -7872,6 +7889,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ref = clAmsEntityListGetNext(&si->config.csiList, ref))
             {
                 ClAmsCSIT *csi = (ClAmsCSIT*)ref->ptr;
+                AMS_CHECK_CSI(csi);
                 csi->config.parentSI.ptr = NULL;
                 clNameSet(&csi->config.parentSI.entity.name,
                           "ParentSIUndefined");
@@ -7917,6 +7935,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ref = clAmsEntityListGetNext(&node->config.suList, ref))
             {
                 ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                AMS_CHECK_SU(su);
                 su->config.parentNode.ptr = NULL;
                 clNameSet(&su->config.parentNode.entity.name,
                           "ParentNodeUndefined");
@@ -8026,6 +8045,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ref = clAmsEntityListGetNext(&su->config.compList, ref))
             {
                 ClAmsCompT *comp = (ClAmsCompT*)ref->ptr;
+                AMS_CHECK_COMP(comp);
                 comp->config.parentSU.ptr = NULL;
                 clNameSet(&comp->config.parentSU.entity.name,
                           "ParentSUUndefined");
@@ -9090,4 +9110,23 @@ ClRcT __clAmsMarkEntityDirty(ClAmsEntityT *entity)
     }
 
     return CL_OK;
+}
+
+void clAmsResetDirtyList(void)
+{
+    ClUint32T i;
+    ClListHeadT *list;
+    for(i = 1; i <= CL_AMS_ENTITY_TYPE_MAX; ++i)
+    {
+        ClListHeadT *head;
+        list = &gClAmsDirtyEntityList[i];
+        while(!CL_LIST_HEAD_EMPTY(list))
+        {
+            ClAmsEntityT *entity;
+            head = list->pNext;
+            entity = CL_LIST_ENTRY(head, ClAmsEntityT, dirtyList);
+            entity->flags &= ~(CL_AMS_FLAG_DIRTY | CL_AMS_FLAG_SEEN);
+            clListDel(head);
+        }
+    }
 }
