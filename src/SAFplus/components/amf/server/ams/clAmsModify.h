@@ -848,6 +848,9 @@ clAmsBuildDirtyList(ClListHeadT *entityList);
 extern void 
 clAmsResetDirtyList(void);
 
+extern void 
+clAmsMarkEntityDelete(ClAmsEntityT *entity);
+
 #ifdef __cplusplus
 }
 #endif

@@ -327,6 +327,12 @@ clAmsDBReadEntityStatus(
 extern ClRcT
 clAmsDBMarshallEnd(ClBufferHandleT inMsgHdl, ClUint32T versionCode);
 
+extern ClRcT 
+clAmsDBEntityDeleteMarshall(ClAmsEntityT  *entity, ClBufferHandleT inMsgHdl, ClUint32T versionCode);
+
+extern ClRcT
+clAmsDBEntityDelete(ClAmsEntityT  *entity, ClBufferHandleT inMsgHdl, ClUint32T versionCode);
+
 #ifdef __cplusplus
 }
 #endif

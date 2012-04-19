@@ -5083,9 +5083,6 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 AMS_CHECK_RC_ERROR( clAmsEntityDbFindEntity(&gAms.db.entityDb[req->entity.type],
                                                             &entityRef));
                 
-                if(!(gAms.mode & CL_AMS_INSTANTIATE_MODE_CKPT_ALL))
-                    gAms.mode |= CL_AMS_INSTANTIATE_MODE_CKPT_ALL;
-
                 /*
                  * Dont do error check here since the entities might not have been added
                  * to CPM as nodes are added dynamically incase they are not present in CPM
@@ -5109,11 +5106,13 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                      */
                     clAmsInvocationListUpdateCSIAll(CL_FALSE);
                 }
+                clAmsMarkEntityDelete(&entityRef.entity);
                 if(clAmsMgmtCCBNotificationEventPayloadSet(CL_AMS_NOTIFICATION_ENTITY_DELETE, 
                                                            &req->entity,
                                                            &descriptor) == CL_OK)
+                {
                     clAmsNotificationEventPublish(&descriptor);
-
+                }
                 break;
 
             }

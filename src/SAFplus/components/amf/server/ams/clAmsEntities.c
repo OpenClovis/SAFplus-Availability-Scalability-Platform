@@ -574,6 +574,12 @@ clAmsEntityMalloc(
         case CL_AMS_ENTITY_TYPE_SU:
         {
             ClAmsSUT  *su = (ClAmsSUT *) newEntity;
+            
+            /*
+             * Set the debug flag to indicate null parent references.
+             */
+            su->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
+            su->config.parentNode.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
 
             /*
              * Methods
@@ -606,6 +612,11 @@ clAmsEntityMalloc(
         case CL_AMS_ENTITY_TYPE_SI:
         {
             ClAmsSIT  *si = (ClAmsSIT *) newEntity;
+
+            /*
+             * Set the debug flag to indicate null parent references.
+             */
+            si->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
 
             /*
              * Methods
@@ -651,6 +662,11 @@ clAmsEntityMalloc(
             ClAmsCompT  *comp = (ClAmsCompT *) newEntity;
 
             /*
+             * Set the debug flag to indicate null parent references.
+             */
+            comp->config.parentSU.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
+
+            /*
              * Methods
              */
 
@@ -672,6 +688,11 @@ clAmsEntityMalloc(
         case CL_AMS_ENTITY_TYPE_CSI:
         {
             ClAmsCSIT  *csi = (ClAmsCSIT *) newEntity;
+
+            /*
+             * Set the debug flag to indicate null parent references.
+             */
+            csi->config.parentSI.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
 
             /*
              * Methods
@@ -1181,6 +1202,9 @@ clAmsEntityTerminate(
                                    (ClAmsEntityT*) su,
                                    CL_AMS_SU_TIMER_ASSIGNMENT);
 
+            su->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
+            su->config.parentNode.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
+
             if(instantiate)
             {
                 AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
@@ -1207,7 +1231,7 @@ clAmsEntityTerminate(
             AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&si->config.siDependenciesList));
             AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&si->config.csiList));
             AMS_CHECK_RC_ERROR (clAmsEntityListTerminate(&si->status.suList));
-
+            si->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
             if(instantiate)
             {
                 AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
@@ -1293,6 +1317,8 @@ clAmsEntityTerminate(
             clAmsEntityTimerDelete(
                                    (ClAmsEntityT *) comp,
                                    CL_AMS_COMP_TIMER_INSTANTIATEDELAY);
+            
+            comp->config.parentSU.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
 
             if(instantiate)
             {
@@ -1320,6 +1346,7 @@ clAmsEntityTerminate(
             AMS_CHECK_RC_ERROR (clCntAllNodesDelete(csi->status.pgTrackList));
             AMS_CHECK_RC_ERROR (clCntDelete(csi->status.pgTrackList));
             csi->status.pgTrackList = 0;
+            csi->config.parentSI.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
 
             if(instantiate)
             {

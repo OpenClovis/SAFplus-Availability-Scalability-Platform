@@ -123,7 +123,10 @@ typedef struct ClAmsSISUDeleteRef
 }ClAmsSISUDeleteRefT;
 
 
-static ClListHeadT gClAmsDirtyEntityList[CL_AMS_ENTITY_TYPE_MAX+1];
+/*
+ * Use type_max + 1 for storing freed entries
+ */
+static ClListHeadT gClAmsDirtyEntityList[CL_AMS_ENTITY_TYPE_MAX+2];
 static CL_LIST_HEAD_DECLARE(gClAmsDirtyNodeList);
 static ClAmsEntityT **gClAmsDirtyEntities;
 
@@ -5019,6 +5022,7 @@ clAmsEntitySetRefPtr(
 
         ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef->ptr;
         sg->config.parentApp.ptr = targetEntityRef->ptr;
+        sg->config.parentApp.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
         memcpy ( &sg->config.parentApp.entity, &targetEntityRef->entity, 
                 sizeof (ClAmsEntityT));
 
@@ -5032,6 +5036,7 @@ clAmsEntitySetRefPtr(
 
             ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
             su->config.parentSG.ptr = targetEntityRef->ptr;
+            su->config.parentSG.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
             memcpy ( &su->config.parentSG.entity, &targetEntityRef->entity, 
                     sizeof (ClAmsEntityT));
 
@@ -5042,9 +5047,9 @@ clAmsEntitySetRefPtr(
 
             ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
             su->config.parentNode.ptr = targetEntityRef->ptr;
+            su->config.parentNode.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
             memcpy ( &su->config.parentNode.entity, &targetEntityRef->entity,
                     sizeof (ClAmsEntityT));
-
          }
 
     }
@@ -5055,6 +5060,7 @@ clAmsEntitySetRefPtr(
 
         ClAmsSIT      *si = (ClAmsSIT *)sourceEntityRef->ptr;
         si->config.parentSG.ptr = targetEntityRef->ptr;
+        si->config.parentSG.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
         memcpy ( &si->config.parentSG.entity, &targetEntityRef->entity, sizeof (ClAmsEntityT));
 
     }
@@ -5065,6 +5071,7 @@ clAmsEntitySetRefPtr(
 
         ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef->ptr;
         comp->config.parentSU.ptr = targetEntityRef->ptr;
+        comp->config.parentSU.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
         memcpy ( &comp->config.parentSU.entity, &targetEntityRef->entity, sizeof (ClAmsEntityT));
 
     }
@@ -5084,6 +5091,7 @@ clAmsEntitySetRefPtr(
 
         ClAmsCSIT     *csi = (ClAmsCSIT *)sourceEntityRef->ptr;
         csi->config.parentSI.ptr = targetEntityRef->ptr;
+        csi->config.parentSI.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
         memcpy ( &csi->config.parentSI.entity, &targetEntityRef->entity, sizeof (ClAmsEntityT));
 
     }
@@ -5132,6 +5140,7 @@ clAmsEntityUnsetRefPtr(
 
         ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef->ptr;
         sg->config.parentApp.ptr = NULL;
+        sg->config.parentApp.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
     }
 
     else if ( sourceEntityType == CL_AMS_ENTITY_TYPE_SU )
@@ -5142,6 +5151,7 @@ clAmsEntityUnsetRefPtr(
 
             ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
             su->config.parentSG.ptr = NULL;
+            su->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
         }
 
         else if ( targetEntityType == CL_AMS_ENTITY_TYPE_NODE )
@@ -5149,6 +5159,7 @@ clAmsEntityUnsetRefPtr(
 
             ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
             su->config.parentNode.ptr = NULL;
+            su->config.parentNode.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
          }
 
     }
@@ -5159,6 +5170,7 @@ clAmsEntityUnsetRefPtr(
 
         ClAmsSIT      *si = (ClAmsSIT *)sourceEntityRef->ptr;
         si->config.parentSG.ptr = NULL;
+        si->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
     }
 
     else if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_COMP) &&
@@ -5167,6 +5179,7 @@ clAmsEntityUnsetRefPtr(
 
         ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef->ptr;
         comp->config.parentSU.ptr = NULL;
+        comp->config.parentSU.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
     }
 
     else if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_COMP) &&
@@ -5184,6 +5197,7 @@ clAmsEntityUnsetRefPtr(
 
         ClAmsCSIT     *csi = (ClAmsCSIT *)sourceEntityRef->ptr;
         csi->config.parentSI.ptr = NULL;
+        csi->config.parentSI.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
     }
 
     else
@@ -5496,6 +5510,7 @@ clAmsDBMarshallDirty(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl)
     ClUint32T versionCode = 0;
     ClAmsEntityDBWalkArgsT args = {0};
     ClAmsEntityT *entity = NULL;
+    ClListHeadT *list = NULL;
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -5515,8 +5530,8 @@ clAmsDBMarshallDirty(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl)
      */
     for (i=1; i<= CL_AMS_ENTITY_TYPE_MAX; ++i)
     {
-        ClListHeadT *list = &gClAmsDirtyEntityList[i];
         ClListHeadT *iter;
+        list = &gClAmsDirtyEntityList[i];
         CL_LIST_FOR_EACH(iter, list)
         {
             entity = CL_LIST_ENTRY(iter, ClAmsEntityT, dirtyList);
@@ -5532,7 +5547,7 @@ clAmsDBMarshallDirty(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl)
 
     for (i=1; i <= CL_AMS_ENTITY_TYPE_MAX; ++i)
     {
-        ClListHeadT *list = &gClAmsDirtyEntityList[i];
+        list = &gClAmsDirtyEntityList[i];
         while(!CL_LIST_HEAD_EMPTY(list))
         {
             ClListHeadT *iter = list->pNext;
@@ -5540,6 +5555,23 @@ clAmsDBMarshallDirty(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl)
             clListDel(&entity->dirtyList);
             clLogDebug("PACK", "DIRTY", "Packing status for entity [%s]", entity->name.value);
             AMS_CALL(clAmsEntityStatusMarshall(entity, &args));
+        }
+    }
+
+    /*
+     * Now marshall deleted entities if any
+     */
+    list = &gClAmsDirtyEntityList[CL_AMS_ENTITY_TYPE_MAX+1];
+    while(!CL_LIST_HEAD_EMPTY(list))
+    {
+        ClListHeadT *iter = list->pNext;
+        entity = CL_LIST_ENTRY(iter, ClAmsEntityT, dirtyList);
+        clListDel(&entity->dirtyList);
+        if(entity->flags & CL_AMS_FLAG_FREE)
+        {
+            clLogDebug("PACK", "DIRTY", "Packing deleted entity [%s]", entity->name.value);
+            clAmsDBEntityDeleteMarshall(entity, inMsgHdl, versionCode);
+            clHeapFree(entity);
         }
     }
 
@@ -7848,6 +7880,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
                 AMS_CHECK_SU(su);
                 su->config.parentSG.ptr = NULL;
+                su->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
                 clNameSet(&su->config.parentSG.entity.name,
                           "ParentSGUndefined");
                 ++su->config.parentSG.entity.name.length;
@@ -7860,6 +7893,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ClAmsSIT *si = (ClAmsSIT*)ref->ptr;
                 AMS_CHECK_SI(si);
                 si->config.parentSG.ptr = NULL;
+                si->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
                 clNameSet(&si->config.parentSG.entity.name,
                           "ParentSGUndefined");
                 ++si->config.parentSG.entity.name.length;
@@ -7891,6 +7925,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ClAmsCSIT *csi = (ClAmsCSIT*)ref->ptr;
                 AMS_CHECK_CSI(csi);
                 csi->config.parentSI.ptr = NULL;
+                csi->config.parentSI.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
                 clNameSet(&csi->config.parentSI.entity.name,
                           "ParentSIUndefined");
                 ++csi->config.parentSI.entity.name.length;
@@ -7937,6 +7972,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
                 AMS_CHECK_SU(su);
                 su->config.parentNode.ptr = NULL;
+                su->config.parentNode.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
                 clNameSet(&su->config.parentNode.entity.name,
                           "ParentNodeUndefined");
                 ++su->config.parentNode.entity.name.length;
@@ -8047,6 +8083,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ClAmsCompT *comp = (ClAmsCompT*)ref->ptr;
                 AMS_CHECK_COMP(comp);
                 comp->config.parentSU.ptr = NULL;
+                comp->config.parentSU.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
                 clNameSet(&comp->config.parentSU.entity.name,
                           "ParentSUUndefined");
                 ++comp->config.parentSU.entity.name.length;
@@ -8680,7 +8717,8 @@ clAmsDBGet(ClBufferHandleT msg)
 void clAmsDirtyListInitialize(void)
 {
     ClUint32T i;
-    for(i = 0; i < CL_AMS_ENTITY_TYPE_MAX+1; ++i)
+    ClUint32T numEntries = (ClUint32T)sizeof(gClAmsDirtyEntityList)/sizeof(gClAmsDirtyEntityList[0]);
+    for(i = 0; i < numEntries; ++i)
     {
         CL_LIST_HEAD_INIT(&gClAmsDirtyEntityList[i]);
     }
@@ -9116,7 +9154,7 @@ void clAmsResetDirtyList(void)
 {
     ClUint32T i;
     ClListHeadT *list;
-    for(i = 1; i <= CL_AMS_ENTITY_TYPE_MAX; ++i)
+    for(i = 1; i <= CL_AMS_ENTITY_TYPE_MAX+1; ++i)
     {
         ClListHeadT *head;
         list = &gClAmsDirtyEntityList[i];
@@ -9127,6 +9165,20 @@ void clAmsResetDirtyList(void)
             entity = CL_LIST_ENTRY(head, ClAmsEntityT, dirtyList);
             entity->flags &= ~(CL_AMS_FLAG_DIRTY | CL_AMS_FLAG_SEEN);
             clListDel(head);
+            if(entity->flags & CL_AMS_FLAG_FREE)
+                clHeapFree(entity);
         }
     }
+}
+
+void clAmsMarkEntityDelete(ClAmsEntityT *entity)
+{
+    ClAmsEntityT *entityRef = NULL;
+    entityRef = clHeapCalloc(1, sizeof(*entityRef));
+    CL_ASSERT(entityRef != NULL);
+    memcpy(entityRef, entity, sizeof(*entityRef));
+    entityRef->dirtyList.pNext = entityRef->dirtyList.pPrev = NULL;
+    entityRef->flags = CL_AMS_FLAG_FREE;
+    clLogNotice("MARK", "DIRTY", "Marking entity [%s] for deletion", entityRef->name.value);
+    clListAddTail(&entityRef->dirtyList, &gClAmsDirtyEntityList[CL_AMS_ENTITY_TYPE_MAX+1]);
 }

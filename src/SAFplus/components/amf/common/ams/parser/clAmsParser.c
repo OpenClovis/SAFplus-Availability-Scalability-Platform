@@ -3429,7 +3429,7 @@ ClRcT clAmsParserCSICreation(
         return CL_OK;
     }
 
-    csiConfig = clHeapAllocate (sizeof( ClAmsCSIConfigT));
+    csiConfig = clHeapCalloc (1, sizeof( ClAmsCSIConfigT));
     AMS_CHECK_NO_MEMORY (csiConfig);
 
     /*
