@@ -702,6 +702,15 @@ amsCkptStandbyInitialize(ClAmsT *ams)
     ClBufferHandleT buf = 0;
     ClCkptIOVectorElementT ioVector;
 
+    /*
+     * Mark ourselves as ready if applicable
+     */
+    if(!ams->isEnabled)
+    {
+        clLogNotice("STANDBY", "ENABLE", "Enabling AMF whose service was disabled on standby");
+        ams->isEnabled = CL_TRUE;
+    }
+
     memset(&ioVector, 0, sizeof(ioVector));
     ioVector.dataSize = AMS_CKPT_MAX_SECTION_SIZE;
     rc = clAmsCkptCheckpointRead(ams, &ams->ckptDBSections[0], &ioVector);
@@ -711,6 +720,12 @@ amsCkptStandbyInitialize(ClAmsT *ams)
                    ams->ckptDBSections[0].value, rc);
         goto exitfn;
     }
+    else
+    {
+        clLogDebug("CKP", "READ", "Read [%d] bytes of amf db section [%s]",
+                   (ClUint32T)ioVector.dataSize, ams->ckptDBSections[0].value);
+    }
+
     AMS_CHECK_RC_ERROR(clBufferCreate(&buf));
     AMS_CHECK_RC_ERROR(clBufferNBytesWrite(buf, (ClUint8T*)ioVector.dataBuffer, 
                                            (ClUint32T)ioVector.dataSize));
@@ -725,14 +740,6 @@ amsCkptStandbyInitialize(ClAmsT *ams)
     
     clAmsCkptDBWrite();
 
-    /*
-     * Mark ourselves as ready
-     */
-    if(!ams->isEnabled)
-    {
-        clLogNotice("STANDBY", "ENABLE", "Enabling AMF whose service was disabled on standby");
-        ams->isEnabled = CL_TRUE;
-    }
     ams->serviceState = CL_AMS_SERVICE_STATE_HOT_STANDBY;
 
     AMS_CHECK_RC_ERROR(clCkptImmediateConsumptionRegister(ams->ckptOpenHandle, 
@@ -901,6 +908,11 @@ clAmsCkptInitialize(
         rc = amsCkptStandbyInitialize(&gAms);
         clOsalMutexUnlock(&gAms.ckptMutex);
         clOsalMutexUnlock(gAms.mutex);
+        if(rc != CL_OK)
+        {
+            clLogWarning("CKP", "INIT", "AMF hot standby disabled because of standby initialize failure");
+            rc = CL_OK;
+        }
     }
 
     return rc;
