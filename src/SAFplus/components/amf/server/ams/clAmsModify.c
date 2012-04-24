@@ -9043,6 +9043,11 @@ ClRcT clAmsBuildDirtyList(ClListHeadT *entityList)
  */
 ClRcT clAmsMarkEntityDirty(ClAmsEntityT *entity)
 {
+    if(gAms.mode & CL_AMS_INSTANTIATE_MODE_CKPT_ALL)
+    {
+        return CL_OK;
+    }
+
     if(gAms.serviceState && 
        (gAms.serviceState == CL_AMS_SERVICE_STATE_HOT_STANDBY
        ||
