@@ -202,7 +202,7 @@ extern ClRcT clAmsFaultQueueFind(ClAmsEntityT *entity, void **entry);
 
 extern ClRcT clAmsFaultQueueDestroy(void);
 
-extern ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName);
+extern ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister);
 
 extern void clAmsSetInstantiateCommand(ClInt32T argc, ClCharT **argv);
 

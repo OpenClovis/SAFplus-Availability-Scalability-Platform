@@ -405,10 +405,10 @@ typedef struct
 typedef enum
 {
     CL_AMS_MGMT_SUB_AREA_MSG            = 1,
-    CL_AMS_MGMT_SUB_AREA_STATE_CHANGE   = 1<<1,
-    CL_AMS_MGMT_SUB_AREA_FN_CALL        = 1<<2,
-    CL_AMS_MGMT_SUB_AREA_TIMER          = 1<<3,
-    CL_AMS_MGMT_SUB_AREA_UNDEFINED      = 1<<7,
+    CL_AMS_MGMT_SUB_AREA_STATE_CHANGE   = (1<<1),
+    CL_AMS_MGMT_SUB_AREA_FN_CALL        = (1<<2),
+    CL_AMS_MGMT_SUB_AREA_TIMER          = (1<<3),
+    CL_AMS_MGMT_SUB_AREA_UNDEFINED      = (1<<7),
 }ClAmsMgmtSubAreaT;
 
 typedef struct 

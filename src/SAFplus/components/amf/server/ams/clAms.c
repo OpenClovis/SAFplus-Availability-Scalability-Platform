@@ -638,7 +638,7 @@ clAmsFaultQueueDestroy(void)
     return CL_OK;
 }
 
-ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
+ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister)
 {
     ClRcT rc = CL_OK;
     ClAmsEntityRefT entityRef = {{0}};
@@ -700,13 +700,15 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
             goto out_unlock;
         }
     }
-    else
+    /*
+     * We let the caller: CPM dictate the terms here. as the node
+     * could be a dynamically added one not yet there in ams.
+     */
+    rc = CL_OK;
+
+    if(nodeRegister)
     {
-        /*
-         * We let the caller: CPM dictate the terms here. as the node
-         * could be a dynamically added one not yet there in ams.
-         */
-        rc = CL_OK;
+        gAms.mode |= CL_AMS_INSTANTIATE_MODE_CKPT_ALL | CL_AMS_INSTANTIATE_MODE_NODE_JOIN;
     }
 
     out_unlock:

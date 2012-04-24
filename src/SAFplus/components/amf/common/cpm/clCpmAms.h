@@ -37,20 +37,21 @@ extern "C"
 #include <clAmsEntities.h>
 #include <clAmsInvocation.h>
 
-#define CL_AMS_INSTANTIATE_MODE_ACTIVE           1
-#define CL_AMS_INSTANTIATE_MODE_STANDBY          1<<1
-#define CL_AMS_INSTANTIATE_USE_CHECKPOINT        1<<2
-#define CL_AMS_INSTANTIATE_MODE_CKPT_ALL         1<<3
-#define CL_AMS_TERMINATE_MODE_GRACEFUL           1
-#define CL_AMS_TERMINATE_MODE_IMMEDIATE          1<<1
-#define CL_AMS_TERMINATE_MODE_SC_ONLY            1<<2
+#define CL_AMS_INSTANTIATE_MODE_ACTIVE           (1)
+#define CL_AMS_INSTANTIATE_MODE_STANDBY          (1<<1)
+#define CL_AMS_INSTANTIATE_USE_CHECKPOINT        (1<<2)
+#define CL_AMS_INSTANTIATE_MODE_CKPT_ALL         (1<<3)
+#define CL_AMS_INSTANTIATE_MODE_NODE_JOIN        (1<<4)
+#define CL_AMS_TERMINATE_MODE_GRACEFUL           (1)
+#define CL_AMS_TERMINATE_MODE_IMMEDIATE          (1<<1)
+#define CL_AMS_TERMINATE_MODE_SC_ONLY            (1<<2)
 
-#define CL_AMS_STATE_CHANGE_GRACEFUL             1
-#define CL_AMS_STATE_CHANGE_IMMEDIATE            1<<1
-#define CL_AMS_STATE_CHANGE_ACTIVE_TO_STANDBY    1<<2
-#define CL_AMS_STATE_CHANGE_STANDBY_TO_ACTIVE    1<<3
-#define CL_AMS_STATE_CHANGE_RESET                1<<4
-#define CL_AMS_STATE_CHANGE_USE_CHECKPOINT       1<<5
+#define CL_AMS_STATE_CHANGE_GRACEFUL             (1)
+#define CL_AMS_STATE_CHANGE_IMMEDIATE            (1<<1)
+#define CL_AMS_STATE_CHANGE_ACTIVE_TO_STANDBY    (1<<2)
+#define CL_AMS_STATE_CHANGE_STANDBY_TO_ACTIVE    (1<<3)
+#define CL_AMS_STATE_CHANGE_RESET                (1<<4)
+#define CL_AMS_STATE_CHANGE_USE_CHECKPOINT       (1<<5)
     
 /**
  * This structure is used to store invocations of AMF callbacks in

@@ -1594,6 +1594,8 @@ _clAmsSANodeJoin(
 
     AMS_CALL_CKPT_WRITE (clAmsCkptWrite(&gAms,CL_AMS_CKPT_WRITE_DB));
 
+    gAms.mode &= ~CL_AMS_INSTANTIATE_MODE_NODE_JOIN;
+
     AMS_CALL ( clOsalMutexUnlock(gAms.mutex));
 
 exitfn:

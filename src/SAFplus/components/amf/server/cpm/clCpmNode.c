@@ -530,7 +530,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
 
     if(nodeAddress != clIocLocalAddressGet())
     {
-        rc = clAmsCheckNodeJoinState((const ClCharT*)cpmLocalInfo.nodeName);
+        rc = clAmsCheckNodeJoinState((const ClCharT*)cpmLocalInfo.nodeName, CL_TRUE);
         if(rc != CL_OK)
             return rc;
     }
@@ -628,7 +628,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
     if(flag == CL_TRUE)
     {
         cpmL->pCpmLocalInfo->status = CL_CPM_EO_ALIVE;
-
+        
         /* Set the CPM/L to its default boot Level */
         strcpy(nodeName.value, cpmLocalInfo.nodeName);
         nodeName.length = strlen(nodeName.value);
