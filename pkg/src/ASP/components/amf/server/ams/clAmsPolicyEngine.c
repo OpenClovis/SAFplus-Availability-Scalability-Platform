@@ -11451,6 +11451,8 @@ clAmsPeCompFaultReport(
      * Compute recovery action and escalation
      */
 
+    CL_AMS_SET_O_STATE(comp, CL_AMS_OPER_STATE_DISABLED);
+
     recommendedRecovery = *recovery;
 
     AMS_CALL ( clAmsPeCompComputeRecoveryAction(comp, recovery, escalation) );
@@ -11476,8 +11478,6 @@ clAmsPeCompFaultReport(
     AMS_CALL ( clAmsEntityClearOps((ClAmsEntityT *)comp) );
     
     clAmsEntityOpsClear((ClAmsEntityT*)comp, &comp->status.entity);
-
-    CL_AMS_SET_O_STATE(comp, CL_AMS_OPER_STATE_DISABLED);
 
     clLogDebug(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_COMP, 
                "Fault on Component [%s]: Recommended recovery = [%s], "\
