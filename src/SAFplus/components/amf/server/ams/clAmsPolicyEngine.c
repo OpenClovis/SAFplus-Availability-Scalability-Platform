@@ -11446,20 +11446,12 @@ clAmsPeCompFaultReport(
         }
     }
 
-    /*
-     * Stop all possible timers that could be running for the component
-     * and clear the invocation list.
-     */
-
-    AMS_CALL ( clAmsEntityClearOps((ClAmsEntityT *)comp) );
-    
-    clAmsEntityOpsClear((ClAmsEntityT*)comp, &comp->status.entity);
-
-    CL_AMS_SET_O_STATE(comp, CL_AMS_OPER_STATE_DISABLED);
 
     /*
      * Compute recovery action and escalation
      */
+
+    CL_AMS_SET_O_STATE(comp, CL_AMS_OPER_STATE_DISABLED);
 
     recommendedRecovery = *recovery;
 
@@ -11477,6 +11469,15 @@ clAmsPeCompFaultReport(
 
         return CL_OK;
     }
+
+    /*
+     * Stop all possible timers that could be running for the component
+     * and clear the invocation list.
+     */
+
+    AMS_CALL ( clAmsEntityClearOps((ClAmsEntityT *)comp) );
+    
+    clAmsEntityOpsClear((ClAmsEntityT*)comp, &comp->status.entity);
 
     clLogDebug(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_COMP, 
                "Fault on Component [%s]: Recommended recovery = [%s], "\
