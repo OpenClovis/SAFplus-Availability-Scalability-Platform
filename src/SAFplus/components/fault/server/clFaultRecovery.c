@@ -136,7 +136,9 @@ ClRcT clFaultRepairProcess(ClFaultRecordPtr hRec)
 	hRec->event.category = clFaultInternal2CategoryTranslate((hRec->event).category);
 	hRec->event.severity = clFaultInternal2SeverityTranslate((hRec->event).severity);
 
-	if (faultactiveSeqTbls[catIndex][sevIndex][hRec->seqNum]){
+	if (faultactiveSeqTbls[catIndex] &&
+        faultactiveSeqTbls[catIndex][sevIndex] &&
+        faultactiveSeqTbls[catIndex][sevIndex][hRec->seqNum]){
 		(faultactiveSeqTbls[catIndex][sevIndex][hRec->seqNum])(hRec);
 	}
 	else
