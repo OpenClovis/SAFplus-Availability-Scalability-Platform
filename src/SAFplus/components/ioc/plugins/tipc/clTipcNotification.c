@@ -71,7 +71,7 @@ typedef ClIocLogicalAddressT ClIocLocalCompsAddressT;
 
 static ClInt32T handlerFd[CL_TIPC_HANDLER_MAX_SOCKETS];
 static ClOsalMutexT gIocEventHandlerSendLock;
-
+static ClTransportListenerHandleT gNotificationListener;
 static ClIocCommPortT dummyCommPort, discoveryCommPort;
 static ClIocLocalCompsAddressT allLocalComps;
 static ClIocAddressT allNodeReps = { .iocPhyAddress = {CL_IOC_BROADCAST_ADDRESS, CL_IOC_XPORT_PORT}};
@@ -113,7 +113,7 @@ static ClRcT tipcEventDeregister(ClInt32T skipIndex)
     {
         if(i != skipIndex && handlerFd[i] >= 0)
         {
-            clTransportListenerDeregister(handlerFd[i]);
+            clTransportListenerDel(gNotificationListener, handlerFd[i]);
             handlerFd[i] = -1;
         }
     }
@@ -230,7 +230,8 @@ static ClRcT tipcEventRegister(ClBoolT deregister)
         goto out;
     }
 
-    rc = clTransportListenerRegister(handlerFd[0], tipcEventHandler, (void*)&handlerFd[0]);
+    rc = clTransportListenerAdd(gNotificationListener, 
+                                handlerFd[0], tipcEventHandler, (void*)&handlerFd[0]);
     if(rc != CL_OK)
     {
         clLogError("NOTIF", "INIT", 
@@ -238,7 +239,8 @@ static ClRcT tipcEventRegister(ClBoolT deregister)
         goto out;
     }
 
-    rc = clTransportListenerRegister(handlerFd[1], tipcEventHandler, (void*)&handlerFd[1]);
+    rc = clTransportListenerAdd(gNotificationListener, 
+                                handlerFd[1], tipcEventHandler, (void*)&handlerFd[1]);
     if(rc != CL_OK)
     {
         clLogError("NOTIF", "INIT", 
@@ -246,7 +248,8 @@ static ClRcT tipcEventRegister(ClBoolT deregister)
         goto out;
     }
     
-    rc = clTransportListenerRegister(handlerFd[2], tipcEventHandler, (void*)&handlerFd[2]);
+    rc = clTransportListenerAdd(gNotificationListener, 
+                                handlerFd[2], tipcEventHandler, (void*)&handlerFd[2]);
     if(rc != CL_OK)
     {
         clLogError("NOTIF", "INIT",
@@ -366,7 +369,13 @@ static ClRcT tipcEventHandler(ClInt32T fd, ClInt32T events, void *handlerIndex)
     ClInt32T bytes;
     static ClUint32T recvErrors = 0;
 
-    if(!eventHandlerInited) return CL_ERR_NOT_INITIALIZED;
+    clOsalMutexLock(&gIocEventHandlerSendLock);
+
+    if(!eventHandlerInited)
+    {
+        rc = CL_ERR_NOT_INITIALIZED;
+        goto out_unlock;
+    }
 
     memset((char*)&msgHdr, 0, sizeof(msgHdr));
     memset((char*)ioVector, 0, sizeof(ioVector));
@@ -376,8 +385,6 @@ static ClRcT tipcEventHandler(ClInt32T fd, ClInt32T events, void *handlerIndex)
     ioVector[0].iov_len = sizeof(buffer);
     msgHdr.msg_iov = ioVector;
     msgHdr.msg_iovlen = sizeof(ioVector)/sizeof(ioVector[0]);
-
-    clOsalMutexLock(&gIocEventHandlerSendLock);
 
     bytes = recvmsg(fd, &msgHdr, 0);
     if(bytes <= 0 )
@@ -428,14 +435,25 @@ ClRcT clTipcEventHandlerInitialize(void)
     rc = clIocNotificationInitialize();
     CL_ASSERT(rc == CL_OK);
 
+    rc = clTransportListenerCreate(&gNotificationListener);
+    
+    if(rc != CL_OK)
+        goto out;
+
     rc = tipcEventRegister(CL_FALSE);
 
     if(rc != CL_OK)
-        goto out;
-    
+    {
+        goto out_free;
+    }
+
     eventHandlerInited = 1;
 
     out:
+    return rc;
+
+    out_free:
+    clTransportListenerDestroy(&gNotificationListener);
     return rc;
 }
 
@@ -453,6 +471,8 @@ ClRcT clTipcEventHandlerFinalize(void)
     tipcEventDeregister(-1);
     eventHandlerInited = 0;
     clOsalMutexUnlock(&gIocEventHandlerSendLock);
+
+    clTransportListenerDestroy(&gNotificationListener);
 
     return CL_OK;
 }

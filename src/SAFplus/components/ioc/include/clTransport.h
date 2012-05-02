@@ -15,6 +15,8 @@ extern "C" {
 typedef ClRcT (*ClTransportNotifyCallbackT)
 (ClIocPhysicalAddressT *compAddr, ClUint32T status, ClPtrT arg);
 
+typedef ClPtrT ClTransportListenerHandleT;
+
 extern ClInt32T gClTransportId;
 /*
  * We aren't going to be having multiple transports requesting at the same time.
@@ -81,6 +83,21 @@ extern ClRcT clTransportMulticastRegister(const ClCharT *type,
                                           ClIocPortT port, ClIocMulticastAddressT mcastAddr);
 extern ClRcT clTransportMulticastDeregister(const ClCharT *type,
                                             ClIocPortT port, ClIocMulticastAddressT mcastAddr);
+
+extern ClRcT 
+clTransportListenerCreate(ClTransportListenerHandleT *handle);
+
+extern ClRcT
+clTransportListenerDestroy(ClTransportListenerHandleT *handle);
+
+extern ClRcT
+clTransportListenerAdd(ClTransportListenerHandleT handle, ClInt32T fd,
+                       ClRcT (*dispatchCallback)(ClInt32T fd, ClInt32T events, void *cookie),
+                       void *cookie);
+
+extern ClRcT 
+clTransportListenerDel(ClTransportListenerHandleT handle, ClInt32T fd);
+
 extern ClRcT 
 clTransportListenerRegister(ClInt32T fd, ClRcT (*dispatchCallback)(ClInt32T fd, ClInt32T events, void *cookie),
                             void *cookie);
