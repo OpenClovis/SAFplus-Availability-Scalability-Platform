@@ -1915,14 +1915,13 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey,
         (ClEvtEventPrimaryHeaderT *) userArg;
     ClEvtEventSecondaryHeaderT evtSecHeader = {0};
     ClEvtEventSecondaryHeaderT *pEvtSecHeader = NULL;
-
+    ClEvtEventTertiaryHeaderT *pEvtTertiaryHeader = NULL;
     ClEvtSubsKeyT *pEvtSubsKey = (ClEvtSubsKeyT *) userKey;
     ClIocNodeAddressT iocLocalAddress = 0;
     ClRmdOptionsT rmdOptions = { 0 };
     ClIocAddressT remoteObjAddr = {{0}};
     ClIocPortT subsCommPort = (ClIocPortT)(ClWordT) userData;
     ClBufferHandleT inMsgHandle = 0;
-
 
     CL_FUNC_ENTER();
 
@@ -1975,9 +1974,11 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey,
     memcpy(pEvtSecHeader, &evtSecHeader, sizeof(evtSecHeader));
 #endif
 
+    pEvtTertiaryHeader = (ClEvtEventTertiaryHeaderT*)(pEvtSecHeader + 1);
+    pEvtTertiaryHeader->eoId = pEvtSubsKey->userId.eoIocPort;
     rc = clBufferCreate(&inMsgHandle);
     rc = clBufferNBytesWrite(inMsgHandle, (ClUint8T *) pEvtPrimaryHeader,
-            dataLength);
+                             dataLength);
     /*
      * Invoke RMD call provided by EM/S for opening channel, with packed user
      * data. 
@@ -2442,9 +2443,9 @@ ClRcT VDECL(clEvtEventPublishProxy)(ClEoDataT cData,
      * clEvtSubscribeWalkForPublish() to avoid multiple allocation during the
      * walk. 
      */
-    headerLen = inLen + sizeof(ClEvtEventSecondaryHeaderT);
+    headerLen = inLen + sizeof(ClEvtEventSecondaryHeaderT) + sizeof(ClEvtEventTertiaryHeaderT);
 
-    pInData = clHeapAllocate(headerLen);
+    pInData = clHeapCalloc(1, headerLen);
     if (NULL == pInData)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "PUB",
@@ -2452,7 +2453,6 @@ ClRcT VDECL(clEvtEventPublishProxy)(ClEoDataT cData,
         rc = CL_EVENT_ERR_NO_MEM;
         goto failure;
     }
-    memset(pInData, 0, headerLen);
 
     rc = clBufferNBytesRead(inMsgHandle, pInData, &inLen);
     if (CL_OK != rc)
