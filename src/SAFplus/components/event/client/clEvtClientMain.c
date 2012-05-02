@@ -460,6 +460,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
 
     ClEvtEventSecondaryHeaderT *pEvtSecHeader = NULL;
     ClEvtEventSecondaryHeaderT evtSecHeader = {0};
+    ClUint32T headerLen = 0;
     ClEventHandleT eventHandle = 0;
     ClUint32T i;
 
@@ -584,6 +585,26 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
 #else
     memcpy(&evtSecHeader, pEvtSecHeader, sizeof(evtSecHeader));
 #endif
+
+    headerLen = sizeof(*pEvtPrimaryHeader) + pEvtPrimaryHeader->channelNameLen + 
+        pEvtPrimaryHeader->publisherNameLen + pEvtPrimaryHeader->patternSectionLen +
+        pEvtPrimaryHeader->eventDataSize + sizeof(*pEvtSecHeader);
+
+    if(len > headerLen && 
+       len == headerLen + sizeof(ClEvtEventTertiaryHeaderT))
+    {
+        ClEvtEventTertiaryHeaderT *pEvtTertiaryHeader = (ClEvtEventTertiaryHeaderT*)(pEvtSecHeader + 1);
+        ClEvtEventTertiaryHeaderT evtTertiaryHeader = {0};
+        memcpy(&evtTertiaryHeader, pEvtTertiaryHeader, sizeof(evtTertiaryHeader));
+        if(evtTertiaryHeader.eoId != pEoObj->eoID)
+        {
+            clLogInfo("EVT", "RECEIVE", 
+                      "Event publish received for EO id [%#llx] is not valid any more "
+                      "as EO id is now [%#llx]", evtTertiaryHeader.eoId, pEoObj->eoID);
+            rc = CL_EVENT_ERR_INTERNAL;
+            goto eventBufferCreated;
+        }
+    }
 
     /* 
      * Check out the InitInfo of this client from the Handle Database

@@ -298,6 +298,11 @@ do{\
 
     } ClEvtEventSecondaryHeaderT;
 
+    typedef struct EvtEventTertiaryHeader
+    {
+        ClEoIdT eoId;
+    } ClEvtEventTertiaryHeaderT;
+
     typedef struct EvtChannelKey
     {
         ClUint16T channelId;
