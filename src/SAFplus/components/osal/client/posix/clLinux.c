@@ -735,6 +735,15 @@ static const char *registerMap[NGREG] = { "r0", "r1", "r2", "r3", "r4", "r5", "r
                                           "r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31"
 };
 
+#elif __arm__
+static const char *registerMap[3+NGREG] = {"trap_no", "error_code", "oldmask",
+                                           "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",
+                                           "r8", "r9", "r10", "fp", "ip", "sp", "lr",
+#if NGREG == 18
+                                           "pc", "cpsr", "fault_address",
+#endif
+};
+
 #else
 static const char *registerMap[NGREG] = { NULL, };
 
@@ -744,13 +753,15 @@ static void registerDump(ucontext_t *ucontext, ClCharT *exceptionSegment, ClUint
 {
     register int i;
     ClUint32T bytes = 0;
+    static ClUint32T numMaps = sizeof(registerMap)/sizeof(registerMap[0]);
+    ClWordT *mcontext = (ClWordT*)&ucontext->uc_mcontext;
     bytes += snprintf(exceptionSegment + bytes, maxBytes - bytes, "\n");
-    for(i = 0; i < NGREG && registerMap[i]; ++i)
+    for(i = 0; i < numMaps && registerMap[i]; ++i)
     {
         if( i && !(i & 7))
             bytes += snprintf(exceptionSegment + bytes, maxBytes - bytes, "\n");
-        bytes += snprintf(exceptionSegment + bytes, maxBytes-bytes, "[%s] = [%#llx]%s ", 
-                          registerMap[i], (ClUint64T)ucontext->uc_mcontext.gregs[i], i + 1 < NGREG ? "," : "");
+        bytes += snprintf(exceptionSegment + bytes, maxBytes-bytes, "[%s] = [%#lx]%s ", 
+                          registerMap[i], mcontext[i], i + 1 < numMaps ? "," : "");
     }
     bytes += snprintf(exceptionSegment + bytes, maxBytes - bytes, "\n");
 }
