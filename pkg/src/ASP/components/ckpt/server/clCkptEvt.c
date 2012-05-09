@@ -371,7 +371,8 @@ void ckptEvtSubscribeCallBack( ClEventSubscriptionIdT    subscriptionId,
                     pPeerInfo->addr        = nodePayload.nodeIocAddress;
                     pPeerInfo->credential  = CL_CKPT_CREDENTIAL_POSITIVE;
                     pPeerInfo->available   = CL_CKPT_NODE_UNAVAIL;
-                        
+                    clLogNotice("PEER", "EVT", "Marking peer [%d] on receiving node arrival",
+                                nodePayload.nodeIocAddress);
                     rc = clCntLlistCreate(ckptCkptListKeyComp,
                                           ckptCkptListDeleteCallback,
                                           ckptCkptListDeleteCallback,
