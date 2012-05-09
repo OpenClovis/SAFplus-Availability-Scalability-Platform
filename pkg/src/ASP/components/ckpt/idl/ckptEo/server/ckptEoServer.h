@@ -97,6 +97,7 @@ extern ClRcT clCkptCheckpointReplicaRemoveServer_4_0_0(ClEoDataT eoData, ClBuffe
 extern ClRcT clCkptReplicaAppInfoNotifyServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptActiveCallbackNotifyServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT _ckptSectionCheckServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
+extern ClRcT clCkptRemSvrWelcomeServer_5_1_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 
 
 #ifdef __cplusplus

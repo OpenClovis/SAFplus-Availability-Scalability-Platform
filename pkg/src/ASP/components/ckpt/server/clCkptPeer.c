@@ -50,6 +50,7 @@
 #include <clCkptLog.h>
 #include <clCpmExtApi.h>
 #include <ckptEockptServerPeerPeerClient.h>
+#include <ckptEockptServerPeerPeerExtFuncClient.h>
 #include <ckptEockptServerCliServerFuncClient.h>
 #include <ipi/clHandleIpi.h>
 #include <clXdrApi.h>
@@ -1080,21 +1081,33 @@ ClRcT   _ckptSvrArrvlAnnounce()
           * Update idl handle with deputy's address.
           */
          rc = ckptIdlHandleUpdate( gCkptSvr->masterInfo.masterAddr,
-            gCkptSvr->ckptIdlHdl,2);
+                                   gCkptSvr->ckptIdlHdl, 2);
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             (" Idl Handle Update failed rc[0x %x]\n",rc),
             rc);
-            
-        /* 
-         * Send the hello to master server.
-         */        
-        rc = VDECL_VER(clCkptRemSvrWelcomeClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
-                &ckptVersion,
-                gCkptSvr->localAddr,
-                credential,
-                NULL,NULL);
+
+        rc = CL_CKPT_RC(CL_ERR_NOT_SUPPORTED);
+        if(!clCpmIsSCCapable())
+        {
+            rc = VDECL_VER(clCkptRemSvrWelcomeClientSync, 5, 1, 0)(gCkptSvr->ckptIdlHdl,
+                                                                   &ckptVersion,
+                                                                   gCkptSvr->localAddr,
+                                                                   credential);
+        }
+        if(rc != CL_OK)
+        {
+            /* 
+             * Send the hello to master server.
+             */        
+            rc = VDECL_VER(clCkptRemSvrWelcomeClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
+                                                                    &ckptVersion,
+                                                                    gCkptSvr->localAddr,
+                                                                    credential,
+                                                                    NULL,NULL);
+        }
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Failed to broadcast message rc[0x %x]\n", rc), rc);
+                       ("Failed to announce arrival message to master [%d]. rc[0x %x]\n", 
+                        gCkptSvr->masterInfo.masterAddr, rc), rc);
         gCkptSvr->isAnnounced = CL_TRUE;    
     }       
 

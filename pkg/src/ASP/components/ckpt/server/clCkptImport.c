@@ -212,8 +212,8 @@ clCkptMasterAddressUpdate(ClIocNodeAddressT  leader,
                                     gCkptSvr->masterInfo.deputyAddr,
                                     NULL,0);
     }
-    clLogInfo("ADDR", "UPDATE", "CKPT master [%d], deputy [%d]",
-              gCkptSvr->masterInfo.masterAddr, gCkptSvr->masterInfo.deputyAddr);
+    clLogNotice("ADDR", "UPDATE", "CKPT master [%d], deputy [%d]",
+                gCkptSvr->masterInfo.masterAddr, gCkptSvr->masterInfo.deputyAddr);
     return rc;
 }
 
@@ -348,7 +348,11 @@ ClRcT clCkptMasterAddressesSet()
      * Call the track change callback funtion. This is needed for getting 
      * current track information.
      */
-    _clCkptAddressesUpdate(&notBuffer);
+    if(notBuffer.leader && 
+       notBuffer.leader != CL_GMS_INVALID_NODE_ID)
+    {
+        _clCkptAddressesUpdate(&notBuffer);
+    }
     clHeapFree(notBuffer.notification);
 
 #else

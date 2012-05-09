@@ -728,6 +728,18 @@
                 </Operation>	
 
             </Group>
+
+            <Group name="PeerPeerExtFunc">
+                <Operation name="clCkptRemSvrWelcome" type="sync" version="5.1.0">
+                    <Argument ParameterType="CL_INOUT"  name="pVersion" 
+                    type="ClVersionT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="peerAddr"
+                    type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="credential"
+                    type="ClUint8T"/>
+                </Operation>	
+            </Group>
+
         </Port>            
     </Service>
     <Service name="ckptClntEo">
