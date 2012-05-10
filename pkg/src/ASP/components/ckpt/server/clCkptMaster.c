@@ -303,6 +303,22 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
             if(pPeerInfo->available == CL_CKPT_NODE_UNAVAIL)
             {
                 /*
+                 * Ckpt welcome has to be received and peer instantiated
+                 * by the master for collocated or hot-standby checkpoints
+                 */
+                if(CL_CKPT_IS_COLLOCATED(pCreateAttr->creationFlags)
+                   ||
+                   (pCreateAttr->creationFlags & CL_CKPT_DISTRIBUTED))
+                {
+                    rc = CL_CKPT_ERR_TRY_AGAIN;
+                    clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
+                               "Ckpt peer [%d] hasn't been welcomed by master."
+                               "Forcing a try again in case remote welcome messages are delayed",
+                               localAddr);
+                    goto exitOnError;
+                }
+
+                /*
                  * Choose a node from the cluster which has 
                  * checkpoint server running 
                  */
