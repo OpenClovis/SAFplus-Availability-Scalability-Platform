@@ -104,6 +104,7 @@ extern ClRcT _ckptSectionCheckServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inm
 extern ClRcT _ckptCheckpointWriteVectorServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT _ckptSectionOverwriteVectorServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptRemSvrCkptWriteVectorServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
+extern ClRcT clCkptRemSvrWelcomeServer_5_1_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 
 
 #ifdef __cplusplus

@@ -53,6 +53,8 @@ File        : clCkptMaster.c
 #include <ckptEockptServerMasterActiveClient.h>
 #include <ckptEockptServerMasterDeputyServer.h>
 #include <ckptEockptServerActivePeerClient.h>
+#include <ckptEockptServerPeerPeerServer.h>
+#include <ckptEockptServerPeerPeerExtFuncServer.h>
 #include "xdrCkptMasterDBInfoIDLT.h"
 #include "xdrCkptMasterDBEntryIDLT.h"
 #include "xdrCkptMasterDBClientInfoT.h"
@@ -3464,14 +3466,15 @@ exitOnError:
  */
  
 ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
-                             ClIocNodeAddressT  peerAddr,
-                             ClUint8T           credential)
+                                                 ClIocNodeAddressT  peerAddr,
+                                                 ClUint8T           credential)
 {
     ClRcT           rc         = CL_OK;
     CkptPeerInfoT   *pPeerInfo = NULL;
     ClVersionT      version    = {0};
     ClTimerTimeOutT timeOut    = {0}; 
     ClCkptReplicateTimerArgsT *pTimerArgs = NULL;
+    ClIocNodeAddressT masterAddr = gCkptSvr->masterInfo.masterAddr;
 
     /*
      * Version verification.
@@ -3488,33 +3491,39 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
     /* 
      * Ensure that this function is only executed by master only.
      */
-    if( gCkptSvr->masterInfo.masterAddr == gCkptSvr->localAddr)
+    if( masterAddr == gCkptSvr->localAddr)
     {
-	clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME, 
-		   "Welcoming ckpt server [%d] ...", peerAddr);
+        clLogNotice(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME, 
+                    "Welcoming ckpt server [%d] ...", peerAddr);
         /*
          * Update the master's peerlist. Mark the entry as
          * AVAILABLE.
          */
         rc = clCkptMasterPeerUpdate(0, CL_CKPT_SERVER_UP,
-                peerAddr,
-                credential); 
+                                    peerAddr,
+                                    credential); 
+
+        if(rc != CL_OK)
+        {
+            clLogError("PEER", "UPD", "Updating peer [%d] during welcome failed with [%#x]",
+                       peerAddr, rc);
+            return rc;
+        }
+
         /*
          * Update the deputy about the new peer node that has come up.
          */
-	    {
-		clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME,
-		           "Updating the deputy's [%d] peer list", gCkptSvr->masterInfo.deputyAddr);
-            rc = ckptIdlHandleUpdate(CL_IOC_BROADCAST_ADDRESS,
-                                     gCkptSvr->ckptIdlHdl, 0);
+        clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME,
+                   "Updating all the deputy's peer list");
+
+        rc = ckptIdlHandleUpdate(CL_IOC_BROADCAST_ADDRESS,
+                                 gCkptSvr->ckptIdlHdl, 0);
  
-	    memcpy(&version, gCkptSvr->versionDatabase.versionsSupported,
-                   sizeof(ClVersionT));
-	    rc = VDECL_VER(clCkptDeputyPeerListUpdateClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl, 
-				version, peerAddr, credential,
-				NULL, NULL);
-	    }
-  
+        memcpy(&version, gCkptSvr->versionDatabase.versionsSupported,
+               sizeof(ClVersionT));
+        rc = VDECL_VER(clCkptDeputyPeerListUpdateClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl, 
+                                                                       version, peerAddr, credential,
+                                                                       NULL, NULL);
         /* 
          * Go through the masterHdl list associated with server coming
          * up. In case that server was active replica of any collocated 
@@ -3522,21 +3531,18 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
          * from replica nodes.
          */
         CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("Ckpt: Unmarshall error in welcome rc[0x %x]\n", rc), rc);
                 
         rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList,
                                 (ClPtrT)(ClWordT)peerAddr, (ClCntDataHandleT *)&pPeerInfo);    
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("Ckpt: peerAddr %d is not exists PeerList rc[0x %x]\n",
+                       ("Ckpt: peerAddr %d does not exist in peerList. rc[0x %x]\n",
                         peerAddr, rc), rc);
       
-        
         if(pPeerInfo->mastHdlList != 0)
         {
     	    clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME, 
-		       "Going through the master handle list for address [%d]", 
-    			peerAddr);
+                       "Going through the master handle list for address [%d]", 
+                       peerAddr);
             clCntWalk(pPeerInfo->mastHdlList, _ckptMastHdlListWalk, 
                       (ClPtrT)(ClWordT)peerAddr, sizeof(peerAddr));  
         }            
@@ -3560,8 +3566,8 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
         pTimerArgs->nodeAddress = peerAddr;
         pTimerArgs->pTimerHandle = &gClPeerReplicateTimer;
     	clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME, 
-		   "Starting the timer to balance the checkpoints for address [%d]", 
-		    peerAddr);
+                   "Starting the timer to balance the checkpoints for address [%d]", 
+                   peerAddr);
     	memset(&timeOut, 0, sizeof(ClTimerTimeOutT));
 	    timeOut.tsSec = 2;
     	rc = clTimerCreateAndStart(timeOut,
@@ -3571,20 +3577,25 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
                                    (ClPtrT)pTimerArgs,
                                    &gClPeerReplicateTimer);
     }       
-   else
-   {
-    /*TODO : throw ckptError,so that sender has to handle resend to correct guy */
-   }
-exitOnError:
+    else
+    {
+        /*TODO : throw ckptError,so that sender has to handle resend to correct guy */
+    }
+    exitOnError:
     /*
      * Unlock the master DB.
      */
-    if(gCkptSvr->masterInfo.masterAddr == gCkptSvr->localAddr)
+    if(masterAddr == gCkptSvr->localAddr)
         CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
     return rc;
 }                              
 
-
+ClRcT VDECL_VER(clCkptRemSvrWelcome, 5, 1, 0)(ClVersionT         *pVersion,
+                                              ClIocNodeAddressT  peerAddr,
+                                              ClUint8T           credential)
+{
+    return VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(pVersion, peerAddr, credential);
+}
 
 /*
  * Function checks whether replication is needed for the checkpoint or not.
