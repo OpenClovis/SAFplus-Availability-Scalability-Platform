@@ -70,7 +70,8 @@ ClFaultSeqTblT  **fmSeqTbls[] =
     NULL,
     NULL,
     NULL,
-    NULL
+    NULL,
+    NULL,
 };
 
 

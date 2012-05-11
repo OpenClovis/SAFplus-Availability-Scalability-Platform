@@ -952,7 +952,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
             {
                 if(!reElect)
                 {
-                    timeout.tsSec = 3;
+                    timeout.tsSec = gmsGlobalInfo.config.leaderReElectInterval;
                     reElect = CL_TRUE;
                 }
                 rc = CL_OK;

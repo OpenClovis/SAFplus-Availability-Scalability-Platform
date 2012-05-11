@@ -90,7 +90,11 @@ typedef struct ClPollEvent
 
 typedef struct ClXportCtrl
 {
-    ClBoolT running;
+#define __LISTENER_INITIALIZED (0x1)
+#define __LISTENER_ACTIVE (0x2)
+#define XPORT_LISTENER_INITIALIZED(xportCtrl) ( (xportCtrl)->flags & __LISTENER_INITIALIZED )
+#define XPORT_LISTENER_ACTIVE(xportCtrl) ( (xportCtrl)->flags & __LISTENER_ACTIVE )
+    ClUint16T flags;
     ClListHeadT listenerList;
     ClOsalMutexT mutex;
     ClOsalCondT cond;
@@ -179,8 +183,8 @@ typedef struct ClXportPrivateData
     struct hashStruct hash;
 }ClXportPrivateDataT;
 
-static ClXportCtrlT gXportCtrl = {
-    .listenerList = CL_LIST_HEAD_INITIALIZER(gXportCtrl.listenerList),
+static ClXportCtrlT gXportCtrlDefault = {
+    .listenerList = CL_LIST_HEAD_INITIALIZER(gXportCtrlDefault.listenerList),
     .pollfds = NULL,
     .numfds = 0,
 };
@@ -673,23 +677,23 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
     return;
 }
 
-static ClInt32T listenerEventFind(ClInt32T fd, ClInt32T index)
+static ClInt32T listenerEventFind(ClXportCtrlT *xportCtrl, ClInt32T fd, ClInt32T index)
 {
     register ClInt32T i;
-    if(index >= 0 && index < gXportCtrl.numfds && gXportCtrl.pollfds[index].fd == fd)
+    if(index >= 0 && index < xportCtrl->numfds && xportCtrl->pollfds[index].fd == fd)
         return index;
-    for(i = 0; i < gXportCtrl.numfds; ++i)
+    for(i = 0; i < xportCtrl->numfds; ++i)
     {
-        if(gXportCtrl.pollfds[i].fd == fd) return i;
+        if(xportCtrl->pollfds[i].fd == fd) return i;
     }
     return -1;
 }
 
-static ClXportListenerT *listenerFind(ClInt32T fd)
+static ClXportListenerT *listenerFind(ClXportCtrlT *xportCtrl, ClInt32T fd)
 {
     ClXportListenerT *listener;
     ClListHeadT *iter;
-    CL_LIST_FOR_EACH(iter, &gXportCtrl.listenerList)
+    CL_LIST_FOR_EACH(iter, &xportCtrl->listenerList)
     {
         listener = CL_LIST_ENTRY(iter, ClXportListenerT, list);
         if(listener->fd == fd) 
@@ -701,19 +705,20 @@ static ClXportListenerT *listenerFind(ClInt32T fd)
 /*
  * Wake up the poll or listener thread.
  */
-static __inline__ void transportBreakerWakeup(void)
+static __inline__ void transportBreakerWakeup(ClXportCtrlT *xportCtrl)
 {
-    if(gXportCtrl.breaker[1] >= 0)
+    if(xportCtrl->breaker[1] >= 0)
     {
         int c = 'c';
-        if(write(gXportCtrl.breaker[1], &c, 1) != 1)
+        if(write(xportCtrl->breaker[1], &c, 1) != 1)
         {
             clLogError("XPORT", "BREAKER", "Xport breaker wakeup returned with [%s]", strerror(errno));
         }
     }
 }
 
-static ClRcT listenerEventRegister(ClXportListenerT *listener, 
+static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
+                                   ClXportListenerT *listener, 
                                    ClInt32T events,
                                    ClRcT (*dispatchCallback)(ClInt32T fd, ClInt32T events, void *cookie), 
                                    void *cookie)
@@ -723,7 +728,7 @@ static ClRcT listenerEventRegister(ClXportListenerT *listener,
     struct epoll_event epoll_event = {0};
     ClInt32T err;
     ClRcT rc = CL_ERR_ALREADY_EXIST;
-    if(listenerEventFind(listener->fd, -1) >= 0)
+    if(listenerEventFind(xportCtrl, listener->fd, -1) >= 0)
     {
         clLogError("EVENT", "REGISTER", "Listener at fd [%d] already exists", listener->fd);
         goto out;
@@ -733,54 +738,54 @@ static ClRcT listenerEventRegister(ClXportListenerT *listener,
     epoll_event.events = events;
     eventData = (ClEventDataT*)&epoll_event.data;
     eventData->fd = listener->fd;
-    eventData->index = gXportCtrl.numfds;
+    eventData->index = xportCtrl->numfds;
     rc = CL_ERR_LIBRARY;
-    clOsalMutexLock(&gXportCtrl.mutex);
-    err = epoll_ctl(gXportCtrl.eventFd, EPOLL_CTL_ADD, listener->fd, &epoll_event);
+    clOsalMutexLock(&xportCtrl->mutex);
+    err = epoll_ctl(xportCtrl->eventFd, EPOLL_CTL_ADD, listener->fd, &epoll_event);
     if(err < 0)
     {
         clLogError("EVENT", "REGISTER", "epoll_ctl add returned with error [%s] for fd [%d]",
                    strerror(errno), listener->fd);
         goto out_unlock;
     }
-    gXportCtrl.pollfds = realloc(gXportCtrl.pollfds, sizeof(*gXportCtrl.pollfds) * 
-                                         (gXportCtrl.numfds + 1));
-    CL_ASSERT(gXportCtrl.pollfds != NULL);
+    xportCtrl->pollfds = realloc(xportCtrl->pollfds, sizeof(*xportCtrl->pollfds) * 
+                                         (xportCtrl->numfds + 1));
+    CL_ASSERT(xportCtrl->pollfds != NULL);
     event.fd = listener->fd;
     event.events = events;
     event.dispatch = dispatchCallback;
     event.cookie = cookie;
-    memcpy(gXportCtrl.pollfds + gXportCtrl.numfds, &event, sizeof(event));
-    ++gXportCtrl.numfds;
+    memcpy(xportCtrl->pollfds + xportCtrl->numfds, &event, sizeof(event));
+    ++xportCtrl->numfds;
     rc = CL_OK;
-    clListAddTail(&listener->list, &gXportCtrl.listenerList);
-    transportBreakerWakeup();
-    clOsalCondSignal(&gXportCtrl.cond);
+    clListAddTail(&listener->list, &xportCtrl->listenerList);
+    transportBreakerWakeup(xportCtrl);
+    clOsalCondSignal(&xportCtrl->cond);
     
     out_unlock:
-    clOsalMutexUnlock(&gXportCtrl.mutex);
+    clOsalMutexUnlock(&xportCtrl->mutex);
     out:
     return rc;
 }
 
-static ClRcT listenerEventDeregister(ClXportListenerT *listener)
+static ClRcT listenerEventDeregister(ClXportCtrlT *xportCtrl, ClXportListenerT *listener)
 {
     struct epoll_event epoll_event = {0};
     ClInt32T index = 0;
     ClInt32T err;
     ClRcT rc = CL_ERR_LIBRARY;
-    err = epoll_ctl(gXportCtrl.eventFd, EPOLL_CTL_DEL, listener->fd, &epoll_event);
+    err = epoll_ctl(xportCtrl->eventFd, EPOLL_CTL_DEL, listener->fd, &epoll_event);
     if(err < 0)
     {
-        clLogError("EVENT", "DEREGISTER", "epoll delete failed for fd [%d] with error [%s]", listener->fd,
-                   strerror(errno));
+        clLogError("EVENT", "DEREGISTER", "epoll delete failed for fd [%d] with error [%s]", 
+                   listener->fd, strerror(errno));
         goto out;
     }
-    if((index = listenerEventFind(listener->fd, -1)) >= 0)
+    if((index = listenerEventFind(xportCtrl, listener->fd, -1)) >= 0)
     {
-        --gXportCtrl.numfds;
-        memmove(gXportCtrl.pollfds + index, gXportCtrl.pollfds + index + 1,
-                sizeof(*gXportCtrl.pollfds) * ( gXportCtrl.numfds - index));
+        --xportCtrl->numfds;
+        memmove(xportCtrl->pollfds + index, xportCtrl->pollfds + index + 1,
+                sizeof(*xportCtrl->pollfds) * ( xportCtrl->numfds - index));
     }
     clListDel(&listener->list);
     rc = CL_OK;
@@ -788,61 +793,69 @@ static ClRcT listenerEventDeregister(ClXportListenerT *listener)
     return rc;
 }
 
-static ClRcT transportListenerFinalize(void)
+static ClRcT transportListenerFinalize(ClXportCtrlT *xportCtrl)
 {
-    clOsalMutexLock(&gXportCtrl.mutex);
-    while(!CL_LIST_HEAD_EMPTY(&gXportCtrl.listenerList))
+    if(!XPORT_LISTENER_INITIALIZED(xportCtrl))
+        return CL_ERR_NOT_INITIALIZED;
+
+    clOsalMutexLock(&xportCtrl->mutex);
+    while(!CL_LIST_HEAD_EMPTY(&xportCtrl->listenerList))
     {
-        ClXportListenerT *listener = CL_LIST_ENTRY(gXportCtrl.listenerList.pNext, 
+        ClXportListenerT *listener = CL_LIST_ENTRY(xportCtrl->listenerList.pNext, 
                                                    ClXportListenerT, list);
         clListDel(&listener->list);
-        if(listener->fd != gXportCtrl.breaker[0])
+        if(listener->fd != xportCtrl->breaker[0])
             close(listener->fd);
         free(listener);
     }
-    if(gXportCtrl.running)
+    if(XPORT_LISTENER_ACTIVE(xportCtrl))
     {
         /*
          * Signal the listener thread to wind up and wait for it to exit.
          */
         ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 0};
-        gXportCtrl.running = CL_FALSE;
-        transportBreakerWakeup();
-        clOsalCondSignal(&gXportCtrl.cond);
-        clOsalCondWait(&gXportCtrl.cond, &gXportCtrl.mutex, delay);
+        xportCtrl->flags &= ~__LISTENER_ACTIVE;
+        transportBreakerWakeup(xportCtrl);
+        clOsalCondSignal(&xportCtrl->cond);
+        clOsalCondWait(&xportCtrl->cond, &xportCtrl->mutex, delay);
     }
-    if(gXportCtrl.breaker[0] >= 0)
-        close(gXportCtrl.breaker[0]);
-    if(gXportCtrl.breaker[1] >= 0)
-        close(gXportCtrl.breaker[1]);
+    if(xportCtrl->breaker[0] >= 0)
+        close(xportCtrl->breaker[0]);
+    if(xportCtrl->breaker[1] >= 0)
+        close(xportCtrl->breaker[1]);
 
-    close(gXportCtrl.eventFd);
-    if(gXportCtrl.pollfds)
+    close(xportCtrl->eventFd);
+    if(xportCtrl->pollfds)
     {
-        free(gXportCtrl.pollfds);
-        gXportCtrl.pollfds = NULL;
+        free(xportCtrl->pollfds);
+        xportCtrl->pollfds = NULL;
     }
-    gXportCtrl.numfds = 0;
-    clOsalMutexUnlock(&gXportCtrl.mutex);
+    xportCtrl->numfds = 0;
+    xportCtrl->flags &= ~__LISTENER_INITIALIZED;
+    clOsalMutexUnlock(&xportCtrl->mutex);
     return CL_OK;
 }
 
-static ClRcT transportListener(ClPtrT unused)
+static ClRcT transportListener(ClPtrT ctxt)
 {
+    ClXportCtrlT *xportCtrl = ctxt;
     struct epoll_event *epoll_events = NULL;
     ClInt32T epoll_fds = 0;
     ClInt32T epoll_cur_fds = 0;
     ClInt32T ret = 0;
     ClInt32T i;
     ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 0};
-    clOsalMutexLock(&gXportCtrl.mutex);
-    while(gXportCtrl.running)
+    clOsalMutexLock(&xportCtrl->mutex);
+    while(XPORT_LISTENER_ACTIVE(xportCtrl))
     {
-        while ( gXportCtrl.running && !(epoll_fds = gXportCtrl.numfds))
-            clOsalCondWait(&gXportCtrl.cond, &gXportCtrl.mutex, delay);
-        if(!gXportCtrl.running)
+        while ( XPORT_LISTENER_ACTIVE(xportCtrl) && 
+                !(epoll_fds = xportCtrl->numfds))
+        {
+            clOsalCondWait(&xportCtrl->cond, &xportCtrl->mutex, delay);
+        }
+        if(!XPORT_LISTENER_ACTIVE(xportCtrl))
             break;
-        clOsalMutexUnlock(&gXportCtrl.mutex);
+        clOsalMutexUnlock(&xportCtrl->mutex);
         if(epoll_cur_fds < epoll_fds)
         {
             epoll_events = realloc(epoll_events, sizeof(*epoll_events) * epoll_fds);
@@ -850,8 +863,8 @@ static ClRcT transportListener(ClPtrT unused)
             epoll_cur_fds = epoll_fds;
         }
         memset(epoll_events, 0, sizeof(*epoll_events) * epoll_fds);
-        ret = epoll_wait(gXportCtrl.eventFd, epoll_events, epoll_fds, -1);
-        clOsalMutexLock(&gXportCtrl.mutex);
+        ret = epoll_wait(xportCtrl->eventFd, epoll_events, epoll_fds, -1);
+        clOsalMutexLock(&xportCtrl->mutex);
         if(ret <= 0)
             continue;
         for(i = 0; i < ret; ++i)
@@ -861,24 +874,24 @@ static ClRcT transportListener(ClPtrT unused)
             ClPollEventT event = {0};
             if(!epoll_events[i].events) continue;
             data = (void*)&epoll_events[i].data;
-            index = listenerEventFind(data->fd, data->index);
+            index = listenerEventFind(xportCtrl, data->fd, data->index);
             if(index < 0)
             {
                 clLogWarning("XPORT", "LISTENER", "Listener not found for fd [%d] registered at index [%d]", 
                              data->fd, data->index);
                 continue;
             }
-            memcpy(&event, gXportCtrl.pollfds+index, sizeof(event));
+            memcpy(&event, xportCtrl->pollfds+index, sizeof(event));
             if( !(epoll_events[i].events & event.events) )
                 continue;
-            clOsalMutexUnlock(&gXportCtrl.mutex);
+            clOsalMutexUnlock(&xportCtrl->mutex);
             if(event.dispatch)
                 event.dispatch(event.fd, epoll_events[i].events, event.cookie);
-            clOsalMutexLock(&gXportCtrl.mutex);
+            clOsalMutexLock(&xportCtrl->mutex);
         }
     }
-    clOsalCondSignal(&gXportCtrl.cond);
-    clOsalMutexUnlock(&gXportCtrl.mutex);
+    clOsalCondSignal(&xportCtrl->cond);
+    clOsalMutexUnlock(&xportCtrl->mutex);
     free(epoll_events);
     return CL_OK;
 }
@@ -952,15 +965,19 @@ ClRcT clTransportBroadcastListGet(const ClCharT *hostXport, ClIocPhysicalAddress
     return rc;
 }
 
-ClRcT clTransportListenerRegister(ClInt32T fd, ClRcT (*dispatchCallback)(ClInt32T fd, ClInt32T events, void *cookie),
-                                  void *cookie)
+static ClRcT clTransportListenerRegisterWithContext(ClXportCtrlT *xportCtrl,
+                                                    ClInt32T fd, 
+                                                    ClRcT (*dispatchCallback)
+                                                    (ClInt32T fd, ClInt32T events, void *cookie),
+                                                    void *cookie)
 {
     ClXportListenerT *listener = NULL;
     ClRcT rc = CL_OK;
+    if(!xportCtrl) xportCtrl = &gXportCtrlDefault;
     listener = calloc(1, sizeof(*listener));
     CL_ASSERT(listener != NULL);
     listener->fd = fd;
-    rc = listenerEventRegister(listener, EPOLLIN | EPOLLPRI, dispatchCallback, cookie);
+    rc = listenerEventRegister(xportCtrl, listener, EPOLLIN | EPOLLPRI, dispatchCallback, cookie);
     if(rc != CL_OK)
     {
         clLogError("XPORT", "LISTENER", "Xport listener register for fd [%d] returned with [%#x]", fd, rc);
@@ -970,19 +987,29 @@ ClRcT clTransportListenerRegister(ClInt32T fd, ClRcT (*dispatchCallback)(ClInt32
     return rc;
 }
 
-ClRcT clTransportListenerDeregister(ClInt32T fd)
+ClRcT clTransportListenerRegister(ClInt32T fd, 
+                                  ClRcT (*dispatchCallback)
+                                  (ClInt32T fd, ClInt32T events, void *cookie),
+                                  void *cookie)
+{
+    return clTransportListenerRegisterWithContext(&gXportCtrlDefault, fd, dispatchCallback, cookie);
+}
+
+static ClRcT clTransportListenerDeregisterWithContext(ClXportCtrlT *xportCtrl, ClInt32T fd)
 {
     ClRcT rc = CL_OK;
     ClXportListenerT *listener = NULL;
-    clOsalMutexLock(&gXportCtrl.mutex);
-    listener = listenerFind(fd);
+    if(!xportCtrl) xportCtrl = &gXportCtrlDefault;
+
+    clOsalMutexLock(&xportCtrl->mutex);
+    listener = listenerFind(xportCtrl, fd);
     if(!listener)
     {
-        clOsalMutexUnlock(&gXportCtrl.mutex);
+        clOsalMutexUnlock(&xportCtrl->mutex);
         return CL_ERR_NOT_EXIST;
     }
-    rc = listenerEventDeregister(listener);
-    clOsalMutexUnlock(&gXportCtrl.mutex);
+    rc = listenerEventDeregister(xportCtrl, listener);
+    clOsalMutexUnlock(&xportCtrl->mutex);
     if(rc != CL_OK)
     {
         return rc;
@@ -990,6 +1017,173 @@ ClRcT clTransportListenerDeregister(ClInt32T fd)
     close(listener->fd);
     free(listener);
     return rc;
+}
+
+ClRcT clTransportListenerDeregister(ClInt32T fd)
+{
+    return clTransportListenerDeregisterWithContext(&gXportCtrlDefault, fd);
+}
+
+static ClRcT transportListenerInitialize(ClXportCtrlT *xportCtrl)
+{
+    ClRcT rc = CL_OK;
+    ClInt32T breaker[2] = {-1,-1};
+    if(!xportCtrl) xportCtrl = &gXportCtrlDefault;
+    /*
+     * Create the breaker.
+     */
+    xportCtrl->breaker[0] = xportCtrl->breaker[1] = -1;
+    if(pipe(breaker) < 0)
+    {
+        clLogError("XPORT", "LISTENER", "Breaker pipe creation failed with error [%s]",
+                   strerror(errno));
+        return CL_ERR_LIBRARY;
+    }
+    fcntl(breaker[0], F_SETFD, FD_CLOEXEC);
+    fcntl(breaker[1], F_SETFD, FD_CLOEXEC);
+    rc = clTransportListenerRegisterWithContext(xportCtrl, breaker[0], transportBreaker, NULL);
+    if(rc != CL_OK)
+    {
+        goto out_deregister;
+    }
+    xportCtrl->breaker[0] = breaker[0];
+    xportCtrl->breaker[1] = breaker[1];
+    /*
+     * Create the listener pool on the first create.
+     */
+    if(!xportCtrl->pool)
+    {
+        xportCtrl->flags |= __LISTENER_ACTIVE;
+        rc = clTaskPoolCreate(&xportCtrl->pool, 1, NULL, NULL);
+        if(rc != CL_OK)
+        {
+            clLogError("UDP", "LISTENER", "Task pool create failed with error [%#x]", rc);
+            goto out_deregister;
+        }
+        rc = clTaskPoolRun(xportCtrl->pool, transportListener, (ClPtrT)xportCtrl);
+        if(rc != CL_OK)
+        {
+            clLogError("UDP", "LISTENER", "Task pool run failed with error [%#x]", rc);
+            goto out_delete;
+        }
+    }
+    goto out;
+
+    out_delete:
+    clTaskPoolDelete(xportCtrl->pool);
+    xportCtrl->pool = 0;
+    
+    out_deregister:
+    clTransportListenerDeregisterWithContext(xportCtrl, breaker[0]);
+    close(breaker[1]);
+    xportCtrl->breaker[0] = xportCtrl->breaker[1] = -1;
+
+    out:
+    return rc;
+}
+
+static ClRcT transportInitListener(ClXportCtrlT *xportCtrl)
+{
+    ClRcT rc = CL_OK;
+
+    if(!xportCtrl) xportCtrl = &gXportCtrlDefault;
+
+    rc = clOsalMutexInit(&xportCtrl->mutex);
+    CL_ASSERT(rc == CL_OK);
+    rc = clOsalCondInit(&xportCtrl->cond);
+    CL_ASSERT(rc == CL_OK);
+
+    CL_LIST_HEAD_INIT(&xportCtrl->listenerList);
+
+    xportCtrl->flags |= __LISTENER_INITIALIZED;
+
+    if( (xportCtrl->eventFd = epoll_create(16) ) < 0 )
+    {
+        clLogError("UDP", "INI", "epoll create returned with error [%s]", strerror(errno));
+        goto out;
+    }
+    
+    rc = transportListenerInitialize(xportCtrl);
+
+    out:
+    return rc;
+}
+
+ClRcT clTransportListenerCreate(ClTransportListenerHandleT *handle)
+{
+    ClXportCtrlT *xportCtrl = NULL;
+    ClRcT rc = CL_OK;
+    if(!handle) return CL_ERR_INVALID_PARAMETER;
+    xportCtrl = clHeapCalloc(1, sizeof(*xportCtrl));
+    CL_ASSERT(xportCtrl != NULL);
+    rc = transportInitListener(xportCtrl);
+    if(rc != CL_OK)
+    {
+        goto out_free;
+    }
+    *handle = (ClTransportListenerHandleT)xportCtrl;
+    return rc;
+    
+    out_free:
+    if(XPORT_LISTENER_INITIALIZED(xportCtrl))
+    {
+        clOsalMutexDestroy(&xportCtrl->mutex);
+        clOsalCondDestroy(&xportCtrl->cond);
+    }
+    clHeapFree(xportCtrl);
+    return rc;
+}
+
+ClRcT clTransportListenerDestroy(ClTransportListenerHandleT *handle)
+{
+    ClRcT rc = CL_OK;
+    ClXportCtrlT *xportCtrl = NULL;
+
+    if(!handle || !(xportCtrl = (ClXportCtrlT*)*handle))
+        return CL_ERR_INVALID_PARAMETER;
+
+    *handle = 0;
+    rc = transportListenerFinalize(xportCtrl);
+    if(rc != CL_OK)
+    {
+        clLogError("XPORT", "LISTENER", "Listener delete returned with [%#x]", rc);
+        goto out_free;
+    }
+    return rc;
+
+    out_free:
+    if(XPORT_LISTENER_INITIALIZED(xportCtrl))
+    {
+        clOsalMutexDestroy(&xportCtrl->mutex);
+        clOsalCondDestroy(&xportCtrl->cond);
+    }
+    clHeapFree(xportCtrl);
+    return rc;
+}
+
+ClRcT clTransportListenerAdd(ClTransportListenerHandleT handle, ClInt32T fd,
+                             ClRcT (*dispatchCallback)(ClInt32T fd, ClInt32T events, void *cookie),
+                             void *cookie)
+{
+    ClXportCtrlT *xportCtrl = (ClXportCtrlT*)handle;
+    if(!handle) return CL_ERR_INVALID_PARAMETER;
+
+    if(!XPORT_LISTENER_INITIALIZED(xportCtrl) 
+       ||
+       !XPORT_LISTENER_ACTIVE(xportCtrl))
+    {
+        return CL_ERR_INVALID_STATE;
+    }
+
+    return clTransportListenerRegisterWithContext(xportCtrl, fd, dispatchCallback, cookie);
+}
+
+ClRcT clTransportListenerDel(ClTransportListenerHandleT handle, ClInt32T fd)
+{
+    ClXportCtrlT *xportCtrl = (ClXportCtrlT*)handle;
+    if(!xportCtrl) return CL_ERR_INVALID_PARAMETER;
+
+    return clTransportListenerDeregisterWithContext(xportCtrl, fd);
 }
 
 static void *transportPrivateDataGet(ClInt32T fd, ClIocPortT port, ClXportPrivateDataT **xportPrivate)
@@ -1044,84 +1238,6 @@ void *clTransportPrivateDataDelete(ClInt32T fd, ClIocPortT port)
     hashDel(&xportPrivate->hash);
     clHeapFree(xportPrivate);
     return curPrivate;
-}
-
-static ClRcT transportListenerInitialize(void)
-{
-    ClRcT rc = CL_OK;
-    ClInt32T breaker[2] = {-1,-1};
-    /*
-     * Create the breaker.
-     */
-    gXportCtrl.breaker[0] = gXportCtrl.breaker[1] = -1;
-    if(pipe(breaker) < 0)
-    {
-        clLogError("XPORT", "LISTENER", "Breaker pipe creation failed with error [%s]",
-                   strerror(errno));
-        return CL_ERR_LIBRARY;
-    }
-    fcntl(breaker[0], F_SETFD, FD_CLOEXEC);
-    fcntl(breaker[1], F_SETFD, FD_CLOEXEC);
-    rc = clTransportListenerRegister(breaker[0], transportBreaker, NULL);
-    if(rc != CL_OK)
-    {
-        goto out_deregister;
-    }
-    gXportCtrl.breaker[0] = breaker[0];
-    gXportCtrl.breaker[1] = breaker[1];
-    /*
-     * Create the listener pool on the first create.
-     */
-    if(!gXportCtrl.pool)
-    {
-        gXportCtrl.running = CL_TRUE;
-        rc = clTaskPoolCreate(&gXportCtrl.pool, 1, NULL, NULL);
-        if(rc != CL_OK)
-        {
-            clLogError("UDP", "LISTENER", "Task pool create failed with error [%#x]", rc);
-            goto out_deregister;
-        }
-        rc = clTaskPoolRun(gXportCtrl.pool, transportListener, NULL);
-        if(rc != CL_OK)
-        {
-            clLogError("UDP", "LISTENER", "Task pool run failed with error [%#x]", rc);
-            goto out_delete;
-        }
-    }
-    goto out;
-
-    out_delete:
-    clTaskPoolDelete(gXportCtrl.pool);
-    gXportCtrl.pool = 0;
-    
-    out_deregister:
-    clTransportListenerDeregister(breaker[0]);
-    close(breaker[1]);
-    gXportCtrl.breaker[0] = gXportCtrl.breaker[1] = -1;
-
-    out:
-    return rc;
-}
-
-static ClRcT transportInit(void)
-{
-    ClRcT rc = CL_OK;
-
-    rc = clOsalMutexInit(&gXportCtrl.mutex);
-    CL_ASSERT(rc == CL_OK);
-    rc = clOsalCondInit(&gXportCtrl.cond);
-    CL_ASSERT(rc == CL_OK);
-
-    if( (gXportCtrl.eventFd = epoll_create(16) ) < 0 )
-    {
-        clLogError("UDP", "INI", "epoll create returned with error [%s]", strerror(errno));
-        goto out;
-    }
-    
-    rc = transportListenerInitialize();
-
-    out:
-    return rc;
 }
 
 static ClRcT setDefaultXport(ClParserPtrT parent)
@@ -1650,7 +1766,7 @@ ClRcT clTransportLayerInitialize(void)
 
     _clTransportGmsTimerInitCallback();
 
-    rc = transportInit();
+    rc = transportInitListener(&gXportCtrlDefault);
     if(rc != CL_OK)
     {
         clTransportLayerFinalize();
@@ -2721,7 +2837,7 @@ ClRcT clTransportLayerFinalize(void)
         clListDel(&xport->xportList);
         transportFree(xport);
     }
-    transportListenerFinalize();
+    transportListenerFinalize(&gXportCtrlDefault);
     return CL_OK;
 }
 

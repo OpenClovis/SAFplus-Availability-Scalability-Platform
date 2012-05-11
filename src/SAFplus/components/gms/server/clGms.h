@@ -109,6 +109,9 @@ typedef struct {
     ClUint32T               bootElectionTimeout;
 
     ClUint32T               leaderSoakInterval;
+    
+    ClUint32T               leaderReElectInterval;
+
 }  ClGmsConfigT;
 
 

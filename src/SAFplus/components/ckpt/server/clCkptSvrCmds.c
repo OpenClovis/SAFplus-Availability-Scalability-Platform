@@ -1236,11 +1236,29 @@ ClRcT  ckptCPlaneInfoShow( CkptCPlaneInfoT    *pCpInfo,
     clDebugPrint(msg,"\n\n\t Control plane information.....");
     if (pCpInfo->updateOption & CL_CKPT_WR_ALL_REPLICAS)
     {
-       clDebugPrint(msg,"\n\t\t Update Option: Sync");
+        const ClCharT *type = "Sync";
+        if(pCpInfo->updateOption & CL_CKPT_DISTRIBUTED)
+        {
+            type = "Sync [hot-standby]";
+        }
+        clDebugPrint(msg,"\n\t\t Update Option: %s", type);
     }
     else if (pCpInfo->updateOption & CL_CKPT_WR_ACTIVE_REPLICA)
     {
-        clDebugPrint(msg,"\n\t\t Update Option: Async");
+        const ClCharT *type = "Async";
+        if(pCpInfo->updateOption & CL_CKPT_CHECKPOINT_COLLOCATED)
+        {
+            type = "Async collocated";
+            if(pCpInfo->updateOption & CL_CKPT_DISTRIBUTED)
+            {
+                type = "Async collocated [hot-standby]";
+            }
+        }
+        else if(pCpInfo->updateOption & CL_CKPT_DISTRIBUTED)
+        {
+            type = "Async [hot-standby]";
+        }
+        clDebugPrint(msg,"\n\t\t Update Option: %s", type);
     }
     else if (pCpInfo->updateOption & CL_CKPT_WR_ACTIVE_REPLICA_WEAK)
     {
@@ -1254,9 +1272,9 @@ ClRcT  ckptCPlaneInfoShow( CkptCPlaneInfoT    *pCpInfo,
     {
         clDebugPrint(msg,"\n\t\t Update Option: Safe Sync");   
     }
-    else if (pCpInfo->updateOption & CL_CKPT_COLLOCATED_SAFE)
+    else if(pCpInfo->updateOption & CL_CKPT_DISTRIBUTED)
     {
-        clDebugPrint(msg,"\n\t\t Update Option: Safe Collocated");   
+        clDebugPrint(msg,"\n\t\t Update Option: Async hot-standby");
     }
     else 
     {

@@ -86,11 +86,6 @@ extern "C" {
 #define CL_CKPT_WR_ALL_SAFE            0X20
 
 /**
- *  Safe Collocated checkpoint. This is not defined by SAF but an extension by OpenClovis ASP.
- */
-#define CL_CKPT_COLLOCATED_SAFE        0X30
-
-/**
  *  OpenClovis extension.  If this flag is set, all nodes that open this checkpoint will become a replica.  Good for 1+N redundancy
  */
 #define CL_CKPT_ALL_OPEN_ARE_REPLICAS  0x40

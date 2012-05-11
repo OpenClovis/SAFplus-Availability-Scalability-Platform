@@ -286,13 +286,21 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
      */
     gmsGlobalInfo.config.bootElectionTimeout = CL_GMS_DEFAULT_BOOT_ELECTION_TIMEOUT;
     gmsGlobalInfo.config.leaderSoakInterval = CL_GMS_DEFAULT_BOOT_ELECTION_TIMEOUT;
-
+    gmsGlobalInfo.config.leaderReElectInterval = 3; /* 3 seconds for a link split re-elect detection*/
     if( (temp = getenv("CL_ASP_LEADER_SOAK_INTERVAL") ) )
     {
         ClUint32T leaderSoakInterval = atoi(temp);
         if(leaderSoakInterval > 0)
         {
             gmsGlobalInfo.config.leaderSoakInterval = leaderSoakInterval;
+        }
+    }
+    if( (temp = getenv("CL_ASP_LEADER_REELECT_INTERVAL") ) )
+    {
+        ClUint32T leaderReElectInterval = atoi(temp);
+        if(leaderReElectInterval > 0)
+        {
+            gmsGlobalInfo.config.leaderReElectInterval = leaderReElectInterval;
         }
     }
 
