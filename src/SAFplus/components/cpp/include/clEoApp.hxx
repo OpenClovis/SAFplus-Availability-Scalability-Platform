@@ -19,17 +19,29 @@
  * Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef EO_APP_H
-#define EO_APP_H
+#ifndef CL_SAF_APP_H
+#define CL_SAF_APP_H
 
-#include <clCpmApi.h>
-#include <clEoApi.h>
-#include <clOsalApi.h>
+#include <clCommon.h>
+#include <clLogApi.h>
 #include <clDebugApi.h>
 #include <clDbg.h>
+#include <saAmf.h>
 
-namespace clAsp
+#include <clCpmApi.h>
+//#include <clEoApi.h>
+//#include <clOsalApi.h>
+
+namespace SAFplus
 {
+
+  // All application level errors are raised through this exception.
+  class clAppException
+  {
+  public:
+    clAppException(const char *s,int err) { errcode = err; }
+    int errcode;
+  };
 
 class clMutexLocker
 {
@@ -49,18 +61,32 @@ class clMutexLocker
   
 };
 
-class EoApp
+class App
 {
  public:
-
+  SaAmfHandleT                  amfHandle;
   ClCpmHandleT                  cpmHandle;
   ClNameT                       appName;
   unsigned int                  pid;
   ClIocPortT                    msgPort;
   ClIocNodeAddressT             msgAddr;
+  fd_set read_fds;
 
-  EoApp();
-  virtual ~EoApp();
+  App();
+  virtual ~App();
+
+  // Call this function to initialize the EO once your setup is completed.
+  void init(char releaseCode='B',int majorVersion=1, int minorVersion=1);
+
+
+  // Handle AMF callbacks until shutdown
+  void dispatchForever();
+
+  // Handle all queued AMF callbacks
+  void dispatch();
+
+  // All done (called automatically by destructor)
+  void finalize();
 
   /// APPLICATION CALLBACKS
 
@@ -117,11 +143,7 @@ class EoApp
 
 };
 
-
-/** You must define this function to return your class derived from EoApp. */
-EoApp* EoAppFactory();
-
-class EoAppThreadForWork;
+class AppThreadForWork;
 
 class WorkStatus
 {
@@ -134,9 +156,9 @@ class WorkStatus
   ClOsalCondT           change;
   ClOsalTaskIdT         thread;
 
-  EoAppThreadForWork*   app;
+  AppThreadForWork*   app;
 
-  void Init(unsigned int handl, EoAppThreadForWork* ap)
+  void Init(unsigned int handl, AppThreadForWork* ap)
     {
       taskName[0] = 0;
       handle = handl;
@@ -161,7 +183,7 @@ class WorkStatus
 
 
 
-class EoAppThreadForWork: public EoApp
+class AppThreadForWork: public App
 {
   public:
   bool                  standbyIsThreaded;  /**< Set to true if "Standby" work assignments should still have a running thread. */
@@ -177,14 +199,14 @@ class EoAppThreadForWork: public EoApp
 
   WorkStatus work[MaxWork];
 
-  EoAppThreadForWork()
+  AppThreadForWork()
     {
       threadSched    = CL_OSAL_SCHED_OTHER;
       threadPriority = CL_OSAL_THREAD_PRI_NOT_APPLICABLE;
       clOsalRecursiveMutexInit(&exclusion);
     }
 
-  ~EoAppThreadForWork();
+  ~AppThreadForWork();
 
   virtual void ActivateWorkAssignment (const ClAmsCSIDescriptorT& workDescriptor);
   virtual void StandbyWorkAssignment  (const ClAmsCSIDescriptorT& workDescriptor);
