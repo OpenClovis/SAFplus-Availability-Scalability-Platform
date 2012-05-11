@@ -22,79 +22,159 @@
 
 #include "clEoApp.hxx"
 
-namespace clAsp
+namespace SAFplus
 {
 
-EoApp::EoApp()
+App::App()
 {}
 
-EoApp::~EoApp()
+App::~App()
 {}
 
 
-void EoApp::Start()
+void App::Start()
 {
   // Not implementing this is ok.
 }
 
+  void App::init(char releaseCode,int majorVersion, int minorVersion)
+  {
+    pid = getpid();  // Get the pid for the process and store in member variable.
 
-void EoApp::Stop()
+   /*
+     * Initialize and register with CPM. 'version' specifies the
+     * version of AMF with which this application would like to
+     * interface. 'callbacks' is used to register the callbacks this
+     * component expects to receive.
+     */
+
+    version.releaseCode  = releaseCode;
+    version.majorVersion = majorVersion;
+    version.minorVersion = minorVersion;
+    
+    callbacks.saAmfHealthcheckCallback          = NULL;
+    callbacks.saAmfComponentTerminateCallback   = clCompAppTerminate;
+    callbacks.saAmfCSISetCallback               = clCompAppAMFCSISet;
+    callbacks.saAmfCSIRemoveCallback            = clCompAppAMFCSIRemove;
+    callbacks.saAmfProtectionGroupTrackCallback = NULL;
+        
+    // Initialize AMF client library.
+    if ( (rc = saAmfInitialize(&amfHandle, &callbacks, &version)) != SA_AIS_OK) 
+      throw new clAppException("Cannot connect to SAF Availability Management Framework (AMF)", rc);
+    
+    // Get the AMF dispatch FD for the callbacks
+    SaSelectionObjectT dispatch_fd;
+    FD_ZERO(&read_fds);
+    if ( (rc = saAmfSelectionObjectGet(amfHandle, &dispatch_fd)) != SA_AIS_OK)
+        goto errorexit;   
+    FD_SET(dispatch_fd, &read_fds);
+
+    // Now register the component with AMF. At this point it is ready to provide service, i.e. take work assignments.
+
+    if ( (rc = saAmfComponentNameGet(amfHandle, &appName)) != SA_AIS_OK) 
+        goto errorexit;
+    if ( (rc = saAmfComponentRegister(amfHandle, &appName, NULL)) != SA_AIS_OK) 
+        goto errorexit;
+
+    clEoMyEoIocPortGet(&msgPort);
+    // Log that I am alive    
+    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Initializing\n", appName.length, appName.value, mypid);
+    clprintf (CL_LOG_SEV_INFO, "   IOC Address             : 0x%x\n", clIocLocalAddressGet());
+    clprintf (CL_LOG_SEV_INFO, "   IOC Port                : 0x%x\n", msgPort);
+
+  }
+
+  void App::dispatchForever(void)
+  {
+    // Block on AMF dispatch file descriptor for callbacks
+    do
+    {
+        if( select(dispatch_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
+        {
+            if (EINTR == errno)
+            {
+                continue;
+            }
+		    clprintf (CL_LOG_SEV_ERROR, "Error in select()");
+			perror("");
+            break;
+        }
+        saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+    }while(!unblockNow);      
+  }
+
+void App::dispatch()
+  {
+    assert(0);  // TBD
+  }
+
+void App::finalize(void)
+  {
+    if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
+	{
+        clprintf (CL_LOG_SEV_ERROR, "AMF finalization error[0x%X]", rc);
+	}
+    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Left SAF AMF framework\n", appName.length, appName.value, mypid);
+  }
+
+
+void App::Stop()
 {
   clDbgNotImplemented(("EO %s function not overridden", __PRETTY_FUNCTION__));
 }
 
-void EoApp::Suspend()
+void App::Suspend()
 {
 }
 
-void EoApp::Resume()
+void App::Resume()
 {
 }
 
-ClRcT EoApp::HealthCheck()
+ClRcT App::HealthCheck()
 {
   return CL_OK;
 }
 
 
-void EoApp::ActivateWorkAssignment (const ClAmsCSIDescriptorT& workDescriptor)
+void App::ActivateWorkAssignment (const ClAmsCSIDescriptorT& workDescriptor)
 {
   clDbgNotImplemented(("EO %s function not overridden", __PRETTY_FUNCTION__));
 }
 
 
-void EoApp::RemoveWorkAssignment (const ClNameT* workName, int all)
+void App::RemoveWorkAssignment (const ClNameT* workName, int all)
 {
   clDbgNotImplemented(("EO %s function not overridden", __PRETTY_FUNCTION__));
 }
 
-void EoApp::StandbyWorkAssignment  (const ClAmsCSIDescriptorT& workDescriptor)
+void App::StandbyWorkAssignment  (const ClAmsCSIDescriptorT& workDescriptor)
 {
   clDbgNotImplemented(("EO %s function not overridden", __PRETTY_FUNCTION__));
 }
 
-void EoApp::QuiesceWorkAssignment  (const ClAmsCSIDescriptorT& workDescriptor)
+void App::QuiesceWorkAssignment  (const ClAmsCSIDescriptorT& workDescriptor)
 {
   clDbgNotImplemented(("EO %s function not overridden", __PRETTY_FUNCTION__));
 }
 
-void EoApp::AbortWorkAssignment    (const ClAmsCSIDescriptorT& workDescriptor)
+void App::AbortWorkAssignment    (const ClAmsCSIDescriptorT& workDescriptor)
 {
   clDbgNotImplemented(("EO %s function not overridden", __PRETTY_FUNCTION__));
 }
 
-void EoAppThreadForWork::DoWork(WorkStatus* ws)
+void AppThreadForWork::DoWork(WorkStatus* ws)
 {
   clDbgNotImplemented(("EO %s function must be overridden", __PRETTY_FUNCTION__));
 }
 
-EoAppThreadForWork::~EoAppThreadForWork()
+AppThreadForWork::~AppThreadForWork()
 {
   clDbgNotImplemented(("destructor"));
 }
 
 
-void EoAppThreadForWork::RemoveWorkAssignment (const ClNameT* workName, int all)
+void AppThreadForWork::RemoveWorkAssignment (const ClNameT* workName, int all)
 {
   WorkStatus* ws;
   clMutexLocker lock(exclusion);
@@ -114,7 +194,7 @@ void EoAppThreadForWork::RemoveWorkAssignment (const ClNameT* workName, int all)
 
 
 
-void EoAppThreadForWork::ActivateWorkAssignment (const ClAmsCSIDescriptorT& workDescriptor)
+void AppThreadForWork::ActivateWorkAssignment (const ClAmsCSIDescriptorT& workDescriptor)
 {
   clMutexLocker lock(exclusion);
 
@@ -134,7 +214,7 @@ void EoAppThreadForWork::ActivateWorkAssignment (const ClAmsCSIDescriptorT& work
 }
 
 
-void EoAppThreadForWork::StandbyWorkAssignment  (const ClAmsCSIDescriptorT& workDescriptor)
+void AppThreadForWork::StandbyWorkAssignment  (const ClAmsCSIDescriptorT& workDescriptor)
 {
   clMutexLocker lock(exclusion);
 
@@ -154,7 +234,7 @@ void EoAppThreadForWork::StandbyWorkAssignment  (const ClAmsCSIDescriptorT& work
 
 }
 
-void EoAppThreadForWork::QuiesceWorkAssignment  (const ClAmsCSIDescriptorT& workDescriptor)
+void AppThreadForWork::QuiesceWorkAssignment  (const ClAmsCSIDescriptorT& workDescriptor)
 {
   clMutexLocker lock(exclusion);
 
@@ -170,7 +250,7 @@ void EoAppThreadForWork::QuiesceWorkAssignment  (const ClAmsCSIDescriptorT& work
   clOsalCondBroadcast(&ws->change);  
 }
 
-void EoAppThreadForWork::AbortWorkAssignment    (const ClAmsCSIDescriptorT& workDescriptor)
+void AppThreadForWork::AbortWorkAssignment    (const ClAmsCSIDescriptorT& workDescriptor)
 {
   clMutexLocker lock(exclusion);
 
@@ -185,7 +265,7 @@ void EoAppThreadForWork::AbortWorkAssignment    (const ClAmsCSIDescriptorT& work
 }
 
 
-void EoAppThreadForWork::AbortWorkAssignment    (WorkStatus* ws)
+void AppThreadForWork::AbortWorkAssignment    (WorkStatus* ws)
 {
   // Not abnormal to have a double, because the RemoveWorkAssignment() function calls this one...
   //clDbgCheck (ws->state != CL_AMS_HA_STATE_QUIESCED, return, ("Double abort of work assignment %s, ignoring", ws->descriptor.csiName.value ));
@@ -206,7 +286,7 @@ void* WorkAssignmentThreadEntry(void* w)
   return 0;
 }
 
-WorkStatus* EoAppThreadForWork::GetWorkStatus(unsigned int handle)
+WorkStatus* AppThreadForWork::GetWorkStatus(unsigned int handle)
 {
   clMutexLocker lock(exclusion);
 
@@ -219,7 +299,7 @@ WorkStatus* EoAppThreadForWork::GetWorkStatus(unsigned int handle)
 }
 
 
-WorkStatus* EoAppThreadForWork::GetWorkStatus(const ClNameT& workName)
+WorkStatus* AppThreadForWork::GetWorkStatus(const ClNameT& workName)
 {
   clMutexLocker lock(exclusion);
 
@@ -233,7 +313,7 @@ WorkStatus* EoAppThreadForWork::GetWorkStatus(const ClNameT& workName)
   return NULL;
 }
 
-WorkStatus* EoAppThreadForWork::GetNewHandle()
+WorkStatus* AppThreadForWork::GetNewHandle()
 {
   clMutexLocker lock(exclusion);
 
@@ -249,7 +329,7 @@ WorkStatus* EoAppThreadForWork::GetNewHandle()
   return NULL;
 }
 
-void EoAppThreadForWork::StartWorkThread(WorkStatus* ws)
+void AppThreadForWork::StartWorkThread(WorkStatus* ws)
 {
   snprintf(ws->taskName,80,"work assignment %s", ws->descriptor.csiName.value);
   ClRcT rc = clOsalTaskCreateAttached(ws->taskName, threadSched, threadPriority, 0, WorkAssignmentThreadEntry, ws, &ws->thread);
@@ -261,7 +341,7 @@ void EoAppThreadForWork::StartWorkThread(WorkStatus* ws)
 
 }
 
-void EoAppThreadForWork::Stop()
+void AppThreadForWork::Stop()
 {
   clMutexLocker lock(exclusion);
   /* Take all the threads down hard.  Probably "stop" should be nicer */
