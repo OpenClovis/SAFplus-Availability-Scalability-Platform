@@ -5,7 +5,7 @@
 #include <saAis.h>
 
 
-namespace clAsp
+namespace SAFplus
 {
 
 typedef enum
@@ -29,7 +29,7 @@ typedef enum
 class Error
 {
   public:
-  Error(ErrorFamily family, unsigned int returnCode, ExtendedErrorNumber extErrp=NoExtendedError, char* notep = NULL, char* filep = __FILE__, int linep = __LINE__)
+  Error(ErrorFamily family, unsigned int returnCode, ExtendedErrorNumber extErrp=NoExtendedError, const char* notep = NULL, const char* filep = __FILE__, int linep = __LINE__)
   {
    file     = filep;
    line     = linep;
@@ -48,7 +48,7 @@ class Error
    unsigned int rc;
    ExtendedErrorNumber extErr;
    char         note[CL_LOG_MAX_MSG_LEN+1];
-   char*        file;
+   const char*  file;
    int          line;
 };
 

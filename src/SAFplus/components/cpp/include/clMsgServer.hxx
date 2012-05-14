@@ -3,7 +3,7 @@
 #include <clJobQueue.h>
 #include <clAppEvent.hxx>
 
-namespace clAsp
+namespace SAFplus
 {
 
   class MsgServer;

@@ -16,7 +16,7 @@
 
 ##### Component name (using all lowercase):
 
-COMPNAME	:= amf
+COMPNAME	:= none
 
 ##### Source files for the client of this component
 

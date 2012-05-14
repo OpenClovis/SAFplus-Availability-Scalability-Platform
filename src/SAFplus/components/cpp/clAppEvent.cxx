@@ -1,7 +1,7 @@
 #include <clAppEvent.hxx>
 
 
-namespace clAsp
+namespace SAFplus
 {
 
   AppEvent::AppEvent()
@@ -75,10 +75,4 @@ namespace clAsp
   void AppEvent::RemoveWorkAssignment (const SaNameT* workName, int all)
   {}
   
-};
-  
 }
-  
-  
-  
-};

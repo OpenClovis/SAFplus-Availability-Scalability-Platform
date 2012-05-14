@@ -29,7 +29,7 @@
 
 namespace clCheckpoint
 {
-  using namespace clAsp;
+  using namespace SAFplus;
   
   SaCkptHandleT svcHdl = 0;
   ClOsalMutexT  svcLock;

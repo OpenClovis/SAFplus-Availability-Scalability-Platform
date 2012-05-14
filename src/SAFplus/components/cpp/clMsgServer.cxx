@@ -10,7 +10,7 @@
 
 #define Log(severity, ...)   clAppLog(CL_LOG_HANDLE_APP, severity, 10, "C++", "MSQ",__VA_ARGS__)
 
-namespace clAsp
+namespace SAFplus
 {
 
   class MsgTracker
@@ -77,6 +77,10 @@ namespace clAsp
     if (flags & AUTO_ACTIVATE) AutoActivate();
   }
 
+  void MsgServer::AutoActivate()
+  {
+    // GAS TO DO
+  }
 
   void SynchronousMakePrimary(MsgServer* q)
   {
