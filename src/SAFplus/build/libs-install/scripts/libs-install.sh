@@ -46,6 +46,10 @@ echo -n "Installing ASP headers to $PREFIX..."
 cd $INCLUDE_PATH
 find $CLOVIS_ROOT/ASP/components -name '*.h' | \
     $AWK '{ str=sprintf("cp %s .", $0); system(str) }'
+
+find $CLOVIS_ROOT/ASP/components -regex '.*\.hxx$' | \
+    $AWK '{ str=sprintf("cp %s .", $0); system(str) }'
+    
 find $CLOVIS_ROOT/ASP/components -name '*.h' | \
     grep ipi | \
     $AWK '{ str=sprintf("cp %s ipi/.", $0); system(str) }'

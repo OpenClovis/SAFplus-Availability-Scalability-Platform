@@ -65,12 +65,15 @@ class App
 {
  public:
   SaAmfHandleT                  amfHandle;
-  ClCpmHandleT                  cpmHandle;
-  ClNameT                       appName;
+  SaNameT                       appName;
   unsigned int                  pid;
   ClIocPortT                    msgPort;
   ClIocNodeAddressT             msgAddr;
-  fd_set read_fds;
+  SaSelectionObjectT            dispatch_fd;
+  fd_set                        read_fds;
+  SaVersionT                    version;
+  SaAmfCallbacksT               callbacks;
+  ClBoolT                       unblockNow;
 
   App();
   virtual ~App();
@@ -86,7 +89,7 @@ class App
   void dispatch();
 
   // All done (called automatically by destructor)
-  void finalize();
+  ClUint32T finalize();
 
   /// APPLICATION CALLBACKS
 
