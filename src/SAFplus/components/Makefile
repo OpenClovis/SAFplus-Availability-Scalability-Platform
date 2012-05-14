@@ -50,7 +50,8 @@ SUBDIRS    = $(CM_DIR) ground \
              log    \
 			 mso    \
 			 pm     \
-             ntf
+             ntf \
+             cpp
 
 SUBDIRS += mw
 
