@@ -19,50 +19,73 @@
  * Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef CL_APP_H
-#define CL_APP_H
+#ifndef CL_SAF_APP_H
+#define CL_SAF_APP_H
 
-#include <saAis.h>
+#include <clCommon.h>
+#include <clLogApi.h>
+#include <clDebugApi.h>
+#include <clDbg.h>
 #include <saAmf.h>
 
 #include <clCpmApi.h>
-#include <clOsalApi.h>
-#include <clDebugApi.h>
-#include <clDbg.h>
+//#include <clEoApi.h>
+//#include <clOsalApi.h>
 
-namespace clAsp
+namespace SAFplus
 {
 
-class ClMutexLocker
+  // All application level errors are raised through this exception.
+  class clAppException
+  {
+  public:
+    clAppException(const char *s,int err) { errcode = err; }
+    int errcode;
+  };
+
+class clMutexLocker
 {
  protected:
   ClOsalMutexT& mutex;
 
  public:
-  ClMutexLocker(ClOsalMutexT& mut): mutex(mut)
+  clMutexLocker(ClOsalMutexT& mut): mutex(mut)
     {
       clOsalMutexLock(&mutex);
     }
 
-  ~ClMutexLocker()
+  ~clMutexLocker()
     {
       clOsalMutexUnlock(&mutex);
     }
   
 };
 
-class App:public AppEvent
+class App
 {
  public:
-
-  ClCpmHandleT                  cpmHandle;
+  SaAmfHandleT                  amfHandle;
   SaNameT                       appName;
   unsigned int                  pid;
   ClIocPortT                    msgPort;
   ClIocNodeAddressT             msgAddr;
-
+  SaSelectionObjectT            dispatch_fd;
+  bool                          unblockNow;
   App();
   virtual ~App();
+
+  // Call this function to initialize the EO once your setup is completed.
+  void init(char releaseCode='B',int majorVersion=1, int minorVersion=1);
+
+
+  // Handle AMF callbacks until shutdown
+  void dispatchForever();
+
+  // Handle all queued AMF callbacks
+  void dispatch();
+
+  // All done (called automatically by destructor)
+  void finalize();
 
   /// APPLICATION CALLBACKS
 
@@ -119,7 +142,6 @@ class App:public AppEvent
 
 };
 
-
 class AppThreadForWork;
 
 class WorkStatus
@@ -128,7 +150,7 @@ class WorkStatus
   ClCharT               taskName[80];
   unsigned int          handle;
   SaAmfCSIDescriptorT   descriptor;
-  ClAmsHAStateT         state;
+  SaAmfHAStateT         state;
   ClOsalMutexT          exclusion;
   ClOsalCondT           change;
   ClOsalTaskIdT         thread;
@@ -140,7 +162,7 @@ class WorkStatus
       taskName[0] = 0;
       handle = handl;
       app    = ap;
-      state  = CL_AMS_HA_STATE_NONE;
+      state  = (SaAmfHAStateT) 0;
       clOsalRecursiveMutexInit(&exclusion);
       clOsalCondInit(&change);
       thread = 0;
@@ -150,7 +172,7 @@ class WorkStatus
     {
       taskName[0] = 0;
       handle      = 0;
-      state       = CL_AMS_HA_STATE_NONE;
+      state  = (SaAmfHAStateT) 0;
       clOsalMutexDelete(&exclusion);
       thread = 0;
     }
@@ -176,7 +198,7 @@ class AppThreadForWork: public App
 
   WorkStatus work[MaxWork];
 
-  ClSaAppThreadForWork()
+  AppThreadForWork()
     {
       threadSched    = CL_OSAL_SCHED_OTHER;
       threadPriority = CL_OSAL_THREAD_PRI_NOT_APPLICABLE;
@@ -213,11 +235,5 @@ class AppThreadForWork: public App
   void AbortWorkAssignment    (WorkStatus* ws);
 
 };
-
-}
-
-/** You must define this function to return your class derived from clSaApp. */
-clAsp::App* clAppFactory();
-
-
+};
 #endif

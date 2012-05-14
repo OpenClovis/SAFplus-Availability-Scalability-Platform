@@ -1,7 +1,7 @@
 #include <saAis.h>
 #include <saAmf.h>
 
-namespace clAsp
+namespace SAFplus
 {
 
 class AppEvent

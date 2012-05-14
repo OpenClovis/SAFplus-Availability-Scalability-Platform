@@ -16,11 +16,11 @@
 
 ##### Component name (using all lowercase):
 
-COMPNAME	:= amf
+COMPNAME	:= none
 
 ##### Source files for the client of this component
 
-SRC_FILES	:= clCheckpoint.cxx  clEoApp.cxx  clSaApp.cxx  clMsgServer.cxx
+SRC_FILES	:= clCheckpoint.cxx  clApp.cxx clMsgServer.cxx clAppEvent.cxx
 
 ##### ASP libraries needed to get this client built
 
@@ -28,11 +28,11 @@ DEP_COMP_LIST	:= cpp utils osal timer buffer cnt ioc eo amf rmd debug log ckpt
 
 ##### Libraries built for this component
 
-LIB_NAMES	= libClAspCpp
+#LIB_NAMES	= libClAspCpp
 LIB_NAMES       = libClSafAspCpp
 
-SRC_FILES_libClAspCpp		:= clCheckpoint.cxx  clSaApp.cxx  clMsgServer.cxx
-SRC_FILES_libClSafAspCpp	:= clCheckpoint.cxx  clEoApp.cxx  clMsgServer.cxx
+#SRC_FILES_libClAspCpp		:= clCheckpoint.cxx  clSaApp.cxx  clMsgServer.cxx
+SRC_FILES_libClSafAspCpp	:= clApp.cxx
 
 
 # List any third party libs needed to get this server built (or None):
