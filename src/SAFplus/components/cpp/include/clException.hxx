@@ -48,7 +48,7 @@ class Error
    unsigned int rc;
    ExtendedErrorNumber extErr;
    char         note[CL_LOG_MAX_MSG_LEN+1];
-   const char*  file;
+   const char*        file;
    int          line;
 };
 
