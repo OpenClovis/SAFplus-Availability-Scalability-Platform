@@ -144,15 +144,16 @@ clLogStreamOwnerDeleteCb(ClCntKeyHandleT key, ClCntDataHandleT data)
  *
  */
 ClRcT
-clLogStreamOwnerOpenCleanup(ClLogSOCookieT  *pCookie)
+clLogStreamOwnerOpenCleanup(ClNameT *pStreamName, ClNameT *pStreamScopeNode, ClLogSOCookieT  *pCookie)
 {
     ClRcT                  rc                = CL_OK;
     ClLogSOEoDataT         *pSoEoEntry       = NULL;
     ClLogStreamOwnerDataT  *pStreamOwnerData = NULL;
     ClLogSvrCommonEoDataT  *pCommonEoEntry   = NULL;
+    ClLogStreamKeyT *pStreamKey = NULL;
     ClUint32T              tableSize         = 0;
     ClCntHandleT           hStreamTable      = CL_HANDLE_INVALID_VALUE;
-
+    
     CL_LOG_DEBUG_TRACE(( "Enter"));
 
     rc = clLogStreamOwnerEoEntryGet(&pSoEoEntry, &pCommonEoEntry);
@@ -166,14 +167,32 @@ clLogStreamOwnerOpenCleanup(ClLogSOCookieT  *pCookie)
     {
         return rc;
     }    
+    rc = clLogStreamKeyCreate(pStreamName, pStreamScopeNode, 
+                              pCommonEoEntry->maxStreams, &pStreamKey);
+    
+    if(rc != CL_OK)
+    {
+        clLogSOUnlock(pSoEoEntry, pCookie->scope);
+        return rc;
+    }
+
     hStreamTable = (CL_LOG_STREAM_GLOBAL == pCookie->scope)
                    ? pSoEoEntry->hGStreamOwnerTable 
                    : pSoEoEntry->hLStreamOwnerTable ;
+    pCookie->hStreamNode = 0;
+    rc = clCntNodeFind(hStreamTable, (ClCntKeyHandleT) pStreamKey, &pCookie->hStreamNode);
+    if(rc != CL_OK)
+    {
+        clLogSOUnlock(pSoEoEntry, pCookie->scope);
+        clLogStreamKeyDestroy(pStreamKey);
+        return rc;
+    }
     rc = clCntNodeUserDataGet(hStreamTable, pCookie->hStreamNode,
                              (ClCntDataHandleT *) &pStreamOwnerData);
     if( CL_OK != rc )
     {
         clLogSOUnlock(pSoEoEntry, pCookie->scope);
+        clLogStreamKeyDestroy(pStreamKey);
         return rc;
     }    
     rc = clOsalMutexLock_L(&pStreamOwnerData->nodeLock);
@@ -181,6 +200,7 @@ clLogStreamOwnerOpenCleanup(ClLogSOCookieT  *pCookie)
     {
         /* nothing can be done, coz this itself is a cleanup function */
         clLogSOUnlock(pSoEoEntry, pCookie->scope);
+        clLogStreamKeyDestroy(pStreamKey);
         return rc;
     }
     CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, pCookie->scope), CL_OK);
@@ -193,6 +213,7 @@ clLogStreamOwnerOpenCleanup(ClLogSOCookieT  *pCookie)
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock), CL_OK);
+        clLogStreamKeyDestroy(pStreamKey);
         return rc;
     }
     CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock), CL_OK);
@@ -203,6 +224,7 @@ clLogStreamOwnerOpenCleanup(ClLogSOCookieT  *pCookie)
                     pCookie->hStreamNode), 
                 CL_OK);
     }
+    clLogStreamKeyDestroy(pStreamKey);
 
     CL_LOG_DEBUG_TRACE(( "Exit"));
     return rc;
@@ -1186,7 +1208,7 @@ clLogStreamOwnerMAVGResponse(ClIdlHandleT            hLogIdl,
     if( CL_OK != retCode )
     {
         /* In master, open failed, so reverting back to old */
-       rc = clLogStreamOwnerOpenCleanup(pCookie);
+        rc = clLogStreamOwnerOpenCleanup(pStreamName, pStreamScopeNode, pCookie);
     }
     clLogDebug("SOW", "OPE", "Sending the open response back to server retcode [0x %x]"
             "streamName: [%.*s]", retCode, pStreamName->length, pStreamName->value);

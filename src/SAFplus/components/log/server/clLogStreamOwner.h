@@ -255,7 +255,7 @@ clLogStreamOwnerCompEntryAdd(ClLogStreamOwnerDataT  *pStreamOwnerData,
                              ClIocNodeAddressT      nodeAddr,
                              ClUint32T              compId);
 extern ClRcT
-clLogStreamOwnerOpenCleanup(ClLogSOCookieT  *pCookie);
+clLogStreamOwnerOpenCleanup(ClNameT *pStreamName, ClNameT *pStreamScopeNode, ClLogSOCookieT  *pCookie);
 
 extern void 
 clLogStreamOwnerFilterFinalize(ClLogFilterInfoT  *pFilter);
