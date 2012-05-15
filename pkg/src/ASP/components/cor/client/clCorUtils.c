@@ -541,10 +541,8 @@ ClRcT clCorOpProcessingTimeGet (CL_IN ClCorDelayRequestOptT opType, CL_OUT ClTim
     return rc;
 }
 
-ClBoolT clCorHandleRetryErrors(ClRcT retCode)
+ClBoolT clCorHandleRetryErrors(ClRcT rc)
 {
-    ClRcT rc = CL_OK;
-
     if (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE || 
         CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE ||
         CL_GET_ERROR_CODE(rc) == CL_COR_ERR_TRY_AGAIN)
