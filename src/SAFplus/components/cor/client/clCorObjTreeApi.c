@@ -509,6 +509,11 @@ clCorObjectHandleToMoIdGet(ClCorObjectHandleT objH,  ClCorMOIdPtrT pMoId, ClCorS
     ClUint32T fieldLen = 0;
     ClRcT rc = CL_OK;
 
+    if(!objBuffer)
+    {
+        return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
+    }
+
     len = *(ClUint16T *) objBuffer;
     len = ntohs(len);
 
