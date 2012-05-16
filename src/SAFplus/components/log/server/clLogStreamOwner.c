@@ -203,7 +203,6 @@ clLogStreamOwnerOpenCleanup(ClNameT *pStreamName, ClNameT *pStreamScopeNode, ClL
         clLogStreamKeyDestroy(pStreamKey);
         return rc;
     }
-    CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, pCookie->scope), CL_OK);
 
     rc = clLogStreamOwnerCompEntryDelete(pStreamOwnerData, pCookie->nodeAddr, 
                                          pCookie->compId, &tableSize);
@@ -213,6 +212,7 @@ clLogStreamOwnerOpenCleanup(ClNameT *pStreamName, ClNameT *pStreamScopeNode, ClL
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock), CL_OK);
+        CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, pCookie->scope), CL_OK);
         clLogStreamKeyDestroy(pStreamKey);
         return rc;
     }
@@ -220,10 +220,12 @@ clLogStreamOwnerOpenCleanup(ClNameT *pStreamName, ClNameT *pStreamScopeNode, ClL
     if( 0 == tableSize )
     {
         CL_LOG_CLEANUP(clLogStreamOwnerEntryChkNDelete(pSoEoEntry,
-                    pCookie->scope,
-                    pCookie->hStreamNode), 
-                CL_OK);
+                                                       pCookie->scope,
+                                                       pCookie->hStreamNode), 
+                       CL_OK);
     }
+    CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, pCookie->scope), CL_OK);
+
     clLogStreamKeyDestroy(pStreamKey);
 
     CL_LOG_DEBUG_TRACE(( "Exit"));
@@ -631,6 +633,7 @@ clLogStreamOwnerEntryCleanup(ClLogSOEoDataT         *pSoEoEntry,
 }    
 /*
  * Function - clLogStreamOwnerEntryChkNDelete()
+ * - Called with the streamowner scope lock held.
  * - Take streamTable lock. 
  * - Get the corresponding StreamOwnerData for streamOwnerNode.
  * - Decrement the refCount of compId in the compData.
@@ -651,12 +654,6 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    rc = clLogSOLock(pSoEoEntry, streamScope);
-    if( CL_OK != rc )
-    {
-        CL_LOG_DEBUG_ERROR(( "clLogSOLock(): rc[0x %x]", rc));
-        return rc;
-    }    
     hStreamTable = (CL_LOG_STREAM_GLOBAL == streamScope)
                    ? pSoEoEntry->hGStreamOwnerTable 
                    : pSoEoEntry->hLStreamOwnerTable ;
@@ -665,7 +662,6 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(( "clCntNodeUserDataGet(): rc[0x %x]", rc));
-        clLogSOUnlock(pSoEoEntry, streamScope);
         return rc;
     }    
     rc = clLogStreamOwnerCkptInfoGet(hStreamTable, hStreamOwnerNode, 
@@ -673,7 +669,6 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(( "clLogStreamOwnerCkptInfoGet(): rc[0x %x]", rc));
-        clLogSOUnlock(pSoEoEntry, streamScope);
         return rc;
     }
 
@@ -681,7 +676,6 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(( "clOsalMutexLock_L(): rc[0x %x]", rc));
-        clLogSOUnlock(pSoEoEntry, streamScope);
         return rc;
     }    
     pStreamOwnerData->nodeStatus = CL_LOG_NODE_STATUS_UN_INIT;
@@ -696,14 +690,12 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
         CL_LOG_DEBUG_TRACE(("clOsalCondDelete(): rc[0x %x]", rc));
         CL_LOG_CLEANUP(clOsalCondSignal_L(&pStreamOwnerData->nodeCond), CL_OK);
         clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
-        clLogSOUnlock(pSoEoEntry, streamScope);
         return rc;
     }
     else if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clOsalCondDestroy_L(): rc[0x %x]", rc));
         clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
-        clLogSOUnlock(pSoEoEntry, streamScope);
         return rc;
     }
     /* resetting the value */
@@ -722,7 +714,6 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
     }    
 
     clLogStreamOwnerCkptDelete(pSoEoEntry, &secId, dsId);
-    CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
@@ -2126,7 +2117,6 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
         clLogSOUnlock(pSoEoEntry, *pStreamScope);
         return rc;
     }    
-    CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, *pStreamScope), CL_OK);
     /* 
      * Internally will make call to master, In case any failure,
      * unlock nodeMutex. and return INVALID_STATE
@@ -2158,6 +2148,7 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
                                                 hStreamOwnerNode),
                 CL_OK);
         }
+        CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, *pStreamScope), CL_OK);
         return rc;
     }    
     /*
@@ -2165,6 +2156,7 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
      * Internally making async call, so holding mutex doesn't matter.
      */
     clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
+    CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, *pStreamScope), CL_OK);
     
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
@@ -3116,7 +3108,6 @@ VDECL_VER(clLogStreamOwnerHandlerDeregister, 4, 0, 0)(
         CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
         return rc;
     }
-    CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
 
     rc = clLogStreamOwnerStreamHdlrEntryDelete(pStreamOwnerData, nodeAddr,
                                                compId, handlerFlags, &tableSize);
@@ -3124,6 +3115,7 @@ VDECL_VER(clLogStreamOwnerHandlerDeregister, 4, 0, 0)(
     {
         clLogStreamKeyDestroy(pStreamKey);
         CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock), CL_OK);
+        CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
         return rc;
     }
 
@@ -3139,6 +3131,8 @@ VDECL_VER(clLogStreamOwnerHandlerDeregister, 4, 0, 0)(
                 clLogStreamOwnerEntryChkNDelete(pSoEoEntry, streamScope, 
                                                 hStreamOwnerNode),
                 CL_OK);
+        CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
+
         return rc;
     }
 
@@ -3182,7 +3176,8 @@ VDECL_VER(clLogStreamOwnerHandlerDeregister, 4, 0, 0)(
 #endif
     
     CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock), CL_OK);
-    
+    CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
+
     CL_LOG_DEBUG_TRACE(("Exit"));
     return  rc;
 }
