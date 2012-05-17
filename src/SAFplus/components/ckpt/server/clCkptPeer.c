@@ -1014,17 +1014,16 @@ ClRcT   _ckptSvrArrvlAnnounce()
                             ("Failed to allocate memory for timer\n"),
                             rc);
              pTimerArgs->nodeAddress = gCkptSvr->masterInfo.masterAddr;
-             pTimerArgs->pTimerHandle = &gClPeerReplicateTimer;
 
              memset(&timeOut, 0, sizeof(ClTimerTimeOutT));
              timeOut.tsSec = 2;
              rc = clTimerCreateAndStart(timeOut,
-                                        CL_TIMER_ONE_SHOT,
+                                        CL_TIMER_VOLATILE,
                                         CL_TIMER_SEPARATE_CONTEXT,
                                         _ckptMasterCkptsReplicateTimerExpiry,
                                         (ClPtrT)pTimerArgs,
                                         &gClPeerReplicateTimer);
-
+             gClPeerReplicateTimer = 0;
              /*
               *  In case of master restart, all Collocated checkpoints has to
               *  be reset to prevActive Address 
