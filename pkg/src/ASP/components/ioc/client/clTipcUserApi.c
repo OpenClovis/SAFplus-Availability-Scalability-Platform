@@ -2789,6 +2789,7 @@ static ClRcT __iocReassembleTimer(void *key)
     }
     hashDel(&node->hash);
     clOsalMutexUnlock(&iocReassembleLock);
+    clTimerDelete(&node->reassembleTimer);
     clHeapFree(node);
     out:
     clHeapFree(timerKey);
@@ -2824,6 +2825,7 @@ static ClRcT __iocReassembleDispatch(ClIocReassembleNodeT *node, ClTipcFragHeade
         clHeapFree(fragNode);
     }
     hashDel(&node->hash);
+    clTimerDeleteAsync(&node->reassembleTimer);
     clBufferLengthGet(msg, &len);
     if(!len)
     {
@@ -2892,7 +2894,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
         timerKey->timerId = node->timerId;
         clRbTreeInit(&node->reassembleTree, __iocFragmentCmp);
         rc = clTimerCreate(userReassemblyTimerExpiry, 
-                           CL_TIMER_ONE_SHOT | CL_TIMER_VOLATILE,
+                           CL_TIMER_ONE_SHOT,
                            CL_TIMER_SEPARATE_CONTEXT, __iocReassembleTimer,
                            (void *)timerKey, &node->reassembleTimer);
         CL_ASSERT(rc == CL_OK);
@@ -2935,7 +2937,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
     {
         /*
          * Now increase the timer based on the number of fragments being received or the node length.
-         * Since the sender could be doing flow control, be have an adaptive reassembly timer.
+         * Since the sender could be doing flow control, we have an adaptive reassembly timer.
          */
         if( !( node->numFragments & CL_IOC_REASSEMBLY_FRAGMENTS_MASK ) )
         {
