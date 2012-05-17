@@ -8468,6 +8468,7 @@ static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listTy
             {
                 ClAmsCompT *comp = (ClAmsCompT*)entityRef.ptr;
                 ClAmsEntityRefT *eRef;
+                ClUint32T numCSIOffset = 0, numCSIs = 0;
                 rc = VDECL_VER(clXdrMarshallClAmsCompConfigT, 4, 0, 0)(&comp->config, msg, 0);
                 if(rc != CL_OK)
                 {
@@ -8487,6 +8488,7 @@ static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listTy
                 {
                     goto out_free;
                 }
+                clBufferWriteOffsetGet(msg, &numCSIOffset);
                 rc = clXdrMarshallClUint32T(&comp->status.csiList.numEntities, msg, 0);
                 if(rc != CL_OK)
                 {
@@ -8496,7 +8498,42 @@ static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listTy
                     eRef = clAmsEntityListGetNext(&comp->status.csiList, eRef))
                 {
                     ClAmsCompCSIRefT *csiRef = (ClAmsCompCSIRefT*)eRef;
+                    if(!csiRef->activeComp) 
+                    {
+                        clLogNotice("DBA", "GET", "Skipping a csiref with no active comp "
+                                    "for component [%s]", comp->config.entity.name.value);
+                        continue;
+                    }
+                    ++numCSIs;
                     rc = VDECL_VER(clXdrMarshallClAmsCompCSIRefT, 4, 0, 0)(csiRef, msg, 0);
+                    if(rc != CL_OK)
+                    {
+                        goto out_free;
+                    }
+                }
+                /*
+                 * Unlikely branch;
+                 * Patch the num csi refs for the component in case of a mismatch
+                 */
+                if(numCSIs != comp->status.csiList.numEntities)
+                {
+                    ClUint32T curOffset = 0;
+                    rc = clBufferWriteOffsetGet(msg, &curOffset);
+                    if(rc != CL_OK)
+                    {
+                        goto out_free;
+                    }
+                    rc = clBufferWriteOffsetSet(msg, numCSIOffset, CL_BUFFER_SEEK_SET);
+                    if(rc != CL_OK)
+                    {
+                        goto out_free;
+                    }
+                    rc = clXdrMarshallClUint32T(&numCSIs, msg, 0);
+                    if(rc != CL_OK)
+                    {
+                        goto out_free;
+                    }
+                    rc = clBufferWriteOffsetSet(msg, curOffset, CL_BUFFER_SEEK_SET);
                     if(rc != CL_OK)
                     {
                         goto out_free;
