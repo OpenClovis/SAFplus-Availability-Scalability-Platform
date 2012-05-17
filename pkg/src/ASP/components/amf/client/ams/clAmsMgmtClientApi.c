@@ -5901,6 +5901,7 @@ static ClRcT amsMgmtDBCacheLoad(ClUint8T *db, ClUint32T len, ClAmsMgmtDBCacheT *
     {
         ClAmsEntityListTypeT type = 0;
         ClUint32T curOffset = 0;
+        const ClCharT *eType = "entity";
         if(buffer.entity)
         {
             clHeapFree(buffer.entity);
@@ -5917,37 +5918,51 @@ static ClRcT amsMgmtDBCacheLoad(ClUint8T *db, ClUint32T len, ClAmsMgmtDBCacheT *
         {
         case CL_AMS_NODE_LIST:
             {
+                eType = "node";
                 rc = amsMgmtDBNodeCacheLoad(&buffer, cache, msg);
             }
             break;
         case CL_AMS_SU_LIST:
             {
+                eType = "su";
                 rc = amsMgmtDBSUCacheLoad(&buffer, cache, msg);
             }
             break;
         case CL_AMS_SG_LIST:
             {
+                eType = "sg";
                 rc = amsMgmtDBSGCacheLoad(&buffer, cache, msg);
             }
             break;
         case CL_AMS_SI_LIST:
             {
+                eType = "si";
                 rc = amsMgmtDBSICacheLoad(&buffer, cache, msg);
             }
             break;
         case CL_AMS_CSI_LIST:
             {
+                eType = "csi";
                 rc = amsMgmtDBCSICacheLoad(&buffer, cache, msg);
             }
             break;
         case CL_AMS_COMP_LIST:
             {
+                eType = "comp";
                 rc = amsMgmtDBCompCacheLoad(&buffer, cache, msg);
             }
             break;
         default:
             break;
         }
+
+        if(rc != CL_OK)
+        {
+            clLogError("DB", "GET", "DB cache load for entity [%s] failed with [%#x]", 
+                       eType, rc);
+            goto out_free;
+        }
+
         rc = clBufferReadOffsetGet(msg, &curOffset);
         if(rc != CL_OK)
             goto out_free;
