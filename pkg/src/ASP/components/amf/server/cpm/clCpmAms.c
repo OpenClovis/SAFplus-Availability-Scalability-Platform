@@ -1208,7 +1208,7 @@ static ClRcT cpmResetLegacyNode(ClNameT *nodeName)
         chassisId = cpmL->chassisID;
         slotId = cpmL->slotID;
         clOsalMutexUnlock(gpClCpm->cpmTableMutex);
-        if(cpmL->slotID)
+        if(slotId)
         {
             clLogCritical("LEGACY-NODE", "RESET", "CPM resetting legacy node [%s] "
                           "with chassis id [%d], slotID [%d]", 
