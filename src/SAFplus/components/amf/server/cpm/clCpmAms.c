@@ -367,17 +367,22 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
      */
     else if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL)
     {
-        rc = cpmNodeFind(nodeName.value, &cpmL);
-        CL_CPM_CHECK(CL_DEBUG_ERROR,
-                     ("Unable to find corresponding Node %s \n",
-                      nodeName.value), rc);
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
+        rc = cpmNodeFindLocked(nodeName.value, &cpmL);
+        if(rc != CL_OK)
+        {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            clLogError("CSI", "SET", "Unable to find corresponding Node %s",
+                       nodeName.value);
+            goto failure;
+        }
         if (cpmL->pCpmLocalInfo != NULL &&
             cpmL->pCpmLocalInfo->status != CL_CPM_EO_DEAD)
         {
-            rc = CL_CPM_CALL_RMD_ASYNC_NEW(cpmL->pCpmLocalInfo->cpmAddress.
-                                           nodeAddress,
-                                           cpmL->pCpmLocalInfo->cpmAddress.
-                                           portId,
+            ClIocPhysicalAddressT destNode = cpmL->pCpmLocalInfo->cpmAddress;
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            rc = CL_CPM_CALL_RMD_ASYNC_NEW(destNode.nodeAddress,
+                                           destNode.portId,
                                            CPM_COMPONENT_CSI_ASSIGN,
                                            (ClUint8T *) sendBuff,
                                            (ClUint32T)sizeof(*sendBuff),
@@ -390,16 +395,22 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
                                            NULL,
                                            NULL,
                                            MARSHALL_FN(ClCpmCompCSISetT, 4, 0, 0));
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
-                         ("Unable to set the CSI for component %s on node %s rc=%x\n ",
-                          compName.value, nodeName.value, rc), rc);
+            if(rc != CL_OK)
+            {
+                clLogError("CSI", "SET",
+                           "Unable to set the CSI for component %s on node %s rc=%x",
+                           compName.value, nodeName.value, rc);
+                goto failure;
+            }
         }
         else
         {
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
-                         ("Node is down so unable to serve the request %s \n",
-                          nodeName.value),
-                         CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED));
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            clLogError("CSI", "SET",
+                       "Node is down so unable to serve the request %s",
+                       nodeName.value);
+            rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
+            goto failure;
         }
     }
     else
@@ -677,17 +688,22 @@ ClRcT _cpmComponentCSIRmv(ClCharT *targetComponentName,
      */
     else if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL)
     {
-        rc = cpmNodeFind(nodeName.value, &cpmL);
-        CL_CPM_CHECK(CL_DEBUG_ERROR,
-                     ("Unable to find corresponding Node %s \n",
-                      nodeName.value), rc);
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
+        rc = cpmNodeFindLocked(nodeName.value, &cpmL);
+        if(rc != CL_OK)
+        {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            clLogError("CSI", "RMV", "Unable to find corresponding Node %s",
+                       nodeName.value);
+            goto failure;
+        }
         if (cpmL->pCpmLocalInfo != NULL &&
             cpmL->pCpmLocalInfo->status != CL_CPM_EO_DEAD)
         {
-            rc = CL_CPM_CALL_RMD_ASYNC_NEW(cpmL->pCpmLocalInfo->cpmAddress.
-                                           nodeAddress,
-                                           cpmL->pCpmLocalInfo->cpmAddress.
-                                           portId,
+            ClIocPhysicalAddressT destNode = cpmL->pCpmLocalInfo->cpmAddress;
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            rc = CL_CPM_CALL_RMD_ASYNC_NEW(destNode.nodeAddress,
+                                           destNode.portId,
                                            CPM_COMPONENT_CSI_RMV,
                                            (ClUint8T *) &sendBuff,
                                            sizeof(ClCpmCompCSIRmvT),
@@ -700,16 +716,21 @@ ClRcT _cpmComponentCSIRmv(ClCharT *targetComponentName,
                                            NULL,
                                            NULL,
                                            MARSHALL_FN(ClCpmCompCSIRmvT, 4, 0, 0));
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
-                         ("Unable to Rmv the CSI for component %s on node %s rc=%x\n ",
-                          compName.value, nodeName.value, rc), rc);
+            if(rc != CL_OK)
+            {
+                clLogError("CSI", "RMV", 
+                           "Unable to Rmv the CSI for component %s on node %s rc=%x",
+                           compName.value, nodeName.value, rc);
+                goto failure;
+            }
         }
         else
         {
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
-                         ("Node is down so unable to serve the request %s\n",
-                          nodeName.value),
-                         CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED));
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            clLogError("CSI", "RMV", "Node is down so unable to serve the request %s",
+                       nodeName.value);
+            rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
+            goto failure;
         }
     }
 
@@ -854,7 +875,8 @@ ClRcT _cpmNodeDepartureAllowed(ClNameT *nodeName,
     }
     else
     {
-        rc = cpmNodeFind(nodeName->value, &cpmL);
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
+        rc = cpmNodeFindLocked(nodeName->value, &cpmL);
         if (rc == CL_OK)
         {
             if (cmRequest.cmCpmMsgType != CL_CM_BLADE_NODE_ERROR_REPORT)
@@ -899,6 +921,7 @@ ClRcT _cpmNodeDepartureAllowed(ClNameT *nodeName,
                 }
             }
         }
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
     }
 
     return CL_OK;
@@ -1076,9 +1099,11 @@ static ClRcT _cpmNodeFailFastRestart(ClNameT *nodeName, ClUint32T restartFlag)
         }
         else
         {
-            rc = cpmNodeFind(nodeName->value, &cpmL);
+            clOsalMutexLock(gpClCpm->cpmTableMutex);
+            rc = cpmNodeFindLocked(nodeName->value, &cpmL);
             if (CL_OK != rc)
             {
+                clOsalMutexUnlock(gpClCpm->cpmTableMutex);
                 clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
                            "Unable to find node [%s], error [%#x]",
                            nodeName->value,
@@ -1123,6 +1148,7 @@ static ClRcT _cpmNodeFailFastRestart(ClNameT *nodeName, ClUint32T restartFlag)
                             "it has been failed over already.",
                             cpmL->nodeName);
             }
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         }
     }
     else
@@ -1149,28 +1175,34 @@ static ClRcT cpmResetLegacyNode(ClNameT *nodeName)
 {
     ClRcT rc = CL_OK;
     ClCpmLT *cpmL = NULL;
+    ClUint32T chassisId = 0,slotId = 0;
     /*
      * Get the chassis id, slot ID configured for NON-asp aware nodes
      * to trigger a reset.
      */
-    rc = cpmNodeFind(nodeName->value, &cpmL);
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+    rc = cpmNodeFindLocked(nodeName->value, &cpmL);
     if(rc == CL_OK)
     {
-        if(cpmL->slotID)
+        chassisId = cpmL->chassisID;
+        slotId = cpmL->slotID;
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+        if(slotId)
         {
             clLogCritical("LEGACY-NODE", "RESET", "CPM resetting legacy node [%s] "
                           "with chassis id [%d], slotID [%d]", 
-                          nodeName->value, cpmL->chassisID, cpmL->slotID);
-            rc = clCmBladeOperationRequest(cpmL->chassisID, cpmL->slotID, CL_CM_RESET_REQUEST);
+                          nodeName->value, chassisId, slotId);
+            rc = clCmBladeOperationRequest(chassisId, slotId, CL_CM_RESET_REQUEST);
         }
         else
         {
             clLogCritical("LEGACY-NODE", "RESET", "CPM legacy node [%s] not configured for reset "
-                          " [%d:%d]", nodeName->value, cpmL->chassisID, cpmL->slotID);
+                          " [%d:%d]", nodeName->value, chassisId, slotId);
         }
     }
     else
     {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         clLogCritical("LEGACY-NODE", "RESET", "CPM legacy node [%s] not found",
                       nodeName->value);
     }
