@@ -343,6 +343,9 @@ failure:
     return rc;
 }
 
+/*
+ * Called with the cpmTableMutex lock held.
+ */
 ClRcT cpmNodeFind(ClCharT *name, ClCpmLT **cpmL)
 {
     ClRcT rc = CL_OK;
@@ -417,6 +420,7 @@ ClRcT cpmPrintDBXML(FILE *fp)
     /*
      * Walk through the cpm table to find and display SCs 
      */
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
     cpmLCount = gpClCpm->noOfCpm;
     if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL && cpmLCount != 0)
     {
@@ -425,7 +429,7 @@ ClRcT cpmPrintDBXML(FILE *fp)
         {
             CL_DEBUG_PRINT(CL_DEBUG_ERROR, (CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR, "CPM-L", rc));
             clLogWrite((CL_LOG_HANDLE_APP), (CL_LOG_DEBUG), NULL, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR, ("CPM-L"), (rc));
-            goto out;
+            goto out_unlock;
         }
 
         while (cpmLCount)
@@ -437,7 +441,7 @@ ClRcT cpmPrintDBXML(FILE *fp)
             {
                 CL_DEBUG_PRINT(CL_DEBUG_ERROR, (CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc));
                 clLogWrite((CL_LOG_HANDLE_APP), (CL_LOG_DEBUG), NULL, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc);
-                goto out;
+                goto out_unlock;
             }
 
             if (cpmL->pCpmLocalInfo)
@@ -465,14 +469,16 @@ ClRcT cpmPrintDBXML(FILE *fp)
                 {
                     CL_DEBUG_PRINT(CL_DEBUG_ERROR, (CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, "CPM-L", rc));
                     clLogWrite((CL_LOG_HANDLE_APP), (CL_LOG_DEBUG), NULL, CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, ("CPM-L"), (rc));
-                    goto out;
+                    goto out_unlock;
                 }
             }
         }
     }
 
     rc = CL_OK;
-    out:
+    out_unlock:
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+
     fprintf(fp,"</cpm>\n");
     return rc;
 }

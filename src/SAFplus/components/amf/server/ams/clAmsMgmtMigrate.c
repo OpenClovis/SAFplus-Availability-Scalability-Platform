@@ -233,10 +233,11 @@ static ClRcT clAmsMgmtGetSUFreeNodes(ClAmsEntityT *sgName,
      * Separate controllers and workers as node distribution preference is
      * higher for workers than controllers.
      */
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
     for(i = 0 ; i < nodeBuffer.count; ++i)
     {
         ClCpmLT *cpmL = NULL;
-        rc = cpmNodeFind(nodeBuffer.entity[i].name.value, &cpmL);
+        rc = cpmNodeFindLocked(nodeBuffer.entity[i].name.value, &cpmL);
         if(rc != CL_OK)
         {
             /*
@@ -267,6 +268,7 @@ static ClRcT clAmsMgmtGetSUFreeNodes(ClAmsEntityT *sgName,
             ++numControllers;
         }
     }
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
 
     nodeList = clHeapCalloc(nodeBuffer.count + extraNodes,
                             sizeof(ClAmsEntityT));
