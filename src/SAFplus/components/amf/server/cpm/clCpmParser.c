@@ -238,6 +238,53 @@ static void displayCompList(ClCpmCompInfoT *compList)
 }
 #endif
 
+/*
+ * This function is used to eval environment param
+ * Format $(ASP_DIR)/var/run -> /root/asp/var/run
+ *
+ */
+static void evalEnv(ClCharT *arg)
+{
+    ClUint32T tk = 0;
+    ClUint32T j = 0;
+    ClUint32T k = 0;
+    ClUint32T i = 0;
+    ClCharT buf[CPM_MAX_ARGS] = { 0 };
+    ClCharT env[CPM_MAX_ARGS] = { 0 };
+
+    while (i < strlen(arg))
+    {
+        if (arg[i] == '$' && arg[i + 1] == '(')
+        {
+            tk = 1;
+            i++;
+        } else if (arg[i] == ')') {
+            ClCharT *envValue = getenv(env);
+            ClUint32T len = strlen(env);
+            if (envValue != NULL)
+            {
+                len = strlen(envValue);
+                strncat(buf, envValue, len);
+            } else {
+                strncat(buf, "$(", 2);
+                strncat(buf, env, len);
+                strncat(buf, ")", 1);
+            }
+            k = strlen(buf);
+            j = 0;
+            env[j] = 0;
+            tk = 0;
+        } else if (tk == 1)
+        {
+            env[j++] = arg[i];
+        } else {
+            buf[k++] = arg[i];
+        }
+        i++;
+    }
+    strcpy(arg, buf);
+}
+
 static void cpmValgrindFilterInitialize(void)
 {
     ClCharT *filterList = NULL;
@@ -610,15 +657,22 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                                                    CL_CPM_PARSER_ATTR_COMP_TYPE_ARG_VALUE),
                                       "value field in argument doesn't exist");
 
+                ClCharT evalvalue[CPM_MAX_ARGS] = { 0 };
+                strncat(evalvalue, value, CPM_MAX_ARGS - 1);
+
+                /*
+                 * Evaluate env param
+                 */
+                evalEnv(evalvalue);
+
                 newType->compConfig.argv[argIndex] =
-                    (ClCharT *) clHeapAllocate(strlen(value) + 1);
+                    (ClCharT *) clHeapAllocate(strlen(evalvalue) + 1);
                 if (newType->compConfig.argv[argIndex] == NULL)
                     CL_CPM_CHECK_0(CL_DEBUG_ERROR,
                                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
                                    CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_DEBUG,
                                    CL_LOG_HANDLE_APP);
-                strcpy(newType->compConfig.argv[argIndex], value);
-
+                strcpy(newType->compConfig.argv[argIndex], evalvalue);
                 argIndex++;
                 argument = argument->next;
             }
