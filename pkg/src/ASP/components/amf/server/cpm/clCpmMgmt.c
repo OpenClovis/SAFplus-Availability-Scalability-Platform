@@ -307,7 +307,9 @@ ClRcT cpmNodeAdd(ClCharT *nodeName)
         goto failure;
     }
 
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
     rc = cpmNodeFind(nodeName, &cpm);
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
     if (cpm)
     {
         clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,

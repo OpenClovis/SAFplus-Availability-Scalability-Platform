@@ -292,6 +292,9 @@ ClRcT cpmInvocationAddKey(ClUint32T cbType,
 }
 
 
+/*
+ * Called with the cpmTableMutex lock held.
+ */
 ClRcT cpmNodeFind(ClCharT *name, ClCpmLT **cpmL)
 {
     ClUint16T nodeKey = 0;
@@ -299,8 +302,6 @@ ClRcT cpmNodeFind(ClCharT *name, ClCpmLT **cpmL)
     ClCpmLT *tempNode = NULL;
     ClUint32T rc = CL_OK, numNode=0;
 
-    clOsalMutexLock(gpClCpm->cpmTableMutex);
-    
     rc = clCksm16bitCompute((ClUint8T *) name, strlen(name), &nodeKey);
     CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_CKSM_ERR, name, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
@@ -340,14 +341,15 @@ ClRcT cpmNodeFind(ClCharT *name, ClCpmLT **cpmL)
                    "node", name, rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
 done:
-    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
     return CL_OK;
 
 failure:
-    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
     return rc;
 }
 
+/*
+ * Called with the cpmTableMutex lock held.
+ */
 ClUint32T cpmNodeFindByNodeId(ClUint32T nodeId, ClCpmLT **cpmL)
 {
     ClRcT rc = CL_OK;
@@ -411,6 +413,7 @@ ClRcT cpmPrintDBXML(FILE *fp)
     register ClInt32T i;
 
     fprintf(fp,"<cpm>\n");
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
     for(i = 0; i < sizeof(nodeIds)/sizeof(nodeIds[0]);++i)
     {
         if( *nodeIds[i] > 0 && ((ClInt32T)(*nodeIds[i]) != -1) )
@@ -420,7 +423,7 @@ ClRcT cpmPrintDBXML(FILE *fp)
             {
                 clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
                            "Unable to find node with id [0x%x]",*nodeIds[i]);
-                goto out;
+                goto out_unlock;
             }
             fprintf(fp,"<node value=\"%s\">\n",cpmL->pCpmLocalInfo->nodeName);
             fprintf(fp,"<id value=\"%d\"/>\n",*nodeIds[i]);
@@ -429,7 +432,9 @@ ClRcT cpmPrintDBXML(FILE *fp)
         }
     }
     rc = CL_OK;
-    out:
+    out_unlock:
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+
     fprintf(fp,"</cpm>\n");
     return rc;
 }

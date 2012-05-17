@@ -1171,10 +1171,16 @@ static ClRcT cpmRouteRequestWithCookie(ClCharT *compName,
     /*
      * Find the node Info 
      */
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
     rc = cpmNodeFind(nodeName, &cpmL);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR, "node",
-                   nodeName, rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
-
+    if(rc != CL_OK)
+    {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+        clLogError("COMP", "INST", "Node [%s] not found. Failure code [%#x]",
+                   nodeName, rc);
+        goto failure;
+    }
+    
     compInstantiate.instantiateCookie = instantiateCookie;
     strncpy((ClCharT *) compInstantiate.name.value, (ClCharT *) compName,CL_MAX_NAME_LENGTH);
     compInstantiate.name.value[CL_MAX_NAME_LENGTH-1] = 0;
@@ -1197,12 +1203,13 @@ static ClRcT cpmRouteRequestWithCookie(ClCharT *compName,
 
     if (cpmL->pCpmLocalInfo && cpmL->pCpmLocalInfo->status != CL_CPM_EO_DEAD)
     {
+        ClIocPhysicalAddressT destNode = cpmL->pCpmLocalInfo->cpmAddress;
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         /*
          * Send the request to the respective CPM/L 
          */
-        rc = CL_CPM_CALL_RMD_ASYNC_NEW(cpmL->pCpmLocalInfo->cpmAddress.
-                                       nodeAddress,
-                                       cpmL->pCpmLocalInfo->cpmAddress.portId,
+        rc = CL_CPM_CALL_RMD_ASYNC_NEW(destNode.nodeAddress,
+                                       destNode.portId,
                                        requestRmdNumber,
                                        (ClUint8T *) &compInstantiate,
                                        sizeof(ClCpmLifeCycleOprT),
@@ -1216,12 +1223,13 @@ static ClRcT cpmRouteRequestWithCookie(ClCharT *compName,
                                        NULL,
                                        MARSHALL_FN(ClCpmLifeCycleOprT, 4, 0, 0));
         CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_LCM_OPER_FWD_ERR,
-                       cpmL->pCpmLocalInfo->cpmAddress.nodeAddress,
-                       cpmL->pCpmLocalInfo->cpmAddress.portId, rc, rc,
+                       destNode.nodeAddress,
+                       destNode.portId, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
     else
     {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         /*
          * Bug 4522:
          * Print diffrent messages depending on whether the node to
@@ -1229,19 +1237,8 @@ static ClRcT cpmRouteRequestWithCookie(ClCharT *compName,
          * has not registered yet.
          */
         rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
-        if (cpmL->pCpmLocalInfo == NULL)
-        {
-            CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_LCM_NODE_NOT_REG_ERR,
-                    nodeName, rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP)
-        }
-        else
-        {
-            /* 
-             * We will hit this else block only if node is dead, i.e. 
-             * cpmL->pCpmLocalInfo->status == CL_CPM_EO_DEAD */
-            CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_LCM_NODE_UNAVAILABLE_ERR,
-                    nodeName, rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP)
-        }
+        CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_LCM_NODE_UNAVAILABLE_ERR,
+                       nodeName, rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP)
     }
     return rc;
 
@@ -3523,18 +3520,24 @@ ClRcT VDECL(cpmComponentStatusGet)(ClEoDataT data,
     {
         ClCpmLT *cpmL = NULL;
         ClUint32T size = sizeof(ClUint32T);
-
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
         rc = cpmNodeFind(status.nodeName.value, &cpmL);
-        CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
-                       "node", status.nodeName.value, rc, rc, CL_LOG_DEBUG,
-                       CL_LOG_HANDLE_APP);
+        if(rc != CL_OK)
+        {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            clLogError("STATUS", "GET", "Node [%s] not found. Failure code [%#x]",
+                       status.nodeName.value, rc);
+            goto failure;
+        }
+
         if (cpmL->pCpmLocalInfo != NULL &&
             cpmL->pCpmLocalInfo->status != CL_CPM_EO_DEAD)
         {
-            rc = CL_CPM_CALL_RMD_SYNC_NEW(cpmL->pCpmLocalInfo->cpmAddress.
-                                          nodeAddress,
-                                          cpmL->pCpmLocalInfo->cpmAddress.
-                                          portId, CPM_COMPONENT_STATUS_GET,
+            ClIocPhysicalAddressT destNode = cpmL->pCpmLocalInfo->cpmAddress;
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            rc = CL_CPM_CALL_RMD_SYNC_NEW(destNode.nodeAddress,
+                                          destNode.portId,
+                                          CPM_COMPONENT_STATUS_GET,
                                           (ClUint8T *) &status,
                                           sizeof(ClCpmLifeCycleOprT),
                                           (ClUint8T *) &state, &size,
@@ -3553,6 +3556,7 @@ ClRcT VDECL(cpmComponentStatusGet)(ClEoDataT data,
         }
         else
         {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
         }
     }

@@ -63,7 +63,9 @@ static ClRcT cpmCkptReplicaChangeCallback(const ClNameT *pCkptName, ClIocNodeAdd
         clOsalMutexUnlock(&gpClCpm->cpmMutex);
         return CL_OK;
     }
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
     rc = cpmNodeFindByNodeId(replicaAddr, &pCpmL);
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
     if (CL_OK != rc)
     {
         clOsalMutexUnlock(&gpClCpm->cpmMutex);
@@ -261,26 +263,28 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
             }
 
             rc = clBufferNBytesRead(message, (ClUint8T *) &cpmLBuffer,
-                                           &(tlv.LENGTH));
+                                    &(tlv.LENGTH));
             CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             tempLength -= tlv.LENGTH;
 
+            clOsalMutexLock(gpClCpm->cpmTableMutex);
             rc = cpmNodeFind(cpmLBuffer.nodeName, &cpmL);
-            if (CL_ERR_DOESNT_EXIST == CL_GET_ERROR_CODE(rc) 
-                ||
-                CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc))
-            {
-                ClCpmDynamicNodeT *dynamicNode = clHeapCalloc(1, sizeof(*dynamicNode));
-                CL_ASSERT(dynamicNode != NULL);
-                rc = CL_OK;
-                memcpy(&dynamicNode->cpmLocalInfo, &cpmLBuffer, sizeof(dynamicNode->cpmLocalInfo));
-                clListAddTail(&dynamicNode->node, &dynamicNodeList);
-                goto next_tlv;
-            }
-            
             if(CL_OK != rc)
             {
+                clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+
+                if (CL_ERR_DOESNT_EXIST == CL_GET_ERROR_CODE(rc) 
+                    ||
+                    CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc))
+                {
+                    ClCpmDynamicNodeT *dynamicNode = clHeapCalloc(1, sizeof(*dynamicNode));
+                    CL_ASSERT(dynamicNode != NULL);
+                    rc = CL_OK;
+                    memcpy(&dynamicNode->cpmLocalInfo, &cpmLBuffer, sizeof(dynamicNode->cpmLocalInfo));
+                    clListAddTail(&dynamicNode->node, &dynamicNodeList);
+                    goto next_tlv;
+                }
                 clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP,
                            "Unable to find node [%s], error [%#x]",
                            cpmLBuffer.nodeName,
@@ -290,23 +294,20 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
                 
             cpmL->pCpmLocalInfo =
                 (ClCpmLocalInfoT *) clHeapAllocate(sizeof(ClCpmLocalInfoT));
-            if (cpmL->pCpmLocalInfo == NULL)
-                CL_CPM_CHECK_0(CL_DEBUG_ERROR,
-                               CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                               CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_DEBUG,
-                               CL_LOG_HANDLE_APP);
+            CL_ASSERT(cpmL->pCpmLocalInfo != NULL);
 
             /*
              * Copy the received checkpoint data 
              */
             memcpy(cpmL->pCpmLocalInfo, &cpmLBuffer, sizeof(ClCpmLocalInfoT));
-
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            
             next_tlv:
 
             if (tempLength != 0)
             {
                 rc = clBufferNBytesRead(message, (ClUint8T *) &tlv,
-                                               &tlvLength);
+                                        &tlvLength);
                 CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc,
                                rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
                 tempLength -= sizeof(ClCpmTlvT);
@@ -341,6 +342,7 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
                       "Node [%s] added to CPM", 
                       node->cpmLocalInfo.nodeName);
         }
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
         rc = cpmNodeFind(node->cpmLocalInfo.nodeName, &cpmL);
         if(rc == CL_OK)
         {
@@ -354,12 +356,13 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
                        "Node [%s] cpmlocalinfo update skipped",
                        node->cpmLocalInfo.nodeName);
         }
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         clHeapFree(node);
     }
 
     return CL_OK;
 
-  failure:
+    failure:
     clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
                CL_CPM_LOG_1_CKPT_CONSUME_ERR, rc);
     clBufferDelete(&message);

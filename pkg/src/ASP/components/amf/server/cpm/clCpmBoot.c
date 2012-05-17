@@ -822,19 +822,22 @@ ClRcT VDECL(cpmBootLevelGet)(ClEoDataT data,
     {
         ClCpmLT *cpmL = NULL;
         ClUint32T size = sizeof(ClUint32T);
-
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
         rc = cpmNodeFind(bootOp.nodeName.value, &cpmL);
-        CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
-                       "node", bootOp.nodeName.value, rc, rc, CL_LOG_DEBUG,
-                       CL_LOG_HANDLE_APP);
-
+        if(rc != CL_OK)
+        {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            clLogError("CPM", "BOOT", "Unable to find node [%s]. Failure code [%#x]", 
+                       bootOp.nodeName.value, rc);
+            goto failure;
+        }
         if (cpmL->pCpmLocalInfo != NULL &&
             cpmL->pCpmLocalInfo->status != CL_CPM_EO_DEAD)
         {
-            rc = CL_CPM_CALL_RMD_SYNC_NEW(cpmL->pCpmLocalInfo->cpmAddress.
-                                          nodeAddress,
-                                          cpmL->pCpmLocalInfo->cpmAddress.
-                                          portId,
+            ClIocPhysicalAddressT destNode = cpmL->pCpmLocalInfo->cpmAddress;
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            rc = CL_CPM_CALL_RMD_SYNC_NEW(destNode.nodeAddress,
+                                          destNode.portId,
                                           CPM_BM_GET_CURRENT_LEVEL,
                                           (ClUint8T *) &bootOp,
                                           sizeof(ClCpmBootOperationT),
@@ -856,6 +859,7 @@ ClRcT VDECL(cpmBootLevelGet)(ClEoDataT data,
         }
         else
         {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
             CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
                            rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
@@ -919,19 +923,22 @@ ClRcT VDECL(cpmBootLevelSet)(ClEoDataT data,
     else
     {
         ClCpmLT *cpmL = NULL;
-
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
         rc = cpmNodeFind(bootOp->nodeName.value, &cpmL);
-        CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
-                       "node", bootOp->nodeName.value, rc, rc, CL_LOG_DEBUG,
-                       CL_LOG_HANDLE_APP);
-
+        if(rc != CL_OK)
+        {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            clLogError("CPM", "BOOT", "Node [%s] not found. Failure code [%#x]",
+                       bootOp->nodeName.value, rc);
+            goto failure;
+        }
         if (cpmL->pCpmLocalInfo != NULL &&
             cpmL->pCpmLocalInfo->status != CL_CPM_EO_DEAD)
         {
-            rc = CL_CPM_CALL_RMD_ASYNC_NEW(cpmL->pCpmLocalInfo->cpmAddress.
-                                           nodeAddress,
-                                           cpmL->pCpmLocalInfo->cpmAddress.
-                                           portId,
+            ClIocPhysicalAddressT destNode = cpmL->pCpmLocalInfo->cpmAddress;
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            rc = CL_CPM_CALL_RMD_ASYNC_NEW(destNode.nodeAddress,
+                                           destNode.portId,
                                            CPM_BM_SET_LEVEL,
                                            (ClUint8T *) bootOp,
                                            sizeof(ClCpmBootOperationT),
@@ -949,6 +956,7 @@ ClRcT VDECL(cpmBootLevelSet)(ClEoDataT data,
         }
         else
         {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
             CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
                            rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
@@ -989,18 +997,22 @@ ClRcT VDECL(cpmBootLevelMax)(ClEoDataT data,
     {
         ClCpmLT *cpmL = NULL;
         ClUint32T size = sizeof(ClUint32T);
-
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
         rc = cpmNodeFind(bootOp.nodeName.value, &cpmL);
-        CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
-                       "node", bootOp.nodeName.value, rc, rc, CL_LOG_DEBUG,
-                       CL_LOG_HANDLE_APP);
+        if(rc != CL_OK)
+        {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            clLogError("CPM", "BOOT", "Node [%s] not found. Failure code [%#x]",
+                       bootOp.nodeName.value, rc);
+            goto failure;
+        }
         if (cpmL->pCpmLocalInfo != NULL &&
             cpmL->pCpmLocalInfo->status != CL_CPM_EO_DEAD)
         {
-            rc = CL_CPM_CALL_RMD_SYNC_NEW(cpmL->pCpmLocalInfo->cpmAddress.
-                                          nodeAddress,
-                                          cpmL->pCpmLocalInfo->cpmAddress.
-                                          portId,
+            ClIocPhysicalAddressT destNode = cpmL->pCpmLocalInfo->cpmAddress;
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            rc = CL_CPM_CALL_RMD_SYNC_NEW(destNode.nodeAddress,
+                                          destNode.portId,
                                           CPM_BM_GET_MAX_LEVEL,
                                           (ClUint8T *) &bootOp,
                                           sizeof(ClCpmBootOperationT),
@@ -1022,6 +1034,7 @@ ClRcT VDECL(cpmBootLevelMax)(ClEoDataT data,
         }
         else
         {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
             CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
                            rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
