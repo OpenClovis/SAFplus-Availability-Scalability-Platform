@@ -74,7 +74,7 @@ typedef struct ClCkptMasterSyncupWalk
     ClUint32T index;
 }ClCkptMasterSyncupWalkT;                                                                                                                             
 extern CkptSvrCbT  *gCkptSvr;
-static ClTimerHandleT gClPeerReplicateTimer = NULL;
+static ClTimerHandleT gClPeerReplicateTimer;
 
 void ckptPeerSyncCallback(ClRcT rc , void *pData,
         ClBufferHandleT inMsg,
@@ -3446,17 +3446,12 @@ ClRcT _ckptMasterCkptsReplicateTimerExpiry(void *pArg)
 {
     ClCkptReplicateTimerArgsT *pTimerArg = pArg;
     ClIocNodeAddressT addr = CL_IOC_RESERVED_ADDRESS;
-    ClTimerHandleT *pTimerHandle = NULL;
 
     CL_ASSERT(pTimerArg != NULL);
 
     addr = pTimerArg->nodeAddress;
 
-    pTimerHandle = pTimerArg->pTimerHandle;
-
     clHeapFree(pTimerArg);
-
-    clTimerDelete(pTimerHandle);
 
     if( (gCkptSvr == NULL) || ( (gCkptSvr != NULL) && (gCkptSvr->serverUp ==
                     CL_FALSE)) )
@@ -3580,18 +3575,18 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
                        ("Failed to allocate memory\n"),
                        rc);
         pTimerArgs->nodeAddress = peerAddr;
-        pTimerArgs->pTimerHandle = &gClPeerReplicateTimer;
     	clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME, 
                    "Starting the timer to balance the checkpoints for address [%d]", 
                    peerAddr);
     	memset(&timeOut, 0, sizeof(ClTimerTimeOutT));
 	    timeOut.tsSec = 2;
     	rc = clTimerCreateAndStart(timeOut,
-                                   CL_TIMER_ONE_SHOT,
+                                   CL_TIMER_VOLATILE,
                                    CL_TIMER_SEPARATE_CONTEXT,
                                    _ckptMasterCkptsReplicateTimerExpiry,
                                    (ClPtrT)pTimerArgs,
                                    &gClPeerReplicateTimer);
+        gClPeerReplicateTimer = 0;
     }       
     else
     {
