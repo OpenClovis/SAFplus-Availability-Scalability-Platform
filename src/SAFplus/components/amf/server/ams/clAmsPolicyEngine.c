@@ -227,13 +227,16 @@ static ClBoolT clAmsPeCheckCSIDependentsAssigned(ClAmsSUT *su, ClAmsCSIT *csi);
 static __inline__ ClBoolT clAmsPeCheckNodeHasLeft(ClAmsNodeT *node)
 {
     ClCpmLT *cpmL = NULL;
-    cpmNodeFind(node->config.entity.name.value, &cpmL);
+    ClBoolT nodeLeft = CL_FALSE;
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+    cpmNodeFindLocked(node->config.entity.name.value, &cpmL);
     if(!cpmL || !cpmL->pCpmLocalInfo || 
        cpmL->pCpmLocalInfo->status == CL_CPM_EO_DEAD)             
-    {                                                             
-        return CL_TRUE;
+    {                  
+        nodeLeft = CL_TRUE;
     }
-    return CL_FALSE;
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+    return nodeLeft;
 }
 
 /*-----------------------------------------------------------------------------
