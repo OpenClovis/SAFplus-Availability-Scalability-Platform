@@ -651,6 +651,8 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
     ClCntHandleT           hStreamTable      = CL_HANDLE_INVALID_VALUE;
     ClCkptSectionIdT       secId             = {0};
     ClUint32T              dsId              = 0;
+    ClUint32T              tries             = 0;
+    static ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -681,25 +683,33 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
     pStreamOwnerData->nodeStatus = CL_LOG_NODE_STATUS_UN_INIT;
     /*
      * None of componentEntries exist in the entry, so remove
-     * Try to delete the condition varible, if it gives error,
-     * so somebody is waiting on this varibale. so just return CL_OK
+     * Try to delete the condition variable and retry just in case someone is
+     * waiting on the variable
+     * 
      */
-    rc = clOsalCondDestroy_L(&pStreamOwnerData->nodeCond);
-    if( CL_OSAL_ERR_CONDITION_DELETE == rc )
+    while( (rc = clOsalCondDestroy_L(&pStreamOwnerData->nodeCond) ) != CL_OK 
+           && 
+           ++tries < 2)
     {
-        CL_LOG_DEBUG_TRACE(("clOsalCondDelete(): rc[0x %x]", rc));
-        CL_LOG_CLEANUP(clOsalCondSignal_L(&pStreamOwnerData->nodeCond), CL_OK);
+        pStreamOwnerData->condDelete = CL_TRUE;
+        CL_LOG_CLEANUP(clOsalCondBroadcast(&pStreamOwnerData->nodeCond), CL_OK);
         clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
-        return rc;
+        clOsalTaskDelay(delay);
+        clOsalMutexLock_L(&pStreamOwnerData->nodeLock);
     }
-    else if( CL_OK != rc )
+
+    if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clOsalCondDestroy_L(): rc[0x %x]", rc));
         clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
         return rc;
     }
-    /* resetting the value */
-    pStreamOwnerData->condDelete = CL_TRUE;
+
+    if(!pStreamOwnerData->condDelete)
+    {
+        /* resetting the value */
+        pStreamOwnerData->condDelete = CL_TRUE;
+    }
     clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
     /*
      *  I am the last one, so peacefully remove this Entry
@@ -709,7 +719,6 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCntNodeDelete(): rc[0x %x]", rc));
-        clLogSOUnlock(pSoEoEntry, streamScope);
         return rc;
     }    
 
@@ -1442,6 +1451,7 @@ clLogStreamOwnerCompRefCountGet(ClLogSOEoDataT     *pSoEoEntry,
 
 /*
  * Function - clLogStreamOwnerEntryProcess()
+ * Expected to be called with the log scope stream owner lock held
  * if WIP wait on condVar.
  * Check compId exist
  * If not exist - Return the NOT_EXIST(use case ? ).
@@ -1464,15 +1474,25 @@ clLogStreamOwnerEntryProcess(ClLogSOEoDataT          *pSoEoEntry,
                              ClLogFilterT            *pStreamFilter,
                              ClUint32T               *pAckerCnt, 
                              ClUint32T               *pNonAckerCnt, 
-                             ClUint16T               *pStreamId)
+                             ClUint16T               *pStreamId,
+                             ClBoolT                 *pSOLocked)
 {
     ClRcT            rc       = CL_OK;
     ClUint16T        refCount =  0;
     ClTimerTimeOutT timeout = {.tsSec = 0, .tsMilliSec = 0 };
     CL_LOG_DEBUG_TRACE(("Enter"));
 
+    /*
+     * Only drop the lock if an open is already in progress in which case, 
+     * we have to avoid deadlocking on the so lock with open response thread
+     */
     while( CL_LOG_NODE_STATUS_WIP == pStreamOwnerData->nodeStatus)
     {
+        if(pSOLocked && *pSOLocked)
+        {
+            *pSOLocked = CL_FALSE;
+            CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
+        }
         /*
          * The same stream is already being in the creation process,
          * wait for 100 ms and check the status and go out.
@@ -1480,11 +1500,20 @@ clLogStreamOwnerEntryProcess(ClLogSOEoDataT          *pSoEoEntry,
         rc = clOsalCondWait_L(&pStreamOwnerData->nodeCond, 
                               &pStreamOwnerData->nodeLock, 
                               timeout);
+        /*
+         * Return ok in case we were woken up by the stream owner delete context
+         */
         if( (CL_GET_ERROR_CODE(rc) != CL_ERR_TIMEOUT) && (CL_OK != rc) )
         {
            CL_LOG_DEBUG_ERROR(("clOsalCondWait(); rc[0x %x]", rc));
+           if(pStreamOwnerData->condDelete)
+               rc = CL_OK;
+
            return rc;
         }    
+
+        if(pStreamOwnerData->condDelete)
+            return CL_OK;
     }    
     
     rc = clLogStreamOwnerCompRefCountGet(pSoEoEntry, streamScope,
@@ -2055,6 +2084,7 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
     ClBoolT                addedEntry         = CL_FALSE;  
     ClUint32T              tableSize          = 0;
     ClLogStreamOwnerDataT  *pStreamOwnerData  = NULL;
+    ClBoolT soLocked = CL_TRUE;
 
     CL_LOG_DEBUG_TRACE(("Enter %d", *pStreamId));
     
@@ -2117,6 +2147,7 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
         clLogSOUnlock(pSoEoEntry, *pStreamScope);
         return rc;
     }    
+
     /* 
      * Internally will make call to master, In case any failure,
      * unlock nodeMutex. and return INVALID_STATE
@@ -2125,7 +2156,8 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
                                       hStreamOwnerNode, pCompId, pStreamName, 
                                       *pStreamScope, pStreamScopeNode, pStreamAttr,
                                       pStreamMcastAddr, pStreamFilter,
-                                      pAckerCnt, pNonAckerCnt, pStreamId);
+                                      pAckerCnt, pNonAckerCnt, pStreamId,
+                                      &soLocked);
     if( CL_OK != rc )
     {
         /* 
@@ -2143,12 +2175,20 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
         clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
         if( 0 == tableSize )
         {
+            if(!soLocked)
+            {
+                soLocked = CL_TRUE;
+                clLogSOLock(pSoEoEntry, *pStreamScope);
+            }
             CL_LOG_CLEANUP(
-                clLogStreamOwnerEntryChkNDelete(pSoEoEntry, *pStreamScope, 
-                                                hStreamOwnerNode),
+                           clLogStreamOwnerEntryChkNDelete(pSoEoEntry, *pStreamScope, 
+                                                           hStreamOwnerNode),
                 CL_OK);
         }
-        CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, *pStreamScope), CL_OK);
+        if(soLocked)
+        {
+            CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, *pStreamScope), CL_OK);
+        }
         return rc;
     }    
     /*
@@ -2156,8 +2196,11 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
      * Internally making async call, so holding mutex doesn't matter.
      */
     clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
-    CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, *pStreamScope), CL_OK);
-    
+    if(soLocked)
+    {
+        CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, *pStreamScope), CL_OK);
+    }
+        
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
 }    
