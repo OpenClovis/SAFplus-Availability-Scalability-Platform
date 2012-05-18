@@ -265,10 +265,6 @@ static void evalEnv(ClCharT *arg)
             {
                 len = strlen(envValue);
                 strncat(buf, envValue, len);
-            } else {
-                strncat(buf, "$(", 2);
-                strncat(buf, env, len);
-                strncat(buf, ")", 1);
             }
             k = strlen(buf);
             j = 0;
