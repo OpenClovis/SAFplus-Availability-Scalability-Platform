@@ -150,7 +150,8 @@ clLogStreamOwnerEntryProcess(ClLogSOEoDataT          *pSoEoData,
                              ClLogFilterT            *pStreamFilter,
                              ClUint32T               *pAckerCnt,
                              ClUint32T               *pNonAckerCnt, 
-                             ClUint16T               *pStreamId);
+                             ClUint16T               *pStreamId,
+                             ClBoolT                 *pSOLocked);
     
 extern ClRcT
 clLogStreamOwnerAttrVerifyNGet(ClLogSOEoDataT          *pSoEoData,
