@@ -1304,22 +1304,19 @@ ClRcT _ckptCheckpointLocalWrite(ClCkptHdlT             ckptHdl,
         {
             goto exitOnError;
         }
-        if(sectionLockTaken == CL_TRUE)
-        {
-            CKPT_UNLOCK(pCkpt->ckptMutex);
-        }
         if(pIoVector->sectionId.id == NULL)
         {
             if(pCkpt->pDpInfo->maxScns > 1)
             {
+                clCkptSectionLevelUnlock(pCkpt, &pIoVector->sectionId, sectionLockTaken);
+                sectionLockTaken = CL_FALSE;
                 /*
                  * Return ERROR as id == NULL and max sec > 1
                  */
                 rc = CL_CKPT_ERR_INVALID_PARAMETER;
                 clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_SEC_OVERWRITE, 
                         "Passed section id is NULL");
-                /* release the section mutex, acquire ckpt mutex */
-                goto sectionUnlockNExit;
+                goto exitOnError;
             }
             rc = clCkptDefaultSectionInfoGet(pCkpt, &pSec);
         }
@@ -1330,6 +1327,12 @@ ClRcT _ckptCheckpointLocalWrite(ClCkptHdlT             ckptHdl,
              */
             rc = clCkptSectionInfoGet(pCkpt, &pIoVector->sectionId, &pSec);
         }   
+
+        if(sectionLockTaken == CL_TRUE)
+        {
+            CKPT_UNLOCK(pCkpt->ckptMutex);
+        }
+
         if( CL_OK != rc )
         {
             clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
