@@ -1748,8 +1748,19 @@ ClRcT VDECL_VER(_ckptIterationNextGet, 4, 0, 0)(ClCkptHdlT               ckptHdl
      * Retrieve the data associated with the active handle.
      */
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);  
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                   ("Failed to get ckpt from handle rc[0x %x]\n",rc), rc);
+    if(rc != CL_OK)
+    {
+        clLogError("ITER", "NEXT", "Failed to get ckpt from handle rc[0x %x]", rc);
+        return rc;
+    }
+
+    CKPT_LOCK(pCkpt->ckptMutex);
+    if(!pCkpt->ckptMutex)
+    {
+        clLogWarning("ITER", "NEXT", "Ckpt handle [%#llx] deleted", ckptHdl);
+        rc = CL_CKPT_ERR_NOT_EXIST;
+        goto exitOnErrorWithoutUnlock;
+    }
 
     /* 
      * Verify the sanity of the data plane info.
@@ -1826,11 +1837,14 @@ ClRcT VDECL_VER(_ckptIterationNextGet, 4, 0, 0)(ClCkptHdlT               ckptHdl
         pSecDescriptor->sectionState   = pSec->state;
         pSecDescriptor->lastUpdate     = pSec->lastUpdated;
     } 
+ 
     exitOnError:
-    {
-        clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
-        return rc;
-    }
+    CKPT_UNLOCK(pCkpt->ckptMutex);
+
+    exitOnErrorWithoutUnlock:
+    clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+
+    return rc;
 }
 
 
@@ -2640,11 +2654,6 @@ static ClRcT _ckptSectionOverwriteWithVector(ClCkptHdlT         ckptHdl,
     {
         goto exitOnWithoutUnlock;
     }
-    if(sectionLockTaken == CL_TRUE)
-    {
-        /* release the ckpt mutex */
-        CKPT_UNLOCK(pCkpt->ckptMutex);
-    }
     if(pSectionId->id == NULL)
     {
         if(pCkpt->pDpInfo->maxScns > 1)
@@ -2657,6 +2666,7 @@ static ClRcT _ckptSectionOverwriteWithVector(ClCkptHdlT         ckptHdl,
                        "Passed section id is NULL");
             /* Release section level mutex, exit */
             clCkptSectionLevelUnlock(pCkpt, pSectionId, sectionLockTaken);
+            sectionLockTaken = CL_FALSE;
             goto exitOnWithoutUnlock;
         }
         rc = clCkptDefaultSectionInfoGet(pCkpt, &pSec);
@@ -2701,6 +2711,7 @@ static ClRcT _ckptSectionOverwriteWithVector(ClCkptHdlT         ckptHdl,
             }
             /* Release section level mutex, exit */
             clCkptSectionLevelUnlock(pCkpt, pSectionId, sectionLockTaken);
+            sectionLockTaken = CL_FALSE;
             goto exitOnWithoutUnlock;
         }
     }
@@ -2712,7 +2723,14 @@ static ClRcT _ckptSectionOverwriteWithVector(ClCkptHdlT         ckptHdl,
                    pCkpt->ckptName.length, pCkpt->ckptName.value, rc);
         /* Release section level mutex, exit */
         clCkptSectionLevelUnlock(pCkpt, pSectionId, sectionLockTaken);
+        sectionLockTaken = CL_FALSE;
         goto exitOnWithoutUnlock;
+    }
+
+    if(sectionLockTaken == CL_TRUE)
+    {
+        /* release the ckpt mutex */
+        CKPT_UNLOCK(pCkpt->ckptMutex);
     }
 
     if(differenceVector)
@@ -2967,11 +2985,6 @@ ClRcT VDECL_VER(_ckptCheckpointRead, 4, 0, 0)(ClCkptHdlT               ckptHdl,
                         pVec->sectionId.idLen, pVec->sectionId.id);
             goto exitOnError;
         }
-        if(sectionLockTaken == CL_TRUE)
-        {
-            /* acquired section level mutex, leaving ckpt mutex */
-            CKPT_UNLOCK(pCkpt->ckptMutex);
-        }
         /*
          * Locate the appropriate section.
          */
@@ -2992,6 +3005,7 @@ ClRcT VDECL_VER(_ckptCheckpointRead, 4, 0, 0)(ClCkptHdlT               ckptHdl,
                 /* Leave section mutex & take ckpt mutex */
                 clCkptSectionLevelUnlock(pCkpt, &pVec->sectionId, 
                                          sectionLockTaken);
+                sectionLockTaken = CL_FALSE;
                 goto exitOnErrorWithoutUnlock;
             }
             rc = clCkptDefaultSectionInfoGet(pCkpt, &pSec);
@@ -3007,7 +3021,14 @@ ClRcT VDECL_VER(_ckptCheckpointRead, 4, 0, 0)(ClCkptHdlT               ckptHdl,
                        pVec->sectionId.idLen, pVec->sectionId.id,
                        pCkpt->ckptName.length, pCkpt->ckptName.value);
             clCkptSectionLevelUnlock(pCkpt, &pVec->sectionId, sectionLockTaken);
+            sectionLockTaken = CL_FALSE;
             goto exitOnErrorWithoutUnlock;
+        }
+
+        if(sectionLockTaken == CL_TRUE)
+        {
+            /* acquired section level mutex, leaving ckpt mutex */
+            CKPT_UNLOCK(pCkpt->ckptMutex);
         }
 
         /*
@@ -3098,7 +3119,15 @@ ClRcT VDECL_VER(_ckptCheckpointRead, 4, 0, 0)(ClCkptHdlT               ckptHdl,
         if(sectionLockTaken == CL_TRUE)
         {
             CKPT_LOCK(pCkpt->ckptMutex);
+            if(!pCkpt->ckptMutex)
+            {
+                clLogWarning("SEC", "READ", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+                rc = CL_CKPT_ERR_NOT_EXIST;
+                sectionLockTaken = CL_TRUE;
+                goto exitOnErrorWithoutUnlock;
+            }
         }
+
         /*
          * Section copy is not necessary here, coz in the client side, 
          * we are copying the section back from the output received from 
@@ -3128,7 +3157,7 @@ ClRcT VDECL_VER(_ckptCheckpointRead, 4, 0, 0)(ClCkptHdlT               ckptHdl,
     clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_INFORMATIONAL,CL_LOG_CKPT_SVR_NAME,
             CL_CKPT_LOG_1_CKPT_READ,  pCkpt->ckptName.value);
     /*
-     * Unock the checkpoint's mutex.
+     * Unlock the checkpoint's mutex.
      */
     CKPT_UNLOCK(pCkpt->ckptMutex);
     return rc;
