@@ -508,8 +508,8 @@ BEECRYPT_VERSION=beecrypt-4.1.2
 GDBM_VERSION=gdbm-1.8.0
 GLIB_VERSION=glib-2.12.6
 GLIBC_VERSION=glibc-2.3.5
-OPENHPI_VERSION=openhpi-2.14.0
-OPENHPI_PKG=openhpi-2.14.0.tar.gz
+OPENHPI_VERSION=openhpi-2.16.0.oc
+OPENHPI_PKG=openhpi-2.14.0.oc.tar.gz
 if [ "$CUSTOM_OPENHPI" == "1" ]; then
     OPENHPI_PKG=$CUSTOM_OPENHPI_PKG
 fi

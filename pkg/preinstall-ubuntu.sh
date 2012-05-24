@@ -81,7 +81,7 @@ installRequired gawk
 installRequired pkg-config
 installRequired libglib2.0-dev
 installRequired libgdbm-dev
-installOneOf libdb4.6-dev libdb4.5-dev libdb4.4-dev libdb4.3-dev
+installOneOf libdb4.8-dev libdb4.6-dev libdb4.5-dev libdb4.4-dev libdb4.3-dev
 installRequired libsqlite3-0 libsqlite3-dev
 installRequired e2fsprogs
 installRequired libperl-dev
