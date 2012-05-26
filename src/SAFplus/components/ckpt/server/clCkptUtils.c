@@ -1917,6 +1917,11 @@ ClRcT _ckptSectionTimerCallback(void *pArg)
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Handle is invalid  rc[0x %x]\n",rc), rc);
 
+    CKPT_LOCK(pCkpt->ckptMutex);
+    if(!pCkpt->ckptMutex)
+    {
+        goto exitOnError;
+    }
     rc = clCkptSectionLevelDelete(pSecInfo->ckptHdl, pCkpt, &pSecInfo->secId, 0);
     if( CL_OK != rc )
     {
@@ -1924,8 +1929,11 @@ ClRcT _ckptSectionTimerCallback(void *pArg)
                 "Failed to delete the section [%.*s]", 
                 pSecInfo->secId.idLen, pSecInfo->secId.id);
     }
+    CKPT_UNLOCK(pCkpt->ckptMutex);
+
+    exitOnError:
     clHandleCheckin(gCkptSvr->ckptHdl, pSecInfo->ckptHdl);
-exitOnErrorBeforeHdlCheckout:
+    exitOnErrorBeforeHdlCheckout:
     if(pSecInfo != NULL)
     {
         clHeapFree(pSecInfo->secId.id);
