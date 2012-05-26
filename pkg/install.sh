@@ -25,8 +25,8 @@
 ################################################################################
 
 # values instantiated by the package script
-THIRDPARTYPKG=3rdparty-base-1.15.tar
-THIRDPARTYMD5=3rdparty-base-1.15.md5
+THIRDPARTYPKG=3rdparty-base-1.16.1.tar
+THIRDPARTYMD5=3rdparty-base-1.16.1.md5
 
 coloring=0
 
