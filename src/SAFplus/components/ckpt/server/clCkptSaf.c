@@ -1229,13 +1229,19 @@ ClRcT VDECL_VER(_ckptSectionDelete, 4, 0, 0)( ClCkptHdlT 	    ckptHdl,
             ("Failed to get ckpt from handle rc[0x %x]\n",rc), rc);
 
     CL_ASSERT(pCkpt != NULL);
+    /* Take the Ckpt Mutex */
+    CKPT_LOCK(pCkpt->ckptMutex);
+    if(!pCkpt->ckptMutex)
+    {
+        goto exitOnError;
+    }
 
     if(pCkpt->isPending == CL_TRUE)
     {
         rc = CL_CKPT_RC(CL_ERR_TRY_AGAIN);
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
                 "Active server doesn't have the proper data");
-        goto exitOnError;
+        goto exitOnErrorUnlock;
     }
     rc = clCkptSectionLevelDelete(ckptHdl, pCkpt, pSecId, srcClient);
     if( CL_OK != rc )
@@ -1244,6 +1250,9 @@ ClRcT VDECL_VER(_ckptSectionDelete, 4, 0, 0)( ClCkptHdlT 	    ckptHdl,
                 "Failed to delete the section [%.*s]", 
                 pSecId->idLen, pSecId->id);
     }
+    exitOnErrorUnlock:
+    CKPT_UNLOCK(pCkpt->ckptMutex);
+
 exitOnError:
     {
         clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
@@ -4439,6 +4448,9 @@ exitOnError:
     return rc;
 }
 
+/*
+ * Called with the ckpt mutex held
+ */
 ClRcT
 clCkptSectionLevelDelete(ClCkptHdlT        ckptHdl,
                          CkptT             *pCkpt, 
@@ -4449,25 +4461,13 @@ clCkptSectionLevelDelete(ClCkptHdlT        ckptHdl,
     ClUint32T  peerCount = 0;
     ClBoolT sectionLockTaken = CL_TRUE;
 
-    /* Take the Ckpt Mutex */
-    CKPT_LOCK(pCkpt->ckptMutex);
-    if(!pCkpt->ckptMutex)
-    {
-        return CL_OK;
-    }
-
     /* take the section level mutex */
     rc = clCkptSectionLevelLock(pCkpt, pSecId, &sectionLockTaken);
     if( CL_OK != rc )
     {
-        CKPT_UNLOCK(pCkpt->ckptMutex);
         return rc;
     }
-    if(sectionLockTaken == CL_TRUE)
-    {
-        /* release the ckpt mutex */
-        CKPT_UNLOCK(pCkpt->ckptMutex);
-    }
+
     /* 
      * Delete the section.
      */
@@ -4479,10 +4479,6 @@ clCkptSectionLevelDelete(ClCkptHdlT        ckptHdl,
                 pSecId->idLen, pSecId->id, pCkpt->ckptName.length,
                 pCkpt->ckptName.value);
         clCkptSectionLevelUnlock(pCkpt, pSecId, sectionLockTaken);
-        if(sectionLockTaken == CL_FALSE)
-        {
-            CKPT_UNLOCK(pCkpt->ckptMutex);
-        }
         return rc;
     }
     pCkpt->pDpInfo->numScns--;
@@ -4508,10 +4504,6 @@ clCkptSectionLevelDelete(ClCkptHdlT        ckptHdl,
               pCkpt->ckptName.value);
     /* release section level mutex */
     clCkptSectionLevelUnlock(pCkpt, pSecId, sectionLockTaken);
-    if(sectionLockTaken == CL_FALSE)
-    {
-        CKPT_UNLOCK(pCkpt->ckptMutex);
-    }
     return rc;
 }
 
