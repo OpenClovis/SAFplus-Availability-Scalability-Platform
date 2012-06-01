@@ -227,13 +227,16 @@ static ClBoolT clAmsPeCheckCSIDependentsAssigned(ClAmsSUT *su, ClAmsCSIT *csi);
 static __inline__ ClBoolT clAmsPeCheckNodeHasLeft(ClAmsNodeT *node)
 {
     ClCpmLT *cpmL = NULL;
-    cpmNodeFind(node->config.entity.name.value, &cpmL);
+    ClBoolT nodeLeft = CL_FALSE;
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+    cpmNodeFindLocked(node->config.entity.name.value, &cpmL);
     if(!cpmL || !cpmL->pCpmLocalInfo || 
        cpmL->pCpmLocalInfo->status == CL_CPM_EO_DEAD)             
-    {                                                             
-        return CL_TRUE;
+    {                  
+        nodeLeft = CL_TRUE;
     }
-    return CL_FALSE;
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+    return nodeLeft;
 }
 
 /*-----------------------------------------------------------------------------
@@ -19219,6 +19222,7 @@ _clAmsPeCSITransitionHAState(
     ClAmsSISURefT *suRef;
     ClAmsCSICompRefT *compRef;
     ClAmsCompCSIRefT *csiRef;
+    ClRcT rc = CL_OK;
     ClRcT invalid = CL_FALSE;
     ClBoolT suWasAssigned, suIsAssigned;
 
@@ -19264,17 +19268,39 @@ _clAmsPeCSITransitionHAState(
                     0,
                     (ClAmsEntityRefT **)&compRef) );
 
-    AMS_CALL ( clAmsEntityListFindEntityRef2(
+    if ( (rc = clAmsEntityListFindEntityRef2(
                     &su->status.siList,
                     &si->config.entity,
                     0,
-                    (ClAmsEntityRefT **)&siRef) );
+                    (ClAmsEntityRefT **)&siRef) ) != CL_OK)
+    {
+        clLogError("CSI", "CHG", "EntityRef find for si [%s] failed with [%#x] "
+                   "at Line [%d], Function [%s]",
+                   si->config.entity.name.value, rc, __LINE__, __FUNCTION__);
+        if(oldState == CL_AMS_HA_STATE_NONE)
+        {
+            clAmsCompDeleteCSIRefFromCSIList(&comp->status.csiList, csi);
+            clAmsCSIDeleteCompRefFromPGList(&csi->status.pgList, comp);
+        }
+        return rc;
+    }
 
-    AMS_CALL ( clAmsEntityListFindEntityRef2(
+    if( (rc = clAmsEntityListFindEntityRef2(
                     &si->status.suList,
                     &su->config.entity,
                     0,
-                    (ClAmsEntityRefT **)&suRef) );
+                    (ClAmsEntityRefT **)&suRef) ) != CL_OK)
+    {
+        clLogError("CSI", "CHG", "EntityRef find for su [%s] failed with [%#x] "
+                   "at Line [%d], Function [%s]",
+                   su->config.entity.name.value, rc, __LINE__, __FUNCTION__);
+        if(oldState == CL_AMS_HA_STATE_NONE)
+        {
+            clAmsCompDeleteCSIRefFromCSIList(&comp->status.csiList, csi);
+            clAmsCSIDeleteCompRefFromPGList(&csi->status.pgList, comp);
+        }
+        return rc;
+    }
 
     /*
      * The switch below implements the state machine for the HA states associated 

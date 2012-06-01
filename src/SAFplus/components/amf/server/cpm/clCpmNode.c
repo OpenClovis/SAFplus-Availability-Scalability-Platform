@@ -576,15 +576,20 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
     /*
      * Locate the Node from node Table and assign the pointer to the data 
      */
-    rc = cpmNodeFind(cpmLocalInfo.nodeName, &cpmL);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR, "node",
-                   cpmLocalInfo.nodeName, rc, rc, CL_LOG_DEBUG,
-                   CL_LOG_HANDLE_APP);
-
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+    rc = cpmNodeFindLocked(cpmLocalInfo.nodeName, &cpmL);
+    if(rc != CL_OK)
+    {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+        clLogError("CPM", "REG", "Node [%s] not found. Failure code [%#x]", 
+                   cpmLocalInfo.nodeName, rc);
+        goto failure;
+    }
     cpmL->pCpmLocalInfo =
         (ClCpmLocalInfoT *) clHeapAllocate(sizeof(ClCpmLocalInfoT));
     if (cpmL->pCpmLocalInfo == NULL)
     {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
         CL_CPM_CHECK_0(CL_DEBUG_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED, rc,
@@ -592,7 +597,9 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
     }
 
     memcpy(cpmL->pCpmLocalInfo, &cpmLocalInfo, sizeof(ClCpmLocalInfoT));
-    
+    cpmL->pCpmLocalInfo->status = CL_CPM_EO_ALIVE;
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+
     /**
      * Card Type Mismatch handling 
      */
@@ -627,8 +634,6 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
 
     if(flag == CL_TRUE)
     {
-        cpmL->pCpmLocalInfo->status = CL_CPM_EO_ALIVE;
-
         /* Set the CPM/L to its default boot Level */
         strcpy(nodeName.value, cpmLocalInfo.nodeName);
         nodeName.length = strlen(nodeName.value);
@@ -709,6 +714,7 @@ ClRcT VDECL(cpmCpmLocalDeregister)(ClEoDataT data,
     ClRcT rc = CL_OK;
     ClCpmLT *cpmL;
     ClCpmLocalInfoT cpmLocalInfo;
+    ClCpmLocalInfoT *pCpmLocalInfo = NULL;
 
     /*
      * Param Check 
@@ -721,10 +727,15 @@ ClRcT VDECL(cpmCpmLocalDeregister)(ClEoDataT data,
     /*
      * Locate the Node from node Table and assign the pointer to the data 
      */
-    rc = cpmNodeFind(cpmLocalInfo.nodeName, &cpmL);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR, "node",
-                   cpmLocalInfo.nodeName, rc, rc, CL_LOG_DEBUG,
-                   CL_LOG_HANDLE_APP);
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+    rc = cpmNodeFindLocked(cpmLocalInfo.nodeName, &cpmL);
+    if(rc != CL_OK)
+    {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+        clLogError("CPM", "DEREG", "Node [%s] not found. Failure code [%#x]",
+                   cpmLocalInfo.nodeName, rc);
+        goto failure;
+    }
 
     /*
      * Bug 4424:
@@ -732,9 +743,12 @@ ClRcT VDECL(cpmCpmLocalDeregister)(ClEoDataT data,
      */
     if (cpmL->pCpmLocalInfo != NULL)
     {
-        clHeapFree(cpmL->pCpmLocalInfo);
+        pCpmLocalInfo = cpmL->pCpmLocalInfo;
         cpmL->pCpmLocalInfo = NULL;
     }
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+    if(pCpmLocalInfo)
+        clHeapFree(pCpmLocalInfo);
 
     /*
      * Do the CPM\L dataSet checkpoint 
@@ -1014,11 +1028,13 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
      */
     if(CL_CPM_IS_ACTIVE())
     {
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
         rc = cpmNodeFindByIocAddress(iocAddress, &cpmL);
         if(rc == CL_OK)
         {
             strcpy(nodeName.value, cpmL->pCpmLocalInfo->nodeName);
             nodeName.length = strlen(nodeName.value) + 1;
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             /*
              * Setup a restart override to halt the node in case we are interrupted 
              * by process faults/escalations during node shutdown process.
@@ -1047,6 +1063,7 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
         }
         else
         {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             /* Could not find the node 
              *   Node May Not Exist OR
              *   May not yet registered with CPM/G
@@ -1171,12 +1188,14 @@ ClRcT VDECL(cpmNodeCpmLResponse)(ClEoDataT data,
     
     if(cpmBmResponse.retCode == CL_OK)
     {
-        if( (rc = cpmNodeFind(cpmBmResponse.nodeName.value, &tempNode) ) == CL_OK
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
+        if( (rc = cpmNodeFindLocked(cpmBmResponse.nodeName.value, &tempNode) ) == CL_OK
             &&
             tempNode && tempNode->pCpmLocalInfo )
         {
             ClUint32T slot = tempNode->pCpmLocalInfo->cpmAddress.nodeAddress;
             ClBoolT asserted = CL_FALSE;
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             if(clCmThresholdStateGet(slot, NULL, &asserted) == CL_OK
                &&
                asserted == CL_TRUE)
@@ -1187,6 +1206,10 @@ ClRcT VDECL(cpmNodeCpmLResponse)(ClEoDataT data,
                 cpmWriteNodeStatToFile("AMS", CL_YES);
                 goto failure;
             } 
+        }
+        else
+        {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         }
         rc = CL_OK;
         cpmBmResponse.nodeName.length = cpmBmResponse.nodeName.length+1;
@@ -1218,10 +1241,18 @@ ClRcT VDECL(cpmNodeCpmLResponse)(ClEoDataT data,
         }
         else
         {
-            rc = cpmNodeFind(cpmBmResponse.nodeName.value, &tempNode);
+            clOsalMutexLock(gpClCpm->cpmTableMutex);
+            rc = cpmNodeFindLocked(cpmBmResponse.nodeName.value, &tempNode);
             if(rc == CL_OK && tempNode != NULL && tempNode->pCpmLocalInfo != NULL)
-                clCpmNodeShutDown(
-                        tempNode->pCpmLocalInfo->cpmAddress.nodeAddress);
+            {
+                ClIocNodeAddressT node = tempNode->pCpmLocalInfo->cpmAddress.nodeAddress;
+                clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+                clCpmNodeShutDown(node);
+            }
+            else
+            {
+                clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            }
         }
     }
     return rc;
@@ -1434,13 +1465,13 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
     else
     {
         ClCpmCpmToAmsCallT *cpmToAmsCallback = gpClCpm->cpmToAmsCallback;
-        
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
         rc = cpmNodeFindByIocAddress(cmCpmMsg.physicalSlot, &cpmL);
         if (rc == CL_OK)
         {
             strcpy(nodeName.value, cpmL->pCpmLocalInfo->nodeName);
             nodeName.length = strlen(nodeName.value) + 1;
-            
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             switch(cmCpmMsg.cmCpmMsgType)
             {
                 case CL_CM_BLADE_REQ_EXTRACTION:
@@ -1499,6 +1530,10 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
                 }
             }
         }
+        else
+        {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+        }
     }
 
     return CL_OK;
@@ -1514,12 +1549,17 @@ ClRcT _cpmIocAddressForNodeGet(ClNameT *nodeName, ClIocAddressT *pIocAddress)
 
     if(!nodeName || !pIocAddress) 
         return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-
-    rc = cpmNodeFind(nodeName->value, &node);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
-                   "node", nodeName->value, rc, rc, CL_LOG_DEBUG,
-                   CL_LOG_HANDLE_APP);
-
+    
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+    rc = cpmNodeFindLocked(nodeName->value, &node);
+    if(rc != CL_OK)
+    {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+        clLogError("ADDR", "GET", "Address get for node [%s] returned [%#x]",
+                   nodeName->value, rc);
+        goto failure;
+    }
+    
     /*
      * Bug 4428:
      * Added the if-else block for NULL checking.
@@ -1531,8 +1571,10 @@ ClRcT _cpmIocAddressForNodeGet(ClNameT *nodeName, ClIocAddressT *pIocAddress)
     }
     else
     {
-        return CL_CPM_RC(CL_ERR_DOESNT_EXIST);
+        rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
     }
+
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
 
 failure:
     return rc;
@@ -1559,10 +1601,12 @@ ClRcT _cpmNodeNameForNodeAddressGet(ClIocNodeAddressT nodeAddress, ClNameT *pNod
         return CL_OK;
     }
     clOsalMutexUnlock(&gpClCpm->cpmMutex);
-    
+
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
     rc = cpmNodeFindByNodeId(nodeAddress, &node);
     if(rc != CL_OK)
     {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         clLogError("NODE", "GET", "Unable to find node address [%d] in CPM node table",
                    nodeAddress);
         goto failure;
@@ -1578,8 +1622,10 @@ ClRcT _cpmNodeNameForNodeAddressGet(ClIocNodeAddressT nodeAddress, ClNameT *pNod
     }
     else
     {
-        return CL_CPM_RC(CL_ERR_DOESNT_EXIST);
+        rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
     }
+    
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
 
 failure:
     return rc;
@@ -1630,25 +1676,26 @@ ClRcT VDECL(cpmIocAddressForNodeGet)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    rc = cpmNodeFind(nodeName.value, &node);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
-                   "node", nodeName.value, rc, rc, CL_LOG_DEBUG,
-                   CL_LOG_HANDLE_APP);
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+    rc = cpmNodeFindLocked(nodeName.value, &node);
+    if(rc != CL_OK || !node->pCpmLocalInfo)
+    {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+        if(rc == CL_OK)
+            rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
+
+        clLogError("NODE", "GET", "Address get for node [%s] returned [%#x]",
+                   nodeName.value, rc);
+        goto failure;
+    }
 
     /*
      * Return physical address 
      */
-    if (node->pCpmLocalInfo != NULL)
-    {
-        idlIocAddress.discriminant = CLIOCADDRESSIDLTIOCPHYADDRESS;
-        memcpy(&(idlIocAddress.clIocAddressIDLT.iocPhyAddress), &(node->pCpmLocalInfo->cpmAddress), 
-                sizeof(ClIocPhysicalAddressT));
-    }
-    else
-    {
-        rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Node not yet registered.\n"), rc);
-    }
+    idlIocAddress.discriminant = CLIOCADDRESSIDLTIOCPHYADDRESS;
+    memcpy(&(idlIocAddress.clIocAddressIDLT.iocPhyAddress), &(node->pCpmLocalInfo->cpmAddress), 
+           sizeof(ClIocPhysicalAddressT));
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
 
     rc = VDECL_VER(clXdrMarshallClIocAddressIDLT, 4, 0, 0)((void *) &idlIocAddress, outMsgHandle,
                                        0);
@@ -1701,10 +1748,12 @@ ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover)
     ClIocNodeAddressT nodeAddress = 0;
 
     clOsalMutexLock(&gpClCpm->cpmMutex);
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
 
     rc = cpmNodeFindByNodeId(nodeId, &cpmL);
     if (CL_OK != rc)
     {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         clOsalMutexUnlock(&gpClCpm->cpmMutex);
         clLogWarning(CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED,
                      "Not able to find node having node ID [%d], "
@@ -1716,6 +1765,7 @@ ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover)
     
     if(!(pCpmLocalInfo = cpmL->pCpmLocalInfo))
     {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         clOsalMutexUnlock(&gpClCpm->cpmMutex);
         return CL_OK;
     }
@@ -1724,6 +1774,7 @@ ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover)
     nodeAddress = pCpmLocalInfo->cpmAddress.nodeAddress;
     cpmL->pCpmLocalInfo = NULL;
 
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
     clOsalMutexUnlock(&gpClCpm->cpmMutex);
 
 
@@ -2227,9 +2278,11 @@ ClRcT VDECL(cpmNodeConfigSet)(ClEoDataT data,
         clLogError("NODE", "CONFIG", "Node set config unmarshall returned [%#x]", rc);
         goto out;
     }
-    rc = cpmNodeFind(nodeConfig.nodeName, &cpmL);
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+    rc = cpmNodeFindLocked(nodeConfig.nodeName, &cpmL);
     if(rc != CL_OK)
     {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         clLogError("NODE", "CONFIG", "Node [%s] find returned [%#x]", 
                    nodeConfig.nodeName, rc);
         goto out;
@@ -2239,7 +2292,6 @@ ClRcT VDECL(cpmNodeConfigSet)(ClEoDataT data,
         cpmg = CL_TRUE;
     }
 
-    clOsalMutexLock(gpClCpm->cpmTableMutex);
     clNameCopy(&cpmL->nodeType, &nodeConfig.nodeType);
     clNameCopy(&cpmL->nodeIdentifier, &nodeConfig.nodeIdentifier);
     clNameCopy(&cpmL->nodeMoIdStr, &nodeConfig.nodeMoIdStr);
@@ -2267,20 +2319,30 @@ ClRcT VDECL(cpmNodeConfigGet)(ClEoDataT data,
         clLogError("NODE", "CONFIG", "Node name unmarshall returned [%#x]", rc);
         goto out;
     }
-    rc = cpmNodeFind(nodeName.value, &cpmL);
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+    rc = cpmNodeFindLocked(nodeName.value, &cpmL);
     if(rc != CL_OK)
     {
+        ClBoolT unlock = CL_FALSE;
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         if(gpClCpm->cpmToAmsCallback &&
            gpClCpm->cpmToAmsCallback->nodeAdd)
         {
             rc = gpClCpm->cpmToAmsCallback->nodeAdd(nodeName.value);
             if(rc == CL_OK)
             {
-                rc = cpmNodeFind(nodeName.value, &cpmL);
+                unlock = CL_TRUE;
+                clOsalMutexLock(gpClCpm->cpmTableMutex);
+                rc = cpmNodeFindLocked(nodeName.value, &cpmL);
             }
         }
         if(rc != CL_OK)
+        {
+            if(unlock)
+                clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+
             goto out;
+        }
     }
     strncpy(nodeConfig.nodeName, nodeName.value, sizeof(nodeConfig.nodeName)-1);
     clNameCopy(&nodeConfig.nodeType, &cpmL->nodeType);
@@ -2296,6 +2358,7 @@ ClRcT VDECL(cpmNodeConfigGet)(ClEoDataT data,
     {
         strncpy(nodeConfig.cpmType, "LOCAL", sizeof(nodeConfig.cpmType)-1);
     }
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
 
     rc = VDECL_VER(clXdrMarshallClCpmNodeConfigT, 4, 0, 0)(&nodeConfig, outMsgHdl, 0);
     if(rc != CL_OK)
@@ -2333,12 +2396,18 @@ ClRcT VDECL(cpmMiddlewareRestart)(ClEoDataT data,
     iocNodeAddress = cpmMiddlewareReset.iocNodeAddress;
     graceful = cpmMiddlewareReset.graceful;
     nodeReset = cpmMiddlewareReset.nodeReset;
+
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
     rc = cpmNodeFindByIocAddress(iocNodeAddress, &cpm);
     if (rc != CL_OK)
+    {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         goto out;
+    }
 
     strcpy(nodeName.value, cpm->pCpmLocalInfo->nodeName);
     nodeName.length = strlen(nodeName.value) + 1;
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
 
     /*
      * Fake a deferred sync response so that we do respond before processing the restart.
@@ -2394,12 +2463,17 @@ ClRcT VDECL(cpmNodeRestart)(ClEoDataT data,
     iocNodeAddress = cpmRestartSend.iocNodeAddress;
     graceful = cpmRestartSend.graceful;
 
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
     rc = cpmNodeFindByIocAddress(iocNodeAddress, &cpm);
     if (rc != CL_OK)
+    {
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         goto out;
+    }
 
     strcpy(nodeName.value, cpm->pCpmLocalInfo->nodeName);
     nodeName.length = strlen(nodeName.value) + 1;
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
 
     /*
      * Fake a deferred sync response so that we do respond before processing the restart.
