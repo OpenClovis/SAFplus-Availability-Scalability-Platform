@@ -108,6 +108,11 @@ typedef struct ClAmsEntityOpStack
  */
 typedef struct
 {
+#define CL_AMS_FLAG_CONFIG_DIRTY (0x1)
+#define CL_AMS_FLAG_STATUS_DIRTY (0x2)
+#define CL_AMS_FLAG_SEEN         (0x4)
+#define CL_AMS_FLAG_FREE         (0x8)
+#define CL_AMS_FLAG_DIRTY        (CL_AMS_FLAG_CONFIG_DIRTY | CL_AMS_FLAG_STATUS_DIRTY)
     ClAmsEntityTypeT        type;                   /**< Type of entity (SG,SU,SI,CSI, etc) */
     ClNameT                 name;                   /**< unique name of entity */
     ClUint8T                debugFlags;             /* debug sub area flags  */
@@ -115,7 +120,8 @@ typedef struct
 #if defined (CL_AMS_MGMT_HOOKS)
     ClUint64T               hookId;
 #endif
-
+    ClUint32T               flags;
+    ClListHeadT             dirtyList;
 } ClAmsEntityConfigT;
 
 /** This structure is the common fields in all AMF entities' status

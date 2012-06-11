@@ -123,6 +123,13 @@ typedef struct ClAmsSISUDeleteRef
 }ClAmsSISUDeleteRefT;
 
 
+/*
+ * Use type_max + 1 for storing freed entries
+ */
+static ClListHeadT gClAmsDirtyEntityList[CL_AMS_ENTITY_TYPE_MAX+2];
+static CL_LIST_HEAD_DECLARE(gClAmsDirtyNodeList);
+static ClAmsEntityT **gClAmsDirtyEntities;
+
 /******************************************************************************
  * AMS Methods
  *****************************************************************************/
@@ -219,6 +226,11 @@ clAmsEntitySetConfig(
 
     AMS_CHECKPTR ( !entity );
 
+    /*
+     * Save entity portion
+     */
+    memcpy(&entityRef.entity, entity, sizeof(entityRef.entity));
+
     switch ( entityDb->type )
     {
         case CL_AMS_ENTITY_TYPE_ENTITY:
@@ -262,7 +274,7 @@ clAmsEntitySetConfig(
             memcpy (&suList,&nodeConfig->suList,sizeof (ClAmsEntityListT));
 
             memcpy (nodeConfig, entityConfig, sizeof (ClAmsNodeConfigT));
-
+            
             memcpy (&nodeConfig->nodeDependentsList,&nodeDependentsList,sizeof (ClAmsEntityListT));
             memcpy (&nodeConfig->nodeDependenciesList,&nodeDependenciesList,sizeof (ClAmsEntityListT));
             memcpy (&nodeConfig->suList,&suList,sizeof (ClAmsEntityListT));
@@ -382,6 +394,11 @@ clAmsEntitySetConfig(
 
         }
     }
+
+    /*
+     * Restore back the entity portion  
+     */
+    memcpy(entity, &entityRef.entity, sizeof(*entity));
 
 exitfn:
 
@@ -635,8 +652,8 @@ clAmsEntitySetConfigNew(
     ClRcT  rc = CL_OK;
     ClAmsEntityRefT entityRef = {{0},0,0};
     ClAmsEntityT  *entity  = NULL;
+    ClAmsEntityT entityCopy = {0};
     ClBoolT  allAttr = CL_FALSE;
-
 
     AMS_CHECKPTR ( !entityConfig );
 
@@ -660,6 +677,11 @@ clAmsEntitySetConfigNew(
         allAttr = CL_TRUE;
 
     }
+
+    /*
+     * Save entity copy as dirty bits could be modified by the overwrites below
+     */
+    memcpy(&entityCopy, entity, sizeof(entityCopy));
 
     switch ( entityConfig->type )
     {
@@ -964,7 +986,8 @@ clAmsEntitySetConfigNew(
                         clAmsFreeMemory(newCompConfig->pSupportedCSITypes);
                     rc = CL_AMS_RC(CL_AMS_ERR_BAD_CONFIG);
                     AMS_LOG(CL_DEBUG_ERROR,
-                            ("Comp config set: Invalid supported csitype: numTypes %s",newCompConfig->numSupportedCSITypes));
+                            ("Comp config set: Invalid supported csitype: numTypes %d",
+                             newCompConfig->numSupportedCSITypes));
                     goto exitfn;
                 }
                 /*
@@ -1161,6 +1184,13 @@ clAmsEntitySetConfigNew(
         }
     }
 
+    /*
+     * Restore back
+     */
+    memcpy(entity, &entityCopy, sizeof(*entity));
+
+    clAmsMarkEntityDirty(entity);
+
 exitfn:
 
     return CL_AMS_RC (rc);
@@ -1207,7 +1237,6 @@ clAmsCCBValidateOperationLocked(
             AMS_CHECK_ENTITY_TYPE_AND_EXIT (opData->entity.type);
 
             memcpy (&entityRef.entity,&opData->entity,sizeof(ClAmsEntityT));
-            clLogNotice("ENTITY","VALIDATE","Delete validation for entity [%s]", opData->entity.name.value);
             AMS_CHECK_RC_ERROR( clAmsEntityDbFindEntity( 
                                                         &gAms.db.entityDb[opData->entity.type], &entityRef )); 
 
@@ -2112,15 +2141,12 @@ exitfn:
  *
  */
 
-
-ClRcT
-clAmsCSISetNVP(
-        // coverity[pass_by_value]
-        CL_IN  ClAmsEntityDbT  entityDb,
-        // coverity[pass_by_value]
-        CL_IN  ClAmsEntityT  entity,
-        // coverity[pass_by_value]
-        CL_IN  ClAmsCSINameValuePairT  nvp )
+static ClRcT
+amsCSISetNVP(
+        CL_IN  ClAmsEntityDbT  *entityDb,
+        CL_IN  ClAmsEntityT  *entity,
+        CL_IN  ClAmsCSINameValuePairT  *nvp,
+        ClBoolT markCSI)
 
 {
 
@@ -2139,19 +2165,24 @@ clAmsCSISetNVP(
 
     entityRef.ptr = NULL;
 
-    memcpy (&entityRef.entity, &entity, sizeof (ClAmsEntityT));
+    memcpy (&entityRef.entity, entity, sizeof (ClAmsEntityT));
 
     AMS_CALL (clAmsEntityDbFindEntity(
-                &entityDb,
+                entityDb,
                 &entityRef) );
 
     AMS_CHECKPTR ( !entityRef.ptr );
 
     ClAmsCSIT  *csi = (ClAmsCSIT *)entityRef.ptr;
 
+    if(markCSI)
+    {
+        clAmsMarkEntityDirty(&csi->config.entity);
+    }
+
     AMS_CALL ( crc(
-                ( ClUint8T *)nvp.paramName.value, 
-                nvp.paramName.length,
+                ( ClUint8T *)nvp->paramName.value, 
+                nvp->paramName.length,
                 &entityKey,
                 &keyLength));
 
@@ -2180,9 +2211,9 @@ clAmsCSISetNVP(
         {
             AMS_CHECKPTR (!pNVP); 
             
-            if ( !memcmp(&pNVP->paramName, &nvp.paramName, sizeof(ClNameT)))
+            if ( !memcmp(&pNVP->paramName, &nvp->paramName, sizeof(ClNameT)))
             {
-                memcpy ( &pNVP->paramValue, &nvp.paramValue, sizeof(ClNameT));
+                memcpy ( &pNVP->paramValue, &nvp->paramValue, sizeof(ClNameT));
                 return CL_OK;
             } 
         }
@@ -2198,7 +2229,7 @@ clAmsCSISetNVP(
 
     AMS_CHECK_NO_MEMORY (pNVP);
 
-    memcpy (pNVP, &nvp, sizeof (ClAmsCSINameValuePairT));
+    memcpy (pNVP, nvp, sizeof (ClAmsCSINameValuePairT));
 
     AMS_CHECK_RC_ERROR ( clCntNodeAddAndNodeGet(
                 nvpListHandle,
@@ -2216,7 +2247,26 @@ exitfn:
 
 }
 
-        
+ClRcT
+clAmsCSISetNVP(
+        CL_IN  ClAmsEntityDbT  *entityDb,
+        CL_IN  ClAmsEntityT  *entity,
+        CL_IN  ClAmsCSINameValuePairT  *nvp)
+
+{
+    return amsCSISetNVP(entityDb, entity, nvp, CL_FALSE);
+}
+
+ClRcT
+clAmsCSISetNVPAndMark(
+        CL_IN  ClAmsEntityDbT  *entityDb,
+        CL_IN  ClAmsEntityT  *entity,
+        CL_IN  ClAmsCSINameValuePairT  *nvp)
+
+{
+    return amsCSISetNVP(entityDb, entity, nvp, CL_TRUE);
+}
+
 /*
  * clAmsCSIGetNVP
  * -------------------
@@ -2330,6 +2380,8 @@ clAmsCSIDeleteNVP(
     AMS_CHECKPTR_AND_EXIT ( !entityRef.ptr );
 
     ClAmsCSIT  *csi = (ClAmsCSIT *)entityRef.ptr;
+
+    clAmsMarkEntityDirty(&csi->config.entity);
 
     AMS_CHECK_RC_ERROR ( crc( ( ClUint8T *)nvp.paramName.value, 
                 nvp.paramName.length, &entityKey, &keyLength));
@@ -3896,6 +3948,8 @@ clAmsDeleteFromEntityList(
 
     AMS_CHECKPTR_AND_EXIT ( !sourceEntityRef.ptr );
 
+    clAmsMarkEntityDirty(sourceEntityRef.ptr);
+
     switch(entityListName)
     {
 
@@ -4940,38 +4994,36 @@ clAmsIsValidList (
 
 ClRcT   
 clAmsEntitySetRefPtr(
-        // coverity[pass_by_value]
-        ClAmsEntityRefT  sourceEntityRef,
-        // coverity[pass_by_value]
-        ClAmsEntityRefT  targetEntityRef )
+        ClAmsEntityRefT  *sourceEntityRef,
+        ClAmsEntityRefT  *targetEntityRef )
 
 {
-
     ClAmsEntityTypeT  sourceEntityType = {0};
     ClAmsEntityTypeT  targetEntityType = {0};
 
     AMS_FUNC_ENTER (("\n"));
 
-    sourceEntityType = sourceEntityRef.entity.type;
-    targetEntityType = targetEntityRef.entity.type;
+    sourceEntityType = sourceEntityRef->entity.type;
+    targetEntityType = targetEntityRef->entity.type;
 
     AMS_CALL( clAmsEntityDbFindEntity(
                 &gAms.db.entityDb[sourceEntityType],
-                &sourceEntityRef) );
+                sourceEntityRef) );
 
     AMS_CALL( clAmsEntityDbFindEntity(
                 &gAms.db.entityDb[targetEntityType],
-                &targetEntityRef) );
+                targetEntityRef) );
 
-    AMS_CHECKPTR ( !sourceEntityRef.ptr || !targetEntityRef.ptr );
+    AMS_CHECKPTR ( !sourceEntityRef->ptr || !targetEntityRef->ptr );
 
     if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_SG) &&
             (targetEntityType == CL_AMS_ENTITY_TYPE_APP) )
     {
 
-        ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef.ptr;
-        sg->config.parentApp.ptr = targetEntityRef.ptr;
-        memcpy ( &sg->config.parentApp.entity, &targetEntityRef.entity, 
+        ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef->ptr;
+        sg->config.parentApp.ptr = targetEntityRef->ptr;
+        sg->config.parentApp.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
+        memcpy ( &sg->config.parentApp.entity, &targetEntityRef->entity, 
                 sizeof (ClAmsEntityT));
 
     }
@@ -4982,9 +5034,10 @@ clAmsEntitySetRefPtr(
         if ( targetEntityType == CL_AMS_ENTITY_TYPE_SG )
         {
 
-            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
-            su->config.parentSG.ptr = targetEntityRef.ptr;
-            memcpy ( &su->config.parentSG.entity, &targetEntityRef.entity, 
+            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
+            su->config.parentSG.ptr = targetEntityRef->ptr;
+            su->config.parentSG.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
+            memcpy ( &su->config.parentSG.entity, &targetEntityRef->entity, 
                     sizeof (ClAmsEntityT));
 
         }
@@ -4992,11 +5045,11 @@ clAmsEntitySetRefPtr(
         else if ( targetEntityType == CL_AMS_ENTITY_TYPE_NODE )
         {
 
-            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
-            su->config.parentNode.ptr = targetEntityRef.ptr;
-            memcpy ( &su->config.parentNode.entity, &targetEntityRef.entity,
+            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
+            su->config.parentNode.ptr = targetEntityRef->ptr;
+            su->config.parentNode.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
+            memcpy ( &su->config.parentNode.entity, &targetEntityRef->entity,
                     sizeof (ClAmsEntityT));
-
          }
 
     }
@@ -5005,9 +5058,10 @@ clAmsEntitySetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_SG) )
     {
 
-        ClAmsSIT      *si = (ClAmsSIT *)sourceEntityRef.ptr;
-        si->config.parentSG.ptr = targetEntityRef.ptr;
-        memcpy ( &si->config.parentSG.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
+        ClAmsSIT      *si = (ClAmsSIT *)sourceEntityRef->ptr;
+        si->config.parentSG.ptr = targetEntityRef->ptr;
+        si->config.parentSG.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
+        memcpy ( &si->config.parentSG.entity, &targetEntityRef->entity, sizeof (ClAmsEntityT));
 
     }
 
@@ -5015,9 +5069,10 @@ clAmsEntitySetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_SU) )
     {
 
-        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef.ptr;
-        comp->config.parentSU.ptr = targetEntityRef.ptr;
-        memcpy ( &comp->config.parentSU.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
+        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef->ptr;
+        comp->config.parentSU.ptr = targetEntityRef->ptr;
+        comp->config.parentSU.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
+        memcpy ( &comp->config.parentSU.entity, &targetEntityRef->entity, sizeof (ClAmsEntityT));
 
     }
 
@@ -5025,8 +5080,8 @@ clAmsEntitySetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_COMP) )
     {
 
-        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef.ptr;
-        comp->status.proxyComp = targetEntityRef.ptr;
+        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef->ptr;
+        comp->status.proxyComp = targetEntityRef->ptr;
 
     }
 
@@ -5034,9 +5089,10 @@ clAmsEntitySetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_SI) )
     {
 
-        ClAmsCSIT     *csi = (ClAmsCSIT *)sourceEntityRef.ptr;
-        csi->config.parentSI.ptr = targetEntityRef.ptr;
-        memcpy ( &csi->config.parentSI.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
+        ClAmsCSIT     *csi = (ClAmsCSIT *)sourceEntityRef->ptr;
+        csi->config.parentSI.ptr = targetEntityRef->ptr;
+        csi->config.parentSI.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
+        memcpy ( &csi->config.parentSI.entity, &targetEntityRef->entity, sizeof (ClAmsEntityT));
 
     }
 
@@ -5053,10 +5109,8 @@ clAmsEntitySetRefPtr(
 
 ClRcT   
 clAmsEntityUnsetRefPtr(
-        // coverity[pass_by_value]
-        ClAmsEntityRefT  sourceEntityRef,
-        // coverity[pass_by_value]
-        ClAmsEntityRefT  targetEntityRef )
+        ClAmsEntityRefT  *sourceEntityRef,
+        ClAmsEntityRefT  *targetEntityRef )
 
 {
 
@@ -5065,25 +5119,28 @@ clAmsEntityUnsetRefPtr(
 
     AMS_FUNC_ENTER (("\n"));
 
-    sourceEntityType = sourceEntityRef.entity.type;
-    targetEntityType = targetEntityRef.entity.type;
+    sourceEntityType = sourceEntityRef->entity.type;
+    targetEntityType = targetEntityRef->entity.type;
 
     AMS_CALL( clAmsEntityDbFindEntity(
                 &gAms.db.entityDb[sourceEntityType],
-                &sourceEntityRef) );
+                sourceEntityRef) );
 
     AMS_CALL( clAmsEntityDbFindEntity(
                 &gAms.db.entityDb[targetEntityType],
-                &targetEntityRef) );
+                targetEntityRef) );
 
-    AMS_CHECKPTR ( !sourceEntityRef.ptr || !targetEntityRef.ptr );
+    AMS_CHECKPTR ( !sourceEntityRef->ptr || !targetEntityRef->ptr );
+
+    clAmsMarkEntityDirty(sourceEntityRef->ptr);
 
     if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_SG) &&
             (targetEntityType == CL_AMS_ENTITY_TYPE_APP) )
     {
 
-        ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef.ptr;
+        ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef->ptr;
         sg->config.parentApp.ptr = NULL;
+        sg->config.parentApp.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
     }
 
     else if ( sourceEntityType == CL_AMS_ENTITY_TYPE_SU )
@@ -5092,15 +5149,17 @@ clAmsEntityUnsetRefPtr(
         if ( targetEntityType == CL_AMS_ENTITY_TYPE_SG )
         {
 
-            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
+            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
             su->config.parentSG.ptr = NULL;
+            su->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
         }
 
         else if ( targetEntityType == CL_AMS_ENTITY_TYPE_NODE )
         {
 
-            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
+            ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
             su->config.parentNode.ptr = NULL;
+            su->config.parentNode.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
          }
 
     }
@@ -5109,23 +5168,25 @@ clAmsEntityUnsetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_SG) )
     {
 
-        ClAmsSIT      *si = (ClAmsSIT *)sourceEntityRef.ptr;
+        ClAmsSIT      *si = (ClAmsSIT *)sourceEntityRef->ptr;
         si->config.parentSG.ptr = NULL;
+        si->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
     }
 
     else if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_COMP) &&
             (targetEntityType == CL_AMS_ENTITY_TYPE_SU) )
     {
 
-        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef.ptr;
+        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef->ptr;
         comp->config.parentSU.ptr = NULL;
+        comp->config.parentSU.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
     }
 
     else if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_COMP) &&
             (targetEntityType == CL_AMS_ENTITY_TYPE_COMP) )
     {
 
-        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef.ptr;
+        ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef->ptr;
         comp->status.proxyComp = NULL;
 
     }
@@ -5134,8 +5195,9 @@ clAmsEntityUnsetRefPtr(
             (targetEntityType == CL_AMS_ENTITY_TYPE_SI) )
     {
 
-        ClAmsCSIT     *csi = (ClAmsCSIT *)sourceEntityRef.ptr;
+        ClAmsCSIT     *csi = (ClAmsCSIT *)sourceEntityRef->ptr;
         csi->config.parentSI.ptr = NULL;
+        csi->config.parentSI.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
     }
 
     else
@@ -5418,6 +5480,99 @@ clAmsDBMarshall(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl)
     for (i=1; i <= CL_AMS_ENTITY_TYPE_MAX; ++i)
     {
         AMS_CALL ( clAmsEntityDBMarshall(&amsDb->entityDb[i], inMsgHdl, 0, versionCode) );
+    }
+
+    /*
+     * Third - Marshall the AMS essentials.
+     */
+
+    AMS_CALL ( clAmsServerDataMarshall(&gAms, inMsgHdl, versionCode) );
+
+    /*
+     * Fourth - Marshall entity user data. (if present)
+     */
+
+    AMS_CALL ( clAmsEntityUserDataMarshall(inMsgHdl, versionCode) );
+
+    /*
+     * Write the end marker for the ckpt
+     */
+    AMS_CALL(clAmsDBMarshallEnd(inMsgHdl, versionCode));
+
+    return CL_OK;
+
+}
+
+ClRcT
+clAmsDBMarshallDirty(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl)
+{
+    ClUint32T i = 0;
+    ClUint32T versionCode = 0;
+    ClAmsEntityDBWalkArgsT args = {0};
+    ClAmsEntityT *entity = NULL;
+    ClListHeadT *list = NULL;
+
+    AMS_FUNC_ENTER (("\n"));
+
+    AMS_CHECKPTR ( !amsDb );
+
+    AMS_CALL ( clAmsDBMarshallVersion(amsDb, inMsgHdl, &versionCode) );
+
+    /*
+     * Build the dirty list
+     */
+    //    clAmsBuildDirtyList(&gClAmsDirtyNodeList);
+
+    args.inMsgHdl = inMsgHdl;
+    args.versionCode = versionCode;
+    /*  
+     * First marshall the entity configs.
+     */
+    for (i=1; i<= CL_AMS_ENTITY_TYPE_MAX; ++i)
+    {
+        ClListHeadT *iter;
+        list = &gClAmsDirtyEntityList[i];
+        CL_LIST_FOR_EACH(iter, list)
+        {
+            entity = CL_LIST_ENTRY(iter, ClAmsEntityT, dirtyList);
+            entity->flags &= ~(CL_AMS_FLAG_DIRTY | CL_AMS_FLAG_SEEN);
+            clLogDebug("PACK", "DIRTY", "Packing config for entity [%s]", entity->name.value);
+            AMS_CALL (clAmsEntityConfigMarshall(entity, &args));
+        }
+    }
+    
+    /*
+     * Second - Marshall the status
+     */
+
+    for (i=1; i <= CL_AMS_ENTITY_TYPE_MAX; ++i)
+    {
+        list = &gClAmsDirtyEntityList[i];
+        while(!CL_LIST_HEAD_EMPTY(list))
+        {
+            ClListHeadT *iter = list->pNext;
+            entity = CL_LIST_ENTRY(iter, ClAmsEntityT, dirtyList);
+            clListDel(&entity->dirtyList);
+            clLogDebug("PACK", "DIRTY", "Packing status for entity [%s]", entity->name.value);
+            AMS_CALL(clAmsEntityStatusMarshall(entity, &args));
+        }
+    }
+
+    /*
+     * Now marshall deleted entities if any
+     */
+    list = &gClAmsDirtyEntityList[CL_AMS_ENTITY_TYPE_MAX+1];
+    while(!CL_LIST_HEAD_EMPTY(list))
+    {
+        ClListHeadT *iter = list->pNext;
+        entity = CL_LIST_ENTRY(iter, ClAmsEntityT, dirtyList);
+        clListDel(&entity->dirtyList);
+        if(entity->flags & CL_AMS_FLAG_FREE)
+        {
+            clLogDebug("PACK", "DIRTY", "Packing deleted entity [%s]", entity->name.value);
+            clAmsDBEntityDeleteMarshall(entity, inMsgHdl, versionCode);
+            clHeapFree(entity);
+        }
     }
 
     /*
@@ -7723,7 +7878,9 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ref = clAmsEntityListGetNext(&sg->config.suList, ref))
             {
                 ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                AMS_CHECK_SU(su);
                 su->config.parentSG.ptr = NULL;
+                su->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
                 clNameSet(&su->config.parentSG.entity.name,
                           "ParentSGUndefined");
                 ++su->config.parentSG.entity.name.length;
@@ -7734,7 +7891,9 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ref = clAmsEntityListGetNext(&sg->config.siList, ref))
             {
                 ClAmsSIT *si = (ClAmsSIT*)ref->ptr;
+                AMS_CHECK_SI(si);
                 si->config.parentSG.ptr = NULL;
+                si->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
                 clNameSet(&si->config.parentSG.entity.name,
                           "ParentSGUndefined");
                 ++si->config.parentSG.entity.name.length;
@@ -7764,7 +7923,9 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ref = clAmsEntityListGetNext(&si->config.csiList, ref))
             {
                 ClAmsCSIT *csi = (ClAmsCSIT*)ref->ptr;
+                AMS_CHECK_CSI(csi);
                 csi->config.parentSI.ptr = NULL;
+                csi->config.parentSI.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
                 clNameSet(&csi->config.parentSI.entity.name,
                           "ParentSIUndefined");
                 ++csi->config.parentSI.entity.name.length;
@@ -7809,7 +7970,9 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ref = clAmsEntityListGetNext(&node->config.suList, ref))
             {
                 ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                AMS_CHECK_SU(su);
                 su->config.parentNode.ptr = NULL;
+                su->config.parentNode.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
                 clNameSet(&su->config.parentNode.entity.name,
                           "ParentNodeUndefined");
                 ++su->config.parentNode.entity.name.length;
@@ -7918,7 +8081,9 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 ref = clAmsEntityListGetNext(&su->config.compList, ref))
             {
                 ClAmsCompT *comp = (ClAmsCompT*)ref->ptr;
+                AMS_CHECK_COMP(comp);
                 comp->config.parentSU.ptr = NULL;
+                comp->config.parentSU.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
                 clNameSet(&comp->config.parentSU.entity.name,
                           "ParentSUUndefined");
                 ++comp->config.parentSU.entity.name.length;
@@ -8584,4 +8749,478 @@ clAmsDBGet(ClBufferHandleT msg)
 
     out:
     return rc;
+}
+
+void clAmsDirtyListInitialize(void)
+{
+    ClUint32T i;
+    ClUint32T numEntries = (ClUint32T)sizeof(gClAmsDirtyEntityList)/sizeof(gClAmsDirtyEntityList[0]);
+    for(i = 0; i < numEntries; ++i)
+    {
+        CL_LIST_HEAD_INIT(&gClAmsDirtyEntityList[i]);
+    }
+    CL_LIST_HEAD_INIT(&gClAmsDirtyNodeList);
+}
+
+static __inline__ void amsEnqueueDirty(ClAmsEntityT *entity, ClUint32T gflags)
+{
+    entity->flags |= gflags;
+    if( (entity->flags & CL_AMS_FLAG_DIRTY) )
+    {
+        if(!entity->dirtyList.pNext && !entity->dirtyList.pPrev
+           &&
+           entity->type <= CL_AMS_ENTITY_TYPE_MAX)
+        {
+            clLogDebug("MARK", "DIRTY", 
+                       "Enqueueing entity [%s] with flags [%#x]",
+                       entity->name.value, entity->flags);
+            clListAddTail(&entity->dirtyList, &gClAmsDirtyEntityList[(ClInt32T)entity->type]);
+        }
+    }
+}
+
+/*
+ * Given an entity to checkpoint,mark all the dependent entities as dirty.
+ */
+ClRcT clAmsGatherDirty(ClAmsEntityT *entity, ClUint32T flags,
+                       ClInt32T level, ClInt32T maxLevel)
+{
+    if(entity->flags & CL_AMS_FLAG_SEEN) return CL_OK;
+    if(level > maxLevel) return CL_OK;
+
+    entity->flags |= CL_AMS_FLAG_SEEN;
+    clLogDebug("BUILD", "DIRTY", "Gathering dirty list for entity [%s]", entity->name.value);
+    switch(entity->type)
+    {
+    case CL_AMS_ENTITY_TYPE_SU:
+        {
+            ClAmsSUT *su = (ClAmsSUT*)entity;
+            ClAmsNodeT *node = (ClAmsNodeT*)su->config.parentNode.ptr;
+            ClAmsSGT *sg = (ClAmsSGT*)su->config.parentSG.ptr;
+            ClAmsEntityRefT *ref;
+
+            if(node && !(node->config.entity.flags & CL_AMS_FLAG_SEEN ) )
+                clAmsGatherDirty(&node->config.entity, flags, level+1, maxLevel);
+            if(sg && !(sg->config.entity.flags & CL_AMS_FLAG_SEEN ) )
+                clAmsGatherDirty(&sg->config.entity, flags, level+1, maxLevel);
+
+            amsEnqueueDirty(&su->config.entity, flags);
+
+            for(ref = clAmsEntityListGetFirst(&su->config.compList); ref;
+                ref = clAmsEntityListGetNext(&su->config.compList, ref))
+            {
+                ClAmsCompT *comp = (ClAmsCompT*)ref->ptr;
+                if(comp->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&comp->config.entity, flags, level+1, maxLevel);
+            }
+            for(ref = clAmsEntityListGetFirst(&su->status.siList); ref;
+                ref = clAmsEntityListGetNext(&su->status.siList, ref))
+            {
+                ClAmsSIT *si = (ClAmsSIT*)ref->ptr;
+                if(si->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&si->config.entity, flags, level+1, maxLevel);
+            }
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_COMP:
+        {
+            ClAmsCompT *comp = (ClAmsCompT*)entity;
+            ClAmsSUT *su = (ClAmsSUT*)comp->config.parentSU.ptr;
+            ClAmsEntityRefT *ref;
+
+            if(su && !(su->config.entity.flags & CL_AMS_FLAG_SEEN))
+                clAmsGatherDirty(&su->config.entity, flags, level+1, maxLevel);
+
+            for(ref = clAmsEntityListGetFirst(&comp->status.csiList); ref;
+                ref = clAmsEntityListGetNext(&comp->status.csiList, ref))
+            {
+                ClAmsCSIT *csi = (ClAmsCSIT*)ref->ptr;
+                if(csi->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&csi->config.entity, flags, level+1, maxLevel);
+            }
+
+            amsEnqueueDirty(&comp->config.entity, flags);
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_NODE:
+        {
+            ClAmsNodeT *node = (ClAmsNodeT*)entity;
+            ClAmsEntityRefT *ref;
+ 
+           for(ref = clAmsEntityListGetFirst(&node->config.nodeDependenciesList); ref;
+                ref = clAmsEntityListGetNext(&node->config.nodeDependenciesList, ref))
+            {
+                ClAmsNodeT *depNode = (ClAmsNodeT*)ref->ptr;
+                if(depNode->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&depNode->config.entity, flags, level+1, maxLevel);
+            }
+
+            amsEnqueueDirty(&node->config.entity, flags);
+
+            for(ref = clAmsEntityListGetFirst(&node->config.nodeDependentsList); ref;
+                ref = clAmsEntityListGetNext(&node->config.nodeDependentsList, ref))
+            {
+                ClAmsNodeT *depNode = (ClAmsNodeT*)ref->ptr;
+                if(depNode->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&depNode->config.entity, flags, level+1, maxLevel);
+            }
+            for(ref = clAmsEntityListGetFirst(&node->config.suList); ref;
+                ref = clAmsEntityListGetNext(&node->config.suList, ref))
+            {
+                ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                clAmsGatherDirty(&su->config.entity, flags, level+1, maxLevel);
+            }
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_CSI:
+        {
+            ClAmsCSIT *csi = (ClAmsCSIT*)entity;
+            ClAmsSIT *si = (ClAmsSIT*)csi->config.parentSI.ptr;
+            ClAmsEntityRefT *ref;
+
+            if(si && !(si->config.entity.flags & CL_AMS_FLAG_SEEN))
+                clAmsGatherDirty(&si->config.entity, flags, level+1, maxLevel);
+
+            for(ref = clAmsEntityListGetFirst(&csi->config.csiDependenciesList); ref;
+                ref = clAmsEntityListGetNext(&csi->config.csiDependenciesList, ref))
+            {
+                ClAmsCSIT *depCSI = (ClAmsCSIT*)ref->ptr;
+                if(depCSI->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&depCSI->config.entity, flags, level+1, maxLevel);
+            }
+
+            amsEnqueueDirty(&csi->config.entity, flags);
+
+            for(ref = clAmsEntityListGetFirst(&csi->config.csiDependentsList); ref;
+                ref = clAmsEntityListGetNext(&csi->config.csiDependentsList, ref))
+            {
+                ClAmsCSIT *depCSI = (ClAmsCSIT*)ref->ptr;
+                if(depCSI->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&depCSI->config.entity, flags, level+1, maxLevel);
+            }
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_SI:
+        {
+            ClAmsSIT *si = (ClAmsSIT*)entity;
+            ClAmsSGT *sg = (ClAmsSGT*)si->config.parentSG.ptr;
+            ClAmsEntityRefT *ref;
+
+            if(sg && !(sg->config.entity.flags & CL_AMS_FLAG_SEEN))
+                clAmsGatherDirty(&sg->config.entity, flags, level+1, maxLevel);
+
+            for(ref = clAmsEntityListGetFirst(&si->config.siDependenciesList); ref;
+                ref = clAmsEntityListGetNext(&si->config.siDependenciesList, ref))
+            {
+                ClAmsSIT *depSI = (ClAmsSIT*)ref->ptr;
+                if(depSI->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&depSI->config.entity, flags, level+1, maxLevel);
+            }
+
+            amsEnqueueDirty(&si->config.entity, flags);
+
+            for(ref = clAmsEntityListGetFirst(&si->config.siDependentsList); ref;
+                ref = clAmsEntityListGetNext(&si->config.siDependentsList, ref))
+            {
+                ClAmsSIT *depSI = (ClAmsSIT*)ref->ptr;
+                if(depSI->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&depSI->config.entity, flags, level+1, maxLevel);
+            }
+            for(ref = clAmsEntityListGetFirst(&si->config.suList); ref;
+                ref = clAmsEntityListGetNext(&si->config.suList, ref))
+            {
+                ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                if(su->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&su->config.entity, flags, level+1, maxLevel);
+            }
+            for(ref = clAmsEntityListGetFirst(&si->status.suList); ref;
+                ref = clAmsEntityListGetNext(&si->status.suList, ref))
+            {
+                ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                if(su->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&su->config.entity, flags, level+1, maxLevel);
+            }
+            for(ref = clAmsEntityListGetFirst(&si->config.csiList); ref;
+                ref = clAmsEntityListGetNext(&si->config.csiList, ref))
+            {
+                ClAmsCSIT *csi = (ClAmsCSIT*)ref->ptr;
+                if(csi->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&csi->config.entity, flags, level+1, maxLevel);
+            }
+        }
+        break;
+    case CL_AMS_ENTITY_TYPE_SG:
+        {
+            ClAmsSGT *sg = (ClAmsSGT*)entity;
+            ClAmsEntityRefT *ref;
+
+            amsEnqueueDirty(&sg->config.entity, flags);
+
+            for(ref = clAmsEntityListGetFirst(&sg->config.siList); ref;
+                ref = clAmsEntityListGetNext(&sg->config.siList, ref))
+            {
+                ClAmsSIT *si = (ClAmsSIT*)ref->ptr;
+                if(si->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&si->config.entity, flags, level+1, maxLevel);
+            }
+            for(ref = clAmsEntityListGetFirst(&sg->config.suList); ref;
+                ref = clAmsEntityListGetNext(&sg->config.suList, ref))
+            {
+                ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                if(su->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&su->config.entity, flags, level+1, maxLevel);
+            }
+            for(ref = clAmsEntityListGetFirst(&sg->status.instantiableSUList); ref;
+                ref = clAmsEntityListGetNext(&sg->status.instantiableSUList, ref))
+            {
+                ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                if(su->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&su->config.entity, flags, level+1, maxLevel);
+            }
+            for(ref = clAmsEntityListGetFirst(&sg->status.instantiatedSUList); ref;
+                ref = clAmsEntityListGetNext(&sg->status.instantiatedSUList, ref))
+            {
+                ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                if(su->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&su->config.entity, flags, level+1, maxLevel);
+            }
+            for(ref = clAmsEntityListGetFirst(&sg->status.inserviceSpareSUList); ref;
+                ref = clAmsEntityListGetNext(&sg->status.inserviceSpareSUList, ref))
+            {
+                ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                if(su->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&su->config.entity, flags, level+1, maxLevel);
+            }
+            for(ref = clAmsEntityListGetFirst(&sg->status.assignedSUList); ref;
+                ref = clAmsEntityListGetNext(&sg->status.assignedSUList, ref))
+            {
+                ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                if(su->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&su->config.entity, flags, level+1, maxLevel);
+            }
+            for(ref = clAmsEntityListGetFirst(&sg->status.faultySUList); ref;
+                ref = clAmsEntityListGetNext(&sg->status.faultySUList, ref))
+            {
+                ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+                if(su->config.entity.flags & CL_AMS_FLAG_SEEN) continue;
+                clAmsGatherDirty(&su->config.entity, flags, level+1, maxLevel);
+            }
+        }
+        break;
+    default:
+        break;
+    }
+    //    entity->flags &= ~CL_AMS_FLAG_SEEN;
+    return CL_OK;
+}
+
+/*
+ * Iterate over the entire config for the first time
+ */
+static ClRcT amsBuildDirty(ClAmsEntityT *entity)
+{
+    if(entity->type != CL_AMS_ENTITY_TYPE_NODE) return CL_OK;
+    clLogDebug("BUILD", "DIRTY", "Building the dirty list for node [%s]", entity->name.value);
+    return clAmsGatherDirty(entity, CL_AMS_FLAG_DIRTY, 0, 1024);
+}
+
+static ClRcT clAmsBuildDirtyAll(void)
+{
+    return CL_OK;
+    clLogDebug("BUILD", "DIRTY", "Building the entire entity dirty list for checkpointing.");
+    return clAmsEntityDbWalk(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], amsBuildDirty);
+}
+
+ClRcT clAmsBuildDirtyList(ClListHeadT *entityList)
+{
+    ClUint32T numEntities = 0, i = 0;
+    ClRcT rc = CL_OK;
+
+    if(!entityList)
+    {
+        return clAmsBuildDirtyAll();
+    }
+
+    if(!gClAmsDirtyEntities)
+    {
+        gClAmsDirtyEntities = clHeapCalloc(CL_IOC_MAX_NODES, sizeof(*gClAmsDirtyEntities));
+        CL_ASSERT(gClAmsDirtyEntities != NULL);
+    }
+    clLogDebug("BUILD", "DIRTY", "Adding dirty start");
+    while(!CL_LIST_HEAD_EMPTY(entityList) && numEntities < CL_IOC_MAX_NODES)
+    {
+        ClListHeadT *head = entityList->pNext;
+        gClAmsDirtyEntities[numEntities++] = CL_LIST_ENTRY(head, ClAmsEntityT, dirtyList);
+        clLogDebug("BUILD", "DIRTY", "Adding node [%s] to the dirty list", 
+                   gClAmsDirtyEntities[numEntities-1]->name.value);
+        clListDel(head);
+    }
+    clLogDebug("BUILD", "DIRTY", "Adding dirty end");
+
+    if(!CL_LIST_HEAD_EMPTY(entityList))
+    {
+        clLogCritical("BUILD", "DIRTY", "Unable to mark entities as dirty since number of nodes "
+                      "exceeds supported count [%d]. Recompile with increased count of "
+                      "CL_IOC_MAX_NODES in clIocConfig.h", (ClUint32T)CL_IOC_MAX_NODES);
+        return CL_AMS_RC(CL_ERR_NOT_SUPPORTED);
+    }
+    while(i < numEntities)
+    {
+        ClAmsEntityT *entity = gClAmsDirtyEntities[i++];
+        rc |= clAmsGatherDirty(entity, CL_AMS_FLAG_DIRTY, 0, 1024);
+    }
+
+    return rc;
+}
+
+/*
+ * Mark the entity as dirty for the dirty list dependency build.
+ * Avoid using AMS_CHECK_ENTITY macros as this routine can be also invoked
+ * from within those macros.
+ */
+ClRcT clAmsMarkEntityDirty(ClAmsEntityT *entity)
+{
+    if(gAms.mode & CL_AMS_INSTANTIATE_MODE_CKPT_ALL)
+    {
+        return CL_OK;
+    }
+
+    if(gAms.serviceState && 
+       (gAms.serviceState == CL_AMS_SERVICE_STATE_HOT_STANDBY
+       ||
+        gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE))
+    {
+        return CL_OK;
+    }
+
+    if(entity->flags & (CL_AMS_FLAG_DIRTY | CL_AMS_FLAG_SEEN))
+    {
+        return CL_OK;
+    }
+
+    amsEnqueueDirty(entity, CL_AMS_FLAG_DIRTY | CL_AMS_FLAG_SEEN);
+    return CL_OK;
+}
+
+ClRcT __clAmsMarkEntityDirty(ClAmsEntityT *entity)
+{
+    if(gAms.serviceState &&
+       (gAms.serviceState == CL_AMS_SERVICE_STATE_HOT_STANDBY
+       ||
+        gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE))
+    {
+        return CL_OK;
+    }
+
+    /*
+     * Already dirty
+     */
+    if(entity->dirtyList.pNext || entity->dirtyList.pPrev)
+        return CL_OK;
+
+    switch(entity->type)
+    {
+    case CL_AMS_ENTITY_TYPE_COMP:
+        {
+            ClAmsCompT *comp = (ClAmsCompT*)entity;
+            entity = comp->config.parentSU.ptr;
+            AMS_CHECKPTR(!entity);
+        }
+        /*
+         * fall through
+         */
+    case CL_AMS_ENTITY_TYPE_SU:
+        {
+            ClAmsSUT *su = (ClAmsSUT*)entity;
+            entity = su->config.parentNode.ptr;
+            AMS_CHECKPTR(!entity);
+        }
+        /* 
+         * fall through 
+         */
+    case CL_AMS_ENTITY_TYPE_NODE:
+        if(!entity->dirtyList.pNext && !entity->dirtyList.pPrev)
+        {
+            clLogDebug("MARK", "DIRTY", "Enqueueing node [%s] to dirty list",
+                       entity->name.value);
+            clListAddTail(&entity->dirtyList, &gClAmsDirtyNodeList);
+        }
+        break;
+
+    case CL_AMS_ENTITY_TYPE_CSI:
+        {
+            ClAmsCSIT *csi = (ClAmsCSIT*)entity;
+            entity = csi->config.parentSI.ptr;
+            AMS_CHECKPTR(!entity);
+        }
+        /*
+         * fall through
+         */
+    case CL_AMS_ENTITY_TYPE_SI:
+        {
+            ClAmsSIT *si = (ClAmsSIT*)entity;
+            entity = si->config.parentSG.ptr;
+            AMS_CHECKPTR(!entity);
+        }
+        /*
+         * fall through
+         */
+    case CL_AMS_ENTITY_TYPE_SG:
+        {
+            ClAmsSGT *sg = (ClAmsSGT*)entity;
+            ClAmsEntityRefT *eRef;
+            for(eRef = clAmsEntityListGetFirst(&sg->config.suList); eRef;
+                eRef = clAmsEntityListGetNext(&sg->config.suList, eRef))
+            {
+                ClAmsSUT *su = (ClAmsSUT*)eRef->ptr;
+                AMS_CHECKPTR(!su);
+                entity = su->config.parentNode.ptr;
+                AMS_CHECKPTR(!entity);
+                if(entity->dirtyList.pNext || entity->dirtyList.pPrev)
+                    continue;
+                clLogDebug("MARK", "DIRTY", "Enqueueing node [%s] to dirty list",
+                           entity->name.value);
+                clListAddTail(&entity->dirtyList, &gClAmsDirtyNodeList);
+            }
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    return CL_OK;
+}
+
+void clAmsResetDirtyList(void)
+{
+    ClUint32T i;
+    ClListHeadT *list;
+    for(i = 1; i <= CL_AMS_ENTITY_TYPE_MAX+1; ++i)
+    {
+        ClListHeadT *head;
+        list = &gClAmsDirtyEntityList[i];
+        while(!CL_LIST_HEAD_EMPTY(list))
+        {
+            ClAmsEntityT *entity;
+            head = list->pNext;
+            entity = CL_LIST_ENTRY(head, ClAmsEntityT, dirtyList);
+            entity->flags &= ~(CL_AMS_FLAG_DIRTY | CL_AMS_FLAG_SEEN);
+            clListDel(head);
+            if(entity->flags & CL_AMS_FLAG_FREE)
+                clHeapFree(entity);
+        }
+    }
+}
+
+void clAmsMarkEntityDelete(ClAmsEntityT *entity)
+{
+    ClAmsEntityT *entityRef = NULL;
+    entityRef = clHeapCalloc(1, sizeof(*entityRef));
+    CL_ASSERT(entityRef != NULL);
+    memcpy(entityRef, entity, sizeof(*entityRef));
+    entityRef->dirtyList.pNext = entityRef->dirtyList.pPrev = NULL;
+    entityRef->flags = CL_AMS_FLAG_FREE;
+    clLogNotice("MARK", "DIRTY", "Marking entity [%s] for deletion", entityRef->name.value);
+    clListAddTail(&entityRef->dirtyList, &gClAmsDirtyEntityList[CL_AMS_ENTITY_TYPE_MAX+1]);
 }

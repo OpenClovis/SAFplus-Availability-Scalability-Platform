@@ -146,8 +146,7 @@ do {                                                                    \
     clOsalMutexUnlock(gAms.mutex);                                  \
 }while(0)
 
-#define AMS_CHECK_ENTITY(x,y)                                           \
-{                                                                       \
+#define AMS_CHECK_ENTITY(x,y)                                do {       \
     AMS_CHECKPTR ( !(x) );                                              \
                                                                         \
     if ( ((x)->config.entity.type) != (y) )                             \
@@ -157,7 +156,23 @@ do {                                                                    \
              __FUNCTION__, __LINE__, (y), (x)->config.entity.type));    \
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);                    \
     }                                                                   \
-}
+    clAmsMarkEntityDirty((ClAmsEntityT*)(x));                           \
+} while(0)
+
+#define AMS_CHECK_ENTITY_AND_UNLOCK(x, y, mutex)                   do { \
+    AMS_CHECKPTR_AND_UNLOCK( !(x), mutex );                             \
+                                                                        \
+    if ( ((x)->config.entity.type) != (y) )                             \
+    {                                                                   \
+        clOsalMutexUnlock(mutex);                                       \
+        AMS_SERVER_LOG(CL_DEBUG_ERROR,                                  \
+            ("ALERT [%s:%d] : Expecting entity type %d, got type %d\n", \
+             __FUNCTION__, __LINE__, (y), (x)->config.entity.type));    \
+        rc = CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);                      \
+        goto exitfn;                                                    \
+    }                                                                   \
+    clAmsMarkEntityDirty((ClAmsEntityT*)(x));                           \
+} while(0)
 
 #define AMS_ENTITY_LOG(ENTITY, DEBUGFLAG, LEVEL, MSG)                   \
 {                                                                       \

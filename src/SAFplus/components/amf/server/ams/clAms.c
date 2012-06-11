@@ -269,11 +269,11 @@ clAmsStart(
     /*
      * Check if already in the mode.
      */
-    if(ams->mode == mode)
+    if((ams->mode & mode))
     {
         clLogWarning("AMS", "INI", 
                      "AMS mode is already [%s]. Skipping initialization", 
-                     mode == CL_AMS_INSTANTIATE_MODE_ACTIVE ? "active" : "standby");
+                     mode & CL_AMS_INSTANTIATE_MODE_ACTIVE ? "active" : "standby");
         return rc; 
     }
 
@@ -289,7 +289,7 @@ clAmsStart(
      * argument.
      */ 
     ams->isEnabled = CL_TRUE;
-    ams->mode = mode;
+    ams->mode |= mode;
     ams->serverepoch = time(NULL); 
 
     AMS_OP_INCR(&gAms.ops);
@@ -305,6 +305,8 @@ clAmsStart(
         ClIocNodeAddressT masterAddress = 0;
         ClInt32T retries = 0;
         ClTimerTimeOutT delay = {.tsSec = 2, .tsMilliSec = 0};
+
+        ams->mode &= ~CL_AMS_INSTANTIATE_MODE_STANDBY;
 
         rc = clCpmMasterAddressGet(&masterAddress);
 
@@ -636,7 +638,7 @@ clAmsFaultQueueDestroy(void)
     return CL_OK;
 }
 
-ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
+ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister)
 {
     ClRcT rc = CL_OK;
     ClAmsEntityRefT entityRef = {{0}};
@@ -698,13 +700,15 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
             goto out_unlock;
         }
     }
-    else
+    /*
+     * We let the caller: CPM dictate the terms here. as the node
+     * could be a dynamically added one not yet there in ams.
+     */
+    rc = CL_OK;
+
+    if(nodeRegister)
     {
-        /*
-         * We let the caller: CPM dictate the terms here. as the node
-         * could be a dynamically added one not yet there in ams.
-         */
-        rc = CL_OK;
+        gAms.mode |= CL_AMS_INSTANTIATE_MODE_CKPT_ALL | CL_AMS_INSTANTIATE_MODE_NODE_JOIN;
     }
 
     out_unlock:

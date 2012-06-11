@@ -655,9 +655,10 @@ clAmsEntityDbPrintCallback(
  */
 
 ClRcT
-clAmsEntityDbAddEntity(
+clAmsEntityDbAddEntityAndGet(
         CL_IN  ClAmsEntityDbT  *entityDb,
-        CL_IN  ClAmsEntityRefT  *entityRef )
+        CL_IN  ClAmsEntityRefT  *entityRef,
+        ClAmsEntityT **addedEntity)
 {
 
     ClAmsEntityT  *newEntity = NULL;
@@ -715,9 +716,23 @@ clAmsEntityDbAddEntity(
     entityDb->numEntities ++;
     entityRef->ptr = newEntity;
 
+    if(addedEntity)
+    {
+        *addedEntity = newEntity;
+    }
+
     return CL_OK;
 
 }
+
+ClRcT
+clAmsEntityDbAddEntity(
+        CL_IN  ClAmsEntityDbT  *entityDb,
+        CL_IN  ClAmsEntityRefT  *entityRef)
+{
+    return clAmsEntityDbAddEntityAndGet(entityDb, entityRef, NULL);
+}
+
 
 /*
  * clAmsEntityDbDeleteEntity

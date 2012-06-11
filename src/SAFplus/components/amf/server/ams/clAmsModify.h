@@ -131,9 +131,15 @@ clAmsEntityGetAdminState(
 
 extern ClRcT
 clAmsCSISetNVP(
-        CL_IN  ClAmsEntityDbT  entityDb,
-        CL_IN  ClAmsEntityT  entity,
-        CL_IN  ClAmsCSINameValuePairT  nvp );
+        CL_IN  ClAmsEntityDbT  *entityDb,
+        CL_IN  ClAmsEntityT  *entity,
+        CL_IN  ClAmsCSINameValuePairT  *nvp );
+
+extern ClRcT
+clAmsCSISetNVPAndMark(
+        CL_IN  ClAmsEntityDbT  *entityDb,
+        CL_IN  ClAmsEntityT  *entity,
+        CL_IN  ClAmsCSINameValuePairT  *nvp);
 
 /*********************************************************************/
 
@@ -194,15 +200,15 @@ clAmsIsValidList (
 
 extern ClRcT   
 clAmsEntitySetRefPtr(
-        ClAmsEntityRefT  sourceEntityRef,
-        ClAmsEntityRefT  targetEntityRef );
+        ClAmsEntityRefT  *sourceEntityRef,
+        ClAmsEntityRefT  *targetEntityRef );
 
 /*********************************************************************/
 
 extern ClRcT   
 clAmsEntityUnsetRefPtr(
-        ClAmsEntityRefT  sourceEntityRef,
-        ClAmsEntityRefT  targetEntityRef );
+        ClAmsEntityRefT  *sourceEntityRef,
+        ClAmsEntityRefT  *targetEntityRef );
 
 /*********************************************************************/
 
@@ -829,6 +835,21 @@ extern ClRcT clAmsSGFailoverHistoryDelete(ClAmsSGT *sg);
 
 extern ClRcT
 clAmsDBGet(ClBufferHandleT msg);
+
+extern void
+clAmsDirtyListInitialize(void);
+
+extern ClRcT 
+clAmsMarkEntityDirty(ClAmsEntityT *entity);
+
+extern ClRcT 
+clAmsBuildDirtyList(ClListHeadT *entityList);
+
+extern void 
+clAmsResetDirtyList(void);
+
+extern void 
+clAmsMarkEntityDelete(ClAmsEntityT *entity);
 
 #ifdef __cplusplus
 }

@@ -61,6 +61,7 @@
 #define CL_AMS_CKPT_ORDER  0x00
 #define CL_AMS_CKPT_NAME  "AMS_CKPT"
 #define AMS_CKPT_DB_SECTION  "AMS_CKPT_DB_SECTION"
+#define AMS_CKPT_DIRTY_SECTION "AMS_CKPT_DIRTY_SECTION"
 #define AMS_CKPT_INVOCATION_SECTION  "AMS_CKPT_INVOCATION_SECTION"
 #define AMS_CKPT_VERSION_SECTION  "AMS_CKPT_VERSION_SECTION"
 #define AMS_CKPT_CURRENT_SECTION  "AMS_CKPT_CURRENT_SECTION"
@@ -69,10 +70,10 @@
 #define AMS_CKPT_MAX_SECTION_ID_SIZE  256 
 #define AMS_CKPT_RETENTION_DURATION  (0)
 #define AMS_CKPT_MAX_SECTIONS           ((CL_AMS_DB_INVOCATION_PAIRS<<1)+2)
-#define CL_AMS_CKPT_VERSION  "B.02.01"
+#define CL_AMS_CKPT_VERSION  "B.03.01"
 #define CL_AMS_CKPT_GET_DB_INVOCATION_PAIR(pair)                        \
     (pair = gClAmsCkptCurrentDbInvocationPair++,                        \
-     gClAmsCkptCurrentDbInvocationPair %= CL_AMS_DB_INVOCATION_PAIRS,   \
+     gClAmsCkptCurrentDbInvocationPair %= 2,   \
      pair)
 
 
@@ -98,8 +99,9 @@ static ClRcT clAmsCkptDBConfigDeserialize(ClUint32T dsId, ClAddrT pData, ClUint3
                                        
 static ClUint32T gClAmsCkptCurrentDbInvocationPair;
 static ClUint32T gClAmsCkptLastDbInvocationPair;
-static ClNameT gClAmsCkptDBSectionCache[CL_AMS_DB_INVOCATION_PAIRS];
-static ClNameT gClAmsCkptInvocationSectionCache[CL_AMS_DB_INVOCATION_PAIRS];
+static ClNameT gClAmsCkptDBSectionCache[2];
+static ClNameT gClAmsCkptDirtySectionCache[2];
+static ClNameT gClAmsCkptInvocationSectionCache[2];
 static ClNameT gClAmsCkptCurrentSectionCache;
 static ClInt32T gClAmsPersistentDBDisabled = -1;
 
@@ -693,6 +695,32 @@ static ClRcT clAmsCkptDBReadVersion(ClAmsT *ams, ClCharT *versionBuf, ClUint32T 
     return CL_OK;
 }
 
+static ClRcT 
+amsCkptStandbyInitialize(ClAmsT *ams)
+{
+    ClRcT rc = CL_OK;
+
+    /*
+     * Mark ourselves as ready if applicable
+     */
+    if(!ams->isEnabled)
+    {
+        clLogNotice("STANDBY", "ENABLE", "Enabling AMF whose service was disabled on standby");
+        ams->isEnabled = CL_TRUE;
+    }
+
+    /*
+     * Do a ckpt db write on failover to advance the reference for full ckpt
+     */
+    ams->mode |= CL_AMS_INSTANTIATE_MODE_CKPT_ALL; 
+
+    AMS_CHECK_RC_ERROR(clCkptImmediateConsumptionRegister(ams->ckptOpenHandle, 
+                                                          clAmsCkptNotifyCallback, NULL) );
+
+    exitfn:
+    return rc;
+}
+
 ClRcT
 clAmsCkptInitialize(
                     CL_INOUT  ClAmsT  *ams, 
@@ -716,7 +744,6 @@ clAmsCkptInitialize(
         };
     ClInt32T i;
     ClCharT *freq;
-
     gClAmsCkptDifferential = clCkptDifferentialCheckpointStatusGet();
     if( (freq = getenv("CL_AMF_CKPT_FREQUENCY") ) )
     {
@@ -743,7 +770,7 @@ clAmsCkptInitialize(
     ckptName.length = strlen (CL_AMS_CKPT_NAME) ;
     memcpy (&ams->ckptName, &ckptName, sizeof (ClNameT));
 
-    for(i = 0; i < CL_AMS_DB_INVOCATION_PAIRS; ++i)
+    for(i = 0; i < 2; ++i)
     {
         ClCharT buf[sizeof(ClNameT)];
         snprintf(buf,sizeof(buf),"%s_%d",AMS_CKPT_DB_SECTION,i+1);
@@ -751,6 +778,10 @@ clAmsCkptInitialize(
         strncpy(ams->ckptDBSections[i].value,buf,
                 sizeof(ams->ckptDBSections[i].value)-1);
         ams->ckptDBSections[i].length = strlen(buf)+1;
+        memset(&ams->ckptDirtySections[i], 0, sizeof(ClNameT));
+        snprintf(buf, sizeof(buf), "%s_%d", AMS_CKPT_DIRTY_SECTION, i+1);
+        strncpy(ams->ckptDirtySections[i].value, buf, sizeof(ams->ckptDirtySections[i].value)-1);
+        ams->ckptDirtySections[i].length = strlen(buf)+1;
         memset (&ams->ckptInvocationSections[i],0,sizeof (ClNameT));
         snprintf(buf,sizeof(buf),"%s_%d",AMS_CKPT_INVOCATION_SECTION,i+1);
         strncpy (ams->ckptInvocationSections[i].value,buf,
@@ -758,6 +789,8 @@ clAmsCkptInitialize(
         ams->ckptInvocationSections[i].length = strlen(buf)+1;
         memcpy(&gClAmsCkptDBSectionCache[i], &ams->ckptDBSections[i], 
                sizeof(gClAmsCkptDBSectionCache[i]));
+        memcpy(&gClAmsCkptDirtySectionCache[i], &ams->ckptDirtySections[i],
+               sizeof(gClAmsCkptDirtySectionCache[i]));
         memcpy(&gClAmsCkptInvocationSectionCache[i], &ams->ckptInvocationSections[i],
                sizeof(gClAmsCkptInvocationSectionCache[i]));
         amsCkptDifferenceVectorKeyGet(&ams->ckptDifferenceVectorKeys[i],
@@ -794,11 +827,17 @@ clAmsCkptInitialize(
         /*
          * Create the DB and Invocation Pairs first
          */
-        for(i = 0; i < CL_AMS_DB_INVOCATION_PAIRS; ++i)
+        for(i = 0; i < 2; ++i)
         {
             AMS_CHECK_RC_ERROR(
                                clAmsCkptSectionCreate(ams,
                                                       &ams->ckptDBSections[i],
+                                                      initialData,
+                                                      strlen(initialData)));
+
+            AMS_CHECK_RC_ERROR(
+                               clAmsCkptSectionCreate(ams,
+                                                      &ams->ckptDirtySections[i],
                                                       initialData,
                                                       strlen(initialData)));
 
@@ -827,15 +866,25 @@ clAmsCkptInitialize(
          * Do a first time ckpt write.
          */
         clOsalMutexLock(gAms.mutex);
+        ams->mode |= CL_AMS_INSTANTIATE_MODE_CKPT_ALL;
         clAmsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_ALL);
         clOsalMutexUnlock(gAms.mutex);
     }
     else
     {
-        clCkptImmediateConsumptionRegister(ckptOpenHandle, clAmsCkptNotifyCallback, NULL);
+        clOsalMutexLock(gAms.mutex);
+        clOsalMutexLock(&gAms.ckptMutex);
+        rc = amsCkptStandbyInitialize(&gAms);
+        clOsalMutexUnlock(&gAms.ckptMutex);
+        clOsalMutexUnlock(gAms.mutex);
+        if(rc != CL_OK)
+        {
+            clLogWarning("CKP", "INIT", "AMF hot standby disabled because of standby initialize failure");
+            rc = CL_OK;
+        }
     }
 
-    return CL_OK;
+    return rc;
 
     exitfn:
     return CL_AMS_RC(rc);
@@ -851,6 +900,7 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
     ClBufferHandleT msgHandle = 0;
     ClRcT rc = CL_OK;
     ClCharT *pSectionName = NULL;
+    ClUint32T dbMode = 0; 
 
     pSectionName = clHeapCalloc(1, pIOVector->sectionId.idLen + 1);
     if(!pSectionName) 
@@ -894,8 +944,21 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
         clLogNotice("CKPT", "NOTIFY", "AMS DB ckpt version [%s]", gClAmsCkptVersionBuf);
     }
 
-    if(!strncmp(pSectionName,
-                AMS_CKPT_DB_SECTION, strlen(AMS_CKPT_DB_SECTION)))
+    if(!strncmp(pSectionName, AMS_CKPT_DB_SECTION, sizeof(AMS_CKPT_DB_SECTION)-1))
+    {
+        dbMode = 1;
+    }
+    else if(!strncmp(pSectionName, AMS_CKPT_DIRTY_SECTION, sizeof(AMS_CKPT_DIRTY_SECTION)-1))
+    {
+        dbMode = 2;
+        if(gAms.serviceState != CL_AMS_SERVICE_STATE_HOT_STANDBY)
+        {
+            clLogInfo("CKP", "DIRTY", "Ignoring hot standby update till full update is received");
+            goto out_unlock;
+        }
+    }
+
+    if(dbMode)
     {
         rc = clBufferCreate(&msgHandle);
         if(rc != CL_OK)
@@ -912,21 +975,32 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
             goto out_unlock;
         }
 
-        clAmsDbTerminate(&gAms.db);
-
-        if( (rc = clAmsDbInstantiate(&gAms.db) ) != CL_OK)
+        if(dbMode == 1)
         {
-            clLogError("CKPT", "NOTIFY", "AMS db instantiate returned [%#x]", rc);
-            goto out_unlock;
+            clAmsDbTerminate(&gAms.db);
+
+            if( (rc = clAmsDbInstantiate(&gAms.db) ) != CL_OK)
+            {
+                clLogError("CKPT", "NOTIFY", "AMS db instantiate returned [%#x]", rc);
+                goto out_unlock;
+            }
         }
 
         rc = clAmsDBUnmarshall(msgHandle);
 
         if(rc != CL_OK)
         {
-            clLogError("CKPT", "NOTIFY", "AMS db unmarshall returned [%#x]", rc);
+            clLogError("CKPT", "NOTIFY", "AMS db unmarshall returned [%#x] for section [%s]",
+                       rc, pSectionName);
             goto out_unlock;
         }
+        else
+        {
+            clLogDebug("CKPT", "NOTIFY", "AMS db unmarshall success for section [%s], "
+                       "bytes [%d], mode [%d]",
+                       pSectionName, (ClUint32T)pIOVector->dataSize, dbMode);
+        }
+
         /*
          * Update the state now that we have read the checkpoint.
          */
@@ -936,7 +1010,10 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
         /*
          * Update stale csi pending invocations.
          */
-        clAmsInvocationListUpdateCSIAll(CL_TRUE);
+        if(dbMode == 1)
+        {
+            clAmsInvocationListUpdateCSIAll(CL_TRUE);
+        }
 
         /*
          * Update the local db for persistency.
@@ -1027,12 +1104,13 @@ clAmsCkptRead (
     ClRcT  rc = CL_OK;
     ClCkptIOVectorElementT   ioVector;
     ClUint32T dbInvocationPair = 0;
-    ClPtrT dataBuffer = NULL;
+    ClPtrT dataBuffer = NULL, dirtyDataBuffer = NULL;
     ClPtrT invocationBuffer = NULL;
     ClSizeT invocationSize = 0;
-    ClSizeT dataSize = 0;
+    ClSizeT dataSize = 0, dirtyDataSize = 0;
     ClBufferHandleT dataBuf = 0;
     ClBoolT xmlize = CL_FALSE;
+    ClBoolT dirtySection = CL_FALSE;
 
     if(!gClAmsCkptVersionBuf[0])
     {
@@ -1045,6 +1123,13 @@ clAmsCkptRead (
             strncpy(gClAmsCkptVersionBuf, CL_AMS_CKPT_VERSION, sizeof(gClAmsCkptVersionBuf)-1);
         }
     }
+
+    if(!strncmp(gClAmsCkptVersionBuf, CL_AMS_CKPT_VERSION, 
+                sizeof(CL_AMS_CKPT_VERSION)-1))
+    {
+        dirtySection = CL_TRUE;
+    }
+
     /*
      * Read the AMS ckpt version section
      */
@@ -1062,10 +1147,20 @@ clAmsCkptRead (
     ioVector.dataSize=AMS_CKPT_MAX_SECTION_SIZE;
     ioVector.dataOffset=0; 
 
-    AMS_CHECK_RC_ERROR(clAmsCkptCheckpointRead(
-                                               ams,
-                                               &ams->ckptDBSections[dbInvocationPair],
-                                               &ioVector));
+    if(dirtySection)
+    {
+        AMS_CHECK_RC_ERROR(clAmsCkptCheckpointRead(
+                                                   ams,
+                                                   &ams->ckptDBSections[0],
+                                                   &ioVector));
+    }
+    else
+    {
+        AMS_CHECK_RC_ERROR(clAmsCkptCheckpointRead(
+                                                   ams,
+                                                   &ams->ckptDBSections[dbInvocationPair],
+                                                   &ioVector));
+    }
 
     dataBuffer = ioVector.dataBuffer;
     dataSize = ioVector.dataSize;
@@ -1105,6 +1200,22 @@ clAmsCkptRead (
     }
 
     /*
+     * Read the dirty section
+     */
+    if(dirtySection)
+    {
+        memset(&ioVector, 0, sizeof(ioVector));
+        ioVector.dataSize = AMS_CKPT_MAX_SECTION_SIZE;
+        AMS_CHECK_RC_ERROR(clAmsCkptCheckpointRead(
+                                                   ams,
+                                                   &ams->ckptDirtySections[dbInvocationPair],
+                                                   &ioVector));
+        dirtyDataBuffer = ioVector.dataBuffer;
+        dirtyDataSize = ioVector.dataSize;
+        memset(&ioVector, 0, sizeof(ioVector));
+    }
+
+    /*
      * Contruct the database and invocation list
      */
     rc = clBufferCreate(&dataBuf);
@@ -1120,10 +1231,34 @@ clAmsCkptRead (
     rc = clAmsDBUnmarshall(dataBuf);
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("DB unmarshall returned [%#x]\n", rc));
+        clLogError("CKP", "READ", "DB unmarshall for section [%s] contents failed with [%#x]."
+                   "DB section data size [%d] bytes", AMS_CKPT_DB_SECTION, rc,
+                   (ClUint32T)dataSize);
         goto exitfn;
     }
-    
+
+    if(dirtyDataBuffer && dirtyDataSize > 0)
+    {
+        clBufferClear(dataBuf);
+        rc = clBufferNBytesWrite(dataBuf, (ClUint8T*)dirtyDataBuffer, 
+                                 (ClUint32T)dirtyDataSize);
+        if(rc != CL_OK)
+        {
+            goto exitfn;
+        }
+        /*
+         * Unmarshall and overwrite the contents of dirty section.
+         */
+        rc = clAmsDBUnmarshall(dataBuf);
+        if(rc != CL_OK)
+        {
+            clLogError("CKP", "READ", "DB unmarshall for section [%s] contents failed with [%#x]."
+                       "Dirty section data size [%d] bytes", 
+                       AMS_CKPT_DIRTY_SECTION, rc, (ClUint32T)dirtyDataSize);
+            goto exitfn;
+        }
+    }
+
     if(invocationSize > 0 && invocationBuffer)
     {
         clBufferClear(dataBuf);
@@ -1150,6 +1285,7 @@ clAmsCkptRead (
         clBufferDelete(&dataBuf);
     clAmsFreeMemory(invocationBuffer);
     clAmsFreeMemory(dataBuffer);
+    clAmsFreeMemory(dirtyDataBuffer);
     if(rc != CL_OK)
         return CL_AMS_RC (rc);
     return CL_OK;
@@ -1161,6 +1297,8 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
     ClRcT   rc;
     ClCharT *readData = NULL;
     ClUint32T dbInvocationPair;
+    ClBoolT dirty = CL_TRUE;
+    ClNameT *dirtySection = NULL;
 
     if ( ams->ckptServerReady == CL_FALSE || 
          ams->serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE || 
@@ -1191,7 +1329,26 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
         ClUint32T dataLen = 0;
         ClBufferHandleT dataBuf = 0;
         AMS_CHECK_RC_ERROR(clBufferCreate(&dataBuf));
-        rc = clAmsDBMarshall(&ams->db, dataBuf);
+        /*
+         * Check for full ckpt write modes
+         */
+        dirtySection = &ams->ckptDirtySections[dbInvocationPair];
+        if((ams->mode & CL_AMS_INSTANTIATE_MODE_CKPT_ALL))
+        {
+            dbInvocationPair = 0;
+            dirty = CL_FALSE;
+            dirtySection = &ams->ckptDBSections[dbInvocationPair];
+            if(!(ams->mode & CL_AMS_INSTANTIATE_MODE_NODE_JOIN))
+            {
+                ams->mode &= ~CL_AMS_INSTANTIATE_MODE_CKPT_ALL;
+            }
+            clAmsResetDirtyList();
+            rc = clAmsDBMarshall(&ams->db, dataBuf);
+        }
+        else
+        {
+            rc = clAmsDBMarshallDirty(&ams->db, dataBuf);
+        }
         if(rc != CL_OK)
         {
             clBufferDelete(&dataBuf);
@@ -1199,7 +1356,8 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
             goto exitfn;
         }
         clBufferLengthGet(dataBuf, &dataLen);
-        AMS_LOG(CL_DEBUG_INFO, ("DB marshall done for [%d] bytes\n", dataLen));
+        clLogDebug("PACK", "CKPT", "DB %smarshall done for [%d] bytes\n", 
+                   dirty ? "dirty ":"", dataLen);
         rc = clBufferFlatten(dataBuf, (ClUint8T**)&readData);
         if(rc != CL_OK)
         {
@@ -1210,7 +1368,7 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
         clBufferDelete(&dataBuf);
         if ( ( rc = clAmsCkptSectionOverwrite(
                                               ams,
-                                              &ams->ckptDBSections[dbInvocationPair],
+                                              dirtySection,
                                               &ams->ckptDifferenceVectorKeys[dbInvocationPair],
                                               (ClUint8T *)readData,
                                               dataLen,
@@ -1227,23 +1385,6 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
 
     if ( (mode == CL_AMS_CKPT_WRITE_INVOCATION) || (mode == CL_AMS_CKPT_WRITE_ALL) )
     {
-#if 0
-        AMS_CHECK_RC_ERROR(clAmsXMLizeInvocation(ams,
-                                                 ams->ckptInvocationSections[dbInvocationPair].value,
-                                                 &readData));
-        if ( ( rc = clAmsCkptSectionOverwrite(
-                                              ams,
-                                              &ams->ckptInvocationSections[dbInvocationPair],
-                                              (ClUint8T *)readData,
-                                              strlen(readData),
-                                              CL_AMS_CKPT_WRITE_INVOCATION))
-             != CL_OK )
-        {
-            free (readData);
-            goto exitfn;
-        }
-        free (readData);
-#else
         ClBufferHandleT invocationBuf = 0;
         ClUint32T invocationLen = 0;
 
@@ -1281,7 +1422,6 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
         
         clHeapFree (readData);
         readData = NULL;
-#endif
     }
 
     /*
@@ -1317,6 +1457,8 @@ amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
     ClCharT *invocationData = NULL;
     ClUint32T dbInvocationPair = 0;
     ClBoolT updateInvocationPair = CL_FALSE;
+    ClBoolT dirty = CL_TRUE;
+    ClNameT *dirtySection = NULL;
     ClCkptHdlT ckptHandle = 0;
 
     clOsalMutexLock(gAms.mutex);
@@ -1354,7 +1496,23 @@ amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
         {
             goto out_unlock;
         }
-        rc = clAmsDBMarshall(&ams->db, dataBuf);
+        dirtySection = &gClAmsCkptDirtySectionCache[dbInvocationPair];
+        if(ams->mode & CL_AMS_INSTANTIATE_MODE_CKPT_ALL)
+        {
+            dirty = CL_FALSE;
+            dbInvocationPair = 0;
+            dirtySection = &gClAmsCkptDBSectionCache[dbInvocationPair];
+            if(!(ams->mode & CL_AMS_INSTANTIATE_MODE_NODE_JOIN))
+            {
+                ams->mode &= ~CL_AMS_INSTANTIATE_MODE_CKPT_ALL;
+            }
+            clAmsResetDirtyList();
+            rc = clAmsDBMarshall(&ams->db, dataBuf);
+        }
+        else
+        {
+            rc = clAmsDBMarshallDirty(&ams->db, dataBuf);
+        }
         if(rc != CL_OK)
         {
             clBufferDelete(&dataBuf);
@@ -1362,7 +1520,8 @@ amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
             goto out_unlock;
         }
         clBufferLengthGet(dataBuf, &dataLen);
-        AMS_LOG(CL_DEBUG_INFO, ("DB marshall done for [%d] bytes\n", dataLen));
+        AMS_LOG(CL_DEBUG_INFO, ("DB %smarshall done for [%d] bytes\n", 
+                                dirty ? "dirty ":"", dataLen));
         rc = clBufferFlatten(dataBuf, (ClUint8T**)&ckptData);
         if(rc != CL_OK)
         {
@@ -1412,11 +1571,11 @@ amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
 
     clOsalMutexUnlock(gAms.mutex);
 
-    if(dataLen > 0)
+    if(dataLen > 0 && dirtySection)
     {
         AMS_CHECK_RC_ERROR(clAmsCkptSectionOverwriteNoLock(
                                                            ckptHandle,
-                                                           &gClAmsCkptDBSectionCache[dbInvocationPair],
+                                                           dirtySection,
                                                            (ClUint8T*)ckptData,
                                                            dataLen,
                                                            CL_AMS_CKPT_WRITE_DB));
@@ -1703,6 +1862,7 @@ clAmsCkptFree( ClAmsT  *ams )
 
     ClRcT  rc = CL_OK;
     ClInt32T i;
+    static ClUint32T numPairs = 2;
 
     AMS_CHECKPTR (!ams);
 
@@ -1711,11 +1871,12 @@ clAmsCkptFree( ClAmsT  *ams )
     /*
      * Free the AMS DBInvocationPairs
      */
-    for(i = 0; i < CL_AMS_DB_INVOCATION_PAIRS;++i)
+    for(i = 0; i < numPairs; ++i)
     {
         AMS_CHECK_RC_ERROR(clAmsCkptSectionDelete(ams,
                                                   &ams->ckptDBSections[i]));
-
+        AMS_CHECK_RC_ERROR(clAmsCkptSectionDelete(ams,
+                                                  &ams->ckptDirtySections[i]));
         AMS_CHECK_RC_ERROR(clAmsCkptSectionDelete(ams,
                                                   &ams->ckptInvocationSections[i]));
         clDifferenceVectorDelete(&ams->ckptDifferenceVectorKeys[i]);
@@ -1769,7 +1930,7 @@ clAmsCkptReadCurrentDBInvocationPair(ClAmsT *ams,
 
     dbInvocationPair = *(ClUint32T*)ioVector.dataBuffer;
     
-    if(dbInvocationPair >= CL_AMS_DB_INVOCATION_PAIRS)
+    if(dbInvocationPair >= 2)
     {
         rc = CL_AMS_RC(CL_ERR_UNSPECIFIED);
         AMS_LOG(CL_DEBUG_ERROR,("Ams Ckpt Read: Invalid dbInvocationPair [0x%x] found in AMS current section [%s]\n",dbInvocationPair,ams->ckptCurrentSection.value));

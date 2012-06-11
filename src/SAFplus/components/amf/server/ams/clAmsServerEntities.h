@@ -355,7 +355,8 @@ clAmsCSIMarshalPGTrackNotificationBuffer(
 
 extern ClRcT
 clAmsEntityTerminate(
-        CL_IN       ClAmsEntityT            *entity);
+                     CL_IN       ClAmsEntityT            *entity,
+                     ClBoolT instantiate);
 
 /*
  * Entity stack operations.

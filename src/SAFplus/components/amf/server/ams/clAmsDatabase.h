@@ -326,6 +326,11 @@ extern ClRcT clAmsEntityDbAddEntity(
         CL_IN       ClAmsEntityDbT      *entityDb,
         CL_IN       ClAmsEntityRefT     *entityRef);
 
+extern ClRcT clAmsEntityDbAddEntityAndGet(
+        CL_IN       ClAmsEntityDbT      *entityDb,
+        CL_IN       ClAmsEntityRefT     *entityRef,
+        ClAmsEntityT **addedEntity);
+
 /*
  * clAmsEntityDbAddEntity2
  * ----------------------

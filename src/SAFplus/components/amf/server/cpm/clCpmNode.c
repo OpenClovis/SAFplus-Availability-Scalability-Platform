@@ -530,7 +530,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
 
     if(nodeAddress != clIocLocalAddressGet())
     {
-        rc = clAmsCheckNodeJoinState((const ClCharT*)cpmLocalInfo.nodeName);
+        rc = clAmsCheckNodeJoinState((const ClCharT*)cpmLocalInfo.nodeName, CL_TRUE);
         if(rc != CL_OK)
             return rc;
     }
