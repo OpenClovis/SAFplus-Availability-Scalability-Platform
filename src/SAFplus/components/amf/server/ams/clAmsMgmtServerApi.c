@@ -5054,7 +5054,8 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 
                 AMS_CHECK_RC_ERROR(_clAmsSAEntityAdd(&entityRef) );
 
-                if(clAmsMgmtCCBNotificationEventPayloadSet(CL_AMS_NOTIFICATION_ENTITY_CREATE, &req->entity, 
+                if(clAmsGenericNotificationEventPayloadSet(CL_AMS_NOTIFICATION_ENTITY_CREATE, 
+                                                           &req->entity, 
                                                            &descriptor) == CL_OK)
                     clAmsNotificationEventPublish(&descriptor);
 
@@ -5103,7 +5104,8 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                      */
                     clAmsInvocationListUpdateCSIAll(CL_FALSE);
                 }
-                if(clAmsMgmtCCBNotificationEventPayloadSet(CL_AMS_NOTIFICATION_ENTITY_DELETE, 
+
+                if(clAmsGenericNotificationEventPayloadSet(CL_AMS_NOTIFICATION_ENTITY_DELETE, 
                                                            &req->entity,
                                                            &descriptor) == CL_OK)
                     clAmsNotificationEventPublish(&descriptor);
