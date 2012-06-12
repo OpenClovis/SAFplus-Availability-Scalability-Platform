@@ -77,7 +77,7 @@ clAmsNotificationMarshalNtfDescr (
         CL_INOUT  ClBufferHandleT  out );
 
 extern ClRcT
-clAmsMgmtCCBNotificationEventPayloadSet(ClAmsNotificationTypeT type,
+clAmsGenericNotificationEventPayloadSet(ClAmsNotificationTypeT type,
                                         const ClAmsEntityT *pEntity,
                                         ClAmsNotificationDescriptorT *pNotification);
 

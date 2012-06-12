@@ -65,11 +65,18 @@
 #define __AMS_NOTIFICATION_ADMIN_STATE_MASK (1 << (ClInt32T) \
                                              CL_AMS_NOTIFICATION_ADMIN_STATE_CHANGE )
 
+#define __AMS_NOTIFICATION_NODE_SWITCHOVER_MASK ( 1 << (ClInt32T)CL_AMS_NOTIFICATION_NODE_SWITCHOVER )
+
+#define __AMS_NOTIFICATION_NODE_FAILOVER_MASK ( 1 << (ClInt32T)CL_AMS_NOTIFICATION_NODE_FAILOVER)
+
 #define __AMS_NOTIFICATION_ENTITY_MASK (__AMS_NOTIFICATION_ENTITY_CREATE_MASK | \
                                         __AMS_NOTIFICATION_ENTITY_DELETE_MASK )
 
 #define __AMS_NOTIFICATION_STATE_CHANGE_MASK (__AMS_NOTIFICATION_OPER_STATE_MASK | \
                                               __AMS_NOTIFICATION_ADMIN_STATE_MASK)
+
+#define __AMS_NOTIFICATION_NODE_STATE_CHANGE_MASK (__AMS_NOTIFICATION_NODE_SWITCHOVER_MASK | \
+                                                   __AMS_NOTIFICATION_NODE_FAILOVER_MASK )
 
 #define __AMS_NOTIFICATION_STATUS(type) (gClAmsNotificationMask & \
                                          (1 << (ClInt32T)(type) ) )
@@ -192,6 +199,10 @@ clAmsNotificationEventInitialize (void)
 
     gClAmsNotificationDebug = clParseEnvBoolean("CL_AMF_NOTIFICATION_DEBUG");
     gClAmsNotificationMask = ~0U;
+    /*
+     * Disable the node switchover/failover states by default
+     */
+    gClAmsNotificationMask &= ~__AMS_NOTIFICATION_NODE_STATE_CHANGE_MASK;
     if(clParseEnvBoolean("CL_AMF_NOTIFICATION_STATE_DISABLED"))
     {
         gClAmsNotificationMask &= ~__AMS_NOTIFICATION_STATE_CHANGE_MASK;
@@ -200,6 +211,11 @@ clAmsNotificationEventInitialize (void)
     {
         gClAmsNotificationMask &= ~__AMS_NOTIFICATION_ENTITY_MASK;
     }
+    if(clParseEnvBoolean("CL_AMF_NOTIFICATION_NODE_STATE"))
+    {
+        gClAmsNotificationMask |= __AMS_NOTIFICATION_NODE_STATE_CHANGE_MASK;
+    }
+
     /*
      * Disable notifications in general
      */
@@ -463,13 +479,28 @@ ClRcT clAmsNotificationEventPublish(
     return rc;
 }
 
-ClRcT clAmsMgmtCCBNotificationEventPayloadSet(ClAmsNotificationTypeT type,
+ClRcT clAmsGenericNotificationEventPayloadSet(ClAmsNotificationTypeT type,
                                               const ClAmsEntityT *entity,
                                               ClAmsNotificationDescriptorT *notification)
 {
     if(!entity) 
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+
     notification->type = type;
+
+    if ( gAms.eventServerReady == CL_FALSE )
+    {
+        AMS_LOG (CL_DEBUG_TRACE,("Event server not ready\n"));
+        return CL_AMS_RC(CL_ERR_INVALID_STATE);
+    }
+
+    if(!__AMS_NOTIFICATION_STATUS(type))
+    {
+        clLogTrace("NOT", "EVT", "Notification type [%d] disabled for event notification",
+                   (ClInt32T)type);
+        return CL_AMS_RC(CL_ERR_INVALID_STATE);
+    }
+
     notification->entityType = entity->type;
     memcpy(&notification->entityName, &entity->name, sizeof(notification->entityName));
     notification->entityName.length = strlen(entity->name.value);
