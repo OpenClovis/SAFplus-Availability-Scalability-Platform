@@ -3683,6 +3683,8 @@ clAmsPeNodeSwitchoverWork(
     }ClAmsNodeSUListT;
     ClAmsNodeSUListT *suList = NULL;
     ClUint32T numSUs = 0;
+    ClAmsNotificationDescriptorT notification = {0};
+    ClAmsNotificationTypeT notificationType = CL_AMS_NOTIFICATION_NODE_SWITCHOVER;
     ClRcT rc = CL_OK;
 
     AMS_CHECK_NODE ( node );
@@ -3700,6 +3702,19 @@ clAmsPeNodeSwitchoverWork(
     node->status.suFailoverCount = 0;
     AMS_CALL ( clAmsEntityTimerStop((ClAmsEntityT *) node,
                                     CL_AMS_NODE_TIMER_SUFAILOVER) );
+
+    if(node->status.isClusterMember == CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER
+        ||
+       node->status.operState == CL_AMS_OPER_STATE_DISABLED)
+    {
+        notificationType = CL_AMS_NOTIFICATION_NODE_FAILOVER;
+    }
+
+    if(clAmsGenericNotificationEventPayloadSet(notificationType, &node->config.entity,
+                                               &notification) == CL_OK)
+    {
+        clAmsNotificationEventPublish(&notification);
+    }
 
     /*
      * Tell this node's dependents that it is switching over. The switchover mode
