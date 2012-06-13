@@ -58,6 +58,7 @@
         ((S) == CL_AMS_NOTIFICATION_SI_UNASSIGNED)          ? "unassigned" : \
         "Unknown" )
 
+#define __AMS_NOTIFICATION_COMP_STATE_CHANGE_MASK ( 1 << (ClInt32T)CL_AMS_NOTIFICATION_COMP_HA_STATE_CHANGE)
 #define __AMS_NOTIFICATION_ENTITY_CREATE_MASK (1 << (ClInt32T)CL_AMS_NOTIFICATION_ENTITY_CREATE )
 #define __AMS_NOTIFICATION_ENTITY_DELETE_MASK (1 << (ClInt32T)CL_AMS_NOTIFICATION_ENTITY_DELETE )
 #define __AMS_NOTIFICATION_OPER_STATE_MASK (1 << (ClInt32T) \
@@ -200,8 +201,9 @@ clAmsNotificationEventInitialize (void)
     gClAmsNotificationDebug = clParseEnvBoolean("CL_AMF_NOTIFICATION_DEBUG");
     gClAmsNotificationMask = ~0U;
     /*
-     * Disable the node switchover/failover states by default
+     * Disable comp ha state change and node switchover/failover states by default
      */
+    gClAmsNotificationMask &= ~__AMS_NOTIFICATION_COMP_STATE_CHANGE_MASK;
     gClAmsNotificationMask &= ~__AMS_NOTIFICATION_NODE_STATE_CHANGE_MASK;
     if(clParseEnvBoolean("CL_AMF_NOTIFICATION_STATE_DISABLED"))
     {
@@ -210,6 +212,10 @@ clAmsNotificationEventInitialize (void)
     if(clParseEnvBoolean("CL_AMF_NOTIFICATION_ENTITY_DISABLED"))
     {
         gClAmsNotificationMask &= ~__AMS_NOTIFICATION_ENTITY_MASK;
+    }
+    if(clParseEnvBoolean("CL_AMF_NOTIFICATION_COMP_HA_STATE"))
+    {
+        gClAmsNotificationMask |= __AMS_NOTIFICATION_COMP_STATE_CHANGE_MASK;
     }
     if(clParseEnvBoolean("CL_AMF_NOTIFICATION_NODE_STATE"))
     {
@@ -338,7 +344,23 @@ static void clAmsNotificationLog(ClAmsNotificationDescriptorT *notification)
                       CL_AMS_STRING_H_STATE(notification->newHAState));
         }
         break;
-            
+         
+    case CL_AMS_NOTIFICATION_COMP_HA_STATE_CHANGE:
+        {
+            clLogInfo("AMF", "NTF", "Generating COMP HA state change event");
+            clLogInfo("AMF", "NTF", "Comp name : [%.*s]",
+                      notification->entityName.length,
+                      notification->entityName.value);
+            clLogInfo("AMF", "NTF", "CSI name : [%.*s]",
+                      notification->siName.length,
+                      notification->siName.value);
+            clLogInfo("AMF", "NTF", "Last HA State : [%s]",
+                      CL_AMS_STRING_H_STATE(notification->lastHAState));
+            clLogInfo("AMF", "NTF", "New HA State : [%s]",
+                      CL_AMS_STRING_H_STATE(notification->newHAState));
+        }
+        break;
+
     default:
         {
             break;
@@ -548,6 +570,26 @@ static ClRcT clAmsSUNotificationEventPayloadSet(const ClAmsEntityT *entity,
     return CL_OK;
 }
 
+static ClRcT clAmsCompNotificationEventPayloadSet(const ClAmsEntityT *entity,
+                                                  const ClAmsEntityRefT *entityRef,
+                                                  const ClAmsHAStateT lastHAState,
+                                                  ClAmsNotificationDescriptorT *notification)
+{
+    ClAmsCSIT *csi = (ClAmsCSIT *)entity;
+    ClAmsCSICompRefT *compRef = (ClAmsCSICompRefT *)entityRef;
+
+    notification->type = CL_AMS_NOTIFICATION_COMP_HA_STATE_CHANGE;
+    notification->entityType = CL_AMS_ENTITY_TYPE_COMP;
+    memcpy(&notification->entityName, &compRef->entityRef.entity.name, sizeof(ClNameT));
+    memcpy(&notification->siName, &csi->config.entity.name, sizeof(ClNameT));
+    notification->entityName.length = strlen(compRef->entityRef.entity.name.value);
+    notification->siName.length = strlen(csi->config.entity.name.value);
+    notification->lastHAState = lastHAState;
+    notification->newHAState = compRef->haState;
+
+    return CL_OK;
+}
+
 ClRcT clAmsNotificationEventPayloadSet(const ClAmsEntityT *entity,
                                        const ClAmsEntityRefT *entityRef,
                                        const ClAmsHAStateT lastHAState,
@@ -555,6 +597,15 @@ ClRcT clAmsNotificationEventPayloadSet(const ClAmsEntityT *entity,
                                        ClAmsNotificationDescriptorT *notification)
 {
     AMS_CHECKPTR (!entity || !entityRef || !notification);
+
+    if ( gAms.eventServerReady == CL_FALSE )
+    {
+        AMS_LOG (CL_DEBUG_TRACE,("Event server not ready\n"));
+        return CL_AMS_RC(CL_ERR_INVALID_STATE);
+    }
+
+    if(!__AMS_NOTIFICATION_STATUS(ntfType))
+        return CL_AMS_RC(CL_ERR_INVALID_STATE);
 
     switch(entity->type)
     {
@@ -573,6 +624,14 @@ ClRcT clAmsNotificationEventPayloadSet(const ClAmsEntityT *entity,
                                                entityRef,
                                                lastHAState,
                                                notification);
+            break;
+        }
+    case CL_AMS_ENTITY_TYPE_CSI:
+        {
+            clAmsCompNotificationEventPayloadSet(entity,
+                                                 entityRef,
+                                                 lastHAState,
+                                                 notification);
             break;
         }
         default:
