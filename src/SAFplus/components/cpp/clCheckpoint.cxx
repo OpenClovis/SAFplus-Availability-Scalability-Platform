@@ -128,6 +128,21 @@ namespace clCheckpoint
 
   void Finalize()
     {
+        SaAisErrorT rc = SA_AIS_OK;
+
+        if (svcHdl != 0)
+        {
+            clLogInfo("CPP","CKP","Checkpoint service finalize (handle=0x%llx)\n", svcHdl);
+            rc = saCkptFinalize(svcHdl);
+            if (rc != SA_AIS_OK)
+            {
+                clLogError("CPP", "CKP", "Failed to finalize checkpoint service error %x\n", rc);
+            }
+            else
+            {
+                svcHdl = 0;
+            }
+        }
     }
 
 
