@@ -74,7 +74,7 @@ namespace clCheckpoint
       tryAgainDelayMs   = 250;  // 1/4 of a second
       flags             = flagsp;
 
-      clLogInfo("CPP","CKP","Opening checkpoint %s attributes: flags: %d, size: %d, retention %llu, maxSections: %d, maxSectionSize: %d, maxSectionIdSize: %d", ckpt_name.value, (int) create_atts.creationFlags, (size_t) create_atts.checkpointSize, create_atts.retentionDuration, (int) create_atts.maxSections, (int) create_atts.maxSectionSize, (int) create_atts.maxSectionIdSize);
+      clLogInfo("CPP","CKP","Opening checkpoint %s attributes: flags: %d, size: %d, retention %llu, maxSections: %d, maxSectionSize: %d, maxSectionIdSize: %d", ckpt_name.value, (int) create_atts.creationFlags, (int) create_atts.checkpointSize, create_atts.retentionDuration, (int) create_atts.maxSections, (int) create_atts.maxSectionSize, (int) create_atts.maxSectionIdSize);
 
       rc = saCkptCheckpointOpen(svcHdl,      // Service handle
                                 &ckpt_name,         // Checkpoint name
