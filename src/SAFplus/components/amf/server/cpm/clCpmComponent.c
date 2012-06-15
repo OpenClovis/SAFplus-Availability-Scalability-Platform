@@ -1556,6 +1556,7 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
                    "component", info.compName.value, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
 
+    comp->compTerminated = CL_TRUE;
     if (isProxied)
     {
         if (! ((comp->compConfig->compProperty ==
@@ -2608,7 +2609,6 @@ ClRcT _cpmComponentTerminate(ClCharT *compName,
                            "component", compName, rc, rc, CL_LOG_DEBUG,
                            CL_LOG_HANDLE_APP);
         }
-        comp->compTerminated = CL_TRUE;
         if (strcmp(comp->compConfig->compName, gpClCpm->corServerName) == 0)
         {
             gpClCpm->corUp = 0;
