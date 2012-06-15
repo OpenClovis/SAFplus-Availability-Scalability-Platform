@@ -1228,17 +1228,36 @@ clLogFileUnlink(const ClCharT *name)
 ClRcT
 clLogSymLink(ClCharT *oldFileName, ClCharT  *newFileName)
 {
-    ClRcT  rc = CL_OK;
-    
-    CL_LOG_DEBUG_TRACE(("oldFileName: %s newFileName: %s ", oldFileName,
-                        newFileName));
+    ClRcT rc = CL_OK;
+    int ret;
+    int dirPortion;
+    char* o;
+    char* n;
+    CL_LOG_DEBUG_TRACE(("oldFileName: %s newFileName: %s ", oldFileName, newFileName));
 
-    if( (symlink(oldFileName, newFileName) != 0) && (errno != EEXIST))
+    o = strrchr(oldFileName, '/');
+    n = strrchr(newFileName, '/');
+
+    dirPortion = n - newFileName;
+
+    if (o && n && ((o - oldFileName) == dirPortion) && /* If they both have paths AND their paths are the same length */
+                    (strncmp(oldFileName, newFileName, dirPortion) == 0)) /* AND the paths are the same then */
     {
-        perror("symlink");
-        CL_LOG_DEBUG_ERROR(("shmlink failed"));
-        return CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
-    }   
+        /* these paths are in the same directory so use a local symlink */
+        ret = symlink(o + 1, newFileName);
+    }
+    else
+    {
+        ret = symlink(oldFileName, newFileName);
+    }
+    if ((ret != 0) && (errno != EEXIST))
+    {
+        char errorBuf[100];
+        strerror_r(errno, errorBuf, 99);
+
+        CL_LOG_DEBUG_ERROR(("symlink [%s] -> [%s] failed.  Error: [%s]",oldFileName,newFileName,errorBuf));
+        return 1; //CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
+    }
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
