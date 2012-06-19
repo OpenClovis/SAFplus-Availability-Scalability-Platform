@@ -1315,6 +1315,30 @@ static ClCpmResetMsgT *cpmResetRequestFind(const ClNameT *nodeName, ClUint32T ms
     return NULL;
 }
 
+/*
+ * Delete all the request entries for the node from table
+ */
+void cpmResetDeleteRequest(const ClNameT *nodeName)
+{
+    ClUint16T hashKey = 0;
+    struct hashStruct *iter, *next = NULL;
+    if(!nodeName) return;
+    clCksm16bitCompute((ClUint8T*)nodeName->value, strlen(nodeName->value), &hashKey);
+    hashKey &= CPM_RESET_TABLE_MASK;
+    clOsalMutexLock(gpClCpm->cmRequestMutex);
+    for(iter = cpmResetMsgTable[hashKey]; iter; iter = next)
+    {
+        ClCpmResetMsgT *msg = hashEntry(iter, ClCpmResetMsgT, hash);
+        next = iter->pNext;
+        if(!strcmp((const ClCharT*)msg->nodeName.value, (const ClCharT*)nodeName->value))
+        {
+            hashDel(&msg->hash);
+            clHeapFree(msg);
+        }
+    }
+    clOsalMutexUnlock(gpClCpm->cmRequestMutex);
+}
+
 static ClRcT cpmEnqueueResetRequest(ClCpmResetMsgT *resetMsg)
 {
     ClCpmResetMsgT *msg;
@@ -1771,7 +1795,6 @@ ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover)
     clOsalMutexUnlock(gpClCpm->cpmTableMutex);
     clOsalMutexUnlock(&gpClCpm->cpmMutex);
 
-
     clLogCritical(CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED,
                   "Got a node shutdown/failure for standby/worker blade, "
                   "Failing over node [%s] with node ID [%d]",    
@@ -1786,14 +1809,19 @@ ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover)
     clIocTransparencyDeregisterNode(pCpmLocalInfo->cpmAddress.nodeAddress);
 #endif
 
+    strcpy(nodeName.value, pCpmLocalInfo->nodeName);
+    nodeName.length = strlen(nodeName.value) + 1;
+    
+    /*
+     * Reset the request queue pertaining to the node
+     */
+    cpmResetDeleteRequest(&nodeName);
+
     clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
                "Publishing node [%d] departure event...",
                pCpmLocalInfo->nodeId);
 
     cpmUpdateNodeState(pCpmLocalInfo);
-
-    strcpy(nodeName.value, pCpmLocalInfo->nodeName);
-    nodeName.length = strlen(nodeName.value) + 1;
 
     if ((NULL != gpClCpm->cpmToAmsCallback) &&  
         (NULL != gpClCpm->cpmToAmsCallback->nodeLeave))

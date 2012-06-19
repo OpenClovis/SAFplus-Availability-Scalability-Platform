@@ -524,6 +524,8 @@ extern ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddr
 
 extern ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClUint32T *nodeRequest);
 
+extern void  cpmResetDeleteRequest(const ClNameT *pNodeName);
+
 /**
  ************************************
  *  \page pageCPM129 clCpmComponentLogicalAddressUpdate
