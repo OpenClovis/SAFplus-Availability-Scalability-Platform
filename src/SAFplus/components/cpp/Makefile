@@ -32,7 +32,7 @@ DEP_COMP_LIST	:= cpp utils osal timer buffer cnt ioc eo amf rmd debug log ckpt
 LIB_NAMES       = libClSafAspCpp
 
 #SRC_FILES_libClAspCpp		:= clCheckpoint.cxx  clSaApp.cxx  clMsgServer.cxx
-SRC_FILES_libClSafAspCpp	:= clApp.cxx
+SRC_FILES_libClSafAspCpp	:= clCheckpoint.cxx clApp.cxx
 
 
 # List any third party libs needed to get this server built (or None):
