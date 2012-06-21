@@ -354,9 +354,7 @@ static void clAmsNotificationLog(ClAmsNotificationDescriptorT *notification)
             clLogInfo("AMF", "NTF", "CSI name : [%.*s]",
                       notification->siName.length,
                       notification->siName.value);
-            clLogInfo("AMF", "NTF", "Last HA State : [%s]",
-                      CL_AMS_STRING_H_STATE(notification->lastHAState));
-            clLogInfo("AMF", "NTF", "New HA State : [%s]",
+            clLogInfo("AMF", "NTF", "HA State : [%s]",
                       CL_AMS_STRING_H_STATE(notification->newHAState));
         }
         break;
@@ -575,17 +573,17 @@ static ClRcT clAmsCompNotificationEventPayloadSet(const ClAmsEntityT *entity,
                                                   const ClAmsHAStateT lastHAState,
                                                   ClAmsNotificationDescriptorT *notification)
 {
-    ClAmsCSIT *csi = (ClAmsCSIT *)entity;
-    ClAmsCSICompRefT *compRef = (ClAmsCSICompRefT *)entityRef;
+    ClAmsCompT *comp = (ClAmsCompT *)entity;
+    ClAmsCompCSIRefT *csiRef = (ClAmsCompCSIRefT *)entityRef;
 
     notification->type = CL_AMS_NOTIFICATION_COMP_HA_STATE_CHANGE;
     notification->entityType = CL_AMS_ENTITY_TYPE_COMP;
-    memcpy(&notification->entityName, &compRef->entityRef.entity.name, sizeof(ClNameT));
-    memcpy(&notification->siName, &csi->config.entity.name, sizeof(ClNameT));
-    notification->entityName.length = strlen(compRef->entityRef.entity.name.value);
-    notification->siName.length = strlen(csi->config.entity.name.value);
+    memcpy(&notification->entityName, &comp->config.entity.name, sizeof(ClNameT));
+    memcpy(&notification->siName, &csiRef->entityRef.entity.name, sizeof(ClNameT));
+    notification->entityName.length = strlen(comp->config.entity.name.value);
+    notification->siName.length = strlen(csiRef->entityRef.entity.name.value);
     notification->lastHAState = lastHAState;
-    notification->newHAState = compRef->haState;
+    notification->newHAState = csiRef->haState;
 
     return CL_OK;
 }
@@ -626,7 +624,7 @@ ClRcT clAmsNotificationEventPayloadSet(const ClAmsEntityT *entity,
                                                notification);
             break;
         }
-    case CL_AMS_ENTITY_TYPE_CSI:
+    case CL_AMS_ENTITY_TYPE_COMP:
         {
             clAmsCompNotificationEventPayloadSet(entity,
                                                  entityRef,

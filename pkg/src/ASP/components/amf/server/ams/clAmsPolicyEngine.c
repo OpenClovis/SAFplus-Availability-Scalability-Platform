@@ -16023,6 +16023,12 @@ amsPeCompAssignCSICallback(
                  comp->config.entity.name.value,
                  CL_AMS_STRING_H_STATE(csiRef->haState)));
 
+        CL_AMS_NOTIFICATION_PUBLISH(&comp->config.entity, 
+                                    (ClAmsEntityRefT*)csiRef,
+                                    csiRef->haState,
+                                    CL_AMS_NOTIFICATION_COMP_HA_STATE_CHANGE,
+                                    switchoverMode);
+
         /*
          * If this is a proxy CSI then components proxied by this CSI need to
          * be updated depending on the ha state of this assignment. The ha
@@ -17337,6 +17343,12 @@ amsPeCompQuiescingCompleteCallback(
                             CL_AMS_HA_STATE_QUIESCING,
                             CL_AMS_HA_STATE_QUIESCED,
                             switchoverMode) );
+
+            CL_AMS_NOTIFICATION_PUBLISH(&comp->config.entity, 
+                                        (ClAmsEntityRefT*)csiRef,
+                                        csiRef->haState,
+                                        CL_AMS_NOTIFICATION_COMP_HA_STATE_CHANGE,
+                                        switchoverMode);
 
 #ifdef AMS_CPM_INTEGRATION
 

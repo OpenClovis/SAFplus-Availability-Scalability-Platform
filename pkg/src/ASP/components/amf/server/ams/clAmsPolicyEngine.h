@@ -241,14 +241,7 @@ do{                                                                     \
                                         CL_AMS_NOTIFICATION_SU_HA_STATE_CHANGE, \
                                         SWITCHOVERMODE);                \
         }                                                               \
-        if( (ENTITYREF)->entityRef.entity.type == CL_AMS_ENTITY_TYPE_COMP) \
-        {                                                               \
-            CL_AMS_NOTIFICATION_PUBLISH(ENTITY, (ClAmsEntityRefT*)ENTITYREF, \
-                                        lastHAState,                    \
-                                        CL_AMS_NOTIFICATION_COMP_HA_STATE_CHANGE, \
-                                        SWITCHOVERMODE);                \
-        }                                                               \
-    }                                                                   \
+   }                                                                    \
 }while(0)
 
 #define CL_AMS_SET_EPOCH(ent) do {              \
