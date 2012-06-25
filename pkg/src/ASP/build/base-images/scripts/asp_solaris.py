@@ -818,7 +818,7 @@ def save_asp_runtime_files():
                     execute_shell_cmd(cmd, 'Failed to delete [%s]' % src)
                     log.info('Deleted previous %s directory' % src)
                 else:
-                    cmd = 'cp -Pr %s %s' % (src, dst)
+                    cmd = 'cp -Ppr %s %s' % (src, dst)
                     execute_shell_cmd(cmd, 'Failed to copy [%s] to [%s]'
                                       % (src, dst), fail_on_error=False)
                 
