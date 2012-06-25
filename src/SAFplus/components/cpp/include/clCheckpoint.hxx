@@ -102,6 +102,8 @@ namespace clCheckpoint
   class Table
   {
   public:
+    SaCkptCheckpointHandleT  handle;
+
     /** Default 2-phase constructor, elements are initialized to 0.
         Initialize must be called before use!
         
@@ -225,8 +227,7 @@ namespace clCheckpoint
     void Synchronize(unsigned int timeout=0);
 
   protected:
-    
-    SaCkptCheckpointHandleT  handle;
+
     SaTimeT                  sectionExpiration;
     bool                     autoActivate;
     SaTimeT                  tryAgainDelayMs;
