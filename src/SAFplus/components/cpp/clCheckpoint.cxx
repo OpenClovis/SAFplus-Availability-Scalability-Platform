@@ -421,5 +421,96 @@ namespace clCheckpoint
       throw Error(SafError,rc);
     }
 
+    Table::Iterator::Iterator(SaCkptCheckpointHandleT *handle) {
+        SaAisErrorT rc = SA_AIS_OK;
+        this->handle = handle;
+        this->pData = new Data();
+        this->pKey = new Data();
+
+        /*
+         * Wrapper checkpoint section iterator
+         */
+        rc = saCkptSectionIterationInitialize(*handle, SA_CKPT_SECTIONS_ANY, 0,
+                        &sectionIterator);
+        CL_ASSERT(rc == SA_AIS_OK);
+    }
+
+    Table::Iterator::Iterator(Data *pData, Data *pKey) : pData(pData), pKey(pKey)
+    {
+    }
+
+    Table::Iterator::~Iterator() {
+        saCkptSectionIterationFinalize(sectionIterator);
+    }
+
+    Table::Iterator& Table::Iterator::operator=(const Iterator& otherValue) {
+        pData = otherValue.pData;
+        pKey = otherValue.pKey;
+        sectionIterator = otherValue.sectionIterator;
+        handle = otherValue.handle;
+        return (*this);
+    }
+
+    /*
+     * Compare with other node
+     */
+    bool Table::Iterator::operator!=(const Iterator& otherValue) {
+        if (pKey->length == otherValue.pKey->length) {
+            if ((pKey->value == NULL) || (otherValue.pKey->value == NULL)
+                            || (!memcmp(pKey->value, otherValue.pKey->value,
+                                            pKey->length))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /*
+     * Goto next iterator ckpt section
+     */
+    Table::Iterator& Table::Iterator::operator++(int)
+    {
+        SaCkptIOVectorElementT iov;
+        SaAisErrorT rc = SA_AIS_OK;
+        SaCkptSectionDescriptorT sectionDescriptor;
+        SaUint32T err_idx; /* Error index in ioVector */
+
+        rc = saCkptSectionIterationNext(sectionIterator, &sectionDescriptor);
+        if (rc == SA_AIS_OK) {
+            clLogDebug("MGT", "SYNC",
+                            "clMgtCkptInitSync() Section '%s' expires %llx size "
+                            "%llu state %x update %llx\n",
+                            sectionDescriptor.sectionId.id,
+                            (unsigned long long)sectionDescriptor.expirationTime,
+                            (unsigned long long)sectionDescriptor.sectionSize,
+                            sectionDescriptor.sectionState,
+                            (unsigned long long)sectionDescriptor.lastUpdate);
+
+            iov.sectionId = sectionDescriptor.sectionId;
+            iov.dataBuffer = 0;
+            iov.dataSize   = 0;
+            iov.dataOffset = 0;
+            iov.readSize = 0;
+
+            rc = saCkptCheckpointRead(*handle, &iov, 1, &err_idx);
+            if( SA_AIS_OK == rc )
+            {
+                pData = new Data(iov.dataBuffer, iov.readSize);
+                pKey = new Data(sectionDescriptor.sectionId.id, sectionDescriptor.sectionId.idLen);
+            }
+        } else {
+            pData = new Data();
+            pKey = new Data();
+        }
+        return (*this);
+    }
+
+    Table::Iterator Table::begin() {
+        return (Table::Iterator(&handle));
+    }
+
+    Table::Iterator Table::end() {
+        return (Table::Iterator(new Data(), new Data()));
+    }
 
 };

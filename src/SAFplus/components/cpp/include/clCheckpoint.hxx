@@ -26,6 +26,7 @@
 
 #include <saCkpt.h>
 #include <clOsalApi.h>
+#include <iterator>
 
 namespace clCheckpoint
 {
@@ -102,7 +103,6 @@ namespace clCheckpoint
   class Table
   {
   public:
-    SaCkptCheckpointHandleT  handle;
 
     /** Default 2-phase constructor, elements are initialized to 0.
         Initialize must be called before use!
@@ -226,14 +226,41 @@ namespace clCheckpoint
    */    
     void Synchronize(unsigned int timeout=0);
 
+    class Iterator
+    {
+    private:
+      Data *pData;
+      Data *pKey;
+      SaCkptSectionIterationHandleT sectionIterator;
+    public:
+      Iterator(SaCkptCheckpointHandleT *handle);
+      ~Iterator();
+
+      Iterator(Data *pData, Data *pKey);
+
+      // assignment
+      Iterator& operator=(const Iterator& otherValue);
+      bool operator !=(const Iterator& otherValue);
+
+      // increment the pointer to the next value
+      Iterator& operator++();
+      Iterator& operator++(int);
+
+      SaCkptCheckpointHandleT *handle;
+    };
+
+    // the begin and end of the iterator look up
+    Iterator begin();
+    Iterator end();
+
   protected:
 
+    SaCkptCheckpointHandleT  handle;
     SaTimeT                  sectionExpiration;
     bool                     autoActivate;
     SaTimeT                  tryAgainDelayMs;
     SaCkptCheckpointCreationFlagsT flags;
     int                      maxSections;
-
 
     bool GetActiveStatus(SaCkptCheckpointDescriptorT* status=NULL);
     
