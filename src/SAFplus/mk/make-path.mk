@@ -64,15 +64,16 @@ endif
 #$(warning IS_ASP_COMP:$(IS_ASP_COMP))
 #$(warning ASP_MODEL_NAME:$(ASP_MODEL_NAME))
 
+
 ifeq ("$(IS_ASP_COMP)","1")
     # $(warning Building ASP component)
     # In this case we create the BUILD_SUBPATH as the subdirectory under ASP
-    BUILD_SUBPATH := $(shell pwd | $(AWK) '{match($$0,".*/SAFplus/"); print substr($$0,RLENGTH+1)}')
+    BUILD_SUBPATH ?= $(shell pwd | $(AWK) '{match($$0,".*/SAFplus/"); print substr($$0,RLENGTH+1)}')
 else
     # $(warning Building user component)
 #	# in this case we create the BUILD_SUBPATH as the subdirectory under the
 #	# model directory
-    BUILD_SUBPATH := $(shell pwd | $(AWK) '{match($$0,regex); print substr($$0,RLENGTH+1)}' regex=".*/$(ASP_MODEL_NAME)/")
+    BUILD_SUBPATH ?= $(shell pwd | $(AWK) '{match($$0,regex); print substr($$0,RLENGTH+1)}' regex=".*/$(ASP_MODEL_NAME)/")
 endif
 
 #$(warning BUILD_SUBPATH:$(BUILD_SUBPATH))
