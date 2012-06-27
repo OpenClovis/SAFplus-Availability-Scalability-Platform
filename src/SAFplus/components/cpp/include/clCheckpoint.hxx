@@ -117,6 +117,11 @@ namespace clCheckpoint
      */        
     Table(const char* name, SaCkptCheckpointCreationFlagsT flags, unsigned int retentionMs, unsigned int maxSections, unsigned int maxSectionSizeBytes, unsigned int maxSectionIdSizeBytes);
 
+    /*
+     * Destructor cleanup ckpt handle
+     */
+    ~Table();
+
   /**
    \brief Initialize the checkpoint table (phase 2 of construction)
 
@@ -229,11 +234,10 @@ namespace clCheckpoint
     class Iterator
     {
     private:
-      Data *pData;
-      Data *pKey;
-      SaCkptSectionIterationHandleT sectionIterator;
+      SaCkptSectionIterationHandleT *sectionIterator;
+      SaCkptCheckpointHandleT *handle;
     public:
-      Iterator(SaCkptCheckpointHandleT *handle);
+      Iterator(SaCkptCheckpointHandleT *handle, SaCkptSectionIterationHandleT *sectionIterator);
       ~Iterator();
 
       Iterator(Data *pData, Data *pKey);
@@ -246,7 +250,8 @@ namespace clCheckpoint
       Iterator& operator++();
       Iterator& operator++(int);
 
-      SaCkptCheckpointHandleT *handle;
+      Data *pData;
+      Data *pKey;
     };
 
     // the begin and end of the iterator look up
@@ -256,6 +261,7 @@ namespace clCheckpoint
   protected:
 
     SaCkptCheckpointHandleT  handle;
+    SaCkptSectionIterationHandleT sectionIterator;
     SaTimeT                  sectionExpiration;
     bool                     autoActivate;
     SaTimeT                  tryAgainDelayMs;

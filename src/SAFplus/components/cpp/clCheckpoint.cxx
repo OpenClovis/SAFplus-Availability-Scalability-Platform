@@ -421,17 +421,29 @@ namespace clCheckpoint
       throw Error(SafError,rc);
     }
 
-    Table::Iterator::Iterator(SaCkptCheckpointHandleT *handle) {
+  /*
+   *
+   */
+  Table::~Table()
+  {
+      if (sectionIterator)
+      {
+          saCkptSectionIterationFinalize(sectionIterator);
+      }
+  }
+
+    Table::Iterator::Iterator(SaCkptCheckpointHandleT *handle, SaCkptSectionIterationHandleT *sectionIterator) {
         SaAisErrorT rc = SA_AIS_OK;
         this->handle = handle;
         this->pData = new Data();
         this->pKey = new Data();
+        this->sectionIterator = sectionIterator;
 
         /*
          * Wrapper checkpoint section iterator
          */
         rc = saCkptSectionIterationInitialize(*handle, SA_CKPT_SECTIONS_ANY, 0,
-                        &sectionIterator);
+                        sectionIterator);
         CL_ASSERT(rc == SA_AIS_OK);
     }
 
@@ -440,13 +452,19 @@ namespace clCheckpoint
     }
 
     Table::Iterator::~Iterator() {
-        saCkptSectionIterationFinalize(sectionIterator);
+        if (pData->value)
+        {
+            clHeapFree(pData->value);
+        }
+        if (pKey->value)
+        {
+            clHeapFree(pKey->value);
+        }
     }
 
     Table::Iterator& Table::Iterator::operator=(const Iterator& otherValue) {
         pData = otherValue.pData;
         pKey = otherValue.pKey;
-        sectionIterator = otherValue.sectionIterator;
         handle = otherValue.handle;
         return (*this);
     }
@@ -475,7 +493,7 @@ namespace clCheckpoint
         SaCkptSectionDescriptorT sectionDescriptor;
         SaUint32T err_idx; /* Error index in ioVector */
 
-        rc = saCkptSectionIterationNext(sectionIterator, &sectionDescriptor);
+        rc = saCkptSectionIterationNext(*sectionIterator, &sectionDescriptor);
         if (rc == SA_AIS_OK) {
             clLogDebug("MGT", "SYNC",
                             "clMgtCkptInitSync() Section '%s' expires %llx size "
@@ -506,7 +524,7 @@ namespace clCheckpoint
     }
 
     Table::Iterator Table::begin() {
-        return (Table::Iterator(&handle));
+        return (Table::Iterator(&handle, &sectionIterator)++);
     }
 
     Table::Iterator Table::end() {
