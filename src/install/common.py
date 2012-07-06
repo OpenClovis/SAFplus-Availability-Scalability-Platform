@@ -30,7 +30,7 @@ import fnmatch
 #EXTRACT_ERROR = 'Error: Could not extract\n'
 
 ERROR_MKDIR_FAIL = 'Error: Unable to create directory \'%s\'\n'
-ERROR_RMDIR_FAIL = 'Error: Unable to nuke directory \'%s\'\n'
+ERROR_RMDIR_FAIL = 'Error: Unable to delete directory \'%s\'\n'
 ERROR_CANT_CONTINUE = 'Error: Script could not continue\n'
 ERROR_WPERMISSIONS = 'Error: No write permission to \'%s\'\n'
 WARNING_INCOMPLETE = '\n[WARNING] The installation is incomplete, rerun this script to restart and complete installation'

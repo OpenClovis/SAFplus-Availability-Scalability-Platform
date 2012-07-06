@@ -5,6 +5,8 @@ import pdb
 import fnmatch
 import errno
 import types
+import urllib2
+
 
 # make sure they have a proper version of python
 if sys.version_info[:3] < (2, 4, 3):
@@ -29,11 +31,15 @@ except ImportError:
 # Settings
 # ------------------------------------------------------------------------------
 
-THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.23'                # Look for PKG starting with this name
-THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.23.tar'            # search this package if no 3rdPartyPkg found
+THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.24'                # Look for PKG starting with this name
+THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.24.tar'            # search this package if no 3rdPartyPkg found
+PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_32'
+PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_32.tar.gz'
 if determine_bit() == 64:
-  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.23-x86_64'       # Look for PKG starting with this name
-  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.23-x86_64.tar'
+  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.24-x86_64'       # Look for PKG starting with this name
+  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.24-x86_64.tar'
+  PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_64.tar.gz'
+  PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_64'
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
 INSTALL_LOCKFILE             = '/tmp/.openclovis_installer'        # installer lockfile location
 
@@ -67,7 +73,10 @@ class ASPInstaller:
         self.CUSTOM_ONLY         = False
         self.BUILD_DIR           = os.path.join(self.WORKING_DIR, 'workspace')
         self.LOG_DIR             = os.path.join(self.WORKING_DIR, 'log')
-        #self.PREFIX_BIN          = ''
+        self.PRE_INSTALL_PKG     = os.path.join(os.path.dirname(self.WORKING_DIR),PRE_INSTALL_PKG_NAME)
+        if determine_bit() == 64:
+            self.PRE_INSTALL_PKG     = os.path.join(os.path.dirname(self.WORKING_DIR),PRE_INSTALL_PKG_NAME)
+		#self.PREFIX_BIN          = ''
         self.DEV_BUILD           = False
         self.INSTALL_IDE         = True
         self.GPL                 = False
@@ -75,10 +84,7 @@ class ASPInstaller:
         self.DO_SYMLINKS         = True
         self.HOME                = self.expand_path('~')
         self.OFFLINE             = False
-        self.APT_INSTALL         = False
-        self.APT_INSTALL_DIR     = None
-        self.APT_DEB_DIR         = None
-
+        self.INTERNET		 = True	
         # ------------------------------------------------------------------------------
         self.NEED_TIPC_CONFIG    = False
         self.TIPC_CONFIG_VERSION = ''
@@ -166,8 +172,9 @@ class ASPInstaller:
             if os.getuid() != 0:
                 self.feedback('\nYou must be root to run the preinstall phase', True)
             sys.argv.remove('--offline')
-            self.PREINSTALL_ONLY = True
+            #self.PREINSTALL_ONLY = True
             self.OFFLINE = True
+            self.INTERNET = False
         
         if '--install' in sys.argv:
             sys.argv.remove('--install')
@@ -177,6 +184,11 @@ class ASPInstaller:
         if '--standard' in sys.argv:
             sys.argv.remove('--standard')
             self.STANDARD_ONLY = True
+
+        #if '--nonet' in sys.argv:
+            #sys.argv.remove('--nonet')
+            #self.INTERNET = False
+            #self.OFFLINE = True	
         
         if '--install-dir' in sys.argv:
             idx = sys.argv.index('--install-dir')
@@ -193,11 +205,7 @@ class ASPInstaller:
             
             # make sure we have trailing slash for consistency
             assert self.INSTALL_DIR[-1] == '/'
-
-        if '--apt-install' in sys.argv:
-            sys.argv.remove('--apt-install')
-            self.APT_INSTALL = True
-
+        
         
         if len(sys.argv) > 1:
             self.print_install_header()
@@ -206,6 +214,8 @@ class ASPInstaller:
                 print '\t' + arg.strip()
             self.feedback('Please press <enter> to continue or <ctrl-c> to quit this installer')
             self.get_user_feedback()
+
+
     
     
     def queuePreinstall(self):
@@ -307,7 +317,7 @@ class ASPInstaller:
             
             if dep.force_install:
                 self.installQueue.append(dep)
-                continue
+                continue	
             
             # do we need to install this?
             if dep.ver_test_cmd:
@@ -356,31 +366,44 @@ class ASPInstaller:
                            
                 # SPECIAL CASE, TIPC
                 elif dep.name == 'tipc':
+                    self.feedback('Install tipc module')
                     cmd = '/sbin/modinfo tipc > /dev/null 2>&1;'
-
                     self.debug('calling cmd: ' + cmd)
                     ret_code = cli_cmd(cmd)
-                        
+                    
                     if ret_code == 1:
+                        # self.feedback('retcode = %s' %ret_code)
                         
-                        # fixme (try/except)
-                        if int(syscall('uname -r').split('.')[2]) < 15:
+                        #wrong cmd
+                        #if int(syscall('uname -r').split('.')[2]) < 15:
+                        if int((syscall('uname -r').split('.')[2]).split('-')[0]) < 15:
                             # do install
                             dep.installedver = 'None'
                             self.installQueue.append(dep)
-                        else:
-                            
-                            msg = '[ERROR] No TIPC module was found on this system, nor can one be installed\n' \
-                                  '        by this installer.  Please recompile your kernel with TIPC support\n' \
-                                  '        enabled as a kernel module and run this program again.\n' \
-                                  'Please contact %s for support\n' % SUPPORT_EMAIL
-                            self.feedback(msg, True, False)
-                        
+                        else :
+                            if(self.INTERNET == False) : 
+                                os.chdir(self.PRE_INSTALL_PKG)
+                                syscall('cp -f tipc.ko /lib/modules/`uname -r`/extra/')
+                                syscall('cp -f tipc.conf /etc/modprobe.d/')
+                                syscall('modprobe tipc')
+                                syscall('depmod -a')
+                                cmd = '/sbin/modinfo tipc > /dev/null 2>&1;'
+                                self.debug('calling cmd: ' + cmd)
+                                test_tipc = cli_cmd(cmd)
+                                if test_tipc == 1 :
+                                    self.feedback('Error: cannot install tipc. Please install tipc manually.', True)
+                                else :
+                                    self.feedback('Install tipc successfully.')                         
+                                syscall('cp -f %s/%s/tipc_config.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
+                                syscall('cp -f %s/%s/tipc.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
+                                syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
+                            else :
+                                dep.installedver = 'None'
+                                self.installQueue.append(dep)                        
                     else: #ret_code == 0
-                        assert ret_code == 0
-                        self.NEED_TIPC_CONFIG = True
-                        
-                        
+                        #assert ret_code == 0
+                        # self.feedback('retcode = %s' %ret_code)
+                        self.NEED_TIPC_CONFIG = True                     
                         dep.installedver = syscall('/sbin/modinfo tipc | grep \'^version\' | tr -s " " | cut -d\  -f 2') # fixme, does this work
 
                     
@@ -391,15 +414,17 @@ class ASPInstaller:
                     
                     if ret_code != 0:
                         # install tipc_config
+                        
                         TIPC_MODULE_VERSION = syscall('/sbin/modinfo tipc | grep \'^version\' | tr -s " " | cut -d\  -f 2')
                         TIPC_MAJOR_VERSION = int(TIPC_MODULE_VERSION.split('.')[0])
                         TIPC_MINOR_VERSION = int(TIPC_MODULE_VERSION.split('.')[1])
-                        
+                        self.feedback('tipc major : %s - tipc minor : %s '%(TIPC_MAJOR_VERSION,TIPC_MINOR_VERSION))
+                
                         if TIPC_MAJOR_VERSION != 1:
                             # dont install
                             dep.installedver = 'Warning: incompatible version, won\'t install'
                             continue
-                            
+                        
                         if TIPC_MINOR_VERSION == 5:
                             dep.installedver = 'Installed'
                             continue
@@ -408,10 +433,14 @@ class ASPInstaller:
                             self.TIPC_CONFIG_VERSION = 'tipcutils-1.0.4.tar.gz'                            
                             dep.pkg_name =  self.TIPC_CONFIG_VERSION
                         elif TIPC_MINOR_VERSION == 7:
-                            self.TIPC_CONFIG_VERSION = 'tipcutils-1.1.5.tar.gz'
+                            self.TIPC_CONFIG_VERSION = 'tipcutils-1.1.9.tar.gz'
                             dep.pkg_name =  self.TIPC_CONFIG_VERSION
-                        
-                        self.installQueue.append(dep)
+                            self.feedback('Update new tipc library')
+                            if self.INTERNET == False :
+                                syscall('cp -f %s/%s/tipc_config.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
+                                syscall('cp -f %s/%s/tipc.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
+                                syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
+                            self.installQueue.append(dep)
                         continue
 
                     
@@ -630,9 +659,7 @@ class ASPInstaller:
                 
                 # attempt to create each of these dirs
                 self.create_dir(DIR)
-
-                
-
+            
             if not os.access(self.INSTALL_DIR, os.W_OK):
                 self.feedback(ERROR_WPERMISSIONS % self.INSTALL_DIR)
                 self.feedback(ERROR_CANT_CONTINUE, True)
@@ -747,7 +774,7 @@ class ASPInstaller:
 
         os.chdir ('%s' % WORKING_ROOT)
         ThirdPartyList = fnmatch.filter(os.listdir(WORKING_ROOT),"%s.*tar" % THIRDPARTY_NAME_STARTS_WITH)
-
+        self.feedback('List %s' %(ThirdPartyList))
         Pkg_Found = 0   # a flag to check for 3rdPartyPkg presence
         max_ver = 0
         if len (ThirdPartyList) == 0:
@@ -771,8 +798,9 @@ class ASPInstaller:
         
         # do they have the third party pkg tarball?
         if not Pkg_Found:
+            if not self.INTERNET:
+                self.feedback('Error: Cannot find \'%s\' in directory \'%s\'\n' % (thirdPartyPkg, WORKING_ROOT),True)
             self.print_install_header()
-            
             self.feedback('Error: Cannot find \'%s\' in directory \'%s\'\n' % (thirdPartyPkg, WORKING_ROOT))
             
             #THIRDPARTYPKG_FTPURL = os.path.join('ftp://ftp.openclovis.com/pub/release/', thirdPartyPkg)        
@@ -893,16 +921,30 @@ class ASPInstaller:
         
         
         else:
-            cmd = 'yum -y install %s 2>&1' % install_str
-            self.debug('Yum Installing: ' + cmd)
-            result = syscall(cmd)            
-            self.debug(str(result))
-            
-            #yum -y update kernel
-            
-            self.feedback('Successfully installed preinstall dependencies.')
-        
-        
+            if self.INTERNET :
+                cmd = 'yum -y install %s 2>&1' % install_str
+                self.debug('Yum Installing: ' + cmd)
+                result = syscall(cmd)            
+                self.debug(str(result))         
+                #yum -y update kernel            
+                self.feedback('Successfully installed preinstall dependencies.')
+            else:
+                os.chdir ('%s' %(os.path.dirname(self.WORKING_DIR)))
+                syscall('tar zxf %s' % PRE_INSTALL_PKG)
+                self.feedback('install preinstall dependencies without internet')
+                os.chdir(self.PRE_INSTALL_PKG)
+		pre_Install_List = fnmatch.filter(os.listdir(self.PRE_INSTALL_PKG),"*.rpm")
+                self.feedback('There are %d items to install' % len(pre_Install_List))
+		for pre_Install in pre_Install_List:
+                    self.feedback('install pkg :  %s' %(pre_Install))
+                    #self.debug('Installing: ' + cmd)
+                    result = syscall('rpm -Uvh --nodeps %s' %(pre_Install))
+                    self.debug(str(result))
+                self.feedback('Successfully installed preinstall dependencies.')
+                os.chdir(self.WORKING_DIR)
+                
+                
+	    	 
         return True                
     
     
@@ -920,37 +962,82 @@ class ASPInstaller:
 
             if not dep.extract_install:
                 os.chdir(self.BUILD_DIR)                                            # move into build dir
-                
                 syscall('tar xfm "%s" %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))    # pull out of pkg
                 syscall('tar zxf %s' % dep.pkg_name)                                    # extract
                 syscall('rm -f %s' % dep.pkg_name)                                      # remove .gz
                 
                 exdir = dep.pkg_name.replace('.tar.gz', '').replace('.tgz', '')
-            
+		
+                self.feedback('move into extracted folder: %s ' % (syscall('pwd')))
+                self.feedback('move into extracted folder: %s ' % (exdir))           
                 os.chdir(exdir)                                                         # move into extracted folder
 
                 # if the dep wants to do configure in a /build/ directory
                 if dep.use_build_dir:
                     self.create_dir('build')                                            # create a build dir
                     os.chdir('build')                                                   # move into build dir
-
-            # For some reason these build commands had to be deferred (they may rely on previously build stuff, or preinstall)
-            if type(dep.build_cmds) == types.FunctionType:
-                dep.build_cmds = dep.build_cmds()
-                
-            # execute commands to build package
-            for cmd in dep.build_cmds:
-                
-                cmd = self.parse_unix_vars(cmd)               
-                cmd = cmd.replace('\n', ' ')
-                
+            if dep.name == 'tipc':
+                #install TIPC online - asume that kernel source was installed
+                self.feedback('***Build and install tipc module***')
+                KERNEL_VERSION = syscall('uname -r')
+                syscall('pwd')
+                KERNEL_SOURCE_DIR = '/usr/src/kernels/%s' % KERNEL_VERSION
+                strin = self.get_user_feedback('Enter the kernel source directory [default: %s]: ' % KERNEL_SOURCE_DIR)
+                if strin :
+                    KERNEL_SOURCE_DIR = self.expand_path(strin)                                    
+                os.chdir('%s' %KERNEL_SOURCE_DIR)                                
+                syscall('cp -rf %s/workspace/tipc-1.7.7/net .'%self.WORKING_DIR)
+                syscall('cp -rf %s/workspace/tipc-1.7.7/include .'%self.WORKING_DIR)
+                syscall('make oldconfig')
+                #with open(".config","a") as myfile:
+                    #myfile.write("CONFIG_TIPC=m\nCONFIG_TIPC_ADVANCED=y\nCONFIG_TIPC_NETID=4711\nCONFIG_TIPC_REMOTE_MNG=y\nCONFIG_TIPC_PORTS=8191\nCONFIG_TIPC_NODES=255\nCONFIG_TIPC_CLUSTERS=8\nCONFIG_TIPC_ZONES=4\nCONFIG_TIPC_REMOTES=8\nCONFIG_TIPC_PUBL=10000\nCONFIG_TIPC_SUBSCR=2000\nCONFIG_TIPC_LOG=0\nCONFIG_TIPC_UNICLUSTER_FRIENDLY=y\nCONFIG_TIPC_MULTIPLE_LINKS=y\nCONFIG_TIPC_CONFIG_SERVICE=y\nCONFIG_TIPC_SOCKET_API=y\n")
+                #myfile.close()
+                syscall('echo "CONFIG_TIPC=m\nCONFIG_TIPC_ADVANCED=y\nCONFIG_TIPC_NETID=4711\nCONFIG_TIPC_REMOTE_MNG=y\nCONFIG_TIPC_PORTS=8191\nCONFIG_TIPC_NODES=255\nCONFIG_TIPC_CLUSTERS=8\nCONFIG_TIPC_ZONES=4\nCONFIG_TIPC_REMOTES=8\nCONFIG_TIPC_PUBL=10000\nCONFIG_TIPC_SUBSCR=2000\nCONFIG_TIPC_LOG=0\nCONFIG_TIPC_UNICLUSTER_FRIENDLY=y\nCONFIG_TIPC_MULTIPLE_LINKS=y\nCONFIG_TIPC_CONFIG_SERVICE=y\nCONFIG_TIPC_SOCKET_API=y\nCONFIG_TIPC_SYSTEM_MSGS=y\nCONFIG_TIPC_DEBUG=y" >> .config')
+                self.feedback('make prepare and init module(might fail which is ok)')
+                #syscall('make prepare')
+                syscall('make modules_prepare 2>&1')
+                syscall('make init 2>&1')
+                self.feedback('make tipc module')
+                syscall('make M=net/tipc modules 2>&1')
+                syscall('make M=net/tipc modules_install 2>&1')
+                syscall('cp -f net/tipc/tipc.ko /lib/modules/`uname -r`/extra/')
+                with open("tipc.conf","w") as myfile:
+                    myfile.write("install tipc insmod /lib/modules/`uname -r`/extra/tipc.ko")
+                syscall('cp -f tipc.conf /etc/modprobe.d/' )
+                syscall('modprobe tipc')
+                syscall('depmod -a -F /boot/System.map-`uname -r` `uname -r`')
+                cmd = '/sbin/modinfo tipc > /dev/null 2>&1;'
                 self.debug('calling cmd: ' + cmd)
-                ret_code = cli_cmd(cmd)
-                if (ret_code != 0):
-                    self.feedback("[FATAL] Got bad retcode (%d) from command '%s'" % (ret_code, cmd), True)
-                self.debug('got ret code: ' + str(ret_code))
+                test_tipc = cli_cmd(cmd)
+                KERNEL=syscall('uname -r')
+                self.feedback('rm /lib/modules/%s/build'%KERNEL)
+                syscall('rm /lib/modules/%s/build'%KERNEL)
+                syscall('ln -s %s /lib/modules/%s/build'%(KERNEL_SOURCE_DIR,KERNEL))
+                if test_tipc == 1 :
+                   self.feedback('Error: cannot install tipc. Please install tipc manually.', True)		   
+                else :
+                   self.feedback('Install tipc successfully.')
+                #syscall('rm -f /usr/include/linux/tipc*.h')
+                syscall('cp -f %s/workspace/tipc-1.7.7/include/linux/tipc.h /usr/include/linux/' %(self.WORKING_DIR))
+                syscall('cp -f %s/workspace/tipc-1.7.7/include/linux/tipc_config.h /usr/include/linux/' %(self.WORKING_DIR))
+            else :
+                # For some reason these build commands had to be deferred (they may rely on previously build stuff, or preinstall)
+                if type(dep.build_cmds) == types.FunctionType:
+                    dep.build_cmds = dep.build_cmds()
+                
+                # execute commands to build package
+                for cmd in dep.build_cmds:
+                
+                    cmd = self.parse_unix_vars(cmd)               
+                    cmd = cmd.replace('\n', ' ')
+                
+                    self.debug('calling cmd: ' + cmd)
+                    ret_code = cli_cmd(cmd)
+                    if (ret_code != 0):
+                        self.feedback("[FATAL] Got bad retcode (%d) from command '%s'" % (ret_code, cmd), True)
+                    self.debug('got ret code: ' + str(ret_code))
     
-            self.feedback('%s %s was installed successfully' % (dep.name, dep.version))
+                self.feedback('%s %s was installed successfully' % (dep.name, dep.version))
 
         # everything installed successfully, finishup
         self.debug('Install phase complete')
@@ -1026,9 +1113,6 @@ class ASPInstaller:
         if self.DO_SYMLINKS:
             self.do_symlinks()
   
-        if self.APT_INSTALL:
-            self.do_apt_install()
-
 
     def install_ASP(self):
         self.feedback('Installing SAFplus...')
@@ -1289,59 +1373,6 @@ class ASPInstaller:
 
         self.feedback('Symbolic links for the  binaries are created in %s\n' % self.DEFAULT_SYM_LINK)
 
-    def do_apt_install(self):
-        self.feedback('Packaging source changes debian package...')
-        self.APT_INSTALL_DIR  = self.INSTALL_DIR + '/apt_install'
-        self.APT_DEB_DIR  = 'safplus-dev-' + self.ASP_VERSION
-        self.INC_ROOT = os.path.join(self.PACKAGE_ROOT, 'include')
-        self.SRC_ROOT = os.path.join(self.PACKAGE_ROOT, 'src')
-        self.TAR_ROOT = os.path.join(self.PACKAGE_ROOT, 'target')
-
-        cmds = []
-
-        cmds.append('rm -rf %s' % self.APT_INSTALL_DIR)
-        cmds.append('mkdir -p %s' % self.APT_INSTALL_DIR)
-        cmds.append('cp %s/Makefile_apt %s' % (self.WORKING_DIR, self.APT_INSTALL_DIR))
-        cmds.append('cp %s/Postinst_apt %s' % (self.WORKING_DIR, self.APT_INSTALL_DIR))
-        cmds.append('cp %s/Postrm_apt %s' % (self.WORKING_DIR, self.APT_INSTALL_DIR))
-        cmds.append('cp %s/Control_apt %s' % (self.WORKING_DIR, self.APT_INSTALL_DIR))
-
-        cmds.append('mkdir -p %s/%s' % (self.APT_INSTALL_DIR, self.APT_DEB_DIR))
-        cmds.append('cd %s/%s' % (self.APT_INSTALL_DIR, self.APT_DEB_DIR))
-
-        #cmds.append('cp -rf %s .' % self.BUILDTOOLS)
-        #cmds.append('tar -czf buildtools.tar.gz buildtools')
-        #cmds.append('rm -rf buildtools')
-        cmds.append('cp -rf %s .' % self.PACKAGE_ROOT)
-        cmds.append('cd %s' % self.PACKAGE_NAME)
-        cmds.append('rm -rf prebuild')
-
-        cmds.append('cd src')
-        cmds.append('rm -rf src/SAFplus/3rdparty')
-        cmds.append('rm -rf src/SAFplus/components')
-        cmds.append('rm -rf src/SAFplus/scripts')
-
-        cmds.append('cd ../../')
-        cmds.append('tar -czf %s.tar.gz %s' % (self.PACKAGE_NAME, self.PACKAGE_NAME))
-        cmds.append('rm -rf %s' % self.PACKAGE_NAME)
-
-        cmds.append('mv ../Makefile_apt Makefile')
-        cmds.append('cd ..')
-        cmds.append('tar -czf %s.tar.gz %s' % (self.APT_DEB_DIR,  self.APT_DEB_DIR))
-        cmds.append('cd %s' % self.APT_DEB_DIR)
-        cmds.append('dh_make -c gpl -s -e nguyen.hoang@openclovis.com -f ../%s.tar.gz' % self.APT_DEB_DIR)
-        cmds.append('rm debian/*.ex debian/*.EX')
-        cmds.append('mv ../Postinst_apt debian/postinst')
-        cmds.append('mv ../Postrm_apt debian/postrm')
-        cmds.append('mv ../Control_apt debian/control')
-        cmds.append('sed -i -e \'s/unstable/lucid/g\' debian/changelog')
-        cmds.append('sed -i -e \'s/unknown/devel/g\' debian/control')
-        cmds.append('debuild -kC4E67FA1 -S')
-        cmds.append('pbuilder build ../*.dsc')
-        cmds.append('cd ..')
-        cmds.append('rm -rf %s' % self.APT_DEB_DIR)
-
-        self.run_command_list(cmds)
 
     def read_file(self, filepath):
         """ returns a list of the contents of filepath
@@ -1632,6 +1663,7 @@ class ASPInstaller:
                 return int(x) < int(y)
         
         return False
+
 
 
 def main():
