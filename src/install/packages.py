@@ -54,7 +54,7 @@ class OS:
         if not os.path.exists(tipcHdrFile):
           assert 0, "Did not find the TIPC header in your kernel's header files located at %s.  You must find your kernel's TIPC headers and install them (or install TIPC from source)." % tipcHdrFile
         EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % syscall('uname -r')
-        return [EXPORT + ' && make','mkdir -p $PREFIX/bin', 'cp tipc-config $PREFIX/bin']
+        return [EXPORT,'make','mkdir -p $PREFIX/bin','cp tipc-config/tipc-config $PREFIX/bin']
 
     def openHpiSubagentBuildCmds(self,EXPORT,log):
         squelchWarn = ""
@@ -235,8 +235,8 @@ class OS:
         
         TIPC = objects.BuildDep()
         TIPC.name           = 'tipc'
-        TIPC.version        = '1.5.12'
-        TIPC.pkg_name       = 'tipc-1.5.12.tar.gz'
+        TIPC.version        = '1.7.7'
+        TIPC.pkg_name       = 'tipc-1.7.7.tar.gz'
         
         log = self.log_string_for_dep(TIPC.name)
         
@@ -265,8 +265,8 @@ class OS:
         
         TIPC_CONFIG = objects.BuildDep()
         TIPC_CONFIG.name           = 'tipc-config'
-        TIPC_CONFIG.version        = '1.1.5'
-        TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.5.tar.gz' #default name, can change
+        TIPC_CONFIG.version        = '1.1.9'
+        TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
         
         log = self.log_string_for_dep(TIPC_CONFIG.name)
         
@@ -422,8 +422,8 @@ class OS:
         
         
         # this list defines the order of installation
-      
         self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
+        #self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]        
     
     
     def load_install_specific_deps(self):
@@ -597,6 +597,22 @@ class CentOS5(OS):
                  'sqlite', 
                  'sqlite-devel',
                  'zlib-devel']
+            
+            
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
+
+# ------------------------------------------------------------------------------
+class CentOS6(OS):
+    
+    def post_init(self):
+        self.name = 'CentOS 6'
+        self.yum = True
+    
+    def load_preinstall_deps(self):
+        deps =  ['pkgconfig','libtool','libtool-libs','gcc','gcc-c++','gettext','kernel-devel','kernel-headers','perl-devel','db4','db4-devel','db4-utils','e2fsprogs','e2fsprogs-devel','gdbm','gdbm-devel','sqlite','sqlite-devel','make','libuuid-devel','ncurses-devel','zlib-devel']
             
             
         for name in deps:
@@ -785,6 +801,7 @@ def determine_os():
             if 'centos' in fdata:
                 if 'release 4' in fdata: return CentOS4()
                 if 'release 5' in fdata: return CentOS5()
+                if 'release 6' in fdata: return CentOS6()
             else: 
                 # must be redhat
                 if 'release 4' in fdata: return RedHat4()
