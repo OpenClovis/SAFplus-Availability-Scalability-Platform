@@ -371,8 +371,7 @@ class ASPInstaller:
                     self.debug('calling cmd: ' + cmd)
                     ret_code = cli_cmd(cmd)
                     
-                    if ret_code == 1:
-                        # self.feedback('retcode = %s' %ret_code)
+                    if ret_code == 1:                        
                         
                         #wrong cmd
                         #if int(syscall('uname -r').split('.')[2]) < 15:
@@ -396,13 +395,14 @@ class ASPInstaller:
                                     self.feedback('Install tipc successfully.')                         
                                 syscall('cp -f %s/%s/tipc_config.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
                                 syscall('cp -f %s/%s/tipc.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
-                                syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
+                                os.chdir(self.WORKING_DIR)
+                                syscall('rm -rf %s/'%(self.PRE_INSTALL_PKG))
                             else :
                                 dep.installedver = 'None'
                                 self.installQueue.append(dep)                        
                     else: #ret_code == 0
                         #assert ret_code == 0
-                        # self.feedback('retcode = %s' %ret_code)
+                        self.feedback('retcode = %s' %ret_code)
                         self.NEED_TIPC_CONFIG = True                     
                         dep.installedver = syscall('/sbin/modinfo tipc | grep \'^version\' | tr -s " " | cut -d\  -f 2') # fixme, does this work
 
@@ -436,11 +436,6 @@ class ASPInstaller:
                             self.TIPC_CONFIG_VERSION = 'tipcutils-1.1.9.tar.gz'
                             dep.pkg_name =  self.TIPC_CONFIG_VERSION
                             self.feedback('Update new tipc library')
-                            if self.INTERNET == False :
-                                syscall('cp -f %s/%s/tipc_config.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
-                                syscall('cp -f %s/%s/tipc.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
-                                syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
-                            self.installQueue.append(dep)
                         continue
 
                     
@@ -993,11 +988,9 @@ class ASPInstaller:
                     #myfile.write("CONFIG_TIPC=m\nCONFIG_TIPC_ADVANCED=y\nCONFIG_TIPC_NETID=4711\nCONFIG_TIPC_REMOTE_MNG=y\nCONFIG_TIPC_PORTS=8191\nCONFIG_TIPC_NODES=255\nCONFIG_TIPC_CLUSTERS=8\nCONFIG_TIPC_ZONES=4\nCONFIG_TIPC_REMOTES=8\nCONFIG_TIPC_PUBL=10000\nCONFIG_TIPC_SUBSCR=2000\nCONFIG_TIPC_LOG=0\nCONFIG_TIPC_UNICLUSTER_FRIENDLY=y\nCONFIG_TIPC_MULTIPLE_LINKS=y\nCONFIG_TIPC_CONFIG_SERVICE=y\nCONFIG_TIPC_SOCKET_API=y\n")
                 #myfile.close()
                 syscall('echo "CONFIG_TIPC=m\nCONFIG_TIPC_ADVANCED=y\nCONFIG_TIPC_NETID=4711\nCONFIG_TIPC_REMOTE_MNG=y\nCONFIG_TIPC_PORTS=8191\nCONFIG_TIPC_NODES=255\nCONFIG_TIPC_CLUSTERS=8\nCONFIG_TIPC_ZONES=4\nCONFIG_TIPC_REMOTES=8\nCONFIG_TIPC_PUBL=10000\nCONFIG_TIPC_SUBSCR=2000\nCONFIG_TIPC_LOG=0\nCONFIG_TIPC_UNICLUSTER_FRIENDLY=y\nCONFIG_TIPC_MULTIPLE_LINKS=y\nCONFIG_TIPC_CONFIG_SERVICE=y\nCONFIG_TIPC_SOCKET_API=y\nCONFIG_TIPC_SYSTEM_MSGS=y\nCONFIG_TIPC_DEBUG=y" >> .config')
-                self.feedback('make prepare and init module(might fail which is ok)')
                 #syscall('make prepare')
                 syscall('make modules_prepare 2>&1')
                 syscall('make init 2>&1')
-                self.feedback('make tipc module')
                 syscall('make M=net/tipc modules 2>&1')
                 syscall('make M=net/tipc modules_install 2>&1')
                 syscall('cp -f net/tipc/tipc.ko /lib/modules/`uname -r`/extra/')
