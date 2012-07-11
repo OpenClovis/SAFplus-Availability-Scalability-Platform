@@ -1268,6 +1268,9 @@ clLogReadLink(ClCharT   *softFileName,
               ClCharT   *newFileName, 
               ClInt32T  *pFileNameLength)
 {
+    ClCharT path[CL_MAX_NAME_LENGTH] = {0};
+    ClUint32T dirPortion = 0;
+    ClCharT actualFileName[CL_MAX_NAME_LENGTH] = {0};
     CL_LOG_DEBUG_TRACE(("fileName: %s fileNameLen : %d \n", softFileName, 
                         *pFileNameLength));
     if( (*pFileNameLength = readlink(softFileName, newFileName,
@@ -1277,6 +1280,31 @@ clLogReadLink(ClCharT   *softFileName,
         CL_LOG_DEBUG_ERROR(("readlink"));
         return CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
     }   
+
+    /*
+     * If soft link is absolute path and actual file is relative path,
+     * convert actual file to absolute path by reading soft link path
+     */
+    if (newFileName[0] != '/' && softFileName[0] == '/')
+    {
+        dirPortion = strrchr(softFileName, '/') - softFileName;
+
+        // get path name for symlink file
+        strncpy(path, softFileName, dirPortion);
+
+        /*
+         * Get full path for linked file
+         */
+        snprintf(actualFileName, CL_MAX_NAME_LENGTH, "%s/%s", path, newFileName);
+
+        /*
+         *
+         */
+        *pFileNameLength = strlen(actualFileName);
+        newFileName = clHeapRealloc(newFileName, *pFileNameLength+1);
+        newFileName[0] = '\0';
+        strncat(newFileName, actualFileName, *pFileNameLength);
+    }
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return CL_OK;
