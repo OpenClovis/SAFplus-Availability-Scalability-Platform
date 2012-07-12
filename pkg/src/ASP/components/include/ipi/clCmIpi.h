@@ -102,6 +102,7 @@ extern ClRcT clCpmHotSwapEventHandle(ClCmCpmMsgT *pCmCpmMsg);
 
 /* CM IPI */
 extern ClRcT clCmCpmResponseHandle(ClCpmCmMsgT * pClCpmCmMsg);
+
 #ifdef __cplusplus
 }
 #endif

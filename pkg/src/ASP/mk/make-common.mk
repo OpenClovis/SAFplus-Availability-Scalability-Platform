@@ -771,8 +771,6 @@ endif
 
 ALL_STATIC_LIB_NAMES = $(strip $(ALL_STATIC_LIB_NAMES_1))
 ALL_SHARED_LIB_NAMES = $(strip $(ALL_SHARED_LIB_NAMES_1))
-
-
 STATIC_LIB_NAMES_WITH_PATH := $(addsuffix .a,$(addprefix $(LIB_DIR)/,$(ALL_STATIC_LIB_NAMES)))
 SHARED_LIB_NAMES_WITH_PATH := $(addsuffix .so,$(addprefix $(LIB_DIR)/,$(ALL_SHARED_LIB_NAMES)))
 SHARED_LIB_NAMES_WITH_PATH_VER := $(addsuffix .$(ASP_VERSION), $(addsuffix .so,$(addprefix $(LIB_DIR)/$(SHARED_DIR)/,$(ALL_SHARED_LIB_NAMES))))
@@ -785,18 +783,35 @@ ALL_LIB_NAMES+=$(SHARED_LIB_NAMES)
 ifeq ($(words $(ALL_LIB_NAMES)),1)
  ifneq ($(words $(ALL_STATIC_LIB_NAMES)),0)
   ifeq ($(words $(SRC_FILES_$(ALL_STATIC_LIB_NAMES))),0)
-   SRC_FILES_$(ALL_STATIC_LIB_NAMES):=$(SRC_FILES)
+    SRC_FILES_$(ALL_STATIC_LIB_NAMES):=$(SRC_FILES)
+    ifeq ($(strip $(OBJ_FILES_$(ALL_STATIC_LIB_NAMES))),)
+      OBJ_FILES_$(ALL_STATIC_LIB_NAMES) := $(OBJ_FILES)
+    endif
   endif
  endif
  ifneq ($(words $(ALL_SHARED_LIB_NAMES)),0)
   ifeq ($(words $(SRC_FILES_$(ALL_SHARED_LIB_NAMES))),0)
-   SRC_FILES_$(ALL_SHARED_LIB_NAMES):=$(SRC_FILES)
+    SRC_FILES_$(ALL_SHARED_LIB_NAMES):=$(SRC_FILES)
+    ifeq ($(strip $(OBJ_FILES_$(ALL_SHARED_LIB_NAMES))),)
+      OBJ_FILES_$(ALL_SHARED_LIB_NAMES):= $(OBJ_FILES)
+    endif
   endif
  endif
 endif
 
 $(shell mkdir -p $(INC_DIR))
 $(shell $(ECHO) -e '\043 Generated make include file\056 do not modify' > $(INC_DIR)/libs.mk)
+ifneq ($(strip $(ALL_OBJ_FILES)),) 
+ $(foreach lib, $(ALL_STATIC_LIB_NAMES), \
+   $(shell $(ECHO) "$(LIB_DIR)/$(lib).a: $(OBJ_FILES_$(lib))" >> $(INC_DIR)/libs.mk\
+		   && $(ECHO) -e  '\t$$(call cmd,ar)' >> $(INC_DIR)/libs.mk))
+ $(foreach lib, $(ALL_SHARED_LIB_NAMES), \
+   $(shell $(ECHO) "$(LIB_DIR)/$(lib).so: $(LIB_DIR)/$(SHARED_DIR)/$(lib).so.$(ASP_VERSION)" >> $(INC_DIR)/libs.mk\
+    && $(ECHO) -e '\t$$(call cmd,ln) $(SHARED_DIR)/$(lib).so.$(ASP_VERSION) $(LIB_DIR)/$(lib).so\n' >> $(INC_DIR)/libs.mk\
+	&& $(ECHO) "$(LIB_DIR)/$(SHARED_DIR)/$(lib).so.$(ASP_VERSION): $(OBJ_FILES_$(lib))" >> $(INC_DIR)/libs.mk\
+	&& $(ECHO) -e  '\t$$(call cmd,link_shared)' >> $(INC_DIR)/libs.mk\
+  ))
+else
 $(foreach lib,$(ALL_STATIC_LIB_NAMES), \
    $(shell $(ECHO) "$(LIB_DIR)/$(lib).a: $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(notdir $(SRC_FILES_$(lib):.c=.o))))" >> $(INC_DIR)/libs.mk\
    && $(ECHO) -e  '\t$$(call cmd,ar)' >> $(INC_DIR)/libs.mk))
@@ -806,6 +821,7 @@ $(foreach lib,$(ALL_SHARED_LIB_NAMES), \
         && $(ECHO) "$(LIB_DIR)/$(SHARED_DIR)/$(lib).so.$(ASP_VERSION): $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(notdir $(SRC_FILES_$(lib):.c=.o))))" >> $(INC_DIR)/libs.mk\
         && $(ECHO) -e  '\t$$(call cmd,link_shared)' >> $(INC_DIR)/libs.mk\
         ))
+endif
 include $(INC_DIR)/libs.mk
 $(LIB_DIR)/$(SHARED_DIR):
 	$(call cmd,mkdir)

@@ -40,9 +40,16 @@
  *******************************************************************************/
 #include <clAlarmDefinitions.h>
 #include <clOmApi.h>
+#include <clPMApi.h>
 
 ClAlarmComponentResAlarmsT *appAlarms CL_WEAK;
 
 ClOmClassControlBlockT *pAppOmClassTbl CL_WEAK;
 
 ClUint32T appOmClassCnt CL_WEAK;
+
+CL_WEAK ClPMCallbacksT gClPMCallbacks =
+{
+    NULL,
+    NULL
+};

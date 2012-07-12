@@ -42,17 +42,13 @@
    than us. */
 ClRcT clCmLibInitialize(void)
 {
-    /* empty function to satisfy linker, but this should never get
-       called. */
-    assert(CL_FALSE);
+    /* empty function to satisfy linker, this will get called if the chassis mgr does not exist. */
     return CL_OK;
 }
 
 ClRcT clCmLibFinalize(void)
 {
-    /* empty function to satisfy linker, but this should never get
-       called. */
-    assert(CL_FALSE);
+    /* empty function to satisfy linker, this will get called if the chassis mgr does not exist. */
     return CL_OK;
 }
 

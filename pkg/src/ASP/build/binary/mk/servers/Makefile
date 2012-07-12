@@ -38,7 +38,7 @@ DEP_LIBS	:= -lClTimer -lClBuffer -lClOsal -lClIoc -lClUtils -lClEo -lClMain\
 -lClCorClient -lClAmfClient -lClAmsMgmt -lClAmsXdr -lClDebugClient -lClFaultClient \
 -lClEventClient -lClDbal -lClGms -lClCkpt -lClMedClient -lClNameClient \
 -lClUtils -lClIdlPtr -lClAlarmClient -lClAlarmUtils -lClAlarmXdr -lClOmClient \
--lClMsgClient -l3rdpartyutils
+-l3rdpartyutils
 
 LD_LIBS		:= -L$(MODEL_LIB) -lClConfig -L$(ASP_LIBDIR) $(DEP_LIBS) 
 
@@ -85,6 +85,9 @@ $(MODEL_BIN)/asp_amf $(MODEL_BIN)/asp_logd $(MODEL_BIN)/asp_msg
 
 ifeq ($(CM_BUILD), 1)
         ASP_SERVERS += $(MODEL_BIN)/asp_cm
+        CM_LIB := -lClCm
+else
+        CM_LIB :=
 endif
 
 all: $(ASP_SERVERS)
@@ -114,7 +117,7 @@ $(MODEL_BIN)/asp_amf: $(MODEL_LIB)/libClConfig.a
 	  	-lClAmsXdr -lClAmsParser -lClAmsMgmt -lClAmsServer -lClamfServer  \
 	  	-lClEo -lClTimer -lClBuffer -lClOsal -lClCnt -lClIoc -lClRmd -lClDbal       \
 	  	-lClUtils -lClEventClient -lClDebugClient -lClNameClient -lClIdl -lClIdlPtr \
-	  	-lClCkpt -lClLogClient -lClFaultClient -lClGms -lClCm -lClGroundClient -lClGround -Wl,--end-group
+	  	-lClCkpt -lClLogClient -lClFaultClient -lClGms $(CM_LIB) -lClGroundClient -lClGround -Wl,--end-group
 
 $(MODEL_BIN)/asp_debug: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lCldebugServer -lClGroundClient -lClGround -Wl,--end-group
@@ -137,7 +140,7 @@ $(MODEL_BIN)/asp_msg: $(MODEL_LIB)/libClConfig.a
 
 $(MODEL_BIN)/asp_cm: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@  -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDLIBS) -lglib-2.0 -lgthread-2.0 -lltdl  \
-	-lClcmServer -lClCm -lClGroundClient -lClGround -Wl,--end-group
+	-lClcmServer $(CM_LIB) -lClGroundClient -lClGround -Wl,--end-group
 
 clean:
 	rm -rf $(MODEL_BIN)/asp_alarm \

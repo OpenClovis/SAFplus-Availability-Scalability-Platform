@@ -37,66 +37,131 @@
 #
 #
 ################################################################################
+include $(CLOVIS_ROOT)/ASP/mk/preface.mk
 
 # Component name (using all lowercase):
 
 COMPNAME	:= mw 
 
+LIB_NAMES := libmw
+
+RANLIB := ranlib
+
+DEP_COMP_CM :=
+
 # List local source files needed for the component server:
 
-SRC_FILES	:= 
+BASE_OBJ_DIR := $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/obj
+
+CM_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ground/client/clGroundCm.o
+
+ifneq ($(strip $(CL_CM)),)
+    DEP_COMP_CM = cm/client
+    CM_CONFLICT_RESOLVE_OBJS :=
+endif
+
+ALL_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ckpt/client/clIdlOpen.o \
+	$(BASE_OBJ_DIR)/components/msg/client/xdrClIocPhysicalAddressTMarshall.o \
+	$(BASE_OBJ_DIR)/components/msg/client/xdrClIocPhysicalAddressTUnMarshall.o \
+	$(BASE_OBJ_DIR)/components/cor/client/xdrClCorMOHandleTMarshall.o \
+	$(BASE_OBJ_DIR)/components/cor/client/xdrClCorMOHandleTUnMarshall.o \
+	$(BASE_OBJ_DIR)/components/cor/client/xdrClCorMOIdTMarshall.o \
+	$(BASE_OBJ_DIR)/components/cor/client/xdrClCorMOIdTUnMarshall.o \
+	$(BASE_OBJ_DIR)/components/amf/client/cpm/xdrClIocAddressIDLTMarshall.o \
+	$(BASE_OBJ_DIR)/components/amf/client/cpm/xdrClIocAddressIDLTUnMarshall.o \
+	$(BASE_OBJ_DIR)/components/amf/client/cpm/xdrClIocLogicalAddressIDLTMarshall.o \
+	$(BASE_OBJ_DIR)/components/amf/client/cpm/xdrClIocLogicalAddressIDLTUnMarshall.o \
+	$(BASE_OBJ_DIR)/components/amf/client/cpm/xdrDWordMarshall.o \
+	$(BASE_OBJ_DIR)/components/amf/client/cpm/xdrDWordUnMarshall.o \
+	$(BASE_OBJ_DIR)/components/idl/common/xdrClGenericPtr.o \
+	$(BASE_OBJ_DIR)/components/ground/client/clGroundOMAlarmStruct.o \
+	$(BASE_OBJ_DIR)/components/ground/client/clGroundTrace.o \
+	$(BASE_OBJ_DIR)/components/ground/client/clGroundProvTxnStruct.o \
+	$(BASE_OBJ_DIR)/components/ground/client/clGroundCustom.o \
+	$(CM_CONFLICT_RESOLVE_OBJS)
 
 # List other ASP components of which client libraries your component
 # depends on:
 
-DEP_COMP_LIST	:= ground \
-             cnt    \
-             buffer \
-             osal   \
-             timer  \
-             utils  \
-             ioc    \
-             rmd    \
-             idl    \
-             dbal   \
-             eo     \
-             debug  \
-             amf    \
-             alarm  \
-             event  \
-             ckpt   \
-             name   \
-             om     \
-             cor    \
-             fault  \
-             sm     \
-             txn    \
-			 med	\
-			 mso    \
-			 prov 	\
-			 hal 	\
-			 gms	\
-			 log    \
-			 msg    \
-			 pm     \
-             ntf
+DEP_COMP_LIST	:=  \
+             cnt/client    \
+             buffer/client \
+             osal/client   \
+             timer/client  \
+             utils/client  \
+             ioc/client    \
+             rmd/client    \
+             idl/client idl/common    \
+             dbal/client   \
+             eo/client    \
+             debug/client  \
+             amf/client    \
+             alarm/client alarm/utils alarm/common/idl/xdr  \
+             event/client  \
+             ckpt/client ckpt/test/src   \
+             name/client   \
+             om/client     \
+             cor/client    \
+             fault/client  \
+             sm/client     \
+             txn/client    \
+			 med/client	\
+			 mso/client    \
+			 prov/client 	\
+			 hal/client 	\
+			 gms/client gms/server	\
+			 log/client    \
+			 msg/client    \
+			 pm/client     \
+             ntf/client \
+			$(DEP_COMP_CM)	\
+			amf/client/cpm amf/client/ams amf/common/ams/idl/xdr amf/test/src \
 
-ALL_ASP_LIBS    :=         -lClTimer -lClBuffer -lClOsal -lClIoc -lClUtils -lClEo -lClMsoClient -lClProv \
+THIRD_PARTY_LIST := ../3rdparty/utils ../3rdparty/ezxml/ezxml-0.8.6 ../3rdparty/openais/openais-0.80.3/exec
+
+COMP_LIST := $(DEP_COMP_LIST) $(THIRD_PARTY_LIST)
+
+ALL_ASP_LIBS    := -lClTimer -lClBuffer -lClOsal -lClIoc -lClUtils -lClEo -lClMsoClient -lClProv \
 			   -lClLogClient -lClTxnClient -lClTxnAgent -lClSm -lClCnt -lClIdl -lClRmd \
 			   -lClCorClient -lClAmfClient -lClAmsMgmt -lClAmsXdr -lClDebugClient -lClFaultClient \
-				   -lClEventClient -lClDbal -lClGms -lClCm -lClCkpt -lClMedClient -lClNameClient \
+				   -lClEventClient -lClDbal -lClGms $(CL_CM) -lClCkpt -lClMedClient -lClNameClient \
 			   -lClUtils -lClIdlPtr -lClAlarmClient -lClAlarmUtils -lClAlarmXdr -lClOmClient -lClMsgClient \
 			   -lClPMClient -lClNtf -l3rdpartyutils -lClGroundClient 
 
-ifdef SOLARIS_BUILD
-EXTRA_LDLIBS    += -L$(ASP_LIB)  $(ALL_ASP_LIBS) 
-else
-EXTRA_LDLIBS	+= -L$(ASP_LIB) -Wl,--start-group $(ALL_ASP_LIBS) -Wl,--end-group 
-endif
+ALL_OBJS :=
+
+ALL_FILTER_OBJS :=
+
+define OBJ_LIST
+	ALL_OBJS += $(wildcard $(1)/*.o)
+	ALL_FILTER_OBJS += $(filter $(1)/asp_build.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/clIdlOpen.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrClIocPhysicalAddressTMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrClIocPhysicalAddressTUnMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrClCorMOHandleTMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrClCorMOHandleTUnMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrClCorMOIdTMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrClCorMOIdTUnMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrClIocAddressIDLTMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrClIocAddressIDLTUnMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrClIocLogicalAddressIDLTMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrClIocLogicalAddressIDLTUnMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrDWordMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrDWordUnMarshall.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/xdrClGenericPtr.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/clGmsCli.o, $(wildcard $(1)/*.o))
+	ALL_FILTER_OBJS += $(filter $(1)/clGmsEo.o, $(wildcard $(1)/*.o))
+endef
+
+obj_files := $(foreach objdir, $(addprefix $(BASE_OBJ_DIR)/components/, $(COMP_LIST)), $(eval $(call OBJ_LIST, $(objdir))))
+
+OBJ_FILES := $(filter-out $(ALL_FILTER_OBJS), $(sort $(ALL_OBJS)))
+
+OBJ_FILES +=  $(ALL_CONFLICT_RESOLVE_OBJS)
+
+ALL_OBJ_FILES := $(OBJ_FILES)
 
 # Library name:
-
-LIB_NAMES	= libmw
 
 # If there are more than one client libraries to be built here, you
 # need to list the object files that will make up each library:

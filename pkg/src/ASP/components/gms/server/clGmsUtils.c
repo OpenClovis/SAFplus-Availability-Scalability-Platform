@@ -103,7 +103,7 @@ _clGmsCliPrintExtended(ClCharT **retstr, ClInt32T *maxBytes, ClInt32T *curBytes,
    default algorithm is used for that group . Default algorithm is documented
    in the clGmsEngine.c File. 
  */
-extern void *pluginHandle;
+void *pluginHandle;
 #ifndef VXWORKS_BUILD 
 void 
 _clGmsLoadUserAlgorithm(const ClUint32T groupid , 

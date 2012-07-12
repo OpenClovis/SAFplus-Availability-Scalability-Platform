@@ -866,7 +866,10 @@ ClRcT _cpmNodeDepartureAllowed(ClNameT *nodeName,
             &&
             (cmRequest.cmCpmMsgType != CL_CM_BLADE_NODE_ERROR_CLEAR))
         {
+#ifndef CL_USE_CHASSIS_MANAGER
+#else
             rc = clCmCpmResponseHandle(&cpmResponse);
+#endif
             if (CL_OK != rc)
             {
                 clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,

@@ -61,7 +61,7 @@
 #include <clGmsServerFuncTable.h>
 
 ClHandleT  gGmsDebugReg = CL_HANDLE_INVALID_VALUE;
-void *pluginHandle = NULL;
+
 /*
    clGmsServerTerminate
    --------------------

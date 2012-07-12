@@ -174,7 +174,7 @@ endif
 # Building the linker flags
 MODEL_CONFIG_LIBRARY := libClConfig.a
 
-ASP_AMF_LIBS := libClAmfClient.a libClAmsMgmt.a libClAmsXdr.a
+ASP_AMF_LIBS := libClAmfClient.a libClAmsMgmt.a libClAmsXdr.a libClGms.a
 
 # Figure out if we are using the libmw (everything) shared library or not
 ifneq (,$(findstring libmw.a,$(ASP_LIBS)))
@@ -300,7 +300,7 @@ endif
 .PHONY: exe
 all: libs $(SUBDIRS) depend exe
 
-exe: $(OBJ_DIR) $(BIN_DIR)/$(EXE_NAME)
+exe: $(OBJ_DIR) $(BIN_DIR)/$(EXE_NAME) $(LIB_DIR)/$(PLUGIN_NAME)
 
 deploy:exe
 
@@ -311,9 +311,19 @@ all_libs        := $(filter -l%,$(LDLIBS))
 
 vpath %.a $(all_lib_paths)
 vpath %.so $(all_lib_paths)
+ifdef EXE_NAME
 $(BIN_DIR)/$(EXE_NAME): $(obj_files) $(ASP_LIBS) $(MODEL_LIB)/$(MODEL_CONFIG_LIBRARY) $(filter %.a,$(EXTRA_LDLIBS)) $(filter %.so,$(EXTRA_LDLIBS)) $(BUILD_ROOT)/clasp.env
 	$(call cmd,link,$(obj_files))
 	$(shell mkdir -p $(BIN_DIR))
+endif
+
+ifdef PLUGIN_NAME
+$(LIB_DIR)/$(PLUGIN_NAME): $(obj_files) $(ASP_LIBS) $(MODEL_LIB)/$(MODEL_CONFIG_LIBRARY) $(filter %.a,$(EXTRA_LDLIBS)) $(filter %.so,$(EXTRA_LDLIBS))
+	$(shell mkdir -p $(LIB_DIR))
+	$(call cmd,link_shared,$(obj_files))
+
+endif
+
 
 .PHONY: clean depend libs
 CLEAN_FILES     = $(OBJ_DIR) $(DEP_DIR) ./*.bb ./*.bbg ./*.da ./*.gcov ./*.so

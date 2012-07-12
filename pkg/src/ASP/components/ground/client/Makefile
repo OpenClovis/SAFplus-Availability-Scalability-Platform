@@ -48,7 +48,7 @@ SRC_FILES	:= clGroundAlarm.c clGroundBuffer.c clGroundCli.c clGroundCm.c \
 		   clGroundHal.c clGroundHpi.c clGroundIoc.c clGroundLog.c clGroundName.c \
 		   clGroundOm.c clGroundOsal.c clGroundRmd.c clGroundTimer.c clGroundTrace.c \
 		   clGroundTxn.c clGroundDebug.c clGroundOampRt.c clGroundProv.c clGroundMem.c \
-           clGroundOMAlarmStruct.c clGroundProvTxnStruct.c clGroundMso.c clGroundPM.c
+           clGroundOMAlarmStruct.c clGroundProvTxnStruct.c clGroundMso.c clGroundPM.c clGroundCustom.c
 
 # List other ASP components of which client libraries your component
 # depends on:

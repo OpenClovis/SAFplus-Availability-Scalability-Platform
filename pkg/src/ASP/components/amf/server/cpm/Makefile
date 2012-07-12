@@ -29,12 +29,16 @@
 # Description :
 ################################################################################
 
+include $(CLOVIS_ROOT)/ASP/mk/preface.mk
+
 # Component name (using all lowercase):
 COMPNAME	:= amf
 
 SERVER_LIB_NAME := amf
 
 AMF_PATH = $(CLOVIS_ROOT)/ASP/components/amf
+
+CPPFLAGS += $(CM_CFLAGS)
 
 SRC_FILES :=        $(wildcard $(AMF_PATH)/common/cpm/*.c)                                        \
 		    $(wildcard *.c)                                 \
@@ -93,15 +97,14 @@ ASP_LIBS	:=                              \
                 libClAmsMgmt.a        \
                 libClAmsServer.a            \
                 libClGms.a                  \
-                libClCm.a                   \
-                   
+                $(CL_CM)
+
 # List any third party libs needed to get this server built (or None):
 
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
 THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/utils/
 
-THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml \
-			-L$(THIRD_PARTY_UTILS_PATH) -l3rdpartyutils
+THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml -L$(THIRD_PARTY_UTILS_PATH) -l3rdpartyutils
 
 EXTRA_CPPFLAGS  := -I$(THIRD_PARTY_EZXML_PATH) -I$(THIRD_PARTY_UTILS_PATH)
 

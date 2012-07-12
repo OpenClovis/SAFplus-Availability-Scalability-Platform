@@ -29,6 +29,8 @@
 # Description :
 ################################################################################
 
+include $(CLOVIS_ROOT)/ASP/mk/preface.mk
+
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 
@@ -63,22 +65,6 @@ SUBDIRS    = ground \
 			 mso    \
 			 pm     \
              ntf
-
-ifeq ($(SNMP_BUILD),1)
-#	SUBDIRS += snmp
-endif
-
-ifeq ($(CM_BUILD),1)
-	SUBDIRS += cm
-else
-	# Always build client lib for CM because AMF needs it for linking
-	ifeq ($(MAKECMDGOALS),libs)
-		SUBDIRS += cm
-	endif
-	ifeq ($(MAKECMDGOALS),clean)
-		SUBDIRS += cm
-	endif
-endif
 
 SUBDIRS += mw
 

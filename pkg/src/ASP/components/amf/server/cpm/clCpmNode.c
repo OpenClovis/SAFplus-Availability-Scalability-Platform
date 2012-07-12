@@ -1471,7 +1471,10 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
         memcpy(&(cpmResponse.cmCpmMsg), &cmCpmMsg, sizeof(ClCmCpmMsgT));
         cpmResponse.cpmCmMsgType = CL_CPM_ALLOW_USER_ACTION;
         
+#ifndef CL_USE_CHASSIS_MANAGER
+#else
         rc = clCmCpmResponseHandle(&cpmResponse);
+#endif
         if (CL_OK != rc)
         {
             clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,

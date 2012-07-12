@@ -27,7 +27,10 @@
 # load values from our project area config file
 # NOTE that we need to have CLOVIS_ROOT and ASP_MODEL_NAME in our
 # environment
-source ${PROJECT_ROOT}/.config
+if [ -f  ${PROJECT_ROOT}/.config ]; then
+  echo "Sourcing ${PROJECT_ROOT}/.config"
+  source ${PROJECT_ROOT}/.config
+fi
 TARGET_DIR=${PROJECT_ROOT}/target/${ASP_MODEL_NAME}
 NODE_CONF=${TARGET_DIR}/nodes.conf
 TARGET_CONF=${MODEL_PATH}/target.conf
@@ -360,7 +363,7 @@ SCRIPT=${MODEL_SOURCE_DIR}/build/scripts/instantiate.sh
 if [ -f ${SCRIPT} ]
 then
     chmod a+x ${SCRIPT}
-    ${SCRIPT}
+    ${SCRIPT} ${TARGET_DIR}/images/${ARCH}
 fi
 #
 # Now, for each entry in the NODE_INSTANCES array instantiate that
@@ -423,8 +426,12 @@ do
         instantiate ${TARGET_DIR}/images/${ARCH} ${TARGET_DIR}/images/${i}
         asp_conf_file=${TARGET_DIR}/images/${i}/etc/asp.conf
    
-        # copy the targetconf.xml file
-        cp ${TARGET_CONF_XML_FILE} ${TARGET_DIR}/images/${i}/etc/
+        # copy the targetconf.xml file but only if it isn't already hardlinked to the same place
+        if [ ${TARGET_CONF_XML_FILE} -ef ${TARGET_DIR}/images/${i}/etc/targetconf.xml ]; then
+          echo ""
+        else
+          cp ${TARGET_CONF_XML_FILE} ${TARGET_DIR}/images/${i}/etc/
+        fi
  
         # check if this is a local build and if we are not copying tipc files
         if [ -f ${TARGET_DIR}/images/${ARCH}/local_build ]; then
