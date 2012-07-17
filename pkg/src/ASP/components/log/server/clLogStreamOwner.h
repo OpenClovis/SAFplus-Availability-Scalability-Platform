@@ -258,7 +258,8 @@ clLogIdlHandleInitialize(ClIocAddressT mastAddr, ClHandleT *phdl);
 extern ClRcT
 clLogStreamOwnerCompEntryAdd(ClLogStreamOwnerDataT  *pStreamOwnerData,
                              ClIocNodeAddressT      nodeAddr,
-                             ClUint32T              compId);
+                             ClUint32T              compId,
+                             ClLogStreamOpenFlagsT  openFlags);
 extern ClRcT
 clLogStreamOwnerOpenCleanup(ClNameT *pStreamName, ClNameT *pStreamScopeNode, ClLogSOCookieT  *pCookie);
 

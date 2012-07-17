@@ -1658,7 +1658,8 @@ clLogStreamOwnerStreamHdlrEntryAdd(ClLogStreamOwnerDataT     *pStreamOwnerData,
 ClRcT
 clLogStreamOwnerCompEntryAdd(ClLogStreamOwnerDataT  *pStreamOwnerData,
                              ClIocNodeAddressT      nodeAddr,
-                             ClUint32T              compId)
+                             ClUint32T              compId,
+                             ClLogStreamOpenFlagsT  openFlags)
 {
     ClRcT                  rc              = CL_OK;
     ClLogCompKeyT          compKey         = {0};
@@ -1723,7 +1724,9 @@ clLogStreamOwnerCompEntryAdd(ClLogStreamOwnerDataT  *pStreamOwnerData,
     {
         --pData->refCount;
         --pStreamOwnerData->openCnt;
-        if(pStreamOwnerData->nodeStatus == CL_LOG_NODE_STATUS_INIT)
+        if(openFlags == CL_LOG_STREAM_CREATE 
+           && 
+           pStreamOwnerData->nodeStatus == CL_LOG_NODE_STATUS_INIT)
         {
             pStreamOwnerData->nodeStatus = CL_LOG_NODE_STATUS_REINIT;
         }
@@ -2117,7 +2120,7 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
         return rc;
     }    
 
-    rc = clLogStreamOwnerCompEntryAdd(pStreamOwnerData, nodeAddr, *pCompId);
+    rc = clLogStreamOwnerCompEntryAdd(pStreamOwnerData, nodeAddr, *pCompId, openFlags);
     if( CL_OK != rc )
     {
         clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
