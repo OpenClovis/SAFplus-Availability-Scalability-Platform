@@ -65,6 +65,7 @@
 #
 ################################################################################
 
+include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 include $(CLOVIS_ROOT)/SAFplus/mk/make-path.mk
 
 ASP_EXE_PREFIX		:= safplus
@@ -255,6 +256,10 @@ LDLIBS  += -lClGroundClient -lClGround
 else
 LDLIBS  += -lClGroundClient
 endif
+endif
+
+ifeq ($(CM_BUILD),1)
+LDLIBS += $(CL_CM)
 endif
 
 # Add SYS_LIBS if defined and not None
