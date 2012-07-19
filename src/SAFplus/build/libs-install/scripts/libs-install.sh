@@ -57,6 +57,11 @@ echo "done."
 echo -n "Installing ASP libraries to $PREFIX..."
 cp -r $ASP_LIB/* $LIBS_INSTALL_PATH
 cp -r $PROJECT_ROOT/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib/* $LIBS_INSTALL_PATH
+# As libCmServer locate at asp/target, need to copy from there
+# when making asp-install
+if [ "$ASP_MODEL_NAME" == "asp" ]; then
+cp -r $MODEL_LIB/* $LIBS_INSTALL_PATH
+fi
 echo "done."
 
 #
