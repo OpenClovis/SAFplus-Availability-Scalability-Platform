@@ -46,10 +46,6 @@ echo -n "Installing ASP headers to $PREFIX..."
 cd $INCLUDE_PATH
 find $CLOVIS_ROOT/ASP/components -name '*.h' | \
     $AWK '{ str=sprintf("cp %s .", $0); system(str) }'
-
-find $CLOVIS_ROOT/ASP/components -regex '.*\.hxx$' | \
-    $AWK '{ str=sprintf("cp %s .", $0); system(str) }'
-    
 find $CLOVIS_ROOT/ASP/components -name '*.h' | \
     grep ipi | \
     $AWK '{ str=sprintf("cp %s ipi/.", $0); system(str) }'
@@ -61,6 +57,11 @@ echo "done."
 echo -n "Installing ASP libraries to $PREFIX..."
 cp -r $ASP_LIB/* $LIBS_INSTALL_PATH
 cp -r $PROJECT_ROOT/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib/* $LIBS_INSTALL_PATH
+# As libCmServer locate at asp/target, need to copy from there
+# when making asp-install
+if [ "$ASP_MODEL_NAME" == "asp" ]; then
+cp -r $MODEL_LIB/* $LIBS_INSTALL_PATH
+fi
 echo "done."
 
 #
