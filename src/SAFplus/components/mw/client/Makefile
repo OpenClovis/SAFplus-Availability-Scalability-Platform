@@ -47,18 +47,12 @@ LIB_NAMES := libmw
 
 RANLIB := ranlib
 
-DEP_COMP_CM :=
 
 # List local source files needed for the component server:
 
 BASE_OBJ_DIR := $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/obj
 
 CM_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ground/client/clGroundCm.o
-
-ifneq ($(strip $(CL_CM)),)
-    DEP_COMP_CM = cm/client
-    CM_CONFLICT_RESOLVE_OBJS :=
-endif
 
 ALL_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ckpt/client/clIdlOpen.o \
 	$(BASE_OBJ_DIR)/components/msg/client/xdrClIocPhysicalAddressTMarshall.o \
@@ -114,7 +108,7 @@ DEP_COMP_LIST	:=  \
 			 msg/client    \
 			 pm/client     \
              ntf/client \
-			$(DEP_COMP_CM)	\
+			$(CM_COMP_DEP)	\
 			amf/client/cpm amf/client/ams amf/common/ams/idl/xdr amf/test/src \
 
 THIRD_PARTY_LIST := ../3rdparty/utils ../3rdparty/ezxml/ezxml-0.8.6 ../3rdparty/openais/openais-0.80.3/exec
@@ -153,13 +147,15 @@ define OBJ_LIST
 	ALL_FILTER_OBJS += $(filter $(1)/clGmsEo.o, $(wildcard $(1)/*.o))
 endef
 
-obj_files := $(foreach objdir, $(addprefix $(BASE_OBJ_DIR)/components/, $(COMP_LIST)), $(eval $(call OBJ_LIST, $(objdir))))
+obj_files := $(foreach objdir, $(addprefix $(BASE_OBJ_DIR)/components/, $(COMP_LIST)), $(realpath $(eval $(call OBJ_LIST, $(objdir)))))
 
 OBJ_FILES := $(filter-out $(ALL_FILTER_OBJS), $(sort $(ALL_OBJS)))
 
 OBJ_FILES +=  $(ALL_CONFLICT_RESOLVE_OBJS)
 
 ALL_OBJ_FILES := $(OBJ_FILES)
+
+NOVAR := $(shell echo $(OBJ_FILES) > objfiles.txt)
 
 # Library name:
 
