@@ -263,7 +263,8 @@ clLogShmGet(ClCharT   *shmName,
             ClInt32T  *pShmFd);
 
 ClRcT
-clLogStreamShmSegInit(ClCharT                 *pShmName,
+clLogStreamShmSegInit(ClNameT                 *pStreamName,
+                      ClCharT                 *pShmName,
                       ClInt32T                shmFd,
                       ClUint32T               shmSize,
                       ClUint16T               streamId,
@@ -398,7 +399,7 @@ clLogSharedSemGet(const ClCharT *pShmName, const ClCharT *pSuffix, ClOsalSemIdT 
 #endif
 
 ClUint32T
-clLogDefaultStreamSeverityGet(void);
+clLogDefaultStreamSeverityGet(ClNameT *pStreamName);
 
 #ifdef __cplusplus
 }

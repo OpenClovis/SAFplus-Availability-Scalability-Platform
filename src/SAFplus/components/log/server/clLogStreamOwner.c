@@ -948,13 +948,13 @@ clLogStreamOwnerFilterFinalize(ClLogFilterInfoT  *pFilter)
 }
 
 ClRcT
-clLogStreamOwnerFilterInit(ClLogFilterInfoT  *pFilter)
+clLogStreamOwnerFilterInit(ClNameT *pStreamName, ClLogFilterInfoT  *pFilter)
 {
     ClRcT  rc = CL_OK;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    pFilter->severityFilter = clLogDefaultStreamSeverityGet();
+    pFilter->severityFilter = clLogDefaultStreamSeverityGet(pStreamName);
     rc = clBitmapCreate(&pFilter->hMsgIdMap, 0);
     if( CL_OK != rc )
     {
@@ -1028,7 +1028,7 @@ clLogStreamOwnerEntryUpdate(ClLogSOEoDataT          *pSoEoEntry,
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     pStreamOwnerData->streamMcastAddr             = multiCastAddr;
-    pStreamOwnerData->streamFilter.severityFilter = clLogDefaultStreamSeverityGet();
+    pStreamOwnerData->streamFilter.severityFilter = clLogDefaultStreamSeverityGet(pStreamName);
     pStreamOwnerData->streamId                    = streamId;
     pStreamOwnerData->nodeStatus                  = CL_LOG_NODE_STATUS_INIT;
     rc = clLogFilterFormatConvert(&pStreamOwnerData->streamFilter, pFilter);
@@ -1817,7 +1817,7 @@ clLogStreamOwnerEntryAdd(ClCntHandleT       hStreamTable,
         clHeapFree(pStreamOwnerData);
         return rc;
     }    
-    rc = clLogStreamOwnerFilterInit(&pStreamOwnerData->streamFilter);
+    rc = clLogStreamOwnerFilterInit(&pStreamKey->streamName, &pStreamOwnerData->streamFilter);
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clOsalMutexDestroy_L(&pStreamOwnerData->nodeLock), CL_OK);

@@ -263,7 +263,7 @@ extern void
 clLogStreamOwnerFilterFinalize(ClLogFilterInfoT  *pFilter);
 
 extern ClRcT
-clLogStreamOwnerFilterInit(ClLogFilterInfoT  *pFilter);
+clLogStreamOwnerFilterInit(ClNameT *pStreamName, ClLogFilterInfoT  *pFilter);
 
 extern ClRcT
 clLogStreamOwnerDataUpdate(ClLogSOEoDataT         *pSoEoEntry,
