@@ -74,7 +74,8 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
                            ClLogFilterT            *pStreamFilter,
                            ClLogStreamAttrIDLT     *pStreamAttr,
                            ClStringT               *pShmName,
-                           ClUint32T               *pShmSize);
+                           ClUint32T               *pShmSize,
+                           ClNameT                 *pStreamName);
 
 static ClRcT
 clLogSvrShmAndFlusherClose(ClLogSvrStreamDataT    *pSvrStreamData);
@@ -102,7 +103,8 @@ clLogSvrFilterSetClientInformCb(ClCntKeyHandleT   key,
                                ClUint32T         size);
 
 static ClRcT
-clLogSvrStdStreamShmCreate(ClStringT               *pShmName,
+clLogSvrStdStreamShmCreate(ClNameT                 *pStreamName,
+                           ClStringT               *pShmName,
                            ClUint32T               shmSize,
                            ClLogStreamAttrIDLT     *pStreamAttr,
                            ClUint16T               streamId,
@@ -711,7 +713,8 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
                            ClLogFilterT            *pStreamFilter,
                            ClLogStreamAttrIDLT     *pStreamAttr,
                            ClStringT               *pShmName,
-                           ClUint32T               *pShmSize)
+                           ClUint32T               *pShmSize,
+                           ClNameT                 *pStreamName)
 {
     ClRcT                  rc                 = CL_OK;
     ClLogSvrStreamDataT    *pSvrStreamData    = NULL;
@@ -739,9 +742,9 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
     {
         if( CL_LOG_DEFAULT_COMPID != componentId )
         {
-             rc = clLogShmCreateAndFill(pShmName, *pShmSize, *pStreamId,
-                                        componentId, pStreamMcastAddr, pStreamFilter,
-                                        pStreamAttr, &pSvrStreamData->pStreamHeader);
+            rc = clLogShmCreateAndFill(pStreamName, pShmName, *pShmSize, *pStreamId,
+                                       componentId, pStreamMcastAddr, pStreamFilter,
+                                       pStreamAttr, &pSvrStreamData->pStreamHeader);
            if( CL_OK != rc )
            {   
                return rc;
@@ -749,7 +752,7 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
         }
         else
         {
-            rc = clLogSvrStdStreamShmCreate(pShmName, *pShmSize, pStreamAttr,
+            rc = clLogSvrStdStreamShmCreate(pStreamName, pShmName, *pShmSize, pStreamAttr,
                                             *pStreamId, pStreamMcastAddr,
                                             pStreamFilter, &pSvrStreamData->pStreamHeader);
             if( CL_OK != rc )
@@ -2053,7 +2056,8 @@ clLogSvrClientIdlHandleInitialize(ClIocPortT    portId,
 }
 
 ClRcT
-clLogShmCreateAndFill(ClStringT               *pShmName, 
+clLogShmCreateAndFill(ClNameT                 *pStreamName,
+                      ClStringT               *pShmName, 
                       ClUint32T               shmSize, 
                       ClUint16T               streamId,
                       ClUint32T               componentId,
@@ -2087,7 +2091,8 @@ clLogShmCreateAndFill(ClStringT               *pShmName,
         return rc;
     }
 
-    rc = clLogStreamShmSegInit(pShmName->pValue, shmFd, shmSize, streamId,
+    rc = clLogStreamShmSegInit(pStreamName,
+                               pShmName->pValue, shmFd, shmSize, streamId,
                                pStreamMcastAddr, pStreamAttr->recordSize, 
                                pStreamAttr->flushFreq,
                                pStreamAttr->flushInterval, 
@@ -2755,7 +2760,8 @@ clLogSvrStdStreamClose(ClUint32T  tblSize)
 }
 
 static ClRcT
-clLogSvrStdStreamShmCreate(ClStringT               *pShmName,
+clLogSvrStdStreamShmCreate(ClNameT                 *pStreamName,
+                           ClStringT               *pShmName,
                            ClUint32T               shmSize,
                            ClLogStreamAttrIDLT     *pStreamAttr,
                            ClUint16T               streamId,
@@ -2815,7 +2821,8 @@ clLogSvrStdStreamShmCreate(ClStringT               *pShmName,
     }
     else
     {
-        rc = clLogStreamShmSegInit(pShmName->pValue, shmFd, shmSize, streamId, pStreamMcastAddr,
+        rc = clLogStreamShmSegInit(pStreamName, 
+                                   pShmName->pValue, shmFd, shmSize, streamId, pStreamMcastAddr,
                                    pStreamAttr->recordSize, 
                                    pStreamAttr->flushFreq,
                                    pStreamAttr->flushInterval, 
@@ -3187,7 +3194,7 @@ clLogSvrStreamEntryUpdate(ClLogSvrEoDataT         *pSvrEoEntry,
     rc = clLogSvrFlusherCheckNStart(pSvrEoEntry, hSvrStreamNode, 
                                     &streamId, compId, &streamMcastAddr,
                                     pStreamFilter, pStreamAttr, pShmName,
-                                    pShmSize);
+                                    pShmSize, pStreamName);
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clLogSvrShmNameDelete(pShmName), CL_OK);

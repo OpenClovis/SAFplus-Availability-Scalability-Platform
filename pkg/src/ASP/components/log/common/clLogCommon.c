@@ -543,7 +543,8 @@ clLogShmGet(ClCharT   *shmName,
 }
 
 ClRcT
-clLogStreamShmSegInit(ClCharT                 *pShmName,
+clLogStreamShmSegInit(ClNameT                 *pStreamName,
+                      ClCharT                 *pShmName,
                       ClInt32T                shmFd,
                       ClUint32T               shmSize,
                       ClUint16T               streamId,
@@ -652,7 +653,7 @@ clLogStreamShmSegInit(ClCharT                 *pShmName,
     (*ppSegHeader)->flushInterval                       = flushInterval;
     (*ppSegHeader)->streamMcastAddr.iocMulticastAddress = *pStreamMcastAddr;
     (*ppSegHeader)->streamStatus                        = CL_LOG_STREAM_ACTIVE;
-    (*ppSegHeader)->filter.severityFilter  = clLogDefaultStreamSeverityGet();
+    (*ppSegHeader)->filter.severityFilter  = clLogDefaultStreamSeverityGet(pStreamName);
     (*ppSegHeader)->filter.msgIdSetLength  = 0;
     (*ppSegHeader)->filter.compIdSetLength = 0;
     (*ppSegHeader)->maxMsgs                = maxMsgs;
@@ -1541,17 +1542,42 @@ clLogFileIOVwrite(ClLogFilePtrT  fp,
     return rc;
 }
 
-ClUint32T clLogDefaultStreamSeverityGet(void)
+ClUint32T clLogDefaultStreamSeverityGet(ClNameT *pStreamName)
 {
-    static ClUint32T defaultStreamSeverity;
+    static ClUint32T defaultStreamSeverity, customStreamSeverity;
+    const ClCharT *sev = NULL;
     ClLogSeverityT severity = 0;
-    if(!defaultStreamSeverity)
+
+    if(!pStreamName) return CL_LOG_DEFAULT_SEVERITY_FILTER;
+
+    if(!strncmp((const ClCharT*)pStreamName->value, gSystemStreamName,
+                 pStreamName->length) 
+       ||
+       !strncmp((const ClCharT*)pStreamName->value, gAppStreamName,
+                 pStreamName->length)
+       )
     {
-        const ClCharT *sev = NULL;
-        if(!(sev = getenv("CL_LOG_STREAM_SEVERITY")) ) 
-            return CL_LOG_DEFAULT_SEVERITY_FILTER;
-        severity = clLogSeverityGet(sev);
-        defaultStreamSeverity = (1 << severity) - 1;
+        if(!defaultStreamSeverity)
+        {
+            if(!(sev = getenv("CL_LOG_STREAM_SEVERITY")) ) 
+            {
+                defaultStreamSeverity = CL_LOG_DEFAULT_SEVERITY_FILTER;
+                return defaultStreamSeverity;
+            }
+            severity = clLogSeverityGet(sev);
+            defaultStreamSeverity = (1 << severity) - 1;
+        }
+        return defaultStreamSeverity;
     }
-    return defaultStreamSeverity;
+    if(!customStreamSeverity)
+    {
+        if(!(sev = getenv("CL_LOG_STREAM_SEVERITY_CUSTOM")) )
+        {
+            customStreamSeverity = CL_LOG_DEFAULT_SEVERITY_FILTER;
+            return customStreamSeverity;
+        }
+        severity = clLogSeverityGet(sev);
+        customStreamSeverity = (1 << severity) - 1;
+    }
+    return customStreamSeverity;
 }
