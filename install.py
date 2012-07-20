@@ -33,6 +33,8 @@ except ImportError:
 
 THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.24'                # Look for PKG starting with this name
 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.24.tar'            # search this package if no 3rdPartyPkg found
+PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                # Look for PKG starting with this name
+PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'            # search this package if no 3rdPartyPkg found
 PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_32'
 PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_32.tar.gz'
 if determine_bit() == 64:
@@ -85,6 +87,7 @@ class ASPInstaller:
         self.HOME                = self.expand_path('~')
         self.OFFLINE             = False
         self.INTERNET		 = True	
+        self.WITH_CM_BUILD                 = False
         # ------------------------------------------------------------------------------
         self.NEED_TIPC_CONFIG    = False
         self.TIPC_CONFIG_VERSION = ''
@@ -1106,7 +1109,38 @@ class ASPInstaller:
 
 
         self.install_utilities()
+        # ------------------------------process psp---------------------------------------
+        WORKING_ROOT = self.WORKING_ROOT
+        self.feedback('Working root set to [%s], package root at [%s]' %(WORKING_ROOT, self.PACKAGE_ROOT) )
+        os.chdir ('%s' % WORKING_ROOT)
+        pspList = fnmatch.filter(os.listdir(WORKING_ROOT),"%s*.tar.gz" % PSP_NAME_STARTS_WITH)
+        self.feedback('List %s' %(pspList))
+        Pkg_Found = 0   # a flag to check for PSP presence
+        max_ver = 0
+        if len (pspList) == 0:
+           pspPkg =  PSPPKG_DEFAULT  # use for auto download PSP from FTP 
+        elif len (pspList) == 1:
+           Pkg_Found = 1
+           pspPkg = pspList[0]
+        else:
+           Pkg_Found = 1
+           for psp in pspList:
+               sub_vers = re.sub("\D", "", re.sub (PSP_NAME_STARTS_WITH, "", psp))               
+               if sub_vers:
+                  sub_vers = int (sub_vers)
+                  if sub_vers > max_ver:
+                     max_ver = sub_vers
+                     pspPkg = psp
 
+        PSPPKG_PATH = os.path.join(WORKING_ROOT, pspPkg)
+        if Pkg_Found :
+            self.feedback('Process PSP : install_dir : %s -- PSPPATH : %s' %(self.INSTALL_DIR,PSPPKG_PATH))
+            os.chdir ('%s' % self.INSTALL_DIR)
+            syscall('rm -rf PSP') # remove PSP    
+            syscall('tar zxf %s' % PSPPKG_PATH)        
+            syscall('mv %s* PSP' %(PSP_NAME_STARTS_WITH))
+            self.WITH_CM_BUILD = True
+        
         if self.DO_PREBUILD:
             self.prebuild()
 
@@ -1319,9 +1353,19 @@ class ASPInstaller:
            builds = re.split('\W+', strin)
            for b in builds:
              if b == 'local':
-               syscall ("%s/src/SAFplus/configure --with-asp-build > build.log" % self.PACKAGE_ROOT)
-             else: 
-               syscall ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s > build.log" % (self.PACKAGE_ROOT, b) )
+               if self.WITH_CM_BUILD :
+                 self.feedback ("%s/src/SAFplus/configure --with-asp-build --with-cm-build=openhpi > build.log" % self.PACKAGE_ROOT)
+                 syscall ("%s/src/SAFplus/configure --with-asp-build --with-cm-build=openhpi > build.log" % self.PACKAGE_ROOT)
+               else :
+                 self.feedback ("%s/src/SAFplus/configure --with-asp-build > build.log" % self.PACKAGE_ROOT)
+                 syscall ("%s/src/SAFplus/configure --with-asp-build > build.log" % self.PACKAGE_ROOT)
+             else:
+               if self.WITH_CM_BUILD :
+                 self.feedback ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s --with-cm-build=openhpi > build.log" % (self.PACKAGE_ROOT, b) )
+                 syscall ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s --with-cm-build=openhpi > build.log" % (self.PACKAGE_ROOT, b) )
+               else : 
+                 self.feedback ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s > build.log" % (self.PACKAGE_ROOT, b) )
+                 syscall ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s > build.log" % (self.PACKAGE_ROOT, b) )
            
              self.feedback('Building asp %s' % b)
              cmd = 'asp/build/%s' % b
