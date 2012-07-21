@@ -878,6 +878,8 @@ VDECL(_clAmsMgmtEntityLockAssignment)(
             clAmsPeEntityLockAssignment( entityRef.ptr),
             gAms.mutex );
 
+    clAmsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_DB);
+
     clAmsCkptDBWrite();
 
     AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
@@ -942,6 +944,11 @@ VDECL(_clAmsMgmtEntityForceLock)(
                                         clAmsPeSUForceLockOperation( (ClAmsSUT*)entityRef.ptr, req.lock),
                                         gAms.mutex );
 
+
+    clAmsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_DB);
+
+    clAmsCkptDBWrite();
+
     AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
 
 exitfn:
@@ -1004,6 +1011,10 @@ VDECL_VER(_clAmsMgmtEntityForceLockInstantiation, 5, 0, 0)(
                                         clAmsPeSUForceLockInstantiationOperation( (ClAmsSUT*)entityRef.ptr),
                                         gAms.mutex );
 
+    clAmsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_DB);
+
+    clAmsCkptDBWrite();
+
     AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
 
 exitfn:
@@ -1064,6 +1075,8 @@ VDECL(_clAmsMgmtEntityLockInstantiation)(
     AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(
             clAmsPeEntityLockInstantiate(entityRef.ptr),
             gAms.mutex );
+
+    clAmsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_DB);
 
     clAmsCkptDBWrite();
 
@@ -1133,6 +1146,8 @@ VDECL(_clAmsMgmtEntityUnlock)(
             clAmsPeEntityUnlock(entityRef.ptr),
             gAms.mutex );
 
+    clAmsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_DB);
+
     clAmsCkptDBWrite();
 
     AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
@@ -1199,6 +1214,10 @@ VDECL(_clAmsMgmtEntityShutdown)(
     AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(
             clAmsPeEntityShutdown(entityRef.ptr),
             gAms.mutex );
+
+    clAmsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_DB);
+
+    clAmsCkptDBWrite();
 
     AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
 
@@ -1386,9 +1405,9 @@ VDECL(_clAmsMgmtSGAdjustPreference)(
                                         gAms.mutex);
 
 
-    clAmsCkptDBWrite();
-
     clAmsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_DB);
+
+    clAmsCkptDBWrite();
 
     AMS_CALL(clOsalMutexUnlock(gAms.mutex));
 
