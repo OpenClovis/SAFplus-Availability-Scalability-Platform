@@ -715,6 +715,8 @@ extern ClRcT cpmCompHealthcheckStop(ClNameT *compName);
 
 extern void cpmResetNodeElseCommitSuicide(ClUint32T restartFlag);
 
+extern ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp);
+
 #ifdef __cplusplus
 }
 #endif

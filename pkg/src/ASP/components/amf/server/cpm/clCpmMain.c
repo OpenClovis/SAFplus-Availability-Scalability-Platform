@@ -3190,6 +3190,7 @@ void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
              * is parsed by AMS.
              */
             cpmMarkRecovery((ClCpmComponentT*)pThis->compRef, instantiateCookie);
+            clCpmCompPreCleanupInvoke((ClCpmComponentT*)pThis->compRef);
             clCpmComponentFailureReportWithCookie(0, &(compName), instantiateCookie,
                                                   0, CL_AMS_RECOVERY_NO_RECOMMENDATION, 0); 
 #endif
