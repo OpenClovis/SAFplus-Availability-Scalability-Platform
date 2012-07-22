@@ -358,6 +358,7 @@ static ClRcT cpmHealthCheckTimerCallback(void *arg)
     clLogNotice("HEALTH", "CHECK", "Health check failure detected for component [%.*s], instantiate cookie [%lld]",
                 compName.length, compName.value, comp->instantiateCookie);
 
+    clCpmCompPreCleanupInvoke(comp);
     clCpmComponentFailureReportWithCookie(0,
                                           &compName,
                                           comp->instantiateCookie,
@@ -1021,7 +1022,7 @@ void cpmResponse(ClRcT retCode,
                 ClNameT compName = {0};
 
                 clNameSet(&compName, comp->compConfig->compName);
-                
+                clCpmCompPreCleanupInvoke(comp);
                 clCpmComponentFailureReportWithCookie(0,
                                                       &compName,
                                                       comp->instantiateCookie,
@@ -2816,6 +2817,45 @@ ClRcT VDECL(cpmComponentTerminate)(ClEoDataT data,
     return rc;
 }
 
+ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
+{
+#define ASP_PRECLEANUP_SCRIPT "asp_precleanup.sh"
+
+    ClRcT rc = CL_OK;
+    ClCharT cmdBuf[CL_MAX_NAME_LENGTH];
+    static ClInt32T cachedState = -1;
+    static ClCharT *cachedConfigLoc;
+    if(!comp || !comp->processId) return CL_OK;
+
+    if(cachedState < 0)
+    {
+        cachedState = clParseEnvBoolean("ASP_COMP_PRECLEANUP");
+    }
+
+    if((ClBoolT)cachedState == CL_FALSE) return CL_OK;
+
+    if(!cachedConfigLoc)
+    {
+        cachedConfigLoc = getenv("ASP_CONFIG");
+        if(!cachedConfigLoc)
+            cachedConfigLoc = "/root/asp";
+    }
+    snprintf(cmdBuf, sizeof(cmdBuf), "ASP_COMPNAME=%s %s/asp.d/%s",
+             comp->compConfig->compName, cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
+                "Invoking precleanup command [%s] for Component [%s]",
+                cmdBuf, comp->compConfig->compName);
+    if(system(cmdBuf))
+    {
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
+                   "Precleanup command [%s] returned error [%s] for Component [%s]",
+                   cmdBuf, strerror(errno), comp->compConfig->compName);
+        rc = CL_CPM_RC(CL_ERR_LIBRARY);
+    }
+
+    return rc;
+}
+
 static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
 {
     ClRcT rc = CL_OK;
@@ -4452,7 +4492,8 @@ static ClRcT compHealthCheckClientInvokedCB(ClPtrT arg)
         ClNameT compName = {0};
 
         clNameSet(&compName, comp->compConfig->compName);
-                
+
+        clCpmCompPreCleanupInvoke(comp);
         clCpmComponentFailureReportWithCookie(0,
                                               &compName,
                                               comp->instantiateCookie,
@@ -4765,6 +4806,7 @@ ClRcT VDECL(cpmComponentHealthcheckConfirm)(ClEoDataT data,
 
     if (cpmCompHealthcheck.healthcheckResult != CL_OK)
     {
+        clCpmCompPreCleanupInvoke(comp);
         clCpmComponentFailureReportWithCookie(0,
                                               &cpmCompHealthcheck.compName,
                                               comp->instantiateCookie,
