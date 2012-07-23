@@ -56,8 +56,10 @@ $(MODEL_BIN)/asp_amf $(MODEL_BIN)/asp_logd
 
 ifeq ($(CM_BUILD), 1)
     all: $(ASP_EXE) $(MODEL_BIN)/asp_cm
+    CM_LIB := -lClCm
 else
-    all: $(ASP_EXE) 
+    all: $(ASP_EXE)
+    CM_LIB := 
 endif
 
 libs: all
@@ -81,7 +83,7 @@ $(MODEL_BIN)/asp_cor: $(MODEL_LIB)/libClConfig.a
 
 $(MODEL_BIN)/asp_amf: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ -Wl,--start-group  -lClAmsXdr -lClAmsParser \
--lClAmsMgmtStandalone -lClAmsServer -lClCm -lClamfServer  \
+-lClAmsMgmtStandalone -lClAmsServer $(CM_LIB) -lClamfServer  \
 -Wl,--end-group $(LDLIBS) -lClGround 
 
 $(MODEL_BIN)/asp_debug: $(MODEL_LIB)/libClConfig.a
@@ -103,7 +105,7 @@ $(MODEL_BIN)/asp_name: $(MODEL_LIB)/libClConfig.a
 
 $(MODEL_BIN)/asp_cm: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@  -lglib-2.0 -lgthread-2.0 -lltdl -lopenhpi \
--lopenhpiutils $(LDLIBS) -lClcmServer -lClCm $(LDLIBS) -lClGround 
+-lopenhpiutils $(LDLIBS) -lClcmServer $(CM_LIB) $(LDLIBS) -lClGround 
 
 clean:
 	rm -rf $(MODEL_BIN)/asp_alarm \

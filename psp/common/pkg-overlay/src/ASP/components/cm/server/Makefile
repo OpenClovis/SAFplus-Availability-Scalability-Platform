@@ -36,6 +36,7 @@
 #
 #
 ################################################################################
+include $(CLOVIS_ROOT)/ASP/mk/preface.mk
 
 # Component name (using all lowercase):
 
@@ -71,6 +72,8 @@ CPPFLAGS += -I./ -DHAVE_CONFIG_H -I../common/include -Wunused-function
 ifeq ($(HCL_CM),1) 
     CPPFLAGS += -DHCL_CM
 endif	
+
+CPPFLAGS += $(CM_CFLAGS)
 
 # List ASP libraries needed to get this server built (or None):
 

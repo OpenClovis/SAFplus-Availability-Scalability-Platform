@@ -52,9 +52,6 @@
 extern "C" { 
 #endif 
 
-    /* If the flag is not defined this will define no-ops for all APIs that is enough to satisfy the compiler */
-#ifndef CL_USE_CHASSIS_MANAGER
-    
 #include <SaHpi.h>
 #include <clCommon.h>
 #include <clCommonErrors.h>
@@ -235,10 +232,13 @@ typedef enum {
  *  \note 
  *  On any HPI Error, refer to \c DBG_PRINTS on the Chassis Manager console or Log file.
  *
- * extern ClRcT clCmFruStateGet (CL_IN  ClCorMOIdPtrT hMoId,CL_OUT SaHpiHsStateT *pState);
  */
+/* If the flag is not defined this will define no-ops for all APIs that is enough to satisfy the compiler */
+#ifndef CL_USE_CHASSIS_MANAGER
 #define clCmFruStateGet(hMoId,pState) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
-
+#else
+extern ClRcT clCmFruStateGet (CL_IN  ClCorMOIdPtrT hMoId,CL_OUT SaHpiHsStateT *pState);
+#endif
 
 /**
  ************************************
@@ -266,9 +266,12 @@ typedef enum {
  *  \note
  *  On any HPI Error, refer to \c DBG_PRINTS on the Chassis Manager console or Log file.
  *
- * extern ClRcT clCmFruOperationRequest (CL_IN  ClCorMOIdPtrT     hMoId, CL_OUT ClCmFruOperationT request);
  */
+#ifndef CL_USE_CHASSIS_MANAGER
 #define clCmFruOperationRequest(hMoId,request) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
+#else
+extern ClRcT clCmFruOperationRequest (CL_IN  ClCorMOIdPtrT     hMoId, CL_OUT ClCmFruOperationT request);
+#endif
 
 /**
  ************************************************
@@ -288,9 +291,12 @@ typedef enum {
  *  This API allows detection of mismatch between the client and the cleint
  *  library (in case shared libraries are used).
  *
- * extern ClRcT clCmVersionVerify(CL_INOUT ClVersionT *version);
  */
+#ifndef CL_USE_CHASSIS_MANAGER
 #define clCmVersionVerify(version) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
+#else
+extern ClRcT clCmVersionVerify(CL_INOUT ClVersionT *version);
+#endif
 
 /**
  ************************************
@@ -322,24 +328,15 @@ typedef enum {
  *  \note
  *  This function can only be used for \e main cards and cannot be used on \e nested
  *  FRUs such as AMCs.
+ */
+#ifndef CL_USE_CHASSIS_MANAGER
+#define clCmBladeOperationRequest(chassisId,physSlot,request)  CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
+#else
 extern ClRcT clCmBladeOperationRequest (CL_IN ClUint32T         chassisId,
                            CL_IN ClUint32T         physSlot,
                            CL_IN ClCmFruOperationT request);
-
- */
-#define clCmBladeOperationRequest(chassisId,physSlot,request)  CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
-
-       
-
-    
-#define clCmThresholdStateGet(slot, pLevel,pStateAsserted) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
-
-#else
-    
-#include <clChassisMgrApi.h>
-    
 #endif
-    
+
 #ifdef __cplusplus
 }
 #endif 

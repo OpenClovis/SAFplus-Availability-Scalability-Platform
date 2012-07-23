@@ -44,7 +44,7 @@
 ifeq ($(CM_BUILD),1)
 SUBDIRS          = client server 
 else
-SUBDIRS		= client
+SUBDIRS		= 
 endif
 
 #

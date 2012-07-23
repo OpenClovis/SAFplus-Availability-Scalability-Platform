@@ -18,7 +18,9 @@
 # This file is included at the top of all other makefiles
 # It discovers the environment and sets standard variables.
 
+# Completely remove cm if --with-cm-build not provide
 
+ifeq ($(CM_BUILD),1)
 # If the chassis manager directory is not defined go look for it
 ifndef CM_DIR
 
@@ -38,4 +40,5 @@ CM_CFLAGS :=
 $(warning Not using the chassis manager)
 endif
 
+endif
 endif

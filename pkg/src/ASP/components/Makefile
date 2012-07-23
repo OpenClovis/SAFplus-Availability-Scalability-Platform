@@ -34,7 +34,7 @@ include $(CLOVIS_ROOT)/ASP/mk/preface.mk
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 
-SUBDIRS    = ground \
+SUBDIRS    = $(CM_DIR) ground \
              cnt    \
              buffer \
              osal   \

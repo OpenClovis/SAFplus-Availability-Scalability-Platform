@@ -37,6 +37,8 @@
 #
 ################################################################################
 
+include $(CLOVIS_ROOT)/ASP/mk/preface.mk
+
 # Component name (using all lowercase):
 
 COMPNAME	:= cm
@@ -51,6 +53,8 @@ SRC_FILES	:= clCmApis.c ../common/clCmCommons.c
 DEP_COMP_LIST	:= utils osal timer buffer ioc rmd cor cnt ../3rdparty/openhpi eo event om debug  amf txn
 
 CPPFLAGS += -I../common/include
+
+CPPFLAGS += $(CM_CFLAGS)
 
 # Library name:
 
