@@ -54,6 +54,7 @@
 #include <clDbg.h>
 #include <clLogUtilApi.h>
 #include <clCpmIpi.h>
+#include <clCmApi.h>
 
 #define  CL_LOG_AREA "EO"
 #define  CL_LOG_CTXT_INI "INI"
@@ -103,9 +104,6 @@ extern ClRcT clDbalLibFinalize(void);
 
 extern ClRcT clCorClientInitialize(void);
 extern ClRcT clCorClientFinalize(void);
-
-extern ClRcT clCmLibInitialize(void);
-extern ClRcT clCmLibFinalize(void);
 
 extern ClRcT clNameLibInitialize(void);
 extern ClRcT clNameLibFinalize(void);

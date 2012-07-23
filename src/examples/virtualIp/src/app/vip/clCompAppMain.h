@@ -31,16 +31,7 @@ extern "C" {
  *****************************************************************************/
 
 #include "./clCompCfg.h"
-
-/*
- * ---BEGIN_APPLICATION_CODE---
- */
- 
-// add extra includes here...
-
-/*
- * ---END_APPLICATION_CODE---
- */
+#include "saAmf.h"
 
 #ifndef COMP_NAME
 #error "COMP_NAME is not defined. Bad or missing ./clCompCfg.h"

@@ -55,6 +55,10 @@ extern "C" {
 #include <clCommonErrors.h>
 #include <clCorMetaData.h>
 
+    /* the EO automatically generates a call to this to initalize the CM library, so give it a NULL pointer if CM is off */    
+#define clCmLibInitialize 0
+#define clCmLibFinalize 0
+    
 /**
  *  Latest supported version of the Chassis Manager client service
  */
@@ -328,6 +332,10 @@ extern ClRcT clCmBladeOperationRequest (CL_IN ClUint32T         chassisId,
 #define clCmThresholdStateGet(slot, pLevel,pStateAsserted) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
 
 #else
+
+    /* These are automatically called by the EO so not really part of the public interface */    
+extern ClRcT clCmLibInitialize(void);
+extern ClRcT clCmLibFinalize(void);
     
 #include <clChassisMgrApi.h>
     

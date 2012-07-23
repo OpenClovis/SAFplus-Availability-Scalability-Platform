@@ -68,7 +68,8 @@ endif
 ifeq ("$(IS_ASP_COMP)","1")
     # $(warning Building ASP component)
     # In this case we create the BUILD_SUBPATH as the subdirectory under ASP
-    BUILD_SUBPATH ?= $(shell pwd | $(AWK) '{match($$0,".*/SAFplus/"); print substr($$0,RLENGTH+1)}')
+    #BUILD_SUBPATH ?= $(shell pwd | $(AWK) '{match($$0,".*/SAFplus/"); print substr($$0,RLENGTH+1)}')
+    BUILD_SUBPATH ?= $(shell pwd | awk '{if (match($$0,".*/SAFplus/")) print substr($$0,RLENGTH+1); else if (match($$0,".*/PSP/src")) print "components" substr($$0,RLENGTH+1)}')
 else
     # $(warning Building user component)
 #	# in this case we create the BUILD_SUBPATH as the subdirectory under the

@@ -755,7 +755,7 @@ ClRcT GetVaiFromCsi(const SaNameT       *compName,const unsigned char* name, Vir
                          compName->value, 
                          pCSI->csiDescriptor.csiName.length,
                          pCSI->csiDescriptor.csiName.value,
-                         STRING_HA_STATE(pCSI->haState));
+                         STRING_HA_STATE((int)pCSI->haState));
 
                 GetVirtualAddressInfoAsp(&pCSI->csiDescriptor, ret);
                 /*clprintf(CL_LOG_SEV_INFO,"Found VIP: %s %s %s", ret.ip,ret.netmask,ret.dev); */
@@ -797,7 +797,7 @@ ClRcT OperateOnAllCsis(const SaNameT       *compName,char* op,SaAmfCSIDescriptor
                      compName->value, 
                      pCSI->csiDescriptor.csiName.length,
                      pCSI->csiDescriptor.csiName.value,
-                     STRING_HA_STATE(pCSI->haState));
+                     STRING_HA_STATE((int)pCSI->haState));
 
             GetVirtualAddressInfoAsp(&pCSI->csiDescriptor, &temp);
             clprintf(CL_LOG_SEV_INFO,"VIP %s: %s %s %s", op, temp.ip,temp.netmask,temp.dev);
