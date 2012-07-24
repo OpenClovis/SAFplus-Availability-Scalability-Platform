@@ -77,6 +77,8 @@
 #define CL_RTP_STACK_SIZE (1<<20)
 #endif
 
+#define ASP_PRECLEANUP_SCRIPT "asp_precleanup.sh"
+
 #define CPM_TIMED_WAIT(millisec) do {                               \
     ClTimerTimeOutT _delay = {.tsSec = 0, .tsMilliSec = millisec }; \
     clOsalTaskDelay(_delay);                                        \
@@ -2819,40 +2821,43 @@ ClRcT VDECL(cpmComponentTerminate)(ClEoDataT data,
 
 ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
 {
-#define ASP_PRECLEANUP_SCRIPT "asp_precleanup.sh"
-
     ClRcT rc = CL_OK;
     ClCharT cmdBuf[CL_MAX_NAME_LENGTH];
-    static ClInt32T cachedState = -1;
+    static ClCharT script[CL_MAX_NAME_LENGTH];
+    static ClInt32T cachedState;
     static ClCharT *cachedConfigLoc;
+    ClInt32T status;
+
     if(!comp || !comp->processId) return CL_OK;
-
-    if(cachedState < 0)
-    {
-        cachedState = clParseEnvBoolean("ASP_COMP_PRECLEANUP");
-    }
-
-    if((ClBoolT)cachedState == CL_FALSE) return CL_OK;
 
     if(!cachedConfigLoc)
     {
         cachedConfigLoc = getenv("ASP_CONFIG");
         if(!cachedConfigLoc)
-            cachedConfigLoc = "/root/asp";
+            cachedConfigLoc = "/root/asp/etc";
+        snprintf(script, sizeof(script), "%s/asp.d/%s", 
+                 cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
+        /*
+         * Script exists?
+         */
+        if(!access(script, F_OK))
+        {
+            cachedState = 1;
+        }
     }
-    snprintf(cmdBuf, sizeof(cmdBuf), "ASP_COMPNAME=%s %s/asp.d/%s",
-             comp->compConfig->compName, cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
+
+    if(!cachedState) goto out;
+ 
+    snprintf(cmdBuf, sizeof(cmdBuf), "ASP_COMPNAME=%s %s",
+             comp->compConfig->compName, script);
     clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
                 "Invoking precleanup command [%s] for Component [%s]",
                 cmdBuf, comp->compConfig->compName);
-    if(system(cmdBuf))
-    {
-        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
-                   "Precleanup command [%s] returned error [%s] for Component [%s]",
-                   cmdBuf, strerror(errno), comp->compConfig->compName);
-        rc = CL_CPM_RC(CL_ERR_LIBRARY);
-    }
 
+    status = system(cmdBuf);
+    (void)status; /*unused*/
+
+    out:
     return rc;
 }
 
