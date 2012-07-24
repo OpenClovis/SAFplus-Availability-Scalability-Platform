@@ -723,6 +723,8 @@ extern void cpmSwitchoverActive(void);
 
 extern ClBoolT clCpmSwitchoverInline(void);
 
+extern ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp);
+
 #ifdef __cplusplus
 }
 #endif

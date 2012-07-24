@@ -77,6 +77,8 @@
 #define CL_RTP_STACK_SIZE (1<<20)
 #endif
 
+#define ASP_PRECLEANUP_SCRIPT "asp_precleanup.sh"
+
 #define CPM_TIMED_WAIT(millisec) do {                               \
     ClTimerTimeOutT _delay = {.tsSec = 0, .tsMilliSec = millisec }; \
     clOsalTaskDelay(_delay);                                        \
@@ -358,6 +360,7 @@ static ClRcT cpmHealthCheckTimerCallback(void *arg)
     clLogNotice("HEALTH", "CHECK", "Health check failure detected for component [%.*s], instantiate cookie [%lld]",
                 compName.length, compName.value, comp->instantiateCookie);
 
+    clCpmCompPreCleanupInvoke(comp);
     clCpmComponentFailureReportWithCookie(0,
                                           &compName,
                                           comp->instantiateCookie,
@@ -1021,7 +1024,7 @@ void cpmResponse(ClRcT retCode,
                 ClNameT compName = {0};
 
                 clNameSet(&compName, comp->compConfig->compName);
-                
+                clCpmCompPreCleanupInvoke(comp);
                 clCpmComponentFailureReportWithCookie(0,
                                                       &compName,
                                                       comp->instantiateCookie,
@@ -2816,6 +2819,48 @@ ClRcT VDECL(cpmComponentTerminate)(ClEoDataT data,
     return rc;
 }
 
+ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
+{
+    ClRcT rc = CL_OK;
+    ClCharT cmdBuf[CL_MAX_NAME_LENGTH];
+    static ClCharT script[CL_MAX_NAME_LENGTH];
+    static ClInt32T cachedState;
+    static ClCharT *cachedConfigLoc;
+    ClInt32T status;
+
+    if(!comp || !comp->processId) return CL_OK;
+
+    if(!cachedConfigLoc)
+    {
+        cachedConfigLoc = getenv("ASP_CONFIG");
+        if(!cachedConfigLoc)
+            cachedConfigLoc = "/root/asp/etc";
+        snprintf(script, sizeof(script), "%s/asp.d/%s", 
+                 cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
+        /*
+         * Script exists?
+         */
+        if(!access(script, F_OK))
+        {
+            cachedState = 1;
+        }
+    }
+
+    if(!cachedState) goto out;
+ 
+    snprintf(cmdBuf, sizeof(cmdBuf), "ASP_COMPNAME=%s %s",
+             comp->compConfig->compName, script);
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
+                "Invoking precleanup command [%s] for Component [%s]",
+                cmdBuf, comp->compConfig->compName);
+
+    status = system(cmdBuf);
+    (void)status; /*unused*/
+
+    out:
+    return rc;
+}
+
 static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
 {
     ClRcT rc = CL_OK;
@@ -4452,7 +4497,8 @@ static ClRcT compHealthCheckClientInvokedCB(ClPtrT arg)
         ClNameT compName = {0};
 
         clNameSet(&compName, comp->compConfig->compName);
-                
+
+        clCpmCompPreCleanupInvoke(comp);
         clCpmComponentFailureReportWithCookie(0,
                                               &compName,
                                               comp->instantiateCookie,
@@ -4765,6 +4811,7 @@ ClRcT VDECL(cpmComponentHealthcheckConfirm)(ClEoDataT data,
 
     if (cpmCompHealthcheck.healthcheckResult != CL_OK)
     {
+        clCpmCompPreCleanupInvoke(comp);
         clCpmComponentFailureReportWithCookie(0,
                                               &cpmCompHealthcheck.compName,
                                               comp->instantiateCookie,
