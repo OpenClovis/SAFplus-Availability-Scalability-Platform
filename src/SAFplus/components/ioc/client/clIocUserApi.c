@@ -79,7 +79,6 @@
 #include <clIocIpi.h>
 #include <clIocParseConfig.h>
 #include <clIocMaster.h>
-#include <clIocNotification.h>
 #include <clIocNeighComps.h>
 #include <clIocUserApi.h>
 #include <clIocSetup.h>

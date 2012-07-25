@@ -106,7 +106,6 @@ export HCL_CM=@HCL_CM@
 
 export ASP_VALGRIND_CMD="@ASP_VALGRIND_CMD@"
 export CL_BINMODE=@CL_BINMODE@
-
 buildtools_dir:=@CL_BUILDTOOLS@
 
 #
@@ -361,11 +360,11 @@ else
    ifeq ($(CL_BINMODE),32)
     CXX	    	 = env ARCH=$(ARCH) \
                    CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
-        	   $(BUILDTOOLS_PATH)/bin/$(TARGET)-g++ -m32
+                   $(BUILDTOOLS_PATH)/bin/$(TARGET)-g++ -m32
    else
     CXX	    	 = env ARCH=$(ARCH) \
                    CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
-        	   $(BUILDTOOLS_PATH)/bin/$(TARGET)-g++
+                   $(BUILDTOOLS_PATH)/bin/$(TARGET)-g++
    endif
     GCC          = $(CC)
     AR           = env ARCH=$(ARCH) \

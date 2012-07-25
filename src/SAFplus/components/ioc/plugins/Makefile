@@ -41,6 +41,12 @@ SUBDIRS          =  tipc udp heartbeat
 endif
 endif
 
+ALL_SUBDIRS := $(SUBDIRS)
+
+ifeq ($(BUILD_TIPC), 0)
+SUBDIRS = $(filter-out tipc, $(ALL_SUBDIRS))
+endif
+
 #
 # If you have any ordering dependence among subdirectories, list them as
 # target-prerequisite pairs. Example:

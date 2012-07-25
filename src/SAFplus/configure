@@ -344,7 +344,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT AWK CPP LN_S SET_MAKE RANLIB ac_ct_RANLIB EGREP LIBOBJS ASP_MODEL_NAME CLOVIS_ROOT BUILD_ROOT OPENHPICFLAGS OPENHPILIBS LDEMULATION SNMP_BUILD CROSS_FLAG CROSS_BUILD PREFIX CM_BUILD CL_TARGET_PLATFORM CL_TARGET_OS KERNEL_FLAG KERNEL LTLIBOBJS ASP_BUILD ASP_INSTALLDIR sdk_dir MODEL_BUILD ASP_SIMULATION ASP_VALGRIND_CMD PACKAGE_VERSION TARGET_QNX TARGET_SOLARIS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT AWK CPP LN_S SET_MAKE RANLIB ac_ct_RANLIB EGREP LIBOBJS ASP_MODEL_NAME CLOVIS_ROOT BUILD_ROOT OPENHPICFLAGS OPENHPILIBS LDEMULATION SNMP_BUILD CROSS_FLAG CROSS_BUILD PREFIX CM_BUILD CL_TARGET_PLATFORM CL_TARGET_OS KERNEL_FLAG KERNEL LTLIBOBJS ASP_BUILD ASP_INSTALLDIR sdk_dir MODEL_BUILD ASP_SIMULATION ASP_VALGRIND_CMD PACKAGE_VERSION TARGET_QNX TARGET_SOLARIS BUILD_TIPC'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -989,6 +989,9 @@ $(ls -1 $CL_BUILDTOOLS | grep -v local | awk '{print "\t\t\t\t", $1}')
   
   --with-asp-simulation  Build the ASP for running in simulation, i.e. running many
                          instances of ASP on a single machine.
+   
+  --with-tipc-build=(yes|no)   
+                         Build the ASP with/without TIPC transport support.
  
 Some influential environment variables:
   CC          C compiler command
@@ -1731,6 +1734,15 @@ if [ "${with_ipc_build+set}" = set ]; then
     fi
 else
     export BUILD_TIPC=1
+fi
+
+# Check whether --with-tipc-build was specified
+if [ "${with_tipc_build+set}" = set ]; then
+    if [ $with_tipc_build == 'no' ]; then
+        export BUILD_TIPC=0
+    else
+        export BUILD_TIPC=1
+    fi
 fi
 
 if [ "${with_gms_build+set}" = set ]; then
