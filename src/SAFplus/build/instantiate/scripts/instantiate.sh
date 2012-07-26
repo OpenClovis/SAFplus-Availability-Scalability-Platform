@@ -237,6 +237,8 @@ lcliz_conf() {
 1
 /^export SNMP_TRAP_ADDR=/s/=[^=]*\$/=${SNMP}/
 1
+/^export BUILD_TIPC=/s/=[^=]*\$/=${BUILD_TIPC}/
+1
 /^export TIPC_NETID=/s/=[^=]*\$/=${NETID}/
 1
 /^export LINK_NAME=/s/=[^=]*\$/=${LINK}/

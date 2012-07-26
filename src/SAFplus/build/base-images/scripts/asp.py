@@ -184,6 +184,11 @@ def is_simulation():
 def is_valgrind_build():
     return bool(len(asp_env['asp_valgrind_cmd'].strip()))
 
+def is_tipc_build(val=None):
+    if val is None:
+        val = asp_env['build_tipc']
+    return bool(int(val))
+    
 def enforce_tipc_settings():
     return 'enforce_tipc_settings' in asp_env
 
@@ -207,8 +212,10 @@ def log_asp_env():
     log.debug('sandbox directory : [%s]' % asp_env['sandbox_dir'])
     log.debug('Location of old logs : [%s]' % asp_env['save_log_dir'])
     log.debug('Link name : [%s]' % asp_env['link_name'])
-    log.debug('TIPC netid : [%s]' % asp_env['tipc_netid'])
-    log.debug('Tipc config command : [%s]' % asp_env['tipc_config_cmd'])
+    log.debug('TIPC build ? : %s' %bool(int(asp_env['build_tipc'])))
+    if is_tipc_build():
+        log.debug('TIPC netid : [%s]' % asp_env['tipc_netid'])
+        log.debug('Tipc config command : [%s]' % asp_env['tipc_config_cmd'])
     log.debug('Node address : [%s]' % asp_env['node_addr'])
     log.debug('Node name : [%s]' % asp_env['node_name'])
 
@@ -237,7 +244,7 @@ def gen_asp_run_env_file(run_file, d):
     print >> f, 'ASP_NODEADDR=%s' % d['node_addr']
     print >> f, 'ASP_MULTINODE=%s' %d['simulation']
     print >> f, 'ASP_SIMULATION=%s' %d['simulation']
-
+    print >> f, 'BUILD_TIPC=%s' %d['build_tipc']
     f.close()
     
 def set_up_asp_config():
@@ -362,8 +369,12 @@ def set_up_asp_config():
     d['status_file'] = get_status_file()
     d['asp_cmd_marker_file'] = get_marker_file()
     d['node_name'] = asp_getenv('NODENAME')
-    d['tipc_netid'] = asp_getenv('TIPC_NETID', default='undefined')
-    d['tipc_config_cmd'] = get_tipc_config_cmd()
+    d['build_tipc'] = asp_getenv('BUILD_TIPC', default='1')
+
+    if is_tipc_build(d['build_tipc']):
+        d['tipc_netid'] = asp_getenv('TIPC_NETID', default='undefined')
+        d['tipc_config_cmd'] = get_tipc_config_cmd()
+
     d['link_name'] = asp_getenv('LINK_NAME', default='eth0')
     d['system_controller'] = asp_getenv('SYSTEM_CONTROLLER')
     d['simulation'] = asp_getenv('ASP_SIMULATION', default='0')
@@ -406,6 +417,7 @@ def set_up_asp_config():
     os.putenv('ASP_BINDIR', d['bin_dir'])
     os.putenv('ASP_MULTINODE', d['simulation'])
     os.putenv('ASP_SIMULATION', d['simulation'])
+    os.putenv('BUILD_TIPC', d['build_tipc'])
     gen_asp_run_env_file(d['etc_dir']+'/asp_run.env', d)
     
     return d
@@ -625,6 +637,9 @@ def set_ld_library_paths():
     os.putenv('LD_LIBRARY_PATH', v)
 
 def config_tipc_module():
+    if not is_tipc_build():
+        return
+
     tipc_netid = get_asp_tipc_netid()
     node_addr = get_asp_node_addr()
     link_name = get_asp_link_name()
@@ -683,6 +698,10 @@ def config_tipc_module():
             fail_and_exit(msg1 + msg2)
 
 def unload_tipc_module():
+    if not is_tipc_build():
+        return
+
+    log.info('Unloading TIPC ...')
     cmd = sys_asp['unload_tipc_cmd']
     ret, output, signal, core = system(cmd)
     if ret:
@@ -695,6 +714,9 @@ def unload_tipc_module():
                             (cmd, cmd2, output, output2))
 
 def load_tipc_module():
+    if not is_tipc_build():
+        return
+
     cmd = sys_asp['load_tipc_cmd']
     ret, output, signal, core = system(cmd)        
     if ret:
@@ -708,6 +730,8 @@ def load_tipc_module():
                           'output was: %s' % (cmd, ''.join(output)))
 
 def load_config_tipc_module():
+    if not is_tipc_build():
+        return
 
     def is_tipc_netid_defined():
         return get_asp_tipc_netid() != 'undefined'
@@ -1221,7 +1245,6 @@ def stop_asp():
     proc_lock_file('remove')
     if not is_simulation():
         time.sleep(1)
-        log.info('Unloading TIPC ...')
         unload_tipc_module()
 
 def cleanup_asp():
@@ -1284,7 +1307,6 @@ def zap_asp(lock_remove = True):
     kill_asp(lock_remove)
     if not is_simulation():
         time.sleep(2) ## delay to give time for the zapped processes to exit
-        log.info('Unloading TIPC ...')
         unload_tipc_module()
 
 def restart_asp():
