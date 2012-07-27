@@ -4204,9 +4204,15 @@ void cpmCompHeartBeatFailure(ClIocPortT iocPort)
 
     if ((!gpClCpm) || (!gpClCpm->polling)) return;
 
+    clOsalMutexLock(gpClCpm->compTableMutex);
     rc = clCntFirstNodeGet(gpClCpm->compTable, &hNode);
-    CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
-                   "component", rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+    if(rc != CL_OK)
+    {
+        clOsalMutexUnlock(gpClCpm->compTableMutex);
+        clLogError("HBT", "FAIL", "Container failure [%#x] on comp table access for port [%#x]",
+                   rc, iocPort);
+        goto failure;
+    }
 
     /*
      * For every component 
@@ -4216,19 +4222,26 @@ void cpmCompHeartBeatFailure(ClIocPortT iocPort)
     {
         rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
                                   (ClCntDataHandleT *) &comp);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, 
-                       CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR,
-                       rc, rc, CL_LOG_ERROR, CL_LOG_HANDLE_APP);
+        if(rc != CL_OK)
+        {
+            clOsalMutexUnlock(gpClCpm->compTableMutex);
+            clLogError("HBT", "FAIL", "Container data get failed with [%#x] "
+                       "on comp table access for port [%#x]",
+                       rc, iocPort);
+            goto failure;
+        }
 
         if (comp->compTerminated == CL_FALSE)
         {
             if ((rc = clOsalMutexLock(gpClCpm->eoListMutex)) != CL_OK)
-                CL_CPM_CHECK_1(CL_DEBUG_ERROR, 
-                               CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR,
-                               rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+            {
+                clOsalMutexUnlock(gpClCpm->compTableMutex);
+                goto failure;
+            }
             ptr = comp->eoHandle;
             if(comp->eoPort == iocPort)
             {
+                clOsalMutexUnlock(gpClCpm->compTableMutex);
                 if(ptr)
                 {
                     cpmEOHBFailure(ptr);
@@ -4247,16 +4260,22 @@ void cpmCompHeartBeatFailure(ClIocPortT iocPort)
         if (compCount)
         {
             rc = clCntNextNodeGet(gpClCpm->compTable, hNode, &hNode);
-            CL_CPM_CHECK_2(CL_DEBUG_ERROR, 
-                           CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR,
-                           "component", rc, rc, CL_LOG_ERROR,
-                           CL_LOG_HANDLE_APP);
+            if(rc != CL_OK)
+            {
+                clOsalMutexUnlock(gpClCpm->compTableMutex);
+                clLogError("HBT", "FAIL", "Container next node fetch failed with [%#x] "
+                           "on comp table access for port [%#x]", 
+                           rc, iocPort);
+                goto failure;
+            }
         }
     }
-    
-done:
+    clOsalMutexUnlock(gpClCpm->compTableMutex);
+
+    done:
     return;
-failure:
+
+    failure:
     return;
 }
 
