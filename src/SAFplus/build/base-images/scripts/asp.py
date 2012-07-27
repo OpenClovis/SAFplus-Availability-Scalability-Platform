@@ -21,6 +21,7 @@ import time
 import signal
 import errno
 import re
+import xml.dom.minidom
 import glob
 #import pdb
 
@@ -62,8 +63,13 @@ def init_sys_asp():
     d['core_file_dir'] = s.core_file_dir
     d['core_file_regex'] = s.core_file_regex
     d['asp_shutdown_wait_timeout'] = s.asp_shutdown_wait_timeout
+    d['build_tipc'] = '0'
+       
+
     
     return d
+
+
 
 def system(cmd): return sys_asp['system'](cmd)
 
@@ -290,6 +296,7 @@ def set_up_asp_config():
     d['save_log_dir'] = get_save_log_dir()
     d['script_dir'] = d['etc_dir'] + '/asp.d'
     
+    
     def asp_getenv(var, default=None):
         val = os.getenv(var) or default
         if val is None:
@@ -297,7 +304,23 @@ def set_up_asp_config():
                           'or the %s/asp.conf file has not been sourced.' %
                           (var, d['etc_dir'], d['etc_dir']))
         return val
-            
+    d['build_tipc'] = asp_getenv('BUILD_TIPC', default='1')
+    def set_tipc_build_env():
+        path = sandbox + '/etc'  
+        clTransportFile = path +'/clTransport.xml'
+        if os.path.exists(clTransportFile):
+            clTransport = xml.dom.minidom.parse(clTransportFile)            
+            default_Node = clTransport.getElementsByTagName("default")
+            node = default_Node[0]
+            child = node.firstChild
+            defaultProtocol = child.data
+            if(defaultProtocol=='UDP') :
+                d['build_tipc'] = '0'
+        path = sandbox +'/lib'        
+        if not os.path.exists(sandbox +'/lib'+'/libClTIPC.so'):
+            d['build_tipc'] = '0'
+        
+    set_tipc_build_env()            
     class IpmiError(Exception): pass
 
     def get_physical_slot():
@@ -347,20 +370,17 @@ def set_up_asp_config():
         return d['run_dir'] + os.sep + 'last_asp_cmd'
 
     def get_tipc_config_cmd():
-
         cmd = 'tipc-config > /dev/null 2>&1'
         tipc_config_cmd = 'tipc-config'
-        
         ret, output, signal, core = system(cmd)
-
         if ret == SystemErrorNoSuchFileOrDir:
             log.debug('The tipc-config command is not in $PATH')
             tipc_config_cmd = d['bin_dir'] + os.sep + tipc_config_cmd
             if not os.path.exists(tipc_config_cmd):
-                log.critical('The tipc-config command is not found in %s !!' %
-                             d['bin_dir'])
+                log.critical('The tipc-config command is not found in %s env !!' %
+                         (d['bin_dir']))
                 fail_and_exit('This indicates some serious configuration '
-                             'problem while deploying ASP image on target.')
+                         'problem while deploying ASP image on target.')
             else:
                 return tipc_config_cmd
         else:
@@ -369,9 +389,9 @@ def set_up_asp_config():
     d['status_file'] = get_status_file()
     d['asp_cmd_marker_file'] = get_marker_file()
     d['node_name'] = asp_getenv('NODENAME')
-    d['build_tipc'] = asp_getenv('BUILD_TIPC', default='1')
 
-    if is_tipc_build(d['build_tipc']):
+
+    if is_tipc_build(d['build_tipc']):        
         d['tipc_netid'] = asp_getenv('TIPC_NETID', default='undefined')
         d['tipc_config_cmd'] = get_tipc_config_cmd()
 
@@ -1080,7 +1100,8 @@ def start_asp(stop_watchdog=True, force_start = False):
         kill_asp(False)
         cleanup_asp()
         save_asp_runtime_files()
-        load_config_tipc_module()
+        if is_tipc_build():
+            load_config_tipc_module()
         set_ld_library_paths()
         if is_system_controller():
             start_snmp_daemon()
@@ -1529,7 +1550,6 @@ def check_py_version():
 
 def main():
     check_py_version()
-
     if len(sys.argv) < 2:
         usage()
         sys.exit(1)

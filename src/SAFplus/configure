@@ -1740,6 +1740,7 @@ fi
 if [ "${with_tipc_build+set}" = set ]; then
     if [ $with_tipc_build == 'no' ]; then
         export BUILD_TIPC=0
+        export OPENAIS_TIPC=0
     else
         export BUILD_TIPC=1
     fi

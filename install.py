@@ -33,6 +33,8 @@ except ImportError:
 
 THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.24'                # Look for PKG starting with this name
 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.24.tar'            # search this package if no 3rdPartyPkg found
+PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                # Look for PKG starting with this name
+PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'            # search this package if no 3rdPartyPkg found
 PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_32'
 PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_32.tar.gz'
 if determine_bit() == 64:
@@ -85,6 +87,8 @@ class ASPInstaller:
         self.HOME                = self.expand_path('~')
         self.OFFLINE             = False
         self.INTERNET		 = True	
+        self.WITH_CM_BUILD                 = False
+        self.TIPC                =True
         # ------------------------------------------------------------------------------
         self.NEED_TIPC_CONFIG    = False
         self.TIPC_CONFIG_VERSION = ''
@@ -171,8 +175,7 @@ class ASPInstaller:
         if '--offline' in sys.argv:
             if os.getuid() != 0:
                 self.feedback('\nYou must be root to run the preinstall phase', True)
-            sys.argv.remove('--offline')
-            #self.PREINSTALL_ONLY = True
+            sys.argv.remove('--offline')            
             self.OFFLINE = True
             self.INTERNET = False
         
@@ -184,6 +187,10 @@ class ASPInstaller:
         if '--standard' in sys.argv:
             sys.argv.remove('--standard')
             self.STANDARD_ONLY = True
+
+        if '--no-tipc' in sys.argv:
+            sys.argv.remove('--no-tipc')
+            self.TIPC = False
 
         #if '--nonet' in sys.argv:
             #sys.argv.remove('--nonet')
@@ -225,7 +232,7 @@ class ASPInstaller:
         
         self.debug('queuePreinstall()')
         
-        # check for root user (must be root for preinstall)
+        #check for root user (must be root for preinstall)
         if os.getuid() != 0:
             self.feedback('\nYou must be root to run the preinstall phase', True)
         
@@ -307,7 +314,8 @@ class ASPInstaller:
           
         # for each dep this OS requires,
         for dep in self.OS.dep_list:
-            
+            if (dep.name == 'tipc' or dep.name == 'tipc-config') and self.TIPC== False:
+                continue
             if self.DEBUG_ENABLED:
                 assert dep.pkg_name, "Error: Dependency is missing pkg_name"
                 assert dep.version, "Error: Dependency is missing version"
@@ -365,13 +373,15 @@ class ASPInstaller:
                      
                            
                 # SPECIAL CASE, TIPC
-                elif dep.name == 'tipc':
+                elif dep.name == 'tipc' and self.TIPC==True :
+                    self.feedback('TIPC : % s' %self.TIPC)
                     self.feedback('Install tipc module')
                     cmd = '/sbin/modinfo tipc > /dev/null 2>&1;'
                     self.debug('calling cmd: ' + cmd)
                     ret_code = cli_cmd(cmd)
                     
-                    if ret_code == 1:                        
+                    if ret_code == 1:
+                        # self.feedback('retcode = %s' %ret_code)
                         
                         #wrong cmd
                         #if int(syscall('uname -r').split('.')[2]) < 15:
@@ -395,19 +405,18 @@ class ASPInstaller:
                                     self.feedback('Install tipc successfully.')                         
                                 syscall('cp -f %s/%s/tipc_config.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
                                 syscall('cp -f %s/%s/tipc.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
-                                os.chdir(self.WORKING_DIR)
-                                syscall('rm -rf %s/'%(self.PRE_INSTALL_PKG))
+                                syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
                             else :
                                 dep.installedver = 'None'
                                 self.installQueue.append(dep)                        
                     else: #ret_code == 0
                         #assert ret_code == 0
-                        self.feedback('retcode = %s' %ret_code)
+                        # self.feedback('retcode = %s' %ret_code)
                         self.NEED_TIPC_CONFIG = True                     
                         dep.installedver = syscall('/sbin/modinfo tipc | grep \'^version\' | tr -s " " | cut -d\  -f 2') # fixme, does this work
 
                     
-                elif dep.name == 'tipc-config' and self.NEED_TIPC_CONFIG:
+                elif dep.name == 'tipc-config' and self.NEED_TIPC_CONFIG and self.TIPC==True:
                     cmd = 'which tipc-config 2>/dev/null'
                     self.debug('calling cmd: ' + cmd)
                     ret_code = cli_cmd(cmd)
@@ -436,6 +445,11 @@ class ASPInstaller:
                             self.TIPC_CONFIG_VERSION = 'tipcutils-1.1.9.tar.gz'
                             dep.pkg_name =  self.TIPC_CONFIG_VERSION
                             self.feedback('Update new tipc library')
+                            if self.INTERNET == False :
+                                syscall('cp -f %s/%s/tipc_config.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
+                                syscall('cp -f %s/%s/tipc.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
+                                syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
+                            self.installQueue.append(dep)
                         continue
 
                     
@@ -930,16 +944,20 @@ class ASPInstaller:
                 os.chdir(self.PRE_INSTALL_PKG)
 		pre_Install_List = fnmatch.filter(os.listdir(self.PRE_INSTALL_PKG),"*.rpm")
                 self.feedback('There are %d items to install' % len(pre_Install_List))
+                strin=''
 		for pre_Install in pre_Install_List:
                     self.feedback('install pkg :  %s' %(pre_Install))
                     #self.debug('Installing: ' + cmd)
                     result = syscall('rpm -Uvh --nodeps %s' %(pre_Install))
                     self.debug(str(result))
                 self.feedback('Successfully installed preinstall dependencies.')
+                if self.TIPC == False:
+                    os.chdir(self.WORKING_DIR)	
+                    syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))	                    
+                    syscall('cp -f %s/IDE/ASP/static/src/clTransport-udp.xml %s/IDE/ASP/static/src/clTransport.xml ' %(self.WORKING_DIR,self.WORKING_DIR))
+                else :                    
+                    syscall('cp -f %s/IDE/ASP/static/src/clTransport-tipc.xml %s/IDE/ASP/static/src/clTransport.xml ' %(self.WORKING_DIR,self.WORKING_DIR))
                 os.chdir(self.WORKING_DIR)
-                
-                
-	    	 
         return True                
     
     
@@ -952,9 +970,7 @@ class ASPInstaller:
         self.debug('doInstallation() %d items to install' % len(self.installQueue))
         
         for dep in self.installQueue:
-            
             self.feedback('Beginning configure, build, and install of: %s %s' % (dep.name, dep.version))
-
             if not dep.extract_install:
                 os.chdir(self.BUILD_DIR)                                            # move into build dir
                 syscall('tar xfm "%s" %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))    # pull out of pkg
@@ -988,9 +1004,11 @@ class ASPInstaller:
                     #myfile.write("CONFIG_TIPC=m\nCONFIG_TIPC_ADVANCED=y\nCONFIG_TIPC_NETID=4711\nCONFIG_TIPC_REMOTE_MNG=y\nCONFIG_TIPC_PORTS=8191\nCONFIG_TIPC_NODES=255\nCONFIG_TIPC_CLUSTERS=8\nCONFIG_TIPC_ZONES=4\nCONFIG_TIPC_REMOTES=8\nCONFIG_TIPC_PUBL=10000\nCONFIG_TIPC_SUBSCR=2000\nCONFIG_TIPC_LOG=0\nCONFIG_TIPC_UNICLUSTER_FRIENDLY=y\nCONFIG_TIPC_MULTIPLE_LINKS=y\nCONFIG_TIPC_CONFIG_SERVICE=y\nCONFIG_TIPC_SOCKET_API=y\n")
                 #myfile.close()
                 syscall('echo "CONFIG_TIPC=m\nCONFIG_TIPC_ADVANCED=y\nCONFIG_TIPC_NETID=4711\nCONFIG_TIPC_REMOTE_MNG=y\nCONFIG_TIPC_PORTS=8191\nCONFIG_TIPC_NODES=255\nCONFIG_TIPC_CLUSTERS=8\nCONFIG_TIPC_ZONES=4\nCONFIG_TIPC_REMOTES=8\nCONFIG_TIPC_PUBL=10000\nCONFIG_TIPC_SUBSCR=2000\nCONFIG_TIPC_LOG=0\nCONFIG_TIPC_UNICLUSTER_FRIENDLY=y\nCONFIG_TIPC_MULTIPLE_LINKS=y\nCONFIG_TIPC_CONFIG_SERVICE=y\nCONFIG_TIPC_SOCKET_API=y\nCONFIG_TIPC_SYSTEM_MSGS=y\nCONFIG_TIPC_DEBUG=y" >> .config')
+                self.feedback('make prepare and init module(might fail which is ok)')
                 #syscall('make prepare')
                 syscall('make modules_prepare 2>&1')
                 syscall('make init 2>&1')
+                self.feedback('make tipc module')
                 syscall('make M=net/tipc modules 2>&1')
                 syscall('make M=net/tipc modules_install 2>&1')
                 syscall('cp -f net/tipc/tipc.ko /lib/modules/`uname -r`/extra/')
@@ -1099,7 +1117,38 @@ class ASPInstaller:
 
 
         self.install_utilities()
+        # ------------------------------process psp---------------------------------------
+        WORKING_ROOT = self.WORKING_ROOT
+        self.feedback('Working root set to [%s], package root at [%s]' %(WORKING_ROOT, self.PACKAGE_ROOT) )
+        os.chdir ('%s' % WORKING_ROOT)
+        pspList = fnmatch.filter(os.listdir(WORKING_ROOT),"%s*.tar.gz" % PSP_NAME_STARTS_WITH)
+        self.feedback('List %s' %(pspList))
+        Pkg_Found = 0   # a flag to check for PSP presence
+        max_ver = 0
+        if len (pspList) == 0:
+           pspPkg =  PSPPKG_DEFAULT  # use for auto download PSP from FTP 
+        elif len (pspList) == 1:
+           Pkg_Found = 1
+           pspPkg = pspList[0]
+        else:
+           Pkg_Found = 1
+           for psp in pspList:
+               sub_vers = re.sub("\D", "", re.sub (PSP_NAME_STARTS_WITH, "", psp))               
+               if sub_vers:
+                  sub_vers = int (sub_vers)
+                  if sub_vers > max_ver:
+                     max_ver = sub_vers
+                     pspPkg = psp
 
+        PSPPKG_PATH = os.path.join(WORKING_ROOT, pspPkg)
+        if Pkg_Found :
+            self.feedback('Process PSP : install_dir : %s -- PSPPATH : %s' %(self.INSTALL_DIR,PSPPKG_PATH))
+            os.chdir ('%s' % self.INSTALL_DIR)
+            syscall('rm -rf PSP') # remove PSP    
+            syscall('tar zxf %s' % PSPPKG_PATH)        
+            syscall('mv %s* PSP' %(PSP_NAME_STARTS_WITH))
+            self.WITH_CM_BUILD = True
+        
         if self.DO_PREBUILD:
             self.prebuild()
 
@@ -1310,12 +1359,24 @@ class ASPInstaller:
                strin = "local"
 
            builds = re.split('\W+', strin)
+           no_tipc_build = ''
+           if self.TIPC == False :
+               no_tipc_build='--with-tipc-build=no'
            for b in builds:
              if b == 'local':
-               syscall ("%s/src/SAFplus/configure --with-asp-build > build.log" % self.PACKAGE_ROOT)
-             else: 
-               syscall ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s > build.log" % (self.PACKAGE_ROOT, b) )
-           
+               if self.WITH_CM_BUILD :
+                 self.feedback ("%s/src/SAFplus/configure --with-asp-build --with-cm-build=openhpi %s > build.log" % (self.PACKAGE_ROOT,no_tipc_build))
+                 syscall ("%s/src/SAFplus/configure --with-asp-build --with-cm-build=openhpi %s > build.log" %(self.PACKAGE_ROOT,no_tipc_build))
+               else :
+                 self.feedback ("%s/src/SAFplus/configure --with-asp-build %s> build.log" % (self.PACKAGE_ROOT,no_tipc_build))
+                 syscall ("%s/src/SAFplus/configure --with-asp-build %s> build.log" % (self.PACKAGE_ROOT,no_tipc_build))
+             else:
+               if self.WITH_CM_BUILD :
+                 self.feedback ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s --with-cm-build=openhpi %s > build.log" % (self.PACKAGE_ROOT, b,no_tipc_build) )
+                 syscall ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s --with-cm-build=openhpi %s > build.log" % (self.PACKAGE_ROOT, b,no_tipc_build) )
+               else : 
+                 self.feedback ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s %s > build.log" % (self.PACKAGE_ROOT, b,no_tipc_build) )
+                 syscall ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s %s > build.log" % (self.PACKAGE_ROOT, b,no_tipc_build) )
              self.feedback('Building asp %s' % b)
              cmd = 'asp/build/%s' % b
              os.chdir (cmd)
