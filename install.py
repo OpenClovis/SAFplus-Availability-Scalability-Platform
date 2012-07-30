@@ -6,6 +6,7 @@ import fnmatch
 import errno
 import types
 import urllib2
+from xml.dom import minidom
 
 
 # make sure they have a proper version of python
@@ -954,9 +955,31 @@ class ASPInstaller:
                 if self.TIPC == False:
                     os.chdir(self.WORKING_DIR)	
                     syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))	                    
-                    syscall('cp -f %s/IDE/ASP/static/src/clTransport-udp.xml %s/IDE/ASP/static/src/clTransport.xml ' %(self.WORKING_DIR,self.WORKING_DIR))
-                else :                    
-                    syscall('cp -f %s/IDE/ASP/static/src/clTransport-tipc.xml %s/IDE/ASP/static/src/clTransport.xml ' %(self.WORKING_DIR,self.WORKING_DIR))
+                clTranFile = '%s/IDE/ASP/static/src/clTransport.xml' %self.WORKING_DIR
+                dom = minidom.parse(clTranFile)
+                # change default value
+                config=dom.getElementsByTagName("config")[0]
+                for item in config.getElementsByTagName("default"):
+                    if self.TIPC == False :
+                        item.firstChild.replaceWholeText('UDP')
+                    else :
+                        item.firstChild.replaceWholeText('TIPC')
+                # change all xport value
+                xports=dom.getElementsByTagName("xport")
+                for xport in xports:
+                    for item in xport.getElementsByTagName("type"): 
+                        if self.TIPC == False:
+                            item.firstChild.replaceWholeText('UDP')
+                        else :
+                            item.firstChild.replaceWholeText('TIPC')
+                    for item in xport.getElementsByTagName("plugin"):
+                        if self.TIPC == False: 
+                            item.firstChild.replaceWholeText('libClUDP.so')
+                        else : 
+                            item.firstChild.replaceWholeText('libClTIPC.so')
+                #print dom.toxml()
+                #write to file
+                open(clTranFile,"wb").write(dom.toxml())
                 os.chdir(self.WORKING_DIR)
         return True                
     
