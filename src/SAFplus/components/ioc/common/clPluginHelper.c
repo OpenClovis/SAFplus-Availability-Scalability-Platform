@@ -343,6 +343,7 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
         clLogNotice("IOC",
                 CL_LOG_PLUGIN_HELPER_AREA,
                 "Operation command failed: [%s]", strerror(errno));
+        close(sd);
         return (0);
     }
 
@@ -353,6 +354,11 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
 
         /* Show the device name and IP address */
         addr = &(interface->ifr_addr);
+
+        //clLogTrace("IOC",
+        //                CL_LOG_PLUGIN_HELPER_AREA,
+        //                "Checking interface name [%s]",
+        //                interface->ifr_name);
 
         /* Checking if match interface name first */
         if (strlen(interface->ifr_name) == strlen(dev)
@@ -366,7 +372,7 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
                 clLogNotice("IOC",
                         CL_LOG_PLUGIN_HELPER_AREA,
                         "Operation command failed: [%s]", strerror(errno));
-                return (0);
+                goto out;
             }
 
             struct in_addr *in4_addr = &((struct sockaddr_in*)addr)->sin_addr;
@@ -374,19 +380,31 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
             {
                 struct in6_addr *in6_addr = &((struct sockaddr_in6*)addr)->sin6_addr;
                 if(!inet_ntop(PF_INET6, (const void*)in6_addr, addrStr, sizeof(addrStr)))
-                    return (0);
+                {
+                    goto out;
+                }
             }
+
+            //clLogTrace("IOC",
+            //                CL_LOG_PLUGIN_HELPER_AREA,
+            //                "Checking IP address [%s]",
+            //                addrStr);
 
             if (strlen(addrStr) == strlen(ip)
                     && memcmp(addrStr, ip, strlen(ip)) == 0)
             {
+                close(sd);
                 return (1);
             }
-            return (0);
+
+            /* Ignore other interfaces */
+            goto out;
         }
     }
 
-    return 0;
+out:
+    close(sd);
+    return (0);
 }
 
 void clPluginHelperAddRemVirtualAddress(const ClCharT *cmd, const ClPluginHelperVirtualIpAddressT *vip) {
