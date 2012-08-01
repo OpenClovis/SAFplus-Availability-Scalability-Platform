@@ -16,6 +16,7 @@
 #include <clCpmApi.h>
 #include <clEoApi.h>
 #include <clPluginHelper.h>
+#include <clDebugApi.h>
 
 #define CL_LOG_PLUGIN_HELPER_AREA "PLUGIN_HELPER"
 #define CL_PLUGIN_HELPER_ARP_REQUEST (1)
@@ -310,6 +311,108 @@ static void *_clPluginHelperPummelArps(void *arg) {
     return NULL;
 }
 
+/*
+ * Before calling ifconfig, we want to check if interface and ip existing,
+ * if so, just ignore the calling command
+ */
+static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
+{
+    int sd = -1;
+    int i = 0;
+    ClUint32T reqs = 0;
+    struct ifconf   ifc = {0};
+    struct ifreq    *ifr = NULL;
+    ClCharT addrStr[INET_ADDRSTRLEN] = {0};
+
+    /* Get a socket handle. */
+    sd = socket(PF_INET, SOCK_DGRAM, 0);
+    if (sd < 0) {
+        clLogError(
+                "IOC",
+                CL_LOG_PLUGIN_HELPER_AREA,
+                "open socket failed with error [%s]", strerror(errno));
+        return (0);
+    }
+
+    memset(&ifc, 0, sizeof(ifc));
+
+    /* Query available interfaces. */
+    do
+    {
+        reqs += 5;
+        ifc.ifc_len = reqs * sizeof(*ifr);
+        ifc.ifc_buf = realloc(ifc.ifc_buf, sizeof(*ifr) * reqs);
+        CL_ASSERT(ifc.ifc_buf != NULL);
+        if (ioctl(sd, SIOCGIFCONF, &ifc) < 0) {
+            clLogNotice("IOC",
+                    CL_LOG_PLUGIN_HELPER_AREA,
+                    "Operation command failed: [%s]", strerror(errno));
+            goto out;
+        }
+    } while (ifc.ifc_len == reqs * sizeof(*ifr));
+
+
+    /* Iterate through the list of interfaces. */
+    ifr = ifc.ifc_req;
+    for(i = 0; i < ifc.ifc_len; i += sizeof(*ifr))
+    {
+//        clLogTrace("IOC",
+//                        CL_LOG_PLUGIN_HELPER_AREA,
+//                        "Checking interface name [%s]",
+//                        ifr->ifr_name);
+
+        /* Checking if match interface name first */
+        if (strlen(ifr->ifr_name) == strlen(dev)
+                && memcmp(ifr->ifr_name, dev, strlen(dev)) == 0)
+        {
+
+            /* Get the address
+             * This may seem silly but it seems to be needed on some systems
+             */
+            if (ioctl(sd, SIOCGIFADDR, ifr) < 0) {
+                clLogNotice("IOC",
+                        CL_LOG_PLUGIN_HELPER_AREA,
+                        "Operation command failed: [%s]", strerror(errno));
+                break;
+            }
+
+            addrStr[0] = 0;
+            struct in_addr *in4_addr = &((struct sockaddr_in*)&ifr->ifr_addr)->sin_addr;
+            if(!inet_ntop(PF_INET, (const void *)in4_addr, addrStr, sizeof(addrStr)))
+            {
+                struct in6_addr *in6_addr = &((struct sockaddr_in6*)&ifr->ifr_addr)->sin6_addr;
+                if(!inet_ntop(PF_INET6, (const void*)in6_addr, addrStr, sizeof(addrStr)))
+                {
+                    goto out;
+                }
+            }
+
+//            clLogTrace("IOC",
+//                            CL_LOG_PLUGIN_HELPER_AREA,
+//                            "Checking IP address [%s]",
+//                            addrStr);
+
+            if (strlen(addrStr) == strlen(ip)
+                    && memcmp(addrStr, ip, strlen(ip)) == 0)
+            {
+                free(ifc.ifc_buf);
+                close(sd);
+                return (1);
+            }
+
+            /* Ignore other interfaces */
+            break;
+        }
+        ++ifr;
+    }
+
+out:
+    if (ifc.ifc_buf)
+        free(ifc.ifc_buf);
+    close(sd);
+    return (0);
+}
+
 void clPluginHelperAddRemVirtualAddress(const ClCharT *cmd, const ClPluginHelperVirtualIpAddressT *vip) {
     int up = 0;
     if (cmd[0] == 'u')
@@ -317,6 +420,19 @@ void clPluginHelperAddRemVirtualAddress(const ClCharT *cmd, const ClPluginHelper
 
     ClPluginHelperVirtualIpAddressT* vipCopy = malloc(sizeof(ClPluginHelperVirtualIpAddressT));
     memcpy(vipCopy, vip, sizeof(ClPluginHelperVirtualIpAddressT));
+
+    /*
+     * Ignore configure if IP and dev are already existing on node
+     */
+    if (_clCheckExistingDevIf(vipCopy->ip, vipCopy->dev))
+    {
+        clLogInfo("IOC",
+                CL_LOG_PLUGIN_HELPER_AREA,
+                "Ignored assignment IP address: %s, for device: %s",
+                vipCopy->ip,
+                vipCopy->dev);
+        goto out;
+    }
 
     if (vipCopy->ip && vipCopy->dev && vipCopy->netmask) 
     {
@@ -346,6 +462,8 @@ void clPluginHelperAddRemVirtualAddress(const ClCharT *cmd, const ClPluginHelper
         clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Virtual IP work assignment values incorrect: got IP address: %s, device: %s, mask: %s, net prefix: %s", 
                     vipCopy->ip, vipCopy->dev, vipCopy->netmask, vipCopy->subnetPrefix);
     }
+
+out:
     if(vipCopy)
         free(vipCopy);
 }
