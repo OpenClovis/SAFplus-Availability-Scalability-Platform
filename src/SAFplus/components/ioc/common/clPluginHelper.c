@@ -16,6 +16,7 @@
 #include <clCpmApi.h>
 #include <clEoApi.h>
 #include <clPluginHelper.h>
+#include <clDebugApi.h>
 
 #define CL_LOG_PLUGIN_HELPER_AREA "PLUGIN_HELPER"
 #define CL_PLUGIN_HELPER_ARP_REQUEST (1)
@@ -318,12 +319,10 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
 {
     int sd = -1;
     int i = 0;
-    ClUint8T buffer[0xffff+1];
+    ClUint32T reqs = 0;
     struct ifconf   ifc = {0};
     struct ifreq    *ifr = NULL;
-    struct ifreq    *interface;
-    struct sockaddr *addr;
-    ClCharT addrStr[INET_ADDRSTRLEN];
+    ClCharT addrStr[INET_ADDRSTRLEN] = {0};
 
     /* Get a socket handle. */
     sd = socket(PF_INET, SOCK_DGRAM, 0);
@@ -335,74 +334,81 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
         return (0);
     }
 
-    /* Query available interfaces. */
-    ifc.ifc_len = sizeof(buffer);
-    ifc.ifc_buf = (void *)buffer;
+    memset(&ifc, 0, sizeof(ifc));
 
-    if (ioctl(sd, SIOCGIFCONF, &ifc) < 0) {
-        clLogNotice("IOC",
-                CL_LOG_PLUGIN_HELPER_AREA,
-                "Operation command failed: [%s]", strerror(errno));
-        close(sd);
-        return (0);
-    }
+    /* Query available interfaces. */
+    do
+    {
+        reqs += 5;
+        ifc.ifc_len = reqs * sizeof(*ifr);
+        ifc.ifc_buf = realloc(ifc.ifc_buf, sizeof(*ifr) * reqs);
+        CL_ASSERT(ifc.ifc_buf != NULL);
+        if (ioctl(sd, SIOCGIFCONF, &ifc) < 0) {
+            clLogNotice("IOC",
+                    CL_LOG_PLUGIN_HELPER_AREA,
+                    "Operation command failed: [%s]", strerror(errno));
+            goto out;
+        }
+    } while (ifc.ifc_len == reqs * sizeof(*ifr));
+
 
     /* Iterate through the list of interfaces. */
     ifr = ifc.ifc_req;
-    for (i = 0; i < ifc.ifc_len / sizeof(struct ifreq); i++) {
-        interface = &ifr[i];
-
-        /* Show the device name and IP address */
-        addr = &(interface->ifr_addr);
-
-        //clLogTrace("IOC",
-        //                CL_LOG_PLUGIN_HELPER_AREA,
-        //                "Checking interface name [%s]",
-        //                interface->ifr_name);
+    for(i = 0; i < ifc.ifc_len; i += sizeof(*ifr))
+    {
+//        clLogTrace("IOC",
+//                        CL_LOG_PLUGIN_HELPER_AREA,
+//                        "Checking interface name [%s]",
+//                        ifr->ifr_name);
 
         /* Checking if match interface name first */
-        if (strlen(interface->ifr_name) == strlen(dev)
-                && memcmp(interface->ifr_name, dev, strlen(dev)) == 0)
+        if (strlen(ifr->ifr_name) == strlen(dev)
+                && memcmp(ifr->ifr_name, dev, strlen(dev)) == 0)
         {
 
             /* Get the address
              * This may seem silly but it seems to be needed on some systems
              */
-            if (ioctl(sd, SIOCGIFADDR, interface) < 0) {
+            if (ioctl(sd, SIOCGIFADDR, ifr) < 0) {
                 clLogNotice("IOC",
                         CL_LOG_PLUGIN_HELPER_AREA,
                         "Operation command failed: [%s]", strerror(errno));
-                goto out;
+                break;
             }
 
-            struct in_addr *in4_addr = &((struct sockaddr_in*)addr)->sin_addr;
+            addrStr[0] = 0;
+            struct in_addr *in4_addr = &((struct sockaddr_in*)&ifr->ifr_addr)->sin_addr;
             if(!inet_ntop(PF_INET, (const void *)in4_addr, addrStr, sizeof(addrStr)))
             {
-                struct in6_addr *in6_addr = &((struct sockaddr_in6*)addr)->sin6_addr;
+                struct in6_addr *in6_addr = &((struct sockaddr_in6*)&ifr->ifr_addr)->sin6_addr;
                 if(!inet_ntop(PF_INET6, (const void*)in6_addr, addrStr, sizeof(addrStr)))
                 {
                     goto out;
                 }
             }
 
-            //clLogTrace("IOC",
-            //                CL_LOG_PLUGIN_HELPER_AREA,
-            //                "Checking IP address [%s]",
-            //                addrStr);
+//            clLogTrace("IOC",
+//                            CL_LOG_PLUGIN_HELPER_AREA,
+//                            "Checking IP address [%s]",
+//                            addrStr);
 
             if (strlen(addrStr) == strlen(ip)
                     && memcmp(addrStr, ip, strlen(ip)) == 0)
             {
+                free(ifc.ifc_buf);
                 close(sd);
                 return (1);
             }
 
             /* Ignore other interfaces */
-            goto out;
+            break;
         }
+        ++ifr;
     }
 
 out:
+    if (ifc.ifc_buf)
+        free(ifc.ifc_buf);
     close(sd);
     return (0);
 }
