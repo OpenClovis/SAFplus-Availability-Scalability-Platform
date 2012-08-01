@@ -1,0 +1,20 @@
+<?xml version="1.0" ?><openClovisAsp>
+  <version v0="4.0.0">
+    <ioc:BootConfig xmlns:ioc="ioc.ecore">
+     <config>
+       <default>UDP</default>
+     </config>
+      <xports>
+        <xport>
+          <type>UDP</type>
+          <plugin>libClUDP.so</plugin>
+        </xport>
+      </xports>    
+      <heartbeat>
+        <interval>3000</interval>
+        <intervalLocal>3000</intervalLocal>
+        <retries>3</retries></heartbeat>
+      <multicast address="255.0.0.1" port="9595"/>
+   </ioc:BootConfig>
+  </version>
+</openClovisAsp>

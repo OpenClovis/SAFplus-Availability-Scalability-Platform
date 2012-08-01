@@ -955,31 +955,6 @@ class ASPInstaller:
                 if self.TIPC == False:
                     os.chdir(self.WORKING_DIR)	
                     syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))	                    
-                clTranFile = '%s/IDE/ASP/static/src/clTransport.xml' %self.WORKING_DIR
-                dom = minidom.parse(clTranFile)
-                # change default value
-                config=dom.getElementsByTagName("config")[0]
-                for item in config.getElementsByTagName("default"):
-                    if self.TIPC == False :
-                        item.firstChild.replaceWholeText('UDP')
-                    else :
-                        item.firstChild.replaceWholeText('TIPC')
-                # change all xport value
-                xports=dom.getElementsByTagName("xport")
-                for xport in xports:
-                    for item in xport.getElementsByTagName("type"): 
-                        if self.TIPC == False:
-                            item.firstChild.replaceWholeText('UDP')
-                        else :
-                            item.firstChild.replaceWholeText('TIPC')
-                    for item in xport.getElementsByTagName("plugin"):
-                        if self.TIPC == False: 
-                            item.firstChild.replaceWholeText('libClUDP.so')
-                        else : 
-                            item.firstChild.replaceWholeText('libClTIPC.so')
-                #print dom.toxml()
-                #write to file
-                open(clTranFile,"wb").write(dom.toxml())
                 os.chdir(self.WORKING_DIR)
         return True                
     
@@ -1384,7 +1359,7 @@ class ASPInstaller:
            builds = re.split('\W+', strin)
            no_tipc_build = ''
            if self.TIPC == False :
-               no_tipc_build='--with-tipc-build=no'
+               no_tipc_build='--with-tipc-build=no --with-default-template=udp'
            for b in builds:
              if b == 'local':
                if self.WITH_CM_BUILD :
@@ -1392,7 +1367,7 @@ class ASPInstaller:
                  syscall ("%s/src/SAFplus/configure --with-asp-build --with-cm-build=openhpi %s > build.log" %(self.PACKAGE_ROOT,no_tipc_build))
                else :
                  self.feedback ("%s/src/SAFplus/configure --with-asp-build %s> build.log" % (self.PACKAGE_ROOT,no_tipc_build))
-                 syscall ("%s/src/SAFplus/configure --with-asp-build %s> build.log" % (self.PACKAGE_ROOT,no_tipc_build))
+                 syscall ("%s/src/SAFplus/configure --with-asp-build %s >build.log " % (self.PACKAGE_ROOT,no_tipc_build))
              else:
                if self.WITH_CM_BUILD :
                  self.feedback ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s --with-cm-build=openhpi %s > build.log" % (self.PACKAGE_ROOT, b,no_tipc_build) )
@@ -1400,7 +1375,6 @@ class ASPInstaller:
                else : 
                  self.feedback ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s %s > build.log" % (self.PACKAGE_ROOT, b,no_tipc_build) )
                  syscall ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s %s > build.log" % (self.PACKAGE_ROOT, b,no_tipc_build) )
-             self.feedback('Building asp %s' % b)
              cmd = 'asp/build/%s' % b
              os.chdir (cmd)
              os.system ('make asp-libs')
