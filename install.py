@@ -1008,8 +1008,10 @@ class ASPInstaller:
                 syscall('make M=net/tipc modules 2>&1')
                 syscall('make M=net/tipc modules_install 2>&1')
                 syscall('cp -f net/tipc/tipc.ko /lib/modules/`uname -r`/extra/')
-                with open("tipc.conf","w") as myfile:
-                    myfile.write("install tipc insmod /lib/modules/`uname -r`/extra/tipc.ko")
+                
+                myfile = open("tipc.conf","w")
+                myfile.write("install tipc insmod /lib/modules/`uname -r`/extra/tipc.ko")
+                myfile.close()
                 syscall('cp -f tipc.conf /etc/modprobe.d/' )
                 syscall('modprobe tipc')
                 syscall('depmod -a -F /boot/System.map-`uname -r` `uname -r`')
