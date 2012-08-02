@@ -174,8 +174,6 @@ class ASPInstaller:
             self.PREINSTALL_ONLY = True
 
         if '--offline' in sys.argv:
-            if os.getuid() != 0:
-                self.feedback('\nYou must be root to run the preinstall phase', True)
             sys.argv.remove('--offline')            
             self.OFFLINE = True
             self.INTERNET = False
