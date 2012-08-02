@@ -1762,7 +1762,7 @@ ASP_UDP_LINK_NAME=$DEFAULT_UDP_LINKNAME" >> $TARGETCONF`;
             fi
         fi
         cat > $TARGETENV <<_ACEOF
-export ASP_UDP_SUBNET="169.254.100.0/24" 
+export ASP_UDP_SUBNET=169.254.100.0/24
 export ASP_UDP_LINK_NAME=eth0:10
 _ACEOF
     else

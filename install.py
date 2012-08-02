@@ -1142,7 +1142,7 @@ class ASPInstaller:
             os.chdir ('%s' % self.INSTALL_DIR)
             syscall('rm -rf PSP') # remove PSP    
             syscall('tar zxf %s' % PSPPKG_PATH)        
-            syscall('mv %s* PSP' %(PSP_NAME_STARTS_WITH))
+            syscall('mv %s*/ PSP' %(PSP_NAME_STARTS_WITH))
             self.WITH_CM_BUILD = True
         
         if self.DO_PREBUILD:
