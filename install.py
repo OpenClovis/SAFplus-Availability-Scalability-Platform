@@ -938,6 +938,8 @@ class ASPInstaller:
                 self.feedback('Successfully installed preinstall dependencies.')
             else:
                 os.chdir ('%s' %(os.path.dirname(self.WORKING_DIR)))
+                if not os.path.exists(PRE_INSTALL_PKG):
+                    self.feedback('Error : No %s.tar.gz package found' % self.PRE_INSTALL_PKG,True)                   
                 syscall('tar zxf %s' % PRE_INSTALL_PKG)
                 self.feedback('install preinstall dependencies without internet')
                 os.chdir(self.PRE_INSTALL_PKG)
@@ -1008,7 +1010,7 @@ class ASPInstaller:
                 syscall('make M=net/tipc modules 2>&1')
                 syscall('make M=net/tipc modules_install 2>&1')
                 syscall('cp -f net/tipc/tipc.ko /lib/modules/`uname -r`/extra/')
-                
+ 
                 myfile = open("tipc.conf","w")
                 myfile.write("install tipc insmod /lib/modules/`uname -r`/extra/tipc.ko")
                 myfile.close()

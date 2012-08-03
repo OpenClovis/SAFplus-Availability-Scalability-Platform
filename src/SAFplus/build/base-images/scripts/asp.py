@@ -552,8 +552,10 @@ def start_hpi_subagent():
                 if not os.path.exists('%s/openhpid' % get_asp_bin_dir()):
                     fail_and_exit('Need to start openhpid but it cannot '
                                   'be found in %s' % get_asp_bin_dir())
-
-                cmd = '%s/openhpid -c $OPENHPI_CONF' % get_asp_bin_dir()
+                pidfile=''
+                if os.getuid()!=0 :
+                    pidfile='-f %s/openhpi.pid' %get_asp_run_dir()
+                cmd = '%s/openhpid -c $OPENHPI_CONF %s'  %(get_asp_bin_dir(),pidfile)
                 os.system(cmd)
 
         cmd = '(sleep 60; setsid %s/hpiSubagent -s > '\

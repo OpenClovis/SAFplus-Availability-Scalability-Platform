@@ -1490,9 +1490,6 @@ export MODEL_BUILD=1
 export PROJECT_ONLY=0
 export TIPC_INC_DIR=include
 export ASP_SIMULATION=0
-export DEFAULT_SUBNET="169.254.100.0/24"
-export DEFAULT_UDP_LINKNAME=eth0:10        
-
 
 if [ $prefix != "NONE" ] ; then
     export PREFIX=$prefix
@@ -1747,24 +1744,6 @@ if [ "${with_tipc_build+set}" = set ]; then
     if [ $with_tipc_build == 'no' ]; then
         export BUILD_TIPC=0
         export OPENAIS_TIPC=0                
-        TARGETCONF="$sdk_dir/src/SAFplus/build/common/conf/target.conf"
-        TARGETENV="$sdk_dir/src/SAFplus/build/common/conf/target.env"                            
-        if [ $MODEL_BUILD = 1 ]; then            
-            TARGETCONF="$MODEL_PATH/target.conf"
-            TARGETENV="$MODEL_PATH/target.env"                        
-        fi
-        if [ -f "$TARGETCONF" ]; then
-            PRE_APPEND=`cat $TARGETCONF | grep "ASP_UDP_SUBNET"`;
-            echo $PRE_APPEND "append"
-            if [ "x$PRE_APPEND" = "x" ]; then
-                `echo "ASP_UDP_SUBNET=$DEFAULT_SUBNET
-ASP_UDP_LINK_NAME=$DEFAULT_UDP_LINKNAME" >> $TARGETCONF`;
-            fi
-        fi
-        cat > $TARGETENV <<_ACEOF
-export ASP_UDP_SUBNET=169.254.100.0/24
-export ASP_UDP_LINK_NAME=eth0:10
-_ACEOF
     else
         export BUILD_TIPC=1
     fi
@@ -1775,8 +1754,7 @@ if [ "${with_default_template+set}" = set ]; then
     if [ $with_default_template == 'udp' ]; then
         #coppy default template udp configfile
         if [ $MODEL_BUILD = 1 ]; then
-            $INSTALL $install_flags $sdk_dir/src/SAFplus/components/ioc/plugins/udp/udpCfgTemplate.xml $MODEL_PATH/config/clTranport.xml
-            echo "coppy file $INSTALL $install_flags $sdk_dir/SAFplus/components/ioc/plugins/udp/udpCfgTemplate.xml $MODEL_PATH/config/clTranport.xml"
+            $INSTALL $install_flags $sdk_dir/src/SAFplus/components/ioc/plugins/udp/udpCfgTemplate.xml $MODEL_PATH/config/clTranport.xml            
         else 
             $INSTALL $install_flags $sdk_dir/src/SAFplus/components/ioc/plugins/udp/udpCfgTemplate.xml $sdk_dir/IDE/ASP/static/src/clTransport.xml
         fi
@@ -1887,11 +1865,7 @@ if [ ! "x" == "x${ASP_MODEL_NAME}" -a ! $ASP_MODEL_NAME == "asp" ] 2> /dev/null 
     if [ ! -f $MODEL_PATH/target.conf ]; then
     	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.conf \
     	   $MODEL_PATH/target.conf 
-    fi
-    if [ ! -f $MODEL_PATH/target.env ]; then
-    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.env \
-    	   $MODEL_PATH/target.env 
-    fi
+    fi    
     if [ ! -f $MODEL_PATH/config/openhpi.conf ]; then
     	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/openhpi.conf \
     	   $MODEL_PATH/config/openhpi.conf
