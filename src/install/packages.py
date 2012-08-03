@@ -612,7 +612,7 @@ class CentOS6(OS):
         self.yum = True
     
     def load_preinstall_deps(self):
-        deps =  ['pkgconfig','libtool','libtool-libs','gcc','gcc-c++','gettext','kernel-devel','kernel-headers','perl-devel','db4','db4-devel','db4-utils','e2fsprogs','e2fsprogs-devel','gdbm','gdbm-devel','sqlite','sqlite-devel','make','libuuid-devel','ncurses-devel','zlib-devel']
+        deps =  ['pkgconfig','libtool','libtool-libs','gcc','gcc-c++','gettext','kernel-devel','kernel-headers','perl-devel','db4','db4-devel','db4-utils','e2fsprogs','e2fsprogs-devel','gdbm','gdbm-devel','sqlite','sqlite-devel','make','libuuid-devel','ncurses-devel','libtool-ltdl-devel','zlib-devel']
             
             
         for name in deps:
