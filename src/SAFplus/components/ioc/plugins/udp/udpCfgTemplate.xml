@@ -14,7 +14,7 @@
         <interval>3000</interval>
         <intervalLocal>3000</intervalLocal>
         <retries>3</retries></heartbeat>
-      <multicast address="255.0.0.1" port="9595"/>
+      <multicast address="226.0.1.1" port="9595"/>
    </ioc:BootConfig>
   </version>
 </openClovisAsp>
