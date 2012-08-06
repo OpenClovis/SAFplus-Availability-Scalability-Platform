@@ -26,11 +26,12 @@ SUBDIRS    = $(CM_DIR) ground \
              osal   \
              timer  \
              utils  \
+             eo     \
+             log    \
+             idl    \
              ioc    \
              rmd    \
-             idl    \
              dbal   \
-             eo     \
              debug  \
              amf    \
              alarm  \
@@ -47,16 +48,20 @@ SUBDIRS    = $(CM_DIR) ground \
 	     	 hal 	\
 	      	 gms	\
 	      	 msg	\
-             log    \
 			 mso    \
 			 pm     \
              ntf
 
-SUBDIRS += mw
+SUBDIRS += mw ioc/plugins
 
 #
 # If you have any ordering dependence among subdirectories, list them as
 # target-prerequisite pairs.
 # 
+#.PHONY: libs depend $(SUBDIRS) iocPlugins
+#all1: libs $(SUBDIRS) iocPlugins
 
 include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
+
+#iocPlugins:  
+#	make -C ioc/plugins all
