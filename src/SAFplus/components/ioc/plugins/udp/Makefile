@@ -46,14 +46,9 @@ SRC_FILES_libClUDP      := $(SRC_FILES)
 PURIFY_SHARED_LIB_NAMES := libClUDP
 
 ifdef SOLARIS_BUILD
-EXTRA_SHARED_LDFLAGS=-L$(ASP_LIB) -lClTimer -lClBuffer -lClOsal -lClCnt \
-                     -lClUtils -lClDbal $(LIB_BERKELEY_DB) -L$(MODEL_LIB)\
-                     -L$(COMP_ROOT)/ground/client -lClGround
+EXTRA_SHARED_LDFLAGS=-L$(ASP_LIB) -lmw $(LIB_BERKELEY_DB) -L$(MODEL_LIB) -L$(COMP_ROOT)/ground/client -lClGround
 else
-EXTRA_SHARED_LDFLAGS=-Wl,--start-group -L$(ASP_LIB) -lClTimer -lClBuffer -lClOsal -lClCnt \
-						     -lClUtils -L$(MODEL_LIB)\
-						-Wl,--end-group \
-				-L$(COMP_ROOT)/ground/client -lClGround
+EXTRA_SHARED_LDFLAGS=-Wl,--start-group -L$(ASP_LIB) -lmw -L$(MODEL_LIB) -Wl,--end-group -L$(COMP_ROOT)/ground/client -lClGround
 endif
 
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable

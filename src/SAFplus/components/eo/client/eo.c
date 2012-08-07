@@ -1123,8 +1123,7 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
         goto failure;
     }
 
-    clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
-               "Creating EO for [%s]", pConfig->EOname);
+    clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "Creating EO for [%s]. Msg threads [%d] comm port [%d] main thread? [%d] ", pConfig->EOname,pConfig->noOfThreads,pConfig->reqIocPort,pConfig->appType);
 
     if (pConfig->appType == CL_EO_USE_THREAD_FOR_APP &&
         pConfig->noOfThreads == 0)
