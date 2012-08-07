@@ -310,12 +310,13 @@ def set_up_asp_config():
         clTransportFile = path +'/clTransport.xml'
         if os.path.exists(clTransportFile):
             clTransport = xml.dom.minidom.parse(clTransportFile)            
-            default_Node = clTransport.getElementsByTagName("default")
-            node = default_Node[0]
-            child = node.firstChild
-            defaultProtocol = child.data
-            if(defaultProtocol=='UDP') :
-                d['build_tipc'] = '0'
+            list_Node = clTransport.getElementsByTagName("type")
+            d['build_tipc'] = '0'
+            for node in list_Node :            
+                child = node.firstChild
+                defaultProtocol = child.data            
+                if(defaultProtocol=='TIPC') :
+                    d['build_tipc'] = '1'
         path = sandbox +'/lib'        
         if not os.path.exists(sandbox +'/lib'+'/libClTIPC.so'):
             d['build_tipc'] = '0'
