@@ -52,7 +52,7 @@ DEP_COMP_CM :=
 # List local source files needed for the component server:
 
 BASE_OBJ_DIR := $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/obj
-
+ALL_OBJ_DIR = $(BASE_OBJ_DIR)
 CM_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ground/client/clGroundCm.o
 
 ifneq ($(strip $(CL_CM)),)
@@ -78,7 +78,8 @@ ALL_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ckpt/client/clIdlOpen.o 
 	$(BASE_OBJ_DIR)/components/ground/client/clGroundTrace.o \
 	$(BASE_OBJ_DIR)/components/ground/client/clGroundProvTxnStruct.o \
 	$(BASE_OBJ_DIR)/components/ground/client/clGroundCustom.o \
-	$(CM_CONFLICT_RESOLVE_OBJS)
+	$(BASE_OBJ_DIR)/ezxml.o \
+	$(CM_CONFLICT_RESOLVE_OBJS) 
 
 # List other ASP components of which client libraries your component
 # depends on:
