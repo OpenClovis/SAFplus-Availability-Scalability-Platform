@@ -78,7 +78,6 @@ ALL_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ckpt/client/clIdlOpen.o 
 	$(BASE_OBJ_DIR)/components/ground/client/clGroundTrace.o \
 	$(BASE_OBJ_DIR)/components/ground/client/clGroundProvTxnStruct.o \
 	$(BASE_OBJ_DIR)/components/ground/client/clGroundCustom.o \
-	$(BASE_OBJ_DIR)/ezxml.o \
 	$(CM_CONFLICT_RESOLVE_OBJS) 
 
 # List other ASP components of which client libraries your component
