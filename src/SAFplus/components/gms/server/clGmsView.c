@@ -109,6 +109,7 @@ static __inline__ void gmsViewCacheLastLeaderUpdate(ClIocNodeAddressT nodeId,
             !node->viewMember.clusterMember.isCurrentLeader)
     {
         gClLastLeaderViewNode = 0;
+        clLogNotice("LAST", "LEADER", "Last leader view cache reset from node [%d]", nodeId);
     }
 }
 
@@ -151,9 +152,7 @@ static ClRcT gmsViewCacheGet(ClGmsNodeIdT currentLeader, ClIocNodeAddressT nodeI
          */
         if(!gClTotemRunning
            &&
-           cache->nodeMember.viewMember.clusterMember.credential != CL_GMS_INELIGIBLE_CREDENTIALS
-           &&
-           !CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(cache->nodeMember.viewMember.clusterMember.isCurrentLeader))
+           cache->nodeMember.viewMember.clusterMember.credential != CL_GMS_INELIGIBLE_CREDENTIALS)
         {
             rc = CL_GMS_RC(CL_ERR_TRY_AGAIN);
             /*
