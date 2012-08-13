@@ -1889,8 +1889,10 @@ if [ ! "x" == "x${ASP_MODEL_NAME}" -a ! $ASP_MODEL_NAME == "asp" ] 2> /dev/null 
     	   $MODEL_PATH/target.conf 
     fi
     if [ ! -f $MODEL_PATH/target.env ]; then
-    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.env \
+        if [ ! -f $INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.env ]; then
+    	    $INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.env \
     	   $MODEL_PATH/target.env 
+        fi
     fi
     if [ ! -f $MODEL_PATH/config/openhpi.conf ]; then
     	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/openhpi.conf \
