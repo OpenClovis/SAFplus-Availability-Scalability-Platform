@@ -26,6 +26,9 @@
 #include <clIocApi.h>
 #include <clIocParseConfig.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define BCAST_SOCKET_NEEDED
 
@@ -109,5 +112,9 @@ clIocCommPortCreateStatic(ClUint32T portId, ClIocCommPortFlagsT portType,
 
 extern ClRcT 
 clIocCommPortDeleteStatic(ClIocCommPortT *pIocCommPort, const ClCharT *xportType);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

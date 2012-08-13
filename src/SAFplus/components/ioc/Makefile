@@ -31,9 +31,11 @@
 # common should always be before client and server
 
 SUBDIRS          = client
-ifeq ($(BUILD_SHARED), 1)
- SUBDIRS += plugins
-endif
+
+# Plugins removed because I have to do it after libmw 
+#ifeq ($(BUILD_SHARED), 1)
+# SUBDIRS += plugins
+#endif
 
 #
 # If you have any ordering dependence among subdirectories, list them as
