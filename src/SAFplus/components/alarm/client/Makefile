@@ -31,7 +31,7 @@ COR_PATH    := $(CLOVIS_ROOT)/ASP/components/cor
 SRC_FILES	:= clAlarmClient.c \
                clAlarmOMClass.c \
                clAlarmClientEngine.c \
-               clAlarmUtil.c \
+               clAlarmUtilClient.c \
                clAlarmContainer.c \
                ../common/clAlarmCommons.c \
                clAlarmClientDebug.c \
