@@ -964,7 +964,7 @@ clAmsEntitySetConfigNew(
                         clAmsFreeMemory(newCompConfig->pSupportedCSITypes);
                     rc = CL_AMS_RC(CL_AMS_ERR_BAD_CONFIG);
                     AMS_LOG(CL_DEBUG_ERROR,
-                            ("Comp config set: Invalid supported csitype: numTypes %s",newCompConfig->numSupportedCSITypes));
+                            ("Comp config set: Invalid supported csitype: numTypes %d",newCompConfig->numSupportedCSITypes));
                     goto exitfn;
                 }
                 /*
