@@ -84,7 +84,7 @@ DEP_COMP_LIST	:= ground \
 ALL_ASP_LIBS    :=         -lClTimer -lClBuffer -lClOsal -lClIoc -lClUtils -lClEo -lClMsoClient -lClProv \
 			   -lClLogClient -lClTxnClient -lClTxnAgent -lClSm -lClCnt -lClIdl -lClRmd \
 			   -lClCorClient -lClAmfClient -lClAmsMgmt -lClAmsXdr -lClDebugClient -lClFaultClient \
-				   -lClEventClient -lClDbal -lClGms -lClCm -lClCkpt -lClMedClient -lClNameClient \
+				   -lClEventClient -lClDbal -lClGms -lClCkpt -lClMedClient -lClNameClient \
 			   -lClUtils -lClIdlPtr -lClAlarmClient -lClAlarmUtils -lClAlarmXdr -lClOmClient -lClMsgClient \
 			   -lClPMClient -lClNtf -l3rdpartyutils -lClGroundClient 
 

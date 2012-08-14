@@ -391,10 +391,20 @@ quiet_cmd_link = LINK    $(call quiet-strip,$@)
 quiet_cmd_ar = AR      $(call quiet-strip,$@)
       cmd_ar = $(AR) $(ARFLAGS) $@ $^ 2>/dev/null
 
+quiet_cmd_all_ar = AR      $(call quiet-strip,$@)
+      cmd_all_ar = cd $(ALL_OBJ_DIR);\
+	$(AR) $(ARFLAGS) $@ $(subst $(ALL_OBJ_DIR),.,$(strip $^)); \
+	cd -
+
 #-------------------------------------------------------------------------------
 # Create a shared library from .o files
 quiet_cmd_link_shared = LINK-SO $(call quiet-strip,$@)
       cmd_link_shared = $(CC) $(LDFLAGS) $(TARGET_ARCH) $(EXTRA_LDLIBS) $^ -o $@ $(SHARED_LDFLAGS) 
+
+quiet_cmd_all_link_shared = LINK-SO $(call quiet-strip,$@)
+      cmd_all_link_shared = cd $(ALL_OBJ_DIR); \
+	$(CC) $(LDFLAGS) $(TARGET_ARCH) $(EXTRA_LDLIBS) $(subst $(ALL_OBJ_DIR),.,$(strip $^)) -o $@ $(SHARED_LDFLAGS);\
+	cd -
 
 #-------------------------------------------------------------------------------
 # Run ln -sf 
@@ -800,14 +810,18 @@ $(shell mkdir -p $(INC_DIR))
 $(shell $(ECHO) -e '\043 Generated make include file\056 do not modify' > $(INC_DIR)/libs.mk)
 ifneq ($(strip $(ALL_OBJ_FILES)),) 
  $(foreach lib, $(ALL_STATIC_LIB_NAMES), \
-   $(shell $(ECHO) "$(LIB_DIR)/$(lib).a: $(OBJ_FILES_$(lib))" >> $(INC_DIR)/libs.mk\
-		   && $(ECHO) -e  '\t$$(call cmd,ar)' >> $(INC_DIR)/libs.mk))
+    $(shell $(ECHO) -n "$(LIB_DIR)/$(lib).a: " >> $(INC_DIR)/libs.mk) \
+    $(foreach obj, $(OBJ_FILES_$(lib)), \
+        $(shell $(ECHO) -n "$(obj) " >> $(INC_DIR)/libs.mk) ) \
+    $(shell $(ECHO) -e '\n\t$$(call cmd,all_ar)' >> $(INC_DIR)/libs.mk) )
  $(foreach lib, $(ALL_SHARED_LIB_NAMES), \
-   $(shell $(ECHO) "$(LIB_DIR)/$(lib).so: $(LIB_DIR)/$(SHARED_DIR)/$(lib).so.$(ASP_VERSION)" >> $(INC_DIR)/libs.mk\
-    && $(ECHO) -e '\t$$(call cmd,ln) $(SHARED_DIR)/$(lib).so.$(ASP_VERSION) $(LIB_DIR)/$(lib).so\n' >> $(INC_DIR)/libs.mk\
-	&& $(ECHO) "$(LIB_DIR)/$(SHARED_DIR)/$(lib).so.$(ASP_VERSION): $(OBJ_FILES_$(lib))" >> $(INC_DIR)/libs.mk\
-	&& $(ECHO) -e  '\t$$(call cmd,link_shared)' >> $(INC_DIR)/libs.mk\
-  ))
+   $(shell $(ECHO) "$(LIB_DIR)/$(lib).so:$(LIB_DIR)/$(SHARED_DIR)/$(lib).so.$(ASP_VERSION)" >> $(INC_DIR)/libs.mk\
+    && $(ECHO) -e '\t$$(call cmd,ln) $(SHARED_DIR)/$(lib).so.$(ASP_VERSION) $(LIB_DIR)/$(lib).so\n' >> $(INC_DIR)/libs.mk) \
+    $(shell $(ECHO) -n "$(LIB_DIR)/$(SHARED_DIR)/$(lib).so.$(ASP_VERSION):" >> $(INC_DIR)/libs.mk) \
+    $(foreach obj, $(OBJ_FILES_$(lib)), \
+        $(shell $(ECHO) -n "$(obj) " >> $(INC_DIR)/libs.mk) ) \
+    $(shell $(ECHO) -e '\n\t$$(call cmd,all_link_shared)' >> $(INC_DIR)/libs.mk) \
+)
 else
 $(foreach lib,$(ALL_STATIC_LIB_NAMES), \
    $(shell $(ECHO) "$(LIB_DIR)/$(lib).a: $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(notdir $(SRC_FILES_$(lib):.c=.o))))" >> $(INC_DIR)/libs.mk\

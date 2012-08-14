@@ -43,6 +43,8 @@ include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 
 COMPNAME	:= mw 
 
+LIB_NAMES := libmw
+
 # I do not want to autogenerate a target for this so do not set LIB_NAMES := libmw
 
 RANLIB := ranlib
@@ -51,6 +53,8 @@ RANLIB := ranlib
 # List local source files needed for the component server:
 
 BASE_OBJ_DIR := $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/obj
+
+ALL_OBJ_DIR = $(BASE_OBJ_DIR)
 
 ALL_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ckpt/client/clIdlOpen.o \
 	$(BASE_OBJ_DIR)/components/msg/client/xdrClIocPhysicalAddressTMarshall.o \
@@ -70,7 +74,7 @@ ALL_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ckpt/client/clIdlOpen.o 
 	$(BASE_OBJ_DIR)/components/ground/client/clGroundTrace.o \
 	$(BASE_OBJ_DIR)/components/ground/client/clGroundProvTxnStruct.o \
 	$(BASE_OBJ_DIR)/components/ground/client/clGroundCustom.o \
-	$(CM_CONFLICT_RESOLVE_OBJS)
+	$(CM_CONFLICT_RESOLVE_OBJS) 
 
 # List other ASP components of which client libraries your component
 # depends on:
@@ -158,7 +162,7 @@ ALL_OBJ_FILES := $(OBJ_FILES)
 #exec := $(foreach file, $(OBJ_FILES), $(shell cp $(file) $(BASE_OBJ_DIR)/tmp))
 #OBJ_FILES:= $(wildcard $(BASE_OBJ_DIR)/tmp/*)
 
-NOVAR := $(shell echo $(OBJ_FILES) > objfiles.txt)
+#NOVAR := $(shell echo $(OBJ_FILES) > objfiles.txt)
 
 # Library name:
 
@@ -173,31 +177,4 @@ NOVAR := $(shell echo $(OBJ_FILES) > objfiles.txt)
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-# Don't build unless the "libs" target is called
-top: 
-
-libs: libmw
-
-
-
 include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
-
-# Because LIB_DIR is not defined until make-client is included...
-libmw: $(LIB_DIR)/libmw.so
-
-CMD := $(foreach file, $(OBJ_FILES), cp $(file) .; )
-
-$(LIB_DIR)/libmw.so: $(OBJ_FILES) #$(BASE_OBJ_DIR)/tmp
-	-rm -rf $(BASE_OBJ_DIR)/tmp
-	(mkdir -p $(BASE_OBJ_DIR)/tmp)
-	(cd $(BASE_OBJ_DIR)/tmp; $(CMD))
-	(cd $(BASE_OBJ_DIR)/tmp; $(CC) $(LDFLAGS) $(TARGET_ARCH) $(EXTRA_LDLIBS) *  -o $(LIB_DIR)/libmw.so $(SHARED_LDFLAGS))
-	cp $(LIB_DIR)/libmw.so $(LIB_DIR)/$(SHARED_DIR)/libmw.so.$(ASP_VERSION)
-	(cd $(BASE_OBJ_DIR)/tmp; $(AR) $(ARFLAGS) $(LIB_DIR)/libmw.a *  )
-
-
-
-#$(BASE_OBJ_DIR)/tmp:
-#	(mkdir -p $(BASE_OBJ_DIR)/tmp)
-#	(cd $(BASE_OBJ_DIR)/tmp; $(CMD))
-
