@@ -805,6 +805,32 @@ ClRcT clEoDebugDeregister(void)
     return rc;
 }
 
+ClRcT clEoConfigure(ClEoConfigT *eoConfig, 
+                    ClUint8T *basicLibs, ClUint32T numBasicLibs,
+                    ClUint8T *clientLibs, ClUint32T numClientLibs)
+{
+    if(eoConfig)
+    {
+        memcpy(&clEoConfig, eoConfig, sizeof(clEoConfig));
+    }
+
+    if(basicLibs)
+    {
+        memcpy(clEoBasicLibs, basicLibs, 
+               CL_MIN(sizeof(clEoBasicLibs)/sizeof(clEoBasicLibs[0]),
+                      numBasicLibs) * sizeof(*basicLibs));
+    }
+
+    if(clientLibs)
+    {
+        memcpy(clEoClientLibs, clientLibs,
+               CL_MIN(sizeof(clEoClientLibs)/sizeof(clEoClientLibs[0]),
+                      numClientLibs) * sizeof(*clientLibs));
+    }
+
+    return CL_OK;
+}
+
 /*
  * To all the application we need to pass 1. Component Name 2. Ioc Address So
  * as of now we have decided that these will be passed as environment variable 

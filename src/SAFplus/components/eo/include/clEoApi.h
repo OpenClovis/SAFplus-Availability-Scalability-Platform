@@ -117,6 +117,10 @@ extern "C" {
 #include <clEoErrors.h>
 #include <clRadixTree.h>
 
+#define CL_MAX_BASIC_LIBS (10)
+
+#define CL_MAX_CLIENT_LIBS (20)
+
 /******************************************************************************
  *  Constant and Macro Definitions
  *****************************************************************************/
@@ -1315,10 +1319,13 @@ extern ClEoConfigT clEoConfig;
  * Gms
  */
 
-extern ClUint8T clEoBasicLibs[];
+extern ClRcT clEoConfigure(ClEoConfigT *eoConfig, 
+                           ClUint8T *basicLibs, ClUint32T numBasicLibs,
+                           ClUint8T *clientLibs, ClUint32T numClientLibs);
 
-extern ClUint8T clEoClientLibs[];
+extern ClUint8T clEoBasicLibs[CL_MAX_BASIC_LIBS];
 
+extern ClUint8T clEoClientLibs[CL_MAX_CLIENT_LIBS];
 
 #ifdef __cplusplus
 }
