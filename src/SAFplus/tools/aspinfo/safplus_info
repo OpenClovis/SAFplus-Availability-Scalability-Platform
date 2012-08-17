@@ -441,9 +441,9 @@ def load_amf_db():
     """
     
     global _amf_db, _amf_db_timestamp
-    if _amf_db: # and time.time() <= _amf_db_timestamp + AMF_DB_CACHE_TIMEOUT:
-        dbmsg(1, 'working from cached AMF DB')
-        return _amf_db
+    # if _amf_db: # and time.time() <= _amf_db_timestamp + AMF_DB_CACHE_TIMEOUT:
+    #   dbmsg(1, 'working from cached AMF DB')
+    #     return _amf_db
 
     dbmsg(1, 'Getting fresh AMF DB')
     s, res = asp_console_execute(
