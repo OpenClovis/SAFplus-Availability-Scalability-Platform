@@ -278,7 +278,9 @@ ClRcT clRmdWithMsg(ClIocAddressT remoteObjAddr, /* remote Obj addr */
     ClIocPortT dstPort = 0;
     ClUint32T nodeVersion = 0;
     ClVersionT version = { CL_RELEASE_VERSION, CL_MAJOR_VERSION, CL_MINOR_VERSION };
-
+    static ClUint32T minVersion = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE,
+                                                  CL_MAJOR_VERSION_BASE,
+                                                  CL_MINOR_VERSION_BASE);
     CL_FUNC_ENTER();
 
     if (rmdInitDone == CL_FALSE)
@@ -343,19 +345,25 @@ ClRcT clRmdWithMsg(ClIocAddressT remoteObjAddr, /* remote Obj addr */
     }
 
     clEoClientGetFuncVersion(dstPort, funcId, &version);
+
     /*
-     * Now get the min. version of ASP running in the cluster.
-     * and use it if its lesser than the version of the function id
+     * Check node cache version only if function version is greater than minimum.
      */
-    clNodeCacheMinVersionGet(NULL, &nodeVersion);
-    
-    if(nodeVersion 
-       && 
-       nodeVersion < CL_VERSION_CODE(version.releaseCode, version.majorVersion, version.minorVersion))
+    if(minVersion < CL_VERSION_CODE(version.releaseCode, version.majorVersion, version.minorVersion))
     {
-        version.releaseCode = CL_VERSION_RELEASE(nodeVersion);
-        version.majorVersion = CL_VERSION_MAJOR(nodeVersion);
-        version.minorVersion = CL_VERSION_MINOR(nodeVersion);
+        /*
+         * Now get the min. version of ASP running in the cluster.
+         * and use it if its lesser than the version of the function id
+         */
+        clNodeCacheMinVersionGet(NULL, &nodeVersion);
+        if(nodeVersion 
+           && 
+           nodeVersion < CL_VERSION_CODE(version.releaseCode, version.majorVersion, version.minorVersion))
+        {
+            version.releaseCode = CL_VERSION_RELEASE(nodeVersion);
+            version.majorVersion = CL_VERSION_MAJOR(nodeVersion);
+            version.minorVersion = CL_VERSION_MINOR(nodeVersion);
+        }
     }
 
     rc = clRmdWithMessage(remoteObjAddr, &version, funcId, inMsgHdl, outMsgHdl, flags,
@@ -363,13 +371,13 @@ ClRcT clRmdWithMsg(ClIocAddressT remoteObjAddr, /* remote Obj addr */
 
     goto out;
 
-err_out:
+    err_out:
 
     if ((flags & CL_RMD_CALL_NON_PERSISTENT) && (inMsgHdl))
     {
         clBufferDelete(&inMsgHdl);
     }
-out :
+    out :
     CL_FUNC_EXIT();
 
     return rc;
