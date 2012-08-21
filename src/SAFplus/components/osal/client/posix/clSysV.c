@@ -86,7 +86,7 @@ ClRcT cosSysvProcessSharedSemInit(ClOsalMutexT *pMutex, ClUint8T *pKey, ClUint32
         return CL_OSAL_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    rc = clCksm32bitCompute(pKey, keyLen, &semKey);
+    rc = clCrc32bitCompute(pKey, keyLen, &semKey, NULL);
     CL_ASSERT(rc == CL_OK && semKey );
 
     pthread_mutex_lock(&gClSemAccessLock);
@@ -314,7 +314,7 @@ cosSysvSemCreate (ClUint8T* pName, ClUint32T count, ClOsalSemIdT* pSemId)
         CL_DEBUG_PRINT (CL_DEBUG_INFO,("Sanity check, semaphore name [%s] is suspiciously long",pName));
     }
 
-    retCode = (ClInt32T)clCksm32bitCompute (pName, len, &key);
+    retCode = (ClInt32T)clCrc32bitCompute (pName, len, &key, NULL);
     CL_ASSERT(retCode == CL_OK); /* There is no possible error except for pName == NULL, which I've already checked, so don't check the retCode */
 
 
@@ -354,7 +354,7 @@ cosSysvSemIdGet(ClUint8T* pName, ClOsalSemIdT* pSemId)
         CL_DEBUG_PRINT (CL_DEBUG_INFO,("Sanity check, semaphore name [%s] is suspiciously long",pName));
     }
 
-    retCode = clCksm32bitCompute (pName, len, &key);
+    retCode = clCrc32bitCompute (pName, len, &key, NULL);
     CL_ASSERT(retCode == CL_OK); /* There is no possible error except for pName == NULL, which I've already checked, so don't check the retCode */
 
     semId = semget ((key_t)key, (int)count, 0660);
@@ -503,7 +503,7 @@ cosSysvShmCreate(ClUint8T* pName, ClUint32T size, ClOsalShmIdT* pShmId)
         
     len = (ClUint32T)strlen ((ClCharT*) pName);
 
-    retCode = (ClInt32T)clCksm32bitCompute (pName, len, &key);
+    retCode = (ClInt32T)clCrc32bitCompute (pName, len, &key, NULL);
 
     if(CL_OK != retCode)
     {
@@ -597,7 +597,7 @@ cosSysvShmIdGet(ClUint8T* pName, ClOsalShmIdT* pShmId)
 
     len = (ClUint32T)strlen ((ClCharT*)pName);
 
-    retCode = clCksm32bitCompute (pName, len, &key);
+    retCode = clCrc32bitCompute (pName, len, &key, NULL);
 
     if(CL_OK != retCode)
     {

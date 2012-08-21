@@ -35,7 +35,7 @@
 #include <clCorPvt.h>
 #include <clCorLog.h>
 #include <clCpmApi.h>
-#include <crc.h>
+#include <clCksmApi.h>
 
 /* internal */
 #include <xdrCorClientMoIdToNodeNameT.h>
@@ -224,7 +224,7 @@ static ClUint32T clCorNodeNameKeyGen(ClNameT *name)
 {
 	ClUint32T hashVal = 0, keyLen = 0;
 
-    if(crc((unsigned char *)name->value, name->length, &hashVal, &keyLen) != 0)
+    if(clCrc32bitCompute((unsigned char *)name->value, name->length, &hashVal, &keyLen) != 0)
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Failed to get the key using crc algorithm . "));
     
     CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Generating Key %u keyLen %u for the node Name %s", hashVal, keyLen, name->value));

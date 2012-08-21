@@ -34,8 +34,7 @@
  *****************************************************************************/
 
 #include <string.h>
-#include <crc.h>
-
+#include <clCksmApi.h>
 #include <clAmsErrors.h>
 #include <clAmsServerUtils.h>
 #include <clAmsModify.h>
@@ -2149,7 +2148,7 @@ clAmsCSISetNVP(
 
     ClAmsCSIT  *csi = (ClAmsCSIT *)entityRef.ptr;
 
-    AMS_CALL ( crc(
+    AMS_CALL ( clCrc32bitCompute(
                 ( ClUint8T *)nvp.paramName.value, 
                 nvp.paramName.length,
                 &entityKey,
@@ -2331,8 +2330,8 @@ clAmsCSIDeleteNVP(
 
     ClAmsCSIT  *csi = (ClAmsCSIT *)entityRef.ptr;
 
-    AMS_CHECK_RC_ERROR ( crc( ( ClUint8T *)nvp.paramName.value, 
-                nvp.paramName.length, &entityKey, &keyLength));
+    AMS_CHECK_RC_ERROR ( clCrc32bitCompute( ( ClUint8T *)nvp.paramName.value, 
+                                            nvp.paramName.length, &entityKey, &keyLength));
 
     /*
      * Endianesss considerations. entityKey is 16bit but handle is either 32 or

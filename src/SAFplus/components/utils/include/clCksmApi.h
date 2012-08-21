@@ -147,6 +147,12 @@ clCksm16bitCompute (ClUint8T *pData, ClUint32T length, ClUint16T *pCheckSum);
 ClRcT
 clCksm32bitCompute (ClUint8T *pData, ClUint32T length, ClUint32T *pCheckSum);
 
+ClRcT clCrc32bitCompute(
+        ClUint8T *buf, 
+        register ClInt32T nr, 
+        ClUint32T *cval, 
+        ClUint32T *clen);
+
 #ifdef __cplusplus
 }
 #endif
