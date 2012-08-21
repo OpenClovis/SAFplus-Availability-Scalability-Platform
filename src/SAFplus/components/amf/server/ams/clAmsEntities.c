@@ -35,7 +35,7 @@
  * Include files needed to compile this file
  *****************************************************************************/
 
-#include <crc.h>
+#include <clCksmApi.h>
 #include <clOsalApi.h>
 
 #include <clAms.h>
@@ -2941,7 +2941,7 @@ clAmsEntityGetKey(
 
     AMS_CHECKPTR ( !entity || !entityKeyHandle );
 
-    AMS_CALL ( crc(
+    AMS_CALL ( clCrc32bitCompute(
                  ( ClUint8T *)entity->name.value, 
                  entity->name.length,
                  &entityKey,

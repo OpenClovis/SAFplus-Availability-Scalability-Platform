@@ -64,9 +64,7 @@ THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
 THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/utils/
 
 THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH)	\
-		   -L$(THIRD_PARTY_UTILS_PATH)	\
-		   -lezxml			\
-		   -l3rdpartyutils
+		   -lezxml
 
 ##### Include paths for AMS server code
 ifeq ($(HCL_CM),1)

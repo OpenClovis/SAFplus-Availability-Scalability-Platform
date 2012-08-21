@@ -34,8 +34,7 @@
  *****************************************************************************/
 
 #include <string.h>
-#include <crc.h>
-
+#include <clCksmApi.h>
 #include <clAmsErrors.h>
 #include <clAmsServerUtils.h>
 #include <clAmsModify.h>
@@ -2180,7 +2179,7 @@ amsCSISetNVP(
         clAmsMarkEntityDirty(&csi->config.entity);
     }
 
-    AMS_CALL ( crc(
+    AMS_CALL ( clCrc32bitCompute(
                 ( ClUint8T *)nvp->paramName.value, 
                 nvp->paramName.length,
                 &entityKey,
@@ -2383,7 +2382,7 @@ clAmsCSIDeleteNVP(
 
     clAmsMarkEntityDirty(&csi->config.entity);
 
-    AMS_CHECK_RC_ERROR ( crc( ( ClUint8T *)nvp.paramName.value, 
+    AMS_CHECK_RC_ERROR ( clCrc32bitCompute( ( ClUint8T *)nvp.paramName.value, 
                 nvp.paramName.length, &entityKey, &keyLength));
 
     /*

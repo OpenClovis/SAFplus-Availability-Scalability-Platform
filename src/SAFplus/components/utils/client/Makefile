@@ -41,6 +41,7 @@ SRC_FILES	:= clPool.c \
 		   bit.c \
 		   rule.c \
 		   cksm.c \
+           crcbsd.c \
 		   queue.c \
 		   clist.c \
 		   parser.c \

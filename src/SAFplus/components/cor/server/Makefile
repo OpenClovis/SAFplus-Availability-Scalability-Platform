@@ -49,7 +49,7 @@ SRC_FILES	:= $(wildcard idl/*.c) \
                    clCorTxnProcess.c   clCorDmClass.c      clCorMArray.c          \
                    clCorMOTree.c       clCorObjExport.c      clCorRmMain.c        \
                    clCorUtilityServer.c clCorDeltaSave.c clCorModule.c
-		
+
 # List other ASP components of which client libraries your component
 # depends on:
 
@@ -83,9 +83,7 @@ ASP_LIBS	:= libClTimer.a         \
 # List any third party libs needed to get this server built (or None):
 
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
-THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/utils
 
-THIRDPARTY_LIBS := -l3rdpartyutils
 ifeq ($(TARGET_POSIX), 1)
 	DB_LIBS := -db
 else
