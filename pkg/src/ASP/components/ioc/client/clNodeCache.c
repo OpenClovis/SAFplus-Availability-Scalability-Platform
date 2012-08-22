@@ -66,6 +66,8 @@ static ClCharT gClNodeCacheSegment[CL_MAX_NAME_LENGTH+1];
 static ClFdT gClNodeCacheFd;
 static ClOsalSemIdT gClNodeCacheSem;
 static ClBoolT gClNodeCacheOwner;
+static ClIocNodeAddressT gClMinVersionNode;
+static ClUint32T gClMinVersion;
 
 typedef struct ClNodeCacheHeader
 {
@@ -332,7 +334,8 @@ static void nodeCacheMinVersionSet(void)
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersionNode = 0;
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion = 0;
     }
-
+    gClMinVersionNode = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersionNode;
+    gClMinVersion = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion;
 }
 
 static ClRcT nodeCacheViewGetWithFilterFast(ClNodeCacheMemberT *pMembers, 
@@ -614,6 +617,8 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version,
     {
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersion = version;
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->minVersionNode = nodeAddress;
+        gClMinVersion = version;
+        gClMinVersionNode = nodeAddress;
     }
 
     clOsalSemUnlock(gClNodeCacheSem);
@@ -806,6 +811,17 @@ ClRcT clNodeCacheMinVersionGet(ClIocNodeAddressT *pNodeAddress, ClUint32T *pVers
     ClRcT   rc = CL_OK;
 
     if(!pVersion) return CL_ERR_INVALID_PARAMETER;
+
+    /*
+     * First check cached.
+     */
+    if(gClMinVersion)
+    {
+        *pVersion = gClMinVersion;
+        if(pNodeAddress)
+            *pNodeAddress = gClMinVersionNode;
+        return CL_OK;
+    }
 
     rc = clOsalSemLock(gClNodeCacheSem);
     if (rc != CL_OK)
