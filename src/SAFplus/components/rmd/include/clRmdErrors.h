@@ -52,7 +52,8 @@ extern "C"
  * RMD Specific Error Codes.
  */
 # define CL_RMD_RC(ERROR_CODE)        CL_RC(CL_CID_RMD, (ERROR_CODE))
-
+# define CL_RMD_ERR_CONTINUE          CL_RMD_RC(CL_ERR_CONTINUE)
+# define CL_RMD_ERR_INUSE             CL_RMD_RC(CL_ERR_INUSE)
 
 # ifdef __cplusplus
 }

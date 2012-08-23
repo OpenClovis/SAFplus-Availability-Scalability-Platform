@@ -34,6 +34,7 @@
  */
 #include <clCommonErrors.h>
 #include <clRmdIpi.h>
+#include <clRmdErrors.h>
 #include <clCpmApi.h>
 #include <clDebugApi.h>
 #include <clIocErrors.h>
@@ -2341,6 +2342,10 @@ ClRcT VDECL(cpmNodeConfigGet)(ClEoDataT data,
     ClNameT nodeName = {0};
     ClCpmLT *cpmL = NULL;
     ClCpmNodeConfigT nodeConfig = {{0}};
+
+    if(!CL_CPM_IS_ACTIVE())
+        return CL_RMD_ERR_CONTINUE;
+
     rc = clXdrUnmarshallClNameT(inMsgHdl, &nodeName);
     if(rc != CL_OK)
     {

@@ -2690,7 +2690,7 @@ ClRcT cpmGetConfig(void)
             else break;
         }
 
-        if(rc != CL_OK)
+        if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_SUPPORTED)
         {
             CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
                            ("CPM exiting because of master address get failure with [%#x]", rc));

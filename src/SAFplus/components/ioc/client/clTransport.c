@@ -296,7 +296,7 @@ static ClRcT xportServerReadyFake(ClIocAddressT *pAddress)
 
 static ClRcT xportMasterAddressGetFake(ClIocLogicalAddressT la, ClIocPortT port, ClIocNodeAddressT *masterAddress)
 { 
-    clLogNotice("XPORT", "MASTER", "Inside fake master address get");
+    clLogInfo("XPORT", "MASTER", "Inside fake master address get");
     return CL_ERR_NOT_SUPPORTED;
 }
 
@@ -1800,10 +1800,14 @@ ClRcT clTransportMasterAddressGet(const ClCharT *type, ClIocLogicalAddressT la,
 }
 
 ClRcT clTransportMasterAddressGetDefault(ClIocLogicalAddressT la,
-        ClIocPortT port, ClIocNodeAddressT *masterAddress) {
+                                         ClIocPortT port, ClIocNodeAddressT *masterAddress) 
+{
     ClRcT rc = CL_OK;
-    if (clAspNativeLeaderElection()) {
+    if (clAspNativeLeaderElection()) 
+    {
         rc = clNodeCacheLeaderGet(masterAddress);
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+            goto xport_master;
         return rc;
     }
 
@@ -1825,6 +1829,8 @@ ClRcT clTransportMasterAddressGetDefault(ClIocLogicalAddressT la,
             return rc;
         }
     }
+
+    xport_master:
     return transportMasterAddressGet(gClXportDefault, la, port, masterAddress);
 }
 
