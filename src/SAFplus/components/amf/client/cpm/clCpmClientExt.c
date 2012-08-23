@@ -1331,7 +1331,7 @@ ClRcT clCpmMasterAddressGetExtended(ClIocNodeAddressT *pIocAddress,
     else
         rc = clIocMasterAddressGetExtended(logicalAddr, CL_IOC_CPM_PORT, pIocAddress,
                                            numRetries, pDelay);
-    if(rc != CL_OK)
+    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_SUPPORTED)
     {
         rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
     }
@@ -1765,8 +1765,13 @@ ClRcT clCpmNodeConfigGet(const ClCharT *nodeName, ClCpmNodeConfigT *nodeConfig)
     rc = clCpmMasterAddressGet(&masterAddress);
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CONFIG", "Master address get returned [%#x]", rc);
-        goto out;
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_SUPPORTED)
+            masterAddress = CL_IOC_BROADCAST_ADDRESS;
+        else
+        {
+            clLogError("NODE", "CONFIG", "Master address get returned [%#x]", rc);
+            goto out;
+        }
     }
 
     rc = clCpmClientRMDSyncNew(masterAddress, CPM_MGMT_NODE_CONFIG_GET,
@@ -1779,6 +1784,11 @@ ClRcT clCpmNodeConfigGet(const ClCharT *nodeName, ClCpmNodeConfigT *nodeConfig)
     if(rc != CL_OK)
     {
         clLogError("NODE", "CONFIG", "Node config get RMD returned [%#x]", rc);
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT 
+           && 
+           masterAddress == CL_IOC_BROADCAST_ADDRESS)
+            rc = CL_ERR_NOT_EXIST;
+
         goto out;
     }
 

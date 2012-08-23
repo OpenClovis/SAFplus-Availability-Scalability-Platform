@@ -399,7 +399,7 @@ ClRcT rmdHandleAsyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
         tmpFlags = replyPkt.ClRmdHdr.flags;
         tmpFlags &= ~CL_RMD_CALL_ATMOST_ONCE;
         replyPkt.ClRmdHdr.flags = tmpFlags;
-        rc = CL_RMD_RC(CL_ERR_INUSE);
+        rc = CL_RMD_ERR_INUSE;
     }
 
     responseContext.ClRmdHdr = replyPkt.ClRmdHdr;
@@ -725,7 +725,7 @@ ClRcT rmdHandleSyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
         flags = replyPkt.ClRmdHdr.flags;
         flags &= ~CL_RMD_CALL_ATMOST_ONCE;
         replyPkt.ClRmdHdr.flags = flags;
-        rc = CL_RMD_RC(CL_ERR_INUSE);
+        rc = CL_RMD_ERR_INUSE;
     }
 
     responseContext.ClRmdHdr = replyPkt.ClRmdHdr;
@@ -1154,7 +1154,9 @@ ClRcT clRmdHandleSyncReply(ClEoExecutionObjT *pThis, ClRmdPktT *pRepl, ClUint32T
                 /*
                  * Obtain the Return Code
                  */
-                if(pRepl->ClRmdHdr.rmdReqRepl.rc == CL_RMD_RC(CL_ERR_INUSE))
+                if(pRepl->ClRmdHdr.rmdReqRepl.rc == CL_RMD_ERR_INUSE
+                    ||
+                   pRepl->ClRmdHdr.rmdReqRepl.rc == CL_RMD_ERR_CONTINUE)
                 {
                     clOsalMutexUnlock(pRmdObject->semaForSendHashTable);
                     return CL_OK;
@@ -1234,7 +1236,9 @@ static ClRcT rmdHandleAsyncReply(ClEoExecutionObjT *pThis, ClRmdPktT *pRepl, ClU
              */
             if (rec)
             {
-                if(pRepl->ClRmdHdr.rmdReqRepl.rc == CL_RMD_RC(CL_ERR_INUSE))
+                if(pRepl->ClRmdHdr.rmdReqRepl.rc == CL_RMD_ERR_INUSE
+                   ||
+                   pRepl->ClRmdHdr.rmdReqRepl.rc == CL_RMD_ERR_CONTINUE)
                 {
                     clOsalMutexUnlock(pRmdObject->semaForSendHashTable);
                     clBufferDelete(&outMsgHandle);
