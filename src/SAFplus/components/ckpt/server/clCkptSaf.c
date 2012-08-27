@@ -3940,14 +3940,14 @@ ClRcT ckptPresenceListNodeDelete( ClCntKeyHandleT   key,
     CkptT           *pCkpt     = NULL;
     ClCkptHdlT      ckptHdl    = *(ClCkptHdlT *)hdl;
     ClRcT           rc         = CL_OK;
-    ClCkptAppInfoT  *pAappInfo = NULL;   
+    ClCkptAppInfoT  *pAppInfo = NULL;   
 
     if (pData == NULL) return CL_CKPT_ERR_NULL_POINTER;
 
     /*
      * Obtain the address of the node/ckptserver going down.
      */
-    pAappInfo = (ClCkptAppInfoT *)pData;
+    pAppInfo = (ClCkptAppInfoT *)pData;
 
     /*
      * Retrieve the information associated with the checkpoint handle.
@@ -3966,19 +3966,33 @@ ClRcT ckptPresenceListNodeDelete( ClCntKeyHandleT   key,
         {
             if (pCkpt->pCpInfo->presenceList != 0)
             {
+                if(CKPT_DIFFERENTIAL_REPLICA(gCkptSvr->replicationFlags))
+                {
+                    ClDifferenceVectorKeyT *key = clDifferenceVectorKeyMake(NULL,
+                                                                            &pCkpt->ckptName,
+                                                                            "__VECTOR__%d",
+                                                                            pAppInfo->nodeAddress);
+                    if(clDifferenceVectorKeyCheck(key))
+                    {
+                        clDifferenceVectorDelete(key);
+                    }
+                    clDifferenceVectorKeyFree(key);
+                    clHeapFree(key);
+                }
+
                 /*
                  * Delete the container node associated with the passed
                  * node address.
                  */
                 clCntAllNodesForKeyDelete(pCkpt->pCpInfo->presenceList,
                                           (ClCntKeyHandleT)(ClWordT)
-                                          pAappInfo->nodeAddress);
+                                          pAppInfo->nodeAddress);
             }
             if( pCkpt->pCpInfo->appInfoList != 0 )
             {
                 clCntAllNodesForKeyDelete(pCkpt->pCpInfo->appInfoList, 
                                           (ClCntKeyHandleT)(ClWordT)
-                                          pAappInfo);
+                                          pAppInfo);
             }
         }
         CKPT_UNLOCK(pCkpt->ckptMutex);
