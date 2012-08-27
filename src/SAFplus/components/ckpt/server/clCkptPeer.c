@@ -3272,6 +3272,7 @@ clCkptRemSvrSectionOverwriteVector(ClCkptHdlT        ckptHdl,
          */
         if (peerAddr != gCkptSvr->localAddr)
         {
+            ClBoolT linear = CL_FALSE;
             /*
              * Allocate memory for section data to be packed and sent to 
              * replicas.
@@ -3280,6 +3281,19 @@ clCkptRemSvrSectionOverwriteVector(ClCkptHdlT        ckptHdl,
             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                            ("Failed to update the handle rc[0x %x]\n", rc), rc);
 
+            if(differenceVector)
+            {
+                ClDifferenceVectorKeyT *key = clDifferenceVectorKeyMake(NULL,
+                                                                        &pCkpt->ckptName,
+                                                                        "__VECTOR__%d",
+                                                                        peerAddr);
+                if(!clDifferenceVectorKeyCheckAndAdd(key))
+                {
+                    linear = CL_TRUE;
+                }
+                clDifferenceVectorKeyFree(key);
+                clHeapFree(key);
+            }
             /*
              * Update the replica.
              */
@@ -3289,7 +3303,7 @@ clCkptRemSvrSectionOverwriteVector(ClCkptHdlT        ckptHdl,
                  * Use the defer sync concept.
                  */
                 pCallInfo->cbCount++;
-                if(differenceVector)
+                if(differenceVector && !linear)
                 {
                     rc = VDECL_VER(_ckptSectionOverwriteVectorClientAsync, 4, 0, 0)(
                                                                                     gCkptSvr->ckptIdlHdl,
@@ -3332,7 +3346,7 @@ clCkptRemSvrSectionOverwriteVector(ClCkptHdlT        ckptHdl,
                 /*
                  * Make async call.
                  */
-                if(differenceVector)
+                if(differenceVector && !linear)
                 {
                     rc = VDECL_VER(_ckptSectionOverwriteVectorClientAsync, 4, 0, 0)(
                                                                                     gCkptSvr->ckptIdlHdl,

@@ -58,10 +58,13 @@ static ClDifferenceBlockT *differenceVectorFind(ClDifferenceVectorKeyT *key, ClU
     return NULL;
 }
 
-static ClDifferenceBlockT *differenceVectorAdd(ClDifferenceVectorKeyT *key)
+static ClDifferenceBlockT *differenceVectorAdd(ClDifferenceVectorKeyT *key,
+                                               ClBoolT *lastStatus)
 {
     ClDifferenceBlockT *block;
     ClUint32T hashKey = 0;
+    ClBoolT status = CL_TRUE;
+
     block = differenceVectorFind(key, &hashKey);
     if(!block)
     {
@@ -72,7 +75,12 @@ static ClDifferenceBlockT *differenceVectorAdd(ClDifferenceVectorKeyT *key)
         block->key.sectionKey = clStringDup(key->sectionKey);
         CL_ASSERT(block->key.sectionKey != NULL);
         hashAdd(differenceVectorTable, hashKey, &block->hash);
+        status = CL_FALSE;
     }
+
+    if(lastStatus)
+        *lastStatus = status;
+
     return block;
 }
 
@@ -334,7 +342,7 @@ static ClUint8T *differenceVectorMerge(ClDifferenceVectorKeyT *key, ClDifference
 {
     ClDifferenceBlockT *block;
     ClUint8T *mergeSpace;
-    block = differenceVectorAdd(key);
+    block = differenceVectorAdd(key, NULL);
     CL_ASSERT(block != NULL);
     mergeSpace = __differenceVectorMerge(block->data, block->size, vector, offset, size);
     if(block->data != mergeSpace)
@@ -379,7 +387,7 @@ static ClUint32T differenceVectorGet(ClDifferenceVectorKeyT *key, ClUint8T *data
                                      ClDifferenceBlockT **pBlock)
 {
     ClDifferenceBlockT *block;
-    block = differenceVectorAdd(key);
+    block = differenceVectorAdd(key, NULL);
     CL_ASSERT(block != NULL);
     if(pBlock) *pBlock = block;
     /*
@@ -479,6 +487,54 @@ void clDifferenceVectorCopy(ClDifferenceVectorT *dest, ClDifferenceVectorT *src)
 
 }
 
+ClDifferenceVectorKeyT *clDifferenceVectorKeyMake(ClDifferenceVectorKeyT *key,
+                                                  const ClNameT *groupKey, 
+                                                  const ClCharT *sectionFmt, ...)
+{
+    ClInt32T sectionLen = 0;
+    ClCharT *sectionKey = NULL;
+    ClCharT c;
+    va_list arg;
+    
+    if(!key)
+    {
+        key = clHeapCalloc(1, sizeof(*key));
+        CL_ASSERT(key != NULL);
+    }
+
+    va_start(arg, sectionFmt);
+    sectionLen = vsnprintf((ClCharT*)&c, 1, sectionFmt, arg);
+    va_end(arg);
+
+    if(!sectionLen) return NULL;
+    
+    ++sectionLen;
+    sectionKey = clHeapCalloc(sectionLen, sizeof(*sectionKey));
+    CL_ASSERT(sectionKey != NULL);
+    
+    va_start(arg, sectionFmt);
+    vsnprintf(sectionKey, sectionLen, sectionFmt, arg);
+    va_end(arg);
+
+    key->groupKey = clHeapCalloc(1, sizeof(*key->groupKey));
+    key->sectionKey = clHeapCalloc(1, sizeof(*key->sectionKey));
+    
+    CL_ASSERT(key->groupKey != NULL && key->sectionKey != NULL);
+    key->groupKey->pValue = clHeapCalloc(1, groupKey->length);
+    CL_ASSERT(key->groupKey->pValue != NULL);
+    key->groupKey->length = groupKey->length;
+    memcpy(key->groupKey->pValue, groupKey->value, key->groupKey->length);
+
+    key->sectionKey->pValue = clHeapCalloc(1, strlen(sectionKey));
+    CL_ASSERT(key->sectionKey->pValue != NULL);
+    key->sectionKey->length = strlen(sectionKey);
+    memcpy(key->sectionKey->pValue, sectionKey, key->sectionKey->length);
+
+    clHeapFree(sectionKey);
+
+    return key;
+}
+
 void clDifferenceVectorKeyFree(ClDifferenceVectorKeyT *key)
 {
     if(!key) 
@@ -496,6 +552,18 @@ void clDifferenceVectorKeyFree(ClDifferenceVectorKeyT *key)
         clHeapFree(key->sectionKey);
     }
         
+}
+
+ClBoolT clDifferenceVectorKeyCheck(ClDifferenceVectorKeyT *key)
+{
+    return (ClBoolT)!!differenceVectorFind(key, NULL);
+}
+
+ClBoolT clDifferenceVectorKeyCheckAndAdd(ClDifferenceVectorKeyT *key)
+{
+    ClBoolT lastStatus = CL_FALSE;
+    differenceVectorAdd(key, &lastStatus);
+    return lastStatus;
 }
 
 static void differenceVectorDelete(ClDifferenceBlockT *block)
