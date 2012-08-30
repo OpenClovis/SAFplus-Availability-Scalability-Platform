@@ -5071,7 +5071,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                                                                  &gAms.db.entityDb[req->entity.type],
                                                                  &entityRef, &targetEntity));
                 
-                AMS_CHECK_RC_ERROR(_clAmsSAEntityAdd(&entityRef) );
+                _clAmsSAEntityAdd(&entityRef);
 
                 if(targetEntity)
                 {

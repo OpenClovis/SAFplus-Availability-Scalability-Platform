@@ -72,6 +72,7 @@
 #include "xdrClCpmSlotInfoRecvT.h"
 #include "xdrClCpmSlotInfoFieldIdT.h"
 #include "xdrClCpmNodeConfigT.h"
+#include "xdrClCpmCompConfigSetT.h"
 #include "xdrClCpmRestartSendT.h"
 #include "xdrClCpmMiddlewareResetT.h"
 #include "xdrClCpmCompSpecInfoRecvT.h"
@@ -1858,6 +1859,42 @@ ClRcT clCpmNodeRestart(ClIocNodeAddressT iocNodeAddress, ClBoolT graceful)
                    "Failed to restart node with address [%d], error [%#x]",
                    iocNodeAddress,
                    rc);
+    }
+
+    out:
+    return rc;
+}
+
+ClRcT clCpmCompConfigSet(ClIocNodeAddressT node, 
+                         ClCharT *name, ClCharT *instantiateCommand,
+                         ClAmsCompPropertyT property, ClUint64T mask)
+{
+    ClRcT rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+    VDECL_VER(ClCpmCompConfigSetT, 5, 1, 0) compConfig;
+
+    if(!name || !instantiateCommand || !node)
+    {
+        goto out;
+    }
+
+    memset(&compConfig, 0, sizeof(compConfig));
+    strncat(compConfig.name, name, sizeof(compConfig.name)-1);
+    strncat(compConfig.instantiateCommand, instantiateCommand, sizeof(compConfig.instantiateCommand)-1);
+    compConfig.property = property;
+    compConfig.bitmask = mask;
+
+    rc = clCpmClientRMDAsyncNew(node,
+                                CPM_MGMT_COMP_CONFIG_SET,
+                                (ClUint8T *)&compConfig,
+                                (ClUint32T)sizeof(compConfig), 
+                                NULL, NULL,
+                                0, 0, 0, 0,
+                                MARSHALL_FN(ClCpmCompConfigSetT, 5, 1, 0)
+                                );
+    if(rc != CL_OK)
+    {
+        clLogError("COMP", "CONFIG", "Component config set RMD returned [%#x]", rc);
+        goto out;
     }
 
     out:
