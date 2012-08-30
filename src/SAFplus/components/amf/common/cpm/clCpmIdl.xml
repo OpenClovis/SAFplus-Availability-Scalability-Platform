@@ -517,6 +517,13 @@ material.
             <DataMember name="nodeReset" type="ClUint16T"/>
         </Struct>
 
+        <Struct name="ClCpmCompConfigSetT" version="5.1.0" defNeed="Yes">
+            <DataMember name="name" type="ClCharT" multiplicity="256" />
+            <DataMember name="instantiateCommand" type="ClCharT" multiplicity="256" />
+            <DataMember name="property" type="ClInt32T"/>
+            <DataMember name="bitmask" type="ClUint64T"/>
+        </Struct>
+
         <Struct name="ClCpmCompSpecInfoRecvT" defNeed="Yes">
             <DataMember name="numArgs" type="ClUint32T"/>
             <DataMember name="args" type="ClStringT" pointer="Single"

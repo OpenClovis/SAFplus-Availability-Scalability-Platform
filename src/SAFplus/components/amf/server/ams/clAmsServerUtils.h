@@ -52,6 +52,7 @@ extern "C" {
 #include <clAmsErrors.h>
 #include <clAms.h>
 #include <clAmsMgmtCommon.h>
+#include <clAmsModify.h>
 
 /******************************************************************************
  * Debug Defines
