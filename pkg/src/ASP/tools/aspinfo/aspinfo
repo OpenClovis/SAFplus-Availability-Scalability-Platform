@@ -441,9 +441,10 @@ def load_amf_db():
     """
     
     global _amf_db, _amf_db_timestamp
-    if _amf_db: # and time.time() <= _amf_db_timestamp + AMF_DB_CACHE_TIMEOUT:
-        dbmsg(1, 'working from cached AMF DB')
-        return _amf_db
+    #if _amf_db: # and time.time() <= _amf_db_timestamp + AMF_DB_CACHE_TIMEOUT:
+    #    dbmsg(1, 'working from cached AMF DB')
+    #    return _amf_db
+
     dbmsg(1, 'Getting fresh AMF DB')
     
     s, res = asp_console_execute(
@@ -1797,13 +1798,15 @@ class Cli(cmd.Cmd):
                 for compname in compnames:
                     
                     comp = get_comp_info(compname)
-                    print '           Comp %s (PS:%s OS:%s RS:%s PID:%s)' % \
+                    try:
+                      print '           Comp %s (PS:%s OS:%s RS:%s PID:%s)' % \
                         (color('bold', compname),
                          comp.status[0].presence_state[0],
                          comp.status[0].operational_state[0],
                          _readiness_map[comp.status[0].readiness_state[0]],
                          color('bold-cyan', pids[compname]))
-                
+                    except KeyError, e: continue
+
                     csis = comp.status[0].csis[0]
                     if csis == '0': csis = []
                     else:           csis = csis.csi
