@@ -816,6 +816,8 @@ static ClRcT cpmCompSetConfig(ClAmsEntityConfigT *entityConfig,
         goto out;
     }
 
+    clOsalMutexUnlock(gpClCpm->compTableMutex);
+
     out_set:
     clOsalMutexLock(comp->compMutex);
         
