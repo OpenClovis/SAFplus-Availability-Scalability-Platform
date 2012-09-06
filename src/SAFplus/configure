@@ -718,7 +718,7 @@ done
 build=$build_alias
 host=$host_alias
 target=$target_alias
-
+export TARGET=${TARGET=$target}
 # FIXME: To remove some day.
 if test "x$host_alias" != x; then
   if test "x$build_alias" = x; then
@@ -875,6 +875,10 @@ if [ "${with_sdk_dir+set}" = set ]; then
     withval="$with_sdk_dir"
     export sdk_dir=$with_sdk_dir/sdk-$PACKAGE_VERSION
     export buildtool_dir=$with_sdk_dir/buildtools
+    thirdparty=`ls $with_sdk_dir | grep 3rdparty-base | head -n 1`
+    if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+        export thirdparty_base_dir=$with_sdk_dir/$thirdparty
+    fi
 else
         if [ "$CL_SDKDIR" = "" ]; then
             cd $(dirname $0)/../../..
@@ -887,6 +891,10 @@ else
             else
                 export sdk_dir=$(pwd)/sdk-$PACKAGE_VERSION
                 export buildtool_dir=$(pwd)/buildtools
+                thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
+                if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+                    export thirdparty_base_dir=$(pwd)/$thirdparty
+                fi
             fi
         else
             cd $CL_SDKDIR/..
@@ -899,6 +907,10 @@ else
             else
                 export sdk_dir=$(pwd)/sdk-$PACKAGE_VERSION
                 export buildtool_dir=$(pwd)/buildtools
+                thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
+                if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+                    export thirdparty_base_dir=$(pwd)/$thirdparty
+                fi
             fi
         fi
         cd - > /dev/null
@@ -1434,11 +1446,17 @@ fi
 
 export sdk_dir=
 export buildtool_dir=
+export thirdparty_base_dir=
+
 # Check whether --with-sdk-dir is specified
 if [ "${with_sdk_dir+set}" = set ]; then
     withval="$with_sdk_dir"
     export sdk_dir=$with_sdk_dir/sdk-$PACKAGE_VERSION
     export buildtool_dir=$with_sdk_dir/buildtools
+    thirdparty=`ls $with_sdk_dir | grep 3rdparty-base | head -n 1`
+    if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+        export thirdparty_base_dir=$with_sdk_dir/$thirdparty
+    fi
 else
         cd $(dirname $0)/../../..
         if [ ! -d sdk-$PACKAGE_VERSION -o ! -d buildtools ]; then
@@ -1450,6 +1468,10 @@ else
         else
             export sdk_dir=$(pwd)/sdk-$PACKAGE_VERSION
             export buildtool_dir=$(pwd)/buildtools
+            thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
+            if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+                export thirdparty_base_dir=$(pwd)/$thirdparty
+            fi
         fi
         cd - > /dev/null
 
@@ -1457,6 +1479,7 @@ fi
 
 CL_SDKDIR=$sdk_dir
 CL_BUILDTOOLS=$buildtool_dir
+CL_THIRDPARTY_BASE=$thirdparty_base_dir
 
 if [ -f $CL_BUILDTOOLS/local/bin/net-snmp-config ]; then
 	export NET_SNMP_CONFIG=$CL_BUILDTOOLS/local/bin/net-snmp-config
@@ -1937,7 +1960,9 @@ echo "$as_me: error:
         fi;
     fi;
     cross_compiling=yes;
-    source $BUILD_TOOLS_DIR/$CROSS_BUILD/config.mk
+    if [ -f $BUILD_TOOLS_DIR/$CROSS_BUILD/config.mk ]; then
+        source $BUILD_TOOLS_DIR/$CROSS_BUILD/config.mk
+    fi
     if [ "$WIND_VER" = "1.2" ]; then
         export CC=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-$CPU-pne-gcc
         export CXX=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-$CPU-pne-g++
@@ -1987,6 +2012,23 @@ echo "$as_me: error:
         RANLIB=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-ranlib
     fi
     GCC=$CC
+
+    # Checking to build 3rdparty base first
+    if [ -n "$CL_THIRDPARTY_BASE" -a "$CL_THIRDPARTY_BASE" != "" ]; then
+        if [ ! -d $PROJECT_ROOT/$ASP_MODEL_NAME/build/$CROSS_BUILD/3rdparty ]; then
+            echo "Making 3rdparty for cross compiler ..."
+            (export InstDir=$PROJECT_ROOT/$ASP_MODEL_NAME/build/$CROSS_BUILD/3rdparty; export TC_DIR=$BUILD_TOOLS_DIR/$CROSS_BUILD; make -f $CL_THIRDPARTY_BASE/Makefile)
+            if [ $? -ne 0 ]; then
+                echo "[ERROR] Could not make 3rdparty library for cross compiler"
+                echo "        You will need to manually make first with your cross compiler"
+                echo "        at $PROJECT_ROOT/$ASP_MODEL_NAME/build/$CROSS_BUILD/3rdparty."
+            fi
+        fi
+    else
+        echo "[Warning] Could not find 3rdparty library directory."
+        echo "          Please detar 3rdparty-base at $(dirname $buildtool_dir)."
+    fi
+
     export PKG_CONFIG_PATH=$BUILD_TOOLS_DIR/$CROSS_BUILD/local/lib/pkgconfig:$BUILD_TOOLS_DIR/$CROSS_BUILD/lib/pkgconfig
     if [ -f $BUILD_TOOLS_DIR/$CROSS_BUILD/local/bin/net-snmp-config ]; then
         export NET_SNMP_CONFIG=$BUILD_TOOLS_DIR/$CROSS_BUILD/local/bin/net-snmp-config
@@ -7266,6 +7308,8 @@ else
 	#Setting Kernel versions
 	if [ -f $KERNEL_SOURCE/include/linux/version.h ]; then
 	    KERNEL_VERSION_FILE=$KERNEL_SOURCE/include/linux/version.h
+	elif [ -f $TOOLCHAIN_DIR/$TARGET/sysroot/usr/include/linux/version.h ]; then
+	    KERNEL_VERSION_FILE=$TOOLCHAIN_DIR/$TARGET/sysroot/usr/include/linux/version.h
 	else
 	    KERNEL_VERSION_FILE=$TOOLCHAIN_DIR/$TARGET/include/linux/version.h
 	fi
@@ -8254,6 +8298,9 @@ s,@NET_SNMP_CONFIG@,$NET_SNMP_CONFIG,;t t
 s,@BUILD_ROOT@,$BUILD_ROOT,;t t
 s,@PROJECT_ROOT@,$PROJECT_ROOT,;t t
 s,@PACKAGE_VERSION@,$PACKAGE_VERSION,;t t
+s,@ARCH@,$ARCH,;t t
+s,@MARCH@,$MARCH,;t t
+s,@TARGET@,$TARGET,;t t
 CEOF
 
 _ACEOF
