@@ -102,7 +102,9 @@ export PATH:=$(PATH):$(BUILDTOOLS_PATH)/bin
 #
 # FIXME: Need to test of file exists, and hsout if it does not.
 #
+ifneq ($(wildcard $(BUILDTOOLS_PATH)/config.mk),) 
 include $(BUILDTOOLS_PATH)/config.mk
+endif
 
 #$(warning $(ARCH))
 #$(warning $(MACH))
