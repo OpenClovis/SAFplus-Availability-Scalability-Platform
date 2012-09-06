@@ -1440,8 +1440,8 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
                 ClUint32T hdrLen = 0, len = 0;
                 sscanf((char*)pRecordIter, LOG_ASCII_HDR_LEN_FMT, &hdrLen);
                 pRecordIter += LOG_ASCII_HDR_LEN;
-                sscanf((char*)pRecordIter, LOG_ASCII_DATA_LEN_FMT, &len);
-                pRecordIter += LOG_ASCII_DATA_LEN;
+                sscanf((char*)pRecordIter, LOG_ASCII_DATA_LEN_FMT LOG_DATA_DELIMITER_FMT, &len);
+                pRecordIter += LOG_ASCII_DATA_LEN + LOG_DATA_DELIMITER_LEN; 
                 iov[idx].iov_base = (char*)pRecordIter;
                 iov[idx].iov_len  = CL_MIN(hdrLen + len + 1, recordSize - LOG_ASCII_METADATA_LEN);
                 /* Ensure that the record is CR terminated.
