@@ -843,7 +843,7 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
             nbytes = snprintf((ClCharT*)pRecord, recSize - 1, LOG_ASCII_HDR_LEN_FMT, hdrLen);
             pRecord += nbytes;
             __UPDATE_REC_SIZE;
-            nbytes = snprintf((ClCharT*)pRecord, recSize - 1, LOG_ASCII_DATA_LEN_FMT, len);
+            nbytes = snprintf((ClCharT*)pRecord, recSize - 1, LOG_ASCII_DATA_LEN_DELIMITER_FMT, len);
             pRecord += nbytes;
             __UPDATE_REC_SIZE;
             if(pMsgHeader && pMsgHeader[0])
