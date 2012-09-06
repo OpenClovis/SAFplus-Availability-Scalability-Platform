@@ -1,0 +1,70 @@
+# --- 1 --- Choose your installation directory
+InstDir ?= $(shell pwd)/3rdparty
+
+# --- 2 --- Choose Cross Compilation Target
+Xtarget:=$(TARGET)
+
+# --- 3 --- Set Up Environment
+ifdef Xtarget
+	Xenv:=export PATH=$(TC_DIR)/bin/:$$PATH;export LD_LIBRARY_PATH=$(TC_DIR)/lib:$(TC_DIR)/$(Xtarget)/lib
+	Xargs:=CPPFLAGS=-I$(TC_DIR)/$(Xtarget)/include LDFLAGS=-L$(TC_DIR)/$(Xtarget)/lib CC=$(Xtarget)-gcc
+	Xconfigure:=--host=$(Xtarget)
+else
+	Xconfigure:=
+endif
+
+ifndef Xenv
+  Xenv:=echo
+endif
+
+#$(warning $(thirdparty_base_dir))
+#$(warning $(ARCH))
+#$(warning $(MACH))
+
+# --- 4 --- Change the dependents package version here
+# These are packages that buildtool depends upon. 
+NETSNMP=net-snmp-5.4.2
+NETSNMPPKG=$(NETSNMP).tar.gz
+OPENHPI=openhpi-3.0.0.oc
+OPENHPIPKG=$(OPENHPI).tar.gz
+OPENHPISUBAGENT=openhpi-subagent-2.3.4
+OPENHPISUBAGENTPKG=$(OPENHPISUBAGENT).tar.gz
+PYTHON=py-openhpi-1.1
+PYTHONPKG=$(PYTHON).tar.gz
+
+thirdparty_base_dir ?= $(shell pwd)
+
+$(warning InstDir: $(InstDir))
+$(warning Xtarget: $(Xtarget))
+$(warning Xenv: $(Xenv))
+$(warning thirdparty_base_dir: $(thirdparty_base_dir))
+
+all: $(InstDir) $(NETSNMPPKG) $(OPENHPIPKG)
+#$(OPENHPIPKG) $(OPENHPISUBAGENTPKG) $(PYTHONPKG)
+
+# ---- Extra configuration for NETSNMP
+ifeq ($(ARCH),i386)
+XconfNETSNMPPKG:=--with-endianness=little
+else 
+ifeq ($(ARCH),x86_64)
+XconfNETSNMPPKG:=--with-endianness=little
+else 
+XconfNETSNMPPKG:=--with-endianness=big
+endif
+endif
+# ---- End for NETSNMP
+
+$(InstDir):
+	mkdir -p $@
+
+$(NETSNMPPKG):
+	(cd $(thirdparty_base_dir); tar xvf $@)
+	(cd $(thirdparty_base_dir)/$(NETSNMP); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfNETSNMPPKG) \
+		--without-rpm \
+		--with-defaults \
+		--disable-embedded-perl \
+		--without-perl-modules)
+	(cd $(thirdparty_base_dir)/$(NETSNMP); $(Xenv); make)
+	(cd $(thirdparty_base_dir)/$(NETSNMP); $(Xenv); make install)
+
+$(OPENHPIPKG):
