@@ -104,7 +104,9 @@ _member_map = {
 _state_map = {
     'Locked Assignment':    'LA',
     'Unlocked':             'UL',
-    'Locked Instantiation': 'LI'
+    'Locked Instantiation': 'LI',
+    'Shutting Down': 'Quiescing',
+    'Shutting Down with Restart': 'Quiescing Restart',
 }
 _classtype_map = {
     'Class A':          'A',
