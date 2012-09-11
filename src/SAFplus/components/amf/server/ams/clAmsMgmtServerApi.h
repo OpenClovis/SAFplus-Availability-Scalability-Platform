@@ -148,6 +148,12 @@ VDECL(_clAmsMgmtEntityShutdown)(
         CL_OUT  ClBufferHandleT  out);
 
 extern ClRcT 
+VDECL_VER(_clAmsMgmtEntityShutdownWithRestart, 5, 1, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out);
+
+extern ClRcT 
 VDECL(_clAmsMgmtEntityRestart)(
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in,

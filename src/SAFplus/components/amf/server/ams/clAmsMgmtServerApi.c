@@ -1226,6 +1226,67 @@ exitfn:
     return rc;
 }
 
+ClRcT
+VDECL_VER(_clAmsMgmtEntityShutdownWithRestart, 5, 1, 0)( 
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out )
+{
+    AMS_FUNC_ENTER (("\n"));
+
+    ClRcT  rc = CL_OK;
+    clAmsMgmtEntityShutdownRequestT  req = {0};
+    ClAmsEntityRefT  entityRef = {{0},0,0};
+
+    if ( (gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING) &&
+            (gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
+    {
+        AMS_LOG(CL_DEBUG_ERROR,
+                ("AMS server is not functioning, dropping the request\n"));
+        return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
+    }
+
+    AMS_CALL( VDECL_VER(clXdrUnmarshallclAmsMgmtEntityShutdownRequestT, 4, 0, 0)( in, &req ) );
+
+#ifdef HANDLE_VALIDATE
+
+    AMS_CALL( clHandleValidateHandle(handle_database,req.handle) );
+
+#endif
+
+    memcpy(&entityRef.entity, &req.entity ,sizeof (ClAmsEntityT));
+    entityRef.ptr = NULL;
+
+    AMS_CALL ( clOsalMutexLock(gAms.mutex) );
+
+    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(
+            clAmsEntityDbFindEntity(
+                &gAms.db.entityDb[entityRef.entity.type],
+                &entityRef),
+            gAms.mutex );
+
+    AMS_CHECKPTR_AND_UNLOCK ( !entityRef.ptr, gAms.mutex );
+
+    CL_AMS_MGMT_CHECK_AND_ADD_HOOK(req.handle, 
+                                   entityRef.ptr, 
+                                   CL_AMS_MGMT_ADMIN_OPER_SHUTDOWN,
+                                   gAms.mutex);
+
+    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(
+            clAmsPeEntityShutdownWithRestart(entityRef.ptr),
+            gAms.mutex );
+
+    clAmsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_DB);
+
+    clAmsCkptDBWrite();
+
+    AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
+
+exitfn:
+
+    return rc;
+}
+
 /*
  * clAmsMgmtEntityRestart
  * -------------------

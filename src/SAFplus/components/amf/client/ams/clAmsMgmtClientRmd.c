@@ -958,6 +958,17 @@ cl_ams_mgmt_entity_shutdown(
             (ClPtrT*)res, &unmarshalClAmsMgmtEntityShutdown);
 }
 
+ClRcT
+cl_ams_mgmt_entity_shutdown_with_restart(
+        CL_IN  clAmsMgmtEntityShutdownRequestT  *req,
+        CL_OUT  clAmsMgmtEntityShutdownResponseT  **res)
+{
+    return cl_ams_call_rmd_ver(( ClUint32T)CL_AMS_MGMT_ENTITY_SHUTDOWN_WITH_RESTART,
+                               (ClPtrT)req, &marshalClAmsMgmtEntityShutdown,
+                               (ClPtrT*)res, &unmarshalClAmsMgmtEntityShutdown,
+                               CL_VERSION_CODE(5, 1, 0));
+}
+
 /******************************************************************************/
 
 ClRcT
@@ -3081,6 +3092,12 @@ emulate_rmd_call(
         case CL_AMS_MGMT_ENTITY_SHUTDOWN:
             {
                 rc = VDECL(_clAmsMgmtEntityShutdown)(data,in_buffer, out_buffer);
+                break;
+            }
+
+        case CL_AMS_MGMT_ENTITY_SHUTDOWN_WITH_RESTART:
+            {
+                rc = VDECL_VER(_clAmsMgmtEntityShutdownWithRestart, 5, 1, 0)(data,in_buffer, out_buffer);
                 break;
             }
 

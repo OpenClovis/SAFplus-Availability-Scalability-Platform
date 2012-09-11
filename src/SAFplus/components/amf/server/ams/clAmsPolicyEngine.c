@@ -4726,12 +4726,19 @@ clAmsPeSULockInstantiationCallback(
  */
 
 ClRcT
-clAmsPeSUShutdown(
-        CL_IN       ClAmsSUT        *su)
+clAmsPeSUShutdownWithRestart(
+                             CL_IN       ClAmsSUT        *su,
+                             CL_IN       ClBoolT restart)
 {
     ClAmsAdminStateT oldAdminState;
+    ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_SHUTTINGDOWN;
     ClAmsReadinessStateT readinessState;
     ClAmsSGT *sg = NULL;
+
+    if(restart)
+    {
+        adminState = CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART;
+    }
 
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT*)su->config.parentSG.ptr);
@@ -4739,22 +4746,24 @@ clAmsPeSUShutdown(
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
     AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
-            ("Admin Operation [Shutdown] on SU [%s]\n",
-             su->config.entity.name.value));
+            ("Admin Operation [%s] on SU [%s]\n",
+             restart ? "Shutdown With Restart" : "Shutdown", su->config.entity.name.value));
 
     if(clAmsInvocationsPendingForSU(su))
     {
         clLogInfo("SU", "SHUTDOWN", 
-                  "SU [%s] has invocations pending. Deferring shutdown",
-                  su->config.entity.name.value);
+                  "SU [%s] has invocations pending. Deferring [%s]",
+                  su->config.entity.name.value,
+                  restart ? "shutdown and restart" : "shutdown");
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
     
     if(clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "SHUTDOWN", 
-                  "SG [%s] containing SU [%s] has invocations pending. Deferring shutdown",
-                  sg->config.entity.name.value, su->config.entity.name.value);
+                  "SG [%s] containing SU [%s] has invocations pending. Deferring [%s]",
+                  sg->config.entity.name.value, su->config.entity.name.value,
+                  restart ? "shutdown and restart" : "shutdown");
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
@@ -4762,7 +4771,7 @@ clAmsPeSUShutdown(
 
     AMS_CALL ( clAmsPeSUComputeAdminState(su, &oldAdminState) );
 
-    CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_SHUTTINGDOWN);
+    CL_AMS_SET_A_STATE(su, adminState);
 
     if ( oldAdminState == CL_AMS_ADMIN_STATE_UNLOCKED )
     {
@@ -4772,11 +4781,18 @@ clAmsPeSUShutdown(
         }
         else
         {
-            AMS_CALL ( clAmsPeSUShutdownCallback(su, CL_OK) );
+            AMS_CALL ( clAmsPeSUShutdownCallback(su, CL_OK, CL_AMS_ENTITY_SWITCHOVER_GRACEFUL) );
         }
     }
 
     return CL_OK;
+}
+
+ClRcT
+clAmsPeSUShutdown(
+        CL_IN       ClAmsSUT        *su)
+{
+    return clAmsPeSUShutdownWithRestart(su, CL_FALSE);
 }
 
 /*
@@ -4787,8 +4803,9 @@ clAmsPeSUShutdown(
 
 ClRcT
 clAmsPeSUShutdownCallback(
-        CL_IN       ClAmsSUT        *su,
-        CL_IN       ClUint32T       error)
+                          CL_IN       ClAmsSUT        *su,
+                          CL_IN       ClUint32T       error,
+                          CL_IN       ClUint32T       switchoverMode)
 {
     ClAmsSGT *sg;
     ClAmsNodeT *node;
@@ -4810,6 +4827,24 @@ clAmsPeSUShutdownCallback(
     if ( su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN )
     {
         CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_LOCKED_A);
+    }
+
+    else if ( su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART )
+    {
+        ClAmsSGT *sg = NULL;
+        AMS_CHECK_SG(sg = (ClAmsSGT*)su->config.parentSG.ptr);
+        if(error == CL_OK 
+           && 
+           !(switchoverMode & CL_AMS_ENTITY_SWITCHOVER_FAST))
+        {
+            CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_UNLOCKED);
+            clAmsPeSUCleanup(su);
+            clAmsPeSGEvaluateWork(sg);
+        }
+        else
+        {
+            CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_LOCKED_A);
+        }
     }
 
     return CL_OK;
@@ -7217,9 +7252,11 @@ static ClRcT clAmsPeSUSwitchoverPrologue(ClAmsSUT *su, ClUint32T error, ClUint32
             AMS_CALL ( clAmsPeSULockAssignmentCallback(su, error) );
         }
 
-        if ( su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN )
+        if ( su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN 
+             ||
+             su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART)
         {
-            AMS_CALL ( clAmsPeSUShutdownCallback(su, error) );
+            AMS_CALL ( clAmsPeSUShutdownCallback(su, error, switchoverMode) );
         }
 
         if ( su->status.recovery == CL_AMS_RECOVERY_COMP_FAILOVER 
@@ -11755,7 +11792,9 @@ clAmsPeCompComputeRecoveryAction(
     AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
 
     if ( (adminState == CL_AMS_ADMIN_STATE_LOCKED_A) ||
-         (adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) )
+         (adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN)
+         ||
+         (adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART) )
     {
         if ( (computedRecovery == CL_AMS_RECOVERY_NO_RECOMMENDATION) ||
              (computedRecovery == CL_AMS_RECOVERY_COMP_RESTART)      ||
@@ -17584,7 +17623,7 @@ clAmsPeCompProcessPendingQuiescingCSIs(
                  !invocationsPendingForSI)
             {
                 AMS_CALL ( clAmsPeSUQuiesceSIGracefullyCallback(
-                                                su, si, CL_OK, switchoverMode) );
+                                                su, si, error, switchoverMode) );
             }
         }
         else
@@ -17614,7 +17653,7 @@ clAmsPeCompProcessPendingQuiescingCSIs(
              !si->status.numStandbyAssignments &&
              !invocationsPendingForSI )
         {
-            AMS_CALL ( clAmsPeSISwitchoverCallback(si, CL_OK, switchoverMode) );
+            AMS_CALL ( clAmsPeSISwitchoverCallback(si, error, switchoverMode) );
         }
     }
 
@@ -17628,7 +17667,7 @@ clAmsPeCompProcessPendingQuiescingCSIs(
          !comp->status.numActiveCSIs  &&
          !invocationsPendingForComp )
     {
-        AMS_CALL ( clAmsPeCompSwitchoverCallback(comp, CL_OK, switchoverMode) );
+        AMS_CALL ( clAmsPeCompSwitchoverCallback(comp, error, switchoverMode) );
     }
 
     /* Not necessary - restart does not include quiescing as action
@@ -20233,8 +20272,12 @@ clAmsPeEntityLockInstantiate(
         {
             rc = CL_AMS_RC(CL_ERR_NO_OP);
         }
-        else if ( (adminState == CL_AMS_ADMIN_STATE_UNLOCKED) ||
-                  (adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) )
+        else if ( adminState == CL_AMS_ADMIN_STATE_UNLOCKED 
+                  ||
+                  adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN
+                  ||
+                  adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART
+                  )
         {
             rc = CL_AMS_RC(CL_ERR_BAD_OPERATION);
         }
@@ -20355,7 +20398,9 @@ clAmsPeEntityLockAssignment(
         {
             rc = CL_AMS_RC(CL_ERR_NO_OP);
         }
-        else if ( adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN )
+        else if ( adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN
+                  ||
+                  adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART)
         {
             rc = CL_AMS_RC(CL_ERR_BAD_OPERATION);
         }
@@ -20479,7 +20524,9 @@ clAmsPeEntityShutdown(
 
     if ( (rc = clAmsPeEntityGetAdminState(entity, &adminState)) == CL_OK )
     {
-        if ( adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN )
+        if ( adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN 
+             ||
+             adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART)
         {
             rc = CL_AMS_RC(CL_ERR_NO_OP);
         }
@@ -20538,6 +20585,85 @@ clAmsPeEntityShutdown(
                     rc = CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
                 }
             }
+        }
+    }
+
+    if ( rc == CL_OK )
+    {
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            ("Admin Operation [Shutdown] on [%s] in Admin State [%s] returned Okay\n",
+             entity->name.value,
+             CL_AMS_STRING_A_STATE(adminState)));
+    }
+    else if ( CL_GET_ERROR_CODE(rc) == CL_AMS_ERR_INVALID_ENTITY )
+    {
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            ("Admin Operation [Shutdown] on [%s] is invalid. Continuing..\n",
+             entity->name.value));
+    }
+    else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP )
+    {
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            ("Admin Operation [Shutdown] on [%s] in Admin State [%s] is a NoOp. Continuing..\n",
+             entity->name.value,
+             CL_AMS_STRING_A_STATE(adminState)));
+    }
+    else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_BAD_OPERATION )
+    {
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            ("Admin Operation [Shutdown] on [%s] in Admin State [%s] is not possible. Continuing..\n",
+             entity->name.value,
+             CL_AMS_STRING_A_STATE(adminState)));
+    }
+    else
+    {
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            ("Admin Operation [Shutdown] on [%s] in Admin State [%s] returned Error [0x%x]\n",
+             entity->name.value,
+             CL_AMS_STRING_A_STATE(adminState),
+             rc));
+    }
+
+    return rc;
+}
+
+ClRcT
+clAmsPeEntityShutdownWithRestart(
+                                 CL_IN ClAmsEntityT        *entity)
+{
+    ClRcT rc = CL_OK;
+    ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_NONE;
+
+    AMS_OP_INCR(&gAms.ops);
+
+    AMS_CHECKPTR ( !entity );
+
+    AMS_FUNC_ENTER ( ("Entity [%s]\n",entity->name.value) );
+
+    if(entity->type != CL_AMS_ENTITY_TYPE_SU)
+    {
+        return CL_AMS_RC(CL_ERR_NOT_SUPPORTED);
+    }
+
+    AMS_CALL ( clAmsEntityValidate(
+                    (ClAmsEntityT *) entity,
+                    CL_AMS_ENTITY_VALIDATE_CONFIG) );
+
+    if ( (rc = clAmsPeEntityGetAdminState(entity, &adminState)) == CL_OK )
+    {
+        if ( adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN 
+             ||
+             adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART)
+        {
+            rc = CL_AMS_RC(CL_ERR_NO_OP);
+        }
+        else if ( adminState != CL_AMS_ADMIN_STATE_UNLOCKED )
+        {
+            rc = CL_AMS_RC(CL_ERR_BAD_OPERATION);
+        }
+        else
+        {
+            rc = clAmsPeSUShutdownWithRestart((ClAmsSUT*)entity, CL_TRUE);
         }
     }
 

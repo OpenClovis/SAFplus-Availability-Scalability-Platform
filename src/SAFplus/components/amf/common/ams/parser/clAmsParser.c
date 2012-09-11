@@ -767,6 +767,11 @@ clAmsParserEntityAdminStateParser(
         *adminState = CL_AMS_ADMIN_STATE_SHUTTINGDOWN;
     }
 
+    else if ( !strcmp( data->txt, "CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART" )) 
+    {
+        *adminState = CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART;
+    }
+
     else
     {
        return   CL_AMS_ERR_BAD_CONFIG;
