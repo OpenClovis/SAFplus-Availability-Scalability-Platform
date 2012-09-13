@@ -485,6 +485,8 @@ ClRcT clTimerIsStopped(ClTimerHandleT timerHandle, ClBoolT *pState);
 
 ClRcT clTimerStatsGet(ClTimerStatsT **ppStats, ClUint32T *pNumTimers);
 
+ClRcT clTimerCheckAndDelete(ClTimerHandleT *pTimerHandle);
+
 #ifdef __cplusplus
 }
 #endif
