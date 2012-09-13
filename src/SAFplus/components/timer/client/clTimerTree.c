@@ -833,44 +833,18 @@ clTimerRestart (ClTimerHandleT  timerHandle)
     return (CL_OK);
 }
 
-/*
- * CANNOT BE INVOKED FROM THE timer callback thats RUNNING.
- */
-static ClRcT timerDelete(ClTimerHandleT *pTimerHandle, ClBoolT asyncFlag)
+static ClRcT timerDeleteLocked(ClTimerT *pTimer, ClTimerHandleT *pTimerHandle,
+                               ClBoolT asyncFlag, ClBoolT *pFreeTimer)
 {
-    ClRcT rc = CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
-    ClTimerT *pTimer = NULL;
+    ClRcT rc = CL_OK;
     ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 50 };
     ClInt32T runCounter = 0;
     ClOsalTaskIdT selfId = 0;
 
-    CL_TIMER_INITIALIZED_CHECK(rc,out);
-
-    if(pTimerHandle == NULL)
-    {
-        clDbgCodeError(rc, ("Timer delete failed: Bad timer handle storage"));
-        goto out;
-    }
-
-    clOsalMutexLock(&gTimerBase.clusterListLock);
-    clOsalMutexLock(&gTimerBase.timerListLock);
-
-    pTimer = (ClTimerT*)*pTimerHandle;
-
-    if(!pTimer)
-    {
-        clOsalMutexUnlock(&gTimerBase.timerListLock);
-        clOsalMutexUnlock(&gTimerBase.clusterListLock);
-        rc = CL_TIMER_RC(CL_ERR_INVALID_HANDLE);
-        clDbgCodeError(rc, ("Timer delete failed: Bad timer handle"));
-        goto out;
-    }
     rc = CL_TIMER_RC(CL_ERR_OP_NOT_PERMITTED);
 
     if(pTimer->timerType == CL_TIMER_VOLATILE)
     {
-        clOsalMutexUnlock(&gTimerBase.timerListLock);
-        clOsalMutexUnlock(&gTimerBase.clusterListLock);
         clDbgCodeError(rc, ("Timer delete failed: Volatile auto-delete timer tried to be deleted"));
         goto out;
     }
@@ -882,7 +856,10 @@ static ClRcT timerDelete(ClTimerHandleT *pTimerHandle, ClBoolT asyncFlag)
         timerClusterDel(pTimer);
     }
 
-    *pTimerHandle = 0;
+    if(pTimerHandle)
+    {
+        *pTimerHandle = 0;
+    }
 
     clOsalSelfTaskIdGet(&selfId);
 
@@ -894,8 +871,6 @@ static ClRcT timerDelete(ClTimerHandleT *pTimerHandle, ClBoolT asyncFlag)
         {
             rc = CL_OK;
             pTimer->timerFlags |= CL_TIMER_DELETED;
-            clOsalMutexUnlock(&gTimerBase.timerListLock);
-            clOsalMutexUnlock(&gTimerBase.clusterListLock);
             goto out;
         }
         /* 
@@ -923,12 +898,57 @@ static ClRcT timerDelete(ClTimerHandleT *pTimerHandle, ClBoolT asyncFlag)
         }
     }
 
-    clOsalMutexUnlock(&gTimerBase.timerListLock);
-    clOsalMutexUnlock(&gTimerBase.clusterListLock);
-    
-    timerFree(pTimer);
+    if(pFreeTimer)
+    {
+        *pFreeTimer = CL_TRUE;
+    }
 
     rc = CL_OK;
+
+    out:
+    return rc;
+}
+
+/*
+ * CANNOT BE INVOKED FROM THE timer callback thats RUNNING.
+ */
+static ClRcT timerDelete(ClTimerHandleT *pTimerHandle, ClBoolT asyncFlag)
+{
+    ClRcT rc = CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
+    ClTimerT *pTimer = NULL;
+    ClBoolT freeTimer = CL_FALSE;
+
+    CL_TIMER_INITIALIZED_CHECK(rc,out);
+
+    if(pTimerHandle == NULL)
+    {
+        clDbgCodeError(rc, ("Timer delete failed: Bad timer handle storage"));
+        goto out;
+    }
+
+    clOsalMutexLock(&gTimerBase.clusterListLock);
+    clOsalMutexLock(&gTimerBase.timerListLock);
+
+    pTimer = (ClTimerT*)*pTimerHandle;
+
+    if(!pTimer)
+    {
+        clOsalMutexUnlock(&gTimerBase.timerListLock);
+        clOsalMutexUnlock(&gTimerBase.clusterListLock);
+        rc = CL_TIMER_RC(CL_ERR_INVALID_HANDLE);
+        clDbgCodeError(rc, ("Timer delete failed: Bad timer handle"));
+        goto out;
+    }
+ 
+    rc = timerDeleteLocked(pTimer, pTimerHandle, asyncFlag, &freeTimer);
+
+    clOsalMutexUnlock(&gTimerBase.timerListLock);
+    clOsalMutexUnlock(&gTimerBase.clusterListLock);
+
+    if(freeTimer)
+    {
+        timerFree(pTimer);
+    }
 
     out:
     return rc;
@@ -955,6 +975,7 @@ static ClRcT timerState(ClTimerHandleT timerHandle, ClBoolT flags, ClBoolT *pSta
     *pState = CL_FALSE;
     if((pTimer->timerFlags & flags))
         *pState = CL_TRUE;
+
     return CL_OK;
 }
 
@@ -983,6 +1004,51 @@ ClRcT clTimerIsRunning(ClTimerHandleT timerHandle, ClBoolT *pState)
     rc = timerState(timerHandle, CL_TIMER_RUNNING, pState);
     clOsalMutexUnlock(&gTimerBase.timerListLock);
     clOsalMutexUnlock(&gTimerBase.clusterListLock);
+    return rc;
+}
+
+/*
+ * Atomically check and delete the timer if not running.
+ * Returns success on delete or failure/CL_ERR_BAD_OPERATION
+ */
+
+ClRcT clTimerCheckAndDelete(ClTimerHandleT *pTimerHandle)
+{
+    ClRcT rc = CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
+    ClTimerT *pTimer = NULL;
+    ClBoolT freeTimer = CL_FALSE;
+
+    if(!pTimerHandle)
+        goto out;
+
+    clOsalMutexLock(&gTimerBase.clusterListLock);
+    clOsalMutexLock(&gTimerBase.timerListLock);
+    pTimer = (ClTimerT*)*pTimerHandle;
+    if(!pTimer)
+    {
+        clOsalMutexUnlock(&gTimerBase.timerListLock);
+        clOsalMutexUnlock(&gTimerBase.clusterListLock);
+        goto out;
+    }
+    
+    if(!(pTimer->timerFlags & CL_TIMER_RUNNING))
+    {
+        rc = timerDeleteLocked(pTimer, pTimerHandle, CL_TRUE, &freeTimer);
+    }
+    else
+    {
+        rc = CL_TIMER_RC(CL_ERR_BAD_OPERATION);
+    }
+
+    clOsalMutexUnlock(&gTimerBase.timerListLock);
+    clOsalMutexUnlock(&gTimerBase.clusterListLock);
+
+    if(freeTimer)
+    {
+        timerFree(pTimer);
+    }
+
+    out:
     return rc;
 }
 
