@@ -30,19 +30,33 @@ Xtarget:=$(TARGET)
 Xenv:=
 
 #Example using PNE 1.4 with ASP installed /opt/clovis
-#Xenv:=PATH=/opt/clovis/buildtools/i586-wrl-pnele1.4-2.6.14-cp3020/bin:$$PATH;LD_LIBRARY_PATH=/opt/clovis/buildtools/i586-wrl-pnele1.4-2.6.14-cp3020/lib
+#Xenv:=PATH=/opt/clovis/buildtools/i586-wrl-pnele1.4-2.6.14-cp3020/bin:$$PATH;LD_LIBRARY_PATH=/opt/clovis/buildtools/i586-wrl-pnele1.4-2.6.14-cp3020/lib;export PKG_CONFIG_PATH=/opt/clovis/buildtools/i586-wrl-pnele1.4-2.6.14-cp3020/lib/pkgconfig/:$$PKG_CONFIG_PATH
 
 # Example using clovis el4 cross compile toolchain
-#Xenv:=PATH=/opt/clovis/buildtools/ia32-linux-rhel4-2.6.9/bin:$$PATH;LD_LIBRARY_PATH=/opt/clovis/buildtools/ia32-linux-rhel4-2.6.9/lib
+#Xenv:=PATH=/opt/clovis/buildtools/ia32-linux-rhel4-2.6.9/bin:$$PATH;LD_LIBRARY_PATH=/opt/clovis/buildtools/ia32-linux-rhel4-2.6.9/lib;export PKG_CONFIG_PATH=/opt/clovis/buildtools/ia32-linux-rhel4-2.6.9/lib/pkgconfig/:$$PKG_CONFIG_PATH
 
 # Example using powerpc-unknown-linux-gnu cross compile toolchain
-#Xenv:=PATH=/opt/clovis/buildtools/powerpc-unknown-linux-gnu/bin:$$PATH;LD_LIBRARY_PATH=/opt/clovis/buildtools/powerpc-unknown-linux-gnu/lib
+#Xenv:=PATH=/opt/clovis/buildtools/powerpc-unknown-linux-gnu/bin:$$PATH;LD_LIBRARY_PATH=/opt/clovis/buildtools/powerpc-unknown-linux-gnu/lib;expor PKG_CONFIG_PATH=/opt/clovis/buildtools/powerpc-unknown-linux-gnu/lib/pkgconfig/:$$PKG_CONFIG_PATH
 
 # --- 4 --- Change the dependents package version here
 # These are packages that buildtool depends upon. 
-#PKGCONFIG=pkgconfig
-#PKGCONFIG_VER=0.6.0
-#PKGCONFIG_PKG=$(PKGCONFIG)-$(PKGCONFIG_VER).tar.gz
+
+# Note: Some issue counting with cross compile:
+# glib depend on dbus-1.0 lib, then need to install dbus-1.0 first:
+#   + We can get dbus at http://dbus.freedesktop.org/releases/dbus/dbus-1.6.4.tar.gz
+#   + tar xvf dbus-1.6.4.tar.gz
+#   + cd dbus-1.6.4
+#   + ./configure --prefix=/opt/clovis/buildtools/powerpc-unknown-linux-gnu --host=powerpc-unknown-linux-gnu
+#   + make
+#   + make install
+#    
+# dbus-1.6.4 depend on expat lib:
+#   + We can get expat at http://nchc.dl.sourceforge.net/project/expat/expat/2.1.0/expat-2.1.0.tar.gz
+#   + tar xvf expat-2.1.0.tar.gz
+#   + cd expat-2.1.0
+#   + ./configure --prefix=/opt/clovis/buildtools/powerpc-unknown-linux-gnu --host=powerpc-unknown-linux-gnu
+#   + make
+#   + make install
 
 NETSNMP=net-snmp
 NETSNMP_VER=5.4.4
@@ -52,6 +66,10 @@ OPENHPI=openhpi
 OPENHPI_VER=3.0.0.oc
 OPENHPI_PKG=$(OPENHPI)-$(OPENHPI_VER).tar.gz
 
+E2FSPROGS=e2fsprogs
+E2FSPROGS_VER=1.42.5
+E2FSPROGS_PKG=$(E2FSPROGS)-$(E2FSPROGS_VER).tar.gz
+
 GLIB=glib
 GLIB_VER=2.28.5
 GLIB_PKG=$(GLIB)-$(GLIB_VER).tar.gz
@@ -60,32 +78,43 @@ ZLIB=zlib
 ZLIB_VER=1.2.7
 ZLIB_PKG=$(ZLIB)-$(ZLIB_VER).tar.gz
 
-OPENHPISUBAGENT=openhpi-subagent-2.3.4
-OPENHPISUBAGENTPKG=$(OPENHPISUBAGENT).tar.gz
-PYTHON=py-openhpi-1.1
-PYTHONPKG=$(PYTHON).tar.gz
+DBUS=dbus
+DBUS_VER=1.6.4
+DBUS_PKG=$(DBUS)-$(DBUS_VER).tar.gz
+
+EXPAT=expat
+EXPAT_VER=2.1.0
+EXPAT_PKG=$(EXPAT)-$(EXPAT_VER).tar.gz
+
+OPENHPISUBAGENT=openhpi-subagent
+OPENHPISUBAGENT_VER=2.3.4
+OPENHPISUBAGENT_PKG=$(OPENHPISUBAGENT)-$(OPENHPISUBAGENT_VER).tar.gz
+
+#PyHPI=py-openhpi
+#PyHPI_VER=1.1
+#PyHPI_PKG=$(PyHPI)-$(PyHPI_VER).tar.gz
+#
+#PYTHON=Python
+#PYTHON_VER=2.7.3
+#PYTHON_PKG=$(PYTHON)-$(PYTHON_VER).tar.bz2
 
 # THAT IS ALL
 ifneq ($(Xtarget),)
   Xconfigure:=--host=$(Xtarget)
-  Xargs:=CPPFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" LDFLAGS="-L$(InstDir)/lib -L$(InstDir)/$(Xtarget)/lib" CC=$(Xtarget)-gcc
+  Xargs:=CXXFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" CPPFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" LDFLAGS="-L$(InstDir)/lib -L$(InstDir)/$(Xtarget)/lib" CC=$(Xtarget)-gcc CXX=$(Xtarget)-g++
 ifeq ($(Xenv),)
-  Xenv:=PATH=$(InstDir)/bin:$$PATH;LD_LIBRARY_PATH=$(InstDir)/lib
+  Xenv:=export PKG_CONFIG_PATH=$(InstDir)/lib/pkgconfig/:$$PKG_CONFIG_PATH;PATH=$(InstDir)/bin:$$PATH;LD_LIBRARY_PATH=$(InstDir)/lib
 endif
 else
   Xconfigure:=
   Xenv:=echo
 endif
 
-$(warning InstDir: $(InstDir))
-$(warning Xtarget: $(Xtarget))
-$(warning Xenv: $(Xenv))
-
-all: $(InstDir) $(OPENHPI) $(NETSNMP) 
-#$(OPENHPISUBAGENTPKG) $(PYTHONPKG)
+#$(warning InstDir: $(InstDir))
+#$(warning Xtarget: $(Xtarget))
+#$(warning Xenv: $(Xenv))
 
 ifneq ($(Xtarget),)
-
 # ---- Extra configuration for NETSNMP
 ifeq ($(ARCH),i386)
 XconfNETSNMP_PKG:=--with-endianness=little
@@ -98,23 +127,27 @@ endif
 # ---- End for NETSNMP
 
 # ---- Extra configuration for OPENHPI
-XconfOPENHPI_PKG:=--cache-file=cross.cache --enable-non32bit-int
+XconfOPENHPI_PKG:=--cache-file=config.cache --enable-non32bit-int
 XconfCROSS_OPENHPI:=ac_cv_lib_uuid_uuid_generate=yes
 # ---- End for OPENHPI
 
 # ---- Extra configuration for GLIB
-XconfGLIB_PKG:=--cache-file=cross.cache --disable-dependency-tracking
+XconfGLIB_PKG:=--cache-file=config.cache --disable-dependency-tracking
 #work-around for cross compile
 XconfCROSS_GLIB:=glib_cv_stack_grows=no glib_cv_uscore=no ac_cv_func_posix_getgrgid_r=yes ac_cv_func_posix_getpwuid_r=yes
-#CROSS:=$(shell touch $(GLIB)-$(GLIB_VER)/cross.cache)
-#update := $(shell touch $(GLIB)-$(GLIB_VER)/cross.cache)
 # ---- End for GLIB
 
+# ---- Extra configuration for XconfCROSS_PYTHON
+XconfPYTHON_PKG:=--cache-file=config.cache
+#work-around for cross compile
+XconfCROSS_PYTHON:=ac_cv_have_long_long_format=yes
+# ---- End for XconfCROSS_PYTHON
 endif
 else
 XconfNETSNMP_PKG:=
 endif
 
+all: $(InstDir) $(NETSNMP) $(OPENHPI) $(OPENHPISUBAGENT)
 
 $(InstDir):
 	mkdir -p $@
@@ -133,10 +166,10 @@ $(NETSNMP): $(NETSNMP_PKG)
 $(NETSNMP_PKG):
 	wget http://sourceforge.net/projects/net-snmp/files/net-snmp/$(NETSNMP_VER)/$(NETSNMP)-$(NETSNMP_VER).tar.gz
 
-$(OPENHPI): $(OPENHPI_PKG) $(GLIB) $(ZLIB)
+$(OPENHPI): $(OPENHPI_PKG) $(GLIB) $(E2FSPROGS)
 	(tar xvfz $<  > /dev/null)
-	(cd $(OPENHPI)-$(OPENHPI_VER); $(foreach check, $(XconfCROSS_OPENHPI), \
-		echo $(check) >> cross.cache; \
+	(cd $(OPENHPI)-$(OPENHPI_VER); $(foreach config, $(XconfCROSS_OPENHPI), \
+		echo $(config) >> config.cache; \
 	))
 	(cd $(OPENHPI)-$(OPENHPI_VER); $(Xenv); $(Xargs) LIBS="-lglib-2.0 -lgthread-2.0 -lrt" ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfOPENHPI_PKG))
 	(cd $(OPENHPI)-$(OPENHPI_VER); $(Xenv); make)
@@ -145,10 +178,45 @@ $(OPENHPI): $(OPENHPI_PKG) $(GLIB) $(ZLIB)
 $(OPENHPI_PKG):
 	wget http://sourceforge.net/projects/openhpi/files/openhpi-stable/$(OPENHPI_VER)/$(OPENHPI)-$(OPENHPI_VER).tar.gz
 
-$(GLIB): $(GLIB_PKG)
+$(OPENHPISUBAGENT): $(OPENHPISUBAGENT_PKG)
 	(tar xvfz $<  > /dev/null)
-	(cd $(GLIB)-$(GLIB_VER); $(foreach check, $(XconfCROSS_GLIB), \
-		echo $(check) >> cross.cache; \
+	(cd $(OPENHPISUBAGENT)-$(OPENHPISUBAGENT_VER); $(foreach config, $(XconfCROSS_OPENHPISUBAGENT), \
+		echo $(config) >> config.cache; \
+	))
+	(cd $(OPENHPISUBAGENT)-$(OPENHPISUBAGENT_VER); $(Xenv); $(Xargs) LDFLAGS="-L$(InstDir)/lib -L$(InstDir)/$(Xtarget)/lib -Xlinker -R -Xlinker $(InstDir)/lib -Xlinker -R -Xlinker $(InstDir)/$(Xtarget)/lib" ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfOPENHPISUBAGENT_PKG))
+	(cd $(OPENHPISUBAGENT)-$(OPENHPISUBAGENT_VER); $(Xenv); make)
+	(cd $(OPENHPISUBAGENT)-$(OPENHPISUBAGENT_VER); $(Xenv); make install)
+
+$(OPENHPISUBAGENT_PKG):
+	wget http://sourceforge.net/projects/openhpi/files/openhpi%20snmp%20subagent/$(OPENHPISUBAGENT_VER)/$(OPENHPISUBAGENT)-$(OPENHPISUBAGENT_VER).tar.gz
+
+$(PyHPI): $(PyHPI_PKG) $(PYTHON)
+	(tar xvfz $<  > /dev/null)
+	(cd $(PyHPI)-$(PyHPI_VER); $(foreach config, $(XconfCROSS_PyHPI), \
+		echo $(config) >> config.cache; \
+	))
+	(cd $(PyHPI)-$(PyHPI_VER); $(Xenv); $(Xargs) LDFLAGS="-L$(InstDir)/lib -L$(InstDir)/$(Xtarget)/lib -Xlinker -R -Xlinker $(InstDir)/lib -Xlinker -R -Xlinker $(InstDir)/$(Xtarget)/lib" python setup.py build)
+	(cd $(PyHPI)-$(PyHPI_VER); $(Xenv); $(Xargs) LDFLAGS="-L$(InstDir)/lib -L$(InstDir)/$(Xtarget)/lib -Xlinker -R -Xlinker $(InstDir)/lib -Xlinker -R -Xlinker $(InstDir)/$(Xtarget)/lib" python setup.py install --prefix=$(InstDir))
+
+$(PyHPI_PKG):
+	wget http://sourceforge.net/projects/openhpi/files/$(PyHPI)/$(PyHPI_VER)/$(PyHPI)-$(PyHPI_VER).tar.gz
+
+$(PYTHON): $(PYTHON_PKG)
+	(tar xvfj $<  > /dev/null)
+	(cd $(PYTHON)-$(PYTHON_VER); $(foreach config, $(XconfCROSS_PYTHON), \
+		echo $(config) >> config.cache; \
+	))
+	(cd $(PYTHON)-$(PYTHON_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfPYTHON_PKG))
+	(cd $(PYTHON)-$(PYTHON_VER); $(Xenv); $(Xargs) make CROSS_COMPILE_TARGET=yes)
+	(cd $(PYTHON)-$(PYTHON_VER); $(Xenv); $(Xargs) make install)
+
+$(PYTHON_PKG):
+	wget http://www.python.org/ftp/python/$(PYTHON_VER)/$(PYTHON_PKG)
+
+$(GLIB): $(GLIB_PKG) $(ZLIB) $(DBUS)
+	(tar xvfz $<  > /dev/null)
+	(cd $(GLIB)-$(GLIB_VER); $(foreach config, $(XconfCROSS_GLIB), \
+		echo $(config) >> config.cache; \
 	))
 	(cd $(GLIB)-$(GLIB_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfGLIB_PKG))
 	(cd $(GLIB)-$(GLIB_VER); $(Xenv); make)
@@ -156,6 +224,19 @@ $(GLIB): $(GLIB_PKG)
 
 $(GLIB_PKG):
 	wget http://ftp.gtk.org/pub/glib/2.28/$(GLIB)-$(GLIB_VER).tar.gz
+
+$(E2FSPROGS): $(E2FSPROGS_PKG)
+	(tar xvfz $<  > /dev/null)
+	(cd $(E2FSPROGS)-$(E2FSPROGS_VER); $(foreach config, $(XconfCROSS_E2FSPROGS), \
+		echo $(config) >> config.cache; \
+	))
+	(cd $(E2FSPROGS)-$(E2FSPROGS_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfE2FSPROGS_PKG))
+	(cd $(E2FSPROGS)-$(E2FSPROGS_VER); $(Xenv); make)
+	(cd $(E2FSPROGS)-$(E2FSPROGS_VER); $(Xenv); make install)
+	(cd $(E2FSPROGS)-$(E2FSPROGS_VER); $(Xenv); make install-libs)
+
+$(E2FSPROGS_PKG):
+	wget http://nchc.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/v$(E2FSPROGS_VER)/$(E2FSPROGS)-$(E2FSPROGS_VER).tar.gz
 
 $(ZLIB): $(ZLIB_PKG) 
 	(tar xvfz $<  > /dev/null)
@@ -165,4 +246,22 @@ $(ZLIB): $(ZLIB_PKG)
 
 $(ZLIB_PKG):
 	wget http://zlib.net/$(ZLIB)-$(ZLIB_VER).tar.gz
+
+$(DBUS): $(DBUS_PKG) $(EXPAT)
+	(tar xvfz $<  > /dev/null)
+	(cd $(DBUS)-$(DBUS_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfDBUS_PKG))
+	(cd $(DBUS)-$(DBUS_VER); $(Xenv); make)
+	(cd $(DBUS)-$(DBUS_VER); $(Xenv); make install)
+
+$(DBUS_PKG):
+	wget http://dbus.freedesktop.org/releases/dbus/$(DBUS)-$(DBUS_VER).tar.gz
+
+$(EXPAT): $(EXPAT_PKG)
+	(tar xvfz $<  > /dev/null)
+	(cd $(EXPAT)-$(EXPAT_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfEXPAT_PKG))
+	(cd $(EXPAT)-$(EXPAT_VER); $(Xenv); make)
+	(cd $(EXPAT)-$(EXPAT_VER); $(Xenv); make install)
+
+$(EXPAT_PKG):
+	wget http://nchc.dl.sourceforge.net/project/expat/expat/$(EXPAT_VER)/$(EXPAT)-$(EXPAT_VER).tar.gz
 
