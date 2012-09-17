@@ -91,7 +91,7 @@ _amf_db_timestamp = None            # time.time of last amf_db cache refresh
 _su_names = None                    # cached SU names
 _sg_names = None                    # cached SU names
 _node_names = None                  # cached Node names
-
+_interactive_shell = False
 _yesno_map = {
     'True':     'Y',
     'False':    'N'
@@ -440,10 +440,10 @@ def load_amf_db():
        AMF_DB_CACHE_TIMEOUT [sec]
     """
     
-    global _amf_db, _amf_db_timestamp
-    #if _amf_db: # and time.time() <= _amf_db_timestamp + AMF_DB_CACHE_TIMEOUT:
-    #    dbmsg(1, 'working from cached AMF DB')
-    #    return _amf_db
+    global _amf_db, _amf_db_timestamp, _interactive_shell
+    if _amf_db and not _interactive_shell: # and time.time() <= _amf_db_timestamp + AMF_DB_CACHE_TIMEOUT:
+        dbmsg(1, 'working from cached AMF DB')
+        return _amf_db
 
     dbmsg(1, 'Getting fresh AMF DB')
     
@@ -2058,7 +2058,7 @@ echo_cmd = '/bin/echo'
 ## main function
 ##
 def main():
-    
+    global _interactive_shell
     extend_path()
     
     cli = Cli(HISTORY_FILE)
@@ -2090,6 +2090,7 @@ def main():
         cli.onecmd(' '.join(args))
         sys.exit(_exit_code)
     else:
+        _interactive_shell = True
         try:
             cli.cmdloop("Starting interactive prompt (type 'help' for help)")
         except KeyboardInterrupt:
