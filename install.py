@@ -299,7 +299,8 @@ class ASPInstaller:
             '    %s [ --standard ]                     # Sets the script to do a standard install (both phases)\n' \
             '    %s [ --custom ]                       # Sets the script to do a custom install (ask user everything, Default)\n' \
             '    %s [ --install-dir /opt/clovis ]      # Sets the install directory (Default: /opt/clovis)\n' \
-            % (self.ASP_VERSION, self.ASP_VERSION, sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0])
+            '    %s [ --no-tipc ]                      # Sets the script to do a custom install with no tipc\n' \
+            % (self.ASP_VERSION, self.ASP_VERSION, sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0],sys.argv[0], sys.argv[0])
 #            '    %s [ -p <openhpi-package-tarball> ]   # Allows use of specified OpenHPI package\n' \
 
         
