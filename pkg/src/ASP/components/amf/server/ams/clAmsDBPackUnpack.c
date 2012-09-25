@@ -8416,6 +8416,12 @@ ClRcT clAmsDBReadEntityStatus(
 ClRcT clAmsDBMarshallEnd(ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
     ClAmsCkptOperationT end = CL_AMS_CKPT_OPERATION_END;
+    if(versionCode == CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, 
+                                      CL_MAJOR_VERSION_BASE,
+                                      CL_MINOR_VERSION_BASE))
+    {
+        end = (ClAmsCkptOperationT)CL_AMS_CKPT_OPERATION_END_4_0;
+    }
     AMS_CALL(clXdrMarshallClInt32T(&end, inMsgHdl, 0));
     return CL_OK;
 }

@@ -56,6 +56,7 @@
 #include <clAmsDBPackUnpack.h>
 #include <clAmsSAServerApi.h>
 #include <clVersionApi.h>
+#include <clNodeCache.h>
 
 #define CL_AMS_INVOCATION_CKPT  0x10 
 #define CL_AMS_DB_CKPT  ( CL_AMS_INVOCATION_CKPT + 1 )
@@ -103,6 +104,7 @@ static ClNameT gClAmsCkptDBSectionCache[CL_AMS_DB_INVOCATION_PAIRS];
 static ClNameT gClAmsCkptInvocationSectionCache[CL_AMS_DB_INVOCATION_PAIRS];
 static ClNameT gClAmsCkptCurrentSectionCache;
 static ClInt32T gClAmsPersistentDBDisabled = -1;
+static ClBoolT rollingOver = CL_FALSE;
 
 static ClRcT
 clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
@@ -890,6 +892,7 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
          */
         if(!strncmp(gClAmsCkptVersionBuf, "B.01.01", 7))
         {
+            rollingOver = CL_TRUE;
             rc = clAmsWriteXMLFile(pSectionName,
                                    (ClCharT*)pIOVector->dataBuffer,
                                    pIOVector->dataSize);
@@ -1147,58 +1150,73 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
 
     if ( (mode == CL_AMS_CKPT_WRITE_INVOCATION) || (mode == CL_AMS_CKPT_WRITE_ALL) )
     {
-#if 0
-        AMS_CHECK_RC_ERROR(clAmsXMLizeInvocation(ams,
-                                                 ams->ckptInvocationSections[dbInvocationPair].value,
-                                                 &readData));
-        if ( ( rc = clAmsCkptSectionOverwrite(
-                                              ams,
-                                              &ams->ckptInvocationSections[dbInvocationPair],
-                                              (ClUint8T *)readData,
-                                              strlen(readData)))
-             != CL_OK )
+        ClBoolT invocationMarshall = CL_TRUE;
+
+        if(rollingOver)
         {
+            ClUint32T versionCode = CL_VERSION_CURRENT;
+            clNodeCacheMinVersionGet(NULL, &versionCode);
+            if(versionCode < CL_VERSION_CODE(5, 0, 0))
+            {
+                invocationMarshall = CL_FALSE;
+            }
+        }
+
+        if(!invocationMarshall)
+        {
+            AMS_CHECK_RC_ERROR(clAmsXMLizeInvocation(ams,
+                                                     ams->ckptInvocationSections[dbInvocationPair].value,
+                                                     &readData));
+            if ( ( rc = clAmsCkptSectionOverwrite(
+                                                  ams,
+                                                  &ams->ckptInvocationSections[dbInvocationPair],
+                                                  (ClUint8T *)readData,
+                                                  strlen(readData)))
+                 != CL_OK )
+            {
+                free (readData);
+                goto exitfn;
+            }
             free (readData);
-            goto exitfn;
         }
-        free (readData);
-#else
-        ClBufferHandleT invocationBuf = 0;
-        ClUint32T invocationLen = 0;
-
-        AMS_CHECK_RC_ERROR(clBufferCreate(&invocationBuf));
-        rc = clAmsInvocationMarshall(ams, ams->ckptInvocationSections[dbInvocationPair].value, 
-                                     invocationBuf);
-        if(rc != CL_OK)
+        else
         {
-            clBufferDelete(&invocationBuf);
-            goto exitfn;
-        }
+            ClBufferHandleT invocationBuf = 0;
+            ClUint32T invocationLen = 0;
 
-        clBufferLengthGet(invocationBuf, &invocationLen);
-        AMS_LOG(CL_DEBUG_INFO, ("Invocation DB marshall done for [%d] bytes\n", invocationLen));
-        rc = clBufferFlatten(invocationBuf, (ClUint8T**)&readData);
-        if(rc != CL_OK)
-        {
-            AMS_LOG(CL_DEBUG_ERROR, ("Invocation buffer flatten returned [%#x]\n", rc));
+            AMS_CHECK_RC_ERROR(clBufferCreate(&invocationBuf));
+            rc = clAmsInvocationMarshall(ams, ams->ckptInvocationSections[dbInvocationPair].value, 
+                                         invocationBuf);
+            if(rc != CL_OK)
+            {
+                clBufferDelete(&invocationBuf);
+                goto exitfn;
+            }
+
+            clBufferLengthGet(invocationBuf, &invocationLen);
+            AMS_LOG(CL_DEBUG_INFO, ("Invocation DB marshall done for [%d] bytes\n", invocationLen));
+            rc = clBufferFlatten(invocationBuf, (ClUint8T**)&readData);
+            if(rc != CL_OK)
+            {
+                AMS_LOG(CL_DEBUG_ERROR, ("Invocation buffer flatten returned [%#x]\n", rc));
+                clBufferDelete(&invocationBuf);
+                goto exitfn;
+            }
             clBufferDelete(&invocationBuf);
-            goto exitfn;
-        }
-        clBufferDelete(&invocationBuf);
-        if ( ( rc = clAmsCkptSectionOverwrite(
-                                              ams,
-                                              &ams->ckptInvocationSections[dbInvocationPair],
-                                              (ClUint8T *)readData,
-                                              invocationLen))
-             != CL_OK )
-        { 
-            clHeapFree (readData);
-            goto exitfn;
-        }
+            if ( ( rc = clAmsCkptSectionOverwrite(
+                                                  ams,
+                                                  &ams->ckptInvocationSections[dbInvocationPair],
+                                                  (ClUint8T *)readData,
+                                                  invocationLen))
+                 != CL_OK )
+            { 
+                clHeapFree (readData);
+                goto exitfn;
+            }
         
-        clHeapFree (readData);
+            clHeapFree (readData);
+        }
         readData = NULL;
-#endif
     }
 
     /*
