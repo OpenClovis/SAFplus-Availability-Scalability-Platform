@@ -159,6 +159,10 @@ static ClXportNodeAddrDataT gClXportDefaultNodeName;
  */
 ClInt32T gClTransportId;
 
+static ClBoolT gClMcastSupported = CL_TRUE;
+static CL_LIST_HEAD_DECLARE(gClMcastPeerList);
+static ClUint32T gClMcastPeers;
+
 #define MULTICAST_ADDR_DEFAULT "224.1.1.1"
 #define MULTICAST_PORT_DEFAULT 5678
 
@@ -1474,29 +1478,123 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
 #undef MAX_XPORTS_PER_SLOT
 }
 
+static ClRcT _iocSetMulticastPeers(ClParserPtrT peers)
+{
+    ClRcT rc = CL_ERR_INVALID_PARAMETER;
+    const ClCharT *port = NULL;
+    ClParserPtrT peer = clParserChild(peers, "peer");
+    ClUint32T numPeers = 0;
+
+    if(!peer)
+    {
+        goto out;
+    }
+
+    port = clParserAttr(peers, "port");
+    if(port)
+    {
+        gClTransportMcastPort = atoi(port);
+        if(!gClTransportMcastPort)
+            gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
+    }
+    clLogNotice("MCAST", "MAP", "Set to use port [%d] for peer discovery", 
+                gClTransportMcastPort);
+
+    while(peer)
+    {
+        ClIocAddrMapT *map = NULL;
+        const ClCharT *addr = clParserAttr(peer, "addr");
+        if(!addr) 
+        {
+            goto next;
+        }
+        map = clHeapCalloc(1, sizeof(*map));
+        CL_ASSERT(map != NULL);
+        map->family = PF_INET;
+        map->_addr.sin_addr.sin_family = PF_INET;
+        map->_addr.sin_addr.sin_port = htons(gClTransportMcastPort);
+        if(inet_pton(PF_INET, addr, (void*)&map->_addr.sin_addr.sin_addr) != 1)
+        {
+            map->family = PF_INET6;
+            map->_addr.sin6_addr.sin6_family = PF_INET6;
+            if(inet_pton(PF_INET6, addr, (void*)&map->_addr.sin6_addr.sin6_addr) != 1)
+            {
+                clLogError("MCAST", "MAP", "Error interpreting address [%s]", addr);
+                clHeapFree(map);
+                goto out_free;
+            }
+            map->_addr.sin6_addr.sin6_port = htons(gClTransportMcastPort);
+        }
+        strncat(map->addrstr, addr, sizeof(map->addrstr)-1);
+        clListAddTail(&map->list, &gClMcastPeerList);
+        ++numPeers;
+        clLogNotice("MCAST", "MAP", "Added addr [%s] to mcast peer map", 
+                    map->addrstr);
+        next:
+        peer = peer->next;
+    }
+
+    if(numPeers > 0)
+    {
+        gClMcastPeers = numPeers;
+        rc = CL_OK;
+        goto out;
+    }
+
+    out_free:
+    while(!CL_LIST_HEAD_EMPTY(&gClMcastPeerList))
+    {
+        ClListHeadT *head = gClMcastPeerList.pNext;
+        ClIocAddrMapT *map = CL_LIST_ENTRY(head, ClIocAddrMapT, list);
+        clListDel(head);
+        clHeapFree(map);
+    }
+    
+    out:
+    return rc;
+}
+
 ClRcT _clIocSetMulticastConfig(ClParserPtrT parent)
 {
     ClRcT rc = CL_OK;
     ClParserPtrT multicastPtr = clParserChild(parent, "multicast");
+
+    gClMcastSupported = CL_TRUE;
+    gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
+
     if (!multicastPtr)
     {
+        ClParserPtrT peers = clParserChild(parent, "multicastPeers");
+        if(peers)
+        {
+            rc = _iocSetMulticastPeers(peers);
+            if(rc == CL_OK)
+            {
+                gClMcastSupported = CL_FALSE;
+                clLogNotice("XPORT", "INIT", "Multicast support disabled");
+                goto out;
+            }
+        }
         strncat(gClTransportMcastAddr, MULTICAST_ADDR_DEFAULT, sizeof(gClTransportMcastAddr)-1);
-        gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
+        rc = CL_OK;
         goto out;
     }
 
     const ClCharT *mcastAddressAttr = clParserAttr(multicastPtr, "address");
     const ClCharT *mcastPortAttr = clParserAttr(multicastPtr, "port");
 
-    if (!mcastAddressAttr || !mcastPortAttr)
+    if (!mcastAddressAttr)
     {
-        strncat(gClTransportMcastAddr, MULTICAST_ADDR_DEFAULT, sizeof(gClTransportMcastAddr)-1);
-        gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
-        goto out;
+        mcastAddressAttr = MULTICAST_ADDR_DEFAULT;
     }
 
     strncat(gClTransportMcastAddr, mcastAddressAttr, sizeof(gClTransportMcastAddr)-1);
-    gClTransportMcastPort = atoi(mcastPortAttr);
+    if(mcastPortAttr)
+    {
+        gClTransportMcastPort = atoi(mcastPortAttr);
+        if(!gClTransportMcastPort)
+            gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
+    }
 
     out:
     return rc;
@@ -2619,6 +2717,38 @@ ClCharT *clTransportMcastAddressGet(void)
 ClUint32T clTransportMcastPortGet(void)
 {
     return gClTransportMcastPort;
+}
+
+ClBoolT clTransportMcastSupported(ClUint32T *numPeers)
+{
+    if(numPeers)
+    {
+        *numPeers = gClMcastPeers;
+    }
+    return gClMcastSupported;
+}
+
+ClRcT clTransportMcastPeerListGet(ClIocAddrMapT *peers, ClUint32T *pNumPeers)
+{
+    ClRcT rc = CL_OK;
+    ClListHeadT *iter = NULL;
+    ClUint32T numPeers = 0;
+
+    if(!pNumPeers || !(numPeers = *pNumPeers))
+        return CL_ERR_INVALID_PARAMETER;
+    
+    CL_LIST_FOR_EACH(iter, &gClMcastPeerList)
+    {
+        ClIocAddrMapT *map = CL_LIST_ENTRY(iter, ClIocAddrMapT, list);
+        memcpy(peers, map, sizeof(*peers));
+        ++peers;
+        --numPeers;
+        if(!numPeers)
+            break;
+    }
+
+    *pNumPeers -= numPeers; /* copied entries */
+    return rc;
 }
 
 ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node)

@@ -3,6 +3,7 @@
 
 #include <clCommon.h>
 #include <clCommonErrors.h>
+#include <clList.h>
 #include <clIocApi.h>
 #include <clIocIpi.h>
 
@@ -16,6 +17,19 @@ typedef ClRcT (*ClTransportNotifyCallbackT)
 (ClIocPhysicalAddressT *compAddr, ClUint32T status, ClPtrT arg);
 
 extern ClInt32T gClTransportId;
+
+typedef struct ClIocAddrMap
+{
+    int family;
+    char addrstr[80];
+    union
+    {
+        struct sockaddr_in sin_addr;
+        struct sockaddr_in6 sin6_addr;
+    } _addr;
+    ClListHeadT list;
+}ClIocAddrMapT;
+
 /*
  * We aren't going to be having multiple transports requesting at the same time.
  * So keep this simple. No need for bitmaps as these aren't moving targets.
@@ -108,6 +122,9 @@ extern ClUint32T clTransportHeartBeatIntervalGet();
 extern ClUint32T clTransportHeartBeatIntervalCompGet();
 extern ClUint32T clTransportHeartBeatRetriesGet();
 extern ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node);
+
+extern ClBoolT clTransportMcastSupported(ClUint32T *numPeers);
+extern ClRcT clTransportMcastPeerListGet(ClIocAddrMapT *peers, ClUint32T *numPeers);
 
 #ifdef __cplusplus
 }
