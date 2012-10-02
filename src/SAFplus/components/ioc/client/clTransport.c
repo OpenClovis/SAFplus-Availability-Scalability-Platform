@@ -1758,7 +1758,7 @@ ClRcT _clIocSetMulticastConfig(ClParserPtrT parent)
 
     if (!multicastPtr)
     {
-        ClParserPtrT peers = clParserChild(parent, "multicastPeers");
+        ClParserPtrT peers = clParserChild(parent, "peerAddresses");
         if(peers)
         {
             rc = _iocSetMulticastPeers(peers);
