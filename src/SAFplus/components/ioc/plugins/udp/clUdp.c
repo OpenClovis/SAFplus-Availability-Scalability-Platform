@@ -30,7 +30,7 @@ static CL_LIST_HEAD_DECLARE(gIocUdpMapList);
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 static ClPluginHelperVirtualIpAddressT gVirtualIp;
 static ClBoolT gUdpInit = CL_FALSE;
-static ClBoolT gClSimulationMode = CL_FALSE;
+ClBoolT gClSimulationMode = CL_FALSE;
 static ClUint32T gClBindOffset;
 
 typedef struct ClIocUdpMap
