@@ -68,7 +68,6 @@ static ClIocAddressT allNodeReps = {
 static ClUint32T threadContFlag = 1;
 static ClUint32T gNumDiscoveredPeers;
 static ClCharT eventHandlerInited = 0;
-static ClBoolT gAspSimulation;
 
 static ClRcT udpEventSubscribe(ClBoolT pollThread);
 
@@ -301,8 +300,6 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
     ClBoolT mcastSupport = CL_TRUE;
     ClInt32T mcastPort = clTransportMcastPortGet();
 
-    gAspSimulation = clParseEnvBoolean("ASP_SIMULATION");
-
     /*
      * Setup mcast send socket
      */
@@ -343,7 +340,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
         }
         else
         {
-            if(gAspSimulation)
+            if(gClSimulationMode)
                 mcastPort += gIocLocalBladeAddress;
         }
     }
@@ -482,7 +479,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     {
         struct msghdr msg;
         ClInt32T mcastNotifPort = mcastPort;
-        if(!mcastSupport && gAspSimulation)
+        if(!mcastSupport && gClSimulationMode)
         {
             ClCharT *pLastOctet = strrchr(mcastPeers[i].addrstr, '.');
             if(pLastOctet)
@@ -493,7 +490,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
         }
         if(mcastPeers[i].family == PF_INET)
         {
-            if(!mcastSupport && gAspSimulation)
+            if(!mcastSupport && gClSimulationMode)
             {
                 mcastPeers[i]._addr.sin_addr.sin_port = htons(mcastNotifPort);
             }
@@ -502,7 +499,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
         }
         else
         {
-            if(!mcastSupport && gAspSimulation)
+            if(!mcastSupport && gClSimulationMode)
             {
                 mcastPeers[i]._addr.sin6_addr.sin6_port = htons(mcastNotifPort);
             }

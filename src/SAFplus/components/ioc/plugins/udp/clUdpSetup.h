@@ -31,6 +31,7 @@ extern "C" {
 ClRcT clUdpFdGet(ClIocPortT port, ClInt32T *fd);
 ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot);
 ClRcT clIocUdpMapDel(ClIocNodeAddressT slot);
+extern ClBoolT gClSimulationMode;
 extern ClInt32T gClUdpXportId;
 extern ClCharT gClUdpXportType[CL_MAX_NAME_LENGTH];
 
