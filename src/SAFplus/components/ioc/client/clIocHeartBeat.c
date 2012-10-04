@@ -1078,13 +1078,6 @@ ClRcT clIocHeartBeatMessageReqRep(ClIocCommPortHandleT commPort,
 
     if (rc != CL_OK) 
     {
-        clLogError("IOC", "HBT",
-                   "clBufferNBytesWrite failed with rc = %#x", rc);
-        goto out_delete;
-    }
-
-    if (rc != CL_OK) 
-    {
         clLogError("IOC", "HBT", "clBufferNBytesWrite failed with rc = %#x", rc);
         goto out_delete;
     }
