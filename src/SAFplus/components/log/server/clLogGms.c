@@ -70,7 +70,9 @@ clLogIocNodedownCallback(ClIocNotificationIdT eventId,
                 rc);
         return ;
     }    
-    if( eventId == CL_IOC_NODE_LEAVE_NOTIFICATION 
+    if( (eventId == CL_IOC_NODE_LEAVE_NOTIFICATION 
+         ||
+         eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
         &&
         pAddress->iocPhyAddress.nodeAddress == pSvrCommonEoData->masterAddr)
     {
@@ -98,9 +100,11 @@ clLogIocNodedownCallback(ClIocNotificationIdT eventId,
             }
         }
     }
-    else if( eventId == CL_IOC_NODE_LEAVE_NOTIFICATION 
-        &&
-        pAddress->iocPhyAddress.nodeAddress == pSvrCommonEoData->deputyAddr)
+    else if( (eventId == CL_IOC_NODE_LEAVE_NOTIFICATION 
+              ||
+              eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+             &&
+             pAddress->iocPhyAddress.nodeAddress == pSvrCommonEoData->deputyAddr)
     {
         pSvrCommonEoData->deputyAddr = CL_IOC_RESERVED_ADDRESS;
     }

@@ -475,7 +475,8 @@ static ClRcT clIocNotificationProxyRecv(ClIocCommPortHandleT commPort, ClUint8T 
                                        CL_FALSE, xportType);
 }
 
-ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, ClUint32T status,
+ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, 
+                                      ClIocNotificationIdT id,
                                       ClIocNodeAddressT notificationNodeAddr,
                                       ClIocAddressT *allLocalComps, 
                                       ClIocAddressT *allNodeReps, ClCharT *xportType)
@@ -485,6 +486,23 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, ClUint32T s
     };
     ClIocNotificationT notification = {0};
     ClRcT rc = CL_OK;
+    ClUint32T status;
+ 
+    if(id == CL_IOC_COMP_ARRIVAL_NOTIFICATION)
+        id = CL_IOC_NODE_ARRIVAL_NOTIFICATION;
+
+    if(id == CL_IOC_COMP_DEATH_NOTIFICATION)
+        id = CL_IOC_NODE_LEAVE_NOTIFICATION;
+
+    if( id == CL_IOC_NODE_ARRIVAL_NOTIFICATION ||
+        id == CL_IOC_NODE_LINK_UP_NOTIFICATION)
+    {
+        status = CL_IOC_NODE_UP;
+    }
+    else
+    {
+        status = CL_IOC_NODE_DOWN;
+    }
 
     if(notificationNodeAddr == gIocLocalBladeAddress)
     {
@@ -522,7 +540,7 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, ClUint32T s
 #ifdef CL_IOC_COMP_ARRIVAL_NOTIFICATION_DISABLE 
         return CL_OK;
 #else
-        notification.id = htonl(CL_IOC_NODE_ARRIVAL_NOTIFICATION);
+        notification.id = htonl(id);
 #endif
     } 
     else 
@@ -531,7 +549,7 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, ClUint32T s
         clIocMasterSegmentUpdate(notificationCompAddr);
         clIocNodeCompsReset(notificationNodeAddr);
         clNodeCacheSoftReset(notificationNodeAddr);
-        notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
+        notification.id = htonl(id);
     }
     if(clTransportBridgeEnabled(gIocLocalBladeAddress) && allNodeReps)
     {

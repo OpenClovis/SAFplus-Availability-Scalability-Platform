@@ -89,6 +89,43 @@ static void udpSyncCallback(ClIocPhysicalAddressT *srcAddr, ClPtrT arg)
     }
 }
 
+ClRcT clUdpNodeNotification(ClIocNodeAddressT node, ClIocNotificationIdT event)
+{
+    ClRcT rc = CL_OK;
+    ClIocNotificationIdT id = event;
+
+    /* This is for NODE ARRIVAL/DEPARTURE */
+    if(id == CL_IOC_COMP_ARRIVAL_NOTIFICATION || id == CL_IOC_NODE_LINK_UP_NOTIFICATION )
+        id = CL_IOC_NODE_ARRIVAL_NOTIFICATION;
+
+    if(id == CL_IOC_COMP_DEATH_NOTIFICATION || id == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+        id = CL_IOC_NODE_LEAVE_NOTIFICATION;
+
+    clLogInfo("UDP", "NOTIF", "Got node [%s] notification for node [0x%x]",
+              id == CL_IOC_NODE_ARRIVAL_NOTIFICATION ? "arrival" : "death", node);
+
+    rc = clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
+                                         event,
+                                         node,
+                                         (ClIocAddressT*)&allLocalComps,
+                                         (ClIocAddressT*)&allNodeReps,
+                                         gClUdpXportType);
+                
+    if(id == CL_IOC_NODE_LEAVE_NOTIFICATION)
+    {
+        if (node == gIocLocalBladeAddress)
+        {
+            threadContFlag = 0;
+        }
+        else
+        {
+            clIocUdpMapDel(node); /*remove entry from the map*/
+        }
+    }
+
+    return rc;
+}
+
 static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
     ClRcT rc = CL_OK;
     ClUint8T *pRecvBase = (ClUint8T*) pMsgHdr->msg_iov->iov_base;
@@ -126,28 +163,7 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             if (compAddr.portId == CL_IOC_XPORT_PORT)
             {
                 /* This is for NODE ARRIVAL/DEPARTURE */
-                clLogInfo("UDP", "NOTIF", "Got node [%s] notification for node [0x%x]",
-                          id == CL_IOC_COMP_ARRIVAL_NOTIFICATION ? "arrival" : "death", compAddr.nodeAddress);
-
-                rc = clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
-                                                     id == CL_IOC_COMP_ARRIVAL_NOTIFICATION ?
-                                                     CL_IOC_NODE_UP : CL_IOC_NODE_DOWN,
-                                                     compAddr.nodeAddress,
-                                                     (ClIocAddressT*)&allLocalComps,
-                                                     (ClIocAddressT*)&allNodeReps,
-                                                     gClUdpXportType);
-                
-                if(id == CL_IOC_COMP_DEATH_NOTIFICATION)
-                {
-                    if (compAddr.nodeAddress == gIocLocalBladeAddress)
-                    {
-                        threadContFlag = 0;
-                    }
-                    else
-                    {
-                        clIocUdpMapDel(compAddr.nodeAddress); /*remove entry from the map*/
-                    }
-                }
+                rc = clUdpNodeNotification(compAddr.nodeAddress, id);
             }
             else
             {
@@ -172,7 +188,8 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
                         /*
                          * self shutdown.
                          */
-                        clTransportNotificationClose(NULL, gIocLocalBladeAddress, CL_IOC_XPORT_PORT);
+                        clTransportNotificationClose(NULL, gIocLocalBladeAddress, 
+                                                     CL_IOC_XPORT_PORT, CL_IOC_COMP_DEATH_NOTIFICATION);
                         threadContFlag = 0;
                     }
                 }

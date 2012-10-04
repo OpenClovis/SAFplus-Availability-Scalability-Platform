@@ -186,7 +186,8 @@ static void clMsgNotificationReceiveCallback(ClIocNotificationIdT event, ClPtrT 
     clOsalMutexUnlock(&gClMsgFinalizeLock);
 
     if((event == CL_IOC_COMP_DEATH_NOTIFICATION && pAddr->iocPhyAddress.portId == CL_IOC_MSG_PORT) ||
-            event == CL_IOC_NODE_LEAVE_NOTIFICATION)
+       event == CL_IOC_NODE_LEAVE_NOTIFICATION || 
+       event == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
     {
         clMsgNodeLeftCleanup(pAddr);
     }
