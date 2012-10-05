@@ -14,7 +14,7 @@
 #include <clDebugApi.h>
 #include <clPluginHelper.h>
 #include <clIocNeighComps.h>
-#include <clTaskPool.h>
+#include <clJobQueue.h>
 #include "clUdpSetup.h"
 #include "clUdpNotification.h"
 
@@ -78,7 +78,7 @@ typedef struct ClLinkNotificationArgs
 } ClLinkNotificationArgsT;
 
 static ClXportCtrlT gXportCtrl;
-static ClTaskPoolHandleT gXportLinkNotifyTask;
+static ClJobQueueT gXportLinkNotifyQueue;
 
 #define UDP_MAP_HASH(addr) ( (addr) & IOC_UDP_MAP_MASK )
 
@@ -360,10 +360,10 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     /*
      * To do a fast pass early update node entry table
      */
-    rc = clTaskPoolCreate(&gXportLinkNotifyTask, 1, 0, 0);
+    rc = clJobQueueInit(&gXportLinkNotifyQueue, 0, 1);
     if(rc != CL_OK)
     {
-        clLogError("UDP", "INIT", "Link notify task pool creation failed with [%#x]. "
+        clLogError("UDP", "INIT", "Link notify job queue creation failed with [%#x]. "
                    "Link level or split brain recovery wont function", rc);
     }
 
@@ -919,7 +919,7 @@ static ClRcT xportLinkNotify(ClIocNodeAddressT node, ClIocNotificationIdT id)
     CL_ASSERT(linkNotification != NULL);
     linkNotification->node = node;
     linkNotification->event = id;
-    rc = clTaskPoolRun(gXportLinkNotifyTask, linkNotify, linkNotification);
+    rc = clJobQueuePush(&gXportLinkNotifyQueue, linkNotify, linkNotification);
     if(rc != CL_OK)
     {
         clHeapFree(linkNotification);
