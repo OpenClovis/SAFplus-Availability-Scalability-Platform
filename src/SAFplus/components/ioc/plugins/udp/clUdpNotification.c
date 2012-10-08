@@ -435,7 +435,10 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     static int fd = -1; 
 
     if(fd < 0)
-        fd = handlerFd[0];
+    {
+        if( (fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP) ) < 0)
+            return CL_ERR_LIBRARY;
+    }
 
     mcastSupport = clTransportMcastSupported(&numMcastPeers);
     if(!mcastSupport && !numMcastPeers)
@@ -511,11 +514,6 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
         msg.msg_control = NULL;
         msg.msg_controllen = 0;
         msg.msg_flags = 0;
-
-        if(fd <= 0)
-        {
-            fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-        }
 
         if (sendmsg(fd, &msg, 0) < 0) 
         {
