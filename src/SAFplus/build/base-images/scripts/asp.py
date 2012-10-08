@@ -441,6 +441,9 @@ def init_log():
 
 def is_executable_file(f):
     import stat
+    if not os.path.exists(f):
+        return False
+
     is_file = stat.S_ISREG(os.stat(f)[stat.ST_MODE])
     
     return is_file and os.access(f, os.R_OK | os.X_OK)
