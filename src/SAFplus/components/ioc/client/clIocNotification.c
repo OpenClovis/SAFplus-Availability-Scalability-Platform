@@ -224,6 +224,7 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
                                                   .portId = CL_IOC_XPORT_PORT
     };
     ClIocNotificationT notification = {0};
+    ClIocNotificationIdT notificationId = id;
     ClRcT rc = CL_OK;
     ClUint32T status;
  
@@ -272,8 +273,25 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
          * Send back node version again for consistency or link syncup point
          * and comp bitmap for this node
         */
-        clIocNodeVersionSend(commPort, (ClIocAddressT*)&notificationCompAddr, xportType);
-        clIocNotificationNodeMapSend(commPort, (ClIocAddressT*)&notificationCompAddr, xportType);
+        rc = clIocNodeVersionSend(commPort, (ClIocAddressT*)&notificationCompAddr, xportType);
+        if(rc != CL_OK)
+        {
+            if(notificationId == CL_IOC_NODE_LINK_UP_NOTIFICATION)
+            {
+                clIocCompStatusSet(notificationCompAddr, CL_IOC_NODE_DOWN);
+                goto out;
+            }
+        }
+
+        rc = clIocNotificationNodeMapSend(commPort, (ClIocAddressT*)&notificationCompAddr, xportType);
+        if(rc != CL_OK)
+        {
+            if(notificationId == CL_IOC_NODE_LINK_UP_NOTIFICATION)
+            {
+                clIocCompStatusSet(notificationCompAddr, CL_IOC_NODE_DOWN);
+                goto out;
+            }
+        }
 
 #ifdef CL_IOC_COMP_ARRIVAL_NOTIFICATION_DISABLE 
         return CL_OK;
@@ -298,8 +316,10 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
      */
     clIocNotificationRegistrants(&notification);
     /* Need to send a notification packet to all the components on this node */
-    return clIocNotificationPacketSend(commPort, &notification, allLocalComps, 
-                                       CL_FALSE, xportType);
+    rc = clIocNotificationPacketSend(commPort, &notification, allLocalComps, 
+                                     CL_FALSE, xportType);
+    out:
+    return rc;
 }
 
 /* 

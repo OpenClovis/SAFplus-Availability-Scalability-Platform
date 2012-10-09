@@ -232,7 +232,8 @@ ClRcT clIocHearBeatHealthCheckUpdate(ClIocNodeAddressT nodeAddress, ClUint32T po
 /*
  * Calling clIocSend and to health check peer nodes
  */
-static ClRcT _clIocHeartBeatSend() {
+static ClRcT _clIocHeartBeatSend() 
+{
     ClRcT rc = CL_OK;
     ClIocPhysicalAddressT compAddr;
     ClEoExecutionObjT *eoObj = NULL;
@@ -327,10 +328,23 @@ static ClRcT _clIocHeartBeatSend() {
                  *Reassign the interface addresses back on link up for available transports
                  */
                 clTransportAddressAssign(NULL);
-                clLogNotice("SPLIT", "CLUSTER", "Sending node arrival for slot [%d]", entry->linkIndex);
-                clTransportNotificationOpen(NULL, entry->linkIndex, 
-                                            CL_IOC_XPORT_PORT, 
-                                            CL_IOC_NODE_LINK_UP_NOTIFICATION);
+                clLogNotice("SPLIT", "CLUSTER", "Sending node arrival for slot [%d]", 
+                            entry->linkIndex);
+                if((rc = clTransportNotificationOpen(NULL, entry->linkIndex, 
+                                                     CL_IOC_XPORT_PORT, 
+                                                     CL_IOC_NODE_LINK_UP_NOTIFICATION))
+                   != CL_OK)
+                {
+                    /*
+                     * reset the status and try again in the next pass.
+                     */
+                    entry->status = CL_IOC_LINK_DOWN;
+                    rc = CL_OK;
+                    clLogNotice("SPLIT", "CLUSTER", 
+                                "Setting node [%d] status back to link down "
+                                "as notification open failed with [%#x]",
+                                entry->linkIndex, rc);
+                }
             }
         }
     }
