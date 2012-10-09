@@ -338,12 +338,12 @@ static ClRcT _clIocHeartBeatSend()
                     /*
                      * reset the status and try again in the next pass.
                      */
-                    entry->status = CL_IOC_LINK_DOWN;
-                    rc = CL_OK;
                     clLogNotice("SPLIT", "CLUSTER", 
                                 "Setting node [%d] status back to link down "
                                 "as notification open failed with [%#x]",
                                 entry->linkIndex, rc);
+                    entry->status = CL_IOC_LINK_DOWN;
+                    rc = CL_OK;
                 }
             }
         }
