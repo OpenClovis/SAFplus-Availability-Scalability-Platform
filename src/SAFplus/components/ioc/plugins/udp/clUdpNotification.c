@@ -163,7 +163,7 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             {
                 /* This is for NODE ARRIVAL/DEPARTURE */
                 if(compAddr.nodeAddress != gIocLocalBladeAddress)
-		    rc = clUdpNodeNotification(compAddr.nodeAddress, id);
+                    rc = clUdpNodeNotification(compAddr.nodeAddress, id);
             }
             else
             {
