@@ -162,7 +162,8 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             if (compAddr.portId == CL_IOC_XPORT_PORT)
             {
                 /* This is for NODE ARRIVAL/DEPARTURE */
-                rc = clUdpNodeNotification(compAddr.nodeAddress, id);
+                if(compAddr.nodeAddress != gIocLocalBladeAddress)
+		    rc = clUdpNodeNotification(compAddr.nodeAddress, id);
             }
             else
             {
