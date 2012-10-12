@@ -596,7 +596,14 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version,
     if(version)
         entry->version = version;
     if(capability)
-        entry->capability = capability;
+    {
+        if((capability & __LEADER_CAPABILITY_MASK) &&
+           CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader != nodeAddress)
+        {
+            capability &= ~__LEADER_CAPABILITY_MASK;
+        }
+	entry->capability = capability;
+    }
     if(nodeName)
     {
         entry->nodeName[0] = 0;
