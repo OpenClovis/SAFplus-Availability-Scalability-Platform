@@ -691,10 +691,9 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister)
                 node->status.isClusterMember = CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER;
             }
             clLogWarning("NODE", "JOIN", "Node [%s] already member of the cluster. "
-                         "Forcing a recovery error to have the node restarted since "
+                         "Forcing recovery error to have the node restarted since "
                          "it appears to be recovering from an inconsistent cluster state "
-                         "mostly caused by fast controller flips or inconsistent "
-                         "xport notifications", 
+                         "mostly caused by fast controller flips",
                          pNodeName);
             rc = CL_AMS_RC(CL_ERR_INVALID_STATE);
             goto out_unlock;
