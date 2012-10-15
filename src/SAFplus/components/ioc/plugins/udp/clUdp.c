@@ -14,7 +14,6 @@
 #include <clDebugApi.h>
 #include <clPluginHelper.h>
 #include <clIocNeighComps.h>
-#include <clJobQueue.h>
 #include "clUdpSetup.h"
 #include "clUdpNotification.h"
 
@@ -78,7 +77,6 @@ typedef struct ClLinkNotificationArgs
 } ClLinkNotificationArgsT;
 
 static ClXportCtrlT gXportCtrl;
-static ClJobQueueT gXportLinkNotifyQueue;
 
 #define UDP_MAP_HASH(addr) ( (addr) & IOC_UDP_MAP_MASK )
 
@@ -360,13 +358,6 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     /*
      * To do a fast pass early update node entry table
      */
-    rc = clJobQueueInit(&gXportLinkNotifyQueue, 0, 1);
-    if(rc != CL_OK)
-    {
-        clLogError("UDP", "INIT", "Link notify job queue creation failed with [%#x]. "
-                   "Link level or split brain recovery wont function", rc);
-    }
-
     clIocNotificationRegister(_clUdpMapUpdateNotification, NULL);
 
     // TODO: identify from linkName
@@ -904,29 +895,6 @@ ClRcT xportNotifyFinalize(void)
     return clUdpEventHandlerFinalize();
 }
 
-static ClRcT linkNotify(ClPtrT args)
-{
-    ClLinkNotificationArgsT *linkNotification = args;
-    ClRcT rc = clUdpNodeNotification(linkNotification->node, linkNotification->event);
-    clHeapFree(linkNotification);
-    return rc;
-}
-
-static ClRcT xportLinkNotify(ClIocNodeAddressT node, ClIocNotificationIdT id)
-{
-    ClRcT rc = CL_OK;
-    ClLinkNotificationArgsT *linkNotification = clHeapCalloc(1, sizeof(*linkNotification));
-    CL_ASSERT(linkNotification != NULL);
-    linkNotification->node = node;
-    linkNotification->event = id;
-    rc = clJobQueuePush(&gXportLinkNotifyQueue, linkNotify, linkNotification);
-    if(rc != CL_OK)
-    {
-        clHeapFree(linkNotification);
-    }
-    return rc;
-}
-
 /*
  * Notify the port used
  */
@@ -943,7 +911,7 @@ ClRcT xportNotifyOpen(ClIocNodeAddressT node, ClIocPortT port,
     {
         if(node != gIocLocalBladeAddress && event == CL_IOC_NODE_LINK_UP_NOTIFICATION)
         {
-            rc = xportLinkNotify(node, event);
+            rc = clUdpNodeNotification(node, event);
         }
         else
         {
@@ -964,7 +932,7 @@ ClRcT xportNotifyClose(ClIocNodeAddressT nodeAddress, ClIocPortT port,
        port == CL_IOC_XPORT_PORT && 
        event == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
     {
-        rc = xportLinkNotify(nodeAddress, event);
+        rc = clUdpNodeNotification(nodeAddress, event);
     }
     else
     {
