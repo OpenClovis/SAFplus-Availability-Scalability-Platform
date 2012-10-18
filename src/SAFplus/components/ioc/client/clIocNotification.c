@@ -196,13 +196,25 @@ static ClRcT clIocNotificationNodeMapSend(ClIocCommPortHandleT commPort,
 */
 
 static ClRcT clIocNodeVersionSend(ClIocCommPortHandleT commPort, 
-                                  ClIocAddressT *destAddress, ClCharT *xportType)
+                                  ClIocAddressT *destAddress, ClCharT *xportType,
+                                  ClIocNotificationIdT id)
 {
     ClIocNotificationT notification = {0};
     static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
     ClUint32T myCapability = 0;
     clNodeCacheVersionAndCapabilityGet(gIocLocalBladeAddress, &nodeVersion, &myCapability);
-    notification.id = htonl(CL_IOC_NODE_VERSION_NOTIFICATION);
+    if(id != CL_IOC_NODE_LINK_UP_NOTIFICATION)
+    {
+        id = CL_IOC_NODE_VERSION_NOTIFICATION;
+    }
+    else
+    {
+        /*
+         * No need to sync capabilities again on link up
+         */
+        myCapability = 0;
+    }
+    notification.id = htonl(id);
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
     notification.nodeVersion = htonl(nodeVersion);
     notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
@@ -224,7 +236,6 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
                                                   .portId = CL_IOC_XPORT_PORT
     };
     ClIocNotificationT notification = {0};
-    ClIocNotificationIdT notificationId = id;
     ClRcT rc = CL_OK;
     ClUint32T status;
  
@@ -258,7 +269,7 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
             clIocCompStatusSet(notificationCompAddr, CL_IOC_NODE_UP);
             if(allNodeReps)
             {
-                rc = clIocNodeVersionSend(commPort, allNodeReps, xportType);
+                rc = clIocNodeVersionSend(commPort, allNodeReps, xportType, id);
             }
         }
         return rc;
@@ -273,10 +284,11 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
          * Send back node version again for consistency or link syncup point
          * and comp bitmap for this node
         */
-        rc = clIocNodeVersionSend(commPort, (ClIocAddressT*)&notificationCompAddr, xportType);
+        rc = clIocNodeVersionSend(commPort, (ClIocAddressT*)&notificationCompAddr, 
+                                  xportType, id);
         if(rc != CL_OK)
         {
-            if(notificationId == CL_IOC_NODE_LINK_UP_NOTIFICATION)
+            if(id == CL_IOC_NODE_LINK_UP_NOTIFICATION)
             {
                 clIocCompStatusSet(notificationCompAddr, CL_IOC_NODE_DOWN);
                 goto out;
@@ -286,7 +298,7 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
         rc = clIocNotificationNodeMapSend(commPort, (ClIocAddressT*)&notificationCompAddr, xportType);
         if(rc != CL_OK)
         {
-            if(notificationId == CL_IOC_NODE_LINK_UP_NOTIFICATION)
+            if(id == CL_IOC_NODE_LINK_UP_NOTIFICATION)
             {
                 clIocCompStatusSet(notificationCompAddr, CL_IOC_NODE_DOWN);
                 goto out;
@@ -464,7 +476,8 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
      * Get the version of the peer node and update the shared memory.
      */
     if(ntohl(notification.id) == CL_IOC_NODE_VERSION_NOTIFICATION ||
-       ntohl(notification.id) == CL_IOC_NODE_VERSION_REPLY_NOTIFICATION)
+       ntohl(notification.id) == CL_IOC_NODE_VERSION_REPLY_NOTIFICATION ||
+       ntohl(notification.id) == CL_IOC_NODE_LINK_UP_NOTIFICATION)
     {
         ClIocAddressT destAddress = {{0}};
         ClUint32T version = ntohl(notification.nodeVersion);
@@ -480,6 +493,16 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
                 
         if(destAddress.iocPhyAddress.nodeAddress == gIocLocalBladeAddress)
             goto out;
+        
+        if(ntohl(notification.id) == CL_IOC_NODE_LINK_UP_NOTIFICATION)
+        {
+            clLogNotice("LINK", "NOTIF", 
+                        "Got link up notification from peer [%d], version [%#x]",
+                        nodeId, version);
+            clNodeCacheUpdate(nodeId, version, 0, NULL);
+            clIocNotificationRegistrants(&notification);
+            goto out_notify;
+        }
 
         /*
          * Check for backward compatibility
@@ -559,6 +582,7 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
 #endif
                 
     /* Need to send the above notification to all the components on this node */
+    out_notify:
     rc = clIocNotificationPacketSend(commPort, &notification, allLocalComps, CL_FALSE,
                                      xportType);
 

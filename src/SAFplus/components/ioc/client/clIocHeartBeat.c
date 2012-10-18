@@ -370,20 +370,19 @@ static ClRcT _clIocHeartBeatSend(void)
             ClIocHeartBeatStatusT *entry =
                 CL_LIST_ENTRY(iter, ClIocHeartBeatStatusT, list);
 
+	    if(entry->linkIndex == gIocLocalBladeAddress)
+	    {
+	        continue;
+	    }
+
             if (entry->status == CL_IOC_NODE_UP) 
             {
                 /*
                  * Get current status in case node already updated
                  */
-                ClUint8T status;
-                if(entry->linkIndex == gIocLocalBladeAddress)
-                {
-                    status = CL_IOC_NODE_UP;
-                }
-                else
-                {
-                    clIocRemoteNodeStatusGet(entry->linkIndex, &status);
-                }
+                ClUint8T status = 0;
+		clIocRemoteNodeStatusGet(entry->linkIndex, &status);
+
                 if (status == CL_IOC_NODE_DOWN)
                 {
                     entry->status = CL_IOC_NODE_DOWN;
