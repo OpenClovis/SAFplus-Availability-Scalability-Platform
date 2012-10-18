@@ -381,7 +381,7 @@ static ClRcT _clIocHeartBeatSend(void)
                  * Get current status in case node already updated
                  */
                 ClUint8T status = 0;
-		clIocRemoteNodeStatusGet(entry->linkIndex, &status);
+                clIocRemoteNodeStatusGet(entry->linkIndex, &status);
 
                 if (status == CL_IOC_NODE_DOWN)
                 {
