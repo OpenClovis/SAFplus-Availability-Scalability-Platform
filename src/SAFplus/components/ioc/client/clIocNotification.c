@@ -276,6 +276,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
     if(id == CL_IOC_NODE_LINK_UP_NOTIFICATION)
     {
         clNodeCacheUpdate(nodeId, version, 0, NULL);
+        clIocNotificationRegistrants(notification);
         goto out;
     }
 
