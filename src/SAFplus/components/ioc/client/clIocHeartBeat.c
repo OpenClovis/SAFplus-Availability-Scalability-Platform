@@ -1007,7 +1007,7 @@ ClRcT _clIocSetHeartBeatConfig()
     configPath = getenv("ASP_CONFIG");
     if (configPath != NULL)
     {
-        parent = clParserOpenFile(configPath, "clTransport.xml");
+        parent = clParserOpenFile(configPath, CL_TRANSPORT_CONFIG_FILE);
         if (parent == NULL)
         {
             clLogWarning("IOC", "HBT", "Transport configuration file does not exist. Should default to tipc");
