@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 #define CL_TRANSPORT_BASE_PORT (18000)
+#define CL_TRANSPORT_CONFIG_FILE "clTransport.xml"
 
 typedef ClRcT (*ClTransportNotifyCallbackT)
 (ClIocPhysicalAddressT *compAddr, ClUint32T status, ClPtrT arg);

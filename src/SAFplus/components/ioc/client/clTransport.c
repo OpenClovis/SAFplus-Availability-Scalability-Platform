@@ -200,8 +200,6 @@ static ClCharT gClXportDefaultType[CL_MAX_NAME_LENGTH];
 static ClTransportLayerT *gClXportDefault;
 static ClBoolT gXportNodeRep;
 
-#define XPORT_CONFIG_FILE "clTransport.xml"
-
 static ClRcT xportAddressAssignFake(void)
 {
     clLogNotice("XPORT", "ASSIGN", "Inside fake transport initialize");
@@ -1815,25 +1813,27 @@ ClRcT clTransportLayerInitialize(void)
 
     configPath = getenv("ASP_CONFIG");
     if(!configPath) configPath = ".";
-    parent = clParserOpenFile(configPath, XPORT_CONFIG_FILE);
+    parent = clParserOpenFile(configPath, CL_TRANSPORT_CONFIG_FILE);
     if(!parent)
     {
         clLogWarning("XPORT", "INIT", 
                      "Unable to open transport config [%s] from path [%s]." 
                      "Would be loading default transport [%s] with plugin [%s]", 
-                     XPORT_CONFIG_FILE, configPath, CL_XPORT_DEFAULT_TYPE, CL_XPORT_DEFAULT_PLUGIN);
+                     CL_TRANSPORT_CONFIG_FILE, configPath, CL_XPORT_DEFAULT_TYPE, CL_XPORT_DEFAULT_PLUGIN);
         goto set_default;
     }
     xports = clParserChild(parent, "xports");
     if(!xports)
     {
-        clLogError("XPORT", "INIT", "No xports tag found for transport initialize in [%s]", XPORT_CONFIG_FILE);
+        clLogError("XPORT", "INIT", "No xports tag found for transport initialize in [%s]", 
+                   CL_TRANSPORT_CONFIG_FILE);
         goto out_free;
     }
     xport = clParserChild(xports, "xport");
     if(!xport)
     {
-        clLogError("XPORT", "INIT", "No xport tag found for transport initialize in [%s]", XPORT_CONFIG_FILE);
+        clLogError("XPORT", "INIT", "No xport tag found for transport initialize in [%s]", 
+                   CL_TRANSPORT_CONFIG_FILE);
         goto out_free;
     }
     while(xport)

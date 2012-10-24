@@ -51,6 +51,11 @@ else
 EXTRA_SHARED_LDFLAGS=-Wl,--start-group -L$(ASP_LIB) -lmw -L$(MODEL_LIB) -Wl,--end-group -L$(COMP_ROOT)/ground/client -lClGround
 endif
 
+CHECK_SCTP := $(shell ./check_sctp.sh $(TOOLCHAIN_DIR)/bin/$(TARGET)-gcc)
+ifeq ($(strip $(CHECK_SCTP)), )
+	EXTRA_CPPFLAGS += -DHAVE_SCTP
+endif
+
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
 
 EXTRA_SHARED_LDFLAGS+=-L$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable -lezxml 

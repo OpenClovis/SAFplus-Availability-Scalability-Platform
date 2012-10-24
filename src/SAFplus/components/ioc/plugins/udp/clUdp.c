@@ -2,6 +2,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#ifdef HAVE_SCTP
+#include <netinet/sctp.h>
+#endif
 #include <netdb.h>
 #include <clCommon.h>
 #include <clCommonErrors.h>
@@ -30,6 +33,10 @@ extern ClIocNodeAddressT gIocLocalBladeAddress;
 static ClPluginHelperVirtualIpAddressT gVirtualIp;
 static ClBoolT gUdpInit = CL_FALSE;
 ClBoolT gClSimulationMode = CL_FALSE;
+ClInt32T gClProtocol = IPPROTO_UDP;
+ClInt32T gClSockType = SOCK_DGRAM;
+ClInt32T gClCmsgHdrLen;
+struct cmsghdr *gClCmsgHdr;
 static ClUint32T gClBindOffset;
 
 typedef struct ClIocUdpMap
@@ -218,16 +225,18 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
     map->family = PF_INET;
     map->addrstr[0] = 0;
     strncat(map->addrstr, addr, sizeof(map->addrstr)-1);
+    map->__ipv4_addr.sin_family = PF_INET;
     if(inet_pton(PF_INET, addr, (void*)&map->__ipv4_addr.sin_addr) != 1)
     {
         map->family = PF_INET6;
+        map->__ipv6_addr.sin6_family = PF_INET6;
         if(inet_pton(PF_INET6, addr, (void*)&map->__ipv6_addr.sin6_addr) != 1)
         {
             clLogError("UDP", "MAP", "Error interpreting address [%s] for node [%d]", addr, slot);
             goto out_free;
         }
     }
-    map->sendFd = socket(map->family, SOCK_DGRAM, IPPROTO_UDP);
+    map->sendFd = socket(map->family, gClSockType, gClProtocol);
     if(map->sendFd < 0)
     {
         clLogError("UDP", "MAP", "Socket syscall returned with error [%s] for UDP socket", strerror(errno));
@@ -330,6 +339,82 @@ ClRcT xportAddressAssign(void)
     return rc;
 }
 
+#ifdef HAVE_SCTP
+
+void initSctpCtrlSpace(void)
+{
+    struct sctp_sndrcvinfo *sndrcvInfo;
+    static ClUint8T cMsgSpace[CMSG_SPACE(sizeof(struct sctp_sndrcvinfo))];
+    gClCmsgHdr = (struct cmsghdr *)cMsgSpace;
+    gClCmsgHdrLen = CMSG_SPACE(sizeof(struct sctp_sndrcvinfo));
+    gClCmsgHdr->cmsg_type = SCTP_SNDRCV;
+    gClCmsgHdr->cmsg_level = IPPROTO_SCTP;
+    gClCmsgHdr->cmsg_len = CMSG_LEN(sizeof(struct sctp_sndrcvinfo));
+    sndrcvInfo = (struct sctp_sndrcvinfo*)CMSG_DATA(gClCmsgHdr);
+    memset(sndrcvInfo, 0, sizeof(*sndrcvInfo));
+}
+
+static void initSctp(void)
+{
+    clLogNotice("INIT", "SCTP", "SCTP mode enabled for UDP transport");
+    gClSockType = SOCK_SEQPACKET;
+    gClProtocol = IPPROTO_SCTP;
+    initSctpCtrlSpace();
+}
+
+#else
+
+static void initSctp(void)
+{
+    clLogNotice("INIT", "SCTP", "Not using SCTP mode for UDP as sctp support isn't available");
+    clLogNotice("INIT", "SCTP", "Try installing libsctp-dev to enable sctp");
+    gClSockType = SOCK_DGRAM;
+    gClProtocol = IPPROTO_UDP;
+}
+
+#endif
+
+static ClRcT checkInitSctp(void)
+{
+    ClRcT rc = CL_OK;
+    ClParserPtrT parent = NULL, child = NULL;
+    ClCharT *config = getenv("ASP_CONFIG");
+    const ClCharT *mode;
+
+    if(!config)
+        config = ".";
+
+    parent = clParserOpenFile(config, CL_TRANSPORT_CONFIG_FILE);
+    if(!parent)
+    {
+        clLogWarning("INIT", "SCTP", "Unable to check for sctp mode as config file [%s] "
+                     "is absent at [%s]",
+                     CL_TRANSPORT_CONFIG_FILE, config);
+        rc = CL_ERR_NOT_EXIST;
+        goto out;
+    }
+    child = clParserChild(parent, "sctp");
+    if(!child)
+    {
+        rc = CL_ERR_NOT_EXIST;
+        goto out_free;
+    }
+    mode = clParserAttr(child, "mode");
+    if(!strncasecmp(mode, "on", 2) ||
+       !strncasecmp(mode, "enabled", 7))
+    {
+        initSctp();
+    }
+    rc = CL_OK;
+
+    out_free:
+    if(parent)
+        clParserFree(parent);
+
+    out:
+    return rc;
+}
+
 ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
 {
     ClRcT rc = CL_OK;
@@ -341,6 +426,7 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     }
     gClUdpXportId = xportId;
     gClBindOffset = gIocLocalBladeAddress;
+    checkInitSctp();
     gClSimulationMode = clParseEnvBoolean("ASP_MULTINODE");
     if(gClSimulationMode)
     {
@@ -431,6 +517,8 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
     memset(ioVector, 0, sizeof(ioVector));
     msgHdr.msg_name = &peerAddress;
     msgHdr.msg_namelen = sizeof(peerAddress);
+    msgHdr.msg_control = (ClUint8T*)gClCmsgHdr;
+    msgHdr.msg_controllen = gClCmsgHdrLen;
     ioVector[0].iov_base = (ClPtrT)buffer;
     ioVector[0].iov_len = sizeof(buffer);
     msgHdr.msg_iov = ioVector;
@@ -468,7 +556,7 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
     switch(gXportCtrl.family)
     {
     case PF_INET6:
-        fd = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+        fd = socket(PF_INET6, gClSockType, gClProtocol);
         addr = (struct sockaddr*)&ipv6_addr;
         ipv6_addr.sin6_addr = in6addr_any;
         ipv6_addr.sin6_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
@@ -476,7 +564,7 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
         break;
     case PF_INET:
     default:
-        fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        fd = socket(PF_INET, gClSockType, gClProtocol);
         ipv4_addr.sin_addr.s_addr = htonl(INADDR_ANY);
         ipv4_addr.sin_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
         ipv4_addr.sin_family = PF_INET;
@@ -495,6 +583,16 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
         clLogError("UDP", "BIND", "Bind failed with error [%s]", strerror(errno));
         goto out_close;
     }
+    if(gClCmsgHdr)
+    {
+        if(listen(fd, CL_IOC_MAX_NODES) < 0)
+        {
+            clLogError("UDP", "LISTEN", "Listen failed on socket with error [%s]",
+                       strerror(errno));
+            goto out_close;
+        }
+    }
+
     *pFd = fd;
     rc = CL_OK;
     goto out;
@@ -772,6 +870,8 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
     memset(&msghdr, 0, sizeof(msghdr));
     msghdr.msg_name = destaddr;
     msghdr.msg_namelen = addrlen;
+    msghdr.msg_control = (ClUint8T*)gClCmsgHdr;
+    msghdr.msg_controllen = gClCmsgHdrLen;
     msghdr.msg_iov = sendArgs->iov;
     msghdr.msg_iovlen = sendArgs->iovlen;
     if(sendmsg(map->sendFd, &msghdr, sendArgs->flags) < 0)
@@ -785,7 +885,7 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
     {
         clLogTrace("UDP", "SEND", "UDP send successful for [%d] iovs, addr [%s], port [0x%x:%d]",
                    sendArgs->iovlen, map->addrstr, sendArgs->port, 
-                   CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+                    CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
     }
     return rc;
 }
