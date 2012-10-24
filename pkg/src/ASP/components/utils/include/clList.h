@@ -24,6 +24,10 @@
 
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct ClListHead
 {
     struct ClListHead *pNext;
@@ -103,5 +107,9 @@ static __inline__ void clListMoveInit(ClListHeadT *pSource,
 
 #define CL_LIST_FOR_EACH(iter,head) \
     for(iter = (head)->pNext ; iter != (head) ; iter = iter->pNext)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*end of _CL_LIST_H_*/

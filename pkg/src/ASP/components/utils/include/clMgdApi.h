@@ -4,6 +4,10 @@
 #include "clCommon.h"
 #include "clQueueApi.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ClMgdCommon
 {
   ClNameT      name;
@@ -60,5 +64,8 @@ void clMgdOperStateSet(ClMgdStateT* ths, int state);
    */
 void clMgdAdd(ClMgdNodeT* ths, ClMgdCommonT* item, const char* name);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

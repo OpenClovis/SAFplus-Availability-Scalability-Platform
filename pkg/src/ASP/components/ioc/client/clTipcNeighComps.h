@@ -27,6 +27,10 @@
 #include <clCommon.h>
 #include <clIocApi.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern ClUint8T *gpClTipcNeighComps;
 
 ClRcT clTipcNeighCompsInitialize(ClBoolT createFlag);
@@ -49,5 +53,9 @@ void clTipcPutPortId(ClIocPortT portId);
         CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_CKPT_PORT) && \
         CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_GMS_PORT) && \
         CL_IOC_NEIGH_COMPS_STATUS_GET(node, CL_IOC_LOG_PORT))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

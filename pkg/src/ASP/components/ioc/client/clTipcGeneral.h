@@ -30,6 +30,9 @@
 #include <clCommon.h>
 #include <clIocTransportApi.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 # define IOC_MSG_QUEUED                       (CL_IOC_ERR_MAX+1)
 
@@ -118,6 +121,8 @@ typedef struct
     ClCharT xportName[CL_IOC_MAX_XPORT_NAME_LENGTH];
 } ClIocArpTableShowT;
 
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

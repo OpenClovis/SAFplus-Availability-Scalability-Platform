@@ -24,7 +24,15 @@
 
 #include <clIocApi.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 ClRcT clTipcEventHandlerInitialize(void);
 ClRcT clTipcEventHandlerFinalize(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
