@@ -1,0 +1,1 @@
+../components/amf/common/ams/idl/xdr/xdrClAmsMgmtCCBEntityDeleteResponseT.h

@@ -47,7 +47,6 @@ extern "C" {
 #include "clIocApi.h"
 #include "clCorDmData.h"
 #include "clCorMetaData.h"
-#include "clCorSync.h"
 
 struct _ClCorMOHandleT_4_0_0;
 

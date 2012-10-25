@@ -1,0 +1,1 @@
+../components/amf/common/ams/idl/xdr/xdrClAmsMgmtEntityGetStatusResponseT.h

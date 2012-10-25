@@ -1,0 +1,1 @@
+../components/alarm/common/clAlarmCommons.h

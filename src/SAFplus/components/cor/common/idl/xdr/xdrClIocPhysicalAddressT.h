@@ -39,15 +39,7 @@ extern "C" {
 #endif
 
 #include "clXdrApi.h"
-
-#include "clCorTxnJobStream.h"
-#include "clTimerApi.h"
-#include "clCorNotifyApi.h"
-#include "clCorClient.h"
 #include "clIocApi.h"
-#include "clCorDmData.h"
-#include "clCorMetaData.h"
-#include "clCorSync.h"
 
 struct _ClIocPhysicalAddressT_4_0_0;
 

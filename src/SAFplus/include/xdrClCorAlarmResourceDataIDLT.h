@@ -1,0 +1,1 @@
+../components/cor/common/idl/xdr/xdrClCorAlarmResourceDataIDLT.h

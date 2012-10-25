@@ -1,0 +1,1 @@
+../components/log/idl/Log/common/LogFuncTable.h

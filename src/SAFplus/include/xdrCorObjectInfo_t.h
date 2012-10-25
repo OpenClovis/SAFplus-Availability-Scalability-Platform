@@ -1,0 +1,1 @@
+../components/cor/common/idl/xdr/xdrCorObjectInfo_t.h

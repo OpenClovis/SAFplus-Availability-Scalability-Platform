@@ -1,0 +1,1 @@
+../components/alarm/client/clAlarmClientFuncTable.h

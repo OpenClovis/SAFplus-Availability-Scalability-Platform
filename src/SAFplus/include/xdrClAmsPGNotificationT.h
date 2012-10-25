@@ -1,0 +1,1 @@
+../components/amf/common/cpm/idl/xdr/xdrClAmsPGNotificationT.h

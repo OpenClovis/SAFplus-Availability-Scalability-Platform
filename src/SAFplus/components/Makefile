@@ -50,14 +50,22 @@ SUBDIRS    = $(CM_DIR) ground \
 	      	 msg	\
 			 mso    \
 			 pm     \
-             ntf    \
-			 cpp
+             ntf
 
 SUBDIRS += mw
 
 ifeq ($(BUILD_SHARED), 1)
 	SUBDIRS += ioc/plugins
 endif
+
+ifeq ($(BUILD_PYTHON), 1)
+	SUBDIRS += python
+endif
+
+ifeq ($(BUILD_CPP), 1)
+	SUBDIRS += cpp
+endif
+
 
 #
 # If you have any ordering dependence among subdirectories, list them as

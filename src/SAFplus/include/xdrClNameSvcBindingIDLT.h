@@ -1,0 +1,1 @@
+../components/name/common/idl/xdr/xdrClNameSvcBindingIDLT.h

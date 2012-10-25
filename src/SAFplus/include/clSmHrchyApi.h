@@ -1,0 +1,1 @@
+../components/sm/include/clSmHrchyApi.h

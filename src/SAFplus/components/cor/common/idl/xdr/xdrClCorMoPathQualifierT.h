@@ -46,9 +46,6 @@ extern "C" {
 #include "clIocApi.h"
 #include "clCorDmData.h"
 #include "clCorMetaData.h"
-#include "clCorSync.h"
-
-
 
 #define      clXdrMarshallClCorMoPathQualifierT_4_0_0               clXdrMarshallClInt32T
 

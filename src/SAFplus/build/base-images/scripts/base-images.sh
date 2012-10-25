@@ -44,7 +44,7 @@ populate_image() {
     SYS=$4
 
     echo "Populating image directory ${TARGET_MODEL} with binaries from model ${SOURCE_MODEL}"
-    echo "Project root is ${PROJECT_ROOT}, ASP installation: ${ASP_INSTALLDIR}, Not prebuilt? ${ASP_BUILD}"
+    echo "Project root is ${PROJECT_ROOT}, SAFplus installation: ${ASP_INSTALLDIR}, Not prebuilt? ${ASP_BUILD}"
 
     if [ "${SOLARIS_BUILD}" = "1" ]
     then
@@ -161,23 +161,23 @@ populate_image() {
 
    # Install ASP shared libraries
     if [ $ASP_BUILD = 0 ]; then
-        echo "    Prebuilt ASP libraries from $ASP_INSTALLDIR/target/$ARCH/$SYS/lib"
+        echo "    Prebuilt SAFplus libraries from $ASP_INSTALLDIR/target/$ARCH/$SYS/lib"
         ${INSTALL} $installflags $ASP_INSTALLDIR/target/$ARCH/$SYS/lib/*.so $imagedir/lib
     fi
 
 
-    export tmp=`/bin/ls  $MODEL_LIB/*.so 2> /dev/null`
+    export tmp=`/bin/ls  $MODEL_LIB/*.so $MODEL_LIB/*.py $MODEL_LIB/*.pyc $MODEL_LIB/*.jar 2> /dev/null`
     if [ ! -z "$tmp" ]; then  # Install MODEL specific libraries
         echo "    Model specific libraries from $MODEL_LIB"
         echo "    ${INSTALL} $installflags $MODEL_LIB/*.so $imagedir/lib"
-        ${INSTALL} $installflags $MODEL_LIB/*.so $imagedir/lib
+        ${INSTALL} $installflags $MODEL_LIB/*.so $MODEL_LIB/*.py $MODEL_LIB/*.pyc $MODEL_LIB/*.jar $imagedir/lib
     fi
 
-        echo "    ASP libraries built with the model located at $ASP_LIB"
+        echo "    SAFplus libraries built with the model located at $ASP_LIB"
 
-    export tmp=`/bin/ls  $ASP_LIB/*.so 2> /dev/null`    
+    export tmp=`/bin/ls  $ASP_LIB/*.so $ASP_LIB/*.py $ASP_LIB/*.pyc $ASP_LIB/*.jar 2> /dev/null`    
     if [ ! -z "$tmp" ]; then  # Install MODEL specific libraries
-        ${INSTALL} $installflags $ASP_LIB/*.so $imagedir/lib
+        ${INSTALL} $installflags $ASP_LIB/*.so $ASP_LIB/*.py $ASP_LIB/*.pyc $ASP_LIB/*.jar $imagedir/lib
     fi
 
     # GAS, what is this???
@@ -222,7 +222,7 @@ populate_image() {
 
 
     # Copying config files
-    echo "  Copying config files... All .xml, .txt, and .conf files in $MODEL_CONFIG will be put into <ASP_install_dir>/etc"
+    echo "  Copying config files... All .xml, .txt, and .conf files in $MODEL_CONFIG will be put into <SAFplus_install_dir>/etc"
     ${INSTALL} $installflags $MODEL_CONFIG/*.xml $imagedir/etc
     if [ $(ls -1 $MODEL_CONFIG/*.txt 2>/dev/null| wc -l) -gt 0 ]; then
         ${INSTALL} $installflags $MODEL_CONFIG/*.txt $imagedir/etc

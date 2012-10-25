@@ -47,7 +47,6 @@ extern "C" {
 #include "clIocApi.h"
 #include "clCorDmData.h"
 #include "clCorMetaData.h"
-#include "clCorSync.h"
 #include "xdrClCorMOHandleT.h"
 #include "xdrClCorMoPathQualifierT.h"
 

@@ -1,0 +1,1 @@
+../components/alarm/common/idl/xdr/xdrClAlarmCategoryTypeT.h
