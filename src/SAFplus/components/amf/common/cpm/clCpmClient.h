@@ -138,6 +138,7 @@ extern "C"
 #define CPM_MGMT_NODE_CONFIG_GET    CL_EO_GET_FULL_FN_NUM(CL_CPM_MGMT_CLIENT_TABLE_ID, 1)
 #define CPM_MGMT_NODE_RESTART       CL_EO_GET_FULL_FN_NUM(CL_CPM_MGMT_CLIENT_TABLE_ID, 2)
 #define CPM_MGMT_MIDDLEWARE_RESTART CL_EO_GET_FULL_FN_NUM(CL_CPM_MGMT_CLIENT_TABLE_ID, 3)
+#define CPM_MGMT_COMP_CONFIG_SET    CL_EO_GET_FULL_FN_NUM(CL_CPM_MGMT_CLIENT_TABLE_ID, 4)
 
 /**
  * Misc.
@@ -465,6 +466,10 @@ extern ClRcT VDECL(cpmNodeRestart)(ClEoDataT data,
 extern ClRcT VDECL(cpmMiddlewareRestart)(ClEoDataT data,
                                          ClBufferHandleT inMsgHdl,
                                          ClBufferHandleT outMsgHdl);
+
+extern ClRcT VDECL_VER(cpmCompConfigSet, 5, 1, 0)(ClEoDataT data,
+                                                  ClBufferHandleT inMsgHdl,
+                                                  ClBufferHandleT outMsgHdl);
 
 extern ClRcT clCpmClientTableRegister(ClEoExecutionObjT *eo);
 

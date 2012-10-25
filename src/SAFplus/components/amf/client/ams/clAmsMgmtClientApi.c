@@ -1326,6 +1326,47 @@ clAmsMgmtEntityShutdown(
     return clAmsMgmtEntityShutdownExtended(amsHandle, entity, CL_TRUE);
 }
 
+ClRcT
+clAmsMgmtEntityShutdownWithRestartExtended(
+        CL_IN  ClAmsMgmtHandleT  amsHandle,
+        CL_IN  const ClAmsEntityT  *entity,
+        CL_IN  ClBoolT retry)
+{
+    ClRcT  rc = CL_OK;
+    clAmsMgmtEntityShutdownRequestT  req;
+    clAmsMgmtEntityShutdownResponseT  *res = NULL;
+    struct ams_instance  *ams_instance = NULL;
+
+
+    AMS_CHECKPTR_SILENT( !entity );
+    
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
+                (ClPtrT)&ams_instance));
+
+    req.handle = ams_instance->server_handle;
+    memcpy ( &req.entity , entity, sizeof(ClAmsEntityT) );
+    CL_AMS_NAME_LENGTH_CHECK(req.entity);
+
+    AMS_ADMIN_API_CALL(amsHandle, retry, rc, 
+                       cl_ams_mgmt_entity_shutdown_with_restart( &req, &res));
+
+    AMS_CHECK_RC_ERROR( clHandleCheckin( handle_database, amsHandle) );
+
+exitfn:
+
+    clAmsFreeMemory (res);
+    return rc;
+
+}
+
+ClRcT
+clAmsMgmtEntityShutdownWithRestart(
+        CL_IN  ClAmsMgmtHandleT  amsHandle,
+        CL_IN  const ClAmsEntityT  *entity)
+{
+    return clAmsMgmtEntityShutdownWithRestartExtended(amsHandle, entity, CL_TRUE);
+}
+
 /*
  * clAmsMgmtEntityRestart
  * ----------------------

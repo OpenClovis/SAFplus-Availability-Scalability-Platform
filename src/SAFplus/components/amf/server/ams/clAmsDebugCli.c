@@ -451,6 +451,46 @@ clAmsDebugCliEntityShutdown(
 }
 
 ClRcT
+clAmsDebugCliEntityShutdownWithRestart(
+        CL_IN  ClUint32T argc,
+        CL_IN  ClCharT **argv,
+        CL_OUT  ClCharT  **ret,
+        CL_IN  ClUint32T retLen)
+{
+
+    ClRcT  rc = CL_OK;
+    ClAmsEntityT  entity = {0};
+
+    AMS_FUNC_ENTER (("\n"));
+
+    rc = clAmsDebugCliMakeEntityStruct(
+            &entity,
+            argv[1],
+            argv[2]);
+
+    if (entity.type != CL_AMS_ENTITY_TYPE_SU
+        ||
+        rc != CL_OK)
+    {
+        strncpy (*ret,"invalid entity type, valid entity types are su\n", retLen-1);
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    }
+
+    if ( ( rc = clAmsMgmtEntityShutdownWithRestartExtended(
+                    gHandle,
+                    &entity,
+                    CL_FALSE ))
+            != CL_OK)
+    {
+        strncat (*ret, "admin operation[shutdown with restart] failed\n", (retLen-strlen(*ret)-1));
+        return rc;
+    }
+
+    return rc;
+
+}
+
+ClRcT
 clAmsDebugCliEntityRestart(
         CL_IN  ClUint32T  argc,
         CL_IN  ClCharT  **argv,
@@ -618,6 +658,11 @@ clAmsDebugCliAdminAPI(
     else if ( !strcasecmp (argv[0],"amsShutdown") )
     {
         rc = clAmsDebugCliEntityShutdown(argc,argv,ret,MAX_BUFFER_SIZE + 1);
+    }
+
+    else if ( !strcasecmp (argv[0],"amsShutdownRestart") )
+    {
+        rc = clAmsDebugCliEntityShutdownWithRestart(argc,argv,ret,MAX_BUFFER_SIZE + 1);
     }
 
     else if ( !strcasecmp (argv[0],"amsRestart") )

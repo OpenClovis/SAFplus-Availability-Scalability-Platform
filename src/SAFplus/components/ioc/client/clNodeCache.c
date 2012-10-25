@@ -597,6 +597,7 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version,
         entry->version = version;
     if(capability)
         entry->capability = capability;
+
     if(nodeName)
     {
         entry->nodeName[0] = 0;

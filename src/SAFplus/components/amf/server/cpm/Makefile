@@ -91,11 +91,10 @@ ASP_LIBS	:=                          \
 # List any third party libs needed to get this server built (or None):
 
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
-THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/utils/
 
-THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml -L$(THIRD_PARTY_UTILS_PATH) -l3rdpartyutils
+THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml
 
-EXTRA_CPPFLAGS  := -I$(THIRD_PARTY_EZXML_PATH) -I$(THIRD_PARTY_UTILS_PATH)
+EXTRA_CPPFLAGS  := -I$(THIRD_PARTY_EZXML_PATH)
 
 # List any system libraries needed to get this server built (or None)
 

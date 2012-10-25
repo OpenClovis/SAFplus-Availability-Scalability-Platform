@@ -528,7 +528,6 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
     if(clParseEnvBoolean("CL_ASP_DIFFERENTIAL_CKPT"))
     {
         pSvrCb->replicationFlags |= _CKPT_DIFFERENTIAL_REPLICA;
-        pSvrCb->replicationFlags &= ~_CKPT_COLLOCATE_REPLICA_ON_OPEN;
     }
     /* 
      * Initialize the event related info.

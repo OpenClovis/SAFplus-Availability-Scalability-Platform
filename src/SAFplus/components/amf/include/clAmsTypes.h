@@ -78,6 +78,7 @@ typedef enum
     CL_AMS_ADMIN_STATE_LOCKED_A                 = 2,
     CL_AMS_ADMIN_STATE_LOCKED_I                 = 3,
     CL_AMS_ADMIN_STATE_SHUTTINGDOWN             = 4,
+    CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART     = 5,
     CL_AMS_ADMIN_STATE_MAX,
 } ClAmsAdminStateT;
 

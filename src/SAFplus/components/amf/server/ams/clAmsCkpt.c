@@ -253,10 +253,8 @@ static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
         static ClBoolT differenceVectorKeyDeleted = CL_TRUE;
         ClUint32T versionCode = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
         clNodeCacheMinVersionGet(NULL, &versionCode);
-        switch(versionCode)
+        if(versionCode >= CL_VERSION_CODE(5, 1, 0))
         {
-        case CL_VERSION_CODE(5, 0, 0):
-            {
                 ClDifferenceVectorT differenceVector = {0};
                 clDifferenceVectorGetWithReset(key, pData, 0, dataLen, CL_FALSE, &differenceVector);
                 if(differenceVectorKeyDeleted) 
@@ -274,9 +272,9 @@ static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
                                                       &differenceVector);
                 }
                 clDifferenceVectorFree(&differenceVector, CL_FALSE);
-            }
-            break;
-        default:
+        }
+        else
+        {
             /*
              * Fallback to full section overwrite.
              */
@@ -289,7 +287,6 @@ static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
                                               sectionAttribs.sectionId,
                                               pData,
                                               dataLen);
-            break;
         }
     }
     else

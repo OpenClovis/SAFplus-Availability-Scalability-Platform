@@ -91,7 +91,7 @@ _amf_db_timestamp = None            # time.time of last amf_db cache refresh
 _su_names = None                    # cached SU names
 _sg_names = None                    # cached SU names
 _node_names = None                  # cached Node names
-
+_interactive_shell = False
 _yesno_map = {
     'True':     'Y',
     'False':    'N'
@@ -104,7 +104,9 @@ _member_map = {
 _state_map = {
     'Locked Assignment':    'LA',
     'Unlocked':             'UL',
-    'Locked Instantiation': 'LI'
+    'Locked Instantiation': 'LI',
+    'Shutting Down': 'Quiescing',
+    'Shutting Down with Restart': 'Quiescing Restart',
 }
 _classtype_map = {
     'Class A':          'A',
@@ -440,10 +442,10 @@ def load_amf_db():
        AMF_DB_CACHE_TIMEOUT [sec]
     """
     
-    global _amf_db, _amf_db_timestamp
-    # if _amf_db: # and time.time() <= _amf_db_timestamp + AMF_DB_CACHE_TIMEOUT:
-    #   dbmsg(1, 'working from cached AMF DB')
-    #     return _amf_db
+    global _amf_db, _amf_db_timestamp, _interactive_shell
+    if _amf_db and not _interactive_shell: # and time.time() <= _amf_db_timestamp + AMF_DB_CACHE_TIMEOUT:
+        dbmsg(1, 'working from cached AMF DB')
+        return _amf_db
 
     dbmsg(1, 'Getting fresh AMF DB')
     s, res = asp_console_execute(
@@ -1804,13 +1806,15 @@ class Cli(cmd.Cmd):
                 for compname in compnames:
                     
                     comp = get_comp_info(compname)
-                    print '           Comp %s (PS:%s OS:%s RS:%s PID:%s)' % \
+                    try:
+                      print '           Comp %s (PS:%s OS:%s RS:%s PID:%s)' % \
                         (color('bold', compname),
                          comp.status[0].presence_state[0],
                          comp.status[0].operational_state[0],
                          _readiness_map[comp.status[0].readiness_state[0]],
                          color('bold-cyan', pids[compname]))
-                
+                    except KeyError, e: continue
+
                     csis = comp.status[0].csis[0]
                     if csis == '0': csis = []
                     else:           csis = csis.csi
@@ -2062,7 +2066,7 @@ echo_cmd = '/bin/echo'
 ## main function
 ##
 def main():
-    
+    global _interactive_shell
     extend_path()
     
     cli = Cli(HISTORY_FILE)
@@ -2094,6 +2098,7 @@ def main():
         cli.onecmd(' '.join(args))
         sys.exit(_exit_code)
     else:
+        _interactive_shell = True
         try:
             cli.cmdloop("Starting interactive prompt (type 'help' for help)")
         except KeyboardInterrupt:

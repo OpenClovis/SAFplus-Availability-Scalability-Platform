@@ -291,6 +291,11 @@ amsEntityReset(
                                                        CL_AMS_ADMIN_STATE_LOCKED_A);
             }
 
+            if(su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART )
+            {
+                su->config.adminState = CL_AMS_ADMIN_STATE_UNLOCKED;
+            }
+
             su->status.presenceState       = CL_AMS_PRESENCE_STATE_UNINSTANTIATED;
             lastOperState = su->status.operState;
             newOperState = su->status.operState = CL_AMS_OPER_STATE_ENABLED;

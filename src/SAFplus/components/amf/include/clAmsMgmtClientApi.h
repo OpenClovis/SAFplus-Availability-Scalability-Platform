@@ -584,6 +584,15 @@ extern ClRcT clAmsMgmtEntityShutdownExtended(
         CL_IN       const ClAmsEntityT          *entity,
         CL_IN       ClBoolT retry);
 
+extern ClRcT clAmsMgmtEntityShutdownWithRestart(
+        CL_IN       ClAmsMgmtHandleT            amsHandle,
+        CL_IN       const ClAmsEntityT          *entity);
+
+extern ClRcT clAmsMgmtEntityShutdownWithRestartExtended(
+        CL_IN       ClAmsMgmtHandleT            amsHandle,
+        CL_IN       const ClAmsEntityT          *entity,
+        CL_IN       ClBoolT retry);
+
 /**
  ************************************
  *  \brief Restart an AMS entity following termination .

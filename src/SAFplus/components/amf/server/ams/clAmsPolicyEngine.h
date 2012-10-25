@@ -610,7 +610,8 @@ extern ClRcT clAmsPeSUShutdown(
 
 extern ClRcT clAmsPeSUShutdownCallback(
         CL_IN   ClAmsSUT *su,
-        CL_IN   ClUint32T error);
+        CL_IN   ClUint32T error,
+        CL_IN   ClUint32T switchoverMode);
 
 extern ClRcT clAmsPeSURestart(
         CL_IN   ClAmsSUT *su,
@@ -1293,6 +1294,9 @@ extern ClRcT clAmsPeSUForceLockInstantiationOperation(
  */
 
 extern ClRcT clAmsPeEntityShutdown(
+        CL_IN       ClAmsEntityT        *entity);
+
+extern ClRcT clAmsPeEntityShutdownWithRestart(
         CL_IN       ClAmsEntityT        *entity);
 
 /*

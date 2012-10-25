@@ -102,6 +102,13 @@ clAmsDebugCliEntityShutdown(
         CL_IN  ClUint32T  retLen);
 
 extern ClRcT
+clAmsDebugCliEntityShutdownWithRestart(
+        CL_IN  ClUint32T  argc,
+        CL_IN  ClCharT  **argv,
+        CL_OUT  ClCharT  **ret,
+        CL_IN  ClUint32T  retLen);
+
+extern ClRcT
 clAmsDebugCliEntityRestart(
         CL_IN  ClUint32T  argc,
         CL_IN  ClCharT  **argv,

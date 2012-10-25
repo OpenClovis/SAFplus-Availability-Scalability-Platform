@@ -1428,7 +1428,7 @@ static ClBoolT clCkptHandleTypicalErrors(ClRcT rc, ClCkptHdlT ckptHdl,ClIocNodeA
   ClRcT retCode;
   if(  (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE) ||
        (CL_IOC_ERR_HOST_UNREACHABLE == CL_GET_ERROR_CODE(rc)) || 
-       ((CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) && nodeAddr && *nodeAddr == CL_CKPT_UNINIT_VALUE))
+       CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
 
     {
       /* 
@@ -3013,9 +3013,8 @@ ClRcT clCkptCheckpointWrite(ClCkptHdlT                     ckptHdl,
     versionCode = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
     clNodeCacheMinVersionGet(NULL, &versionCode);
 
-    switch(versionCode)
+    if(versionCode >= CL_VERSION_CODE(5, 1, 0))
     {
-    case CL_VERSION_CODE(5, 0, 0):
         if(gClDifferentialCkpt)
         {
             ClCkptDifferenceIOVectorElementT *pDifferenceIoVector = NULL;
@@ -3045,16 +3044,13 @@ ClRcT clCkptCheckpointWrite(ClCkptHdlT                     ckptHdl,
                 clHeapFree(pDifferenceIoVector[i].differenceVector);
             }
             clHeapFree(pDifferenceIoVector);
-            break;
+            goto out;
         }
-        /*
-         * Fall through for the else.
-         */
-    default:
-        rc = clCkptCheckpointWriteLinear(ckptHdl, pIoVector, numberOfElements, pError);
-        break;
-    }
+    }       
 
+    rc = clCkptCheckpointWriteLinear(ckptHdl, pIoVector, numberOfElements, pError);
+    
+    out:
     return rc;
 }
 
@@ -3483,10 +3479,10 @@ ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
 {
     ClUint32T version = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
     ClRcT rc  = CL_OK;
+
     clNodeCacheMinVersionGet(NULL, &version);
-    switch(version)
+    if(version >= CL_VERSION_CODE(5, 1, 0))
     {
-    case CL_VERSION_CODE(5, 0, 0):
         if(gClDifferentialCkpt)
         {
             ClDifferenceVectorT differenceVector = {0};
@@ -3498,16 +3494,13 @@ ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
             differenceVector.dataVectors[0].dataBase = (ClUint8T*)pData;
             rc = clCkptSectionOverwriteVector(ckptHdl, pSectionId, dataSize, &differenceVector);
             clHeapFree(differenceVector.dataVectors);
-            break;
+            goto out;
         }
-        /*
-         * fall through for the else.
-         */
-    default:
-        rc = clCkptSectionOverwriteLinear(ckptHdl, pSectionId, pData, dataSize);
-        break;
     }
 
+    rc = clCkptSectionOverwriteLinear(ckptHdl, pSectionId, pData, dataSize);
+    
+    out:
     return rc;
 }
 

@@ -25,8 +25,11 @@
 #include <clAms.h>
 #include <clAmsMgmtClientApi.h>
 #include <clAmsMgmtCommon.h>
+#include <clAmsServerUtils.h>
+#include <clCpmExtApi.h>
 #include <clCpmInternal.h>
 #include <clCpmCor.h>
+#include <xdrClCpmCompConfigSetT.h>
 
 #define CL_CPM_COMP_CLEANUP_SCRIPT "safplus_cleanup.sh"
 
@@ -647,6 +650,149 @@ failure:
     return rc;
 }
 
+static ClRcT compConfigSet(ClCpmComponentT *comp, 
+                           ClUint64T mask,
+                           ClCharT *instantiateCommand,
+                           ClAmsCompPropertyT property)
+{
+    ClRcT rc = CL_OK;
+                           
+    if ((mask == CL_AMS_CONFIG_ATTR_ALL) ||
+        (mask & COMP_CONFIG_INSTANTIATE_COMMAND))
+    {
+        rc = cpmParseArgs(comp, instantiateCommand);
+        if (rc != CL_OK) goto out;
+    }
+
+    if ((mask == CL_AMS_CONFIG_ATTR_ALL) ||
+        (mask & COMP_CONFIG_PROPERTY))
+    {
+        comp->compConfig->compProperty = property;
+    }
+
+    clLogNotice("COMP", "CONFIG", "Updated comp config for component [%s]",
+                comp->compConfig->compName);
+
+    out:
+    return rc;
+}
+
+ClRcT VDECL_VER(cpmCompConfigSet, 5, 1, 0)(ClEoDataT data,
+                                           ClBufferHandleT inMsgHdl,
+                                           ClBufferHandleT outMsgHdl)
+{
+    ClRcT rc = CL_OK;
+    ClCpmComponentT *comp = NULL;
+    VDECL_VER(ClCpmCompConfigSetT, 5, 1, 0) compConfig;
+
+    memset(&compConfig, 0, sizeof(compConfig));
+    rc = VDECL_VER(clXdrUnmarshallClCpmCompConfigSetT, 5, 1, 0)(inMsgHdl, &compConfig);
+    if(rc != CL_OK)
+    {
+        clLogError("COMP", "CONFIG", "Comp set config unmarshall returned [%#x]", rc);
+        goto out;
+    }
+
+    clOsalMutexLock(gpClCpm->compTableMutex);
+    rc = cpmCompFindWithLock((ClCharT*)compConfig.name, gpClCpm->compTable, &comp);
+    if(rc != CL_OK)
+    {
+        clOsalMutexUnlock(gpClCpm->compTableMutex);
+        clLogError("COMP", "CONFIG", "Failed to find comp [%s]. Error [%#x]", 
+                   compConfig.name, rc);
+        goto out;
+    }
+
+    clOsalMutexLock(comp->compMutex);
+    rc = compConfigSet(comp, compConfig.bitmask, 
+                  (ClCharT*)compConfig.instantiateCommand,
+                  (ClAmsCompPropertyT)compConfig.property);
+    clOsalMutexUnlock(comp->compMutex);
+
+    clOsalMutexUnlock(gpClCpm->compTableMutex);
+
+    out:
+    return rc;
+}
+
+/*
+ * if the comp. is not node local, then update the config of the remote node.
+ */
+static ClRcT compSetConfig(ClAmsCompConfigT *compConfig, ClUint64T mask)
+{
+    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT *targetRef = &entityRef;
+    ClAmsSUT *su = NULL;
+    ClIocAddressT nodeAddress = {{0}};
+    ClRcT rc = CL_OK;
+
+    if(compConfig->parentSU.entity.type == CL_AMS_ENTITY_TYPE_SU
+       && 
+       compConfig->parentSU.entity.name.length > 0)
+    {
+        targetRef = &compConfig->parentSU;
+    }
+    else
+    {
+        ClAmsCompT *comp = NULL;
+        memcpy(&targetRef->entity, &compConfig->entity, sizeof(targetRef->entity));
+        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
+                                     targetRef);
+        if(rc != CL_OK)
+        {
+            clLogError("COMP", "CONFIG", "Unable to find amf config for comp [%s]",
+                       targetRef->entity.name.value);
+            goto out;
+        }
+        comp  = (ClAmsCompT*)targetRef->ptr;
+        AMS_CHECK_COMP(comp);
+        targetRef = &comp->config.parentSU;
+    }
+
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU],
+                                 targetRef);
+    if(rc != CL_OK)
+    {
+        clLogWarning("COMP", "CONFIG", "Unable to find parent SU [%s] for comp [%s]."
+                     "Might not be configured.",
+                     targetRef->entity.name.value, compConfig->entity.name.value);
+        goto out;
+    }
+    
+    su = (ClAmsSUT*)targetRef->ptr;
+    AMS_CHECK_SU(su);
+
+    rc = _cpmIocAddressForNodeGet(&su->config.parentNode.entity.name, &nodeAddress);
+    if(rc != CL_OK)
+    {
+        clLogInfo("COMP", "CONFIG", "Unable to get ioc address for node [%s] "
+                  "during config set for comp [%s]. Node might be down.", 
+                  su->config.parentNode.entity.name.value,
+                  compConfig->entity.name.value);
+        goto out;
+    }
+
+    /*
+     * If its node local, its a no-op
+     */
+    if(nodeAddress.iocPhyAddress.nodeAddress == clIocLocalAddressGet())
+    {
+        rc = CL_CPM_RC(CL_ERR_NO_OP);
+        goto out;
+    }
+
+    clLogNotice("COMP", "CONFIG", "Updating component config at node [%d]",
+                nodeAddress.iocPhyAddress.nodeAddress);
+    rc = clCpmCompConfigSet(nodeAddress.iocPhyAddress.nodeAddress,
+                            compConfig->entity.name.value,
+                            compConfig->instantiateCommand,
+                            compConfig->property,
+                            mask);
+
+    out:
+    return rc;
+}
+
 static ClRcT cpmCompSetConfig(ClAmsEntityConfigT *entityConfig,
                               ClUint64T bitMask)
 {
@@ -654,41 +800,33 @@ static ClRcT cpmCompSetConfig(ClAmsEntityConfigT *entityConfig,
     ClCpmComponentT *comp = NULL;
     ClAmsCompConfigT *compConfig = (ClAmsCompConfigT *)entityConfig;
 
-    rc = cpmCompFind(entityConfig->name.value, gpClCpm->compTable, &comp);
-    if (!comp)
+    clOsalMutexLock(gpClCpm->compTableMutex);
+
+    rc = cpmCompFindWithLock(entityConfig->name.value, gpClCpm->compTable, &comp);
+    if (!comp || comp->compPresenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
     {
         /*
-         * Acceptable if this comp. is part of another node.
+         * if this comp. is part of another node, update remote node cpm config
          */
-        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
-                   "Failed to find component [%s], error [%#x]",
-                   entityConfig->name.value,
-                   rc);
-        goto failure;
+        clOsalMutexUnlock(gpClCpm->compTableMutex);
+        rc = compSetConfig(compConfig, bitMask);
+        if(rc != CL_OK && comp)
+            goto out_set;
+
+        goto out;
     }
 
+    clOsalMutexUnlock(gpClCpm->compTableMutex);
+
+    out_set:
     clOsalMutexLock(comp->compMutex);
-    
-    if ((bitMask == CL_AMS_CONFIG_ATTR_ALL) ||
-        (bitMask & COMP_CONFIG_INSTANTIATE_COMMAND))
-    {
-        rc = cpmParseArgs(comp, compConfig->instantiateCommand);
-        if (CL_OK != rc) goto unlock;
-    }
-
-    if ((bitMask == CL_AMS_CONFIG_ATTR_ALL) ||
-        (bitMask & COMP_CONFIG_PROPERTY))
-    {
-        comp->compConfig->compProperty = compConfig->property;
-    }
         
+    rc = compConfigSet(comp, bitMask, compConfig->instantiateCommand,
+                       compConfig->property);
+
     clOsalMutexUnlock(comp->compMutex);
 
-    return CL_OK;
-    
-unlock:
-    clOsalMutexUnlock(comp->compMutex);
-failure:
+    out:
     return rc;
 }
 

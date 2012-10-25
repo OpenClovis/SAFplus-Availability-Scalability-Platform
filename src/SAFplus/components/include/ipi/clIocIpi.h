@@ -777,7 +777,8 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
                                       ClIocAddressT *destAddress, 
                                       ClBoolT compat, ClCharT *xportType);
 
-    ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, ClUint32T status,
+    ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, 
+                                          ClIocNotificationIdT id,
                                           ClIocNodeAddressT notificationNodeAddr,
                                           ClIocAddressT *allLocalComps, 
                                           ClIocAddressT *allNodeReps,

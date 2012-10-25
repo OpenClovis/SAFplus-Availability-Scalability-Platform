@@ -169,6 +169,13 @@ static struct hashStruct *iocReassembleHashTable[IOC_REASSEMBLE_HASH_SIZE];
 static ClUint64T iocReassembleCurrentTimerId;
 typedef ClIocReassemblyKeyT ClIocReassembleKeyT;
 
+typedef struct ClIocReassembleTimerKey
+{
+    ClIocReassembleKeyT key;
+    ClUint64T timerId;
+    ClTimerHandleT reassembleTimer;
+}ClIocReassembleTimerKeyT;
+
 typedef struct ClIocReassembleNode
 {
     ClRbTreeRootT reassembleTree; /*reassembly tree*/
@@ -176,16 +183,8 @@ typedef struct ClIocReassembleNode
     ClUint32T currentLength;
     ClUint32T expectedLength;
     ClUint32T numFragments; /* number of fragments received*/
-    ClIocReassembleKeyT key;
-    ClTimerHandleT reassembleTimer;
-    ClUint64T timerId;
+    ClIocReassembleTimerKeyT *timerKey;
 }ClIocReassembleNodeT;
-
-typedef struct ClIocReassembleTimerKey
-{
-    ClIocReassembleKeyT key;
-    ClUint64T timerId;
-}ClIocReassembleTimerKeyT;
 
 typedef struct ClIocFragmentNode
 {
@@ -3216,9 +3215,9 @@ static ClIocReassembleNodeT *__iocReassembleNodeFind(ClIocReassembleKeyT *key, C
         ClIocReassembleNodeT *node = hashEntry(iter, ClIocReassembleNodeT, hash);
         if(timerId 
            &&
-           node->timerId != timerId)
+           node->timerKey->timerId != timerId)
             continue;
-        if(!memcmp(&node->key, key, sizeof(node->key)))
+        if(!memcmp(&node->timerKey->key, key, sizeof(node->timerKey->key)))
             return node;
     }
     return NULL;
@@ -3236,15 +3235,18 @@ static ClRcT __iocReassembleTimer(void *key)
     ClIocReassembleNodeT *node = NULL;
     ClIocReassembleTimerKeyT *timerKey = key;
     ClRbTreeT *fragHead = NULL;
+    ClTimerHandleT timer = NULL;
+
     clOsalMutexLock(&iocReassembleLock);
     node = __iocReassembleNodeFind(&timerKey->key, timerKey->timerId);
     if(!node)
     {
-        clOsalMutexUnlock(&iocReassembleLock);
-        goto out;
+        goto out_unlock;
     }
+
     clLogTrace("FRAG", "RECV", "Running the reassembly timer for sender node [%#x:%#x] with length [%d] bytes", 
-               node->key.sendAddr.nodeAddress, node->key.sendAddr.portId, node->currentLength);
+               node->timerKey->key.sendAddr.nodeAddress, 
+               node->timerKey->key.sendAddr.portId, node->currentLength);
     while( (fragHead = clRbTreeMin(&node->reassembleTree) ) )
     {
         ClIocFragmentNodeT *fragNode = CL_RBTREE_ENTRY(fragHead, ClIocFragmentNodeT, tree);
@@ -3253,10 +3255,20 @@ static ClRcT __iocReassembleTimer(void *key)
         clHeapFree(fragNode);
     }
     hashDel(&node->hash);
-    clOsalMutexUnlock(&iocReassembleLock);
-    clTimerDelete(&node->reassembleTimer);
+    node->timerKey = NULL; /* reset even if freeing parent memory for GOD's debugging :) */
     clHeapFree(node);
-    out:
+
+    out_unlock:
+    if( (timer = timerKey->reassembleTimer) )
+    {
+        timerKey->reassembleTimer = 0;
+    }
+    clOsalMutexUnlock(&iocReassembleLock);
+    if(timer)
+    {
+        clTimerDelete(&timer);
+    }
+
     clHeapFree(timerKey);
     return CL_OK;
 }
@@ -3302,7 +3314,14 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
         clHeapFree(fragNode);
     }
     hashDel(&node->hash);
-    clTimerDeleteAsync(&node->reassembleTimer);
+    /*
+     * Atomically check and delete timer if not running.
+     */
+    if(clTimerCheckAndDelete(&node->timerKey->reassembleTimer) == CL_OK)
+    {
+        clHeapFree(node->timerKey);
+        node->timerKey = NULL;
+    }
     clBufferLengthGet(msg, &len);
     if(!len)
     {
@@ -3466,25 +3485,25 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
          * create a new reassemble node.
          */
         ClUint32T hashKey = __iocReassembleHashKey(&key);
-        ClIocReassembleTimerKeyT *timerKey = clHeapCalloc(1, sizeof(*timerKey));
+        ClIocReassembleTimerKeyT *timerKey = NULL;
+        timerKey = clHeapCalloc(1, sizeof(*timerKey));
         CL_ASSERT(timerKey != NULL);
         node = clHeapCalloc(1, sizeof(*node));
         CL_ASSERT(node != NULL);
-        memcpy(&node->key, &key, sizeof(node->key));
-        node->timerId = ++iocReassembleCurrentTimerId;
-        memcpy(&timerKey->key, &node->key, sizeof(timerKey->key)); /*safe w.r.t node deletes*/
-        timerKey->timerId = node->timerId;
+        memcpy(&timerKey->key, &key, sizeof(timerKey->key)); /*safe w.r.t node deletes*/
+        node->timerKey = timerKey;
+        timerKey->timerId = ++iocReassembleCurrentTimerId;
         clRbTreeInit(&node->reassembleTree, __iocFragmentCmp);
         rc = clTimerCreate(userReassemblyTimerExpiry, 
                            CL_TIMER_ONE_SHOT,
                            CL_TIMER_SEPARATE_CONTEXT, __iocReassembleTimer,
-                           (void *)timerKey, &node->reassembleTimer);
+                           (void *)timerKey, &timerKey->reassembleTimer);
         CL_ASSERT(rc == CL_OK);
         node->currentLength = 0;
         node->expectedLength = 0;
         node->numFragments = 0;
         hashAdd(iocReassembleHashTable, hashKey, &node->hash);
-        clTimerStart(node->reassembleTimer);
+        clTimerStart(node->timerKey->reassembleTimer);
     }
     fragmentNode = clHeapCalloc(1, sizeof(*fragmentNode));
     CL_ASSERT(fragmentNode != NULL);
@@ -3530,7 +3549,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
             clLogDebug("FRAG", "RECV", "Updating the reassembly timer to refire after [%d] secs for node length [%d], "
                        "num fragments [%d]",
                        userReassemblyTimerExpiry.tsSec, node->currentLength, node->numFragments);
-            clTimerUpdate(node->reassembleTimer, userReassemblyTimerExpiry);
+            clTimerUpdate(node->timerKey->reassembleTimer, userReassemblyTimerExpiry);
         }
     }
     clHeapFree(job);

@@ -3,6 +3,7 @@
 
 #include <clCommon.h>
 #include <clCommonErrors.h>
+#include <clList.h>
 #include <clIocApi.h>
 #include <clIocIpi.h>
 
@@ -11,6 +12,7 @@ extern "C" {
 #endif
 
 #define CL_TRANSPORT_BASE_PORT (18000)
+#define CL_TRANSPORT_CONFIG_FILE "clTransport.xml"
 
 typedef ClRcT (*ClTransportNotifyCallbackT)
 (ClIocPhysicalAddressT *compAddr, ClUint32T status, ClPtrT arg);
@@ -18,6 +20,19 @@ typedef ClRcT (*ClTransportNotifyCallbackT)
 typedef ClPtrT ClTransportListenerHandleT;
 
 extern ClInt32T gClTransportId;
+
+typedef struct ClIocAddrMap
+{
+    int family;
+    char addrstr[80];
+    union
+    {
+        struct sockaddr_in sin_addr;
+        struct sockaddr_in6 sin6_addr;
+    } _addr;
+    ClListHeadT list;
+}ClIocAddrMapT;
+
 /*
  * We aren't going to be having multiple transports requesting at the same time.
  * So keep this simple. No need for bitmaps as these aren't moving targets.
@@ -34,7 +49,7 @@ extern ClRcT clTransportFinalize(const ClCharT *type, ClBoolT nodeRep);
 
 extern ClRcT clTransportNotifyInitialize(void);
 extern ClRcT clTransportNotifyFinalize(void);
-extern ClRcT clTransportIpAddressAssign(const ClCharT *type);
+extern ClRcT clTransportAddressAssign(const ClCharT *type);
 extern ClRcT clTransportNotificationInitialize(const ClCharT *type);
 extern ClRcT clTransportNotificationFinalize(const ClCharT *type);
 
@@ -55,10 +70,11 @@ extern ClRcT clTransportNotifyClose(ClIocPortT port);
 extern ClRcT clTransportNotifyRegister(ClTransportNotifyCallbackT callback, ClPtrT arg);
 extern ClRcT clTransportNotifyDeregister(ClTransportNotifyCallbackT callback);
 extern ClRcT
-clTransportNotificationOpen(const ClCharT *type, ClIocPortT port);
+clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node, 
+                            ClIocPortT port, ClIocNotificationIdT event);
 extern ClRcT
-clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAddress, ClIocPortT port);
-
+clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAddress, 
+                             ClIocPortT port, ClIocNotificationIdT event);
 extern ClRcT 
 clTransportSend(const ClCharT *type, ClIocPortT port, ClUint32T priority, ClIocAddressT *address, 
                 struct iovec *iov, ClInt32T iovlen, ClInt32T flags);
@@ -128,6 +144,9 @@ extern ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node);
 extern ClRcT clTransportBroadcastListGet(const ClCharT *hostXport, 
                                          ClIocPhysicalAddressT *hostAddr,
                                          ClUint32T *pNumEntries, ClIocAddressT **ppDestSlots);
+
+extern ClBoolT clTransportMcastSupported(ClUint32T *numPeers);
+extern ClRcT clTransportMcastPeerListGet(ClIocAddrMapT *peers, ClUint32T *numPeers);
 
 #ifdef __cplusplus
 }

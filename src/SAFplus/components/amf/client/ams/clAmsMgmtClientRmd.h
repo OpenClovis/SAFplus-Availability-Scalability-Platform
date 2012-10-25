@@ -99,6 +99,10 @@ extern ClRcT cl_ams_mgmt_entity_shutdown(
         CL_IN   clAmsMgmtEntityShutdownRequestT   *req,
         CL_OUT  clAmsMgmtEntityShutdownResponseT **res);
 
+extern ClRcT cl_ams_mgmt_entity_shutdown_with_restart(
+        CL_IN   clAmsMgmtEntityShutdownRequestT   *req,
+        CL_OUT  clAmsMgmtEntityShutdownResponseT **res);
+
 extern ClRcT cl_ams_mgmt_entity_restart(
         CL_IN   clAmsMgmtEntityRestartRequestT   *req,
         CL_OUT  clAmsMgmtEntityRestartResponseT **res);

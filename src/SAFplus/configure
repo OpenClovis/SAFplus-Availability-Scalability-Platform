@@ -1891,7 +1891,9 @@ echo "$as_me: error:
         fi;
     fi;
     cross_compiling=yes;
-    source $BUILD_TOOLS_DIR/$CROSS_BUILD/config.mk
+    if [ -f $BUILD_TOOLS_DIR/$CROSS_BUILD/config.mk ]; then
+        source $BUILD_TOOLS_DIR/$CROSS_BUILD/config.mk
+    fi
     if [ "$WIND_VER" = "1.2" ]; then
         export CC=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-$CPU-pne-gcc
         export CXX=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-$CPU-pne-g++
@@ -8208,6 +8210,9 @@ s,@NET_SNMP_CONFIG@,$NET_SNMP_CONFIG,;t t
 s,@BUILD_ROOT@,$BUILD_ROOT,;t t
 s,@PROJECT_ROOT@,$PROJECT_ROOT,;t t
 s,@PACKAGE_VERSION@,$PACKAGE_VERSION,;t t
+s,@ARCH@,$ARCH,;t t
+s,@MARCH@,$MARCH,;t t
+s,@TARGET@,$TARGET,;t t
 CEOF
 
 _ACEOF

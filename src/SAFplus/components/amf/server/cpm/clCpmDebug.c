@@ -147,6 +147,12 @@ static ClDebugFuncEntryT cpmSCDebugFuncList[] =
         "amsShutdown",
         "Admin API for shutting down an entity"
     },
+
+    {
+        clAmsDebugCliAdminAPI,
+        "amsShutdownRestart",
+        "Admin API for shutting down and restarting an entity"
+    },
     
     {
         clAmsDebugCliAdminAPI,

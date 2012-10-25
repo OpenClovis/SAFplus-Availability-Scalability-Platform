@@ -2368,6 +2368,9 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
 
     if (rc != CL_OK || !fun)
     {
+        if(func == CPM_MGMT_NODE_CONFIG_GET)
+            return CL_RMD_ERR_CONTINUE;
+
         clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, 
                    "Function lookup returned 0x%x", rc);
         

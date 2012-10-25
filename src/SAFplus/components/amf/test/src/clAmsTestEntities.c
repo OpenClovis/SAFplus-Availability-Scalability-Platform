@@ -634,6 +634,20 @@ ClRcT clAmsTestEntityShutdown(ClAmsMgmtHandleT handle,
     return rc;
 }
 
+ClRcT clAmsTestEntityShutdownWithRestart(ClAmsMgmtHandleT handle,
+                                         ClAmsEntityT *pEntity)
+{
+    ClRcT rc;
+    rc = clAmsMgmtEntityShutdownWithRestart(handle,pEntity);
+    if(rc != CL_OK)
+    {
+        CL_AMS_TEST_PRINT(("Entity shutdown with restart failed for [%s]\n",pEntity->name.value));
+        goto out;
+    }
+    out:
+    return rc;
+}
+
 ClRcT clAmsTestEntityRepaired(ClAmsMgmtHandleT handle,
                               ClAmsEntityT *pEntity)
 {

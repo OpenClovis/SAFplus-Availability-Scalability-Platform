@@ -37,13 +37,15 @@ typedef struct ClTransportLayer
     ClCharT *xportPlugin;
     ClPtrT xportPluginHandle;
     ClInt32T xportState;
-    ClRcT (*xportIpAddressAssign)(void);
+    ClRcT (*xportAddressAssign)(void);
     ClRcT (*xportInit)(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep);
     ClRcT (*xportFinalize)(ClInt32T xportId, ClBoolT nodeRep);
     ClRcT (*xportNotifyInit)(void);
     ClRcT (*xportNotifyFinalize)(void);
-    ClRcT (*xportNotifyOpen)(ClIocPortT port);
-    ClRcT (*xportNotifyClose)(ClIocNodeAddressT nodeAddress, ClIocPortT port);
+    ClRcT (*xportNotifyOpen)(ClIocNodeAddressT nodeAddress, ClIocPortT port, 
+                             ClIocNotificationIdT event);
+    ClRcT (*xportNotifyClose)(ClIocNodeAddressT nodeAddress, ClIocPortT port, 
+                              ClIocNotificationIdT event);
     /*
      * Use bind and bindclose if you want to do a synchronous xport recv. 
      * over an async listen.
@@ -163,6 +165,10 @@ static ClNameT gClLocalNodeName;
  */
 ClInt32T gClTransportId;
 
+static ClBoolT gClMcastSupported = CL_TRUE;
+static CL_LIST_HEAD_DECLARE(gClMcastPeerList);
+static ClUint32T gClMcastPeers;
+
 #define MULTICAST_ADDR_DEFAULT "224.1.1.1"
 #define MULTICAST_PORT_DEFAULT 5678
 
@@ -194,11 +200,9 @@ static ClCharT gClXportDefaultType[CL_MAX_NAME_LENGTH];
 static ClTransportLayerT *gClXportDefault;
 static ClBoolT gXportNodeRep;
 
-#define XPORT_CONFIG_FILE "clTransport.xml"
-
-static ClRcT xportIpAddressAssignFake(void)
+static ClRcT xportAddressAssignFake(void)
 {
-    clLogNotice("XPORT", "IP_ASSIGN", "Inside fake transport initialize");
+    clLogNotice("XPORT", "ASSIGN", "Inside fake transport initialize");
     return CL_OK;
 }
 
@@ -238,12 +242,14 @@ static ClRcT xportListenStopFake(ClIocPortT port)
     return CL_OK;
 }
 
-static ClRcT xportNotifyOpenFake(ClIocPortT port)
+static ClRcT xportNotifyOpenFake(ClIocNodeAddressT node, ClIocPortT port, 
+                                 ClIocNotificationIdT event)
 {
     return CL_ERR_NOT_SUPPORTED;
 }
 
-static ClRcT xportNotifyCloseFake(ClIocNodeAddressT nodeAddress, ClIocPortT port)
+static ClRcT xportNotifyCloseFake(ClIocNodeAddressT nodeAddress, ClIocPortT port, 
+                                  ClIocNotificationIdT event)
 {
     return CL_ERR_NOT_SUPPORTED;
 }
@@ -298,7 +304,7 @@ static ClRcT xportServerReadyFake(ClIocAddressT *pAddress)
 
 static ClRcT xportMasterAddressGetFake(ClIocLogicalAddressT la, ClIocPortT port, ClIocNodeAddressT *masterAddress)
 { 
-    clLogNotice("XPORT", "MASTER", "Inside fake master address get");
+    clLogInfo("XPORT", "MASTER", "Inside fake master address get");
     return CL_ERR_NOT_SUPPORTED;
 }
 
@@ -526,6 +532,7 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
     switch (notificationId)
     {
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
+        case CL_IOC_NODE_LINK_UP_NOTIFICATION:
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
         {
             if (clNodeCacheMemberGetExtendedSafe(nodeAddr, &member, 5, 200) == CL_OK)
@@ -553,6 +560,7 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
             break;
         }
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
+        case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
         {
             clLogNotice("IOC", "LUT", "Triggering node leave for node [0x%x]", nodeAddr);
             CL_LIST_FOR_EACH(iter, &gClXportDestNodeLUTList) {
@@ -619,7 +627,7 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
         clLogError("XPORT", "LOAD", "Unable to load plugin [%s]. Error [%s]", plugin, error ? error : "unknown");
         goto out_free;
     }
-    *(void**)&xport->xportIpAddressAssign = dlsym(xport->xportPluginHandle, "xportIpAddressAssign");
+    *(void**)&xport->xportAddressAssign = dlsym(xport->xportPluginHandle, "xportAddressAssign");
     *(void**)&xport->xportInit = dlsym(xport->xportPluginHandle, "xportInit");
     *(void**)&xport->xportFinalize = dlsym(xport->xportPluginHandle, "xportFinalize");
 
@@ -642,7 +650,7 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
     *(void**)&xport->xportMulticastRegister = dlsym(xport->xportPluginHandle, "xportMulticastRegister");
     *(void**)&xport->xportMulticastDeregister = dlsym(xport->xportPluginHandle, "xportMulticastDeregister");
 
-    if(!xport->xportIpAddressAssign) xport->xportIpAddressAssign = xportIpAddressAssignFake;
+    if(!xport->xportAddressAssign) xport->xportAddressAssign = xportAddressAssignFake;
     if(!xport->xportInit) xport->xportInit = xportInitFake;
     if(!xport->xportFinalize) xport->xportFinalize = xportFinalizeFake;
     if(!xport->xportNotifyInit) xport->xportNotifyInit = xportNotifyInitFake;
@@ -1668,29 +1676,123 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
 #undef MAX_XPORTS_PER_SLOT
 }
 
+static ClRcT _iocSetMulticastPeers(ClParserPtrT peers)
+{
+    ClRcT rc = CL_ERR_INVALID_PARAMETER;
+    const ClCharT *port = NULL;
+    ClParserPtrT peer = clParserChild(peers, "peer");
+    ClUint32T numPeers = 0;
+
+    if(!peer)
+    {
+        goto out;
+    }
+
+    port = clParserAttr(peers, "port");
+    if(port)
+    {
+        gClTransportMcastPort = atoi(port);
+        if(!gClTransportMcastPort)
+            gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
+    }
+    clLogNotice("MCAST", "MAP", "Set to use port [%d] for peer discovery", 
+                gClTransportMcastPort);
+
+    while(peer)
+    {
+        ClIocAddrMapT *map = NULL;
+        const ClCharT *addr = clParserAttr(peer, "addr");
+        if(!addr) 
+        {
+            goto next;
+        }
+        map = clHeapCalloc(1, sizeof(*map));
+        CL_ASSERT(map != NULL);
+        map->family = PF_INET;
+        map->_addr.sin_addr.sin_family = PF_INET;
+        map->_addr.sin_addr.sin_port = htons(gClTransportMcastPort);
+        if(inet_pton(PF_INET, addr, (void*)&map->_addr.sin_addr.sin_addr) != 1)
+        {
+            map->family = PF_INET6;
+            map->_addr.sin6_addr.sin6_family = PF_INET6;
+            if(inet_pton(PF_INET6, addr, (void*)&map->_addr.sin6_addr.sin6_addr) != 1)
+            {
+                clLogError("MCAST", "MAP", "Error interpreting address [%s]", addr);
+                clHeapFree(map);
+                goto out_free;
+            }
+            map->_addr.sin6_addr.sin6_port = htons(gClTransportMcastPort);
+        }
+        strncat(map->addrstr, addr, sizeof(map->addrstr)-1);
+        clListAddTail(&map->list, &gClMcastPeerList);
+        ++numPeers;
+        clLogNotice("MCAST", "MAP", "Added addr [%s] to mcast peer map", 
+                    map->addrstr);
+        next:
+        peer = peer->next;
+    }
+
+    if(numPeers > 0)
+    {
+        gClMcastPeers = numPeers;
+        rc = CL_OK;
+        goto out;
+    }
+
+    out_free:
+    while(!CL_LIST_HEAD_EMPTY(&gClMcastPeerList))
+    {
+        ClListHeadT *head = gClMcastPeerList.pNext;
+        ClIocAddrMapT *map = CL_LIST_ENTRY(head, ClIocAddrMapT, list);
+        clListDel(head);
+        clHeapFree(map);
+    }
+    
+    out:
+    return rc;
+}
+
 ClRcT _clIocSetMulticastConfig(ClParserPtrT parent)
 {
     ClRcT rc = CL_OK;
     ClParserPtrT multicastPtr = clParserChild(parent, "multicast");
+
+    gClMcastSupported = CL_TRUE;
+    gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
+
     if (!multicastPtr)
     {
+        ClParserPtrT peers = clParserChild(parent, "peerAddresses");
+        if(peers)
+        {
+            rc = _iocSetMulticastPeers(peers);
+            if(rc == CL_OK)
+            {
+                gClMcastSupported = CL_FALSE;
+                clLogNotice("XPORT", "INIT", "Multicast support disabled");
+                goto out;
+            }
+        }
         strncat(gClTransportMcastAddr, MULTICAST_ADDR_DEFAULT, sizeof(gClTransportMcastAddr)-1);
-        gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
+        rc = CL_OK;
         goto out;
     }
 
     const ClCharT *mcastAddressAttr = clParserAttr(multicastPtr, "address");
     const ClCharT *mcastPortAttr = clParserAttr(multicastPtr, "port");
 
-    if (!mcastAddressAttr || !mcastPortAttr)
+    if (!mcastAddressAttr)
     {
-        strncat(gClTransportMcastAddr, MULTICAST_ADDR_DEFAULT, sizeof(gClTransportMcastAddr)-1);
-        gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
-        goto out;
+        mcastAddressAttr = MULTICAST_ADDR_DEFAULT;
     }
 
     strncat(gClTransportMcastAddr, mcastAddressAttr, sizeof(gClTransportMcastAddr)-1);
-    gClTransportMcastPort = atoi(mcastPortAttr);
+    if(mcastPortAttr)
+    {
+        gClTransportMcastPort = atoi(mcastPortAttr);
+        if(!gClTransportMcastPort)
+            gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
+    }
 
     out:
     return rc;
@@ -1711,25 +1813,27 @@ ClRcT clTransportLayerInitialize(void)
 
     configPath = getenv("ASP_CONFIG");
     if(!configPath) configPath = ".";
-    parent = clParserOpenFile(configPath, XPORT_CONFIG_FILE);
+    parent = clParserOpenFile(configPath, CL_TRANSPORT_CONFIG_FILE);
     if(!parent)
     {
         clLogWarning("XPORT", "INIT", 
                      "Unable to open transport config [%s] from path [%s]." 
                      "Would be loading default transport [%s] with plugin [%s]", 
-                     XPORT_CONFIG_FILE, configPath, CL_XPORT_DEFAULT_TYPE, CL_XPORT_DEFAULT_PLUGIN);
+                     CL_TRANSPORT_CONFIG_FILE, configPath, CL_XPORT_DEFAULT_TYPE, CL_XPORT_DEFAULT_PLUGIN);
         goto set_default;
     }
     xports = clParserChild(parent, "xports");
     if(!xports)
     {
-        clLogError("XPORT", "INIT", "No xports tag found for transport initialize in [%s]", XPORT_CONFIG_FILE);
+        clLogError("XPORT", "INIT", "No xports tag found for transport initialize in [%s]", 
+                   CL_TRANSPORT_CONFIG_FILE);
         goto out_free;
     }
     xport = clParserChild(xports, "xport");
     if(!xport)
     {
-        clLogError("XPORT", "INIT", "No xport tag found for transport initialize in [%s]", XPORT_CONFIG_FILE);
+        clLogError("XPORT", "INIT", "No xport tag found for transport initialize in [%s]", 
+                   CL_TRANSPORT_CONFIG_FILE);
         goto out_free;
     }
     while(xport)
@@ -1840,7 +1944,7 @@ ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep)
     out_notify:
     if (nodeRep) 
     {
-        rc = clTransportIpAddressAssign(type);
+        rc = clTransportAddressAssign(type);
     }
 
     if(nodeRep && rc == CL_OK)
@@ -1999,10 +2103,14 @@ ClRcT clTransportMasterAddressGet(const ClCharT *type, ClIocLogicalAddressT la,
 }
 
 ClRcT clTransportMasterAddressGetDefault(ClIocLogicalAddressT la,
-        ClIocPortT port, ClIocNodeAddressT *masterAddress) {
+                                         ClIocPortT port, ClIocNodeAddressT *masterAddress) 
+{
     ClRcT rc = CL_OK;
-    if (clAspNativeLeaderElection()) {
+    if (clAspNativeLeaderElection()) 
+    {
         rc = clNodeCacheLeaderGet(masterAddress);
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+            goto xport_master;
         return rc;
     }
 
@@ -2024,6 +2132,8 @@ ClRcT clTransportMasterAddressGetDefault(ClIocLogicalAddressT la,
             return rc;
         }
     }
+
+    xport_master:
     return transportMasterAddressGet(gClXportDefault, la, port, masterAddress);
 }
 
@@ -2087,7 +2197,7 @@ ClRcT clTransportNotificationInitialize(const ClCharT *type)
 /*
  * Node representative specific api.
  */
-ClRcT clTransportIpAddressAssign(const ClCharT *type)
+ClRcT clTransportAddressAssign(const ClCharT *type)
 {
     ClTransportLayerT *xport = NULL;
     register ClListHeadT *iter;
@@ -2097,13 +2207,13 @@ ClRcT clTransportIpAddressAssign(const ClCharT *type)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "IP_ASSIGN", "Transport [%s] not registered", type);
+            clLogError("XPORT", "ASSIGN", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
-        rc = xport->xportIpAddressAssign();
+        rc = xport->xportAddressAssign();
         if(rc != CL_OK)
         {
-            clLogError("XPORT", "IP_ASSIGN", "Transport [%s] ip address assign failed with [%#x]",
+            clLogError("XPORT", "ASSIGN", "Transport [%s] address assign failed with [%#x]",
                        type, rc);
         }
         return rc;
@@ -2112,10 +2222,10 @@ ClRcT clTransportIpAddressAssign(const ClCharT *type)
     CL_LIST_FOR_EACH(iter, &gClTransportList)
     {
         xport = CL_LIST_ENTRY(iter, ClTransportLayerT, xportList);
-        rc = xport->xportIpAddressAssign();
+        rc = xport->xportAddressAssign();
         if(rc != CL_OK)
         {
-            clLogError("XPORT", "IP_ASSIGN", "Transport [%s] ip address assign failed with [%#x]",
+            clLogError("XPORT", "ASSIGN", "Transport [%s] address assign failed with [%#x]",
                        type, rc);
         }
     }
@@ -2175,7 +2285,8 @@ ClRcT clTransportNotificationFinalize(const ClCharT *type)
     return rc;
 }
 
-ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocPortT port)
+ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node, 
+                                  ClIocPortT port, ClIocNotificationIdT event)
 {
     ClTransportLayerT *xport = NULL;
     register ClListHeadT *iter;
@@ -2193,7 +2304,7 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocPortT port)
             clLogError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
-        rc = xport->xportNotifyOpen(port);
+        rc = xport->xportNotifyOpen(node, port, event);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_SUPPORTED)
         {
             rc = clTransportNotifyOpen(port);
@@ -2211,7 +2322,7 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocPortT port)
         xport = CL_LIST_ENTRY(iter, ClTransportLayerT, xportList);
         if(xport->xportState & XPORT_STATE_INITIALIZED)
         {
-            rc = xport->xportNotifyOpen(port);
+            rc = xport->xportNotifyOpen(node, port, event);
             if(rc == CL_OK) break;
         }
     }
@@ -2225,7 +2336,8 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocPortT port)
     return rc;
 }
 
-ClRcT clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAddress, ClIocPortT port)
+ClRcT clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAddress, 
+                                   ClIocPortT port, ClIocNotificationIdT event)
 {
     ClTransportLayerT *xport = NULL;
     register ClListHeadT *iter;
@@ -2243,7 +2355,7 @@ ClRcT clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAd
             clLogError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
-        rc = xport->xportNotifyClose(nodeAddress, port);
+        rc = xport->xportNotifyClose(nodeAddress, port, event);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_SUPPORTED)
         {
             rc = clTransportNotifyClose(port);
@@ -2261,7 +2373,7 @@ ClRcT clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAd
         xport = CL_LIST_ENTRY(iter, ClTransportLayerT, xportList);
         if(xport->xportState & XPORT_STATE_INITIALIZED)
         {
-            rc = xport->xportNotifyClose(nodeAddress, port);
+            rc = xport->xportNotifyClose(nodeAddress, port, event);
             if(rc == CL_OK) break;
         }
     }
@@ -2282,7 +2394,7 @@ ClRcT clTransportBind(const ClCharT *type, ClIocPortT port)
     register ClListHeadT *iter;
     ClRcT rc = CL_OK;
 
-    rc = clTransportNotificationOpen(type, port);
+    rc = clTransportNotificationOpen(type, 0, port, CL_IOC_COMP_ARRIVAL_NOTIFICATION);
     if(rc != CL_OK)
         return rc;
 
@@ -2358,7 +2470,8 @@ ClRcT clTransportBindClose(const ClCharT *type, ClIocPortT port)
         return rc;
 
     out_close:
-    rc = clTransportNotificationClose(type, gIocLocalBladeAddress, port);
+    rc = clTransportNotificationClose(type, gIocLocalBladeAddress, 
+                                      port, CL_IOC_COMP_DEATH_NOTIFICATION);
 
     return rc;
 }
@@ -2369,7 +2482,7 @@ ClRcT clTransportListen(const ClCharT *type, ClIocPortT port)
     register ClListHeadT *iter;
     ClRcT rc = CL_OK;
 
-    rc = clTransportNotificationOpen(type, port);
+    rc = clTransportNotificationOpen(type, 0, port, CL_IOC_COMP_ARRIVAL_NOTIFICATION);
     if(rc != CL_OK)
         return rc;
 
@@ -2446,7 +2559,8 @@ ClRcT clTransportListenStop(const ClCharT *type, ClIocPortT port)
         return rc;
     
     out_close:
-    rc = clTransportNotificationClose(type, gIocLocalBladeAddress, port);
+    rc = clTransportNotificationClose(type, gIocLocalBladeAddress, 
+                                      port, CL_IOC_COMP_DEATH_NOTIFICATION);
 
     return rc;
 }
@@ -2849,6 +2963,38 @@ ClCharT *clTransportMcastAddressGet(void)
 ClUint32T clTransportMcastPortGet(void)
 {
     return gClTransportMcastPort;
+}
+
+ClBoolT clTransportMcastSupported(ClUint32T *numPeers)
+{
+    if(numPeers)
+    {
+        *numPeers = gClMcastPeers;
+    }
+    return gClMcastSupported;
+}
+
+ClRcT clTransportMcastPeerListGet(ClIocAddrMapT *peers, ClUint32T *pNumPeers)
+{
+    ClRcT rc = CL_OK;
+    ClListHeadT *iter = NULL;
+    ClUint32T numPeers = 0;
+
+    if(!pNumPeers || !(numPeers = *pNumPeers))
+        return CL_ERR_INVALID_PARAMETER;
+    
+    CL_LIST_FOR_EACH(iter, &gClMcastPeerList)
+    {
+        ClIocAddrMapT *map = CL_LIST_ENTRY(iter, ClIocAddrMapT, list);
+        memcpy(peers, map, sizeof(*peers));
+        ++peers;
+        --numPeers;
+        if(!numPeers)
+            break;
+    }
+
+    *pNumPeers -= numPeers; /* copied entries */
+    return rc;
 }
 
 ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node)

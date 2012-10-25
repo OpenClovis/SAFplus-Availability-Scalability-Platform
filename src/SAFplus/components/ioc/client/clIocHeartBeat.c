@@ -61,6 +61,12 @@
 #define CL_IOC_HB_SET_STATUS_ACTIVE() __CL_IOC_HB_STATUS_SET(__CL_IOC_HB_STATUS_ACTIVE)
 #define CL_IOC_HB_SET_STATUS_PAUSED() __CL_IOC_HB_STATUS_SET(__CL_IOC_HB_STATUS_PAUSED)
 
+typedef struct ClIocHeartBeatNotification
+{
+    ClIocPhysicalAddressT addr;
+    ClIocNotificationIdT event;
+}ClIocHeartBeatNotificationT;
+
 typedef ClRcT (*ClIocHeartBeatPluginT)(ClUint32T interval, ClUint32T retries);
 
 extern ClIocNodeAddressT gIocLocalBladeAddress;
@@ -255,13 +261,27 @@ ClRcT clIocHearBeatHealthCheckUpdate(ClIocNodeAddressT nodeAddress, ClUint32T po
     return rc;
 }
 
+#define __ALLOC_HB_NOTIFICATIONS            do {                        \
+        if(!(numNotifications & 15))                                    \
+        {                                                               \
+            hbNotifications = clHeapRealloc(hbNotifications,            \
+                                            sizeof(*hbNotifications) * (numNotifications + 16)); \
+            CL_ASSERT(hbNotifications != NULL);                         \
+            memset(hbNotifications + numNotifications, 0,               \
+                   sizeof(*hbNotifications) * 16);                      \
+        }                                                               \
+}while(0)
+
 /*
  * Calling clIocSend and to health check peer nodes
- */
-static ClRcT _clIocHeartBeatSend() {
+*/
+static ClRcT _clIocHeartBeatSend(void) 
+{
     ClRcT rc = CL_OK;
     ClIocPhysicalAddressT compAddr;
     ClEoExecutionObjT *eoObj = NULL;
+    ClIocHeartBeatNotificationT *hbNotifications = NULL;
+    ClUint32T i, numNotifications = 0;
 
     clEoMyEoObjectGet(&eoObj);
 
@@ -284,6 +304,7 @@ static ClRcT _clIocHeartBeatSend() {
 
     rc = clIocHeartBeatMessageReqRep(eoObj->commObj, (ClIocAddressT *) &compAddr, CL_IOC_PROTO_HB, CL_FALSE);
 
+    clOsalMutexLock(&gIocHeartBeatTableLock);
     if (rc == CL_OK) 
     {
         register ClListHeadT *iter;
@@ -291,7 +312,6 @@ static ClRcT _clIocHeartBeatSend() {
         /*
          * Peer nodes health check status
          */
-        clOsalMutexLock(&gIocHeartBeatTableLock);
         for(iter = gIocHeartBeatList.pNext; iter != &gIocHeartBeatList; iter = next)
         {
             next = iter->pNext;
@@ -299,6 +319,15 @@ static ClRcT _clIocHeartBeatSend() {
                 CL_LIST_ENTRY(iter, ClIocHeartBeatStatusT, list);
             if (entry->status == CL_IOC_NODE_UP) 
             {
+                if(entry->linkIndex == gIocLocalBladeAddress)
+                {
+                    if(entry->retryCount > 0)
+                    {
+                        entry->retryCount = 0;
+                    }
+                    continue;
+                }
+
                 /*
                  * Get current status in case node already updated
                  */
@@ -309,33 +338,161 @@ static ClRcT _clIocHeartBeatSend() {
                     entry->status = CL_IOC_NODE_DOWN;
                     entry->retryCount = 0;
                 }
-                else if (entry->retryCount > gClHeartBeatRetries)
+                else 
                 {
-                    clLogNotice(
-                                "IOC",
-                                "HBT",
-                                "HeartBeat node [0x%x]'s status death", entry->linkIndex);
-                    entry->status = CL_IOC_NODE_DOWN;
-                    /*
-                     * Notify node leave close and release the entry to avoid false heartbeat
-                     * again on the same entry.
-                     */
-                    entry->retryCount = 0;
-                    clTransportNotificationClose(NULL, entry->linkIndex, CL_IOC_XPORT_PORT);
-                    _clIocHeartBeatEntryMapDel(entry);
-                    clHeapFree(entry);
+                    if (entry->retryCount > gClHeartBeatRetries)
+                    {
+                        clLogNotice(
+                                    "IOC",
+                                    "HBT",
+                                    "HeartBeat node [0x%x]'s status death", entry->linkIndex);
+                        entry->status = CL_IOC_NODE_DOWN;
+                        /*
+                         * Notify node leave close and release the entry to avoid false heartbeat
+                         * again on the same entry.
+                         */
+                        entry->retryCount = 0;
+                        __ALLOC_HB_NOTIFICATIONS;
+                        hbNotifications[numNotifications].addr.nodeAddress = entry->linkIndex;
+                        hbNotifications[numNotifications].addr.portId = CL_IOC_XPORT_PORT;
+                        hbNotifications[numNotifications].event = CL_IOC_NODE_LEAVE_NOTIFICATION;
+                        ++numNotifications;
+                        _clIocHeartBeatEntryMapDel(entry);
+                        clHeapFree(entry);
 
-                } 
-                else if (entry->linkIndex != gIocLocalBladeAddress) 
+                    } 
+                    else
+                    {
+                        entry->retryCount++;
+                    }
+                }
+            }
+            else if(entry->status == CL_IOC_LINK_DOWN)
+            {
+                entry->retryCount = 0;
+                entry->status = CL_IOC_NODE_UP;
+                /*
+                 *Reassign the interface addresses back on link up for available transports
+                 */
+                clTransportAddressAssign(NULL);
+                __ALLOC_HB_NOTIFICATIONS;
+                hbNotifications[numNotifications].addr.nodeAddress = entry->linkIndex;
+                hbNotifications[numNotifications].addr.portId = CL_IOC_XPORT_PORT;
+                hbNotifications[numNotifications].event = CL_IOC_NODE_LINK_UP_NOTIFICATION;
+                ++numNotifications;
+            }
+        }
+    }
+    else
+    {
+        register ClListHeadT *iter;
+        ClListHeadT *next = NULL;
+        /*
+         * Peer nodes health check status
+         */
+        for(iter = gIocHeartBeatList.pNext; iter != &gIocHeartBeatList; iter = next)
+        {
+            next = iter->pNext;
+            ClIocHeartBeatStatusT *entry =
+                CL_LIST_ENTRY(iter, ClIocHeartBeatStatusT, list);
+
+	    if(entry->linkIndex == gIocLocalBladeAddress)
+	    {
+	        continue;
+	    }
+
+            if (entry->status == CL_IOC_NODE_UP) 
+            {
+                /*
+                 * Get current status in case node already updated
+                 */
+                ClUint8T status = 0;
+                clIocRemoteNodeStatusGet(entry->linkIndex, &status);
+
+                if (status == CL_IOC_NODE_DOWN)
                 {
-                    entry->retryCount++;
+                    entry->status = CL_IOC_NODE_DOWN;
+                    entry->retryCount = 0;
+                }
+                else 
+                {
+                    if(entry->retryCount > gClHeartBeatRetries)
+                    {
+                        entry->status = CL_IOC_LINK_DOWN;
+                        /*
+                         * Notify node leave close and retain the entry as link could be restored
+                         * later for the node
+                         */
+                        entry->retryCount = 0;
+                        if(entry->linkIndex != gIocLocalBladeAddress)
+                        {
+                            __ALLOC_HB_NOTIFICATIONS;
+                            hbNotifications[numNotifications].addr.nodeAddress = entry->linkIndex;
+                            hbNotifications[numNotifications].addr.portId = CL_IOC_XPORT_PORT;
+                            hbNotifications[numNotifications].event = CL_IOC_NODE_LINK_DOWN_NOTIFICATION;
+                            ++numNotifications;
+                        }
+                    } 
+                    else 
+                    {
+                        entry->retryCount++;
+                    }
                 }
             }
         }
-        clOsalMutexUnlock(&gIocHeartBeatTableLock);
     }
+    clOsalMutexUnlock(&gIocHeartBeatTableLock);
 
-    return rc;
+    for(i = 0; i < numNotifications; ++i)
+    {
+        switch(hbNotifications[i].event)
+        {
+        case CL_IOC_NODE_LEAVE_NOTIFICATION:
+            clTransportNotificationClose(NULL, hbNotifications[i].addr.nodeAddress,
+                                         hbNotifications[i].addr.portId,
+                                         CL_IOC_NODE_LEAVE_NOTIFICATION);
+            break;
+
+        case CL_IOC_NODE_LINK_UP_NOTIFICATION:
+            clLogNotice("SPLIT", "CLUSTER", "Sending node arrival for slot [%d]", 
+                        hbNotifications[i].addr.nodeAddress);
+            if((rc = clTransportNotificationOpen(NULL, hbNotifications[i].addr.nodeAddress,
+                                                 hbNotifications[i].addr.portId,
+                                                 CL_IOC_NODE_LINK_UP_NOTIFICATION)) != CL_OK)
+            {
+                ClIocHeartBeatStatusT *entry = NULL;
+                clOsalMutexLock(&gIocHeartBeatTableLock);
+                entry = _clIocHeartBeatMapFind(hbNotifications[i].addr.nodeAddress);
+                if(entry)
+                {
+                    clLogNotice("SPLIT", "CLUSTER", 
+                                "Setting node [%d] status back to link down "
+                                "as notification open failed with [%#x]",
+                                entry->linkIndex, rc);
+                    entry->status = CL_IOC_LINK_DOWN;
+                }
+                clOsalMutexUnlock(&gIocHeartBeatTableLock);
+            }
+            break;
+
+        case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
+            clLogNotice("SPLIT", "CLUSTER",
+                        "HeartBeat node [%#x]'s status death as link appears to be down", 
+                        hbNotifications[i].addr.nodeAddress);
+            clTransportNotificationClose(NULL, hbNotifications[i].addr.nodeAddress,
+                                         hbNotifications[i].addr.portId,
+                                         CL_IOC_NODE_LINK_DOWN_NOTIFICATION);
+            break;
+
+        default: break;
+        }
+    }
+    
+    if(hbNotifications)
+        clHeapFree(hbNotifications);
+
+    return CL_OK;
+
 }
 
 
@@ -346,7 +503,10 @@ static ClRcT _clIocHeartBeatCompsSend(void)
 {
     ClRcT rc = CL_OK;
     ClEoExecutionObjT *eoObj = NULL;
+    ClListHeadT *iter, *next;
     ClIocPhysicalAddressT compAddr = { 0 };
+    ClIocHeartBeatNotificationT *hbNotifications = NULL;
+    ClUint32T i, numNotifications = 0;
 
     clEoMyEoObjectGet(&eoObj);
     if(!eoObj)
@@ -361,48 +521,75 @@ static ClRcT _clIocHeartBeatCompsSend(void)
     {
         return CL_OK; 
     }
+
     compAddr.nodeAddress = gIocLocalBladeAddress;
+
     /*
      * Local component heartbeat interval sending
      */
     clOsalMutexLock(&gIocHeartBeatLocalTableLock);
-    register ClListHeadT *iter;
-    ClListHeadT *next;
-    for(iter = gIocHeartBeatLocalList.pNext; iter != &gIocHeartBeatLocalList; iter = next) {
+
+    for(iter = gIocHeartBeatLocalList.pNext; iter != &gIocHeartBeatLocalList; iter = next) 
+    {
         next = iter->pNext;
         ClIocHeartBeatStatusT *entry =
-                CL_LIST_ENTRY(iter, ClIocHeartBeatStatusT, list);
+            CL_LIST_ENTRY(iter, ClIocHeartBeatStatusT, list);
         /*
          * Local components health check status
          */
         compAddr.portId = entry->linkIndex;
         rc = clIocHeartBeatMessageReqRep(eoObj->commObj,
                 (ClIocAddressT *) &compAddr, CL_IOC_PROTO_HB, CL_FALSE);
-        if (rc == CL_OK) {
+        if (rc == CL_OK) 
+        {
             if (entry->status == CL_IOC_NODE_UP
-                    && entry->linkIndex != CL_IOC_XPORT_PORT
-                    && entry->linkIndex != CL_IOC_CPM_PORT) {
-                if (entry->retryCount > gClHeartBeatRetries) {
+                && entry->linkIndex != CL_IOC_XPORT_PORT
+                && entry->linkIndex != CL_IOC_CPM_PORT) 
+            {
+                if (entry->retryCount > gClHeartBeatRetries) 
+                {
                     clLogNotice(
                             "IOC",
                             "HBT",
                             "HeartBeat component [0x%x]'s status death", entry->linkIndex);
                     entry->status = CL_IOC_NODE_DOWN;
                     entry->retryCount = 0;
-                    /*
-                     * Notify port close
-                     */
-                    clTransportNotificationClose(NULL, gIocLocalBladeAddress,
-                            entry->linkIndex);
+                    __ALLOC_HB_NOTIFICATIONS;
+                    hbNotifications[numNotifications].addr.nodeAddress = gIocLocalBladeAddress;
+                    hbNotifications[numNotifications].addr.portId = entry->linkIndex;
+                    hbNotifications[numNotifications].event = CL_IOC_COMP_DEATH_NOTIFICATION;
+                    ++numNotifications;
                     _clIocHeartBeatEntryMapDel(entry);
                     clHeapFree(entry);
-                } else {
+                } 
+                else 
+                {
                     entry->retryCount++;
                 }
             }
         }
     }
     clOsalMutexUnlock(&gIocHeartBeatLocalTableLock);
+
+    for(i = 0; i < numNotifications; ++i)
+    {
+        switch(hbNotifications[i].event)
+        {
+        case CL_IOC_COMP_DEATH_NOTIFICATION:
+            /*
+             * Notify port close
+             */
+            clTransportNotificationClose(NULL, 
+                                         hbNotifications[i].addr.nodeAddress,
+                                         hbNotifications[i].addr.portId,
+                                         CL_IOC_COMP_DEATH_NOTIFICATION);
+            break;
+        default: break;
+        }
+    }
+    
+    if(hbNotifications)
+        clHeapFree(hbNotifications);
 
     return rc;
 }
@@ -576,9 +763,6 @@ ClRcT clIocHeartBeatStart()
     /* insert into heart beat */
     for (i = 0; i < numNodes; i++) 
     {
-        if (pNodes[i] == clIocLocalAddressGet())
-            continue;
-
         ClIocHeartBeatStatusT *hbStatus = _clIocHeartBeatMapFind(pNodes[i]);
         if (!hbStatus) 
         {
@@ -673,8 +857,13 @@ void clHeartBeatTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffe
         {
             ClIocHeartBeatStatusT *entry =
                 CL_LIST_ENTRY(iter, ClIocHeartBeatStatusT, list);
-            entry->retryCount = 0;
-            entry->status = CL_IOC_NODE_UP;
+            if(entry->status != CL_IOC_LINK_DOWN
+               &&
+               entry->status != CL_IOC_LINK_UP)
+            {
+                entry->retryCount = 0;
+                entry->status = CL_IOC_NODE_UP;
+            }
         }
         clOsalMutexUnlock(&gIocHeartBeatTableLock);
     }
@@ -754,7 +943,8 @@ static ClRcT iocCompFastNotifyCallback(ClIocPhysicalAddressT *compAddr,
 {
     if(status == CL_IOC_NODE_DOWN)
     {
-        clTransportNotificationClose(NULL, gIocLocalBladeAddress, compAddr->portId);
+        clTransportNotificationClose(NULL, gIocLocalBladeAddress, 
+                                     compAddr->portId, CL_IOC_COMP_DEATH_NOTIFICATION);
     }
     return CL_OK;
 }
@@ -817,7 +1007,7 @@ ClRcT _clIocSetHeartBeatConfig()
     configPath = getenv("ASP_CONFIG");
     if (configPath != NULL)
     {
-        parent = clParserOpenFile(configPath, "clTransport.xml");
+        parent = clParserOpenFile(configPath, CL_TRANSPORT_CONFIG_FILE);
         if (parent == NULL)
         {
             clLogWarning("IOC", "HBT", "Transport configuration file does not exist. Should default to tipc");
@@ -1045,13 +1235,6 @@ ClRcT clIocHeartBeatMessageReqRep(ClIocCommPortHandleT commPort,
     {
         rc = clBufferNBytesWrite(message, (ClUint8T *) &CL_IOC_HB_EXIT_MESSAGE,
                 sizeof(CL_IOC_HB_EXIT_MESSAGE));
-    }
-
-    if (rc != CL_OK) 
-    {
-        clLogError("IOC", "HBT",
-                   "clBufferNBytesWrite failed with rc = %#x", rc);
-        goto out_delete;
     }
 
     if (rc != CL_OK) 
