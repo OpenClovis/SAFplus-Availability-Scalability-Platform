@@ -367,15 +367,22 @@ clCkptIocNodedownCallback(ClIocNotificationIdT eventId,
          ckptPeerDown(masterAddr, CL_CKPT_NODE_DOWN, 0);
          return;
     }
-    else if( (eventId == CL_IOC_NODE_LEAVE_NOTIFICATION  
-              || 
-              eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
-             &&
-             pAddress->iocPhyAddress.nodeAddress == gCkptSvr->masterInfo.deputyAddr)
+    else if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION  
+            || 
+            eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
     {
-        gCkptSvr->masterInfo.deputyAddr = CL_IOC_RESERVED_ADDRESS;
-        CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
-        clOsalMutexUnlock(&gCkptSvr->ckptClusterSem);
+        if(pAddress->iocPhyAddress.nodeAddress == gCkptSvr->masterInfo.deputyAddr)
+        {
+            gCkptSvr->masterInfo.deputyAddr = CL_IOC_RESERVED_ADDRESS;
+            CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+            clOsalMutexUnlock(&gCkptSvr->ckptClusterSem);
+        }
+        else
+        {
+            CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+            clOsalMutexUnlock(&gCkptSvr->ckptClusterSem);
+            ckptPeerDown(pAddress->iocPhyAddress.nodeAddress, CL_CKPT_NODE_DOWN, 0);
+        }
         return;
     }
 
@@ -393,9 +400,9 @@ clCkptIocCallbackUpdate(void)
     /* deregister the old adress */
     if(CL_HANDLE_INVALID_VALUE != gIocCallbackHandle)
     {
-        clCpmNotificationCallbackUninstall(&gIocCallbackHandle);
+        return rc;
     }
-    compAddr.nodeAddress = gCkptSvr->masterInfo.masterAddr;
+    compAddr.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     compAddr.portId      = CL_IOC_CKPT_PORT;
     /* register for new address */
     clCpmNotificationCallbackInstall(compAddr, clCkptIocNodedownCallback, 
