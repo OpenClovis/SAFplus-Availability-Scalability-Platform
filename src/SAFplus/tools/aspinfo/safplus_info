@@ -1081,7 +1081,7 @@ class Cli(cmd.Cmd):
         cmd.Cmd.postloop(self) # call original postloop to deactivate completion
         if on_platform('linux'):
             try:
-                readline.read_history_file(self.histfile)
+                readline.save_history_file(self.histfile)
             except: # Catch all readline exceptions since this an optional component
                 pass
 
