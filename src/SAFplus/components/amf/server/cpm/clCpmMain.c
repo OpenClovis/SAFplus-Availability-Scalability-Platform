@@ -184,6 +184,10 @@ static ClJobQueueT cpmNotificationQueue;
 
 static ClInt32T cpmValgrindTimeout;
 
+static ClBoolT gClSigTermPending;
+
+static ClBoolT gClSigTermRestart;
+
 static ClRcT clCpmIocNotificationEnqueue(ClIocNotificationT *notification, ClPtrT cookie);
 static ClBoolT __cpmIsInfrastructureComponent(const ClCharT *compName);
 
@@ -608,6 +612,7 @@ static void cpmSigintHandler(ClInt32T signum)
 {
     clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
                   "Caught SIGINT or SIGTERM signal, shutting down the node...");
+    gClSigTermPending = (signum == SIGTERM);
     clCpmNodeShutDown(clIocLocalAddressGet());
 }
 
@@ -1040,6 +1045,7 @@ static ClRcT clCpmFinalize(void)
         clOsalMutexUnlock(&gpClCpm->cpmShutdownMutex);
     }
 
+    if(!gClSigTermPending || !gClSigTermRestart)
     {
         FILE *fptr = fopen(CL_CPM_RESTART_DISABLE_FILE, "w");
         if(fptr) fclose(fptr);
@@ -4321,6 +4327,8 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
 ClRcT cpmValidateEnv(void)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_OP_NOT_PERMITTED);
+
+    gClSigTermRestart = clParseEnvBoolean("ASP_RESTART_SIGTERM");
 
     if (clParseEnvBoolean("ASP_WITHOUT_CPM") == CL_TRUE)
     {
