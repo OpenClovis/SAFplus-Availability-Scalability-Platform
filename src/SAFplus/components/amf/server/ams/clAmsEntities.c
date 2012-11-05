@@ -3401,7 +3401,7 @@ clAmsSGValidateLoadingStrategy(
 
 ClRcT
 clAmsSGValidateRedundancyModel(
-        CL_IN  ClAmsSGT  *sg )
+                               CL_IN  ClAmsSGT  *sg )
 {
 
     AMS_CHECK_SG (sg);
@@ -3419,7 +3419,7 @@ clAmsSGValidateRedundancyModel(
     switch ( sg->config.redundancyModel )
     {
 
-        case CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY:
+    case CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY:
         {
             if ( (sg->config.numPrefActiveSUs      != 1) ||
                  (sg->config.numPrefStandbySUs     != 0) ||
@@ -3440,7 +3440,7 @@ clAmsSGValidateRedundancyModel(
             break;
         }
 
-        case CL_AMS_SG_REDUNDANCY_MODEL_TWO_N:
+    case CL_AMS_SG_REDUNDANCY_MODEL_TWO_N:
         {
             if ( (sg->config.numPrefActiveSUs      != 1) ||
                  (sg->config.numPrefStandbySUs     != 1) ||
@@ -3458,12 +3458,12 @@ clAmsSGValidateRedundancyModel(
             break;
         }
 
-        case CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N:
+    case CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N:
         {
             if ( (sg->config.numPrefActiveSUs      == 0) ||
                  (sg->config.numPrefStandbySUs     == 0) ||
                  (sg->config.numPrefInserviceSUs   <
-                    (sg->config.numPrefActiveSUs   + sg->config.numPrefStandbySUs)) ||
+                  (sg->config.numPrefActiveSUs   + sg->config.numPrefStandbySUs)) ||
                  (sg->config.numPrefActiveSUsPerSI != 1) )
             {
                 AMS_LOG(CL_DEBUG_ERROR,
@@ -3480,16 +3480,16 @@ clAmsSGValidateRedundancyModel(
     case CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM:
         break; /*user specified - no validation*/
 
-#ifdef POST_RC2
-
-        case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
+    case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
         {
-            if ( (sg->config.numPrefInserviceSUs  < sg->config.numPrefAssignedSUs) ||
+            if ( (sg->config.numPrefActiveSUs == 0 ) || 
+                 (sg->config.numPrefInserviceSUs  < sg->config.numPrefAssignedSUs) ||
                  (sg->config.numPrefActiveSUsPerSI != 1) )
             {
                 AMS_LOG(CL_DEBUG_ERROR,
                         ("Valid Values for SG [%s] Redundancy Model [%s] are "
-                         "numPrefActiveSUs[ >= numPrefAssignedSUs], numPrefActiveSUsPerSI[1]\n",
+                         "numPrefActiveSUs [0], numPrefActiveSUs[ >= numPrefAssignedSUs], "
+                         "numPrefActiveSUsPerSI[1]",
                          sg->config.entity.name.value,
                          CL_AMS_STRING_SG_REDUNDANCY_MODEL (sg->config.redundancyModel) ));
                 goto AMS_VALIDATE_SG_RULES_FAILS;
@@ -3497,13 +3497,15 @@ clAmsSGValidateRedundancyModel(
             break;
         }
 
-        case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY_ACTIVE:
+    case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY_ACTIVE:
         {
-            if ( (sg->config.numPrefInserviceSUs  < sg->config.numPrefAssignedSUs) ) 
+            if ( sg->config.numPrefStandbySUs  
+                 ||
+                 sg->config.numPrefInserviceSUs  < sg->config.numPrefAssignedSUs ) 
             {
                 AMS_LOG(CL_DEBUG_ERROR,
                         ("Valid Values for SG [%s] Redundancy Model [%s] are "
-                         "numPrefInserviceSUs [< numPrefAssignedSUs] \n",
+                         "numPrefStandbySUs [>0], numPrefInserviceSUs [< numPrefAssignedSUs]",
                          sg->config.entity.name.value,
                          CL_AMS_STRING_SG_REDUNDANCY_MODEL(sg->config.redundancyModel) ));
                 goto AMS_VALIDATE_SG_RULES_FAILS;
@@ -3511,9 +3513,7 @@ clAmsSGValidateRedundancyModel(
             break;
         }
 
-#endif
-
-        default:
+    default:
         {
             goto AMS_VALIDATE_SG_RULES_FAILS;
         }
@@ -3522,7 +3522,7 @@ clAmsSGValidateRedundancyModel(
 
     return CL_OK;
 
-AMS_VALIDATE_SG_RULES_FAILS:
+    AMS_VALIDATE_SG_RULES_FAILS:
    
     AMS_LOG(CL_DEBUG_ERROR,
             ("ERROR: SG [%s] fails redundancy model validation.\n",

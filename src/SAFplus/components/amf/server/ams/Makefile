@@ -49,8 +49,10 @@ SRC_FILES	:= clAmsEntities.c		\
 	                   $(AMF_PATH)/server/ams/clAmsServerUtils.c  \
         clAmsEntityUserData.c\
 		mPlusN.c\
-		custom.c
-	    	
+		custom.c \
+        nway.c \
+		nwayActive.c
+
 DEP_COMP_LIST	:= utils osal timer buffer eo ioc rmd cnt debug name gms event \
                    ckpt cor alarm fault om log cm amf
 

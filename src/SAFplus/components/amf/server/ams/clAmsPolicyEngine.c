@@ -62,6 +62,8 @@
 #include <clList.h>
 #include <mPlusN.h>
 #include <custom.h>
+#include <nway.h>
+#include <nwayActive.h>
 
 #define AMS_CPM_INTEGRATION
 #define INVOCATION
@@ -1331,15 +1333,13 @@ clAmsPeSGAssignSUs(
 
         case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
         {
-            //AMS_CALL ( clAmsPeSGAssignSUNWay(sg) );
-
+            AMS_CALL ( clAmsPeSGAssignSUNway(sg) );
             break;
         }
 
         case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY_ACTIVE:
         {
-            //AMS_CALL ( clAmsPeSGAssignSUNWayActive(sg) );
-
+            AMS_CALL ( clAmsPeSGAssignSUNwayActive(sg) );
             break;
         }
 
@@ -10740,6 +10740,7 @@ clAmsPeSGReductionProcedure(ClAmsSGT *sg, ClAmsSIT *si)
     switch(sg->config.redundancyModel)
     {
     case CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N:
+    case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
         return clAmsPeSGReductionProcedureMPlusN(sg, si);
     default: break;
     }
@@ -19964,14 +19965,6 @@ clAmsPeCSIComputeAdminState(
     return CL_OK;
 }
 
-static ClRcT 
-clAmsPeSISwapNWay(ClAmsSIT *si, ClAmsSGT *sg)
-{
-    /*
-     * Even though the above implementation for MPlusN/2N should work for N-way also.
-     */
-    return CL_AMS_RC(CL_ERR_NOT_IMPLEMENTED);
-}
 
 ClRcT
 clAmsPeSISwap(ClAmsSIT *si)
@@ -20019,11 +20012,8 @@ clAmsPeSISwap(ClAmsSIT *si)
 
     case CL_AMS_SG_REDUNDANCY_MODEL_TWO_N:
     case CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N:
-        rc = clAmsPeSISwapMPlusN(si, sg);
-        break;
-
     case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
-        rc = clAmsPeSISwapNWay(si, sg);
+        rc = clAmsPeSISwapMPlusN(si, sg);
         break;
 
     case CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM:
@@ -21342,6 +21332,8 @@ ClRcT clAmsPeSGAutoAdjust(ClAmsSGT *sg)
     case CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY:
     case CL_AMS_SG_REDUNDANCY_MODEL_TWO_N:
     case CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N:
+    case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
+    case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY_ACTIVE:
         return clAmsPeSGAutoAdjustMPlusN(sg);
     case CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM:
         return clAmsPeSGAutoAdjustCustom(sg);

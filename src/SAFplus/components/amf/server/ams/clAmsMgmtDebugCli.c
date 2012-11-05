@@ -142,6 +142,8 @@ static ClRcT amsEntityRedundancyModelFromStrGet(const ClCharT *s,
     if (STREQ(s, "no_redundancy")) *redunModel = CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY;
     else if (STREQ(s, "twon")) *redunModel = CL_AMS_SG_REDUNDANCY_MODEL_TWO_N;
     else if (STREQ(s, "mplusn")) *redunModel = CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N;
+    else if(STREQ(s, "nway")) *redunModel = CL_AMS_SG_REDUNDANCY_MODEL_N_WAY;
+    else if(STREQ(s, "nway-active")) *redunModel = CL_AMS_SG_REDUNDANCY_MODEL_N_WAY_ACTIVE;
     else goto failure;
 
     return CL_OK;
