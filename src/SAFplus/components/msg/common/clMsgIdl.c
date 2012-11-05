@@ -127,6 +127,11 @@ ClRcT clMsgSendMessage_idl(ClMsgMessageSendTypeT sendType,
     memcpy(&idlObj, &gIdlUcastObj, sizeof(idlObj));
     idlObj.address.address.iocAddress.iocPhyAddress = compAddr;
 
+    if (pMessage->priority == SA_MSG_MESSAGE_HIGHEST_PRIORITY)
+    {
+        idlObj.options.priority = CL_IOC_HIGH_PRIORITY;
+    }
+
     rc = clIdlHandleInitialize(&idlObj, &idlHandle);
     if(rc != CL_OK)
     {

@@ -176,6 +176,11 @@ ClRcT clMsgIocSendSync(ClIocAddressT * pDestAddr,
     sendOption.priority = CL_IOC_DEFAULT_PRIORITY;
     sendOption.timeout = msgIocTimeout;
 
+    if (pMessage->priority == SA_MSG_MESSAGE_HIGHEST_PRIORITY)
+    {
+        sendOption.priority = CL_IOC_HIGH_PRIORITY;
+    }
+
     /* Create buffer for input message */
     rc = clBufferCreate(&inMsg);
     if (CL_OK != rc)
@@ -277,6 +282,11 @@ ClRcT clMsgIocSendAsync(ClIocAddressT * pDestAddr,
     sendOption.msgOption = CL_IOC_PERSISTENT_MSG;
     sendOption.priority = CL_IOC_DEFAULT_PRIORITY;
     sendOption.timeout = timeout;
+
+    if (pMessage->priority == SA_MSG_MESSAGE_HIGHEST_PRIORITY)
+    {
+        sendOption.priority = CL_IOC_HIGH_PRIORITY;
+    }
 
     /* Create buffer for input message */
     rc = clBufferCreate(&inMsg);
