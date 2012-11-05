@@ -129,6 +129,11 @@ ClRcT clEvtUtilsFilter2Rbe(const ClEventFilterArrayT *pFilterArray,
             rbeExprArray[i] = NULL;
             continue;
         }
+        if (!pPatternWord || !patternSize)
+        {
+            rbeExprArray[i] = NULL;
+            continue;
+        }
 
         len = patternSize / 4;
         remainder = patternSize % 4;
