@@ -1452,5 +1452,3 @@ clAmsPeSGAssignSUNway(
     if(scannedSIList) clHeapFree(scannedSIList);
     return CL_OK;
 }
-
-

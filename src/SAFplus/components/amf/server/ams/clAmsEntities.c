@@ -3882,8 +3882,6 @@ clAmsCompValidateConfig(
             break;
         }
 
-#ifdef POST_RC2
-
         case CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY:
         {
 
@@ -3899,10 +3897,11 @@ clAmsCompValidateConfig(
             break;
         }
 
-#endif
-
         default:
         {
+            AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s], capability Model [%s] error\n",
+                                       comp->config.entity.name.value,
+                                       CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ) );
             goto AMS_VALIDATE_COMP_RULES_FAILS;
         }
 

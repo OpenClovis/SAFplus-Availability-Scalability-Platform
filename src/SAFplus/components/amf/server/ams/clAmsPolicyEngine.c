@@ -18300,10 +18300,12 @@ amsPeCompRemoveCSICallback(
 
     quiescedCSIs = comp->status.numQuiescedCSIs;
     /*
-     * In user controlled redundancy mode, SI could have both 
+     * In user controlled redundancy mode or n-way, SI could have both 
      * active+standby assignments and active could have been quiesced first.
      */
-    if(sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM)
+    if(sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM
+       ||
+       comp->config.capabilityModel == CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY)
     {
         quiescedCSIs = 0;
     }
