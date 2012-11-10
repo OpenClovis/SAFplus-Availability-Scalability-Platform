@@ -99,7 +99,8 @@ clAmsPeSGDefaultLoadingStrategyActiveNway(ClAmsSGT *sg,
 static ClRcT
 clAmsPeSGDefaultLoadingStrategyStandbyNway(ClAmsSGT *sg,
                                            ClAmsSUT **su,
-                                           ClAmsSIT *si)
+                                           ClAmsSIT *si,
+                                           ClAmsSUT *lookAfter)
 {
     ClAmsEntityRefT *eRef = NULL;
     ClAmsEntityRefT *eRef1 = NULL;
@@ -250,6 +251,13 @@ clAmsPeSGDefaultLoadingStrategyStandbyNway(ClAmsSGT *sg,
           eRef = clAmsEntityListGetNext(&sg->status.assignedSUList, eRef) )
     {
         ClAmsSUT *tmpSU = (ClAmsSUT *) eRef->ptr;
+
+        if(lookAfter)
+        {
+            if(tmpSU == lookAfter)
+                lookAfter = NULL;
+            continue;
+        }
 
         if(tmpSU == activeSU)
         {
@@ -647,19 +655,21 @@ clAmsPeSGFindSUForStandbyAssignmentNway(
         CL_IN ClAmsSIT *si)
 {
     ClAmsEntityRefT *eRef, *eRef1, *eRef2;
+    ClAmsSUT *lookAfter = NULL;
 
     AMS_CHECK_SG ( sg );
     AMS_CHECKPTR ( !su );
 
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
+    lookAfter = *su;
     *su = (ClAmsSUT *) NULL;
 
     switch ( sg->config.loadingStrategy )
     {
         case CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU:
         {
-            return clAmsPeSGDefaultLoadingStrategyStandbyNway(sg, su, si);
+            return clAmsPeSGDefaultLoadingStrategyStandbyNway(sg, su, si, lookAfter);
         }
 
         /*
@@ -789,6 +799,13 @@ clAmsPeSGFindSUForStandbyAssignmentNway(
                 
                 if(tmpSU == activeSU)
                 {
+                    continue;
+                }
+                
+                if(lookAfter)
+                {
+                    if(tmpSU == lookAfter)
+                        lookAfter = NULL;
                     continue;
                 }
 
@@ -972,6 +989,13 @@ clAmsPeSGFindSUForStandbyAssignmentNway(
                 {
                     ClAmsSUT *tmpSU = (ClAmsSUT *) eRef->ptr;
                     ClUint32T suLoad;
+                    
+                    if(lookAfter)
+                    {
+                        if(tmpSU == lookAfter)
+                            lookAfter = NULL;
+                        continue;
+                    }
 
                     if ( clAmsPeSGColocationCheckFails(sg, activeSU, tmpSU) )
                     {
@@ -1002,6 +1026,13 @@ clAmsPeSGFindSUForStandbyAssignmentNway(
             {
                 ClAmsSUT *tmpSU = (ClAmsSUT *) eRef->ptr;
                 ClUint32T suLoad;
+
+                if(lookAfter)
+                {
+                    if(tmpSU == lookAfter)
+                        lookAfter = NULL;
+                    continue;
+                }
 
                 if ( tmpSU->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE )
                 {
@@ -1109,7 +1140,7 @@ clAmsPeSGFindSUForStandbyAssignmentNway(
             /*
              * Fall back to default strategy incase no SU is assignable.
              */
-            return clAmsPeSGDefaultLoadingStrategyStandbyNway(sg, su, si);
+            return clAmsPeSGDefaultLoadingStrategyStandbyNway(sg, su, si, lookAfter);
         }
 
         /*
@@ -1351,19 +1382,47 @@ clAmsPeSGAssignSUNway(
         ClRcT rc1 = CL_OK;
         ClRcT rc2 = CL_OK;
         ClAmsSIT *lastSI = NULL;
+        ClAmsSIT *nextSI = NULL;
         ClAmsSUT *lastSU = NULL;
-
+        ClAmsSUT *nextSU = NULL;
         while ( 1 )
         {
-            ClAmsSIT *si = NULL;
-            ClAmsSUT *su = NULL;
+            ClAmsSIT *si = nextSI;
+            ClAmsSUT *su = nextSU;
             ClAmsHAStateT haState = CL_AMS_HA_STATE_STANDBY;
 
             rc1 = clAmsPeSGFindSIForStandbyAssignment(sg, &si, scannedSIList, numScannedSIs);
 
             if ( rc1 != CL_OK ) 
             {
+                /*
+                 * Now rotate or shift SUs and retry assignments
+                 * with a different combination since there could be multiple
+                 * SUs with the same number of standby assignments
+                 */
+                if(nextSI && lastSU)
+                {
+                    nextSI = NULL;
+                    nextSU = lastSU;
+                    continue;
+                }
                 break;
+            }
+            
+            /*
+             * If we got the same SI again, break our SI scan
+             */
+            if(nextSI)
+            {
+                if(si == nextSI)
+                    break;
+            }
+            else if(nextSU)
+            {
+                /*
+                 * If we are rotating SUs, move the SI as well
+                 */
+                nextSI = si;
             }
 
             rc2 = clAmsPeSGFindSUForStandbyAssignmentNway(sg, &su, si);
@@ -1375,10 +1434,24 @@ clAmsPeSGAssignSUNway(
 
             if( (lastSI == si) && (lastSU == su) )
             {
-                AMS_LOG(CL_DEBUG_ERROR, 
-                        ("Assign standby to SG - Current SI and SU same as "\
-                         "last selection. Breaking out of assignment step\n"));
-                break;
+                const ClCharT *status = "Scanning for available SIs...";
+                if(nextSU)
+                    status = "Breaking the assignment scan";
+                clLogInfo("NWAY", "STANDBY",
+                          "Current SI [%s] and SU [%s] same as last selection. %s",
+                          si->config.entity.name.value, su->config.entity.name.value,
+                          status);
+                /*
+                 * If we were rotating SUs, and still hit the same result,
+                 * we give up
+                 */
+                if(nextSU)
+                    break;
+                /*
+                 * Rotate SIs
+                 */
+                nextSI = lastSI;
+                continue;
             }
 
             lastSI = si;

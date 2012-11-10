@@ -1490,6 +1490,7 @@ clAmsPeSGFindSIForStandbyAssignment(
                                     CL_IN ClUint32T numScannedSIs)
 {
     ClAmsEntityRefT *entityRef;
+    ClAmsSIT *lookAfter = NULL;
     ClInt32T pendingNeeds;
     ClInt32T nextBestNeeds = 0;
 
@@ -1498,6 +1499,7 @@ clAmsPeSGFindSIForStandbyAssignment(
 
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
+    lookAfter = *targetSI;
     *targetSI = NULL;
 
     for ( entityRef = clAmsEntityListGetFirst(&sg->config.siList);
@@ -1509,6 +1511,17 @@ clAmsPeSGFindSIForStandbyAssignment(
 
         AMS_CHECK_SI ( si );
 
+        /*
+         * Keep going till our SI is found.
+         */
+        if(lookAfter)
+        {
+            if(lookAfter == si) 
+                lookAfter = NULL;
+
+            continue;
+        }
+
         if(scannedSIList)
         {
             /*  
@@ -1516,6 +1529,8 @@ clAmsPeSGFindSIForStandbyAssignment(
              * and skip this if its already scanned.
              */
             ClUint32T i;
+            clLogNotice("STANDBY", "ASSGN", "Scanning [%d] standby sis",
+                        numScannedSIs);
             for(i = 0; i < numScannedSIs && scannedSIList[i] != si; ++i);
             if(i != numScannedSIs)
             {
