@@ -28,6 +28,10 @@ clAmsPeSGAssignSUNway(
                         CL_IN ClAmsSGT *sg
                         );
 
+extern ClRcT
+clAmsPeSURemoveStandbyNway(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMode, ClUint32T error, 
+                           ClAmsSUT **pActiveSU, ClBoolT *pReassignWork);
+
 #ifdef __cplusplus
 }
 #endif

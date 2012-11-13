@@ -3732,7 +3732,7 @@ exitfn:
 
 ClRcT
 clAmsCompValidateConfig(
-        CL_IN  ClAmsEntityT  *entity )
+                        CL_IN  ClAmsEntityT  *entity )
 {
 
     ClAmsCompT  *comp = (ClAmsCompT *)entity;
@@ -3754,9 +3754,9 @@ clAmsCompValidateConfig(
             comp->config.numMaxActiveCSIs <=0 )
     {
         AMS_LOG ( CL_DEBUG_ERROR,("Component [%s] should have positive values for " 
-                "attributes : numMaxInstantiate, numMaxInstantiateWithDelay, " 
-                "numMaxTerminate, numMaxAmStart, numMaxAmStop, numMaxActiveCSIs\n", 
-                comp->config.entity.name.value) );
+                                  "attributes : numMaxInstantiate, numMaxInstantiateWithDelay, " 
+                                  "numMaxTerminate, numMaxAmStart, numMaxAmStop, numMaxActiveCSIs\n", 
+                                  comp->config.entity.name.value) );
 
         goto AMS_VALIDATE_COMP_RULES_FAILS;
     }
@@ -3764,140 +3764,160 @@ clAmsCompValidateConfig(
     switch ( comp->config.capabilityModel )
     {
 
-        case CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY:
+    case CL_AMS_COMP_CAP_ONE_ACTIVE_OR_ONE_STANDBY:
         {
             if ( comp->config.numMaxActiveCSIs != 1 ) 
             {
                 AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
-                            "numMaxActiveCSI is 1\n",comp->config.entity.name.value,
-                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
+                                           "numMaxActiveCSI is 1\n",comp->config.entity.name.value,
+                                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
             }
 
             if ( comp->config.numMaxStandbyCSIs != 1 )
             {
                 AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
-                            "numMaxStandbyCSIs is 1\n",comp->config.entity.name.value,
-                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
+                                           "numMaxStandbyCSIs is 1\n",comp->config.entity.name.value,
+                                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
             }
 
             break;
         }
 
-        case CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY:
+    case CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY:
         {
             if ( comp->config.numMaxStandbyCSIs == 0 )
             {
                 AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
-                            "numMaxStandbyCSIs should be non zero positive value\n",
-                            comp->config.entity.name.value, 
-                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
+                                           "numMaxStandbyCSIs should be non zero positive value\n",
+                                           comp->config.entity.name.value, 
+                                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
             }
             
             break;
         }
 
-        case CL_AMS_COMP_CAP_ONE_ACTIVE_OR_X_STANDBY:
+    case CL_AMS_COMP_CAP_ONE_ACTIVE_OR_X_STANDBY:
         {
             if ( comp->config.numMaxActiveCSIs != 1 ) 
             {
                 AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
-                            "numMaxActiveCSIs is 1\n", comp->config.entity.name.value, 
-                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
+                                           "numMaxActiveCSIs is 1\n", comp->config.entity.name.value, 
+                                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
             }
 
             if ( comp->config.numMaxStandbyCSIs == 0 )
             {
                 AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
-                            "numMaxStandbyCSIs should be non zero positive value \n", 
-                            comp->config.entity.name.value, 
-                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
+                                           "numMaxStandbyCSIs should be non zero positive value \n", 
+                                           comp->config.entity.name.value, 
+                                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
             }
             
             break;
         }
 
-        case CL_AMS_COMP_CAP_X_ACTIVE:
+    case CL_AMS_COMP_CAP_X_ACTIVE:
         {
 
             if ( comp->config.numMaxStandbyCSIs != 0 )
             {
                 AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
-                            "numMaxStandbyCSIs is zero\n", 
-                            comp->config.entity.name.value, 
-                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
+                                           "numMaxStandbyCSIs is zero\n", 
+                                           comp->config.entity.name.value, 
+                                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
             }
             
             break;
         }
 
-        case CL_AMS_COMP_CAP_ONE_ACTIVE:
+    case CL_AMS_COMP_CAP_ONE_ACTIVE:
         {
             if ( comp->config.numMaxActiveCSIs != 1 ) 
             {
                 AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
-                            "numMaxActiveCSIs is 1\n", 
-                            comp->config.entity.name.value, 
-                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
-                goto AMS_VALIDATE_COMP_RULES_FAILS;
-            }
-
-            if ( comp->config.numMaxStandbyCSIs != 0 )
-            {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
-                            "numMaxStandbyCSIs is zero \n", 
-                            comp->config.entity.name.value, 
-                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
-                goto AMS_VALIDATE_COMP_RULES_FAILS;
-            }
-            
-            break;
-        }
-
-        case CL_AMS_COMP_CAP_NON_PREINSTANTIABLE:
-        {
-            if ( comp->config.numMaxActiveCSIs != 1 ) 
-            {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
-                            "numMaxActiveCSIs is 1\n", 
-                            comp->config.entity.name.value, 
-                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
+                                           "numMaxActiveCSIs is 1\n", 
+                                           comp->config.entity.name.value, 
+                                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
             }
 
             if ( comp->config.numMaxStandbyCSIs != 0 )
             {
                 AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
-                            "numMaxStandbyCSIs is zero\n", 
-                            comp->config.entity.name.value, 
-                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
+                                           "numMaxStandbyCSIs is zero \n", 
+                                           comp->config.entity.name.value, 
+                                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
             }
             
             break;
         }
 
-        case CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY:
+    case CL_AMS_COMP_CAP_NON_PREINSTANTIABLE:
         {
+            if ( comp->config.numMaxActiveCSIs != 1 ) 
+            {
+                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                                           "numMaxActiveCSIs is 1\n", 
+                                           comp->config.entity.name.value, 
+                                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
+                goto AMS_VALIDATE_COMP_RULES_FAILS;
+            }
 
+            if ( comp->config.numMaxStandbyCSIs != 0 )
+            {
+                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                                           "numMaxStandbyCSIs is zero\n", 
+                                           comp->config.entity.name.value, 
+                                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
+                goto AMS_VALIDATE_COMP_RULES_FAILS;
+            }
+            
+            break;
+        }
+
+    case CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY:
+        {
+            /*
+             * First Validate SG redundancy model to be nway
+             */
+            ClAmsSUT *su = (ClAmsSUT *)comp->config.parentSU.ptr;
+            if(su && su->config.entity.type == CL_AMS_ENTITY_TYPE_SU)
+            {
+                ClAmsSGT *sg = (ClAmsSGT*)su->config.parentSG.ptr;
+                if(sg && sg->config.entity.type == CL_AMS_ENTITY_TYPE_SG)
+                {
+                    if(sg->config.redundancyModel != CL_AMS_SG_REDUNDANCY_MODEL_N_WAY)
+                    {
+                        AMS_LOG( CL_DEBUG_ERROR, 
+                                 ("Component [%s] with Capability Model [%s] has "
+                                  "SG redundancy model [%s]. Expected N-way redundancy\n",
+                                  comp->config.entity.name.value,
+                                  CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel),
+                                  CL_AMS_STRING_SG_REDUNDANCY_MODEL(sg->config.redundancyModel)));
+                        goto AMS_VALIDATE_COMP_RULES_FAILS;
+                    }
+                }
+            }
             if ( comp->config.numMaxStandbyCSIs == 0 )
             {
                 AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
-                            "numMaxStandbyCSIs should be non zero positive value\n", 
-                            comp->config.entity.name.value, 
-                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
+                                           "numMaxStandbyCSIs should be non zero positive value\n", 
+                                           comp->config.entity.name.value, 
+                                           CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
             }
             
             break;
         }
 
-        default:
+    default:
         {
             AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s], capability Model [%s] error\n",
                                        comp->config.entity.name.value,
@@ -3909,7 +3929,7 @@ clAmsCompValidateConfig(
 
     return CL_OK;
 
-AMS_VALIDATE_COMP_RULES_FAILS:
+    AMS_VALIDATE_COMP_RULES_FAILS:
 
     AMS_LOG(CL_DEBUG_ERROR,
             ("ERROR: Component [%s] fails config validation.\n",

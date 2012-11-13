@@ -1360,7 +1360,8 @@ clAmsPeSGAssignSUNway(
                 }
             }
             su->status.numWaitAdjustments = 0;
-            AMS_CALL ( clAmsPeSUAssignSI(su, si, CL_AMS_HA_STATE_ACTIVE) );
+            if(clAmsPeSUAssignSI(su, si, CL_AMS_HA_STATE_ACTIVE) != CL_OK)
+                goto assign_standby;
         }
 
         if ( (rc1 != CL_OK) && (CL_GET_ERROR_CODE(rc1) != CL_ERR_NOT_EXIST) )
@@ -1377,7 +1378,7 @@ clAmsPeSGAssignSUNway(
     /*
      * Find SU assignments for SIs requiring standby assignments
      */
- 
+    assign_standby:
     {
         ClRcT rc1 = CL_OK;
         ClRcT rc2 = CL_OK;
@@ -1524,4 +1525,92 @@ clAmsPeSGAssignSUNway(
 
     if(scannedSIList) clHeapFree(scannedSIList);
     return CL_OK;
+}
+
+/*
+ * Check if standby's can be reassigned to active else remove standby assignments
+ */
+ClRcT
+clAmsPeSURemoveStandbyNway(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMode,
+                           ClUint32T error, ClAmsSUT **pActiveSU, ClBoolT *pReassignWork)
+{
+    ClRcT rc = CL_OK;
+    ClAmsEntityRefT *eRef = NULL;
+    ClAmsEntityRefT *eRef2 = NULL;
+    ClBoolT reassignWork = CL_FALSE;
+    typedef struct
+    {
+        ClAmsSIT *si;
+        ClAmsSUT *su;
+        ClListHeadT list;
+    } __AmsStandbyRefT;
+    CL_LIST_HEAD_DECLARE(standbyRefList);
+
+    if(pActiveSU)
+        *pActiveSU = NULL;
+
+    for(eRef = clAmsEntityListGetFirst(&su->status.siList); eRef != NULL;
+        eRef = clAmsEntityListGetNext(&su->status.siList, eRef))
+    {
+        ClAmsSUSIRefT *siRef = (ClAmsSUSIRefT*)eRef;
+        ClAmsSIT *si = (ClAmsSIT*)eRef->ptr;
+        /*clLogDebug("REMOVE", "NWAY", "Scanning SIRef [%s] for SU [%s] with ha state [%s]",
+                   si->config.entity.name.value, su->config.entity.name.value,
+                   CL_AMS_STRING_H_STATE(siRef->haState));*/
+        if(siRef->haState != CL_AMS_HA_STATE_ACTIVE)
+        {
+            for(eRef2 = clAmsEntityListGetFirst(&si->status.suList); eRef2 != NULL;
+                eRef2 = clAmsEntityListGetNext(&si->status.suList, eRef2))
+            {
+                ClAmsSISURefT *suRef = (ClAmsSISURefT*)eRef2;
+                ClAmsSUT *targetSU = (ClAmsSUT*)eRef2->ptr;
+
+                if(targetSU == su ||
+                   suRef->haState != CL_AMS_HA_STATE_STANDBY) 
+                    continue;
+
+                if(targetSU->status.numActiveSIs >= sg->config.maxActiveSIsPerSU)
+                {
+                    __AmsStandbyRefT *standbyRef = clHeapCalloc(1, sizeof(*standbyRef));
+                    CL_ASSERT(standbyRef != NULL);
+                    standbyRef->si = si;
+                    standbyRef->su = targetSU;
+                    clListAddTail(&standbyRef->list, &standbyRefList);
+                }
+                else
+                {
+                    clLogNotice("REMOVE", "NWAY", "Found active assignable su [%s] with "
+                                "[%d] active sis. Max active SIs [%d]",
+                                targetSU->config.entity.name.value,
+                                targetSU->status.numActiveSIs, sg->config.maxActiveSIsPerSU);
+                    reassignWork = CL_TRUE;
+                    goto out_free;
+                }
+            }
+        }
+    }
+
+    out_free:
+    while(!CL_LIST_HEAD_EMPTY(&standbyRefList))
+    {
+        ClListHeadT *iter = standbyRefList.pNext;
+        __AmsStandbyRefT *standbyRef = CL_LIST_ENTRY(iter, __AmsStandbyRefT, list);
+        clListDel(&standbyRef->list);
+        /*
+         * Remove the standby assignments if standby's cannot be reassigned
+         */
+        if(!reassignWork)
+        {
+            clLogNotice("REMOVE", "NWAY", "Removing standby assignment for SI [%s], SU [%s]",
+                        standbyRef->si->config.entity.name.value,
+                        standbyRef->su->config.entity.name.value);
+            clAmsPeSURemoveSI(standbyRef->su, standbyRef->si, switchoverMode);
+        }
+        clHeapFree(standbyRef);
+    }
+    
+    if(pReassignWork)
+        *pReassignWork = reassignWork;
+
+    return rc;
 }

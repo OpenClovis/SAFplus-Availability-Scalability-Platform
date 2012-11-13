@@ -7744,6 +7744,26 @@ ClRcT clAmsPeAddReassignOp(ClAmsSIT *targetSI, ClAmsSUT *targetSU)
     return CL_OK;
 }
 
+static ClRcT clAmsPeSURemoveStandbyRedundancy(ClAmsSGT *sg,
+                                              ClAmsSUT *su,
+                                              ClUint32T switchoverMode,
+                                              ClUint32T error,
+                                              ClAmsSUT **pActiveSU,
+                                              ClBoolT *pReassignWork)
+{
+    switch(sg->config.redundancyModel)
+    {
+    case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
+        return clAmsPeSURemoveStandbyNway(sg, su, switchoverMode, error,
+                                          pActiveSU, pReassignWork);
+    default:
+        break;
+    }
+
+    return clAmsPeSURemoveStandbyMPlusN(sg, su, switchoverMode | CL_AMS_ENTITY_SWITCHOVER_SU,
+                                        error, pActiveSU, pReassignWork);
+}
+
 /*
  * clAmsPeSUSwitchoverCallback
  * ---------------------------
@@ -7925,9 +7945,9 @@ clAmsPeSUSwitchoverCallback(
          * This is the main reassignment step and it necessary for all redundancy
          * models. We do this after removing other standbys if applicable (M+N)
          */
-        clAmsPeSURemoveStandbyMPlusN(sg, su, switchoverMode | CL_AMS_ENTITY_SWITCHOVER_SU,
-                                     error,
-                                     &activeSU, &reassignWork);
+        clAmsPeSURemoveStandbyRedundancy(sg, su, switchoverMode | CL_AMS_ENTITY_SWITCHOVER_SU,
+                                         error,
+                                         &activeSU, &reassignWork);
         
         if(reassignWork == CL_TRUE)
         {
@@ -14600,6 +14620,12 @@ clAmsPeCompReassignWork(
         {
             continue;
         }
+        
+        if(sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_N_WAY)
+        {
+            if(si->status.numActiveAssignments >= sg->config.numPrefActiveSUsPerSI)
+                continue;
+        }
 
         /*
          * Find component for this CSI with lowest standby rank.
@@ -14628,6 +14654,15 @@ clAmsPeCompReassignWork(
             }
 
             if(*activeSU && cSU != *activeSU) continue;
+
+            /*
+             * Check if we are already at the limit for nway reassignments
+             */
+            if(c->config.capabilityModel == CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY)
+            {
+                if(cSU->status.numActiveSIs >= sg->config.maxActiveSIsPerSU) 
+                    continue;
+            }
 
             clAmsPeCompUpdateReadinessState(c);
 
