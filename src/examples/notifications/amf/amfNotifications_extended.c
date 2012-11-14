@@ -42,6 +42,10 @@
 static ClAmsMgmtHandleT mgmtHandle;
 static ClJobQueueT notifJobPool;
 /*
+ * New auxiliary function to get active comp from sg name
+ */
+extern ClRcT getCompsFromSG(ClAmsMgmtHandleT mgmtHandle, const ClNameT *sg);
+/*
  * If SI/SU ha state notifications indicate active ha state for si/su,
  * get SU comp list. 
  * Optionally, just fetch comp csi list as an example below
@@ -89,6 +93,12 @@ static ClRcT getComps(const SaNameT *si, const SaNameT *su)
     }
     clLogNotice("GET", "COMP", "SI [%s] parent SG [%s]", 
                 targetEntity.name.value, siConfig->parentSG.entity.name.value);
+    /*
+     * Can request getting active comp. with sg
+     *
+     * getCompsFromSG(mgmtHandle, &siConfig->parentSG.entity.name);
+     *
+     */
     clHeapFree(siConfig);
 #endif
 
@@ -391,4 +401,87 @@ void clAmsNotificationFinalize(void)
     }
     if(notifJobPool.flags)
         clJobQueueDelete(&notifJobPool);
+}
+
+/*
+ * Auxiliary function: get active comp given an SG
+ */
+ClRcT getCompsFromSG(ClAmsMgmtHandleT mgmtHandle, const ClNameT *sg)
+{
+    ClAmsEntityBufferT suBuffer = {0};
+    ClAmsEntityBufferT compBuffer = {0};
+    ClAmsCompCSIRefBufferT csiRefBuffer = {0};
+    ClAmsEntityT targetEntity = {0};
+    ClUint32T i;
+    ClRcT rc = CL_OK;
+    
+    targetEntity.type = CL_AMS_ENTITY_TYPE_SG;
+    clNameCopy(&targetEntity.name, sg);
+    rc = clAmsMgmtGetSGAssignedSUList(mgmtHandle, &targetEntity, &suBuffer);
+    if(rc != CL_OK)
+    {
+        clLogError("GET", "COMP", "SG [%s] assigned su list returned [%#x]",
+                   targetEntity.name.value, rc);
+        goto out;
+    }
+
+    for(i = 0; i < suBuffer.count; ++i)
+    {
+        ClUint32T j;
+        ClAmsEntityT *su = suBuffer.entity + i;
+        rc = clAmsMgmtGetSUCompList(mgmtHandle, su, &compBuffer);
+        if(rc != CL_OK)
+        {
+            clLogError("GET", "COMP", "SU [%s] comp list returned [%#x]",
+                       su->name.value, rc);
+            goto out;
+        }
+        for(j = 0; j < compBuffer.count; ++j)
+        {
+            ClAmsEntityT *comp = compBuffer.entity + j;
+            ClUint32T k;
+            rc = clAmsMgmtGetCompCSIList(mgmtHandle, comp, &csiRefBuffer);
+            if(rc != CL_OK)
+            {
+                clLogError("GET", "COMP", "Comp [%s] csi list returned [%#x]",
+                           comp->name.value, rc);
+                goto out;
+            }
+            for(k = 0; k < csiRefBuffer.count; ++k)
+            {
+                ClAmsCompCSIRefT *csiRef = csiRefBuffer.entityRef + k;
+                if(csiRef->haState == CL_AMS_HA_STATE_ACTIVE
+                   &&
+                   csiRef->activeComp)
+                {
+                    clLogNotice("GET", "COMP", "CSI [%s] has active comp [%s]",
+                                csiRef->entityRef.entity.name.value,
+                                csiRef->activeComp->name.value);
+                }
+            }
+            clAmsMgmtFreeCompCSIRefBuffer(&csiRefBuffer); /*frees csiRef->activeComp references,etc.*/
+            csiRefBuffer.count = 0;
+        }
+        if(compBuffer.entity)
+        {
+            clHeapFree(compBuffer.entity);
+            compBuffer.entity = NULL;
+        }
+        compBuffer.count = 0;
+    }
+
+    out:
+    if(suBuffer.entity)
+    {
+        clHeapFree(suBuffer.entity);
+    }
+    if(compBuffer.entity)
+    {
+        clHeapFree(compBuffer.entity);
+    }
+    if(csiRefBuffer.entityRef)
+    {
+        clAmsMgmtFreeCompCSIRefBuffer(&csiRefBuffer);
+    }
+    return rc;
 }
