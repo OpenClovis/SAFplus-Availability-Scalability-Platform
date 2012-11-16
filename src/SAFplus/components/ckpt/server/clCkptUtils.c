@@ -1795,8 +1795,8 @@ ClRcT _ckptSectionExpiryTimeoutGet(ClTimeT expiryTime,
                                    ClTimerTimeOutT *timeOut)
 {
     ClTimerTimeOutT currentTime = {0};
-    ClRcT           rc          = CL_OK;  
-
+    ClRcT           rc          = CL_OK;  	
+	
     /*
      * Compute the absolute time.
      */
@@ -1806,16 +1806,32 @@ ClRcT _ckptSectionExpiryTimeoutGet(ClTimeT expiryTime,
              rc), rc);
     timeOut->tsSec      = expiryTime / CL_CKPT_NANOS_IN_SEC;
     timeOut->tsMilliSec = (expiryTime % CL_CKPT_NANOS_IN_SEC)/ 
-                            CL_CKPT_NANOS_IN_MILI;
+                            CL_CKPT_NANOS_IN_MILI;							
     if( timeOut->tsSec < currentTime.tsSec )
     {
-        /* 
-         * Return ERROR as section has already expired.
-         */
-        rc = CL_CKPT_ERR_INVALID_PARAMETER;
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("The expiration time has already "
-                 "passed rc[0x %x]\n", rc), rc);
+		/* 
+		 * The expirationTime passed is a relative time 
+		 */
+		ClUint32T sevenDaysInSec = 7*24*3600;
+		if (timeOut->tsSec >= sevenDaysInSec)
+		{
+			/* 
+			 * Return ERROR as section has already expired.
+			 */
+			rc = CL_CKPT_ERR_INVALID_PARAMETER;
+			CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+					("The expiration time has already "
+					 "passed rc[0x %x]\n", rc), rc);					 
+		}
+		else
+		{
+			/* 
+			 * Convert the expiration time passed to absolute time		
+			 */
+			clLogInfo(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_SEC_CREATE, "expirationTime passed is a relative time");	
+			timeOut->tsSec      += currentTime.tsSec;
+			timeOut->tsMilliSec += currentTime.tsMilliSec;							
+		}
     }
 
     if( timeOut->tsMilliSec >= currentTime.tsMilliSec )
