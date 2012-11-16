@@ -20,6 +20,16 @@ EXENAME := dhaDemo
 SRC_FILES := $(wildcard *.c)
 CPP_FILES := $(wildcard *.C) $(wildcard *.cxx)
 
+SRC_FILES_MAIN := clCompAppMain.c clCompAppMain_batch.c
+
+SRC_FILES := $(filter-out $(SRC_FILES_MAIN), $(SRC_FILES))
+
+ifeq ($(strip $(BATCH)), 1)
+	SRC_FILES += clCompAppMain_batch.c
+else
+	SRC_FILES += clCompAppMain.c
+endif
+
 # List other ASP components of which client libraries your component
 # depends on:
 
