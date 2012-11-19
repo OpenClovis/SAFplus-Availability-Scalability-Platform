@@ -119,6 +119,18 @@ static ClRcT amsNotificationCallback(ClAmsNotificationInfoT *notification)
         }
         break;
 
+    case CL_AMS_NOTIFICATION_COMP_ARRIVAL:
+        {
+            clLogNotice ("EVT", "NTF", "Component arrival for [%.*s]",
+                       notification->amsCompNotification.compName.length,
+                       notification->amsCompNotification.compName.value);
+            clLogNotice("EVT", "NTF", "Comp node [%.*s]", 
+                      notification->amsCompNotification.nodeName.length,
+                      notification->amsCompNotification.nodeName.value);
+
+        }
+        break;
+
     case CL_AMS_NOTIFICATION_COMP_DEPARTURE:
         {
             clLogNotice ("EVT", "NTF", "Component [%s] for [%.*s]",
