@@ -327,6 +327,18 @@ static ClRcT amsNotificationCallback(ClAmsNotificationInfoT *notification)
         }
         break;
 
+    case CL_AMS_NOTIFICATION_COMP_ARRIVAL:
+        {
+            clLogNotice ("EVT", "NTF", "Component arrival for [%.*s]",
+                       notification->amsCompNotification.compName.length,
+                       notification->amsCompNotification.compName.value);
+            clLogNotice("EVT", "NTF", "Comp node [%.*s]", 
+                      notification->amsCompNotification.nodeName.length,
+                      notification->amsCompNotification.nodeName.value);
+
+        }
+        break;
+
     case CL_AMS_NOTIFICATION_COMP_DEPARTURE:
         {
             clLogNotice ("EVT", "NTF", "Component [%s] for [%.*s]",
@@ -483,5 +495,92 @@ ClRcT getCompsFromSG(ClAmsMgmtHandleT mgmtHandle, const ClNameT *sg)
     {
         clAmsMgmtFreeCompCSIRefBuffer(&csiRefBuffer);
     }
+    return rc;
+}
+
+/*
+ * Auxiliary function: Start a given SG. 
+ * Tries to transition the sg admin state from locked_i to unlocked
+ */
+ClRcT amfSGStart(const ClCharT *name)
+{
+    ClRcT rc = CL_OK;
+    ClAmsEntityT entity = {0};
+    ClAmsSGConfigT *config = NULL;
+
+    entity.type = CL_AMS_ENTITY_TYPE_SG;
+    clNameSet(&entity.name, name);
+    rc = clAmsMgmtEntityGetConfig(mgmtHandle, &entity, (ClAmsEntityConfigT**)&config);
+    if(rc != CL_OK)
+    {
+        clLogError("ENTITY", "START", "SG [%s] get config returned with [%#x]", 
+                   name, rc);
+        goto out;
+    }
+    if(config->adminState == CL_AMS_ADMIN_STATE_UNLOCKED)
+        goto out_free;
+
+    switch(config->adminState)
+    {
+    case CL_AMS_ADMIN_STATE_LOCKED_I:
+        rc = clAmsMgmtEntityLockAssignment(mgmtHandle, &entity);
+        if(rc != CL_OK)
+        {
+            clLogNotice("ENTITY", "START", "[%s] locka returned with [%#x]",
+                        name, rc);
+            goto out_free;
+        }
+        /*
+         * fall through
+         */
+    case CL_AMS_ADMIN_STATE_LOCKED_A:
+        rc = clAmsMgmtEntityUnlock(mgmtHandle, &entity);
+        if(rc != CL_OK)
+        {
+            clLogNotice("ENTITY", "START", "[%s] unlock returned with [%#x]",
+                        name, rc);
+            goto out_free;
+        }
+        break;
+    default:
+        break;
+    }
+
+    out_free:
+    if(config)
+        clHeapFree(config);
+
+    out:
+    return rc;
+}
+
+/*
+ * Async version of amfSGStart.
+ * Tries to transition the admin states of the SG from locked_i to unlocked
+ * through a jobqueue/taskpool since the mgmtentitylock/unlock functions are 
+ * synchronous
+ */
+static ClRcT sgStartAsync(ClPtrT arg);
+
+ClRcT amfSGStartAsync(const ClCharT *name)
+{
+    ClRcT rc = CL_OK;
+    static ClJobQueueT job;
+    ClCharT *cloneSG = NULL;
+    if(!job.flags)
+    {
+        rc = clJobQueueInit(&job, 0, 1);
+        if(rc != CL_OK)
+            return rc;
+    }
+    cloneSG = clStrdup(name);
+    return clJobQueuePush(&job, sgStartAsync, (ClPtrT)cloneSG);
+}
+    
+static ClRcT sgStartAsync(ClPtrT arg)
+{
+    ClCharT *sg = arg;
+    ClRcT rc = amfSGStart(sg);
+    clHeapFree(sg);
     return rc;
 }
