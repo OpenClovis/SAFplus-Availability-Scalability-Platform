@@ -473,6 +473,7 @@ typedef struct clCpm
     ClOsalMutexT compTerminateMutex;
     ClOsalMutexT cpmShutdownMutex;
     ClBoolT trackCallbackInProgress;
+    ClTimeT bootTime;
 } ClCpmT;
 
 typedef struct

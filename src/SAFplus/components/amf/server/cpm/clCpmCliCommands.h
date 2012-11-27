@@ -92,6 +92,10 @@ extern ClRcT clCpmHeartbeat(ClUint32T argc, ClCharT **argv, ClCharT **retStr);
 
 extern ClRcT clCpmLogFileRotate(ClUint32T argc, ClCharT **argv, ClCharT **retStr);
 
+extern ClRcT clCpmUptimeGet(ClUint32T argc,
+                            ClCharT **argv,
+                            ClCharT **retStr);
+
 # ifdef __cplusplus
 }
 # endif

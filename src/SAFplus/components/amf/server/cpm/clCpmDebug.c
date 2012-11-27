@@ -119,7 +119,12 @@ ClHandleT  gCpmDebugReg = CL_HANDLE_INVALID_VALUE;
         clCpmMiddlewareRestartCommand,                                  \
         "middlewareRestart",                                            \
         "Restart the middleware. Behavior is unaffected by the node reset env. variables in asp conf. file" \
-    }
+    },                                                                  \
+    {                                                                   \
+        clCpmUptimeGet,                                                 \
+        "uptime",                                                       \
+        "Middleware uptime",                                            \
+    } 
 
 
 static ClDebugFuncEntryT cpmSCDebugFuncList[] =
