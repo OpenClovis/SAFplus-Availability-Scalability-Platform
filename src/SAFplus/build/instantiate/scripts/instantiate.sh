@@ -462,7 +462,14 @@ do
     if [ -f ${MODEL_PATH}/target_${i}.env ]; then
         cat ${MODEL_PATH}/target_${i}.env >> ${asp_conf_file}
     fi
-    
+
+    #The node-specific transport configuration 
+    if [ -f ${MODEL_PATH}/config/clTransport_${i}.xml ]; then
+        cp ${MODEL_PATH}/config/clTransport_${i}.xml ${TARGET_DIR}/images/${i}/etc/clTransport.xml
+        #Cleanup other node-specific
+        rm -rf ${TARGET_DIR}/images/${i}/etc/clTransport_*.xml
+    fi
+
     if [ "${CREATE_TARBALLS}" = "YES" ]; then
         if [ "$INSTANTIATE_IMAGES" == "YES" ]; then
             echo "Creating tarball: ${TARGET_DIR}/images/${i}.tgz"
