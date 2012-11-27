@@ -491,6 +491,7 @@ static ClRcT cpmAllocate(void)
 
     gpClCpm = &gClCpm;
 
+    gpClCpm->bootTime = clOsalStopWatchTimeGet();
     gpClCpm->pCpmLocalInfo =
         (ClCpmLocalInfoT *) clHeapCalloc(1,(ClUint32T) sizeof(ClCpmLocalInfoT));
     if (gpClCpm->pCpmLocalInfo == NULL)

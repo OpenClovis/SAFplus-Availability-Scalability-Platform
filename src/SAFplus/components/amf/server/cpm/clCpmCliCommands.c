@@ -1284,3 +1284,50 @@ ClRcT clCpmMiddlewareRestartCommand(ClUint32T argc, ClCharT **argv, ClCharT **re
     out:
     return rc;
 }
+
+ClRcT clCpmUptimeGet(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
+{
+    ClRcT rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
+    ClTimeT curTime = 0;
+    ClTimeT days = 0, hrs = 0, mins = 0, secs = 0;
+
+    *retStr = clHeapAllocate(2*CL_MAX_NAME_LENGTH+1);
+    if (!*retStr)
+    {
+        goto out;
+    }
+
+    rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+    if (argc != 1 )
+    {
+        strncpy(*retStr, "Usage: uptime\n", 2*CL_MAX_NAME_LENGTH);
+        goto out;
+    }
+
+    curTime = clOsalStopWatchTimeGet();
+    curTime -= gpClCpm->bootTime; 
+    secs = curTime/1000000;
+    days = secs/(24*60*60);
+    secs = secs % (24*60*60);
+    hrs = secs/(60*60);
+    secs = secs % (60*60);
+    mins = secs/60;
+    secs = secs % 60;
+
+    if(days)
+    {
+        snprintf(*retStr, 2*CL_MAX_NAME_LENGTH,
+                 "up %lld days, %lldh:%lldm:%llds\n",
+                 days, hrs, mins, secs);
+    }
+    else 
+    {
+        snprintf(*retStr, 2*CL_MAX_NAME_LENGTH,
+                 "up %lldh:%lldm:%llds\n", hrs, mins, secs);
+    }
+
+    rc = CL_OK;
+    
+    out:
+    return rc;
+}

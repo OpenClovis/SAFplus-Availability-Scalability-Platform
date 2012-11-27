@@ -828,6 +828,21 @@ def get_cluster_info():
     
     return nodes
 
+def get_uptime():
+    """Obtain node uptime"""
+
+    info = get_status_info()
+
+    s, output = asp_console_execute(['setc %(nodeaddr)s' % info,
+                                     'setc cpm', 
+                                     'uptime'], use_file=True)
+    if s:
+        raise DebugCliError('could not get node uptime (exit code of safplus_console: %d). Got: \n%s' %
+              (s, ''.join(output)))
+    
+    tmp = output[-1].strip() # only care about last command
+    return tmp
+
 #    amf_db = load_amf_db()
 #    assert amf_db.ams[0].service_state[0] == 'Running'
 #    amf_nodes = dict([(n.value, n) for n in amf_db.ams[0].entities[0].nodes[0].node])
@@ -1269,6 +1284,16 @@ class Cli(cmd.Cmd):
                 line += ' <-- this node'
             print line
 
+    def do_uptime(self, msg):
+        """Show node uptime """
+
+        try:
+            uptime = get_uptime()
+        except AspError, e:
+            error(str(e))
+            return 0
+
+        print uptime
     ##
     ## nodes command
     ##
