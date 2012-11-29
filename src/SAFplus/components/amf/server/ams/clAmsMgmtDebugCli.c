@@ -30,6 +30,7 @@
 #include <clAmsSACommon.h>
 #include <clCpmExtApi.h>
 #include <clCorUtilityApi.h>
+#include <clJobQueue.h>
 
 #undef MAX_BUFFER_SIZE
 #define MAX_BUFFER_SIZE (1024)
@@ -45,6 +46,14 @@
     "\n"                                                                \
     "For the list of attributes that can be set please see "            \
     "the OpenClovis SDK documentation."
+
+static ClJobQueueT gAmsMgmtAdminPool;
+typedef struct ClAmsMgmtAdminChangeOper
+{
+    ClAmsEntityT entity;
+    ClAmsAdminStateT lastState;
+    ClAmsAdminStateT newState;
+}ClAmsMgmtAdminChangeOperT;
 
 static void amsCliPrint(ClCharT **retStr, const ClCharT *fmt, ...)
 {
@@ -1732,3 +1741,151 @@ ClRcT clAmsDebugCliMgmtApi(ClUint32T argc, ClCharT **argv, ClCharT **ret)
     return rc;
 }
 
+static ClRcT amsMgmtAdminStateChangeTask(void *arg)
+{
+    ClAmsMgmtAdminChangeOperT *oper = arg;
+    ClAmsAdminStateT lastState = oper->lastState;
+    ClAmsAdminStateT newState = oper->newState;
+    ClInt32T tries = 0;
+    ClRcT rc = CL_OK;
+
+    switch(lastState)
+    {
+    case CL_AMS_ADMIN_STATE_LOCKED_I:
+        {
+            switch(newState)
+            {
+            case CL_AMS_ADMIN_STATE_LOCKED_A:
+                {
+                    /*
+                     * If the lock assignment fails because of an incorrect 
+                     * or incomplete config, then retry
+                     */
+                    do
+                    {
+                        rc = clAmsMgmtEntityLockAssignmentExtended(gHandle,
+                                                                   &oper->entity,
+                                                                   CL_TRUE);
+                    } while(CL_GET_ERROR_CODE(rc) == CL_ERR_NULL_POINTER
+                            &&
+                            ++tries < 3 && sleep(2) == 0 );
+                            
+                }
+                break;
+
+            case CL_AMS_ADMIN_STATE_UNLOCKED:
+                {
+                    do
+                    {
+                        rc = clAmsMgmtEntityLockAssignmentExtended(gHandle,
+                                                                   &oper->entity,
+                                                                   CL_TRUE);
+                    } while(CL_GET_ERROR_CODE(rc) == CL_ERR_NULL_POINTER
+                            &&
+                            ++tries < 3 && sleep(2) == 0 );
+
+                    if(rc == CL_OK 
+                       || 
+                       CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP)
+                    {
+                        rc = clAmsMgmtEntityUnlockExtended(gHandle,
+                                                           &oper->entity,
+                                                           CL_TRUE);
+                    }
+                }
+                break;
+            default: break;
+            }
+        }
+        break;
+
+    case CL_AMS_ADMIN_STATE_LOCKED_A:
+        {
+            switch(newState)
+            {
+            case CL_AMS_ADMIN_STATE_LOCKED_I:
+                {
+                    rc = clAmsMgmtEntityLockInstantiationExtended(gHandle,
+                                                                  &oper->entity,
+                                                                  CL_TRUE);
+                }
+                break;
+                
+            case CL_AMS_ADMIN_STATE_UNLOCKED:
+                {
+                    rc = clAmsMgmtEntityUnlockExtended(gHandle,
+                                                       &oper->entity,
+                                                       CL_TRUE);
+                }
+                break;
+            default: break;
+            }
+        }
+        break;
+
+    case CL_AMS_ADMIN_STATE_UNLOCKED:
+        {
+            switch(newState)
+            {
+            case CL_AMS_ADMIN_STATE_LOCKED_A:
+                {
+                    rc = clAmsMgmtEntityLockAssignmentExtended(gHandle,
+                                                               &oper->entity,
+                                                               CL_TRUE);
+                }
+                break;
+
+            case CL_AMS_ADMIN_STATE_LOCKED_I:
+                {
+                    rc = clAmsMgmtEntityLockAssignmentExtended(gHandle, 
+                                                               &oper->entity,
+                                                               CL_TRUE);
+                    if(rc == CL_OK)
+                    {
+                        rc = clAmsMgmtEntityLockInstantiationExtended(gHandle,
+                                                                      &oper->entity,
+                                                                      CL_TRUE);
+                    }
+                }
+                break;
+
+            default:break;
+            }
+        }
+        break;
+
+    default: break;
+    }
+
+    clHeapFree(oper);
+    return rc;
+}
+
+ClRcT clAmsMgmtAdminStateChange(ClAmsEntityT *entity,
+                                ClAmsAdminStateT lastState,
+                                ClAmsAdminStateT newState)
+{
+    ClRcT rc = CL_OK;
+    ClAmsMgmtAdminChangeOperT *oper = NULL;
+    if(lastState == newState)
+        return CL_OK;
+
+    if(!gAmsMgmtAdminPool.flags)
+    {
+        rc = clJobQueueInit(&gAmsMgmtAdminPool, 0, 1);
+        if(rc != CL_OK)
+        {
+            clLogError("MGMT", "ADMIN", "Admin pool create failed with [%#x]", rc);
+            goto out;
+        }
+    }
+    oper = clHeapCalloc(1, sizeof(*oper));
+    CL_ASSERT(oper != NULL);
+    memcpy(&oper->entity, entity, sizeof(oper->entity));
+    oper->lastState = lastState;
+    oper->newState = newState;
+    rc = clJobQueuePush(&gAmsMgmtAdminPool, amsMgmtAdminStateChangeTask, oper);
+
+    out:
+    return rc;
+}

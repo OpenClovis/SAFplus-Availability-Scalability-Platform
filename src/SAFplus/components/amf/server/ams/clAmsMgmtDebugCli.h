@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 #include <clAmsTypes.h>
+#include <clAmsEntities.h>
     
 extern ClAmsMgmtHandleT gHandle;
 extern ClAmsMgmtCCBHandleT gCcbHandle;
@@ -32,6 +33,10 @@ extern ClAmsMgmtCCBHandleT gCcbHandle;
 extern ClRcT clAmsDebugCliMgmtApi(ClUint32T argc,
                                   ClCharT **argv,
                                   ClCharT **ret);
+
+extern ClRcT clAmsMgmtAdminStateChange(ClAmsEntityT *entity,
+                                       ClAmsAdminStateT lastState,
+                                       ClAmsAdminStateT newState);
 
 #ifdef __cplusplus
 }
