@@ -810,9 +810,10 @@ static ClRcT cpmCompSetConfig(ClAmsEntityConfigT *entityConfig,
          */
         clOsalMutexUnlock(gpClCpm->compTableMutex);
         rc = compSetConfig(compConfig, bitMask);
-        if(rc != CL_OK && comp)
+        if(comp)
+        {
             goto out_set;
-
+        }
         goto out;
     }
 
