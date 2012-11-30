@@ -44,6 +44,7 @@
 #include <clAmsSAServerApi.h>
 #include <clAmsEntityUserData.h>
 #include <clAmsXdrHeaderFiles.h>
+#include <clAmsMgmtDebugCli.h>
 #include <clCpmExtApi.h>
 #include <clList.h>
 #include <clNodeCache.h>
@@ -634,6 +635,8 @@ clAmsEntitySetConfigNew(
     ClRcT  rc = CL_OK;
     ClAmsEntityRefT entityRef = {{0},0,0};
     ClAmsEntityT  *entity  = NULL;
+    ClAmsAdminStateT lastState = CL_AMS_ADMIN_STATE_NONE;
+    ClAmsAdminStateT newState = CL_AMS_ADMIN_STATE_NONE;
     ClBoolT  allAttr = CL_FALSE;
 
 
@@ -672,7 +675,8 @@ clAmsEntitySetConfigNew(
 
             if ( (allAttr) || (bitMask&NODE_CONFIG_ADMIN_STATE))
             {
-                nodeConfig->adminState = newNodeConfig->adminState;
+                lastState = nodeConfig->adminState;
+                newState = newNodeConfig->adminState;
             }
 
             if ( (allAttr) || (bitMask&NODE_CONFIG_ID))
@@ -734,7 +738,8 @@ clAmsEntitySetConfigNew(
 
             if ( (allAttr) || (bitMask&SG_CONFIG_ADMIN_STATE))
             {
-                sgConfig->adminState = newSGConfig->adminState;
+                lastState = sgConfig->adminState;
+                newState = newSGConfig->adminState;
             }
 
             if ( (allAttr) || (bitMask&SG_CONFIG_REDUNDANCY_MODEL))
@@ -870,7 +875,8 @@ clAmsEntitySetConfigNew(
 
             if ( (allAttr) || (bitMask&SU_CONFIG_ADMIN_STATE))
             {
-                suConfig->adminState = newSUConfig->adminState;
+                lastState = suConfig->adminState;
+                newState = newSUConfig->adminState;
             }
 
             if ( (allAttr) || (bitMask&SU_CONFIG_RANK))
@@ -913,7 +919,8 @@ clAmsEntitySetConfigNew(
 
             if ( (allAttr) || (bitMask&SI_CONFIG_ADMIN_STATE))
             {
-                siConfig->adminState = newSIConfig->adminState;
+                lastState = siConfig->adminState;
+                newState = newSIConfig->adminState;
             }
 
             if ( (allAttr) || (bitMask&SI_CONFIG_RANK))
@@ -1158,6 +1165,11 @@ clAmsEntitySetConfigNew(
             goto exitfn;
 
         }
+    }
+
+    if(lastState != newState)
+    {
+        rc = clAmsMgmtAdminStateChange(entity, lastState, newState);
     }
 
 exitfn:
