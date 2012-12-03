@@ -16,6 +16,7 @@
 
 import os, sys
 from subprocess import call
+import popen2
 import fnmatch
 
 # ------------------------------------------------------------------------------
@@ -42,6 +43,19 @@ def locateFiles(pattern, root=os.curdir):
         for filename in fnmatch.filter(files, pattern):
             yield os.path.join(path, filename)
 
+
+def system(cmd):
+    """Similar to the os.system call, except that both the output and return value is returned"""
+    # WARNING: system will deadlock if command output exceeds ~64 KB!
+    #print 'Executing command: [%s]' % cmd
+    child = popen2.Popen4(cmd)
+    retval = child.wait()
+    signal = retval & 0x7f
+    core   = ((retval & 0x80) !=0)
+    retval = retval >> 8
+    output = child.fromchild.readlines()
+    del child
+    return (retval, output, signal, core)
 
 # points to root directory where install.py
 

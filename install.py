@@ -920,12 +920,13 @@ class ASPInstaller:
             # are much harder to detect
 
             else:
-               syscall('apt-get update;')
-            
+               syscall('apt-get update;')      
                self.debug('Apt-Get Installing: ' + install_str)
-               result = syscall('apt-get -y --force-yes install %s' % install_str)
-            
+               (retval, result, signal, core) = system('apt-get -y --force-yes install %s' % install_str)
                self.debug(str(result))
+               if "Could not get lock" in "".join(result):
+                 self.feedback("Could not get the lock, is another package manager running?\n", fatal=True)
+
             self.feedback('Successfully installed preinstall dependencies.')
         
         
