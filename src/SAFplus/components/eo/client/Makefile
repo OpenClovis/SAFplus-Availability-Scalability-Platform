@@ -27,7 +27,7 @@
 #
 #
 ################################################################################
-
+include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 # Component name (using all lowercase):
 
 COMPNAME	:= eo
@@ -42,7 +42,7 @@ SRC_FILES	:= eo.c clEo.c clEoMain.c clEoParser.c clEoLibs.c clEoEvent.c clSAClie
 DEP_COMP_LIST	:= utils osal ckpt timer buffer rmd ioc cnt amf debug log idl gms event cor
 
 AMF_PATH = $(CLOVIS_ROOT)/ASP/components/amf
-CPPFLAGS += -I $(AMF_PATH)/common/cpm/idl/xdr -I$(AMF_PATH)/server/cpm -I$(AMF_PATH)/server/ams -I$(AMF_PATH)/common/cpm -I$(AMF_PATH)/common/ams
+CPPFLAGS += -I $(AMF_PATH)/common/cpm/idl/xdr -I$(AMF_PATH)/server/cpm -I$(AMF_PATH)/server/ams -I$(AMF_PATH)/common/cpm -I$(AMF_PATH)/common/ams $(CM_CFLAGS)
 
 ifeq ($(CL_INST),1)
 	CPPFLAGS += -DCL_INST

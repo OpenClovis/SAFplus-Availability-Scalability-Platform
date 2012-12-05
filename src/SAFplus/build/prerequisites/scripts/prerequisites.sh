@@ -90,7 +90,7 @@ populate_prereqs() {
     # Populate image directory
 
     echo ""
-    echo "Populating platform specific blade image at $imagedir with third party prerequisites... "
+    echo "*** Populating platform specific blade image at $imagedir with third party prerequisites... "
 
     if [ ! $BUILDTOOL_DIR = local ]; then
         # If this is a cross build, use prerequisite files from the toolchain
@@ -155,6 +155,7 @@ populate_prereqs() {
         res_array[${#res_array[@]}]=$?
         op_array[${#op_array[@]}]="copy in gdbm"
 
+        if [ $SNMP_BUILD == "1" ]; then
         # net-snmp
         echo -n "net-snmp "
         if [ $wrstoolchain = 1 -a $mvtoolchain = 0 ]; then
@@ -186,6 +187,8 @@ populate_prereqs() {
         else
             cp -R --parents -L share/snmp $imagedir
         fi
+        fi
+
         res_array[${#res_array[@]}]=$?
         op_array[${#op_array[@]}]="copy in db"
         if [ $(ls -1 lib/libcrypto*.* 2>/dev/null | wc -l) -gt 0 ]; then
@@ -199,6 +202,7 @@ populate_prereqs() {
             op_array[${#op_array[@]}]="copy in libssl"
         fi
 
+        if [ $HPI_EMERSON == "0" ]; then
         # openhpi
         echo -n "openhpi "
         if [ $wrstoolchain = 1 -o $mvtoolchain = 1 ]; then
@@ -232,6 +236,7 @@ populate_prereqs() {
         fi
         res_array[${#res_array[@]}]=$?
         op_array[${#op_array[@]}]="copy in hpi libraries"
+        fi
         
         tar cfh - lib/*glib* | tar xf - -C $imagedir
         #res_array[${#res_array[@]}]=$?
@@ -250,8 +255,8 @@ populate_prereqs() {
         #op_array[${#op_array[@]}]="copy in gthread library files"
 
         # libhcl
-        echo -n "hcl "
         if [ -f $toolchaindir/lib/libhcl.so ]; then
+            echo -n "hcl "
             cd $toolchaindir
             tar chf - lib/*hcl* | tar xf - -C $imagedir
             res_array[${#res_array[@]}]=$?
@@ -267,6 +272,14 @@ populate_prereqs() {
             install $exe_flags $toolchaindir/bin/saHpiAlarmAdd $imagedir/bin
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="install saHpiAlarmAdd"
+        fi
+
+        # Emerson HPI
+        if [ -d $toolchaindir/emerson/lib ]; then
+            echo -n "Emerson HPI "
+            cp -rf $toolchaindir/emerson/lib/*.so $imagedir/lib
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in Emerson HPI libraries"
         fi
 
         # python wrapper for openhpi and libhcl
@@ -435,6 +448,7 @@ populate_prereqs() {
         fi
 
         # net-snmp
+        if [ $SNMP_BUILD == "1" ]; then
         echo -n "net-snmp "
         if [ -f $toolchaindir/lib/libnetsnmp.so ]; then
             cd $toolchaindir
@@ -484,8 +498,11 @@ populate_prereqs() {
             fi
             cd - >/dev/null 2>&1
         fi
+        fi
 
         # openhpi
+        if [ $HPI_EMERSON == "0" ]; then
+
         echo -n "openhpi"
         if [ -f $toolchaindir/lib/libopenhpi.a ]; then
             cd $toolchaindir
@@ -530,9 +547,10 @@ populate_prereqs() {
             op_array[${#op_array[@]}]="copy in openhpi libraries"
             cd - >/dev/null 2>&1
         fi
+        fi
 	
 	# tipc
-	echo -n " tipc"
+	echo -n " tipc "
 	if [ -f $toolchaindir/bin/tipc-config ]; then
         if [ ! -d $imagedir/modules ]; then
             mkdir -p $imagedir/modules
@@ -548,9 +566,21 @@ populate_prereqs() {
         fi
 	fi
 
+        if [ $HPI_EMERSON == "1" ]; then
+        # Emerson HPI
+          if [ -d $toolchaindir/emerson/lib ]; then
+            echo -n "Emerson HPI "
+            cp -rf $toolchaindir/emerson/lib/*.so $imagedir/lib
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in Emerson HPI libraries"
+          else
+            echo -n -e "\nWARNING: Emerson HPI libraries not found in $toolchaindir/emerson/lib"
+          fi
+        fi    
+
         # libhcl
-        echo -n " hcl"
         if [ -f $toolchaindir/local/lib/libhcl.so ]; then
+            echo -n " hcl"
             cd $toolchaindir/local
             tar chf - lib/*hcl* | tar xf - -C $imagedir
             res_array[${#res_array[@]}]=$?
