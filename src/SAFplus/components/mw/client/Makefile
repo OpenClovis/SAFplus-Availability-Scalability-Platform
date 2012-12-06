@@ -164,6 +164,8 @@ ALL_OBJ_FILES := $(OBJ_FILES)
 
 #NOVAR := $(shell echo $(OBJ_FILES) > objfiles.txt)
 
+EXTRA_SHARED_LDFLAGS+=-L$(ASP_LIB) -lezxml
+
 # Library name:
 
 # If there are more than one client libraries to be built here, you

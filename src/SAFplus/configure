@@ -870,6 +870,122 @@ fi
 export sdk_dir
 export buildtool_dir
 
+
+echo "SAFplus Version: " $PACKAGE_VERSION "  SAFplus SDK directory: " $sdk_dir " Buildtools directory: " $buildtool_dir
+
+if test -n "$ac_init_help"; then
+  case $ac_init_help in
+     short | recursive ) echo "Configuration of SAFplus:";;
+   esac
+    
+   sdk_modeldir=$sdk_dir/src/ASP/models
+ 
+   cat << _ACEOF
+
+OpenClovis Specific configuration attributes:
+  --with-safplus-build       This is used to build SAFplus libraries.  When specified
+                         without a model, it can be used to pre-build SAFplus
+                         libraries for various targets so that SAFplus-based models
+                         can link against them directly rather than having to
+                         build them every time.  Further, specifying a 
+                         --prefix=PREFIX option causes headers and built 
+                         libraries to be installed to the specified location.
+                         When specified with a model, it causes a traditional
+                         build of both SAFplus and the model.
+
+  --with-sdk-dir=ARG     This tells the configure script the location of the
+                         OpenClovis SDK installation.  This is required if 
+                         there is no local record of the SDK installation,
+                         and this script cannot determine it based on its
+                         own location.
+
+  --with-asp-installdir=ARG  Used to specify the location of pre-built SAFplus
+                         libraries for the desired target.  If unspecified, 
+                         the SDK installation directory will be checked, 
+                         followed by the project area's target dirs.
+
+  --with-model-name=MODELNAME
+                         Model name to build within your project area.
+                          
+  --with-cross-build=TOOLCHAINNAME
+                         Triggers a host-independent build using the specified
+                         toolchain.  The following toolchain(s) are available
+                         at your host:
+$(ls -1 $CL_BUILDTOOLS | grep -v local | awk '{print "\t\t\t\t", $1}')
+
+  --with-kernel-build=KERNELNAME
+                         Name of an alternative kernel under the given
+                         toolchain. Check what kernels you have by the
+                          \`ls $CL_BUILDTOOLS/<TOOLCHAINNAME>/src\`
+                         command. Use the directory names there to specify your
+                         kernel.
+
+  --without-snmp-build   Disable snmp agent client and snmp agent server
+                         compilation.
+
+  --with-binary-mode=(32|64)
+                         When building for a 64-bit target, this is used to
+                         specify whether binaries built are 32-bit or 64-bit.
+                         If you are using a montavista toolchain, this option
+                         has no effect.  Please set the binary mode while
+                         building the toolchain using the cl-create-mvl-toolchain
+                         script.
+                         Default: 64
+
+  --with-cm-build[=ARG]  Enable building Chassis Manager which talks to the
+                         shelf manager of the chassis.  The optional ARG
+                         specifies the type HPI client implementation to be
+                         assumed.  Possible values of ARG:
+                            openhpi   - will use OpenHPI to communicate with
+                                        the chassis.  This is currently the
+                                        option to use with Pigeon Point
+                                        Systems shelf manager cards.
+                            radisys   - will use the Radisys-provided HCL
+                                        client to talk to a Radisys chassis.
+                            emerson   - will use the Emerson-provided HPI client
+                                        libraries.  You must independently 
+                                        acquire, compile, and copy these 
+                                        libraries and include files into 2 
+                                        directories located at: 
+                                        <buildtools>/emerson/[lib,include]
+                                        By default buildtools is located at:
+                                        /opt/clovis/buildtools
+                         NOTE: This option is available only for the commercial
+                         version of SAFplus, and requires that the SAFplus
+                         Platform Support Package (PSP) has been installed.
+
+  --with-gms-build=(tipc|udp)
+                         Specifies whether GMS traffic runs over TIPC or UDP.
+                         Default: tipc
+
+  --with-instrumentation Enable demo instrumentation in SAFplus.  See the 
+                         Evaluation System Guide for more information.
+  
+  --with-asp-simulation  Build the SAFplus for running in simulation, 
+                         i.e. running many instances of SAFplus on a single
+                         machine.
+   
+  --with-tipc-build=(yes|no)   
+                         Build with/without TIPC transport support.
+
+  --with-default-template=(tipc|udp)
+                         Force copy clTranport.xml template
+ 
+Some influential environment variables:
+  CC          C compiler command
+  CFLAGS      C compiler flags
+  LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
+              nonstandard directory <lib dir>
+  CPPFLAGS    C/C++ preprocessor flags, e.g. -I<include dir> if you have
+              headers in a nonstandard directory <include dir>
+  CPP         C preprocessor
+
+Use these variables to override the choices made by 'configure' or to help
+it to find libraries and programs with nonstandard names/locations.
+
+_ACEOF
+fi
+
 # Check whether --with-sdk-dir is specified
 if [ "${with_sdk_dir+set}" = set ]; then
     withval="$with_sdk_dir"
@@ -916,111 +1032,6 @@ else
         cd - > /dev/null
 fi
 
-echo "ASP Version: " $PACKAGE_VERSION "  ASP SDK directory: " $sdk_dir " Buildtools directory: " $buildtool_dir
-
-if test -n "$ac_init_help"; then
-  case $ac_init_help in
-     short | recursive ) echo "Configuration of asp 4.2:";;
-   esac
-    
-   sdk_modeldir=$sdk_dir/src/ASP/models
- 
-   cat << _ACEOF
-
-OpenClovis Specific configuration attributes:
-  --with-safplus-build       This is used to build SAFplus libraries.  When specified
-                         without a model, it can be used to pre-build SAFplus
-                         libraries for various targets so that SAFplus-based models
-                         can link against them directly rather than having to
-                         build them every time.  Further, specifying a 
-                         --prefix=PREFIX option causes headers and built 
-                         libraries to be installed to the specified location.
-                         When specified with a model, it causes a traditional
-                         build of both ASP and the model.
-
-  --with-sdk-dir=ARG     This tells the configure script the location of the
-                         OpenClovis SDK installation.  This is required if 
-                         there is no local record of the SDK installation,
-                         and this script cannot determine it based on its
-                         own location.
-
-  --with-asp-installdir=ARG  Used to specify the location where pre-built ASP
-                         libraries for the desired target are located.  If
-                         unspecified, the SDK installation directory will be
-                         checked, followed by the project area's target dirs.
-
-  --with-model-name=MODELNAME
-                         Model name to build within your project area.
-                          
-  --with-cross-build=TOOLCHAINNAME
-                         Triggers a host-independent build using the specified
-                         toolchain.  The following toolchain(s) are available
-                         at your host:
-$(ls -1 $CL_BUILDTOOLS | grep -v local | awk '{print "\t\t\t\t", $1}')
-
-  --with-kernel-build=KERNELNAME
-                         Name of an alternative kernel under the given
-                         toolchain. Check what kernels you have by the
-                          \`ls $CL_BUILDTOOLS/<TOOLCHAINNAME>/src\`
-                         command. Use the directory names there to specify your
-                         kernel.
-
-  --without-snmp-build   Disable snmp agent client and snmp agent server
-                         compilation.
-
-  --with-binary-mode=(32|64)
-                         When building for a 64-bit target, this is used to
-                         specify whether binaries built are 32-bit or 64-bit.
-                         If you are using a montavista toolchain, this option
-                         has no effect.  Please set the binary mode while
-                         building the toolchain using the cl-create-mvl-toolchain
-                         script.
-                         Default: 64
-
-  --with-cm-build[=ARG]  Enable building Chassis Manager which talks to the
-                         shelf manager of the chassis.  The optional ARG
-                         specifies the type HPI client implementation to be
-                         assumed.  Possible values of ARG:
-                            openhpi     - will use OpenHPI to communicate with
-                                          the chassis.  This is currently the
-                                          option to use with Pigeon Point
-                                          Systems shelf manager cards.
-                            radisys     - will use the Radisys-provided HCL
-                                          client to talk to a Radisys chassis.
-                         NOTE: This option is available only for the commercial
-                         version of ASP, and requires that one or more PSP
-                         packages have been installed.
-
-  --with-gms-build=(tipc|udp)
-                         Specifies whether GMS traffic runs over TIPC or UDP.
-                         Default: tipc
-
-  --with-instrumentation Enable demo instrumentation in ASP.  See the Evaluation
-                         System Guide for more information.
-  
-  --with-asp-simulation  Build the ASP for running in simulation, i.e. running many
-                         instances of ASP on a single machine.
-   
-  --with-tipc-build=(yes|no)   
-                         Build the ASP with/without TIPC transport support.
-
-  --with-default-template=(tipc|udp)
-                         Force copy clTranport.xml template
- 
-Some influential environment variables:
-  CC          C compiler command
-  CFLAGS      C compiler flags
-  LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
-              nonstandard directory <lib dir>
-  CPPFLAGS    C/C++ preprocessor flags, e.g. -I<include dir> if you have
-              headers in a nonstandard directory <include dir>
-  CPP         C preprocessor
-
-Use these variables to override the choices made by 'configure' or to help
-it to find libraries and programs with nonstandard names/locations.
-
-_ACEOF
-fi
 
 if test "$ac_init_help" = "recursive"; then
   # If there are subdirs, report their specific --help.
@@ -1036,6 +1047,56 @@ if test "$ac_dir" != .; then
 else
   ac_dir_suffix= ac_top_builddir=
 fi
+
+
+# Check whether --with-sdk-dir is specified
+if [ "${with_sdk_dir+set}" = set ]; then
+    withval="$with_sdk_dir"
+    export sdk_dir=$with_sdk_dir/sdk-$PACKAGE_VERSION
+    export buildtool_dir=$with_sdk_dir/buildtools
+    thirdparty=`ls $with_sdk_dir | grep 3rdparty-base | head -n 1`
+    if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+        export thirdparty_base_dir=$with_sdk_dir/$thirdparty
+    fi
+else
+        if [ "$CL_SDKDIR" = "" ]; then
+            cd $(dirname $0)/../../..
+            if [ ! -d sdk-$PACKAGE_VERSION -o ! -d buildtools ]; then
+                echo ""
+                echo "Cannot find sdk installation.  Please retry this script"
+                echo "with the --with-sdk-dir=<sdk_install_dir> flag."
+                cd - > /dev/null
+                exit 1
+            else
+                export sdk_dir=$(pwd)/sdk-$PACKAGE_VERSION
+                export buildtool_dir=$(pwd)/buildtools
+                thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
+                if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+                    export thirdparty_base_dir=$(pwd)/$thirdparty
+                fi
+            fi
+        else
+            cd $CL_SDKDIR/..
+            if [ ! -d sdk-$PACKAGE_VERSION -o ! -d buildtools ]; then
+                echo ""
+                echo "Cannot find sdk installation.  Please retry this script"
+                echo "with the --with-sdk-dir=<sdk_install_dir> flag."
+                cd - > /dev/null
+                exit 1
+            else
+                export sdk_dir=$(pwd)/sdk-$PACKAGE_VERSION
+                export buildtool_dir=$(pwd)/buildtools
+                thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
+                if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+                    export thirdparty_base_dir=$(pwd)/$thirdparty
+                fi
+            fi
+        fi
+        cd - > /dev/null
+fi
+
+echo "SAFplus Version: " $PACKAGE_VERSION "  SAFplus SDK directory: " $sdk_dir " Buildtools directory: " $buildtool_dir
+
 
 case $srcdir in
   .)  # No --srcdir option.  We are building in place.
@@ -1505,6 +1566,8 @@ export SNMP_BUILD=1
 export CM_BUILD=0
 export ASP_MODEL_NAME=eval
 export HCL_CM=0
+export HPI_EMERSON=0
+export HPI_OPENHPI=0
 export CL_INST=0
 export TOOLCHAIN_DIR=$CL_BUILDTOOLS/local
 export BUILD_TIPC=1
@@ -1842,11 +1905,15 @@ if [ "${with_cm_build+set}" = set ]; then
         echo ""
         exit 1
     fi
-	if [ $with_cm_build == 'yes' ] || [ $with_cm_build == 'radisys' ]; then
+	if [ $with_cm_build == 'radisys' ]; then
 		export CM_BUILD=1
 		export HCL_CM=1
-	elif [ $with_cm_build == 'openhpi' ]; then
+	elif [ $with_cm_build == 'yes' ] || [ $with_cm_build == 'openhpi' ]; then
 		export CM_BUILD=1
+                export HPI_OPENHPI=1
+	elif [ $with_cm_build == 'emerson' ]; then
+		export CM_BUILD=1
+                export HPI_EMERSON=1
 	else
 		export CM_BUILD=0
 	fi
@@ -1908,22 +1975,18 @@ fi
 ###################################################
 if [ ! "x" == "x${ASP_MODEL_NAME}" -a ! $ASP_MODEL_NAME == "asp" ] 2> /dev/null ; then
     if [ ! -f $MODEL_PATH/target.conf ]; then
-    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.conf \
-    	   $MODEL_PATH/target.conf 
+    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.conf $MODEL_PATH/target.conf 
     fi
     if [ ! -f $MODEL_PATH/target.env ]; then
         if [ ! -f $INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.env ]; then
-    	    $INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.env \
-    	   $MODEL_PATH/target.env 
+    	    $INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.env $MODEL_PATH/target.env 
         fi
     fi
     if [ ! -f $MODEL_PATH/config/openhpi.conf ]; then
-    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/openhpi.conf \
-    	   $MODEL_PATH/config/openhpi.conf
+    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/openhpi.conf $MODEL_PATH/config/openhpi.conf
     fi
     if [ ! -f $MODEL_PATH/config/snmpd.conf ]; then
-    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/snmpd.conf \
-    	   $MODEL_PATH/config
+    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/snmpd.conf $MODEL_PATH/config
     fi
 fi
 
@@ -2055,6 +2118,7 @@ export CL_TARGET_PLATFORM
 
 export PKG_CONFIG_PATH=$CL_BUILDTOOLS/local/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 
+if [ $HPI_OPENHPI == "1" ]; then
 #
 # Set OPENHPILIBS and OPENHPICFLAGS based on crossbuild parameters
 if [ $CROSS_FLAG = 0 ]; then
@@ -2087,6 +2151,10 @@ else
     else
         export OPENHPICFLAGS="-I$CL_BUILDTOOLS/$CROSS_BUILD/include/openhpi -I$CL_BUILDTOOLS/$CROSS_BUILD/$TARGET/include/glib-2.0 -I$CL_BUILDTOOLS/$CROSS_BUILD/include/glib-2.0 -I$CL_BUILDTOOLS/$CROSS_BUILD/lib/glib-2.0/include"
     fi
+fi
+else
+export OPENHPICFLAGS=""
+export OPENHPILIBS=""
 fi
 
 ##########################################################
@@ -8291,6 +8359,7 @@ s,@KERNEL_FLAG@,$KERNEL_FLAG,;t t
 s,@KERNEL@,$KERNEL,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
 s,@HCL_CM@,$HCL_CM,;t t
+s,@HPI_EMERSON@,$HPI_EMERSON,;t t
 s,@CL_INST@,$CL_INST,;t t
 s,@TOOLCHAIN_DIR@,$TOOLCHAIN_DIR,;t t
 s,@CL_BUILDTOOLS@,$CL_BUILDTOOLS,;t t
