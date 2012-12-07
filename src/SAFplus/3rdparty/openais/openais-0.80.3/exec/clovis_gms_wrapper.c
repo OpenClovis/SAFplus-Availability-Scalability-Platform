@@ -942,12 +942,11 @@ int clGmsSendMsg(ClGmsViewMemberT       *memberNodeInfo,
     rc = clNodeCacheMinVersionGet(NULL, &clusterVersion);
     if(clusterVersion >= CL_VERSION_CODE(5, 0, 0) 
        && 
-       gAspNativeLeaderElection
-       &&
-       msgType == CL_GMS_CLUSTER_JOIN_MSG)
+       clAspNativeLeaderElection())
     {
         clLog(DBG, OPN, AIS, 
-              "Skipping sending node join since node cache is used to form the cluster view");
+              "Skipped sending msgtype [%d] since node cache is used to form the cluster view",
+              msgType);
         return 0;
     }
 
