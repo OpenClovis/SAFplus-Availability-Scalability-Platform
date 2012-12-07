@@ -162,6 +162,8 @@ OBJ_FILES +=  $(ALL_CONFLICT_RESOLVE_OBJS)
 
 ALL_OBJ_FILES := $(OBJ_FILES)
 
+EXTRA_SHARED_LDFLAGS+=-L$(ASP_LIB) -lezxml
+
 # Library name:
 
 # If there are more than one client libraries to be built here, you

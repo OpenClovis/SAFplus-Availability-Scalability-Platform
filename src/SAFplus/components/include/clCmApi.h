@@ -50,7 +50,6 @@ extern "C" {
     /* If the flag is not defined this will define no-ops for all APIs that is enough to satisfy the compiler */
 #ifndef CL_USE_CHASSIS_MANAGER
     
-#include <SaHpi.h>
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <clCorMetaData.h>
@@ -95,10 +94,10 @@ typedef struct ClCmFruEventInfo {
 /*
  *  Physical slot of the FRU. Before using, always perform a check for the slot id against \c INVALID_PHYSICAL_SLOT_ID.
  */										   
-	 ClInt32T 	   physicalSlot;		
-										   
-										   
-/*
+	 ClInt32T 	   physicalSlot;
+
+#if 0  /* Note HPI is NOT being used so these structures are just fake placeholders */
+    /*
  * Previous state of the FRU.
  */										   
 	 SaHpiHsStateT previousState; 
@@ -106,35 +105,56 @@ typedef struct ClCmFruEventInfo {
 /*
  * Present state of the FRU.
  */      
-	 SaHpiHsStateT presentState;        
+	 SaHpiHsStateT presentState;
+#endif    
 } ClCmFruEventInfoT;
 
 /*
  * Contents of buffer field in alarmPayload for sensor event payload.
  */
 typedef struct ClCmSensorEventInfo {
+#if 0  /* Note HPI is NOT being used so these structures are just fake placeholders */    
     SaHpiRptEntryT      rptEntry;
     SaHpiRdrT           rdr;
     SaHpiSensorEventT   sensorEvent;
+#else
+    int fake;
+#endif    
 } ClCmSensorEventInfoT;
 
 
 typedef struct {
+#if 0  /* Note HPI is NOT being used so these structures are just fake placeholders */    
     SaHpiEntityPathT eventReporter;
     SaHpiEntityPathT *pImpactedEntities;
+#else
+    int fake;
+#endif    
 } ClCmEventCorrelatorT;
 
+#if 0    
 typedef ClRcT (* ClCmEventCallBackT) (SaHpiSessionIdT sessionid , 
                                       SaHpiEventT *pEvent , 
                                       SaHpiRptEntryT  *pRptEntry, 
                                       SaHpiRdrT *pRdr);
+#else
+ typedef ClRcT (* ClCmEventCallBackT) (unsigned int sessionid , 
+                                      void *pEvent , 
+                                      void  *pRptEntry, 
+                                      void *pRdr);   
+#endif    
+    
 typedef struct {
+#if 0  /* Note HPI is NOT being used so these structures are just fake placeholders */    
     SaHpiEntityPathT impactedEntity;
+#endif    
     ClCmEventCallBackT userEventHandler;
 } ClCmUserPolicyT;
 
+#if 0    
 typedef enum ClCmThresholdLevel
 {
+    
     CL_CM_THRESHOLD_LOWER_MINOR = SAHPI_ES_LOWER_MINOR,
     CL_CM_THRESHOLD_LOWER_MAJOR = SAHPI_ES_LOWER_MAJOR,
     CL_CM_THRESHOLD_LOWER_CRIT  = SAHPI_ES_LOWER_CRIT,
@@ -142,7 +162,8 @@ typedef enum ClCmThresholdLevel
     CL_CM_THRESHOLD_UPPER_MAJOR = SAHPI_ES_UPPER_MAJOR,
     CL_CM_THRESHOLD_UPPER_CRIT =  SAHPI_ES_UPPER_CRIT,
 }ClCmThresholdLevelT;
-
+#endif
+    
 /*
  * Event payload is \e ClAlarmInfoT defined in <em> clAlarmDefinitions.h </em>, the contents
  * of buffer field in alarmPayload is \e ClCmSensorEventInfo defined above.
@@ -332,11 +353,11 @@ extern ClRcT clCmBladeOperationRequest (CL_IN ClUint32T         chassisId,
 #define clCmThresholdStateGet(slot, pLevel,pStateAsserted) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
 
 #else
-    
+
+#include <clCommon.h>
 /* These are automatically called by the EO so not really part of the public interface */    
 extern ClRcT clCmLibInitialize(void);
 extern ClRcT clCmLibFinalize(void);
-
 #include <clChassisMgrApi.h>
     
 #endif

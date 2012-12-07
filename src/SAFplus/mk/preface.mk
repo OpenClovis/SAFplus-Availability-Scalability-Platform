@@ -27,11 +27,36 @@ CM_SEARCH_PATH := $(CLOVIS_ROOT)/../PSP/src/cm $(CLOVIS_ROOT)/../../PSP/src/cm
 
 USING_CM := $(wildcard $(CM_SEARCH_PATH))
 ifneq ($(USING_CM),)
-$(warning Using the actual chassis manager from the Platform Support Package located at $(USING_CM))
-CM_DIR    := $(realpath $(USING_CM))
-CL_CM     := -lClCm
-CM_CFLAGS := -DCL_USE_CHASSIS_MANAGER -I$(CM_DIR)/include
+
+ifeq ($(HCL_CM),1)
+        $(warning Using the actual chassis manager from the Platform Support Package located at $(USING_CM) and Radisys HPI)
+	HPI_LIBS = -L$(TOOLCHAIN_DIR)/lib -lhcl -lopenhpiutils
+	HPI_CFLAGS = -I$(TOOLCHAIN_DIR)/include/openhpi -I$(TOOLCHAIN_DIR)/include/radisys $(OPENHPICFLAGS)
 else
+ifeq ($(HPI_EMERSON),1)
+        $(warning Using the actual chassis manager from the Platform Support Package located at $(USING_CM) and Emerson HPI)
+	HPI_LIBS = -L$(TOOLCHAIN_DIR)/emerson/lib -lbbs-hpibmultishelf -lbbs-hpibcommon -lbbs-hpibutils
+	HPI_CFLAGS = -I$(TOOLCHAIN_DIR)/emerson/include -I/usr/include/glib-2.0 -I/usr/lib/i386-linux-gnu/glib-2.0/include
+
+else
+        $(warning Using the actual chassis manager from the Platform Support Package located at $(USING_CM) and OpenHPI)
+	HPI_LIBS = $(OPENHPILIBS)
+	HPI_CFLAGS += $(OPENHPICFLAGS)
+endif
+endif
+
+CM_DIR      := $(realpath $(USING_CM))
+
+# The chassis mgr uses hpi data structures so I need the HPI includes but not the library
+CL_CM       := -lClCm
+CM_CFLAGS   := -DCL_USE_CHASSIS_MANAGER $(HPI_CFLAGS) -I$(CM_DIR)/include
+
+CM_COMP_DEP := cm/client
+CM_CONFLICT_RESOLVE_OBJS :=
+
+else
+HPI_LIBS :=
+HPI_CFLAGS :=
 CM_DIR :=
 CL_CM  :=
 CM_CFLAGS :=

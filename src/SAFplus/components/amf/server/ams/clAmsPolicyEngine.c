@@ -6859,8 +6859,10 @@ clAmsPeSUEvaluateWork(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
+    sg = (ClAmsSGT *) su->config.parentSG.ptr ;
+    if(!sg) return CL_OK;
 
+    AMS_CHECK_SG( sg );
     AMS_CHECK_NODE (node = (ClAmsNodeT*)su->config.parentNode.ptr);
 
     if( clAmsPeSUIsInstantiable(su) != CL_OK )
@@ -9879,7 +9881,10 @@ clAmsPeSUMarkInstantiable(
     ClAmsEntityRefT *suRef;
     
     AMS_CHECK_SU ( su );
-    AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
+    sg = (ClAmsSGT *) su->config.parentSG.ptr;
+    if(!sg) return CL_OK;
+
+    AMS_CHECK_SG( sg );
     AMS_CHECK_NODE ( node = (ClAmsNodeT*)su->config.parentNode.ptr);
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
