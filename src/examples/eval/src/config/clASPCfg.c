@@ -20,9 +20,3 @@ ClUint32T gClnsMaxNoLocalContexts=2;   /* Max no. of node local user contexts */
 /* RMD configuration */
 
 ClUint16T gClRmdMaxRetries=8;
-
-/* TIMER configuration */
-
-ClUint32T gClTimerResolution=0;
-ClUint32T gClTaskPriority=0;
-

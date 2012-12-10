@@ -1,0 +1,1121 @@
+2005-10-12 12:12  kdangoor
+
+        * Multiple match rules can now run against a single element.
+
+2005-01-26 08:20  rtomayko
+
+	* ChangeLog:
+
+	release 0.5
+
+2005-01-26 08:20  rtomayko
+
+	* examples/basic/sysinfo.kid:
+
+	Updated example for recent changes..
+
+2005-01-26 08:15  rtomayko
+
+	* HISTORY:
+
+	[no log message]
+
+2005-01-26 08:10  rtomayko
+
+	* doc/index.txt, doc/kid-spec.txt, doc/tutorial.txt,
+	kid/__init__.py, kid/parser.py, examples/basic/sysinfo.kid,
+	examples/cgi/sysinfo.kid, test/basic-test.html.kid,
+	test/context.kid, test/template-test.html.kid, test/templates.kid,
+	test/test_attribute_interpolation.kid, test/test_attrs.kid,
+	test/test_content.kid, test/test_content_interpolation.kid,
+	test/test_content_structure.kid, test/test_def.kid,
+	test/test_if.kid, test/test_kid_pi.kid, test/test_omit.kid,
+	test/test_repeat.kid, test/test_replace.kid:
+
+	Renamed the kid PI to python.  Use py: instead of kid: for
+	namespace prefixes.
+
+2005-01-26 07:37  rtomayko
+
+	* kid/parser.py:
+
+	Fixed bad dict call. Added call to _k_dict from kid:attrs.
+
+2005-01-26 07:36  rtomayko
+
+	* kid/util.py:
+
+	Added python < 2.3 compatible _k_dict function..
+
+2005-01-26 07:32  rtomayko
+
+	* test/test_attrs.kid:
+
+	Added kid:attrs test..
+
+2005-01-26 07:22  rtomayko
+
+	* kid/parser.py:
+
+	Applied kid:attrs patch from Christoph Zwerschke
+
+2005-01-26 06:30  rtomayko
+
+	* doc/style.xsl:
+
+	Damn sourceforge logo was wrong..
+
+2005-01-26 06:29  rtomayko
+
+	* kid/parser.py, kid/util.py, test_kid.py,
+	test/test_content_interpolation.kid, test/test_def.kid:
+
+	Added support for brace interpolation with text content.
+
+2005-01-26 06:26  rtomayko
+
+	* makefile:
+
+	Add python 2.4 to tests
+
+2005-01-22 01:12  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2005-01-22 01:12  rtomayko
+
+	* kid/__init__.py:
+
+	release 0.4.2
+
+2005-01-22 01:11  rtomayko
+
+	* ChangeLog:
+
+	[no log message]
+
+2005-01-22 01:11  rtomayko
+
+	* setup.py:
+
+	Oops.. erase all evidence of urlgrabber theft :)
+
+2005-01-22 01:11  rtomayko
+
+	* MANIFEST.in:
+
+	Update MANIFEST to include all tests
+
+2005-01-22 00:50  rtomayko
+
+	* ChangeLog, kid/__init__.py:
+
+	release 0.4.2
+
+2005-01-22 00:49  rtomayko
+
+	* examples/basic/README:
+
+	Updated for API changes.
+
+2005-01-22 00:49  rtomayko
+
+	* TODO:
+
+	[no log message]
+
+2005-01-20 10:06  rtomayko
+
+	* HISTORY, TODO:
+
+	Updated for 0.4.3
+
+2005-01-20 10:06  rtomayko
+
+	* README:
+
+	Updates for website changes and what not.
+
+2005-01-19 06:28  rtomayko
+
+	* kid/util.py:
+
+	Added _k_filter_names utility function. Used by omit namespace
+	logic.
+
+2005-01-19 06:27  rtomayko
+
+	* kid/parser.py:
+
+	Added omit namespace support. the kid namespace is now omitted as
+	well.
+
+2005-01-19 06:25  rtomayko
+
+	* kid/compiler.py:
+
+	Write python source files as utf-8.
+
+2005-01-19 06:24  rtomayko
+
+	* pulltree.py:
+
+	Add end-of-line after DOCTYPE declaration.
+
+2005-01-19 05:59  rtomayko
+
+	* pulltree.py:
+
+	Remove print..
+
+2005-01-19 05:53  rtomayko
+
+	* test/test_content.kid:
+
+	Added a quick DOCTYPE test..
+
+2005-01-19 05:52  rtomayko
+
+	* kid/parser.py:
+
+	Added DOCTYPE support..
+
+2005-01-19 05:52  rtomayko
+
+	* pulltree.py:
+
+	Added support for DOCTYPE declarations (kind of. it's really not
+	correct at all but should work for most kid cases. still, i feel
+	dirty.)
+
+2005-01-19 04:19  rtomayko
+
+	* kid/util.py:
+
+	Coerce attribute interpolated items to unicode before using.
+
+2005-01-19 04:18  rtomayko
+
+	* test/test_attribute_interpolation.kid:
+
+	Added attribute interpolation tests.
+
+2005-01-19 04:11  rtomayko
+
+	* kid/parser.py:
+
+	Fixes to accept extended unicode characters in templates.
+
+2005-01-19 04:10  rtomayko
+
+	* test_kid.py:
+
+	Make template tests first class (they get dots).
+
+2005-01-19 03:40  rtomayko
+
+	* test/test_content_structure.kid:
+
+	Added test for XML() function.
+
+2005-01-19 03:37  rtomayko
+
+	* makefile:
+
+	Remove needless comments..
+
+2005-01-19 03:36  rtomayko
+
+	* test_kid.py:
+
+	Use os.path.join instead of platform dependant paths.  Added test
+	to check that .pyc files are being generated properly.
+
+2005-01-19 03:35  rtomayko
+
+	* kid/importer.py:
+
+	Fix to generate .pyc files (for real this time).  Also added
+	KID_OUTPUT_PY environment variable. When set, .py source is
+	generated along with the .pyc file.
+
+2005-01-19 03:34  rtomayko
+
+	* makefile:
+
+	Clean more stuff.
+
+2005-01-19 03:34  rtomayko
+
+	* TODO:
+
+	[no log message]
+
+2005-01-17 04:14  rtomayko
+
+	* doc/: index.txt, makefile, style.xsl:
+
+	Changes for sourceforge project move..
+
+2005-01-17 04:14  rtomayko
+
+	* TODO:
+
+	Added attribute interpolation bug..
+
+2005-01-14 16:12  rtomayko
+
+	* HISTORY:
+
+	Minor change..
+
+2005-01-14 16:12  rtomayko
+
+	* TODO:
+
+	[no log message]
+
+2005-01-12 13:03  rtomayko
+
+	* setup.py:
+
+	Move to Alpha
+
+2005-01-12 12:58  rtomayko
+
+	* setup.py:
+
+	Better download link
+
+2005-01-12 11:32  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2005-01-12 11:31  rtomayko
+
+	* TODO, HISTORY:
+
+	[no log message]
+
+2005-01-12 11:29  rtomayko
+
+	* doc/tutorial.txt:
+
+	Updated tutorial for interface changes.
+
+2005-01-12 10:45  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2005-01-12 10:45  rtomayko
+
+	* kid/__init__.py:
+
+	release 0.4.1
+
+2005-01-12 10:43  rtomayko
+
+	* kid/compiler.py:
+
+	Aplying patch from Ross Burton to fix pyc file genration bug.
+
+2005-01-12 10:42  rtomayko
+
+	* bin/kid, kid/parser.py:
+
+	Fixed double-output bug when using kid command. (Ross Burton)
+
+2005-01-11 04:25  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2005-01-11 04:25  rtomayko
+
+	* kid/__init__.py:
+
+	release 0.4
+
+2005-01-11 04:22  rtomayko
+
+	* HISTORY:
+
+	Updated for 0.4
+
+2005-01-11 04:22  rtomayko
+
+	* kid/__init__.py:
+
+	Clean up some rogue doc..
+
+2005-01-11 04:07  rtomayko
+
+	* pulltree.py, test_kid.py, kid/__init__.py, kid/parser.py:
+
+	Renamed the following methods: encode() -> serialize() serialize()
+	-> generate() expand() -> pull()
+
+2005-01-11 03:11  rtomayko
+
+	* kid/parser.py:
+
+	Added enumerate function for Python < 2.3
+
+2005-01-11 02:59  rtomayko
+
+	* ChangeLog:
+
+	[no log message]
+
+2005-01-11 02:58  rtomayko
+
+	* test/test_content_structure.kid:
+
+	Not sure wtf I was doing here.
+
+2005-01-11 02:58  rtomayko
+
+	* doc/: makefile, style.xsl:
+
+	Added history to site.
+
+2005-01-11 02:56  rtomayko
+
+	* kid/parser.py:
+
+	Added parse() and parse_file() methods.  Generated Template class
+	subclass BaseTemplate. You can set this in a template to use a
+	different base class.
+
+2005-01-11 02:55  rtomayko
+
+	* kid/: compiler.py, importer.py:
+
+	Simplified modules. Got rid of some cruft that was left around from
+	code lifted from Quixote.
+
+2005-01-11 02:53  rtomayko
+
+	* kid/__init__.py:
+
+	Major interface changes:   import_template() - like using import
+	statement but with ihooks crap.    load_template() - load a
+	template module from file instead of importing.    Template() -
+	function calls load_template and returns the template's main class.
+	   BaseTemplate - class that acts as the base-class for all
+	generated templates.  Automatically call enable_import() if
+	KID_IMPORT environment variable is set.
+
+2005-01-11 02:50  rtomayko
+
+	* test_kid.py:
+
+	Added exec() hack tests.  Added tests for kid.load_template and
+	kid.import_template Added test for outputting short-form elements.
+
+2005-01-11 02:49  rtomayko
+
+	* bin/kid:
+
+	Updated for 0.4 interface changes.
+
+2005-01-11 02:12  rtomayko
+
+	* TODO:
+
+	[no log message]
+
+2004-12-30 19:20  rtomayko
+
+	* bin/kid:
+
+	Fixed SyntaxError: __name__ referenced before assignment. Thanks
+	Ross Burton
+
+2004-12-29 14:26  rtomayko
+
+	* test/: templates.kid, test_def.kid:
+
+	kid:def test cases..
+
+2004-12-29 07:19  rtomayko
+
+	* kid/util.py:
+
+	Minor speed up..
+
+2004-12-29 07:18  rtomayko
+
+	* doc/kid-spec.txt, kid/parser.py, HISTORY:
+
+	First crack at name-based templating. The kid:def attribute can be
+	used to create a named template. Markup in an kid:def isn't
+	executed as part of the normal template but can be called in
+	kid:content or imported into other templates. woot!
+
+2004-12-28 17:51  rtomayko
+
+	* test_kid.py, doc/kid-spec.txt, kid/parser.py:
+
+	Handle escaping attribute value templates. Use double curly braces.
+	Also add unit tests for interpolation functions.
+
+2004-12-28 17:49  rtomayko
+
+	* bin/kid:
+
+	Only process __main__ stuff if this script is called as __main__
+
+2004-12-27 05:54  rtomayko
+
+	* HISTORY, ChangeLog:
+
+	[no log message]
+
+2004-12-27 05:53  rtomayko
+
+	* test_kid.py, bin/kid, bin/kidc, kid/__init__.py, kid/importer.py,
+	kid/parser.py:
+
+	Generated templates subclass kid.Template.  Various refactoring
+	into class
+
+2004-12-27 05:53  rtomayko
+
+	* examples/basic/sysinfo.kid:
+
+	repeat is not for..
+
+2004-12-24 11:05  rtomayko
+
+	* test_kid.py, test/context.kid:
+
+	Tests for kwarg context.
+
+2004-12-24 11:03  rtomayko
+
+	* kid/: parser.py, __init__.py:
+
+	expand methods now take keyword args instead of a context dict.
+	Anything passed in the keyword args dict is scoped in locally.
+
+2004-12-24 11:02  rtomayko
+
+	* kid/compiler.py:
+
+	compiler.compile is not the same as the compile builtin. this was
+	causing some problems with scoping of local variables.
+
+2004-12-24 11:01  rtomayko
+
+	* kid/importer.py:
+
+	Remove unneeded debug statement.
+
+2004-12-22 17:05  rtomayko
+
+	* setup.py:
+
+	Oops. missed license stuff in distutils script..
+
+2004-12-22 17:05  rtomayko
+
+	* HISTORY:
+
+	Move things around a bit..
+
+2004-12-22 07:28  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2004-12-22 07:28  rtomayko
+
+	* kid/__init__.py:
+
+	release 0.3
+
+2004-12-22 06:57  rtomayko
+
+	* kid/parser.py:
+
+	Changes for pulltree.eat modifications..
+
+2004-12-22 06:57  rtomayko
+
+	* doc/: about.txt, index.txt:
+
+	Documentation updates for license change.
+
+2004-12-22 06:56  rtomayko
+
+	* pulltree.py:
+
+	Fixed problem with character data not making it into ElementTree.
+	Removed __iter__ from PullElement. This is causing problems
+	somewhere but I don't have time to track it down atm.  expand and
+	eat now assume that the start element event has not arrived. depth
+	argument can be provided to get old-style functionality..
+
+2004-12-22 06:54  rtomayko
+
+	* test/test_replace.kid:
+
+	Added kid:replace test..
+
+2004-12-22 06:53  rtomayko
+
+	* makefile:
+
+	More clean files..
+
+2004-12-22 06:52  rtomayko
+
+	* HISTORY, TODO:
+
+	[no log message]
+
+2004-12-22 06:52  rtomayko
+
+	* README:
+
+	sugar..
+
+2004-12-18 00:19  rtomayko
+
+	* HISTORY:
+
+	Added notes about kid:replace
+
+2004-12-18 00:16  rtomayko
+
+	* kid/parser.py:
+
+	Support for kid:replace
+
+2004-12-18 00:16  rtomayko
+
+	* pulltree.py:
+
+	Fixed bad variable name in XML() function..
+
+2004-12-18 00:15  rtomayko
+
+	* TODO:
+
+	[no log message]
+
+2004-12-18 00:05  rtomayko
+
+	* HISTORY, doc/kid-spec.txt, doc/tutorial.txt:
+
+	Documentation updates for kid:repeat to kid:for name change.
+
+2004-12-18 00:00  rtomayko
+
+	* kid/parser.py, test/test_repeat.kid:
+
+	kid:repeat changed to to kid:for
+
+2004-12-17 23:37  rtomayko
+
+	* kid/parser.py:
+
+	Add from __future__ import generators to generated code. Needed for
+	Python lt 2.3 compatibility.
+
+2004-12-17 23:35  rtomayko
+
+	* test_kid.py:
+
+	__file__ doesn't work on __main__ modules in Python lt 2.3
+
+2004-12-17 23:32  rtomayko
+
+	* README, TODO, kid/__init__.py, kid/compiler.py, kid/parser.py:
+
+	More from __future__ import generators for Python lt 2.3
+
+2004-12-17 23:31  rtomayko
+
+	* test/include-me.xml:
+
+	file to include in tests.
+
+2004-12-17 23:30  rtomayko
+
+	* pulltree.py:
+
+	Add from __future__ import generators for Python 2.2
+
+2004-12-17 22:53  rtomayko
+
+	* COPYING:
+
+	Sucks..
+
+2004-12-17 22:53  rtomayko
+
+	* HISTORY:
+
+	Added HISTORY as ChangeLog is too verbose and crazy to read sanely
+
+2004-12-17 22:43  rtomayko
+
+	* makefile, pulltree.py, test_kid.py, bin/kid, bin/kidc,
+	kid/__init__.py, kid/compiler.py, kid/importer.py, kid/parser.py,
+	kid/util.py:
+
+	Standardizing on four-space indent.  Prelimenary license changes.
+
+2004-12-16 22:21  rtomayko
+
+	* ChangeLog, TODO:
+
+	[no log message]
+
+2004-12-15 11:02  rtomayko
+
+	* TODO:
+
+	[no log message]
+
+2004-12-14 06:09  rtomayko
+
+	* test/test_content_structure.kid:
+
+	Test for bringing in external content.
+
+2004-12-14 05:37  rtomayko
+
+	* makefile:
+
+	Add examples to clean files..
+
+2004-12-14 05:36  rtomayko
+
+	* kid/: parser.py, util.py:
+
+	First crack at support for structured content.
+
+2004-12-14 05:35  rtomayko
+
+	* pulltree.py:
+
+	Add pull function for turning Elements into streams.  Don't require
+	an element be passed to expand or eat.
+
+2004-12-14 05:32  rtomayko
+
+	* TODO:
+
+	[no log message]
+
+2004-12-14 02:31  rtomayko
+
+	* kid/parser.py:
+
+	Fixed generated code referencing kid.pulltree instead of pulltree.
+
+2004-12-14 02:26  rtomayko
+
+	* setup.py:
+
+	Fix bad package name in py_modules
+
+2004-12-14 02:25  rtomayko
+
+	* pulltree.py, setup.py, kid/__init__.py, kid/parser.py,
+	kid/pulltree.py:
+
+	Move pulltree.py to top-level module
+
+2004-12-14 02:23  rtomayko
+
+	* TODO:
+
+	Updated for recent changes..
+
+2004-12-14 01:56  rtomayko
+
+	* test_kid.py, test/test_content.kid, test/test_repeat.kid:
+
+	Actual check that output matches expected output in tests.
+
+2004-12-14 01:55  rtomayko
+
+	* kid/: __init__.py, parser.py, pulltree.py, util.py:
+
+	Rewrite internals to use ElementTree/pulltree so we can do
+	something sane wrt templating.
+
+2004-12-02 06:50  rtomayko
+
+	* setup.py:
+
+	Missed a comma in setup.py. Was causing trove classifiers to
+	collapse.
+
+2004-12-02 06:47  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2004-12-02 06:47  rtomayko
+
+	* bin/kid, kid/__init__.py:
+
+	Ran tests, found bugs, fixed bugs, releasing for real this time.
+
+2004-12-02 06:40  rtomayko
+
+	* setup.py:
+
+	oops. didn't mean to ucase the package name..
+
+2004-12-02 06:39  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2004-12-02 06:39  rtomayko
+
+	* kid/__init__.py:
+
+	release 0.2
+
+2004-12-02 06:39  rtomayko
+
+	* makefile:
+
+	don't verify the tag hasn't been used.
+
+2004-12-02 06:38  rtomayko
+
+	* setup.py:
+
+	Should be good for PyPI registration.. I think.
+
+2004-12-02 06:19  rtomayko
+
+	* README:
+
+	Added some information to the README..
+
+2004-12-02 06:17  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2004-12-02 06:16  rtomayko
+
+	* MANIFEST.in:
+
+	Really add ChangeLog this time..
+
+2004-12-02 06:15  rtomayko
+
+	* ChangeLog, MANIFEST.in, kid/__init__.py:
+
+	Added examples and ChangeLog
+
+2004-12-02 06:10  rtomayko
+
+	* doc/: style.css, style.xsl:
+
+	Added the sourceforge.net logo..
+
+2004-12-02 06:10  rtomayko
+
+	* doc/: kid-spec.txt, tutorial.txt:
+
+	Updated the spec and stubbed some content into the tutorial (which
+	isn't really a tutorial..)
+
+2004-12-02 03:21  rtomayko
+
+	* examples/basic/: README, sysinfo.kid:
+
+	Added basic example illustrating various kid usage from commandline
+	and from within python.
+
+2004-12-02 02:57  rtomayko
+
+	* examples/cgi/: README, kid_handler.cgi, sysinfo.kid:
+
+	Added CGI demo. It's no more than a proof-of-concept to be honest.
+
+2004-12-02 02:46  rtomayko
+
+	* kid/util.py:
+
+	the expand function of template modules can now take a
+	ContentHandler, a file like object, or None (in which case a buffer
+	is created and the result is returned as a string)
+
+2004-12-02 02:44  rtomayko
+
+	* kid/parser.py:
+
+	Change name of output ContentHandler from output to _out to try to
+	reduce the chance of name collision.
+
+2004-12-02 02:43  rtomayko
+
+	* kid/__init__.py:
+
+	Allow SAX content handlers to be passed to expand_template
+
+2004-12-02 02:42  rtomayko
+
+	* bin/kidc:
+
+	Minor fixup to error handling and usage.
+
+2004-12-02 02:41  rtomayko
+
+	* work.sh:
+
+	bash script to source when testing out of working directory.
+
+2004-12-02 02:40  rtomayko
+
+	* makefile:
+
+	make doc before releasing so that the html files go out in the
+	distribution.
+
+2004-12-02 02:37  rtomayko
+
+	* bin/kid:
+
+	Run templates from the command line without compiling.
+
+2004-12-01 09:18  rtomayko
+
+	* TODO:
+
+	[no log message]
+
+2004-12-01 09:17  rtomayko
+
+	* setup.py:
+
+	Added download link
+
+2004-12-01 09:15  rtomayko
+
+	* setup.py:
+
+	Better trove classifiers. Removed doc files
+
+2004-12-01 09:05  rtomayko
+
+	* MANIFEST.in:
+
+	Added doc files and kidc to MANIFEST
+
+2004-12-01 08:59  rtomayko
+
+	* makefile:
+
+	Don't clean release by default. Added fullclean target for cleaning
+	everything.
+
+2004-11-30 06:40  rtomayko
+
+	* doc/kid-spec.txt:
+
+	Fixed bug in language spec.
+
+2004-11-30 06:40  rtomayko
+
+	* doc/index.txt:
+
+	Changed download location..
+
+2004-11-30 06:24  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2004-11-30 06:23  rtomayko
+
+	* ChangeLog:
+
+	release 0.1.1
+
+2004-11-30 06:23  rtomayko
+
+	* makefile:
+
+	Don't check ChangeLog in pre-release-test..
+
+2004-11-30 06:22  rtomayko
+
+	* kid/__init__.py:
+
+	Version update..
+
+2004-11-30 06:21  rtomayko
+
+	* doc/index.txt:
+
+	Add download location and note about being early..
+
+2004-11-30 06:02  rtomayko
+
+	* doc/: about.txt, index.txt, makefile, style.css, style.xsl:
+
+	Tidy up documentation a bit
+
+2004-11-29 09:10  rtomayko
+
+	* makefile, doc/makefile:
+
+	I think make publish is finally working for pushing out site
+	content.
+
+2004-11-29 09:10  rtomayko
+
+	* TODO:
+
+	[no log message]
+
+2004-11-29 08:03  rtomayko
+
+	* doc/: index.txt, kid-spec.txt, makefile, style.css, style.xsl,
+	tutorial.txt:
+
+	Some work on documentation..
+
+2004-11-28 22:29  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2004-11-28 22:29  rtomayko
+
+	* kid/__init__.py:
+
+	release 0.1
+
+2004-11-28 22:28  rtomayko
+
+	* kid/: compiler.py, parser.py:
+
+	Fixed some fairly obvious and stupid problems due to splitting
+	compiler and parser up into two modules.
+
+2004-11-28 22:27  rtomayko
+
+	* makefile:
+
+	test target should be working now.
+
+2004-11-28 22:18  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2004-11-28 22:18  rtomayko
+
+	* kid/__init__.py:
+
+	release 0.0.1
+
+2004-11-28 22:17  rtomayko
+
+	* makefile:
+
+	makefile is halfway sane now.
+
+2004-11-28 22:09  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2004-11-28 22:09  rtomayko
+
+	* makefile:
+
+	release 0.0
+
+2004-11-28 22:01  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2004-11-28 22:01  rtomayko
+
+	* makefile:
+
+	release 0.0
+
+2004-11-28 21:59  rtomayko
+
+	* .cvsignore:
+
+	Ignore release and export directories
+
+2004-11-28 21:57  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2004-11-28 21:57  rtomayko
+
+	* makefile:
+
+	release 0.0
+
+2004-11-28 21:54  rtomayko
+
+	* ChangeLog:
+
+	updated ChangeLog
+
+2004-11-28 21:54  rtomayko
+
+	* ChangeLog, makefile, kid/__init__.py:
+
+	release 0.0
+
+2004-11-28 21:51  rtomayko
+
+	* ChangeLog:
+
+	[no log message]
+
+2004-11-28 21:46  rtomayko
+
+	* COPYING, MANIFEST.in, README, TODO, makefile, setup.py,
+	test_kid.py, bin/kidc, doc/index.txt, doc/kid-spec.txt,
+	doc/tutorial.txt, kid/__init__.py, kid/compiler.py,
+	kid/importer.py, kid/parser.py, kid/util.py, test/__init__.py,
+	test/basic-test.html.kid, test/template-test.html.kid,
+	test/test_content.kid, test/test_if.kid, test/test_kid_pi.kid,
+	test/test_omit.kid, test/test_repeat.kid:
+
+	Initial import into sourceforge repository.  Old history can be
+	found at the following:
+
+	  http://naeblis.cx/cvs/kid/
+

@@ -1,0 +1,947 @@
+================
+Kid User's Guide
+================
+
+:Author: Ryan Tomayko
+:Contact: rtomayko@gmail.com
+:Revision: $Rev: 489 $
+:Date: $Date: 2007-07-06 20:37:55 -0400 (Fri, 06 Jul 2007) $
+:Copyright: 2005, Ryan Tomayko
+:Other Formats: Text__
+
+.. __: guide.txt
+
+Kid is an XML based template language that uses embedded Python_ to do cool
+stuff. The syntax was inspired by a number of existing template languages,
+namely XSLT_, TAL_, and PHP_.
+
+.. _python: http://www.python.org/
+.. _xslt: http://www.w3.org/TR/xslt
+.. _tal: http://www.zope.org/Wikis/DevSite/Projects/ZPT/TAL
+.. _php: http://www.php.net/
+
+This document describes the Kid Python interface, command line tools, and
+methods for configuring Kid in various web environments. For more
+information about the template language, see the `Kid Language
+Specification`_.
+
+.. _Kid Language Specification: language.html
+
+.. contents:: Table of Contents
+.. sectnum::
+
+Introduction
+============
+
+Why use Kid?
+------------
+
+Kid was designed to simplify the process of generating and transforming
+dynamic well-formed XML documents using Python. While there are a myriad of
+tools for working with XML documents in Python, generating XML is generally
+tedious, error prone, or both:
+
+* APIs like SAX, DOM, or ElementTree can guarantee well-formed output but
+  require that output documents be created entirely in Python.
+
+* Template languages like Cheetah_ or PTL_ make generating text content
+  easy but offer little to help ensure the output is
+  correct/well-formed. Using text based tools to generate XML can result in
+  bad data as there are many issues with basic XML syntax and encoding that
+  need to be understood and coded for by the programmer.
+
+* XSLT provides much of the functionality required to generate good XML
+  content but requires all input to be in the form of an XML document. This
+  brings us back to the original problem of *not being able to generate XML
+  content safely and easily*.
+
+Kid is an attempt to bring the benefits of these technologies together into
+a single cohesive package.
+
+.. _Cheetah: http://www.cheetahtemplate.org/
+.. _PTL: http://www.mems-exchange.org/software/quixote/doc/PTL.html
+
+Kid also allows the programmer to exploit the structured nature of XML by
+writing filters and transformations that work at the XML infoset level. Kid
+templates use generators to produce infoset items. This allows pipelines to
+be created that filter and modify content as needed.
+
+What Types of XML Documents?
+----------------------------
+
+Kid can be used to generate any kind of XML documents including XHTML, RSS,
+Atom, FOAF, RDF, XBEL, XSLT, RelaxNG, Schematron, SOAP, etc.
+
+XHTML is generally used for examples as it is arguably the most widely
+understood XML vocabulary in existence today.
+
+Template Example
+----------------
+
+Kid template files are well-formed XML documents with embedded Python used
+for generating and controlling dynamic content.
+
+The following illustrates a very basic Kid Template::
+
+  <?xml version='1.0' encoding='utf-8'?>
+  <?python
+  import time
+  title = "A Kid Template"
+  ?>
+  <html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:py="http://purl.org/kid/ns#"
+  >
+    <head>
+      <title py:content="title">
+        This is replaced with the value of the title variable.
+      </title>
+    </head>
+    <body>
+      <p>
+        The current time is ${time.strftime('%C %c')}.
+      </p>
+    </body>
+  </html>
+
+Kid supports more advanced features such as conditionals (``py:if``),
+iteration (``py:for``), and reusable sub templates (``py:def``). For more
+information on kid template syntax, see the `Kid Language Specification`_.
+
+Kid templates should use the ``.kid`` file extension if importing the
+template module using normal Python code is desired. The Kid import hook
+extensions rely on the ``.kid`` file extension being present.
+
+A Note on Template Design
+-------------------------
+
+It is possible to embed blocks of Python code using the ``<?python?>``
+processing instruction (PI). However, the practice of embedding object model,
+data persistence, and business logic code in templates is highly
+discouraged. In most cases, these types of functionality should be moved
+into external Python modules and imported into the template.
+
+Keeping large amounts of code out of templates is important for a few
+reasons:
+
+* Separation of content and logic. Templates are meant to model a document
+  format and should not be laden with code whose main concern is something
+  else.
+
+* Editors with Python support (like Emacs) will not recognize Python code
+  embedded in Kid templates.
+
+* People will call you names.
+
+That being said, circumstances requiring somewhat complex formatting or
+presentation logic arise often enough to incline us to include the ability
+to embed blocks of real code in Templates. Template languages that help by
+hindering ones ability to write a few lines of code when needed lead to even
+greater convolution and general distress.
+
+*That* being said, there are some limitations on what types of usage the
+``<?python?>`` PI may be put to. Specifically, you cannot generate output
+within a code block (without feeling dirty), and all Python blocks end with
+the PI.
+
+You cannot do stuff like this::
+
+  <table>
+    <?python #
+    for row in rows: ?>
+      <tr><td py:content="row.colums[0]">...</td></tr>
+  </table>
+  <p><?python print 'some text and <markup/> too'?></p>
+
+This is a feature. One of the important aspects of Kid is that it guarantees
+well-formed XML output given a valid template. Allowing unstructured text
+output would make this impossible.
+
+The ``kid`` package
+===================
+
+The ``kid`` package contains functions and classes for using templates.
+Kid uses and exports the Element_ data structure for storing XML elements,
+but it is independent of the ElementTree_ package.
+
+.. _Element: http://effbot.org/zone/element.htm
+.. _ElementTree: http://effbot.org/zone/element-index.htm
+
+Loading and Executing Templates
+-------------------------------
+
+``enable_import(ext=None, path=None)``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``enable_import`` function turns on the Kid import hooks and allows
+Python's native import statement to be used to access template modules.
+The template modules are generally stored in files using a .kid file
+extension. The optional ext argument can be used to pass in a list
+of additional file extensions for kid templates (the standard extension
+is .kid). This is useful is you wish to put your XML templates in .html
+files and have them importable. The optional path argument can be used
+to enable importing of Kid templates only from one or more specified paths.
+
+It is generally called once at the beginning of program execution,
+but calling multiple times has no effect adverse or otherwise.
+
+Example::
+
+  import kid
+  kid.enable_import()
+
+  # or
+
+  import kid
+  kid.enable_import(ext=".html")
+
+  # or
+
+  import kid
+  kid.enable_import(path="/path/to/kid/templates")
+
+There are a few very simple rules used to determine which file to load
+for a particular import statement. The first file matching the criteria
+will be loaded even if other matching files exist down the chain. The
+rules are so follows:
+1. look for module.kid file
+2. traverse the additional extensions, if supplied, looking for module.ext
+3. look for the standard Python extensions (.py, .pyc, etc.)
+
+``disable_import(path=None)``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the function ``disable_import`` you can disable importing Kid templates
+again when this had been enabled with ``enable_import``.
+
+.. _template function:
+
+``Template``
+~~~~~~~~~~~~
+
+Sometimes using Python's native import doesn't make sense for template
+usage. In these cases, the ``kid.Template`` function can be used to load a
+template module and create an instance of the module's ``Template`` class.
+
+The ``kid.Template`` function requires one of the following arguments to be
+provided to establish the template:
+
+file
+  The template should be loaded from the file specified. If a compiled
+  version of template exists, it will be loaded. If not, the template is
+  loaded and an attempt will be made to write a compiled version.
+
+source
+  The template should be loaded from the string specified. There is no
+  mechanism for caching string templates other than to keep a reference to
+  the object returned.
+
+name
+  The template should be loaded by importing a module with the specified
+  name. This is exactly like using Python's normal import but allows
+  template names to be specified dynamically and also doesn't require the
+  import hook to be enabled.
+
+::
+
+  import kid
+  template = Template(file='test.kid', foo='bar', baz='bling')
+  print template.serialize()
+
+::
+
+  import kid
+  template = Template(source='<p>$foo</p>', foo='Hello World!')
+  print template.serialize()
+
+
+``load_template``
+~~~~~~~~~~~~~~~~~
+
+The ``load_template`` function returns the module object for the template
+given a template filename. This module object can be used as if the module
+was loaded using Python's import statement. Use this function in cases where
+you need access to the template module but the template doesn't reside on
+Python's path.
+
+::
+
+  import kid
+  template_module = kid.load_template('test.kid', cache=1)
+  template = template_module.Template(foo='bar', baz='bling')
+  print str(template)
+
+Note that the `Template function`_ usually provides a better interface for
+creating templates as it automatically creates an instance of the `Template`
+class for the module, removing a line of code or two.
+
+However, if you are creating templates dynamically (e.g. by loading them from
+a database), you may prefer to use this function in order to create them,
+by simply passing in the source as the first argument, and setting
+``cache=False`` (so the templates modules aren't saved in ``sys.modules``)::
+
+  import kid
+
+  class TemplateManager:
+
+      # ... other methods here
+
+      def get_template(self, key):
+          source_string = self.fetch_template_source(key)
+          return kid.load_template(
+              source_string, cache=False, ns={'manager':self}
+          )
+
+``load_template()`` uses its ``ns`` keyword argument to pre-populate the
+template module namespace with global variables.  In this example, we give the
+template module access to an instance of our "template manager" class in a
+``manager`` variable, allowing templates to inherit from other templates
+loaded from the same database, using e.g.::
+
+     <root py:extends="manager.get_template('other_template')">
+
+Template Classes
+================
+
+Kid templates are converted into normal Python modules and may be used like
+normal Python modules. All template modules have a uniform interface that
+expose a class named ``Template`` and possibly a set of functions (one for
+each ``py:def`` declared in the template).
+
+Importing
+---------
+
+Templates may be imported directly like any other Python module after the
+Kid import hooks have been enabled. Consider the following files in a
+directory on Python's ``sys.path``::
+
+  file1.py
+  file2.py
+  file3.kid
+
+The ``file1`` module may import the ``file3`` template module using the
+normal Python import syntax after making a call to ``kid.enable_import()``::
+
+  # enable kid import hooks
+  import kid
+  kid.enable_import()
+
+  # now import the template
+  import file3
+  print file3.serialize()
+
+The importer checks whether a compiled version of the template exists by
+looking for a ``template.pyc`` file and if not found, loads the
+``template.kid`` file, compiles it, and attempts to save it to
+``template.pyc``. If the compiled version cannot be saved properly,
+processing continues as normal; no errors or warnings are generated.
+
+
+The ``Template`` class
+----------------------
+
+Each template module exports a class named "Template". An instance of a
+template is obtained in one of three ways:
+
+* The `Template function`_.
+* Enabling the import hook, using Python's import to obtain the module,
+  and then retrieving the ``Template`` class.
+* Calling the ``kid.load_template`` function and then retrieving the
+  ``Template`` class.
+
+The ``Template`` function is the preferred method of obtaining a template
+instance.
+
+All Template classes subclass the ``kid.BaseTemplate`` class, providing a
+uniform set of methods that all templates expose. These methods are
+described in the following sections.
+
+``__init__(**kw)``
+~~~~~~~~~~~~~~~~~~
+
+Template instantiation takes a list of keyword arguments and maps them to
+attributes on the object instance. You may pass any number of keywords
+arguments and they are available as both instance attributes and as locals
+to code contained in the template itself.
+
+For example::
+
+    from mytemplate import Template
+    t = Template(foo='bar', hello='world')
+
+is equivalent to::
+
+    from mytemplate import Template
+    t = Template()
+    t.foo = 'bar'
+    t.hello = 'world'
+
+And these names are available within a template as if they were locals::
+
+    <p>Hello ${hello}</p>
+
+.. note::
+
+  The names ``source``, ``file``, and ``name`` should be avoided because
+  they are used by the generic `Template Function`_.
+
+.. _serialize:
+
+``serialize()``
+~~~~~~~~~~~~~~~
+
+Execute the template and return the result as one big string.
+
+::
+
+  def serialize(encoding=None, fragment=0, output=None)
+
+This method returns a string containing the output of the template encoded
+using the character encoding specified by the ``encoding`` argument. If no
+encoding is specified, "utf-8" is used.
+
+The ``fragment`` argument specifies whether prologue information such as the
+XML declaration (``<?xml ...?>``) and/or DOCTYPE should be output. Set to a
+truth value if you need to generate XML suitable for insertion into another
+document.
+
+The ``output`` argument specifies the serialization method that should be
+used. This can be a string or a ``Serializer`` instance.
+
+.. note::
+
+  The ``__str__`` method is overridden to use this same function so that
+  calls like ``str(t)``, where ``t`` is a template instance, are equivalent
+  to calling ``t.serialize()``.
+
+``generate()``
+~~~~~~~~~~~~~~
+
+Execute the template and generate serialized output incrementally.
+
+::
+
+   def generate(encoding=None, fragment=0, output=None)
+
+This method returns an iterator that yields an encoded string for each
+iteration. The iteration ends when the template is done executing.
+
+See the `serialize`_ method for more info on the ``encoding``, ``fragment``,
+and ``output`` arguments.
+
+``write()``
+~~~~~~~~~~~
+
+Execute the template and write output to file.
+
+::
+
+  def write(file, encoding=None, fragment=0, output=None)
+
+This method writes the processed template out to a file. If the file argument
+is a string, a file object is created using ``open(file, 'wb')``. If the file
+argument is a file-like object (supports ``write``), it is used directly.
+
+See the `serialize`_ method for more info on the ``encoding``, ``fragment``,
+and ``output`` arguments.
+
+``transform()``
+~~~~~~~~~~~~~~~
+
+This method returns a generator object that can be used to iterate over the
+Element type objects produced by template execution. For now this method is
+under-documented and its use is not recommended. If you think you need to
+use it, ask about it on the mailing list.
+
+
+.. _serialization:
+
+Serialization
+-------------
+
+The Template object's ``serialize``, ``generate``, and ``write`` methods
+take ``output`` and ``format`` arguments that controls how the XML Infoset
+items generated by a template should serialized. Kid has a modular
+serialization system allowing a single template to be serialized differently
+based on need.
+
+The ``kid`` package exposes a set of classes that handle serialization. The
+``Serializer`` class provides some base functionality but does not perform
+serialization; it provides useful utility services to subclasses. The
+``XMLSerializer``, ``HTMLSerializer``, and ``PlainSerializer`` classes
+are concrete and can be used to serialize template output as XML or HTML,
+respectively.
+
+
+``XMLSerializer``
+~~~~~~~~~~~~~~~~~
+
+The ``XMLSerializer`` has the the following options, which can be set when
+an instance is constructed, or afterwards as instance attributes:
+
+encoding
+  The character encoding that should be used when serializing output. This
+  can be any character encoding supported by Python.
+
+decl
+  Boolean specifying whether the XML declaration should be output. Note that
+  the ``fragment`` argument can be used to turn this off when calling the
+  ``serialize``, ``generate``, or ``write`` methods.
+
+doctype
+  A 3-tuple of the form *(TYPE, PUBLIC, SYSTEM)* that specifies a DOCTYPE
+  that should be output. If the ``doctype`` attribute is ``None``, no
+  DOCTYPE is output. Note that if the ``fragment`` argument is set, no
+  DOCTYPE will be output.
+
+entity_map
+  An optional mapping to be used for mapping non-ascii and special characters
+  to named XML character entities. By default, only the XML built-in character
+  entities are used. Setting this to True is a shortcut for using the standard
+  HTML and XHTML named character entities.
+
+The following example creates a custom XML serializer for DocBook and uses
+it to serialize template output::
+
+  from kid import Template, XMLSerializer
+  dt = ('article', '-//OASIS//DTD DocBook XML V4.1.2//EN',
+        'http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd')
+  serializer = XMLSerializer(encoding='ascii', decl=1, doctype=dt)
+  t = Template(file='example.dbk')
+  print t.serialize(output=serializer)
+
+
+``XHTMLSerializer``
+~~~~~~~~~~~~~~~~~~~
+
+The ``HTMLSerializer`` is cabable of serializing an XML Infoset using XHTML
+1.0 syntax. This serializer varies from the ``XMLSerializer`` only in some
+minor details, such as using singleton tags only in certain cases (e.g.
+``<br />```). When formatting the output, this serializer is also aware of
+whether tags are inline (like ``<b>``) or block-level (like ``<p>``) and
+should be output on a new line, or whether tags should not be formatted in
+the output at all (e.g. ``<textarea>``).
+
+
+``HTMLSerializer``
+~~~~~~~~~~~~~~~~~~
+
+The ``HTMLSerializer`` is cabable of serializing an XML Infoset using HTML
+4.01 syntax. This serializer varies from the ``XMLSerializer`` as follows:
+
+* No ``<?xml ...?>`` declaration.
+
+* HTML 4.01 DOCTYPE(s).
+
+* Transpose element/attribute names to lowercase by default (can be
+  configured to transpose to uppercase or to not transpose at all).
+
+* Injects a ``<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=enc">``
+  where *enc* is the output encoding.
+
+* When formatting output, is aware of whether tags are block-level or inline
+  and whether tag content should not be touched at all.
+
+* Outputs the following element's as "empty elements" (i.e. no closing
+  tag): ``area``, ``base``, ``basefont``, ``br``, ``col``, ``frame``,
+  ``hr``, ``img``, ``input``, ``isindex``, ``link``, ``meta``, ``param``.
+
+* No such thing as short-form elements: ``<elem />``. All elements (except
+  for empty elements) must have a full end tag.
+
+* Does not escape reserved characters in ``<script>`` and ``<style>``
+  blocks. This includes less-than signs and ampersands.
+
+* Boolean attributes are output without a value part. For example,
+  ``<option selected>foo</option>``.
+
+* Discards namespace information.
+
+Much of this functionality can be controlled by setting options on the
+``HTMLSerializer`` instance. These options are as follows:
+
+encoding
+  The character encoding that should be used when serializing output. This
+  can be any character encoding supported by Python.
+
+doctype
+  A 3-tuple of the form *(TYPE, PUBLIC, SYSTEM)* that specifies a DOCTYPE
+  that should be output. If the ``doctype`` attribute is ``None``, no
+  DOCTYPE is output.
+
+transpose
+  This is a reference to a function that is called to transpose tag and
+  attribute names. ``True`` is interpreted as ``string.upper`` and ``False``
+  is interpreted as ``string.lower`` (the default). If set to ``None``,
+  all tag names are output as they are in the source document.
+
+inject_type
+  Boolean specifying whether a ``<META>`` tag should be inserted into the
+  ``<HEAD>`` of the document specifying the character encoding. This is
+  enabled by default.
+
+entity_map
+  An optional mapping to be used for mapping non-ascii and special characters
+  to named XML character entities. By default, only the XML built-in character
+  entities are used. Setting this to ``True`` is a shortcut for using the
+  standard HTML named character entities.
+
+empty_elements
+  A ``set`` containing the names (in lower case) of the elements that do not
+  have closing tags. Set to ``[]`` to turn off empty_element processing.
+
+noescape_elements
+  A ``set`` containing the names (in lower case) of elements whose content
+  should not be escaped. This defaults to ``['script', 'style']``. Set to
+  ``[]`` to turn enable escaping in all elements.
+
+boolean_attributes
+  A ``set`` containing the names (in lower case) of attributes that do not
+  require a value part. The presence of the attribute name signifies that the
+  attribute value is set. Set to ``[]`` to disable boolean attribute
+  processing.
+
+
+``PlainSerializer``
+~~~~~~~~~~~~~~~~~~~
+
+The ``PlainSerializer`` can be used to generate non-markup, like a CSS or
+Javascript file.  All markup that is rendered is thrown away, and entities
+are resolved.
+
+When using this serializer, your template must still be valid XML.  A typical
+pattern might be::
+
+    <css>
+    /* Look &amp; Feel */
+    body {color: #f00}
+    </css>
+
+Which renders to::
+
+    /* Look & Feel */
+    body {color: #f00}
+
+
+Common Output Methods
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``kid.output_methods`` dictionary contains a mapping of names to
+frequently used ``Serializer`` configurations. You can pass any of these
+names as the ``output`` argument in ``Template`` methods.
+
+xml
+  The ``xml`` output method is the default. It serializes the infoset
+  items as well-formed XML and includes a ``<?xml?>`` declaration. The
+  serializer is created as follows::
+
+    XMLSerializer(encoding='utf-8', decl=True)
+
+wml
+  The ``wml`` method outputs XML with an additional document type
+  declaration suited for WML (the Wireless Markup Language).
+
+html / html-strict / html-frameset / html-quirks / html-frameset-quirks
+  The ``html`` output methods use the ``HTMLSerializer`` to serialize
+  the infoset. The ``HTMLSerializer`` used has the following options set:
+
+  * Tag and attribute names converted to lowercase
+    (``HTMLSerializer.transpose = string.lower``).
+
+  * HTML Transitional, HTML Strict or HTML Frameset DOCTYPE.
+
+  * The ``html-quirks`` and ``html-framset-quirks`` output methods
+    generate a DOCTYPE without a system identifier. This triggers
+    the so-called "quirks mode" in which a modern web browser tries
+    to behave as an older, non-standards-compliant browser.
+
+  For more information on how content is serialized, see the
+  `HTMLSerializer`_ documentation.
+
+HTML / HTML-strict / HTML-frameset / HTML-quirks / HTML-frameset-quirks
+  The ``HTML`` output methods do the same as the ``html`` output methods,
+  but the ``HTMLSerializer`` has the following different option set:
+
+  * Tag and attribute names converted to uppercase
+    (``HTMLSerializer.transpose = string.upper``).
+
+xhtml / xhtml-strict / xhtml-frameset
+  The ``xhtml`` output methods use a custom ``XMLSerializer`` to serialize
+  the infoset. The ``XMLSerializer`` used has the following options set:
+
+  * No ``<?xml?>`` declaration.
+
+  * XHTML Transitional, XHTML Strict or XHTML Frameset DOCTYPE.
+
+plain
+  The ``plain`` output method uses ``PlainSerializer``, which takes
+  only an ``encoding`` argument.  All markup is stripped, entities are
+  resolved, and only the resulting text is output.
+
+The following example serializes data as HTML instead of XML::
+
+  >>> from kid import Template
+  >>> t = Template('<html xmlns="http://www.w3.org/1999/xhtml">'
+                   '<body><p>Hello World</p><br /></body></html>')
+  >>> print t.serialize(output='HTML-strict')
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Strict//EN"
+                        "http://www.w3.org/TR/html4/strict.dtd">
+  <HTML><BODY><P>Hello World</P><BR></HTML>
+
+Note that the DOCTYPE is output, tag names are converted to uppercase, and
+some elements have no end tag.
+
+The same code can be used to output XHTML as follows::
+
+  >>> from kid import Template
+  >>> t = Template('<html xmlns="http://www.w3.org/1999/xhtml">'
+                   '<body><p>Hello World</p><br /></body></html>')
+  >>> print t.serialize(output='xhtml-strict')
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+  <body><p>Hello World</p><br /></html>
+
+
+.. _formatting:
+
+Formatting
+----------
+
+Besides the ``output`` argument, specifying the Serializer to be used
+for generating output, the Template object's ``serialize``, ``generate``,
+and ``write`` methods also take a ``format`` argument, giving you
+additional control over how the output will be formatted on the level of
+the text content. The ``format`` parameter must be an instance of the
+``Format`` class or a string referring to some `predefined output formats`_.
+
+When creating a ``Format`` instance, you can pass one or more text filter
+functions for processing text content in the output stream. You can also
+set keyword parameters for using some standard text filter operations.
+The following parameters must be set to True to activate the operation:
+
+  * ``strip_lines``: strip blanks from all text lines
+  * ``lstrip_lines``: left strip blanks from all text lines
+  * ``rstrip_lines``: right strip blanks from all text lines
+  * ``simple_blanks``: remove all duplicate blanks
+  * ``no_empty_lines``: remove all empty lines
+  * ``simple_whitespace``: remove all duplicate whitespace
+  * ``wrap``: wrap text lines to a maximum width
+  * ``indent``: use indentation according to depth
+
+If you set ``wrap`` to ``True``, a line width of 80 will be assumed; if
+you set ``indent`` to ``True``, a tab character will be used for indentation.
+But you can also specify the exact line width using the ``wrap`` parameter
+and set an indentation string or number of blank characters using the
+``indent`` parameter. If the ``indent`` parameter is set, newlines and
+level-dependent indentation will be inserted, paying regard to inline and
+whitespace sensitive tags. You can also control the minimum and maximum
+levels for indentation with the following parameters:
+
+  * ``min_level``: minimum level for indentation
+  * ``max_level``: maximum level for indentation
+
+By default, the minimum level is 1 and the maximum level is 8; so the tags
+directly below the root tag (like ``<head>`` and ``<body>``) are not indented.
+
+Note that this formatting has some limitations since it processes only
+text content in a stream (i.e. there is no look-ahead and paying regard
+to the format of the serialized tags).
+
+There are some more operations which you should use with caution,
+since they may remove significant whitespace:
+
+  * ``strip``: strip whitespace before and after tags
+  * ``lstrip``: strip whitespace after tags
+  * ``rstrip``: strip whitespace before tags
+  * ``strip_blanks``: strip blanks before and after tags
+  * ``lstrip_blanks``: strip blanks after tags
+  * ``rstrip_blanks``: strip blanks before tags
+
+The following parameters control typographic punctuation. Again,
+set these parameters to ``True`` in order to activate the effect.
+
+  * ``educate_quotes``: use typographic quotes
+  * ``educate_backticks``: replace backticks with opening quotes
+  * ``educate_dashes``: replace en-dashes and em-dashes
+  * ``educate_ellipses``: replace ellipses
+  * ``educate`` (or ``nice``): all of the above
+  * ``stupefy`` (or ``ugly``): reverse operation of educate
+
+You can also specify the typographic characters to be used for these
+operations (e.g. other languages may have different conventions here).
+
+  * ``apostrophe``: character to be used for the apostrophe
+  * ``squotes``: left and right single quote characters
+  * ``dquotes``: left and right double quote characters
+  * ``dashes``: characters to be used for en-dash and em-dash
+  * ``ellipsis``: character to be used for the ellipsis
+
+The following parameters are passed to the Serializer (see above).
+
+  * ``decl``: add xml declaration at the beginning
+  * ``doctype``: add document type at the beginning
+  * ``entity_map`` (or ``named``): entity map for named entities
+  * ``transpose``: how to transpose html tags
+  * ``inject_type``: inject meta tag with content-type
+
+Here is an example for a custom format that automatically
+replaces a certain word in the output, uses nice typographic quotes,
+indents block-level tags and uses named entities in the output::
+
+  >>> from kid import Template, Format
+  >>> t = Template('<html><body><h1>"Tomb Raider"</h1></body></html>')
+  >>> replace_raider = lambda x: x.replace('Raider', 'Twix')
+  >>> f = Format(replace_raider, indent=True, nice=True, named=True)
+  >>> print t.serialize(encoding='ascii', output='HTML-quirks', format=f)
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+  <HTML>
+  <BODY>
+      <H1>&ldquo;Tomb Twix&rdquo;</H1>
+  </BODY>
+  </HTML>
+
+
+Predefined Output Formats
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``kid.output_formats`` dictionary contains a mapping of names to
+some useful predefined ``Format`` instances. You can pass any of these
+names as the ``format`` argument in ``Template`` methods.
+
+default
+  The default output format has only ``no_empty_lines`` set and does
+  no further formatting of the output.
+
+straight
+  This does no output cleanup or formatting at all.
+
+compact
+  This output format uses ``simple_whitespace`` which removes all duplicate
+  whitespace in the output (multiple blanks and multiple newlines).
+
+newlines
+  This removes all duplicate whitespace and uses an empty value for ``indent``
+  to put block-level tags on new lines without any indentation.
+
+pretty
+  This removes all duplicate whitespace and uses ``indent`` to put block-level
+  tags on new lines with tab indentation according to the depth.
+
+wrap
+  This output format has the ``wrap`` parameter set which will wrap
+  over-long lines. It will also put block-level elements on new lines.
+
+nice
+  This output format has the ``nice`` parameter set to replace ordinary
+  quotes, dashes and ellipses with typographic correct characters.
+
+ugly
+  This output format has the ``ugly`` parameter set which causes the
+  typographic correct characters to be replaced by the ordinary characters.
+
+named
+  This output format has the ``named`` parameter set, so it will produce
+  named HTML character entities in the output for characters which are not
+  contained in the output encoding (i.e. ``&nbsp;`` instead of ``&#160;``).
+
+The following names for combinations of the above formats can also be used:
+*compact+named*, *newlines+named*, *pretty+named*, *wrap+named*,
+*compact+nice*, *newlines+nice*, *pretty+nice*, *wrap+nice*, *nice+named*,
+*compact+named+nice*, *newlines+named+nice*, *pretty+named+nice*,
+and *wrap+named+nice*.
+
+Example usage::
+
+  import kid
+  kid.enable_import()
+  import mytemplate
+  mytemplate.write('page.html', output='html', format='pretty+nice')
+
+
+Template Variables
+==================
+
+When a template is executed, all of the template instance's attributes are
+available to template code as local variables. These variables may be
+specified when the `template is instantiated`_ or by assigning attributes to
+the template instance directly.
+
+.. _template is instantiated: `__init__(**kw)`_
+
+The following example template relies on two arguments being provided by the
+code that calls the template: ``title`` and ``message``.
+
+``message_template.kid``::
+
+  <?xml version='1.0' encoding='utf-8'?>
+  <html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:py="http://purl.org/kid/ns#">
+    <head>
+      <title>${title.upper()}</title>
+    </head>
+    <body>
+      <h1 py:content="title">Title</h1>
+      <p>
+        A message from Python:
+      </p>
+      <blockquote py:content="message">
+        Message goes here.
+      </blockquote>
+    </body>
+  </html>
+
+The code that executes this template is responsible for passing the `title`
+and `message` values.
+
+``message.py``::
+
+  from kid import Template
+  template = Template(file='message_template.kid',
+                      title="Hello World",
+                      message="Keep it simple, stupid.")
+  print template.serialize()
+
+This should result in the following output::
+
+  <?xml version='1.0' encoding='utf-8'?>
+  <html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+      <title>HELLO WORLD</title>
+    </head>
+    <body>
+      <h1>Hello World</h1>
+      <p>
+        A message from Python:
+      </p>
+      <blockquote>
+        Keep it simple, stupid.
+      </blockquote>
+    </body>
+  </html>
+
+
+Command Line Tools
+==================
+
+Template Compiler (``kidc``)
+----------------------------
+
+Kid templates may be compiled to Python byte-code (``.pyc``) files
+explicitly using the ``kidc`` command. ``kidc`` is capable of compiling
+individual files or recursively compiling all ``.kid`` files in a directory.
+
+Use ``kidc --help`` for more information.
+
+Note that you do not have to compile templates before using them. They are
+automatically compiled the first time they are used.
+
+Run Templates (``kid``)
+---------------------------------------------
+
+Kid templates may be executed directly without having been precompiled using
+the ``kid`` command as follows::
+
+  kid template-file.kid
+
+Template output is written to ``stdout`` and may be redirected to a file
+or piped through XML compliant tools.

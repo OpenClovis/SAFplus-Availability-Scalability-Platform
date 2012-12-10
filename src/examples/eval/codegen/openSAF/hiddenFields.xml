@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hiddenFields>
+  <componentEditor>
+    <serviceGroup>loadingStrategy,maxFailovers</serviceGroup>
+    <serviceInstance>numStandbyAssignments</serviceInstance>
+  </componentEditor>
+</hiddenFields>

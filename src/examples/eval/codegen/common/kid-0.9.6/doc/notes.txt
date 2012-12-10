@@ -1,0 +1,532 @@
+.. contents:: Contents
+
+=======================
+Kid 0.9.6 Release Notes
+=======================
+
+Enhancements
+============
+
+The ``format`` parameter can now be set to ``'straight'`` if you do not want
+any output formatting at all (the default format removes empty lines).
+
+Bug Fixes
+=========
+
+These bugs in the last version have been fixed:
+
+ 1. The Template ``_filters`` list is now an instance attribute
+    (otherwise TurboKid may expand that list endlessly).
+ 2. In some situations Kid printed misleading error tracebacks.
+ 3. There was a small problem with indentation formatting.
+ 4. The representation of the Format class was not correct.
+
+=======================
+Kid 0.9.5 Release Notes
+=======================
+
+Enhancements
+============
+
+Error messages
+--------------
+
+Error reporting has been taken a step further: Kid now tries to track down
+the location of errors to the original Kid template file instead of merely
+printing the error location in the compiled template module. This has been
+one of the most urgently requested features.
+
+ElementTree not required any more
+---------------------------------
+
+The dependency on the ElementTree package has been removed completely.
+
+Auto recompilation
+------------------
+
+Kid 0.9.3 templates needed to be recompiled in order to run with newer
+versions. This recompilation is now done automatically in the background
+whenever there is a new version, in order to ensure compatibility and
+to benefit from improvements in template creation in newer versions.
+
+Changes
+=======
+
+The old Kid namespace URL ``http://naeblis.cx/ns/kid#`` is not supported
+any more. Please use the new URL ``http://purl.org/kid/ns#`` which has been
+introduced already in Kid 0.6.
+
+Bug Fixes
+=========
+
+These bugs in the last version have been fixed:
+
+ 1. Combination of both ``py:layout`` and ``py:extends`` caused a problem.
+ 2. Passing parameters to functions with default parameters which were
+    defined with ``py:def`` did not work properly.
+ 3. The XML encoding declaration in the template was not evaluated.
+
+=======================
+Kid 0.9.4 Release Notes
+=======================
+
+Enhancements
+============
+
+Error messages
+--------------
+
+XML errors from the Expat parser are now shown along with the corresponding
+line of the erroneous XML code and the exact position of the error.
+
+Kid is now much less picky about ``py:extends`` and ``py:layout`` expressions
+and will output much better error messages if they cause an error.
+
+Kid will now also check that you dont' use a Template parameter that conflicts
+with the name of a member of the BaseTemplate class.
+
+Output Format Control
+---------------------
+
+The serialization methods now take an additional attribute ``format``
+that must be an instance of the new Format class or a string referring
+to one of several predefined output formats. This class gives you more
+fine control over how the text content is serialized. You can do things
+like removing redundant whitespace, adding indentation, word wrapping,
+using named entities and using typographic characters for quotes etc.
+You can also plug-in your own text filters here. The chapter on Formatting
+in the User's Guide lists all available parameters.
+
+The old filter methods of the Serializer class have been replaced by
+a more powerful general method incorporating the specified format.
+
+HTML Serializer
+---------------
+
+As discussed on the mailing list, the HTML serializer now produces tags
+in lowercase. You can change this behavior with the transpose attribute
+or using the output method 'HTML' instead of 'html'.
+
+Additional HTML output methods have been defined corresponding to Mozilla's
+"full standards mode", "almost standards mode" and "quirks mode."
+
+XHTML Serializer
+----------------
+
+The XHTML Serializer now also injects a meta tag with the content type
+at the top of the head section. This had been only done by the HTMLSerializer
+before. The content type is not injected if such a meta tag already exists.
+This automatism can be controlled with the ``inject_type`` parameter.
+
+XML Comments
+------------
+
+The rule when variable substitution is applied to XML comments has been
+slightly changed, as explained in the Language Specification.
+
+Additional parameters for parsing templates
+-------------------------------------------
+
+The ``load_template()`` function now takes additional parameters ``entity_map``
+and ``exec_module``. This lets you choose a different XML entity map to be
+used when parsing the template, and gives you more control over the way
+in which the compiled template code is executed in the newly created module.
+The ``entity_map`` parameter can also be passed to some other functions
+such as ``XML()`` and ``compile_file()``.
+
+Full compatibility with Python 2.5 and Python eggs
+--------------------------------------------------
+
+The enable_import mechanism has been completely rewritten to support both
+Python 2.5 and Python eggs. The old method based on `ihooks` is not used any
+more since `ihooks` is not compatible with Python eggs; and the old method
+based on `path_hooks` is not used any more since in Python 2.5, importers
+installed via `path_hooks` do not fall back to the built-in import mechanism
+any more, breaking the previous implementation.
+
+The new implementation allows enabling imports from specified paths as well
+as imports from `sys.path` which is now implemented via `meta_path`.
+
+Python versions older than Python 2.3 are not supported by Kid any more.
+
+Changes
+=======
+
+Due to optimizations in `kid.template_util`, Kid 0.9.3 templates need to be
+recompiled in order to run with Kid 0.9.4.
+
+The ``'html'`` output method now produces lower-case tags. If you want
+upper-case tags, you have to use the ``'HTML'`` method now.
+
+The `kid.parser` and `kid.pull` modules have been renamed `kid.codewriter`
+and `kid.parser` respectively (in anticipation of a parsing subsystem).
+
+Bug Fixes
+=========
+
+A couple of bugs that had been reported as trac tickets have been fixed.
+
+Using layout templates which are extended by another template did not work
+properly (as reported on the TurboGears mailing list); this has been fixed.
+
+More unit tests have been added. The testing machinery now supports both
+`py.test` and `nose`, or you can simply use the ``run_tests.py`` script.
+
+=======================
+Kid 0.9.3 Release Notes
+=======================
+
+ 1. Re-applied a patch from ticket [66] that fix a bug where comments caused
+    errors when in base templates.
+ 2. Changed all of the lesscode.org links into kid-templating.org
+ 3. Added and updated a few tests
+ 4. Removed the NamespaceStack.set method and made NamespaceStack.pop return
+    the deleted value.
+ 5. Set balanced blocks to be off by default.
+ 6. Updated the parser to better handle interpolation of non-string types
+    in comments. Reported in #182
+
+=======================
+Kid 0.9.2 Release Notes
+=======================
+
+Enhancements
+============
+
+ 1. Updated to current version of ez_setup.py.
+ 2. Improved importer.py, resolving tickets #103 (FutureWarnings) and #137
+    (using new import hooks).
+ 3. The testing code can now figure out what testing modules to run
+    dynamically. In addition, the code also determines which functions
+    are tests dynamically. Tests that need pylib are skipped for those
+    that don't have it. If you run 'python test_kid.py' now you should
+    be seeing more tests executed.
+ 4. Removed the revision history from the language and and instead
+    include a pointer to the Release Notes.
+
+API Changes
+-----------
+
+ 1. Allow the kid command to accept XML piped into it's stdin when '-' is
+    used as the filename.
+ 2. Patch from #143. The load_template() function accepts an 'ns' keyword
+    argument to pre-populate the template module namespace with global
+    variables. Thanks!
+ 3. Created an API to replace the various ways that configuration options
+    are currently set.
+ 4. Allow the XML function to take a new keyword parameter (xmlns) that sets
+    the default namespace for a fragment.
+
+Add Support For Python 2.5
+--------------------------
+
+ 1. Added support for xml.etree, which is the ElementTree packaged with
+    Python 2.5. Running 'make test' only checks xml.etree currently.
+ 2. The __future__ imports have been moved to the top of the module to play
+    nicely in Python 2.5. I have also added 2.5 to the makefile so it will
+    be tested before each release.
+ 3. makefile regression test includes Python 2.5.
+
+=======================
+Kid 0.9.1 Release Notes
+=======================
+
+Bug Fixes
+=========
+
+Layout Templates
+----------------
+
+The parameters passed to a template with a py:layout were not visible in
+named template functions or match templates.
+
+A small bug existed in Python 2.3 where the dict.update() method was
+being called incorrectly. Python 2.4 allows a list of tuples to be
+passed to update(), whereas Python 2.3 does not.
+
+py:match
+--------
+
+The logic to apply the template matches has been reworked. This was due to
+the discovery of some odd behavior when using multiple template inheritence.
+
+Enhancements
+============
+
+Layout Templates
+----------------
+
+A template type or name can now be dynamically passed into a template to be
+used as the layout template.
+
+=====================
+Kid 0.9 Release Notes
+=====================
+
+Language and API Changes
+========================
+
+Layout Templates
+----------------
+
+There is a new feature in Kid for a template to specify a layout template
+to which match templates, named template definitions, and template
+parameters will be applied. This is useful for applying a generic set of
+headers, menus, footers, etc. to a many pages without duplicating large
+amounts of code in each page. More information and examples can be found in
+the `py:layout`__ section of the Language Specification.
+
+.. __: language.html#py:layout
+
+Convenience Functions
+---------------------
+
+Kid Template instances now provide convenience funcitons ``defined(name)``
+and ``value_of(name)``.
+
+Invisible Comments
+------------------
+
+XML comments starting with a ``!`` character will not appear in the
+serialized output of a template.
+
+Enhancements
+============
+
+Command line scripts now work on Windows
+----------------------------------------
+
+On Windows, the ``kid`` and ``kidc`` console commands can now be used
+as conveniently as on Unix, since the Kid installer creates ``kid.exe``
+and ``kidc.exe`` launchers in the Python Scripts directory.
+
+
+=====================
+Kid 0.6 Release Notes
+=====================
+
+There has been significant change in version 0.6. This includes enhancements
+and modifications to the template language and python interface.
+
+Language and API Changes
+========================
+
+The following changes are likely to impact existing code and
+templates. Where possible, we have tried to maintain backward compatibility
+but that wasn't possible in all cases.
+
+The `Upgrade Script`_ can be used to bring 0.5 templates up to 0.6 syntax.
+
+Kid Namespace Change
+--------------------
+
+The Kid namespace has changed from ``http://naeblis.cx/ns/kid#`` to
+``http://purl.org/kid/ns#``. The naeblis.cx domain is privately owned and
+could expire some time in the future. purl.org is a system for establishing
+and maintaining "persistent" URIs.
+
+A temporary hack has been put in place to substitute references to the old
+namespace URI with the new namespace URI. A warning is output when this
+occurs. This will be removed in a couple of months so it is recommended that
+templates be upgraded as soon as possible.
+
+``py:omit`` is now ``py:strip``
+-------------------------------
+
+Due to initial confusion many experienced with the name ``py:omit``, it has
+been renamed ``py:strip``. The term "omit" was often read as "omit the
+element and all descendants". The new term "strip" seems to better indicate
+the semantic: "strip the start and end tag but process descendants."
+
+Python Expression Substitution Syntax
+-------------------------------------
+
+The syntax of brace expansions has been modified match more closely with
+existing Python substitution syntax. In 0.5 python expressions enclosed in
+curly braces ({}) were evaluated and their results substituted. In 0.6, the
+rules have changed as follows:
+
+  1. ``$$`` is an escape; it is replaced with a single $.
+  2. ``$name`` substitutes a variable value.
+  3. ``${expr}`` substitutes the result of evaluating any python expression.
+
+See `Python Expression Substitution`__ in the Language Reference.
+
+.. __: language.html#python-expression-substitution-expr
+
+.. warning:
+
+  The expression substitution **is not** backward compatible. If you use the
+  old-style brace-expansion, you will need to upgrade your templates for Kid
+  0.6.
+
+Enhancements
+============
+
+cElementTree Support
+--------------------
+
+Kid now uses cElementTree if it is available. Preliminary tests show
+moderate performance increases. In most cases, we're seeing template parse
+and execution time increase by about 15%. The poor increase (relative to
+other cET/ET numbers) is due to the fact that we're not using cElementTree's
+native parser as it doesn't support comments or processing instructions. The
+plan is to lobby the effbot organization to add these features (hint, hint:
+send patches) so that we can get the huge increases people are seeing
+elsewhere.
+
+Kid automatically determines whether cElementTree is available and uses it
+if so. If cElementTree is not available, Kid falls back on Python
+ElementTree. If you want to turn off use of cElementTree, you can set the
+environment variable ``KID_NOCET`` to 1.
+
+Death of Comment Wart
+---------------------
+
+In versions of Kid prior to 0.6, the first line of an embedded Python code
+block had to be a Python comment (#). This was due to Python's whitespace
+semantics. Christoph determined a process for establishing the correct indent
+levels without requiring a comment as the first line.
+
+Starting in Kid 0.6, a comment is no longer required to be the first line in
+a ``<?python?>`` processing instruction. It is also possible to have single
+line code blocks::
+
+ <?python x = 10 ?>
+
+Improved Template API
+---------------------
+
+The Python interfaces have been reworked significantly and now are very
+similar to Cheetah's. There are two preferred methods for accessing a
+template.
+
+The ``Template`` Class
+~~~~~~~~~~~~~~~~~~~~~~
+
+The first method existed in 0.5 but was not documented well. If you have
+enabled the kid import hooks, then you can import a template and create an
+instance of the template by accessing the ``Template`` class exposed by the
+module::
+
+  import kid ; kid.enable_import()
+  import mytemplate
+  template = mytemplate.Template(foo='bar', bling=1)
+  print template.serialize()
+
+The primary difference from 0.5 is that template variables are passed to the
+``Template`` constructor instead of to the individual execution methods
+(``serialize``, ``generate``, ``write``, ``pull``).
+
+It is also possible to set template variables after the template instance
+is created by simply assigning to template object instance::
+
+  template = mytemplate.Template()
+  template.foo = 'bar'
+  template.bling = 1
+  print str(template)
+
+Here we see another small addition: template instances implement ``__str__``
+and ``__unicode__`` built-ins. These methods are equivalent to calling
+``serialize(encoding='utf-8')`` and ``serialize(encoding='utf-16')``,
+respectively.
+
+The ``kid.Template`` function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``kid.Template`` function works much like ``Template`` class
+constructors but takes an additional parameter that allows the template to
+be loaded from a file, string, or module name. It is sometimes easier to
+manage templates as files on disk rather than as python modules.
+
+Example::
+
+  from kid import Template
+  # create a template from file
+  template = Template(file='mytemplate.kid', foo='bar', bling=1)
+
+  # create a template from string
+  template = Template(source="<p>${foo}</p>", foo='bar')
+
+  # create a template from a python module name
+  template = Template(name='templates.mytemplate', foo='bar')
+
+This last form is sometimes useful because it doesn't require the kid
+import hook to be enabled and it also allows template names to be specified
+at run-time.
+
+See `kid.Template function`__ in the User's Guide for more info.
+
+.. __: guide.html#template-function
+
+Match Templates / Filters
+-------------------------
+
+Match Templates are a cross between XSLT's match templates and JSP tag
+libraries. They allow a set of filters to be put in place that matches
+infoset items generated by a template so that output can be modified.
+
+While match templates provide a general purpose mechanism for transforming
+XML content, it is especially useful in a couple of situations which have
+driven the design:
+
+1. Creating tag libraries that inject new tags into an XML vocabulary.
+
+2. Applying headers/footers without inserting place-holders into the
+   source document/template.
+
+See `Match Templates`__ in the Language Reference for more information.
+
+.. __: language.html#match-templates
+
+Template Inheritance
+--------------------
+
+Templates now support multiple inheritance of template functions
+(``py:def``) and match templates (``py:match``). A template indicates that
+it extends one or more other templates by setting the ``py:extends``
+attribute on the root element::
+
+  <?xml version='1.0' encoding='utf-8'?>
+  <html py:extends="'common.kid', 'forms.kid'" ...
+
+``py:extends`` may contain template modules, Template classes, or strings
+specifying template paths relative to current template file.
+
+See `Template Reuse`__ in the Language Reference for more information.
+
+.. __: language.html#template-reuse
+
+Dynamic Attribute Generation (``py:attrs``)
+-------------------------------------------
+
+A new ``py:attrs`` attribute has been added that allows attributes to be
+specified using a dictionary.
+
+See `Dynamic Attributes`__ in the Language Reference for more information.
+
+.. __: language.html#dynamic-attributes-py-attrs
+
+Upgrade Script
+==============
+
+Due to the amount of changes in template syntax, a migration script is
+provided that can upgrade kid 0.5 templates to 0.6 syntax. This includes
+changing the namespace, py:strip, and new expression substitution
+syntax.
+
+The script can be found in the source distribution as
+``misc/upgrade-0.6.py``. The script can take multiple file names and
+upgrades each in-place while preserving a backup. For instance::
+
+  $ python upgrade-0.6.py path/to/template.kid
+  Upgraded: template.kid...
+
+On posix systems, you can upgrade a bunch of kid templates under the current
+working directory with the following command::
+
+  $ find . -name '*.kid' | xargs python upgrade-0.6.py
+  Upgraded: template1.kid...
+  Upgraded: template2.kid...
+  Upgraded: template3.kid...
+  Upgraded: template4.kid...

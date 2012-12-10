@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <CompileConfigs:ComponentsInfo xmlns:CompileConfigs="Comps.ecore">
+      <COR savetype="CL_COR_NO_SAVE"/>
+      <FM localProbationPeriod="10"/>
+      <NS maxentries="256" maxglobalcontexts="10" maxlocalcontexts="2"/>
+      <RMD maxretries="8"/>
+      <PM>
+        <appConfigInterval applicationName="csa101Comp" value="3000"/>
+        <appConfigInterval applicationName="csa102Comp" value="3000"/>
+        <appConfigInterval applicationName="csa103Comp" value="3000"/>
+        <appConfigInterval applicationName="csa104Comp" value="3000"/>
+        <appConfigInterval applicationName="csa105Comp" value="3000"/>
+        <appConfigInterval applicationName="csa112Comp" value="3000"/>
+        <appConfigInterval applicationName="csa113Comp" value="3000"/>
+        <appConfigInterval applicationName="csaSnmpAgentComp" value="3000"/>
+        <compConfigInterval componentName="csa101CompI0" type="csa101Comp" value="0"/>
+        <compConfigInterval componentName="csa112CompI0" type="csa112Comp" value="0"/>
+        <compConfigInterval componentName="csa212CompI0" type="csa212Comp" value="0"/>
+        <compConfigInterval componentName="csa213CompI0" type="csa213Comp" value="0"/>
+        <compConfigInterval componentName="csa113CompI0" type="csa113Comp" value="0"/>
+        <compConfigInterval componentName="csa201CompI0" type="csa201Comp" value="0"/>
+        <compConfigInterval componentName="csa102CompI0" type="csa102Comp" value="0"/>
+        <compConfigInterval componentName="csa203CompI0" type="csa203Comp" value="0"/>
+        <compConfigInterval componentName="csa102CompI1" type="csa102Comp" value="0"/>
+        <compConfigInterval componentName="csa203CompI1" type="csa203Comp" value="0"/>
+        <compConfigInterval componentName="csa103CompI0" type="csa103Comp" value="0"/>
+        <compConfigInterval componentName="csa103CompI1" type="csa103Comp" value="0"/>
+        <compConfigInterval componentName="csa104CompI0" type="csa104Comp" value="0"/>
+        <compConfigInterval componentName="csa104CompI1" type="csa104Comp" value="0"/>
+        <compConfigInterval componentName="csa101CompI1" type="csa101Comp" value="0"/>
+        <compConfigInterval componentName="csa112CompI1" type="csa112Comp" value="0"/>
+        <compConfigInterval componentName="csa212CompI1" type="csa212Comp" value="0"/>
+        <compConfigInterval componentName="csa113CompI1" type="csa113Comp" value="0"/>
+        <compConfigInterval componentName="csa213CompI1" type="csa213Comp" value="0"/>
+        <compConfigInterval componentName="csa201CompI1" type="csa201Comp" value="0"/>
+        <compConfigInterval componentName="csa102CompI2" type="csa102Comp" value="0"/>
+        <compConfigInterval componentName="csa203CompI2" type="csa203Comp" value="0"/>
+        <compConfigInterval componentName="csa103CompI2" type="csa103Comp" value="0"/>
+        <compConfigInterval componentName="csa101CompI2" type="csa101Comp" value="0"/>
+        <compConfigInterval componentName="csa112CompI2" type="csa112Comp" value="0"/>
+        <compConfigInterval componentName="csa113CompI2" type="csa113Comp" value="0"/>
+        <compConfigInterval componentName="csa212CompI2" type="csa212Comp" value="0"/>
+        <compConfigInterval componentName="csa213CompI2" type="csa213Comp" value="0"/>
+        <compConfigInterval componentName="csa201CompI2" type="csa201Comp" value="0"/>
+        <compConfigInterval componentName="csa102CompI3" type="csa102Comp" value="0"/>
+        <compConfigInterval componentName="csa203CompI3" type="csa203Comp" value="0"/>
+        <compConfigInterval componentName="csa103CompI3" type="csa103Comp" value="0"/>
+        <compConfigInterval componentName="csa101CompI3" type="csa101Comp" value="0"/>
+        <compConfigInterval componentName="csa112CompI3" type="csa112Comp" value="0"/>
+        <compConfigInterval componentName="csa113CompI3" type="csa113Comp" value="0"/>
+        <compConfigInterval componentName="csa212CompI3" type="csa212Comp" value="0"/>
+        <compConfigInterval componentName="csa213CompI3" type="csa213Comp" value="0"/>
+        <compConfigInterval componentName="csa201CompI3" type="csa201Comp" value="0"/>
+        <compConfigInterval componentName="csa102CompI4" type="csa102Comp" value="0"/>
+        <compConfigInterval componentName="csa203CompI4" type="csa203Comp" value="0"/>
+        <compConfigInterval componentName="csa103CompI4" type="csa103Comp" value="0"/>
+      </PM>
+    </CompileConfigs:ComponentsInfo>
+  </version>
+</openClovisAsp>

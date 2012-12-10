@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component:componentInformation xmlns:component="component.ecore">
+  <cluster name="Cluster" rdn="java.lang.Object@1dd1752">
+    <contains target="SCNode"/>
+    <contains target="PayloadNode"/>
+  </cluster>
+  <node name="SCNode" rdn="11871402" id="0" classType="CL_AMS_NODE_CLASS_B" subClassType=" " isSwappable="CL_TRUE" isRestartable="CL_TRUE" isASPAware="CL_TRUE" suFailoverDuration="10000" suFailoverCountMax="10" Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE">
+    <contains target="csa101SU"/>
+    <contains target="csa102SU"/>
+    <contains target="csa103SU"/>
+    <contains target="csa104SU"/>
+    <contains target="csa105SU"/>
+    <contains target="csa112SU"/>
+    <contains target="csa113SU"/>
+    <contains target="csaSnmpAgentSU"/>
+  </node>
+  <node name="PayloadNode" rdn="22379127" id="0" classType="CL_AMS_NODE_CLASS_C" subClassType=" " isSwappable="CL_TRUE" isRestartable="CL_TRUE" isASPAware="CL_TRUE" suFailoverDuration="10000" suFailoverCountMax="10" Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE"/>
+  <serviceUnit name="csa101SU" rdn="4497427" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="csa101Comp"/>
+  </serviceUnit>
+  <serviceUnit name="csa102SU" rdn="3579868" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="csa102Comp"/>
+  </serviceUnit>
+  <serviceUnit name="csa103SU" rdn="14321474" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="csa103Comp"/>
+  </serviceUnit>
+  <serviceUnit name="csa104SU" rdn="30802611" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="csa104Comp"/>
+  </serviceUnit>
+  <serviceUnit name="csa105SU" rdn="15670774" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="csa105Comp"/>
+  </serviceUnit>
+  <serviceUnit name="csa112SU" rdn="30740434" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="csa112Comp"/>
+  </serviceUnit>
+  <serviceUnit name="csa113SU" rdn="2568172" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="csa113Comp"/>
+  </serviceUnit>
+  <serviceUnit name="csaSnmpAgentSU" rdn="31940104" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="csaSnmpAgentComp"/>
+  </serviceUnit>
+  <safComponent name="csa101Comp" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="csa101" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="12334847" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="500" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="csa101CSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts instantiateTimeout="10000" terminateTimeout="10000" cleanupTimeout="10000" amStartTimeout="10000" amStopTimeout="10000" csiSetTimeout="10000" csiRemoveTimeout="10000" quiescingCompleteTimeout="10000" proxiedCompInstantiateTimeout="10000" proxiedCompCleanupTimeout="10000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="csa101CompEO0" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_APP" maxNoClients="0">
+      <aspLib COR="CL_FALSE" CM="CL_FALSE" NameService="CL_FALSE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_FALSE" OampRtParser="CL_TRUE" Prov="CL_FALSE" Alarm="CL_FALSE" Debug="CL_FALSE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_FALSE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+      <libs/>
+    </eoProperties>
+  </safComponent>
+  <safComponent name="csa102Comp" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="csa102" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="24679125" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="500" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_COMP_FAILOVER" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="csa102CSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts instantiateTimeout="10000" terminateTimeout="10000" cleanupTimeout="10000" amStartTimeout="10000" amStopTimeout="10000" csiSetTimeout="10000" csiRemoveTimeout="10000" quiescingCompleteTimeout="10000" proxiedCompInstantiateTimeout="10000" proxiedCompCleanupTimeout="10000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="csa102CopmpEO0" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_APP" maxNoClients="0">
+      <aspLib COR="CL_FALSE" CM="CL_FALSE" NameService="CL_FALSE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_FALSE" OampRtParser="CL_TRUE" Prov="CL_FALSE" Alarm="CL_FALSE" Debug="CL_FALSE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_FALSE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+      <libs/>
+    </eoProperties>
+  </safComponent>
+  <safComponent name="csa103Comp" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="csa103" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="15725893" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="500" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_COMP_FAILOVER" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="csa103CSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts instantiateTimeout="10000" terminateTimeout="10000" cleanupTimeout="10000" amStartTimeout="10000" amStopTimeout="10000" csiSetTimeout="10000" csiRemoveTimeout="10000" quiescingCompleteTimeout="10000" proxiedCompInstantiateTimeout="10000" proxiedCompCleanupTimeout="10000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="csa103CompEO0" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_APP" maxNoClients="0">
+      <aspLib COR="CL_FALSE" CM="CL_FALSE" NameService="CL_TRUE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" Alarm="CL_FALSE" Debug="CL_TRUE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_FALSE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+      <libs/>
+    </eoProperties>
+  </safComponent>
+  <safComponent name="csa104Comp" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="csa104" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="3695078" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="500" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="csa104CSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts instantiateTimeout="10000" terminateTimeout="10000" cleanupTimeout="10000" amStartTimeout="10000" amStopTimeout="10000" csiSetTimeout="10000" csiRemoveTimeout="10000" quiescingCompleteTimeout="10000" proxiedCompInstantiateTimeout="10000" proxiedCompCleanupTimeout="10000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="csa104CompEO0" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_APP" maxNoClients="0">
+      <aspLib COR="CL_TRUE" CM="CL_FALSE" NameService="CL_TRUE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_TRUE" Alarm="CL_FALSE" Debug="CL_FALSE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_TRUE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+      <libs/>
+    </eoProperties>
+  </safComponent>
+  <safComponent name="csa105Comp" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="csa105" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="18034294" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="500" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="csa105CSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts instantiateTimeout="10000" terminateTimeout="10000" cleanupTimeout="10000" amStartTimeout="10000" amStopTimeout="10000" csiSetTimeout="10000" csiRemoveTimeout="10000" quiescingCompleteTimeout="10000" proxiedCompInstantiateTimeout="10000" proxiedCompCleanupTimeout="10000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="csa105CompEO0" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0">
+      <aspLib COR="CL_TRUE" CM="CL_FALSE" NameService="CL_TRUE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_TRUE" Alarm="CL_TRUE" Debug="CL_TRUE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_TRUE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+      <libs/>
+    </eoProperties>
+  </safComponent>
+  <safComponent name="csa112Comp" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="csa112" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="28154639" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="5000" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="csa112CSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts instantiateTimeout="10000" terminateTimeout="10000" cleanupTimeout="10000" amStartTimeout="10000" amStopTimeout="10000" csiSetTimeout="10000" csiRemoveTimeout="10000" quiescingCompleteTimeout="10000" proxiedCompInstantiateTimeout="10000" proxiedCompCleanupTimeout="10000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="csa112CompEO0" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0">
+      <aspLib COR="CL_TRUE" CM="CL_FALSE" NameService="CL_TRUE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" Alarm="CL_FALSE" Debug="CL_TRUE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_FALSE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+      <libs/>
+    </eoProperties>
+  </safComponent>
+  <safComponent name="csa113Comp" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="csa113" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="10420192" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="5000" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="csa113CSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts instantiateTimeout="10000" terminateTimeout="10000" cleanupTimeout="10000" amStartTimeout="10000" amStopTimeout="10000" csiSetTimeout="10000" csiRemoveTimeout="10000" quiescingCompleteTimeout="10000" proxiedCompInstantiateTimeout="10000" proxiedCompCleanupTimeout="10000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="csa113CompEO0" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_APP" maxNoClients="0">
+      <aspLib COR="CL_TRUE" CM="CL_FALSE" NameService="CL_TRUE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" Alarm="CL_FALSE" Debug="CL_TRUE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_FALSE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+      <libs/>
+    </eoProperties>
+  </safComponent>
+  <safComponent name="csaSnmpAgentComp" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="csaSnmpSubAgentComp" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="11600335" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="5000" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="csaSnmpAgentCSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts instantiateTimeout="10000" terminateTimeout="10000" cleanupTimeout="10000" amStartTimeout="10000" amStopTimeout="10000" csiSetTimeout="10000" csiRemoveTimeout="10000" quiescingCompleteTimeout="10000" proxiedCompInstantiateTimeout="10000" proxiedCompCleanupTimeout="10000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="SAFComponent8EO0" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0">
+      <aspLib COR="CL_TRUE" CM="CL_FALSE" NameService="CL_TRUE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" Alarm="CL_FALSE" Debug="CL_TRUE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_FALSE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+      <libs/>
+    </eoProperties>
+  </safComponent>
+  <serviceGroup name="csa101SG" rdn="8827766" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" failbackOption="CL_FALSE" restartDuration="100" numPrefActiveSUs="1" numPrefStandbySUs="0" numPrefInserviceSUs="1" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_TRUE" allowCollocatedActiveStandbyAssignments="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="csa101SU"/>
+    <associatedTo target="csa101SI"/>
+  </serviceGroup>
+  <serviceGroup name="csa102SG" rdn="19419730" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" failbackOption="CL_FALSE" restartDuration="100" numPrefActiveSUs="1" numPrefStandbySUs="1" numPrefInserviceSUs="2" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_TRUE" allowCollocatedActiveStandbyAssignments="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="csa102SU"/>
+    <associatedTo target="csa102SI"/>
+  </serviceGroup>
+  <serviceGroup name="csa103SG" rdn="19397123" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" failbackOption="CL_FALSE" restartDuration="500" numPrefActiveSUs="1" numPrefStandbySUs="1" numPrefInserviceSUs="2" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_TRUE" allowCollocatedActiveStandbyAssignments="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="csa103SU"/>
+    <associatedTo target="csa103SI"/>
+  </serviceGroup>
+  <serviceGroup name="csa104SG" rdn="3622076" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" failbackOption="CL_FALSE" restartDuration="100" numPrefActiveSUs="1" numPrefStandbySUs="1" numPrefInserviceSUs="2" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_TRUE" allowCollocatedActiveStandbyAssignments="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="csa104SU"/>
+    <associatedTo target="csa104SI"/>
+  </serviceGroup>
+  <serviceGroup name="csa105SG" rdn="5282041" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" failbackOption="CL_FALSE" restartDuration="100" numPrefActiveSUs="1" numPrefStandbySUs="0" numPrefInserviceSUs="1" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_FALSE" allowCollocatedActiveStandbyAssignments="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="csa105SU"/>
+    <associatedTo target="csa105SI"/>
+  </serviceGroup>
+  <serviceGroup name="csa112SG" rdn="13572035" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" failbackOption="CL_FALSE" restartDuration="100" numPrefActiveSUs="1" numPrefStandbySUs="0" numPrefInserviceSUs="1" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_TRUE" allowCollocatedActiveStandbyAssignments="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="csa112SU"/>
+    <associatedTo target="csa112SI"/>
+  </serviceGroup>
+  <serviceGroup name="csa113SG" rdn="9196680" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" failbackOption="CL_FALSE" restartDuration="100" numPrefActiveSUs="1" numPrefStandbySUs="0" numPrefInserviceSUs="1" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_FALSE" allowCollocatedActiveStandbyAssignments="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="csa113SU"/>
+    <associatedTo target="csa113SI"/>
+  </serviceGroup>
+  <serviceGroup name="csaSnmpAgentSG" rdn="812690" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" failbackOption="CL_FALSE" restartDuration="10000" numPrefActiveSUs="1" numPrefStandbySUs="0" numPrefInserviceSUs="1" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_FALSE" allowCollocatedActiveStandbyAssignments="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="csaSnmpAgentSU"/>
+    <associatedTo target="csaSnmpAgentSI"/>
+  </serviceGroup>
+  <serviceInstance name="csa101SI" rdn="20799265" rank="0" numCSIs="1" numStandbyAssignments="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="csa101CSI"/>
+  </serviceInstance>
+  <serviceInstance name="csa102SI" rdn="8715708" rank="0" numCSIs="1" numStandbyAssignments="1" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="csa102CSI"/>
+  </serviceInstance>
+  <serviceInstance name="csa103SI" rdn="13758637" rank="0" numCSIs="1" numStandbyAssignments="1" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="csa103CSI"/>
+  </serviceInstance>
+  <serviceInstance name="csa104SI" rdn="16179550" rank="0" numCSIs="1" numStandbyAssignments="1" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="csa104CSI"/>
+  </serviceInstance>
+  <serviceInstance name="csa105SI" rdn="25059428" rank="0" numCSIs="1" numStandbyAssignments="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="csa105CSI"/>
+  </serviceInstance>
+  <serviceInstance name="csa112SI" rdn="9422759" rank="0" numCSIs="1" numStandbyAssignments="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="csa112CSI"/>
+  </serviceInstance>
+  <serviceInstance name="csa113SI" rdn="9201258" rank="0" numCSIs="1" numStandbyAssignments="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="csa113CSI"/>
+  </serviceInstance>
+  <serviceInstance name="csaSnmpAgentSI" rdn="29771791" rank="0" numCSIs="1" numStandbyAssignments="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="csaSnmpAgentCSI"/>
+  </serviceInstance>
+  <componentServiceInstance name="csa101CSI" rdn="4355837" rank="0">
+    <associatedTo target="csa101Comp"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="csa102CSI" rdn="25316652" rank="0">
+    <associatedTo target="csa102Comp"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="csa103CSI" rdn="17846462" rank="0">
+    <associatedTo target="csa103Comp"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="csa104CSI" rdn="26768024" rank="0">
+    <associatedTo target="csa104Comp"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="csa105CSI" rdn="15592594" rank="0">
+    <associatedTo target="csa105Comp"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="csa112CSI" rdn="16715083" rank="0">
+    <associatedTo target="csa112Comp"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="csa113CSI" rdn="13961171" rank="0">
+    <associatedTo target="csa113Comp"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="csaSnmpAgentCSI" rdn="2849753" rank="0">
+    <associatedTo target="csaSnmpAgentComp"/>
+  </componentServiceInstance>
+</component:componentInformation>

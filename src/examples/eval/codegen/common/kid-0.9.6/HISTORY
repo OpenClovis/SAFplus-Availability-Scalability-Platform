@@ -1,0 +1,362 @@
+Kid Version History
+===================
+
+
+2005-03-14 0.6.3
+-----------------
+
+  * Fixed issue introduced with py:extends that broke kid on Python 2.2.
+    See: <http://www.kid-templating.org/trac/ticket/50>
+
+  * Fixed various issues with HTML output methods including incorrect
+    DOCTYPEs, attribute casing, etc.
+    See: <http://www.kid-templating.org/trac/ticket/49>
+
+  * Applied Tim Gerla's patch to add a ``--strip-dest-dir`` option that acts
+    like the argument with same name in Python proper. This is mainly useful
+    for package maintainers.
+    See: <http://www.kid-templating.org/trac/ticket/52>
+
+
+2005-03-09 0.6.2
+-----------------
+
+  * Fixed bug with short-form elements (<br />) not being output properly.
+    Long form was always being used.
+
+  * Added support for custom serialization routines including XHTML and HTML.
+    See: <http://www.kid-templating.org/trac/ticket/4>
+
+  * Fixed bug where ElementTree objects passed into kid were being modified
+    (children removed) during template execution.
+    See: <http://www.kid-templating.org/trac/ticket/44>
+
+  * This file is now included the source distribution again.
+    See: <http://www.kid-templating.org/trac/ticket/43>
+
+  * Fixed various unicode related issues (mainly with the XML() function).
+    See: <http://www.kid-templating.org/trac/ticket/45>
+
+
+2005-03-06 0.6.1
+-----------------
+
+  * Fixed bug (again) with comments and PIs not making it through to output.
+
+  * Fixed bug with text content being dropped when passed to the XML()
+    function.
+
+  * No longer escaping ( > | ' | " ) in output (except in attributes where
+    quotes are escaped.
+
+  * Fixed bug with doc not shipping with css files.
+
+  * Namespace prefix generation and handling should be working well at this
+    point.
+
+
+2005-03-05 0.6
+---------------
+
+For detailed information see: <http://www.kid-templating.org/doc/kid/0.6/notes.html>
+
+  * Namespace URI changed from "http://naeblis.cx/ns/kid#" to
+    "http://purl.org/kid/ns#".
+
+  * py:omit is now py:strip.
+
+  * Expression substitution changed from {} to ${} and $name.
+
+  * Python interface is more like Cheetah.
+
+  * Support for cElementTree.
+
+  * Template inheritence (py:extends).
+
+  * Match Templates (py:match)
+
+  * Comment wart is no longer.
+
+  * ElementTree objects can be referenced directly in content constructs.
+
+  * Major updates to documentation.
+
+
+2005-02-14 0.5.2
+-----------------
+
+  * Fixed bug with namespace prefix being stripped in xml:* attributes (such
+    as xml:lang). This could sometimes result in ill-formed XML.
+
+  * Examples have been brought up to date.
+
+  * Added functionality to kid command line script. (Christoph Zwerschke)
+    <http://www.kid-templating.org/trac/ticket/17>
+
+
+2005-02-11 0.5.1
+-----------------
+
+  * Fixed problem with brace interpolation sometimes not working in text
+    content due to pulltree reporting text in multiple hunks.
+
+  * Should be able to build RPMs with `python setup.py bdist_rpm` now.
+
+  * Comments and Processing Instructions should now be passed through
+    properly. These were previously being omitted from output. There may be
+    an argument in the future that turns comment output off.
+
+  * Template modules used to import various names from ElementTree and
+    pulltree into the module namespace. This can cause problems if a
+    template imports other stuff with the same name. The Element and
+    ElementTree imports have been changed to _Element and _ElementTree to
+    avoid clashing. (Christoph Zwerschke)
+
+  * Add support for specifying a character encoding when loading kid
+    templates. (Christoph Zwerschke)
+
+  * Fixed bug in kid:attrs where python reserved words could not be used as
+    keyword arguments. (Christoph Zwerschke)
+
+
+2005-01-26 0.5
+---------------
+
+  * Changed `<?kid?>` processing instruction name to `<?python?>`. Not sure
+    why I didn't think of this in the beginning. Note that `<?kid?>` is still
+    supported but deprecated. I may leave it in forever just in case there's
+    ever a clash with another `<?python?>` PI.
+
+  * Changed stuff everywhere to use `py:` as namespace prefix instead of
+    `kid:`.
+
+  * Applied `py:attrs` patch from Christoph Zwerschke. More detail on this
+    in the following thread:
+
+    <http://article.gmane.org/gmane.comp.python.kid.general/11>
+
+    The concept is identical to `tal:attributes` with minor syntax
+    differences. For example:
+
+        <elem x="10" y="20" py:attrs="y=30, z='foo'"/>
+
+    Will result in the following output:
+
+        <elem x="10" y="30" z="foo" />
+
+  * Allow brace interpolation in normal text content. This isn't set in stone
+    but there's been enough requests for it and I've found myself wanting
+    something less verbose than `kid:content`.
+
+        <test>the current time is: {time.strftime('%C %c')}</test>
+
+    Yields something like this:
+
+        <test>the current time is: 20 Wed Jan 26 01:49:56 2005</test>
+
+    This can serve as a terse alternative for clumsy situations like the
+    following:
+
+        <test>
+          the curent time is: <span py:content="time.strftime('%C %c')"/>
+        </test>
+
+
+2005-01-18 0.4.2
+-----------------
+
+  * Fixed `.pyc` file generation on import for real this time (thanks:
+    Christoph Zwerschke).
+
+  * Fixed problem with using non-string values in attribute value templates
+    "{}". For instance, `<elem attr="{1234}"/>` would fail with a type error.
+    (thanks: Dagur Páll Ammendrup)
+
+  * Added support for DOCTYPE declarations. They were being chopped previously
+    making it impossible to generate validating.. well.. anything..
+    (thanks: Dagur Páll Ammendrup)
+
+  * Added support for omitting namespace declarations used in the source
+    template. A template can set the `omit_namespaces` variable to a list of
+    namespace URIs that should be omitted.
+
+    The following example results in the `xmlns:kid` and `xmlns:x`
+    declarations being dropped:
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <?kid #
+        omit_namespaces += ['urn:x']
+        ?>
+        <html xmlns:kid="http://purl.org/kid/ns#"
+              xmlns:x="urn:x">
+          ...
+        </html>
+
+    The `omit_namespaces` variable is set to `['http://purl.org/kid/ns#']`
+    by default, hence the weird appending of the additional namespaces to
+    exclude to the list.
+
+    (thanks: Christoph Zwerschke)
+
+  * Setting the environment variable KID\_OUTPUT\_PY to something True will
+    dump out `.py` source files along side of `.pyc` files when templates
+    are imported.
+
+  * Make `test_kid.py` portable for upcoming Windows testing. This mostly
+    consisted of getting rid of hard coded path separators.
+
+  * Added a few unicode tests to make sure there isn't any funny business with
+    unicode in templates.
+
+
+2005-01-12 0.4.1
+-----------------
+
+  * Fixed bad output when running templates with the `kid` command.
+    There was a print statment in there that shouldn't have been and the
+    template was being executed twice. (thanks: Ross Burton)
+
+  * Fixed compiler not outputting `.pyc` files correctly. (thanks: Ross Burton)
+
+  * Updated tutorial documentation.
+
+
+2005-01-10 0.4
+---------------
+
+  * Initial crack at reusable templates (damn if that word doesn't mean five
+    things in this system. are you guys confused yet?). See the kid language
+    spec on the `kid:def` attribute. It provides the equivalent of a Python
+    function.
+
+  * Templates now extend the base class: `kid.BaseTemplate`. When you import a
+    kid template module, a class named `Template` is available from the
+    module.
+
+    You can pass keyword arguments to the Template class constructor and have
+    them be accessible to all template expansion performed on the
+    instance. The template code accesses these variables by using `this`.
+
+  * The following methods are available on Template instances and template
+    modules:
+
+    * `serialize(encoding='utf-8', **kw)` - Execute the template and return
+      a string.
+
+    * `generate(encoding='utf-8', **kw)` - Like `serialize()` but returns a
+      generator that continuously yields a string until the template is
+      finished.
+
+    * `write(file, encoding='utf-8', **kw)` - Execute the template and write
+      output to the specified filename or file like object.
+
+    * `pull(**kw)` - Generator that yields pulltree events for each infoset
+      item generated by the template.
+
+  * Template methods now take keyword args. Any arguments passed are available
+    by name in the template as local variables.
+
+  * Added support for escaping curly braces in attributes. Works like XSLT:
+    '{{' and '}}'. Note also that you don't _need_ to escape braces unless you
+    have both ends: {example}. If you just have a single open or a single close
+    brace, you shouldn't need to escape anything. It won't hurt anything if you
+    do however.
+
+
+2004-12-21 0.3
+---------------
+
+A couple quirks have been straightened out since 0.2 but the primary reason I'm
+putting out a new release now is because of a license change. Kid is now
+licensed under an MIT style license. All versions prior to 0.3 are licensed
+under the GPL. This is due to a couple of reasons:
+
+  * I stole a bit of code from Quixote, which is licensed under a GPL
+    incompatible license.
+
+  * I plan on using/distributing various GPL and non-GPL licensed libraries
+    with systems that use Kid.
+
+Quite a bit else has shifted underneath the hood during this release. I tried
+to implement XSLT-like templating but found that it was going to be extremely
+messy to implement on top of SAX (if possible at all). That combined with an
+absolute refusal on the part of the stingy author to bring in `xml.dom` in any
+way led to [effbot's ElementTree][et], which is completely in line with Kid's
+goals around simplicity. This opened a few doors for new features in this
+release but mostly just took up a lot of time.
+
+Here's the full list of major modifications since 0.2:
+
+  * Rewrite parser to be [ElementTree][et] based instead of SAX based. This is
+    in preparation for templating. Note that this means Kid now requires
+    ElementTree where before it used only modules from the standard library.
+
+  * `document()` function for bringing in external XML content from a file or
+    URL. Acts *kind of* like the XSLT's `document` XPath extension function
+    sans relative URI resolution and the ability to resolve multiple resources.
+
+  * `XML()` function for bringing in XML content that is a string. Basic usage
+    is to wrap XML() around a well-formed XML string returned from a python
+    module function call.
+
+  * New pulltree module provides a streaming pull interface to ElementTree.
+    [Check it out!][pulltree] `pulltree.py` is not dependent on Kid at all. I
+    may split it out into a separate project if there's interest.
+
+  * Support for `kid:replace`. (I thought I added this in 0.1)
+
+  * Tests are now actually validating that output is matching expected
+    output.
+
+  * Tests pass on Python 2.2.
+
+  * `kid:repeat` is now `kid:for`. Templates that used `kid:repeat` will break
+    under this version.
+
+  * Starting with 0.3, Kid will be licensed under the "MIT License" as
+    specified [here](http://www.opensource.org/licenses/mit-license.php). This
+    is due to license compatibility issues with the ElementTree package,
+    compatibility issues with a bit of code taken from Quixote in
+    `kid/importer.py`, and to ensure we have the ability to distribute Kid with
+    applications written atop Quixote.
+
+    <small>
+    Note: the GPL isn't viral - everything else is viral :(
+    </small>
+
+[pulltree]: http://cvs.sourceforge.net/viewcvs.py/splice/kid/pulltree.py?view=markup
+            "pulltree.py"
+[et]:       http://effbot.org/zone/element-index.htm
+            "ElementTree Overview"
+
+
+2004-12-01 0.2
+---------------
+
+Initial public release.
+
+  * Added documentation.
+
+  * Makefile is halfway useful.
+
+  * Broke up kid.py into three separate modules and placed in a
+    kid package.
+
+  * distutils install.
+
+  * kidc command for compiling templates.
+
+  * kid command for running templates from the command line.
+
+  * Added basic and cgi examples under `examples` directory.
+
+
+2004-11-29 0.1
+---------------
+
+Barely useful. No documentation.
+
+  * Supports the following attributes: kid:content, kid:if, kid:repeat,
+    kid:omit.
+
+  * `<?kid?>` processing instruction for embedding code blocks.
