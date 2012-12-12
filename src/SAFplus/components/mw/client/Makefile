@@ -115,7 +115,7 @@ DEP_COMP_LIST	:=  \
 			 msg/client    \
 			 pm/client     \
              ntf/client \
-			$(DEP_COMP_CM)	\
+			$(CM_COMP_DEP)	\
 			amf/client/cpm amf/client/ams amf/common/ams/idl/xdr amf/test/src \
 
 THIRD_PARTY_LIST := ../3rdparty/utils ../3rdparty/ezxml/ezxml-0.8.6 ../3rdparty/openais/openais-0.80.3/exec
