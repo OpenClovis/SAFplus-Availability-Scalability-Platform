@@ -62,6 +62,8 @@
 #include <clList.h>
 #include <mPlusN.h>
 #include <custom.h>
+#include <nway.h>
+#include <nwayActive.h>
 
 #define AMS_CPM_INTEGRATION
 #define INVOCATION
@@ -1331,15 +1333,13 @@ clAmsPeSGAssignSUs(
 
         case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
         {
-            //AMS_CALL ( clAmsPeSGAssignSUNWay(sg) );
-
+            AMS_CALL ( clAmsPeSGAssignSUNway(sg) );
             break;
         }
 
         case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY_ACTIVE:
         {
-            //AMS_CALL ( clAmsPeSGAssignSUNWayActive(sg) );
-
+            AMS_CALL ( clAmsPeSGAssignSUNwayActive(sg) );
             break;
         }
 
@@ -1490,6 +1490,7 @@ clAmsPeSGFindSIForStandbyAssignment(
                                     CL_IN ClUint32T numScannedSIs)
 {
     ClAmsEntityRefT *entityRef;
+    ClAmsSIT *lookAfter = NULL;
     ClInt32T pendingNeeds;
     ClInt32T nextBestNeeds = 0;
 
@@ -1498,6 +1499,7 @@ clAmsPeSGFindSIForStandbyAssignment(
 
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
+    lookAfter = *targetSI;
     *targetSI = NULL;
 
     for ( entityRef = clAmsEntityListGetFirst(&sg->config.siList);
@@ -1509,6 +1511,17 @@ clAmsPeSGFindSIForStandbyAssignment(
 
         AMS_CHECK_SI ( si );
 
+        /*
+         * Keep going till our SI is found.
+         */
+        if(lookAfter)
+        {
+            if(lookAfter == si) 
+                lookAfter = NULL;
+
+            continue;
+        }
+
         if(scannedSIList)
         {
             /*  
@@ -1516,6 +1529,8 @@ clAmsPeSGFindSIForStandbyAssignment(
              * and skip this if its already scanned.
              */
             ClUint32T i;
+            clLogNotice("STANDBY", "ASSGN", "Scanning [%d] standby sis",
+                        numScannedSIs);
             for(i = 0; i < numScannedSIs && scannedSIList[i] != si; ++i);
             if(i != numScannedSIs)
             {
@@ -7731,6 +7746,26 @@ ClRcT clAmsPeAddReassignOp(ClAmsSIT *targetSI, ClAmsSUT *targetSU)
     return CL_OK;
 }
 
+static ClRcT clAmsPeSURemoveStandbyRedundancy(ClAmsSGT *sg,
+                                              ClAmsSUT *su,
+                                              ClUint32T switchoverMode,
+                                              ClUint32T error,
+                                              ClAmsSUT **pActiveSU,
+                                              ClBoolT *pReassignWork)
+{
+    switch(sg->config.redundancyModel)
+    {
+    case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
+        return clAmsPeSURemoveStandbyNway(sg, su, switchoverMode, error,
+                                          pActiveSU, pReassignWork);
+    default:
+        break;
+    }
+
+    return clAmsPeSURemoveStandbyMPlusN(sg, su, switchoverMode | CL_AMS_ENTITY_SWITCHOVER_SU,
+                                        error, pActiveSU, pReassignWork);
+}
+
 /*
  * clAmsPeSUSwitchoverCallback
  * ---------------------------
@@ -7912,9 +7947,9 @@ clAmsPeSUSwitchoverCallback(
          * This is the main reassignment step and it necessary for all redundancy
          * models. We do this after removing other standbys if applicable (M+N)
          */
-        clAmsPeSURemoveStandbyMPlusN(sg, su, switchoverMode | CL_AMS_ENTITY_SWITCHOVER_SU,
-                                     error,
-                                     &activeSU, &reassignWork);
+        clAmsPeSURemoveStandbyRedundancy(sg, su, switchoverMode | CL_AMS_ENTITY_SWITCHOVER_SU,
+                                         error,
+                                         &activeSU, &reassignWork);
         
         if(reassignWork == CL_TRUE)
         {
@@ -10745,6 +10780,7 @@ clAmsPeSGReductionProcedure(ClAmsSGT *sg, ClAmsSIT *si)
     switch(sg->config.redundancyModel)
     {
     case CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N:
+    case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
         return clAmsPeSGReductionProcedureMPlusN(sg, si);
     default: break;
     }
@@ -14589,6 +14625,12 @@ clAmsPeCompReassignWork(
         {
             continue;
         }
+        
+        if(sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_N_WAY)
+        {
+            if(si->status.numActiveAssignments >= sg->config.numPrefActiveSUsPerSI)
+                continue;
+        }
 
         /*
          * Find component for this CSI with lowest standby rank.
@@ -14617,6 +14659,15 @@ clAmsPeCompReassignWork(
             }
 
             if(*activeSU && cSU != *activeSU) continue;
+
+            /*
+             * Check if we are already at the limit for nway reassignments
+             */
+            if(c->config.capabilityModel == CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY)
+            {
+                if(cSU->status.numActiveSIs >= sg->config.maxActiveSIsPerSU) 
+                    continue;
+            }
 
             clAmsPeCompUpdateReadinessState(c);
 
@@ -18304,10 +18355,12 @@ amsPeCompRemoveCSICallback(
 
     quiescedCSIs = comp->status.numQuiescedCSIs;
     /*
-     * In user controlled redundancy mode, SI could have both 
+     * In user controlled redundancy mode or n-way, SI could have both 
      * active+standby assignments and active could have been quiesced first.
      */
-    if(sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM)
+    if(sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM
+       ||
+       comp->config.capabilityModel == CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY)
     {
         quiescedCSIs = 0;
     }
@@ -19969,14 +20022,6 @@ clAmsPeCSIComputeAdminState(
     return CL_OK;
 }
 
-static ClRcT 
-clAmsPeSISwapNWay(ClAmsSIT *si, ClAmsSGT *sg)
-{
-    /*
-     * Even though the above implementation for MPlusN/2N should work for N-way also.
-     */
-    return CL_AMS_RC(CL_ERR_NOT_IMPLEMENTED);
-}
 
 ClRcT
 clAmsPeSISwap(ClAmsSIT *si)
@@ -20024,11 +20069,8 @@ clAmsPeSISwap(ClAmsSIT *si)
 
     case CL_AMS_SG_REDUNDANCY_MODEL_TWO_N:
     case CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N:
-        rc = clAmsPeSISwapMPlusN(si, sg);
-        break;
-
     case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
-        rc = clAmsPeSISwapNWay(si, sg);
+        rc = clAmsPeSISwapMPlusN(si, sg);
         break;
 
     case CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM:
@@ -21347,6 +21389,8 @@ ClRcT clAmsPeSGAutoAdjust(ClAmsSGT *sg)
     case CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY:
     case CL_AMS_SG_REDUNDANCY_MODEL_TWO_N:
     case CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N:
+    case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY:
+    case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY_ACTIVE:
         return clAmsPeSGAutoAdjustMPlusN(sg);
     case CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM:
         return clAmsPeSGAutoAdjustCustom(sg);
