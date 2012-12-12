@@ -22,6 +22,15 @@
 # If the chassis manager directory is not defined go look for it
 ifndef CM_DIR
 
+BUILDTOOLS_GLIB = $(wildcard $(TOOLCHAIN_DIR)/include/glib-2.0)
+
+ifneq ($(BUILDTOOLS_GLIB),)
+GLIB_INC = -I$(TOOLCHAIN_DIR)/include/glib-2.0 -I$(TOOLCHAIN_DIR)/lib/glib-2.0/include
+else
+
+GLIB_INC = -I/usr/include/glib-2.0 -I$(wildcard /usr/lib/*/glib-2.0/include/)
+endif
+
 # Possible CM directories
 CM_SEARCH_PATH := $(CLOVIS_ROOT)/../PSP/src/cm $(CLOVIS_ROOT)/../../PSP/src/cm
 
@@ -36,7 +45,7 @@ else
 ifeq ($(HPI_EMERSON),1)
         $(warning Using the actual chassis manager from the Platform Support Package located at $(USING_CM) and Emerson HPI)
 	HPI_LIBS = -L$(TOOLCHAIN_DIR)/emerson/lib -lbbs-hpibmultishelf -lbbs-hpibcommon -lbbs-hpibutils
-	HPI_CFLAGS = -I$(TOOLCHAIN_DIR)/emerson/include -I$(TOOLCHAIN_DIR)/include/glib-2.0 -I$(TOOLCHAIN_DIR)/lib/glib-2.0/include
+	HPI_CFLAGS = -I$(TOOLCHAIN_DIR)/emerson/include $(GLIB_INC)
 
 else
         $(warning Using the actual chassis manager from the Platform Support Package located at $(USING_CM) and OpenHPI)
