@@ -2107,7 +2107,7 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
              * different application, we can't just go and delete for one
              * close
              */
-            rc = clCkptMasterReplicaRemoveUpdate(masterHdl, localAddr);
+            //rc = clCkptMasterReplicaRemoveUpdate(masterHdl, localAddr);
         }
     }
 
