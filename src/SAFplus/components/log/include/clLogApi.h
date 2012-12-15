@@ -159,7 +159,7 @@ typedef struct
  */
     ClUint32T             flushFreq;
 /**
- * Time after which the log stream records must be flushed.
+ * Time after which the log stream records must be flushed. Denoted in nanoseconds.
  */
     ClTimeT               flushInterval;
 /**

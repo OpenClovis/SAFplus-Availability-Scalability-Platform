@@ -73,6 +73,7 @@ void clErrorTxlate(ClRcT        clError,
 
          case CL_ERR_NOT_EXIST:
          case CL_ERR_DOESNT_EXIST:
+         case CL_ERR_OUT_OF_RANGE:
              *aisError = SA_AIS_ERR_NOT_EXIST;
              break;
 

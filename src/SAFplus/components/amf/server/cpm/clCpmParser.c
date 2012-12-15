@@ -1657,7 +1657,7 @@ ClRcT cpmParseConfig(ClParserPtrT file)
                  * TODO:take appropriate action.
                  */
                 CL_CPM_CHECK(CL_DEBUG_ERROR,
-                             ("Component Type Not found.\n"),
+                             ("Component type [%s] not found.\n",componentType),
                              CL_CPM_RC(CL_ERR_DOESNT_EXIST));
                 exit(1);
             }
