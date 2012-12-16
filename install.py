@@ -1083,9 +1083,9 @@ class ASPInstaller:
             self.feedback('OpenClovis is already installed. Overwrite?')
             self.feedback('Responding with \'no\' will leave the existing SDK intact and proceed to the')
 
-            strin = self.get_user_feedback('installation of other utilities.  Overwrite existing SDK? <y|n> [n]: ')
+            strin = self.get_user_feedback('installation of other utilities.  Overwrite existing SDK? <y|n> [y]: ')
                 
-            if not strin or strin.lower().startswith('n'):
+            if strin.lower().startswith('n'):
                 pass
                 # no, do not overwrite
                 self.DO_PREBUILD = False
