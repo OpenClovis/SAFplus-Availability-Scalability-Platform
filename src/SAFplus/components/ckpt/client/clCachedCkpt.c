@@ -23,6 +23,9 @@
 #include <clLogApi.h>
 #include <clHandleApi.h>
 #include <clDebugApi.h>
+#include <clIocApi.h>
+
+extern ClIocNodeAddressT gIocLocalBladeAddress;
 
 /**********************************************************************
   DATABASE SECTION: store the cache (local copy) of the ckpt
@@ -50,7 +53,7 @@ ClRcT clCachedCkptClientInitialize(ClCachedCkptClientSvcInfoT *serviceInfo,
 
     serviceInfo->cachSize = shmSize;
 
-    snprintf(cacheName, sizeof(cacheName), "%s_%s", ckptName->value, ASP_NODENAME);
+    snprintf(cacheName, sizeof(cacheName), "%s_%d", ckptName->value, gIocLocalBladeAddress);
 
     rc = clOsalSemIdGet((ClUint8T*)cacheName, &serviceInfo->cacheSem);
     if( CL_OK != rc )
@@ -253,7 +256,7 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
         return CL_ERR_ALREADY_EXIST;
     }
 
-    snprintf(cacheName, sizeof(cacheName), "%s_%s", ckptName->value, ASP_NODENAME);
+    snprintf(cacheName, sizeof(cacheName), "%s_%d", ckptName->value, gIocLocalBladeAddress);
 
     rc = clOsalSemCreate((ClUint8T*)cacheName, 1, &serviceInfo->cacheSem);
     if(rc != CL_OK)

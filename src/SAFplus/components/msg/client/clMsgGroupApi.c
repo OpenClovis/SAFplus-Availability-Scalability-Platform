@@ -172,7 +172,6 @@ SaAisErrorT saMsgQueueGroupInsert(
 
     /* Get Ioc address of the given MSG queue group*/
     memcpy(&idlObj, &gIdlUcastObj, sizeof(idlObj));
-    idlObj.address.address.iocAddress.iocPhyAddress = qGroupData.qGroupAddress;
 
     rc = clIdlHandleInitialize(&idlObj, &idlQGroupHandle);
     if(rc != CL_OK)
@@ -266,7 +265,6 @@ SaAisErrorT saMsgQueueGroupRemove(
 
     /* Get Ioc address of the given MSG queue group*/
     memcpy(&idlObj, &gIdlUcastObj, sizeof(idlObj));
-    idlObj.address.address.iocAddress.iocPhyAddress = qGroupData.qGroupAddress;
 
     rc = clIdlHandleInitialize(&idlObj, &idlQGroupHandle);
     if(rc != CL_OK)
@@ -338,7 +336,6 @@ SaAisErrorT saMsgQueueGroupDelete(
 
     /* Get Ioc address of the given MSG queue group*/
     memcpy(&idlObj, &gIdlUcastObj, sizeof(idlObj));
-    idlObj.address.address.iocAddress.iocPhyAddress = qGroupData.qGroupAddress;
 
     rc = clIdlHandleInitialize(&idlObj, &idlQGroupHandle);
     if(rc != CL_OK)
@@ -520,7 +517,6 @@ SaAisErrorT saMsgQueueGroupTrack(
 
     /* Get Ioc address of the given MSG queue group*/
     memcpy(&idlObj, &gIdlUcastObj, sizeof(idlObj));
-    idlObj.address.address.iocAddress.iocPhyAddress = qGroupData.qGroupAddress;
 
     rc = clIdlHandleInitialize(&idlObj, &idlQGroupHandle);
     if(rc != CL_OK)
@@ -687,7 +683,6 @@ saMsgQueueGroupTrackStop (
 
     /* Get Ioc address of the given MSG queue group*/
     memcpy(&idlObj, &gIdlUcastObj, sizeof(idlObj));
-    idlObj.address.address.iocAddress.iocPhyAddress = qGroupData.qGroupAddress;
 
     rc = clIdlHandleInitialize(&idlObj, &idlQGroupHandle);
     if(rc != CL_OK)
@@ -747,61 +742,3 @@ error_out:
     return CL_MSG_SA_RC(rc);
 }
 
-ClRcT VDECL_VER(clMsgQueueGroupInsert, 4, 0, 0)(
-        SaMsgHandleT msgHandle,
-        ClNameT *pGroupName,
-        ClNameT *pQName
-        )
-{
-    ClRcT rc = CL_OK;
-
-    CL_MSG_INIT_CHECK;
-
-    //rc  = clMsgGroupMembershipInfoSend(CL_MSG_DATA_ADD, pGroupName, pQName);
-    if(rc != CL_OK)
-    {
-        clLogError("GRP", "QIN", "Failed to insert the queue to a group. error code [0x%x].", rc);
-    }
-
-    return rc;
-}
-
-
-
-ClRcT VDECL_VER(clMsgQueueGroupRemove, 4, 0, 0)(
-        SaMsgHandleT msgHandle,
-        ClNameT *pGroupName,
-        ClNameT *pQName
-        )
-{
-    ClRcT rc = CL_OK;
-
-    CL_MSG_INIT_CHECK;
-
-    //rc  = clMsgGroupMembershipInfoSend(CL_MSG_DATA_DEL, pGroupName, pQName);
-    if(rc != CL_OK)
-    {
-        clLogError("GRP", "QRM", "Failed to delete a queue from the group. error code [0x%x].", rc);
-    }
-
-    return rc;
-}
-
-
-ClRcT VDECL_VER(clMsgClientQueueGroupDelete, 4, 0, 0)(
-        SaMsgHandleT msgHandle,
-        const ClNameT *pGroupName
-        )
-{
-    ClRcT rc = CL_OK;
-
-    CL_MSG_INIT_CHECK;
-
-    //rc = clMsgGroupInfoUpdate(CL_MSG_DATA_DEL, (ClNameT*)pGroupName, 0);
-    if(rc != CL_OK)
-    {
-        clLogError("GRP", "DEL", "Failed to inform deletion of group-name [%.*s]. error code [0x%x].", pGroupName->length, pGroupName->value, rc);
-    }
-
-    return rc;
-}

@@ -46,8 +46,8 @@ ClRcT clMsgQCkptInitialize(void)
 
     /* Initialize MSG queue cached ckpt */
     const ClNameT msgQueueCkptName  = {
-                     sizeof("clMsgQueueCkpt") - 1,
-                     "clMsgQueueCkpt"
+                     sizeof("CL_MsgQueueCkpt") - 1,
+                     "CL_MsgQueueCkpt"
                     };
 
     SaCkptCheckpointOpenFlagsT	msgQueueOpenFlags = SA_CKPT_CHECKPOINT_CREATE | SA_CKPT_CHECKPOINT_READ | SA_CKPT_CHECKPOINT_WRITE;
@@ -73,8 +73,8 @@ ClRcT clMsgQCkptInitialize(void)
 
     /* Initialize MSG group queue cached ckpt */
     const ClNameT msgQGroupCkptName  = {
-                     sizeof("clMsgQueueGroupCkpt") - 1,
-                     "clMsgQueueGroupCkpt"
+                     sizeof("CL_MsgQueueGroupCkpt") - 1,
+                     "CL_MsgQueueGroupCkpt"
                     };
 
     SaCkptCheckpointOpenFlagsT	msgQGroupOpenFlags = SA_CKPT_CHECKPOINT_CREATE | SA_CKPT_CHECKPOINT_READ | SA_CKPT_CHECKPOINT_WRITE;
@@ -436,6 +436,10 @@ ClRcT clMsgQGroupCkptDataUpdate(ClMsgSyncActionT syncupType, ClNameT *pGroupName
             clLogError("MSG", "GroupCkpt_UPD", "Failed to synchronize all message queue group cache checkpoints. error code [0x%x].", retCode);
         }
     }
+    else
+    {
+        clMsgGroupInfoUpdate(syncupType, pGroupName, policy);
+    }
 
 error_out:
     return rc;
@@ -569,6 +573,10 @@ ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, ClNameT *
         {
             clLogError("MSG", "GroupCkpt_UPD", "Failed to synchronize all message queue group cache checkpoints. error code [0x%x].", retCode);
         }
+    }
+    else
+    {
+        clMsgGroupMembershipInfoSend(syncupType, pGroupName, pQueueName);
     }
 
 error_out:
