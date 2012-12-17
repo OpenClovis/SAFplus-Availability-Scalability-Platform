@@ -38,8 +38,8 @@ ClRcT clMsgQCkptInitialize(void)
     ClRcT retCode;
 
     const ClNameT msgQueueCkptName  = {
-                     sizeof("clMsgQueueCkpt") - 1,
-                     "clMsgQueueCkpt"
+                     sizeof("CL_MsgQueueCkpt") - 1,
+                     "CL_MsgQueueCkpt"
                     };
     rc = clCachedCkptClientInitialize(&gMsgQCkptClient, &msgQueueCkptName, CL_MSG_QUEUE_CKPT_SIZE);
     if(rc != CL_OK)
@@ -49,8 +49,8 @@ ClRcT clMsgQCkptInitialize(void)
     }
 
     const ClNameT msgQueueGroupCkptName  = {
-                     sizeof("clMsgQueueGroupCkpt") - 1,
-                     "clMsgQueueGroupCkpt"
+                     sizeof("CL_MsgQueueGroupCkpt") - 1,
+                     "CL_MsgQueueGroupCkpt"
                     };
 
     rc = clCachedCkptClientInitialize(&gMsgQGroupCkptClient, &msgQueueGroupCkptName, CL_MSG_QGROUP_CKPT_SIZE);
