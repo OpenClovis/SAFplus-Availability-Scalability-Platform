@@ -44,7 +44,9 @@
 #include  "ckptEockptServerCliServerFuncClient.h"
 #include  "ckptEockptServerExtServerFuncClient.h"
 #include  "ckptEockptServerExtCliServerFuncClient.h"
+#include  "ckptEockptServerExtCliServerFuncPeerClient.h"
 #include "ckptEockptServerActivePeerClient.h"
+#include "ckptClntEockptClntckptClntClient.h"
 #include  "ckptClntEoServer.h"
 #include  "ckptClntEoClient.h"
 #include  "ckptEoClient.h"
@@ -3416,6 +3418,7 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
          */ 
         memcpy(&version,&clVersionSupported[0],sizeof(ClVersionT));
     }
+
     /*
      * Send the call to the checkpoint active server.
      * Retry if the server is not not reachable.
@@ -3425,6 +3428,53 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
     CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
                    ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;
+
+    if((pHdlInfo->creationFlag & CL_CKPT_PEER_TO_PEER_REPLICA))
+    {
+        ClCkptClientInfoListT clientInfo = {0};
+        rc = VDECL_VER(_ckptClientInfoGetClientSync, 6, 0, 0)(ckptIdlHdl, actHdl,
+                                                              &clientInfo);
+        if(rc != CL_OK)
+        {
+            clLogError("INFO", "GET", "Ckpt client info get returned with [%#x]", rc);
+        }
+        else
+        {
+            static ClCkptSectionIdT defaultSection = {.idLen = sizeof("defaultSection"),
+                                                      .id = (ClUint8T*)"defaultSection"
+            };
+            ClCkptSectionIdT *pClientSection = &tempSecId;
+            ClIdlHandleT clientIdlHdl = pInitInfo->ckptClientIdlHdl;
+            if(!tempSecId.id || !tempSecId.idLen)
+            {
+                pClientSection = &defaultSection;
+            }
+            for(ClUint32T i = 0; i < clientInfo.numEntries; ++i)
+            {
+                if(clientInfo.pClientInfo[i].nodeAddress == gClntInfo.ckptOwnAddr.nodeAddress
+                   &&
+                   clientInfo.pClientInfo[i].portId == gClntInfo.ckptOwnAddr.portId)
+                    continue;
+                rc = clCkptClientIdlHandleUpdate(clientIdlHdl, 
+                                                 clientInfo.pClientInfo[i].nodeAddress,
+                                                 clientInfo.pClientInfo[i].portId, 0);
+                if(rc == CL_OK)
+                {
+                    clLogDebug("PEER", "WRITE", "Ckpt [%.*s] peer [%d:%d] write for section [%.*s], "
+                               "size [%lld]", pHdlInfo->ckptName.length, pHdlInfo->ckptName.value,
+                               clientInfo.pClientInfo[i].nodeAddress, clientInfo.pClientInfo[i].portId,
+                               pClientSection->idLen, pClientSection->id, dataSize);
+                    rc = VDECL_VER(clCkptSectionUpdationNotificationClientAsync, 4, 0, 0)
+                        (clientIdlHdl, &pHdlInfo->ckptName, pClientSection, 
+                         dataSize, (ClUint8T*)pData, NULL, NULL);
+                }
+            }
+            if(clientInfo.pClientInfo)
+            {
+                clHeapFree(clientInfo.pClientInfo);
+            }
+        }
+    }
             
     rc = VDECL_VER(_ckptSectionOverwriteClientSync, 4, 0, 0)( ckptIdlHdl, actHdl,
                                                               clIocLocalAddressGet(), iocPort,  
@@ -4328,6 +4378,14 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
     CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
             ("Ckpt:Initialize failed rc[0x %x]\n",rc), rc);
 
+    rc = clCkptClientIdlHandleInit(&pInitInfo->ckptClientIdlHdl);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(gClntInfo.ckptDbHdl, *pCkptSvcHandle);
+    }
+    CKPT_ERR_CHECK(CL_CKPT_LIB, CL_DEBUG_ERROR,
+                   ("Ckpt: Initialize failed with [%#x]\n", rc), rc);
+
     /*
      * Mutex for safeguarding the associated selection object.
      */
@@ -4420,6 +4478,9 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
 
     rc = clEoMyEoObjectGet(&pThis);
     CL_ASSERT(rc == CL_OK);
+
+    gClntInfo.ckptOwnAddr.nodeAddress = clIocLocalAddressGet();
+    gClntInfo.ckptOwnAddr.portId = pThis->eoPort;
 
     rc = clCkptEoClientTableRegister(CL_IOC_CKPT_PORT);
     CL_ASSERT(rc == CL_OK);

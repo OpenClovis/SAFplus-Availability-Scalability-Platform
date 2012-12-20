@@ -39,9 +39,9 @@ SRC_FILES	:= $(wildcard *.c) \
                    ../common/clCkptCmnUtils.c \
                    $(CKPT_PATH)/idl/ckptClntEo/server/ckptClntEockptClntckptClntServer.c \
                    $(CKPT_PATH)/idl/ckptClntEo/server/ckptClntEoServer.c \
-                   $(CKPT_PATH)/idl/ckptClntEo/client/ckptClntEoClient.c \
-		   $(wildcard $(CKPT_PATH)/idl/ckptEo/client/*.c)\
-		   $(wildcard $(CKPT_PATH)/idl/ckptEo/xdr/*.c)\
+			$(wildcard $(CKPT_PATH)/idl/ckptClntEo/client/*.c)		\
+			$(wildcard $(CKPT_PATH)/idl/ckptEo/client/*.c) \
+			$(wildcard $(CKPT_PATH)/idl/ckptEo/xdr/*.c)
 
 # List other ASP components of which client libraries your component
 # depends on:

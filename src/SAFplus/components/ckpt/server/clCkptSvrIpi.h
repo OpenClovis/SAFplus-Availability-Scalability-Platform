@@ -542,11 +542,6 @@ clCkptActiveAppInfoUpdate(CkptT              *pCkpt,
                           ClIocNodeAddressT  appAddr,
                           ClIocPortT         appPort,
                           ClUint32T          **ppData);
-extern ClRcT clCkptAppIdlHandleInit(ClIdlHandleT  *pHdl);
-extern ClRcT clCkptAppIdlHandleUpdate(ClIdlHandleT       idlHdl,
-                               ClIocNodeAddressT  nodeAddress,
-                               ClIocPortT         portId,
-                               ClUint32T          numRetries);
 extern ClRcT
 clCkptSectionLevelMutexCreate(ClOsalMutexIdT  *pSecMutexArray, 
                               ClUint32T       numMutexs);

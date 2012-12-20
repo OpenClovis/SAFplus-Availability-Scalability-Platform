@@ -36,7 +36,7 @@
 #include <clVersion.h>
 #include <ipi/clHandleIpi.h>
 #include <clCkptApi.h>
-#include <clIocErrors.h>
+#include <clIocIpi.h>
 #include <clCkptExtApi.h>
 #include <clCkptUtils.h>
 #include <clCkptErrors.h>
@@ -48,6 +48,7 @@
 #include <ckptEoServer.h>
 #include <ckptEockptServerCliServerFuncServer.h>
 #include <ckptEockptServerExtCliServerFuncClient.h>
+#include <ckptEockptServerExtCliServerFuncPeerServer.h>
 #include <ckptEockptServerActivePeerClient.h>
 #include <ckptEockptServerPeerPeerClient.h>
 #include <ckptClntEockptClntckptClntClient.h>
@@ -4059,7 +4060,7 @@ clCkptClntWriteNotify(CkptT                   *pCkpt,
     ClCkptAppInfoT   *pAappInfo = NULL;
     ClUint32T        doSend  = 0;
 
-    rc = clCkptAppIdlHandleInit(&idlHdl);
+    rc = clCkptClientIdlHandleInit(&idlHdl);
     if( CL_OK != rc )
     {
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_SEC_OVERWRITE, 
@@ -4102,8 +4103,8 @@ clCkptClntWriteNotify(CkptT                   *pCkpt,
         if( (doSend) && (pAappInfo->nodeAddress == gCkptSvr->localAddr) && 
             (nodeAddress != pAappInfo->nodeAddress || portId != pAappInfo->portId) )
         {
-            rc = clCkptAppIdlHandleUpdate(idlHdl, pAappInfo->nodeAddress,
-                                        pAappInfo->portId, 0);
+            rc = clCkptClientIdlHandleUpdate(idlHdl, pAappInfo->nodeAddress,
+                                             pAappInfo->portId, 0);
             if( CL_OK != rc )
             {
                 clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE,
@@ -4144,7 +4145,15 @@ clCkptClntSecOverwriteNotify(CkptT             *pCkpt,
     ClCkptAppInfoT    *pAappInfo = NULL;
     ClUint32T        doSend      = 0;
 
-    rc = clCkptAppIdlHandleInit(&idlHdl);
+    /*
+     * Skip update for peer to peer distributed replica
+     */
+    if( (pCkpt->pCpInfo->updateOption & CL_CKPT_PEER_TO_PEER_REPLICA) )
+    {
+        return CL_OK;
+    }
+
+    rc = clCkptClientIdlHandleInit(&idlHdl);
     if( CL_OK != rc )
     {
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_SEC_OVERWRITE, 
@@ -4191,8 +4200,8 @@ clCkptClntSecOverwriteNotify(CkptT             *pCkpt,
             clLogTrace(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_REPL_UPDATE, 
                        "Sending notification to application [%d:%d]...",
                         pAappInfo->nodeAddress, pAappInfo->portId);
-            rc = clCkptAppIdlHandleUpdate(idlHdl, pAappInfo->nodeAddress, 
-                                          pAappInfo->portId, 0);
+            rc = clCkptClientIdlHandleUpdate(idlHdl, pAappInfo->nodeAddress, 
+                                             pAappInfo->portId, 0);
             if( CL_OK != rc )
             {
                 clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE,
@@ -4323,6 +4332,128 @@ exitOnErrorBeforeHdlCheckout:
     CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
     return rc;
 }
+
+static ClRcT ckptClientInfoGetWalk(ClCntKeyHandleT key,
+                                   ClCntDataHandleT data,
+                                   ClCntArgHandleT userArg,
+                                   ClUint32T dataSize)
+{
+    ClCkptClientInfoListT *pClientInfoList = (ClCkptClientInfoListT*)userArg;
+    ClCkptAppInfoT *appInfo = (ClCkptAppInfoT*)key;
+    ClIocPhysicalAddressT compAddr = {0};
+    ClUint8T status = 0;
+    if(!key) return CL_CKPT_RC(CL_ERR_INVALID_STATE);
+    /*
+     * Break walk if space exhausted
+     */
+    if(pClientInfoList->numEntries >= dataSize) 
+        return CL_ERR_NO_SPACE;
+
+    compAddr.nodeAddress = appInfo->nodeAddress;
+    compAddr.portId = appInfo->portId;
+    clIocCompStatusGet(compAddr, &status);
+    /*
+     * Skip if app status is not enabled.
+     */
+    if(!status) return CL_OK;
+    pClientInfoList->pClientInfo[pClientInfoList->numEntries].nodeAddress = appInfo->nodeAddress;
+    pClientInfoList->pClientInfo[pClientInfoList->numEntries].portId = appInfo->portId;
+    ++pClientInfoList->numEntries;
+    return CL_OK;
+}
+
+static ClRcT ckptClientInfoGet(CkptT *pCkpt,
+                               ClCkptClientInfoListT *pClientInfoList)
+{
+    ClRcT rc = CL_OK;
+    ClUint32T numEntries = 0;
+    rc = clCntSizeGet(pCkpt->pCpInfo->appInfoList, &numEntries);
+    if(rc != CL_OK)
+    {
+        clLogError("APP", "GET", "Appinfolist get returned with [%#x]", rc);
+        goto out;
+    }
+    if(!numEntries)
+        goto out;
+
+    pClientInfoList->pClientInfo = clHeapCalloc(numEntries, sizeof(*pClientInfoList->pClientInfo));
+    CL_ASSERT(pClientInfoList->pClientInfo != NULL);
+    pClientInfoList->numEntries = 0;
+    rc = clCntWalk(pCkpt->pCpInfo->appInfoList, ckptClientInfoGetWalk,
+                   (ClCntArgHandleT)pClientInfoList, numEntries);
+    if(rc != CL_OK)
+    {
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_SPACE)
+            rc = CL_OK;
+        else goto out_free;
+    }
+    return rc;
+
+    out_free:
+    clHeapFree(pClientInfoList->pClientInfo);
+    pClientInfoList->pClientInfo = NULL;
+    pClientInfoList->numEntries = 0;
+
+    out:
+    return rc;
+}
+
+ClRcT
+VDECL_VER(_ckptClientInfoGet, 6, 0, 0)(ClCkptHdlT  ckptHdl, 
+                                       ClCkptClientInfoListT *pClientInfoList)
+{
+    ClRcT rc = CL_OK;
+    CkptT *pCkpt = NULL;
+
+    /*
+     * Check whether the server is fully up or not.
+     */
+    if (gCkptSvr == NULL || gCkptSvr->serverUp == CL_FALSE) 
+    {
+        rc = CL_CKPT_ERR_TRY_AGAIN;
+        goto out;
+    }
+    
+    /*
+     * Retrieve the data associated with the active handle.
+     */
+    rc = clHandleCheckout(gCkptSvr->ckptHdl, ckptHdl, (void **)&pCkpt);
+    if(rc != CL_OK)
+    {
+        goto out;
+    }
+
+    if(!pCkpt)
+    {
+        rc = CL_CKPT_RC(CL_ERR_INVALID_STATE);
+        goto out_checkin;
+    }
+
+    if(pCkpt->isPending == CL_TRUE)
+    {
+        rc = CL_CKPT_ERR_TRY_AGAIN;
+        goto out_checkin;
+    }
+    
+    /*
+     * Lock the checkpoint's mutex.
+     */
+    CKPT_LOCK(pCkpt->ckptMutex);           
+    if(!pCkpt->ckptMutex)
+    {
+        rc = CL_CKPT_ERR_NOT_EXIST;
+        goto out_checkin;
+    }
+    rc = ckptClientInfoGet(pCkpt, pClientInfoList);
+    CKPT_UNLOCK(pCkpt->ckptMutex);
+
+    out_checkin:
+    clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+
+    out:
+    return rc;
+}
+
 
 ClRcT
 clCkptActiveAppInfoUpdate(CkptT              *pCkpt,
