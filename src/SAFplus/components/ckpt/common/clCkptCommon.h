@@ -223,6 +223,13 @@ typedef struct hdlDb
 /* Routine to pack a vector */
 ClRcT ckptIdlHandleUpdate(ClIocNodeAddressT nodeId,ClIdlHandleT handle,ClUint32T numRetries);
 
+ClRcT clCkptClientIdlHandleInit(ClIdlHandleT  *pHdl);
+
+ClRcT clCkptClientIdlHandleUpdate(ClIdlHandleT       idlHdl,
+                                  ClIocNodeAddressT  nodeAddress,
+                                  ClIocPortT         portId,
+                                  ClUint32T          numRetries);
+
 /* Routine for getting well known ckpt logical address */
 void ckptOwnLogicalAddressGet(ClIocLogicalAddressT * logicalAddress);
 

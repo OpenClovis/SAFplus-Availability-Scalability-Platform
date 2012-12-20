@@ -20,6 +20,7 @@ extern "C" {
 #include <clIdlApi.h>
 #include <ipi/clRmdIpi.h>
 #include "../clientIDDefinitions.h"
+#include "xdrClCkptClientInfoListT.h"
 #include "xdrCkptPeerListInfoT.h"
 #include "xdrCkptCPInfoT.h"
 #include "xdrClCkptIOVectorElementT.h"
@@ -105,6 +106,7 @@ extern ClRcT _ckptCheckpointWriteVectorServer_4_0_0(ClEoDataT eoData, ClBufferHa
 extern ClRcT _ckptSectionOverwriteVectorServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptRemSvrCkptWriteVectorServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptRemSvrWelcomeServer_5_1_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
+extern ClRcT _ckptClientInfoGetServer_6_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 
 
 #ifdef __cplusplus

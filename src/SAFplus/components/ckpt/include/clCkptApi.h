@@ -91,6 +91,12 @@ extern "C" {
 #define CL_CKPT_ALL_OPEN_ARE_REPLICAS  0x40
 
 /**
+ * OpenClovis extension. If this flag is set, the writes are sent peer to peer
+ * for hot-standby or CL_CKPT_DISTRIBUTED checkpoints.
+ */
+#define CL_CKPT_PEER_TO_PEER_REPLICA   0x80
+
+/**
  *  Checkpoint open for read.
  */
 #define CL_CKPT_CHECKPOINT_READ        0X1

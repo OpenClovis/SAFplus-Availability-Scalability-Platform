@@ -39,7 +39,6 @@ SRC_FILES	:= clCkptLife.c  clCkptMain.c clCkptSaf.c clCkptUtils.c \
                    clCkptDataBackup.c\
                    clCkptMasterUtils.c  clCkptPeer.c \
 		       ../common/clCkptCmnUtils.c clCkptSvrCmds.c\
-                   $(CKPT_PATH)/idl/ckptClntEo/client/ckptClntEockptClntckptClntClient.c\
 		 $(wildcard $(CKPT_PATH)/idl/ckptEo/server/*.c)\
 		 $(wildcard $(CKPT_PATH)/idl/ckptEo/xdr/*.c)\
 		 $(wildcard $(CKPT_PATH)/idl/ckptEo/client/*.c)\

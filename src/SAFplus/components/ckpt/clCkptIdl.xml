@@ -247,6 +247,14 @@ material.
             <DataMember name="dataOffset" type="ClUint64T"/>
             <DataMember name="differenceVector" type="ClDifferenceVectorT" pointer = "Single"/>
         </Struct>
+        <Struct name="ClCkptClientInfoT">
+            <DataMember name="nodeAddress" type="ClUint32T"/>
+            <DataMember name="portId" type="ClUint32T"/>
+        </Struct>
+        <Struct name="ClCkptClientInfoListT">
+          <DataMember name="numEntries" type="ClUint32T" />
+          <DataMember name="pClientInfo" type="ClCkptClientInfoT" pointer="Single" lengthVar="numEntries"/>
+        </Struct>
 
         <Port name="ckptServer" ID="CL_EO_NATIVE_COMPONENT_TABLE_ID">
             <Group name="CliServerFunc">
@@ -856,6 +864,14 @@ material.
                     <Argument ParameterType="CL_IN" name="credential"
                     type="ClUint8T"/>
                 </Operation>	
+            </Group>
+
+            <Group name="ExtCliServerFuncPeer">
+              <Operation name="_ckptClientInfoGet" type="sync" version="6.0.0">
+                <Argument ParameterType="CL_IN" name="ckptHdl" type="ClHandleT"/>
+                <Argument ParameterType="CL_OUT" name="pClientInfoList" 
+                          type="ClCkptClientInfoListT" pointer="Single"/>
+              </Operation>
             </Group>
 
         </Port>            

@@ -75,6 +75,7 @@ typedef struct ClCkptClntInfo
     ClEventChannelHandleT    ckptChannelSubHdl; /* Channel handle */
     ClOsalMutexT             ckptClntMutex;     /* Mutex to proctect the 
                                                    client info */
+    ClIocPhysicalAddressT    ckptOwnAddr;
 }ClCkptClntInfoT;
 
 
@@ -87,6 +88,7 @@ typedef struct initInfo
 {
     ClUint8T           hdlType;         /* Handle type */
     ClIdlHandleT       ckptIdlHdl;      /* Idl Handle */
+    ClIdlHandleT       ckptClientIdlHdl; /* ckpt peer idl handle */
     ClIocNodeAddressT  mastNodeAddr;    /* Master server address */
     ClCntHandleT       hdlList;         /* Iteration Handle list */
     ClCkptCallbacksT   *pCallback;      /* Callback functions */

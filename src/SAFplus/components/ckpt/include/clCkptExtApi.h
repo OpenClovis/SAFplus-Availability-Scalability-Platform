@@ -125,6 +125,19 @@ typedef struct ClCkptDifferenceIOVectorElement
     ClDifferenceVectorT *differenceVector;  /* the dataBuffer difference vector representation*/
 }ClCkptDifferenceIOVectorElementT;
 
+typedef struct ClCkptClientInfo
+{
+    ClIocNodeAddressT nodeAddress;
+    ClIocPortT portId;
+} ClCkptClientInfoT;
+
+typedef struct ClCkptClientInfoList
+{
+    ClUint32T numEntries;
+    ClCkptClientInfoT *pClientInfo;
+} ClCkptClientInfoListT;
+
+    
 /**
  ************************************
  *  \brief Initializes the client.
