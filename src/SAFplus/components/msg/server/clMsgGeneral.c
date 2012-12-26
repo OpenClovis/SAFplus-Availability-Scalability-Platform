@@ -248,5 +248,6 @@ void clMsgCompLeftCleanup(ClIocAddressT *pAddr)
 void clMsgNodeLeftCleanup(ClIocAddressT *pAddr)
 {
     clMsgQCkptNodeDown(pAddr);
-    clMsgQGroupCkptNodeDown(pAddr);
+    /* Groups are persistent. Deleting the ckpt section pertaining to the queue group on node down not required */
+    //clMsgQGroupCkptNodeDown(pAddr);
 }

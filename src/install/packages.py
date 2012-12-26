@@ -16,6 +16,10 @@ class OS:
         self.apt                    = False
         self.yum                    = False
         self.pwd                    = syscall('pwd')
+
+        # Move to here as below steps need initialize first
+        self.post_init()                        # overload post_init() as needed
+
         try:
           self.gccVer                 = [int(x) for x in syscall('gcc --version')[0].split()[3].split(".")]
         except IndexError:  # Most likely no gcc installed
@@ -23,15 +27,13 @@ class OS:
 
         self.kernelVerString = syscall('uname -r')
         self.kernelVer       = self.kernelVerString.split(".")
-        
+
         self.bit = determine_bit()
-        
+
         self.load_preinstall_deps()             # load up the preinstall dependency list (each os must implement)
         self.load_install_deps()                # load up install dependency list
         self.load_install_specific_deps()       # load up and custom install deps for a specific OS
-        self.post_init()                        # overload post_init() as needed
-    
-    
+
     def post_init(self):
         """ overload as needed """
         self.name = 'N/A'
@@ -457,7 +459,6 @@ class OS:
 # ------------------------------------------------------------------------------
 class Ubuntu(OS):
     """ Ubuntu Distro class """
-    
     def post_init(self):
         self.name = 'Ubuntu'
         self.apt = True
@@ -860,3 +861,4 @@ def determine_os():
         return Other()
     
     return None
+
