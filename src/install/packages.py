@@ -17,8 +17,6 @@ class OS:
         self.yum                    = False
         self.pwd                    = syscall('pwd')
 
-        # Move to here as below steps need initialize first
-        self.post_init()                        # overload post_init() as needed
 
         try:
           self.gccVer                 = [int(x) for x in syscall('gcc --version')[0].split()[3].split(".")]
@@ -30,13 +28,22 @@ class OS:
 
         self.bit = determine_bit()
 
+        self.pre_init()                         # overload pre_init() as needed
+
         self.load_preinstall_deps()             # load up the preinstall dependency list (each os must implement)
         self.load_install_deps()                # load up install dependency list
         self.load_install_specific_deps()       # load up and custom install deps for a specific OS
 
-    def post_init(self):
+        self.post_init()                         # overload post_init() as needed
+
+
+    def pre_init(self):
         """ overload as needed """
         self.name = 'N/A'
+
+    def post_init(self):
+        """ overload as needed """
+        pass
     
     def load_preinstall_deps(self):
         """ overload and load preinstall() deps here """
@@ -459,7 +466,7 @@ class OS:
 # ------------------------------------------------------------------------------
 class Ubuntu(OS):
     """ Ubuntu Distro class """
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Ubuntu'
         self.apt = True
     
@@ -494,7 +501,7 @@ class Ubuntu(OS):
 # ------------------------------------------------------------------------------
 class RedHat4(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Red Hat 4'
         self.yum = True
     
@@ -528,7 +535,7 @@ class RedHat4(OS):
 # ------------------------------------------------------------------------------
 class RedHat5(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Red Hat 5'
         self.yum = True
     
@@ -561,7 +568,7 @@ class RedHat5(OS):
 # ------------------------------------------------------------------------------
 class CentOS4(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'CentOS 4'
         self.yum = True
     
@@ -595,7 +602,7 @@ class CentOS4(OS):
 # ------------------------------------------------------------------------------
 class CentOS5(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'CentOS 5'
         self.yum = True
     
@@ -629,7 +636,7 @@ class CentOS5(OS):
 # ------------------------------------------------------------------------------
 class CentOS6(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'CentOS 6'
         self.yum = True
     
@@ -649,7 +656,7 @@ class Fedora(OS):
       self.name = 'Fedora'
       OS.__init__(self)
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Fedora'
         self.yum = True
     
@@ -684,7 +691,7 @@ class SUSE(OS): # uses YAST #fixme
     
     # SUSE is not supported as of 4/8/2011
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'SUSE'
         self.supported = False
         
@@ -716,7 +723,7 @@ class SUSE(OS): # uses YAST #fixme
 # ------------------------------------------------------------------------------
 class Debian(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Debian'
         self.apt = True
     
@@ -754,7 +761,7 @@ class Debian(OS):
 class Mint(OS):
     """ LinuxMint Distro class """
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'LinuxMint'
         self.apt = True
     
@@ -789,7 +796,7 @@ class Mint(OS):
 # ------------------------------------------------------------------------------
 class Other(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Other'
         self.supported = False
         self.apt = False
