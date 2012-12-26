@@ -16,22 +16,34 @@ class OS:
         self.apt                    = False
         self.yum                    = False
         self.pwd                    = syscall('pwd')
+
+
         try:
           self.gccVer                 = [int(x) for x in syscall('gcc --version')[0].split()[3].split(".")]
         except IndexError:  # Most likely no gcc installed
           self.gccVer = None
-        
+
+        self.kernelVerString = syscall('uname -r')
+        self.kernelVer       = self.kernelVerString.split(".")
+
         self.bit = determine_bit()
-        
+
+        self.pre_init()                         # overload pre_init() as needed
+
         self.load_preinstall_deps()             # load up the preinstall dependency list (each os must implement)
         self.load_install_deps()                # load up install dependency list
         self.load_install_specific_deps()       # load up and custom install deps for a specific OS
-        self.post_init()                        # overload post_init() as needed
-    
-    
-    def post_init(self):
+
+        self.post_init()                         # overload post_init() as needed
+
+
+    def pre_init(self):
         """ overload as needed """
         self.name = 'N/A'
+
+    def post_init(self):
+        """ overload as needed """
+        pass
     
     def load_preinstall_deps(self):
         """ overload and load preinstall() deps here """
@@ -46,14 +58,14 @@ class OS:
         return log_string
 
     def tipcConfigBuild(self):
-        kernName = syscall('uname -r')
+        kernName = self.kernelVerString
         kernHdrPath = '/lib/modules/%s/build' % kernName
         tipcHdrFile = kernHdrPath + "/include/linux/tipc_config.h"
         if not os.path.exists(kernHdrPath):
           assert 0, "Did not find headers for your kernel %s at %s.  On some Linux distributions this can be resolved by updating you kernel.  On others, the kernel name as found by 'uname -r' and the directory are different.  To continue, you must create a symlink from the correct kernel headers to the expected location." % (kernName,kernHdrPath)
         if not os.path.exists(tipcHdrFile):
           assert 0, "Did not find the TIPC header in your kernel's header files located at %s.  You must find your kernel's TIPC headers and install them (or install TIPC from source)." % tipcHdrFile
-        EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % syscall('uname -r')
+        EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % self.kernelVerString
         return [EXPORT,'make','mkdir -p $PREFIX/bin','cp tipc-config/tipc-config $PREFIX/bin']
 
     def openHpiSubagentBuildCmds(self,EXPORT,log):
@@ -229,15 +241,36 @@ class OS:
                                           #'sed --in-place -e "s;`net-snmp-config --prefix`;$PREFIX;g" Makefile' + log,
 
         # ------------------------------------------------------------------------------
-        # TIPC
+        # TIPC and TIPC_CONFIG
         # ------------------------------------------------------------------------------
-        EXPORT = 'export KERNELDIR=/lib/modules/`uname -r`/build'
-        
+        EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % self.kernelVerString
+
+        TIPC_CONFIG = objects.BuildDep()
+        TIPC_CONFIG.name           = 'tipc-config'
+        TIPC_CONFIG.version        = '1.1.9'
+        TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
+
         TIPC = objects.BuildDep()
         TIPC.name           = 'tipc'
-        TIPC.version        = '1.7.7'
-        TIPC.pkg_name       = 'tipc-1.7.7.tar.gz'
-        
+        if self.kernelVer[0] == 2 and self.kernelVer[1] >= 39:
+          TIPC.version        = '2.0'
+          TIPC.pkg_name       = None
+          TIPC_CONFIG.version        = '2.0.2'
+          TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.2.tar.gz' #default name, can change
+        elif self.kernelVer[0] == 2 and self.kernelVer[1] >= 34:
+          TIPC.version        = '2.0'
+          TIPC.pkg_name       = None
+          TIPC_CONFIG.version        = '2.0.0'
+          TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.0.tar.gz' #default name, can change
+        elif self.kernelVer[0] == 2 and self.kernelVer[1] >= 16:
+          TIPC.version        = '1.7.7'
+          TIPC.pkg_name       = 'tipc-1.7.7.tar.gz'
+          TIPC_CONFIG.version        = '1.1.9'
+          TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
+        elif self.kernelVer[0] == 2 and self.kernelVer[1] >= 9:
+          TIPC.version        = '1.5.12'
+          TIPC.pkg_name       = 'tipc-1.5.12.tar.gz'
+
         log = self.log_string_for_dep(TIPC.name)
         
         # tipc has a special case in install.py marked:                 # SPECIAL CASE, TIPC
@@ -248,10 +281,8 @@ class OS:
                                 'cp net/tipc/tipc.ko $PREFIX/modules',
                                 'cp tools/tipc-config $PREFIX/bin',
                                 'cp include/net/tipc/*.h $PREFIX/include']
-               
-        res = syscall('uname -r')
-        
-        if int(res.split('.')[2].split('-')[0]) < 16:
+                       
+        if int(self.kernelVer[2].split('-')[0]) < 16:
             pass
         else:
             TIPC.build_cmds.append('mkdir -p $PREFIX/include/linux >/dev/null 2>&1')
@@ -261,13 +292,8 @@ class OS:
         # ------------------------------------------------------------------------------
         # TIPC_CONFIG
         # ------------------------------------------------------------------------------
-        EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % syscall('uname -r')
-        
-        TIPC_CONFIG = objects.BuildDep()
-        TIPC_CONFIG.name           = 'tipc-config'
-        TIPC_CONFIG.version        = '1.1.9'
-        TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
-        
+        EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % self.kernelVerString
+                
         log = self.log_string_for_dep(TIPC_CONFIG.name)
         
         TIPC_CONFIG.use_build_dir = False
@@ -422,7 +448,11 @@ class OS:
         
         
         # this list defines the order of installation
-        self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
+        if self.name == "Fedora":
+          self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
+          print "For Fedora OS, it is necessary for you to build and install TIPC yourself."
+        else:
+          self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
         #self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]        
     
     
@@ -436,15 +466,14 @@ class OS:
 # ------------------------------------------------------------------------------
 class Ubuntu(OS):
     """ Ubuntu Distro class """
-    
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Ubuntu'
         self.apt = True
     
     def load_preinstall_deps(self):
         
         deps =  ['build-essential',
-                 'linux-headers-' + syscall('uname -r'),
+                 'linux-headers-' + self.kernelVerString,
                  'gettext',
                  'uuid-dev',
                  'bison',
@@ -472,7 +501,7 @@ class Ubuntu(OS):
 # ------------------------------------------------------------------------------
 class RedHat4(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Red Hat 4'
         self.yum = True
     
@@ -506,7 +535,7 @@ class RedHat4(OS):
 # ------------------------------------------------------------------------------
 class RedHat5(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Red Hat 5'
         self.yum = True
     
@@ -539,7 +568,7 @@ class RedHat5(OS):
 # ------------------------------------------------------------------------------
 class CentOS4(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'CentOS 4'
         self.yum = True
     
@@ -573,7 +602,7 @@ class CentOS4(OS):
 # ------------------------------------------------------------------------------
 class CentOS5(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'CentOS 5'
         self.yum = True
     
@@ -607,12 +636,12 @@ class CentOS5(OS):
 # ------------------------------------------------------------------------------
 class CentOS6(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'CentOS 6'
         self.yum = True
     
     def load_preinstall_deps(self):
-        deps =  ['pkgconfig','libtool','libtool-libs','gcc','gcc-c++','gettext','kernel-devel','kernel-headers','perl-devel','db4','db4-devel','db4-utils','e2fsprogs','e2fsprogs-devel','gdbm','gdbm-devel','sqlite','sqlite-devel','make','libuuid-devel','ncurses-devel','zlib-devel']
+        deps =  ['pkgconfig','libtool','libtool-libs','gcc','gcc-c++','gettext','kernel-devel','kernel-headers','perl-devel','db4','db4-devel','db4-utils','e2fsprogs','e2fsprogs-devel','gdbm','gdbm-devel','sqlite','sqlite-devel','make','libuuid-devel','ncurses-devel','libtool-ltdl-devel','zlib-devel']
             
             
         for name in deps:
@@ -622,8 +651,12 @@ class CentOS6(OS):
 
 # ------------------------------------------------------------------------------
 class Fedora(OS):
+
+    def __init__(self):
+      self.name = 'Fedora'
+      OS.__init__(self)
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Fedora'
         self.yum = True
     
@@ -658,7 +691,7 @@ class SUSE(OS): # uses YAST #fixme
     
     # SUSE is not supported as of 4/8/2011
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'SUSE'
         self.supported = False
         
@@ -690,14 +723,14 @@ class SUSE(OS): # uses YAST #fixme
 # ------------------------------------------------------------------------------
 class Debian(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Debian'
         self.apt = True
     
     def load_preinstall_deps(self):
         
         deps =  ['build-essential',
-                 'linux-headers-' + syscall('uname -r'),
+                 'linux-headers-' + self.kernelVerString,
                  'gettext',
                  'uuid-dev',
                  'bison',
@@ -728,14 +761,14 @@ class Debian(OS):
 class Mint(OS):
     """ LinuxMint Distro class """
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'LinuxMint'
         self.apt = True
     
     def load_preinstall_deps(self):
         
         deps =  ['build-essential',
-                 'linux-headers-' + syscall('uname -r'),
+                 'linux-headers-' + self.kernelVerString,
                  'gettext',
                  'uuid-dev',
                  'bison',
@@ -763,7 +796,7 @@ class Mint(OS):
 # ------------------------------------------------------------------------------
 class Other(OS):
     
-    def post_init(self):
+    def pre_init(self):
         self.name = 'Other'
         self.supported = False
         self.apt = False
@@ -835,3 +868,4 @@ def determine_os():
         return Other()
     
     return None
+
