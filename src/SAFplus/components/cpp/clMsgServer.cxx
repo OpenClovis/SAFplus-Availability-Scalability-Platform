@@ -155,7 +155,7 @@ namespace SAFplus
               }
             else /* Give a moment for the failover to occur and retry the send */
               {
-                ClTimerTimeOutT timeOut = {0,sendFailureTimeoutMs};
+                ClTimerTimeOutT timeOut = {0, (ClUint32T)sendFailureTimeoutMs};
                 clOsalTaskDelay (timeOut);
               }
           }
