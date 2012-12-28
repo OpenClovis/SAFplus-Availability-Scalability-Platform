@@ -1122,12 +1122,12 @@ ClRcT clMsgQueuePersistRedundancy(const SaNameT *queue, const SaNameT *node)
 {
     ClRcT rc;
     ClIocAddressT iocAddress;
-    ClNameT *pQName = (ClNameT *) queue;
+    ClNameT *pNodeName = (ClNameT *) node;
 
     CL_MSG_INIT_CHECK;
 
     /* Get IOC address for a node */
-    rc = clCpmIocAddressForNodeGet(*pQName, &iocAddress);
+    rc = clCpmIocAddressForNodeGet(*pNodeName, &iocAddress);
     if (rc != CL_OK)
     {
         rc = CL_ERR_DOESNT_EXIST;
