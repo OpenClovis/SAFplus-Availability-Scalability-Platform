@@ -331,6 +331,62 @@ ClRcT clCachedCkptSectionDelete(ClCachedCkptSvcInfoT *serviceInfo,
 void clCachedCkptSectionRead(ClCachedCkptSvcInfoT *serviceInfo,
                                        const ClNameT *sectionName,
                                        ClCachedCkptDataT **sectionData);
+
+/**
+ ************************************
+ *  \brief Gets the first section of the checkpoint.
+ *
+ *  \par Header File:
+ *  clCachedCkpt.h
+ *
+ *  \par Parameters:
+ *  \param serviceInfo (in) A pointer to the global data structure used by
+ *  CachedCkpt service. Refer to ClCachedCkptSvcInfoT structure.
+ *
+ *  \param sectionData (out) Pointer to the section data to be read.
+ *  Refer to ClCachedCkptDataT structure.
+ *
+ *  \param sectionOffset (out) Pointer to the offset of the next section
+ *
+ *
+ *  \par Description:
+ *  This API gets the first section of the checkpoint and return section data to the caller.
+ *
+ *  \par Library Files:
+ *  clCachedCkpt
+ *
+ */
+void clCachedCkptSectionGetFirst(ClCachedCkptSvcInfoT *serviceInfo,
+                                       ClCachedCkptDataT **sectionData,
+                                       ClUint32T        *sectionOffset);
+
+/**
+ ************************************
+ *  \brief Gets next section of the checkpoint.
+ *
+ *  \par Header File:
+ *  clCachedCkpt.h
+ *
+ *  \par Parameters:
+ *  \param serviceInfo (in) A pointer to the global data structure used by
+ *  CachedCkpt service. Refer to ClCachedCkptSvcInfoT structure.
+ *
+ *  \param sectionData (out) Pointer to the section data to be read.
+ *  Refer to ClCachedCkptDataT structure.
+ *
+ *  \param sectionOffset (out) Pointer to the offset of the next section
+ *
+ *  \par Description:
+ *  This API gets next section of the checkpoint and return section data to the caller.
+ *
+ *  \par Library Files:
+ *  clCachedCkpt
+ *
+ */
+void clCachedCkptSectionGetNext(ClCachedCkptSvcInfoT *serviceInfo,
+                                       ClCachedCkptDataT **sectionData,
+                                       ClUint32T        *sectionOffset);
+
 /*******************************************************************************/
 
 /**

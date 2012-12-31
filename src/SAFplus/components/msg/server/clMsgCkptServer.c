@@ -121,6 +121,28 @@ ClRcT clMsgQCkptFinalize(void)
     return rc;
 }
 
+static void clMsgGroupDatabaseSynch()
+{
+    ClCachedCkptDataT *sectionData = NULL;
+    ClUint32T        sectionOffset = 0;
+
+    clCachedCkptSectionGetFirst(&gMsgQGroupCkptServer, &sectionData, &sectionOffset);
+    while (sectionData != NULL)
+    {
+        ClMsgQGroupCkptDataT qGroupData;
+        clMsgQGroupCkptDataUnmarshal(&qGroupData, sectionData);
+        clMsgGroupInfoUpdate(CL_MSG_DATA_ADD, &qGroupData.qGroupName, qGroupData.policy);
+
+        for (int i = 0; i < qGroupData.numberOfQueues; i++)
+        {
+            ClNameT *qName = (ClNameT *) (qGroupData.pQueueList + i);
+            clMsgGroupMembershipInfoSend(CL_MSG_DATA_ADD, &qGroupData.qGroupName, qName);
+        }
+
+        clCachedCkptSectionGetNext(&gMsgQGroupCkptServer, &sectionData, &sectionOffset);
+    }
+}
+
 ClRcT clMsgQCkptSynch(void)
 {
     ClRcT rc = CL_OK;
@@ -129,14 +151,19 @@ ClRcT clMsgQCkptSynch(void)
     if (rc != CL_OK)
     {
         clLogError("MSG", "SYNNC", "Failed to synchronize the MSG queue cached checkpoint. error code [0x%x].", rc);
+        goto error;
     }
 
-    clCachedCkptSynch(&gMsgQGroupCkptServer, CL_TRUE);
+    rc = clCachedCkptSynch(&gMsgQGroupCkptServer, CL_TRUE);
     if (rc != CL_OK)
     {
         clLogError("MSG", "SYNNC", "Failed to synchronize the MSG queue group cached checkpoint. error code [0x%x].", rc);
+        goto error;
     }
 
+    clMsgGroupDatabaseSynch();
+
+error:
     return rc;
 }
 

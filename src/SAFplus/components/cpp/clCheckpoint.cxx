@@ -36,7 +36,7 @@ namespace clCheckpoint
 
   Table::Table()
   {
-    handle            = 0;
+    handleTbl            = 0;
     sectionExpiration = 0;    
     autoActivate      = 0;
     tryAgainDelayMs   = 0;
@@ -69,7 +69,7 @@ namespace clCheckpoint
 
       /* By default sections will never expire */
       sectionExpiration = SA_TIME_END;
-      handle            = 0;
+      handleTbl            = 0;
       autoActivate      = true;
       tryAgainDelayMs   = 250;  // 1/4 of a second
       flags             = flagsp;
@@ -83,7 +83,7 @@ namespace clCheckpoint
                                  SA_CKPT_CHECKPOINT_READ | 
                                  SA_CKPT_CHECKPOINT_CREATE),
                                 (SaTimeT)-1,        // No timeout
-                                &handle);      // Checkpoint handle
+                                &handleTbl);      // Checkpoint handle
 
       if (rc != SA_AIS_OK)
         {
@@ -129,9 +129,9 @@ namespace clCheckpoint
   void Finalize()
     {
         SaAisErrorT rc = SA_AIS_OK;
-
         if (svcHdl != 0)
         {
+
             clLogInfo("CPP","CKP","Checkpoint service finalize (handle=0x%llx)\n", svcHdl);
             rc = saCkptFinalize(svcHdl);
             if (rc != SA_AIS_OK)
@@ -158,7 +158,7 @@ namespace clCheckpoint
       while (tryAgain > 0)
         {
           tryAgain--;
-          if ((rc = saCkptActiveReplicaSet(handle)) != SA_AIS_OK)
+          if ((rc = saCkptActiveReplicaSet(handleTbl)) != SA_AIS_OK)
             {
               clLogError("CPP","CKP","checkpoint_replica_activate failed [0x%x] in ActiveReplicaSet", rc);
               ErrorHandler(rc);
@@ -220,12 +220,12 @@ namespace clCheckpoint
         {
           tryAgain--;
           // TODO: implement timeout
-          rc = saCkptCheckpointSynchronize(handle, CL_TIME_END );
+          rc = saCkptCheckpointSynchronize(handleTbl, CL_TIME_END );
 
           if (rc == SA_AIS_OK) break;
           else
             {
-              clprintf("Handle [0x%llx]: Failed [0x%x] to synchronize the checkpoint\n",handle, rc);
+              clprintf("Handle [0x%llx]: Failed [0x%x] to synchronize the checkpoint\n",handleTbl, rc);
               ErrorHandler(rc);
             }
         }
@@ -244,7 +244,7 @@ namespace clCheckpoint
 
       SaCkptSectionIdT id =
         {
-          key.length,
+          (SaUint16T) key.length,
           (SaUint8T*) key.value
         };
 
@@ -252,7 +252,7 @@ namespace clCheckpoint
         {
           tryAgain--;
 
-          rc = saCkptSectionDelete(handle, &id);
+          rc = saCkptSectionDelete(handleTbl, &id);
           if (rc == SA_AIS_OK) tryAgain=0;
           else 
             {
@@ -308,7 +308,7 @@ namespace clCheckpoint
         iov.dataOffset = 0;
         iov.readSize = value->length;
         
-        rc = saCkptCheckpointRead(handle, &iov, 1, &err_idx);
+        rc = saCkptCheckpointRead(handleTbl, &iov, 1, &err_idx);
         clLogDebug("CPP","CKP", "Section read returned %d", rc);
         if (rc != SA_AIS_OK)
           {
@@ -366,7 +366,7 @@ namespace clCheckpoint
             }
     
           /* Write checkpoint */
-          rc = saCkptSectionOverwrite(handle, &sid, value.value, value.length);
+          rc = saCkptSectionOverwrite(handleTbl, &sid, value.value, value.length);
           //debugging log clLogWarning("CPP","CKP", "SectionOverwrite return %d", rc);
 
           if (rc == SA_AIS_OK) tryAgain = 0;  // Great, it worked!
@@ -381,7 +381,7 @@ namespace clCheckpoint
                       //sid.id    = (SaUint8T*) key.value;
                       SaCkptSectionCreationAttributesT section_atts = { &sid, sectionExpiration };
 
-                      rc = saCkptSectionCreate(handle, &section_atts, (const SaUint8T*) value.value, value.length);    
+                      rc = saCkptSectionCreate(handleTbl, &section_atts, (const SaUint8T*) value.value, value.length);
                       //clLogWarning("CPP","CKP", "SectionCreate return %d", rc);
                     }
 
@@ -412,7 +412,7 @@ namespace clCheckpoint
         {
           tryAgain--;
     
-          rc = saCkptCheckpointStatusGet(handle,status);
+          rc = saCkptCheckpointStatusGet(handleTbl,status);
 
           if (rc == SA_AIS_ERR_NOT_EXIST) return false;
           if (rc == SA_AIS_OK) return true;
@@ -426,32 +426,32 @@ namespace clCheckpoint
    */
   Table::~Table()
   {
-      if (sectionIterator)
-      {
-          saCkptSectionIterationFinalize(sectionIterator);
-      }
   }
 
-    Table::Iterator::Iterator(SaCkptCheckpointHandleT *handle, SaCkptSectionIterationHandleT *sectionIterator) {
+    Table::Iterator::Iterator(SaCkptCheckpointHandleT *handleTbl)
+    {
         SaAisErrorT rc = SA_AIS_OK;
-        this->handle = handle;
-        this->pData = new Data();
-        this->pKey = new Data();
-        this->sectionIterator = sectionIterator;
+        this->handleIter = handleTbl;
+        this->sectionIteratorHdl = 0;
 
         /*
          * Wrapper checkpoint section iterator
          */
-        rc = saCkptSectionIterationInitialize(*handle, SA_CKPT_SECTIONS_ANY, 0,
-                        sectionIterator);
+        rc = saCkptSectionIterationInitialize(*handleIter, SA_CKPT_SECTIONS_ANY, 0,
+                        &sectionIteratorHdl);
+
         CL_ASSERT(rc == SA_AIS_OK);
+
+        // Retrieve ckpt data
+        getCkptData();
     }
 
     Table::Iterator::Iterator(Data *pData, Data *pKey) : pData(pData), pKey(pKey)
     {
     }
 
-    Table::Iterator::~Iterator() {
+    Table::Iterator::~Iterator()
+    {
         if (pData->value)
         {
             clHeapFree(pData->value);
@@ -460,19 +460,17 @@ namespace clCheckpoint
         {
             clHeapFree(pKey->value);
         }
-    }
-
-    Table::Iterator& Table::Iterator::operator=(const Iterator& otherValue) {
-        pData = otherValue.pData;
-        pKey = otherValue.pKey;
-        handle = otherValue.handle;
-        return (*this);
+        if (sectionIteratorHdl)
+        {
+            saCkptSectionIterationFinalize(sectionIteratorHdl);
+        }
     }
 
     /*
      * Compare with other node
      */
-    bool Table::Iterator::operator!=(const Iterator& otherValue) {
+    bool Table::Iterator::operator!=(const Iterator& otherValue)
+    {
         if (pKey->length == otherValue.pKey->length) {
             if ((pKey->value == NULL) || (otherValue.pKey->value == NULL)
                             || (!memcmp(pKey->value, otherValue.pKey->value,
@@ -483,17 +481,16 @@ namespace clCheckpoint
         return true;
     }
 
-    /*
-     * Goto next iterator ckpt section
-     */
-    Table::Iterator& Table::Iterator::operator++(int)
+    void Table::Iterator::getCkptData(void)
     {
-        SaCkptIOVectorElementT iov;
         SaAisErrorT rc = SA_AIS_OK;
+        SaCkptIOVectorElementT iov;
         SaCkptSectionDescriptorT sectionDescriptor;
         SaUint32T err_idx; /* Error index in ioVector */
 
-        rc = saCkptSectionIterationNext(*sectionIterator, &sectionDescriptor);
+        rc = saCkptSectionIterationNext(sectionIteratorHdl,
+                &sectionDescriptor);
+
         if (rc == SA_AIS_OK) {
             clLogDebug("MGT", "SYNC",
                             "clMgtCkptInitSync() Section '%s' expires %llx size "
@@ -510,7 +507,7 @@ namespace clCheckpoint
             iov.dataOffset = 0;
             iov.readSize = 0;
 
-            rc = saCkptCheckpointRead(*handle, &iov, 1, &err_idx);
+            rc = saCkptCheckpointRead(*handleIter, &iov, 1, &err_idx);
             if( SA_AIS_OK == rc )
             {
                 pData = new Data(iov.dataBuffer, iov.readSize);
@@ -520,11 +517,21 @@ namespace clCheckpoint
             pData = new Data();
             pKey = new Data();
         }
+    }
+
+    /*
+     * Goto next iterator ckpt section
+     */
+    Table::Iterator& Table::Iterator::operator++(int)
+    {
+        // Retrieve ckpt data
+        getCkptData();
+
         return (*this);
     }
 
     Table::Iterator Table::begin() {
-        return (Table::Iterator(&handle, &sectionIterator)++);
+        return (Table::Iterator(&handleTbl));
     }
 
     Table::Iterator Table::end() {
