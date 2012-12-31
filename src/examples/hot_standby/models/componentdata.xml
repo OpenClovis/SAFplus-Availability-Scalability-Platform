@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component:componentInformation xmlns:component="component.ecore">
+  <cluster name="Cluster" rdn="java.lang.Object@1dd1752">
+    <contains target="Ctlr"/>
+  </cluster>
+  <node name="Ctlr" rdn="2413193" id="0" classType="CL_AMS_NODE_CLASS_B" subClassType=" " isSwappable="CL_TRUE" isRestartable="CL_TRUE" isASPAware="CL_TRUE" suFailoverDuration="10000" suFailoverCountMax="10" Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE">
+    <contains target="TestCompSU"/>
+  </node>
+  <serviceUnit name="TestCompSU" rdn="25945602" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="TestComp"/>
+  </serviceUnit>
+  <safComponent name="TestComp" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="TestComp" commandLineArgument="" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="24596719" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="5000" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_COMP_FAILOVER" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="TestCompCSI"/>
+    </csiTypes>
+    <timeouts instantiateTimeout="30000" terminateTimeout="30000" cleanupTimeout="30000" amStartTimeout="30000" amStopTimeout="30000" csiSetTimeout="30000" csiRemoveTimeout="30000" quiescingCompleteTimeout="30000" proxiedCompInstantiateTimeout="30000" proxiedCompCleanupTimeout="30000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="TestComp_EO" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0">
+      <aspLib COR="CL_TRUE" CM="CL_FALSE" NameService="CL_TRUE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" Alarm="CL_FALSE" Debug="CL_TRUE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_FALSE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+      <libs/>
+    </eoProperties>
+  </safComponent>
+  <serviceGroup name="TestCompSG" rdn="15287424" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" failbackOption="CL_FALSE" restartDuration="10000" numPrefActiveSUs="1" numPrefStandbySUs="1" numPrefInserviceSUs="2" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_TRUE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="TestCompSU"/>
+    <associatedTo target="TestCompSI"/>
+  </serviceGroup>
+  <serviceInstance name="TestCompSI" rdn="24207491" rank="0" numCSIs="1" numStandbyAssignments="1" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="TestCompCSI"/>
+  </serviceInstance>
+  <componentServiceInstance name="TestCompCSI" rdn="11330867" rank="0">
+    <associatedTo target="TestComp"/>
+  </componentServiceInstance>
+</component:componentInformation>

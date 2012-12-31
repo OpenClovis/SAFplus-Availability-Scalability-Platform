@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <CompileConfigs:ComponentsInfo xmlns:CompileConfigs="Comps.ecore">
+      <COR savetype="CL_COR_DELTA_SAVE"/>
+      <FM localProbationPeriod="10">
+        <localSeqTableEntry Category="com" EscalationLevel="Level1" Function="foo1" IsExtern="false" Severity="MN"/>
+      </FM>
+      <NS maxentries="256" maxglobalcontexts="10" maxlocalcontexts="2"/>
+      <RMD maxretries="8"/>
+      <PM>
+        <appConfigInterval applicationName="TestComp" value="3000"/>
+        <compConfigInterval componentName="TestCompI0" type="TestComp" value="0"/>
+        <compConfigInterval componentName="TestCompI1" type="TestComp" value="0"/>
+      </PM>
+    </CompileConfigs:ComponentsInfo>
+  </version>
+</openClovisAsp>
