@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource:resourceInformation xmlns:resource="resource.ecore">
+  <chassisResource rdn="0" name="Chassis" maxInstances="1" numSlots="16">
+    <contains target="x86" sourceMultiplicity="1" targetMultiplicity="1"/>
+  </chassisResource>
+  <nodeHardwareResource rdn="29737982" name="x86" documentation="" maxInstances="2" deviceObject="">
+    <alarmManagement isEnabled="false" pollingInterval="100"/>
+    <provisioning isEnabled="false"/>
+  </nodeHardwareResource>
+</resource:resourceInformation>
