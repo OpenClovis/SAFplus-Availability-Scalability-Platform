@@ -151,6 +151,7 @@ endef
 
 obj_files := $(foreach objdir, $(addprefix $(BASE_OBJ_DIR)/components/, $(COMP_LIST)), $(realpath $(eval $(call OBJ_LIST, $(objdir)))))
 
+ALL_OBJS += $(filter-out $(BASE_OBJ_DIR)/asp_build.o, $(wildcard $(BASE_OBJ_DIR)/*.o))
 
 OBJ_FILES := $(filter-out $(ALL_FILTER_OBJS), $(sort $(ALL_OBJS)))
 
