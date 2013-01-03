@@ -57,6 +57,9 @@
 
 ClCkptClntInfoT  gClntInfo = {0};
 static ClInt32T gClDifferentialCkpt = -1;
+static ClCkptSectionIdT gClDefaultSection = {.idLen = sizeof("defaultSection"),
+                                             .id = (ClUint8T*)"defaultSection"
+};
 
 /*
  * Supporetd version.
@@ -2635,6 +2638,24 @@ ClRcT clCkptSectionCheck(ClCkptHdlT             ckptHdl,
     return rc;
 }
 
+static ClRcT ckptClientInfoGet(ClIdlHandleT idlHdl, ClCkptHdlT actHdl, 
+                               ClCkptClientInfoListT *pClientList)
+{
+    ClRcT rc =  VDECL_VER(_ckptClientInfoGetClientSync, 6, 0, 0)(idlHdl, 
+                                                                 actHdl,
+                                                                 pClientList);
+    if(rc == CL_OK && pClientList->numEntries == 0)
+    {
+        if(pClientList->pClientInfo)
+        {
+            clHeapFree(pClientList->pClientInfo);
+            pClientList->pClientInfo = NULL;
+        }
+    }
+
+    return rc;
+}
+
 /*
  * Writes multiple sections on to a given checkpoint.
  */
@@ -2842,6 +2863,7 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
     ClUint32T           maxRetry   = 0;
     ClIocPortT          iocPort    = 0;
     ClUint8T            status = CL_IOC_NODE_DOWN;
+    ClBoolT             clientUpdate = CL_FALSE;
     ClTimerTimeOutT     delay =  {.tsSec = 0, .tsMilliSec = 500 };
 
     /*
@@ -2949,6 +2971,81 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
                    ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;
     clEoMyEoIocPortGet(&iocPort);
+
+    if( (pHdlInfo->creationFlag & CL_CKPT_PEER_TO_PEER_REPLICA) 
+        && 
+        !clientUpdate)
+    {
+        ClCkptClientInfoListT clientInfo = {0};
+        rc = ckptClientInfoGet(ckptIdlHdl, actHdl, &clientInfo);
+        if(rc != CL_OK)
+        {
+            clLogError("INFO", "GET", "Ckpt client info get returned with [%#x]", rc);
+        }
+        else if(clientInfo.numEntries > 0)
+        {
+            ClIdlHandleT clientIdlHdl = pInitInfo->ckptClientIdlHdl;
+            ClCkptIOVectorElementT *pTmpVec = (ClCkptIOVectorElementT*)pIoVector;
+            ClUint32T i;
+            for(i = 0; i < numberOfElements; ++i)
+            {
+                if(pIoVector[i].sectionId.idLen == 0)
+                    break;
+            }
+            /*
+             * If we have a null or default section, then copy in defaultSection id
+            */
+            if(i != numberOfElements)
+            {
+                pTmpVec = clHeapCalloc(numberOfElements, sizeof(*pTmpVec));
+                CL_ASSERT(pTmpVec != NULL);
+                memcpy(pTmpVec, pIoVector, sizeof(*pTmpVec) * numberOfElements);
+                while(i < numberOfElements)
+                {
+                    if(pTmpVec[i].sectionId.idLen == 0)
+                    {
+                        memcpy(&pTmpVec[i].sectionId, &gClDefaultSection, sizeof(gClDefaultSection));
+                    }
+                    ++i;
+                }
+            }
+            for(i = 0; i < clientInfo.numEntries; ++i)
+            {
+                if(clientInfo.pClientInfo[i].nodeAddress == gClntInfo.ckptOwnAddr.nodeAddress
+                   &&
+                   clientInfo.pClientInfo[i].portId == gClntInfo.ckptOwnAddr.portId)
+                    continue;
+
+                rc = clCkptClientIdlHandleUpdate(clientIdlHdl,
+                                                 clientInfo.pClientInfo[i].nodeAddress,
+                                                 clientInfo.pClientInfo[i].portId, 0);
+                if(rc == CL_OK)
+                {
+                    clLogDebug("PEER", "WRITE", "Ckpt [%.*s] peer [%d:%d] write for section [%.*s],"
+                               "vectors [%d]", 
+                               pHdlInfo->ckptName.length, pHdlInfo->ckptName.value,
+                               clientInfo.pClientInfo[i].nodeAddress, 
+                               clientInfo.pClientInfo[i].portId,
+                               pTmpVec->sectionId.idLen, pTmpVec->sectionId.id, numberOfElements);
+                    rc = VDECL_VER(clCkptWriteUpdationNotificationClientAsync, 4, 0, 0)
+                        (clientIdlHdl, &pHdlInfo->ckptName, numberOfElements, pTmpVec, NULL, NULL);
+
+                    if(rc == CL_OK && !clientUpdate)
+                    {
+                        clientUpdate = CL_TRUE;
+                    }
+                }
+            }
+            if(pTmpVec != pIoVector)
+            {
+                clHeapFree(pTmpVec);
+            }
+            if(clientInfo.pClientInfo)
+            {
+                clHeapFree(clientInfo.pClientInfo);
+            }
+        }
+    }
 
     rc = VDECL_VER(_ckptCheckpointWriteClientSync, 4, 0, 0)( ckptIdlHdl,  actHdl,
                                                              clIocLocalAddressGet(), iocPort,
@@ -3287,6 +3384,7 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
     ClUint32T          maxRetry   = 0;
     ClIocPortT         iocPort    = 0;
     ClUint8T           status = CL_IOC_NODE_DOWN;
+    ClBoolT            clientUpdate = CL_FALSE;
     ClTimerTimeOutT    delay = {.tsSec = 0, .tsMilliSec = 500};
     /*
      * Input parameter verification.
@@ -3429,25 +3527,21 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
                    ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;
 
-    if((pHdlInfo->creationFlag & CL_CKPT_PEER_TO_PEER_REPLICA))
+    if((pHdlInfo->creationFlag & CL_CKPT_PEER_TO_PEER_REPLICA) && !clientUpdate)
     {
         ClCkptClientInfoListT clientInfo = {0};
-        rc = VDECL_VER(_ckptClientInfoGetClientSync, 6, 0, 0)(ckptIdlHdl, actHdl,
-                                                              &clientInfo);
+        rc = ckptClientInfoGet(ckptIdlHdl, actHdl, &clientInfo);
         if(rc != CL_OK)
         {
             clLogError("INFO", "GET", "Ckpt client info get returned with [%#x]", rc);
         }
-        else
+        else if(clientInfo.numEntries > 0)
         {
-            static ClCkptSectionIdT defaultSection = {.idLen = sizeof("defaultSection"),
-                                                      .id = (ClUint8T*)"defaultSection"
-            };
             ClCkptSectionIdT *pClientSection = &tempSecId;
             ClIdlHandleT clientIdlHdl = pInitInfo->ckptClientIdlHdl;
             if(!tempSecId.id || !tempSecId.idLen)
             {
-                pClientSection = &defaultSection;
+                pClientSection = &gClDefaultSection;
             }
             for(ClUint32T i = 0; i < clientInfo.numEntries; ++i)
             {
@@ -3467,6 +3561,8 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
                     rc = VDECL_VER(clCkptSectionUpdationNotificationClientAsync, 4, 0, 0)
                         (clientIdlHdl, &pHdlInfo->ckptName, pClientSection, 
                          dataSize, (ClUint8T*)pData, NULL, NULL);
+                    if(rc == CL_OK && !clientUpdate)
+                        clientUpdate = CL_TRUE;
                 }
             }
             if(clientInfo.pClientInfo)
