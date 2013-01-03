@@ -39,7 +39,7 @@ extern "C" {
 #include <clRmdApi.h>
 #include <clIdlApi.h>
 #include <clCkptApi.h>
-
+#include <clCkptExtApi.h>
 
 typedef ClHandleT CkptMastHdlInfoT;
 
@@ -212,6 +212,7 @@ typedef struct hdlDb
                                           /* Callback for immediate 
                                              consumption */
     ClPtrT                      pCookie; /* Cookie for callback */
+    ClCkptClientInfoListT       clientList; /* client list cache for hot-standby checkpoints */
 }CkptHdlDbT;
 
 
