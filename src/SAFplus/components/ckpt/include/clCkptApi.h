@@ -96,6 +96,8 @@ extern "C" {
  */
 #define CL_CKPT_PEER_TO_PEER_REPLICA   0x80
 
+#define CL_CKPT_PEER_TO_PEER_CACHE_DISABLE   0x100
+
 /**
  *  Checkpoint open for read.
  */

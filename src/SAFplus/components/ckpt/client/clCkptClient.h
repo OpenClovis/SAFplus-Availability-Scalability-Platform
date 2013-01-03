@@ -76,6 +76,8 @@ typedef struct ClCkptClntInfo
     ClOsalMutexT             ckptClntMutex;     /* Mutex to proctect the 
                                                    client info */
     ClIocPhysicalAddressT    ckptOwnAddr;
+    
+    ClBoolT                  ckptClientCacheDisable;
 }ClCkptClntInfoT;
 
 
@@ -98,6 +100,7 @@ typedef struct initInfo
     ClQueueT           cbQueue;         /* Selection obj related queue */
     ClOsalMutexIdT     ckptSvcMutex;    /* Mutex to protect control block */
     ClOsalMutexIdT     ckptSelObjMutex; /* Selection obj related mutex */
+    ClHandleT          ckptNotificationHandle; /* notification callback handle */
 }CkptInitInfoT;
 
 
