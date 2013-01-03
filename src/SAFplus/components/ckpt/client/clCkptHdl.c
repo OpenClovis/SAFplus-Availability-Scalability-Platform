@@ -87,6 +87,11 @@ ClRcT ckptHandleInfoSet(ClCkptHdlT ckptLocalHdl,CkptHdlDbT *pData)
         pHdlInfo->cksum          = pData->cksum;
         pHdlInfo->ckptSvcHdl     = pData->ckptSvcHdl;
         clNameCopy(&pHdlInfo->ckptName, &pData->ckptName);
+        if(pHdlInfo->clientList.pClientInfo)
+        {
+            clHeapFree(pHdlInfo->clientList.pClientInfo);
+        }
+        memset(&pHdlInfo->clientList, 0, sizeof(pHdlInfo->clientList));
     }
     else
     {

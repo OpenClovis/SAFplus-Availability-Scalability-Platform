@@ -4060,6 +4060,14 @@ clCkptClntWriteNotify(CkptT                   *pCkpt,
     ClCkptAppInfoT   *pAappInfo = NULL;
     ClUint32T        doSend  = 0;
 
+    /*
+     * Skip update for peer to peer distributed hot-standby
+     */
+    if( (pCkpt->pCpInfo->updateOption & CL_CKPT_PEER_TO_PEER_REPLICA) )
+    {
+        return CL_OK;
+    }
+
     rc = clCkptClientIdlHandleInit(&idlHdl);
     if( CL_OK != rc )
     {
@@ -4146,7 +4154,7 @@ clCkptClntSecOverwriteNotify(CkptT             *pCkpt,
     ClUint32T        doSend      = 0;
 
     /*
-     * Skip update for peer to peer distributed replica
+     * Skip update for peer to peer distributed hot-standby
      */
     if( (pCkpt->pCpInfo->updateOption & CL_CKPT_PEER_TO_PEER_REPLICA) )
     {

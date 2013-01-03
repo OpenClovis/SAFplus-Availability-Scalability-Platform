@@ -57,6 +57,9 @@
 
 ClCkptClntInfoT  gClntInfo = {0};
 static ClInt32T gClDifferentialCkpt = -1;
+static ClCkptSectionIdT gClDefaultSection = {.idLen = sizeof("defaultSection"),
+                                             .id = (ClUint8T*)"defaultSection"
+};
 
 /*
  * Supporetd version.
@@ -431,7 +434,93 @@ ClRcT  ckptOpenParamValidate(ClCkptOpenFlagsT  checkpointOpenFlags,
     return CL_OK;
 }
 
+static void ckptClientCacheFree(CkptHdlDbT *pHdlInfo)
+{
+    if(pHdlInfo->clientList.pClientInfo)
+    {
+        clHeapFree(pHdlInfo->clientList.pClientInfo);
+        pHdlInfo->clientList.pClientInfo = NULL;
+    }
+    pHdlInfo->clientList.numEntries = 0;
+}
 
+static void ckptClientCacheUpdate(CkptHdlDbT *pHdlInfo, ClIocAddressT *pAddress)
+{
+    if(pHdlInfo->clientList.numEntries > 0 && pHdlInfo->clientList.pClientInfo)
+    {
+        for(ClUint32T i = 0; i < pHdlInfo->clientList.numEntries; ++i)
+        {
+            if(pHdlInfo->clientList.pClientInfo[i].nodeAddress == pAddress->iocPhyAddress.nodeAddress
+               &&
+               (!pAddress->iocPhyAddress.portId 
+                ||
+                pHdlInfo->clientList.pClientInfo[i].portId == pAddress->iocPhyAddress.portId))
+            {
+                /*
+                 * invalidate cache
+                 */
+                clLogDebug("CACHE", "UPD", "Invalidating ckpt [%.*s] client cache "
+                           "on notification for comp [%d] at node [%d]", 
+                           pHdlInfo->ckptName.length, pHdlInfo->ckptName.value,
+                           pAddress->iocPhyAddress.portId, pAddress->iocPhyAddress.nodeAddress);
+                clHeapFree(pHdlInfo->clientList.pClientInfo);
+                pHdlInfo->clientList.pClientInfo = NULL;
+                pHdlInfo->clientList.numEntries = 0;
+                return;
+            }
+        }
+    }
+}
+
+static ClRcT ckptHandleWalkCallback(ClCntKeyHandleT key,
+                                    ClCntDataHandleT data,
+                                    ClCntArgHandleT arg,
+                                    ClUint32T dataLength)
+{
+    ClCkptHdlT *pCkptHdl = (ClCkptHdlT*)data;
+    CkptHdlDbT *pHdlInfo = NULL;
+    ClRcT rc = CL_OK;
+
+    if(!data) return CL_CKPT_ERR_INVALID_HANDLE;
+    
+    rc = ckptHandleCheckout(*pCkptHdl, CL_CKPT_CHECKPOINT_HDL, (void**)&pHdlInfo);
+    if(rc != CL_OK)
+        return rc;
+
+    if(pHdlInfo && pHdlInfo->clientList.numEntries > 0 && arg)
+        ckptClientCacheUpdate(pHdlInfo, (ClIocAddressT*)arg);
+
+    rc = clHandleCheckin(gClntInfo.ckptDbHdl, *pCkptHdl);
+    return rc;
+}
+
+static void ckptNotificationCallback(ClIocNotificationIdT id,
+                                     ClPtrT unused,
+                                     ClIocAddressT *pAddress)
+{
+    if(id != CL_IOC_NODE_LEAVE_NOTIFICATION 
+       &&
+       id != CL_IOC_COMP_DEATH_NOTIFICATION
+       &&
+       id != CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+        return;
+
+    if(!gClntInfo.ckptSvcHdlCount || !gClntInfo.ckptDbHdl || !gClntInfo.ckptHdlList) 
+        return;
+
+    clOsalMutexLock(&gClntInfo.ckptClntMutex);
+    /*
+     * Recheck after grabbing the lock
+     */
+    if(!gClntInfo.ckptSvcHdlCount || !gClntInfo.ckptDbHdl || !gClntInfo.ckptHdlList) 
+    {
+        goto out_unlock;
+    }
+    clCntWalkFailSafe(gClntInfo.ckptHdlList, ckptHandleWalkCallback, pAddress, sizeof(*pAddress));
+    
+    out_unlock:
+    clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+}
 
 /*
  * Function for opening a checkpoint.
@@ -674,7 +763,22 @@ exitOnError:
          * Unlock the mutex.
          */
         clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
-        
+        /*
+         * Initialize the notification callbacks for ckpt client cache
+         */
+        if(!pInitInfo->ckptNotificationHandle 
+           && 
+           !gClntInfo.ckptClientCacheDisable
+           &&
+           !(ckptAttr.creationFlags & CL_CKPT_PEER_TO_PEER_CACHE_DISABLE))
+        {
+            ClIocPhysicalAddressT compAddr = {.nodeAddress = CL_IOC_BROADCAST_ADDRESS,
+                                              .portId = 0
+            };
+            clCpmNotificationCallbackInstall(compAddr, ckptNotificationCallback,
+                                             NULL, &pInitInfo->ckptNotificationHandle);
+        }
+
         /* 
          * Checkin the data associated with the service handle 
          */
@@ -878,8 +982,9 @@ ClRcT clCkptCheckpointClose(ClCkptHdlT ckptHdl)
         }
         if(*pStoredHdl == ckptHdl)
         {
-          clCntNodeDelete(gClntInfo.ckptHdlList,nodeHdl);
-          break;
+            clCntNodeDelete(gClntInfo.ckptHdlList,nodeHdl);
+            ckptClientCacheFree(pHdlInfo);
+            break;
         }  
         clCntNextNodeGet(gClntInfo.ckptHdlList,nodeHdl,&nodeHdl);
         rc = clCntNodeUserKeyGet(gClntInfo.ckptHdlList,nodeHdl,
@@ -2635,6 +2740,73 @@ ClRcT clCkptSectionCheck(ClCkptHdlT             ckptHdl,
     return rc;
 }
 
+static ClRcT ckptClientInfoGet(CkptHdlDbT *pHdlInfo, 
+                               ClIdlHandleT idlHdl, ClCkptHdlT actHdl, 
+                               ClCkptClientInfoListT *pClientList)
+{
+    ClRcT rc = CL_OK;
+    /*
+     * Check the cache first
+     */
+    if(pHdlInfo->clientList.pClientInfo)
+    {
+        if(!gClntInfo.ckptClientCacheDisable 
+           &&
+           !(pHdlInfo->creationFlag & CL_CKPT_PEER_TO_PEER_CACHE_DISABLE))
+        {
+            memcpy(pClientList, &pHdlInfo->clientList, sizeof(*pClientList));
+            clLogTrace("CACHE", "GET", "Found [%d] client entries in cache for ckpt [%.*s]",
+                       pClientList->numEntries, pHdlInfo->ckptName.length, pHdlInfo->ckptName.value);
+            goto out;
+        }
+        clHeapFree(pHdlInfo->clientList.pClientInfo);
+        pHdlInfo->clientList.pClientInfo = NULL;
+        pHdlInfo->clientList.numEntries = 0;
+    }
+
+    rc = VDECL_VER(_ckptClientInfoGetClientSync, 6, 0, 0)(idlHdl, 
+                                                          actHdl,
+                                                          pClientList);
+
+    if(rc == CL_OK)
+    {
+        /*
+         * Skip self entries
+         */
+        ClUint32T numEntries = pClientList->numEntries;
+        for(ClUint32T i = 0; i < numEntries; ++i)
+        {
+            if(pClientList->pClientInfo[i].nodeAddress == gClntInfo.ckptOwnAddr.nodeAddress
+               &&
+               pClientList->pClientInfo[i].portId == gClntInfo.ckptOwnAddr.portId)
+            {
+                --pClientList->numEntries;
+                if(pClientList->numEntries > 0 && i < pClientList->numEntries)
+                {
+                    memmove(&pClientList->pClientInfo[i], &pClientList->pClientInfo[i+1],
+                            sizeof(*pClientList->pClientInfo) * (pClientList->numEntries - i));
+                }
+                break;
+            }
+        }
+        if(pClientList->numEntries == 0)
+        {
+            if(pClientList->pClientInfo)
+            {
+                clHeapFree(pClientList->pClientInfo);
+                pClientList->pClientInfo = NULL;
+            }
+        }
+        else
+        {
+            memcpy(&pHdlInfo->clientList, pClientList, sizeof(pHdlInfo->clientList));
+        }
+    }
+
+    out:
+    return rc;
+}
+
 /*
  * Writes multiple sections on to a given checkpoint.
  */
@@ -2842,6 +3014,7 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
     ClUint32T           maxRetry   = 0;
     ClIocPortT          iocPort    = 0;
     ClUint8T            status = CL_IOC_NODE_DOWN;
+    ClBoolT             clientUpdate = CL_FALSE;
     ClTimerTimeOutT     delay =  {.tsSec = 0, .tsMilliSec = 500 };
 
     /*
@@ -2949,6 +3122,72 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
                    ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;
     clEoMyEoIocPortGet(&iocPort);
+
+    if( (pHdlInfo->creationFlag & CL_CKPT_PEER_TO_PEER_REPLICA) 
+        && 
+        !clientUpdate)
+    {
+        ClCkptClientInfoListT clientInfo = {0};
+        rc = ckptClientInfoGet(pHdlInfo, ckptIdlHdl, actHdl, &clientInfo);
+        if(rc != CL_OK)
+        {
+            clLogError("INFO", "GET", "Ckpt client info get returned with [%#x]", rc);
+        }
+        else if(clientInfo.numEntries > 0)
+        {
+            ClIdlHandleT clientIdlHdl = pInitInfo->ckptClientIdlHdl;
+            ClCkptIOVectorElementT *pTmpVec = (ClCkptIOVectorElementT*)pIoVector;
+            ClUint32T i;
+            for(i = 0; i < numberOfElements; ++i)
+            {
+                if(pIoVector[i].sectionId.idLen == 0)
+                    break;
+            }
+            /*
+             * If we have a null or default section, then copy in defaultSection id
+            */
+            if(i != numberOfElements)
+            {
+                pTmpVec = clHeapCalloc(numberOfElements, sizeof(*pTmpVec));
+                CL_ASSERT(pTmpVec != NULL);
+                memcpy(pTmpVec, pIoVector, sizeof(*pTmpVec) * numberOfElements);
+                while(i < numberOfElements)
+                {
+                    if(pTmpVec[i].sectionId.idLen == 0)
+                    {
+                        memcpy(&pTmpVec[i].sectionId, &gClDefaultSection, sizeof(gClDefaultSection));
+                    }
+                    ++i;
+                }
+            }
+            for(i = 0; i < clientInfo.numEntries; ++i)
+            {
+                rc = clCkptClientIdlHandleUpdate(clientIdlHdl,
+                                                 clientInfo.pClientInfo[i].nodeAddress,
+                                                 clientInfo.pClientInfo[i].portId, 0);
+                if(rc == CL_OK)
+                {
+                    clLogDebug("PEER", "WRITE", "Ckpt [%.*s] peer [%d:%d] write for section [%.*s],"
+                               "vectors [%d]", 
+                               pHdlInfo->ckptName.length, pHdlInfo->ckptName.value,
+                               clientInfo.pClientInfo[i].nodeAddress, 
+                               clientInfo.pClientInfo[i].portId,
+                               pTmpVec->sectionId.idLen, pTmpVec->sectionId.id, numberOfElements);
+                    rc = VDECL_VER(clCkptWriteUpdationNotificationClientAsync, 4, 0, 0)
+                        (clientIdlHdl, &pHdlInfo->ckptName, numberOfElements, pTmpVec, NULL, NULL);
+
+                    if(rc == CL_OK && !clientUpdate)
+                    {
+                        clientUpdate = CL_TRUE;
+                    }
+                }
+            }
+            if(pTmpVec != pIoVector)
+            {
+                clHeapFree(pTmpVec);
+            }
+        }
+    }
 
     rc = VDECL_VER(_ckptCheckpointWriteClientSync, 4, 0, 0)( ckptIdlHdl,  actHdl,
                                                              clIocLocalAddressGet(), iocPort,
@@ -3287,6 +3526,7 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
     ClUint32T          maxRetry   = 0;
     ClIocPortT         iocPort    = 0;
     ClUint8T           status = CL_IOC_NODE_DOWN;
+    ClBoolT            clientUpdate = CL_FALSE;
     ClTimerTimeOutT    delay = {.tsSec = 0, .tsMilliSec = 500};
     /*
      * Input parameter verification.
@@ -3429,32 +3669,24 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
                    ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;
 
-    if((pHdlInfo->creationFlag & CL_CKPT_PEER_TO_PEER_REPLICA))
+    if((pHdlInfo->creationFlag & CL_CKPT_PEER_TO_PEER_REPLICA) && !clientUpdate)
     {
         ClCkptClientInfoListT clientInfo = {0};
-        rc = VDECL_VER(_ckptClientInfoGetClientSync, 6, 0, 0)(ckptIdlHdl, actHdl,
-                                                              &clientInfo);
+        rc = ckptClientInfoGet(pHdlInfo, ckptIdlHdl, actHdl, &clientInfo);
         if(rc != CL_OK)
         {
             clLogError("INFO", "GET", "Ckpt client info get returned with [%#x]", rc);
         }
-        else
+        else if(clientInfo.numEntries > 0)
         {
-            static ClCkptSectionIdT defaultSection = {.idLen = sizeof("defaultSection"),
-                                                      .id = (ClUint8T*)"defaultSection"
-            };
             ClCkptSectionIdT *pClientSection = &tempSecId;
             ClIdlHandleT clientIdlHdl = pInitInfo->ckptClientIdlHdl;
             if(!tempSecId.id || !tempSecId.idLen)
             {
-                pClientSection = &defaultSection;
+                pClientSection = &gClDefaultSection;
             }
             for(ClUint32T i = 0; i < clientInfo.numEntries; ++i)
             {
-                if(clientInfo.pClientInfo[i].nodeAddress == gClntInfo.ckptOwnAddr.nodeAddress
-                   &&
-                   clientInfo.pClientInfo[i].portId == gClntInfo.ckptOwnAddr.portId)
-                    continue;
                 rc = clCkptClientIdlHandleUpdate(clientIdlHdl, 
                                                  clientInfo.pClientInfo[i].nodeAddress,
                                                  clientInfo.pClientInfo[i].portId, 0);
@@ -3467,11 +3699,9 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
                     rc = VDECL_VER(clCkptSectionUpdationNotificationClientAsync, 4, 0, 0)
                         (clientIdlHdl, &pHdlInfo->ckptName, pClientSection, 
                          dataSize, (ClUint8T*)pData, NULL, NULL);
+                    if(rc == CL_OK && !clientUpdate)
+                        clientUpdate = CL_TRUE;
                 }
-            }
-            if(clientInfo.pClientInfo)
-            {
-                clHeapFree(clientInfo.pClientInfo);
             }
         }
     }
@@ -4478,7 +4708,8 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
 
     rc = clEoMyEoObjectGet(&pThis);
     CL_ASSERT(rc == CL_OK);
-
+    
+    gClntInfo.ckptClientCacheDisable = clParseEnvBoolean("CL_CKPT_CLIENT_CACHE_DISABLE");
     gClntInfo.ckptOwnAddr.nodeAddress = clIocLocalAddressGet();
     gClntInfo.ckptOwnAddr.portId = pThis->eoPort;
 
@@ -4541,6 +4772,7 @@ ClRcT clCkptFinalize(ClCkptSvcHdlT ckptSvcHdl)
     ClCkptSvcHdlT      ckptTempSvcHdl = CL_CKPT_INVALID_HDL;
     ClCkptHdlT         *pCkptHdl      = NULL;
     ClCkptHdlT         ckptTempHdl    = CL_CKPT_INVALID_HDL;
+    CkptHdlDbT         *pHdlInfo      = NULL;
 
     CKPT_DEBUG_T(("CkptSvcHdl : %#llX\n", ckptSvcHdl));  
 
@@ -4635,10 +4867,21 @@ ClRcT clCkptFinalize(ClCkptSvcHdlT ckptSvcHdl)
     clCntFirstNodeGet(gClntInfo.ckptHdlList, &nodeHdl);
     while (nodeHdl)
     {
+        pHdlInfo = NULL;
+        ckptTempSvcHdl = 0;
         clCntNodeUserDataGet(gClntInfo.ckptHdlList,nodeHdl,(ClCntDataHandleT *)&pCkptHdl);
         tempNode = nodeHdl;
         clCntNextNodeGet(gClntInfo.ckptHdlList, nodeHdl, &nodeHdl);
-        ckptSvcHandleGet( *pCkptHdl, &ckptTempSvcHdl);
+        rc = ckptHandleCheckout(*pCkptHdl, CL_CKPT_CHECKPOINT_HDL, (void **)&pHdlInfo);
+        if(rc == CL_OK)
+        {
+            if(pHdlInfo)
+            {
+                ckptTempSvcHdl = pHdlInfo->ckptSvcHdl;
+                ckptClientCacheFree(pHdlInfo);
+            }
+            clHandleCheckin(gClntInfo.ckptDbHdl, *pCkptHdl);
+        }
         if (ckptTempSvcHdl == ckptSvcHdl)
         {
             ckptTempHdl = *pCkptHdl;
@@ -4646,7 +4889,9 @@ ClRcT clCkptFinalize(ClCkptSvcHdlT ckptSvcHdl)
             clHandleDestroy(gClntInfo.ckptDbHdl, ckptTempHdl);
         }
     }
-   
+
+    rc = CL_OK;
+
     /*
      * Unlock selection obj related info and delete the mutex.
      */
@@ -5609,3 +5854,4 @@ ClBoolT clCkptDifferentialCheckpointStatusGet(void)
     }
     return gClDifferentialCkpt > 0 ? CL_TRUE : CL_FALSE;
 }
+

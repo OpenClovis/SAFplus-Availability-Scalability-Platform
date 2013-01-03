@@ -692,9 +692,46 @@ void clCachedCkptSectionRead(ClCachedCkptSvcInfoT *serviceInfo,
         {
             *sectionData = pTemp;
             pTemp->data = (ClUint8T *)(pTemp + 1);
+            break;
         }
 
         sectionOffset += sizeof(ClCachedCkptDataT) + pTemp->dataSize;
+    }
+}
+
+void clCachedCkptSectionGetFirst(ClCachedCkptSvcInfoT *serviceInfo,
+                                       ClCachedCkptDataT **sectionData,
+                                       ClUint32T        *sectionOffset)
+{
+    ClUint32T        *numberOfSections = (ClUint32T *) serviceInfo->cache;
+    ClUint32T        *sizeOfCache = (ClUint32T *) (numberOfSections + 1);
+
+    *sectionData = NULL;
+
+    if (*numberOfSections > 0)
+    {
+        *sectionData = (ClCachedCkptDataT *) (sizeOfCache + 1);
+        (*sectionData)->data = (ClUint8T *)(*sectionData + 1);
+        *sectionOffset += sizeof(ClCachedCkptDataT) + (*sectionData)->dataSize;
+    }
+}
+
+void clCachedCkptSectionGetNext(ClCachedCkptSvcInfoT *serviceInfo,
+                                       ClCachedCkptDataT **sectionData,
+                                       ClUint32T        *sectionOffset)
+{
+    ClUint32T        *numberOfSections = (ClUint32T *) serviceInfo->cache;
+    ClUint32T        *sizeOfCache = (ClUint32T *) (numberOfSections + 1);
+    ClUint8T         *data = (ClUint8T *) (sizeOfCache + 1);
+
+    *sectionData = NULL;
+
+    if (*sectionOffset < *sizeOfCache)
+    {
+        ClCachedCkptDataT *pTemp = (ClCachedCkptDataT *) (data + *sectionOffset);
+        *sectionData = pTemp;
+        pTemp->data = (ClUint8T *)(pTemp + 1);
+        *sectionOffset += sizeof(ClCachedCkptDataT) + pTemp->dataSize;
     }
 }
 

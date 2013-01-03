@@ -233,22 +233,24 @@ namespace clCheckpoint
 
     class Iterator
     {
-    private:
-      SaCkptSectionIterationHandleT *sectionIterator;
-      SaCkptCheckpointHandleT *handle;
+    protected:
+      SaCkptSectionIterationHandleT sectionIteratorHdl;
+      SaCkptCheckpointHandleT *handleIter;
+
     public:
-      Iterator(SaCkptCheckpointHandleT *handle, SaCkptSectionIterationHandleT *sectionIterator);
+      Iterator(SaCkptCheckpointHandleT *handle);
       ~Iterator();
 
       Iterator(Data *pData, Data *pKey);
 
       // assignment
-      Iterator& operator=(const Iterator& otherValue);
       bool operator !=(const Iterator& otherValue);
 
       // increment the pointer to the next value
       Iterator& operator++();
       Iterator& operator++(int);
+
+      void getCkptData(void);
 
       Data *pData;
       Data *pKey;
@@ -259,9 +261,7 @@ namespace clCheckpoint
     Iterator end();
 
   protected:
-
-    SaCkptCheckpointHandleT  handle;
-    SaCkptSectionIterationHandleT sectionIterator;
+    SaCkptCheckpointHandleT  handleTbl;
     SaTimeT                  sectionExpiration;
     bool                     autoActivate;
     SaTimeT                  tryAgainDelayMs;
