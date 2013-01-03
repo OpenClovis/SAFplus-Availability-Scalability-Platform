@@ -226,7 +226,7 @@ alarmClockCkptCreate (
     
     /* Initialize check point creation flags
      */
-    ckpt_cr_attr.creationFlags = CL_CKPT_DISTRIBUTED;
+    ckpt_cr_attr.creationFlags = CL_CKPT_DISTRIBUTED | CL_CKPT_PEER_TO_PEER_REPLICA;
 
     /* Maximum checkpoint size = size of all checkpoints combined
      */
