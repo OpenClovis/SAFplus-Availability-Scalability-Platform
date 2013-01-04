@@ -777,58 +777,6 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     return rc;
 }
 
-ClRcT clIocCommPortReceiverUnblock(ClIocCommPortHandleT portHandle)
-{
-    ClIocCommPortT *pTipcCommPort = (ClIocCommPortT *)portHandle;
-    ClRcT rc = CL_OK;
-    ClInt32T fd;
-    struct sockaddr_tipc destAddress;
-    ClUint32T portId;
-    ClTimerTimeOutT timeout = {.tsSec=0,.tsMilliSec=200};
-    ClInt32T tries=0;
-    bzero((char*)&destAddress,sizeof(destAddress));
-
-    portId = pTipcCommPort->portId;
-    fd = pTipcCommPort->fd;
-    destAddress.family = AF_TIPC;
-    destAddress.addrtype = TIPC_ADDR_NAME;
-    destAddress.scope = TIPC_NODE_SCOPE;
-    destAddress.addr.name.domain=0;
-    destAddress.addr.name.name.type = CL_TIPC_SET_TYPE(portId);
-    destAddress.addr.name.name.instance = gIocLocalBladeAddress;
-    /*Grab the lock to avoid a race with lost wakeups triggered by the recv.*/
-    clOsalMutexLock(&pTipcCommPort->unblockMutex);
-    ++pTipcCommPort->blocked;
-    if(sendto(fd,CL_TIPC_PORT_EXIT_MESSAGE,sizeof(CL_TIPC_PORT_EXIT_MESSAGE),
-              0,(struct sockaddr*)&destAddress,sizeof(destAddress))<0)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error sending port exit message to port:0x%x.errno=%d\n",portId,errno));
-        rc = CL_IOC_RC(CL_ERR_UNSPECIFIED);
-        clOsalMutexUnlock(&pTipcCommPort->unblockMutex);
-        goto out;
-    }
-    while(tries++ < 3)
-    {
-        rc = clOsalCondWait(&pTipcCommPort->unblockCond,&pTipcCommPort->unblockMutex,timeout);
-        if(CL_GET_ERROR_CODE(rc)==CL_ERR_TIMEOUT)
-        {
-            continue;
-        }
-        break;
-    }
-    --pTipcCommPort->blocked;
-    /*
-     * we come back with lock held.Now unblock the receiver 
-     * irrespective of whether we succeded in cond wait or failed
-    */
-    clOsalCondSignal(&pTipcCommPort->recvUnblockCond);
-
-    clOsalMutexUnlock(&pTipcCommPort->unblockMutex);
-
-    out:
-    return rc;
-}
-
 ClRcT xportMaxPayloadSizeGet(ClUint32T *pSize)
 {
     NULL_CHECK(pSize);
