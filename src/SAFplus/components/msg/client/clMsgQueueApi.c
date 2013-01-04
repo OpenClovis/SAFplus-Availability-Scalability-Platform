@@ -353,7 +353,7 @@ static void *clMsgQueueOpenNewAsync(void *pParam)
 
     /* Invoke Msg queue open callback function for async case */
     clMsgAppQueueOpenCallbackFunc(msgHandle, invocation, queueHandle, rc);
-
+    clHeapFree(pQueueName);
     clHeapFree(pParam);
 
     return NULL;
@@ -381,6 +381,7 @@ static void *clMsgQueueOpenRemoteAsync(void *pParam)
     /* Invoke Msg queue open callback function for async case */
     clMsgAppQueueOpenCallbackFunc(msgHandle, invocation, queueHandle, rc);
 
+    clHeapFree(pQueueName);
     clHeapFree(pParam);
 
     return NULL;
@@ -405,7 +406,7 @@ static void *clMsgQueueOpenLocalAsync(void *pParam)
 
     /* Invoke Msg queue open callback function for async case */
     clMsgAppQueueOpenCallbackFunc(msgHandle, invocation, queueHandle, rc);
-
+    clHeapFree(pQueueName);
     clHeapFree(pParam);
 
     return NULL;
@@ -543,7 +544,9 @@ retry:
         pMsgOpenParams = (ClMsgOpenAsyncParamsT *) clHeapAllocate(sizeof(ClMsgOpenAsyncParamsT));
         pMsgOpenParams->msgHandle = msgHandle;
         pMsgOpenParams->invocation = invocation;
-        pMsgOpenParams->pQueueName = (SaNameT *)pQueueName;
+        pMsgOpenParams->pQueueName = clHeapCalloc(1, sizeof(*pMsgOpenParams->pQueueName));
+        CL_ASSERT(pMsgOpenParams->pQueueName != NULL);
+        memcpy(pMsgOpenParams->pQueueName, pQueueName, sizeof(*pMsgOpenParams->pQueueName));
         pMsgOpenParams->pCreationAttributes = (SaMsgQueueCreationAttributesT *)pCreationAttributes;
         pMsgOpenParams->openFlags = openFlags;
     }
