@@ -41,14 +41,14 @@ extern "C" {
                                                                                                                              
 /* Component EO Client Libraries */                                                                                                                            
 
-#define COMP_EO_CLIENTLIB_COR   CL_TRUE
+#define COMP_EO_CLIENTLIB_COR   CL_FALSE
 #define COMP_EO_CLIENTLIB_CM    CL_FALSE                  
 #define COMP_EO_CLIENTLIB_NAME    CL_TRUE                  
 #define COMP_EO_CLIENTLIB_LOG    CL_TRUE                  
 #define COMP_EO_CLIENTLIB_TRACE    CL_FALSE                 
 #define COMP_EO_CLIENTLIB_DIAG    CL_FALSE
 #define COMP_EO_CLIENTLIB_TXN    CL_TRUE
-#define COMP_EO_CLIENTLIB_NA    CL_FALSE
+#define COMP_EO_CLIENTLIB_MSO    CL_TRUE
 #define COMP_EO_CLIENTLIB_PROV    CL_FALSE
 #define COMP_EO_CLIENTLIB_ALARM    CL_FALSE
 #define COMP_EO_CLIENTLIB_DEBUG    CL_TRUE

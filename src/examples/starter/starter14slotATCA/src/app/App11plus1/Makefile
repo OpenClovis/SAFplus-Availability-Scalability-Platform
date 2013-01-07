@@ -6,66 +6,39 @@
 # Makefile for App11plus1
 #
 # This Makefile assumes the following:
-#	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#   - CLOVIS_ROOT environment variable is specified properly
+#   - Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
 #
 ################################################################################
+include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 
 # Component name (using all lowercase):
 
-EXENAME	:= App11plus1
+EXENAME := App11plus1
 
 # List local source files needed for the component server:
 
-SRC_FILES	:= $(wildcard *.c)
-CPP_FILES	:= $(wildcard *.C) $(wildcard *.cxx)
+SRC_FILES := $(wildcard *.c)
+CPP_FILES := $(wildcard *.C) $(wildcard *.cxx)
 
 # List other ASP components of which client libraries your component
 # depends on:
 
-DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo amf event ckpt dbal debug cor prov alarm om hal name txn idl log cm fault
+DEP_COMP_LIST := utils osal timer buffer ioc rmd eo amf event ckpt dbal debug cor prov mso pm alarm om hal name txn idl log cm fault
 # FIXME: Indirect dependencies via client library needs need to be
 # added by hand for now:
-DEP_COMP_LIST	+= cnt
+DEP_COMP_LIST += cnt
+
+
 
 # List ASP libraries needed to get this server built (or None):
 
-ASP_LIBS	:= libClMain.a \
-			 libClTimer.a  \
-			libClBuffer.a  \
-			libClOsal.a  \
-			libClCnt.a  \
-			 \
-			libClHal.a  \
-			libClCorClient.a  \
-			libClEo.a  \
-			 \
-			 \
-			 \
-			 \
-			 \
-			libClIoc.a \
-			libClRmd.a \
-			libClUtils.a \
-			libClAmfClient.a \
-			libClDbal.a \
-			libClBerkeleyDB.so \
-			libClGDBM.so \
-			libClCkpt.a \
-			libClEventClient.a \
-			libClTxnAgent.a  \
-			libClLogClient.a \
-			libClIdl.a  \
-			libClDebugClient.a \
-			libClNameClient.a \
-			  \
-			  \
-
+ASP_LIBS := libmw.a
 
 # List any third party libs needed to get this server built (or None):
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
 
-EXTRA_CPPFLAGS  := -I$(THIRD_PARTY_EZXML_PATH)
+EXTRA_CPPFLAGS := -I$(THIRD_PARTY_EZXML_PATH)
 
 # List any system libraries needed to get this server built (or None):
 
@@ -74,9 +47,13 @@ SYS_LIBS	:= -lpthread -lgdbm -ldl
 # Executable name (when building server exectuable):
 # Notice the '=' in the assignment.
 
-EXE_NAME	= $(EXENAME)
+EXE_NAME = $(EXENAME)
 
-CPPFLAGS   += -I$(ASP_CONFIG) 
+CPPFLAGS += -I$(ASP_CONFIG) 
+
+ifeq ($(ASP_BUILD),0)
+	LDFLAGS += -Wl,-rpath-link $(ASP_LIBDIR)
+endif
 
 BUILD_CPLUSPLUS = 0
 
@@ -99,7 +76,7 @@ EXTRA_LDLIBS    += $(LIB_DIR)/libcommon.a
 # SUB_DIRS += 
 
 # ---END_APPLICATION_CODE---
-
+ 
 include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
 
 # ---BEGIN_APPLICATION_CODE---
@@ -112,29 +89,26 @@ $(LIB_DIR)/libcommon.a: ../common/net.c
 
 $(BIN_DIR)/virtualIp: ../common/virtualIp
 	$(MAKE) -C ../common
-
 # To make specific additional targets (other then C or c++ files in this
 # directory -- these are automatically added), add them here.  For example,
 # to add a script that needs to be copied:
 # all: $(BIN_DIR)/myScript
-
 all: $(BIN_DIR)/virtualIp
 
 libs: $(BIN_DIR)/virtualIp $(LIB_DIR)/libcommon.a
 
-
 # Add the rules to build the additional targets here:
 # For example:
 # $(BIN_DIR)/myScript: myScript.sh
-#		$(MKDIR) $(BIN_DIR)
-#		$(CP) $< $@
+#       $(MKDIR) $(BIN_DIR)
+#       $(CP) $< $@
 
 # Above I had an example of an external library "libmystuff.a".  Now I must 
 # define the target to build it.  Let us imagine that the source for this 
 # library exists in a subdirectory called "common" off of the parent.
 
 # $(LIB_DIR)/libmystuff.a: ../common/mystuff.c
-#	$(MAKE) -C ../common
+#   $(MAKE) -C ../common
 
 # Note that the OpenClovis defined make variables will still be defined in the
 # invocation of this sub-makefile.  They must be used to ensure that binaries
