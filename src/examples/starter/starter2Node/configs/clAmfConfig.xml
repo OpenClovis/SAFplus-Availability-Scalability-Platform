@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+      <cpmConfigs>
+        <cpmConfig cpmType="GLOBAL" nodeType="ctrl">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="corSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="cmSU"/>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+      </cpmConfigs>
+      <nodeInstances>
+        <nodeInstance name="Node0" nodeMoId="\Chassis:0\blade:0" type="ctrl">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="appSU0" rank="0" type="theAppSU">
+              <componentInstances>
+                <componentInstance name="comp0" type="theApp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <xports>
+            <xport>
+              <type>TIPC</type>
+              <plugin>libClTIPC.so</plugin>
+            </xport>
+            <bridge>CL_FALSE</bridge>
+          </xports>
+        </nodeInstance>
+        <nodeInstance name="Node1" nodeMoId="\Chassis:0\blade:1" type="ctrl">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="appSU1" rank="0" type="theAppSU">
+              <componentInstances>
+                <componentInstance name="comp1" type="theApp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <xports/>
+        </nodeInstance>
+      </nodeInstances>
+      <serviceGroups>
+        <serviceGroup name="app" type="theAppSG">
+          <serviceInstances>
+            <serviceInstance name="work0" type="workAssignment">
+              <componentServiceInstances>
+                <componentServiceInstance name="appwork0" type="workForTheApp">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>appSU1</associatedServiceUnit>
+            <associatedServiceUnit>appSU0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+      </serviceGroups>
+    </amfConfig>
+  </version>
+</openClovisAsp>
