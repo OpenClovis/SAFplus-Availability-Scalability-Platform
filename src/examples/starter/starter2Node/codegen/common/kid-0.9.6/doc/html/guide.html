@@ -1,0 +1,763 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<HTML>
+  
+  <HEAD><META CONTENT="text/html; charset=utf-8" HTTP-EQUIV="Content-Type">
+    <TITLE>Kid User's Guide</TITLE>
+    <LINK HREF="layout.css" TYPE="text/css" REL="stylesheet">
+    <LINK HREF="http://planet.kid-templating.org/rss20.xml" TYPE="application/rss+xml" REL="alternate" TITLE="RSS 2.0">
+
+  </HEAD>
+  <BODY>
+    <DIV ID="page">
+      <H1 CLASS="doc-title"><A HREF="http://www.kid-templating.org/">kid-templating.org</A></H1>
+      <DIV ID="navcontainer">
+        <UL ID="navlist">
+          <LI CLASS="pagenav">
+            <UL>
+              <LI CLASS="page_item">
+                <A HREF="index.html" CLASS="" TITLE="Project Home / Index">Kid</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="module-index.html" CLASS="" TITLE="kid package and module reference">Modules</A>
+              </LI>
+              
+              <LI>
+                <A HREF="http://www.kid-templating.org/trac/" TITLE="Wiki / Subversion / Roadmap / Bug Tracker">Trac</A>
+              </LI>
+              <LI>
+                <A HREF="http://planet.kid-templating.org/">Blog</A>
+              </LI>
+              <LI>
+                <A HREF="http://lists.sourceforge.net/lists/listinfo/kid-template-discuss" CLASS="" TITLE="Mailing List">Discuss</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="http://www.kid-templating.org/about">
+                  about kid-templating.org
+                </A>
+              </LI>
+            </UL>
+          </LI>
+        </UL>
+      </DIV>
+      
+      <HR>
+      
+      <DIV ID="content"><DIV CLASS="rst-doc">
+  
+  <H1 CLASS="pudge-member-page-heading">Kid User's Guide</H1>
+  
+  <TABLE RULES="none" FRAME="void" CLASS="docinfo">
+<COL CLASS="docinfo-name">
+<COL CLASS="docinfo-content">
+<TBODY VALIGN="top">
+<TR><TH CLASS="docinfo-name">Author:</TH>
+<TD>Ryan Tomayko</TD></TR>
+<TR><TH CLASS="docinfo-name">Contact:</TH>
+<TD><A HREF="mailto:rtomayko@gmail.com" CLASS="first last reference">rtomayko@gmail.com</A></TD></TR>
+<TR><TH CLASS="docinfo-name">Revision:</TH>
+<TD>315</TD></TR>
+<TR><TH CLASS="docinfo-name">Date:</TH>
+<TD>2006-04-19</TD></TR>
+<TR><TH CLASS="docinfo-name">Copyright:</TH>
+<TD>2005, Ryan Tomayko</TD></TR>
+<TR CLASS="field"><TH CLASS="docinfo-name">Other Formats:</TH><TD CLASS="field-body"><A HREF="guide.txt" CLASS="reference">Text</A></TD>
+</TR>
+</TBODY>
+</TABLE>
+
+  <P>Kid is an XML based template language that uses embedded <A HREF="http://www.python.org/" CLASS="reference">Python</A> to do cool
+stuff. The syntax was inspired by a number of existing template languages,
+namely <A HREF="http://www.w3.org/TR/xslt" CLASS="reference">XSLT</A>, <A HREF="http://www.zope.org/Wikis/DevSite/Projects/ZPT/TAL" CLASS="reference">TAL</A>, and <A HREF="http://www.php.net/" CLASS="reference">PHP</A>.</P>
+<P>This document describes the Kid Python interface, command line tools, and
+methods for configuring Kid in various web environments. For more
+information about the template language, see the <A HREF="language.html" CLASS="reference">Kid Language
+Specification</A>.</P>
+<DIV CLASS="contents topic">
+<P CLASS="topic-title first"><A ID="table-of-contents" NAME="table-of-contents">Table of Contents</A></P>
+<UL CLASS="auto-toc simple">
+<LI><A HREF="#introduction" ID="id3" NAME="id3" CLASS="reference">1   Introduction</A><UL CLASS="auto-toc">
+<LI><A HREF="#why-use-kid" ID="id4" NAME="id4" CLASS="reference">1.1   Why use Kid?</A></LI>
+<LI><A HREF="#what-types-of-xml-documents" ID="id5" NAME="id5" CLASS="reference">1.2   What Types of XML Documents?</A></LI>
+<LI><A HREF="#template-example" ID="id6" NAME="id6" CLASS="reference">1.3   Template Example</A></LI>
+<LI><A HREF="#a-note-on-template-design" ID="id7" NAME="id7" CLASS="reference">1.4   A Note on Template Design</A></LI>
+</UL>
+</LI>
+<LI><A HREF="#the-kid-package" ID="id8" NAME="id8" CLASS="reference">2   The <TT CLASS="docutils literal"><SPAN CLASS="pre">kid</SPAN></TT> package</A><UL CLASS="auto-toc">
+<LI><A HREF="#loading-and-executing-templates" ID="id9" NAME="id9" CLASS="reference">2.1   Loading and Executing Templates</A><UL CLASS="auto-toc">
+<LI><A HREF="#enable-import-suffixes-none" ID="id10" NAME="id10" CLASS="reference">2.1.1   <TT CLASS="docutils literal"><SPAN CLASS="pre">enable_import(suffixes=None)</SPAN></TT></A></LI>
+<LI><A HREF="#template" ID="id11" NAME="id11" CLASS="reference">2.1.2   <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT></A></LI>
+<LI><A HREF="#load-template" ID="id12" NAME="id12" CLASS="reference">2.1.3   <TT CLASS="docutils literal"><SPAN CLASS="pre">load_template</SPAN></TT></A></LI>
+</UL>
+</LI>
+</UL>
+</LI>
+<LI><A HREF="#template-classes" ID="id13" NAME="id13" CLASS="reference">3   Template Classes</A><UL CLASS="auto-toc">
+<LI><A HREF="#importing" ID="id14" NAME="id14" CLASS="reference">3.1   Importing</A></LI>
+<LI><A HREF="#template-class" ID="id15" NAME="id15" CLASS="reference">3.2   <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> class</A><UL CLASS="auto-toc">
+<LI><A HREF="#init-kw" ID="id16" NAME="id16" CLASS="reference">3.2.1   <TT CLASS="docutils literal"><SPAN CLASS="pre">__init__(**kw)</SPAN></TT></A></LI>
+<LI><A HREF="#serialize" ID="id17" NAME="id17" CLASS="reference">3.2.2   <TT CLASS="docutils literal"><SPAN CLASS="pre">serialize()</SPAN></TT></A></LI>
+<LI><A HREF="#generate" ID="id18" NAME="id18" CLASS="reference">3.2.3   <TT CLASS="docutils literal"><SPAN CLASS="pre">generate()</SPAN></TT></A></LI>
+<LI><A HREF="#write" ID="id19" NAME="id19" CLASS="reference">3.2.4   <TT CLASS="docutils literal"><SPAN CLASS="pre">write()</SPAN></TT></A></LI>
+<LI><A HREF="#transform" ID="id20" NAME="id20" CLASS="reference">3.2.5   <TT CLASS="docutils literal"><SPAN CLASS="pre">transform()</SPAN></TT></A></LI>
+</UL>
+</LI>
+<LI><A HREF="#serialization" ID="id21" NAME="id21" CLASS="reference">3.3   Serialization</A><UL CLASS="auto-toc">
+<LI><A HREF="#xmlserializer" ID="id22" NAME="id22" CLASS="reference">3.3.1   <TT CLASS="docutils literal"><SPAN CLASS="pre">XMLSerializer</SPAN></TT></A></LI>
+<LI><A HREF="#htmlserializer" ID="id23" NAME="id23" CLASS="reference">3.3.2   <TT CLASS="docutils literal"><SPAN CLASS="pre">HTMLSerializer</SPAN></TT></A></LI>
+<LI><A HREF="#plainserializer" ID="id24" NAME="id24" CLASS="reference">3.3.3   <TT CLASS="docutils literal"><SPAN CLASS="pre">PlainSerializer</SPAN></TT></A></LI>
+<LI><A HREF="#common-output-methods" ID="id25" NAME="id25" CLASS="reference">3.3.4   Common Output Methods</A></LI>
+</UL>
+</LI>
+</UL>
+</LI>
+<LI><A HREF="#template-variables" ID="id26" NAME="id26" CLASS="reference">4   Template Variables</A></LI>
+<LI><A HREF="#command-line-tools" ID="id27" NAME="id27" CLASS="reference">5   Command Line Tools</A><UL CLASS="auto-toc">
+<LI><A HREF="#template-compiler-kidc" ID="id28" NAME="id28" CLASS="reference">5.1   Template Compiler (<TT CLASS="docutils literal"><SPAN CLASS="pre">kidc</SPAN></TT>)</A></LI>
+<LI><A HREF="#run-templates-kid" ID="id29" NAME="id29" CLASS="reference">5.2   Run Templates (<TT CLASS="docutils literal"><SPAN CLASS="pre">kid</SPAN></TT>)</A></LI>
+</UL>
+</LI>
+</UL>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id3" ID="introduction" NAME="introduction" CLASS="toc-backref">1   Introduction</A></H1>
+<DIV CLASS="section">
+<H2><A HREF="#id4" ID="why-use-kid" NAME="why-use-kid" CLASS="toc-backref">1.1   Why use Kid?</A></H2>
+<P>Kid was designed to simplify the process of generating and transforming
+dynamic well-formed XML documents using Python. While there are a myriad of
+tools for working with XML documents in Python, generating XML is generally
+tedious, error prone, or both:</P>
+<UL CLASS="simple">
+<LI>APIs like SAX, DOM, or ElementTree can guarantee well-formed output but
+require that output documents be created entirely in Python.</LI>
+<LI>Template languages like <A HREF="http://www.cheetahtemplate.org/" CLASS="reference">Cheetah</A> or <A HREF="http://www.mems-exchange.org/software/quixote/doc/PTL.html" CLASS="reference">PTL</A> make generating text content
+easy but offer little to help ensure the output is
+correct/well-formed. Using text based tools to generate XML can result in
+bad data as there are many issues with basic XML syntax and encoding that
+need to be understood and coded for by the programmer.</LI>
+<LI>XSLT provides much of the functionality required to generate good XML
+content but requires all input to be in the form of an XML document. This
+brings us back to the original problem of <EM>not being able to generate XML
+content safely and easily</EM>.</LI>
+</UL>
+<P>Kid is an attempt to bring the benefits of these technologies together into
+a single cohesive package.</P>
+<P>Kid also allows the programmer to exploit the structured nature of XML by
+writing filters and transformations that work at the XML infoset level. Kid
+templates use generators to produce infoset items. This allows pipelines to
+be created that filter and modify content as needed.</P>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id5" ID="what-types-of-xml-documents" NAME="what-types-of-xml-documents" CLASS="toc-backref">1.2   What Types of XML Documents?</A></H2>
+<P>Kid can be used to generate any kind of XML documents including XHTML, RSS,
+Atom, FOAF, RDF, XBEL, XSLT, RelaxNG, Schematron, SOAP, etc.</P>
+<P>XHTML is generally used for examples as it is arguably the most widely
+understood XML vocabulary in existence today.</P>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id6" ID="template-example" NAME="template-example" CLASS="toc-backref">1.3   Template Example</A></H2>
+<P>Kid template files are well-formed XML documents with embedded Python used
+for generating and controlling dynamic content.</P>
+<P>The following illustrates a very basic Kid Template:</P>
+<PRE CLASS="literal-block">
+&lt;?xml version='1.0' encoding='utf-8'?>
+&lt;?python
+import time
+title = "A Kid Template"
+?>
+&lt;html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://purl.org/kid/ns#"
+>
+  &lt;head>
+    &lt;title py:content="title">
+      This is replaced with the value of the title variable.
+    &lt;/title>
+  &lt;/head>
+  &lt;body>
+    &lt;p>
+      The current time is ${time.strftime('%C %c')}.
+    &lt;/p>
+  &lt;/body>
+&lt;/html>
+</PRE>
+<P>Kid supports more advanced features such as conditionals (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:if</SPAN></TT>),
+iteration (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:for</SPAN></TT>), and reusable sub templates (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:def</SPAN></TT>). For more
+information on kid template syntax, see the <A HREF="language.html" CLASS="reference">Kid Language Specification</A>.</P>
+<P>Kid templates should use the <TT CLASS="docutils literal"><SPAN CLASS="pre">.kid</SPAN></TT> file extension if importing the
+template module using normal Python code is desired. The Kid import hook
+extensions rely on the <TT CLASS="docutils literal"><SPAN CLASS="pre">.kid</SPAN></TT> file extension being present.</P>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id7" ID="a-note-on-template-design" NAME="a-note-on-template-design" CLASS="toc-backref">1.4   A Note on Template Design</A></H2>
+<P>It is possible to embed blocks of Python code using the <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?python?></SPAN></TT>
+processing instruction (PI). However, the practice of embedding object model,
+data persistence, and business logic code in templates is highly
+discouraged. In most cases, these types of functionality should be moved
+into external Python modules and imported into the template.</P>
+<P>Keeping large amounts of code out of templates is important for a few
+reasons:</P>
+<UL CLASS="simple">
+<LI>Separation of content and logic. Templates are meant to model a document
+format and should not be laden with code whose main concern is something
+else.</LI>
+<LI>Editors with Python support (like Emacs) will not recognize Python code
+embedded in Kid templates.</LI>
+<LI>People will call you names.</LI>
+</UL>
+<P>That being said, circumstances requiring somewhat complex formatting or
+presentation logic arise often enough to incline us to include the ability
+to embed blocks of real code in Templates. Template languages that help by
+hindering ones ability to write a few lines of code when needed lead to even
+greater convolution and general distress.</P>
+<P><EM>That</EM> being said, there are some limitations on what types of usage the
+<TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?python?></SPAN></TT> PI may be put to. Specifically, you cannot generate output
+within a code block (without feeling dirty), and all Python blocks end with
+the PI.</P>
+<P>You cannot do stuff like this:</P>
+<PRE CLASS="literal-block">
+&lt;table>
+  &lt;?python #
+  for row in rows: ?>
+    &lt;tr>&lt;td py:content="row.colums[0]">...&lt;/td>&lt;/tr>
+&lt;/table>
+&lt;p>&lt;?python print 'some text and &lt;markup/> too'?>&lt;/p>
+</PRE>
+<P>This is a feature. One of the important aspects of Kid is that it guarantees
+well-formed XML output given a valid template. Allowing unstructured text
+output would make this impossible.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id8" ID="the-kid-package" NAME="the-kid-package" CLASS="toc-backref">2   The <TT CLASS="docutils literal"><SPAN CLASS="pre">kid</SPAN></TT> package</A></H1>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">kid</SPAN></TT> package contains functions and classes for using templates. Kid
+relies heavily on <A HREF="http://effbot.org/zone/element-index.htm" CLASS="reference">ElementTree</A> and also exports much of that packages
+functionality.</P>
+<DIV CLASS="section">
+<H2><A HREF="#id9" ID="loading-and-executing-templates" NAME="loading-and-executing-templates" CLASS="toc-backref">2.1   Loading and Executing Templates</A></H2>
+<DIV CLASS="section">
+<H3><A HREF="#id10" ID="enable-import-suffixes-none" NAME="enable-import-suffixes-none" CLASS="toc-backref">2.1.1   <TT CLASS="docutils literal"><SPAN CLASS="pre">enable_import(suffixes=None)</SPAN></TT></A></H3>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">enable_import</SPAN></TT> function turns on the Kid import hooks and allows
+Python's native import statement to be used to access template modules.
+The template modules are generally stored in files using a .kid file
+extension. The optional suffixes argument can be used to pass in a list
+of alternate file extensions. This is useful is you wish to put you XML
+templates in .html files and have them importable.</P>
+<P>It is generally called once at the beginning of program execution,
+but calling multiple times has no effect adverse or otherwise.</P>
+<P>Example:</P>
+<PRE CLASS="literal-block">
+import kid
+kid.enable_import()
+
+# or
+
+import kid
+kid.enable_import(suffixes=[".html"])
+</PRE>
+<P>There are a few very simple rules used to determine which file to load
+for a particular import statement. The first file matching the criteria
+will be loaded even if other matching files exist down the chain. The
+rules are so follows:
+1. look for module.kid file
+2. traverse the suffixes list, if supplied, looking for module.suffix
+3. look for the standard Python suffixes (.py, .pyc, etc.)</P>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id11" ID="template" NAME="template" CLASS="toc-backref"><SPAN ID="template-function"></SPAN>2.1.2   <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT></A></H3>
+<P>Sometimes using Python's native import doesn't make sense for template
+usage. In these cases, the <TT CLASS="docutils literal"><SPAN CLASS="pre">kid.Template</SPAN></TT> function can be used to load a
+template module and create an instance of the module's <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> class.</P>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">kid.Template</SPAN></TT> function requires one of the following arguments to be
+provided to establish the template:</P>
+<DL CLASS="docutils">
+<DT>file</DT>
+<DD>The template should be loaded from the file specified. If a compiled
+version of template exists, it will be loaded. If not, the template is
+loaded and an attempt will be made to write a compiled version.</DD>
+<DT>source</DT>
+<DD>The template should be loaded from the string specified. There is no
+mechanism for caching string templates other than to keep a reference to
+the object returned.</DD>
+<DT>name</DT>
+<DD>The template should be loaded by importing a module with the specified
+name. This is exactly like using Python's normal import but allows
+template names to be specified dynamically and also doesn't require the
+import hook to be enabled.</DD>
+</DL>
+<PRE CLASS="literal-block">
+import kid
+template = Template(file='test.kid', foo='bar', baz='bling')
+print template.serialize()
+</PRE>
+<PRE CLASS="literal-block">
+import kid
+template = Template(source='&lt;p>$foo&lt;/p>', foo='Hello World!')
+print template.serialize()
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id12" ID="load-template" NAME="load-template" CLASS="toc-backref">2.1.3   <TT CLASS="docutils literal"><SPAN CLASS="pre">load_template</SPAN></TT></A></H3>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">load_template</SPAN></TT> function returns the module object for the template
+given a template filename. This module object can be used as if the module
+was loaded using Python's import statement. Use this function in cases where
+you need access to the template module but the template doesn't reside on
+Python's path.</P>
+<PRE CLASS="literal-block">
+import kid
+template_module = kid.load_template('test.kid', cache=1)
+template = template_module.Template(foo='bar', baz='bling')
+print str(template)
+</PRE>
+<P>Note that the <A HREF="#template-function" CLASS="reference">Template function</A> usually provides a better interface for
+creating templates as it automatically creates an instance of the <CITE>Template</CITE>
+class for the module, removing a line of code or two.</P>
+<P>However, if you are creating templates dynamically (e.g. by loading them from
+a database), you may prefer to use this function in order to create them,
+by simply passing in the source as the first argument, and setting
+<TT CLASS="docutils literal"><SPAN CLASS="pre">cache=False</SPAN></TT> (so the templates modules aren't saved in <TT CLASS="docutils literal"><SPAN CLASS="pre">sys.modules</SPAN></TT>):</P>
+<PRE CLASS="literal-block">
+import kid
+
+class TemplateManager:
+
+    # ... other methods here
+
+    def get_template(self, key):
+        source_string = self.fetch_template_source(key)
+        return kid.load_template(
+            source_string, cache=False, ns={'manager':self}
+        )
+</PRE>
+<P><TT CLASS="docutils literal"><SPAN CLASS="pre">load_template()</SPAN></TT> uses its <TT CLASS="docutils literal"><SPAN CLASS="pre">ns</SPAN></TT> keyword argument to pre-populate the
+template module namespace with global variables.  In this example, we give the
+template module access to an instance of our "template manager" class in a
+<TT CLASS="docutils literal"><SPAN CLASS="pre">manager</SPAN></TT> variable, allowing templates to inherit from other templates
+loaded from the same database, using e.g.:</P>
+<PRE CLASS="literal-block">
+&lt;root py:extends="manager.get_template('other_template')">
+</PRE>
+</DIV>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id13" ID="template-classes" NAME="template-classes" CLASS="toc-backref">3   Template Classes</A></H1>
+<P>Kid templates are converted into normal Python modules and may be used like
+normal Python modules. All template modules have a uniform interface that
+expose a class named <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> and possibly a set of functions (one for
+each <TT CLASS="docutils literal"><SPAN CLASS="pre">py:def</SPAN></TT> declared in the template).</P>
+<DIV CLASS="section">
+<H2><A HREF="#id14" ID="importing" NAME="importing" CLASS="toc-backref">3.1   Importing</A></H2>
+<P>Templates may be imported directly like any other Python module after the
+Kid import hooks have been enabled. Consider the following files in a
+directory on Python's <TT CLASS="docutils literal"><SPAN CLASS="pre">sys.path</SPAN></TT>:</P>
+<PRE CLASS="literal-block">
+file1.py
+file2.py
+file3.kid
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">file1</SPAN></TT> module may import the <TT CLASS="docutils literal"><SPAN CLASS="pre">file3</SPAN></TT> template module using the
+normal Python import syntax after making a call to <TT CLASS="docutils literal"><SPAN CLASS="pre">kid.enable_import()</SPAN></TT>:</P>
+<PRE CLASS="literal-block">
+# enable kid import hooks
+import kid
+kid.enable_import()
+
+# now import the template
+import file3
+print file3.serialize()
+</PRE>
+<P>The importer checks whether a compiled version of the template exists by
+looking for a <TT CLASS="docutils literal"><SPAN CLASS="pre">template.pyc</SPAN></TT> file and if not found, loads the
+<TT CLASS="docutils literal"><SPAN CLASS="pre">template.kid</SPAN></TT> file, compiles it, and attempts to save it to
+<TT CLASS="docutils literal"><SPAN CLASS="pre">template.pyc</SPAN></TT>. If the compiled version cannot be saved properly,
+processing continues as normal; no errors or warnings are generated.</P>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id15" ID="template-class" NAME="template-class" CLASS="toc-backref">3.2   <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> class</A></H2>
+<P>Each template module exports a class named "Template". An instance of a
+template is obtained in one of three ways:</P>
+<UL CLASS="simple">
+<LI>The <A HREF="#template-function" CLASS="reference">Template function</A>.</LI>
+<LI>Enabling the import hook, using Python's import to obtain the module,
+and then retrieving the <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> class.</LI>
+<LI>Calling the <TT CLASS="docutils literal"><SPAN CLASS="pre">kid.load_template</SPAN></TT> function and then retrieving the
+<TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> class.</LI>
+</UL>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> function is the preferred method of obtaining a template
+instance.</P>
+<P>All Template classes subclass the <TT CLASS="docutils literal"><SPAN CLASS="pre">kid.BaseTemplate</SPAN></TT> class, providing a
+uniform set of methods that all templates expose. These methods are
+described in the following sections.</P>
+<DIV CLASS="section">
+<H3><A HREF="#id16" ID="init-kw" NAME="init-kw" CLASS="toc-backref">3.2.1   <TT CLASS="docutils literal"><SPAN CLASS="pre">__init__(**kw)</SPAN></TT></A></H3>
+<P>Template instantiation takes a list of keyword arguments and maps them to
+attributes on the object instance. You may pass any number of keywords
+arguments and they are available as both instance attributes and as locals
+to code contained in the template itself.</P>
+<P>For example:</P>
+<PRE CLASS="literal-block">
+from mytemplate import Template
+t = Template(foo='bar', hello='world')
+</PRE>
+<P>is equivalent to:</P>
+<PRE CLASS="literal-block">
+from mytemplate import Template
+t = Template()
+t.foo = 'bar'
+t.hello = 'world'
+</PRE>
+<P>And these names are available within a template as if they were locals:</P>
+<PRE CLASS="literal-block">
+&lt;p>Hello ${hello}&lt;/p>
+</PRE>
+<DIV CLASS="note">
+<P CLASS="first admonition-title">Note</P>
+<P CLASS="last">The names <TT CLASS="docutils literal"><SPAN CLASS="pre">source</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">file</SPAN></TT>, and <TT CLASS="docutils literal"><SPAN CLASS="pre">name</SPAN></TT> should be avoided because
+they are used by the generic <A HREF="#template-function" CLASS="reference">Template Function</A>.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id17" ID="serialize" NAME="serialize" CLASS="toc-backref"><SPAN ID="serialze"></SPAN>3.2.2   <TT CLASS="docutils literal"><SPAN CLASS="pre">serialize()</SPAN></TT></A></H3>
+<P>Execute the template and return the result as one big string.</P>
+<PRE CLASS="literal-block">
+def serialize(encoding=None, fragment=0, output=None)
+</PRE>
+<P>This method returns a string containing the output of the template encoded
+using the character encoding specified by the <TT CLASS="docutils literal"><SPAN CLASS="pre">encoding</SPAN></TT> argument. If no
+encoding is specified, "utf-8" is used.</P>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">fragment</SPAN></TT> argument specifies whether prologue information such as the
+XML declaration (<TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?xml</SPAN> <SPAN CLASS="pre">...?></SPAN></TT>) and/or DOCTYPE should be output. Set to a
+truth value if you need to generate XML suitable for insertion into another
+document.</P>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">output</SPAN></TT> argument specifies the serialization method that should be
+used. This can be a string or a <TT CLASS="docutils literal"><SPAN CLASS="pre">Serializer</SPAN></TT> instance.</P>
+<DIV CLASS="note">
+<P CLASS="first admonition-title">Note</P>
+<P CLASS="last">The <TT CLASS="docutils literal"><SPAN CLASS="pre">__str__</SPAN></TT> method is overridden to use this same function so that
+calls like <TT CLASS="docutils literal"><SPAN CLASS="pre">str(t)</SPAN></TT>, where <TT CLASS="docutils literal"><SPAN CLASS="pre">t</SPAN></TT> is a template instance, are equivalent
+to calling <TT CLASS="docutils literal"><SPAN CLASS="pre">t.serialize()</SPAN></TT>.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id18" ID="generate" NAME="generate" CLASS="toc-backref">3.2.3   <TT CLASS="docutils literal"><SPAN CLASS="pre">generate()</SPAN></TT></A></H3>
+<P>Execute the template and generate serialized output incrementally.</P>
+<PRE CLASS="literal-block">
+def generate(encoding=None, fragment=0, output=None)
+</PRE>
+<P>This method returns an iterator that yields an encoded string for each
+iteration. The iteration ends when the template is done executing.</P>
+<P>See the <A HREF="#id2" CLASS="reference">serialize</A> method for more info on the <TT CLASS="docutils literal"><SPAN CLASS="pre">encoding</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">fragment</SPAN></TT>,
+and <TT CLASS="docutils literal"><SPAN CLASS="pre">output</SPAN></TT> arguments.</P>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id19" ID="write" NAME="write" CLASS="toc-backref">3.2.4   <TT CLASS="docutils literal"><SPAN CLASS="pre">write()</SPAN></TT></A></H3>
+<P>Execute the template and write output to file.</P>
+<PRE CLASS="literal-block">
+def write(file, encoding=None, fragment=0, output=None)
+</PRE>
+<P>This method writes the processed template out to a file. If the file argument
+is a string, a file object is created using <TT CLASS="docutils literal"><SPAN CLASS="pre">open(file,</SPAN> <SPAN CLASS="pre">'wb')</SPAN></TT>. If the file
+argument is a file-like object (supports <TT CLASS="docutils literal"><SPAN CLASS="pre">write</SPAN></TT>), it is used directly.</P>
+<P>See the <A HREF="#id2" CLASS="reference">serialize</A> method for more info on the <TT CLASS="docutils literal"><SPAN CLASS="pre">encoding</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">fragment</SPAN></TT>,
+and <TT CLASS="docutils literal"><SPAN CLASS="pre">output</SPAN></TT> arguments.</P>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id20" ID="transform" NAME="transform" CLASS="toc-backref">3.2.5   <TT CLASS="docutils literal"><SPAN CLASS="pre">transform()</SPAN></TT></A></H3>
+<P>This method returns a generator object that can be used to iterate over the
+ElementTree objects produced by template execution. For now this method is
+under-documented and its use is not recommended. If you think you need to
+use it, ask about it on the mailing list.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id21" ID="serialization" NAME="serialization" CLASS="toc-backref"><SPAN ID="id2"></SPAN>3.3   Serialization</A></H2>
+<P>The Template object's <TT CLASS="docutils literal"><SPAN CLASS="pre">serialize</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">generate</SPAN></TT>, and <TT CLASS="docutils literal"><SPAN CLASS="pre">write</SPAN></TT> methods
+take an <TT CLASS="docutils literal"><SPAN CLASS="pre">output</SPAN></TT> argument that controls how the XML Infoset items
+generated by a template should serialized. Kid has a modular serialization
+system allowing a single template to be serialized differently based on
+need.</P>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">kid</SPAN></TT> package exposes a set of classes that handle serialization. The
+<TT CLASS="docutils literal"><SPAN CLASS="pre">Serializer</SPAN></TT> class provides some base functionality but does not perform
+serialization; it provides useful utility services to subclasses. The
+<TT CLASS="docutils literal"><SPAN CLASS="pre">XMLSerializer</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">HTMLSerializer</SPAN></TT>, and <TT CLASS="docutils literal"><SPAN CLASS="pre">PlainSerializer</SPAN></TT> classes
+are concrete and can be used to serialize template output as XML or HTML,
+respectively.</P>
+<DIV CLASS="section">
+<H3><A HREF="#id22" ID="xmlserializer" NAME="xmlserializer" CLASS="toc-backref">3.3.1   <TT CLASS="docutils literal"><SPAN CLASS="pre">XMLSerializer</SPAN></TT></A></H3>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">XMLSerializer</SPAN></TT> has the the following options, which can be set when
+an instance is constructed, or afterwards as instance attributes:</P>
+<DL CLASS="docutils">
+<DT>encoding</DT>
+<DD>The character encoding that should be used when serializing output. This
+can be any character encoding supported by Python.</DD>
+<DT>decl</DT>
+<DD>Boolean specifying whether the XML declaration should be output. Note that
+the <TT CLASS="docutils literal"><SPAN CLASS="pre">fragment</SPAN></TT> argument can be used to turn this off when calling the
+<TT CLASS="docutils literal"><SPAN CLASS="pre">serialize</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">generate</SPAN></TT>, or <TT CLASS="docutils literal"><SPAN CLASS="pre">write</SPAN></TT> methods.</DD>
+<DT>doctype</DT>
+<DD>A 3-tuple of the form <EM>(TYPE, PUBLIC, SYSTEM)</EM> that specifies a DOCTYPE
+that should be output. If the <TT CLASS="docutils literal"><SPAN CLASS="pre">doctype</SPAN></TT> attribute is <TT CLASS="docutils literal"><SPAN CLASS="pre">None</SPAN></TT>, no
+DOCTYPE is output. Note that if the <TT CLASS="docutils literal"><SPAN CLASS="pre">fragment</SPAN></TT> argument is set, no
+DOCTYPE will be output.</DD>
+</DL>
+<P>The following example creates a custom XML serializer for DocBook and uses
+it to serialize template output:</P>
+<PRE CLASS="literal-block">
+from kid import Template, XMLSerializer
+dt = ('article', '-//OASIS//DTD DocBook XML V4.1.2//EN',
+      'http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd')
+serializer = XMLSerializer(encoding='ascii', decl=1, doctype=dt)
+t = Template(file='example.dbk')
+print t.serialize(output=serializer)
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id23" ID="htmlserializer" NAME="htmlserializer" CLASS="toc-backref">3.3.2   <TT CLASS="docutils literal"><SPAN CLASS="pre">HTMLSerializer</SPAN></TT></A></H3>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">HTMLSerializer</SPAN></TT> is cabable of serializing an XML Infoset using HTML
+4.01 syntax. This serializer varies from the <TT CLASS="docutils literal"><SPAN CLASS="pre">XMLSerializer</SPAN></TT> as follows:</P>
+<UL CLASS="simple">
+<LI>No <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?xml</SPAN> <SPAN CLASS="pre">...?></SPAN></TT> declaration.</LI>
+<LI>HTML 4.01 DOCTYPE(s).</LI>
+<LI>Transpose element/attribute names to upper-case by default (can be
+configured to transpose to lowercase or to not transpose at all).</LI>
+<LI>Injects a <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;META</SPAN> <SPAN CLASS="pre">HTTP-EQUIV="Content-Type"</SPAN> <SPAN CLASS="pre">CONTENT="text/html;</SPAN> <SPAN CLASS="pre">charset=enc"></SPAN></TT> where <EM>enc</EM> is the output encoding.</LI>
+<LI>Outputs the following element's as "empty elements" (i.e. no closing
+tag): <TT CLASS="docutils literal"><SPAN CLASS="pre">area</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">base</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">basefont</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">br</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">col</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">frame</SPAN></TT>,
+<TT CLASS="docutils literal"><SPAN CLASS="pre">hr</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">img</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">input</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">isindex</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">link</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">meta</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">param</SPAN></TT>.</LI>
+<LI>No such thing as short-form elements: <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;elem</SPAN> <SPAN CLASS="pre">/></SPAN></TT>. All elements (except
+for empty elements) must have a full end tag.</LI>
+<LI>Does not escape reserved characters in <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;SCRIPT></SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;STYLE></SPAN></TT>
+blocks. This includes less-than signs and ampersands.</LI>
+<LI>Boolean attributes are output without a value part. For example,
+<TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;OPTION</SPAN> <SPAN CLASS="pre">SELECTED>foo&lt;/OPTION></SPAN></TT>.</LI>
+<LI>Discards namespace information.</LI>
+</UL>
+<P>Much of this functionality can be controlled by setting options on the
+<TT CLASS="docutils literal"><SPAN CLASS="pre">HTMLSerializer</SPAN></TT> instance. These options are as follows:</P>
+<DL CLASS="docutils">
+<DT>encoding</DT>
+<DD>The character encoding that should be used when serializing output. This
+can be any character encoding supported by Python.</DD>
+<DT>doctype</DT>
+<DD>A 3-tuple of the form <EM>(TYPE, PUBLIC, SYSTEM)</EM> that specifies a DOCTYPE
+that should be output. If the <TT CLASS="docutils literal"><SPAN CLASS="pre">doctype</SPAN></TT> attribute is <TT CLASS="docutils literal"><SPAN CLASS="pre">None</SPAN></TT>, no
+DOCTYPE is output.</DD>
+<DT>transpose</DT>
+<DD>This is a reference to a function that is called to transpose tag and
+attribute names. <TT CLASS="docutils literal"><SPAN CLASS="pre">string.upper</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">string.lower</SPAN></TT> are generally
+used here. If set to <TT CLASS="docutils literal"><SPAN CLASS="pre">None</SPAN></TT>, all tag names are output as they are in
+the source document.</DD>
+<DT>inject_type</DT>
+<DD>Boolean specifying whether a <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;META></SPAN></TT> tag should be inserted into the
+<TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;HEAD></SPAN></TT> of the document specifying the character encoding. This is
+enabled by default.</DD>
+<DT>empty_elements</DT>
+<DD>A <TT CLASS="docutils literal"><SPAN CLASS="pre">set</SPAN></TT> containing the names (in lower case) of the elements that do not
+have closing tags. Set to <TT CLASS="docutils literal"><SPAN CLASS="pre">[]</SPAN></TT> to turn off empty_element processing.</DD>
+<DT>noescape_elements</DT>
+<DD>A <TT CLASS="docutils literal"><SPAN CLASS="pre">set</SPAN></TT> containing the names (in lower case) of elements whose content
+should not be escaped. This defaults to <TT CLASS="docutils literal"><SPAN CLASS="pre">['script',</SPAN> <SPAN CLASS="pre">'style']</SPAN></TT>. Set to
+<TT CLASS="docutils literal"><SPAN CLASS="pre">[]</SPAN></TT> to turn enable escaping in all elements.</DD>
+<DT>boolean_attributes</DT>
+<DD>A <TT CLASS="docutils literal"><SPAN CLASS="pre">set</SPAN></TT> containing the names (in lower case) of attributes that do not
+require a value part. The presence of the attribute name signifies that the
+attribute value is set. Set to <TT CLASS="docutils literal"><SPAN CLASS="pre">[]</SPAN></TT> to disable boolean attribute
+processing.</DD>
+</DL>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id24" ID="plainserializer" NAME="plainserializer" CLASS="toc-backref">3.3.3   <TT CLASS="docutils literal"><SPAN CLASS="pre">PlainSerializer</SPAN></TT></A></H3>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">PlainSerializer</SPAN></TT> can be used to generate non-markup, like a CSS or
+Javascript file.  All markup that is rendered is thrown away, and entities
+are resolved.</P>
+<P>When using this serializer, your template must still be valid XML.  A typical
+pattern might be:</P>
+<PRE CLASS="literal-block">
+&lt;css>
+/* Look &amp;amp; Feel */
+body {color: #f00}
+&lt;/css>
+</PRE>
+<P>Which renders to:</P>
+<PRE CLASS="literal-block">
+/* Look &amp; Feel */
+body {color: #f00}
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id25" ID="common-output-methods" NAME="common-output-methods" CLASS="toc-backref">3.3.4   Common Output Methods</A></H3>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">kid.output_methods</SPAN></TT> dictionary contains a mapping of names to
+frequently used <TT CLASS="docutils literal"><SPAN CLASS="pre">Serializer</SPAN></TT> configurations. You can pass any of these
+names as the <TT CLASS="docutils literal"><SPAN CLASS="pre">output</SPAN></TT> argument in <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> methods.</P>
+<DL CLASS="docutils">
+<DT>xml</DT>
+<DD><P CLASS="first">The <TT CLASS="docutils literal"><SPAN CLASS="pre">xml</SPAN></TT> output method is the default. It serializes the infoset
+items as well-formed XML and includes a <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?xml?></SPAN></TT> declaration. The
+serializer is created as follows:</P>
+<PRE CLASS="last literal-block">
+XMLSerializer(encoding='utf-8', decl=1)
+</PRE>
+</DD>
+<DT>html / html-strict</DT>
+<DD><P CLASS="first">The <TT CLASS="docutils literal"><SPAN CLASS="pre">html</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">html-strict</SPAN></TT> output methods use the
+<TT CLASS="docutils literal"><SPAN CLASS="pre">HTMLSerializer</SPAN></TT> to serialize the infoset. The <TT CLASS="docutils literal"><SPAN CLASS="pre">HTMLSerializer</SPAN></TT> used
+has the following options set:</P>
+<UL CLASS="simple">
+<LI>Tag and attribute names converted to uppercase
+(<TT CLASS="docutils literal"><SPAN CLASS="pre">HTMLSerializer.transpose</SPAN> <SPAN CLASS="pre">=</SPAN> <SPAN CLASS="pre">string.upper</SPAN></TT>).</LI>
+<LI>HTML Transitional or HTML Strict DOCTYPE.</LI>
+</UL>
+<P CLASS="last">For more information on how content is serialized, see the
+<A HREF="#htmlserializer" CLASS="reference">HTMLSerializer</A> documentation.</P>
+</DD>
+<DT>xhtml / xhtml-strict</DT>
+<DD><P CLASS="first">The <TT CLASS="docutils literal"><SPAN CLASS="pre">xhtml</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">xhtml-strict</SPAN></TT> output methods use a custom
+<TT CLASS="docutils literal"><SPAN CLASS="pre">XMLSerializer</SPAN></TT> to serialize the infoset. The <TT CLASS="docutils literal"><SPAN CLASS="pre">XMLSerializer</SPAN></TT> used
+has the following options set:</P>
+<UL CLASS="last simple">
+<LI>No <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?xml?></SPAN></TT> declaration.</LI>
+<LI>XHTML Transitional or XHTML Strict DOCTYPE.</LI>
+</UL>
+</DD>
+<DT>plain</DT>
+<DD>The <TT CLASS="docutils literal"><SPAN CLASS="pre">plain</SPAN></TT> output method uses <TT CLASS="docutils literal"><SPAN CLASS="pre">PlainSerializer</SPAN></TT>, which takes
+only an <TT CLASS="docutils literal"><SPAN CLASS="pre">encoding</SPAN></TT> argument.  All markup is stripped, entities are
+resolved, and only the resulting text is output.</DD>
+</DL>
+<P>The following example serializes data as HTML instead of XML:</P>
+<PRE CLASS="literal-block">
+>>> from kid import Template
+>>> t = Template('&lt;html xmlns="http://www.w3.org/1999/xhtml">'
+                 '&lt;body>&lt;p>Hello World&lt;/p>&lt;br />&lt;/body>&lt;/html>')
+>>> print t.serialize(output='html-strict')
+&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Strict//EN"
+                      "http://www.w3.org/TR/html4/strict.dtd">
+&lt;HTML>&lt;BODY>&lt;P>Hello World&lt;/P>&lt;BR>&lt;/HTML>
+</PRE>
+<P>Note that the DOCTYPE is output, tag names are converted to uppercase, and
+some elements have no end tag.</P>
+<P>The same code can be used to output XHTML as follows:</P>
+<PRE CLASS="literal-block">
+>>> from kid import Template
+>>> t = Template('&lt;html xmlns="http://www.w3.org/1999/xhtml">'
+                 '&lt;body>&lt;p>Hello World&lt;/p>&lt;br />&lt;/body>&lt;/html>')
+>>> print t.serialize(output='xhtml-strict')
+&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+&lt;html xmlns="http://www.w3.org/1999/xhtml">
+&lt;body>&lt;p>Hello World&lt;/p>&lt;br />&lt;/html>
+</PRE>
+</DIV>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id26" ID="template-variables" NAME="template-variables" CLASS="toc-backref">4   Template Variables</A></H1>
+<P>When a template is executed, all of the template instance's attributes are
+available to template code as local variables. These variables may be
+specified when the <A HREF="#init-kw" CLASS="reference">template is instantiated</A> or by assigning attributes to
+the template instance directly.</P>
+<P>The following example template relies on two arguments being provided by the
+code that calls the template: <TT CLASS="docutils literal"><SPAN CLASS="pre">title</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">message</SPAN></TT>.</P>
+<P><TT CLASS="docutils literal"><SPAN CLASS="pre">message_template.kid</SPAN></TT>:</P>
+<PRE CLASS="literal-block">
+&lt;?xml version='1.0' encoding='utf-8'?>
+&lt;html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://purl.org/kid/ns#">
+  &lt;head>
+    &lt;title>${title.upper()}&lt;/title>
+  &lt;/head>
+  &lt;body>
+    &lt;h1 py:content="title">Title&lt;/h1>
+    &lt;p>
+      A message from Python:
+    &lt;/p>
+    &lt;blockquote py:content="message">
+      Message goes here.
+    &lt;/blockquote>
+  &lt;/body>
+&lt;/html>
+</PRE>
+<P>The code that executes this template is responsible for passing the <CITE>title</CITE>
+and <CITE>message</CITE> values.</P>
+<P><TT CLASS="docutils literal"><SPAN CLASS="pre">message.py</SPAN></TT>:</P>
+<PRE CLASS="literal-block">
+from kid import Template
+template = Template(file='message_template.kid',
+                    title="Hello World",
+                    message="Keep it simple, stupid.")
+print template.serialize()
+</PRE>
+<P>This should result in the following output:</P>
+<PRE CLASS="literal-block">
+&lt;?xml version='1.0' encoding='utf-8'?>
+&lt;html xmlns="http://www.w3.org/1999/xhtml">
+  &lt;head>
+    &lt;title>HELLO WORLD&lt;/title>
+  &lt;/head>
+  &lt;body>
+    &lt;h1>Hello World&lt;/h1>
+    &lt;p>
+      A message from Python:
+    &lt;/p>
+    &lt;blockquote>
+      Keep it simple, stupid.
+    &lt;/blockquote>
+  &lt;/body>
+&lt;/html>
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id27" ID="command-line-tools" NAME="command-line-tools" CLASS="toc-backref">5   Command Line Tools</A></H1>
+<DIV CLASS="section">
+<H2><A HREF="#id28" ID="template-compiler-kidc" NAME="template-compiler-kidc" CLASS="toc-backref">5.1   Template Compiler (<TT CLASS="docutils literal"><SPAN CLASS="pre">kidc</SPAN></TT>)</A></H2>
+<P>Kid templates may be compiled to Python byte-code (<TT CLASS="docutils literal"><SPAN CLASS="pre">.pyc</SPAN></TT>) files
+explicitly using the <TT CLASS="docutils literal"><SPAN CLASS="pre">kidc</SPAN></TT> command. <TT CLASS="docutils literal"><SPAN CLASS="pre">kidc</SPAN></TT> is capable of compiling
+individual files or recursively compiling all <TT CLASS="docutils literal"><SPAN CLASS="pre">.kid</SPAN></TT> files in a directory.</P>
+<P>Use <TT CLASS="docutils literal"><SPAN CLASS="pre">kidc</SPAN> <SPAN CLASS="pre">--help</SPAN></TT> for more information.</P>
+<P>Note that you do not have to compile templates before using them. They are
+automatically compiled the first time they are used.</P>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id29" ID="run-templates-kid" NAME="run-templates-kid" CLASS="toc-backref">5.2   Run Templates (<TT CLASS="docutils literal"><SPAN CLASS="pre">kid</SPAN></TT>)</A></H2>
+<P>Kid templates may be executed directly without having been precompiled using
+the <TT CLASS="docutils literal"><SPAN CLASS="pre">kid</SPAN></TT> command as follows:</P>
+<PRE CLASS="literal-block">
+kid template-file.kid
+</PRE>
+<P>Template output is written to <TT CLASS="docutils literal"><SPAN CLASS="pre">stdout</SPAN></TT> and may be redirected to a file
+or piped through XML compliant tools.</P>
+</DIV>
+</DIV>
+
+</DIV></DIV>
+      
+      <DIV ID="footer">
+        
+        
+        <P STYLE="float: left;">
+          
+          This documentation is licensed under the 
+          <A HREF="doc-license.html" TITLE="Documentation License">GNU Free Documentation License</A>
+          <BR>
+          
+          built with 
+          <A HREF="http://lesscode.org/projects/pudge/">pudge/0.1.1</A><BR>
+		      original design by 
+          <A HREF="http://blog.ratterobert.com/">ratter / robert</A><BR>
+	      </P>
+        <DIV>
+        <BR>
+        <A NAME="search">
+          <FORM ACTION="http://lesscode.org/blog/index.php" METHOD="get" ID="searchform">
+            <DIV>
+              <INPUT TYPE="text" NAME="s" VALUE="" ID="s">
+              <INPUT TYPE="submit" ID="searchsubmit" VALUE="Search">
+            </DIV>
+          </FORM>
+        </A>
+        <BR>
+        </DIV>
+      </DIV>
+    </DIV>
+  </BODY>
+
+</HTML>

@@ -1,0 +1,127 @@
+<?xml version='1.0'?>
+<project name="CodeGen" default="all">
+<!-- set global properties for this build -->
+<property name="python"            value="${python.loc}/python"/>
+<property name="models.dir"        value="${project.loc}/models"/>
+<property name="configs.dir"       value="${project.loc}/configs"/>
+<property name="temp.configs.dir"       value="${project.loc}/.temp_dir/configs"/>
+<property name="idl.dir"       	   value="${project.loc}/idl"/>
+<property name="scripts.dir"       value="${project.loc}/codegen/${codeGenMode}/scripts"/>
+<property name="templates.dir"       value="${project.loc}/codegen/${codeGenMode}/templates"/>
+<property name="target.platform"   value="target/ia32"/>
+<property name="target.os"         value="linux-2.4"/>
+<property name="deploy.config.dir" value="${src.dir}/config"/>
+<property name="static.dir" value="${pkg.dir}/IDE/ASP/static"/>	
+<property name="asptemplates.dir" value="${pkg.dir}/IDE/ASP/templates"/>
+<!-- Init -->
+<target name="init">
+    <mkdir dir="${deploy.config.dir}"/>
+    <mkdir dir="${src.dir}/doc"/>
+    <mkdir dir="${src.dir}/mib"/>
+    <mkdir dir="${src.dir}/app"/>
+</target>
+
+<!-- Backup -->
+<target name="backup" if="autobackup.mode">
+    <mkdir dir="${project.loc}/src.bak"/>
+    <tstamp>
+        <format property="backupfile.time" pattern="yyyy_MM_dd kk:mm:ss" />
+    </tstamp>
+    <tar tarfile="${project.loc}/src.bak/${backupfile.time}.tar" basedir="${project.loc}/src"/>
+    <gzip zipfile="${project.loc}/src.bak/${backupfile.time}.tar.gz" src="${project.loc}/src.bak/${backupfile.time}.tar"/>
+    <delete file="${project.loc}/src.bak/${backupfile.time}.tar"/>
+    <delete includeemptydirs="true">
+        <fileset dir="${project.loc}/src.bak">
+            <exclude name="**/*.tar.gz"/>
+        </fileset>
+    </delete>
+</target>
+
+<!-- Header -->
+<target name="header">
+    <exec dir="${deploy.config.dir}" executable="${python}">
+        <arg line="${scripts.dir}/buildconfigs.py"/>
+        <arg line="${temp.configs.dir}/compileconfigs.xml"/>
+    </exec>
+</target>
+
+<!-- IDL -->
+<target name="idl" if="idlExists">
+    <exec dir="${idl.dir}" executable="${python}">
+	<arg line="${pkg.dir}/src/ASP/components/idl/script/clIdlGen.py"/>
+	<arg line="-u"/>
+	<arg line="${idl.dir}/server_idl_interface.xml"/>
+	<arg line="${src.dir}/app/idl"/>
+    </exec>
+</target>
+<condition property="idlExists">
+	<and>
+		<available file="${idl.dir}/server_idl_interface.xml"/>
+	</and>
+</condition>
+
+<!-- Start run.py -->
+<target name="run">
+	<exec dir="${src.dir}/app" executable="${python}" failonerror="true">
+		<arg line="${project.loc}/codegen/${codeGenMode}/run.py"/>
+		<arg line="${project.loc}"/>
+		<arg line="${pkg.dir}"/>
+		<arg line="${mapxmi.loc}"/>
+		<arg line="${codeGenMode}"/>
+		<arg line="${src.dir}"/>
+		<arg line="${mib.compiler}"/>
+		<arg line="${mib.path}"/>
+	</exec>	
+</target>	
+
+	
+<!-- Generates Asp Env file -->
+	<!-- <target name="env">
+	    <exec dir="${src.dir}" executable="${python}">
+	        <arg line="${scripts.dir}/aspenv.py"/>
+	        <arg line="${project.name}"/>
+	    </exec>
+	</target> -->
+	
+	<!-- clCompConfig -->
+	<target name="clCompConfig">
+	    <exec dir="${src.dir}/app" executable="${python}">
+	        <arg line="${scripts.dir}/clCompConfig.py"/>
+	        <arg line="${models.dir}/componentdata.xml"/>
+	        <arg line="${templates.dir}"/>
+	    	<arg line="${idl.dir}/server_idl_interface.xml"/>
+	    </exec>
+	</target>	
+	
+	<!-- SNMP auto code generation -->
+	<target name="snmpautocodegen">
+		<exec dir="${src.dir}" executable="${python}">
+			<arg line="${scripts.dir}/snmpautocodegen.py"/>
+			<arg line="${models.dir}/componentdata.xml"/>
+			<arg line="${models.dir}/compmibmap.xmi"/>
+			<arg line="${mib.compiler}"/>
+			<arg line="${src.dir}"/>
+			<arg line="${deploy.config.dir}"/>
+			<arg line="${buildtools.loc}"/>
+			<arg line="${mib.path}"/>
+			<arg line="${templates.dir}"/>
+		</exec>	
+	</target>
+	
+    <!-- snmpSubagent -->
+        <target name="snmpSubagent" >
+            <exec dir="${src.dir}/app" executable="${python}" failonerror="true">
+                <arg line="${scripts.dir}/clCompSNMPConfig.py"/>
+                <arg line="${models.dir}/resourcedata.xml"/>
+                <arg line="${models.dir}/componentdata.xml"/>
+                <arg line="${static.dir}/src"/>
+                <arg line="${asptemplates.dir}"/>
+            </exec>
+        </target>
+<!--
+Target to generate Code/XML from Project configurations.
+-->
+<target name="all"
+    depends="init, backup, run, idl"/>
+    <echo>Source Code generation in ${src.dir}</echo>
+</project>
