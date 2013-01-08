@@ -1,0 +1,86 @@
+<html><head><title>kid/release.py</title>
+        <script type="text/javascript"><!--
+        
+function show_line_range() {
+    var href = document.location.href;
+    if (href.indexOf('?') == -1) {
+        return;
+    }
+    var qs = href.substring(href.indexOf('?')+1);
+    if (qs.indexOf('#') >= 0) {
+        qs = qs.substring(0, qs.indexOf('#'));
+    }
+    var first = qs.match(/f=(\d+)/)[1];
+    var last = qs.match(/l=(\d+)/)[1];
+    if (! first || ! last) {
+        return;
+    }
+    var anchors = document.getElementsByTagName('A');
+    var container = document.createElement('DIV');
+    container.className = 'highlighted';
+    var children = [];
+    var start = null;
+    var parent = null;
+    var highlight = false;
+    for (var i = 0; i < anchors.length; i++) {
+        var el = anchors[i];
+        if (el.getAttribute('name') == first) {
+            start = el.previousSibling;
+            parent = el.parentNode;
+            highlight = true;
+        }
+        if (el.getAttribute('name') == last) {
+            break;
+        }
+        if (highlight) {
+            children[children.length] = el;
+            el = el.nextSibling;
+            while (el && el.tagName != 'A') {
+                children[children.length] = el;
+                el = el.nextSibling;
+            }
+        }
+    }
+    for (i=0; i<children.length; i++) {
+        container.appendChild(children[i]);
+    }
+    if (start) {
+        start.parentNode.insertBefore(container, start.nextSibling);
+    } else {
+        parent.insertBefore(container, parent.childNodes[0]);
+    }
+}
+
+        // --></script>
+        <style>
+        div.python {
+          color: #333
+        }
+        div.python a.lnum {
+          color: #555;
+          background-color: #eee;
+          border-right: 1px solid #999;
+          padding-right: 2px;
+          margin-right: 4px;
+        }
+        div.python span.comment { color: #933 }
+        div.python span.keyword { color: #a3e; font-weight: bold  }
+        div.python span.op { color: #c96 }
+        div.python span.string { color: #6a6 }
+        div.python span.name { }
+        div.python span.text { color: #333 }
+        div.highlighted { background-color: #ff9; border: 1px solid #009 }
+        </style></head><body onload="show_line_range()"><div class="python"><code><a class="lnum" href="#1" name="1">0001</a><span class="name">version</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"0.9.3"</span><br />
+<a class="lnum" href="#2" name="2">0002</a><span class="name">author</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"Ryan&#0160;Tomayko"</span><br />
+<a class="lnum" href="#3" name="3">0003</a><span class="name">email</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"rtomayko@gmail.com"</span><br />
+<a class="lnum" href="#4" name="4">0004</a><span class="name">copyright</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"Copyright&#0160;2004-2006,&#0160;Ryan&#0160;Tomayko,&#0160;David&#0160;Stanek,&#0160;Christoph&#0160;Zwerschke,&#0160;Daniel&#0160;Miller"</span><br />
+<a class="lnum" href="#5" name="5">0005</a><span class="name">license</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"MIT"</span>&#0160;<span class="comment">#&#0160;http://www.opensource.org/licenses/mit-license.php</span><br />
+<a class="lnum" href="#6" name="6">0006</a><span class="name">long_description</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"""Pythonic,&#0160;XML&#0160;Templating</span><br />
+<a class="lnum" href="#7" name="7">0007</a><span class="string"></span><br />
+<a class="lnum" href="#8" name="8">0008</a><span class="string">Kid&#0160;is&#0160;a&#0160;simple,&#0160;Python-based&#0160;template&#0160;language&#0160;for&#0160;generating&#0160;and</span><br />
+<a class="lnum" href="#9" name="9">0009</a><span class="string">transforming&#0160;XML&#0160;vocabularies.&#0160;Kid&#0160;was&#0160;spawned&#0160;as&#0160;a&#0160;result&#0160;of&#0160;a&#0160;kinky&#0160;love</span><br />
+<a class="lnum" href="#10" name="10">0010</a><span class="string">triangle&#0160;between&#0160;XSLT,&#0160;TAL,&#0160;and&#0160;PHP.&#0160;We&#0160;believe&#0160;many&#0160;of&#0160;the&#0160;best&#0160;features</span><br />
+<a class="lnum" href="#11" name="11">0011</a><span class="string">of&#0160;these&#0160;languages&#0160;live&#0160;on&#0160;in&#0160;Kid&#0160;with&#0160;much&#0160;of&#0160;the&#0160;limitations&#0160;and</span><br />
+<a class="lnum" href="#12" name="12">0012</a><span class="string">complexity&#0160;stamped&#0160;out&#0160;(well,&#0160;eventually&#0160;:).</span><br />
+<a class="lnum" href="#13" name="13">0013</a><span class="string"></span><br />
+<a class="lnum" href="#14" name="14">0014</a><span class="string">"""</span></code></div></body></html>

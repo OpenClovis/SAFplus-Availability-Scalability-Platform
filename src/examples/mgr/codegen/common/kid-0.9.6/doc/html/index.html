@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<HTML>
+  
+  <HEAD><META CONTENT="text/html; charset=utf-8" HTTP-EQUIV="Content-Type">
+    <TITLE>Kid</TITLE>
+    <LINK HREF="layout.css" TYPE="text/css" REL="stylesheet">
+    <LINK HREF="http://planet.kid-templating.org/rss20.xml" TYPE="application/rss+xml" REL="alternate" TITLE="RSS 2.0">
+
+  </HEAD>
+  <BODY>
+    <DIV ID="page">
+      <H1 CLASS="doc-title"><A HREF="http://www.kid-templating.org/">kid-templating.org</A></H1>
+      <DIV ID="navcontainer">
+        <UL ID="navlist">
+          <LI CLASS="pagenav">
+            <UL>
+              <LI CLASS="page_item">
+                <A HREF="index.html" CLASS="selected" TITLE="Project Home / Index">Kid</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="module-index.html" CLASS="" TITLE="kid package and module reference">Modules</A>
+              </LI>
+              
+              <LI>
+                <A HREF="http://www.kid-templating.org/trac/" TITLE="Wiki / Subversion / Roadmap / Bug Tracker">Trac</A>
+              </LI>
+              <LI>
+                <A HREF="http://planet.kid-templating.org/">Blog</A>
+              </LI>
+              <LI>
+                <A HREF="http://lists.sourceforge.net/lists/listinfo/kid-template-discuss" CLASS="" TITLE="Mailing List">Discuss</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="http://www.kid-templating.org/about">
+                  about kid-templating.org
+                </A>
+              </LI>
+            </UL>
+          </LI>
+        </UL>
+      </DIV>
+      
+      <HR>
+      
+      <DIV ID="content">
+  
+  <H1 CLASS="pudge-member-page-heading">
+    Kid
+  </H1>
+  <H4 CLASS="pudge-member-page-subheading">
+    Pythonic, XML-based Templating
+  </H4>
+  
+  <DIV CLASS="rst-doc">
+    <P>Kid is a simple template language for <CITE>XML</CITE> based vocabularies written
+in <A HREF="http://python.org/" CLASS="reference">Python</A>. It was spawned as a result of a kinky love triangle
+between <A HREF="http://www.w3.org/TR/xslt" CLASS="reference">XSLT</A>, <A HREF="http://www.zope.org/Wikis/DevSite/Projects/ZPT/TAL" CLASS="reference">TAL</A>, and <A HREF="http://www.php.net/" CLASS="reference">PHP</A>. We believe many of the best
+features of these languages live on in Kid with much of the limitations
+and complexity stamped out (see <A HREF="http://www.kid-templating.org/trac/wiki/WhatsBorrowed" CLASS="reference">WhatsBorrowed</A> and <A HREF="http://www.kid-templating.org/trac/wiki/WhatsDifferent" CLASS="reference">WhatsDifferent</A>).
+For more info on current and planned features and licensing
+information, see <A HREF="http://www.kid-templating.org/trac/wiki/AboutKid" CLASS="reference">AboutKid</A>.</P>
+<DIV CLASS="section">
+<H1><A ID="download" NAME="download">Download</A></H1>
+<P>The current stable version of Kid is 0.9.3 and is available from the
+following location:</P>
+<P><A HREF="http://www.kid-templating.org/dist/0.9.3/kid-0.9.3.tar.gz" CLASS="reference">http://www.kid-templating.org/dist/0.9.3/kid-0.9.3.tar.gz</A></P>
+<P>You can find older and bleeding version in the
+<A HREF="http://www.kid-templating.org/dist/" CLASS="reference">dist</A> directory.</P>
+<P>See <A HREF="http://www.kid-templating.org/trac/wiki/GettingStarted" CLASS="reference">GettingStarted</A> for information on installing Kid on your system.</P>
+<P>You may also grab the project directly from subversion:</P>
+<PRE CLASS="literal-block">
+svn co svn://kid-templating.org/trunk
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H1><A ID="documentation-articles" NAME="documentation-articles">Documentation / Articles</A></H1>
+<P>Official documentation in HTML and text formats is available with the
+source distribution and is also available right here.</P>
+<UL CLASS="simple">
+<LI><A HREF="notes.html" CLASS="reference">Release Notes</A> - contains release notes for Kid releases.</LI>
+<LI><A HREF="guide.html" CLASS="reference">User's Guide</A> - Information on using kid from Python, the command line,
+and in various web environments.</LI>
+<LI><A HREF="language.html" CLASS="reference">Language Specification</A> - detail on template syntax and semantics.</LI>
+</UL>
+<P>Note that the <A HREF="http://www.kid-templating.org/trac/wiki/" CLASS="reference">Kid Wiki</A> contains supplementary documentation on Kid.
+Please consider creating your own pages if you have a useful tip to
+share.</P>
+<UL CLASS="simple">
+<LI><A HREF="http://www.kid-templating.org/trac/wiki/KidFaq" CLASS="reference">KidFaq</A> - Frequently Asked Questions on the Kid template language.</LI>
+<LI><A HREF="http://www.kid-templating.org/trac/wiki/KidRecipes" CLASS="reference">KidRecipes</A> - Recipes for solving some common tasks using Kid.</LI>
+<LI><A HREF="http://www.kid-templating.org/trac/wiki/KidExamples" CLASS="reference">KidExamples</A> - Check out some template examples.</LI>
+<LI><A HREF="http://www.kid-templating.org/trac/wiki/ProjectsUsingKid" CLASS="reference">ProjectsUsingKid</A></LI>
+</UL>
+<P>Other sources of information include the <A HREF="http://news.gmane.org/gmane.comp.python.kid.general" CLASS="reference">mailing list archives</A>,
+the <A HREF="http://planet.kid-templating.org/" CLASS="reference">Planet Kid</A>. Older ramblings on kid can be found on
+<A HREF="http://naeblis.cx/rtomayko/" CLASS="reference">Ryan Tomayko's Weblog</A> under the tag, "kid".</P>
+</DIV>
+<DIV CLASS="section">
+<H1><A ID="contribute" NAME="contribute">Contribute</A></H1>
+<UL CLASS="simple">
+<LI><A HREF="http://lists.sourceforge.net/lists/listinfo/kid-template-discuss" CLASS="reference">Join the mailing list</A> and discuss Kid usage, bugs, ideas, whatever...</LI>
+<LI>Report a bug or suggest a feature by creating a <A HREF="http://www.kid-templating.org/trac/newticket" CLASS="reference">new ticket</A>.</LI>
+</UL>
+</DIV>
+<DIV CLASS="section">
+<H1><A ID="contact" NAME="contact">Contact</A></H1>
+<P>If you need help or support, please send it to the Kid mailing list:</P>
+<P>&lt;<A HREF="mailto:kid-template-discuss@lists.sourceforge.net" CLASS="reference">kid-template-discuss@lists.sourceforge.net</A>></P>
+</DIV>
+
+  </DIV>
+  
+</DIV>
+      
+      <DIV ID="footer">
+        
+        
+        <P STYLE="float: left;">
+          
+          This documentation is licensed under the 
+          <A HREF="doc-license.html" TITLE="Documentation License">GNU Free Documentation License</A>
+          <BR>
+          
+          built with 
+          <A HREF="http://lesscode.org/projects/pudge/">pudge/0.1.1</A><BR>
+		      original design by 
+          <A HREF="http://blog.ratterobert.com/">ratter / robert</A><BR>
+	      </P>
+        <DIV>
+        <BR>
+        <A NAME="search">
+          <FORM ACTION="http://lesscode.org/blog/index.php" METHOD="get" ID="searchform">
+            <DIV>
+              <INPUT TYPE="text" NAME="s" VALUE="" ID="s">
+              <INPUT TYPE="submit" ID="searchsubmit" VALUE="Search">
+            </DIV>
+          </FORM>
+        </A>
+        <BR>
+        </DIV>
+      </DIV>
+    </DIV>
+  </BODY>
+
+</HTML>

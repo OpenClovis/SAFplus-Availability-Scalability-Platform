@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+      <cpmConfigs>
+        <cpmConfig cpmType="GLOBAL" nodeType="Ctlr">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="corSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+        <cpmConfig cpmType="LOCAL" nodeType="Worker">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+      </cpmConfigs>
+      <nodeInstances>
+        <nodeInstance name="CtlrI0" nodeMoId="\Chassis:0\x86_64:0" type="Ctlr">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="snmpSubAgentSUI0" rank="0" type="snmpSubAgentSU">
+              <componentInstances>
+                <componentInstance name="snmpSubAgentI0" type="snmpSubAgent"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="amfMgmtSUI0" rank="0" type="amfMgmtSU">
+              <componentInstances>
+                <componentInstance name="amfMgmtI0" type="amfMgmt"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="CtlrI1" nodeMoId="\Chassis:0\x86_64:1" type="Ctlr">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="snmpSubAgentSUI1" rank="0" type="snmpSubAgentSU">
+              <componentInstances>
+                <componentInstance name="snmpSubAgentI1" type="snmpSubAgent"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="amfMgmtSUI1" rank="0" type="amfMgmtSU">
+              <componentInstances>
+                <componentInstance name="amfMgmtI1" type="amfMgmt"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="WorkerI0" nodeMoId="\Chassis:0\x86_64:2" type="Worker">
+          <serviceUnitInstances/>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="WorkerI1" nodeMoId="\Chassis:0\x86_64:3" type="Worker">
+          <serviceUnitInstances/>
+          <dependencies node=""/>
+        </nodeInstance>
+      </nodeInstances>
+      <serviceGroups>
+        <serviceGroup name="snmpSubAgentSGI0" type="snmpSubAgentSG">
+          <serviceInstances>
+            <serviceInstance name="snmpSubAgentSII0" type="snmpSubAgentSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="snmpSubAgentCSII0" type="snmpSubAgentCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>snmpSubAgentSUI0</associatedServiceUnit>
+            <associatedServiceUnit>snmpSubAgentSUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="amfMgmtSGI0" type="amfMgmtSG">
+          <serviceInstances>
+            <serviceInstance name="amfMgmtSII0" type="amfMgmtSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="amfMgmtCSII0" type="amfMgmtCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>amfMgmtSUI0</associatedServiceUnit>
+            <associatedServiceUnit>amfMgmtSUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+      </serviceGroups>
+    </amfConfig>
+  </version>
+</openClovisAsp>

@@ -1,0 +1,125 @@
+#ifndef _CL_SNMP_SAFAMF_TABLES_H
+#define _CL_SNMP_SAFAMF_TABLES_H
+
+#include <net-snmp/net-snmp-config.h>
+#include <net-snmp/net-snmp-includes.h>
+#include <net-snmp/agent/net-snmp-agent-includes.h>
+
+#include <clSnmpDefs.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfApplicationTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfNodeTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfSGTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfSUTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfSITableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfSUsperSIRankTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfSGSIRankTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfSGSURankTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfSISIDepTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfCompTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfCompCSTypeSupportedTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfCSITableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfCSICSIDepTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfCSINameValueTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfCSTypeAttrNameTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfSUSITableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfHealthCheckTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfSCompCsiTableIndexCorAttrIdList[];
+extern ClSnmpTableIndexCorAttrIdInfoT saAmfProxyProxiedTableIndexCorAttrIdList[];
+
+
+/* function declarations */
+void clSnmpsafAmfTablesInit(void);
+void clSnmpsaAmfApplicationTableInitialize(void);
+void clSnmpsaAmfNodeTableInitialize(void);
+void clSnmpsaAmfSGTableInitialize(void);
+void clSnmpsaAmfSUTableInitialize(void);
+void clSnmpsaAmfSITableInitialize(void);
+void clSnmpsaAmfSUsperSIRankTableInitialize(void);
+void clSnmpsaAmfSGSIRankTableInitialize(void);
+void clSnmpsaAmfSGSURankTableInitialize(void);
+void clSnmpsaAmfSISIDepTableInitialize(void);
+void clSnmpsaAmfCompTableInitialize(void);
+void clSnmpsaAmfCompCSTypeSupportedTableInitialize(void);
+void clSnmpsaAmfCSITableInitialize(void);
+void clSnmpsaAmfCSICSIDepTableInitialize(void);
+void clSnmpsaAmfCSINameValueTableInitialize(void);
+void clSnmpsaAmfCSTypeAttrNameTableInitialize(void);
+void clSnmpsaAmfSUSITableInitialize(void);
+void clSnmpsaAmfHealthCheckTableInitialize(void);
+void clSnmpsaAmfSCompCsiTableInitialize(void);
+void clSnmpsaAmfProxyProxiedTableInitialize(void);
+Netsnmp_Node_Handler clSnmpsaAmfApplicationTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfNodeTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfSGTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfSUTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfSITableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfSUsperSIRankTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfSGSIRankTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfSGSURankTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfSISIDepTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfCompTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfCompCSTypeSupportedTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfCSITableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfCSICSIDepTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfCSINameValueTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfCSTypeAttrNameTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfSUSITableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfHealthCheckTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfSCompCsiTableHandler;
+Netsnmp_Node_Handler clSnmpsaAmfProxyProxiedTableHandler;
+
+Netsnmp_First_Data_Point  clSnmpsaAmfApplicationTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfApplicationTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfNodeTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfNodeTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfSGTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfSGTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfSUTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfSUTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfSITableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfSITableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfSUsperSIRankTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfSUsperSIRankTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfSGSIRankTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfSGSIRankTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfSGSURankTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfSGSURankTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfSISIDepTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfSISIDepTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfCompTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfCompTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfCompCSTypeSupportedTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfCompCSTypeSupportedTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfCSITableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfCSITableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfCSICSIDepTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfCSICSIDepTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfCSINameValueTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfCSINameValueTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfCSTypeAttrNameTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfCSTypeAttrNameTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfSUSITableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfSUSITableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfHealthCheckTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfHealthCheckTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfSCompCsiTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfSCompCsiTableGetNextDataPoint;
+Netsnmp_First_Data_Point  clSnmpsaAmfProxyProxiedTableGetFirstDataPoint;
+Netsnmp_Next_Data_Point   clSnmpsaAmfProxyProxiedTableGetNextDataPoint;
+
+/* column number definitions. */
+#include "clSnmpsafAmfColumns.h"
+
+/* enum definitions */
+#include "clSnmpsafAmfEnums.h"
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _CL_SNMP_SAFAMF_TABLES_H */
