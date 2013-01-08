@@ -19,7 +19,7 @@ LIB_DIR     ?=$(SISP_LIBS)
 MKDIR       ?=mkdir -p
 CP          ?=cp -f
 
-AspInclude      = -I$(CLOVIS_ROOT)/ASP/components/osal/include -I$(CLOVIS_ROOT)/ASP/components/timer/include -I$(CLOVIS_ROOT)/ASP/components/include -I$(CLOVIS_ROOT)/ASP/components/include/ipi -I$(CLOVIS_ROOT)/ASP/components/utils/include -I$(CLOVIS_ROOT)/ASP/components/log/include -I$(CLOVIS_ROOT)/ASP/components/ioc/include -I$(CLOVIS_ROOT)/ASP/components/buffer/include -I$(CLOVIS_ROOT)/ASP/components/debug/include -I$(CLOVIS_ROOT)/ASP/components/eo/include -I$(CLOVIS_ROOT)/ASP/components/cnt/include -I$(CLOVIS_ROOT)/ASP/components/rmd/include -I$(CLOVIS_ROOT)/ASP/components/amf/include -I$(CLOVIS_ROOT)/ASP/components/ckpt/include -I$(CLOVIS_ROOT)/ASP/components/osal/include 
+AspInclude      = -I$(CLOVIS_ROOT)/SAFplus/components/osal/include -I$(CLOVIS_ROOT)/SAFplus/components/timer/include -I$(CLOVIS_ROOT)/SAFplus/components/include -I$(CLOVIS_ROOT)/SAFplus/components/include/ipi -I$(CLOVIS_ROOT)/SAFplus/components/utils/include -I$(CLOVIS_ROOT)/SAFplus/components/log/include -I$(CLOVIS_ROOT)/SAFplus/components/ioc/include -I$(CLOVIS_ROOT)/SAFplus/components/buffer/include -I$(CLOVIS_ROOT)/SAFplus/components/debug/include -I$(CLOVIS_ROOT)/SAFplus/components/eo/include -I$(CLOVIS_ROOT)/SAFplus/components/cnt/include -I$(CLOVIS_ROOT)/SAFplus/components/rmd/include -I$(CLOVIS_ROOT)/SAFplus/components/amf/include -I$(CLOVIS_ROOT)/SAFplus/components/ckpt/include -I$(CLOVIS_ROOT)/SAFplus/components/osal/include 
 
 CWFLAGS=-Wall
 CIFLAGS=-I$(SoapDir) $(ASP_INCLUDE) $(AspInclude)

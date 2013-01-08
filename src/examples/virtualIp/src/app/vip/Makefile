@@ -10,6 +10,7 @@
 #   - Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
 #
 ################################################################################
+include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 
 # Component name (using all lowercase):
 
@@ -23,10 +24,12 @@ CPP_FILES := $(wildcard *.C) $(wildcard *.cxx)
 # List other ASP components of which client libraries your component
 # depends on:
 
-DEP_COMP_LIST := utils osal timer buffer ioc rmd eo amf event ckpt dbal debug cor prov alarm om hal name txn idl log cm fault
+DEP_COMP_LIST := utils osal timer buffer ioc rmd eo amf event ckpt dbal debug cor prov mso pm alarm om hal name txn idl log cm fault
 # FIXME: Indirect dependencies via client library needs need to be
 # added by hand for now:
 DEP_COMP_LIST += cnt
+
+
 
 # List ASP libraries needed to get this server built (or None):
 
@@ -60,9 +63,9 @@ ASP_LIBS := libClTimer.a  \
             
 
 # List any third party libs needed to get this server built (or None):
-#THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
 
-#EXTRA_CPPFLAGS := -I$(THIRD_PARTY_EZXML_PATH)
+EXTRA_CPPFLAGS := -I$(THIRD_PARTY_EZXML_PATH)
 
 
 # Executable name (when building server exectuable):
@@ -71,6 +74,10 @@ ASP_LIBS := libClTimer.a  \
 EXE_NAME = $(EXENAME)
 
 CPPFLAGS += -I$(ASP_CONFIG) 
+
+ifeq ($(ASP_BUILD),0)
+	LDFLAGS += -Wl,-rpath-link $(ASP_LIBDIR)
+endif
 
 BUILD_CPLUSPLUS = 0
 
@@ -114,11 +121,6 @@ $(BIN_DIR)/virtualIp: ../common/virtualIp
 # directory -- these are automatically added), add them here.  For example,
 # to add a script that needs to be copied:
 # all: $(BIN_DIR)/myScript
-
-all: $(BIN_DIR)/virtualIp
-
-libs: $(BIN_DIR)/virtualIp $(LIB_DIR)/libcommon.a
-
 
 # Add the rules to build the additional targets here:
 # For example:
