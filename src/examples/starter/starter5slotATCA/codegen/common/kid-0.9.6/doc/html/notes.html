@@ -1,0 +1,467 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<HTML>
+  
+  <HEAD><META CONTENT="text/html; charset=utf-8" HTTP-EQUIV="Content-Type">
+    <TITLE></TITLE>
+    <LINK HREF="layout.css" TYPE="text/css" REL="stylesheet">
+    <LINK HREF="http://planet.kid-templating.org/rss20.xml" TYPE="application/rss+xml" REL="alternate" TITLE="RSS 2.0">
+
+  </HEAD>
+  <BODY>
+    <DIV ID="page">
+      <H1 CLASS="doc-title"><A HREF="http://www.kid-templating.org/">kid-templating.org</A></H1>
+      <DIV ID="navcontainer">
+        <UL ID="navlist">
+          <LI CLASS="pagenav">
+            <UL>
+              <LI CLASS="page_item">
+                <A HREF="index.html" CLASS="" TITLE="Project Home / Index">Kid</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="module-index.html" CLASS="" TITLE="kid package and module reference">Modules</A>
+              </LI>
+              
+              <LI>
+                <A HREF="http://www.kid-templating.org/trac/" TITLE="Wiki / Subversion / Roadmap / Bug Tracker">Trac</A>
+              </LI>
+              <LI>
+                <A HREF="http://planet.kid-templating.org/">Blog</A>
+              </LI>
+              <LI>
+                <A HREF="http://lists.sourceforge.net/lists/listinfo/kid-template-discuss" CLASS="" TITLE="Mailing List">Discuss</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="http://www.kid-templating.org/about">
+                  about kid-templating.org
+                </A>
+              </LI>
+            </UL>
+          </LI>
+        </UL>
+      </DIV>
+      
+      <HR>
+      
+      <DIV ID="content"><DIV CLASS="rst-doc">
+  
+  <H1 CLASS="pudge-member-page-heading"></H1>
+  
+  
+  <DIV CLASS="contents topic">
+<P CLASS="topic-title first"><A ID="contents" NAME="contents">Contents</A></P>
+<UL CLASS="simple">
+<LI><A HREF="#kid-0-9-3-release-notes" ID="id13" NAME="id13" CLASS="reference">Kid 0.9.3 Release Notes</A></LI>
+<LI><A HREF="#kid-0-9-2-release-notes" ID="id14" NAME="id14" CLASS="reference">Kid 0.9.2 Release Notes</A><UL>
+<LI><A HREF="#enhancements" ID="id15" NAME="id15" CLASS="reference">Enhancements</A><UL>
+<LI><A HREF="#api-changes" ID="id16" NAME="id16" CLASS="reference">API Changes</A></LI>
+<LI><A HREF="#add-support-for-python-2-5" ID="id17" NAME="id17" CLASS="reference">Add Support For Python 2.5</A></LI>
+</UL>
+</LI>
+</UL>
+</LI>
+<LI><A HREF="#kid-0-9-1-release-notes" ID="id18" NAME="id18" CLASS="reference">Kid 0.9.1 Release Notes</A><UL>
+<LI><A HREF="#bug-fixes" ID="id19" NAME="id19" CLASS="reference">Bug Fixes</A><UL>
+<LI><A HREF="#layout-templates" ID="id20" NAME="id20" CLASS="reference">Layout Templates</A></LI>
+<LI><A HREF="#py-match" ID="id21" NAME="id21" CLASS="reference">py:match</A></LI>
+</UL>
+</LI>
+<LI><A HREF="#id1" ID="id22" NAME="id22" CLASS="reference">Enhancements</A><UL>
+<LI><A HREF="#id2" ID="id23" NAME="id23" CLASS="reference">Layout Templates</A></LI>
+</UL>
+</LI>
+</UL>
+</LI>
+<LI><A HREF="#kid-0-9-release-notes" ID="id24" NAME="id24" CLASS="reference">Kid 0.9 Release Notes</A><UL>
+<LI><A HREF="#language-and-api-changes" ID="id25" NAME="id25" CLASS="reference">Language and API Changes</A><UL>
+<LI><A HREF="#id3" ID="id26" NAME="id26" CLASS="reference">Layout Templates</A></LI>
+<LI><A HREF="#convenience-functions" ID="id27" NAME="id27" CLASS="reference">Convenience Functions</A></LI>
+<LI><A HREF="#invisible-comments" ID="id28" NAME="id28" CLASS="reference">Invisible Comments</A></LI>
+</UL>
+</LI>
+<LI><A HREF="#id5" ID="id29" NAME="id29" CLASS="reference">Enhancements</A><UL>
+<LI><A HREF="#command-line-scripts-now-work-on-windows" ID="id30" NAME="id30" CLASS="reference">Command line scripts now work on Windows</A></LI>
+</UL>
+</LI>
+</UL>
+</LI>
+<LI><A HREF="#kid-0-6-release-notes" ID="id31" NAME="id31" CLASS="reference">Kid 0.6 Release Notes</A><UL>
+<LI><A HREF="#id6" ID="id32" NAME="id32" CLASS="reference">Language and API Changes</A><UL>
+<LI><A HREF="#kid-namespace-change" ID="id33" NAME="id33" CLASS="reference">Kid Namespace Change</A></LI>
+<LI><A HREF="#py-omit-is-now-py-strip" ID="id34" NAME="id34" CLASS="reference"><TT CLASS="docutils literal"><SPAN CLASS="pre">py:omit</SPAN></TT> is now <TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT></A></LI>
+<LI><A HREF="#python-expression-substitution-syntax" ID="id35" NAME="id35" CLASS="reference">Python Expression Substitution Syntax</A></LI>
+</UL>
+</LI>
+<LI><A HREF="#id8" ID="id36" NAME="id36" CLASS="reference">Enhancements</A><UL>
+<LI><A HREF="#celementtree-support" ID="id37" NAME="id37" CLASS="reference">cElementTree Support</A></LI>
+<LI><A HREF="#death-of-comment-wart" ID="id38" NAME="id38" CLASS="reference">Death of Comment Wart</A></LI>
+<LI><A HREF="#improved-template-api" ID="id39" NAME="id39" CLASS="reference">Improved Template API</A><UL>
+<LI><A HREF="#the-template-class" ID="id40" NAME="id40" CLASS="reference">The <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> Class</A></LI>
+<LI><A HREF="#the-kid-template-function" ID="id41" NAME="id41" CLASS="reference">The <TT CLASS="docutils literal"><SPAN CLASS="pre">kid.Template</SPAN></TT> function</A></LI>
+</UL>
+</LI>
+<LI><A HREF="#match-templates-filters" ID="id42" NAME="id42" CLASS="reference">Match Templates / Filters</A></LI>
+<LI><A HREF="#template-inheritance" ID="id43" NAME="id43" CLASS="reference">Template Inheritance</A></LI>
+<LI><A HREF="#dynamic-attribute-generation-py-attrs" ID="id44" NAME="id44" CLASS="reference">Dynamic Attribute Generation (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:attrs</SPAN></TT>)</A></LI>
+</UL>
+</LI>
+<LI><A HREF="#upgrade-script" ID="id45" NAME="id45" CLASS="reference">Upgrade Script</A></LI>
+</UL>
+</LI>
+</UL>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id13" ID="kid-0-9-3-release-notes" NAME="kid-0-9-3-release-notes" CLASS="toc-backref">Kid 0.9.3 Release Notes</A></H1>
+<BLOCKQUOTE>
+<OL CLASS="arabic simple">
+<LI>Re-applied a patch from ticket [66] that fix a bug where comments caused
+errors when in base templates.</LI>
+<LI>Changed all of the lesscode.org links into kid-templating.org</LI>
+<LI>Added and updated a few tests</LI>
+<LI>Removed the NamespaceStack.set method and made NamespaceStack.pop return
+the deleted value.</LI>
+<LI>Set balanced blocks to be off by default.</LI>
+<LI>Updated the parser to better handle interpolation of non-string types
+in comments. Reported in #182</LI>
+</OL>
+</BLOCKQUOTE>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id14" ID="kid-0-9-2-release-notes" NAME="kid-0-9-2-release-notes" CLASS="toc-backref">Kid 0.9.2 Release Notes</A></H1>
+<DIV CLASS="section">
+<H2><A HREF="#id15" ID="enhancements" NAME="enhancements" CLASS="toc-backref">Enhancements</A></H2>
+<BLOCKQUOTE>
+<OL CLASS="arabic simple">
+<LI>Updated to current version of ez_setup.py.</LI>
+<LI>Improved importer.py, resolving tickets #103 (FutureWarnings) and #137
+(using new import hooks).</LI>
+<LI>The testing code can now figure out what testing modules to run
+dynamically. In addition, the code also determines which functions
+are tests dynamically. Tests that need pylib are skipped for those
+that don't have it. If you run 'python test_kid.py' now you should
+be seeing more tests executed.</LI>
+<LI>Removed the revision history from the language and and instead
+include a pointer to the Release Notes.</LI>
+</OL>
+</BLOCKQUOTE>
+<DIV CLASS="section">
+<H3><A HREF="#id16" ID="api-changes" NAME="api-changes" CLASS="toc-backref">API Changes</A></H3>
+<BLOCKQUOTE>
+<OL CLASS="arabic simple">
+<LI>Allow the kid command to accept XML piped into it's stdin when '-' is
+used as the filename.</LI>
+<LI>Patch from #143. The load_template() function accepts an 'ns'keyword
+argument to pre-populate the template module namespace with global
+variables. Thanks!</LI>
+<LI>Created an API to replace the various ways that configuration options
+are currently set.</LI>
+<LI>Allow the XML function to take a new keword parameter (xmlns) that sets
+the default namespace for a fragment.</LI>
+</OL>
+</BLOCKQUOTE>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id17" ID="add-support-for-python-2-5" NAME="add-support-for-python-2-5" CLASS="toc-backref">Add Support For Python 2.5</A></H3>
+<BLOCKQUOTE>
+<OL CLASS="arabic simple">
+<LI>Added support for xml.etree, which is the ElementTree packaged with
+Python 2.5. Running 'make test' only checks xml.etree currently.</LI>
+<LI>The __future__ imports have been moved to the top of the module to play
+nicely in Python 2.5. I have also added 2.5 to the makefile so it will
+be tested before each release.</LI>
+<LI>makefile regression test includes Python 2.5.</LI>
+</OL>
+</BLOCKQUOTE>
+</DIV>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id18" ID="kid-0-9-1-release-notes" NAME="kid-0-9-1-release-notes" CLASS="toc-backref">Kid 0.9.1 Release Notes</A></H1>
+<DIV CLASS="section">
+<H2><A HREF="#id19" ID="bug-fixes" NAME="bug-fixes" CLASS="toc-backref">Bug Fixes</A></H2>
+<DIV CLASS="section">
+<H3><A HREF="#id20" ID="layout-templates" NAME="layout-templates" CLASS="toc-backref">Layout Templates</A></H3>
+<P>The parameters passed to a template with a py:layout were not visible in
+named template functions or match templates.</P>
+<P>A small bug existed in Python 2.3 where the dict.update() method was
+being called incorrectly. Python 2.4 allows a list of tuples to be
+passed to update(), whereas Python 2.3 does not.</P>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id21" ID="py-match" NAME="py-match" CLASS="toc-backref">py:match</A></H3>
+<P>The logic to apply the template matches has been reworked. This was due to
+the discovery of some odd behavior when using multiple template inheritence.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id22" ID="id1" NAME="id1" CLASS="toc-backref">Enhancements</A></H2>
+<DIV CLASS="section">
+<H3><A HREF="#id23" ID="id2" NAME="id2" CLASS="toc-backref">Layout Templates</A></H3>
+<P>A template type or name can now be dynamically passed into a template to be
+used as the layout template.</P>
+</DIV>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id24" ID="kid-0-9-release-notes" NAME="kid-0-9-release-notes" CLASS="toc-backref">Kid 0.9 Release Notes</A></H1>
+<DIV CLASS="section">
+<H2><A HREF="#id25" ID="language-and-api-changes" NAME="language-and-api-changes" CLASS="toc-backref">Language and API Changes</A></H2>
+<DIV CLASS="section">
+<H3><A HREF="#id26" ID="id3" NAME="id3" CLASS="toc-backref">Layout Templates</A></H3>
+<P>There is a new feature in Kid for a template to specify a layout template
+to which match templates, named template definitions, and template
+parameters will be applied. This is useful for applying a generic set of
+headers, menus, footers, etc. to a many pages without duplicating large
+amounts of code in each page. More information and examples can be found in
+the <A HREF="language.html#py:layout" CLASS="reference">py:layout</A> section of the Language Specification.</P>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id27" ID="convenience-functions" NAME="convenience-functions" CLASS="toc-backref">Convenience Functions</A></H3>
+<P>Kid Template instances now provide convenience funcitons <TT CLASS="docutils literal"><SPAN CLASS="pre">defined(name)</SPAN></TT>
+and <TT CLASS="docutils literal"><SPAN CLASS="pre">value_of(name)</SPAN></TT>.</P>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id28" ID="invisible-comments" NAME="invisible-comments" CLASS="toc-backref">Invisible Comments</A></H3>
+<P>XML comments starting with a <TT CLASS="docutils literal"><SPAN CLASS="pre">!</SPAN></TT> character will not appear in the
+serialized output of a template.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id29" ID="id5" NAME="id5" CLASS="toc-backref">Enhancements</A></H2>
+<DIV CLASS="section">
+<H3><A HREF="#id30" ID="command-line-scripts-now-work-on-windows" NAME="command-line-scripts-now-work-on-windows" CLASS="toc-backref">Command line scripts now work on Windows</A></H3>
+<P>On Windows, the <TT CLASS="docutils literal"><SPAN CLASS="pre">kid</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">kidc</SPAN></TT> console commands can now be used
+as conveniently as on Unix, since the Kid installer creates <TT CLASS="docutils literal"><SPAN CLASS="pre">kid.exe</SPAN></TT>
+and <TT CLASS="docutils literal"><SPAN CLASS="pre">kidc.exe</SPAN></TT> launchers in the Python Scripts directory.</P>
+</DIV>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id31" ID="kid-0-6-release-notes" NAME="kid-0-6-release-notes" CLASS="toc-backref">Kid 0.6 Release Notes</A></H1>
+<P>There has been significant change in version 0.6. This includes enhancements
+and modifications to the template language and python interface.</P>
+<DIV CLASS="section">
+<H2><A HREF="#id32" ID="id6" NAME="id6" CLASS="toc-backref">Language and API Changes</A></H2>
+<P>The following changes are likely to impact existing code and
+templates. Where possible, we have tried to maintain backward compatibility
+but that wasn't possible in all cases.</P>
+<P>The <A HREF="#upgrade-script" CLASS="reference">Upgrade Script</A> can be used to bring 0.5 templates up to 0.6 syntax.</P>
+<DIV CLASS="section">
+<H3><A HREF="#id33" ID="kid-namespace-change" NAME="kid-namespace-change" CLASS="toc-backref">Kid Namespace Change</A></H3>
+<P>The Kid namespace has changed from <TT CLASS="docutils literal"><SPAN CLASS="pre">http://naeblis.cx/ns/kid#</SPAN></TT> to
+<TT CLASS="docutils literal"><SPAN CLASS="pre">http://purl.org/kid/ns#</SPAN></TT>. The naeblis.cx domain is privately owned and
+could expire some time in the future. purl.org is a system for establishing
+and maintaining "persistent" URIs.</P>
+<P>A temporary hack has been put in place to substitute references to the old
+namespace URI with the new namespace URI. A warning is output when this
+occurs. This will be removed in a couple of months so it is recommended that
+templates be upgraded as soon as possible.</P>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id34" ID="py-omit-is-now-py-strip" NAME="py-omit-is-now-py-strip" CLASS="toc-backref"><TT CLASS="docutils literal"><SPAN CLASS="pre">py:omit</SPAN></TT> is now <TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT></A></H3>
+<P>Due to initial confusion many experienced with the name <TT CLASS="docutils literal"><SPAN CLASS="pre">py:omit</SPAN></TT>, it has
+been renamed <TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT>. The term "omit" was often read as "omit the
+element and all descendants". The new term "strip" seems to better indicate
+the semantic: "strip the start and end tag but process descendants."</P>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id35" ID="python-expression-substitution-syntax" NAME="python-expression-substitution-syntax" CLASS="toc-backref">Python Expression Substitution Syntax</A></H3>
+<P>The syntax of brace expansions has been modified match more closely with
+existing Python substitution syntax. In 0.5 python expressions enclosed in
+curly braces ({}) were evaluated and their results substituted. In 0.6, the
+rules have changed as follows:</P>
+<BLOCKQUOTE>
+<OL CLASS="arabic simple">
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">$$</SPAN></TT> is an escape; it is replaced with a single $.</LI>
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">$name</SPAN></TT> substitutes a variable value.</LI>
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">${expr}</SPAN></TT> substitutes the result of evaluating any python expression.</LI>
+</OL>
+</BLOCKQUOTE>
+<P>See <A HREF="language.html#python-expression-substitution-expr" CLASS="reference">Python Expression Substitution</A> in the Language Reference.</P>
+<!-- warning:
+
+The expression substitution **is not** backward compatible. If you use the
+old-style brace-expansion, you will need to upgrade your templates for Kid
+0.6. -->
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id36" ID="id8" NAME="id8" CLASS="toc-backref">Enhancements</A></H2>
+<DIV CLASS="section">
+<H3><A HREF="#id37" ID="celementtree-support" NAME="celementtree-support" CLASS="toc-backref">cElementTree Support</A></H3>
+<P>Kid now uses cElementTree if it is available. Preliminary tests show
+moderate performance increases. In most cases, we're seeing template parse
+and execution time increase by about 15%. The poor increase (relative to
+other cET/ET numbers) is due to the fact that we're not using cElementTree's
+native parser as it doesn't support comments or processing instructions. The
+plan is to lobby the effbot organization to add these features (hint, hint:
+send patches) so that we can get the huge increases people are seeing
+elsewhere.</P>
+<P>Kid automatically determines whether cElementTree is available and uses it
+if so. If cElementTree is not available, Kid falls back on Python
+ElementTree. If you want to turn off use of cElementTree, you can set the
+environment variable <TT CLASS="docutils literal"><SPAN CLASS="pre">KID_NOCET</SPAN></TT> to 1.</P>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id38" ID="death-of-comment-wart" NAME="death-of-comment-wart" CLASS="toc-backref">Death of Comment Wart</A></H3>
+<P>In versions of Kid prior to 0.6, the first line of an embedded Python code
+block had to be a Python comment (#). This was due to Python's whitespace
+semantics. Christoph determined a process for establishing the correct indent
+levels without requiring a comment as the first line.</P>
+<P>Starting in Kid 0.6, a comment is no longer required to be the first line in
+a <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?python?></SPAN></TT> processing instruction. It is also possible to have single
+line code blocks:</P>
+<PRE CLASS="literal-block">
+&lt;?python x = 10 ?>
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id39" ID="improved-template-api" NAME="improved-template-api" CLASS="toc-backref">Improved Template API</A></H3>
+<P>The Python interfaces have been reworked significantly and now are very
+similar to Cheetah's. There are two preferred methods for accessing a
+template.</P>
+<DIV CLASS="section">
+<H4><A HREF="#id40" ID="the-template-class" NAME="the-template-class" CLASS="toc-backref">The <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> Class</A></H4>
+<P>The first method existed in 0.5 but was not documented well. If you have
+enabled the kid import hooks, then you can import a template and create an
+instance of the template by accessing the <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> class exposed by the
+module:</P>
+<PRE CLASS="literal-block">
+import kid ; kid.enable_import()
+import mytemplate
+template = mytemplate.Template(foo='bar', bling=1)
+print template.serialize()
+</PRE>
+<P>The primary difference from 0.5 is that template variables are passed to the
+<TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> constructor instead of to the individual execution methods
+(<TT CLASS="docutils literal"><SPAN CLASS="pre">serialize</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">generate</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">write</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">pull</SPAN></TT>).</P>
+<P>It is also possible to set template variables after the template instance
+is created by simply assigning to template object instance:</P>
+<PRE CLASS="literal-block">
+template = mytemplate.Template()
+template.foo = 'bar'
+template.bling = 1
+print str(template)
+</PRE>
+<P>Here we see another small addition: template instances implement <TT CLASS="docutils literal"><SPAN CLASS="pre">__str__</SPAN></TT>
+and <TT CLASS="docutils literal"><SPAN CLASS="pre">__unicode__</SPAN></TT> built-ins. These methods are equivalent to calling
+<TT CLASS="docutils literal"><SPAN CLASS="pre">serialize(encoding='utf-8')</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">serialize(encoding='utf-16')</SPAN></TT>,
+respectively.</P>
+</DIV>
+<DIV CLASS="section">
+<H4><A HREF="#id41" ID="the-kid-template-function" NAME="the-kid-template-function" CLASS="toc-backref">The <TT CLASS="docutils literal"><SPAN CLASS="pre">kid.Template</SPAN></TT> function</A></H4>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">kid.Template</SPAN></TT> function works much like <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> class
+constructors but takes an additional parameter that allows the template to
+be loaded from a file, string, or module name. It is sometimes easier to
+manage templates as files on disk rather than as python modules.</P>
+<P>Example:</P>
+<PRE CLASS="literal-block">
+from kid import Template
+# create a template from file
+template = Template(file='mytemplate.kid', foo='bar', bling=1)
+
+# create a template from string
+template = Template(source="&lt;p>${foo}&lt;/p>", foo='bar')
+
+# create a template from a python module name
+template = Template(name='templates.mytemplate', foo='bar')
+</PRE>
+<P>This last form is sometimes useful because it doesn't require the kid
+import hook to be enabled and it also allows template names to be specified
+at run-time.</P>
+<P>See <A HREF="guide.html#template-function" CLASS="reference">kid.Template function</A> in the User's Guide for more info.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id42" ID="match-templates-filters" NAME="match-templates-filters" CLASS="toc-backref">Match Templates / Filters</A></H3>
+<P>Match Templates are a cross between XSLT's match templates and JSP tag
+libraries. They allow a set of filters to be put in place that matches
+infoset items generated by a template so that output can be modified.</P>
+<P>While match templates provide a general purpose mechanism for transforming
+XML content, it is especially useful in a couple of situations which have
+driven the design:</P>
+<OL CLASS="arabic simple">
+<LI>Creating tag libraries that inject new tags into an XML vocabulary.</LI>
+<LI>Applying headers/footers without inserting place-holders into the
+source document/template.</LI>
+</OL>
+<P>See <A HREF="language.html#match-templates" CLASS="reference">Match Templates</A> in the Language Reference for more information.</P>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id43" ID="template-inheritance" NAME="template-inheritance" CLASS="toc-backref">Template Inheritance</A></H3>
+<P>Templates now support multiple inheritance of template functions
+(<TT CLASS="docutils literal"><SPAN CLASS="pre">py:def</SPAN></TT>) and match templates (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:match</SPAN></TT>). A template indicates that
+it extends one or more other templates by setting the <TT CLASS="docutils literal"><SPAN CLASS="pre">py:extends</SPAN></TT>
+attribute on the root element:</P>
+<PRE CLASS="literal-block">
+&lt;?xml version='1.0' encoding='utf-8'?>
+&lt;html py:extends="'common.kid', 'forms.kid'" ...
+</PRE>
+<P><TT CLASS="docutils literal"><SPAN CLASS="pre">py:extends</SPAN></TT> may contain template modules, Template classes, or strings
+specifying template paths relative to current template file.</P>
+<P>See <A HREF="language.html#template-reuse" CLASS="reference">Template Reuse</A> in the Language Reference for more information.</P>
+</DIV>
+<DIV CLASS="section">
+<H3><A HREF="#id44" ID="dynamic-attribute-generation-py-attrs" NAME="dynamic-attribute-generation-py-attrs" CLASS="toc-backref">Dynamic Attribute Generation (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:attrs</SPAN></TT>)</A></H3>
+<P>A new <TT CLASS="docutils literal"><SPAN CLASS="pre">py:attrs</SPAN></TT> attribute has been added that allows attributes to be
+specified using a dictionary.</P>
+<P>See <A HREF="language.html#dynamic-attributes-py-attrs" CLASS="reference">Dynamic Attributes</A> in the Language Reference for more information.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id45" ID="upgrade-script" NAME="upgrade-script" CLASS="toc-backref">Upgrade Script</A></H2>
+<P>Due to the amount of changes in template syntax, a migration script is
+provided that can upgrade kid 0.5 templates to 0.6 syntax. This includes
+changing the namespace, py:strip, and new expression substitution
+syntax.</P>
+<P>The script can be found in the source distribution as
+<TT CLASS="docutils literal"><SPAN CLASS="pre">misc/upgrade-0.6.py</SPAN></TT>. The script can take multiple file names and
+upgrades each in-place while preserving a backup. For instance:</P>
+<PRE CLASS="literal-block">
+$ python upgrade-0.6.py path/to/template.kid
+Upgraded: template.kid...
+</PRE>
+<P>On posix systems, you can upgrade a bunch of kid templates under the current
+working directory with the following command:</P>
+<PRE CLASS="literal-block">
+$ find . -name '*.kid' | xargs python upgrade-0.6.py
+Upgraded: template1.kid...
+Upgraded: template2.kid...
+Upgraded: template3.kid...
+Upgraded: template4.kid...
+</PRE>
+</DIV>
+</DIV>
+
+</DIV></DIV>
+      
+      <DIV ID="footer">
+        
+        
+        <P STYLE="float: left;">
+          
+          This documentation is licensed under the 
+          <A HREF="doc-license.html" TITLE="Documentation License">GNU Free Documentation License</A>
+          <BR>
+          
+          built with 
+          <A HREF="http://lesscode.org/projects/pudge/">pudge/0.1.1</A><BR>
+		      original design by 
+          <A HREF="http://blog.ratterobert.com/">ratter / robert</A><BR>
+	      </P>
+        <DIV>
+        <BR>
+        <A NAME="search">
+          <FORM ACTION="http://lesscode.org/blog/index.php" METHOD="get" ID="searchform">
+            <DIV>
+              <INPUT TYPE="text" NAME="s" VALUE="" ID="s">
+              <INPUT TYPE="submit" ID="searchsubmit" VALUE="Search">
+            </DIV>
+          </FORM>
+        </A>
+        <BR>
+        </DIV>
+      </DIV>
+    </DIV>
+  </BODY>
+
+</HTML>

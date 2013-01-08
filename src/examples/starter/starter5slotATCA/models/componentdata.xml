@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component:componentInformation xmlns:component="component.ecore">
+  <cluster name="Cluster" rdn="java.lang.Object@1dd1752">
+    <contains target="ctrl"/>
+    <contains target="work"/>
+  </cluster>
+  <node Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE" classType="CL_AMS_NODE_CLASS_B" id="0" isASPAware="CL_TRUE" isRestartable="CL_TRUE" isSwappable="CL_TRUE" name="ctrl" rdn="17699596" suFailoverCountMax="10" suFailoverDuration="10000" subClassType=" ">
+    <contains target="App2plus1SU"/>
+    <contains target="App1plus1SU"/>
+  </node>
+  <node Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE" classType="CL_AMS_NODE_CLASS_C" id="0" isASPAware="CL_TRUE" isRestartable="CL_TRUE" isSwappable="CL_TRUE" name="work" rdn="9362809" suFailoverCountMax="10" suFailoverDuration="10000" subClassType=" ">
+    <contains target="App2plus1SU"/>
+  </node>
+  <serviceUnit adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isContainerSU="CL_TRUE" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" name="App2plus1SU" rdn="21287110">
+    <contains target="App2plus1"/>
+  </serviceUnit>
+  <serviceUnit adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isContainerSU="CL_TRUE" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" name="App1plus1SU" rdn="30298250">
+    <contains target="App1plus1"/>
+  </serviceUnit>
+  <safComponent amStartCommand="" amStopCommand="" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" cleanupCommand="" commandLineArgument="" environmentVariable="" instantiateCommand="App2plus1" instantiateDelay="5000" instantiateLevel="1" isBuildCPP="false" isRestartable="CL_TRUE" isSNMPSubAgent="false" name="App2plus1" nodeRebootCleanupFail="CL_TRUE" numMaxActiveCSIs="1" numMaxAmStart="1" numMaxAmStop="1" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxStandbyCSIs="1" numMaxTerminate="1" processRel="CL_CPM_COMP_SINGLE_PROCESS" property="CL_AMS_SA_AWARE" rdn="27700281" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" terminateCommand="">
+    <csiTypes>
+      <csiType name="App2plus1CSIa"/>
+      <csiType name="App2plus1CS1b"/>
+    </csiTypes>
+    <healthCheck maxDuration="60000" period="30000"/>
+    <timeouts amStartTimeout="10000" amStopTimeout="10000" cleanupTimeout="10000" csiRemoveTimeout="10000" csiSetTimeout="10000" instantiateTimeout="10000" proxiedCompCleanupTimeout="10000" proxiedCompInstantiateTimeout="10000" quiescingCompleteTimeout="10000" terminateTimeout="10000"/>
+    <eoProperties eoName="App2plus1_EO" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0" threadCount="2" threadPriority="PRIORITY_MEDIUM">
+      <libs/>
+      <aspLib Alarm="CL_FALSE" Buffer="CL_TRUE" CM="CL_FALSE" COR="CL_TRUE" DBAL="CL_FALSE" Debug="CL_TRUE" Diagnostics="CL_FALSE" EO="CL_TRUE" Fault="CL_FALSE" HAL="CL_FALSE" IOC="CL_TRUE" LOG="CL_TRUE" NameService="CL_TRUE" OM="CL_FALSE" OSAL="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" RMD="CL_TRUE" Timer="CL_TRUE" Trace="CL_FALSE" Transaction="CL_TRUE"/>
+    </eoProperties>
+  </safComponent>
+  <safComponent amStartCommand="" amStopCommand="" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" cleanupCommand="" commandLineArgument="" environmentVariable="" instantiateCommand="App1plus1" instantiateDelay="5000" instantiateLevel="1" isBuildCPP="false" isRestartable="CL_TRUE" isSNMPSubAgent="false" name="App1plus1" nodeRebootCleanupFail="CL_TRUE" numMaxActiveCSIs="1" numMaxAmStart="1" numMaxAmStop="1" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxStandbyCSIs="1" numMaxTerminate="1" processRel="CL_CPM_COMP_SINGLE_PROCESS" property="CL_AMS_SA_AWARE" rdn="14752391" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" terminateCommand="">
+    <csiTypes>
+      <csiType name="App1plus1CSI"/>
+    </csiTypes>
+    <healthCheck maxDuration="60000" period="30000"/>
+    <timeouts amStartTimeout="10000" amStopTimeout="10000" cleanupTimeout="10000" csiRemoveTimeout="10000" csiSetTimeout="10000" instantiateTimeout="10000" proxiedCompCleanupTimeout="10000" proxiedCompInstantiateTimeout="10000" quiescingCompleteTimeout="10000" terminateTimeout="10000"/>
+    <eoProperties eoName="App1plus1_EO" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0" threadCount="2" threadPriority="PRIORITY_MEDIUM">
+      <libs/>
+      <aspLib Alarm="CL_FALSE" Buffer="CL_TRUE" CM="CL_FALSE" COR="CL_TRUE" DBAL="CL_FALSE" Debug="CL_TRUE" Diagnostics="CL_FALSE" EO="CL_TRUE" Fault="CL_FALSE" HAL="CL_FALSE" IOC="CL_TRUE" LOG="CL_TRUE" NameService="CL_TRUE" OM="CL_FALSE" OSAL="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" RMD="CL_TRUE" Timer="CL_TRUE" Trace="CL_FALSE" Transaction="CL_TRUE"/>
+    </eoProperties>
+  </safComponent>
+  <serviceGroup adminState="CL_AMS_ADMIN_STATE_UNLOCKED" alphaFactor="100" autoAdjust="CL_FALSE" autoAdjustProbation="10000" autoRepair="CL_FALSE" betaFactor="0" compRestartCountMax="1" compRestartDuration="10000" failbackOption="CL_FALSE" failoverDuration="300000" isCollocationAllowed="CL_TRUE" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" maxActiveSIsPerSU="1" maxFailovers="0" maxStandbySIsPerSU="1" name="App2plus1SG" numComponents="0" numPrefActiveSUs="2" numPrefActiveSUsPerSI="1" numPrefAssignedSUs="3" numPrefInserviceSUs="3" numPrefStandbySUs="1" rdn="22493298" reductionProcedure="CL_FALSE" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N" restartDuration="10000" suRestartCountMax="1" suRestartDuration="10000">
+    <associatedTo target="App2plus1SU"/>
+    <associatedTo target="App2plus1SI"/>
+  </serviceGroup>
+  <serviceGroup adminState="CL_AMS_ADMIN_STATE_UNLOCKED" alphaFactor="100" autoAdjust="CL_FALSE" autoAdjustProbation="10000" autoRepair="CL_FALSE" betaFactor="0" compRestartCountMax="1" compRestartDuration="10000" failbackOption="CL_FALSE" failoverDuration="300000" isCollocationAllowed="CL_TRUE" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" maxActiveSIsPerSU="1" maxFailovers="0" maxStandbySIsPerSU="1" name="App1plus1SG" numComponents="0" numPrefActiveSUs="1" numPrefActiveSUsPerSI="1" numPrefAssignedSUs="2" numPrefInserviceSUs="2" numPrefStandbySUs="1" rdn="22290580" reductionProcedure="CL_FALSE" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" restartDuration="10000" suRestartCountMax="1" suRestartDuration="10000">
+    <associatedTo target="App1plus1SU"/>
+    <associatedTo target="App1plus1SI"/>
+  </serviceGroup>
+  <serviceInstance adminState="CL_AMS_ADMIN_STATE_UNLOCKED" name="App2plus1SI" numCSIs="1" numStandbyAssignments="1" rank="0" rdn="9653307">
+    <contains target="App2plus1CSIa"/>
+    <contains target="App2plus1CS1b"/>
+  </serviceInstance>
+  <serviceInstance adminState="CL_AMS_ADMIN_STATE_UNLOCKED" name="App1plus1SI" numCSIs="1" numStandbyAssignments="1" rank="0" rdn="19780024">
+    <contains target="App1plus1CSI"/>
+  </serviceInstance>
+  <componentServiceInstance name="App2plus1CSIa" rank="0" rdn="33462681">
+    <nameValueLists name="VirtualIpAddress" value="192.168.3.201"/>
+    <nameValueLists name="VirtualNetMask" value="255.255.255.0"/>
+    <nameValueLists name="VirtualDevice" value="eth0:1"/>
+    <associatedTo target="App2plus1"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="App1plus1CSI" rank="0" rdn="10208109">
+    <nameValueLists name="VirtualIpAddress" value="192.168.3.200"/>
+    <nameValueLists name="VirtualNetMask" value="255.255.255.0"/>
+    <nameValueLists name="VirtualDevice" value="eth0:0"/>
+    <associatedTo target="App1plus1"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="App2plus1CS1b" rank="0" rdn="18076102">
+    <nameValueLists name="VirtualIpAddress" value="192.168.3.202"/>
+    <nameValueLists name="VirtualNetMask" value="255.255.255.0"/>
+    <nameValueLists name="VirtualDevice" value="eth0:1"/>
+    <associatedTo target="App2plus1"/>
+  </componentServiceInstance>
+</component:componentInformation>
