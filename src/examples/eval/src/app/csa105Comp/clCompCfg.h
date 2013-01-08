@@ -18,7 +18,7 @@ extern "C" {
 #include <clEoApi.h>                                                                                                                          
                                                                                                                              
 #define COMP_NAME       "csa105Comp"
-#define COMP_EO_NAME    "csa105Comp_EO"
+#define COMP_EO_NAME    "csa105CompEO0"
 
 #define HAS_EO_SERVICES 0
 

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alarm:alarmInformation xmlns:alarm="alarm.ecore">
+  <AlarmProfile AssertSoakingTime="1" Category="CL_ALARM_CATEGORY_QUALITY_OF_SERVICE" ClearSoakingTime="1" Description="" IsAlarmPolled="true" OID="" ProbableCause="CL_ALARM_PROB_CAUSE_THRESHOLD_CROSSED" Severity="CL_ALARM_SEVERITY_WARNING" SpecificProblem="0" alarmID="csa105CounterThreshold" rdn="14020502"/>
+</alarm:alarmInformation>

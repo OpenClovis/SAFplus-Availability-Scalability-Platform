@@ -11,21 +11,30 @@
 #       - Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
 #
 ################################################################################
-                                                                                                                                                                                    
+
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
-                                                                                                                                                                                    
-SUBDIRS          = ev csa101 csa102Comp csa103Comp csa104Comp csa112Comp csa113Comp\
-		    csa201Comp csa203Comp csa212Comp csa213Comp csa105Comp csa105AlmLstner #lockutil\
+
+SUBDIRS = ev csa101Comp csa102Comp csa103Comp csa104Comp csa105Comp csa111Comp csa112Comp csa113Comp csaSnmpAgentComp csa212Comp csa201Comp csa203Comp csa213Comp csa105AlmLstner
 
 ifeq ($(SNMP_BUILD),1)
-	SUBDIRS += 
+    SUBDIRS += 
 endif
-                                                                                                                             
+
 #
 # If you have any ordering dependence among subdirectories, list them as
 # target-prerequisite pairs.
 #
-                                                                                                                                                                                    
+
+# ---BEGIN_APPLICATION_CODE---
+
+# ---END_APPLICATION_CODE---
+
 include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+
+# ---BEGIN_APPLICATION_CODE---
+
+# Additional targets can be defined here
+
+# ---END_APPLICATION_CODE---
 

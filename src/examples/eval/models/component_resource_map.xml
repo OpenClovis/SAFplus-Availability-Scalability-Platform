@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modelMap:mapInformation xmlns:modelMap="modelMapping.ecore" sourceModel="component_model" targetModel="resource_model">
+  <link linkType="associatedResource">
+    <linkDetail linkSource="csa104Comp">
+      <linkTarget>csa104Res</linkTarget>
+    </linkDetail>
+    <linkDetail linkSource="csa105Comp">
+      <linkTarget>csa105Res</linkTarget>
+    </linkDetail>
+  </link>
+</modelMap:mapInformation>

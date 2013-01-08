@@ -31,8 +31,6 @@ extern "C" {
  *****************************************************************************/
 
 #include "./clCompCfg.h"
-#include "saAis.h"
-#include "saCkpt.h"
 
 /*
  * ---BEGIN_APPLICATION_CODE---
@@ -60,9 +58,9 @@ extern "C" {
                                             "Unknown" )
 
 #define STRING_CSI_FLAGS(S)                                                 \
-(   ((S) == SA_AMF_CSI_ADD_ONE)            ? "Add One" :               \
-    ((S) == SA_AMF_CSI_TARGET_ONE)         ? "Target One" :            \
-    ((S) == SA_AMF_CSI_TARGET_ALL)         ? "Target All" :            \
+(   ((S) & SA_AMF_CSI_ADD_ONE)            ? "Add One" :               \
+    ((S) & SA_AMF_CSI_TARGET_ONE)         ? "Target One" :            \
+    ((S) & SA_AMF_CSI_TARGET_ALL)         ? "Target All" :            \
                                                   "Unknown" )
 
 /******************************************************************************
