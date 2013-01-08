@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <CompileConfigs:ComponentsInfo xmlns:CompileConfigs="Comps.ecore">
+      <COR savetype="CL_COR_DELTA_SAVE"/>
+      <FM localProbationPeriod="10"/>
+      <NS maxentries="256" maxglobalcontexts="10" maxlocalcontexts="2"/>
+      <RMD maxretries="8"/>
+      <PM>
+        <appConfigInterval applicationName="App9plus3" value="3000"/>
+        <appConfigInterval applicationName="App2N" value="3000"/>
+        <appConfigInterval applicationName="App11plus1" value="3000"/>
+        <compConfigInterval componentName="App2NI0" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I0" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I12" type="App11plus1" value="0"/>
+        <compConfigInterval componentName="App2NI1" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I1" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I13" type="App11plus1" value="0"/>
+        <compConfigInterval componentName="App2NI2" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I2" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I14" type="App11plus1" value="0"/>
+        <compConfigInterval componentName="App2NI3" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I3" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I15" type="App11plus1" value="0"/>
+        <compConfigInterval componentName="App2NI4" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I4" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I16" type="App11plus1" value="0"/>
+        <compConfigInterval componentName="App2NI5" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I5" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I17" type="App11plus1" value="0"/>
+        <compConfigInterval componentName="App2NI6" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I6" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I18" type="App11plus1" value="0"/>
+        <compConfigInterval componentName="App2NI7" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I7" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I19" type="App11plus1" value="0"/>
+        <compConfigInterval componentName="App2NI12" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I8" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I20" type="App11plus1" value="0"/>
+        <compConfigInterval componentName="App2NI13" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I9" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I21" type="App11plus1" value="0"/>
+        <compConfigInterval componentName="App2NI8" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I10" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I22" type="App11plus1" value="0"/>
+        <compConfigInterval componentName="App2NI9" type="App2N" value="0"/>
+        <compConfigInterval componentName="App9plus3I11" type="App9plus3" value="0"/>
+        <compConfigInterval componentName="App11plus1I23" type="App11plus1" value="0"/>
+      </PM>
+    </CompileConfigs:ComponentsInfo>
+  </version>
+</openClovisAsp>

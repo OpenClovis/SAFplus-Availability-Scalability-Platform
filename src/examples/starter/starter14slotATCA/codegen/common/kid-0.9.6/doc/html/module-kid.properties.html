@@ -1,0 +1,209 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<HTML>
+  
+  <HEAD><META CONTENT="text/html; charset=utf-8" HTTP-EQUIV="Content-Type">
+    <TITLE>kid.properties -- Configuration API.</TITLE>
+    <LINK HREF="layout.css" TYPE="text/css" REL="stylesheet">
+    <LINK HREF="http://planet.kid-templating.org/rss20.xml" TYPE="application/rss+xml" REL="alternate" TITLE="RSS 2.0">
+
+  </HEAD>
+  <BODY>
+    <DIV ID="page">
+      <H1 CLASS="doc-title"><A HREF="http://www.kid-templating.org/">kid-templating.org</A></H1>
+      <DIV ID="navcontainer">
+        <UL ID="navlist">
+          <LI CLASS="pagenav">
+            <UL>
+              <LI CLASS="page_item">
+                <A HREF="index.html" CLASS="" TITLE="Project Home / Index">Kid</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="module-index.html" CLASS="" TITLE="kid package and module reference">Modules</A>
+              </LI>
+              
+              <LI>
+                <A HREF="http://www.kid-templating.org/trac/" TITLE="Wiki / Subversion / Roadmap / Bug Tracker">Trac</A>
+              </LI>
+              <LI>
+                <A HREF="http://planet.kid-templating.org/">Blog</A>
+              </LI>
+              <LI>
+                <A HREF="http://lists.sourceforge.net/lists/listinfo/kid-template-discuss" CLASS="" TITLE="Mailing List">Discuss</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="http://www.kid-templating.org/about">
+                  about kid-templating.org
+                </A>
+              </LI>
+            </UL>
+          </LI>
+        </UL>
+      </DIV>
+      
+      <HR>
+      
+      <DIV ID="content">
+  
+  <H1 CLASS="pudge-member-page-heading">
+    <TT>properties</TT>
+  </H1>
+  <H4 CLASS="pudge-member-page-subheading">
+    Configuration API.
+  </H4>
+  <P CLASS="pudge-member-parent-link">
+    <SMALL>
+    The properties module is accessible via the
+    <A HREF="module-kid.html">
+      <TT>kid</TT>
+    </A> module.
+    </SMALL>
+  </P>
+  <DIV ID="pudge-section-nav">
+  <UL>
+    <LI>
+      
+      <SPAN CLASS="pudge-missing-section-link">
+        Attributes
+      </SPAN>
+    </LI><LI>
+      <A HREF="#functions" CLASS="pudge-section-link">
+        Functions (4)
+      </A>
+      
+    </LI><LI>
+      
+      <SPAN CLASS="pudge-missing-section-link">
+        Classes
+      </SPAN>
+    </LI><LI>
+      
+      <SPAN CLASS="pudge-missing-section-link">
+        Modules
+      </SPAN>
+    </LI>
+    <LI>
+      <A HREF="module-kid.properties-index.html" CLASS="pudge-section-link">
+        Index
+      </A>
+    </LI>
+    <LI>
+      <A HREF="kid/properties.py.html" CLASS="pudge-section-link">
+        Source
+      </A>
+    </LI>
+  </UL>
+  </DIV>
+  <DIV STYLE="clear: left"></DIV>
+  
+  
+  <HR>
+  
+  
+    <A NAME="functions"></A>
+    <H2>Functions</H2>
+    <DIV CLASS="pudge-member routine ">
+    <A NAME="get"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="module-kid.properties.html#get" CLASS="pudge-obj-link">get</A>(name, default=None)</TT>
+      <A HREF="kid/properties.py.html?f=13&amp;l=21#13" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    <P CLASS="pudge-member-blurb">
+      Get the property identified by name if it exists or return default.
+    </P>
+    <P>name: the name of the property to retrieve
+default: the value returned for non-existing properties, defaults to None</P>
+
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="set"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="module-kid.properties.html#set" CLASS="pudge-obj-link">set</A>(name, value)</TT>
+      <A HREF="kid/properties.py.html?f=22&amp;l=29#22" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    <P CLASS="pudge-member-blurb">
+      The the property identified by name with the value identified by value.
+    </P>
+    <P>Returns the value passed in.</P>
+
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="isset"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="module-kid.properties.html#isset" CLASS="pudge-obj-link">isset</A>(name)</TT>
+      <A HREF="kid/properties.py.html?f=30&amp;l=33#30" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    <P CLASS="pudge-member-blurb">
+      Returns True if a property exists or False if it doesn't.
+    </P>
+    
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="remove"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="module-kid.properties.html#remove" CLASS="pudge-obj-link">remove</A>(name)</TT>
+      <A HREF="kid/properties.py.html?f=34&amp;l=38#34" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    <P CLASS="pudge-member-blurb">
+      Remove a property.
+    </P>
+    
+  
+    </DIV>
+  </DIV>
+    
+  
+  
+  <P>
+    <SMALL>
+    
+    
+    See 
+    <A HREF="kid/properties.py.html" TITLE="kid/properties.py:0">the source</A>
+    for more information.
+    </SMALL>
+  </P>
+
+</DIV>
+      
+      <DIV ID="footer">
+        
+        
+        <P STYLE="float: left;">
+          
+          This documentation is licensed under the 
+          <A HREF="doc-license.html" TITLE="Documentation License">GNU Free Documentation License</A>
+          <BR>
+          
+          built with 
+          <A HREF="http://lesscode.org/projects/pudge/">pudge/0.1.1</A><BR>
+		      original design by 
+          <A HREF="http://blog.ratterobert.com/">ratter / robert</A><BR>
+	      </P>
+        <DIV>
+        <BR>
+        <A NAME="search">
+          <FORM ACTION="http://lesscode.org/blog/index.php" METHOD="get" ID="searchform">
+            <DIV>
+              <INPUT TYPE="text" NAME="s" VALUE="" ID="s">
+              <INPUT TYPE="submit" ID="searchsubmit" VALUE="Search">
+            </DIV>
+          </FORM>
+        </A>
+        <BR>
+        </DIV>
+      </DIV>
+    </DIV>
+  </BODY>
+
+</HTML>
