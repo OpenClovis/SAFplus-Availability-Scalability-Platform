@@ -2,7 +2,11 @@
 <project name="Build" default="all">
 <!-- Build -->	
 <target name="build">
-	<exec dir="${makearea.loc}" executable="${script.file}" failonerror="true"/>
+	<exec dir="${projectarea.loc}" executable="${script.file}" failonerror="true">
+	<arg line="${project.name}"/>
+	<arg line="${toolchain.name}"/>
+	<!-- arg line="${make.parameters}"/ -->
+	</exec>		
 </target>
 <!--
 Target to build Project.

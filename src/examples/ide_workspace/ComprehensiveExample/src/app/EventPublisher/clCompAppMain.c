@@ -9,9 +9,7 @@
  *
  ***************************** Description ************************************
  *
- * This file provides a skeleton for writing a SAF aware component. Application
- * specific code should be added between the ---BEGIN_APPLICATION_CODE--- and
- * ---END_APPLICATION_CODE--- separators.
+ * This file provides a skeleton for writing a SAF aware component.
  *
  * Template Version: 1.0
  *
@@ -25,6 +23,7 @@
  * POSIX Includes.
  */
 #include <assert.h>
+#include <errno.h>
 
 /*
  * Basic ASP Includes.
@@ -38,37 +37,12 @@
 
 #include <clCpmApi.h>
 #include <saAmf.h>
-
-/*
- * ---BEGIN_APPLICATION_CODE---
- */
  
-#include <saAis.h>
-#include <saEvt.h>
-#include <clEventApi.h>
-#include <clEventExtApi.h>
-#include <clLogApi.h>
 #include "clCompAppMain.h"
-#include "../ev/ev.h"
-
-/*
- * ---END_APPLICATION_CODE---
- */
 
 /******************************************************************************
  * Optional Features
  *****************************************************************************/
-
-/*
- * This is necessary if the component wishes to provide a service that
- * will be used by other components.
- */
-
-#if HAS_EO_SERVICES
-
-extern ClRcT EventPublisher_EOClientInstall(void);
-
-#endif
 
 /*
  * This template has a few default clprintfs. These can be disabled by
@@ -78,20 +52,6 @@ extern ClRcT EventPublisher_EOClientInstall(void);
 #define clprintf(severity, ...)   clAppLog(CL_LOG_HANDLE_APP, severity, 10, \
                                   CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,\
                                   __VA_ARGS__)
-
-/*
- * ---BEGIN_APPLICATION_CODE---
- */
-
-#define EVENT_CHANNEL_NAME "TestEventChannel"
-#define PUBLISHER_NAME "TestEventPublisher"
-
-
-static char     appname[80];
-
-/*
- * ---END_APPLICATION_CODE---
- */
 
 /******************************************************************************
  * Global Variables.
@@ -103,147 +63,8 @@ SaAmfHandleT amfHandle;
 ClBoolT unblockNow = CL_FALSE;
 
 /*
- * ---BEGIN_APPLICATION_CODE---
- */
-
-/*
  * Declare other global variables here.
  */
-
-// Poor man's namespace.  Gather together some globals that don't
-// really need to be global.
-typedef struct
-{
-    ClEoExecutionObjT             *tstRegEoObj;
-    ClCpmHandleT                  cpmHandle;
-    SaEvtHandleT		          evtInitHandle;
-    SaEvtEventHandleT		      eventHandle;
-    SaAmfCallbacksT               callbacks;
-    ClVersionT                    version;
-    SaVersionT                    evtVersion;
-    SaNameT                       evtChannelName;
-    SaNameT                       publisherName;
-    int                           running;
-    int                           exiting;
-    ClAmsHAStateT                 haState;
-} gTestInfoT;
-
-static gTestInfoT gTestInfo =
-{
-    .tstRegEoObj      = 0,
-    .cpmHandle        = 0,                 // CPM service instance handle
-    .evtInitHandle    = 0,
-    .eventHandle      = 0,
-    .callbacks        =                 // callbacks for CPM interaction
-    {
-        .saAmfHealthcheckCallback           = NULL,
-        .saAmfComponentTerminateCallback    = clCompAppTerminate,
-        .saAmfCSISetCallback                = clCompAppAMFCSISet,
-        .saAmfCSIRemoveCallback             = clCompAppAMFCSIRemove,
-        .saAmfProtectionGroupTrackCallback  = NULL
-        //.saAmfExternalComponentInstantiateCallback = NULL,
-        //.saAmfExternalComponentCleanupCallback     = NULL
-    },
-    .version          =                 // Expected/Required for CPM service API
-    {
-        .releaseCode                    = 'B',
-        .majorVersion                   = 01,
-        .minorVersion                   = 01
-    },
-    .evtVersion                         = CL_EVENT_VERSION,
-    .evtChannelName  =
-    {
-        .length                         = sizeof(EVENT_CHANNEL_NAME) - 1,
-        .value                          = EVENT_CHANNEL_NAME
-    },
-    .publisherName   =
-    {
-        .length                         = sizeof (PUBLISHER_NAME) - 1,
-        .value                          = PUBLISHER_NAME
-    },
-    .running          = 1,              // 0 => suspended; 1 => resumed
-    .exiting          = 0,              // flag that tells main loop to exit
-    .haState          = CL_AMS_HA_STATE_STANDBY
-};
-
-static inline void
-logrc(ClLogSeverityT severity, char *buffer, char *appname, ClRcT rc)
-{
-    clLogWrite(CL_LOG_HANDLE_APP, severity, NULL, buffer, appname, rc);
-}
-
-static inline void
-logmsg(ClLogSeverityT severity, char *buffer, char *appname)
-{
-    clLogWrite(CL_LOG_HANDLE_APP, severity, NULL, buffer, appname);
-}
-
-static ClRcT appPublishEvent();
-
-static void* testEvtMainLoop(void *thdParam);
-
-/*
- * ---END_APPLICATION_CODE---
- */
-
-/*
- * Description of this EO
- */
-
-ClEoConfigT clEoConfig =
-{
-    COMP_EO_NAME,               /* EO Name                                  */
-    COMP_EO_THREAD_PRIORITY,    /* EO Thread Priority                       */
-    COMP_EO_NUM_THREAD,         /* No of EO thread needed                   */
-    COMP_IOC_PORT,              /* Required Ioc Port                        */
-    COMP_EO_USER_CLIENT_ID, 
-    COMP_EO_USE_THREAD_MODEL,   /* Thread Model                             */
-    NULL,                       /* Application Initialize Callback          */
-    NULL,                       /* Application Terminate Callback           */
-    clCompAppStateChange,       /* Application State Change Callback        */
-    clCompAppHealthCheck,       /* Application Health Check Callback        */
-};
-
-/*
- * Basic libraries used by this EO. The first 6 libraries are
- * mandatory, the others can be enabled or disabled by setting to
- * CL_TRUE or CL_FALSE.
- */
-
-ClUint8T clEoBasicLibs[] =
-{
-    COMP_EO_BASICLIB_OSAL,      /* Lib: Operating System Adaptation Layer   */
-    COMP_EO_BASICLIB_TIMER,     /* Lib: Timer                               */
-    COMP_EO_BASICLIB_BUFFER,    /* Lib: Buffer Management                   */
-    COMP_EO_BASICLIB_IOC,       /* Lib: Intelligent Object Communication    */
-    COMP_EO_BASICLIB_RMD,       /* Lib: Remote Method Dispatch              */
-    COMP_EO_BASICLIB_EO,        /* Lib: Execution Object                    */
-    COMP_EO_BASICLIB_OM,        /* Lib: Object Management                   */
-    COMP_EO_BASICLIB_HAL,       /* Lib: Hardware Adaptation Layer           */
-    COMP_EO_BASICLIB_DBAL,      /* Lib: Database Adaptation Layer           */
-};
-
-/*
- * Client libraries used by this EO. All are optional and can be
- * enabled or disabled by setting to CL_TRUE or CL_FALSE.
- */
-
-ClUint8T clEoClientLibs[] =
-{
-    COMP_EO_CLIENTLIB_COR,      /* Lib: Common Object Repository            */
-    COMP_EO_CLIENTLIB_CM,       /* Lib: Chassis Management                  */
-    COMP_EO_CLIENTLIB_NAME,     /* Lib: Name Service                        */
-    COMP_EO_CLIENTLIB_LOG,      /* Lib: Log Service                         */
-    COMP_EO_CLIENTLIB_TRACE,    /* Lib: Trace Service                       */
-    COMP_EO_CLIENTLIB_DIAG,     /* Lib: Diagnostics                         */
-    COMP_EO_CLIENTLIB_TXN,      /* Lib: Transaction Management              */
-    CL_FALSE,                   /* NA */
-    COMP_EO_CLIENTLIB_PROV,     /* Lib: Provisioning Management             */
-    COMP_EO_CLIENTLIB_ALARM,    /* Lib: Alarm Management                    */
-    COMP_EO_CLIENTLIB_DEBUG,    /* Lib: Debug Service                       */
-    COMP_EO_CLIENTLIB_GMS,      /* Lib: Cluster/Group Membership Service    */
-    COMP_EO_CLIENTLIB_PM        /* Lib: Performance Management              */
-};
 
 /******************************************************************************
  * Application Life Cycle Management Functions
@@ -261,23 +82,13 @@ int main(int argc, char *argv[])
     SaAmfCallbacksT     callbacks;
     SaVersionT          version;
     ClIocPortT          iocPort;
-    ClRcT               rc = SA_AIS_OK;
+    SaAisErrorT         rc = SA_AIS_OK;
 
     SaSelectionObjectT dispatch_fd;
     fd_set read_fds;
     
     /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    /*
      * Declare other local variables here.
-     */
-    SaEvtChannelHandleT evtChannelHandle      = 0;
-    SaEvtCallbacksT     evtCallbacks          = {NULL, NULL};
-
-    /*
-     * ---END_APPLICATION_CODE---
      */
 
     /*
@@ -320,27 +131,11 @@ int main(int argc, char *argv[])
     
     FD_SET(dispatch_fd, &read_fds);
 
-    
-#if HAS_EO_SERVICES
-
-
-    rc = EventPublisher_EOClientInstall();
-
-#endif
 
     /*
      * Do the application specific initialization here.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    // ...
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
 
     /*
      * Now register the component with AMF. At this point it is
@@ -362,81 +157,6 @@ int main(int argc, char *argv[])
     clprintf (CL_LOG_SEV_INFO, "   IOC Address             : 0x%x\n", clIocLocalAddressGet());
     clprintf (CL_LOG_SEV_INFO, "   IOC Port                : 0x%x\n", iocPort);
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-#define min(x,y) ((x < y)? x: y)
-
-    strncpy(appname, (char*)appName.value, min(sizeof appname, appName.length));
-    appname[min(sizeof appname - 1, appName.length)] = 0;
-    (void)ev_init(argc, argv, (char*)appName.value);
-
-    /* Set up console redirection for demo purposes */
-    /* Set up console redirection for demo purposes */
-    (void)ev_init(argc, argv, appname);
-
-    printf("EventPublisher : Initializing and registering with CPM...\n");
-    
-    // Initialize the the event code
-    rc = saEvtInitialize(&gTestInfo.evtInitHandle,
-                           &evtCallbacks,
-                           &gTestInfo.evtVersion);
-    if (rc != SA_AIS_OK)
-    {
-        logrc(CL_LOG_ERROR, "%s\t:Failed to init event system[0x%x]\n",
-                    appname, rc);
-        return rc;
-    }
-    
-    // Open an event channel so we can publish our events.
-    rc = saEvtChannelOpen (gTestInfo.evtInitHandle,
-                             &gTestInfo.evtChannelName,
-                            (SA_EVT_CHANNEL_PUBLISHER |
-                             SA_EVT_CHANNEL_CREATE),
-                             (ClTimeT)SA_TIME_END,
-                             &evtChannelHandle);
-    if (rc != SA_AIS_OK)
-    {
-        logrc(CL_LOG_ERROR, "%s\t:Failed to open event channel [0x%x]\n",
-                appname, rc);
-        return rc;
-    }
-
-    rc = saEvtEventAllocate(evtChannelHandle, &gTestInfo.eventHandle);
-    if (rc != SA_AIS_OK)
-    {
-        logrc(CL_LOG_ERROR, "%s\t:Failed to cllocate event [0x%x]\n",
-                appname, rc);
-        return rc;
-    }
-
-    rc = saEvtEventAttributesSet(gTestInfo.eventHandle,
-            NULL,
-            1,
-            0,
-            &gTestInfo.publisherName);
-    if (rc != SA_AIS_OK)
-    {
-        logrc(CL_LOG_ERROR, "%s\t:Failed to set event attributes [0x%x]\n",
-                appname, rc);
-        return rc;
-    }
-
-
-    clOsalTaskCreateDetached("testEvtMainLoop",
-                             CL_OSAL_SCHED_OTHER,
-                             CL_OSAL_THREAD_PRI_NOT_APPLICABLE,
-                             65536,
-                             testEvtMainLoop,
-                             (void*)appname);
-
-    clprintf(CL_LOG_SEV_INFO, "%s: Instantiated as component instance %s.\n", appname,
-                appName.value);
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
 
     /*
      * Block on AMF dispatch file descriptor for callbacks
@@ -445,6 +165,10 @@ int main(int argc, char *argv[])
     {
         if( select(dispatch_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
         {
+            if (EINTR == errno)
+            {
+                continue;
+            }
 		    clprintf (CL_LOG_SEV_ERROR, "Error in select()");
 			perror("");
             break;
@@ -456,13 +180,6 @@ int main(int argc, char *argv[])
      * Do the application specific finalization here.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
 
     if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
 	{
@@ -495,15 +212,6 @@ void clCompAppTerminate(SaInvocationT invocation, const SaNameT *compName)
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Terminating\n",
               compName->length, compName->value, mypid);
 
-    /*
-     * ---BEGIN_APPLICATION_CODE--- 
-     */
-
-    gTestInfo.exiting = 1; 
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
     
     /*
      * Unregister with AMF and respond to AMF saying whether the
@@ -545,35 +253,11 @@ ClRcT clCompAppStateChange(ClEoStateT eoState)
     {
         case CL_EO_STATE_SUSPEND:
         {
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            clOsalPrintf("%s: Suspending...\n", appname);
-            gTestInfo.running = 0;
-            logmsg(CL_LOG_DEBUG, "%s entered suspended state", appname);
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
             break;
         }
 
         case CL_EO_STATE_RESUME:
         {
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            clOsalPrintf("%s: Resuming...\n", appname);
-            gTestInfo.running = 1;
-            logmsg(CL_LOG_DEBUG, "%s resumed running state", appname);
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
             break;
         }
         
@@ -601,16 +285,10 @@ ClRcT clCompAppHealthCheck(ClEoSchedFeedBackT* schFeedback)
      * unaltered.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
     
     schFeedback->freq   = CL_EO_DEFAULT_POLL; 
     schFeedback->status = CL_CPM_EO_ALIVE;
 
-    /*
-     * ---END_APPLICATION_CODE---
-     */
 
     return CL_OK;
 }
@@ -631,16 +309,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
                         SaAmfHAStateT       haState,
                         SaAmfCSIDescriptorT csiDescriptor)
 {
-    /*
-     * ---BEGIN_APPLICATION_CODE--- 
-     */
-
-    gTestInfo.haState = haState;
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
-
     /*
      * Print information about the CSI Set
      */
@@ -663,15 +331,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * for the CSI.
              */
 
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-            clOsalPrintf("ACTIVE state request: activating service\n");
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -681,17 +340,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
             /*
              * AMF has requested application to take the standby HA state 
              * for this CSI.
-             */
-
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-            clOsalPrintf("New state is not ACTIVE: deactivating service\n");
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
              */
 
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
@@ -706,17 +354,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * must stop work associated with the CSI immediately.
              */
 
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            printf("%s: Acknowledging new state\n", appname);
-            gTestInfo.running = 0;
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -728,16 +365,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * assigned the active HA state. The application must stop work
              * associated with the CSI gracefully and not accept any new
              * workloads while the work is being terminated.
-             */
-
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
              */
 
             saAmfCSIQuiescingComplete(amfHandle, invocation, SA_AIS_OK);
@@ -773,16 +400,6 @@ void clCompAppAMFCSIRemove(SaInvocationT  invocation,
 
     /*
      * Add application specific logic for removing the work for this CSI.
-     */
-
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    gTestInfo.exiting = 1;
-
-    /*
-     * ---END_APPLICATION_CODE---
      */
 
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
@@ -858,178 +475,6 @@ void clCompAppAMFPrintCSI(SaAmfCSIDescriptorT csiDescriptor,
 }
 
 /*
- * ---BEGIN_APPLICATION_CODE---
- */
-
-/*
  * Insert any other utility functions here.
- */
-
-static void
-generate_time_of_day(char **data, ClSizeT *data_len)
-{
-    time_t t;
-
-    // minimal error checking
-    if (data == 0 || data_len == 0)
-    {
-        logmsg(CL_LOG_ERROR,
-                "%s\t: generate_time_of_day passed null pointer\n", appname);
-        return;
-    }
-
-    // magic number, but well, that's what ctime_r needs
-    *data_len = 26;
-    *data = clHeapAllocate(*data_len);
-    if (*data == 0)
-    {
-        *data_len = 0;
-        return;
-    }
-    time(&t);
-    ctime_r(&t, *data);
-    *(*data + 24) = 0;
-    (*data_len) -= 1;
-    return;
-}
-
-static void
-generate_load_average(char **data, ClSizeT *data_len)
-{
-    int fd;
-    char *tmp_ptr;
-    char buf[500];                  //insane over doing it
-    ssize_t num_read;
-
-    // minimal error checking
-    if (data == 0 || data_len == 0)
-    {
-        logmsg(CL_LOG_ERROR,
-                "%s\t: generate_load_average passed null pointer\n ", appname);
-        return;
-    }
-    
-    // Now open the load average file in /proc, read the file into a local
-    // buffer, allocate memory to hold the file contents, copy the contents
-    // of the file into the newly allocated buffer.
-    if ((fd = open("/proc/loadavg", O_RDONLY, 0)) == -1)
-    {
-        logmsg(CL_LOG_ERROR, "%s\t: failed to open /proc/loadavg\n", appname);
-        return;
-    }
-    num_read = read(fd, buf, sizeof buf);
-    if (num_read == 0 || num_read == -1)
-    {
-        logmsg(CL_LOG_ERROR, "%s\t: bogus result from read of loadavg\n",
-                appname);
-        return;
-    }
-    close(fd);
-    *data_len = num_read + 1;
-    *data = clHeapAllocate(*data_len);
-    if (data == 0)
-    {
-        logmsg(CL_LOG_ERROR,
-                "%s: failed to allocate memory for loadavg contents\n",
-                appname);
-        *data_len = 0;
-        close(fd);
-        return;
-    }
-    *(*data + (*data_len) - 1) = 0;     // preemptively null-terminate the line
-    strncpy(*data, buf, *data_len);
-
-    //
-    // Do MINIMAL parsing in that we look for the third space in the buffer
-    // (which comes after the load average information proper) and we replace
-    // the space with a nul character to terminate the string.
-    // If there is no third space character, just return the buffer unchanged.
-    tmp_ptr = strchr(*data, ' ');
-    if (tmp_ptr == 0)
-    {
-        return;
-    }
-    tmp_ptr = strchr(tmp_ptr + 1, ' ');
-    if (tmp_ptr == 0)
-    {
-        return;
-    }
-    tmp_ptr = strchr(tmp_ptr + 1, ' ');
-    if (tmp_ptr == 0)
-    {
-        return;
-    }
-    *tmp_ptr = 0;
-    return;
-}
-
-static ClRcT
-appPublishEvent()
-{
-    ClEventIdT      eventId         = 0;
-    static int      index           = 0;
-    SaSizeT         data_len        = 0;
-    SaAisErrorT	    saRc = SA_AIS_OK;
-    char            *data           = 0;
-    typedef void (*Generator)(char **, ClSizeT*);
-
-    //
-    // Note: to add a new generator, just define it above and then include
-    // the new functions name in the generators list.
-    // Next, maybe something that gets disk free info by way of getfsent
-    // and statfs?
-    static Generator generators[]   =
-    {
-        generate_time_of_day,
-        generate_load_average
-    };
-
-    //
-    // every time through increment index and then set index to
-    // it's value modulo the number of entries in the generators
-    // array.  This will cause us to cycle through the list of
-    // generators as we're called to publish events.
-    (*generators[index++])(&data, &data_len);
-    index %= (int)(sizeof generators / sizeof generators[0]);
-    if (data == 0 || data_len == 0)
-    {
-        logmsg(CL_LOG_ERROR, "%s: no event data generated\n", appname);
-        return CL_ERR_NO_MEMORY;
-    }
-    clOsalPrintf("%s: Publishing Event: %.*s\n", appname, (int)data_len, data);
-    saRc = saEvtEventPublish(gTestInfo.eventHandle, (void *)data, data_len, &eventId);
-    clHeapFree(data);
-
-    return CL_OK;
-}
-
-static void*
-testEvtMainLoop(void *thdParam)
-{
-    char *appname = (char*)thdParam;
-    
-    printf("%s: Waiting for CSI assignment...\n", appname);
-
-    /* Letting the world know that we entered the mainloop */
-    logmsg(CL_LOG_DEBUG, "%s entered main loop", appname);
-
-    /* Main loop: Keep printing and publishing unless we are suspended */
-    while (!gTestInfo.exiting)
-    {
-        if (gTestInfo.running && gTestInfo.haState == CL_AMS_HA_STATE_ACTIVE)
-        {
-            appPublishEvent();
-        }
-        sleep(1);
-    }
-
-    /* Letting the world know that we exited from mainloop */
-    logmsg(CL_LOG_DEBUG, "%s exited main loop", appname);
-
-    return NULL;
-}
-
-/*
- * ---END_APPLICATION_CODE---
  */
 

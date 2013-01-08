@@ -6,8 +6,8 @@
 <property name="configs.dir"       value="${project.loc}/configs"/>
 <property name="temp.configs.dir"       value="${project.loc}/.temp_dir/configs"/>
 <property name="idl.dir"       	   value="${project.loc}/idl"/>
-<property name="scripts.dir"       value="${project.loc}/scripts"/>
-<property name="templates.dir"       value="${project.loc}/templates"/>
+<property name="scripts.dir"       value="${project.loc}/codegen/${codeGenMode}/scripts"/>
+<property name="templates.dir"       value="${project.loc}/codegen/${codeGenMode}/templates"/>
 <property name="target.platform"   value="target/ia32"/>
 <property name="target.os"         value="linux-2.4"/>
 <property name="deploy.config.dir" value="${src.dir}/config"/>
@@ -46,98 +46,34 @@
 </target>
 
 <!-- IDL -->
-<target name="idl">
-	<exec dir="${idl.dir}" executable="${python}">
-        <arg line="${scripts.dir}/clIdlGen.py"/>
-        <arg line="${idl.dir}/server_idl_interface.xml"/>
-        <arg line="${src.dir}/app/idl"/>
-        <arg line="${models.dir}/modelchanges.xmi"/>
-        <arg line="${models.dir}/componentdata.xml"/>
-	</exec>
-</target>
-
-<!-- appMain Script -->
-<target name="appMainScript">
-    <exec dir="${src.dir}/app" executable="${python}">
-        <arg line="${scripts.dir}/appMainScript.py"/>        
-    	<arg line="${models.dir}/resourcedata.xml"/>
-    	<arg line="${models.dir}/componentdata.xml"/>
-    	<arg line="${models.dir}/alarmdata.xml"/>
-        <arg line="${temp.configs.dir}/compileconfigs.xml"/>
-    	<arg line="${static.dir}/src"/>
-        <arg line="${asptemplates.dir}"/>
-    	<arg line="${mapxmi.loc}"/>
-    	<arg line="${models.dir}/modelchanges.xmi"/>
-    	<arg line="${templates.dir}"/>
-    	<arg line="${idl.dir}/server_idl_interface.xml"/>
-	<arg line="${models.dir}/component_resource_map.xml"/>
-	<arg line="${models.dir}/resource_alarm_map.xml"/>
-    	<arg line="${models.dir}/component_templateGroup_map.xml"/>
-    	<arg line="${models.dir}/alarmrule.xml"/>
+<target name="idl" if="idlExists">
+    <exec dir="${idl.dir}" executable="${python}">
+	<arg line="${pkg.dir}/src/ASP/components/idl/script/clIdlGen.py"/>
+	<arg line="-u"/>
+	<arg line="${idl.dir}/server_idl_interface.xml"/>
+	<arg line="${src.dir}/app/idl"/>
     </exec>
 </target>
+<condition property="idlExists">
+	<and>
+		<available file="${idl.dir}/server_idl_interface.xml"/>
+	</and>
+</condition>
 
-<!-- configMain Script -->
-<target name="configMainScript">
-    <exec dir="${src.dir}/config" executable="${python}">
-        <arg line="${scripts.dir}/configMainScript.py"/>        
-    	<arg line="${models.dir}/resourcedata.xml"/>
-    	<arg line="${models.dir}/componentdata.xml"/>
-    	<arg line="${models.dir}/alarmdata.xml"/>
-        <arg line="${temp.configs.dir}/compileconfigs.xml"/>
-    	<arg line="${static.dir}/src"/>
-        <arg line="${asptemplates.dir}"/>
-    	<arg line="${mapxmi.loc}"/>
-    	<arg line="${models.dir}/modelchanges.xmi"/>
-    	<arg line="${templates.dir}"/>
-    	<arg line="${idl.dir}/server_idl_interface.xml"/>
-    </exec>
-</target>
+<!-- Start run.py -->
+<target name="run">
+	<exec dir="${src.dir}/app" executable="${python}" failonerror="true">
+		<arg line="${project.loc}/codegen/${codeGenMode}/run.py"/>
+		<arg line="${project.loc}"/>
+		<arg line="${pkg.dir}"/>
+		<arg line="${mapxmi.loc}"/>
+		<arg line="${codeGenMode}"/>
+		<arg line="${src.dir}"/>
+		<arg line="${mib.compiler}"/>
+		<arg line="${mib.path}"/>
+	</exec>	
+</target>	
 
-<!-- Clean Up -->
-<target name="cleanUp">
-    <exec dir="${src.dir}" executable="${python}">
-        <arg line="${scripts.dir}/cleanUp.py"/>
-        <arg line="${temp.configs.dir}/clAmfConfig.xml"/>
-    	<arg line="${models.dir}/componentdata.xml"/>
-    </exec>
-</target>
-	
-<!-- Boot Configs -->
-<target name="boot">
-    <!-- Copy Config XMLs -->
-    
-    <copy todir="${deploy.config.dir}/" overwrite="true">
-        <fileset dir="${configs.dir}">
-            <include name="*.xml"/>
-            <exclude name="compileconfigs.xml"/>
-        </fileset>
-    </copy>
-
-    <!-- Copy Static Files -->
-    <copy todir="${deploy.config.dir}">
-        <fileset dir="${static.dir}/src">
-		<exclude name="**/clSnmp*.*"/> 
-       </fileset>
-    </copy>
-
-    <!-- Copy Boottime Configuration -->
-    <!--
-    <exec dir="${deploy.config.dir}" executable="${python}">
-        <arg line="${scripts.dir}/boottimecopy.py"/>
-        <arg line="${models.dir}/componentdata.xml"/>
-        <arg line="${project.loc}"/>
-        <arg line="${deploy.config.dir}"/>
-    </exec>
-    -->
-</target>
-
-<!-- Generates Makefile in config Dir -->
-<target name="make">
-    <exec dir="${deploy.config.dir}" executable="${python}">
-        <arg line="${scripts.dir}/makefile.py"/>
-    </exec>
-</target>
 	
 <!-- Generates Asp Env file -->
 	<!-- <target name="env">
@@ -146,14 +82,7 @@
 	        <arg line="${project.name}"/>
 	    </exec>
 	</target> -->
-	<!-- MOID -->
-	<target name="moid">
-	    <exec dir="${deploy.config.dir}" executable="${python}">
-	        <arg line="${scripts.dir}/generatemoid.py"/>
-	        <arg line="${temp.configs.dir}"/>
-	    </exec>
-	</target>
-
+	
 	<!-- clCompConfig -->
 	<target name="clCompConfig">
 	    <exec dir="${src.dir}/app" executable="${python}">
@@ -175,6 +104,7 @@
 			<arg line="${deploy.config.dir}"/>
 			<arg line="${buildtools.loc}"/>
 			<arg line="${mib.path}"/>
+			<arg line="${templates.dir}"/>
 		</exec>	
 	</target>
 	
@@ -192,6 +122,6 @@
 Target to generate Code/XML from Project configurations.
 -->
 <target name="all"
-    depends="init, backup, header, appMainScript, configMainScript, idl, cleanUp, boot, make, moid, snmpautocodegen"/>
+    depends="init, backup, run, idl"/>
     <echo>Source Code generation in ${src.dir}</echo>
 </project>

@@ -1,17 +1,31 @@
 <?xml version='1.0'?>
 <project name="Deploy Images" default="all">
-	<target name="deployImage" if="tarball.set">
-		<scp trust="yes" file="${image.path}" todir="${user.name}:${user.pwd}@${remote.address}:${remote.location}"/>
-	</target>	
-	<target name="deployDir" unless="tarball.set">
+	<target name="deploySpecificImage" if="specific.tar">
+		<scp trust="yes" file="${image.path}/${image.name}.tgz" todir="${user.name}:${user.pwd}@${remote.address}:${remote.location}"/>
+		<sshexec trust="yes" host="${remote.address}" username="${user.name}" password="${user.pwd}" command="cd ${remote.location};tar -xzvf ${image.name}.tgz"/>
+	</target>
+	<target name="deployCommonImage" if="common.tar">
+		<scp trust="yes" file="${image.path}/${image.name}.tgz" todir="${user.name}:${user.pwd}@${remote.address}:${remote.location}"/>
+		<sshexec trust="yes" host="${remote.address}" username="${user.name}" password="${user.pwd}" command="cd ${remote.location};tar -xzvf ${image.name}.tgz"/>
+		<scp trust="yes" file="${image.path}/asp_${node.name}.conf" todir="${user.name}:${user.pwd}@${remote.address}:${remote.location}/etc"/>
+		<sshexec trust="yes" host="${remote.address}" username="${user.name}" password="${user.pwd}" command="cd ${remote.location}/etc;mv asp_${node.name}.conf asp.conf"/>
+	</target>
+	<target name="deploySpecificDir" if="specific.dir">
 		<scp trust="yes" todir="${user.name}:${user.pwd}@${remote.address}:${remote.location}">
-	    	<fileset dir="${image.path}"/>
+	    	<fileset dir="${image.path}/${image.name}"/>
 		</scp>
 	</target>
+	<target name="deployCommonDir" if="common.dir">
+		<scp trust="yes" todir="${user.name}:${user.pwd}@${remote.address}:${remote.location}">
+	    	<fileset dir="${image.path}/${image.name}"/>
+		</scp>
+		<scp trust="yes" file="${image.path}/asp_${node.name}.conf" todir="${user.name}:${user.pwd}@${remote.address}:${remote.location}/etc"/>
+		<sshexec trust="yes" host="${remote.address}" username="${user.name}" password="${user.pwd}" command="cd ${remote.location}/etc;mv asp_${node.name}.conf asp.conf"/>
+	</target>
 <!--
-Target to make images.
+Target to deploy images.
 -->
 	<target name="all"
-    	depends="deployImage,deployDir"/>
+    	depends="deploySpecificImage,deployCommonImage,deploySpecificDir,deployCommonDir"/>
    	<echo>${image.path} copied in to ${remote.address}</echo>
 </project>

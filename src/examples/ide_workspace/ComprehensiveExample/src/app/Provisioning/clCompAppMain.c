@@ -9,9 +9,7 @@
  *
  ***************************** Description ************************************
  *
- * This file provides a skeleton for writing a SAF aware component. Application
- * specific code should be added between the ---BEGIN_APPLICATION_CODE--- and
- * ---END_APPLICATION_CODE--- separators.
+ * This file provides a skeleton for writing a SAF aware component.
  *
  * Template Version: 1.0
  *
@@ -25,6 +23,7 @@
  * POSIX Includes.
  */
 #include <assert.h>
+#include <errno.h>
 
 /*
  * Basic ASP Includes.
@@ -38,37 +37,12 @@
 
 #include <clCpmApi.h>
 #include <saAmf.h>
-
-/*
- * ---BEGIN_APPLICATION_CODE---
- */
  
 #include "clCompAppMain.h"
-#include "../ev/ev.h"
-#include "clProvisioningUtils.h"
-#include "clCorUtilityApi.h"
-#include "clCorApi.h"
-#include "clCorMetaStruct.h"
-
-
-/*
- * ---END_APPLICATION_CODE---
- */
 
 /******************************************************************************
  * Optional Features
  *****************************************************************************/
-
-/*
- * This is necessary if the component wishes to provide a service that
- * will be used by other components.
- */
-
-#if HAS_EO_SERVICES
-
-extern ClRcT Provisioning_EOClientInstall(void);
-
-#endif
 
 /*
  * This template has a few default clprintfs. These can be disabled by
@@ -78,14 +52,6 @@ extern ClRcT Provisioning_EOClientInstall(void);
 #define clprintf(severity, ...)   clAppLog(CL_LOG_HANDLE_APP, severity, 10, \
                                   CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,\
                                   __VA_ARGS__)
-
-/*
- * ---BEGIN_APPLICATION_CODE---
- */
-
-/*
- * ---END_APPLICATION_CODE---
- */
 
 /******************************************************************************
  * Global Variables.
@@ -97,76 +63,8 @@ SaAmfHandleT amfHandle;
 ClBoolT unblockNow = CL_FALSE;
 
 /*
- * ---BEGIN_APPLICATION_CODE---
- */
-
-/*
  * Declare other global variables here.
  */
-ClCharT appname [80] = {0};
-ClUint8T compInit = 0;
-/*
- * ---END_APPLICATION_CODE---
- */
-
-/*
- * Description of this EO
- */
-
-ClEoConfigT clEoConfig =
-{
-    COMP_EO_NAME,               /* EO Name                                  */
-    COMP_EO_THREAD_PRIORITY,    /* EO Thread Priority                       */
-    COMP_EO_NUM_THREAD,         /* No of EO thread needed                   */
-    COMP_IOC_PORT,              /* Required Ioc Port                        */
-    COMP_EO_USER_CLIENT_ID, 
-    COMP_EO_USE_THREAD_MODEL,   /* Thread Model                             */
-    NULL,                       /* Application Initialize Callback          */
-    NULL,                       /* Application Terminate Callback           */
-    clCompAppStateChange,       /* Application State Change Callback        */
-    clCompAppHealthCheck,       /* Application Health Check Callback        */
-};
-
-/*
- * Basic libraries used by this EO. The first 6 libraries are
- * mandatory, the others can be enabled or disabled by setting to
- * CL_TRUE or CL_FALSE.
- */
-
-ClUint8T clEoBasicLibs[] =
-{
-    COMP_EO_BASICLIB_OSAL,      /* Lib: Operating System Adaptation Layer   */
-    COMP_EO_BASICLIB_TIMER,     /* Lib: Timer                               */
-    COMP_EO_BASICLIB_BUFFER,    /* Lib: Buffer Management                   */
-    COMP_EO_BASICLIB_IOC,       /* Lib: Intelligent Object Communication    */
-    COMP_EO_BASICLIB_RMD,       /* Lib: Remote Method Dispatch              */
-    COMP_EO_BASICLIB_EO,        /* Lib: Execution Object                    */
-    COMP_EO_BASICLIB_OM,        /* Lib: Object Management                   */
-    COMP_EO_BASICLIB_HAL,       /* Lib: Hardware Adaptation Layer           */
-    COMP_EO_BASICLIB_DBAL,      /* Lib: Database Adaptation Layer           */
-};
-
-/*
- * Client libraries used by this EO. All are optional and can be
- * enabled or disabled by setting to CL_TRUE or CL_FALSE.
- */
-
-ClUint8T clEoClientLibs[] =
-{
-    COMP_EO_CLIENTLIB_COR,      /* Lib: Common Object Repository            */
-    COMP_EO_CLIENTLIB_CM,       /* Lib: Chassis Management                  */
-    COMP_EO_CLIENTLIB_NAME,     /* Lib: Name Service                        */
-    COMP_EO_CLIENTLIB_LOG,      /* Lib: Log Service                         */
-    COMP_EO_CLIENTLIB_TRACE,    /* Lib: Trace Service                       */
-    COMP_EO_CLIENTLIB_DIAG,     /* Lib: Diagnostics                         */
-    COMP_EO_CLIENTLIB_TXN,      /* Lib: Transaction Management              */
-    COMP_EO_CLIENTLIB_MSO,      /* Lib: MSO Management                      */
-    COMP_EO_CLIENTLIB_PROV,     /* Lib: Provisioning Management             */
-    COMP_EO_CLIENTLIB_ALARM,    /* Lib: Alarm Management                    */
-    COMP_EO_CLIENTLIB_DEBUG,    /* Lib: Debug Service                       */
-    COMP_EO_CLIENTLIB_GMS,       /* Lib: Cluster/Group Membership Service    */
-    COMP_EO_CLIENTLIB_PM        /* Lib: Performance Management              */
-};
 
 /******************************************************************************
  * Application Life Cycle Management Functions
@@ -184,21 +82,13 @@ int main(int argc, char *argv[])
     SaAmfCallbacksT     callbacks;
     SaVersionT          version;
     ClIocPortT          iocPort;
-    ClRcT               rc = SA_AIS_OK;
+    SaAisErrorT         rc = SA_AIS_OK;
 
     SaSelectionObjectT dispatch_fd;
     fd_set read_fds;
     
     /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    /*
      * Declare other local variables here.
-     */
-
-    /*
-     * ---END_APPLICATION_CODE---
      */
 
     /*
@@ -241,27 +131,11 @@ int main(int argc, char *argv[])
     
     FD_SET(dispatch_fd, &read_fds);
 
-    
-#if HAS_EO_SERVICES
-
-
-    rc = Provisioning_EOClientInstall();
-
-#endif
 
     /*
      * Do the application specific initialization here.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    // ...
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
 
     /*
      * Now register the component with AMF. At this point it is
@@ -283,21 +157,6 @@ int main(int argc, char *argv[])
     clprintf (CL_LOG_SEV_INFO, "   IOC Address             : 0x%x\n", clIocLocalAddressGet());
     clprintf (CL_LOG_SEV_INFO, "   IOC Port                : 0x%x\n", iocPort);
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    strncpy(appname, (ClCharT *)appName.value, min(sizeof(appname), appName.length));
-    appname[min(sizeof appname - 1, appName.length)] = 0;
-    clOsalPrintf("Instantiated as component instance [%s].\n", appname);
-
-    (void)ev_init(argc, argv, appname);
-
-    compInit = 1;
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
 
     /*
      * Block on AMF dispatch file descriptor for callbacks
@@ -306,6 +165,10 @@ int main(int argc, char *argv[])
     {
         if( select(dispatch_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
         {
+            if (EINTR == errno)
+            {
+                continue;
+            }
 		    clprintf (CL_LOG_SEV_ERROR, "Error in select()");
 			perror("");
             break;
@@ -317,13 +180,6 @@ int main(int argc, char *argv[])
      * Do the application specific finalization here.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
 
     if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
 	{
@@ -356,15 +212,6 @@ void clCompAppTerminate(SaInvocationT invocation, const SaNameT *compName)
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Terminating\n",
               compName->length, compName->value, mypid);
 
-    /*
-     * ---BEGIN_APPLICATION_CODE--- 
-     */
-
-    // ...
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
     
     /*
      * Unregister with AMF and respond to AMF saying whether the
@@ -406,31 +253,11 @@ ClRcT clCompAppStateChange(ClEoStateT eoState)
     {
         case CL_EO_STATE_SUSPEND:
         {
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
             break;
         }
 
         case CL_EO_STATE_RESUME:
         {
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
             break;
         }
         
@@ -458,16 +285,10 @@ ClRcT clCompAppHealthCheck(ClEoSchedFeedBackT* schFeedback)
      * unaltered.
      */
 
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
     
     schFeedback->freq   = CL_EO_DEFAULT_POLL; 
     schFeedback->status = CL_CPM_EO_ALIVE;
 
-    /*
-     * ---END_APPLICATION_CODE---
-     */
 
     return CL_OK;
 }
@@ -488,28 +309,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
                         SaAmfHAStateT       haState,
                         SaAmfCSIDescriptorT csiDescriptor)
 {
-    /*
-     * ---BEGIN_APPLICATION_CODE--- 
-     */
-
-    ClRcT   rc = CL_OK;
-    ClCorMOIdT  moId ;
-    ClCorAddrT  corAddr = {0};
-
-    
-    clCorMoIdInitialize(&moId);
-    clCorMoIdAppend(&moId, CLASS_CHASSIS_MO, 0);
-    clCorMoIdAppend(&moId, CLASS_CLOCKTABLE_MO, 0);
-    clCorMoIdServiceSet(&moId, CL_COR_SVC_ID_PROVISIONING_MANAGEMENT);
-
-    clEoMyEoIocPortGet(&corAddr.portId);
-    corAddr.nodeAddress = clIocLocalAddressGet();
-
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
-
     /*
      * Print information about the CSI Set
      */
@@ -532,21 +331,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * for the CSI.
              */
 
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            rc = clCorPrimaryOISet(&moId, &corAddr); 
-            if (CL_OK != rc)
-            {
-                clOsalPrintf("[%s]: Failed while setting the primary OI. rc[0x%x] \n", 
-                        appname, rc);
-            }
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -556,16 +340,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
             /*
              * AMF has requested application to take the standby HA state 
              * for this CSI.
-             */
-
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
              */
 
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
@@ -580,21 +354,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * must stop work associated with the CSI immediately.
              */
 
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            rc = clCorPrimaryOIClear(&moId, &corAddr); 
-            if (CL_OK != rc)
-            {
-                clOsalPrintf("[%s]: Failed while clearing the primary OI. rc[0x%x] \n", 
-                        appname, rc);
-            }
-
-            /*
-             * ---END_APPLICATION_CODE---
-             */
-
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -606,16 +365,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * assigned the active HA state. The application must stop work
              * associated with the CSI gracefully and not accept any new
              * workloads while the work is being terminated.
-             */
-
-            /*
-             * ---BEGIN_APPLICATION_CODE---
-             */
-
-            // ...
-
-            /*
-             * ---END_APPLICATION_CODE---
              */
 
             saAmfCSIQuiescingComplete(amfHandle, invocation, SA_AIS_OK);
@@ -651,16 +400,6 @@ void clCompAppAMFCSIRemove(SaInvocationT  invocation,
 
     /*
      * Add application specific logic for removing the work for this CSI.
-     */
-
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    // ...
-
-    /*
-     * ---END_APPLICATION_CODE---
      */
 
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
@@ -736,14 +475,6 @@ void clCompAppAMFPrintCSI(SaAmfCSIDescriptorT csiDescriptor,
 }
 
 /*
- * ---BEGIN_APPLICATION_CODE---
- */
-
-/*
  * Insert any other utility functions here.
- */
-
-/*
- * ---END_APPLICATION_CODE---
  */
 

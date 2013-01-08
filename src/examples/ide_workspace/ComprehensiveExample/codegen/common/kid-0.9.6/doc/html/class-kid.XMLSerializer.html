@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<HTML>
+  
+  <HEAD><META CONTENT="text/html; charset=utf-8" HTTP-EQUIV="Content-Type">
+    <TITLE>kid.XMLSerializer</TITLE>
+    <LINK HREF="layout.css" TYPE="text/css" REL="stylesheet">
+    <LINK HREF="http://planet.kid-templating.org/rss20.xml" TYPE="application/rss+xml" REL="alternate" TITLE="RSS 2.0">
+
+  </HEAD>
+  <BODY>
+    <DIV ID="page">
+      <H1 CLASS="doc-title"><A HREF="http://www.kid-templating.org/">kid-templating.org</A></H1>
+      <DIV ID="navcontainer">
+        <UL ID="navlist">
+          <LI CLASS="pagenav">
+            <UL>
+              <LI CLASS="page_item">
+                <A HREF="index.html" CLASS="" TITLE="Project Home / Index">Kid</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="module-index.html" CLASS="" TITLE="kid package and module reference">Modules</A>
+              </LI>
+              
+              <LI>
+                <A HREF="http://www.kid-templating.org/trac/" TITLE="Wiki / Subversion / Roadmap / Bug Tracker">Trac</A>
+              </LI>
+              <LI>
+                <A HREF="http://planet.kid-templating.org/">Blog</A>
+              </LI>
+              <LI>
+                <A HREF="http://lists.sourceforge.net/lists/listinfo/kid-template-discuss" CLASS="" TITLE="Mailing List">Discuss</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="http://www.kid-templating.org/about">
+                  about kid-templating.org
+                </A>
+              </LI>
+            </UL>
+          </LI>
+        </UL>
+      </DIV>
+      
+      <HR>
+      
+      <DIV ID="content">
+  
+  <H1 CLASS="pudge-member-page-heading">
+    <TT>XMLSerializer</TT>
+  </H1>
+  
+  <P CLASS="pudge-member-parent-link">
+    <SMALL>
+    The XMLSerializer class is accessible via the
+    <A HREF="module-kid.html">
+      <TT>kid</TT>
+    </A> module.
+    </SMALL>
+  </P>
+  <DIV ID="pudge-section-nav">
+  <UL>
+    <LI>
+      <A HREF="#attributes" CLASS="pudge-section-link">
+        Attributes (7)
+      </A>
+      
+    </LI><LI>
+      <A HREF="#methods" CLASS="pudge-section-link">
+        Methods (1)
+      </A>
+      
+    </LI>
+    
+    <LI>
+      <A HREF="kid/serialization.py.html?f=114&amp;l=240#114" CLASS="pudge-section-link">
+        Source
+      </A>
+    </LI>
+  </UL>
+  </DIV>
+  <DIV STYLE="clear: left"></DIV>
+  
+  
+  <HR>
+  
+  
+    <A NAME="attributes"></A>
+    <H2>Attributes</H2>
+    <DIV CLASS="pudge-member name">
+    <A NAME="decl"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">a</SPAN>
+      <TT><A HREF="class-kid.XMLSerializer.html#decl" CLASS="pudge-obj-link">decl</A></TT></H4>
+    <DIV CLASS="pudge-section rst">
+      
+      <PRE>1</PRE>
+    </DIV>
+  </DIV><DIV CLASS="pudge-member name">
+    <A NAME="balanced_blocks"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">a</SPAN>
+      <TT><A HREF="class-kid.XMLSerializer.html#balanced_blocks" CLASS="pudge-obj-link">balanced_blocks</A></TT></H4>
+    <DIV CLASS="pudge-section rst">
+      
+      <PRE>False</PRE>
+    </DIV>
+  </DIV><DIV CLASS="pudge-member name">
+    <A NAME="cdata_elements"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">a</SPAN>
+      <TT><A HREF="class-kid.XMLSerializer.html#cdata_elements" CLASS="pudge-obj-link">cdata_elements</A></TT></H4>
+    <DIV CLASS="pudge-section rst">
+      
+      <PRE>[]</PRE>
+    </DIV>
+  </DIV><DIV CLASS="pudge-member name">
+    <A NAME="strip_whitespace"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">a</SPAN>
+      <TT><A HREF="class-kid.XMLSerializer.html#strip_whitespace" CLASS="pudge-obj-link">strip_whitespace</A></TT></H4>
+    <DIV CLASS="pudge-section rst">
+      
+      <PRE>0</PRE>
+    </DIV>
+  </DIV><DIV CLASS="pudge-member name">
+    <A NAME="encoding"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">a</SPAN>
+      <TT><A HREF="class-kid.XMLSerializer.html#encoding" CLASS="pudge-obj-link">encoding</A></TT></H4>
+    <DIV CLASS="pudge-section rst">
+      
+      <PRE>'utf-8'</PRE>
+    </DIV>
+  </DIV><DIV CLASS="pudge-member name">
+    <A NAME="doctype"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">a</SPAN>
+      <TT><A HREF="class-kid.XMLSerializer.html#doctype" CLASS="pudge-obj-link">doctype</A></TT></H4>
+    <DIV CLASS="pudge-section rst">
+      
+      <PRE>None</PRE>
+    </DIV>
+  </DIV><DIV CLASS="pudge-member name">
+    <A NAME="namespaces"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">a</SPAN>
+      <TT><A HREF="class-kid.XMLSerializer.html#namespaces" CLASS="pudge-obj-link">namespaces</A></TT></H4>
+    <DIV CLASS="pudge-section rst">
+      
+      <PRE>{'http://purl.org/atom/ns#': 'atom',
+ 'http://purl.org/rss/1.0/': 'rss',
+ 'http://www.w3.org/1999/02/22-rdf-syntax-ns#': 'rdf',
+ 'http://www.w3.org/1999/xhtml': 'html',
+ 'http://www.w3.org/XML/1998/namespace': 'xml'}</PRE>
+    </DIV>
+  </DIV>
+    
+  
+    <A NAME="methods"></A>
+    <H2>Methods</H2>
+    <DIV CLASS="pudge-member routine alias">
+    <A NAME="__init__"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.XMLSerializer.html#__init__" CLASS="pudge-obj-link">__init__</A>(self, encoding=None, decl=None, doctype=None, namespaces=None)</TT>
+      <A HREF="kid/serialization.py.html?f=120&amp;l=132#120" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    
+    
+  
+    </DIV>
+  </DIV>
+    
+  
+  
+  <P>
+    <SMALL>
+    
+    
+    See 
+    <A HREF="kid/serialization.py.html?f=114&amp;l=240#114" TITLE="kid/serialization.py:114">the source</A>
+    for more information.
+    </SMALL>
+  </P>
+
+</DIV>
+      
+      <DIV ID="footer">
+        
+        
+        <P STYLE="float: left;">
+          
+          This documentation is licensed under the 
+          <A HREF="doc-license.html" TITLE="Documentation License">GNU Free Documentation License</A>
+          <BR>
+          
+          built with 
+          <A HREF="http://lesscode.org/projects/pudge/">pudge/0.1.1</A><BR>
+		      original design by 
+          <A HREF="http://blog.ratterobert.com/">ratter / robert</A><BR>
+	      </P>
+        <DIV>
+        <BR>
+        <A NAME="search">
+          <FORM ACTION="http://lesscode.org/blog/index.php" METHOD="get" ID="searchform">
+            <DIV>
+              <INPUT TYPE="text" NAME="s" VALUE="" ID="s">
+              <INPUT TYPE="submit" ID="searchsubmit" VALUE="Search">
+            </DIV>
+          </FORM>
+        </A>
+        <BR>
+        </DIV>
+      </DIV>
+    </DIV>
+  </BODY>
+
+</HTML>

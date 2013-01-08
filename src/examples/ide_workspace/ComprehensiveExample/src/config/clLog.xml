@@ -19,6 +19,7 @@
             <maximumFilesRotated>0</maximumFilesRotated>
             <flushFreq>64</flushFreq>
             <flushInterval>100000</flushInterval>
+            <syslog>no</syslog>
           </stream>
           <stream name="sysStream">
             <fileName>sys</fileName>
@@ -29,6 +30,7 @@
             <maximumFilesRotated>0</maximumFilesRotated>
             <flushFreq>64</flushFreq>
             <flushInterval>100000</flushInterval>
+            <syslog>no</syslog>
           </stream>
         </perennialStreamsData>
         <precreatedStreamsData stream=""/>

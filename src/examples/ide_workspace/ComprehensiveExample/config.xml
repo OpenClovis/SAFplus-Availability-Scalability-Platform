@@ -12,6 +12,8 @@
     	<arg line="${config.option5}"/>
     	<arg line="${config.option6}"/>
     	<arg line="${config.option7}"/>
+    	<arg line="${config.option8}"/>
+    	<arg line="${config.option9}"/>
     	<arg line="${model.path}"/>
     </exec>	
 </target>

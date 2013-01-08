@@ -46,12 +46,22 @@ if [ "$9" != "NO" ]; then
 	ARGUMENT=${ARGUMENT}$9
 fi
 
+if [ "${10}" != "NO" ]; then
+	ARGUMENT=${ARGUMENT}" "
+	ARGUMENT=${ARGUMENT}${10}
+fi
+
+if [ "${11}" != "NO" ]; then
+	ARGUMENT=${ARGUMENT}" "
+	ARGUMENT=${ARGUMENT}${11}
+fi
+
 export ASP_MODEL_NAME=$1
 $2/configure --with-model-name=$ASP_MODEL_NAME $ARGUMENT
 
 sourceFile="$2/build/common/conf/target.conf"
-dest="${10}/$1/src/"
-destFile="/${10}/$1/src/target.conf"
+dest="${12}/$1/src/"
+destFile="/${12}/$1/src/target.conf"
 
 if [ -f "$sourceFile" ]
 	then
