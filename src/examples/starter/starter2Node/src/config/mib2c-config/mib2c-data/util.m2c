@@ -8,12 +8,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <clSnmpLog.h>
 
-#define CL_SNMP_AREA "snm"
-#define CL_SNMP_GEN_OP_COTX "gop"
-#define CL_SNMP_GEN_CMP_COTX "gcm"
+#define CL_SNMP_GEN_OP_COTX "GOP"
+#define CL_SNMP_GEN_CMP_COTX "GCM"
 
 @foreach $n notifications@
+@perleval $vars{'n'}=~ s/[^a-zA-Z0-9]*//g; 0@
     @eval $no_of_vb = 0@
     @foreach $vb varbinds@
         @eval $no_of_vb = $no_of_vb + 1@
@@ -28,10 +29,12 @@ typedef enum $n.uc_ENUM {
 @end@
 
 @foreach $n notifications@
+@perleval $vars{'n'}=~ s/[^a-zA-Z0-9]*//g; 0@
 ClRcT clSnmp${n}IndexGet(ClUint32T objectType, ClCorMOIdPtrT pMoId, ClAlarmUtilTlvInfoPtrT pTlvList);
 @end@
 
 @foreach $n notifications@
+@perleval $vars{'n'}=~ s/[^a-zA-Z0-9]*//g; 0@
     @foreach $vb varbinds@
         @if $vb.iscolumn == 1@
             @eval $vb_parent = $vb.parent@
@@ -56,6 +59,7 @@ ClRcT clSnmp${n}IndexGet(ClUint32T objectType, ClCorMOIdPtrT pMoId, ClAlarmUtilT
 
 ### Declaration of clSnmp${t}IndexTlvGet function.
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
     @eval $istable4index_tlv = 0@
 	@perleval if(exists ($tables4index_tlv{$vars{'t'}})) { $vars{'istable4index_tlv'} = 1; } 0;@
     @if $istable4index_tlv == 0@
@@ -72,6 +76,7 @@ ClRcT clSnmp${t}IndexTlvGet(ClPtrT pIndexInfo, ClAlarmUtilTlvInfoPtrT pTlvList);
 
 ### Declaration of clSnmp${t}IndexCorAttrGet function.
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 ClRcT clSnmp${t}IndexCorAttrGet(ClPtrT pInst, ClPtrT pCorAttrValueDescList);
 @end@
 
@@ -93,12 +98,15 @@ ClRcT clSnmp${t}IndexCorAttrGet(ClPtrT pInst, ClPtrT pCorAttrValueDescList);
 
 #include <clAlarmUtils.h>
 #include <clSnmp${name}InstXlation.h>
+#include <clAppSubAgentConfig.h>
 #include <clSnmpSubAgent${name}Config.h>
+@if $tables_exist == 1@
 #include <clSnmp${name}Tables.h>
+@end@
 #include <clSnmp${name}Util.h>
 
 @foreach $n notifications@
-
+@perleval $vars{'n'}=~ s/[^a-zA-Z0-9]*//g; 0@
 ClRcT clSnmp${n}IndexGet(ClUint32T objectType, ClCorMOIdPtrT pMoId, ClAlarmUtilTlvInfoPtrT pTlvList )
 {
     @eval $any_tbl_vb = 0@
@@ -135,7 +143,7 @@ ClRcT clSnmp${n}IndexGet(ClUint32T objectType, ClCorMOIdPtrT pMoId, ClAlarmUtilT
             @eval $vb_parent = $vb.parent@
             @eval $t = $vb_parent.parent@
             ### Calling ${t}InstXlator for $vb assuming that function is implemented using same code generator.
-            rc = clSnmp${t}InstXlator ( &oid, pMoId, NULL, (void **)&pInst, &instLen, NULL, 0);
+            rc = clSnmp${t}InstXlator ( &oid, pMoId, NULL, (void **)&pInst, &instLen, NULL, CL_MED_CREATION_BY_OI, NULL);
             if(rc != CL_OK)
             {
                 clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "${t}InstXlator returned : [0x%x]", rc);
@@ -159,6 +167,7 @@ ClRcT clSnmp${n}IndexGet(ClUint32T objectType, ClCorMOIdPtrT pMoId, ClAlarmUtilT
 @end@
 ###################################################################
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
     @eval $istable4index_tlv = 0@
 	@perleval if(exists ($tables4index_tlv{$vars{'t'}})) { $vars{'istable4index_tlv'} = 1; } 0;@
     @if $istable4index_tlv == 0@
@@ -173,7 +182,9 @@ ClRcT clSnmp${n}IndexGet(ClUint32T objectType, ClCorMOIdPtrT pMoId, ClAlarmUtilT
 ClRcT clSnmp${t}IndexTlvGet(ClPtrT pIndexInfo, ClAlarmUtilTlvInfoPtrT pTlvList)
 {
     ClAlarmUtilTlvT * pTlv = NULL;
-    ClSnmp${t}IndexInfoT * p${t}Index = (ClSnmp${t}IndexInfoT *)pIndexInfo;
+    ClSnmp${t}IndexInfoT * p${t}Index;
+
+    p${t}Index = (ClSnmp${t}IndexInfoT *)pIndexInfo;
 
     if(!pIndexInfo || !pTlvList)
     {
@@ -204,7 +215,7 @@ ClRcT clSnmp${t}IndexTlvGet(ClPtrT pIndexInfo, ClAlarmUtilTlvInfoPtrT pTlvList)
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("${t}IndexTlvGet unable to allocate memory!\n"));
         return (CL_ERR_NO_MEMORY);
     }
-    strcpy(pTlv->value, p${t}Index->${idx});
+    strcpy((ClCharT *)pTlv->value, p${t}Index->${idx});
     pTlv->type = CL_COR_INT8;
             @elsif $idx.type eq "ASN_IPADDRESS"@
     pTlv->length = 4; /* IPv4 Address length */
@@ -252,6 +263,7 @@ ClRcT clSnmp${t}IndexTlvGet(ClPtrT pIndexInfo, ClAlarmUtilTlvInfoPtrT pTlvList)
 @end@
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
     @eval $istable4index_cor_attrget = 0@
     @foreach $c column@
     	@if $c.rowstatus == 1@
@@ -347,5 +359,49 @@ ClRcT clSnmp${t}IndexCorAttrGet(ClPtrT pInst, ClPtrT pCorAttrValueDescList)
 @end@
 
 @close mib2c/clSnmp${name}Util.c@
+##################################################
+## mib2c/clSnmp${name}Enums.h
+##################################################
+@open mib2c/clSnmp${name}Enums.h@
+#ifndef _CL_SNMP_$name.uc_ENUMS_H
+#define _CL_SNMP_$name.uc_ENUMS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+@foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
+    @foreach $c column@
+       @eval $x = 0@
+       @foreach $e $v enum@
+           @if $x == 0@
+
+/* enums for column $c */
+           @eval $x = 1@
+       @end@
+#define $c.uc_$e.uc        $v
+       @end@
+    @end@
+@end@
+
+@foreach $s scalar@
+@perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
+   @eval $x = 0@
+   @foreach $e $v enum@
+       @if $x == 0@
+
+/* enums for scalar $s */
+       @eval $x = 1@
+       @end@
+#define $s.uc_$e.uc        $v
+       @end@
+@end@
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _CL_SNMP_$name.uc_ENUMS_H */
+@close mib2c/clSnmp${name}Enums.h@
 ### CLEANUP
 @perleval %tables4index_tlv = (); 0;@

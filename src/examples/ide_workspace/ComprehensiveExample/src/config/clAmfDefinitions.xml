@@ -51,6 +51,9 @@
           <autoAdjust>CL_FALSE</autoAdjust>
           <autoAdjustProbation>10000</autoAdjustProbation>
           <reductionProcedure>CL_FALSE</reductionProcedure>
+          <maxFailovers>0</maxFailovers>
+          <failoverDuration>300000</failoverDuration>
+          <betaFactor>0</betaFactor>
         </sgType>
         <sgType name="TwoPlusOneCHKPTSG">
           <failbackOption>CL_FALSE</failbackOption>
@@ -74,6 +77,9 @@
           <autoAdjust>CL_FALSE</autoAdjust>
           <autoAdjustProbation>10000</autoAdjustProbation>
           <reductionProcedure>CL_FALSE</reductionProcedure>
+          <maxFailovers>0</maxFailovers>
+          <failoverDuration>300000</failoverDuration>
+          <betaFactor>0</betaFactor>
         </sgType>
         <sgType name="SNMPSubAgentSG">
           <failbackOption>CL_FALSE</failbackOption>
@@ -97,6 +103,9 @@
           <autoAdjust>CL_FALSE</autoAdjust>
           <autoAdjustProbation>10000</autoAdjustProbation>
           <reductionProcedure>CL_FALSE</reductionProcedure>
+          <maxFailovers>0</maxFailovers>
+          <failoverDuration>300000</failoverDuration>
+          <betaFactor>0</betaFactor>
         </sgType>
         <sgType name="ProvisioningSG">
           <failbackOption>CL_FALSE</failbackOption>
@@ -120,6 +129,9 @@
           <autoAdjust>CL_FALSE</autoAdjust>
           <autoAdjustProbation>10000</autoAdjustProbation>
           <reductionProcedure>CL_FALSE</reductionProcedure>
+          <maxFailovers>0</maxFailovers>
+          <failoverDuration>300000</failoverDuration>
+          <betaFactor>0</betaFactor>
         </sgType>
         <sgType name="AlarmSG">
           <failbackOption>CL_FALSE</failbackOption>
@@ -143,6 +155,9 @@
           <autoAdjust>CL_FALSE</autoAdjust>
           <autoAdjustProbation>10000</autoAdjustProbation>
           <reductionProcedure>CL_FALSE</reductionProcedure>
+          <maxFailovers>0</maxFailovers>
+          <failoverDuration>300000</failoverDuration>
+          <betaFactor>0</betaFactor>
         </sgType>
         <sgType name="EventPublisherSG">
           <failbackOption>CL_FALSE</failbackOption>
@@ -166,6 +181,9 @@
           <autoAdjust>CL_FALSE</autoAdjust>
           <autoAdjustProbation>10000</autoAdjustProbation>
           <reductionProcedure>CL_FALSE</reductionProcedure>
+          <maxFailovers>0</maxFailovers>
+          <failoverDuration>300000</failoverDuration>
+          <betaFactor>0</betaFactor>
         </sgType>
         <sgType name="EventSubscriberSG">
           <failbackOption>CL_FALSE</failbackOption>
@@ -189,6 +207,9 @@
           <autoAdjust>CL_FALSE</autoAdjust>
           <autoAdjustProbation>10000</autoAdjustProbation>
           <reductionProcedure>CL_FALSE</reductionProcedure>
+          <maxFailovers>0</maxFailovers>
+          <failoverDuration>300000</failoverDuration>
+          <betaFactor>0</betaFactor>
         </sgType>
       </sgTypes>
       <suTypes>
@@ -305,7 +326,7 @@
           <isRestartable>CL_TRUE</isRestartable>
           <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
           <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>10000</instantiateDelay>
+          <instantiateDelay>5000</instantiateDelay>
           <numMaxInstantiate>1</numMaxInstantiate>
           <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
           <numMaxTerminate>1</numMaxTerminate>
@@ -351,7 +372,7 @@
           <isRestartable>CL_TRUE</isRestartable>
           <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
           <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>10000</instantiateDelay>
+          <instantiateDelay>5000</instantiateDelay>
           <numMaxInstantiate>1</numMaxInstantiate>
           <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
           <numMaxTerminate>1</numMaxTerminate>
@@ -395,7 +416,7 @@
           <isRestartable>CL_TRUE</isRestartable>
           <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
           <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>10000</instantiateDelay>
+          <instantiateDelay>5000</instantiateDelay>
           <numMaxInstantiate>1</numMaxInstantiate>
           <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
           <numMaxTerminate>1</numMaxTerminate>
@@ -441,7 +462,7 @@
           <isRestartable>CL_TRUE</isRestartable>
           <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
           <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>10000</instantiateDelay>
+          <instantiateDelay>5000</instantiateDelay>
           <numMaxInstantiate>1</numMaxInstantiate>
           <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
           <numMaxTerminate>1</numMaxTerminate>
@@ -487,7 +508,7 @@
           <isRestartable>CL_TRUE</isRestartable>
           <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
           <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>10000</instantiateDelay>
+          <instantiateDelay>5000</instantiateDelay>
           <numMaxInstantiate>1</numMaxInstantiate>
           <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
           <numMaxTerminate>1</numMaxTerminate>
@@ -533,7 +554,7 @@
           <isRestartable>CL_TRUE</isRestartable>
           <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
           <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>10000</instantiateDelay>
+          <instantiateDelay>5000</instantiateDelay>
           <numMaxInstantiate>1</numMaxInstantiate>
           <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
           <numMaxTerminate>1</numMaxTerminate>
@@ -579,7 +600,7 @@
           <isRestartable>CL_TRUE</isRestartable>
           <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
           <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>10000</instantiateDelay>
+          <instantiateDelay>5000</instantiateDelay>
           <numMaxInstantiate>1</numMaxInstantiate>
           <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
           <numMaxTerminate>1</numMaxTerminate>

@@ -19,15 +19,18 @@ ClRcT clSnmp${name}DefaultInstXlator (CL_IN const struct ClMedAgentId *pAgntId,
                      CL_OUT void**         pRetInstData,
                      CL_OUT ClUint32T     *pInstLen,
                      CL_OUT ClPtrT        pCorAttrValueDescList,
-                     CL_IN ClMedInstXlationOpEnumT instXlnOp);
+                     CL_IN ClMedInstXlationOpEnumT instXlnOp,
+                     CL_IN ClPtrT cookie);
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 ClRcT clSnmp${t}InstXlator (const struct ClMedAgentId *pAgntId,
                      CL_IN ClCorMOIdPtrT         hmoId,
                      CL_IN ClCorAttrPathPtrT containedPath,
                      CL_OUT void**         pRetInstData,
                      CL_OUT ClUint32T     *pInstLen,
                      CL_OUT ClPtrT        pCorAttrValueDescList,
-                     CL_IN ClMedInstXlationOpEnumT instXlnOp);
+                     CL_IN ClMedInstXlationOpEnumT instXlnOp,
+                     CL_IN ClPtrT cookie);
 @end@
 #ifdef __cplusplus
 }
@@ -68,7 +71,8 @@ ClRcT clSnmp${name}DefaultInstXlator (CL_IN const struct ClMedAgentId *pAgntId,
                      CL_OUT void**         pRetInstData,
                      CL_OUT ClUint32T     *pInstLen,
                      CL_OUT ClPtrT        pCorAttrValueDescList,
-                     CL_IN ClMedInstXlationOpEnumT instXlnOp)
+                     CL_IN ClMedInstXlationOpEnumT instXlnOp,
+                     CL_IN ClPtrT cookie)
 {
     ClUint32T   len = 0;
     ClSNMPRequestInfoT *pInst = NULL;
@@ -107,6 +111,7 @@ ClRcT clSnmp${name}DefaultInstXlator (CL_IN const struct ClMedAgentId *pAgntId,
 @end@
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 /*
  * This function needs to be written for every application MIB table. 
  * This implements the extraction part of the MIB table index. The user 
@@ -119,7 +124,8 @@ ClRcT clSnmp${t}InstXlator (CL_IN const struct ClMedAgentId *pAgntId,
                      CL_OUT void**         pRetInstData,
                      CL_OUT ClUint32T     *pInstLen,
                      CL_OUT ClPtrT        pCorAttrValueDescList,
-                     CL_IN ClMedInstXlationOpEnumT instXlnOp)
+                     CL_IN ClMedInstXlationOpEnumT instXlnOp,
+                     CL_IN ClPtrT cookie)
 {
     ClRcT       rc = CL_OK; /* Return code */ 
     ClUint32T   len = 0;
@@ -178,7 +184,7 @@ ClRcT clSnmp${t}InstXlator (CL_IN const struct ClMedAgentId *pAgntId,
             return rc;
         }
 
-        if(${t}IndexCorAttrIdList[0].attrId != 0 || ${t}IndexCorAttrIdList[0].attrId != -1)
+        if(${t}IndexCorAttrIdList[0].attrId <= 0)
         {
             ClUint8T * indexOidList[] = {
                 @foreach $idx index@

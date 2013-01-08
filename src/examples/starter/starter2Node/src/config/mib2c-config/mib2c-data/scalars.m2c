@@ -17,6 +17,7 @@ extern "C" {
 /* function declarations */
 void clSnmp${name}ScalarsInit(void);
 @foreach $s scalar@
+@perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
 Netsnmp_Node_Handler clSnmp${s}Handler;
 @end@
 
@@ -38,6 +39,7 @@ Netsnmp_Node_Handler clSnmp${s}Handler;
 #include <clSnmp${name}Scalars.h>
 
   @foreach $s scalar@
+@perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
 static oid ${s}Oid[] = { $s.commaoid };
   @end@
 
@@ -45,22 +47,35 @@ static oid ${s}Oid[] = { $s.commaoid };
 void
 clSnmp${name}ScalarsInit(void)
 {
-  DEBUGMSGTL(("${name}Scalars", "Initializing\n"));
+    netsnmp_mib_handler *callback_handler;
+    netsnmp_handler_registration    *reg = NULL;
+
+    DEBUGMSGTL(("${name}Scalars", "Initializing\n"));
 
   @foreach $s scalar@
-    netsnmp_register_scalar(
-        netsnmp_create_handler_registration("$s", clSnmp${s}Handler,
+  @perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
+    reg = netsnmp_create_handler_registration("$s", clSnmp${s}Handler,
                                ${s}Oid, OID_LENGTH(${s}Oid),
     @if $s.settable@
                                HANDLER_CAN_RWRITE
     @else@
                                HANDLER_CAN_RONLY
     @end@
-        ));
+        );
+    netsnmp_register_scalar (reg);
+
+    callback_handler = netsnmp_get_mode_end_call_handler(
+                               netsnmp_mode_end_call_add_mode_callback(NULL,
+                               NETSNMP_MODE_END_ALL_MODES, netsnmp_create_handler("my_end_callback_handler",
+                                                         clSnmpModeEndCallback)
+                                ));
+    netsnmp_inject_handler (reg, callback_handler);
+
   @end@
 }
 
 @foreach $s scalar@
+@perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
 int
 clSnmp${s}Handler(netsnmp_mib_handler *handler,
                           netsnmp_handler_registration *reginfo,
@@ -88,7 +103,7 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
 /* Extract the scalar OID, convert it to string form and assign it to requestInfo.oid */
 
     requestInfo.oidLen = OID_LENGTH(${s}Oid);
-    clSnmpOidCpy(&requestInfo, (ClUint32T *) reqVar->name);
+    clSnmpOidCpy(&requestInfo, reqVar->name);
 
     requestInfo.tableType = CL_$name.uc_SCALARS;
     
@@ -97,48 +112,60 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
         case MODE_GET:
         {
             ClInt32T retVal = 0, errorCode = 0;
+            _ClSnmpGetReqInfoT  reqAddInfo = {0};
             void * pVal = NULL;
+            ###@print scalar, attr $s type $s.type@
             ### script-writer: check if this could be done as @define-@calldefine 
             @if $s.type eq "ASN_OCTET_STR"@
                 @eval $str_var = $s@
                 @calldefine STR_UPPER_LIMIT@
-            ClCharT ${s}Val[$final_max];
+            ClCharT ${s}Val[$arr_len] = {0};
 
             requestInfo.dataLen = $final_max * sizeof(ClCharT);
+            pVal = ${s}Val;
             @elsif $s.type eq "ASN_IPADDRESS"@
-            ClUint8T ${s}Val[4];
+            ClUint8T ${s}Val[4] = {0};
 
             requestInfo.dataLen = 4 * sizeof(ClUint8T); /* IPv4 Address length */
+            pVal = ${s}Val;
             @elsif $s.type eq "ASN_OBJECT_ID"@
-            ClUint32T ${s}Val[CL_SNMP_MAX_OID_LEN];
+            ClUint32T ${s}Val[CL_SNMP_MAX_OID_LEN] = {0};
 
             requestInfo.dataLen = sizeof(ClUint32T) * CL_SNMP_MAX_OID_LEN;
+            pVal = ${s}Val;
+            @elsif $s.type eq "ASN_INTEGER"@
+            ClInt32T    ${s}Val = 0;
+
+            requestInfo.dataLen = sizeof(ClInt32T);
+            pVal = &${s}Val;
+
+            @elsif $s.type eq "ASN_UNSIGNED" || $s.type eq "ASN_GAUGE" || $s.type eq "ASN_COUNTER" || $s.type eq "ASN_TIMETICKS"@
+            ClUint32T   ${s}Val = 0;
+
+            requestInfo.dataLen = sizeof(ClUint32T);
+            pVal = &${s}Val;
             @else@
                 @eval $decl = '$s.decl'@
                 @calldefine GET_CLOVIS_CODING_CONV@
             $c_type ${s}Val;
 
             requestInfo.dataLen = sizeof($c_type);
+            pVal = &${s}Val;
             @end@
             requestInfo.index.scalarType = 0;
             requestInfo.opCode = CL_SNMP_GET;
+            reqAddInfo.pRequest = requests;
+            reqAddInfo.columnType = $s.type;
+            clLogDebug("SUB", "SCL",
+            "Received GET request");
 
-            @if $s.type eq "ASN_OCTET_STR" || $s.type eq "ASN_IPADDRESS" || $s.type eq "ASN_OBJECT_ID"@
-            pVal = ${s}Val;
-            @else@
-            pVal = & ${s}Val;
-            @end@
-            retVal = clExecuteSnmp(&requestInfo, pVal, NULL, &errorCode);
+            retVal = clRequestAdd(&requestInfo, pVal, NULL, &errorCode, &reqAddInfo);
 
             if(retVal != 0 || errorCode < 0)
             {
                 netsnmp_request_set_error (requests, errorCode);
                 return errorCode;
             }
-            @if $s.type eq "ASN_OCTET_STR"@
-            requestInfo.dataLen = strlen(${s}Val) + 1;
-            @end@
-            snmp_set_var_typed_value(reqVar, $s.type, (u_char *)pVal, requestInfo.dataLen);
             break;
         }
 
@@ -152,16 +179,15 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
         case MODE_SET_RESERVE1:
         {
             ClInt32T retVal = 0;
+            clLogDebug("SUB", "SCL",
+            "Received RESERVE1 request");
             retVal = netsnmp_check_vb_type(reqVar, $s.type);
             if(retVal != SNMP_ERR_NOERROR ) 
             {
                 netsnmp_request_set_error(requests, retVal );
                 return retVal;
             }
-            break;
-        }
-        case MODE_SET_RESERVE2:
-        {
+
             ### Handle enums.
             @if $s.enums == 1@
             switch(*(reqVar->val.integer))
@@ -178,7 +204,6 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
             }
             ### Handle $s with ranges.
             @elsif $s.ranges == 1@
-            ClInt32T retVal = 0;
                 @foreach $min, $max range $s@
                     ### script-writer: Observed that simply using $min does not print anything if $min = 0, hence the below statement.
                     @eval $min = $min + 0@
@@ -228,21 +253,42 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
             @end@
             break;
         }
-
-        case MODE_SET_FREE:
-            break;
-
-        case MODE_SET_ACTION:
+        case MODE_SET_RESERVE2:
         {
             ClInt32T retVal = 0, errorCode = 0, noOfOp = 1;
+            ClPtrT pVal = NULL;
+
+            ###clLogDebug("SNM", "SCL", "Received RESERVE2 request");
+
             @if $s.type eq "ASN_OCTET_STR"@
                 @eval $str_var = $s@
                 @calldefine STR_UPPER_LIMIT@
-            requestInfo.dataLen = (strlen((char*)reqVar->val.string) + 1) * sizeof(ClCharT);
+            ClCharT ${c}Val[$final_max] = {0};
+
+            pVal = ${c}Val;
+            requestInfo.dataLen = $final_max * sizeof(ClCharT);
             @elsif $s.type eq "ASN_IPADDRESS"@
+            ClUint8T ${c}Val[4] = {0}; /* IPv4 address length */
+
+            pVal = ${c}Val;
             requestInfo.dataLen = 4 * sizeof(ClUint8T);
             @elsif $s.type eq "ASN_OBJECT_ID"@
+            ClUint32T ${c}Val[CL_SNMP_MAX_OID_LEN] = {0};
+
+            pVal = ${c}Val;
             requestInfo.dataLen = sizeof(ClUint32T) * CL_SNMP_MAX_OID_LEN;
+            @elsif $s.type eq "ASN_INTEGER"@
+            ClInt32T    ${c}Val = 0;
+
+            pVal = &${c}Val;
+            ###@print ASN_INTEGER type received@
+            requestInfo.dataLen = sizeof(ClInt32T); 
+            @elsif $s.type eq "ASN_UNSIGNED" || $s.type eq "ASN_GAUGE" || $s.type eq "ASN_COUNTER" || $s.type eq "ASN_TIMETICKS"@
+            ClUint32T   ${c}Val = 0;
+            
+            pVal = &${c}Val;
+            ###@print ASN_UNSIGNED type received@
+            requestInfo.dataLen = sizeof(ClUint32T); 
             @else@
                 @eval $decl = '$s.decl'@
                 @calldefine GET_CLOVIS_CODING_CONV@
@@ -251,20 +297,91 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
             requestInfo.opCode = CL_SNMP_SET;
             requestInfo.index.scalarType = 0;
 
-            retVal = clExecuteSnmp( &requestInfo, reqVar->val.integer, &noOfOp, &errorCode);
+            memcpy(pVal, (void *)reqVar->val.integer, requestInfo.dataLen);
 
-            if (retVal != 0 || errorCode < 0)
+            clLogDebug("SUB", "SCL",
+                    "Calling request add");
+            retVal = clRequestAdd( &requestInfo, pVal, &noOfOp, &errorCode, NULL);
+            if(CL_OK != retVal)
             {
+                clLogError("SUB", "SCL",
+                        "Failed to add request to store, rc=[0x%x], errorCode=[0x%x]", 
+                        retVal, errorCode);
                 netsnmp_request_set_error(requests, errorCode);
-                return errorCode;
+                return retVal;
+            }
+            clLogDebug("SUB", "SCL",
+                    "Successfully added request in store");
+            break;
+        }
+
+        case MODE_SET_FREE:
+        {
+            clLogDebug("SUB", "SCL",
+            "Received FREE request");
+            clSnmpUndo();
+            break;
+        }
+
+        case MODE_SET_ACTION:
+        {
+            ClInt32T    retVal = 0;
+            ClMedErrorListT    medErrList;
+
+            clLogDebug("SUB", "SCL",
+                    "Received ACTION request for oid[%s] ",requestInfo.oid);
+            retVal = clSnmpCommit(&medErrList);
+            if (retVal != 0)
+            {
+                clLogDebug("SUB", "SCL",
+                        "Error in commit errCount[%d]",
+                        medErrList.count);
+                if(retVal == CL_ERR_NO_MEMORY)
+                {
+                    retVal = CL_SNMP_ERR_NOCREATION; /* Set SNMP equivalent error from oidErrMapTable in clSnmpInit.c */
+                    clLogError("SUB", "SCL",
+                            "ACTION phase failed, setting errorCode[0x%x] for oid[%s]", 
+                            retVal, requestInfo.oid);
+                    netsnmp_request_set_error(requests, retVal);
+                    return retVal;
+                }
+                else
+                {
+                    
+                    ClUint32T   i;
+                    for(i = 0; i < medErrList.count; i++)
+                    {
+                        /* the oid matches the request, set error and return*/
+                        if(!memcmp((ClUint8T*)requestInfo.oid, 
+                                    medErrList.pErrorList[i].oidInfo.id, medErrList.pErrorList[i].oidInfo.len)) 
+                        {
+                            clLogError("SUB", "SCL",
+                                    "ACTION phase failed, setting errorCode[0x%x] for oid[%s]", 
+                                    medErrList.pErrorList[i].errId, requestInfo.oid);
+                            netsnmp_request_set_error(requests, medErrList.pErrorList[i].errId);
+                            return retVal;
+
+                        }
+                        
+                    }
+                }
             }     
             break;
         }
         case MODE_SET_COMMIT:
+        {
+            clLogDebug("SUB", "SCL",
+                    "Received COMMIT request");
+            clSnmpUndo();
             break;
-
+        }
         case MODE_SET_UNDO:
+        {
+            clLogDebug("SUB", "SCL", 
+                    "Received UNDO request");
+            clSnmpUndo();
             break;
+        }
         @end@
 
         default:

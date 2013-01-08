@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+      <cpmConfigs>
+        <cpmConfig cpmType="GLOBAL" nodeType="ctrl">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="corSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="cmSU"/>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+        <cpmConfig cpmType="LOCAL" nodeType="work">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+      </cpmConfigs>
+      <nodeInstances>
+        <nodeInstance name="ctrlI0" nodeMoId="\Chassis:0\cpu:0" type="ctrl">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="vipSUI0" rank="0" type="vipSU">
+              <componentInstances>
+                <componentInstance name="vipI0" type="vip"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="ctrlI1" nodeMoId="\Chassis:0\cpu:1" type="ctrl">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="vipSUI1" rank="0" type="vipSU">
+              <componentInstances>
+                <componentInstance name="vipI1" type="vip"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+      </nodeInstances>
+      <serviceGroups>
+        <serviceGroup name="vipSGI0" type="vipSG">
+          <serviceInstances>
+            <serviceInstance name="vipSI" type="vipSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="vipWork_01" type="vipWork_0">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>vipSUI0</associatedServiceUnit>
+            <associatedServiceUnit>vipSUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+      </serviceGroups>
+    </amfConfig>
+  </version>
+</openClovisAsp>

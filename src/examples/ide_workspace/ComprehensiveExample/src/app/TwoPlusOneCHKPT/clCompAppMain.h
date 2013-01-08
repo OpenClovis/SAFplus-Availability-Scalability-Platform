@@ -36,8 +36,7 @@ extern "C" {
  * ---BEGIN_APPLICATION_CODE---
  */
  
-#include "saAis.h"
-#include "saCkpt.h"
+// add extra includes here...
 
 /*
  * ---END_APPLICATION_CODE---
@@ -59,9 +58,9 @@ extern "C" {
                                             "Unknown" )
 
 #define STRING_CSI_FLAGS(S)                                                 \
-(   ((S) == SA_AMF_CSI_ADD_ONE)            ? "Add One" :               \
-    ((S) == SA_AMF_CSI_TARGET_ONE)         ? "Target One" :            \
-    ((S) == SA_AMF_CSI_TARGET_ALL)         ? "Target All" :            \
+(   ((S) & SA_AMF_CSI_ADD_ONE)            ? "Add One" :               \
+    ((S) & SA_AMF_CSI_TARGET_ONE)         ? "Target One" :            \
+    ((S) & SA_AMF_CSI_TARGET_ALL)         ? "Target All" :            \
                                                   "Unknown" )
 
 /******************************************************************************
@@ -103,11 +102,7 @@ void clCompAppAMFPrintCSI(SaAmfCSIDescriptorT csiDescriptor,
  * ---BEGIN_APPLICATION_CODE---
  */
  
-static SaAisErrorT checkpoint_initialize(void);
-static SaAisErrorT checkpoint_finalize(void);
-static SaAisErrorT checkpoint_write_seq(ClUint32T);
-static SaAisErrorT checkpoint_read_seq(ClUint32T*);
-static SaAisErrorT checkpoint_replica_activate(void);
+// add custom functions here...
 
 /*
  * ---END_APPLICATION_CODE---

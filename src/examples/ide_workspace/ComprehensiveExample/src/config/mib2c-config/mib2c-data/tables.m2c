@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 
 /* column number definitions for table $t */
     @foreach $c column@
@@ -40,6 +41,7 @@ extern "C" {
 #endif
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 extern ClSnmpTableIndexCorAttrIdInfoT ${t}IndexCorAttrIdList[];
 @end@
 
@@ -47,13 +49,16 @@ extern ClSnmpTableIndexCorAttrIdInfoT ${t}IndexCorAttrIdList[];
 /* function declarations */
 void clSnmp${name}TablesInit(void);
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 void clSnmp${t}Initialize(void);
 @end@
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 Netsnmp_Node_Handler clSnmp${t}Handler;
 @end@
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 Netsnmp_First_Data_Point  clSnmp${t}GetFirstDataPoint;
 Netsnmp_Next_Data_Point   clSnmp${t}GetNextDataPoint;
 @end@
@@ -110,11 +115,13 @@ static const ClCharT * gErrList[] = {
 };
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 static oid ${t}Oid[] = { $t.commaoid };
 @end@
 
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
     @eval $index_count = count_indexes($t)@
 ClSnmpTableIndexCorAttrIdInfoT ${t}IndexCorAttrIdList[$index_count+1] = {
     @foreach $idx index@
@@ -140,6 +147,7 @@ void clSnmp${name}TablesDeInit(void)
 }
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 /** Initialize the $t table by defining its contents and how it's structured */
 void
 clSnmp${t}Initialize(void)
@@ -424,7 +432,7 @@ clSnmp${t}Handler(
                 ClInt32T retVal = 0, errorCode = 0;
                 void * pVal = NULL;
                 _ClSnmpGetReqInfoT reqAddInfo = {0};
-                clLogDebug("HDL", NULL,
+                clLogDebug("SUB", "TBL",
                 "Received GET request");
                 requestInfo.opCode = CL_SNMP_GET;
                 reqAddInfo.pRequest = request;
@@ -511,7 +519,7 @@ clSnmp${t}Handler(
                 ClInt32T retVal = 0;
                 ClUint32T columnType = ASN_INTEGER;
 
-                clLogDebug("HDL", NULL,
+                clLogDebug("SUB", "TBL",
                 "Received RESERVE1 request");
                 switch(table_info->colnum)
                 {
@@ -525,7 +533,7 @@ clSnmp${t}Handler(
                         switch(*(reqVar->val.integer))
                         {
                             @foreach $l, $v enum@
-                                @if ($c.rowstatus == 1 && $l ne 'notReady' && $l ne 'createAndWait') || ($c.settable == 1) @
+                                @if ($c.rowstatus == 1 && "$l" ne "notReady" && "$l" ne "createAndWait") || ($c.settable == 1) @
                             case $c.uc_$l.uc:
                                 break;
                                 @end@
@@ -609,7 +617,7 @@ clSnmp${t}Handler(
                 break;
             }
             case MODE_SET_FREE:
-                clLogDebug("HDL", NULL,
+                clLogDebug("SUB", "TBL",
                 "Received SET FREE request");
                 clSnmpUndo();
                 break;
@@ -630,7 +638,7 @@ clSnmp${t}Handler(
 		@if $found64 eq 1@
                 ClUint64T *pPtr64 = NULL;
 		@end@
-                clLogDebug("HDL", NULL,
+                clLogDebug("SUB", "TBL",
                 "Received RESERVE2 request");
                 requestInfo.opCode = CL_SNMP_SET;
                 switch(table_info->colnum)
@@ -699,19 +707,19 @@ clSnmp${t}Handler(
 
                 memcpy(pVal, (void *)reqVar->val.integer, requestInfo.dataLen);
 
-                clLogDebug("SNM", NULL,
+                clLogDebug("SUB", "TBL",
                         "Calling request add");
 
                 retVal = clRequestAdd( &requestInfo, pVal, &noOfOp, &errorCode, NULL);
                 if(CL_OK != retVal)
                 {
-                    clLogError("SNM", NULL,
+                    clLogError("SUB", "TBL",
                             "Failed to add request in store, rc=[0x%x], errorCode=[0x%x]", 
                             retVal, errorCode);
                     netsnmp_request_set_error(request, errorCode);
                     return retVal;
                 }
-                clLogDebug("SNM", NULL,
+                clLogDebug("SUB", "TBL",
                         "Successfully added request in store");
                 break;
             }
@@ -720,18 +728,18 @@ clSnmp${t}Handler(
                 ClInt32T    retVal = 0;
                 ClMedErrorListT    medErrList = {0};
 
-                clLogDebug("SNM", "TBL",
+                clLogDebug("SUB", "TBL",
                         "Received ACTION request for oid [%s]",requestInfo.oid);
                 retVal = clSnmpCommit(&medErrList);
                 if (retVal != CL_OK)
                 {
-                    clLogDebug("SNM", NULL,
+                    clLogDebug("SUB", "TBL",
                             "Error in commit errCount[%d]",
                             medErrList.count);
                     if(retVal == CL_ERR_NO_MEMORY)
                     {
                         retVal = CL_SNMP_ERR_NOCREATION; /* Set SNMP equivalent error from oidErrMapTable in clSnmpInit.c */
-                        clLogError("SNM", NULL,
+                        clLogError("SUB", "TBL",
                                 "ACTION phase failed, setting errorCode[0x%x] for oid[%s]", 
                                 retVal, requestInfo.oid);
                         netsnmp_request_set_error(request, retVal);
@@ -747,7 +755,7 @@ clSnmp${t}Handler(
                             if(!memcmp((ClUint8T*)requestInfo.oid, 
                                         medErrList.pErrorList[i].oidInfo.id, medErrList.pErrorList[i].oidInfo.len)) 
                             {
-                                clLogError("SNM", NULL,
+                                clLogError("SUB", "TBL",
                                         "ACTION phase failed, setting errorCode[0x%x] for oid[%s]", 
                                         medErrList.pErrorList[i].errId, requestInfo.oid);
                                 netsnmp_request_set_error(request, medErrList.pErrorList[i].errId);
@@ -762,14 +770,14 @@ clSnmp${t}Handler(
             }
             case MODE_SET_COMMIT:
             {
-                clLogDebug("SNM", "TBL",
+                clLogDebug("SUB", "TBL",
                         "Received COMMIT request");
                 clSnmpUndo();
                 break;
             }
             case MODE_SET_UNDO:
             {
-                clLogDebug("SNP", "TBL",
+                clLogDebug("SUB", "TBL",
                         "Received UNDO request");
                 clSnmpUndo();
                 break;

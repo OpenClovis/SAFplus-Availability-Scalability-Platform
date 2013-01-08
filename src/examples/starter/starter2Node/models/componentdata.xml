@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component:componentInformation xmlns:component="component.ecore">
+  <cluster name="Cluster" rdn="java.lang.Object@1dd1752">
+    <contains target="ctrl"/>
+  </cluster>
+  <node Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE" classType="CL_AMS_NODE_CLASS_B" id="0" isASPAware="CL_TRUE" isRestartable="CL_TRUE" isSwappable="CL_TRUE" name="ctrl" rdn="6794617" suFailoverCountMax="10" suFailoverDuration="10000" subClassType=" ">
+    <contains target="theAppSU"/>
+  </node>
+  <serviceUnit adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isContainerSU="CL_TRUE" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" name="theAppSU" rdn="24991702">
+    <contains target="theApp"/>
+  </serviceUnit>
+  <safComponent amStartCommand="" amStopCommand="" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" cleanupCommand="" commandLineArgument="" environmentVariable="" instantiateCommand="theApp" instantiateDelay="5000" instantiateLevel="1" isBuildCPP="false" isRestartable="CL_TRUE" isSNMPSubAgent="false" name="theApp" nodeRebootCleanupFail="CL_TRUE" numMaxActiveCSIs="1" numMaxAmStart="1" numMaxAmStop="1" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxStandbyCSIs="1" numMaxTerminate="1" processRel="CL_CPM_COMP_SINGLE_PROCESS" property="CL_AMS_SA_AWARE" rdn="32256612" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" terminateCommand="">
+    <csiTypes>
+      <csiType name="workForTheApp"/>
+    </csiTypes>
+    <healthCheck maxDuration="60000" period="30000"/>
+    <timeouts amStartTimeout="10000" amStopTimeout="10000" cleanupTimeout="10000" csiRemoveTimeout="10000" csiSetTimeout="10000" instantiateTimeout="10000" proxiedCompCleanupTimeout="10000" proxiedCompInstantiateTimeout="10000" quiescingCompleteTimeout="10000" terminateTimeout="10000"/>
+    <eoProperties eoName="theApp_EO" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0" threadCount="2" threadPriority="PRIORITY_MEDIUM">
+      <libs/>
+      <aspLib Alarm="CL_FALSE" Buffer="CL_TRUE" CM="CL_FALSE" COR="CL_TRUE" DBAL="CL_FALSE" Debug="CL_TRUE" Diagnostics="CL_FALSE" EO="CL_TRUE" Fault="CL_FALSE" HAL="CL_FALSE" IOC="CL_TRUE" LOG="CL_TRUE" NameService="CL_TRUE" OM="CL_FALSE" OSAL="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" RMD="CL_TRUE" Timer="CL_TRUE" Trace="CL_FALSE" Transaction="CL_TRUE"/>
+    </eoProperties>
+  </safComponent>
+  <serviceGroup adminState="CL_AMS_ADMIN_STATE_UNLOCKED" alphaFactor="100" autoAdjust="CL_FALSE" autoAdjustProbation="10000" autoRepair="CL_FALSE" betaFactor="0" compRestartCountMax="1" compRestartDuration="10000" failbackOption="CL_FALSE" failoverDuration="300000" isCollocationAllowed="CL_TRUE" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" maxActiveSIsPerSU="1" maxFailovers="0" maxStandbySIsPerSU="1" name="theAppSG" numComponents="0" numPrefActiveSUs="1" numPrefActiveSUsPerSI="1" numPrefAssignedSUs="2" numPrefInserviceSUs="2" numPrefStandbySUs="1" rdn="14398261" reductionProcedure="CL_FALSE" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" restartDuration="10000" suRestartCountMax="1" suRestartDuration="10000">
+    <associatedTo target="theAppSU"/>
+    <associatedTo target="workAssignment"/>
+  </serviceGroup>
+  <serviceInstance adminState="CL_AMS_ADMIN_STATE_UNLOCKED" name="workAssignment" numCSIs="1" numStandbyAssignments="1" rank="0" rdn="24008846">
+    <contains target="workForTheApp"/>
+  </serviceInstance>
+  <componentServiceInstance name="workForTheApp" rank="0" rdn="6221704">
+    <nameValueLists name="VirtualIpAddress" value="192.168.1.200"/>
+    <nameValueLists name="VirtualDevice" value="eth0:0"/>
+    <nameValueLists name="VirtualNetMask" value="255.255.255.0"/>
+    <associatedTo target="theApp"/>
+  </componentServiceInstance>
+</component:componentInformation>

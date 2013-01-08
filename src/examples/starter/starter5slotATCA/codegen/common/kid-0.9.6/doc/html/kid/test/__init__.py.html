@@ -1,0 +1,108 @@
+<html><head><title>kid/test/__init__.py</title>
+        <script type="text/javascript"><!--
+        
+function show_line_range() {
+    var href = document.location.href;
+    if (href.indexOf('?') == -1) {
+        return;
+    }
+    var qs = href.substring(href.indexOf('?')+1);
+    if (qs.indexOf('#') >= 0) {
+        qs = qs.substring(0, qs.indexOf('#'));
+    }
+    var first = qs.match(/f=(\d+)/)[1];
+    var last = qs.match(/l=(\d+)/)[1];
+    if (! first || ! last) {
+        return;
+    }
+    var anchors = document.getElementsByTagName('A');
+    var container = document.createElement('DIV');
+    container.className = 'highlighted';
+    var children = [];
+    var start = null;
+    var parent = null;
+    var highlight = false;
+    for (var i = 0; i < anchors.length; i++) {
+        var el = anchors[i];
+        if (el.getAttribute('name') == first) {
+            start = el.previousSibling;
+            parent = el.parentNode;
+            highlight = true;
+        }
+        if (el.getAttribute('name') == last) {
+            break;
+        }
+        if (highlight) {
+            children[children.length] = el;
+            el = el.nextSibling;
+            while (el && el.tagName != 'A') {
+                children[children.length] = el;
+                el = el.nextSibling;
+            }
+        }
+    }
+    for (i=0; i<children.length; i++) {
+        container.appendChild(children[i]);
+    }
+    if (start) {
+        start.parentNode.insertBefore(container, start.nextSibling);
+    } else {
+        parent.insertBefore(container, parent.childNodes[0]);
+    }
+}
+
+        // --></script>
+        <style>
+        div.python {
+          color: #333
+        }
+        div.python a.lnum {
+          color: #555;
+          background-color: #eee;
+          border-right: 1px solid #999;
+          padding-right: 2px;
+          margin-right: 4px;
+        }
+        div.python span.comment { color: #933 }
+        div.python span.keyword { color: #a3e; font-weight: bold  }
+        div.python span.op { color: #c96 }
+        div.python span.string { color: #6a6 }
+        div.python span.name { }
+        div.python span.text { color: #333 }
+        div.highlighted { background-color: #ff9; border: 1px solid #009 }
+        </style></head><body onload="show_line_range()"><div class="python"><code><a class="lnum" href="#1" name="1">0001</a><span class="string">"""Kid&#0160;test&#0160;package."""</span><br />
+<a class="lnum" href="#2" name="2">0002</a><br />
+<a class="lnum" href="#3" name="3">0003</a><span class="name">__revision__</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"$Rev:&#0160;59&#0160;$"</span><br />
+<a class="lnum" href="#4" name="4">0004</a><span class="name">__date__</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"$Date:&#0160;2005-02-16&#0160;15:43:38&#0160;-0500&#0160;(Wed,&#0160;16&#0160;Feb&#0160;2005)&#0160;$"</span><br />
+<a class="lnum" href="#5" name="5">0005</a><span class="name">__author__</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"Ryan&#0160;Tomayko&#0160;(rtomayko@gmail.com)"</span><br />
+<a class="lnum" href="#6" name="6">0006</a><span class="name">__copyright__</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"Copyright&#0160;2004-2005,&#0160;Ryan&#0160;Tomayko"</span><br />
+<a class="lnum" href="#7" name="7">0007</a><span class="name">__license__</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"MIT&#0160;&lt;http://www.opensource.org/licenses/mit-license.php&gt;"</span><br />
+<a class="lnum" href="#8" name="8">0008</a><br />
+<a class="lnum" href="#9" name="9">0009</a><br />
+<a class="lnum" href="#10" name="10">0010</a><span class="keyword">import</span>&#0160;<span class="name">os</span><br />
+<a class="lnum" href="#11" name="11">0011</a><span class="keyword">import</span>&#0160;<span class="name">glob</span><br />
+<a class="lnum" href="#12" name="12">0012</a><span class="keyword">from</span>&#0160;<span class="name">os</span><span class="op">.</span><span class="name">path</span>&#0160;<span class="keyword">import</span>&#0160;<span class="name">dirname</span><span class="op">,</span>&#0160;<span class="name">basename</span><span class="op">,</span>&#0160;<span class="name">join</span><span class="op">,</span>&#0160;<span class="name">abspath</span><br />
+<a class="lnum" href="#13" name="13">0013</a><br />
+<a class="lnum" href="#14" name="14">0014</a><span class="name">_mydir</span>&#0160;<span class="op">=</span>&#0160;<span class="name">abspath</span><span class="op">(</span><span class="name">join</span><span class="op">(</span><span class="name">dirname</span><span class="op">(</span><span class="name">__file__</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>&#0160;<span class="op">+</span>&#0160;<span class="string">'/../../'</span><br />
+<a class="lnum" href="#15" name="15">0015</a><span class="name">template_dir</span>&#0160;<span class="op">=</span>&#0160;<span class="name">_mydir</span>&#0160;<span class="op">+</span>&#0160;<span class="string">'test'</span><br />
+<a class="lnum" href="#16" name="16">0016</a><span class="name">output_dir</span>&#0160;<span class="op">=</span>&#0160;<span class="name">template_dir</span><br />
+<a class="lnum" href="#17" name="17">0017</a><span class="name">template_package</span>&#0160;<span class="op">=</span>&#0160;<span class="string">'test.'</span><br />
+<a class="lnum" href="#18" name="18">0018</a><br />
+<a class="lnum" href="#19" name="19">0019</a><span class="name">test_modules</span>&#0160;<span class="op">=</span>&#0160;<span class="op">[</span><span class="name">basename</span><span class="op">(</span><span class="name">f</span><span class="op">)</span><span class="op">[</span><span class="op">:</span><span class="op">-</span><span class="number">3</span><span class="op">]</span>&#0160;<span class="keyword">for</span>&#0160;<span class="name">f</span>&#0160;<span class="keyword">in</span><br />
+<a class="lnum" href="#20" name="20">0020</a>&#0160;&#0160;&#0160;&#0160;<span class="name">glob</span><span class="op">.</span><span class="name">glob</span><span class="op">(</span><span class="name">_mydir</span>&#0160;<span class="op">+</span>&#0160;<span class="string">'kid/test/test*.py'</span><span class="op">)</span><span class="op">]</span><br />
+<a class="lnum" href="#21" name="21">0021</a><br />
+<a class="lnum" href="#22" name="22">0022</a><span class="name">additional_tests</span>&#0160;<span class="op">=</span>&#0160;<span class="number">0</span><br />
+<a class="lnum" href="#23" name="23">0023</a><span class="name">basic_tests</span>&#0160;<span class="op">=</span>&#0160;<span class="number">0</span><br />
+<a class="lnum" href="#24" name="24">0024</a><br />
+<a class="lnum" href="#25" name="25">0025</a><span class="keyword">def</span>&#0160;<span class="name">run_tests</span><span class="op">(</span><span class="op">)</span><span class="op">:</span><br />
+<a class="lnum" href="#26" name="26">0026</a>&#0160;&#0160;&#0160;&#0160;<span class="keyword">from</span>&#0160;<span class="name">kid</span><span class="op">.</span><span class="name">test</span><span class="op">.</span><span class="name">util</span>&#0160;<span class="keyword">import</span>&#0160;<span class="name">run_tests</span><br />
+<a class="lnum" href="#27" name="27">0027</a>&#0160;&#0160;&#0160;&#0160;<span class="name">tests</span>&#0160;<span class="op">=</span>&#0160;<span class="op">[</span><span class="string">'kid.test.%s'</span>&#0160;<span class="op">%</span>&#0160;<span class="name">m</span>&#0160;<span class="keyword">for</span>&#0160;<span class="name">m</span>&#0160;<span class="keyword">in</span>&#0160;<span class="name">test_modules</span><span class="op">]</span><br />
+<a class="lnum" href="#28" name="28">0028</a>&#0160;&#0160;&#0160;&#0160;<span class="name">run_tests</span><span class="op">(</span><span class="name">tests</span><span class="op">)</span><br />
+<a class="lnum" href="#29" name="29">0029</a><br />
+<a class="lnum" href="#30" name="30">0030</a><span class="keyword">from</span>&#0160;<span class="name">kid</span><span class="op">.</span><span class="name">test</span><span class="op">.</span><span class="name">util</span>&#0160;<span class="keyword">import</span>&#0160;<span class="name">dot</span><br />
+<a class="lnum" href="#31" name="31">0031</a><br />
+<a class="lnum" href="#32" name="32">0032</a><span class="name">__all__</span>&#0160;<span class="op">=</span>&#0160;<span class="op">[</span><span class="string">'dot'</span><span class="op">,</span>&#0160;<span class="string">'run_tests'</span><span class="op">,</span>&#0160;<span class="string">'template_package'</span><span class="op">,</span>&#0160;<span class="string">'output_dir'</span><span class="op">,</span><br />
+<a class="lnum" href="#33" name="33">0033</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="string">'template_dir'</span><span class="op">]</span><br />
+<a class="lnum" href="#34" name="34">0034</a><br />
+<a class="lnum" href="#35" name="35">0035</a><span class="keyword">if</span>&#0160;<span class="name">__name__</span>&#0160;<span class="op">==</span>&#0160;<span class="string">'__main__'</span><span class="op">:</span><br />
+<a class="lnum" href="#36" name="36">0036</a>&#0160;&#0160;&#0160;&#0160;<span class="name">run_tests</span><span class="op">(</span><span class="op">)</span></code></div></body></html>

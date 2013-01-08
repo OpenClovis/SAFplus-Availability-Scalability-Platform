@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+      <cpmConfigs>
+        <cpmConfig cpmType="GLOBAL" nodeType="ctrl">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="corSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="cmSU"/>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+        <cpmConfig cpmType="LOCAL" nodeType="work">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+      </cpmConfigs>
+      <nodeInstances>
+        <nodeInstance name="ctrlI0" nodeMoId="\Chassis:0\cpu:0" type="ctrl">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI0" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI0" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI0" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I0" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI12" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I12" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="ctrlI1" nodeMoId="\Chassis:0\cpu:1" type="ctrl">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI1" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI1" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI1" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I1" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI13" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I13" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="workI0" nodeMoId="\Chassis:0\cpu:2" type="work">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI2" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI2" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI2" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I2" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI14" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I14" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="workI1" nodeMoId="\Chassis:0\cpu:3" type="work">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI3" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI3" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI3" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I3" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI15" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I15" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="workI2" nodeMoId="\Chassis:0\cpu:4" type="work">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI4" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI4" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI4" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I4" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI16" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I16" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="workI3" nodeMoId="\Chassis:0\cpu:5" type="work">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI5" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI5" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI5" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I5" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI17" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I17" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="workI4" nodeMoId="\Chassis:0\cpu:6" type="work">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI6" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI6" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI6" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I6" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI18" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I18" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="workI5" nodeMoId="\Chassis:0\cpu:7" type="work">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI7" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI7" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI7" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I7" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI19" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I19" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="workI6" nodeMoId="\Chassis:0\cpu:8" type="work">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI12" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI12" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI8" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I8" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI20" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I20" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="workI7" nodeMoId="\Chassis:0\cpu:9" type="work">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI13" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI13" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI9" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I9" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI21" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I21" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="workI8" nodeMoId="\Chassis:0\cpu:10" type="work">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI8" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI8" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI10" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I10" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI22" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I22" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="workI9" nodeMoId="\Chassis:0\cpu:11" type="work">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="App2NSUI9" rank="0" type="App2NSU">
+              <componentInstances>
+                <componentInstance name="App2NI9" type="App2N"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App9plus3SUI11" rank="0" type="App9plus3SU">
+              <componentInstances>
+                <componentInstance name="App9plus3I11" type="App9plus3"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="App11plus1SUI23" rank="0" type="App11plus1SU">
+              <componentInstances>
+                <componentInstance name="App11plus1I23" type="App11plus1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+      </nodeInstances>
+      <serviceGroups>
+        <serviceGroup name="App2NSGI0" type="App1plus1_6_pairs_of_active_passive_blades_partners_explicitly_assigned">
+          <serviceInstances>
+            <serviceInstance name="App2NSII0" type="App2NSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App2NWork_0I0" type="App2NWork_0">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>App2NSUI0</associatedServiceUnit>
+            <associatedServiceUnit>App2NSUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="App2NSGI1" type="App1plus1_6_pairs_of_active_passive_blades_partners_explicitly_assigned">
+          <serviceInstances>
+            <serviceInstance name="App2NSII1" type="App2NSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App2NWork_1I1" type="App2NWork_1">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>App2NSUI2</associatedServiceUnit>
+            <associatedServiceUnit>App2NSUI3</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="App2NSGI2" type="App1plus1_6_pairs_of_active_passive_blades_partners_explicitly_assigned">
+          <serviceInstances>
+            <serviceInstance name="App2NSII2" type="App2NSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App2NWork_2I2" type="App2NWork_2">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>App2NSUI4</associatedServiceUnit>
+            <associatedServiceUnit>App2NSUI5</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="App2NSGI3" type="App1plus1_6_pairs_of_active_passive_blades_partners_explicitly_assigned">
+          <serviceInstances>
+            <serviceInstance name="App2NSII3" type="App2NSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App2NWork_3I3" type="App2NWork_3">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>App2NSUI6</associatedServiceUnit>
+            <associatedServiceUnit>App2NSUI7</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="App2NSGI4" type="App1plus1_6_pairs_of_active_passive_blades_partners_explicitly_assigned">
+          <serviceInstances>
+            <serviceInstance name="App2NSII4" type="App2NSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App2NWork_4I4" type="App2NWork_4">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>App2NSUI8</associatedServiceUnit>
+            <associatedServiceUnit>App2NSUI9</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="App2NSGI5" type="App1plus1_6_pairs_of_active_passive_blades_partners_explicitly_assigned">
+          <serviceInstances>
+            <serviceInstance name="App2NSII5" type="App2NSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App2NWork_5I5" type="App2NWork_5">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>App2NSUI12</associatedServiceUnit>
+            <associatedServiceUnit>App2NSUI13</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="App9plus3SG" type="App9plus3_as_blades_are_added_groups_of_3plus1_are_preferred">
+          <serviceInstances>
+            <serviceInstance name="App9plus3SII0" type="App9plus3SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App9plus3Work_0I0" type="App9plus3Work_0">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+            <serviceInstance name="App9plus3SII1" type="App9plus3SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App9plus3Work_1I0" type="App9plus3Work_1">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+            <serviceInstance name="App9plus3SII2" type="App9plus3SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App9plus3Work_2I0" type="App9plus3Work_2">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+            <serviceInstance name="App9plus3SII3" type="App9plus3SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App9plus3Work_3I0" type="App9plus3Work_3">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+            <serviceInstance name="App9plus3SII4" type="App9plus3SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App9plus3Work_4I0" type="App9plus3Work_4">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+            <serviceInstance name="App9plus3SII5" type="App9plus3SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App9plus3Work_5I0" type="App9plus3Work_5">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+            <serviceInstance name="App9plus3SII6" type="App9plus3SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App9plus3Work_6I0" type="App9plus3Work_6">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+            <serviceInstance name="App9plus3SII7" type="App9plus3SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App9plus3Work_7I0" type="App9plus3Work_7">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+            <serviceInstance name="App9plus3SII8" type="App9plus3SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App9plus3Work_8I0" type="App9plus3Work_8">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>App9plus3SUI0</associatedServiceUnit>
+            <associatedServiceUnit>App9plus3SUI1</associatedServiceUnit>
+            <associatedServiceUnit>App9plus3SUI2</associatedServiceUnit>
+            <associatedServiceUnit>App9plus3SUI3</associatedServiceUnit>
+            <associatedServiceUnit>App9plus3SUI4</associatedServiceUnit>
+            <associatedServiceUnit>App9plus3SUI5</associatedServiceUnit>
+            <associatedServiceUnit>App9plus3SUI6</associatedServiceUnit>
+            <associatedServiceUnit>App9plus3SUI7</associatedServiceUnit>
+            <associatedServiceUnit>App9plus3SUI8</associatedServiceUnit>
+            <associatedServiceUnit>App9plus3SUI9</associatedServiceUnit>
+            <associatedServiceUnit>App9plus3SUI10</associatedServiceUnit>
+            <associatedServiceUnit>App9plus3SUI11</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="App10plus2_controllers_are_preferred_standbyI0" type="App10plus2_controllers_are_preferred_standby">
+          <serviceInstances>
+            <serviceInstance name="App11plus1SII1" type="App11plus1SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App11plus1Work_0I1" type="App11plus1Work_0">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>App11plus1SUI14</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+            <serviceInstance name="App11plus1SII2" type="App11plus1SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App11plus1Work_1I1" type="App11plus1Work_1">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>App11plus1SUI15</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+            <serviceInstance name="App11plus1SII3" type="App11plus1SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App11plus1Work_2I1" type="App11plus1Work_2">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>App11plus1SUI16</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+            <serviceInstance name="App11plus1SII4" type="App11plus1SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App11plus1Work_3I1" type="App11plus1Work_3">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>App11plus1SUI17</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+            <serviceInstance name="App11plus1SII5" type="App11plus1SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App11plus1Work_4I1" type="App11plus1Work_4">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>App11plus1SUI18</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+            <serviceInstance name="App11plus1SII6" type="App11plus1SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App11plus1Work_5I1" type="App11plus1Work_5">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>App11plus1SUI19</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+            <serviceInstance name="App11plus1SII7" type="App11plus1SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App11plus1Work_6I1" type="App11plus1Work_6">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>App11plus1SUI20</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+            <serviceInstance name="App11plus1SII8" type="App11plus1SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App11plus1Work_7I1" type="App11plus1Work_7">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>App11plus1SUI21</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+            <serviceInstance name="App11plus1SII9" type="App11plus1SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App11plus1Work_8I1" type="App11plus1Work_8">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>App11plus1SUI22</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+            <serviceInstance name="App11plus1SII10" type="App11plus1SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="App11plus1Work_9I1" type="App11plus1Work_9">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>App11plus1SUI23</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>App11plus1SUI12</associatedServiceUnit>
+            <associatedServiceUnit>App11plus1SUI13</associatedServiceUnit>
+            <associatedServiceUnit>App11plus1SUI14</associatedServiceUnit>
+            <associatedServiceUnit>App11plus1SUI15</associatedServiceUnit>
+            <associatedServiceUnit>App11plus1SUI16</associatedServiceUnit>
+            <associatedServiceUnit>App11plus1SUI17</associatedServiceUnit>
+            <associatedServiceUnit>App11plus1SUI18</associatedServiceUnit>
+            <associatedServiceUnit>App11plus1SUI19</associatedServiceUnit>
+            <associatedServiceUnit>App11plus1SUI20</associatedServiceUnit>
+            <associatedServiceUnit>App11plus1SUI21</associatedServiceUnit>
+            <associatedServiceUnit>App11plus1SUI22</associatedServiceUnit>
+            <associatedServiceUnit>App11plus1SUI23</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+      </serviceGroups>
+    </amfConfig>
+  </version>
+</openClovisAsp>

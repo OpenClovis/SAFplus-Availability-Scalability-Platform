@@ -1,31 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
-
-This file is available  under  a  commercial  license  from  the
-copyright  holder or the GNU General Public License Version 2.0.
-
-The source code for  this program is not published  or otherwise 
-divested of  its trade secrets, irrespective  of  what  has been 
-deposited with the U.S. Copyright office.
-
-This program is distributed in the  hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
-General Public License for more details.
-
-For more  information,  see the  file COPYING provided with this
-material.
--->
-<dbal:BootConfig xmlns:ckpt="dbal.ecore">
-  <Dbal>
-     <Engine>
-        <FileName>libClGDBM.so</FileName>
-        <Type>GDBM</Type>
-     </Engine>   
-     <!--Engine>
-        <FileName>libClBerkeleyDB.so</FileName>
-        <Type>BerkeleyDB</Type>
-     </Engine--> 
-  </Dbal>
-</dbal:BootConfig>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <dbal:BootConfig xmlns:dbal="dbal.ecore">
+      <Dbal>
+        <Engine>
+          <FileName>libClSQLiteDB.so</FileName>
+          <Type>SQLite</Type>
+        </Engine>
+      </Dbal>
+    </dbal:BootConfig>
+  </version>
+</openClovisAsp>

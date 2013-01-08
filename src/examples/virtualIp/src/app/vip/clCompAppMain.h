@@ -31,7 +31,18 @@ extern "C" {
  *****************************************************************************/
 
 #include "./clCompCfg.h"
-#include "saAmf.h"
+#include "../common/net.h"
+
+
+/*
+ * ---BEGIN_APPLICATION_CODE---
+ */
+ 
+// add extra includes here...
+
+/*
+ * ---END_APPLICATION_CODE---
+ */
 
 #ifndef COMP_NAME
 #error "COMP_NAME is not defined. Bad or missing ./clCompCfg.h"
@@ -49,9 +60,9 @@ extern "C" {
                                             "Unknown" )
 
 #define STRING_CSI_FLAGS(S)                                                 \
-(   ((S) == SA_AMF_CSI_ADD_ONE)            ? "Add One" :               \
-    ((S) == SA_AMF_CSI_TARGET_ONE)         ? "Target One" :            \
-    ((S) == SA_AMF_CSI_TARGET_ALL)         ? "Target All" :            \
+(   ((S) & SA_AMF_CSI_ADD_ONE)            ? "Add One" :               \
+    ((S) & SA_AMF_CSI_TARGET_ONE)         ? "Target One" :            \
+    ((S) & SA_AMF_CSI_TARGET_ALL)         ? "Target All" :            \
                                                   "Unknown" )
 
 /******************************************************************************

@@ -1,0 +1,382 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<HTML>
+  
+  <HEAD><META CONTENT="text/html; charset=utf-8" HTTP-EQUIV="Content-Type">
+    <TITLE>kid.BaseTemplate -- Base class for compiled Templates.</TITLE>
+    <LINK HREF="layout.css" TYPE="text/css" REL="stylesheet">
+    <LINK HREF="http://planet.kid-templating.org/rss20.xml" TYPE="application/rss+xml" REL="alternate" TITLE="RSS 2.0">
+
+  </HEAD>
+  <BODY>
+    <DIV ID="page">
+      <H1 CLASS="doc-title"><A HREF="http://www.kid-templating.org/">kid-templating.org</A></H1>
+      <DIV ID="navcontainer">
+        <UL ID="navlist">
+          <LI CLASS="pagenav">
+            <UL>
+              <LI CLASS="page_item">
+                <A HREF="index.html" CLASS="" TITLE="Project Home / Index">Kid</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="module-index.html" CLASS="" TITLE="kid package and module reference">Modules</A>
+              </LI>
+              
+              <LI>
+                <A HREF="http://www.kid-templating.org/trac/" TITLE="Wiki / Subversion / Roadmap / Bug Tracker">Trac</A>
+              </LI>
+              <LI>
+                <A HREF="http://planet.kid-templating.org/">Blog</A>
+              </LI>
+              <LI>
+                <A HREF="http://lists.sourceforge.net/lists/listinfo/kid-template-discuss" CLASS="" TITLE="Mailing List">Discuss</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="http://www.kid-templating.org/about">
+                  about kid-templating.org
+                </A>
+              </LI>
+            </UL>
+          </LI>
+        </UL>
+      </DIV>
+      
+      <HR>
+      
+      <DIV ID="content">
+  
+  <H1 CLASS="pudge-member-page-heading">
+    <TT>BaseTemplate</TT>
+  </H1>
+  <H4 CLASS="pudge-member-page-subheading">
+    Base class for compiled Templates.
+  </H4>
+  <P CLASS="pudge-member-parent-link">
+    <SMALL>
+    The BaseTemplate class is accessible via the
+    <A HREF="module-kid.html">
+      <TT>kid</TT>
+    </A> module.
+    </SMALL>
+  </P>
+  <DIV ID="pudge-section-nav">
+  <UL>
+    <LI>
+      <A HREF="#attributes" CLASS="pudge-section-link">
+        Attributes (1)
+      </A>
+      
+    </LI><LI>
+      <A HREF="#methods" CLASS="pudge-section-link">
+        Methods (12)
+      </A>
+      
+    </LI>
+    
+    <LI>
+      <A HREF="kid/__init__.py.html?f=169&amp;l=367#169" CLASS="pudge-section-link">
+        Source
+      </A>
+    </LI>
+  </UL>
+  </DIV>
+  <DIV STYLE="clear: left"></DIV>
+  <DIV CLASS="rst pudge-module-doc">
+    <P>All kid template modules expose a class named <TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> that
+extends from this class making the methods defined here available on
+all Template subclasses.</P>
+<P>This class should not be instantiated directly.</P>
+
+  </DIV>
+  
+  <HR>
+  
+  
+    <A NAME="attributes"></A>
+    <H2>Attributes</H2>
+    <DIV CLASS="pudge-member name">
+    <A NAME="serializer"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">a</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#serializer" CLASS="pudge-obj-link">serializer</A></TT></H4>
+    <DIV CLASS="pudge-section rst">
+      
+      <PRE>&lt;kid.serialization.XMLSerializer object at 0xb77cad8c></PRE>
+    </DIV>
+  </DIV>
+    
+  
+    <A NAME="methods"></A>
+    <H2>Methods</H2>
+    <DIV CLASS="pudge-member routine ">
+    <A NAME="__init__"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#__init__" CLASS="pudge-obj-link">__init__</A>(self)</TT>
+      <A HREF="kid/__init__.py.html?f=184&amp;l=194#184" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    <P CLASS="pudge-member-blurb">
+      Initialize a template with instance attributes specified by
+keyword arguments.
+    </P>
+    <P>Keyword arguments are available to the template using self.var
+notation.</P>
+
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="write"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#write" CLASS="pudge-obj-link">write</A>(self, file, encoding=None, fragment=0, output=None)</TT>
+      <A HREF="kid/__init__.py.html?f=195&amp;l=214#195" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    <P CLASS="pudge-member-blurb">
+      Execute template and write output to file.
+    </P>
+    <DL CLASS="docutils">
+<DT><A HREF="file:file" CLASS="reference">file:file</A></DT>
+<DD>A filename or a file like object (must support write()).</DD>
+<DT>encoding:string</DT>
+<DD>The output encoding. Default: utf-8.</DD>
+<DT>fragment:bool</DT>
+<DD>Controls whether prologue information (such as &lt;?xml?>
+declaration and DOCTYPE should be written). Set to 1
+when generating fragments meant to be inserted into
+existing XML documents.</DD>
+<DT>output:string,`Serializer`</DT>
+<DD>A string specifying an output method ('xml', 'html',
+'xhtml') or a Serializer object.</DD>
+</DL>
+
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="serialize"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#serialize" CLASS="pudge-obj-link">serialize</A>(self, encoding=None, fragment=0, output=None)</TT>
+      <A HREF="kid/__init__.py.html?f=215&amp;l=237#215" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    <P CLASS="pudge-member-blurb">
+      Execute a template and return a single string.
+    </P>
+    <DL CLASS="docutils">
+<DT>encoding</DT>
+<DD>The output encoding. Default: utf-8.</DD>
+<DT>fragment</DT>
+<DD>Controls whether prologue information (such as &lt;?xml?>
+declaration and DOCTYPE should be written). Set to 1
+when generating fragments meant to be inserted into
+existing XML documents.</DD>
+<DT>output</DT>
+<DD>A string specifying an output method ('xml', 'html',
+'xhtml') or a Serializer object.</DD>
+</DL>
+<P>This is a convienence method, roughly equivalent to:</P>
+<PRE CLASS="literal-block">
+''.join([x for x in obj.generate(encoding, fragment, output)]
+</PRE>
+
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="generate"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#generate" CLASS="pudge-obj-link">generate</A>(self, encoding=None, fragment=0, output=None)</TT>
+      <A HREF="kid/__init__.py.html?f=238&amp;l=259#238" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    <P CLASS="pudge-member-blurb">
+      Execute template and generate serialized output incrementally.
+    </P>
+    <P>This method returns an iterator that yields an encoded string
+for each iteration. The iteration ends when the template is done
+executing.</P>
+<DL CLASS="docutils">
+<DT>encoding</DT>
+<DD>The output encoding. Default: utf-8.</DD>
+<DT>fragment</DT>
+<DD>Controls whether prologue information (such as &lt;?xml?>
+declaration and DOCTYPE should be written). Set to 1
+when generating fragments meant to be inserted into
+existing XML documents.</DD>
+<DT>output</DT>
+<DD>A string specifying an output method ('xml', 'html',
+'xhtml') or a Serializer object.</DD>
+</DL>
+
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="__iter__"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#__iter__" CLASS="pudge-obj-link">__iter__</A>(self)</TT>
+      <A HREF="kid/__init__.py.html?f=260&amp;l=262#260" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    
+    
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="__unicode__"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#__unicode__" CLASS="pudge-obj-link">__unicode__</A>(self)</TT>
+      <A HREF="kid/__init__.py.html?f=266&amp;l=268#266" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    
+    
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="initialize"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#initialize" CLASS="pudge-obj-link">initialize</A>(self)</TT>
+      <A HREF="kid/__init__.py.html?f=269&amp;l=271#269" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    
+    
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="pull"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#pull" CLASS="pudge-obj-link">pull</A>(self)</TT>
+      <A HREF="kid/__init__.py.html?f=272&amp;l=278#272" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    <P CLASS="pudge-member-blurb">
+      Returns an iterator over the items in this template.
+    </P>
+    
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="content"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#content" CLASS="pudge-obj-link">content</A>(self)</TT>
+      <A HREF="kid/__init__.py.html?f=286&amp;l=296#286" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    
+    
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="transform"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#transform" CLASS="pudge-obj-link">transform</A>(self, stream=None, filters=[])</TT>
+      <A HREF="kid/__init__.py.html?f=297&amp;l=329#297" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    <P CLASS="pudge-member-blurb">
+      Execute the template and apply any match transformations.
+    </P>
+    <P>If stream is specified, it must be one of the following:</P>
+<DL CLASS="docutils">
+<DT>Element</DT>
+<DD>An ElementTree Element.</DD>
+<DT>ElementStream</DT>
+<DD>An 
+    
+    <A HREF="class-kid.pull.ElementStream.html" CLASS="obj-link class" TITLE="kid.pull.ElementStream - Provides a pull/streaming interface to ElementTree.">
+      <TT>pull.ElementStream</TT></A>
+    
+   instance or other iterator that yields
+stream events.</DD>
+<DT>string</DT>
+<DD>A file or URL unless the string starts with
+'&lt;' in which case it is considered an XML document
+and processed as if it had been an Element.</DD>
+</DL>
+<P>By default, the 
+    
+    <A HREF="class-kid.BaseTemplate.html#pull" CLASS="obj-link routine" TITLE="kid.BaseTemplate.pull - Returns an iterator over the items in this template.">
+      <TT>pull</TT></A>
+    
+   method is called to obtain the stream.</P>
+
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="defined"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#defined" CLASS="pudge-obj-link">defined</A>(self, name)</TT>
+      <A HREF="kid/__init__.py.html?f=362&amp;l=364#362" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    
+    
+  
+    </DIV>
+  </DIV><DIV CLASS="pudge-member routine ">
+    <A NAME="value_of"></A>
+    <H4 CLASS="pudge-member-name"><SPAN CLASS="prefix">f</SPAN>
+      <TT><A HREF="class-kid.BaseTemplate.html#value_of" CLASS="pudge-obj-link">value_of</A>(self, name, default=None)</TT>
+      <A HREF="kid/__init__.py.html?f=365&amp;l=367#365" TITLE="View Source">...</A>
+    </H4>
+    <DIV CLASS="pudge-section rst">
+      
+    
+    
+  
+    </DIV>
+  </DIV>
+    
+  
+  
+  <P>
+    <SMALL>
+    
+    
+    See 
+    <A HREF="kid/__init__.py.html?f=169&amp;l=367#169" TITLE="kid/__init__.py:169">the source</A>
+    for more information.
+    </SMALL>
+  </P>
+
+</DIV>
+      
+      <DIV ID="footer">
+        
+        
+        <P STYLE="float: left;">
+          
+          This documentation is licensed under the 
+          <A HREF="doc-license.html" TITLE="Documentation License">GNU Free Documentation License</A>
+          <BR>
+          
+          built with 
+          <A HREF="http://lesscode.org/projects/pudge/">pudge/0.1.1</A><BR>
+		      original design by 
+          <A HREF="http://blog.ratterobert.com/">ratter / robert</A><BR>
+	      </P>
+        <DIV>
+        <BR>
+        <A NAME="search">
+          <FORM ACTION="http://lesscode.org/blog/index.php" METHOD="get" ID="searchform">
+            <DIV>
+              <INPUT TYPE="text" NAME="s" VALUE="" ID="s">
+              <INPUT TYPE="submit" ID="searchsubmit" VALUE="Search">
+            </DIV>
+          </FORM>
+        </A>
+        <BR>
+        </DIV>
+      </DIV>
+    </DIV>
+  </BODY>
+
+</HTML>

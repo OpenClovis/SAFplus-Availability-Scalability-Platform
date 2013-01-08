@@ -19,15 +19,18 @@ ClRcT clSnmp${name}DefaultInstXlator (CL_IN const struct ClMedAgentId *pAgntId,
                      CL_OUT void**         pRetInstData,
                      CL_OUT ClUint32T     *pInstLen,
                      CL_OUT ClPtrT        pCorAttrValueDescList,
-                     CL_IN ClMedInstXlationOpEnumT instXlnOp);
+                     CL_IN ClMedInstXlationOpEnumT instXlnOp,
+                     CL_IN ClPtrT cookie);
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 ClRcT clSnmp${t}InstXlator (const struct ClMedAgentId *pAgntId,
                      CL_IN ClCorMOIdPtrT         hmoId,
                      CL_IN ClCorAttrPathPtrT containedPath,
                      CL_OUT void**         pRetInstData,
                      CL_OUT ClUint32T     *pInstLen,
                      CL_OUT ClPtrT        pCorAttrValueDescList,
-                     CL_IN ClMedInstXlationOpEnumT instXlnOp);
+                     CL_IN ClMedInstXlationOpEnumT instXlnOp,
+                     CL_IN ClPtrT cookie);
 @end@
 #ifdef __cplusplus
 }
@@ -46,10 +49,11 @@ ClRcT clSnmp${t}InstXlator (const struct ClMedAgentId *pAgntId,
 #include <clSnmpOp.h>
 #include <clSnmpSubAgent${name}Config.h>
 #include "clSnmp${name}InstXlation.h"
+@if $tables_exist == 1@
 #include <clSnmp${name}Tables.h>
+@end@
 
-#define CL_SNMP_AREA "snm"
-#define CL_SNMP_GEN_XLA_COTX "gxl"
+#define CL_SNMP_GEN_XLA_COTX "GXL"
 
 #define CL_MED_COR_STR_MOID_PRINT(corMoId)          \
 do\
@@ -60,13 +64,15 @@ do\
 }while(0)                                   \
 
 
+@if $scalars_exist == 1@
 ClRcT clSnmp${name}DefaultInstXlator (CL_IN const struct ClMedAgentId *pAgntId,
                      CL_IN ClCorMOIdPtrT         hmoId,
                      CL_IN ClCorAttrPathPtrT containedPath,
                      CL_OUT void**         pRetInstData,
                      CL_OUT ClUint32T     *pInstLen,
                      CL_OUT ClPtrT        pCorAttrValueDescList,
-                     CL_IN ClMedInstXlationOpEnumT instXlnOp)
+                     CL_IN ClMedInstXlationOpEnumT instXlnOp,
+                     CL_IN ClPtrT cookie)
 {
     ClUint32T   len = 0;
     ClSNMPRequestInfoT *pInst = NULL;
@@ -102,8 +108,10 @@ ClRcT clSnmp${name}DefaultInstXlator (CL_IN const struct ClMedAgentId *pAgntId,
     pInst->tableType = CL_$name.uc_SCALARS;
     return CL_OK;
 }
+@end@
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 /*
  * This function needs to be written for every application MIB table. 
  * This implements the extraction part of the MIB table index. The user 
@@ -116,7 +124,8 @@ ClRcT clSnmp${t}InstXlator (CL_IN const struct ClMedAgentId *pAgntId,
                      CL_OUT void**         pRetInstData,
                      CL_OUT ClUint32T     *pInstLen,
                      CL_OUT ClPtrT        pCorAttrValueDescList,
-                     CL_IN ClMedInstXlationOpEnumT instXlnOp)
+                     CL_IN ClMedInstXlationOpEnumT instXlnOp,
+                     CL_IN ClPtrT cookie)
 {
     ClRcT       rc = CL_OK; /* Return code */ 
     ClUint32T   len = 0;
@@ -175,7 +184,7 @@ ClRcT clSnmp${t}InstXlator (CL_IN const struct ClMedAgentId *pAgntId,
             return rc;
         }
 
-        if(${t}IndexCorAttrIdList[0].attrId != 0 || ${t}IndexCorAttrIdList[0].attrId != -1)
+        if(${t}IndexCorAttrIdList[0].attrId <= 0)
         {
             ClUint8T * indexOidList[] = {
                 @foreach $idx index@

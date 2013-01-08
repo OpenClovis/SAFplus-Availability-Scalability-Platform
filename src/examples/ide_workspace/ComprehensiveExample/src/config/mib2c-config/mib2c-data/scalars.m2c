@@ -17,6 +17,7 @@ extern "C" {
 /* function declarations */
 void clSnmp${name}ScalarsInit(void);
 @foreach $s scalar@
+@perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
 Netsnmp_Node_Handler clSnmp${s}Handler;
 @end@
 
@@ -38,6 +39,7 @@ Netsnmp_Node_Handler clSnmp${s}Handler;
 #include <clSnmp${name}Scalars.h>
 
   @foreach $s scalar@
+@perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
 static oid ${s}Oid[] = { $s.commaoid };
   @end@
 
@@ -51,6 +53,7 @@ clSnmp${name}ScalarsInit(void)
     DEBUGMSGTL(("${name}Scalars", "Initializing\n"));
 
   @foreach $s scalar@
+  @perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
     reg = netsnmp_create_handler_registration("$s", clSnmp${s}Handler,
                                ${s}Oid, OID_LENGTH(${s}Oid),
     @if $s.settable@
@@ -72,6 +75,7 @@ clSnmp${name}ScalarsInit(void)
 }
 
 @foreach $s scalar@
+@perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
 int
 clSnmp${s}Handler(netsnmp_mib_handler *handler,
                           netsnmp_handler_registration *reginfo,
@@ -152,7 +156,7 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
             requestInfo.opCode = CL_SNMP_GET;
             reqAddInfo.pRequest = requests;
             reqAddInfo.columnType = $s.type;
-            clLogDebug("SNM", NULL,
+            clLogDebug("SUB", "SCL",
             "Received GET request");
 
             retVal = clRequestAdd(&requestInfo, pVal, NULL, &errorCode, &reqAddInfo);
@@ -175,7 +179,7 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
         case MODE_SET_RESERVE1:
         {
             ClInt32T retVal = 0;
-            clLogDebug("SNM", NULL,
+            clLogDebug("SUB", "SCL",
             "Received RESERVE1 request");
             retVal = netsnmp_check_vb_type(reqVar, $s.type);
             if(retVal != SNMP_ERR_NOERROR ) 
@@ -254,7 +258,7 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
             ClInt32T retVal = 0, errorCode = 0, noOfOp = 1;
             ClPtrT pVal = NULL;
 
-            ###clLogDebug("SNM", NULL, "Received RESERVE2 request");
+            ###clLogDebug("SNM", "SCL", "Received RESERVE2 request");
 
             @if $s.type eq "ASN_OCTET_STR"@
                 @eval $str_var = $s@
@@ -295,25 +299,25 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
 
             memcpy(pVal, (void *)reqVar->val.integer, requestInfo.dataLen);
 
-            clLogDebug("SNP", NULL,
+            clLogDebug("SUB", "SCL",
                     "Calling request add");
             retVal = clRequestAdd( &requestInfo, pVal, &noOfOp, &errorCode, NULL);
             if(CL_OK != retVal)
             {
-                clLogError("SNP", NULL,
+                clLogError("SUB", "SCL",
                         "Failed to add request to store, rc=[0x%x], errorCode=[0x%x]", 
                         retVal, errorCode);
                 netsnmp_request_set_error(requests, errorCode);
                 return retVal;
             }
-            clLogDebug("SNP", NULL,
+            clLogDebug("SUB", "SCL",
                     "Successfully added request in store");
             break;
         }
 
         case MODE_SET_FREE:
         {
-            clLogDebug("SNM", NULL,
+            clLogDebug("SUB", "SCL",
             "Received FREE request");
             clSnmpUndo();
             break;
@@ -324,18 +328,18 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
             ClInt32T    retVal = 0;
             ClMedErrorListT    medErrList;
 
-            clLogDebug("SNP", NULL,
+            clLogDebug("SUB", "SCL",
                     "Received ACTION request for oid[%s] ",requestInfo.oid);
             retVal = clSnmpCommit(&medErrList);
             if (retVal != 0)
             {
-                clLogDebug("SNM", NULL,
+                clLogDebug("SUB", "SCL",
                         "Error in commit errCount[%d]",
                         medErrList.count);
                 if(retVal == CL_ERR_NO_MEMORY)
                 {
                     retVal = CL_SNMP_ERR_NOCREATION; /* Set SNMP equivalent error from oidErrMapTable in clSnmpInit.c */
-                    clLogError("SNM", NULL,
+                    clLogError("SUB", "SCL",
                             "ACTION phase failed, setting errorCode[0x%x] for oid[%s]", 
                             retVal, requestInfo.oid);
                     netsnmp_request_set_error(requests, retVal);
@@ -351,7 +355,7 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
                         if(!memcmp((ClUint8T*)requestInfo.oid, 
                                     medErrList.pErrorList[i].oidInfo.id, medErrList.pErrorList[i].oidInfo.len)) 
                         {
-                            clLogError("SNM", NULL,
+                            clLogError("SUB", "SCL",
                                     "ACTION phase failed, setting errorCode[0x%x] for oid[%s]", 
                                     medErrList.pErrorList[i].errId, requestInfo.oid);
                             netsnmp_request_set_error(requests, medErrList.pErrorList[i].errId);
@@ -366,14 +370,14 @@ clSnmp${s}Handler(netsnmp_mib_handler *handler,
         }
         case MODE_SET_COMMIT:
         {
-            clLogDebug("SNP", "TBL",
+            clLogDebug("SUB", "SCL",
                     "Received COMMIT request");
             clSnmpUndo();
             break;
         }
         case MODE_SET_UNDO:
         {
-            clLogDebug("SNM", NULL, 
+            clLogDebug("SUB", "SCL", 
                     "Received UNDO request");
             clSnmpUndo();
             break;

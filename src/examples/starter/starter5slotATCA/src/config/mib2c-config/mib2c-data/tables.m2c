@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 
 /* column number definitions for table $t */
     @foreach $c column@
@@ -40,6 +41,7 @@ extern "C" {
 #endif
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 extern ClSnmpTableIndexCorAttrIdInfoT ${t}IndexCorAttrIdList[];
 @end@
 
@@ -47,13 +49,16 @@ extern ClSnmpTableIndexCorAttrIdInfoT ${t}IndexCorAttrIdList[];
 /* function declarations */
 void clSnmp${name}TablesInit(void);
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 void clSnmp${t}Initialize(void);
 @end@
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 Netsnmp_Node_Handler clSnmp${t}Handler;
 @end@
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 Netsnmp_First_Data_Point  clSnmp${t}GetFirstDataPoint;
 Netsnmp_Next_Data_Point   clSnmp${t}GetNextDataPoint;
 @end@
@@ -110,11 +115,13 @@ static const ClCharT * gErrList[] = {
 };
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 static oid ${t}Oid[] = { $t.commaoid };
 @end@
 
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
     @eval $index_count = count_indexes($t)@
 ClSnmpTableIndexCorAttrIdInfoT ${t}IndexCorAttrIdList[$index_count+1] = {
     @foreach $idx index@
@@ -140,10 +147,12 @@ void clSnmp${name}TablesDeInit(void)
 }
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 /** Initialize the $t table by defining its contents and how it's structured */
 void
 clSnmp${t}Initialize(void)
 {
+    netsnmp_mib_handler *callback_handler;
     netsnmp_handler_registration    *reg = NULL;
     netsnmp_iterator_info           *iinfo = NULL;
     netsnmp_table_registration_info *table_info = NULL;;
@@ -177,6 +186,7 @@ clSnmp${t}Initialize(void)
         clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "Creating handler registration failed in clSnmp${t}Initialize");
         return;                 /* Serious error. */
     }
+
 
     /***************************************************
      * Setting up the table's definition
@@ -212,6 +222,17 @@ clSnmp${t}Initialize(void)
     DEBUGMSGTL(("clSnmp${t}Initialize",
                 "Registering table ${t} as a table iterator\n"));
     netsnmp_register_table_iterator( reg, iinfo );
+
+    /**************************************************
+     * Registering the Mode End Callback.
+     */
+    callback_handler = netsnmp_get_mode_end_call_handler(
+                        netsnmp_mode_end_call_add_mode_callback(NULL,
+                        NETSNMP_MODE_END_ALL_MODES, netsnmp_create_handler("mode_end_callback_handler",
+                                                   clSnmpModeEndCallback)
+                        ));
+
+    netsnmp_inject_handler( reg, callback_handler);
 
     @eval $supports_creation = 0@
     @foreach $c column@
@@ -316,10 +337,11 @@ clSnmp${t}Handler(
         netsnmp_variable_list * reqVar = request->requestvb;
         netsnmp_table_request_info *table_info = NULL;
         netsnmp_variable_list * index = NULL;
-        ClUint32T columnType = ASN_INTEGER;
 
         if (request->processed != 0)
         {
+            clLog(CL_LOG_DEBUG, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX,
+                    "The job is already processed, skipping this job.");
             continue;
         }
 
@@ -330,11 +352,15 @@ clSnmp${t}Handler(
        {
             netsnmp_set_request_error(reqinfo, request,
                                           SNMP_NOSUCHINSTANCE);
+            clLog(CL_LOG_DEBUG, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX,
+                    "No iterator context for the GET job, skipping it.");
             continue;
        }
 
         if((table_info = netsnmp_extract_table_info(request)) == NULL)
         {
+            clLog(CL_LOG_DEBUG, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX,
+                    "Not able to find the table_info for this job, skipping it.");
             continue;
         }
         
@@ -343,7 +369,7 @@ clSnmp${t}Handler(
             1-entry oid of table
             2-actual column. */
         requestInfo.oidLen = OID_LENGTH (${t}Oid) + 2;
-        clSnmpOidCpy(&requestInfo, (ClUint32T *) reqVar->name);
+        clSnmpOidCpy(&requestInfo, reqVar->name);
 
         /* COPY THE INDEX VALUES */
 
@@ -356,20 +382,44 @@ clSnmp${t}Handler(
         index = table_info->indexes;
     ### TO DO: index = index->next_variable to be done in some loop form.
     @foreach $idx index@
+        @if $idx.type eq "ASN_OCTET_STR" || $idx.type eq "ASN_IPADDRESS" || $idx.type eq "ASN_OBJECT_ID"@
         if(index->val_len > sizeof (requestInfo.index.${t}Info.$idx))
         {
             clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
             /* Index value length exceeds specified limit. */
             return SNMP_ERR_GENERR;
         }
+        @eval $typ = 'index->val_len'@
+        @elsif $idx.type eq "ASN_INTEGER"@
+        if(index->val_len > sizeof(long))
+        {
+            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+            /* Index value length exceeds specified limit. */
+            return SNMP_ERR_GENERR;
+        }
+        @eval $typ = 'sizeof(ClInt32T)'@
+        @elsif $idx.type eq "ASN_UNSIGNED" || $idx.type eq "ASN_GAUGE" || $idx.type eq "ASN_COUNTER" || $idx.type eq "ASN_TIMETICKS"@
+        if(index->val_len > sizeof(unsigned long))
+        {
+            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+            /* Index value length exceeds specified limit. */
+            return SNMP_ERR_GENERR;
+        }
+        @eval $typ = 'sizeof(ClUint32T)'@
+        @else@
+                @eval $decl = '$idx.decl'@
+                @calldefine GET_CLOVIS_CODING_CONV@
+                @eval $typ = 'sizeof($c_type)'@
+        if(index->val_len > sizeof($c_type))
+        {
+            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+            /* Index value length exceeds specified limit. */
+            return SNMP_ERR_GENERR;
+        }
+        @end@
         else
         {
-        @if $idx.type eq "ASN_OCTET_STR" || $idx.type eq "ASN_IPADDRESS" || $idx.type eq "ASN_OBJECT_ID"@
-            memcpy(requestInfo.index.${t}Info.$idx,
-        @else@
-            memcpy(& (requestInfo.index.${t}Info.$idx),
-        @end@
-                   (void *)index->val.integer, index->val_len);
+            memcpy(& (requestInfo.index.${t}Info.$idx), (void *)index->val.integer, $typ);
         }
         index = index->next_variable;
 
@@ -381,9 +431,11 @@ clSnmp${t}Handler(
             {
                 ClInt32T retVal = 0, errorCode = 0;
                 void * pVal = NULL;
-                clLogTrace("HDL", NULL,
+                _ClSnmpGetReqInfoT reqAddInfo = {0};
+                clLogDebug("SUB", "TBL",
                 "Received GET request");
                 requestInfo.opCode = CL_SNMP_GET;
+                reqAddInfo.pRequest = request;
                 switch (table_info->colnum)
                 {
 
@@ -395,84 +447,65 @@ clSnmp${t}Handler(
                         @if $c.type eq "ASN_OCTET_STR"@
                             @eval $str_var = $c@
                             @calldefine STR_UPPER_LIMIT@
-                        ClCharT ${c}Val[$final_max];
-			@elsif $c.type eq "ASN_IPADDRESS"@
-                        ClUint8T ${c}Val[4]; /* IPv4 address length */
-			@elsif $c.type eq "ASN_OBJECT_ID"@
-                        ClUint32T ${c}Val[CL_SNMP_MAX_OID_LEN];
-			@else@
-                            @eval $decl = '$c.decl'@
-                            @calldefine GET_CLOVIS_CODING_CONV@
-                        $c_type ${c}Val;
-			@end@
-
-                        columnType = $c.type;
-                        @if $c.type eq "ASN_OCTET_STR"@
-                            @eval $str_var = $c@
-                            @calldefine STR_UPPER_LIMIT@
+                        ClCharT ${c}Val[$arr_len] = {0};
 
                         requestInfo.dataLen = $final_max * sizeof(ClCharT);
                         pVal = ${c}Val;
-                        retVal = clExecuteSnmp(&requestInfo, pVal, NULL, &errorCode);
-                        if(retVal != 0 || errorCode < 0)
-                        {
-                            netsnmp_request_set_error (requests, errorCode);
-                            return errorCode;
-                        }
-                        requestInfo.dataLen = strlen(${c}Val)+1;
 
-                        
                         @elsif $c.type eq "ASN_IPADDRESS"@
+                        ClUint8T ${c}Val[4] = {0}; /* IPv4 address length */
 
                         requestInfo.dataLen = 4 * sizeof(ClUint8T);
                         pVal = ${c}Val;
-                        retVal = clExecuteSnmp(&requestInfo, pVal, NULL, &errorCode);
-                        if(retVal != 0 || errorCode < 0)
-                        {
-                            netsnmp_request_set_error (requests, errorCode);
-                            return errorCode;
-                        }
 
                         @elsif $c.type eq "ASN_OBJECT_ID"@
-            
+                        ClUint32T ${c}Val[CL_SNMP_MAX_OID_LEN] = {0};
+
                         requestInfo.dataLen = sizeof(ClUint32T) * CL_SNMP_MAX_OID_LEN;
                         pVal = ${c}Val;
-                        retVal = clExecuteSnmp(&requestInfo, pVal, NULL, &errorCode);
-                        if(retVal != 0 || errorCode < 0)
-                        {
-                            netsnmp_request_set_error (requests, errorCode);
-                            return errorCode;
-                        }
+
+                        @elsif $c.type eq "ASN_INTEGER"@
+                        ClInt32T    ${c}Val = 0;
+
+                        requestInfo.dataLen = sizeof(ClInt32T);
+                        pVal = &${c}Val;
+
+                        @elsif $c.type eq "ASN_UNSIGNED" || $c.type eq "ASN_GAUGE" || $c.type eq "ASN_COUNTER" || $c.type eq "ASN_TIMETICKS"@
+                        ClUint32T   ${c}Val = 0;
+
+                        requestInfo.dataLen = sizeof(ClUint32T);
+                        pVal = &${c}Val;
+
                         @else@
-                            @eval $decl = '$c.decl'@
-                            @calldefine GET_CLOVIS_CODING_CONV@
-            
+                                        @eval $decl = '$c.decl'@
+                                        @calldefine GET_CLOVIS_CODING_CONV@
+                        $c_type ${c}Val;
                         requestInfo.dataLen = sizeof($c_type);
-                        pVal = & ${c}Val;
-                        retVal = clExecuteSnmp(&requestInfo, pVal, NULL, &errorCode);
+                        pVal = &${c}Val;
+                        @end@
+                        reqAddInfo.columnType = $c.type;
+                        retVal = clRequestAdd(&requestInfo, pVal, NULL, &errorCode, &reqAddInfo);
                         if(retVal != 0 || errorCode < 0)
                         {
-                            netsnmp_request_set_error (requests, errorCode);
+                            netsnmp_request_set_error (request, errorCode);
                             return errorCode;
                         }
 ### 64 bit variables two words needs to be swapped. If the value is 0xffffffffeeeeeeee --> 0x00000000fffffffe 
+                        @if $c.type eq "ASN_COUNTER64"@
                         /* 64 bit variables two words needs to be swapped. 
                            If the value is 0xffffffffeeeeeeee --> 0xeeeeeeeeffffffff
-			   */
-                        @if $c.type eq "ASN_COUNTER64"@
+                        */
                         ${c}Val = CL_BIT_WORD_SWAP(${c}Val);
-			@end@
-
                         @end@
+
                         break;
                     }
+                        @end@
 
-                    @end@
                     default:
                         clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "clSnmp${t}Handler: Unknown column for GET request");
                         return SNMP_ERR_GENERR;
                 }
-                snmp_set_var_typed_value(reqVar, columnType, (u_char *)pVal, requestInfo.dataLen);
                 break;
             }
 @foreach $c column@
@@ -484,63 +517,41 @@ clSnmp${t}Handler(
             case MODE_SET_RESERVE1:
             {
                 ClInt32T retVal = 0;
-                clLogTrace("HDL", NULL,
+                ClUint32T columnType = ASN_INTEGER;
+
+                clLogDebug("SUB", "TBL",
                 "Received RESERVE1 request");
                 switch(table_info->colnum)
                 {
     @foreach $c column@
         @if $c.settable@
                     case COLUMN_$c.uc:
-                        columnType = $c.type;
-                        break;
-        @end@
-    @end@
-                    default:
-                        clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "unknown column");
-                        break;
-                }
-                retVal = netsnmp_check_vb_type(reqVar, columnType);
-                if(retVal != SNMP_ERR_NOERROR ) 
-                {
-                    netsnmp_request_set_error(requests, retVal );
-                    return retVal;
-                }
-                break;
-            }
-            case MODE_SET_RESERVE2:
-            {
-                clLogTrace("HDL", NULL,
-                "Received RESERVE2 request");
-                switch(table_info->colnum)
-                {
-    @foreach $c column@
-        @if $c.settable@
-                    case COLUMN_$c.uc:
                     {
+                        columnType = $c.type;
                         ### Handle enums.
                         @if $c.enums == 1@
                         switch(*(reqVar->val.integer))
                         {
                             @foreach $l, $v enum@
-                                @if $c.rowstatus == 1@
-                                    @if $l ne 'notReady' && $l ne 'createAndWait'@
+                                @if ($c.rowstatus == 1 && "$l" ne "notReady" && "$l" ne "createAndWait") || ($c.settable == 1) @
                             case $c.uc_$l.uc:
                                 break;
-                                    @end@
                                 @end@
                             @end@
                             /** not a legal enum value.  return an error */
                             default:
                                 clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_WRONGVALUE]);
-                                netsnmp_request_set_error(requests, SNMP_ERR_WRONGVALUE);
+                                netsnmp_request_set_error(request, SNMP_ERR_WRONGVALUE); /* Set error */
                                 return SNMP_ERR_WRONGVALUE;
                         }
+
                         ### Handle $c with ranges.
                         @elsif $c.ranges == 1@
-                        ClInt32T retVal = 0;
+                            ###@print Inside ranges, column:$c @
                             @foreach $min, $max range $c@
                                 ### script-writer: Observed that simply using $min does not print anything if $min = 0, hence the below statement.
                                 @eval $min = $min + 0@
+
                                 @if $c.type eq "ASN_OCTET_STR"@
                         ### Fine-tuning reqd.: if $max != CL_SNMP_MAX_STR_LEN. */
                                     @eval $str_var = $c@
@@ -548,27 +559,30 @@ clSnmp${t}Handler(
                         retVal = netsnmp_check_vb_size_range(reqVar, $min, $final_max);
                         if(retVal != SNMP_ERR_NOERROR)
                         {
-                            netsnmp_request_set_error(requests, retVal );
+                            netsnmp_request_set_error(request, retVal );
                             return retVal;
                         }
+
                                 @elsif $c.type eq "ASN_IPADDRESS"@
                         retVal = netsnmp_check_vb_size_range(reqVar, 4, 4); /* IPv4 address length */
                         if(retVal != SNMP_ERR_NOERROR)
                         {
-                            netsnmp_request_set_error(requests, retVal );
+                            netsnmp_request_set_error(request, retVal );
                             return retVal;
                         }
+
                                 @elsif $c.type eq "ASN_OBJECT_ID"@
                         ### Fine-tuning reqd.: if $max != CL_SNMP_MAX_OID_LEN. */
                         retVal = netsnmp_check_vb_size_range(reqVar, $min, CL_SNMP_MAX_OID_LEN);
                         if(retVal != SNMP_ERR_NOERROR)
                         {
-                            netsnmp_request_set_error(requests, retVal );
+                            netsnmp_request_set_error(request, retVal );
                             return retVal;
                         }
+
                                 @else@
-                        ### Fine-tuning reqd.: if $max < actual MAX. value mentioned in the MIB. */
-                        ### Fine-tuning reqd.: if $min < actual MIN. value mentioned in the MIB. */
+                            ### Fine-tuning reqd.: if $max < actual MAX. value mentioned in the MIB. */
+                            ### Fine-tuning reqd.: if $min < actual MIN. value mentioned in the MIB. */
                                     @if $min > $max@
                                         @eval $tmp = $min@
                                         @eval $min = $max@
@@ -577,7 +591,7 @@ clSnmp${t}Handler(
                         retVal = netsnmp_check_vb_range(reqVar, $min, $max);
                         if(retVal != SNMP_ERR_NOERROR)
                         {
-                            netsnmp_request_set_error(requests, retVal );
+                            netsnmp_request_set_error(request, retVal );
                             return retVal;
                         }
                                 @end@
@@ -591,13 +605,21 @@ clSnmp${t}Handler(
     @end@
                     default:
                         clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "clSnmp${t}Handler: unknown column");
+                        netsnmp_request_set_error(request, SNMP_ERR_NOSUCHNAME);
                         break;
+                }
+                retVal = netsnmp_check_vb_type(reqVar, columnType);
+                if(retVal != SNMP_ERR_NOERROR ) 
+                {
+                    netsnmp_request_set_error(request, retVal );
+                    return retVal;
                 }
                 break;
             }
             case MODE_SET_FREE:
-                clLogTrace("HDL", NULL,
+                clLogDebug("SUB", "TBL",
                 "Received SET FREE request");
+                clSnmpUndo();
                 break;
   
 ### Find out if there is 64 bit counter available in this table
@@ -609,37 +631,61 @@ clSnmp${t}Handler(
     @end@
   @end@
 @end@
-            case MODE_SET_ACTION:
+            case MODE_SET_RESERVE2:
             {
                 ClInt32T retVal = 0, errorCode = 0;
+		        ClPtrT pVal = NULL;
 		@if $found64 eq 1@
                 ClUint64T *pPtr64 = NULL;
 		@end@
-                clLogTrace("HDL", NULL,
-                "Received SET ACTION request");
+                clLogDebug("SUB", "TBL",
+                "Received RESERVE2 request");
                 requestInfo.opCode = CL_SNMP_SET;
                 switch(table_info->colnum)
                 {
 @foreach $c column@
     @if $c.settable@
                     case COLUMN_$c.uc:
+                    {	
+            ###@print column $c types $c.type@
             @if $c.type eq "ASN_OCTET_STR"@
                 @eval $str_var = $c@
                 @calldefine STR_UPPER_LIMIT@
-                    requestInfo.dataLen = strlen((char*)reqVar->val.integer)+1;
+                        ClCharT ${c}Val[$final_max] = {0};
+
+                        pVal = ${c}Val;
+                        requestInfo.dataLen = $final_max * sizeof(ClCharT);
             @elsif $c.type eq "ASN_IPADDRESS"@
+                        ClUint8T ${c}Val[4] = {0}; /* IPv4 address length */
+
+                        pVal = ${c}Val;
                         requestInfo.dataLen = 4 * sizeof(ClUint8T); /* IPv4 Address length */
             @elsif $c.type eq "ASN_OBJECT_ID"@
+                        ClUint32T ${c}Val[CL_SNMP_MAX_OID_LEN] = {0};
+
+                        pVal = ${c}Val;
                         requestInfo.dataLen = sizeof(ClUint32T) * CL_SNMP_MAX_OID_LEN;
+            @elsif $c.type eq "ASN_INTEGER"@
+                        ClInt32T    ${c}Val = 0;
+                        ###@print ASN_INTEGER type received@
+                        pVal = &${c}Val;
+                        requestInfo.dataLen = sizeof(ClInt32T); 
+            @elsif $c.type eq "ASN_UNSIGNED" || $c.type eq "ASN_GAUGE" || $c.type eq "ASN_COUNTER" || $c.type eq "ASN_TIMETICKS"@
+                        ###@print ASN_UNSIGNED type received@
+                        ClUint32T   ${c}Val = 0;
+                        
+                        pVal = &${c}Val;
+                        requestInfo.dataLen = sizeof(ClUint32T); 
             @else@
                 @eval $decl = '$c.decl'@
                 @calldefine GET_CLOVIS_CODING_CONV@
-		@if $c.type eq "ASN_COUNTER64"@
+		    @if $c.type eq "ASN_COUNTER64"@
                         /* 64 bit variables two words needs to be swapped. 
                            If the value is 0xffffffffeeeeeeee --> 0xeeeeeeeeffffffff
 			   */
                         pPtr64 = (ClUint64T*)reqVar->val.integer;
                         *pPtr64 = CL_BIT_WORD_SWAP(*pPtr64);
+			            pVal = pPtr64;
 
 		@end@
                         requestInfo.dataLen = sizeof($c_type);
@@ -650,6 +696,7 @@ clSnmp${t}Handler(
                         else if((*(reqVar->val.integer)) == $c.uc_DESTROY)
                                 requestInfo.opCode = CL_SNMP_DELETE;
             @end@
+                    } 
                         break;
     @end@
 @end@
@@ -657,30 +704,90 @@ clSnmp${t}Handler(
                         clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "clSnmp${t}Handler: unknown column");
                         break;
                 }
-                retVal = clExecuteSnmp( &requestInfo, (void *) reqVar->val.integer, &noOfOp, &errorCode);
-                if (retVal != 0 || errorCode < 0)
+
+                memcpy(pVal, (void *)reqVar->val.integer, requestInfo.dataLen);
+
+                clLogDebug("SUB", "TBL",
+                        "Calling request add");
+
+                retVal = clRequestAdd( &requestInfo, pVal, &noOfOp, &errorCode, NULL);
+                if(CL_OK != retVal)
                 {
-                    netsnmp_request_set_error(requests, errorCode);
-                    return errorCode;
+                    clLogError("SUB", "TBL",
+                            "Failed to add request in store, rc=[0x%x], errorCode=[0x%x]", 
+                            retVal, errorCode);
+                    netsnmp_request_set_error(request, errorCode);
+                    return retVal;
+                }
+                clLogDebug("SUB", "TBL",
+                        "Successfully added request in store");
+                break;
+            }
+            case MODE_SET_ACTION:
+            {
+                ClInt32T    retVal = 0;
+                ClMedErrorListT    medErrList = {0};
+
+                clLogDebug("SUB", "TBL",
+                        "Received ACTION request for oid [%s]",requestInfo.oid);
+                retVal = clSnmpCommit(&medErrList);
+                if (retVal != CL_OK)
+                {
+                    clLogDebug("SUB", "TBL",
+                            "Error in commit errCount[%d]",
+                            medErrList.count);
+                    if(retVal == CL_ERR_NO_MEMORY)
+                    {
+                        retVal = CL_SNMP_ERR_NOCREATION; /* Set SNMP equivalent error from oidErrMapTable in clSnmpInit.c */
+                        clLogError("SUB", "TBL",
+                                "ACTION phase failed, setting errorCode[0x%x] for oid[%s]", 
+                                retVal, requestInfo.oid);
+                        netsnmp_request_set_error(request, retVal);
+                        return retVal;
+                    }
+                    else
+                    {
+                        
+                        ClUint32T   i;
+                        for(i = 0; i < medErrList.count; i++)
+                        {
+                            /* the oid matches the request, set error and return*/
+                            if(!memcmp((ClUint8T*)requestInfo.oid, 
+                                        medErrList.pErrorList[i].oidInfo.id, medErrList.pErrorList[i].oidInfo.len)) 
+                            {
+                                clLogError("SUB", "TBL",
+                                        "ACTION phase failed, setting errorCode[0x%x] for oid[%s]", 
+                                        medErrList.pErrorList[i].errId, requestInfo.oid);
+                                netsnmp_request_set_error(request, medErrList.pErrorList[i].errId);
+                                return retVal;
+
+                            }
+                            
+                        }
+                    }
                 }     
                 break;
             }
             case MODE_SET_COMMIT:
-                clLogTrace("HDL", NULL,
-                "Received SET COMMIT request");
-                requestInfo.opCode = CL_SNMP_SET;
+            {
+                clLogDebug("SUB", "TBL",
+                        "Received COMMIT request");
+                clSnmpUndo();
                 break;
-    
+            }
             case MODE_SET_UNDO:
-                clLogTrace("HDL", NULL,
-                "Received SET UNDO request");
+            {
+                clLogDebug("SUB", "TBL",
+                        "Received UNDO request");
+                clSnmpUndo();
                 break;
+            }
+@end@
             default:
                    /* we should never get here, so this is a really bad error */
                 clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "unknown mode (%d) in clSnmp${t}Handler", reqinfo->mode);
                 return SNMP_ERR_GENERR;
         }
-@end@
         memset(&requestInfo, 0, sizeof(ClSNMPRequestInfoT));
     }
     return SNMP_ERR_NOERROR;

@@ -1,0 +1,157 @@
+<html><head><title>kid/compile.py</title>
+        <script type="text/javascript"><!--
+        
+function show_line_range() {
+    var href = document.location.href;
+    if (href.indexOf('?') == -1) {
+        return;
+    }
+    var qs = href.substring(href.indexOf('?')+1);
+    if (qs.indexOf('#') >= 0) {
+        qs = qs.substring(0, qs.indexOf('#'));
+    }
+    var first = qs.match(/f=(\d+)/)[1];
+    var last = qs.match(/l=(\d+)/)[1];
+    if (! first || ! last) {
+        return;
+    }
+    var anchors = document.getElementsByTagName('A');
+    var container = document.createElement('DIV');
+    container.className = 'highlighted';
+    var children = [];
+    var start = null;
+    var parent = null;
+    var highlight = false;
+    for (var i = 0; i < anchors.length; i++) {
+        var el = anchors[i];
+        if (el.getAttribute('name') == first) {
+            start = el.previousSibling;
+            parent = el.parentNode;
+            highlight = true;
+        }
+        if (el.getAttribute('name') == last) {
+            break;
+        }
+        if (highlight) {
+            children[children.length] = el;
+            el = el.nextSibling;
+            while (el && el.tagName != 'A') {
+                children[children.length] = el;
+                el = el.nextSibling;
+            }
+        }
+    }
+    for (i=0; i<children.length; i++) {
+        container.appendChild(children[i]);
+    }
+    if (start) {
+        start.parentNode.insertBefore(container, start.nextSibling);
+    } else {
+        parent.insertBefore(container, parent.childNodes[0]);
+    }
+}
+
+        // --></script>
+        <style>
+        div.python {
+          color: #333
+        }
+        div.python a.lnum {
+          color: #555;
+          background-color: #eee;
+          border-right: 1px solid #999;
+          padding-right: 2px;
+          margin-right: 4px;
+        }
+        div.python span.comment { color: #933 }
+        div.python span.keyword { color: #a3e; font-weight: bold  }
+        div.python span.op { color: #c96 }
+        div.python span.string { color: #6a6 }
+        div.python span.name { }
+        div.python span.text { color: #333 }
+        div.highlighted { background-color: #ff9; border: 1px solid #009 }
+        </style></head><body onload="show_line_range()"><div class="python"><code><a class="lnum" href="#1" name="1">0001</a><span class="comment">#!/usr/bin/python</span><br />
+<a class="lnum" href="#2" name="2">0002</a><span class="comment"></span><br />
+<a class="lnum" href="#3" name="3">0003</a><span class="comment">#&#0160;This&#0160;module&#0160;provides&#0160;the&#0160;"kidc"&#0160;command</span><br />
+<a class="lnum" href="#4" name="4">0004</a><span class="comment"></span><br />
+<a class="lnum" href="#5" name="5">0005</a><span class="string">"""Usage:&#0160;kidc&#0160;[OPTIONS]&#0160;[file...]</span><br />
+<a class="lnum" href="#6" name="6">0006</a><span class="string">Compile&#0160;kid&#0160;templates&#0160;into&#0160;Python&#0160;byte-code&#0160;(.pyc)&#0160;files.</span><br />
+<a class="lnum" href="#7" name="7">0007</a><span class="string"></span><br />
+<a class="lnum" href="#8" name="8">0008</a><span class="string">OPTIONS:</span><br />
+<a class="lnum" href="#9" name="9">0009</a><span class="string"></span><br />
+<a class="lnum" href="#10" name="10">0010</a><span class="string">&#0160;&#0160;-f,&#0160;--force</span><br />
+<a class="lnum" href="#11" name="11">0011</a><span class="string">&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;Force&#0160;compilation&#0160;even&#0160;if&#0160;.pyc&#0160;file&#0160;already&#0160;exists.</span><br />
+<a class="lnum" href="#12" name="12">0012</a><span class="string">&#0160;&#0160;-s,&#0160;--source</span><br />
+<a class="lnum" href="#13" name="13">0013</a><span class="string">&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;Generate&#0160;.py&#0160;source&#0160;files&#0160;along&#0160;with&#0160;.pyc&#0160;files.</span><br />
+<a class="lnum" href="#14" name="14">0014</a><span class="string">&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;This&#0160;is&#0160;sometimes&#0160;useful&#0160;for&#0160;debugging.</span><br />
+<a class="lnum" href="#15" name="15">0015</a><span class="string">&#0160;&#0160;-d,&#0160;--strip-dest-dir&#0160;&lt;destdir&gt;</span><br />
+<a class="lnum" href="#16" name="16">0016</a><span class="string">&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;Strips&#0160;the&#0160;supplied&#0160;path&#0160;from&#0160;the&#0160;beginning&#0160;of&#0160;source</span><br />
+<a class="lnum" href="#17" name="17">0017</a><span class="string">&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;filenames&#0160;stored&#0160;for&#0160;error&#0160;messages&#0160;in&#0160;the&#0160;generated</span><br />
+<a class="lnum" href="#18" name="18">0018</a><span class="string">&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;.pyc&#0160;files</span><br />
+<a class="lnum" href="#19" name="19">0019</a><span class="string"></span><br />
+<a class="lnum" href="#20" name="20">0020</a><span class="string">The&#0160;file&#0160;list&#0160;may&#0160;have&#0160;files&#0160;and/or&#0160;directories.&#0160;If&#0160;a&#0160;directory&#0160;is&#0160;specified,</span><br />
+<a class="lnum" href="#21" name="21">0021</a><span class="string">all&#0160;.kid&#0160;files&#0160;found&#0160;in&#0160;the&#0160;directory&#0160;and&#0160;any&#0160;sub-directories&#0160;are&#0160;compiled.</span><br />
+<a class="lnum" href="#22" name="22">0022</a><span class="string">"""</span><br />
+<a class="lnum" href="#23" name="23">0023</a><br />
+<a class="lnum" href="#24" name="24">0024</a><span class="name">__revision__</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"$Rev:&#0160;139&#0160;$"</span><br />
+<a class="lnum" href="#25" name="25">0025</a><span class="name">__date__</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"$Date:&#0160;2005-03-14&#0160;19:28:22&#0160;-0500&#0160;(Mon,&#0160;14&#0160;Mar&#0160;2005)&#0160;$"</span><br />
+<a class="lnum" href="#26" name="26">0026</a><span class="name">__author__</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"Ryan&#0160;Tomayko&#0160;(rtomayko@gmail.com)"</span><br />
+<a class="lnum" href="#27" name="27">0027</a><span class="name">__copyright__</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"Copyright&#0160;2004-2005,&#0160;Ryan&#0160;Tomayko"</span><br />
+<a class="lnum" href="#28" name="28">0028</a><span class="name">__license__</span>&#0160;<span class="op">=</span>&#0160;<span class="string">"MIT&#0160;&lt;http://www.opensource.org/licenses/mit-license.php&gt;"</span><br />
+<a class="lnum" href="#29" name="29">0029</a><br />
+<a class="lnum" href="#30" name="30">0030</a><span class="keyword">import</span>&#0160;<span class="name">sys</span><br />
+<a class="lnum" href="#31" name="31">0031</a><span class="keyword">from</span>&#0160;<span class="name">os</span><span class="op">.</span><span class="name">path</span>&#0160;<span class="keyword">import</span>&#0160;<span class="name">isdir</span><br />
+<a class="lnum" href="#32" name="32">0032</a><span class="keyword">from</span>&#0160;<span class="name">getopt</span>&#0160;<span class="keyword">import</span>&#0160;<span class="name">getopt</span><span class="op">,</span>&#0160;<span class="name">GetoptError</span>&#0160;<span class="name">as</span>&#0160;<span class="name">gerror</span><br />
+<a class="lnum" href="#33" name="33">0033</a><br />
+<a class="lnum" href="#34" name="34">0034</a><span class="keyword">import</span>&#0160;<span class="name">kid</span><span class="op">.</span><span class="name">compiler</span><br />
+<a class="lnum" href="#35" name="35">0035</a><br />
+<a class="lnum" href="#36" name="36">0036</a><span class="keyword">def</span>&#0160;<span class="name">main</span><span class="op">(</span><span class="op">)</span><span class="op">:</span><br />
+<a class="lnum" href="#37" name="37">0037</a>&#0160;&#0160;&#0160;&#0160;<span class="comment">#&#0160;get&#0160;options</span><br />
+<a class="lnum" href="#38" name="38">0038</a><span class="comment"></span>&#0160;&#0160;&#0160;&#0160;<span class="keyword">try</span><span class="op">:</span><br />
+<a class="lnum" href="#39" name="39">0039</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">opts</span><span class="op">,</span>&#0160;<span class="name">args</span>&#0160;<span class="op">=</span>&#0160;<span class="name">getopt</span><span class="op">(</span><span class="name">sys</span><span class="op">.</span><span class="name">argv</span><span class="op">[</span><span class="number">1</span><span class="op">:</span><span class="op">]</span><span class="op">,</span>&#0160;<span class="string">'fshd='</span><span class="op">,</span>&#0160;<span class="op">[</span><span class="string">'force'</span><span class="op">,</span>&#0160;<span class="string">'source'</span><span class="op">,</span>&#0160;<span class="string">'help'</span><span class="op">,</span>&#0160;<span class="string">'strip-dest-dir='</span><span class="op">]</span><span class="op">)</span><br />
+<a class="lnum" href="#40" name="40">0040</a>&#0160;&#0160;&#0160;&#0160;<span class="keyword">except</span>&#0160;<span class="name">gerror</span><span class="op">,</span>&#0160;<span class="name">msg</span><span class="op">:</span><br />
+<a class="lnum" href="#41" name="41">0041</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">sys</span><span class="op">.</span><span class="name">stderr</span><span class="op">.</span><span class="name">write</span><span class="op">(</span><span class="name">str</span><span class="op">(</span><span class="name">e</span><span class="op">)</span>&#0160;<span class="op">+</span>&#0160;<span class="string">'\n'</span><span class="op">)</span><br />
+<a class="lnum" href="#42" name="42">0042</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">sys</span><span class="op">.</span><span class="name">stdout</span><span class="op">.</span><span class="name">write</span><span class="op">(</span><span class="name">__doc__</span><span class="op">)</span><br />
+<a class="lnum" href="#43" name="43">0043</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">sys</span><span class="op">.</span><span class="name">exit</span><span class="op">(</span><span class="number">2</span><span class="op">)</span><br />
+<a class="lnum" href="#44" name="44">0044</a>&#0160;&#0160;&#0160;&#0160;<span class="name">force</span>&#0160;<span class="op">=</span>&#0160;<span class="number">0</span><br />
+<a class="lnum" href="#45" name="45">0045</a>&#0160;&#0160;&#0160;&#0160;<span class="name">source</span>&#0160;<span class="op">=</span>&#0160;<span class="number">0</span><br />
+<a class="lnum" href="#46" name="46">0046</a>&#0160;&#0160;&#0160;&#0160;<span class="name">strip_dest_dir</span>&#0160;<span class="op">=</span>&#0160;<span class="name">None</span><br />
+<a class="lnum" href="#47" name="47">0047</a>&#0160;&#0160;&#0160;&#0160;<span class="keyword">for</span>&#0160;<span class="name">o</span><span class="op">,</span>&#0160;<span class="name">a</span>&#0160;<span class="keyword">in</span>&#0160;<span class="name">opts</span><span class="op">:</span><br />
+<a class="lnum" href="#48" name="48">0048</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="keyword">if</span>&#0160;<span class="name">o</span>&#0160;<span class="keyword">in</span>&#0160;<span class="op">(</span><span class="string">'-f'</span><span class="op">,</span>&#0160;<span class="string">'--force'</span><span class="op">)</span><span class="op">:</span><br />
+<a class="lnum" href="#49" name="49">0049</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">force</span>&#0160;<span class="op">=</span>&#0160;<span class="name">True</span><br />
+<a class="lnum" href="#50" name="50">0050</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="keyword">elif</span>&#0160;<span class="name">o</span>&#0160;<span class="keyword">in</span>&#0160;<span class="op">(</span><span class="string">'-s'</span><span class="op">,</span>&#0160;<span class="string">'--source'</span><span class="op">)</span><span class="op">:</span><br />
+<a class="lnum" href="#51" name="51">0051</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">source</span>&#0160;<span class="op">=</span>&#0160;<span class="name">True</span><br />
+<a class="lnum" href="#52" name="52">0052</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="keyword">elif</span>&#0160;<span class="name">o</span>&#0160;<span class="keyword">in</span>&#0160;<span class="op">(</span><span class="string">'-h'</span><span class="op">,</span>&#0160;<span class="string">'--help'</span><span class="op">)</span><span class="op">:</span><br />
+<a class="lnum" href="#53" name="53">0053</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">sys</span><span class="op">.</span><span class="name">stdout</span><span class="op">.</span><span class="name">write</span><span class="op">(</span><span class="name">__doc__</span><span class="op">)</span><br />
+<a class="lnum" href="#54" name="54">0054</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">sys</span><span class="op">.</span><span class="name">exit</span><span class="op">(</span><span class="number">0</span><span class="op">)</span><br />
+<a class="lnum" href="#55" name="55">0055</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="keyword">elif</span>&#0160;<span class="name">o</span>&#0160;<span class="keyword">in</span>&#0160;<span class="op">(</span><span class="string">'-d'</span><span class="op">,</span>&#0160;<span class="string">'--strip-dest-dir'</span><span class="op">)</span><span class="op">:</span><br />
+<a class="lnum" href="#56" name="56">0056</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">strip_dest_dir</span>&#0160;<span class="op">=</span>&#0160;<span class="name">a</span><br />
+<a class="lnum" href="#57" name="57">0057</a>&#0160;&#0160;&#0160;&#0160;<span class="name">files</span>&#0160;<span class="op">=</span>&#0160;<span class="name">args</span><br />
+<a class="lnum" href="#58" name="58">0058</a><br />
+<a class="lnum" href="#59" name="59">0059</a>&#0160;&#0160;&#0160;&#0160;<span class="keyword">if</span>&#0160;<span class="keyword">not</span>&#0160;<span class="name">files</span><span class="op">:</span><br />
+<a class="lnum" href="#60" name="60">0060</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">sys</span><span class="op">.</span><span class="name">stderr</span><span class="op">.</span><span class="name">write</span><span class="op">(</span><span class="string">'kidc:&#0160;No&#0160;kid&#0160;template&#0160;specified.\n'</span><span class="op">)</span><br />
+<a class="lnum" href="#61" name="61">0061</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">sys</span><span class="op">.</span><span class="name">stderr</span><span class="op">.</span><span class="name">write</span><span class="op">(</span><span class="string">"&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;Try&#0160;'kidc&#0160;--help'&#0160;for&#0160;usage&#0160;information.\n"</span><span class="op">)</span><br />
+<a class="lnum" href="#62" name="62">0062</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">sys</span><span class="op">.</span><span class="name">exit</span><span class="op">(</span><span class="number">2</span><span class="op">)</span><br />
+<a class="lnum" href="#63" name="63">0063</a><br />
+<a class="lnum" href="#64" name="64">0064</a>&#0160;&#0160;&#0160;&#0160;<span class="comment">#&#0160;a&#0160;quick&#0160;function&#0160;for&#0160;printing&#0160;results</span><br />
+<a class="lnum" href="#65" name="65">0065</a><span class="comment"></span>&#0160;&#0160;&#0160;&#0160;<span class="keyword">def</span>&#0160;<span class="name">print_result</span><span class="op">(</span><span class="name">rslt</span><span class="op">)</span><span class="op">:</span><br />
+<a class="lnum" href="#66" name="66">0066</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="op">(</span><span class="name">rslt</span><span class="op">,</span>&#0160;<span class="name">file</span><span class="op">)</span>&#0160;<span class="op">=</span>&#0160;<span class="name">rslt</span><br />
+<a class="lnum" href="#67" name="67">0067</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="keyword">if</span>&#0160;<span class="name">rslt</span>&#0160;<span class="op">==</span>&#0160;<span class="name">True</span><span class="op">:</span><br />
+<a class="lnum" href="#68" name="68">0068</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">msg</span>&#0160;<span class="op">=</span>&#0160;<span class="string">'compile:&#0160;%s\n'</span>&#0160;<span class="op">%</span>&#0160;<span class="name">file</span><br />
+<a class="lnum" href="#69" name="69">0069</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="keyword">elif</span>&#0160;<span class="name">rslt</span>&#0160;<span class="op">==</span>&#0160;<span class="name">False</span><span class="op">:</span><br />
+<a class="lnum" href="#70" name="70">0070</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">msg</span>&#0160;<span class="op">=</span>&#0160;<span class="string">'fresh:&#0160;%s\n'</span>&#0160;<span class="op">%</span>&#0160;<span class="name">file</span><br />
+<a class="lnum" href="#71" name="71">0071</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="keyword">else</span><span class="op">:</span><br />
+<a class="lnum" href="#72" name="72">0072</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">msg</span>&#0160;<span class="op">=</span>&#0160;<span class="string">'error:&#0160;%s&#0160;(%s)\n'</span>&#0160;<span class="op">%</span>&#0160;<span class="op">(</span><span class="name">file</span><span class="op">,</span>&#0160;<span class="name">rslt</span><span class="op">)</span><br />
+<a class="lnum" href="#73" name="73">0073</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">sys</span><span class="op">.</span><span class="name">stderr</span><span class="op">.</span><span class="name">write</span><span class="op">(</span><span class="name">msg</span><span class="op">)</span><br />
+<a class="lnum" href="#74" name="74">0074</a><br />
+<a class="lnum" href="#75" name="75">0075</a>&#0160;&#0160;&#0160;&#0160;<span class="comment">#&#0160;run&#0160;through&#0160;files&#0160;and&#0160;compile</span><br />
+<a class="lnum" href="#76" name="76">0076</a><span class="comment"></span>&#0160;&#0160;&#0160;&#0160;<span class="keyword">for</span>&#0160;<span class="name">f</span>&#0160;<span class="keyword">in</span>&#0160;<span class="name">files</span><span class="op">:</span><br />
+<a class="lnum" href="#77" name="77">0077</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="keyword">if</span>&#0160;<span class="name">isdir</span><span class="op">(</span><span class="name">f</span><span class="op">)</span><span class="op">:</span><br />
+<a class="lnum" href="#78" name="78">0078</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="keyword">for</span>&#0160;<span class="name">rslt</span>&#0160;<span class="keyword">in</span>&#0160;<span class="name">kid</span><span class="op">.</span><span class="name">compiler</span><span class="op">.</span><span class="name">compile_dir</span><span class="op">(</span><span class="name">f</span><span class="op">,</span>&#0160;<span class="name">force</span><span class="op">=</span><span class="name">force</span><span class="op">,</span>&#0160;<span class="name">source</span><span class="op">=</span><span class="name">source</span><span class="op">,</span>&#0160;<span class="name">strip_dest_dir</span><span class="op">=</span><span class="name">strip_dest_dir</span><span class="op">)</span><span class="op">:</span><br />
+<a class="lnum" href="#79" name="79">0079</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">print_result</span><span class="op">(</span><span class="name">rslt</span><span class="op">)</span><br />
+<a class="lnum" href="#80" name="80">0080</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="keyword">else</span><span class="op">:</span><br />
+<a class="lnum" href="#81" name="81">0081</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">kid</span><span class="op">.</span><span class="name">compiler</span><span class="op">.</span><span class="name">compile_file</span><span class="op">(</span><span class="name">f</span><span class="op">,</span>&#0160;<span class="name">force</span><span class="op">=</span><span class="name">force</span><span class="op">,</span>&#0160;<span class="name">source</span><span class="op">=</span><span class="name">source</span><span class="op">,</span>&#0160;<span class="name">strip_dest_dir</span><span class="op">=</span><span class="name">strip_dest_dir</span><span class="op">)</span><br />
+<a class="lnum" href="#82" name="82">0082</a>&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;&#0160;<span class="name">print_result</span><span class="op">(</span><span class="op">(</span><span class="name">True</span><span class="op">,</span>&#0160;<span class="name">f</span><span class="op">)</span><span class="op">)</span><br />
+<a class="lnum" href="#83" name="83">0083</a><br />
+<a class="lnum" href="#84" name="84">0084</a><span class="keyword">if</span>&#0160;<span class="name">__name__</span>&#0160;<span class="op">==</span>&#0160;<span class="string">'__main__'</span><span class="op">:</span><br />
+<a class="lnum" href="#85" name="85">0085</a>&#0160;&#0160;&#0160;&#0160;<span class="name">main</span><span class="op">(</span><span class="op">)</span></code></div></body></html>

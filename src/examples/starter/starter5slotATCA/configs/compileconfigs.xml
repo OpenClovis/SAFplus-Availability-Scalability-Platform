@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <CompileConfigs:ComponentsInfo xmlns:CompileConfigs="Comps.ecore">
+      <COR savetype="CL_COR_DELTA_SAVE"/>
+      <FM localProbationPeriod="10"/>
+      <NS maxentries="256" maxglobalcontexts="10" maxlocalcontexts="2"/>
+      <RMD maxretries="8"/>
+      <PM>
+        <appConfigInterval applicationName="App2plus1" value="3000"/>
+        <appConfigInterval applicationName="App1plus1" value="3000"/>
+        <compConfigInterval componentName="App2plus1Comp0" type="App2plus1" value="0"/>
+        <compConfigInterval componentName="App1plus1I0" type="App1plus1" value="0"/>
+        <compConfigInterval componentName="App2plus1Comp1" type="App2plus1" value="0"/>
+        <compConfigInterval componentName="App1plus1I1" type="App1plus1" value="0"/>
+        <compConfigInterval componentName="App2plus1Comp2" type="App2plus1" value="0"/>
+      </PM>
+    </CompileConfigs:ComponentsInfo>
+  </version>
+</openClovisAsp>

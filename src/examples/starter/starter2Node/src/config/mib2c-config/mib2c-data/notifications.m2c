@@ -10,6 +10,7 @@
 
 /* function declarations */
 @foreach $n notifications@
+@perleval $vars{'n'}=~ s/[^a-zA-Z0-9]*//g; 0@
 void clSnmpSend${n}Trap(ClTrapPayLoadListT   *pTrapPayLoadList);
 @end@
 
@@ -32,10 +33,12 @@ void clSnmpSend${n}Trap(ClTrapPayLoadListT   *pTrapPayLoadList);
 static oid snmpTrapOid[] = {1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0};
 
 @foreach $n notifications@
+@perleval $vars{'n'}=~ s/[^a-zA-Z0-9]*//g; 0@
 void clSnmpSend${n}Trap(ClTrapPayLoadListT   *pTrapPayLoadList)
 {
     @eval $any_tbl_vb = 0@
     @eval $no_on_vb = 0@
+
     @foreach $vb varbinds@
         @if $vb.iscolumn == 1@
             @eval $any_tbl_vb = 1@
@@ -63,17 +66,20 @@ void clSnmpSend${n}Trap(ClTrapPayLoadListT   *pTrapPayLoadList)
         @end@
     @end@
 
+    clLogDebug("SNM", "NTF", "Inside trap handler");
+    @if $no_on_vb != 0 @
+    if(pTrapPayLoadList == NULL)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                      ("NULL arguments received!"));
+        return;
+    }
     if($no_on_vb != pTrapPayLoadList->numTrapPayloadEntry)
     {
         clLogError(CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "No of notification payload passed : [%d] but it suppose to be : [%d]", pTrapPayLoadList->numTrapPayloadEntry, $no_on_vb); 
 	return; 
     }
-
-    if(pTrapPayLoadList == NULL)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                      ("NULL arguments received!"));
-    }
+    @end@
 
     /*
      * Set the snmpTrapOid.0 value
@@ -129,6 +135,7 @@ void clSnmpSend${n}Trap(ClTrapPayLoadListT   *pTrapPayLoadList)
      * Send the trap to the list of configured destinations
      *  and clean up
      */
+     clLogInfo("SNM", "NTF", "Sending trap to trap manager");
     send_v2trap( pVarList );
     snmp_free_varbind( pVarList );
 
