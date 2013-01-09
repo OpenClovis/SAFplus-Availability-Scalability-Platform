@@ -32,6 +32,16 @@ extern "C" {
 
 #include "./clCompCfg.h"
 
+/*
+ * ---BEGIN_APPLICATION_CODE---
+ */
+ 
+// add extra includes here...
+
+/*
+ * ---END_APPLICATION_CODE---
+ */
+
 #ifndef COMP_NAME
 #error "COMP_NAME is not defined. Bad or missing ./clCompCfg.h"
 #endif
@@ -48,30 +58,22 @@ extern "C" {
                                             "Unknown" )
 
 #define STRING_CSI_FLAGS(S)                                                 \
-(   ((S) == SA_AMF_CSI_ADD_ONE)            ? "Add One" :               \
-    ((S) == SA_AMF_CSI_TARGET_ONE)         ? "Target One" :            \
-    ((S) == SA_AMF_CSI_TARGET_ALL)         ? "Target All" :            \
+(   ((S) & SA_AMF_CSI_ADD_ONE)            ? "Add One" :               \
+    ((S) & SA_AMF_CSI_TARGET_ONE)         ? "Target One" :            \
+    ((S) & SA_AMF_CSI_TARGET_ALL)         ? "Target All" :            \
                                                   "Unknown" )
 
 /******************************************************************************
  * Application Life Cycle Management Functions
  *****************************************************************************/
 
-ClRcT 
-clCompAppInitialize(
-        ClUint32T           argc,
-        ClCharT             *argv[]);
+ClRcT clCompAppInitialize(ClUint32T argc, ClCharT *argv[]);
 
-ClRcT
-clCompAppFinalize();
+ClRcT clCompAppFinalize();
 
-ClRcT
-clCompAppStateChange(
-        ClEoStateT          eoState);
+ClRcT clCompAppStateChange(ClEoStateT eoState);
 
-ClRcT
-clCompAppHealthCheck(
-        ClEoSchedFeedBackT* schFeedback);
+ClRcT clCompAppHealthCheck(ClEoSchedFeedBackT *schFeedback);
 
 void clCompAppTerminate(SaInvocationT invocation, const SaNameT *compName);
 
@@ -92,8 +94,19 @@ void clCompAppAMFCSIRemove(SaInvocationT  invocation,
 /******************************************************************************
  * Utility functions 
  *****************************************************************************/
+
 void clCompAppAMFPrintCSI(SaAmfCSIDescriptorT csiDescriptor,
                           SaAmfHAStateT haState);
+
+/*
+ * ---BEGIN_APPLICATION_CODE---
+ */
+ 
+// add custom functions here...
+
+/*
+ * ---END_APPLICATION_CODE---
+ */
 
 #ifdef __cplusplus
 }

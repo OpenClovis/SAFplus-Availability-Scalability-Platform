@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource:resourceInformation xmlns:resource="resource.ecore">
+  <chassisResource rdn="0" name="Chassis" maxInstances="1" numSlots="14">
+    <contains target="SCNodeRes" sourceMultiplicity="1" targetMultiplicity="1"/>
+    <contains target="PayloadNodeRes" sourceMultiplicity="1" targetMultiplicity="1"/>
+    <contains target="csa104Res" sourceMultiplicity="1" targetMultiplicity="1"/>
+    <contains target="csa105Res" sourceMultiplicity="1" targetMultiplicity="1"/>
+  </chassisResource>
+  <nodeHardwareResource rdn="7598096" name="SCNodeRes" documentation="" maxInstances="2" deviceObject="">
+    <alarmManagement isEnabled="false" pollingInterval="100"/>
+    <provisioning isEnabled="false"/>
+  </nodeHardwareResource>
+  <nodeHardwareResource rdn="13749280" name="PayloadNodeRes" documentation="" maxInstances="2" deviceObject="">
+    <alarmManagement isEnabled="false" pollingInterval="100"/>
+    <provisioning isEnabled="false"/>
+  </nodeHardwareResource>
+  <softwareResource rdn="12067963" name="csa104Res" documentation="" maxInstances="1">
+    <alarmManagement isEnabled="false" pollingInterval="100"/>
+    <provisioning isEnabled="true">
+      <attribute name="counter_reset" dataType="Int8" multiplicity="1" minValue="0" maxValue="1" defaultValue="0" rdn="24633470" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="false" OID="" writable="true" initialized="false"/>
+      <attribute name="delta_t" dataType="Uint32" multiplicity="1" minValue="10" maxValue="100000" defaultValue="1000" rdn="24386352" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="false" OID="" writable="true" initialized="false"/>
+      <attribute name="counter" dataType="Uint32" multiplicity="1" minValue="0" maxValue="100000" defaultValue="0" rdn="24633471" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="false" OID="" writable="true" initialized="false"/>
+    </provisioning>
+  </softwareResource>
+  <softwareResource rdn="27880672" name="csa105Res" documentation="" maxInstances="1">
+    <alarmManagement isEnabled="true" pollingInterval="500"/>
+    <provisioning isEnabled="true">
+      <attribute name="counter_reset" dataType="Int8" multiplicity="1" minValue="0" maxValue="1" defaultValue="0" rdn="6138432" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="false" OID="" writable="true" initialized="false"/>
+      <attribute name="counter_thresh" dataType="Uint16" multiplicity="1" minValue="88" maxValue="8888" defaultValue="888" rdn="19725779" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="false" OID="" writable="true" initialized="false"/>
+    </provisioning>
+  </softwareResource>
+</resource:resourceInformation>

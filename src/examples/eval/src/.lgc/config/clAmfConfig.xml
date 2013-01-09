@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+      <cpmConfigs>
+        <cpmConfig cpmType="GLOBAL" nodeType="SCNode">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="corSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+        <cpmConfig cpmType="LOCAL" nodeType="PayloadNode">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+      </cpmConfigs>
+      <nodeInstances>
+        <nodeInstance name="SCNodeI0" nodeMoId="\Chassis:0\SCNodeRes:0" type="SCNode">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="csa101SUI0" rank="4" type="csa101SU">
+              <componentInstances>
+                <componentInstance name="csa101CompI0" type="csa101Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa112SUI0" rank="4" type="csa112SU">
+              <componentInstances>
+                <componentInstance name="csa112CompI0" type="csa112Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa212SUI0" rank="4" type="csa212SU">
+              <componentInstances>
+                <componentInstance name="csa212CompI0" type="csa212Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa213SUI0" rank="4" type="csa213SU">
+              <componentInstances>
+                <componentInstance name="csa213CompI0" type="csa213Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa113SUI0" rank="4" type="csa113SU">
+              <componentInstances>
+                <componentInstance name="csa113CompI0" type="csa113Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa201SUI0" rank="4" type="csa201SU">
+              <componentInstances>
+                <componentInstance name="csa201CompI0" type="csa201Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa102SUI0" rank="4" type="csa102SU">
+              <componentInstances>
+                <componentInstance name="csa102CompI0" type="csa102Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa203SUI0" rank="4" type="csa203SU">
+              <componentInstances>
+                <componentInstance name="csa203CompI0" type="csa203Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa102SUI1" rank="4" type="csa102SU">
+              <componentInstances>
+                <componentInstance name="csa102CompI1" type="csa102Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa203SUI1" rank="4" type="csa203SU">
+              <componentInstances>
+                <componentInstance name="csa203CompI1" type="csa203Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa103SUI0" rank="4" type="csa103SU">
+              <componentInstances>
+                <componentInstance name="csa103CompI0" type="csa103Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa103SUI1" rank="3" type="csa103SU">
+              <componentInstances>
+                <componentInstance name="csa103CompI1" type="csa103Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa104SUI0" rank="0" type="csa104SU">
+              <componentInstances>
+                <componentInstance name="csa104CompI0" type="csa104Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa104SUI1" rank="1" type="csa104SU">
+              <componentInstances>
+                <componentInstance name="csa104CompI1" type="csa104Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+        <nodeInstance name="SCNodeI1" nodeMoId="\Chassis:0\SCNodeRes:1" type="SCNode">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="csa101SUI1" rank="3" type="csa101SU">
+              <componentInstances>
+                <componentInstance name="csa101CompI1" type="csa101Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa112SUI1" rank="3" type="csa112SU">
+              <componentInstances>
+                <componentInstance name="csa112CompI1" type="csa112Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa212SUI1" rank="3" type="csa212SU">
+              <componentInstances>
+                <componentInstance name="csa212CompI1" type="csa212Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa113SUI1" rank="3" type="csa113SU">
+              <componentInstances>
+                <componentInstance name="csa113CompI1" type="csa113Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa213SUI1" rank="3" type="csa213SU">
+              <componentInstances>
+                <componentInstance name="csa213CompI1" type="csa213Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa201SUI1" rank="3" type="csa201SU">
+              <componentInstances>
+                <componentInstance name="csa201CompI1" type="csa201Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa102SUI2" rank="3" type="csa102SU">
+              <componentInstances>
+                <componentInstance name="csa102CompI2" type="csa102Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa203SUI2" rank="3" type="csa203SU">
+              <componentInstances>
+                <componentInstance name="csa203CompI2" type="csa203Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa103SUI2" rank="2" type="csa103SU">
+              <componentInstances>
+                <componentInstance name="csa103CompI2" type="csa103Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+        <nodeInstance name="PayloadNodeI0" nodeMoId="\Chassis:0\PayloadNodeRes:0" type="PayloadNode">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="csa101SUI2" rank="2" type="csa101SU">
+              <componentInstances>
+                <componentInstance name="csa101CompI2" type="csa101Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa112SUI2" rank="2" type="csa112SU">
+              <componentInstances>
+                <componentInstance name="csa112CompI2" type="csa112Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa113SUI2" rank="2" type="csa113SU">
+              <componentInstances>
+                <componentInstance name="csa113CompI2" type="csa113Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa212SUI2" rank="2" type="csa212SU">
+              <componentInstances>
+                <componentInstance name="csa212CompI2" type="csa212Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa213SUI2" rank="2" type="csa213SU">
+              <componentInstances>
+                <componentInstance name="csa213CompI2" type="csa213Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa201SUI2" rank="2" type="csa201SU">
+              <componentInstances>
+                <componentInstance name="csa201CompI2" type="csa201Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa102SUI3" rank="2" type="csa102SU">
+              <componentInstances>
+                <componentInstance name="csa102CompI3" type="csa102Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa203SUI3" rank="2" type="csa203SU">
+              <componentInstances>
+                <componentInstance name="csa203CompI3" type="csa203Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa103SUI3" rank="1" type="csa103SU">
+              <componentInstances>
+                <componentInstance name="csa103CompI3" type="csa103Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+        <nodeInstance name="PayloadNodeI1" nodeMoId="\Chassis:0\PayloadNodeRes:1" type="PayloadNode">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="csa101SUI3" rank="1" type="csa101SU">
+              <componentInstances>
+                <componentInstance name="csa101CompI3" type="csa101Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa112SUI3" rank="1" type="csa112SU">
+              <componentInstances>
+                <componentInstance name="csa112CompI3" type="csa112Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa113SUI3" rank="1" type="csa113SU">
+              <componentInstances>
+                <componentInstance name="csa113CompI3" type="csa113Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa212SUI3" rank="1" type="csa212SU">
+              <componentInstances>
+                <componentInstance name="csa212CompI3" type="csa212Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa213SUI3" rank="1" type="csa213SU">
+              <componentInstances>
+                <componentInstance name="csa213CompI3" type="csa213Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa201SUI3" rank="1" type="csa201SU">
+              <componentInstances>
+                <componentInstance name="csa201CompI3" type="csa201Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa102SUI4" rank="1" type="csa102SU">
+              <componentInstances>
+                <componentInstance name="csa102CompI4" type="csa102Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa203SUI4" rank="1" type="csa203SU">
+              <componentInstances>
+                <componentInstance name="csa203CompI4" type="csa203Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="csa103SUI4" rank="0" type="csa103SU">
+              <componentInstances>
+                <componentInstance name="csa103CompI4" type="csa103Comp"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+      </nodeInstances>
+      <serviceGroups>
+        <serviceGroup name="csa101SGI0" type="csa101SG">
+          <serviceInstances>
+            <serviceInstance name="csa101SII0" type="csa101SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="csa101CSII0" type="csa101CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>csa101SUI0</prefferedServiceUnit>
+                <prefferedServiceUnit>csa101SUI1</prefferedServiceUnit>
+                <prefferedServiceUnit>csa101SUI2</prefferedServiceUnit>
+                <prefferedServiceUnit>csa101SUI3</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>csa101SUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="csa213SGI0" type="csa213SG">
+          <serviceInstances>
+            <serviceInstance name="csa213SII0" type="csa213SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="csa213CSII0" type="csa213CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>csa213SUI0</prefferedServiceUnit>
+                <prefferedServiceUnit>csa213SUI1</prefferedServiceUnit>
+                <prefferedServiceUnit>csa213SUI2</prefferedServiceUnit>
+                <prefferedServiceUnit>csa213SUI3</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>csa213SUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="csa212SGI0" type="csa212SG">
+          <serviceInstances>
+            <serviceInstance name="csa212SII0" type="csa212SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="csa212CSII0" type="csa212CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>csa212SUI0</prefferedServiceUnit>
+                <prefferedServiceUnit>csa212SUI1</prefferedServiceUnit>
+                <prefferedServiceUnit>csa212SUI2</prefferedServiceUnit>
+                <prefferedServiceUnit>csa212SUI3</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>csa212SUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="csa112SGI0" type="csa112SG">
+          <serviceInstances>
+            <serviceInstance name="csa112SII0" type="csa112SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="csa112CSII0" type="csa112CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>csa112SUI0</prefferedServiceUnit>
+                <prefferedServiceUnit>csa112SUI1</prefferedServiceUnit>
+                <prefferedServiceUnit>csa112SUI2</prefferedServiceUnit>
+                <prefferedServiceUnit>csa112SUI3</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>csa112SUI0</associatedServiceUnit>
+            <associatedServiceUnit>csa112SUI2</associatedServiceUnit>
+            <associatedServiceUnit>csa112SUI3</associatedServiceUnit>
+            <associatedServiceUnit>csa112SUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="csa113SGI0" type="csa113SG">
+          <serviceInstances>
+            <serviceInstance name="csa113SII0" type="csa113SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="csa113CSII0" type="csa113CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>csa113SUI0</prefferedServiceUnit>
+                <prefferedServiceUnit>csa113SUI1</prefferedServiceUnit>
+                <prefferedServiceUnit>csa113SUI2</prefferedServiceUnit>
+                <prefferedServiceUnit>csa113SUI3</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>csa113SUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="csa201SGI0" type="csa201SG">
+          <serviceInstances>
+            <serviceInstance name="csa201SII0" type="csa201SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="csa201CSII0" type="csa201CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>csa201SUI0</prefferedServiceUnit>
+                <prefferedServiceUnit>csa201SUI1</prefferedServiceUnit>
+                <prefferedServiceUnit>csa201SUI2</prefferedServiceUnit>
+                <prefferedServiceUnit>csa201SUI3</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>csa201SUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="csa102SGI0" type="csa102SG">
+          <serviceInstances>
+            <serviceInstance name="csa102SII0" type="csa102SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="csa102CSII0" type="csa102CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>csa102SUI0</prefferedServiceUnit>
+                <prefferedServiceUnit>csa102SUI3</prefferedServiceUnit>
+                <prefferedServiceUnit>csa102SUI4</prefferedServiceUnit>
+                <prefferedServiceUnit>csa102SUI2</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>csa102SUI0</associatedServiceUnit>
+            <associatedServiceUnit>csa102SUI3</associatedServiceUnit>
+            <associatedServiceUnit>csa102SUI4</associatedServiceUnit>
+            <associatedServiceUnit>csa102SUI2</associatedServiceUnit>
+            <associatedServiceUnit>csa102SUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="csa203SGI0" type="csa203SG">
+          <serviceInstances>
+            <serviceInstance name="csa203SII0" type="csa203SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="csa203CSII0" type="csa203CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>csa203SUI0</prefferedServiceUnit>
+                <prefferedServiceUnit>csa203SUI3</prefferedServiceUnit>
+                <prefferedServiceUnit>csa203SUI4</prefferedServiceUnit>
+                <prefferedServiceUnit>csa203SUI2</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>csa203SUI0</associatedServiceUnit>
+            <associatedServiceUnit>csa203SUI3</associatedServiceUnit>
+            <associatedServiceUnit>csa203SUI4</associatedServiceUnit>
+            <associatedServiceUnit>csa203SUI2</associatedServiceUnit>
+            <associatedServiceUnit>csa203SUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="csa103SGI0" type="csa103SG">
+          <serviceInstances>
+            <serviceInstance name="csa103SII0" type="csa103SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="csa103CSII0" type="csa103CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>csa103SUI0</prefferedServiceUnit>
+                <prefferedServiceUnit>csa103SUI1</prefferedServiceUnit>
+                <prefferedServiceUnit>csa103SUI2</prefferedServiceUnit>
+                <prefferedServiceUnit>csa103SUI3</prefferedServiceUnit>
+                <prefferedServiceUnit>csa103SUI4</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>csa103SUI0</associatedServiceUnit>
+            <associatedServiceUnit>csa103SUI1</associatedServiceUnit>
+            <associatedServiceUnit>csa103SUI2</associatedServiceUnit>
+            <associatedServiceUnit>csa103SUI3</associatedServiceUnit>
+            <associatedServiceUnit>csa103SUI4</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="csa104SGI0" type="csa104SG">
+          <serviceInstances>
+            <serviceInstance name="csa104SII0" type="csa104SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="csa104CSII" type="csa104CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits>
+                <prefferedServiceUnit>csa104SUI0</prefferedServiceUnit>
+                <prefferedServiceUnit>csa104SUI1</prefferedServiceUnit>
+              </prefferedServiceUnits>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>csa104SUI0</associatedServiceUnit>
+            <associatedServiceUnit>csa104SUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+      </serviceGroups>
+    </amfConfig>
+  </version>
+</openClovisAsp>

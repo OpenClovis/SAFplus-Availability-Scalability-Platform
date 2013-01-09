@@ -207,8 +207,7 @@ ClRcT SendArp(const char* host, const char* dev)
     return CL_OK;
 }
 
-
-void GetVirtualAddressInfo(ClAmsCSIDescriptorT* csiDescriptor, VirtualIpAddress* vip)
+void GetVirtualAddressInfoAsp(ClAmsCSIDescriptorT* csiDescriptor, VirtualIpAddress* vip)
 {
     int i;
     vip->ip[0] = 0;
@@ -224,6 +223,27 @@ void GetVirtualAddressInfo(ClAmsCSIDescriptorT* csiDescriptor, VirtualIpAddress*
             strncpy(vip->netmask, (const char*) csiDescriptor->csiAttributeList.attribute[i].attributeValue,VipFieldLen);
         if (strcmp((const char*) csiDescriptor->csiAttributeList.attribute[i].attributeName,"VirtualDevice") == 0) 
             strncpy(vip->dev, (const char*) csiDescriptor->csiAttributeList.attribute[i].attributeValue,VipFieldLen);
+    }
+  
+}
+
+
+void GetVirtualAddressInfo(SaAmfCSIDescriptorT* csiDescriptor, VirtualIpAddress* vip)
+{
+    int i;
+    vip->ip[0] = 0;
+    vip->netmask[0] = 0;
+    vip->dev[0] = 0;
+
+    /* Pull the appropriate values out of the workload dictionary */
+    for (i = 0; i < csiDescriptor->csiAttr.number; i++)
+    {
+        if (strcmp((const char*) csiDescriptor->csiAttr.attr[i].attrName,"VirtualIpAddress") == 0) 
+            strncpy(vip->ip, (const char*) csiDescriptor->csiAttr.attr[i].attrValue, VipFieldLen);
+        if (strcmp((const char*) csiDescriptor->csiAttr.attr[i].attrName,"VirtualNetMask") == 0)   
+            strncpy(vip->netmask, (const char*) csiDescriptor->csiAttr.attr[i].attrValue,VipFieldLen);
+        if (strcmp((const char*) csiDescriptor->csiAttr.attr[i].attrName,"VirtualDevice") == 0) 
+            strncpy(vip->dev, (const char*) csiDescriptor->csiAttr.attr[i].attrValue,VipFieldLen);
     }
   
 }

@@ -512,7 +512,7 @@ ClRcT GetVaiFromCsi(const ClNameT       *compName,const char* name, VirtualIpAdd
                          pCSI->csiDescriptor.csiName.value,
                          STRING_HA_STATE((ClUint32T)pCSI->haState));
 
-                GetVirtualAddressInfo(&pCSI->csiDescriptor, ret);
+                GetVirtualAddressInfoAsp(&pCSI->csiDescriptor, ret);
                 /*clprintf(CL_LOG_SEV_INFO,"Found VIP: %s %s %s", ret.ip,ret.netmask,ret.dev); */
                 if(csiRef.pCSIList) clHeapFree(csiRef.pCSIList);
                 return CL_OK;
@@ -550,7 +550,7 @@ ClRcT OperateOnAllCsis(const ClNameT       *compName,char* op,ClAmsCSIDescriptor
                      pCSI->csiDescriptor.csiName.value,
                      STRING_HA_STATE((ClUint32T)pCSI->haState));
 
-            GetVirtualAddressInfo(&pCSI->csiDescriptor, &temp);
+            GetVirtualAddressInfoAsp(&pCSI->csiDescriptor, &temp);
             clprintf(CL_LOG_SEV_INFO,"VIP %s: %s %s %s", op, temp.ip,temp.netmask,temp.dev);
             AddRemVirtualAddress(op,&temp);
 
@@ -577,7 +577,7 @@ void HandleCsiChange(char* op,const ClNameT* compName, ClAmsCSIDescriptorT* csiD
             else /* CL_AMS_CSI_FLAG_ADD_ONE */
             {
                 VirtualIpAddress temp;
-                GetVirtualAddressInfo(csiDescriptor, &temp);
+                GetVirtualAddressInfoAsp(csiDescriptor, &temp);
                 clprintf(CL_LOG_SEV_INFO,"Add one VIP: %s %s %s", temp.ip,temp.netmask,temp.dev);
                 AddRemVirtualAddress(op,&temp);
             }

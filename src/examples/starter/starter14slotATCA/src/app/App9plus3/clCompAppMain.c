@@ -357,7 +357,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
                                  pCSI->csiDescriptor.csiName.value,
                                  STRING_HA_STATE((ClUint32T)pCSI->haState));
 
-                        GetVirtualAddressInfo(&pCSI->csiDescriptor, &temp);
+                        GetVirtualAddressInfoAsp(&pCSI->csiDescriptor, &temp);
                         AddRemVirtualAddress("up",&temp);
 
                       }
@@ -367,7 +367,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
               }
             else /* CL_AMS_CSI_FLAG_ADD_ONE */
               {
-                GetVirtualAddressInfo((ClAmsCSIDescriptorT*)&csiDescriptor, &gVirtualIp);
+            	GetVirtualAddressInfo(&csiDescriptor, &gVirtualIp);
                 AddRemVirtualAddress("up",&gVirtualIp);
               }
 
@@ -382,7 +382,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * for this CSI.
              */
 
-            GetVirtualAddressInfo((ClAmsCSIDescriptorT*)&csiDescriptor, &gVirtualIp);
+        	GetVirtualAddressInfo(&csiDescriptor, &gVirtualIp);
             AddRemVirtualAddress("down",&gVirtualIp);  /* Bring it down just in case it is up from a prior run */
 
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
@@ -425,7 +425,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
                                     pCSI->csiDescriptor.csiName.value,
                                     STRING_HA_STATE((ClUint32T)pCSI->haState));
 
-                        GetVirtualAddressInfo(&pCSI->csiDescriptor, &temp);
+                        GetVirtualAddressInfoAsp(&pCSI->csiDescriptor, &temp);
                         AddRemVirtualAddress("down",&temp);
 
                       }
@@ -436,7 +436,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
               else /* CL_AMS_CSI_FLAG_ADD_ONE */
                 {
                   VirtualIpAddress temp;
-                  GetVirtualAddressInfo((ClAmsCSIDescriptorT*)&csiDescriptor, &temp);
+                  GetVirtualAddressInfo(&csiDescriptor, &temp);
                   AddRemVirtualAddress("down",&temp);
                 }
 

@@ -5,11 +5,6 @@
 *
 * clCompConfig.h for csa212Comp
 *
-* 
-* Date: 01/18/07 at 18:18:32
-* User: breck 
-* 
-*
 ********************************************************************************/
 
 #ifndef CL_COMP_CFG
@@ -23,7 +18,7 @@ extern "C" {
 #include <clEoApi.h>                                                                                                                          
                                                                                                                              
 #define COMP_NAME       "csa212Comp"
-#define COMP_EO_NAME    "csa212CompEO"
+#define COMP_EO_NAME    "csa112Comp_0EO0"
 
 #define HAS_EO_SERVICES 0
 
@@ -46,14 +41,14 @@ extern "C" {
                                                                                                                              
 /* Component EO Client Libraries */                                                                                                                            
 
-#define COMP_EO_CLIENTLIB_COR   CL_TRUE
+#define COMP_EO_CLIENTLIB_COR   CL_FALSE
 #define COMP_EO_CLIENTLIB_CM    CL_FALSE                  
 #define COMP_EO_CLIENTLIB_NAME    CL_TRUE                  
 #define COMP_EO_CLIENTLIB_LOG    CL_TRUE                  
 #define COMP_EO_CLIENTLIB_TRACE    CL_FALSE                 
 #define COMP_EO_CLIENTLIB_DIAG    CL_FALSE
 #define COMP_EO_CLIENTLIB_TXN    CL_TRUE
-#define COMP_EO_CLIENTLIB_NA    CL_FALSE
+#define COMP_EO_CLIENTLIB_MSO    CL_FALSE
 #define COMP_EO_CLIENTLIB_PROV    CL_FALSE
 #define COMP_EO_CLIENTLIB_ALARM    CL_FALSE
 #define COMP_EO_CLIENTLIB_DEBUG    CL_TRUE

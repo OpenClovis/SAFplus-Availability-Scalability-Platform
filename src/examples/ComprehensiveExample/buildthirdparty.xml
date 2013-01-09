@@ -1,0 +1,16 @@
+<?xml version='1.0'?>
+<project name="Build" default="all">
+
+<!-- Build -->
+<target name="build">
+	<exec dir="${projectarea.loc}" executable="make" failonerror="true">
+	<arg value="${make.prefix}" />
+	</exec>
+</target>
+<!--
+Target to build Project.
+-->
+<target name="all"
+    depends="build"/>
+    <echo>Build thirdparty libraries started for toolchain ${toolchain.name}</echo>
+</project>
