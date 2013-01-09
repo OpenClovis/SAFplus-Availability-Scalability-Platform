@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component:componentInformation xmlns:component="component.ecore">
+  <cluster name="Cluster" rdn="java.lang.Object@1dd1752">
+    <contains target="SCNode"/>
+    <contains target="PayloadNode"/>
+  </cluster>
+  <node Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE" classType="CL_AMS_NODE_CLASS_B" id="0" isASPAware="CL_TRUE" isRestartable="CL_TRUE" isSwappable="CL_TRUE" name="SCNode" rdn="20301744" suFailoverCountMax="10" suFailoverDuration="10000" subClassType=" ">
+    <contains target="OnePlusOneCHKPTSU"/>
+    <contains target="TwoPlusOneCHKPTSU"/>
+    <contains target="SNMPSubAgentSU"/>
+    <contains target="EventSubscriberSU"/>
+  </node>
+  <node Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE" classType="CL_AMS_NODE_CLASS_C" id="0" isASPAware="CL_TRUE" isRestartable="CL_TRUE" isSwappable="CL_TRUE" name="PayloadNode" rdn="28324056" suFailoverCountMax="10" suFailoverDuration="10000" subClassType=" ">
+    <contains target="TwoPlusOneCHKPTSU"/>
+    <contains target="OnePlusOneCHKPTSU"/>
+    <contains target="ProvisioningSU"/>
+    <contains target="AlarmSU"/>
+    <contains target="EventPublisherSU"/>
+  </node>
+  <serviceUnit adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isContainerSU="CL_TRUE" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" name="OnePlusOneCHKPTSU" rdn="21186348">
+    <contains target="OnePlusOneCHKPT"/>
+  </serviceUnit>
+  <serviceUnit adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isContainerSU="CL_TRUE" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" name="TwoPlusOneCHKPTSU" rdn="553606">
+    <contains target="TwoPlusOneCHKPT"/>
+  </serviceUnit>
+  <serviceUnit adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isContainerSU="CL_TRUE" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" name="SNMPSubAgentSU" rdn="6606816">
+    <contains target="SNMPSubAgent"/>
+  </serviceUnit>
+  <serviceUnit adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isContainerSU="CL_TRUE" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" name="ProvisioningSU" rdn="4625647">
+    <contains target="Provisioning"/>
+  </serviceUnit>
+  <serviceUnit adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isContainerSU="CL_TRUE" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" name="AlarmSU" rdn="22915823">
+    <contains target="Alarm"/>
+  </serviceUnit>
+  <serviceUnit adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isContainerSU="CL_TRUE" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" name="EventPublisherSU" rdn="22986214">
+    <contains target="EventPublisher"/>
+  </serviceUnit>
+  <serviceUnit adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isContainerSU="CL_TRUE" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" name="EventSubscriberSU" rdn="9087285">
+    <contains target="EventSubscriber"/>
+  </serviceUnit>
+  <safComponent amStartCommand="" amStopCommand="" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" cleanupCommand="" environmentVariable="" instantiateCommand="OnePlusOneCHKPT" instantiateDelay="5000" instantiateLevel="1" is3rdpartyComponent="false" isBuildCPP="false" isRestartable="CL_TRUE" isSNMPSubAgent="false" name="OnePlusOneCHKPT" nodeRebootCleanupFail="CL_TRUE" numMaxActiveCSIs="1" numMaxAmStart="1" numMaxAmStop="1" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxStandbyCSIs="1" numMaxTerminate="1" processRel="CL_CPM_COMP_SINGLE_PROCESS" property="CL_AMS_SA_AWARE" rdn="12357377" recoveryOnTimeout="CL_AMS_RECOVERY_COMP_FAILOVER" terminateCommand="">
+    <csiTypes>
+      <csiType name="OnePlusOneCHKPTCSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts amStartTimeout="10000" amStopTimeout="10000" cleanupTimeout="10000" csiRemoveTimeout="10000" csiSetTimeout="10000" instantiateTimeout="10000" proxiedCompCleanupTimeout="10000" proxiedCompInstantiateTimeout="10000" quiescingCompleteTimeout="10000" terminateTimeout="10000"/>
+    <healthCheck maxDuration="60000" period="30000"/>
+    <eoProperties eoName="OnePlusOneCHKPT_EO" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0" threadCount="2" threadPriority="PRIORITY_MEDIUM">
+      <libs/>
+      <aspLib Alarm="CL_FALSE" Buffer="CL_TRUE" CM="CL_FALSE" COR="CL_TRUE" DBAL="CL_FALSE" Debug="CL_TRUE" Diagnostics="CL_FALSE" EO="CL_TRUE" Fault="CL_FALSE" HAL="CL_FALSE" IOC="CL_TRUE" LOG="CL_TRUE" NameService="CL_TRUE" OM="CL_FALSE" OSAL="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" RMD="CL_TRUE" Timer="CL_TRUE" Trace="CL_FALSE" Transaction="CL_TRUE"/>
+    </eoProperties>
+  </safComponent>
+  <safComponent amStartCommand="" amStopCommand="" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" cleanupCommand="" environmentVariable="" instantiateCommand="TwoPlusOneCHKPT" instantiateDelay="5000" instantiateLevel="1" is3rdpartyComponent="false" isBuildCPP="false" isRestartable="CL_TRUE" isSNMPSubAgent="false" name="TwoPlusOneCHKPT" nodeRebootCleanupFail="CL_TRUE" numMaxActiveCSIs="1" numMaxAmStart="1" numMaxAmStop="1" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxStandbyCSIs="2" numMaxTerminate="1" processRel="CL_CPM_COMP_SINGLE_PROCESS" property="CL_AMS_SA_AWARE" rdn="16480431" recoveryOnTimeout="CL_AMS_RECOVERY_COMP_FAILOVER" terminateCommand="">
+    <csiTypes>
+      <csiType name="TwoPlusOneCHKPTCSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts amStartTimeout="10000" amStopTimeout="10000" cleanupTimeout="10000" csiRemoveTimeout="10000" csiSetTimeout="10000" instantiateTimeout="10000" proxiedCompCleanupTimeout="10000" proxiedCompInstantiateTimeout="10000" quiescingCompleteTimeout="10000" terminateTimeout="10000"/>
+    <healthCheck maxDuration="60000" period="30000"/>
+    <eoProperties eoName="TwoPlusOneCHKPT_EO" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0" threadCount="2" threadPriority="PRIORITY_MEDIUM">
+      <libs/>
+      <aspLib Alarm="CL_FALSE" Buffer="CL_TRUE" CM="CL_FALSE" COR="CL_TRUE" DBAL="CL_FALSE" Debug="CL_TRUE" Diagnostics="CL_FALSE" EO="CL_TRUE" Fault="CL_FALSE" HAL="CL_FALSE" IOC="CL_TRUE" LOG="CL_TRUE" NameService="CL_TRUE" OM="CL_FALSE" OSAL="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" RMD="CL_TRUE" Timer="CL_TRUE" Trace="CL_FALSE" Transaction="CL_TRUE"/>
+    </eoProperties>
+  </safComponent>
+  <safComponent amStartCommand="" amStopCommand="" capabilityModel="CL_AMS_COMP_CAP_ONE_ACTIVE" cleanupCommand="" commandLineArgument="" environmentVariable="" instantiateCommand="SNMPSubAgent" instantiateDelay="5000" instantiateLevel="1" is3rdpartyComponent="false" isBuildCPP="false" isRestartable="CL_TRUE" isSNMPSubAgent="true" name="SNMPSubAgent" nodeRebootCleanupFail="CL_TRUE" numMaxActiveCSIs="1" numMaxAmStart="1" numMaxAmStop="1" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxStandbyCSIs="0" numMaxTerminate="1" processRel="CL_CPM_COMP_SINGLE_PROCESS" property="CL_AMS_SA_AWARE" rdn="17563357" recoveryOnTimeout="CL_AMS_RECOVERY_COMP_RESTART" terminateCommand="">
+    <csiTypes>
+      <csiType name="SNMPSubAgentCSI"/>
+    </csiTypes>
+    <timeouts amStartTimeout="10000" amStopTimeout="10000" cleanupTimeout="10000" csiRemoveTimeout="10000" csiSetTimeout="10000" instantiateTimeout="10000" proxiedCompCleanupTimeout="10000" proxiedCompInstantiateTimeout="10000" quiescingCompleteTimeout="10000" terminateTimeout="10000"/>
+    <healthCheck maxDuration="60000" period="30000"/>
+    <eoProperties eoName="SNMPSubAgent_EO" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0" threadCount="2" threadPriority="PRIORITY_MEDIUM">
+      <libs/>
+      <aspLib Alarm="CL_FALSE" Buffer="CL_TRUE" CM="CL_FALSE" COR="CL_TRUE" DBAL="CL_FALSE" Debug="CL_TRUE" Diagnostics="CL_FALSE" EO="CL_TRUE" Fault="CL_FALSE" HAL="CL_FALSE" IOC="CL_TRUE" LOG="CL_TRUE" NameService="CL_TRUE" OM="CL_FALSE" OSAL="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" RMD="CL_TRUE" Timer="CL_TRUE" Trace="CL_FALSE" Transaction="CL_TRUE"/>
+    </eoProperties>
+  </safComponent>
+  <safComponent amStartCommand="" amStopCommand="" capabilityModel="CL_AMS_COMP_CAP_ONE_ACTIVE" cleanupCommand="" environmentVariable="" instantiateCommand="Provisioning" instantiateDelay="5000" instantiateLevel="1" is3rdpartyComponent="false" isBuildCPP="false" isRestartable="CL_TRUE" isSNMPSubAgent="false" name="Provisioning" nodeRebootCleanupFail="CL_TRUE" numMaxActiveCSIs="1" numMaxAmStart="1" numMaxAmStop="1" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxStandbyCSIs="0" numMaxTerminate="1" processRel="CL_CPM_COMP_SINGLE_PROCESS" property="CL_AMS_SA_AWARE" rdn="15373792" recoveryOnTimeout="CL_AMS_RECOVERY_COMP_RESTART" terminateCommand="">
+    <csiTypes>
+      <csiType name="ProvisioningCSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts amStartTimeout="10000" amStopTimeout="10000" cleanupTimeout="10000" csiRemoveTimeout="10000" csiSetTimeout="10000" instantiateTimeout="10000" proxiedCompCleanupTimeout="10000" proxiedCompInstantiateTimeout="10000" quiescingCompleteTimeout="10000" terminateTimeout="10000"/>
+    <healthCheck maxDuration="60000" period="30000"/>
+    <eoProperties eoName="Provisioning_EO" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0" threadCount="2" threadPriority="PRIORITY_MEDIUM">
+      <libs/>
+      <aspLib Alarm="CL_FALSE" Buffer="CL_TRUE" CM="CL_FALSE" COR="CL_TRUE" DBAL="CL_FALSE" Debug="CL_TRUE" Diagnostics="CL_FALSE" EO="CL_TRUE" Fault="CL_FALSE" HAL="CL_FALSE" IOC="CL_TRUE" LOG="CL_TRUE" NameService="CL_TRUE" OM="CL_TRUE" OSAL="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_TRUE" RMD="CL_TRUE" Timer="CL_TRUE" Trace="CL_FALSE" Transaction="CL_TRUE"/>
+    </eoProperties>
+  </safComponent>
+  <safComponent amStartCommand="" amStopCommand="" capabilityModel="CL_AMS_COMP_CAP_ONE_ACTIVE" cleanupCommand="" environmentVariable="" instantiateCommand="Alarm" instantiateDelay="5000" instantiateLevel="1" is3rdpartyComponent="false" isBuildCPP="false" isRestartable="CL_TRUE" isSNMPSubAgent="false" name="Alarm" nodeRebootCleanupFail="CL_TRUE" numMaxActiveCSIs="1" numMaxAmStart="1" numMaxAmStop="1" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxStandbyCSIs="0" numMaxTerminate="1" processRel="CL_CPM_COMP_SINGLE_PROCESS" property="CL_AMS_SA_AWARE" rdn="16948891" recoveryOnTimeout="CL_AMS_RECOVERY_COMP_RESTART" terminateCommand="">
+    <csiTypes>
+      <csiType name="AlarmCSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts amStartTimeout="10000" amStopTimeout="10000" cleanupTimeout="10000" csiRemoveTimeout="10000" csiSetTimeout="10000" instantiateTimeout="10000" proxiedCompCleanupTimeout="10000" proxiedCompInstantiateTimeout="10000" quiescingCompleteTimeout="10000" terminateTimeout="10000"/>
+    <healthCheck maxDuration="60000" period="30000"/>
+    <eoProperties eoName="Alarm_EO" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0" threadCount="2" threadPriority="PRIORITY_MEDIUM">
+      <libs/>
+      <aspLib Alarm="CL_TRUE" Buffer="CL_TRUE" CM="CL_FALSE" COR="CL_TRUE" DBAL="CL_FALSE" Debug="CL_TRUE" Diagnostics="CL_FALSE" EO="CL_TRUE" Fault="CL_FALSE" HAL="CL_FALSE" IOC="CL_TRUE" LOG="CL_TRUE" NameService="CL_TRUE" OM="CL_TRUE" OSAL="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" RMD="CL_TRUE" Timer="CL_TRUE" Trace="CL_FALSE" Transaction="CL_TRUE"/>
+    </eoProperties>
+  </safComponent>
+  <safComponent amStartCommand="" amStopCommand="" capabilityModel="CL_AMS_COMP_CAP_ONE_ACTIVE" cleanupCommand="" environmentVariable="" instantiateCommand="EventPublisher" instantiateDelay="5000" instantiateLevel="1" is3rdpartyComponent="false" isBuildCPP="false" isRestartable="CL_TRUE" isSNMPSubAgent="false" name="EventPublisher" nodeRebootCleanupFail="CL_TRUE" numMaxActiveCSIs="1" numMaxAmStart="1" numMaxAmStop="1" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxStandbyCSIs="0" numMaxTerminate="1" processRel="CL_CPM_COMP_SINGLE_PROCESS" property="CL_AMS_SA_AWARE" rdn="31688588" recoveryOnTimeout="CL_AMS_RECOVERY_COMP_RESTART" terminateCommand="">
+    <csiTypes>
+      <csiType name="EventPublisherCSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts amStartTimeout="10000" amStopTimeout="10000" cleanupTimeout="10000" csiRemoveTimeout="10000" csiSetTimeout="10000" instantiateTimeout="10000" proxiedCompCleanupTimeout="10000" proxiedCompInstantiateTimeout="10000" quiescingCompleteTimeout="10000" terminateTimeout="10000"/>
+    <healthCheck maxDuration="60000" period="30000"/>
+    <eoProperties eoName="EventPublisher_EO" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0" threadCount="2" threadPriority="PRIORITY_MEDIUM">
+      <libs/>
+      <aspLib Alarm="CL_FALSE" Buffer="CL_TRUE" CM="CL_FALSE" COR="CL_TRUE" DBAL="CL_FALSE" Debug="CL_TRUE" Diagnostics="CL_FALSE" EO="CL_TRUE" Fault="CL_FALSE" HAL="CL_FALSE" IOC="CL_TRUE" LOG="CL_TRUE" NameService="CL_TRUE" OM="CL_FALSE" OSAL="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" RMD="CL_TRUE" Timer="CL_TRUE" Trace="CL_FALSE" Transaction="CL_TRUE"/>
+    </eoProperties>
+  </safComponent>
+  <safComponent amStartCommand="" amStopCommand="" capabilityModel="CL_AMS_COMP_CAP_ONE_ACTIVE" cleanupCommand="" environmentVariable="" instantiateCommand="EventSubscriber" instantiateDelay="5000" instantiateLevel="1" is3rdpartyComponent="false" isBuildCPP="false" isRestartable="CL_TRUE" isSNMPSubAgent="false" name="EventSubscriber" nodeRebootCleanupFail="CL_TRUE" numMaxActiveCSIs="1" numMaxAmStart="1" numMaxAmStop="1" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxStandbyCSIs="0" numMaxTerminate="1" processRel="CL_CPM_COMP_SINGLE_PROCESS" property="CL_AMS_SA_AWARE" rdn="13190634" recoveryOnTimeout="CL_AMS_RECOVERY_COMP_RESTART" terminateCommand="">
+    <csiTypes>
+      <csiType name="EventSubscriberCSI"/>
+    </csiTypes>
+    <commandLineArgument value="-p"/>
+    <timeouts amStartTimeout="10000" amStopTimeout="10000" cleanupTimeout="10000" csiRemoveTimeout="10000" csiSetTimeout="10000" instantiateTimeout="10000" proxiedCompCleanupTimeout="10000" proxiedCompInstantiateTimeout="10000" quiescingCompleteTimeout="10000" terminateTimeout="10000"/>
+    <healthCheck maxDuration="60000" period="30000"/>
+    <eoProperties eoName="EventSubscriber_EO" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0" threadCount="2" threadPriority="PRIORITY_MEDIUM">
+      <libs/>
+      <aspLib Alarm="CL_FALSE" Buffer="CL_TRUE" CM="CL_FALSE" COR="CL_TRUE" DBAL="CL_FALSE" Debug="CL_TRUE" Diagnostics="CL_FALSE" EO="CL_TRUE" Fault="CL_FALSE" HAL="CL_FALSE" IOC="CL_TRUE" LOG="CL_TRUE" NameService="CL_TRUE" OM="CL_FALSE" OSAL="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" RMD="CL_TRUE" Timer="CL_TRUE" Trace="CL_FALSE" Transaction="CL_TRUE"/>
+    </eoProperties>
+  </safComponent>
+  <serviceGroup adminState="CL_AMS_ADMIN_STATE_LOCKED_I" alphaFactor="100" autoAdjust="CL_FALSE" autoAdjustProbation="10000" autoRepair="CL_TRUE" betaFactor="0" compRestartCountMax="1" compRestartDuration="10000" failbackOption="CL_FALSE" failoverDuration="300000" isCollocationAllowed="CL_TRUE" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" maxActiveSIsPerSU="1" maxFailovers="0" maxStandbySIsPerSU="1" name="OnePlusOneCHKPTSG" numComponents="0" numPrefActiveSUs="1" numPrefActiveSUsPerSI="1" numPrefAssignedSUs="2" numPrefInserviceSUs="2" numPrefStandbySUs="1" rdn="17130743" reductionProcedure="CL_FALSE" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" restartDuration="10000" suRestartCountMax="1" suRestartDuration="10000">
+    <associatedTo target="OnePlusOneCHKPTSU"/>
+    <associatedTo target="OnePlusOneCHKPTSI"/>
+  </serviceGroup>
+  <serviceGroup adminState="CL_AMS_ADMIN_STATE_LOCKED_I" alphaFactor="100" autoAdjust="CL_FALSE" autoAdjustProbation="10000" autoRepair="CL_TRUE" betaFactor="0" compRestartCountMax="1" compRestartDuration="10000" failbackOption="CL_FALSE" failoverDuration="300000" isCollocationAllowed="CL_TRUE" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" maxActiveSIsPerSU="1" maxFailovers="0" maxStandbySIsPerSU="2" name="TwoPlusOneCHKPTSG" numComponents="0" numPrefActiveSUs="2" numPrefActiveSUsPerSI="1" numPrefAssignedSUs="3" numPrefInserviceSUs="3" numPrefStandbySUs="1" rdn="9879367" reductionProcedure="CL_FALSE" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N" restartDuration="10000" suRestartCountMax="1" suRestartDuration="10000">
+    <associatedTo target="TwoPlusOneCHKPTSU"/>
+    <associatedTo target="TwoPlusOneCHKPTSI"/>
+  </serviceGroup>
+  <serviceGroup adminState="CL_AMS_ADMIN_STATE_UNLOCKED" alphaFactor="100" autoAdjust="CL_FALSE" autoAdjustProbation="10000" autoRepair="CL_TRUE" betaFactor="0" compRestartCountMax="1" compRestartDuration="10000" failbackOption="CL_FALSE" failoverDuration="300000" isCollocationAllowed="CL_TRUE" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" maxActiveSIsPerSU="1" maxFailovers="0" maxStandbySIsPerSU="1" name="SNMPSubAgentSG" numComponents="0" numPrefActiveSUs="1" numPrefActiveSUsPerSI="1" numPrefAssignedSUs="1" numPrefInserviceSUs="1" numPrefStandbySUs="0" rdn="26686065" reductionProcedure="CL_FALSE" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" restartDuration="10000" suRestartCountMax="1" suRestartDuration="10000">
+    <associatedTo target="SNMPSubAgentSU"/>
+    <associatedTo target="SNMPSubAgentSI"/>
+  </serviceGroup>
+  <serviceGroup adminState="CL_AMS_ADMIN_STATE_LOCKED_I" alphaFactor="100" autoAdjust="CL_FALSE" autoAdjustProbation="10000" autoRepair="CL_TRUE" betaFactor="0" compRestartCountMax="1" compRestartDuration="10000" failbackOption="CL_FALSE" failoverDuration="300000" isCollocationAllowed="CL_TRUE" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" maxActiveSIsPerSU="1" maxFailovers="0" maxStandbySIsPerSU="1" name="ProvisioningSG" numComponents="0" numPrefActiveSUs="1" numPrefActiveSUsPerSI="1" numPrefAssignedSUs="1" numPrefInserviceSUs="1" numPrefStandbySUs="0" rdn="11484406" reductionProcedure="CL_FALSE" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" restartDuration="10000" suRestartCountMax="1" suRestartDuration="10000">
+    <associatedTo target="ProvisioningSU"/>
+    <associatedTo target="ProvisioningSI"/>
+  </serviceGroup>
+  <serviceGroup adminState="CL_AMS_ADMIN_STATE_LOCKED_I" alphaFactor="100" autoAdjust="CL_FALSE" autoAdjustProbation="10000" autoRepair="CL_TRUE" betaFactor="0" compRestartCountMax="1" compRestartDuration="10000" failbackOption="CL_FALSE" failoverDuration="300000" isCollocationAllowed="CL_TRUE" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" maxActiveSIsPerSU="1" maxFailovers="0" maxStandbySIsPerSU="1" name="AlarmSG" numComponents="0" numPrefActiveSUs="1" numPrefActiveSUsPerSI="1" numPrefAssignedSUs="1" numPrefInserviceSUs="1" numPrefStandbySUs="0" rdn="25940814" reductionProcedure="CL_FALSE" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" restartDuration="10000" suRestartCountMax="1" suRestartDuration="10000">
+    <associatedTo target="AlarmSU"/>
+    <associatedTo target="AlarmSI"/>
+  </serviceGroup>
+  <serviceGroup adminState="CL_AMS_ADMIN_STATE_LOCKED_I" alphaFactor="100" autoAdjust="CL_FALSE" autoAdjustProbation="10000" autoRepair="CL_TRUE" betaFactor="0" compRestartCountMax="1" compRestartDuration="10000" failbackOption="CL_FALSE" failoverDuration="300000" isCollocationAllowed="CL_TRUE" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" maxActiveSIsPerSU="1" maxFailovers="0" maxStandbySIsPerSU="1" name="EventPublisherSG" numComponents="0" numPrefActiveSUs="1" numPrefActiveSUsPerSI="1" numPrefAssignedSUs="1" numPrefInserviceSUs="1" numPrefStandbySUs="0" rdn="1782258" reductionProcedure="CL_FALSE" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" restartDuration="10000" suRestartCountMax="1" suRestartDuration="10000">
+    <associatedTo target="EventPublisherSU"/>
+    <associatedTo target="EventPublisherSI"/>
+  </serviceGroup>
+  <serviceGroup adminState="CL_AMS_ADMIN_STATE_LOCKED_I" alphaFactor="100" autoAdjust="CL_FALSE" autoAdjustProbation="10000" autoRepair="CL_TRUE" betaFactor="0" compRestartCountMax="1" compRestartDuration="10000" failbackOption="CL_FALSE" failoverDuration="300000" isCollocationAllowed="CL_TRUE" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" maxActiveSIsPerSU="1" maxFailovers="0" maxStandbySIsPerSU="1" name="EventSubscriberSG" numComponents="0" numPrefActiveSUs="1" numPrefActiveSUsPerSI="1" numPrefAssignedSUs="1" numPrefInserviceSUs="1" numPrefStandbySUs="0" rdn="4597467" reductionProcedure="CL_FALSE" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" restartDuration="10000" suRestartCountMax="1" suRestartDuration="10000">
+    <associatedTo target="EventSubscriberSU"/>
+    <associatedTo target="EventSubscriberSI"/>
+  </serviceGroup>
+  <serviceInstance adminState="CL_AMS_ADMIN_STATE_UNLOCKED" name="OnePlusOneCHKPTSI" numCSIs="1" numStandbyAssignments="1" rank="0" rdn="21404650">
+    <contains target="OnePlusOneCHKPTCSI"/>
+  </serviceInstance>
+  <serviceInstance adminState="CL_AMS_ADMIN_STATE_UNLOCKED" name="TwoPlusOneCHKPTSI" numCSIs="1" numStandbyAssignments="1" rank="0" rdn="31534636">
+    <contains target="TwoPlusOneCHKPTCSI"/>
+  </serviceInstance>
+  <serviceInstance adminState="CL_AMS_ADMIN_STATE_UNLOCKED" name="SNMPSubAgentSI" numCSIs="1" numStandbyAssignments="0" rank="0" rdn="11844453">
+    <contains target="SNMPSubAgentCSI"/>
+  </serviceInstance>
+  <serviceInstance adminState="CL_AMS_ADMIN_STATE_UNLOCKED" name="ProvisioningSI" numCSIs="1" numStandbyAssignments="0" rank="0" rdn="29453407">
+    <contains target="ProvisioningCSI"/>
+  </serviceInstance>
+  <serviceInstance adminState="CL_AMS_ADMIN_STATE_UNLOCKED" name="AlarmSI" numCSIs="1" numStandbyAssignments="0" rank="0" rdn="23847250">
+    <contains target="AlarmCSI"/>
+  </serviceInstance>
+  <serviceInstance adminState="CL_AMS_ADMIN_STATE_UNLOCKED" name="EventPublisherSI" numCSIs="1" numStandbyAssignments="0" rank="0" rdn="8641784">
+    <contains target="EventPublisherCSI"/>
+  </serviceInstance>
+  <serviceInstance adminState="CL_AMS_ADMIN_STATE_UNLOCKED" name="EventSubscriberSI" numCSIs="1" numStandbyAssignments="0" rank="0" rdn="33472401">
+    <contains target="EventSubscriberCSI"/>
+  </serviceInstance>
+  <componentServiceInstance name="OnePlusOneCHKPTCSI" rank="0" rdn="23991545">
+    <associatedTo target="OnePlusOneCHKPT"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="TwoPlusOneCHKPTCSI" rank="0" rdn="17528306">
+    <associatedTo target="TwoPlusOneCHKPT"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="SNMPSubAgentCSI" rank="0" rdn="21000826">
+    <associatedTo target="SNMPSubAgent"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="ProvisioningCSI" rank="0" rdn="11164461">
+    <associatedTo target="Provisioning"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="AlarmCSI" rank="0" rdn="11205816">
+    <associatedTo target="Alarm"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="EventPublisherCSI" rank="0" rdn="2697526">
+    <associatedTo target="EventPublisher"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="EventSubscriberCSI" rank="0" rdn="15693801">
+    <associatedTo target="EventSubscriber"/>
+  </componentServiceInstance>
+</component:componentInformation>
