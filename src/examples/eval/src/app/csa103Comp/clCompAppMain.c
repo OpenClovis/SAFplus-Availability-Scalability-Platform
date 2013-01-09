@@ -38,9 +38,11 @@
 
 #include <clCpmApi.h>
 #include <saAmf.h>
- 
+#include <saCkpt.h> 
 #include "clCompAppMain.h"
 #include "../ev/ev.h"
+#include "checkpointFns.h"
+#define max(a,b) ((a>b)?a:b)
 /******************************************************************************
  * Optional Features
  *****************************************************************************/
@@ -60,9 +62,13 @@
 
 pid_t mypid;
 SaAmfHandleT amfHandle;
-
 ClBoolT unblockNow = CL_FALSE;
 ClLogStreamHandleT gEvalLogStream = CL_HANDLE_INVALID_VALUE;
+
+SaCkptSectionIdT ckpt_sid = { /* Section id for checkpoints           */
+        (SaUint16T)sizeof(CKPT_SID_NAME)-1,
+        (SaUint8T*)CKPT_SID_NAME
+};
 
 /*
  * Declare other global variables here.
@@ -71,65 +77,32 @@ ClLogStreamHandleT gEvalLogStream = CL_HANDLE_INVALID_VALUE;
 ClUint32T      seq      = 0; /* Sequence number for print lines       */
 SaAmfHAStateT  ha_state = 0; /* HA state           */
 
-ClRcT checkpoint_initialize(void);
-ClRcT checkpoint_finalize(void);
-ClRcT checkpoint_write_seq(ClUint32T);
-ClRcT checkpoint_read_seq(ClUint32T*);
-ClRcT checkpoint_replica_activate(void);
-
 /******************************************************************************
  * Application Life Cycle Management Functions
  *****************************************************************************/
 
-void* csa103CkptTest(ClPtrT unused)
+void* csa103CkptActive(ClPtrT unused)
 {
     ClRcT rc = CL_OK;
 
-    clprintf(CL_LOG_SEV_INFO,"csa103: Instantiated as component instance.");
+    /* This thread will only be started when the application becomes active */
+    assert(ha_state == SA_AMF_HA_ACTIVE);    
 
-    clprintf(CL_LOG_SEV_INFO,"Waiting for CSI assignment...");
+    clprintf(CL_LOG_SEV_INFO,"Active thread has started");
+    /* Set this replica "active" so I can write to the checkpoint */
+    if ((rc = saCkptActiveReplicaSet(ckpt_handle)) != SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "checkpoint_replica_activate failed [0x%x] in ActiveReplicaSet", rc);
+    }
 
-    /* Main loop: Keep printing something unless we are suspended */
-    if (ha_state != SA_AMF_HA_ACTIVE)
-    {
-        clprintf(CL_LOG_SEV_INFO,"Waiting for CSI assignment...");
-    }
-    while ((rc = checkpoint_initialize()) != CL_OK)
-    {
-        clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to initialize checkpoint", rc);
-        sleep(1);        
-    }
-    while ((rc = checkpoint_read_seq(&seq)) != CL_OK)
-    {
-        clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to read checkpoint", rc);
-        sleep(1);        
-    }
-#ifdef CL_INST
-    if ((rc = clDataTapInit(DATA_TAP_DEFAULT_FLAGS, 103)) != CL_OK)
-    {
-        clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to initialize data tap", rc);
-    }
-#endif
+    /* Attempt to recover the state of the prior active */
+    checkpoint_read_seq(&seq);
+    
     while (!unblockNow)
     {
-        if (ha_state == SA_AMF_HA_ACTIVE)
-        {
-            clprintf(CL_LOG_SEV_INFO,"Hello World! (seq=%d)", seq++);
-
-#ifdef CL_INST
-            if ((rc = clDataTapSend(seq)) != CL_OK && (rc != CL_ERR_INVALID_PARAMETER))
-            {
-                clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to send data tap data", rc);
-            }
-#endif
-            
-            /* Checkpoint new sequence number */
-            rc = checkpoint_write_seq(seq);
-            if (rc != CL_OK)
-            {
-                clprintf(CL_LOG_SEV_ERROR,"ERROR: Checkpoint write failed.");
-            }
-        }
+        clprintf(CL_LOG_SEV_INFO,"Hello World! (seq=%d)", seq++);            
+        /* Checkpoint new sequence number */
+        checkpoint_write_seq(seq);
         sleep(1);
     }
     return CL_OK;
@@ -149,9 +122,6 @@ int main(int argc, char *argv[])
     SaVersionT          version;
     ClIocPortT          iocPort;
     SaAisErrorT         rc = SA_AIS_OK;
-
-    SaSelectionObjectT dispatch_fd;
-    fd_set read_fds;
     
     /*
      * Declare other local variables here.
@@ -215,42 +185,56 @@ int main(int argc, char *argv[])
     clprintf (CL_LOG_SEV_INFO, "   IOC Address             : 0x%x\n", clIocLocalAddressGet());
     clprintf (CL_LOG_SEV_INFO, "   IOC Port                : 0x%x\n", iocPort);
 
+    checkpoint_initialize();
     
-
-    pthread_t thr;
-    pthread_create(&thr,NULL,csa103CkptTest,NULL);
- 
-
     /*
      * Block on AMF dispatch file descriptor for callbacks
      */
-
-    /*
-     * Get the AMF dispatch FD for the callbacks
-     */
-    if ( (rc = saAmfSelectionObjectGet(amfHandle, &dispatch_fd)) != SA_AIS_OK)
-        goto errorexit;
-
-    do
+    if (1)
     {
-        FD_ZERO(&read_fds);
-        FD_SET(dispatch_fd, &read_fds);
         
-        if( select(dispatch_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
-        {
-            if (EINTR == errno)
-            {
-                continue;
-            }
-		    clprintf (CL_LOG_SEV_ERROR, "Error in select()");
-            break;
-        }
-        if (FD_ISSET(dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
-    }while(!unblockNow);      
+        SaSelectionObjectT amf_dispatch_fd;
+        SaSelectionObjectT ckpt_dispatch_fd;
+        int maxFd;
+        fd_set read_fds;
 
+        /*
+         * Get the AMF dispatch FD for the callbacks
+         */
+        if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
+            goto errorexit;
+        if ( (rc = saCkptSelectionObjectGet(ckptLibraryHandle, &ckpt_dispatch_fd)) != SA_AIS_OK)
+            goto errorexit;
+    
+        maxFd = max(amf_dispatch_fd,ckpt_dispatch_fd);
+        do
+        {
+            FD_ZERO(&read_fds);
+            FD_SET(amf_dispatch_fd, &read_fds);
+            FD_SET(ckpt_dispatch_fd, &read_fds);
+        
+            if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
+            {
+                char errorStr[80];
+                int err = errno;
+                if (EINTR == err)
+                {
+                    continue;
+                }
+                errorStr[0] = 0; /* just in case strerror does not fill it in */
+                strerror_r(err, errorStr, 80);
+                clprintf (CL_LOG_SEV_ERROR, "Error [%d] during dispatch loop select() call: [%s]",err,errorStr);
+                break;
+            }
+            if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+            if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL);
+        }while(!unblockNow);      
+    }
+    
     /*
      * Do the application specific finalization here.
      */
+    checkpoint_finalize();
     
     if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
 	{
@@ -369,17 +353,11 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * for the CSI.
              */
             clprintf(CL_LOG_SEV_INFO,"Active state requested from state %d", ha_state);
-
-            /* Make me the owner of the checkpoint */
-            checkpoint_replica_activate();
-
-            /* Read the checkpoint but be tolerant of empty fields -- there may
-               have been no prior active application */
-            clprintf(CL_LOG_SEV_INFO,"Reading checkpoint");
-            checkpoint_read_seq(&seq);
-            clprintf(CL_LOG_SEV_INFO,"Read checkpoint: seq = %u", seq);
             
             ha_state = SA_AMF_HA_ACTIVE;
+
+            pthread_t thr;
+            pthread_create(&thr,NULL,csa103CkptActive,NULL);
             
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;

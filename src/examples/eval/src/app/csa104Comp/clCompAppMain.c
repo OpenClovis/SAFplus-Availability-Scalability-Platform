@@ -402,7 +402,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
     addr.nodeAddress = clIocLocalAddressGet();
     clEoMyEoIocPortGet(&addr.portId);
 
-    saAmfResponse(amfHandle, invocation, SA_AIS_OK);
     clCorMoIdInitialize(&moId);
     clCorMoIdAppend(&moId, CLASS_CHASSIS_MO, 0);
     clCorMoIdAppend(&moId, CLASS_CSA104RES_MO, 0);
@@ -632,7 +631,7 @@ update_counter_in_cor(time_t now, ClCorObjectHandleT objH, ClUint32T counter)
      Whatever code has to be run to update the counter value in cor
      should go here
     */
-        rc = clCorObjectAttributeSet(CL_COR_SIMPLE_TXN, objH, NULL, CSA104RES_COUNTER_RESET, CL_COR_INVALID_ATTR_IDX, &counter, sizeof(counter));
+        rc = clCorObjectAttributeSet(CL_COR_SIMPLE_TXN, objH, NULL, CSA104RES_COUNTER, CL_COR_INVALID_ATTR_IDX, &counter, sizeof(counter));
         if (CL_OK != rc)
         {
             clprintf(CL_LOG_SEV_INFO,"Failed [0x%x] to set the value of counter variable.", rc);

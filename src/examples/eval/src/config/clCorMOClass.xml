@@ -110,9 +110,9 @@
 
 <corClassDefT className="CLASS_CSA105RES_PROV_MSO" classId="7" superClassName="">
  <corClassSimpleAttrDefT>
-        <corClassSimpleAttrT attrName="CSA105RES_COUNTER_RESET" attrId="4" attrDataType="CL_COR_INT8" attrInitVal="0" attrMinVal="0" attrMaxVal="1"  attrType="CONFIG" attrInitialized="FALSE" attrWritable="TRUE"/>
-    <corClassSimpleAttrT attrName="CSA105RES_COUNTER_THRESH" attrId="5" attrDataType="CL_COR_UINT16" attrInitVal="888" attrMinVal="88" attrMaxVal="8888"  attrType="CONFIG" attrInitialized="FALSE" attrWritable="TRUE"/>
-    <corClassSimpleAttrT attrName="CSA105RES_DELTA_T" attrId="6" attrDataType="CL_COR_INT32" attrInitVal="1000" attrMinVal="0" attrMaxVal="2147483647"  attrType="CONFIG" attrInitialized="FALSE" attrWritable="TRUE"/>
+        <corClassSimpleAttrT attrName="CSA105RES_COUNTER_RESET" attrId="5" attrDataType="CL_COR_INT8" attrInitVal="0" attrMinVal="0" attrMaxVal="1"  attrType="CONFIG" attrInitialized="FALSE" attrWritable="TRUE"/>
+    <corClassSimpleAttrT attrName="CSA105RES_COUNTER_THRESH" attrId="6" attrDataType="CL_COR_UINT16" attrInitVal="888" attrMinVal="88" attrMaxVal="8888"  attrType="CONFIG" attrInitialized="FALSE" attrWritable="TRUE"/>
+    <corClassSimpleAttrT attrName="CSA105RES_DELTA_T" attrId="7" attrDataType="CL_COR_INT32" attrInitVal="1000" attrMinVal="0" attrMaxVal="2147483647"  attrType="CONFIG" attrInitialized="FALSE" attrWritable="TRUE"/>
 
  </corClassSimpleAttrDefT>
  <corClassArrAttrDefT>

@@ -226,24 +226,24 @@ ClRcT SendArp(const char* host, const char* dev)
   return CL_OK;
 }
 
-
-void GetVirtualAddressInfo(ClAmsCSIDescriptorT csiDescriptor, VirtualIpAddress* vip)
+void GetVirtualAddressInfo(SaAmfCSIDescriptorT* csiDescriptor, VirtualIpAddress* vip)
 {
-  int i;
-  vip->ip[0] = 0;
-  vip->netmask[0] = 0;
-  vip->dev[0] = 0;
+    int i;
+    vip->ip[0] = 0;
+    vip->netmask[0] = 0;
+    vip->dev[0] = 0;
 
-  /* Pull the appropriate values out of the workload dictionary */
-  for (i = 0; i < csiDescriptor.csiAttributeList.numAttributes; i++)
+    /* Pull the appropriate values out of the workload dictionary */
+    for (i = 0; i < csiDescriptor->csiAttr.number; i++)
     {
-      if (strcmp((const char*) csiDescriptor.csiAttributeList.attribute[i].attributeName,"VirtualIpAddress") == 0) 
-        strncpy(vip->ip, (const char*) csiDescriptor.csiAttributeList.attribute[i].attributeValue, VipFieldLen);
-      if (strcmp((const char*) csiDescriptor.csiAttributeList.attribute[i].attributeName,"VirtualNetMask") == 0)   
-        strncpy(vip->netmask, (const char*) csiDescriptor.csiAttributeList.attribute[i].attributeValue,VipFieldLen);
-      if (strcmp((const char*) csiDescriptor.csiAttributeList.attribute[i].attributeName,"VirtualDevice") == 0) 
-        strncpy(vip->dev, (const char*) csiDescriptor.csiAttributeList.attribute[i].attributeValue,VipFieldLen);
+        if (strcmp((const char*) csiDescriptor->csiAttr.attr[i].attrName,"VirtualIpAddress") == 0)
+            strncpy(vip->ip, (const char*) csiDescriptor->csiAttr.attr[i].attrValue, VipFieldLen);
+        if (strcmp((const char*) csiDescriptor->csiAttr.attr[i].attrName,"VirtualNetMask") == 0)
+            strncpy(vip->netmask, (const char*) csiDescriptor->csiAttr.attr[i].attrValue,VipFieldLen);
+        if (strcmp((const char*) csiDescriptor->csiAttr.attr[i].attrName,"VirtualDevice") == 0)
+            strncpy(vip->dev, (const char*) csiDescriptor->csiAttr.attr[i].attrValue,VipFieldLen);
     }
+
 }
 
 void AddRemVirtualAddress(const char *cmd,const VirtualIpAddress* vip)
@@ -532,7 +532,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
               }
             else /* CL_AMS_CSI_FLAG_ADD_ONE */
               {
-                GetVirtualAddressInfo(*(ClAmsCSIDescriptorT*)&csiDescriptor, &gVirtualIp);
+                GetVirtualAddressInfo(&csiDescriptor, &gVirtualIp);
               }
 
             AddRemVirtualAddress("up",&gVirtualIp);
@@ -548,7 +548,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * for this CSI.
              */
 
-            GetVirtualAddressInfo(*(ClAmsCSIDescriptorT*)&csiDescriptor, &gVirtualIp);
+            GetVirtualAddressInfo(&csiDescriptor, &gVirtualIp);
             AddRemVirtualAddress("down",&gVirtualIp);  /* Bring it down just in case it is up from a prior run */
 
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
@@ -570,7 +570,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
             else /* CL_AMS_CSI_FLAG_ADD_ONE */
               {
                 VirtualIpAddress temp;
-                GetVirtualAddressInfo(*(ClAmsCSIDescriptorT*)&csiDescriptor, &temp);
+                GetVirtualAddressInfo(&csiDescriptor, &temp);
                 AddRemVirtualAddress("down",&temp);
               }
 
