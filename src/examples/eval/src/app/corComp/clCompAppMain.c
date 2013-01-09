@@ -30,18 +30,28 @@
  * Basic ASP Includes.
  */
 #include <clCommon.h>
-
+#include <clHandleApi.h>
 /*
  * ASP Client Includes.
  */
 #include <clLogApi.h>
-#include <clHandleApi.h>
 #include <clCpmApi.h>
 #include <saAmf.h>
- 
+
+/* csa104: Add the Manageability includes */
+#include <clOmApi.h>
+#include <clOampRtApi.h>
+#include <clProvApi.h>
+#include <clAlarmApi.h>
+#include <arpa/inet.h>
+#include <clCorUtilityApi.h>
+#include <clCorApi.h>
+#include <clCorMetaData.h>
+#include <clCorServiceId.h>
+#include <clCorMetaStruct.h>
+
 #include "clCompAppMain.h"
 #include "../ev/ev.h"
-#include "msgFns.h"
 /******************************************************************************
  * Optional Features
  *****************************************************************************/
@@ -51,10 +61,9 @@
  * changing clprintf to a null function
  */
 
-#define clprintf(severity, ...)   clAppLog(gEvalLogStream, severity, 10, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, __VA_ARGS__)
-
-static volatile int running = 0;
-static volatile int standby = 0;
+#define clprintf(severity, ...)   clAppLog(gEvalLogStream, severity, 10, \
+                                  CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,\
+                                  __VA_ARGS__)
 
 /******************************************************************************
  * Global Variables.
@@ -62,32 +71,114 @@ static volatile int standby = 0;
 
 pid_t mypid;
 SaAmfHandleT amfHandle;
-ClLogStreamHandleT  gEvalLogStream = CL_HANDLE_INVALID_VALUE;
-SaNameT             appName = {0};
-
 ClBoolT unblockNow = CL_FALSE;
+ClLogStreamHandleT gEvalLogStream = CL_HANDLE_INVALID_VALUE;
 
 /*
  * Declare other global variables here.
  */
 
+/* csa102: high availability variables */
+SaAmfHAStateT  ha_state = 0;            /* HA state           */
+/* csa103: checkpointing variables */
+ClUint32T      seq      = 0; /* Sequence number for print lines */
+/* csa104: manageability variables */
+ClUint32T delta_t   = 1000;     // time between printouts  in milliseconds
+
+
+/* csa103 checkpointing helper functions */
+ClRcT checkpoint_initialize(void);
+ClRcT checkpoint_finalize(void);
+ClRcT checkpoint_write_seq(ClUint32T);
+ClRcT checkpoint_read_seq(ClUint32T*);
+ClRcT checkpoint_replica_activate(void);
+
+/* csa104 manageability helper functions */
+ClRcT update_counter_in_cor(time_t, ClCorObjectHandleT,  ClUint32T);
+
 /******************************************************************************
  * Application Life Cycle Management Functions
  *****************************************************************************/
-void* senderLoop(void* p)
+
+void* csa104Main(ClPtrT unused)
 {
-    int count =0;
-    char msg[100];
-    while (standby)
+    /* csa104 manageability objects */
+    ClCorObjectHandleT  objH = 0;
+    ClCorMOIdT          moId;
+
+    ClRcT rc = CL_OK;
+
+    clprintf(CL_LOG_SEV_INFO,"csa104: instantiated as component instance.");
+    
+    if (ha_state != SA_AMF_HA_ACTIVE)
     {
-        count++;
-        snprintf(msg,99,"Msg %4d from %.*s",count,appName.length,appName.value);
-        
-        clprintf(CL_LOG_SEV_INFO,"csa104: Sending Message: %s",msg);
-        msgSend(ACTIVE_COMP_QUEUE,msg,strlen(msg)+1);
-        sleep(2);
+        clprintf(CL_LOG_SEV_INFO,"Waiting for CSI assignment...");
     }
-    return NULL;
+
+    /* csa103: initialize and read checkpoint */
+    while ((rc = checkpoint_initialize()) != CL_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to initialize checkpoint", rc);
+        sleep(1);        
+    }
+    while ((rc = checkpoint_read_seq(&seq)) != CL_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to read checkpoint", rc);
+        sleep(1);        
+    }
+#ifdef CL_INST
+    if ((rc = clDataTapInit(DATA_TAP_DEFAULT_FLAGS, 103)) != CL_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to initialize data tap", rc);
+    }
+#endif
+
+    /* csa104: initialize the management object */
+    clCorMoIdInitialize(&moId);  /* clear the moid object reference */
+    clCorMoIdAppend(&moId, CLASS_CHASSIS_MO, 0);   /* Set it to our object */
+    clCorMoIdAppend(&moId, CLASS_CSA104RES_MO, 0);
+    clCorMoIdServiceSet(&moId, CL_COR_SVC_ID_PROVISIONING_MANAGEMENT);
+
+    /* Grab a handle to the object based on the moid */
+    rc = clCorObjectHandleGet(&moId, &objH);
+    if (CL_OK != rc)
+    {
+        clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to get the object handle. ", rc);
+        assert(0);  /* the COR definitions do not match this program -- could only be a compile-time issue */
+    }
+
+    
+    while (!unblockNow)
+    {
+        if (ha_state == SA_AMF_HA_ACTIVE)
+        {
+            clprintf(CL_LOG_SEV_INFO,"Hello World! (seq=%d)", seq++);
+
+#ifdef CL_INST
+            if ((rc = clDataTapSend(seq)) != CL_OK && (rc != CL_ERR_INVALID_PARAMETER))
+            {
+                clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to send data tap data", rc);
+            }
+#endif
+
+            /* csa104: write the sequence number into the cor database */
+            if ((rc = update_counter_in_cor(time(0), objH, seq)) != CL_OK)
+            {
+                clprintf(CL_LOG_SEV_ERROR,"[0x%x]: cor update failed. Exiting.", rc);
+                break;
+            }
+                   
+            /* csa103: Checkpoint the sequence number */
+            rc = checkpoint_write_seq(seq);
+            if (rc != CL_OK)
+            {
+                clprintf(CL_LOG_SEV_ERROR,"ERROR: Checkpoint write failed.");
+            }
+        }
+        
+        usleep((useconds_t)delta_t*1000);
+    }
+    return CL_OK;
 }
 
 
@@ -99,6 +190,7 @@ void* senderLoop(void* p)
 
 int main(int argc, char *argv[])
 {
+    SaNameT             appName = {0};
     SaAmfCallbacksT     callbacks;
     SaVersionT          version;
     ClIocPortT          iocPort;
@@ -110,7 +202,7 @@ int main(int argc, char *argv[])
     /*
      * Declare other local variables here.
      */
-
+    
     /*
      * Get the pid for the process and store it in global variable.
      */
@@ -141,11 +233,11 @@ int main(int argc, char *argv[])
     if ( (rc = saAmfInitialize(&amfHandle, &callbacks, &version)) != SA_AIS_OK) 
         goto errorexit;
 
-
     /*
      * Do the application specific initialization here.
      */
-    
+
+
     /*
      * Now register the component with AMF. At this point it is
      * ready to provide service, i.e. take work assignments.
@@ -156,13 +248,9 @@ int main(int argc, char *argv[])
     if ( (rc = saAmfComponentRegister(amfHandle, &appName, NULL)) != SA_AIS_OK) 
         goto errorexit;
 
-    /*
-     * Initialize the log stream
-     */
+    /* Set up console redirection for demo purposes */
     clEvalAppLogStreamOpen((ClCharT*)appName.value, &gEvalLogStream);
 
-    msgInitialize();
-    
     /*
      * Print out standard information for this component.
      */
@@ -172,46 +260,44 @@ int main(int argc, char *argv[])
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Initializing\n", appName.length, appName.value, mypid);
     clprintf (CL_LOG_SEV_INFO, "   IOC Address             : 0x%x\n", clIocLocalAddressGet());
     clprintf (CL_LOG_SEV_INFO, "   IOC Port                : 0x%x\n", iocPort);
+
     
+
+    pthread_t thr;
+    pthread_create(&thr,NULL,csa104Main,NULL);
+ 
+
     /*
      * Block on AMF dispatch file descriptor for callbacks
      */
-    clprintf(CL_LOG_SEV_INFO,"csa102: Instantiated as component instance %s.", appName.value);
-
-    clprintf(CL_LOG_SEV_INFO,"%s: Waiting for CSI assignment...", appName.value);
 
     /*
      * Get the AMF dispatch FD for the callbacks
      */
     if ( (rc = saAmfSelectionObjectGet(amfHandle, &dispatch_fd)) != SA_AIS_OK)
         goto errorexit;
-    
+
     do
     {
-        struct timeval timeout;
-        timeout.tv_sec = 2; timeout.tv_usec = 0;
-
         FD_ZERO(&read_fds);
         FD_SET(dispatch_fd, &read_fds);
-
-        if( select(dispatch_fd + 1, &read_fds, NULL, NULL, &timeout) < 0)
+        
+        if( select(dispatch_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
         {
             if (EINTR == errno)
             {
                 continue;
             }
 		    clprintf (CL_LOG_SEV_ERROR, "Error in select()");
-			perror("");
             break;
         }
         if (FD_ISSET(dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
-    } while(!unblockNow);      
+    }while(!unblockNow);      
 
     /*
      * Do the application specific finalization here.
      */
-
-
+    
     if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
 	{
         clprintf (CL_LOG_SEV_ERROR, "AMF finalization error[0x%X]", rc);
@@ -240,10 +326,10 @@ void clCompAppTerminate(SaInvocationT invocation, const SaNameT *compName)
 {
     SaAisErrorT rc = SA_AIS_OK;
 
-    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Terminating\n",
-              compName->length, compName->value, mypid);
+    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Terminating\n", compName->length, compName->value, mypid);
 
     clEvalAppLogStreamClose(gEvalLogStream);
+    
     /*
      * Unregister with AMF and respond to AMF saying whether the
      * termination was successful or not.
@@ -270,38 +356,6 @@ errorexit:
 }
 
 /*
- * clCompAppStateChange
- * ---------------------
- * This function is invoked to change the state of an EO.
- *
- * WARNING: This function is deprecated, and may not be supported in the future.
- * Usage of this feature is discouraged.
- */
-
-ClRcT clCompAppStateChange(ClEoStateT eoState)
-{
-    switch (eoState)
-    {
-        case CL_EO_STATE_SUSPEND:
-        {
-            break;
-        }
-
-        case CL_EO_STATE_RESUME:
-        {
-            break;
-        }
-        
-        default:
-        {
-            break;
-        }
-    }
- 
-    return CL_OK;
-}
-
-/*
  * clCompAppHealthCheck
  * --------------------
  * This function is invoked to perform a healthcheck on the application. The
@@ -314,9 +368,13 @@ ClRcT clCompAppHealthCheck(ClEoSchedFeedBackT* schFeedback)
      * Add code for application specific health check below. The
      * defaults indicate EO is healthy and polling interval is
      * unaltered.
-     */    
+     */
+
+    
     schFeedback->freq   = CL_EO_DEFAULT_POLL; 
     schFeedback->status = CL_CPM_EO_ALIVE;
+
+
     return CL_OK;
 }
 
@@ -340,11 +398,24 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
      * Print information about the CSI Set
      */
 
-    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. CSI Set Received\n", 
-              compName->length, compName->value, mypid);
+    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. CSI Set Received\n", compName->length, compName->value, mypid);
 
     clCompAppAMFPrintCSI(csiDescriptor, haState);
 
+    ClRcT       rc = CL_OK;
+    ClCorMOIdT  moId ;
+    ClCorAddrT  addr = {0};
+
+    addr.nodeAddress = clIocLocalAddressGet();
+    clEoMyEoIocPortGet(&addr.portId);
+
+    //clCpmResponse(cpmHandle, invocation, CL_OK);
+    clCorMoIdInitialize(&moId);
+    clCorMoIdAppend(&moId, CLASS_CHASSIS_MO, 0);
+    clCorMoIdAppend(&moId, CLASS_CSA104RES_MO, 0);
+    clCorMoIdServiceSet(&moId, CL_COR_SVC_ID_PROVISIONING_MANAGEMENT);
+
+    
     /*
      * Take appropriate action based on state
      */
@@ -357,12 +428,28 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * AMF has requested application to take the active HA state 
              * for the CSI.
              */
-            pthread_t thr;
-            
-            clprintf(CL_LOG_SEV_INFO,"csa104: ACTIVE state requested; activating message queue receiver service");
-            running = 1;
-            msgOpen(ACTIVE_COMP_QUEUE,QUEUE_LENGTH);
-            pthread_create(&thr,NULL,msgReceiverLoop,NULL);
+            clprintf(CL_LOG_SEV_INFO,"Active state requested from state %d", ha_state);
+
+            /* csa103: */
+            /* Make me the owner of the checkpoint */
+            checkpoint_replica_activate();
+
+            /* Read the checkpoint but be tolerant of empty fields -- there may
+               have been no prior active application */
+            clprintf(CL_LOG_SEV_INFO,"Reading checkpoint");
+            checkpoint_read_seq(&seq);
+            clprintf(CL_LOG_SEV_INFO,"Read checkpoint: seq = %u", seq);
+
+            /* csa104: */
+            rc = clCorPrimaryOISet(&moId, &addr);
+            if (CL_OK != rc)
+            {
+                clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to make the OI as a primary OI. ", rc);
+            }
+
+
+            /* csa102: */
+            ha_state = SA_AMF_HA_ACTIVE;
             
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
@@ -374,12 +461,13 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * AMF has requested application to take the standby HA state 
              * for this CSI.
              */
-            pthread_t thr;
-            clprintf(CL_LOG_SEV_INFO,"csa104: Standby state requested");
-            running = 0;
-            standby = 1;
-            pthread_create(&thr,NULL,senderLoop,NULL);
 
+            clprintf(CL_LOG_SEV_INFO," Standby state requested from state %d",ha_state);
+
+            /* Nothing to do as a standby; we will read the checkpoint upon
+               transition to active */
+            ha_state = SA_AMF_HA_STANDBY;
+            
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -391,9 +479,18 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * assigned the active or quiescing HA state. The application 
              * must stop work associated with the CSI immediately.
              */
-            clprintf(CL_LOG_SEV_INFO,"csa104: Acknowledging new state quiesced");
-            running = 0;
-            standby = 0;
+
+            /* csa102: */
+            clprintf(CL_LOG_SEV_INFO,"QUIESCED");
+            ha_state = haState;
+
+            /* csa104: */
+            rc = clCorPrimaryOIClear(&moId, &addr);
+            if (CL_OK != rc)
+            {
+                clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to clear the primary OI status. ", rc);
+            }
+            
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -406,9 +503,10 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * associated with the CSI gracefully and not accept any new
              * workloads while the work is being terminated.
              */
-            clprintf(CL_LOG_SEV_INFO,"csa104: Signaling completion of QUIESCING");
-            running = 0;
-            standby = 0;            
+
+            clprintf(CL_LOG_SEV_INFO,"QUIESCING");
+            ha_state = haState;
+
             saAmfCSIQuiescingComplete(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -520,3 +618,31 @@ void clCompAppAMFPrintCSI(SaAmfCSIDescriptorT csiDescriptor,
  * Insert any other utility functions here.
  */
 
+ClRcT
+update_counter_in_cor(time_t now, ClCorObjectHandleT objH, ClUint32T counter)
+{
+    static time_t last_update = 0;      // when did we last update cor?
+    const int MAX_UPDATE_FREQ = 5;      // update only every 5 seconds (or less)
+    ClRcT           rc = CL_OK;
+
+    if (now - last_update > MAX_UPDATE_FREQ)
+    {
+        /*
+          TODO:
+     Whatever code has to be run to update the counter value in cor
+     should go here
+    */
+        rc = clCorObjectAttributeSet(CL_COR_SIMPLE_TXN, objH, NULL, CSA104RES_COUNTER, CL_COR_INVALID_ATTR_IDX, &counter, sizeof(counter));
+        if (CL_OK != rc)
+        {
+            clprintf(CL_LOG_SEV_INFO,"Failed [0x%x] to set the value of counter variable.", rc);
+            return rc;
+        }
+
+        /* And here, we update the last_update value to show that we
+           updated cor.
+        */
+    last_update = now;
+    }
+    return CL_OK;
+}

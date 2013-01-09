@@ -72,7 +72,7 @@ BUILD_CPLUSPLUS = 0
 # SUB_DIRS += 
 
 # Library added for demo console handling for the evaluation kit
-ASP_LIBS   +=  libeval.a
+EXTRA_LDLIBS    += $(LIB_DIR)/libeval.a
 
 # ---END_APPLICATION_CODE---
  
