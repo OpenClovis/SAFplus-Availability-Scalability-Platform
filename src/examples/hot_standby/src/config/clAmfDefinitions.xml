@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <openClovisAsp>
   <version v0="4.0.0">
     <amfDefinitions:amfTypes xmlns:amfDefinitions="amfDefinitions.ecore" version="B.01.01">
@@ -31,8 +31,8 @@
           <compRestartCountMax>1</compRestartCountMax>
           <suRestartDuration>10000</suRestartDuration>
           <suRestartCountMax>1</suRestartCountMax>
-          <failoverDuration>300000</failoverDuration>
-          <maxFailovers>0</maxFailovers>
+          <failoverDuration>300000300000</failoverDuration>
+          <maxFailovers>00</maxFailovers>
           <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
           <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_TWO_N</redundancyModel>
           <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
@@ -41,6 +41,9 @@
           <autoAdjust>CL_FALSE</autoAdjust>
           <autoAdjustProbation>10000</autoAdjustProbation>
           <reductionProcedure>CL_FALSE</reductionProcedure>
+          <betaFactor>00</betaFactor>
+          <maxFailovers>0</maxFailovers>
+          <failoverDuration>300000</failoverDuration>
           <betaFactor>0</betaFactor>
         </sgType>
       </sgTypes>

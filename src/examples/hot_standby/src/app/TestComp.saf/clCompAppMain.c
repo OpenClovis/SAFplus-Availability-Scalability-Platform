@@ -102,7 +102,6 @@ int main(int argc, char *argv[])
     SaAmfCallbacksT     callbacks;
     SaVersionT          version;
     ClIocPortT          iocPort;
-    ClRcT               clRc = CL_OK;
     SaAisErrorT         rc = SA_AIS_OK;
 
     SaSelectionObjectT dispatch_fd;
@@ -155,23 +154,21 @@ int main(int argc, char *argv[])
 
     /*
      * Do the application specific initialization here.
-
-     * At this point all SA services can be used because we have called
-     * saAmfInitialize, but no AMF callbacks will occur because we have
-     * not called the saAmfDispatch function.
      */
 
      alarmClockCkptName[0] = 0;
      alarmClockCkptOpened = CL_FALSE;
      
      rc = alarmClockCkptInitialize();
+     clprintf (CL_LOG_SEV_INFO, "   alarmClockCkptInitialize rc = %d\n", rc);
      if ( rc != SA_AIS_OK )
      {
          goto errorexit;
      }
 
-     clRc = alarmClockInitialize(); 
-     if ( clRc !=  CL_OK )
+     rc = alarmClockInitialize();
+     clprintf (CL_LOG_SEV_INFO, "   alarmClockInitialize rc = %d\n", rc);
+     if ( rc !=  0 )
      {
           goto errorexit;
      }
@@ -381,10 +378,6 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
          }
      }
 
-   /*
-     * Take appropriate action based on state
-     */
-    
     switch ( haState )
     {
         case SA_AMF_HA_ACTIVE:

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <openClovisAsp>
   <version v0="4.0.0">
     <CompileConfigs:ComponentsInfo xmlns:CompileConfigs="Comps.ecore">
@@ -12,7 +12,11 @@
         <appConfigInterval applicationName="TestComp" value="3000"/>
         <compConfigInterval componentName="TestCompI0" type="TestComp" value="0"/>
         <compConfigInterval componentName="TestCompI1" type="TestComp" value="0"/>
+        <appConfigInterval applicationName="TestComp" value="3000"/>
+        <compConfigInterval componentName="TestCompI0" type="TestComp" value="0"/>
+        <compConfigInterval componentName="TestCompI1" type="TestComp" value="0"/>
       </PM>
+      <PM pmConfigInterval="3000"/>
     </CompileConfigs:ComponentsInfo>
   </version>
 </openClovisAsp>
