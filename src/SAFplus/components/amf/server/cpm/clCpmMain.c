@@ -149,6 +149,8 @@ static ClCharT gAspNodeIp[CL_MAX_NAME_LENGTH];
 static ClCharT gAspVersion[80];
 ClCharT gAspInstallInfo[128]; /*install key info. for ARD*/
 ClBoolT gClAmsSwitchoverInline;
+ClBoolT gClAmsPayloadResetDisable;
+
 /**
  * Static variables.
  */
@@ -1533,6 +1535,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
                    rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     gClAmsSwitchoverInline = clParseEnvBoolean("CL_AMF_SWITCHOVER_INLINE");
+    gClAmsPayloadResetDisable = clParseEnvBoolean("CL_AMF_PAYLOAD_RESET_DISABLE");
 
     if (!cpmIsForeground)
     {
@@ -3217,6 +3220,7 @@ void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
         }
         else
         {
+            ClBoolT doCleanup = CL_FALSE;
 #ifdef CL_CPM_AMS
             /* BUG 4449:
              * Changed recommended recovery to NO RECOMMENDATION from RESTART
@@ -3225,10 +3229,22 @@ void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
              */
             cpmMarkRecovery((ClCpmComponentT*)pThis->compRef, instantiateCookie);
             clCpmCompPreCleanupInvoke((ClCpmComponentT*)pThis->compRef);
-            clCpmComponentFailureReportWithCookie(0, &(compName), instantiateCookie,
-                                                  0, CL_AMS_RECOVERY_NO_RECOMMENDATION, 0); 
+            rc = clCpmComponentFailureReportWithCookie(0, &(compName), instantiateCookie,
+                                                       0, CL_AMS_RECOVERY_NO_RECOMMENDATION, 0); 
+            if(rc != CL_OK && CL_GET_ERROR_CODE(rc) == CL_ERR_DOESNT_EXIST)
+            {
+                doCleanup = CL_TRUE;
+            }
 #endif
             cpmComponentEventCleanup(pThis->compRef);
+            /*
+             * Cleanup the component locally if master is unavailable/unreachable
+             */
+            if(doCleanup)
+            {
+                _cpmLocalComponentCleanup(pThis->compRef, (ClCharT*)compName.value,
+                                          NULL, gpClCpm->pCpmConfig->nodeName);
+            }
         }
         
     }

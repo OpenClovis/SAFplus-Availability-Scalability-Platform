@@ -2245,11 +2245,33 @@ static void cpmKillUserComps(void)
     clCntWalk(gpClCpm->compTable, cpmKillUserComp, NULL, 0);
 }
 
+static ClRcT cpmPayloadRegisterCallback(void *unused)
+{
+    cpmRegisterWithActive();
+    return CL_OK;
+}
+
+static ClRcT cpmPayloadRegister(void)
+{
+    ClTimerHandleT timer = {0};
+    ClTimerTimeOutT timeout = {.tsSec = 1, .tsMilliSec = 0};
+    cpmBmRespTimerStop();
+    return clTimerCreateAndStart(timeout, CL_TIMER_VOLATILE, CL_TIMER_SEPARATE_CONTEXT,
+                                 cpmPayloadRegisterCallback, NULL, &timer);
+}
+
 void cpmGoBackToRegister(void)
 {
     ClNameT nodeName = {0};
     ClCpmLcmReplyT srcInfo = {0};
     ClRcT rc = CL_OK;
+    
+    if(gClAmsPayloadResetDisable)
+    {
+        rc = cpmPayloadRegister();
+        if(rc == CL_OK)
+            return;
+    }
     
     clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
                "Killing all user application components...");
