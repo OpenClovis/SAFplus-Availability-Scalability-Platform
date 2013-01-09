@@ -79,6 +79,7 @@
  <corClassSimpleAttrDefT>
         <corClassSimpleAttrT attrName="CSA104RES_COUNTER_RESET" attrId="2" attrDataType="CL_COR_INT8" attrInitVal="0" attrMinVal="0" attrMaxVal="1"  attrType="CONFIG" attrInitialized="FALSE" attrWritable="TRUE"/>
     <corClassSimpleAttrT attrName="CSA104RES_DELTA_T" attrId="3" attrDataType="CL_COR_UINT32" attrInitVal="1000" attrMinVal="10" attrMaxVal="100000"  attrType="CONFIG" attrInitialized="FALSE" attrWritable="TRUE"/>
+    <corClassSimpleAttrT attrName="CSA104RES_COUNTER" attrId="4" attrDataType="CL_COR_UINT32" attrInitVal="0" attrMinVal="0" attrMaxVal="100000"  attrType="CONFIG" attrInitialized="FALSE" attrWritable="TRUE"/>
 
  </corClassSimpleAttrDefT>
  <corClassArrAttrDefT>

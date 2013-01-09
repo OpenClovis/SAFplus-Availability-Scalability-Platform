@@ -5,11 +5,7 @@
       <compInst compName="csa101CompI3"/>
       <compInst compName="csa112CompI3"/>
       <compInst compName="csa113CompI3"/>
-      <compInst compName="csa212CompI3"/>
-      <compInst compName="csa213CompI3"/>
-      <compInst compName="csa201CompI3"/>
       <compInst compName="csa102CompI4"/>
-      <compInst compName="csa203CompI4"/>
       <compInst compName="csa103CompI4"/>
     </compInstances>
   </version>

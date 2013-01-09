@@ -14,7 +14,7 @@ include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 
 # Component name (using all lowercase):
 
-EXENAME := csa113Comp
+EXENAME := csa113
 
 # List local source files needed for the component server:
 

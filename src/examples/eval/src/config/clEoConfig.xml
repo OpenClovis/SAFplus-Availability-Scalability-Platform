@@ -94,22 +94,6 @@
         <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
         <eoIocConfig/>
       </eoConfig>
-      <eoConfig name="csa112Comp_0EO0">
-        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
-        <eoIocConfig/>
-      </eoConfig>
-      <eoConfig name="csa101Comp_0EO0">
-        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
-        <eoIocConfig/>
-      </eoConfig>
-      <eoConfig name="csa103Comp_0EO0">
-        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
-        <eoIocConfig/>
-      </eoConfig>
-      <eoConfig name="csa113Comp_0EO0">
-        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
-        <eoIocConfig/>
-      </eoConfig>
       <eoConfig name="MSG">
         <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
         <eoIocConfig/>

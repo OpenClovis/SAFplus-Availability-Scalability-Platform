@@ -33,8 +33,8 @@
           <failbackOption>CL_FALSE</failbackOption>
           <restartDuration>10000</restartDuration>
           <numPrefActiveSUs>1</numPrefActiveSUs>
-          <numPrefStandbySUs>0</numPrefStandbySUs>
-          <numPrefInserviceSUs>1</numPrefInserviceSUs>
+          <numPrefStandbySUs>1</numPrefStandbySUs>
+          <numPrefInserviceSUs>2</numPrefInserviceSUs>
           <numPrefAssignedSUs>2</numPrefAssignedSUs>
           <numPrefActiveSUsPerSI>1</numPrefActiveSUsPerSI>
           <maxActiveSIsPerSU>1</maxActiveSIsPerSU>
@@ -46,7 +46,7 @@
           <failoverDuration>300000</failoverDuration>
           <maxFailovers>0</maxFailovers>
           <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-          <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY</redundancyModel>
+          <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_TWO_N</redundancyModel>
           <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
           <autoRepair>CL_TRUE</autoRepair>
           <isCollocationAllowed>CL_TRUE</isCollocationAllowed>
@@ -159,32 +159,6 @@
           <reductionProcedure>CL_FALSE</reductionProcedure>
           <betaFactor>0</betaFactor>
         </sgType>
-        <sgType name="csa111SG">
-          <failbackOption>CL_FALSE</failbackOption>
-          <restartDuration>10000</restartDuration>
-          <numPrefActiveSUs>1</numPrefActiveSUs>
-          <numPrefStandbySUs>0</numPrefStandbySUs>
-          <numPrefInserviceSUs>1</numPrefInserviceSUs>
-          <numPrefAssignedSUs>1</numPrefAssignedSUs>
-          <numPrefActiveSUsPerSI>1</numPrefActiveSUsPerSI>
-          <maxActiveSIsPerSU>1</maxActiveSIsPerSU>
-          <maxStandbySIsPerSU>1</maxStandbySIsPerSU>
-          <compRestartDuration>10000</compRestartDuration>
-          <compRestartCountMax>1</compRestartCountMax>
-          <suRestartDuration>10000</suRestartDuration>
-          <suRestartCountMax>1</suRestartCountMax>
-          <failoverDuration>300000</failoverDuration>
-          <maxFailovers>0</maxFailovers>
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-          <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY</redundancyModel>
-          <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
-          <autoRepair>CL_FALSE</autoRepair>
-          <isCollocationAllowed>CL_TRUE</isCollocationAllowed>
-          <autoAdjust>CL_FALSE</autoAdjust>
-          <autoAdjustProbation>10000</autoAdjustProbation>
-          <reductionProcedure>CL_FALSE</reductionProcedure>
-          <betaFactor>0</betaFactor>
-        </sgType>
         <sgType name="csa112SG">
           <failbackOption>CL_FALSE</failbackOption>
           <restartDuration>10000</restartDuration>
@@ -215,110 +189,6 @@
           <failbackOption>CL_FALSE</failbackOption>
           <restartDuration>10000</restartDuration>
           <numPrefActiveSUs>1</numPrefActiveSUs>
-          <numPrefStandbySUs>0</numPrefStandbySUs>
-          <numPrefInserviceSUs>1</numPrefInserviceSUs>
-          <numPrefAssignedSUs>2</numPrefAssignedSUs>
-          <numPrefActiveSUsPerSI>1</numPrefActiveSUsPerSI>
-          <maxActiveSIsPerSU>1</maxActiveSIsPerSU>
-          <maxStandbySIsPerSU>1</maxStandbySIsPerSU>
-          <compRestartDuration>10000</compRestartDuration>
-          <compRestartCountMax>1</compRestartCountMax>
-          <suRestartDuration>10000</suRestartDuration>
-          <suRestartCountMax>1</suRestartCountMax>
-          <failoverDuration>300000</failoverDuration>
-          <maxFailovers>0</maxFailovers>
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-          <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY</redundancyModel>
-          <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
-          <autoRepair>CL_FALSE</autoRepair>
-          <isCollocationAllowed>CL_TRUE</isCollocationAllowed>
-          <autoAdjust>CL_FALSE</autoAdjust>
-          <autoAdjustProbation>10000</autoAdjustProbation>
-          <reductionProcedure>CL_FALSE</reductionProcedure>
-          <betaFactor>0</betaFactor>
-        </sgType>
-        <sgType name="csaSnmpAgentSG">
-          <failbackOption>CL_FALSE</failbackOption>
-          <restartDuration>10000</restartDuration>
-          <numPrefActiveSUs>1</numPrefActiveSUs>
-          <numPrefStandbySUs>0</numPrefStandbySUs>
-          <numPrefInserviceSUs>1</numPrefInserviceSUs>
-          <numPrefAssignedSUs>2</numPrefAssignedSUs>
-          <numPrefActiveSUsPerSI>1</numPrefActiveSUsPerSI>
-          <maxActiveSIsPerSU>1</maxActiveSIsPerSU>
-          <maxStandbySIsPerSU>1</maxStandbySIsPerSU>
-          <compRestartDuration>10000</compRestartDuration>
-          <compRestartCountMax>1</compRestartCountMax>
-          <suRestartDuration>10000</suRestartDuration>
-          <suRestartCountMax>1</suRestartCountMax>
-          <failoverDuration>300000</failoverDuration>
-          <maxFailovers>0</maxFailovers>
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-          <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY</redundancyModel>
-          <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
-          <autoRepair>CL_FALSE</autoRepair>
-          <isCollocationAllowed>CL_TRUE</isCollocationAllowed>
-          <autoAdjust>CL_FALSE</autoAdjust>
-          <autoAdjustProbation>10000</autoAdjustProbation>
-          <reductionProcedure>CL_FALSE</reductionProcedure>
-          <betaFactor>0</betaFactor>
-        </sgType>
-        <sgType name="csa212SG">
-          <failbackOption>CL_FALSE</failbackOption>
-          <restartDuration>10000</restartDuration>
-          <numPrefActiveSUs>1</numPrefActiveSUs>
-          <numPrefStandbySUs>0</numPrefStandbySUs>
-          <numPrefInserviceSUs>1</numPrefInserviceSUs>
-          <numPrefAssignedSUs>2</numPrefAssignedSUs>
-          <numPrefActiveSUsPerSI>1</numPrefActiveSUsPerSI>
-          <maxActiveSIsPerSU>1</maxActiveSIsPerSU>
-          <maxStandbySIsPerSU>1</maxStandbySIsPerSU>
-          <compRestartDuration>10000</compRestartDuration>
-          <compRestartCountMax>1</compRestartCountMax>
-          <suRestartDuration>10000</suRestartDuration>
-          <suRestartCountMax>1</suRestartCountMax>
-          <failoverDuration>300000</failoverDuration>
-          <maxFailovers>0</maxFailovers>
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-          <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY</redundancyModel>
-          <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
-          <autoRepair>CL_TRUE</autoRepair>
-          <isCollocationAllowed>CL_TRUE</isCollocationAllowed>
-          <autoAdjust>CL_FALSE</autoAdjust>
-          <autoAdjustProbation>10000</autoAdjustProbation>
-          <reductionProcedure>CL_FALSE</reductionProcedure>
-          <betaFactor>0</betaFactor>
-        </sgType>
-        <sgType name="csa201SG">
-          <failbackOption>CL_FALSE</failbackOption>
-          <restartDuration>10000</restartDuration>
-          <numPrefActiveSUs>1</numPrefActiveSUs>
-          <numPrefStandbySUs>0</numPrefStandbySUs>
-          <numPrefInserviceSUs>1</numPrefInserviceSUs>
-          <numPrefAssignedSUs>2</numPrefAssignedSUs>
-          <numPrefActiveSUsPerSI>1</numPrefActiveSUsPerSI>
-          <maxActiveSIsPerSU>1</maxActiveSIsPerSU>
-          <maxStandbySIsPerSU>1</maxStandbySIsPerSU>
-          <compRestartDuration>10000</compRestartDuration>
-          <compRestartCountMax>1</compRestartCountMax>
-          <suRestartDuration>10000</suRestartDuration>
-          <suRestartCountMax>1</suRestartCountMax>
-          <failoverDuration>300000</failoverDuration>
-          <maxFailovers>0</maxFailovers>
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-          <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY</redundancyModel>
-          <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
-          <autoRepair>CL_TRUE</autoRepair>
-          <isCollocationAllowed>CL_TRUE</isCollocationAllowed>
-          <autoAdjust>CL_FALSE</autoAdjust>
-          <autoAdjustProbation>10000</autoAdjustProbation>
-          <reductionProcedure>CL_FALSE</reductionProcedure>
-          <betaFactor>0</betaFactor>
-        </sgType>
-        <sgType name="csa203SG">
-          <failbackOption>CL_FALSE</failbackOption>
-          <restartDuration>500</restartDuration>
-          <numPrefActiveSUs>1</numPrefActiveSUs>
           <numPrefStandbySUs>1</numPrefStandbySUs>
           <numPrefInserviceSUs>2</numPrefInserviceSUs>
           <numPrefAssignedSUs>2</numPrefAssignedSUs>
@@ -334,14 +204,14 @@
           <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
           <redundancyModel>CL_AMS_SG_REDUNDANCY_MODEL_TWO_N</redundancyModel>
           <loadingStrategy>CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU</loadingStrategy>
-          <autoRepair>CL_TRUE</autoRepair>
+          <autoRepair>CL_FALSE</autoRepair>
           <isCollocationAllowed>CL_TRUE</isCollocationAllowed>
           <autoAdjust>CL_FALSE</autoAdjust>
           <autoAdjustProbation>10000</autoAdjustProbation>
           <reductionProcedure>CL_FALSE</reductionProcedure>
           <betaFactor>0</betaFactor>
         </sgType>
-        <sgType name="csa213SG">
+        <sgType name="csaSnmpAgentSG">
           <failbackOption>CL_FALSE</failbackOption>
           <restartDuration>10000</restartDuration>
           <numPrefActiveSUs>1</numPrefActiveSUs>
@@ -404,13 +274,6 @@
           <isContainerSU>CL_TRUE</isContainerSU>
           <numComponents>1</numComponents>
         </suType>
-        <suType name="csa111SU">
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-          <isPreinstantiable>CL_TRUE</isPreinstantiable>
-          <isRestartable>CL_TRUE</isRestartable>
-          <isContainerSU>CL_TRUE</isContainerSU>
-          <numComponents>1</numComponents>
-        </suType>
         <suType name="csa112SU">
           <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
           <isPreinstantiable>CL_TRUE</isPreinstantiable>
@@ -426,34 +289,6 @@
           <numComponents>1</numComponents>
         </suType>
         <suType name="csaSnmpAgentSU">
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-          <isPreinstantiable>CL_TRUE</isPreinstantiable>
-          <isRestartable>CL_TRUE</isRestartable>
-          <isContainerSU>CL_TRUE</isContainerSU>
-          <numComponents>1</numComponents>
-        </suType>
-        <suType name="csa212SU">
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-          <isPreinstantiable>CL_TRUE</isPreinstantiable>
-          <isRestartable>CL_TRUE</isRestartable>
-          <isContainerSU>CL_TRUE</isContainerSU>
-          <numComponents>1</numComponents>
-        </suType>
-        <suType name="csa201SU">
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-          <isPreinstantiable>CL_TRUE</isPreinstantiable>
-          <isRestartable>CL_TRUE</isRestartable>
-          <isContainerSU>CL_TRUE</isContainerSU>
-          <numComponents>1</numComponents>
-        </suType>
-        <suType name="csa203SU">
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-          <isPreinstantiable>CL_TRUE</isPreinstantiable>
-          <isRestartable>CL_TRUE</isRestartable>
-          <isContainerSU>CL_TRUE</isContainerSU>
-          <numComponents>1</numComponents>
-        </suType>
-        <suType name="csa213SU">
           <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
           <isPreinstantiable>CL_TRUE</isPreinstantiable>
           <isRestartable>CL_TRUE</isRestartable>
@@ -492,12 +327,6 @@
           <numStandbyAssignments>0</numStandbyAssignments>
           <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
         </siType>
-        <siType name="csa111SI">
-          <rank>0</rank>
-          <numCSIs>1</numCSIs>
-          <numStandbyAssignments>0</numStandbyAssignments>
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-        </siType>
         <siType name="csa112SI">
           <rank>0</rank>
           <numCSIs>1</numCSIs>
@@ -507,34 +336,10 @@
         <siType name="csa113SI">
           <rank>0</rank>
           <numCSIs>1</numCSIs>
-          <numStandbyAssignments>0</numStandbyAssignments>
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-        </siType>
-        <siType name="csaSnmpAgentSI">
-          <rank>0</rank>
-          <numCSIs>1</numCSIs>
-          <numStandbyAssignments>0</numStandbyAssignments>
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-        </siType>
-        <siType name="csa212SI">
-          <rank>0</rank>
-          <numCSIs>1</numCSIs>
-          <numStandbyAssignments>0</numStandbyAssignments>
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-        </siType>
-        <siType name="csa201SI">
-          <rank>0</rank>
-          <numCSIs>1</numCSIs>
-          <numStandbyAssignments>0</numStandbyAssignments>
-          <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
-        </siType>
-        <siType name="csa203SI">
-          <rank>0</rank>
-          <numCSIs>1</numCSIs>
           <numStandbyAssignments>1</numStandbyAssignments>
           <adminState>CL_AMS_ADMIN_STATE_UNLOCKED</adminState>
         </siType>
-        <siType name="csa213SI">
+        <siType name="csaSnmpAgentSI">
           <rank>0</rank>
           <numCSIs>1</numCSIs>
           <numStandbyAssignments>0</numStandbyAssignments>
@@ -550,7 +355,7 @@
           <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
           <property>CL_AMS_SA_AWARE</property>
           <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa101Comp</instantiateCommand>
+          <instantiateCommand>csa101</instantiateCommand>
           <args>
             <argument value="-p"/>
           </args>
@@ -596,7 +401,7 @@
           <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
           <property>CL_AMS_SA_AWARE</property>
           <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa102Comp</instantiateCommand>
+          <instantiateCommand>csa102</instantiateCommand>
           <args>
             <argument value="-p"/>
           </args>
@@ -642,7 +447,7 @@
           <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
           <property>CL_AMS_SA_AWARE</property>
           <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa103Comp</instantiateCommand>
+          <instantiateCommand>csa103</instantiateCommand>
           <args>
             <argument value="-p"/>
           </args>
@@ -688,7 +493,7 @@
           <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
           <property>CL_AMS_SA_AWARE</property>
           <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa104Comp</instantiateCommand>
+          <instantiateCommand>csa104</instantiateCommand>
           <args>
             <argument value="-p"/>
           </args>
@@ -734,7 +539,7 @@
           <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
           <property>CL_AMS_SA_AWARE</property>
           <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa105Comp</instantiateCommand>
+          <instantiateCommand>csa105</instantiateCommand>
           <args>
             <argument value="-p"/>
           </args>
@@ -772,52 +577,6 @@
             <maxDuration>60000</maxDuration>
           </healthCheck>
         </compType>
-        <compType name="csa111Comp">
-          <csiTypes>
-            <csiType name="csa111CSI"/>
-          </csiTypes>
-          <proxyCSIType/>
-          <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
-          <property>CL_AMS_SA_AWARE</property>
-          <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa111</instantiateCommand>
-          <args>
-            <argument value="-p"/>
-          </args>
-          <envs/>
-          <terminateCommand/>
-          <cleanupCommand/>
-          <isRestartable>CL_TRUE</isRestartable>
-          <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
-          <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>5000</instantiateDelay>
-          <numMaxInstantiate>1</numMaxInstantiate>
-          <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
-          <numMaxTerminate>1</numMaxTerminate>
-          <numMaxAmStart>1</numMaxAmStart>
-          <numMaxAmStop>1</numMaxAmStop>
-          <numMaxActiveCSIs>1</numMaxActiveCSIs>
-          <numMaxStandbyCSIs>1</numMaxStandbyCSIs>
-          <recoveryOnTimeout>CL_AMS_RECOVERY_NO_RECOMMENDATION</recoveryOnTimeout>
-          <amStartCommand/>
-          <amStopCommand/>
-          <timeouts>
-            <instantiateTimeout>10000</instantiateTimeout>
-            <terminateTimeout>10000</terminateTimeout>
-            <cleanupTimeout>10000</cleanupTimeout>
-            <amStartTimeout>10000</amStartTimeout>
-            <amStopTimeout>10000</amStopTimeout>
-            <quiescingCompleteTimeout>10000</quiescingCompleteTimeout>
-            <csiSetTimeout>10000</csiSetTimeout>
-            <csiRemoveTimeout>10000</csiRemoveTimeout>
-            <proxiedCompInstantiateTimeout>10000</proxiedCompInstantiateTimeout>
-            <proxiedCompCleanupTimeout>10000</proxiedCompCleanupTimeout>
-          </timeouts>
-          <healthCheck>
-            <period>30000</period>
-            <maxDuration>60000</maxDuration>
-          </healthCheck>
-        </compType>
         <compType name="csa112Comp">
           <csiTypes>
             <csiType name="csa112CSI"/>
@@ -826,7 +585,7 @@
           <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
           <property>CL_AMS_SA_AWARE</property>
           <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa112Comp</instantiateCommand>
+          <instantiateCommand>csa112</instantiateCommand>
           <args>
             <argument value="-p"/>
           </args>
@@ -872,7 +631,7 @@
           <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
           <property>CL_AMS_SA_AWARE</property>
           <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa113Comp</instantiateCommand>
+          <instantiateCommand>csa113</instantiateCommand>
           <args>
             <argument value="-p"/>
           </args>
@@ -956,190 +715,6 @@
             <maxDuration>60000</maxDuration>
           </healthCheck>
         </compType>
-        <compType name="csa212Comp">
-          <csiTypes>
-            <csiType name="csa212CSI"/>
-          </csiTypes>
-          <proxyCSIType/>
-          <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
-          <property>CL_AMS_SA_AWARE</property>
-          <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa212Comp</instantiateCommand>
-          <args>
-            <argument value="-p"/>
-          </args>
-          <envs/>
-          <terminateCommand/>
-          <cleanupCommand/>
-          <isRestartable>CL_TRUE</isRestartable>
-          <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
-          <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>5000</instantiateDelay>
-          <numMaxInstantiate>1</numMaxInstantiate>
-          <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
-          <numMaxTerminate>1</numMaxTerminate>
-          <numMaxAmStart>1</numMaxAmStart>
-          <numMaxAmStop>1</numMaxAmStop>
-          <numMaxActiveCSIs>1</numMaxActiveCSIs>
-          <numMaxStandbyCSIs>1</numMaxStandbyCSIs>
-          <recoveryOnTimeout>CL_AMS_RECOVERY_NO_RECOMMENDATION</recoveryOnTimeout>
-          <amStartCommand/>
-          <amStopCommand/>
-          <timeouts>
-            <instantiateTimeout>10000</instantiateTimeout>
-            <terminateTimeout>10000</terminateTimeout>
-            <cleanupTimeout>10000</cleanupTimeout>
-            <amStartTimeout>10000</amStartTimeout>
-            <amStopTimeout>10000</amStopTimeout>
-            <quiescingCompleteTimeout>10000</quiescingCompleteTimeout>
-            <csiSetTimeout>10000</csiSetTimeout>
-            <csiRemoveTimeout>10000</csiRemoveTimeout>
-            <proxiedCompInstantiateTimeout>10000</proxiedCompInstantiateTimeout>
-            <proxiedCompCleanupTimeout>10000</proxiedCompCleanupTimeout>
-          </timeouts>
-          <healthCheck>
-            <period>30000</period>
-            <maxDuration>60000</maxDuration>
-          </healthCheck>
-        </compType>
-        <compType name="csa201Comp">
-          <csiTypes>
-            <csiType name="csa201CSI"/>
-          </csiTypes>
-          <proxyCSIType/>
-          <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
-          <property>CL_AMS_SA_AWARE</property>
-          <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa201Comp</instantiateCommand>
-          <args>
-            <argument value="-p"/>
-          </args>
-          <envs/>
-          <terminateCommand/>
-          <cleanupCommand/>
-          <isRestartable>CL_TRUE</isRestartable>
-          <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
-          <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>500</instantiateDelay>
-          <numMaxInstantiate>1</numMaxInstantiate>
-          <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
-          <numMaxTerminate>1</numMaxTerminate>
-          <numMaxAmStart>1</numMaxAmStart>
-          <numMaxAmStop>1</numMaxAmStop>
-          <numMaxActiveCSIs>1</numMaxActiveCSIs>
-          <numMaxStandbyCSIs>1</numMaxStandbyCSIs>
-          <recoveryOnTimeout>CL_AMS_RECOVERY_NO_RECOMMENDATION</recoveryOnTimeout>
-          <amStartCommand/>
-          <amStopCommand/>
-          <timeouts>
-            <instantiateTimeout>10000</instantiateTimeout>
-            <terminateTimeout>10000</terminateTimeout>
-            <cleanupTimeout>10000</cleanupTimeout>
-            <amStartTimeout>10000</amStartTimeout>
-            <amStopTimeout>10000</amStopTimeout>
-            <quiescingCompleteTimeout>10000</quiescingCompleteTimeout>
-            <csiSetTimeout>10000</csiSetTimeout>
-            <csiRemoveTimeout>10000</csiRemoveTimeout>
-            <proxiedCompInstantiateTimeout>10000</proxiedCompInstantiateTimeout>
-            <proxiedCompCleanupTimeout>10000</proxiedCompCleanupTimeout>
-          </timeouts>
-          <healthCheck>
-            <period>30000</period>
-            <maxDuration>60000</maxDuration>
-          </healthCheck>
-        </compType>
-        <compType name="csa203Comp">
-          <csiTypes>
-            <csiType name="csa203CSI"/>
-          </csiTypes>
-          <proxyCSIType/>
-          <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
-          <property>CL_AMS_SA_AWARE</property>
-          <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa203Comp</instantiateCommand>
-          <args>
-            <argument value="-p"/>
-          </args>
-          <envs/>
-          <terminateCommand/>
-          <cleanupCommand/>
-          <isRestartable>CL_TRUE</isRestartable>
-          <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
-          <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>500</instantiateDelay>
-          <numMaxInstantiate>1</numMaxInstantiate>
-          <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
-          <numMaxTerminate>1</numMaxTerminate>
-          <numMaxAmStart>1</numMaxAmStart>
-          <numMaxAmStop>1</numMaxAmStop>
-          <numMaxActiveCSIs>1</numMaxActiveCSIs>
-          <numMaxStandbyCSIs>1</numMaxStandbyCSIs>
-          <recoveryOnTimeout>CL_AMS_RECOVERY_COMP_FAILOVER</recoveryOnTimeout>
-          <amStartCommand/>
-          <amStopCommand/>
-          <timeouts>
-            <instantiateTimeout>10000</instantiateTimeout>
-            <terminateTimeout>10000</terminateTimeout>
-            <cleanupTimeout>10000</cleanupTimeout>
-            <amStartTimeout>10000</amStartTimeout>
-            <amStopTimeout>10000</amStopTimeout>
-            <quiescingCompleteTimeout>10000</quiescingCompleteTimeout>
-            <csiSetTimeout>10000</csiSetTimeout>
-            <csiRemoveTimeout>10000</csiRemoveTimeout>
-            <proxiedCompInstantiateTimeout>10000</proxiedCompInstantiateTimeout>
-            <proxiedCompCleanupTimeout>10000</proxiedCompCleanupTimeout>
-          </timeouts>
-          <healthCheck>
-            <period>30000</period>
-            <maxDuration>60000</maxDuration>
-          </healthCheck>
-        </compType>
-        <compType name="csa213Comp">
-          <csiTypes>
-            <csiType name="csa213CSI"/>
-          </csiTypes>
-          <proxyCSIType/>
-          <capabilityModel>CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY</capabilityModel>
-          <property>CL_AMS_SA_AWARE</property>
-          <processRel>CL_CPM_COMP_SINGLE_PROCESS</processRel>
-          <instantiateCommand>csa213Comp</instantiateCommand>
-          <args>
-            <argument value="-p"/>
-          </args>
-          <envs/>
-          <terminateCommand/>
-          <cleanupCommand/>
-          <isRestartable>CL_TRUE</isRestartable>
-          <nodeRebootCleanupFail>CL_TRUE</nodeRebootCleanupFail>
-          <instantiateLevel>1</instantiateLevel>
-          <instantiateDelay>5000</instantiateDelay>
-          <numMaxInstantiate>1</numMaxInstantiate>
-          <numMaxInstantiateWithDelay>1</numMaxInstantiateWithDelay>
-          <numMaxTerminate>1</numMaxTerminate>
-          <numMaxAmStart>1</numMaxAmStart>
-          <numMaxAmStop>1</numMaxAmStop>
-          <numMaxActiveCSIs>1</numMaxActiveCSIs>
-          <numMaxStandbyCSIs>1</numMaxStandbyCSIs>
-          <recoveryOnTimeout>CL_AMS_RECOVERY_NO_RECOMMENDATION</recoveryOnTimeout>
-          <amStartCommand/>
-          <amStopCommand/>
-          <timeouts>
-            <instantiateTimeout>10000</instantiateTimeout>
-            <terminateTimeout>10000</terminateTimeout>
-            <cleanupTimeout>10000</cleanupTimeout>
-            <amStartTimeout>10000</amStartTimeout>
-            <amStopTimeout>10000</amStopTimeout>
-            <quiescingCompleteTimeout>10000</quiescingCompleteTimeout>
-            <csiSetTimeout>10000</csiSetTimeout>
-            <csiRemoveTimeout>10000</csiRemoveTimeout>
-            <proxiedCompInstantiateTimeout>10000</proxiedCompInstantiateTimeout>
-            <proxiedCompCleanupTimeout>10000</proxiedCompCleanupTimeout>
-          </timeouts>
-          <healthCheck>
-            <period>30000</period>
-            <maxDuration>60000</maxDuration>
-          </healthCheck>
-        </compType>
       </compTypes>
       <csiTypes>
         <csiType name="csa101CSI">
@@ -1162,10 +737,6 @@
           <rank>0</rank>
           <nameValueLists/>
         </csiType>
-        <csiType name="csa111CSI">
-          <rank>0</rank>
-          <nameValueLists/>
-        </csiType>
         <csiType name="csa112CSI">
           <rank>0</rank>
           <nameValueLists/>
@@ -1175,22 +746,6 @@
           <nameValueLists/>
         </csiType>
         <csiType name="csaSnmpAgentCSI">
-          <rank>0</rank>
-          <nameValueLists/>
-        </csiType>
-        <csiType name="csa212CSI">
-          <rank>0</rank>
-          <nameValueLists/>
-        </csiType>
-        <csiType name="csa201CSI">
-          <rank>0</rank>
-          <nameValueLists/>
-        </csiType>
-        <csiType name="csa203CSI">
-          <rank>0</rank>
-          <nameValueLists/>
-        </csiType>
-        <csiType name="csa213CSI">
           <rank>0</rank>
           <nameValueLists/>
         </csiType>
