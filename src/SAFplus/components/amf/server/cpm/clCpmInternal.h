@@ -342,6 +342,7 @@ typedef struct {
 }ClCpmCmQueuedataT;
 
 extern ClBoolT gClAmsSwitchoverInline;
+extern ClBoolT gClAmsPayloadResetDisable;
 
 /**
  * CM.
@@ -388,6 +389,11 @@ extern ClRcT _cpmComponentCleanup(ClCharT *compName,
                                   ClIocPhysicalAddressT *srcAddress,
                                   ClUint32T rmdNumber,
                                   ClUint32T requestType);
+
+extern ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
+                                       ClCharT *compName,
+                                       ClCharT *proxyCompName,
+                                       ClCharT *nodeName);
 
 extern ClRcT _cpmComponentRestart(ClCharT *compName,
                                   ClCharT *proxyCompName,
