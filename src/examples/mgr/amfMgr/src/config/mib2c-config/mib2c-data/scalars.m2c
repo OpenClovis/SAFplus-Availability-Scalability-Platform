@@ -17,6 +17,7 @@ extern "C" {
 /* function declarations */
 void clSnmp${name}ScalarsInit(void);
 @foreach $s scalar@
+@perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
 Netsnmp_Node_Handler clSnmp${s}Handler;
 @end@
 
@@ -38,6 +39,7 @@ Netsnmp_Node_Handler clSnmp${s}Handler;
 #include <clSnmp${name}Scalars.h>
 
   @foreach $s scalar@
+@perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
 static oid ${s}Oid[] = { $s.commaoid };
   @end@
 
@@ -51,6 +53,7 @@ clSnmp${name}ScalarsInit(void)
     DEBUGMSGTL(("${name}Scalars", "Initializing\n"));
 
   @foreach $s scalar@
+  @perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
     reg = netsnmp_create_handler_registration("$s", clSnmp${s}Handler,
                                ${s}Oid, OID_LENGTH(${s}Oid),
     @if $s.settable@
@@ -72,6 +75,7 @@ clSnmp${name}ScalarsInit(void)
 }
 
 @foreach $s scalar@
+@perleval $vars{'s'}=~ s/[^a-zA-Z0-9]*//g; 0@
 int
 clSnmp${s}Handler(netsnmp_mib_handler *handler,
                           netsnmp_handler_registration *reginfo,

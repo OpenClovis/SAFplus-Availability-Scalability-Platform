@@ -133,7 +133,7 @@ extern ClRcT clSnmpAlarmIdToOidGet(ClCorMOIdPtrT pMoId, ClUint32T probableCause,
                     ClAlarmSpecificProblemT specificProblem, ClCharT* pTrapOid, ClCharT* pTrapDes);
 extern ClInt32T clSnmpOidToAlarmIdGet(ClCharT* pTrapOid, ClUint32T *pProbableCause, 
                     ClAlarmSpecificProblemT* pSpecificProblem, ClCorMOIdPtrT pMoId);
-extern void clSnmpOidCpy(ClSNMPRequestInfoT * pReqInfo, ClWordT * pOid);
+extern void clSnmpOidCpy(ClSNMPRequestInfoT * pReqInfo, oid* pOid);
 
 extern ClRcT clSnmpTableIndexCorAttrIdInit(ClUint32T numOfIndices, ClUint8T * pIndexOidList[],
                                            ClSnmpTableIndexCorAttrIdInfoT * pTableIndexCorAttrIdList);

@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 
 /* column number definitions for table $t */
     @foreach $c column@
@@ -40,6 +41,7 @@ extern "C" {
 #endif
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 extern ClSnmpTableIndexCorAttrIdInfoT ${t}IndexCorAttrIdList[];
 @end@
 
@@ -47,13 +49,16 @@ extern ClSnmpTableIndexCorAttrIdInfoT ${t}IndexCorAttrIdList[];
 /* function declarations */
 void clSnmp${name}TablesInit(void);
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 void clSnmp${t}Initialize(void);
 @end@
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 Netsnmp_Node_Handler clSnmp${t}Handler;
 @end@
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 Netsnmp_First_Data_Point  clSnmp${t}GetFirstDataPoint;
 Netsnmp_Next_Data_Point   clSnmp${t}GetNextDataPoint;
 @end@
@@ -110,11 +115,13 @@ static const ClCharT * gErrList[] = {
 };
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 static oid ${t}Oid[] = { $t.commaoid };
 @end@
 
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
     @eval $index_count = count_indexes($t)@
 ClSnmpTableIndexCorAttrIdInfoT ${t}IndexCorAttrIdList[$index_count+1] = {
     @foreach $idx index@
@@ -140,6 +147,7 @@ void clSnmp${name}TablesDeInit(void)
 }
 
 @foreach $t table@
+@perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
 /** Initialize the $t table by defining its contents and how it's structured */
 void
 clSnmp${t}Initialize(void)
@@ -525,7 +533,7 @@ clSnmp${t}Handler(
                         switch(*(reqVar->val.integer))
                         {
                             @foreach $l, $v enum@
-                                @if ($c.rowstatus == 1 && $l ne 'notReady' && $l ne 'createAndWait') || ($c.settable == 1) @
+                                @if ($c.rowstatus == 1 && "$l" ne "notReady" && "$l" ne "createAndWait") || ($c.settable == 1) @
                             case $c.uc_$l.uc:
                                 break;
                                 @end@

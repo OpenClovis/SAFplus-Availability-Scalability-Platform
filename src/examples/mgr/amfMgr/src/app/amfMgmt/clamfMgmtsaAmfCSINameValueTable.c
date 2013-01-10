@@ -14,6 +14,7 @@
 /*
  * ---BEGIN_APPLICATION_CODE---
  */
+
 /*
  * Additional #includes and globals go here.
  */
