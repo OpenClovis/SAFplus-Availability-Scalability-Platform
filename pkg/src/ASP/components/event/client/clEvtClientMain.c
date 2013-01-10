@@ -731,8 +731,11 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
 
     inDataAllocated:
     rc = CL_EVENTS_RC(rc);
-    clLogError("EVT", "REC",
-               "Receive of Event failed, rc[0x%x]", rc);
+    if(rc != CL_EVENT_ERR_INTERNAL)
+    {
+        clLogError("EVT", "REC",
+                   "Receive of Event failed, rc[0x%x]", rc);
+    }
 
     clHeapFree(pInData); // Free the buffer from clBufferFlatten()
 
@@ -753,35 +756,38 @@ void handleDestroyCallback(void * pInstance)
 
     switch(evtHdlDbData->handleType)
     {
-        case CL_CHANNEL_HANDLE:
-            break;
+    case CL_CHANNEL_HANDLE:
+        break;
 
-        case CL_EVENT_HANDLE:
+    case CL_EVENT_HANDLE:
 
-            pEventInfo = (ClEvtEventHandleT *)pInstance;
+        pEventInfo = (ClEvtEventHandleT *)pInstance;
+        if(pEventInfo->msgHandle)
+        {
             rc = clBufferDelete(&pEventInfo->msgHandle);
             if(CL_OK != rc)
             {
                 clLogError("EVT", "HDC", 
-                        "clBufferDelete Failed, rc[%#X]", rc);
+                           "clBufferDelete Failed, rc[%#X]", rc);
             }
-            break;
+        }
+        break;
 
-        case CL_EVENT_INIT_HANDLE:
+    case CL_EVENT_INIT_HANDLE:
 
-            pInitInfo = (ClEvtInitInfoT *)pInstance;
-            if (CL_TRUE == pInitInfo->queueFlag)
-            {
-                clOsalMutexLock(pInitInfo->cbMutex);
-                clQueueDelete(&pInitInfo->cbQueue);
-                clOsalMutexUnlock(pInitInfo->cbMutex);
+        pInitInfo = (ClEvtInitInfoT *)pInstance;
+        if (CL_TRUE == pInitInfo->queueFlag)
+        {
+            clOsalMutexLock(pInitInfo->cbMutex);
+            clQueueDelete(&pInitInfo->cbQueue);
+            clOsalMutexUnlock(pInitInfo->cbMutex);
 
-                clOsalMutexDelete(pInitInfo->cbMutex);
-                clOsalCondDelete(pInitInfo->receiveCond);
-                close(pInitInfo->writeFd);
-                close(pInitInfo->readFd);
-            }
-            break;
+            clOsalMutexDelete(pInitInfo->cbMutex);
+            clOsalCondDelete(pInitInfo->receiveCond);
+            close(pInitInfo->writeFd);
+            close(pInitInfo->readFd);
+        }
+        break;
     }
 }
 
