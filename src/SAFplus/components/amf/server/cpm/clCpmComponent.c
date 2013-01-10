@@ -1118,6 +1118,8 @@ ClRcT cpmRequestFailedResponse(ClCharT *name,
     ClRcT rc = CL_OK;
     ClCpmLcmResponseT response = { {0, 0}, 0 };
 
+    if(!srcAddress) return rc;
+
     if (srcAddress->portId == 0xFFFF)
     {
         /*
@@ -2281,6 +2283,7 @@ ClRcT _cpmComponentInstantiate(ClCharT *compName,
          * Find the component Name from the component Hash Table 
          * Its a local component, do the needful 
          */
+        ClIocPortT lastEoPort = 0;
 
         rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
         if (rc != CL_OK)
@@ -2307,6 +2310,7 @@ ClRcT _cpmComponentInstantiate(ClCharT *compName,
                    sizeof(ClIocPhysicalAddressT));
         comp->requestRmdNumber = rmdNumber;
         comp->compEventPublished = CL_FALSE;
+        lastEoPort = comp->eoPort;
         comp->eoPort = 0;
         comp->instantiateCookie = instantiateCookie;
         comp->compTerminated = CL_FALSE;
@@ -2350,6 +2354,7 @@ ClRcT _cpmComponentInstantiate(ClCharT *compName,
             }
             case CL_AMS_PRESENCE_STATE_INSTANTIATED:
             {
+                comp->eoPort = lastEoPort;
                 cpmCompRespondToCaller(comp, CL_CPM_INSTANTIATE, CL_OK);
                 rc = CL_OK;
                 break;
@@ -3063,6 +3068,249 @@ ClRcT cpmCompCleanup(ClCharT *compName)
         }
     }
 
+    return rc;
+}
+
+ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
+                                ClCharT *compName,
+                                ClCharT *proxyCompName,
+                                ClCharT *nodeName)
+{
+    ClUint32T rc = CL_OK;
+    ClCpmEOListNodeT *ptr = NULL;
+    ClCpmEOListNodeT *pTemp = NULL;
+    ClNameT compInstance = {0};
+
+    if (clDbgNoKillComponents)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("In debug mode (clDbgNoKillComponents is set), so will not clean up component %s", compName));
+        return CL_CPM_ERR_OPERATION_FAILED;
+    }
+
+    if(!comp)
+    {
+        rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+        if (rc != CL_OK)
+        {
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+                       CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR, "component",
+                       compName, rc);
+            return rc;
+        }
+    }
+
+    memset(&comp->requestSrcAddress, 0, sizeof(comp->requestSrcAddress));
+    clNameSet(&compInstance, comp->compConfig->compName);
+    cpmInvocationClearCompInvocation(&compInstance);
+    switch (comp->compPresenceState)
+    {
+    case CL_AMS_PRESENCE_STATE_UNINSTANTIATED:
+        {
+            rc = CL_OK;
+            /*
+             * Its success, so inform caller about successful execution 
+             */
+            break;
+        }
+    case CL_AMS_PRESENCE_STATE_INSTANTIATING:
+    case CL_AMS_PRESENCE_STATE_INSTANTIATED:
+    case CL_AMS_PRESENCE_STATE_TERMINATING:
+    case CL_AMS_PRESENCE_STATE_RESTARTING:
+    case CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED:
+    case CL_AMS_PRESENCE_STATE_TERMINATION_FAILED:
+    default:
+        {
+            if (comp->compConfig->compProperty ==
+                CL_AMS_COMP_PROPERTY_SA_AWARE)
+            {
+                clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
+                           "Cleaning up SA aware component [%s]...",
+                           comp->compConfig->compName);
+
+                ptr = comp->eoHandle;
+                while (ptr != NULL && ptr->eoptr != NULL)
+                {
+                    if (ptr->eoptr->eoPort == CL_IOC_EVENT_PORT)
+                    {
+                        gpClCpm->emUp = 0;
+                    }
+                    pTemp = ptr;
+                    ptr = ptr->pNext;
+                    clHeapFree(pTemp->eoptr);
+                    pTemp->eoptr = NULL;
+                    clHeapFree(pTemp);
+                    pTemp = NULL;
+                }
+                comp->eoHandle = NULL;
+                comp->eoCount = 0;
+                if(!comp->compEventPublished && comp->eoPort && !comp->compTerminated)
+                    cpmComponentEventPublish(comp, CL_CPM_COMP_DEATH, CL_TRUE);
+                if (comp->compConfig->compProcessRel ==
+                    CL_CPM_COMP_SINGLE_PROCESS)
+                {
+                    /*
+                     * Send SIGKILL
+                     */
+                    if (comp->processId != 0)
+                    {
+                        compCleanupInvoke(comp);
+                    }
+                    comp->processId = 0;
+                    comp->compPresenceState =
+                        CL_AMS_PRESENCE_STATE_UNINSTANTIATED;
+
+                    clOsalMutexLock(comp->compMutex);
+                    comp->compOperState = CL_AMS_OPER_STATE_DISABLED;
+                    comp->compReadinessState =
+                        CL_AMS_READINESS_STATE_OUTOFSERVICE;
+                    if (CL_HANDLE_INVALID_VALUE != comp->cpmHealthcheckTimerHandle)
+                    {
+                        clTimerStop(comp->cpmHealthcheckTimerHandle);
+                        clTimerDelete(&comp->cpmHealthcheckTimerHandle);
+                        comp->cpmHealthcheckTimerHandle = CL_HANDLE_INVALID_VALUE;
+                    }
+                    if (CL_HANDLE_INVALID_VALUE != comp->hbTimerHandle)
+                    {
+                        clTimerStop(comp->hbTimerHandle);
+                        clTimerDelete(&comp->hbTimerHandle);
+                        comp->hbTimerHandle = CL_HANDLE_INVALID_VALUE;
+                    }
+                        
+                    comp->hbInvocationPending = CL_NO;
+                    comp->hcConfirmed = CL_NO;
+                    clOsalMutexUnlock(comp->compMutex);
+                }
+                else if (comp->compConfig->compProcessRel ==
+                         CL_CPM_COMP_MULTI_PROCESS)
+                {
+                    /*
+                     * All the process must have done the cpmClientInit,
+                     * then we know the pid, send SIGKILL to all the
+                     * process 
+                     */
+                    rc = CL_ERR_NOT_IMPLEMENTED;
+                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                                 ("COMP MULTITHREAD is not implemented \n"),
+                                 rc);
+                }
+                else if (comp->compConfig->compProcessRel ==
+                         CL_CPM_COMP_THREADED)
+                {
+                    rc = CL_ERR_NOT_IMPLEMENTED;
+                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                                 ("COMP MULTITHREAD is not implemented \n"),
+                                 rc);
+                }
+                else if (comp->compConfig->compProcessRel ==
+                         CL_CPM_COMP_NONE)
+                {
+                    rc = CL_ERR_NOT_IMPLEMENTED;
+                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                                 ("COMP Script based instantiation is not implemented \n"),
+                                 rc);
+                }
+            }
+            else if (comp->compConfig->compProperty ==
+                     CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE ||
+                     comp->compConfig->compProperty ==
+                     CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE)
+            {
+                /* PROXIED:
+                   1. Request sent to Proxy component.
+                */
+                ClCpmClientCompTerminateT compCleanup;
+
+                clOsalMutexLock(comp->compMutex);
+                if (CL_HANDLE_INVALID_VALUE != comp->cpmHealthcheckTimerHandle)
+                {
+                    clTimerStop(comp->cpmHealthcheckTimerHandle);
+                    clTimerDelete(&comp->cpmHealthcheckTimerHandle);
+                    comp->cpmHealthcheckTimerHandle = CL_HANDLE_INVALID_VALUE;
+                }
+                if (CL_HANDLE_INVALID_VALUE != comp->hbTimerHandle)
+                {
+                    clTimerStop(comp->hbTimerHandle);
+                    clTimerDelete(&comp->hbTimerHandle);
+                    comp->hbTimerHandle = CL_HANDLE_INVALID_VALUE;
+                }
+                        
+                comp->hbInvocationPending = CL_NO;
+                comp->hcConfirmed = CL_NO;
+                clOsalMutexUnlock(comp->compMutex);
+
+                strcpy(compCleanup.compName.value, compName);
+                compCleanup.compName.length =
+                    strlen(compCleanup.compName.value);
+                compCleanup.requestType = CL_CPM_PROXIED_CLEANUP;
+
+                if(proxyCompName)
+                {
+                    ClCpmComponentT *proxyComp = NULL;
+                    rc = cpmCompFind(proxyCompName, gpClCpm->compTable, &proxyComp);
+                    CL_CPM_CHECK_3(CL_DEBUG_ERROR, 
+                                   CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+                                   "proxy component", proxyCompName, rc, rc, CL_LOG_DEBUG,
+                                   CL_LOG_HANDLE_APP);
+
+                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ALERT, NULL,
+                               CL_CPM_LOG_3_LCM_PROXY_OPER_INFO, "cleaning",
+                               comp->compConfig->compName, proxyComp->eoPort);
+
+                    /*
+                     * Invoke the proxy component registered function 
+                     */
+
+                    /*
+                     * Bug 4381:
+                     * Commenting out the code for starting the timer in case of proxied
+                     * component. If a ASP component can be a proxied component then this
+                     * needs to be changed accordingly.
+                     */
+                    /*clCompTimerProxiedCleanup(comp);*/
+
+                    /*
+                     * Allocate the Invocation Id 
+                     */
+                    rc = cpmInvocationAdd(CL_CPM_PROXIED_CLEANUP_CALLBACK, 
+                                          (void *) comp,
+                                          &compCleanup.invocation,
+                                          CL_CPM_INVOCATION_CPM | CL_CPM_INVOCATION_DATA_SHARED);
+                    rc = CL_CPM_CALL_RMD_ASYNC_NEW(clIocLocalAddressGet(),
+                                                   proxyComp->eoPort,
+                                                   CPM_PROXIED_CL_CPM_CLEANUP_FN_ID,
+                                                   (ClUint8T *)&compCleanup,
+                                                   sizeof
+                                                   (ClCpmClientCompTerminateT),
+                                                   NULL,
+                                                   NULL,
+                                                   CL_RMD_CALL_ATMOST_ONCE,
+                                                   (proxyComp->
+                                                    compConfig->
+                                                    compProxiedCompCleanupCallbackTimeout
+                                                    / 2),
+                                                   1,
+                                                   0,
+                                                   NULL,
+                                                   NULL,
+                                                   MARSHALL_FN(ClCpmClientCompTerminateT, 4, 0, 0));
+                }
+            }
+            else if (comp->compConfig->compProperty ==
+                     CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE)
+            {
+                if( (rc = cpmNonProxiedNonPreinstantiableCompTerminate(comp, CL_TRUE)) == CL_OK)
+                {
+                    comp->compPresenceState = CL_AMS_PRESENCE_STATE_UNINSTANTIATED;
+                }
+                else
+                {
+                    goto failure;
+                }
+            }
+        }
+    }
+
+    failure:
     return rc;
 }
 

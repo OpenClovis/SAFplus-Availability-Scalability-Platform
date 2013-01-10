@@ -482,10 +482,12 @@ clAmsFinalize(
 
     /*
      * This condition will be executed in the scenario when only system 
-     * controller node is shutting down
+     * controller node is shutting down or payload reset is disabled
      */
 
-    if ( ( (mode) & (CL_AMS_TERMINATE_MODE_SC_ONLY) ) != CL_FALSE ) 
+    if ( (mode & CL_AMS_TERMINATE_MODE_SC_ONLY) 
+         ||
+         gClAmsPayloadResetDisable )
             
     {
         goto exitfn;
