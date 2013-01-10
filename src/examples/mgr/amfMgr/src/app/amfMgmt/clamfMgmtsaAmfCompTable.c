@@ -19,6 +19,7 @@
 /*
  * Additional #includes and globals go here.
  */
+
 /*
  * ---END_APPLICATION_CODE---
  */

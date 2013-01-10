@@ -7,12 +7,14 @@ by parsing data from the MIB module : ${name}
 <mibDataT>
     <scalarsT>
     @foreach $s scalar@
+    @perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@ 	
         <scalar name="${s}" />
     @end@
     </scalarsT>
 
     <tablesT>
     @foreach $t table@
+    @perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
         <table name="${t}" />
     @end@
     </tablesT>
@@ -42,6 +44,7 @@ by parsing data from the MIB module : ${name}
             @eval $can_create_row = 1@
         @end@
     @end@
+    @perleval $vars{'t'}=~ s/[^a-zA-Z0-9]*//g; 0@
     @if $can_create_row == 1@
         <appOidInfo tableType="CL_$t.uc" oid="$t_oid" numAttr="$index_count" fpIndexGet="clSnmp${t}IndexCorAttrGet" 
             fpInstXlator="clSnmp${t}InstXlator" fpInstCompare="clSnmp${t}InstCompare" >
@@ -71,6 +74,7 @@ by parsing data from the MIB module : ${name}
 @foreach $n notifications@
 	@eval $n_oid = "$n.objectID"@
 	@perleval $vars{'n_oid'} =~ s/^\.//; 0;@
+        @perleval $vars{'n'}=~ s/[^a-zA-Z0-9]*//g; 0@
         <appCallback trapOid=".$n_oid" fpIndexGet="clSnmp${n}IndexGet" notifyCallback="clSnmpSend${n}Trap" />
 @end@
     </appNotifyCallbackT>

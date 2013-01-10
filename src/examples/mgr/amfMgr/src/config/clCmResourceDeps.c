@@ -28,6 +28,7 @@
  *****************************************************************************/
 
 #include <clCmApi.h>
+#ifdef CL_USE_CHASSIS_MANAGER
 #include <SaHpi.h>
 
 /* Following is the list of entities affected by sensor assertion on fan */
@@ -72,3 +73,4 @@ ClCmUserPolicyT cmUserPolicy[]=
         (ClCmEventCallBackT)NULL
     }
 };
+#endif

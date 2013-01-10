@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<multixport xmlns="multixport.ecore">
+  <xports>
+    <xport>
+      <type>TIPC</type>
+      <plugin>libClTIPC.so</plugin>
+    </xport>
+  </xports>
+  <protocol default="TIPC"/>
+</multixport>

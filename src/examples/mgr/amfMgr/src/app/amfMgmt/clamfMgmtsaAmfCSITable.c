@@ -351,7 +351,7 @@ ClRcT clamfMgmtSAAMFCSITABLEProvRead(CL_OM_PROV_CLASS* pThis, ClHandleT txnHandl
      */
 
     clprintf(CL_LOG_SEV_INFO, "Inside the function %s", __FUNCTION__);
-    rc = CL_AMS_RC(CL_ERR_NOT_SUPPORTED);
+
     /*
      * ---END_APPLICATION_CODE---
      */
@@ -512,14 +512,8 @@ ClRcT clamfMgmtSAAMFCSITABLEProvObjectRead(CL_OM_PROV_CLASS* pThis, ClHandleT tx
 	/*
 	 * ---BEGIN_APPLICATION_CODE$objectRead$---
 	 */
-    ClUint32T i;
+
     clprintf(CL_LOG_SEV_INFO, "Inside the function %s", __FUNCTION__);
-    for(i = 0; i < txnDataEntries; ++i)
-    {
-        rc = clamfMgmtSAAMFCSITABLEProvRead(pThis, txnHandle, pProvTxnDataList + i);
-        if(rc != CL_OK)
-            return rc;
-    }
  	
 	/*
 	 * ---END_APPLICATION_CODE---

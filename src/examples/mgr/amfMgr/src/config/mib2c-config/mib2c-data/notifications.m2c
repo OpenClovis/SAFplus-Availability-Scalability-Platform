@@ -10,6 +10,7 @@
 
 /* function declarations */
 @foreach $n notifications@
+@perleval $vars{'n'}=~ s/[^a-zA-Z0-9]*//g; 0@
 void clSnmpSend${n}Trap(ClTrapPayLoadListT   *pTrapPayLoadList);
 @end@
 
@@ -32,6 +33,7 @@ void clSnmpSend${n}Trap(ClTrapPayLoadListT   *pTrapPayLoadList);
 static oid snmpTrapOid[] = {1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0};
 
 @foreach $n notifications@
+@perleval $vars{'n'}=~ s/[^a-zA-Z0-9]*//g; 0@
 void clSnmpSend${n}Trap(ClTrapPayLoadListT   *pTrapPayLoadList)
 {
     @eval $any_tbl_vb = 0@

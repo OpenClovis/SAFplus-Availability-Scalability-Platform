@@ -268,7 +268,6 @@ ClUint32T clGetTable ( ClSNMPRequestInfoT* reqInfo,
     ClMedOpT        opInfo;
     ClMedVarBindT   *tempVarInfo = NULL;
     ClInt32T        errorCode = CL_OK;
-    ClInt32T        retVal = 0;
     ClCharT         oid[CL_SNMP_DISPLAY_STRING_SIZE];
 
     opInfo.varCount = 1;
@@ -279,7 +278,7 @@ ClUint32T clGetTable ( ClSNMPRequestInfoT* reqInfo,
         clLogError("SNM","OPE", "Failed while allocating the varbind.");
         return (CL_RC(CL_CID_SNMP, CL_ERR_NO_MEMORY));
     }
-    retVal = 0;
+ 
     strcpy(oid, reqInfo->oid);
     /*oid received till this point is that of the table. Add .1.1 to 
       get oid of the first entry in the table
@@ -690,7 +689,7 @@ static void clSnmpDataReset(void)
     clSnmpUndo();
 }
 
-void clSnmpOidCpy(ClSNMPRequestInfoT * pReqInfo, ClWordT * pOid)
+void clSnmpOidCpy(ClSNMPRequestInfoT * pReqInfo, oid * pOid)
 {
     ClCharT tempOid[CL_SNMP_MAX_OID_LEN];
     ClInt32T i = 0;
@@ -702,7 +701,7 @@ void clSnmpOidCpy(ClSNMPRequestInfoT * pReqInfo, ClWordT * pOid)
 
     for(i = 0; i < pReqInfo->oidLen; i++)
     {
-        sprintf(tempOid, "%lu", pOid[i]);
+        sprintf(tempOid, "%lu", ((ClWordT*)pOid)[i]);
         strcat(pReqInfo->oid, tempOid);
         strcat(pReqInfo->oid, ".");
     }

@@ -10,6 +10,7 @@
 #   - Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
 #
 ################################################################################
+include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 
 # Component name (using all lowercase):
 
