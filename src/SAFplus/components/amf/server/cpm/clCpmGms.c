@@ -617,7 +617,15 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT
             ClGmsNodeIdT lastActive = gpClCpm->activeMasterNodeId;
             gpClCpm->activeMasterNodeId = notificationBuffer->leader;
             gpClCpm->deputyNodeId = notificationBuffer->deputy;
-            clIocMasterCacheReset();
+            if(notificationBuffer->leader == -1)
+            {
+                clIocMasterCacheReset();
+            }
+            else
+            {
+                clIocMasterCacheSet(notificationBuffer->leader);
+            }
+
             if (gpClCpm->bmTable->currentBootLevel > CL_CPM_BOOT_LEVEL_2 )
             {
                 if (-1 == notificationBuffer->leader)
