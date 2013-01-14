@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <CompileConfigs:ComponentsInfo xmlns:CompileConfigs="Comps.ecore">
+      <COR savetype="CL_COR_NO_SAVE"/>
+      <FM localProbationPeriod="10"/>
+      <NS maxentries="256" maxglobalcontexts="10" maxlocalcontexts="2"/>
+      <RMD maxretries="8"/>
+      <PM>
+        <appConfigInterval applicationName="OnePlusOneCHKPT" value="3000"/>
+        <appConfigInterval applicationName="TwoPlusOneCHKPT" value="3000"/>
+        <appConfigInterval applicationName="SNMPSubAgent" value="3000"/>
+        <appConfigInterval applicationName="Provisioning" value="3000"/>
+        <appConfigInterval applicationName="Alarm" value="3000"/>
+        <appConfigInterval applicationName="EventPublisher" value="3000"/>
+        <appConfigInterval applicationName="EventSubscriber" value="3000"/>
+        <compConfigInterval componentName="TwoPlusOneCHKPTI0" type="TwoPlusOneCHKPT" value="0"/>
+        <compConfigInterval componentName="SNMPSubAgentI0" type="SNMPSubAgent" value="0"/>
+        <compConfigInterval componentName="OnePlusOneCHKPTI0" type="OnePlusOneCHKPT" value="0"/>
+        <compConfigInterval componentName="TwoPlusOneCHKPTI1" type="TwoPlusOneCHKPT" value="0"/>
+        <compConfigInterval componentName="EventSubscriberI0" type="EventSubscriber" value="0"/>
+        <compConfigInterval componentName="OnePlusOneCHKPTI1" type="OnePlusOneCHKPT" value="0"/>
+        <compConfigInterval componentName="TwoPlusOneCHKPTI2" type="TwoPlusOneCHKPT" value="0"/>
+        <compConfigInterval componentName="ProvisioningI0" type="Provisioning" value="0"/>
+        <compConfigInterval componentName="AlarmI0" type="Alarm" value="0"/>
+        <compConfigInterval componentName="EventPublisherI0" type="EventPublisher" value="0"/>
+      </PM>
+    </CompileConfigs:ComponentsInfo>
+  </version>
+</openClovisAsp>

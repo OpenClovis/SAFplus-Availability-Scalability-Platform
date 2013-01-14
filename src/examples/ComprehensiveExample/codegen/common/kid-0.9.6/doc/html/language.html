@@ -1,0 +1,1038 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<HTML>
+  
+  <HEAD><META CONTENT="text/html; charset=utf-8" HTTP-EQUIV="Content-Type">
+    <TITLE>Kid Language Specification</TITLE>
+    <LINK HREF="layout.css" TYPE="text/css" REL="stylesheet">
+    <LINK HREF="http://planet.kid-templating.org/rss20.xml" TYPE="application/rss+xml" REL="alternate" TITLE="RSS 2.0">
+
+  </HEAD>
+  <BODY>
+    <DIV ID="page">
+      <H1 CLASS="doc-title"><A HREF="http://www.kid-templating.org/">kid-templating.org</A></H1>
+      <DIV ID="navcontainer">
+        <UL ID="navlist">
+          <LI CLASS="pagenav">
+            <UL>
+              <LI CLASS="page_item">
+                <A HREF="index.html" CLASS="" TITLE="Project Home / Index">Kid</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="module-index.html" CLASS="" TITLE="kid package and module reference">Modules</A>
+              </LI>
+              
+              <LI>
+                <A HREF="http://www.kid-templating.org/trac/" TITLE="Wiki / Subversion / Roadmap / Bug Tracker">Trac</A>
+              </LI>
+              <LI>
+                <A HREF="http://planet.kid-templating.org/">Blog</A>
+              </LI>
+              <LI>
+                <A HREF="http://lists.sourceforge.net/lists/listinfo/kid-template-discuss" CLASS="" TITLE="Mailing List">Discuss</A>
+              </LI>
+              <LI CLASS="page_item">
+                <A HREF="http://www.kid-templating.org/about">
+                  about kid-templating.org
+                </A>
+              </LI>
+            </UL>
+          </LI>
+        </UL>
+      </DIV>
+      
+      <HR>
+      
+      <DIV ID="content"><DIV CLASS="rst-doc">
+  
+  <H1 CLASS="pudge-member-page-heading">Kid Language Specification</H1>
+  
+  <TABLE RULES="none" FRAME="void" CLASS="docinfo">
+<COL CLASS="docinfo-name">
+<COL CLASS="docinfo-content">
+<TBODY VALIGN="top">
+<TR><TH CLASS="docinfo-name">Author:</TH>
+<TD><A HREF="http://naeblis.cx/rtomayko/" CLASS="first last reference">Ryan Tomayko</A></TD></TR>
+<TR><TH CLASS="docinfo-name">Contact:</TH>
+<TD><A HREF="mailto:rtomayko@gmail.com" CLASS="first last reference">rtomayko@gmail.com</A></TD></TR>
+<TR><TH CLASS="docinfo-name">Revision:</TH>
+<TD>5</TD></TR>
+<TR><TH CLASS="docinfo-name">Date:</TH>
+<TD>2006-06-10</TD></TR>
+<TR><TH CLASS="docinfo-name">Copyright:</TH>
+<TD>2005, Ryan Tomayko</TD></TR>
+<TR CLASS="field"><TH CLASS="docinfo-name">Other Formats:</TH><TD CLASS="field-body"><A HREF="language.txt" CLASS="reference">Text</A></TD>
+</TR>
+</TBODY>
+</TABLE>
+
+  <!-- -*- mode: rst; encoding: utf-8 -*- -->
+<P>Kid is a simple XML based template language that uses embedded <A HREF="http://www.python.org/" CLASS="reference">Python</A> to do
+cool stuff. The syntax was inspired by a number of existing template
+languages, namely <A HREF="http://www.w3.org/TR/xslt" CLASS="reference">XSLT</A>, <A HREF="http://www.zope.org/Wikis/DevSite/Projects/ZPT/TAL" CLASS="reference">TAL</A>, and <A HREF="http://www.php.net/" CLASS="reference">PHP</A>.</P>
+<P>This document describes the template language and will be most useful as
+reference to those developing Kid templates. For information about using
+templates from Python, the command line, or in web environments, see the
+<A HREF="guide.html" CLASS="reference">User's Guide</A>.</P>
+<DIV CLASS="contents topic">
+<P CLASS="topic-title first"><A ID="contents" NAME="contents">Contents</A></P>
+<UL CLASS="auto-toc simple">
+<LI><A HREF="#synopsis" ID="id8" NAME="id8" CLASS="reference">1   Synopsis</A></LI>
+<LI><A HREF="#the-kid-namespace" ID="id9" NAME="id9" CLASS="reference">2   The Kid Namespace</A></LI>
+<LI><A HREF="#embedding-code-blocks-python" ID="id10" NAME="id10" CLASS="reference">3   Embedding Code Blocks (<TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?python?></SPAN></TT>)</A></LI>
+<LI><A HREF="#content-producing-constructs" ID="id11" NAME="id11" CLASS="reference">4   Content Producing Constructs</A></LI>
+<LI><A HREF="#python-expression-substitution-expr" ID="id12" NAME="id12" CLASS="reference">5   Python Expression Substitution (<TT CLASS="docutils literal"><SPAN CLASS="pre">${expr}</SPAN></TT>)</A><UL CLASS="auto-toc">
+<LI><A HREF="#identifier-shortcut-name" ID="id13" NAME="id13" CLASS="reference">5.1   Identifier Shortcut (<TT CLASS="docutils literal"><SPAN CLASS="pre">$name</SPAN></TT>)</A></LI>
+<LI><A HREF="#escaping" ID="id14" NAME="id14" CLASS="reference">5.2   Escaping (<TT CLASS="docutils literal"><SPAN CLASS="pre">$$</SPAN></TT>)</A></LI>
+</UL>
+</LI>
+<LI><A HREF="#default-imports" ID="id15" NAME="id15" CLASS="reference">6   Default Imports</A><UL CLASS="auto-toc">
+<LI><A HREF="#xml-function" ID="id16" NAME="id16" CLASS="reference">6.1   <TT CLASS="docutils literal"><SPAN CLASS="pre">XML()</SPAN></TT> function</A></LI>
+<LI><A HREF="#document-function" ID="id17" NAME="id17" CLASS="reference">6.2   <TT CLASS="docutils literal"><SPAN CLASS="pre">document()</SPAN></TT> function</A></LI>
+<LI><A HREF="#defined-name-and-value-of-name-default-functions" ID="id18" NAME="id18" CLASS="reference">6.3   <TT CLASS="docutils literal"><SPAN CLASS="pre">defined(name)</SPAN> <SPAN CLASS="pre">and</SPAN> <SPAN CLASS="pre">value_of(name,</SPAN> <SPAN CLASS="pre">default)</SPAN></TT> functions</A></LI>
+</UL>
+</LI>
+<LI><A HREF="#attribute-language" ID="id19" NAME="id19" CLASS="reference">7   Attribute Language</A><UL CLASS="auto-toc">
+<LI><A HREF="#repetition-iteration-py-for" ID="id20" NAME="id20" CLASS="reference">7.1   Repetition/Iteration (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:for</SPAN></TT>)</A></LI>
+<LI><A HREF="#conditionals-py-if" ID="id21" NAME="id21" CLASS="reference">7.2   Conditionals (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:if</SPAN></TT>)</A></LI>
+<LI><A HREF="#dynamic-content-py-content" ID="id22" NAME="id22" CLASS="reference">7.3   Dynamic Content (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:content</SPAN></TT>)</A></LI>
+<LI><A HREF="#replacing-content-py-replace" ID="id23" NAME="id23" CLASS="reference">7.4   Replacing Content (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:replace</SPAN></TT>)</A></LI>
+<LI><A HREF="#stripping-tags-py-strip" ID="id24" NAME="id24" CLASS="reference">7.5   Stripping Tags (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT>)</A></LI>
+<LI><A HREF="#dynamic-attributes-py-attrs" ID="id25" NAME="id25" CLASS="reference">7.6   Dynamic Attributes (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:attrs</SPAN></TT>)</A></LI>
+<LI><A HREF="#named-template-functions-py-def" ID="id26" NAME="id26" CLASS="reference">7.7   Named Template Functions (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:def</SPAN></TT>)</A></LI>
+<LI><A HREF="#match-templates-py-match" ID="id27" NAME="id27" CLASS="reference">7.8   Match Templates (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:match</SPAN></TT>)</A></LI>
+<LI><A HREF="#template-reuse-py-extends" ID="id28" NAME="id28" CLASS="reference">7.9   Template Reuse (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:extends</SPAN></TT>)</A></LI>
+<LI><A HREF="#layout-templates-py-layout" ID="id29" NAME="id29" CLASS="reference">7.10   Layout Templates (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:layout</SPAN></TT>)</A></LI>
+</UL>
+</LI>
+<LI><A HREF="#processing-order" ID="id30" NAME="id30" CLASS="reference">8   Processing Order</A></LI>
+<LI><A HREF="#xml-comments" ID="id31" NAME="id31" CLASS="reference">9   XML Comments</A></LI>
+<LI><A HREF="#revision-history" ID="id32" NAME="id32" CLASS="reference">10   Revision History</A></LI>
+</UL>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id8" ID="synopsis" NAME="synopsis" CLASS="toc-backref">1   Synopsis</A></H1>
+<PRE CLASS="literal-block">
+&lt;?python
+title = "A Kid Test Document"
+fruits = ["apple", "orange", "kiwi", "M&amp;M"]
+from platform import system
+?>
+&lt;html xmlns:py="http://purl.org/kid/ns#">
+  &lt;head>
+    &lt;title py:content="title">This is replaced.&lt;/title>
+  &lt;/head>
+  &lt;body>
+    &lt;p>These are some of my favorite fruits:&lt;/p>
+    &lt;ul>
+      &lt;li py:for="fruit in fruits">
+        I like ${fruit}s
+      &lt;/li>
+    &lt;/ul>
+    &lt;p py:if="system() == 'Linux'">
+      Good for you!
+    &lt;/p>
+  &lt;/body>
+&lt;/html>
+</PRE>
+<P>Yields something like this:</P>
+<PRE CLASS="literal-block">
+&lt;?xml version="1.0" encoding="utf-8"?>
+&lt;html>
+  &lt;head>
+    &lt;title>A Kid Test Document&lt;/title>
+  &lt;/head>
+  &lt;body>
+    &lt;p>These are some of my favorite fruits:&lt;/p>
+    &lt;ul>
+      &lt;li>I like apples&lt;/li>
+      &lt;li>I like oranges&lt;/li>
+      &lt;li>I like kiwis&lt;/li>
+      &lt;li>I like M&amp;amp;Ms&lt;/li>
+    &lt;/ul>
+    &lt;p>
+      Good for you!
+    &lt;/p>
+  &lt;/body>
+&lt;/html>
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id9" ID="the-kid-namespace" NAME="the-kid-namespace" CLASS="toc-backref">2   The Kid Namespace</A></H1>
+<P>All attributes described in this document must belong to the following
+namespace:</P>
+<PRE CLASS="literal-block">
+http://purl.org/kid/ns#
+</PRE>
+<P>The namespace prefix <TT CLASS="docutils literal"><SPAN CLASS="pre">py</SPAN></TT> is used throughout this document to indicate
+that an item belongs to the Kid/Python namespace.</P>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id10" ID="embedding-code-blocks-python" NAME="embedding-code-blocks-python" CLASS="toc-backref">3   Embedding Code Blocks (<TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?python?></SPAN></TT>)</A></H1>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?python?></SPAN></TT> processing instruction (PI) contains Python code and
+<EM>MAY</EM> occur anywhere that is legal for processing instructions to occur in an
+XML document.</P>
+<P>The rules for executing code found in a <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?python?></SPAN></TT> PI is as follows:</P>
+<OL CLASS="arabic simple">
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?python?></SPAN></TT> PIs located outside of the document element (e.g. root
+element) contain <EM>Document Level</EM> code. This code <EM>SHOULD</EM> be executed
+in a global, shared scope for the document. The code <EM>SHOULD</EM> be
+executed once when the template is loaded and shared between multiple
+invocations of the template.</LI>
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?python?></SPAN></TT> PIs located within the document element contain <EM>Local
+Level</EM> code. This code is executed each time the document is processed
+with a local scope specific to the invocation and the shared document
+level global scope.</LI>
+</OL>
+<P><EM>Document Level</EM> and <EM>Local Level</EM> code work exactly like <EM>Module Level</EM> and
+<EM>Function Level</EM> code in normal Python modules. For example, the following
+Kid template:</P>
+<PRE CLASS="literal-block">
+&lt;?python
+x = 0
+y = 0
+?>
+&lt;html xmlns:py="http://purl.org/kid/ns#">
+  &lt;?python
+  x = 1
+  if x == 1:
+    x = 10
+  ?>
+  &lt;p py:content="x"/>
+  &lt;?python
+  global y
+  y = 30
+  ?>
+  &lt;p py:content="y"/>
+&lt;/html>
+</PRE>
+<P>May be considered equivalent to the following Python module:</P>
+<PRE CLASS="literal-block">
+x = 0
+y = 0
+def expand(handler):
+  handler.startDocument()
+  handler.startElement('html')
+  x = 1
+  if x == 1:
+    x = 10
+  handler.element('p', content=x) # output p element with x as value
+  global y
+  y = 30
+  handler.element('p', content=y) # output p element with value of y
+  handler.endElement('html')
+  handler.endDocument()
+</PRE>
+<P><TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?python?></SPAN></TT> PIs may contain any legal Python language construct including
+functions, classes, lamda forms, etc.</P>
+<PRE CLASS="literal-block">
+&lt;?python
+class Adder:
+  def __init__(self, x, y):
+    self.x = x
+    self.y = y
+  def doit(self):
+    return self.x + self.y
+
+foo = Adder(x=400, y=20)
+x = foo.doit()
+?>
+</PRE>
+<P>Single line <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;?python?></SPAN></TT> PIs are okay too:</P>
+<PRE CLASS="literal-block">
+&lt;?python x = 10 ?>
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id11" ID="content-producing-constructs" NAME="content-producing-constructs" CLASS="toc-backref"><SPAN ID="content-producing-construct"></SPAN>4   Content Producing Constructs</A></H1>
+<P>There are multiple methods of generating content output from a template:
+<TT CLASS="docutils literal"><SPAN CLASS="pre">py:content</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">py:replace</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">py:attrs</SPAN></TT>, and <TT CLASS="docutils literal"><SPAN CLASS="pre">${}</SPAN></TT> substitution. Each
+of these syntaxes have the same rules for what types of objects may result
+from the Python expression they contain.</P>
+<DL CLASS="docutils">
+<DT><TT CLASS="docutils literal"><SPAN CLASS="pre">str</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">unicode</SPAN></TT></DT>
+<DD>The string is inserted as XML CDATA. That is, it is non-parsable
+character data that does not contain markup. The following characters are
+encoded as XML entities when serialized: '&lt;', '&amp;'. Attribute values
+containing content also encode the quote character: '"'.</DD>
+<DT><TT CLASS="docutils literal"><SPAN CLASS="pre">ElementTree.Element</SPAN></TT></DT>
+<DD><P CLASS="first">When an <TT CLASS="docutils literal"><SPAN CLASS="pre">ElementTree.Element</SPAN></TT> is referenced from a content producing
+construct, the item is inserted into the document literally, i.e. it is
+not encoded as text, but becomes part of the output structure.</P>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">XML()</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">document()</SPAN></TT> functions can be used to turn a string
+into structured content and to retrieve an XML document from a URL,
+respectively.</P>
+<P CLASS="last">Note that attribute values <EM>MUST NOT</EM> reference structured content. This
+applies to <TT CLASS="docutils literal"><SPAN CLASS="pre">py:attrs</SPAN></TT> and using <TT CLASS="docutils literal"><SPAN CLASS="pre">${}</SPAN></TT> substitution in attribute values.</P>
+</DD>
+<DT><EM>sequence</EM></DT>
+<DD>If a sequence type (<TT CLASS="docutils literal"><SPAN CLASS="pre">list</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">tuple</SPAN></TT>, or other iterable) is referenced,
+the rules are applied to each of the items in the sequence. For example,
+you could reference a list containing an <TT CLASS="docutils literal"><SPAN CLASS="pre">Element</SPAN></TT> and a string.</DD>
+<DT>Other</DT>
+<DD>If the result of evaluating the expression is any other type, an
+attempt is made to coerce the value to unicode as if by calling
+<TT CLASS="docutils literal"><SPAN CLASS="pre">unicode(expr)</SPAN></TT> and processing continues as if the object were a string
+or unicode object initially.</DD>
+</DL>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id12" ID="python-expression-substitution-expr" NAME="python-expression-substitution-expr" CLASS="toc-backref"><SPAN ID="python-expression-substitution"></SPAN>5   Python Expression Substitution (<TT CLASS="docutils literal"><SPAN CLASS="pre">${expr}</SPAN></TT>)</A></H1>
+<P>Attributes not belonging to the Kid namespace and text content <EM>MAY</EM> embed
+Python expressions by enclosing the expression within a dollar sign followed
+by curly braces: <TT CLASS="docutils literal"><SPAN CLASS="pre">${expr}</SPAN></TT>. The result of evaluating the expression(s) is
+substituted with the rest of the attribute value or text content following
+rules defined for <A HREF="#content-producing-constructs" CLASS="reference">Content Producing Constructs</A>.</P>
+<PRE CLASS="literal-block">
+&lt;?python
+verb = 'ran'
+noun = 'store'
+?>
+&lt;a title="I ${verb} to the ${noun}">...
+</PRE>
+<P>... would result in:</P>
+<PRE CLASS="literal-block">
+&lt;a title="I ran to the store">...
+</PRE>
+<P>If an attribute value consists purely of substitution expressions and all
+expressions evaluate to <TT CLASS="docutils literal"><SPAN CLASS="pre">None</SPAN></TT>, the attribute is removed. This can be
+avoided by using <TT CLASS="docutils literal"><SPAN CLASS="pre">expr</SPAN> <SPAN CLASS="pre">or</SPAN> <SPAN CLASS="pre">''</SPAN></TT> to force a zero length string to be
+returned instead of <TT CLASS="docutils literal"><SPAN CLASS="pre">None</SPAN></TT>. For example:</P>
+<PRE CLASS="literal-block">
+&lt;?python
+# set something to None
+x = None
+?>
+&lt;a title="${x}">...
+</PRE>
+<P>... would result in:</P>
+<PRE CLASS="literal-block">
+&lt;a>...
+</PRE>
+<P>However, this:</P>
+<PRE CLASS="literal-block">
+&lt;?python x = None?>
+&lt;a title="${x or ''}">...
+</PRE>
+<P>... results in:</P>
+<PRE CLASS="literal-block">
+&lt;a title="">...
+</PRE>
+<DIV CLASS="section">
+<H2><A HREF="#id13" ID="identifier-shortcut-name" NAME="identifier-shortcut-name" CLASS="toc-backref">5.1   Identifier Shortcut (<TT CLASS="docutils literal"><SPAN CLASS="pre">$name</SPAN></TT>)</A></H2>
+<P>For simple expressions consisting entirely variable names and object access
+operators (.), the curly braces may be omitted:</P>
+<PRE CLASS="literal-block">
+&lt;a href="http://example.com/$page" title="$title">
+   Dots are allowed too: $object.another.attribute
+&lt;/a>
+</PRE>
+<P>However, it is good practice to use the curly brace form as it sets the
+substitution off from the other text a bit more providing a stronger visual
+clue as to what's going on.</P>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id14" ID="escaping" NAME="escaping" CLASS="toc-backref">5.2   Escaping (<TT CLASS="docutils literal"><SPAN CLASS="pre">$$</SPAN></TT>)</A></H2>
+<P><TT CLASS="docutils literal"><SPAN CLASS="pre">$$</SPAN></TT> is an escape. <TT CLASS="docutils literal"><SPAN CLASS="pre">$${bla}</SPAN></TT> will output <TT CLASS="docutils literal"><SPAN CLASS="pre">${bla}</SPAN></TT>.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id15" ID="default-imports" NAME="default-imports" CLASS="toc-backref">6   Default Imports</A></H1>
+<P>All templates have a few default imports for convenience.</P>
+<DIV CLASS="section">
+<H2><A HREF="#id16" ID="xml-function" NAME="xml-function" CLASS="toc-backref">6.1   <TT CLASS="docutils literal"><SPAN CLASS="pre">XML()</SPAN></TT> function</A></H2>
+<P><A HREF="#python-expression-substitution" CLASS="reference">Python Expression substitution</A>, <A HREF="#py-content" CLASS="reference">py:content</A>, and <A HREF="#py-replace" CLASS="reference">py:replace</A> encode
+strings as text. That is, text is encoded according to the rules of the XML
+specification, which includes, among other things, replacing the literal
+characters <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">&amp;</SPAN></TT> with their encoded counterparts (<TT CLASS="docutils literal"><SPAN CLASS="pre">&amp;lt;</SPAN></TT>
+<TT CLASS="docutils literal"><SPAN CLASS="pre">&amp;amp;</SPAN></TT>). If you have XML stored as a string and want it to be output as
+XML and not encoded text, you need to pass the string to the <TT CLASS="docutils literal"><SPAN CLASS="pre">XML</SPAN></TT>
+function.</P>
+<P>For example, let's say there is a function, <TT CLASS="docutils literal"><SPAN CLASS="pre">hello</SPAN></TT>, that returns XML data
+that should be embedded in template output (let's say it returns
+<TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;hello>world&lt;/hello></SPAN></TT>). Consider the following:</P>
+<PRE CLASS="literal-block">
+&lt;p>${hello()}&lt;/p>
+</PRE>
+<P>The result would be:</P>
+<PRE CLASS="literal-block">
+&lt;p>&amp;lt;hello>world&amp;lt;hello>&lt;/p>
+</PRE>
+<P>Calling the <TT CLASS="docutils literal"><SPAN CLASS="pre">XML</SPAN></TT> function would have given us the result we intended:</P>
+<PRE CLASS="literal-block">
+&lt;p>${XML(hello())}&lt;/p>
+</PRE>
+<PRE CLASS="literal-block">
+&lt;p>&lt;hello>world&lt;/hello>&lt;/p>
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">xmlns</SPAN></TT> keyword parameter can be used to set the default XML namespace
+for the top-level elements in the supplied content:</P>
+<PRE CLASS="literal-block">
+&lt;p>${XML(hello(), xmlns="cid:hello_example")}&lt;/p>
+</PRE>
+<PRE CLASS="literal-block">
+&lt;p>&lt;hello xmlns="cid:hello_example">world&lt;/hello>&lt;/p>
+</PRE>
+<P>This is especially useful when including XHTML content that lacks an XML
+namespace declaration.</P>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id17" ID="document-function" NAME="document-function" CLASS="toc-backref">6.2   <TT CLASS="docutils literal"><SPAN CLASS="pre">document()</SPAN></TT> function</A></H2>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">document</SPAN></TT> function loads an XML document from a file or URL allowing
+it to be embedded in template output:</P>
+<PRE CLASS="literal-block">
+&lt;div py:content="document('header.html')">&lt;/div>
+</PRE>
+<P>The document function resolves paths relative to the current template file
+(if the template location is available).</P>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id18" ID="defined-name-and-value-of-name-default-functions" NAME="defined-name-and-value-of-name-default-functions" CLASS="toc-backref">6.3   <TT CLASS="docutils literal"><SPAN CLASS="pre">defined(name)</SPAN> <SPAN CLASS="pre">and</SPAN> <SPAN CLASS="pre">value_of(name,</SPAN> <SPAN CLASS="pre">default)</SPAN></TT> functions</A></H2>
+<P><TT CLASS="docutils literal"><SPAN CLASS="pre">defined</SPAN></TT> returns True if the name exists in the Kid namespace.
+value_of returns either the named value or the optional default
+value if that name doesn't exist in the namespace. These two simple
+convenience functions may be more intuitive to many than
+hasattr(self, name) and getattr(self, name, default) which are
+exactly equivalent.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id19" ID="attribute-language" NAME="attribute-language" CLASS="toc-backref">7   Attribute Language</A></H1>
+<DIV CLASS="section">
+<H2><A HREF="#id20" ID="repetition-iteration-py-for" NAME="repetition-iteration-py-for" CLASS="toc-backref"><SPAN ID="py-for"></SPAN>7.1   Repetition/Iteration (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:for</SPAN></TT>)</A></H2>
+<PRE CLASS="literal-block">
+&lt;element py:for="target_list in expression_list" />
+</PRE>
+<P>Works exactly like the <A HREF="http://www.python.org/dev/doc/devel/ref/for.html" CLASS="reference">Python for statement</A>.</P>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:for</SPAN></TT> attribute <EM>may</EM> appear on any element to signify that the
+element should be processed multiple times, once for each value in the
+sequence specified:</P>
+<PRE CLASS="literal-block">
+&lt;?python
+bottles = range(1, 101)
+bottles.reverse()
+?>
+&lt;p py:for="num in bottles">
+   &lt;span py:content="num">X&lt;/span> bottles of beer on the wall,
+   &lt;span py:content="num">X&lt;/span> bottles of beer on the wall,
+   take one down, pass it around, &lt;span py:content="num - 1">X - 1&lt;/span>
+   bottles of beer on the wall.
+&lt;/p>
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:for</SPAN></TT> attribute is the first attribute to be processed if
+present. All other <TT CLASS="docutils literal"><SPAN CLASS="pre">py:</SPAN></TT> attributes are processed for each iteration of
+the loop.</P>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id21" ID="conditionals-py-if" NAME="conditionals-py-if" CLASS="toc-backref"><SPAN ID="py-if"></SPAN>7.2   Conditionals (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:if</SPAN></TT>)</A></H2>
+<PRE CLASS="literal-block">
+&lt;element py:if="expr" />
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:if</SPAN></TT> attribute may appear on any element to signify that the
+element and its decendant items should be output only if the boolean
+expression specified evaluates to true in Python:</P>
+<PRE CLASS="literal-block">
+&lt;p py:if="5 * 5 == 25">
+  Python seems to be handling multiplication okay.
+&lt;/p>
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:if</SPAN></TT> attribute is processed after the <TT CLASS="docutils literal"><SPAN CLASS="pre">py:for</SPAN></TT> attribute and is
+evaluated for each iteration. If the result of evaluating <TT CLASS="docutils literal"><SPAN CLASS="pre">expr</SPAN></TT> as a
+boolean expression is false in Python, no further <TT CLASS="docutils literal"><SPAN CLASS="pre">py:</SPAN></TT> attributes
+are processed for the current iteration or, if not in a <TT CLASS="docutils literal"><SPAN CLASS="pre">py:for</SPAN></TT>, at all.</P>
+<DIV CLASS="note">
+<P CLASS="first admonition-title">Note</P>
+<P CLASS="last">Evaluated as a boolean expression in Python,
+<TT CLASS="docutils literal"><SPAN CLASS="pre">None</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">False</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">[]</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">()</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">{}</SPAN></TT>, <TT CLASS="docutils literal"><SPAN CLASS="pre">0</SPAN></TT>, and <TT CLASS="docutils literal"><SPAN CLASS="pre">''</SPAN></TT>
+are all considered to be false.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id22" ID="dynamic-content-py-content" NAME="dynamic-content-py-content" CLASS="toc-backref"><SPAN ID="py-content"></SPAN>7.3   Dynamic Content (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:content</SPAN></TT>)</A></H2>
+<PRE CLASS="literal-block">
+&lt;element py:content="expr" />
+</PRE>
+<P>This attribute <EM>MAY</EM> appear on any element to signify that the decendant
+items of the element are to be replaced with the result of evaluating
+<TT CLASS="docutils literal"><SPAN CLASS="pre">expr</SPAN></TT>.</P>
+<PRE CLASS="literal-block">
+&lt;p py:content="time.strftime('%C %c')">The Time&lt;/p>
+</PRE>
+<P>... results in:</P>
+<PRE CLASS="literal-block">
+&lt;p>Tues, Jun 26, 2004 02:03:53 AM&lt;/p>
+</PRE>
+<P><TT CLASS="docutils literal"><SPAN CLASS="pre">py:content</SPAN></TT> is a <A HREF="#content-producing-construct" CLASS="reference">Content Producing Construct</A> and can output both
+character and structured data.</P>
+<P>If <TT CLASS="docutils literal"><SPAN CLASS="pre">expr</SPAN></TT> evaluates to <TT CLASS="docutils literal"><SPAN CLASS="pre">None</SPAN></TT> the element will be output as an empty
+element.</P>
+<PRE CLASS="literal-block">
+&lt;p py:content="None">i go away&lt;/p>
+</PRE>
+<P>... results in:</P>
+<PRE CLASS="literal-block">
+&lt;p />
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id23" ID="replacing-content-py-replace" NAME="replacing-content-py-replace" CLASS="toc-backref"><SPAN ID="py-replace"></SPAN>7.4   Replacing Content (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:replace</SPAN></TT>)</A></H2>
+<PRE CLASS="literal-block">
+&lt;element py:replace='expr' />
+</PRE>
+<P><TT CLASS="docutils literal"><SPAN CLASS="pre">py:replace</SPAN></TT> is shorthand for specifying a <TT CLASS="docutils literal"><SPAN CLASS="pre">py:content</SPAN></TT> and a
+<TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip="True"</SPAN></TT> on the same element:</P>
+<PRE CLASS="literal-block">
+&lt;?python
+x = 10
+?>
+&lt;p>&lt;span py:replace="x">...&lt;/span>&lt;/p>
+</PRE>
+<P>... results in:</P>
+<PRE CLASS="literal-block">
+&lt;p>10&lt;/p>
+</PRE>
+<P>... and is equivelant to specifying:</P>
+<PRE CLASS="literal-block">
+&lt;?python #
+x = 10
+?>
+&lt;p>&lt;span py:strip="" py:content="x">...&lt;/span>&lt;/p>
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:replace</SPAN></TT> attribute is processed after the <TT CLASS="docutils literal"><SPAN CLASS="pre">py:for</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">py:if</SPAN></TT>
+attributes. <TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">py:content</SPAN></TT> attributes are not processed and
+are discarded.</P>
+<P><TT CLASS="docutils literal"><SPAN CLASS="pre">py:replace</SPAN></TT> is a <A HREF="#content-producing-construct" CLASS="reference">Content Producing Construct</A> and can output both
+character and structured data.</P>
+<P>If <TT CLASS="docutils literal"><SPAN CLASS="pre">expr</SPAN></TT> evaluates to <TT CLASS="docutils literal"><SPAN CLASS="pre">None</SPAN></TT> the element will be output as an empty
+element.</P>
+<PRE CLASS="literal-block">
+&lt;test>&lt;p py:replace="None">&lt;span>i go away&lt;/span>&lt;/p>&lt;/test>
+</PRE>
+<P>... results in:</P>
+<PRE CLASS="literal-block">
+&lt;test />
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id24" ID="stripping-tags-py-strip" NAME="stripping-tags-py-strip" CLASS="toc-backref"><SPAN ID="py-strip"></SPAN>7.5   Stripping Tags (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT>)</A></H2>
+<PRE CLASS="literal-block">
+&lt;element py:strip="expr" />
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT> attribute may apppear on any element to signify that the
+containing element should not be output. If the attribute value is blank  (no
+<TT CLASS="docutils literal"><SPAN CLASS="pre">expr</SPAN></TT> at all) or if the result <TT CLASS="docutils literal"><SPAN CLASS="pre">expr</SPAN></TT> is a boolean expression that evaluates to true,
+the element is not output, but all descendant elements are processed normally. If
+<TT CLASS="docutils literal"><SPAN CLASS="pre">expr</SPAN></TT> is not blank and the result of evaluating <TT CLASS="docutils literal"><SPAN CLASS="pre">expr</SPAN></TT> as a boolean expression
+is false, processing continues as if the attribute did not exist.</P>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT> attribute <EM>MAY</EM> appear on an element with any other kid
+attribute. However, if both a <TT CLASS="docutils literal"><SPAN CLASS="pre">py:replace</SPAN></TT> and a <TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT> exist on the
+same element, the <TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT> attribute is ignored and discarded.</P>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT> attribute is processed after the <TT CLASS="docutils literal"><SPAN CLASS="pre">py:for</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">py:if</SPAN></TT>
+attributes. If omission is eminent, the <TT CLASS="docutils literal"><SPAN CLASS="pre">py:content</SPAN></TT> attribute is
+processed normally but attribute interpolation does not occur.</P>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id25" ID="dynamic-attributes-py-attrs" NAME="dynamic-attributes-py-attrs" CLASS="toc-backref"><SPAN ID="py-attrs"></SPAN>7.6   Dynamic Attributes (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:attrs</SPAN></TT>)</A></H2>
+<PRE CLASS="literal-block">
+&lt;element py:attrs="expr" />
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:attrs</SPAN></TT> attribute may appear on any element to specify a set of
+attributes that should be set on the element when it is processed. The
+expression specified MUST evaluate to one of the following types of values:</P>
+<DL CLASS="docutils">
+<DT>dict</DT>
+<DD>A dictionary with keys specifying attribute names and values specifying
+attribute values. These are added to the attributes of the current element
+by calling <TT CLASS="docutils literal"><SPAN CLASS="pre">element.attrib.update(mapping)</SPAN></TT>, where <TT CLASS="docutils literal"><SPAN CLASS="pre">element</SPAN></TT> is an
+ElementTree Element object and <TT CLASS="docutils literal"><SPAN CLASS="pre">mapping</SPAN></TT> is the dictionary returned from
+the expression. Outer curly braces are not necessary to write down.</DD>
+<DT>list</DT>
+<DD>A list of tuples of the form <TT CLASS="docutils literal"><SPAN CLASS="pre">(name,</SPAN> <SPAN CLASS="pre">value)</SPAN></TT> is also acceptable. Each
+item of the list is added to the current set of attributes by iterating
+over the list and calling <TT CLASS="docutils literal"><SPAN CLASS="pre">element.set(name,</SPAN> <SPAN CLASS="pre">value)</SPAN></TT>.</DD>
+<DT>keyword arguments</DT>
+<DD>The attributes can also be specified as comma separated keyword arguments
+of the form <TT CLASS="docutils literal"><SPAN CLASS="pre">name=value</SPAN></TT>.</DD>
+</DL>
+<P>The following lines:</P>
+<PRE CLASS="literal-block">
+&lt;elem py:attrs="{'a':1, 'ns:b':2}" />
+&lt;elem py:attrs="'a':1, 'ns:b':2" />
+&lt;elem py:attrs="(('a',1), ('ns:b',2))" />
+&lt;elem py:attrs="a=1, ns:b=2" />
+</PRE>
+<P>will all produce the same output:</P>
+<PRE CLASS="literal-block">
+&lt;elem a="1" ns:b="2" />
+</PRE>
+<P>Note that attributes whose values are <TT CLASS="docutils literal"><SPAN CLASS="pre">None</SPAN></TT> will be removed. If a blank
+attribute is desired, an empty string should be used.</P>
+<P>If the expression specified is an empty dictionary or an empty list,
+the attributes are not modified in any way.</P>
+<P><TT CLASS="docutils literal"><SPAN CLASS="pre">py:attrs</SPAN></TT> is a <A HREF="#content-producing-construct" CLASS="reference">Content Producing Construct</A>, but can output only
+character data.</P>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id26" ID="named-template-functions-py-def" NAME="named-template-functions-py-def" CLASS="toc-backref"><SPAN ID="named-template-functions"></SPAN><SPAN ID="py-def"></SPAN>7.7   Named Template Functions (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:def</SPAN></TT>)</A></H2>
+<PRE CLASS="literal-block">
+&lt;element py:def="template_name(arg_list)" />
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:def</SPAN></TT> attribute may appear on any element to create a "Named
+Template Function". Markup contained within an <TT CLASS="docutils literal"><SPAN CLASS="pre">py:def</SPAN></TT> element is not
+output during normal template expansion but can be referenced from other
+<A HREF="#content-producing-constructs" CLASS="reference">Content Producing Constructs</A> to insert the markup at the point
+referenced.</P>
+<P>Like normal Python functions, Named Template Functions have an optional
+argument list that may use all of the jazzy features of Python argument
+lists like variable and keyword arguments.</P>
+<P>Named Template Functions are invoked exactly like normal Python
+functions. They are generally invoked from <A HREF="#content-producing-constructs" CLASS="reference">Content Producing Constructs</A>
+like <TT CLASS="docutils literal"><SPAN CLASS="pre">py:content</SPAN></TT> or <TT CLASS="docutils literal"><SPAN CLASS="pre">${}</SPAN></TT> substitution.</P>
+<P>Here we will define two Named Template Functions: <TT CLASS="docutils literal"><SPAN CLASS="pre">display_list</SPAN></TT> and
+<TT CLASS="docutils literal"><SPAN CLASS="pre">display_dict</SPAN></TT>. The first function takes a sequence and the second a
+mapping. We can invoke these functions from the same template by invoking
+them from a content producing construct:</P>
+<PRE CLASS="literal-block">
+&lt;html xmlns:py="http://purl.org/kid/ns#">
+   &lt;body>
+      &lt;ul py:def="display_list(seq)">
+         &lt;li py:for="item in seq" py:content="item" />
+      &lt;/ul>
+
+      &lt;table py:def="display_dict(mapping)">
+         &lt;tr>
+            &lt;th>Key&lt;/th>
+            &lt;th>Value&lt;/th>
+         &lt;/tr>
+         &lt;tr py:for="key, value in mapping.items()">
+            &lt;td py:content="key" />
+            &lt;td py:content="value" />
+         &lt;/tr>
+      &lt;/table>
+
+      ${display_list(['apple', 'orange', 'kiwi'])}
+
+      &lt;div py:replace="display_dict({'x' : 'y', 'p' : 'q'})">
+         Key/Value Table replaces this text
+      &lt;/div>
+   &lt;/body>
+&lt;/html>
+</PRE>
+<P>Serialized as XML this becomes something like:</P>
+<PRE CLASS="literal-block">
+&lt;?xml version="1.0" encoding="utf-8"?>
+&lt;html>
+   &lt;body>
+      &lt;ul>
+         &lt;li>apple&lt;/li>&lt;li>orange&lt;/li>&lt;li>kiwi&lt;/li>
+      &lt;/ul>
+      &lt;table>
+         &lt;tr>
+            &lt;th>Key&lt;/th>
+            &lt;th>Value&lt;/th>
+         &lt;/tr>
+         &lt;tr>
+            &lt;td>x&lt;/td>
+            &lt;td>y&lt;/td>
+         &lt;/tr>
+         &lt;tr>
+            &lt;td>p&lt;/td>
+            &lt;td>q&lt;/td>
+         &lt;/tr>
+      &lt;/table>
+   &lt;/body>
+&lt;/html>
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id27" ID="match-templates-py-match" NAME="match-templates-py-match" CLASS="toc-backref"><SPAN ID="match-templates"></SPAN><SPAN ID="py-match"></SPAN>7.8   Match Templates (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:match</SPAN></TT>)</A></H2>
+<PRE CLASS="literal-block">
+&lt;element py:match="expr" />
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:match</SPAN></TT> attribute may appear on any element to create a "Match
+Template". Markup contained within a Match Template element is not output
+during normal template expansion. Instead, these constructs set up filters
+for expansion output that are capable of transforming content as it is
+generated.</P>
+<P>Match Templates are generally used to insert content dynamically based on
+patterns in template expansion or to provide "custom tag" functionality
+similar to that found in JSP taglibs or XSLT.</P>
+<P>A Match Template has two parts: the match expression part (<TT CLASS="docutils literal"><SPAN CLASS="pre">expr</SPAN></TT>) and the
+body part (the element and it's descendants).</P>
+<P>Match Templates are processed as follows:</P>
+<OL CLASS="arabic simple">
+<LI>Each element that is output from a template goes through the Match
+Template Filter.</LI>
+<LI>The Match Template Filter visits each of the Match Templates defined in
+the current template and the templates the current template <A HREF="#extends" CLASS="reference">extends</A>
+in the order that they are defined and evaluates the associated match
+expression.</LI>
+<LI>If the match expression returns true as a boolean expression, the match
+template's body is expanded and replaces the original element and
+all of its descendants.</LI>
+</OL>
+<P>In both the match expression and in the match template's body, the <TT CLASS="docutils literal"><SPAN CLASS="pre">item</SPAN></TT>
+name is bound to the Element that is being output. However, there are some
+limitations to what can be accessed at each phase:</P>
+<OL CLASS="arabic simple">
+<LI>During match expression evaluation, only the <TT CLASS="docutils literal"><SPAN CLASS="pre">item</SPAN></TT> Element and none
+of its descendants are available. This means that match expressions are
+limited to testing matches based on the immediate Element's tag and
+attributes <A HREF="#id5" ID="id4" NAME="id4" CLASS="footnote-reference">[1]</A>.</LI>
+<LI>During match template expansion (that is, when the match expression
+is true), the element's descendants <EM>are</EM> available and may be
+referenced from <A HREF="#content-producing-constructs" CLASS="reference">Content Producing Constructs</A> to output bits and
+pieces of the matched items structure.</LI>
+</OL>
+<P>When matching the item.tag you need to keep your namespaces in mind. A
+common problem is to use the expression <TT CLASS="docutils literal"><SPAN CLASS="pre">item.tag</SPAN> <SPAN CLASS="pre">==</SPAN> <SPAN CLASS="pre">'body'</SPAN></TT> when the
+document has a default namespace declared. When the default namespace is
+declared the XML parser will rename the tags using <A HREF="http://www.jclark.com/xml/xmlns.htm" CLASS="reference">clark notation</A>. So the
+correct expression would be something like
+<TT CLASS="docutils literal"><SPAN CLASS="pre">item.tag</SPAN> <SPAN CLASS="pre">==</SPAN> <SPAN CLASS="pre">'{http://www.w3.org/1999/xhtml}body'</SPAN></TT>.</P>
+<TABLE RULES="none" FRAME="void" CLASS="docutils footnote" ID="id5">
+<COLGROUP><COL CLASS="label"><COL></COLGROUP>
+<TBODY VALIGN="top">
+<TR><TD CLASS="label"><A HREF="#id4" CLASS="fn-backref" NAME="id5">[1]</A></TD><TD>This is due to the streaming nature of the Kid processor. During
+normal template expansion, the entire tree is never fully retained in
+memory.</TD></TR>
+</TBODY>
+</TABLE>
+<DIV CLASS="section">
+<H3><A ID="example" NAME="example">7.8.1   Example</A></H3>
+<P>The following simple example shows how to create a custom tag <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;greeting></SPAN></TT>
+that outputs one of two provided values based on the time of day the
+template is expanded:</P>
+<PRE CLASS="literal-block">
+&lt;?xml version="1.0" encoding="utf-8"?>
+&lt;?python
+from time import localtime
+def timeofday():
+    """Get time of day ('am' or 'pm')"""
+    return localtime().tm_hour &lt; 12 and 'am' or 'pm'
+?>
+&lt;html xmlns:py="http://purl.org/kid/ns#">
+  &lt;!-- define the greeting match template -->
+  &lt;span py:match="item.tag == 'greeting'"
+        py:replace="item.get(timeofday())">
+  &lt;/span>
+
+  &lt;head>
+    &lt;title>Time of day demo&lt;/title>
+  &lt;/head>
+  &lt;body>
+    &lt;p>
+      Good &lt;greeting am="Morning!" pm="Afternoon" />
+    &lt;/p>
+  &lt;/body>
+&lt;/html>
+</PRE>
+<P>An important thing to note is that the <TT CLASS="docutils literal"><SPAN CLASS="pre">py:match</SPAN></TT> expression and the match
+template body have access to the <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;greeting></SPAN></TT> element via the variable
+<TT CLASS="docutils literal"><SPAN CLASS="pre">item</SPAN></TT>. The <TT CLASS="docutils literal"><SPAN CLASS="pre">item.get(timeofday())</SPAN></TT> bit retrieves the value of the
+<TT CLASS="docutils literal"><SPAN CLASS="pre">am</SPAN></TT> attribute or the <TT CLASS="docutils literal"><SPAN CLASS="pre">pm</SPAN></TT> attribute based on what is returned from the
+<TT CLASS="docutils literal"><SPAN CLASS="pre">timeofday</SPAN></TT> function.</P>
+<P>At 9:00 AM, output from this template would look like this:</P>
+<PRE CLASS="literal-block">
+&lt;html>
+  &lt;head>
+    &lt;title>Time of day demo&lt;/title>
+  &lt;/head>
+  &lt;body>
+    &lt;p>
+      Good Morning!
+    &lt;/p>
+  &lt;/body>
+&lt;/html>
+</PRE>
+<P>The obvious question at this point is how to reuse Match Templates? The
+example above demonstrates the use of a Match Template from the same main
+template but it is often desirable to have "libraries" of Match Templates
+that could be used by multiple individual templates. The answer is to have
+the main template <A HREF="#extend" CLASS="reference">extend</A> a common template containing the Match Templates
+needed. We can rewrite the above example as two separate templates:
+<TT CLASS="docutils literal"><SPAN CLASS="pre">main.kid</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">common.kid</SPAN></TT>.</P>
+<P>The common template would look like this:</P>
+<PRE CLASS="literal-block">
+&lt;?xml version="1.0" encoding="utf-8"?>
+&lt;?python
+from time import localtime
+def timeofday():
+    """Get time of day ('am' or 'pm')"""
+    return localtime().tm_hour &lt; 12 and 'am' or 'pm'
+?>
+&lt;html xmlns:py="http://purl.org/kid/ns#">
+  &lt;!-- define the greeting match template -->
+  &lt;span py:match="item.tag == 'greeting'"
+        py:replace="item.get(timeofday())">
+  &lt;/span>
+&lt;/html>
+</PRE>
+<P>And the main template would look like this:</P>
+<PRE CLASS="literal-block">
+&lt;?xml version="1.0" encoding="utf-8"?>
+&lt;html py:extends="'common.kid'">
+  &lt;head>
+    &lt;title>Time of day demo&lt;/title>
+  &lt;/head>
+  &lt;body>
+    &lt;p>
+      Good &lt;greeting am="Morning!" pm="Afternoon" />
+    &lt;/p>
+  &lt;/body>
+&lt;/html>
+</PRE>
+<P>When a template <A HREF="#extends" CLASS="reference">extends</A> another template (or set of templates), all of the
+Match Templates and <A HREF="#named-template-functions" CLASS="reference">Named Template Functions</A> of the extended templates
+are available as if they were defined locally.</P>
+<DIV CLASS="warning">
+<P CLASS="first admonition-title">Warning</P>
+<P CLASS="last">Match templates are an experimental feature. Syntax and semantics may
+change significantly or be removed entirely in future release. Actually,
+this statement applies to many aspects of Kid but this one is especially
+unstable.</P>
+</DIV>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id28" ID="template-reuse-py-extends" NAME="template-reuse-py-extends" CLASS="toc-backref"><SPAN ID="template-reuse"></SPAN><SPAN ID="extend"></SPAN><SPAN ID="extends"></SPAN><SPAN ID="py-extends"></SPAN>7.9   Template Reuse (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:extends</SPAN></TT>)</A></H2>
+<PRE CLASS="literal-block">
+&lt;root py:extends="template1, template2, ...">
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:extends</SPAN></TT> attribute may appear on the root element to specify that
+the template should inherit the <A HREF="#named-template-functions" CLASS="reference">Named Template Functions</A> and <A HREF="#match-templates" CLASS="reference">Match
+Templates</A> defined in another template (or set of templates). If a
+<TT CLASS="docutils literal"><SPAN CLASS="pre">py:extends</SPAN></TT> attribute is specified, it MUST be on the root element of the
+document.</P>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:extends</SPAN></TT> may contain a list of Python expressions separated by
+commas that reference templates. The rules for what types of values may be
+specified are:</P>
+<DL CLASS="docutils">
+<DT>string</DT>
+<DD><P CLASS="first">The name of a template file, relative to the current template file.</P>
+<P>Example:</P>
+<PRE CLASS="last literal-block">
+&lt;html py:extends="'common.kid'" />
+</PRE>
+</DD>
+<DT>module or Template class</DT>
+<DD><P CLASS="first">The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:extends</SPAN></TT> variable references a module or a Template class. If a
+module is referenced, an attempt is made to find a class named
+<TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> belonging to the that module.</P>
+<P>Example:</P>
+<PRE CLASS="last literal-block">
+&lt;?python
+import common
+?>
+&lt;html py:extends="common" ...
+</PRE>
+</DD>
+</DL>
+<P>Multiple templates may be referenced by separating each by a comma. The
+following example references templates <TT CLASS="docutils literal"><SPAN CLASS="pre">common</SPAN></TT> and <TT CLASS="docutils literal"><SPAN CLASS="pre">forms</SPAN></TT>, imported
+using the import hooks and a template filename named <TT CLASS="docutils literal"><SPAN CLASS="pre">other.kid</SPAN></TT>:</P>
+<PRE CLASS="literal-block">
+&lt;?python
+import common, forms
+?>
+&lt;html py:extends="common, forms, 'other.kid'" ...
+</PRE>
+<DIV CLASS="section">
+<H3><A ID="id6" NAME="id6">7.9.1   Example</A></H3>
+<P>For example, there is a template named <TT CLASS="docutils literal"><SPAN CLASS="pre">common.kid</SPAN></TT> that defines a
+template function, <TT CLASS="docutils literal"><SPAN CLASS="pre">display_errors</SPAN></TT>, and a match template that converts
+<TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;b></SPAN></TT> elements to <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;strong></SPAN></TT> elements with uppercase content:</P>
+<PRE CLASS="literal-block">
+&lt;html xmlns:py="http://purl.org/kid/ns#">
+
+  &lt;ul py:def="display_errors(errors)">
+    &lt;li py:for="error in errors" py:content="error" />
+  &lt;/ul>
+
+  &lt;strong py:match="item.tag == 'b'"
+    py:content="item.text.upper()" />
+
+&lt;/html>
+</PRE>
+<P>The functions and match templates may be imported into another template by
+referencing them with <TT CLASS="docutils literal"><SPAN CLASS="pre">py:extends</SPAN></TT>:</P>
+<PRE CLASS="literal-block">
+&lt;html py:extends="'common.kid'"
+      xmlns:py="http://purl.org/kid/ns#">
+  &lt;head>
+    &lt;title>Errors&lt;/title>
+  &lt;/head>
+  &lt;body>
+    &lt;p>The following &lt;b>errors&lt;/b> were found:&lt;/p>
+    ${ display_errors(["Field is required", "Must be phone number.."]) }
+  &lt;/body>
+&lt;/html>
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;b>errors&lt;/b></SPAN></TT> item is transformed to <TT CLASS="docutils literal"><SPAN CLASS="pre">&lt;strong>ERRORS&lt;/strong></SPAN></TT>
+and the error list is displayed. Both the match template and the named
+template function are available in the derived template as if they were
+defined locally.</P>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H2><A HREF="#id29" ID="layout-templates-py-layout" NAME="layout-templates-py-layout" CLASS="toc-backref"><SPAN ID="layout-templates"></SPAN><SPAN ID="layout-template"></SPAN><SPAN ID="layout"></SPAN><SPAN ID="py-layout"></SPAN>7.10   Layout Templates (<TT CLASS="docutils literal"><SPAN CLASS="pre">py:layout</SPAN></TT>)</A></H2>
+<PRE CLASS="literal-block">
+&lt;root py:layout="base_layout">
+</PRE>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:layout</SPAN></TT> attribute may appear on the root element to specify that
+a content template should use the referenced template as a <CITE>layout template</CITE>.
+This allows separation of individual page content from site-wide layout
+elements such as headers, menus, footers, etc. <CITE>Match Templates</CITE>, <CITE>Named
+Template Functions</CITE>, and <CITE>layout parameters</CITE> defined in a content template
+will be applied to the <CITE>layout template</CITE>. If a <TT CLASS="docutils literal"><SPAN CLASS="pre">py:layout</SPAN></TT> attribute is
+specified, it MUST be on the root element of the document.</P>
+<P>The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:layout</SPAN></TT> attribute may contain a single Python expression that
+references a layout template. The rules for what types of values may be
+specified are:</P>
+<DL CLASS="docutils">
+<DT>string</DT>
+<DD><P CLASS="first">The name of a template file, relative to the current template file.</P>
+<P>Example:</P>
+<PRE CLASS="last literal-block">
+&lt;html py:layout="'base_layout.kid'" />
+</PRE>
+</DD>
+<DT>module or Template class</DT>
+<DD><P CLASS="first">The <TT CLASS="docutils literal"><SPAN CLASS="pre">py:layout</SPAN></TT> variable references a module or a Template class. If a
+module is referenced, an attempt is made to find a class named
+<TT CLASS="docutils literal"><SPAN CLASS="pre">Template</SPAN></TT> belonging to the that module.</P>
+<P>Example:</P>
+<PRE CLASS="last literal-block">
+&lt;?python
+import base_layout
+?>
+&lt;html py:extends="base_layout" ...
+</PRE>
+</DD>
+</DL>
+<DIV CLASS="section">
+<H3><A ID="id7" NAME="id7">7.10.1   Example</A></H3>
+<P>For example, here is a base template named <TT CLASS="docutils literal"><SPAN CLASS="pre">base_layout.kid</SPAN></TT> that contains
+header, content, and footer sections:</P>
+<PRE CLASS="literal-block">
+&lt;html xmlns:py="http://purl.org/kid/ns#">
+
+  &lt;head>
+    &lt;title>App Name - ${page_title}&lt;/title>
+
+    &lt;link href="layout.css" type="text/css" rel="stylesheet" />
+    ${page_specific_css()}
+  &lt;/head>
+
+  &lt;body>
+    &lt;h1>Now viewing: ${page_title} of App Name&lt;/h1>
+
+    &lt;content>Default content&lt;/content>
+
+    &lt;div class="footer">Page Footer Text&lt;/div>
+  &lt;/body>
+
+&lt;/html>
+</PRE>
+<P>Note how some sections were left to be filled in by the content template.
+Page-specific functions, match templates, and layout parameters may be defined
+in a separate template and then applied to the base template with <TT CLASS="docutils literal"><SPAN CLASS="pre">py:layout</SPAN></TT>:</P>
+<PRE CLASS="literal-block">
+&lt;?python
+layout_params['page_title'] = "Content Page 1 of 10"
+?>
+&lt;html py:layout="'base_layout.kid'"
+      xmlns:py="http://purl.org/kid/ns#">
+
+  &lt;link py:def="page_specific_css()"
+    href="layout.css" type="text/css" rel="stylesheet" />
+
+  &lt;div py:match="item.tag == 'content'">
+    &lt;ul>
+      &lt;li>Content Item 1&lt;/li>
+      &lt;li>Content Item 2&lt;/li>
+      &lt;li>Content Item 3&lt;/li>
+    &lt;/ul>
+  &lt;/div>
+
+&lt;/html>
+</PRE>
+<P>Both the match template and the named template function are applied to the
+base layout template when the content template is rendered. Also note how the
+<TT CLASS="docutils literal"><SPAN CLASS="pre">page_title</SPAN></TT> is inserted into the <TT CLASS="docutils literal"><SPAN CLASS="pre">layout_params</SPAN></TT> dict. Items placed in
+<TT CLASS="docutils literal"><SPAN CLASS="pre">layout_params</SPAN></TT> are passed to the base layout template along with template
+keyword arguments. The <TT CLASS="docutils literal"><SPAN CLASS="pre">layout_params</SPAN></TT> dict can only be modified in the outer
+python block before the root element in the page.</P>
+</DIV>
+</DIV>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id30" ID="processing-order" NAME="processing-order" CLASS="toc-backref"><SPAN ID="order"></SPAN>8   Processing Order</A></H1>
+<P>The order that <TT CLASS="docutils literal"><SPAN CLASS="pre">py:</SPAN></TT> attributes are processed is as follows:</P>
+<OL CLASS="arabic simple">
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">py:def</SPAN></TT></LI>
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">py:match</SPAN></TT></LI>
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">py:for</SPAN></TT></LI>
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">py:if</SPAN></TT></LI>
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">py:replace</SPAN></TT></LI>
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">py:strip</SPAN></TT></LI>
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">py:attrs</SPAN></TT></LI>
+<LI><TT CLASS="docutils literal"><SPAN CLASS="pre">py:content</SPAN></TT></LI>
+</OL>
+<P>Attribute substitution occurs after all other attributes are processed and
+MUST NOT be processed for <TT CLASS="docutils literal"><SPAN CLASS="pre">py:</SPAN></TT> attributes.</P>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id31" ID="xml-comments" NAME="xml-comments" CLASS="toc-backref">9   XML Comments</A></H1>
+<P>Kid templates may contain XML comments. The comments will appear in the
+serialized output of a template, but will not be processed by the
+<A HREF="#python-expression-substitution" CLASS="reference">Python Expression Substitution</A> rules.</P>
+<PRE CLASS="literal-block">
+&lt;!--this is a comment-->
+&lt;!-- and so is this -->
+</PRE>
+<P>Sometimes it is useful to have comments in a template that will not appear
+when the template is serialized. To do this simply prefix the comment text
+with a <TT CLASS="docutils literal"><SPAN CLASS="pre">!</SPAN></TT> character.</P>
+<PRE CLASS="literal-block">
+&lt;!--!this will not be serialized-->
+&lt;!-- !this will also not be serialized -->
+</PRE>
+</DIV>
+<DIV CLASS="section">
+<H1><A HREF="#id32" ID="revision-history" NAME="revision-history" CLASS="toc-backref">10   Revision History</A></H1>
+<P>See the <A HREF="notes.html" CLASS="reference">Release Notes</A> for a list of changes between versions.</P>
+</DIV>
+
+</DIV></DIV>
+      
+      <DIV ID="footer">
+        
+        
+        <P STYLE="float: left;">
+          
+          This documentation is licensed under the 
+          <A HREF="doc-license.html" TITLE="Documentation License">GNU Free Documentation License</A>
+          <BR>
+          
+          built with 
+          <A HREF="http://lesscode.org/projects/pudge/">pudge/0.1.1</A><BR>
+		      original design by 
+          <A HREF="http://blog.ratterobert.com/">ratter / robert</A><BR>
+	      </P>
+        <DIV>
+        <BR>
+        <A NAME="search">
+          <FORM ACTION="http://lesscode.org/blog/index.php" METHOD="get" ID="searchform">
+            <DIV>
+              <INPUT TYPE="text" NAME="s" VALUE="" ID="s">
+              <INPUT TYPE="submit" ID="searchsubmit" VALUE="Search">
+            </DIV>
+          </FORM>
+        </A>
+        <BR>
+        </DIV>
+      </DIV>
+    </DIV>
+  </BODY>
+
+</HTML>

@@ -1,0 +1,4 @@
+[console_scripts]
+kidc = kid.compile:main
+kid = kid.run:main
+
