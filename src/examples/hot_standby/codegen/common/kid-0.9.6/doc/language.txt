@@ -1,0 +1,1052 @@
+.. -*- mode: rst; encoding: utf-8 -*-
+
+==========================
+Kid Language Specification
+==========================
+
+:Author: `Ryan Tomayko`_
+:Contact: rtomayko@gmail.com
+:Revision: 5
+:Date: $Date: 2006-12-20 03:11:36 -0500 (Wed, 20 Dec 2006) $
+:Copyright: 2005, Ryan Tomayko
+:Other Formats: Text__
+
+.. __: language.txt
+.. _Ryan Tomayko: http://naeblis.cx/rtomayko/
+
+Kid is a simple XML based template language that uses embedded Python_ to do
+cool stuff. The syntax was inspired by a number of existing template
+languages, namely XSLT_, TAL_, and PHP_.
+
+.. _python: http://www.python.org/
+.. _xslt: http://www.w3.org/TR/xslt
+.. _tal: http://www.zope.org/Wikis/DevSite/Projects/ZPT/TAL
+.. _php: http://www.php.net/
+
+This document describes the template language and will be most useful as
+reference to those developing Kid templates. For information about using
+templates from Python, the command line, or in web environments, see the
+`User's Guide`__.
+
+.. __: guide.html
+
+.. contents:: Contents
+   :depth: 2
+.. sectnum::
+
+Synopsis
+========
+
+::
+
+  <?python
+  title = "A Kid Test Document"
+  fruits = ["apple", "orange", "kiwi", "M&M"]
+  from platform import system
+  ?>
+  <html xmlns:py="http://purl.org/kid/ns#">
+    <head>
+      <title py:content="title">This is replaced.</title>
+    </head>
+    <body>
+      <p>These are some of my favorite fruits:</p>
+      <ul>
+        <li py:for="fruit in fruits">
+          I like ${fruit}s
+        </li>
+      </ul>
+      <p py:if="system() == 'Linux'">
+        Good for you!
+      </p>
+    </body>
+  </html>
+
+Yields something like this::
+
+  <?xml version="1.0" encoding="utf-8"?>
+  <html>
+    <head>
+      <title>A Kid Test Document</title>
+    </head>
+    <body>
+      <p>These are some of my favorite fruits:</p>
+      <ul>
+        <li>I like apples</li>
+        <li>I like oranges</li>
+        <li>I like kiwis</li>
+        <li>I like M&amp;Ms</li>
+      </ul>
+      <p>
+        Good for you!
+      </p>
+    </body>
+  </html>
+
+
+The Kid Namespace
+=================
+
+All attributes described in this document must belong to the following
+namespace::
+
+  http://purl.org/kid/ns#
+
+The namespace prefix ``py`` is used throughout this document to indicate
+that an item belongs to the Kid/Python namespace.
+
+Embedding Code Blocks (``<?python?>``)
+======================================
+
+The ``<?python?>`` processing instruction (PI) contains Python code and
+**may** occur anywhere that is legal for processing instructions to occur in an
+XML document.
+
+The rules for executing code found in a ``<?python?>`` PI is as follows:
+
+1. ``<?python?>`` PIs located outside of the document element (e.g. root
+   element) contain *Document Level* code. This code **should** be executed
+   in a global, shared scope for the document. The code **should** be
+   executed once when the template is loaded and shared between multiple
+   invocations of the template.
+
+2. ``<?python?>`` PIs located within the document element contain *Local
+   Level* code. This code is executed each time the document is processed
+   with a local scope specific to the invocation and the shared document
+   level global scope.
+
+*Document Level* and *Local Level* code work exactly like *Module Level* and
+*Function Level* code in normal Python modules. For example, the following
+Kid template::
+
+  <?python
+  x = 0
+  y = 0
+  ?>
+  <html xmlns:py="http://purl.org/kid/ns#">
+    <?python
+    x = 1
+    if x == 1:
+      x = 10
+    ?>
+    <p py:content="x"/>
+    <?python
+    global y
+    y = 30
+    ?>
+    <p py:content="y"/>
+  </html>
+
+May be considered equivalent to the following Python module::
+
+  x = 0
+  y = 0
+  def expand(handler):
+    handler.startDocument()
+    handler.startElement('html')
+    x = 1
+    if x == 1:
+      x = 10
+    handler.element('p', content=x) # output p element with x as value
+    global y
+    y = 30
+    handler.element('p', content=y) # output p element with value of y
+    handler.endElement('html')
+    handler.endDocument()
+
+``<?python?>`` PIs may contain any legal Python language construct including
+functions, classes, lamda forms, etc.
+
+::
+
+  <?python
+  class Adder:
+    def __init__(self, x, y):
+      self.x = x
+      self.y = y
+    def doit(self):
+      return self.x + self.y
+
+  foo = Adder(x=400, y=20)
+  x = foo.doit()
+  ?>
+
+Single line ``<?python?>`` PIs are okay too::
+
+  <?python x = 10 ?>
+
+
+.. _Content Producing Construct:
+
+Content Producing Constructs
+============================
+
+There are multiple methods of generating content output from a template:
+``py:content``, ``py:replace``, ``py:attrs``, and ``${}`` substitution. Each
+of these syntaxes have the same rules for what types of objects may result
+from the Python expression they contain.
+
+``str``, ``unicode``
+  The string is inserted as XML CDATA. That is, it is non-parsable
+  character data that does not contain markup. The following characters are
+  encoded as XML entities when serialized: '<', '&'. Attribute values
+  containing content also encode the quote character: '"'.
+
+
+``kid.Element``
+  When an ``kid.Element`` is referenced from a content producing
+  construct, the item is inserted into the document literally, i.e. it is
+  not encoded as text, but becomes part of the output structure.
+
+  The ``XML()`` and ``document()`` functions can be used to turn a string
+  into structured content and to retrieve an XML document from a URL,
+  respectively.
+
+  Note that attribute values **must not** reference structured content. This
+  applies to ``py:attrs`` and using ``${}`` substitution in attribute values.
+
+*sequence*
+  If a sequence type (``list``, ``tuple``, or other iterable) is referenced,
+  the rules are applied to each of the items in the sequence. For example,
+  you could reference a list containing an ``Element`` and a string.
+
+Other
+  If the result of evaluating the expression is any other type, an
+  attempt is made to coerce the value to unicode as if by calling
+  ``unicode(expr)`` and processing continues as if the object were a string
+  or unicode object initially.
+
+
+.. _Python Expression Substitution:
+
+Python Expression Substitution (``${expr}``)
+============================================
+
+Attributes not belonging to the Kid namespace and text content **may** embed
+Python expressions by enclosing the expression within a dollar sign followed
+by curly braces: ``${expr}``. The result of evaluating the expression(s) is
+substituted with the rest of the attribute value or text content following
+rules defined for `Content Producing Constructs`_.
+
+::
+
+  <?python
+  verb = 'ran'
+  noun = 'store'
+  ?>
+  <a title="I ${verb} to the ${noun}">...
+
+... would result in::
+
+  <a title="I ran to the store">...
+
+If an attribute value consists purely of substitution expressions and all
+expressions evaluate to ``None``, the attribute is removed. This can be
+avoided by using ``expr or ''`` to force a zero length string to be
+returned instead of ``None``. For example::
+
+  <?python
+  # set something to None
+  x = None
+  ?>
+  <a title="${x}">...
+
+... would result in::
+
+  <a>...
+
+However, this::
+
+  <?python x = None?>
+  <a title="${x or ''}">...
+
+... results in::
+
+  <a title="">...
+
+
+Identifier Shortcut (``$name``)
+-------------------------------
+
+For simple expressions consisting entirely variable names and object access
+operators (.), the curly braces may be omitted::
+
+  <a href="http://example.com/$page" title="$title">
+     Dots are allowed too: $object.another.attribute
+  </a>
+
+However, it is good practice to use the curly brace form as it sets the
+substitution off from the other text a bit more providing a stronger visual
+clue as to what's going on.
+
+Escaping (``$$``)
+-----------------
+
+``$$`` is an escape. ``$${bla}`` will output ``${bla}``.
+
+
+Default Imports
+===============
+
+All templates have a few default imports for convenience.
+
+
+``XML()`` function
+------------------
+
+`Python Expression substitution`_, `py:content`_, and `py:replace`_ encode
+strings as text. That is, text is encoded according to the rules of the XML
+specification, which includes, among other things, replacing the literal
+characters ``<`` and ``&`` with their encoded counterparts (``&lt;``
+``&amp;``). If you have XML stored as a string and want it to be output as
+XML and not encoded text, you need to pass the string to the ``XML``
+function.
+
+For example, let's say there is a function, ``hello``, that returns XML data
+that should be embedded in template output (let's say it returns
+``<hello>world</hello>``). Consider the following::
+
+  <p>${hello()}</p>
+
+The result would be::
+
+  <p>&lt;hello>world&lt;hello></p>
+
+Calling the ``XML`` function would have given us the result we intended::
+
+  <p>${XML(hello())}</p>
+
+::
+
+  <p><hello>world</hello></p>
+
+The ``xmlns`` keyword parameter can be used to set the default XML namespace
+for the top-level elements in the supplied content::
+
+  <p>${XML(hello(), xmlns="cid:hello_example")}</p>
+
+::
+
+  <p><hello xmlns="cid:hello_example">world</hello></p>
+
+This is especially useful when including XHTML content that lacks an XML
+namespace declaration.
+
+
+``document()`` function
+------------------------
+
+The ``document`` function loads an XML document from a file or URL allowing
+it to be embedded in template output::
+
+  <div py:content="document('header.html')"></div>
+
+The document function resolves paths relative to the current template file
+(if the template location is available).
+
+``defined(name) and value_of(name, default)`` functions
+-------------------------------------------------------
+
+``defined`` returns True if the name exists in the Kid namespace.
+value_of returns either the named value or the optional default
+value if that name doesn't exist in the namespace. These two simple
+convenience functions may be more intuitive to many than
+hasattr(self, name) and getattr(self, name, default) which are
+exactly equivalent.
+
+Attribute Language
+==================
+
+.. _`py:for`:
+
+Repetition/Iteration (``py:for``)
+---------------------------------
+
+::
+
+  <element py:for="target_list in expression_list" />
+
+Works exactly like the `Python for statement`__.
+
+__ http://www.python.org/dev/doc/devel/ref/for.html
+
+The ``py:for`` attribute **may** appear on any element to signify that the
+element should be processed multiple times, once for each value in the
+sequence specified::
+
+  <?python
+  bottles = range(1, 101)
+  bottles.reverse()
+  ?>
+  <p py:for="num in bottles">
+     <span py:content="num">X</span> bottles of beer on the wall,
+     <span py:content="num">X</span> bottles of beer on the wall,
+     take one down, pass it around, <span py:content="num - 1">X - 1</span>
+     bottles of beer on the wall.
+  </p>
+
+The ``py:for`` attribute is the first attribute to be processed if
+present. All other ``py:`` attributes are processed for each iteration of
+the loop.
+
+
+.. _`py:if`:
+
+Conditionals (``py:if``)
+------------------------
+
+::
+
+  <element py:if="expr" />
+
+The ``py:if`` attribute may appear on any element to signify that the
+element and its decendant items should be output only if the boolean
+expression specified evaluates to true in Python::
+
+  <p py:if="5 * 5 == 25">
+    Python seems to be handling multiplication okay.
+  </p>
+
+The ``py:if`` attribute is processed after the ``py:for`` attribute and is
+evaluated for each iteration. If the result of evaluating ``expr`` as a
+boolean expression is false in Python, no further ``py:`` attributes
+are processed for the current iteration or, if not in a ``py:for``, at all.
+
+.. note::
+
+  Evaluated as a boolean expression in Python,
+  ``None``, ``False``, ``[]``, ``()``, ``{}``, ``0``, and ``''``
+  are all considered to be false.
+
+
+.. _`py:content`:
+
+Dynamic Content (``py:content``)
+--------------------------------
+
+::
+
+  <element py:content="expr" />
+
+This attribute **may** appear on any element to signify that the decendant
+items of the element are to be replaced with the result of evaluating
+``expr``.
+
+::
+
+  <p py:content="time.strftime('%C %c')">The Time</p>
+
+... results in::
+
+  <p>Tues, Jun 26, 2004 02:03:53 AM</p>
+
+``py:content`` is a `Content Producing Construct`_ and can output both
+character and structured data.
+
+If ``expr`` evaluates to ``None`` the element will be output as an empty
+element.
+
+::
+
+  <p py:content="None">i go away</p>
+
+... results in::
+
+  <p />
+
+.. _`py:replace`:
+
+Replacing Content (``py:replace``)
+----------------------------------
+
+::
+
+  <element py:replace='expr' />
+
+``py:replace`` is shorthand for specifying a ``py:content`` and a
+``py:strip="True"`` on the same element::
+
+  <?python
+  x = 10
+  ?>
+  <p><span py:replace="x">...</span></p>
+
+... results in::
+
+  <p>10</p>
+
+... and is equivelant to specifying::
+
+  <?python #
+  x = 10
+  ?>
+  <p><span py:strip="" py:content="x">...</span></p>
+
+The ``py:replace`` attribute is processed after the ``py:for`` and ``py:if``
+attributes. ``py:strip`` and ``py:content`` attributes are not processed and
+are discarded.
+
+``py:replace`` is a `Content Producing Construct`_ and can output both
+character and structured data.
+
+If ``expr`` evaluates to ``None`` the element will be output as an empty
+element.
+
+::
+
+  <test><p py:replace="None"><span>i go away</span></p></test>
+
+... results in::
+
+  <test />
+
+.. _`py:strip`:
+
+Stripping Tags (``py:strip``)
+-----------------------------
+
+::
+
+  <element py:strip="expr" />
+
+The ``py:strip`` attribute may apppear on any element to signify that the
+containing element should not be output. If the attribute value is blank  (no
+``expr`` at all) or if the result ``expr`` is a boolean expression that evaluates to true,
+the element is not output, but all descendant elements are processed normally. If
+``expr`` is not blank and the result of evaluating ``expr`` as a boolean expression
+is false, processing continues as if the attribute did not exist.
+
+The ``py:strip`` attribute **may** appear on an element with any other kid
+attribute. However, if both a ``py:replace`` and a ``py:strip`` exist on the
+same element, the ``py:strip`` attribute is ignored and discarded.
+
+The ``py:strip`` attribute is processed after the ``py:for`` and ``py:if``
+attributes. If omission is eminent, the ``py:content`` attribute is
+processed normally but attribute interpolation does not occur.
+
+
+.. _`py:attrs`:
+
+Dynamic Attributes (``py:attrs``)
+---------------------------------
+
+::
+
+  <element py:attrs="expr" />
+
+The ``py:attrs`` attribute may appear on any element to specify a set of
+attributes that should be set on the element when it is processed. The
+expression specified **must** evaluate to one of the following types of values:
+
+dict
+  A dictionary with keys specifying attribute names and values specifying
+  attribute values. These are added to the attributes of the current element
+  by calling ``element.attrib.update(mapping)``, where ``element`` is a
+  kid.Element type object and ``mapping`` is the dictionary returned from
+  the expression. Outer curly braces are not necessary to write down.
+
+list
+  A list of tuples of the form ``(name, value)`` is also acceptable. Each
+  item of the list is added to the current set of attributes by iterating
+  over the list and calling ``element.set(name, value)``.
+
+keyword arguments
+  The attributes can also be specified as comma separated keyword arguments
+  of the form ``name=value``.
+
+The following lines::
+
+  <elem py:attrs="{'a':1, 'ns:b':2}" />
+  <elem py:attrs="'a':1, 'ns:b':2" />
+  <elem py:attrs="(('a',1), ('ns:b',2))" />
+  <elem py:attrs="a=1, ns:b=2" />
+
+will all produce the same output::
+
+  <elem a="1" ns:b="2" />
+
+Note that attributes whose values are ``None`` will be removed. If a blank
+attribute is desired, an empty string should be used.
+
+If the expression specified is an empty dictionary or an empty list,
+the attributes are not modified in any way.
+
+``py:attrs`` is a `Content Producing Construct`_, but can output only
+character data.
+
+
+.. _`py:def`:
+.. _`Named Template Functions`:
+
+Named Template Functions (``py:def``)
+----------------------------------------
+
+::
+
+  <element py:def="template_name(arg_list)" />
+
+The ``py:def`` attribute may appear on any element to create a "Named
+Template Function". Markup contained within an ``py:def`` element is not
+output during normal template expansion but can be referenced from other
+`Content Producing Constructs`_ to insert the markup at the point
+referenced.
+
+Like normal Python functions, Named Template Functions have an optional
+argument list that may use all of the jazzy features of Python argument
+lists like variable and keyword arguments.
+
+Named Template Functions are invoked exactly like normal Python
+functions. They are generally invoked from `Content Producing Constructs`_
+like ``py:content`` or ``${}`` substitution.
+
+Here we will define two Named Template Functions: ``display_list`` and
+``display_dict``. The first function takes a sequence and the second a
+mapping. We can invoke these functions from the same template by invoking
+them from a content producing construct::
+
+   <html xmlns:py="http://purl.org/kid/ns#">
+      <body>
+         <ul py:def="display_list(seq)">
+            <li py:for="item in seq" py:content="item" />
+         </ul>
+
+         <table py:def="display_dict(mapping)">
+            <tr>
+               <th>Key</th>
+               <th>Value</th>
+            </tr>
+            <tr py:for="key, value in mapping.items()">
+               <td py:content="key" />
+               <td py:content="value" />
+            </tr>
+         </table>
+
+         ${display_list(['apple', 'orange', 'kiwi'])}
+
+         <div py:replace="display_dict({'x' : 'y', 'p' : 'q'})">
+            Key/Value Table replaces this text
+         </div>
+      </body>
+   </html>
+
+Serialized as XML this becomes something like::
+
+   <?xml version="1.0" encoding="utf-8"?>
+   <html>
+      <body>
+         <ul>
+            <li>apple</li><li>orange</li><li>kiwi</li>
+         </ul>
+         <table>
+            <tr>
+               <th>Key</th>
+               <th>Value</th>
+            </tr>
+            <tr>
+               <td>x</td>
+               <td>y</td>
+            </tr>
+            <tr>
+               <td>p</td>
+               <td>q</td>
+            </tr>
+         </table>
+      </body>
+   </html>
+
+.. _`py:match`:
+.. _Match Templates:
+
+Match Templates (``py:match``)
+------------------------------
+
+::
+
+   <element py:match="expr" />
+
+The ``py:match`` attribute may appear on any element to create a "Match
+Template". Markup contained within a Match Template element is not output
+during normal template expansion. Instead, these constructs set up filters
+for expansion output that are capable of transforming content as it is
+generated.
+
+Match Templates are generally used to insert content dynamically based on
+patterns in template expansion or to provide "custom tag" functionality
+similar to that found in JSP taglibs or XSLT.
+
+A Match Template has two parts: the match expression part (``expr``) and the
+body part (the element and it's descendants).
+
+Match Templates are processed as follows:
+
+1. Each element that is output from a template goes through the Match
+   Template Filter.
+
+2. The Match Template Filter visits each of the Match Templates defined in
+   the current template and the templates the current template `extends`_
+   in the order that they are defined and evaluates the associated match
+   expression.
+
+3. If the match expression returns true as a boolean expression, the match
+   template's body is expanded and replaces the original element and
+   all of its descendants.
+
+In both the match expression and in the match template's body, the ``item``
+name is bound to the Element that is being output. However, there are some
+limitations to what can be accessed at each phase:
+
+1. During match expression evaluation, only the ``item`` Element and none
+   of its descendants are available. This means that match expressions are
+   limited to testing matches based on the immediate Element's tag and
+   attributes [#]_.
+
+2. During match template expansion (that is, when the match expression
+   is true), the element's descendants *are* available and may be
+   referenced from `Content Producing Constructs`_ to output bits and
+   pieces of the matched items structure.
+
+When matching the item.tag you need to keep your namespaces in mind. A
+common problem is to use the expression ``item.tag == 'body'`` when the
+document has a default namespace declared. When the default namespace is
+declared the XML parser will rename the tags using `clark notation`_. So the
+correct expression would be something like
+``item.tag == '{http://www.w3.org/1999/xhtml}body'``.
+
+.. [#] This is due to the streaming nature of the Kid processor. During
+   normal template expansion, the entire tree is never fully retained in
+   memory.
+
+.. _clark notation: http://www.jclark.com/xml/xmlns.htm
+
+Example
+~~~~~~~
+
+The following simple example shows how to create a custom tag ``<greeting>``
+that outputs one of two provided values based on the time of day the
+template is expanded::
+
+  <?xml version="1.0" encoding="utf-8"?>
+  <?python
+  from time import localtime
+  def timeofday():
+      """Get time of day ('am' or 'pm')"""
+      return localtime().tm_hour < 12 and 'am' or 'pm'
+  ?>
+  <html xmlns:py="http://purl.org/kid/ns#">
+    <!-- define the greeting match template -->
+    <span py:match="item.tag == 'greeting'"
+          py:replace="item.get(timeofday())">
+    </span>
+
+    <head>
+      <title>Time of day demo</title>
+    </head>
+    <body>
+      <p>
+        Good <greeting am="Morning!" pm="Afternoon" />
+      </p>
+    </body>
+  </html>
+
+An important thing to note is that the ``py:match`` expression and the match
+template body have access to the ``<greeting>`` element via the variable
+``item``. The ``item.get(timeofday())`` bit retrieves the value of the
+``am`` attribute or the ``pm`` attribute based on what is returned from the
+``timeofday`` function.
+
+At 9:00 AM, output from this template would look like this::
+
+  <html>
+    <head>
+      <title>Time of day demo</title>
+    </head>
+    <body>
+      <p>
+        Good Morning!
+      </p>
+    </body>
+  </html>
+
+The obvious question at this point is how to reuse Match Templates? The
+example above demonstrates the use of a Match Template from the same main
+template but it is often desirable to have "libraries" of Match Templates
+that could be used by multiple individual templates. The answer is to have
+the main template extend_ a common template containing the Match Templates
+needed. We can rewrite the above example as two separate templates:
+``main.kid`` and ``common.kid``.
+
+The common template would look like this::
+
+  <?xml version="1.0" encoding="utf-8"?>
+  <?python
+  from time import localtime
+  def timeofday():
+      """Get time of day ('am' or 'pm')"""
+      return localtime().tm_hour < 12 and 'am' or 'pm'
+  ?>
+  <html xmlns:py="http://purl.org/kid/ns#">
+    <!-- define the greeting match template -->
+    <span py:match="item.tag == 'greeting'"
+          py:replace="item.get(timeofday())">
+    </span>
+  </html>
+
+And the main template would look like this::
+
+   <?xml version="1.0" encoding="utf-8"?>
+   <html py:extends="'common.kid'">
+     <head>
+       <title>Time of day demo</title>
+     </head>
+     <body>
+       <p>
+         Good <greeting am="Morning!" pm="Afternoon" />
+       </p>
+     </body>
+   </html>
+
+When a template extends_ another template (or set of templates), all of the
+Match Templates and `Named Template Functions`_ of the extended templates
+are available as if they were defined locally.
+
+.. _`py:extends`:
+.. _`extends`:
+.. _`extend`:
+.. _`Template Reuse`:
+
+Template Reuse (``py:extends``)
+--------------------------------
+
+::
+
+    <root py:extends="template1, template2, ...">
+
+The ``py:extends`` attribute may appear on the root element to specify that
+the template should inherit the `Named Template Functions`_ and `Match
+Templates`_ defined in another template (or set of templates). If a
+``py:extends`` attribute is specified, it **must** be on the root element of the
+document.
+
+The ``py:extends`` may contain a list of Python expressions separated by
+commas that reference templates. The rules for what types of values may be
+specified are:
+
+string
+  The name of a template file, relative to the current template file.
+
+  Example::
+
+    <html py:extends="'common.kid'" />
+
+module or Template class
+  The ``py:extends`` variable references a module or a Template class. If a
+  module is referenced, an attempt is made to find a class named
+  ``Template`` belonging to the that module.
+
+  Example::
+
+    <?python
+    import common
+    ?>
+    <html py:extends="common" ...
+
+Multiple templates may be referenced by separating each by a comma. The
+following example references templates ``common`` and ``forms``, imported
+using the import hooks and a template filename named ``other.kid``::
+
+    <?python
+    import common, forms
+    ?>
+    <html py:extends="common, forms, 'other.kid'" ...
+
+
+Example
+~~~~~~~
+
+For example, there is a template named ``common.kid`` that defines a
+template function, ``display_errors``, and a match template that converts
+``<b>`` elements to ``<strong>`` elements with uppercase content::
+
+  <html xmlns:py="http://purl.org/kid/ns#">
+
+    <ul py:def="display_errors(errors)">
+      <li py:for="error in errors" py:content="error" />
+    </ul>
+
+    <strong py:match="item.tag == 'b'"
+      py:content="item.text.upper()" />
+
+  </html>
+
+The functions and match templates may be imported into another template by
+referencing them with ``py:extends``::
+
+  <html py:extends="'common.kid'"
+        xmlns:py="http://purl.org/kid/ns#">
+    <head>
+      <title>Errors</title>
+    </head>
+    <body>
+      <p>The following <b>errors</b> were found:</p>
+      ${ display_errors(["Field is required", "Must be phone number.."]) }
+    </body>
+  </html>
+
+The ``<b>errors</b>`` item is transformed to ``<strong>ERRORS</strong>``
+and the error list is displayed. Both the match template and the named
+template function are available in the derived template as if they were
+defined locally.
+
+.. _`py:layout`:
+.. _`layout`:
+.. _`layout template`:
+.. _`Layout Templates`:
+
+Layout Templates (``py:layout``)
+--------------------------------
+
+::
+
+    <root py:layout="base_layout">
+
+The ``py:layout`` attribute may appear on the root element to specify that
+a content template should use the referenced template as a `layout template`.
+This allows separation of individual page content from site-wide layout
+elements such as headers, menus, footers, etc. `Match Templates`, `Named
+Template Functions`, and `layout parameters` defined in a content template
+will be applied to the `layout template`. If a ``py:layout`` attribute is
+specified, it **must** be on the root element of the document.
+
+The ``py:layout`` attribute may contain a single Python expression that
+references a layout template. The rules for what types of values may be
+specified are:
+
+string
+  The name of a template file, relative to the current template file.
+
+  Example::
+
+    <html py:layout="'base_layout.kid'" />
+
+module or Template class
+  The ``py:layout`` variable references a module or a Template class. If a
+  module is referenced, an attempt is made to find a class named
+  ``Template`` belonging to the that module.
+
+  Example::
+
+    <?python
+    import base_layout
+    ?>
+    <html py:extends="base_layout" ...
+
+
+Example
+~~~~~~~
+
+For example, here is a base template named ``base_layout.kid`` that contains
+header, content, and footer sections::
+
+  <html xmlns:py="http://purl.org/kid/ns#">
+
+    <head>
+      <title>App Name - ${page_title}</title>
+
+      <link href="layout.css" type="text/css" rel="stylesheet" />
+      ${page_specific_css()}
+    </head>
+
+    <body>
+      <h1>Now viewing: ${page_title} of App Name</h1>
+
+      <content>Default content</content>
+
+      <div class="footer">Page Footer Text</div>
+    </body>
+
+  </html>
+
+Note how some sections were left to be filled in by the content template.
+Page-specific functions, match templates, and layout parameters may be defined
+in a separate template and then applied to the base template with ``py:layout``::
+
+  <?python
+  layout_params['page_title'] = "Content Page 1 of 10"
+  ?>
+  <html py:layout="'base_layout.kid'"
+        xmlns:py="http://purl.org/kid/ns#">
+
+    <link py:def="page_specific_css()"
+      href="layout.css" type="text/css" rel="stylesheet" />
+
+    <div py:match="item.tag == 'content'">
+      <ul>
+      	<li>Content Item 1</li>
+      	<li>Content Item 2</li>
+      	<li>Content Item 3</li>
+      </ul>
+    </div>
+
+  </html>
+
+Both the match template and the named template function are applied to the
+base layout template when the content template is rendered. Also note how the
+``page_title`` is inserted into the ``layout_params`` dict. Items placed in
+``layout_params`` are passed to the base layout template along with template
+keyword arguments. The ``layout_params`` dict can only be modified in the outer
+python block before the root element in the page.
+
+.. _`order`:
+
+Processing Order
+================
+
+The order that ``py:`` attributes are processed is as follows:
+
+1. ``py:def``
+2. ``py:match``
+3. ``py:for``
+4. ``py:if``
+5. ``py:replace``
+6. ``py:strip``
+7. ``py:attrs``
+8. ``py:content``
+
+Attribute substitution occurs after all other attributes are processed and
+**must not** be processed for ``py:`` attributes.
+
+XML Comments
+============
+
+Kid templates may contain XML comments. The comments will appear in the
+serialized output of a template, but will not be processed by the
+`Python Expression Substitution`_ rules.
+
+::
+
+    <!--this is a comment-->
+    <!-- and so is this -->
+
+Sometimes it is useful to have comments in a template that will not appear
+when the template is serialized. To do this simply prefix the comment text
+with a ``!`` character::
+
+    <!--!this will not be serialized-->
+    <!-- !this will also not be serialized -->
+
+Another exception is that for comments starting with ``[`` or ``<![`` and
+comments ending with ``//``, `Python Expression Substitution`_ is performed.
+This feature can be used for Javascript or CSS embedded in XML comments::
+
+    <style type="text/css">
+    <!--
+    #menu a#$section { background-color: yellow; }
+    //-->
+    </style>
+
+
+Revision History
+================
+
+See the `Release Notes`_ for a list of changes between versions.
+
+.. _Release Notes: notes.html
