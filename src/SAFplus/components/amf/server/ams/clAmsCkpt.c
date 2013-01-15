@@ -732,7 +732,7 @@ clAmsCkptInitialize(
         CL_CKPT_CHECKPOINT_CREATE|CL_CKPT_CHECKPOINT_WRITE|CL_CKPT_CHECKPOINT_READ;
     ClCkptCheckpointCreationAttributesT  ckptAttributes = 
         {
-            CL_CKPT_WR_ALL_REPLICAS | CL_CKPT_DISTRIBUTED,
+            CL_CKPT_DISTRIBUTED  | CL_CKPT_PEER_TO_PEER_REPLICA,
             AMS_CKPT_SIZE,
             AMS_CKPT_RETENTION_DURATION,
             AMS_CKPT_MAX_SECTIONS, 
