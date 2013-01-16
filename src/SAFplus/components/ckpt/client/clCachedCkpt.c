@@ -43,9 +43,10 @@ static ClUint32T clCachedCkptShmSizeGet(ClUint32T cachSize)
 
     return shmSize;
 }
+
 ClRcT clCachedCkptClientInitialize(ClCachedCkptClientSvcInfoT *serviceInfo,
-                                       const ClNameT *ckptName,
-                                       ClUint32T cachSize)
+                                   const ClNameT *ckptName,
+                                   ClUint32T cachSize)
 {
     ClRcT            rc            = CL_OK;
     ClUint32T        shmSize       = clCachedCkptShmSizeGet(cachSize);
@@ -103,8 +104,8 @@ ClRcT clCachedCkptClientFinalize(ClCachedCkptClientSvcInfoT *serviceInfo)
 }
 
 void clCachedCkptClientLookup(ClCachedCkptClientSvcInfoT *serviceInfo,
-                                       const ClNameT *sectionName,
-                                       ClCachedCkptDataT **sectionData)
+                              const ClNameT *sectionName,
+                              ClCachedCkptDataT **sectionData)
 {
     ClUint32T        i             = 0;
 
@@ -134,8 +135,105 @@ void clCachedCkptClientLookup(ClCachedCkptClientSvcInfoT *serviceInfo,
     }
 }
 
+/*
+ * Append the data chunk to the last section
+ */
+ClRcT clCacheEntryDataAppend(ClCachedCkptSvcInfoT *serviceInfo,
+                             ClPtrT data,
+                             ClUint32T dataSize)
+{
+    ClUint32T cacheSize = serviceInfo->cachSize;
+    ClUint32T *numberOfSections = (ClUint32T*)serviceInfo->cache;
+    ClUint32T *sizeOfCache = (ClUint32T*)(numberOfSections + 1);
+    ClCachedCkptDataT *ckptData = (ClCachedCkptDataT*) (sizeOfCache + 1);
+    ClUint32T offset = 0;
+    ClUint32T hdrSize = (ClUint8T*)ckptData - serviceInfo->cache;
+
+    if(!data || !dataSize)
+        return CL_ERR_INVALID_PARAMETER;
+
+    if(!numberOfSections || !*numberOfSections)
+        return CL_ERR_INVALID_STATE;
+
+    if(*sizeOfCache + hdrSize + dataSize > cacheSize)
+        return CL_ERR_NO_SPACE;
+
+    for(ClUint32T i = 0; i < *numberOfSections; ++i)
+    {
+        ckptData = (ClCachedCkptDataT*) ( (ClUint8T*)ckptData + offset);
+        offset += sizeof(*ckptData) + ckptData->dataSize;
+    }
+    if(!ckptData->data)
+        return CL_ERR_INVALID_STATE;
+    memcpy(ckptData->data + ckptData->dataSize, data, dataSize);
+    ckptData->dataSize += dataSize;
+    *sizeOfCache += dataSize;
+    return CL_OK;
+}
+
+/*
+ * Delete a chunk from the last section matching a data chunk of dataSize
+ */
+ClRcT clCacheEntryDataDelete(ClCachedCkptSvcInfoT *serviceInfo,
+                             ClPtrT data,
+                             ClUint32T dataSize)
+{
+    ClUint32T *numberOfSections = (ClUint32T*)serviceInfo->cache;
+    ClUint32T *sizeOfCache = (ClUint32T*)(numberOfSections + 1);
+    ClCachedCkptDataT *ckptData = (ClCachedCkptDataT*)(sizeOfCache + 1);
+    ClUint32T hdrSize = (ClUint8T*)ckptData - serviceInfo->cache;
+    ClUint32T offset = 0;
+    ClRcT rc = CL_OK;
+
+    if(!data || !dataSize)
+        return CL_ERR_INVALID_PARAMETER;
+
+    if(!numberOfSections || !*numberOfSections)
+        return CL_ERR_INVALID_STATE;
+    
+    if(dataSize > *sizeOfCache + hdrSize)
+        return CL_ERR_NO_SPACE;
+
+    for(ClUint32T i = 0; i < *numberOfSections; ++i)
+    {
+        ckptData = (ClCachedCkptDataT*) ( (ClUint8T*)ckptData + offset );
+        offset += sizeof(*ckptData) + ckptData->dataSize;
+    }
+
+    if(!ckptData->data || 
+       dataSize > ckptData->dataSize)
+        return CL_ERR_NO_SPACE;
+
+    ClUint32T dataChunks = ckptData->dataSize/dataSize;
+    ClUint32T chunkSize = 0;
+
+    offset = 0;
+    for(ClUint32T i = 0; i < dataChunks; ++i)
+    {
+        chunkSize = CL_MIN(ckptData->dataSize - offset, dataSize);
+        if(chunkSize != dataSize) break;
+        if(!memcmp(ckptData->data + offset, data, chunkSize))
+        {
+            ckptData->dataSize -= chunkSize;
+            *sizeOfCache -= chunkSize;
+            if(offset < ckptData->dataSize)
+            {
+                memmove(ckptData->data + offset, ckptData->data + offset + chunkSize, 
+                        ckptData->dataSize - offset);
+            }
+            rc = CL_OK;
+            goto found;
+        }
+        offset += chunkSize;
+    }
+    rc = CL_ERR_NOT_EXIST;
+
+    found:
+    return rc;
+}
+
 ClRcT clCacheEntryAdd (ClCachedCkptSvcInfoT *serviceInfo, 
-                                       const ClCachedCkptDataT *sectionData)
+                       const ClCachedCkptDataT *sectionData)
 {
 
     ClRcT			rc = CL_OK;
@@ -163,7 +261,7 @@ ClRcT clCacheEntryAdd (ClCachedCkptSvcInfoT *serviceInfo,
 }
 
 ClRcT clCacheEntryDelete (ClCachedCkptSvcInfoT *serviceInfo, 
-                                       const ClNameT *sectionName)
+                          const ClNameT *sectionName)
 {
     ClRcT			rc = CL_OK;
     ClUint32T                   shmSize = serviceInfo->cachSize;
@@ -278,49 +376,53 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
         rc = clOsalSemCreate((ClUint8T*)cacheName, 1, &serviceInfo->cacheSem);
     }
 
-    if(serviceInfo->ckptSvcHandle == CL_HANDLE_INVALID_VALUE)
+    if(ckptAttributes || openFlags)
     {
-        /* Initialize checkpoint service instance */
-        do
+        if(serviceInfo->ckptSvcHandle == CL_HANDLE_INVALID_VALUE)
         {
-            rc = clCkptInitialize(&ckptSvcHandle, NULL, (ClVersionT *)&ckptVersion);
-        } while(rc != CL_OK && tries++ < 100 && clOsalTaskDelay(delay) == CL_OK);
+            /* Initialize checkpoint service instance */
+            do
+            {
+                rc = clCkptInitialize(&ckptSvcHandle, NULL, (ClVersionT *)&ckptVersion);
+            } while(rc != CL_OK && tries++ < 100 && clOsalTaskDelay(delay) == CL_OK);
 
-        if(rc != CL_OK)
-        {
-            clLogError("CCK", "INI", "Failed to initialize checkpoint service instance. error code [0x%x].", rc);
-            goto out2;
+            if(rc != CL_OK)
+            {
+                clLogError("CCK", "INI", "Failed to initialize checkpoint service instance. error code [0x%x].", rc);
+                goto out2;
+            }
+
+            serviceInfo->ckptSvcHandle = ckptSvcHandle;
         }
 
-        serviceInfo->ckptSvcHandle = ckptSvcHandle;
-    }
+        /* Create the checkpoint for read and write. */
+        do
+        {
+            rc = clCkptCheckpointOpen(serviceInfo->ckptSvcHandle,
+                                      (ClNameT *)ckptName,
+                                      (ClCkptCheckpointCreationAttributesT *)ckptAttributes,
+                                      openFlags,
+                                      0L,
+                                      &ckptHandle);
+        } while(rc != CL_OK && tries++ < 100 && clOsalTaskDelay(delay) == CL_OK);
+     
+        if(rc != CL_OK)
+        {
+            clLogError("CCK", "INI", "Failed to open checkpoint. error code [0x%x].", rc);
+            goto out3;
+        }
 
-    /* Create the checkpoint for read and write. */
-    do
-    {
-        rc = clCkptCheckpointOpen(serviceInfo->ckptSvcHandle,
-                                   (ClNameT *)ckptName,
-                                   (ClCkptCheckpointCreationAttributesT *)ckptAttributes,
-                                   openFlags,
-                                   0L,
-                                   &ckptHandle);
-    } while(rc != CL_OK && tries++ < 100 && clOsalTaskDelay(delay) == CL_OK);
-    if(rc != CL_OK)
-    {
-        clLogError("CCK", "INI", "Failed to open checkpoint. error code [0x%x].", rc);
-        goto out3;
+        serviceInfo->ckptHandle = ckptHandle;
     }
-
-    serviceInfo->ckptHandle = ckptHandle;
 
     /* Create shm */
 
     rc = clOsalShmOpen((ClCharT *)cacheName, CL_CACHED_CKPT_SHM_EXCL_CREATE_FLAGS,
-                         CL_CACHED_CKPT_SHM_MODE, &serviceInfo->fd);
+                       CL_CACHED_CKPT_SHM_MODE, &serviceInfo->fd);
     if( CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc) )
     {
         rc = clOsalShmOpen((ClCharT *)cacheName, CL_CACHED_CKPT_SHM_OPEN_FLAGS,
-                             CL_CACHED_CKPT_SHM_MODE, &serviceInfo->fd);
+                           CL_CACHED_CKPT_SHM_MODE, &serviceInfo->fd);
         if( CL_OK != rc )
         {
             clLogError("CCK", "INI", "Could not open shared memory.");
@@ -336,7 +438,7 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
     }
 
     rc = clOsalMmap(0, shmSize, CL_CACHED_CKPT_MMAP_PROT_FLAGS, 
-                      CL_CACHED_CKPT_MMAP_FLAGS, serviceInfo->fd, 0, (void **) &serviceInfo->cache);
+                    CL_CACHED_CKPT_MMAP_FLAGS, serviceInfo->fd, 0, (void **) &serviceInfo->cache);
     if( CL_OK != rc )
     {
         clLogError("CCK", "INI", "clOsalMmap(): error code [0x%x].", rc);
@@ -352,17 +454,23 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
 
     goto out1;
 
-out5:
+    out5:
     clOsalShmClose(&serviceInfo->fd);
-out4:
-    clCkptCheckpointClose(serviceInfo->ckptHandle);
-    serviceInfo->ckptHandle =  CL_HANDLE_INVALID_VALUE;
-out3:
-    clCkptFinalize(serviceInfo->ckptSvcHandle);
-    serviceInfo->ckptSvcHandle =  CL_HANDLE_INVALID_VALUE;
-out2:
+    out4:
+    if(serviceInfo->ckptHandle)
+    {
+        clCkptCheckpointClose(serviceInfo->ckptHandle);
+        serviceInfo->ckptHandle =  CL_HANDLE_INVALID_VALUE;
+    }
+    out3:
+    if(serviceInfo->ckptSvcHandle)
+    {
+        clCkptFinalize(serviceInfo->ckptSvcHandle);
+        serviceInfo->ckptSvcHandle =  CL_HANDLE_INVALID_VALUE;
+    }
+    out2:
     clOsalSemDelete(serviceInfo->cacheSem);
-out1:
+    out1:
     return rc;
 }
 
@@ -388,19 +496,25 @@ ClRcT clCachedCkptFinalize(ClCachedCkptSvcInfoT *serviceInfo)
     if(rc != CL_OK)
         clLogError("CCK", "FIN", "Failed to destroy cache lock. error code [0x%x].", rc);
 
-    rc = clCkptCheckpointClose(serviceInfo->ckptHandle);
-    if (rc != CL_OK)
+    if(serviceInfo->ckptHandle)
     {
-        clLogError("CCK", "FIN", "Failed to close checkpoint. error code [0x%x].", rc);
+        rc = clCkptCheckpointClose(serviceInfo->ckptHandle);
+        if (rc != CL_OK)
+        {
+            clLogError("CCK", "FIN", "Failed to close checkpoint. error code [0x%x].", rc);
+        }
+        serviceInfo->ckptHandle =  CL_HANDLE_INVALID_VALUE;
     }
-    serviceInfo->ckptHandle =  CL_HANDLE_INVALID_VALUE;
 
-    rc = clCkptFinalize(serviceInfo->ckptSvcHandle);
-    if (rc != CL_OK)
+    if(serviceInfo->ckptSvcHandle)
     {
-        clLogError("CCK", "FIN", "Failed to finalize checkpoint service instance. error code [0x%x].", rc);
+        rc = clCkptFinalize(serviceInfo->ckptSvcHandle);
+        if (rc != CL_OK)
+        {
+            clLogError("CCK", "FIN", "Failed to finalize checkpoint service instance. error code [0x%x].", rc);
+        }
+        serviceInfo->ckptSvcHandle =  CL_HANDLE_INVALID_VALUE;
     }
-    serviceInfo->ckptSvcHandle =  CL_HANDLE_INVALID_VALUE;
 
     return rc;
 }
@@ -409,7 +523,7 @@ ClRcT clCachedCkptFinalize(ClCachedCkptSvcInfoT *serviceInfo)
  * CREATE: This function creates a section in the checkpoint.
  */
 ClRcT clCachedCkptSectionCreate(ClCachedCkptSvcInfoT *serviceInfo,
-                                       const ClCachedCkptDataT *sectionData)
+                                const ClCachedCkptDataT *sectionData)
 {
     ClRcT rc = CL_OK;
 
@@ -553,7 +667,7 @@ out1:
  * UPDATE: This function updates the checkpoint section data 
  */
 ClRcT clCachedCkptSectionUpdate(ClCachedCkptSvcInfoT *serviceInfo,
-                                       const ClCachedCkptDataT *sectionData)
+                                const ClCachedCkptDataT *sectionData)
 {
     ClRcT rc;
 
@@ -700,8 +814,8 @@ void clCachedCkptSectionRead(ClCachedCkptSvcInfoT *serviceInfo,
 }
 
 void clCachedCkptSectionGetFirst(ClCachedCkptSvcInfoT *serviceInfo,
-                                       ClCachedCkptDataT **sectionData,
-                                       ClUint32T        *sectionOffset)
+                                 ClCachedCkptDataT **sectionData,
+                                 ClUint32T        *sectionOffset)
 {
     ClUint32T        *numberOfSections = (ClUint32T *) serviceInfo->cache;
     ClUint32T        *sizeOfCache = (ClUint32T *) (numberOfSections + 1);
@@ -717,8 +831,8 @@ void clCachedCkptSectionGetFirst(ClCachedCkptSvcInfoT *serviceInfo,
 }
 
 void clCachedCkptSectionGetNext(ClCachedCkptSvcInfoT *serviceInfo,
-                                       ClCachedCkptDataT **sectionData,
-                                       ClUint32T        *sectionOffset)
+                                ClCachedCkptDataT **sectionData,
+                                ClUint32T        *sectionOffset)
 {
     ClUint32T        *numberOfSections = (ClUint32T *) serviceInfo->cache;
     ClUint32T        *sizeOfCache = (ClUint32T *) (numberOfSections + 1);
