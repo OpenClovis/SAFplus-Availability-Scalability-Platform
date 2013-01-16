@@ -1897,6 +1897,12 @@ clAmsPeSGAutoAdjustMPlusN(ClAmsSGT *sg)
         if(clAmsPeSUIsAssignable(SU) != CL_OK)
             continue;
 
+        /*
+         * Skip SUs in the probation window
+         */
+        if(SU->status.suProbationTimer.count > 0)
+            continue;
+        
         /* If the possible SU has a lower rank or it has a nonzero rank and the least rank is zero then we want to swap */
         if ((SU->config.rank) && ((SU->config.rank < leastSU->config.rank) || (!leastSU->config.rank)))
         {
