@@ -421,6 +421,20 @@ ClRcT clCacheEntryUpdate (ClCachedCkptSvcInfoT *serviceInfo,
 ClRcT clCacheEntryDelete (ClCachedCkptSvcInfoT *serviceInfo, 
                                        const ClNameT *sectionName);
 
+/*
+ * Append the data chunk to the last section
+ */
+ClRcT clCacheEntryDataAppend(ClCachedCkptSvcInfoT *serviceInfo,
+                             ClPtrT data,
+                             ClUint32T dataSize);
+
+/*
+ * Delete a chunk from the last section matching a data chunk of dataSize
+ */
+ClRcT clCacheEntryDataDelete(ClCachedCkptSvcInfoT *serviceInfo,
+                             ClPtrT data,
+                             ClUint32T dataSize);
+
 /* Functions to update checkpoint */
 ClRcT clCkptEntryUpdate(ClCachedCkptSvcInfoT *serviceInfo,
                                        const ClCachedCkptDataT *sectionData);
