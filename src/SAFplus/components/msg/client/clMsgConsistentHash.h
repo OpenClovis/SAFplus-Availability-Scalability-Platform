@@ -20,13 +20,20 @@
  * ModuleName  : message
  * File        : clMsgConsistentHash.h
  *******************************************************************************/
+#ifndef _MSG_CONSISTENT_HASH_H
+#define _MSG_CONSISTENT_HASH_H
 
 #include <clCommon.h>
 #include <clCommonErrors.h>
 
-#define __MSG_QUEUE_GROUP_NODES (16)
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define __MSG_QUEUE_GROUP_NODES (8)
 #define __MSG_QUEUE_GROUP_HASHES_PER_NODE (100)
 #define __MSG_QUEUE_GROUP_HASHES ( __MSG_QUEUE_GROUP_NODES * __MSG_QUEUE_GROUP_HASHES_PER_NODE )
+
 
 /*
  * Initialize a consistent hash ring for a MSG queue group
@@ -38,3 +45,9 @@ ClRcT clMsgQueueGroupHashInit(ClInt32T nodes, ClInt32T hashesPerNode);
  * Free memory allocated for consistent hash of a group
  */
 ClRcT clMsgQueueGroupHashFinalize();
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
