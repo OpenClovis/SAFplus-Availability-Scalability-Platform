@@ -48,12 +48,17 @@ typedef struct
 
 typedef struct
 {
-    ClInt32T nodes;
-    ClInt32T hashesPerNode;
     MsgNodeHashesT *groupNodeHashes;
 }ClMsgGroupHashesT;
 
-static ClMsgGroupHashesT *gGroupHashes = NULL;
+typedef struct 
+{
+    ClInt32T nodes;
+    ClInt32T hashesPerNode;
+    ClMsgGroupHashesT *groupNodeHashesMap; /*group hashes map for group members */
+} ClMsgGroupHashesMapT;
+
+static ClMsgGroupHashesMapT gGroupHashesMap;
 
 /***********************************************************************************************/
 
@@ -114,11 +119,12 @@ out:
 }
 
 static ClRcT msgNodeHashesInit(ClInt32T nodes, ClInt32T hashesPerNode,
-                                    MsgNodeHashesT **ppNodeHashes)
+                               MsgNodeHashesT **ppNodeHashes)
 {
     ClRcT rc = CL_OK;
     MsgNodeHashesT *nodeHashes = NULL;
     ClInt32T hashes = nodes * hashesPerNode;
+
     *ppNodeHashes = NULL;
 
     if(!hashes)
@@ -193,36 +199,64 @@ static MsgNodeHashesT *msgNodeHashesGet(unsigned char *key, ClInt32T keylen,
 
 /*
  * Initialize a consistent hash ring for a MSG queue group
- * and allocate a MsgQueueGroupHashesT to store the hash for receiver lookup
+ * and allocate a MsgQueueGroupHashesT to store the hash for receiver lookup 
+ * based on the number of queue group members
  */
 ClRcT clMsgQueueGroupHashInit(ClInt32T nodes, ClInt32T hashesPerNode)
 {
     ClRcT rc =  CL_OK;
-    ClMsgGroupHashesT *pGroupHashes;
+    ClInt32T i = 0;
+    ClMsgGroupHashesT *pGroupHashes = NULL;
+    ClInt32T currentNodes = gGroupHashesMap.nodes;
+    if(currentNodes >= nodes)
+        return rc;
 
-    pGroupHashes = (ClMsgGroupHashesT *)clHeapAllocate(sizeof(ClMsgGroupHashesT));
-    if(pGroupHashes == NULL)
+    if(!hashesPerNode)
+        hashesPerNode = __MSG_QUEUE_GROUP_HASHES_PER_NODE;
+
+    if(gGroupHashesMap.hashesPerNode &&
+       gGroupHashesMap.hashesPerNode != hashesPerNode)
     {
-        rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
-        clLogError("QGH", "INIT", "Failed to allocate %u bytes of memory. error code [0x%x].",
-                (ClUint32T) sizeof(ClMsgGroupHashesT), rc);
-        goto error_out;
+        clLogWarning("QGH", "INIT", "Resetting input [%d] hashesPerNode to current [%d]",
+                     hashesPerNode, gGroupHashesMap.hashesPerNode);
+        hashesPerNode = gGroupHashesMap.hashesPerNode;
+    }
+    
+    gGroupHashesMap.groupNodeHashesMap = clHeapRealloc(gGroupHashesMap.groupNodeHashesMap,
+                                                       sizeof(*gGroupHashesMap.groupNodeHashesMap) * nodes);
+    CL_ASSERT(gGroupHashesMap.groupNodeHashesMap != NULL);
+    memset(gGroupHashesMap.groupNodeHashesMap + currentNodes, 0,
+           sizeof(*gGroupHashesMap.groupNodeHashesMap) * (nodes - currentNodes));
+
+    /*
+     * Allocate as many maps as there are members for fast lookup based on queue group members
+     */
+    for(i = currentNodes; i < nodes; ++i)
+    {
+        pGroupHashes = gGroupHashesMap.groupNodeHashesMap + i;
+        rc = msgNodeHashesInit(i+1, hashesPerNode, &pGroupHashes->groupNodeHashes);
+        if (rc != CL_OK)
+        {
+            clLogError("QGH", "INIT", "Failed to initialize consistent hash. error code [0x%x].",
+                       rc);
+            goto out_free;
+        }
     }
 
-    pGroupHashes->nodes = nodes;
-    pGroupHashes->hashesPerNode = hashesPerNode;
+    gGroupHashesMap.nodes = nodes;
+    gGroupHashesMap.hashesPerNode = hashesPerNode;
+    return rc;
 
-    rc = msgNodeHashesInit(nodes, hashesPerNode, &pGroupHashes->groupNodeHashes);
-    if (rc != CL_OK)
+    out_free:
+    for(ClUint32T j = currentNodes; j < i ; ++j)
     {
-        clLogError("QGH", "INIT", "Failed to initialize consistent hash. error code [0x%x].",
-                  rc);
-        clHeapFree(pGroupHashes);
-        goto error_out;
+        if(gGroupHashesMap.groupNodeHashesMap[i].groupNodeHashes)
+        {
+            clHeapFree(gGroupHashesMap.groupNodeHashesMap[i].groupNodeHashes);
+            gGroupHashesMap.groupNodeHashesMap[i].groupNodeHashes = NULL;
+        }
     }
 
-    gGroupHashes = pGroupHashes;
-error_out:
     return rc;
 }
 
@@ -232,22 +266,25 @@ error_out:
 ClRcT clMsgQueueGroupHashFinalize()
 {
     ClRcT rc = CL_OK;
-    ClMsgGroupHashesT *pGroupHashes = gGroupHashes;
 
-    if(pGroupHashes == NULL)
+    if(!gGroupHashesMap.nodes)
+        goto out;
+
+    for(ClUint32T i = 0; i < gGroupHashesMap.nodes; ++i)
     {
-        rc = CL_MSG_RC(CL_ERR_NOT_INITIALIZED);
-        clLogWarning("QGH", "DEL", "Consistent hash is not initialized. error code [0x%x]", rc);
-        goto error_out;
+        if(gGroupHashesMap.groupNodeHashesMap[i].groupNodeHashes)
+        {
+            clHeapFree(gGroupHashesMap.groupNodeHashesMap[i].groupNodeHashes);
+            gGroupHashesMap.groupNodeHashesMap[i].groupNodeHashes = NULL;
+        }
     }
 
-    if(pGroupHashes->groupNodeHashes)
-        clHeapFree(pGroupHashes->groupNodeHashes);
+    gGroupHashesMap.nodes = 0;
+    gGroupHashesMap.hashesPerNode = 0;
+    clHeapFree(gGroupHashesMap.groupNodeHashesMap);
+    gGroupHashesMap.groupNodeHashesMap = NULL;
 
-    clHeapFree(pGroupHashes);
-    gGroupHashes = NULL;
-
-error_out:
+    out:
     return rc;
 }
 
@@ -260,15 +297,23 @@ static SaAisErrorT clMsgQueueGroupSendWithKey(ClBoolT isSync,
                                        SaMsgAckFlagsT ackFlags)
 {
     ClRcT rc = CL_OK;
-    ClMsgGroupHashesT *pGroupHashes = gGroupHashes;
+    ClMsgGroupHashesT *pGroupHashes = NULL;
     ClMsgQGroupCkptDataT qGroupData = {{0}};
     MsgNodeHashesT *queueGroupHash = NULL;
-    ClInt32T hashes = __MSG_QUEUE_GROUP_HASHES;
+    ClInt32T hashes = 0;
 
-    if(pGroupHashes == NULL)
+    if(!group)
     {
-        rc = CL_MSG_RC(CL_ERR_NOT_INITIALIZED);
-        clLogWarning("QGH", "DEL", "Consistent hash is not initialized. error code [0x%x]", rc);
+        rc = CL_ERR_INVALID_PARAMETER;
+        clLogError("QGH", "SEND", "Group send tried on a null group");
+        goto error_out;
+    }
+
+    if(!key || !keyLen)
+    {
+        rc = CL_ERR_INVALID_PARAMETER;
+        clLogError("QGH", "SEND", "Group [%.*s] tried with null key",
+                   group->length, group->value);
         goto error_out;
     }
 
@@ -286,7 +331,22 @@ static SaAisErrorT clMsgQueueGroupSendWithKey(ClBoolT isSync,
         goto error_out;
     }
 
-    hashes = CL_MIN(pGroupHashes->nodes, qGroupData.numberOfQueues) * pGroupHashes->hashesPerNode;
+    /*
+     * FIXME: Do we need to lock while growing the hash ring??
+     */
+    if(gGroupHashesMap.nodes < qGroupData.numberOfQueues)
+    {
+        rc = clMsgQueueGroupHashInit(qGroupData.numberOfQueues, __MSG_QUEUE_GROUP_HASHES_PER_NODE);
+        if(rc != CL_OK)
+        {
+            clLogError("QGH", "SEND", "Queue group hash ring extend for [%d] queues "
+                       "returned with [%#x]", qGroupData.numberOfQueues, rc);
+            goto error_out;
+        }
+    }
+
+    pGroupHashes = &gGroupHashesMap.groupNodeHashesMap[qGroupData.numberOfQueues-1];
+    hashes = qGroupData.numberOfQueues * gGroupHashesMap.hashesPerNode;
     queueGroupHash = msgNodeHashesGet((unsigned char*)key, keyLen,
                                       pGroupHashes->groupNodeHashes, hashes);
 
