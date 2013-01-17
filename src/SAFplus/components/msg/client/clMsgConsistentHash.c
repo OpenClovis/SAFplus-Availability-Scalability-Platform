@@ -25,18 +25,14 @@
 
 #include <clMsgApiExt.h>
 #include <clMD5Api.h>
-#include <clCommon.h>
-#include <clCommonErrors.h>
 #include <clMsgCommon.h>
 #include <clMsgCkptData.h>
 #include <clDebugApi.h>
 #include <clLogApi.h>
 #include <clMsgApi.h>
 #include <clMsgCkptClient.h>
+#include <clMsgConsistentHash.h>
 
-#define __MSG_QUEUE_GROUP_NODES (10)
-#define __MSG_QUEUE_GROUP_HASHES_PER_NODE (100)
-#define __MSG_QUEUE_GROUP_HASHES ( __MSG_QUEUE_GROUP_NODES * __MSG_QUEUE_GROUP_HASHES_PER_NODE )
 #define __DIGEST_TO_HASH(digest, index) (\
 ( (digest)[3 + (index)*4] << 24 ) | \
 ( (digest)[2 + (index)*4] << 16 ) | \
@@ -52,60 +48,12 @@ typedef struct
 
 typedef struct
 {
-    struct hashStruct hash;
-    ClNameT name;
     ClInt32T nodes;
     ClInt32T hashesPerNode;
     MsgNodeHashesT *groupNodeHashes;
 }ClMsgGroupHashesT;
 
-
-/********************************************************************/
-/* Database to store consistent hash rings for MSG Queue Group      */
-/********************************************************************/
-#define CL_MSG_GROUP_HASH_BITS          (5)
-#define CL_MSG_GROUP_HASH_BUCKETS       (1 << CL_MSG_GROUP_HASH_BITS)
-#define CL_MSG_GROUP_HASH_MASK          (CL_MSG_GROUP_HASH_BUCKETS - 1)
-
-static struct hashStruct *ppMsgQGroupHashTable[CL_MSG_GROUP_HASH_BUCKETS];
-
-static __inline__ ClUint32T clMsgGroupHash(const ClNameT *pQGroupName)
-{
-    return (ClUint32T)((ClUint32T)pQGroupName->value[0] & CL_MSG_GROUP_HASH_MASK);
-}
-
-static ClRcT clMsgGroupEntryAdd(ClMsgGroupHashesT *pGroupHashEntry)
-{
-    ClUint32T key = clMsgGroupHash(&pGroupHashEntry->name);
-    return hashAdd(ppMsgQGroupHashTable, key, &pGroupHashEntry->hash);
-}
-
-static __inline__ void clMsgGroupEntryDel(ClMsgGroupHashesT *pGroupHashEntry)
-{
-    hashDel(&pGroupHashEntry->hash);
-}
-
-ClBoolT clMsgGroupEntryExists(const ClNameT *pQGroupName, ClMsgGroupHashesT **ppQGroupEntry)
-{
-    register struct hashStruct *pTemp;
-    ClUint32T key = clMsgGroupHash(pQGroupName);
-
-    for(pTemp = ppMsgQGroupHashTable[key];  pTemp; pTemp = pTemp->pNext)
-    {
-        ClMsgGroupHashesT *pMsgQGroupEntry = hashEntry(pTemp, ClMsgGroupHashesT, hash);
-        if(pQGroupName->length == pMsgQGroupEntry->name.length &&
-                memcmp(pMsgQGroupEntry->name.value, pQGroupName->value, pQGroupName->length) == 0)
-        {
-            if(ppQGroupEntry != NULL)
-                *ppQGroupEntry = pMsgQGroupEntry;
-            return CL_TRUE;
-        }
-    }
-    return CL_FALSE;
-}
-/********************************************************************/
-/* END: Database to store consistent hash rings for MSG Queue Group */
-/********************************************************************/
+static ClMsgGroupHashesT *gGroupHashes = NULL;
 
 /***********************************************************************************************/
 
@@ -217,7 +165,7 @@ static MsgNodeHashesT *msgNodeHashesGet(unsigned char *key, ClInt32T keylen,
     ClInt32T right = numHashes - 1;
     ClInt32T mid = 0, mid2 = 0;
     ClInt32T fallbackIndex = 0; /* fall to the first index when out of range*/
-    // printf("Hash for key [%.*s] = [%#x]\n", keylen, key, hash);
+
     while(left <= right)
     {
         mid = (left + right) >> 1;
@@ -246,20 +194,13 @@ static MsgNodeHashesT *msgNodeHashesGet(unsigned char *key, ClInt32T keylen,
  * Initialize a consistent hash ring for a MSG queue group
  * and allocate a MsgQueueGroupHashesT to store the hash for receiver lookup
  */
-ClRcT clMsgQueueGroupHashInit(const SaNameT *group, ClInt32T nodes, ClInt32T hashesPerNode)
+ClRcT clMsgQueueGroupHashInit(ClInt32T nodes, ClInt32T hashesPerNode)
 {
     ClRcT rc =  CL_OK;
-    ClMsgGroupHashesT *pGroupEntry;
+    ClMsgGroupHashesT *pGroupHashes;
 
-    if(clMsgGroupEntryExists((ClNameT *)group, NULL) == CL_TRUE)
-    {
-        rc = CL_MSG_RC(CL_ERR_ALREADY_EXIST);
-        clLogError("QGH", "INIT", "Consistent hash ring for Message Queue Group with name [%.*s] already exists. error code [0x%x].", group->length, group->value, rc);
-        goto error_out;
-    }
-
-    pGroupEntry = (ClMsgGroupHashesT *)clHeapAllocate(sizeof(ClMsgGroupHashesT));
-    if(pGroupEntry == NULL)
+    pGroupHashes = (ClMsgGroupHashesT *)clHeapAllocate(sizeof(ClMsgGroupHashesT));
+    if(pGroupHashes == NULL)
     {
         rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
         clLogError("QGH", "INIT", "Failed to allocate %u bytes of memory. error code [0x%x].",
@@ -267,26 +208,19 @@ ClRcT clMsgQueueGroupHashInit(const SaNameT *group, ClInt32T nodes, ClInt32T has
         goto error_out;
     }
 
-    clNameCopy(&pGroupEntry->name, (ClNameT *) group);
-    pGroupEntry->nodes = nodes;
-    pGroupEntry->hashesPerNode = hashesPerNode;
+    pGroupHashes->nodes = nodes;
+    pGroupHashes->hashesPerNode = hashesPerNode;
 
-    rc = msgNodeHashesInit(nodes, hashesPerNode, &pGroupEntry->groupNodeHashes);
+    rc = msgNodeHashesInit(nodes, hashesPerNode, &pGroupHashes->groupNodeHashes);
     if (rc != CL_OK)
     {
         clLogError("QGH", "INIT", "Failed to initialize consistent hash. error code [0x%x].",
                   rc);
-        clHeapFree(pGroupEntry);
+        clHeapFree(pGroupHashes);
         goto error_out;
     }
 
-    rc = clMsgGroupEntryAdd(pGroupEntry);
-    if(rc != CL_OK)
-    {
-        clLogError("QGH", "INIT", "Failed to add entry to the group hash table. error code [0x%x].", rc);
-        clHeapFree(pGroupEntry);
-        goto error_out;
-    }
+    gGroupHashes = pGroupHashes;
 error_out:
     return rc;
 }
@@ -294,23 +228,23 @@ error_out:
 /*
  * Free memory allocated for consistent hash of a group
  */
-ClRcT clMsgQueueGroupHashFinalize(const SaNameT *group)
+ClRcT clMsgQueueGroupHashFinalize()
 {
     ClRcT rc = CL_OK;
-    ClMsgGroupHashesT *pGroupEntry;
+    ClMsgGroupHashesT *pGroupHashes = gGroupHashes;
 
-    if(clMsgGroupEntryExists((ClNameT *)group, &pGroupEntry) == CL_FALSE)
+    if(pGroupHashes == NULL)
     {
         rc = CL_MSG_RC(CL_ERR_NOT_INITIALIZED);
-        clLogWarning("QGH", "DEL", "Consistent hashes for group [%.*s] is not initialized. error code [0x%x]", group->length, group->value, rc);
+        clLogWarning("QGH", "DEL", "Consistent hash is not initialized. error code [0x%x]", rc);
         goto error_out;
     }
 
-    if(pGroupEntry->groupNodeHashes)
-        clHeapFree(pGroupEntry->groupNodeHashes);
+    if(pGroupHashes->groupNodeHashes)
+        clHeapFree(pGroupHashes->groupNodeHashes);
 
-    clMsgGroupEntryDel(pGroupEntry);
-    clHeapFree(pGroupEntry);
+    clHeapFree(pGroupHashes);
+    gGroupHashes = NULL;
 
 error_out:
     return rc;
@@ -325,15 +259,15 @@ static SaAisErrorT clMsgQueueGroupSendWithKey(ClBoolT isSync,
                                        SaMsgAckFlagsT ackFlags)
 {
     ClRcT rc = CL_OK;
-    ClMsgGroupHashesT *pGroupEntry = NULL;
+    ClMsgGroupHashesT *pGroupHashes = gGroupHashes;
     ClMsgQGroupCkptDataT qGroupData = {{0}};
     MsgNodeHashesT *queueGroupHash = NULL;
     ClInt32T hashes = __MSG_QUEUE_GROUP_HASHES;
 
-    if(clMsgGroupEntryExists((ClNameT *)group, &pGroupEntry) == CL_FALSE)
+    if(pGroupHashes == NULL)
     {
         rc = CL_MSG_RC(CL_ERR_NOT_INITIALIZED);
-        clLogError("QGH", "SEND", "Consistent hashes for group [%.*s] is not initialized. error code [0x%x]", group->length, group->value, rc);
+        clLogWarning("QGH", "DEL", "Consistent hash is not initialized. error code [0x%x]", rc);
         goto error_out;
     }
 
@@ -351,15 +285,18 @@ static SaAisErrorT clMsgQueueGroupSendWithKey(ClBoolT isSync,
         goto error_out;
     }
 
-    hashes = CL_MIN(pGroupEntry->nodes, qGroupData.numberOfQueues) * pGroupEntry->hashesPerNode;
+    hashes = CL_MIN(pGroupHashes->nodes, qGroupData.numberOfQueues) * pGroupHashes->hashesPerNode;
     queueGroupHash = msgNodeHashesGet((unsigned char*)key, keyLen,
-                                          pGroupEntry->groupNodeHashes, hashes);
+                                      pGroupHashes->groupNodeHashes, hashes);
 
     /* Handle incorrect index */
     if ((queueGroupHash->nodeIndex < 0) || (queueGroupHash->nodeIndex >= qGroupData.numberOfQueues))
     {
         rc = CL_MSG_RC(CL_ERR_BAD_OPERATION);
-        clLogError("QGH", "SEND", "Incorrect node index [%d]. error code [0x%x]", queueGroupHash->nodeIndex, rc);
+        clLogError("QGH", "SEND", "Incorrect node index [%d] with key [%.*s] and number of nodes [%d]. error code [0x%x]",
+                                   queueGroupHash->nodeIndex,
+                                   keyLen, key,
+                                   qGroupData.numberOfQueues, rc);
         goto error_out;
     }
 

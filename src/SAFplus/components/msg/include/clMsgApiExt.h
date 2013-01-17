@@ -17,17 +17,6 @@ extern ClRcT clMsgDispatchQueueDeregister(SaMsgQueueHandleT queueHandle);
 extern ClRcT clMsgQueuePersistRedundancy(const SaNameT *queue, const SaNameT *node);
 
 /**
- * Initialize a consistent hash ring for a MSG queue group
- * and allocate a MsgQueueGroupHashesT to store the hash for receiver lookup
- */
-extern ClRcT clMsgQueueGroupHashInit(const SaNameT *group, ClInt32T nodes, ClInt32T hashesPerNode);
-
-/**
- * Free memory allocated for consistent hash of a group
- */
-extern ClRcT clMsgQueueGroupHashFinalize(const SaNameT *group);
-
-/**
  * Lookup and message to the receiver in the queue group that map with the key
  */
 extern SaAisErrorT clMsgQueueGroupSendWithKeySynch(SaMsgHandleT msgHandle,
@@ -39,8 +28,6 @@ extern SaAisErrorT clMsgQueueGroupSendWithKeyAsync(SaMsgHandleT msgHandle,
                                                    const SaNameT *group, SaMsgMessageT *message,
                                                    ClCharT *key, ClInt32T keylen,
                                                    SaMsgAckFlagsT ackFlags);
-
-
 
 #ifdef __cplusplus
 }

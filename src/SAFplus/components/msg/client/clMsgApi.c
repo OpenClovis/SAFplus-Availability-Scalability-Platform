@@ -72,6 +72,7 @@
 #include <msgCltSrvServer.h>
 #include <msgCltSrvClient.h>
 #include <msgIdlClientCallsFromClientClient.h>
+#include <clMsgConsistentHash.h>
 
 
 #define MSG_DISPATCH_QUEUE_HASH_BITS (8)
@@ -374,11 +375,19 @@ static ClRcT clMsgInitialize(void)
         goto error_out_11;
     }
 
+    rc = clMsgQueueGroupHashInit(__MSG_QUEUE_GROUP_NODES, __MSG_QUEUE_GROUP_HASHES_PER_NODE);
+    if(rc != CL_OK)
+    {
+        goto error_out_12;
+    }
+
     rc = clOsalMutexInit(&gClGroupRRLock);
     CL_ASSERT(rc == CL_OK);
 
     return rc;
 
+error_out_12:
+    clMsgReceiverDatabaseFin();
 error_out_11:
     clMsgSenderDatabaseFin();
 error_out_10:
@@ -474,6 +483,8 @@ static ClRcT clMsgFinalize(void)
     rc = clMsgQCkptFinalize();
     if(rc != CL_OK)
         clLogError("MSG", "FIN", "clMsgQCkptFinalize(): error code [0x%x].", rc);    
+
+    clMsgQueueGroupHashFinalize();
 
     /* Finalize database for maintaining queues. */
     clMsgReceiverDatabaseFin();
