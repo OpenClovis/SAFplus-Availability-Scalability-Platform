@@ -125,6 +125,7 @@ static ClRcT msgNodeHashesCreate(ClInt32T nodes, ClInt32T hashesPerNode, MsgNode
     ClInt32T hashes = nodes * hashesPerNode;
     ClInt32T scaledHashesPerNode = 0;
     ClInt32T hashIndex = 0;
+    ClCharT key[CL_MAX_NAME_LENGTH * 2];
 
     if(hashes <= 0 || hashesPerNode < 4)
     {
@@ -140,12 +141,10 @@ static ClRcT msgNodeHashesCreate(ClInt32T nodes, ClInt32T hashesPerNode, MsgNode
     {
         for(j = 0; j < scaledHashesPerNode; ++j)
         {
-            char *key = NULL;
             unsigned char md5Digest[16];
             ClInt32T h;
-            asprintf(&key, "%d-%d", i, j);
+            snprintf(key, sizeof(key), "%d-%d", i, j);
             clMD5Compute((unsigned char*)key, strlen(key), md5Digest);
-            free(key);
             for(h = 0; h < 4; ++h)
             {
                 /*
