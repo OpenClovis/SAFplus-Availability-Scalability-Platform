@@ -2156,17 +2156,13 @@ ClRcT VDECL(compMgrEOStateUpdate)(ClEoDataT data,
     eoObj.appType = info.eoObj.appType;
     eoObj.maxNoClients = info.eoObj.maxNoClients;
 
-    /*
-     * take the semaphore 
-     */
-    if ((rc = clOsalMutexLock(gpClCpm->eoListMutex)) != CL_OK)
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                       CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+    clOsalMutexLock(gpClCpm->compTableMutex);
 
-    rc = cpmCompFind(info.compName.value, gpClCpm->compTable, &comp);
+    rc = cpmCompFindWithLock(info.compName.value, gpClCpm->compTable, &comp);
     CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR,
                       (" Requested component does not exist %x\n", rc), rc);
 
+    clOsalMutexLock(gpClCpm->eoListMutex);
     ptr = comp->eoHandle;
     while (ptr != NULL)
     {
@@ -2186,10 +2182,9 @@ ClRcT VDECL(compMgrEOStateUpdate)(ClEoDataT data,
         }
         ptr = ptr->pNext;
     }
-    /*
-     * Release the semaphore 
-     */
     clOsalMutexUnlock(gpClCpm->eoListMutex);
+
+    clOsalMutexUnlock(gpClCpm->compTableMutex);
 
     return rc;
 
@@ -2197,7 +2192,8 @@ ClRcT VDECL(compMgrEOStateUpdate)(ClEoDataT data,
     /*
      * Release the semaphore 
      */
-    clOsalMutexUnlock(gpClCpm->eoListMutex);
+    clOsalMutexUnlock(gpClCpm->compTableMutex);
+
     failure:
     return rc;
 }
