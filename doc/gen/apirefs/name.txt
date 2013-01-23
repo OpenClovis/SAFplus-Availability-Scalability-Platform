@@ -1,0 +1,291 @@
+/**
+ *  \defgroup name Name Service
+ *  \brief The OpenClovis Name service provides a mechanism that allows an
+ *   object or a service to be referred by its name instead of the Object
+ *   Reference. This friendly name is agnostic to the topology and location. 
+ */
+ 
+//-----------------------------------------------------------
+
+/**
+
+\defgroup name_intro Functional Description
+\brief Functional Description of Name Service.
+\ingroup name
+
+The OpenClovis Name service provides a mechanism that allows an object or a service to be referred by its name instead of the Object Reference 
+(Object Reference). This friendly name is agnostic to the topology and location. 
+The Object Reference can be the logical address, resource ID, and so on. Object Reference is opaque to Name Service. Name service returns the 
+logical address when the friendly name is provided to it. Hence, Name Service provides location transparency.
+Name Service maintains a mapping table between objects and the Object Reference (logical address) associated with the object. 
+
+An object consists of an object name, an object type, and object attributes. The object names are strings and are meaningful when considered along with
+the object type. Examples of object names are print service, file service, functions, and so on. Examples of object types include services, nodes, or 
+any other user-defined type. An object can have a number of attributes (limited by a configurable maximum number.) An object attribute consists of a 
+\code <attribute type, attribute value> \endcode pair of strings. For example, <version, 2.5>, <status, active>, and so on. 
+
+The Name Service provides functions to register/de-register object names, types, attributes, and associated addresses. A process can register multiple 
+services with a single address or multiple processes can register with a single service name and attributes. Some object names, attributes, and addresses 
+can also be statically defined. Each registration is associated with the priority of the process providing the service. It is the responsibility of the 
+process that registers an object, to remove the mapping when the object becomes invalid. However, a process can terminate abnormally. Name Service 
+subscribes to notifications that can be received when a process dies from the Component Manager (CPM) and deletes the entries of the process in the database 
+associated with the component. 
+
+The Name Service provides the ability to query the name database in various ways. 
+Clients can provide the object name and object type to the Name Service and query it to retrieve the address and attributes of that object. Alternatively, 
+clients can also provide attributes and query for object names that satisfy those attributes. Wild cards can also be used in the query. If two components
+provide the same service and have the same priority, the entry that is read first from the database is returned. Different components can provide
+different variants of a single service name with different attributes. For example, <CODE>comp1</CODE> provides car wash (manual) and \p comp2 provides
+car wash (automatic). Manual and automatic are attributes of \p comp1 and \p comp2, respectively. If the query is specified as <CODE> name = carwash </CODE>
+and <CODE>attribute = manual</CODE>, \p comp1 is returned. If the attribute, manual, is not specified, the Object Reference of the component with the highest priority is returned.
+
+Name Service supports different sets of name to Object Reference mappings (also called as Context of the mapping table). 
+They are:
+
+\arg User-defined set: 150 Applications can choose to be a part of a specific set (or Context). This requires for the Context to be created. For example, the 
+OpenClovis ASP related services can be part of a separate Context. 
+
+\arg Default set: 150 Name Service supports a default Context for services that are not part of a specific Context. Name is unique in a Context.
+
+The Name Service to be registered can have two scopes:
+
+\arg Nodelocal scope: The scope is local to the node. The service provider and the user should co-exist on the same blade. 
+
+\arg Global or cluster-wide scope: The service is available to the user applications running on any of the blades. Any component residing anywhere in the cluster can access it. When a component registers with Name Service, it has to provide the Context and the scope of its service.
+
+\section sec_name_intro_1 Usage Model
+ 
+Name Service is based on the database model. Service providers can register their service name to Object Reference mapping with Name Service. This registration can be performed for all the services provided by the service provider. The service users query the Name Service for the Object Reference of the service providers. When a service is unavailable, the service provider de-registers the entry with Name Service. When a service provider dies ungracefully, all the services provided by it are de-registered. 
+
+A service can be registered with global scope or local scope. If it is registered with global scope, the service is available to any service user within the cluster. If the scope is local, the access to the services is limited to the Node. To support global and local scope, Name Service provides two types of Contexts:
+
+\arg Global Context 
+\arg Local Context
+
+The service provider decides the Context in which service entry needs to be registered. The service users must know the Context in which the service entry
+needs to be queried. 
+
+Name Service is used when the address of the service provider is dynamic. For example, if the service A is running on only one Node at a known
+port, the service users can use the physical address to contact service A, and Name Service is not required.
+
+Name Service is used with Transparency Layer(TL) service provided by Intelligence Object Communication (IOC). Name Service contains Name to Object Reference Mapping and TL 
+contains Object Reference to physical address mapping.  
+
+Name Service not only stores the name to logical address mapping but also stores any mapping between name and other Object References. For example, semname to semid,
+name to message queue ID, and so on.
+
+\section sec_name_intro_2 Service Description
+
+The purpose of the Name Service is to provide location transparency. The service providers can register the mapping between services (exported by them) and 
+Object Reference. To use the services of Name Service, the user application has to initialize the Name Service by invoking the clNameLibInitialize()
+function. When this service is not required, the association with Name Client can be closed by invoking the clNameLibFinalize() function. Service users can create their own 
+Context or use the default Context. Service users can create their own Context using the clNameContextCreate() function. clNameContextCreate() returns a 
+{\tt{ContextId}} that can be used in clNameRegister() function to identify the Context. Users can register their services with their unique name using the 
+clNameRegister() function. A service can be registered by multiple components. As part of {\tt{clNameRegister()}}, the service provider can request Name Service to generate an Object Reference or they can set the Object Reference to a particular name. When the service provider fails, it can de-register the service using the clNameComponentDeregister() function. 
+
+Multiple components can register with a single name. The last component can de-register its service, using the clNameServiceDeregister() function.
+A service provider can delete a Context using the clNameContextDelete() function. The default Context cannot be deleted. Name Service deletes the default Context when the service shuts down gracefully.
+
+Every Object Name is characterized by its name, attribute count, and a set of attributes. These attributes are specified when the service is registered 
+through the {\tt{ClNameSvcAttrEntryT}} structure.  
+
+The service users can query the Name Service for Object Reference using the clNameToObjectReferenceGet() function.  The service users have to 
+provide the following:
+
+\arg Name
+\arg Name and Attributes
+\arg Attributes 
+
+The service users can also query the entire mapping of service Name to Object Reference using the clNameToObjectMappingGet()function. This function returns all the matching records. clNameToObjectMappingGet() returns the following:
+
+\arg Name
+\arg Object Reference
+\arg Attributes (if specified)
+
+The mapping returned can be freed using the clNameObjectMappingCleanup() function. 
+
+*/
+ 
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup name_usage API Usage Examples
+ *  \brief Code Examples.
+ *  \ingroup name
+ *
+ *  Code Example with comments:
+ *  \code
+ * 
+ *  // There are two default contexts there, either name can be registered
+ *  // under the existing contexts or the user can create their own context
+ *  // by following the following code snippet.
+ *
+ *  // global context, for local context CL_NS_USER_LOCAL 
+ *  ClNameSvcContextT  contextType = CL_NS_USER_GLOBAL; 
+ *
+ *  // any number other than CL_NS_DEFT_GLOBAL_MAP_COOKIE and 
+ *  // CL_NS_DEFT_LOCAL_MAP_COOKIE as they meant for DEFAULT cookies.
+ *  ClUint32T          contextMapCookie = 100; 
+ *  ClUint32T          contextId        = 0;
+ * 
+ *  // the returned context id will be used to register Names under that
+ *  // particular context
+ *  rc = clNameContextCreate(contextType, contextMapCookie, &contextId);
+ *  if( \c CL_OK != rc )
+ *  {
+ *    /* Error returned, take appropriate action */
+ *  }
+ *  
+ *  // Register a name under the created context
+ *  ClNameSvcRegisterT  regInfo = {0};
+ *  ClUint64T           objRef  = 0;
+ *
+ *  rc = clNameRegister(contextId, &regInfo, &objRef)
+ *  if( \c CL_OK != rc )
+ *  {
+ *    // Error returned, take appropriate action 
+ *  }
+ *  
+ *  // Given a name, getting the registered object reference from NameServer.
+ *  ClNameT  name = {0}; // this should be filled with the specified name 
+ *  ClNameSvcAttrEntryT  attr = {0}; // attributes if any 
+ *  ClUint32T            contextMapCookie = 101; //context map cookie 
+ * 
+ *  rc = clNameToObjectReferenceGet(&name, 0, &attr, contextMapCookie, 
+ *                                   &objRef);
+ *  if( \c CL_OK != rc )
+ *  {
+ *     // Error returned, take appropriate action
+ *  }
+ *  ClNameT  name = {0}; // this should be filled with the specified name 
+ *  ClNameSvcAttrEntryT  attr = {0}; // attributes if any 
+ *  ClUint32T            contextMapCookie = 101; //context map cookie 
+ *  ClNameSvcEntryPtrT   outBuf = {0}; // this will be carrying mapping variable 
+ *
+ *  rc = clNameToObjectMappingGet(&name, 0, &attr, ctxMapCookie, &outBuf);
+ *  if( \c CL_OK != rc )
+ *  {
+ *    // Error returned, take appropriate action 
+ *  }
+ * 
+ *  // Deregister all the names registered by particular component. 
+ *  ClUint32T  compId = YYY; // component id of the component.
+ *  rc = clNameComponentDeregister(compId);
+ *  if( \c CL_OK != rc )
+ *  {
+ *   // Error returned, take appropriate action
+ *  }
+ *
+ *  //Deregister a particular service 
+ *  rc = clNameServiceDeregister(contextId, compId, &serviceName);
+ *  if( \c CL_OK != rc )
+ *  {
+ *    // Error returned, take appropriate action
+ *  }
+ *
+ *  // Delete the context while finalizing the system.
+ *  ClUint32T contextId = 0; // contextId of the contex to be created.
+ *  rc = clNameContextDelete(contextId);
+ *  if( CL_OK != rc )
+ *  {
+ *    //Error returned, take appropriate action
+ *  }
+ *
+ *  \endcode 
+ */
+
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup name_error Error/Return Codes
+ *  \brief Common and Component specific Error Codes.
+ *  \ingroup name
+ *
+ *  The majority of ASP API functions return a <b>Return Code</b> as their return value. 
+ *  A zero return code (CL_OK) always indicates success. Non-zero return codes 
+ *  always carry two types of information, masked into one single value: 
+ *  a <b>Component Identifier</b> and an <b>Error Code</b>. The component 
+ *  identifier identifies the component (or software layer) in which the problem 
+ *  occurred, while the error code describes the nature of the problem. 
+ *  Some error codes are common across all components, while others are 
+ *  component specific. 
+ *
+ *  The format of the Return Codes is 0xCCNNNN (given in hex),
+ *  where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ *
+ *  \note <b>Only the Error Codes are listed as Return values 
+ *  in the Function Documentation of the API Reference pages. The real 
+ *  return value also contains the Component Identifier!</b> 
+ *
+ *  The following links are useful while interpreting Name Service 
+ *  generated return codes:
+ *  - \ref apirefs_errorcodes_compid_CL_CID_NS "Name Service Component Identifier"
+ *  - \ref apirefs_errorcodes_common
+ *  - \ref apirefs_errorcodes_name
+ *
+ *  For further details and information about all error/return codes visit 
+ *  page \ref apirefs_errorcodes.
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup name_apis API Reference Pages
+ *  \brief Defines, Structures, Typedefs, Functions.
+ *  \ingroup name
+ */
+
+//-----------------------------------------------------------
+
+/**
+
+\defgroup name_glossary Glossary
+\brief Glossary of Name Service Terms.
+\ingroup name
+
+\par Name Service 
+ASP Service that stores the Name to Object Reference mapping and provides the facility to query the same.
+
+\par Service provider
+
+\par Service user
+
+\par Object 
+Object can be any service or resource. 
+
+\par Object Name 
+A string that is one of the unique identifiers for an object.
+
+\par Object Reference 
+A reference to a particular object. It can be the logical address, resource ID, and so on.
+
+\par Context
+ A set of Name Service entries.
+
+\par Local Context 
+A set of mappings of node local services. 
+
+\par Global Context
+ A set of mappings of global services. 
+
+\par Name Service Client 
+Part of the Name Service linked to the user application. This provides Name Service interface to the users.
+
+\par NS Server 
+Server part of Name Service that performs the actual processing. The Name Service elements with Name clients form the Name 
+Service. 
+
+*/
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup name_aspconsole ASP Console
+ *  \brief ASP Console.
+ *  \ingroup name
+ */
+
+//-----------------------------------------------------------
+
+

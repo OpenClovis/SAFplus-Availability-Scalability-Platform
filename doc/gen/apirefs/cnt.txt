@@ -1,0 +1,266 @@
+/**
+ *  \defgroup cnt Container Service
+ *  \brief The OpenClovis Container Library provides basic data management
+ *  facilities by means of Container abstraction.
+ *
+ */
+
+//-----------------------------------------------------------
+ 
+/**
+ *  \defgroup cnt_intro Functional Description
+ *  \brief Description of the Container Service.
+ *  \ingroup cnt
+ *
+ *  The OpenClovis Container Library provides basic data management facilities 
+ *  by means of Container abstraction. It provides a common interface for all 
+ *  Container types. It provides the following functions:
+ *    \arg Adds a node to the Container.
+ *    \arg Finds a node in a Container when the key is specified.
+ *    \arg Deletes all the nodes associated with a specific key.
+ *    \arg Deletes a specific node from the Container.
+ *    \arg Returns the first node in the Container.
+ *    \arg Returns the last node in the Container.
+ *    \arg Returns the previous node in the Container.
+ *    \arg Returns the next node in the Container.
+ *    \arg Returns the number of nodes associated with a specific key.
+ *    \arg Returns the total number of nodes in the Container.
+ *
+ *  When adding data into the Container, you must specify a tuple consisting 
+ *  of key and data. The data is associated with specified key. You can 
+ *  associate multiple data with the same key. This can be done by specifying 
+ *  same key when adding data. Before any of the afore-mentioned operations 
+ *  can be performed on the Container, the Container must be created. 
+ *  Container creation is achieved through a specific Container create 
+ *  operation. Currently, the Container Library supports the following three 
+ *  types of specific Containers:
+ *    \arg Doubly Linked list
+ *    \arg Hash-table (supporting open-hashing)
+ *    \arg Red-black trees (balanced binary tree)
+ *
+ *  It is important to realize that by using the Container abstraction, you can
+ *  switch Containers without having to rewrite a significant section of their 
+ *  code. Only the Container creation call needs to be changed appropriately. 
+ *  This is explained further with an example in a later section. This document
+ *  contains the definitions and function prototypes for the Container Library.
+ *
+ * \section cnt_intro_1 Interaction with other components
+ *  Container APIs depend on the Heap utility for memory 
+ *  allocation and deallocation.
+ *
+ * 
+ */
+
+//-----------------------------------------------------------
+
+/**
+ * \defgroup cnt_usage API Usage Examples
+ * \brief Code Examples.
+ * \ingroup cnt
+ * 
+ * The Container library is used as a repository of data.
+ * The following scenarios can be used to perform various functions with 
+ * a linked list Container:
+ *
+ * \code 
+ *
+ * //A simple key compare function for integer keys, that returns an integer. 
+ * //The signature of a key compare function should be as shown below.
+ *
+ * int KeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
+ * {
+ *   return (key1 - key2);
+ * }
+ *
+ * //A simple delete callback function which frees the memory I allocate
+ *
+ * void myDeleteCallback(ClCntKeyHandleT key, ClCntDataHandleT userData)
+ * {
+ *    void *ptr = (void *)userData;
+ *    free(ptr);
+ * }
+ *
+ * //A simple hash function for integer keys, that returns the hash value. 
+ * //The signature of a hash function should be as shown below.
+ *
+ * int
+ * HashFunction(ClCntKeyHandleT key)
+ * {
+ *   return (key % NUMBER_OF_BUCKETS);
+ * }
+ *
+ * \endcode 
+ *
+ * \code 
+ * 
+ *    ClCntHandleT Container Handle;
+ *
+ *    ClCntNodeHandleT nodeHandle;
+ *
+ *    void* key = XXXX; //  user key can be of any type.
+ *
+ *    void* data = malloc(10); // this may be any user data type.
+ * 
+ *    int retCode;
+ *
+ *    //The create API accepts the first argument as a pointer to the 
+ *    //key compare function, the second argument is a pointer to the 
+ *    //delete callback function, third is a pointer to the destroy 
+ *    //callback function
+ *
+ *    if (clCntLlistCreate(KeyCompare, myDeleteCallback, myDeleteCallback, 
+ *        CL_CNT_NON_UNIQUE_KEY, &containerHandle) != CL_OK){
+ *          //Container creation failed
+ *          //containerHandle will be equal to 0
+ *    }
+ *
+ *    retCode = clCntNodeAdd(containerHandle, key, data, NULL); 
+ *
+ *    if(retCode != CL_OK){
+ *           //the API has failed to add the node
+ *    }
+ *
+ *   if( clCntNodeFind(containerHandle, key, &nodeHandle) != CL_OK)
+ *   {
+ *       //Node with specified key was not found;
+ *       //nodeHandle will be equal to 0
+ *   }
+ *   else { 
+ *
+ *     //If a node with specified key is found, use following API to 
+ *     //retrieve data from the node.      
+ *
+ *     retCode = clCntNodeUserDataGet(containerHandle, nodeHandle, &data); 
+ *     
+ *     if (retCode != CL_OK){
+ *           //API has failed to retrieve the user data from the node.
+ *     }
+ *
+ *     //Use the below API to get the user Key associated with the node.
+ *
+ *     retCode = clCntNodeUserKeyGet(containerHandle, nodeHandle, &key); 
+ *     
+ *     if(retCode != CL_OK){
+ *          //API has failed to get the key from node. 
+ *     }
+ *
+ *     //Use the below API to delete all the data associted with  
+ *     //a key from the Container 
+ *
+ *     retCode = cclKeyDelete(containerHandle, key);
+ *     
+ *     if(retCode != CL_OK){
+ *          //API has failed to delete the node from Container .
+ *     }
+ *   }
+ * \endcode
+ *
+ * Use the following scenario to traverse through the Container .
+ *  
+ * \code
+ *   ClCntHandleT containerHandle;
+ *
+ *   ClCntNodeHandleT nodeHandle;
+ *
+ *   unsigned int key = XXXX; //user key should be unsigned int.
+ *
+ *   void* data = YYYYYY; // this may be any user data type.
+ *
+ *   int retCode;
+ *
+ *   // Inorder to traverse to the 100th node in the Container 
+ *
+ *   if(clCntFirstNodeGet(containerHandle, &nodeHandle) != CL_OK){
+ *      //API failed to get the first node
+ *   }
+ *
+ *   for(i = 0; i < 100; i++)
+ *
+ *   {
+ *      if(clCntNextNodeGet(containerHandle,nodeHandle,&nodeHanlde)
+ *                                != CL_OK){
+ *                    //no next node exists
+ *                    //take appropriate action
+ *                    break;
+ *      }
+ *   }
+ * 
+ *   // To get the 100th node's key and/or data 
+ *   // need the following scenario.
+ *
+ *   if(nodeHandle !=0){
+ *
+ *	    retCode = clCntNodeUserDataGet(containerHandle, 
+ *                                     nodeHandle, &data);
+ *      if(retCode != CL_OK){
+ *                  //API failed to get the data from node.
+ *      }
+ *
+ *	    retCode = clCntNodeUserKeyGet(containerHandle, 
+ *                                    nodeHandle, &key);
+ *      if(retCode != CL_OK){
+ *              //API failed to get the key from node.
+ *      }
+ *
+ *   }
+ *
+ *   // To taraverse in backward direction upto 100 elements.
+ *
+ *	 clCntLastNodeGet(containerHandle, &nodeHandle);
+ *
+ *   for ( i = 0; i < 100; i++)
+ *   {
+ *      clCntPreviousNodeGet(containerHandle,nodeHandle, 
+ *                           &nodeHandle);
+ *	 
+ *      if(nodeHankle == 0){
+ *         break;
+ *      }
+ *   }
+ *
+ * \endcode
+ *
+ */ 
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup cnt_error Error/Return Codes
+ *  \brief Common and Component specific Error Codes.
+ *  \ingroup cnt
+ *
+ *  The majority of ASP API functions return a <b>Return Code</b> as their return value. 
+ *  A zero return code (CL_OK) always indicates success. Non-zero return codes 
+ *  always carry two types of information, masked into one single value: 
+ *  a <b>Component Identifier</b> and an <b>Error Code</b>. The component 
+ *  identifier identifies the component (or software layer) in which the problem 
+ *  occurred, while the error code describes the nature of the problem. 
+ *  Some error codes are common across all components, while others are 
+ *  component specific. 
+ *
+ *  The format of the Return Codes is 0xCCNNNN (given in hex),
+ *  where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ *
+ *  \note <b>Only the Error Codes are listed as Return values 
+ *  in the Function Documentation of the API Reference pages. The real 
+ *  return value also contains the Component Identifier!</b> 
+ *
+ *  The following links are useful while interpreting Container Service 
+ *  generated return codes:
+ *  - \ref apirefs_errorcodes_compid_CL_CID_CNT "Container Service Component Identifier"
+ *  - \ref apirefs_errorcodes_common
+ *
+ *  For further details and information about all error/return codes visit 
+ *  page \ref apirefs_errorcodes.
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup cnt_apis API Reference Pages
+ *  \brief Defines, Structures, Typedefs, Functions. 
+ *  \ingroup cnt
+ */
+
+//-----------------------------------------------------------
+

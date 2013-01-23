@@ -1,0 +1,666 @@
+/**
+ *  \defgroup rmd Remote Method Dispatch
+ *  
+ *  OpenClovis ASP is a distributed system with many redundant servers. 
+ *  These servers interact with each other to provide the required services 
+ *  to the applications. The servers can be individual processes executing 
+ *  in separate address spaces. The interaction is possible, if an efficient 
+ *  and effective means of communication exists between these servers. 
+ *  Remote Procedure Call (RPC) mechanism is often used to enable communication
+ *  between processes existing in different address spaces. 
+ *
+ *  The OpenClovis Remote Method Dispatch (RMD), implements RPC semantics 
+ *  using synchronous and asynchronous methods. RMD transparently invokes 
+ *  methods exported by various objects. The objects on which a method is 
+ *  invoked can exist locally or on a remote blade. RMD supports both 
+ *  synchronous and asynchronous calls. The latter includes calls with and 
+ *  without return information. Signature check and version check is performed
+ *  at run-time as part of the RMD call. At-most-once semantics ensures that 
+ *  the request is never executed more than once by the service provider. 
+ * 
+ *  RMD calls can fail due to reasons beyond the semantics of the operation. 
+ *  Some of the possible causes include link failure, component failure, and
+ *  communication overload. These errors are handled by the RMD and the error 
+ *  handlers registered by the application.
+ */
+ 
+/**
+ *  \defgroup rmd_intro Functional Description
+ *  \brief Description of RMD
+ *  \ingroup rmd
+ * 
+ */
+
+/**
+ *  \defgroup rmd_usage API Usage Examples
+ *  \brief Code Examples
+ *  \ingroup rmd
+ * 
+ */
+
+/**
+ *  \defgroup rmd_error Error/Return Codes
+ *  \brief Common and Component specific Error Codes.
+ *  \ingroup rmd
+ *
+ *  The majority of ASP API functions return a <b>Return Code</b> as their return value. 
+ *  A zero return code (CL_OK) always indicates success. Non-zero return codes 
+ *  always carry two types of information, masked into one single value: 
+ *  a <b>Component Identifier</b> and an <b>Error Code</b>. The component 
+ *  identifier identifies the component (or software layer) in which the problem 
+ *  occurred, while the error code describes the nature of the problem. 
+ *  Some error codes are common across all components, while others are 
+ *  component specific. 
+ *
+ *  The format of the Return Codes is 0xCCNNNN (given in hex),
+ *  where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ *
+ *  \note <b>Only the Error Codes are listed as Return values 
+ *  in the Function Documentation of the API Reference pages. The real 
+ *  return value also contains the Component Identifier!</b> 
+ *
+ *  The following links are useful while interpreting RMD 
+ *  generated return codes:
+ *  - \ref apirefs_errorcodes_compid_CL_CID_RMD "RMD Component Identifier"
+ *  - \ref apirefs_errorcodes_common
+ *
+ *  For further details and information about all error/return codes visit 
+ *  page \ref apirefs_errorcodes.
+ */
+
+/**
+ *  \defgroup rmd_apis API Reference Pages
+ *  \brief Defines, Structures, Typedefs, Functions 
+ *  \ingroup rmd
+ */
+
+//-----------------------------------------------------------
+//-----------------------------------------------------------
+
+/**
+
+\addtogroup rmd_intro
+\brief Description of RMD
+ 
+\section rmd_intro_1 Overview
+
+The OpenClovis Remote Method Dispatch (RMD) is the foundation on which all
+OpenClovis ASP client APIs are implemented. It implements remote procedure call semantics using synchronous and asynchronous methods. The infrastructure of RMD transparently invokes methods exported by various objects, irrespective of whether the object on which the method is invoked exists locally or is on a remote blade.
+ 
+RMD supports both synchronous and asynchronous calls. The latter includes calls with and without return information. Signature and/or version check is performed run-time as part of the call. One semantic ensures that even in case of link failures, the request is never executed more than once by the service (API) provider.
+ 
+RMD calls can fail due to reasons beyond the semantics of the actual operation. Some of the possible causes include link failure, component failure, and communication overload. These errors are automatically handled by the RMD layer and acted upon by the respective error handlers registered by the application.
+
+\section rmd_intro_2 Interaction with other components
+ 
+For making any RMD call user application needs to be EOnized.
+It uses the functionality provided by the IOC for sending the
+RMD request to the destination and receiving the reply.
+It uses the basic functionality for buffer management and
+timer services provided by the corresponding components.
+ 
+For all the OS resources, RMD uses the OSAL layer.
+
+\section rmd_intro_3 Usage Model
+
+When an object requires the service of another object, it needs to call that particular object. This call is trapped by the RPC mechanism, which sends the
+parameters of the call to the destination object across the network. The RPC mechanism receives the parameters and calls the relevant function residing 
+on the destination server. This function executes in the address space of the destination and returns the control (and parameters) to the RPC mechanism, 
+on the server at the destination. 
+This return result is returned to the RPC mechanism at the client (caller). 
+The caller's RPC returns the result to the caller, that continues as if it 
+returned from a normal (local) function call.
+The RMD is built on the same mechanism as the RPC. The RMD mechanism uses the OpenClovis IOC protocol as the transport layer for communication and enables communication between components (processes). IOC is responsible for the transportation of packets across servers. A component is the unit of 
+execution of ASP and it is equivalent to a process in many ways.
+
+\image html  rmd.png "Communication Based on RMD"
+\image latex rmd.png "Communication Based on RMD" width=\textwidth
+
+*/
+ 
+//-----------------------------------------------------------
+
+/**
+\addtogroup rmd_usage
+\brief Code Examples
+
+The recommended way to use RMD is to generate the code throught IDE (refer
+IDE User Guide). The code thus generate works irrespective of the
+architecture as the arguments are marshalled at sender side and
+unmarshalled on receiver side using the XDR library.
+
+If there is a need to use RMD Library directly we have below various
+examples to illustrate the usage of RMD. There are various possibilities
+with the many flags and options available with RMD. We cover the
+recommended way to use RMD in the examples.
+
+The communication parties have a client-server relationship. The server
+exposes certain services in conjunction with the Exectuion Object (EO)
+infrastructure. The client tries to execute these services either locally
+or remotely.
+
+The two modes - syncrhonous and asynchronous calls can be made with or
+without reply from the client. The four combinations explained are:
+     - Synchronous Rmd without reply
+     - Synchronous Rmd with reply
+     - Asynchronous Rmd without reply
+     - Asynchronous Rmd with reply
+
+<b>Server Side:</b>
+
+For the client to make a RMD call the server should expose the services as
+illustrated below:
+
+A typical service provided by an EO (RMD server here) will look as below:
+
+\code
+static ClRcT  clRmdServiceExposedByServer(ClEoDataT data, 
+                                          ClBufferHandleT  inMsgHandle,
+                                          ClBufferHandleT  outMsgHandle)
+{
+    ClRcT rc = CL_OK;
+
+    ClUint32T inMsgLength = 0;
+    ClUint8T *pInData = NULL;
+
+    rc = clBufferLengthGet(inMsgHandle, &inMsgLength);
+    if (CL_OK != rc)
+    {
+        clOsalPrintf("clBufferLengthGet() failed, rc[%#X]", rc);
+        goto failure;
+    }
+
+    rc = clBufferFlatten(inMsgHandle, &pInData); 
+    // alternatively clBufferNBytesRead() can be used with an allocated 
+    // memory
+
+    if (CL_OK != rc)
+    {
+        clOsalPrintf("clBufferFlatten() failed, rc[%#X]", rc);
+        goto failure;
+    }
+
+    // The service code will recide here. When the processing is 
+    // complete the application(server) may want to populate the
+    // outMsgHandle as desired.
+
+    clOsalPrintf("\nRmd Request being processed...\n\n");
+    
+    rc = clBufferNBytesWrite(outMsgHandle, pInData, inMsgLength);
+    {
+        clOsalPrintf("clBufferNBytesWrite() failed, rc[%#X]", rc);
+        goto buffer_flatten;
+    }
+
+buffer_flatten:
+    clHeapFree(pInData); // Free the buffer from clBufferFlatten()
+
+failure:
+    return rc;
+}
+\endcode
+
+Many such services as above can be installed into the native table of EO
+(RMD server) as illustrated below. The serviceTable needs to be populated
+with all the services that need to be exposed and then installed via the
+call - clEoClientInstall() during the initialize as described further
+below:
+
+\code
+static ClEoPayloadWithReplyCallbackT serverFuncList[] = {
+    NULL,
+    clRmdServiceExposedByServer,    /*  Service ID   0x1 */
+    
+    // List of all the services exposed by the server
+    // which can be referenced using the index in the
+    // service table - serverFuncList[].
+     
+};
+\endcode
+
+The native table (or any other client table) is installed as illustrated
+below. These calls usually reside in the clCompAppInitialize() callback
+registered in the clEoConfig structure of the EO.
+
+\code
+static ClRcT clRmdServerInit(void)
+{
+    ClRcT rc = CL_OK;
+    ClEoExecutionObjT *pEoObj = NULL;
+
+    rc = clEoMyEoObjectGet(&pEoObj);
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clEoMyEoObjectGet() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clEoClientInstall(pEoObj, CL_EO_NATIVE_COMPONENT_TABLE_ID,
+                           serverFuncList, 0,
+                           CL_SIZEOF_ARRAY(serverFuncList));
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clEoClientInstall() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+failure:
+    return rc;
+}
+\endcode
+
+The uninstall of the native table is done as illustrated below. Such calls
+reside in the clCompAppTerminate() registered with the Component Manager
+(CPM).
+
+\code
+static ClRcT clRmdServerExit(void)
+{
+    ClEoExecutionObjT *eoObj;
+    ClRcT rc = CL_OK;
+
+    clOsalPrintf("inside function %s\n", __FUNCTION__);
+    rc = clEoMyEoObjectGet(&eoObj);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    clEoClientUninstall(eoObj, CL_EO_USER_CLIENT_ID_START);
+    clOsalPrintf("exiting function %s\n", __FUNCTION__);
+    return CL_OK;
+}
+\endcode
+
+<b>Client Side:</b>
+
+One of the simpler ways to invoke an RMD is to make a synchronous call
+with the default flags but we strongly recommend using
+CL_RMD_CALL_NON_PERSISTENT flag to avoid any unnecessary duplication of
+buffers (which is the default) unless the inMsgHandle needs to be re-used.
+Care should be taken in releasing the resources allocated like the
+outMsgHandle which is not applicable in this case.
+
+\code
+static ClRcT clRmdSyncWithoutReply(void)
+{
+    ClRcT rc = CL_OK;
+
+    ClIocAddressT destAddr = {{0}};
+    // Remote Procedure to be invoked
+    ClUint32T funcId = 
+        CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID,0x1); 
+
+    ClBufferHandleT inMsgHandle = 0; 
+    ClBufferHandleT outMsgHandle = 0;
+
+    ClUint32T flags = CL_RMD_CALL_NON_PERSISTENT; 
+
+    ClRmdOptionsT rmdOptions = CL_RMD_DEFAULT_OPTIONS;
+
+    ClUint8T inArguments[] = 
+        "The bytestream of arguments to be passed to dest "
+        "(marshalled if necessary to make endian neutral)";
+
+    // Update the destination address 
+
+    // If destination(server) is on the same node
+    destAddr.iocPhyAddress.nodeAddress = clIocLocalAddressGet(); 
+    // Well known destionation(server) port
+    destAddr.iocPhyAddress.portId = 0x3100;
+
+    rc = clBufferCreate(&inMsgHandle);
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clBufferCreate() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clBufferNBytesWrite(inMsgHandle,
+            (ClUint8T *) &inArguments,
+            sizeof(inArguments));
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clBufferNBytesWrite() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clRmdWithMsg(destAddr, funcId, inMsgHandle,
+            outMsgHandle, flags, &rmdOptions,
+            NULL);
+    if (rc != CL_OK)
+    {
+        clOsalPrintf("clRmdWithMsg() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    clOsalPrintf("*******************************************************\n");
+    clOsalPrintf("***************** Sync RMD Succeeded ******************\n");
+    clOsalPrintf("*******************************************************\n");
+
+    // Nothing to free - inMsgHandle had to be freed here if 
+    // CL_RMD_CALL_NON_PERSISTENT wasn't set. But that is discouraged 
+    // unless inMsgHandle needs to be re-used which is rare.
+
+failure:
+    return rc;
+}
+\endcode
+
+If the application is interested in the response from the server  then it
+has to create a buffer - outMsgHandle to hold the data the server wants to
+send back. This buffer needs to be deleted soon after the call when it is
+no longer being used.
+
+\code
+static ClRcT clRmdSyncWithReply(void)
+{
+    ClRcT rc = CL_OK;
+
+    ClIocAddressT destAddr = {{0}};
+    // Remote Procedure to be invoked
+    ClUint32T funcId = 
+       CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID,0x1); 
+
+    ClBufferHandleT inMsgHandle = 0; 
+    ClBufferHandleT outMsgHandle = 0;
+
+    ClUint32T flags = CL_RMD_CALL_NEED_REPLY | CL_RMD_CALL_NON_PERSISTENT; 
+
+    ClRmdOptionsT rmdOptions = CL_RMD_DEFAULT_OPTIONS;
+
+    ClUint8T inArguments[] = 
+        "The bytestream of arguments to be passed to dest "
+        "(marshalled if necessary to make endian neutral)";
+
+    ClUint8T *pReturnData = NULL;
+
+    // Update the destination address 
+
+    // If destination(server) is on the same node    
+    destAddr.iocPhyAddress.nodeAddress = clIocLocalAddressGet(); 
+    // Well known destionation(server) port
+    destAddr.iocPhyAddress.portId = 0x3100; 
+
+    rc = clBufferCreate(&inMsgHandle);
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clBufferCreate() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clBufferCreate(&outMsgHandle);
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clBufferCreate() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clBufferNBytesWrite(inMsgHandle,
+            (ClUint8T *) &inArguments,
+            sizeof(inArguments));
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clBufferNBytesWrite() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clRmdWithMsg(destAddr, funcId, inMsgHandle,
+            outMsgHandle, flags, &rmdOptions,
+            NULL);
+    if (rc != CL_OK)
+    {
+        clOsalPrintf("clRmdWithMsg() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clBufferFlatten(outMsgHandle, &pReturnData);
+    if (CL_OK != rc)
+    {
+        clOsalPrintf("clBufferMessageNBytesRead() Failed, rc[%#X]\n", rc);
+        goto rmd_success;
+    }
+
+    clOsalPrintf("*******************************************************\n");
+    clOsalPrintf("***************** Sync RMD Succeeded ******************\n");
+    clOsalPrintf("*******************************************************\n");
+    clOsalPrintf("  Data Returned : [%s]\n", pReturnData);
+    clOsalPrintf("*******************************************************\n");
+
+    clHeapFree(pReturnData);        // Free the memory allocated by 
+                                    // clBufferFlatten()
+
+rmd_success:
+    clBufferDelete(&outMsgHandle); // Free the out message buffer
+
+    // inMsgHandle had to be freed here if CL_RMD_CALL_NON_PERSISTENT 
+    // wasn't set. But that is discouraged unless inMsgHandle needs to 
+    // be re-used which is rare.
+
+failure:
+    return rc;
+}
+\endcode
+
+When the application just wants to notify the server with some information
+without waiting for a reply then the following mode can be used.
+
+\code
+static ClRcT clRmdAsyncWithoutReply(void)
+{
+    ClRcT rc = CL_OK;
+
+    ClIocAddressT destAddr = {{0}};
+    // Remote Procedure to be invoked
+    ClUint32T funcId = 
+        CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID,0x1); 
+    ClBufferHandleT inMsgHandle = 0; 
+    ClBufferHandleT outMsgHandle = 0;
+
+    ClUint32T flags = CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT; 
+
+    ClRmdOptionsT rmdOptions = CL_RMD_DEFAULT_OPTIONS;
+
+    ClUint8T inArguments[] = 
+        "The bytestream of arguments to be passed to dest "
+        "(marshalled if necessary to make endian neutral)";
+
+    // Update the destination address 
+
+    // If destination(server) is on the same node
+    destAddr.iocPhyAddress.nodeAddress = clIocLocalAddressGet(); 
+    // Well known destionation(server) port
+    destAddr.iocPhyAddress.portId = 0x3100; 
+
+    rc = clBufferCreate(&inMsgHandle);
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clBufferCreate() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clBufferNBytesWrite(inMsgHandle,
+            (ClUint8T *) &inArguments,
+            sizeof(inArguments));
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clBufferNBytesWrite() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clRmdWithMsg(destAddr, funcId, inMsgHandle,
+            outMsgHandle, flags, &rmdOptions,
+            NULL);
+    if (rc != CL_OK)
+    {
+        clOsalPrintf("clRmdWithMsg() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    // inMsgHandle had to be freed here if CL_RMD_CALL_NON_PERSISTENT 
+    // wasn't set. But that is discouraged unless inMsgHandle needs 
+    // to be re-used which is rare.
+
+failure:
+    return rc;
+}
+\endcode
+
+The application may want to be notified about the success of an
+asynchronous rmd call with the response data from the server. In this a
+callback such as the one below is required when invoking the call:
+
+\code
+void clRmdAsyncCallback(ClRcT rc, ClPtrT pCookie,
+        ClBufferHandleT inMsgHandle,
+        ClBufferHandleT outMsgHandle)
+{
+    ClCharT *pCallbackArg = pCookie;
+
+    ClUint8T *pReturnData = NULL;
+
+    if (CL_OK != rc) // If the Async RMD failed 
+    {
+        clOsalPrintf("Async RMD Failed, rc[%#X]\n", rc);
+        goto failure;
+    }
+
+    rc = clBufferFlatten(outMsgHandle, &pReturnData);
+    if (CL_OK != rc)
+    {
+        clOsalPrintf("clBufferMessageNBytesRead() Failed, rc[%#X]\n", rc);
+        goto failure;
+    }
+
+    clOsalPrintf("*******************************************************\n");
+    clOsalPrintf("***************** Async RMD Succeeded *****************\n");
+    clOsalPrintf("*******************************************************\n");
+    clOsalPrintf("  Data Returned : [%s]\n", pReturnData);
+    clOsalPrintf("  Cookie Supplied :   [%s]\n", pCallbackArg);
+    clOsalPrintf("*******************************************************\n");
+
+    clHeapFree(pReturnData);       // Free the memory allocated 
+                                   // by clBufferFlatten()
+
+failure:
+    clHeapFree(pCallbackArg);      // Free the memory allocated for cookie
+    clBufferDelete(&outMsgHandle); // Free the out message buffer
+
+    // inMsgHandle had to be freed here if CL_RMD_CALL_NON_PERSISTENT 
+    // wasn't set. But that is discouraged unless inMsgHandle needs to 
+    // be re-used which is rare.
+
+    return;
+}
+\endcode
+
+To make the asyncrhonous call the application needs to specify the
+callback as illustrated below in the form of asyncRmdOptions. It can also
+supply some argument which will be supplied in the callback (cookie). In
+this case care has to be taken to release the outMsgHandle in the callback
+instead of after the RMD call unless there is an error condition. The
+return code in the above callback lets the application know if the RMD
+call was successful.
+
+\code
+static ClRcT clRmdAsyncWithReply(void)
+{
+    ClRcT rc = CL_OK;
+
+    ClIocAddressT destAddr = {{0}};
+    // Remote Procedure to be invoked
+    ClUint32T funcId = 
+        CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID,0x1); 
+
+    ClBufferHandleT inMsgHandle = 0; 
+    ClBufferHandleT outMsgHandle = 0;
+
+    ClUint32T flags = CL_RMD_CALL_ASYNC | 
+                      CL_RMD_CALL_NEED_REPLY | 
+                      CL_RMD_CALL_NON_PERSISTENT; 
+
+    ClRmdOptionsT rmdOptions = CL_RMD_DEFAULT_OPTIONS;
+    ClRmdAsyncOptionsT asyncRmdOptions = {0};
+
+    ClCharT cookie[] = "User Specified Argument for the async callback";
+    ClPtrT pCallbackArg = NULL;
+
+    ClUint8T inArguments[] = 
+        "The bytestream of arguments to be passed to dest "
+        "(marshalled if necessary to make endian neutral)";
+
+    // Populate the argument to be passed to the Callback.
+
+    pCallbackArg = clHeapAllocate(sizeof(cookie));
+    if (NULL == pCallbackArg)
+    {
+        clOsalPrintf("Failed to allocate Memory\n");
+        goto failure;
+    }
+    memcpy(pCallbackArg, cookie, sizeof(cookie));
+
+    // Populate the Async RMD options.
+
+    asyncRmdOptions.fpCallback = clRmdAsyncCallback;
+    asyncRmdOptions.pCookie = pCallbackArg;
+
+    // Update the destination address 
+
+    // If destination(server) is on the same node
+    destAddr.iocPhyAddress.nodeAddress = clIocLocalAddressGet(); 
+    // Well known destionation(server) port
+    destAddr.iocPhyAddress.portId = 0x3100; 
+
+    rc = clBufferCreate(&inMsgHandle);
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clBufferCreate() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clBufferCreate(&outMsgHandle);
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clBufferCreate() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clBufferNBytesWrite(inMsgHandle,
+            (ClUint8T *) &inArguments,
+            sizeof(inArguments));
+    if(CL_OK != rc)
+    {
+        clOsalPrintf("clBufferNBytesWrite() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+    rc = clRmdWithMsg(destAddr, funcId, inMsgHandle,
+            outMsgHandle, flags, &rmdOptions,
+            &asyncRmdOptions);
+    if (rc != CL_OK)
+    {
+        clOsalPrintf("clRmdWithMsg() failed, rc[%#X]\n");
+        goto failure;
+    }
+
+failure:
+    return rc;
+}
+\endcode
+
+The above code only depicts the typical flags used. If you want to ensure
+that the invoked call is executed no more than once at the server you need
+to set the CL_RMD_CALL_ATMOST_ONCE flag. This flag is only necessary 
+only for the calls that have a side effect if invoked more than once
+and are not idempotent in nature. The buffer is held at the server so this
+flag needs to be used judiciously.
+
+The CL_RMD_CALL_NON_PERSISTENT is recommended as in most cases the
+application deletes the inMsgHandle as soon the call is invoked. Only if
+the application intends to re-use the inMsgHandle should it avoid this
+flag. In such a case the application is required to delete the inMsgHandle
+as indicated in the comments in the examples above.
+
+*/
+
+//-----------------------------------------------------------

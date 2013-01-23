@@ -1,0 +1,776 @@
+/**
+ *  \defgroup alarm Alarm Manager
+ *  \brief The OpenClovis Alarm Manager provides an infrastructure for 
+ *  configuring and handling alarms. It provides support for alarm soaking, 
+ *  masking, alarm hierarchies, retrieving previous alarm conditions, and 
+ *  correlation of the alarms before publishing. 
+ *  The appropriate actions that can be associated with the configuration
+ *  of alarms include retrieving alarm status, clearing of alarms, adding 
+ *  or deleting alarms, and enabling or disabling alarms. 
+ */
+ 
+//-----------------------------------------------------------
+ 
+/**
+
+\defgroup alarm_intro Functional Description
+\brief Description of the Alarm Management.
+\ingroup alarm
+
+The alarm is a notification of a specific event. The alarm may or may not represent an error. The application observing this event would report this as an alarm. In the ASP, the Alarm Service provides the feature of defining the set of managed resources, the alarms that can occur on those resources, alarm reporting, alarm clearing, alarm soaking and the alarm corelation.
+The ASP Alarm service enables applications to notify the north bound entity about erroneous conditions that can occur on managed resources. This service 
+is compliant with the X.733 specification. It provides the functionality to model probable cause, severity, and category compliant to X.733 (ITU-T) specification.
+/par 
+ASP Alarm service also provides filters that can be applied on the Alarm. It provides a mechanism to specify soaking time, generation rule, and suppression rule. 
+-# There can be a condition when there is a spurt of events to be reported as alarm. In order to handle this condition, there is a soaking time defined for the alarm. The soaking time is the time till which the alarm is observed before it is actually reported. 
+-# The generation rule and suppression rule are part of the alarm corelation feature. So the reporting of the alarm depends upon the status of the alarms which are part of these rules. While reporting the alarm both the rules are evaluated. In these rules, alarms are bounded by AND or OR relation.
+/par
+The usage model of the Alarm service is a producer-consumer model. Applications that raise the Alarm are the producers of the Alarms and the 
+management applications are the consumers of these Alarms. Any application can raise an Alarm, on detecting an erroneous condition on a managed resource. 
+The usage model is similar to a publisher-subscriber model because application components and the management applications are unaware of each 
+other and each Management application receives the Alarms after subscribing to the Alarm's event channel. 
+
+\section sec_alarm_intro_1 Working with Alarm Service
+
+\par Alarm Characteristics
+The mandatory parameters of X.733 specification are incorporated as part of the attributes of an Alarm. The category, probable cause, and the perceived 
+severity of the Alarm are the mandatory parameters of Alarm notification. There are five categories of Alarm and the probable cause parameter defines the 
+probable cause of the Alarm. The severity parameter defines six severity levels:  cleared, indeterminate, warning, minor, major, and critical. 
+The following table illustrates the mapping between the category and the list of probable causes of an Alarm.
+\par 
+<b>Alarm Category and Probable Cause:</b>
+- Communication
+      - Loss of signal
+      - Loss of frame
+      - Framing error
+      - Local node transmission error
+      - Remote node transmission error
+      - Call establishment error
+      - Degraded signal
+      - Communications subsystem failure
+      - Communications protocol error
+      - LAN error
+      - DTE-DCE interface error
+      .
+- Quality of service
+      - Response time excessive
+      - Queue size exceeded
+      - Bandwidth reduced
+      - Retransmission rate excessive
+      - Threshold crossed
+      - Performance degraded
+      - Congestion
+      - Resource at or nearing capacity
+      .
+- Processing Error
+      - Storage capacity problem
+      - Version mismatch
+      - Corrupt data
+      - CPU cycles limit exceeded
+      - Software error
+      - Software program error
+      - Software program abnormally terminated
+      - File error
+      - Out of memory
+      - Underlying resource unavailable
+      - Application subsystem failure
+      - Configuration or customization error
+      .
+- Equipment
+      - Power problem 
+      - Timing problem 
+      - Processor problem 
+      - Dataset or modem error 
+      - Multiplexer problem 
+      - Receiver failure 
+      - Transmitter failure
+      - Receive failure
+      - Transmit failure
+      - Output device error
+      - Input device error
+      - I/O device error
+      - Equipment malfunction
+      - Adapter error
+      .
+- Environmental 
+      - Temperature unacceptable 
+      - Humidity unacceptable
+      - Heating/ventilation/cooling system problem
+      - Fire detected
+      - Flood detected 
+      - Toxic leak detected
+      - Leak detected
+      - Pressure unacceptable
+      - Excessive vibration
+      - Material supply exhausted
+      - Pump failure
+      - Enclosure door open
+      .
+   
+\par Alarm State Definition
+This section specifies the various states of the alarm before it is actually reported as an event by the alarm server. The alarm could be a triggered after detecting an erroneous condition. When the Alarm is raised till it is reported, it goes through the following stages:
+- Alarm Raised State: The Alarm is in the raised state when the application,
+  after detecting the erroneous condition,raises the Alarm. 
+- Alarm Soaked State: After the Alarm is soaked for a certain period of time, 
+  it enters the Alarm soaked state.
+- Alarm Generated State: After the Alarm qualifies the generation rule it enters
+  the Alarm generated state. If the Alarm does not qualify the generation rule
+  because of some dependent Alarm, it remains in the soaked state till the
+  dependent Alarms are generated.
+- Alarm Masked State: If the Alarm is being masked because of the masking
+  logic, it enters into the Alarm masked state. This condition would arise :
+    - There is an alarm already raised on a managed resource which is higher in heirarchy, then
+      the alarm raised on the resource would be masked.
+    - The suppression rule is satisfied for the alarm.
+    .
+- Alarm Reported State: If the Alarm is not masked, it enters the
+  Alarm reported state.
+
+
+\par Raising an Alarm on a managed resource
+The Managed resources which would be raising the alarm are modeled as Alarm Managed Objects in the ASP. The managed resource could be hardware or software resource. The Alarms on the managed resources correspond to the probable cause attribute of the alarm managed object. 
+An application can raise an Alarm on a managed resource using the ASP Alarm service when it detects a deviation from the normal operation. 
+\par
+Alarm service also allows the application to pass additional context information when raising the Alarm. After the Alarm is successfully reported, 
+Alarm Manager returns a unique Alarm handle for the raised Alarm. This handle is useful in case of the service impacting alarms, while reporting the failure to the Availabilty Management Framework(AMF) service.
+
+\par
+<b>For example:</b> 
+An application managing a GigePort resource must follow these steps while raising an Alarm:
+-# The application can use the Alarm service by creating an Alarm MSO class 
+   for the GigePort resource.
+-# The likely Alarms that can occur on GigePort resource such as Loss of 
+   Signal (LOS) and Loss of Frame(LOF) are associated with the GigePort 
+   class while modeling. 
+-# The application managing the resource, on detecting an erroneous condition 
+   on the specific instance of the GigePort, raises an Alarm by 
+   specifying the MOID and the probable cause. 
+
+\section sec_alarm_intro_2 Alarm Filters
+The filtering mechanism provided by the Alarm service prevents spurious Alarms from flooding the Alarm Manager. It also applies constraints that an 
+Alarm must satisfy before it is reported as an Alarm. The filtering mechanism, can be classified as soaking, masking, generation, and suppression rule. 
+
+\par Soaking
+Soaking is the time duration for which the erroneous condition must persist before it is reported as an Alarm. Soaking allows an Alarm to be monitored 
+for a specific time period. 
+\par
+The following figures contain the notations "A" and "B" that implies the detection and clearing of the 
+erroneous condition, respectively.
+\par
+Figure <em>Assert Soaking Time</em> illustrates an Alarm raised for a specified assert soaking time. In case 1, the Alarm is raised and cleared within the assert soaking time. 
+Hence, the Alarm is not processed. In case 2, the Alarm stays raised, qualifies the assert soaking time, and is processed by the Alarm Manager. 
+\image html  alarm1.jpg "Assert Soaking Time" 
+\image latex alarm1.jpg "Assert Soaking Time" width=\textwidth
+\par
+Figure <em>Clear Soaking Time</em> illustrates the clearing of a raised Alarm for a specified clear soaking time. In case1, the Alarm is cleared and raised within the 
+clear soaking time and so, the Alarm is not processed. In case2, the Alarm stays cleared, qualifies the clear soaking time. Hence it is processed by 
+the Alarm Manager.
+\image html  alarm2.jpg "Clear Soaking Time"
+\image latex alarm2.jpg "Clear Soaking Time" width=\textwidth
+\par
+Soaking time is configured as per the Alarm. Two different soak periods can be configured, one for assert and the other for clear. 
+
+\par Generation and Suppression Rules
+An application can specify a generation rule to model dependencies between Alarms. 
+\par
+A generation rule specifies the following:
+- The Alarm that needs to be generated.
+- Set of dependent Alarms.
+- The condition that has to be satisfied for the Alarm to be generated. This
+  condition is specified as a logical relationship between the dependent 
+  Alarms. For example:
+  \code
+  Generation rule of A1: A1 = A2 OR A3 OR A4
+  \endcode
+  implies that Alarm A1 is in generated state, when either A2, A3 or A4 Alarms
+  are generated. 
+\par  
+A suppression rule specifies the following:
+- The Alarm that needs to be suppressed.
+- Set of dependent Alarms.
+- The condition that needs to be met for the Alarm to be suppressed.
+  This condition is specified as a logical relationship between the dependent
+  Alarms. For example: 
+  \code
+  Suppression rule of A1: A1 = A5 AND A6
+  \endcode
+  implies that Alarm A1 is in the suppressed state, when both A5 and A6 are
+  suppressed. The Alarm A1 is generated when it qualifies the generation rule
+  and when A5 or A6 is in cleared state.
+\par  
+When referring to either generation rule or suppression rule, Alarm rule is used in the general context. 
+Generation rule provides a mechanism to specify constraints on generation of Alarms. Suppression rule specifies constraints on the suppression of  
+Alarms. There can be a maximum of four Alarms in an Alarm rule. An Alarm cannot be generated 
+if it is not specified in the Alarm Generation rule. An Alarm rule can either have logical OR or logical AND operators but not both.
+
+\par Alarm Masking
+The Alarm service views the containment relationship of the Alarm MSO to implement hierarchical masking. The Alarm masking algorithm masks all Alarms of
+the same category within a subtree in the hierarchy. The Alarm masking logic is explained in the following example:
+\image html  alarm3.jpg "COR Class Tree"
+\image latex alarm3.jpg "COR Class Tree"
+An Alarm of probable cause Loss of Signal that belongs to Communication category is reported on Blade1. Alarm service then masks all Alarms of 
+Communication category on its children: Port1 and Port2 as Loss of Signal falls under the Communication category. After the Loss of Signal Alarm is
+cleared on Blade1, the masked Alarms that satisfy the hierarchical masking rule are published as Alarm notifications and the status is updated in COR.
+
+\section  sec_alarm_intro_3 Event Generation
+
+An event is published for each reported Alarm. Interested services can obtain these events by using the alarm client event subscribe API. The payload of the event consists of the Alarm information and an Alarm handle. The Alarm information comprises of probable cause, category, severity, specific problem, resource on which the Alarm was reported, Alarm State - raised or cleared, time stamp, and additional information of the Alarm. The Alarm handle is unique for every node and is also known as the Notification Identifier. The mapping of the Alarm handle to the reported Alarm is maintained in the Alarm Manager. The Alarm Service depends on the Event Service for the delivery of the event.
+
+\section  sec_alarm_intro_4 Alarm Life Cycle
+
+\par State Machine
+Figure <em>Alarm State Machine</em> illustrates the different stages of an Alarm, when the Alarm is raised till it is reported.
+-# The Alarm enters the \e raised state when an application detects an erroneous condition and raises the Alarm. A \e raised Alarm can have an 
+assert or clear status.
+-# After the Alarm is soaked it enters the \e soaked state.
+-# When the Alarm qualifies the generation rule it enters the \e generated state. This leads to generation of other Alarms dependent on this Alarm.
+If the Alarm does not qualify the generation rule, the Alarm stays in the soaked state.
+-# The Alarm is reported if the status of the Alarm is \e clear after it successfuly qualifies the generation rule, 
+-# If the status of the Alarm is \e assert after the \e generated state, the Alarm is checked against the hierarchical masking rule. If the parent MO has an Alarm of the same category, the Alarm enters the \e masked state. Otherwise, the Alarm enters the \e reported state.
+-# Alarms in the masked state move into \e reported state after the Alarm on the parent MO of the same category is cleared.
+\image html  alarm4.jpg "Alarm State Machine"
+\image latex alarm4.jpg "Alarm State Machine" width=\textwidth
+
+\section sec_alarm_intro_5 Alarm Flow
+Figure <em>Alarm Flow Sequence</em> illustrates the Alarm flow from the detection of the erroneous condition to reporting of the Alarm.
+-# The application detects the erroneous condition and raises the Alarm.
+-# Alarm client soaks the Alarm and on persistence of the erroneous condition 
+   it moves the Alarm from raised to soaked state.
+-# When the Alarm qualifies the generation rule, the Alarm client moves the
+   Alarm from the soaked state to the generated state.
+-# After the generation of the Alarm, it is passed to the Alarm server.  If the Alarm is not being masked or if the status of the Alarm is clear then the Alarm server performs the following:
+   -# Generates an unique Alarm handle.
+   -# Updates the Alarm status in COR.
+   -# Publishes an event as described in the \textit{Event Generation} section. 
+   -# Reports the Alarm to the Fault Manager if it is a non service impacting 
+      Alarm. Non service impacting Alarms are described in the next section.
+\image  html alarm5.jpg "Alarm Flow Sequence"
+\image latex alarm5.jpg "Alarm Flow Sequence" width=\textwidth
+
+
+\section sec_alarm_intro_6 Modules in Alarm Detection and Reporting
+
+\par Component Level Interaction of Alarm Manager
+The application component detects the erroneous condition and raises the Alarm. The Alarm Manager updates the status in COR only after it 
+qualifies/satisfies the generation rule. It publishes an event for this notification after the update is performed in COR. These notifications can result in a trap generated by SNMP. It reports the non service impacting Alarms to the Fault Manager.  
+\par 
+Figure <em>Alarm Flow Sequence Diagram</em> shows the component level interaction of Alarm Manager:
+-#
+The application component raises an Alarm using the API provided by the Alarm client. 
+-#
+Alarm client soaks the Alarm and after it qualifies the generation rule, sends it to Alarm Server. 
+-#
+Alarm Server performs a check if the Alarm is masked. If it is not masked, it updates the current Alarm status and time stamp in COR. The Alarm
+status indicates if it is asserted or cleared. 
+-#
+Alarm Server also publishes a notification for this Alarm.
+-#
+Alarm Server reports to the Fault Manager, if it is a non service impacting Alarm. The next section provides more information about non service impacting
+Alarms.
+\image html  alarm6.jpg "Alarm Flow Sequence Diagram"
+\image latex alarm6.jpg "Alarm Flow Sequence Diagram" width=\textwidth
+.
+
+\par Alarm Handling
+Figure <em>Alarm Handling </em> explains how service impacting and non service impacting Alarms 
+are handled. It describes the interaction between the Alarm 
+Manager(AM), Fault Manager(FM), Clovis Object Repository(COR), Availability Management Framework (AMF), application component that raises an Alarm, and 
+the management application. 
+-# 
+The application component uses the Alarm service by linking with the Alarm client. 
+-# 
+When an erroneous condition is detected, it raises an Alarm by calling the Alarm raise API provided by the Alarm client. 
+-# 
+After the Alarm satisfies the soaking time and the generation rule, it is sent to the Alarm server. 
+-# 
+Alarm server checks if the Alarm qualifies the hierarchical masking rule, updates COR, and publishes an event.
+-# 
+Alarm Server returns a unique handle called the notification identifier to the application component that raised the Alarm. The mapping of this handle to the reported Alarm is maintained in the Alarm server side. The Alarm handle is unique for every node. 
+   -# 
+    If the Alarm is a service impacting Alarm, Alarm server does not report the Alarm to the Fault Manager.
+   -# 
+    The application component calls the {\tt{saAmfComponentErrorReport}} API 
+    for service recovery and the Alarm handle is passed to AMF. After recovering
+    the service, AMF calls the Fault Manager to repair the managed resource.
+   .
+-#
+If the Alarm is a non service impacting Alarm, Alarm server reports the Alarm directly to the Fault Manager. 
+\image html  alarm7.jpg "Service Impacting and Non Service Impacting Alarms"
+\image latex alarm7.jpg "Service Impacting and Non Service Impacting Alarms" width=\textwidth
+
+*/
+ 
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup alarm_usage  API Usage Examples
+ *  \brief Code Examples.
+ *  \ingroup alarm
+ * 
+ *  \section alarm_usage_1 Alarm library life cycle functions
+ *
+ *  This section include two function which are used to initialize and
+ *  finalize the alarm client library. These are as follows:
+ *  \arg clAlarmLibInitialize()
+ *  \arg clAlarmLibFinalize()
+ * 
+ *  If the component is managing a resource having alarms, the IDE 
+ *  generated code takes care that alarm lib initialization is done 
+ *  via Execution object (EO) infrastructure. But if user wants to 
+ *  call them saperately he/she can call them as follows.
+ *
+ *  \code
+ *  ClRcT rc = CL_OK;
+ *  rc = clAlarmLibInitialize();
+ *  if(CL_OK != rc) {
+ *      //Error occurred. Take appropriate action.
+ *  }
+ *  \endcode
+ * 
+ * 
+ *  Finalizes the alarm management library.
+ *  \code
+ *  ClRcT rc = CL_OK;
+ *  rc = clAlarmLibFinalize();
+ *  if(CL_OK != rc) {
+ *      //Error occurred. Take appropriate action.
+ *  }
+ *
+ *  \endcode
+ * 
+ *  \section alarm_usage_2 Alarm Reporting 
+ *  The alarm client library implements a function which is used both to
+ *  raise and clear the alarms. One of the element of the ClAlarmInfoT structure 
+ *  passed to this function decides whether that alarm is going to be raised 
+ *  or cleared. The function call that is used to raise/clear is:
+ *  \arg clAlarmRaise(CL_IN ClAlarmInfoT *pAlarmInfo, CL_OUT ClAlarmHandleT *pAlarmHandleT)
+ *
+ *  The information about the alarm being asserted or cleared is filled in the 
+ *  instance of ClAlarmInfoT structure. The information includes the resource 
+ *  identifier (MOId), probable cause, category and severity of the alarm and 
+ *  the state of the alarm that is whether it is being asserted or cleared. 
+ *  After processing the appropriate value of the alarm, the handle is filled in the 
+ *  "pAlarmHandle" by the alarm client based on the alarm configuration.
+ *  
+ *  This example also describes about attaching payload with the alarm and 
+ *  retrieving it in the event receive callback.
+ *
+ *  \code
+ *  ClRcT _clAlarmTestAlarmRaiseTest(ClCpmHandleT cpmHandle) 
+ *  {
+ *      ClRcT           rc              =   CL_OK;
+ *      ClAlarmHandleT  alarmHandle     =   0;
+ *      ClAlarmInfoT*   pAlarmInfo      =   NULL;
+ *      ClCharT         usrBuffer []    =   "This is just an example of string buffer";
+ *      ClUint32T       size            =   0;
+ *      ClCorMOIdT      moId;
+ *      
+ *      // Fill the alarm information to raise the alarm.
+ *      rc = clCorMoIdInitialize(&moId);
+ *      if(CL_OK != rc) {
+ *          //Error occurred. Take appropriate action.
+ *          return rc;
+ *      }
+ *    
+ *      rc = clCorMoIdAppend(&moId, CLASS_CHASSIS_MO, 0);
+ *      if(CL_OK != rc) {
+ *          //Error occurred. Take appropriate action.
+ *          return rc;
+ *      }
+ *
+ *      rc = clCorMoIdAppend(&moId, CLASS_GIGEBLADE_MO, 0);
+ *      if(CL_OK != rc) {
+ *          //Error occurred. Take appropriate action.
+ *          return rc;
+ *      }
+ *    
+ *      rc = clCorMoIdServiceSet(&moId, 
+ *                               CL_COR_SVC_ID_ALARM_MANAGEMENT);
+ *      if(CL_OK != rc) {
+ *          //Error occurred. Take appropriate action.
+ *          return rc;
+ *      }
+ *      
+ *      // The component name is obtained using the CPM API. 
+ *      // This requires the CPM handle (cpmHandle), which is 
+ *      // obtained after doing CPM client initialize during EO 
+ *      // initialization.
+ *
+ *      size = strlen(usrBuffer) + 1;
+ *
+ *    	pAlarmInfo  = clHeapAllocate(sizeof(ClAlarmInfoT) + size);
+ *    	if (NULL == pAlarmInfo)  {
+ *        	//Error occurred. Take appropriate action.
+ *        	return CL_ERR_NULL_POINTER;
+ *    	}
+ *
+ *      clCpmComponentNameGet(cpmHandle, &pAlarmInfo->compName);
+ *      pAlarmInfo->moId = moId;
+ *      pAlarmInfo->alarmState = CL_ALARM_STATE_ASSERT;
+ *      pAlarmInfo->category = CL_ALARM_CATEGORY_COMMUNICATIONS;
+ *      pAlarmInfo->probCause = CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL;
+ *      pAlarmInfo->specificProblem = 0;
+ *      pAlarmInfo->len = size;
+ *
+ *    	memcpy(pAlarmInfo->buff, usrBuffer, size);
+ *
+ *    	rc = clAlarmRaise(pAlarmInfo, &alarmHandle);
+ *      if(CL_OK != rc) {
+ *          //Error occurred. Take appropriate action.
+ *          clHeapFree(pAlarmInfo);    
+ *          return rc;
+ *      }
+ *      
+ *      clHeapFree(pAlarmInfo);
+ *
+ *      // The alarm handle is returned to the client only if there is 
+ *      // no soaking enabled for this alarm, generation rule is 
+ *      // statisfied and there is no masking done for this alarm. 
+ *
+ *      return CL_OK;
+ *  }
+ *  \endcode
+ *
+ *  \section alarm_section_3  Alarm Event Subscribe
+ *  The alarm server publishes event for every successfully reported alarm. The
+ *  event is published on the global event channel, so component running on 
+ *  any other node can receive the event published on a node. For getting the
+ *  event, the component has to subscribe for them. This can be done via
+ *  calling the function:
+ *  \arg clAlarmEventSubscribe()
+ *  
+ *  The function takes a callback function as a parameter. The callback
+ *  function takes pointer to the structure ClAlarmHandleInfoT as parameter.
+ *  This structure contains information about the alarm which is being
+ *  published. The callback function is called for every event published by the 
+ *  alarm server. The usage example is as follows:
+ *  \code
+ *  // This callback function would be registered in the alarm event 
+ *  // subscribe function.
+ *  // The parameter pAlarmHdlInfo will be populated by the alarm client 
+ *  // before calling this function.
+ *  ClRcT _clAlarmEventCallbackFunc(ClAlarmHandleInfoT *pAlarmHdlInfo) 
+ *  {
+ *      ClNameT moIdName;
+ *      ClRcT   rc = CL_OK;
+ *
+ *      clprintf(CL_LOG_SEV_INFO, "The alarm handle of the alarm which is published [%d]",
+ *                   pAlarmHdlInfo->alarmHandle);
+ * 
+ *      // All the information in the pAlarmHdlInfo->alarmInfo contains 
+ *      // the user specified data which can be used based on the 
+ *      // implementation. 
+ *
+ *      rc = clCorMoIdToMoIdNameGet(&(pAlarmHdlInfo->alarmInfo.moId), &moIdName);
+ *      if (rc != CL_OK)
+ *      {
+ *          // Error occurred. Take appropriate action.
+ *          return rc;
+ *      }
+ *
+ *      if (pAlarmHdlInfo->alarmInfo.alarmState == CL_ALARM_STATE_ASSERT)
+ *      {
+ *          clprintf(CL_LOG_SEV_INFO, "Alarm is RAISED");
+ *      }
+ *      else
+ *      {
+ *          clprinf(CL_LOG_SEV_INFO, "Alarm is CLEARED");
+ *      }
+ *
+ *      clprintf(CL_LOG_SEV_INFO, "Resource Name : [%s]", moIdName.value);
+ *      clprintf(CL_LOG_SEV_INFO, "Component which raised the alarm : [%s]", 
+ *                                          pAlarmHdlInfo->alarmInfo.compName.value);
+ *      clprintf(CL_LOG_SEV_INFO, "Probable Cause : [%d]",
+ *                                          pAlarmHdlInfo->alarmInfo.probCause);
+ *      clprintf(CL_LOG_SEV_INFO, "Specific Problem : [%d]",
+ *                                          pAlarmHdlInfo->alarmInfo.specificProblem);
+ *      clprintf(CL_LOG_SEV_INFO, "Severity : [%d]",
+ *                                          pAlarmHdlInfo->alarmInfo.severity);
+ *      clprintf(CL_LOG_SEV_INFO, "Category : [%d]",
+ *                                          pAlarmHdlInfo->alarmInfo.category);
+ *      clprintf(CL_LOG_SEV_INFO, "Payload : [%s]",
+ *                                          (ClCharT *) pAlarmHdlInfo->alarmInfo.buff);
+ *      clprintf(CL_LOG_SEV_INFO, "Alarm Handle : [%d]",
+ *                                          pAlarmHdlInfo->alarmHandle);
+ *      return CL_OK;
+ *  }
+ *
+ *  // Subscribes for the events published by the alarm server. On receiving 
+ *  // the event, the callback function provided would be called after 
+ *  // populating the alarm information.
+ *  ClRcT _clAlarmEventSubscribeTest() {
+ *      ClRcT rc = CL_OK;
+ *
+ *      rc = clAlarmEventSubscribe(_clAlarmEventCallbackFunc);
+ *      if(CL_OK != rc) {
+ *      // Error occured. Take appropriate action.
+ *      }
+ *  }
+ *  \endcode
+ *
+ *  \section alarm_usage_4 Alarm Event Unsubscribe
+ *
+ *  The function is used to unsubscribe for the events published by the alarm 
+ *  server for which the subscription was done earlier using clAlarmEventSubscribe. 
+ *  After the event unsubscribe is done, the callback function registered using 
+ *  the alarm event subscribe function would not be called for any further event 
+ *  publish from the alarm server.
+ *
+ *  \code
+ *  ClRcT _clAlarmEventUnsubscribeTest() {
+ *      ClRcT rc = CL_OK;
+ *
+ *      rc = clAlarmEventUnsubscribe();
+ *      if(CL_OK != rc) {
+ *          // Error occured. Take appropriate action.
+ *      }
+ *      return rc;
+ *  }
+ *  \endcode
+ * 
+ *
+ *  \section alarm_usage_6 Packing payload information to be used by SNMP subagent
+ *
+ *  This example describes about attaching payload with the alarm which is 
+ *  used by the SNMP subagent for reporting the traps. The payload information
+ *  that need to be given in the trap has to be given in the proper format as
+ *  explained in the usage example. After providing the details, using
+ *  clAlarmUtilPayloadFlatten() function, this can be converted into flat buffer 
+ *  and passed on to the alarm raise function. The alarm server will raise the 
+ *  event for this alarm and the payload information given with the alarm will
+ *  be delivered to the alarm event-listener. For generating traps, the SNMP 
+ *  subagent listens for this event and extracts the payload information and 
+ *  sends the trap to the management station. 
+ *
+ *  The usage example providing the payload information understood by the SNMP
+ *  subagent and raising the alarm is as follows:
+ *
+ *  \code
+ *  ClRcT _clAlarmTestAlarmRaiseTest(ClCpmHandleT cpmHandle) 
+ *  {
+ *      ClRcT                   rc              = CL_OK;
+ *      ClAlarmHandleT          alarmHandle     = 0;
+ *      ClAlarmUtilPayLoadListT* pAlarmPayload  = {0};
+ *      ClAlarmInfoT*           pAlarmInfo      = NULL;
+ *      ClUint32T               size            = 0;
+ *      ClUint8T*               pBuf            = NULL;
+ *      ClCharT                 usrBuffer[]     = "This is just an example of string buffer";
+ *      ClCorMOIdT              moId;
+ *      
+ *      // Fill the alarm information to raise the alarm.
+ *      rc = clCorMoIdInitialize(&moId);
+ *      if(CL_OK != rc) {
+ *          //Error occurred. Take appropriate action.
+ *          return rc;
+ *      }
+ *    
+ *      rc = clCorMoIdAppend(&moId, CLASS_CHASSIS_MO, 0);
+ *      if(CL_OK != rc) {
+ *          //Error occurred. Take appropriate action.
+ *          return rc;
+ *      }
+ *
+ *      rc = clCorMoIdAppend(&moId, CLASS_GIGEBLADE_MO, 0);
+ *      if(CL_OK != rc) {
+ *          //Error occurred. Take appropriate action.
+ *          return rc;
+ *      }
+ *    
+ *      rc = clCorMoIdServiceSet(&moId, 
+ *                               CL_COR_SVC_ID_ALARM_MANAGEMENT);
+ *      if(CL_OK != rc) {
+ *          //Error occurred. Take appropriate action.
+ *          return rc;
+ *      }
+ *      
+ *      size = strlen(usrBuffer) + 1;
+ *
+ *      // The component name is obtained using the CPM API. 
+ *      // This requires the CPM handle (cpmHandle), which is 
+ *      // obtained after doing CPM client initialize during EO 
+ *      // initialization.
+ *      pAlarmPayload = clHeapAllocate(sizeof(ClAlarmUtilPayLoadListT));
+ *      if (pAlarmPayload == NULL) {
+ * 	    	// Error occurred. Take appropriate action.
+ *          return CL_ALARM_RC(CL_ALARM_ERR_NO_MEMORY);
+ *      }
+ *
+ *    	pAlarmPayload->numPayLoadEnteries = 1;
+ *    	pAlarmPayload->pPayload = clHeapAllocate(sizeof(ClAlarmUtilPayLoadT) *
+ *                                    pAlarmPayload->numPayLoadEnteries);
+ *
+ *      // Filling the payload infromation about a particular resource.
+ *    	clCorMoIdClone(&moId, &pAlarmPayload->pPayload[0].pMoId);
+ *    	pAlarmPayload->pPayload[0].numTlvs = 1;
+ *    	pAlarmPayload->pPayload[0].pTlv = clHeapAllocate(sizeof(ClAlarmUtilTlvT) *
+ *                                            pAlarmPayload->pPayload[0].numTlvs);
+ *      if (NULL == pAlarmPayload->pPayload[0].pTlv)  {
+ * 	    	// Error occurred. Take appropriate action.
+ *          return CL_ALARM_RC(CL_ALARM_ERR_NO_MEMORY);
+ *      }
+ *
+ *    	pAlarmPayload->pPayload[0].pTlv[0].type   = CL_COR_UINT8;
+ *    	pAlarmPayload->pPayload[0].pTlv[0].length = size;
+ *    	pAlarmPayload->pPayload[0].pTlv[0].value  = 
+ *                                    clHeapAllocate(size);
+ *    	memcpy(pAlarmPayload->pPayload[0].pTlv[0].value, 
+ *               usrBuffer, size);
+ *
+ *    	rc = clAlarmUtilPayloadFlatten(pAlarmPayload, &size, (ClUint8T **)&pBuf);
+ *    	if (CL_OK != rc) {
+ *        	//Error occurred. Take appropriate action.
+ *        	clAlarmUtilPayloadListFree(pAlarmPayload);
+ *        	return rc;
+ *    	}
+ *
+ *    	pAlarmInfo = clHeapAllocate(sizeof(ClAlarmInfoT) + size);
+ *    	if (NULL == pAlarmInfo)  {
+ *        	//Error occurred. Take appropriate action.
+ *        	clAlarmUtilPayloadListFree(pAlarmPayload);
+ *        	return CL_ERR_NULL_POINTER;
+ *    	}
+ *
+ *      clCpmComponentNameGet(cpmHandle, &pAlarmInfo->compName);
+ *    	pAlarmInfo->moId = moId;
+ *    	pAlarmInfo->alarmState = CL_ALARM_STATE_ASSERT;
+ *    	pAlarmInfo->category = CL_ALARM_CATEGORY_COMMUNICATIONS;
+ *    	pAlarmInfo->probCause = CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL;
+ *      pAlarmInfo->specificProblem = 0;
+ *    	pAlarmInfo->len = size;
+ *
+ *    	memcpy(pAlarmInfo->buff, pBuf, size);
+ *
+ *    	rc = clAlarmRaise(pAlarmInfo, &alarmHandle);
+ *      if(CL_OK != rc) {
+ *          //Error occurred. Take appropriate action.
+ *          clHeapFree(pAlarmInfo);    
+ *      	clAlarmUtilPayloadListFree(pAlarmPayLoad);
+ *      	clAlarmUtilPayloadBufFree(pBuf);
+ *          return rc;
+ *      }
+ *      
+ *      clAlarmUtilPayloadListFree(pAlarmPayLoad);
+ *      clAlarmUtilPayloadBufFree(pBuf);
+ *      clHeapFree(pAlarmInfo);
+ *
+ *      // The alarm handle is returned to the client only if there is 
+ *      // no soaking enabled for this alarm, generation rule is 
+ *      // statisfied and there is no masking done for this alarm. 
+ *      // User can use this alarm handle to report failures to AMS 
+ *      // in case of non-service impacting alarms.
+ *
+ *      
+ *      return CL_OK;
+ *  }
+ *  \endcode
+ *
+ *  Event Delivery callback function which unpacks the payload information
+ *  published with the alarm.
+ *
+ *  \code
+ *  ClRcT _clAlarmEventCallbackFunc(ClAlarmHandleInfoT *pAlarmInfo) {
+ *     ClAlarmUtilPayLoadListPtrT pAlmPayloadList = NULL;
+ *
+ *     clprint(CL_LOG_SEV_INFO, "The alarm Handle of the alarm which is published [%d] \n",
+ *                   pAlarmInfo->alarmHandle);
+ * 
+ *     // All the information in the pAlarmInfo->alarmInfo contains 
+ *     // the user specified data which can be used based on the 
+ *     // implementation. For instance user would like to call the AMF 
+ *     // fault report function saAmfComponentErrorReport() by specifying 
+ *     // the alarm handle in-order to do some fault repair action.
+ *  
+ *     // For extracting the payload which was added while raising the alarm
+ *     // (see the clAlarmRaise() for SNMP subagent usage example), 
+ *     // the following code should be
+ *     // used in the alarm event receive callback.
+ *     rc = clAlarmUtilPayLoadExtract((ClUint8T *)pAlarmInfo->alarmInfo.buff, 
+ *                             pAlarmInfo->alarmInfo.len, &pAlmPayloadList);
+ *     if (CL_OK != rc) {
+ *         // Error occurred. Take appropriate action.
+ *         return rc;
+ *     }
+ *     
+ *     clprint(CL_LOG_SEV_INFO, "The String passed while raising the alarm : [%s] \n",
+ *            pAlmPayloadList->pPayload[0].pTlv[0].value);
+ *     
+ *     clAlarmUtilPayloadListFree(pAlmPayloadList);
+ *
+ *     return CL_OK;
+ *  }
+ *  \endcode
+ *
+ *
+ *  \section alarm_usage_5 Alarm Version Verify
+ *  
+ *  This function is used to verify the version of the alarm client library
+ *  with the version that is supported. For that the user has to fill the 
+ *  version information available with the application. This will be verified 
+ *  against the supported version. In case of mismatch the highest version 
+ *  supported by the client library is updated in the version field.
+ *
+ *  \code
+ *  ClRcT _clAlarmVersionVerifyTest() {
+ *      ClRcT rc = CL_OK;
+ *      ClVersionT version = {0};
+ *
+ *      rc = clAlarmVersionVerify(&version);
+ *      if(CL_OK != rc) {
+ *          //version mismatch has occurred .
+ *      }
+ *      return rc;
+ *  }
+ *  \endcode
+ * 
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup alarm_error Error/Return Codes
+ *  \brief Common and Component specific Error Codes.
+ *  \ingroup alarm
+ *
+ *  The majority of ASP API functions return a <b>Return Code</b> as their return value. 
+ *  A zero return code (CL_OK) always indicates success. Non-zero return codes 
+ *  always carry two types of information, masked into one single value: 
+ *  a <b>Component Identifier</b> and an <b>Error Code</b>. The component 
+ *  identifier identifies the component (or software layer) in which the problem 
+ *  occurred, while the error code describes the nature of the problem. 
+ *  Some error codes are common across all components, while others are 
+ *  component specific. 
+ *
+ *  The format of the Return Codes is 0xCCNNNN (given in hex),
+ *  where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ *
+ *  \note <b>Only the Error Codes are listed as Return values 
+ *  in the Function Documentation of the API Reference pages. The real 
+ *  return value also contains the Component Identifier!</b> 
+ *
+ *  The following links are useful while interpreting Alarm Manager 
+ *  generated return codes:
+ *  - \ref apirefs_errorcodes_compid_CL_CID_ALARMS "Alarm Manager Component Identifier"
+ *  - \ref apirefs_errorcodes_common
+ *  - \ref apirefs_errorcodes_alarm
+ *
+ *  For further details and information about all error/return codes visit 
+ *  page \ref apirefs_errorcodes.
+ */
+ 
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup alarm_apis API Reference Pages
+ *  \brief Defines, Structures, Typedefs, Functions.
+ *  \ingroup alarm
+ */
+ 
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup alarm_aspconsole ASP Console
+ *  \brief ASP Console.
+ *  \ingroup alarm
+ */
+
+//-----------------------------------------------------------

@@ -1,0 +1,112 @@
+/**
+ *  \defgroup rule Rule Based Engine (RBE)
+ *  \brief The OpenClovis Rule Based Engine (RBE) provides a mechanism to create
+ *  rules to be applied to the system instance data, based on simple expressions. 
+ */
+ 
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup rule_intro Functional Description
+ *  \brief Description of RBE.
+ *  \ingroup rule
+ *
+ *  The OpenClovis Rule Based Engine (RBE) provides a mechanism to create rules
+ *  (filters) to be applied to the system instance data, based on simple expressions.
+ *  An expression consists of a mask and a value. These expressions are evaluated
+ *  on user data and a boolean value is generated for the decision process. 
+ *
+ *  For instance, RBE is used by the Event Service to support filter-based 
+ *  subscriptions. The event is published with a pattern that is matched against
+ *  the filter provided by the subscribers. Only those subscribers that match 
+ *  successfully are notified. The RBE library provides simple bit-based matching
+ *  based on the flags specified.
+ *
+ *  \section rule_intro_1 Interaction with other components
+ *  The RBE engine forms a general purpose library that can be used by any other 
+ *  software component. The RBE library does not depend on any component.
+ * 
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup rule_usage API Usage Examples
+ *  \brief Code Examples.
+ *  \ingroup rule
+ *
+ *  The RBE is used to filter or select a subset of objects from a group.
+ *  For example, group object implements "filtered walk" using RBE which
+ *  is used by EM to select qualified subscribers to an event based on
+ *  the event data. Similarly IOC provides received message filtering
+ *  using RBE.
+ *
+ *  Following are some examples on how to use the RBE functions.
+ *  Let's say that we have a message header - an array of bytes and
+ *  the RBE is used to look for a perticular pattern - viz
+ *  message from a perticular destination address and a
+ *  perticular tag.
+ *  
+ *  \code
+ *  {
+ *  ClRuleExprT* expr = clRuleExprAllocate(3);
+ *  
+ *  clRuleExprOffsetSet(expr,0);
+ *  clRuleExprMaskSet(expr,0,0xFFFFFFFF);
+ *  clRuleExprMaskSet(expr,2,0xFFFF0000);
+ *    
+ *  clRuleExprValueSet(expr,0,0xABCDABCD);
+ *  clRuleExprValueSet(expr,2,0xDEAD0000);
+ *  
+ *  Rbe expression, user data, data length = 2 32 bit units
+ *  if( clRuleExprEvaluate(expr, &msgHdr, 2) )
+ *     {
+ *        We have received a msg with ABCDABCD as the fist 4 bytes and
+ *        DEAD as the next two bytes.
+ *     }
+ *  }
+ *  \endcode
+ * 
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup rule_error Error/Return Codes
+ *  \brief Common and Component specific Error Codes.
+ *  \ingroup rule
+ *
+ *  The majority of ASP API functions return a <b>Return Code</b> as their return value. 
+ *  A zero return code (CL_OK) always indicates success. Non-zero return codes 
+ *  always carry two types of information, masked into one single value: 
+ *  a <b>Component Identifier</b> and an <b>Error Code</b>. The component 
+ *  identifier identifies the component (or software layer) in which the problem 
+ *  occurred, while the error code describes the nature of the problem. 
+ *  Some error codes are common across all components, while others are 
+ *  component specific. 
+ *
+ *  The format of the Return Codes is 0xCCNNNN (given in hex),
+ *  where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ *
+ *  \note <b>Only the Error Codes are listed as Return values 
+ *  in the Function Documentation of the API Reference pages. The real 
+ *  return value also contains the Component Identifier!</b> 
+ *
+ *  The following links are useful while interpreting RBE 
+ *  generated return codes:
+ *  - \ref apirefs_errorcodes_compid_CL_CID_RULE "RBE Component Identifier"
+ *  - \ref apirefs_errorcodes_common
+ *
+ *  For further details and information about all error/return codes visit 
+ *  page \ref apirefs_errorcodes.
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup rule_apis API Reference Pages
+ *  \brief Defines, Structures, Typedefs, Functions. 
+ *  \ingroup rule
+ */
+
+//-----------------------------------------------------------
