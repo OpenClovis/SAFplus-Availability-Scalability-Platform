@@ -96,6 +96,12 @@ extern "C" {
  */
 #define CL_CKPT_PEER_TO_PEER_REPLICA   0x80
 
+/**
+ * OpenClovis extension. To be used with CL_CKPT_PEER_TO_PEER_REPLICA flag
+ * to disable the client side cache for ckpt clients. 
+ * Use it preferably with 1+N (N > 1) hot-standby checkpoints and 
+ * CL_CKPT_PEER_TO_PEER_REPLICA option
+ */
 #define CL_CKPT_PEER_TO_PEER_CACHE_DISABLE   0x100
 
 /**
