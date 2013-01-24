@@ -1,0 +1,1289 @@
+/**
+ *  \defgroup ams Availability Management Service
+ *  \brief AMS is a software entity that provides a framework for high 
+ *  availability of applications in a system.It is responsible for
+ *  instantiating and managing all the application components in a system. It is
+ *  the primary decision making entity in the system with regard to the system
+ *  model. It describes the various software and hardware components, 
+ *  attributes, inter-dependencies, service grouping rules and policies to 
+ *  apply in the event of failure. It also escalates the fault to larger scope 
+ *  as per the pre-configured escalation policies. 
+ *
+ */
+
+//-----------------------------------------------------------
+ 
+/**
+ *  
+ *  \defgroup ams_intro Functional Description
+ *  \brief Description of AMS.
+ *  \ingroup ams
+ *  
+ *  The OpenClovis Availability Management Framework (AMF) is built with the close
+ *  association of two OpenClovis ASP components: Component Manager and Availability
+ *  Management Service (AMS). These two components work together as defined by the
+ *  Service Availability Forum. AMS is the primary decision making entity in the
+ *  system with regard to the system model.  It describes the various software and
+ *  hardware components, attributes, inter-dependencies, service grouping rules and
+ *  policies to apply in the event of failure. The CPM is the operational manager
+ *  entity and is responsible for actually managing the various life cycles, based
+ *  on configured policy and directions from the AMS.
+ *   
+ *  AMS is a software entity that provides a framework for high availability of
+ *  applications in a system. It is responsible for instantiating and managing all
+ *  the application components in a system. AMS executes configured recovery actions
+ *  on the failure of application components. It also escalates the faults to larger
+ *  scope as per the pre-configured escalation rules.
+ *  
+ *  \section sec_ams_intro_1 Functions of AMS
+ *  
+ *  AMS maintains the view of one logical cluster that comprises of several cluster
+ *  nodes. The information model maintained by AMS is in accordance with the SAF
+ *  specifications. AMS keeps track of various entities such as Node, Service Group,
+ *  Service Unit, Service Instance, Component and Component Service Instance. Please
+ *  refer to the SAF specifications to know more about the terms and definitions
+ *  associated with AMS.
+ *  
+ *  AMS stores information about attributes of the resources, their dependencies,
+ *  rules for grouping them together for providing services, their current state,
+ *  and the set of policies to be applied during failures. Using OpenClovis IDE, you
+ *  can configure the desired availability policies with AMS on how to recover in
+ *  case of failure of an application component.
+ *  
+ *  
+ *  \section sec_ams_intro_2 Availability Management Service Functions
+ *  
+ *  The Availability Management Service administrative operations are applicable to
+ *  the AMS entities. The administrative operation on an AMS entity will affect all
+ *  the contained entities. For example, locking an SU would result in all the
+ *  components belonging to that SU getting their work removed and switched over to
+ *  the standby SUs.
+ *  
+ *  The administrative operation on AMS managed entities can be performed by using
+ *  ASP Console. They can also be done by using the AMS management APIs.
+ *  Please refer to the API usage examples section demonstrating the usage of some 
+ *  of the admin APIs.
+ *  
+ *  \section sec_ams_intro_3 Availability Management Service Query Functions
+ *  
+ *  The Availability Management Service query operations are applicable to
+ *  the AMS entities. The AMS management operations can be used to get the config, 
+ *  status of AMS managed entities. It could be also used to get the containment 
+ *  information of a particular entity. Examples include getting entity config and 
+ *  status information for an SG, getting the SU list for a given SG or Node, 
+ *  getting the assigned SU list for the SG, getting assigned SI list for the SG 
+ *  or SU, component CSI list. These operations are enabled if the application 
+ *  using the management service APIs are compiled with the CL_AMS_MGMT_FUNC macro. 
+ *  Please refer to the API usage examples section demonstrating the usage of some 
+ *  of the APIs.
+ *  
+ */
+ 
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup ams_usage API Usage Examples
+ *  \brief Code Examples.
+ *  \ingroup ams
+ *
+ *  The below code snippet shows the possible AMS Entity Management
+ *  admin and query operations on the AMS entities.
+ *   
+ *  \code
+ *  #if defined (CL_AMS_MGMT_FUNC)
+ *
+ *  #include <clAmsErrors.h>
+ *  #include <clAmsMgmtClientApi.h>
+ *
+ *  ClRcT clAmsMgmtEntityTestAdminAndQueryOps(void) 
+ *  {
+ *      /*
+ *       * Initialize the AMS MGMT library interface.This function
+ *       * should be invoked before using any of the AMS Entity Management 
+ *       * routines.Callbacks arent used in this release and hence the 
+ *       * second argument to clAmsMgmtInitialize is NULL.
+ *       */
+ *      ClRcT rc=CL_OK;
+ *      ClVersionT version = { .releaseCode ='B',
+ *                             .majorVersion=1,
+ *                             .minorVersion=1,
+ *                           };
+ *                           
+ *      ClAmsMgmtHandleT amsMgmtHandle=CL_HANDLE_INVALID_VALUE;
+ *      ClAmsEntityT entity={0};
+ *      rc = clAmsMgmtInitialize(&amsMgmtHandle,NULL,&version);
+ *      if(rc != CL_OK)
+ *      {
+ *              clLogError(NULL,NULL,"AMS Mgmt Initialize failed.rc [0x%x]",rc);
+ *              return rc;
+ *      }
+ *      /*
+ *       * Assuming that the current state of the entity is UNLOCKED,
+ *       * take the entity to LOCKED_ASSIGNMENT state.This results in
+ *       * removal of work/CSI assignments on the components contained
+ *       * by the entities. In this case,we do the operation on SG
+ *       * named amsTestSG which will result in CSI remove called on 
+ *       * all components contained in amsTestSG SU's. Since there is no 
+ *       * switchover on SG, the below operation would result only in work
+ *       * removal of the components.But when performed on SU,SI,NODE-
+ *       * it would result in switchover of the components with work
+ *       * reassignments of standbys to active.
+ *       */
+ *      strncpy(entity.name.value,"amsTestSG",sizeof(entity.name.value)-1);
+ *      entity.name.length = strlen("amsTestSG")+1;
+ *      entity.type = CL_AMS_ENTITY_TYPE_SG;
+ *      rc = clAmsMgmtEntityLockAssignment(amsMgmtHandle,&entity);
+ *      if(rc != CL_OK)
+ *      {
+ *              clLogError(NULL, 
+ *                         NULL,
+ *                        "Lock assignment failed on SG [%s] with rc [0x%x]",
+ *                         entity.name.value, 
+ *                         rc);
+ *              return rc;
+ *      }         
+ *      /*
+ *       * Now take the SG to locked instantiation state.This results in
+ *       * termination of all components contained in the SU's of amsTestSG.
+ *       */
+ *      rc = clAmsMgmtEntityLockInstantiation(amsMgmtHandle,&entity);
+ *      if(rc != CL_OK)
+ *      {
+ *              clLogError(NULL,
+ *                         NULL,
+ *                        "Lock instantiation failed on SG [%s] with rc [0x%x]",
+ *                        "amsTestSG",
+ *                         rc);
+ *              return rc;
+ *      }
+ *      /*
+ *       * Now try taking amsTestSG to unlocked state.This should fail
+ *       * as we cannot take any entity directly to UNLOCKED state from
+ *       * LOCKED_I state.It has to be first taken to LOCKED_A state to
+ *       * finish instantiating the components without assigning them 
+ *       * work/CSI's. Unlocking the entity from LOCKED_A would succeed
+ *       * by assigning work/CSI's to the components.
+ *       */
+ *      rc = clAmsMgmtEntityUnlock(amsMgmtHandle,&entity);
+ *      if(rc == CL_OK)
+ *      {
+ *              clLogError(NULL,
+ *                         NULL,
+ *                        "Unlocked on SG [%s] succeeded from LOCKED_I state.",
+ *                        "amsTestSG");
+ *              return CL_AMS_RC(CL_ERR_BAD_OPERATION);
+ *      }       
+ *      /*
+ *       * If the above fails as its expected to,take it to LOCKED_A before
+ *       * unlocking the entity.
+ *       */
+ *      rc = clAmsMgmtEntityLockAssignment(amsMgmtHandle,&entity);
+ *      if(rc != CL_OK)
+ *      {
+ *              clLogError(NULL, 
+ *                         NULL,
+ *                        "Lock assignment on SG [%s] returned rc [0x%x]",
+ *                        "amsTestSG",
+ *                         rc);
+ *              return rc;
+ *      }                                
+ *      rc = clAmsMgmtEntityUnlock(amsMgmtHandle,&entity);
+ *      if(rc != CL_OK)
+ *      {
+ *              clLogError(NULL,NULL,"Unlock on SG [%s] returned rc [0x%x]",
+ *                        "amsTestSG",rc);
+ *              return rc;
+ *      }
+ *
+ *      /*
+ *       * Now demonstrate a RESTART management admin operation on SU since
+ *       * SG restarts arent supported.A restart would result in restarting 
+ *       * components contained in the SU's and reassign the same work/CSI's
+ *       * back to the components without effecting a switchover.
+ *       */
+ *      entity.type = CL_AMS_ENTITY_TYPE_SU;
+ *      strncpy(entity.name.value,"amsTestSU",sizeof(entity.name.value)-1);
+ *      entity.name.length=strlen("amsTestSU")+1;
+ *      rc = clAmsMgmtEntityRestart(amsMgmtHandle,&entity);
+ *      if(rc != CL_OK)
+ *      {
+ *              clLogError(NULL,NULL,"Restart on SU [%s] returned rc [0x%x]",
+ *                        "amsTestSU",rc);
+ *              return rc;
+ *      }
+ *      /*
+ *       * Now SHUTDOWN the SU with the SU in unlocked state.This would result
+ *       * in work/CSI removal on components contained by the SU's and
+ *       * effect a switchover of the SU with standby components getting
+ *       * work/CSI reassignments to active.
+ *       */
+ *      rc = clAmsMgmtEntityShutdown(amsMgmtHandle,&entity);    
+ *      if(rc != CL_OK)
+ *      {
+ *              clLogError(NULL,NULL,"Shutdown on SU [%s] returned rc [0x%x]",
+ *                         "amsTestSU",rc);
+ *              return rc;
+ *      }
+ * 
+ *      /* 
+ *       * AMS query functions example to fetch SG config
+ *      */
+ *      ClAmsEntityConfigT *sgConfig;
+ *      entity.type = CL_AMS_ENTITY_TYPE_SG;
+ *      strncpy(entity.name.value, "amsTestSG", sizeof(entity.name.value)-1);
+ *      entity.name.length = strlen("amsTestSG")+1;
+ *      rc = clAmsMgmtEntityGetConfig(amsMgmtHandle, &entity, &sgConfig);
+ *      if(rc != CL_OK)      
+ *      {
+ *          clLogError(NULL, NULL, "Entity get config returned [%#x]", rc);
+ *          return rc;
+ *      }
+ *      /* process the sg config and free the config*/
+ *      clHeapFree(sgConfig);
+ *      /* Now get the entity status*/
+ *      ClAmsEntityStatusT *sgStatus = NULL;
+ *      rc = clAmsMgmtEntityGetStatus(amsMgmtHandle, &entity, &sgStatus);
+ *      if(rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Entity get status returned [%#x]", rc);
+ *          return rc;
+ *      }
+ *      /* process the status info and free the status*/
+ *      clHeapFree(sgStatus);
+ *      
+ *     /* Get the SU list for the SG*/
+ *     ClAmsEntityBufferT entityBuffer = { .count = 0 };
+ *     rc = clAmsMgmtGetSGSUList(amsMgmtHandle, &entity, &entityBuffer);
+ *     if(rc != CL_OK)     
+ *     {
+ *        clLogError(NULL, NULL, "GetSGSUList returned [%#x]", rc);
+ *        return rc;
+ *     }
+ *     /* process the entity list and free the entity list*/
+ *     if(entityBuffer.entity)
+ *         clHeapFree(entityBuffer.entity);
+ *
+ *     /* get the su assigned si list*/
+ *     ClAmsSUSIRefBufferT suSIRefBuffer;
+ *     entity.type = CL_AMS_ENTITY_TYPE_SU;
+ *     strncpy(entity.name.value, "amsTestSU", sizeof(entity.name.value)-1);
+ *     entity.name.length = strlen(entity.name.value)+1;
+ *     rc = clAmsMgmtGetSUAssignedSIsList(amsMgmtHandle, &entity, 
+ *                                        &suSIRefBuffer);
+ *     if(rc != CL_OK)
+ *     {
+ *         clLogError(NULL, NULL, "SUAssignedSIList returned [%#x]", rc);
+ *         return rc;
+ *     }
+ *     /* process the entity references in the SU SI list and free the entityRef*/
+ *     clHeapFree(suSIRefBuffer.entityRef);
+ *     /*Get CSI List for the comp*/
+ *     ClAmsCompCSIRefBufferT compCSIRefBuffer;
+ *     entity.type = CL_AMS_ENTITY_TYPE_COMP;
+ *     strncpy(entity.name.value, "amsTestComp0", sizeof(entity.name.value)-1);
+ *     entity.name.length = strlen("amsTestComp0")+1;
+ *     rc = clAmsMgmtGetCompCSIList(amsMgmtHandle, &entity, &compCSIRefBuffer);
+ *     if(rc != CL_OK)
+ *     {
+ *         clLogError(NULL, NULL, "GetCompCSIList returned [%#x]", rc);
+ *         return rc;
+ *     }
+ *     /* process the comp CSI List and free the entityRef and activeComp 
+ *      * references for each CSIRef 
+ *      */
+ *     ClInt32T i;
+ *     ClUint32T size = (ClUint32T) sizeof(ClAmsCompCSIRefT);
+ *     for(i = 0; i < compCSIRefBuffer.count ; ++i)
+ *     {
+ *         ClAmsCompCSIRefT *pRef = (ClAmsCompCSIRefT*)( 
+ *            (ClInt8T*)compCSIRefBuffer.entityRef + i*size);
+ *         if(pRef->activeComp) clHeapFree(pRef->activeComp);
+ *     }
+ *     clHeapFree(compCSIRefBuffer.entityRef);
+ *
+ *      /*
+ *       * This ideally should be the last function called in your application
+ *       * once you are done using the AMS management interface.
+ *       */
+ *      rc = clAmsMgmtFinalize(amsMgmtHandle);
+ *      if(rc != CL_OK)
+ *      {
+ *              clLogError(NULL,NULL,
+ *                        "AMS Management finalize returned rc [0x%x]",rc);
+ *              return rc;
+ *      }
+ *      
+ *      clLogInfo(NULL,NULL,"Admin Test Complete");
+ *      return rc;
+ *
+ *  }
+ * #endif //CL_AMS_MGMT_FUNC
+ * \endcode
+ *
+ *
+ *  The below code snippet demonstrates dynamic HA model creation using AMS
+ *  management control APIs.
+ * 
+ *  The created model is a simple model, consisting of a node, service group
+ *  having one service instance which consists of one component service
+ *  instance. The service group protects two service units, each service unit
+ *  consisting of one component. Each of these component support one component
+ *  service instance.
+ *
+ *  In general the following is the work flow when creating dynamic HA model
+ *  using AMS management control APIs:
+ *  - Create the entity.
+ *  - Associate the relationships of the created entity with other entities
+ *    which either contain the entity or are contained within the entity.
+ *  - Call the clAmsMgmtCCBCommit() API for the above changes to reflect in 
+ *    the AMS database atomically.
+ *
+ *  \code
+ *
+ *  #include <clAmsErrors.h>
+ *  #include <clAmsMgmtClientApi.h>
+ *
+ *  /*
+ *   * Consists of three functions, clAmsMgmtTest, clAmsMgmtTestFillConfig
+ *   * and clAmsMgmtTestUnlock.
+ *   *
+ *   * The clAmsMgmtTest() is supposed to be the top level function.
+ *   */
+ *  static ClRcT clAmsMgmtTestFillConfig(ClAmsMgmtHandleT mgmtHandle,
+ *                                       ClAmsMgmtCCBHandleT ccbHandle,
+ *                                       ClAmsEntityTypeT type,
+ *                                       const ClCharT *pBaseName)
+ *  {
+ *      ClRcT rc = CL_OK;
+ *      ClAmsEntityT entity = {0};
+ *      ClAmsEntityT targetEntity = {0};
+ *      ClAmsEntityConfigT *pEntityConfig = NULL;
+ *  
+ *      entity.type = type;
+ *      switch(type)
+ *      {
+ *          case CL_AMS_ENTITY_TYPE_SG:
+ *          {
+ *              /* 
+ *               * By default AMS populates the SG config with 2N values
+ *               */
+ *              ClAmsSGConfigT sgConfig = { {0} };
+ *              snprintf(entity.name.value, sizeof(entity.name.value), "%sSG", pBaseName);
+ *              entity.name.length = strlen(entity.name.value)+1;
+ *              
+ *              rc = clAmsMgmtEntityGetConfig(mgmtHandle,
+ *                                            &entity,
+ *                                            &pEntityConfig);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SG config get returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *          
+ *              memcpy(&sgConfig, pEntityConfig, sizeof(sgConfig));
+ *              clHeapFree(pEntityConfig);
+ *              
+ *              /*
+ *               * Fill SG SI list
+ *               */
+ *              targetEntity.type = CL_AMS_ENTITY_TYPE_SI;
+ *              snprintf(targetEntity.name.value,
+ *                       sizeof(targetEntity.name.value),
+ *                       "%sSI",
+ *                       pBaseName);
+ *              targetEntity.name.length = strlen(targetEntity.name.value)+1;
+ *  
+ *              rc = clAmsMgmtCCBSetSGSIList(ccbHandle,
+ *                                           &entity,
+ *                                           &targetEntity);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SG set SI returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *              
+ *              /*
+ *               * Fill SU list
+ *               */
+ *              targetEntity.type = CL_AMS_ENTITY_TYPE_SU;
+ *              snprintf(targetEntity.name.value,
+ *                       sizeof(targetEntity.name.value),
+ *                       "%sSU0",
+ *                       pBaseName);
+ *              targetEntity.name.length = strlen(targetEntity.name.value)+1;
+ *              
+ *              rc = clAmsMgmtCCBSetSGSUList(ccbHandle,
+ *                                           &entity,
+ *                                           &targetEntity);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SG set SU returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              snprintf(targetEntity.name.value,
+ *                       sizeof(targetEntity.name.value), 
+ *                       "%sSU1",
+ *                       pBaseName);
+ *              targetEntity.name.length = strlen(targetEntity.name.value)+1;
+ *  
+ *              rc = clAmsMgmtCCBSetSGSUList(ccbHandle,
+ *                                           &entity,
+ *                                           &targetEntity);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SG set SU returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *              
+ *              /*
+ *               * Commit SG settings.
+ *               */
+ *              rc = clAmsMgmtCCBCommit(ccbHandle);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SG commit returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *          }
+ *          break;
+ *          case CL_AMS_ENTITY_TYPE_SI:
+ *          {
+ *              ClAmsSIConfigT siConfig = {{0}};
+ *              ClUint64T bitMask = 0;
+ *              
+ *              snprintf(entity.name.value,
+ *                       sizeof(entity.name.value),
+ *                       "%sSI",
+ *                       pBaseName);
+ *              entity.name.length = strlen(entity.name.value)+1;
+ *  
+ *              rc = clAmsMgmtEntityGetConfig(mgmtHandle,
+ *                                            &entity,
+ *                                            &pEntityConfig);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SI config get returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              memcpy(&siConfig, pEntityConfig, sizeof(siConfig));
+ *              clHeapFree(pEntityConfig);
+ *  
+ *              siConfig.numCSIs = 1;
+ *              siConfig.numStandbyAssignments = 1;
+ *  
+ *              bitMask |= SI_CONFIG_NUM_CSIS | SI_CONFIG_NUM_STANDBY_ASSIGNMENTS;
+ *              rc = clAmsMgmtCCBEntitySetConfig(ccbHandle,
+ *                                               &siConfig.entity,
+ *                                               &bitMask);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SI config set returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *                  
+ *              /*
+ *               * Fill SI CSI list
+ *               */
+ *  
+ *              targetEntity.type = CL_AMS_ENTITY_TYPE_CSI;
+ *              snprintf(targetEntity.name.value,
+ *                       sizeof(targetEntity.name.value),
+ *                       "%sCSI",
+ *                       pBaseName);
+ *              targetEntity.name.length = strlen(targetEntity.name.value)+1;
+ *              rc = clAmsMgmtCCBSetSICSIList(ccbHandle,
+ *                                            &entity,
+ *                                            &targetEntity);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SI set CSI returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              /*
+ *               * Commit to AMS database.
+ *               */
+ *              rc = clAmsMgmtCCBCommit(ccbHandle);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SI commit returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *          }
+ *          break;
+ *          case CL_AMS_ENTITY_TYPE_CSI:
+ *          {
+ *              ClAmsCSIConfigT csiConfig = {{0}};
+ *              ClUint64T bitMask = 0;
+ *  
+ *              snprintf(entity.name.value,
+ *                       sizeof(entity.name.value),
+ *                       "%sCSI",
+ *                       pBaseName);
+ *              entity.name.length = strlen(entity.name.value)+1;
+ *              rc = clAmsMgmtEntityGetConfig(mgmtHandle,
+ *                                            &entity,
+ *                                            &pEntityConfig);
+ *              if (rc != CL_OK)
+ *              {
+ *                  
+ *                  clLogError(NULL, NULL, "CSI config get returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *              
+ *              memcpy(&csiConfig, pEntityConfig, sizeof(csiConfig));
+ *              clHeapFree(pEntityConfig);
+ *  
+ *              /*
+ *               * Set CSI type
+ *               */
+ *              bitMask |= CSI_CONFIG_TYPE;
+ *              snprintf(csiConfig.type.value,
+ *                       sizeof(csiConfig.type.value),
+ *                       "%sType",
+ *                       entity.name.value);
+ *              csiConfig.type.length = strlen(csiConfig.type.value)+1;
+ *              rc = clAmsMgmtCCBEntitySetConfig(ccbHandle,
+ *                                               &csiConfig.entity,
+ *                                               &bitMask);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "CSI type set returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              /*
+ *               * Set CSI NVP list 
+ *               */
+ *              ClAmsCSINVPT nvp = { .paramName = { .value = "model",
+ *                                                  .length=sizeof("model") },
+ *                                   .paramValue = {.value = "twoN",
+ *                                                  .length = sizeof("twoN") },
+ *              };
+ *              clNameCopy(&nvp.csiName, &entity.name);
+ *  
+ *              rc = clAmsMgmtCCBCSISetNVP(ccbHandle,
+ *                                         &entity,
+ *                                         &nvp);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "CSI set nvplist returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *              
+ *              /*
+ *               * Commit CSI to AMS database.
+ *               */
+ *              rc = clAmsMgmtCCBCommit(ccbHandle);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "CSI ccb commit returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *          }
+ *          break;
+ *          case CL_AMS_ENTITY_TYPE_NODE:
+ *          {
+ *              ClAmsNodeConfigT nodeConfig = {{0}};
+ *  
+ *              snprintf(entity.name.value,
+ *                       sizeof(entity.name.value),
+ *                       "%sNode",
+ *                       pBaseName);
+ *              entity.name.length = strlen(entity.name.value)+1;
+ *              rc = clAmsMgmtEntityGetConfig(mgmtHandle,
+ *                                            &entity,
+ *                                            &pEntityConfig);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "NODE config get returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *              
+ *              memcpy(&nodeConfig, pEntityConfig, sizeof(nodeConfig));
+ *              clHeapFree(pEntityConfig);
+ *              
+ *              /*
+ *               * Set Node SU list with redundant SUs
+ *               */
+ *              
+ *              targetEntity.type = CL_AMS_ENTITY_TYPE_SU;
+ *              snprintf(targetEntity.name.value,
+ *                       sizeof(targetEntity.name.value),
+ *                       "%sSU1",
+ *                       pBaseName);
+ *              targetEntity.name.length = strlen(targetEntity.name.value)+1;
+ *  
+ *              rc = clAmsMgmtCCBSetNodeSUList(ccbHandle,
+ *                                             &entity,
+ *                                             &targetEntity);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "Node set SU returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *              
+ *              snprintf(targetEntity.name.value,
+ *                       sizeof(targetEntity.name.value),
+ *                       "%sSU0",
+ *                       pBaseName);
+ *              targetEntity.name.length = strlen(targetEntity.name.value)+1;
+ *  
+ *              rc = clAmsMgmtCCBSetNodeSUList(ccbHandle,
+ *                                             &entity,
+ *                                             &targetEntity);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "Node set SU returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              /*
+ *               * Commit node to AMS database.
+ *               */
+ *              rc = clAmsMgmtCCBCommit(ccbHandle);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "Node commit returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              /*
+ *               * Now load CPM config
+ *               */
+ *              ClCpmNodeConfigT cpmNodeConfig = {{0}};
+ *              ClCpmSlotInfoT slotInfo = {0};
+ *  
+ *              rc = clCpmMasterAddressGet(&slotInfo.slotId);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL,
+ *                             "CPM master get returned returned [%#x]",
+ *                             rc);
+ *                  goto out;
+ *              }
+ *  
+ *              rc = clCpmSlotInfoGet(CL_CPM_SLOT_ID, &slotInfo);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "Slot name get returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              rc = clCorMoIdToMoIdNameGet(&slotInfo.nodeMoId, 
+ *                                          &cpmNodeConfig.nodeMoIdStr);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "Slot MOID get returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              strncpy(cpmNodeConfig.nodeName,
+ *                      entity.name.value,
+ *                      sizeof(cpmNodeConfig.nodeName)-1);
+ *              clNameCopy(&cpmNodeConfig.nodeType, &entity.name);
+ *              strncpy(cpmNodeConfig.cpmType,
+ *                      "LOCAL",
+ *                      sizeof(cpmNodeConfig.cpmType)-1);
+ *  
+ *              rc = clCpmNodeConfigSet(&cpmNodeConfig);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "Node config set returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *          }
+ *          break;
+ *          case CL_AMS_ENTITY_TYPE_SU:
+ *          {
+ *              ClAmsSUConfigT suConfig = {{0}};
+ *              ClUint64T bitMask = 0;
+ *  
+ *              snprintf(entity.name.value,
+ *                       sizeof(entity.name.value),
+ *                       "%sSU0",
+ *                       pBaseName);
+ *              entity.name.length = strlen(entity.name.value)+1;
+ *  
+ *              rc = clAmsMgmtEntityGetConfig(mgmtHandle,
+ *                                            &entity,
+ *                                            &pEntityConfig);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SU config get returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              memcpy(&suConfig, pEntityConfig, sizeof(suConfig));
+ *              clHeapFree(pEntityConfig);
+ *              
+ *              /*
+ *               * Set number of components.
+ *               */
+ *              suConfig.numComponents = 1;
+ *              bitMask |= SU_CONFIG_NUM_COMPONENTS;
+ *              rc = clAmsMgmtCCBEntitySetConfig(ccbHandle,
+ *                                               &suConfig.entity,
+ *                                               &bitMask);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SU config set returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *              
+ *              snprintf(suConfig.entity.name.value,
+ *                       sizeof(suConfig.entity.name.value),
+ *                       "%sSU1",
+ *                       pBaseName);
+ *              suConfig.entity.name.length = strlen(suConfig.entity.name.value)+1;
+ *              suConfig.numComponents = 1;
+ *  
+ *              rc = clAmsMgmtCCBEntitySetConfig(ccbHandle,
+ *                                               &suConfig.entity,
+ *                                               &bitMask);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SU config set returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              /*
+ *               * Set SU comp list.
+ *               */
+ *              targetEntity.type = CL_AMS_ENTITY_TYPE_COMP;
+ *  
+ *              snprintf(targetEntity.name.value,
+ *                       sizeof(targetEntity.name.value),
+ *                       "%sComp0",
+ *                       pBaseName);
+ *              targetEntity.name.length = strlen(targetEntity.name.value)+1;
+ *  
+ *              rc = clAmsMgmtCCBSetSUCompList(ccbHandle,
+ *                                             &entity,
+ *                                             &targetEntity);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SU add comp returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              snprintf(targetEntity.name.value,
+ *                       sizeof(targetEntity.name.value),
+ *                       "%sComp1",
+ *                       pBaseName);
+ *              targetEntity.name.length = strlen(targetEntity.name.value)+1;
+ *  
+ *              rc = clAmsMgmtCCBSetSUCompList(ccbHandle,
+ *                                             &entity,
+ *                                             &targetEntity);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SU add comp returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              /* 
+ *               * Commit to AMS database.
+ *               */
+ *              rc = clAmsMgmtCCBCommit(ccbHandle);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "SU commit returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *          }
+ *          break;
+ *          case CL_AMS_ENTITY_TYPE_COMP:
+ *          {
+ *              ClAmsCompConfigT compConfig = {{0}};
+ *              ClUint64T bitMask = 0;
+ *              ClNameT supportedCSIType = { 0 };
+ *  
+ *              snprintf(entity.name.value,
+ *                       sizeof(entity.name.value),
+ *                       "%sComp0",
+ *                       pBaseName);
+ *              entity.name.length = strlen(entity.name.value)+1;
+ *  
+ *              rc = clAmsMgmtEntityGetConfig(mgmtHandle,
+ *                                            &entity,
+ *                                            &pEntityConfig);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "COMP config get returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *              
+ *              memcpy(&compConfig, pEntityConfig, sizeof(compConfig));
+ *              clHeapFree(pEntityConfig);
+ *              
+ *              bitMask |= COMP_CONFIG_CAPABILITY_MODEL |
+ *                         COMP_CONFIG_TIMEOUTS |
+ *                         COMP_CONFIG_RECOVERY_ON_TIMEOUT;
+ *  
+ *              compConfig.capabilityModel = CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY;
+ *              compConfig.timeouts.instantiate = 30000;
+ *              compConfig.timeouts.terminate = 30000;
+ *              compConfig.timeouts.cleanup = 30000;
+ *              compConfig.timeouts.quiescingComplete = 30000;
+ *              compConfig.timeouts.csiSet = 30000;
+ *              compConfig.timeouts.csiRemove = 30000;
+ *              compConfig.timeouts.instantiateDelay = 10000;
+ *              compConfig.recoveryOnTimeout = CL_AMS_RECOVERY_COMP_FAILOVER;
+ *              
+ *              bitMask |= COMP_CONFIG_SUPPORTED_CSI_TYPE;
+ *              if(compConfig.pSupportedCSITypes)
+ *                  clHeapFree(compConfig.pSupportedCSITypes);
+ *              
+ *              compConfig.numSupportedCSITypes = 1;
+ *              compConfig.pSupportedCSITypes = &supportedCSIType;
+ *              
+ *              snprintf(supportedCSIType.value,
+ *                       sizeof(supportedCSIType.value),
+ *                       "%sCSIType",
+ *                       pBaseName);
+ *              supportedCSIType.length = strlen(supportedCSIType.value)+1;
+ *              
+ *              /*
+ *               * Invoke this process with dummy as the arg.
+ *               * The executable asp_noRredundancyComp must be
+ *               * present in $ASP_BINDIR.
+ *               */
+ *              bitMask |= COMP_CONFIG_INSTANTIATE_COMMAND;
+ *              snprintf(compConfig.instantiateCommand,
+ *                       sizeof(compConfig.instantiateCommand),
+ *                       "asp_noRredundancyComp dummy");
+ *  
+ *              rc = clAmsMgmtCCBEntitySetConfig(ccbHandle,
+ *                                               &compConfig.entity,
+ *                                               &bitMask);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "Comp config set returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              /*
+ *               * Set similar config to second comp.
+ *               */
+ *              snprintf(compConfig.entity.name.value,
+ *                       sizeof(compConfig.entity.name.value),
+ *                       "%sComp1",
+ *                       pBaseName);
+ *              compConfig.entity.name.length = strlen(compConfig.entity.name.value)+1;
+ *  
+ *              rc = clAmsMgmtCCBEntitySetConfig(ccbHandle,
+ *                                               &compConfig.entity,
+ *                                               &bitMask);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "Comp config set returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *  
+ *              /* 
+ *               * Commit to AMS database.
+ *               */
+ *              rc = clAmsMgmtCCBCommit(ccbHandle);
+ *              if (rc != CL_OK)
+ *              {
+ *                  clLogError(NULL, NULL, "Comp commit returned [%#x]", rc);
+ *                  goto out;
+ *              }
+ *          }
+ *          break;
+ *          default:
+ *          {
+ *              CL_ASSERT(0);
+ *          }
+ *      }
+ *  out:
+ *      return rc;
+ *  }
+ *  
+ *  static ClRcT clAmsMgmtTestUnlock(ClAmsMgmtHandleT mgmtHandle,
+ *                                   ClAmsMgmtCCBHandleT ccbHandle,
+ *                                   const ClCharT *pBaseName)
+ *  {
+ *      ClRcT rc = CL_OK;
+ *      ClAmsEntityT entity = {0};
+ *      
+ *      /*
+ *       * Step 1 - Unlock SUs
+ *       */
+ *      entity.type = CL_AMS_ENTITY_TYPE_SU;
+ *      snprintf(entity.name.value,
+ *               sizeof(entity.name.value),
+ *               "%sSU0",
+ *               pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *  
+ *      rc = clAmsMgmtEntityLockAssignment(mgmtHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Lock assignment of SU returned [%#x]", rc);
+ *          goto out;
+ *      }
+ *  
+ *      rc = clAmsMgmtEntityUnlock(mgmtHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Unlock of SU returned [%#x]", rc);
+ *          goto out;
+ *      }
+ *  
+ *      snprintf(entity.name.value,
+ *               sizeof(entity.name.value),
+ *               "%sSU1",
+ *               pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *      
+ *      rc = clAmsMgmtEntityLockAssignment(mgmtHandle,
+ *                                         &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Lock assignment of SU returned [%#x]", rc);
+ *          goto out;
+ *      }
+ *  
+ *      rc = clAmsMgmtEntityUnlock(mgmtHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Unlock of SU returned [%#x]", rc);
+ *          goto out;
+ *      }
+ *  
+ *  
+ *      /*
+ *       * Step 2 - Unlock SI
+ *       */
+ *  
+ *      entity.type = CL_AMS_ENTITY_TYPE_SI;
+ *      snprintf(entity.name.value,
+ *               sizeof(entity.name.value),
+ *               "%sSI",
+ *               pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *      
+ *      rc = clAmsMgmtEntityUnlock(mgmtHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Unlock of SI returned [%#x]", rc);
+ *          goto out;
+ *      }
+ *  
+ *      /*
+ *       * Step 3 - Unlock SG
+ *       */
+ *  
+ *      entity.type = CL_AMS_ENTITY_TYPE_SG;
+ *      snprintf(entity.name.value,
+ *               sizeof(entity.name.value),
+ *               "%sSG",
+ *               pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *      
+ *      rc = clAmsMgmtEntityLockAssignment(mgmtHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Lock assignment of SG returned [%#x]", rc);
+ *          goto out;
+ *      }
+ *      
+ *      rc = clAmsMgmtEntityUnlock(mgmtHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Unlock of SG returned [%#x]", rc);
+ *          goto out;
+ *      }
+ *  
+ *      entity.type = CL_AMS_ENTITY_TYPE_NODE;
+ *      snprintf(entity.name.value,
+ *               sizeof(entity.name.value),
+ *               "%sNode",
+ *               pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *      
+ *      rc = clAmsMgmtEntityLockAssignment(mgmtHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Lock assignment of Node returned [%#x]", rc);
+ *          goto out;
+ *      }
+ *  
+ *      rc = clAmsMgmtEntityUnlock(mgmtHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Unlock of Node returned [%#x]", rc);
+ *          goto out;
+ *      }
+ *  
+ *  out:
+ *      return rc;
+ *  }
+ *  
+ *  ClRcT clAmsMgmtTest(void)
+ *  {
+ *      ClVersionT version = {'B', 0x01, 0x01 };
+ *      ClAmsMgmtHandleT mgmtHandle = CL_HANDLE_INVALID_VALUE;
+ *      ClAmsMgmtCCBHandleT ccbHandle = CL_HANDLE_INVALID_VALUE;
+ *      ClRcT rc = CL_OK;
+ *      const ClCharT *pBaseName = "dummyTwoN";
+ *      ClAmsEntityT entity = { 0 } ;
+ *  
+ *      rc = clAmsMgmtInitialize(&mgmtHandle, NULL, &version);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "MGMT initialize returned [%#x]", rc);
+ *          goto out;
+ *      }
+ *  
+ *      rc = clAmsMgmtCCBInitialize(mgmtHandle, &ccbHandle);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "MGMT CCB initialize returned [%#x]", rc);
+ *          goto out1;
+ *      }
+ *  
+ *      /*
+ *       * First create all the entities.
+ *       */
+ *  
+ *      entity.type = CL_AMS_ENTITY_TYPE_SG;
+ *      snprintf(entity.name.value, sizeof(entity.name.value), "%sSG", pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *  
+ *      /* Create SG */
+ *      rc = clAmsMgmtCCBEntityCreate(ccbHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "SG create returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *      
+ *      /* Create SI */
+ *      entity.type = CL_AMS_ENTITY_TYPE_SI;
+ *      snprintf(entity.name.value, sizeof(entity.name.value), "%sSI", pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *  
+ *      rc = clAmsMgmtCCBEntityCreate(ccbHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "SI create returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *  
+ *      /* Create CSI */
+ *      entity.type = CL_AMS_ENTITY_TYPE_CSI;
+ *      snprintf(entity.name.value, sizeof(entity.name.value), "%sCSI", pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *  
+ *      rc = clAmsMgmtCCBEntityCreate(ccbHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "CSI create returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *  
+ *      /* Create Node */
+ *      entity.type = CL_AMS_ENTITY_TYPE_NODE;
+ *      snprintf(entity.name.value, sizeof(entity.name.value), "%sNode", pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *  
+ *      rc = clAmsMgmtCCBEntityCreate(ccbHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Node create returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *  
+ *      /* Create 2 SUs */
+ *      entity.type = CL_AMS_ENTITY_TYPE_SU;
+ *      snprintf(entity.name.value, sizeof(entity.name.value), "%sSU0", pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *  
+ *      rc = clAmsMgmtCCBEntityCreate(ccbHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "SU create returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *      
+ *      snprintf(entity.name.value, sizeof(entity.name.value), "%sSU1", pBaseName);
+ *      rc = clAmsMgmtCCBEntityCreate(ccbHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "SU create returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *  
+ *      /* Create 2 components */
+ *      entity.type = CL_AMS_ENTITY_TYPE_COMP;
+ *      snprintf(entity.name.value, sizeof(entity.name.value), "%sComp0", pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *  
+ *      rc = clAmsMgmtCCBEntityCreate(ccbHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Component create returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *  
+ *      snprintf(entity.name.value, sizeof(entity.name.value), "%sComp1", pBaseName);
+ *      entity.name.length = strlen(entity.name.value)+1;
+ *  
+ *      rc = clAmsMgmtCCBEntityCreate(ccbHandle, &entity);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Component create returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *  
+ *      /*
+ *       * Now call clAmsMgmtCCBCommit() so that these changes will be
+ *       * reflected in the AMS database.
+ *       */
+ *      
+ *      rc = clAmsMgmtCCBCommit(ccbHandle);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "CCB commit returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *  
+ *      /*
+ *       * Required entities are created.
+ *       * Now establish the relationships between the entities.
+ *       */
+ *      rc = clAmsMgmtTestFillConfig(mgmtHandle,
+ *                                   ccbHandle,
+ *                                   CL_AMS_ENTITY_TYPE_SG,
+ *                                   pBaseName);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "SG config fill returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *  
+ *      rc = clAmsMgmtTestFillConfig(mgmtHandle,
+ *                                   ccbHandle,
+ *                                   CL_AMS_ENTITY_TYPE_SI,
+ *                                   pBaseName);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "SG config fill returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *      
+ *  
+ *      rc = clAmsMgmtTestFillConfig(mgmtHandle,
+ *                                   ccbHandle,
+ *                                   CL_AMS_ENTITY_TYPE_CSI,
+ *                                   pBaseName);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "SG config fill returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *      
+ *  
+ *      rc = clAmsMgmtTestFillConfig(mgmtHandle,
+ *                                   ccbHandle,
+ *                                   CL_AMS_ENTITY_TYPE_NODE,
+ *                                   pBaseName);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "SG config fill returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *      
+ *      
+ *      rc = clAmsMgmtTestFillConfig(mgmtHandle,
+ *                                   ccbHandle,
+ *                                   CL_AMS_ENTITY_TYPE_SU,
+ *                                   pBaseName);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "SG config fill returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *      
+ *  
+ *      rc = clAmsMgmtTestFillConfig(mgmtHandle,
+ *                                   ccbHandle,
+ *                                   CL_AMS_ENTITY_TYPE_COMP,
+ *                                   pBaseName);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "SG config fill returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *  
+ *      /*
+ *       * At this point creation of dynamic HA model is complete. Now
+ *       * invoke adminstrative operations on the newly created entities.
+ *       */
+ *      
+ *      rc = clAmsMgmtTestUnlock(mgmtHandle,
+ *                               ccbHandle,
+ *                               pBaseName);
+ *      if (rc != CL_OK)
+ *      {
+ *          clLogError(NULL, NULL, "Unlock AMS entities returned [%#x]", rc);
+ *          goto out2;
+ *      }
+ *  
+ *  out2:
+ *      clAmsMgmtCCBFinalize(ccbHandle);
+ *  
+ *  out1:
+ *      clAmsMgmtFinalize(mgmtHandle);
+ *  out:
+ *      return rc;
+ *  }
+ *  \endcode
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup ams_error Error/Return Codes
+ *  \brief Common and Component specific Error Codes.
+ *  \ingroup ams
+ *
+ *  The majority of ASP API functions return a <b>Return Code</b> as their return value. 
+ *  A zero return code (CL_OK) always indicates success. Non-zero return codes 
+ *  always carry two types of information, masked into one single value: 
+ *  a <b>Component Identifier</b> and an <b>Error Code</b>. The component 
+ *  identifier identifies the component (or software layer) in which the problem 
+ *  occurred, while the error code describes the nature of the problem. 
+ *  Some error codes are common across all components, while others are 
+ *  component specific. 
+ *
+ *  The format of the Return Codes is 0xCCNNNN (given in hex),
+ *  where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ *
+ *  \note <b>Only the Error Codes are listed as Return values
+ *  in the Function Documentation of the API Reference pages. The real 
+ *  return value also contains the Component Identifier! </b>
+ *
+ *  The following links are useful while interpreting AMS generated return codes:
+ *  - \ref apirefs_errorcodes_compid_CL_CID_AMS "AMS Component Identifier"
+ *  - \ref apirefs_errorcodes_common
+ *  - \ref apirefs_errorcodes_ams
+ *
+ *  For further details and information about all error/return codes visit 
+ *  page \ref apirefs_errorcodes.
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup ams_apis API Reference Pages
+ *  \brief Defines, Structures, Typedefs, Functions. 
+ *  \ingroup ams
+ */
+
+//-----------------------------------------------------------

@@ -1,0 +1,257 @@
+/**
+ *  \defgroup osal Operating System Abstraction Layer (OSAL)
+ *  \brief The OpenClovis Operation System Abstraction Layer provides a means
+ *  to easily port the OpenClovis system to any operating system by isolating
+ *  all system calls into a single library.  A platform developer who is porting
+ *  the OpenClovis system to a new OS need only implement these functions. 
+ *  Currently a POSIX layer is implemented.
+ */
+ 
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup osal_intro Functional Description
+ *  \brief Description of the OS Abstraction Layer.
+ *  \ingroup osal
+ *
+ *  The OpenClovis Operating System Abstraction Layer (OSAL) provides a 
+ *  standard interface to commonly used operating system functions. OSAL 
+ *  supports target operating systems like most variations of Carrier Grade 
+ *  Linux. It is easily adaptable to any proprietary target operating system.
+ * 
+ *  All OpenClovis ASP components are developed based on OSAL.  Therefore,
+ *  porting OSAL to another operating system is all that is needed to port
+ *  the OpenClovis ASP. 
+ *
+ *  OpenClovis ASP is delivered with a POSIX-compliant adaptation module that 
+ *  allows it to operate to any POSIX-compliant system, such as Linux and most
+ *  Unix systems.
+ *
+ *  Software components can use the signal handlers provided by OSAL to handle
+ *  critical Unix signals. This can automatically inform OpenClovis ASP 
+ *  Component Manager (CPM) about the signal and generate a fault or trigger 
+ *  necessary recovery actions. OSAL is currently designed as a standalone 
+ *  library with no dependencies on any other OpenClovis ASP components. 
+ *
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup osal_usage  API Usage Examples
+ *  \brief Code Examples. 
+ *  \ingroup osal
+ *
+ *  The following code block shall create the above depicted sample state machine.
+ *  \code
+ *    // Initialize OSAL.
+ *    clOsalInitialize(NULL);
+ *
+ *    // Allocate memory.
+ *    void* pMemory;
+ *    pMemory = clHeapAllocate(40);
+ *
+ *    ClUint32T taskId;
+ *    ClRcT myTaskFunction(void *);
+ *
+ *    // Create an attached task with MEDIUM priority, stack size=4024, 
+ *    // myTaskFunction as the function to be invoked. 
+ *    // The task Id should be stored in taskId.
+ *    clOsalTaskCreateAttached("my thread", CL_OSAL_SCHED_OTHER, 
+ *       CL_OSAL_THREAD_PRI_MEDIUM, 4024,myTaskFunction,NULL,&taskId);
+ *
+ *    // Create an detached task with MEDIUM priority, stack size=4024,
+ *    // myTaskFunction as the function to be invoked. 
+ *    clOsalTaskCreateDetached("my thread", CL_OSAL_SCHED_OTHER, 
+ *       CL_OSAL_THREAD_PRI_MEDIUM, 4024,myTaskFunction,NULL);
+ *
+ *    // Get the task Id of the current executing task.
+ *    clOsalSelfTaskIdGet (taskId);
+ *
+ *    // Get the priority of a specific task.
+ *    clUint32 taskPriority;
+ *    clOsalTaskPriorityGet (taskId, &taskPriority);
+ *
+ *    // Set the priority of the specified task.
+ *    clOsalTaskPrioritySet (taskId, 20);
+ *
+ *    // Lock a task, so that it doesn't get preempted.
+ *    cosTaskLock();
+ *
+ *    // Unlock a task and allow it to be preempted.
+ *    cosTaskUnlock();
+ *
+ *    ClTimerTimeOutT time;
+ *    time.tsSec=2;
+ *    time.tsMicroSecond=10;
+ *
+ *    // Delay a task.
+ *    clOsalTaskDelay(time);
+ *
+ *    ClOsalMutexIdT mutexId;
+ *
+ *    // Create a mutex.
+ *    clOsalMutexCreate (&mutexId);
+ *
+ *    // Lock a mutex.
+ *    clOsalMutexLock(mutexId);
+ *
+ *    // Unlock a mutex.
+ *    clOsalMutexUnlock(mutexId);
+ *
+ *    // Delete a mutex:
+ *    clOsalMutexDelete (mutexId);
+ *
+ *    // Delete a task from execution.
+ *    clOsalTaskDelete (taskId);
+ *
+ *    // Get Number of blocks of memory allocated.
+ *    ClUint32T memAllocated;
+ *    clOsalNumMemoryAllocGet (&memAllocated);
+ *
+ *    // Get Number of blocks of memory freed.
+ *    ClUint32T memFreed;
+ *    clOsalNumMemoryDeallocedGet (&memFreed);
+ *
+ *    ClOsalCondIdT conditionId;
+ *
+ *    // Creates a condition variable.
+ *    clOsalCondCreate (&conditionId);
+ *
+ *    // Wait for a condition to be signalled.
+ *    clOsalCondWait (conditionId, mutexId, time);
+ *
+ *    // Signal a condition.
+ *    clOsalCondSignal (conditionId);
+ *
+ *    // Broadcast a condition.
+ *    clOsalCondBroadcast (conditionId);
+ *
+ *    // Delete a condition.
+ *    clOsalCondDelete (conditionId);
+ *
+ *    // Semaphores:
+ *    ClUint8T* pSemName = "SEM_NAME";
+ *    ClOsalSemIdT semId;
+ *    ClUint32T value = 1;
+ *
+ *    // Create a semaphore.
+ *    clOsalSemCreate(pSemName, value, &semId);
+ *
+ *    // Lock a semaphore.
+ *    clOsalSemLock(semId);
+ *
+ *    // Try & lock a semaphore.
+ *    clOsalSemTryLock(semId);
+ *
+ *    // Unlock a semaphore.
+ *    clOsalSemUnlock(semId);
+ *
+ *    // Get value of the semaphore.
+ *    clOsalSemValueGet(semId, &value);
+ *
+ *    // Delete a semaphore.
+ *    clOsalSemDelete(semId);
+ *
+ *    // Process:
+ *    void processFunction(void* pStr);
+ *    ClOsalPidT pid;
+ *
+ *    // Create a process.
+ *    clOsalProcessCreate(processFunction, NULL, 
+ *                        CL_OSAL_PROCESS_WITH_NEW_GROUP, &pid);
+ *
+ *    // Suspend a process.
+ *    cosProcessSuspend(pid);
+ *
+ *    // Resume a process.
+ *    cosProcessResume(pid);
+ *
+ *    // Wait for a process to terminate.
+ *    clOsalProcessWait(pid);
+ *
+ *    // Delete a process.
+ *    clOsalProcessDelete(pid);
+ *
+ *    // Get the process Id.
+ *    clOsalProcessSelfIdGet(&pid);
+ *
+ *    // Shared Memory:
+ *    ClUint8T* pShmName = "SHM_NAME";
+ *    ClOsalShmIdT  shm;
+ *    void* pMem;
+ *    ClUint32T size = 1000;
+ *    clUint16_t mode = 0;
+ *
+ *    // Create a Shared memory region.
+ *    clOsalShmCreate(pShmName, size, &shmId, pMem);
+ *
+ *    // Attach a shared memory region.
+ *    clOsalShmAttach(shm, pMem);
+ *
+ *    // Detach a shared memory region.
+ *    clOsalShmDetach(shm, pMem);
+ *
+ *    // Set the permissions for shared memory.
+ *    clOsalShmSecurityModeSet(shm, mode);
+ *
+ *    // Get the permissions for shared memory.
+ *    clOsalShmSecurityModeGet(shm, &mode);
+ *
+ *    // Get the size of shared memory allocated.
+ *    clOsalShmSizeGet(shm, &size);
+ *
+ *    // Delete a shared memory region created.
+ *    clOsalShmDelete(shm);
+ *
+ *    // Cleanup the OSAL during system shutdown.
+ *    cosCleanUp();
+ *
+ * \endcode
+ *
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup osal_error Error/Return Codes
+ *  \brief Common and Component specific Error Codes.
+ *  \ingroup osal
+ *
+ *  The majority of ASP API functions return a <b>Return Code</b> as their return value. 
+ *  A zero return code (CL_OK) always indicates success. Non-zero return codes 
+ *  always carry two types of information, masked into one single value: 
+ *  a <b>Component Identifier</b> and an <b>Error Code</b>. The component 
+ *  identifier identifies the component (or software layer) in which the problem 
+ *  occurred, while the error code describes the nature of the problem. 
+ *  Some error codes are common across all components, while others are 
+ *  component specific. 
+ *
+ *  The format of the Return Codes is 0xCCNNNN (given in hex),
+ *  where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ *
+ *  \note <b>Only the Error Codes are listed as Return values 
+ *  in the Function Documentation of the API Reference pages. The real 
+ *  return value also contains the Component Identifier!</b> 
+ *
+ *  The following links are useful while interpreting OSAL 
+ *  generated return codes:
+ *  - \ref apirefs_errorcodes_compid_CL_CID_OSAL "OSAL Component Identifier"
+ *  - \ref apirefs_errorcodes_common
+ *  - \ref apirefs_errorcodes_osal
+ *
+ *  For further details and information about all error/return codes visit 
+ *  page \ref apirefs_errorcodes.
+ */
+
+//-----------------------------------------------------------
+
+/**
+ *  \defgroup osal_apis API Reference Pages
+ *  \brief Defines, Structures, Typedefs, Functions.
+ *  \ingroup osal
+ */
+
+//-----------------------------------------------------------
+
+

@@ -1,0 +1,104 @@
+/**
+
+\page apirefs_errorcodes OpenClovis Error and Return Codes
+The majority of ASP API functions return a <b>Return Code</b> as their return value. A zero return code (CL_OK) always indicates success. Non-zero return codes always carry two types of information, masked into one single value: a <b>Component Identifier</b> and an <b>Error Code</b>. The component identifier identifies the component (or software layer) in which the problem occurred, while the error code describes the nature of the problem. Some error codes are common across all components, while others are component specific.
+
+The format of the return codes returned by OpenClovis APIs is 0xCCNNNN (given in hex), where 0xCC is the ASP Component Identifier and 0xNNNN is the Error Code.
+ - NNNN <= 00ff : common Error Codes shared among all ASP components
+ - NNNN >  00ff : component specific Error Codes
+
+The following macros, defined in clCommonErrors.h, help decoding the return codes:
+ - CL_GET_ERROR_CODE(RC) extracts the error code from the return code
+ - CL_GET_CID(RC) extracts the component identifier from the return code
+
+\note <b>Only the Error Codes are listed as Return values in the Function Documentation of the API Reference pages. The real return value also contains the Component Identifier!</b>
+
+The following tables are provided to help software engineers to quickly decode return codes found in ASP log files:
+ - \ref apirefs_errorcodes_compid
+ - \ref <b>Error Codes:</b>
+      - \ref apirefs_errorcodes_common
+      - \ref apirefs_errorcodes_alarm
+      - \ref apirefs_errorcodes_ams
+      - \ref apirefs_errorcodes_cor
+      - \ref apirefs_errorcodes_cpm
+      - \ref apirefs_errorcodes_dbal
+      - \ref apirefs_errorcodes_debug
+      - \ref apirefs_errorcodes_event
+      - \ref apirefs_errorcodes_eo
+      - \ref apirefs_errorcodes_fault
+      - \ref apirefs_errorcodes_gms
+      - \ref apirefs_errorcodes_ioc
+      - \ref apirefs_errorcodes_log
+      - \ref apirefs_errorcodes_med
+      - \ref apirefs_errorcodes_name
+      - \ref apirefs_errorcodes_prov
+      - \ref apirefs_errorcodes_osal
+      - \ref apirefs_errorcodes_timer
+      - \ref apirefs_errorcodes_txn
+      - \ref apirefs_errorcodes_pm
+\section apirefs_errorcodes_compid ASP Component Identifiers
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Identifier</b></td><td width=350><b>Component</b></td></tr>
+\section apirefs_errorcodes_common Common Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_alarm Alarm Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_ams Availability Management Service Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_cor Clovis Object Repository Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_cpm Component Manager Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_dbal Database Abstraction Layer Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_debug Debug Service Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_event Event Service Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_eo Execution Object Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_fault Fault Manager Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_gms Group Membership Service Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_ioc Intelligent Object Communication Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_log Log Service Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_med Mediation Library Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_name Name Service Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_prov Provisioning Library Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_osal Operating System Abstraction Layer Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_timer Timer Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_txn Transaction Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+\section apirefs_errorcodes_pm Performance Management Error Codes
+<table border="0" cellpadding="3" cellspacing="3">
+<tr style="color:#66b154; background:#09477c"><td><b>Value</b></td><td width=400><b>Error Code</b></td><td width=350><b>Comments</b></td></tr>
+
+
+*/
