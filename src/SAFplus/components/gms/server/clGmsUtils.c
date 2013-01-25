@@ -65,30 +65,6 @@ _clGmsCliPrint (char  **retstr, char *format , ... )
 	return;
 }
 
-void 
-_clGmsCliPrintExtended(ClCharT **retstr, ClInt32T *maxBytes, ClInt32T *curBytes, const ClCharT *format, ...)
-{
-    va_list ap;
-    ClInt32T len;
-    ClCharT c;
-    va_start(ap, format);
-    len = vsnprintf(&c, 1, format, ap);
-    va_end(ap);
-    if(!len) return ;
-    ++len;
-    if(!*maxBytes) *maxBytes = CL_MAX(512, len<<1);
-    if(!*retstr || (*curBytes + len) >= *maxBytes)
-    {
-        if(!*retstr) *curBytes = 0;
-        *maxBytes *= ( *curBytes ? 2 : 1 );
-        *retstr = clHeapRealloc(*retstr, *maxBytes);
-        CL_ASSERT(*retstr != NULL);
-    }
-    va_start(ap, format);
-    *curBytes += vsnprintf(*retstr + *curBytes, *maxBytes - *curBytes, format, ap);
-    va_end(ap);
-}
-
 /*
    GmsPluginLoader
    ---------------

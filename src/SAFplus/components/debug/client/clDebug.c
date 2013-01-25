@@ -899,6 +899,36 @@ ClRcT clDebugDeregister(ClHandleT  hReg)
     return CL_OK;
 }
 
+ClRcT
+clDebugPrintExtended(ClCharT **retstr, ClInt32T *maxBytes, ClInt32T *curBytes, 
+                     const ClCharT *format, ...)
+{
+    va_list ap;
+    ClInt32T len;
+    ClCharT c;
+    if(!retstr || !maxBytes || !curBytes)
+        return CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
+    va_start(ap, format);
+    len = vsnprintf(&c, 1, format, ap);
+    va_end(ap);
+    if(!len) return CL_OK;
+    ++len;
+    if(!*maxBytes) *maxBytes = CL_MAX(512, len<<1);
+    if(!*retstr || (*curBytes + len) >= *maxBytes)
+    {
+        if(!*retstr) *curBytes = 0;
+        *maxBytes *= ( *curBytes ? 2 : 1 );
+        if(*curBytes + len >= *maxBytes)
+            *maxBytes += (len<<1);
+        *retstr = clHeapRealloc(*retstr, *maxBytes);
+        CL_ASSERT(*retstr != NULL);
+    }
+    va_start(ap, format);
+    *curBytes += vsnprintf(*retstr + *curBytes, *maxBytes - *curBytes, format, ap);
+    va_end(ap);
+    return CL_OK;
+}
+
 ClRcT clDebugPrintInitialize(ClDebugPrintHandleT* handle)
 {
     return clBufferCreate((ClBufferHandleT*)handle);
@@ -907,17 +937,34 @@ ClRcT clDebugPrintInitialize(ClDebugPrintHandleT* handle)
 ClRcT clDebugPrint(ClDebugPrintHandleT handle, const char* fmtStr, ...)
 {
     char buf[CL_DEBUG_MAX_PRINT];
+    char *space = buf;
     va_list args;
     ClRcT rc = CL_OK;
     ClBufferHandleT msg = (ClBufferHandleT)handle;
+    ClInt32T c = 0, bytes = 0;
+
+    /*
+     * Estimate the space required for the buffer
+     */
+    va_start(args, fmtStr);
+    bytes = vsnprintf((ClCharT*)&c, 1, fmtStr, args);
+    va_end(args);
+    
+    if(!bytes) goto failure;
+
+    if(bytes >= sizeof(buf))
+    {
+        space = clHeapCalloc(1, bytes + 1);
+        CL_ASSERT(space != NULL);
+    }
 
     va_start(args, fmtStr);
-
-    vsprintf(buf, fmtStr, args);
+    vsnprintf(space, bytes+1, fmtStr, args);
+    va_end(args);
 
     if (0 != msg)
     {
-        rc = clBufferNBytesWrite(msg, (ClUint8T*)buf, strlen(buf));
+        rc = clBufferNBytesWrite(msg, (ClUint8T*)space, bytes);
         if (CL_OK != rc)
         {
             goto failure;
@@ -929,9 +976,9 @@ ClRcT clDebugPrint(ClDebugPrintHandleT handle, const char* fmtStr, ...)
         goto failure;
     }
 
-// success:
 failure:
-    va_end(args);
+    if(space != buf)
+        clHeapFree(space);
 
     return rc;
 }
