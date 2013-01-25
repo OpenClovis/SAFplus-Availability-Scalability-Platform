@@ -602,6 +602,10 @@ ClRcT clDebugResponseSend(ClRmdResponseContextHandleT responseHandle,
                           ClRcT retCode);
 ClRcT clDebugResponseDefer(ClRmdResponseContextHandleT *pResponseHandle, ClBufferHandleT *pOutMsgHandle);
 
+ClRcT
+clDebugPrintExtended(ClCharT **retstr, ClInt32T *maxBytes, ClInt32T *curBytes, 
+                     const ClCharT *format, ...) CL_PRINTF_FORMAT(4, 5);
+
 #ifdef __cplusplus
 }
 #endif
