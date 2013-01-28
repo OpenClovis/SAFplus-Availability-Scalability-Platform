@@ -20,6 +20,7 @@ html:
 	sed_cmd="s/^PROJECT_NUMBER\\s*=\\s*\"([^\\\"]*)\"/PROJECT_NUMBER = \"$$PROJECT_NUMBER\"/" && sed -r -e "$$sed_cmd" $(DOXYFILE) > tmp/Doxyfile;
 	./create_error_codes_page.sh > errorcodes.txt
 	doxygen tmp/Doxyfile
+	cp OpenClovis_Logo.png $(HTMLOUTPUT)
 
 
 old_html:
