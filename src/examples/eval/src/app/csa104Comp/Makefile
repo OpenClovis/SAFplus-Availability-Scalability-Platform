@@ -24,7 +24,7 @@ CPP_FILES := $(wildcard *.C) $(wildcard *.cxx)
 # List other ASP components of which client libraries your component
 # depends on:
 
-DEP_COMP_LIST := utils osal timer buffer ioc rmd eo amf event ckpt dbal debug cor prov mso pm alarm om hal name txn idl log cm fault
+DEP_COMP_LIST := utils osal timer buffer ioc rmd eo amf event ckpt dbal debug cor prov mso pm alarm om hal name txn idl log cm fault msg
 # FIXME: Indirect dependencies via client library needs need to be
 # added by hand for now:
 DEP_COMP_LIST += cnt

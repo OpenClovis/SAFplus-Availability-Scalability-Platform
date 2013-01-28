@@ -78,7 +78,7 @@ SaNameT evtChannelName =
 };
 SaEvtChannelHandleT   evtChannelHandle = 0;
 SaEvtHandleT          evtLibHandle=0;
-SaEvtEventHandleT		  eventHandle=0;
+SaEvtEventHandleT     eventHandle=0;
 
 static void  csa112Comp_appEventCallback( SaEvtSubscriptionIdT	subscriptionId, SaEvtEventHandleT     eventHandle, SaSizeT eventDataSize);
 ClRcT csa113Comp_PublishEvent();
@@ -91,6 +91,11 @@ static void *saAmfDispatchThread(void *arg)
     return NULL;
 }
 
+static void *saEvtDispatchThread(void *arg)
+{
+    saEvtDispatch (evtLibHandle, SA_DISPATCH_BLOCKING);
+    return NULL;
+}
 
 /*
  * Declare other global variables here.
@@ -181,13 +186,21 @@ int main(int argc, char *argv[])
     clEvalAppLogStreamOpen((ClCharT *)appName.value, &gEvalLogStream);
 
     /* Handle the AMF dispatch loop by spawning a thread that does it */
-    rc = clOsalTaskCreateDetached("DISPATCH-THREAD", CL_OSAL_SCHED_OTHER, 0, 0, saAmfDispatchThread, NULL);
+    rc = clOsalTaskCreateDetached("AMF-DISPATCH-THREAD", CL_OSAL_SCHED_OTHER, 0, 0, saAmfDispatchThread, NULL);
     if(rc != CL_OK)
     {
         clprintf(CL_LOG_SEV_ERROR, "Dispatch task create failed with rc 0x%x",rc);
         return rc;
     }
-    
+
+        /* Handle the Event dispatch loop by spawning a thread that does it */
+    rc = clOsalTaskCreateDetached("EVT-DISPATCH-THREAD", CL_OSAL_SCHED_OTHER, 0, 0, saEvtDispatchThread, NULL);
+    if(rc != CL_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "Dispatch task create failed with rc 0x%x",rc);
+        return rc;
+    }
+
     /*
      * Print out standard information for this component.
      */
@@ -597,7 +610,7 @@ static void csa112Comp_appEventCallback(SaEvtSubscriptionIdT subscriptionId, SaE
     SaAisErrorT     rc = SA_AIS_OK;
     static ClPtrT   resTest = 0;
     
-    clprintf(CL_LOG_SEV_INFO,"We've got an event to receive\n");
+    clprintf(CL_LOG_SEV_INFO,"We've got an event to receive");
 
     /* A high performance implementation would keep the buffer
        if it was big enough for the next event, OR even faster
@@ -632,7 +645,7 @@ static void csa112Comp_appEventCallback(SaEvtSubscriptionIdT subscriptionId, SaE
        null termination at the publisher side, I'm going to append a 0 at
        the end before printing it. */
     *(((char *)resTest) + eventDataSize) = 0;
-    clprintf(CL_LOG_SEV_INFO,"received event: %s\n", (char *)resTest);
+    clprintf(CL_LOG_SEV_INFO,"received event: %s", (char *)resTest);
 }
 
 static void
@@ -761,7 +774,7 @@ ClRcT csa113Comp_PublishEvent()
         clprintf(CL_LOG_SEV_ERROR, "No event data generated.");
         return CL_ERR_NO_MEMORY;
     }
-    clprintf(CL_LOG_SEV_INFO,"Publishing Event: %.*s\n",(int)data_len, data);
+    clprintf(CL_LOG_SEV_INFO,"Publishing Event: %.*s",(int)data_len, data);
     rc = saEvtEventPublish(eventHandle, (void *)data, data_len, &eventId);
     if (rc != SA_AIS_OK)
     {
