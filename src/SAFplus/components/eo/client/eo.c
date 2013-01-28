@@ -900,6 +900,16 @@ static ClRcT eoClientIDRegister(ClIocPortT port, ClUint32T clientID)
     clHeapFree(item);
     return rc;
 }
+
+static ClRcT eoClientIDDeregister(ClIocPortT port, ClUint32T clientID)
+{
+    ClRcT rc = CL_OK;
+    ClPtrT item = NULL;
+    ClUint32T index = __EO_CLIENT_FILTER_INDEX(port, clientID);
+    rc = clRadixTreeDelete(gAspClientIDTable, index, &item);
+    if(item) clHeapFree(item);
+    return rc;
+}
                                    
 static ClRcT eoClientTableRegister(ClEoExecutionObjT *pThis, 
                                    ClEoPayloadWithReplyCallbackTableClientT *clientTable, 
@@ -944,6 +954,42 @@ static ClRcT eoClientTableRegister(ClEoExecutionObjT *pThis,
     return rc;
 }
 
+static ClRcT eoClientTableDeregister(ClEoExecutionObjT *pThis, 
+                                     ClEoPayloadWithReplyCallbackTableClientT *clientTable, 
+                                     ClIocPortT eoPort)
+{
+    ClInt32T i;
+    ClRcT rc = CL_OK;
+
+    if(!clientTable) return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
+
+    for (i = 0; clientTable[i].funTable; ++i)
+    {
+        ClUint32T clientID = clientTable[i].clientID;
+        ClEoPayloadWithReplyCallbackClientT *funTable = clientTable[i].funTable;
+        ClUint32T funTableSize = clientTable[i].funTableSize;
+        ClEoClientTableT *client = NULL;
+        ClInt32T j;
+
+        if (clientID > pThis->maxNoClients) continue;
+
+        eoClientIDDeregister(eoPort, clientID);
+
+        client = pThis->pClientTable + clientID;
+
+        for (j = 0; j < funTableSize; ++j)
+        {
+            ClUint32T funcNo = funTable[j].funId & CL_EO_FN_MASK;
+            ClUint32T index = __EO_CLIENT_TABLE_INDEX(eoPort, funcNo);
+            ClPtrT item = NULL;
+            if(!funcNo || !funTable[j].version) continue;
+            clRadixTreeDelete(client->funTable, index, &item);
+        }
+    }
+    
+    return rc;
+}
+
 ClRcT clEoClientTableRegister(ClEoPayloadWithReplyCallbackTableClientT *clientTable,
                               ClIocPortT clientPort)
 {
@@ -955,6 +1001,22 @@ ClRcT clEoClientTableRegister(ClEoPayloadWithReplyCallbackTableClientT *clientTa
 
     clOsalMutexLock(&pThis->eoMutex);
     rc = eoClientTableRegister(pThis, clientTable, clientPort);
+    clOsalMutexUnlock(&pThis->eoMutex);
+
+    return rc;
+}
+
+ClRcT clEoClientTableDeregister(ClEoPayloadWithReplyCallbackTableClientT *clientTable,
+                                ClIocPortT clientPort)
+{
+    ClEoExecutionObjT *pThis = NULL;
+    ClRcT rc = CL_OK;
+
+    rc = clEoMyEoObjectGet(&pThis);
+    CL_ASSERT(pThis != NULL);
+
+    clOsalMutexLock(&pThis->eoMutex);
+    rc = eoClientTableDeregister(pThis, clientTable, clientPort);
     clOsalMutexUnlock(&pThis->eoMutex);
 
     return rc;
@@ -986,6 +1048,27 @@ ClRcT eoClientTableAlloc(ClUint32T maxClients, ClEoClientTableT **ppClientTable)
     return CL_OK;
 }
 
+ClRcT eoClientTableFree(ClEoClientTableT **ppClientTable)
+{
+    register int i;
+    ClEoClientTableT *clients = NULL;
+    
+    if(!ppClientTable || !(clients = *ppClientTable))
+        return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
+
+    *ppClientTable = NULL;
+    clRadixTreeFinalize(&gAspClientIDTable);
+
+    for (i = 0; i < clients->maxClients; ++i)
+    {
+        ClEoClientTableT *client = clients + i;
+        clRadixTreeFinalize(&client->funTable);
+    }
+
+    clHeapFree(clients);
+    return CL_OK;
+}
+
 /*
  * Register AMF table.
  */
@@ -999,6 +1082,19 @@ ClRcT eoClientTableInitialize(ClEoExecutionObjT *pThis)
     rc |= eoClientTableRegister(pThis, CL_EO_CLIENT_SYM_MOD(gAspFuncTable, AMFMgmtServer),
                                 CL_IOC_CPM_PORT);
     rc |= eoClientTableRegister(pThis, CL_EO_CLIENT_SYM_MOD(gAspFuncTable, AMFTrigger), CL_IOC_CPM_PORT);
+    return rc;
+}
+
+ClRcT eoClientTableFinalize(ClEoExecutionObjT *pThis)
+{
+    ClRcT rc = CL_OK;
+    /*
+     * Register the AMF RMD tables with the client by default for all of them.
+     */
+    rc = eoClientTableDeregister(pThis, CL_EO_CLIENT_SYM_MOD(gAspFuncTable, AMF), CL_IOC_CPM_PORT);
+    rc |= eoClientTableDeregister(pThis, CL_EO_CLIENT_SYM_MOD(gAspFuncTable, AMFMgmtServer),
+                                CL_IOC_CPM_PORT);
+    rc |= eoClientTableDeregister(pThis, CL_EO_CLIENT_SYM_MOD(gAspFuncTable, AMFTrigger), CL_IOC_CPM_PORT);
     return rc;
 }
 
@@ -1022,6 +1118,26 @@ ClRcT eoServerTableAlloc(ClUint32T maxClients, ClEoServerTableT **ppServerTable)
 
     *ppServerTable = clients;
 
+    return CL_OK;
+}
+
+ClRcT eoServerTableFree(ClEoServerTableT **ppServerTable)
+{
+    register int i;
+    ClEoServerTableT *clients = NULL;
+    
+    if(!ppServerTable || !(clients = *ppServerTable)) 
+        return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
+
+    *ppServerTable = NULL;
+
+    for (i = 0; i < clients->maxClients; ++i)
+    {
+        ClEoServerTableT *client = clients + i;
+        clRadixTreeFinalize(&client->funTable);
+    }
+    
+    clHeapFree(clients);
     return CL_OK;
 }
 
@@ -1921,6 +2037,9 @@ void clEoCleanup(ClEoExecutionObjT *pThis)
     eoStaticQueueExit();
     clEoClientUninstall(pThis, CL_EO_EO_MGR_CLIENT_TABLE_ID);
     clEoClientUninstall(pThis, CL_CPM_MGR_CLIENT_TABLE_ID);
+    eoClientTableFinalize(pThis);
+    eoServerTableFree(&pThis->pServerTable);
+    eoClientTableFree(&pThis->pClientTable);
     clHeapFree((pThis)->pClient);
     clHeapFree(pThis);
     gpExecutionObject = NULL;

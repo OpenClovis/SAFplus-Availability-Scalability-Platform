@@ -352,3 +352,13 @@ ClRcT clRadixTreeInit(ClRadixTreeHandleT *handle)
     heightIndexMapSet();
     return CL_OK;
 }
+
+ClRcT clRadixTreeFinalize(ClRadixTreeHandleT *handle)
+{
+    ClRadixTreeRootT *root = NULL;
+    if(!handle || !*handle) return CL_ERR_INVALID_PARAMETER;
+    root = (ClRadixTreeRootT*)*handle;
+    *handle = 0;
+    clHeapFree(root);
+    return CL_OK;
+}

@@ -423,6 +423,24 @@ static ClRcT __iocFragmentPoolInitialize(void)
     return CL_OK;
 }
 
+static void __iocFragmentPoolFinalize(void)
+{
+    ClIocFragmentPoolT *pool = NULL;
+    ClListHeadT *iter = NULL;
+    while(!CL_LIST_HEAD_EMPTY(&iocFragmentPool))
+    {
+        iter = iocFragmentPool.pNext;
+        pool = CL_LIST_ENTRY(iter, ClIocFragmentPoolT, list);
+        clListDel(iter);
+        if(pool->buffer)
+            clHeapFree(pool->buffer);
+        clHeapFree(pool);
+    }
+    iocFragmentPoolEntries = 0;
+    iocFragmentPoolLimit = 0;
+    clOsalMutexDestroy(&iocFragmentPoolLock);
+}
+
 static __inline__ ClUint32T clIocMcastHash(ClIocMulticastAddressT mcastAddress)
 {
     return (ClUint32T)((ClUint32T)mcastAddress & CL_IOC_MCAST_MASK);
@@ -2950,6 +2968,8 @@ ClRcT clIocLibFinalize()
     clTransportFinalize(NULL, gIsNodeRepresentative);
     clNodeCacheFinalize();
     clIocNeighCompsFinalize();
+    __iocFragmentPoolFinalize();
+    clTransportLayerFinalize();
     clOsalMutexDelete(gClIocFragMutex);
     return CL_OK;
 }

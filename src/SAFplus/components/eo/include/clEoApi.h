@@ -738,6 +738,9 @@ ClBoolT clEoClientTableFilter(ClIocPortT eoPort, ClUint32T clientID);
 ClRcT clEoClientTableRegister(ClEoPayloadWithReplyCallbackTableClientT *clientTable,
                               ClIocPortT clientPort);
 
+ClRcT clEoClientTableDeregister(ClEoPayloadWithReplyCallbackTableClientT *clientTable,
+                                ClIocPortT clientPort);
+
 /**
  * \brief Install a protocol handler
  * \par Description
