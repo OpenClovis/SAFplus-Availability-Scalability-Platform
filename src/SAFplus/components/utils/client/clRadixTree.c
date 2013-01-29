@@ -23,10 +23,13 @@
 #define RADIX_TREE_MAX_PATH_ALIGN(v) ( (RADIX_TREE_INDEX_BITS+(v)-1)/(v) * (v) )
 #define RADIX_TREE_MAX_PATH  (RADIX_TREE_MAX_PATH_ALIGN(RADIX_TREE_MAP_SHIFT)/RADIX_TREE_MAP_SHIFT)
 
+static CL_LIST_HEAD_DECLARE(gClRadixTreeSlots);
+
 typedef struct ClRadixTreeNode
 {
     ClUint32T height;
     ClUint32T count;
+    ClListHeadT list;
     ClPtrT slots[RADIX_TREE_MAP_SIZE];
 } ClRadixTreeNodeT;
 
@@ -65,6 +68,23 @@ static __inline__ ClUint32T radixTreeMaxIndex(ClUint32T height)
     return heightIndexMap[height];
 }
 
+static __inline__ ClRadixTreeNodeT *radixTreeNodeAlloc(void)
+{
+    ClRadixTreeNodeT *node = clHeapCalloc(1, sizeof(*node));
+    if(!node) return node;
+    clListAddTail(&node->list,&gClRadixTreeSlots);
+    return node;
+}
+
+static __inline__ void radixTreeNodeFree(ClRadixTreeNodeT *node)
+{
+    if(node)
+    {
+        clListDel(&node->list);
+        clHeapFree(node);
+    }
+}
+
 static ClRcT radixTreeExtend(ClRadixTreeRootT *root, ClUint32T index)
 {
     ClRadixTreeNodeT *node = NULL;
@@ -83,7 +103,7 @@ static ClRcT radixTreeExtend(ClRadixTreeRootT *root, ClUint32T index)
 
     do
     {
-        node = clHeapCalloc(1, sizeof(*node));
+        node = radixTreeNodeAlloc();
         CL_ASSERT(node != NULL);
         node->slots[0] = root->node;
         node->height = root->height + 1;
@@ -137,7 +157,7 @@ ClRcT clRadixTreeInsert(ClRadixTreeHandleT handle, ClUint32T index, ClPtrT item,
     {
         if(!slot)
         {
-            slot = clHeapCalloc(1, sizeof(*slot));
+            slot = radixTreeNodeAlloc();
             CL_ASSERT(slot != NULL);
             slot->height = height;
             /*
@@ -256,7 +276,7 @@ static void radixTreeShrink(ClRadixTreeRootT *root)
         --root->height;
         node->slots[0] = NULL;
         node->count = 0;
-        clHeapFree(node);
+        radixTreeNodeFree(node);
     }
 }
 
@@ -320,7 +340,7 @@ ClRcT clRadixTreeDelete(ClRadixTreeHandleT handle, ClUint32T index, ClPtrT *item
         pathp->node->slots[pathp->offset] = NULL;
         --pathp->node->count;
         
-        if(toFree) clHeapFree(toFree);
+        if(toFree) radixTreeNodeFree(toFree);
 
         if(pathp->node->count)
         {
@@ -335,7 +355,7 @@ ClRcT clRadixTreeDelete(ClRadixTreeHandleT handle, ClUint32T index, ClPtrT *item
 
     root->height = 0;
     root->node = NULL;
-    if(toFree) clHeapFree(toFree);
+    if(toFree) radixTreeNodeFree(toFree);
     
     out:
     return rc;
@@ -361,4 +381,16 @@ ClRcT clRadixTreeFinalize(ClRadixTreeHandleT *handle)
     *handle = 0;
     clHeapFree(root);
     return CL_OK;
+}
+
+void clRadixTreeDestroy(void)
+{
+    ClListHeadT *iter = NULL;
+    ClRadixTreeNodeT *node;
+    while(!CL_LIST_HEAD_EMPTY(&gClRadixTreeSlots))
+    {
+        iter = gClRadixTreeSlots.pNext;
+        node = CL_LIST_ENTRY(iter, ClRadixTreeNodeT, list);
+        radixTreeNodeFree(node);
+    }
 }

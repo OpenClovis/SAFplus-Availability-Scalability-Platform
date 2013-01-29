@@ -1056,7 +1056,11 @@ ClRcT clNameLibInitialize()
 ClRcT clNameLibFinalize(void)
 {
     if(sNSLibInitDone != 0)
+    {
         sNSLibInitDone = 0;
+        clEoClientTableDeregister(CL_EO_CLIENT_SYM_MOD(gAspFuncTable, NAM), CL_IOC_NAME_PORT);
+    }
+
     return CL_OK;
 }
 

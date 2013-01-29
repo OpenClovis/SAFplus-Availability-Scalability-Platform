@@ -2922,6 +2922,17 @@ static __inline__ void transportFree(ClTransportLayerT *xport)
     clHeapFree(xport);
 }
 
+ClRcT clTransportLayerGmsFinalize(void)
+{
+    ClRcT rc = CL_OK;
+    if(gXportHandleGms)
+    {
+        rc = clGmsFinalize(gXportHandleGms);
+        gXportHandleGms = CL_HANDLE_INVALID_VALUE;
+    }
+    return rc;
+}
+
 ClRcT clTransportLayerFinalize(void)
 {
     register ClListHeadT *iter;
@@ -2934,10 +2945,6 @@ ClRcT clTransportLayerFinalize(void)
     _clXportDestNodeLUTMapFree();
     clOsalMutexUnlock(&gClXportNodeAddrListMutex);
 
-    if (gXportHandleGms)
-    {
-        clGmsFinalize(gXportHandleGms);
-    }
     clListMoveInit(&gClTransportList, &transportBatch);
     for(iter = transportBatch.pNext; iter != &transportBatch; iter = next)
     {

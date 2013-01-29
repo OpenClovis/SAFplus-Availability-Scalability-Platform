@@ -170,6 +170,9 @@ extern ClRcT _clTxnAgentTxnStop(
 extern ClRcT  clTxnAgentTableRegister(
         CL_IN ClEoExecutionObjT *pThis);
 
+extern ClRcT clTxnAgentTableDeregister(
+                                       CL_IN ClEoExecutionObjT *pThis);
+
 #ifdef __cplusplus
 }
 #endif

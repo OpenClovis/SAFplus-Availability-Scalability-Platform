@@ -14,6 +14,7 @@ ClRcT clRadixTreeInsert(ClRadixTreeHandleT handle, ClUint32T index, ClPtrT item,
 ClRcT clRadixTreeLookup(ClRadixTreeHandleT handle, ClUint32T index, ClPtrT *item);
 ClRcT clRadixTreeDelete(ClRadixTreeHandleT handle, ClUint32T index, ClPtrT *item);
 ClRcT clRadixTreeFinalize(ClRadixTreeHandleT *handle);
+void clRadixTreeDestroy(void);
 
 #ifdef __cplusplus
 }

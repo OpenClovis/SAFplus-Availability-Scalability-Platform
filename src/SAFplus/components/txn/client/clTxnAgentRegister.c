@@ -36,3 +36,9 @@ ClRcT clTxnAgentTableRegister(ClEoExecutionObjT *pThis)
     return clEoClientTableRegister(CL_EO_CLIENT_SYM_MOD(gAspFuncTable, TXNAgent),
                                    pThis->eoPort);
 }
+
+ClRcT clTxnAgentTableDeregister(ClEoExecutionObjT *pThis)
+{
+    return clEoClientTableDeregister(CL_EO_CLIENT_SYM_MOD(gAspFuncTable, TXNAgent),
+                                     pThis->eoPort);
+}

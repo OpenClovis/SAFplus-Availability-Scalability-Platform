@@ -190,7 +190,7 @@ ClRcT clGmsLibFinalize(void)
 {
     ClRcT rc = CL_OK;
     ClEoExecutionObjT *eo = NULL;
-    
+
     if (lib_initialized == CL_TRUE)
     {
         rc = clHandleDatabaseDestroy(handle_database);
@@ -205,6 +205,9 @@ ClRcT clGmsLibFinalize(void)
            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                    ("clEoMyEoObjectGet Failed with RC - 0x%x\n",rc));
         }
+
+        clGmsClientClientTableDeregistrer(eo);
+        clGmsClientTableDeregister(eo);
 
         rc = clGmsClientRmdTableUnInstall(eo);
         if (rc != CL_OK)

@@ -37,3 +37,9 @@ ClRcT clDebugClientTableRegister(ClEoExecutionObjT *pThis)
     return clEoClientTableRegister(CL_EO_CLIENT_SYM_MOD(gAspFuncTable, DEBUGCli),
                                    pThis->eoPort);
 }
+
+ClRcT clDebugClientTableDeregister(ClEoExecutionObjT *pThis)
+{
+    return clEoClientTableDeregister(CL_EO_CLIENT_SYM_MOD(gAspFuncTable, DEBUGCli),
+                                     pThis->eoPort);
+}

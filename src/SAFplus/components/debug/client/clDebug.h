@@ -91,6 +91,8 @@ typedef struct
 
 ClRcT clDebugClientTableRegister(ClEoExecutionObjT *pThis);
 
+ClRcT clDebugClientTableDeregister(ClEoExecutionObjT *pThis);
+
 #ifdef __cplusplus
 }
 #endif

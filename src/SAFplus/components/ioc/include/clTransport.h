@@ -44,6 +44,7 @@ static __inline__ ClInt32T clTransportIdGet(void)
 
 extern ClRcT clTransportLayerInitialize(void);
 extern ClRcT clTransportLayerFinalize(void);
+extern ClRcT clTransportLayerGmsFinalize(void);
 extern ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep);
 extern ClRcT clTransportFinalize(const ClCharT *type, ClBoolT nodeRep);
 

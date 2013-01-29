@@ -55,6 +55,7 @@
 #include <clLogUtilApi.h>
 #include <clCpmIpi.h>
 #include <clCmApi.h>
+#include <clTransport.h>
 
 #define  CL_LOG_AREA "EO"
 #define  CL_LOG_CTXT_INI "INI"
@@ -705,7 +706,9 @@ ClRcT clEoTearDown(void)
 
     /*
      * Call the Asp Client Finalize function
+     * Before that, finalize the transport layer, low-level gms client
      */
+    clTransportLayerGmsFinalize();
     clAspClientLibFinalize();
 
     /* Release Event Related Resourse if allocated*/
@@ -723,7 +726,12 @@ ClRcT clEoTearDown(void)
     clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_FIN,
           "Cleaning up EO layer...");
     clLogUtilLibFinalize(clEoClientLibs[3]);
-
+    /*
+     * In case, the EO didn't have the gmslib flag,
+     * attempt to finalize it since the transport layer
+     * could have initialized it indirectly
+     */
+    clGmsLibFinalize();
     if(pThis)
         clEoCleanup(pThis);
     

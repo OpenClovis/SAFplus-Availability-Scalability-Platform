@@ -90,8 +90,10 @@ extern ClRcT clTmsGroupMcastCallbackHandler(
         CL_IN ClGmsGroupMcastCallbackDataT *res);
 
 extern ClRcT clGmsClientTableRegister(ClEoExecutionObjT *eo);
+extern ClRcT clGmsClientTableDeregister(ClEoExecutionObjT *eo);
 extern ClRcT clGmsClientRmdTableInstall(ClEoExecutionObjT *eo);
 extern ClRcT clGmsClientClientTableRegistrer(ClEoExecutionObjT* eo);
+extern ClRcT clGmsClientClientTableDeregistrer(ClEoExecutionObjT* eo);
 extern ClRcT clGmsClientRmdTableUnInstall(ClEoExecutionObjT* eo);
 
 # ifdef __cplusplus

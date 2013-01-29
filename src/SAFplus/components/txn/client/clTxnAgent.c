@@ -325,8 +325,9 @@ ClRcT clTxnAgentFinalize()
         clTxnCommIfcFini();
 
         rc = clEoMyEoObjectGet(&pEOObj);
+        clTxnAgentTableDeregister(pEOObj);
         clEoClientUninstallTables(pEOObj, 
-                                 CL_EO_SERVER_SYM_MOD(gAspFuncTable, TXNAgent));
+                                  CL_EO_SERVER_SYM_MOD(gAspFuncTable, TXNAgent));
 
         clTxnAgntCfg = NULL;
     }

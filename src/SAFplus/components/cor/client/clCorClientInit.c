@@ -249,6 +249,8 @@ clCorClientFinalize()
     if(CL_OK != rc)
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Failed while deleting the database handle. rc[0x%x]", rc));
 
+    clEoClientTableDeregister(CL_EO_CLIENT_SYM_MOD(gAspFuncTable, COR), CL_IOC_COR_PORT);
+
     CL_FUNC_EXIT();
     return rc;
 }

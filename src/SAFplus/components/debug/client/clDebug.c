@@ -634,6 +634,8 @@ ClRcT clDebugLibFinalize(void)
                        "rc[0x %x]", rc));
     }
     
+    clDebugClientTableDeregister(pEoObj);
+
     if( CL_OK != (rc = clEoClientUninstallTables(pEoObj, CL_EO_SERVER_SYM_MOD(gAspFuncTable, DEBUGCli))) )
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoClientUninstall(): rc[0x %x]",

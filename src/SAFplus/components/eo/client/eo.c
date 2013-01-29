@@ -1012,8 +1012,9 @@ ClRcT clEoClientTableDeregister(ClEoPayloadWithReplyCallbackTableClientT *client
     ClEoExecutionObjT *pThis = NULL;
     ClRcT rc = CL_OK;
 
-    rc = clEoMyEoObjectGet(&pThis);
-    CL_ASSERT(pThis != NULL);
+    clEoMyEoObjectGet(&pThis);
+    if(!pThis)
+        return CL_ERR_NOT_INITIALIZED;
 
     clOsalMutexLock(&pThis->eoMutex);
     rc = eoClientTableDeregister(pThis, clientTable, clientPort);
@@ -2040,6 +2041,7 @@ void clEoCleanup(ClEoExecutionObjT *pThis)
     eoClientTableFinalize(pThis);
     eoServerTableFree(&pThis->pServerTable);
     eoClientTableFree(&pThis->pClientTable);
+    clRadixTreeDestroy();
     clHeapFree((pThis)->pClient);
     clHeapFree(pThis);
     gpExecutionObject = NULL;
