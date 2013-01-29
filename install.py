@@ -972,8 +972,13 @@ class ASPInstaller:
         for dep in self.installQueue:
             self.feedback('Beginning configure, build, and install of: %s %s' % (dep.name, dep.version))
             if not dep.extract_install:
+              if dep.pkg_name != None: 
                 os.chdir(self.BUILD_DIR)                                            # move into build dir
-                syscall('tar xfm "%s" %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))    # pull out of pkg
+                ret = syscall('tar xfm "%s" %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))    # pull out of pkg
+                if ret != 0:
+                  self.feedback("%s: Package is not included in our third party archive.  You will need to install it yourself" % dep.name)
+                  continue
+
                 syscall('tar zxf %s' % dep.pkg_name)                                    # extract
                 syscall('rm -f %s' % dep.pkg_name)                                      # remove .gz
                 
@@ -987,6 +992,9 @@ class ASPInstaller:
                 if dep.use_build_dir:
                     self.create_dir('build')                                            # create a build dir
                     os.chdir('build')                                                   # move into build dir
+              else:
+                self.feedback("%s: Package is not included in our third party archive.  You will need to install it yourself" % dep.name)
+                continue
             if dep.name == 'tipc':
                 #install TIPC online - asume that kernel source was installed
                 self.feedback('***Build and install tipc module***')
