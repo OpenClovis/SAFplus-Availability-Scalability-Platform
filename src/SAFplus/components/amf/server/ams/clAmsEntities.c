@@ -3143,12 +3143,12 @@ clAmsSGValidateRedundancyModel(
         {
             if ( (sg->config.numPrefActiveSUs      != 1) ||
                  (sg->config.numPrefStandbySUs     != 0) ||
-                 (sg->config.numPrefInserviceSUs   != 1) ||
+                 (sg->config.numPrefInserviceSUs   <  1) ||
                  (sg->config.numPrefActiveSUsPerSI != 1) )
             { 
                 AMS_LOG(CL_DEBUG_ERROR,
                         ("Valid Values for SG [%s] Redundancy Model [%s] are numPrefActiveSUs[1] (currently %d),"
-                         " numPrefStandbySUs[0] (currently %d), numPrefInserviceSUs[1] (currently %d), numPrefActiveSUsPerSI[1] (currently %d)\n", 
+                         " numPrefStandbySUs[0] (currently %d), numPrefInserviceSUs[>=1] (currently %d), numPrefActiveSUsPerSI[1] (currently %d)\n",
                          sg->config.entity.name.value, 
                          CL_AMS_STRING_SG_REDUNDANCY_MODEL(sg->config.redundancyModel),
                          sg->config.numPrefActiveSUs,
