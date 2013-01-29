@@ -49,7 +49,7 @@
 #include <clEoIpi.h>
 #include <clIocIpi.h>
 #include <clIocLogicalAddresses.h>
-
+#include <clNodeCache.h>
 /*
  * CPM internal header files 
  */
@@ -1662,7 +1662,8 @@ ClRcT clCpmSlotGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
 {
     ClRcT rc = CL_OK;
     ClCpmSlotInfoRecvT slotInfoRecv = {0};
-
+    rc = clNodeCacheSlotInfoGet(flag, slotInfo);
+    if(rc == CL_OK) return rc;
     slotInfoRecv.flag = flag;
     rc = cpmSlotGet(slotInfo, &slotInfoRecv);
     return rc;
