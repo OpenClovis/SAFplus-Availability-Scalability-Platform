@@ -1,6 +1,8 @@
+import pdb
 import os
 import objects
 from common import *
+
 
 # ------------------------------------------------------------------------------
 
@@ -25,6 +27,10 @@ class OS:
 
         self.kernelVerString = syscall('uname -r')
         self.kernelVer       = self.kernelVerString.split(".")
+        self.kernelVer[0] = int(self.kernelVer[0])
+        self.kernelVer[1] = int(self.kernelVer[1])
+        self.kernelVer[2] = int(self.kernelVer[2])
+
 
         self.bit = determine_bit()
 
@@ -252,25 +258,26 @@ class OS:
 
         TIPC = objects.BuildDep()
         TIPC.name           = 'tipc'
-        if self.kernelVer[0] == 2 and self.kernelVer[1] >= 39:
-          TIPC.version        = '2.0'
-          TIPC.pkg_name       = None
-          TIPC_CONFIG.version        = '2.0.2'
-          TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.2.tar.gz' #default name, can change
-        elif self.kernelVer[0] == 2 and self.kernelVer[1] >= 34:
-          TIPC.version        = '2.0'
-          TIPC.pkg_name       = None
-          TIPC_CONFIG.version        = '2.0.0'
-          TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.0.tar.gz' #default name, can change
-        elif self.kernelVer[0] == 2 and self.kernelVer[1] >= 16:
-          TIPC.version        = '1.7.7'
-          TIPC.pkg_name       = 'tipc-1.7.7.tar.gz'
-          TIPC_CONFIG.version        = '1.1.9'
-          TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
-        elif self.kernelVer[0] == 2 and self.kernelVer[1] >= 9:
-          TIPC.version        = '1.5.12'
-          TIPC.pkg_name       = 'tipc-1.5.12.tar.gz'
-
+        if self.kernelVer[0] == 2 and self.kernelVer[1] == 6:
+          if self.kernelVer[2] >= 39:
+              TIPC.version        = '2.0'
+              TIPC.pkg_name       = None
+              TIPC_CONFIG.version        = '2.0.2'
+              TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.2.tar.gz' #default name, can change
+          elif self.kernelVer[2] >= 34:
+              TIPC.version        = '2.0'
+              TIPC.pkg_name       = None
+              TIPC_CONFIG.version        = '2.0.0'
+              TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.0.tar.gz' #default name, can change
+          elif self.kernelVer[2] >= 16:
+              TIPC.version        = '1.7.7'
+              TIPC.pkg_name       = 'tipc-1.7.7.tar.gz'
+              TIPC_CONFIG.version        = '1.1.9'
+              TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
+          elif self.kernelVer[2] >= 9:
+              TIPC.version        = '1.5.12'
+              TIPC.pkg_name       = 'tipc-1.5.12.tar.gz'
+          
         log = self.log_string_for_dep(TIPC.name)
         
         # tipc has a special case in install.py marked:                 # SPECIAL CASE, TIPC
@@ -282,7 +289,7 @@ class OS:
                                 'cp tools/tipc-config $PREFIX/bin',
                                 'cp include/net/tipc/*.h $PREFIX/include']
                        
-        if int(self.kernelVer[2].split('-')[0]) < 16:
+        if int(self.kernelVer[3].split('-')[0]) < 16:
             pass
         else:
             TIPC.build_cmds.append('mkdir -p $PREFIX/include/linux >/dev/null 2>&1')
@@ -448,11 +455,11 @@ class OS:
         
         
         # this list defines the order of installation
-        if self.name == "Fedora":
-          self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
-          print "For Fedora OS, it is necessary for you to build and install TIPC yourself."
-        else:
-          self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
+        #if self.name == "Fedora":
+        #  self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
+        #  print "For Fedora OS, it is necessary for you to build and install TIPC yourself."
+        #else:
+        self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
         #self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]        
     
     
