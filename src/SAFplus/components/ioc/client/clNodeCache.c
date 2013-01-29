@@ -30,7 +30,6 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <clNodeCache.h>
-#include <clCpmExtApi.h>
 
 #define CL_NODE_CACHE_SEGMENT "/CL_NODE_CACHE"
 
@@ -838,6 +837,79 @@ ClRcT clNodeCacheMinVersionGet(ClIocNodeAddressT *pNodeAddress, ClUint32T *pVers
     clOsalSemUnlock(gClNodeCacheSem);
 
     return CL_OK;
+}
+
+ClRcT clNodeCacheSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
+{
+    ClNodeCacheEntryT *entry = NULL;
+    ClIocNodeAddressT slot = 0;
+    ClUint32T i;
+
+    if(!slotInfo) return CL_ERR_INVALID_PARAMETER;
+
+    if(flag != CL_CPM_NODENAME && 
+       flag != CL_CPM_SLOT_ID  &&
+       flag != CL_CPM_IOC_ADDRESS)
+    {
+        return CL_ERR_INVALID_PARAMETER;
+    }
+
+    if(flag == CL_CPM_NODENAME 
+       &&
+       slotInfo->nodeName.length >= CL_NODE_CACHE_NODENAME_MAX)
+    {
+        return CL_ERR_NOT_EXIST;
+    }
+
+    if(!gpClNodeCache) return CL_ERR_NOT_INITIALIZED;
+
+    entry = CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache);
+
+    switch(flag)
+    {
+    case CL_CPM_SLOT_ID:
+        slot = slotInfo->slotId;
+        if(slot >= CL_IOC_MAX_NODES)
+            return CL_ERR_OUT_OF_RANGE;
+        slotInfo->nodeIocAddress = slot;
+        clNameSet(&slotInfo->nodeName, entry[slot].nodeName);
+        return CL_OK;
+
+    case CL_CPM_IOC_ADDRESS:
+        slot = slotInfo->nodeIocAddress;
+        if(slot >= CL_IOC_MAX_NODES)
+            return CL_ERR_OUT_OF_RANGE;
+        slotInfo->slotId = slot;
+        clNameSet(&slotInfo->nodeName, entry[slot].nodeName);
+        return CL_OK;
+
+    case CL_CPM_NODENAME:
+        for(i = 0; i < CL_IOC_MAX_NODES; ++i)
+        {
+            if(!strcmp(entry->nodeName, slotInfo->nodeName.value))
+            {
+                slotInfo->nodeIocAddress = (ClIocNodeAddressT)i;
+                slotInfo->slotId = i;
+                return CL_OK;
+            }
+            ++entry;
+        }
+    default:
+        break;
+    }
+
+    return CL_ERR_NOT_EXIST;
+}
+
+ClRcT clNodeCacheSlotInfoGetSafe(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
+{
+    ClRcT rc = CL_OK;
+    rc = clOsalSemLock(gClNodeCacheSem);
+    if(rc !=  CL_OK)
+        return rc;
+    rc = clNodeCacheSlotInfoGet(flag, slotInfo);
+    clOsalSemUnlock(gClNodeCacheSem);
+    return rc;
 }
 
 ClBoolT clAspNativeLeaderElection(void)

@@ -6,6 +6,7 @@
 #include <clIocApi.h>
 #include <clOsalApi.h>
 #include <clDebugApi.h>
+#include <clCpmExtApi.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,6 +81,10 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
                               ClIocNodeAddressT currentLeader);
 
 ClRcT clNodeCacheLeaderGet(ClIocNodeAddressT *pCurrentLeader);
+
+ClRcT clNodeCacheSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo);
+
+ClRcT clNodeCacheSlotInfoGetSafe(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo);
 
 #ifdef __cplusplus
 }
