@@ -32,6 +32,7 @@
 #include <clAmsMgmtClientApi.h>
 #include <clAmsClientNotification.h>
 #include <clJobQueue.h>
+#include <clCpmExtApi.h>
 
 #define CL_AMS_STRING_NTF(S)                                        \
 (   ((S) == CL_AMS_NOTIFICATION_SI_PARTIALLY_ASSIGNED)        ? "partially assigned" :          \
@@ -41,6 +42,9 @@
 
 static ClAmsMgmtHandleT mgmtHandle;
 static ClJobQueueT notifJobPool;
+
+extern ClRcT getSlotFromSU(const SaNameT *su, ClIocNodeAddressT *slot);
+
 /*
  * New auxiliary function to get active comp from sg name
  */
@@ -300,6 +304,7 @@ static ClRcT amsNotificationCallback(ClAmsNotificationInfoT *notification)
             {
                 getComps(&notification->amsStateNotification.siName,
                          &notification->amsStateNotification.suName);
+                getSlotFromSU(&notification->amsStateNotification.suName, NULL);
             }
             break;
         }
@@ -582,5 +587,46 @@ static ClRcT sgStartAsync(ClPtrT arg)
     ClCharT *sg = arg;
     ClRcT rc = amfSGStart(sg);
     clHeapFree(sg);
+    return rc;
+}
+
+ClRcT getSlotFromSU(const SaNameT *su, ClIocNodeAddressT *slot)
+{
+    ClRcT rc = CL_OK;
+    ClAmsSUConfigT *suConfig = NULL;
+    ClAmsEntityT entity = {0};
+    ClCpmSlotInfoT slotInfo = {0};
+
+    if(slot)
+        *slot = 0;
+    entity.type = CL_AMS_ENTITY_TYPE_SU;
+    clNameCopy(&entity.name, (const ClNameT*)su);
+    rc = clAmsMgmtEntityGetConfig(mgmtHandle, &entity, (ClAmsEntityConfigT**)&suConfig);
+    if(rc != CL_OK)
+    {
+        clLogError("SUS", "CONFIG", "SU [%.*s] get config returned [%#x]", su->length, su->value, rc);
+        return rc;
+    }
+    clNameSet(&slotInfo.nodeName, suConfig->parentNode.entity.name.value);
+    rc = clCpmSlotGet(CL_CPM_NODENAME, &slotInfo);
+    if(rc != CL_OK)
+    {
+        clLogError("SUS", "SLOT", "Slot get for node [%s] returned [%#x]",
+                   slotInfo.nodeName.value, rc);
+    }
+    else
+    {
+        if(slot)
+        {
+            *slot = slotInfo.nodeIocAddress;
+        }
+        else
+        {
+            clLogNotice("SUS", "SLOT", "Node [%s] on slot [%d]", 
+                        slotInfo.nodeName.value, 
+                        slotInfo.nodeIocAddress);
+        }
+    }
+    clHeapFree(suConfig);
     return rc;
 }
