@@ -4237,6 +4237,101 @@ exitOnError:
 }
 
 ClRcT
+clCkptClntSecDeleteNotify(CkptT             *pCkpt,
+                             ClCkptSectionIdT  *pSecId)
+{
+    ClRcT             rc         = CL_OK;
+    ClCntNodeHandleT  node       = CL_HANDLE_INVALID_VALUE;
+    ClCntKeyHandleT   key        = CL_HANDLE_INVALID_VALUE;
+    ClCntDataHandleT  data       = CL_HANDLE_INVALID_VALUE;
+    ClIdlHandleT      idlHdl     = CL_HANDLE_INVALID_VALUE;
+    ClCkptAppInfoT    *pAappInfo = NULL;
+    ClUint32T         doSend      = 0;
+    static ClCharT    delData[] = "Delete";
+
+    /*
+     * Skip update for peer to peer distributed hot-standby
+     */
+    if( (pCkpt->pCpInfo->updateOption & CL_CKPT_PEER_TO_PEER_REPLICA) )
+    {
+        return CL_OK;
+    }
+
+    rc = clCkptClientIdlHandleInit(&idlHdl);
+    if( CL_OK != rc )
+    {
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_SEC_OVERWRITE,
+                   "Idl handle updation failed rc[0x %x]", rc);
+        goto exitOnError;
+    }
+    rc = clCntFirstNodeGet(pCkpt->pCpInfo->appInfoList, &node);
+    if( CL_OK != rc )
+    {
+        clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE,
+                   "Failed to get app info from list rc[0x %x]", rc);
+        goto finNexit;
+    }
+    while( node != 0 )
+    {
+        rc = clCntNodeUserKeyGet(pCkpt->pCpInfo->appInfoList, node,
+                                 &key);
+        if( CL_OK != rc )
+        {
+            clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE,
+                    "Failed to get app info from list rc[0x %x]", rc);
+            goto finNexit;
+        }
+        pAappInfo = (ClCkptAppInfoT *)(ClWordT) key;
+
+        rc = clCntNodeUserDataGet(pCkpt->pCpInfo->appInfoList, node,
+                                  &data);
+        if( CL_OK != rc )
+        {
+            clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE,
+                    "Failed to get app info from list rc[0x %x]", rc);
+            goto finNexit;
+        }
+        doSend = *((ClUint32T *)(ClWordT) data);
+
+        /*
+         * If the application is running on local node and its not the one who
+         * wrote this info, then notify that particular application
+         * about this overwrite info
+         */
+        if( (doSend) && (pAappInfo->nodeAddress == gCkptSvr->localAddr) )
+        {
+            clLogTrace(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_REPL_UPDATE,
+                       "Sending notification to application [%d:%d]...",
+                        pAappInfo->nodeAddress, pAappInfo->portId);
+            rc = clCkptClientIdlHandleUpdate(idlHdl, pAappInfo->nodeAddress,
+                                             pAappInfo->portId, 0);
+            if( CL_OK != rc )
+            {
+                clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE,
+                        "Failed to get app info from list rc[0x %x]", rc);
+                goto finNexit;
+            }
+            VDECL_VER(clCkptSectionUpdationNotificationClientAsync, 4, 0, 0)(idlHdl,
+                    &pCkpt->ckptName,
+                    pSecId,
+                    0,
+                    (ClUint8T *)delData,
+                    NULL, NULL);
+        }
+        rc = clCntNextNodeGet(pCkpt->pCpInfo->appInfoList, node, &node);
+        if( CL_OK != rc )
+        {
+            rc = CL_OK;
+            break;
+        }
+    }
+finNexit:
+    (void)clIdlHandleFinalize(idlHdl);
+exitOnError:
+    return rc;
+}
+
+ClRcT
 VDECL_VER(clCkptCheckpointReplicaRemove, 4, 0, 0)(ClHandleT  ckptHdl, 
                               ClUint32T  localAddr)
 {
@@ -4650,7 +4745,16 @@ clCkptSectionLevelDelete(ClCkptHdlT        ckptHdl,
                 /*FIXME -in case of Sync checkpointing revert back */
             }
         }
+
+        /*
+         * Inform the clients about delete operation.
+         */
+        if( (pCkpt->pCpInfo->updateOption & CL_CKPT_DISTRIBUTED ) )
+        {
+            clCkptClntSecDeleteNotify(pCkpt, pSecId);
+        }
     }
+
     clLogInfo(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
               "Section [%.*s] of ckpt [%.*s] has been deleted", 
               pSecId->idLen, pSecId->id, pCkpt->ckptName.length,
