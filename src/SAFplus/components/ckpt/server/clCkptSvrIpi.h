@@ -538,6 +538,9 @@ clCkptClntSecOverwriteNotify(CkptT             *pCkpt,
                              ClIocNodeAddressT nodeAddr,
                              ClIocPortT        portId);
 extern ClRcT
+clCkptClntSecDeleteNotify(CkptT             *pCkpt,
+                             ClCkptSectionIdT  *pSecId);
+extern ClRcT
 clCkptActiveAppInfoUpdate(CkptT              *pCkpt,
                           ClIocNodeAddressT  appAddr,
                           ClIocPortT         appPort,
