@@ -69,7 +69,9 @@ CLOVIS_FLAGS  += -g -Wall -I$(CLOVIS_ROOT)/ASP/components/include/ \
                  -I$(CLOVIS_ROOT)/ASP/components/timer/include \
                  -I$(CLOVIS_ROOT)/ASP/components/include/ipi \
                  -I$(CLOVIS_ROOT)/ASP/components/amf/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/ckpt/include
+                 -I$(CLOVIS_ROOT)/ASP/components/ckpt/include \
+                 -I$(CLOVIS_ROOT)/ASP/components/cor/include \
+                 -I$(CLOVIS_ROOT)/ASP/components/event/include
 
 ifndef CL_NOLOG
 CLOVIS_FLAGS += -I$(CLOVIS_ROOT)/ASP/components/log/include
