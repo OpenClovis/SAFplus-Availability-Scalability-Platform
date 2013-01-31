@@ -4238,7 +4238,9 @@ exitOnError:
 
 ClRcT
 clCkptClntSecDeleteNotify(CkptT             *pCkpt,
-                             ClCkptSectionIdT  *pSecId)
+                             ClCkptSectionIdT  *pSecId,
+                             ClIocNodeAddressT nodeAddr,
+                             ClIocPortT        portId)
 {
     ClRcT             rc         = CL_OK;
     ClCntNodeHandleT  node       = CL_HANDLE_INVALID_VALUE;
@@ -4248,14 +4250,6 @@ clCkptClntSecDeleteNotify(CkptT             *pCkpt,
     ClCkptAppInfoT    *pAappInfo = NULL;
     ClUint32T         doSend      = 0;
     static ClCharT    delData[] = "Delete";
-
-    /*
-     * Skip update for peer to peer distributed hot-standby
-     */
-    if( (pCkpt->pCpInfo->updateOption & CL_CKPT_PEER_TO_PEER_REPLICA) )
-    {
-        return CL_OK;
-    }
 
     rc = clCkptClientIdlHandleInit(&idlHdl);
     if( CL_OK != rc )
@@ -4298,7 +4292,8 @@ clCkptClntSecDeleteNotify(CkptT             *pCkpt,
          * wrote this info, then notify that particular application
          * about this overwrite info
          */
-        if( (doSend) && (pAappInfo->nodeAddress == gCkptSvr->localAddr) )
+        if( (doSend) && (pAappInfo->nodeAddress == gCkptSvr->localAddr) &&
+                (nodeAddr != pAappInfo->nodeAddress || portId != pAappInfo->portId))
         {
             clLogTrace(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_REPL_UPDATE,
                        "Sending notification to application [%d:%d]...",
@@ -4708,12 +4703,32 @@ clCkptSectionLevelDelete(ClCkptHdlT        ckptHdl,
     ClRcT      rc        = CL_OK;
     ClUint32T  peerCount = 0;
     ClBoolT sectionLockTaken = CL_TRUE;
+    ClIocPhysicalAddressT srcAddr = {0};
 
     /* take the section level mutex */
     rc = clCkptSectionLevelLock(pCkpt, pSecId, &sectionLockTaken);
     if( CL_OK != rc )
     {
         return rc;
+    }
+
+    if( srcClient == CL_TRUE )
+    {
+        rc = clRmdSourceAddressGet(&srcAddr);
+        if( CL_OK != rc )
+        {
+            clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
+                       "Failed to get the src address rc[0x %x]", rc);
+            return rc;
+        }
+    }
+
+    /*
+     * Inform the clients about delete operation.
+     */
+    if( (pCkpt->pCpInfo->updateOption & CL_CKPT_DISTRIBUTED ) )
+    {
+        clCkptClntSecDeleteNotify(pCkpt, pSecId, srcAddr.nodeAddress, srcAddr.portId);
     }
 
     /* 
@@ -4744,14 +4759,6 @@ clCkptSectionLevelDelete(ClCkptHdlT        ckptHdl,
             {
                 /*FIXME -in case of Sync checkpointing revert back */
             }
-        }
-
-        /*
-         * Inform the clients about delete operation.
-         */
-        if( (pCkpt->pCpInfo->updateOption & CL_CKPT_DISTRIBUTED ) )
-        {
-            clCkptClntSecDeleteNotify(pCkpt, pSecId);
         }
     }
 
