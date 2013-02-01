@@ -38,7 +38,9 @@ ClRcT clXdrMarshallClNameT(void* pGenVar, ClBufferHandleT msg, ClUint32T isDelet
     {
         return CL_XDR_RC(CL_ERR_NULL_POINTER);
     }
-
+    
+    if(pVar->length >= CL_MAX_NAME_LENGTH)
+        pVar->length = CL_MAX_NAME_LENGTH;
 
     rc = clXdrMarshallClUint16T(&(pVar->length),msg,isDelete);
     if (CL_OK != rc)
@@ -46,12 +48,11 @@ ClRcT clXdrMarshallClNameT(void* pGenVar, ClBufferHandleT msg, ClUint32T isDelet
         return rc;
     }
 
-    rc = clXdrMarshallArrayClCharT(pVar->value, CL_MAX_NAME_LENGTH,msg,isDelete);
+    rc = clXdrMarshallArrayClCharT(pVar->value, pVar->length, msg, isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
-
 
     return rc;
 }

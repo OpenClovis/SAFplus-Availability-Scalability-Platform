@@ -444,7 +444,7 @@ ClRcT VDECL(cpmComponentCSISet)(ClEoDataT data,
 
     rc = clBufferLengthGet(inMsgHandle, &msgLength);
 
-    if (msgLength >= sizeof(ClCpmCompCSISetT))
+    if (msgLength > 0)
     {
         recvBuff = (ClCpmCompCSISetT *) clHeapCalloc(1, sizeof(*recvBuff));
         if (recvBuff == NULL)
