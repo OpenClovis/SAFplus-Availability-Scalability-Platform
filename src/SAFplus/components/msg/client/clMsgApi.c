@@ -715,8 +715,9 @@ static void clMsgAppMessageDeliveredCallbackFunc(ClIdlHandleT idlHandle,
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
     ClMsgAppMessageSendCallbackParamsT *pParam = (ClMsgAppMessageSendCallbackParamsT*)pCallbackParams;
+    SaMsgHandleT msgHandle = pParam->msgHandle;
 
-    retCode = clHandleCheckout(gMsgHandleDatabase, pParam->msgHandle, (void**)&pMsgLibInfo);
+    retCode = clHandleCheckout(gMsgHandleDatabase, msgHandle, (void**)&pMsgLibInfo);
     if(retCode != CL_OK)
     {
         clLogError("MSG", "MDCb", "Failed to checkout the message handle. error code [0x%x].", retCode);
@@ -728,11 +729,20 @@ static void clMsgAppMessageDeliveredCallbackFunc(ClIdlHandleT idlHandle,
     if(retCode != CL_OK)
         clLogError("MSG", "MDCb", "Failed to enqueue the callback into dispatcher. error code [0x%x].", retCode);
 
-    retCode = clHandleCheckin(gMsgHandleDatabase, pParam->msgHandle);
+    retCode = clHandleCheckin(gMsgHandleDatabase, msgHandle);
     if(retCode != CL_OK)
         clLogError("MSG", "MDCb", "Failed to checkin the message handle. error code [0x%x].",retCode);
 
 error_out:
+
+    if(pMessage)
+    {
+        if(pMessage->data)
+            clHeapFree(pMessage->data);
+        if(pMessage->senderName)
+            clHeapFree(pMessage->senderName);
+    }
+
     return;
 }
 
