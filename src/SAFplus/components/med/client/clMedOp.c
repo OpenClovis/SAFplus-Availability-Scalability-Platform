@@ -1657,7 +1657,7 @@ void clMedNotificationHandler( ClEventSubscriptionIdT subscriptionId, ClEventHan
                 return;
             }
 
-            pAlarmHandleInfo = (ClAlarmHandleInfoT*)clHeapAllocate(eventDataSize);
+            pAlarmHandleInfo = (ClAlarmHandleInfoT*)clHeapAllocate(sizeof(*pAlarmHandleInfo) + eventDataSize);
             if(NULL == pAlarmHandleInfo)
             {
                 CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMemory Allocation failed with rc:0x%x",rc)); 
