@@ -436,8 +436,6 @@ extern ClRcT clCpmCpmLocalRegister(ClCpmLocalInfoT *cpmInfo);
 
 extern ClRcT clCpmCpmLocalDeregister(ClCpmLocalInfoT *cpmInfo);
 
-extern ClRcT clCpmComponentPIDGet(ClNameT *compName, ClUint32T *pid);
-
 extern ClRcT CL_CPM_CALL_RMD_ASYNC(ClIocNodeAddressT destAddr,
                                    ClIocPortT destPort,
                                    ClUint32T fcnId,
