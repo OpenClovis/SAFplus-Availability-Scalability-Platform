@@ -207,8 +207,11 @@ extern ClRcT clCpmEventPayLoadExtract(CL_IN ClEventHandleT eventHandle,
  *  ClAmfClient 
  *
  */
-extern ClRcT clCpmComponentPIDGet(CL_IN ClNameT *compName,
+extern ClRcT clCpmComponentPIDGet(CL_IN const ClNameT *compName,
                                   CL_OUT ClUint32T *pid);
+
+extern ClRcT clCpmComponentPIDGetBySlot(ClIocNodeAddressT slot, 
+                                        const ClNameT *compName, ClUint32T *pid);
 
 /**
  ************************************

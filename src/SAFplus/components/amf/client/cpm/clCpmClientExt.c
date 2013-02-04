@@ -937,7 +937,7 @@ ClRcT clCpmComponentLogicalAddressUpdate(ClNameT *compName,
     return rc;
 }
 
-ClRcT clCpmComponentPIDGet(ClNameT *compName, ClUint32T *pid)
+ClRcT clCpmComponentPIDGetBySlot(ClIocNodeAddressT slot, const ClNameT *compName, ClUint32T *pid)
 {
     ClRcT rc = CL_OK;
     ClUint32T tempPid = 0;
@@ -951,7 +951,9 @@ ClRcT clCpmComponentPIDGet(ClNameT *compName, ClUint32T *pid)
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
-    rc = clCpmClientRMDSyncNew(clIocLocalAddressGet(), CPM_COMPONENT_PID_GET,
+    if(!slot) slot = clIocLocalAddressGet();
+
+    rc = clCpmClientRMDSyncNew(slot, CPM_COMPONENT_PID_GET,
                                (ClUint8T *) compName, sizeof(ClNameT),
                                (ClUint8T *) &tempPid, &size,
                                CL_RMD_CALL_NEED_REPLY, 0, 0, 0,
@@ -969,6 +971,11 @@ ClRcT clCpmComponentPIDGet(ClNameT *compName, ClUint32T *pid)
   failure:
     return rc;
 
+}
+
+ClRcT clCpmComponentPIDGet(const ClNameT *compName, ClUint32T *pid)
+{
+    return clCpmComponentPIDGetBySlot(clIocLocalAddressGet(), compName, pid);
 }
 
 ClRcT clCpmComponentAddressGet(ClIocNodeAddressT nodeAddress,
