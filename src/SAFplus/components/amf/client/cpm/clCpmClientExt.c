@@ -1662,8 +1662,45 @@ ClRcT clCpmSlotGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
 {
     ClRcT rc = CL_OK;
     ClCpmSlotInfoRecvT slotInfoRecv = {0};
-    rc = clNodeCacheSlotInfoGet(flag, slotInfo);
-    if(rc == CL_OK) return rc;
+    ClNodeCacheSlotInfoT nodeCacheSlotInfo = {0};
+    ClNodeCacheSlotInfoFieldT nodeCacheField = 0;
+
+    if(!slotInfo) return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+
+    if(flag == CL_CPM_SLOT_ID ||
+       flag == CL_CPM_IOC_ADDRESS)
+    {
+        nodeCacheField = CL_NODE_CACHE_SLOT_ID;
+        if(flag == CL_CPM_SLOT_ID)
+        {
+            nodeCacheSlotInfo.slotId = slotInfo->slotId;
+            slotInfo->nodeIocAddress = slotInfo->slotId;
+        }
+        else
+        {
+            nodeCacheSlotInfo.slotId = slotInfo->nodeIocAddress;
+            slotInfo->slotId = slotInfo->nodeIocAddress;
+        }
+        rc = clNodeCacheSlotInfoGet(nodeCacheField, &nodeCacheSlotInfo);
+        if(rc == CL_OK)
+        {
+            clNameCopy(&slotInfo->nodeName, &nodeCacheSlotInfo.nodeName);
+            return rc;
+        }
+    }
+    else if(flag == CL_CPM_NODENAME)
+    {
+        nodeCacheField = CL_NODE_CACHE_NODENAME;
+        clNameCopy(&nodeCacheSlotInfo.nodeName, &slotInfo->nodeName);
+        rc = clNodeCacheSlotInfoGet(nodeCacheField, &nodeCacheSlotInfo);
+        if(rc == CL_OK)
+        {
+            slotInfo->slotId = nodeCacheSlotInfo.slotId;
+            slotInfo->nodeIocAddress = nodeCacheSlotInfo.slotId;
+            return rc;
+        }
+    }
+
     slotInfoRecv.flag = flag;
     rc = cpmSlotGet(slotInfo, &slotInfoRecv);
     return rc;

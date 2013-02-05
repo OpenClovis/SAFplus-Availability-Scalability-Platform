@@ -6,7 +6,6 @@
 #include <clIocApi.h>
 #include <clOsalApi.h>
 #include <clDebugApi.h>
-#include <clCpmExtApi.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,6 +48,18 @@ typedef struct ClNodeCacheMember
     ClUint32T capability;
 }ClNodeCacheMemberT;
 
+typedef enum
+{
+    CL_NODE_CACHE_SLOT_ID,
+    CL_NODE_CACHE_NODENAME,
+} ClNodeCacheSlotInfoFieldT;
+
+typedef struct ClNodeCacheSlotInfo
+{
+    ClUint32T           slotId;
+    ClNameT             nodeName;
+} ClNodeCacheSlotInfoT;
+
 ClRcT clNodeCacheInitialize(ClBoolT createFlag);
 ClRcT clNodeCacheFinalize(void);
 ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint32T capability, ClNameT *nodeName);
@@ -82,9 +93,9 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
 
 ClRcT clNodeCacheLeaderGet(ClIocNodeAddressT *pCurrentLeader);
 
-ClRcT clNodeCacheSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo);
+ClRcT clNodeCacheSlotInfoGet(ClNodeCacheSlotInfoFieldT flag, ClNodeCacheSlotInfoT *slotInfo);
 
-ClRcT clNodeCacheSlotInfoGetSafe(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo);
+ClRcT clNodeCacheSlotInfoGetSafe(ClNodeCacheSlotInfoFieldT flag, ClNodeCacheSlotInfoT *slotInfo);
 
 #ifdef __cplusplus
 }
