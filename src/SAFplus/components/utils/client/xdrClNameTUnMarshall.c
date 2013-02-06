@@ -45,13 +45,14 @@ ClRcT clXdrUnmarshallClNameT(ClBufferHandleT msg , void* pGenVar)
         return rc;
     }
 
+   if(pVar->length >= CL_MAX_NAME_LENGTH)
+        pVar->length = CL_MAX_NAME_LENGTH - 1;
+ 
     rc = clXdrUnmarshallArrayClCharT(msg, pVar->value, pVar->length);
     if (CL_OK != rc)
     {
         return rc;
     }
-    if(pVar->length >= CL_MAX_NAME_LENGTH)
-        pVar->length = CL_MAX_NAME_LENGTH - 1;
     
     pVar->value[pVar->length] = 0;
 
