@@ -68,6 +68,7 @@ ClHandleDatabaseHandleT handle_database;
  * invocation of the callback.
  */
 ClUint32T       clGmsPrivateDataKey = 0;
+static ClBoolT  gClTaskKeyCreated = CL_FALSE;
 
 /* Flag to show if library is initialized */
 static ClBoolT lib_initialized = CL_FALSE;
@@ -224,6 +225,29 @@ error_exit:
     return rc;
 }
 
+static ClRcT gmsTaskKeyCreate(void)
+{
+    ClRcT rc = CL_OK;
+    if(gClTaskKeyCreated) return CL_OK;
+    rc = clOsalTaskKeyCreate(&clGmsPrivateDataKey, NULL);
+    if (rc != CL_OK)
+    {
+        return rc;
+    }
+    gClTaskKeyCreated = CL_TRUE;
+    return rc;
+}
+
+static ClRcT gmsTaskKeyDelete(void)
+{
+    ClRcT rc = CL_OK;
+    if(!gClTaskKeyCreated) return CL_OK;
+    gClTaskKeyCreated = CL_FALSE;
+    /* Delete the key for thread specific data set */
+    rc = clOsalTaskKeyDelete(clGmsPrivateDataKey);
+    return rc;
+}
+
 
 /******************************************************************************
  * EXPORTED API FUNCTIONS
@@ -241,7 +265,7 @@ ClRcT clGmsInitialize(
     ClGmsClientInitRequestT req = {{0}};
     ClGmsClientInitResponseT *res = NULL;
 
-    /* Step 0: Ceck readyness of library */
+    /* Step 0: Check readiness of library */
 
     rc = check_lib_init();
     if (rc != CL_OK)
@@ -316,11 +340,10 @@ ClRcT clGmsInitialize(
            sizeof(ClGmsGroupNotificationBufferT));
 
     /* Create the key for thread specific data set */
-    rc = clOsalTaskKeyCreate(&clGmsPrivateDataKey,NULL);
-    if (rc != CL_OK)
+    rc = gmsTaskKeyCreate();
+    if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clOsalTaskKeyCreate failed with rc 0x%x\n",rc));
+        clLogError("TASK", "KEY", "TaskKeyCreate returned [%#x]", rc);
     }
 
     /* Step 6: Decrement handle use count and return */
@@ -377,11 +400,10 @@ ClRcT clGmsFinalize(
 	clGmsMutexDelete(gms_instance_ptr->response_mutex);
 
     /* Delete the key for thread specific data set */
-    rc = clOsalTaskKeyDelete(clGmsPrivateDataKey);
+    rc = gmsTaskKeyDelete();
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clOsalTaskKeyDelete failed with rc 0x%x\n",rc));
+        clLogError("TASK", "KEY", "TaskKeyDelete returned [%#x]", rc);
     }
 
 	if ((clHandleDestroy(handle_database, gmsHandle)) != CL_OK)
