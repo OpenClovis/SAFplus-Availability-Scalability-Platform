@@ -1304,7 +1304,7 @@ clLogMasterCompDataCheckpoint(ClLogMasterEoDataT   *pMasterEoEntry,
     rc = clCkptCheckpointWrite(pMasterEoEntry->hCkpt, ioVector, 3, &errIdx);
     if( (CL_OK != rc) && (CL_ERR_TRY_AGAIN != CL_GET_ERROR_CODE(rc)) )
     {
-        CL_LOG_DEBUG_ERROR(("clCkptCheckpointWrite(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clkCptCheckpointWrite(): rc[0x %x]", rc));
         clHeapFree(pDataBuffer);
         return rc;
     }
@@ -1324,6 +1324,7 @@ compTableStateRecoverBaseVersion(ClBufferHandleT msg)
     ClUint32T        numComps = 0;
     ClUint32T        count    = 0;
     ClLogCompDataT   compData = {{0}};
+    ClInt32T readOffset = sizeof(ClUint32T);
 
     rc = clXdrUnmarshallClUint32T(msg, &numComps);
     if( CL_OK != rc )
@@ -1331,10 +1332,15 @@ compTableStateRecoverBaseVersion(ClBufferHandleT msg)
         CL_LOG_DEBUG_ERROR(("clXdrUnmarshallClUint32T(): rc[0x %x]", rc));
         return rc;
     }
+    readOffset += sizeof(ClUint32T);
     CL_LOG_DEBUG_TRACE(("Num comps received: %d", numComps));
-    
     for( count = 0; count < numComps; count++)
     {
+        if(count > 0)
+        {
+            readOffset += CL_LOG_COMP_SEC_OFFSET;
+            clBufferReadOffsetSet(msg, readOffset, CL_BUFFER_SEEK_SET);
+        }
         rc = VDECL_VER(clXdrUnmarshallClLogCompDataT, 4, 0, 0)(msg, &compData);
         if( CL_OK != rc )
         {
