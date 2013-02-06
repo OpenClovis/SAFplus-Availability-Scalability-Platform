@@ -14655,6 +14655,28 @@ clAmsPeCompReassignWork(
 
             if ( standbyRef->haState != CL_AMS_HA_STATE_STANDBY )
             {
+                /*
+                 * If there is an existing active and it isn't the one
+                 * getting switched over for the CSI, 
+                 * then skip reassigning standby that is properly assigned
+                 */
+                if(standbyRef->haState == CL_AMS_HA_STATE_ACTIVE)
+                {
+                    if(cSU != su
+                       &&
+                       c->config.capabilityModel != CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY
+                       && 
+                       sg->config.redundancyModel != CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM)
+                    {
+                        *activeSU = cSU;
+                        standby = NULL;
+                        clLogNotice("COMP", "REASSIGN", "Component [%s] part of SU [%s] "
+                                    "is already assigned active. Skipping reassignment "
+                                    "for SU [%s]", c->config.entity.name.value,
+                                    cSU->config.entity.name.value,
+                                    su->config.entity.name.value);
+                    }
+                }
                 continue;
             }
 
