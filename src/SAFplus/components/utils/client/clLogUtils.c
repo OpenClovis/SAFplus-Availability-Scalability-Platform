@@ -238,6 +238,8 @@ logVWriteDeferred(ClHandleT       handle,
         }
         if(unlock)
             clOsalMutexUnlock(&gLogMutex);
+        if(!handle)
+            handle = CL_LOG_HANDLE_SYS;
         return clLogVWriteAsyncWithHeader(handle, severity, serviceId, msgId, pMsgHeader, vaargs);
     }
 
