@@ -172,6 +172,7 @@ clLogFlushRecords(void)
         overWriteFlag = 0;
     readIdx += numFlushed;
     readIdx %= CL_LOG_MAX_NUM_MSGS;
+    writeIdx = readIdx; 
 }
 
 static ClRcT
