@@ -141,9 +141,8 @@ static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr,
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
     CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
 
-    clLogDebug("MSG", "SND", "Sending message [%.*s] to component [0x%x,0x%x]."
-            , (ClInt32T) pMessage->size, (ClUint8T *)pMessage->data
-            , pDestAddr->iocPhyAddress.nodeAddress, pDestAddr->iocPhyAddress.portId);
+    clLogDebug("MSG", "SND", "Sending message to component [0x%x,0x%x].",
+               pDestAddr->iocPhyAddress.nodeAddress, pDestAddr->iocPhyAddress.portId);
 
     if((pDestAddr->iocPhyAddress.nodeAddress == gLocalAddress)
             && (pDestAddr->iocPhyAddress.portId == gLocalPortId))
