@@ -867,11 +867,21 @@ material.
             </Group>
 
             <Group name="ExtCliServerFuncPeer">
+
               <Operation name="_ckptClientInfoGet" type="sync" version="6.0.0">
                 <Argument ParameterType="CL_IN" name="ckptHdl" type="ClHandleT"/>
                 <Argument ParameterType="CL_OUT" name="pClientInfoList" 
                           type="ClCkptClientInfoListT" pointer="Single"/>
               </Operation>
+
+              <Operation name="_ckptCheckpointReadSections" type="sync" version="6.0.0">
+                <Argument ParameterType="CL_IN" name="ckptHdl" type="ClHandleT"/>
+                <Argument ParameterType="CL_OUT"  name="pIOVec" type="ClCkptIOVectorElementT" 
+                          pointer="Double" lengthVar="pNumVecs"/>
+                <Argument ParameterType="CL_OUT" name="pNumVecs"
+                          type="ClUint32T" pointer="Single"/>
+              </Operation>
+
             </Group>
 
         </Port>            

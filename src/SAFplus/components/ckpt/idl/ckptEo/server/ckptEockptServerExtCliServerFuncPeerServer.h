@@ -51,6 +51,10 @@ ClRcT _ckptClientInfoGet_6_0_0(CL_IN ClHandleT  ckptHdl, CL_OUT ClCkptClientInfo
 
 ClRcT _ckptClientInfoGetResponseSend_6_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_OUT  ClCkptClientInfoListT_4_0_0  pClientInfoList);
 
+ClRcT _ckptCheckpointReadSections_6_0_0(CL_IN ClHandleT  ckptHdl, CL_OUT ClCkptIOVectorElementT_4_0_0** pIOVec, CL_OUT ClUint32T*  pNumVecs);
+
+ClRcT _ckptCheckpointReadSectionsResponseSend_6_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,ClCkptIOVectorElementT_4_0_0*  pIOVec,CL_OUT  ClUint32T  pNumVecs);
+
 
 #ifdef __cplusplus
 }
