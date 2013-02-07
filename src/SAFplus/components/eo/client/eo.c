@@ -487,6 +487,26 @@ void eoProtoInit(void)
     }
 }
 
+static ClEoCrashNotificationCallbackT gClEoCrashNotificationCallback;
+
+void clEoSendCrashNotification(ClEoCrashNotificationT *crash)
+{
+    if(gClEoCrashNotificationCallback)
+    {
+        crash->pid = getpid();
+        crash->compName = ASP_COMPNAME;
+        gClEoCrashNotificationCallback((const ClEoCrashNotificationT*)crash);
+    }
+}
+
+ClRcT clEoCrashNotificationRegister(ClEoCrashNotificationCallbackT callback)
+{
+    if(!callback) return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
+    if(gClEoCrashNotificationCallback) return CL_EO_RC(CL_ERR_ALREADY_EXIST);
+    gClEoCrashNotificationCallback = callback;
+    return CL_OK;
+}
+
 /**************   Action Related Functionality      ***************************/
 static ClRcT eoStaticQueueInit(void)
 {
@@ -3406,9 +3426,13 @@ failure:
 
 static ClRcT clEoQueueMonitor(ClOsalTaskIdT tid, ClTimeT interval, ClTimeT threshold)
 {
+    ClEoCrashDeadlockT crash = {.reason = CL_EO_CRASH_DEADLOCK, 
+                                .tid = tid, .interval = interval 
+    };
     clLogNotice("EO", "MONITOR", "Task ID [%lld] still locked up for [%lld] usecs which exceeds "
                 "configured threshold of [%lld] usecs",
                 tid, interval, threshold);
+    clEoSendCrashNotification((ClEoCrashNotificationT*)&crash);
     if (!clDbgNoKillComponents)  /* Goodbye unless we are debugging, in which case we would expect stuck threads! */
     {
         CL_ASSERT(0);
