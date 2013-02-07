@@ -444,6 +444,8 @@ extern ClRcT clRmdDebugRegister(void);
 
 extern ClRcT clRmdDebugDeregister(void);
 
+extern void clEoSendCrashNotification(ClEoCrashNotificationT *crash);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1330,6 +1330,41 @@ extern ClUint8T clEoBasicLibs[CL_MAX_BASIC_LIBS];
 
 extern ClUint8T clEoClientLibs[CL_MAX_CLIENT_LIBS];
 
+typedef enum
+{
+    CL_EO_CRASH_DEADLOCK,
+    CL_EO_CRASH_HUNG_SYSCALL,
+} ClEoCrashReasonT;
+
+typedef struct ClEoCrashNotificationT
+{
+    ClEoCrashReasonT reason;
+    pid_t pid;
+    ClOsalTaskIdT tid;
+    ClTimeT interval;
+    const ClCharT *compName;
+} ClEoCrashNotificationT;
+
+typedef ClEoCrashNotificationT ClEoCrashDeadlockT;
+
+typedef struct ClEoCrashHungSyscall
+{
+#define _TASK_SND_MASK (1)
+#define _TASK_RCV_MASK (2)
+#define _IS_TASK_SND(mask) ( (mask) & _TASK_SND_MASK )
+#define _IS_TASK_RCV(mask) ( (mask) & _TASK_RCV_MASK )
+
+    ClEoCrashNotificationT crash;
+    ClUint32T mask;
+} ClEoCrashHungSyscallT;
+
+typedef void (*ClEoCrashNotificationCallbackT)(const ClEoCrashNotificationT *crash);
+/*
+ * Register a callback for crash notifications called on forced process asserts/aborts
+ * during deadlock or any other reason
+ */
+extern ClRcT clEoCrashNotificationRegister(ClEoCrashNotificationCallbackT callback);
+
 #ifdef __cplusplus
 }
 
