@@ -620,6 +620,12 @@ ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
                                    ClSizeT                  dataSize,
                                    ClDifferenceVectorT         *differenceVector);
 
+extern ClRcT  clCkptCheckpointReadSections(ClCkptHdlT              ckptHdl,
+                                           ClCkptIOVectorElementT  **ppIOVecs,
+                                           ClUint32T               *pNumVecs);
+
+extern ClRcT clCkptIOVectorFree(ClCkptIOVectorElementT *pIOVec, ClUint32T numVecs);
+
 #ifdef __cplusplus
 }
 #endif

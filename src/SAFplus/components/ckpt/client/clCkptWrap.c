@@ -1532,23 +1532,23 @@ ClRcT _ckptMasterActiveAddressGet(ClCkptHdlT         ckptHdl,
 
 static ClBoolT clCkptHandleTypicalErrors(ClRcT rc, ClCkptHdlT ckptHdl,ClIocNodeAddressT* nodeAddr)
 {
-  ClRcT retCode;
-  if(  (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE) ||
-       (CL_IOC_ERR_HOST_UNREACHABLE == CL_GET_ERROR_CODE(rc)) || 
-       (rc == CL_CKPT_ERR_NOT_EXIST && nodeAddr && *nodeAddr == CL_CKPT_UNINIT_VALUE)
-       ||
-       rc == CL_ERR_NOT_EXIST)
+    ClRcT retCode;
+    if(  (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE) ||
+         (CL_IOC_ERR_HOST_UNREACHABLE == CL_GET_ERROR_CODE(rc)) || 
+         (rc == CL_CKPT_ERR_NOT_EXIST && nodeAddr && *nodeAddr == CL_CKPT_UNINIT_VALUE)
+         ||
+         rc == CL_ERR_NOT_EXIST)
     {
-      /* 
-       * Maybe the active address has changed and this client 
-       * hasn't received the update yet. Get active address 
-       * from the master.
-       */
-      retCode = _ckptMasterActiveAddressGet(ckptHdl, nodeAddr);
-      if(retCode == CL_OK) return CL_TRUE;
-      else return CL_FALSE;
+        /* 
+         * Maybe the active address has changed and this client 
+         * hasn't received the update yet. Get active address 
+         * from the master.
+         */
+        retCode = _ckptMasterActiveAddressGet(ckptHdl, nodeAddr);
+        if(retCode == CL_OK) return CL_TRUE;
+        else return CL_FALSE;
     }
-  return CL_FALSE;
+    return CL_FALSE;
 }
 
 
@@ -3909,7 +3909,7 @@ ClRcT  clCkptCheckpointRead(ClCkptHdlT              ckptHdl,
 
         if(nodeAddr != CL_CKPT_UNINIT_VALUE)
         {
-            rc = VDECL_VER(_ckptCheckpointReadClientSync, 4, 0, 0)(pInitInfo->ckptIdlHdl,actHdl,
+            rc = VDECL_VER(_ckptCheckpointReadClientSync, 4, 0, 0)(ckptIdlHdl, actHdl,
                                                                    pIoVector, numberOfElements, pLocalVec,  
                                                                    &tempError, &version);
         }
@@ -4011,6 +4011,122 @@ exitOnError:
    }
 }
 
+ClRcT  clCkptCheckpointReadSections(ClCkptHdlT              ckptHdl,
+                                    ClCkptIOVectorElementT  **ppIOVecs,
+                                    ClUint32T               *pNumVecs)
+{
+    ClRcT                   rc             = CL_OK;
+    CkptInitInfoT           *pInitInfo     = NULL;
+    ClIocNodeAddressT       nodeAddr       = 0;
+    ClCkptHdlT              actHdl         = CL_CKPT_INVALID_HDL;
+    ClIdlHandleT            ckptIdlHdl     = CL_CKPT_INVALID_HDL;
+    CkptHdlDbT              *pHdlInfo      = NULL;
+    ClCkptSvcHdlT           ckptSvcHdl     = CL_CKPT_INVALID_HDL;
+    ClBoolT                 tryAgain       = CL_FALSE;
+    ClUint32T               maxRetry       = 0;
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500 };
+
+    /*
+     * Input parameter verification.
+     */
+    if (!ppIOVecs || !pNumVecs) return CL_CKPT_ERR_NULL_POINTER;
+ 
+    if ((rc = ckptVerifyAndCheckout(ckptHdl, &ckptSvcHdl, &pInitInfo)) != CL_OK)
+    {
+        return rc;
+    }
+    
+    *ppIOVecs = NULL;
+    *pNumVecs = 0;
+
+    /*
+     * Lock the mutex.
+     */
+    clOsalMutexLock(pInitInfo->ckptSvcMutex);
+    
+    /* 
+     * Checkout the data associated with the checkpoint handle. 
+     */
+    rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
+                            (void **)&pHdlInfo);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
+              
+    /*
+     * Return ERROR in case the checkpoint was not opened in read mode.
+     */
+    if( CL_CKPT_CHECKPOINT_READ !=
+        (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_READ))
+    {         
+        rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
+    }    
+    
+    /* 
+     * Checkin the data associated with the service handle. 
+     */
+    clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+                   ("Ckpt: Improper permissions as ckpt was not opened in read"
+                    " mode, rc[0x %x]\n",rc), rc);
+              
+    /*
+     * Get the active handle and the active replica address associated
+     * with that local ckptHdl.
+     */
+    rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
+    rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Active address get error rc[0x %x]\n",rc), rc);
+ 
+    /*
+     * Send the call to the checkpoint active server.
+     * Retry if the server is not reachable.
+     */
+    do
+    {
+        rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl,
+                                 CL_CKPT_MAX_RETRY);
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                       ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
+        ckptIdlHdl = pInitInfo->ckptIdlHdl;
+
+        if(nodeAddr != CL_CKPT_UNINIT_VALUE)
+        {
+            rc = VDECL_VER(_ckptCheckpointReadSectionsClientSync, 6, 0, 0)(ckptIdlHdl,
+                                                                           actHdl,
+                                                                           ppIOVecs, 
+                                                                           pNumVecs);
+            if(rc == CL_OK) break;
+        }
+        else rc = CL_IOC_RC(CL_IOC_ERR_COMP_UNREACHABLE);
+
+        tryAgain = clCkptHandleTypicalErrors(rc, ckptHdl, &nodeAddr);
+        
+    } while(tryAgain == CL_TRUE && maxRetry++ < 10 && clOsalTaskDelay(delay) == CL_OK );
+
+    exitOnError:
+    /*
+     * Unlock the mutex.
+     */
+    clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
+
+    /* 
+     * Checkin the data associated with the service handle 
+     */
+    clHandleCheckin(gClntInfo.ckptDbHdl, ckptSvcHdl);
+
+    if(rc != CL_OK && *ppIOVecs && *pNumVecs > 0)
+    {
+        clCkptIOVectorFree(*ppIOVecs, *pNumVecs);
+        clHeapFree(*ppIOVecs);
+        *ppIOVecs = NULL;
+        *pNumVecs = 0;
+    }
+
+    return rc;
+}
 
 
 /*

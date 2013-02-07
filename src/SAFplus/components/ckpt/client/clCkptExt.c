@@ -2056,3 +2056,27 @@ ClRcT ckptPackSizeGetCallback(
     return CL_OK;
 }
 
+ClRcT clCkptIOVectorFree(ClCkptIOVectorElementT *pIOVec, ClUint32T numVecs)
+{
+    ClUint32T i;
+
+    if(!pIOVec)
+        return CL_ERR_INVALID_PARAMETER;
+
+    for(i = 0; i < numVecs; ++i)
+    {
+        if(pIOVec[i].sectionId.id && pIOVec[i].sectionId.idLen > 0)
+        {
+            clHeapFree(pIOVec[i].sectionId.id);
+            pIOVec[i].sectionId.id = NULL;
+            pIOVec[i].sectionId.idLen = 0;
+        }
+        if(pIOVec[i].dataBuffer)
+        {
+            clHeapFree(pIOVec[i].dataBuffer);
+            pIOVec[i].dataBuffer = NULL;
+        }
+    }
+
+    return CL_OK;
+}

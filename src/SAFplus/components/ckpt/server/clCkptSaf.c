@@ -90,6 +90,13 @@ do {                                                                    \
 
 //static ClRcT _ckptUpdateClientImmConsmptn(ClNameT *pName);
 
+typedef struct ClCkptReadSectionsHint
+{
+    ClUint32T maxVecs;
+    ClUint32T curVecs;
+    ClCkptIOVectorElementT *pOutVec;
+} ClCkptReadSectionsHintT;
+
 /*************************************************************************/
 /*           S A F  Related Core functions                               */
 /*************************************************************************/
@@ -3188,6 +3195,159 @@ exitOnErrorWithoutUnlock:
         *pError = vecCount;
     }
 exitOnErrorBeforeHdlCheckout:
+    return rc;
+}
+
+static ClRcT readSectionsWalkCallback(ClCntKeyHandleT key,
+                                      ClCntDataHandleT data,
+                                      ClCntArgHandleT arg,
+                                      ClUint32T argSize)
+{
+    ClRcT rc = CL_OK;
+    ClCkptReadSectionsHintT *hint = (ClCkptReadSectionsHintT*)arg;
+    ClCkptSectionKeyT *pSectionKey = (ClCkptSectionKeyT*)key;
+    CkptSectionT *pSection = (CkptSectionT*)data;
+    ClCkptIOVectorElementT *pVec = hint->pOutVec + hint->curVecs;
+    if(!key || !data) 
+    {
+        clLogWarning("SEC", "READ", "Ignoring empty sections in ckpt table");
+        return CL_OK;
+    }
+    if(hint->curVecs >= hint->maxVecs)
+        return CL_ERR_NO_SPACE;
+    rc = _ckptSectionCopy(pSectionKey, &pVec->sectionId);
+    if(rc != CL_OK)
+        return rc;
+    pVec->readSize = pSection->size;
+    pVec->dataSize = pSection->size;
+    pVec->dataOffset = 0;
+    pVec->dataBuffer = NULL;
+    if(pSection->size > 0)
+    {
+        pVec->dataBuffer = clHeapAllocate(pSection->size);
+        if(pVec->dataBuffer == NULL)
+        {
+            if(pVec->sectionId.id)
+            {
+                clHeapFree(pVec->sectionId.id);
+                pVec->sectionId.id = NULL;
+            }
+            return CL_ERR_NO_MEMORY;
+        }
+        memcpy(pVec->dataBuffer, pSection->pData, pSection->size);
+    }
+    ++hint->curVecs;
+    return rc;
+}
+
+ClRcT VDECL_VER(_ckptCheckpointReadSections, 6, 0, 0)(ClCkptHdlT               ckptHdl,
+                                                      ClCkptIOVectorElementT   **pOutVec,
+                                                      ClUint32T                *pNumVecs)
+{
+    CkptT                   *pCkpt    = NULL;
+    ClRcT                   rc        = CL_OK;
+    ClUint32T               vecCount  = 0;
+    ClCkptReadSectionsHintT readSectionsHint = {0};
+
+    if(!ckptHdl || !pOutVec || !pNumVecs)
+        return CL_CKPT_ERR_INVALID_PARAMETER;
+
+    /*
+     * Check whether the server is fully up or not.
+     */
+    CL_CKPT_SVR_EXISTENCE_CHECK;
+
+    /*
+     * Retrieve the data associated with the active handle.
+     */
+    rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl, ckptHdl, (void **)&pCkpt);
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                                  ("Failed to get ckpt from handle rc[0x %x] ckptHdl [%#llX]\n",rc, ckptHdl), rc);
+
+    if(pCkpt->isPending == CL_TRUE)
+    {
+        rc = CL_CKPT_RC(CL_ERR_TRY_AGAIN);
+        (void)clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
+                   "Data for handle [%#llX] is not available rc[0x %x]", ckptHdl, rc);
+        return rc;
+    }
+    /*
+     * Lock the checkpoint's mutex here as the CKPT_ERR_CHECK below
+     * would land in exitOnError label
+     */
+
+    CKPT_LOCK(pCkpt->ckptMutex);
+    if(!pCkpt->ckptMutex)
+    {
+        clLogWarning("SEC", "READ", "Ckpt with handle [%#llx] already deleted", ckptHdl);
+        rc = CL_CKPT_ERR_NOT_EXIST;
+        goto exitOnErrorWithoutUnlock;
+    }
+
+    rc = clCntSizeGet(pCkpt->pDpInfo->secHashTbl, &vecCount);
+
+    if(rc != CL_OK)
+    {
+        clLogError("SEC", "READ", "Unable to get sections for ckpt [%.*s]",
+                   pCkpt->ckptName.length, pCkpt->ckptName.value);
+        goto exitOnError;
+    }
+
+    readSectionsHint.maxVecs = vecCount;
+    readSectionsHint.curVecs = 0;
+    readSectionsHint.pOutVec = clHeapCalloc(vecCount, sizeof(*readSectionsHint.pOutVec));
+    CL_ASSERT(readSectionsHint.pOutVec != NULL);
+
+    rc = clCntWalk(pCkpt->pDpInfo->secHashTbl, readSectionsWalkCallback, 
+                   (ClPtrT)&readSectionsHint, (ClUint32T)sizeof(readSectionsHint));
+
+    if(rc != CL_OK)
+    {
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_SPACE)
+        {
+            clLogWarning("SEC", "READ", "Checkpoint section count changed during the read. "
+                         "Read [%d] sections", readSectionsHint.curVecs);
+            rc = CL_OK;
+        }
+        else
+        {
+            clLogError("SEC", "READ", "Checkpoint [%.*s] sections read returned with [%#x]",
+                       pCkpt->ckptName.length, pCkpt->ckptName.value, rc);
+            goto exitOnError;
+        }
+    }
+
+    clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
+    /*
+     * Unlock the checkpoint's mutex.
+     */
+    CKPT_UNLOCK(pCkpt->ckptMutex);
+
+    *pOutVec = readSectionsHint.pOutVec;
+    *pNumVecs = readSectionsHint.curVecs;
+
+    return rc;
+
+    exitOnError:
+    /*
+     * Unock the checkpoint's mutex.
+     */
+    CKPT_UNLOCK(pCkpt->ckptMutex);
+
+    if(readSectionsHint.curVecs > 0)
+    {
+        clCkptIOVectorFree(readSectionsHint.pOutVec, readSectionsHint.curVecs);
+    }
+    if(readSectionsHint.pOutVec)
+    {
+        clHeapFree(readSectionsHint.pOutVec);
+    }
+
+    exitOnErrorWithoutUnlock:    
+    clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
+
+    exitOnErrorBeforeHdlCheckout:
     return rc;
 }
 
