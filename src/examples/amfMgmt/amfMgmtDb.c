@@ -674,3 +674,102 @@ ClRcT clAmsDBTest(void)
     return rc;
 }
 
+/*
+ * Get component names for the node
+ */
+ClRcT clAmsDBGetNodeCompList(ClAmsMgmtDBHandleT cache,
+                             const ClCharT *nodeName, 
+                             ClAmsEntityBufferT *compList)
+{
+    ClRcT rc = CL_OK;
+    ClAmsEntityBufferT compBuffer = {0};
+    ClAmsEntityBufferT suBuffer = {0};
+    ClAmsEntityT entity = {.type = CL_AMS_ENTITY_TYPE_NODE};
+
+    if(!cache || !nodeName) return CL_OK;
+
+    if(compList)
+    {
+        compList->entity = NULL;
+        compList->count = 0;
+    }
+
+    clNameSet(&entity.name, nodeName);
+
+    rc = clAmsMgmtDBGetNodeSUList(cache, &entity, &suBuffer);
+    if(rc != CL_OK)
+        goto out;
+
+    for(ClUint32T i = 0; i < suBuffer.count; ++i)
+    {
+        rc = clAmsMgmtDBGetSUCompList(cache, &suBuffer.entity[i], &compBuffer);
+        if(rc != CL_OK)
+            goto out_free;
+        if(compBuffer.count == 0)
+        {
+            if(compBuffer.entity)
+            {
+                clHeapFree(compBuffer.entity);
+                compBuffer.entity = NULL;
+            }
+            continue;
+        }
+        if(compList)
+        {
+            compList->entity = clHeapRealloc(compList->entity,
+                                            sizeof(*compList->entity) * 
+                                             (compList->count + compBuffer.count));
+            CL_ASSERT(compList->entity != NULL);
+            memcpy(compList->entity + compList->count, compBuffer.entity,
+                   sizeof(*compBuffer.entity) * compBuffer.count);
+            compList->count += compBuffer.count;
+        }
+
+        if(compBuffer.entity)
+        {
+            clHeapFree(compBuffer.entity);
+            compBuffer.entity = NULL;
+        }
+        compBuffer.count = 0;
+    }
+
+    out_free:
+    if(suBuffer.entity)
+        clHeapFree(suBuffer.entity);
+
+    out:
+    return rc;
+}
+
+/*
+ * Just an example usage to get comp names given a nodename
+ */
+ClRcT amsDBGetNodeCompList(const ClCharT *nodeName)
+{
+    ClRcT rc = CL_OK;
+    static ClAmsMgmtDBHandleT cache;
+    if(!nodeName) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    if(!cache)
+    {
+        rc = clAmsMgmtDBGet(&cache);
+        CL_ASSERT(rc == CL_OK);
+    }
+    ClAmsEntityBufferT compBuffer = {0};
+    rc = clAmsDBGetNodeCompList(cache, nodeName, &compBuffer);
+    if(compBuffer.count)
+        clLogNotice("NODE", "COMP", "Node [%s] has [%d] components",
+                    nodeName, compBuffer.count);
+    for(ClUint32T i = 0; i < compBuffer.count; ++i)
+    {
+        clLogNotice("NODE", "COMP", "Node [%s] has component [%s]",
+                    nodeName, compBuffer.entity[i].name.value);
+    }
+    if(compBuffer.entity)
+        clHeapFree(compBuffer.entity);
+    
+    /*
+     * not finalizing the static cache, as its just an example routine
+     */
+    return rc;
+}
+
