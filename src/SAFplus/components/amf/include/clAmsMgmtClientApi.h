@@ -3649,6 +3649,11 @@ ClRcT clAmsMgmtDBGetSISUList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsS
 extern
 ClRcT clAmsMgmtDBGetCompCSIList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsCompCSIRefBufferT *buffer);
 
+extern
+ClRcT clAmsMgmtDBGetNodeCompList(ClAmsMgmtDBHandleT cache,
+                                 const ClCharT *nodeName, 
+                                 ClAmsEntityBufferT *compList);
+
 extern ClRcT clAmsMgmtDBCacheDump(ClAmsMgmtDBHandleT db);
 
 extern ClRcT clAmsMgmtDBFinalize(ClAmsMgmtDBHandleT *db);
