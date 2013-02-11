@@ -6585,6 +6585,71 @@ ClRcT clAmsMgmtDBGetCompCSIList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClA
     return CL_OK;
 }
 
+ClRcT clAmsMgmtDBGetNodeCompList(ClAmsMgmtDBHandleT cache,
+                                 const ClCharT *nodeName, 
+                                 ClAmsEntityBufferT *compList)
+{
+    ClRcT rc = CL_OK;
+    ClAmsEntityBufferT compBuffer = {0};
+    ClAmsEntityBufferT suBuffer = {0};
+    ClAmsEntityT entity = {.type = CL_AMS_ENTITY_TYPE_NODE};
+
+    if(!cache || !nodeName) 
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+
+    if(compList)
+    {
+        compList->entity = NULL;
+        compList->count = 0;
+    }
+
+    clNameSet(&entity.name, nodeName);
+
+    rc = clAmsMgmtDBGetNodeSUList(cache, &entity, &suBuffer);
+    if(rc != CL_OK)
+        goto out;
+
+    for(ClUint32T i = 0; i < suBuffer.count; ++i)
+    {
+        rc = clAmsMgmtDBGetSUCompList(cache, &suBuffer.entity[i], &compBuffer);
+        if(rc != CL_OK)
+            goto out_free;
+        if(compBuffer.count == 0)
+        {
+            if(compBuffer.entity)
+            {
+                clHeapFree(compBuffer.entity);
+                compBuffer.entity = NULL;
+            }
+            continue;
+        }
+        if(compList)
+        {
+            compList->entity = clHeapRealloc(compList->entity,
+                                            sizeof(*compList->entity) * 
+                                             (compList->count + compBuffer.count));
+            CL_ASSERT(compList->entity != NULL);
+            memcpy(compList->entity + compList->count, compBuffer.entity,
+                   sizeof(*compBuffer.entity) * compBuffer.count);
+            compList->count += compBuffer.count;
+        }
+
+        if(compBuffer.entity)
+        {
+            clHeapFree(compBuffer.entity);
+            compBuffer.entity = NULL;
+        }
+        compBuffer.count = 0;
+    }
+
+    out_free:
+    if(suBuffer.entity)
+        clHeapFree(suBuffer.entity);
+
+    out:
+    return rc;
+}
+
 ClRcT clAmsMgmtDBGet(ClAmsMgmtDBHandleT *db)
 {
     ClRcT rc;
