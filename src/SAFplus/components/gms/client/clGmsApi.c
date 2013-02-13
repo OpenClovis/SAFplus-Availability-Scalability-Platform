@@ -280,6 +280,8 @@ ClRcT clGmsInitialize(
         return CL_GMS_RC(CL_ERR_NULL_POINTER);
     }
 
+    *gmsHandle = CL_HANDLE_INVALID_VALUE;
+
     /* Step 2: Verifying version match */
     
     rc = clVersionVerify (&version_database, version);
@@ -302,11 +304,30 @@ ClRcT clGmsInitialize(
     
     rc = clHandleCheckout(handle_database, *gmsHandle, (void *)&gms_instance_ptr);
 
-    CL_ASSERT(rc == CL_OK); /* Should never happen */
+    if(rc != CL_OK)
+    {
+        goto error_destroy;
+    }
 
     if (gms_instance_ptr == NULL)
     {
-        return CL_GMS_RC(CL_ERR_NULL_POINTER);
+        clHandleCheckin(handle_database, *gmsHandle);
+        rc = CL_GMS_RC(CL_ERR_NULL_POINTER);
+        goto error_destroy;
+    }
+
+    rc = clGmsMutexCreate(&gms_instance_ptr->response_mutex);
+    if(rc != CL_OK)
+    {
+        clHandleCheckin(handle_database, *gmsHandle);
+        goto error_destroy;
+    }
+
+    /* Create the key for thread specific data set */
+    rc = gmsTaskKeyCreate();
+    if(rc != CL_OK)
+    {
+        clLogError("TASK", "KEY", "TaskKeyCreate returned [%#x]", rc);
     }
 
     /* Step 4: Negotiate version with the server */
@@ -319,32 +340,29 @@ ClRcT clGmsInitialize(
     {
         CL_DEBUG_PRINT (CL_DEBUG_ERROR,
                 ("\n cl_gms_clientlib_initialize_rmd failed with rc:0x%x ",rc));
-        return CL_GMS_RC(rc);
+        clGmsMutexDelete(gms_instance_ptr->response_mutex);
+        gms_instance_ptr->response_mutex = 0;
+        gmsTaskKeyDelete();
+        clHandleCheckin(handle_database, *gmsHandle);
+        rc = CL_GMS_RC(rc);
+        goto error_destroy;
     }
     
-
     /* Step 5: Initialize instance entry */
     
-    if (gmsCallbacks) {
+    if (gmsCallbacks) 
+    {
         memcpy(&gms_instance_ptr->callbacks, gmsCallbacks, sizeof(ClGmsCallbacksT));
-    } else {
+    } 
+    else 
+    {
         memset(&gms_instance_ptr->callbacks, 0, sizeof(ClGmsCallbacksT));
     }
-
-   
-    clGmsMutexCreate(&gms_instance_ptr->response_mutex);
 
     memset(&gms_instance_ptr->cluster_notification_buffer, 0,
            sizeof(ClGmsClusterNotificationBufferT));
     memset(&gms_instance_ptr->group_notification_buffer, 0,
            sizeof(ClGmsGroupNotificationBufferT));
-
-    /* Create the key for thread specific data set */
-    rc = gmsTaskKeyCreate();
-    if(rc != CL_OK)
-    {
-        clLogError("TASK", "KEY", "TaskKeyCreate returned [%#x]", rc);
-    }
 
     /* Step 6: Decrement handle use count and return */
     if ((clHandleCheckin(handle_database, *gmsHandle)) != CL_OK)
@@ -355,7 +373,11 @@ ClRcT clGmsInitialize(
     clHeapFree(res);
     return CL_OK;
 
-error_no_destroy:
+    error_destroy:
+    clHandleDestroy(handle_database, *gmsHandle);
+    *gmsHandle = CL_HANDLE_INVALID_VALUE;
+
+    error_no_destroy:
     return rc;
 }
 
@@ -379,7 +401,11 @@ ClRcT clGmsFinalize(
         return CL_GMS_RC(CL_ERR_NULL_POINTER);
     }
 
-    clGmsMutexLock(gms_instance_ptr->response_mutex);
+    rc = clGmsMutexLock(gms_instance_ptr->response_mutex);
+    if(rc != CL_OK)
+    {
+        return rc;
+    }
 
 	/*
 	 * Another thread has already started finalizing
