@@ -74,10 +74,11 @@
 #include <msgIdlClientCallsFromClientClient.h>
 #include <clMsgConsistentHash.h>
 
-
 #define MSG_DISPATCH_QUEUE_HASH_BITS (8)
 #define MSG_DISPATCH_QUEUE_HASH_BUCKETS (1<<MSG_DISPATCH_QUEUE_HASH_BITS)
 #define MSG_DISPATCH_QUEUE_HASH_MASK (MSG_DISPATCH_QUEUE_HASH_BUCKETS-1)
+#define MSG_CLI_LOCK() do { pthread_mutex_lock(&gClMsgCliLock); } while(0)
+#define MSG_CLI_UNLOCK() do { pthread_mutex_unlock(&gClMsgCliLock); } while(0)
 
 /*
  * Supported version.
@@ -97,6 +98,8 @@ static ClVersionDatabaseT versionDatabase=
     clVersionSupported
 }; 
 
+static pthread_mutex_t gClMsgCliLock = PTHREAD_MUTEX_INITIALIZER;
+static ClInt32T gClMsgCliRefCnt;
 
 typedef struct {
     SaMsgHandleT msgHandle;
@@ -106,6 +109,7 @@ typedef struct {
 
 typedef struct {
     SaMsgQueueHandleT qHandle;
+    ClBoolT asyncReceive;
 }ClMsgMessageReceiveCallbackParamsT;
 
 typedef struct ClMsgDispatchQueueCtrl
@@ -120,6 +124,7 @@ typedef struct ClMsgDispatchQueue
 {
 #define CL_MSG_DISPATCH_QUEUE_THREADS (0x8)
     struct hashStruct hash; /*hash index*/
+    SaMsgHandleT msgHandle; /* the msg handle reference for the queue */
     SaMsgQueueHandleT queueHandle; /*the msg queue reference*/
     SaMsgMessageReceivedCallbackT msgReceivedCallback; /*msg receive callback to invoke*/
 }ClMsgDispatchQueueT;
@@ -127,7 +132,7 @@ typedef struct ClMsgDispatchQueue
 static ClMsgDispatchQueueCtrlT gClMsgDispatchQueueCtrl;
 
 ClHandleDatabaseHandleT gMsgHandleDatabase;
-SaMsgHandleT gMsgHandle;
+static SaMsgHandleT gMsgHandle;
 
 static ClMsgDispatchQueueT *msgDispatchQueueFind(SaMsgQueueHandleT queueHandle);
 static void msgDispatchQueueDestroy(void);
@@ -198,8 +203,12 @@ static void clMsgDispatchCallback(SaMsgHandleT msgHandle, ClUint32T callbackType
                 ClMsgMessageReceiveCallbackParamsT *pParam = (ClMsgMessageReceiveCallbackParamsT*)pCallbackParam;
                 ClMsgDispatchQueueT *pDispatchQueue = NULL;
                 ClMsgDispatchQueueT *pTempDispatchQueue = NULL;
-                if(!gClMsgDispatchQueueCtrl.dispatchQueueSize || !gClMsgDispatchQueueCtrl.dispatchTable)
+                if(!pParam->asyncReceive || 
+                   !gClMsgDispatchQueueCtrl.dispatchQueueSize || 
+                   !gClMsgDispatchQueueCtrl.dispatchTable)
+                {
                     goto recvCallback;
+                }
                 clOsalMutexLock(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
                 if(!(pDispatchQueue = msgDispatchQueueFind(pParam->qHandle)))
                 {
@@ -266,11 +275,19 @@ static void clMsgDispatchDestroyCallback(ClUint32T callbackType, ClPtrT pCallbac
     return;
 }
 
+/*
+ * Should be called with gClMsgCliLock held
+ */
 static ClRcT clMsgInitialize(void)
 {
     ClRcT rc = CL_OK, retCode;
     ClEoExecutionObjT *pThis = NULL;
 
+    ++gClMsgCliRefCnt;
+    /*
+     * gClMsgInit is shared by msg server and extern'ed.
+     * So it goes unaffected even with ref cnt
+     */
     if(gClMsgInit == CL_TRUE)
         goto out;
 
@@ -384,21 +401,37 @@ static ClRcT clMsgInitialize(void)
     rc = clOsalMutexInit(&gClGroupRRLock);
     CL_ASSERT(rc == CL_OK);
 
+    gClMsgDispatchQueueCtrl.dispatchQueueSize = 0;
+    if(!gClMsgDispatchQueueCtrl.dispatchTable)
+    {
+        rc = clOsalMutexInit(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
+        CL_ASSERT(rc == CL_OK);
+        gClMsgDispatchQueueCtrl.dispatchTable = clHeapCalloc(MSG_DISPATCH_QUEUE_HASH_BUCKETS, 
+                                                             sizeof(*gClMsgDispatchQueueCtrl.dispatchTable));
+        CL_ASSERT(gClMsgDispatchQueueCtrl.dispatchTable != NULL);
+    }
+    rc = clJobQueueInit(&gClMsgDispatchQueueCtrl.dispatchQueue, 0, CL_MSG_DISPATCH_QUEUE_THREADS);
+    if(rc != CL_OK)
+    {
+        clLogError("MSG", "INI", "Failed to initialize dispatch job queue [%#x]", rc);
+        goto error_out_12;
+    }
+        
     return rc;
 
-error_out_12:
+    error_out_12:
     clMsgReceiverDatabaseFin();
-error_out_11:
+    error_out_11:
     clMsgSenderDatabaseFin();
-error_out_10:
+    error_out_10:
     retCode = clMsgQueueFinalize();
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "Failed to finalize queue databases. error code [0x%x].", retCode);
-error_out_9:
+    error_out_9:
     retCode = clMsgQCkptFinalize();
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "clMsgQCkptFinalize(): error code [0x%x].", retCode);
-error_out_8:
+    error_out_8:
 
 #ifdef CL_MSG_IOC_SEND
     retCode = clMsgIocCltFinalize();
@@ -409,41 +442,47 @@ error_out_8:
     retCode = clMsgCltSrvClientTableDeregister();
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "Failed to deregister Client Server Table. error code [0x%x].",retCode);
-error_out_7:
+    error_out_7:
     retCode = clMsgCltSrvClientUninstall();
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "Failed to destroy the just opened handle database. error code [0x%x].", retCode);
-error_out_6:
+    error_out_6:
     retCode = clMsgCltClientTableDeregister();
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "Failed to deregister Client Table. error code [0x%x].",retCode);
-error_out_5:
+    error_out_5:
     retCode = clMsgCltClientUninstall();
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "Failed to destroy the just opened handle database. error code [0x%x].", retCode);
-error_out_4:
+    error_out_4:
     retCode = clMsgIdlClientTableDeregister();
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "Failed to deregister Server Table. error code [0x%x].",retCode);
-error_out_3:
+    error_out_3:
     clMsgCommIdlFinalize();
-error_out_2:
+    error_out_2:
     retCode = clHandleDatabaseDestroy(gMsgHandleDatabase);
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "Failed to destroy the just opened handle database. error code [0x%x].", retCode);
-error_out_1:
+    error_out_1:
     retCode = clASPFinalize();
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "Failed to Finalize the ASP. error code [0x%x].", retCode);
-error_out:
-out:
+    error_out:
+    --gClMsgCliRefCnt;
+
+    out:
     return rc;
 }
 
+/*
+ * Should be called with msg cli lock held
+ */
 static ClRcT clMsgFinalize(void)
 {
     ClRcT rc = CL_OK;
-
+    if(!gClMsgCliRefCnt || --gClMsgCliRefCnt > 0)
+        return rc;
     /*
      * Destroy the msg. dispatch queue.
      */
@@ -543,7 +582,8 @@ SaAisErrorT saMsgInitialize(
         /* FIXME : BUG : The following line must be added in clVersionVerify() of clVersionApi.c file*/
         pVersion->majorVersion = versionDatabase.versionsSupported[0].majorVersion;
     }
-
+    
+    MSG_CLI_LOCK();
     rc = clMsgInitialize();
     if(rc != CL_OK)
     {
@@ -591,25 +631,6 @@ SaAisErrorT saMsgInitialize(
         goto error_out_3;
     }
 
-    if(!gClMsgDispatchQueueCtrl.dispatchTable)
-    {
-        rc = clJobQueueInit(&gClMsgDispatchQueueCtrl.dispatchQueue, 0, CL_MSG_DISPATCH_QUEUE_THREADS);
-        if(rc != CL_OK)
-        {
-            clLogError("MSG", "INI", "Failed to initialize dispatch job queue [%#x]", rc);
-            goto error_out_3;
-        }
-
-        rc = clOsalMutexInit(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
-        CL_ASSERT(rc == CL_OK);
-
-        gClMsgDispatchQueueCtrl.dispatchTable = clHeapCalloc(MSG_DISPATCH_QUEUE_HASH_BUCKETS, 
-                                                             sizeof(*gClMsgDispatchQueueCtrl.dispatchTable));
-        CL_ASSERT(gClMsgDispatchQueueCtrl.dispatchTable != NULL);
-
-        gClMsgDispatchQueueCtrl.dispatchQueueSize = 0;
-    }
-
     rc = clDispatchRegister(&pMsgLibInfo->dispatchHandle, msgHandle, &clMsgDispatchCallback, &clMsgDispatchDestroyCallback );
     if(rc != CL_OK)
     {
@@ -651,7 +672,9 @@ SaAisErrorT saMsgInitialize(
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "Failed to do the cleanup of message client. error code [0x%x].", retCode);
     error_out:
+
     out:
+    MSG_CLI_UNLOCK();
     return CL_MSG_SA_RC(rc);
 }
 
@@ -666,14 +689,13 @@ SaAisErrorT saMsgFinalize(
 
     CL_MSG_INIT_CHECK;
 
+    MSG_CLI_LOCK();
     rc = clHandleCheckout(gMsgHandleDatabase, msgHandle, (void**)&pMsgLibInfo);
     if(rc != CL_OK)
     {
         clLogError("MSG", "FIN", "Failed to checkout the message handle. error code [0x%x].", rc);
         goto error_out;
     }
-
-    gClMsgInit = CL_FALSE;
 
     rc = clDispatchDeregister(pMsgLibInfo->dispatchHandle);
     if(rc != CL_OK)
@@ -696,8 +718,16 @@ SaAisErrorT saMsgFinalize(
     rc = clMsgFinalize();
     if(rc != CL_OK)
         clLogError("MSG", "FIN", "Failed to dot the cleanup of the message client. error code [0x%x].", rc);
-   
+    
+    if(!gClMsgCliRefCnt)
+    {
+        gMsgHandle = 0;
+        gClMsgInit = CL_FALSE;
+    }
+
 error_out:
+    MSG_CLI_UNLOCK();
+
     return CL_MSG_SA_RC(rc);
 }
 
@@ -1288,8 +1318,25 @@ ClRcT clMsgMessageReceiveCallback(SaMsgQueueHandleT qHandle)
     ClRcT rc;
     ClMsgMessageReceiveCallbackParamsT *pParam;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
+    ClMsgDispatchQueueT *pMsgDispatch = NULL;
+    SaMsgHandleT msgHandle = 0;
+    ClBoolT asyncReceive = CL_FALSE;
 
-    rc = clHandleCheckout(gMsgHandleDatabase, gMsgHandle, (void**)&pMsgLibInfo);
+    clOsalMutexLock(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
+    pMsgDispatch = msgDispatchQueueFind(qHandle);
+    if(pMsgDispatch)
+    {
+        msgHandle = pMsgDispatch->msgHandle;
+    }
+    clOsalMutexUnlock(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
+
+    if(!msgHandle)
+    {
+        msgHandle = gMsgHandle;
+        asyncReceive = CL_TRUE;
+    }
+
+    rc = clHandleCheckout(gMsgHandleDatabase, msgHandle, (void**)&pMsgLibInfo);
     if(rc != CL_OK)
     {
         clLogError("MSG", "RCVcb", "Failed to checkout the message handle. error code [0x%x].", rc);
@@ -1304,6 +1351,7 @@ ClRcT clMsgMessageReceiveCallback(SaMsgQueueHandleT qHandle)
         goto error_out_1;
     }
     pParam->qHandle = qHandle;
+    pParam->asyncReceive = asyncReceive;
     rc = clDispatchCbEnqueue(pMsgLibInfo->dispatchHandle, CL_MSG_MESSAGE_RECEIVED_CALLBACK_TYPE, pParam); 
     if(rc != CL_OK)
     {
@@ -1311,7 +1359,7 @@ ClRcT clMsgMessageReceiveCallback(SaMsgQueueHandleT qHandle)
     }
 
 error_out_1:
-    rc = clHandleCheckin(gMsgHandleDatabase, gMsgHandle);
+    rc = clHandleCheckin(gMsgHandleDatabase, msgHandle);
     if(rc != CL_OK)
     {
         clLogError("MSG", "RCVcb", "Failed to checkin the message handle. error code [0x%x].", rc);
@@ -1712,7 +1760,9 @@ static ClRcT msgDispatchQueueDel(SaMsgQueueHandleT queueHandle)
 static void msgDispatchQueueDestroy(void)
 {
     register ClInt32T i;
-    if(!gClMsgDispatchQueueCtrl.dispatchTable) return;
+    if(!gClMsgDispatchQueueCtrl.dispatchTable ||
+       !gClMsgDispatchQueueCtrl.dispatchQueueSize) 
+        return;
     clOsalMutexLock(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
     if(gClMsgDispatchQueueCtrl.dispatchQueueSize > 0)
     {
@@ -1731,16 +1781,15 @@ static void msgDispatchQueueDestroy(void)
             gClMsgDispatchQueueCtrl.dispatchTable[i] = NULL;
         }
     }
-    clHeapFree(gClMsgDispatchQueueCtrl.dispatchTable);
-    gClMsgDispatchQueueCtrl.dispatchTable = NULL;
     gClMsgDispatchQueueCtrl.dispatchQueueSize = 0;
     clOsalMutexUnlock(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
+
     clJobQueueDelete(&gClMsgDispatchQueueCtrl.dispatchQueue);
-    clOsalMutexDestroy(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
     return;
 }
 
-static void msgDispatchQueueAdd(SaMsgQueueHandleT queueHandle,
+static void msgDispatchQueueAdd(SaMsgHandleT msgHandle,
+                                SaMsgQueueHandleT queueHandle,
                                 SaMsgMessageReceivedCallbackT callback)
 {
     ClMsgDispatchQueueT *pDispatchQueue = NULL;
@@ -1749,13 +1798,34 @@ static void msgDispatchQueueAdd(SaMsgQueueHandleT queueHandle,
     {
         pDispatchQueue = clHeapCalloc(1, sizeof(*pDispatchQueue));
         CL_ASSERT(pDispatchQueue != NULL);
+        pDispatchQueue->msgHandle = msgHandle;
         pDispatchQueue->queueHandle = queueHandle;
         pDispatchQueue->msgReceivedCallback = callback;
         hashAdd(gClMsgDispatchQueueCtrl.dispatchTable, key, &pDispatchQueue->hash);
         ++gClMsgDispatchQueueCtrl.dispatchQueueSize;
     }
     else
+    {
+        /*
+         * Update the msg handle and callback for the queue
+         */
+        pDispatchQueue->msgHandle = msgHandle;
         pDispatchQueue->msgReceivedCallback = callback;
+    }
+}
+
+ClRcT clMsgDispatchQueueRegisterInternal(SaMsgHandleT msgHandle,
+                                         SaMsgQueueHandleT queueHandle,
+                                         SaMsgMessageReceivedCallbackT callback)
+{
+    if(!gClMsgDispatchQueueCtrl.dispatchTable) 
+        return CL_MSG_RC(CL_ERR_NOT_INITIALIZED);
+
+    clOsalMutexLock(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
+    msgDispatchQueueAdd(msgHandle, queueHandle, callback);
+    clOsalMutexUnlock(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
+
+    return CL_OK;
 }
 
 ClRcT clMsgDispatchQueueRegister(SaMsgQueueHandleT queueHandle,
@@ -1763,24 +1833,15 @@ ClRcT clMsgDispatchQueueRegister(SaMsgQueueHandleT queueHandle,
 {
     CL_MSG_INIT_CHECK;
 
-    if(!gClMsgDispatchQueueCtrl.dispatchTable) 
-        return CL_MSG_RC(CL_ERR_NOT_INITIALIZED);
-
     if(!callback)
         return CL_MSG_RC(CL_ERR_INVALID_PARAMETER);
-
-    clOsalMutexLock(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
-    msgDispatchQueueAdd(queueHandle, callback);
-    clOsalMutexUnlock(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
-
-    return CL_OK;
+    
+    return clMsgDispatchQueueRegisterInternal(0, queueHandle, callback);
 }
 
-ClRcT clMsgDispatchQueueDeregister(SaMsgQueueHandleT queueHandle)
+ClRcT clMsgDispatchQueueDeregisterInternal(SaMsgQueueHandleT queueHandle)
 {
     ClRcT rc = CL_OK;
-
-    CL_MSG_INIT_CHECK;
 
     if(!gClMsgDispatchQueueCtrl.dispatchTable)
         return CL_MSG_RC(CL_ERR_NOT_INITIALIZED);
@@ -1790,4 +1851,10 @@ ClRcT clMsgDispatchQueueDeregister(SaMsgQueueHandleT queueHandle)
     clOsalMutexUnlock(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
 
     return rc;
+}
+
+ClRcT clMsgDispatchQueueDeregister(SaMsgQueueHandleT queueHandle)
+{
+    CL_MSG_INIT_CHECK;
+    return clMsgDispatchQueueDeregisterInternal(queueHandle);
 }

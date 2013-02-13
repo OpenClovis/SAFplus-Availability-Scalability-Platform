@@ -82,6 +82,11 @@ static void clMsgAppQueueOpenCallbackFunc(ClHandleT msgHandle,
     pParam->invocation = invocation;
     pParam->rc = CL_MSG_SA_RC(rc);
     pParam->queueHandle = qHandle;
+    if(qHandle && rc == CL_OK && pMsgLibInfo->callbacks.saMsgMessageReceivedCallback)
+    {
+        clMsgDispatchQueueRegisterInternal(msgHandle, qHandle,
+                                           pMsgLibInfo->callbacks.saMsgMessageReceivedCallback);
+    }
 
     retCode = clDispatchCbEnqueue(pMsgLibInfo->dispatchHandle, CL_MSG_QUEUE_OPEN_CALLBACK_TYPE, (void *)pParam);
     if(retCode != CL_OK)
@@ -677,6 +682,12 @@ retry:
             }
         }
     }
+ 
+    if(syncCall && pMsgLibInfo->callbacks.saMsgMessageReceivedCallback && *pQueueHandle)
+    {
+        clMsgDispatchQueueRegisterInternal(msgHandle, *pQueueHandle, 
+                                           pMsgLibInfo->callbacks.saMsgMessageReceivedCallback);
+    }
 
 error_out_1:
     retCode = clHandleCheckin(gMsgHandleDatabase, msgHandle);
@@ -792,6 +803,11 @@ SaAisErrorT saMsgQueueClose(SaMsgQueueHandleT queueHandle)
     }
 
 qHdl_chkin:
+    if(rc == CL_OK)
+    {
+        clMsgDispatchQueueDeregisterInternal(queueHandle);
+    }
+
     retCode = clHandleCheckin(gClMsgQDatabase, queueHandle);
     if(retCode != CL_OK)
         clLogError("QUE", "CLOS", "Failed to checkin the queue handle. error code [0x%x].", retCode);
