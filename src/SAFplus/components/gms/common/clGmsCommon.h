@@ -671,34 +671,34 @@ typedef struct
    Wrapper to create the mutex , asserts on failure .
    */
 
-static void inline 
-clGmsMutexCreate( ClOsalMutexIdT *pmutex  ){
-
+static inline 
+ClRcT clGmsMutexCreate( ClOsalMutexIdT *pmutex  )
+{
     ClRcT _rc = CL_OK;
-
     _rc = clOsalMutexCreate ( pmutex );
-    if(_rc != CL_OK ){
+    if(_rc != CL_OK )
+    {
 #ifdef CL_GMS_SERVER         
         clLog(ERROR,GEN,NA,
                  "\nclOsalMutexCreate failed with rc [0x%x]",_rc );
 #endif 
-        CL_ASSERT(_rc == CL_OK );
     }
+    return _rc;
 }
 
-static void inline 
-clGmsMutexDelete( ClOsalMutexIdT mutex  ){
-
+static inline 
+ClRcT clGmsMutexDelete( ClOsalMutexIdT mutex  )
+{
     ClRcT _rc = CL_OK;
-
     _rc = clOsalMutexDelete ( mutex );
-    if(_rc != CL_OK ){
+    if(_rc != CL_OK )
+    {
 #ifdef CL_GMS_SERVER         
         clLog(ERROR,GEN,NA,
                  "\nclOsalMutexCreate failed with rc [0x%x]",_rc );
 #endif 
-        CL_ASSERT(_rc == CL_OK );
     }
+    return _rc;
 }
 
 
@@ -710,24 +710,20 @@ clGmsMutexDelete( ClOsalMutexIdT mutex  ){
    */
 
 
-static void inline  
-clGmsMutexLock( ClOsalMutexIdT mutex ){   
+static inline  
+ClRcT clGmsMutexLock( ClOsalMutexIdT mutex ){   
 
     ClRcT _rc = CL_OK;                 
-
     _rc = clOsalMutexLock( mutex );
-    if(_rc != CL_OK ){            
+    if(_rc != CL_OK )
+    {            
 #ifdef CL_GMS_SERVER 
         clLog(ERROR,GEN,NA,
                  "clOsalMutexLock failed with rc [0x%x]",_rc );                                  
 #endif 
-        CL_ASSERT(_rc == CL_OK );                       
     }                                                  
-        return;
+    return _rc;
 }
-
-
-
 
 /*
    clGmsMutexUnlock
@@ -735,26 +731,18 @@ clGmsMutexLock( ClOsalMutexIdT mutex ){
    Wrapper to unlock the mutex , asserts on failure .
    */
 
-
-static void inline  
-clGmsMutexUnlock( ClOsalMutexIdT mutex ){                
-
+static inline  
+ClRcT clGmsMutexUnlock( ClOsalMutexIdT mutex ){                
     ClRcT _rc = CL_OK;                    
-
     _rc = clOsalMutexUnlock( mutex ); 
     if(_rc != CL_OK ){         
 #ifdef CL_GMS_SERVER 
         clLog(ERROR,GEN,NA,
                  "clOsalMutexLock failed with rc [0x%x]",_rc );                                  
 #endif 
-        CL_ASSERT(_rc == CL_OK );                       
     }                                                  
-        return;
+    return _rc;
 }
-
-
-
-
 
 /*
    clGmsCondCreate
@@ -762,19 +750,17 @@ clGmsMutexUnlock( ClOsalMutexIdT mutex ){
    Wrapper to create the conditional variable , asserts on failure .
    */
 
-static void inline 
-clGmsCondCreate( ClOsalCondIdT *pcond ){
-    
+static inline 
+ClRcT clGmsCondCreate( ClOsalCondIdT *pcond ){
     ClRcT _rc = CL_OK;
-
     _rc = clOsalCondCreate( pcond );
     if( _rc != CL_OK ){
 #ifdef CL_GMS_SERVER 
         clLog(ERROR,GEN,NA,
                  "\nclOsalCondCreate failed with rc [0x%x]",_rc  );
 #endif 
-        CL_ASSERT( _rc == CL_OK );
     }
+    return _rc;
 }
 
 
@@ -804,28 +790,21 @@ clGmsCondWait (
                  "\nclOsalCondWait failed with rc [0x%x]",
                  _rc );
 #endif 
-        CL_ASSERT( _rc == CL_OK );
         return _rc;
     }
     return _rc;
 }
-
-
-
-
-
-
 
 /*
    clGmsCondSignal
    ---------------
    Wrapper to signal the conditional variable , asserts on failure .
    */
-static void inline 
-clGmsCondSignal ( 
-        ClOsalCondIdT cond
-        ){
-
+static inline 
+ClRcT clGmsCondSignal ( 
+                       ClOsalCondIdT cond
+                        )
+{
     ClRcT _rc = CL_OK;
 
     _rc = clOsalCondSignal ( cond );
@@ -834,9 +813,8 @@ clGmsCondSignal (
         clLog(ERROR,GEN,NA,
                  "\nclOsalCondSignal failed with rc [0x%x]",_rc  );
 #endif 
-        CL_ASSERT( _rc == CL_OK );
     }
-    return;
+    return _rc;
 }
 
 
@@ -856,8 +834,6 @@ clGmsCondSignal (
     clGmsCsEnter is called prior to the clGmsCsLeave. 
  */
 
-
-
 /*
    clGmsCsCreate
    --------------
@@ -866,12 +842,12 @@ clGmsCondSignal (
 static inline void 
 clGmsCsCreate( ClGmsCsSectionT *pcs ){
 
-    clGmsMutexCreate( &pcs->mutex );
-    clGmsCondCreate ( &pcs->cond  );
+    ClRcT _rc;
+    _rc = clGmsMutexCreate( &pcs->mutex );
+    _rc |= clGmsCondCreate ( &pcs->cond  );
+    CL_ASSERT(_rc == CL_OK);
     return;
 }
-
-
 
 /*
    clGmsCsEnter
