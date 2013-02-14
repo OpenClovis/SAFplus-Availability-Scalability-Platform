@@ -773,3 +773,140 @@ ClRcT amsDBGetNodeCompList(const ClCharT *nodeName)
     return rc;
 }
 
+typedef struct ClCompStatBuffer
+{
+    ClCharT compName[CL_MAX_NAME_LENGTH]; /*amf component instance */
+    ClCharT comm[17]; /*kernel command line */
+    ClUint32T pid;
+    float cpu; /*percent */
+    long mem;  /* rss or resident set size in kb */
+} ClCompStatBufferT;
+
+/*
+ * Node local for now. Otherwise one can fire an rpc or pexpect to remote node
+ * to get the output as well
+ */
+static ClRcT getCompStats(ClUint32T pid, ClCharT *compName, ClCompStatBufferT *statBuffer)
+{
+    char cmdbuf[0xff+1];
+    FILE *fptr;
+    snprintf(cmdbuf, sizeof(cmdbuf), "ps -p %d -o pcpu,rss,cmd | tail -1", pid);
+    fptr = popen(cmdbuf, "r");
+    if(fptr && fgets(cmdbuf, sizeof(cmdbuf), fptr))
+    {
+        int bytes = strlen(cmdbuf);
+        if(cmdbuf[bytes-1] == '\n')
+            cmdbuf[bytes-1] = 0;
+        statBuffer->pid = pid;
+        statBuffer->compName[0] = 0;
+        strncat(statBuffer->compName, compName, sizeof(statBuffer->compName)-1);
+        sscanf(cmdbuf, "%f%ld%16s", &statBuffer->cpu, &statBuffer->mem, statBuffer->comm);
+        pclose(fptr);
+        clLogNotice("COMP", "STATS", "Component [%s], pid [%d], cmd [%s], pcpu [%.2f], "
+                    "rss [%ld kb]", 
+                    statBuffer->compName, statBuffer->pid, statBuffer->comm,
+                    statBuffer->cpu, statBuffer->mem);
+        return CL_OK;
+    }
+    return CL_ERR_LIBRARY;
+}
+
+/*
+ * If nodename is null, get it for locally running comps -- Expected usage
+ */
+ClRcT clAmsGetCompListStats(const ClCharT *pNodeName, 
+                            ClCompStatBufferT **pStatBuffer, ClUint32T *pNumStats)
+{
+    ClAmsMgmtDBHandleT db = 0;
+    ClAmsEntityBufferT compList = {0};
+    ClCompStatBufferT *statBuffer = NULL;
+    ClUint32T numStats = 0;
+    ClNameT nodeName = {0};
+    ClIocNodeAddressT slotId = 0;
+    ClRcT rc = CL_OK;
+    
+    if(pStatBuffer && !pNumStats) return CL_ERR_INVALID_PARAMETER;
+
+    rc = clAmsMgmtDBGet(&db);
+    if(rc != CL_OK)
+    {
+        clLogError("COMP", "STATS", "DB get returned [%#x]", rc);
+        return rc;
+    }
+
+    if(!pNodeName)
+    {
+        rc = clCpmLocalNodeNameGet(&nodeName);
+        if(rc != CL_OK)
+            return rc;
+    }
+    else clNameSet(&nodeName, pNodeName);
+
+    slotId = clIocLocalAddressGet();
+    /* 
+     *great, we have the slot. Just fetch the components first
+     */
+    clLogNotice("COMP", "STAT", "Node running on slot [%d]", slotId);
+    rc = clAmsDBGetNodeCompList(db, (const ClCharT*)nodeName.value, &compList);
+    if(rc != CL_OK)
+    {
+        clLogError("COMP", "STAT", "Comp list get for node [%s] returned with [%#x]",
+                   nodeName.value, rc);
+        goto cache_free;
+    }
+    statBuffer = calloc(compList.count, sizeof(*statBuffer));
+    CL_ASSERT(statBuffer != NULL);
+    for(ClUint32T c = 0; c < compList.count; ++c)
+    {
+        ClAmsEntityT *comp = compList.entity + c;
+        ClNameT compName = {0};
+        ClAmsCompStatusT *status = NULL;
+        ClUint32T pid = 0;
+        ClAmsPresenceStateT presenceState = 0;
+        rc = clAmsMgmtDBGetEntityStatus(db, comp, (ClAmsEntityStatusT**)&status);
+        if(rc != CL_OK)
+        {
+            clLogError("COMP", "STAT", "Comp [%s] status get returned [%#x]",
+                       comp->name.value, rc);
+            continue;
+        }
+        presenceState = status->presenceState;
+        clHeapFree(status);
+        /*
+         * skip if presence state is uninstantiated
+         */
+        if(presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED)
+            continue;
+        /* amf uses length + 1. Hence map */
+        clNameSet(&compName, (const ClCharT*)comp->name.value);
+        /* local slot query for the component pid */
+        rc = clCpmComponentPIDGet(&compName, &pid);
+        if(rc != CL_OK) 
+            continue; /*most likely took a fault in the interval. just skip */
+        rc = getCompStats(pid, compName.value, statBuffer + numStats);
+        if(rc == CL_OK)
+        {
+            ++numStats;
+        }
+    }
+    if(compList.entity)
+    {
+        clHeapFree(compList.entity);
+        compList.entity = NULL;
+    }
+    compList.count = 0;
+    if(pStatBuffer)
+    {
+        *pStatBuffer = statBuffer;
+        *pNumStats = numStats;
+    }
+    else
+    {
+        free(statBuffer);
+    }
+
+    cache_free:
+    clAmsMgmtDBFinalize(&db);
+
+    return rc;
+}
