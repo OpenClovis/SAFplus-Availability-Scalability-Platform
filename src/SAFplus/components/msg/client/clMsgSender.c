@@ -163,7 +163,7 @@ static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr,
         if (ackFlag == SA_MSG_MESSAGE_DELIVERED_ACK)
         {
             fpAsyncCallback(0
-                            , sendType, pDest, pMessage, sendTime
+                            , sendType, pDest, NULL, sendTime
                             , senderHandle, timeout, rc, cookie);
         }
     }
@@ -445,7 +445,7 @@ ClRcT clMsgClientMessageReply(SaMsgMessageT *pMessage,
         if (ackFlag == SA_MSG_MESSAGE_DELIVERED_ACK)
         {
             fpAsyncCallback(0
-                            , CL_MSG_REPLY_SEND, &dummyName, pMessage, sendTime
+                            , CL_MSG_REPLY_SEND, &dummyName, NULL, sendTime
                             , pReplyInfo->senderHandle, timeout, rc, cookie);
         }
     }
