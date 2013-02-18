@@ -2144,6 +2144,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
     ClCkptHdlT        *pCkptHdl     = NULL;
     ClCkptAppInfoT    *pAppInfo     = NULL;
     ClUint32T         *pData        = NULL;
+    ClBoolT           ckptUnlock = CL_TRUE;
 
     /*
      * Validate the checkpoint name.
@@ -2185,14 +2186,14 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
                       pCkptHdl,NULL); 
     if(rc != CL_OK)
     {
-        clHeapFree(pCkptHdl);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("CheckpointInfo Updation Failed rc[0x %x]\n",
-                        rc));
         /*
          * Unlock the active server ds.
          */ 
         CKPT_UNLOCK(gCkptSvr->ckptActiveSem );           
+        clHeapFree(pCkptHdl);
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                       ("CheckpointInfo Updation Failed rc[0x %x]\n",
+                        rc));
         return rc;            
     }
 
@@ -2206,13 +2207,13 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
                                        *pCkptHdl);
     if((CL_OK != rc) && (CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST)) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("CheckpointHandle Create failed rc[0x %x]\n",
-                        rc));
         /*
          * Unlock the active server ds.
          */ 
         CKPT_UNLOCK(gCkptSvr->ckptActiveSem );           
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                       ("CheckpointHandle Create failed rc[0x %x]\n",
+                        rc));
         return rc;      
     }
     
@@ -2220,28 +2221,40 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
      * Retrieve the info associated with the active handle.
      */
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl, *pCkptHdl, (void **)&pCkpt);     
-    /*
-     * Unlock the active server ds.
-     */ 
-    CKPT_UNLOCK(gCkptSvr->ckptActiveSem );           
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
-                                  ("Failed to allocate memory for checkpoint %s rc[0x %x]\n",
-                                   pCkptInfo->pName->value,rc),rc);
+    if(rc != CL_OK)
+    {
+        /*
+         * Unlock the active server ds.
+         */ 
+        CKPT_UNLOCK(gCkptSvr->ckptActiveSem );           
+        clLogError("REP", "UPD", "Failed to allocate memory for checkpoint %s rc[0x %x]",
+                   pCkptInfo->pName->value, rc);
+        goto exitOnErrorBeforeHdlCheckout;
+    }
 
     /* 
      * Allocate memory for Control plane and Data plane info.
      */
     rc = _ckptDplaneInfoAlloc(&pCkpt->pDpInfo,
                               pCkptInfo->pDpInfo->maxScns); 
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
-                   ("Failed to allocate memory for checkpoint %s rc[0x %x]\n",
-                    pCkpt->ckptName.value,rc),rc);
+    if(rc != CL_OK)
+    {
+        CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
+        clLogError("REP", "UPD", "Failed to allocate memory for checkpoint %s rc[0x %x]",
+                   pCkpt->ckptName.value, rc);
+        ckptUnlock = CL_FALSE;
+        goto exitOnError;
+    }
 
     rc = _ckptCplaneInfoAlloc(&pCkpt->pCpInfo); 
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
-                   ("Failed to allocate memory for checkpoint %s rc[0x %x]\n",
-                    pCkpt->ckptName.value,rc),rc);
-
+    if(rc != CL_OK)
+    {
+        CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
+        clLogError("REP", "UPD", "Failed to allocate memory for checkpoint %s rc[0x %x]",
+                   pCkpt->ckptName.value, rc);
+        ckptUnlock = CL_FALSE;
+        goto exitOnError;
+    }
     /*
      * Create a mutex to safeguard the checkpoint.
      */
@@ -2255,11 +2268,14 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
         rc = clCkptSectionLevelMutexCreate(pCkpt->secMutex, pCkpt->numMutex);
         if( CL_OK != rc )
         {
+            CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
             clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE,
                        "Failed to create mutex while updating replica rc[0x %x]", rc);
+            ckptUnlock = CL_FALSE;
             goto exitOnError;
         }
     }
+    CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
 
     /*
      * Lock the checkpoint's mutex.
@@ -2396,11 +2412,14 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
      * cleaning up the resources.
      */
     clHandleCheckin(gCkptSvr->ckptHdl,*pCkptHdl);
-
+    
     /*
      * Unlock the checkpoint's mutex.
      */
-    CKPT_UNLOCK(pCkpt->ckptMutex);           
+    if(ckptUnlock)
+    {
+        CKPT_UNLOCK(pCkpt->ckptMutex);           
+    }
     exitOnErrorBeforeHdlCheckout:
     /*
      * Lock the active server db.
