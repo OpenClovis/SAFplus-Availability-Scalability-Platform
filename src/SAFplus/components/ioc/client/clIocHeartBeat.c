@@ -106,7 +106,7 @@ static ClTimerHandleT gHeartBeatLocalTimer = CL_HANDLE_INVALID_VALUE;
  * HashMap for local components status.
  * Have to store separate two map and list for faster lookup.
  */
-static struct hashStruct *gIocHeartBeatLocalMap[CL_IOC_MAX_COMP_PORT];
+static struct hashStruct *gIocHeartBeatLocalMap[CL_IOC_MAX_COMP_PORT+1];
 /*
  * LinkList for local components status.
  */
