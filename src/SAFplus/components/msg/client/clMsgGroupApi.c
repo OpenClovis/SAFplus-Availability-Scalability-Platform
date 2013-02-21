@@ -67,6 +67,13 @@ SaAisErrorT saMsgQueueGroupCreate(SaMsgHandleT msgHandle,
         goto error_out;
     }
 
+    if (pQueueGroupName->length > CL_MAX_NAME_LENGTH)
+    {
+        rc = CL_MSG_RC(CL_ERR_INVALID_PARAMETER);
+        clLogError("MSG", "QGC", "Invalid ClNameT structure. error code [0x%x].", rc);
+        goto error_out;
+    }
+
     /* Look up msg queue group in the cached checkpoint */
     if(clMsgQGroupCkptExists((ClNameT*)pQueueGroupName, &qGroupData) == CL_TRUE)
     {
