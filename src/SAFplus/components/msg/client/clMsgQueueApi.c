@@ -447,6 +447,13 @@ static SaAisErrorT clMsgQueueOpenInternal(
         goto error_out;
     }
 
+    if (pQueueName->length > CL_MAX_NAME_LENGTH)
+    {
+        rc = CL_MSG_RC(CL_ERR_INVALID_PARAMETER);
+        clDbgCodeError(rc, ("Invalid ClNameT structure."));
+        goto error_out;
+    }
+
     if((openFlags != 0 && !(openFlags & (SA_MSG_QUEUE_CREATE | SA_MSG_QUEUE_EMPTY | SA_MSG_QUEUE_RECEIVE_CALLBACK))) ||
        (pCreationAttributes != NULL && pCreationAttributes->creationFlags != SA_MSG_QUEUE_PERSISTENT && pCreationAttributes->creationFlags != 0))
     {
