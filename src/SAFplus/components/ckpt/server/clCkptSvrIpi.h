@@ -300,7 +300,6 @@ ClRcT ckptActiveRepAddressUpdate(ClIocNodeAddressT newAddr);
 
 ClRcT   clCkptNackSend(ClVersionT version, ClUint32T funId);                                        
 ClRcT   _ckptAddAndUpdatePeerList(ClCkptHdlT ckptActHdl,ClNameT *pCkptName,ClIocNodeAddressT nodeAddr);
-ClRcT  _ckptInitialConsume(ClBufferHandleT   inMsg,ClUint16T flagVersion);
 ClRcT ckptCheckpointEntryPack( CkptT                    *pCkpt,
                                ClCkptHdlT                ckptHdl,
                                ClBufferHandleT   *pMsgHdl,

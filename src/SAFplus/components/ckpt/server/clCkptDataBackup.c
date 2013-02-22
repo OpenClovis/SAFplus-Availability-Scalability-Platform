@@ -48,8 +48,6 @@
 #include "clCkptMaster.h"
 
 extern ClRcT ckptMasterDatabasePack(ClBufferHandleT  outMsg);
-extern ClRcT _ckptInitialConsume(ClBufferHandleT  outMsg,
-                                 ClUint16T flagVersion);
 extern ClRcT ckptDbPack();
 ClCkptSvcHdlT          gCkptHandle;
 ClOsalMutexIdT         gMutex = NULL;
@@ -455,9 +453,6 @@ ClRcT ckptCheckpointsDeserializer(ClUint32T dataSetID, ClAddrT pData,
         return(rc);
     }
 
-    /* Unpack the deserialized checkpoint info */
-    rc =  _ckptInitialConsume(msgHdl,0);
-    
     clBufferDelete(&msgHdl); 
     
     CL_FUNC_ENTER();
