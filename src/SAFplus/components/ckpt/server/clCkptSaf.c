@@ -557,14 +557,6 @@ ClRcT VDECL_VER(_ckptCheckpointStatusGet, 4, 0, 0)(ClCkptHdlT                  c
 
     CL_ASSERT(pCkpt != NULL);
 
-    if(pCkpt->isPending == CL_TRUE)
-    {
-        rc = CL_CKPT_RC(CL_ERR_TRY_AGAIN);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                    ("_ckptSectionCreate failed rc[0x %x]\n",
-                     rc), rc);
-    }
-    
     memset(pCheckpointStatus, '\0', sizeof(ClCkptCheckpointDescriptorT));
 
     /*
@@ -994,14 +986,6 @@ ClRcT VDECL_VER(_ckptSectionCreate, 4, 0, 0)(ClCkptHdlT         ckptHdl,
         return CL_CKPT_ERR_NOT_EXIST;
     }
 
-    if(pCkpt->isPending == CL_TRUE)
-    {
-        rc = CL_CKPT_RC(CL_ERR_TRY_AGAIN);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("_ckptSectionCreate failed rc[0x %x]\n",
-                 rc), rc);
-    }
-
     /*
      * Verify the sanity of the checkpoint data.
      */
@@ -1244,13 +1228,6 @@ ClRcT VDECL_VER(_ckptSectionDelete, 4, 0, 0)( ClCkptHdlT 	    ckptHdl,
         goto exitOnError;
     }
 
-    if(pCkpt->isPending == CL_TRUE)
-    {
-        rc = CL_CKPT_RC(CL_ERR_TRY_AGAIN);
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                "Active server doesn't have the proper data");
-        goto exitOnErrorUnlock;
-    }
     rc = clCkptSectionLevelDelete(ckptHdl, pCkpt, pSecId, srcClient);
     if( CL_OK != rc )
     {
@@ -1547,14 +1524,6 @@ VDECL_VER(clCkptSvrIterationInitialize, 4, 0, 0)(ClVersionT        *pVersion,
 
     CL_ASSERT(pCkpt != NULL);
 
-    if(pCkpt->isPending == CL_TRUE)
-    {
-        rc = CL_CKPT_RC(CL_ERR_TRY_AGAIN);
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                "Active server doesn't have the proper data");
-        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
-        return rc;
-    }
     /*
      * Lock the checkpoint's mutex.
      */
@@ -2100,15 +2069,6 @@ ClRcT VDECL_VER(_ckptCheckpointWriteVector, 4, 0, 0)(ClCkptHdlT             ckpt
                                   ("Handle [%#llX] checkout failed during checkpoint write rc[0x %x]\n", ckptHdl, rc), rc);
     CL_ASSERT(pCkpt != NULL);
 
-    if(pCkpt->isPending == CL_TRUE)
-    {
-        rc = CL_CKPT_RC(CL_ERR_TRY_AGAIN);
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                   "Checkpoint server doesn't have proper data for this handle [%#llX]", 
-                   ckptHdl);
-        goto exitOnErrorWithoutUnlock;
-    }
-
     pStaleSectionsData = clHeapCalloc(numberOfElements, sizeof(*pStaleSectionsData));
     CL_ASSERT(pStaleSectionsData != NULL);
     /*
@@ -2349,15 +2309,6 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
                                   ("Handle [%#llX] checkout failed during checkpoint write rc[0x %x]\n", ckptHdl, rc), rc);
     CL_ASSERT(pCkpt != NULL);
 
-    if(pCkpt->isPending == CL_TRUE)
-    {
-        rc = CL_CKPT_RC(CL_ERR_TRY_AGAIN);
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                   "Checkpoint server doesn't have proper data for this handle [%#llX]", 
-                   ckptHdl);
-        goto exitOnErrorWithoutUnlock;
-    }
-    
     /*
      * Lock the checkpoint's mutex.
      */
@@ -2631,15 +2582,6 @@ static ClRcT _ckptSectionOverwriteWithVector(ClCkptHdlT         ckptHdl,
                                   ("Failed to checkout the active handle [%llu] rc[0x %x]\n",(unsigned long long int) ckptHdl,rc), rc);
 
     CL_ASSERT(pCkpt != NULL);
-
-    if(pCkpt->isPending == CL_TRUE)
-    {
-        rc = CL_CKPT_RC(CL_ERR_TRY_AGAIN);
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                   "Active server doesn't have the proper data");
-        clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
-        return rc;
-    }
 
     /*
      * Lock the checkpoint's mutex.
@@ -2966,14 +2908,6 @@ ClRcT VDECL_VER(_ckptCheckpointRead, 4, 0, 0)(ClCkptHdlT               ckptHdl,
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Failed to get ckpt from handle rc[0x %x] ckptHdl [%#llX]\n",rc, ckptHdl), rc);
 
-    if(pCkpt->isPending == CL_TRUE)
-    {
-        rc = CL_CKPT_RC(CL_ERR_TRY_AGAIN);
-        (void)clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-             "Data for handle [%#llX] is not available rc[0x %x]", ckptHdl, rc);
-        return rc;
-    }
     /*
      * Lock the checkpoint's mutex here as the CKPT_ERR_CHECK below
      * would land in exitOnError label
@@ -3264,14 +3198,6 @@ ClRcT VDECL_VER(_ckptCheckpointReadSections, 6, 0, 0)(ClCkptHdlT               c
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                                   ("Failed to get ckpt from handle rc[0x %x] ckptHdl [%#llX]\n",rc, ckptHdl), rc);
 
-    if(pCkpt->isPending == CL_TRUE)
-    {
-        rc = CL_CKPT_RC(CL_ERR_TRY_AGAIN);
-        (void)clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                   "Data for handle [%#llX] is not available rc[0x %x]", ckptHdl, rc);
-        return rc;
-    }
     /*
      * Lock the checkpoint's mutex here as the CKPT_ERR_CHECK below
      * would land in exitOnError label
@@ -4599,12 +4525,6 @@ VDECL_VER(_ckptClientInfoGet, 6, 0, 0)(ClCkptHdlT  ckptHdl,
         goto out_checkin;
     }
 
-    if(pCkpt->isPending == CL_TRUE)
-    {
-        rc = CL_CKPT_ERR_TRY_AGAIN;
-        goto out_checkin;
-    }
-    
     /*
      * Lock the checkpoint's mutex.
      */

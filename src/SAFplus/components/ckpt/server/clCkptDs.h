@@ -195,7 +195,6 @@ typedef struct ckpt
     CkptCPlaneInfoT    *pCpInfo;    /* Controlplane information */
     CkptDPlaneInfoT    *pDpInfo;    /* Dataplane info */
     ClOsalMutexIdT     ckptMutex;   /* Mutex to protect the data */
-    ClBoolT            isPending;   /* to check server is ready or not */
     ClUint32T          numMutex;   /* Num mutexs need to be created for section */
     ClOsalMutexIdT     secMutex[CL_CKPT_MAX_NUM_MUTEXS]; /* pool of mutexs for section level lock */       
 }CkptT;
