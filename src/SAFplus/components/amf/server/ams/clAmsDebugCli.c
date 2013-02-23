@@ -634,6 +634,338 @@ clAmsDebugCliAdminAPI(
 
 }
 
+ClRcT   
+clAmsDebugCliEntityCommand(
+        CL_IN  ClUint32T  argc,
+        CL_IN  ClCharT  **argv,
+        CL_OUT  ClCharT  **ret)
+
+{
+
+    ClRcT rc = CL_OK;
+    
+    AMS_FUNC_ENTER (("\n"));
+
+    *ret = clHeapCalloc (1,MAX_BUFFER_SIZE + 1);
+
+    if ( argc != 2 )
+    {
+        clAmsDebugCliEntityCmdUsage (*ret, MAX_BUFFER_SIZE + 1);
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    }
+
+    /*
+     * Parse the arguments and call the appropriate function
+     */
+
+    if ( !strcasecmp (argv[0],"start") )
+    {
+        rc = clAmsDebugCliEntityStart(argc,argv,ret,MAX_BUFFER_SIZE + 1);
+    }
+
+    else if ( !strcasecmp (argv[0],"stop") )
+    {
+        rc = clAmsDebugCliEntityStop(argc,argv,ret,MAX_BUFFER_SIZE + 1);
+    }
+
+    else if ( !strcasecmp (argv[0],"idle") )
+    {
+        rc = clAmsDebugCliEntityIdle(argc,argv,ret,MAX_BUFFER_SIZE + 1);
+    }
+
+    else if ( !strcasecmp (argv[0],"repair") )
+    {
+        rc = clAmsDebugCliEntityRepair(argc,argv,ret,MAX_BUFFER_SIZE + 1);
+    }   
+
+    return rc;
+
+}
+
+ClRcT
+clAmsDebugCliEntityStart(
+       CL_IN  ClUint32T  argc,
+       CL_IN  ClCharT  **argv,
+       CL_OUT ClCharT  **ret,
+       CL_IN  ClUint32T  retLen)
+{
+    ClAmsEntityT  entity = {0};
+    char* arrEntityTypes[6] = {"node", "sg", "si", "su", "comp", "csi"};
+    int i;
+    ClRcT rc = CL_OK;
+    for (i=0;i<6;i++)
+    {
+	clAmsDebugCliMakeEntityStruct(&entity, arrEntityTypes[i], argv[1]);	
+	rc = CL_ERR_TRY_AGAIN;
+	while (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
+	{
+		rc = clAmsMgmtEntityUnlock(gHandle, &entity);
+		sleep(1);			
+	}
+	if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+	{			
+		continue;
+	}
+	if (CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP || rc == CL_OK)
+	{
+		break;
+	}
+	if (CL_GET_ERROR_CODE(rc) != CL_ERR_NO_OP)
+	{			
+		rc = CL_ERR_TRY_AGAIN;
+		while (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
+		{
+			rc = clAmsMgmtEntityLockAssignment(gHandle, &entity);
+			sleep(1);				
+		}
+		if (rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NO_OP)
+		{
+			snprintf(*ret, retLen-1, "Error when starting up (adding work) %s - rc [%#x]", argv[1], rc);
+		}
+		else
+		{
+			rc = CL_ERR_TRY_AGAIN;
+			while (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
+			{
+				rc = clAmsMgmtEntityUnlock(gHandle, &entity);
+				sleep(1);
+			}
+			if (rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NO_OP)
+			{
+				snprintf(*ret, retLen-1, "Error when starting up %s - rc [%#x]", argv[1], rc);
+			}
+		}
+		break;
+	}
+   }
+   if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+   {
+	snprintf(*ret, retLen-1, "Entity name %s doesn't exist", argv[1]);
+   }
+   else if (CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP)
+   {
+	strcpy(*ret, "The entity already started");
+   }
+   else if (rc == CL_OK)
+   {
+	strcpy(*ret, "The operation completed successfully");
+   }  
+   return rc;
+}
+
+ClRcT
+clAmsDebugCliEntityStop(
+       CL_IN  ClUint32T  argc,
+       CL_IN  ClCharT  **argv,
+       CL_OUT ClCharT  **ret,
+       CL_IN  ClUint32T  retLen)
+{
+    ClAmsEntityT  entity = {0};
+    char* arrEntityTypes[6] = {"node", "sg", "si", "su", "comp", "csi"};
+    int i;
+    ClRcT rc = CL_OK;
+    for (i=0;i<6;i++)
+    {
+	clAmsDebugCliMakeEntityStruct(&entity, arrEntityTypes[i], argv[1]);	
+	rc = CL_ERR_TRY_AGAIN;
+	while (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
+	{
+		rc = clAmsMgmtEntityLockInstantiation(gHandle, &entity);
+		sleep(1);
+	}
+	if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+	{
+		continue;
+	}
+	if (CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP || rc == CL_OK)
+	{
+		break;
+	}
+	if (CL_GET_ERROR_CODE(rc) != CL_ERR_NO_OP)
+	{
+		rc = CL_ERR_TRY_AGAIN;
+		while (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
+		{
+			rc = clAmsMgmtEntityLockAssignment(gHandle, &entity);
+			sleep(1);	
+		}
+		if (rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NO_OP)
+		{
+			snprintf(*ret, retLen-1, "Error when shutting down (removing work) %s - rc [%#x]", argv[1], rc);
+		}
+		else
+		{
+			rc = CL_ERR_TRY_AGAIN;
+			while (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
+			{
+				rc = clAmsMgmtEntityLockInstantiation(gHandle, &entity);
+				sleep(1);
+			}
+			if (rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NO_OP)
+			{
+				snprintf(*ret, retLen-1, "Error when stopping - rc [%#x]", rc);
+			}
+		}
+		break;
+	}
+   }
+   if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+   {
+	snprintf(*ret, retLen-1, "Entity name %s doesn't exist", argv[1]);
+   }
+   else if (CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP)
+   {
+	strcpy(*ret, "The entity is already stopped");
+   }
+   else if (rc == CL_OK)
+   {
+	strcpy(*ret, "The operation completed successfully");
+   }   
+   return rc;
+}
+
+ClRcT
+clAmsDebugCliEntityIdle(
+       CL_IN  ClUint32T  argc,
+       CL_IN  ClCharT  **argv,
+       CL_OUT ClCharT  **ret,
+       CL_IN  ClUint32T  retLen)
+{
+    ClAmsEntityT  entity = {0};
+    char* arrEntityTypes[6] = {"node", "sg", "si", "su", "comp", "csi"};
+    int i;
+    ClRcT rc = CL_OK;
+    for (i=0;i<6;i++)
+    {
+	clAmsDebugCliMakeEntityStruct(&entity, arrEntityTypes[i], argv[1]);	
+	rc = CL_ERR_TRY_AGAIN;
+	while (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
+	{
+		rc = clAmsMgmtEntityLockAssignment(gHandle, &entity);
+		sleep(1);
+	}
+	if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+	{
+		continue;
+	}
+	else
+	{
+		break;
+	}
+    }
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+    {
+	snprintf(*ret, retLen-1, "Entity name %s doesn't exist", argv[1]);
+    }
+    else if (CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP)
+    {
+	strcpy(*ret, "The entity is already idle");
+    }
+    else if (rc == CL_OK)
+    {
+	strcpy(*ret, "The operation completed successfully");
+    }    
+    else
+    {
+	snprintf(*ret, retLen-1, "Error when idling entity - rc [%#x]", rc);
+    }
+    return rc;
+}
+
+ClRcT
+clAmsDebugCliEntityRepair(
+       CL_IN  ClUint32T  argc,
+       CL_IN  ClCharT  **argv,
+       CL_OUT ClCharT  **ret,
+       CL_IN  ClUint32T  retLen)
+{
+    ClAmsEntityT  entity = {0};    
+    int i;
+    ClRcT rc = CL_OK;
+    ClBoolT clRet = CL_FALSE;
+    if (strcasecmp (argv[1], "all"))
+    {
+      	char* arrEntityTypes[2] = {"node", "su"};
+    	for (i=0;i<2;i++)
+    	{
+		clAmsDebugCliMakeEntityStruct(&entity, arrEntityTypes[i], argv[1]);		
+		rc = clAmsMgmtEntityRepairedExtended(gHandle, &entity, CL_FALSE);
+		if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+		{	
+			continue;
+		}
+		else
+		{
+			break;
+		}
+	}
+	if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+    	{
+		snprintf(*ret, retLen-1, "Entity name %s doesn't exist", argv[1]);
+    	}
+    	else if (CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_STATE)
+    	{
+		strcpy(*ret, "The entity is invalid state");
+    	}
+	else if (CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP)
+    	{
+		strcpy(*ret, "The entity is working");
+    	}
+    	else if (rc == CL_OK)
+    	{
+		strcpy(*ret, "The operation completed successfully");
+    	}
+    	else
+    	{
+		snprintf(*ret, retLen-1, "Error when repairing entity - rc [%#x]", rc);
+    	}
+	return rc;
+    }
+    else //Repair all possible entities
+    {
+	ClAmsEntityListTypeT arrEntityListTypes[2] = {CL_AMS_NODE_LIST, CL_AMS_SU_LIST};
+	for (i=0;i<2;i++)
+	{
+		ClAmsEntityBufferT entityBuf = {0};
+		rc = clAmsMgmtGetList(gHandle, arrEntityListTypes[i], &entityBuf);
+		if (rc != CL_OK)
+		{
+			snprintf(*ret, retLen-1, "Get entity list failed - rc [%#x]", rc);
+			return rc;
+		}		
+		ClUint32T j;
+		for (j=0;j<entityBuf.count;j++)
+		{
+			rc = clAmsMgmtEntityRepairedExtended(gHandle, &entityBuf.entity[j], CL_FALSE);			
+			if (rc == CL_OK) clRet = CL_TRUE;
+		}
+		clHeapFree(entityBuf.entity);		
+	}
+
+    	if (clRet)
+	{
+		strcpy(*ret, "The operation completed successfully");
+		return CL_OK;
+	}
+	else
+	{
+		if (CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_STATE)
+	    	{
+			strcpy(*ret, "The entity is invalid state");
+	    	}
+		else if (CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP)
+	    	{
+			strcpy(*ret, "The entity is working");
+	    	}
+		else
+		{
+			snprintf(*ret, retLen-1, "Error when repairing entity - rc [%#x]", rc);
+		}
+		return -1; //Unknown error
+	}
+   }
+}
+
 ClRcT clAmsDebugCliSGAdjust(
                             CL_IN ClUint32T argc,
                             CL_IN ClCharT **argv,
@@ -922,6 +1254,25 @@ clAmsDebugCliUsage(
     strncat(ret,"amsrestart           [ node,su,comp  ]\n", (retLen-strlen(ret)-1));
     strncat(ret,"amsrepaired          [ node,su       ]\n", (retLen-strlen(ret)-1));
 
+}
+
+void 
+clAmsDebugCliEntityCmdUsage(
+        CL_INOUT  ClCharT  *ret,
+        CL_IN     ClUint32T retLen)
+{
+
+    AMS_FUNC_ENTER (("\n"));
+
+    strncpy(ret,"usage: commandname entityname \n", retLen-1);
+    strncpy(ret,"In case of repair all, no entityname is needed \n", (retLen-strlen(ret)-1));
+    strncat(ret,"example : start entityname\n", (retLen-strlen(ret)-1));
+    strncat(ret,"valid commandname are:\n", (retLen-strlen(ret)-1));
+    strncat(ret,"start\n", (retLen-strlen(ret)-1));
+    strncat(ret,"stop\n", (retLen-strlen(ret)-1));
+    strncat(ret,"idle\n", (retLen-strlen(ret)-1));
+    strncat(ret,"repair\n", (retLen-strlen(ret)-1));
+    strncat(ret,"repair all\n", (retLen-strlen(ret)-1));
 }
 
 void 

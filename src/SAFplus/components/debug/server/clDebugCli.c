@@ -1752,7 +1752,7 @@ static ClRcT enterContext( ClDebugCliT* pDebugObj, ClCharT* name )
     {
         if (!pDebugObj->context.isCommPortValid)
         {
-            if (strcmp(name, "cpm"))
+            if (strcmp(name, "cpm") && strcmp(name, "amf"))
             {
                 strcpy (nameStr.value, name);
                 nameStr.length = strlen(name);
@@ -1935,6 +1935,7 @@ static ClRcT debugList(ClDebugCliT* pDebugObj)
                                              &retStr);
             if ((CL_OK == rc) && (NULL != retStr))
             {
+		printf("amf\n");
                 printf("cpm\n");
                 printf("%s", retStr);
                 clHeapFree(retStr);
@@ -2502,6 +2503,7 @@ static ClRcT argCompletion(ClDebugCliT* pDebugObj,
     ClUint32T ind = 0;
     ClUint32T index = 0;
     ClCharT   *cpm = "cpm";
+    ClCharT   *amf = "amf";
 
     if(argLen <= 0)
     {
@@ -2535,12 +2537,19 @@ static ClRcT argCompletion(ClDebugCliT* pDebugObj,
                 }
                 i++;
             }
-            argList = clHeapAllocate(sizeof(ClCharT *) *(num + 1));
+            argList = clHeapAllocate(sizeof(ClCharT *) *(num + 2));
             i = strlen (cpm);
             argList[ind] = clHeapAllocate(i + 1);
             strncpy(argList[ind], cpm, i);
             argList[ind][i] = '\0';
             ind++;
+
+	    	i = strlen (amf);
+            argList[ind] = clHeapAllocate(i + 1);
+            strncpy(argList[ind], amf, i);
+            argList[ind][i] = '\0';
+            ind++;
+
             i = 0;
             while (retStr[i] != '\0')
             {

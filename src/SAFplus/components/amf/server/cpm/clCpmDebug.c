@@ -129,6 +129,37 @@ ClHandleT  gCpmDebugReg = CL_HANDLE_INVALID_VALUE;
 
 static ClDebugFuncEntryT cpmSCDebugFuncList[] =
 {
+	
+    {
+        clAmsDebugCliEntityCommand,
+        "start",
+        "Starts an entity running and assigns work, regardless of its current state"
+    },
+
+    {
+        clAmsDebugCliEntityCommand,
+        "stop",
+        "Stops an entity, regardless of its current state"
+    },
+
+    {
+        clAmsDebugCliEntityCommand,
+        "idle",
+        "Puts an entity in the idle state (running but no assigned work), regardless of its current state"
+    },
+
+    {
+        clAmsDebugCliEntityCommand,
+        "repair",
+        "Repairs a faulty entity"
+    },
+
+    {
+        clAmsDebugCliEntityCommand,
+        "repair all",
+        "Looks through every faulty entity and repairs it"
+    },
+
     {
         clAmsDebugCliAdminAPI,
         "amsLockAssignment",

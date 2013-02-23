@@ -125,11 +125,50 @@ clAmsDebugCliUsage(
         CL_OUT  ClCharT  *ret,
         CL_IN     ClUint32T retLen);
 
+extern void 
+clAmsDebugCliEntityCmdUsage(
+        CL_OUT  ClCharT  *ret,
+        CL_IN     ClUint32T retLen);
+
 extern ClRcT   
 clAmsDebugCliAdminAPI(
         CL_IN  ClUint32T  argc,
         CL_IN  ClCharT  **argv,
         CL_OUT  ClCharT  **ret);
+
+extern ClRcT   
+clAmsDebugCliEntityCommand(
+        CL_IN  ClUint32T  argc,
+        CL_IN  ClCharT  **argv,
+        CL_OUT  ClCharT  **ret);
+
+extern ClRcT
+clAmsDebugCliEntityStart(
+        CL_IN  ClUint32T  argc,
+        CL_IN  ClCharT  **argv,
+        CL_OUT  ClCharT  **ret,
+        CL_IN  ClUint32T  retLen);
+
+extern ClRcT
+clAmsDebugCliEntityStop(
+        CL_IN  ClUint32T  argc,
+        CL_IN  ClCharT  **argv,
+        CL_OUT  ClCharT  **ret,
+        CL_IN  ClUint32T  retLen);
+
+extern ClRcT
+clAmsDebugCliEntityIdle(
+        CL_IN  ClUint32T  argc,
+        CL_IN  ClCharT  **argv,
+        CL_OUT  ClCharT  **ret,
+        CL_IN  ClUint32T  retLen);
+
+extern ClRcT
+clAmsDebugCliEntityRepair(
+        CL_IN  ClUint32T  argc,
+        CL_IN  ClCharT  **argv,
+        CL_OUT  ClCharT  **ret,
+        CL_IN  ClUint32T  retLen);
 
 extern ClRcT   
 clAmsDebugCliSISwap(
