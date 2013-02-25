@@ -29,7 +29,7 @@ class OS:
         self.kernelVer       = self.kernelVerString.split(".")
         self.kernelVer[0] = int(self.kernelVer[0])
         self.kernelVer[1] = int(self.kernelVer[1])
-        self.kernelVer[2] = int(self.kernelVer[2])
+        self.kernelVer[2] = int((self.kernelVer[2].split("-"))[0])
 
 
         self.bit = determine_bit()
@@ -289,7 +289,7 @@ class OS:
                                 'cp tools/tipc-config $PREFIX/bin',
                                 'cp include/net/tipc/*.h $PREFIX/include']
                        
-        if int(self.kernelVer[3].split('-')[0]) < 16:
+        if int(self.kernelVer[2]) < 16:
             pass
         else:
             TIPC.build_cmds.append('mkdir -p $PREFIX/include/linux >/dev/null 2>&1')
