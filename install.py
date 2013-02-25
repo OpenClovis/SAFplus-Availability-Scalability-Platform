@@ -402,7 +402,8 @@ class ASPInstaller:
                                 syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
                             else :
                                 dep.installedver = 'None'
-                                self.installQueue.append(dep)                        
+                                self.installQueue.append(dep) 
+                                self.NEED_TIPC_CONFIG = True                       
                     else: #ret_code == 0
                         #assert ret_code == 0
                         # self.feedback('retcode = %s' %ret_code)
@@ -424,8 +425,11 @@ class ASPInstaller:
                         self.feedback('tipc major : %s - tipc minor : %s '%(TIPC_MAJOR_VERSION,TIPC_MINOR_VERSION))
                 
                         if TIPC_MAJOR_VERSION != 1:
-                            # dont install
-                            dep.installedver = 'Warning: incompatible version, won\'t install'
+                            # install tipcutil 1.1.9
+                            #dep.installedver = 'Warning: incompatible version, won\'t install'
+                            self.TIPC_CONFIG_VERSION ='tipcutils-1.1.98.tar.gz'                            
+                            dep.pkg_name =  self.TIPC_CONFIG_VERSION
+                            self.installQueue.append(dep)
                             continue
                         
                         if TIPC_MINOR_VERSION == 5:
@@ -960,14 +964,18 @@ class ASPInstaller:
         
         for dep in self.installQueue:
             
-            self.feedback('Beginning configure, build, and install of: %s %s' % (dep.name, dep.version))
+            self.feedback('Beginning configure, build, and install of: %s %s %s' % (dep.name, dep.version,dep.pkg_name))
 
             if not dep.extract_install:
               if dep.pkg_name != None: 
                 os.chdir(self.BUILD_DIR)                                            # move into build dir
-                ret = syscall('tar xfm "%s" %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))    # pull out of pkg
-                if ret != 0:
-                  self.feedback("%s: Package is not included in our third party archive.  You will need to install it yourself" % dep.name)
+                self.feedback('tar xfm %s %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))
+                ret = syscall('tar xfm %s %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))    # pull out of pkg
+		packageList = fnmatch.filter(os.listdir(self.BUILD_DIR),"%s" % (dep.pkg_name.replace('.tar.gz', '').replace('.tgz', '')))	
+               			
+                #if ret == 0:
+                if len (packageList) == 0:
+                  self.feedback("%s: Package is not included in our third party archive.  You will need to install it yourself" %dep.name)
                   continue
 
                 syscall('tar zxf %s' % dep.pkg_name)                                    # extract
@@ -1034,7 +1042,14 @@ class ASPInstaller:
                 # For some reason these build commands had to be deferred (they may rely on previously build stuff, or preinstall)
                 if type(dep.build_cmds) == types.FunctionType:
                     dep.build_cmds = dep.build_cmds()
-                
+                if dep.name == 'tipc-config':
+                    tipcPkgName = 'tipc-1.7.7.tar.gz'
+                    syscall('tar xfm "%s" %s' % (self.THIRDPARTYPKG_PATH,tipcPkgName))    # pull out of pkg
+                    syscall('tar zxf %s' % tipcPkgName)
+                    exdir = tipcPkgName.replace('.tar.gz', '').replace('.tgz', '')
+                    self.feedback('cp -f %s/include/linux/tipc.h /usr/include/linux/' %(exdir))
+                    syscall('cp -f %s/include/linux/tipc.h /usr/include/linux/' %(exdir))
+                    syscall('cp -f %s/include/linux/tipc_config.h /usr/include/linux/' %(exdir))
                 # execute commands to build package
                 for cmd in dep.build_cmds:
                 
