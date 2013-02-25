@@ -506,13 +506,13 @@ exitOnError:
  */
  
 ClRcT VDECL_VER(_ckptCheckpointStatusGet, 4, 0, 0)(ClCkptHdlT                  ckptHdl,
-                               ClCkptCheckpointDescriptorT *pCheckpointStatus,
-                               ClVersionT                  *pVersion)
+                                                   ClCkptCheckpointDescriptorT *pCheckpointStatus,
+                                                   ClVersionT                  *pVersion)
 {
     CkptT             *pCkpt     = NULL;
     ClUint32T         memUsed    = 0;
     ClRcT             rc         = CL_OK;
-//    CkptSectionT      *pSec      = NULL;
+    //    CkptSectionT      *pSec      = NULL;
     ClTimeT           cltime     = {0};
     ClIocNodeAddressT actAddr    = 0;  /* Needed only to contact master */
     ClUint32T         refCount   = 0;  /* Needed only to contact master */
@@ -529,7 +529,7 @@ ClRcT VDECL_VER(_ckptCheckpointStatusGet, 4, 0, 0)(ClCkptHdlT                  c
     if (!pCheckpointStatus)
         rc = CL_CKPT_ERR_NULL_POINTER;
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("StatusDescriptor is NULL Pointer rc[0x %x]",rc), rc);
+                   ("StatusDescriptor is NULL Pointer rc[0x %x]",rc), rc);
 
     /*
      * Verify the version.
@@ -544,8 +544,8 @@ ClRcT VDECL_VER(_ckptCheckpointStatusGet, 4, 0, 0)(ClCkptHdlT                  c
     memset(pVersion, '\0', sizeof(ClVersionT));
     
     CKPT_ERR_CHECK(CL_CKPT_SVR, CL_DEBUG_ERROR,
-            ("Ckpt: Version b/w C/S is incompatablie rc[0x %x]",rc),
-             rc);
+                   ("Ckpt: Version b/w C/S is incompatablie rc[0x %x]",rc),
+                   rc);
 
     /*
      * Retrieve the data associated with the active handle.
@@ -553,7 +553,7 @@ ClRcT VDECL_VER(_ckptCheckpointStatusGet, 4, 0, 0)(ClCkptHdlT                  c
     rc = clHandleCheckout(gCkptSvr->ckptHdl, ckptHdl, 
                           (void **)&pCkpt);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Failed to get ckpt from handle rc[0x %x]\n",rc), rc);
+                   ("Failed to get ckpt from handle rc[0x %x]\n",rc), rc);
 
     CL_ASSERT(pCkpt != NULL);
 
@@ -576,52 +576,52 @@ ClRcT VDECL_VER(_ckptCheckpointStatusGet, 4, 0, 0)(ClCkptHdlT                  c
      */
     if(pCkpt != NULL)
     {    
-      if(pCkpt->pCpInfo != NULL)
-      {
-          /*
-           * Contro plane info.
-           */
-          pCheckpointStatus->checkpointCreationAttributes.creationFlags  =
-              pCkpt->pCpInfo->updateOption;
-      }
-      if(pCkpt->pDpInfo != NULL)
-      {
-          /*
-           * Data plane info.
-           */
-          pCheckpointStatus->checkpointCreationAttributes.checkpointSize    =
-              pCkpt->pDpInfo->maxCkptSize;
-          pCheckpointStatus->checkpointCreationAttributes.maxSections       =
-              pCkpt->pDpInfo->maxScns;
-          pCheckpointStatus->checkpointCreationAttributes.maxSectionSize    =
-              pCkpt->pDpInfo->maxScnSize;
-          pCheckpointStatus->checkpointCreationAttributes.maxSectionIdSize  =
-              pCkpt->pDpInfo->maxScnIdSize;
-          pCheckpointStatus->numberOfSections                               =
-              pCkpt->pDpInfo->numScns;
+        if(pCkpt->pCpInfo != NULL)
+        {
+            /*
+             * Contro plane info.
+             */
+            pCheckpointStatus->checkpointCreationAttributes.creationFlags  =
+                pCkpt->pCpInfo->updateOption;
+        }
+        if(pCkpt->pDpInfo != NULL)
+        {
+            /*
+             * Data plane info.
+             */
+            pCheckpointStatus->checkpointCreationAttributes.checkpointSize    =
+                pCkpt->pDpInfo->maxCkptSize;
+            pCheckpointStatus->checkpointCreationAttributes.maxSections       =
+                pCkpt->pDpInfo->maxScns;
+            pCheckpointStatus->checkpointCreationAttributes.maxSectionSize    =
+                pCkpt->pDpInfo->maxScnSize;
+            pCheckpointStatus->checkpointCreationAttributes.maxSectionIdSize  =
+                pCkpt->pDpInfo->maxScnIdSize;
+            pCheckpointStatus->numberOfSections                               =
+                pCkpt->pDpInfo->numScns;
               
-          /*
-           * Calculate memory usage.Walk thru the section table and find out
-           * the memory usage.
-           *FIXME
-           */
+            /*
+             * Calculate memory usage.Walk thru the section table and find out
+             * the memory usage.
+             *FIXME
+             */
 #if 0
-          if(pCkpt->pDpInfo->pSections != NULL)
-          {
-              pSec = pCkpt->pDpInfo->pSections;
-              for(secCount = 0; secCount < pCkpt->pDpInfo->maxScns; 
-                  secCount++)
-              {
-                 if(pSec->used == CL_TRUE)
-                 {
-                   memUsed = memUsed +(ClUint32T)pSec->size;
-                 }  
-                 pSec++;
-              }   
-          }    
+            if(pCkpt->pDpInfo->pSections != NULL)
+            {
+                pSec = pCkpt->pDpInfo->pSections;
+                for(secCount = 0; secCount < pCkpt->pDpInfo->maxScns; 
+                    secCount++)
+                {
+                    if(pSec->used == CL_TRUE)
+                    {
+                        memUsed = memUsed +(ClUint32T)pSec->size;
+                    }  
+                    pSec++;
+                }   
+            }    
 #endif
-          pCheckpointStatus->memoryUsed        = memUsed;
-       }
+            pCheckpointStatus->memoryUsed        = memUsed;
+        }
     } 
 
     /*
@@ -629,25 +629,30 @@ ClRcT VDECL_VER(_ckptCheckpointStatusGet, 4, 0, 0)(ClCkptHdlT                  c
      */
     rc = ckptIdlHandleUpdate(gCkptSvr->masterInfo.masterAddr, 
                              gCkptSvr->ckptIdlHdl,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Cant update the idl handle rc[0x %x]\n", rc), rc);
+    if(rc != CL_OK)
+    {
+        clLogError("STATUS", "GET", "IDL handle update returned with [%#x]", rc);
+        goto exitOnErrorUnlock;
+    }
 
     rc = VDECL_VER(clCkptMasterStatusInfoGetClientSync, 4, 0, 0)(gCkptSvr->ckptIdlHdl, ckptHdl, 
-                                   &cltime, &actAddr, 
-                                   &refCount, &delFlag);
+                                                                 &cltime, &actAddr, 
+                                                                 &refCount, &delFlag);
     if(rc == CL_OK)
     {
         pCheckpointStatus->checkpointCreationAttributes.retentionDuration 
-                = cltime;
+            = cltime;
     }
                                      
     /*
      * Unlock the checkpoint's mutex.
      */
+    exitOnErrorUnlock:
     CKPT_UNLOCK(pCkpt->ckptMutex);           
     
-    rc = clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
-exitOnError:
+    rc = clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
+
+    exitOnError:
     {
         return rc;
     }
