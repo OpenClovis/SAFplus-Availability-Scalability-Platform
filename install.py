@@ -427,7 +427,7 @@ class ASPInstaller:
                         if TIPC_MAJOR_VERSION != 1:
                             # install tipcutil 1.1.9
                             #dep.installedver = 'Warning: incompatible version, won\'t install'
-                            self.TIPC_CONFIG_VERSION ='tipcutils-1.1.98.tar.gz'                            
+                            self.TIPC_CONFIG_VERSION ='tipcutils-1.1.9.tar.gz'                            
                             dep.pkg_name =  self.TIPC_CONFIG_VERSION
                             self.installQueue.append(dep)
                             continue
