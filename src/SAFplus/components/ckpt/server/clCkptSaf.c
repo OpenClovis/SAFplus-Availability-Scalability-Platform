@@ -1235,7 +1235,6 @@ ClRcT VDECL_VER(_ckptSectionDelete, 4, 0, 0)( ClCkptHdlT 	    ckptHdl,
                 "Failed to delete the section [%.*s]", 
                 pSecId->idLen, pSecId->id);
     }
-    exitOnErrorUnlock:
     CKPT_UNLOCK(pCkpt->ckptMutex);
 
 exitOnError:
