@@ -447,6 +447,17 @@ extern ClRcT clRmdDebugRegister(void);
 
 extern ClRcT clRmdDebugDeregister(void);
 
+extern ClRcT clEoCustomActionTrigger(ClIocPhysicalAddressT dest, 
+                                     ClUint32T actType,
+                                     ClUint8T *actData,
+                                     ClUint32T actLen);
+
+extern ClRcT clEoCustomActionRegister(void (*callback)(ClUint32T type, ClUint8T *data, ClUint32T len));
+
+extern ClRcT clEoCustomActionDeregister(void (*callback)(ClUint32T type, ClUint8T *data, ClUint32T len));
+
+extern void clEoCustomActionDeregisterAll(void);
+
 #ifdef __cplusplus
 }
 #endif
