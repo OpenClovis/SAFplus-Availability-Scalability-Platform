@@ -54,7 +54,8 @@ class ASPInstaller:
         # Construct local enviroment
         # ------------------------------------------------------------------------------
 
-        self.DEBUG_ENABLED       = False  
+        self.NO_INTERACTION      = False
+        self.DEBUG_ENABLED       = False
         self.CUSTOM_OPENHPI      = False
         self.CUSTOM_OPENHPI_PKG  = None
         self.ASP_VERSION         = None
@@ -155,7 +156,11 @@ class ASPInstaller:
         if '-h' in sys.argv or '--help' in sys.argv:
             self.usage()
             sys.exit(0)
-        
+
+        if '--no-interaction' in sys.argv:
+            sys.argv.remove('--no-interaction')
+            self.NO_INTERACTION = True
+
         # check for debug flag
         if '--debug' in sys.argv:
             sys.argv.remove('--debug')
@@ -215,8 +220,10 @@ class ASPInstaller:
             self.feedback('Warning: Unrecognized options sent to installer')
             for arg in sys.argv[1:]:
                 print '\t' + arg.strip()
-            self.feedback('Please press <enter> to continue or <ctrl-c> to quit this installer')
-            self.get_user_feedback()
+
+            if self.NO_INTERACTION == False:
+                self.feedback('Please press <enter> to continue or <ctrl-c> to quit this installer')
+                self.get_user_feedback()
 
 
     
@@ -296,6 +303,7 @@ class ASPInstaller:
             '    %s [ --standard ]                     # Sets the script to do a standard install (both phases)\n' \
             '    %s [ --custom ]                       # Sets the script to do a custom install (ask user everything, Default)\n' \
             '    %s [ --install-dir /opt/clovis ]      # Sets the install directory (Default: /opt/clovis)\n' \
+            '    %s [ --no-interaction ]               # Sets the script to run with default options & no user interaction\n' \
             % (self.ASP_VERSION, self.ASP_VERSION, sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0])
 #            '    %s [ -p <openhpi-package-tarball> ]   # Allows use of specified OpenHPI package\n' \
 
@@ -558,10 +566,10 @@ class ASPInstaller:
             self.feedback('    - Write permission to the installation directory\n')
             self.feedback('Note: You may experience slow installation if the target installation')
             self.feedback('      directory is mounted from a remote file system (e.g., NFS).\n')
-            self.feedback('Please press <enter> to continue or <ctrl-c> to quit this installer')
-            
-            self.get_user_feedback()
-            
+
+            if self.NO_INTERACTION == False:
+                self.feedback('Please press <enter> to continue or <ctrl-c> to quit this installer')
+                self.get_user_feedback()
             # ------------------------------------------------------------------------------
             # Selection of installation type
             # ------------------------------------------------------------------------------
@@ -577,9 +585,12 @@ class ASPInstaller:
                 self.feedback('    2) Custom            -  Recommended')
                 self.feedback('    3) Preinstall Only   -  Only does the preinstall phase')
                 self.feedback('    4) Install Only      -  Only does the install phase')
-                
-                strin = self.get_user_feedback('\nPlease choose an installation option [default: 2]: ')
-                
+
+                if self.NO_INTERACTION == True:
+                    strin = '1'
+                else:
+                    strin = self.get_user_feedback('\nPlease choose an installation option [default: 2]: ')
+
                 if strin == '1':
                     # default install (fast install)
                     # go_to_standard_install # fix
@@ -612,9 +623,12 @@ class ASPInstaller:
         if not (self.PREINSTALL_ONLY or self.STANDARD_ONLY):
         
             self.print_install_header()
-                
-            strin = self.get_user_feedback('Enter the installation root directory [default: %s]: ' % self.INSTALL_DIR)
-            
+
+            if self.NO_INTERACTION == True:
+                strin = INSTALL_DIR
+            else:
+                strin = self.get_user_feedback('Enter the installation root directory [default: %s]: ' % self.INSTALL_DIR)
+
             if strin:
                 # they provided a path. expand '~' and './' references
                 self.INSTALL_DIR = self.expand_path(strin)
@@ -715,8 +729,10 @@ class ASPInstaller:
             
             
             self.feedback('These will be installed via the "%s" command. Some of these may already be installed.\n' % cmd)
-            self.feedback('Please press <enter> to continue or <ctrl-c> to quit this installer')
-            self.get_user_feedback()
+
+            if self.NO_INTERACTION == False:
+                self.feedback('Please press <enter> to continue or <ctrl-c> to quit this installer')
+                self.get_user_feedback()
         
         elif self.PREINSTALL_ONLY or self.STANDARD_ONLY:
             # standard needs a queue here
@@ -769,8 +785,10 @@ class ASPInstaller:
             
             
             self.feedback('\n(* needs install)')
-            self.feedback('\nPlease press <enter> to continue or <ctrl-c> to quit this installer')
-            self.get_user_feedback()
+
+            if self.NO_INTERACTION == False:
+                self.feedback('\nPlease press <enter> to continue or <ctrl-c> to quit this installer')
+                self.get_user_feedback()
         
         
         # ------------------------------------------------------------------------------
@@ -823,8 +841,11 @@ class ASPInstaller:
             
             
             if cmd:
-                strin = self.get_user_feedback('Would you like to attempt download of this necessary package? <y|n> [y]: ')
-                
+                if self.NO_INTERACTION == True:
+                    strin = 'y'
+                else:
+                    strin = self.get_user_feedback('Would you like to attempt download of this necessary package? <y|n> [y]: ')
+
                 if not strin or strin.lower().startswith('y'):
                     
                     if not os.access(WORKING_ROOT, os.W_OK):
@@ -1000,7 +1021,12 @@ class ASPInstaller:
                 KERNEL_VERSION = syscall('uname -r')
                 syscall('pwd')
                 KERNEL_SOURCE_DIR = '/usr/src/kernels/%s' % KERNEL_VERSION
-                strin = self.get_user_feedback('Enter the kernel source directory [default: %s]: ' % KERNEL_SOURCE_DIR)
+
+                if self.NO_INTERACTION == True:
+                    strin = KERNEL_SOURCE_DIR
+                else:
+                    strin = self.get_user_feedback('Enter the kernel source directory [default: %s]: ' % KERNEL_SOURCE_DIR)
+
                 if strin :
                     KERNEL_SOURCE_DIR = self.expand_path(strin)                                    
                 os.chdir('%s' %KERNEL_SOURCE_DIR)                                
@@ -1095,8 +1121,11 @@ class ASPInstaller:
             self.feedback('OpenClovis is already installed. Overwrite?')
             self.feedback('Responding with \'no\' will leave the existing SDK intact and proceed to the')
 
-            strin = self.get_user_feedback('installation of other utilities.  Overwrite existing SDK? <y|n> [n]: ')
-                
+            if self.NO_INTERACTION == True:
+                strin = 'y'
+            else:
+                strin = self.get_user_feedback('installation of other utilities.  Overwrite existing SDK? <y|n> [n]: ')
+
             if not strin or strin.lower().startswith('n'):
                 pass
                 # no, do not overwrite
@@ -1348,10 +1377,18 @@ class ASPInstaller:
 
     def prebuild(self):
         # ask about this early on
-        strin = self.get_user_feedback('Build SAFplus libraries for the local machine and/or installed crossbuild toolchains ? <y|n> [y]: ')
+        if self.NO_INTERACTION == True:
+           strin = 'y'
+        else:
+           strin = self.get_user_feedback('Build SAFplus libraries for the local machine and/or installed crossbuild toolchains ? <y|n> [y]: ')
 
         if not strin or strin.lower().startswith('y'):
-           strin = self.get_user_feedback('Where to build ? [default: %s]: ' % self.ASP_PREBUILD_DIR)
+
+           if self.NO_INTERACTION == True:
+              strin = self.ASP_PREBUILD_DIR
+           else:
+              strin = self.get_user_feedback('Where to build ? [default: %s]: ' % self.ASP_PREBUILD_DIR)
+
            if strin:
            # they provided a path. expand '~' and './' references
               self.ASP_PREBUILD_DIR = self.expand_path(strin)
@@ -1368,7 +1405,12 @@ class ASPInstaller:
            cmd = '%s' % self.ASP_PREBUILD_DIR
            os.chdir (cmd)
            self.feedback ('Select the crossbuild tool(s) to build from the above list, [Default: local]') 
-           strin = self.get_user_feedback()
+
+           if self.NO_INTERACTION == True:
+              strin = 'local'
+           else:
+              strin = self.get_user_feedback()
+
            if strin == None or strin == "":
                strin = "local"
 
@@ -1402,12 +1444,20 @@ class ASPInstaller:
         self.feedback('A few binaries are installed in %s.' % self.BIN_ROOT)
         self.feedback('For convenience, you can add the above directory to your PATH defination.')
         self.feedback('Alternatively, we can create symlinks for you (from a binary direcory that is already in you path).\n')
-        strin = self.get_user_feedback('Create symbolic links for items in %s ? <y|n> [y]: '  % self.BIN_ROOT)
 
+        if self.NO_INTERACTION == True:
+           strin = 'y'
+        else:
+           strin = self.get_user_feedback('Create symbolic links for items in %s ? <y|n> [y]: '  % self.BIN_ROOT)
+ 
         self.DEFAULT_SYM_LINK = '/usr/local/bin'
 
         if not strin or strin.lower().startswith('y'):
-           strin = self.get_user_feedback('Where to create the symbolic links ? [default: %s]: ' % self.DEFAULT_SYM_LINK)
+           if self.NO_INTERACTION == True:
+              strin = self.DEFAULT_SYM_LINK
+           else:
+              strin = self.get_user_feedback('Where to create the symbolic links ? [default: %s]: ' % self.DEFAULT_SYM_LINK)
+
            if strin:
            # they provided a path. expand '~' and './' references
               self.DEFAULT_SYM_LINK = self.expand_path(strin)
