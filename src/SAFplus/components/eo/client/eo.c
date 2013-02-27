@@ -299,9 +299,22 @@ static ClRcT clEoLogLevelSet(ClUint32T data, ClBufferHandleT inMsgHandle,
         ClBufferHandleT outMsgHandle);
 static ClRcT clEoLogLevelGet(ClUint32T data, ClBufferHandleT inMsgHandle,
         ClBufferHandleT outMsgHandle);
+static ClRcT clEoCustomActionIntimation(ClUint32T data, ClBufferHandleT inMsgHandle,
+                                        ClBufferHandleT outMsgHandle);
 
 static ClRcT clEoPriorityQueuesInitialize(void);
 ClRcT clEoPriorityQueuesFinalize(ClBoolT force);
+
+#define CL_EO_CUSTOM_ACTION_INTIMATION_FN_ID CL_EO_GET_FULL_FN_NUM(CL_EO_EO_MGR_CLIENT_TABLE_ID, 7)
+
+static CL_LIST_HEAD_DECLARE(gClEoCustomActionList);
+
+typedef struct ClEoCustomActionInfo
+{
+    ClListHeadT list;
+    void (*callback)(ClUint32T type, ClUint8T *data, ClUint32T len);
+} ClEoCustomActionInfoT;
+
 
 /*
  * Default Service function table
@@ -319,7 +332,8 @@ static ClEoPayloadWithReplyCallbackT defaultServiceFuncList[] = {
      */
     (ClEoPayloadWithReplyCallbackT) clEoSvcPrioritySet, /* 4 */
     (ClEoPayloadWithReplyCallbackT) clEoLogLevelSet,    /* 5 */
-    (ClEoPayloadWithReplyCallbackT) clEoLogLevelGet /* 6 */
+    (ClEoPayloadWithReplyCallbackT) clEoLogLevelGet, /* 6 */
+    (ClEoPayloadWithReplyCallbackT) clEoCustomActionIntimation, /* 7 */
 };
 
 
@@ -3543,6 +3557,125 @@ static ClRcT clEoIsAlive(ClUint32T data, ClBufferHandleT inMsgHandle,
 
 failure:
         return rc;
+}
+
+ClRcT clEoCustomActionRegister(void (*callback)(ClUint32T type, ClUint8T *data, ClUint32T len))
+{
+    ClEoCustomActionInfoT *info = NULL;
+    if(!callback) return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
+    info = clHeapCalloc(1, sizeof(*info));
+    CL_ASSERT(info != NULL);
+    info->callback = callback;
+    clListAddTail(&info->list, &gClEoCustomActionList);
+    return CL_OK;
+}
+
+ClRcT clEoCustomActionDeregister(void (*callback)(ClUint32T type, ClUint8T *data, ClUint32T len))
+{
+    ClListHeadT *iter;
+    CL_LIST_FOR_EACH(iter, &gClEoCustomActionList)
+    {
+        ClEoCustomActionInfoT *info = CL_LIST_ENTRY(iter, ClEoCustomActionInfoT, list);
+        if(info->callback == callback)
+        {
+            clListDel(&info->list);
+            clHeapFree(info);
+            return CL_OK;
+        }
+    }
+    return CL_EO_RC(CL_ERR_NOT_EXIST);
+}
+
+void clEoCustomActionDeregisterAll(void)
+{
+    ClListHeadT *iter = NULL;
+    ClEoCustomActionInfoT *info = NULL;
+    while(!CL_LIST_HEAD_EMPTY(&gClEoCustomActionList))
+    {
+        iter = gClEoCustomActionList.pNext;
+        info = CL_LIST_ENTRY(iter, ClEoCustomActionInfoT, list);
+        clListDel(&info->list);
+        clHeapFree(info);
+    }
+}
+
+static void clEoCustomActionNotification(ClUint32T type, ClUint8T *data, ClUint32T len)
+{
+    ClListHeadT *iter;
+    CL_LIST_FOR_EACH(iter, &gClEoCustomActionList)
+    {
+        ClEoCustomActionInfoT *info = CL_LIST_ENTRY(iter, ClEoCustomActionInfoT, list);
+        info->callback(type, data, len);
+    }
+}
+
+ClRcT clEoCustomActionTrigger(ClIocPhysicalAddressT dest, 
+                              ClUint32T actType,
+                              ClUint8T *actData,
+                              ClUint32T actLen)
+{
+    ClIocAddressT destAddress;
+    ClRmdOptionsT rmdOptions = CL_RMD_DEFAULT_OPTIONS;
+    ClUint32T fnId = CL_EO_CUSTOM_ACTION_INTIMATION_FN_ID;
+    ClBufferHandleT inMsgHdl = 0;
+    ClRcT rc = CL_OK;
+    
+    if(!dest.nodeAddress || !dest.portId || !actData || !actLen)
+        return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
+
+    memset(&destAddress, 0, sizeof(destAddress));
+    destAddress.iocPhyAddress.nodeAddress = dest.nodeAddress;
+    destAddress.iocPhyAddress.portId = dest.portId;
+
+    rc = clBufferCreate(&inMsgHdl);
+    if(rc != CL_OK)
+        return rc;
+
+    rc = clXdrMarshallClUint32T((void*)&actType, inMsgHdl, 0);
+    if(rc != CL_OK)
+        goto out_free;
+    rc = clXdrMarshallClUint32T((void*)&actLen, inMsgHdl, 0);
+    if(rc != CL_OK)
+        goto out_free;
+    rc = clXdrMarshallArrayClUint8T((void*)actData, actLen, inMsgHdl, 0);
+    if(rc != CL_OK)
+        goto out_free;
+
+    rc = clRmdWithMsg(destAddress, fnId, inMsgHdl, 0, CL_RMD_CALL_ASYNC,
+                      &rmdOptions, NULL);
+
+    out_free:
+    clBufferDelete(&inMsgHdl);
+    
+    return rc;
+}
+
+static ClRcT clEoCustomActionIntimation(ClUint32T data, ClBufferHandleT inMsgHandle,
+                                        ClBufferHandleT outMsgHandle)
+{
+    ClRcT rc = CL_OK;
+    ClUint32T actType = 0;
+    ClUint32T actLen = 0;
+    ClUint8T *actData = NULL;
+    
+    rc = clXdrUnmarshallClUint32T(inMsgHandle, &actType);
+    if(rc != CL_OK)
+        return rc;
+    rc = clXdrUnmarshallClUint32T(inMsgHandle, &actLen);
+    if(rc != CL_OK)
+        return rc;
+    rc = clXdrUnmarshallPtrClUint8T(inMsgHandle, (void**)&actData, actLen);
+    if(rc != CL_OK)
+        return rc;
+    if(actData)
+    {
+        if(actLen > 0)
+        {
+            clEoCustomActionNotification(actType, actData, actLen);
+        }
+        clHeapFree(actData);
+    }
+    return rc;
 }
 
 static ClRcT clEoQueueMonitor(ClOsalTaskIdT tid, ClTimeT interval, ClTimeT threshold)
