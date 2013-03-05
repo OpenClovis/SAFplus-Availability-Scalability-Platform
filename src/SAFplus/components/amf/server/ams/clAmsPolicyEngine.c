@@ -4441,7 +4441,13 @@ clAmsPeSULockAssignment(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
-    if(clAmsInvocationsPendingForSG(sg))
+    readinessState = su->status.readinessState;
+
+    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+
+    if(adminState == CL_AMS_ADMIN_STATE_UNLOCKED 
+       &&
+       clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "LOCK", 
                   "SG [%s] containing SU [%s] has invocations pending. Deferring lock",
@@ -4449,10 +4455,6 @@ clAmsPeSULockAssignment(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
     
-    readinessState = su->status.readinessState;
-
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
-
     if(adminState == CL_AMS_ADMIN_STATE_LOCKED_I
        &&
        node->config.isASPAware 
