@@ -686,10 +686,12 @@ void corEvtEventDeliverCallBack( ClEventSubscriptionIdT subscriptionId,
 				return;
             }
             
-            /*
-             * COR should get only comp death and departure events.
-             */
-            CL_ASSERT((payLoad.operation == CL_CPM_COMP_DEATH) || (payLoad.operation == CL_CPM_COMP_DEPARTURE));
+            if( (payLoad.operation != CL_CPM_COMP_DEATH) &&
+                (payLoad.operation != CL_CPM_COMP_DEPARTURE))
+            {
+                clEventFree(eventHandle);
+                return;
+            }
 
             stationAdd.nodeAddress = payLoad.nodeIocAddress;
             stationAdd.portId =     payLoad.eoIocPort;
@@ -714,10 +716,12 @@ void corEvtEventDeliverCallBack( ClEventSubscriptionIdT subscriptionId,
                 return;
             }
 
-            /*
-             * COR should get only node death and departure events.
-             */
-            CL_ASSERT((payLoad.operation == CL_CPM_NODE_DEATH) || (payLoad.operation == CL_CPM_NODE_DEPARTURE));
+            if((payLoad.operation != CL_CPM_NODE_DEATH) &&
+               (payLoad.operation != CL_CPM_NODE_DEPARTURE))
+            {
+                clEventFree(eventHandle);
+                return;
+            }
 
             /* In the case of node death/departure, we need to remove the 
              * entries from the cor List as well as all the components
