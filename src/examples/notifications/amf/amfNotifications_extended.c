@@ -212,6 +212,138 @@ __attribute__((unused)) static ClRcT getCompsAsync(const SaNameT *si, const SaNa
     return rc;
 }
 
+/*
+ * Nice to cache the amf db into the cache handle as
+ * component su/csi/si info won't change if already cached. 
+ * Can delete the cache anytime(process exit) with clAmsMgmtDBFinalize(&cache);
+ * Or can be just ok. to leave the cache as it is since its one time anyway
+ * and needn't be costly to free as it would be freed by the kernel on process
+ * exit and doesn't count as a runtime leak anyway.
+ */
+static ClAmsMgmtDBHandleT cache;
+
+/*
+ * getCompRestartConfig -- gets su name and siname (applicable if csi assigned)
+ * given a suName or a compName or both.
+ * if suName is provided in the first arg, then get siName for a component in the SU
+ * or the component specified for the SU
+ * if compName is provided and SUname is null, then get parent SU for the component
+ * and si (when assigned csi) in suRet and siRet
+ */
+ClRcT getCompRestartConfig(const SaNameT *suName, const ClNameT *compName,
+                           ClNameT *suRet, ClNameT *siRet)
+{
+    ClRcT rc = CL_OK;
+    ClAmsCompConfigT *compConfig = NULL;
+    ClAmsEntityBufferT compBuffer = {0};
+    ClAmsEntityT entity = {0};
+    ClAmsEntityT *entityComp = &entity;
+    ClAmsCompCSIRefBufferT csiRefBuffer = {0};
+    ClBoolT restartRecovery = CL_FALSE;
+    if(!cache)
+    {
+        rc = clAmsMgmtDBGet(&cache);
+        if(rc != CL_OK) goto out;
+    }
+    if(suName)
+    {
+        if(suRet)
+        {
+            clNameCopy(suRet, (ClNameT*)suName);
+        }
+        entity.type = CL_AMS_ENTITY_TYPE_SU;
+        clNameCopy(&entity.name, (ClNameT*)suName);
+        rc = clAmsMgmtDBGetSUCompList(cache, &entity, &compBuffer);
+        if(rc != CL_OK) goto out;
+        for(ClUint32T i = 0; i < compBuffer.count; ++i)
+        {
+            ClAmsEntityT *comp = compBuffer.entity + i;
+            if(compName && strcmp((const char*)compName->value, comp->name.value)) continue;
+            entityComp = comp;
+            rc = clAmsMgmtDBGetEntityConfig(cache, comp, (ClAmsEntityConfigT**)&compConfig);
+            if(rc != CL_OK)
+            {
+                goto out_free;
+            }
+            if(compConfig->recoveryOnTimeout == CL_AMS_RECOVERY_COMP_RESTART
+               ||
+               compConfig->recoveryOnTimeout == CL_AMS_RECOVERY_NO_RECOMMENDATION)
+            {
+                restartRecovery = CL_TRUE;
+                clHeapFree(compConfig);
+                compConfig = NULL;
+                break;
+            }
+        }
+    }
+    else
+    {
+        entity.type = CL_AMS_ENTITY_TYPE_COMP;
+        clNameCopy(&entity.name, compName);
+        rc = clAmsMgmtDBGetEntityConfig(cache, &entity, (ClAmsEntityConfigT**)&compConfig);
+        if(rc != CL_OK) goto out;
+        if(compConfig->recoveryOnTimeout == CL_AMS_RECOVERY_COMP_RESTART
+           ||
+           compConfig->recoveryOnTimeout == CL_AMS_RECOVERY_NO_RECOMMENDATION)
+        {
+            restartRecovery = CL_TRUE;
+        }
+        if(suRet)
+        {
+            clNameCopy(suRet, &compConfig->parentSU.entity.name);
+        }
+        clHeapFree(compConfig);
+        compConfig = NULL;
+    }
+
+    if(!restartRecovery)
+    {
+        rc = CL_AMS_RC(CL_ERR_INVALID_STATE);
+        goto out_free;
+    }
+
+    rc = clAmsMgmtDBGetCompCSIList(cache, entityComp, &csiRefBuffer);
+    if(rc != CL_OK)
+        goto out_free;
+    /*
+     * CSI not yet assigned. 
+     * Try later or wrong time but would work on a restart recovery...
+     */
+    if(!csiRefBuffer.count)
+    {
+        rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
+        goto out_free;
+    }
+
+    for(ClUint32T i = 0; i < csiRefBuffer.count; ++i)
+    {
+        ClAmsEntityT *csi = &csiRefBuffer.entityRef[i].entityRef.entity;
+        clLogNotice("GET", "COMP", "Comp [%s] has CSI [%s]",
+                    entityComp->name.value, csi->name.value);
+        ClAmsCSIConfigT *csiConfig = NULL;
+        rc = clAmsMgmtDBGetEntityConfig(cache, csi, (ClAmsEntityConfigT**)&csiConfig);
+        if(rc != CL_OK)
+            goto out_free;
+        clLogNotice("GET", "COMP", "Comp [%s] has SI [%s]",
+                    entityComp->name.value, csiConfig->parentSI.entity.name.value);
+        if(siRet)
+            clNameCopy(siRet, &csiConfig->parentSI.entity.name);
+        clHeapFree(csiConfig);
+        break;
+    }
+
+    out_free:
+    if(csiRefBuffer.entityRef)
+        clAmsMgmtFreeCompCSIRefBuffer(&csiRefBuffer);
+    if(compBuffer.entity)
+        clHeapFree(compBuffer.entity);
+    if(compConfig)
+        clHeapFree(compConfig);
+
+    out:
+    return rc;
+}
+
 static ClRcT amsNotificationCallback(ClAmsNotificationInfoT *notification)
 {
     switch(notification->type)
