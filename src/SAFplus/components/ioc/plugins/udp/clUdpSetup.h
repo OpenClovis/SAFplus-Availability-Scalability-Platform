@@ -28,6 +28,9 @@
 extern "C" {
 #endif
 
+#define CL_UDP_HIGH_PRIORITY    63
+#define CL_UDP_DEFAULT_PRIORITY 0
+
 ClRcT clUdpFdGet(ClIocPortT port, ClInt32T *fd);
 ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot);
 ClRcT clIocUdpMapDel(ClIocNodeAddressT slot);

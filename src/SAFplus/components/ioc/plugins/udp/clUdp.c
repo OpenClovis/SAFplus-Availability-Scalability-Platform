@@ -27,6 +27,7 @@
 
 ClInt32T gClUdpXportId;
 ClCharT  gClUdpXportType[CL_MAX_NAME_LENGTH];
+static ClBoolT udpPriorityChangePossible = CL_TRUE;  /* Don't attempt to change priority if UDP does not support, so we don't get tons of error msgs */
 static struct hashStruct *gIocUdpMap[IOC_UDP_MAP_SIZE];
 static CL_LIST_HEAD_DECLARE(gIocUdpMapList);
 extern ClIocNodeAddressT gIocLocalBladeAddress;
@@ -55,6 +56,7 @@ typedef struct ClIocUdpMap
     char addrstr[80];
     struct hashStruct hash; /*hash linkage*/
     ClListHeadT list; /*list linkage*/
+    ClUint32T priority;
 }ClIocUdpMapT;
 
 typedef struct ClIocUdpArgs
@@ -63,6 +65,7 @@ typedef struct ClIocUdpArgs
     int iovlen;
     int flags;
     int port;
+    ClUint32T priority;
 }ClIocUdpArgsT;
 
 typedef struct ClIocUdpPrivate
@@ -186,6 +189,7 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
     ClIocUdpMapT *map = NULL;
     ClCharT addrStr[CL_MAX_NAME_LENGTH];
     ClIocNodeAddressT nodeBridge = slot;
+    ClUint32T priority;
     map = calloc(1, sizeof(*map));
     CL_ASSERT(map != NULL);
     if(!addr)
@@ -241,6 +245,27 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
     {
         clLogError("UDP", "MAP", "Socket syscall returned with error [%s] for UDP socket", strerror(errno));
         goto out_free;
+    }
+
+    priority = CL_UDP_DEFAULT_PRIORITY;
+    if (udpPriorityChangePossible)
+    {
+        if(!setsockopt(map->sendFd, SOL_IP, IP_TOS, &priority, sizeof(priority)))
+        {
+            map->priority = priority;
+        }
+        else
+        {
+            int err = errno;
+
+            if (err == ENOPROTOOPT)
+            {
+                udpPriorityChangePossible = CL_FALSE;
+                CL_DEBUG_PRINT(CL_DEBUG_WARN,("Message priority not available in this version of UDP."));
+            }
+            else CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in setting UDP message priority. errno [%d]",err));
+            goto out_free;
+        }
     }
 
     udpMapAdd(map);
@@ -850,6 +875,27 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
     struct msghdr msghdr;
     ClRcT rc = CL_OK;
     int portOffset = map->slot;
+    ClUint32T priority;
+
+    if ((udpPriorityChangePossible) && (map->priority != sendArgs->priority))
+    {
+        priority = sendArgs->priority;
+        if(!setsockopt(map->sendFd, SOL_IP, IP_TOS, &priority, sizeof(priority)))
+        {
+            map->priority = priority;
+        }
+        else
+        {
+            int err = errno;
+
+            if (err == ENOPROTOOPT)
+            {
+                udpPriorityChangePossible = CL_FALSE;
+                CL_DEBUG_PRINT(CL_DEBUG_WARN,("Message priority not available in this version of UDP."));
+            }
+            else CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in setting UDP message priority. errno [%d]",err));
+        }
+    }
 
     if(gClSimulationMode)
     {
@@ -902,6 +948,9 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
 
     if(!address || !iovlen)
         return CL_OK;
+    sendArgs.priority = CL_UDP_DEFAULT_PRIORITY;
+    if (priority == CL_IOC_HIGH_PRIORITY)
+        sendArgs.priority = CL_UDP_HIGH_PRIORITY;
     sendArgs.iov = iov;
     sendArgs.iovlen = iovlen;
     sendArgs.flags = flags;

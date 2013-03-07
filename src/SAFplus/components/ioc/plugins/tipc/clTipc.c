@@ -665,7 +665,6 @@ ClRcT xportSend(ClIocPortT port, ClUint32T tempPriority, ClIocAddressT *pIocAddr
             {
                 tipcPriorityChangePossible = CL_FALSE;
                 CL_DEBUG_PRINT(CL_DEBUG_WARN,("Message priority not available in this version of TIPC."));
-                tipcPriorityChangePossible = CL_FALSE;
             }            
             else CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in setting TIPC message priority. errno [%d]",err));
         }
