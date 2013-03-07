@@ -992,7 +992,7 @@ class ASPInstaller:
                 os.chdir(self.BUILD_DIR)                                            # move into build dir
                 self.feedback('tar xfm %s %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))
                 ret = syscall('tar xfm %s %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))    # pull out of pkg
-		packageList = fnmatch.filter(os.listdir(self.BUILD_DIR),"%s" % (dep.pkg_name.replace('.tar.gz', '').replace('.tgz', '')))	
+		packageList = fnmatch.filter(os.listdir(self.BUILD_DIR),"%s*" % (dep.pkg_name.replace('.tar.gz', '').replace('.tgz', '')))	
                			
                 #if ret == 0:
                 if len (packageList) == 0:
