@@ -828,9 +828,9 @@ class ASPInstaller:
             self.print_install_header()
             self.feedback('Error: Cannot find \'%s\' in directory \'%s\'\n' % (thirdPartyPkg, WORKING_ROOT))
             
-            #THIRDPARTYPKG_FTPURL = os.path.join('ftp://ftp.openclovis.com/pub/release/', thirdPartyPkg)        
+            THIRDPARTYPKG_FTPURL = os.path.join('ftp://ftp.openclovis.com/', thirdPartyPkg)        
             #THIRDPARTYMD5_FTPURL = os.path.join('ftp://ftp.openclovis.com/pub/release/', THIRDPARTYMD5)        
-            THIRDPARTYPKG_FTPURL = os.path.join("https://github.com/downloads/OpenClovis/SAFplus-Availability-Scalability-Platform/", thirdPartyPkg) 
+            #THIRDPARTYPKG_FTPURL = os.path.join("https://github.com/downloads/OpenClovis/SAFplus-Availability-Scalability-Platform/", thirdPartyPkg) 
             # attempt to download the package. Requires wget
             
             cmd = ''
@@ -926,8 +926,12 @@ class ASPInstaller:
         self.feedback('Beginning preinstall phase... please wait. This may take up to 5 minutes.')
         
         install_str = ''
+        install_lst = []
         for dep in self.preinstallQueue:
-            install_str += '%s ' % dep.name
+            if type(dep.name) == type(""):  # A string means its a simple dependency
+              install_str += '%s ' % dep.name
+            else:
+              install_lst.append(dep)      # This is a complex dependency that must be installed individually
         
         if self.OS.apt:
             if self.OFFLINE:
@@ -949,12 +953,24 @@ class ASPInstaller:
         
         else:
             if self.INTERNET :
-                cmd = 'yum -y install %s 2>&1' % install_str
+                instCmd = 'yum -y install %s 2>&1'
+                cmd = instCmd % install_str
                 self.debug('Yum Installing: ' + cmd)
                 result = syscall(cmd)            
                 self.debug(str(result))         
                 #yum -y update kernel            
+
+                for dep in install_lst:
+                  pdb.set_trace()
+                  if type(dep.name) is type([]):  # Any one of these to successfully install is ok
+                    for name in dep.name:
+                      cmd = instCmd % name
+                      self.debug('Yum Installing: ' + cmd)
+                      result = syscall(cmd)
+                      self.debug(str(result))
+
                 self.feedback('Successfully installed preinstall dependencies.')
+
             else:
                 os.chdir ('%s' %(os.path.dirname(self.WORKING_DIR)))
                 syscall('tar zxf %s' % PRE_INSTALL_PKG)
@@ -992,7 +1008,7 @@ class ASPInstaller:
                 os.chdir(self.BUILD_DIR)                                            # move into build dir
                 self.feedback('tar xfm %s %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))
                 ret = syscall('tar xfm %s %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))    # pull out of pkg
-		packageList = fnmatch.filter(os.listdir(self.BUILD_DIR),"%s*" % (dep.pkg_name.replace('.tar.gz', '').replace('.tgz', '')))	
+		packageList = fnmatch.filter(os.listdir(self.BUILD_DIR),dep.pkg_name)
                			
                 #if ret == 0:
                 if len (packageList) == 0:
