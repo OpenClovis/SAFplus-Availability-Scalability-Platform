@@ -30,7 +30,11 @@ class RepoDep:
             * internet access required
     """
     
-    def __init__(self, name=''):
-        self.name           = name.strip()
-        self.required       = True
+    def __init__(self, name,req=True):
+        if type(name) is type(''):
+          self.name           = name.strip()
+        else: 
+          self.name = name
+
+        self.required       = req
         
