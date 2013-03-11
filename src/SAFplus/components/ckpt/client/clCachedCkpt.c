@@ -107,13 +107,15 @@ void clCachedCkptClientLookup(ClCachedCkptClientSvcInfoT *serviceInfo,
                               const ClNameT *sectionName,
                               ClCachedCkptDataT **sectionData)
 {
-    ClUint32T        i             = 0;
-
     if (!sectionData)
         return;
 
     *sectionData = NULL;
 
+    if (!serviceInfo->cache)
+        return;
+
+    ClUint32T        i             = 0;
     ClUint32T        *numberOfSections = (ClUint32T *) serviceInfo->cache;
     ClUint32T        *sizeOfCache = (ClUint32T *) (numberOfSections + 1);
     ClUint8T         *data = (ClUint8T *) (sizeOfCache + 1);
@@ -142,6 +144,9 @@ ClRcT clCacheEntryDataAppend(ClCachedCkptSvcInfoT *serviceInfo,
                              ClPtrT data,
                              ClUint32T dataSize)
 {
+    if (!serviceInfo->cache)
+        return CL_ERR_NOT_INITIALIZED;
+
     ClUint32T cacheSize = serviceInfo->cachSize;
     ClUint32T *numberOfSections = (ClUint32T*)serviceInfo->cache;
     ClUint32T *sizeOfCache = (ClUint32T*)(numberOfSections + 1);
@@ -178,6 +183,9 @@ ClRcT clCacheEntryDataDelete(ClCachedCkptSvcInfoT *serviceInfo,
                              ClPtrT data,
                              ClUint32T dataSize)
 {
+    if (!serviceInfo->cache)
+        return CL_ERR_NOT_INITIALIZED;
+
     ClUint32T *numberOfSections = (ClUint32T*)serviceInfo->cache;
     ClUint32T *sizeOfCache = (ClUint32T*)(numberOfSections + 1);
     ClCachedCkptDataT *ckptData = (ClCachedCkptDataT*)(sizeOfCache + 1);
@@ -235,9 +243,11 @@ ClRcT clCacheEntryDataDelete(ClCachedCkptSvcInfoT *serviceInfo,
 ClRcT clCacheEntryAdd (ClCachedCkptSvcInfoT *serviceInfo, 
                        const ClCachedCkptDataT *sectionData)
 {
+    if (!serviceInfo->cache)
+        return CL_ERR_NOT_INITIALIZED;
 
-    ClRcT			rc = CL_OK;
-    ClUint32T                   shmSize = serviceInfo->cachSize;
+    ClRcT            rc = CL_OK;
+    ClUint32T        shmSize = serviceInfo->cachSize;
 
     ClUint32T        *numberOfSections = (ClUint32T *) serviceInfo->cache;
     ClUint32T        *sizeOfCache = (ClUint32T *) (numberOfSections + 1);
@@ -263,9 +273,12 @@ ClRcT clCacheEntryAdd (ClCachedCkptSvcInfoT *serviceInfo,
 ClRcT clCacheEntryDelete (ClCachedCkptSvcInfoT *serviceInfo, 
                           const ClNameT *sectionName)
 {
-    ClRcT			rc = CL_OK;
-    ClUint32T                   shmSize = serviceInfo->cachSize;
-    ClUint32T                   i = 0;
+    if (!serviceInfo->cache)
+        return CL_ERR_NOT_INITIALIZED;
+
+    ClRcT            rc = CL_OK;
+    ClUint32T        shmSize = serviceInfo->cachSize;
+    ClUint32T        i = 0;
 
     ClUint32T        *numberOfSections = (ClUint32T *) serviceInfo->cache;
     ClUint32T        *sizeOfCache = (ClUint32T *) (numberOfSections + 1);
@@ -788,14 +801,17 @@ void clCachedCkptSectionRead(ClCachedCkptSvcInfoT *serviceInfo,
                                        const ClNameT *sectionName,
                                        ClCachedCkptDataT **sectionData)
 {
-    ClUint32T                   i = 0;
+    *sectionData = NULL;
+
+    if (!serviceInfo->cache)
+        return;
+
+    ClUint32T        i = 0;
 
     ClUint32T        *numberOfSections = (ClUint32T *) serviceInfo->cache;
     ClUint32T        *sizeOfCache = (ClUint32T *) (numberOfSections + 1);
     ClUint8T         *data = (ClUint8T *) (sizeOfCache + 1);
     ClUint32T        sectionOffset = 0;
-
-    *sectionData = NULL;
 
     for (i = 0; i< *numberOfSections; i++)
     {
@@ -817,10 +833,13 @@ void clCachedCkptSectionGetFirst(ClCachedCkptSvcInfoT *serviceInfo,
                                  ClCachedCkptDataT **sectionData,
                                  ClUint32T        *sectionOffset)
 {
+    *sectionData = NULL;
+
+    if (!serviceInfo->cache)
+        return;
+
     ClUint32T        *numberOfSections = (ClUint32T *) serviceInfo->cache;
     ClUint32T        *sizeOfCache = (ClUint32T *) (numberOfSections + 1);
-
-    *sectionData = NULL;
 
     if (*numberOfSections > 0)
     {
@@ -834,11 +853,14 @@ void clCachedCkptSectionGetNext(ClCachedCkptSvcInfoT *serviceInfo,
                                 ClCachedCkptDataT **sectionData,
                                 ClUint32T        *sectionOffset)
 {
+    *sectionData = NULL;
+
+    if (!serviceInfo->cache)
+        return;
+
     ClUint32T        *numberOfSections = (ClUint32T *) serviceInfo->cache;
     ClUint32T        *sizeOfCache = (ClUint32T *) (numberOfSections + 1);
     ClUint8T         *data = (ClUint8T *) (sizeOfCache + 1);
-
-    *sectionData = NULL;
 
     if (*sectionOffset < *sizeOfCache)
     {
