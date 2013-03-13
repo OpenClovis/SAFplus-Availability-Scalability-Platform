@@ -4207,7 +4207,7 @@ clAmsEntityTimerDelete(
     {
         if(entityTimer->handle)
         {
-            AMS_CALL ( clTimerDelete (&entityTimer->handle) );
+            AMS_CALL ( clTimerDeleteAsync (&entityTimer->handle) );
         }
         entityTimer->handle = 0;
         entityTimer->count = 0;
@@ -4345,7 +4345,7 @@ clAmsEntityTimerUpdate(
          * Delete the timer to cause a refresh create on the next timer start
          */
         entityTimer->count = 0;
-        clTimerDelete (&entityTimer->handle);
+        clTimerDeleteAsync (&entityTimer->handle);
         entityTimer->handle = 0;
     }
 
