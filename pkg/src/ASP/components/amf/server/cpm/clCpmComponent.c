@@ -374,7 +374,7 @@ static ClRcT cpmHealthCheckTimerCallback(void *arg)
     clOsalMutexLock(comp->compMutex);
     comp->hbInvocationPending = CL_NO;
     clTimerStop(comp->hbTimerHandle);
-    clTimerDelete(&comp->hbTimerHandle);
+    clTimerDeleteAsync(&comp->hbTimerHandle);
     comp->hbTimerHandle = CL_HANDLE_INVALID_VALUE;
     clOsalMutexUnlock(comp->compMutex);
     
@@ -2905,13 +2905,13 @@ ClRcT cpmProxiedHealthcheckStop(ClNameT *pCompName)
     if (CL_HANDLE_INVALID_VALUE != comp->cpmHealthcheckTimerHandle)
     {
         clTimerStop(comp->cpmHealthcheckTimerHandle);
-        clTimerDelete(&comp->cpmHealthcheckTimerHandle);
+        clTimerDeleteAsync(&comp->cpmHealthcheckTimerHandle);
         comp->cpmHealthcheckTimerHandle = CL_HANDLE_INVALID_VALUE;
     }
     if (CL_HANDLE_INVALID_VALUE != comp->hbTimerHandle)
     {
         clTimerStop(comp->hbTimerHandle);
-        clTimerDelete(&comp->hbTimerHandle);
+        clTimerDeleteAsync(&comp->hbTimerHandle);
         comp->hbTimerHandle = CL_HANDLE_INVALID_VALUE;
     }
                         
@@ -3070,13 +3070,13 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
                         if (CL_HANDLE_INVALID_VALUE != comp->cpmHealthcheckTimerHandle)
                         {
                             clTimerStop(comp->cpmHealthcheckTimerHandle);
-                            clTimerDelete(&comp->cpmHealthcheckTimerHandle);
+                            clTimerDeleteAsync(&comp->cpmHealthcheckTimerHandle);
                             comp->cpmHealthcheckTimerHandle = CL_HANDLE_INVALID_VALUE;
                         }
                         if (CL_HANDLE_INVALID_VALUE != comp->hbTimerHandle)
                         {
                             clTimerStop(comp->hbTimerHandle);
-                            clTimerDelete(&comp->hbTimerHandle);
+                            clTimerDeleteAsync(&comp->hbTimerHandle);
                             comp->hbTimerHandle = CL_HANDLE_INVALID_VALUE;
                         }
                         
@@ -3128,13 +3128,13 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
                     if (CL_HANDLE_INVALID_VALUE != comp->cpmHealthcheckTimerHandle)
                     {
                         clTimerStop(comp->cpmHealthcheckTimerHandle);
-                        clTimerDelete(&comp->cpmHealthcheckTimerHandle);
+                        clTimerDeleteAsync(&comp->cpmHealthcheckTimerHandle);
                         comp->cpmHealthcheckTimerHandle = CL_HANDLE_INVALID_VALUE;
                     }
                     if (CL_HANDLE_INVALID_VALUE != comp->hbTimerHandle)
                     {
                         clTimerStop(comp->hbTimerHandle);
-                        clTimerDelete(&comp->hbTimerHandle);
+                        clTimerDeleteAsync(&comp->hbTimerHandle);
                         comp->hbTimerHandle = CL_HANDLE_INVALID_VALUE;
                     }
                         
@@ -4591,14 +4591,14 @@ ClRcT cpmCompHealthcheckStop(ClNameT *pCompName)
     {
         stopped = CL_TRUE;
         clTimerStop(comp->hbTimerHandle);
-        clTimerDelete(&comp->hbTimerHandle);
+        clTimerDeleteAsync(&comp->hbTimerHandle);
         comp->hbTimerHandle = CL_HANDLE_INVALID_VALUE;
     }
     if (CL_HANDLE_INVALID_VALUE != comp->cpmHealthcheckTimerHandle)
     {
         stopped = CL_TRUE;
         clTimerStop(comp->cpmHealthcheckTimerHandle);
-        clTimerDelete(&comp->cpmHealthcheckTimerHandle);
+        clTimerDeleteAsync(&comp->cpmHealthcheckTimerHandle);
         comp->cpmHealthcheckTimerHandle = CL_HANDLE_INVALID_VALUE;
     }
     clOsalMutexUnlock(comp->compMutex);
