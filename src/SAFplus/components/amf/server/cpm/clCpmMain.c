@@ -619,6 +619,7 @@ static void cpmSigintHandler(ClInt32T signum)
     clCpmNodeShutDown(clIocLocalAddressGet());
 }
 
+#if 0
 static void cpmSigchldHandler(ClInt32T signum)
 {
     ClInt32T pid;
@@ -633,6 +634,7 @@ static void cpmSigchldHandler(ClInt32T signum)
         pid = waitpid(WAIT_ANY, &w, WNOHANG);
     } while(pid > 0);
 }
+#endif
 
 /*
  * Signal handler to :
@@ -662,10 +664,14 @@ static void cpmSigHandlerInstall(void)
                    "Unable to install signal handler for SIGTERM");
     }
 
-    newAction.sa_handler = cpmSigchldHandler;
     sigemptyset(&newAction.sa_mask);
-    newAction.sa_flags = 0;
 
+    newAction.sa_handler = SIG_IGN;
+    sigemptyset(&newAction.sa_mask);
+    newAction.sa_flags = SA_RESTART;
+#ifdef SA_NOCLDWAIT
+    newAction.sa_flags |= SA_NOCLDWAIT;
+#endif
     if (-1 == sigaction(SIGCHLD, &newAction, NULL))
     {
         perror("sigaction for SIGCHLD failed");
