@@ -62,10 +62,8 @@ ifeq ($(BUILD_PYTHON), 1)
 	SUBDIRS += python
 endif
 
-ifeq ($(BUILD_CPP), 1)
-	SUBDIRS += cpp
-endif
-
+#CPP as default
+SUBDIRS += cpp
 
 #
 # If you have any ordering dependence among subdirectories, list them as
