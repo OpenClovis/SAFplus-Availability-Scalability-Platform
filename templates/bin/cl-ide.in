@@ -135,51 +135,11 @@ if [ ! -f $DOTDIR/$CL_SDK/eclipse ]; then
     fi
     feedback 1 "Created $DOTDIR/$CL_SDK/eclipse directory"
 fi
-
-# See if $DOTDIR/$CL_SDK/project-area.rc exists. If not, create
-# default project area at $HOME/clovis/project
-
-if [ -f $DOTDIR/$CL_SDK/project-area.rc ]; then
-    feedback 1 "Found $DOTDIR/$CL_SDK/project-area.rc"
-else
-    DEF_PROJECT_AREA=$HOME/clovis/project
-    echo -en "Enter Project area location[default: $DEF_PROJECT_AREA] : "
-    read project_area
-    if [ "x${project_area}" == "x" ]; then
-	project_area=$DEF_PROJECT_AREA
-    else
-	project_area=`echo $project_area | perl -n -e 's/(\/*)$//; print "$_"'`
-    fi
-		
-    if [ ! -d $project_area ]; then
-        feedback 0 "No project area found, creating project area at $project_area..."
-        
-        mkdir -p $project_area
-        if [ $? -ne 0 ]; then
-            echo "[ERROR] Could not create $project_area.  Please check permissions." >&2
-            exit 1
-        fi
-        cd $project_area
-        $CL_SDKDIR/src/ASP/configure > /dev/null 2>&1
-        cd - > /dev/null
-        feedback 0 "done."
-    else
-        feedback 0 "Configuring project area at $project_area..."
-        cd $project_area
-        $CL_SDKDIR/src/ASP/configure > /dev/null 2>&1
-        cd - > /dev/null
-        feedback 0 "done."
-    fi
-    echo "Project area created in $project_area"
-fi
-
 ##############################################################################
 #
 # Step 4: Launch Eclipse with the IDE
 #
 ##############################################################################
-
-
 # If we've installed Java, use that instead of a potentially incompatible
 # local copy
 
