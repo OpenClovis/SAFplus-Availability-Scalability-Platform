@@ -89,6 +89,7 @@ ClRcT clMsgQGroupCkptDataMarshal(ClMsgQGroupCkptDataT *qCkptData, ClCachedCkptDa
     ClRcT rc = CL_OK;
     ClUint8T *copyData;
     ClUint32T network_byte_order;
+    ClUint16T len16 = 0;
     ClUint32T i, dataSize;
 
     clNameCopy(&outData->sectionName, &qCkptData->qGroupName);
@@ -97,7 +98,7 @@ ClRcT clMsgQGroupCkptDataMarshal(ClMsgQGroupCkptDataT *qCkptData, ClCachedCkptDa
     for (i = 0; i < qCkptData->numberOfQueues; i++)
     {
         ClNameT *queueName = (ClNameT *)(qCkptData->pQueueList + i);
-        dataSize += sizeof(ClUint32T);
+        dataSize += sizeof(ClUint16T);
         dataSize += queueName->length;
     }
     outData->dataSize = dataSize;
@@ -116,11 +117,10 @@ ClRcT clMsgQGroupCkptDataMarshal(ClMsgQGroupCkptDataT *qCkptData, ClCachedCkptDa
     for (i = 0; i < qCkptData->numberOfQueues; i++)
     {
         ClNameT *queueName = (ClNameT *)(qCkptData->pQueueList + i);
-        network_byte_order = (ClUint32T) htonl((ClUint32T)queueName->length);
-        memcpy(copyData, &network_byte_order, sizeof(ClUint32T));
-        copyData = copyData + sizeof(ClUint32T);
-
-        memcpy(copyData, &queueName->value, queueName->length);
+        len16 = (ClUint16T)htons((ClUint16T)queueName->length);
+        memcpy(copyData, &len16, sizeof(len16));
+        copyData = copyData + sizeof(len16);
+        memcpy(copyData, queueName->value, queueName->length);
         copyData = copyData + queueName->length;
     }
 
@@ -156,6 +156,7 @@ ClRcT clMsgQGroupCkptDataUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCach
     ClRcT rc = CL_OK;
     ClUint8T *copyData;
     ClUint32T network_byte_order;
+    ClUint16T len16 = 0;
     ClUint32T i;
 
     clNameCopy(&qCkptData->qGroupName, &inData->sectionName);
@@ -173,7 +174,7 @@ ClRcT clMsgQGroupCkptDataUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCach
 
     if (qCkptData->numberOfQueues > 0)
     {
-        qCkptData->pQueueList = (ClNameT *) clHeapAllocate(qCkptData->numberOfQueues * sizeof(ClNameT));
+        qCkptData->pQueueList = (ClNameT *)clHeapCalloc(qCkptData->numberOfQueues, sizeof(ClNameT));
         if (qCkptData->pQueueList == NULL)
         {
             rc = CL_ERR_NO_MEMORY;
@@ -185,13 +186,10 @@ ClRcT clMsgQGroupCkptDataUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCach
     for (i = 0; i < qCkptData->numberOfQueues; i++)
     {
         ClNameT *queueName = (ClNameT *)(qCkptData->pQueueList + i);
-        memset(queueName, 0, sizeof(ClNameT));
-
-        memcpy(&network_byte_order,copyData, sizeof(ClUint32T));
-        queueName->length = (ClUint32T) ntohl((ClUint32T)network_byte_order);
-        copyData = copyData + sizeof(ClUint32T);
-
-        memcpy(&queueName->value, copyData, queueName->length);
+        memcpy(&len16, copyData, sizeof(len16));
+        queueName->length = (ClUint16T)ntohs(len16);
+        copyData = copyData + sizeof(len16);
+        memcpy(queueName->value, copyData, queueName->length);
         copyData = copyData + queueName->length;
     }
     return rc;
