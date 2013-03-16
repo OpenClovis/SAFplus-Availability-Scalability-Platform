@@ -2277,8 +2277,16 @@ ClRcT clCkptSectionIterationInitialize(ClCkptHdlT             ckptHdl,
         clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
         if(pSecId)
         {
+            for(count = 0; count < secCount; ++count)
+            {
+                if(pSecId[count].id)
+                {
+                    clHeapFree(pSecId[count].id);
+                }
+            }
             clHeapFree(pSecId);
             pSecId = NULL;
+            secCount = 0;
         }
         goto retry;
     }
@@ -2374,7 +2382,15 @@ ClRcT clCkptSectionIterationInitialize(ClCkptHdlT             ckptHdl,
          */
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptSvcHdl);
         clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
-        if(pTempSec != NULL) clHeapFree(pTempSec);
+        if(pTempSec != NULL) 
+        {
+            for(count = 0; count < secCount; ++count)
+            {
+                if(pTempSec[count].id)
+                    clHeapFree(pTempSec[count].id);
+            }
+            clHeapFree(pTempSec);
+        }
         return rc;
     }
 }
