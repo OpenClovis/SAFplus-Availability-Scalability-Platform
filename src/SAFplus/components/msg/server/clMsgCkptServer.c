@@ -265,6 +265,9 @@ static void clMsgQueueGroupsRemove(ClNameT *pQName)
         ClCachedCkptDataT *pTemp = (ClCachedCkptDataT *) (data + sectionOffset);
         pTemp->data = (ClUint8T *)(pTemp + 1);
 
+        memset(&qGroupData, 0, sizeof(qGroupData));
+        memset(&ckptData, 0, sizeof(ckptData));
+
         rc = clMsgQGroupCkptDataUnmarshal(&qGroupData, pTemp);
         if (rc != CL_OK)
         {
@@ -636,7 +639,7 @@ void clMsgQCkptCompDown(ClIocAddressT *pAddr)
 
         ClBoolT delCkpt = CL_FALSE;
         ClBoolT modCkpt = CL_FALSE;
-
+        memset(&qCkptData, 0, sizeof(qCkptData));
         clMsgQueueCkptDataUnmarshal(&qCkptData, (ClCachedCkptDataT *)pTemp);
 
         if ((qCkptData.qAddress.nodeAddress == pAddr->iocPhyAddress.nodeAddress)
