@@ -721,22 +721,29 @@ static ClBoolT clCkptEntryExist(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT
         }
 
         if ((sectionName->length == secDescriptor.sectionId.idLen) 
-          && (memcmp(sectionName->value, secDescriptor.sectionId.id, sectionName->length)==0) )
+            && (memcmp(sectionName->value, secDescriptor.sectionId.id, sectionName->length)==0) )
         {
+            clHeapFree(secDescriptor.sectionId.id);
+            secDescriptor.sectionId.idLen = 0;
             retVal = CL_TRUE;
-            goto out;
+            goto out_free;
         }
-
         clHeapFree(secDescriptor.sectionId.id);
+        secDescriptor.sectionId.id = NULL;
+        secDescriptor.sectionId.idLen = 0;
     }while( (rc == CL_OK) );
 
-    rc = clCkptSectionIterationFinalize(hSecIter);
-    if( CL_OK != rc )
+    out_free:
+    if(hSecIter)
     {
-        clLogError("CCK", "EXIST", "clCkptSectionIterationFinalize(): rc [0x%x].",rc);
+        rc = clCkptSectionIterationFinalize(hSecIter);
+        if( CL_OK != rc )
+        {
+            clLogError("CCK", "EXIST", "clCkptSectionIterationFinalize(): rc [0x%x].",rc);
+        }
     }
 
-out:
+    out:
     return retVal;
 }
 
