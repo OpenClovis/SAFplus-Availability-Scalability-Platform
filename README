@@ -1,17 +1,17 @@
-======================================================
-Welcome to OpenClovis SAFplus Software Development Kit
-======================================================
+=========================================================
+Welcome to the OpenClovis SAFplus Software Development Kit
+==========================================================
 
-1. Content
-----------
+   SAFplus is SA-Forum API compatible middleware that provides High 
+   Availability (HA), System Management, and other services, addressing 
+   the infrastructure needs of complex devices found in the telecom, 
+   defense, financial and server cluster appliance (MMORPG gaming, etc)
+   markets.
 
-   This distribution contains OpenClovis SDK, a development and run-time
-   environment for the OpenClovis SAFplus Availability/Scalability Platform.
-  
-   SAFplus is middleware that provides High Availability (HA),
-   System Management, and other common carrier grade services, primarily
-   addressing the infrastructure needs of complex communication devices.
-   
+   Before using this github repository, please download and install our 
+   distribution package from: ftp://ftp.openclovis.com/.
+
+   This will automatically install prerequisites and development tools.   
 
 2. How to Install
 -----------------
