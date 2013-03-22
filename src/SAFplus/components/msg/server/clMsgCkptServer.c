@@ -647,8 +647,12 @@ void clMsgQCkptCompDown(ClIocAddressT *pAddr)
         {
             qCkptData.qAddress.nodeAddress = 0;
             pTemp->sectionAddress.iocPhyAddress.nodeAddress = 0;
-            if ((qCkptData.creationFlags == 0 ) || (qCkptData.qServerAddress.nodeAddress == 0))
+            if ((qCkptData.creationFlags == 0 )
+                    || (qCkptData.qServerAddress.nodeAddress == 0
+                     && qCkptData.qServerAddress.portId != CL_IOC_MSG_PORT))
+            {
                 delCkpt = CL_TRUE;
+            }
             modCkpt = CL_TRUE;
         }
 
@@ -658,8 +662,10 @@ void clMsgQCkptCompDown(ClIocAddressT *pAddr)
             qCkptData.qServerAddress.nodeAddress = 0;
             ClUint32T *pQServerNodeAddr = (ClUint32T *) (pTemp->data);
             *pQServerNodeAddr = 0;
-            if (qCkptData.qAddress.nodeAddress == 0)
+            if (qCkptData.qAddress.nodeAddress == 0  && qCkptData.qAddress.portId != CL_IOC_MSG_PORT)
+            {
                 delCkpt = CL_TRUE;
+            }
             modCkpt = CL_TRUE;
         }
 
@@ -724,26 +730,33 @@ void clMsgQCkptNodeDown(ClIocAddressT *pAddr)
 
         ClBoolT delCkpt = CL_FALSE;
         ClBoolT modCkpt = CL_FALSE;
-
+        memset(&qCkptData, 0, sizeof(qCkptData));
         clMsgQueueCkptDataUnmarshal(&qCkptData, (ClCachedCkptDataT *)pTemp);
 
         if ((qCkptData.qAddress.nodeAddress == pAddr->iocPhyAddress.nodeAddress)
-                && (qCkptData.state != CL_MSG_QUEUE_CLOSED))
+                && (qCkptData.qAddress.portId != CL_IOC_MSG_PORT))
         {
             qCkptData.qAddress.nodeAddress = 0;
             pTemp->sectionAddress.iocPhyAddress.nodeAddress = 0;
-            if ((qCkptData.creationFlags == 0 ) || (qCkptData.qServerAddress.nodeAddress == 0))
+            if ((qCkptData.creationFlags == 0 )
+                    || (qCkptData.qServerAddress.nodeAddress == 0
+                     && qCkptData.qServerAddress.portId != CL_IOC_MSG_PORT))
+            {
                 delCkpt = CL_TRUE;
+            }
             modCkpt = CL_TRUE;
         }
 
-        if (qCkptData.qServerAddress.nodeAddress == pAddr->iocPhyAddress.nodeAddress)
+        if (qCkptData.qServerAddress.nodeAddress == pAddr->iocPhyAddress.nodeAddress
+                && (qCkptData.qServerAddress.portId != CL_IOC_MSG_PORT))
         {
             qCkptData.qServerAddress.nodeAddress = 0;
             ClUint32T *pQServerNodeAddr = (ClUint32T *) (pTemp->data);
             *pQServerNodeAddr = 0;
-            if (qCkptData.qAddress.nodeAddress == 0)
+            if (qCkptData.qAddress.nodeAddress == 0 && qCkptData.qAddress.portId != CL_IOC_MSG_PORT)
+            {
                 delCkpt = CL_TRUE;
+            }
             modCkpt = CL_TRUE;
         }
 
