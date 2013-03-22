@@ -45,6 +45,12 @@ if determine_bit() == 64:
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
 INSTALL_LOCKFILE             = '/tmp/.openclovis_installer'        # installer lockfile location
 
+colgreen = """\033[38;5;40m"""
+colblue  = """\033[38;5;27m"""
+colreset = """\033[39m"""
+ 
+OpenClovisStr = "%sOpen%sClovis%s" % (colgreen,colblue,colreset)
+
 class ASPInstaller:
     """ Installer for OpenClovis SAFplus Availabliity Scalability Platform """
     
@@ -293,9 +299,9 @@ class ASPInstaller:
             
     
     def usage(self):
-        msg = '\ninstall.py - Installation tool for OpenClovis SAFplus %s\n\n' \
-            'Installs OpenClovis SAFplus %s to a system intended for use\n' \
-            'for OpenClovis SAFplus development.\n\n' \
+        msg = '\ninstall.py - Installation tool for %s SAFplus %s\n\n' \
+            'Installs %s SAFplus %s to a system intended for use\n' \
+            'for %s SAFplus development.\n\n' \
             'Usage:\n' \
             '    %s [ --help ]                         # Prints this information\n' \
             '    %s [ --preinstall ]                   # Sets the script to run the preinstall phase only\n' \
@@ -304,7 +310,7 @@ class ASPInstaller:
             '    %s [ --custom ]                       # Sets the script to do a custom install (ask user everything, Default)\n' \
             '    %s [ --install-dir /opt/clovis ]      # Sets the install directory (Default: /opt/clovis)\n' \
             '    %s [ --no-interaction ]               # Sets the script to run with default options & no user interaction\n' \
-            % (self.ASP_VERSION, self.ASP_VERSION, sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0])
+            % (OpenClovisStr, self.ASP_VERSION, OpenClovisStr, self.ASP_VERSION, OpenClovisStr, sys.argv[0],sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0], sys.argv[0])
 #            '    %s [ -p <openhpi-package-tarball> ]   # Allows use of specified OpenHPI package\n' \
 
         
@@ -522,11 +528,11 @@ class ASPInstaller:
         success = self.get_lock(INSTALL_LOCKFILE)
         
         if not success:
-            msg = 'Error: There is another OpenClovis install in progress\n' \
+            msg = 'Error: There is another %s install in progress\n' \
                 'This script cannot continue\n' \
                 'If you feel this is an error, please execute\n' \
                 '    rm -f \'%s\'\n' \
-                'Contact %s for support' % (INSTALL_LOCKFILE, SUPPORT_EMAIL)
+                'Contact %s for support' % (OpenClovisStr,INSTALL_LOCKFILE, SUPPORT_EMAIL)
             self.feedback(msg, True)
         
         
@@ -557,10 +563,10 @@ class ASPInstaller:
             
             self.print_install_header()
             
-            self.feedback('Welcome to the OpenClovis SAFplus %s Installer\n' % self.ASP_VERSION)
+            self.feedback('Welcome to the %s SAFplus %s Installer\n' % (OpenClovisStr, self.ASP_VERSION))
             self.feedback('This program helps you to install:')
             self.feedback('    - Required 3rd-party Packages')
-            self.feedback('    - The OpenClovis SAFplus Availabiltiy Scalability Platform\n')
+            self.feedback('    - The %s SAFplus Availability Scalability Platform\n' % OpenClovisStr)
             self.feedback('Installation Directory Prerequisites')
             self.feedback('    - At least 512MB free disk space')
             self.feedback('    - Write permission to the installation directory\n')
@@ -1109,16 +1115,14 @@ class ASPInstaller:
         # everything installed successfully, finishup
         self.debug('Install phase complete')
         self.postInstallation()
-
         self.feedback("=======================================================================")
-        self.feedback("Installation of ${blue_bold}OpenClovis SDK$blue is now complete")
+        self.feedback("Installation of %s SAFplus SDK is now complete" % OpenClovisStr)
         self.feedback("")
         self.feedback("Next steps:")
-        self.feedback(" -  Run 'cl-create-project-area' to create a new project area and start")
-        self.feedback("    working with the SDK")
-        self.feedback(" -  Run 'cl-ide' to start the OpenClovis IDE")
-        self.feedback(" -  To read more information, please consult with the user documentation")
-        self.feedback("    installed under %s/doc." % self.PACKAGE_ROOT)
+        self.feedback(" -  Run 'cl-ide' to start the %s IDE" % OpenClovisStr)
+        self.feedback(" -  To read more information, including getting started tutorials")
+        self.feedback("    please consult with the user documentation located at")
+        self.feedback("    http://help.openclovis.com")
         self.feedback("=======================================================================")
         self.feedback("")
 
@@ -1134,7 +1138,7 @@ class ASPInstaller:
         assert self.PACKAGE_ROOT
 
         if os.path.isdir(self.PACKAGE_ROOT):
-            self.feedback('OpenClovis is already installed. Overwrite?')
+            self.feedback('%s SAFplus is already installed. Overwrite?' % OpenClovisStr)
             self.feedback('Responding with \'no\' will leave the existing SDK intact and proceed to the')
 
             if self.NO_INTERACTION == True:
@@ -1744,8 +1748,8 @@ class ASPInstaller:
     def print_install_header(self):
         """ UI header used during install """
         
-        title = 'OpenClovis SAFplus %s %s Installer - %s %s-bit' % \
-            (self.ASP_VERSION, self.ASP_REVISION, self.OS.name, self.OS.bit)
+        title = '%s SAFplus %s %s Installer - %s %s-bit' % \
+            (OpenClovisStr, self.ASP_VERSION, self.ASP_REVISION, self.OS.name, self.OS.bit)
         
         if self.DEBUG_ENABLED:
             title += ' - DEBUG'

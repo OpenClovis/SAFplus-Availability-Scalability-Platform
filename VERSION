@@ -1,4 +1,4 @@
-BUILD_NUMBER=openclovis-sdk-6.0-private-gpl
-PACKAGE_VERSION=6.0
+BUILD_NUMBER=openclovis-sdk-6.1-private-gpl
+PACKAGE_VERSION=6.1
 PACKAGE_NAME=asp
 REVISION=private
