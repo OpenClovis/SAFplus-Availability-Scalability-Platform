@@ -40,6 +40,10 @@ extern ClRcT cpmComponentAddDynamic(const ClCharT *compName);
 
 extern ClRcT cpmNodeAdd(ClCharT *nodeName);
 
+extern ClRcT cpmCompAppendInstantiateCommand(ClCharT *compName,
+                                             ClCharT *instantiateCommand,
+                                             ClInt32T maxSize);
+
 #ifdef __cplusplus
 }
 #endif

@@ -585,7 +585,7 @@ ClRcT cpmEntityRmv(ClAmsEntityRefT *entityRef)
     return CL_OK;
 }
 
-static ClRcT cpmParseArgs(ClCpmComponentT *comp, ClCharT *cmd)
+ClRcT cpmCompParseArgs(ClCpmCompConfigT *compConfig, ClCharT *cmd, ClUint32T *pArgIndex)
 {
     ClCharT tmp[CL_MAX_NAME_LENGTH] = {0};
     ClCharT imageName[CL_MAX_NAME_LENGTH];
@@ -594,20 +594,22 @@ static ClRcT cpmParseArgs(ClCpmComponentT *comp, ClCharT *cmd)
     ClUint32T i = 0;
     ClUint32T argIndex = 0;
     ClRcT rc = CL_OK;
-    
+
+    if(pArgIndex) *pArgIndex = 0;
+
     strncpy(tmp, cmd, CL_MAX_NAME_LENGTH-1);
 
-    for(i = 0; comp->compConfig->argv[i]; ++i)
+    for(i = 0; compConfig->argv[i]; ++i)
     {
-        clHeapFree(comp->compConfig->argv[i]);
-        comp->compConfig->argv[i] = NULL;
+        clHeapFree(compConfig->argv[i]);
+        compConfig->argv[i] = NULL;
     }
 
     i = 0;
 
     if(cpmIsValgrindBuild(cmd)) 
     { 
-        cpmModifyCompArgs(comp->compConfig, &i);
+        cpmModifyCompArgs(compConfig, &i);
     }
     argIndex = i;
     c = strtok_r(tmp, " ", &saveptr);
@@ -622,8 +624,8 @@ static ClRcT cpmParseArgs(ClCpmComponentT *comp, ClCharT *cmd)
             len = strlen(imageName);
             c = imageName;
         }
-        comp->compConfig->argv[i] = clHeapAllocate(len + 1);
-        if (!comp->compConfig->argv[i])
+        compConfig->argv[i] = clHeapAllocate(len + 1);
+        if (!compConfig->argv[i])
         {
             clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
                        "Unable to allocate memory");
@@ -631,19 +633,22 @@ static ClRcT cpmParseArgs(ClCpmComponentT *comp, ClCharT *cmd)
             goto failure;
         }
 
-        strcpy(comp->compConfig->argv[i], c);
+        strcpy(compConfig->argv[i], c);
         ++i;
 
         c = strtok_r(NULL, " ", &saveptr);
     }
-    comp->compConfig->argv[i] = NULL;
+    compConfig->argv[i] = NULL;
 
-    if(comp->compConfig->argv[argIndex])
+    if(compConfig->argv[argIndex])
     {
-        strncpy(comp->compConfig->instantiationCMD,
-                comp->compConfig->argv[argIndex],
+        strncpy(compConfig->instantiationCMD,
+                compConfig->argv[argIndex],
                 CL_MAX_NAME_LENGTH-1);
     }
+
+    if(pArgIndex) *pArgIndex = i;
+
     return CL_OK;
     
 failure:
@@ -660,7 +665,7 @@ static ClRcT compConfigSet(ClCpmComponentT *comp,
     if ((mask == CL_AMS_CONFIG_ATTR_ALL) ||
         (mask & COMP_CONFIG_INSTANTIATE_COMMAND))
     {
-        rc = cpmParseArgs(comp, instantiateCommand);
+        rc = cpmCompParseArgs(comp->compConfig, instantiateCommand, NULL);
         if (rc != CL_OK) goto out;
     }
 
@@ -1163,5 +1168,54 @@ ClRcT cpmComponentAddDynamic(const ClCharT *compName)
     clAmsMgmtFinalize(mgmtHandle);
 
     out:
+    return rc;
+}
+
+ClRcT cpmCompAppendInstantiateCommand(ClCharT *compName,
+                                      ClCharT *instantiateCommand,
+                                      ClInt32T maxSize)
+{
+    ClRcT rc = CL_OK;
+    ClCpmComponentT *comp = NULL;
+    ClCharT *s = instantiateCommand, *arg;
+    ClUint32T len = strlen(instantiateCommand);
+    ClInt32T bytes = 0, i;
+
+    rc = cpmCompFindWithLock(compName, gpClCpm->compTable, &comp);
+    if(rc != CL_OK)
+    {
+        clLogWarning("INST", "APPEND", "Comp [%s] not found in cpm",
+                     compName);
+        return rc;
+    }
+    if(!comp->compConfig)
+        return CL_CPM_RC(CL_ERR_NOT_EXIST);
+
+    if(cpmIsValgrindBuild(comp->compConfig->instantiationCMD))
+        return rc;
+
+    s += strspn(s, " \t");
+    s += strcspn(s, " \t");
+    /*
+     * Return if already has args
+     */
+    if(*s) 
+        return rc;  
+    
+    maxSize -= len;
+    bytes = len;
+    for(i = 1; (arg = comp->compConfig->argv[i]) && maxSize > 0; ++i)
+    {
+        len = strlen(arg);
+        if(len >= maxSize + 1) break; 
+        len = snprintf(instantiateCommand + bytes, maxSize, " ");
+        if(!len) break;
+        bytes += len;
+        maxSize -= len;
+        len = snprintf(instantiateCommand + bytes, maxSize, "%s", arg);
+        bytes += len;
+        maxSize -= len;
+    }
+    
     return rc;
 }

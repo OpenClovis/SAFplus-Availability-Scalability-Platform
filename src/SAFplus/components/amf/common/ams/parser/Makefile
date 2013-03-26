@@ -47,7 +47,7 @@ THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
 AMF_PATH               = $(CLOVIS_ROOT)/ASP/components/amf
 
 EXTRA_CPPFLAGS  += -I$(THIRD_PARTY_EZXML_PATH) -I$(AMF_PATH)/server/ams -I$(AMF_PATH)/common/cpm
-EXTRA_CPPFLAGS  += -I$(AMF_PATH)/common/ams 
+EXTRA_CPPFLAGS  += -I$(AMF_PATH)/common/ams -I$(AMF_PATH)/server/cpm
 
 
 include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
