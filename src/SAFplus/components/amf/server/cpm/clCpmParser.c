@@ -282,7 +282,7 @@ ClBoolT cpmIsValgrindBuild(ClCharT *instantiationCMD)
 {
     ClCharT *valgrindCmdStr = clParseEnvStr("ASP_VALGRIND_CMD");
     ClCharT *binary = NULL;
-    ClInt32T i;
+    ClInt32T i, len;
 
     if(!valgrindCmdStr) return CL_NO;
     if(!instantiationCMD) return CL_YES;
@@ -301,10 +301,10 @@ ClBoolT cpmIsValgrindBuild(ClCharT *instantiationCMD)
     {
         binary = instantiationCMD;
     }
-
+    len = strcspn(binary, " \t");
     for(i = 0; cpmValgrindFilterList[i]; ++i)
     {
-        if(!strncmp(cpmValgrindFilterList[i], binary, strlen(binary)))
+        if(!strncmp(cpmValgrindFilterList[i], binary, len))
             return CL_YES;
     }
 
@@ -315,6 +315,7 @@ void cpmModifyCompArgs(ClCpmCompConfigT *newConfig, ClUint32T *pArgIndex)
 {
     ClCharT valgrindCmd[CL_MAX_NAME_LENGTH*2] = {0};
     ClCharT logFileCmd[CL_MAX_NAME_LENGTH] = {0};
+    ClCharT instantiateCMD[CL_MAX_NAME_LENGTH] = {0}, *pInst;
     ClCharT *valgrindCmdStr = clParseEnvStr("ASP_VALGRIND_CMD");
     ClCharT *delim = " ";
     ClCharT *valCmd = NULL;
@@ -326,10 +327,14 @@ void cpmModifyCompArgs(ClCpmCompConfigT *newConfig, ClUint32T *pArgIndex)
     valgrindCmd[0] = 0;
     strncat(valgrindCmd, valgrindCmdStr, sizeof(valgrindCmd)-1);
     
+    strncat(instantiateCMD, newConfig->instantiationCMD, sizeof(instantiateCMD)-1);
+    if( (pInst = strchr(instantiateCMD, ' ') ) )
+        *pInst = 0;
+    
     snprintf(logFileCmd, CL_MAX_NAME_LENGTH-1, 
              " --log-file=%s/%s.%lld", 
              aspLogDir,
-             newConfig->instantiationCMD,
+             instantiateCMD,
              clOsalStopWatchTimeGet());
     
     strncat(valgrindCmd, logFileCmd, 
@@ -543,6 +548,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
 
         argIndex = 0;
 
+#if 0
         if (cpmIsValgrindBuild(newType->compConfig.instantiationCMD))
         {
             cpmModifyCompArgs(&newType->compConfig, &argIndex);
@@ -592,6 +598,15 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
 
             argIndex++;
         }
+#else
+        rc = cpmCompParseArgs(&newType->compConfig, newType->compConfig.instantiationCMD, &argIndex);
+        if(rc != CL_OK)
+        {
+            clLogError("PARSE", "COMP", "Unable to parse instantiation command [%s]. "
+                       "Error [%#x]", newType->compConfig.instantiationCMD, rc);
+            goto failure;
+        }
+#endif
 
         /*
          * The args is mandatory. 

@@ -35,6 +35,7 @@
 #include <clAmsUtils.h>
 #include <clAmsParser.h>
 #include <clAmsErrors.h>
+#include <clCpmMgmt.h>
 #include <string.h>
 
 /******************************************************************************/
@@ -1198,7 +1199,9 @@ clAmsParserCompDefParser(
         }
     }
 
-
+    /*    cpmCompAppendInstantiateCommand(compConfig->entity.name.value, 
+                                    compConfig->instantiateCommand,
+                                    sizeof(compConfig->instantiateCommand) - 1);*/
 
     pSupportedCSITypes = clHeapCalloc(numSupportedCSITypes, 
                                       (ClUint32T)sizeof(ClNameT));
