@@ -44,7 +44,7 @@ fi
 # Populate include path
 echo -n "Installing ASP headers to $PREFIX..."
 cd $INCLUDE_PATH
-find $CLOVIS_ROOT/ASP/components -name '*.h' | \
+find $CLOVIS_ROOT/ASP/components -name '*.h' -o -name '*.hxx' | \
     $AWK '{ str=sprintf("cp %s .", $0); system(str) }'
 find $CLOVIS_ROOT/ASP/components -name '*.h' | \
     grep ipi | \

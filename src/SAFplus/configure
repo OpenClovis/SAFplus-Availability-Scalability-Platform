@@ -1504,7 +1504,7 @@ export KERNEL=linux
 export KERNEL_SOURCE=/lib/modules/`uname -r`/build
 export SNMP_BUILD=1
 export CM_BUILD=0
-export ASP_MODEL_NAME=eval
+export ASP_MODEL_NAME=
 export HCL_CM=0
 export HPI_EMERSON=0
 export HPI_OPENHPI=0
@@ -1575,24 +1575,50 @@ echo ""
 # Check whether --with-model-name or --without-model-name was given.
 if test "${with_model_name+set}" = set; then
   withval="$with_model_name"
-  export ASP_MODEL_NAME=$with_model_name
-  export MODEL_BUILD=1
+
+  if [ -f .project ]; then
+      NATURE=`grep "<nature>" .project | tr -d '\t' | sed 's/^<.*>\([^<].*\)<.*>$/\1/g'`
+      NAME=`grep "<name>" .project | tr -d '\t' | sed 's/^<.*>\([^<].*\)<.*>$/\1/g' | head -1`
+  fi
+
+  if [ "$NATURE" = "com.clovis.cw.workspace.natures.SystemProjectNature" -a ! $NAME = "" ]; then
+    export ASP_MODEL_NAME=$NAME
+    export MODEL_BUILD=1
+    cd ..
+    export PROJECT_ROOT=$(pwd)
+  else
+      export ASP_MODEL_NAME=asp
+      export ASP_BUILD=1
+      export MODEL_BUILD=0
+  fi
 else
   if [ $ASP_BUILD = 1 -a ! -d src ]; then
     export ASP_MODEL_NAME=asp
     export MODEL_BUILD=0
   else
-    if [ -d src ]; then
-      # model name is current directory name
-      export ASP_MODEL_NAME=$(basename $(pwd))
+    if [ -f .project ]; then
+        NATURE=`grep "<nature>" .project | tr -d '\t' | sed 's/^<.*>\([^<].*\)<.*>$/\1/g'`
+        NAME=`grep "<name>" .project | tr -d '\t' | sed 's/^<.*>\([^<].*\)<.*>$/\1/g' | head -1`
+    fi
+
+    if [ "$NATURE" = "com.clovis.cw.workspace.natures.SystemProjectNature" -a "$NAME" != "" ]; then
+      export ASP_MODEL_NAME=$NAME
       export MODEL_BUILD=1
       cd ..
       export PROJECT_ROOT=$(pwd)
-      cd - > /dev/null
     else
-      export ASP_MODEL_NAME=
-      export PROJECT_ONLY=1
-      export MODEL_BUILD=0
+      if [ -d src ]; then
+        # model name is current directory name
+        export ASP_MODEL_NAME=$(basename $(pwd))
+        export MODEL_BUILD=1
+        cd ..
+        export PROJECT_ROOT=$(pwd)
+        cd - > /dev/null
+      else
+        export ASP_MODEL_NAME=asp
+        export ASP_BUILD=1
+        export MODEL_BUILD=0
+      fi
     fi
   fi
 fi;
@@ -8494,7 +8520,7 @@ if [ ! -z $ASP_MODEL_NAME ]; then
         echo "---------------------------------------------------------------------------"
         echo " To build and install ASP libraries for this specific architecture, issue"
         echo " the following:"
-        echo "     cd $ASP_MODEL_NAME/build/$CROSS_BUILD"
+        echo "     cd $PROJECT_ROOT/$ASP_MODEL_NAME/build/$CROSS_BUILD"
         echo "     make asp-libs"
         echo "     make asp-install"
         echo ""
@@ -8515,12 +8541,12 @@ if [ ! -z $ASP_MODEL_NAME ]; then
         echo "---------------------------------------------------------------------------"
         echo " To build your model for this specific architecture, issue"
         echo " the following:"
-        echo "     cd $ASP_MODEL_NAME/build/$CROSS_BUILD"
+        echo "     cd $PROJECT_ROOT/$ASP_MODEL_NAME/build/$CROSS_BUILD"
         echo "     make"
         echo ""
         echo " To build this model and for all architectures specified in previous"
         echo " and this configure run, stay in this directory and issue:"
-        echo "     cd $ASP_MODEL_NAME"
+        echo "     cd $PROJECT_ROOT/$ASP_MODEL_NAME"
         echo "     make"
         echo ""
         echo " In order to have a more verbose feedback from make, run make with the"
