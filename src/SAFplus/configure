@@ -950,7 +950,7 @@ $(ls -1 $CL_BUILDTOOLS | grep -v local | awk '{print "\t\t\t\t", $1}')
                                         /opt/clovis/buildtools
                          NOTE: This option is available only for the commercial
                          version of SAFplus, and requires that the SAFplus
-                         Platform Support Package has been installed.
+                         Platform Support Package (PSP) has been installed.
 
   --with-gms-build=(tipc|udp)
                          Specifies whether GMS traffic runs over TIPC or UDP.
@@ -1046,7 +1046,6 @@ else
         cd - > /dev/null
 fi
 
-echo "SAFplus Version: " $PACKAGE_VERSION "  SAFplus SDK directory: " $sdk_dir " Buildtools directory: " $buildtool_dir
 
 
 case $srcdir in
@@ -1458,11 +1457,17 @@ fi
 
 export sdk_dir=
 export buildtool_dir=
+export thirdparty_base_dir=
+
 # Check whether --with-sdk-dir is specified
 if [ "${with_sdk_dir+set}" = set ]; then
     withval="$with_sdk_dir"
     export sdk_dir=$with_sdk_dir/sdk-$PACKAGE_VERSION
     export buildtool_dir=$with_sdk_dir/buildtools
+    thirdparty=`ls $with_sdk_dir | grep 3rdparty-base | head -n 1`
+    if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+        export thirdparty_base_dir=$with_sdk_dir/$thirdparty
+    fi
 else
         cd $(dirname $0)/../../..
         if [ ! -d sdk-$PACKAGE_VERSION -o ! -d buildtools ]; then
@@ -1474,6 +1479,10 @@ else
         else
             export sdk_dir=$(pwd)/sdk-$PACKAGE_VERSION
             export buildtool_dir=$(pwd)/buildtools
+            thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
+            if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+                export thirdparty_base_dir=$(pwd)/$thirdparty
+            fi
         fi
         cd - > /dev/null
 
@@ -1481,6 +1490,7 @@ fi
 
 CL_SDKDIR=$sdk_dir
 CL_BUILDTOOLS=$buildtool_dir
+CL_THIRDPARTY_BASE=$thirdparty_base_dir
 
 if [ -f $CL_BUILDTOOLS/local/bin/net-snmp-config ]; then
 	export NET_SNMP_CONFIG=$CL_BUILDTOOLS/local/bin/net-snmp-config
@@ -1516,6 +1526,9 @@ export MODEL_BUILD=1
 export PROJECT_ONLY=0
 export TIPC_INC_DIR=include
 export ASP_SIMULATION=0
+export DEFAULT_SUBNET=169.254.100.0/24
+export DEFAULT_UDP_LINKNAME=eth0:10        
+
 
 if [ $prefix != "NONE" ] ; then
     export PREFIX=$prefix
@@ -1566,11 +1579,9 @@ fi
 if [ "${with_asp_installdir+set}" = set ]; then
     export ASP_INSTALLDIR=$with_asp_installdir
 else
-    echo "SDK dir: " $sdk_dir
     export ASP_INSTALLDIR=$sdk_dir
 fi
 
-echo ""
 
 # Check whether --with-model-name or --without-model-name was given.
 if test "${with_model_name+set}" = set; then
@@ -1581,18 +1592,20 @@ if test "${with_model_name+set}" = set; then
       NAME=`grep "<name>" .project | tr -d '\t' | sed 's/^<.*>\([^<].*\)<.*>$/\1/g' | head -1`
   fi
 
-  if [ "$NATURE" = "com.clovis.cw.workspace.natures.SystemProjectNature" -a ! $NAME = "" ]; then
+  if [ "$NATURE" == "com.clovis.cw.workspace.natures.SystemProjectNature" -a ! $NAME == "" ]; then
+    echo "Within the project"
     export ASP_MODEL_NAME=$NAME
     export MODEL_BUILD=1
     cd ..
     export PROJECT_ROOT=$(pwd)
   else
+      echo "NOT Within the project"
       export ASP_MODEL_NAME=asp
       export ASP_BUILD=1
       export MODEL_BUILD=0
   fi
 else
-  if [ $ASP_BUILD = 1 -a ! -d src ]; then
+  if [ $ASP_BUILD == 1 -a ! -d src ]; then
     export ASP_MODEL_NAME=asp
     export MODEL_BUILD=0
   else
@@ -1601,12 +1614,12 @@ else
         NAME=`grep "<name>" .project | tr -d '\t' | sed 's/^<.*>\([^<].*\)<.*>$/\1/g' | head -1`
     fi
 
-    if [ "$NATURE" = "com.clovis.cw.workspace.natures.SystemProjectNature" -a "$NAME" != "" ]; then
+    if [ "$NATURE" == "com.clovis.cw.workspace.natures.SystemProjectNature" -a "$NAME" != "" ]; then
+      # model name is defined in the .project file
       export ASP_MODEL_NAME=$NAME
       export MODEL_BUILD=1
-      cd ..
-      export PROJECT_ROOT=$(pwd)
-    else
+      cd ..; export PROJECT_ROOT=$(pwd); cd -
+    else  # If the model name is NOT defined in the file, then we will use the current directory
       if [ -d src ]; then
         # model name is current directory name
         export ASP_MODEL_NAME=$(basename $(pwd))
@@ -1614,7 +1627,7 @@ else
         cd ..
         export PROJECT_ROOT=$(pwd)
         cd - > /dev/null
-      else
+      else # SAFplus library BUILD
         export ASP_MODEL_NAME=asp
         export ASP_BUILD=1
         export MODEL_BUILD=0
@@ -1624,6 +1637,11 @@ else
 fi;
 
 export MODEL_PATH=$PROJECT_ROOT/$ASP_MODEL_NAME/src  # AA: adding model path
+
+echo "SAFplus Version: " $PACKAGE_VERSION "  SAFplus SDK directory: " $sdk_dir " Buildtools directory: " $buildtool_dir
+echo "Model Name:      " $ASP_MODEL_NAME  "  Model Source:" $MODEL_PATH  " Building: SAFplus libraries?" $ASP_BUILD "Model?" $MODEL_BUILD
+echo ""
+
 
 sdk_tag=sdk-$PACKAGE_VERSION
 
@@ -1905,9 +1923,13 @@ if [ ! "x" == "x${ASP_MODEL_NAME}" -a ! $ASP_MODEL_NAME == "asp" ] 2> /dev/null 
     if [ ! -f $MODEL_PATH/target.conf ]; then
     	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.conf $MODEL_PATH/target.conf 
     fi
-
+    if [ ! -f $MODEL_PATH/target.env ]; then
+        if [ -f $CLOVIS_ROOT/SAFplus/build/common/conf/target.env ]; then
+    	    $INSTALL $install_flags $CLOVIS_ROOT/SAFplus/build/common/conf/target.env $MODEL_PATH/target.env 
+        fi
+    fi
     if [ ! -f $MODEL_PATH/config/openhpi.conf ]; then
-    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/openhpi.conf $MODEL_PATH/config/openhpi.conf
+    	$INSTALL $install_flags $CLOVIS_ROOT/SAFplus/build/common/conf/openhpi.conf $MODEL_PATH/config/openhpi.conf
     fi
     if [ ! -f $MODEL_PATH/config/snmpd.conf ]; then
     	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/snmpd.conf $MODEL_PATH/config
@@ -8518,16 +8540,16 @@ if [ ! -z $ASP_MODEL_NAME ]; then
     if [ "$ASP_MODEL_NAME" == "asp" ]; then
         echo ""
         echo "---------------------------------------------------------------------------"
-        echo " To build and install ASP libraries for this specific architecture, issue"
+        echo " To build and install SAFplus libraries for this specific architecture, issue"
         echo " the following:"
         echo "     cd $PROJECT_ROOT/$ASP_MODEL_NAME/build/$CROSS_BUILD"
-        echo "     make asp-libs"
-        echo "     make asp-install"
+        echo "     make safplus-libs"
+        echo "     make safplus-install"
         echo ""
         echo " If your SDK is installed at a location writeable only by root, please run"
-        echo "     make asp-install"
+        echo "     make safplus-install"
         echo " as root, e.g.:"
-        echo "     sudo make asp-install"
+        echo "     sudo make safplus-install"
         echo ""
         echo " In order to have a more verbose feedback from make, run make with the"
         echo " V=1 option:"

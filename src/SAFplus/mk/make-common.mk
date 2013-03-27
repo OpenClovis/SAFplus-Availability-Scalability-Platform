@@ -655,15 +655,16 @@ images-stripped:
 # asp-libs
 # Install libraries to installation dir specified by PREFIX
 ################################################################################
-.PHONY: asp-libs
+.PHONY: asp-libs safplus-libs
 asp-libs: libs
+safplus-libs: libs
 
 ################################################################################
 # asp-install
 # Install libraries to installation dir specified by PREFIX
 ################################################################################
-.PHONY: asp-install
-asp-install:
+.PHONY: asp-install safplus-install
+asp-install safplus-install:
 	$(RUN_SCRIPT) $(CLOVIS_ROOT)/SAFplus/build/libs-install/scripts/libs-install.sh
 
 
