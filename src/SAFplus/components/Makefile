@@ -58,12 +58,15 @@ ifeq ($(BUILD_SHARED), 1)
 	SUBDIRS += ioc/plugins
 endif
 
-ifeq ($(BUILD_PYTHON), 1)
+ifeq ($(SAFPLUS_BUILD_PYTHON), 1)
 	SUBDIRS += python
 endif
-
-#CPP as default
-SUBDIRS += cpp
+ifeq ($(SAFPLUS_BUILD_JAVA), 1)
+	SUBDIRS += java
+endif
+ifeq ($(SAFPLUS_BUILD_CPP), 1)
+        SUBDIRS += cpp
+endif
 
 #
 # If you have any ordering dependence among subdirectories, list them as
