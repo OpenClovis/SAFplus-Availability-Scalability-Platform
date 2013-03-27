@@ -55,6 +55,16 @@ myFullPath=`which $0`
 myDir=`dirname $myFullPath`
 myDir=`cd $myDir; pwd`
 
+NoSdkDirError()
+{ 
+    echo "";
+    echo "Cannot find sdk installation base directory.  Please retry this script with the"
+    echo "--with-sdk-dir=<sdk_install_dir> flag.  The value of sdk_install_dir should be"
+    echo "the directory into which OpenClovis SAFplus was installed.  It contains two "
+    echo "subdirectories 'buildtools' and 'sdk-x.x' and is located at '/opt/clovis' for"
+    echo "default installations."
+} 
+
 sdk_dir=`cd $myDir/../../..; pwd`
 buildtool_dir=$sdk_dir/buildtools
 
@@ -895,7 +905,9 @@ OpenClovis Specific configuration attributes:
                          OpenClovis SDK installation.  This is required if 
                          there is no local record of the SDK installation,
                          and this script cannot determine it based on its
-                         own location.
+                         own location.  This ARG should be the base directory 
+                         containing 'buildtools' and 'sdk-X.Y' (default
+                         install puts it at /opt/clovis).
 
   --with-asp-installdir=ARG  Used to specify the location of pre-built SAFplus
                          libraries for the desired target.  If unspecified, 
@@ -1013,9 +1025,7 @@ else
         if [ "$CL_SDKDIR" = "" ]; then
             cd $(dirname $0)/../../..
             if [ ! -d sdk-$PACKAGE_VERSION -o ! -d buildtools ]; then
-                echo ""
-                echo "Cannot find sdk installation.  Please retry this script"
-                echo "with the --with-sdk-dir=<sdk_install_dir> flag."
+                NoSdkDirError;
                 cd - > /dev/null
                 exit 1
             else
@@ -1029,9 +1039,7 @@ else
         else
             cd $CL_SDKDIR/..
             if [ ! -d sdk-$PACKAGE_VERSION -o ! -d buildtools ]; then
-                echo ""
-                echo "Cannot find sdk installation.  Please retry this script"
-                echo "with the --with-sdk-dir=<sdk_install_dir> flag."
+                NoSdkDirError;
                 cd - > /dev/null
                 exit 1
             else
@@ -1471,9 +1479,7 @@ if [ "${with_sdk_dir+set}" = set ]; then
 else
         cd $(dirname $0)/../../..
         if [ ! -d sdk-$PACKAGE_VERSION -o ! -d buildtools ]; then
-            echo ""
-            echo "Cannot find sdk installation.  Please retry this script"
-            echo "with the --with-sdk-dir=<sdk_install_dir> flag."
+            NoSdkDirError;
             cd - > /dev/null
             exit 1
         else
@@ -1570,9 +1576,6 @@ if [ "${with_safplus_build+set}" = set ]; then
     export ASP_BUILD=1
 fi
 
-if [ "${ASP_BUILD}" = 1 ]; then
-    echo "Building a local copy of SAFplus libraries"
-fi
 
 
 # Check whether --with-asp-installdir was specified
@@ -1593,13 +1596,12 @@ if test "${with_model_name+set}" = set; then
   fi
 
   if [ "$NATURE" == "com.clovis.cw.workspace.natures.SystemProjectNature" -a ! $NAME == "" ]; then
-    echo "Within the project"
     export ASP_MODEL_NAME=$NAME
     export MODEL_BUILD=1
     cd ..
     export PROJECT_ROOT=$(pwd)
+    cd -
   else
-      echo "NOT Within the project"
       export ASP_MODEL_NAME=asp
       export ASP_BUILD=1
       export MODEL_BUILD=0
@@ -1638,9 +1640,13 @@ fi;
 
 export MODEL_PATH=$PROJECT_ROOT/$ASP_MODEL_NAME/src  # AA: adding model path
 
+echo ""
 echo "SAFplus Version: " $PACKAGE_VERSION "  SAFplus SDK directory: " $sdk_dir " Buildtools directory: " $buildtool_dir
 echo "Model Name:      " $ASP_MODEL_NAME  "  Model Source:" $MODEL_PATH  " Building: SAFplus libraries?" $ASP_BUILD "Model?" $MODEL_BUILD
 echo ""
+if [ "${ASP_BUILD}" = 1 ]; then
+    echo "Building a local copy of SAFplus libraries"
+fi
 
 
 sdk_tag=sdk-$PACKAGE_VERSION
@@ -1722,9 +1728,7 @@ if [ -f $configdir/build/common/mk/Makefile.project ]; then
 elif [ -f $sdk_dir/src/ASP/build/common/mk/Makefile.project ]; then
     $INSTALL $install_flags $configdir/build/common/mk/Makefile.project $PROJECT_ROOT/Makefile
 else
-    echo ""
-    echo "No SDK installations found, please specify using --with-sdk-dir"
-    echo "flag and retry this script."
+    NoSdkDirError;
     exit 1
 fi
 
@@ -1735,9 +1739,7 @@ if [ $MODEL_BUILD = 1 ]; then
     elif [ -f $sdk_dir/src/ASP/build/common/mk/Makefile.model ]; then
         $INSTALL $install_flags $configdir/build/common/mk/Makefile.project $PROJECT_ROOT/$ASP_MODEL_NAME/Makefile
     else
-        echo ""
-        echo "No SDK installations found, please specify using --with-sdk-dir"
-        echo "flag and retry this script."
+        NoSdkDirError;
         exit 1
     fi
 fi
