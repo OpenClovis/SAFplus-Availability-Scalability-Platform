@@ -60,13 +60,42 @@ NoSdkDirError()
     echo "";
     echo "Cannot find sdk installation base directory.  Please retry this script with the"
     echo "--with-sdk-dir=<sdk_install_dir> flag.  The value of sdk_install_dir should be"
-    echo "the directory into which OpenClovis SAFplus was installed.  It contains two "
-    echo "subdirectories 'buildtools' and 'sdk-x.x' and is located at '/opt/clovis' for"
-    echo "default installations."
+    echo "the directory into which OpenClovis SAFplus was installed.  It contains"
+    echo "subdirectories indicating installed SAFplus versions and is located at '/opt/clovis'"
+    echo "for default installations."
 } 
 
-sdk_dir=`cd $myDir/../../..; pwd`
-buildtool_dir=$sdk_dir/buildtools
+export sdk_dir=
+export buildtool_dir=
+export thirdparty_base_dir=
+
+# Check whether --with-sdk-dir is specified
+if [ "${with_sdk_dir+set}" = set ]; then
+    withval="$with_sdk_dir"
+    export sdk_dir=$with_sdk_dir/$PACKAGE_VERSION/sdk
+    export buildtool_dir=$with_sdk_dir/$PACKAGE_VERSION/buildtools
+    thirdparty=`ls $with_sdk_dir | grep 3rdparty-base | head -n 1`
+    if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+        export thirdparty_base_dir=$with_sdk_dir/$thirdparty
+    fi
+else
+        cd $(dirname $0)/../../..
+        if [ ! -d sdk -o ! -d buildtools ]; then
+            NoSdkDirError;
+            cd - > /dev/null
+            exit 1
+        else
+            export sdk_dir=$(pwd)/sdk
+            export buildtool_dir=$(pwd)/buildtools
+            thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
+            if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+                export thirdparty_base_dir=$(pwd)/$thirdparty
+            fi
+        fi
+        cd - > /dev/null
+
+fi
+
 
 # Work around bugs in pre-3.0 UWIN ksh.
 $as_unset ENV MAIL MAILPATH
@@ -1017,51 +1046,6 @@ else
   ac_dir_suffix= ac_top_builddir=
 fi
 
-
-# Check whether --with-sdk-dir is specified
-if [ "${with_sdk_dir+set}" = set ]; then
-    withval="$with_sdk_dir"
-    export sdk_dir=$with_sdk_dir/sdk-$PACKAGE_VERSION
-    export buildtool_dir=$with_sdk_dir/buildtools
-    thirdparty=`ls $with_sdk_dir | grep 3rdparty-base | head -n 1`
-    if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
-        export thirdparty_base_dir=$with_sdk_dir/$thirdparty
-    fi
-else
-        if [ "$CL_SDKDIR" = "" ]; then
-            cd $(dirname $0)/../../..
-            if [ ! -d sdk-$PACKAGE_VERSION -o ! -d buildtools ]; then
-                NoSdkDirError;
-                cd - > /dev/null
-                exit 1
-            else
-                export sdk_dir=$(pwd)/sdk-$PACKAGE_VERSION
-                export buildtool_dir=$(pwd)/buildtools
-                thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
-                if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
-                    export thirdparty_base_dir=$(pwd)/$thirdparty
-                fi
-            fi
-        else
-            cd $CL_SDKDIR/..
-            if [ ! -d sdk-$PACKAGE_VERSION -o ! -d buildtools ]; then
-                NoSdkDirError;
-                cd - > /dev/null
-                exit 1
-            else
-                export sdk_dir=$(pwd)/sdk-$PACKAGE_VERSION
-                export buildtool_dir=$(pwd)/buildtools
-                thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
-                if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
-                    export thirdparty_base_dir=$(pwd)/$thirdparty
-                fi
-            fi
-        fi
-        cd - > /dev/null
-fi
-
-
-
 case $srcdir in
   .)  # No --srcdir option.  We are building in place.
     ac_srcdir=.
@@ -1467,37 +1451,6 @@ fi
 
 if [ -c config.log ]; then
     rm -f config.log
-fi
-
-export sdk_dir=
-export buildtool_dir=
-export thirdparty_base_dir=
-
-# Check whether --with-sdk-dir is specified
-if [ "${with_sdk_dir+set}" = set ]; then
-    withval="$with_sdk_dir"
-    export sdk_dir=$with_sdk_dir/sdk-$PACKAGE_VERSION
-    export buildtool_dir=$with_sdk_dir/buildtools
-    thirdparty=`ls $with_sdk_dir | grep 3rdparty-base | head -n 1`
-    if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
-        export thirdparty_base_dir=$with_sdk_dir/$thirdparty
-    fi
-else
-        cd $(dirname $0)/../../..
-        if [ ! -d sdk-$PACKAGE_VERSION -o ! -d buildtools ]; then
-            NoSdkDirError;
-            cd - > /dev/null
-            exit 1
-        else
-            export sdk_dir=$(pwd)/sdk-$PACKAGE_VERSION
-            export buildtool_dir=$(pwd)/buildtools
-            thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
-            if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
-                export thirdparty_base_dir=$(pwd)/$thirdparty
-            fi
-        fi
-        cd - > /dev/null
-
 fi
 
 CL_SDKDIR=$sdk_dir

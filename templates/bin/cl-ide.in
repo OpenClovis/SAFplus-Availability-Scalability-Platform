@@ -22,9 +22,10 @@
 #
 ##############################################################################
 
-CL_SDK=@CL_SDK@
-CL_SDKDIR=@CL_SDKDIR@
+CL_SDK=%CL_SDK
+CL_SDKDIR=%CL_SDKDIR
 CL_BUILDTOOLS=`dirname $CL_SDKDIR`/buildtools
+CL_ECLIPSEDIR=%{CL_ECLIPSEDIR}
 
 ##############################################################################
 #
@@ -154,9 +155,9 @@ PERSPECTIVE=com.clovis.cw.ui.CWPerspective
 CMD_ARGS="-application $APPLICATION_NAME -perspective $PERSPECTIVE -configuration $DOTDIR/$CL_SDK/eclipse"
 
 feedback 1 "Staring eclipse as:"
-feedback 1 "    $ECLIPSE/eclipse $CMD_ARGS $@"
+feedback 1 "    $CL_ECLIPSEDIR/eclipse $CMD_ARGS $@"
 
-exec $ECLIPSE/eclipse $CMD_ARGS $@
+exec $CL_ECLIPSEDIR/eclipse $CMD_ARGS $@
 
 echo $?
 

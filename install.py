@@ -1,12 +1,12 @@
 #!/usr/bin/python
-import os, sys
+import os, os.path, sys
 import re
 import pdb
 import fnmatch
 import errno
 import types
 import urllib2
-
+import string
 
 # make sure they have a proper version of python
 if sys.version_info[:3] < (2, 4, 3):
@@ -50,6 +50,18 @@ colblue  = """\033[38;5;27m"""
 colreset = """\033[39m"""
  
 OpenClovisStr = "%sOpen%sClovis%s" % (colgreen,colblue,colreset)
+
+class myTs(string.Template):
+  delimiter = "%"
+  def __init__(self,s):
+    string.Template.__init__(self,s)
+
+def applyTemplate(infile,outfile,sub):
+  ins = open(infile,"r").read()
+  ts = myTs(ins)
+  f = open(outfile,"w")
+  f.write(ts.substitute(sub))
+  f.close
 
 class ASPInstaller:
     """ Installer for OpenClovis SAFplus Availabliity Scalability Platform """
@@ -498,7 +510,7 @@ class ASPInstaller:
         assert self.OS, "Error: Script OS failure"
         
         #KERNEL_VERSION  = syscall('uname -r')   
-        self.PACKAGE_NAME    = 'sdk-' + self.ASP_VERSION
+        self.PACKAGE_NAME    = 'sdk'
         self.WORKING_ROOT    = os.path.dirname(self.WORKING_DIR)
         #PROCESSOR       = syscall('uname -m')
         #INET_ACCESS     = syscall('ping -c1 -W1 google.com')
@@ -647,6 +659,7 @@ class ASPInstaller:
                 msg += 'Copy the contents of this folder to a directory where you have write permission and try again.'
                 self.feedback(msg, True)
 
+        self.INSTALL_DIR = os.path.join(self.INSTALL_DIR,self.ASP_VERSION)
         
         if not self.PREINSTALL_ONLY:
             self.BUILDTOOLS      = os.path.join(self.INSTALL_DIR, 'buildtools')
@@ -655,13 +668,13 @@ class ASPInstaller:
             self.PREFIX          = os.path.join(self.BUILDTOOLS, 'local')
             self.PREFIX_BIN      = os.path.join(self.PREFIX, 'bin')
             self.PREFIX_LIB      = os.path.join(self.PREFIX, 'lib')
-            self.IDE_ROOT        = os.path.join(self.PACKAGE_ROOT, 'IDE')        # IDE is installed here
+            self.IDE_ROOT        = os.path.join(self.INSTALL_DIR, 'IDE')        # IDE is installed here
             self.DOC_ROOT        = os.path.join(self.PACKAGE_ROOT, 'doc')        # DOCS are copied here
             self.BIN_ROOT        = os.path.join(self.PACKAGE_ROOT, 'bin')        # scripts are copied here    
             self.LIB_ROOT        = os.path.join(self.PACKAGE_ROOT, 'lib')        # copy rc scripts in this directory
             self.ASP_ROOT        = os.path.join(self.PACKAGE_ROOT, 'src/SAFplus')    # ASP sources are copied here
             self.MODULES         = os.path.join(self.PREFIX, 'modules')
-            self.ECLIPSE         = os.path.join(self.PACKAGE_ROOT, 'eclipse')
+            self.ECLIPSE         = os.path.join(self.IDE_ROOT, 'eclipse')
             self.ECLIPSE_ROOT    = os.path.join(self.PREFIX, 'eclipse')
             self.ESC_ECLIPSE_DIR = syscall("echo %s/eclipse | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
  
@@ -967,7 +980,6 @@ class ASPInstaller:
                 #yum -y update kernel            
 
                 for dep in install_lst:
-                  pdb.set_trace()
                   if type(dep.name) is type([]):  # Any one of these to successfully install is ok
                     for name in dep.name:
                       cmd = instCmd % name
@@ -1144,9 +1156,9 @@ class ASPInstaller:
             if self.NO_INTERACTION == True:
                 strin = 'y'
             else:
-                strin = self.get_user_feedback('installation of other utilities.  Overwrite existing SDK? <y|n> [n]: ')
+                strin = self.get_user_feedback('installation of other utilities.  Overwrite existing SDK? <y|n> [y]: ')
 
-            if not strin or strin.lower().startswith('n'):
+            if strin.lower().startswith('n'):
                 pass
                 # no, do not overwrite
                 self.DO_PREBUILD = False
@@ -1176,7 +1188,7 @@ class ASPInstaller:
             # PACKAGE_ROOT not created
             ret = cli_cmd('mkdir -p %s' % self.PACKAGE_ROOT)
             if ret != 0:
-                self.feedback('[ERROR] failed to create $PACKAGE_ROOT directory' % self.PACKAGE_ROOT, True)
+                self.feedback('[ERROR] failed to create %s directory' % self.PACKAGE_ROOT, True)
 
 
         self.install_utilities()
@@ -1258,19 +1270,24 @@ class ASPInstaller:
         self.ESC_PKG_ROOT = syscall("echo %s | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
         self.ESC_PKG_NAME = syscall("echo %s | sed -e 's/\./\\\./g'" % self.PACKAGE_NAME)
 
+        # """sed -e "s;@CL_SDK@;$ESC_PKG_NAME;g"
+        #            -e "s;@CL_SDKDIR@;$ESC_PKG_ROOT;g"
+        #            $WORKING_DIR/templates/bin/cl-ide.in > $BIN_ROOT/cl-ide""",
+
+        if not os.path.exists(self.BIN_ROOT): os.makedirs(self.BIN_ROOT)
+
+        applyTemplate("%s/templates/bin/cl-ide.in" % self.WORKING_DIR, "%s/cl-ide" % self.BIN_ROOT, {"CL_SDK":self.PACKAGE_NAME,"CL_SDKDIR":self.PACKAGE_ROOT,"CL_ECLIPSEDIR":self.ECLIPSE })
+
         cmds = ['export ESC_PKG_ROOT=%s' % self.ESC_PKG_ROOT,
                 'export ESC_PKG_NAME=%s' % self.ESC_PKG_NAME,
                 'export ESC_ECLIPSE_DIR=%s' % self.ESC_ECLIPSE_DIR,
                 'cd $WORKING_DIR',
                 'tar cf - doc | (cd $PACKAGE_ROOT; tar xfm -) >/dev/null 2>&1',
                 'cd $WORKING_DIR/templates/bin',
-                'mkdir -p $BIN_ROOT 2>/dev/null',
                 """sed -e "s;@CL_SDK@;$ESC_PKG_NAME;g"
                     -e "s;@CL_SDKDIR@;$ESC_PKG_ROOT;g"
                     $WORKING_DIR/templates/bin/cl-create-project-area.in > $BIN_ROOT/cl-create-project-area""",
-                """sed -e "s;@CL_SDK@;$ESC_PKG_NAME;g"
-                    -e "s;@CL_SDKDIR@;$ESC_PKG_ROOT;g"
-                    $WORKING_DIR/templates/bin/cl-ide.in > $BIN_ROOT/cl-ide""",
+                
                 """sed -e "s;@CL_SDK@;$ESC_PKG_NAME;g"
                     -e "s;@CL_SDKDIR@;$ESC_PKG_ROOT;g"
                     $WORKING_DIR/templates/bin/cl-log-viewer.in > $BIN_ROOT/cl-log-viewer""",
@@ -1311,27 +1328,24 @@ class ASPInstaller:
 
     def install_IDE(self):
         self.feedback('Starting IDE installation...')
-
-        cmds = ['cd $WORKING_DIR',
-                'tar cf - $IDE | ( cd $PACKAGE_ROOT; tar xfm -)']
+        cmds = ['cd %s' % self.WORKING_DIR, 
+                'tar cf - $IDE | ( cd %s; tar xfm -)' % self.INSTALL_DIR]
 
         if self.GPL:
             cmds.append('tar cf - src/$IDE | ( cd $PACKAGE_ROOT; tar xfm -)')
         
-        self.feedback("Linking Eclipse in %s..." % self.PACKAGE_ROOT)
-        cmds.append('cd $PACKAGE_ROOT')
+        self.feedback("Linking Eclipse in %s..." % self.IDE_ROOT)
+        cmds.append('cd %s' % self.IDE_ROOT)
         cmds.append('rm -rf eclipse/plugins/*clovis* >/dev/null 2>&1') # remove redundant clovis plugins if any
-        cmds.append('cp -rl $ECLIPSE_ROOT .')
+        cmds.append('cp -rl %s .' % self.ECLIPSE_ROOT)
         cmds.append("sed -e '/-showsplash\|org.eclipse.platform/d' eclipse/eclipse.ini > eclipse/eclipse_ini.tmp")
         cmds.append('rm eclipse/eclipse.ini')
         cmds.append('mv eclipse/eclipse_ini.tmp eclipse/eclipse.ini')
-        cmds.append('cd %s/plugins' %self.IDE_ROOT)
-        cmds.append('mv -f * $PACKAGE_ROOT/eclipse/plugins >/dev/null 2>&1')
-        cmds.append('cd %s' %self.IDE_ROOT)
-        cmds.append('rm -rf plugins')
+        cmds.append('mv -f %s/plugins/* %s/plugins >/dev/null 2>&1' % (self.IDE_ROOT,self.ECLIPSE))
+        cmds.append('rm -rf %s/plugins' % self.IDE_ROOT)
+
         # update config.ini        
-        cmds.append('cd %s/scripts' %self.IDE_ROOT)
-        cmds.append('cp -rf config.ini $ECLIPSE/configuration')
+        cmds.append('cp -rf %s/scripts/config.ini %s/configuration' % (self.IDE_ROOT,self.ECLIPSE))
 
         self.run_command_list(cmds)
 
@@ -1437,21 +1451,19 @@ class ASPInstaller:
            builds = re.split('\W+', strin)
            for b in builds:
              if b == 'local':
-               if self.WITH_CM_BUILD :
-                 self.feedback ("%s/src/SAFplus/configure --with-asp-build --with-cm-build=openhpi > build.log" % self.PACKAGE_ROOT)
-                 syscall ("%s/src/SAFplus/configure --with-asp-build --with-cm-build=openhpi > build.log" % self.PACKAGE_ROOT)
-               else :
-                 self.feedback ("%s/src/SAFplus/configure --with-asp-build > build.log" % self.PACKAGE_ROOT)
-                 syscall ("%s/src/SAFplus/configure --with-asp-build > build.log" % self.PACKAGE_ROOT)
+               cr_str = ""
              else:
-               if self.WITH_CM_BUILD :
-                 self.feedback ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s --with-cm-build=openhpi > build.log" % (self.PACKAGE_ROOT, b) )
-                 syscall ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s --with-cm-build=openhpi > build.log" % (self.PACKAGE_ROOT, b) )
-               else : 
-                 self.feedback ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s > build.log" % (self.PACKAGE_ROOT, b) )
-                 syscall ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s > build.log" % (self.PACKAGE_ROOT, b) )
-           
-             self.feedback('Building asp %s' % b)
+               cr_str = "--with-cross-build=%s" % b
+
+             if self.WITH_CM_BUILD :
+               cm_str = "--with-cm-build=openhpi"
+             else: cm_str = ""
+               
+             cfg_cmd = "%s/src/SAFplus/configure --with-safplus-build %s %s > build.log" % (self.PACKAGE_ROOT,cr_str,cm_str)
+             self.feedback (cfg_cmd)
+             syscall (cfg_cmd)
+          
+             self.feedback('Building SAFplus %s' % b)
              cmd = 'asp/build/%s' % b
              os.chdir (cmd)
              os.system ('make asp-libs')
