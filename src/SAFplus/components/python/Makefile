@@ -23,6 +23,23 @@ LIB_DIR     ?=$(SISP_LIBS)
 MKDIR       ?=mkdir -p
 CP          ?=cp -f
 
+ifndef PYTHON_INC
+PYTHON_INC := $(wildcard /usr/local/include/python2.*)
+PYTHON_LIB := $(wildcard /usr/local/lib/libpython2.*.so)
+ifeq ($(PYTHON_INC),)
+PYTHON_INC := $(wildcard /usr/include/python2.*)
+PYTHON_LIB := $(wildcard /usr/lib/libpython2.*.so)
+endif
+
+ifeq ($(PYTHON_INC),)
+$(warning Python Headers are NOT found in your distribution.  Please install)
+else
+PYTHON_INC := -I$(PYTHON_INC)
+endif
+
+endif
+
+
 
 # Prebuild attempts
 #ifdef ASP_INCLUDE
@@ -49,7 +66,7 @@ CMFLAGS=
 ArdRoot := $(shell pwd)/../../../..
 
 CFLAGS += -g -fPIC $(CWFLAGS) $(COFLAGS) $(CIFLAGS) $(CMFLAGS) $(PYTHON_INC)
-SYS_LIBS       := $(PYTHON_LIB) $(SYS_LIBS)
+SYS_LIBS       := $(PYTHON_LIB) -lpthread -lstdc++ -ldl -lrt -lm $(SYS_LIBS)
 
 .PHONY: all
 
@@ -91,19 +108,19 @@ $(LIB_DIR)/libmwpy.a: $(OBJ_DIR)/safplusCApi.o $(OBJ_DIR)/asppycustom.o  $(OBJ_D
 	$(AR) -rs  $@ $+
 
 $(LIB_DIR)/libmwpy.so: $(OBJ_DIR)/safplusCApi.o $(OBJ_DIR)/asppycustom.o $(OBJ_DIR)/amfpy.o $(OBJ_DIR)/asppycor.o $(OBJ_DIR)/pyglue.o
-	gcc  -o $@ -shared $+ $(ASP_LIB_LIST) -lpthread -lstdc++ -ldl -lrt -lm
+	gcc  -o $@ -shared $+ $(ASP_LIB_LIST) $(SYS_LIBS) 
 
 $(LIB_DIR)/amfpy.so: $(OBJ_DIR)/amfpy.o
-	gcc  -o $@ -shared $+ $(ASP_LIB_LIST) -lpthread -lstdc++ -ldl -lrt -lm
+	gcc  -o $@ -shared $+ $(ASP_LIB_LIST) $(SYS_LIBS) 
 
 $(LIB_DIR)/_safplusCApi.so: $(OBJ_DIR)/safplusCApi.o
-	gcc  -o $@ -shared $+ $(ASP_LIB_LIST) -lpthread -lstdc++ -ldl -lrt -lm
+	gcc  -o $@ -shared $+ $(ASP_LIB_LIST) $(SYS_LIBS) 
 
 $(LIB_DIR)/asppycustom.so: $(OBJ_DIR)/asppycustom.o 
-	gcc  -o $@ -shared $+ $(ASP_LIB_LIST) -lpthread -lstdc++ -ldl -lrt -lm
+	gcc  -o $@ -shared $+ $(ASP_LIB_LIST) $(SYS_LIBS) 
 
 $(LIB_DIR)/asppycor.so: $(OBJ_DIR)/asppycor.o
-	gcc  -o $@ -shared $+ $(ASP_LIB_LIST) -lpthread -lstdc++ -ldl -lrt -lm
+	gcc  -o $@ -shared $+ $(ASP_LIB_LIST) $(SYS_LIBS) 
 
 
 
