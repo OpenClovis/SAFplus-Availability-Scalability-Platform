@@ -296,7 +296,7 @@ ClRcT clCacheEntryDelete (ClCachedCkptSvcInfoT *serviceInfo,
         if ((sectionName->length == pTemp->sectionName.length) 
           && (memcmp(sectionName->value, pTemp->sectionName.value, sectionName->length)==0) )
         {
-            memcpy (pTemp, pNextRecord, *sizeOfCache - nextSectionOffset);
+            memmove(pTemp, pNextRecord, *sizeOfCache - nextSectionOffset);
             (*numberOfSections)--;
             *sizeOfCache -= sizeof(ClCachedCkptDataT) + dataSize;
             isDelete = CL_TRUE;
