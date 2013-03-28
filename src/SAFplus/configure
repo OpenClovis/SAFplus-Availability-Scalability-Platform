@@ -1619,6 +1619,10 @@ if test "${with_model_name+set}" = set; then
   fi
 
   if [ "$NATURE" == "com.clovis.cw.workspace.natures.SystemProjectNature" -a ! $NAME == "" ]; then
+    if [ $NAME != $withval ]; then
+      echo "The model name [$withval] is not valid for current project [$NAME]."
+      exit 1
+    fi
     export ASP_MODEL_NAME=$NAME
     export MODEL_BUILD=1
     cd ..
