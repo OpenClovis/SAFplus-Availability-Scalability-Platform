@@ -5,8 +5,8 @@
 
 # The root directory of the OpenClovis SDK installation; this is mainly for
 # sanity checking.
-SDKDIR=@SDKDIR@
+SDKDIR=%SDKDIR
 
 # Eclipse directory
-ECLIPSE=@ECLIPSE@
+ECLIPSE=%ECLIPSE
 

@@ -1149,7 +1149,7 @@ class ASPInstaller:
 
         assert self.PACKAGE_ROOT
 
-        if os.path.isdir(self.PACKAGE_ROOT):
+        if os.path.isfile(self.PACKAGE_ROOT + os.sep + "VERSION"):
             self.feedback('%s SAFplus is already installed. Overwrite?' % OpenClovisStr)
             self.feedback('Responding with \'no\' will leave the existing SDK intact and proceed to the')
 
@@ -1246,6 +1246,12 @@ class ASPInstaller:
 
         self.run_command_list(cmds) 
 
+        # create a relative symlink to the configure script from the top level
+        try:
+          os.symlink(os.path.relpath(os.path.join(self.ASP_ROOT,"configure") ,self.INSTALL_DIR), os.path.join(self.INSTALL_DIR,"configure"))
+        except OSError,e:
+          pass # Its ok if it already exists, we must be reinstalling
+
         # IDE Installation
         if self.INSTALL_IDE:
             self.install_IDE()
@@ -1270,13 +1276,15 @@ class ASPInstaller:
         self.ESC_PKG_ROOT = syscall("echo %s | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
         self.ESC_PKG_NAME = syscall("echo %s | sed -e 's/\./\\\./g'" % self.PACKAGE_NAME)
 
-        # """sed -e "s;@CL_SDK@;$ESC_PKG_NAME;g"
-        #            -e "s;@CL_SDKDIR@;$ESC_PKG_ROOT;g"
-        #            $WORKING_DIR/templates/bin/cl-ide.in > $BIN_ROOT/cl-ide""",
-
         if not os.path.exists(self.BIN_ROOT): os.makedirs(self.BIN_ROOT)
+        if not os.path.exists(self.LIB_ROOT): os.makedirs(self.LIB_ROOT)
 
         applyTemplate("%s/templates/bin/cl-ide.in" % self.WORKING_DIR, "%s/cl-ide" % self.BIN_ROOT, {"CL_SDK":self.PACKAGE_NAME,"CL_SDKDIR":self.PACKAGE_ROOT,"CL_ECLIPSEDIR":self.ECLIPSE })
+
+       #         """sed -e "s;@SDKDIR@;$ESC_PKG_ROOT;g"
+       #         -e "s;@ECLIPSE@;$ESC_ECLIPSE_DIR;g"
+       #             $WORKING_DIR/templates/lib/clconfig.rc.in > $LIB_ROOT/clconfig.rc """
+        applyTemplate("%s/templates/lib/clconfig.rc.in" % self.WORKING_DIR, "%s/clconfig.rc" % self.LIB_ROOT, {"SDKDIR":self.PACKAGE_ROOT,"ECLIPSE":self.ECLIPSE })
 
         cmds = ['export ESC_PKG_ROOT=%s' % self.ESC_PKG_ROOT,
                 'export ESC_PKG_NAME=%s' % self.ESC_PKG_NAME,
@@ -1307,11 +1315,7 @@ class ASPInstaller:
                 'cd $BIN_ROOT',
                 'ln -s $PACKAGE_ROOT/logviewer/icons icons',
                 'ln -s $PACKAGE_ROOT/logviewer/config config',
-                'cd - >/dev/null 2>&1',
-                'mkdir -p $LIB_ROOT 2>/dev/null',
-                """sed -e "s;@SDKDIR@;$ESC_PKG_ROOT;g"
-                -e "s;@ECLIPSE@;$ESC_ECLIPSE_DIR;g"
-                    $WORKING_DIR/templates/lib/clconfig.rc.in > $LIB_ROOT/clconfig.rc """]
+                'cd - >/dev/null 2>&1' ]
 
 
         self.run_command_list(cmds)

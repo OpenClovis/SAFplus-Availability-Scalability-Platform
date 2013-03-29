@@ -65,36 +65,6 @@ NoSdkDirError()
     echo "for default installations."
 } 
 
-export sdk_dir=
-export buildtool_dir=
-export thirdparty_base_dir=
-
-# Check whether --with-sdk-dir is specified
-if [ "${with_sdk_dir+set}" = set ]; then
-    withval="$with_sdk_dir"
-    export sdk_dir=$with_sdk_dir/$PACKAGE_VERSION/sdk
-    export buildtool_dir=$with_sdk_dir/$PACKAGE_VERSION/buildtools
-    thirdparty=`ls $with_sdk_dir | grep 3rdparty-base | head -n 1`
-    if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
-        export thirdparty_base_dir=$with_sdk_dir/$thirdparty
-    fi
-else
-        cd $(dirname $0)/../../..
-        if [ ! -d sdk -o ! -d buildtools ]; then
-            NoSdkDirError;
-            cd - > /dev/null
-            exit 1
-        else
-            export sdk_dir=$(pwd)/sdk
-            export buildtool_dir=$(pwd)/buildtools
-            thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
-            if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
-                export thirdparty_base_dir=$(pwd)/$thirdparty
-            fi
-        fi
-        cd - > /dev/null
-
-fi
 
 
 # Work around bugs in pre-3.0 UWIN ksh.
@@ -336,6 +306,8 @@ if [ -f $myDir/../../VERSION ]; then
   source $myDir/../../VERSION
 elif [ -f $myDir/VERSION ]; then
   source $myDir/VERSION
+elif [ -f $myDir/sdk/VERSION ]; then
+  source $myDir/sdk/VERSION
 fi
 
 # Identity of this package.
@@ -907,16 +879,13 @@ _ACEOF
 _ACEOF
 fi
 
-export sdk_dir
 export buildtool_dir
 
 if test -n "$ac_init_help"; then
   case $ac_init_help in
      short | recursive ) echo "Configuration of SAFplus:";;
    esac
-    
-   sdk_modeldir=$sdk_dir/src/ASP/models
- 
+     
    cat << _ACEOF
 
 OpenClovis Specific configuration attributes:
@@ -1453,7 +1422,6 @@ if [ -c config.log ]; then
     rm -f config.log
 fi
 
-CL_SDKDIR=$sdk_dir
 CL_BUILDTOOLS=$buildtool_dir
 CL_THIRDPARTY_BASE=$thirdparty_base_dir
 
@@ -1498,13 +1466,6 @@ export SAFPLUS_BUILD_PYTHON=0
 export SAFPLUS_BUILD_JAVA=0
 export SAFPLUS_BUILD_CPP=1
 
-
-if [ $prefix != "NONE" ] ; then
-    export PREFIX=$prefix
-else
-    export PREFIX=$sdk_dir
-fi
-
 ## AA, block out test for current ASP directory
 # if [ ! -d components ] ; then
 #     { { echo "$as_me:$LINENO: error: Please run the script from ASP directory" >&5
@@ -1530,6 +1491,46 @@ fi
 ## creating the files and directories required   ##
 ## by the project area (AA)                      ##
 ###################################################
+
+export sdk_dir=
+export buildtool_dir=
+export thirdparty_base_dir=
+
+# Check whether --with-sdk-dir is specified
+if [ "${with_sdk_dir+set}" = set ]; then
+    withval="$with_sdk_dir"
+    export sdk_dir=$with_sdk_dir/$PACKAGE_VERSION/sdk
+    export buildtool_dir=$with_sdk_dir/$PACKAGE_VERSION/buildtools
+    thirdparty=`ls $with_sdk_dir | grep 3rdparty-base | head -n 1`
+    if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+        export thirdparty_base_dir=$with_sdk_dir/$thirdparty
+    fi
+else
+        cd $(dirname $0)/../../..
+        if [ ! -d sdk -o ! -d buildtools ]; then
+            cd - > /dev/null
+            cd $(dirname $0)  # if I am calling from the symlink
+            if [ ! -d sdk -o ! -d buildtools ]; then
+              NoSdkDirError;
+              exit 1
+            fi
+        fi
+        # if we get here we have cd-ed to the sdk dir/..
+        export sdk_dir=$(pwd)/sdk
+        export buildtool_dir=$(pwd)/buildtools
+        thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
+        if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
+                export thirdparty_base_dir=$(pwd)/$thirdparty
+        fi
+        cd - > /dev/null
+
+fi
+
+if [ $prefix != "NONE" ] ; then
+    export PREFIX=$prefix
+else
+    export PREFIX=$sdk_dir
+fi
 
 if [ "${with_python_build+set}" = set ]; then
     export SAFPLUS_BUILD_PYTHON=1
@@ -1701,7 +1702,7 @@ install_flags='-m 644'
 #
 # Copy project-area level and model level makefiles
 # project-area level:
-configdir=$(dirname $0)
+configdir=$sdk_dir/src/SAFplus
 if [ -f $configdir/build/common/mk/Makefile.project ]; then
     echo -n ""
     # $INSTALL $install_flags $configdir/build/common/mk/Makefile.project $PROJECT_ROOT/Makefile
@@ -1716,7 +1717,7 @@ fi
 if [ $MODEL_BUILD = 1 ]; then
     if [ -f $configdir/build/common/mk/Makefile.model ]; then
         $INSTALL $install_flags $configdir/build/common/mk/Makefile.model $PROJECT_ROOT/$ASP_MODEL_NAME/Makefile
-    elif [ -f $sdk_dir/src/ASP/build/common/mk/Makefile.model ]; then
+    elif [ -f $sdk_dir/src/SAFplus/build/common/mk/Makefile.model ]; then
         $INSTALL $install_flags $configdir/build/common/mk/Makefile.project $PROJECT_ROOT/$ASP_MODEL_NAME/Makefile
     else
         NoSdkDirError;
@@ -2081,7 +2082,7 @@ if [ $PROJECT_ONLY = 0 ]; then
     fi
     mkdir -p $BUILD_ROOT
     mkdir -p $BUILD_ROOT/servers
-    $INSTALL $install_flags $CLOVIS_ROOT/ASP/build/binary/mk/servers/Makefile $BUILD_ROOT/servers
+    $INSTALL $install_flags $sdk_dir/src/SAFplus/build/binary/mk/servers/Makefile $BUILD_ROOT/servers
 fi
 
 ##########################################################
@@ -7575,7 +7576,7 @@ if [ -f $BUILD_ROOT/mk/wrs.mk ]; then
 fi
 
 if [ $PROJECT_ONLY = 0 ]; then
-    ac_config_files="$ac_config_files $BUILD_ROOT/clasp.env:build/common/templates/clasp.env.in $BUILD_ROOT/Makefile:build/sdk/templates/Makefile.in $BUILD_ROOT/mk/make-cross.mk:build/common/templates/make-cross.mk.in"
+    ac_config_files="$ac_config_files $BUILD_ROOT/clasp.env:$sdk_dir/src/SAFplus/build/common/templates/clasp.env.in $BUILD_ROOT/Makefile:$sdk_dir/src/SAFplus/build/sdk/templates/Makefile.in $BUILD_ROOT/mk/make-cross.mk:$sdk_dir/src/SAFplus/build/common/templates/make-cross.mk.in"
 else
     ac_config_files=
 fi
@@ -8137,8 +8138,8 @@ for ac_config_target in $ac_config_targets
 do
   case "$ac_config_target" in
   # Handling of arguments.
-  "clasp.env" ) CONFIG_FILES="$CONFIG_FILES clasp.env:build/common/templates/clasp.env.in" ;;
-  "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile:build/sdk/templates/Makefile.in" ;;
+  "clasp.env" ) CONFIG_FILES="$CONFIG_FILES clasp.env:$sdk_dir/src/SAFplus/build/common/templates/clasp.env.in" ;;
+  "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile:$sdk_dir/src/SAFplus/build/sdk/templates/Makefile.in" ;;
   "mk/make-cross.mk" ) CONFIG_FILES="$CONFIG_FILES mk/make-cross.mk:build/common/templates/make-cross.mk.in" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
