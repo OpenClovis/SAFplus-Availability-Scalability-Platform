@@ -1150,21 +1150,21 @@ class ASPInstaller:
 
         assert self.PACKAGE_ROOT
 
+        strin = 'y' # By default, install it
         if os.path.isfile(self.PACKAGE_ROOT + os.sep + "VERSION"):
+
             self.feedback('%s SAFplus is already installed. Overwrite?' % OpenClovisStr)
             self.feedback('Responding with \'no\' will leave the existing SDK intact and proceed to the')
+            if not self.NO_INTERACTION:
+              strin = self.get_user_feedback('installation of other utilities.  Overwrite existing SDK? <y|n> [y]: ')
 
-            if self.NO_INTERACTION == True:
-                strin = 'y'
-            else:
-                strin = self.get_user_feedback('installation of other utilities.  Overwrite existing SDK? <y|n> [y]: ')
 
-            if strin.lower().startswith('n'):
+        if strin.lower().startswith('n'):
                 pass
                 # no, do not overwrite
                 self.DO_PREBUILD = False
 
-            else:
+        else:
                 # yes
                 self.feedback('Cleaning up...')
 
@@ -1185,11 +1185,11 @@ class ASPInstaller:
                 self.feedback('Done cleaning.')
                 
                 self.install_ASP()
-        else:
+        #else:
             # PACKAGE_ROOT not created
-            ret = cli_cmd('mkdir -p %s' % self.PACKAGE_ROOT)
-            if ret != 0:
-                self.feedback('[ERROR] failed to create %s directory' % self.PACKAGE_ROOT, True)
+        #    ret = cli_cmd('mkdir -p %s' % self.PACKAGE_ROOT)
+        #    if ret != 0:
+        #        self.feedback('[ERROR] failed to create %s directory' % self.PACKAGE_ROOT, True)
 
 
         self.install_utilities()
@@ -1218,7 +1218,7 @@ class ASPInstaller:
 
         PSPPKG_PATH = os.path.join(WORKING_ROOT, pspPkg)
         if Pkg_Found :
-            self.feedback('Process PSP : install_dir : %s -- PSPPATH : %s' %(self.INSTALL_DIR,PSPPKG_PATH))
+            self.feedback('Installing Platform Support Package (PSP) into %s from %s.' %(self.INSTALL_DIR,PSPPKG_PATH))
             os.chdir ('%s' % self.INSTALL_DIR)
             syscall('rm -rf PSP') # remove PSP    
             syscall('tar zxf %s' % PSPPKG_PATH)        
@@ -1471,8 +1471,8 @@ class ASPInstaller:
              self.feedback('Building SAFplus %s' % b)
              cmd = 'asp/build/%s' % b
              os.chdir (cmd)
-             os.system ('make asp-libs')
-             os.system ('make asp-install')
+             os.system ('make safplus-libs')
+             os.system ('make safplus-install')
 
 
     def do_symlinks(self):

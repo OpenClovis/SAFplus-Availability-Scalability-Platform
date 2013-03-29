@@ -51,9 +51,12 @@ else
 fi
 
 # Andy Stone addition
+origDir=`pwd`
 myFullPath=`which $0`
 myDir=`dirname $myFullPath`
 myDir=`cd $myDir; pwd`
+cd $origDir
+
 
 NoSdkDirError()
 { 
@@ -940,6 +943,7 @@ $(ls -1 $CL_BUILDTOOLS | grep -v local | awk '{print "\t\t\t\t", $1}')
                          script.
                          Default: 64
 
+  --with-hpi[=ARG]
   --with-cm-build[=ARG]  Enable building Chassis Manager which talks to the
                          shelf manager of the chassis.  The optional ARG
                          specifies the type HPI client implementation to be
@@ -1411,7 +1415,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 #Initialize Environment variables
-
+echo "$0 $@"
 # remove stale config.status and config.log
 
 if [ -f config.status ]; then
@@ -1432,10 +1436,8 @@ else
 fi
 
 ## cd ..;
-export PROJECT_ROOT=`pwd`
-cd $(dirname $0)/..
-export CLOVIS_ROOT=`pwd`
-cd - > /dev/null
+export PROJECT_ROOT=$origDir
+
 ## cd -
 
 export CL_TARGET_PLATFORM=`uname -m`
@@ -1499,32 +1501,53 @@ export thirdparty_base_dir=
 # Check whether --with-sdk-dir is specified
 if [ "${with_sdk_dir+set}" = set ]; then
     withval="$with_sdk_dir"
-    export sdk_dir=$with_sdk_dir/$PACKAGE_VERSION/sdk
-    export buildtool_dir=$with_sdk_dir/$PACKAGE_VERSION/buildtools
+    # check passing /opt/clovis
+    tmp=$with_sdk_dir/$PACKAGE_VERSION
+    cd $tmp
+    if [ ! -d sdk -o ! -d buildtools ]; then
+      # check passing /opt/clovis/6.1
+      tmp=$with_sdk_dir
+      cd $tmp
+      if [ ! -d sdk -o ! -d buildtools ]; then
+        # check passing /opt/clovis/6.1/sdk
+        tmp=$with_sdk_dir/..
+        if [ ! -d sdk -o ! -d buildtools ]; then
+          NoSdkDirError;
+          exit 1
+        fi
+      fi
+    fi
+    cd $origDir
+    
+    export sdk_dir=$tmp/sdk
+    export buildtool_dir=$tmp/buildtools
+
     thirdparty=`ls $with_sdk_dir | grep 3rdparty-base | head -n 1`
     if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
         export thirdparty_base_dir=$with_sdk_dir/$thirdparty
     fi
 else
-        cd $(dirname $0)/../../..
+        cd $myDir/../../..
         if [ ! -d sdk -o ! -d buildtools ]; then
-            cd - > /dev/null
-            cd $(dirname $0)  # if I am calling from the symlink
+            cd $myDir  # if I am calling from the symlink
             if [ ! -d sdk -o ! -d buildtools ]; then
               NoSdkDirError;
               exit 1
             fi
         fi
         # if we get here we have cd-ed to the sdk dir/..
-        export sdk_dir=$(pwd)/sdk
+         export sdk_dir=$(pwd)/sdk
         export buildtool_dir=$(pwd)/buildtools
         thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
         if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
                 export thirdparty_base_dir=$(pwd)/$thirdparty
         fi
-        cd - > /dev/null
+        cd $origDir
 
 fi
+
+# CLOVIS_ROOT is poorly named now because there is more then just the SDK, but for legacy reasons it is that sdk dir
+export CLOVIS_ROOT=$sdk_dir/src
 
 if [ $prefix != "NONE" ] ; then
     export PREFIX=$prefix
@@ -1562,7 +1585,6 @@ else
     export ASP_INSTALLDIR=$sdk_dir
 fi
 
-
 # Check whether --with-model-name or --without-model-name was given.
 if test "${with_model_name+set}" = set; then
   withval="$with_model_name"
@@ -1572,21 +1594,11 @@ if test "${with_model_name+set}" = set; then
       NAME=`grep "<name>" .project | tr -d '\t' | sed 's/^<.*>\([^<].*\)<.*>$/\1/g' | head -1`
   fi
 
-  if [ "$NATURE" == "com.clovis.cw.workspace.natures.SystemProjectNature" -a ! $NAME == "" ]; then
-    if [ $NAME != $withval ]; then
-      echo "The model name [$withval] is not valid for current project [$NAME]."
-      exit 1
-    fi
-    export ASP_MODEL_NAME=$NAME
-    export MODEL_BUILD=1
-    cd ..
-    export PROJECT_ROOT=$(pwd)
-    cd -
-  else
-      export ASP_MODEL_NAME=asp
-      export ASP_BUILD=1
-      export MODEL_BUILD=0
-  fi
+  export ASP_MODEL_NAME=$with_model_name
+  export MODEL_BUILD=1
+  cd $origDir > /dev/null
+  export PROJECT_ROOT=$(pwd)
+
 else
   if [ $ASP_BUILD == 1 -a ! -d src ]; then
     export ASP_MODEL_NAME=asp
@@ -1820,9 +1832,19 @@ else
     export TARGET_QNX=0
 fi
 
+do_cm_build=0
 # Check whether --with-cm-build or --without-cm-build was specified
-if [ "${with_cm_build+set}" = set ]; then
-    if [ ! -d $CLOVIS_ROOT/../../PSP/src/cm ]; then
+if [ "${with_hpi+set}" == set ]; then
+  do_cm_build=1
+  with_cm_build=$with_hpi
+fi
+if [ "${with_cm_build+set}" == set ]; then
+  do_cm_build=1
+fi
+
+if [ $do_cm_build == 1 ]; then
+    if [ ! -d $sdk_dir/../PSP/src/cm ]; then
+        echo $sdk_dir/../PSP/src/cm does not exist!
         echo ""
         echo "Your OpenClovis SDK does not contain a Platform Support Package (PSP),"
         echo "hence you cannot use the --with-cm-build option to build the OpenClovis"
@@ -1834,6 +1856,7 @@ if [ "${with_cm_build+set}" = set ]; then
         echo ""
         exit 1
     fi
+        echo "Chassis Manager build option selected"
 	if [ $with_cm_build == 'radisys' ]; then
 		export CM_BUILD=1
 		export HCL_CM=1
