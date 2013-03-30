@@ -316,10 +316,10 @@ class OS:
         
         JRE = objects.BuildDep()
         JRE.name           = 'JRE'
-        JRE.version        = '1.6.0'
-        JRE.pkg_name       = 'jre1.6.0_21.tar.gz'
+        JRE.version        = 'Java7'
+        JRE.pkg_name       = 'jre-7u17-linux-i586.tar.gz'
         if self.bit == 64:
-            JRE.pkg_name       = 'jre1.6.0_21-x86_64.tar.gz'
+            JRE.pkg_name       = 'jre-7u17-linux-x64.tar.gz'
         
         log = self.log_string_for_dep(JRE.name)
        
@@ -340,16 +340,16 @@ class OS:
         
         ECLIPSE = objects.BuildDep()
         ECLIPSE.name           = 'eclipse'
-        ECLIPSE.version        = '3.7.1'
-        ECLIPSE.pkg_name       = 'eclipse-SDK-3.7.1-linux-gtk.tar.gz'
+        ECLIPSE.version        = '4.2.2'
+        ECLIPSE.pkg_name       = 'eclipse-SDK-4.2.2-linux-gtk.tar.gz'
         if self.bit == 64:
-            ECLIPSE.pkg_name       = 'eclipse-SDK-3.7.1-linux-gtk-x86_64.tar.gz'
+            ECLIPSE.pkg_name       = 'eclipse-SDK-4.2.2-linux-gtk-x86_64.tar.gz'
        
         log = self.log_string_for_dep(ECLIPSE.name)
         
         ECLIPSE.extract_install = True
 
-        initial_commands = ['cd ${PREFIX}',
+        initial_commands = ['cd ${IDE_ROOT}',
                           'tar xf ${THIRDPARTYPKG} %s' % ECLIPSE.pkg_name,
                           'tar zxf %s' % ECLIPSE.pkg_name,
                           'rm -f %s' % ECLIPSE.pkg_name]
@@ -364,14 +364,14 @@ class OS:
         
         EMF = objects.BuildDep()
         EMF.name           = 'EMF'
-        EMF.version        = '2.7.1'
-        EMF.pkg_name       = 'emf-runtime-2.7.1.zip'
+        EMF.version        = '2.8.3'
+        EMF.pkg_name       = 'emf-runtime-2.8.3.zip'
         
         log = self.log_string_for_dep(EMF.name)
 
         EMF.extract_install = True
 
-        initial_commands = ['cd ${PREFIX}',
+        initial_commands = ['cd ${IDE_ROOT}',
                           'tar xf ${THIRDPARTYPKG} %s' % EMF.pkg_name,
                           'unzip -qq -o -u %s' % EMF.pkg_name,                            
                           'rm -f %s' % EMF.pkg_name]
@@ -386,14 +386,14 @@ class OS:
         
         GEF = objects.BuildDep()
         GEF.name           = 'GEF'
-        GEF.version        = '3.7.2'
-        GEF.pkg_name       = 'GEF-runtime-3.7.2.zip'
+        GEF.version        = '3.8.2'
+        GEF.pkg_name       = 'GEF-runtime-3.8.2.zip'
         
         log = self.log_string_for_dep(GEF.name)
 
         GEF.extract_install = True
         
-        initial_commands = ['cd ${PREFIX}',
+        initial_commands = ['cd ${IDE_ROOT}',
                           'tar xf ${THIRDPARTYPKG} %s' % GEF.pkg_name,
                           'unzip -qq -o -u %s' % GEF.pkg_name,  
                           'rm -f %s' % GEF.pkg_name]
@@ -408,20 +408,21 @@ class OS:
         
         CDT = objects.BuildDep()
         CDT.name           = 'CDT'
-        CDT.version        = '8.0.1'
-        CDT.pkg_name       = 'cdt-master-8.0.1.zip'
-        
+        CDT.version        = '8.1.2'
+        CDT.pkg_name       = 'cdt-master-8.1.2.zip'
+
         log = self.log_string_for_dep(CDT.name)
 
         CDT.extract_install = True
-        
-        initial_commands = ['cd ${PREFIX}',
-                          'mkdir -p eclipse/cdt/eclipse',
-                          'mkdir -p eclipse/links',
-                          'cd eclipse/cdt/eclipse',
-                          'echo "path=$PREFIX/eclipse/cdt" > $PREFIX/eclipse/links/cdt.link',
+
+        initial_commands = ['cd ${ECLIPSE}',
+                          'mkdir -p ${ECLIPSE}/cdt',
+                          'cd ${ECLIPSE}/cdt',
                           'tar xvf ${THIRDPARTYPKG} %s' % CDT.pkg_name,
                           'unzip -qq -o -u %s' % CDT.pkg_name,
+                          'mkdir -p ${ECLIPSE}/dropins/cdt', 
+                          '${WORKING_DIR}/src/install/cdt.sh ${ECLIPSE}/cdt ${ECLIPSE}/dropins/cdt',
+                          'rm -rf ${ECLIPSE}/cdt',
                           'rm -f %s' % CDT.pkg_name]
 
         CDT.build_cmds = [';'.join(initial_commands)]
