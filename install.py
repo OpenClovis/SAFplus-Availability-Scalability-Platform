@@ -1397,6 +1397,9 @@ class ASPInstaller:
                     'rm -rf $CACHE_DIR/eclipse/org.eclipse.help.base']
             self.run_command_list(cmds)
 
+        """ Change permissions for read-write """
+        cmd = ['chmod -R 777 %s' %self.CACHE_DIR]
+        self.run_command_list(cmd)
 
     def install_utilities(self):
         self.feedback('Starting utilities installation...')
