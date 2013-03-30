@@ -46,11 +46,11 @@ static ClCpmHandleT gClEvtCpmHandle;
 
 ClRcT clEventTerminate(ClInvocationT invocation, const ClNameT *compName)
 {
-    ClRcT rc = CL_OK;
 
-    rc = clCpmComponentUnregister(gClEvtCpmHandle, compName, NULL);
+    /* No need to check error messages b/c cannot do anything about the errors anyway... am shutting down */
+    clCpmComponentUnregister(gClEvtCpmHandle, compName, NULL);
 
-    rc = clCpmClientFinalize(gClEvtCpmHandle);
+    clCpmClientFinalize(gClEvtCpmHandle);
 
     clCpmResponse(gClEvtCpmHandle, invocation, CL_OK);
 
@@ -295,7 +295,6 @@ ClRcT clEventHealthCheck(ClEoSchedFeedBackT *schFeedback)
 }
 
 ClEoConfigT clEoConfig = {
-    "EVT",                     /* EO Name */
     1,                          /* EO Thread Priority */
     1,                          /* No of EO thread needed */
     CL_IOC_EVENT_PORT,          /* Required Ioc Port */
@@ -344,3 +343,13 @@ ClUint8T clEoClientLibs[] = {
     CL_FALSE,                    /* gms */
     CL_FALSE,                    /* pm */
 };
+
+ClInt32T main(ClInt32T argc, ClCharT *argv[])
+{
+    ClRcT rc = CL_OK;
+
+    clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
+    rc = clEoInitialize(argc, argv);
+
+    return (CL_OK != rc);
+}

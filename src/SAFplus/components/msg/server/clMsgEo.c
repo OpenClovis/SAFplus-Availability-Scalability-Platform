@@ -62,7 +62,6 @@ static ClRcT clMsgInitialize(ClUint32T argc, ClCharT *argv[]);
 static ClRcT clMsgFinalize(ClBoolT *pLockStatus);
 
 ClEoConfigT clEoConfig = {
-    "MSG",                          /* EO Name */
     1,                              /* EO Thread Priority */
     10,                             /* No of EO thread needed */
     CL_IOC_MSG_PORT,                /* Required Ioc Port */
@@ -107,6 +106,15 @@ ClUint8T clEoClientLibs[] = {
     CL_FALSE,                   /* pm */
 };
 
+ClInt32T main(ClInt32T argc, ClCharT *argv[])
+{
+    ClRcT rc = CL_OK;
+
+    clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
+    rc = clEoInitialize(argc, argv);
+
+    return (CL_OK != rc);
+}
 
 
 static ClHandleT gMsgNotificationHandle;

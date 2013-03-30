@@ -69,6 +69,64 @@ extern void clLoadEnvVars();
 extern ClUint32T clEoWithOutCpm; 
 extern ClInt32T clAspLocalId;
 
+/* Default EO configuration */
+ClEoConfigT eoConfig =
+{
+    CL_OSAL_THREAD_PRI_MEDIUM,    /* EO Thread Priority                       */
+    2,                            /* No of EO thread needed                   */
+    0,                            /* Required Ioc Port                        */
+    (CL_EO_USER_CLIENT_ID_START + 0), 
+    CL_EO_USE_THREAD_FOR_APP,     /* Thread Model                             */
+    NULL,                         /* Application Initialize Callback          */
+    NULL,                         /* Application Terminate Callback           */
+    NULL,                         /* Application State Change Callback        */
+    NULL                          /* Application Health Check Callback        */
+};
+
+ClUint8T eoBasicLibs[] =
+{
+    CL_TRUE,      /* Lib: Operating System Adaptation Layer   */
+    CL_TRUE,      /* Lib: Timer                               */
+    CL_TRUE,      /* Lib: Buffer Management                   */
+    CL_TRUE,      /* Lib: Intelligent Object Communication    */
+    CL_TRUE,      /* Lib: Remote Method Dispatch              */
+    CL_TRUE,      /* Lib: Execution Object                    */
+    CL_FALSE,     /* Lib: Object Management                   */
+    CL_FALSE,     /* Lib: Hardware Adaptation Layer           */
+    CL_FALSE      /* Lib: Database Adaptation Layer           */
+};
+
+/*
+ * Client libraries used by this EO. All are optional and can be
+ * enabled or disabled by setting to CL_TRUE or CL_FALSE.
+ */
+
+ClUint8T eoClientLibs[] =
+{
+    CL_FALSE,      /* Lib: Common Object Repository            */
+    CL_FALSE,      /* Lib: Chassis Management                  */
+    CL_FALSE,      /* Lib: Name Service                        */
+    CL_FALSE,      /* Lib: Log Service                         */
+    CL_FALSE,      /* Lib: Trace Service                       */
+    CL_FALSE,      /* Lib: Diagnostics                         */
+    CL_FALSE,      /* Lib: Transaction Management              */
+    CL_FALSE,      /* NA */
+    CL_FALSE,      /* Lib: Provisioning Management             */
+    CL_FALSE,      /* Lib: Alarm Management                    */
+    CL_FALSE,      /* Lib: Debug Service                       */
+    CL_FALSE,      /* Lib: Cluster/Group Membership Service    */
+    CL_FALSE,      /* Lib: PM */
+};
+
+
+void clAppConfigure(ClEoConfigT* clEoConfig,ClUint8T* basicLibs,ClUint8T* clientLibs)
+{
+    if (clEoConfig) memcpy(&eoConfig, clEoConfig,sizeof(ClEoConfigT));
+    if (basicLibs)  memcpy(&eoBasicLibs, basicLibs,sizeof(eoBasicLibs));
+    if (clientLibs) memcpy(&eoClientLibs, clientLibs,sizeof(eoClientLibs));
+}
+
+
 /*
  * List of Library Initialize Functions 
  */
@@ -174,7 +232,6 @@ ClCharT *clEoProgName = NULL;
  * This should go if IOC doesnt suffer from selective amnesia regarding
  * multiple initialisation of the library.
  */
-static ClCharT gClEoNodeName[CL_EO_MAX_NAME_LEN]; 
 ClBoolT gIsNodeRepresentative = CL_FALSE;
 
 /*Multiple ASP initialization is supported*/
@@ -285,8 +342,8 @@ ClInitFinalizeDef gClClientLibCleanupTable[] = {
  * Gets the EO name.
  */
 ClCharT* clEoNameGet(void)
-{
-    return clEoConfig.EOname;
+{    
+    return ASP_COMPNAME;    
 }
 
 /*
@@ -375,7 +432,7 @@ static ClRcT clAspBasicLibInitialize()
     {
         if (gClBasicLibInitTable[i].fn == NULL) continue;
 
-        if (clEoBasicLibs[i] == CL_TRUE)
+        if (eoBasicLibs[i] == CL_TRUE)
         {
             clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI,
                   "Initializing basic library [%s]...",
@@ -423,7 +480,7 @@ static ClRcT clAspBasicLibFinalize()
     {
         if (gClBasicLibCleanupTable[i].fn == NULL) continue;
 
-        if (clEoBasicLibs[i] == CL_TRUE)
+        if (eoBasicLibs[i] == CL_TRUE)
         {
             if (CL_OK != (rc = gClBasicLibCleanupTable[i].fn()))
             {
@@ -455,7 +512,7 @@ ClRcT clAspClientLibInitialize(void)
         if (gClClientLibInitTable[i].fn == NULL)
             continue;
 
-        if (clEoClientLibs[i] == CL_TRUE)
+        if (eoClientLibs[i] == CL_TRUE)
         {
             clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI,
                   "Initializing client library [%s]...",
@@ -490,7 +547,7 @@ ClRcT clAspClientLibFinalize(void)
         if (gClClientLibCleanupTable[i].fn == NULL) 
             continue;
 
-        if (clEoClientLibs[i] == CL_TRUE)
+        if (eoClientLibs[i] == CL_TRUE)
         {
             clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_FIN,
                   "Finalizing client library [%s]...",
@@ -508,28 +565,14 @@ ClRcT clAspClientLibFinalize(void)
 
 void clEoNodeRepresentativeDeclare(const ClCharT *pNodeName)
 {
-    if(pNodeName != NULL)
-    {
-        strncpy(gClEoNodeName,pNodeName,sizeof(gClEoNodeName)-1);
-    }
-
     gIsNodeRepresentative = CL_TRUE;
 }
 
 ClRcT clEoSetup(void)
 {
     ClRcT rc = CL_OK;
-    ClCharT *compName = NULL;
     ClEoExecutionObjT *pThis = NULL;
-
-    compName = getenv("ASP_COMPNAME");
-
-    if((0 == strcmp(clEoConfig.EOname, CL_EO_DEFAULT_NAME))
-       && (NULL != compName))
-    {
-        strncpy(clEoConfig.EOname, compName, sizeof(clEoConfig.EOname)-1);
-    }
-
+    
     clDbgInitialize();
 
     eoProtoInit();
@@ -541,8 +584,7 @@ ClRcT clEoSetup(void)
 
         if(pNodeRepresetativeFlag && !strcmp(pNodeRepresetativeFlag, "TRUE"))
         {
-            ClCharT *pNodeName = getenv("ASP_NODENAME");
-            clEoNodeRepresentativeDeclare(pNodeName);
+            clEoNodeRepresentativeDeclare(ASP_NODENAME);
             unsetenv("CL_NODE_REPRESENTATIVE");
         }
     }
@@ -564,7 +606,7 @@ ClRcT clEoSetup(void)
     gpClEoIocConfig->iocConfigInfo.isNodeRepresentative = gIsNodeRepresentative;
     if(gIsNodeRepresentative == CL_TRUE)
     {
-        gpClEoIocConfig->iocConfigInfo.iocNodeRepresentative =  clEoConfig.reqIocPort;
+        gpClEoIocConfig->iocConfigInfo.iocNodeRepresentative =  eoConfig.reqIocPort;
     }
 #endif 
 
@@ -600,13 +642,11 @@ ClRcT clEoSetup(void)
     }
     clLogUtilLibInitialize();
 
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
-          "Initializing basic libraries...");
+    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing basic libraries...");
     rc = clAspBasicLibInitialize();
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "Failed to initialize all basic libraries, error [0x%x]", rc);
+        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Failed to initialize all basic libraries, error [0x%x]", rc);
         return rc;
     }
 
@@ -615,26 +655,23 @@ ClRcT clEoSetup(void)
      */
     clOsalSigHandlerInitialize();
 
-    if (compName == NULL)
+    if (ASP_COMPNAME == NULL)
     {
         if (clEoWithOutCpm == CL_TRUE)
         {
-            clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-                  "This is an EO running without the CPM.");
+            clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "This is an EO running without the CPM.");
         }
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "The ASP_COMPNAME environment variable is not set");
+        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "The ASP_COMPNAME environment variable is not set.");
         return CL_ERR_NULL_POINTER;
     }
 
-    rc = clEoCreate(&clEoConfig, &pThis);
+    rc = clEoCreate(&eoConfig, &pThis);
     if (rc != CL_OK)
     {
         return rc;
     }
 
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
-          "Initializing client libraries...");
+    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing client libraries...");
     rc = clAspClientLibInitialize();
     if (rc != CL_OK)
     {
@@ -715,16 +752,14 @@ ClRcT clEoTearDown(void)
     rc = clEoEventExit();  
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN,
-              "Failed to release event related resources, error [0x%x]", rc);
+        clLog(CL_LOG_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Failed to release event related resources, error [0x%x]", rc);
     }
 
     clEoMyEoObjectGet(&pThis);
 
     clEoReceiverUnblock(pThis);
 
-    clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_FIN,
-          "Cleaning up EO layer...");
+    clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Cleaning up EO layer...");
     clLogUtilLibFinalize(clEoClientLibs[3]);
     /*
      * In case, the EO didn't have the gmslib flag,
@@ -732,21 +767,19 @@ ClRcT clEoTearDown(void)
      * could have initialized it indirectly
      */
     clGmsLibFinalize();
+
     if(pThis)
         clEoCleanup(pThis);
     
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN,
-          "Finalizing basic libraries...");
+    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Finalizing basic libraries...");
     rc = clAspBasicLibFinalize();
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
-              "Failed to finalize all basic libraries, error [0x%x]", rc);
+        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Failed to finalize all basic libraries, error [0x%x]", rc);
         return rc;
     }
 
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN,
-          "Finalizing essential libraries...");
+    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Finalizing essential libraries...");
     rc = clEoEssentialLibFinalize();
     if (rc != CL_OK)
     {
@@ -878,7 +911,7 @@ ClRcT clEoMain(ClInt32T argc, ClCharT *argv[])
     ++pThis->refCnt;
     clOsalMutexUnlock(&pThis->eoMutex);
 
-    rc = clEoConfig.clEoCreateCallout(argc, argv);
+    rc = eoConfig.clEoCreateCallout(argc, argv);
     if (rc != CL_OK)
     {
         clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
@@ -886,7 +919,7 @@ ClRcT clEoMain(ClInt32T argc, ClCharT *argv[])
         return rc;
     }
 
-    if(clEoConfig.appType == CL_EO_USE_THREAD_FOR_APP)
+    if(eoConfig.appType == CL_EO_USE_THREAD_FOR_APP)
     {
         clEoUnblock(pThis);
     }

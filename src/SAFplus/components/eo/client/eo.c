@@ -629,7 +629,7 @@ static ClRcT clEoJobQueueWMAction(ClEoExecutionObjT *pThis,
 
         CL_DEBUG_PRINT(CL_DEBUG_INFO, ("EO[%s]:LIB[%s]:The Action being triggered for "
                     "Water Mark[%d]->[%s] with the value [%lld]\n", 
-                    clEoConfig.EOname, LIB_NAME(pJob->libId), pJob->WMId, pJob->WMType? "HIGH_LIMIT" : "LOW_LIMIT", 
+                    ASP_COMPNAME, LIB_NAME(pJob->libId), pJob->WMId, pJob->WMType? "HIGH_LIMIT" : "LOW_LIMIT", 
                     wmValue));
 
         /*
@@ -638,14 +638,14 @@ static ClRcT clEoJobQueueWMAction(ClEoExecutionObjT *pThis,
         clLogCritical("EO", "WMH",  /* Water Mark Hit */
                 "EO[%s]:LIB[%s]:The Water Mark[%d]->[%s] has been hit"
                 "with the value [%lld]", 
-                clEoConfig.EOname, LIB_NAME(pJob->libId), pJob->WMId, 
+                ASP_COMPNAME, LIB_NAME(pJob->libId), pJob->WMId, 
                 (pJob->WMType? "HIGH_LIMIT" : "LOW_LIMIT"), wmValue);
 
         if(CL_TRUE == isCustomSet(pJob->libId, pJob->WMId))
         {
-            if(NULL != clEoConfig.clEoCustomAction)
+            if(NULL != eoConfig.clEoCustomAction)
             {
-                rc = clEoConfig.clEoCustomAction(pJob->libId, pJob->WMId, 
+                rc = eoConfig.clEoCustomAction(pJob->libId, pJob->WMId, 
                         &pJob->WMValues, pJob->WMType, pJob->WMActionArgList);
                 if (rc != CL_OK)
                 {
@@ -1274,10 +1274,9 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
         goto failure;
     }
 
-    clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "Creating EO for [%s]. Msg threads [%d] comm port [%d] main thread? [%d] ", pConfig->EOname,pConfig->noOfThreads,pConfig->reqIocPort,pConfig->appType);
+    clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "Creating EO for [%s]. Msg threads [%d] comm port [%d] main thread? [%d] ", ASP_COMPNAME,pConfig->noOfThreads,pConfig->reqIocPort,pConfig->appType);
 
-    if (pConfig->appType == CL_EO_USE_THREAD_FOR_APP &&
-        pConfig->noOfThreads == 0)
+    if (pConfig->appType == CL_EO_USE_THREAD_FOR_APP && pConfig->noOfThreads == 0)
     {
         rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
         clDbgRootCauseError(rc, ("Main thread is dedicated for application, but number of worker threads is configured as 0"));
@@ -1288,12 +1287,11 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
     if (*ppThis == NULL)
     {
         rc = CL_EO_RC(CL_ERR_NO_MEMORY);
-        clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
-                   "Memory allocation failed, error [0x%x]", rc);
+        clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "Memory allocation failed, error [0x%x]", rc);
         goto failure;
     }
 
-    strncpy((ClCharT *) (*ppThis)->name, (ClCharT *) pConfig->EOname, sizeof((*ppThis)->name)-1);
+    strncpy((ClCharT *) (*ppThis)->name, (ClCharT *) ASP_COMPNAME, sizeof((*ppThis)->name)-1);
 
 #ifdef CL_INCLUDE_NATIVE_IOC
     /*
@@ -1399,9 +1397,7 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
 
     if( CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST )
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
-                   "This EO [%s] instance is already running on this node"
-                   " exiting...", pConfig->EOname);
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "This component instance [%s] is already running on this node.   Exiting...", ASP_COMPNAME);
         /*
          * Do necessary cleanup 
          */
@@ -2586,12 +2582,6 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
 ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
 {
     ClRcT rc = CL_OK;
-
-    /*
-     * ClOsalTaskIdT taskId = 0;
-     */
-    int stateUpd = 0;
-
     CL_FUNC_ENTER();
 
     /*
@@ -2627,7 +2617,6 @@ ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
                 }
             }
             pThis->state = CL_EO_STATE_SUSPEND;
-            stateUpd = 1;
             break;
 
         case CL_EO_STATE_KILL:
@@ -2637,12 +2626,10 @@ ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
              */
 
             pThis->state = CL_EO_STATE_KILL;
-            stateUpd = 0;
 
             /*
              * Inform Component manager regarding state change 
              */
-
             clEoUnblock(pThis);
             break;
         case CL_EO_STATE_RESUME:
@@ -2661,12 +2648,10 @@ ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
                 }
             }
             pThis->state = CL_EO_STATE_ACTIVE;
-            stateUpd = 1;
             break;
         default:
             CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: STATE NOT PROPER \n"));
             return CL_EO_RC(CL_EO_ERR_IMPROPER_STATE);
-
             break;
     }
 
@@ -3747,20 +3732,17 @@ static ClRcT clEoPriorityQueuesInitialize(void)
             .maxThreads = 1,
         },
     };
-    /*
-    clEoConfig.needSerialization = CL_TRUE;
-    clEoConfig.noOfThreads = 1;
-    */
+
 #endif
 
-    if(clEoConfig.needSerialization == CL_TRUE)
+    if(eoConfig.needSerialization == CL_TRUE)
     {
         for(index = 0; index < sizeof(priorityQueues)/sizeof(priorityQueues[0]); ++index)
         {
             if(priorityQueues[index].priority != CL_IOC_NOTIFICATION_PRIORITY
                &&
                priorityQueues[index].priority != CL_IOC_ORDERED_PRIORITY)
-                priorityQueues[index].maxThreads = clEoConfig.noOfThreads;
+                priorityQueues[index].maxThreads = eoConfig.noOfThreads;
         }
     }
 
@@ -3893,7 +3875,6 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
     ClUint32T length;
     ClIocPhysicalAddressT srcAddr;
     ClBufferHandleT eoRecvMsg = 0;
-    ClUint32T portId;
     ClIocRecvOptionT recvOption = {0};
     ClIocRecvParamT recvParam = {0};
     ClPoolShrinkOptionsT shrinkOptions = { .shrinkFlags = CL_POOL_SHRINK_ALL };
@@ -3904,15 +3885,13 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
 
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n EO: Improper reference to EO Object \n"));
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: Improper reference to EO Object \n"));
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
     /*
      * Get commport ID to set the commport in the EO Area 
      */
-    portId = (ClUint32T) pThis->eoPort;
     rc = clEoMyEoIocPortSet(pThis->eoPort);
     if (rc != CL_OK)
     {

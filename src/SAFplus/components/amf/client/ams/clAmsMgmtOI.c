@@ -1,4 +1,4 @@
-
+#if 0
 #include <clAmsMgmtOI.h>
 
 /*
@@ -913,3 +913,4 @@ ClRcT clAmsMgmtOIExtendedIndexPut(ClAmsMgmtOIExtendedClassTypeT type, ClCorInsta
      */
     return CL_OK;
 }
+#endif

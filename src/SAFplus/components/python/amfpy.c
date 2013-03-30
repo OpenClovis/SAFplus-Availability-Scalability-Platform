@@ -72,6 +72,7 @@ ClBoolT unblockNow = CL_FALSE;
 #define COMP_EO_NAME    getenv(ASP_COMPNAME)
 static ClRcT clCompAppHealthCheck(ClEoSchedFeedBackT* schFeedback);
 
+#if 0
 ClEoConfigT clEoConfig =
 {
     "3RD_PARTY_COMP",               /* EO Name                                  */
@@ -85,8 +86,6 @@ ClEoConfigT clEoConfig =
     NULL,       /* Application State Change Callback        */
     NULL,       /* Application Health Check Callback        */
 };
-
-
 /*
  * Basic libraries used by this EO. The first 6 libraries are
  * mandatory, the others can be enabled or disabled by setting to
@@ -121,6 +120,7 @@ ClUint8T clEoClientLibs[] =
     CL_FALSE,    /*     COMP_EO_CLIENTLIB_GMS,        Lib: Cluster/Group Membership Service    */
     CL_FALSE
 };
+#endif
 
 /*
  * clCompAppAMFPrintCSI

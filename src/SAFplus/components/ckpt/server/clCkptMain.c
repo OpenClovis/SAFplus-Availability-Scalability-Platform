@@ -59,7 +59,6 @@ ClVersionT  gVersion;
  
 ClEoConfigT clEoConfig = 
 {
-    "CKP",                      /* EO Name */
     1,                          /* Thread priority */ 
     CL_CKPT_MAX_NUM_THREADS,   /* No of EO threads */
     CL_IOC_CKPT_PORT,           /* Ioc port no. */
@@ -128,6 +127,17 @@ ClCharT *clCkptLogMsg[]=
     "Improper data :%s",
     "NULL"
 };
+
+
+ClInt32T main(ClInt32T argc, ClCharT *argv[])
+{
+    ClRcT rc = CL_OK;
+
+    clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
+    rc = clEoInitialize(argc, argv);
+
+    return (CL_OK != rc);
+}
 
 
 /*

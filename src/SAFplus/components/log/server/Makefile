@@ -63,11 +63,11 @@ SRC_FILES := clLogStreamOwnerEo.c \
              $(wildcard $(LOG_PATH)/idl/App/client/*.c)\
              $(wildcard $(LOG_PATH)/common/*.c)\
 #           clLogEvt.c             
-				 
+
 # Other ASP components on which asp_logd depends on 
 
-DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo amf idl name ckpt dbal \
-                    debug log cnt event cor gms
+DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo idl name ckpt dbal debug log cnt event gms
+
 EXTRA_CPPFLAGS	+= -DCL_DEBUG
 # Needed to run with P=1, could have added to make-common but then all other exes' size would have
 #increased
@@ -81,19 +81,13 @@ ASP_LIBS	:= libClTimer.a  		\
 			   libClEo.a 			\
 			   libClRmd.a 			\
 			   libClUtils.a 		\
-			   libClAmfClient.a 	\
 			   libClCkpt.a 			\
-			   libClDbal.a 			\
 			   libClDebugClient.a 	\
-			   libClCorClient.a 	\
-			   libClEventClient.a 	\
 			   libClIdl.a 			\
 			   libClIdlPtr.a 			\
 			   libClNameClient.a 	\
-			   libClGms.a 			\
-			   libClLogClient.a 	\
-			   libClMain.a
-                   
+			   libClLogClient.a
+
 # Third party libs needed to get asp_logd built:
 
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
@@ -106,7 +100,7 @@ CPPFLAGS +=  -I ../common/
 CPPFLAGS +=  -I ../include/
 CPPFLAGS +=  -I ../
 EXTRA_CPPFLAGS  := -DCL_DEBUG_START
-	
+
 # System libraries needed to get asp_logd built:
 
 # Executable name:

@@ -447,7 +447,9 @@ static void cpmDeAllocate(void)
     clOsalMutexDelete(gpClCpm->eoListMutex);
     if (gpClCpm->nodeMoId)
     {
+#ifdef USE_COR        
         clCorMoIdFree(gpClCpm->nodeMoId);
+#endif        
         gpClCpm->nodeMoId = NULL;
     }
     if (gpClCpm->invocationTable)
@@ -4181,7 +4183,6 @@ failure:
 
 ClEoConfigT clEoConfig =
 {
-    CL_CPM_EO_NAME,
     CL_OSAL_THREAD_PRI_MEDIUM,
     1,
     CL_IOC_CPM_PORT,

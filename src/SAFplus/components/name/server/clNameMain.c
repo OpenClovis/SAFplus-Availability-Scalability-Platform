@@ -5486,7 +5486,6 @@ void invokeWalkForDelete(ClNameSvcDeregisInfoT *walkData)
 
                                                                                                                              
 ClEoConfigT clEoConfig = {
-    "NAM", 
     1,     
     2,     
     CL_IOC_NAME_PORT,
@@ -5527,4 +5526,14 @@ ClUint8T clEoClientLibs[] = {
     CL_FALSE,    		/* gms */
     CL_FALSE,    		/* pm */
 };
+
+ClInt32T main(ClInt32T argc, ClCharT *argv[])
+{
+    ClRcT rc = CL_OK;
+
+    clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
+    rc = clEoInitialize(argc, argv);
+
+    return (CL_OK != rc);
+}
 

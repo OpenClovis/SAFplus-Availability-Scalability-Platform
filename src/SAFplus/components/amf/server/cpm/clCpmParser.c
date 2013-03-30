@@ -1086,9 +1086,10 @@ void cpmCompDelete(ClCntKeyHandleT userKey, ClCntDataHandleT userData)
     if (((ClCpmComponentT *) userData)->cpmProxiedCleanupTimerHandle != 0)
         clTimerDelete(&((ClCpmComponentT *) userData)->
                       cpmProxiedCleanupTimerHandle);
-
+#ifdef USE_COR
     if (((ClCpmComponentT *) userData)->compMoId)
         clCorMoIdFree(((ClCpmComponentT *) userData)->compMoId);
+#endif    
     clHeapFree((ClCpmComponentT *) userData);
 }
 

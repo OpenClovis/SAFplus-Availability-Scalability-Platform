@@ -395,7 +395,6 @@ extern ClRcT clEoIocPortNotification(
                            );
 #endif
 
-extern ClRcT clEoInitialize(ClInt32T argc, ClCharT *argv[]);
 
 extern ClRcT clASPInitialize(void);
 

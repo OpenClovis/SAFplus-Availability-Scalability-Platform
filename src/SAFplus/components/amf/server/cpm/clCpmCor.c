@@ -53,6 +53,8 @@
 
 ClRcT cpmCorMoIdToMoIdNameGet(ClCorMOIdT *moId, ClNameT *moIdName)
 {
+#ifdef USE_COR
+    
     ClRcT rc = CL_OK;
     if(cpmIsAspSULoaded("corSU"))
     {
@@ -68,11 +70,16 @@ ClRcT cpmCorMoIdToMoIdNameGet(ClCorMOIdT *moId, ClNameT *moIdName)
         memset(moIdName, 0, sizeof(*moIdName));
     }
     return rc;
+#else
+    return CL_ERR_NOT_SUPPORTED;    
+#endif    
 }
 
                             // coverity[pass_by_value]
 ClRcT cpmCorNodeObjectCreate(ClNameT nodeMoIdName)
 {
+#ifdef USE_COR
+    
     ClRcT rc = CL_OK;
     ClCorMOIdT nodeMoId = {{{0}}};
     ClCorObjectHandleT objH;
@@ -114,6 +121,9 @@ ClRcT cpmCorNodeObjectCreate(ClNameT nodeMoIdName)
 
 failure:
     return rc;
+#else
+    return CL_ERR_NOT_SUPPORTED;    
+#endif       
 }
 
 /* 
