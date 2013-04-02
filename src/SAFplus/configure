@@ -982,6 +982,7 @@ $(ls -1 $CL_BUILDTOOLS | grep -v local | awk '{print "\t\t\t\t", $1}')
   --with-asp-simulation  Build the SAFplus for running in simulation, 
                          i.e. running many instances of SAFplus on a single
                          machine.
+  --with-prebuild         Build the SAFplus with previous configuration
    
   --with-tipc-build=(yes|no)   
                          Build with/without TIPC transport support.
@@ -1640,6 +1641,16 @@ if [ "${ASP_BUILD}" = 1 ]; then
     echo "Building a local copy of SAFplus libraries"
 fi
 
+# Check whether config with previous configuration
+if [ "${with_prebuild+set}" = set ]; then
+    if [ ! -f $PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf ]; then
+        echo "ERROR : $ASP_MODEL_NAME/build/local/configure.conf not found ."
+        echo "        Can not configure using --with-prebuild option"        
+        exit 1
+    else
+        source $PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf
+    fi
+fi
 
 sdk_tag=sdk-$PACKAGE_VERSION
 
@@ -8568,6 +8579,55 @@ fi
 if [ "$CROSS_BUILD" == "0" ]; then
     CROSS_BUILD=local
 fi
+
+
+
+# write to configure.conf file
+rm -f $PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf
+
+if [ "$SAFPLUS_BUILD_PYTHON"="1" ]; then
+    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
+export SAFPLUS_BUILD_PYTHON=1
+_ACEOF
+fi
+
+if [ "$SAFPLUS_BUILD_JAVA" = "1" ]; then
+    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
+export SAFPLUS_BUILD_JAVA=1
+_ACEOF
+fi
+
+if [ "$SAFPLUS_BUILD_CPP" = "1" ]; then
+    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
+export SAFPLUS_BUILD_CPP=1
+_ACEOF
+fi
+
+
+if [ "$CM_BUILD" = "1" ]; then
+    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
+export CM_BUILD=1
+_ACEOF
+fi
+
+if [ "$HPI_OPENHPI" = "1" ]; then
+    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
+export HPI_OPENHPI=1
+_ACEOF
+fi
+
+if [ "$HPI_EMERSON" = "1" ]; then
+    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
+export HPI_EMERSON=1
+_ACEOF
+fi
+
+if [ "$HCL_CM" = "1" ]; then
+    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
+export HCL_CM=1
+_ACEOF
+fi
+
 
 if [ ! -z $ASP_MODEL_NAME ]; then
     if [ "$ASP_MODEL_NAME" == "asp" ]; then
