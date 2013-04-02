@@ -8583,7 +8583,9 @@ fi
 
 
 # write to configure.conf file
-rm -f $PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf
+if [ -f $PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf ]; then
+    rm -f $PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf
+fi
 
 if [ "$SAFPLUS_BUILD_PYTHON"="1" ]; then
     cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
