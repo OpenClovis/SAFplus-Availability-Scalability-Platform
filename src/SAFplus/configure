@@ -970,7 +970,7 @@ $(ls -1 $CL_BUILDTOOLS | grep -v local | awk '{print "\t\t\t\t", $1}')
                          Specifies whether GMS traffic runs over TIPC or UDP.
                          Default: tipc
 
-  --with-python-build
+  --with-python-build                        
   --with-java-build
   --with-cpp-build
                          Build support libraries for the specified language
@@ -1567,7 +1567,6 @@ if [ "${with_cpp_build+set}" = set ]; then
     export SAFPLUS_BUILD_CPP=1
 fi
 
-
 # Check whether --with-asp-build was specified
 if [ "${with_asp_build+set}" = set ]; then
     export ASP_BUILD=1
@@ -2123,6 +2122,31 @@ fi
 
 #Checking For Version of GCC compiler
 echo "Testing for Build TOOLS"
+if [ "${SAFPLUS_BUILD_JAVA}" = 1 ]; then
+    echo "Build with Java languge"    
+    if which javac >/dev/null 2>&1 ; then
+        echo "checking for Javac... yes"
+    else
+        echo "checking for Javac... no"
+        echo "ERROR : Javac not installed.Please install java and re-configure"                
+        exit 1
+    fi      
+fi
+if [ "${SAFPLUS_BUILD_PYTHON}" = 1 ]; then
+    echo "Build with python languge"
+    INCLUDE_PY=$(python -c "from distutils import sysconfig as s; print s.get_config_vars()['INCLUDEPY']")
+    if [ ! -f "${INCLUDE_PY}/Python.h" ]; then
+        echo "checking for python-dev...no"
+        echo "ERROR: python-devel not installed. Please install python-dev and re-configure" 
+        exit 1
+    else
+         echo "checking for python-dev...yes"
+    fi
+fi
+if [ "${SAFPLUS_BUILD_CPP}" = 1 ]; then
+    echo "Build with cpp languge"
+fi
+
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
