@@ -1931,6 +1931,23 @@ static void cpmInstallNodeInfo(void)
     if(rc != CL_OK)
     {
         clLogError("NODE", "INSTALL", "Installing node info returned with [%#x]", rc);
+        /*
+         * Check if the install failed because the leader view was inconsistent
+         * assuming the deputy was elected as the leader
+         */
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_BAD_OPERATION)
+        {
+            static ClTimerTimeOutT delay = {.tsSec = 2 };
+            clLogNotice("NODE", "RESTART", 
+                        "Restarting node [%s] since the leadership view "
+                        "seems to be inconsistent. Try increasing bootElectionTimeout "
+                        "in clGmsConfig.xml for this node.", clCpmNodeName);
+            cpmRestart(&delay, "worker");
+            /*
+             * Unreached actually
+             */
+            CL_ASSERT(0);
+        }
         goto out_close;
     }
     
