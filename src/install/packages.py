@@ -420,8 +420,7 @@ class OS:
                           'cd ${ECLIPSE}/cdt',
                           'tar xvf ${THIRDPARTYPKG} %s' % CDT.pkg_name,
                           'unzip -qq -o -u %s' % CDT.pkg_name,
-                          'mkdir -p ${ECLIPSE}/dropins/cdt', 
-                          '${WORKING_DIR}/src/install/cdt.sh ${ECLIPSE}/cdt ${ECLIPSE}/dropins/cdt',
+                          '${WORKING_DIR}/src/install/cdt.sh ${ECLIPSE} ${ECLIPSE}/cdt >/dev/null 2>&1',
                           'rm -rf ${ECLIPSE}/cdt',
                           'rm -f %s' % CDT.pkg_name]
 

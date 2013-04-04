@@ -1347,8 +1347,11 @@ class ASPInstaller:
         cmds.append('mv -f %s/plugins/* %s/plugins >/dev/null 2>&1' % (self.IDE_ROOT,self.ECLIPSE))
         cmds.append('rm -rf %s/plugins' % self.IDE_ROOT)
 
-        # update config.ini        
+        # update config.ini
         cmds.append('cp -rf %s/scripts/config.ini %s/configuration' % (self.IDE_ROOT,self.ECLIPSE))
+
+        # initialize private configuration
+        cmds.append('%s/eclipse -initialize' % self.ECLIPSE)
 
         self.run_command_list(cmds)
 
