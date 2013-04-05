@@ -21,8 +21,8 @@
 #   cl-ide
 #
 ##############################################################################
-
 CL_SDK=%CL_SDK
+CL_SDK_RELEASE=%CL_SDK_RELEASE
 CL_SDKDIR=%CL_SDKDIR
 CL_BUILDTOOLS=`dirname $CL_SDKDIR`/buildtools
 CL_ECLIPSEDIR=%{CL_ECLIPSEDIR}
@@ -124,18 +124,17 @@ feedback 1 "Eclipse directory:          $ECLIPSE"
 #         point there if it does.
 #
 ##############################################################################
-
-# Create ~/.clovis/sdk/eclipse if it does not yet exist
-
+# Create ~/.clovis/sdk/$CL_SDK_RELEASE/eclipse if it does not yet exist
 DOTDIR=$HOME/.clovis
 
-if [ ! -f $DOTDIR/$CL_SDK/eclipse ]; then
-    mkdir -p $DOTDIR/$CL_SDK/eclipse
+if [ ! -f $DOTDIR/$CL_SDK/$CL_SDK_RELEASE/eclipse ]; then
+    mkdir -p $DOTDIR/$CL_SDK/$CL_SDK_RELEASE/eclipse
     if [ $? -ne 0 ]; then
-        echo "[ERROR] Could not create $DOTDIR/$CL_SDK/eclipse. Check permissions."
+        echo "[ERROR] Could not create $DOTDIR/$CL_SDK/$CL_SDK_RELEASE/eclipse. Check permissions."
     fi
-    feedback 1 "Created $DOTDIR/$CL_SDK/eclipse directory"
+    feedback 1 "Created $DOTDIR/$CL_SDK/$CL_SDK_RELEASE/eclipse directory"
 fi
+
 ##############################################################################
 #
 # Step 4: Launch Eclipse with the IDE
@@ -152,7 +151,7 @@ export PATH=$CL_BUILDTOOLS/local/bin:$PATH
 
 APPLICATION_NAME=org.eclipse.ui.ide.workbench
 PERSPECTIVE=com.clovis.cw.ui.CWPerspective
-CMD_ARGS="-application $APPLICATION_NAME -perspective $PERSPECTIVE -configuration $DOTDIR/$CL_SDK/eclipse"
+CMD_ARGS="-application $APPLICATION_NAME -perspective $PERSPECTIVE -configuration $DOTDIR/$CL_SDK/$CL_SDK_RELEASE/eclipse"
 
 feedback 1 "Staring eclipse as:"
 feedback 1 "    $CL_ECLIPSEDIR/eclipse $CMD_ARGS $@"
