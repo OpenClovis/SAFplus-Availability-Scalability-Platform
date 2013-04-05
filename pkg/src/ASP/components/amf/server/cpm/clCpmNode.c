@@ -1974,6 +1974,7 @@ void cpmRegisterWithActive(void)
         "using the same GMS port as yours. \n";
     ClInt32T tries = 0;
     ClGmsNodeIdT leaderNode = CL_GMS_INVALID_NODE_ID;
+    static ClTimerTimeOutT delay = { .tsSec = 3, .tsMilliSec = 0 };
 
     cpmBmRespTimerStop();
 
@@ -2107,9 +2108,10 @@ void cpmRegisterWithActive(void)
                         goto invalid_state;
 
                     clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-                                  "CPM/G standby/Worker blade registration "
+                                  "CPM/G Standby/Worker blade registration "
                                   "with the CPM/G active failed, error [%#x]",
                                   rc1);
+                    rc = rc1;
                     goto failure;
                 }
                 else
@@ -2126,7 +2128,6 @@ void cpmRegisterWithActive(void)
     {
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_STATE)
         {
-            static ClTimerTimeOutT delay = { .tsSec = 3, .tsMilliSec = 0 };
             invalid_state:
             clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
                           "This node failed to register with master because of invalid state. "
@@ -2164,6 +2165,18 @@ void cpmRegisterWithActive(void)
     return;
     
     failure:
+    /*
+     * If the registration hit the standby instead of master,
+     * then its likely that standby hadn't installed the tables for 
+     * getting node config. Try a restart
+     */
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_VERSION_MISMATCH)
+    {
+        cpmRestart(&delay, "registration");
+        /*
+         * Unreached
+         */
+    }
     cpmSelfShutDown();
 }
 
