@@ -36,9 +36,14 @@ export SNMP_BUILD=@SNMP_BUILD@
 export CM_BUILD=@CM_BUILD@
 export BUILD_TIPC=@BUILD_TIPC@
 export OPENHPILIBS=@OPENHPILIBS@
+export HCL_CM=@HCL_CM@
+export HPI_EMERSON=@HPI_EMERSON@
+export HPI_OPENHPI=@HPI_OPENHPI@
+export SAFPLUS_BUILD_PYTHON=@SAFPLUS_BUILD_PYTHON@
+export SAFPLUS_BUILD_JAVA=@SAFPLUS_BUILD_JAVA@
+export SAFPLUS_BUILD_CPP=@SAFPLUS_BUILD_CPP@
 export OPENHPICFLAGS=@OPENHPICFLAGS@
 export CL_INST=@CL_INST@
-export HCL_CM=@HCL_CM@
 export TOOLCHAIN_DIR=@TOOLCHAIN_DIR@
 export ASP_BUILD=@ASP_BUILD@
 export MODEL_BUILD=@MODEL_BUILD@
@@ -50,6 +55,7 @@ export ASP_LIBDIR=$(ASP_INSTALLDIR)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)
 export TARGET_QNX=@TARGET_QNX@
 export TARGET_SOLARIS=@TARGET_SOLARIS@
 export OPENAIS_TIPC=@OPENAIS_TIPC@
+
 
 #ifdef ModelOnly # Once you've compiled everything once, you can use "make ModelOnly=1" to rebuild just your model
 #SUBDIRS          = $(MODEL_PATH)/app
@@ -87,12 +93,25 @@ include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
 
 .PHONY: label_build erase_label
 
-all: label_build
+all: label_build 
 
-clean: erase_label
+clean: erase_label 
 
 label_build:
+
 	$(CLOVIS_ROOT)/ASP/build/prerequisites/scripts/label_build.sh
+	if [ -f @CLOVIS_ROOT@/../prebuild/configure.conf ] ; \
+then \
+	rm -f @CLOVIS_ROOT@/../prebuild/configure.conf ; \
+fi;
+	@echo "export CM_BUILD=@CM_BUILD@\nexport HCL_CM=@HCL_CM@\nexport HPI_EMERSON=@HPI_EMERSON@\nexport HPI_OPENHPI=@HPI_OPENHPI@\nexport SAFPLUS_BUILD_PYTHON=@SAFPLUS_BUILD_PYTHON@\nexport 	SAFPLUS_BUILD_JAVA=@SAFPLUS_BUILD_JAVA@\nexport SAFPLUS_BUILD_CPP=@SAFPLUS_BUILD_CPP@" > @CLOVIS_ROOT@/../prebuild/configure.conf
+	if [ -f @CLOVIS_ROOT@/../prebuild/configure.conf ] ; \
+then \
+	chmod 777 @CLOVIS_ROOT@/../prebuild/configure.conf ; \
+	chmod 777 @CLOVIS_ROOT@/../prebuild ; \
+fi;
+	
+	    
 
 erase_label:
 	$(CLOVIS_ROOT)/ASP/build/prerequisites/scripts/label_build.sh CLEAN

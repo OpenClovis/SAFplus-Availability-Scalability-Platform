@@ -639,10 +639,30 @@ def set_ld_library_paths():
 
     os.putenv('LD_LIBRARY_PATH', v)
 
+def checkTipc(): 
+    p = os.path.dirname(os.path.realpath(__file__))
+    p = os.path.split(p)[0]      
+    filePath = p + '/etc/clTransport.xml' 
+    searchfile = open(filePath, "r")
+    res=False
+    for line in searchfile:
+        if ("TIPC" in line) and ("node name" in line): 
+            res= True
+    searchfile.close()
+    return res
+
+def is_tipc_build(val=None):
+    if val is None:
+        val = asp_env['build_tipc']
+    res = checkTipc()
+    return (bool(int(val)) and res)
+
+
+
 def config_tipc_module():
     if not is_tipc_build():
+        log.warning('Transport protocal : UDP only')
         return
-
     tipc_netid = get_asp_tipc_netid()
     node_addr = get_asp_node_addr()
     link_name = get_asp_link_name()

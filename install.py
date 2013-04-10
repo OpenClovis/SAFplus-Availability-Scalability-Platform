@@ -1279,7 +1279,7 @@ class ASPInstaller:
         if not os.path.exists(self.BIN_ROOT): os.makedirs(self.BIN_ROOT)
         if not os.path.exists(self.LIB_ROOT): os.makedirs(self.LIB_ROOT)
 
-        applyTemplate("%s/templates/bin/cl-ide.in" % self.WORKING_DIR, "%s/cl-ide" % self.BIN_ROOT, {"CL_SDK":self.PACKAGE_NAME,"CL_SDKDIR":self.PACKAGE_ROOT,"CL_ECLIPSEDIR":self.ECLIPSE })
+        applyTemplate("%s/templates/bin/cl-ide.in" % self.WORKING_DIR, "%s/cl-ide" % self.BIN_ROOT, {"CL_SDK":self.PACKAGE_NAME,"CL_SDKDIR":self.PACKAGE_ROOT,"CL_ECLIPSEDIR":self.ECLIPSE, "CL_SDK_RELEASE":self.ASP_VERSION})
 
        #         """sed -e "s;@SDKDIR@;$ESC_PKG_ROOT;g"
        #         -e "s;@ECLIPSE@;$ESC_ECLIPSE_DIR;g"
@@ -1347,16 +1347,20 @@ class ASPInstaller:
         cmds.append('mv -f %s/plugins/* %s/plugins >/dev/null 2>&1' % (self.IDE_ROOT,self.ECLIPSE))
         cmds.append('rm -rf %s/plugins' % self.IDE_ROOT)
 
-        # update config.ini        
+        # update config.ini
         cmds.append('cp -rf %s/scripts/config.ini %s/configuration' % (self.IDE_ROOT,self.ECLIPSE))
+
+        # initialize private configuration
+        cmds.append('%s/eclipse -initialize' % self.ECLIPSE)
 
         self.run_command_list(cmds)
 
         # Delete help cache if the build we are installing is newer than
         # the build we last installed
         assert self.CACHE_DIR
-        VERSION_CACHE = '%s/eclipse/VERSION' % self.CACHE_DIR
         NOW_VERSION = '%s/VERSION' % self.PACKAGE_ROOT
+        ECLIPSE_CACHE_DIR = '%s/%s/eclipse' % (self.CACHE_DIR, self.ASP_VERSION)
+        VERSION_CACHE = '%s/VERSION' % ECLIPSE_CACHE_DIR
 
         # is there a cache?
         if os.path.isfile(VERSION_CACHE):
@@ -1386,14 +1390,13 @@ class ASPInstaller:
                     self.run_cmd_list(cmds)
 
         else:
-            ECLIPSE_CACHE_DIR = os.path.join(self.CACHE_DIR, 'eclipse')
             if not os.path.isdir(ECLIPSE_CACHE_DIR):
                 ret = cli_cmd('mkdir -p %s' % ECLIPSE_CACHE_DIR)
                 if ret != 0:
                     self.feedback('[ERROR] Could not create "%s". Check permissions.' % ECLIPSE_CACHE_DIR, True)
                 self.feedback('Created "%s" directory' % ECLIPSE_CACHE_DIR)
 
-            cmds = ['cp $PACKAGE_ROOT/VERSION $CACHE_DIR/eclipse/.',
+            cmds = ['cp $PACKAGE_ROOT/VERSION %s' % VERSION_CACHE,
                     'rm -rf $CACHE_DIR/eclipse/org.eclipse.help.base']
             self.run_command_list(cmds)
 

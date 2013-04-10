@@ -358,7 +358,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT AWK CPP LN_S SET_MAKE RANLIB ac_ct_RANLIB EGREP LIBOBJS ASP_MODEL_NAME CLOVIS_ROOT BUILD_ROOT OPENHPICFLAGS OPENHPILIBS LDEMULATION SNMP_BUILD CROSS_FLAG CROSS_BUILD PREFIX CM_BUILD CL_TARGET_PLATFORM CL_TARGET_OS KERNEL_FLAG KERNEL LTLIBOBJS ASP_BUILD ASP_INSTALLDIR sdk_dir MODEL_BUILD ASP_SIMULATION ASP_VALGRIND_CMD PACKAGE_VERSION TARGET_QNX TARGET_SOLARIS BUILD_TIPC SAFPLUS_BUILD_PYTHON SAFPLUS_BUILD_JAVA SAFPLUS_BUILD_CPP'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT AWK CPP LN_S SET_MAKE RANLIB ac_ct_RANLIB EGREP LIBOBJS ASP_MODEL_NAME CLOVIS_ROOT BUILD_ROOT OPENHPICFLAGS OPENHPILIBS LDEMULATION SNMP_BUILD CROSS_FLAG CROSS_BUILD PREFIX CM_BUILD HCL_CM HPI_EMERSON HPI_OPENHPI CL_TARGET_PLATFORM CL_TARGET_OS KERNEL_FLAG KERNEL LTLIBOBJS ASP_BUILD ASP_INSTALLDIR sdk_dir MODEL_BUILD ASP_SIMULATION ASP_VALGRIND_CMD PACKAGE_VERSION TARGET_QNX TARGET_SOLARIS BUILD_TIPC SAFPLUS_BUILD_PYTHON SAFPLUS_BUILD_JAVA SAFPLUS_BUILD_CPP'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1641,19 +1641,7 @@ if [ "${ASP_BUILD}" = 1 ]; then
     echo "Building a local copy of SAFplus libraries"
 fi
 
-# Check whether config with previous configuration
-if [ "${with_prebuild+set}" = set ]; then
-    if [ ! -f $PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf ]; then
-        echo "ERROR : $ASP_MODEL_NAME/build/local/configure.conf not found ."
-        echo "        Can not configure using --with-prebuild option"        
-        exit 1
-    else
-        source $PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf
-    fi
-fi
-
 sdk_tag=sdk-$PACKAGE_VERSION
-
 if [ $MODEL_BUILD = 1 ]; then
     if [ ! -d $MODEL_PATH ]; then
         echo ""
@@ -1922,6 +1910,18 @@ if [ "${with_binary_mode+set}" = set ]; then
         export CL_BINMODE=32
     else
         export CL_BINMODE=default
+    fi
+fi
+
+
+if [ "${ASP_BUILD}" = 0 ]; then
+    echo "find configure.conf file in prebuild"
+    if [ ! -f $sdk_dir/prebuild/configure.conf ]; then
+        echo "WARNING : $sdk_dir/prebuild/configure.conf not found ."
+        echo "        Can not configure using prebuild configuration"                
+    else
+        echo "Load prebuild configuration"
+        source $sdk_dir/prebuild/configure.conf
     fi
 fi
 
@@ -8310,6 +8310,9 @@ s,@CROSS_FLAG@,$CROSS_FLAG,;t t
 s,@CROSS_BUILD@,$CROSS_BUILD,;t t
 s,@PREFIX@,$PREFIX,;t t
 s,@CM_BUILD@,$CM_BUILD,;t t
+s,@HPI_OPENHPI@,$HPI_OPENHPI,;t t
+s,@HPI_EMERSON@,$HPI_EMERSON,;t t
+s,@HCL_CM@,$HCL_CM,;t t
 s,@ASP_SIMULATION@,$ASP_SIMULATION,;t t
 s,@ASP_VALGRIND_CMD@,$ASP_VALGRIND_CMD,;t t
 s,@CL_BINMODE@,$CL_BINMODE,;t t
@@ -8579,57 +8582,6 @@ fi
 if [ "$CROSS_BUILD" == "0" ]; then
     CROSS_BUILD=local
 fi
-
-
-
-# write to configure.conf file
-if [ -f $PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf ]; then
-    rm -f $PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf
-fi
-
-if [ "$SAFPLUS_BUILD_PYTHON"="1" ]; then
-    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
-export SAFPLUS_BUILD_PYTHON=1
-_ACEOF
-fi
-
-if [ "$SAFPLUS_BUILD_JAVA" = "1" ]; then
-    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
-export SAFPLUS_BUILD_JAVA=1
-_ACEOF
-fi
-
-if [ "$SAFPLUS_BUILD_CPP" = "1" ]; then
-    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
-export SAFPLUS_BUILD_CPP=1
-_ACEOF
-fi
-
-
-if [ "$CM_BUILD" = "1" ]; then
-    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
-export CM_BUILD=1
-_ACEOF
-fi
-
-if [ "$HPI_OPENHPI" = "1" ]; then
-    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
-export HPI_OPENHPI=1
-_ACEOF
-fi
-
-if [ "$HPI_EMERSON" = "1" ]; then
-    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
-export HPI_EMERSON=1
-_ACEOF
-fi
-
-if [ "$HCL_CM" = "1" ]; then
-    cat >>$PROJECT_ROOT/$ASP_MODEL_NAME/build/local/configure.conf <<\_ACEOF
-export HCL_CM=1
-_ACEOF
-fi
-
 
 if [ ! -z $ASP_MODEL_NAME ]; then
     if [ "$ASP_MODEL_NAME" == "asp" ]; then

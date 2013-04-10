@@ -316,7 +316,7 @@ class OS:
         
         JRE = objects.BuildDep()
         JRE.name           = 'JRE'
-        JRE.version        = 'Java7'
+        JRE.version        = '1.7.0_17'
         JRE.pkg_name       = 'jre-7u17-linux-i586.tar.gz'
         if self.bit == 64:
             JRE.pkg_name       = 'jre-7u17-linux-x64.tar.gz'
@@ -352,6 +352,7 @@ class OS:
         initial_commands = ['cd ${IDE_ROOT}',
                           'tar xf ${THIRDPARTYPKG} %s' % ECLIPSE.pkg_name,
                           'tar zxf %s' % ECLIPSE.pkg_name,
+                          'ln -s ${PREFIX}/jre%s ${ECLIPSE}/jre' % JRE.version,
                           'rm -f %s' % ECLIPSE.pkg_name]
 
         ECLIPSE.build_cmds = [';'.join(initial_commands)]
@@ -420,8 +421,7 @@ class OS:
                           'cd ${ECLIPSE}/cdt',
                           'tar xvf ${THIRDPARTYPKG} %s' % CDT.pkg_name,
                           'unzip -qq -o -u %s' % CDT.pkg_name,
-                          'mkdir -p ${ECLIPSE}/dropins/cdt', 
-                          '${WORKING_DIR}/src/install/cdt.sh ${ECLIPSE}/cdt ${ECLIPSE}/dropins/cdt',
+                          '${WORKING_DIR}/src/install/cdt.sh ${ECLIPSE} ${ECLIPSE}/cdt >/dev/null 2>&1',
                           'rm -rf ${ECLIPSE}/cdt',
                           'rm -f %s' % CDT.pkg_name]
 

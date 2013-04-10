@@ -273,10 +273,9 @@ ClRcT VDECL_VER(clMsgMessageReceived, 4, 0, 0)(ClMsgMessageSendTypeT sendType, C
 
     ClIocPhysicalAddressT srcAddr;
     rc = clRmdSourceAddressGet(&srcAddr);
-    clLogDebug("MSG", "RCV", "Queue [%.*s] receiving message [%.*s] from [0x%x,0x%x]."
-                             , pDest->length, pDest->value
-                             , (ClInt32T)pMessage->size, (ClUint8T *)pMessage->data
-                             , srcAddr.nodeAddress, srcAddr.portId);
+    clLogTrace("MSG", "RCV", "Queue [%.*s] receiving message of size [%d] from [0x%x,0x%x].",
+               pDest->length, pDest->value,
+               (ClInt32T)pMessage->size, srcAddr.nodeAddress, srcAddr.portId);
 
     /* Reply for saMsgSendReceiveMessage() is received. */
     if(sendType == CL_MSG_REPLY_SEND)
