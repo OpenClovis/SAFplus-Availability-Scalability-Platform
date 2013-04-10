@@ -399,9 +399,7 @@ extern ClRcT clEoIocPortNotification(
 extern ClRcT clASPInitialize(void);
 
 extern ClRcT clASPFinalize(void);
-
-extern ClRcT clEoMain(ClInt32T argc, ClCharT *argv[]);
-
+    
 extern ClRcT clEoLibLog(ClUint32T libId,ClUint32T severity, const ClCharT *msg, ...);
 
 extern void clEoNodeRepresentativeDeclare(const ClCharT *pNodeName);

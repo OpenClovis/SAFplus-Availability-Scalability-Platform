@@ -66,8 +66,40 @@ extern void clEoCleanup(ClEoExecutionObjT* pThis);
 extern void clEoReceiverUnblock(ClEoExecutionObjT *pThis);
 extern ClRcT clEoPriorityQueuesFinalize(ClBoolT force);
 extern void clLoadEnvVars();
-extern ClUint32T clEoWithOutCpm; 
-extern ClInt32T clAspLocalId;
+
+/*
+ * Local and master addresses. 
+ */
+extern ClUint32T clAspLocalId; /* Defined in utils */
+ClUint32T clEoWithOutCpm;
+
+/** Name of the node.  Loaded from the same-named environment variable.  */
+ClCharT ASP_NODENAME[CL_MAX_NAME_LENGTH]="";
+/** Name of the component.  Loaded from the same-named environment variable.  */
+ClCharT ASP_COMPNAME[CL_MAX_NAME_LENGTH]="";
+/** Address of the node.  This is the slot number in chassis-based system.  This is loaded from the same-named environment variable, and defined in asp.conf.  On chassis-based systems it is expected that a script determine the proper slot number and set this environment variable accordingly (removing it from asp.conf).   */
+ClWordT ASP_NODEADDR = ~((ClWordT) 0);
+
+/** Working dir where programs are run. Loaded from the same-named environment variable.  */
+ClCharT ASP_RUNDIR[CL_MAX_NAME_LENGTH]="";
+/** Dir where logs are stored. Loaded from the same-named environment variable.  */
+ClCharT ASP_LOGDIR[CL_MAX_NAME_LENGTH]="";
+/** Dir where ASP binaries are located. Loaded from the same-named environment variable.  */
+ClCharT ASP_BINDIR[CL_MAX_NAME_LENGTH]="";
+/** Dir where xml config are located. Loaded from the same-named environment variable.  */
+ClCharT ASP_CONFIG[CL_MAX_NAME_LENGTH]="";
+/** Dir where db files are to be stored. Loaded from the same-named environment variable.  */
+ClCharT ASP_DBDIR[CL_MAX_NAME_LENGTH]="";
+/** Dir where application binaries are located. Derived from ASP_BINDIR and argv[0].  Deprecated.  Use ASP_APP_BINDIR */
+ClCharT CL_APP_BINDIR[CL_MAX_NAME_LENGTH]="";
+/** Dir where application binaries are located. Derived from ASP_BINDIR and argv[0]. */
+ClCharT ASP_APP_BINDIR[CL_MAX_NAME_LENGTH]="";
+
+/** Variable to check if the current node is a system controller node.  Loaded from the same-named environment variable.  */
+ClBoolT SYSTEM_CONTROLLER = CL_FALSE; 
+/** Variable to check if the current node is a SC capable node.  Loaded from the same-named environment variable.  */
+ClBoolT ASP_SC_PROMOTE = CL_FALSE;
+
 
 /* Default EO configuration */
 ClEoConfigT eoConfig =
@@ -117,15 +149,6 @@ ClUint8T eoClientLibs[] =
     CL_FALSE,      /* Lib: Cluster/Group Membership Service    */
     CL_FALSE,      /* Lib: PM */
 };
-
-
-void clAppConfigure(ClEoConfigT* clEoConfig,ClUint8T* basicLibs,ClUint8T* clientLibs)
-{
-    if (clEoConfig) memcpy(&eoConfig, clEoConfig,sizeof(ClEoConfigT));
-    if (basicLibs)  memcpy(&eoBasicLibs, basicLibs,sizeof(eoBasicLibs));
-    if (clientLibs) memcpy(&eoClientLibs, clientLibs,sizeof(eoClientLibs));
-}
-
 
 /*
  * List of Library Initialize Functions 
@@ -255,6 +278,89 @@ ClEoEssentialLibInfoT gEssentialLibInfo[] = {
 #ifdef CL_EO_TBD 
 #endif
 };
+
+void clAppConfigure(ClEoConfigT* clEoConfig,ClUint8T* basicLibs,ClUint8T* clientLibs)
+{
+    if (clEoConfig) memcpy(&eoConfig, clEoConfig,sizeof(ClEoConfigT));
+    if (basicLibs)  memcpy(&eoBasicLibs, basicLibs,sizeof(eoBasicLibs));
+    if (clientLibs) memcpy(&eoClientLibs, clientLibs,sizeof(eoClientLibs));
+}
+
+void clLoadEnvVars()
+{
+    ClCharT missing[512];
+    ClCharT * temp=NULL;
+    ClInt32T i = 0; 
+    missing[0] = 0;
+    
+    clEoWithOutCpm = clParseEnvBoolean("ASP_WITHOUT_CPM");
+
+    if (1) /* Required environment variables */
+    {       
+        ClCharT* envvars[] = { "ASP_NODENAME", "ASP_COMPNAME", "ASP_RUNDIR", "ASP_LOGDIR", "ASP_BINDIR", "ASP_CONFIG", "ASP_DBDIR", 0 };
+        ClCharT* storage[] = { ASP_NODENAME ,  ASP_COMPNAME ,  ASP_RUNDIR ,  ASP_LOGDIR ,  ASP_BINDIR ,  ASP_CONFIG , ASP_DBDIR, 0 };
+    
+        for (i=0; envvars[i] != 0; i++)
+        {
+            temp = getenv(envvars[i]);
+            if (temp) strncpy(storage[i],temp,CL_MAX_NAME_LENGTH-1);
+            else 
+            {
+                strcat(missing,envvars[i]);
+                strcat(missing," ");
+            }
+        }
+    }
+    if (1)  /* Optional environment variables */
+    {       
+        ClCharT* envvars[] = { "ASP_APP_BINDIR", 0 };  /* This won't be defined if the AMF is run */
+        ClCharT* storage[] = { ASP_APP_BINDIR, 0 };
+    
+        for (i=0; envvars[i] != 0; i++)
+        {
+            temp = getenv(envvars[i]);
+            if (temp) strncpy(storage[i],temp,CL_MAX_NAME_LENGTH-1);
+        }
+    }
+    
+    
+    strcpy(CL_APP_BINDIR,ASP_APP_BINDIR);
+    
+    temp = getenv("ASP_NODEADDR");
+    if (temp) ASP_NODEADDR = atoi(temp);
+    else strcat(missing,"ASP_NODEADDR ");
+
+    SYSTEM_CONTROLLER = clParseEnvBoolean("SYSTEM_CONTROLLER");
+    ASP_SC_PROMOTE = clParseEnvBoolean("ASP_SC_PROMOTE");
+
+    if (missing[0])
+    {
+        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
+              "The following required environment variables are not set: %s. Exiting", missing);
+        exit(1);  
+    }
+
+    if (1)
+    {
+        ClCharT *iocAddressStr;
+   
+        iocAddressStr = getenv("ASP_NODEADDR");
+        if (iocAddressStr != NULL)
+        {
+        
+            clAspLocalId = atoi(iocAddressStr);  /* Deprecated */
+            ASP_NODEADDR = atoi(iocAddressStr);
+        }
+    
+        else
+        {
+            clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "ASP_NODEADDR environment variable not set, exiting");
+            exit(1);
+        }
+    }
+    
+}
+
 
 #ifdef CL_EO_TBD 
 static ClRcT eoWaterMarkActionTableInit(void)
@@ -686,39 +792,23 @@ ClRcT clEoSetup(void)
     return CL_OK;
 }
 
+/* Called by SaAmfInitialize, but SAFplus services do not call this */
 ClRcT clASPInitialize(void)
 {
     ClRcT rc = CL_OK;
-    ClCharT *iocAddressStr = NULL;
-
+    
     if(CL_TRUE == gClASPInitialized)
     {
         gClASPInitCount++;
         return CL_OK;
     }
     
-    iocAddressStr = getenv("ASP_NODEADDR");
-    
-    if (iocAddressStr != NULL)
-    {
-        clAspLocalId = atoi(iocAddressStr);
-    }
-    else
-    {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "ASP_NODEADDR environment variable not set, aborting ASP initialization");
-        return CL_ERR_NULL_POINTER; 
-    }
-
-    clEoWithOutCpm = clParseEnvBoolean("ASP_WITHOUT_CPM");
-    
     clLoadEnvVars();
     
     rc = clEoSetup();
     if(rc != CL_OK)
     {
-        clLog(CL_LOG_ERROR, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "ASP initialize failed, error[0x%x]", rc);
+        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Exiting : SAFplus initialize failed, error [0x%x]", rc);
         return rc;
     }
 
@@ -850,7 +940,7 @@ ClRcT clEoDebugDeregister(void)
  * To all the application we need to pass 1. Component Name 2. Ioc Address So
  * as of now we have decided that these will be passed as environment variable 
  */
-ClRcT clEoMain(ClInt32T argc, ClCharT *argv[])
+ClRcT clEoInitialize(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
 
@@ -858,22 +948,16 @@ ClRcT clEoMain(ClInt32T argc, ClCharT *argv[])
 
     ClTimerTimeOutT waitForExit = {.tsSec = 0, .tsMilliSec = 0 };
 
-    clEoProgName = argv[0]; // Make the exe name accessible to aid in debugging
+    clEoProgName = argv[0];
+    
+    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Process [%s] started. PID [%d]", clEoProgName, (int)getpid());
 
-    rc = clEoSetup();
-    if (rc != CL_OK)
-    {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "Exiting : EO setup failed, error [0x%x]", rc);
-        exit(1);
-    }
+    clASPInitialize();
     
     rc = clEoMyEoObjectGet(&pThis);
     if(rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-                "Exiting : EO my object get failed. error [%x0x].\n", rc);
-        CL_ASSERT(0);
+        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Exiting : EO my object get failed. error [%x0x].\n", rc);
         exit(1);
     }
         
@@ -885,12 +969,12 @@ ClRcT clEoMain(ClInt32T argc, ClCharT *argv[])
     ++pThis->refCnt;
     clOsalMutexUnlock(&pThis->eoMutex);
 
+    /* Call the application's initialize function */
     rc = eoConfig.clEoCreateCallout(argc, argv);
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "Server initialization failed, error [0x%x]", rc);
-        return rc;
+        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Application initialization failed, error [0x%x]", rc);
+        exit(1);
     }
 
     if(eoConfig.appType == CL_EO_USE_THREAD_FOR_APP)
@@ -910,6 +994,14 @@ ClRcT clEoMain(ClInt32T argc, ClCharT *argv[])
     clOsalMutexUnlock(&pThis->eoMutex);
 
     clEoTearDown();
+    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Process [%s] exited normally", argv[0]);
 
+    if (clDbgNoKillComponents)
+    {
+      clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
+            "In debug mode and 'clDbgNoKillComponents' is set, so this process will pause, not exit.");
+      while(1) sleep(10000); /* Using sleep here instead of Osal because Osal is likely shutdown */
+    }
+    
     return CL_OK;
 }
