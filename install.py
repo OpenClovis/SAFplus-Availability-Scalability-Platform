@@ -31,15 +31,15 @@ except ImportError:
 # Settings
 # ------------------------------------------------------------------------------
 
-THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.24'                # Look for PKG starting with this name
-THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.24.tar'            # search this package if no 3rdPartyPkg found
+THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.25'                # Look for PKG starting with this name
+THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.25.tar'            # search this package if no 3rdPartyPkg found
 PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                # Look for PKG starting with this name
 PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'            # search this package if no 3rdPartyPkg found
 PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_32'
 PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_32.tar.gz'
 if determine_bit() == 64:
-  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.24-x86_64'       # Look for PKG starting with this name
-  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.24-x86_64.tar'
+  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.25-x86_64'       # Look for PKG starting with this name
+  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.25-x86_64.tar'
   PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_64.tar.gz'
   PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_64'
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
@@ -675,7 +675,6 @@ class ASPInstaller:
             self.ASP_ROOT        = os.path.join(self.PACKAGE_ROOT, 'src/SAFplus')    # ASP sources are copied here
             self.MODULES         = os.path.join(self.PREFIX, 'modules')
             self.ECLIPSE         = os.path.join(self.IDE_ROOT, 'eclipse')
-            self.ECLIPSE_ROOT    = os.path.join(self.PREFIX, 'eclipse')
             self.ESC_ECLIPSE_DIR = syscall("echo %s/eclipse | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
  
             # check for GPL
@@ -695,7 +694,7 @@ class ASPInstaller:
             # make all these dirs
             for DIR in (self.INSTALL_DIR, self.BUILDTOOLS, self.PACKAGE_ROOT, self.PREFIX, self.PREFIX_BIN, self.PREFIX_LIB, self.IDE_ROOT, 
                         self.ASP_ROOT, self.DOC_ROOT, self.BIN_ROOT, self.LIB_ROOT, self.BUILD_DIR, self.MODULES, 
-                        self.CACHE_DIR, self.ECLIPSE, self.ECLIPSE_ROOT):
+                        self.CACHE_DIR, self.ECLIPSE):
                 
                 # attempt to create each of these dirs
                 self.create_dir(DIR)
@@ -1178,9 +1177,9 @@ class ASPInstaller:
 
                 if not os.path.isdir(self.PACKAGE_ROOT):
                     self.feedback('[ERROR] failed to create "%s"' % self.PACKAGE_ROOT, True)
-                ret = cli_cmd('rm -rf "%s" >/dev/null 2>&1' % self.join_list_as_path([self.ECLIPSE_ROOT, 'plugins', 'com.clovis.*']))
+                ret = cli_cmd('rm -rf "%s" >/dev/null 2>&1' % self.join_list_as_path([self.ECLIPSE, 'plugins', 'com.clovis.*']))
                 if ret != 0:
-                    self.feedback('[ERROR] failed to remove clovis plugins from %s/plugins' % self.ECLIPSE_ROOT, True)
+                    self.feedback('[ERROR] failed to remove clovis plugins from %s/plugins' % self.ECLIPSE, True)
 
                 self.feedback('Done cleaning.')
                 
@@ -1342,7 +1341,6 @@ class ASPInstaller:
         self.feedback("Linking Eclipse in %s..." % self.IDE_ROOT)
         cmds.append('cd %s' % self.IDE_ROOT)
         cmds.append('rm -rf eclipse/plugins/*clovis* >/dev/null 2>&1') # remove redundant clovis plugins if any
-        cmds.append('cp -rl %s .' % self.ECLIPSE_ROOT)
         cmds.append("sed -e '/-showsplash\|org.eclipse.platform/d' eclipse/eclipse.ini > eclipse/eclipse_ini.tmp")
         cmds.append('rm eclipse/eclipse.ini')
         cmds.append('mv eclipse/eclipse_ini.tmp eclipse/eclipse.ini')
@@ -1399,6 +1397,9 @@ class ASPInstaller:
                     'rm -rf $CACHE_DIR/eclipse/org.eclipse.help.base']
             self.run_command_list(cmds)
 
+        """ Change permissions for read-write """
+        cmd = ['chmod -R 777 %s' %self.CACHE_DIR]
+        self.run_command_list(cmd)
 
     def install_utilities(self):
         self.feedback('Starting utilities installation...')
@@ -1572,8 +1573,8 @@ class ASPInstaller:
         self.ESC_PKG_ROOT = syscall("echo %s | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
         self.ESC_PKG_NAME = syscall("echo %s | sed -e 's/\./\\\./g'" % self.PACKAGE_NAME)
         #self.ESC_ECLIPSE_DIR = syscall("echo %s/eclipse | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
-        olist = ['PREFIX', 'thirdPartyPkg', 'BUILDTOOLS', 'NET_SNMP_CONFIG', 'PACKAGE_ROOT', 'BIN_ROOT', 'LIB_ROOT', 'WORKING_DIR', 'ESC_PKG_ROOT', 'ESC_PKG_NAME', 'IDE', 'ASP', 'PACKAGE_NAME', 'HOME', 'CACHE_DIR', 'IDE_ROOT', 'ECLIPSE_ROOT', 'ECLIPSE', 'ESC_ECLIPSE_DIR', 'PATH']
-        rlist = [self.PREFIX, self.THIRDPARTYPKG_PATH, self.BUILDTOOLS, self.NET_SNMP_CONFIG, self.PACKAGE_ROOT, self.BIN_ROOT, self.LIB_ROOT, self.WORKING_DIR, self.ESC_PKG_ROOT, self.ESC_PKG_NAME, 'IDE', 'ASP', self.PACKAGE_NAME, self.HOME, self.CACHE_DIR, self.IDE_ROOT, self.ECLIPSE_ROOT, self.ECLIPSE, self.ESC_ECLIPSE_DIR, os.getenv('PATH') + os.defpath]
+        olist = ['PREFIX', 'thirdPartyPkg', 'BUILDTOOLS', 'NET_SNMP_CONFIG', 'PACKAGE_ROOT', 'BIN_ROOT', 'LIB_ROOT', 'WORKING_DIR', 'ESC_PKG_ROOT', 'ESC_PKG_NAME', 'IDE', 'ASP', 'PACKAGE_NAME', 'HOME', 'CACHE_DIR', 'IDE_ROOT', 'ECLIPSE', 'ESC_ECLIPSE_DIR', 'PATH']
+        rlist = [self.PREFIX, self.THIRDPARTYPKG_PATH, self.BUILDTOOLS, self.NET_SNMP_CONFIG, self.PACKAGE_ROOT, self.BIN_ROOT, self.LIB_ROOT, self.WORKING_DIR, self.ESC_PKG_ROOT, self.ESC_PKG_NAME, 'IDE', 'ASP', self.PACKAGE_NAME, self.HOME, self.CACHE_DIR, self.IDE_ROOT, self.ECLIPSE, self.ESC_ECLIPSE_DIR, os.getenv('PATH') + os.defpath]
         
 	assert len(rlist) == len(olist)
 

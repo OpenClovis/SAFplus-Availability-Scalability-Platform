@@ -944,7 +944,6 @@ _clAmsSAFaultReportCallback(
 {
 
     ClUint32T  alarmHandle = -1;
-    ClIocAddressT  iocAddress; 
     ClAmsCompT  *comp = NULL;
     ClAmsSUT  *su = NULL;
     ClAmsNodeT  *node = NULL;
@@ -1019,6 +1018,12 @@ _clAmsSAFaultReportCallback(
 
     AMS_CALL_PUBLISH_NTF ( clAmsNotificationEventPublish( &notification ) );
 
+
+#if 0  /* Fault manager deprecated in favor of SAF notification */
+    if (1)
+    {
+            ClIocAddressT  iocAddress; 
+
     /*
      * XXX: Need to indicate to FM if AMF thinks repair is necessary
      * this is necessary for autorepair actions. currently API does
@@ -1038,6 +1043,9 @@ _clAmsSAFaultReportCallback(
 #else
     return clFaultRepairAction(iocAddress, alarmHandle, recovery);
 #endif
+    }
+#endif
+    return CL_OK;
 }
 
 /*

@@ -44,15 +44,15 @@
 #define MAX_ARG_BUF_LEN		    128
 /* FIXME #define MAX_CMDS		        200 */
 
-#define CLI_COMMAND(X, Y) 	    clModTab[X].cmdList[Y].funcName 
-#define CLI_FUNC(X, Y) 		    clModTab[X].cmdList[Y].fpCallback
-#define CLI_HELP_STRING(X, Y) 	    clModTab[X].cmdList[Y].funcHelp 
+#define CLI_COMMAND(X, Y) 	    moduleTable[X].cmdList[Y].funcName 
+#define CLI_FUNC(X, Y) 		    moduleTable[X].cmdList[Y].fpCallback
+#define CLI_HELP_STRING(X, Y) 	    moduleTable[X].cmdList[Y].funcHelp 
 /* FIXME #define CLI_RESET		        argvBuf[0][0] = 0 */
 
-#define MOD_MODNAME(X)		    clModTab[X].modName
-#define MOD_LIST(X)		    clModTab[X].cmdList
-#define MOD_PROMPT(X)		    clModTab[X].modPrompt
-#define MOD_HELP(X)		    clModTab[X].help
+#define MOD_MODNAME(X)		    moduleTable[X].modName
+#define MOD_LIST(X)		    moduleTable[X].cmdList
+#define MOD_PROMPT(X)		    moduleTable[X].modPrompt
+#define MOD_HELP(X)		    moduleTable[X].help
 #define MAX_COM_CMD         sizeof(comTab)/sizeof(comTab[0]) 
 
 #define COM_CMDNAME(X)          comTab[X].cmdName
@@ -66,8 +66,7 @@
 #define CLI_CMD_LEN             CLI_CMD_SZ
 #define COMMAND_TOTAL           100
 
-
-extern ClDebugModEntryT clModTab[];
+ClDebugModEntryT* moduleTable = NULL;
 
 /* GLOBALS */
 static ClCharT *gArgv[MAX_ARGS];
@@ -137,14 +136,17 @@ printHelp(ClUint32T index)
     }
     else
     {
-        /* display the help of commands in a particular module */
-        while(CLI_FUNC(index, idx)) 
-        {
-            printf("\r\n%s - %s", CLI_COMMAND(index, idx),
-                    CLI_HELP_STRING(index, idx));
-            idx++;
-        } 
-        printf("\r\n");
+        if (moduleTable)
+        {            
+            /* display the help of commands in a particular module */
+            while(CLI_FUNC(index, idx)) 
+            {
+                printf("\r\n%s - %s", CLI_COMMAND(index, idx),
+                       CLI_HELP_STRING(index, idx));
+                idx++;
+            } 
+            printf("\r\n");
+        }        
     }
     idx = 0;
     while(idx < MAX_COM_CMD)
@@ -434,34 +436,37 @@ ClRcT  clDebugCli(ClCharT *nprompt)
 		}
 		else 
 		{
-			cmdIndex = 0;
-			cmdFound = CL_FALSE;
-			while (CLI_FUNC(idx, cmdIndex))
-			{
-				if (!strncasecmp(gArgv[0], "end", j)) 
-				{
-					/* go to the original level */
-					modFound = CL_FALSE;
-					cmdFound = CL_TRUE;
-					sprintf(prompt, "DebugCLI[%s]->", nprompt);
-					break;
-				}
-				if (!strncasecmp(gArgv[0], CLI_COMMAND(idx, cmdIndex), j))
-				{
-					ClCharT *retStr;
-					cmdFound = CL_TRUE;
-					retStr = NULL;
-					CLI_FUNC(idx, cmdIndex)(gArgc, gArgv, &retStr);
-					if (NULL != retStr)
-					{
-						printf("\r\n%s", retStr);
-						clHeapFree(retStr);
-					}
-					break;
-				}
-				else
-					cmdIndex++;
-			}
+            cmdFound = CL_FALSE;
+            if (moduleTable)
+            {                
+                cmdIndex = 0;
+                while (CLI_FUNC(idx, cmdIndex))
+                {
+                    if (!strncasecmp(gArgv[0], "end", j)) 
+                    {
+                        /* go to the original level */
+                        modFound = CL_FALSE;
+                        cmdFound = CL_TRUE;
+                        sprintf(prompt, "DebugCLI[%s]->", nprompt);
+                        break;
+                    }
+                    if (!strncasecmp(gArgv[0], CLI_COMMAND(idx, cmdIndex), j))
+                    {
+                        ClCharT *retStr;
+                        cmdFound = CL_TRUE;
+                        retStr = NULL;
+                        CLI_FUNC(idx, cmdIndex)(gArgc, gArgv, &retStr);
+                        if (NULL != retStr)
+                        {
+                            printf("\r\n%s", retStr);
+                            clHeapFree(retStr);
+                        }
+                        break;
+                    }
+                    else
+                        cmdIndex++;
+                }
+            }           
 			if (cmdFound == CL_FALSE)
 			    printHelp(idx);
 		}
@@ -519,7 +524,7 @@ clDebugCmdCompletion(ClUint32T idx, ClCharT *ptrPrompt)
     if (idx != -1)
     {
         partialMatch = 0;
-        while (CLI_FUNC(idx, cmdIndex))
+        if (moduleTable) while (CLI_FUNC(idx, cmdIndex))
         {
             if ( (rcvLen < CL_DEBUG_FUNC_NAME_LEN) &&
                     strncasecmp(_clDebugCliBuf, CLI_COMMAND(idx, cmdIndex), rcvLen) == 0)

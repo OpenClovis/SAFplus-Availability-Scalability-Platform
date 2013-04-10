@@ -285,25 +285,25 @@ ClInitFinalizeDef gClBasicLibInitTable[] = {
     {NULL, NULL},            /* Ioc moved to Essential */
     {NULL, NULL},            /* Rmd moved to Essential */
     {NULL, NULL},            /* Eo moved to Essential */
-    { clOmLibInitialize,          "Om"   },
+    { NULL,          "Om"   }, /* Deprecated */
     { clHalLibInitialize,         "Hal"  },
     { clDbalLibInitialize,        "Dbal" }
 };
 
 ClInitFinalizeDef gClClientLibInitTable[] = {
-    { clCorClientInitialize,      "Cor"             },
+    { NULL,      "Cor"             },
     { clCmLibInitialize,          "ChassisManager"  },
     { clNameLibInitialize,        "Name"            },
     { clLogLibInitialize,         "Log"             },
     { clTraceLibInitialize,       "Trace"           },
     { NULL,                       "Diag"            },
-    { clTxnLibInitialize,         "Txn"             },
-    { clMsoLibInitialize,         "Mso"             },
-    { clProvInitialize,           "Prov"            },
-    { clAlarmLibInitialize,       "Alarm"           },
+    { NULL,         "Txn"             },
+    { NULL,         "Mso"             },
+    { NULL,           "Prov"            },
+    { NULL,       "Alarm"           },
     { clDebugLibInitialize,       "Debug"           },
     { clGmsLibInitialize,         "GroupMembership" },
-    { clPMLibInitialize,          "PM" }
+    { NULL,          "PM" }
 };
 
 
@@ -317,25 +317,25 @@ ClInitFinalizeDef gClBasicLibCleanupTable[] = {
     {NULL, NULL},            /* Ioc moved to Essential */
     {NULL, NULL},            /* Rmd moved to Essential */
     {NULL, NULL},            /* Eo moved to Essential */
-    { clOmLibFinalize,            "Om"    },
+    { NULL,            "Om"    },
     { clHalLibFinalize,           "Hal"   },
     { clDbalLibFinalize,          "Dbal"  }
 };
 
 ClInitFinalizeDef gClClientLibCleanupTable[] = {
-    { clCorClientFinalize,      "Cor"             },
+    { NULL,      "Cor"             },
     { clCmLibFinalize,          "ChassisManager"  },
     { clNameLibFinalize,        "Name"            },
     { clLogLibFinalize,         "Log"             },
     { clTraceLibFinalize,       "Trace"           },
     { NULL,                     "Diag"            },
-    { clTxnLibFinalize,         "Txn"             },
-    { clMsoLibFinalize,      "Mso"             },
-    { clProvFinalize,           "Prov"            },
-    { clAlarmLibFinalize,       "Alarm"           },
+    { NULL,         "Txn"             },
+    { NULL,      "Mso"             },
+    { NULL,           "Prov"            },
+    { NULL,       "Alarm"           },
     { clDebugLibFinalize,       "Debug"           },
     { clGmsLibFinalize,         "GroupMembership" },
-    { clPMLibFinalize,          "PM" }
+    { NULL,          "PM" }
 };
 
 /*
@@ -760,7 +760,7 @@ ClRcT clEoTearDown(void)
     clEoReceiverUnblock(pThis);
 
     clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Cleaning up EO layer...");
-    clLogUtilLibFinalize(clEoClientLibs[3]);
+    clLogUtilLibFinalize(eoClientLibs[3]);
     /*
      * In case, the EO didn't have the gmslib flag,
      * attempt to finalize it since the transport layer
@@ -844,32 +844,6 @@ ClRcT clEoDebugDeregister(void)
     rc |= clTimerDebugDeregister();
     rc |= clRmdDebugDeregister();
     return rc;
-}
-
-ClRcT clEoConfigure(ClEoConfigT *eoConfig, 
-                    ClUint8T *basicLibs, ClUint32T numBasicLibs,
-                    ClUint8T *clientLibs, ClUint32T numClientLibs)
-{
-    if(eoConfig)
-    {
-        memcpy(&clEoConfig, eoConfig, sizeof(clEoConfig));
-    }
-
-    if(basicLibs)
-    {
-        memcpy(clEoBasicLibs, basicLibs, 
-               CL_MIN(sizeof(clEoBasicLibs)/sizeof(clEoBasicLibs[0]),
-                      numBasicLibs) * sizeof(*basicLibs));
-    }
-
-    if(clientLibs)
-    {
-        memcpy(clEoClientLibs, clientLibs,
-               CL_MIN(sizeof(clEoClientLibs)/sizeof(clEoClientLibs[0]),
-                      numClientLibs) * sizeof(*clientLibs));
-    }
-
-    return CL_OK;
 }
 
 /*
