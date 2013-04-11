@@ -96,11 +96,11 @@ ClRcT clMsgReplyReceived(ClMsgMessageIovecT *pMessage, SaTimeT sendTime, SaMsgSe
     else if(pReplyInfo->pRecvMessage->size == 0)
     {
         ClUint8T *pTemp;
-        pTemp = (ClUint8T*)clHeapAllocate(pMessage->size);
+        pTemp = (ClUint8T*)clHeapAllocate(pMessage->pIovec[0].iov_len);
         if(pTemp == NULL)
         {
             rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
-            clLogCritical("MSG", "GOT-REPLY", "Failed to allocate memory of size %llu bytes. error code [0x%x].", pMessage->size, rc);
+            clLogCritical("MSG", "GOT-REPLY", "Failed to allocate memory of size %u bytes. error code [0x%x].", (unsigned int)pMessage->pIovec[0].iov_len, rc);
             clLogCritical("MSG", "GOT-REPLY", "Dropping the received packet.");
             goto error_out_1;
         }
