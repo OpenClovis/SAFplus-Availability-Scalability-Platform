@@ -181,7 +181,7 @@ ClRcT clMsgQueueTheLocalMessage(
 
     for (i = 0; i < pMessage->numIovecs; i++)
     {
-        msgSize = pMessage->pIovec[i].iov_len;
+        msgSize += pMessage->pIovec[i].iov_len;
     }
 
     priority = pMessage->priority;
