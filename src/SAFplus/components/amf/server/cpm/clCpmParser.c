@@ -84,44 +84,44 @@ typedef struct
 } ClCpmAspSUMappingT;
 
 static ClCpmAspCompMappingT logSUMap[] = { 
-    {1, "log" },
-    {1,  NULL},
+    {CL_CPM_BOOT_LEVEL_1, "log" },
+    {CL_CPM_BOOT_LEVEL_1,  NULL},
 };
 
 static ClCpmAspCompMappingT gmsSUMap[] = {
-    {2, "gms"},
-    {2, NULL},
+    {CL_CPM_BOOT_LEVEL_2, "gms"},
+    {CL_CPM_BOOT_LEVEL_2, NULL},
 };
 
 static ClCpmAspCompMappingT eventSUMap[] = {
-    {3, "event"},
-    {3, NULL},
+    {CL_CPM_BOOT_LEVEL_3, "event"},
+    {CL_CPM_BOOT_LEVEL_3, NULL},
 };
 
 static ClCpmAspCompMappingT txnSUMap[] = {
-    {3, "txn"},
-    {3, NULL},
+    {CL_CPM_BOOT_LEVEL_3, "txn"},
+    {CL_CPM_BOOT_LEVEL_3, NULL},
 };
 
 static ClCpmAspCompMappingT nameSUMap[] = {
-    {4, "name"},
-    {4, NULL},
+    {CL_CPM_BOOT_LEVEL_4, "name"},
+    {CL_CPM_BOOT_LEVEL_4, NULL},
 };
 
 static ClCpmAspCompMappingT corSUMap[] = {
-    {4, "cor"},
-    {4, NULL},
+    {CL_CPM_BOOT_LEVEL_4, "cor"},
+    {CL_CPM_BOOT_LEVEL_4, NULL},
 };
 
 static ClCpmAspCompMappingT ckptSUMap[] = {
-    {4, "ckpt"},
-    {4, NULL},
+    {CL_CPM_BOOT_LEVEL_4, "ckpt"},
+    {CL_CPM_BOOT_LEVEL_4, NULL},
 };
 
 static ClCpmAspCompMappingT oampSUMap[] = {
-    {5, "fault"},
-    {5, "alarm"},
-    {5,  NULL},
+    {CL_CPM_BOOT_LEVEL_5, "fault"},
+    {CL_CPM_BOOT_LEVEL_5, "alarm"},
+    {CL_CPM_BOOT_LEVEL_5,  NULL},
 };
 
 #define ASP_NODE_SU_COMP_MAP1                   \

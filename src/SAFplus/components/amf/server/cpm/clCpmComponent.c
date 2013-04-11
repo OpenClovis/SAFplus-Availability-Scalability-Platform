@@ -718,7 +718,12 @@ ClRcT cpmCompFind(ClCharT *name, ClCntHandleT compTable, ClCpmComponentT **comp)
     clOsalMutexUnlock(gpClCpm->compTableMutex);
     return rc;
 }
- 
+
+
+/* Send an RMD to the AMF that essentially forwards the info received from the
+   cpm client's RMD to the cpm server
+   For SAFplus services it turns into a loopback RMD -- caught by the boot manager
+*/
 static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
                                     ClCpmCompRequestTypeT requestType,
                                     ClRcT retCode)
@@ -811,6 +816,7 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
             priority = CL_IOC_CPM_TERMINATE_PRIORITY;
         }
 
+        /* GAS Fold into retry loop? */
         rc = CL_CPM_CALL_RMD_ASYNC_NEW(comp->requestSrcAddress.nodeAddress,
                                        comp->requestSrcAddress.portId,
                                        comp->requestRmdNumber,
@@ -843,6 +849,9 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
              */
             do
             {
+                /* The first RMD must succeed for a local (bootup) RMD, or this will overwrite that address
+                   with that of the active AMF
+                 */
                 if(clCpmMasterAddressGet(&comp->requestSrcAddress.nodeAddress) != CL_OK)
                     break;
                 rc = CL_CPM_CALL_RMD_ASYNC_NEW(comp->requestSrcAddress.nodeAddress,
@@ -1269,6 +1278,10 @@ ClRcT cpmRouteRequest(ClCharT *compName,
                                      srcAddress, rmdNumber, requestRmdNumber);
 }
 
+
+/* GAS: This initialize is no longer necessary; all it does is verify that the component name defined in the cpm
+   check Vxworks task id is properly set during task spawn
+ */
 ClRcT VDECL(cpmClientInitialize)(ClEoDataT data,
                                  ClBufferHandleT inMsgHandle,
                                  ClBufferHandleT outMsgHandle)
@@ -1378,6 +1391,9 @@ ClRcT VDECL(cpmComponentRegister)(ClEoDataT data,
     if (info.proxyCompName.length)
         isProxied = CL_TRUE;
 
+        /* Component is populated into this table when the CPM launched the process
+           so if it is not found in this table something is very wrong.
+        */
     rc = cpmCompFind(info.compName.value, gpClCpm->compTable, &comp);
     CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", info.compName.value, rc, rc, CL_LOG_DEBUG,
