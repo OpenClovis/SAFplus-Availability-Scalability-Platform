@@ -73,6 +73,7 @@ ClRcT clMsgIovecToMessageCopy(SaMsgMessageT **ppNewMsg, ClMsgMessageIovecT *pMes
     pTempMessage->senderName = (SaNameT*)pTempName;
     pTempMessage->data = pMessage->pIovec[index].iov_base;
     pTempMessage->size = pMessage->pIovec[index].iov_len;
+    pMessage->pIovec[index].iov_base = NULL;
     *ppNewMsg = pTempMessage;
 
     rc = CL_OK;
