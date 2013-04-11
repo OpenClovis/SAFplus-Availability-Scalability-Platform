@@ -287,10 +287,10 @@ ClRcT clMsgQueueGroupHashFinalize()
     return rc;
 }
 
-static SaAisErrorT clMsgQueueGroupSendWithKey(ClBoolT isSync,
+static SaAisErrorT clMsgQueueGroupSendWithKeyIovec(ClBoolT isSync,
                                        SaMsgHandleT msgHandle,
                                        SaInvocationT invocation,
-                                       const SaNameT *group, SaMsgMessageT *message,
+                                       const SaNameT *group, ClMsgMessageIovecT *message,
                                        ClCharT *key, ClInt32T keyLen,
                                        SaTimeT timeout,
                                        SaMsgAckFlagsT ackFlags)
@@ -364,9 +364,9 @@ static SaAisErrorT clMsgQueueGroupSendWithKey(ClBoolT isSync,
     ClNameT *pQName = &qGroupData.pQueueList[queueGroupHash->nodeIndex];
 
     if (isSync)
-        return saMsgMessageSend(msgHandle, (SaNameT *)pQName, message, timeout);
+        return clMsgMessageSendIovec(msgHandle, (SaNameT *)pQName, message, timeout);
     else
-        return saMsgMessageSendAsync(msgHandle, invocation, (SaNameT *)pQName, message, ackFlags);
+        return clMsgMessageSendAsyncIovec(msgHandle, invocation, (SaNameT *)pQName, message, ackFlags);
 
 error_out:
     return CL_MSG_SA_RC(rc);
@@ -375,12 +375,40 @@ error_out:
 /*
  * Lookup and message to the receiver in the queue group that map with the key
  */
+SaAisErrorT clMsgQueueGroupSendWithKeySynchIovec(SaMsgHandleT msgHandle,
+                                                   const SaNameT *group, ClMsgMessageIovecT *message,
+                                                   ClCharT *key, ClInt32T keyLen,
+                                                   SaTimeT timeout)
+{
+    return clMsgQueueGroupSendWithKeyIovec(CL_TRUE, msgHandle, 0, group, message, key, keyLen, timeout, 0);
+}
+SaAisErrorT clMsgQueueGroupSendWithKeyAsyncIovec(SaMsgHandleT msgHandle,
+                                                   SaInvocationT invocation,
+                                                   const SaNameT *group, ClMsgMessageIovecT *message,
+                                                   ClCharT *key, ClInt32T keyLen,
+                                                   SaMsgAckFlagsT ackFlags)
+{
+    return clMsgQueueGroupSendWithKeyIovec(CL_FALSE, msgHandle, invocation, group, message, key, keyLen, 0, ackFlags);
+}
+
 SaAisErrorT clMsgQueueGroupSendWithKeySynch(SaMsgHandleT msgHandle,
                                                    const SaNameT *group, SaMsgMessageT *message,
                                                    ClCharT *key, ClInt32T keyLen,
                                                    SaTimeT timeout)
 {
-    return clMsgQueueGroupSendWithKey(CL_TRUE, msgHandle, 0, group, message, key, keyLen, timeout, 0);
+    ClMsgMessageIovecT msgVector;
+    struct iovec iovec = {0};
+    iovec.iov_base = (void*)message->data;
+    iovec.iov_len = message->size;
+
+    msgVector.type = message->type;
+    msgVector.version = message->version;
+    msgVector.senderName = message->senderName;
+    msgVector.priority = message->priority;
+    msgVector.pIovec = &iovec;
+    msgVector.numIovecs = 1;
+
+    return clMsgQueueGroupSendWithKeySynchIovec(msgHandle, group, &msgVector, key, keyLen, timeout);
 }
 SaAisErrorT clMsgQueueGroupSendWithKeyAsync(SaMsgHandleT msgHandle,
                                                    SaInvocationT invocation,
@@ -388,6 +416,17 @@ SaAisErrorT clMsgQueueGroupSendWithKeyAsync(SaMsgHandleT msgHandle,
                                                    ClCharT *key, ClInt32T keyLen,
                                                    SaMsgAckFlagsT ackFlags)
 {
-    return clMsgQueueGroupSendWithKey(CL_FALSE, msgHandle, invocation, group, message, key, keyLen, 0, ackFlags);
-}
+    ClMsgMessageIovecT msgVector;
+    struct iovec iovec = {0};
+    iovec.iov_base = (void*)message->data;
+    iovec.iov_len = message->size;
 
+    msgVector.type = message->type;
+    msgVector.version = message->version;
+    msgVector.senderName = message->senderName;
+    msgVector.priority = message->priority;
+    msgVector.pIovec = &iovec;
+    msgVector.numIovecs = 1;
+
+    return clMsgQueueGroupSendWithKeyAsyncIovec(msgHandle, invocation, group, &msgVector, key, keyLen, ackFlags);
+}

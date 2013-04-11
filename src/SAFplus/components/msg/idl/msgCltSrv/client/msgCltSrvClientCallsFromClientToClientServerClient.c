@@ -327,7 +327,7 @@ ClRcT clMsgQueueMoveMessagesClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
     return rc;
 }
 
-ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint32T sendType, CL_IN ClNameT* pDestination, CL_IN SaMsgMessageT_4_0_0* pMessage, CL_IN ClInt64T sendTime, CL_IN ClHandleT senderHandle, CL_IN ClInt64T timeout)
+ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint32T sendType, CL_IN ClNameT* pDestination, CL_IN ClMsgMessageIovecT_4_0_0* pMessage, CL_IN ClInt64T sendTime, CL_IN ClHandleT senderHandle, CL_IN ClInt64T timeout)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -382,7 +382,7 @@ ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUi
         return rc;
     }
 
-    rc = clXdrMarshallSaMsgMessageT_4_0_0(pMessage, inMsgHdl, 0);
+    rc = clXdrMarshallClMsgMessageIovecT_4_0_0(pMessage, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -430,14 +430,14 @@ static void clMsgMessageReceivedAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, 
     ClRcT retVal = CL_OK;
     ClUint32T  sendType;
     ClNameT  pDestination;
-    SaMsgMessageT_4_0_0  pMessage;
+    ClMsgMessageIovecT_4_0_0  pMessage;
     ClInt64T  sendTime;
     ClHandleT  senderHandle;
     ClInt64T  timeout;
 
     memset(&(sendType), 0, sizeof(ClUint32T));
     memset(&(pDestination), 0, sizeof(ClNameT));
-    memset(&(pMessage), 0, sizeof(SaMsgMessageT_4_0_0));
+    memset(&(pMessage), 0, sizeof(ClMsgMessageIovecT_4_0_0));
     memset(&(sendTime), 0, sizeof(ClInt64T));
     memset(&(senderHandle), 0, sizeof(ClHandleT));
     memset(&(timeout), 0, sizeof(ClInt64T));
@@ -455,7 +455,7 @@ static void clMsgMessageReceivedAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, 
         goto L1;
     }
 
-    retVal = clXdrUnmarshallSaMsgMessageT_4_0_0(inMsgHdl, &(pMessage));
+    retVal = clXdrUnmarshallClMsgMessageIovecT_4_0_0(inMsgHdl, &(pMessage));
     if (CL_OK != retVal)
     {
         goto L2;
@@ -500,7 +500,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint32T  sendType, CL_IN ClNameT* pDestination, CL_IN SaMsgMessageT_4_0_0* pMessage, CL_IN ClInt64T  sendTime, CL_IN ClHandleT  senderHandle, CL_IN ClInt64T  timeout,CL_IN MsgCltSrvClMsgMessageReceivedAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint32T  sendType, CL_IN ClNameT* pDestination, CL_IN ClMsgMessageIovecT_4_0_0* pMessage, CL_IN ClInt64T  sendTime, CL_IN ClHandleT  senderHandle, CL_IN ClInt64T  timeout,CL_IN MsgCltSrvClMsgMessageReceivedAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -558,7 +558,7 @@ ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClU
         goto L;
     }
 
-    rc = clXdrMarshallSaMsgMessageT_4_0_0(pMessage, inMsgHdl, 0);
+    rc = clXdrMarshallClMsgMessageIovecT_4_0_0(pMessage, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;

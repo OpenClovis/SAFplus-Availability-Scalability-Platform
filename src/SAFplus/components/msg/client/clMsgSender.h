@@ -27,6 +27,7 @@
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <saMsg.h>
+#include <clMsgApiExt.h>
 
 #include <msgCltSrvClientCallsFromClientToClientServerClient.h>
 
@@ -52,7 +53,7 @@ void clMsgSenderDatabaseFin(void);
 ClRcT clMsgClientMessageSend(ClIocAddressT *pDestAddr, 
                              ClIocAddressT *pServerAddr, 
                              ClNameT *pDest, 
-                             SaMsgMessageT *pMessage, 
+                             ClMsgMessageIovecT *pMessage,
                              SaTimeT sendTime, 
                              SaTimeT timeout,
                              ClBoolT isSync,
@@ -67,7 +68,7 @@ ClRcT clMsgClientMessageSendReceive(ClIocAddressT * pDestAddr,
                              SaMsgMessageT *pRecvMessage,
                              SaTimeT *pReplierSendTime,
                              SaTimeT timeout);
-ClRcT clMsgClientMessageReply(SaMsgMessageT *pMessage, 
+ClRcT clMsgClientMessageReply(SaMsgMessageT *pMessage,
                              SaTimeT sendTime, 
                              ClHandleT senderId, 
                              SaTimeT timeout,

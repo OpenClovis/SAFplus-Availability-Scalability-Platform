@@ -35,6 +35,42 @@ extern SaAisErrorT clMsgQueueGroupSendWithKeyAsync(SaMsgHandleT msgHandle,
                                                    const SaNameT *group, SaMsgMessageT *message,
                                                    ClCharT *key, ClInt32T keylen,
                                                    SaMsgAckFlagsT ackFlags);
+/**
+ * Structure that includes a struct iovec which is used to send multiple data chunks.
+ */
+typedef struct iovec iovec_t;
+
+typedef struct ClMsgMessageIovec
+{
+    SaUint32T type;
+    SaVersionT version;
+    SaNameT *senderName;
+    SaUint8T priority;
+    iovec_t *pIovec;
+    ClUint32T numIovecs;
+} ClMsgMessageIovecT;
+
+/**
+ * APIs take a struct iovec as an argument and send multiple data chunks;
+ */
+extern SaAisErrorT clMsgMessageSendIovec (SaMsgHandleT msgHandle,
+                                                   const SaNameT *destination,
+                                                   const ClMsgMessageIovecT *message,
+                                                   SaTimeT timeout);
+extern SaAisErrorT clMsgMessageSendAsyncIovec (SaMsgHandleT msgHandle,
+                                                   SaInvocationT invocation,
+                                                   const SaNameT *destination,
+                                                   const ClMsgMessageIovecT *message,
+                                                   SaMsgAckFlagsT ackFlags);
+extern SaAisErrorT clMsgQueueGroupSendWithKeySynchIovec(SaMsgHandleT msgHandle,
+                                                   const SaNameT *group, ClMsgMessageIovecT *message,
+                                                   ClCharT *key, ClInt32T keylen,
+                                                   SaTimeT timeout);
+extern SaAisErrorT clMsgQueueGroupSendWithKeyAsyncIovec(SaMsgHandleT msgHandle,
+                                                   SaInvocationT invocation,
+                                                   const SaNameT *group, ClMsgMessageIovecT *message,
+                                                   ClCharT *key, ClInt32T keylen,
+                                                   SaMsgAckFlagsT ackFlags);
 
 #ifdef __cplusplus
 }

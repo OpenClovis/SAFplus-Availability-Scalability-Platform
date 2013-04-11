@@ -44,8 +44,6 @@
 #include <clMsgIdl.h>
 #include <clMsgQueue.h>
 #include <clMsgReceiver.h>
-#include <clMsgIocClient.h>
-#include <clMsgIocServer.h>
 #include <clMsgCkptServer.h>
 #include <clMsgGroupDatabase.h>
 #include <clMsgFailover.h>
@@ -348,14 +346,6 @@ static ClRcT clMsgInitialize(ClUint32T argc, ClCharT *argv[])
         goto error_out_11;
     }
 
-    /* Initialize IOC send protocol */
-#ifdef CL_MSG_IOC_SEND
-    rc = clMsgIocCltInitialize();
-    CL_ASSERT(rc == CL_OK);
-
-    clMsgIocSvrInitialize();
-#endif
-
     clMsgDebugCliRegister();
 
     clMsgRegisterWithCpm();
@@ -465,13 +455,6 @@ static ClRcT clMsgFinalize(ClBoolT *pLockStatus)
         clLogError("MSG", "FIN", "Failed to deregister Client Server Table. error code [0x%x].", rc);
 
     clMsgCltSrvClientUninstall();
-
-    /* Finalize IOC send protocol */
-#ifdef CL_MSG_IOC_SEND
-    rc = clMsgIocCltFinalize();
-    if(rc != CL_OK)
-        clLogError("MSG", "FIN", "clMsgIocCltFinalize(): error code [0x%x].", rc);
-#endif
 
     /* Finalize cached ckpt for MSG queue & MSG queue group */
     rc = clMsgQCkptFinalize();

@@ -58,8 +58,6 @@
 #include <clVersionApi.h>
 #include <clEoIpi.h>
 #include <clMsgCkptClient.h>
-#include <clMsgIocClient.h>
-#include <clMsgIocServer.h>
 #include <clMsgIdl.h>
 #include <clMsgReceiver.h>
 #include <clMsgSender.h>
@@ -354,14 +352,6 @@ static ClRcT clMsgInitialize(void)
         goto error_out_7;
     }
 
-    /* Initialize IOC send protocol */
-#ifdef CL_MSG_IOC_SEND
-    rc = clMsgIocCltInitialize();
-    CL_ASSERT(rc == CL_OK);
-
-    clMsgIocSvrInitialize();
-#endif
-
     /* Initialize cached ckpt for MSG queue & MSG queue group */
     rc = clMsgQCkptInitialize();
     if(rc != CL_OK)
@@ -432,12 +422,6 @@ static ClRcT clMsgInitialize(void)
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "clMsgQCkptFinalize(): error code [0x%x].", retCode);
     error_out_8:
-
-#ifdef CL_MSG_IOC_SEND
-    retCode = clMsgIocCltFinalize();
-    if(retCode != CL_OK)
-        clLogError("MSG", "INI", "clMsgIocCltFinalize(): error code [0x%x].", retCode);
-#endif
 
     retCode = clMsgCltSrvClientTableDeregister();
     if(retCode != CL_OK)
@@ -510,13 +494,6 @@ static ClRcT clMsgFinalize(void)
     rc = clMsgCltSrvClientUninstall();
     if(rc != CL_OK)
         clLogError("MSG", "FIN", "Failed to destroy the just opened handle database. error code [0x%x].", rc);
-
-#ifdef CL_MSG_IOC_SEND
-    /* Finalize IOC send protocol */
-    rc = clMsgIocCltFinalize();
-    if(rc != CL_OK)
-        clLogError("MSG", "FIN", "clMsgIocCltFinalize(): error code [0x%x].", rc);    
-#endif
 
     /* Finalize cached ckpt for MSG queue & MSG queue group */
     rc = clMsgQCkptFinalize();
@@ -735,7 +712,7 @@ error_out:
 static void clMsgAppMessageDeliveredCallbackFunc(ClIdlHandleT idlHandle,
         ClUint32T  sendType,
         ClNameT *pDest,
-        SaMsgMessageT *pMessage,
+        ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,
         ClHandleT  senderHandle,
         SaTimeT timeout,
@@ -767,13 +744,20 @@ error_out:
 
     if(pMessage)
     {
-        if(pMessage->data)
-            clHeapFree(pMessage->data);
+        if(pMessage->pIovec)
+        {
+            for (ClUint32T i = 0; i < pMessage->numIovecs; i++)
+            {
+                if (pMessage->pIovec[i].iov_base)
+                {
+                    clHeapFree(pMessage->pIovec[i].iov_base);
+                }
+            }
+            clHeapFree(pMessage->pIovec);
+        }
         if(pMessage->senderName)
             clHeapFree(pMessage->senderName);
     }
-
-    return;
 }
 
 static ClRcT clMsgQueueDestAddrGet(SaNameT *pDestination, ClIocAddressT *pQueueAddr, ClIocAddressT *pQServerAddr)
@@ -929,14 +913,14 @@ static SaAisErrorT clMsgMessageSendInternal(
         SaMsgHandleT msgHandle,
         SaInvocationT invocation,
         const SaNameT *pDestination,
-        const SaMsgMessageT *pMessage,
+        const ClMsgMessageIovecT *pMessage,
         SaTimeT timeout,
         SaMsgAckFlagsT ackFlags)
 { 
     ClRcT rc;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
-    SaMsgMessageT tempMessage;
+    ClMsgMessageIovecT tempMessage;
     SaNameT senderName = {0,{0}};
     SaTimeT sendTime = 0;
     SaNameT tempDest;
@@ -947,10 +931,17 @@ static SaAisErrorT clMsgMessageSendInternal(
 
     clNameCopy((ClNameT *) &tempDest, (ClNameT *)pDestination);
 
-    if(pDestination == NULL || pMessage == NULL || pMessage->data == NULL)
+    if(pDestination == NULL || pMessage == NULL || pMessage->pIovec == NULL)
     {
         rc = CL_MSG_RC(CL_ERR_NULL_POINTER);
         clLogError("MSG", "SND", "NULL parameter passed. error code [0x%x].", rc);
+        goto error_out;
+    }
+
+    if(pMessage->numIovecs == 0)
+    {
+        rc = CL_MSG_RC(CL_ERR_INVALID_PARAMETER);
+        clLogError("MSG", "SND", "Number of iovec is 0. error code [0x%x].", rc);
         goto error_out;
     }
 
@@ -1032,7 +1023,19 @@ SaAisErrorT saMsgMessageSend(
         const SaMsgMessageT *pMessage,
         SaTimeT timeout)
 {
-    return clMsgMessageSendInternal(CL_TRUE, msgHandle, 0, pDestination, pMessage, timeout, 0);  
+    ClMsgMessageIovecT msgVector;
+    struct iovec iovec = {0};
+    iovec.iov_base = (void*)pMessage->data;
+    iovec.iov_len = pMessage->size;
+
+    msgVector.type = pMessage->type;
+    msgVector.version = pMessage->version;
+    msgVector.senderName = pMessage->senderName;
+    msgVector.priority = pMessage->priority;
+    msgVector.pIovec = &iovec;
+    msgVector.numIovecs = 1;
+
+    return clMsgMessageSendIovec(msgHandle, pDestination, &msgVector, timeout);
 }
 
 
@@ -1041,10 +1044,40 @@ SaAisErrorT saMsgMessageSendAsync(SaMsgHandleT msgHandle,
         const SaNameT *pDestination,
         const SaMsgMessageT *pMessage,
         SaMsgAckFlagsT ackFlags)
-{ 
-    return clMsgMessageSendInternal(CL_FALSE, msgHandle, invocation, pDestination, pMessage, 0, ackFlags);  
+{
+    ClMsgMessageIovecT msgVector;
+    struct iovec iovec = {0};
+    iovec.iov_base = (void*)pMessage->data;
+    iovec.iov_len = pMessage->size;
+
+    msgVector.type = pMessage->type;
+    msgVector.version = pMessage->version;
+    msgVector.senderName = pMessage->senderName;
+    msgVector.priority = pMessage->priority;
+    msgVector.pIovec = &iovec;
+    msgVector.numIovecs = 1;
+
+    return clMsgMessageSendAsyncIovec(msgHandle, invocation, pDestination, &msgVector, ackFlags);
 }
 
+SaAisErrorT clMsgMessageSendIovec(
+        SaMsgHandleT msgHandle,
+        const SaNameT *pDestination,
+        const ClMsgMessageIovecT *pMessage,
+        SaTimeT timeout)
+{
+    return clMsgMessageSendInternal(CL_TRUE, msgHandle, 0, pDestination, pMessage, timeout, 0);
+}
+
+
+SaAisErrorT clMsgMessageSendAsyncIovec(SaMsgHandleT msgHandle,
+        SaInvocationT invocation,
+        const SaNameT *pDestination,
+        const ClMsgMessageIovecT *pMessage,
+        SaMsgAckFlagsT ackFlags)
+{
+    return clMsgMessageSendInternal(CL_FALSE, msgHandle, invocation, pDestination, pMessage, 0, ackFlags);
+}
 
 static ClRcT clMsgReceiveMessageForm(SaMsgMessageT **pTempMessage, SaMsgMessageT *pMessage)
 {
@@ -1132,7 +1165,7 @@ SaAisErrorT saMsgMessageGet(SaMsgQueueHandleT queueHandle,
     if(rc != CL_OK)
     {
         CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
-        clDbgCodeError(rc,("Failed to checkout the queue handle. error code [0x%x].",rc));       
+        clDbgCodeError(rc,("Failed to checkout the queue handle. error code [0x%x].",rc));
         goto error_out;
     }
     CL_OSAL_MUTEX_LOCK(&pQInfo->qLock);
@@ -1527,7 +1560,7 @@ error_out:
 static void clMsgAppMessageReplyDeliveredCallbackFunc(ClIdlHandleT idlHandle,
         ClUint32T  sendType,
         ClNameT *pDest,
-        SaMsgMessageT *pMessage,
+        ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,
         ClHandleT  senderHandle,
         SaTimeT timeout,
@@ -1562,12 +1595,20 @@ static void clMsgAppMessageReplyDeliveredCallbackFunc(ClIdlHandleT idlHandle,
 error_out:
     if(pMessage)
     {
-        if(pMessage->data)
-            clHeapFree(pMessage->data);
+        if(pMessage->pIovec)
+        {
+            for (ClUint32T i = 0; i < pMessage->numIovecs; i++)
+            {
+                if (pMessage->pIovec[i].iov_base)
+                {
+                    clHeapFree(pMessage->pIovec[i].iov_base);
+                }
+            }
+            clHeapFree(pMessage->pIovec);
+        }
         if(pMessage->senderName)
             clHeapFree(pMessage->senderName);
     }
-    return;
 }
 
 static SaAisErrorT clMsgMessageReplyInternal (
@@ -1657,7 +1698,7 @@ SaAisErrorT saMsgMessageReply (
         const SaMsgSenderIdT *pSenderId,
         SaTimeT timeout)
 {
-    return clMsgMessageReplyInternal(CL_TRUE, msgHandle, 0, pReplyMessage, pSenderId, timeout, 0); 
+    return clMsgMessageReplyInternal(CL_TRUE, msgHandle, 0, pReplyMessage, pSenderId, timeout, 0);
 }
 
 
@@ -1668,7 +1709,7 @@ SaAisErrorT saMsgMessageReplyAsync (
         const SaMsgSenderIdT *pSenderId,
         SaMsgAckFlagsT ackFlags)
 {
-    return clMsgMessageReplyInternal(CL_FALSE, msgHandle, invocation, pReplyMessage, pSenderId, 0, ackFlags); 
+    return clMsgMessageReplyInternal(CL_FALSE, msgHandle, invocation, pReplyMessage, pSenderId, 0, ackFlags);
 }
 
 

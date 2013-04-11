@@ -155,7 +155,7 @@ ClRcT clMsgMessageReceiveCallback(SaMsgQueueHandleT qHandle);
 ClRcT clMsgQueueTheLocalMessage(
         ClMsgMessageSendTypeT sendType,
         SaMsgQueueHandleT qHandle,
-        SaMsgMessageT *pMessage,
+        ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,
         ClHandleT senderHandle,
         SaTimeT timeout)
@@ -166,7 +166,8 @@ ClRcT clMsgQueueTheLocalMessage(
     ClMsgReceivedMessageDetailsT *pRecvInfo;
     ClUint32T priority;
     ClHandleT *pReplierHandle = NULL;
-
+    ClUint32T i;
+    SaSizeT msgSize = 0;
 
     rc = clHandleCheckout(gClMsgQDatabase, qHandle, (void**)&pQInfo);
     if(rc != CL_OK)
@@ -178,67 +179,77 @@ ClRcT clMsgQueueTheLocalMessage(
 
     CL_OSAL_MUTEX_LOCK(&pQInfo->qLock);
 
+    for (i = 0; i < pMessage->numIovecs; i++)
+    {
+        msgSize = pMessage->pIovec[i].iov_len;
+    }
+
     priority = pMessage->priority;
-    if(pQInfo->size[priority] < pQInfo->usedSize[priority] + pMessage->size)
+    if(pQInfo->size[priority] < pQInfo->usedSize[priority] + msgSize)
     {
         rc = CL_MSG_RC(CL_ERR_BUFFER_OVERRUN);
         clLogCritical("MSG", "QUE", "The priority queue is full. error code [0x%x].", rc); 
         clLogCritical("MSG", "QUE", "Dropping the received packet.");
         goto error_out_1;
     }
-
-    pRecvInfo = (ClMsgReceivedMessageDetailsT*)clHeapAllocate(sizeof(ClMsgReceivedMessageDetailsT));
-    if(pRecvInfo == NULL)
+    for (i = 0; i < pMessage->numIovecs; i++)
     {
-        rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
-        clLogCritical("MSG", "QUE", "Failed to allocate memory of %zd bytes. error code [0x%x].", sizeof(ClMsgReceivedMessageDetailsT), rc);
-        clLogCritical("MSG", "QUE", "Dropping the received packet.");
-        goto error_out_1;
-    }
+        pRecvInfo = (ClMsgReceivedMessageDetailsT*)clHeapAllocate(sizeof(ClMsgReceivedMessageDetailsT));
+        if(pRecvInfo == NULL)
+        {
+            rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
+            clLogCritical("MSG", "QUE", "Failed to allocate memory of %zd bytes. error code [0x%x].", sizeof(ClMsgReceivedMessageDetailsT), rc);
+            clLogCritical("MSG", "QUE", "Dropping the received packet.");
+            goto error_out_1;
+        }
 
-    rc = clMsgMessageToMessageCopy(&pRecvInfo->pMessage, pMessage);
-    if(rc != CL_OK)
-    {
-        clLogCritical("MSG", "QUE", "Failed to copy the message to the local memory.");
-        clLogCritical("MSG", "QUE", "Dropping the received packet.");
-        goto error_out_2;
-    }
-
-    pRecvInfo->replyId = 0;
-
-    if(senderHandle != 0)
-    {
-        rc = clMsgStoreDetailsForReplier(pMessage->senderName, senderHandle, timeout, &pReplierHandle);
+        rc = clMsgIovecToMessageCopy(&pRecvInfo->pMessage, pMessage, i);
         if(rc != CL_OK)
         {
+            clLogCritical("MSG", "QUE", "Failed to copy the message to the local memory.");
             clLogCritical("MSG", "QUE", "Dropping the received packet.");
-            goto error_out_3;
+            goto error_out_2;
         }
-        pRecvInfo->replyId = *pReplierHandle;
-    }
 
-    CL_MSG_SEND_TIME_GET(pRecvInfo->sendTime);
-    
-    rc = clCntNodeAdd(pQInfo->pPriorityContainer[priority], NULL, (ClCntDataHandleT)pRecvInfo, NULL);
-    if(rc != CL_OK)
-    {
-        clLogCritical("MSG", "QUE", "Failed to add the new message to the message queue with priority %d. error code [0x%x].", priority, rc);
-        clLogCritical("MSG", "QUE", "Dropping the received packet.");
-        goto error_out_4;
+        pRecvInfo->replyId = 0;
+
+        if(senderHandle != 0)
+        {
+            rc = clMsgStoreDetailsForReplier(pMessage->senderName, senderHandle, timeout, &pReplierHandle);
+            if(rc != CL_OK)
+            {
+                clLogCritical("MSG", "QUE", "Dropping the received packet.");
+                goto error_out_3;
+            }
+            pRecvInfo->replyId = *pReplierHandle;
+        }
+
+        CL_MSG_SEND_TIME_GET(pRecvInfo->sendTime);
+
+        rc = clCntNodeAdd(pQInfo->pPriorityContainer[priority], NULL, (ClCntDataHandleT)pRecvInfo, NULL);
+        if(rc != CL_OK)
+        {
+            clLogCritical("MSG", "QUE", "Failed to add the new message to the message queue with priority %d. error code [0x%x].", priority, rc);
+            clLogCritical("MSG", "QUE", "Dropping the received packet.");
+            goto error_out_4;
+        }
     }
 
     clOsalCondSignal(pQInfo->qCondVar);
 
     ++pQInfo->numberOfMessages[priority];
-    pQInfo->usedSize[priority] = pQInfo->usedSize[priority] + pMessage->size;
+    pQInfo->usedSize[priority] = pQInfo->usedSize[priority] + msgSize;
 
     clLogTrace("MSG", "QUE", "Queued a message of size [%llu] to queue [%.*s].", 
-            pMessage->size, pQInfo->pQueueEntry->qName.length, pQInfo->pQueueEntry->qName.value);
+            msgSize, pQInfo->pQueueEntry->qName.length, pQInfo->pQueueEntry->qName.value);
 
     if((pQInfo->state == CL_MSG_QUEUE_OPEN) 
        &&
        (pQInfo->openFlags & SA_MSG_QUEUE_RECEIVE_CALLBACK))
-        clMsgMessageReceiveCallback(qHandle); 
+    {
+        for (i = 0; i < pMessage->numIovecs; i++)
+            clMsgMessageReceiveCallback(qHandle);
+    }
 
     goto out;
 
@@ -263,24 +274,43 @@ error_out:
     return rc;
 }
 
-ClRcT clMsgReplyReceived(SaMsgMessageT *pMessage, SaTimeT sendTime, SaMsgSenderIdT senderHandle, SaTimeT timeout);
-ClRcT VDECL_VER(clMsgMessageReceived, 4, 0, 0)(ClMsgMessageSendTypeT sendType, ClNameT *pDest, SaMsgMessageT *pMessage, SaTimeT sendTime, ClHandleT senderHandle, SaTimeT timeout)
+ClRcT clMsgReplyReceived(ClMsgMessageIovecT *pMessage, SaTimeT sendTime, SaMsgSenderIdT senderHandle, SaTimeT timeout);
+ClRcT VDECL_VER(clMsgMessageReceived, 4, 0, 0)(ClMsgMessageSendTypeT sendType, ClNameT *pDest, ClMsgMessageIovecT *pMessage, SaTimeT sendTime, ClHandleT senderHandle, SaTimeT timeout)
 {
     ClRcT rc = CL_OK;
     ClMsgQueueRecordT *pQueue;
+    ClUint32T i;
 
     CL_MSG_INIT_CHECK;
 
+    if ((pMessage == NULL) || (pMessage->pIovec == NULL))
+    {
+        rc = CL_MSG_RC(CL_ERR_NULL_POINTER);
+        clLogCritical("MSG", "RCV", "Passing NULL pointer. error code [0x%x].", rc);
+        goto out;
+    }
+
     ClIocPhysicalAddressT srcAddr;
     rc = clRmdSourceAddressGet(&srcAddr);
-    clLogTrace("MSG", "RCV", "Queue [%.*s] receiving message of size [%d] from [0x%x,0x%x].",
+    clLogTrace("MSG", "RCV", "Queue [%.*s] receiving [%d] messages from [0x%x,0x%x].",
                pDest->length, pDest->value,
-               (ClInt32T)pMessage->size, srcAddr.nodeAddress, srcAddr.portId);
+               (ClInt32T)pMessage->numIovecs, srcAddr.nodeAddress, srcAddr.portId);
 
     /* Reply for saMsgSendReceiveMessage() is received. */
     if(sendType == CL_MSG_REPLY_SEND)
-        return clMsgReplyReceived(pMessage, sendTime, senderHandle, timeout);
+    {
+        rc = clMsgReplyReceived(pMessage, sendTime, senderHandle, timeout);
 
+        /* Free iov_base allocated by the IDL */
+        for (i = 0; i < pMessage->numIovecs; i++)
+        {
+            if (pMessage->pIovec[i].iov_base)
+            {
+                clHeapFree(pMessage->pIovec[i].iov_base);
+            }
+        }
+        goto out;
+    }
     /* Queuing the message to the local queue on this node. */
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
     CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
@@ -300,6 +330,18 @@ ClRcT VDECL_VER(clMsgMessageReceived, 4, 0, 0)(ClMsgMessageSendTypeT sendType, C
 q_done_out:
     CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
     CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
+
+    if (rc != CL_OK)
+    {
+        for (i = 0; i < pMessage->numIovecs; i++)
+        {
+            if (pMessage->pIovec[i].iov_base)
+            {
+                clHeapFree(pMessage->pIovec[i].iov_base);
+            }
+        }
+    }
+out:
     return rc;
 }
 
@@ -364,13 +406,21 @@ ClRcT clMsgQueueGetMessagesAndMove(
                 if(rc != CL_OK)
                     clLogError("MSG", "RTV", "Failed to destroy replier handle. error code [0x%x].", rc);
             }
-#ifdef CL_MSG_IOC_SEND
-            rc = clMsgSendMessage_IocSend(CL_MSG_SEND, destCompAddr, &pQInfo->pQueueEntry->qName, pRecvInfo->pMessage,
+
+            ClMsgMessageIovecT msgVector;
+            struct iovec iovec = {0};
+            iovec.iov_base = (void*)pRecvInfo->pMessage->data;
+            iovec.iov_len = pRecvInfo->pMessage->size;
+
+            msgVector.type = pRecvInfo->pMessage->type;
+            msgVector.version = pRecvInfo->pMessage->version;
+            msgVector.senderName = pRecvInfo->pMessage->senderName;
+            msgVector.priority = pRecvInfo->pMessage->priority;
+            msgVector.pIovec = &iovec;
+            msgVector.numIovecs = 1;
+
+            rc = clMsgSendMessage_idl(CL_MSG_SEND, destCompAddr, &pQInfo->pQueueEntry->qName, &msgVector,
                                       pRecvInfo->sendTime, senderInfo.senderHandle, senderInfo.timeout, CL_TRUE, 0, NULL, NULL);
-#else
-            rc = clMsgSendMessage_idl(CL_MSG_SEND, destCompAddr, &pQInfo->pQueueEntry->qName, pRecvInfo->pMessage,
-                                      pRecvInfo->sendTime, senderInfo.senderHandle, senderInfo.timeout, CL_TRUE, 0, NULL, NULL);
-#endif
             if(rc != CL_OK)
             {
                 clLogError("MSG", "RTV", "Failed to move message of queue [%.*s]. error code [0x%x].", 

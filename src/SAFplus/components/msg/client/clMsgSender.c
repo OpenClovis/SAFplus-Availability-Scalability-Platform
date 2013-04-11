@@ -63,11 +63,18 @@ void clMsgSenderDatabaseFin(void)
     return;
 }
 
-ClRcT clMsgReplyReceived(SaMsgMessageT *pMessage, SaTimeT sendTime, SaMsgSenderIdT senderHandle, SaTimeT timeout)
+ClRcT clMsgReplyReceived(ClMsgMessageIovecT *pMessage, SaTimeT sendTime, SaMsgSenderIdT senderHandle, SaTimeT timeout)
 {
     ClRcT rc;
     ClRcT retCode;
     ClMsgWaitingSenderDetailsT *pReplyInfo;
+
+    if ((pMessage->numIovecs != 1) || (pMessage->pIovec == NULL))
+    {
+        rc = CL_MSG_RC(CL_ERR_INVALID_PARAMETER);
+        clLogCritical("MSG", "GOT-REPLY", "Invalid parameters.");
+        goto error_out;
+    }
 
     rc = clHandleCheckout(gMsgSenderDatabase, senderHandle, (void **)&pReplyInfo);
     if(rc != CL_OK)
@@ -78,10 +85,10 @@ ClRcT clMsgReplyReceived(SaMsgMessageT *pMessage, SaTimeT sendTime, SaMsgSenderI
     }
 
     CL_OSAL_MUTEX_LOCK(&pReplyInfo->mutex);
-    if(pReplyInfo->pRecvMessage->size != 0 && pReplyInfo->pRecvMessage->size < pMessage->size)
+    if(pReplyInfo->pRecvMessage->size != 0 && pReplyInfo->pRecvMessage->size < pMessage->pIovec[0].iov_len)
     {
         rc = CL_MSG_RC(CL_ERR_NO_SPACE);
-        pReplyInfo->pRecvMessage->size = pMessage->size;
+        pReplyInfo->pRecvMessage->size = pMessage->pIovec[0].iov_len;
         clLogCritical("MSG", "GOT-REPLY", "The reply buffer provided is very small. error code [0x%x].", rc);
         clLogCritical("MSG", "GOT-REPLY", "Dropping the received packet.");
         goto error_out_1;
@@ -98,15 +105,15 @@ ClRcT clMsgReplyReceived(SaMsgMessageT *pMessage, SaTimeT sendTime, SaMsgSenderI
             goto error_out_1;
         }
         clHeapFree(pReplyInfo->pRecvMessage->data);
-        pReplyInfo->pRecvMessage->data = pTemp; 
+        pReplyInfo->pRecvMessage->data = pTemp;
     }
-    
+
     pReplyInfo->pRecvMessage->type = pMessage->type;
     pReplyInfo->pRecvMessage->version = pMessage->version;
-    pReplyInfo->pRecvMessage->size = pMessage->size;
-    memcpy(pReplyInfo->pRecvMessage->senderName, pMessage->senderName, sizeof(ClNameT));
-    memcpy(pReplyInfo->pRecvMessage->data, pMessage->data, pMessage->size);
     pReplyInfo->pRecvMessage->priority = pMessage->priority;
+    memcpy(pReplyInfo->pRecvMessage->senderName, pMessage->senderName, sizeof(ClNameT));
+    memcpy(pReplyInfo->pRecvMessage->data, pMessage->pIovec[0].iov_base, pMessage->pIovec[0].iov_len);
+    pReplyInfo->pRecvMessage->size = pMessage->pIovec[0].iov_len;
 
     *pReplyInfo->pReplierSendTime = sendTime;
 
@@ -126,7 +133,7 @@ error_out:
 static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr, 
                          ClMsgMessageSendTypeT sendType, 
                          ClNameT *pDest, 
-                         SaMsgMessageT *pMessage, 
+                         ClMsgMessageIovecT *pMessage,
                          SaTimeT sendTime, 
                          ClHandleT senderHandle, 
                          SaTimeT timeout,
@@ -137,6 +144,7 @@ static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr,
 {
     ClRcT rc;
     ClMsgQueueRecordT *pQueue = NULL;
+    ClMsgMessageIovecT *pTempMessage = NULL;
 
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
     CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
@@ -157,8 +165,33 @@ static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr,
 
         SaMsgQueueHandleT qHandle = pQueue->qHandle;
 
+        /* Allocate memory to queue message on the same machine */
+        rc = clMsgIovecToIovecCopy(&pTempMessage, pMessage);
+        if(rc != CL_OK)
+        {
+            clLogCritical("MSG", "SND", "Failed to copy the message to the local memory.");
+            rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
+            goto out;
+        }
+
         /* Queuing the message as the destination queue is on the same machine. */
-        rc = clMsgQueueTheLocalMessage(sendType, qHandle, pMessage, sendTime, senderHandle, timeout);
+        rc = clMsgQueueTheLocalMessage(sendType, qHandle, pTempMessage, sendTime, senderHandle, timeout);
+        if(rc != CL_OK)
+        {
+            for (ClUint32T i = 0; i < pTempMessage->numIovecs; i++)
+            {
+                if (pTempMessage->pIovec[i].iov_base)
+                    clHeapFree(pTempMessage->pIovec[i].iov_base);
+            }
+        }
+        if (pTempMessage)
+        {
+            if (pTempMessage->senderName)
+                clHeapFree(pTempMessage->senderName);
+            if (pTempMessage->pIovec)
+                clHeapFree(pTempMessage->pIovec);
+            clHeapFree(pTempMessage);
+        }
 
         if (ackFlag == SA_MSG_MESSAGE_DELIVERED_ACK)
         {
@@ -170,11 +203,7 @@ static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr,
     else
     {
         /* Sending the message as the destination queue is on the some other machine. */
-#ifdef CL_MSG_IOC_SEND
-        rc = clMsgSendMessage_IocSend(sendType, pDestAddr->iocPhyAddress, pDest, pMessage, sendTime, senderHandle, timeout, isSync, ackFlag, fpAsyncCallback, cookie);
-#else
         rc = clMsgSendMessage_idl(sendType, pDestAddr->iocPhyAddress, pDest, pMessage, sendTime, senderHandle, timeout, isSync, ackFlag, fpAsyncCallback, cookie);
-#endif
     }
 
 out:
@@ -186,7 +215,7 @@ out:
 ClRcT clMsgClientMessageSend(ClIocAddressT *pDestAddr, 
                              ClIocAddressT *pServerAddr, 
                              ClNameT *pDest, 
-                             SaMsgMessageT *pMessage, 
+                             ClMsgMessageIovecT *pMessage,
                              SaTimeT sendTime, 
                              SaTimeT timeout,
                              ClBoolT isSync,
@@ -220,7 +249,7 @@ ClRcT clMsgClientMessageSend(ClIocAddressT *pDestAddr,
                         rc = clMsgMessageSend(&queueAddr, CL_MSG_SEND, &tempDest, pMessage, sendTime, 0, timeout, CL_FALSE, ackFlag, fpAsyncCallback, cookie);
                         if(rc != CL_OK)
                         {
-                            clLogError("MSG", "SND", "Failed to send a message of size [%llu] to [%.*s]. error code [0x%x].", pMessage->size, pDest->length, pDest->value, rc);
+                            clLogError("MSG", "SND", "Failed to send [%u] messages to [%.*s]. error code [0x%x].", pMessage->numIovecs, pDest->length, pDest->value, rc);
                             goto error_out;
                         }
                     }
@@ -231,7 +260,7 @@ ClRcT clMsgClientMessageSend(ClIocAddressT *pDestAddr,
                         rc = clMsgMessageSend(&queueAddr, CL_MSG_SEND, &tempDest, pMessage, sendTime, 0, timeout, CL_FALSE, 0, NULL, NULL);
                         if(rc != CL_OK)
                         {
-                            clLogError("MSG", "SND", "Failed to send a message of size [%llu] to [%.*s]. error code [0x%x].", pMessage->size, pDest->length, pDest->value, rc);
+                            clLogError("MSG", "SND", "Failed to send [%u] messages to [%.*s]. error code [0x%x].", pMessage->numIovecs, pDest->length, pDest->value, rc);
                             goto error_out;
                         }
                     }
@@ -254,7 +283,7 @@ ClRcT clMsgClientMessageSend(ClIocAddressT *pDestAddr,
             rc = clMsgMessageSend(pDestAddr, CL_MSG_SEND, pDest, pMessage, sendTime, 0, timeout, isSync, ackFlag, fpAsyncCallback, cookie);
             if(rc != CL_OK)
             {
-                clLogError("MSG", "SND", "Failed to send a message of size [%llu] to [%.*s]. error code [0x%x].", pMessage->size, pDest->length, pDest->value, rc);
+                clLogError("MSG", "SND", "Failed to send [%u] messages to [%.*s]. error code [0x%x].", pMessage->numIovecs, pDest->length, pDest->value, rc);
                 goto error_out;
             }
         }
@@ -264,7 +293,7 @@ ClRcT clMsgClientMessageSend(ClIocAddressT *pDestAddr,
             rc = clMsgMessageSend(pServerAddr, CL_MSG_SEND, pDest, pMessage, sendTime, 0, timeout, CL_FALSE, 0, NULL, NULL);
             if(rc != CL_OK)
             {
-                clLogError("MSG", "SND", "Failed to send a message of size [%llu] to [%.*s]. error code [0x%x].", pMessage->size, pDest->length, pDest->value, rc);
+                clLogError("MSG", "SND", "Failed to send [%u] messages to [%.*s]. error code [0x%x].", pMessage->numIovecs, pDest->length, pDest->value, rc);
                 goto error_out;
             }
         }
@@ -289,6 +318,18 @@ ClRcT clMsgClientMessageSendReceive(ClIocAddressT * pDestAddr,
     ClMsgWaitingSenderDetailsT *pSender;
     ClTimerTimeOutT tempTime;
     ClBoolT monitorDisabled = CL_FALSE;
+
+    ClMsgMessageIovecT msgVector;
+    struct iovec iovec = {0};
+    iovec.iov_base = (void*)pSendMessage->data;
+    iovec.iov_len = pSendMessage->size;
+
+    msgVector.type = pSendMessage->type;
+    msgVector.version = pSendMessage->version;
+    msgVector.senderName = pSendMessage->senderName;
+    msgVector.priority = pSendMessage->priority;
+    msgVector.pIovec = &iovec;
+    msgVector.numIovecs = 1;
 
     if(pDestAddr->iocPhyAddress.nodeAddress == 0)
     {
@@ -342,7 +383,7 @@ ClRcT clMsgClientMessageSendReceive(ClIocAddressT * pDestAddr,
     pSender->pReplierSendTime = pReplierSendTime;
 
     /* Send the message to the destination */
-    rc = clMsgMessageSend(pDestAddr, CL_MSG_SEND_RECV, pDest, pSendMessage, sendTime, senderHandle, timeout, CL_FALSE, 0, NULL, NULL);
+    rc = clMsgMessageSend(pDestAddr, CL_MSG_SEND_RECV, pDest, &msgVector, sendTime, senderHandle, timeout, CL_FALSE, 0, NULL, NULL);
     if(rc != CL_OK)
     {
         clLogError("MSG", "SendRecv", "Failed to send the message to the destination. error code [0x%x].",rc);
@@ -352,7 +393,7 @@ ClRcT clMsgClientMessageSendReceive(ClIocAddressT * pDestAddr,
     /* Echo the message to the controlling server for persistent queues... */
     if (pServerAddr->iocPhyAddress.nodeAddress != 0)
     {
-        rc = clMsgMessageSend(pServerAddr, CL_MSG_SEND, pDest, pSendMessage, sendTime, senderHandle, timeout, CL_FALSE, 0, NULL, NULL);
+        rc = clMsgMessageSend(pServerAddr, CL_MSG_SEND, pDest, &msgVector, sendTime, senderHandle, timeout, CL_FALSE, 0, NULL, NULL);
         if(rc != CL_OK)
         {
             clLogError("MSG", "SendRecv", "Failed to send the message to the destination. error code [0x%x].",rc);
@@ -409,7 +450,7 @@ error_out:
 }
 
 
-ClRcT clMsgClientMessageReply(SaMsgMessageT *pMessage, 
+ClRcT clMsgClientMessageReply(SaMsgMessageT *pMessage,
                               SaTimeT sendTime, 
                               ClHandleT senderId, 
                               SaTimeT timeout,
@@ -422,6 +463,18 @@ ClRcT clMsgClientMessageReply(SaMsgMessageT *pMessage,
     ClRcT retCode;
     ClNameT dummyName = {0, {0}};
     ClMsgReplyDetailsT *pReplyInfo;
+
+    ClMsgMessageIovecT msgVector;
+    struct iovec iovec = {0};
+    iovec.iov_base = (void*)pMessage->data;
+    iovec.iov_len = pMessage->size;
+
+    msgVector.type = pMessage->type;
+    msgVector.version = pMessage->version;
+    msgVector.senderName = pMessage->senderName;
+    msgVector.priority = pMessage->priority;
+    msgVector.pIovec = &iovec;
+    msgVector.numIovecs = 1;
 
     rc = clHandleCheckout(gMsgReplyDetailsDb, senderId, (void **)&pReplyInfo);
     if(rc != CL_OK)
@@ -440,7 +493,8 @@ ClRcT clMsgClientMessageReply(SaMsgMessageT *pMessage,
     if((pReplyInfo->senderAddr.nodeAddress == gLocalAddress)
         && (pReplyInfo->senderAddr.portId == gLocalPortId))
     {
-        rc = clMsgReplyReceived(pMessage, sendTime, pReplyInfo->senderHandle, timeout);
+        /* Allocate memory to store reply message when sending msg locally. */
+        rc = clMsgReplyReceived(&msgVector, sendTime, pReplyInfo->senderHandle, timeout);
 
         if (ackFlag == SA_MSG_MESSAGE_DELIVERED_ACK)
         {
@@ -451,12 +505,7 @@ ClRcT clMsgClientMessageReply(SaMsgMessageT *pMessage,
     }
     else
     {
-        /* FIXME : Passing address of dummyName, just not to crash in IDL, as IDL expects non NULL parameter. */
-#ifdef CL_MSG_IOC_SEND
-        rc = clMsgSendMessage_IocSend(CL_MSG_REPLY_SEND, pReplyInfo->senderAddr, &dummyName, pMessage, sendTime, pReplyInfo->senderHandle,  timeout, isSync, ackFlag, fpAsyncCallback, cookie);
-#else
-        rc = clMsgSendMessage_idl(CL_MSG_REPLY_SEND, pReplyInfo->senderAddr, &dummyName, pMessage, sendTime, pReplyInfo->senderHandle,  timeout, isSync, ackFlag, fpAsyncCallback, cookie);
-#endif
+        rc = clMsgSendMessage_idl(CL_MSG_REPLY_SEND, pReplyInfo->senderAddr, &dummyName, &msgVector, sendTime, pReplyInfo->senderHandle,  timeout, isSync, ackFlag, fpAsyncCallback, cookie);
     }
     if(rc != CL_OK)
         clLogError("MSG", "REPLY", "Failed to send the reply to the destination. error code [0x%x].",rc);
