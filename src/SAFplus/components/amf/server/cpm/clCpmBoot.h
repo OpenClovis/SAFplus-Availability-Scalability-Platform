@@ -40,15 +40,19 @@ extern "C"
 #include <clParserApi.h>
 
 /**
- * :-(
+ * The process started in each boot level is defined
+   in clCpmParser.c
  */
+    /* AMF process running only */
 #define CL_CPM_BOOT_LEVEL_0     0
+    /* Log */
 #define CL_CPM_BOOT_LEVEL_1     1
+    /* GMS */
 #define CL_CPM_BOOT_LEVEL_2     2
 #define CL_CPM_BOOT_LEVEL_3     3
 #define CL_CPM_BOOT_LEVEL_4     4
 #define CL_CPM_BOOT_LEVEL_5     5
-#define CL_CPM_BOOT_LEVEL_6     6
+    /* #define CL_CPM_BOOT_LEVEL_6     6 */
 
 typedef struct bootRow bootRowT;
 

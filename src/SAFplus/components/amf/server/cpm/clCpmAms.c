@@ -312,6 +312,7 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
         {
             case CL_AMS_COMP_PROPERTY_SA_AWARE:
             {
+                /* Send RMD to the application telling it about the CSI set */
                 rc = CL_CPM_CALL_RMD_ASYNC_NEW(clIocLocalAddressGet(), comp->eoPort,
                         CPM_CSI_SET_FN_ID, (ClUint8T *) sendBuff,
                         (ClUint32T)sizeof(*sendBuff), NULL, NULL,
@@ -1812,6 +1813,7 @@ void clCpmAmsToCpmFree(CL_IN ClCpmAmsToCpmCallT *callback)
 
 /*
  * This IPI allocates and initialize the AMS to CPM call structure.
+   This function call table is never changes so could be removed and simplified 
  */
 ClRcT clCpmAmsToCpmInitialize(CL_IN ClCpmAmsToCpmCallT **callback)
 {

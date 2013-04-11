@@ -1712,7 +1712,9 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
 
     /*
      * Initialization is done. So now start the BM which will create a thread
-     * and start processing in that thread 
+     * and start processing in that thread
+     * GAS: Better to use this thread for the boot manager and spawn compMgrPollThread only if needed
+     * b/c its not used anymore
      */
     rc = cpmBmInitialize(&(gpClCpm->bmTaskId), gpClCpm->cpmEoObj);
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BM_INIT_ERR, rc, rc,
@@ -1725,7 +1727,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     
     clLog(CL_LOG_NOTICE, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
           "AMF server fully up");
-        
+    
     compMgrPollThread();
 
     failure:
@@ -3699,6 +3701,9 @@ ClRcT compMgrPollThread(void)
 
     clOsalMutexLock(&gpClCpm->heartbeatMutex);
     restart_heartbeat:
+    /* This code heartbeats all the other processes in the system.  This is now handled by the notification layer in IOC.
+       So enableHeartbeat is FALSE by default.
+     */
     while (gpClCpm->polling && gpClCpm->enableHeartbeat == CL_TRUE)
     {
         clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
@@ -3903,6 +3908,7 @@ ClRcT compMgrPollThread(void)
     {
         goto out_unlock;
     }
+    /* This is woken up when AMF stop occurs */
     clOsalCondWait(&gpClCpm->heartbeatCond, &gpClCpm->heartbeatMutex,heartbeatWait);
     goto restart_heartbeat;
 

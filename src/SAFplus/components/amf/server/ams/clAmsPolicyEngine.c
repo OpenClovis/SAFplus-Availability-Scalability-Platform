@@ -1306,6 +1306,7 @@ clAmsPeSGAssignSUs(
 
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
+    /* If there are no SUs in the SG, nothing to do */
     if ( !sg->config.suList.numEntities )
     {
         return CL_OK;
@@ -8689,6 +8690,8 @@ clAmsPeSUAssignSI(
             /*
              * Assign CSI without dependencies first. for active HA state
              * and do the reverse while assigning other HA states
+             * CSIs with dependencies will be triggered to be assigned in the RMD response to
+             * the assignment of the CSI it is dependent on.
              */
             if(haState == CL_AMS_HA_STATE_ACTIVE)
             {
