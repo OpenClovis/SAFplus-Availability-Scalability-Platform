@@ -2278,6 +2278,10 @@ ClRcT _cpmComponentInstantiate(ClCharT *compName,
     ClCpmComponentT *comp = NULL;
     ClUint32T rc = CL_OK;
 
+    /* If the nodeNames do not match, this request cannot be fulfilled on this node
+       so issue an RMD to that node.
+       (this function can be called directly OR through an RMD
+    */
     if ((gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL) &&
         (strcmp
          ((ClCharT *) nodeName, (ClCharT *) gpClCpm->pCpmConfig->nodeName)))

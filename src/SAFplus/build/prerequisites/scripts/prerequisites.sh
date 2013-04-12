@@ -502,7 +502,7 @@ populate_prereqs() {
 
         # openhpi
         if [ $HPI_EMERSON == "0" ]; then
-        BUILDTOOLS_PATH=$ASP_INSTALLDIR/../buildtools$TOOLCHAIN_DIR
+        BUILDTOOLS_PATH=$SAFPLUS_BTL_DIR$TOOLCHAIN_DIR
         echo -n "openhpi: trying toolchain build at $BUILDTOOLS_PATH/lib/libopenhpi.a "
         if [ -f $BUILDTOOLS_PATH/lib/libopenhpi.a ]; then
             cd $BUILDTOOLS_PATH

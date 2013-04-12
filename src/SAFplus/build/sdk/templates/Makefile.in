@@ -22,6 +22,14 @@
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 
+export SAFPLUS_BASE_DIR=@SAFPLUS_BASE_DIR@
+export SAFPLUS_SDK_DIR=@SAFPLUS_SDK_DIR@
+export SAFPLUS_IDE_DIR=@SAFPLUS_IDE_DIR@
+export SAFPLUS_PSP_DIR=@SAFPLUS_PSP_DIR@
+export SAFPLUS_BTL_DIR=@SAFPLUS_BTL_DIR@
+export SAFPLUS_BUILD_PYTHON=@SAFPLUS_BUILD_PYTHON@
+export SAFPLUS_BUILD_JAVA=@SAFPLUS_BUILD_JAVA@
+export SAFPLUS_BUILD_CPP=@SAFPLUS_BUILD_CPP@
 
 export CLOVIS_ROOT=@CLOVIS_ROOT@
 export PROJECT_ROOT=@PROJECT_ROOT@
@@ -110,8 +118,7 @@ then \
 	chmod 777 @CLOVIS_ROOT@/../prebuild/configure.conf ; \
 	chmod 777 @CLOVIS_ROOT@/../prebuild ; \
 fi;
-	
-	    
+
 
 erase_label:
 	$(CLOVIS_ROOT)/ASP/build/prerequisites/scripts/label_build.sh CLEAN

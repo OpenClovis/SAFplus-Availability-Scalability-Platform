@@ -44,7 +44,6 @@
 #include "clDebugLog.h"
 #include <clDebugRmd.h>
 
-extern ClDebugModEntryT* moduleTable;
 
 #define CL_DEBUG_MAX_PRINT 512
 
@@ -775,13 +774,6 @@ clDebugDuplicateCommandDetect(ClDebugObjT        *pDebugObj,
 
     return rc;
 }
-
-ClRcT clDebugRegisterModule(ClDebugModEntryT* modTable)
-{
-    moduleTable=modTable;
-    return CL_OK;
-}
-
 
 ClRcT clDebugRegister(ClDebugFuncEntryT  *funcArray,
                       ClUint32T          funcArrayLen,

@@ -49,11 +49,9 @@ LDFLAGS += $(EXTRA_LDFLAGS) -L$(ASPLIBDIR)
 
 LDLIBS	+= $(LDFLAGS) $(LD_LIBS) $(SYS_LIBS) $(THIRD_PARTY_LIBS) 
 
-ASP_SERVERS := $(MODEL_BIN)/safplus_txn $(MODEL_BIN)/safplus_alarm $(MODEL_BIN)/safplus_ckpt \
-$(MODEL_BIN)/safplus_debug $(MODEL_BIN)/safplus_event $(MODEL_BIN)/safplus_name \
-$(MODEL_BIN)/safplus_cor $(MODEL_BIN)/safplus_fault $(MODEL_BIN)/safplus_gms \
-$(MODEL_BIN)/safplus_amf $(MODEL_BIN)/safplus_logd $(MODEL_BIN)/safplus_msg 
+ASP_SERVERS := $(MODEL_BIN)/safplus_ckpt $(MODEL_BIN)/safplus_debug $(MODEL_BIN)/safplus_event $(MODEL_BIN)/safplus_name $(MODEL_BIN)/safplus_gms $(MODEL_BIN)/safplus_amf $(MODEL_BIN)/safplus_logd $(MODEL_BIN)/safplus_msg 
 
+# $(MODEL_BIN)/safplus_txn $(MODEL_BIN)/safplus_alarm $(MODEL_BIN)/safplus_cor $(MODEL_BIN)/safplus_fault 
 
 ifeq ($(CM_BUILD), 1)
         ASP_SERVERS += $(MODEL_BIN)/safplus_cm
@@ -68,20 +66,20 @@ all: $(ASP_SERVERS)
 
 libs:
 
-$(MODEL_BIN)/safplus_txn: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lCltxnServer $(LDLIBS) -Wl,--end-group
+#$(MODEL_BIN)/safplus_txn: $(MODEL_LIB)/libClConfig.a
+#	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lCltxnServer $(LDLIBS) -Wl,--end-group
 
 $(MODEL_BIN)/safplus_logd: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lCllogdServer $(LDLIBS) -Wl,--end-group
 
-$(MODEL_BIN)/safplus_alarm: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lClalarmServer $(LDLIBS) -Wl,--end-group
+#$(MODEL_BIN)/safplus_alarm: $(MODEL_LIB)/libClConfig.a
+#	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lClalarmServer $(LDLIBS) -Wl,--end-group
 
 $(MODEL_BIN)/safplus_ckpt: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lClckptServer $(LDLIBS) -Wl,--end-group
 
-$(MODEL_BIN)/safplus_cor: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lClcorServer  $(LDLIBS) -Wl,--end-group
+#$(MODEL_BIN)/safplus_cor: $(MODEL_LIB)/libClConfig.a
+#	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lClcorServer  $(LDLIBS) -Wl,--end-group
 
 $(MODEL_BIN)/safplus_amf: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) $(LDFLAGS) $(SYS_LIBS) -lClAmsServer -lClamfServer -lClAmsParser $(LD_LIBS) $(THIRD_PARTY_LIBS) -Wl,--end-group
@@ -95,8 +93,8 @@ $(MODEL_BIN)/safplus_gms: $(MODEL_LIB)/libClConfig.a
 $(MODEL_BIN)/safplus_event: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lCleventServer $(LDLIBS) -Wl,--end-group
 
-$(MODEL_BIN)/safplus_fault: $(MODEL_LIB)/libClConfig.a
-	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lClfaultServer $(LDLIBS) -Wl,--end-group
+#$(MODEL_BIN)/safplus_fault: $(MODEL_LIB)/libClConfig.a
+#	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lClfaultServer $(LDLIBS) -Wl,--end-group
 
 $(MODEL_BIN)/safplus_name: $(MODEL_LIB)/libClConfig.a
 	$(CC) -o $@ -Wl,--start-group$(SPECIAL_LDFLAGS) -lClnameServer $(LDLIBS) -Wl,--end-group
@@ -110,13 +108,10 @@ $(MODEL_BIN)/safplus_cm: $(MODEL_LIB)/libClConfig.a
 clean:
 	rm -rf $(MODEL_BIN)/safplus_alarm \
 	$(MODEL_BIN)/safplus_ckpt \
-	$(MODEL_BIN)/safplus_cor \
 	$(MODEL_BIN)/safplus_amf \
 	$(MODEL_BIN)/safplus_debug \
 	$(MODEL_BIN)/safplus_event \
 	$(MODEL_BIN)/safplus_gms \
-	$(MODEL_BIN)/safplus_fault \
-	$(MODEL_BIN)/safplus_txn \
 	$(MODEL_BIN)/safplus_logd \
 	$(MODEL_BIN)/safplus_name \
 	$(MODEL_BIN)/safplus_cm \

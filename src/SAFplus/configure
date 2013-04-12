@@ -358,7 +358,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT AWK CPP LN_S SET_MAKE RANLIB ac_ct_RANLIB EGREP LIBOBJS ASP_MODEL_NAME CLOVIS_ROOT BUILD_ROOT OPENHPICFLAGS OPENHPILIBS LDEMULATION SNMP_BUILD CROSS_FLAG CROSS_BUILD PREFIX CM_BUILD HCL_CM HPI_EMERSON HPI_OPENHPI CL_TARGET_PLATFORM CL_TARGET_OS KERNEL_FLAG KERNEL LTLIBOBJS ASP_BUILD ASP_INSTALLDIR sdk_dir MODEL_BUILD ASP_SIMULATION ASP_VALGRIND_CMD PACKAGE_VERSION TARGET_QNX TARGET_SOLARIS BUILD_TIPC SAFPLUS_BUILD_PYTHON SAFPLUS_BUILD_JAVA SAFPLUS_BUILD_CPP'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT AWK CPP LN_S SET_MAKE RANLIB ac_ct_RANLIB EGREP LIBOBJS ASP_MODEL_NAME CLOVIS_ROOT BUILD_ROOT OPENHPICFLAGS OPENHPILIBS LDEMULATION SNMP_BUILD CROSS_FLAG CROSS_BUILD PREFIX CM_BUILD HCL_CM HPI_EMERSON HPI_OPENHPI CL_TARGET_PLATFORM CL_TARGET_OS KERNEL_FLAG KERNEL LTLIBOBJS ASP_BUILD ASP_INSTALLDIR sdk_dir MODEL_BUILD ASP_SIMULATION ASP_VALGRIND_CMD PACKAGE_VERSION TARGET_QNX TARGET_SOLARIS BUILD_TIPC SAFPLUS_BUILD_PYTHON SAFPLUS_BUILD_JAVA SAFPLUS_BUILD_CPP SAFPLUS_BASE_DIR SAFPLUS_SDK_DIR SAFPLUS_IDE_DIR SAFPLUS_PSP_DIR SAFPLUS_BTL_DIR'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1520,6 +1520,7 @@ if [ "${with_sdk_dir+set}" = set ]; then
     fi
     cd $origDir
     
+    export basedir=$tmp
     export sdk_dir=$tmp/sdk
     export buildtool_dir=$tmp/buildtools
 
@@ -1537,7 +1538,8 @@ else
             fi
         fi
         # if we get here we have cd-ed to the sdk dir/..
-         export sdk_dir=$(pwd)/sdk
+        export basedir=$(pwd)
+        export sdk_dir=$(pwd)/sdk
         export buildtool_dir=$(pwd)/buildtools
         thirdparty=`ls $(pwd) | grep 3rdparty-base | head -n 1`
         if [ -n "$thirdparty" -a "$thirdparty" != "" ]; then
@@ -1549,6 +1551,13 @@ fi
 
 # CLOVIS_ROOT is poorly named now because there is more then just the SDK, but for legacy reasons it is that sdk dir
 export CLOVIS_ROOT=$sdk_dir/src
+
+# The NEW path variables for release 6.1.  Please deprecate all other vars that point to these paths
+export SAFPLUS_BASE_DIR=$basedir
+export SAFPLUS_SDK_DIR=$basedir/sdk
+export SAFPLUS_IDE_DIR=$basedir/IDE
+export SAFPLUS_PSP_DIR=$basedir/PSP
+export SAFPLUS_BTL_DIR=$basedir/buildtools
 
 if [ $prefix != "NONE" ] ; then
     export PREFIX=$prefix
@@ -8304,6 +8313,11 @@ s,@OPENHPICFLAGS@,$OPENHPICFLAGS,;t t
 s,@SAFPLUS_BUILD_PYTHON@,$SAFPLUS_BUILD_PYTHON,;t t
 s,@SAFPLUS_BUILD_JAVA@,$SAFPLUS_BUILD_JAVA,;t t
 s,@SAFPLUS_BUILD_CPP@,$SAFPLUS_BUILD_CPP,;t t
+s,@SAFPLUS_BASE_DIR@,$SAFPLUS_BASE_DIR,;t t
+s,@SAFPLUS_SDK_DIR@,$SAFPLUS_SDK_DIR,;t t
+s,@SAFPLUS_IDE_DIR@,$SAFPLUS_IDE_DIR,;t t
+s,@SAFPLUS_PSP_DIR@,$SAFPLUS_PSP_DIR,;t t
+s,@SAFPLUS_BTL_DIR@,$SAFPLUS_BTL_DIR,;t t
 s,@LDEMULATION@,$LDEMULATION,;t t
 s,@SNMP_BUILD@,$SNMP_BUILD,;t t
 s,@CROSS_FLAG@,$CROSS_FLAG,;t t

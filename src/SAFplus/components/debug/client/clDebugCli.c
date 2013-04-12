@@ -102,6 +102,11 @@ static comEntry_t comTab[] =
 };
 
 
+ClRcT clDebugRegisterModule(ClDebugModEntryT* modTable)
+{
+    moduleTable=modTable;
+    return CL_OK;
+}
 
 
 /*************************************************************************/
