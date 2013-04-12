@@ -11,7 +11,6 @@ $ECLIPSE_SDK_DIR/eclipse -nosplash -application org.eclipse.equinox.p2.director 
  -installIU org.eclipse.cdt.gnu.multicorevisualizer.feature.group \
  -installIU org.eclipse.cdt.util.feature.group \
  -installIU org.eclipse.cdt.gnu.debug.feature.group \
- -installIU org.eclipse.cdt.sdk.feature.group \
  -installIU org.eclipse.cdt.core.parser.upc.sdk.feature.group \
  -installIU org.eclipse.cdt.testsrunner.feature.feature.group \
  -installIU org.eclipse.cdt.bupc.feature.group \
