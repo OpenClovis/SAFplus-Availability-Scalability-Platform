@@ -432,8 +432,7 @@ def init_log():
     console = logging.StreamHandler(sys.stdout)
     console.setLevel(logging.INFO)
 
-    formatter = logging.Formatter('%(levelname)s '
-                                  '%(message)s')
+    formatter = logging.Formatter('%(levelname)s %(message)s')
     console.setFormatter(formatter)
 
     logger.addHandler(console)
@@ -645,10 +644,21 @@ def checkTipc():
     filePath = p + '/etc/clTransport.xml' 
     searchfile = open(filePath, "r")
     res=False
+    override = None
     for line in searchfile:
-        if ("TIPC" in line) and ("node name" in line): 
-            res= True
+        if ("TIPC" in line) and ("default" in line):
+            res=True 
+        if ("node name" in line) and (get_asp_node_name() in line): 
+          if ("TIPC" in line):
+            override= True
+          else:
+            override= False
+
+    if not override is None:
+      res = override
+
     searchfile.close()
+    log.debug("checkTipc: %s" % str(res))
     return res
 
 def is_tipc_build(val=None):
@@ -754,7 +764,10 @@ def load_tipc_module():
 
 def load_config_tipc_module():
     if not is_tipc_build():
+        log.debug("skipping tipc: plugin not built")
         return
+        
+    log.debug("load tipc")
 
     def is_tipc_netid_defined():
         return get_asp_tipc_netid() != 'undefined'
@@ -1100,6 +1113,7 @@ def start_asp(stop_watchdog=True, force_start = False):
         if False and not force_start:
             proc_lock_file('touch')
         check_asp_status(not force_start)
+        log.debug("cleanup");
         kill_asp(False)
         cleanup_asp()
         save_asp_runtime_files()
