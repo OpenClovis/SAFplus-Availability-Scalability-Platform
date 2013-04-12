@@ -76,6 +76,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
             slotInfoRecv.nodeIocAddress = slotInfo->nodeIocAddress;
             break;
         }
+#ifdef USE_COR        
         case CL_CPM_NODE_MOID:
         {
             rc = clCorMoIdToMoIdNameGet(&slotInfo->nodeMoId, &slotInfoRecv.nodeMoIdStr);
@@ -83,6 +84,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
                     ("MoIdToMoIdNameGet Failed, rc=[0x%x]\n", rc), rc);
             break;
         }
+#endif        
         case CL_CPM_NODENAME:
         {
             memcpy(&slotInfoRecv.nodeName, &slotInfo->nodeName, sizeof(ClNameT));
@@ -113,11 +115,11 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
         case CL_CPM_SLOT_ID:
         {
             slotInfo->nodeIocAddress = slotInfoRecv.nodeIocAddress;
-
+#ifdef USE_COR        
             rc = clCorMoIdNameToMoIdGet(&slotInfoRecv.nodeMoIdStr, &slotInfo->nodeMoId);
             CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
                     ("MoIdNameToMoIdGet Failed, rc=[0x%x]\n", rc), rc);
-            
+#endif            
             memcpy(&slotInfo->nodeName, &slotInfoRecv.nodeName, sizeof(ClNameT));
 
             break;
@@ -125,11 +127,11 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
         case CL_CPM_IOC_ADDRESS:
         {
             slotInfo->slotId = slotInfoRecv.slotId;
-
+#ifdef USE_COR  
             rc = clCorMoIdNameToMoIdGet(&slotInfoRecv.nodeMoIdStr, &slotInfo->nodeMoId);
             CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
                     ("MoIdNameToMoIdGet Failed, rc=[0x%x]\n", rc), rc);
-
+#endif
             memcpy(&slotInfo->nodeName, &slotInfoRecv.nodeName, sizeof(ClNameT));
 
             break;
@@ -149,11 +151,11 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
             slotInfo->slotId = slotInfoRecv.slotId;
 
             slotInfo->nodeIocAddress = slotInfoRecv.nodeIocAddress;
-
+#ifdef USE_COR 
             rc = clCorMoIdNameToMoIdGet(&slotInfoRecv.nodeMoIdStr, &slotInfo->nodeMoId);
             CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
                     ("MoIdNameToMoIdGet Failed, rc=[0x%x]\n", rc), rc);
-
+#endif
             break;
         }
         default:

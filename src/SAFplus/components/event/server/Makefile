@@ -43,7 +43,7 @@ SRC_FILES	:=						\
 # List other ASP components of which client libraries your component
 # depends on:
 
-DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo amf  event ckpt dbal debug log
+DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo event ckpt dbal debug log
 DEP_COMP_LIST	+= cnt
 
 # List ASP libraries needed to get this server built (or None):
@@ -56,16 +56,13 @@ ASP_LIBS	:= libClTimer.a			\
                    libClIoc.a			\
                    libClRmd.a			\
                    libClUtils.a			\
-                   libClAmfClient.a		\
                    libClDbal.a			\
                    libClCkpt.a			\
                    libClEventClient.a		\
                    libClDebugClient.a		\
                    libClLogClient.a		\
-		   libClCorClient.a		\
 		   libClIdl.a			\
-		   libClNameClient.a		\
-		   libClMain.a
+		   libClNameClient.a
 
 CPPFLAGS  += -I../client
 CPPFLAGS  += -I$(EVT_PATH)/common/idl/xdr

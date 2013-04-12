@@ -33,15 +33,3 @@
 #include <clEoApi.h>
 #include <clEoIpi.h>
 
-/*
- * Main function for Non-SAF compliant components.
- */ 
-ClInt32T main(ClInt32T argc, ClCharT *argv[])
-{
-    ClRcT rc = CL_OK;
-    
-    rc = clEoInitialize(argc, argv);
-
-    return (CL_OK != rc);
-}
-

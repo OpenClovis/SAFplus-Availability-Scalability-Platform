@@ -70,6 +70,7 @@ ClBoolT gAmsDBRead = CL_FALSE;
 
 ClCpmAmsToCpmCallT *gAmsToCpmCallbackFuncs = NULL;
 
+/* This function call table is never changes so could be removed and simplified */
 ClCpmCpmToAmsCallT gCpmToAmsCallbackFuncs = {
     _clAmsSACSIHAStateGet,
     _clAmsSACSIQuiescingComplete,

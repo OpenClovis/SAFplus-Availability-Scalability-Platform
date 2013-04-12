@@ -21,9 +21,9 @@ extern "C" {
 #include <clIdlApi.h>
 #include <ipi/clRmdIpi.h>
 #include "../clientIDDefinitions.h"
-#include "xdrSaMsgMessageT.h"
 #include "xdrSaMsgQueueStatusT.h"
 #include "xdrSaMsgQueueCreationAttributesT.h"
+#include "xdrClMsgMessageIovecT.h"
 
 
 
@@ -43,7 +43,7 @@ ClRcT clMsgQueueMoveMessages_4_0_0(CL_IN ClNameT*  pQName, CL_IN ClUint32T  open
 
 ClRcT clMsgQueueMoveMessagesResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clMsgMessageReceived_4_0_0(CL_IN ClUint32T  sendType, CL_IN ClNameT*  pDestination, CL_IN SaMsgMessageT_4_0_0*  pMessage, CL_IN ClInt64T  sendTime, CL_IN ClHandleT  senderHandle, CL_IN ClInt64T  timeout);
+ClRcT clMsgMessageReceived_4_0_0(CL_IN ClUint32T  sendType, CL_IN ClNameT*  pDestination, CL_IN ClMsgMessageIovecT_4_0_0*  pMessage, CL_IN ClInt64T  sendTime, CL_IN ClHandleT  senderHandle, CL_IN ClInt64T  timeout);
 
 ClRcT clMsgMessageReceivedResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 

@@ -64,21 +64,15 @@ ASP_LIBS	:= libClTimer.a \
                libClIoc.a \
                libClRmd.a \
                libClUtils.a \
-               libClAmfClient.a \
                libClDbal.a \
                libClCkpt.a\
                libClEventClient.a \
                libClDebugClient.a \
                libClLogClient.a \
-               libClCorClient.a \
                libClIdl.a \
-               libClNameClient.a \
-			   libClMain.a \
-			   
+               libClNameClient.a
 
-                   
 # List any third party libs needed to get this server built (or None):
-
 
 # List any system libraries needed to get this server built (or None):
 

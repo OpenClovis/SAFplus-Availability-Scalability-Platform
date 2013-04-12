@@ -42,17 +42,16 @@ ClBoolT gClMsgInit = CL_FALSE;
 ClIocNodeAddressT gLocalAddress;
 ClIocPortT gLocalPortId;
 
-ClRcT clMsgMessageToMessageCopy(SaMsgMessageT **ppNewMsg, SaMsgMessageT *pMessage)
+ClRcT clMsgIovecToMessageCopy(SaMsgMessageT **ppNewMsg, ClMsgMessageIovecT *pMessage, ClUint32T index)
 {
     ClRcT rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
     ClNameT *pTempName = NULL;
-    ClUint8T *pTempData = NULL;
     SaMsgMessageT *pTempMessage;
 
     pTempMessage = (SaMsgMessageT *)clHeapAllocate(sizeof(SaMsgMessageT));
     if(pTempMessage == NULL)
     {
-        clLogError("MSG", "ALLOC", "Failed to allcoate memory of %zd bytes. error code [0x%x].", sizeof(SaMsgMessageT), rc);
+        clLogError("MSG", "ALLOC", "Failed to allocate memory of %zd bytes. error code [0x%x].", sizeof(SaMsgMessageT), rc);
         goto error_out;
     }
 
@@ -61,35 +60,25 @@ ClRcT clMsgMessageToMessageCopy(SaMsgMessageT **ppNewMsg, SaMsgMessageT *pMessag
         pTempName = (ClNameT *)clHeapAllocate(sizeof(ClNameT));
         if(pTempName == NULL)
         {
-            clLogError("MSG", "ALLOC", "Failed to allcoate memory of %zd bytes. error code [0x%x].", sizeof(ClNameT), rc);
+            clLogError("MSG", "ALLOC", "Failed to allocate memory of %zd bytes. error code [0x%x].", sizeof(ClNameT), rc);
             goto error_out_1;
         }
     }
 
-    if(pMessage->data != NULL)
-    {
-        pTempData = (ClUint8T*)clHeapAllocate(pMessage->size);
-        if(pTempData == NULL)
-        {
-            clLogError("MSG", "ALLOC", "Failed to allcoate memory of %llu bytes. error code [0x%x].", pMessage->size, rc);
-            goto error_out_2;
-        }
-    }
-
-    memcpy(pTempMessage, pMessage, sizeof(SaMsgMessageT));
+    pTempMessage->type = pMessage->type;
+    pTempMessage->version = pMessage->version;
+    pTempMessage->priority = pMessage->priority;
     if(pMessage->senderName != NULL)
         memcpy(pTempName, pMessage->senderName, sizeof(ClNameT));
-    if(pMessage->data != NULL)
-        memcpy(pTempData, pMessage->data, pMessage->size);
     pTempMessage->senderName = (SaNameT*)pTempName;
-    pTempMessage->data = pTempData;
+    pTempMessage->data = pMessage->pIovec[index].iov_base;
+    pTempMessage->size = pMessage->pIovec[index].iov_len;
+    pMessage->pIovec[index].iov_base = NULL;
     *ppNewMsg = pTempMessage;
-    
+
     rc = CL_OK;
     goto out;
-    
-error_out_2:
-    clHeapFree((pTempMessage)->senderName);
+
 error_out_1:
     clHeapFree(pTempMessage);
 error_out:
@@ -97,6 +86,87 @@ out:
     return rc;
 }
 
+ClRcT clMsgIovecToIovecCopy(ClMsgMessageIovecT **ppNewMsg, ClMsgMessageIovecT *pMessage)
+{
+    ClMsgMessageIovecT *pTempMessage;
+    ClRcT rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
+    ClNameT *pTempName = NULL;
+    iovec_t *pTempIovec = NULL;
+    ClUint8T *iov_base = NULL;
+    ClUint32T i;
+
+    pTempMessage = (ClMsgMessageIovecT *)clHeapAllocate(sizeof(ClMsgMessageIovecT));
+
+    if(pTempMessage == NULL)
+    {
+        clLogError("MSG", "ALLOC", "Failed to allocate memory of %zd bytes. error code [0x%x].", sizeof(ClMsgMessageIovecT), rc);
+        goto error_out;
+    }
+
+    if(pMessage->senderName != NULL)
+    {
+        pTempName = (ClNameT *)clHeapAllocate(sizeof(ClNameT));
+        if(pTempName == NULL)
+        {
+            clLogError("MSG", "ALLOC", "Failed to allocate memory of %zd bytes. error code [0x%x].", sizeof(ClNameT), rc);
+            goto error_out_1;
+        }
+        memcpy(pTempName, pMessage->senderName, sizeof(ClNameT));
+    }
+
+    if(pMessage->pIovec != NULL)
+    {
+        pTempIovec = (iovec_t *)clHeapAllocate(pMessage->numIovecs * sizeof(iovec_t));
+        if(pTempIovec == NULL)
+        {
+            clLogError("MSG", "ALLOC", "Failed to allocate memory of %zd bytes. error code [0x%x].", pMessage->numIovecs * sizeof(iovec_t), rc);
+            goto error_out_2;
+        }
+    }
+
+    for (i = 0; i < pMessage->numIovecs; i++)
+    {
+        if (pMessage->pIovec[i].iov_base)
+        {
+            iov_base = NULL;
+            iov_base = (ClUint8T *)clHeapAllocate(pMessage->pIovec[i].iov_len);
+            if(iov_base == NULL)
+            {
+                clLogError("MSG", "ALLOC", "Failed to allocate memory of %zd bytes. error code [0x%x].", pMessage->pIovec[i].iov_len, rc);
+                goto error_out_3;
+            }
+            memcpy(iov_base, pMessage->pIovec[i].iov_base, pMessage->pIovec[i].iov_len);
+            pTempIovec[i].iov_len = pMessage->pIovec[i].iov_len;
+            pTempIovec[i].iov_base = iov_base;
+        }
+    }
+
+    pTempMessage->type = pMessage->type;
+    pTempMessage->version = pMessage->version;
+    pTempMessage->priority = pMessage->priority;
+    pTempMessage->senderName = (SaNameT*)pTempName;
+    pTempMessage->numIovecs = pMessage->numIovecs;
+    pTempMessage->pIovec = pTempIovec;
+    *ppNewMsg = pTempMessage;
+
+    rc = CL_OK;
+    goto out;
+
+error_out_3:
+    for (i = 0; i < pMessage->numIovecs; i++)
+    {
+        if (pTempIovec[i].iov_base)
+            clHeapFree(pTempIovec[i].iov_base);
+    }
+    clHeapFree(pTempIovec);
+error_out_2:
+    clHeapFree(pTempName);
+error_out_1:
+    clHeapFree(pTempMessage);
+error_out:
+out:
+    return rc;
+}
 
 void clMsgMessageFree(SaMsgMessageT *pMessage)
 {

@@ -39,13 +39,10 @@ extern "C" {
 #endif
 
 #include "clXdrApi.h"
-#include "clCorTxnJobStream.h"
-#include "clTimerApi.h"
-#include "clCorNotifyApi.h"
-#include "clCorClient.h"
-#include "clIocApi.h"
-#include "clCorDmData.h"
 #include "clCorMetaData.h"
+#include "clAlarmDefinitions.h"
+
+
 
 #define      clXdrMarshallClCorMoPathQualifierT_4_0_0               clXdrMarshallClInt32T
 

@@ -345,6 +345,7 @@ ClRcT clDebugCli(
  *  \par Description:
  *  This function is used as the library initialization routine for debug CLI.
  *  It must be called before executing any other debug functions.
+ *  Do not free moduleTable memory until after clDebugLibFinalize() is called
  *
  *  \par Library File:
  *   libClDebugClient.a
@@ -355,6 +356,8 @@ ClRcT clDebugCli(
 ClRcT clDebugLibInitialize(void);
 
 
+ClRcT clDebugRegisterModule(ClDebugModEntryT* modTable);
+    
 
 /**
  ************************************

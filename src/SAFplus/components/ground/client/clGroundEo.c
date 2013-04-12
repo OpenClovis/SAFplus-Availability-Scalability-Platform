@@ -44,64 +44,6 @@ ClRcT clEoWaterMarkHit(ClCompIdT compId, ClWaterMarkIdT wmId, ClWaterMarkT *pWat
 ClRcT clEoProgNameGet(ClCharT *pName,ClUint32T maxSize) CL_WEAK;
 ClCharT* clEoNameGet(void) CL_WEAK;
 
-/*
- * Default EO configurations
- */
-ClEoConfigT clEoConfig CL_WEAK =
-{
-    CL_EO_DEFAULT_NAME,           /* EO Name                                  */
-    CL_OSAL_THREAD_PRI_MEDIUM,    /* EO Thread Priority                       */
-    2,                            /* No of EO thread needed                   */
-    0,                            /* Required Ioc Port                        */
-    (CL_EO_USER_CLIENT_ID_START + 0), 
-    CL_EO_USE_THREAD_FOR_APP,     /* Thread Model                             */
-    NULL,                         /* Application Initialize Callback          */
-    NULL,                         /* Application Terminate Callback           */
-    NULL,                         /* Application State Change Callback        */
-    NULL                          /* Application Health Check Callback        */
-};
-
-/*
- * Basic libraries used by this EO. The first 6 libraries are
- * mandatory, the others can be enabled or disabled by setting to
- * CL_TRUE or CL_FALSE.
- */
-
-ClUint8T clEoBasicLibs[] CL_WEAK =
-{
-    CL_TRUE,      /* Lib: Operating System Adaptation Layer   */
-    CL_TRUE,      /* Lib: Timer                               */
-    CL_TRUE,      /* Lib: Buffer Management                   */
-    CL_TRUE,      /* Lib: Intelligent Object Communication    */
-    CL_TRUE,      /* Lib: Remote Method Dispatch              */
-    CL_TRUE,      /* Lib: Execution Object                    */
-    CL_FALSE,     /* Lib: Object Management                   */
-    CL_FALSE,     /* Lib: Hardware Adaptation Layer           */
-    CL_FALSE      /* Lib: Database Adaptation Layer           */
-};
-
-/*
- * Client libraries used by this EO. All are optional and can be
- * enabled or disabled by setting to CL_TRUE or CL_FALSE.
- */
-
-ClUint8T clEoClientLibs[] CL_WEAK =
-{
-    CL_FALSE,      /* Lib: Common Object Repository            */
-    CL_FALSE,      /* Lib: Chassis Management                  */
-    CL_FALSE,      /* Lib: Name Service                        */
-    CL_FALSE,      /* Lib: Log Service                         */
-    CL_FALSE,      /* Lib: Trace Service                       */
-    CL_FALSE,      /* Lib: Diagnostics                         */
-    CL_FALSE,      /* Lib: Transaction Management              */
-    CL_FALSE,      /* NA */
-    CL_FALSE,      /* Lib: Provisioning Management             */
-    CL_FALSE,      /* Lib: Alarm Management                    */
-    CL_FALSE,      /* Lib: Debug Service                       */
-    CL_FALSE,      /* Lib: Cluster/Group Membership Service    */
-    CL_FALSE,      /* Lib: PM */
-};
-
 
 /* These files are only used to compile clEo.c in the main component.
    If a library is being used by a component and it fills out the

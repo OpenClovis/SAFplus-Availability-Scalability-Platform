@@ -2910,6 +2910,7 @@ ClRcT appTerminate(ClInvocationT invocation,
 }
 
 
+
 static ClRcT appInitialize( ClUint32T argc, ClCharT* argv[])
 {
     ClRcT               rc = CL_OK;
@@ -2998,7 +2999,6 @@ static ClRcT   appHealthCheck(ClEoSchedFeedBackT* schFeedback)
 
 
 ClEoConfigT clEoConfig = {
-    "DBG",          /* EO Name */
     1,              /* Thread Priority */
     1,              /* 1 listener thread */
     0,              /* Assign port dynamically*/
@@ -3039,3 +3039,13 @@ ClUint8T clEoClientLibs[] = {
     CL_FALSE,			/* gms */
     CL_FALSE,           /* pm */
 };
+
+ClInt32T main(ClInt32T argc, ClCharT *argv[])
+{
+    ClRcT rc = CL_OK;
+
+    clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
+    rc = clEoInitialize(argc, argv);
+
+    return (CL_OK != rc);
+}

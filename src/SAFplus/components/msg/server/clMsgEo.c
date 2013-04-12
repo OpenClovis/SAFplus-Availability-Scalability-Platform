@@ -44,8 +44,6 @@
 #include <clMsgIdl.h>
 #include <clMsgQueue.h>
 #include <clMsgReceiver.h>
-#include <clMsgIocClient.h>
-#include <clMsgIocServer.h>
 #include <clMsgCkptServer.h>
 #include <clMsgGroupDatabase.h>
 #include <clMsgFailover.h>
@@ -62,7 +60,6 @@ static ClRcT clMsgInitialize(ClUint32T argc, ClCharT *argv[]);
 static ClRcT clMsgFinalize(ClBoolT *pLockStatus);
 
 ClEoConfigT clEoConfig = {
-    "MSG",                          /* EO Name */
     1,                              /* EO Thread Priority */
     10,                             /* No of EO thread needed */
     CL_IOC_MSG_PORT,                /* Required Ioc Port */
@@ -107,6 +104,15 @@ ClUint8T clEoClientLibs[] = {
     CL_FALSE,                   /* pm */
 };
 
+ClInt32T main(ClInt32T argc, ClCharT *argv[])
+{
+    ClRcT rc = CL_OK;
+
+    clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
+    rc = clEoInitialize(argc, argv);
+
+    return (CL_OK != rc);
+}
 
 
 static ClHandleT gMsgNotificationHandle;
@@ -340,14 +346,6 @@ static ClRcT clMsgInitialize(ClUint32T argc, ClCharT *argv[])
         goto error_out_11;
     }
 
-    /* Initialize IOC send protocol */
-#ifdef CL_MSG_IOC_SEND
-    rc = clMsgIocCltInitialize();
-    CL_ASSERT(rc == CL_OK);
-
-    clMsgIocSvrInitialize();
-#endif
-
     clMsgDebugCliRegister();
 
     clMsgRegisterWithCpm();
@@ -457,13 +455,6 @@ static ClRcT clMsgFinalize(ClBoolT *pLockStatus)
         clLogError("MSG", "FIN", "Failed to deregister Client Server Table. error code [0x%x].", rc);
 
     clMsgCltSrvClientUninstall();
-
-    /* Finalize IOC send protocol */
-#ifdef CL_MSG_IOC_SEND
-    rc = clMsgIocCltFinalize();
-    if(rc != CL_OK)
-        clLogError("MSG", "FIN", "clMsgIocCltFinalize(): error code [0x%x].", rc);
-#endif
 
     /* Finalize cached ckpt for MSG queue & MSG queue group */
     rc = clMsgQCkptFinalize();

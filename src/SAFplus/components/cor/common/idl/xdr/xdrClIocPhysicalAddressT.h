@@ -39,7 +39,13 @@ extern "C" {
 #endif
 
 #include "clXdrApi.h"
+
+#include "clMsgCommon.h"
+#include "clMsgCkptData.h"
 #include "clIocApi.h"
+#include "clCommon.h"
+#include "saMsg.h"
+#include "saAis.h"
 
 struct _ClIocPhysicalAddressT_4_0_0;
 

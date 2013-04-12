@@ -65,24 +65,22 @@ ASP_LIBS	:= libClTimer.a \
                    libClIoc.a \
                    libClRmd.a \
                    libClUtils.a \
-                   libClAmfClient.a \
                    libClCnt.a \
                    libClNameClient.a \
                    libClIdl.a \
                    libClDebugClient.a \
-                   libClCorClient.a \
                    libClEventClient.a \
                    libClLogClient.a \
                    libClCkpt.a \
                    libClDbal.a \
                    libaisexec.a \
                    libtotem_pg.a\
-				   libClGms.a \
-		   libClMain.a 
+		   libClGms.a
+
 ifdef SOLARIS_BUILD
    ASP_LIBS	+= liblogsys.a
 endif
-                   
+
 # List any third party libs needed to get this server built (or None):
 ifdef SOLARIS_BUILD
    OPENAIS_DIR=openais-0.82

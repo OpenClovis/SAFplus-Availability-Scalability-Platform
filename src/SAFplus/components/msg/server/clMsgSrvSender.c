@@ -36,7 +36,7 @@ ClRcT clMsgMessageReceiveCallback(SaMsgQueueHandleT qHandle)
     return rc;
 }
 
-ClRcT clMsgReplyReceived(SaMsgMessageT *pMessage, SaTimeT sendTime, SaMsgSenderIdT senderHandle, SaTimeT timeout)
+ClRcT clMsgReplyReceived(ClMsgMessageIovecT *pMessage, SaTimeT sendTime, SaMsgSenderIdT senderHandle, SaTimeT timeout)
 {
     /* MSG queue instance located on MSG server does not receive reply message */
     ClRcT rc = CL_ERR_BAD_OPERATION;

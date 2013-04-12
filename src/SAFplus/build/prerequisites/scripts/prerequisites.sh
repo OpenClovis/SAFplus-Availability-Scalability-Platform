@@ -502,16 +502,16 @@ populate_prereqs() {
 
         # openhpi
         if [ $HPI_EMERSON == "0" ]; then
-
-        echo -n "openhpi"
-        if [ -f $toolchaindir/lib/libopenhpi.a ]; then
-            cd $toolchaindir
-            if [ -f $toolchaindir/sbin/openhpid ]; then
-                install $exe_flags $toolchaindir/sbin/openhpid $imagedir/bin
+        BUILDTOOLS_PATH=$SAFPLUS_BTL_DIR$TOOLCHAIN_DIR
+        echo -n "openhpi: trying toolchain build at $BUILDTOOLS_PATH/lib/libopenhpi.a "
+        if [ -f $BUILDTOOLS_PATH/lib/libopenhpi.a ]; then
+            cd $BUILDTOOLS_PATH
+            if [ -f $BUILDTOOLS_PATH/sbin/openhpid ]; then
+                install $exe_flags $BUILDTOOLS_PATH/sbin/openhpid $imagedir/bin
                 res_array[${#res_array[@]}]=$?
                 op_array[${#op_array[@]}]="install openhpid"
             fi
-            install $exe_flags $toolchaindir/bin/*hpi* $imagedir/bin
+            install $exe_flags $BUILDTOOLS_PATH/bin/*hpi* $imagedir/bin
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="install openhpi"
             # there may be no *oh* (openhpi 2.16.0) so don't remember any error from the next line 

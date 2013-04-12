@@ -130,10 +130,6 @@ pthread_cond_t condMain = PTHREAD_COND_INITIALIZER;
  * Global variables.
  */
 ClUint32T clEoWithOutCpm;
-/**
- * IOC address of the node.
- */
-extern ClUint32T clAspLocalId;
 
 /*
  * Stores the user provided command line options for the boot profile.
@@ -447,7 +443,9 @@ static void cpmDeAllocate(void)
     clOsalMutexDelete(gpClCpm->eoListMutex);
     if (gpClCpm->nodeMoId)
     {
+#ifdef USE_COR        
         clCorMoIdFree(gpClCpm->nodeMoId);
+#endif        
         gpClCpm->nodeMoId = NULL;
     }
     if (gpClCpm->invocationTable)
@@ -552,7 +550,7 @@ static ClRcT cpmAllocate(void)
      * Next 16 bits are initialized by zero, when the parser reads the 
      * component, it just keep incrementing the compIdAlloc
      */
-    CL_CPM_IOC_ADDRESS_SLOT_GET(clAspLocalId, gpClCpm->compIdAlloc);
+    CL_CPM_IOC_ADDRESS_SLOT_GET(ASP_NODEADDR, gpClCpm->compIdAlloc);
     gpClCpm->compIdAlloc = (gpClCpm->compIdAlloc << CL_CPM_IOC_SLOT_BITS);
 
     /*
@@ -1511,7 +1509,6 @@ ClBoolT clCpmSwitchoverInline(void)
 static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
-    ClUint32T cpmNativeInstalled = 0;
 
     if (NULL != gpClCpm)
     {
@@ -1599,7 +1596,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     gpClCpm->pCpmLocalInfo->defaultBootLevel = gpClCpm->bmTable->defaultBootLevel;
     
     /* For CPM-CM interaction */
-    gpClCpm->pCpmLocalInfo->slotNumber = clAspLocalId;
+    gpClCpm->pCpmLocalInfo->slotNumber = ASP_NODEADDR;
     gpClCpm->pCpmLocalInfo->nodeId = gpClCpm->pCpmLocalInfo->slotNumber;
 
     clLogMultiline(CL_LOG_DEBUG, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
@@ -1657,9 +1654,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     rc = clCpmClientTableRegister(gpClCpm->cpmEoObj);
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_EO_CLIENT_INST_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
-
-    cpmNativeInstalled = 1;
-
+    
     /*
      * Install EO protocol to get IOC notifications for component
      * death, node death etc.
@@ -1717,7 +1712,9 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
 
     /*
      * Initialization is done. So now start the BM which will create a thread
-     * and start processing in that thread 
+     * and start processing in that thread
+     * GAS: Better to use this thread for the boot manager and spawn compMgrPollThread only if needed
+     * b/c its not used anymore
      */
     rc = cpmBmInitialize(&(gpClCpm->bmTaskId), gpClCpm->cpmEoObj);
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BM_INIT_ERR, rc, rc,
@@ -1730,7 +1727,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     
     clLog(CL_LOG_NOTICE, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
           "AMF server fully up");
-        
+    
     compMgrPollThread();
 
     failure:
@@ -3704,6 +3701,9 @@ ClRcT compMgrPollThread(void)
 
     clOsalMutexLock(&gpClCpm->heartbeatMutex);
     restart_heartbeat:
+    /* This code heartbeats all the other processes in the system.  This is now handled by the notification layer in IOC.
+       So enableHeartbeat is FALSE by default.
+     */
     while (gpClCpm->polling && gpClCpm->enableHeartbeat == CL_TRUE)
     {
         clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
@@ -3908,6 +3908,7 @@ ClRcT compMgrPollThread(void)
     {
         goto out_unlock;
     }
+    /* This is woken up when AMF stop occurs */
     clOsalCondWait(&gpClCpm->heartbeatCond, &gpClCpm->heartbeatMutex,heartbeatWait);
     goto restart_heartbeat;
 
@@ -4173,7 +4174,6 @@ failure:
 
 ClEoConfigT clEoConfig =
 {
-    CL_CPM_EO_NAME,
     CL_OSAL_THREAD_PRI_MEDIUM,
     1,
     CL_IOC_CPM_PORT,
@@ -4306,17 +4306,34 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
               argv[0],
               (int)getpid());
 
+    /* To make the AMF environment "look" like the rest of the components to our common libraries (like EO) we set a few
+       environment variables.  These env vars are normally set by the AMF before spawning a component */
+    
     sprintf(cpmName, "%s_%s", CL_CPM_COMPONENT_NAME, clCpmNodeName);
     setenv("ASP_COMPNAME", cpmName, 1);
-
+    /*
+     * The variable 'clCpmNodeName' should now be set.  We set the env var ASP_NODENAME so that log library can pick it up.
+     */
+    setenv("ASP_NODENAME", clCpmNodeName, 1);
+    
     /*
      * Set the IOC address for this node.
      */
-    CL_CPM_IOC_ADDRESS_GET(myCh, mySl, clAspLocalId);
+    CL_CPM_IOC_ADDRESS_GET(myCh, mySl, ASP_NODEADDR);
 
+    if (1)
+    {
+        ClCharT iocAddress[12] = { 0 };
+        sprintf(iocAddress, "%d", (int) ASP_NODEADDR);
+        setenv("ASP_NODEADDR", iocAddress, 1);
+    }
+
+    /* For now variable was set as optional but would be good if it was set   setenv("ASP_APP_BINDIR", temp, 1); */
+
+    
     clEoNodeRepresentativeDeclare(clCpmNodeName);
-
-    rc = clEoMain(argc, argv);
+    clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
+    rc = clEoInitialize(argc, argv);
     if (CL_OK != rc)
     {
         clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
@@ -4471,11 +4488,6 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[], ClCharT *envp[])
         return rc;
     }
     clAmsSetInstantiateCommand(argc, argv);
-    /*
-     * The variable 'clCpmNodeName' should now be set.  We set the env
-     * var ASP_NODENAME so that log library can pick it up.
-     */
-    setenv("ASP_NODENAME", clCpmNodeName, 1);
 
     if (cpmIsForeground)
     {

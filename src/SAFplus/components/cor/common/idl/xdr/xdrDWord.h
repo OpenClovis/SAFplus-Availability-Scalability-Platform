@@ -40,14 +40,12 @@ extern "C" {
 
 #include "clXdrApi.h"
 
-#include "clCorTxnJobStream.h"
-#include "clTimerApi.h"
-#include "clCorNotifyApi.h"
-#include "clCorClient.h"
+#include "clCpmApi.h"
+#include "clCpmIpi.h"
 #include "clIocApi.h"
-#include "clCorDmData.h"
-#include "clCorMetaData.h"
-#include "clCorSync.h"
+#include "clCpmExtApi.h"
+#include "clEoConfigApi.h"
+#include "clAmsTypes.h"
 
 struct _DWord_4_0_0;
 

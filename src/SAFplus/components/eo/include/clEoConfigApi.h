@@ -272,11 +272,6 @@ typedef ClRcT (*ClEoCustomActionT)(ClCompIdT compId, ClWaterMarkIdT wmId,
 typedef struct {
 
 /**
- * The EO name.
- */
-    ClCharT                EOname[CL_EO_MAX_NAME_LEN];
-
-/**
  * Indicates the EO thread priority.
  */
     ClOsalThreadPriorityT   pri;

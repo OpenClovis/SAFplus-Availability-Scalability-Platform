@@ -59,10 +59,6 @@ ALL_OBJ_DIR = $(BASE_OBJ_DIR)
 ALL_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ckpt/client/clIdlOpen.o \
 	$(BASE_OBJ_DIR)/components/msg/client/xdrClIocPhysicalAddressTMarshall.o \
 	$(BASE_OBJ_DIR)/components/msg/client/xdrClIocPhysicalAddressTUnMarshall.o \
-	$(BASE_OBJ_DIR)/components/cor/client/xdrClCorMOHandleTMarshall.o \
-	$(BASE_OBJ_DIR)/components/cor/client/xdrClCorMOHandleTUnMarshall.o \
-	$(BASE_OBJ_DIR)/components/cor/client/xdrClCorMOIdTMarshall.o \
-	$(BASE_OBJ_DIR)/components/cor/client/xdrClCorMOIdTUnMarshall.o \
 	$(BASE_OBJ_DIR)/components/amf/client/cpm/xdrClIocAddressIDLTMarshall.o \
 	$(BASE_OBJ_DIR)/components/amf/client/cpm/xdrClIocAddressIDLTUnMarshall.o \
 	$(BASE_OBJ_DIR)/components/amf/client/cpm/xdrClIocLogicalAddressIDLTMarshall.o \
@@ -79,6 +75,10 @@ ALL_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ckpt/client/clIdlOpen.o 
 # List other ASP components of which client libraries your component
 # depends on:
 
+# Deprecated:              cor/client om/client  alarm/client alarm/utils alarm/common/idl/xdr med/client   txn/client  mso/client prov/client pm/client  fault/client
+
+
+
 DEP_COMP_LIST	:=  \
              cnt/client    \
              buffer/client \
@@ -92,23 +92,14 @@ DEP_COMP_LIST	:=  \
              eo/client    \
              debug/client  \
              amf/client    \
-             alarm/client alarm/utils alarm/common/idl/xdr  \
              event/client  \
              ckpt/client ckpt/test/src   \
              name/client   \
-             om/client     \
-             cor/client    \
-             fault/client  \
              sm/client     \
-             txn/client    \
-			 med/client	\
-			 mso/client    \
-			 prov/client 	\
 			 hal/client 	\
 			 gms/client gms/server	\
 			 log/client    \
 			 msg/client    \
-			 pm/client     \
              ntf/client \
 			$(CM_COMP_DEP)	\
 			amf/client/cpm amf/client/ams amf/common/ams/idl/xdr amf/test/src \
@@ -117,12 +108,14 @@ THIRD_PARTY_LIST := ../3rdparty/utils ../3rdparty/ezxml/ezxml-0.8.6 ../3rdparty/
 
 COMP_LIST := $(DEP_COMP_LIST) $(THIRD_PARTY_LIST)
 
+ifdef SKIP_THIS
 ALL_ASP_LIBS    :=         -lClTimer -lClBuffer -lClOsal -lClIoc -lClUtils -lClEo -lClMsoClient -lClProv \
 			   -lClLogClient -lClTxnClient -lClTxnAgent -lClSm -lClCnt -lClIdl -lClRmd \
 			   -lClCorClient -lClAmfClient -lClAmsMgmt -lClAmsXdr -lClDebugClient -lClFaultClient \
 				   -lClEventClient -lClDbal -lClGms $(CL_CM) -lClCkpt -lClMedClient -lClNameClient \
 			   -lClUtils -lClIdlPtr -lClAlarmClient -lClAlarmUtils -lClAlarmXdr -lClOmClient -lClMsgClient \
 			   -lClPMClient -lClNtf -l3rdpartyutils -lClGroundClient 
+endif
 
 ALL_OBJS :=
 
@@ -134,10 +127,6 @@ define OBJ_LIST
 	ALL_FILTER_OBJS += $(filter $(1)/clIdlOpen.o, $(wildcard $(1)/*.o))
 	ALL_FILTER_OBJS += $(filter $(1)/xdrClIocPhysicalAddressTMarshall.o, $(wildcard $(1)/*.o))
 	ALL_FILTER_OBJS += $(filter $(1)/xdrClIocPhysicalAddressTUnMarshall.o, $(wildcard $(1)/*.o))
-	ALL_FILTER_OBJS += $(filter $(1)/xdrClCorMOHandleTMarshall.o, $(wildcard $(1)/*.o))
-	ALL_FILTER_OBJS += $(filter $(1)/xdrClCorMOHandleTUnMarshall.o, $(wildcard $(1)/*.o))
-	ALL_FILTER_OBJS += $(filter $(1)/xdrClCorMOIdTMarshall.o, $(wildcard $(1)/*.o))
-	ALL_FILTER_OBJS += $(filter $(1)/xdrClCorMOIdTUnMarshall.o, $(wildcard $(1)/*.o))
 	ALL_FILTER_OBJS += $(filter $(1)/xdrClIocAddressIDLTMarshall.o, $(wildcard $(1)/*.o))
 	ALL_FILTER_OBJS += $(filter $(1)/xdrClIocAddressIDLTUnMarshall.o, $(wildcard $(1)/*.o))
 	ALL_FILTER_OBJS += $(filter $(1)/xdrClIocLogicalAddressIDLTMarshall.o, $(wildcard $(1)/*.o))

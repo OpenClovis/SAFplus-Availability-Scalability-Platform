@@ -102,7 +102,7 @@ ClRcT clEoWaterMarkHit(ClCompIdT compId, ClWaterMarkIdT wmId, ClWaterMarkT *pWat
      */
     CL_DEBUG_PRINT(CL_DEBUG_INFO, ("EO[%s]:LIB[%s]:The Action being triggered for "
                 "Water Mark[%d]->[%s] with the value [%lld]\n", 
-                clEoConfig.EOname, LIB_NAME(libId), wmId, 
+                ASP_COMPNAME, LIB_NAME(libId), wmId, 
                 (wmType == CL_WM_HIGH_LIMIT)? "HIGH_LIMIT" : "LOW_LIMIT", 
                 wmValue));
 
@@ -114,7 +114,7 @@ ClRcT clEoWaterMarkHit(ClCompIdT compId, ClWaterMarkIdT wmId, ClWaterMarkT *pWat
     {
         CL_DEBUG_PRINT(CL_DEBUG_WARN, ("Failed to execute the action for:"
                     "EO[%s]:LIB[%s]:Water Mark[%d]->[%s] with the value [%lld]\n", 
-                    clEoConfig.EOname, LIB_NAME(libId), wmId,
+                    ASP_COMPNAME, LIB_NAME(libId), wmId,
                     (wmType == CL_WM_HIGH_LIMIT)? "HIGH_LIMIT" : "LOW_LIMIT", 
                     wmValue));
         return rc;

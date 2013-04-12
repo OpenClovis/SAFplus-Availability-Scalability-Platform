@@ -23,7 +23,7 @@
 
 /*******************************************************************************
  * Description :
- * This module contains COR's statistics definitions
+ * COR statistics module
  *
  *
  *****************************************************************************/
@@ -62,6 +62,8 @@ typedef struct corStats *CORStat_h;
 
 extern ClRcT clCorStatisticsInitialize(void);
 extern void   clCorStatisticsShow(char** params);
+extern void clCorStatisticsFinalize(void);
+
 
 #ifdef __cplusplus
 }

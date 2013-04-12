@@ -46,7 +46,6 @@ static ClRcT
 clLogSvrHealthCheck(ClEoSchedFeedBackT  *pSchFeedback);
 
 ClEoConfigT clEoConfig = {
-    "LOG",      			    /* EO Name*/
     1,				            /* EO Thread Priority */
     5,            				/* No of EO thread needed */
     CL_IOC_LOG_PORT,        	/* Required Ioc Port */
@@ -89,6 +88,17 @@ ClUint8T clEoClientLibs[] = {
 
 static ClHandleT shLogDummyIdl = CL_HANDLE_INVALID_VALUE;
 ClBoolT gClLogSvrExiting = CL_FALSE;
+
+ClInt32T main(ClInt32T argc, ClCharT *argv[])
+{
+    ClRcT rc = CL_OK;
+
+    clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
+    rc = clEoInitialize(argc, argv);
+
+    return (CL_OK != rc);
+}
+
 
 ClRcT 
 clLogSvrTerminate(ClInvocationT invocation,

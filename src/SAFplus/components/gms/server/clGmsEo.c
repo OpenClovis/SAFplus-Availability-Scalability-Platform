@@ -323,7 +323,6 @@ clGmsServerHealthCheck(
 
 
 ClEoConfigT clEoConfig = {
-    "GMS",                               /* name of the service */
     1,                	    	
     1,                	     
     CL_IOC_GMS_PORT,   	                 /* Service port for recieving reqs */
@@ -367,3 +366,13 @@ ClUint8T clEoClientLibs[] = {
     CL_TRUE,                    /* gms */
     CL_FALSE,                    /* pm */
 };
+
+ClInt32T main(ClInt32T argc, ClCharT *argv[])
+{
+    ClRcT rc = CL_OK;
+
+    clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
+    rc = clEoInitialize(argc, argv);
+
+    return (CL_OK != rc);
+}

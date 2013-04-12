@@ -152,10 +152,13 @@ static void *bmInitialize(void *threadArg)
                                              * variable */
     ClCpmBmSetLevelResponseT setLevelResponse = {{0}};
 
+    /* GAS: should be a no-op already inited when the EO was initialized */
     rc = clEoMyEoIocPortSet(pThis->eoPort);
+    
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_IOC_MY_EO_IOC_PORT_GET_ERR, rc,
                    rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
+    /* GAS: should be a no-op already inited when the EO was initialized. Cruft from when multiple EOs in one process */
     rc = clEoMyEoObjectSet(pThis);
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_EO_MY_OBJ_SET_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);

@@ -44,6 +44,7 @@
 #include "clDebugLog.h"
 #include <clDebugRmd.h>
 
+
 #define CL_DEBUG_MAX_PRINT 512
 
 /*
@@ -508,7 +509,7 @@ ClRcT clDebugLibInitialize(void)
     ClDebugObjT        *pDebugObj  = NULL;
     ClRcT              rc          = CL_OK;
     ClNameT            compName    = {0};
-
+    
     rc = clEoMyEoObjectGet(&pEoObj);
     if (CL_OK != rc)
     {

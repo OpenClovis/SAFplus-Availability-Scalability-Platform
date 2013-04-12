@@ -2278,8 +2278,10 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     }
     CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to create mutex.rc=[0x%x]\n", rc), rc);
 
-    /*
-     * Create the hash table for the component CSI Cache
+    /* Create the hash table for the component CSI Cache.
+       When a failover of the AMF occurs, it may not know whether it has successfully
+       issued an assignment to a component or not.  So the new active AMF reissues.
+       This cache filters out these double assignments.     
      */
     rc = clCntLlistCreate(cpmCompCSIListKeyCmp,
                           cpmCompCSIListDeleteCallback,
@@ -2364,7 +2366,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
                      ("Unable to Get Component Name, rc = %x\n", rc), rc);
     strcpy((compInitSend.compName), compName.value);
-    if(clEoWithOutCpm != CL_TRUE)
+    if(clEoWithOutCpm != CL_TRUE)  /* GAS this RMD is not necessary */
     {
         rc = clCpmClientRMDSyncNew(clIocLocalAddressGet(), 
                                    CPM_COMPONENT_INITIALIZE,

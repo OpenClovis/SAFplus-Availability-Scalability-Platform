@@ -38,7 +38,7 @@ SRC_FILES	:= clDebugCli.c
 # List other ASP components of which client libraries your component
 # depends on:
 
-DEP_COMP_LIST	:= gms ckpt utils osal timer buffer ioc rmd eo amf debug log event cor
+DEP_COMP_LIST	:= gms utils osal timer buffer ioc rmd eo debug log event
 # FIXME: Indirect dependencies via client library needs need to be
 # added by hand for now:
 DEP_COMP_LIST	+= cnt
@@ -53,16 +53,13 @@ ASP_LIBS	:= libClTimer.a \
                    libClIoc.a \
                    libClRmd.a \
                    libClUtils.a \
-                   libClAmfClient.a \
                    libClLogClient.a \
                    libClDebugClient.a \
-                   libClCorClient.a \
                    libClNameClient.a\
                    libClIdl.a \
-                   libClEventClient.a\
-				   libClMain.a
+                   libClEventClient.a
 
-                   
+
 CPPFLAGS	+= -I ../client -I $(CLOVIS_ROOT)/ASP/components/amf/common/cpm
 # List any third party libs needed to get this server built (or None):
 

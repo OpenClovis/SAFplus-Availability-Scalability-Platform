@@ -36,7 +36,7 @@ SRC_FILES :=        $(wildcard $(AMF_PATH)/common/cpm/*.c)   \
 # List other ASP components of which client libraries your component
 # depends on:
 
-DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo amf event debug dbal ckpt amf log gms cor om cm idl
+DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo amf event debug dbal ckpt amf log gms cm idl
 
 # FIXME: Indirect dependencies via client library needs need to be
 # added by hand for now:
@@ -78,9 +78,7 @@ ASP_LIBS	:=                          \
                 libClIdlPtr.a               \
                 libClCkpt.a                 \
                 libClLogClient.a            \
-                libClFaultClient.a          \
                 libClAmfClient.a            \
-                libClCorClient.a            \
                 libClAmsXdr.a               \
                 libClAmsParser.a            \
                 libClAmsMgmt.a              \

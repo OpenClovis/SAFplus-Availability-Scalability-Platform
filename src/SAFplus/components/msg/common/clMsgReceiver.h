@@ -30,6 +30,7 @@
 #include <clEoApi.h>
 #include <clMsgCommon.h>
 #include <clMsgQueue.h>
+#include <clMsgApiExt.h>
 
 
 #ifdef __cplusplus
@@ -58,14 +59,14 @@ void clMsgReceiverDatabaseFin(void);
 ClRcT clMsgQueueTheLocalMessage(
         ClMsgMessageSendTypeT sendType,
         SaMsgQueueHandleT qHandle,
-        SaMsgMessageT *pMessage,
+        ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,
         ClHandleT senderHandle,
         SaTimeT timeout);
 ClRcT clMsgQueueGetMessagesAndMove(
         ClMsgQueueInfoT *pQInfo,
         ClIocPhysicalAddressT destCompAddr);
-ClRcT clMsgReplyReceived(SaMsgMessageT *pMessage, SaTimeT sendTime, SaMsgSenderIdT senderHandle, SaTimeT timeout);
+ClRcT clMsgReplyReceived(ClMsgMessageIovecT *pMessage, SaTimeT sendTime, SaMsgSenderIdT senderHandle, SaTimeT timeout);
 
 
 #ifdef __cplusplus

@@ -45,7 +45,7 @@ SRC_FILES	:= clCkptLife.c  clCkptMain.c clCkptSaf.c clCkptUtils.c \
 # List other ASP components of which client libraries your component
 # depends on:
 
-DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo  amf debug event ckpt dbal om cor log idl name gms
+DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo amf debug event ckpt dbal log idl name gms
 # FIXME: Indirect dependencies via client library needs need to be
 # added by hand for now:
 DEP_COMP_LIST	+= cnt
@@ -53,8 +53,6 @@ DEP_COMP_LIST	+= cnt
 # List ASP libraries needed to get this server built (or None):
 
 ASP_LIBS	:= libClUtils.a \
-                   libClAmfClient.a \
-                   libClGms.a \
                    libClLogClient.a \
                    libClDebugClient.a \
                    libClEventClient.a \
@@ -69,9 +67,7 @@ ASP_LIBS	:= libClUtils.a \
                    libClIdl.a	\
                    libClCkpt.a\
                    libClDbal.a \
-                   libClIdlPtr.a \
-                   libClCorClient.a\
-				   libClMain.a
+                   libClIdlPtr.a
 
 # List any third party libs needed to get this server built (or None):
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable

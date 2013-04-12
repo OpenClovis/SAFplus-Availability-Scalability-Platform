@@ -39,12 +39,12 @@ extern "C" {
 #endif
 
 #include "clXdrApi.h"
-#include "clCpmApi.h"
-#include "clCpmIpi.h"
+#include "clAmsEntities.h"
+#include "clAmsMgmtCommon.h"
+#include "clMetricApi.h"
 #include "clIocApi.h"
-#include "clCpmExtApi.h"
-#include "clEoConfigApi.h"
-#include "clAmsTypes.h"
+#include "clAmsNotifications.h"
+#include "clAmsMgmtServerApi.h"
 
 
 

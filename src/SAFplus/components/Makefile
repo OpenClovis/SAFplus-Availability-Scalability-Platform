@@ -19,6 +19,7 @@ include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 
+# Deprecated:  alarm om cor med prov mso pm fault txn
 
 SUBDIRS    = $(CM_DIR) ground \
              cnt    \
@@ -33,24 +34,14 @@ SUBDIRS    = $(CM_DIR) ground \
              rmd    \
              dbal   \
              debug  \
-             amf    \
-             alarm  \
              event  \
              ckpt   \
              name   \
-             om    	\
-             cor 	\
-             fault  \
              sm     \
-             txn    \
-	     	 med	\
-	     	 prov 	\
-	     	 hal 	\
-	      	 gms	\
-	      	 msg	\
-			 mso    \
-			 pm     \
-             ntf
+	     hal    \
+	     msg    \
+             gms    \
+             ntf amf    
 
 SUBDIRS += mw
 
