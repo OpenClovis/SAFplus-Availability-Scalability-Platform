@@ -665,6 +665,7 @@ class ASPInstaller:
             self.BUILDTOOLS      = os.path.join(self.INSTALL_DIR, 'buildtools')
             self.PACKAGE_ROOT    = os.path.join(self.INSTALL_DIR, self.PACKAGE_NAME)
             self.ASP_PREBUILD_DIR= os.path.join(self.PACKAGE_ROOT, 'prebuild')
+            self.ASP_PRECONFIGURE_DIR= os.path.join(self.PACKAGE_ROOT, 'preconfigure')
             self.PREFIX          = os.path.join(self.BUILDTOOLS, 'local')
             self.PREFIX_BIN      = os.path.join(self.PREFIX, 'bin')
             self.PREFIX_LIB      = os.path.join(self.PREFIX, 'lib')
@@ -1430,10 +1431,9 @@ class ASPInstaller:
            if self.NO_INTERACTION == True:
               strin = self.ASP_PREBUILD_DIR
            else:
-              strin = self.get_user_feedback('Where to build ? [default: %s]: ' % self.ASP_PREBUILD_DIR)
-
+              strin = self.get_user_feedback('Where to build ? [default: %s]: ' % self.ASP_PREBUILD_DIR)           
            if strin:
-           # they provided a path. expand '~' and './' references
+           # they provided a path. expand '~' and './' references              
               self.ASP_PREBUILD_DIR = self.expand_path(strin)
            else:
                 # accept default
@@ -1477,8 +1477,16 @@ class ASPInstaller:
              os.chdir (cmd)
              os.system ('make safplus-libs')
              os.system ('make safplus-install')
+             # create configure in prebuild
 
-
+           # write to configure.conf file
+           self.create_dir(self.ASP_PRECONFIGURE_DIR)
+           syscall('chmod 777 %s'%self.ASP_PRECONFIGURE_DIR)
+           if self.WITH_CM_BUILD :           
+             syscall('echo "export CM_BUILD=1\nexport HPI_OPENHPI=1\n" >> %s/configure.conf' %self.ASP_PRECONFIGURE_DIR)
+           else :
+             syscall('echo "export CM_BUILD=0\nexport HPI_OPENHPI=0\n" >> %s/configure.conf' %self.ASP_PRECONFIGURE_DIR)
+           syscall('chmod 777 %s/configure.conf' %self.ASP_PRECONFIGURE_DIR)
     def do_symlinks(self):
         # ask about this early on
 

@@ -1915,13 +1915,13 @@ fi
 
 
 if [ "${ASP_BUILD}" = 0 ]; then
-    echo "find configure.conf file in prebuild"
-    if [ ! -f $sdk_dir/prebuild/configure.conf ]; then
-        echo "WARNING : $sdk_dir/prebuild/configure.conf not found ."
+    echo "find configure.conf file in preconfigure"
+    if [ ! -f $sdk_dir/preconfigure/configure.conf ]; then
+        echo "WARNING : $sdk_dir/preconfigure/configure.conf not found ."
         echo "        Can not configure using prebuild configuration"                
     else
         echo "Load prebuild configuration"
-        source $sdk_dir/prebuild/configure.conf
+        source $sdk_dir/preconfigure/configure.conf
     fi
 fi
 
