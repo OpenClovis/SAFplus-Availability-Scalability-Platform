@@ -236,7 +236,12 @@ ClRcT clMsgQueueTheLocalMessage(
     }
 
     clOsalCondSignal(pQInfo->qCondVar);
-
+    /*
+     * TODO 
+     * As we don't support iovec msg receives yet, and we are queueing each msg iovec,
+     * it might be justified to do --
+     * pQInfo->numberOfMessages[priority] += pMessage->numIovecs; 
+     */
     ++pQInfo->numberOfMessages[priority];
     pQInfo->usedSize[priority] = pQInfo->usedSize[priority] + msgSize;
 
@@ -307,6 +312,7 @@ ClRcT VDECL_VER(clMsgMessageReceived, 4, 0, 0)(ClMsgMessageSendTypeT sendType, C
             if (pMessage->pIovec[i].iov_base)
             {
                 clHeapFree(pMessage->pIovec[i].iov_base);
+                pMessage->pIovec[i].iov_base = NULL;
             }
         }
         goto out;
@@ -338,6 +344,7 @@ q_done_out:
             if (pMessage->pIovec[i].iov_base)
             {
                 clHeapFree(pMessage->pIovec[i].iov_base);
+                pMessage->pIovec[i].iov_base = NULL;
             }
         }
     }
