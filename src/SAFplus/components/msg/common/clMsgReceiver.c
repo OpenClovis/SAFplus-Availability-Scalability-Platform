@@ -236,13 +236,8 @@ ClRcT clMsgQueueTheLocalMessage(
     }
 
     clOsalCondSignal(pQInfo->qCondVar);
-    /*
-     * TODO 
-     * As we don't support iovec msg receives yet, and we are queueing each msg iovec,
-     * it might be justified to do --
-     * pQInfo->numberOfMessages[priority] += pMessage->numIovecs; 
-     */
-    ++pQInfo->numberOfMessages[priority];
+
+    pQInfo->numberOfMessages[priority] += pMessage->numIovecs;
     pQInfo->usedSize[priority] = pQInfo->usedSize[priority] + msgSize;
 
     clLogTrace("MSG", "QUE", "Queued a message of size [%llu] to queue [%.*s].", 
