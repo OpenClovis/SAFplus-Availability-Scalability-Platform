@@ -98,18 +98,8 @@ static ClCpmAspCompMappingT eventSUMap[] = {
     {CL_CPM_BOOT_LEVEL_3, NULL},
 };
 
-static ClCpmAspCompMappingT txnSUMap[] = {
-    {CL_CPM_BOOT_LEVEL_3, "txn"},
-    {CL_CPM_BOOT_LEVEL_3, NULL},
-};
-
 static ClCpmAspCompMappingT nameSUMap[] = {
     {CL_CPM_BOOT_LEVEL_4, "name"},
-    {CL_CPM_BOOT_LEVEL_4, NULL},
-};
-
-static ClCpmAspCompMappingT corSUMap[] = {
-    {CL_CPM_BOOT_LEVEL_4, "cor"},
     {CL_CPM_BOOT_LEVEL_4, NULL},
 };
 
@@ -118,13 +108,7 @@ static ClCpmAspCompMappingT ckptSUMap[] = {
     {CL_CPM_BOOT_LEVEL_4, NULL},
 };
 
-static ClCpmAspCompMappingT oampSUMap[] = {
-    {CL_CPM_BOOT_LEVEL_5, "fault"},
-    {CL_CPM_BOOT_LEVEL_5, "alarm"},
-    {CL_CPM_BOOT_LEVEL_5,  NULL},
-};
-
-#define ASP_NODE_SU_COMP_MAP1                   \
+#define ASP_NODE_SU_COMP_MAP                    \
     {                                           \
         .su = "logSU",                          \
         .suCompMap = logSUMap,                  \
@@ -138,32 +122,17 @@ static ClCpmAspCompMappingT oampSUMap[] = {
         .suCompMap = eventSUMap,                \
     },                                          \
     {                                           \
-        .su = "txnSU",                          \
-        .suCompMap = txnSUMap,                  \
-    },                                          \
-    {                                           \
         .su = "nameSU",                         \
         .suCompMap = nameSUMap,                 \
-    }
-
-#define ASP_NODE_SU_COMP_MAP2                   \
+    },                                          \
     {                                           \
         .su = "ckptSU",                         \
         .suCompMap = ckptSUMap,                 \
-    },                                          \
-    {                                           \
-        .su = "oampSU",                         \
-        .suCompMap = oampSUMap,                 \
     }
 
 static ClCpmAspSUMappingT scSUCompToLevelMapping[] = 
 {
-    ASP_NODE_SU_COMP_MAP1,
-    {
-        .su = "corSU",
-        .suCompMap = corSUMap,
-    },
-    ASP_NODE_SU_COMP_MAP2,
+    ASP_NODE_SU_COMP_MAP,
 };
 
 #define CL_CPM_SC_ASP_SUS ((ClUint32T)sizeof(scSUCompToLevelMapping)/sizeof(scSUCompToLevelMapping[0]))
@@ -171,8 +140,7 @@ static ClCpmAspSUMappingT scSUCompToLevelMapping[] =
 static ClCharT **cpmValgrindFilterList;
 static ClCpmAspSUMappingT wbSUCompToLevelMapping[] =
 {
-    ASP_NODE_SU_COMP_MAP1,
-    ASP_NODE_SU_COMP_MAP2,
+    ASP_NODE_SU_COMP_MAP,
 };
 
 #define CL_CPM_WB_ASP_SUS ((ClUint32T)sizeof(wbSUCompToLevelMapping)/sizeof(wbSUCompToLevelMapping[0]))
