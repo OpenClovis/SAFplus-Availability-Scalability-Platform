@@ -1925,12 +1925,12 @@ fi
 
 if [ "${ASP_BUILD}" = 0 ]; then
     echo "find configure.conf file in preconfigure"
-    if [ ! -f $sdk_dir/preconfigure/configure.conf ]; then
-        echo "WARNING : $sdk_dir/preconfigure/configure.conf not found ."
-        echo "        Can not configure using prebuild configuration"                
+    if [ ! -f $ASP_INSTALLDIR/configure.conf ]; then
+        echo "WARNING : $sdk_dir/configure.conf not found ."
+        echo "        Can not configure using prebuild configuration. Please re configure with -with-asp-installdir"                
     else
         echo "Load prebuild configuration"
-        source $sdk_dir/preconfigure/configure.conf
+        source $ASP_INSTALLDIR/configure.conf
     fi
 fi
 
