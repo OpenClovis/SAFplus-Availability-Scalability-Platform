@@ -28,7 +28,6 @@
 #include <clIdlApi.h>
 #include <clMsgIdl.h>
 #include <clMsgCkptData.h>
-#include <clMsgIocClient.h>
 
 #include <msgCltSrvClientCallsFromClientToClientServerClient.h>
 #include <msgCltSrvClientCallsFromClientToClientServerServer.h>
@@ -102,7 +101,7 @@ void clMsgCommIdlFinalize(void)
 ClRcT clMsgSendMessage_idl(ClMsgMessageSendTypeT sendType,
         ClIocPhysicalAddressT compAddr,
         ClNameT *pName,
-        SaMsgMessageT *pMessage,
+        ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,
         ClHandleT senderHandle,
         SaTimeT timeout,
@@ -126,6 +125,11 @@ ClRcT clMsgSendMessage_idl(ClMsgMessageSendTypeT sendType,
 
     memcpy(&idlObj, &gIdlUcastObj, sizeof(idlObj));
     idlObj.address.address.iocAddress.iocPhyAddress = compAddr;
+
+    if (pMessage->priority == SA_MSG_MESSAGE_HIGHEST_PRIORITY)
+    {
+        idlObj.options.priority = CL_IOC_HIGH_PRIORITY;
+    }
 
     rc = clIdlHandleInitialize(&idlObj, &idlHandle);
     if(rc != CL_OK)
@@ -159,102 +163,6 @@ ClRcT clMsgSendMessage_idl(ClMsgMessageSendTypeT sendType,
     }
 
     clIdlHandleFinalize(idlHandle);
-
-error_out:
-    return rc;
-}
-
-typedef struct
-{
-    ClMsgMessageSendTypeT sendType;
-    ClNameT *pName;
-    SaMsgMessageT *pMessage;
-    SaTimeT sendTime;
-    ClHandleT senderHandle;
-    SaTimeT timeout;
-    void *cookie;
-    MsgCltSrvClMsgMessageReceivedAsyncCallbackT func;
-} ClMsgIocSendAsyncRecordT;
-
-static void clMsgIocSendAsyncCallbackFunc(ClRcT rc, 
-                             void *pCookie)
-{
-    ClMsgIocSendAsyncRecordT *pRecord = (ClMsgIocSendAsyncRecordT *) pCookie;
-
-    ((MsgCltSrvClMsgMessageReceivedAsyncCallbackT)(pRecord->func))(
-                          0,
-                          pRecord->sendType,
-                          pRecord->pName,
-                          pRecord->pMessage,
-                          pRecord->sendTime,
-                          pRecord->senderHandle,
-                          pRecord->timeout,
-                          rc, pRecord->cookie);
-    clHeapFree(pCookie);
-    return;
-}
-
-ClRcT clMsgSendMessage_IocSend(ClMsgMessageSendTypeT sendType,
-        ClIocPhysicalAddressT compAddr,
-        ClNameT *pName,
-        SaMsgMessageT *pMessage,
-        SaTimeT sendTime,
-        ClHandleT senderHandle,
-        SaTimeT timeout,
-        ClBoolT isSync,
-        SaMsgAckFlagsT ackFlag,
-        MsgCltSrvClMsgMessageReceivedAsyncCallbackT fpAsyncCallback,
-        void *cookie)
-{
-    ClRcT rc = CL_OK;
-
-    if(compAddr.nodeAddress == CL_IOC_BROADCAST_ADDRESS)
-    {
-        rc = clMsgIocSendAsync((ClIocAddressT *)&compAddr, sendType, pName, pMessage, sendTime, senderHandle, timeout, NULL, NULL);
-        if(rc != CL_OK)
-            clLogError("IDL", "BCAST", "Failed to broadcast a message. error code [0x%x].", rc);
-        return rc;
-    }
-
-    clLogTrace("IDL", "SND", "Sending a message to component [0x%x,0x%x].", compAddr.nodeAddress, compAddr.portId);
-
-    if (isSync == CL_TRUE)
-    {
-        rc = clMsgIocSendSync((ClIocAddressT *)&compAddr, sendType, pName, pMessage, sendTime, senderHandle, timeout);
-        if(rc != CL_OK)
-            clLogError("IDL", "SND", "Failed to send a message to component [0x%x,0x%x]. error code [0x%x].", compAddr.nodeAddress, compAddr.portId, rc);
-    }
-    else
-    {
-        if(ackFlag == SA_MSG_MESSAGE_DELIVERED_ACK)
-        {
-            ClMsgIocSendAsyncRecordT *pCookie = (ClMsgIocSendAsyncRecordT *) clHeapAllocate(sizeof(ClMsgIocSendAsyncRecordT));
-            if(pCookie == NULL)
-            {
-                rc = CL_ERR_NO_MEMORY;
-                goto error_out;
-            }
-            
-            pCookie->func = (MsgCltSrvClMsgMessageReceivedAsyncCallbackT) fpAsyncCallback;
-            pCookie->cookie = cookie;
-            pCookie->sendType = sendType;
-            pCookie->pName = pName;
-            pCookie->pMessage = pMessage;
-            pCookie->sendTime = sendTime;
-            pCookie->senderHandle = senderHandle;
-            pCookie->timeout = timeout;
-
-            rc = clMsgIocSendAsync((ClIocAddressT *)&compAddr, sendType, pName, pMessage, sendTime, senderHandle, timeout, &clMsgIocSendAsyncCallbackFunc, pCookie);
-            if(rc != CL_OK)
-                clLogError("IDL", "SND", "Failed to send a message to component [0x%x,0x%x]. error code [0x%x].", compAddr.nodeAddress, compAddr.portId, rc);
-        }
-        else
-        {
-            rc = clMsgIocSendAsync((ClIocAddressT *)&compAddr, sendType, pName, pMessage, sendTime, senderHandle, timeout, NULL, NULL);
-            if(rc != CL_OK)
-                clLogError("IDL", "SND", "Failed to send a message to component [0x%x,0x%x]. error code [0x%x].", compAddr.nodeAddress, compAddr.portId, rc);
-        }
-    }
 
 error_out:
     return rc;

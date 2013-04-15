@@ -453,14 +453,14 @@ ClRcT clMsgMessageReceivedServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
     ClRcT rc = CL_OK;
     ClUint32T  sendType;
     ClNameT  pDestination;
-    SaMsgMessageT_4_0_0  pMessage;
+    ClMsgMessageIovecT_4_0_0  pMessage;
     ClInt64T  sendTime;
     ClHandleT  senderHandle;
     ClInt64T  timeout;
 
     memset(&(sendType), 0, sizeof(ClUint32T));
     memset(&(pDestination), 0, sizeof(ClNameT));
-    memset(&(pMessage), 0, sizeof(SaMsgMessageT_4_0_0));
+    memset(&(pMessage), 0, sizeof(ClMsgMessageIovecT_4_0_0));
     memset(&(sendTime), 0, sizeof(ClInt64T));
     memset(&(senderHandle), 0, sizeof(ClHandleT));
     memset(&(timeout), 0, sizeof(ClInt64T));
@@ -478,7 +478,7 @@ ClRcT clMsgMessageReceivedServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
         goto LL1;
     }
 
-    rc = clXdrUnmarshallSaMsgMessageT_4_0_0( inMsgHdl,&(pMessage));
+    rc = clXdrUnmarshallClMsgMessageIovecT_4_0_0( inMsgHdl,&(pMessage));
     if (CL_OK != rc)
     {
         goto LL2;
@@ -539,7 +539,7 @@ ClRcT clMsgMessageReceivedServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
         goto L2;
     }
 
-    rc = clXdrMarshallSaMsgMessageT_4_0_0(&(pMessage), 0, 1);
+    rc = clXdrMarshallClMsgMessageIovecT_4_0_0(&(pMessage), 0, 1);
     if (CL_OK != rc)
     {
         goto L3;
@@ -574,7 +574,7 @@ L6:    return rc;
 LL5:  clXdrMarshallClInt64T(&(timeout), 0, 1);
 LL4:  clXdrMarshallClHandleT(&(senderHandle), 0, 1);
 LL3:  clXdrMarshallClInt64T(&(sendTime), 0, 1);
-LL2:  clXdrMarshallSaMsgMessageT_4_0_0(&(pMessage), 0, 1);
+LL2:  clXdrMarshallClMsgMessageIovecT_4_0_0(&(pMessage), 0, 1);
 LL1:  clXdrMarshallClNameT(&(pDestination), 0, 1);
 LL0:  clXdrMarshallClUint32T(&(sendType), 0, 1);
 
@@ -582,7 +582,7 @@ LL0:  clXdrMarshallClUint32T(&(sendType), 0, 1);
 
 L0:  clXdrMarshallClUint32T(&(sendType), 0, 1);
 L1:  clXdrMarshallClNameT(&(pDestination), 0, 1);
-L2:  clXdrMarshallSaMsgMessageT_4_0_0(&(pMessage), 0, 1);
+L2:  clXdrMarshallClMsgMessageIovecT_4_0_0(&(pMessage), 0, 1);
 L3:  clXdrMarshallClInt64T(&(sendTime), 0, 1);
 L4:  clXdrMarshallClHandleT(&(senderHandle), 0, 1);
 L5:  clXdrMarshallClInt64T(&(timeout), 0, 1);

@@ -44,6 +44,8 @@
 extern "C" {
 #endif
 
+#define CL_MSG_SA_RC(x) clErrorToSaf(x)
+
 typedef struct {
     SaMsgHandleT handle;
     SaMsgCallbacksT callbacks;
@@ -64,12 +66,15 @@ typedef struct {
     SaAisErrorT rc;
 } ClMsgAppQueueOpenCallbackParamsT;
 
-
 extern ClHandleDatabaseHandleT gMsgHandleDatabase;
 
 SaAisErrorT clMsgErrorTxlate(ClRcT clError);
-#define CL_MSG_SA_RC(x) clErrorToSaf(x)
 
+ClRcT clMsgDispatchQueueRegisterInternal(SaMsgHandleT msgHandle,
+                                         SaMsgQueueHandleT queueHandle,
+                                         SaMsgMessageReceivedCallbackT callback);
+
+ClRcT clMsgDispatchQueueDeregisterInternal(SaMsgQueueHandleT queueHandle);
 
 #ifdef __cplusplus
 }

@@ -38,6 +38,7 @@
 #include <clIocApi.h>
 #include <saAis.h>
 #include <saMsg.h>
+#include <clMsgApiExt.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,7 +64,8 @@ do {                                                                    \
     }                                                                   \
 } while(0)
 
-ClRcT clMsgMessageToMessageCopy(SaMsgMessageT **ppNewMsg, SaMsgMessageT *pMessage);
+ClRcT clMsgIovecToMessageCopy(SaMsgMessageT **ppNewMsg, ClMsgMessageIovecT *pMessage, ClUint32T index);
+ClRcT clMsgIovecToIovecCopy(ClMsgMessageIovecT **ppNewMsg, ClMsgMessageIovecT *pMessage);
 void clMsgMessageFree(SaMsgMessageT *pMessage);
 
 

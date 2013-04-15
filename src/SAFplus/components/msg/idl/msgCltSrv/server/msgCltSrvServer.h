@@ -20,9 +20,9 @@ extern "C" {
 #include <clIdlApi.h>
 #include <ipi/clRmdIpi.h>
 #include "../clientIDDefinitions.h"
-#include "xdrSaMsgMessageT.h"
 #include "xdrSaMsgQueueStatusT.h"
 #include "xdrSaMsgQueueCreationAttributesT.h"
+#include "xdrClMsgMessageIovecT.h"
 
 
 

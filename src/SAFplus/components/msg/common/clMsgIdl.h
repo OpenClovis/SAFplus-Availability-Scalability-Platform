@@ -35,6 +35,7 @@
 #include <clIocApiExt.h>
 #include <clMsgCommon.h>
 #include <saMsg.h>
+#include <clMsgApiExt.h>
 
 #include <msgCltSrvClientCallsFromClientToClientServerClient.h>
 
@@ -53,7 +54,7 @@ void  clMsgCommIdlFinalize(void);
 ClRcT clMsgSendMessage_idl(ClMsgMessageSendTypeT sendType,
         ClIocPhysicalAddressT compAddr,
         ClNameT *pName,
-        SaMsgMessageT *pMessage,
+        ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,
         ClHandleT senderHandle,
         SaTimeT timeout,
