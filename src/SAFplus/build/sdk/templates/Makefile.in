@@ -99,6 +99,14 @@ endif
 
 include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
 
+ifeq ($(ASP_BUILD),1)
+ifeq ($(MODEL_BUILD),0)
+        $(shell mkdir -p /opt/clovisVer6.2/6.1/sdk/src/../preconfigure)
+        $(shell rm -f /opt/clovisVer6.2/6.1/sdk/src/../preconfigure/configure.conf)
+        $(shell echo "export CM_BUILD=$(CM_BUILD)\nexport HCL_CM=$(HCL_CM)\nexport HPI_EMERSON=$(HPI_EMERSON)\nexport HPI_OPENHPI=$(HPI_OPENHPI)\nexport SAFPLUS_BUILD_PYTHON=$(SAFPLUS_BUILD_PYTHON)\nexport SAFPLUS_BUILD_JAVA=$(SAFPLUS_BUILD_JAVA)\nexport SAFPLUS_BUILD_CPP=$(SAFPLUS_BUILD_CPP)" > $(CLOVIS_ROOT)/../preconfigure/configure.conf)
+endif
+endif
+
 .PHONY: label_build erase_label
 
 all: label_build 
@@ -106,18 +114,7 @@ all: label_build
 clean: erase_label 
 
 label_build:
-
 	$(CLOVIS_ROOT)/ASP/build/prerequisites/scripts/label_build.sh
-	if [ -f @CLOVIS_ROOT@/../preconfigure/configure.conf ] ; \
-then \
-	rm -f @CLOVIS_ROOT@/../preconfigure/configure.conf ; \
-fi;
-	@echo "export CM_BUILD=@CM_BUILD@\nexport HCL_CM=@HCL_CM@\nexport HPI_EMERSON=@HPI_EMERSON@\nexport HPI_OPENHPI=@HPI_OPENHPI@\nexport SAFPLUS_BUILD_PYTHON=@SAFPLUS_BUILD_PYTHON@\nexport 	SAFPLUS_BUILD_JAVA=@SAFPLUS_BUILD_JAVA@\nexport SAFPLUS_BUILD_CPP=@SAFPLUS_BUILD_CPP@" > @CLOVIS_ROOT@/../preconfigure/configure.conf
-	if [ -f @CLOVIS_ROOT@/../preconfigure/configure.conf ] ; \
-then \
-	chmod 777 @CLOVIS_ROOT@/../preconfigure/configure.conf ; \
-fi;
-
 
 erase_label:
 	$(CLOVIS_ROOT)/ASP/build/prerequisites/scripts/label_build.sh CLEAN
