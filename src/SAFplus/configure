@@ -1662,59 +1662,6 @@ if [ $MODEL_BUILD = 1 ]; then
     fi
 fi
 
-# if ide_workspace directory also does not exist
-# we are probably creating a new project area, so
-# we do the following:
-#   create ide_workspace directory
-#   create project-area.rc file
-#   touch up eclipse settings
-
-if [ ! -d $PROJECT_ROOT/ide_workspace ]; then
-    mkdir -p $PROJECT_ROOT/ide_workspace
-
-    if [ ! -d ~/.clovis/$sdk_tag ]; then
-	    echo "Creating resource directory ~/.clovis/$sdk_tag ... "
-    	mkdir -p ~/.clovis/$sdk_tag
-    	if [ $? -ne 0 ]; then
-    		echo "[WARNING] Could not create resource directory ~/.clovis/$sdk_tag"
-    		echo "          You will need to manually set the CL_PROJECT_AREA environment"
-    		echo "          variable before working on your projects."
-    	fi
-    fi
-
-    # Create or overwrite resource file
-
-    cat << EOF > ~/.clovis/$sdk_tag/project-area.rc
-# This file was created by cl-create-project-area
-
-# Project area path
-CL_PROJECT_AREA=`pwd`
-
-EOF
-    if [ $? -ne 0 ]; then
-	    echo "[WARNING] Could not create resource file ~/.clovis/$sdk_tag/project-area.rc"
-    	echo "          You will need to manually set the CL_PROJECT_AREA environment"
-    	echo "          variable before working on your projects."
-    else
-    	echo "Project area path saved in ~/.clovis/$sdk_tag/project-area.rc" 
-    fi
-fi
-
-#
-# If exists, touch up ~/.clovis/eclipse/.settings/org.eclipse.ui.ide.prefs
-# with the new project area's ide_workspace directory.
-
-if [ -f ~/.clovis/eclipse/.settings/org.eclipse.ui.ide.prefs ]; then
-   	ESC_PROJECT_AREA=$(echo $PROJECT_ROOT/ide_workspace | sed -e 's/\//\\\//g')
-   	sed -e "s/SHOW_WORKSPACE_SELECTION_DIALOG=false/SHOW_WORKSPACE_SELECTION_DIALOG=true/g" \
-        -e "s/RECENT_WORKSPACES=\//RECENT_WORKSPACES=${ESC_PROJECT_AREA}\\\\n\//g" \
-   	    ~/.clovis/eclipse/.settings/org.eclipse.ui.ide.prefs \
-   	    > ~/.clovis/eclipse/.settings/org.eclipse.ui.ide.prefs.new
-       	cat ~/.clovis/eclipse/.settings/org.eclipse.ui.ide.prefs.new \
-   	    > ~/.clovis/eclipse/.settings/org.eclipse.ui.ide.prefs
-   	rm -f ~/.clovis/eclipse/.settings/org.eclipse.ui.ide.prefs.new
-fi
-
 INSTALL='install'
 install_flags='-m 644'
 
