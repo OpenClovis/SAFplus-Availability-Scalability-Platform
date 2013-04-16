@@ -222,7 +222,6 @@ __attribute__ ((constructor)) static void gms_comp_register (void)
 	lcr_interfaces_set (&openais_gms_ver0[0], &gms_service_handler_iface);
 
 	lcr_component_register (&gms_comp_ver0);
-    clLog(DBG,OPN,AIS, "Registered Clovis GMS service with openais");
 }
 
 
