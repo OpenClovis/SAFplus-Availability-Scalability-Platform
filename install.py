@@ -1419,7 +1419,7 @@ class ASPInstaller:
 
 
     def prebuild(self):
-        # ask about this early on
+         ask about this early on
         if self.NO_INTERACTION == True:
            strin = 'y'
         else:
@@ -1427,16 +1427,16 @@ class ASPInstaller:
 
         if not strin or strin.lower().startswith('y'):
 
-           if self.NO_INTERACTION == True:
-              strin = self.ASP_PREBUILD_DIR
-           else:
-              strin = self.get_user_feedback('Where to build ? [default: %s]: ' % self.ASP_PREBUILD_DIR)           
-           if strin:
-           # they provided a path. expand '~' and './' references              
-              self.ASP_PREBUILD_DIR = self.expand_path(strin)
-           else:
-                # accept default
-              pass
+#           if self.NO_INTERACTION == True:
+#              strin = self.ASP_PREBUILD_DIR
+#           else:
+#              strin = self.get_user_feedback('Where to build ? [default: %s]: ' % self.ASP_PREBUILD_DIR)           
+#           if strin:
+#           # they provided a path. expand '~' and './' references              
+#              self.ASP_PREBUILD_DIR = self.expand_path(strin)
+#           else:
+#                # accept default
+#              pass
 
            self.create_dir(self.ASP_PREBUILD_DIR)
            self.feedback('The following installed build tool packages are found:')
@@ -1475,7 +1475,7 @@ class ASPInstaller:
              cmd = 'asp/build/%s' % b
              os.chdir (cmd)
              os.system ('make safplus-libs')
-             os.system ('make safplus-install')           
+             #os.system ('make safplus-install')           
            # write to configure.conf file
            if self.WITH_CM_BUILD :           
              syscall('echo "export CM_BUILD=1\nexport HPI_OPENHPI=1\n" >> %s/configure.conf' %self.ASP_PREBUILD_DIR)

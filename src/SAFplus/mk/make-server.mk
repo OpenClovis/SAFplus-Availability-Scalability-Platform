@@ -131,7 +131,7 @@ ifeq ($(ASP_BUILD),1)
 comp_include_dirs	= $(addsuffix /include,$(comp_dirs))
 comp_client_dirs	= $(addsuffix /client,$(comp_dirs))
 else
-comp_include_dirs = $(ASP_INCLUDE)
+comp_include_dirs = $(SDK_DIR)/include
 endif
 
 ################################################################################
@@ -159,7 +159,7 @@ CPPFLAGS		+= $(addprefix -I,$(comp_include_dirs))
 CPPFLAGS		+= -I$(CLOVIS_ROOT)/SAFplus/include
 else
 CPPFLAGS		+= $(addprefix -I,$(comp_include_dirs))
-CPPFLAGS		+= -I$(ASP_INCLUDE) -I$(ASP_INCLUDE)/ipi -L$(ASP_LIBDIR)
+CPPFLAGS		+= -I$(ASP_INCLUDE) -I$(ASP_INCLUDE)/ipi -I$(SDK_DIR)/include -L$(ASP_LIBDIR)
 CPPFLAGS		+= -I.
 endif
 ################################################################################

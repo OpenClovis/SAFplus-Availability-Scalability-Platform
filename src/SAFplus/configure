@@ -1591,7 +1591,17 @@ fi
 if [ "${with_asp_installdir+set}" = set ]; then
     export ASP_INSTALLDIR=$with_asp_installdir
 else
-    export ASP_INSTALLDIR=$sdk_dir
+# check prebuild folder. If there is no prebuild folder quit
+    if [ -d "$sdk_dir/prebuild" ]; then
+        export ASP_INSTALLDIR=$sdk_dir/prebuild
+    else
+        if [ $ASP_BUILD = 0 ]; then
+            echo  "error : Cannot find prebuild folder." 
+            echo  "Please re configure with --with-asp-installDir"
+            exit 1
+        fi
+    fi
+    
 fi
 
 # Check whether --with-model-name or --without-model-name was given.
@@ -1873,8 +1883,9 @@ fi
 if [ "${ASP_BUILD}" = 0 ]; then
     echo "find configure.conf file in preconfigure"
     if [ ! -f $ASP_INSTALLDIR/configure.conf ]; then
-        echo "WARNING : $sdk_dir/configure.conf not found ."
-        echo "        Can not configure using prebuild configuration. Please re configure with -with-asp-installdir"                
+        echo "WARNING : $ASP_INSTALLDIR/configure.conf not found ."
+        echo "        Can not configure using prebuild configuration."
+        echo "        Please re configure with --with-asp-installdir"                
     else
         echo "Load prebuild configuration"
         source $ASP_INSTALLDIR/configure.conf
