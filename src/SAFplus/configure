@@ -2072,6 +2072,7 @@ else
     fi
 fi
 else
+echo "OpenHPI NOT selected"
 export OPENHPICFLAGS=""
 export OPENHPILIBS=""
 fi

@@ -69,6 +69,7 @@ typedef struct ClFaultEvent {
      */
     ClNameT compName;
 
+#ifdef USE_COR    
     /**
      * The moID of the resource against which the fault is being raised.
      */
@@ -88,12 +89,6 @@ typedef struct ClFaultEvent {
      * The severity of the fault event.
      */
     ClAlarmSeverityTypeT severity;
-
-    /**
-     * The timestamp of the fault event.
-     */
-    ClUint32T timeStamp;      
-
     /**
      * The probable cause of the fault event.
      */
@@ -104,6 +99,13 @@ typedef struct ClFaultEvent {
      */
     ClAlarmSpecificProblemT specificProblem;
 
+#endif
+    /**
+     * The timestamp of the fault event.
+     */
+    ClUint32T timeStamp;      
+
+    
     /**
      * This informs that the recovery action is taken by AMS.
      */

@@ -19,7 +19,8 @@
 ################################################################################
 # Description :
 ################################################################################
-include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
+include ../../../../mk/preface.mk
+
 
 # Component name (using all lowercase):
 COMPNAME	:= amf
@@ -41,14 +42,9 @@ DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo amf event debug dbal ckpt am
 # FIXME: Indirect dependencies via client library needs need to be
 # added by hand for now:
 DEP_COMP_LIST	+= cnt
-ifeq ($(HCL_CM),1)
-CPPFLAGS += -I$(TOOLCHAIN_DIR)/include/radisys
-else
-CPPFLAGS += -I$(TOOLCHAIN_DIR)/include/openhpi
-endif
 
 
-CPPFLAGS += -I../../../include
+CPPFLAGS += $(HPI_CFLAGS) -I../../../include
 CPPFLAGS += -I../../common/ams
 CPPFLAGS += -I ../../common/ams/parser
 CPPFLAGS += -I../../common/cpm 

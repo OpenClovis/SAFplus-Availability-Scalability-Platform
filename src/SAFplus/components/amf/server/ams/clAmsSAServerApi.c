@@ -54,7 +54,9 @@
 #include <clCpmAms.h>
 #include <clCpmCommon.h>
 #include <clCpmInternal.h>
+#ifdef USE_COR
 #include <clFaultApi.h>
+#endif
 #include <clAmsNotifications.h>
 
 /* 
@@ -66,10 +68,12 @@ extern ClAmsT gAms;
  * Pointer to AMS to CPM callbacks
  */
 extern ClCpmAmsToCpmCallT *gAmsToCpmCallbackFuncs;
+#ifdef USE_COR
 extern ClRcT clFaultRepairNotification(ClAmsNotificationDescriptorT *notification,
                                 ClIocAddressT iocAddress,
                                 ClAlarmHandleT alarmHandle,
                                 ClUint32T recovery);
+#endif
 
 /*
  * _clAmsSACSIHAStateGet 
