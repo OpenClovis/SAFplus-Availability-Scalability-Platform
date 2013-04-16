@@ -100,7 +100,7 @@ ClRcT clTaskPoolInitialize(void)
     if(clParseEnvBoolean("CL_EO_TASK_MONITOR"))
     {
         static const ClCharT *const aspEOs[] = { 
-            "AMF", "LOG", "GMS", "EVT", "CKP", "MSG", "NAM", "FLT", "ALM", "COR", "TXN", NULL,
+            "AMF", "CPM", "LOG", "GMS", "EVT", "EVE", "CKP", "MSG", "NAM", "FLT", "ALM", "COR", "TXN", NULL,
         };
         register ClInt32T i;
         for(i = 0; aspEOs[i]; ++i)
