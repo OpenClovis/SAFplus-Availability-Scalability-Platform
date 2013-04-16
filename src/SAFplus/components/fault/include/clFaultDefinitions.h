@@ -47,9 +47,10 @@ extern "C" {
 #endif
 
 #include <clCommon.h>
+#ifdef USE_COR    
 #include <clCorMetaData.h>
 #include <clAlarmDefinitions.h>
-
+#endif
 
 /**
  *  The \e ClFaultEventT data structure is used by components like Alarm 

@@ -1549,8 +1549,15 @@ else
 
 fi
 
-# CLOVIS_ROOT is poorly named now because there is more then just the SDK, but for legacy reasons it is that sdk dir
-export CLOVIS_ROOT=$sdk_dir/src
+# CLOVIS_ROOT is poorly named now because there is more then just the SDK, but for legacy reasons it is the source director
+
+if [ -d $myDir/../SAFplus ]; then
+export CLOVIS_ROOT=$myDir/..
+export SAFPLUS_SRC_DIR=$myDir/..
+else # I must be in installdir (ie. opt/clovis/6.1), and this was called thru the sym link
+export CLOVIS_ROOT=$myDir/sdk/src
+export SAFPLUS_SRC_DIR=$myDir/sdk/src
+fi
 
 # The NEW path variables for release 6.1.  Please deprecate all other vars that point to these paths
 export SAFPLUS_BASE_DIR=$basedir
