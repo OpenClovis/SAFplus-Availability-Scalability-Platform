@@ -648,7 +648,7 @@ def checkTipc():
     for line in searchfile:
         if ("TIPC" in line) and ("default" in line):
             res=True 
-        if ("node" in line) and ("name" in line) and ("protocol" in line) and (get_asp_node_name() in line): 
+        if ("node" in line) and ("name" in line) and ("protocol" in line) : 
           if ("TIPC" in line):
             override= True
           else:
@@ -671,7 +671,7 @@ def is_tipc_build(val=None):
 
 def config_tipc_module():
     if not is_tipc_build():
-        log.warning('Transport protocal : UDP only')
+        log.warning('Transport protocol : UDP only')
         return
     tipc_netid = get_asp_tipc_netid()
     node_addr = get_asp_node_addr()
