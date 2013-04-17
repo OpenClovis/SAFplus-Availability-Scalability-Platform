@@ -648,7 +648,7 @@ def checkTipc():
     for line in searchfile:
         if ("TIPC" in line) and ("default" in line):
             res=True 
-        if ("node" in line) and ("name" in line) and ("protocol" in line) : 
+        if ("node" in line) and ("name" in line) and ("protocol" in line) and (os.getenv('NODENAME') in line): 
           if ("TIPC" in line):
             override= True
           else:
