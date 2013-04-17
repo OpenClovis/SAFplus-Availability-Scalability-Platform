@@ -87,7 +87,7 @@ comp_dirs		= $(addprefix $(COMP_ROOT)/,$(DEP_COMP_LIST))
 ifeq ($(ASP_BUILD),1)
 comp_include_dirs	= $(addsuffix /include,$(comp_dirs))
 else
-comp_include_dirs = $(SDK_DIR)/include
+comp_include_dirs = $(SDK_DIR)/src/SAFplus/include
 endif
 
 ################################################################################
@@ -111,7 +111,7 @@ CPPFLAGS		+= -I.
 CPPFLAGS		+= $(addprefix -I,$(comp_include_dirs))
 else
 CPPFLAGS		+= -I$(ASP_INCLUDE)
-CPPFLAGS		+= -I$(SDK_DIR)/include
+CPPFLAGS		+= -I$(SDK_DIR)/src/SAFplus/include
 CPPFLAGS		+= -I$(ASP_INCLUDE)/ipi
 CPPFLAGS		+= -I.
 CPPFLAGS		+= -L$(ASP_LIBDIR)
