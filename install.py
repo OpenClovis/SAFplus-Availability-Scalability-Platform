@@ -1419,25 +1419,13 @@ class ASPInstaller:
 
 
     def prebuild(self):
-         ask about this early on
+        #ask about this early on
         if self.NO_INTERACTION == True:
            strin = 'y'
         else:
            strin = self.get_user_feedback('Build SAFplus libraries for the local machine and/or installed crossbuild toolchains ? <y|n> [y]: ')
 
         if not strin or strin.lower().startswith('y'):
-
-#           if self.NO_INTERACTION == True:
-#              strin = self.ASP_PREBUILD_DIR
-#           else:
-#              strin = self.get_user_feedback('Where to build ? [default: %s]: ' % self.ASP_PREBUILD_DIR)           
-#           if strin:
-#           # they provided a path. expand '~' and './' references              
-#              self.ASP_PREBUILD_DIR = self.expand_path(strin)
-#           else:
-#                # accept default
-#              pass
-
            self.create_dir(self.ASP_PREBUILD_DIR)
            self.feedback('The following installed build tool packages are found:')
            cmd = '%s' % self.BUILDTOOLS
