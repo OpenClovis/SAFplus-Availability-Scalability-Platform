@@ -648,7 +648,7 @@ def checkTipc():
     for line in searchfile:
         if ("TIPC" in line) and ("default" in line):
             res=True 
-        if ("node name" in line) and (get_asp_node_name() in line): 
+        if ("node" in line) and ("name" in line) and ("protocol" in line) and (get_asp_node_name() in line): 
           if ("TIPC" in line):
             override= True
           else:
