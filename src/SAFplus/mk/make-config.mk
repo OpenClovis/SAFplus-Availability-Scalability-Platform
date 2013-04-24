@@ -103,6 +103,7 @@ CPPFLAGS		+= -I$(COMP_ROOT)/include
 CPPFLAGS        += -I$(COMP_ROOT)/include/ipi
 # Component level include directory is always added:
 CPPFLAGS		+= -I../include
+CPPFLAGS		+= -I$(SDK_DIR)/src/SAFplus/include
 CPPFLAGS		+= -I../common
 #CPPFLAGS		+= -I../config
 CPPFLAGS		+= -I.

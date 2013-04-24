@@ -111,4 +111,4 @@ gcovhelp:
 	@echo '  lcov-getobjdir	     - Prints the location of the obj directory'
 	@echo ''
 	
-include $(BUILD_ROOT)/mk/make-cross.mk
+include $(BUILD_ROOT)/mk/prefix.mk

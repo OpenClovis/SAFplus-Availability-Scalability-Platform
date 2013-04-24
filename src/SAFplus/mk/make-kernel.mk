@@ -39,7 +39,7 @@
 #  only have to define the make rules to build the module, whether it
 #  is for kernel 2.6.x or 2.4.x.
 ################################################################################
-include $(CLOVIS_ROOT)/ASP/mk/make-cross.mk
+include $(CLOVIS_ROOT)/ASP/mk/prefix.mk
 
 ifndef CROSS_BUILD
 # Native build

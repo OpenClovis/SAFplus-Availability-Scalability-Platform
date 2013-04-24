@@ -34,7 +34,7 @@
 #
 include ../Makefile.inc
 
-include $(CLOVIS_ROOT)/ASP/mk/make-cross.mk
+include $(CLOVIS_ROOT)/ASP/mk/prefix.mk
 include $(CLOVIS_ROOT)/ASP/mk/make-path.mk
 
 override CFLAGS += -I../include \

@@ -7600,8 +7600,8 @@ if [ -f $BUILD_ROOT/clasp.env ]; then
     rm -f $BUILD_ROOT/clasp.env
 fi
 
-if [ -f $BUILD_ROOT/mk/make-cross.mk ]; then
-    rm -f $BUILD_ROOT/mk/make-cross.mk
+if [ -f $BUILD_ROOT/mk/prefix.mk ]; then
+    rm -f $BUILD_ROOT/mk/prefix.mk
 fi
 
 if [ -f $BUILD_ROOT/mk/wrs.mk ]; then
@@ -7609,7 +7609,7 @@ if [ -f $BUILD_ROOT/mk/wrs.mk ]; then
 fi
 
 if [ $PROJECT_ONLY = 0 ]; then
-    ac_config_files="$ac_config_files $BUILD_ROOT/clasp.env:$sdk_dir/src/SAFplus/build/common/templates/clasp.env.in $BUILD_ROOT/Makefile:$sdk_dir/src/SAFplus/build/sdk/templates/Makefile.in $BUILD_ROOT/mk/make-cross.mk:$sdk_dir/src/SAFplus/build/common/templates/make-cross.mk.in"
+    ac_config_files="$ac_config_files $BUILD_ROOT/clasp.env:$sdk_dir/src/SAFplus/build/common/templates/clasp.env.in $BUILD_ROOT/Makefile:$sdk_dir/src/SAFplus/build/sdk/templates/Makefile.in $BUILD_ROOT/mk/prefix.mk:$sdk_dir/src/SAFplus/build/common/templates/prefix.mk.in"
 else
     ac_config_files=
 fi
@@ -8173,7 +8173,7 @@ do
   # Handling of arguments.
   "clasp.env" ) CONFIG_FILES="$CONFIG_FILES clasp.env:$sdk_dir/src/SAFplus/build/common/templates/clasp.env.in" ;;
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile:$sdk_dir/src/SAFplus/build/sdk/templates/Makefile.in" ;;
-  "mk/make-cross.mk" ) CONFIG_FILES="$CONFIG_FILES mk/make-cross.mk:build/common/templates/make-cross.mk.in" ;;
+  "mk/prefix.mk" ) CONFIG_FILES="$CONFIG_FILES mk/prefix.mk:build/common/templates/prefix.mk.in" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;
@@ -8571,7 +8571,6 @@ if [ ! -z $ASP_MODEL_NAME ]; then
         echo " the following:"
         echo "     cd $PROJECT_ROOT/$ASP_MODEL_NAME/build/$CROSS_BUILD"
         echo "     make safplus-libs"
-        echo "     make safplus-install"
         echo ""
         echo " If your SDK is installed at a location writeable only by root, please run"
         echo "     make safplus-install"

@@ -59,8 +59,8 @@
 #                       program is found
 #
 ################################################################################
-CROSS_FLAG=@CROSS_FLAG@
-KERNEL_FLAG=@KERNEL_FLAG@
+export CROSS_FLAG=@CROSS_FLAG@
+export KERNEL_FLAG=@KERNEL_FLAG@
 
 ifeq ($(CROSS_FLAG),1)
     export CROSS_BUILD=@CROSS_BUILD@
@@ -70,7 +70,7 @@ ifeq ($(CROSS_FLAG),1)
 endif
 
 export PREFIX=@PREFIX@
-
+export ASP_MODEL_NAME=@ASP_MODEL_NAME@
 export CLOVIS_ROOT=@CLOVIS_ROOT@
 export PROJECT_ROOT=@PROJECT_ROOT@
 export ASP_INSTALLDIR=@ASP_INSTALLDIR@
@@ -84,7 +84,6 @@ export ASP_VERSION=@PACKAGE_VERSION@
 export BUILD_TIPC=@BUILD_TIPC@
 export TIPC_INC_DIR=@TIPC_INC_DIR@
 export TARGET_QNX=@TARGET_QNX@
-
 ifndef MODEL_PATH
 export MODEL_PATH=$(PROJECT_ROOT)/$(ASP_MODEL_NAME)/src
 endif
@@ -96,18 +95,40 @@ export MODEL_LIB=$(MODEL_TARGET)/lib
 export MODEL_BIN=$(MODEL_TARGET)/bin
 export ASP_KMOD=$(ASP_TARGET)/kmod
 export ASP_LIB=$(ASP_TARGET)/lib
-
-export ASP_LIBDIR=$(ASP_INSTALLDIR)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/lib
 export ASP_INCLUDE=$(ASP_INSTALLDIR)/include
-
 export ASP_SIMULATION=@ASP_SIMULATION@
 export CL_INST=@CL_INST@
 export HCL_CM=@HCL_CM@
 export HPI_EMERSON=@HPI_EMERSON@
-
 export ASP_VALGRIND_CMD="@ASP_VALGRIND_CMD@"
 export CL_BINMODE=@CL_BINMODE@
 buildtools_dir:=@CL_BUILDTOOLS@
+export SAFPLUS_BASE_DIR=@SAFPLUS_BASE_DIR@
+export SAFPLUS_SDK_DIR=@SAFPLUS_SDK_DIR@
+export SAFPLUS_IDE_DIR=@SAFPLUS_IDE_DIR@
+export SAFPLUS_PSP_DIR=@SAFPLUS_PSP_DIR@
+export SAFPLUS_BTL_DIR=@SAFPLUS_BTL_DIR@
+export SAFPLUS_BUILD_PYTHON=@SAFPLUS_BUILD_PYTHON@
+export SAFPLUS_BUILD_JAVA=@SAFPLUS_BUILD_JAVA@
+export SAFPLUS_BUILD_CPP=@SAFPLUS_BUILD_CPP@
+export BUILD_ROOT=@BUILD_ROOT@
+export HPI_OPENHPI=@HPI_OPENHPI@
+export CL_INST=@CL_INST@
+export TOOLCHAIN_DIR=@TOOLCHAIN_DIR@
+export ASP_BUILD=@ASP_BUILD@
+export MODEL_BUILD=@MODEL_BUILD@
+export SDK_DIR=@SDK_DIR@
+export ASP_INSTALLDIR=@ASP_INSTALLDIR@
+export TIPC_INCLUDE=@TIPC_INCLUDE@
+export ASP_LIBDIR=$(ASP_INSTALLDIR)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/lib
+export TARGET_QNX=@TARGET_QNX@
+export TARGET_SOLARIS=@TARGET_SOLARIS@
+export OPENAIS_TIPC=@OPENAIS_TIPC@
+
+
+
+
+
 
 #
 # If it is a native build, just leave everythin normal
@@ -462,18 +483,6 @@ endif # ifndef CROSS_BUILD
 
 all:
 
-.PHONY: crosshelp
-crosshelp:
-	@echo '  CROSS_BUILD=<toolchain-name> '
-	@echo '                      - Triggers a host-independent build using the specified' 
-	@echo '                        toolchain.  The following toolchains are available'
-	@echo '                        at your host:'
-	@(cd $(buildtools_dir); ls | awk '{print "                       ",$$1}')
-	@echo '  KERNEL=<kernel-src-dir-name> '
-	@echo '                      - Name of an alternative kernel under the given'
-	@echo '                        toolchain.  See directories under the'
-	@echo '                        /opt/clovis/buildtools/<CROSS_BUILD>/src directory'
-	@echo '                        for alternative kernel choices.  The default is'
-	@echo '                        the "linux" symbolic link.'
+
 
 # End of the file

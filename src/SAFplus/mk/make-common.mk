@@ -185,7 +185,7 @@ ifdef BUILD_TIPC
   endif
 endif
 
-include $(CLOVIS_ROOT)/SAFplus/mk/make-cross.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/prefix.mk
 include $(CLOVIS_ROOT)/SAFplus/mk/make-path.mk
 include $(CLOVIS_ROOT)/SAFplus/mk/make-distro.mk
 

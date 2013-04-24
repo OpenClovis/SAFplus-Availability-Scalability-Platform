@@ -13,4 +13,4 @@
 # 
 # For more  information,  see the  file COPYING provided with this
 # material.
-include $(BUILD_ROOT)/mk/make-cross.mk
+include $(BUILD_ROOT)/mk/prefix.mk
