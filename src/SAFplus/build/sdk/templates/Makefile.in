@@ -23,7 +23,7 @@
 # common should always be before client and server
 
 export BUILD_ROOT=@BUILD_ROOT@
-include $(BUILD_ROOT)/mk/prefix.mk
+include $(BUILD_ROOT)/mk/define.mk
 
 
 #ifdef ModelOnly # Once you've compiled everything once, you can use "make ModelOnly=1" to rebuild just your model

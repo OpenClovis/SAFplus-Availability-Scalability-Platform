@@ -1239,10 +1239,10 @@ class ASPInstaller:
                 'cp VERSION $PACKAGE_ROOT',
                 """sed -e "s;buildtools_dir:=/opt/clovis/buildtools;buildtools_dir:=$BUILDTOOLS;g"
                     -e "s;NET_SNMP_CONFIG = net-snmp-config;NET_SNMP_CONFIG = $NET_SNMP_CONFIG;g"
-                    $PACKAGE_ROOT/src/SAFplus/build/common/templates/prefix.mk.in >
-                $PACKAGE_ROOT/src/SAFplus/build/common/templates/prefix.mk.in.modified""",
-                """mv  -f $PACKAGE_ROOT/src/SAFplus/build/common/templates/prefix.mk.in.modified
-                       $PACKAGE_ROOT/src/SAFplus/build/common/templates/prefix.mk.in"""]
+                    $PACKAGE_ROOT/src/SAFplus/build/common/templates/define.mk.in >
+                $PACKAGE_ROOT/src/SAFplus/build/common/templates/define.mk.in.modified""",
+                """mv  -f $PACKAGE_ROOT/src/SAFplus/build/common/templates/define.mk.in.modified
+                       $PACKAGE_ROOT/src/SAFplus/build/common/templates/define.mk.in"""]
 
         self.run_command_list(cmds) 
 

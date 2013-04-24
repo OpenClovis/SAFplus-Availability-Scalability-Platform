@@ -7604,12 +7604,16 @@ if [ -f $BUILD_ROOT/mk/prefix.mk ]; then
     rm -f $BUILD_ROOT/mk/prefix.mk
 fi
 
+if [ -f $BUILD_ROOT/mk/define.mk ]; then
+    rm -f $BUILD_ROOT/mk/define.mk
+fi
+
 if [ -f $BUILD_ROOT/mk/wrs.mk ]; then
     rm -f $BUILD_ROOT/mk/wrs.mk
 fi
 
 if [ $PROJECT_ONLY = 0 ]; then
-    ac_config_files="$ac_config_files $BUILD_ROOT/clasp.env:$sdk_dir/src/SAFplus/build/common/templates/clasp.env.in $BUILD_ROOT/Makefile:$sdk_dir/src/SAFplus/build/sdk/templates/Makefile.in $BUILD_ROOT/mk/prefix.mk:$sdk_dir/src/SAFplus/build/common/templates/prefix.mk.in"
+    ac_config_files="$ac_config_files $BUILD_ROOT/clasp.env:$sdk_dir/src/SAFplus/build/common/templates/clasp.env.in $BUILD_ROOT/Makefile:$sdk_dir/src/SAFplus/build/sdk/templates/Makefile.in $BUILD_ROOT/mk/prefix.mk:$sdk_dir/src/SAFplus/build/common/templates/prefix.mk.in $BUILD_ROOT/mk/define.mk:$sdk_dir/src/SAFplus/build/common/templates/define.mk.in"
 else
     ac_config_files=
 fi
@@ -8173,6 +8177,7 @@ do
   # Handling of arguments.
   "clasp.env" ) CONFIG_FILES="$CONFIG_FILES clasp.env:$sdk_dir/src/SAFplus/build/common/templates/clasp.env.in" ;;
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile:$sdk_dir/src/SAFplus/build/sdk/templates/Makefile.in" ;;
+  "mk/define.mk" ) CONFIG_FILES="$CONFIG_FILES mk/define.mk:build/common/templates/define.mk.in" ;;
   "mk/prefix.mk" ) CONFIG_FILES="$CONFIG_FILES mk/prefix.mk:build/common/templates/prefix.mk.in" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
