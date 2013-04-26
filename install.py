@@ -30,18 +30,35 @@ except ImportError:
 # ------------------------------------------------------------------------------
 # Settings
 # ------------------------------------------------------------------------------
+saf_plus = syscall('cat VERSION')
+for i in range(len(saf_plus)):
+   check=re.search('PACKAGE_VERSION',saf_plus[i])
+   if ( check != None ):
+         break
+if determine_bit() == 32:
+	 if ( check != None ):
+		 saf_ide_version=((saf_plus[1].split('='))[1].split())
+		 THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-'+ str(saf_ide_version[0])+ '.0'          # Look for PKG starting with this name
+		 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-'+ str(saf_ide_version[0])+ '.0' + '.tar'           # search this package if no 3rdPartyPkg found
+	 else:
+	         THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-6.1.0'
+		 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-6.1.0.tar'
+         PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_32'
+         PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_32.tar.gz'
 
-THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.25'                # Look for PKG starting with this name
-THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.25.tar'            # search this package if no 3rdPartyPkg found
-PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                # Look for PKG starting with this name
-PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'            # search this package if no 3rdPartyPkg found
-PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_32'
-PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_32.tar.gz'
 if determine_bit() == 64:
-  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.25-x86_64'       # Look for PKG starting with this name
-  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.25-x86_64.tar'
-  PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_64.tar.gz'
-  PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_64'
+	 if ( check != None ):
+		 saf_ide_version=((saf_plus[1].split('='))[1].split())
+		 THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-'+ str(saf_ide_version[0])+ '.0' +'-x86.64'        # Look for PKG starting with this name
+		 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-'+ str(saf_ide_version[0])+ '.0' + '-x86.64' +'.tar'       # search this package if no 3rdPartyPkg found
+	 else:
+		 THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-6.1.0-x86.64'
+		 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-6.1.0-x86.64.tar'
+	 PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_64.tar.gz'
+	 PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_64'
+
+PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                                   # Look for PKG starting with this name
+PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'                # search this package if no 3rdPartyPkg found
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
 INSTALL_LOCKFILE             = '/tmp/.openclovis_installer'        # installer lockfile location
 
