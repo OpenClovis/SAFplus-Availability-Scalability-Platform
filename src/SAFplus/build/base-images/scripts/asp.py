@@ -248,6 +248,12 @@ def gen_asp_run_env_file(run_file, d):
     f.close()
     
 def set_up_asp_config():
+
+    if len(sys.argv) >= 2:    
+        if sys.argv[1] == 'help' :
+            usage() 
+            sys.exit(1)  
+
     def get_sandbox_dir():
         p = os.path.dirname(os.path.realpath(__file__))
         p = os.path.split(p)[0]
