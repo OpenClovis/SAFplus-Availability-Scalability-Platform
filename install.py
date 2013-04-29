@@ -30,12 +30,7 @@ except ImportError:
 # ------------------------------------------------------------------------------
 # Settings
 # ------------------------------------------------------------------------------
-#saf_plus = syscall('cat VERSION')
-#for i in range(len(saf_plus)):
-#   check=re.search('PACKAGE_VERSION',saf_plus[i])
-#   if ( check != None ):
-#         break
-pdb.set_trace()
+
 def find_version():
    """ this helps to identify the SAFPLUS Version"""
    try:
