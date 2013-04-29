@@ -30,28 +30,45 @@ except ImportError:
 # ------------------------------------------------------------------------------
 # Settings
 # ------------------------------------------------------------------------------
-saf_plus = syscall('cat VERSION')
-for i in range(len(saf_plus)):
-   check=re.search('PACKAGE_VERSION',saf_plus[i])
-   if ( check != None ):
-         break
+#saf_plus = syscall('cat VERSION')
+#for i in range(len(saf_plus)):
+#   check=re.search('PACKAGE_VERSION',saf_plus[i])
+#   if ( check != None ):
+#         break
+pdb.set_trace()
+def find_version():
+   """ this helps to identify the SAFPLUS Version"""
+   try:
+      fd = open("VERSION","r+")
+      lines = fd.readlines()
+      for line in lines:
+	 if (re.search("PACKAGE_VERSION",line)):
+	    version=((line.split('=')[1]).split())[0]
+            return version
+            break
+   except IOError:
+      print "Unable to find the VERSION"
+      return 0 
+
 if determine_bit() == 32:
-	 if ( check != None ):
-		 saf_ide_version=((saf_plus[1].split('='))[1].split())
-		 THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-'+ str(saf_ide_version[0])+ '.0'          # Look for PKG starting with this name
-		 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-'+ str(saf_ide_version[0])+ '.0' + '.tar'           # search this package if no 3rdPartyPkg found
+         version=find_version()
+	 if ( version != 0 ):
+		 THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-'+ str(version)+ '.0'          # Look for PKG starting with this name
+		 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-'+ str(version)+ '.0' + '.tar'           # search this package if no 3rdPartyPkg found
 	 else:
+                 print 'Using the default 3rdparty package version'
 	         THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-6.1.0'
 		 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-6.1.0.tar'
          PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_32'
          PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_32.tar.gz'
 
 if determine_bit() == 64:
-	 if ( check != None ):
-		 saf_ide_version=((saf_plus[1].split('='))[1].split())
-		 THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-'+ str(saf_ide_version[0])+ '.0' +'-x86.64'        # Look for PKG starting with this name
-		 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-'+ str(saf_ide_version[0])+ '.0' + '-x86.64' +'.tar'       # search this package if no 3rdPartyPkg found
+         version=find_version()
+	 if ( version != None ):
+		 THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-'+ str(version)+ '.0' +'-x86.64'        # Look for PKG starting with this name
+		 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-'+ str(version)+ '.0' + '-x86.64' +'.tar'       # search this package if no 3rdPartyPkg found
 	 else:
+		 print 'Using the default 3rd party package version'
 		 THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-6.1.0-x86.64'
 		 THIRDPARTYPKG_DEFAULT        = '3rdparty-base-6.1.0-x86.64.tar'
 	 PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_64.tar.gz'
