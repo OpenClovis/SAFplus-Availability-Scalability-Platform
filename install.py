@@ -32,13 +32,12 @@ except ImportError:
 # ------------------------------------------------------------------------------
 THIRDPARTY_REVISION = ".0"
 if determine_bit() == 64:
-    ArchName = '-x86_64'
-    PRE_INSTALL_PKG = 'preinstall_CentOs_6.x86_64.tar.gz'
-    PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x86_64'
+    ArchName = '.x86_64'
 else: 
-    ArchName = ""
-    PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x86_32'
-    PRE_INSTALL_PKG = 'preinstall_CentOs_6.x86_32.tar.gz'
+    ArchName = '.x86_32'
+PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6'+ ArchName
+PRE_INSTALL_PKG = PRE_INSTALL_PKG_NAME + '.tar.gz'
+
 PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                                   # Look for PKG starting with this name
 PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'                # search this package if no 3rdPartyPkg found
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
@@ -83,8 +82,8 @@ class ASPInstaller:
         self.preinstallQueue     = []           # list of preinstall deps
         self.installQueue        = []           # list of deps to indicate what needs installing
         self.locks_out           = []           # list of all locks outstanding
-		self.THIRDPARTY_NAME_STARTS_WITH = ''    #third party package name 
-		self.THIRDPARTYPKG_DEFAULT 		= ''          #third party default package name
+        self.THIRDPARTY_NAME_STARTS_WITH = ''    #third party package name 
+        self.THIRDPARTYPKG_DEFAULT 		= ''          #third party default package name
         #self.THIRDPARTYPKG_PATH  = ''
         #self.PREFIX              = ''
         #self.BUILDTOOLS          = ''
