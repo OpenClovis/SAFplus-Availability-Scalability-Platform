@@ -22,8 +22,10 @@
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 
-export BUILD_ROOT=@BUILD_ROOT@
-include $(BUILD_ROOT)/mk/define.mk
+export SAFPLUS_MODEL_DIR=@SAFPLUS_MODEL_DIR@
+export SAFPLUS_SRC_DIR=@SAFPLUS_SRC_DIR@
+
+include $(SAFPLUS_MODEL_DIR)/build/local/mk/define.mk
 
 
 #ifdef ModelOnly # Once you've compiled everything once, you can use "make ModelOnly=1" to rebuild just your model
