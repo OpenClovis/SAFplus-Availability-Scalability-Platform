@@ -20,6 +20,24 @@
 
 
 # If the chassis manager directory is not defined go look for it
+
+# Pull in the SAFplus prebuild or the customer model's definitions
+ifdef SAFPLUS_MODEL_DIR
+include $(SAFPLUS_MODEL_DIR)/build/local/mk/define.mk
+else # If no model is defined, attempt to find the prebuild area
+thisdir := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+prebuildCandidate := $(abspath $(thisdir)/../../../prebuild/asp/build/local/mk)
+defineMk := $(wildcard $(prebuildCandidate)/define.mk)
+ifeq ($(defineMk),) # Nope (we must be running from source control source), so check the standard install location
+defineMk := $(wildcard /opt/clovis/*/sdk/prebuild/asp/build/local/mk/define.mk)
+endif
+ifeq ($(defineMk),)
+$(error To identify the model (or the SAFplus build), please set SAFPLUS_MODEL_DIR to your model base directory)
+else
+include $(defineMk)
+endif
+endif
+
 ifndef CM_DIR
 
 BUILDTOOLS_GLIB = $(wildcard $(TOOLCHAIN_DIR)/include/glib-2.0)

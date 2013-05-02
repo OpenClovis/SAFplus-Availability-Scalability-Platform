@@ -27,7 +27,7 @@
 #
 #
 ################################################################################
-
+include ../../mk/preface.mk
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 

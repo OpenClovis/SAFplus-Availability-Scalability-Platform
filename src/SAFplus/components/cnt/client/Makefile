@@ -27,7 +27,7 @@
 #
 #
 ################################################################################
-
+include ../../../mk/preface.mk
 # Component name (using all lowercase):
 
 COMPNAME	:= cnt
