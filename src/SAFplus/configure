@@ -1561,7 +1561,7 @@ fi
 
 # The NEW path variables for release 6.1.  Please deprecate all other vars that point to these paths
 export SAFPLUS_BASE_DIR=$basedir
-export SAFPLUS_SDK_DIR=$basedir/sdk
+export SAFPLUS_SDK_DIR=$basedir/sdk  # Note that the SAFplus source could be coming from github so use SAFPLUS_SRC_DIR, not <this var>/src
 export SAFPLUS_IDE_DIR=$basedir/IDE
 export SAFPLUS_PSP_DIR=$basedir/PSP
 export SAFPLUS_BTL_DIR=$basedir/buildtools
