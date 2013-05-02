@@ -647,8 +647,11 @@ def set_ld_library_paths():
 def checkTipc(): 
     p = os.path.dirname(os.path.realpath(__file__))
     p = os.path.split(p)[0]      
-    filePath = p + '/etc/clTransport.xml' 
-    searchfile = open(filePath, "r")
+    filePath = p + '/etc/clTransport.xml'
+    try:
+      searchfile = open(filePath, "r")
+    except IOError:  # If clTransport.xml does not even exist, then default to TIPC
+      return True
     res=False
     override = None
     for line in searchfile:
