@@ -19,7 +19,7 @@
 ################################################################################
 # Description :
 ################################################################################
-include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
+include $(SAFPLUS_SRC_DIR)/SAFplus/mk/preface.mk
 
 LD_LIBS		:= -L$(MODEL_LIB) -L$(ASP_LIBDIR) -lClMain -lClConfig -lmw
 

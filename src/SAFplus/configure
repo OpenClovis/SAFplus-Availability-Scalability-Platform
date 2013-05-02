@@ -1687,11 +1687,11 @@ install_flags='-m 644'
 #
 # Copy project-area level and model level makefiles
 # project-area level:
-configdir=$sdk_dir/src/SAFplus
+configdir=$SAFPLUS_SRC_DIR/SAFplus
 if [ -f $configdir/build/common/mk/Makefile.project ]; then
     echo -n ""
     # $INSTALL $install_flags $configdir/build/common/mk/Makefile.project $PROJECT_ROOT/Makefile
-elif [ -f $sdk_dir/src/ASP/build/common/mk/Makefile.project ]; then
+elif [ -f $configdir/build/common/mk/Makefile.project ]; then
     $INSTALL $install_flags $configdir/build/common/mk/Makefile.project $PROJECT_ROOT/Makefile
 else
     NoSdkDirError;
@@ -1702,7 +1702,7 @@ fi
 if [ $MODEL_BUILD = 1 ]; then
     if [ -f $configdir/build/common/mk/Makefile.model ]; then
         $INSTALL $install_flags $configdir/build/common/mk/Makefile.model $PROJECT_ROOT/$ASP_MODEL_NAME/Makefile
-    elif [ -f $sdk_dir/src/SAFplus/build/common/mk/Makefile.model ]; then
+    elif [ -f $configdir/build/common/mk/Makefile.model ]; then
         $INSTALL $install_flags $configdir/build/common/mk/Makefile.project $PROJECT_ROOT/$ASP_MODEL_NAME/Makefile
     else
         NoSdkDirError;
@@ -2095,7 +2095,7 @@ if [ $PROJECT_ONLY = 0 ]; then
     fi
     mkdir -p $BUILD_ROOT
     mkdir -p $BUILD_ROOT/servers
-    $INSTALL $install_flags $sdk_dir/src/SAFplus/build/binary/mk/servers/Makefile $BUILD_ROOT/servers
+    $INSTALL $install_flags $SAFPLUS_SRC_DIR/SAFplus/build/common/templates/Makefile.servers $BUILD_ROOT/servers/Makefile
 fi
 
 ##########################################################
