@@ -95,7 +95,7 @@ clDbalLibInitialize(void)
         rc  = dbalGetLibName(libName);   
         if( rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in getting fileName rc [0x %x]\n",rc));
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error getting the DBAL plugin filename. rc [0x %x]\n",rc));
         } 
         /*open the dynamic loaded library*/
         rc = CL_DBAL_RC(CL_ERR_UNSPECIFIED);

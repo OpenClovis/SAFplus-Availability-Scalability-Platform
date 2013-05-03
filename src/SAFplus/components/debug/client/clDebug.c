@@ -182,8 +182,7 @@ ClRcT clDebugResponseDefer(ClRmdResponseContextHandleT *pResponseHandle, ClBuffe
         return rc;
     }
 
-    rc = clEoPrivateDataGet( pEoObj, CL_EO_DEBUG_OBJECT_COOKIE_ID,
-                             (void**) &pDebugObj);
+    rc = clEoPrivateDataGet( pEoObj, CL_EO_DEBUG_OBJECT_COOKIE_ID,(void**) &pDebugObj);
     if (CL_OK != rc)
     {
         return rc;
@@ -787,23 +786,20 @@ ClRcT clDebugRegister(ClDebugFuncEntryT  *funcArray,
 
     if ((0 == funcArrayLen) || (NULL == funcArray))
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_WARNING,CL_DEBUG_LIB_CLIENT,
-                   CL_LOG_MESSAGE_1_INVALID_PARAMETER,"Arguments are Invalid");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_WARNING,CL_DEBUG_LIB_CLIENT, CL_LOG_MESSAGE_1_INVALID_PARAMETER,"Arguments are Invalid");
         return CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
     }
 
     rc = clEoMyEoObjectGet(&pEoObj);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoMyEoObjectGet(): rc[0x %x]",
-                    rc));
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoMyEoObjectGet(): rc[0x %x]",rc));
         return rc;
     }
-    rc = clEoPrivateDataGet( pEoObj,
-                             CL_EO_DEBUG_OBJECT_COOKIE_ID,
-                             (void**) &pDebugObj);
+    rc = clEoPrivateDataGet( pEoObj,CL_EO_DEBUG_OBJECT_COOKIE_ID,(void**) &pDebugObj);
     if (CL_OK != rc)
     {
+        clDbgCodeError(rc,("Debug CLI library has not been initialized"));
         return rc;
     }
     
@@ -870,8 +866,7 @@ ClRcT clDebugDeregister(ClHandleT  hReg)
                     rc));
         return rc;
     }
-    rc = clEoPrivateDataGet( pEoObj, CL_EO_DEBUG_OBJECT_COOKIE_ID, 
-                             (void**) &pDebugObj);
+    rc = clEoPrivateDataGet( pEoObj, CL_EO_DEBUG_OBJECT_COOKIE_ID, (void**) &pDebugObj);
     if (CL_OK != rc)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoPrivateDataGet(): rc[0x %x]",

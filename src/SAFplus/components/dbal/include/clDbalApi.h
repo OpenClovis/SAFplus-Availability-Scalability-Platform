@@ -70,6 +70,29 @@ extern "C" {
 
 /*******************************************************************************************/
 
+/***************************************************************************************/
+/**
+* Starts the Database Abstraction Layer 
+*
+* Can call multiple times, but only call finalize ONCE!
+*
+* @param none
+*
+* @returns CL_OK - Success<br>
+*/
+    ClRcT clDbalLibInitialize(void);
+    
+/***************************************************************************************/
+/**
+* Stops the Database Abstraction Layer for the process
+*
+* This API stops the DBAL layer regardless of how many times clDbalLibInitialize() has been called
+* @param none
+* @returns CL_OK - Success<br>
+*/
+    ClRcT clDbalLibFinalize(void);
+    
+    
 /**
  *  Definition of Database type.
  */

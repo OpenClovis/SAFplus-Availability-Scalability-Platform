@@ -1189,9 +1189,7 @@ clLogHandlerRegister(ClLogHandleT              hLog,
         return rc;
     }
 
-    rc = clLogClntHandlerRegisterParamValidate(hLog, &streamName, streamScope,
-                                               &nodeName, handlerFlags,
-                                               phStream);
+    rc = clLogClntHandlerRegisterParamValidate(hLog, &streamName, streamScope,&nodeName, handlerFlags,phStream);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clLogClntHandlerRegisterParamValidate(): rc[0x %x]", rc));
@@ -1238,8 +1236,7 @@ clLogHandlerRegister(ClLogHandleT              hLog,
 
     do
     {
-        rc = VDECL_VER(clLogStreamOwnerStreamMcastGetClientSync, 4, 0, 0)(hClntIdl, &streamName, streamScope,
-                                            &nodeName, &mcastAddr);
+        rc = VDECL_VER(clLogStreamOwnerStreamMcastGetClientSync, 4, 0, 0)(hClntIdl, &streamName, streamScope,&nodeName, &mcastAddr);
         /*FIXME - returning 14 sometimes, eventhough its registering in server */
         if( CL_ERR_TIMEOUT == CL_GET_ERROR_CODE(rc))
         {

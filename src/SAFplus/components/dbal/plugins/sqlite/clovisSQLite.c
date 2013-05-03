@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
  *
  * This file is available  under  a  commercial  license  from  the
@@ -334,7 +334,7 @@ cdbSQLiteDBOpen(ClDBFileT    dbFile,
 		{	
 			clHeapFree(pSQLiteHandle);
 			errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-			clLogError("DBA", "DBO", "SQLite DB open failed.");
+			clLogError("DBA", "DBO", "Cannot open SQLite DB file [%s].",dbName);
 			CL_FUNC_EXIT();
 			return(errorCode);    
 		}

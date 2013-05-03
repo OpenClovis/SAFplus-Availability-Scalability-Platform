@@ -138,7 +138,7 @@ ClUint8T eoClientLibs[] =
     CL_FALSE,      /* Lib: Common Object Repository            */
     CL_FALSE,      /* Lib: Chassis Management                  */
     CL_FALSE,      /* Lib: Name Service                        */
-    CL_FALSE,      /* Lib: Log Service                         */
+    CL_TRUE,       /* Lib: Log Service                         */
     CL_FALSE,      /* Lib: Trace Service                       */
     CL_FALSE,      /* Lib: Diagnostics                         */
     CL_FALSE,      /* Lib: Transaction Management              */

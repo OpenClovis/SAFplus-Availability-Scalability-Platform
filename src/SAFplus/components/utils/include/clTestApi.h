@@ -73,6 +73,7 @@ typedef struct
 extern void clPushTestCase(const ClTestCaseData* tcd);
 extern void clPopTestCase(ClTestCaseData* tcd);
 extern int  clTestGroupFinalizeImpl();
+extern void clTestGroupInitializeImpl();
 extern void clTestPrintImpl(const char* file, int line, const char* fn, const char* c);
 extern void clTestImpl(const char* file, int line, const char* function, const char * id, const char * error, int ok);
 
@@ -108,7 +109,7 @@ extern ClTestCaseData clCurTc;
  *  \sa clTestGroupFinalize()
  *
  */
-#define clTestGroupInitialize(name) clTestPrint(name)
+#define clTestGroupInitialize(name) do { clTestPrint(name); clTestGroupInitializeImpl(); } while(0)
 
 /**
  ************************************

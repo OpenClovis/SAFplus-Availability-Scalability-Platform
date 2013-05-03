@@ -38,14 +38,14 @@ extern "C"
 #define DATABASE_ENGINE_ID  0x1124
 /*****************************************************************************/
 #define NULL_CHECK(X) if(NULL == (X)) { \
-                        errorCode = CL_RC(CL_CID_DBAL, CL_ERR_NULL_POINTER); \
+        errorCode = CL_RC(CL_CID_DBAL, CL_ERR_NULL_POINTER); \
+        clDbgCodeError(errorCode, ("Parameter " #X " is NULL!")); \
                         return(errorCode); \
                       }
 /*****************************************************************************/
 #define VALIDITY_CHECK(X) if(DATABASE_ID != (X)) { \
                             errorCode = CL_RC(CL_CID_DBAL, CL_ERR_INVALID_HANDLE); \
-                            clDbgCodeError(errorCode,\
-                                ("DATABASE_ID Validity check failed"));\
+                            clDbgCodeError(errorCode, ("DATABASE_ID Validity check failed"));\
                             return(errorCode); \
                           }
 /*****************************************************************************/
@@ -54,8 +54,7 @@ extern "C"
         if(NULL == (dbHandle))\
         { \
             errorCode = CL_RC(CL_CID_DBAL, CL_ERR_INVALID_HANDLE); \
-            clDbgCodeError(errorCode,\
-                    ("Passed DB Handle is invalid (NULL)"));\
+            clDbgCodeError(errorCode, ("Passed DB Handle is invalid (NULL)"));\
             return(errorCode); \
         }\
     }while(0)

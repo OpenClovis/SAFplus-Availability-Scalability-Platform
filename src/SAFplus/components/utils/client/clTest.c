@@ -21,12 +21,14 @@
 #include <clTestApi.h>
 #include <clDebugApi.h>
 
-int clTestLogLevel              =      10;
+int clTestLogLevel              =       CL_LOG_SEV_INFO;  /* 7 */
 int clTestOn                    =       1;
 int clTestPrintIndent           =       0;
 FILE* clTestFp                  =       0; 
 ClTestCaseData clCurTc;
 ClTestVerbosity clTestVerbosity = CL_TEST_PRINT_ALL & (~CL_TEST_PRINT_TEST_OK);
+ClOsalMutexT testLogMutex; /* Serializes writes to the test output log */
+
 
 enum
   {
@@ -50,9 +52,15 @@ void clPopTestCase(ClTestCaseData* tcd)
   memcpy(tcd, &clTestCaseStack[clTestCaseStackCurpos],sizeof(ClTestCaseData));  
 }
 
+void clTestGroupInitializeImpl()
+{
+    clOsalMutexInit(&testLogMutex); 
+}
+
 int clTestGroupFinalizeImpl()
 {
   clTestPrint(("Test completed.  Cases:  [%d] passed, [%d] failed, [%d] malfunction.\n", clCurTc.passed, clCurTc.failed, clCurTc.malfunction));
+  clOsalMutexDestroy(&testLogMutex); 
   return (clCurTc.failed);
 }
 
@@ -87,6 +95,7 @@ void clTestPrintImpl(const char* file, int line, const char* fn, const char* str
 {
   if (pid==0) pid = getpid();
 
+  clOsalMutexLock(&testLogMutex); /* Lock clTestFp because it is closed and reopened each time a log is written (in case the file is deleted or moved) */
   if (!clTestFp)
     {
       clTestFp = fopen("/var/log/testresults.log","a+");
@@ -107,6 +116,7 @@ void clTestPrintImpl(const char* file, int line, const char* fn, const char* str
       fclose(clTestFp); /* Close and reopen each time in case testresults is deleted */
       clTestFp = 0;
     }
+  clOsalMutexUnlock(&testLogMutex);
    
 }
 
