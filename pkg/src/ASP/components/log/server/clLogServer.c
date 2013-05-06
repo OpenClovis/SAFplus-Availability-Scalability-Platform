@@ -931,26 +931,6 @@ VDECL_VER(clLogSvrStreamClose, 4, 0, 0)(
         return rc;
     }
 
-    if( 0 == pSvrStreamData->ackersCount + pSvrStreamData->nonAckersCount )
-    {
-        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock),
-                       CL_OK);
-        clLogInfo("LOG", "STM", "Stream didn't get register");
-        sleep(2);/* 
-                  * This is to avoid loosing records when streamopen, logwrite,
-                  * streamclose happens immediately without delay
-                  */
-        rc = clOsalMutexLock_L(&pSvrEoEntry->svrStreamTableLock);
-        if( CL_OK != rc )
-        {
-            CL_LOG_DEBUG_ERROR(("clOsalMutexLock_L(&): rc[0x %x]", rc));
-            clLogStreamKeyDestroy(pStreamKey);
-            clLogSvrSOStreamClose(pStreamName, streamScope, pStreamScopeNode,
-                                  compId, localAddress);
-            return rc;
-        }
-    }
-
     rc = clCntNodeFind(pSvrEoEntry->hSvrStreamTable, 
                        (ClCntKeyHandleT) pStreamKey, &hSvrStreamNode);
     if( rc != CL_OK )
