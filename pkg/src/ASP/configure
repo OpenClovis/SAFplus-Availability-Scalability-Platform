@@ -31,7 +31,7 @@
 ## --------------------- ##
 ## M4sh Initialization.  ##
 ## --------------------- ##
-##Test commit for testing svn user add
+
 # Be Bourne compatible
 if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
   emulate sh
