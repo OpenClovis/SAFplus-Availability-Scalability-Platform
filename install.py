@@ -30,18 +30,16 @@ except ImportError:
 # ------------------------------------------------------------------------------
 # Settings
 # ------------------------------------------------------------------------------
-
-THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.25'                # Look for PKG starting with this name
-THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.25.tar'            # search this package if no 3rdPartyPkg found
-PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                # Look for PKG starting with this name
-PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'            # search this package if no 3rdPartyPkg found
-PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_32'
-PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_32.tar.gz'
+THIRDPARTY_REVISION = ".0"
 if determine_bit() == 64:
-  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.25-x86_64'       # Look for PKG starting with this name
-  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.25-x86_64.tar'
-  PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_64.tar.gz'
-  PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_64'
+    ArchName = '.x86_64'
+else: 
+    ArchName = '.x86_32'
+PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6'+ ArchName
+PRE_INSTALL_PKG = PRE_INSTALL_PKG_NAME + '.tar.gz'
+
+PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                                   # Look for PKG starting with this name
+PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'                # search this package if no 3rdPartyPkg found
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
 INSTALL_LOCKFILE             = '/tmp/.openclovis_installer'        # installer lockfile location
 
@@ -84,6 +82,8 @@ class ASPInstaller:
         self.preinstallQueue     = []           # list of preinstall deps
         self.installQueue        = []           # list of deps to indicate what needs installing
         self.locks_out           = []           # list of all locks outstanding
+        self.THIRDPARTY_NAME_STARTS_WITH = ''    #third party package name 
+        self.THIRDPARTYPKG_DEFAULT 		= ''          #third party default package name
         #self.THIRDPARTYPKG_PATH  = ''
         #self.PREFIX              = ''
         #self.BUILDTOOLS          = ''
@@ -149,7 +149,10 @@ class ASPInstaller:
                     'Please contact %s for support' % (os.path.join(self.WORKING_DIR, 'VERSION'), SUPPORT_EMAIL)
             self.feedback(msg, True, False)
         
-        
+        # set the thirdparty-package name
+        self.THIRDPARTY_NAME_STARTS_WITH = '3rdparty-base-'+ self.ASP_VERSION + THIRDPARTY_REVISION + ArchName
+        self.THIRDPARTYPKG_DEFAULT = '3rdparty-base-'+ self.ASP_VERSION + THIRDPARTY_REVISION + ArchName + '.tar'
+ 			        
         # set some flags that may have been passed from command line
         self.parse_cl_options()
         
@@ -816,19 +819,19 @@ class ASPInstaller:
         self.feedback('Working root set to [%s], package root at [%s]' %(WORKING_ROOT, self.PACKAGE_ROOT) )
 
         os.chdir ('%s' % WORKING_ROOT)
-        ThirdPartyList = fnmatch.filter(os.listdir(WORKING_ROOT),"%s.*tar" % THIRDPARTY_NAME_STARTS_WITH)
+        ThirdPartyList = fnmatch.filter(os.listdir(WORKING_ROOT),"%s.*tar" %self.THIRDPARTY_NAME_STARTS_WITH)
         self.feedback('List %s' %(ThirdPartyList))
         Pkg_Found = 0   # a flag to check for 3rdPartyPkg presence
         max_ver = 0
         if len (ThirdPartyList) == 0:
-           thirdPartyPkg =  THIRDPARTYPKG_DEFAULT  
+           thirdPartyPkg =  self.THIRDPARTYPKG_DEFAULT  
         elif len (ThirdPartyList) == 1:
            Pkg_Found = 1
            thirdPartyPkg = ThirdPartyList[0]
         else:
            Pkg_Found = 1
            for ThirdParty in ThirdPartyList:
-               sub_vers = re.sub("\D", "", re.sub (THIRDPARTY_NAME_STARTS_WITH, "", ThirdParty))
+               sub_vers = re.sub("\D", "", re.sub (self.THIRDPARTY_NAME_STARTS_WITH, "", ThirdParty))
                if sub_vers:
                   sub_vers = int (sub_vers)
                   if sub_vers > max_ver:
