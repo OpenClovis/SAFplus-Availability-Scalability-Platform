@@ -140,13 +140,13 @@ SPECIAL_LDFLAGS =
 
 ifeq ("$(GCC_MAJOR_VERSION_MIN_RANGE)", "1")
     ifeq ("$(GCC_MINOR_VERSION_MIN_RANGE)", "1")
-        SPECIAL_CFLAGS = -Wno-error=unused-but-set-variable
+        SPECIAL_CFLAGS = -Wno-error=unused-but-set-variable -Wno-error=unused-result
         SPECIAL_LDFLAGS =,--no-as-needed
     endif
 endif
 
 ifeq ("$(GCC_MAJOR_VERSION_MAX_RANGE)", "1")
-    SPECIAL_CFLAGS = -Wno-error=unused-but-set-variable
+    SPECIAL_CFLAGS = -Wno-error=unused-but-set-variable -Wno-error=unused-result
     SPECIAL_LDFLAGS =,--no-as-needed
 endif
 
