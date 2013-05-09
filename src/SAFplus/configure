@@ -1572,6 +1572,18 @@ else
     export PREFIX=$sdk_dir
 fi
 
+if [ "${with_python_build+set}" = set ]; then
+    export SAFPLUS_BUILD_PYTHON=1
+fi
+
+if [ "${with_java_build+set}" = set ]; then
+    export SAFPLUS_BUILD_JAVA=1
+fi
+
+if [ "${with_cpp_build+set}" = set ]; then
+    export SAFPLUS_BUILD_CPP=1
+fi
+
 # Check whether --with-asp-build was specified
 if [ "${with_asp_build+set}" = set ]; then
     export ASP_BUILD=1
@@ -1579,6 +1591,8 @@ fi
 if [ "${with_safplus_build+set}" = set ]; then
     export ASP_BUILD=1
 fi
+
+
 
 # Check whether --with-asp-installdir was specified
 if [ "${with_asp_installdir+set}" = set ]; then
@@ -1596,33 +1610,6 @@ else
     fi
     
 fi
-
-if [ $ASP_BUILD = 0 ]; then
-    echo "Looing for prebuild's configure.conf file in $ASP_INSTALLDIR"
-    if [ ! -f $ASP_INSTALLDIR/configure.conf ]; then
-        echo "WARNING : $ASP_INSTALLDIR/configure.conf not found ."
-        echo "        Can not configure using prebuild configuration."
-        echo "        Please re configure with --with-asp-installdir"                
-    else
-        echo "Loading configuration of the prebuilt SAFplus libraries"
-        source $ASP_INSTALLDIR/configure.conf
-    fi
-fi
-
-
-
-if [ "${with_python_build+set}" = set ]; then
-    export SAFPLUS_BUILD_PYTHON=1
-fi
-
-if [ "${with_java_build+set}" = set ]; then
-    export SAFPLUS_BUILD_JAVA=1
-fi
-
-if [ "${with_cpp_build+set}" = set ]; then
-    export SAFPLUS_BUILD_CPP=1
-fi
-
 
 # Check whether --with-model-name or --without-model-name was given.
 if test "${with_model_name+set}" = set; then
@@ -1903,6 +1890,28 @@ fi
 
 echo "HPI: [OpenHPI:" $HPI_OPENHPI " Emerson: " $HPI_EMERSON "]  Valgrind:" $ASP_VALGRIND_CMD  "  Simulation:" $ASP_SIMULATION "  Binary Mode:" $CL_BINMODE
 echo ""
+
+
+if [ $ASP_BUILD = 0 ]; then
+    echo "find configure.conf file in preconfigure"
+    if [ ! -f $ASP_INSTALLDIR/configure.conf ]; then
+        echo "WARNING : $ASP_INSTALLDIR/configure.conf not found ."
+        echo "        Can not configure using prebuild configuration."
+        echo "        Please re configure with --with-asp-installdir"                
+    else
+        echo "Load prebuild configuration"
+        source $ASP_INSTALLDIR/configure.conf
+    fi
+    if [ $CM_BUILD -eq 1 ]; then
+        if [ ! -d $basedir/PSP ] ;then
+            echo "ERROR : [$ASP_INSTALLDIR] is configured --with-cm-build but PSP folder does not exist ."
+            echo "        Pleasep build model with --with-safplus-build or rebuild [$ASP_INSTALLDIR] folder ." 
+            exit 1
+        fi
+    fi
+fi
+
+
 
 ###################################################
 ## If model does not have a target.conf file,    ##
