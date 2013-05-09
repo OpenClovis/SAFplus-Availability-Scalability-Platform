@@ -7323,10 +7323,10 @@ else
     if [ $TARGET_QNX = 1 ]; then
         export CL_TARGET_OS="qnx6.4.0"
     else
-	#Setting Kernel versions
+        #Setting Kernel versions
         if [ -f $KERNEL_SOURCE/include/linux/version.h ]; then
- 	   KERNEL_VERSION_FILE=$KERNEL_SOURCE/include/linux/version.h
-	else 
+            KERNEL_VERSION_FILE=$KERNEL_SOURCE/include/linux/version.h
+        else 
             if [ -f $KERNEL_SOURCE/include/generated/uapi/linux/version.h ]; then
                 KERNEL_VERSION_FILE=$KERNEL_SOURCE/include/generated/uapi/linux/version.h
             else 
@@ -7334,8 +7334,8 @@ else
    	            KERNEL_VERSION_FILE=$TOOLCHAIN_DIR/$TARGET/include/linux/version.h
                 else
    	            KERNEL_VERSION_FILE=/usr/include/linux/version.h
-		fi	
-   	    fi
+	        fi	
+            fi
         fi
 	KERNEL_MAJOR_VERSION=`awk '$2=="LINUX_VERSION_CODE"{print rshift($3,16)}' $KERNEL_VERSION_FILE`
 	KERNEL_MINOR_VERSION=`awk '$2=="LINUX_VERSION_CODE"{print and(rshift($3,8),0xff)}' $KERNEL_VERSION_FILE`
