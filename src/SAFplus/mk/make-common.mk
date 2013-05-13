@@ -856,3 +856,5 @@ vpath_list += ../common
 
 vpath %.c $(vpath_list)
 vpath %.cxx $(vpath_list)
+vpath %.cpp $(vpath_list)
+vpath %.C $(vpath_list)
