@@ -4860,7 +4860,7 @@ clAmsMgmtCommitCCBOperations(
                 AMS_CHECK_RC_ERROR( clAmsEntityDbAddEntity(
                                                            &gAms.db.entityDb[req->entity.type],&entityRef));
                 
-                AMS_CHECK_RC_ERROR(_clAmsSAEntityAdd(&entityRef) );
+                _clAmsSAEntityAdd(&entityRef);
 
                 if(clAmsGenericNotificationEventPayloadSet(CL_AMS_NOTIFICATION_ENTITY_CREATE, 
                                                            &req->entity, 
