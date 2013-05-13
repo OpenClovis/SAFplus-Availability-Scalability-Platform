@@ -2102,9 +2102,7 @@ if [ $PROJECT_ONLY = 0 ]; then
     else
         export BUILD_ROOT=$PROJECT_ROOT/$ASP_MODEL_NAME/build/local
     fi
-    mkdir -p $BUILD_ROOT
-    mkdir -p $BUILD_ROOT/servers
-    $INSTALL $install_flags $SAFPLUS_SRC_DIR/SAFplus/build/common/templates/Makefile.servers $BUILD_ROOT/servers/Makefile
+    mkdir -p $BUILD_ROOT   
 fi
 
 ##########################################################

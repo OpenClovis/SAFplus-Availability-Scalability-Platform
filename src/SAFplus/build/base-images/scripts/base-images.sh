@@ -217,6 +217,19 @@ populate_image() {
     (cd $imagedir/bin; ln -s ./safplus_info aspinfo)
     (cd $imagedir/etc/init.d; ln -s ./safplus asp)
  
+    #Copy asp server binaries
+    if [ $ASP_BUILD == 0 ]; then
+   	   ASP_PREBUILD_BINDIR=$ASP_INSTALLDIR/asp/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/bin 
+   	   #echo "$ASP_PREBUILD_BINDIR"	
+   	   if [ -d $ASP_PREBUILD_BINDIR ] ; then
+	     echo "Copying asp server binaries..."
+		 for server_exe in $ASP_PREBUILD_BINDIR/*; do
+	       ${INSTALL} $exe_flags $server_exe $imagedir/bin
+           done
+   	   else
+		 echo "WARNING: the prebuild doesn't contain the server binaries!!!!!"	
+   	   fi
+    fi
     echo cd $imagedir ln -s etc/init.d/safplus ${ASP_MODEL_NAME}
     (cd $imagedir; ln -s etc/init.d/safplus ${ASP_MODEL_NAME})
 
