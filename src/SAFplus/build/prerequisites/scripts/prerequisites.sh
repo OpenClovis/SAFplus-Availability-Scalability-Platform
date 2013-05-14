@@ -630,10 +630,10 @@ populate_prereqs() {
         else
           if [ -f /usr/lib/`uname -i`-linux-gnu/libglib-2.0.so ]; then
             GLIB_LIB_DIR=/usr/lib/`uname -i`-linux-gnu
-          elif [ -f /usr/lib/i386-linux-gnu/libglib-2.0.so ]; then
-            GLIB_LIB_DIR=/usr/lib/i386-linux-gnu
           elif [ -f /usr/lib/${MACH}-linux-gnu/libglib-2.0.so ]; then
             GLIB_LIB_DIR=/usr/lib/${MACH}-linux-gnu
+          elif [ -f /usr/lib/i386-linux-gnu/libglib-2.0.so ]; then
+            GLIB_LIB_DIR=/usr/lib/i386-linux-gnu
           else
             export PKG_CONFIG_PATH=${toolchaindir}/lib/pkgconfig:$PKG_CONFIG_PATH
             GLIB_LIB_DIR=$(pkg-config --libs-only-L glib-2.0 | sed -e 's/^.*-L//g')
