@@ -7336,6 +7336,16 @@ clAmsCCBDeleteCallback(
         case CL_AMS_MGMT_CCB_OPERATION_CSI_SET_NVP :
         case CL_AMS_MGMT_CCB_OPERATION_CSI_DELETE_NVP :
         case CL_AMS_MGMT_CCB_OPERATION_SET_NODE_DEPENDENCY:
+        case CL_AMS_MGMT_CCB_OPERATION_SET_CSI_CSI_DEPENDENCY_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_NODE_DEPENDENCY:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_NODE_SU_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SU_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SI_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SU_COMP_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SU_RANK_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SI_DEPENDENCY_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_CSI_CSI_DEPENDENCY_LIST:
+        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_CSI_LIST:
             {
                 break;
             }
@@ -7353,7 +7363,7 @@ clAmsCCBDeleteCallback(
 
       default: 
             { 
-                AMS_LOG(CL_DEBUG_ERROR, ("invalid ccb operation\n"));
+                AMS_LOG(CL_DEBUG_ERROR, ("invalid ccb operation id [%d]\n", opData->opId));
                 break;
             }
     }
