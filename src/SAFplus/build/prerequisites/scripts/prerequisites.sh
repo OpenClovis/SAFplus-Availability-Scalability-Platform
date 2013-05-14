@@ -405,6 +405,12 @@ populate_prereqs() {
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="copy in db"
             cd - >/dev/null 2>&1
+       elif [ -f /usr/lib/i386-linux-gnu/libdb.so ]; then
+            cd /usr/lib/i386-linux-gnu
+            tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in db"
+            cd - >/dev/null 2>&1
         else
             cd /usr/lib
             tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
@@ -435,6 +441,12 @@ populate_prereqs() {
             cd - >/dev/null 2>&1
         elif [ -f /usr/lib/`uname -i`-linux-gnu/libgdbm.so.3 ]; then
             cd /usr/lib/`uname -i`-linux-gnu
+            tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gdbm"
+            cd - >/dev/null 2>&1
+        elif [ -f /usr/lib/i386-linux-gnu/libgdbm.so.3 ]; then
+            cd /usr/lib/i386-linux-gnu
             tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="copy in gdbm"
@@ -618,6 +630,8 @@ populate_prereqs() {
         else
           if [ -f /usr/lib/`uname -i`-linux-gnu/libglib-2.0.so ]; then
             GLIB_LIB_DIR=/usr/lib/`uname -i`-linux-gnu
+          elif [ -f /usr/lib/i386-linux-gnu/libglib-2.0.so ]; then
+            GLIB_LIB_DIR=/usr/lib/i386-linux-gnu
           elif [ -f /usr/lib/${MACH}-linux-gnu/libglib-2.0.so ]; then
             GLIB_LIB_DIR=/usr/lib/${MACH}-linux-gnu
           else
