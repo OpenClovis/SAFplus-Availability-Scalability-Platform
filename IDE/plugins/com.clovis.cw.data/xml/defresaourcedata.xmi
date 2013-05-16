@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<resource:resourceInformation xmlns:resource="resource.ecore">
-  <chassisResource rdn="0" name="Chassis" maxInstances="1"/>
-</resource:resourceInformation>

@@ -1,6 +1,0 @@
-Manifest-Version: 1.0
-Bundle-Name: %pluginName
-Bundle-SymbolicName: org.eclipse.xsd.source; singleton=true
-Bundle-Version: 2.3.2.v200802051830
-Bundle-Localization: plugin
-Bundle-Vendor: %providerName

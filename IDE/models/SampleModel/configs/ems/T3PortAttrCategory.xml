@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<categories:CATEGORIES xmlns:categories="categories">
-  <CATEGORY NAME="default">
-    <ATTRIBUTE NAME="T3Port_Attr0" TYPE="Int8"/>
-    <ATTRIBUTE NAME="T3Port_Attr1" TYPE="Uint16"/>
-  </CATEGORY>
-</categories:CATEGORIES>

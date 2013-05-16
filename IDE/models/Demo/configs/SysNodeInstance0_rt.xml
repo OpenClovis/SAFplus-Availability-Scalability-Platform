@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<compInstances xmlns="cpmconfig.ecore">
-  <compInst compName="CompA_1">
-    <resource moID="\File:0" toBeCreatedByComponent="true"/>
-  </compInst>
-  <compInst compName="CompB_1"/>
-  <compInst compName="CompC_1"/>
-</compInstances>

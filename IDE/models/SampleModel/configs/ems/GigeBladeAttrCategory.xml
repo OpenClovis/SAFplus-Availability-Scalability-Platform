@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<categories:CATEGORIES xmlns:categories="categories">
-  <CATEGORY NAME="default">
-    <ATTRIBUTE NAME="provIndex" TYPE="Int16"/>
-    <ATTRIBUTE NAME="provTempThreshold" TYPE="Int32"/>
-  </CATEGORY>
-</categories:CATEGORIES>

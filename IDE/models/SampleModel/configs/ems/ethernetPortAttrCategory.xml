@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<categories:CATEGORIES xmlns:categories="categories">
-  <CATEGORY NAME="default">
-    <ATTRIBUTE NAME="mtu" TYPE="Uint16"/>
-    <ATTRIBUTE NAME="speed" TYPE="Uint32"/>
-  </CATEGORY>
-</categories:CATEGORIES>

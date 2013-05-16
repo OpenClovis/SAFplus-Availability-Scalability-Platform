@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:copyMap="copyMap.ecore" xsi:schemaLocation="copyMap.ecore ../model/copyMap.ecore">
-  <copyMap:map source="name" dest="name"/>
-  <copyMap:map source="adminState" dest="adminState"/>
-  <copyMap:map source="rank" dest="rank"/>
-  <copyMap:map source="numCSIs" dest="numCSIs"/>
-  <copyMap:map source="numStandbyAssignments" dest="numStandbyAssignments"/>
-</xmi:XMI>
