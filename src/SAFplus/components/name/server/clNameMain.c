@@ -29,7 +29,7 @@ File        : clNameMain.c
  *
  *****************************************************************************/
 #include <saAmf.h>
-
+#include <clSafUtils.h>
 
 
 
@@ -191,19 +191,12 @@ void nameSvcFinalize(SaInvocationT invocation, const SaNameT *compName)
     
     ClEoExecutionObjT *pEOObj = NULL;
 
-
-    
-
     /* take the semaphore */
     if(clOsalMutexLock(gSem)  != CL_OK)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Couldnt get Lock successfully--\n"));
     }
-    
-   
-
     /* Do NS related cleanup */
-
     /* Delete all the entries in all the contexts */
     /* Delete all the per context has tables */
     clCntWalk(gNSHashTable, _nameSvcContextLevelWalkForFinalize, NULL, 0);
@@ -240,42 +233,58 @@ void nameSvcFinalize(SaInvocationT invocation, const SaNameT *compName)
     
 }
 
-
-ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
+ClRcT initializeAmf(void )
 {
     SaNameT           appName   = {0};
     SaAmfCallbacksT   callbacks = {0};
-    SaVersionT	      version   = {0};
-    ClIocPortT	      iocPort   = 0;
-    ClRcT             rc        = CL_OK;
-    SaAisErrorT       rc1       = SA_AIS_OK;
-    ClSvcHandleT      svcHandle = {0};
-    ClEoExecutionObjT *eoObj    = NULL ;
-    //ClOsalTaskIdT     taskId    = 0;
-
+    SaVersionT        version   = {0};
+    SaAisErrorT       rc        = SA_AIS_OK;
     
     version.releaseCode  = 'B';
     version.majorVersion = 0x01;
     version.minorVersion = 0x01;
-    
-    callbacks.saAmfHealthcheckCallback          = NULL; 
+
+    callbacks.saAmfHealthcheckCallback          = NULL;
     callbacks.saAmfComponentTerminateCallback   = nameSvcFinalize;
     callbacks.saAmfCSISetCallback               = NULL;
     callbacks.saAmfCSIRemoveCallback            = NULL;
     callbacks.saAmfProtectionGroupTrackCallback = NULL;
     callbacks.saAmfProxiedComponentInstantiateCallback = NULL;
     callbacks.saAmfProxiedComponentCleanupCallback = NULL;
+    
+    /* NS Initialize */
+    rc = saAmfInitialize(&amfHandle, &callbacks, &version);
+    if( SA_AIS_OK != rc )
+    {
 
-   
+        return clSafToClovisError(rc);
+    }
+    saAmfComponentNameGet(amfHandle, &appName);
+    saAmfComponentRegister(amfHandle, &appName, NULL);
+    return CL_OK;
+    
+}
+
+
+
+ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
+{
+    ClIocPortT	      iocPort   = 0;
+    ClRcT             rc        = CL_OK;
+    ClSvcHandleT      svcHandle = {0};
+    ClEoExecutionObjT *eoObj    = NULL ;
+    //ClOsalTaskIdT     taskId    = 0;
+      
     (void)clEoMyEoObjectGet(&eoObj);
     (void)clEoMyEoIocPortGet(&iocPort);
-    rc1 = saAmfInitialize(&amfHandle, &callbacks, &version);
-    if( SA_AIS_OK != rc1 )
+
+    rc = initializeAmf();
+    if( rc != CL_OK)
     {
-        rc = rc1;
-        return rc;
+          CL_DEBUG_PRINT(CL_DEBUG_ERROR,(" Initialization failed with rc 0x%x",rc));
+          return rc;
     }
-    /* NS Initialize */
+        
     rc = clCpmMasterAddressGet(&gMasterAddress);
     if (rc != CL_OK)
     {
@@ -284,9 +293,7 @@ ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
     }
     clNameCompCfg();
 
-
-
-    cpmHandle = (ClCpmHandleT)amfHandle;
+    cpmHandle = amfHandle;
     svcHandle.cpmHandle = &cpmHandle;
 #if 0
     svcHandle.evtHandle = &evtHandle;
@@ -294,9 +301,8 @@ ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
     svcHandle.gmsHandle = &gmsHandle;
     svcHandle.dlsHandle = &dlsHandle;
     rc = clDispatchThreadCreate(eoObj, &taskId, svcHandle);
-#endif    
-     saAmfComponentNameGet(amfHandle, &appName);
-     saAmfComponentRegister(amfHandle, &appName, NULL);
+#endif
+    
     /*clDebugCli("NAME-CLI");*/
     return CL_OK;
 }
@@ -5552,38 +5558,22 @@ ClUint8T clEoClientLibs[] = {
 void dispatchLoop(void);
 int  errorExit(SaAisErrorT rc);
 
-
 ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
 
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
-
-
     rc = nameSvcInitialize(argc,argv);
-    
     if(rc != CL_OK)
     {
        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
                        ("Name: nameSvcInitialize failed [0x%X]\n\r", rc));
         return rc;
     }
-    
     dispatchLoop();
-
-       
     saAmfFinalize(amfHandle);
-
-    
-       
-
     return 0;
 }
-
-
-
-
-
 
 int errorExit(SaAisErrorT rc)
 {        
@@ -5595,27 +5585,23 @@ int errorExit(SaAisErrorT rc)
 
 void dispatchLoop(void)
 {        
-  SaAisErrorT         rc = SA_AIS_OK;
-  SaSelectionObjectT amf_dispatch_fd;
-  int maxFd;
-  fd_set read_fds;
+    SaAisErrorT         rc = SA_AIS_OK;
+    SaSelectionObjectT amf_dispatch_fd;
+    int maxFd;
+    fd_set read_fds;
 
-  /*
-   * Get the AMF dispatch FD for the callbacks
-   */
-  if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
-    errorExit(rc);
-  
-    
-  maxFd = amf_dispatch_fd;  
-  do
+    /*
+    * Get the AMF dispatch FD for the callbacks
+    */
+    if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
+       errorExit(rc);
+    maxFd = amf_dispatch_fd;  
+    do
     {
-      FD_ZERO(&read_fds);
-      FD_SET(amf_dispatch_fd, &read_fds);
-      
-        
-      if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
-        {
+       FD_ZERO(&read_fds);
+       FD_SET(amf_dispatch_fd, &read_fds);
+       if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
+       {
           char errorStr[80];
           int err = errno;
           if (EINTR == err) continue;
@@ -5625,7 +5611,7 @@ void dispatchLoop(void)
          
           break;
         }
-      if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+        if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
       
     }while(!unblockNow);      
 }

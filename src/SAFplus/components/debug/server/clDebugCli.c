@@ -301,7 +301,7 @@ static ClRcT debugCliInitialize(ClDebugCliT** ppDebugObj, ClCharT* name);
 static ClUint32T   debugCliShell(ClDebugCliT* pDebugObj);
 static ClRcT debugCliFinalize(ClDebugCliT** ppDebugObj);
 static ClRcT appInitialize(ClUint32T argc, ClCharT* argv[]);
-//static ClRcT appFinalize(void);
+
 static ClRcT appStateChange(ClEoStateT eoState);
 static ClRcT appHealthCheck(ClEoSchedFeedBackT* schFeedback);
 static ClRcT cmdListInit(ClDebugCliT *pDebugObj);
@@ -2956,8 +2956,14 @@ static ClRcT appInitialize( ClUint32T argc, ClCharT* argv[])
     memset(&sigNewVar,'\0',sizeof(sigNewVar));
     sigNewVar.sa_handler = dbgSignalHandler;
     sigaction(SIGINT,&sigNewVar,NULL);
+    
+   /* This is a blocking function and will exit only when user type 
+       BYE or CPM calls terminate*/
+
 
     debugCliShell(debugObj);
+
+     /* This shall execute only in case of when the bye is executed */
     
     if(shouldIUnblock != 1)
     {
@@ -2974,11 +2980,6 @@ static ClRcT appInitialize( ClUint32T argc, ClCharT* argv[])
     
     return (CL_OK);
 }
-
-
-
-
-
 
 
 
@@ -3054,53 +3055,47 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
        
            exit(0);
     }
-    /* This is a blocking function and will exit only when user type 
-       BYE or CPM calls terminate*/
-
+ 
     dispatchLoop();
   
-    /* This shall execute only in case of when the bye is executed */
-     
     return 0;
 }
 
 void dispatchLoop(void)
 {        
-  SaAisErrorT         rc = SA_AIS_OK;
-  SaSelectionObjectT amf_dispatch_fd;
-  int maxFd;
-  fd_set read_fds;
+    SaAisErrorT         rc = SA_AIS_OK;
+    SaSelectionObjectT amf_dispatch_fd;
+    int maxFd;
+    fd_set read_fds;
 
-  /*
-   * Get the AMF dispatch FD for the callbacks
-   */
-  if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
-    errorExit(rc);
+    /*
+     * Get the AMF dispatch FD for the callbacks
+    */
+    if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
+       errorExit(rc);
      
-  maxFd = amf_dispatch_fd;  
-  do
+    maxFd = amf_dispatch_fd;  
+    do
     {
-      FD_ZERO(&read_fds);
-      FD_SET(amf_dispatch_fd, &read_fds);
-      /* FD_SET(ckpt_dispatch_fd, &read_fds); */
-        
-      if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
-        {
-          char errorStr[80];
-          int err = errno;
-          if (EINTR == err) continue;
-
-          errorStr[0] = 0; /* just in case strerror does not fill it in */
-          strerror_r(err, errorStr, 79);
-          
-          break;
-        }
-      if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
-     
+        FD_ZERO(&read_fds);
+        FD_SET(amf_dispatch_fd, &read_fds);
             
- 
+        if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
+        {
+           char errorStr[80];
+           int err = errno;
+           if (EINTR == err) continue;
+
+           errorStr[0] = 0; /* just in case strerror does not fill it in */
+           strerror_r(err, errorStr, 79);
+          
+           break;
+        }
+        if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+     
     }while(!shouldIUnblock);      
 }
+
 int errorExit(SaAisErrorT rc)
 {        
     

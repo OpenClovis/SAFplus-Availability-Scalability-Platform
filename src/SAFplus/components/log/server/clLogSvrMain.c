@@ -28,6 +28,7 @@
 #include <clLogSvrDebug.h>
 #include <saAmf.h>
 
+
 extern ClRcT clLogSvrDefaultStreamCreate(void);
 
 extern ClRcT clLogSvrDefaultStreamDestroy(void);
@@ -85,11 +86,11 @@ static ClHandleT shLogDummyIdl = CL_HANDLE_INVALID_VALUE;
 ClBoolT gClLogSvrExiting = CL_FALSE;
 
 static SaAmfHandleT amfHandle;
-
+SaNameT  logServerName = {0};
 void clLogSvrTerminate(SaInvocationT invocation, const SaNameT *compName);
 
 /* Utility functions */
-void initializeAmf(void);
+
 void dispatchLoop(void);
 int  errorExit(SaAisErrorT rc);
 
@@ -97,31 +98,25 @@ ClBoolT unblockNow = CL_FALSE;
 
 ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
-    ClRcT            rc            = CL_OK;
-   
-       
-
-    rc = clLogSvrInitialize(argc,argv);
-    if(rc != CL_OK)
-    {
+   ClRcT  rc = CL_OK;
+   rc = clLogSvrInitialize(argc,argv);
+   if(rc != CL_OK)
+   {
         CL_LOG_DEBUG_ERROR(("clLogSvrInitialize() failed with : rc[0x %x]", rc));
-        exit(0);
-    }
-    dispatchLoop();
-    
-    
-
-    return 0;
+        return rc;
+   }
+   dispatchLoop();
+   return 0;
 }
+
+
 
 ClRcT 
 clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
 {
-
     SaAmfCallbacksT     callbacks = {0};
     SaVersionT          version;
-    SaNameT          logServerName = {0}; 
-    SaAisErrorT      rc1 = SA_AIS_OK;
+    
     ClRcT            rc            = CL_OK;
     ClLogSvrEoDataT  *pSvrEoEntry  = NULL;
     ClBoolT          *pCookie      = NULL;
@@ -130,9 +125,7 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
     clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
               "Log Server initialization is started...");
 
-   clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
-
-
+    clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
 
     version.releaseCode  = 'B';
     version.majorVersion = 0x01;
@@ -146,38 +139,32 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
     callbacks.saAmfProxiedComponentInstantiateCallback    = NULL;
     callbacks.saAmfProxiedComponentCleanupCallback    = NULL;
 
-    rc1 = saAmfInitialize(&amfHandle, &callbacks, &version);
-    if( SA_AIS_OK != rc1 )
+    rc = saAmfInitialize(&amfHandle, &callbacks, &version);
+    if( SA_AIS_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("saAmfInitialize(): rc[0x %x]", rc1));
-        CL_LOG_CLEANUP(clLogSvrEoDataFinalize(), CL_OK);
-        CL_LOG_CLEANUP(clLogSvrEoDataFree(), CL_OK);
-        clHeapFree(pCookie);
-        CL_LOG_CLEANUP(clLogStreamOwnerLocalShutdown(), CL_OK);
-        CL_LOG_CLEANUP(clLogStreamOwnerEoDataFree(), CL_OK);
-        CL_LOG_CLEANUP(clLogSvrCommonDataFinalize(), CL_OK);
-        CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
-        rc = (ClRcT)rc1;
+        CL_LOG_DEBUG_ERROR(("saAmfInitialize(): rc[0x %x]", rc));
         return rc;
     }
+          
 
 #if defined(CL_DEBUG) && defined(CL_DEBUG_START)
     clLogDebugLevelSet();
 #endif
-	CL_LOG_DEBUG_TRACE(("Enter"));	
+    CL_LOG_DEBUG_TRACE(("Enter"));	
 
     clLogSvrMutexModeSet();
-
+    
     /* 
      * Here dummy initialization of Idl handle to avoid mutiple database 
      * Initialization & finalization databases. Keeping this handle alive 
      * will avoid this. coz Idl library will delete the handle database if the
      * handle count becomes zero. Mutiple times we are initializing & deleting
      * the handles in our log service usage.
-     */
+    */
     rc = clLogIdlHandleInitialize(invalidAddr, &shLogDummyIdl);
     if( CL_OK != rc )
     {
+        
         return rc;
     }
     rc = clLogSvrCommonDataInit();
@@ -187,7 +174,6 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
         CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
         return rc;
     }
-
     rc = clLogStreamOwnerLocalBootup();
     if( CL_OK != rc )
     {
@@ -196,7 +182,6 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
         CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
         return rc;
     }    
-
     pCookie = clHeapCalloc(1, sizeof(ClBoolT));
     if( NULL == pCookie )
     {
@@ -234,14 +219,11 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
         CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
         return rc;
     }
-
-    
-        
-    pSvrEoEntry->hCpm = (ClHandleT)amfHandle;
-    rc1 = saAmfComponentNameGet(amfHandle, &logServerName);
-    if( SA_AIS_OK != rc1 )
+    pSvrEoEntry->hCpm = amfHandle;
+    rc = saAmfComponentNameGet(amfHandle, &logServerName);
+    if( SA_AIS_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("saAmfComponentNameGet(): rc[0x %x]", rc1));
+        CL_LOG_DEBUG_ERROR(("saAmfComponentNameGet(): rc[0x %x]", rc));
         saAmfFinalize(amfHandle);
         CL_LOG_CLEANUP(clLogSvrEoDataFinalize(), CL_OK);
         CL_LOG_CLEANUP(clLogSvrEoDataFree(), CL_OK);
@@ -250,15 +232,12 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
         CL_LOG_CLEANUP(clLogStreamOwnerEoDataFree(), CL_OK);
         CL_LOG_CLEANUP(clLogSvrCommonDataFinalize(), CL_OK);
         CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
-        rc = (ClRcT)rc1;
         return rc;
-    }    
-
-    rc1 = saAmfComponentRegister(amfHandle, &logServerName, NULL);
-    if( SA_AIS_OK != rc1 )
+    }
+    rc = saAmfComponentRegister(amfHandle, &logServerName, NULL);
+    if( SA_AIS_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("saAmfComponentRegister(): rc[0x %x]", rc1));
-        saAmfFinalize(amfHandle);
+        CL_LOG_DEBUG_ERROR(("saAmfComponentRegister(): rc[0x %x]", rc));
         CL_LOG_CLEANUP(clLogSvrEoDataFinalize(), CL_OK);
         CL_LOG_CLEANUP(clLogSvrEoDataFree(), CL_OK);
         clHeapFree(pCookie);
@@ -266,10 +245,9 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
         CL_LOG_CLEANUP(clLogStreamOwnerEoDataFree(), CL_OK);
         CL_LOG_CLEANUP(clLogSvrCommonDataFinalize(), CL_OK);
         CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
-        rc = (ClRcT)rc1;
+        saAmfFinalize(amfHandle);
         return rc;
     }   
-
     pSvrEoEntry->hTimer = CL_HANDLE_INVALID_VALUE;
     if( CL_FALSE == *pCookie )
     {
@@ -282,7 +260,6 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
     if( CL_OK != rc )
     {
         saAmfComponentUnregister(amfHandle, &logServerName, NULL);
-        saAmfFinalize(amfHandle);
         CL_LOG_CLEANUP(clLogSvrEoDataFinalize(), CL_OK);
         CL_LOG_CLEANUP(clLogSvrEoDataFree(), CL_OK);
         clHeapFree(pCookie);
@@ -290,6 +267,7 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
         CL_LOG_CLEANUP(clLogStreamOwnerEoDataFree(), CL_OK);
         CL_LOG_CLEANUP(clLogSvrCommonDataFinalize(), CL_OK);
         CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
+        saAmfFinalize(amfHandle);
         return rc;
     }
     rc = clLogDebugRegister();
@@ -297,16 +275,12 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
     {
         CL_LOG_DEBUG_ERROR(("clLogDebugRegister(): rc[0x %x]", rc));
     }
-        
     clLogNotice(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
                 "Log Server partially up");
 
-	CL_LOG_DEBUG_TRACE(("Exit"));
-	return CL_OK;					    
+    CL_LOG_DEBUG_TRACE(("Exit"));
+    return CL_OK;					    
 }
-
-
-
 
 /*
  * clCompAppTerminate
@@ -320,10 +294,8 @@ void clLogSvrTerminate(SaInvocationT invocation, const SaNameT *compName)
     ClRcT            rc           = CL_OK;
     ClLogSvrEoDataT  *pSvrEoEntry = NULL;
     ClHandleT        hCpm         = CL_HANDLE_INVALID_VALUE;
-
-	CL_LOG_DEBUG_TRACE(("Enter"));
-
-	clLogInfo("SVR", "MAI", "Unregistering with cpm...... [%.*s]\n", 
+    CL_LOG_DEBUG_TRACE(("Enter"));
+    clLogInfo("SVR", "MAI", "Unregistering with cpm...... [%.*s]\n", 
                            compName->length, compName->value);
     gClLogSvrExiting = CL_TRUE;
     rc = clLogSvrEoEntryGet(&pSvrEoEntry, NULL);
@@ -337,20 +309,15 @@ void clLogSvrTerminate(SaInvocationT invocation, const SaNameT *compName)
     saAmfFinalize(amfHandle);
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 
-	CL_LOG_DEBUG_TRACE(("Exit"));
-
+    CL_LOG_DEBUG_TRACE(("Exit"));
 
     unblockNow = CL_TRUE;
 
-    
-    
 }
 
 ClRcT
 clLogSvrShutdown(void)
 {
-	ClRcT  rc = CL_OK;
-
 	CL_LOG_DEBUG_TRACE(("Enter"));	
 
     CL_LOG_CLEANUP(clLogDebugDeregister(), CL_OK);
@@ -367,7 +334,7 @@ clLogSvrShutdown(void)
     CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
 
 	CL_LOG_DEBUG_TRACE(("Exit"));	
-    return rc;
+    return CL_OK;
 }
 
 ClRcT
@@ -405,25 +372,25 @@ int errorExit(SaAisErrorT rc)
 
 void dispatchLoop(void)
 {        
-  SaAisErrorT         rc = SA_AIS_OK;
-  SaSelectionObjectT amf_dispatch_fd;
-  int maxFd;
-  fd_set read_fds;
+    SaAisErrorT         rc = SA_AIS_OK;
+    SaSelectionObjectT amf_dispatch_fd;
+    int maxFd;
+    fd_set read_fds;
  
-  /*
-   * Get the AMF dispatch FD for the callbacks
-   */
-  if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
-    errorExit(rc);
+    /*
+     * Get the AMF dispatch FD for the callbacks
+    */
+    if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
+      errorExit(rc);
     
-  maxFd = amf_dispatch_fd;  /* maxFd = max(amf_dispatch_fd,ckpt_dispatch_fd); */
-  do
+    maxFd = amf_dispatch_fd;  /* maxFd = max(amf_dispatch_fd,ckpt_dispatch_fd); */
+    do
     {
-      FD_ZERO(&read_fds);
-      FD_SET(amf_dispatch_fd, &read_fds);
+       FD_ZERO(&read_fds);
+       FD_SET(amf_dispatch_fd, &read_fds);
             
-      if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
-        {
+       if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
+       {
           char errorStr[80];
           int err = errno;
           if (EINTR == err) continue;
@@ -432,8 +399,8 @@ void dispatchLoop(void)
           strerror_r(err, errorStr, 79);
           
           break;
-        }
-      if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+       }
+       if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
       
     }while(!unblockNow);      
 }

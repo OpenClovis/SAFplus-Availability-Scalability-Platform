@@ -70,7 +70,6 @@
 #include <saAmf.h>
 
 
-#define clprintf(severity, ...)   clAppLog(CL_LOG_HANDLE_APP, severity, 10, "MAI", CL_LOG_CONTEXT_UNSPECIFIED,__VA_ARGS__)
 /* Global Declarations */
 SaAmfHandleT amfHandle;
 
@@ -85,7 +84,7 @@ int errorExit(SaAisErrorT rc)
 }
 
 /* Function Declarations */
-static int initializeAmf(void);
+static ClRcT initializeAmf(void);
 static ClHandleT gMsgNotificationHandle;
 ClInt32T gClMsgSvcRefCnt;
 ClHandleDatabaseHandleT gMsgClientHandleDb;
@@ -146,26 +145,30 @@ ClUint8T clEoClientLibs[] = {
 
 ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
+    ClRcT rc = CL_OK;
 
-	SaAisErrorT rc = SA_AIS_OK;
+    /* Connect to the SAF cluster */
 
-    
-       /* Connect to the SAF cluster */
-        
-        initializeAmf();
-        
-        /* Do the application specific initialization here. */
-    
-        /* Block on AMF dispatch file descriptor for callbacks.
-         When this function returns its time to quit. */
-	dispatchLoop();
+    rc = initializeAmf();
+    if(rc != CL_OK)
+    {
+       CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
+                       ("MSG: msgInitialize failed [0x%X]\n\r", rc));
+       return rc;
+    }
 
-	/* Now finalize my connection with the SAF cluster */
-	rc = saAmfFinalize(amfHandle);
-	return 0;
+    /* Block on AMF dispatch file descriptor for callbacks.
+       When this function returns its time to quit. */
+    dispatchLoop();
+
+    /* Now finalize my connection with the SAF cluster */
+
+   saAmfFinalize(amfHandle);
+
+   return 0;
 }
 
-static int initializeAmf(void)
+static ClRcT initializeAmf(void)
 {
     SaAisErrorT         rc = SA_AIS_OK; 
     SaAisErrorT         retCode;
@@ -181,7 +184,7 @@ static int initializeAmf(void)
         clLogError("MSG", "INI", "The Message Service is already initialized. error code [0x%x].", rc);
         goto error_out;
     }
-    clprintf (CL_LOG_SEV_INFO, "Happiest Minds Message Service not Intantiated");
+    
     gLocalAddress = clIocLocalAddressGet();
     gLocalPortId = CL_IOC_MSG_PORT;
 
@@ -381,10 +384,15 @@ static void clMsgRegisterWithCpm(void)
     callbacks.saAmfCSISetCallback = NULL;
     callbacks.saAmfCSIRemoveCallback = NULL;
     callbacks.saAmfProtectionGroupTrackCallback = NULL;
-    //callbacks.appProxiedComponentInstantiate = NULL;
-    //callbacks.appProxiedComponentCleanup = NULL;
+    
 
     rc = saAmfInitialize(&amfHandle, &callbacks, &version);
+    if( rc != SA_AIS_OK)
+    {
+         clLogError("MSG", "INI", "saAmfInitialize failed with  error code [0x%x].", rc);
+         return ;
+    }
+
 
     rc = saAmfComponentNameGet(amfHandle, &appName);
 
@@ -394,7 +402,7 @@ static void clMsgRegisterWithCpm(void)
 
 static void clMsgNotificationReceiveCallback(ClIocNotificationIdT event, ClPtrT pArg, ClIocAddressT *pAddr)
 {
-    //SaAisErrorT rc = SA_AIS_OK;
+    
     clOsalMutexLock(&gClMsgFinalizeLock);
     if(!gClMsgInit)
     {
@@ -537,44 +545,34 @@ out:
 /* dispatch loop  */
 void dispatchLoop(void)
 {        
-  SaAisErrorT         rc = SA_AIS_OK;
-  SaSelectionObjectT amf_dispatch_fd;
-  int maxFd;
-  fd_set read_fds;
+    SaAisErrorT         rc = SA_AIS_OK;
+    SaSelectionObjectT amf_dispatch_fd;
+    int maxFd;
+    fd_set read_fds;
 
-  /* This boilerplate code includes an example of how to simultaneously
-     dispatch for 2 services (in this case AMF and CKPT).  But since checkpoint
-     is not initialized or used, it is commented out */
-  /* SaSelectionObjectT ckpt_dispatch_fd; */
+    /*
+     * Get the AMF dispatch FD for the callbacks
+    */
+    if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
+        errorExit(rc);
 
-  /*
-   * Get the AMF dispatch FD for the callbacks
-   */
-  if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
-    errorExit(rc);
-  /* if ( (rc = saCkptSelectionObjectGet(ckptLibraryHandle, &ckpt_dispatch_fd)) != SA_AIS_OK)
-       errorExit(rc); */
-    
-  maxFd = amf_dispatch_fd;  /* maxFd = max(amf_dispatch_fd,ckpt_dispatch_fd); */
-  do
+    maxFd = amf_dispatch_fd;  /* maxFd = max(amf_dispatch_fd,ckpt_dispatch_fd); */
+    do
     {
-      FD_ZERO(&read_fds);
-      FD_SET(amf_dispatch_fd, &read_fds);
-      /* FD_SET(ckpt_dispatch_fd, &read_fds); */
-        
-      if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
-        {
+       FD_ZERO(&read_fds);
+       FD_SET(amf_dispatch_fd, &read_fds);
+       
+       if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
+       {
           char errorStr[80];
           int err = errno;
           if (EINTR == err) continue;
 
           errorStr[0] = 0; /* just in case strerror does not fill it in */
           strerror_r(err, errorStr, 79);
-          clprintf (CL_LOG_SEV_ERROR, "Error [%d] during dispatch loop select() call: [%s]",err,errorStr);
           break;
-        }
-      if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
-      /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
+       }
+       if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
     }while(!unblockNow);      
 }
 

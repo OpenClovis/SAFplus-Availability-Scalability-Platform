@@ -119,7 +119,7 @@ ClUint8T clEoClientLibs[] = {
 
 
 /* Utility functions */
-void initializeAmf(void);
+ClRcT initializeAmf(void);
 void dispatchLoop(void);
 int  errorExit(SaAisErrorT rc);
 
@@ -146,31 +146,32 @@ ClBoolT unblockNow = CL_FALSE;
  * Application Life Cycle Management Functions
  *****************************************************************************/
 
-ClInt32T main(ClInt32T argc, ClCharT *argv[])
+
+int main(int argc, char *argv[])
 {
-    
+    ClRcT   rc = CL_OK;
     if (argc < 2){
         clLog (EMER,GEN,NA, "usage : %s", GMS_USAGE);
         exit(0);
     }
 
     /* Connect to the SAF cluster */
-    initializeAmf();
-    
-     _clGmsServiceInitialize ( argc , argv );
+    rc = initializeAmf();
+    if( rc != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
+                       ("GMS: gmsInitialize failed [0x%X]\n\r", rc));
+        return rc;
+    }
+    _clGmsServiceInitialize ( argc , argv );
 
     
     /* Block on AMF dispatch file descriptor for callbacks.
        When this function returns its time to quit. */
     dispatchLoop();
     
-    
-     
-    
-     saAmfFinalize(amfHandle);
+    saAmfFinalize(amfHandle); 
 
-    
-    
     return 0;
 }
 /*
@@ -212,21 +213,19 @@ ClRcT  clGmsServerHealthCheck(ClEoSchedFeedBackT* const schFeedback)
 void clGmsServerTerminate(SaInvocationT invocation, const SaNameT *compName)
 {
 
-    SaAisErrorT rc = SA_AIS_OK;
-
-    ClRcT   rc1 = CL_OK;
+    ClRcT   rc = CL_OK;
 
     gmsGlobalInfo.opState = CL_GMS_STATE_SHUTING_DOWN;
 
     clLog(CRITICAL,GEN,NA,
           "Server Got Termination Request. Started Shutting Down...");
 
-    rc1 = clEoClientUninstallTables (gmsGlobalInfo.gmsEoObject,
+    rc = clEoClientUninstallTables (gmsGlobalInfo.gmsEoObject,
                                     CL_EO_SERVER_SYM_MOD(gAspFuncTable, GMS));
-    if (rc1 != CL_OK)
+    if (rc != CL_OK)
     {
         clLog(ERROR,GEN,NA,
-              "clEoClientUninstall failed with rc = 0x%x", rc1);
+              "clEoClientUninstall failed with rc = 0x%x", rc);
     }
     /*
      * Unregister with AMF and respond to AMF saying whether the
@@ -234,17 +233,13 @@ void clGmsServerTerminate(SaInvocationT invocation, const SaNameT *compName)
      */
     
 
-    
-
-    rc1 = clDebugDeregister(gGmsDebugReg);
-    if (rc1 != CL_OK)
+    rc = clDebugDeregister(gGmsDebugReg);
+    if (rc != CL_OK)
     {
         clLog(ERROR,GEN,NA,
-              "clDebugDeregister failed with rc = 0x%x", rc1);
+              "clDebugDeregister failed with rc = 0x%x", rc);
     }
 
-    /* Ok tell SAFplus that we handled it properly */
-    
     /* Close the leader election algorithm dl if open */
 #ifndef VXWORKS_BUILD 
     if (pluginHandle != NULL)
@@ -264,13 +259,13 @@ void clGmsServerTerminate(SaInvocationT invocation, const SaNameT *compName)
     }
     clLog(CRITICAL,GEN,NA,
           "GMS server exiting");
+
     rc = clHandleDatabaseDestroy(contextHandleDatabase);
     if (rc != CL_OK)
     {
         clLog(ERROR,GEN,NA,
                 "contextHandleDatabase destroy failed with Rc = 0x%x",rc);
     }
-    
     rc = saAmfComponentUnregister(amfHandle, compName, NULL);
     
     if(rc != SA_AIS_OK) 
@@ -278,16 +273,22 @@ void clGmsServerTerminate(SaInvocationT invocation, const SaNameT *compName)
         clLog(ERROR,GEN,NA,
               "saAmfComponentUnregister failed with rc = 0x%x", rc);     
     }
-    
+
+    rc = saAmfFinalize(amfHandle);
+
+    if (rc != SA_AIS_OK)
+    {
+        clLog(ERROR,GEN,NA,
+              "saAmfFinalize failed with rc = 0x%x", rc);
+    }
+    /* Ok tell SAFplus that we handled it properly */
     rc = saAmfResponse(amfHandle, invocation, SA_AIS_OK);
     
     if (rc != SA_AIS_OK)
     {
         clLog(ERROR,GEN,NA,
-              "saAMfResponse failed with rc = 0x%x", rc);
+              "clCpmResponse failed with rc = 0x%x", rc);
     }
-
-    
     unblockNow = CL_TRUE;
 }
 
@@ -311,12 +312,11 @@ int errorExit(SaAisErrorT rc)
    actual GMS service instance and finally blocks in the function. 
  */
 
-void initializeAmf(void)
+ClRcT initializeAmf(void)
 {
     SaAmfCallbacksT     callbacks;
     SaVersionT          version;
-    SaAisErrorT         rc = SA_AIS_OK;
-    ClRcT	        rc1 = CL_OK;
+    ClRcT	        rc = CL_OK;
 
     /* this function overrides the default EO configuration */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs); 
@@ -356,23 +356,23 @@ void initializeAmf(void)
     if(rc != SA_AIS_OK)
     {
          clLog(EMER,GEN,NA,
-                "ComponentNameGet Failed with rc [0x%x]. Booting Aborted",rc);
+                "saAmfomponentNameGet Failed with rc [0x%x]. Booting Aborted",rc);
         exit(0);
       
     }
     gmsGlobalInfo.gmsComponentName.length=appName.length;
     memcpy(gmsGlobalInfo.gmsComponentName.value,appName.value,appName.length);
 
-    rc1 = clEoMyEoObjectGet(&gmsGlobalInfo.gmsEoObject);
-    if (rc1 != CL_OK)
+    rc = clEoMyEoObjectGet(&gmsGlobalInfo.gmsEoObject);
+    if (rc != CL_OK)
     {
         clLog(EMER,GEN,NA,
                "clEoMyEoObjectGet Failed with rc [0x%x]. Booting Aborted",rc);
         exit(0);
     }
     
-    rc1 = clDebugPromptSet(GMS_COMMAND_PROMPT);
-    if( CL_OK == rc1 )
+    rc = clDebugPromptSet(GMS_COMMAND_PROMPT);
+    if( CL_OK == rc )
     {
         clLog(NOTICE,GEN,NA,
             "GMS Server registering with debug service");
@@ -381,18 +381,18 @@ void initializeAmf(void)
                 (int)(sizeof(gmsCliCommandsList)/sizeof(ClDebugFuncEntryT)), 
                 &gGmsDebugReg);
     }
-    if( rc1 != CL_OK )
+    if( rc != CL_OK )
     {
         clLog(ERROR,GEN,NA,
             "Failed to register with debug server, error [0x%x]. Debug shell access disabled",
             rc);
     }
 
-    rc1 = clEoClientInstallTables (
+    rc = clEoClientInstallTables (
             gmsGlobalInfo.gmsEoObject,
             CL_EO_SERVER_SYM_MOD(gAspFuncTable, GMS));
 
-    if ( rc1 != CL_OK )
+    if ( rc != CL_OK )
     {
         clLog (EMER,GEN,NA,
                 "Eo client install failed with rc [0x%x]. Booting aborted",rc);
@@ -401,7 +401,7 @@ void initializeAmf(void)
 
     /* This function never returns the exit is done by causing a signal from
      *  the Terminate function */
-   
+   return CL_OK;
     
 }
 

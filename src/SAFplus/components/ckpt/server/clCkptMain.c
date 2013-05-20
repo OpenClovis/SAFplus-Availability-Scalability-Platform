@@ -50,14 +50,7 @@
 #include "clCkptDs.h"
 
 extern CkptSvrCbT  *gCkptSvr;
-
-
 SaVersionT  gVersion;
-
-
-
-
-
 
 /*
  * Ckpt server specific log messages.
@@ -94,8 +87,6 @@ ClEoConfigT clEoConfig =
     NULL
 };
 
-
-
 /* 
  * What basic and client libraries do we need to use? 
  */
@@ -127,68 +118,45 @@ ClUint8T clEoClientLibs[] = {
     CL_TRUE,              /* gms */
     CL_FALSE,             /*pm*/
 };
-/* The application should fill these functions */
+
 static void ckptTerminate(SaInvocationT invocation, const SaNameT *compName);
 
-
 /* Utility functions */
-void initializeAmf(void);
+static SaAisErrorT  initializeAmf(void);
 void dispatchLoop(void);
 int  errorExit(SaAisErrorT rc);
 
-/******************************************************************************
- * Global Variables.
- *****************************************************************************/
-
-/* The process ID is stored in this variable.  This is only used in our logging. */
-pid_t        mypid;
-
-/* Access to the SAF AMF framework occurs through this handle */
 SaAmfHandleT amfHandle;
-
-/* This process's SAF name */
 SaNameT      appName = {0};
-
-
 ClBoolT unblockNow = CL_FALSE;
-
-/* Declare other global variables here. */
-
-
-/******************************************************************************
- * Application Life Cycle Management Functions
- *****************************************************************************/
-
 
 ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
     SaAisErrorT rc = SA_AIS_OK;
 
     /* Connect to the SAF cluster */
-    initializeAmf();
-	
-   
-    /* Do the application specific initialization here. */
-    
+    rc = initializeAmf();
+    if( rc != SA_AIS_OK)
+    {
+       CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
+                       ("CKPT: ckptInitialize failed [0x%X]\n\r", rc));
+        return rc;
+    }       
+        
     /* Block on AMF dispatch file descriptor for callbacks.
        When this function returns its time to quit. */
     dispatchLoop();
-    
-    
+        
     /* Now finalize my connection with the SAF cluster */
     rc = saAmfFinalize(amfHandle);
-      
-
+   
     return 0;
 }
 
-
-
-void initializeAmf(void)
+SaAisErrorT initializeAmf(void)
 {
     SaAmfCallbacksT     callbacks;
    
-    ClNameT             appName1;
     ClIocPortT          iocPort=0;
     SaAisErrorT         rc = SA_AIS_OK;
     /*This function overrides the default EO Configuaration */
@@ -219,8 +187,6 @@ void initializeAmf(void)
      * Get the port Id from IOC.
      */
      clEoMyEoIocPortGet(&iocPort);
-
-     
         
      /* Initialize AMF client library. */
      rc = saAmfInitialize(&amfHandle, &callbacks, &gVersion);
@@ -238,25 +204,22 @@ void initializeAmf(void)
 
      clCkptSvrInitialize();
      
-
      rc = saAmfComponentRegister(amfHandle, &appName, NULL);
     
-     gCkptSvr->cpmHdl = amfHandle;
+     gCkptSvr->amfHdl = amfHandle;
 
      /*
      * Obtain the component id from cpm. This will be used while registering
      * ckpt master address with TL.
      */
-     appName1.length = appName.length;
-     memcpy(appName1.value,appName.value,appName.length);
-     clCpmComponentIdGet(gCkptSvr->cpmHdl, &appName1, &gCkptSvr->compId);
+     clAmfGetComponentId(gCkptSvr->amfHdl, &appName, &gCkptSvr->compId);
 
      /*
      * Register with debug server.
      */
      ckptDebugRegister(gCkptSvr->eoHdl);
     
-    
+     return rc;
 }
 
 /*
@@ -272,20 +235,17 @@ void ckptTerminate(SaInvocationT invocation, const SaNameT *compName)
     CL_DEBUG_PRINT(CL_DEBUG_WARN,("Checkpoint service is stopping."));
     /*
      * Deregister with debug server.
-     */
+    */
     ckptDebugDeregister(gCkptSvr->eoHdl);
     
     /*
      * Wait for all the other threads to finalize  
-     */
-     clEoQueuesQuiesce();
-
-     /*
+    */
+    clEoQueuesQuiesce();
+    /*
      * Deregister with cpm.
-     */
-
+    */
     rc = saAmfComponentUnregister(amfHandle, compName, NULL);
-    
     /*
      * Cleanup the persistent DB information.
      */
@@ -294,16 +254,11 @@ void ckptTerminate(SaInvocationT invocation, const SaNameT *compName)
     Feature not supported -- see bug 6017 -- don't forget to uncomment ckptDataBackupInitialize()!
     ckptDataBackupFinalize();
     */
-
     /*
      * Cleanup resources taken by ckpt server.
      */
     ckptShutDown();
-
     /* Ok tell SAFplus that we handled it properly */
-   
-
-
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
     unblockNow = CL_TRUE;
 }
@@ -314,39 +269,27 @@ int errorExit(SaAisErrorT rc)
     return -1;
 }
 
-
-
-
-
 void dispatchLoop(void)
 {        
-  SaAisErrorT         rc = SA_AIS_OK;
-  SaSelectionObjectT amf_dispatch_fd;
-  int maxFd;
-  fd_set read_fds;
+    SaAisErrorT         rc = SA_AIS_OK;
+    SaSelectionObjectT amf_dispatch_fd;
+    int maxFd;
+    fd_set read_fds;
 
-  /* This boilerplate code includes an example of how to simultaneously
-     dispatch for 2 services (in this case AMF and CKPT).  But since checkpoint
-     is not initialized or used, it is commented out */
-  /* SaSelectionObjectT ckpt_dispatch_fd; */
+    /*
+      * Get the AMF dispatch FD for the callbacks
+    */
+    if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
+         errorExit(rc);
 
-  /*
-   * Get the AMF dispatch FD for the callbacks
-   */
-  if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
-    errorExit(rc);
-  /* if ( (rc = saCkptSelectionObjectGet(ckptLibraryHandle, &ckpt_dispatch_fd)) != SA_AIS_OK)
-       errorExit(rc); */
-    
-  maxFd = amf_dispatch_fd;  /* maxFd = max(amf_dispatch_fd,ckpt_dispatch_fd); */
-  do
+    maxFd = amf_dispatch_fd;  /* maxFd = max(amf_dispatch_fd,ckpt_dispatch_fd); */
+    do
     {
-      FD_ZERO(&read_fds);
-      FD_SET(amf_dispatch_fd, &read_fds);
-      /* FD_SET(ckpt_dispatch_fd, &read_fds); */
-        
-      if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
-        {
+       FD_ZERO(&read_fds);
+       FD_SET(amf_dispatch_fd, &read_fds);
+         
+       if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
+       {
           char errorStr[80];
           int err = errno;
           if (EINTR == err) continue;
@@ -355,9 +298,9 @@ void dispatchLoop(void)
           strerror_r(err, errorStr, 79);
           //clprintf (CL_LOG_SEV_ERROR, "Error [%d] during dispatch loop select() call: [%s]",err,errorStr);
           break;
-        }
-      if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
-      /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
+       }
+       if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+      
     }while(!unblockNow);      
 }
 

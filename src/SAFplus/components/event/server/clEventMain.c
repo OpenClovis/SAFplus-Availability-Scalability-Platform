@@ -27,6 +27,7 @@
  *          for EM - Non-EOnization & association with CPM, debug, etc.
  *****************************************************************************/
 #include <saAmf.h>
+#include <clSafUtils.h>
 #define __SERVER__
 #include "clCpmApi.h"
 #include "clTimerApi.h"
@@ -45,28 +46,16 @@ static SaAmfHandleT gClEvtAmfHandle;
 
 ClBoolT unblockNow = CL_FALSE;
 
-
 void clEventTerminate(SaInvocationT invocation, const SaNameT *compName);
-
-
-/******************************************************************
-                    AMF Related stuff
-******************************************************************/
-
-/*
- * Do the AMF client init/Register 
- */
 
 ClRcT initializeAmf()
 {
-   
     SaNameT             appName;      
     SaAmfCallbacksT     callbacks;
     SaVersionT          version;
     ClIocPortT          iocPort;
     SaAisErrorT         rc = SA_AIS_OK;
 
-    
     version.releaseCode  = 'B';
     version.majorVersion = 0x01;
     version.minorVersion = 0x01;
@@ -80,16 +69,15 @@ ClRcT initializeAmf()
     callbacks.saAmfProxiedComponentCleanupCallback = NULL;
 
     clEoMyEoIocPortGet(&iocPort);
-   
     rc = saAmfInitialize(&gClEvtAmfHandle, &callbacks, &version);
     if(rc != SA_AIS_OK)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
-                   CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "CPM Library", rc);
+                   CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, " CPM Library", rc);
+        return clSafToClovisError(rc);
     }
-
-    rc = saAmfComponentNameGet(gClEvtAmfHandle, &appName);
-    rc = saAmfComponentRegister(gClEvtAmfHandle, &appName, NULL);
+    saAmfComponentNameGet(gClEvtAmfHandle, &appName);
+    saAmfComponentRegister(gClEvtAmfHandle, &appName, NULL);
 
     return CL_OK;
     
@@ -119,13 +107,9 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
         CL_FUNC_EXIT();
         return rc;
     }
-
     CL_FUNC_ENTER();
-
     rc = clEvtChannelDBInit();
-
     rc = clEoMyEoObjectGet(&gEvtHead.evtEOId);
-
     rc = clEoClientInstallTables(gEvtHead.evtEOId, CL_EO_SERVER_SYM_MOD(gAspFuncTable, EVT));
     if (rc != CL_OK)
     {
@@ -139,7 +123,6 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
         CL_FUNC_EXIT();
         return rc;
     }
-
     rc = clEventLibTableInit(); 
     if(rc != CL_OK)
     {
@@ -153,8 +136,6 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
         CL_FUNC_EXIT();
         return rc;
     }
-
-
     rc = clEventDebugRegister(gEvtHead.evtEOId);
     if (rc != CL_OK)
     {
@@ -165,7 +146,6 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
         CL_FUNC_EXIT();
         return rc;
     }
-
     /*
      ** Initialize the Handle Database.
      */
@@ -195,16 +175,10 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
     }
 #endif
 
-
     gEvtInitDone = CL_EVT_TRUE;
 
-    /*
-     * CPM should be notified that Event Service is ready only after the
-     * the initialization is complete. This _MUST_ be the last step.
-     */
-    
-
     CL_FUNC_EXIT();
+
     return CL_OK;
 }
 
@@ -222,11 +196,8 @@ ClRcT clEvtFinalize()
 {
     ClRcT rc = CL_OK;
 
-
     CL_FUNC_ENTER();
-
     CL_EVT_INIT_DONE_VALIDATION();
-
     rc = clEoClientUninstallTables(gEvtHead.evtEOId, CL_EO_SERVER_SYM_MOD(gAspFuncTable, EVT));  
     if (rc != CL_OK)
     {
@@ -235,9 +206,6 @@ ClRcT clEvtFinalize()
         CL_FUNC_EXIT();
         return rc;
     }
-    
-        
-
     rc = clEventDebugDeregister(gEvtHead.evtEOId);
     if (rc != CL_OK)
     {
@@ -246,12 +214,9 @@ ClRcT clEvtFinalize()
         CL_FUNC_EXIT();
         return rc;
     }
-    
-    
-
     /*
      ** Handle Database Cleanup.
-     */
+    */
     rc = clEvtHandleDatabaseExit();
     if (rc != CL_OK)
     {
@@ -280,27 +245,13 @@ ClRcT clEvtFinalize()
     return CL_OK;
 }
 
-
-
-
-
-
 void clEventTerminate(SaInvocationT invocation, const SaNameT *compName)
 {
-     
-    
-
     clEvtFinalize();
-      
-   /* No need to check error messages b/c cannot do anything about the errors anyway... am shutting down */
 
+    /* No need to check error messages b/c cannot do anything about the errors anyway... am shutting down */
     saAmfComponentUnregister(gClEvtAmfHandle, compName, NULL);
-
-    
-
-
     saAmfResponse(gClEvtAmfHandle, invocation, SA_AIS_OK);
-
     unblockNow = CL_TRUE;
 }
 
@@ -381,18 +332,11 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
     /* Block on AMF dispatch file descriptor for callbacks.
        When this function returns its time to quit. */
     dispatchLoop();
-    
-    /* Do the Event Service finalization here. */
-    
-   saAmfFinalize(gClEvtAmfHandle);
+        
+    saAmfFinalize(gClEvtAmfHandle);
      
-   return 0;
+    return 0;
 }
-
-
-
-
-
 
 int errorExit(SaAisErrorT rc)
 {        
@@ -401,28 +345,26 @@ int errorExit(SaAisErrorT rc)
     return -1;
 }
 
-
-
 void dispatchLoop(void)
 {        
-  SaAisErrorT         rc = SA_AIS_OK;
-  SaSelectionObjectT amf_dispatch_fd;
-  int maxFd;
-  fd_set read_fds;
-
-  /*
-   * Get the AMF dispatch FD for the callbacks
-   */
-  if ( (rc = saAmfSelectionObjectGet(gClEvtAmfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
-    errorExit(rc);
-      
-  maxFd = amf_dispatch_fd;  
-  do
+    SaAisErrorT         rc = SA_AIS_OK;
+    SaSelectionObjectT amf_dispatch_fd;
+    int maxFd;
+    fd_set read_fds;
+  
+    /*
+    * Get the AMF dispatch FD for the callbacks
+    */
+    if ( (rc = saAmfSelectionObjectGet(gClEvtAmfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
+       errorExit(rc);
+    
+    maxFd = amf_dispatch_fd;  
+    do
     {
-      FD_ZERO(&read_fds);
-      FD_SET(amf_dispatch_fd, &read_fds);
-      if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
-      {
+       FD_ZERO(&read_fds);
+       FD_SET(amf_dispatch_fd, &read_fds);
+       if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
+       {
           char errorStr[80];
           int err = errno;
           if (EINTR == err) continue;
@@ -431,8 +373,8 @@ void dispatchLoop(void)
           strerror_r(err, errorStr, 79);
          
           break;
-        }
-      if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(gClEvtAmfHandle, SA_DISPATCH_ALL);
+       }
+       if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(gClEvtAmfHandle, SA_DISPATCH_ALL);
       
     }while(!unblockNow);      
 }
