@@ -1773,7 +1773,7 @@ void cpmSetEnvs(ClCpmComponentT *comp)
     for (i = 0; comp->compConfig->env[i]; ++i)
     {
         setenv(comp->compConfig->env[i]->envName,
-               comp->compConfig->env[i]->envValue, 0);
+               comp->compConfig->env[i]->envValue, 1);
     }
 }
 
