@@ -160,7 +160,7 @@ ClBoolT unblockNow = CL_FALSE;
  *****************************************************************************/
 
 
-int main(int argc, char *argv[])
+ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
     SaAisErrorT rc = SA_AIS_OK;
 
@@ -220,7 +220,7 @@ void initializeAmf(void)
      */
      clEoMyEoIocPortGet(&iocPort);
 
-     clCkptLeakyBucketInitialize();
+     
         
      /* Initialize AMF client library. */
      rc = saAmfInitialize(&amfHandle, &callbacks, &gVersion);
@@ -233,6 +233,9 @@ void initializeAmf(void)
       /*
      * Initialize ckpt server.
      */
+
+     clCkptLeakyBucketInitialize();
+
      clCkptSvrInitialize();
      
 

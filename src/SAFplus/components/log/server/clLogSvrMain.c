@@ -95,14 +95,11 @@ int  errorExit(SaAisErrorT rc);
 
 ClBoolT unblockNow = CL_FALSE;
 
-int main(int argc, char *argv[])
+ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT            rc            = CL_OK;
    
-    clLogInfo("HM", "MIND", "ENTER INTO THE LOG SERVICE FOR CLAPP");
-    
-     
-    
+       
 
     rc = clLogSvrInitialize(argc,argv);
     if(rc != CL_OK)
@@ -153,6 +150,13 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
     if( SA_AIS_OK != rc1 )
     {
         CL_LOG_DEBUG_ERROR(("saAmfInitialize(): rc[0x %x]", rc1));
+        CL_LOG_CLEANUP(clLogSvrEoDataFinalize(), CL_OK);
+        CL_LOG_CLEANUP(clLogSvrEoDataFree(), CL_OK);
+        clHeapFree(pCookie);
+        CL_LOG_CLEANUP(clLogStreamOwnerLocalShutdown(), CL_OK);
+        CL_LOG_CLEANUP(clLogStreamOwnerEoDataFree(), CL_OK);
+        CL_LOG_CLEANUP(clLogSvrCommonDataFinalize(), CL_OK);
+        CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
         rc = (ClRcT)rc1;
         return rc;
     }

@@ -27,7 +27,7 @@
  * This file implements the standard NON-EO template functions 
  * and data structures for GMS.
  *******************************************************************************/
-
+#include <saAmf.h>
 #define __SERVER__
 #include <stdio.h>
 #include <unistd.h>
@@ -146,10 +146,9 @@ ClBoolT unblockNow = CL_FALSE;
  * Application Life Cycle Management Functions
  *****************************************************************************/
 
-
-int main(int argc, char *argv[])
+ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
-    ClRcT   rc = CL_OK;
+    
     if (argc < 2){
         clLog (EMER,GEN,NA, "usage : %s", GMS_USAGE);
         exit(0);
@@ -165,13 +164,13 @@ int main(int argc, char *argv[])
        When this function returns its time to quit. */
     dispatchLoop();
     
-    rc = clHandleDatabaseDestroy(contextHandleDatabase);
-    if (rc != CL_OK)
-    {
-        clLog(ERROR,GEN,NA,
-                "contextHandleDatabase destroy failed with Rc = 0x%x",rc);
-    }
+    
+     
+    
+     saAmfFinalize(amfHandle);
 
+    
+    
     return 0;
 }
 /*
@@ -233,21 +232,9 @@ void clGmsServerTerminate(SaInvocationT invocation, const SaNameT *compName)
      * Unregister with AMF and respond to AMF saying whether the
      * termination was successful or not.
      */
-    rc = saAmfComponentUnregister(amfHandle, compName, NULL);
     
-    if(rc != SA_AIS_OK) 
-    {
-        clLog(ERROR,GEN,NA,
-              "saAmfComponentUnregister failed with rc = 0x%x", rc);     
-    }
 
-    rc = saAmfFinalize(amfHandle);
-
-    if (rc != SA_AIS_OK)
-    {
-        clLog(ERROR,GEN,NA,
-              "saAmfFinalize failed with rc = 0x%x", rc);
-    }
+    
 
     rc1 = clDebugDeregister(gGmsDebugReg);
     if (rc1 != CL_OK)
@@ -257,13 +244,7 @@ void clGmsServerTerminate(SaInvocationT invocation, const SaNameT *compName)
     }
 
     /* Ok tell SAFplus that we handled it properly */
-    rc = saAmfResponse(amfHandle, invocation, SA_AIS_OK);
     
-    if (rc != SA_AIS_OK)
-    {
-        clLog(ERROR,GEN,NA,
-              "clCpmResponse failed with rc = 0x%x", rc);
-    }
     /* Close the leader election algorithm dl if open */
 #ifndef VXWORKS_BUILD 
     if (pluginHandle != NULL)
@@ -283,6 +264,29 @@ void clGmsServerTerminate(SaInvocationT invocation, const SaNameT *compName)
     }
     clLog(CRITICAL,GEN,NA,
           "GMS server exiting");
+    rc = clHandleDatabaseDestroy(contextHandleDatabase);
+    if (rc != CL_OK)
+    {
+        clLog(ERROR,GEN,NA,
+                "contextHandleDatabase destroy failed with Rc = 0x%x",rc);
+    }
+    
+    rc = saAmfComponentUnregister(amfHandle, compName, NULL);
+    
+    if(rc != SA_AIS_OK) 
+    {
+        clLog(ERROR,GEN,NA,
+              "saAmfComponentUnregister failed with rc = 0x%x", rc);     
+    }
+    
+    rc = saAmfResponse(amfHandle, invocation, SA_AIS_OK);
+    
+    if (rc != SA_AIS_OK)
+    {
+        clLog(ERROR,GEN,NA,
+              "saAMfResponse failed with rc = 0x%x", rc);
+    }
+
     
     unblockNow = CL_TRUE;
 }
@@ -397,7 +401,7 @@ void initializeAmf(void)
 
     /* This function never returns the exit is done by causing a signal from
      *  the Terminate function */
-    _initializeamf();
+   
     
 }
 

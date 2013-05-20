@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
+ * Copyright (C) 2002-2013 OpenClovis Solutions Inc.  All Rights Reserved.
  *
  * This file is available  under  a  commercial  license  from  the
  * copyright  holder or the GNU General Public License Version 2.0.
@@ -25,6 +25,7 @@
  * Description :
  * This file contains debugServer implementation routines 
  ****************************************************************************/
+#include <saAmf.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -300,7 +301,7 @@ static ClRcT debugCliInitialize(ClDebugCliT** ppDebugObj, ClCharT* name);
 static ClUint32T   debugCliShell(ClDebugCliT* pDebugObj);
 static ClRcT debugCliFinalize(ClDebugCliT** ppDebugObj);
 static ClRcT appInitialize(ClUint32T argc, ClCharT* argv[]);
-static ClRcT appFinalize(void);
+//static ClRcT appFinalize(void);
 static ClRcT appStateChange(ClEoStateT eoState);
 static ClRcT appHealthCheck(ClEoSchedFeedBackT* schFeedback);
 static ClRcT cmdListInit(ClDebugCliT *pDebugObj);
@@ -2896,17 +2897,16 @@ static ClRcT cmdCompletion(ClDebugCliT* pDebugObj, ClCharT *ptrPrompt)
     return cmdFound;
 }
 
-
+SaAmfHandleT  amfHandle;
 ClCpmHandleT  cpmHandle;
-ClRcT appTerminate(ClInvocationT invocation,
-                   const ClNameT  *compName)
+void appTerminate(SaInvocationT invocation, const SaNameT *compName)
 {
-    ClRcT rc;
+    
 
-    rc = clCpmComponentUnregister(cpmHandle, compName, NULL);
-    rc = clCpmClientFinalize(cpmHandle);
+    saAmfComponentUnregister(amfHandle, compName, NULL);
+    saAmfFinalize(amfHandle);
     shouldIUnblock = 1;
-    return CL_OK;
+    
 }
 
 
@@ -2915,14 +2915,30 @@ static ClRcT appInitialize( ClUint32T argc, ClCharT* argv[])
 {
     ClRcT               rc = CL_OK;
     ClDebugCliT         *debugObj;
-
-    ClNameT	    	appName;
+    SaNameT	    	appName;
     ClIocPortT  	iocPort;
-    ClCpmCallbacksT     callbacks;
-    ClVersionT          version;
+    SaAmfCallbacksT     callbacks;
+    SaVersionT          version;
     struct sigaction    sigNewVar;
 
     shouldIUnblock = 0;
+
+    version.releaseCode  = 'B';
+    version.majorVersion = 01;
+    version.minorVersion = 01;
+    
+    callbacks.saAmfHealthcheckCallback          = NULL; 
+    callbacks.saAmfComponentTerminateCallback   = appTerminate;
+    callbacks.saAmfCSISetCallback               = NULL;
+    callbacks.saAmfCSIRemoveCallback            = NULL;
+    callbacks.saAmfProtectionGroupTrackCallback = NULL;
+    callbacks.saAmfProxiedComponentInstantiateCallback = NULL;
+    callbacks.saAmfProxiedComponentCleanupCallback = NULL;
+
+    clEoMyEoIocPortGet(&iocPort);
+    saAmfInitialize(&amfHandle, &callbacks, &version);
+
+
     memset(&gDbgInfo,'\0',sizeof(gDbgInfo));
 
     rc = debugCliInitialize(&debugObj, "Test");
@@ -2933,55 +2949,37 @@ static ClRcT appInitialize( ClUint32T argc, ClCharT* argv[])
 
     pGDebugObj = debugObj;
 
-    version.releaseCode = 'B';
-    version.majorVersion = 0x01;
-    version.minorVersion = 0x01;
-
-    callbacks.appHealthCheck = NULL;
-    callbacks.appTerminate = appTerminate;
-    callbacks.appCSISet = NULL;
-    callbacks.appCSIRmv = NULL;
-    callbacks.appProtectionGroupTrack = NULL;
-    callbacks.appProxiedComponentInstantiate = NULL;
-    callbacks.appProxiedComponentCleanup = NULL;
-
-    clEoMyEoIocPortGet(&iocPort);
-    rc = clCpmClientInitialize(&cpmHandle, &callbacks, &version);
-    rc = clCpmComponentNameGet(cpmHandle, &appName);
-    rc = clCpmComponentRegister(cpmHandle, &appName, NULL);
+    
+    saAmfComponentNameGet(amfHandle, &appName);
+    saAmfComponentRegister(amfHandle, &appName, NULL);
     /* register signal to handle the Ctrl-C*/
     memset(&sigNewVar,'\0',sizeof(sigNewVar));
     sigNewVar.sa_handler = dbgSignalHandler;
     sigaction(SIGINT,&sigNewVar,NULL);
 
-    /* This is a blocking function and will exit only when user type 
-       BYE or CPM calls terminate*/
-
     debugCliShell(debugObj);
-
-    /* This shall execute only in case of when the bye is executed */
+    
     if(shouldIUnblock != 1)
     {
-        ClInvocationT invocation = 0;
+        SaInvocationT invocation = 0;
 
         rc = debugCliFinalize(&debugObj);
-        rc = clCpmComponentNameGet(0, &appName);
+        saAmfComponentNameGet(0, &appName);
 
         /*
          * Cleanup EO resources.
          */
-        rc = appTerminate(invocation, &appName);
+       appTerminate(invocation, &appName);
     }
-
-
-    return rc;
+    
+    return (CL_OK);
 }
 
 
-static ClRcT   appFinalize(void)
-{
-    return CL_OK;
-}
+
+
+
+
 
 
 static ClRcT   appStateChange(ClEoStateT eoState)
@@ -2997,6 +2995,9 @@ static ClRcT   appHealthCheck(ClEoSchedFeedBackT* schFeedback)
     return CL_OK;
 }
 
+void dispatchLoop(void);
+
+int errorExit(SaAisErrorT rc);
 
 ClEoConfigT clEoConfig = {
     1,              /* Thread Priority */
@@ -3004,8 +3005,8 @@ ClEoConfigT clEoConfig = {
     0,              /* Assign port dynamically*/
     CL_EO_USER_CLIENT_ID_START,
     CL_EO_USE_THREAD_FOR_APP, /* use thread for Cli; */
-    appInitialize,
-    appFinalize,
+    NULL,
+    NULL,
     appStateChange,
     appHealthCheck,
     NULL
@@ -3045,7 +3046,65 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
     ClRcT rc = CL_OK;
 
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
-    rc = clEoInitialize(argc, argv);
+    
+    rc = appInitialize(argc, argv);
+    
+    if(rc != CL_OK)
+    {
+       
+           exit(0);
+    }
+    /* This is a blocking function and will exit only when user type 
+       BYE or CPM calls terminate*/
 
-    return (CL_OK != rc);
+    dispatchLoop();
+  
+    /* This shall execute only in case of when the bye is executed */
+     
+    return 0;
 }
+
+void dispatchLoop(void)
+{        
+  SaAisErrorT         rc = SA_AIS_OK;
+  SaSelectionObjectT amf_dispatch_fd;
+  int maxFd;
+  fd_set read_fds;
+
+  /*
+   * Get the AMF dispatch FD for the callbacks
+   */
+  if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
+    errorExit(rc);
+     
+  maxFd = amf_dispatch_fd;  
+  do
+    {
+      FD_ZERO(&read_fds);
+      FD_SET(amf_dispatch_fd, &read_fds);
+      /* FD_SET(ckpt_dispatch_fd, &read_fds); */
+        
+      if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
+        {
+          char errorStr[80];
+          int err = errno;
+          if (EINTR == err) continue;
+
+          errorStr[0] = 0; /* just in case strerror does not fill it in */
+          strerror_r(err, errorStr, 79);
+          
+          break;
+        }
+      if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+     
+            
+ 
+    }while(!shouldIUnblock);      
+}
+int errorExit(SaAisErrorT rc)
+{        
+    
+    exit(-1);
+    return -1;
+}
+
