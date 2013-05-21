@@ -708,7 +708,9 @@ def config_tipc_module():
             # tipc.  Otherwise it will work in the next run, but only
             # in "local" mode.
             link_name = get_asp_link_name()    
+            log.info('disable bearer eth:%s ...' %(link_name))
             cmd = 'tipc-config -bd=eth:%s' %(link_name)
+            ret, output, signal, core = system(cmd)
             system("rmmod tipc")  
             fail_and_exit(msg)
 
@@ -754,9 +756,6 @@ def unload_tipc_module():
     ret, output, signal, core = system(cmd)
     if ret:
         if 'not found' in ''.join(output):
-            link_name = get_asp_link_name()    
-            cmd = 'tipc-config -bd=eth:%s' %(link_name)
-            ret, output2, signal, core = system(cmd2)
             cmd2 = 'rmmod tipc'
             ret, output2, signal, core = system(cmd2)
             if ret:
