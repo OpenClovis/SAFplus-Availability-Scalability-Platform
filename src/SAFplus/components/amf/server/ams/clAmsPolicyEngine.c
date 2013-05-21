@@ -4690,6 +4690,7 @@ clAmsPeSULockInstantiation(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
+#if 0
     if(clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "LOCKI", 
@@ -4697,6 +4698,7 @@ clAmsPeSULockInstantiation(
                   sg->config.entity.name.value, su->config.entity.name.value);
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
+#endif
 
     AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
 
@@ -4776,6 +4778,7 @@ clAmsPeSUShutdownWithRestart(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
     
+#if 0
     if(clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "SHUTDOWN", 
@@ -4784,6 +4787,7 @@ clAmsPeSUShutdownWithRestart(
                   restart ? "shutdown and restart" : "shutdown");
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
+#endif
 
     readinessState = su->status.readinessState;
 
@@ -4903,6 +4907,7 @@ clAmsPeSUAdminRestart(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
+#if 0
     if(clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "RESTART", 
@@ -4910,6 +4915,7 @@ clAmsPeSUAdminRestart(
                   sg->config.entity.name.value, su->config.entity.name.value);
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
+#endif
 
     if ( (su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED) ||
          (clAmsPeSUIsInstantiable(su) != CL_OK) )
