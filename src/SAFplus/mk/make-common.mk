@@ -855,3 +855,7 @@ vpath_list += ../common
 
 vpath %.c $(vpath_list)
 vpath %.cxx $(vpath_list)
+
+ifneq ($(wildcard $(PROJECT_ROOT)/$(ASP_MODEL_NAME)/mk/custom-make-common.mk),) 
+include $(PROJECT_ROOT)/$(ASP_MODEL_NAME)/mk/custom-make-common.mk
+endif

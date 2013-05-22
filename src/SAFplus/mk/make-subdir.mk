@@ -159,4 +159,8 @@ export OBJ_DIR
 export LIB_DIR
 export CLOVIS_ROOT
 
+ifneq ($(wildcard $(PROJECT_ROOT)/$(ASP_MODEL_NAME)/mk/custom-make-subdir.mk),) 
+include $(PROJECT_ROOT)/$(ASP_MODEL_NAME)/mk/custom-make-subdir.mk
+endif
+
 include $(CLOVIS_ROOT)/SAFplus/mk/make-common.mk
