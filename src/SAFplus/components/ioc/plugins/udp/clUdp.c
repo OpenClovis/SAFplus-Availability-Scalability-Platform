@@ -333,6 +333,7 @@ ClRcT xportAddressAssign(void)
 ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
 {
     ClRcT rc = CL_OK;
+    ClIocUdpMapT *map = NULL;
 
     if(xportType)
     {
@@ -396,7 +397,7 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     /* insert into udp map */
     for (i = 0; i < numNodes; i++)
     {
-        if (pNodes[i] != clIocLocalAddressGet())
+        if (pNodes[i] != clIocLocalAddressGet() && !(map = iocUdpMapFind(pNodes[i])))
         {
             iocUdpMapAdd(NULL, pNodes[i]);
         }
