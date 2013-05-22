@@ -26,6 +26,8 @@
 
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 
+static ClRcT _clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
+
 /*
  *  Network to Host
  *
@@ -126,13 +128,13 @@ static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf) 
     return CL_OK;
 }
 
-static ClRcT _clPluginHelperGetIpNodeAddress(const ClCharT *xportType, ClCharT *hostAddress, ClCharT *networkMask, ClCharT *broadcast, ClUint32T *ipAddressMask, ClCharT *xportSubnetPrefix) {
+static ClRcT _clPluginHelperGetIpNodeAddress(const ClCharT *xportType, const ClCharT *devIf, ClCharT *hostAddress, ClCharT *networkMask, ClCharT *broadcast, ClUint32T *ipAddressMask, ClCharT *xportSubnetPrefix) {
     ClCharT envSubNetType[CL_MAX_FIELD_LENGTH] = { 0 };
     ClCharT xportSubnet[CL_MAX_FIELD_LENGTH] = { 0 };
     ClCharT *subnetMask = NULL;
     ClCharT *subnetPrefix = NULL;
     ClUint32T CIDR, ipMask, ip, mask;
-    if (!xportType) 
+    if (!xportType)
     {
         return CL_ERR_INVALID_PARAMETER;
     } 
@@ -166,7 +168,21 @@ static ClRcT _clPluginHelperGetIpNodeAddress(const ClCharT *xportType, ClCharT *
 
         /* network address */
         ipMask = (ip & mask);
-        _clPluginHelperConvertHostToInternetAddress(ipMask + gIocLocalBladeAddress, hostAddress);
+
+        /* Try to get address from devif */
+        if (clParseEnvBoolean("ASP_UDP_USE_EXISTING_IP"))
+        {
+            if (_clPluginHelperDevToIpAddress(devIf, hostAddress))
+            {
+                /* Automatic assignment of IP address */
+                _clPluginHelperConvertHostToInternetAddress(ipMask + gIocLocalBladeAddress, hostAddress);
+            }
+        }
+        else
+        {
+            _clPluginHelperConvertHostToInternetAddress(ipMask + gIocLocalBladeAddress, hostAddress);
+        }
+
         _clPluginHelperConvertHostToInternetAddress(mask, networkMask);
         _clPluginHelperConvertHostToInternetAddress(ip | ~mask, broadcast);
         *ipAddressMask = ipMask;
@@ -311,6 +327,51 @@ static void *_clPluginHelperPummelArps(void *arg) {
     return NULL;
 }
 
+/*
+ * Returns ip address on a network interface given its name...
+ */
+static ClRcT _clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr) {
+
+    int sd;
+    struct ifreq req;
+    ClCharT ipAddress[INET_ADDRSTRLEN] = { 0 };
+    int rc = 1;
+
+    /* Get a socket handle. */
+    sd = socket(PF_INET, SOCK_DGRAM, 0);
+    if (sd < 0) {
+        clLogError("IOC", CL_LOG_PLUGIN_HELPER_AREA,
+                "open socket failed with error [%s]", strerror(errno));
+        return rc;
+    }
+
+    memset(&req, 0, sizeof(struct ifreq));
+    strcpy(req.ifr_name, dev);
+    req.ifr_addr.sa_family = PF_UNSPEC;
+
+    if (ioctl(sd, SIOCGIFADDR, &req) == -1) {
+        clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA,
+                "Operation command failed: [%s]", strerror(errno));
+        close(sd);
+        return rc;
+    }
+
+    struct in_addr *in4_addr = &((struct sockaddr_in*) &((struct ifreq *) &req)->ifr_addr)->sin_addr;
+    if (!inet_ntop(PF_INET, (const void *) in4_addr, ipAddress, sizeof(ipAddress))) {
+        struct in6_addr *in6_addr = &((struct sockaddr_in6*) &((struct ifreq *) &req)->ifr_addr)->sin6_addr;
+        if (!inet_ntop(PF_INET6, (const void *) in6_addr, ipAddress, sizeof(ipAddress))) {
+            goto out;
+        }
+    }
+
+    /* successful */
+    rc = 0;
+    strncat(addrStr, ipAddress, sizeof(ipAddress) - 1);
+
+out:
+    close(sd);
+    return rc;
+}
 /*
  * Before calling ifconfig, we want to check if interface and ip existing,
  * if so, just ignore the calling command
@@ -492,7 +553,7 @@ ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType,
         return rc;
     }
 
-    rc = _clPluginHelperGetIpNodeAddress(xportType, ip, netmask, broadcast, 
+    rc = _clPluginHelperGetIpNodeAddress(xportType, dev, ip, netmask, broadcast,
                                          &ipAddressMask, subnetPrefix);
     if (rc != CL_OK)
     {
