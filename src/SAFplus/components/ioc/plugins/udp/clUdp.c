@@ -440,59 +440,6 @@ static ClRcT checkInitSctp(void)
     return rc;
 }
 
-static ClRcT _clInitStaticAddresses(void)
-{
-    ClRcT rc = CL_OK;
-    ClParserPtrT parent = NULL, staticAddresses = NULL, staticAddress = NULL;
-    ClCharT *config = getenv("ASP_CONFIG");
-
-    if(!config)
-        config = ".";
-
-    parent = clParserOpenFile(config, CL_TRANSPORT_CONFIG_FILE);
-    if(!parent)
-    {
-        clLogWarning("INIT", "STATIC", "Unable to load static addresses as config file [%s] "
-                     "is absent at [%s]",
-                     CL_TRANSPORT_CONFIG_FILE, config);
-        rc = CL_ERR_NOT_EXIST;
-        goto out;
-    }
-    staticAddresses = clParserChild(parent, "staticAddresses");
-    if(!staticAddresses)
-    {
-        rc = CL_ERR_NOT_EXIST;
-        goto out_free;
-    }
-
-    staticAddress = clParserChild(staticAddresses, "staticAddress");
-    if(!staticAddress)
-    {
-        goto out_free;
-    }
-
-    while(staticAddress)
-    {
-        const ClCharT *addr = clParserAttr(staticAddress, "address");
-        const ClCharT *slot = clParserAttr(staticAddress, "slot");
-        if(!addr || !slot)
-        {
-            goto next;
-        }
-        iocUdpMapAdd((ClCharT *)addr, atoi(slot));
-
-        next:
-        staticAddress = staticAddress->next;
-    }
-
-    out_free:
-    if (parent)
-        clParserFree(parent);
-
-    out:
-    return rc;
-}
-
 ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
 {
     ClRcT rc = CL_OK;
@@ -533,9 +480,6 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
 
     //Add to map with default this node
     iocUdpMapAdd(gVirtualIp.ip, gIocLocalBladeAddress);
-
-    //Add to map with static address
-    _clInitStaticAddresses();
 
     ClUint32T numNodes = 0, i = 0;
     ClIocNodeAddressT *pNodes = NULL;
