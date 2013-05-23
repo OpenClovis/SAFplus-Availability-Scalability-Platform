@@ -481,7 +481,31 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     //Add to map with default this node
     iocUdpMapAdd(gVirtualIp.ip, gIocLocalBladeAddress);
 
-    ClUint32T numNodes = 0, i = 0;
+    //Add static ip address
+    ClIocAddrMapT *mcastPeers = NULL;
+    ClUint32T numMcastPeers = 0;
+    ClUint32T i;
+
+    clTransportMcastSupported(&numMcastPeers);
+    if (numMcastPeers)
+    {
+        mcastPeers = clHeapCalloc(numMcastPeers, sizeof(*mcastPeers));
+        CL_ASSERT(mcastPeers !=  NULL);
+        rc = clTransportMcastPeerListGet(mcastPeers, &numMcastPeers);
+        if(rc == CL_OK) {
+            for (i = 0; i < numMcastPeers; ++i) {
+                iocUdpMapAdd(mcastPeers[i].addrstr, mcastPeers[i].slot);
+            }
+        } else {
+            clLogNotice("UDP", "STATIC", "Static IP address list get failed with [%#x]", rc);
+        }
+        if(mcastPeers)
+        {
+            clHeapFree(mcastPeers);
+        }
+    }
+
+    ClUint32T numNodes = 0;
     ClIocNodeAddressT *pNodes = NULL;
 
     rc = clIocTotalNeighborEntryGet(&numNodes);
