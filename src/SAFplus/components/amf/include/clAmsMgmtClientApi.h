@@ -2713,6 +2713,7 @@ extern ClAmsCompStatusT* clAmsMgmtCompGetStatus(
  *
  * \param handle   Handle returned by the AML on invocation of clAmsMgmtInitialize() API.
  * \param listName What type of entity to get.
+ * \param buffer   An array of entity names.  You must clHeapFree([param]->entity) if [param]->count > 0. 
  *
  * \return Success or error code
  *
@@ -2760,7 +2761,7 @@ extern ClRcT clAmsMgmtGetCSINVPList(
  *
  * \param handle                     Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param csi                        Name of the csi whose csi-csi dependencies list is queried
- * \param dependenciesCSIBuffer      Buffer containing the csi-csi dependencies list for the csi 
+ * \param dependenciesCSIBuffer      Buffer containing the csi-csi dependencies list for the csi. You must clHeapFree([param]->entity) if [param]->count > 0. 
  *
  * \return OpenClovis return code
  * \retval  CL_OK                      Operation successful
@@ -2782,7 +2783,7 @@ extern ClRcT clAmsMgmtGetCSIDependenciesList(
  * \brief Get all service group names
  *
  * \param handle         Handle returned by the AMF on invocation of clAmsMgmtInitialize API.
- * \param entityBuffer   Buffer containing an array of entity names
+ * \param entityBuffer   Buffer containing an array of entity names.  You must clHeapFree([param]->entity) if [param]->count > 0. 
  *
  * \return  Clovis return code
  * \retval  CL_OK                      Operation successful
@@ -2804,7 +2805,7 @@ extern ClRcT clAmsMgmtGetSGList(
  * \brief Get all service instance entity names
  *
  * \param handle         Handle returned by the AMF on invocation of clAmsMgmtInitialize API.
- * \param entityBuffer   Buffer containing an array of entity names
+ * \param entityBuffer   Buffer containing an array of entity names.  You must clHeapFree([param]->entity) if [param]->count > 0. 
  *
  * \return  Clovis return code
  * \retval  CL_OK                      Operation successful
@@ -2827,7 +2828,7 @@ extern ClRcT clAmsMgmtGetSIList(
  * \brief Get all component service instance entity names
  *
  * \param handle         Handle returned by the AMF on invocation of clAmsMgmtInitialize API.
- * \param entityBuffer   Buffer containing an array of entity names
+ * \param entityBuffer   Buffer containing an array of entity names.  You must clHeapFree([param]->entity) if [param]->count > 0. 
  *
  * \return  Clovis return code
  * \retval  CL_OK                      Operation successful
@@ -2850,7 +2851,7 @@ extern ClRcT clAmsMgmtGetCSIList(
  * \brief Get all node entity names
  *
  * \param handle         Handle returned by the AMF on invocation of clAmsMgmtInitialize API.
- * \param entityBuffer   Buffer containing an array of entity names
+ * \param entityBuffer   Buffer containing an array of entity names.  You must clHeapFree([param]->entity) if [param]->count > 0. 
  *
  * \return  Clovis return code
  * \retval  CL_OK                      Operation successful
@@ -2873,7 +2874,7 @@ extern ClRcT clAmsMgmtGetNodeList(
  * \brief Get all service unit entity names
  *
  * \param handle         Handle returned by the AMF on invocation of clAmsMgmtInitialize API.
- * \param entityBuffer   Buffer containing an array of entity names
+ * \param entityBuffer   Buffer containing an array of entity names.  You must clHeapFree([param]->entity) if [param]->count > 0. 
  *
  * \return  Clovis return code
  * \retval  CL_OK                      Operation successful
@@ -2896,7 +2897,7 @@ extern ClRcT clAmsMgmtGetSUList(
  * \brief Get all component entity names
  *
  * \param handle         Handle returned by the AMF on invocation of clAmsMgmtInitialize API.
- * \param entityBuffer   Buffer containing an array of entity names
+ * \param entityBuffer   Buffer containing an array of entity names.  You must clHeapFree([param]->entity) if [param]->count > 0. 
  *
  * \return  Clovis return code
  * \retval  CL_OK                      Operation successful
@@ -2921,7 +2922,7 @@ extern ClRcT clAmsMgmtGetCompList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param node                      Name of the node whose node dependencies list is queried 
- * \param dependencyBuffer          Buffer containing the node dependencies list for the node 
+ * \param dependencyBuffer          Buffer containing the node dependencies list for the node.  You must clHeapFree([param]->entity) if [param]->count > 0.  
  *
  *
  *
@@ -2947,7 +2948,7 @@ extern ClRcT clAmsMgmtGetNodeDependenciesList(
  *
  * \param handle                  Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param node                    Name of the node whose su list is queried 
- * \param suBuffer                Buffer containing the node su list for the node 
+ * \param suBuffer                Buffer containing the node su list for the node.  You must clHeapFree([param]->entity) if [param]->count > 0.  
  *
  * \return OpenClovis return code
  * \retval CL_OK                  Operation successful
@@ -2970,7 +2971,7 @@ extern ClRcT clAmsMgmtGetNodeSUList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param sg                        Name of the sg whose su list is queried 
- * \param suBuffer                  Buffer containing the sg su list for the sg 
+ * \param suBuffer                  Buffer containing the sg su list for the sg.  You must clHeapFree([param]->entity) if [param]->count > 0.  
  *
  * \return OpenClovis return code
  * \retval  CL_OK                      Operation successful
@@ -2996,7 +2997,7 @@ extern ClRcT clAmsMgmtGetSGSUList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param sg                        Name of the sg whose si list is queried 
- * \param siBuffer                  Buffer containing the sg si list for the sg 
+ * \param siBuffer                  Buffer containing the sg si list for the sg.  You must clHeapFree([param]->entity) if [param]->count > 0.  
  *
  * \return OpenClovis return code
  * \retval  CL_OK                      Operation successful
@@ -3021,7 +3022,7 @@ extern ClRcT clAmsMgmtGetSGSIList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param su                        Name of the su whose component list is queried 
- * \param compBuffer                Buffer containing the component list for the su 
+ * \param compBuffer                Buffer containing the component list for the su. You must clHeapFree(compBuffer->entity) if count > 0. 
  *
  * \return OpenClovis return code
  * \retval  CL_OK                      Operation successful
@@ -3047,7 +3048,7 @@ extern ClRcT clAmsMgmtGetSUCompList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param si                        Name of the si whose su rank list is queried 
- * \param suBuffer                  Buffer containing the su rank list for the si 
+ * \param suBuffer                  Buffer containing the su rank list for the si.  You must clHeapFree(suBuffer->entity) if suBuffer->count > 0. 
  *
  * \return OpenClovis return code
  * \retval  CL_OK                      Operation successful
@@ -3069,7 +3070,7 @@ extern ClRcT clAmsMgmtGetSISURankList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param si                        Name of the si whose si-si dependencies list is queried
- * \param dependenciesSIBuffer      Buffer containing the si-si dependencies list for the si 
+ * \param dependenciesSIBuffer      Buffer containing the si-si dependencies list for the si.  You must clHeapFree(dependenciesSIBuffer->entity) if dependenciesSIBuffer->count > 0. 
  *
  * \return OpenClovis return code
  * \retval  CL_OK                      Operation successful
@@ -3093,7 +3094,7 @@ extern ClRcT clAmsMgmtGetSIDependenciesList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param si                        Name of the si whose si-csi list is queried 
- * \param csiBuffer                 Buffer containing the csi list for the si 
+ * \param csiBuffer                 Buffer containing the csi list for the si. You must clHeapFree(csiBuffer->entity) if csiBuffer->count > 0.  
  *
  * \return OpenClovis return code
  * \retval  CL_OK                      Operation successful
@@ -3117,7 +3118,7 @@ extern ClRcT clAmsMgmtGetSICSIList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param sg                        Name of the sg whose instantiable su list is queried 
- * \param instantiableSUBuffer      Buffer containing the instantiable su list for the sg 
+ * \param instantiableSUBuffer      Buffer containing the instantiable su list for the sg.  You must clHeapFree(instantiableSUBuffer->entity) if instantiableSUBuffer->count > 0. 
  *
  * \return OpenClovis return code
  * \retval  CL_OK                      Operation successful
@@ -3140,7 +3141,7 @@ extern ClRcT clAmsMgmtGetSGInstantiableSUList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param sg                        Name of the sg whose instantiated su list is queried 
- * \param instantiatedSUBuffer      Buffer containing the instantiated su list for the sg 
+ * \param instantiatedSUBuffer      Buffer containing the instantiated su list for the sg.  You must clHeapFree([param]->entity) if [param]->count > 0. 
  *
  * \return OpenClovis return code
  * \retval  CL_OK                      Operation successful
@@ -3165,7 +3166,7 @@ extern ClRcT clAmsMgmtGetSGInstantiatedSUList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param sg                        Name of the sg whose inservice spare su list is queried 
- * \param inserviceSpareSUBuffer    Buffer containing the inservice spare su list for the sg 
+ * \param inserviceSpareSUBuffer    Buffer containing the inservice spare su list for the sg.  You must clHeapFree([param]->entity) if [param]->count > 0. 
  *
  * \return OpenClovis return code
  * \retval  CL_OK                      Operation successful
@@ -3187,7 +3188,7 @@ extern ClRcT clAmsMgmtGetSGInServiceSpareSUList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param sg                        Name of the sg whose assigned su list is queried 
- * \param assignedSUBuffer          Buffer containing the assigned su list for the sg 
+ * \param assignedSUBuffer          Buffer containing the assigned su list for the sg.  You must clHeapFree([param]->entity) if [param]->count > 0.  
  *
  *
  * \return OpenClovis return code
@@ -3217,7 +3218,7 @@ extern ClRcT clAmsMgmtGetSGAssignedSUList(
  *
  * \param handle                    Handle returned by the AML on invocation of clAmsMgmtInitialize API.
  * \param sg                        Name of the sg whose faulty su list is queried 
- * \param faultySUBuffer            Buffer containing the faulty su list for the sg 
+ * \param faultySUBuffer            Buffer containing the faulty su list for the sg.  You must clHeapFree([param]->entity) if [param]->count > 0.  
  *
  *
  * \return OpenClovis return code
