@@ -1504,14 +1504,12 @@ static ClRcT _iocSetMulticastPeers(ClParserPtrT peers)
     {
         ClIocAddrMapT *map = NULL;
         const ClCharT *addr = clParserAttr(peer, "addr");
-        const ClCharT *slot = clParserAttr(peer, "slot");
         if(!addr) 
         {
             goto next;
         }
         map = clHeapCalloc(1, sizeof(*map));
         CL_ASSERT(map != NULL);
-        map->slot = atoi(slot);
         map->family = PF_INET;
         map->_addr.sin_addr.sin_family = PF_INET;
         map->_addr.sin_addr.sin_port = htons(gClTransportMcastPort);
