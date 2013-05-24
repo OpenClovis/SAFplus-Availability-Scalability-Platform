@@ -58,7 +58,7 @@ static ClCharT pTaskName[] = { "clUdpNoficationHandler" };
 static ClUint32T numHandlers = CL_UDP_HANDLER_MAX_SOCKETS;
 static ClInt32T handlerFd[CL_UDP_HANDLER_MAX_SOCKETS];
 static ClOsalMutexT gIocEventHandlerSendLock;
-static ClOsalCondT  gIocEventHandlerSendCond;
+
 static ClIocCommPortT dummyCommPort;
 static ClIocLocalCompsAddressT allLocalComps;
 static ClIocAddressT allNodeReps = {
@@ -557,55 +557,37 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     return rc;
 }
 
-static ClRcT udpDiscoverWait(void *arg)
-{
-    sleep(UDP_CLUSTER_SYNC_WAIT_TIME);
-    clOsalMutexLock(&gIocEventHandlerSendLock);
-    clOsalCondSignal(&gIocEventHandlerSendCond);
-    clOsalMutexUnlock(&gIocEventHandlerSendLock);
-    return CL_OK;
-}
 
 static ClRcT udpDiscoverPeers(void)
 {
     ClRcT rc = CL_ERR_UNSPECIFIED;
-    static ClTaskPoolHandleT task;
-    static ClTimerTimeOutT delay;
+    //static ClTaskPoolHandleT task;
+    //static ClTimerTimeOutT delay;
     clOsalMutexLock(&gIocEventHandlerSendLock);
     /*
      * We could send multiple discovery packets to avoid loss or to play it safe. 
      * But not required for now ...
      */
-    clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_DISCOVER_NOTIFICATION);
-    if(!task)
-    {
-        clTaskPoolCreate(&task, 1, 0, 0);
-    }
-    if(!task)
-    {
-        clOsalMutexUnlock(&gIocEventHandlerSendLock);
-        clLogError("UDP", "DISCOVER", "Unable to initialize task pool should for UDP discover sync phase.  Cluster view could be inconsistent");
-        goto out;
-    }
-    clTaskPoolRun(task, udpDiscoverWait, NULL);
-    clOsalCondWait(&gIocEventHandlerSendCond, &gIocEventHandlerSendLock, delay);
+    rc = clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_DISCOVER_NOTIFICATION);
     clOsalMutexUnlock(&gIocEventHandlerSendLock);
-    clLogInfo("UDP", "DISCOVER", "Cluster view sync complete. Discovered [%d] peers", gNumDiscoveredPeers);
-    rc = CL_OK;
-    out:
+    if (rc == CL_OK)
+    {        
+        sleep(UDP_CLUSTER_SYNC_WAIT_TIME);
+        clLogInfo("UDP", "DISCOVER", "Cluster view sync complete. Discovered [%d] peers", gNumDiscoveredPeers);
+    }    
     return rc;
 }
 
-ClRcT clUdpEventHandlerInitialize(void) {
+ClRcT clUdpEventHandlerInitialize(void)
+{
     ClRcT rc;
 
-    allLocalComps =
-            CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress, CL_IOC_BROADCAST_ADDRESS);
+    allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress, CL_IOC_BROADCAST_ADDRESS);
 
     rc = clOsalMutexInit(&gIocEventHandlerSendLock);
     CL_ASSERT(rc == CL_OK);
-    rc = clOsalCondInit(&gIocEventHandlerSendCond);
-    CL_ASSERT(rc == CL_OK);
+    //rc = clOsalCondInit(&gIocEventHandlerSendCond);
+    //CL_ASSERT(rc == CL_OK);
     rc = clOsalMutexInit(&gIocEventHandlerClose.lock);
     CL_ASSERT(rc == CL_OK);
     rc = clOsalCondInit(&gIocEventHandlerClose.condVar);
@@ -615,13 +597,10 @@ ClRcT clUdpEventHandlerInitialize(void) {
     CL_ASSERT(rc == CL_OK);
 
     /* Creating a socket for handling the data packets sent by other node CPM/amf. */
-    rc = clIocCommPortCreateStatic(CL_IOC_XPORT_PORT, CL_IOC_RELIABLE_MESSAGING,
-                                   &dummyCommPort, gClUdpXportType);
-    if (rc != CL_OK) {
-        clLogError(
-                "UDP",
-                "NOTIF",
-                "Comm port create for notification port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
+    rc = clIocCommPortCreateStatic(CL_IOC_XPORT_PORT, CL_IOC_RELIABLE_MESSAGING, &dummyCommPort, gClUdpXportType);
+    if (rc != CL_OK)
+    {
+        clLogError("UDP","NOTIF", "Comm port create for notification port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
         goto out;
     }
 
@@ -630,11 +609,9 @@ ClRcT clUdpEventHandlerInitialize(void) {
         goto out;
 
     rc = clUdpFdGet(CL_IOC_XPORT_PORT, &handlerFd[1]);
-    if (rc != CL_OK) {
-        clLogError(
-                "UDP",
-                "NOTIF",
-                "UDP notification fd for port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
+    if (rc != CL_OK)
+    {
+        clLogError("UDP","NOTIF","UDP notification fd for port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
         goto out;
     }
 
