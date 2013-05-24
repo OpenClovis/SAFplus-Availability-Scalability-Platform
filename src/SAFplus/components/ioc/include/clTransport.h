@@ -23,7 +23,6 @@ extern ClInt32T gClTransportId;
 
 typedef struct ClIocAddrMap
 {
-    ClIocNodeAddressT slot;
     int family;
     char addrstr[80];
     union

@@ -151,6 +151,11 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             if(id == CL_IOC_NODE_DISCOVER_NOTIFICATION)
             {
                 clIocCompStatusSet(compAddr, CL_IOC_NODE_UP);
+                if (compAddr.nodeAddress != gIocLocalBladeAddress)
+                {
+                    clIocUdpMapAdd((struct sockaddr*)(ClPtrT)pMsgHdr->msg_name, compAddr.nodeAddress);
+                }
+
                 if(compAddr.nodeAddress == gIocLocalBladeAddress)
                     return rc; /*ignore self discover*/
                 ClIocPhysicalAddressT destAddress = {.nodeAddress = compAddr.nodeAddress,
@@ -173,6 +178,11 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             }
             else
             {
+                if (compAddr.nodeAddress != gIocLocalBladeAddress)
+                {
+                    clIocUdpMapAdd((struct sockaddr*)(ClPtrT)pMsgHdr->msg_name, compAddr.nodeAddress);
+                }
+
                 /* This is for LOCAL COMPONENT ARRIVAL/DEPARTURE */
                 clLogInfo("UDP", "NOTIF", "Got component [%s] notification for node [0x%x] commport [0x%x]",
                           id == CL_IOC_COMP_ARRIVAL_NOTIFICATION ? "arrival" : "death", compAddr.nodeAddress, compAddr.portId);
@@ -273,7 +283,7 @@ static void clUdpEventHandler(ClPtrT pArg)
                     msgHdr.msg_controllen = cMsgHdrMap[i].cMsgHdrLen;
 
                     do
-                    {                        
+                    {
                       bytes = recvmsg(fd[i], &msgHdr, 0);
                     } while((bytes<0)&&(errno==EINTR));  /* just retry when an interrupt kicks us out of the recvmsg.  Is this correct, or should the poll handle it? */
                     
@@ -411,7 +421,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
 
     if(sd != -1)
         close(sd);
-        
+
     /*
      * Setup mcast send socket
      */
