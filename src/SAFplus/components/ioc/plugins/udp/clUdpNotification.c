@@ -76,6 +76,7 @@ static void udpSyncCallback(ClIocPhysicalAddressT *srcAddr, ClPtrT arg)
 {
     if(srcAddr->nodeAddress != gIocLocalBladeAddress)
     {
+        ClCharT addStr[INET_ADDRSTRLEN] = {0};
         clLogNotice("SYNC", "CALLBACK", 
                     "UDP cluster sync for node [%d], port [%#x], ip [%s]",
                     srcAddr->nodeAddress, srcAddr->portId,
@@ -85,7 +86,8 @@ static void udpSyncCallback(ClIocPhysicalAddressT *srcAddr, ClPtrT arg)
          * Peer node arrival mean it is already come up
          */
         clIocCompStatusSet(*srcAddr, CL_IOC_NODE_UP);
-        clIocUdpMapAdd((struct sockaddr*)arg, srcAddr->nodeAddress);
+        clIocUdpMapAdd((struct sockaddr*)arg, srcAddr->nodeAddress, addStr);
+        clUdpAddrSet(srcAddr->nodeAddress, addStr);
     }
 }
 
@@ -136,6 +138,8 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             ClIocNotificationT notification = { 0 };
             ClIocPhysicalAddressT compAddr = { 0 };
             ClIocNotificationIdT id = 0;
+            ClCharT addStr[INET_ADDRSTRLEN] = {0};
+
             memcpy((ClPtrT) &notification, pRecvBase, sizeof(notification));
 
             compAddr.nodeAddress = ntohl(
@@ -146,11 +150,13 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             if(id == CL_IOC_NODE_DISCOVER_NOTIFICATION)
             {
                 clIocCompStatusSet(compAddr, CL_IOC_NODE_UP);
+
+                /* Getting IP address from Notification and update to shm */
                 if (compAddr.nodeAddress != gIocLocalBladeAddress)
                 {
-                    clIocUdpMapAdd((struct sockaddr*)(ClPtrT)pMsgHdr->msg_name, compAddr.nodeAddress);
+                    clIocUdpMapAdd((struct sockaddr*)(ClPtrT)pMsgHdr->msg_name, compAddr.nodeAddress, addStr);
+                    clUdpAddrSet(compAddr.nodeAddress, addStr);
                 }
-
                 if(compAddr.nodeAddress == gIocLocalBladeAddress)
                     return rc; /*ignore self discover*/
                 ClIocPhysicalAddressT destAddress = {.nodeAddress = compAddr.nodeAddress,
@@ -173,11 +179,6 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             }
             else
             {
-                if (compAddr.nodeAddress != gIocLocalBladeAddress)
-                {
-                    clIocUdpMapAdd((struct sockaddr*)(ClPtrT)pMsgHdr->msg_name, compAddr.nodeAddress);
-                }
-
                 /* This is for LOCAL COMPONENT ARRIVAL/DEPARTURE */
                 clLogInfo("UDP", "NOTIF", "Got component [%s] notification for node [0x%x] commport [0x%x]",
                           id == CL_IOC_COMP_ARRIVAL_NOTIFICATION ? "arrival" : "death", compAddr.nodeAddress, compAddr.portId);

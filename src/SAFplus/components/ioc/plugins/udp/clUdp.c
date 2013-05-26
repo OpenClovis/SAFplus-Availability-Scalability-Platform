@@ -50,6 +50,224 @@ typedef struct ClIocUdpMap
     ClListHeadT list; /*list linkage*/
 }ClIocUdpMapT;
 
+typedef struct ClUdpAddrCacheEntry
+{
+    ClCharT addrStr[INET_ADDRSTRLEN];
+}ClUdpAddrCacheEntryT;
+
+#define CL_UDP_ADDR_CACHE_SEGMENT "/CL_UDP_ADDR_CACHE"
+#define CL_UDP_ADDR_CACHE_SEGMENT_SIZE  CL_IOC_ALIGN((ClUint32T)(CL_IOC_MAX_NODES*sizeof(ClUdpAddrCacheEntryT)), 8)
+
+static ClUint8T *gpClUdpAddrCache;
+static ClCharT gClUdpAddrCacheSegment[CL_MAX_NAME_LENGTH+1];
+static ClOsalSemIdT gClUdpAddrCacheSem;
+
+static ClRcT clUdpAddrCacheCreate(void)
+{
+    ClRcT rc = CL_OK;
+    ClFdT fd;
+
+    clOsalShmUnlink(gClUdpAddrCacheSegment);
+    rc = clOsalShmOpen(gClUdpAddrCacheSegment, O_RDWR | O_CREAT | O_EXCL, 0666, &fd);
+    if (rc != CL_OK)
+    {
+        clLogError("NODE", "CACHE", "UDP addresses cache shm open of segment [%s] returned [%#x]", gClUdpAddrCacheSegment, rc);
+        return rc;
+    }
+
+    rc = clOsalFtruncate(fd, CL_UDP_ADDR_CACHE_SEGMENT_SIZE);
+    if (rc != CL_OK)
+    {
+        clLogError("NODE", "CACHE", "UDP addresses cache truncate of size [%d] returned [%#x]", (ClUint32T) CL_UDP_ADDR_CACHE_SEGMENT_SIZE,
+                rc);
+        clOsalShmUnlink(gClUdpAddrCacheSegment);
+        close((ClInt32T) fd);
+        return rc;
+    }
+
+    rc = clOsalMmap(0, CL_UDP_ADDR_CACHE_SEGMENT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0, (ClPtrT*) &gpClUdpAddrCache);
+    if (rc != CL_OK)
+    {
+        clLogError("NODE", "CACHE", "UDP addresses cache segment mmap returned [%#x]", rc);
+        clOsalShmUnlink(gClUdpAddrCacheSegment);
+        close((ClInt32T) fd);
+        return rc;
+    }
+
+    rc = clOsalSemCreate((ClUint8T*) gClUdpAddrCacheSegment, 1, &gClUdpAddrCacheSem);
+
+    if (rc != CL_OK)
+    {
+        /* Delete existing one and try again */
+        ClOsalSemIdT semId = 0;
+
+        if (clOsalSemIdGet((ClUint8T*) gClUdpAddrCacheSegment, &semId) != CL_OK)
+        {
+            clLogError("NODE", "CACHE", "UDP addresses cache segment sem creation error while fetching sem id");
+            clOsalShmUnlink(gClUdpAddrCacheSegment);
+            close((ClInt32T) fd);
+            return rc;
+        }
+
+        if (clOsalSemDelete(semId) != CL_OK)
+        {
+            clLogError("NODE", "CACHE", "UDP addresses cache segment sem creation error while deleting old sem id");
+            clOsalShmUnlink(gClUdpAddrCacheSegment);
+            close((ClInt32T) fd);
+            return rc;
+        }
+
+        rc = clOsalSemCreate((ClUint8T*) gClUdpAddrCacheSegment, 1, &gClUdpAddrCacheSem);
+    }
+
+    return rc;
+}
+
+static ClRcT clUdpAddrCacheOpen(void)
+{
+    ClRcT rc = CL_OK;
+    ClFdT fd;
+
+    rc = clOsalShmOpen(gClUdpAddrCacheSegment, O_RDWR, 0666, &fd);
+    if(rc != CL_OK)
+    {
+        clLogError("NODE", "CACHE", "UDP addresses cache [%s] segment open returned [%#x]",
+                gClUdpAddrCacheSegment, rc);
+        return rc;
+    }
+
+    rc = clOsalMmap(0, CL_UDP_ADDR_CACHE_SEGMENT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0,
+                    (ClPtrT*)&gpClUdpAddrCache);
+
+    if(rc != CL_OK)
+    {
+        clLogError("NODE", "CACHE", "UDP addresses cache segment mmap returned [%#x]", rc);
+        close((ClInt32T)fd);
+        return rc;
+    }
+
+    rc = clOsalSemIdGet((ClUint8T*)gClUdpAddrCacheSegment, &gClUdpAddrCacheSem);
+
+    if(rc != CL_OK)
+    {
+        clLogError("NODE", "CACHE", "UDP addresses cache semid get returned [%#x]", rc);
+        close((ClInt32T)fd);
+    }
+
+    return rc;
+}
+
+static ClRcT clUdpAddrCacheInitialize(ClBoolT createFlag)
+{
+    ClRcT rc = CL_OK;
+
+    if(gpClUdpAddrCache)
+        return rc;
+
+    snprintf(gClUdpAddrCacheSegment, sizeof(gClUdpAddrCacheSegment)-1,
+             "%s_%d", CL_UDP_ADDR_CACHE_SEGMENT, clIocLocalAddressGet());
+
+    if (createFlag == CL_TRUE)
+    {
+        rc = clUdpAddrCacheCreate();
+    }
+    else
+    {
+        rc = clUdpAddrCacheOpen();
+    }
+
+    if (rc != CL_OK)
+    {
+        clLogError("NODE", "CACHE", "Segment initialize returned [%#x]", rc);
+    }
+
+    CL_ASSERT(gpClUdpAddrCache != NULL);
+
+    if (createFlag == CL_TRUE)
+    {
+        rc = clOsalMsync(gpClUdpAddrCache, CL_UDP_ADDR_CACHE_SEGMENT_SIZE, MS_ASYNC);
+        if (rc != CL_OK)
+        {
+            clLogError("NODE", "CACHE", "UDP addresses cache segment msync returned [%#x]", rc);
+        }
+    }
+
+    return rc;
+}
+
+static ClRcT clUdpAddrCacheFinalize(ClBoolT createFlag)
+{
+    ClRcT rc = CL_ERR_NOT_INITIALIZED;
+
+    if (gpClUdpAddrCache)
+    {
+        clOsalSemLock(gClUdpAddrCacheSem);
+
+        if (createFlag)
+        {
+            clOsalMsync(gpClUdpAddrCache, CL_UDP_ADDR_CACHE_SEGMENT_SIZE, MS_SYNC);
+        }
+
+        clOsalMunmap(gpClUdpAddrCache, CL_UDP_ADDR_CACHE_SEGMENT_SIZE);
+        gpClUdpAddrCache = NULL;
+
+        clOsalSemUnlock(gClUdpAddrCacheSem);
+
+        if (createFlag)
+        {
+            clOsalShmUnlink(gClUdpAddrCacheSegment);
+            clOsalSemDelete(gClUdpAddrCacheSem);
+        }
+    }
+    return rc;
+}
+
+ClRcT clUdpAddrSet(ClIocNodeAddressT nodeAddress, const ClCharT *addrStr)
+{
+    ClRcT rc = CL_OK;
+
+    rc = clOsalSemLock(gClUdpAddrCacheSem);
+    if (rc != CL_OK)
+        return rc;
+
+    if (!gpClUdpAddrCache)
+    {
+        clOsalSemUnlock(gClUdpAddrCacheSem);
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    memset(gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), 0, INET_ADDRSTRLEN);
+    memcpy(gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), addrStr, INET_ADDRSTRLEN);
+
+    clOsalSemUnlock(gClUdpAddrCacheSem);
+
+    clLogTrace("UDP", "CACHE", "Setting address cache entry for node [%d: %s]", nodeAddress, addrStr);
+
+    return rc;
+}
+
+ClRcT clUdpAddrGet(ClIocNodeAddressT nodeAddress, ClCharT *addrStr)
+{
+    ClRcT rc = CL_OK;
+
+    rc = clOsalSemLock(gClUdpAddrCacheSem);
+    if (rc != CL_OK)
+        return rc;
+
+    if (!gpClUdpAddrCache)
+    {
+        clOsalSemUnlock(gClUdpAddrCacheSem);
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    memcpy(addrStr, gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), INET_ADDRSTRLEN);
+    clOsalSemUnlock(gClUdpAddrCacheSem);
+
+    clLogTrace("UDP", "CACHE", "Getting address cache entry for node [%d: %s]", nodeAddress, addrStr);
+
+    return rc;
+}
+
 typedef struct ClIocUdpArgs
 {
     struct iovec *iov;
@@ -246,7 +464,7 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
     return map;
 }
 
-ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot)
+ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *retAddrStr)
 {
     ClRcT rc = CL_ERR_UNSPECIFIED;
     ClIocUdpMapT *map = NULL;
@@ -279,6 +497,10 @@ ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot)
     }
     if(!map) goto out_unlock;
 
+    if (retAddrStr)
+    {
+        strncat(retAddrStr, addrStr, INET_ADDRSTRLEN - 1);
+    }
     rc = CL_OK;
 
     out_unlock:
@@ -294,6 +516,7 @@ ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot)
 static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtrT cookie)
 {
     ClIocUdpMapT *map = NULL;
+    ClCharT addStr[INET_ADDRSTRLEN] = {0};
     ClIocNotificationIdT notificationId = ntohl(notification->id);
     ClIocNodeAddressT nodeAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
     clOsalMutexLock(&gXportCtrl.mutex);
@@ -304,7 +527,8 @@ static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtr
         case CL_IOC_NODE_LINK_UP_NOTIFICATION:
             if (!(map = iocUdpMapFind(nodeAddress)))
             {
-                iocUdpMapAdd(NULL, nodeAddress);
+                clUdpAddrGet(nodeAddress, addStr);
+                iocUdpMapAdd(addStr, nodeAddress);
             }
             break;
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
@@ -350,11 +574,8 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     }
     clPluginHelperGetVirtualAddressInfo("UDP", &gVirtualIp);
 
-    clLogDebug(
-            "UDP",
-            "INI",
-            "Link Name: %s, IP Node Address: %s, Network Address: %s, Broadcast: %s",
-            gVirtualIp.dev, gVirtualIp.ip, gVirtualIp.netmask, gVirtualIp.broadcast);
+    clLogDebug("UDP", "INI", "Link Name: %s, IP Node Address: %s, Network Address: %s, Broadcast: %s", gVirtualIp.dev, gVirtualIp.ip,
+            gVirtualIp.netmask, gVirtualIp.broadcast);
 
     /*
      * To do a fast pass early update node entry table
@@ -365,6 +586,9 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     gXportCtrl.family = PF_INET;
 
     rc = clOsalMutexInit(&gXportCtrl.mutex);
+    CL_ASSERT(rc == CL_OK);
+
+    rc = clUdpAddrCacheInitialize(nodeRep);
     CL_ASSERT(rc == CL_OK);
 
     //Add to map with default this node
@@ -395,12 +619,16 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
         goto out;
     }
 
+    ClCharT addStr[INET_ADDRSTRLEN] = {0};
     /* insert into udp map */
     for (i = 0; i < numNodes; i++)
     {
         if (pNodes[i] != clIocLocalAddressGet() && !(map = iocUdpMapFind(pNodes[i])))
         {
-            iocUdpMapAdd(NULL, pNodes[i]);
+            addStr[0] = 0;
+            clUdpAddrGet(pNodes[i], addStr);
+            /* Sync IP addresses from shm */
+            iocUdpMapAdd(addStr, pNodes[i]);
         }
     }
 
@@ -410,6 +638,12 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     gUdpInit = CL_TRUE;
     rc = CL_OK;
     return rc;
+}
+
+ClRcT xportFinalize(ClInt32T xportId, ClBoolT nodeRep)
+{
+    clUdpAddrCacheFinalize(nodeRep);
+    return CL_OK;
 }
 
 static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
@@ -801,6 +1035,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
     ClUint8T buff[CL_IOC_BYTES_FOR_COMPS_PER_NODE];
     ClUint32T i = 0;
     ClRcT rc = CL_OK;
+    ClCharT addStr[INET_ADDRSTRLEN] = {0};
 
     if(!address || !iovlen)
         return CL_OK;
@@ -818,7 +1053,8 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
         map = iocUdpMapFind(address->iocPhyAddress.nodeAddress);
         if(!map)
         {
-            map = iocUdpMapAdd(NULL, address->iocPhyAddress.nodeAddress);
+            clUdpAddrGet(address->iocPhyAddress.nodeAddress, addStr);
+            map = iocUdpMapAdd(addStr, address->iocPhyAddress.nodeAddress);
             if(!map)
             {
                 clOsalMutexUnlock(&gXportCtrl.mutex);
