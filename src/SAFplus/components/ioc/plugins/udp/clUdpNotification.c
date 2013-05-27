@@ -37,6 +37,7 @@
 #include <clIocErrors.h>
 #include <clIocIpi.h>
 #include "clUdpNotification.h"
+#include <clPluginHelper.h>
 #include <clIocUserApi.h>
 #include "clUdpSetup.h"
 #include <clIocNeighComps.h>
@@ -383,14 +384,10 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
          */
         struct ip_mreq group;
         group.imr_multiaddr.s_addr = inet_addr(clTransportMcastAddressGet());
-        group.imr_interface.s_addr = htonl(INADDR_ANY);
-        if (setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &group,
-                       sizeof(group)) < 0) 
+        group.imr_interface.s_addr = htonl(INADDR_ANY); /*inet_addr(gVirtualIp.ip); */ 
+        if (setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &group, sizeof(group)) < 0) 
         {
-            clLogError(
-                       "UDP",
-                       "NOTIF",
-                       "setsockopt IP_ADD_MEMBERSHIP failed with error [%s]", strerror(errno));
+            clLogError("UDP","NOTIF","setsockopt IP_ADD_MEMBERSHIP failed with error [%s]", strerror(errno));
             return -1;
         }
 
@@ -398,12 +395,10 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
          * Set outbound interface
          */
         struct in_addr iaddr;
-        iaddr.s_addr = INADDR_ANY;
-        if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, &iaddr, sizeof(iaddr)) < 0) {
-            clLogError(
-                       "UDP",
-                       "NOTIF",
-                       "setsockopt IP_MULTICAST_IF failed with error [%s]", strerror(errno));
+        iaddr.s_addr = htonl(INADDR_ANY);
+        if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, &iaddr, sizeof(iaddr)) < 0)
+        {
+            clLogError("UDP","NOTIF","setsockopt IP_MULTICAST_IF failed with error [%s]", strerror(errno));
             close(sd);
             return -1;
         }

@@ -22,6 +22,8 @@ typedef struct {
     ClUint32T ipAddressMask;
 } ClPluginHelperVirtualIpAddressT;
 
+extern ClPluginHelperVirtualIpAddressT gVirtualIp;
+    
 typedef struct {
     ClUint8T dstMac[6];
     ClUint8T myMac[6];
