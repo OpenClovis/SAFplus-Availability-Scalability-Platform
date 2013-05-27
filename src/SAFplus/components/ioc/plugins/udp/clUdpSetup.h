@@ -32,7 +32,9 @@ extern "C" {
 #define CL_UDP_DEFAULT_PRIORITY 0
 
 ClRcT clUdpFdGet(ClIocPortT port, ClInt32T *fd);
-ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot);
+ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *retAddrStr);
+ClRcT clUdpAddrGet(ClIocNodeAddressT nodeAddress, ClCharT *addrStr);
+ClRcT clUdpAddrSet(ClIocNodeAddressT nodeAddress, const ClCharT *addrStr);
 ClRcT clIocUdpMapDel(ClIocNodeAddressT slot);
 extern ClBoolT gClSimulationMode;
 extern ClInt32T gClUdpXportId;

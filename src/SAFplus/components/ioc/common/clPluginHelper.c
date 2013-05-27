@@ -26,6 +26,8 @@
 
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 
+static ClRcT _clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
+
 /*
  *  Network to Host
  *
@@ -97,9 +99,12 @@ static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf) 
     ClCharT net_addr[CL_MAX_FIELD_LENGTH] = "eth0";
     ClCharT *linkName = NULL;
     ClCharT envlinkNameType[CL_MAX_FIELD_LENGTH] = { 0 };
-    if (!xportType) {
+    if (!xportType)
+    {
         return CL_ERR_INVALID_PARAMETER;
-    } else {
+    }
+    else
+    {
         snprintf(envlinkNameType, CL_MAX_FIELD_LENGTH, "ASP_%s_LINK_NAME", xportType);
         linkName = getenv(envlinkNameType);
         if (linkName == NULL)
@@ -108,9 +113,10 @@ static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf) 
             linkName = getenv("LINK_NAME");
             if (linkName == NULL)
             {
-                clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA,
-                        "%s and LINK_NAME environment variable is not exported. Using 'eth0:10' interface as default", envlinkNameType);
-            } else {
+                clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "%s and LINK_NAME environment variable is not exported. Using 'eth0:10' interface as default", envlinkNameType);
+            }
+            else
+            {
                 clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "LINK_NAME env is exported. Value is %s", linkName);
                 net_addr[0] = 0;
                 strncat(net_addr, linkName, sizeof(net_addr)-1);
@@ -118,7 +124,10 @@ static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf) 
                 strtok_r(net_addr, ":", &token);
             }
             snprintf(inf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
-        } else {
+            
+        }
+        else
+        {
             clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "%s env is exported. Value is %s", envlinkNameType, linkName);
             snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", linkName);
         }
@@ -126,13 +135,16 @@ static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf) 
     return CL_OK;
 }
 
-static ClRcT _clPluginHelperGetIpNodeAddress(const ClCharT *xportType, ClCharT *hostAddress, ClCharT *networkMask, ClCharT *broadcast, ClUint32T *ipAddressMask, ClCharT *xportSubnetPrefix) {
+static ClRcT _clPluginHelperGetIpNodeAddress(const ClCharT *xportType, const ClCharT *devIf, ClCharT *hostAddress, ClCharT *networkMask, ClCharT *broadcast, ClUint32T *ipAddressMask, ClCharT *xportSubnetPrefix)
+{
     ClCharT envSubNetType[CL_MAX_FIELD_LENGTH] = { 0 };
     ClCharT xportSubnet[CL_MAX_FIELD_LENGTH] = { 0 };
     ClCharT *subnetMask = NULL;
     ClCharT *subnetPrefix = NULL;
     ClUint32T CIDR, ipMask, ip, mask;
-    if (!xportType) 
+    ClRcT rc;
+    
+    if (!xportType)
     {
         return CL_ERR_INVALID_PARAMETER;
     } 
@@ -166,7 +178,24 @@ static ClRcT _clPluginHelperGetIpNodeAddress(const ClCharT *xportType, ClCharT *
 
         /* network address */
         ipMask = (ip & mask);
-        _clPluginHelperConvertHostToInternetAddress(ipMask + gIocLocalBladeAddress, hostAddress);
+
+
+        /* Try to get address from devif */
+        
+        rc = CL_OK+1;  /* start with any error condition, so the if below this one will be taken  */
+        if (clParseEnvBoolean("ASP_UDP_USE_EXISTING_IP"))
+        {
+            rc = _clPluginHelperDevToIpAddress(devIf, hostAddress);
+            if (rc == CL_OK) clLogInfo("IOC",CL_LOG_PLUGIN_HELPER_AREA,"Use existing IP address [%s] as this nodes transport address.", hostAddress);
+            else clLogError("IOC",CL_LOG_PLUGIN_HELPER_AREA,"Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
+        }
+        
+        if (rc != CL_OK)
+        {
+             /* Automatic assignment of IP address */
+            _clPluginHelperConvertHostToInternetAddress(ipMask + gIocLocalBladeAddress, hostAddress);
+        }
+
         _clPluginHelperConvertHostToInternetAddress(mask, networkMask);
         _clPluginHelperConvertHostToInternetAddress(ip | ~mask, broadcast);
         *ipAddressMask = ipMask;
@@ -311,6 +340,54 @@ static void *_clPluginHelperPummelArps(void *arg) {
     return NULL;
 }
 
+/*
+ * Returns ip address on a network interface given its name...
+ */
+static ClRcT _clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr)
+{
+
+    int sd;
+    struct ifreq req;
+    ClCharT ipAddress[INET_ADDRSTRLEN] = { 0 };
+    int rc = 1;
+
+    /* Get a socket handle. */
+    sd = socket(PF_INET, SOCK_DGRAM, 0);
+    if (sd < 0)
+    {
+        clLogError("IOC", CL_LOG_PLUGIN_HELPER_AREA, "open socket failed with error [%s]", strerror(errno));
+        return rc;
+    }
+
+    memset(&req, 0, sizeof(struct ifreq));
+    strcpy(req.ifr_name, dev);
+    req.ifr_addr.sa_family = PF_UNSPEC;
+
+    if (ioctl(sd, SIOCGIFADDR, &req) == -1)
+    {
+        clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Operation command failed: [%s]", strerror(errno));
+        close(sd);
+        return rc;
+    }
+
+    struct in_addr *in4_addr = &((struct sockaddr_in*) &((struct ifreq *) &req)->ifr_addr)->sin_addr;
+    if (!inet_ntop(PF_INET, (const void *) in4_addr, ipAddress, sizeof(ipAddress)))
+    {
+        struct in6_addr *in6_addr = &((struct sockaddr_in6*) &((struct ifreq *) &req)->ifr_addr)->sin6_addr;
+        if (!inet_ntop(PF_INET6, (const void *) in6_addr, ipAddress, sizeof(ipAddress)))
+        {
+            goto out;
+        }
+    }
+
+    /* successful */
+    rc = 0;
+    strncat(addrStr, ipAddress, sizeof(ipAddress) - 1);
+
+out:
+    close(sd);
+    return rc;
+}
 /*
  * Before calling ifconfig, we want to check if interface and ip existing,
  * if so, just ignore the calling command
@@ -492,7 +569,7 @@ ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType,
         return rc;
     }
 
-    rc = _clPluginHelperGetIpNodeAddress(xportType, ip, netmask, broadcast, 
+    rc = _clPluginHelperGetIpNodeAddress(xportType, dev, ip, netmask, broadcast,
                                          &ipAddressMask, subnetPrefix);
     if (rc != CL_OK)
     {
