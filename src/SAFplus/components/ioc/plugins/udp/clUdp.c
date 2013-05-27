@@ -62,6 +62,50 @@ static ClUint8T *gpClUdpAddrCache;
 static ClCharT gClUdpAddrCacheSegment[CL_MAX_NAME_LENGTH+1];
 static ClOsalSemIdT gClUdpAddrCacheSem;
 
+typedef struct ClIocUdpArgs
+{
+    struct iovec *iov;
+    int iovlen;
+    int flags;
+    int port;
+    ClUint32T priority;
+}ClIocUdpArgsT;
+
+typedef struct ClIocUdpPrivate
+{
+    ClIocPortT port;
+    ClInt32T fd;
+}ClIocUdpPrivateT;
+
+typedef struct ClXportCtrl
+{
+    ClOsalMutexT mutex;
+    ClInt32T family;
+}ClXportCtrlT;
+
+typedef struct ClLinkNotificationArgs
+{
+    ClIocNodeAddressT node;
+    ClIocNotificationIdT event;
+} ClLinkNotificationArgsT;
+
+static ClXportCtrlT gXportCtrl;
+
+#define UDP_MAP_HASH(addr) ( (addr) & IOC_UDP_MAP_MASK )
+
+static __inline__ void udpMapAdd(ClIocUdpMapT *map)
+{
+    ClUint32T hash = UDP_MAP_HASH(map->slot);
+    hashAdd(gIocUdpMap, hash, &map->hash);
+    clListAddTail(&map->list, &gIocUdpMapList);
+}
+
+static __inline__ void udpMapDel(ClIocUdpMapT *map)
+{
+    hashDel(&map->hash);
+    clListDel(&map->list);
+}
+
 static ClRcT clUdpAddrCacheCreate(void)
 {
     ClRcT rc = CL_OK;
@@ -1190,3 +1234,51 @@ ClRcT clUdpFdGet(ClIocPortT port, ClInt32T *fd)
     *fd = xportPrivate->fd;
     return CL_OK;
 }
+
+
+ClRcT clUdpAddrSet(ClIocNodeAddressT nodeAddress, const ClCharT *addrStr)
+{
+    ClRcT rc = CL_OK;
+
+    rc = clOsalSemLock(gClUdpAddrCacheSem);
+    if (rc != CL_OK)
+        return rc;
+
+    if (!gpClUdpAddrCache)
+    {
+        clOsalSemUnlock(gClUdpAddrCacheSem);
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    memset(gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), 0, INET_ADDRSTRLEN);
+    memcpy(gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), addrStr, INET_ADDRSTRLEN);
+
+    clOsalSemUnlock(gClUdpAddrCacheSem);
+
+    clLogTrace("UDP", "CACHE", "Setting address cache entry for node [%d: %s]", nodeAddress, addrStr);
+
+    return rc;
+}
+
+ClRcT clUdpAddrGet(ClIocNodeAddressT nodeAddress, ClCharT *addrStr)
+{
+    ClRcT rc = CL_OK;
+
+    rc = clOsalSemLock(gClUdpAddrCacheSem);
+    if (rc != CL_OK)
+        return rc;
+
+    if (!gpClUdpAddrCache)
+    {
+        clOsalSemUnlock(gClUdpAddrCacheSem);
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    memcpy(addrStr, gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), INET_ADDRSTRLEN);
+    clOsalSemUnlock(gClUdpAddrCacheSem);
+
+    clLogTrace("UDP", "CACHE", "Getting address cache entry for node [%d: %s]", nodeAddress, addrStr);
+
+    return rc;
+}
+
