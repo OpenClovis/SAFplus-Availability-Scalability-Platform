@@ -123,7 +123,7 @@ typedef struct ckptSvrCb
     ClEoExecutionObjT      *eoHdl;       /* EO handle for al EO related
                                             operations */
     ClIocPortT             eoPort;       /* EO port */
-    ClCpmHandleT           cpmHdl;       /* CPM handle */
+    ClCpmHandleT           amfHdl;       /* CPM handle */
     ClGmsHandleT           gmsHdl;       /* GMS handle */
     ClEventInitHandleT     evtSvcHdl;    /* Event Service Handle */
     ClEventChannelHandleT  evtChHdl;     /* Event Channel handle */
