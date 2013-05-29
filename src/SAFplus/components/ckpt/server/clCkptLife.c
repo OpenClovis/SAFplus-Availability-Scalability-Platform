@@ -142,7 +142,7 @@ ClRcT clCkptSvrInitialize(void)
          * The node coming up is master. If deputy exists, syncup with deputy
          * else syncup with persistant memory (if existing).
          */
-        rc = clCpmComponentNameGet(gCkptSvr->cpmHdl, &appName);
+        rc = clCpmComponentNameGet(gCkptSvr->amfHdl, &appName);
         if(clCpmIsCompRestarted(appName))
         {
             if((deputy != CL_CKPT_UNINIT_ADDR) 

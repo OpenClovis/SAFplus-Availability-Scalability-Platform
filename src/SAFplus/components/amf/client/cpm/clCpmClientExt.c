@@ -42,7 +42,7 @@
 #include <clCpmApi.h>
 #include <clDebugApi.h>
 #include <clLogApi.h>
-
+#include <saAmf.h>
 /*
  * ASP internal header files
  */
@@ -1030,6 +1030,21 @@ ClRcT clCpmComponentIdGet(ClCpmHandleT cpmHandle,
                           ClUint32T *compId)
 {
     ClRcT rc = CL_OK;
+    SaNameT compName1;
+    compName1.length = compName->length; 
+    memcpy(compName1.value,compName->value,compName->length+1);
+    rc=clAmfGetComponentId(cpmHandle,&compName1,compId);
+    
+    return rc;
+
+
+}
+
+ClRcT clAmfGetComponentId(ClCpmHandleT cpmHandle,
+                          SaNameT *compName,
+                          ClUint32T *compId)
+{
+    ClRcT rc = CL_OK;
     ClUint32T bufSize = 0;
     static ClUint32T compIdSpace;
 
@@ -1043,12 +1058,12 @@ ClRcT clCpmComponentIdGet(ClCpmHandleT cpmHandle,
 
     bufSize = sizeof(compId);
     rc = clCpmClientRMDSyncNew(clIocLocalAddressGet(), CPM_COMPONENT_ID_GET,
-                               (ClUint8T *) compName, sizeof(ClNameT),
+                               (ClUint8T *) compName, sizeof(SaNameT),
                                (ClUint8T *) compId, &bufSize,
                                CL_RMD_CALL_NEED_REPLY, 0, 0, 0,
                                clXdrMarshallClNameT,
                                clXdrUnmarshallClUint32T);
-    if (rc != CL_OK)
+   if (rc != CL_OK)
     {
         rc = CL_OK;
         *compId = (clIocLocalAddressGet() << CL_CPM_IOC_SLOT_BITS) + compIdSpace;
@@ -1058,6 +1073,8 @@ ClRcT clCpmComponentIdGet(ClCpmHandleT cpmHandle,
   failure:
     return rc;
 }
+
+
 
 ClRcT clCpmComponentStatusGet(ClNameT *compName,
                               ClNameT *nodeName,

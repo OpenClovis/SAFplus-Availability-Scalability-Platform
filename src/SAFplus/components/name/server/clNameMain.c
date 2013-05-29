@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
+ * Copyright (C) 2002-2013 OpenClovis Solutions Inc.  All Rights Reserved.
  *
  * This file is available  under  a  commercial  license  from  the
  * copyright  holder or the GNU General Public License Version 2.0.
@@ -28,6 +28,11 @@ File        : clNameMain.c
  *
  *
  *****************************************************************************/
+#include <saAmf.h>
+#include <clSafUtils.h>
+
+
+
 
 #define __SERVER__
 #include "stdio.h"
@@ -100,7 +105,7 @@ static ClUint32T         sNoUserGlobalCxt = 0;
 static ClUint32T         sNoUserLocalCxt  = 0;
 static ClUint64T         sObjCount        = CL_IOC_DYNAMIC_LOGICAL_ADDRESS_START;
 ClCpmHandleT    	     cpmHandle        = 0;
-
+SaAmfHandleT                 amfHandle;
 ClCntHandleT           gNSDefaultGlobalHashTable    = 0;
 ClCntHandleT           gNSDefaultNLHashTable        = 0;
 ClCntHandleT           gNSHashTable                 = 0;
@@ -115,6 +120,7 @@ static ClVersionT      gNSServerToServerVersionSupported[]={
 {'B',0x01 , 0x01}
 };
 
+ClBoolT unblockNow = CL_FALSE;
 
 extern ClCkptSvcHdlT   gNsCkptSvcHdl ;
 static ClNameSvcConfigT gpConfig = {0};
@@ -180,10 +186,9 @@ clNSLookupKeyForm(ClNameT               *pName,
 /******************** Functions needed by EO infrastructure **************/
 /*************************************************************************/
 
-ClRcT   nameSvcFinalize(ClInvocationT invocation,
-    		const ClNameT  *compName)
+void nameSvcFinalize(SaInvocationT invocation, const SaNameT *compName)
 {
-    ClRcT             rc      = CL_OK;
+    
     ClEoExecutionObjT *pEOObj = NULL;
 
     /* take the semaphore */
@@ -191,20 +196,23 @@ ClRcT   nameSvcFinalize(ClInvocationT invocation,
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Couldnt get Lock successfully--\n"));
     }
-    
     /* Do NS related cleanup */
-
     /* Delete all the entries in all the contexts */
     /* Delete all the per context has tables */
     clCntWalk(gNSHashTable, _nameSvcContextLevelWalkForFinalize, NULL, 0);
+    
     clCntDelete(gNSHashTable);
+    
     gNSHashTable = 0;
     /* Finalize ckpt lib */    
     clNameSvcCkptFinalize();
+    
     clHeapFree(gpContextIdArray);
+    
     clHeapFree(gNSClientToServerVersionInfo.versionsSupported);
+   
     clHeapFree(gNSServerToServerVersionInfo.versionsSupported);
-
+   
     /* Release the semaphore */
     clOsalMutexUnlock(gSem);
     
@@ -213,32 +221,70 @@ ClRcT   nameSvcFinalize(ClInvocationT invocation,
     (void)clEoClientUninstallTables(pEOObj, CL_EO_SERVER_SYM_MOD(gAspFuncTable, NAM));
     /* Finalize event lib */
     (void)nameSvcEventFinalize();
-
+    
     /* DeRegister with debug infra */
     (void)nameDebugDeregister(pEOObj);
-
-    rc = clCpmComponentUnregister(cpmHandle, compName, NULL);
-    rc = clCpmClientFinalize(cpmHandle);
-
-    clLogNotice("SVR", "SHU", "Name service has been finalized successfully");
-    clCpmResponse(cpmHandle, invocation, CL_OK);
-
-    return CL_OK;
+    
+    saAmfComponentUnregister(amfHandle, compName, NULL);
+    
+    saAmfResponse(amfHandle, invocation, CL_OK);
+    
+    unblockNow = CL_TRUE;
+    
 }
+
+ClRcT initializeAmf(void )
+{
+    SaNameT           appName   = {0};
+    SaAmfCallbacksT   callbacks = {0};
+    SaVersionT        version   = {0};
+    SaAisErrorT       rc        = SA_AIS_OK;
+    
+    version.releaseCode  = 'B';
+    version.majorVersion = 0x01;
+    version.minorVersion = 0x01;
+
+    callbacks.saAmfHealthcheckCallback          = NULL;
+    callbacks.saAmfComponentTerminateCallback   = nameSvcFinalize;
+    callbacks.saAmfCSISetCallback               = NULL;
+    callbacks.saAmfCSIRemoveCallback            = NULL;
+    callbacks.saAmfProtectionGroupTrackCallback = NULL;
+    callbacks.saAmfProxiedComponentInstantiateCallback = NULL;
+    callbacks.saAmfProxiedComponentCleanupCallback = NULL;
+    
+    /* NS Initialize */
+    rc = saAmfInitialize(&amfHandle, &callbacks, &version);
+    if( SA_AIS_OK != rc )
+    {
+
+        return clSafToClovisError(rc);
+    }
+    saAmfComponentNameGet(amfHandle, &appName);
+    saAmfComponentRegister(amfHandle, &appName, NULL);
+    return CL_OK;
+    
+}
+
 
 
 ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
 {
-    ClNameT           appName   = {0};
-    ClCpmCallbacksT   callbacks = {0};
-    ClVersionT	      version   = {0};
     ClIocPortT	      iocPort   = 0;
     ClRcT             rc        = CL_OK;
     ClSvcHandleT      svcHandle = {0};
     ClEoExecutionObjT *eoObj    = NULL ;
     //ClOsalTaskIdT     taskId    = 0;
+      
+    (void)clEoMyEoObjectGet(&eoObj);
+    (void)clEoMyEoIocPortGet(&iocPort);
 
-    /* NS Initialize */
+    rc = initializeAmf();
+    if( rc != CL_OK)
+    {
+          CL_DEBUG_PRINT(CL_DEBUG_ERROR,(" Initialization failed with rc 0x%x",rc));
+          return rc;
+    }
+        
     rc = clCpmMasterAddressGet(&gMasterAddress);
     if (rc != CL_OK)
     {
@@ -247,24 +293,7 @@ ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
     }
     clNameCompCfg();
 
-   /*  Do the CPM client init/Register */
-    version.releaseCode = 'B';
-    version.majorVersion = 0x01;
-    version.minorVersion = 0x01;
-    
-    callbacks.appHealthCheck = NULL;
-    callbacks.appTerminate = nameSvcFinalize;
-    callbacks.appCSISet = NULL;
-    callbacks.appCSIRmv = NULL;
-    callbacks.appProtectionGroupTrack = NULL;
-    callbacks.appProxiedComponentInstantiate = NULL;
-    callbacks.appProxiedComponentCleanup = NULL;
-
-   
-    (void)clEoMyEoObjectGet(&eoObj);
-    (void)clEoMyEoIocPortGet(&iocPort);
-    rc = clCpmClientInitialize(&cpmHandle, &callbacks, &version);
-    if( CL_OK != rc ) return rc;
+    cpmHandle = amfHandle;
     svcHandle.cpmHandle = &cpmHandle;
 #if 0
     svcHandle.evtHandle = &evtHandle;
@@ -272,9 +301,8 @@ ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
     svcHandle.gmsHandle = &gmsHandle;
     svcHandle.dlsHandle = &dlsHandle;
     rc = clDispatchThreadCreate(eoObj, &taskId, svcHandle);
-#endif    
-    rc = clCpmComponentNameGet(cpmHandle, &appName);
-    rc = clCpmComponentRegister(cpmHandle, &appName, NULL);
+#endif
+    
     /*clDebugCli("NAME-CLI");*/
     return CL_OK;
 }
@@ -5491,8 +5519,8 @@ ClEoConfigT clEoConfig = {
     CL_IOC_NAME_PORT,
     CL_EO_USER_CLIENT_ID_START,
     CL_EO_USE_THREAD_FOR_RECV,
-    nameSvcInitialize,
-    clNameFinalize,
+    NULL,
+    NULL,
     nameSvcStateChange,
     nameSvcHealthCheck,
     NULL
@@ -5527,13 +5555,64 @@ ClUint8T clEoClientLibs[] = {
     CL_FALSE,    		/* pm */
 };
 
+void dispatchLoop(void);
+int  errorExit(SaAisErrorT rc);
+
 ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
 
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
-    rc = clEoInitialize(argc, argv);
+    rc = nameSvcInitialize(argc,argv);
+    if(rc != CL_OK)
+    {
+       CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
+                       ("Name: nameSvcInitialize failed [0x%X]\n\r", rc));
+        return rc;
+    }
+    dispatchLoop();
+    saAmfFinalize(amfHandle);
+    return 0;
+}
 
-    return (CL_OK != rc);
+int errorExit(SaAisErrorT rc)
+{        
+    
+    exit(-1);
+    return -1;
+}
+
+
+void dispatchLoop(void)
+{        
+    SaAisErrorT         rc = SA_AIS_OK;
+    SaSelectionObjectT amf_dispatch_fd;
+    int maxFd;
+    fd_set read_fds;
+
+    /*
+    * Get the AMF dispatch FD for the callbacks
+    */
+    if ( (rc = saAmfSelectionObjectGet(amfHandle, &amf_dispatch_fd)) != SA_AIS_OK)
+       errorExit(rc);
+    maxFd = amf_dispatch_fd;  
+    do
+    {
+       FD_ZERO(&read_fds);
+       FD_SET(amf_dispatch_fd, &read_fds);
+       if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
+       {
+          char errorStr[80];
+          int err = errno;
+          if (EINTR == err) continue;
+
+          errorStr[0] = 0; /* just in case strerror does not fill it in */
+          strerror_r(err, errorStr, 79);
+         
+          break;
+        }
+        if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+      
+    }while(!unblockNow);      
 }
 
