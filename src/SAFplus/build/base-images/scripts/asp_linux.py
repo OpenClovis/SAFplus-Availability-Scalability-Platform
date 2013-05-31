@@ -70,6 +70,19 @@ def popenNew(cmd):
         del child
         return output
 
+def getMultiLink():
+    """Similar to the os.system call, except that both the output and
+    return value is returned"""
+    output = []
+    val = os.getenv('LINK_NAME')
+    if val is None:
+        output.append('eth0')
+        num=1
+        return (num,output)
+    output = val.split(',')        
+    num = len(output)    
+    return (num,output)
+
 def get_kill_asp_cmd(f):
     return 'killall -KILL %s 2> /dev/null' % f
 

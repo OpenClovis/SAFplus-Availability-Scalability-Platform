@@ -50,6 +50,7 @@ def init_sys_asp():
 
     d['system'] = s.system
     d['popenNew'] = s.popenNew
+    d['getMultiLink'] = s.getMultiLink
     d['get_kill_asp_cmd'] = s.get_kill_asp_cmd
     d['get_amf_watchdog_pid_cmd'] = s.get_amf_watchdog_pid_cmd
     d['get_cleanup_asp_cmd'] = s.get_cleanup_asp_cmd
@@ -68,6 +69,7 @@ def init_sys_asp():
 
 def system(cmd): return sys_asp['system'](cmd)
 def popenNew(cmd): return sys_asp['popenNew'](cmd)
+def getMultiLink(): return sys_asp['getMultiLink']()
 
 def proc_lock_file(cmd):
     if not is_root():
@@ -154,9 +156,6 @@ def get_asp_tipc_config_cmd():
 
 def get_asp_node_addr():
     return asp_env['node_addr']
-
-def get_asp_link_name():
-    return asp_env['link_name']
 
 def get_asp_save_dir_margin():
     return asp_env['save_dir_size_margin']
@@ -686,11 +685,10 @@ def config_tipc_module():
         return
     tipc_netid = get_asp_tipc_netid()
     node_addr = get_asp_node_addr()
-    link_name = get_asp_link_name()
-    
+    num,link_name = getMultiLink()
+    log.info('num of bearer : %d ...' %(num))
     cmd = '%s -netid=%s -addr=1.1.%s -be=eth:%s' %\
-          (get_asp_tipc_config_cmd(), tipc_netid, node_addr, link_name)
-
+          (get_asp_tipc_config_cmd(), tipc_netid, node_addr, link_name[0])
     log.debug('TIPC command is [%s]' % cmd)
     ret, output, signal, core = system(cmd)
     if ret:
@@ -709,9 +707,8 @@ def config_tipc_module():
             # Try to remove the tipc module if we failed to configure
             # tipc.  Otherwise it will work in the next run, but only
             # in "local" mode.
-            link_name = get_asp_link_name()    
-            log.info('disable bearer eth:%s ...' %(link_name))
-            cmd = 'tipc-config -bd=eth:%s' %(link_name)
+            num,link_name = getMultiLink()    
+            cmd = 'tipc-config -bd=eth:%s' %(link_name[0])
             ret, output, signal, core = system(cmd)
             system("rmmod tipc")  
             fail_and_exit(msg)
@@ -744,16 +741,22 @@ def config_tipc_module():
                               'and LINK_NAME are correct in %s/asp.conf.' %\
                               get_asp_etc_dir()])
             fail_and_exit(msg1 + msg2)
+    for x in range(1,num) :       
+        cmd = '%s -be=eth:%s' %\
+          (get_asp_tipc_config_cmd(),link_name[x])
+        log.debug('enable bearer name : %s ...' %(cmd))
+        ret, output, signal, core = system(cmd)        
 
 def unload_tipc_module():
     if not is_tipc_build():
         return
 
     log.info('Unloading TIPC ...')
-    link_name = get_asp_link_name()    
-    log.info('disable bearer eth:%s ...' %(link_name))
-    cmd = 'tipc-config -bd=eth:%s' %(link_name)
-    ret, output, signal, core = system(cmd)
+    num,link_name = getMultiLink()
+    for x in range(0,num) :
+        cmd = 'tipc-config -bd=eth:%s' %(link_name[x])
+        log.debug('disable bearer :%s ...' %(cmd))
+        ret, output, signal, core = system(cmd)
     cmd = sys_asp['unload_tipc_cmd']
     ret, output, signal, core = system(cmd)
     if ret:
@@ -836,7 +839,8 @@ def load_config_tipc_module():
 
         bearers = popenNew('%s -b' % tipc_config_cmd)
         bearers = [e[:-1] for e in bearers[1:]]
-        tipc_bearer = 'eth:%s' % get_asp_link_name()
+        num,link_name= getMultiLink()
+        tipc_bearer = 'eth:%s' % link_name[0]
 
         if tipc_bearer not in bearers:
             log.debug('Configured bearer %s not in bearer list %s' %
