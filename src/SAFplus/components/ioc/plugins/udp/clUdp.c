@@ -385,7 +385,7 @@ ClRcT clIocUdpMapDel(ClIocNodeAddressT slot)
 /*
  * Called with xport lock held. Returns with lock released.
  */
-ClRcT iocUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *cookie, ClInt32T flags)
+ClRcT clUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *cookie, ClInt32T flags)
 {
     ClIocUdpMapT *map;
     register ClListHeadT *iter;
@@ -1119,7 +1119,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
     case CL_IOC_BROADCAST_ADDRESS_TYPE:
     bcast_send:
         sendArgs.port = address->iocPhyAddress.portId;
-        rc = iocUdpMapWalk(iocUdpSend, &sendArgs, 0);
+        rc = clUdpMapWalk(iocUdpSend, &sendArgs, 0);
         goto out;
         /*
          * Unhandled till now.
