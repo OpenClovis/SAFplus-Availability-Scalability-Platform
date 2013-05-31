@@ -49,6 +49,8 @@ def init_sys_asp():
         
 
     d['system'] = s.system
+    d['popenNew'] = s.popenNew
+    d['getMultiLink'] = s.getMultiLink
     d['get_kill_asp_cmd'] = s.get_kill_asp_cmd
     d['get_amf_watchdog_pid_cmd'] = s.get_amf_watchdog_pid_cmd
     d['get_cleanup_asp_cmd'] = s.get_cleanup_asp_cmd
@@ -66,6 +68,8 @@ def init_sys_asp():
     return d
 
 def system(cmd): return sys_asp['system'](cmd)
+def popenNew(cmd): return sys_asp['popenNew'](cmd)
+def getMultiLink(): return sys_asp['getMultiLink']()
 
 def proc_lock_file(cmd):
     if not is_root():
@@ -152,9 +156,6 @@ def get_asp_tipc_config_cmd():
 
 def get_asp_node_addr():
     return asp_env['node_addr']
-
-def get_asp_link_name():
-    return asp_env['link_name']
 
 def get_asp_save_dir_margin():
     return asp_env['save_dir_size_margin']
@@ -309,7 +310,7 @@ def set_up_asp_config():
     def get_physical_slot():
         # this assumes that we can access IPMI tool and the shelf manager via it
         cmd = '%s/bladeinfo -p 2>/dev/null || echo -1' % d['bin_dir']
-        res = os.popen(cmd).readlines()[0]
+        res = popenNew(cmd)[0]
         if res.startswith('-1'):
             log.debug('Could not determine physical slot id in auto mode because could not run bladeinfo -p. '
                       'Please check IPMI access manually by running bladeinfo -p, '
@@ -460,7 +461,7 @@ def stop_amf_watchdog():
 
     p = '%s/safplus_watchdog.py' % get_asp_etc_dir()
     cmd = sys_asp['get_amf_watchdog_pid_cmd'](p)
-    result=os.popen(cmd).readlines()
+    result=popenNew(cmd)
     # Eliminate the incorrect lines
     psLine = filter(lambda x: not "grep" in x, result)
 
@@ -505,12 +506,12 @@ def start_hpi_subagent():
     def cm_is_openhpi_based():
         cmd = 'ldd %s/safplus_cm | grep -c libopenhpi' %\
               get_asp_bin_dir()
-        return int(os.popen(cmd).readlines()[0]) > 0
+        return int(popenNew(cmd)[0]) > 0
 
     def cm_requires_openhpid():
         cmd = 'ldd %s/safplus_cm | grep -c libopenhpimarshal' %\
               get_asp_bin_dir()
-        return int(os.popen(cmd).readlines()[0]) > 0
+        return int(popenNew(cmd)[0]) > 0
 
     if os.getenv('SAHPI_UNSPECIFIED_DOMAIN_ID') != "UNDEFINED":
         os.putenv('OPENHPI_UID_MAP',
@@ -684,11 +685,10 @@ def config_tipc_module():
         return
     tipc_netid = get_asp_tipc_netid()
     node_addr = get_asp_node_addr()
-    link_name = get_asp_link_name()
-    
+    num,link_name = getMultiLink()
+    log.info('num of bearer : %d ...' %(num))
     cmd = '%s -netid=%s -addr=1.1.%s -be=eth:%s' %\
-          (get_asp_tipc_config_cmd(), tipc_netid, node_addr, link_name)
-
+          (get_asp_tipc_config_cmd(), tipc_netid, node_addr, link_name[0])
     log.debug('TIPC command is [%s]' % cmd)
     ret, output, signal, core = system(cmd)
     if ret:
@@ -707,9 +707,8 @@ def config_tipc_module():
             # Try to remove the tipc module if we failed to configure
             # tipc.  Otherwise it will work in the next run, but only
             # in "local" mode.
-            link_name = get_asp_link_name()    
-            log.info('disable bearer eth:%s ...' %(link_name))
-            cmd = 'tipc-config -bd=eth:%s' %(link_name)
+            num,link_name = getMultiLink()    
+            cmd = 'tipc-config -bd=eth:%s' %(link_name[0])
             ret, output, signal, core = system(cmd)
             system("rmmod tipc")  
             fail_and_exit(msg)
@@ -742,16 +741,22 @@ def config_tipc_module():
                               'and LINK_NAME are correct in %s/asp.conf.' %\
                               get_asp_etc_dir()])
             fail_and_exit(msg1 + msg2)
+    for x in range(1,num) :       
+        cmd = '%s -be=eth:%s' %\
+          (get_asp_tipc_config_cmd(),link_name[x])
+        log.debug('enable bearer name : %s ...' %(cmd))
+        ret, output, signal, core = system(cmd)        
 
 def unload_tipc_module():
     if not is_tipc_build():
         return
 
     log.info('Unloading TIPC ...')
-    link_name = get_asp_link_name()    
-    log.info('disable bearer eth:%s ...' %(link_name))
-    cmd = 'tipc-config -bd=eth:%s' %(link_name)
-    ret, output, signal, core = system(cmd)
+    num,link_name = getMultiLink()
+    for x in range(0,num) :
+        cmd = 'tipc-config -bd=eth:%s' %(link_name[x])
+        log.debug('disable bearer :%s ...' %(cmd))
+        ret, output, signal, core = system(cmd)
     cmd = sys_asp['unload_tipc_cmd']
     ret, output, signal, core = system(cmd)
     if ret:
@@ -791,7 +796,7 @@ def load_config_tipc_module():
 
     def is_tipc_loaded():
         cmd = sys_asp['is_tipc_loaded_cmd']
-        l = os.popen(cmd).readlines()
+        l = popenNew(cmd)
         l = [e[:-1] for e in l]
         l = [e for e in l if 'grep' not in e]
         c = len(l)
@@ -804,7 +809,7 @@ def load_config_tipc_module():
 
         tipc_config_cmd = get_asp_tipc_config_cmd()
         
-        bearers = os.popen('%s -b' % tipc_config_cmd).readlines()
+        bearers = popenNew('%s -b' % tipc_config_cmd)
         bearers = [e[:-1] for e in bearers[1:] if e != 'No active bearers\n']
         if not bearers:
             return False
@@ -814,7 +819,7 @@ def load_config_tipc_module():
     def is_tipc_properly_configured():
         tipc_config_cmd = get_asp_tipc_config_cmd()
         
-        tipc_addr = os.popen('%s -addr' % tipc_config_cmd).readlines()[0]
+        tipc_addr = popenNew('%s -addr' % tipc_config_cmd)[0]
         tipc_addr = tipc_addr.split(':')[1].strip()[1:-1]
 
         if tipc_addr != '1.1.%s' % get_asp_node_addr():
@@ -823,7 +828,7 @@ def load_config_tipc_module():
                       (tipc_addr, '1.1.%s' % get_asp_node_addr()))
             return False
 
-        tipc_netid = os.popen('%s -netid' % tipc_config_cmd).readlines()[0]
+        tipc_netid = popenNew('%s -netid' % tipc_config_cmd)[0]
         tipc_netid = tipc_netid.split(':')[1].strip()
 
         if tipc_netid != get_asp_tipc_netid():
@@ -832,9 +837,10 @@ def load_config_tipc_module():
                       (tipc_netid, get_asp_tipc_netid()))
             return False
 
-        bearers = os.popen('%s -b' % tipc_config_cmd).readlines()
+        bearers = popenNew('%s -b' % tipc_config_cmd)
         bearers = [e[:-1] for e in bearers[1:]]
-        tipc_bearer = 'eth:%s' % get_asp_link_name()
+        num,link_name= getMultiLink()
+        tipc_bearer = 'eth:%s' % link_name[0]
 
         if tipc_bearer not in bearers:
             log.debug('Configured bearer %s not in bearer list %s' %
@@ -976,7 +982,7 @@ def save_asp_runtime_files():
     def can_save_dir(d, log_dir):
     
         def dir_size(d, defsize=10*1024):
-            l = os.popen('du -sk %s' % d).readlines()
+            l = popenNew('du -sk %s' % d)
             if len(l) != 1:
                 log.critical('The command \`du -sk\' did not return '
                              'expected output, returning %sKb as the value'
@@ -989,7 +995,7 @@ def save_asp_runtime_files():
         
         def dir_free_space(d, defsize=10*1024):
             cmd = 'df -Pk %s' % d
-            l = os.popen(cmd).readlines()
+            l = popenNew(cmd)
             if len(l) == 1: # if the size cannot be determined
               log.warn('Cannot determine available space at "%s" (could it be a network mount?)  Assuming plenty of room.' % d)
               return defsize
@@ -1179,7 +1185,7 @@ def get_openhpid_pid():
         if not found, returns 0 """
 
     try:
-        l = os.popen('ps aux | grep -i openhpid | grep -vF "grep"').readlines()
+        l = popenNew('ps aux | grep -i openhpid | grep -vF "grep"')
 
         if l:
             # pid found
@@ -1214,7 +1220,7 @@ def get_pid_for_this_sandbox(pid):
 def get_amf_pid(watchdog_pid = False):
 
     if is_valgrind_build():
-        l = os.popen('ps -eo pid,cmd | grep %s' % AmfName).readlines()
+        l = popenNew('ps -eo pid,cmd | grep %s' % AmfName)
         l = [e for e in l if ('grep %s' % AmfName) not in e]
     else:
         if sys.version_info[0:2] <= (2, 4):
@@ -1313,13 +1319,13 @@ def kill_asp(lock_remove = True):
     b = get_asp_bin_dir()
 
     if is_valgrind_build():
-        l = os.popen('ps -eo pid,cmd | grep valgrind').readlines()
+        l = popenNew('ps -eo pid,cmd | grep valgrind')
         l = [e.split() for e in l]
         l = [e[0] for e in l if e[1] == 'valgrind']
 
         pid_cwd_list = []
         for e in l:
-            cmdline = os.popen('cat /proc/%s/cmdline' % e).readlines()[0]
+            cmdline = popenNew('cat /proc/%s/cmdline' % e)[0]
             if 'valgrind' in cmdline:
                 pid_cwd_list.append([e, cmdline])
 
@@ -1429,7 +1435,7 @@ def is_asp_running(watchdog_pid = False):
     asp_status_file = get_asp_status_file()
 
     if os.path.exists(asp_status_file):
-        t = int(os.popen('cat %s' % asp_status_file).readlines()[0])
+        t = int(popenNew('cat %s' % asp_status_file)[0])
         asp_up = bool(t)
         if asp_up:
             return 0
@@ -1494,7 +1500,7 @@ def asp_driver(cmd):
 def sanity_check():
     def check_for_root_files(c):
         cmd = 'find %s -uid 0 -type %s' % (get_asp_sandbox_dir(), c)
-        l = os.popen(cmd).readlines()
+        l = popenNew(cmd)
 
         if c == 'f':
             t = 'files'
@@ -1514,7 +1520,7 @@ def sanity_check():
 
     def check_for_root_shms():
         cmd = 'find %s -uid 0 -type f -name \'CL_*\'' % sys_asp['shm_dir']
-        l = os.popen(cmd).readlines()
+        l = popenNew(cmd)
 
         if l:
             fail_and_exit('Some of the shared memory segments '

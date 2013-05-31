@@ -46,6 +46,43 @@ def system(cmd):
     del child
     return (retval, output, signal, core)
 
+def popenNew(cmd):
+    """Similar to the os.system call, except that both the output and
+    return value is returned"""
+    if sys.version_info[0:2] <= (2, 4):
+        return os.popen('%s' %cmd)
+
+    else:
+        child = subprocess.Popen(cmd, shell=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             close_fds=True)
+        output = []
+        while True:
+            pid, sts = os.waitpid(child.pid, os.WNOHANG)
+            output += child.stdout.readlines()
+            if pid == child.pid:
+                break
+            else:
+                time.sleep(0.00001)
+        child.stdout.close()
+        child.stderr.close()
+        del child
+        return output
+
+def getMultiLink():
+    """Similar to the os.system call, except that both the output and
+    return value is returned"""
+    output = []
+    val = os.getenv('LINK_NAME')
+    if val is None:
+        output.append('eth0')
+        num=1
+        return (num,output)
+    output = val.split(',')        
+    num = len(output)    
+    return (num,output)
+
 def get_kill_asp_cmd(f):
     return 'killall -KILL %s 2> /dev/null' % f
 

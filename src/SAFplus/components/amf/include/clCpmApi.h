@@ -46,6 +46,7 @@ extern "C"
 #include <clIocApi.h>
 #include <clRmdApi.h>
 #include <clIocApiExt.h>
+#include <saAmf.h>
 
 #include <clCpmConfigApi.h>
 #include <clCpmErrors.h>
@@ -1156,7 +1157,9 @@ extern ClRcT clCpmProtectionGroupTrackStop(CL_IN ClCpmHandleT cpmHandle,
 extern ClRcT clCpmComponentIdGet(CL_IN ClCpmHandleT cpmHandle,
                                  CL_IN ClNameT *pCompName,
                                  CL_OUT ClUint32T *pCompId);
-
+extern ClRcT clAmfGetComponentId(CL_IN ClCpmHandleT cpmHandle,
+                                 CL_IN SaNameT *pCompName,
+                                 CL_OUT ClUint32T *pCompId);
 /**
  ************************************
  *  \brief Returns the IOC address of a component.

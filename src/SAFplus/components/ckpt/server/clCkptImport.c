@@ -146,8 +146,8 @@ clCkptMasterAddressUpdate(ClIocNodeAddressT  leader,
         }
         else
         {
-            clCpmComponentNameGet(gCkptSvr->cpmHdl, &name);
-            clCpmComponentIdGet(gCkptSvr->cpmHdl, &name, 
+            clCpmComponentNameGet(gCkptSvr->amfHdl, &name);
+            clCpmComponentIdGet(gCkptSvr->amfHdl, &name, 
                                 &gCkptSvr->compId);
             gCkptSvr->masterInfo.compId = gCkptSvr->compId;
         }
@@ -371,8 +371,8 @@ ClRcT clCkptMasterAddressesSet()
         ClUint32T    compId = 0; 
         ClNameT      name   = {0};
  
-        clCpmComponentNameGet(gCkptSvr->cpmHdl, &name);
-        clCpmComponentIdGet(gCkptSvr->cpmHdl, &name, &compId);
+        clCpmComponentNameGet(gCkptSvr->amfHdl, &name);
+        clCpmComponentIdGet(gCkptSvr->amfHdl, &name, &compId);
         tlInfo.compId                   = compId;
         gCkptSvr->masterInfo.compId     = compId;
         ckptOwnLogicalAddressGet(&tlInfo.logicalAddr);

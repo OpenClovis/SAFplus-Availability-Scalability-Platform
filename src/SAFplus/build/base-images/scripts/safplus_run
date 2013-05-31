@@ -50,6 +50,7 @@ if [ ! -f $ASP_DIR/etc/asp_run.env ]; then
     exit 1
 fi
 
+source $ASP_DIR/etc/asp.conf
 source $ASP_DIR/etc/asp_run.env
 
 function check_var () {

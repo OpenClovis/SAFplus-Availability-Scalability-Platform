@@ -1945,7 +1945,9 @@ fi
 ## must be picked from the appropriate build     ##
 ## directory                                     ##
 ###################################################
-
+CL_BUILDTOOLS=$buildtool_dir
+CL_THIRDPARTY_BASE=$thirdparty_base_dir
+export BUILD_TOOLS_DIR=$CL_BUILDTOOLS
 
 if [ $CROSS_FLAG == 1 ] ;then
 
@@ -2102,7 +2104,7 @@ if [ $PROJECT_ONLY = 0 ]; then
     else
         export BUILD_ROOT=$PROJECT_ROOT/$ASP_MODEL_NAME/build/local
     fi
-    mkdir -p $BUILD_ROOT   
+    mkdir -p $BUILD_ROOT
 fi
 
 ##########################################################
