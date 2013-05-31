@@ -41,25 +41,6 @@ ClInt32T gClCmsgHdrLen;
 struct cmsghdr *gClCmsgHdr;
 static ClUint32T gClBindOffset;
 
-typedef struct ClIocUdpMap
-{
-#define __ipv4_addr _addr.sin_addr
-#define __ipv6_addr _addr.sin6_addr
-    ClIocNodeAddressT slot;
-    ClBoolT bridge;
-    int family;
-    int sendFd;
-    union 
-    {
-        struct sockaddr_in sin_addr;
-        struct sockaddr_in6 sin6_addr;
-    } _addr;
-    char addrstr[80];
-    struct hashStruct hash; /*hash linkage*/
-    ClListHeadT list; /*list linkage*/
-    ClUint32T priority;
-}ClIocUdpMapT;
-
 typedef struct ClUdpAddrCacheEntry
 {
     ClCharT addrStr[INET_ADDRSTRLEN];
@@ -306,7 +287,7 @@ ClRcT clIocUdpMapDel(ClIocNodeAddressT slot)
 /*
  * Called with xport lock held. Returns with lock released.
  */
-ClRcT iocUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *cookie, ClInt32T flags)
+ClRcT clUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *cookie, ClInt32T flags)
 {
     ClIocUdpMapT *map;
     register ClListHeadT *iter;
@@ -1179,7 +1160,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
     case CL_IOC_BROADCAST_ADDRESS_TYPE:
     bcast_send:
         sendArgs.port = address->iocPhyAddress.portId;
-        rc = iocUdpMapWalk(iocUdpSend, &sendArgs, 0);
+        rc = clUdpMapWalk(iocUdpSend, &sendArgs, 0);
         goto out;
         /*
          * Unhandled till now.

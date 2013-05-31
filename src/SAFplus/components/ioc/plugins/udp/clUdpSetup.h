@@ -31,11 +31,38 @@ extern "C" {
 #define CL_UDP_HIGH_PRIORITY    63
 #define CL_UDP_DEFAULT_PRIORITY 0
 
+typedef struct ClIocUdpMap
+{
+#define __ipv4_addr _addr.sin_addr
+#define __ipv6_addr _addr.sin6_addr
+    ClIocNodeAddressT slot;
+    ClBoolT bridge;
+    int family;
+    int sendFd;
+    union
+    {
+        struct sockaddr_in sin_addr;
+        struct sockaddr_in6 sin6_addr;
+    } _addr;
+    char addrstr[80];
+    struct hashStruct hash; /*hash linkage*/
+    ClListHeadT list; /*list linkage*/
+    ClUint32T priority;
+}ClIocUdpMapT;
+
+typedef struct ClIocUdpAddr
+{
+    ClIocNodeAddressT slot;
+    ClCharT addrstr[80];
+}ClIocUdpAddrT;
+
 ClRcT clUdpFdGet(ClIocPortT port, ClInt32T *fd);
 ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *retAddrStr);
 ClRcT clUdpAddrGet(ClIocNodeAddressT nodeAddress, ClCharT *addrStr);
 ClRcT clUdpAddrSet(ClIocNodeAddressT nodeAddress, const ClCharT *addrStr);
 ClRcT clIocUdpMapDel(ClIocNodeAddressT slot);
+ClRcT clUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *cookie, ClInt32T flags);
+
 extern ClBoolT gClSimulationMode;
 extern ClInt32T gClUdpXportId;
 extern ClCharT gClUdpXportType[CL_MAX_NAME_LENGTH];
