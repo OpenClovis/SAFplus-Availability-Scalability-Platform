@@ -160,6 +160,8 @@ ClRcT clUdpNotifyPeer(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNoti
     notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(nodeAddress);
 
     struct iovec ioVector[1];
+    memset(ioVector,  0, sizeof(ioVector));
+    memset(&msg, 0, sizeof(msg));
     ioVector[0].iov_base = (ClPtrT) &notification;
     ioVector[0].iov_len = sizeof(notification);
 
@@ -794,12 +796,14 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(nodeAddress);
 
     struct iovec ioVector[1];
+    memset(ioVector,  0, sizeof(ioVector));
     ioVector[0].iov_base = (ClPtrT) &notification;
     ioVector[0].iov_len = sizeof(notification);
 
     for(i = 0; i < gClNumMcastPeers; ++i)
     {
         struct msghdr msg;
+        memset(&msg, 0, sizeof(msg));
         ClInt32T mcastNotifPort = gClMcastPort;
         if(!gClMcastSupport && gClSimulationMode)
         {
