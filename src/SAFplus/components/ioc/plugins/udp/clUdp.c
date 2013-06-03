@@ -527,6 +527,7 @@ ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *ret
     {
         clLogNotice("MAP", "ADD", "Adding address [%s] for slot [%d]", addrStr, slot);
         map = iocUdpMapAdd(addrStr, slot);
+        rc = CL_OK;
     }
     /*
      * Update if slot address changed.
@@ -538,6 +539,11 @@ ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *ret
         free(map);
         clLogNotice("MAP", "ADD", "Updating address [%s] for SLOT [%d]", addrStr, slot);
         map = iocUdpMapAdd(addrStr, slot);
+        rc = CL_OK;
+    }
+    else
+    {
+        rc = CL_ERR_ALREADY_EXIST;
     }
     if(!map) goto out_unlock;
 
@@ -545,7 +551,6 @@ ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *ret
     {
         strncat(retAddrStr, addrStr, INET_ADDRSTRLEN - 1);
     }
-    rc = CL_OK;
 
     out_unlock:
     clOsalMutexUnlock(&gXportCtrl.mutex);
