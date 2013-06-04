@@ -43,6 +43,7 @@
 /*                                                                               */
 /*********************************************************************************/
 
+#if 0 /* DEPRECATED */
 
 /**
  *  \file
@@ -55,8 +56,6 @@
  *  \addtogroup fault_apis
  *  \{
  */
-
-
 
 #ifndef _CL_FAULT_API_H_
 #define _CL_FAULT_API_H_
@@ -269,3 +268,4 @@ extern ClRcT clFaultVersionVerify( CL_INOUT ClVersionT *version);
  *  \}
  */
 
+#endif

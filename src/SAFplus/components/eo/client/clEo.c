@@ -626,7 +626,7 @@ ClRcT clAspClientLibInitialize(void)
             if (CL_OK != (rc = gClClientLibInitTable[i].fn()))
             {
                 clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-                      "Failed to initializing client library [%s], error [0x%x]",
+                      "Failed to initialize client library [%s], error [0x%x]",
                       gClClientLibInitTable[i].libName, rc);
                 return rc;
             }
