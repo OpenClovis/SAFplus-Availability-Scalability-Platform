@@ -75,6 +75,7 @@ static ClInt32T gClMcastPort, gClMcastNotifPort;
 static ClIocAddrMapT *gClMcastPeers;
 static ClUint32T gClNumMcastPeers;
 static ClBoolT gClMcastSupport;
+static int gFd = -1;
 
 static ClRcT udpEventSubscribe(ClBoolT pollThread);
 
@@ -137,33 +138,46 @@ ClRcT clUdpNodeNotification(ClIocNodeAddressT node, ClIocNotificationIdT event)
 /*
  * Sending notify to peer list
  */
-ClRcT clUdpNotifyPeer(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotificationIdT notifyId, ClIocUdpMapT *map)
+ClRcT clUdpNotifyPeer(ClIocUdpMapT *map, void *args)
 {
+    ClIocNotificationT *pNotification = (ClIocNotificationT *)args;
     ClRcT rc = CL_OK;
-    ClIocNotificationT notification = { 0 };
-    static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
-    int fd = handlerFd[0];
     struct msghdr msg;
     ClInt32T mcastNotifPort = gClMcastPort;
     struct sockaddr *destaddr = NULL;
     socklen_t addrlen = 0;
+    ClUint32T i = 0;
 
-    if(fd < 0)
+    if (gFd < 0)
     {
-        return rc;
+        if(gClMcastSupport)
+        {
+            if( (gFd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP) ) < 0)
+                return CL_ERR_LIBRARY;
+        }
+        else
+        {
+            if( (gFd = socket(PF_INET, gClSockType, gClProtocol) ) < 0)
+                return CL_ERR_LIBRARY;
+
+        }
     }
 
-    notification.id = htonl(notifyId);
-    notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
-    notification.nodeVersion = htonl(nodeVersion);
-    notification.nodeAddress.iocPhyAddress.portId = htonl(portId);
-    notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(nodeAddress);
+    /* Filter out multicast address and specific peer address */
+    for (i = 0; i < gClNumMcastPeers; ++i)
+    {
+        if (!strcmp(map->addrstr, gClMcastPeers[i].addrstr))
+        {
+            /* This is static peer IP address */
+            return rc;
+        }
+    }
 
     struct iovec ioVector[1];
     memset(ioVector,  0, sizeof(ioVector));
     memset(&msg, 0, sizeof(msg));
-    ioVector[0].iov_base = (ClPtrT) &notification;
-    ioVector[0].iov_len = sizeof(notification);
+    ioVector[0].iov_base = (ClPtrT) pNotification;
+    ioVector[0].iov_len = sizeof(*pNotification);
 
     if(!gClMcastSupport)
     {
@@ -195,14 +209,14 @@ ClRcT clUdpNotifyPeer(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNoti
         msg.msg_iovlen = sizeof(ioVector) / sizeof(ioVector[0]);
         msg.msg_flags = 0;
 
-        if (sendmsg(fd, &msg, 0) < 0)
+        if (sendmsg(gFd, &msg, 0) < 0)
         {
-            clLogError("UDP", "NOTIF", "sendmsg failed with error [%s] for destination [%s]", strerror(errno), map->addrstr);
+            clLogError("UDP", "PEER", "sendmsg failed with error [%s] for destination [%s]", strerror(errno), map->addrstr);
             rc = CL_ERR_NO_RESOURCE;
         }
         else
         {
-            clLogDebug("UDP", "NOTIF", "Notification [%d] sent to node [%s], port [%d]", notifyId, map->addrstr, mcastNotifPort);
+            clLogDebug("UDP", "PEER", "Notification [%d] sent to node [%s], port [%d]", htonl(pNotification->id), map->addrstr, mcastNotifPort);
         }
     }
     return rc;
@@ -216,6 +230,24 @@ ClRcT clIocPeerList(ClIocUdpMapT *map, void *args)
     ClRcT rc = CL_OK;
     ClIocAddressT *destAddress = (ClIocAddressT *)args;
     ClBufferHandleT message = 0;
+
+    ClUint32T i = 0;
+    ClBoolT found = CL_FALSE;
+
+    /* Filter out multicast address and specific peer address */
+    for (i = 0; i < gClNumMcastPeers; ++i)
+    {
+        if (!strcmp(map->addrstr, gClMcastPeers[i].addrstr))
+        {
+            found = CL_TRUE;
+            break;
+        }
+    }
+
+    if (map->slot == gIocLocalBladeAddress || found)
+    {
+        return rc;
+    }
 
     clBufferCreate(&message);
     rc = clBufferNBytesWrite(message, (ClUint8T *) map, sizeof(*map));
@@ -290,7 +322,7 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
                 rc = clIocNotificationPacketSend((ClIocCommPortHandleT)&dummyCommPort,
                                                    &notification, (ClIocAddressT*)&destAddress, 
                                                    CL_FALSE, gClUdpXportType);
-                if (rc == CL_OK && clCpmIsSC())
+                if (!gClMcastSupport && rc == CL_OK && clCpmIsSC())
                 {
                     /* Sending UDP addresses to peer UDP addresses */
                     clUdpMapWalk(clIocPeerList, &destAddress, 0);
@@ -303,10 +335,13 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
                 /* This is for NODE ARRIVAL/DEPARTURE */
                 if (compAddr.nodeAddress != gIocLocalBladeAddress)
                 {
-                    rc = clIocUdpMapAdd((struct sockaddr*)(ClPtrT)pMsgHdr->msg_name, compAddr.nodeAddress, addStr);
-                    if (CL_OK == rc)
+                    if (id == CL_IOC_COMP_ARRIVAL_NOTIFICATION)
                     {
-                        clUdpAddrSet(compAddr.nodeAddress, addStr);
+                        rc = clIocUdpMapAdd((struct sockaddr*)(ClPtrT)pMsgHdr->msg_name, compAddr.nodeAddress, addStr);
+                        if (CL_OK == rc)
+                        {
+                            clUdpAddrSet(compAddr.nodeAddress, addStr);
+                        }
                     }
                     rc = clUdpNodeNotification(compAddr.nodeAddress, id);
                 }
@@ -362,11 +397,6 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
                     {
                         clUdpAddrSet(udpAddr.slot, addStr);
                         clLogTrace("UDP", "PEER", "UDP address node from peer [%d:%s]", udpAddr.slot, udpAddr.addrstr);
-
-                        /* Sending to socket 0 for handling */
-                        clOsalMutexLock(&gIocEventHandlerSendLock);
-                        rc = clUdpNotifyPeer(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_COMP_ARRIVAL_NOTIFICATION, &udpAddr);
-                        clOsalMutexUnlock(&gIocEventHandlerSendLock);
                     }
                 }
                 return rc;
@@ -711,21 +741,20 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     ClIocNotificationT notification = { 0 };
     ClUint32T i;
     static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
-    static int fd = -1; 
 
     if( (rc = udpMcastSetup() ) != CL_OK)
         return rc;
 
-    if(fd < 0)
+    if(gFd < 0)
     {
         if(gClMcastSupport)
         {
-            if( (fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP) ) < 0)
+            if( (gFd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP) ) < 0)
                 return CL_ERR_LIBRARY;
         }
         else
         {
-            if( (fd = socket(PF_INET, gClSockType, gClProtocol) ) < 0)
+            if( (gFd = socket(PF_INET, gClSockType, gClProtocol) ) < 0)
                 return CL_ERR_LIBRARY;
 
         }
@@ -780,7 +809,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
         msg.msg_controllen = gClMcastCmsgHdrLen;
         msg.msg_flags = 0;
 
-        if (sendmsg(fd, &msg, 0) < 0) 
+        if (sendmsg(gFd, &msg, 0) < 0)
         {
             clLogError(
                        "UDP",
@@ -796,6 +825,9 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
                        notifyId, gClMcastPeers[i].addrstr, mcastNotifPort);
         }
     }
+
+    /* Sending to socket 0 for handling */
+    clUdpMapWalk(clUdpNotifyPeer, &notification, 0);
 
     out:
     return rc;
@@ -815,7 +847,7 @@ static ClRcT udpDiscoverPeers(void)
     rc = clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_DISCOVER_NOTIFICATION);
     clOsalMutexUnlock(&gIocEventHandlerSendLock);
     if (rc == CL_OK)
-    {        
+    {
         sleep(UDP_CLUSTER_SYNC_WAIT_TIME);
         clLogInfo("UDP", "DISCOVER", "Cluster view sync complete. Discovered [%d] peers", gNumDiscoveredPeers);
     }    
