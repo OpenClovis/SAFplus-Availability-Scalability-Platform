@@ -50,12 +50,6 @@ typedef struct ClIocUdpMap
     ClUint32T priority;
 }ClIocUdpMapT;
 
-typedef struct ClIocUdpAddr
-{
-    ClIocNodeAddressT slot;
-    ClCharT addrstr[80];
-}ClIocUdpAddrT;
-
 ClRcT clUdpFdGet(ClIocPortT port, ClInt32T *fd);
 ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *retAddrStr);
 ClRcT clUdpAddrGet(ClIocNodeAddressT nodeAddress, ClCharT *addrStr);
