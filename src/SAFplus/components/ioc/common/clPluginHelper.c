@@ -26,14 +26,15 @@
 
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 
-static ClRcT _clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
+ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
 
 /*
  *  Network to Host
  *
  *  Convert from network to host type
  */
-static ClRcT _clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, ClCharT *internetAddress) {
+ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, ClCharT *internetAddress)
+{
     ClUint32T val[4] = { 0 };
     *addr = 0;
     ClCharT *token = NULL;
@@ -67,7 +68,8 @@ static ClRcT _clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, ClChar
  *
  *  Convert from host to network type
  */
-static ClRcT _clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress) {
+ClRcT clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress)
+{
 
     ClUint32T val1, val2, val3, val4;
 
@@ -89,13 +91,16 @@ static ClRcT _clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT
  * Fill and shift right bit
  * numBits range: 1 - 31
  */
-static ClUint32T _clPluginHelperBitFillRShift(ClUint32T numBits) {
+ClUint32T clPluginHelperBitFillRShift(ClUint32T numBits)
+{
     ClUint32T mask = ~0U;
     mask <<= (32 - numBits);
     return mask;
 }
 
-static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf) {
+#if 0
+static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf)
+{
     ClCharT net_addr[CL_MAX_FIELD_LENGTH] = "eth0";
     ClCharT *linkName = NULL;
     ClCharT envlinkNameType[CL_MAX_FIELD_LENGTH] = { 0 };
@@ -123,8 +128,11 @@ static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf) 
                 ClCharT *token = NULL;
                 strtok_r(net_addr, ":", &token);
             }
-            snprintf(inf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
-            
+            /* If we are not using the existing IP addr then we need to use a virtual device to make sure we don't overwrite an already-configured address */
+            if (!ASP_UDP_USE_EXISTING_IP)
+              snprintf(inf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
+            /* If we ARE using the existing IP, then whatever interfaces LINK_NAME is set to IS that address */
+            else snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", net_addr);            
         }
         else
         {
@@ -134,7 +142,9 @@ static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf) 
     }
     return CL_OK;
 }
+#endif
 
+#if 0
 static ClRcT _clPluginHelperGetIpNodeAddress(const ClCharT *xportType, const ClCharT *devIf, ClCharT *hostAddress, ClCharT *networkMask, ClCharT *broadcast, ClUint32T *ipAddressMask, ClCharT *xportSubnetPrefix)
 {
     ClCharT envSubNetType[CL_MAX_FIELD_LENGTH] = { 0 };
@@ -202,6 +212,7 @@ static ClRcT _clPluginHelperGetIpNodeAddress(const ClCharT *xportType, const ClC
     }
     return CL_OK;
 }
+#endif
 
 static ClRcT _clPluginHelperDevToMac(const ClCharT* dev, char mac[CL_MAC_ADDRESS_LENGTH]) {
     struct ifreq req;
@@ -343,9 +354,8 @@ static void *_clPluginHelperPummelArps(void *arg) {
 /*
  * Returns ip address on a network interface given its name...
  */
-static ClRcT _clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr)
+ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr)
 {
-
     int sd;
     struct ifreq req;
     ClCharT ipAddress[INET_ADDRSTRLEN] = { 0 };
@@ -545,12 +555,9 @@ out:
         free(vipCopy);
 }
 
-void clPluginHelperGetIpAddress(const ClUint32T ipAddressMask, const ClIocNodeAddressT iocAddress, ClCharT *hostAddress) {
-    _clPluginHelperConvertHostToInternetAddress(ipAddressMask + iocAddress, hostAddress);
-}
 
-ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType,
-                                          ClPluginHelperVirtualIpAddressT* vip)
+#if 0
+ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType, ClPluginHelperVirtualIpAddressT* vip)
 {
 
     ClRcT rc = CL_OK;
@@ -561,7 +568,7 @@ ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType,
     ClCharT subnetPrefix[CL_MAX_FIELD_LENGTH] = {0};
     ClUint32T ipAddressMask = 0;
 
-    rc = _clPluginHelperGetLinkName(xportType, dev);
+    rc = clPluginHelperGetLinkName(xportType, dev);
     if (rc != CL_OK)
     {
         clLogError("IOC", CL_LOG_PLUGIN_HELPER_AREA,
@@ -593,4 +600,4 @@ ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType,
     return CL_OK;
 
 }
-
+#endif

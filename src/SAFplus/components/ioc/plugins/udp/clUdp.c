@@ -33,6 +33,7 @@ static struct hashStruct *gIocUdpMap[IOC_UDP_MAP_SIZE];
 static CL_LIST_HEAD_DECLARE(gIocUdpMapList);
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 static ClPluginHelperVirtualIpAddressT gVirtualIp;
+ClBoolT ASP_UDP_USE_EXISTING_IP = CL_FALSE;
 static ClBoolT gUdpInit = CL_FALSE;
 ClBoolT gClSimulationMode = CL_FALSE;
 ClInt32T gClProtocol = IPPROTO_UDP;
@@ -374,9 +375,8 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
             }
             nodeBridge = dstBridge.iocPhyAddress.nodeAddress;
         }
-        clPluginHelperGetIpAddress(gVirtualIp.ipAddressMask, nodeBridge, addr);
-        clLogTrace("UDP", "MAP", "Node [%d] at [%s] uses bridge [%d] through xport [%s]", 
-                   slot, addr, nodeBridge, xportType);
+        clPluginHelperConvertHostToInternetAddress(gVirtualIp.ipAddressMask + nodeBridge, addr);
+        clLogTrace("UDP", "MAP", "Node [%d] at [%s] uses bridge [%d] through xport [%s]", slot, addr, nodeBridge, xportType);
     }
     map->slot = slot;
     map->bridge = nodeBridge != slot ? CL_TRUE : CL_FALSE;
@@ -485,6 +485,8 @@ ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *ret
     return rc;
 }
 
+
+
 /*
  * Got notification node/comp arrival and update hash map
  */
@@ -524,10 +526,123 @@ ClRcT xportAddressAssign(void)
 {
     ClRcT rc = CL_OK;
 
-    // Assigned IP address for node
-    clPluginHelperAddRemVirtualAddress("up", &gVirtualIp);
+    /* Assign IP address for node, but ONLY if we aren't supposed to use the existing address */
+    if (!ASP_UDP_USE_EXISTING_IP) clPluginHelperAddRemVirtualAddress("up", &gVirtualIp);
     return rc;
 }
+
+static ClRcT clUdpGetBackplaneInterface(const ClCharT *xportType, ClCharT *inf)
+{
+    ClCharT net_addr[CL_MAX_FIELD_LENGTH] = "eth0";
+    ClCharT *linkName = NULL;
+    ClCharT envlinkNameType[CL_MAX_FIELD_LENGTH] = { 0 };
+    if (!xportType)
+    {
+        return CL_ERR_INVALID_PARAMETER;
+    }
+    else
+    {
+        snprintf(envlinkNameType, CL_MAX_FIELD_LENGTH, "ASP_%s_LINK_NAME", xportType);
+        linkName = getenv(envlinkNameType);
+        if (linkName == NULL)
+        {
+            // try with default LINK_NAME
+            linkName = getenv("LINK_NAME");
+            if (linkName == NULL)
+            {
+                clLogNotice("UDP", "INI", "%s and LINK_NAME environment variable is not exported. Using 'eth0' interface as default", envlinkNameType);
+            }
+            else
+            {
+                clLogNotice("UDP", "INI", "LINK_NAME env is exported. Value is %s", linkName);
+                net_addr[0] = 0;
+                strncat(net_addr, linkName, sizeof(net_addr)-1);
+                ClCharT *token = NULL;
+                strtok_r(net_addr, ":", &token);
+            }
+            /* If we are not using the existing IP addr then we need to use a virtual device to make sure we don't overwrite an already-configured address */
+            if (!ASP_UDP_USE_EXISTING_IP)
+              snprintf(inf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
+            /* If we ARE using the existing IP, then whatever interfaces LINK_NAME is set to IS that address */
+            else snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", net_addr);            
+        }
+        else
+        {
+            clLogInfo("UDP", "INI", "%s env is exported. Value is %s", envlinkNameType, linkName);
+            snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", linkName);
+        }
+    }
+    return CL_OK;
+}
+
+static ClRcT clUdpGetNodeIpAddress(const ClCharT *xportType, const ClCharT *devIf, ClCharT *hostAddress, ClCharT *networkMask, ClCharT *broadcast, ClUint32T *ipAddressMask, ClCharT *xportSubnetPrefix)
+{
+    ClCharT envSubNetType[CL_MAX_FIELD_LENGTH] = { 0 };
+    ClCharT xportSubnet[CL_MAX_FIELD_LENGTH] = { 0 };
+    ClCharT *subnetMask = NULL;
+    ClCharT *subnetPrefix = NULL;
+    ClUint32T CIDR, ipMask, ip, mask;
+    ClRcT rc;
+    
+    if (!xportType)
+    {
+        return CL_ERR_INVALID_PARAMETER;
+    } 
+    else 
+    {
+        snprintf(envSubNetType, CL_MAX_FIELD_LENGTH, "ASP_%s_SUBNET", xportType);
+        subnetMask = getenv(envSubNetType);
+        if (subnetMask == NULL) 
+        {
+            subnetMask = ASP_PLUGIN_SUBNET_DEFAULT;
+        }
+        subnetPrefix = strrchr(subnetMask, '/');
+        if(!subnetPrefix)
+        {
+            subnetPrefix = ASP_PLUGIN_SUBNET_PREFIX_DEFAULT; 
+        }
+        else 
+        {
+            ++subnetPrefix;
+        }
+        if(! (CIDR = atoi(subnetPrefix) ) )
+        {
+            clLogInfo("UDP", "INI", "Subnet mask configuration setting (ASP_[transport]_SUBNET) cannot be parsed [%s]", subnetMask);
+            return CL_ERR_INVALID_PARAMETER;
+        }
+        xportSubnetPrefix[0] = 0;
+        strncat(xportSubnetPrefix, subnetPrefix, CL_MAX_FIELD_LENGTH-1);
+        snprintf(xportSubnet, sizeof(xportSubnet), "%s", subnetMask);
+        mask = clPluginHelperBitFillRShift(CIDR);
+        clPluginHelperConvertInternetToHostAddress(&ip, xportSubnet);
+
+        /* network address */
+        ipMask = (ip & mask);
+
+
+        /* Try to get address from devif */
+        
+        rc = CL_OK+1;  /* start with any error condition, so the if below this one will be taken  */
+        if (ASP_UDP_USE_EXISTING_IP)
+        {
+            rc = clPluginHelperDevToIpAddress(devIf, hostAddress);
+            if (rc == CL_OK) clLogInfo("UDP","INI","Use existing IP address [%s] as this nodes transport address.", hostAddress);
+            else clLogError("UDP","INI","Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
+        }
+        
+        if (rc != CL_OK)
+        {
+             /* Automatic assignment of IP address */
+            clPluginHelperConvertHostToInternetAddress(ipMask + gIocLocalBladeAddress, hostAddress);
+        }
+
+        clPluginHelperConvertHostToInternetAddress(mask, networkMask);
+        clPluginHelperConvertHostToInternetAddress(ip | ~mask, broadcast);
+        *ipAddressMask = ipMask;
+    }
+    return CL_OK;
+}
+
 
 #ifdef HAVE_SCTP
 
@@ -618,16 +733,30 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     gClUdpXportId = xportId;
     gClBindOffset = gIocLocalBladeAddress;
     checkInitSctp();
+    ASP_UDP_USE_EXISTING_IP = clParseEnvBoolean("ASP_UDP_USE_EXISTING_IP");
     gClSimulationMode = clParseEnvBoolean("ASP_MULTINODE");
     if(gClSimulationMode)
     {
         clLogNotice("XPORT", "INIT", "Simulation mode is enabled for the runtime");
         gClBindOffset <<= 10;
     }
-    clPluginHelperGetVirtualAddressInfo("UDP", &gVirtualIp);
+    
+    //clPluginHelperGetVirtualAddressInfo("UDP", &gVirtualIp);
+    rc = clUdpGetBackplaneInterface("UDP", gVirtualIp.dev);
+    if (rc != CL_OK)
+    {
+        clLogError("UDP", "INI", "Unable to determine the backplane link: error [%#x]", rc);
+        return rc;
+    }
 
-    clLogDebug("UDP", "INI", "Link Name: %s, IP Node Address: %s, Network Address: %s, Broadcast: %s", gVirtualIp.dev, gVirtualIp.ip,
-            gVirtualIp.netmask, gVirtualIp.broadcast);
+    rc = clUdpGetNodeIpAddress(xportType, gVirtualIp.dev,gVirtualIp.ip,gVirtualIp.netmask,gVirtualIp.broadcast,&gVirtualIp.ipAddressMask,gVirtualIp.subnetPrefix);
+    if (rc != CL_OK)
+    {
+        clLogError("UDP", "INI", "Unable to determine the backplane IP Address: error [%#x]", rc);
+        return rc;
+    }
+    
+    clLogInfo("UDP", "INI", "Backplane: Link Name: %s, IP Node Address: %s, Network Address: %s, Broadcast: %s, Subnet Prefix: %s, Address Mask: 0x%x", gVirtualIp.dev, gVirtualIp.ip, gVirtualIp.netmask, gVirtualIp.broadcast,gVirtualIp.subnetPrefix,gVirtualIp.ipAddressMask);
 
     /*
      * To do a fast pass early update node entry table

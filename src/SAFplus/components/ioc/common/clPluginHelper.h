@@ -42,6 +42,12 @@ void clPluginHelperAddRemVirtualAddress(const char *cmd, const ClPluginHelperVir
 ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType, ClPluginHelperVirtualIpAddressT *vip);
 void clPluginHelperGetIpAddress(const ClUint32T ipAddressMask, const ClIocNodeAddressT iocAddress, ClCharT *hostAddress);
 
+    ClUint32T clPluginHelperBitFillRShift(ClUint32T numBits);
+    ClRcT clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress);
+    ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, ClCharT *internetAddress);
+    ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
+    
+    
 #ifdef __cplusplus
 }
 #endif
