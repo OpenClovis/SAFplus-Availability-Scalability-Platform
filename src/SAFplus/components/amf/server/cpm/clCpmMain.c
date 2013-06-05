@@ -3496,6 +3496,8 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
     ClIocPortT iocPort = 0;
     ClUint32T protoVersion = 0;
     ClInt32T nodeUp = 0;
+    ClGmsNodeIdT nodeId = 0;
+
 
     if(!invocation) return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
 
@@ -3509,13 +3511,14 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
                    "Supported version [%d]", protoVersion, 
                    CL_IOC_NOTIFICATION_VERSION);
         rc = CL_CPM_RC(CL_ERR_VERSION_MISMATCH);
-        goto failure;
+        return rc;
     }
-
+    
     iocPort = ntohl(iocNotification.nodeAddress.iocPhyAddress.portId);
-    iocAddress = ntohl(iocNotification.nodeAddress.iocPhyAddress.nodeAddress);
-
+    iocAddress = ntohl(iocNotification.nodeAddress.iocPhyAddress.nodeAddress);    
     notificationId = ntohl(iocNotification.id);
+
+    CL_CPM_IOC_ADDRESS_SLOT_GET(iocAddress, nodeId);
 
     clOsalMutexLock(&gpClCpm->clusterMutex);
 
@@ -3535,10 +3538,7 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
              */
         case CL_IOC_COMP_DEATH_NOTIFICATION:
         {
-            ClGmsNodeIdT nodeId = 0;
-
             clRmdDatabaseCleanup(NULL, &iocNotification);
-            CL_CPM_IOC_ADDRESS_SLOT_GET(iocAddress, nodeId);
 
             if ((iocPort == CL_IOC_DEFAULT_COMMPORT) ||
                 (iocPort == CL_IOC_CPM_PORT))
@@ -3581,9 +3581,6 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
                                   nodeId);
 
                     rc = cpmStandby2Active(nodeId, -1);
-                    
-                    if(rc != CL_OK)
-                        goto out_unlock;
                 }
             }
             else
@@ -3598,28 +3595,31 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
         
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
         case CL_IOC_NODE_LINK_UP_NOTIFICATION:
+            break;            
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
-            /*
-             * Ignore it on the CPM side.
+            /* If I am standby, and get an arrival event for the AMF instance I thought was active
+               then it must have restarted before we got the keepalive timeout.  So I need to become active.
+               This fixes the rapid restart using kill -9 (amf) and UDP keepalives
              */
+            clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "Component arrival from node:port [%d:%d]", nodeId,iocPort);
+            if ((iocPort == CL_IOC_DEFAULT_COMMPORT) || (iocPort == CL_IOC_CPM_PORT))
+            {
+              if (CL_CPM_IS_STANDBY() && (nodeId == gpClCpm->activeMasterNodeId) && (gpClCpm->deputyNodeId == clIocLocalAddressGet()))
+                {
+                    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "Standby got arrival notification for expected active AMF on node [%d] -- it must have failed and restarted.  Making myself active.", nodeId);
+                    rc = cpmStandby2Active(nodeId, -1);
+                }
+            }
             break;
+            
         default:
         {
-            clLogError(CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED,
-                       "CPM got IOC notification with "
-                       "notification id [%d], ignoring !!...",
-                       notificationId);
+            clLogError(CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED, "AMF got unknown IOC notification id [%d], ignoring...",notificationId);
         }
     }
 
-    clOsalMutexUnlock(&gpClCpm->clusterMutex);
-
-    return CL_OK;
-
     out_unlock:
     clOsalMutexUnlock(&gpClCpm->clusterMutex);
-
-    failure:
     return rc;
 }
 

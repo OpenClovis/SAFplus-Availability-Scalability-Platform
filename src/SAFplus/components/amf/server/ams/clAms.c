@@ -645,22 +645,21 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister)
 {
     ClRcT rc = CL_OK;
     ClAmsEntityRefT entityRef = {{0}};
-    if(!pNodeName)
-        return rc;
+    if(!pNodeName) return rc;
     clOsalMutexLock(gAms.mutex);
-    if(!gAms.isEnabled 
-       || 
-       gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE)
+    
+    if(!gAms.isEnabled || gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE)
     {
-        clLogNotice("NODE", "JOIN", "Returning try again for node join as ams state is not up");
+        clLogNotice("NODE", "JOIN", "Returning try again for node join as AMF is not ready");
         rc = CL_AMS_RC(CL_ERR_TRY_AGAIN);
         goto out_unlock;
-    } 
+    }
+    
     clNameSet(&entityRef.entity.name, pNodeName);
     ++entityRef.entity.name.length;
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
-                                 &entityRef);
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &entityRef);
+    
     if(rc == CL_OK && entityRef.ptr)
     {
         ClAmsNodeT *node = (ClAmsNodeT*)entityRef.ptr;
@@ -693,12 +692,16 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister)
                 node->status.wasMemberBefore = CL_TRUE;
                 node->status.isClusterMember = CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER;
             }
-            clLogWarning("NODE", "JOIN", "Node [%s] already member of the cluster. "
-                         "Forcing recovery error to have the node restarted since "
-                         "it appears to be recovering from an inconsistent cluster state "
-                         "mostly caused by fast controller flips",
-                         pNodeName);
-            rc = CL_AMS_RC(CL_ERR_INVALID_STATE);
+            else /* Node failed & recovered before Keepalives could indicate the issue (happens when AMF kill -9) */
+            {
+                /* So fail it */
+                clLogWarning("AMF", "EVT", "Node [%s] is reentering cluster before its failure was discovered.  Failing it now.",pNodeName);
+                clAmsPeNodeHasLeftCluster(node,CL_FALSE);
+                /* cpmFailoverNode(node->config.id, CL_FALSE); */
+                clLogWarning("AMF", "EVT", "Node [%s] failure completed.",pNodeName);
+            }
+            
+            rc = CL_AMS_RC(CL_ERR_TRY_AGAIN);
             goto out_unlock;
         }
     }

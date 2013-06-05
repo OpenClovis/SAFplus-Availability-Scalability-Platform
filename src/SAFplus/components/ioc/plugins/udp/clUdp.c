@@ -36,6 +36,7 @@ static ClPluginHelperVirtualIpAddressT gVirtualIp;
 ClBoolT ASP_UDP_USE_EXISTING_IP = CL_FALSE;
 static ClBoolT gUdpInit = CL_FALSE;
 ClBoolT gClSimulationMode = CL_FALSE;
+ClBoolT gClNodeRepresentative = CL_FALSE;
 ClInt32T gClProtocol = IPPROTO_UDP;
 ClInt32T gClSockType = SOCK_DGRAM;
 ClInt32T gClCmsgHdrLen;
@@ -692,8 +693,7 @@ static ClRcT checkInitSctp(void)
     parent = clParserOpenFile(config, CL_TRANSPORT_CONFIG_FILE);
     if(!parent)
     {
-        clLogWarning("INIT", "SCTP", "Unable to check for sctp mode as config file [%s] "
-                     "is absent at [%s]",
+        clLogWarning("INIT", "SCTP", "Unable to check for sctp mode as config file [%s] is absent at [%s]",
                      CL_TRANSPORT_CONFIG_FILE, config);
         rc = CL_ERR_NOT_EXIST;
         goto out;
@@ -705,8 +705,7 @@ static ClRcT checkInitSctp(void)
         goto out_free;
     }
     mode = clParserAttr(child, "mode");
-    if(!strncasecmp(mode, "on", 2) ||
-       !strncasecmp(mode, "enabled", 7))
+    if(!strncasecmp(mode, "on", 2) || !strncasecmp(mode, "enabled", 7))
     {
         initSctp();
     }
@@ -725,14 +724,15 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     ClRcT rc = CL_OK;
     ClIocUdpMapT *map = NULL;
 
+    /* Initialize plugin global variables */
     if(xportType)
     {
         gClUdpXportType[0] = 0;
         strncat(gClUdpXportType, xportType, sizeof(gClUdpXportType)-1);
     }
+    gClNodeRepresentative = nodeRep;
     gClUdpXportId = xportId;
     gClBindOffset = gIocLocalBladeAddress;
-    checkInitSctp();
     ASP_UDP_USE_EXISTING_IP = clParseEnvBoolean("ASP_UDP_USE_EXISTING_IP");
     gClSimulationMode = clParseEnvBoolean("ASP_MULTINODE");
     if(gClSimulationMode)
@@ -740,8 +740,11 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
         clLogNotice("XPORT", "INIT", "Simulation mode is enabled for the runtime");
         gClBindOffset <<= 10;
     }
-    
-    //clPluginHelperGetVirtualAddressInfo("UDP", &gVirtualIp);
+
+    /* check to see if SCTP protocol chosen, and if so, init it */
+    checkInitSctp();
+
+    /* Determine the device, IP address and IP network that will be used */
     rc = clUdpGetBackplaneInterface("UDP", gVirtualIp.dev);
     if (rc != CL_OK)
     {

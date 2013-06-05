@@ -2020,7 +2020,7 @@ static void __cpmRegisterWithActive(ClBoolT reregister)
                            "Self registration of CPM/G "
                            "active node [%s] failed -- \n"
                            "This indicates that there is a serious "
-                           "problem in configuration of ASP. \n"
+                           "problem in the configuration. \n"
                            "Please check that : \n"
                            "%s%s",
                            gpClCpm->pCpmLocalInfo->nodeName,

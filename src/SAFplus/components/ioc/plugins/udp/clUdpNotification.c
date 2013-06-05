@@ -317,8 +317,7 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
 
                 notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
                 notification.nodeAddress.iocPhyAddress.portId = htonl(CL_IOC_XPORT_PORT);
-                clLogDebug("UDP", "DISCOVER", "Sending udp discover packet to node [%d], port [%#x]",
-                           compAddr.nodeAddress, compAddr.portId);
+                clLogDebug("UDP", "DISCOVER", "Sending udp discover packet to node [%d], port [%#x]", compAddr.nodeAddress, compAddr.portId);
                 rc = clIocNotificationPacketSend((ClIocCommPortHandleT)&dummyCommPort,
                                                    &notification, (ClIocAddressT*)&destAddress, 
                                                    CL_FALSE, gClUdpXportType);
@@ -349,13 +348,14 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             else
             {
                 /* This is for LOCAL COMPONENT ARRIVAL/DEPARTURE */
-                clLogInfo("UDP", "NOTIF", "Got component [%s] notification for node [0x%x] commport [0x%x]",
+                clLogInfo("UDP", "NOTIF", "Got component [%s] notification for node [0x%x] port [0x%x]",
                           id == CL_IOC_COMP_ARRIVAL_NOTIFICATION ? "arrival" : "death", compAddr.nodeAddress, compAddr.portId);
                 ClUint8T status = (id == CL_IOC_COMP_ARRIVAL_NOTIFICATION) ? CL_IOC_NODE_UP : CL_IOC_NODE_DOWN;
 
                 clIocCompStatusSet(compAddr, status);
 
-                if (compAddr.nodeAddress == gIocLocalBladeAddress) {
+                if (compAddr.nodeAddress == gIocLocalBladeAddress)
+                {
                     rc = clIocNotificationCompStatusSend((ClIocCommPortHandleT)&dummyCommPort,
                                                          id == CL_IOC_COMP_ARRIVAL_NOTIFICATION ? 
                                                          CL_IOC_NODE_UP : CL_IOC_NODE_DOWN,
@@ -363,14 +363,12 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
                                                          (ClIocAddressT*)&allNodeReps,
                                                          gClUdpXportType);
 
-                    if ( id == CL_IOC_COMP_DEATH_NOTIFICATION
-                         && compAddr.portId == CL_IOC_CPM_PORT)
+                    if ( (id == CL_IOC_COMP_DEATH_NOTIFICATION) && (compAddr.portId == CL_IOC_CPM_PORT))
                     {
                         /*
                          * self shutdown.
                          */
-                        clTransportNotificationClose(NULL, gIocLocalBladeAddress, 
-                                                     CL_IOC_XPORT_PORT, CL_IOC_COMP_DEATH_NOTIFICATION);
+                        clTransportNotificationClose(NULL, gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_COMP_DEATH_NOTIFICATION);
                         threadContFlag = 0;
                     }
                 }
@@ -821,8 +819,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
         }
         else
         {
-            clLogDebug("UDP", "NOTIF", "Notification [%d] sent to node [%s], port [%d]",
-                       notifyId, gClMcastPeers[i].addrstr, mcastNotifPort);
+            clLogDebug("UDP", "NOTIF", "Notification [%d] sent to node [%s], port [%d]", notifyId, gClMcastPeers[i].addrstr, mcastNotifPort);
         }
     }
 
@@ -900,6 +897,14 @@ ClRcT clUdpEventHandlerInitialize(void)
 
     udpDiscoverPeers(); /* shouldn't return till cluster sync interval */
 
+    /* I need to tell everyone that I went down in case the keep-alive hasn't kicked in yet */
+    if (gClNodeRepresentative)
+    {
+        /* clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_LEAVE_NOTIFICATION);
+           sleep(1); */
+        clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_ARRIVAL_NOTIFICATION);
+    }
+    
     clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_COMP_ARRIVAL_NOTIFICATION);
 
     out:

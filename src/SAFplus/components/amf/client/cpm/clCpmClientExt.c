@@ -1133,10 +1133,8 @@ ClRcT clCpmCpmLocalRegister(ClCpmLocalInfoT *cpmLocalInfo)
 
     if (cpmLocalInfo == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
-                   CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
-                         CL_CPM_RC(CL_ERR_NULL_POINTER));
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB, CL_LOG_MESSAGE_0_NULL_ARGUMENT);
+        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"), CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
     rc = clCpmMasterAddressGet(&masterIocAddress);

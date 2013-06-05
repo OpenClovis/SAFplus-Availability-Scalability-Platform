@@ -64,6 +64,8 @@ extern struct cmsghdr *gClCmsgHdr;
 extern ClInt32T gClCmsgHdrLen;
 extern ClInt32T gClSockType;
 extern ClInt32T gClProtocol;
+extern ClBoolT gClNodeRepresentative; /* Is this process representing the entire node in the cluster? */
+    
 #ifdef __cplusplus
 }
 #endif

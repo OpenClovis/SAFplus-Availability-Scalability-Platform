@@ -342,10 +342,7 @@ static ClRcT _clIocHeartBeatSend(void)
                 {
                     if (entry->retryCount > gClHeartBeatRetries)
                     {
-                        clLogNotice(
-                                    "IOC",
-                                    "HBT",
-                                    "HeartBeat node [0x%x]'s status death", entry->linkIndex);
+                        clLogNotice("IOC", "HBT", "No heartbeats from node [0x%x] for %d retries.  Marking node failed.", entry->linkIndex, entry->retryCount);
                         entry->status = CL_IOC_NODE_DOWN;
                         /*
                          * Notify node leave close and release the entry to avoid false heartbeat
