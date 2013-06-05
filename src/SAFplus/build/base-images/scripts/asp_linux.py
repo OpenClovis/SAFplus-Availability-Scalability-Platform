@@ -33,7 +33,7 @@ def system(cmd):
             signal = retval & 0x7f
             core   = ((retval & 0x80) !=0)
             retval = retval >> 8
-        print 'popen Command return value %s, Output:\n%s' % (str(retval),output)
+        #print 'popen Command return value %s, Output:\n%s' % (str(retval),output)
         return (retval, output, signal, core)
     else :
         #print 'Executing command: %s' % cmd
@@ -55,7 +55,7 @@ def system(cmd):
         signal = retval & 0x7f
         core   = ((retval & 0x80) !=0)
         retval = retval >> 8
-        print 'Subprocess Command return value %s, Output:\n%s' % (str(retval),output)
+        #print 'Subprocess Command return value %s, Output:\n%s' % (str(retval),output)
         del child
         return (retval, output, signal, core)
 
