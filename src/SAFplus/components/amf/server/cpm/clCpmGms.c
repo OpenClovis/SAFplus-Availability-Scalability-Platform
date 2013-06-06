@@ -156,8 +156,8 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
 {
     ClUint32T rc = CL_OK;
     ClGmsNodeIdT prevMasterNodeId = gpClCpm->activeMasterNodeId;
-    ClBoolT leadershipChanged = notificationBuffer->leadershipChanged; 
-
+    ClBoolT leadershipChanged = notificationBuffer->leadershipChanged;
+    
     /*  
      * Check for initial leadership state incase the cluster track from AMF was issued
      * after GMS leader election was done and GMS responded back with a track with a leadership changed
@@ -563,8 +563,7 @@ static void cpmPayload2StandbySC(const ClGmsClusterNotificationBufferT *notifica
     return ;
 }
 
-void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT
-                               *notificationBuffer)
+void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT *notificationBuffer)
 {
     ClCpmLocalInfoT *pCpmLocalInfo = NULL;
     ClInt32T nodeUp = 0;

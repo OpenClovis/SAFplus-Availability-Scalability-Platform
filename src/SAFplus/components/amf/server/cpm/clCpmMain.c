@@ -2948,8 +2948,7 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
     return rc;
 }
 
-void cpmStandbyRecover(const ClGmsClusterNotificationBufferT
-                       *notificationBuffer)
+void cpmStandbyRecover(const ClGmsClusterNotificationBufferT *notificationBuffer)
 {
     ClRcT rc = CL_OK;
     
@@ -3540,8 +3539,7 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
         {
             clRmdDatabaseCleanup(NULL, &iocNotification);
 
-            if ((iocPort == CL_IOC_DEFAULT_COMMPORT) ||
-                (iocPort == CL_IOC_CPM_PORT))
+            if ((iocPort == CL_IOC_DEFAULT_COMMPORT) || (iocPort == CL_IOC_CPM_PORT))
             {
                 /*
                  * skip self death notification processing.
@@ -3594,22 +3592,43 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
         break;
         
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
-        case CL_IOC_NODE_LINK_UP_NOTIFICATION:
-            break;            
-        case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
+            clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "Node [%d] arrival received from port [%d]", nodeId,iocPort);
+#if 0            
             /* If I am standby, and get an arrival event for the AMF instance I thought was active
                then it must have restarted before we got the keepalive timeout.  So I need to become active.
                This fixes the rapid restart using kill -9 (amf) and UDP keepalives
-             */
+
+               Note: except it still has issues.  Solved temporarily by putting a restart delay in the watchdog
+             */            
+            if (CL_CPM_IS_STANDBY() && (nodeId == gpClCpm->activeMasterNodeId) && (gpClCpm->deputyNodeId == clIocLocalAddressGet()))
+            {
+                clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "Standby got an arrival notification for what it thought was the active AMF on node [%d] -- it must have failed and restarted.  Making myself active.", nodeId);
+                rc = cpmStandby2Active(nodeId, -1);
+            }
+#endif            
+            break;
+              
+        case CL_IOC_NODE_LINK_UP_NOTIFICATION:
+            break;            
+        case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
             clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "Component arrival from node:port [%d:%d]", nodeId,iocPort);
-            if ((iocPort == CL_IOC_DEFAULT_COMMPORT) || (iocPort == CL_IOC_CPM_PORT))
+#if 0            
+            /* If I am standby, and get an arrival event for the AMF instance I thought was active
+               then it must have restarted before we got the keepalive timeout.  So I need to become active.
+               This fixes the rapid restart using kill -9 (amf) and UDP keepalives
+
+               Note: except it still has issues.  Solved temporarily by putting a restart delay in the watchdog
+             */
+            if ((iocPort == CL_IOC_DEFAULT_COMMPORT) || (iocPort == CL_IOC_CPM_PORT))  /* These ports indicate the AMF started up */
             {
               if (CL_CPM_IS_STANDBY() && (nodeId == gpClCpm->activeMasterNodeId) && (gpClCpm->deputyNodeId == clIocLocalAddressGet()))
                 {
                     clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "Standby got arrival notification for expected active AMF on node [%d] -- it must have failed and restarted.  Making myself active.", nodeId);
+                    /* clAmsPeNodeHasLeftCluster(node,CL_FALSE); */
                     rc = cpmStandby2Active(nodeId, -1);
                 }
             }
+#endif            
             break;
             
         default:

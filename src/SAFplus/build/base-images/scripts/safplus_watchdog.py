@@ -25,6 +25,8 @@ ASP_WATCHDOG_RESTART_FILE='safplus_restart_watchdog'
 ASP_REBOOT_FILE = 'safplus_reboot'
 ASP_RESTART_DISABLE_FILE = 'safplus_restart_disable'
 
+SAFPLUS_RESTART_DELAY = 15  # How long to delay before restarting.  If the AMF is able to restart before keepalives find it dead this will cause major issues in the AMF.
+
 def getenv(varName, default):
     env_value = os.getenv(varName)
     if env_value == None:
@@ -93,7 +95,7 @@ def amf_watchdog_loop():
                 ## after a link re-establishment results in multicast link
                 ## retransmit failures due to pending ACK thereby resulting
                 ## in all the TIPC links being reset.
-
+                wdSleep(SAFPLUS_RESTART_DELAY)
                 asp.start_asp(stop_watchdog=False, force_start=True)
                 asp.create_asp_cmd_marker('start')
                 sys.exit(1)
@@ -123,6 +125,7 @@ def amf_watchdog_loop():
                 if not asp_admin_stop():
                     asp.zap_asp(False)
                     if asp.should_restart_asp():
+                        wdSleep(SAFPLUS_RESTART_DELAY)
                         asp.start_asp(stop_watchdog=False, force_start = True)
                         asp.create_asp_cmd_marker('start')
                     else:
