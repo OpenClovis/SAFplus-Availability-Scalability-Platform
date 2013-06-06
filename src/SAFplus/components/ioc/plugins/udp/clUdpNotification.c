@@ -329,12 +329,12 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
                 return rc;
             }
 
-            if (compAddr.portId == CL_IOC_XPORT_PORT)
+            if (compAddr.portId == CL_IOC_XPORT_PORT || compAddr.portId == CL_IOC_CPM_PORT)
             {
                 /* This is for NODE ARRIVAL/DEPARTURE */
                 if (compAddr.nodeAddress != gIocLocalBladeAddress)
                 {
-                    if (id == CL_IOC_COMP_ARRIVAL_NOTIFICATION)
+                    if (id == CL_IOC_COMP_ARRIVAL_NOTIFICATION || id == CL_IOC_NODE_ARRIVAL_NOTIFICATION)
                     {
                         rc = clIocUdpMapAdd((struct sockaddr*)(ClPtrT)pMsgHdr->msg_name, compAddr.nodeAddress, addStr);
                         if (CL_OK == rc)
@@ -905,7 +905,7 @@ ClRcT clUdpEventHandlerInitialize(void)
         clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_ARRIVAL_NOTIFICATION);
     }
     
-    clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_COMP_ARRIVAL_NOTIFICATION);
+    clUdpNotify(gIocLocalBladeAddress, CL_IOC_CPM_PORT, CL_IOC_COMP_ARRIVAL_NOTIFICATION);
 
     out:
     return rc;
