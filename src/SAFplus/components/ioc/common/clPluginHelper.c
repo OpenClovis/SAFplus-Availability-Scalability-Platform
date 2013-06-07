@@ -24,8 +24,6 @@
 #define CL_PLUGIN_HELPER_ARP_HW_TYPE_ETHERNET (1)
 #define CL_PLUGIN_HELPER_IP_PROTO_TYPE 0x0800
 
-extern ClIocNodeAddressT gIocLocalBladeAddress;
-
 ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
 
 /*
@@ -555,6 +553,42 @@ out:
         free(vipCopy);
 }
 
+/* ip route configure */
+void clPluginHelperAddRouteAddress(ClCharT *ipAddress, const ClCharT *ifDevName)
+{
+    FILE *route_file;
+    ClUint32T dest;
+    ClCharT dummyStr[CL_MAX_NAME_LENGTH];
+    ClCharT dummyDev[CL_MAX_FIELD_LENGTH];
+    ClUint32T ipMulticast;
+    ClBoolT foundDestRoute = CL_FALSE;
+    __attribute__((unused)) ClRcT result;
+
+    clPluginHelperConvertInternetToHostAddress(&ipMulticast, ipAddress);
+
+    // open route file to get the route destination
+    route_file = fopen("/proc/net/route", "r");
+
+    result = fscanf(route_file, "%[^\n]", dummyStr);
+
+    while (!feof(route_file))
+    {
+        result = fscanf(route_file, "%s %8X %[^\n]", dummyDev, &dest, dummyStr);
+        if (!(ipMulticast ^ dest))
+        {
+            foundDestRoute = CL_TRUE;
+        }
+    }
+    fclose(route_file);
+
+    if (!foundDestRoute)
+    {
+        char execLine[301];
+        snprintf(execLine, 300, "/sbin/ip route add %s dev %s", ipAddress, ifDevName);
+        clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Executing %s", execLine);
+        result = system(execLine);
+    }
+}
 
 #if 0
 ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType, ClPluginHelperVirtualIpAddressT* vip)

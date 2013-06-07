@@ -528,7 +528,18 @@ ClRcT xportAddressAssign(void)
     ClRcT rc = CL_OK;
 
     /* Assign IP address for node, but ONLY if we aren't supposed to use the existing address */
-    if (!ASP_UDP_USE_EXISTING_IP) clPluginHelperAddRemVirtualAddress("up", &gVirtualIp);
+    if (!ASP_UDP_USE_EXISTING_IP)
+    {
+        clPluginHelperAddRemVirtualAddress("up", &gVirtualIp);
+
+        /* Configure multicast route, but ONLY if route does not exist at route table */
+        if (clTransportMcastSupported(NULL))
+        {
+            ClCharT *mcastAddr = clTransportMcastAddressGet();
+            clPluginHelperAddRouteAddress(mcastAddr, gVirtualIp.dev);
+        }
+
+    }
     return rc;
 }
 
@@ -745,7 +756,7 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     checkInitSctp();
 
     /* Determine the device, IP address and IP network that will be used */
-    rc = clUdpGetBackplaneInterface("UDP", gVirtualIp.dev);
+    rc = clUdpGetBackplaneInterface(xportType, gVirtualIp.dev);
     if (rc != CL_OK)
     {
         clLogError("UDP", "INI", "Unable to determine the backplane link: error [%#x]", rc);
