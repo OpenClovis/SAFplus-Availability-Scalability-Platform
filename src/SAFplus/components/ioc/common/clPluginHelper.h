@@ -44,10 +44,10 @@ void clPluginHelperGetIpAddress(const ClUint32T ipAddressMask, const ClIocNodeAd
 
 ClUint32T clPluginHelperBitFillRShift(ClUint32T numBits);
 ClRcT clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress);
-ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, ClCharT *internetAddress);
+ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, const ClCharT *internetAddress);
 ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
 
-void clPluginHelperAddRouteAddress(ClCharT *ipAddress, const ClCharT *ifDevName);
+void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDevName);
 
 #ifdef __cplusplus
 }

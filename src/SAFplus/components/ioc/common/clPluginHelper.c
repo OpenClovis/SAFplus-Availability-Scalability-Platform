@@ -31,15 +31,18 @@ ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
  *
  *  Convert from network to host type
  */
-ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, ClCharT *internetAddress)
+ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, const ClCharT *internetAddress)
 {
+    ClCharT ipAddress[INET_ADDRSTRLEN] = { 0 };
     ClUint32T val[4] = { 0 };
     *addr = 0;
     ClCharT *token = NULL;
     ClCharT *nextToken = NULL;
     ClInt32T n = 0;
 
-    token = strtok_r(internetAddress, ".", &nextToken);
+    strncat(ipAddress, internetAddress, sizeof(ipAddress) - 1);
+
+    token = strtok_r(ipAddress, ".", &nextToken);
     while (token) {
         val[n++] = atoi(token);
         token = strtok_r(NULL, ".", &nextToken);
@@ -554,7 +557,7 @@ out:
 }
 
 /* ip route configure */
-void clPluginHelperAddRouteAddress(ClCharT *ipAddress, const ClCharT *ifDevName)
+void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDevName)
 {
     FILE *route_file;
     ClUint32T dest;
@@ -573,10 +576,11 @@ void clPluginHelperAddRouteAddress(ClCharT *ipAddress, const ClCharT *ifDevName)
 
     while (!feof(route_file))
     {
-        result = fscanf(route_file, "%s %8X %[^\n]", dummyDev, &dest, dummyStr);
+        result = fscanf(route_file, "%s %8X %[^\n]", dummyDev, &dest, dummyStr);       
         if (!(ipMulticast ^ dest))
         {
             foundDestRoute = CL_TRUE;
+            break;
         }
     }
     fclose(route_file);
