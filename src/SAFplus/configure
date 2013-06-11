@@ -1978,12 +1978,12 @@ if [ ! "x" == "x${ASP_MODEL_NAME}" -a ! $ASP_MODEL_NAME == "asp" ] 2> /dev/null 
     	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.conf $MODEL_PATH/target.conf 
     fi
     if [ ! -f $MODEL_PATH/target.env ]; then
-        if [ ! -f $INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.env ]; then
-    	    $INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.env $MODEL_PATH/target.env 
+        if [ -f $CLOVIS_ROOT/SAFplus/build/common/conf/target.env ]; then
+    	    $INSTALL $install_flags $CLOVIS_ROOT/SAFplus/build/common/conf/target.env $MODEL_PATH/target.env 
         fi
     fi
     if [ ! -f $MODEL_PATH/config/openhpi.conf ]; then
-    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/openhpi.conf $MODEL_PATH/config/openhpi.conf
+    	$INSTALL $install_flags $CLOVIS_ROOT/SAFplus/build/common/conf/openhpi.conf $MODEL_PATH/config/openhpi.conf
     fi
     if [ ! -f $MODEL_PATH/config/snmpd.conf ]; then
     	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/snmpd.conf $MODEL_PATH/config
