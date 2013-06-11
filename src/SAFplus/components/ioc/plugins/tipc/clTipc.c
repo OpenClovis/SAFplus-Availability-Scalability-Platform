@@ -204,7 +204,7 @@ static ClRcT tipcDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
         goto out;
     }
 
-    rc = clIocDispatchAsync(xportPrivate->portId, buffer, bytes);
+    rc = clIocDispatchAsync(gClTipcXportType, xportPrivate->portId, buffer, bytes);
 
     out:
     return rc;
@@ -569,7 +569,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         break;
     }
 
-    rc = clIocDispatch(commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
+    rc = clIocDispatch(gClTipcXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
 
     if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
         goto retry;
@@ -665,7 +665,6 @@ ClRcT xportSend(ClIocPortT port, ClUint32T tempPriority, ClIocAddressT *pIocAddr
             {
                 tipcPriorityChangePossible = CL_FALSE;
                 CL_DEBUG_PRINT(CL_DEBUG_WARN,("Message priority not available in this version of TIPC."));
-                tipcPriorityChangePossible = CL_FALSE;
             }            
             else CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in setting TIPC message priority. errno [%d]",err));
         }

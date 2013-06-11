@@ -22,8 +22,6 @@ typedef struct {
     ClUint32T ipAddressMask;
 } ClPluginHelperVirtualIpAddressT;
 
-extern ClPluginHelperVirtualIpAddressT gVirtualIp;
-    
 typedef struct {
     ClUint8T dstMac[6];
     ClUint8T myMac[6];
@@ -41,8 +39,13 @@ typedef struct {
 } ClPluginHelperEthIpv4ArpPacketT;
 
 void clPluginHelperAddRemVirtualAddress(const char *cmd, const ClPluginHelperVirtualIpAddressT *vip);
-ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType, ClPluginHelperVirtualIpAddressT *vip);
-void clPluginHelperGetIpAddress(const ClUint32T ipAddressMask, const ClIocNodeAddressT iocAddress, ClCharT *hostAddress);
+
+ClUint32T clPluginHelperBitFillRShift(ClUint32T numBits);
+ClRcT clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress);
+ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, const ClCharT *internetAddress);
+ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
+
+void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDevName);
 
 #ifdef __cplusplus
 }

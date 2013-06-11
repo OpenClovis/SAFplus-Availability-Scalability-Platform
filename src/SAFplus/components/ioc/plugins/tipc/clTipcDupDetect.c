@@ -84,7 +84,9 @@ static ClRcT clTipcIsAddressInUse(ClUint32T type, ClUint32T instance)
     topoFd = socket(AF_TIPC, SOCK_SEQPACKET, 0);
     if(topoFd < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : socket() failed. system error [%s].\n", strerror(errno)));
+        if (errno==EAFNOSUPPORT)
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("TIPC kernel module is not loaded (system error [%d:%s])", errno,strerror(errno)));
+        else CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("socket() failed. system error [%d:%s]", errno,strerror(errno)));
         CL_ASSERT(0);
         return CL_IOC_RC(CL_ERR_UNSPECIFIED);
     }

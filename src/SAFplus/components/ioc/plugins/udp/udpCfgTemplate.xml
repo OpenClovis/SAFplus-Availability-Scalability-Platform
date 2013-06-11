@@ -1,20 +1,31 @@
-<?xml version="1.0" ?><openClovisAsp>
+<?xml version="1.0" ?>
+<openClovisAsp>
   <version v0="4.0.0">
-    <ioc:BootConfig xmlns:ioc="ioc.ecore">
-     <config>
-       <default>UDP</default>
-     </config>
+    <multixport:multixport xmlns:multixport="multixport.ecore">
       <xports>
         <xport>
           <type>UDP</type>
           <plugin>libClUDP.so</plugin>
         </xport>
-      </xports>    
-      <heartbeat>
-        <interval>3000</interval>
-        <intervalLocal>3000</intervalLocal>
-        <retries>3</retries></heartbeat>
+      </xports>
+      <protocol default="UDP">
+<!--
+        <node name="routerI0" protocol="UDP" bridge="true"/>
+        <node name="routerI1" protocol="UDP" bridge="false"/>
+-->
+      </protocol>
       <multicast address="226.0.1.1" port="9595"/>
-   </ioc:BootConfig>
+      <heartbeat>
+        <interval>2000</interval>
+        <intervalLocal>1000</intervalLocal>
+        <retries>3</retries>
+      </heartbeat>
+      <peerAddresses port="9595">
+<!--
+        <peer addr="192.168.56.101"/>
+        <peer addr="192.168.56.102"/>
+-->
+      </peerAddresses>
+    </multixport:multixport>
   </version>
 </openClovisAsp>

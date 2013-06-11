@@ -13,15 +13,16 @@ extern "C" {
 
 #define CL_TRANSPORT_BASE_PORT (18000)
 #define CL_TRANSPORT_CONFIG_FILE "clTransport.xml"
-    
+
 typedef ClRcT (*ClTransportNotifyCallbackT)
 (ClIocPhysicalAddressT *compAddr, ClUint32T status, ClPtrT arg);
+
+typedef ClPtrT ClTransportListenerHandleT;
 
 extern ClInt32T gClTransportId;
 
 typedef struct ClIocAddrMap
 {
-    ClIocNodeAddressT slot;
     int family;
     char addrstr[80];
     union
@@ -43,6 +44,7 @@ static __inline__ ClInt32T clTransportIdGet(void)
 
 extern ClRcT clTransportLayerInitialize(void);
 extern ClRcT clTransportLayerFinalize(void);
+extern ClRcT clTransportLayerGmsFinalize(void);
 extern ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep);
 extern ClRcT clTransportFinalize(const ClCharT *type, ClBoolT nodeRep);
 
@@ -78,6 +80,10 @@ extern ClRcT
 clTransportSend(const ClCharT *type, ClIocPortT port, ClUint32T priority, ClIocAddressT *address, 
                 struct iovec *iov, ClInt32T iovlen, ClInt32T flags);
 extern ClRcT 
+clTransportSendProxy(const ClCharT *type, ClIocPortT port, ClUint32T priority, ClIocAddressT *address, 
+                     struct iovec *iov, ClInt32T iovlen, ClInt32T flags, ClBoolT proxy);
+
+extern ClRcT 
 clTransportRecv(const ClCharT *type, ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption,
                 ClUint8T *buffer, ClUint32T bufSize,
                 ClBufferHandleT message, ClIocRecvParamT *pRecvParam);
@@ -94,6 +100,21 @@ extern ClRcT clTransportMulticastRegister(const ClCharT *type,
                                           ClIocPortT port, ClIocMulticastAddressT mcastAddr);
 extern ClRcT clTransportMulticastDeregister(const ClCharT *type,
                                             ClIocPortT port, ClIocMulticastAddressT mcastAddr);
+
+extern ClRcT 
+clTransportListenerCreate(ClTransportListenerHandleT *handle);
+
+extern ClRcT
+clTransportListenerDestroy(ClTransportListenerHandleT *handle);
+
+extern ClRcT
+clTransportListenerAdd(ClTransportListenerHandleT handle, ClInt32T fd,
+                       ClRcT (*dispatchCallback)(ClInt32T fd, ClInt32T events, void *cookie),
+                       void *cookie);
+
+extern ClRcT 
+clTransportListenerDel(ClTransportListenerHandleT handle, ClInt32T fd);
+
 extern ClRcT 
 clTransportListenerRegister(ClInt32T fd, ClRcT (*dispatchCallback)(ClInt32T fd, ClInt32T events, void *cookie),
                             void *cookie);
@@ -115,15 +136,15 @@ clTransportDispatch(ClIocPortT port, ClUint8T *buffer, ClUint32T bufSize);
 extern ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAddress,
         ClCharT **typeXport);
 
-extern ClRcT clTransportNodeAddrGet(ClUint32T *pNumberOfEntries,
-        ClIocNodeAddressT *pAddrList);
-
 extern ClCharT *clTransportMcastAddressGet();
 extern ClUint32T clTransportMcastPortGet();
 extern ClUint32T clTransportHeartBeatIntervalGet();
 extern ClUint32T clTransportHeartBeatIntervalCompGet();
 extern ClUint32T clTransportHeartBeatRetriesGet();
 extern ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node);
+extern ClRcT clTransportBroadcastListGet(const ClCharT *hostXport, 
+                                         ClIocPhysicalAddressT *hostAddr,
+                                         ClUint32T *pNumEntries, ClIocAddressT **ppDestSlots);
 
 extern ClBoolT clTransportMcastSupported(ClUint32T *numPeers);
 extern ClRcT clTransportMcastPeerListGet(ClIocAddrMapT *peers, ClUint32T *numPeers);

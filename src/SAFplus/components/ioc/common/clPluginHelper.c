@@ -24,23 +24,25 @@
 #define CL_PLUGIN_HELPER_ARP_HW_TYPE_ETHERNET (1)
 #define CL_PLUGIN_HELPER_IP_PROTO_TYPE 0x0800
 
-extern ClIocNodeAddressT gIocLocalBladeAddress;
-
-static ClRcT _clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
+ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
 
 /*
  *  Network to Host
  *
  *  Convert from network to host type
  */
-static ClRcT _clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, ClCharT *internetAddress) {
+ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, const ClCharT *internetAddress)
+{
+    ClCharT ipAddress[INET_ADDRSTRLEN] = { 0 };
     ClUint32T val[4] = { 0 };
     *addr = 0;
     ClCharT *token = NULL;
     ClCharT *nextToken = NULL;
     ClInt32T n = 0;
 
-    token = strtok_r(internetAddress, ".", &nextToken);
+    strncat(ipAddress, internetAddress, sizeof(ipAddress) - 1);
+
+    token = strtok_r(ipAddress, ".", &nextToken);
     while (token) {
         val[n++] = atoi(token);
         token = strtok_r(NULL, ".", &nextToken);
@@ -67,7 +69,8 @@ static ClRcT _clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, ClChar
  *
  *  Convert from host to network type
  */
-static ClRcT _clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress) {
+ClRcT clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress)
+{
 
     ClUint32T val1, val2, val3, val4;
 
@@ -89,118 +92,11 @@ static ClRcT _clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT
  * Fill and shift right bit
  * numBits range: 1 - 31
  */
-static ClUint32T _clPluginHelperBitFillRShift(ClUint32T numBits) {
+ClUint32T clPluginHelperBitFillRShift(ClUint32T numBits)
+{
     ClUint32T mask = ~0U;
     mask <<= (32 - numBits);
     return mask;
-}
-
-static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf) {
-    ClCharT net_addr[CL_MAX_FIELD_LENGTH] = "eth0";
-    ClCharT *linkName = NULL;
-    ClCharT envlinkNameType[CL_MAX_FIELD_LENGTH] = { 0 };
-    if (!xportType)
-    {
-        return CL_ERR_INVALID_PARAMETER;
-    }
-    else
-    {
-        snprintf(envlinkNameType, CL_MAX_FIELD_LENGTH, "ASP_%s_LINK_NAME", xportType);
-        linkName = getenv(envlinkNameType);
-        if (linkName == NULL)
-        {
-            // try with default LINK_NAME
-            linkName = getenv("LINK_NAME");
-            if (linkName == NULL)
-            {
-                clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "%s and LINK_NAME environment variable is not exported. Using 'eth0:10' interface as default", envlinkNameType);
-            }
-            else
-            {
-                clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "LINK_NAME env is exported. Value is %s", linkName);
-                net_addr[0] = 0;
-                strncat(net_addr, linkName, sizeof(net_addr)-1);
-                ClCharT *token = NULL;
-                strtok_r(net_addr, ":", &token);
-            }
-            snprintf(inf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
-            
-        }
-        else
-        {
-            clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "%s env is exported. Value is %s", envlinkNameType, linkName);
-            snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", linkName);
-        }
-    }
-    return CL_OK;
-}
-
-static ClRcT _clPluginHelperGetIpNodeAddress(const ClCharT *xportType, const ClCharT *devIf, ClCharT *hostAddress, ClCharT *networkMask, ClCharT *broadcast, ClUint32T *ipAddressMask, ClCharT *xportSubnetPrefix)
-{
-    ClCharT envSubNetType[CL_MAX_FIELD_LENGTH] = { 0 };
-    ClCharT xportSubnet[CL_MAX_FIELD_LENGTH] = { 0 };
-    ClCharT *subnetMask = NULL;
-    ClCharT *subnetPrefix = NULL;
-    ClUint32T CIDR, ipMask, ip, mask;
-    ClRcT rc;
-    
-    if (!xportType)
-    {
-        return CL_ERR_INVALID_PARAMETER;
-    } 
-    else 
-    {
-        snprintf(envSubNetType, CL_MAX_FIELD_LENGTH, "ASP_%s_SUBNET", xportType);
-        subnetMask = getenv(envSubNetType);
-        if (subnetMask == NULL) 
-        {
-            subnetMask = ASP_PLUGIN_SUBNET_DEFAULT;
-        }
-        subnetPrefix = strrchr(subnetMask, '/');
-        if(!subnetPrefix)
-        {
-            subnetPrefix = ASP_PLUGIN_SUBNET_PREFIX_DEFAULT; 
-        }
-        else 
-        {
-            ++subnetPrefix;
-        }
-        if(! (CIDR = atoi(subnetPrefix) ) )
-        {
-            clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "%s", subnetMask);
-            return CL_ERR_INVALID_PARAMETER;
-        }
-        xportSubnetPrefix[0] = 0;
-        strncat(xportSubnetPrefix, subnetPrefix, CL_MAX_FIELD_LENGTH-1);
-        snprintf(xportSubnet, sizeof(xportSubnet), "%s", subnetMask);
-        mask = _clPluginHelperBitFillRShift(CIDR);
-        _clPluginHelperConvertInternetToHostAddress(&ip, xportSubnet);
-
-        /* network address */
-        ipMask = (ip & mask);
-
-
-        /* Try to get address from devif */
-        
-        rc = CL_OK+1;  /* start with any error condition, so the if below this one will be taken  */
-        if (clParseEnvBoolean("ASP_UDP_USE_EXISTING_IP"))
-        {
-            rc = _clPluginHelperDevToIpAddress(devIf, hostAddress);
-            if (rc == CL_OK) clLogInfo("IOC",CL_LOG_PLUGIN_HELPER_AREA,"Use existing IP address [%s] as this nodes transport address.", hostAddress);
-            else clLogError("IOC",CL_LOG_PLUGIN_HELPER_AREA,"Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
-        }
-        
-        if (rc != CL_OK)
-        {
-             /* Automatic assignment of IP address */
-            _clPluginHelperConvertHostToInternetAddress(ipMask + gIocLocalBladeAddress, hostAddress);
-        }
-
-        _clPluginHelperConvertHostToInternetAddress(mask, networkMask);
-        _clPluginHelperConvertHostToInternetAddress(ip | ~mask, broadcast);
-        *ipAddressMask = ipMask;
-    }
-    return CL_OK;
 }
 
 static ClRcT _clPluginHelperDevToMac(const ClCharT* dev, char mac[CL_MAC_ADDRESS_LENGTH]) {
@@ -343,9 +239,8 @@ static void *_clPluginHelperPummelArps(void *arg) {
 /*
  * Returns ip address on a network interface given its name...
  */
-static ClRcT _clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr)
+ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr)
 {
-
     int sd;
     struct ifreq req;
     ClCharT ipAddress[INET_ADDRSTRLEN] = { 0 };
@@ -545,52 +440,41 @@ out:
         free(vipCopy);
 }
 
-void clPluginHelperGetIpAddress(const ClUint32T ipAddressMask, const ClIocNodeAddressT iocAddress, ClCharT *hostAddress) {
-    _clPluginHelperConvertHostToInternetAddress(ipAddressMask + iocAddress, hostAddress);
-}
-
-ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType,
-                                          ClPluginHelperVirtualIpAddressT* vip)
+/* ip route configure */
+void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDevName)
 {
+    FILE *route_file;
+    ClUint32T dest;
+    ClCharT dummyStr[CL_MAX_NAME_LENGTH];
+    ClCharT dummyDev[CL_MAX_FIELD_LENGTH];
+    ClUint32T ipMulticast;
+    ClBoolT foundDestRoute = CL_FALSE;
+    __attribute__((unused)) ClRcT result;
 
-    ClRcT rc = CL_OK;
-    ClCharT dev[CL_MAX_FIELD_LENGTH] = { 0 };
-    ClCharT ip[CL_MAX_FIELD_LENGTH] = { 0 };
-    ClCharT netmask[CL_MAX_FIELD_LENGTH] = { 0 };
-    ClCharT broadcast[CL_MAX_FIELD_LENGTH] = { 0 };
-    ClCharT subnetPrefix[CL_MAX_FIELD_LENGTH] = {0};
-    ClUint32T ipAddressMask = 0;
+    clPluginHelperConvertInternetToHostAddress(&ipMulticast, ipAddress);
 
-    rc = _clPluginHelperGetLinkName(xportType, dev);
-    if (rc != CL_OK)
+    // open route file to get the route destination
+    route_file = fopen("/proc/net/route", "r");
+
+    result = fscanf(route_file, "%[^\n]", dummyStr);
+
+    while (!feof(route_file))
     {
-        clLogError("IOC", CL_LOG_PLUGIN_HELPER_AREA,
-                "Get link name failed with [%#x]", rc);
-        return rc;
+        result = fscanf(route_file, "%s %8X %[^\n]", dummyDev, &dest, dummyStr);       
+        if (!(ipMulticast ^ dest))
+        {
+            foundDestRoute = CL_TRUE;
+            break;
+        }
     }
+    fclose(route_file);
 
-    rc = _clPluginHelperGetIpNodeAddress(xportType, dev, ip, netmask, broadcast,
-                                         &ipAddressMask, subnetPrefix);
-    if (rc != CL_OK)
+    if (!foundDestRoute)
     {
-        clLogError("IOC", CL_LOG_PLUGIN_HELPER_AREA,
-                "Get link name failed with [%#x]", rc);
-        return rc;
+        char execLine[301];
+        snprintf(execLine, 300, "/sbin/ip route add %s dev %s", ipAddress, ifDevName);
+        clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Executing %s", execLine);
+        result = system(execLine);
     }
-
-    vip->ipAddressMask = ipAddressMask;
-
-    vip->dev[0] = 0;
-    vip->ip[0] = 0;
-    vip->netmask[0] = 0;
-    vip->broadcast[0] = 0;
-    vip->subnetPrefix[0] = 0;
-    strncat(vip->dev, dev, sizeof(vip->dev)-1);
-    strncat(vip->ip, ip, sizeof(vip->ip)-1);
-    strncat(vip->netmask, netmask, sizeof(vip->netmask)-1);
-    strncat(vip->broadcast, broadcast, sizeof(vip->broadcast)-1);
-    strncat(vip->subnetPrefix, subnetPrefix, sizeof(vip->subnetPrefix)-1);
-    return CL_OK;
-
 }
 

@@ -40,7 +40,7 @@ SRC_FILES	:= $(wildcard *.c)
 # List other ASP components of which client libraries your component
 # depends on:
 
-DEP_COMP_LIST	:= utils osal timer buffer cnt debug eo rmd ioc
+DEP_COMP_LIST	:= utils osal timer buffer cnt debug eo rmd ioc amf
 
 SRC_FILES_libClUDP      := $(SRC_FILES)
 PURIFY_SHARED_LIB_NAMES := libClUDP
