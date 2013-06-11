@@ -232,6 +232,10 @@ ClInitFinalizeDef gClBasicLibInitTable[] = {
     { clDbalLibInitialize,        "Dbal" }
 };
 
+/* Workaround in 6.0 to not quit if prov fails to init */
+#define CLIENT_LIB_INIT_PROV_ENTRY 8
+#define CLIENT_LIB_INIT_COR_ENTRY 0
+
 ClInitFinalizeDef gClClientLibInitTable[] = {
     { clCorClientInitialize,      "Cor"             },
     { clCmLibInitialize,          "ChassisManager"  },
@@ -446,6 +450,9 @@ ClRcT clAspClientLibInitialize(void)
     ClUint32T tableSize =
         sizeof(gClClientLibInitTable) / sizeof(ClInitFinalizeDef);
 
+    /* Workaround in 6.0 to not init prov is cor is not inited.  Should be handled by IDE config... */
+    if (clEoClientLibs[CLIENT_LIB_INIT_COR_ENTRY] != CL_TRUE) clEoClientLibs[CLIENT_LIB_INIT_PROV_ENTRY] = CL_FALSE;
+    
     for (i = 0; i < tableSize; i++)
     {
         /*
@@ -456,14 +463,10 @@ ClRcT clAspClientLibInitialize(void)
 
         if (clEoClientLibs[i] == CL_TRUE)
         {
-            clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI,
-                  "Initializing client library [%s]...",
-                  gClClientLibInitTable[i].libName);
+            clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing client library [%s]...", gClClientLibInitTable[i].libName);
             if (CL_OK != (rc = gClClientLibInitTable[i].fn()))
             {
-                clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-                      "Failed to initializing client library [%s], error [0x%x]",
-                      gClClientLibInitTable[i].libName, rc);
+                clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Failed to initialize client library [%s], error [0x%x]", gClClientLibInitTable[i].libName, rc);
                 return rc;
             }
         }
