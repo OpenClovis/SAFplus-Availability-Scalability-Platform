@@ -1396,6 +1396,41 @@ static ClRcT amsMgmtCompSet(ClUint32T argc,
         if (CL_OK != rc) goto failure;
 
     }
+    else if (STREQ(attr, "instantiate_delay"))
+    {
+        ClTimeT timeout;
+        char* endptr;
+        errno = 0;
+        timeout = strtoll(value, &endptr, 0);
+        
+        if (endptr==value) 
+        {
+            clLogError("AMS", "CLI", "Value [%s] incorrect, error [%d]. This field must be an integer in milliseconds", value, errno);
+            rc = CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+            goto failure;
+        }
+
+        rc = clAmsMgmtEntityGetConfig(gHandle, entity, &pEntityConfig);
+        if (CL_OK != rc)
+        {
+            clLogError("AMS", "CLI", "Unknown entity [%.*s]", entity->name.length-1,entity->name.value);            
+            goto failure;
+        }
+        
+        /* Get the current configuration */
+        memcpy(&compConfig, pEntityConfig, sizeof(compConfig));
+        clHeapFree(pEntityConfig);
+
+        /* Just change the one field */
+        compConfig.timeouts.instantiateDelay = timeout;
+        bitMask |= COMP_CONFIG_TIMEOUTS;
+
+        rc = clAmsMgmtCCBEntitySetConfig(gCcbHandle,
+                                         &compConfig.entity,
+                                         bitMask);
+        if (CL_OK != rc) goto failure;
+
+    }    
     else if (STREQ(attr, "recovery_on_timeout"))
     {
         ClAmsRecoveryT recovery = CL_AMS_RECOVERY_NONE;
@@ -1454,6 +1489,7 @@ static ClRcT amsMgmtCompSet(ClUint32T argc,
     }
     else
     {
+        clLogError("AMS", "CLI", "Unknown attribute [%s]", attr);            
         rc = CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
         goto failure;
     }
