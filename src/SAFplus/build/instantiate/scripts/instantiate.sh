@@ -395,11 +395,9 @@ do
     # the CMM_IP address
     if [ "${CM_BUILD}" = 1 -a "${CMM_IP}" = "" ]
     then
-        echo "No value specified for CMM_IP in target.conf file"
-        target_conf_error
-        exit 1
+        echo "No value specified for CMM_IP in target.conf file.  You will need to configure OpenHPI yourself"
     fi
-    #
+    
     # If we've been built with support for SNMP traps then we should specify
     # the SNMP trap address
     if [ "${SNMP_BUILD}" = 1 -a "${TRAP_IP}" = "" ]
