@@ -49,6 +49,7 @@ about:                                                                 SAFplus
 
 import sys
 import os
+import types
 import time
 import signal
 import cmd
@@ -948,6 +949,9 @@ def get_sus_info(nodename=None):
     amf_db = load_amf_db()
     
     sus = []
+    if type(amf_db.ams[0].entities[0].sus[0]) in types.StringTypes:
+      # this safplus_console can't talk to the other...
+      return sus
     for s in amf_db.ams[0].entities[0].sus[0].su:
         this_nodename = s.config[0].member_of_node[0]
         if nodename and not nodename == this_nodename:
