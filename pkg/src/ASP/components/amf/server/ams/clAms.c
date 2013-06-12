@@ -670,11 +670,16 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
                 node->status.wasMemberBefore = CL_TRUE;
                 node->status.isClusterMember = CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER;
             }
-            clLogWarning("NODE", "JOIN", "Node [%s] already member of the cluster. "
-                         "Forcing a recovery error to have the node restarted since it appears to be recovering "
-                         "from an inconsistent cluster state mostly caused by fast controller flips or inconsistent tipc notifications", 
-                         pNodeName);
-            rc = CL_AMS_RC(CL_ERR_INVALID_STATE);
+            else /* Node failed & recovered before Keepalives could indicate the issue (happens when AMF kill -9) */
+            {
+                /* So fail it */
+                clLogWarning("AMF", "EVT", "Node [%s] is reentering cluster before its failure was discovered.  Failing it now.",pNodeName);
+                clAmsPeNodeHasLeftCluster(node,CL_FALSE);
+                /* cpmFailoverNode(node->config.id, CL_FALSE); */
+                clLogWarning("AMF", "EVT", "Node [%s] failure completed.",pNodeName);
+            }
+            
+            rc = CL_AMS_RC(CL_ERR_TRY_AGAIN);
             goto out_unlock;
         }
     }
