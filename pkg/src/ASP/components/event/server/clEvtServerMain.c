@@ -38,6 +38,7 @@
 #include <clTimerApi.h>
 #include <clOsalApi.h>
 #include <clRmdApi.h>
+#include <clIocIpi.h>
 #include <ipi/clRmdIpi.h>
 #include <clEventServerIpi.h>
 #include <clEventUtilsIpi.h>
@@ -1642,6 +1643,28 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq,
     clEvtUtilsChannelKeyConstruct(pEvtSubsReq->evtChannelHandle,
             &pEvtSubsReq->evtChannelName, &evtChannelKey);
 
+#ifdef CKPT_ENABLED
+    /* Need to check app status if from reconstruct */
+    if (CL_EVT_CKPT_REQUEST == type)
+    {
+        ClIocPhysicalAddressT compAddr = { 0 };
+        ClUint8T status = 0;
+
+        compAddr.nodeAddress = clIocLocalAddressGet();
+        compAddr.portId = pEvtSubsReq->subscriberCommPort;
+        clIocCompStatusGet(compAddr, &status);
+        /*
+         * Skip if app status is not enabled.
+         */
+        if (!status)
+        {
+            clLogTrace(CL_EVENT_LOG_AREA_SRV, "SUB", "Could not open channel for eoIocPort [%#x] since dead",
+                    pEvtSubsReq->subscriberCommPort);
+            return rc;
+        }
+    }
+#endif
+
     /*
      * Get ECH related information 
      */
@@ -2006,8 +2029,8 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey,
          * subscribers. Merely issuing a warning...
          */
         clLogWarning(CL_EVENT_LOG_AREA_SRV, "PUB", 
-                "Event delivery failed to"
-                "subscriber{node[%#x]:port[%#x]:evtHandle[%#llX]}"
+                "Event delivery failed to "
+                "subscriber {node[%#x]:port[%#x]:evtHandle[%#llX]}"
                 "error code [%#x]. continuing...", 
                 iocLocalAddress, subsCommPort, evtSecHeader.evtHandle, rc);
         rc = CL_OK;
@@ -2972,16 +2995,17 @@ clEventCpmCleanupWalk(ClHandleDatabaseHandleT databaseHandle,ClHandleT handle, v
         goto failure;
     } 
 
+    rc = clHandleCheckin(databaseHandle, handle);
+    if(CL_OK != rc)
+    {
+        rc = CL_OK; // NTC
+        clLogError(CL_EVENT_LOG_AREA_SRV, "CLN",
+                CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
+        goto failure;
+    }
+
     if(pInitKey->eoIocPort == pEvtUnsubsReq->userId.eoIocPort) 
     {
-        rc = clHandleCheckin(databaseHandle, handle);
-        if(CL_OK != rc)
-        {
-            rc = CL_OK; // NTC
-            clLogError(CL_EVENT_LOG_AREA_SRV, "CLN",
-                    CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
-            goto failure;
-        }
         rc = clHandleDestroy(databaseHandle, handle);
         if(CL_OK != rc)
         {
