@@ -222,15 +222,13 @@ failure:
  */
 ClInt32T clEvtClientEvtHandleCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
-    CL_FUNC_ENTER();
-
-    CL_FUNC_EXIT();
-
-    return (ClWordT)key1 - (ClWordT)key2;
+    if (key1 > key2) return 1;
+    if (key1 < key2) return -1;
+    return 0;
+    /* Does not work due to type narrowing return (ClWordT)key1 - (ClWordT)key2; */
 }
 
-void clEvtClientInitInfoDelete(ClCntKeyHandleT userKey,
-        ClCntDataHandleT userData)
+void clEvtClientInitInfoDelete(ClCntKeyHandleT userKey, ClCntDataHandleT userData)
 {
     CL_FUNC_ENTER();
     clHeapFree(userData);
@@ -238,47 +236,38 @@ void clEvtClientInitInfoDelete(ClCntKeyHandleT userKey,
     return;
 }
 
-ClInt32T clEvtClientECHUserKeyCompare(ClCntKeyHandleT key1,
-        ClCntKeyHandleT key2)
+ClInt32T clEvtClientECHUserKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
-    ClInt32T cmpResult = 0;
+    ClInt64T cmpResult = 0;
 
-    ClEvtClientChannelInfoT *pEvtCliChannelInfo1 =
-        (ClEvtClientChannelInfoT *) key1;
-    ClEvtClientChannelInfoT *pEvtCliChannelInfo2 =
-        (ClEvtClientChannelInfoT *) key2;
-
-
-    CL_FUNC_ENTER();
-
+    ClEvtClientChannelInfoT *pEvtCliChannelInfo1 = (ClEvtClientChannelInfoT *) key1;
+    ClEvtClientChannelInfoT *pEvtCliChannelInfo2 = (ClEvtClientChannelInfoT *) key2;
+    
     cmpResult = pEvtCliChannelInfo1->evtHandle - pEvtCliChannelInfo2->evtHandle;
 
     /*
      ** When evtChannelKey is 0 it implies that we need to clean up channel information
      ** for a particular evtHandle. Hence, compare only evtHandle.
      */
-    if (0 == pEvtCliChannelInfo1->evtChannelKey ||
-            0 == pEvtCliChannelInfo2->evtChannelKey || 0 != cmpResult)
+    if (0 == pEvtCliChannelInfo1->evtChannelKey || 0 == pEvtCliChannelInfo2->evtChannelKey || 0 != cmpResult)
     {
-        CL_FUNC_EXIT();
-        return cmpResult;
+        return (cmpResult>0) ? 1: ((cmpResult<0) ? -1: 0);  /* Necessary for type narrowing conversion */
     }
-    else if (0 !=
-            (cmpResult =
-             pEvtCliChannelInfo1->evtChannelKey -
-             pEvtCliChannelInfo2->evtChannelKey))
+    else
     {
-        CL_FUNC_EXIT();
-        return cmpResult;
+        cmpResult = pEvtCliChannelInfo1->evtChannelKey - pEvtCliChannelInfo2->evtChannelKey;
+        
+        if (0 != cmpResult)
+        {
+            return (cmpResult>0) ? 1: ((cmpResult<0) ? -1: 0);  /* Necessary for type narrowing conversion */
+        }
     }
-
+    
     CL_FUNC_EXIT();
-    return clEvtUtilsNameCmp((&pEvtCliChannelInfo1->evtChannelName),
-            (&pEvtCliChannelInfo2->evtChannelName));
+    return clEvtUtilsNameCmp((&pEvtCliChannelInfo1->evtChannelName),(&pEvtCliChannelInfo2->evtChannelName));
 }
 
-void clEvtClientECHUserUserDelete(ClCntKeyHandleT userKey,
-        ClCntDataHandleT userData)
+void clEvtClientECHUserUserDelete(ClCntKeyHandleT userKey, ClCntDataHandleT userData)
 {
     CL_FUNC_ENTER();
     clHeapFree((void *) userKey);
@@ -311,8 +300,7 @@ static void clEvtCbDestroyCallback(ClQueueDataT userData)
 }
 
 
-ClRcT clEvtQueueCallback(ClEvtInitInfoT *pInitInfo, ClEvtCallbackIdT cbId,
-        void *cbArg)
+ClRcT clEvtQueueCallback(ClEvtInitInfoT *pInitInfo, ClEvtCallbackIdT cbId, void *cbArg)
 {
     ClRcT rc = CL_OK;
     ClInt32T bytes;
@@ -325,8 +313,7 @@ ClRcT clEvtQueueCallback(ClEvtInitInfoT *pInitInfo, ClEvtCallbackIdT cbId,
     pQueueData = clHeapAllocate(sizeof(ClEvtCbQueueDataT));
     if (NULL == pQueueData)
     {
-        clLogError("EVT", "CBQ", 
-                CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+        clLogError("EVT", "CBQ", CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         rc = CL_EVENT_ERR_NO_MEM;
         goto failure;
     }
@@ -399,8 +386,7 @@ static void evtEventDeliverCallbackDispatch(ClEvtInitInfoT *pInitInfo,
     }
 }
 
-void clEvtCallbackDispatcher(ClEvtCbQueueDataT *pQueueData,
-        ClEvtInitInfoT *pInitInfo)
+void clEvtCallbackDispatcher(ClEvtCbQueueDataT *pQueueData, ClEvtInitInfoT *pInitInfo)
 {
     CL_FUNC_ENTER();
 
@@ -525,8 +511,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     if (CL_OK != rc)
     {
         clOsalMutexUnlock(&gEvtReceiveMutex);
-        clLogError("EVT", "EVR", 
-                   CL_LOG_MESSAGE_1_HANDLE_CREATION_FAILED, rc);
+        clLogError("EVT", "EVR", CL_LOG_MESSAGE_1_HANDLE_CREATION_FAILED, rc);
         rc = CL_EVENT_ERR_NO_RESOURCE;
         goto inDataAllocated;
     }
@@ -534,8 +519,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     rc = clHandleCheckout(pEvtClientHead->evtClientHandleDatabase, eventHandle, (void **)&pEventInfo);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "EVR", 
-                   CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
+        clLogError("EVT", "EVR", CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         rc = CL_EVENT_ERR_BAD_HANDLE;
         goto eventHdlAllocated;
     }
@@ -614,12 +598,33 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     /* 
      * Check out the InitInfo of this client from the Handle Database
      */
-
-    rc = clHandleCheckout(pEvtClientHead->evtClientHandleDatabase, evtSecHeader.evtHandle, (void*)&pInitInfo);
+    if (1) /* Find the client handle from the server's handle -- ugly, but there will be very few handles... */
+    {
+        rc = CL_EVENT_ERR_BAD_HANDLE;
+        ClHdlDatabaseT *hdbp = (ClHdlDatabaseT*) pEvtClientHead->evtClientHandleDatabase;
+        for (ClWordT handle = 0; handle < hdbp->n_handles; handle++) 
+        {
+            if (hdbp->handles[handle].state != HANDLE_STATE_EMPTY) 
+            {
+                pInitInfo = (ClEvtInitInfoT *) hdbp->handles[handle].instance;
+                if ((pInitInfo) && (pInitInfo->servHdl == evtSecHeader.evtHandle))
+                {
+                    
+                    evtSecHeader.evtHandle = CL_HDL_MAKE(ASP_NODEADDR,hdbp->id, handle + 1);
+                    
+                    rc=CL_OK;
+                    hdbp->handles[handle].ref_count++;
+                    break;
+                }
+            
+            }
+        }
+    }
+    //rc = clHandleCheckout(pEvtClientHead->evtClientHandleDatabase, evtSecHeader.evtHandle, (void*)&pInitInfo);
+    
     if (CL_OK != rc)
     {
-        clLogError("EVT", "EVR", 
-                   CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
+        clLogError("EVT", "EVR", CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         rc = CL_EVENT_ERR_BAD_HANDLE;
         goto eventBufferCreated;
     }
@@ -647,8 +652,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     {
         if (CL_TRUE == pInitInfo->queueFlag)
         {
-            ClEvtEventPublishInfoT *pPublishInfo =
-                clHeapAllocate(sizeof(ClEvtEventPublishInfoT));
+            ClEvtEventPublishInfoT *pPublishInfo = clHeapAllocate(sizeof(ClEvtEventPublishInfoT));
             if (NULL == pPublishInfo)
             {
                 clLogError("EVT", "EVR", 
@@ -663,8 +667,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
             pPublishInfo->eventHandle = eventHandle;
             pPublishInfo->eventDataSize = pEvtPrimaryHeader->eventDataSize;
 
-            rc = clEvtQueueCallback(pInitInfo, CL_EVT_PUBLISH_CALLBACK,
-                                    pPublishInfo);
+            rc = clEvtQueueCallback(pInitInfo, CL_EVT_PUBLISH_CALLBACK, pPublishInfo);
             if (CL_OK != rc)
             {
                 clLogError("EVT", "EVR", 
@@ -1025,7 +1028,8 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
 
             sleep(1);
         }
-        if(i == CL_EVT_MAX_SVR_RETRY) {
+        if(i == CL_EVT_MAX_SVR_RETRY)
+        {
             rc = CL_ERR_TRY_AGAIN;
             goto failure;
         }
@@ -1079,9 +1083,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
 
     do
     {
-        rc = clRmdWithMsg(destAddr, EO_CL_EVT_INTIALIZE, inMsgHandle, outMsgHandle,
-                          CL_RMD_CALL_NEED_REPLY | CL_RMD_CALL_ATMOST_ONCE,
-                          &rmdOptions, NULL);
+        rc = clRmdWithMsg(destAddr, EO_CL_EVT_INTIALIZE, inMsgHandle, outMsgHandle, CL_RMD_CALL_NEED_REPLY | CL_RMD_CALL_ATMOST_ONCE, &rmdOptions, NULL);
     } while(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN 
             && 
             ++tries < 5 
@@ -1133,9 +1135,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
         clBufferDelete(&outMsgHandle);
         if (CL_OK != rc)
         {
-            clLogError("EVT", "INI", 
-                    "Reading evtHandle from outMessage Failed [%#X]",
-                    rc);
+            clLogError("EVT", "INI", "Reading evtHandle from outMessage Failed [%#X]", rc);
             goto inMsgCreated;
         }
     }
@@ -1146,8 +1146,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
     rc = clHandleCheckout(pEvtClientHead->evtClientHandleDatabase, evtInitReq.clientHdl, (void**)&pInitInfo);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "INI", 
-                CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
+        clLogError("EVT", "INI", CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         rc = CL_EVENT_ERR_BAD_HANDLE;
         goto inMsgCreated;
     }
@@ -1158,12 +1157,10 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
         {
             if(pInitInfo->pEvtCallbackTable)
                 clHeapFree(pInitInfo->pEvtCallbackTable);
-            pInitInfo->pEvtCallbackTable = clHeapCalloc(numCallbacks, 
-                                                        sizeof(*pInitInfo->pEvtCallbackTable));
+            pInitInfo->pEvtCallbackTable = clHeapCalloc(numCallbacks, sizeof(*pInitInfo->pEvtCallbackTable));
             CL_ASSERT(pInitInfo->pEvtCallbackTable != NULL);
         }
-        memcpy(pInitInfo->pEvtCallbackTable, pEvtCallbackTable, 
-               sizeof(*pInitInfo->pEvtCallbackTable) * numCallbacks);
+        memcpy(pInitInfo->pEvtCallbackTable, pEvtCallbackTable, sizeof(*pInitInfo->pEvtCallbackTable) * numCallbacks);
         pInitInfo->numCallbacks = numCallbacks;
     }
 
@@ -1180,8 +1177,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
     rc = clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, evtInitReq.clientHdl);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "INI", 
-                CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
+        clLogError("EVT", "INI", CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         goto inMsgCreated;
     }
 
@@ -1204,7 +1200,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
 // success:
 
     clLogTrace("EVT", "INI", 
-            "Event Library Initialized with evtHandle[%#llX]", *pEvtHandle);
+               "Event Library Initialized with evtHandle[%#llX], server handle[%llX]", *pEvtHandle,tempHdl);
 
     CL_FUNC_EXIT();
     return CL_OK;
@@ -1371,8 +1367,7 @@ failure:
     return rc;
 }
 
-ClRcT clEventDispatch(ClEventInitHandleT evtHandle,
-        ClDispatchFlagsT dispatchFlags)
+ClRcT clEventDispatch(ClEventInitHandleT evtHandle, ClDispatchFlagsT dispatchFlags)
 {
     ClRcT rc = CL_OK;
 
@@ -1466,8 +1461,7 @@ ClRcT clEventDispatch(ClEventInitHandleT evtHandle,
                  * Obtain the pQueueData while deleting the node 
                  */
                 clOsalMutexLock(pInitInfo->cbMutex);
-                rc = clQueueNodeDelete(pInitInfo->cbQueue,
-                        (ClQueueDataT *) &pQueueData);
+                rc = clQueueNodeDelete(pInitInfo->cbQueue, (ClQueueDataT *) &pQueueData);
                 clOsalMutexUnlock(pInitInfo->cbMutex);
                 if (CL_OK != rc)
                 {
@@ -1647,8 +1641,7 @@ ClRcT channelHdlWalk(ClHandleDatabaseHandleT databaseHandle, ClHandleT handle, v
     }
 
 success:
-    clLogTrace("EVT", "CHW", 
-            "Channel Handle Walk succeeded");
+    clLogTrace("EVT", "CHW", "Channel Handle Walk succeeded");
     rc = clHandleCheckin(databaseHandle, handle);
     if (CL_OK != rc)
     {
@@ -1803,19 +1796,19 @@ ClRcT clEventFinalize(ClEventInitHandleT evtHandle)
     rc = clHandleCheckout(pEvtClientHead->evtClientHandleDatabase, evtHandle, (void**)&pInitInfo);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "FIN", 
-                CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
+        clLogError("EVT", "FIN", CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         goto out_unlock;
     }
 
     CL_ASSERT(pInitInfo != NULL);
 
+    //unsubscribeRequest.userId.evtHandle = pInitInfo->servHdl;
     unsubscribeRequest.userId.evtHandle = pInitInfo->servHdl;
+    
     rc = clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, evtHandle);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "FIN", 
-                CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
+        clLogError("EVT", "FIN", CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         goto out_unlock;
     }
     
@@ -1860,8 +1853,7 @@ ClRcT clEventFinalize(ClEventInitHandleT evtHandle)
 
     do
     {
-        rc = clRmdWithMsg(destAddr, EO_CL_EVT_UNSUBSCRIBE, inMsgHandle,
-                          outMsgHandle, CL_RMD_CALL_NEED_REPLY, &rmdOptions, NULL);
+        rc = clRmdWithMsg(destAddr, EO_CL_EVT_UNSUBSCRIBE, inMsgHandle, outMsgHandle, CL_RMD_CALL_NEED_REPLY, &rmdOptions, NULL);
     } while(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN 
             &&
             ++tries < 5
@@ -2068,8 +2060,7 @@ ClRcT clEvtChannelOpenPrologue(ClEventInitHandleT evtHandle,
     CL_EVT_CHANNEL_NAME_VALIDATE(pChannelName);
     if (CL_EVT_FALSE == CL_EVT_VALIDATE_OPEN_CHANNEL_FLAG(evtChannelOpenFlag))
     {
-        clLogError("EVT", "COP", 
-                CL_EVENT_LOG_MSG_1_BAD_FLAGS, evtChannelOpenFlag);
+        clLogError("EVT", "COP", CL_EVENT_LOG_MSG_1_BAD_FLAGS, evtChannelOpenFlag);
         rc = CL_EVENT_ERR_BAD_FLAGS;
         goto failure;
     }
@@ -2077,8 +2068,7 @@ ClRcT clEvtChannelOpenPrologue(ClEventInitHandleT evtHandle,
     /*
      * Generate channelId from channel Name by using 16 bit checksum 
      */
-    rc = clNetworkCksm16bitCompute((ClUint8T *) pChannelName->value,
-            (ClUint32T) pChannelName->length, &evtChannelID);
+    rc = clNetworkCksm16bitCompute((ClUint8T *) pChannelName->value, (ClUint32T) pChannelName->length, &evtChannelID);
     if (CL_OK != rc)
     {
         goto failure;
@@ -2087,23 +2077,18 @@ ClRcT clEvtChannelOpenPrologue(ClEventInitHandleT evtHandle,
     /*
      * Create a Handle for the Channel Information
      */
-    rc = clHandleCreate(pEvtClientHead->evtClientHandleDatabase,
-            sizeof(ClEvtClientChannelInfoT ),
-            pEvtChannelHandle);
+    rc = clHandleCreate(pEvtClientHead->evtClientHandleDatabase, sizeof(ClEvtClientChannelInfoT ), pEvtChannelHandle);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "COP", 
-                CL_LOG_MESSAGE_1_HANDLE_CREATION_FAILED, rc);
+        clLogError("EVT", "COP", CL_LOG_MESSAGE_1_HANDLE_CREATION_FAILED, rc);
         rc = CL_EVENT_ERR_NO_RESOURCE;
         goto failure;
     }
 
-    rc = clHandleCheckout(pEvtClientHead->evtClientHandleDatabase, 
-            *pEvtChannelHandle, (void**)&pEvtCliChannelInfo);
+    rc = clHandleCheckout(pEvtClientHead->evtClientHandleDatabase, *pEvtChannelHandle, (void**)&pEvtCliChannelInfo);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "COP", 
-                CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
+        clLogError("EVT", "COP", CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         clHandleDestroy(pEvtClientHead->evtClientHandleDatabase, *pEvtChannelHandle);
         rc = CL_EVENT_ERR_BAD_HANDLE;
         goto failure;
@@ -2112,16 +2097,14 @@ ClRcT clEvtChannelOpenPrologue(ClEventInitHandleT evtHandle,
     channelScope = CL_EVT_CHANNEL_SCOPE_GET_FROM_FLAG(evtChannelOpenFlag);
     pEvtCliChannelInfo->handleType = CL_CHANNEL_HANDLE;
     pEvtCliChannelInfo->evtHandle = evtHandle;
-    pEvtCliChannelInfo->evtChannelKey =
-        CL_EVT_CHANNEL_KEY_GEN(channelScope, evtChannelID);
+    pEvtCliChannelInfo->evtChannelKey = CL_EVT_CHANNEL_KEY_GEN(channelScope, evtChannelID);
     pEvtCliChannelInfo->flag = evtChannelOpenFlag;
     clEvtUtilsNameCpy(&pEvtCliChannelInfo->evtChannelName, pChannelName);
 
     rc = clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, *pEvtChannelHandle); 
     if (CL_OK != rc)
     {
-        clLogError("EVT", "COP", 
-                CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
+        clLogError("EVT", "COP", CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         rc = CL_EVENT_ERR_BAD_HANDLE;
         goto failure;
     }
@@ -2137,8 +2120,7 @@ ClRcT clEvtChannelOpenPrologue(ClEventInitHandleT evtHandle,
     rc = clHandleCheckout(pEvtClientHead->evtClientHandleDatabase, evtHandle, (void**)&pInitInfo);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "COP", 
-                CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
+        clLogError("EVT", "COP", CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         rc = CL_EVENT_ERR_BAD_HANDLE;
         goto failure;
     }
@@ -2147,15 +2129,13 @@ ClRcT clEvtChannelOpenPrologue(ClEventInitHandleT evtHandle,
     rc = clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, evtHandle);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "COP", 
-                CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
+        clLogError("EVT", "COP", CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         rc = CL_EVENT_ERR_BAD_HANDLE;
         goto failure;
     }
 
     evtChannelOpenRequest.userId.eoIocPort = pEoObj->eoID;
-    evtChannelOpenRequest.evtChannelHandle =
-        CL_EVT_CHANNEL_HANDLE_FORM(evtChannelOpenFlag, evtChannelID);
+    evtChannelOpenRequest.evtChannelHandle = CL_EVT_CHANNEL_HANDLE_FORM(evtChannelOpenFlag, evtChannelID);
     clEvtUtilsNameCpy(&evtChannelOpenRequest.evtChannelName, pChannelName);
 
     /*
@@ -2167,16 +2147,13 @@ ClRcT clEvtChannelOpenPrologue(ClEventInitHandleT evtHandle,
                                                                    *pInMsgHandle,
                                                                    0);
 // success:
-    clLogTrace("EVT", "COP", 
-            "Event Channel Open Prologue succeeded");
-
+    clLogTrace("EVT", "COP", "Event Channel Open Prologue succeeded");
     CL_FUNC_EXIT();
     return CL_OK;
 
 failure:
     rc = CL_EVENTS_RC(rc);
-    clLogError("EVT", "COP", 
-            "Event Channel Open Prologue failed, rc[%#X]", rc);
+    clLogError("EVT", "COP", "Event Channel Open Prologue failed, rc[%#X]", rc);
     CL_FUNC_EXIT();
     return rc;
 }
@@ -2283,9 +2260,7 @@ ClRcT clEventChannelOpen(ClEventInitHandleT evtHandle,
         goto failure;
     }
 
-    rc = clEvtChannelOpenPrologue(evtHandle, pChannelName, evtChannelOpenFlag,
-            pChannelHandle, &pEvtClientHead, &inMsgHandle,
-            &outMsgHandle);
+    rc = clEvtChannelOpenPrologue(evtHandle, pChannelName, evtChannelOpenFlag, pChannelHandle, &pEvtClientHead, &inMsgHandle, &outMsgHandle);
     if (CL_OK != rc)
     {
         goto failure;
@@ -2304,8 +2279,7 @@ ClRcT clEventChannelOpen(ClEventInitHandleT evtHandle,
 
     do
     {
-        rc = clRmdWithMsg(destAddr, EO_CL_EVT_CHANNEL_OPEN, inMsgHandle,
-                          outMsgHandle, CL_RMD_CALL_NEED_REPLY, &rmdOptions, NULL);
+        rc = clRmdWithMsg(destAddr, EO_CL_EVT_CHANNEL_OPEN, inMsgHandle, outMsgHandle, CL_RMD_CALL_NEED_REPLY, &rmdOptions, NULL);
     } while(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN
             &&
             ++tries < 5
@@ -2666,8 +2640,7 @@ ClRcT clEventChannelClose(ClEventChannelHandleT channelHandle)
     rc = clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, pEvtChannelInfo->evtHandle);
     if(rc != CL_OK)
     {
-        clLogError("EVT", "CCL", 
-                CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
+        clLogError("EVT", "CCL", CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         goto failure;
     }
 
@@ -2908,14 +2881,11 @@ ClRcT clEventExtWithRbeSubscribe(const ClEventChannelHandleT channelHandle,
     /*
      * Create message handle and pack the user input 
      */
-    subscribeRequest.evtChannelHandle =
-        CL_EVT_CHANNEL_HANDLE_FROM_KEY_FLAG(pEvtChannelInfo->flag,
-                pEvtChannelInfo->evtChannelKey);
+    subscribeRequest.evtChannelHandle = CL_EVT_CHANNEL_HANDLE_FROM_KEY_FLAG(pEvtChannelInfo->flag, pEvtChannelInfo->evtChannelKey);
 
     subscribeRequest.subscriberCommPort = subscriberCommPort;
     subscribeRequest.userId.eoIocPort = pEoObj->eoID;
-    subscribeRequest.userId.evtHandle = pEvtChannelInfo->evtHandle;
-    // subscribeRequest.userId.evtHandle = pInitInfo->servHdl;  //NTC: Pass server handle to the server
+    subscribeRequest.userId.evtHandle = pInitInfo->servHdl;  /*  Pass server handle to the server */
     subscribeRequest.subscriptionId = subscriptionId;
     subscribeRequest.pCookie = (ClUint64T)(ClWordT)pCookie;
 

@@ -330,6 +330,46 @@ extern ClRcT clHandleMove(
 }
 #endif
 
+typedef enum handle_state
+{
+	HANDLE_STATE_EMPTY = 0,      /* Value of 0 must indicate unused state */
+	HANDLE_STATE_USED,
+	HANDLE_STATE_PENDINGREMOVAL
+} ClHdlStateT;
+
+
+#define  HANDLE_ALLOC_FLAG 1  
+
+typedef struct handle_entry {
+	ClHdlStateT  state;
+    void         *instance;
+	ClUint32T    ref_count;
+    ClCharT      flags;
+} ClHdlEntryT;
+
+/* Struct for handle database */
+typedef struct handle_database
+{
+    void                *pValidDb;      /* Required for DB handle validity check */
+	pthread_mutex_t     mutex;          /* Mutex to guard database manip. */
+	ClHdlEntryT         *handles;        /* Linear array of handles */
+	ClUint32T           n_handles;      /* Number of handles in the database */
+	ClUint32T           n_handles_used; /* Number of handles in use */
+    ClUint32T           id;             /* Handle database id */
+	void (*handle_instance_destructor) (void *); /* Callback to free a handle */
+} ClHdlDatabaseT;
+
+/* Reserve the top 16 bits to indicate the DB handle */
+#define CL_HDL_NODE_MASK    0xFFFF000000000000ULL /* (((1<<16)-1)<<(63-16)) */
+#define CL_HDL_DB_MASK      0x0000FFFF00000000ULL
+
+/* macros to manipulate handles */
+#define CL_HDL_DB(hdl) (((ClUint64T)hdl)>>48)
+#define CL_HDL_NODE(hdl) ((((ClUint64T)hdl)&CL_HDL_DB_MASK)>>32)
+#define CL_HDL_MAKE(node,dbid, idx) (((ClHandleT) idx) | (((ClHandleT) node)<<48) | (((ClHandleT) dbid)<<32))
+
+
+
 #endif /* _CL_HANDLE_API_H_ */
 
 
