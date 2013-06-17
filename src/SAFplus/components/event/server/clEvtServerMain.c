@@ -367,7 +367,7 @@ ClInt32T clEvtUserKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 
     if (0 == cmpResult && 0 != pUserId2->evtHandle && 0 != pUserId1->evtHandle)
     {
-        return (ClInt32T) (pUserId1->evtHandle - pUserId2->evtHandle); 
+        return ((ClWordT)pUserId1->evtHandle - (ClWordT)pUserId2->evtHandle);
     }
     else
     {
@@ -442,11 +442,11 @@ ClInt32T clEvtSubscribeKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 
     if (0 == cmpResult)
     {
-        return (ClInt32T) (pKey1->subscriptionId - pKey2->subscriptionId);
+        return ((ClWordT)pKey1->subscriptionId - (ClWordT)pKey2->subscriptionId);
     }
     else
     {
-        return (ClInt32T) cmpResult;
+        return cmpResult;
     }
 }
 
@@ -603,7 +603,7 @@ ClInt32T clEvtChannelUserKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 
     if (0 == cmpResult && 0 != pUserId2->evtHandle && 0 != pUserId1->evtHandle)
     {
-        return (ClInt32T) (pUserId1->evtHandle - pUserId2->evtHandle);  
+        return ((ClWordT)pUserId1->evtHandle - (ClWordT)pUserId2->evtHandle);
     }
     else
     {
