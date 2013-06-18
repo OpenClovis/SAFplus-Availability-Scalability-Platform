@@ -24,7 +24,6 @@
 
 ClEoConfigT clEoConfig =
 {
-    COMP_EO_NAME,               /* EO Name                                  */
     COMP_EO_THREAD_PRIORITY,    /* EO Thread Priority                       */
     COMP_EO_NUM_THREAD,         /* No of EO thread needed                   */
     COMP_IOC_PORT,              /* Required Ioc Port                        */

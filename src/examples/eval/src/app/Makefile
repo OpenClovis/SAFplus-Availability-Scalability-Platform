@@ -15,7 +15,7 @@
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 
-SUBDIRS = ev csa101Comp csa102Comp csa103Comp csa104Comp csa105Comp csa111Comp csa112Comp csa113Comp csaSnmpAgentComp csa212Comp csa201Comp csa203Comp csa213Comp csa105AlmLstner
+SUBDIRS = ev csa101Comp csa102Comp csa103Comp  csa111Comp csa112Comp csa113Comp csaSnmpAgentComp csa212Comp csa201Comp csa203Comp csa213Comp 
 
 ifeq ($(SNMP_BUILD),1)
     SUBDIRS += 

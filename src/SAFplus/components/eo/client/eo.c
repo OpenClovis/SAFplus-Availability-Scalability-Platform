@@ -2522,8 +2522,7 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
         if(func == CPM_MGMT_NODE_CONFIG_GET)
             return CL_RMD_ERR_CONTINUE;
 
-        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, 
-                   "Function lookup returned 0x%x", rc);
+        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "RMD function lookup returned fn: [%p] error: [0x%x]", (void*) fun, rc);
         
         /*
          * Try looking up the client table for the max. version of the function supported.
