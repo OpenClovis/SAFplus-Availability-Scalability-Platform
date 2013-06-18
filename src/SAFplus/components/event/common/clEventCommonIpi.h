@@ -205,6 +205,9 @@ do{\
         ClHandleT clientHandle; /* Handle obtained from the client */
     } ClEvtUserIdT;
 
+#define PFMT_ClEvtUserIdT "port %llu, ehdl 0x%llx, chdl %llu"
+#define PVAL_ClEvtUserIdT(x) (x).eoIocPort,(x).evtHandle,(x).clientHandle
+    
     typedef struct EvtInitRequest
     {
         ClUint8T releaseCode;

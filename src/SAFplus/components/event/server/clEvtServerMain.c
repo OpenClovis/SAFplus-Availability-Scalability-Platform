@@ -241,15 +241,12 @@ ClUint64T clEvtNetUint64toHostUint64(ClUint64T netUint64T)
 /***************************************************************************************
   Functions that need to be exposed
  ***************************************************************************************/
-extern ClRcT clEvtInitializeViaRequest(ClEvtInitRequestT *pEvtInitReq,
-        ClUint32T type);
+extern ClRcT clEvtInitializeViaRequest(ClEvtInitRequestT *pEvtInitReq, ClUint32T type);
 extern ClRcT clEvtChannelOpenViaRequest(ClEvtChannelOpenRequestT
         *pEvtChannelOpenRequest,
         ClUint32T type);
-extern ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT
-        *pEvtSubsReq, ClUint32T type);
-extern ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT
-        *pEvtUnsubsReq, ClUint32T type);
+extern ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq, ClUint32T type);
+extern ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, ClUint32T type);
 
 
 /******************************************************************
@@ -308,12 +305,10 @@ ClRcT clEvtHandleDatabaseInit(void)
      ** Create the Handle Database for event handle generation during
      ** clEventInitialize.
      */
-    rc = clHandleDatabaseCreate(clEvtHandleInstanceDestructor,
-            &gEvtHandleDatabaseHdl);
+    rc = clHandleDatabaseCreate(clEvtHandleInstanceDestructor, &gEvtHandleDatabaseHdl);
     if (CL_OK != rc)
     {
-        clLogCritical(CL_EVENT_LOG_AREA_SRV, "HDB",
-                CL_LOG_MESSAGE_1_HANDLE_DB_CREATION_FAILED, rc);
+        clLogCritical(CL_EVENT_LOG_AREA_SRV, "HDB", CL_LOG_MESSAGE_1_HANDLE_DB_CREATION_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -334,8 +329,7 @@ ClRcT clEvtHandleDatabaseExit(void)
     rc = clHandleDatabaseDestroy(gEvtHandleDatabaseHdl);
     if (CL_OK != rc)
     {
-        clLogError(CL_EVENT_LOG_AREA_SRV, "HDB",
-                CL_LOG_MESSAGE_1_HANDLE_DB_DESTROY_FAILED, rc);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "HDB", CL_LOG_MESSAGE_1_HANDLE_DB_DESTROY_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -349,9 +343,9 @@ ClRcT clEvtHandleDatabaseExit(void)
 /*
  * This function will do key comparision for user data 
  */
-ClInt32T clEvtUserKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
+ClWordT clEvtUserKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
-    ClInt32T cmpResult = 0;
+    ClWordT cmpResult = 0;
 
     ClEvtUserIdT *pUserId1 = (ClEvtUserIdT *) key1;
     ClEvtUserIdT *pUserId2 = (ClEvtUserIdT *) key2;
@@ -363,11 +357,19 @@ ClInt32T clEvtUserKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
     }
 #endif
 
-    cmpResult = pUserId1->eoIocPort - pUserId2->eoIocPort;
+    clLogTrace(CL_EVENT_LOG_AREA_SRV, "ECH", "Comparing [" PFMT_ClEvtUserIdT "] to [" PFMT_ClEvtUserIdT "]",PVAL_ClEvtUserIdT(*pUserId1),PVAL_ClEvtUserIdT(*pUserId2));
 
-    if (0 == cmpResult && 0 != pUserId2->evtHandle && 0 != pUserId1->evtHandle)
+    if (pUserId1->eoIocPort > pUserId2->eoIocPort) cmpResult = 1;
+    else if (pUserId1->eoIocPort < pUserId2->eoIocPort) cmpResult = -1;
+    else cmpResult = 0;
+    
+    /* cmpResult = pUserId1->eoIocPort - pUserId2->eoIocPort; Does not work due to 64 to 32 bit reduction */
+
+    if ((0 == cmpResult) && (0 != pUserId2->evtHandle) && (0 != pUserId1->evtHandle))
     {
-        return (ClInt32T) (pUserId1->evtHandle - pUserId2->evtHandle); 
+        if (pUserId1->evtHandle > pUserId2->evtHandle) return 1;
+        else if (pUserId1->evtHandle < pUserId2->evtHandle) return -1;
+        return 0; 
     }
     else
     {
@@ -379,8 +381,7 @@ ClInt32T clEvtUserKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
  * Wrapper for the clEvtUserKeyCompare 
  */
 
-#define clEvtUserIDCompare(userId1, userId2)\
-    clEvtUserKeyCompare((ClCntKeyHandleT)&(userId1), (ClCntKeyHandleT)&(userId2))
+#define clEvtUserIDCompare(userId1, userId2) clEvtUserKeyCompare((ClCntKeyHandleT)&(userId1), (ClCntKeyHandleT)&(userId2))
 
 /*
  ** This function will deallocate the memroy which is allocated to store
@@ -442,11 +443,14 @@ ClInt32T clEvtSubscribeKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 
     if (0 == cmpResult)
     {
-        return (ClInt32T) (pKey1->subscriptionId - pKey2->subscriptionId);
+        if (pKey1->subscriptionId > pKey2->subscriptionId) return 1;
+        else if (pKey1->subscriptionId < pKey2->subscriptionId) return -1;
+        return 0;        
+        /* does not work due to 64/32 bit size issues: return (ClInt32T) (pKey1->subscriptionId - pKey2->subscriptionId); */
     }
     else
     {
-        return (ClInt32T) cmpResult;
+        return cmpResult;
     }
 }
 
@@ -468,7 +472,10 @@ void clEvtSubscriberUserDelete(ClCntKeyHandleT userKey,
  */
 ClInt32T clEvtECHMaskKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
-    return ((ClWordT)key1 - (ClWordT)key2);
+    if (key1 > key2) return 1;
+    if (key1 < key2) return -1;
+    return 0;
+    /* return ((ClWordT)key1 - (ClWordT)key2); */
 }
 
 /*
@@ -492,10 +499,16 @@ ClInt32T clEvtECHKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 
     if (pEvtChannelKey1->channelId == pEvtChannelKey2->channelId)
     {
-        return clEvtUtilsNameCmp((&pEvtChannelKey1->channelName),
-                (&pEvtChannelKey2->channelName));
+        return clEvtUtilsNameCmp((&pEvtChannelKey1->channelName), (&pEvtChannelKey2->channelName));
     }
-    return (pEvtChannelKey1->channelId - pEvtChannelKey2->channelId);
+    else
+    {
+        if (pEvtChannelKey1->channelId > pEvtChannelKey2->channelId) return 1;
+        else return -1;        
+        /* return (pEvtChannelKey1->channelId - pEvtChannelKey2->channelId); */
+    }
+    
+
 }
 
 
@@ -521,10 +534,11 @@ void clEvtECHInfoDelete(ClCntKeyHandleT userKey, ClCntDataHandleT userData)
     ClEvtChannelDBT *pEchDb = (ClEvtChannelDBT *) userData;
     ClEvtChannelKeyT *pEchKey = (ClEvtChannelKeyT *) userKey;
 
-    rc = clEvtCkptSubsDSDelete(&pEchKey->channelName, pEchDb->channelScope);
+    clEvtCkptSubsDSDelete(&pEchKey->channelName, pEchDb->channelScope);
 #endif
 
-    rc = clEvtChannelDBDelete((ClEvtChannelDBT *) userData);
+    clEvtChannelDBDelete((ClEvtChannelDBT *) userData);
+
     clHeapFree((void *) userData);
     clHeapFree((void *) userKey);
     return;
@@ -542,17 +556,12 @@ ClInt32T clEvtTypeKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 
     if (pKey2->flag == CL_EVT_TYPE_RBE_KEY_TYPE)
     {
-        result =
-            clRuleDoubleExprEvaluate(pKey1->key.pRbeExpr, pKey2->key.pRbeExpr);
+        result = clRuleDoubleExprEvaluate(pKey1->key.pRbeExpr, pKey2->key.pRbeExpr);
     }
     else
     {
-        if (NULL == pKey2->key.pData)
-            return 0;
-
-        result =
-            clRuleExprEvaluate(pKey1->key.pRbeExpr,
-                    (ClUint32T *) pKey2->key.pData, pKey2->dataLen);
+        if (NULL == pKey2->key.pData) return 0;
+        result = clRuleExprEvaluate(pKey1->key.pRbeExpr, (ClUint32T *) pKey2->key.pData, pKey2->dataLen);
     }
 
     if (CL_RULE_TRUE == result)
@@ -564,8 +573,7 @@ ClInt32T clEvtTypeKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 }
 
 /*
- ** This function will deallocate the memroy which is allocated to store
- ** information about event channel
+ ** This function will deallocate the memory which is allocated to store information about event channel
  */
 void clEvtTypeUserDelete(ClCntKeyHandleT userKey, ClCntDataHandleT userData)
 {
@@ -573,6 +581,7 @@ void clEvtTypeUserDelete(ClCntKeyHandleT userKey, ClCntDataHandleT userData)
     ClEvtEventTypeInfoT *pEvtTypeInfo = (ClEvtEventTypeInfoT *) userData;
 
     clCntDelete(pEvtTypeInfo->subscriberInfo);
+    pEvtTypeInfo->subscriberInfo = NULL;
     if (pKey->key.pRbeExpr)
         clRuleExprDeallocate((ClRuleExprT *) pKey->key.pRbeExpr);
 
@@ -587,28 +596,7 @@ void clEvtTypeUserDelete(ClCntKeyHandleT userKey, ClCntDataHandleT userData)
  */
 ClInt32T clEvtChannelUserKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
-    ClInt32T cmpResult = 0;
-
-    ClEvtUserIdT *pUserId1 = (ClEvtUserIdT *) key1;
-    ClEvtUserIdT *pUserId2 = (ClEvtUserIdT *) key2;
-
-#ifdef EVT_DBG_ENABLE
-    if (NULL == pUserId1 || NULL == pUserId2)
-    {
-        return CL_EVENT_ERR_NULL_PTR;
-    }
-#endif
-
-    cmpResult = pUserId1->eoIocPort - pUserId2->eoIocPort;
-
-    if (0 == cmpResult && 0 != pUserId2->evtHandle && 0 != pUserId1->evtHandle)
-    {
-        return (ClInt32T) (pUserId1->evtHandle - pUserId2->evtHandle);  
-    }
-    else
-    {
-        return cmpResult;
-    }
+    return clEvtUserKeyCompare(key1,key2);
 }
 
 /*
@@ -657,20 +645,14 @@ ClRcT clEvtChannelDBInit()
      * given ECH 
      */
 
-    rc = clCntHashtblCreate(CL_EVT_MAX_ECH_BUCKET, clEvtECHKeyCompare,
-            clEvtECHHashFunction, clEvtECHInfoDelete, clEvtECHInfoDelete,
-            CL_CNT_UNIQUE_KEY,
-            &gpEvtGlobalECHDb->evtChannelContainer);
+    rc = clCntHashtblCreate(CL_EVT_MAX_ECH_BUCKET, clEvtECHKeyCompare, clEvtECHHashFunction, clEvtECHInfoDelete, clEvtECHInfoDelete, CL_CNT_UNIQUE_KEY, &gpEvtGlobalECHDb->evtChannelContainer);
     if (CL_OK != rc)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "ECH", CL_LOG_MESSAGE_1_CNT_CREATE_FAILED, rc);
         goto localECHDBallocated;
     }
 
-    rc = clCntHashtblCreate(CL_EVT_MAX_ECH_BUCKET, clEvtECHKeyCompare,
-            clEvtECHHashFunction, clEvtECHInfoDelete, clEvtECHInfoDelete,
-            CL_CNT_UNIQUE_KEY,
-            &gpEvtLocalECHDb->evtChannelContainer);
+    rc = clCntHashtblCreate(CL_EVT_MAX_ECH_BUCKET, clEvtECHKeyCompare, clEvtECHHashFunction, clEvtECHInfoDelete, clEvtECHInfoDelete, CL_CNT_UNIQUE_KEY, &gpEvtLocalECHDb->evtChannelContainer);
     if (CL_OK != rc)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "ECH", CL_LOG_MESSAGE_1_CNT_CREATE_FAILED, rc);
@@ -772,11 +754,9 @@ ClRcT clEvtChannelDBCreate(ClEvtChannelDBT *pChannelInfoDb)
     }
 
     /*
-     * List of the user, who opened the event channel 
+     * List of the users who opened the event channel 
      */
-    rc = clCntLlistCreate(clEvtChannelUserKeyCompare, clEvtChannelUserDelete,
-            clEvtChannelUserDelete, CL_CNT_UNIQUE_KEY,
-            &pChannelInfoDb->evtChannelUserInfo);
+    rc = clCntLlistCreate(clEvtChannelUserKeyCompare, clEvtChannelUserDelete, clEvtChannelUserDelete, CL_CNT_UNIQUE_KEY, &pChannelInfoDb->evtChannelUserInfo);
     if (CL_OK != rc)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "ECH", CL_LOG_MESSAGE_1_CNT_CREATE_FAILED, rc);
@@ -1006,8 +986,7 @@ void clEvtChannelInfoGet(ClEventChannelHandleT evtChannelHandle, ClOsalMutexIdT 
 /*
  * The Wrapper around the call to do the client initialize.
  */
-ClRcT VDECL(clEvtInitializeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle,
-        ClBufferHandleT outMsgHandle)
+ClRcT VDECL(clEvtInitializeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle)
 {
     ClRcT rc = CL_OK;
     ClEvtInitRequestT evtInitReq = {0};
@@ -1045,8 +1024,7 @@ ClRcT VDECL(clEvtInitializeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle,
         goto inDataAllocated;
     }
 
-    evtInitReq.userId.evtHandle = evtHandle;  /* Update the Init Request with 
-                                                 * the evtHandle */
+    evtInitReq.userId.evtHandle = evtHandle;  /* Update the Init Request with the evtHandle */
 
     rc = clEvtInitializeViaRequest(&evtInitReq, CL_EVT_NORMAL_REQUEST);
     if (CL_EVENT_ERR_ALREADY_INITIALIZED == rc)
@@ -1066,8 +1044,7 @@ ClRcT VDECL(clEvtInitializeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle,
     /*
      * Write the evtHandle to outMessage for the client 
      */
-    rc = clBufferNBytesWrite(outMsgHandle, (ClUint8T *) &evtHandle,
-            sizeof(evtHandle));
+    rc = clBufferNBytesWrite(outMsgHandle, (ClUint8T *) &evtHandle, sizeof(evtHandle));
     if (CL_OK != rc)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "INI",
@@ -1116,17 +1093,14 @@ ClRcT clEvtInitializeViaRequest(ClEvtInitRequestT *pEvtInitReq, ClUint32T type)
 {
     ClRcT rc = CL_OK;
 
-    ClEvtUserIdT *pInitKey = NULL;  /* Create the key using the userId for Init 
-                                     * Container */
-
-
+    ClEvtUserIdT *pInitKey = NULL;  /* Create the key using the userId for Init Container */
+    
     CL_FUNC_ENTER();
 
 #ifdef CKPT_ENABLED
     if (CL_EVT_CKPT_REQUEST == type)
     {
-        rc = clHandleCreateSpecifiedHandle(gEvtHandleDatabaseHdl, sizeof(*pInitKey),
-                pEvtInitReq->userId.evtHandle);
+        rc = clHandleCreateSpecifiedHandle(gEvtHandleDatabaseHdl, sizeof(*pInitKey), pEvtInitReq->userId.evtHandle);
         if (CL_OK != rc && CL_ERR_ALREADY_EXIST != CL_GET_ERROR_CODE(rc))
         {
             /*
@@ -1140,8 +1114,7 @@ ClRcT clEvtInitializeViaRequest(ClEvtInitRequestT *pEvtInitReq, ClUint32T type)
     rc = clHandleCheckout(gEvtHandleDatabaseHdl, pEvtInitReq->userId.evtHandle, (void **)&pInitKey);
     if(CL_OK != rc)
     {
-        clLogError(CL_EVENT_LOG_AREA_SRV, "INI",
-                CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "INI", CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         goto failure;
     }
 
@@ -1178,8 +1151,7 @@ failure:
  * subscription then register with corresponding group.
  * 
  */
-ClRcT VDECL(clEvtChannelOpenLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle,
-        ClBufferHandleT outMsgHandle)
+ClRcT VDECL(clEvtChannelOpenLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle)
 {
     ClRcT rc = CL_OK;
 
@@ -1193,12 +1165,10 @@ ClRcT VDECL(clEvtChannelOpenLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle,
         return CL_EVENTS_RC(CL_ERR_TRY_AGAIN);
     }
 
-    rc = VDECL_VER(clXdrUnmarshallClEvtChannelOpenRequestT, 4, 0, 0)(inMsgHandle,
-                                                                     &evtChannelOpenRequest);
+    rc = VDECL_VER(clXdrUnmarshallClEvtChannelOpenRequestT, 4, 0, 0)(inMsgHandle, &evtChannelOpenRequest);
     if (CL_OK != rc)
     {
-        clLogError(CL_EVENT_LOG_AREA_SRV, "INI",
-                   "Failed to Unmarshall Buffer [%#X]", rc);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "INI", "Failed to Unmarshall Buffer [%#X]", rc);
         goto failure;
     }
 
@@ -1210,15 +1180,13 @@ ClRcT VDECL(clEvtChannelOpenLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle,
     /*
      * Make the Call to the ViaRequest Api 
      */
-    rc = clEvtChannelOpenViaRequest(&evtChannelOpenRequest,
-            CL_EVT_NORMAL_REQUEST);
+    rc = clEvtChannelOpenViaRequest(&evtChannelOpenRequest, CL_EVT_NORMAL_REQUEST);
     if (CL_EVENT_ERR_EXIST == rc)
     {
         /*
          * Must be due to recovery so issue a warning 
          */
-        clLogWarning(CL_EVENT_LOG_AREA_SRV, "ECH",
-                "Channel Already Opened, rc[%#X]\n\r", rc);
+        clLogWarning(CL_EVENT_LOG_AREA_SRV, "ECH", "Channel Already Opened, rc[%#X]\n\r", rc);
         goto inDataAllocated;
     }
     else if (CL_OK != rc)
@@ -1467,8 +1435,7 @@ ClRcT clEvtSubsIdCheckWalk(ClCntKeyHandleT userKey, ClCntDataHandleT userData,
     subsKey.pCookie = pEvtSubsReq->pCookie; /* This is unecessary as it's not
                                              * checked */
 
-    rc = clCntNodeFind(pEvtTypeInfo->subscriberInfo, (ClCntKeyHandleT) &subsKey,
-            (ClCntNodeHandleT *) &nodeHandle);
+    rc = clCntNodeFind(pEvtTypeInfo->subscriberInfo, (ClCntKeyHandleT) &subsKey, (ClCntNodeHandleT *) &nodeHandle);
     if (CL_OK == rc)
     {
         /*
@@ -1514,9 +1481,7 @@ failure:
  * add into corresponding containter list. 6. If there is any retention event
  * for that Event Type then given that info to subscriber. 
  */
-ClRcT VDECL(clEvtEventSubscribeLocal)(ClEoDataT cData,
-        ClBufferHandleT inMsgHandle,
-        ClBufferHandleT outMsgHandle)
+ClRcT VDECL(clEvtEventSubscribeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle)
 {
     ClRcT rc = CL_OK;
     ClEvtSubscribeEventRequestT evtSubsReq = {0};
@@ -1529,8 +1494,7 @@ ClRcT VDECL(clEvtEventSubscribeLocal)(ClEoDataT cData,
         return CL_EVENTS_RC(CL_ERR_TRY_AGAIN);
     }
     
-    rc = VDECL_VER(clXdrUnmarshallClEvtSubscribeEventRequestT, 4, 0, 0)(inMsgHandle,
-                                                                        &evtSubsReq);
+    rc = VDECL_VER(clXdrUnmarshallClEvtSubscribeEventRequestT, 4, 0, 0)(inMsgHandle, &evtSubsReq);
     if (CL_OK != rc)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
@@ -1570,17 +1534,16 @@ ClRcT VDECL(clEvtEventSubscribeLocal)(ClEoDataT cData,
 #endif
 
 // success:
-    clLogTrace(CL_EVENT_LOG_AREA_SRV, "SUB",
-            "Subscribe successful for EO {port[0x%llx], evtHandle[%#llX], clientHdl[%#llX]} "
-            "on Channel{name [%.*s] handle[%#llX]}, subscription ID [%#X], rc=[%#X]",
+    clLogInfo(CL_EVENT_LOG_AREA_SRV, "SUB",
+            "Subscribe succeeded for EO {port[0x%llx], evtHandle[%#llX], clientHdl[%#llX]} on Channel{name [%.*s] handle[%#llX]}, subscription ID [%#X]",
             evtSubsReq.userId.eoIocPort,
             evtSubsReq.userId.evtHandle,
             evtSubsReq.userId.clientHandle,
             evtSubsReq.evtChannelName.length,
             evtSubsReq.evtChannelName.value,
             evtSubsReq.evtChannelHandle, 
-            evtSubsReq.subscriptionId, rc);
-
+            evtSubsReq.subscriptionId);
+    
     clHeapFree(evtSubsReq.packedRbe);
     
     CL_FUNC_EXIT();
@@ -1607,8 +1570,7 @@ failure:
 }
 
 
-ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq,
-        ClUint32T type)
+ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq, ClUint32T type)
 {
     ClRcT rc = CL_OK;
 
@@ -1632,11 +1594,9 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq,
     /*
      * Get the channel associated information 
      */
-    clEvtChannelInfoGet(pEvtSubsReq->evtChannelHandle, &mutexId, &channelId,
-            &channelScope, &evtChannelUserType, &pEvtChannelInfo);
+    clEvtChannelInfoGet(pEvtSubsReq->evtChannelHandle, &mutexId, &channelId, &channelScope, &evtChannelUserType, &pEvtChannelInfo);
 
-    clEvtUtilsChannelKeyConstruct(pEvtSubsReq->evtChannelHandle,
-            &pEvtSubsReq->evtChannelName, &evtChannelKey);
+    clEvtUtilsChannelKeyConstruct(pEvtSubsReq->evtChannelHandle, &pEvtSubsReq->evtChannelName, &evtChannelKey);
 
 #ifdef CKPT_ENABLED
     /* Need to check app status if from reconstruct */
@@ -1664,22 +1624,17 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq,
      * Get ECH related information 
      */
     clOsalMutexLock(mutexId);
-    rc = clCntDataForKeyGet(pEvtChannelInfo->evtChannelContainer,
-            (ClCntKeyHandleT) &evtChannelKey,
-            (ClCntDataHandleT *) &pEvtChannelDB);
+    rc = clCntDataForKeyGet(pEvtChannelInfo->evtChannelContainer, (ClCntKeyHandleT) &evtChannelKey, (ClCntDataHandleT *) &pEvtChannelDB);
     if (CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc))
     {
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                "Channel not opened, [%#X]", rc);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", "Channel not opened, [%#X]", rc);
         rc = CL_EVENT_ERR_CHANNEL_NOT_OPENED;
         goto mutexLocked;
     }
     else if (CL_OK != rc)
     {
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                "Could not get ECH info [%#X]", rc);
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                CL_LOG_MESSAGE_1_CNT_DATA_GET_FAILED, rc);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", "Could not get ECH info [%#X]", rc);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", CL_LOG_MESSAGE_1_CNT_DATA_GET_FAILED, rc);
         goto mutexLocked;
     }
 
@@ -1695,8 +1650,7 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq,
          * Checking only if not recovery (Bug: 3179) 
          */
         clOsalMutexLock(channelLevelMutex);
-        rc = clCntWalk(pEvtChannelDB->eventTypeInfo, clEvtSubsIdCheckWalk,
-                (ClCntArgHandleT) pEvtSubsReq, 0);
+        rc = clCntWalk(pEvtChannelDB->eventTypeInfo, clEvtSubsIdCheckWalk,(ClCntArgHandleT) pEvtSubsReq, 0);
         clOsalMutexUnlock(channelLevelMutex);
         if (CL_OK != rc)
         {
@@ -1720,8 +1674,7 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq,
     if (NULL == pEvtEventTypeKey)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", "Event Type allocation failed \n\r");
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         clOsalMutexLock(channelLevelMutex);
         goto rbeUnpacked;
     }
@@ -1740,12 +1693,10 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq,
          * If it is not subscribed by any one else. Then add allocate and add
          * the information into appopriate container 
          */
-        pEvtTypeInfo =
-            (ClEvtEventTypeInfoT *) clHeapAllocate(sizeof(ClEvtEventTypeInfoT));
+        pEvtTypeInfo = (ClEvtEventTypeInfoT *) clHeapAllocate(sizeof(ClEvtEventTypeInfoT));
         if (NULL == pEvtTypeInfo)
         {
-            clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                    "Failed to allocate memory for event type info");
+            clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", "Failed to allocate memory for event type info");
             clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
                     CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             rc = CL_EVENT_ERR_NO_MEM;
@@ -1756,36 +1707,26 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq,
         /*
          * Create place holder for subscriber information 
          */
-        rc = clCntLlistCreate(clEvtSubscribeKeyCompare,
-                clEvtSubscriberUserDelete, clEvtSubscriberUserDelete,
-                CL_CNT_UNIQUE_KEY, &pEvtTypeInfo->subscriberInfo);
+        rc = clCntLlistCreate(clEvtSubscribeKeyCompare, clEvtSubscriberUserDelete, clEvtSubscriberUserDelete, CL_CNT_UNIQUE_KEY, &pEvtTypeInfo->subscriberInfo);
         if (CL_OK != rc)
         {
-            clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                    "Failed to create continer for subscription info, rc[%#X]", rc);
-            clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                    CL_LOG_MESSAGE_1_CNT_CREATE_FAILED, rc);
+            clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", "Failed to create continer for subscription info, rc[%#X]", rc);
+            clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", CL_LOG_MESSAGE_1_CNT_CREATE_FAILED, rc);
             goto eventTypeInfoAllocated;
         }
 
-        rc = clCntNodeAdd(pEvtChannelDB->eventTypeInfo,
-                (ClCntKeyHandleT) pEvtEventTypeKey,
-                (ClCntDataHandleT) pEvtTypeInfo, NULL);
+        rc = clCntNodeAdd(pEvtChannelDB->eventTypeInfo, (ClCntKeyHandleT) pEvtEventTypeKey, (ClCntDataHandleT) pEvtTypeInfo, NULL);
         if (CL_OK != rc)
         {
-            clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                    "Failed to add event info into containter");
-            clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                    CL_LOG_MESSAGE_1_CNT_DATA_ADD_FAILED, rc);
+            clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", "Failed to add event info into containter");
+            clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", CL_LOG_MESSAGE_1_CNT_DATA_ADD_FAILED, rc);
             goto eventTypeInfoCntCreated;
         }
     }
     else if (CL_OK != rc)
     {
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                "Failed to lookup event info in the containter");
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                CL_LOG_MESSAGE_1_CNT_DATA_GET_FAILED, rc);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB","Failed to lookup event info in the containter");
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",CL_LOG_MESSAGE_1_CNT_DATA_GET_FAILED, rc);
         goto eventTypeKeyAllocated;
     }
     else
@@ -1807,10 +1748,8 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq,
     if (NULL == pSubsKey)
     {
         rc = CL_EVENT_ERR_NO_MEM;
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                "Failed to memory for Subscription Key");
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", "Failed to memory for Subscription Key");
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         goto chanelLevelMutexLocked;
     }
 
@@ -1821,29 +1760,26 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq,
     pSubsKey->subscriptionId = pEvtSubsReq->subscriptionId;
     pSubsKey->pCookie = pEvtSubsReq->pCookie;
 
-    rc = clCntNodeAdd(pEvtTypeInfo->subscriberInfo, (ClCntKeyHandleT) pSubsKey,
-            (ClCntDataHandleT)(ClWordT) pEvtSubsReq->subscriberCommPort, NULL);
-    if (CL_OK != rc && CL_ERR_DUPLICATE != CL_GET_ERROR_CODE(rc))
+    clLogInfo(CL_EVENT_LOG_AREA_SRV, "SUB","Added subscriber [" PFMT_ClEvtUserIdT "] to channel [%.*s]",PVAL_ClEvtUserIdT(pSubsKey->userId),pEvtSubsReq->evtChannelName.length,pEvtSubsReq->evtChannelName.value);
+    
+    rc = clCntNodeAdd(pEvtTypeInfo->subscriberInfo, (ClCntKeyHandleT) pSubsKey, (ClCntDataHandleT)(ClWordT) pEvtSubsReq->subscriberCommPort, NULL);
+    if (CL_ERR_DUPLICATE == CL_GET_ERROR_CODE(rc))
     {
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                "Failed to add event type into container");
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                CL_LOG_MESSAGE_1_CNT_DATA_ADD_FAILED, rc);
-
-        clHeapFree(pSubsKey);
-        goto chanelLevelMutexLocked;
-    }
-    else if (CL_ERR_DUPLICATE == CL_GET_ERROR_CODE(rc))
-    {
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                "Duplicate subscription");
-        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
-                CL_LOG_MESSAGE_0_DUPLICATE_ENTRY);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", "Duplicate subscription");
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", CL_LOG_MESSAGE_0_DUPLICATE_ENTRY);
         rc = CL_EVENT_ERR_EXIST;
 
         clHeapFree(pSubsKey);
         goto chanelLevelMutexLocked;
     }
+    else if (CL_OK != rc)
+    {
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", "Failed to add event type into container");
+        clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", CL_LOG_MESSAGE_1_CNT_DATA_ADD_FAILED, rc);
+
+        clHeapFree(pSubsKey);
+        goto chanelLevelMutexLocked;
+    }     
 
     pEvtTypeInfo->refCount++;
     clOsalMutexUnlock(channelLevelMutex);
@@ -1878,7 +1814,7 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq,
 // success:
     clLogTrace(CL_EVENT_LOG_AREA_SRV, "SUB",
             "Subscribe successful for EO {port[0x%llx], evtHandle[%#llX], clientHdl[%#llX]} "
-            "on Channel{name [%.*s] handle[%#llX]}, subscription ID [%#X], rc=[%#X]",
+            "on Channel{name [%.*s] handle[%#llx]}, subscription ID [%#x], rc=[%#x]",
             pEvtSubsReq->userId.eoIocPort,
             pEvtSubsReq->userId.evtHandle,
             pEvtSubsReq->userId.clientHandle,
@@ -1913,7 +1849,7 @@ failure:
     rc = CL_EVENTS_RC(rc);
     clLogError(CL_EVENT_LOG_AREA_SRV, "SUB",
             "Subscribe failed for EO {port[0x%llx], evtHandle[%#llX], clientHdl[%#llX]} "
-            "on Channel{name [%.*s] handle[%#llX]}, subscription ID [%#X], rc=[%#X]",
+            "on Channel{name [%.*s] handle[%#llx]}, subscription ID [%#x], rc=[%#x]",
             pEvtSubsReq->userId.eoIocPort,
             pEvtSubsReq->userId.evtHandle,
             pEvtSubsReq->userId.clientHandle,
@@ -1927,15 +1863,11 @@ failure:
 }
 
 
-ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey,
-        ClCntDataHandleT userData,
-        ClCntArgHandleT userArg,
-        ClUint32T dataLength)
+ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey, ClCntDataHandleT userData, ClCntArgHandleT userArg, ClUint32T dataLength)
 {
     ClRcT rc = CL_OK;
 
-    ClEvtEventPrimaryHeaderT *pEvtPrimaryHeader =
-        (ClEvtEventPrimaryHeaderT *) userArg;
+    ClEvtEventPrimaryHeaderT *pEvtPrimaryHeader = (ClEvtEventPrimaryHeaderT *) userArg;
     ClEvtEventSecondaryHeaderT evtSecHeader = {0};
     ClEvtEventSecondaryHeaderT *pEvtSecHeader = NULL;
     ClEvtEventTertiaryHeaderT *pEvtTertiaryHeader = NULL;
@@ -1950,8 +1882,7 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey,
 
     if(!pEvtSubsKey || !subsCommPort)
     {
-        clLogWarning("SUBS", "PUBLISH", "Skipping subscriber walk as the subscriber entry "
-                     "in the event database is 0");
+        clLogWarning("SUBS", "PUBLISH", "Skipping subscriber walk as the subscriber entry in the event database is 0");
         return CL_OK;
     }
 
@@ -2000,8 +1931,7 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey,
     pEvtTertiaryHeader = (ClEvtEventTertiaryHeaderT*)(pEvtSecHeader + 1);
     pEvtTertiaryHeader->eoId = pEvtSubsKey->userId.eoIocPort;
     rc = clBufferCreate(&inMsgHandle);
-    rc = clBufferNBytesWrite(inMsgHandle, (ClUint8T *) pEvtPrimaryHeader,
-                             dataLength);
+    rc = clBufferNBytesWrite(inMsgHandle, (ClUint8T *) pEvtPrimaryHeader, dataLength);
     /*
      * Invoke RMD call provided by EM/S for opening channel, with packed user
      * data. 
@@ -2009,12 +1939,11 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey,
     rmdOptions.priority = 0;
     rmdOptions.retries = CL_EVT_RMD_MAX_RETRIES;
     rmdOptions.timeout = CL_EVT_RMD_TIME_OUT;
-
-
+    
     remoteObjAddr.iocPhyAddress.nodeAddress = iocLocalAddress;
-    remoteObjAddr.iocPhyAddress.portId = subsCommPort;
-    rc = clRmdWithMsg(remoteObjAddr, CL_EVT_EVENT_DELIVERY_FN_ID, inMsgHandle,
-            0, CL_RMD_CALL_ASYNC | CL_RMD_CALL_ORDERED, &rmdOptions, NULL);
+    remoteObjAddr.iocPhyAddress.portId      = subsCommPort;
+
+    rc = clRmdWithMsg(remoteObjAddr, CL_EVT_EVENT_DELIVERY_FN_ID, inMsgHandle, 0, CL_RMD_CALL_ASYNC | CL_RMD_CALL_ORDERED, &rmdOptions, NULL);
     (void) clBufferDelete(&inMsgHandle);
     if (CL_OK != rc)
     {
@@ -2038,17 +1967,14 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey,
     return rc;
 }
 
-ClRcT clEvtEventTypeWalkForPublish(ClCntKeyHandleT userKey,
-        ClCntDataHandleT userData,
-        ClCntArgHandleT userArg,
-        ClUint32T dataLength)
+
+ClRcT clEvtEventTypeWalkForPublish(ClCntKeyHandleT userKey, ClCntDataHandleT userData, ClCntArgHandleT userArg, ClUint32T dataLength)
 {
     ClRcT rc = CL_OK;
 
     ClEvtPublishInfoT *pPublishInfo = (ClEvtPublishInfoT *) userArg;
     ClEvtEventTypeKeyT *pPublishKey = pPublishInfo->pEventTypeKey;
-    ClEvtEventPrimaryHeaderT *pEvtPrimaryHeader =
-        pPublishInfo->pEvtPrimaryHeader;
+    ClEvtEventPrimaryHeaderT *pEvtPrimaryHeader = pPublishInfo->pEvtPrimaryHeader;
 
     ClEvtEventTypeInfoT *pEvtTypeInfo = (ClEvtEventTypeInfoT *) userData;
     ClEvtEventTypeKeyT *pEvtEventTypeKey = (ClEvtEventTypeKeyT *) userKey;
@@ -2058,11 +1984,9 @@ ClRcT clEvtEventTypeWalkForPublish(ClCntKeyHandleT userKey,
     /*
      * If not the same Event Type simply ignore and continue to 
      * match the other event types. This should be done even in 
-     * case of errros issuing a warning - Bug 6934.
+     * case of errors issuing a warning - Bug 6934.
      */
-    if (0 !=
-            clEvtTypeKeyCompare((ClCntKeyHandleT) pEvtEventTypeKey,
-                (ClCntKeyHandleT) pPublishKey))
+    if (0 != clEvtTypeKeyCompare((ClCntKeyHandleT) pEvtEventTypeKey, (ClCntKeyHandleT) pPublishKey))
     {
         goto success;
     }
@@ -2076,12 +2000,9 @@ ClRcT clEvtEventTypeWalkForPublish(ClCntKeyHandleT userKey,
          * userId and subscriptionId.
          */
 
-        rc = clCntDataForKeyGet(pEvtTypeInfo->subscriberInfo,
-                (ClCntKeyHandleT) &KEY,
-                ClCntDataHandleT *pUserData) rc =
-            clCntNodeFind(pEvtTypeInfo->subscriberInfo,
-                    (ClCntKeyHandleT) &subsKey,
-                    (ClCntNodeHandleT *) &nodeHandle);
+        rc = clCntDataForKeyGet(pEvtTypeInfo->subscriberInfo, (ClCntKeyHandleT) &KEY, ClCntDataHandleT *pUserData);
+        
+        rc =  clCntNodeFind(pEvtTypeInfo->subscriberInfo, (ClCntKeyHandleT) &subsKey, (ClCntNodeHandleT *) &nodeHandle);
         rc = clCntNodeUserKeyGet(containerHandle, nodeHandle, &userKey); 
         rc = clEvtPublishRetainedEvent(pEvtPrimaryHeader, pEvtTypeInfo);
 
@@ -2090,12 +2011,11 @@ ClRcT clEvtEventTypeWalkForPublish(ClCntKeyHandleT userKey,
 #endif
 
     /*
-     * If the Event type matches walk throught subscriber list and Publish.
+     * If the Event type matches walk through subscriber list and Publish.
      * Note that the dataLength is the length of the Event Header(Secondary
      * Header inclusive) 
      */
-    rc = clCntWalk(pEvtTypeInfo->subscriberInfo, clEvtSubscribeWalkForPublish,
-            (ClCntArgHandleT) pEvtPrimaryHeader, dataLength);
+    rc = clCntWalk(pEvtTypeInfo->subscriberInfo, clEvtSubscribeWalkForPublish, (ClCntArgHandleT) pEvtPrimaryHeader, dataLength);
     if (CL_OK != rc)
     {
         /*
@@ -2104,8 +2024,7 @@ ClRcT clEvtEventTypeWalkForPublish(ClCntKeyHandleT userKey,
          * on that list. This call could only fail due to some error in the
          * walk itself. Merely issuing a warning here... Bug 6934
          */
-        clLogWarning(CL_EVENT_LOG_AREA_SRV, "PUB", 
-                CL_LOG_MESSAGE_1_CNT_WALK_FAILED, rc);
+        clLogWarning(CL_EVENT_LOG_AREA_SRV, "PUB", CL_LOG_MESSAGE_1_CNT_WALK_FAILED, rc);
         rc = CL_OK;
         goto failure;
     }
@@ -2821,9 +2740,7 @@ failure:
     return rc;
 }
 
-ClRcT clEvtUnSubsWalk(ClCntHandleT eventTypeHandle,
-        ClEvtEventTypeInfoT *pEvtTypeInfo,
-        ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq)
+ClRcT clEvtUnSubsWalk(ClCntHandleT eventTypeHandle, ClEvtEventTypeInfoT *pEvtTypeInfo, ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq)
 {
     ClRcT rc = CL_OK;
     ClRcT ec = CL_OK;
@@ -2832,28 +2749,28 @@ ClRcT clEvtUnSubsWalk(ClCntHandleT eventTypeHandle,
     ClEvtSubsKeyT *pEvtSubsKey = NULL;
     ClBoolT found = CL_FALSE; // NTC
 
-    rc = clCntFirstNodeGet(eventTypeHandle, &nodeHandle1);
-    if (CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc))
+    clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "Walking event type subscribers to unsubscribe user [" PFMT_ClEvtUserIdT "] from channel [%.*s]",PVAL_ClEvtUserIdT(pEvtUnsubsReq->userId),pEvtUnsubsReq->evtChannelName.length,pEvtUnsubsReq->evtChannelName.value);
+    ec = clCntFirstNodeGet(eventTypeHandle, &nodeHandle1);
+    if (CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(ec))
     {
         rc = CL_OK;
+        clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "No event type subscribers");
         goto success;
     }
-    else if (CL_OK != rc)
+    else if (CL_OK != ec)
     {
-        clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", 
-                "Failed to get event type hanlde, rc[%#x]", rc);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", "Failed to get event type handle, rc[%#x]", ec);
+        rc = ec;
         goto failure;
     }
 
     while (CL_OK == ec)
     {
         nodeHandle = nodeHandle1;
-        rc = clCntNodeUserKeyGet(eventTypeHandle, nodeHandle,
-                (ClCntKeyHandleT *) &pEvtSubsKey);
+        rc = clCntNodeUserKeyGet(eventTypeHandle, nodeHandle, (ClCntKeyHandleT *) &pEvtSubsKey);
         if (CL_OK != rc)
         {
-            clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", 
-                    "Failed to get subscription key, rc[%#x]", rc);
+            clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", "Failed to get subscription key, rc[%#x]", rc);
             goto failure;
         }
 
@@ -2868,10 +2785,9 @@ ClRcT clEvtUnSubsWalk(ClCntHandleT eventTypeHandle,
              * If it is only for unsubscription 
              */
             case CL_EVT_UNSUBSCRIBE:
-                if (pEvtUnsubsReq->subscriptionId == pEvtSubsKey->subscriptionId
-                        && 0 == clEvtUserIDCompare(pEvtUnsubsReq->userId,
-                            pEvtSubsKey->userId))
+                if ((pEvtUnsubsReq->subscriptionId == pEvtSubsKey->subscriptionId) && (0 == clEvtUserIDCompare(pEvtUnsubsReq->userId, pEvtSubsKey->userId)))
                 {
+                    clLogInfo(CL_EVENT_LOG_AREA_SRV, "CLN", "Unsubscribe: User removed from event type subscriber list.");
                     rc = clCntNodeDelete(eventTypeHandle, nodeHandle);
                     /*
                      * Decrease the referance count 
@@ -2885,28 +2801,33 @@ ClRcT clEvtUnSubsWalk(ClCntHandleT eventTypeHandle,
 
             case CL_EVT_CHANNEL_CLOSE:
             case CL_EVT_FINALIZE:
-                if (0 ==
-                        clEvtUserIDCompare(pEvtUnsubsReq->userId,
-                            pEvtSubsKey->userId))
+                if (0 == clEvtUserIDCompare(pEvtUnsubsReq->userId, pEvtSubsKey->userId))
                 {
+                    clLogInfo(CL_EVENT_LOG_AREA_SRV, "CLN", "Close/Finalize: User removed from event type subscriber list.");
+
                     rc = clCntNodeDelete(eventTypeHandle, nodeHandle);
+                    if (rc != CL_OK)
+                    {
+                        clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", "cannot remove user from event type subscriber list, rc [0x%x]!",rc);
+                    }
+                    
                     /*
-                     * Decrease the referance count 
+                     * Decrease the reference count 
                      */
                     pEvtTypeInfo->refCount--;
-                    break;
-                }
+                } break;
         }
     }
 
 success: // fall through for now
 
 failure:
+    clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "Event type subscriber removal completed");
+
     return rc;
 }
 
-ClRcT clEvtUnSubsEventTypeWalk(ClCntHandleT eventTypeHandle,
-        ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq)
+ClRcT clEvtUnSubsEventTypeWalk(ClCntHandleT eventTypeHandle, ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq)
 {
     ClRcT rc = CL_OK;
     ClRcT ec = CL_OK;
@@ -2923,26 +2844,21 @@ ClRcT clEvtUnSubsEventTypeWalk(ClCntHandleT eventTypeHandle,
     }
     else if (CL_OK != rc)
     {
-        clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", 
-                "Failed to get event type hanlde, rc[%#x]", rc);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", "Failed to get event type handle, rc[%#x]", rc);
         goto failure;
     }
 
     while (CL_OK == ec)
     {
         nodeHandle = nodeHandle1;
-        rc = clCntNodeUserDataGet(eventTypeHandle, nodeHandle,
-                (ClCntDataHandleT *) &pEvtTypeInfo);
+        rc = clCntNodeUserDataGet(eventTypeHandle, nodeHandle, (ClCntDataHandleT *) &pEvtTypeInfo);
         if (CL_OK != rc)
         {
-            clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", 
-                    "Failed to get event type info, rc[%#x]", rc);
+            clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", "Failed to get event type info, rc[%#x]", rc);
             goto failure;
         }
 
-        unSubsRc =
-            clEvtUnSubsWalk(pEvtTypeInfo->subscriberInfo, pEvtTypeInfo,
-                    pEvtUnsubsReq);
+        unSubsRc = clEvtUnSubsWalk(pEvtTypeInfo->subscriberInfo, pEvtTypeInfo, pEvtUnsubsReq);
 
         ec = clCntNextNodeGet(eventTypeHandle, nodeHandle, &nodeHandle1);
 
@@ -2956,7 +2872,7 @@ ClRcT clEvtUnSubsEventTypeWalk(ClCntHandleT eventTypeHandle,
             rc = unSubsRc;
             goto success;
         }
-        else if (CL_OK != ec && CL_EVENT_ERR_INVALID_PARAM == unSubsRc) // NTC
+        else if ((CL_OK != ec) && (CL_EVENT_ERR_INVALID_PARAM == unSubsRc)) // NTC
         {
             /*
              * If the subscription ID is does not match.
@@ -3019,9 +2935,7 @@ failure:
 
 extern ClRcT clEvtCkptCheckPointAll(void); // NTC 
 
-ClRcT VDECL(clEvtEventUnsubscribeAllLocal)(ClEoDataT cData,
-        ClBufferHandleT inMsgHandle,
-        ClBufferHandleT outMsgHandle)
+ClRcT VDECL(clEvtEventUnsubscribeAllLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle)
 {
     ClRcT rc = CL_OK;
     ClEvtUnsubscribeEventRequestT evtUnsubsReq = {0};
@@ -3034,12 +2948,10 @@ ClRcT VDECL(clEvtEventUnsubscribeAllLocal)(ClEoDataT cData,
         return CL_EVENTS_RC(CL_ERR_TRY_AGAIN);
     }
 
-    rc = VDECL_VER(clXdrUnmarshallClEvtUnsubscribeEventRequestT, 4, 0, 0)(inMsgHandle,
-                                                                          &evtUnsubsReq);
+    rc = VDECL_VER(clXdrUnmarshallClEvtUnsubscribeEventRequestT, 4, 0, 0)(inMsgHandle, &evtUnsubsReq);
     if (CL_OK != rc)
     {
-        clLogError(CL_EVENT_LOG_AREA_SRV, "CLN",
-                   "Failed to Unmarshall Buffer, error [%#X]", rc);
+        clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", "Failed to unmarshall buffer, error [%#X]", rc);
         goto failure;
     }
 
@@ -3048,6 +2960,9 @@ ClRcT VDECL(clEvtEventUnsubscribeAllLocal)(ClEoDataT cData,
      */
     clEvtVerifyClientToServerVersion(&evtUnsubsReq, outMsgHandle);
 
+    clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "RPC call: clEvtEventUnsubscribeAllLocal: Req: [%s] User [" PFMT_ClEvtUserIdT "], channel [%.*s] hdl [%llx]",(CL_EVT_FINALIZE == evtUnsubsReq.reqFlag) ? "CL_EVT_FINALIZE": ((CL_EVT_UNSUBSCRIBE == evtUnsubsReq.reqFlag) ? "CL_EVT_UNSUBSCRIBE" : ((CL_EVT_CHANNEL_CLOSE == evtUnsubsReq.reqFlag) ? "CL_EVT_CHANNEL_CLOSE" : "unknown")),
+               PVAL_ClEvtUserIdT(evtUnsubsReq.userId),evtUnsubsReq.evtChannelName.length,evtUnsubsReq.evtChannelName.value,evtUnsubsReq.evtChannelHandle);
+    
     if (CL_EVT_FINALIZE == evtUnsubsReq.reqFlag)
     {
         /*
@@ -3078,12 +2993,11 @@ ClRcT VDECL(clEvtEventUnsubscribeAllLocal)(ClEoDataT cData,
              * eoIocPort for the application going down. Do a walk on the database for the node with 
              * the eoIocPort = the eoIocPort passed by the call. 
              */
-
+            clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "userId is 0, unsubscribing entire application.");
             rc = clHandleWalk(gEvtHandleDatabaseHdl, clEventCpmCleanupWalk,(void *)&evtUnsubsReq);
             if(CL_OK != rc)
             {
-                clLogError(CL_EVENT_LOG_AREA_SRV, "CLN",
-                        "clHandleWalk failed, rc[%#X]", rc);
+                clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", "clHandleWalk failed, rc[%#X]", rc);
             } 
         }
         else
@@ -3091,8 +3005,7 @@ ClRcT VDECL(clEvtEventUnsubscribeAllLocal)(ClEoDataT cData,
             rc = clHandleDestroy( gEvtHandleDatabaseHdl, (ClHandleT)evtUnsubsReq.userId.evtHandle);
             if(CL_OK != rc)
             {
-                clLogError(CL_EVENT_LOG_AREA_SRV, "CLN",
-                        "clHandleDestroy failed, rc[%#X]", rc);
+                clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", "clHandleDestroy failed, rc[%#X]", rc);
                 goto inDataAllocated;
             }
         }
@@ -3134,8 +3047,7 @@ failure:
  * CL_EVT_NORMAL_REQUEST 
  */
 
-ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq,
-        ClUint32T type)
+ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, ClUint32T type)
 {
     ClRcT rc = CL_OK;
     ClRcT ec = CL_OK;
@@ -3152,7 +3064,8 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq,
 
     ClOsalMutexIdT mutexId = 0;
 
-
+    clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "clEvtEventCleanupViaRequest: User [" PFMT_ClEvtUserIdT "], channel [%.*s] hdl [%llx]",PVAL_ClEvtUserIdT(pEvtUnsubsReq->userId),pEvtUnsubsReq->evtChannelName.length,pEvtUnsubsReq->evtChannelName.value,pEvtUnsubsReq->evtChannelHandle);
+                        
     CL_FUNC_ENTER();
 
 
@@ -3173,8 +3086,7 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq,
      * Channel Information 
      */
     clOsalMutexLock(mutexId);
-    rc = clCntFirstNodeGet(pEvtChannelInfo->evtChannelContainer,
-            &evtChannelNodeHandle1);
+    rc = clCntFirstNodeGet(pEvtChannelInfo->evtChannelContainer, &evtChannelNodeHandle1);
     if (CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc))
     {
         /*
@@ -3189,23 +3101,18 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq,
     }
 
     /*
-     * NOTE: Need to take care for decrement the referance count and if reaches
-     * zero then delete the node 
+     * NOTE: Need to take care for decrement the reference count and if reaches zero then delete the node 
      */
     while (CL_OK == ec)
     {
         evtChannelNodeHandle = evtChannelNodeHandle1;
-        rc = clCntNodeUserDataGet(pEvtChannelInfo->evtChannelContainer,
-                evtChannelNodeHandle,
-                (ClCntDataHandleT *) &pEvtChannelDB);
+        rc = clCntNodeUserDataGet(pEvtChannelInfo->evtChannelContainer, evtChannelNodeHandle, (ClCntDataHandleT *) &pEvtChannelDB);
         if (CL_OK != rc && CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(rc)) // NTC
         {
             goto mutexLocked;
         }
 
-        rc = clCntNodeUserKeyGet(pEvtChannelInfo->evtChannelContainer,
-                evtChannelNodeHandle,
-                (ClCntDataHandleT *) &pEvtChannelKey);
+        rc = clCntNodeUserKeyGet(pEvtChannelInfo->evtChannelContainer, evtChannelNodeHandle, (ClCntDataHandleT *) &pEvtChannelKey);
         if (CL_OK != rc && CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(rc)) // NTC
         {
             goto mutexLocked;
@@ -3214,54 +3121,48 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq,
         CL_EVT_CHANNEL_ID_GET(pEvtUnsubsReq->evtChannelHandle, channelId);
         CL_EVT_CHANNEL_USER_TYPE_GET(pEvtUnsubsReq->evtChannelHandle, userType);
 
-        ec =
-            clCntNextNodeGet(pEvtChannelInfo->evtChannelContainer,
-                    evtChannelNodeHandle, &evtChannelNodeHandle1);
+        ec = clCntNextNodeGet(pEvtChannelInfo->evtChannelContainer, evtChannelNodeHandle, &evtChannelNodeHandle1);
 
+        /* clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN","Req: %d",pEvtUnsubsReq->reqFlag); */
         switch (pEvtUnsubsReq->reqFlag)
         {
             case CL_EVT_CHANNEL_CLOSE:
-                if (channelId == pEvtChannelKey->channelId &&
-                        0 == clEvtUtilsNameCmp(&pEvtChannelKey->channelName,
-                            &pEvtUnsubsReq->evtChannelName))
+                clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "Channel Close");
+
+                if ((channelId == pEvtChannelKey->channelId) && (0 == clEvtUtilsNameCmp(&pEvtChannelKey->channelName, &pEvtUnsubsReq->evtChannelName)))
                 {
 
-                    unSubsRc =
-                        clEvtUnSubsEventTypeWalk(pEvtChannelDB->eventTypeInfo,
-                                pEvtUnsubsReq);
+                    unSubsRc = clEvtUnSubsEventTypeWalk(pEvtChannelDB->eventTypeInfo, pEvtUnsubsReq);
                     /*
                      * Find and delete the user information 
                      */
-                    rc = clCntNodeFind(pEvtChannelDB->evtChannelUserInfo,
-                            (ClCntKeyHandleT) &pEvtUnsubsReq->userId,
-                            &userOfEchNodeHandle);
+                    rc = clCntNodeFind(pEvtChannelDB->evtChannelUserInfo, (ClCntKeyHandleT) &pEvtUnsubsReq->userId, &userOfEchNodeHandle);
                     if (CL_OK == rc)
                     {
-                        rc = clCntNodeDelete(pEvtChannelDB->evtChannelUserInfo,
-                                userOfEchNodeHandle);
+                        rc = clCntNodeDelete(pEvtChannelDB->evtChannelUserInfo, userOfEchNodeHandle);
+                        
+                        if ((userType & CL_EVENT_CHANNEL_SUBSCRIBER) && (pEvtChannelDB->subscriberRefCount > 0))
+                        {
+                            pEvtChannelDB->subscriberRefCount--;
+                        }
+                        if ((userType & CL_EVENT_CHANNEL_PUBLISHER) && (pEvtChannelDB->publisherRefCount > 0))
+                        {
+                            pEvtChannelDB->publisherRefCount--;
+                        }
+                        clLogInfo(CL_EVENT_LOG_AREA_SRV, "CLN", "Removed user from this channel. New reference counts: pubs: [%d], subs: [%d]",pEvtChannelDB->publisherRefCount,pEvtChannelDB->subscriberRefCount);
+                        
+                        if (0 == pEvtChannelDB->publisherRefCount + pEvtChannelDB->subscriberRefCount)
+                        {
+                            clLogWarning(CL_EVENT_LOG_AREA_SRV, "CLN", "Event channel has no pubs/subs. Deleting it.");
+                            rc = clCntNodeDelete(pEvtChannelInfo->evtChannelContainer, evtChannelNodeHandle);
+                            if (rc != CL_OK)
+                            {
+                                clLogWarning(CL_EVENT_LOG_AREA_SRV, "CLN", "Error [0x%x] deleting event channel [%p]", rc, userOfEchNodeHandle);
+                            }
+                        }
                     }
 
-
-                    if ( rc == CL_OK && (0 != (userType & CL_EVENT_CHANNEL_SUBSCRIBER)
-                                         && (pEvtChannelDB->subscriberRefCount > 0)))
-                    {
-                        pEvtChannelDB->subscriberRefCount--;
-                    }
-                    if ( rc == CL_OK && ( 0 != (userType & CL_EVENT_CHANNEL_PUBLISHER) 
-                                          && (pEvtChannelDB->publisherRefCount > 0)) )
-                    {
-                        pEvtChannelDB->publisherRefCount--;
-                    }
-
-                    if (0 ==
-                            pEvtChannelDB->publisherRefCount +
-                            pEvtChannelDB->subscriberRefCount)
-                    {
-                        rc = clCntNodeDelete(pEvtChannelInfo->
-                                evtChannelContainer,
-                                evtChannelNodeHandle);
-                    }
-
+                    
                     // clOsalMutexUnlock(mutexId); // NTC why not include check point under this?
 #ifndef CKPT_ENABLED
                     if (CL_EVT_NORMAL_REQUEST == type)
@@ -3287,29 +3188,24 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq,
                 /*
                  * Find out if the given user opened this event channel 
                  */
-                rc = clCntNodeFind(pEvtChannelDB->evtChannelUserInfo,
-                        (ClCntKeyHandleT) &pEvtUnsubsReq->userId,
-                        &userOfEchNodeHandle);
+                clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "Event Finalize handler");
+                rc = clCntNodeFind(pEvtChannelDB->evtChannelUserInfo, (ClCntKeyHandleT) &pEvtUnsubsReq->userId, &userOfEchNodeHandle);
                 if (CL_OK == rc)
                 {
-                    rc = clCntNodeUserDataGet(pEvtChannelDB->evtChannelUserInfo,
-                            userOfEchNodeHandle,
-                            (ClCntDataHandleT *) &userType);
+                    clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "Found user [" PFMT_ClEvtUserIdT "]", PVAL_ClEvtUserIdT(pEvtUnsubsReq->userId));
+                    
+                    rc = clCntNodeUserDataGet(pEvtChannelDB->evtChannelUserInfo, userOfEchNodeHandle, (ClCntDataHandleT *) &userType);
 
-                    unSubsRc =
-                        clEvtUnSubsEventTypeWalk(pEvtChannelDB->eventTypeInfo,
-                                pEvtUnsubsReq);
+                    unSubsRc = clEvtUnSubsEventTypeWalk(pEvtChannelDB->eventTypeInfo, pEvtUnsubsReq);
 
                     /*
-                     * Decrement corresponding referance count 
+                     * Decrement corresponding reference count 
                      */
-                    if ( (0 != (userType & CL_EVENT_CHANNEL_SUBSCRIBER)
-                                && (pEvtChannelDB->subscriberRefCount > 0)) )
+                    if ((userType & CL_EVENT_CHANNEL_SUBSCRIBER) && (pEvtChannelDB->subscriberRefCount > 0))
                     {
                         pEvtChannelDB->subscriberRefCount--;
                     }
-                    if ( (0 != (userType & CL_EVENT_CHANNEL_PUBLISHER)
-                                && (pEvtChannelDB->publisherRefCount > 0)) )
+                    if ((userType & CL_EVENT_CHANNEL_PUBLISHER) && (pEvtChannelDB->publisherRefCount > 0))
                     {
                         pEvtChannelDB->publisherRefCount--;
                     }
@@ -3317,20 +3213,25 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq,
                     /*
                      * Delete the user information EM 
                      */
-                    rc = clCntNodeDelete(pEvtChannelDB->evtChannelUserInfo,
-                            userOfEchNodeHandle);
+                    clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "Delete user handle [%p]", userOfEchNodeHandle);
+                    rc = clCntNodeDelete(pEvtChannelDB->evtChannelUserInfo,userOfEchNodeHandle);
+                    if (rc != CL_OK)
+                    {
+                        clLogWarning(CL_EVENT_LOG_AREA_SRV, "CLN", "Error [0x%x] delete user handle [%p]", rc, userOfEchNodeHandle);
+                    }
+                    
 
                     /*
-                     * If both the referance count become zero then delete the
-                     * event channel 
+                     * If both publishers and subscribers of an event channel become zero then delete the channel
                      */
-                    if (0 ==
-                            (pEvtChannelDB->subscriberRefCount +
-                             pEvtChannelDB->publisherRefCount))
+                    if (0 == (pEvtChannelDB->subscriberRefCount + pEvtChannelDB->publisherRefCount))
                     {
-                        rc = clCntNodeDelete(pEvtChannelInfo->
-                                evtChannelContainer,
-                                evtChannelNodeHandle);
+                        clLogWarning(CL_EVENT_LOG_AREA_SRV, "CLN", "Event channel has no pubs/subs. Deleting it.");
+                        rc = clCntNodeDelete(pEvtChannelInfo->evtChannelContainer, evtChannelNodeHandle);
+                        if (rc != CL_OK)
+                        {
+                            clLogWarning(CL_EVENT_LOG_AREA_SRV, "CLN", "Error [0x%x] deleting event channel [%p]", rc, userOfEchNodeHandle);
+                        }
                     }
 
                 }
@@ -3354,31 +3255,27 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq,
 
 
             case CL_EVT_UNSUBSCRIBE:
-                if (channelId == pEvtChannelKey->channelId &&
-                        0 == clEvtUtilsNameCmp(&pEvtChannelKey->channelName,
-                            &pEvtUnsubsReq->evtChannelName))
+                clLogWarning(CL_EVENT_LOG_AREA_SRV, "CLN", "Unsubscribe from channel id [%d] name [%.*s]", channelId,pEvtUnsubsReq->evtChannelName.length,pEvtUnsubsReq->evtChannelName.value);
+                if ( (channelId == pEvtChannelKey->channelId) && (0 == clEvtUtilsNameCmp(&pEvtChannelKey->channelName,&pEvtUnsubsReq->evtChannelName)))
                 {
-                    unSubsRc =
-                        clEvtUnSubsEventTypeWalk(pEvtChannelDB->eventTypeInfo,
-                                pEvtUnsubsReq);
-                    if (CL_EVENT_ERR_STOP_WALK != unSubsRc && unSubsRc != CL_OK)    /* If 
-                                                                                 * the 
-                                                                                 * subscription 
-                                                                                 * ID 
-                                                                                 * is 
-                                                                                 * not 
-                                                                                 * matched 
-                                                                                 */
+                    unSubsRc = clEvtUnSubsEventTypeWalk(pEvtChannelDB->eventTypeInfo, pEvtUnsubsReq);
+                    if (CL_EVENT_ERR_STOP_WALK != unSubsRc && unSubsRc != CL_OK)
+                        /* If the subscription ID is not matched */
                     {
                         goto mutexLocked;
                     }
                 }
+                else
+                {
+                    clLogWarning(CL_EVENT_LOG_AREA_SRV, "CLN", "Channel Id [%d,%d] and/or channel name mismatch [%.*s,%.*s]", channelId,pEvtChannelKey->channelId,pEvtChannelKey->channelName.length,pEvtChannelKey->channelName.value,pEvtUnsubsReq->evtChannelName.length,pEvtUnsubsReq->evtChannelName.value);
+                    
+                }
+                
 
 #ifndef CKPT_ENABLED
                 if (CL_EVT_NORMAL_REQUEST == type)
                 {
-                    rc = clEvtCkptCheckPointUnsubscribe(pEvtUnsubsReq,
-                            pEvtChannelDB);
+                    rc = clEvtCkptCheckPointUnsubscribe(pEvtUnsubsReq, pEvtChannelDB);
                     if (CL_OK != rc)
                     {
                         clLogError(CL_EVENT_LOG_AREA_SRV, "CLN",
