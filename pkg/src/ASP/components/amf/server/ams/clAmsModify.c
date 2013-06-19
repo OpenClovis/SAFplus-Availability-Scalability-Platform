@@ -2241,14 +2241,17 @@ clAmsCSIGetNVP(
     ClCntNodeHandleT  nodeHandle = 0;
     ClUint32T  numNodes = 0;
     ClUint32T i = 0;
+    ClRcT rc;
+    
 
     AMS_CHECKPTR ( !entity || !nvpList );
 
     memcpy ( &entityRef.entity, entity, sizeof(ClAmsEntityT) );
 
-    AMS_CALL ( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                &entityRef) );
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &entityRef);
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
+    AMS_CALL (rc); /* Check for critical errors */
+    
 
     csi = (ClAmsCSIT *)entityRef.ptr;
     AMS_CHECKPTR (!csi);
@@ -2443,9 +2446,9 @@ clAmsGetEntityList(
     {
         memcpy ( &entityRef.entity, entity, sizeof(ClAmsEntityT) );
 
-        AMS_CALL ( clAmsEntityDbFindEntity(
-                                           &gAms.db.entityDb[entity->type],
-                                           &entityRef) );
+        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type],&entityRef);
+        if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
+        AMS_CALL (rc); /* Check for critical errors */
 
         AMS_CHECKPTR (!entityRef.ptr);
     }
@@ -2735,14 +2738,16 @@ clAmsGetOLEntityList(
     ClAmsEntityRefT *eRef = NULL;
     ClUint32T  size = 0;
     ClUint32T  i=0;
+    ClRcT rc;
 
     AMS_CHECKPTR ( !entity || !entityListBuffer );
 
     memcpy ( &entityRef.entity, entity, sizeof(ClAmsEntityT) );
 
-    AMS_CALL ( clAmsEntityDbFindEntity(
-                                       &gAms.db.entityDb[entity->type],
-                                       &entityRef) );
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type],&entityRef);
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
+    AMS_CALL (rc); /* Check for critical errors */
+    
 
     AMS_CHECKPTR (!entityRef.ptr);
 
@@ -4613,9 +4618,10 @@ clAmsGetEntityListContents(
      * 6. Update the response with number of total nodes
      */ 
     
-    AMS_CALL ( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[entityRef.entity.type],
-                &entityRef) ); 
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityRef.entity.type],&entityRef);
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
+    AMS_CALL (rc); /* Check for critical errors */
+    
     
     AMS_CHECKPTR ( !entityRef.ptr );
 
