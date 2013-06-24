@@ -80,7 +80,7 @@ do {                                                                    \
     ClRcT returnCode = CL_OK;                                           \
                                                                         \
     returnCode = (fn);                                                  \
-    if (returnCode != CL_OK) clDbgCodeError(CL_DEBUG_ERROR, ("Fn [%s] returned [0x%x]\n", #fn, returnCode) ); \
+    if (returnCode != CL_OK) clDbgCodeLog(CL_DEBUG_ERROR, ("Fn [%s] returned [0x%x]\n", #fn, returnCode) ); \
                                                                         \
     if (CL_GET_ERROR_CODE(returnCode) == CL_ERR_NO_OP)                  \
     {                                                                   \

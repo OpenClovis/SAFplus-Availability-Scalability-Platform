@@ -77,6 +77,9 @@ typedef struct
 #endif
 } ClAmsMgmtCallbacksT;
 
+extern ClUint32T gClAmsRmdDefaultTimeout;
+extern ClUint32T gClAmsRmdDefaultRetries;
+
 /******************************************************************************
  * Management API functions summary
  * --------------------------------
@@ -3782,6 +3785,12 @@ ClRcT clAmsMgmtCCBBatchDeleteSICSIList(
 
 ClRcT
 clAmsMgmtCCBBatchCommit(CL_IN ClAmsMgmtCCBBatchHandleT batchHandle);
+
+ClRcT
+clAmsMgmtRmdOptionsSet(ClUint32T timeout, ClUint32T retries);
+
+void
+clAmsMgmtRmdOptionsGet(ClUint32T *pTimeout, ClUint32T *pRetries);
 
 #ifdef __cplusplus
 }

@@ -79,6 +79,8 @@ static ClEoExecutionObjT *gpEOObj;
     }                                                       \
 }while(0)                                                   
 
+ClUint32T gClAmsRmdDefaultTimeout = CL_AMS_RMD_DEFAULT_TIMEOUT;
+ClUint32T gClAmsRmdDefaultRetries = CL_AMS_RMD_DEFAULT_RETRIES;
 
 /* 
  * Flag to show if library is initialized 
@@ -6760,4 +6762,26 @@ ClRcT clAmsMgmtComputedAdminStateGet(ClAmsMgmtHandleT handle,
 
     *adminState = cas.computedAdminState;
     return rc;
+}
+
+ClRcT clAmsMgmtRmdOptionsSet(ClUint32T timeout, ClUint32T retries) 
+{
+    if(timeout) 
+    {
+        gClAmsRmdDefaultTimeout = timeout;
+    }
+    gClAmsRmdDefaultRetries = retries;
+    return CL_OK;
+}
+
+void clAmsMgmtRmdOptionsGet(ClUint32T *pTimeout, ClUint32T *pRetries)
+{
+    if(pTimeout)
+    {
+        *pTimeout = gClAmsRmdDefaultTimeout;
+    }
+    if(pRetries)
+    {
+        *pRetries = gClAmsRmdDefaultRetries;
+    }
 }

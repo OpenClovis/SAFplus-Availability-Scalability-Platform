@@ -34,6 +34,7 @@
 #include <clAmsDebug.h>
 #include <clAmsErrors.h>
 #include <clAmsMgmtClientRmd.h>
+#include <clAmsMgmtClientApi.h>
 #include <clCpmApi.h>
 #include <xdrClAmsMgmtCCBEntitySetConfigRequestT.h>
 #include <clAmsXdrHeaderFiles.h>
@@ -110,8 +111,8 @@ ClRcT cl_ams_ccb_batch_rmd(
     if(rc != CL_OK) return rc;
 
     dest_addr.iocPhyAddress.portId = CL_IOC_CPM_PORT;
-    rmd_options.timeout = CL_AMS_RMD_DEFAULT_TIMEOUT;
-    rmd_options.retries = CL_AMS_RMD_DEFAULT_RETRIES;
+    rmd_options.timeout = gClAmsRmdDefaultTimeout;
+    rmd_options.retries = gClAmsRmdDefaultRetries;
     rmd_flags = CL_RMD_CALL_ATMOST_ONCE;
 
     AMS_CHECK_RC_ERROR( clRmdWithMsgVer( dest_addr, &version,
@@ -182,8 +183,8 @@ cl_ams_call_rmd_ver(
     if(rc != CL_OK) return rc;
 
     dest_addr.iocPhyAddress.portId = CL_IOC_CPM_PORT;
-    rmd_options.timeout = CL_AMS_RMD_DEFAULT_TIMEOUT;
-    rmd_options.retries = CL_AMS_RMD_DEFAULT_RETRIES;
+    rmd_options.timeout = gClAmsRmdDefaultTimeout;
+    rmd_options.retries = gClAmsRmdDefaultRetries;
     rmd_flags = CL_RMD_CALL_ATMOST_ONCE | CL_RMD_CALL_NEED_REPLY;
 
     AMS_CHECK_RC_ERROR( clRmdWithMsgVer( dest_addr, &version,
