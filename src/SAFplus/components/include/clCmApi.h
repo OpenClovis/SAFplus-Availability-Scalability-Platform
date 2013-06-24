@@ -54,6 +54,8 @@ extern "C" {
 #include <clCommonErrors.h>
 #include <clCorMetaData.h>
 
+#define UsingOpenHpi(x)
+
 /* the EO automatically generates a call to this to initalize the CM library, so give it a NULL pointer if CM is off */    
 #define clCmLibInitialize 0
 #define clCmLibFinalize 0
@@ -359,7 +361,10 @@ extern ClRcT clCmBladeOperationRequest (CL_IN ClUint32T         chassisId,
 extern ClRcT clCmLibInitialize(void);
 extern ClRcT clCmLibFinalize(void);
 #include <clChassisMgrApi.h>
-    
+#define USING_OPENHPI
+#define UsingOpenHpi(x) x
+#include <SaHpi.h>
+#include <oHpi.h>    
 #endif
     
 #ifdef __cplusplus
