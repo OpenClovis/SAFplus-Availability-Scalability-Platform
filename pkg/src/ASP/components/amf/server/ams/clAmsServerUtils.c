@@ -41,7 +41,7 @@
 #include <stdarg.h> 
 #include <clLogApi.h> 
 
-void clAmsLogMsgServer( const ClUint32T level, char *buffer )
+void clAmsLogMsgServer( const ClUint32T level, char *buffer, const ClCharT* file, ClUint32T line )
 {
     ClLogSeverityT severity = (ClLogSeverityT)level;
 
@@ -53,7 +53,7 @@ void clAmsLogMsgServer( const ClUint32T level, char *buffer )
         if(buffer[strlen(buffer)-1] != '\n') clOsalPrintf("\n");
     }
 
-    clLogWrite(CL_LOG_HANDLE_APP, severity, NULL, buffer);
+    clLogMsgWrite(CL_LOG_HANDLE_SYS, severity, CL_CID_AMS, "AMS","SVR",file,line, buffer);
 
     clAmsFreeMemory (buffer);
 }

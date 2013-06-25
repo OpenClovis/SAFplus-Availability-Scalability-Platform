@@ -4949,7 +4949,7 @@ clAmsEntitySetRefPtr(
         ClAmsEntityRefT  targetEntityRef )
 
 {
-
+    ClRcT rc;
     ClAmsEntityTypeT  sourceEntityType = {0};
     ClAmsEntityTypeT  targetEntityType = {0};
 
@@ -4958,13 +4958,22 @@ clAmsEntitySetRefPtr(
     sourceEntityType = sourceEntityRef.entity.type;
     targetEntityType = targetEntityRef.entity.type;
 
-    AMS_CALL( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[sourceEntityType],
-                &sourceEntityRef) );
-
-    AMS_CALL( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[targetEntityType],
-                &targetEntityRef) );
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[sourceEntityType],&sourceEntityRef);
+    if (rc != CL_OK) /* ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST ) */
+    {
+        AMS_LOG(CL_DEBUG_CRITICAL, ("Error finding source entity [%s %.*s]\n", CL_AMS_STRING_ENTITY_TYPE(sourceEntityType),sourceEntityRef.entity.name.length, sourceEntityRef.entity.name.value));
+        return rc;
+    }
+    AMS_CALL(rc);
+    
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[targetEntityType],&targetEntityRef);
+    if (rc != CL_OK) /* ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST ) */
+    {
+        AMS_LOG(CL_DEBUG_CRITICAL, ("Error finding target entity [%s %.*s]\n", CL_AMS_STRING_ENTITY_TYPE(targetEntityType), targetEntityRef.entity.name.length, targetEntityRef.entity.name.value));
+        return rc;
+    }
+    AMS_CALL(rc);
+    
 
     AMS_CHECKPTR ( !sourceEntityRef.ptr || !targetEntityRef.ptr );
 
@@ -4974,8 +4983,7 @@ clAmsEntitySetRefPtr(
 
         ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef.ptr;
         sg->config.parentApp.ptr = targetEntityRef.ptr;
-        memcpy ( &sg->config.parentApp.entity, &targetEntityRef.entity, 
-                sizeof (ClAmsEntityT));
+        memcpy ( &sg->config.parentApp.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
 
     }
 
@@ -4987,8 +4995,7 @@ clAmsEntitySetRefPtr(
 
             ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
             su->config.parentSG.ptr = targetEntityRef.ptr;
-            memcpy ( &su->config.parentSG.entity, &targetEntityRef.entity, 
-                    sizeof (ClAmsEntityT));
+            memcpy ( &su->config.parentSG.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
 
         }
 
@@ -4997,8 +5004,7 @@ clAmsEntitySetRefPtr(
 
             ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
             su->config.parentNode.ptr = targetEntityRef.ptr;
-            memcpy ( &su->config.parentNode.entity, &targetEntityRef.entity,
-                    sizeof (ClAmsEntityT));
+            memcpy ( &su->config.parentNode.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
 
          }
 
