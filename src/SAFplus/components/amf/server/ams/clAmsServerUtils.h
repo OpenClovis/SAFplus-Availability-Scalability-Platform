@@ -80,14 +80,13 @@ do {                                                                    \
     ClRcT returnCode = CL_OK;                                           \
                                                                         \
     returnCode = (fn);                                                  \
-    if (returnCode != CL_OK) clDbgCodeLog(CL_DEBUG_ERROR, ("Fn [%s] returned [0x%x]\n", #fn, returnCode) ); \
                                                                         \
     if (CL_GET_ERROR_CODE(returnCode) == CL_ERR_NO_OP)                  \
     {                                                                   \
-        AMS_SERVER_LOG(CL_DEBUG_TRACE,                                  \
-            ("Function [%s] returned NoOp\n", #fn));                    \
+        AMS_SERVER_LOG(CL_DEBUG_TRACE, ("Function [%s] returned NoOp\n", #fn)); \
         return returnCode;                                              \
-    }                                                                   \
+    } \
+    if (returnCode != CL_OK) clDbgCodeError(CL_DEBUG_ERROR, ("Fn [%s] returned [0x%x]\n", #fn, returnCode) ); \
                                                                         \
     if (returnCode != CL_OK)                                            \
     {                                                                   \

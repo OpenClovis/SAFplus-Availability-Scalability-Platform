@@ -2305,14 +2305,17 @@ clAmsCSIGetNVP(
     ClCntNodeHandleT  nodeHandle = 0;
     ClUint32T  numNodes = 0;
     ClUint32T i = 0;
+    ClRcT rc;
+    
 
     AMS_CHECKPTR ( !entity || !nvpList );
 
     memcpy ( &entityRef.entity, entity, sizeof(ClAmsEntityT) );
 
-    AMS_CALL ( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                &entityRef) );
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &entityRef);
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
+    AMS_CALL (rc); /* Check for critical errors */
+    
 
     csi = (ClAmsCSIT *)entityRef.ptr;
     AMS_CHECKPTR (!csi);
@@ -2509,9 +2512,9 @@ clAmsGetEntityList(
     {
         memcpy ( &entityRef.entity, entity, sizeof(ClAmsEntityT) );
 
-        AMS_CALL ( clAmsEntityDbFindEntity(
-                                           &gAms.db.entityDb[entity->type],
-                                           &entityRef) );
+        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type],&entityRef);
+        if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
+        AMS_CALL (rc); /* Check for critical errors */
 
         AMS_CHECKPTR (!entityRef.ptr);
     }
@@ -2801,14 +2804,16 @@ clAmsGetOLEntityList(
     ClAmsEntityRefT *eRef = NULL;
     ClUint32T  size = 0;
     ClUint32T  i=0;
+    ClRcT rc;
 
     AMS_CHECKPTR ( !entity || !entityListBuffer );
 
     memcpy ( &entityRef.entity, entity, sizeof(ClAmsEntityT) );
 
-    AMS_CALL ( clAmsEntityDbFindEntity(
-                                       &gAms.db.entityDb[entity->type],
-                                       &entityRef) );
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type],&entityRef);
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
+    AMS_CALL (rc); /* Check for critical errors */
+    
 
     AMS_CHECKPTR (!entityRef.ptr);
 
@@ -4681,9 +4686,10 @@ clAmsGetEntityListContents(
      * 6. Update the response with number of total nodes
      */ 
     
-    AMS_CALL ( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[entityRef.entity.type],
-                &entityRef) ); 
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityRef.entity.type],&entityRef);
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
+    AMS_CALL (rc); /* Check for critical errors */
+    
     
     AMS_CHECKPTR ( !entityRef.ptr );
 
@@ -5003,12 +5009,9 @@ clAmsIsValidList (
     
 }
 
-ClRcT   
-clAmsEntitySetRefPtr(
-        ClAmsEntityRefT  *sourceEntityRef,
-        ClAmsEntityRefT  *targetEntityRef )
-
+ClRcT clAmsEntitySetRefPtr(ClAmsEntityRefT  *sourceEntityRef,ClAmsEntityRefT  *targetEntityRef )
 {
+    ClRcT rc;
     ClAmsEntityTypeT  sourceEntityType = {0};
     ClAmsEntityTypeT  targetEntityType = {0};
 
@@ -5017,13 +5020,21 @@ clAmsEntitySetRefPtr(
     sourceEntityType = sourceEntityRef->entity.type;
     targetEntityType = targetEntityRef->entity.type;
 
-    AMS_CALL( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[sourceEntityType],
-                sourceEntityRef) );
-
-    AMS_CALL( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[targetEntityType],
-                targetEntityRef) );
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[sourceEntityType],sourceEntityRef);
+    if (rc != CL_OK) /* ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST ) */
+    {
+        AMS_LOG(CL_DEBUG_CRITICAL, ("Error finding source entity [%s %.*s]\n", CL_AMS_STRING_ENTITY_TYPE(sourceEntityType),sourceEntityRef->entity.name.length, sourceEntityRef->entity.name.value));
+        return rc;
+    }
+    AMS_CALL(rc);
+    
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[targetEntityType],targetEntityRef);
+    if (rc != CL_OK) /* ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST ) */
+    {
+        AMS_LOG(CL_DEBUG_CRITICAL, ("Error finding target entity [%s %.*s]\n", CL_AMS_STRING_ENTITY_TYPE(targetEntityType), targetEntityRef->entity.name.length, targetEntityRef->entity.name.value));
+        return rc;
+    }
+    AMS_CALL(rc);
 
     AMS_CHECKPTR ( !sourceEntityRef->ptr || !targetEntityRef->ptr );
 
@@ -5034,8 +5045,7 @@ clAmsEntitySetRefPtr(
         ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef->ptr;
         sg->config.parentApp.ptr = targetEntityRef->ptr;
         sg->config.parentApp.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
-        memcpy ( &sg->config.parentApp.entity, &targetEntityRef->entity, 
-                sizeof (ClAmsEntityT));
+        memcpy ( &sg->config.parentApp.entity, &targetEntityRef->entity, sizeof (ClAmsEntityT));
 
     }
 
@@ -5048,8 +5058,7 @@ clAmsEntitySetRefPtr(
             ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
             su->config.parentSG.ptr = targetEntityRef->ptr;
             su->config.parentSG.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
-            memcpy ( &su->config.parentSG.entity, &targetEntityRef->entity, 
-                    sizeof (ClAmsEntityT));
+            memcpy ( &su->config.parentSG.entity, &targetEntityRef->entity,sizeof (ClAmsEntityT));
 
         }
 
@@ -5059,8 +5068,7 @@ clAmsEntitySetRefPtr(
             ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef->ptr;
             su->config.parentNode.ptr = targetEntityRef->ptr;
             su->config.parentNode.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
-            memcpy ( &su->config.parentNode.entity, &targetEntityRef->entity,
-                    sizeof (ClAmsEntityT));
+            memcpy ( &su->config.parentNode.entity, &targetEntityRef->entity,sizeof (ClAmsEntityT));
          }
 
     }
@@ -5087,8 +5095,7 @@ clAmsEntitySetRefPtr(
 
     }
 
-    else if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_COMP) &&
-            (targetEntityType == CL_AMS_ENTITY_TYPE_COMP) )
+    else if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_COMP) && (targetEntityType == CL_AMS_ENTITY_TYPE_COMP) )
     {
 
         ClAmsCompT      *comp = (ClAmsCompT *)sourceEntityRef->ptr;
@@ -5096,22 +5103,17 @@ clAmsEntitySetRefPtr(
 
     }
 
-    else if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_CSI) &&
-            (targetEntityType == CL_AMS_ENTITY_TYPE_SI) )
+    else if ( (sourceEntityType == CL_AMS_ENTITY_TYPE_CSI) && (targetEntityType == CL_AMS_ENTITY_TYPE_SI) )
     {
 
         ClAmsCSIT     *csi = (ClAmsCSIT *)sourceEntityRef->ptr;
         csi->config.parentSI.ptr = targetEntityRef->ptr;
         csi->config.parentSI.entity.debugFlags &= ~CL_AMS_MGMT_SUB_AREA_UNDEFINED;
         memcpy ( &csi->config.parentSI.entity, &targetEntityRef->entity, sizeof (ClAmsEntityT));
-
     }
-
     else
     {
-
         return CL_AMS_RC (CL_AMS_ERR_BAD_CONFIG);
-
     }
 
     return CL_OK;
@@ -5124,7 +5126,6 @@ clAmsEntityUnsetRefPtr(
         ClAmsEntityRefT  *targetEntityRef )
 
 {
-
     ClAmsEntityTypeT  sourceEntityType = {0};
     ClAmsEntityTypeT  targetEntityType = {0};
 

@@ -2051,21 +2051,17 @@ clAmsDBSUUnmarshall(ClAmsEntityRefT *entityRef,
                 {
                     AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
                 }
-                AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
-                                                        entity,
-                                                        &suConfig.entity));
+                AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],entity, &suConfig.entity));
 
                 if(!(suConfig.parentSG.entity.debugFlags & CL_AMS_MGMT_SUB_AREA_UNDEFINED))
                 {
-                    memcpy(&targetEntityRef.entity, &suConfig.parentSG.entity, 
-                           sizeof(targetEntityRef.entity));
+                    memcpy(&targetEntityRef.entity, &suConfig.parentSG.entity, sizeof(targetEntityRef.entity));
                     clAmsEntitySetRefPtr(entityRef, &targetEntityRef);
                 }
          
                 if(!(suConfig.parentNode.entity.debugFlags & CL_AMS_MGMT_SUB_AREA_UNDEFINED))
                 {
-                    memcpy(&targetEntityRef.entity, &suConfig.parentNode.entity, 
-                           sizeof(targetEntityRef.entity));
+                    memcpy(&targetEntityRef.entity, &suConfig.parentNode.entity, sizeof(targetEntityRef.entity));
                     clAmsEntitySetRefPtr(entityRef, &targetEntityRef);
                 }
 
@@ -3304,8 +3300,7 @@ clAmsDBCompUnmarshall(ClAmsEntityRefT *entityRef,
 
     if(entity->type != CL_AMS_ENTITY_TYPE_COMP)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Comp unmarshall invoked with invalid entity type [%d]\n",
-                                 entity->type));
+        AMS_LOG(CL_DEBUG_ERROR, ("Comp unmarshall invoked with invalid entity type [%d]\n", entity->type));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
 
@@ -3313,19 +3308,16 @@ clAmsDBCompUnmarshall(ClAmsEntityRefT *entityRef,
     {
         entityRef = &srcEntityRef;
         memcpy(&srcEntityRef.entity, entity, sizeof(srcEntityRef.entity));
-        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type],
-                                     &srcEntityRef);
+        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type], &srcEntityRef);
         if(rc != CL_OK)
         {
             if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
             {
-                rc = clAmsEntityDbAddEntity(&gAms.db.entityDb[entity->type],
-                                            &srcEntityRef);
+                rc = clAmsEntityDbAddEntity(&gAms.db.entityDb[entity->type], &srcEntityRef);
             }
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("Comp entitydb operation returned [%#x]\n",
-                                         rc));
+                AMS_LOG(CL_DEBUG_ERROR, ("Comp entitydb operation returned [%#x]\n", rc));
                 goto exitfn;
             }
         }
@@ -3351,13 +3343,10 @@ clAmsDBCompUnmarshall(ClAmsEntityRefT *entityRef,
                 {
                     AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
                 }
-                AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
-                                                        entity,
-                                                        &compConfig.entity));
+                AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type], entity, &compConfig.entity));
                 if(!(compConfig.parentSU.entity.debugFlags & CL_AMS_MGMT_SUB_AREA_UNDEFINED))
                 {
-                    memcpy(&targetEntityRef.entity, &compConfig.parentSU.entity, 
-                           sizeof(targetEntityRef.entity));
+                    memcpy(&targetEntityRef.entity, &compConfig.parentSU.entity, sizeof(targetEntityRef.entity));
                     clAmsEntitySetRefPtr(entityRef, &targetEntityRef);
                 }
                 break;
@@ -4376,8 +4365,7 @@ clAmsDBSIUnmarshall(ClAmsEntityRefT *entityRef,
 
     if(entity->type != CL_AMS_ENTITY_TYPE_SI)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("SI unmarshall invoked with invalid entity type [%d]\n",
-                                 entity->type));
+        AMS_LOG(CL_DEBUG_ERROR, ("SI unmarshall invoked with invalid entity type [%d]\n",entity->type));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
 
@@ -4385,14 +4373,12 @@ clAmsDBSIUnmarshall(ClAmsEntityRefT *entityRef,
     {
         entityRef = &srcEntityRef;
         memcpy(&srcEntityRef.entity, entity, sizeof(srcEntityRef.entity));
-        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type],
-                                     &srcEntityRef);
+        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type], &srcEntityRef);
         if(rc != CL_OK)
         {
             if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
             {
-                rc = clAmsEntityDbAddEntity(&gAms.db.entityDb[entity->type],
-                                            &srcEntityRef);
+                rc = clAmsEntityDbAddEntity(&gAms.db.entityDb[entity->type], &srcEntityRef);
             }
             if(rc != CL_OK)
             {
@@ -4422,13 +4408,10 @@ clAmsDBSIUnmarshall(ClAmsEntityRefT *entityRef,
                 {
                     AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
                 }
-                AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
-                                                        entity,
-                                                        &siConfig.entity));
+                AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type], entity, &siConfig.entity));
                 if(!(siConfig.parentSG.entity.debugFlags & CL_AMS_MGMT_SUB_AREA_UNDEFINED))
                 {
-                    memcpy(&targetEntityRef.entity, &siConfig.parentSG.entity, 
-                           sizeof(targetEntityRef.entity));
+                    memcpy(&targetEntityRef.entity, &siConfig.parentSG.entity, sizeof(targetEntityRef.entity));
                     clAmsEntitySetRefPtr(entityRef, &targetEntityRef);
                 }
                 break;
@@ -5159,8 +5142,7 @@ clAmsDBCSIUnmarshall(ClAmsEntityRefT *entityRef,
     AMS_CHECK_ENTITY_TYPE(entity->type);
     if(entity->type != CL_AMS_ENTITY_TYPE_CSI)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("CSI unmarshall invoked with invalid entity type [%d]\n",
-                                 entity->type));
+        AMS_LOG(CL_DEBUG_ERROR, ("CSI unmarshall invoked with invalid entity type [%d]\n", entity->type));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
     
@@ -5168,15 +5150,13 @@ clAmsDBCSIUnmarshall(ClAmsEntityRefT *entityRef,
     {
         entityRef = &srcEntityRef;
         memcpy(&srcEntityRef.entity, entity, sizeof(srcEntityRef.entity));
-        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type],
-                                     &srcEntityRef);
+        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type], &srcEntityRef);
 
         if(rc != CL_OK)
         {
             if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
             {
-                rc = clAmsEntityDbAddEntity(&gAms.db.entityDb[entity->type],
-                                            &srcEntityRef);
+                rc = clAmsEntityDbAddEntity(&gAms.db.entityDb[entity->type], &srcEntityRef);
             }
             if(rc != CL_OK)
             {
@@ -5198,8 +5178,7 @@ clAmsDBCSIUnmarshall(ClAmsEntityRefT *entityRef,
             {
                 ClAmsCSIConfigT csiConfig = {{0}};
                 ClAmsEntityRefT targetEntityRef = {{0}};
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSIConfigT, 4, 0, 0)(inMsgHdl, 
-                                                                                      &csiConfig));
+                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSIConfigT, 4, 0, 0)(inMsgHdl, &csiConfig));
                 /*
                  * Terminate if it already existed.
                  */
@@ -5207,13 +5186,10 @@ clAmsDBCSIUnmarshall(ClAmsEntityRefT *entityRef,
                 {
                     AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
                 }
-                AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
-                                                        entity,
-                                                        &csiConfig.entity));
+                AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type], entity, &csiConfig.entity));
                 if(!(csiConfig.parentSI.entity.debugFlags & CL_AMS_MGMT_SUB_AREA_UNDEFINED))
                 {
-                    memcpy(&targetEntityRef.entity, &csiConfig.parentSI.entity, 
-                           sizeof(targetEntityRef.entity));
+                    memcpy(&targetEntityRef.entity, &csiConfig.parentSI.entity, sizeof(targetEntityRef.entity));
                     clAmsEntitySetRefPtr(entityRef, &targetEntityRef);
                 }
                 break;
@@ -5222,8 +5198,7 @@ clAmsDBCSIUnmarshall(ClAmsEntityRefT *entityRef,
         case CL_AMS_CKPT_OPERATION_SET_STATUS:
             {
                 ClAmsCSIStatusT csiStatus = {{0}};
-                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSIStatusT, 4, 0, 0)(inMsgHdl,
-                                                                                      &csiStatus));
+                AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSIStatusT, 4, 0, 0)(inMsgHdl, &csiStatus));
                 AMS_CHECK_RC_ERROR(clAmsDBEntityOpUnmarshall(entity, &csiStatus.entity, inMsgHdl, versionCode));
                 AMS_CHECK_RC_ERROR(clAmsEntitySetStatus(&gAms.db.entityDb[entity->type],
                                                         entity,
@@ -7885,10 +7860,7 @@ clAmsDBWriteEntityTimer(
 
 }
 
-static ClRcT
-clAmsEntityDBUnmarshall(ClAmsEntityT *entity,
-                        ClBufferHandleT inMsgHdl,
-                        ClUint32T versionCode)
+static ClRcT clAmsEntityDBUnmarshall(ClAmsEntityT *entity, ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
     ClRcT rc = CL_OK;
     ClAmsEntityRefT entityRef = {{0}};
@@ -7904,8 +7876,7 @@ clAmsEntityDBUnmarshall(ClAmsEntityT *entity,
     }
     if(rc != CL_OK || !entityRef.ptr)
     {
-        clLogError("DB", "UNMARSHALL", "Entity [%s] being unmarshalled in standby does not exist",
-                   entity->name.value);
+        clLogError("DB", "UNMARSHALL", "Entity [%s] being unmarshalled in standby does not exist", entity->name.value);
         goto exitfn;
     }
 
@@ -7951,8 +7922,7 @@ clAmsEntityDBUnmarshall(ClAmsEntityT *entity,
         goto exitfn;
     }
 
-    AMS_LOG(CL_DEBUG_TRACE, ("[%s] entity unmarshalled\n",
-                             CL_AMS_STRING_ENTITY_TYPE(entity->type)));
+    AMS_LOG(CL_DEBUG_TRACE, ("[%s %*.s] entity unmarshalled\n", CL_AMS_STRING_ENTITY_TYPE(entity->type),entity->name.length,entity->name.value));
     exitfn:
     return rc;
 }

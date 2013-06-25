@@ -30,35 +30,7 @@ DEP_COMP_LIST += cnt
 
 # List ASP libraries needed to get this server built (or None):
 
-ASP_LIBS := libClTimer.a  \
-            libClBuffer.a  \
-            libClOsal.a  \
-            libClCnt.a  \
-             \
-            libClHal.a  \
-            libClCorClient.a  \
-            libClEo.a  \
-             \
-             \
-             \
-             \
-             \
-            libClIoc.a \
-            libClRmd.a \
-            libClUtils.a \
-            libClAmfClient.a \
-            libClDbal.a \
-            libClCkpt.a \
-            libClEventClient.a \
-            libClTxnAgent.a  \
-            libClLogClient.a \
-            libClIdl.a  \
-            libClDebugClient.a \
-            libClNameClient.a \
-			libClAmsMgmt.a \
-			libClAmsXdr.a \
-              \
-            
+ASP_LIBS := libmw.a
 
 # List any third party libs needed to get this server built (or None):
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
