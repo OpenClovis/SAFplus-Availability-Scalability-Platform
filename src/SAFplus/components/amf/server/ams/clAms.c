@@ -656,8 +656,7 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
     clNameSet(&entityRef.entity.name, pNodeName);
     ++entityRef.entity.name.length;
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
-                                 &entityRef);
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &entityRef);
     if(rc == CL_OK && entityRef.ptr)
     {
         ClAmsNodeT *node = (ClAmsNodeT*)entityRef.ptr;
