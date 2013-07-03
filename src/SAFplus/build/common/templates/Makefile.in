@@ -39,9 +39,9 @@ pluginDir = $(wildcard $(MODEL_PATH)/plugins)
 
 ifeq ($(ASP_BUILD),1)
 	ifeq ($(MODEL_BUILD),0)
-		SUBDIRS          = $(CLOVIS_ROOT)/ASP/3rdparty $(CLOVIS_ROOT)/ASP/components $(CLOVIS_ROOT)/ASP/tools
+		SUBDIRS          = $(CLOVIS_ROOT)/SAFplus/3rdparty $(CLOVIS_ROOT)/SAFplus/components $(CLOVIS_ROOT)/SAFplus/tools  $(CLOVIS_ROOT)/SAFplus/external
 	else
-		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app $(pluginDir) $(CLOVIS_ROOT)/ASP/3rdparty $(CLOVIS_ROOT)/ASP/components $(CLOVIS_ROOT)/ASP/tools
+		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app $(pluginDir) $(CLOVIS_ROOT)/SAFplus/3rdparty $(CLOVIS_ROOT)/SAFplus/components $(CLOVIS_ROOT)/ASP/tools $(CLOVIS_ROOT)/SAFplus/external
 	endif
 else
 	ifdef ModelOnly
