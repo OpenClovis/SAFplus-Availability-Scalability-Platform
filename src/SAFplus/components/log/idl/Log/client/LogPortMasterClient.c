@@ -210,8 +210,7 @@ ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
             goto L2;
         }
 
-        tempFlags |= pHandleObj->flags |
-                     (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT | CL_RMD_CALL_NEED_REPLY);
+        tempFlags |= pHandleObj->flags | (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT | CL_RMD_CALL_NEED_REPLY);
         
         pCookie->pCookie = cookie;
         pCookie->actualCallback = (void(*)())fpAsyncCallback;
@@ -227,8 +226,7 @@ ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     }
     else
     {
-        tempFlags |= pHandleObj->flags |
-                         (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT);
+        tempFlags |= pHandleObj->flags | (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT);
         rc = clRmdWithMsgVer(address, &funcVer, funcNo, inMsgHdl, 0, tempFlags, &(pHandleObj->options),NULL);
         if(CL_OK != rc)
         {

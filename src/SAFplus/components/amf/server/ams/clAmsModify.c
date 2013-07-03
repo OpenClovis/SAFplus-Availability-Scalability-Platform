@@ -921,6 +921,7 @@ clAmsEntitySetConfigNew(
             {
                 lastState = siConfig->adminState;
                 newState = newSIConfig->adminState;
+                siConfig->adminState = newState;
             }
 
             if ( (allAttr) || (bitMask&SI_CONFIG_RANK))

@@ -585,8 +585,7 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
     pStreamOwnerData->openCnt         = soData.openCnt;
     pStreamOwnerData->ackerCnt        = soData.ackerCnt;
     pStreamOwnerData->nonAckerCnt     = soData.nonAckerCnt;
-    clLogStreamAttributesCopy(&soData.streamAttr, 
-                              &pStreamOwnerData->streamAttr, CL_TRUE);
+    clLogStreamAttributesCopy(&soData.streamAttr, &pStreamOwnerData->streamAttr, CL_TRUE);
     CL_LOG_DEBUG_TRACE(("streamId : %hu", soData.streamId));
     CL_LOG_DEBUG_TRACE(("streamMcastAddr: %llu", soData.streamMcastAddr));
 
@@ -623,8 +622,7 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
             }
             else
             {
-                CL_LOG_CLEANUP(clCntNodeDelete(hStreamTable, hStreamOwnerNode),
-                               CL_OK);
+                CL_LOG_CLEANUP(clCntNodeDelete(hStreamTable, hStreamOwnerNode), CL_OK);
                 CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
                 return rc;
             }

@@ -1193,7 +1193,7 @@ ClRcT clCpmRestart(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     {
         strncpy(*retStr, 
                 "Usage : nodeRestart node-address [graceful]\n"
-                "        node-address - Address of the node to be restarted\n"
+                "        node-address - Slot number of the node to be restarted\n"
                 "        graceful - value >= 1 indicates graceful restart\n"
                 "                 - value 0 indicates ungraceful restart\n"
                 "                 default value is 1\n",
