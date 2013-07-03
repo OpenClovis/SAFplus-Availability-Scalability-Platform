@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+      <cpmConfigs>
+        <cpmConfig cpmType="GLOBAL" nodeType="Node0">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="corSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="msgSU"/>
+            <aspServiceUnit name="cmSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+        <cpmConfig cpmType="LOCAL" nodeType="Node1">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+      </cpmConfigs>
+      <nodeInstances>
+        <nodeInstance chassisId="0" name="Node0I0" nodeMoId="\Chassis:0\Blade0:0" slotId="0" type="Node0">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="SAFComponent0SUI0" rank="0" type="SAFComponent0SU">
+              <componentInstances>
+                <componentInstance name="SAFComponent0I0" type="SAFComponent0"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="SAFComponent0SUI1" rank="0" type="SAFComponent0SU">
+              <componentInstances>
+                <componentInstance name="SAFComponent0I1" type="SAFComponent0"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <xports>
+            <xport>
+              <type>TIPC</type>
+              <plugin>libClTIPC.so</plugin>
+            </xport>
+            <xport>
+              <type>UDP</type>
+              <plugin>libClUDP.so</plugin>
+            </xport>
+          </xports>
+          <default>TIPC</default>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+        <nodeInstance chassisId="0" name="Node1I0" nodeMoId="\Chassis:0\Blade0:1" slotId="0" type="Node1">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="SAFComponent1SUI0" rank="0" type="SAFComponent1SU">
+              <componentInstances>
+                <componentInstance name="SAFComponent1I0" type="SAFComponent1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <xports>
+            <xport>
+              <type>TIPC</type>
+              <plugin>libClTIPC.so</plugin>
+            </xport>
+            <xport>
+              <type>UDP</type>
+              <plugin>libClUDP.so</plugin>
+            </xport>
+          </xports>
+          <default>TIPC</default>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+        <nodeInstance chassisId="0" name="Node1I1" nodeMoId="\Chassis:0\Blade0:2" slotId="0" type="Node1">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="SAFComponent1SUI1" rank="0" type="SAFComponent1SU">
+              <componentInstances>
+                <componentInstance name="SAFComponent1I1" type="SAFComponent1"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <xports>
+            <xport>
+              <type>TIPC</type>
+              <plugin>libClTIPC.so</plugin>
+            </xport>
+            <xport>
+              <type>UDP</type>
+              <plugin>libClUDP.so</plugin>
+            </xport>
+          </xports>
+          <default>TIPC</default>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+      </nodeInstances>
+      <serviceGroups>
+        <serviceGroup name="SAFComponent0SGI0" type="SAFComponent0SG">
+          <serviceInstances>
+            <serviceInstance name="SAFComponent0SII0" type="SAFComponent0SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="SAFComponent0CSII0" type="SAFComponent0CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>SAFComponent0SUI0</associatedServiceUnit>
+            <associatedServiceUnit>SAFComponent0SUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="SAFComponent1SGI0" type="SAFComponent1SG">
+          <serviceInstances>
+            <serviceInstance name="SAFComponent1SII0" type="SAFComponent1SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="SAFComponent1CSII0" type="SAFComponent1CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>SAFComponent1SUI0</associatedServiceUnit>
+            <associatedServiceUnit>SAFComponent1SUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+      </serviceGroups>
+    </amfConfig>
+  </version>
+</openClovisAsp>
