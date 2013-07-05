@@ -923,13 +923,12 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     ClGmsNodeIdT       newLeader = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       newDeputy = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       currentDeputy = CL_GMS_INVALID_NODE_ID;
-    ClUint32T          len1 = 0;
-    ClUint32T          len2 = 0;
-    ClTimerTimeOutT    timeout = {.tsSec = gmsGlobalInfo.config.bootElectionTimeout,
-                                  .tsMilliSec = 0
-    };
-    clLog(INFO,CLM,NA,
-          "GMS engine cluster join is invoked for node Id [%d] for group [%d]", nodeId, groupId);
+    ClTimerTimeOutT    timeout;
+
+    timeout.tsSec = gmsGlobalInfo.config.bootElectionTimeout;
+    timeout.tsMilliSec = 0;
+    
+    clLog(CL_LOG_INFO,CLM,NA,"GMS engine cluster join is invoked for node Id [%d] for group [%d]", nodeId, groupId);
 
     rc = _clGmsViewFindAndLock(groupId, &thisClusterView);
 
@@ -966,14 +965,16 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
                 goto ENG_ADD_ERROR;
             }
         }
+      clLog(CL_LOG_DEBUG,CLM,NA,"Node loaded from View Cache");
     }
 
-    /* See this node was the preferred leader. If so then set the tag to TRUE */
-    len1 = strlen(gmsGlobalInfo.config.preferredActiveSCNodeName);
-    len2 = node->viewMember.clusterMember.nodeName.length;
-    if ((len1 == len2) &&
-        (!strncmp(node->viewMember.clusterMember.nodeName.value, 
-                  gmsGlobalInfo.config.preferredActiveSCNodeName,len1)))
+    if (1)
+    {
+        ClGmsClusterMemberT *currentNode =  &node->viewMember.clusterMember;
+        clLog(CL_LOG_DEBUG,CLM,NA, "Node [%*.s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu] (%p)",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp,(void*) node);
+    }
+
+    if (0 == strncmp(node->viewMember.clusterMember.nodeName.value, gmsGlobalInfo.config.preferredActiveSCNodeName, node->viewMember.clusterMember.nodeName.length))
     {
         /* This node is a preferred Leader. So set ifPreferredLeader flag to TRUE */
         node->viewMember.clusterMember.isPreferredLeader = CL_TRUE;
@@ -990,7 +991,6 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
 
     if (add_rc != CL_OK)
     {
-        if(node) clHeapFree(node);
         if(CL_GET_ERROR_CODE(add_rc) != CL_ERR_ALREADY_EXIST)
         {
             clLog(ERROR,CLM,NA,
