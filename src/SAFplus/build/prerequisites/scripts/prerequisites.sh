@@ -202,58 +202,58 @@ populate_prereqs() {
             op_array[${#op_array[@]}]="copy in libssl"
         fi
 
-        if [ $HPI_EMERSON == "0" ]; then
-        # openhpi
-        echo -n "openhpi "
-        if [ $wrstoolchain = 1 -o $mvtoolchain = 1 ]; then
-            if [ -f $toolchaindir/local/sbin/openhpid ]; then
-                install $exe_flags $toolchaindir/local/sbin/openhpid $imagedir/bin
-            fi
-        else
-            install $exe_flags $toolchaindir/sbin/openhpid $imagedir/bin
-        fi
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="install openhpid"
-        if [ $wrstoolchain = 1 -o $mvtoolchain = 1 ]; then
-            if [ -f $toolchaindir/local/bin/hpi_cmd ]; then
-                install $exe_flags $toolchaindir/local/bin/*hpi* $imagedir/bin
-            fi
-        else
-            install $exe_flags $toolchaindir/bin/*hpi* $imagedir/bin
-        fi
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="install hpi binaries"
-        if [ $wrstoolchain = 1 -o $mvtoolchain = 1 ]; then
-            cd local
-            if [ -f $toolchaindir/local/lib/libopenhpi.so ]; then
-                tar cfh - lib/*hpi* | tar xf - -C $imagedir
-                tar cfh - lib/*oh* | tar xf - -C $imagedir
-            fi
-            cd ..
-        else
-            tar cfh - lib/*hpi* | tar xf - -C $imagedir
-            tar cfh - lib/*oh* | tar xf - -C $imagedir
-        fi
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in hpi libraries"
-        fi
+        if [ -n "$OPENHPICFLAGS" ]; then
+		# openhpi
+		echo -n "openhpi "
+		if [ $wrstoolchain = 1 -o $mvtoolchain = 1 ]; then
+		    if [ -f $toolchaindir/local/sbin/openhpid ]; then
+		        install $exe_flags $toolchaindir/local/sbin/openhpid $imagedir/bin
+		    fi
+		else
+		    install $exe_flags $toolchaindir/sbin/openhpid $imagedir/bin
+		fi
+		res_array[${#res_array[@]}]=$?
+		op_array[${#op_array[@]}]="install openhpid"
+		if [ $wrstoolchain = 1 -o $mvtoolchain = 1 ]; then
+		    if [ -f $toolchaindir/local/bin/hpi_cmd ]; then
+		        install $exe_flags $toolchaindir/local/bin/*hpi* $imagedir/bin
+		    fi
+		else
+		    install $exe_flags $toolchaindir/bin/*hpi* $imagedir/bin
+		fi
+		res_array[${#res_array[@]}]=$?
+		op_array[${#op_array[@]}]="install hpi binaries"
+		if [ $wrstoolchain = 1 -o $mvtoolchain = 1 ]; then
+		    cd local
+		    if [ -f $toolchaindir/local/lib/libopenhpi.so ]; then
+		        tar cfh - lib/*hpi* | tar xf - -C $imagedir
+		        tar cfh - lib/*oh* | tar xf - -C $imagedir
+		    fi
+		    cd ..
+		else
+		    tar cfh - lib/*hpi* | tar xf - -C $imagedir
+		    tar cfh - lib/*oh* | tar xf - -C $imagedir
+		fi
+		res_array[${#res_array[@]}]=$?
+		op_array[${#op_array[@]}]="copy in hpi libraries"
         
-        tar cfh - lib/*glib* | tar xf - -C $imagedir
-        #res_array[${#res_array[@]}]=$?
-        #op_array[${#op_array[@]}]="copy in glib libraries"
         
-        tar cfh - lib/*gmodule* | tar xf - -C $imagedir
-        #res_array[${#res_array[@]}]=$?
-        #op_array[${#op_array[@]}]="copy in gmodule library files"
-        
-        tar cfh - lib/*gobject* | tar xf - -C $imagedir
-        #res_array[${#res_array[@]}]=$?
-        #op_array[${#op_array[@]}]="copy in gobject library files"
-        
-        tar cfh - lib/*gthread* | tar xf - -C $imagedir
-        #res_array[${#res_array[@]}]=$?
-        #op_array[${#op_array[@]}]="copy in gthread library files"
-
+		tar cfh - lib/*glib* | tar xf - -C $imagedir
+		#res_array[${#res_array[@]}]=$?
+		#op_array[${#op_array[@]}]="copy in glib libraries"
+		
+		tar cfh - lib/*gmodule* | tar xf - -C $imagedir
+		#res_array[${#res_array[@]}]=$?
+		#op_array[${#op_array[@]}]="copy in gmodule library files"
+		
+		tar cfh - lib/*gobject* | tar xf - -C $imagedir
+		#res_array[${#res_array[@]}]=$?
+		#op_array[${#op_array[@]}]="copy in gobject library files"
+		
+		tar cfh - lib/*gthread* | tar xf - -C $imagedir
+		#res_array[${#res_array[@]}]=$?
+		#op_array[${#op_array[@]}]="copy in gthread library files"
+	fi
         # libhcl
         if [ -f $toolchaindir/lib/libhcl.so ]; then
             echo -n "hcl "
@@ -501,52 +501,52 @@ populate_prereqs() {
         fi
 
         # openhpi
-        if [ $HPI_EMERSON == "0" ]; then
+        if [ -n "$OPENHPICFLAGS" ]; then
 
-        echo -n "openhpi"
-        if [ -f $toolchaindir/lib/libopenhpi.a ]; then
-            cd $toolchaindir
-            if [ -f $toolchaindir/sbin/openhpid ]; then
-                install $exe_flags $toolchaindir/sbin/openhpid $imagedir/bin
-                res_array[${#res_array[@]}]=$?
-                op_array[${#op_array[@]}]="install openhpid"
-            fi
-            install $exe_flags $toolchaindir/bin/*hpi* $imagedir/bin
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="install openhpi"
-            # there may be no *oh* (openhpi 2.16.0) so don't remember any error from the next line 
-            if [ -f lib/*oh* ]; then
-              tar chf - lib/*oh* | tar xf - -C $imagedir
-            fi
-            tar chf - lib/*hpi* | tar xf - -C $imagedir
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in openhpi libraries"
-            cd - >/dev/null 2>&1
-        else
-            if [ -f /usr/local/sbin/openhpid ]; then
-                cd /usr/local
-            else
-                cd /usr
-            fi
-            if [ -f sbin/openhpid ]; then
-                install $exe_flags sbin/openhpid $imagedir/bin
-                res_array[${#res_array[@]}]=$?
-                op_array[${#op_array[@]}]="install openhpid"
-            fi
-            install $exe_flags bin/*hpi* $imagedir/bin
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="install openhpi binaries"
-            if [ -f lib64/openhpi.so ]; then
-                cd lib64
-                tar chf - *hpi* | tar xf - -C $imagedir/lib
-                cd - >/dev/null 2>&1
-            else
-                tar chf - lib/*hpi* | tar xf - -C $imagedir
-            fi
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in openhpi libraries"
-            cd - >/dev/null 2>&1
-        fi
+		echo -n "openhpi"
+		if [ -f $toolchaindir/lib/libopenhpi.a ]; then
+		    cd $toolchaindir
+		    if [ -f $toolchaindir/sbin/openhpid ]; then
+		        install $exe_flags $toolchaindir/sbin/openhpid $imagedir/bin
+		        res_array[${#res_array[@]}]=$?
+		        op_array[${#op_array[@]}]="install openhpid"
+		    fi
+		    install $exe_flags $toolchaindir/bin/*hpi* $imagedir/bin
+		    res_array[${#res_array[@]}]=$?
+		    op_array[${#op_array[@]}]="install openhpi"
+		    # there may be no *oh* (openhpi 2.16.0) so don't remember any error from the next line 
+		    if [ -f lib/*oh* ]; then
+		      tar chf - lib/*oh* | tar xf - -C $imagedir
+		    fi
+		    tar chf - lib/*hpi* | tar xf - -C $imagedir
+		    res_array[${#res_array[@]}]=$?
+		    op_array[${#op_array[@]}]="copy in openhpi libraries"
+		    cd - >/dev/null 2>&1
+		else
+		    if [ -f /usr/local/sbin/openhpid ]; then
+		        cd /usr/local
+		    else
+		        cd /usr
+		    fi
+		    if [ -f sbin/openhpid ]; then
+		        install $exe_flags sbin/openhpid $imagedir/bin
+		        res_array[${#res_array[@]}]=$?
+		        op_array[${#op_array[@]}]="install openhpid"
+		    fi
+		    install $exe_flags bin/*hpi* $imagedir/bin
+		    res_array[${#res_array[@]}]=$?
+		    op_array[${#op_array[@]}]="install openhpi binaries"
+		    if [ -f lib64/openhpi.so ]; then
+		        cd lib64
+		        tar chf - *hpi* | tar xf - -C $imagedir/lib
+		        cd - >/dev/null 2>&1
+		    else
+		        tar chf - lib/*hpi* | tar xf - -C $imagedir
+		    fi
+		    res_array[${#res_array[@]}]=$?
+		    op_array[${#op_array[@]}]="copy in openhpi libraries"
+		    cd - >/dev/null 2>&1
+		fi
         fi
 	
 	# tipc
@@ -611,52 +611,52 @@ populate_prereqs() {
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="install saHpiAlarmAdd"
         fi
+	if [ -n "$OPENHPICFLAGS" ]; then
+		echo -n " glib-2.0"
+		if [ -f ${toolchaindir}/lib/libglib-2.0.so ]; then
+		  GLIB_LIB_DIR=${toolchaindir}/lib
+		else
+		  if [ -f /usr/lib/`uname -i`-linux-gnu/libglib-2.0.so ]; then
+		    GLIB_LIB_DIR=/usr/lib/`uname -i`-linux-gnu
+		  elif [ -f /usr/lib/${MACH}-linux-gnu/libglib-2.0.so ]; then
+		    GLIB_LIB_DIR=/usr/lib/${MACH}-linux-gnu
+		  else
+		    export PKG_CONFIG_PATH=${toolchaindir}/lib/pkgconfig:$PKG_CONFIG_PATH
+		    GLIB_LIB_DIR=$(pkg-config --libs-only-L glib-2.0 | sed -e 's/^.*-L//g')
+		    if [ -z ${GLIB_LIB_DIR} ]; then # glib-2.0 is installed in the system standard path
+		      GLIB_LIB_DIR="/usr/lib/"
+		    fi
+		  fi
+		fi
 
-        echo -n " glib-2.0"
-        if [ -f ${toolchaindir}/lib/libglib-2.0.so ]; then
-          GLIB_LIB_DIR=${toolchaindir}/lib
-        else
-          if [ -f /usr/lib/`uname -i`-linux-gnu/libglib-2.0.so ]; then
-            GLIB_LIB_DIR=/usr/lib/`uname -i`-linux-gnu
-          elif [ -f /usr/lib/${MACH}-linux-gnu/libglib-2.0.so ]; then
-            GLIB_LIB_DIR=/usr/lib/${MACH}-linux-gnu
-          else
-            export PKG_CONFIG_PATH=${toolchaindir}/lib/pkgconfig:$PKG_CONFIG_PATH
-            GLIB_LIB_DIR=$(pkg-config --libs-only-L glib-2.0 | sed -e 's/^.*-L//g')
-            if [ -z ${GLIB_LIB_DIR} ]; then # glib-2.0 is installed in the system standard path
-              GLIB_LIB_DIR="/usr/lib/"
-            fi
-          fi
-        fi
+		GLIB_DIR=${GLIB_LIB_DIR}
+		if [ -z "${GLIB_LIB_DIR}" -o -z "${GLIB_DIR}"  -o ! -d ${GLIB_DIR} ]
+		then
+		    echo ""
+		    echo "Error: Cannot find glib-2.0 directory."
+		    echo "pkg-config reports \"${GLIB_LIB_DIR}\""
+		    exit 1
+		fi
+		cd ${GLIB_DIR}; #echo $GLIB_DIR
 
-        GLIB_DIR=${GLIB_LIB_DIR}
-        if [ -z "${GLIB_LIB_DIR}" -o -z "${GLIB_DIR}"  -o ! -d ${GLIB_DIR} ]
-        then
-            echo ""
-            echo "Error: Cannot find glib-2.0 directory."
-            echo "pkg-config reports \"${GLIB_LIB_DIR}\""
-            exit 1
-        fi
-        cd ${GLIB_DIR}; #echo $GLIB_DIR
+		tar chf - *glib* | tar xf - -C $imagedir/lib
+		res_array[${#res_array[@]}]=$?
+		op_array[${#op_array[@]}]="copy in glib libraries"
+		
+		tar chf - *gmodule* | tar xf - -C $imagedir/lib
+		res_array[${#res_array[@]}]=$?
+		op_array[${#op_array[@]}]="copy in gmodule library files"
 
-        tar chf - *glib* | tar xf - -C $imagedir/lib
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in glib libraries"
-        
-        tar chf - *gmodule* | tar xf - -C $imagedir/lib
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in gmodule library files"
+		tar chf - *gobject* | tar xf - -C $imagedir/lib
+		res_array[${#res_array[@]}]=$?
+		op_array[${#op_array[@]}]="copy in gobject library files"
 
-        tar chf - *gobject* | tar xf - -C $imagedir/lib
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in gobject library files"
+		tar chf - *gthread* | tar xf - -C $imagedir/lib
+		res_array[${#res_array[@]}]=$?
+		op_array[${#op_array[@]}]="copy in gthread library files"
 
-        tar chf - *gthread* | tar xf - -C $imagedir/lib
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in gthread library files"
-
-        cd - >/dev/null 2>&1
-
+		cd - >/dev/null 2>&1
+	fi
         #libw3c
         if [ $(ls -1 $toolchaindir/lib/libwww*.* 2>/dev/null | wc -l) -gt 0 ]; then
             echo "w3c-libwww "
