@@ -202,7 +202,7 @@ populate_prereqs() {
             op_array[${#op_array[@]}]="copy in libssl"
         fi
 
-        if [ $HPI_EMERSON == "0" ]; then
+        if [ -n "$OPENHPICFLAGS" ]; then
         # openhpi
         echo -n "openhpi "
         if [ $wrstoolchain = 1 -o $mvtoolchain = 1 ]; then
@@ -236,7 +236,7 @@ populate_prereqs() {
         fi
         res_array[${#res_array[@]}]=$?
         op_array[${#op_array[@]}]="copy in hpi libraries"
-        fi
+       
         
         tar cfh - lib/*glib* | tar xf - -C $imagedir
         #res_array[${#res_array[@]}]=$?
@@ -253,7 +253,7 @@ populate_prereqs() {
         tar cfh - lib/*gthread* | tar xf - -C $imagedir
         #res_array[${#res_array[@]}]=$?
         #op_array[${#op_array[@]}]="copy in gthread library files"
-
+        fi
         # libhcl
         if [ -f $toolchaindir/lib/libhcl.so ]; then
             echo -n "hcl "
@@ -513,7 +513,7 @@ populate_prereqs() {
         fi
 
         # openhpi
-        if [ $HPI_EMERSON == "0" ]; then
+        if [ -n "$OPENHPICFLAGS" ]; then
         BUILDTOOLS_PATH=$SAFPLUS_BTL_DIR$TOOLCHAIN_DIR
         echo -n "openhpi: trying toolchain build at $BUILDTOOLS_PATH/lib/libopenhpi.a "
         if [ -f $BUILDTOOLS_PATH/lib/libopenhpi.a ]; then
