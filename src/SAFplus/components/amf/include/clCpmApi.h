@@ -198,7 +198,9 @@ typedef enum
      */
     CL_CPM_COMP_DEATH
 } ClCpmCompEventT;
-        
+
+#define ClCpmCompEventT2Str(x) (((x) == CL_CPM_COMP_ARRIVAL) ? "CL_CPM_COMP_ARRIVAL" : ((x) == CL_CPM_COMP_DEPARTURE) ? "CL_CPM_COMP_DEPARTURE" : ((x) == CL_CPM_COMP_DEATH) ? "CL_CPM_COMP_DEATH" : "Invalid")
+    
 /**
  * Payload data for the component death event published by the CPM.
  */
@@ -238,6 +240,8 @@ typedef struct
     ClCpmCompEventT operation;
 } ClCpmEventPayLoadT;
 
+    
+    
 /**
  * Payload data for the node arrival/departure event published by the
  * CPM.

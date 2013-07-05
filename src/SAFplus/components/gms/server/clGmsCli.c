@@ -806,7 +806,7 @@ static ClRcT   gmsCliAddViewNode(
 
     viewNumber = num;
 
-    viewNode = (ClGmsViewNodeT *)clHeapAllocate(sizeof(ClGmsViewNodeT));
+    viewNode = ClGmsViewNodeTAlloc(memberId);
 
     if (!viewNode)  return CL_GMS_RC(CL_ERR_NO_MEMORY);
 
@@ -822,10 +822,7 @@ static ClRcT   gmsCliAddViewNode(
         strncpy(viewNode->viewMember.groupMember.memberName.value,
                                     argv[3], strlen(argv[3]));
         viewNode->viewMember.groupMember.memberName.length = strlen(argv[3]);
-        viewNode->viewMember.groupMember.credential = credentials;
-
-        rc = _clGmsViewAddNode(groupId, memberId, viewNode);
-        
+        viewNode->viewMember.groupMember.credential = credentials;        
     }
     else
     {
@@ -838,9 +835,9 @@ static ClRcT   gmsCliAddViewNode(
                                     argv[3], strlen(argv[3]));
         viewNode->viewMember.clusterMember.nodeName.length = strlen(argv[3]);
         viewNode->viewMember.clusterMember.credential = credentials;
-
-        rc = _clGmsViewAddNode(groupId, memberId, viewNode);
     }
+    
+    rc = _clGmsViewAddNode(groupId, memberId, viewNode);
 
     return rc;
 }
