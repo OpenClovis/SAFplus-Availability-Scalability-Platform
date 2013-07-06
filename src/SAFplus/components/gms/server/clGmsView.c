@@ -149,64 +149,6 @@ static void gmsViewCacheAdd(ClIocNodeAddressT nodeId, ClGmsViewNodeT *node)
     gmsViewCacheLastLeaderUpdate(nodeId, node);
 }
 
-#if 0
-static ClRcT gmsViewCacheGet(ClGmsNodeIdT currentLeader, ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMember)
-{
-    ClGmsIocViewCacheT *cache;
-    ClRcT rc = CL_OK;
-    if(nodeMember)
-        *nodeMember = NULL;
-    cache = gmsViewCacheFind(nodeId);
-    if(cache)
-    {
-        hashDel(&cache->hash);
-        /*
-         *If its the current leader and we are already the leader ourselves.
-         *then schedule a re-election.
-         */
-        if((!gClTotemRunning) && (cache->nodeMember.viewMember.clusterMember.credential != CL_GMS_INELIGIBLE_CREDENTIALS))
-        {
-            rc = CL_GMS_RC(CL_ERR_TRY_AGAIN);
-            
-            /*
-             * If we are leaderless, we retain the states.
-             * If its a split brain on the controllers, then the payloads would anyway be restarted
-             * If its a split only on the payloads, then the payloads restore back the last views
-             */
-            if(gClLastLeaderViewNode == nodeId)
-            {
-                cache->nodeMember.viewMember.clusterMember.isCurrentLeader = __SC_PROMOTE_CAPABILITY_MASK;
-            }
-            else
-            {
-                cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_FALSE;
-            }
-        }
-        else
-        {
-            /*
-             * Reset the last view capability
-             */
-            clLogNotice("VIEW", "CACHE", "Resetting the view cache entry for node [%d]", cache->nodeAddress);
-            cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_FALSE;
-        }
-        
-        cache->nodeMember.viewMember.clusterMember.isPreferredLeader = CL_FALSE;
-        cache->nodeMember.viewMember.clusterMember.leaderPreferenceSet = CL_FALSE;
-        cache->nodeMember.viewMember.clusterMember.bootTimestamp = clOsalStopWatchTimeGet();
-        if(nodeMember)
-        {
-            *nodeMember = &cache->nodeMember;
-        }
-        /*
-         * Keep the node cache also in sync.
-         */
-        clLogDebug("GMS", "VIEW", "clearing node cache for node %d", nodeId); 
-        clNodeCacheUpdate(nodeId, 0, 0, NULL);
-    }
-    return rc;
-}
-#endif 
 /*
  * On a new node join, check if the node is in the view cache left to see determine faster joins    
  * after splits. If no, fetch the footprint from the node cache for the new node.
@@ -222,9 +164,6 @@ ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT no
     if(!nodeAddress || !pNode)
         return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
     
-    //rc = gmsViewCacheGet(currentLeader, nodeAddress, &node);
-    //if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_TRY_AGAIN) return rc;
-    //cacheE = gmsViewCacheFind(nodeAddress);
 
     /* Must sync with the node cache every time b/c the leader flag can change */
     if(clNodeCacheMemberGetExtendedSafe(nodeAddress, &member, 5, 200) != CL_OK)
@@ -1420,28 +1359,7 @@ ClRcT   _clGmsViewAddNodeExtended(
     {
         clLogCritical("VIEW", "CACHE", "node not passed (group %d, nodeId %d)", groupId,nodeId);
         CL_ASSERT(node != 0);
-        /*
-    ClGmsIocViewCacheT *cache;
-        cache = gmsViewCacheFind(nodeId);
-        if (cache) node = &cache->nodeMember;
-        */
     }
-    
-    //if (!node)
-    //    return CL_ERR_ALREADY_EXIST;  /* GAS why this error value? */
-    
-    /* GAS
-    if(!(node = *ppNode))
-    {
-        gmsViewCacheGet(0, nodeId, ppNode);
-        node = *ppNode;
-        if(!node)
-        {
-            rc = CL_ERR_ALREADY_EXIST;
-            goto ADD_ERROR;
-        }
-    }
-    */
     
     rc = _clGmsViewFindNodePrivate(thisViewDb, nodeId, CL_GMS_CURRENT_VIEW, &foundNode);
 

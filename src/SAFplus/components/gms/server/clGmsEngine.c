@@ -470,17 +470,14 @@ computeLeaderDeputyWithHighestCredential (
         if (currentNode->memberActive && (currentNode->credential != CL_GMS_INELIGIBLE_CREDENTIALS))
         {
             eligibleNodes[noOfEligibleNodes] = currentNode;
-            if (1)
-            {
-                currentNode->credential += CL_IOC_MAX_NODES * currentNode->isPreferredLeader;
-                /* if leader preference set in the CLI, then double-dog prefer it :-) */
-                currentNode->credential += CL_IOC_MAX_NODES * ( currentNode->isPreferredLeader && currentNode->leaderPreferenceSet);
-                /* Current leaders are boosted above all others */
-                currentNode->credential += 3*CL_IOC_MAX_NODES * currentNode->isCurrentLeader;
 
-                clLog(CL_LOG_DEBUG,CLM,NA, "Node [%*.s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu]",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp);
+            currentNode->credential += CL_IOC_MAX_NODES * currentNode->isPreferredLeader;
+            /* if leader preference set in the CLI, then double-dog prefer it :-) */
+            currentNode->credential += CL_IOC_MAX_NODES * ( currentNode->isPreferredLeader && currentNode->leaderPreferenceSet);
+            /* Current leaders are boosted above all others */
+            currentNode->credential += 3*CL_IOC_MAX_NODES * currentNode->isCurrentLeader;
 
-            }
+            clLog(CL_LOG_DEBUG,CLM,NA, "Node [%*.s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu]",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp);
             
             noOfEligibleNodes++;
         }
@@ -493,48 +490,6 @@ computeLeaderDeputyWithHighestCredential (
                  "Possibly no system controller is running");
         return rc;
     }
-
-#if 0    
-    /* A preferred leader node is not found. So we fall back to
-     * our old algorithm:
-     * Find a node with highest node id as the leader. If there is
-     * already an existing leader node, then dont elect a new leader.
-     */
-    for (i = 0; i < noOfEligibleNodes; i++)
-    {
-        if (eligibleNodes[i]->isCurrentLeader == CL_TRUE 
-            ||
-            CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(eligibleNodes[i]->credential)
-            ||
-            eligibleNodes[i]->isPreferredLeader)
-        {
-            if(CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(eligibleNodes[i]->credential))
-                eligibleNodes[i]->credential += __SC_PROMOTE_CREDENTIAL_BIAS;
-            if(eligibleNodes[i]->isCurrentLeader == CL_TRUE)
-                eligibleNodes[i]->credential += __SC_CURRENT_LEADER_BIAS;
-            
-            // WTF? eligibleNodes[i]->isCurrentLeader &= ~__SC_PROMOTE_CAPABILITY_MASK;
-            
-            existingLeaders[noOfExistingLeaders++] = eligibleNodes[i];
-        }
-    }
-
-    clLog(CL_LOG_DEBUG,CLM,NA, "Num of eligible leaders [%d]",noOfExistingLeaders);
-    if (noOfExistingLeaders)
-    {
-        /* There are already leader nodes in the cluster.
-         * Elect the one among those leaders with the highest nodeId
-         */
-        findNodeWithHigestCredential(existingLeaders, noOfExistingLeaders, leaderNodeId);
-    } else {
-
-        
-        /* There was no existing leader. So elect the node with the
-         * highest node id among the nodes with highest credentials
-         */
-    }
-    
-#endif
 
     i = findNodeWithHigestCredential(eligibleNodes, noOfEligibleNodes, leaderNodeId);
     
@@ -737,8 +692,7 @@ _clGmsEngineLeaderElect(
                 { .tsSec = gmsGlobalInfo.config.bootElectionTimeout + gmsGlobalInfo.config.leaderSoakInterval,
                   .tsMilliSec = 0 
                 };
-                /* GAS */
-                /* viewNode->viewMember.clusterMember.isCurrentLeader = __SC_PROMOTE_CAPABILITY_MASK; */
+
                 *leaderNodeId = CL_GMS_INVALID_NODE_ID;
                 leaderElectionTimerRun(CL_TRUE, &reElectTimeout);
             }
@@ -786,10 +740,9 @@ _clGmsEnginePreferredLeaderElect(
     ClCntNodeHandleT   *gmsOpaque = NULL;
     ClUint32T           j=0;
 
-    clLog(CL_LOG_TRACE, CLM, NA,
-            "_clGmsEnginePreferredLeaderElect is invoked");
+    clLog(CL_LOG_TRACE, CLM, NA, "_clGmsEnginePreferredLeaderElect is invoked");
 
-    // currently been done for default group only
+    /* currently been done for default group only */
     rc = _clGmsViewDbFind(0, &thisViewDb);
 
     if (rc != CL_OK)
@@ -959,14 +912,6 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     }
 
     /* See this node was the preferred leader. If so then set the tag to TRUE */
-#if 0    
-    len1 = strlen(gmsGlobalInfo.config.preferredActiveSCNodeName);
-    len2 = node->viewMember.clusterMember.nodeName.length;
-    if ((len1 == len2) &&
-        (!strncmp(node->viewMember.clusterMember.nodeName.value, 
-                  gmsGlobalInfo.config.preferredActiveSCNodeName,len1)))
-#endif
-
     if (0 == strncmp(node->viewMember.clusterMember.nodeName.value, gmsGlobalInfo.config.preferredActiveSCNodeName, node->viewMember.clusterMember.nodeName.length))
     {
         /* This node is a preferred Leader. So set isPreferredLeader flag to TRUE */
