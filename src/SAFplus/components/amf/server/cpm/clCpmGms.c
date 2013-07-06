@@ -151,8 +151,7 @@ static void cpmInitializeStandby(void)
     return;
 }
 
-static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notificationBuffer,
-                                    ClCpmLocalInfoT *pCpmLocalInfo)
+static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notificationBuffer, ClCpmLocalInfoT *pCpmLocalInfo)
 {
     ClUint32T rc = CL_OK;
     ClGmsNodeIdT prevMasterNodeId = gpClCpm->activeMasterNodeId;
@@ -208,8 +207,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             }
         }
 
-        if ((gpClCpm->haState == CL_AMS_HA_STATE_ACTIVE) && 
-            (notificationBuffer->leader != pCpmLocalInfo->nodeId))
+        if ((gpClCpm->haState == CL_AMS_HA_STATE_ACTIVE) && (notificationBuffer->leader != pCpmLocalInfo->nodeId))
         {
             clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                        "Node [%d] is changing HA state from active to standby",

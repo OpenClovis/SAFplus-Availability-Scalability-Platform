@@ -246,7 +246,8 @@ ClRcT clIocCompStatusGet(ClIocPhysicalAddressT compAddr, ClUint8T *pStatus)
     if(pStatus == NULL)
         return CL_IOC_RC(CL_ERR_NULL_POINTER);
 
-    if(compAddr.nodeAddress > CL_IOC_MAX_NODE_ADDRESS || compAddr.portId > CL_IOC_MAX_COMP_PORT) {
+    if((compAddr.nodeAddress > CL_IOC_MAX_NODE_ADDRESS) || (compAddr.portId > CL_IOC_MAX_COMP_PORT))
+    {
         *pStatus = CL_IOC_NODE_DOWN;
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Invalid Address [node 0x%x : port 0x%x] passed.\n", compAddr.nodeAddress, compAddr.portId)); 
         return CL_IOC_RC(CL_ERR_NOT_EXIST);

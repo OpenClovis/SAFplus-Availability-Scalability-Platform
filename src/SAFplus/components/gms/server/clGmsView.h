@@ -54,6 +54,10 @@ typedef struct clGmsViewNode {
     ClUint32T           flags;
 } ClGmsViewNodeT;
 
+void ClGmsViewNodeTFree(ClGmsViewNodeT* node);
+ClGmsViewNodeT* ClGmsViewNodeTAlloc(ClGmsNodeIdT nodeId);
+    
+    
 
 /* View Structure */
 

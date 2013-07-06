@@ -1994,19 +1994,15 @@ void clEvtSubsTestDeliverCallback(ClEventSubscriptionIdT subscriptionId,
     {
         case 1:
             {
-                clLog(DBG,GEN,NA,
-                        "Component failure event received");
-
-                rc = clCpmEventPayLoadExtract(eventHandle,
-                        eventDataSize,
-                        CL_CPM_COMP_EVENT,
-                        (void *)&payLoad);
+                rc = clCpmEventPayLoadExtract(eventHandle, eventDataSize, CL_CPM_COMP_EVENT, (void *)&payLoad);
                 if (rc != CL_OK)
                 {
-                    clLog(ERROR,GEN,NA,
-                            "Event payload extract failed, rc=[%#x]", rc);
+                    clLog(ERROR,GEN,NA, "Component failure event received but Event payload extract failed, rc=[%#x]", rc);
                     goto out_free;
                 }
+
+                clLog(DBG,GEN,NA, "Component event received, Node [%*.s, %d] Comp [%*.s, id: 0x%x, eo: 0x%llx, port: 0x%x] Event [%s, %d]", payLoad.nodeName.length, payLoad.nodeName.value, payLoad.nodeIocAddress ,payLoad.compName.length, payLoad.compName.value, payLoad.compId, payLoad.eoId, payLoad.eoIocPort,ClCpmCompEventT2Str(payLoad.operation),payLoad.operation);
+                
                 if(payLoad.operation != CL_CPM_COMP_DEATH)
                     goto out_free;
                 /* Invoke group leave for this component */

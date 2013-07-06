@@ -275,6 +275,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
 
     if(id == CL_IOC_NODE_LINK_UP_NOTIFICATION)
     {
+        clLogDebug("IOC", "NTF", "Discovery notification LINK UP");
         clNodeCacheUpdate(nodeId, version, 0, NULL);
         clIocNotificationRegistrants(notification);
         goto out;
@@ -314,6 +315,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
         compat = CL_TRUE;
     }
 
+    clLogDebug("IOC", "NTF", "Discovery notification node %d, cap %x", nodeId, theirCapability);
     clNodeCacheUpdate(nodeId, version, theirCapability, &nodeName);
                 
     /*
@@ -328,8 +330,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
         notification->nodeVersion = htonl(nodeVersion);
         notification->nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
         notification->nodeAddress.iocPhyAddress.portId = htonl(myCapability);
-        rc = clIocNotificationPacketSend(commPort, notification, 
-                                         &destAddress, compat, xportType);
+        rc = clIocNotificationPacketSend(commPort, notification, &destAddress, compat, xportType);
     }
 
     out:

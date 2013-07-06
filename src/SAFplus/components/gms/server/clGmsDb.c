@@ -60,7 +60,6 @@ static const ClGmsDbViewParamsT   viewDbParams = {
         &trackDbParams
 };
 
-
 /* FIXME:
  */
 

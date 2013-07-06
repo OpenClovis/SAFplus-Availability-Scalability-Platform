@@ -62,6 +62,7 @@
 
 # define CL_MAX_CREDENTIALS     (~0U)
 #define __SC_PROMOTE_CREDENTIAL_BIAS (CL_IOC_MAX_NODES+1)
+#define __SC_CURRENT_LEADER_BIAS (2*CL_IOC_MAX_NODES+1)
 
 static      ClTimerHandleT  timerHandle = NULL;
 ClBoolT     bootTimeElectionDone = CL_FALSE;
@@ -117,7 +118,7 @@ timerCallback( void *arg ){
     ClBoolT trackNotify = CL_FALSE;
     ClBoolT leadershipChanged = CL_FALSE;
 
-    clLog(INFO,LEA,NA,
+    clLog(CL_LOG_INFO,LEA,NA,
           "Running boot time leader election after 5 secs of GMS startup");
 
     gmsViewPopulate(&trackNotify); 
@@ -138,7 +139,7 @@ timerCallback( void *arg ){
 
     if (rc != CL_OK)
     {
-        clLog(ERROR,LEA,NA,
+        clLog(CL_LOG_ERROR,LEA,NA,
               "Error in boot time leader election. rc [0x%x]",rc);
     }
     lastLeader = view->leader;
@@ -160,7 +161,7 @@ timerCallback( void *arg ){
             clEoMyEoObjectSet ( gmsGlobalInfo.gmsEoObject );
             if (_clGmsTrackNotify ( 0x0 ) != CL_OK)
             {
-                clLog(ERROR,LEA,NA,
+                clLog(CL_LOG_ERROR,LEA,NA,
                       "_clGmsTrackNotify failed in leader election timer callback");
             }
         }
@@ -172,11 +173,10 @@ timerCallback( void *arg ){
     //readyToServeGroups = CL_TRUE;
 
     // if there is no leader in the group or there is only 1 node in the cluster group, set to true 
-    clLog(INFO,LEA,NA, "leader [%d] & noOfViewMemebers [%d] is found!", view->leader, view->noOfViewMembers);
-    if (view->leader || view->noOfViewMembers == 1)
+    clLog(CL_LOG_INFO,LEA,NA, "leader is [%d] & noOfViewMembers [%d] is found!", view->leader, view->noOfViewMembers);
+    if (view->leader || (view->noOfViewMembers == 1))
     {
-    	clLog(INFO,LEA,NA,
-              "There is only leader in the default group; hence setting readyToServeGroups as True");
+    	clLog(CL_LOG_DEBUG,LEA,NA, "There is only leader in the default group; hence setting readyToServeGroups as True");
         readyToServeGroups = CL_TRUE;
     }
 
@@ -187,12 +187,11 @@ timerCallback( void *arg ){
 
     if (_clGmsViewUnlock(0x0) != CL_OK)
     {
-        clLog(ERROR,LEA,NA,
+        clLog(CL_LOG_ERROR,LEA,NA,
               ("_clGmsViewUnlock failed in leader election timer callback"));
     }
 
-    clLog(INFO,LEA,NA,
-          "Initial boot time leader election complete");
+    clLog(CL_LOG_INFO,LEA,NA, "Initial boot time leader election complete");
     return rc;
 }
 
@@ -287,7 +286,7 @@ static ClRcT gmsClusterStart(void)
         }
         else
         {
-            clLogMultiline(DBG,"CLUSTER", "START",
+            clLogMultiline(CL_LOG_DEBUG,"CLUSTER", "START",
                            "clCpmComponentRegister successful. Updating GMS state as RUNNING");
             gmsGlobalInfo.opState = CL_GMS_STATE_RUNNING;
         }
@@ -296,7 +295,7 @@ static ClRcT gmsClusterStart(void)
     else
     {
         gClTotemRunning = CL_TRUE;
-        clLogMultiline(INFO,GEN,NA,
+        clLogMultiline(CL_LOG_INFO,GEN,NA,
                        "Invoking aisexec_main call of openais. This thread will continue\n"
                        "to run in openais context until finalize");
 
@@ -414,13 +413,13 @@ static __inline__ ClBoolT canElectNodeAsLeader(ClGmsNodeIdT lastLeader, ClGmsClu
    leaders).
  */
 
-static ClRcT
+static ClUint32T
 findNodeWithHigestCredential (ClGmsClusterMemberT **nodes,
                               ClUint32T             noOfNodes,
                               ClGmsNodeIdT         *nodeId)
 {
     ClUint32T   i = 0;
-    ClUint32T   higestCredentialIndex = 0;
+    ClUint32T   highestCredentialIndex = 0;
     ClUint32T   maxCredential = 0;
      
     *nodeId = CL_GMS_INVALID_NODE_ID;
@@ -429,17 +428,17 @@ findNodeWithHigestCredential (ClGmsClusterMemberT **nodes,
     {   
         if (nodes[i] != NULL && nodes[i]->credential > maxCredential)
         {
-            higestCredentialIndex = i;
+            highestCredentialIndex = i;
             maxCredential = nodes[i]->credential;
         }
     }
 
-    if (NULL != nodes[higestCredentialIndex])
+    if (NULL != nodes[highestCredentialIndex])
     {
-        *nodeId = nodes[higestCredentialIndex]->nodeId;
+        *nodeId = nodes[highestCredentialIndex]->nodeId;
     }
     
-    return CL_OK;
+    return highestCredentialIndex;
 }
 
 static ClRcT 
@@ -455,8 +454,7 @@ computeLeaderDeputyWithHighestCredential (
     ClGmsClusterMemberT *eligibleNodes[64] = {0};
     ClUint32T            noOfEligibleNodes = 0;
     
-    ClGmsClusterMemberT *existingLeaders[64] = {0};
-    ClUint32T            noOfExistingLeaders = 0;
+    /* ClGmsClusterMemberT *existingLeaders[64] = {0}; */
     ClUint32T            i = 0;
 
     CL_ASSERT( (buffer != (const void*)NULL) && (buffer->numberOfItems != 0x0) && (buffer->notification != NULL));
@@ -468,87 +466,43 @@ computeLeaderDeputyWithHighestCredential (
     for ( i = 0 ; i < buffer->numberOfItems ; i++ )
     {
         currentNode = &(buffer->notification[i].clusterNode);
-        if( currentNode->credential != CL_GMS_INELIGIBLE_CREDENTIALS )
+        /* To be part of the voting, the node must be active now (not dead) and be eligible to become master */
+        if (currentNode->memberActive && (currentNode->credential != CL_GMS_INELIGIBLE_CREDENTIALS))
         {
             eligibleNodes[noOfEligibleNodes] = currentNode;
-            if (eligibleNodes[noOfEligibleNodes]->isPreferredLeader == CL_TRUE)
-            {
-                /*
-                 * If the leaderpreference was set from the debug cli, that has a higher affinity
-                 * then preferred ones as it overrides the preferred if any.
-                 */
-                eligibleNodes[noOfEligibleNodes]->credential = 
-                    CL_MAX_CREDENTIALS - (eligibleNodes[noOfEligibleNodes]->isPreferredLeader 
-                                          ^
-                                          eligibleNodes[noOfEligibleNodes]->leaderPreferenceSet);
-            }
+
+            currentNode->credential += CL_IOC_MAX_NODES * currentNode->isPreferredLeader;
+            /* if leader preference set in the CLI, then double-dog prefer it :-) */
+            currentNode->credential += CL_IOC_MAX_NODES * ( currentNode->isPreferredLeader && currentNode->leaderPreferenceSet);
+            /* Current leaders are boosted above all others */
+            currentNode->credential += 3*CL_IOC_MAX_NODES * currentNode->isCurrentLeader;
+
+            clLog(CL_LOG_DEBUG,CLM,NA, "Node [%*.s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu]",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp);
+            
             noOfEligibleNodes++;
         }
     }
     
     if(noOfEligibleNodes == 0)
     {
-        clLogMultiline(WARN,LEA,NA,
+        clLogMultiline(CL_LOG_WARNING,LEA,NA,
                  "Could not elect any leader from the current cluster view.\n"
                  "Possibly no system controller is running");
         return rc;
     }
 
-    /* A preferred leader node is not found. So we fall back to
-     * our old algorithm:
-     * Find a node with highest node id as the leader. If there is
-     * already an existing leader node, then dont elect a new leader.
-     */
-    for (i = 0; i < noOfEligibleNodes; i++)
-    {
-        if (eligibleNodes[i]->isCurrentLeader == CL_TRUE 
-            ||
-            CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(eligibleNodes[i]->isCurrentLeader)
-            ||
-            eligibleNodes[i]->isPreferredLeader)
-        {
-            if(CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(eligibleNodes[i]->isCurrentLeader))
-            {
-                eligibleNodes[i]->credential += __SC_PROMOTE_CREDENTIAL_BIAS;
-            }
-            eligibleNodes[i]->isCurrentLeader &= ~__SC_PROMOTE_CAPABILITY_MASK;
-            existingLeaders[noOfExistingLeaders++] = eligibleNodes[i];
-        }
-    }
-
-    clLog(DBG,CLM,NA,
-            "No of  existing leaders = %d",noOfExistingLeaders);
-    if (noOfExistingLeaders)
-    {
-        /* There are already leader nodes in the cluster.
-         * Elect the one among those leaders with the highest nodeId
-         */
-        findNodeWithHigestCredential(existingLeaders, noOfExistingLeaders, leaderNodeId);
-    } else {
-        /* There was no existing leader. So elect the node with the
-         * highest node id among the nodes with highest credentials
-         */
-        findNodeWithHigestCredential(eligibleNodes, noOfEligibleNodes, leaderNodeId);
-    }
+    i = findNodeWithHigestCredential(eligibleNodes, noOfEligibleNodes, leaderNodeId);
+    
 
     /* Now to elect deputy, among the eligible nodes
      * mark the leader node index as NULL and among the remaining
      * nodes, elect the one with highest node Id
      */
-    for (i = 0; i < noOfEligibleNodes; i++)
-    {
-        if (eligibleNodes[i]->nodeId == *leaderNodeId)
-        {
-            eligibleNodes[i] = NULL;
-            break;
-        }
-    }
+    eligibleNodes[i] = NULL;
 
     findNodeWithHigestCredential(eligibleNodes, noOfEligibleNodes, deputyNodeId);
 
-    clLogNotice(LEA, "ELECT",
-            "Results of leader election: Leader [%d], Deputy [%d]",
-            *leaderNodeId,*deputyNodeId);
+    clLogNotice(LEA, "ELECT", "Results of leader election: Leader [%d], Deputy [%d]", *leaderNodeId,*deputyNodeId);
     return rc;
 }
 
@@ -578,8 +532,7 @@ _clGmsDefaultLeaderElectionAlgorithm (
      */
     ClRcT rc = CL_OK;
 
-    clLog(INFO,GEN,NA,
-            "Default leader election algorithm is invoked");
+    clLog(CL_LOG_INFO,GEN,NA, "Default leader election algorithm is invoked");
 
     CL_ASSERT((buffer.numberOfItems != 0x0)  && (buffer.notification != NULL));
     CL_ASSERT( (leaderNodeId != NULL) && (deputyNodeId != NULL));
@@ -590,11 +543,7 @@ _clGmsDefaultLeaderElectionAlgorithm (
         case CL_GMS_MEMBER_JOINED:
         case CL_GMS_MEMBER_LEFT:
         case CL_GMS_LEADER_ELECT_API_REQUEST:
-            rc = computeLeaderDeputyWithHighestCredential(
-                    &buffer,
-                    leaderNodeId,
-                    deputyNodeId
-                    );
+            rc = computeLeaderDeputyWithHighestCredential(&buffer,leaderNodeId,deputyNodeId);
             return rc;
 
             /* 
@@ -677,13 +626,12 @@ _clGmsEngineLeaderElect(
     if ((rc != CL_OK) || (*leaderNodeId == CL_GMS_INVALID_NODE_ID))
     {
         reElect = CL_TRUE; /* trigger reelection*/
-        clLog(ERROR, CLM,NA,"Leader election failed for group [%d]. rc = 0x%x",groupId,rc);
+        clLog(CL_LOG_ERROR, CLM,NA,"Leader election failed for group [%d]. rc = 0x%x",groupId,rc);
         goto done_return;
     }
 
 
-    clLog(DBG,CLM,NA,
-            "Leader election is done. Now updating the leadership status");
+    clLog(CL_LOG_DEBUG,CLM,NA, "Leader election is done. Now updating the leadership status");
     rc  = _clGmsViewDbFind(groupId, &thisViewDb);
 
     if (rc != CL_OK)
@@ -697,32 +645,26 @@ _clGmsEngineLeaderElect(
      * Unset the isCurrentLeader flag if set for any other node,
      * Set it for new leader if not already set
      */
-    for ( i = 0x0 ; i < buffer.numberOfItems ; i++ )
+    for ( i = 0 ; i < buffer.numberOfItems ; i++ )
     {
         currentNode = &(buffer.notification[i].clusterNode);
 
-        if ((currentNode->isCurrentLeader == CL_TRUE) &&
-                (currentNode->nodeId != *leaderNodeId))
+        if ((currentNode->isCurrentLeader == CL_TRUE) && (currentNode->nodeId != *leaderNodeId))
         {
             /* Unset the flag for this node */
-            rc = _clGmsViewFindNodePrivate(thisViewDb, currentNode->nodeId, 
-                    CL_GMS_CURRENT_VIEW, &viewNode);
+            rc = _clGmsViewFindNodePrivate(thisViewDb, currentNode->nodeId, CL_GMS_CURRENT_VIEW, &viewNode);
             if (rc != CL_OK)
             {
                 clLog(CRITICAL,LEA,NA,
                         "FindNode operation for nodeId [%d] failed with rc [0x%x] "
                         "during leader election. This might lead to improper "
                         "state of cluster",currentNode->nodeId,rc);
-                goto done_return;
             }
-
             viewNode->viewMember.clusterMember.isCurrentLeader = CL_FALSE;
         }
-        else if ((currentNode->nodeId == *leaderNodeId) &&
-                (currentNode->isCurrentLeader == CL_FALSE))
+        else if ((currentNode->nodeId == *leaderNodeId) && (currentNode->isCurrentLeader == CL_FALSE))
         {
-            rc = _clGmsViewFindNodePrivate(thisViewDb, currentNode->nodeId,
-                    CL_GMS_CURRENT_VIEW, &viewNode);
+            rc = _clGmsViewFindNodePrivate(thisViewDb, currentNode->nodeId, CL_GMS_CURRENT_VIEW, &viewNode);
             if (rc != CL_OK)
             {
                 clLog(CRITICAL,LEA,NA,
@@ -750,26 +692,26 @@ _clGmsEngineLeaderElect(
                 { .tsSec = gmsGlobalInfo.config.bootElectionTimeout + gmsGlobalInfo.config.leaderSoakInterval,
                   .tsMilliSec = 0 
                 };
-                viewNode->viewMember.clusterMember.isCurrentLeader = __SC_PROMOTE_CAPABILITY_MASK;
+
                 *leaderNodeId = CL_GMS_INVALID_NODE_ID;
                 leaderElectionTimerRun(CL_TRUE, &reElectTimeout);
             }
         }
-
+        
+    
         /* If I am the leader then I need to update my global data structure */
-        if ((currentNode->nodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId) && 
-            (*leaderNodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId))
+        if ((currentNode->nodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId) && (*leaderNodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId))
         {
-            clLog(DBG, CLM, NA,
-                    "I am the leader. Updating my global data structure");
+            clLog(CL_LOG_DEBUG, CLM, NA,
+                  "I am the leader. Updating my global data structure");
             /* If I am elected as leader, update the global database.*/
             gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader = CL_TRUE;
-            gmsGlobalInfo.config.thisNodeInfo.isPreferredLeader = 
-                currentNode->isPreferredLeader;
-            gmsGlobalInfo.config.thisNodeInfo.leaderPreferenceSet = 
-                currentNode->leaderPreferenceSet;
+            gmsGlobalInfo.config.thisNodeInfo.isPreferredLeader = currentNode->isPreferredLeader;
+            gmsGlobalInfo.config.thisNodeInfo.leaderPreferenceSet = currentNode->leaderPreferenceSet;
         }
+
     }
+    
 
 done_return:
     clHeapFree((void*)buffer.notification);
@@ -798,10 +740,9 @@ _clGmsEnginePreferredLeaderElect(
     ClCntNodeHandleT   *gmsOpaque = NULL;
     ClUint32T           j=0;
 
-    clLog(TRACE, CLM, NA,
-            "_clGmsEnginePreferredLeaderElect is invoked");
+    clLog(CL_LOG_TRACE, CLM, NA, "_clGmsEnginePreferredLeaderElect is invoked");
 
-    // currently been done for default group only
+    /* currently been done for default group only */
     rc = _clGmsViewDbFind(0, &thisViewDb);
 
     if (rc != CL_OK)
@@ -848,7 +789,7 @@ _clGmsEnginePreferredLeaderElect(
 
     if ((rc != CL_OK) && (rc != CL_ERR_ALREADY_EXIST))
     {
-        clLog(ERROR,LEA,NA,
+        clLog(CL_LOG_ERROR,LEA,NA,
                 "Leader Election API request failed with rc [0x%x]",rc);
         goto error;
     }
@@ -871,7 +812,7 @@ _clGmsEnginePreferredLeaderElect(
     rc =  _clGmsTrackNotify(0);
     if( rc!= CL_OK )
     {
-        clLog(ERROR,CLM,NA,
+        clLog(CL_LOG_ERROR,CLM,NA,
                  "Cluster track notification failed during explicit leader election request. rc [0x%x]",rc);
         goto error;
     }
@@ -884,7 +825,7 @@ error:
         _rc = clHandleCheckout(contextHandleDatabase,handle,(void*)&context_info);
         if (_rc != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                     "Bad handle... Context handle checkout "
                      "failed with rc=0x%x",rc);
             return rc;
@@ -895,7 +836,7 @@ error:
         _rc = clHandleCheckin(contextHandleDatabase,handle);
         if (_rc != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                     "Context handle checkin failed with rc=0x%x",rc);
             return rc;
         }
@@ -923,21 +864,19 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     ClGmsNodeIdT       newLeader = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       newDeputy = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       currentDeputy = CL_GMS_INVALID_NODE_ID;
-    ClUint32T          len1 = 0;
-    ClUint32T          len2 = 0;
-    ClTimerTimeOutT    timeout = {.tsSec = gmsGlobalInfo.config.bootElectionTimeout,
-                                  .tsMilliSec = 0
-    };
-    clLog(INFO,CLM,NA,
-          "GMS engine cluster join is invoked for node Id [%d] for group [%d]", nodeId, groupId);
+    ClTimerTimeOutT    timeout;
+
+    timeout.tsSec = gmsGlobalInfo.config.bootElectionTimeout;
+    timeout.tsMilliSec = 0;
+    
+    clLog(CL_LOG_INFO,CLM,NA,"GMS engine cluster join is invoked for node Id [%d] for group [%d]", nodeId, groupId);
 
     rc = _clGmsViewFindAndLock(groupId, &thisClusterView);
 
     if ((rc != CL_OK) || (thisClusterView == NULL))
     {
-        clLog(ERROR,CLM,NA,
-              "Could not get current GMS view. Join failed. rc 0x%x",rc);
-        if(node) clHeapFree(node);
+        clLog(CL_LOG_ERROR,CLM,NA,"Could not get current GMS view. Join failed. rc 0x%x",rc);
+        if(node) ClGmsViewNodeTFree(node);
         return rc;
     }
     /*
@@ -948,9 +887,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         rc = clGmsViewCacheCheckAndAdd(thisClusterView->leader, nodeId, &node);
         if(rc != CL_OK || !node)
         {
-            if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN
-               &&
-               bootTimeElectionDone)
+            if((CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && (bootTimeElectionDone))
             {
                 if(!reElect)
                 {
@@ -961,26 +898,25 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
             }
             else 
             {
-                if(node)
-                    clHeapFree(node);
+                if(node) ClGmsViewNodeTFree(node);
                 goto ENG_ADD_ERROR;
             }
         }
+      clLog(CL_LOG_DEBUG,CLM,NA,"Node loaded from View Cache");
+    }
+
+    if (1)
+    {
+        ClGmsClusterMemberT *currentNode =  &node->viewMember.clusterMember;
+        clLog(CL_LOG_DEBUG,CLM,NA, "Node [%*.s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu] (%p)",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp,(void*) node);
     }
 
     /* See this node was the preferred leader. If so then set the tag to TRUE */
-    len1 = strlen(gmsGlobalInfo.config.preferredActiveSCNodeName);
-    len2 = node->viewMember.clusterMember.nodeName.length;
-    if ((len1 == len2) &&
-        (!strncmp(node->viewMember.clusterMember.nodeName.value, 
-                  gmsGlobalInfo.config.preferredActiveSCNodeName,len1)))
+    if (0 == strncmp(node->viewMember.clusterMember.nodeName.value, gmsGlobalInfo.config.preferredActiveSCNodeName, node->viewMember.clusterMember.nodeName.length))
     {
-        /* This node is a preferred Leader. So set ifPreferredLeader flag to TRUE */
+        /* This node is a preferred Leader. So set isPreferredLeader flag to TRUE */
         node->viewMember.clusterMember.isPreferredLeader = CL_TRUE;
-        clLog(DBG,CLM,NA,
-              "Node [%s] is marked as preferred leader in the in the config file"
-              " So marking this node as preferred leader",
-              gmsGlobalInfo.config.preferredActiveSCNodeName);
+        clLog(CL_LOG_DEBUG,CLM,NA, "Node [%s] is marked as preferred leader in the in the config file.  So marking this node as preferred leader", gmsGlobalInfo.config.preferredActiveSCNodeName);
     }
 
     currentLeader = thisClusterView->leader;
@@ -990,18 +926,14 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
 
     if (add_rc != CL_OK)
     {
-        if(node) clHeapFree(node);
         if(CL_GET_ERROR_CODE(add_rc) != CL_ERR_ALREADY_EXIST)
         {
-            clLog(ERROR,CLM,NA,
-                  "Error while adding new node to GMS view. rc 0x%x",rc);
-     
+            clLog(CL_LOG_ERROR,CLM,NA, "Error while adding new node to GMS view. rc 0x%x",rc);    
             goto ENG_ADD_ERROR;
         }
         else
         {
-            clLog(INFO,CLM,NA,
-                  "Node already exists in GMS view. Returning OK");
+            clLog(CL_LOG_INFO,CLM,NA, "Node already exists in GMS view. Returning OK");
             add_rc = CL_OK;
             goto ENG_ADD_ERROR;
         }
@@ -1009,17 +941,17 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
 
     /* If the group id is zero then its a cluster booting so we should wait
      *  for the timer to fire , if the timer is not fired we simply return
-     *  with out invoking the algorithm.
+     *  without invoking the algorithm.
      */
-    clLogMultiline(INFO,CLM,NA, "DEBUG : boot time election done %s", (bootTimeElectionDone)?"yes!":"no!");
+    clLogMultiline(CL_LOG_INFO,CLM,NA, "DEBUG : boot time election done %s", (bootTimeElectionDone)?"yes!":"no!");
     if( bootTimeElectionDone != CL_TRUE)
     {
-        clLogMultiline(INFO,CLM,NA,
+        clLogMultiline(CL_LOG_INFO,CLM,NA,
                        "Boot time election is not done. So not invoking cluster \n"
                        "track callback for this node join. Unblocking and returning");
         if (_clGmsViewUnlock(groupId) != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                   "_clGmsViewUnlock failed");
         }
         return rc;
@@ -1031,8 +963,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     {
         if (_clGmsViewUnlock(groupId) != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
-                  "_clGmsViewUnlock failed");
+            clLog(CL_LOG_ERROR,GEN,NA, "_clGmsViewUnlock failed");
         }
         /*
          * Skip if re-election timer is already on.
@@ -1042,8 +973,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
             rc = leaderElectionTimerRun(CL_TRUE, &timeout);
             if(rc == CL_OK)
             {
-                clLogNotice(GEN, NA, "Leader re-election timer set to restart after [%d] secs",
-                            timeout.tsSec);
+                clLogNotice(GEN, NA, "Leader re-election timer set to restart after [%d] secs", timeout.tsSec);
             }
             else
             {
@@ -1063,8 +993,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
 
     if (rc != CL_OK)
     {
-        clLog(ERROR,CLM,NA,
-              "Leader election failed during node join. rc 0x%x",rc);
+        clLog(CL_LOG_ERROR,CLM,NA, "Leader election failed during node join. rc 0x%x",rc);
         goto ENG_ADD_ERROR;
     }
 
@@ -1085,13 +1014,13 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     rc =  _clGmsTrackNotify(groupId);
     if( rc!= CL_OK )
     {
-        clLog(ERROR,CLM,NA,
+        clLog(CL_LOG_ERROR,CLM,NA,
               "Cluster track notification failed for node join [%d] rc [0x%x]",
               nodeId,rc);
         goto ENG_ADD_ERROR;
     }
 
-    clLog (INFO,CLM,NA,
+    clLog (CL_LOG_INFO,CLM,NA,
            "Node [%d] joined the cluster successfully",nodeId);
 
     // Moved out synch send by leader or deputy; as Sync has to be done prior to leader election.
@@ -1099,10 +1028,10 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     ENG_ADD_ERROR:
     if (_clGmsViewUnlock(groupId) != CL_OK)
     {
-        clLog(ERROR,GROUPS,NA,
+        clLog(CL_LOG_ERROR,GROUPS,NA,
               "_clGmsViewUnlock failed");
     }
-    clLog(TRACE,CLM,NA,
+    clLog(CL_LOG_TRACE,CLM,NA,
           "Unlocked the view DB. Now returning from cluster join");
 
     if (add_rc)
@@ -1149,7 +1078,7 @@ ClRcT _clGmsEngineClusterLeaveWrapper(
     {
         if(!strcmp(nodeIp,(char*)foundNode->viewMember.clusterMember.nodeIpAddress.value))
         {
-            clLog(INFO,CLM,NA,
+            clLog(CL_LOG_INFO,CLM,NA,
                   "Node with IP %s is leaving the cluster\n",
                   foundNode->viewMember.clusterMember.nodeIpAddress.value);
             foundNodeId = foundNode->viewMember.clusterMember.nodeId;
@@ -1188,8 +1117,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
     ClGmsNodeIdT        new_leader= CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT        new_deputy= CL_GMS_INVALID_NODE_ID;
 
-    clLog(INFO,CLM,NA,
-            "Cluster leave is invoked for node ID %d\n",nodeId);
+    clLog(CL_LOG_INFO,CLM,NA, "Cluster leave is invoked for node ID %d\n",nodeId);
     rc = _clGmsViewFindAndLock(groupId, &thisClusterView);
 
     if (rc != CL_OK)
@@ -1204,16 +1132,14 @@ ClRcT _clGmsEngineClusterLeaveExtended(
     }
 
     /* condition should never happen */
-    CL_ASSERT(!((thisClusterView->leader == nodeId) && 
-            (thisClusterView->deputy==nodeId )));
+    CL_ASSERT(!((thisClusterView->leader == nodeId) && (thisClusterView->deputy==nodeId )));
 
     /*
        Check whether the leaving node is a leader or deputy in the ring then
        invoke the leader election to elect the new deputy and the leader of
        the ring 
      */
-    if ((nodeId == thisClusterView->leader) || 
-            (nodeId == thisClusterView ->deputy))
+    if ((nodeId == thisClusterView->leader) || (nodeId == thisClusterView ->deputy))
     {
         timerRestarted = CL_FALSE;
 
@@ -1266,7 +1192,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
 
         if(rc != CL_OK)
         {
-           clLog(ERROR,CLM,NA,
+           clLog(CL_LOG_ERROR,CLM,NA,
                  "Initial Leader Election Soak Timer deletion Failed with [%#x] for node [%d]", rc, nodeId);
         }
     }
@@ -1275,7 +1201,7 @@ unlock_and_exit:
 
     if (_clGmsViewUnlock(groupId) != CL_OK)
     {
-        clLog(ERROR,GEN,NA,
+        clLog(CL_LOG_ERROR,GEN,NA,
                 "_clGmsViewUnlock failed");
     }
 
@@ -1284,12 +1210,12 @@ unlock_and_exit:
     /* I'm leaving the cluster. Therefore, I am not the leader. The global database need to be updated*/
     if (nodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId)
     {
-        clLog(DBG, CLM, NA,
+        clLog(CL_LOG_DEBUG, CLM, NA,
                     "I am not the leader. Updating my global data structure");
         gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader = CL_FALSE;
     }
 
-    clLog(INFO,CLM,NA, 
+    clLog(CL_LOG_INFO,CLM,NA, 
             "Cluster node [%d] left the cluster",nodeId);
     return rc;
 }
@@ -1355,7 +1281,7 @@ ClRcT   _clGmsEngineGroupCreate(CL_IN    ClGmsGroupNameT     groupName,
 
     if (time(&t) < 0)
     {
-        clLog (ERROR,GROUPS,NA,
+        clLog (CL_LOG_ERROR,GROUPS,NA,
                 "time() system call failed. System returned error [%s]",strerror(errno));
     }
 
@@ -1394,7 +1320,7 @@ error_return:
         _rc = clHandleCheckout(contextHandleDatabase,handle,(void*)&context_info);
         if (_rc != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                     "Bad handle... Context handle checkout "
                      "failed with rc=0x%x",rc);
             return rc;
@@ -1405,7 +1331,7 @@ error_return:
         _rc = clHandleCheckin(contextHandleDatabase,handle);
         if (_rc != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                     "Context handle checkin failed with rc=0x%x",rc);
             return rc;
         }
@@ -1487,7 +1413,7 @@ error_return:
             rc = clIocMulticastDeregisterAll(&multicastAddr);
             if ((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST))
             {
-                clLog(ERROR,GEN,NA,
+                clLog(CL_LOG_ERROR,GEN,NA,
                         "clIocMulticastDeregisterAll failed for groupId %d with rc 0x%x",
                          groupId,rc);
                 rc = CL_GMS_ERR_IOC_DEREGISTRATION;
@@ -1503,7 +1429,7 @@ error_return:
         _rc = clHandleCheckout(contextHandleDatabase,handle,(void*)&context_info);
         if (_rc != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                     "Bad handle... Context handle checkout "
                      "failed with rc=0x%x",rc);
             return rc;
@@ -1514,7 +1440,7 @@ error_return:
         _rc = clHandleCheckin(contextHandleDatabase,handle);
         if (_rc != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                     "Context handle checkin failed with rc=0x%x",rc);
         }
 
@@ -1571,7 +1497,7 @@ ClRcT   _clGmsEngineGroupJoin(CL_IN     ClGmsGroupIdT       groupId,
 
     if (time(&t) < 0)
     {
-        clLog (ERROR,GROUPS,NA,
+        clLog (CL_LOG_ERROR,GROUPS,NA,
                 "time() system call failed. System returned error [%s]",strerror(errno));
     }
 
@@ -1580,13 +1506,13 @@ ClRcT   _clGmsEngineGroupJoin(CL_IN     ClGmsGroupIdT       groupId,
     rc = _clGmsViewAddNode(groupId, node->viewMember.groupMember.memberId, node);
     if ((rc != CL_OK) && (rc != CL_ERR_ALREADY_EXIST))
     {
-        clLog (ERROR,GROUPS,NA, "Member Join failed; return error code [0x%x]!", rc);
+        clLog (CL_LOG_ERROR,GROUPS,NA, "Member Join failed; return error code [0x%x]!", rc);
         clGmsMutexUnlock(thisViewDb->viewMutex);
         goto error_return;
     }
     else if(rc == CL_ERR_ALREADY_EXIST)
     {
-        clLog (INFO,GROUPS,NA, "Given Member already exist; returning success!");
+        clLog (CL_LOG_INFO,GROUPS,NA, "Given Member already exist; returning success!");
 
 	rc = CL_OK;
         clGmsMutexUnlock(thisViewDb->viewMutex);
@@ -1605,7 +1531,7 @@ error_return:
         _rc = clHandleCheckout(contextHandleDatabase,handle,(void*)&context_info);
         if (_rc != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                     "Bad handle... Context handle checkout "
                      "failed with rc=0x%x",_rc);
             return rc;
@@ -1616,7 +1542,7 @@ error_return:
         _rc = clHandleCheckin(contextHandleDatabase,handle);
         if (_rc != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                     "Context handle checkin failed with rc=0x%x",_rc);
         }
 
@@ -1685,7 +1611,7 @@ error_return:
         _rc = clHandleCheckout(contextHandleDatabase,handle,(void*)&context_info);
         if (_rc != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                     "Bad handle... Context handle checkout "
                      "failed with rc=0x%x",rc);
             return rc;
@@ -1696,7 +1622,7 @@ error_return:
         _rc = clHandleCheckin(contextHandleDatabase,handle);
         if (_rc != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                     "Context handle checkin failed with rc=0x%x",rc);
         }
 
@@ -1819,13 +1745,13 @@ ClRcT   _clGmsRemoveMemberOnCompDeath(CL_IN ClGmsMemberIdT     memberId)
                     rc = _clGmsEngineGroupLeave(groupId,memberId,dummyHandle,0);
                     if (rc != CL_OK)
                     {
-                        clLogMultiline(ERROR,GEN,NA,
+                        clLogMultiline(CL_LOG_ERROR,GEN,NA,
                                 "Removing group member with memberId = %d"
                                  " in groupId = %d, on comp death failed with "
                                  "rc = 0x%x\n",memberId,groupId,rc);
                     }
                     else {
-                        clLog(INFO,GROUPS,NA,
+                        clLog(CL_LOG_INFO,GROUPS,NA,
                                 "Removing group memeber with memberId = %d"
                                 " on groupId = %d on comp death is successful",
                                 memberId,groupId);
@@ -1862,14 +1788,14 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
 
     if (readyToServeGroups == CL_TRUE)
     {
-        clLog(INFO,GEN,NA,
+        clLog(CL_LOG_INFO,GEN,NA,
                 "This sync message is not intended for this node\n");
         return rc;
     }
 
     clGmsMutexLock(gmsGlobalInfo.dbMutex);
     clGmsMutexLock(gmsGlobalInfo.nameIdMutex);
-    clLog(DBG,GEN,NA,
+    clLog(CL_LOG_DEBUG,GEN,NA,
             "Processing the sync message.");
     /* Create the groups as per the number of groups */
     for (i = 0; i < syncNotification->noOfGroups; i++)
@@ -1881,7 +1807,7 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
 	// added conditional check to ensure the groupId 0 is not set for synch after node-id synch update is called
 	if (thisGroupInfo->groupId == 0)
 	{
-	    clLog(DBG,GEN,NA, "Found group Id 0 being called for _clGmsEngineGroupInfoSync for create group; skipping and continuing.");
+	    clLog(CL_LOG_DEBUG,GEN,NA, "Found group Id 0 being called for _clGmsEngineGroupInfoSync for create group; skipping and continuing.");
 	    continue;
 	}
         #endif
@@ -1909,14 +1835,14 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
 	rc = _clGmsNameIdDbFind(&gmsGlobalInfo.groupNameIdDb, &thisGroupInfo->groupName, &tempgroupId);
         if ( CL_GET_ERROR_CODE( rc ) == CL_ERR_NOT_EXIST )
 	{	
-    	    clLog(DBG,GEN,NA, "Name-Id entry is not present for group [%s] Id [%d]", (char *) &thisGroupInfo->groupName.value, groupId);
+    	    clLog(CL_LOG_DEBUG,GEN,NA, "Name-Id entry is not present for group [%s] Id [%d]", (char *) &thisGroupInfo->groupName.value, groupId);
 	    /* Create an entry into name-id pair db */
             rc = _clGmsNameIdDbAdd(&gmsGlobalInfo.groupNameIdDb, &thisGroupInfo->groupName,groupId);
             CL_ASSERT(rc == CL_OK);
 	}
 	else
 	{
-    	    clLog(DBG,GEN,NA, "Name-Id entry is present for group [%s] Id [%d]; return [0x%x] skipping!", (char *) &thisGroupInfo->groupName.value, groupId, rc);
+    	    clLog(CL_LOG_DEBUG,GEN,NA, "Name-Id entry is present for group [%s] Id [%d]; return [0x%x] skipping!", (char *) &thisGroupInfo->groupName.value, groupId, rc);
 	    rc = CL_OK;
 	}
 	#endif
@@ -1930,18 +1856,18 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
         // added conditional check to ensure the groupId 0 is not set for synch after node-id synch update is called
         if (thisGroupInfo->groupId == 0)
         {
-            clLog(DBG,GEN,NA, "Found group Id 0 being called for _clGmsEngineGroupInfoSync for tracking; skipping and continuing.");
+            clLog(CL_LOG_DEBUG,GEN,NA, "Found group Id 0 being called for _clGmsEngineGroupInfoSync for tracking; skipping and continuing.");
             continue;
         }
 	#endif
 
-        thisNode = (ClGmsViewNodeT*)clHeapAllocate(sizeof(ClGmsViewNodeT));
+        thisNode = ClGmsViewNodeTAlloc(syncNotification->groupMemberList[i].viewMember.clusterMember.nodeId);
         CL_ASSERT(rc == CL_OK);
         memcpy(thisNode,&syncNotification->groupMemberList[i], sizeof(ClGmsViewNodeT));
         CL_ASSERT(thisNode != NULL);
 
         groupId = thisNode->viewMember.groupData.groupId;
-        clLog(DBG,GEN,NA, "Sync update for group Id [%d]", groupId);
+        clLog(CL_LOG_DEBUG,GEN,NA, "Sync update for group Id [%d]", groupId);
 
         rc = _clGmsViewDbFind(groupId, &thisViewDb);
 
@@ -1949,7 +1875,7 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
 
         thisNode->viewMember.groupMember.joinTimestamp = (ClTimeT)(t*CL_GMS_NANO_SEC);
         rc = _clGmsViewAddNode(groupId, thisNode->viewMember.groupMember.memberId, thisNode);
-    	clLog(DBG,GEN,NA, "added member ID [%d] to group [%d]", thisNode->viewMember.groupMember.memberId, groupId);
+    	clLog(CL_LOG_DEBUG,GEN,NA, "added member ID [%d] to group [%d]", thisNode->viewMember.groupMember.memberId, groupId);
         CL_ASSERT((rc == CL_OK) || (rc == CL_ERR_ALREADY_EXIST));
     }
 
@@ -1963,7 +1889,7 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
         // added conditional check to ensure the groupId 0 is not set for synch after node-id synch update is called
         if (thisGroupInfo->groupId == 0)
         {
-            clLog(DBG,GEN,NA, "Found group Id 0 being called for _clGmsEngineGroupInfoSync for tracking; skipping and continuing.");
+            clLog(CL_LOG_DEBUG,GEN,NA, "Found group Id 0 being called for _clGmsEngineGroupInfoSync for tracking; skipping and continuing.");
             continue;
         }
 	#endif
@@ -1974,12 +1900,12 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
         rc =  _clGmsTrackNotify(groupId);
         if (rc != CL_OK)
         {
-            clLog(ERROR,GEN,NA,
+            clLog(CL_LOG_ERROR,GEN,NA,
                     "Track notification for groupId = %d failed with rc = 0x%x\n",
                      groupId, rc);
         }
     }
-    clLog(DBG,GEN,NA,
+    clLog(CL_LOG_DEBUG,GEN,NA,
             "Sync message processing is done.");
 
     // Once synch in new node is compalted it will set for GMS service

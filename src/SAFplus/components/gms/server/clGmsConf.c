@@ -326,7 +326,7 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
         }
 
     }
-    if(electionTimeout && electionTimeout > CL_GMS_DEFAULT_BOOT_ELECTION_TIMEOUT)
+    if(electionTimeout && (electionTimeout > CL_GMS_DEFAULT_BOOT_ELECTION_TIMEOUT))
     {
         gmsGlobalInfo.config.bootElectionTimeout = electionTimeout;
         clLogNotice(GEN, NA,
