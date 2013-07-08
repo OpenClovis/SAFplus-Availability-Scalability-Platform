@@ -1,9 +1,0 @@
-#ifndef CSA701_APP_RECEIVER_H
-#define CSA701_APP_RECEIVER_H
-
-extern void csa701ReceiverStart(int socket_type, int ioc_address_local, int ioc_port, int mode);
-extern void csa701UDPReceiverStart(char *ip_address_local, int udp_port_local, int mode);
-extern void csa701TCPReceiverStart(char *ip_address_local, int tcp_port_local, int mode);
-extern void csa701TIPCReceiverStart(int socket_type, char *tipc_address_local, int tipc_port_local, int mode);
-
-#endif /* CSA701_APP_RECEIVER_H */
