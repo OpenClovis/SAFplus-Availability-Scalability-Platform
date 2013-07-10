@@ -19,7 +19,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 # $Id: //depot/test/performance-test/ioc/Makefile#1 $
 # $DateTime: 2006/07/11 17:59:39 $
@@ -61,4 +61,4 @@ SYS_LIBS	:= 	-lpthread
 # Notice the '=' in the assignment.
 EXE_NAME       	= 	$(COMPNAME)
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk

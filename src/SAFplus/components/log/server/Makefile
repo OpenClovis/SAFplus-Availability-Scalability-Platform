@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -32,7 +32,7 @@
 # Component name (using all lowercase):
 COMPNAME	:=logd
 # Local source files needed for the component server:
-LOG_PATH := $(CLOVIS_ROOT)/ASP/components/log
+LOG_PATH := $(CLOVIS_ROOT)/SAFplus/components/log
 
 SRC_FILES := clLogStreamOwnerEo.c \
              clLogStreamOwnerCkpt.c\
@@ -64,14 +64,14 @@ SRC_FILES := clLogStreamOwnerEo.c \
              $(wildcard $(LOG_PATH)/common/*.c)\
 #           clLogEvt.c             
 
-# Other ASP components on which asp_logd depends on 
+# Other SAFplus components on which asp_logd depends on 
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo idl name ckpt dbal debug log cnt event gms
 
 EXTRA_CPPFLAGS	+= -DCL_DEBUG
 # Needed to run with P=1, could have added to make-common but then all other exes' size would have
 #increased
-# Other ASP libraries needed to get asp_logd 
+# Other SAFplus libraries needed to get asp_logd 
 
 ASP_LIBS	:= libClTimer.a  		\
 			   libClBuffer.a 		\
@@ -92,7 +92,7 @@ ASP_LIBS	:= libClTimer.a  		\
 
 # Third party libs needed to get asp_logd built:
 
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 
 CPPFLAGS += -I$(THIRD_PARTY_EZXML_PATH)
 CPPFLAGS +=  -I ../idl/Log/xdr -I ../idl/Log/client/
@@ -110,4 +110,4 @@ EXTRA_CPPFLAGS  := -DCL_DEBUG_START
 
 EXE_NAME	= $(ASP_EXE_PREFIX)_$(COMPNAME)
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk

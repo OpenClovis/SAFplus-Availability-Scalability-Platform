@@ -24,7 +24,7 @@
 
 COMPNAME	:= snmp
 
-SNMP_PATH := $(CLOVIS_ROOT)/ASP/components/snmp
+SNMP_PATH := $(CLOVIS_ROOT)/SAFplus/components/snmp
 
 ##### Source files for the client of this component
 
@@ -48,4 +48,4 @@ LIB_NAMES	= libClSnmpClient
 
 SRC_FILES_libClSnmpClient = $(wildcard *.c)
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

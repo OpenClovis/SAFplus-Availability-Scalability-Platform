@@ -25,7 +25,7 @@ COMPNAME	= $(shell pwd | awk -FSAFplus/ '{print $$2}')
 OBJ_DIR		:= $(ASP_TARGET)/obj/$(COMPNAME)
 DEP_DIR		:= $(ASP_TARGET)/dep/$(COMPNAME)
 LIB_DIR		:= $(ASP_TARGET)/lib
-include $(CLOVIS_ROOT)/ASP/mk/prefix.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/prefix.mk
 
 #CC = gcc
 #AR = ar

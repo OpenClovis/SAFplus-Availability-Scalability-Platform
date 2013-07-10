@@ -30,4 +30,4 @@ SUBDIRS    = bladeinfo aspinfo
 # target-prerequisite pairs.
 # 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk

@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -42,6 +42,6 @@ SUBDIRS          = src
 
 # List any third party libs needed to get this server built (or None):
 
-EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable 
+EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk

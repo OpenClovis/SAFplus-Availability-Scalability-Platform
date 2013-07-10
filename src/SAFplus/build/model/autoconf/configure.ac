@@ -18,7 +18,7 @@
 # File        : configure.ac
 ################################################################################
 # Description :
-## Autoconf script for ASP model ( SDK compilation)					 
+## Autoconf script for SAFplus model ( SDK compilation)					 
 ################################################################################
 
 ##################################################
@@ -30,7 +30,7 @@ AC_INIT(asp, 3.0)
 export ASP_VERSION=2.3
 
 ###########################################
-## Checks if ASP SDK has been installed ##
+## Checks if SAFplus SDK has been installed ##
 ###########################################
 
 
@@ -179,7 +179,7 @@ if [[ $SNMP_BUILD -eq 1 ]]; then
 fi
 
 export MODEL_LIB=`pwd`/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib
-export ASP_LIB=$CLOVIS_ROOT/ASP/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib
+export ASP_LIB=$CLOVIS_ROOT/SAFplus/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib
 export MODEL_BIN=`pwd`/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/bin
 export MODEL_CONFIG=`pwd`/config
 export ASP_CONFIG=`pwd`/config

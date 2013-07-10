@@ -19,7 +19,7 @@
 # File        : install.sh
 ################################################################################
 # Description :
-## Binary SDK Install script for ASP
+## Binary SDK Install script for SAFplus
 ################################################################################
 
 
@@ -41,7 +41,7 @@ fi
 
 ## directory for generated files
 SDK_PREFIX=$PREFIX/clovis/sdk/$ASP_VERSION
-SDK_ASP=$SDK_PREFIX/ASP
+SDK_ASP=$SDK_PREFIX/SAFplus
 SDK_CW=$SDK_PREFIX/cw
 
 SDK_INCLUDE=$SDK_ASP/include
@@ -85,7 +85,7 @@ if [ ! -f $CONF ]; then
     ##########################
 
     echo -n "Copying header files: "
-    cp -fr $CLOVIS_ROOT/ASP/include/* $SDK_INCLUDE
+    cp -fr $CLOVIS_ROOT/SAFplus/include/* $SDK_INCLUDE
     echo "Done"
 
     #######################
@@ -93,9 +93,9 @@ if [ ! -f $CONF ]; then
     #######################
 
     echo -n "Copying Make file includes : "
-    cp -pr $CLOVIS_ROOT/ASP/mk/* $SDK_MAKE
-    cp -f $CLOVIS_ROOT/ASP/build/common/mk/make-cross.mk $SDK_MAKE
-    sed -e s/"ASP\/build\/rt\/scripts\/package.sh"/"ASP\/rt\/scripts\/package.sh"/g $SDK_MAKE/make-common.mk >$SDK_MAKE/make-common.mk.bak
+    cp -pr $CLOVIS_ROOT/SAFplus/mk/* $SDK_MAKE
+    cp -f $CLOVIS_ROOT/SAFplus/build/common/mk/make-cross.mk $SDK_MAKE
+    sed -e s/"SAFplus\/build\/rt\/scripts\/package.sh"/"SAFplus\/rt\/scripts\/package.sh"/g $SDK_MAKE/make-common.mk >$SDK_MAKE/make-common.mk.bak
     mv $SDK_MAKE/make-common.mk.bak $SDK_MAKE/make-common.mk
 
     echo "Done"
@@ -105,7 +105,7 @@ if [ ! -f $CONF ]; then
     ###########################
 
     echo -n "Copying docs : "
-    cp -pr $CLOVIS_ROOT/ASP/doc/* $SDK_DOC
+    cp -pr $CLOVIS_ROOT/SAFplus/doc/* $SDK_DOC
     echo "Done"
 
     #####################################
@@ -116,14 +116,14 @@ if [ ! -f $CONF ]; then
     echo -n "Copying RT packaging files : "
     mkdir -p $SDK_RT/scripts
     mkdir -p $SDK_RT/conf
-    cp -f $CLOVIS_ROOT/ASP/build/common/scripts/package.sh $SDK_RT/scripts/
-    cp -f $CLOVIS_ROOT/ASP/scripts/clIocLoadModule.sh $SDK_RT/scripts/
-    cp -f $CLOVIS_ROOT/ASP/scripts/clIocUnloadModule.sh $SDK_RT/scripts/
-    cp -f $CLOVIS_ROOT/ASP/build/rt/scripts/install.sh $SDK_RT/scripts/
-    cp -f $CLOVIS_ROOT/ASP/build/rt/scripts/uninstall.sh $SDK_RT/scripts/
-    cp -f $CLOVIS_ROOT/ASP/build/rt/scripts/asp $SDK_RT/scripts/
-    cp -f $CLOVIS_ROOT/ASP/build/rt/README $SDK_RT
-    cp -f $CLOVIS_ROOT/ASP/build/rt/conf/* $SDK_RT/conf/
+    cp -f $CLOVIS_ROOT/SAFplus/build/common/scripts/package.sh $SDK_RT/scripts/
+    cp -f $CLOVIS_ROOT/SAFplus/scripts/clIocLoadModule.sh $SDK_RT/scripts/
+    cp -f $CLOVIS_ROOT/SAFplus/scripts/clIocUnloadModule.sh $SDK_RT/scripts/
+    cp -f $CLOVIS_ROOT/SAFplus/build/rt/scripts/install.sh $SDK_RT/scripts/
+    cp -f $CLOVIS_ROOT/SAFplus/build/rt/scripts/uninstall.sh $SDK_RT/scripts/
+    cp -f $CLOVIS_ROOT/SAFplus/build/rt/scripts/asp $SDK_RT/scripts/
+    cp -f $CLOVIS_ROOT/SAFplus/build/rt/README $SDK_RT
+    cp -f $CLOVIS_ROOT/SAFplus/build/rt/conf/* $SDK_RT/conf/
     echo "Done"
 
     #######################################
@@ -131,16 +131,16 @@ if [ ! -f $CONF ]; then
     #######################################
 
     echo -n "Copying scripts : "
-    cp -rf $CLOVIS_ROOT/ASP/build/common/scripts/asp-sdk-config $PREFIX/clovis
+    cp -rf $CLOVIS_ROOT/SAFplus/build/common/scripts/asp-sdk-config $PREFIX/clovis
     chmod +x $PREFIX/clovis/asp-sdk-config
     ln -sf $PREFIX/clovis/asp-sdk-config /usr/bin/asp-sdk-config
 
-    cp -rf $CLOVIS_ROOT/ASP/build/common/scripts/uninstall.sh $PREFIX/clovis
+    cp -rf $CLOVIS_ROOT/SAFplus/build/common/scripts/uninstall.sh $PREFIX/clovis
     chmod +x $PREFIX/clovis/uninstall.sh
     echo "Done"
 
 else
-# If this is not first time ASP SDK installation , only copy 
+# If this is not first time SAFplus SDK installation , only copy 
 # architecture specific binaries    
 
     OLDPREFIX=$PREFIX

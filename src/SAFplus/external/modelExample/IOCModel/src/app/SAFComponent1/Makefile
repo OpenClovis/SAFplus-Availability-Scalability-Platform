@@ -16,7 +16,7 @@ EXENAME := SAFComponent1
 
 SRC_FILES := $(wildcard *.c) $(wildcard ../iocApp/*c)
 
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
 ASP_LIBS := libmw.a
 
 EXTRA_CPPFLAGS :=
@@ -51,7 +51,7 @@ BUILD_CPLUSPLUS = 1
 
 # ---END_APPLICATION_CODE---
  
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk
 
 # ---BEGIN_APPLICATION_CODE---
 # Define additional targets BELOW, so that they are not used as the default 

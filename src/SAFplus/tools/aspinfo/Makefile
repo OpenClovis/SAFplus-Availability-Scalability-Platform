@@ -30,7 +30,7 @@ all:
 
 lib:
 
-include $(CLOVIS_ROOT)/ASP/mk/make-common.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-common.mk
 
 clean:
 	$(shell for f in $(PROGS); do rm -f $(MODEL_BIN)/$$f; done)

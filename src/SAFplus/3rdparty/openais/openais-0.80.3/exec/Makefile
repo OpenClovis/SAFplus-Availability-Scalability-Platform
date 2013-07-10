@@ -33,8 +33,8 @@
 #
 include ../Makefile.inc
 
-include $(CLOVIS_ROOT)/ASP/mk/prefix.mk
-include $(CLOVIS_ROOT)/ASP/mk/make-path.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/prefix.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-path.mk
 
 override CFLAGS += -I../include \
                 -I$(BUILDTOOLS_PATH)/include \
@@ -54,27 +54,27 @@ endif
 
 
 # Clovis include files 
-CLOVIS_FLAGS  += -g -Wall -I$(CLOVIS_ROOT)/ASP/components/include/ \
-                 -I$(CLOVIS_ROOT)/ASP/components/gms/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/debug/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/eo/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/rmd/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/gms/common \
-                 -I$(CLOVIS_ROOT)/ASP/components/gms/server/ \
-                 -I$(CLOVIS_ROOT)/ASP/components/ioc/include  \
-                 -I$(CLOVIS_ROOT)/ASP/components/buffer/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/utils/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/cnt/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/osal/include  \
-                 -I$(CLOVIS_ROOT)/ASP/components/timer/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/include/ipi \
-                 -I$(CLOVIS_ROOT)/ASP/components/amf/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/ckpt/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/cor/include \
-                 -I$(CLOVIS_ROOT)/ASP/components/event/include
+CLOVIS_FLAGS  += -g -Wall -I$(CLOVIS_ROOT)/SAFplus/components/include/ \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/gms/include \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/debug/include \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/eo/include \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/rmd/include \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/gms/common \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/gms/server/ \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/ioc/include  \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/buffer/include \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/utils/include \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/cnt/include \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/osal/include  \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/timer/include \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/include/ipi \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/amf/include \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/ckpt/include \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/cor/include \
+                 -I$(CLOVIS_ROOT)/SAFplus/components/event/include
 
 ifndef CL_NOLOG                 
-CLOVIS_FLAGS += -I$(CLOVIS_ROOT)/ASP/components/log/include 
+CLOVIS_FLAGS += -I$(CLOVIS_ROOT)/SAFplus/components/log/include 
 endif
 
 

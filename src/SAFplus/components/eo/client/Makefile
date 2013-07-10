@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -36,12 +36,12 @@ COMPNAME	:= eo
 
 SRC_FILES	:= eo.c clEo.c clEoMain.c clEoParser.c clEoLibs.c clEoEvent.c clSAClientSelect.c
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal ckpt timer buffer rmd ioc cnt amf debug log idl gms event cor
 
-AMF_PATH = $(CLOVIS_ROOT)/ASP/components/amf
+AMF_PATH = $(CLOVIS_ROOT)/SAFplus/components/amf
 CPPFLAGS += -I $(AMF_PATH)/common/cpm/idl/xdr -I$(AMF_PATH)/server/cpm -I$(AMF_PATH)/server/ams -I$(AMF_PATH)/common/cpm -I$(AMF_PATH)/common/ams $(CM_CFLAGS)
 
 ifeq ($(CL_INST),1)
@@ -53,7 +53,7 @@ ifeq ($(EO_QUEUE_STATS),1)
 endif
 
 #Third party Libs
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 
 EXTRA_CPPFLAGS  += -I$(THIRD_PARTY_EZXML_PATH)
 
@@ -72,4 +72,4 @@ LIB_NAMES	= libClEo
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

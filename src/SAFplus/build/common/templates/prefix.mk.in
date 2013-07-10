@@ -18,9 +18,9 @@
 # File        : make-cross.mk.in
 ################################################################################
 # Description :
-#  Cross compilation make include for all ASP directories
+#  Cross compilation make include for all SAFplus directories
 #
-#  Note that ASP Makefiles typically don't directly include this
+#  Note that SAFplus Makefiles typically don't directly include this
 #  file, but include it via make-subdir.mk, make-client.mk,
 #  make-server.mk or make-kernel.mk
 #
@@ -128,7 +128,7 @@ export KERNEL_HEADERS := $(shell ls -d /lib/modules/*`uname -r`/build/include 2>
 ifdef SOLARIS_BUILD
 export TIPC_INCLUDE   = /opt/SUNWtipc/include/solaris
 CFLAGS += -I/opt/SUNWtipc/include/solaris
-CFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/Solaris/openhpi/include
+CFLAGS += -I$(CLOVIS_ROOT)/SAFplus/3rdparty/Solaris/openhpi/include
 else
 export TIPC_INCLUDE   ?= /lib/modules/$(shell uname -r)/build/$(TIPC_INC_DIR)
 endif

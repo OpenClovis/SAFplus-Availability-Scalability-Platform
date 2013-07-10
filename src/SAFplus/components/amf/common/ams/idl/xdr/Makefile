@@ -19,20 +19,20 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 ################################################################################
 
 # Component name (using all lowercase):
 COMPNAME	:= Amsxdr 
 
-AMF_PATH        = $(CLOVIS_ROOT)/ASP/components/amf
+AMF_PATH        = $(CLOVIS_ROOT)/SAFplus/components/amf
 
 # List local source files needed for the component server:
 
 SRC_FILES	:= $(wildcard *.c)
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc cnt eo debug rmd idl name amf event
@@ -43,4 +43,4 @@ EXTRA_CPPFLAGS  += -I$(AMF_PATH)/common/ams -I$(AMF_PATH)/server/ams
 
 LIB_NAMES	= libClAmsXdr
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

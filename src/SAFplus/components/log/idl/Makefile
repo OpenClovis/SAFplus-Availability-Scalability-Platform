@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #       - CLOVIS_ROOT environment variable is specified properly
-#       - Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#       - Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 # Date: ${DateTime}
 # User: ${User}
@@ -36,5 +36,5 @@ SUBDIRS          = Log App
 # If you have any ordering dependence among subdirectories, list them as
 # target-prerequisite pairs.
 #
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
                                                                                                                              

@@ -20,7 +20,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -33,12 +33,12 @@ COMPNAME	:= rmd_client
 
 SRC_FILES	:= clRmdClient.c
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer cnt ioc rmd eo amf debug
 
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
 
 ASP_LIBS	:= libClTimer.a \
 			   libClBuffer.a \
@@ -69,4 +69,4 @@ SYS_LIBS	:= -lpthread
 
 EXE_NAME	= $(ASP_EXE_PREFIX)_$(COMPNAME)
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk

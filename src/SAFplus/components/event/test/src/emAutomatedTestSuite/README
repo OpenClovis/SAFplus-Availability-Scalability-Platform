@@ -7,7 +7,7 @@ location must be copied to $ASP_CONFIG.
 
 The following aliases may proves useful:
 
-export EVT_TEST=$CLOVIS_ROOT/ASP/components/event/test/unit-test/emAutomatedTestSuite
+export EVT_TEST=$CLOVIS_ROOT/SAFplus/components/event/test/unit-test/emAutomatedTestSuite
 
 alias cpxml="cp $EVT_TEST/config/*.xml $ASP_CONFIG/ -vf"
 alias emd="cd $EVT_TEST"

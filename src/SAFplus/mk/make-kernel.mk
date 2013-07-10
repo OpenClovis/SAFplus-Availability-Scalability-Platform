@@ -19,7 +19,7 @@
 ################################################################################
 # Description :
 # 
-#  Kernel make include for all ASP directories. Use this makefile to
+#  Kernel make include for all SAFplus directories. Use this makefile to
 #  define variables to use for a kernel module build.
 #
 #  Interface:
@@ -39,7 +39,7 @@
 #  only have to define the make rules to build the module, whether it
 #  is for kernel 2.6.x or 2.4.x.
 ################################################################################
-include $(CLOVIS_ROOT)/ASP/mk/prefix.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/prefix.mk
 
 ifndef CROSS_BUILD
 # Native build

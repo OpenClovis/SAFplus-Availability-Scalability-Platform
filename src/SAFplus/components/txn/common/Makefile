@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 # This is a specialized Makefile and it need to provide _ALL_ the
 # following make targets:
@@ -42,7 +42,7 @@ COMPNAME	:= txn
 
 SRC_FILES       := clTxnCommonUtil.c  clTxnStreamIpi.c
 
-# List other ASP components of which client libraries this component
+# List other SAFplus components of which client libraries this component
 # depends on:
 
 DEP_COMP_LIST   := osal timer ioc rmd buffer cnt utils
@@ -52,4 +52,4 @@ LIB_NAMES       = libClTxnCommon
 
 
 # make-empty.mk provides the default targets and does nothing else
-include $(CLOVIS_ROOT)/ASP/mk/make-empty.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-empty.mk

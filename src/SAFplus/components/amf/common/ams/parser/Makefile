@@ -24,13 +24,13 @@
 
 COMPNAME	:= amf
 
-AMF_PATH        := $(CLOVIS_ROOT)/ASP/components/amf
+AMF_PATH        := $(CLOVIS_ROOT)/SAFplus/components/amf
 
 ##### Source files for the client of this component
 
 SRC_FILES	:= clAmsParser.c $(AMF_PATH)/server/ams/clAmsDefaultConfig.c  \
 
-##### ASP libraries needed to get this client built
+##### SAFplus libraries needed to get this client built
 
 DEP_COMP_LIST	:= utils osal timer buffer cnt ioc rmd eo debug amf log ckpt event
 
@@ -43,11 +43,11 @@ SRC_FILES_libClAmsParser		= clAmsParser.c $(AMF_PATH)/server/ams/clAmsDefaultCon
 
 # List any third party libs needed to get this server built (or None):
 
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
-AMF_PATH               = $(CLOVIS_ROOT)/ASP/components/amf
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
+AMF_PATH               = $(CLOVIS_ROOT)/SAFplus/components/amf
 
 EXTRA_CPPFLAGS  += -I$(THIRD_PARTY_EZXML_PATH) -I$(AMF_PATH)/server/ams -I$(AMF_PATH)/common/cpm
 EXTRA_CPPFLAGS  += -I$(AMF_PATH)/common/ams -I$(AMF_PATH)/server/cpm
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

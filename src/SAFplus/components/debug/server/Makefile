@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 ################################################################################
 
@@ -35,7 +35,7 @@ COMPNAME	:= debug
 
 SRC_FILES	:= clDebugCli.c
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= gms utils osal timer buffer ioc rmd eo debug log event
@@ -43,7 +43,7 @@ DEP_COMP_LIST	:= gms utils osal timer buffer ioc rmd eo debug log event
 # added by hand for now:
 DEP_COMP_LIST	+= cnt
 
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
 
 ASP_LIBS	:= libClTimer.a \
                    libClBuffer.a \
@@ -60,7 +60,7 @@ ASP_LIBS	:= libClTimer.a \
                    libClEventClient.a
 
 
-CPPFLAGS	+= -I ../client -I $(CLOVIS_ROOT)/ASP/components/amf/common/cpm
+CPPFLAGS	+= -I ../client -I $(CLOVIS_ROOT)/SAFplus/components/amf/common/cpm
 # List any third party libs needed to get this server built (or None):
 
 
@@ -73,4 +73,4 @@ CPPFLAGS	+= -I ../client -I $(CLOVIS_ROOT)/ASP/components/amf/common/cpm
 EXE_NAME	= $(ASP_EXE_PREFIX)_$(COMPNAME)
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk

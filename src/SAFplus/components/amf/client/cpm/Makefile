@@ -26,8 +26,8 @@ COMPNAME	:= amf
 
 ##### Source files for the client of this component
 
-AMF_PATH = $(CLOVIS_ROOT)/ASP/components/amf
-IDL_PATH = $(CLOVIS_ROOT)/ASP/components/idl
+AMF_PATH = $(CLOVIS_ROOT)/SAFplus/components/amf
+IDL_PATH = $(CLOVIS_ROOT)/SAFplus/components/idl
 
 SRC_FILES :=                                                \
 		   $(wildcard *.c)                                  \
@@ -58,4 +58,4 @@ SRC_FILES_libClAmfClient =                                  \
 		   $(wildcard $(IDL_PATH)/common/*.c)               \
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

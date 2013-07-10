@@ -15,14 +15,14 @@ COMPNAME        := config
                                                                                                                                                                                     
 SRC_FILES       :=      $(wildcard *.c)
                                                                                                                                                                                     
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
                                                                                                                                                                                     
 DEP_COMP_LIST   := utils osal timer buffer cnt ioc rmd eo event debug ckpt cor om hal name fault cm alarm prov snmp med amf txn idl
                                                                                                                                                                                     
                                                                                                                                                                                     
 # List any third party libs needed to get this server built (or None):
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
                                                                                                                                                                                     
 EXTRA_CPPFLAGS  := -I$(THIRD_PARTY_EZXML_PATH)
                                                                                                                                                                                     
@@ -52,5 +52,5 @@ LIB_NAMES       = libClConfig
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
                                                                                                                                                                                     
-include $(CLOVIS_ROOT)/ASP/mk/make-config.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-config.mk
 

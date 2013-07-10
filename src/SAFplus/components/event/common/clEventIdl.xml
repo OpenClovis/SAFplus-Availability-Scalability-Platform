@@ -35,7 +35,7 @@ material.
 
         <!-- 
            Please run idl script like this:
-           python /path/to/clIdlGen.py -t -a /path/to/ASP clEventIdl.xml idl
+           python /path/to/clIdlGen.py -t -a /path/to/SAFplus clEventIdl.xml idl
           -->
         <!-- Structures related to the event -->
 

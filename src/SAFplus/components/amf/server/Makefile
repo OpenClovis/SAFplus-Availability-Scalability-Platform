@@ -33,4 +33,4 @@ SUBDIRS = ams cpm
 #
 # We have no dependencies in this case.
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk

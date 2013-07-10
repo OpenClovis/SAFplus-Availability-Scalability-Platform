@@ -20,16 +20,16 @@
 # File        : package.sh
 ################################################################################
 # Description :
-## Package script for ASP
+## Package script for SAFplus
 ################################################################################
 ##############################################################
 ## Initializing Env variables and creating Temp Directories ##
 ##############################################################
 
 ASP_VER=2.3
-PACKAGE_NAME=ASP-$ASP_VER-$CL_TARGET_PLATFORM-$CL_TARGET_OS-RT
+PACKAGE_NAME=SAFplus-$ASP_VER-$CL_TARGET_PLATFORM-$CL_TARGET_OS-RT
 
-PACKAGE_DIR=$CLOVIS_ROOT/ASP/$PACKAGE_NAME
+PACKAGE_DIR=$CLOVIS_ROOT/SAFplus/$PACKAGE_NAME
 PACKAGE_LIB_DIR=$PACKAGE_DIR/lib
 PACKAGE_BIN_DIR=$PACKAGE_DIR/bin
 PACKAGE_MOD_DIR=$PACKAGE_DIR/modules
@@ -50,8 +50,8 @@ echo "Done"
 ##############################
 
 echo -n "Copying Shared Libraries ..."
-cp -pr $CLOVIS_ROOT/ASP/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib/shared-$ASP_VER $PACKAGE_LIB_DIR/
-cp -pr $CLOVIS_ROOT/ASP/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib/*.so $PACKAGE_LIB_DIR
+cp -pr $CLOVIS_ROOT/SAFplus/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib/shared-$ASP_VER $PACKAGE_LIB_DIR/
+cp -pr $CLOVIS_ROOT/SAFplus/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib/*.so $PACKAGE_LIB_DIR
 echo "Done"
 
 ######################
@@ -67,7 +67,7 @@ echo "Done"
 ############################
 
 echo -n "Copying Kernel Modules ..."
-cp -pr $CLOVIS_ROOT/ASP/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/kmod/* $PACKAGE_MOD_DIR
+cp -pr $CLOVIS_ROOT/SAFplus/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/kmod/* $PACKAGE_MOD_DIR
 echo "Done"
 
 #####################
@@ -75,13 +75,13 @@ echo "Done"
 #####################
 
 echo -n "Copying Install/Uninstall Scripts ..."
-cp -pr $CLOVIS_ROOT/ASP/build/rt/scripts/uninstall.sh $PACKAGE_SCRIPTS_DIR
-cp -pr $CLOVIS_ROOT/ASP/build/rt/scripts/asp $PACKAGE_SCRIPTS_DIR
-#cp -pr $CLOVIS_ROOT/ASP/build/asp-debug $PACKAGE_SCRIPTS_DIR
-cp -pr $CLOVIS_ROOT/ASP/build/rt/scripts/install.sh $PACKAGE_DIR
-cp -pr $CLOVIS_ROOT/ASP/scripts/clIocLoadModule.sh $PACKAGE_SCRIPTS_DIR
-cp -pr $CLOVIS_ROOT/ASP/scripts/clIocUnloadModule.sh $PACKAGE_SCRIPTS_DIR
-#cp -pr $CLOVIS_ROOT/ASP/components/debug/script/clDebugStart.sh $PACKAGE_SCRIPTS_DIR
+cp -pr $CLOVIS_ROOT/SAFplus/build/rt/scripts/uninstall.sh $PACKAGE_SCRIPTS_DIR
+cp -pr $CLOVIS_ROOT/SAFplus/build/rt/scripts/asp $PACKAGE_SCRIPTS_DIR
+#cp -pr $CLOVIS_ROOT/SAFplus/build/asp-debug $PACKAGE_SCRIPTS_DIR
+cp -pr $CLOVIS_ROOT/SAFplus/build/rt/scripts/install.sh $PACKAGE_DIR
+cp -pr $CLOVIS_ROOT/SAFplus/scripts/clIocLoadModule.sh $PACKAGE_SCRIPTS_DIR
+cp -pr $CLOVIS_ROOT/SAFplus/scripts/clIocUnloadModule.sh $PACKAGE_SCRIPTS_DIR
+#cp -pr $CLOVIS_ROOT/SAFplus/components/debug/script/clDebugStart.sh $PACKAGE_SCRIPTS_DIR
 echo "Done"
 
 #################################
@@ -91,7 +91,7 @@ echo "Done"
 echo -n "Copying Configuration Files ..."
 cp -pr $MODEL_PATH/config/*.xml $PACKAGE_CONFIG_DIR
 cp -pr $MODEL_PATH/config/*.conf $PACKAGE_CONFIG_DIR
-cp -pr $CLOVIS_ROOT/ASP/build/rt/conf/* $PACKAGE_CONFIG_DIR
+cp -pr $CLOVIS_ROOT/SAFplus/build/rt/conf/* $PACKAGE_CONFIG_DIR
 
 #Replace CL_TARGET_PLATFORM and CL_TARGET_OS in install.sh and uninstall.sh
 sed -e s/CL_TARGET_PLATFORM=ia32/CL_TARGET_PLATFORM=$CL_TARGET_PLATFORM/g -e s/CL_TARGET_OS=linux-2.4/CL_TARGET_OS=$CL_TARGET_OS/g $PACKAGE_DIR/install.sh >>$PACKAGE_DIR/install.sh.bak
@@ -110,7 +110,7 @@ echo "Done"
 #####################################
 
 echo -n "Creating Tarball ..."
-cp -f $CLOVIS_ROOT/ASP/build/rt/README $PACKAGE_NAME
+cp -f $CLOVIS_ROOT/SAFplus/build/rt/README $PACKAGE_NAME
 tar -czvf $PACKAGE_NAME.tgz $PACKAGE_NAME 2>&1 >/dev/null
 echo "Done"
 

@@ -31,7 +31,7 @@ include $(SAFPLUS_MODEL_DIR)/build/$(TOOLCHAIN_DIR)/mk/define.mk
 #ifdef ModelOnly # Once you've compiled everything once, you can use "make ModelOnly=1" to rebuild just your model
 #SUBDIRS          = $(MODEL_PATH)/app
 #else
-#SUBDIRS          = $(MODEL_PATH)/config $(MODEL_PATH)/app $(CLOVIS_ROOT)/ASP/3rdparty $(CLOVIS_ROOT)/ASP/components $(CLOVIS_ROOT)/ASP/tools
+#SUBDIRS          = $(MODEL_PATH)/config $(MODEL_PATH)/app $(CLOVIS_ROOT)/SAFplus/3rdparty $(CLOVIS_ROOT)/SAFplus/components $(CLOVIS_ROOT)/SAFplus/tools
 #endif
 
 # Make in the plugin directory only if it exists
@@ -41,13 +41,13 @@ ifeq ($(ASP_BUILD),1)
 	ifeq ($(MODEL_BUILD),0)
 		SUBDIRS          = $(CLOVIS_ROOT)/SAFplus/3rdparty $(CLOVIS_ROOT)/SAFplus/components $(CLOVIS_ROOT)/SAFplus/tools  $(CLOVIS_ROOT)/SAFplus/external
 	else
-		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app $(pluginDir) $(CLOVIS_ROOT)/SAFplus/3rdparty $(CLOVIS_ROOT)/SAFplus/components $(CLOVIS_ROOT)/ASP/tools $(CLOVIS_ROOT)/SAFplus/external
+		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app $(pluginDir) $(CLOVIS_ROOT)/SAFplus/3rdparty $(CLOVIS_ROOT)/SAFplus/components $(CLOVIS_ROOT)/SAFplus/tools $(CLOVIS_ROOT)/SAFplus/external
 	endif
 else
 	ifdef ModelOnly
-		SUBDIRS		 = $(MODEL_PATH)/app $(pluginDir) $(CLOVIS_ROOT)/ASP/tools
+		SUBDIRS		 = $(MODEL_PATH)/app $(pluginDir) $(CLOVIS_ROOT)/SAFplus/tools
     else
-		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app $(pluginDir) $(CLOVIS_ROOT)/ASP/tools
+		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app $(pluginDir) $(CLOVIS_ROOT)/SAFplus/tools
 	endif
 endif
 
@@ -60,7 +60,7 @@ endif
 # target-prerequisite pairs.
 # 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
 
 ifeq ($(ASP_BUILD),1)
 ifeq ($(MODEL_BUILD),0)        
@@ -76,7 +76,7 @@ all: label_build
 clean: erase_label 
 
 label_build:
-	$(CLOVIS_ROOT)/ASP/build/prerequisites/scripts/label_build.sh
+	$(CLOVIS_ROOT)/SAFplus/build/prerequisites/scripts/label_build.sh
 
 erase_label:
-	$(CLOVIS_ROOT)/ASP/build/prerequisites/scripts/label_build.sh CLEAN
+	$(CLOVIS_ROOT)/SAFplus/build/prerequisites/scripts/label_build.sh CLEAN

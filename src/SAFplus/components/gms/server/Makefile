@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -48,7 +48,7 @@ SRC_FILES	:= clGmsEo.c \
                    clGmsEngine.c \
 				   clGmsCkpt.c
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo amf  cnt debug log gms ckpt
@@ -56,7 +56,7 @@ DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo amf  cnt debug log gms ckpt
 # FIXME: Indirect dependencies via client library needs need to be
 # added by hand for now:
 
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
 
 ASP_LIBS	:= libClTimer.a \
                    libClBuffer.a \
@@ -110,15 +110,15 @@ endif
 
 # ezxml includes & paths
 
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 
 
 EXTRA_CPPFLAGS  := -I$(THIRD_PARTY_EZXML_PATH) \
-                   -I$(CLOVIS_ROOT)/ASP/3rdparty/openais/$(OPENAIS_DIR) \
-                   -I$(CLOVIS_ROOT)/ASP/components/include/ipi  \
-                   -I$(CLOVIS_ROOT)/ASP/components/event/include  \
-                   -I$(CLOVIS_ROOT)/ASP/components/cor/include  \
-                   -I$(CLOVIS_ROOT)/ASP/components/ioc/client  \
+                   -I$(CLOVIS_ROOT)/SAFplus/3rdparty/openais/$(OPENAIS_DIR) \
+                   -I$(CLOVIS_ROOT)/SAFplus/components/include/ipi  \
+                   -I$(CLOVIS_ROOT)/SAFplus/components/event/include  \
+                   -I$(CLOVIS_ROOT)/SAFplus/components/cor/include  \
+                   -I$(CLOVIS_ROOT)/SAFplus/components/ioc/client  \
                    -DCL_GMS_SERVER
 
 ifndef SOLARIS_BUILD
@@ -138,5 +138,5 @@ endif
 EXE_NAME	= $(ASP_EXE_PREFIX)_$(COMPNAME)
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk
 $(warning OBJ_DIR: $(OBJ_DIR))

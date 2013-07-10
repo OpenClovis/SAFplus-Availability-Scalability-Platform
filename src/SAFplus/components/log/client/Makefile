@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -33,7 +33,7 @@
 COMPNAME	:= log
 
 # List local source files needed for the component server:
-LOG_PATH := $(CLOVIS_ROOT)/ASP/components/log
+LOG_PATH := $(CLOVIS_ROOT)/SAFplus/components/log
 
 
 
@@ -53,7 +53,7 @@ SRC_FILES := clLogClntWrap.c clLogClient.c clLogClientStream.c \
              $(wildcard $(LOG_PATH)/common/*.c)\
 
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc rmd  cnt eo dbal debug amf \
@@ -64,7 +64,7 @@ DEP_COMP_LIST	:= utils osal timer buffer ioc rmd  cnt eo dbal debug amf \
 
 # Library name:
 
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 CPPFLAGS += -I$(THIRD_PARTY_EZXML_PATH) -I ../idl/Log/client/
 CPPFLAGS += -I ../idl/Log/xdr/ -I ../idl/Log/common
 CPPFLAGS += -I ../idl/App/xdr/ -I ../idl/App/common
@@ -88,4 +88,4 @@ LIB_NAMES	= libClLogClient
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

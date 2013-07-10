@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -41,7 +41,7 @@ SRC_FILES	:= clGroundAlarm.c clGroundBuffer.c clGroundCli.c clGroundCm.c \
 		   clGroundTxn.c clGroundDebug.c clGroundOampRt.c clGroundProv.c clGroundMem.c \
            clGroundOMAlarmStruct.c clGroundProvTxnStruct.c clGroundMso.c clGroundPM.c clGroundCustom.c
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= om cor cnt ioc osal timer heap utils buffer alarm mso prov rmd pm event txn
@@ -62,6 +62,6 @@ LIB_NAMES	= libClGroundClient
 #
 #
 #
-CPPFLAGS   += -I$(CLOVIS_ROOT)/ASP/components/eo/include
+CPPFLAGS   += -I$(CLOVIS_ROOT)/SAFplus/components/eo/include
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

@@ -22,7 +22,7 @@ COMPNAME	:= none
 
 SRC_FILES	:= clCheckpoint.cxx  clApp.cxx clMsgServer.cxx clAppEvent.cxx
 
-##### ASP libraries needed to get this client built
+##### SAFplus libraries needed to get this client built
 
 DEP_COMP_LIST	:= cpp utils osal timer buffer cnt ioc eo amf rmd debug log ckpt
 
@@ -37,12 +37,12 @@ SRC_FILES_libClSafAspCpp	:= clCheckpoint.cxx clApp.cxx
 
 # List any third party libs needed to get this server built (or None):
 
-#THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
-#AMF_PATH               = $(CLOVIS_ROOT)/ASP/components/amf
+#THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
+#AMF_PATH               = $(CLOVIS_ROOT)/SAFplus/components/amf
 
 #EXTRA_CPPFLAGS  += -I$(THIRD_PARTY_EZXML_PATH) -I$(AMF_PATH)/server/ams -I$(AMF_PATH)/common/cpm
 #EXTRA_CPPFLAGS  += -I$(AMF_PATH)/common/ams 
 
 BUILD_WITHOUT_C99 := 1
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

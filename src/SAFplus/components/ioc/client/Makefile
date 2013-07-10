@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 ################################################################################
 
@@ -50,14 +50,14 @@ ifeq ($(strip $(CHECK_INOTIFY)), )
 endif
 #CPPFLAGS	   += -I$(TIPC_INCLUDE)
 EXTRA_CPPFLAGS += -D__EXPORTED_HEADERS__ -I$(TIPC_INCLUDE)
-EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable 
+EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable 
 
 
 ifdef SOLARIS_BUILD
 EXTRA_CPPFLAGS += -I/opt/SUNWtipc/include/net/tipc
 endif
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 DEP_COMP_LIST	:= utils osal timer buffer cnt debug eo rmd amf event cor gms ckpt
 
@@ -76,4 +76,4 @@ LIB_NAMES	= libClIoc
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

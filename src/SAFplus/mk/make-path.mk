@@ -35,8 +35,8 @@ else
 endif
 export AWK
 
-# Decide if this is an ASP component or not. We think it is an ASP component
-# if ASP can be found "upstream" from the current dir and it contains a
+# Decide if this is an SAFplus component or not. We think it is an SAFplus component
+# if SAFplus can be found "upstream" from the current dir and it contains a
 # "components" and a "3rdparty" subdir.
 ifndef IS_ASP_COMP
 ifdef SOLARIS_BUILD
@@ -66,8 +66,8 @@ endif
 
 
 ifeq ("$(IS_ASP_COMP)","1")
-    # $(warning Building ASP component)
-    # In this case we create the BUILD_SUBPATH as the subdirectory under ASP
+    # $(warning Building SAFplus component)
+    # In this case we create the BUILD_SUBPATH as the subdirectory under SAFplus
     BUILD_SUBPATH ?= $(shell pwd | awk '{if (match($$0,".*/SAFplus/")) print substr($$0,RLENGTH+1); else if (match($$0,".*/PSP/src")) print "components" substr($$0,RLENGTH+1)}')
 
 else

@@ -110,4 +110,4 @@ clean:
 	$(MODEL_BIN)/asp_name \
 	$(MODEL_BIN)/asp_cm
 
-include $(CLOVIS_ROOT)/ASP/mk/prefix.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/prefix.mk

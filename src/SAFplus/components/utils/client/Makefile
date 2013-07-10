@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -102,7 +102,7 @@ SRC_FILES += clMemTrackerVxWorks.c clMemPart.c
 else
 SRC_FILES += clMemTracker.c
 endif
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= osal timer debug buffer eo rmd ioc cnt log amf cor event
@@ -111,7 +111,7 @@ DEP_COMP_LIST	:= osal timer debug buffer eo rmd ioc cnt log amf cor event
 
 LIB_NAMES	= libClUtils
 
-EXTRA_CPPFLAGS += -I $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+EXTRA_CPPFLAGS += -I $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 
 ifeq ("$(WIND_VER)","1.2")
     EXTRA_CPPFLAGS += -DWIND_PTHREAD
@@ -137,4 +137,4 @@ endif
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

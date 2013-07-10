@@ -34,7 +34,7 @@ CPPFLAGS += $(CM_CFLAGS)
 SRC_FILES :=        $(wildcard $(AMF_PATH)/common/cpm/*.c)   \
 		    $(wildcard *.c)               
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo amf event debug dbal ckpt amf log gms cm idl
@@ -55,7 +55,7 @@ CPPFLAGS += -DCL_CPM_GMS
 CPPFLAGS += -DCL_CPM_AMS
 #CPPFLAGS += -DCL_CPM_COR
 
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
 
 ASP_LIBS	:=                          \
                 libClTimer.a                \
@@ -84,7 +84,7 @@ ASP_LIBS	:=                          \
 
 # List any third party libs needed to get this server built (or None):
 
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 
 THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml
 

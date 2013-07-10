@@ -62,7 +62,7 @@
 #
 ################################################################################
 
-include $(CLOVIS_ROOT)/ASP/mk/make-path.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-path.mk
 
 ################################################################################
 # Generating object file list from SRC_FILES list:
@@ -84,7 +84,7 @@ ifndef CL_NOLOG
 DEP_COMP_LIST  += log idl name
 endif
 comp_dirs		= $(addprefix $(COMP_ROOT)/,$(DEP_COMP_LIST))
-ifeq ($(ASP_BUILD),1)
+ifeq ($(SAFplus_BUILD),1)
 comp_include_dirs	= $(addsuffix /include,$(comp_dirs))
 else
 comp_include_dirs =$(SDK_DIR)/src/SAFplus/include
@@ -110,8 +110,8 @@ CPPFLAGS		+= -I.
 # Now we add the include directories of all components we depend on:
 CPPFLAGS		+= $(addprefix -I,$(comp_include_dirs))
 
-CPPFLAGS		+= -I$(CLOVIS_ROOT)/ASP/include
-CPPFLAGS		+= -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+CPPFLAGS		+= -I$(CLOVIS_ROOT)/SAFplus/include
+CPPFLAGS		+= -I$(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 CPPFLAGS		+= $(EXTRA_CPPFLAGS)
 ################################################################################
 # Rules and targets
@@ -138,4 +138,4 @@ ifeq ($(findstring clean,$(MAKECMDGOALS))$(findstring splint,$(MAKECMDGOALS)),)
     -include $(dep_files)    
 endif
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk

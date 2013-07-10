@@ -62,7 +62,7 @@
 #
 ################################################################################
 
-include $(CLOVIS_ROOT)/ASP/mk/make-path.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-path.mk
 
 ################################################################################
 # Generating object file list from SRC_FILES list:
@@ -118,7 +118,7 @@ CPPFLAGS		+= -I.
 CPPFLAGS		+= -L$(ASP_LIBDIR)
 endif
 
-CPPFLAGS		+= -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+CPPFLAGS		+= -I$(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 ################################################################################
 # Rules and targets
 #
@@ -158,4 +158,4 @@ ifeq ($(findstring clean,$(MAKECMDGOALS))$(findstring splint,$(MAKECMDGOALS)),)
     -include $(dep_files)    
 endif
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk

@@ -4,7 +4,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 # $Id: //depot/dev/main/Andromeda/ASP/3rdparty/openais/Makefile#2 $
 # $DateTime: 2006/09/14 14:31:51 $
@@ -43,4 +43,4 @@ endif
 libs:
 	$(Q)$(MAKE) -C $(OPENAIS_DIR)/exec lib
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk

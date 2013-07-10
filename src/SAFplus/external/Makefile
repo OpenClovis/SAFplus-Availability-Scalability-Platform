@@ -28,12 +28,12 @@
 ################################################################################
 # Description :
 #
-# Makefile for ASP standard client library
-# This library internally links to all client libraries of ASP
+# Makefile for SAFplus standard client library
+# This library internally links to all client libraries of SAFplus
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -69,7 +69,7 @@ ALL_CONFLICT_RESOLVE_OBJS := $(BASE_OBJ_DIR)/components/ckpt/client/clIdlOpen.o 
 	$(BASE_OBJ_DIR)/components/ground/client/clGroundCustom.o \
 	$(CM_CONFLICT_RESOLVE_OBJS) 
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on: utils osal timer buffer cnt ioc eo rmd
 
 DEP_COMP_LIST	:=  \
@@ -181,5 +181,5 @@ NOVAR := $(shell echo $(ALL_OBJ_FILES) > /root/objfiles.log)
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk
 

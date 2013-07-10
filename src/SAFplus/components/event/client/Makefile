@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -34,7 +34,7 @@ COMPNAME	:= event
 
 # List local source files needed for the component client:
 
-EVT_PATH = $(CLOVIS_ROOT)/ASP/components/event
+EVT_PATH = $(CLOVIS_ROOT)/SAFplus/components/event
 
 SRC_FILES	:=						\
 		$(wildcard *.c)					\
@@ -42,7 +42,7 @@ SRC_FILES	:=						\
 		$(wildcard $(EVT_PATH)/common/idl/xdr/*.c)
 
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer cnt ioc rmd eo  amf debug event log
@@ -70,4 +70,4 @@ LIB_NAMES	= libClEventClient
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

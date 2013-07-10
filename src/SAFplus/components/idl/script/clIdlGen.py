@@ -84,7 +84,7 @@ idlMakeT = Template("""${license}
 #
 # This Makefile assumes the following:
 #       - CLOVIS_ROOT environment variable is specified properly
-#       - Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#       - Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 # Date: ${DateTime}
 # User: ${User}
@@ -97,7 +97,7 @@ SUBDIRS          = ${eo_list}
 # If you have any ordering dependence among subdirectories, list them as
 # target-prerequisite pairs.
 #
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
                                                                                                                              
 """)
 
@@ -110,7 +110,7 @@ topLevelMakeT = Template('''${license}
 #
 # This Makefile assumes the following:
 #       - CLOVIS_ROOT environment variable is specified properly
-#       - Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#       - Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 ################################################################################
 
@@ -119,7 +119,7 @@ topLevelMakeT = Template('''${license}
 
 SUBDIRS          = xdr client server
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
 ''')
 
 topXdrMakeT = Template('''${license}
@@ -129,7 +129,7 @@ topXdrMakeT = Template('''${license}
 #
 # This Makefile assumes the following:
 #       - CLOVIS_ROOT environment variable is specified properly
-#       - Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#       - Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 ################################################################################
 
@@ -138,7 +138,7 @@ topXdrMakeT = Template('''${license}
 
 SUBDIRS          = xdr
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
 ''')
 
 # Template for client and server Makefiles.
@@ -149,7 +149,7 @@ clientMakeT = Template('''${license}
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 ################################################################################
 
@@ -161,7 +161,7 @@ COMPNAME	:= ${eo_name}
 
 SRC_FILES	:= $(wildcard *.c) 
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc cnt eo debug rmd idl name ${comp}
@@ -171,7 +171,7 @@ DEP_COMP_LIST	:= utils osal timer buffer ioc cnt eo debug rmd idl name ${comp}
 LIB_NAMES	= libCl${cap_eo_name}${lib_type}
 CPPFLAGS    = -I ../xdr/ -I ../common/
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk
 ''')
 
 # Template for xdr Makefile.
@@ -182,7 +182,7 @@ xdrMakeT = Template('''${license}
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 ################################################################################
 
@@ -194,7 +194,7 @@ COMPNAME	:= ${cap_comp}xdr
 
 SRC_FILES	:= $(wildcard *.c)
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc cnt eo debug rmd idl name ${comp}
@@ -203,7 +203,7 @@ DEP_COMP_LIST	:= utils osal timer buffer ioc cnt eo debug rmd idl name ${comp}
 
 LIB_NAMES	= libCl${cap_comp}Xdr
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk
 ''')
 
 xdrOpenMakeT = Template('''${license}
@@ -213,7 +213,7 @@ xdrOpenMakeT = Template('''${license}
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 ################################################################################
 
@@ -225,7 +225,7 @@ COMPNAME	:= ${eo_name}
 
 SRC_FILES	:= $(wildcard *.c)
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc cnt eo debug rmd idl name ${comp} 
@@ -234,7 +234,7 @@ DEP_COMP_LIST	:= utils osal timer buffer ioc cnt eo debug rmd idl name ${comp}
 
 LIB_NAMES	= libCl${cap_eo_name}${lib_type}
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk
 ''')
 
 # Templates for generating Makefile related stuff -- end
@@ -3793,7 +3793,7 @@ def main():
                       dest='asp_dir',
                       default=None,
                       metavar='path-to-asp-dir',
-                      help='path to the ASP location')
+                      help='path to the SAFplus location')
     parser.add_option('-p',
                       action='store_true',
                       dest='print_tree',

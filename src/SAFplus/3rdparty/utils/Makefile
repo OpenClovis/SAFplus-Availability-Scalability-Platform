@@ -4,7 +4,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 # $Id: //depot/dev/main/Andromeda/ASP/3rdparty/utils/Makefile#2 $
 # $DateTime: 2006/09/14 14:31:51 $
@@ -41,4 +41,4 @@ LIB_NAMES	= lib3rdpartyutils
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

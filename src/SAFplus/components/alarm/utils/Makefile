@@ -15,7 +15,7 @@
 # material.
 ################################################################################
 # ModuleName  : alarm                                                           
-# $File: //depot/dev/main/Andromeda/Cauvery/ASP/components/alarm/utils/Makefile $
+# $File: //depot/dev/main/Andromeda/Cauvery/SAFplus/components/alarm/utils/Makefile $
 # $Author: naveen $
 # $Date: 2007/05/17 $
 ################################################################################
@@ -43,7 +43,7 @@ SRC_FILES	:=  clAlarmUtil.c \
                 ../common/idl/xdr/xdrClCorMOIdTUnMarshall.c
 
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo cor txn om cnt amf \
@@ -55,7 +55,7 @@ LIB_NAMES	= libClAlarmUtils
 
 # List any third party libs needed to get this server built (or None):
 
-EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable 
+EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable 
 EXTRA_CPPFLAGS += -I../common/idl/xdr -I../client
 
 # If there are more than one client libraries to be built here, you
@@ -69,4 +69,4 @@ EXTRA_CPPFLAGS += -I../common/idl/xdr -I../client
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -32,13 +32,13 @@
 
 COMPNAME	:= fault
 
-FAULT_PATH        = $(CLOVIS_ROOT)/ASP/components/fault
+FAULT_PATH        = $(CLOVIS_ROOT)/SAFplus/components/fault
 # List local source files needed for the component server:
 
 SRC_FILES	:= clFaultClient.c $(FAULT_PATH)/common/clFaultClientServerCommons.c \
 	$(FAULT_PATH)/idl/xdr/xdrClFaultVersionInfoTMarshall.c
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc eo rmd cor om alarm cnt debug \
@@ -61,4 +61,4 @@ LIB_NAMES	= libClFaultClient
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

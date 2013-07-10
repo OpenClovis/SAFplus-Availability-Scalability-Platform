@@ -24,7 +24,7 @@
 
 COMPNAME	:= alarm
 
-COR_PATH    := $(CLOVIS_ROOT)/ASP/components/cor
+COR_PATH    := $(CLOVIS_ROOT)/SAFplus/components/cor
 
 # List local source files needed for the component server:
 
@@ -38,7 +38,7 @@ SRC_FILES	:= clAlarmClient.c \
 			   clAlarmOwner.c \
 			   clAlarmInfoConfigure.c
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo cor txn om cnt amf \
@@ -50,7 +50,7 @@ LIB_NAMES	= libClAlarmClient
 
 # List any third party libs needed to get this server built (or None):
 
-EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable -I../common/idl/xdr
+EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable -I../common/idl/xdr
 EXTRA_CPPFLAGS += -I ../server
 EXTRA_CPPFLAGS += -I$(COR_PATH)/common/idl/xdr/ 
 EXTRA_CPPFLAGS += -I$(COR_PATH)/common/ 
@@ -67,4 +67,4 @@ EXTRA_CPPFLAGS += -I$(COR_PATH)/server/
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

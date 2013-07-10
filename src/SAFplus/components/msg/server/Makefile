@@ -23,13 +23,13 @@
 #
 # This Makefile assumes the following:
 #   - CLOVIS_ROOT environment variable is specified properly
-#   - Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#   - Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 ################################################################################
 
 # Component name (using all lowercase):
 
-MSG_PATH := $(CLOVIS_ROOT)/ASP/components/msg
+MSG_PATH := $(CLOVIS_ROOT)/SAFplus/components/msg
 
 COMPNAME	:= msg
 
@@ -45,7 +45,7 @@ SRC_FILES	:= $(wildcard *.c)\
                            $(wildcard $(MSG_PATH)/idl/msgCltSrv/server/*.c)
 
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 CPPFLAGS += -I ../common -I ../idl/msgIdl/xdr -I ../idl/msgIdl/client -I ../idl/msgIdl/server -I ../idl/msgIdl/common
 CPPFLAGS += -I ../idl/msgClt/client -I ../idl/msgClt/server -I ../idl/msgClt/common
@@ -54,7 +54,7 @@ CPPFLAGS += -I ../idl/msgCltSrv/client -I ../idl/msgCltSrv/server -I ../idl/msgC
 DEP_COMP_LIST	:= utils osal timer buffer cnt ioc rmd eo amf ckpt dbal debug log idl name
 DEP_COMP_LIST	+= cor event ckpt
 
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
 
 ASP_LIBS	:= libClTimer.a \
                libClBuffer.a \
@@ -83,4 +83,4 @@ ASP_LIBS	:= libClTimer.a \
 EXE_NAME	= $(ASP_EXE_PREFIX)_$(COMPNAME)
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk

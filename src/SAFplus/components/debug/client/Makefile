@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -38,7 +38,7 @@ COMPNAME	:= debug
 SRC_FILES_libClDebugClient	:= clDebug.c clDebugClient.c
 SRC_FILES_libClDebugClientPrivateCli := clDebugCli.c clDebugCliTerm.c
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer rmd ioc cnt  amf eo log
@@ -57,6 +57,6 @@ LIB_NAMES	= libClDebugClient libClDebugClientPrivateCli
 # If your component builds one library only, than this list will automatically
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
-EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/components/debug/server
+EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/SAFplus/components/debug/server
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

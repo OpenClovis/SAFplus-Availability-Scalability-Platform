@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -36,7 +36,7 @@ COMPNAME	:= gms
 
 SRC_FILES	:= clGmsApi.c clTmsApi.c clGmsRmdClient.c clSafGmsWrapper.c clGmsClientRegister.c clGmsClientTableInstall.c clGmsClientRmdRegister.c 
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer eo cnt rmd ioc buffer debug 
@@ -58,4 +58,4 @@ CPPFLAGS        = -I ../server
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

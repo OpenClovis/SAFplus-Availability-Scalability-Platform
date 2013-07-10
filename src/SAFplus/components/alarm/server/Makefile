@@ -24,7 +24,7 @@
 
 COMPNAME	:= alarm
 
-COR_PATH    := $(CLOVIS_ROOT)/ASP/components/cor
+COR_PATH    := $(CLOVIS_ROOT)/SAFplus/components/cor
 
 # List local source files needed for the component server:
 
@@ -38,7 +38,7 @@ SRC_FILES	:= clAlarmMain.c clAlarmServerEngine.c clAlarmServerAlarmUtil.c\
  ../common/clAlarmCommons.c
 
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 DEP_COMP_LIST	:= utils osal timer buffer ioc rmd event eo fault cor om amf hal txn \
 debug log idl name
@@ -49,7 +49,7 @@ DEP_COMP_LIST	+= cnt
 
 CPPFLAGS += -I./
 
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
 ASP_LIBS	:= 	   libClTimer.a \
                    libClBuffer.a \
 				   libClOsal.a \
@@ -75,7 +75,7 @@ ASP_LIBS	:= 	   libClTimer.a \
 # List any third party libs needed to get this server built (or None):
 
     
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 
 CPPFLAGS += -I$(THIRD_PARTY_EZXML_PATH) -I../common/idl/xdr
 CPPFLAGS += -I$(COR_PATH)/common/idl/xdr
@@ -87,4 +87,4 @@ CPPFLAGS += -I../client/
 EXE_NAME	= $(ASP_EXE_PREFIX)_$(COMPNAME)
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk

@@ -35,7 +35,7 @@
 #  COMPNAME		mand.   Name of component
 #  SRC_FILES		mand.   List of source (*.c) files
 #  DEP_COMP_LIST	mand.   List of component names this server depend on
-#  ASP_LIBS		mand.   List of ASP library files we need to link with
+#  ASP_LIBS		mand.   List of SAFplus library files we need to link with
 #  THIRDPARTY_LIBS	opt.    List of 3rd party libraries we need to link with
 #  SYS_LIBS		opt.	List of system libraries we need to link with
 #  EXE_NAME		mand.   Name of the target executable to be built
@@ -166,9 +166,9 @@ endif
 # Building the linker flags
 MODEL_CONFIG_LIBRARY := 
 #libClConfig.a
-
+ifndef EXTERNAL
 ASP_AMF_LIBS := libClAmfClient.a libClAmsMgmt.a libClAmsXdr.a libClGms.a
-
+endif
 # Figure out if we are using the libmw (everything) shared library or not
 ifneq (,$(findstring libmw.a,$(ASP_LIBS)))
 USING_LIBMW := 1
@@ -278,7 +278,7 @@ endif
 LDLIBS += -lezxml
 
 #This is needed for the components using single shared SO libmw.so 
-#for all ASP libs or ground SO of ASP
+#for all SAFplus libs or ground SO of SAFplus
 ifndef SOLARIS_BUILD     # :-(
 ifneq ($(TARGET_QNX), 1) # :-((
 ifneq ($(TARGET_VXWORKS), 1)
@@ -348,4 +348,4 @@ ifeq ($(findstring clean,$(MAKECMDGOALS))$(findstring splint,$(MAKECMDGOALS)),)
     -include $(dep_files)    
 endif
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk

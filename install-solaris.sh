@@ -19,7 +19,7 @@
 # File        : install.sh
 ################################################################################
 # Description :
-# Script to install required 3rd party packages, ASP source code and IDE
+# Script to install required 3rd party packages, SAFplus source code and IDE
 # plugins
 ################################################################################
 
@@ -208,7 +208,7 @@ chmod 444 $INSTALLER
 trap "trapped; exit 1" 1 2 3 15 20
 
 # change the default umask to enable world write. This is not ok, but what to do ;)
-# ASP build is very tightly coupled to the Model code and IDE launch will generate
+# SAFplus build is very tightly coupled to the Model code and IDE launch will generate
 # some temporary files in the same directory where IDE is installed
 # umask 0000
 
@@ -267,7 +267,7 @@ do
 	which $essentials >/dev/null 2>&1
 	if [ $? -ne 0 ]; then
 		echo -en "$red"  >&2
-		echo "$essentials(1) is required to build the ASP/IDE prerequisites"  >&2
+		echo "$essentials(1) is required to build the SAFplus/IDE prerequisites"  >&2
 		echo "Cannot find $essentials in your PATH environment variable"  >&2
 		echo "Please set your PATH environment variable to the directory where $essentials is installed"  >&2
 		echo -e "$blue"  >&2
@@ -388,7 +388,7 @@ PREFIX_LIB="$PREFIX/lib"
 export PATH=${PREFIX_BIN}:${PATH}
 
 IDE_ROOT="$PACKAGE_ROOT/IDE"	# IDE is installed here
-ASP_ROOT="$PACKAGE_ROOT/src/ASP"	# ASP sources are copied here
+ASP_ROOT="$PACKAGE_ROOT/src/SAFplus"	# SAFplus sources are copied here
 DOC_ROOT="$PACKAGE_ROOT/doc"	# DOCS are copied here
 BIN_ROOT="$PACKAGE_ROOT/bin"	# scripts are copied here
 
@@ -408,7 +408,7 @@ do
 	fi		
 done
 
-ASP="ASP"
+SAFplus="SAFplus"
 IDE="IDE"
 GPL="0"
 if [ $INSTALLIDE == "YES" ]; then
@@ -421,7 +421,7 @@ INSTALL_DOCS=1
 
 export PKG_CONFIG_PATH=$PREFIX_LIB/pkgconfig:$PKG_CONFIG_PATH
 
-# ASP Dependencies
+# SAFplus Dependencies
 INSTALL_SUBAGENT=0
 INSTALL_OPENHPI=0
 INSTALL_NETSNMP=0
@@ -544,7 +544,7 @@ fi
 tput cnorm
 
 echo
-echo "Checking ASP dependencies ..."
+echo "Checking SAFplus dependencies ..."
 
 #echo -n "Checking $CC ... " >&2
 GCC_VERSION=`$CC --version 2>/dev/null | grep "(GCC)" | gawk '{print $3}'`
@@ -2061,7 +2061,7 @@ sleep 2; tput clear
 # + which contains the md5 checksum
 echo "Now we check if there are any Clovis-provided crossbuild toolchains in"
 echo "$WORKING_ROOT to install."
-echo "These allow you to build OpenClovis ASP for platforms other than this"
+echo "These allow you to build OpenClovis SAFplus for platforms other than this"
 echo "development host."
 ls -1 $WORKING_ROOT/crossbuild-*.tar.gz >/dev/null 2>&1
 if [ $? -eq 0 ]; then # crossbuild tools are downloaded
@@ -2240,26 +2240,26 @@ fi
 
 if [ $overwrite_openclovis_sdk == 'y' ] || [ $overwrite_openclovis_sdk == 'Y' ]; then
 	echo
-	echo -n "Installing ASP ... "
+	echo -n "Installing SAFplus ... "
 	#cd $ASP_ROOT
 	cd $WORKING_DIR
-	$TAR cf - src/$ASP src/examples |( cd $PACKAGE_ROOT; $TAR xfm -) &
+	$TAR cf - src/$SAFplus src/examples |( cd $PACKAGE_ROOT; $TAR xfm -) &
 	PS=$!
 	roll $PS
 	printf "\b"
-	#cd $ASP_ROOT; cd ASP
-	# configure script provided with the ASP package has hard coded reference to PKG_CONFIG_PATH
+	#cd $ASP_ROOT; cd SAFplus
+	# configure script provided with the SAFplus package has hard coded reference to PKG_CONFIG_PATH
 	# prepending the sand-box location to pickup the new installations
 	#sed -i -e 's/\/usr\/local\/lib\/pkgconfig/$PKG_CONFIG_PATH:\/usr\/local\/lib\/pkgconfig/' configure
 
 	# modifying mk-cross.mk.in to specify buildtools location
 	sed -e "s;buildtools_dir:=/opt/clovis/buildtools;buildtools_dir:=$BUILDTOOLS;g" \
 	    -e "s;NET_SNMP_CONFIG = net-snmp-config;NET_SNMP_CONFIG = $NET_SNMP_CONFIG;g" \
-		$PACKAGE_ROOT/src/ASP/build/common/templates/make-cross.mk.in > \
-		$PACKAGE_ROOT/src/ASP/build/common/templates/make-cross.mk.in.modified
+		$PACKAGE_ROOT/src/SAFplus/build/common/templates/make-cross.mk.in > \
+		$PACKAGE_ROOT/src/SAFplus/build/common/templates/make-cross.mk.in.modified
 
-	mv  -f $PACKAGE_ROOT/src/ASP/build/common/templates/make-cross.mk.in.modified \
-	       $PACKAGE_ROOT/src/ASP/build/common/templates/make-cross.mk.in
+	mv  -f $PACKAGE_ROOT/src/SAFplus/build/common/templates/make-cross.mk.in.modified \
+	       $PACKAGE_ROOT/src/SAFplus/build/common/templates/make-cross.mk.in
 	
 	echo "done"
 
@@ -2378,7 +2378,7 @@ if [ $overwrite_openclovis_sdk == 'y' ] || [ $overwrite_openclovis_sdk == 'Y' ];
 		$WORKING_DIR/templates/bin/cl-validate-project.in > $BIN_ROOT/cl-validate-project
 
     # symlinking cl-create-wrs-toolchain in $BIN_ROOT
-    ln -s $PACKAGE_ROOT/src/ASP/scripts/cl-create-wrs-toolchain $BIN_ROOT/.
+    ln -s $PACKAGE_ROOT/src/SAFplus/scripts/cl-create-wrs-toolchain $BIN_ROOT/.
 
 	chmod +x $BIN_ROOT/*
 	

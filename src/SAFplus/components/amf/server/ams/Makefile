@@ -23,7 +23,7 @@
 ##### Component name (using all lowercase):
 
 COMPNAME	:= amf
-AMF_PATH        = $(CLOVIS_ROOT)/ASP/components/amf
+AMF_PATH        = $(CLOVIS_ROOT)/SAFplus/components/amf
 
 ##### Source files for the server of this component
 
@@ -62,8 +62,8 @@ LIB_NAMES       = libClAmsServer
 
 ##### Third party libs needed to get this server built
 
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
-THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/utils/
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
+THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/utils/
 
 THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH)	\
 		   -lezxml
@@ -77,7 +77,7 @@ endif
 
 # Workaround as openhpi is not part of install package
 ifdef SOLARIS_BUILD
-EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/Solaris/openhpi/include
+EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/SAFplus/3rdparty/Solaris/openhpi/include
 endif
 
 EXTRA_CPPFLAGS  += -I$(THIRD_PARTY_EZXML_PATH)		\
@@ -107,4 +107,4 @@ else
 endif
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

@@ -28,7 +28,7 @@
 
 export CLOVIS_ROOT=@CLOVIS_ROOT@
 ifndef MODEL_PATH
-export MODEL_PATH=$(CLOVIS_ROOT)/ASP/models/@ASP_MODEL_NAME@
+export MODEL_PATH=$(CLOVIS_ROOT)/SAFplus/models/@ASP_MODEL_NAME@
 endif
 export SNMP_BUILD=@SNMP_BUILD@
 export CM_BUILD=@CM_BUILD@
@@ -41,4 +41,4 @@ SUBDIRS          = $(MODEL_PATH)/config servers $(MODEL_PATH)/app
 # target-prerequisite pairs.
 # 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk

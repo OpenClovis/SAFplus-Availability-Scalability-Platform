@@ -15,7 +15,7 @@
 # For more  information,  see the  file COPYING provided with this
 # material.
 
-export CCOUNT=$CLOVIS_ROOT/ASP/mk/ccount.awk
+export CCOUNT=$CLOVIS_ROOT/SAFplus/mk/ccount.awk
 
 echo "File statistics"
 echo "==============="

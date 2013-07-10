@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -34,7 +34,7 @@ COMPNAME	:= txn
 
 # List local source files needed for the component server:
 
-TXN_PATH        = $(CLOVIS_ROOT)/ASP/components/txn
+TXN_PATH        = $(CLOVIS_ROOT)/SAFplus/components/txn
 
 SRC_FILES	:=  clTxnApi.c                                      \
                     clTxnClientImpl.c                               \
@@ -47,7 +47,7 @@ SRC_FILES	:=  clTxnApi.c                                      \
 					clTxnAgentRegister.c							\
                     $(wildcard $(TXN_PATH)/common/idl/xdr/*.c)      \
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= osal timer buffer rmd eo ioc cnt utils debug sm  amf ckpt log
@@ -87,4 +87,4 @@ SRC_FILES_libClTxnAgent   = clTxnAgent.c                                    \
 							clTxnAgentRegister.c							\
                             $(wildcard $(TXN_PATH)/common/idl/xdr/*.c)      \
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

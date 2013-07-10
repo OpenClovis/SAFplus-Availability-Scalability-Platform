@@ -150,9 +150,9 @@ feedback 0 "Creating new project area at $PROJECT_AREA"
 
 cd $PROJECT_AREA
 
-feedback 2 "Running configure script at $CL_SDKDIR/src/ASP/configure"
+feedback 2 "Running configure script at $CL_SDKDIR/src/SAFplus/configure"
 
-$CL_SDKDIR/src/ASP/configure
+$CL_SDKDIR/src/SAFplus/configure
 
 cd - > /dev/null
 

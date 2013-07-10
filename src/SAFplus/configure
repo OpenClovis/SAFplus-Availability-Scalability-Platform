@@ -1469,10 +1469,10 @@ export SAFPLUS_BUILD_PYTHON=0
 export SAFPLUS_BUILD_JAVA=0
 export SAFPLUS_BUILD_CPP=1
 
-## AA, block out test for current ASP directory
+## AA, block out test for current SAFplus directory
 # if [ ! -d components ] ; then
-#     { { echo "$as_me:$LINENO: error: Please run the script from ASP directory" >&5
-# echo "$as_me: error: Please run the script from ASP directory" >&2;}
+#     { { echo "$as_me:$LINENO: error: Please run the script from SAFplus directory" >&5
+# echo "$as_me: error: Please run the script from SAFplus directory" >&2;}
 #    { (exit 1); exit 1; }; }
 # fi;
 
@@ -1823,7 +1823,7 @@ if [ $do_cm_build == 1 ]; then
         echo "hence you cannot use the --with-cm-build option to build the OpenClovis"
         echo "Chassis Manager."
         echo ""
-        echo "PSPs are available only for the commercial version of ASP."
+        echo "PSPs are available only for the commercial version of SAFplus."
         echo ""
         echo "For more information please contact your OpenClovis sales representative."
         echo ""
@@ -1925,7 +1925,7 @@ fi
 ###################################################
 if [ ! "x" == "x${ASP_MODEL_NAME}" -a ! $ASP_MODEL_NAME == "asp" ] 2> /dev/null ; then
     if [ ! -f $MODEL_PATH/target.conf ]; then
-    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/target.conf $MODEL_PATH/target.conf 
+    	$INSTALL $install_flags $CLOVIS_ROOT/SAFplus/build/common/conf/target.conf $MODEL_PATH/target.conf 
     fi
     if [ ! -f $MODEL_PATH/target.env ]; then
         if [ -f $CLOVIS_ROOT/SAFplus/build/common/conf/target.env ]; then
@@ -1936,7 +1936,7 @@ if [ ! "x" == "x${ASP_MODEL_NAME}" -a ! $ASP_MODEL_NAME == "asp" ] 2> /dev/null 
     	$INSTALL $install_flags $CLOVIS_ROOT/SAFplus/build/common/conf/openhpi.conf $MODEL_PATH/config/openhpi.conf
     fi
     if [ ! -f $MODEL_PATH/config/snmpd.conf ]; then
-    	$INSTALL $install_flags $CLOVIS_ROOT/ASP/build/common/conf/snmpd.conf $MODEL_PATH/config
+    	$INSTALL $install_flags $CLOVIS_ROOT/SAFplus/build/common/conf/snmpd.conf $MODEL_PATH/config
     fi
 fi
 
@@ -3435,7 +3435,7 @@ echo -n "Testing For Correct version of gcc... "
 echo "${ECHO_T}yes" >&6
     else
 
-    OH_MSG=`echo -e "- gcc >= 3.2.0 is required to build ASP not found!\n"`
+    OH_MSG=`echo -e "- gcc >= 3.2.0 is required to build SAFplus not found!\n"`
     if test "x" != "x"; then
         OH_MSG=`echo -e "$OH_MSG\n- "`
     fi
@@ -3487,12 +3487,12 @@ echo "${ECHO_T}yes" >&6
     else
         { echo "$as_me:$LINENO: WARNING:
 *********************************************************
-* building ASP application written in C++ will fail     *
+* building SAFplus application written in C++ will fail     *
 *********************************************************
 " >&5
 echo "$as_me: WARNING:
 *********************************************************
-* building ASP application written in C++ will fail     *
+* building SAFplus application written in C++ will fail     *
 *********************************************************
 " >&2;}
     fi
@@ -7353,13 +7353,13 @@ else
     fi
 fi
 # AA
-# If we are doing a model-only build, ensure that we have ASP libraries in
+# If we are doing a model-only build, ensure that we have SAFplus libraries in
 # the specified ASP_INSTALLDIR
 if [ $MODEL_BUILD = 1 -a $ASP_BUILD = 0 ]; then
     if [ ! -d $ASP_INSTALLDIR/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib ]; then
         echo ""
         echo "There are no SAFplus libraries available for this target.  Please"
-        echo "either pre-build libraries or specify ASP build using the"
+        echo "either pre-build libraries or specify SAFplus build using the"
         echo "--with-safplus-build flag and retry this script."
         exit 1
     fi

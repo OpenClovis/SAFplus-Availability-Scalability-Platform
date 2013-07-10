@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -31,18 +31,18 @@
 # Component name (using all lowercase):
 COMPNAME	:=safplus_binlogviewerexec
 # Local source files needed for the component log viewer:
-LOG_PATH   :=$(CLOVIS_ROOT)/ASP/components/log/
+LOG_PATH   :=$(CLOVIS_ROOT)/SAFplus/components/log/
 
-UTILS_PATH = $(CLOVIS_ROOT)/ASP/components/utils
+UTILS_PATH = $(CLOVIS_ROOT)/SAFplus/components/utils
 
 SRC_FILES	:=   $(wildcard *.c)
 
-# Other ASP components on which asp_logViewer depends on 
+# Other SAFplus components on which asp_logViewer depends on 
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc rmd eo amf idl name ckpt dbal debug log cnt
 # Needed to run with P=1, could have added to make-common but then all other exes' size would have
 #increased
-# Other ASP libraries needed to get asp_logViewer
+# Other SAFplus libraries needed to get asp_logViewer
 
 1_FLAGS	:= libClGDBM.a
 ASP_LIBS   := $($(P)_FLAGS) libClCnt.a libClUtils.a libClBuffer.a libClOsal.a libClRmd.a libClIoc.a libClEo.a libClLogClient.a libClAmsXdr.a libClAmfClient.a libClTimer.a libClEventClient.a libClIdl.a libClIdlPtr.a libClNameClient.a libClCorClient.a libClDebugClient.a
@@ -70,4 +70,4 @@ endif
 
 EXE_NAME	= $(COMPNAME)
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk

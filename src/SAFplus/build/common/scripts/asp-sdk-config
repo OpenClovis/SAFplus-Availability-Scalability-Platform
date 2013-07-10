@@ -16,7 +16,7 @@ check_install_dir()
     then
         return 
     else
-        echo "ASP has not been installed for:"
+        echo "SAFplus has not been installed for:"
         echo "platform=$platform"
         echo "os=$os"
         exit 1
@@ -26,7 +26,7 @@ check_install_dir()
 
 ASP_VERSION=2.3
 prefix=/usr/local/clovis/sdk
-ASP_PREFIX=${prefix}/${ASP_VERSION}/ASP
+ASP_PREFIX=${prefix}/${ASP_VERSION}/SAFplus
 ASP_INCLUDEDIR=${ASP_PREFIX}/include
 ASP_MKFILESDIR=${ASP_PREFIX}/mk
 ASP_LDFLAGS=""
@@ -112,35 +112,35 @@ if test "x$usage" = "xyes"; then
   echo ""
   echo "    --help            displays usage, options for this script"
   echo ""
-  echo "    --version         displays the ASP version number"
+  echo "    --version         displays the SAFplus version number"
   echo ""
   echo "  These are the list of env variables to be set"
   echo ""
   echo "    --env-vars        display list of env variables to be set"
   echo ""
   echo "  These options produce the various compilation flags needed when"
-  echo "  building ASP applications:"
+  echo "  building SAFplus applications:"
   echo ""
   echo "    --cflags          lists additional compilation flags needed"
   echo "                      (includes -I. and extra developer warning flags)"
   echo ""
   echo "  These options produce various link flags broken down into parts."
   echo ""
-  echo "    --libdir              path to ASP libraries"
+  echo "    --libdir              path to SAFplus libraries"
   echo ""
-  echo "    --include-dir         path to ASP header files"
+  echo "    --include-dir         path to SAFplus header files"
   echo ""
-  echo "    --mkfiles-dir         path to ASP Makefiles"
+  echo "    --mkfiles-dir         path to SAFplus Makefiles"
   echo ""
   echo "    --ldflags             link flags for external libraries"
   echo ""
-  echo "    --asp-libs            list of ASP client libraries"
+  echo "    --asp-libs            list of SAFplus client libraries"
   echo ""
   echo "    --thirdparty-libs     list of 3rdParty libraries"
   echo ""
   echo "    --sys-libs            list of system libraries"
   echo ""
-  echo "  Details on how the ASP package was installed:"
+  echo "  Details on how the SAFplus package was installed:"
   echo ""
   echo "    --prefix              Display the installation prefix"
   echo ""

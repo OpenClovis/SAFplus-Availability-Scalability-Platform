@@ -18,7 +18,7 @@
 # File        : configure.ac
 ################################################################################
 # Description :
-## Autoconf script for ASP binary SDK					 
+## Autoconf script for  binary SDK					 
 ################################################################################
 
 ##################################################
@@ -56,7 +56,7 @@ fi
 
 
 if [[ ! -d servers ]] ; then
-    AC_MSG_ERROR([Please run the script from ASP directory])
+    AC_MSG_ERROR([Please run the script from  directory])
 fi;
 
 #####################################################
@@ -195,9 +195,9 @@ KERNEL_PATCH_VERSION=`awk '$2=="LINUX_VERSION_CODE"{print and($3,0xff)}' $KERNEL
 export CL_TARGET_OS=linux-$KERNEL_MAJOR_VERSION.$KERNEL_MINOR_VERSION.$KERNEL_PATCH_VERSION
 
 
-#Checking if the correct version of ASP binary package is available
+#Checking if the correct version of  binary package is available
 AC_MSG_CHECKING( for Correct Binary ASP package )
-if [[ ! -d $CLOVIS_ROOT/ASP/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS ]] ; then
+if [[ ! -d $CLOVIS_ROOT//target/$CL_TARGET_PLATFORM/$CL_TARGET_OS ]] ; then
   AC_MSG_RESULT(no)
   AC_MSG_ERROR([
 *** This Binary package was not built for "$CL_TARGET_PLATFORM" platform

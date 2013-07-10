@@ -25,7 +25,7 @@
 #
 # This Makefile assumes the following:
 #       - CLOVIS_ROOT environment variable is specified properly
-#       - Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#       - Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -38,7 +38,7 @@ COMPNAME        := eventPubsTest
                                                                                                                              
 SRC_FILES       := clEvtPubsMain.c
                                                                                                                              
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
                                                                                                                              
 DEP_COMP_LIST   := utils osal timer buffer ioc rmd eo event amf  debug diag log
@@ -46,7 +46,7 @@ DEP_COMP_LIST   := utils osal timer buffer ioc rmd eo event amf  debug diag log
 # added by hand for now:
 DEP_COMP_LIST   += cnt
                                                                                                                              
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
                                                                                                                              
 ASP_LIBS       := libClTimer.a \
                    libClBuffer.a \
@@ -67,7 +67,7 @@ ASP_LIBS       := libClTimer.a \
                                                                                                                              
 # List any third party libs needed to get this server built (or None):
                                                                                                                              
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 
 THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml
                                                                                                                              
@@ -80,5 +80,5 @@ SYS_LIBS        := -lpthread
                                                                                                                              
 EXE_NAME        = $(ASP_EXE_PREFIX)_$(COMPNAME)
                                                                                                                              
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk
 

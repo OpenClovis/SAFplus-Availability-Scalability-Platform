@@ -20,7 +20,7 @@
 # Description :
 ################################################################################
 
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable  
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable  
 
 
 
@@ -40,7 +40,7 @@ EXTRA_CPPFLAGS  += -I../include
 SRC_FILES	:= clTcUtils.c \
 			   clTcParser.c
 
-##### ASP libraries needed to get this client built
+##### SAFplus libraries needed to get this client built
 
 DEP_COMP_LIST	:= utils osal timer buffer cnt ioc rmd eo debug amf cm cor log ckpt
 
@@ -52,4 +52,4 @@ SRC_FILES_libClTcUtils	= clTcUtils.c \
 						  clTcParser.c
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

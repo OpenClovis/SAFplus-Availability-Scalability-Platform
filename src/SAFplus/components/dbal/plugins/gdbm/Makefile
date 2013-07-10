@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -36,7 +36,7 @@ COMPNAME	:= dbal
 
 SRC_FILES	:= clovisGDBM.c 
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer cnt debug dbal eo rmd ioc
@@ -55,10 +55,10 @@ EXTRA_SHARED_LDFLAGS=-Wl,--start-group -L$(ASP_LIB) -lClTimer -lClBuffer -lClOsa
 			-L$(COMP_ROOT)/ground/client -lClGround
 endif
 
-EXTRA_SHARED_LDFLAGS+=-L$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable -lezxml 
+EXTRA_SHARED_LDFLAGS+=-L$(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable -lezxml 
 EXTRA_SHARED_CPPFLAGS= -I$(THIRD_PARTY_EZXML_PATH)
 
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 
 THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml
 
@@ -83,5 +83,5 @@ endif
 # If your component builds one library only, than this list will automatically
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk
 

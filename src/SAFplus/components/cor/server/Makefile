@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -50,14 +50,14 @@ SRC_FILES	:= $(wildcard idl/*.c) \
                    clCorMOTree.c       clCorObjExport.c      clCorRmMain.c        \
                    clCorUtilityServer.c clCorDeltaSave.c clCorModule.c
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal dbal timer buffer cnt ioc rmd eo amf  event om cor debug cm txn log idl name
 # FIXME: Indirect dependencies via client library needs need to be
 # added by hand for now:
 
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
 
 ASP_LIBS	:= libClTimer.a         \
                    libClBuffer.a        \
@@ -82,7 +82,7 @@ ASP_LIBS	:= libClTimer.a         \
 
 # List any third party libs needed to get this server built (or None):
 
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 
 ifeq ($(TARGET_POSIX), 1)
 	DB_LIBS := -db
@@ -108,4 +108,4 @@ endif
 EXE_NAME	= $(ASP_EXE_PREFIX)_$(COMPNAME)
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk

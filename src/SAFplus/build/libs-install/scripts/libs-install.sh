@@ -16,7 +16,7 @@
 # material.
 
 ##############################################################################
-# Install ASP libraries to SDK directory or custom location specified by
+# Install SAFplus libraries to SDK directory or custom location specified by
 # PREFIX
 ##############################################################################
 
@@ -42,11 +42,11 @@ fi
 
 #
 # Populate include path
-echo -n "Installing ASP headers to $PREFIX..."
+echo -n "Installing SAFplus headers to $PREFIX..."
 cd $INCLUDE_PATH
-find $CLOVIS_ROOT/ASP/components -name '*.h' -o -name '*.hxx' | \
+find $CLOVIS_ROOT/SAFplus/components -name '*.h' -o -name '*.hxx' | \
     $AWK '{ str=sprintf("cp %s .", $0); system(str) }'
-find $CLOVIS_ROOT/ASP/components -name '*.h' | \
+find $CLOVIS_ROOT/SAFplus/components -name '*.h' | \
     grep ipi | \
     $AWK '{ str=sprintf("cp %s ipi/.", $0); system(str) }'
 cd - > /dev/null
@@ -54,7 +54,7 @@ echo "done."
 
 #
 # Copy built libs to install path
-echo -n "Installing ASP libraries to $PREFIX..."
+echo -n "Installing SAFplus libraries to $PREFIX..."
 cp -r $ASP_LIB/* $LIBS_INSTALL_PATH
 cp -r $PROJECT_ROOT/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib/* $LIBS_INSTALL_PATH
 # As libCmServer locate at asp/target, need to copy from there

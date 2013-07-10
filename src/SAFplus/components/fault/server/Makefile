@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 ################################################################################
 
@@ -31,7 +31,7 @@
 
 COMPNAME	:= fault
 
-FAULT_PATH        = $(CLOVIS_ROOT)/ASP/components/fault
+FAULT_PATH        = $(CLOVIS_ROOT)/SAFplus/components/fault
 
 # List local source files needed for the component server:
 
@@ -44,7 +44,7 @@ SRC_FILES	:= clFaultMain.c \
 			$(FAULT_PATH)/idl/xdr/xdrClFaultVersionInfoTUnMarshall.c
 
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 DEP_COMP_LIST	:= utils osal timer debug event buffer ioc rmd eo   cor\
 alarm fault om amf name log txn idl
@@ -57,7 +57,7 @@ EXTRA_CFLAGS	:= -I$(FAULT_PATH)/idl/xdr -I$(FAULT_PATH)/client
  	
 CPPFLAGS += -I./ 
 
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
 ASP_LIBS	:=	libClTimer.a \
 				libClBuffer.a \
 				libClOsal.a \
@@ -84,7 +84,7 @@ ASP_LIBS	:=	libClTimer.a \
 
 # List any third party libs needed to get this server built (or None):
 
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
      
 
 CPPFLAGS += -I$(THIRD_PARTY_EZXML_PATH)
@@ -98,4 +98,4 @@ CPPFLAGS += -I$(THIRD_PARTY_EZXML_PATH)
 EXE_NAME	= $(ASP_EXE_PREFIX)_$(COMPNAME)
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk

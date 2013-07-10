@@ -19,20 +19,20 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 ################################################################################
 
 # Component name (using all lowercase):
 COMPNAME	:= Alarmxdr 
 
-COR_PATH    := $(CLOVIS_ROOT)/ASP/components/cor
+COR_PATH    := $(CLOVIS_ROOT)/SAFplus/components/cor
 
 # List local source files needed for the component server:
 
 SRC_FILES	:= $(wildcard *.c)
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer ioc cnt eo debug rmd idl name alarm cor \
@@ -44,4 +44,4 @@ LIB_NAMES	= libClAlarmXdr
 
 EXTRA_CPPFLAGS += -I$(COR_PATH)/common/idl/xdr/
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

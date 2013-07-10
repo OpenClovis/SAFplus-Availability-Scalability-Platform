@@ -537,8 +537,8 @@ endif
 #-------------------------------------------------------------------------------
 # Add BUILD_NUMBER signature
 $(OBJ_DIR)/asp_build.c: $(SRC_FILES)
-	@if [ -f "$$CLOVIS_ROOT/ASP/BUILD" ]; then \
-	    . $$CLOVIS_ROOT/ASP/BUILD; \
+	@if [ -f "$$CLOVIS_ROOT/SAFplus/BUILD" ]; then \
+	    . $$CLOVIS_ROOT/SAFplus/BUILD; \
 	else \
 	    BUILD_NUMBER="unlabeled"; \
 	fi; \

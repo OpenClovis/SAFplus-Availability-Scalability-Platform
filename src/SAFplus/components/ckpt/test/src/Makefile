@@ -20,7 +20,7 @@
 # Description :
 ################################################################################
 
-THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/utils/
+THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/utils/
 
 
 ##### Component name (using all lowercase):
@@ -37,7 +37,7 @@ EXTRA_CPPFLAGS := -I../include
 
 SRC_FILES	:= clTcCkptApi.c
 
-##### ASP libraries needed to get this client built
+##### SAFplus libraries needed to get this client built
 
 DEP_COMP_LIST	:= utils osal timer buffer cnt ioc rmd eo debug amf cm cor log ckpt
 
@@ -48,4 +48,4 @@ LIB_NAMES	=  libClTcCkpt
 SRC_FILES_libClTcCkpt	= clTcCkptApi.c
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

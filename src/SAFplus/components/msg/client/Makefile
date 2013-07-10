@@ -23,13 +23,13 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
 
 # Component name (using all lowercase):
-MSG_PATH := $(CLOVIS_ROOT)/ASP/components/msg
+MSG_PATH := $(CLOVIS_ROOT)/SAFplus/components/msg
 
 COMPNAME	:= Message
 
@@ -46,7 +46,7 @@ SRC_FILES	:= $(wildcard $(MSG_PATH)/client/*.c) \
 
 			   
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer cnt ioc rmd eo amf debug log ckpt cor event
@@ -73,4 +73,4 @@ LIB_NAMES	= libClMsgClient
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

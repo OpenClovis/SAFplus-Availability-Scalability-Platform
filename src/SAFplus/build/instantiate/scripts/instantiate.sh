@@ -40,7 +40,7 @@ fi
 
 #
 # Create node.conf by extracting info from clAmfConfig.xml
-python ${CLOVIS_ROOT}/ASP/build/instantiate/scripts/extract_nodeinfo.py \
+python ${CLOVIS_ROOT}/SAFplus/build/instantiate/scripts/extract_nodeinfo.py \
     ${MODEL_PATH}/config/clAmfConfig.xml > ${NODE_CONF}
 
 #
@@ -51,7 +51,7 @@ source ${TARGET_CONF}
 
 # Create targetconf.xml 
 TARGET_CONF_XML_FILE=${TARGET_DIR}/images/${ARCH}/etc/targetconf.xml
-python ${CLOVIS_ROOT}/ASP/build/instantiate/scripts/target_conf_to_xml.py \
+python ${CLOVIS_ROOT}/SAFplus/build/instantiate/scripts/target_conf_to_xml.py \
     ${TARGET_CONF} > ${TARGET_CONF_XML_FILE}
 
 
@@ -141,7 +141,7 @@ instantiate() {
 get_val() {
     VAR=${1:?Variable is not specified in get_val}
     NODE=${2:?Node is not specified in get_val}
-    PROG=${CLOVIS_ROOT}/ASP/build/common/scripts/extract_targetinfo.py
+    PROG=${CLOVIS_ROOT}/SAFplus/build/common/scripts/extract_targetinfo.py
 
     python ${PROG} --target-conf "${TARGET_CONF}" --variable ${VAR} ${NODE}
     return $?
@@ -388,7 +388,7 @@ do
     then
         echo "No value specified for TIPC_NETID in target.conf file, assuming"
         echo "that TIPC will be properly configured on the node before running"
-        echo "ASP"
+        echo "SAFplus"
     fi
     #
     # If we've been built with the chassis manager then we should specify
@@ -439,7 +439,7 @@ do
     echo ""
     echo "Building ${i}.  Default Slot: ${SLOT}. Architecture: ${ARCH}.  Intracluster network: ${LINK}."
     
-    cp ${CLOVIS_ROOT}/ASP/build/instantiate/templates/asp.conf ${asp_conf_file}
+    cp ${CLOVIS_ROOT}/SAFplus/build/instantiate/templates/asp.conf ${asp_conf_file}
 
     lcliz_conf ${asp_conf_file} ${i} 0 ${SLOT} ${BOOTCONFIG} ${LINK} "${CMM_IP}" "${TRAP_IP}" "${TIPC_NETID}"
 
@@ -501,6 +501,6 @@ if [ $WARN_TIPC -eq 1 ]; then
     echo "host.  These target images do not contain tipc, as it is already present on"
     echo "this development host.  Please ensure that the rest of the nodes designated"
     echo "to run these images have the tipc kernel module and tipc-config application"
-    echo "installed before deploying and running ASP.                               "
+    echo "installed before deploying and running SAFplus.                               "
     echo "---------------------------------------------------------------------------"
 fi

@@ -15,7 +15,7 @@
 #
 ############################# Description #####################################
 #
-# $Id: //depot/dev/main/Andromeda/ASP/3rdparty/ezxml/Makefile#2 $
+# $Id: //depot/dev/main/Andromeda/SAFplus/3rdparty/ezxml/Makefile#2 $
 # $DateTime: 2006/09/14 14:31:51 $
 # $Change: 22279 $
 # $Author: bkpavan $
@@ -45,4 +45,4 @@ endif
 libs:
 	$(Q)$(MAKE) -C $(EZXML_DIR) all
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk

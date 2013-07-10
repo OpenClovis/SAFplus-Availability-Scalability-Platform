@@ -15,7 +15,7 @@
 # material.
 ################################################################################
 # ModuleName  : gms
-# $File: //depot/dev/main/Andromeda/Saryu/ASP/components/gms/test/unit-test/client/Makefile $
+# $File: //depot/dev/main/Andromeda/Saryu/SAFplus/components/gms/test/unit-test/client/Makefile $
 # $Author: ssahukar $
 # $Date: 2006/11/03 $
 ################################################################################
@@ -25,7 +25,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -37,7 +37,7 @@ COMPNAME	:= ntf_test
 # List local source files needed for the component server:
 SRC_FILES   := main.c init_clean_test.c notification_allocate_free_test.c notification_filter_allocate_free.c obj_creat_delete_ptr_val.c notification_send_subscribe.c
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= ioc buffer utils debug gms osal timer rmd eo ntf
@@ -47,7 +47,7 @@ DEP_COMP_LIST	:= ioc buffer utils debug gms osal timer rmd eo ntf
 # added by hand for now:
 DEP_COMP_LIST	+= cnt
 
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
 
 ASP_LIBS	:= libClGms.a \
                    libClOsal.a \
@@ -90,4 +90,4 @@ SYS_LIBS	:= -lpthread -lcheck -lcurses
 EXE_NAME	= $(COMPNAME)
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk

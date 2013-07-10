@@ -41,4 +41,4 @@ server: common/ams/idl common/ams/parser server/ams/ \
 
 test: client/ams server/ams client server
 
-include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk

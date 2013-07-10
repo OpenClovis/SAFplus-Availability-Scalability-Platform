@@ -20,7 +20,7 @@
 # Description :
 ################################################################################
 
-THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/utils/
+THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/utils/
 
 
 ##### Component name (using all lowercase):
@@ -35,7 +35,7 @@ EXTRA_CPPFLAGS := -I../include
 
 SRC_FILES	:= msgTest.c
 
-##### ASP libraries needed to get this client built
+##### SAFplus libraries needed to get this client built
 
 DEP_COMP_LIST	:= amf msg
 
@@ -46,4 +46,4 @@ LIB_NAMES	=  libClMsgTest
 SRC_FILES_libClMsgTest	= msgTest.c
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

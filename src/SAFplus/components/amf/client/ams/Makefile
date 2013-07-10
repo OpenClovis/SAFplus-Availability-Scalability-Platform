@@ -20,8 +20,8 @@
 # Description :
 ################################################################################
 
-THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/utils/
-AMF_PATH                = $(CLOVIS_ROOT)/ASP/components/amf
+THIRD_PARTY_UTILS_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/utils/
+AMF_PATH                = $(CLOVIS_ROOT)/SAFplus/components/amf
 
 ##### Component name (using all lowercase):
 
@@ -49,7 +49,7 @@ SRC_FILES	:= clAmsMgmtClientApi.c		\
 		   ${AMF_PATH}/common/ams/clAmsUtils.c \
 
 
-##### ASP libraries needed to get this client built
+##### SAFplus libraries needed to get this client built
 
 DEP_COMP_LIST	:= utils osal timer buffer cnt ioc rmd eo debug amf cm cor log event ckpt
 
@@ -66,4 +66,4 @@ SRC_FILES_libClAmsMgmt	= clAmsMgmtClientApi.c		\
 			  clAmsTriggerClient.c          \
 			  ${AMF_PATH}/common/ams/clAmsUtils.c \
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk

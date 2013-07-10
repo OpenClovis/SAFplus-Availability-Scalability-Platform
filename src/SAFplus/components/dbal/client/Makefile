@@ -23,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -44,7 +44,7 @@ SRC_FILES	:= clovisDbal.c \
 ifeq ($(BUILD_SHARED), 0)
  SRC_FILES += ../plugins/berkeley/clovisBerkeleyDB.c
 endif
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= utils osal timer buffer cnt debug eo rmd ioc
@@ -68,10 +68,10 @@ else
    EXTRA_SHARED_LDFLAGS=-Wl,--start-group -L$(ASP_LIB) -lClTimer -lClBuffer -lClOsal -lClCnt -lClUtils -L$(MODEL_LIB) -Wl,--end-group
 endif
 
-EXTRA_SHARED_LDFLAGS+=-L$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable -lezxml 
+EXTRA_SHARED_LDFLAGS+=-L$(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable -lezxml 
 EXTRA_SHARED_CPPFLAGS= -I$(THIRD_PARTY_EZXML_PATH)
 
-THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 
 THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml
 
@@ -99,5 +99,5 @@ endif
 #SRC_FILES_libclBerkeley	        = clovisBerkeleyDB.c
 #SRC_FILES_libclSOLID		= clovisSOLID.c
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk
 

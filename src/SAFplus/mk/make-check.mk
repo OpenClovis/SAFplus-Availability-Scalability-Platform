@@ -47,7 +47,7 @@ COMP_NAMES	= Alarm Ams \
                   Um \
                   Xdr
 
-ASP_ROOT	= $(CLOVIS_ROOT)/ASP
+ASP_ROOT	= $(CLOVIS_ROOT)/SAFplus
 SCRIPT_DIR	= $(ASP_ROOT)/scripts
 
 #

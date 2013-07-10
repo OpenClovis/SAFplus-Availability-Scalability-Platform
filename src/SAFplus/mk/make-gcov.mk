@@ -19,21 +19,21 @@
 ################################################################################
 # Description :
 #
-# Utility make targets to generate coverage report for ASP and ASP based
+# Utility make targets to generate coverage report for SAFplus and SAFplus based
 # components
 #
 ################################################################################
 
 # In order this to work, the built should have been done using make G=1
 # option, which generated *.gcno files under the $TARGET/obj dir
-# After that a normal ASP run should have deposited additional *.gcda
+# After that a normal SAFplus run should have deposited additional *.gcda
 # files in the same dir.
 # In case of cross-running, these gcda files are generated on the target
 # (if the same $TARGET/obj path is available on the target!), and need to
 # be copied back to the build server.
 #
 # So, make lcov-info assumes the following:
-# 1.  ASP source tree is under $(CLOVIS_ROOT)/ASP/components
+# 1.  SAFplus source tree is under $(CLOVIS_ROOT)/SAFplus/components
 # 2.  The model source tree is under $(MODEL_PATH)
 # 3.  The model root dir is $(PROJECT_ROOT)/$(ASP_MODEL_NAME)
 # 4.  The *.gc?? files are under $(MODEL_TARGET)/obj
@@ -46,16 +46,16 @@ LCOV_WORKDIR	?= $(PROJECT_ROOT)/lcov/tmp
 LCOV_TESTNAME	?= $(ASP_MODEL_NAME)
 
 lcov-info: FORCE
-	# Step 1: Copy out the ASP/components  source tree to LCOV_WORKDIR
-	rm -fr $(LCOV_WORKDIR)/ASP && \
-		mkdir -p $(LCOV_WORKDIR)/ASP && \
+	# Step 1: Copy out the SAFplus/components  source tree to LCOV_WORKDIR
+	rm -fr $(LCOV_WORKDIR)/SAFplus && \
+		mkdir -p $(LCOV_WORKDIR)/SAFplus && \
         rsync -av --exclude='*/.svn' \
 		          --exclude='*/test' \
 			  --include='*/' \
 			  --include='*.[ch]' \
 			  --exclude='*' \
-			  $(CLOVIS_ROOT)/ASP/components/ \
-			  $(LCOV_WORKDIR)/ASP/
+			  $(CLOVIS_ROOT)/SAFplus/components/ \
+			  $(LCOV_WORKDIR)/SAFplus/
 	# Step 2: For each .gcda file found, locate the corresponding .c or
 	# .h file, and copy both the .gcda and .gcno files to the same
 	# dir where the *.h or *.c file was found 
@@ -73,7 +73,7 @@ lcov-info: FORCE
             dirname=$$(dirname $$gcno) ; \
             tempdir=$(LCOV_WORKDIR) ; \
             lcovdir=$$(echo $$tempdir | sed -e "s/\//\\\\\//g") ; \
-            dirname=$$(echo $$dirname | sed -e "s/^\/.*\/components/$$lcovdir\/ASP/g") ; \
+            dirname=$$(echo $$dirname | sed -e "s/^\/.*\/components/$$lcovdir\/SAFplus/g") ; \
         fi ; \
 		if [ $$dirname ] ; then \
 			echo "  Copying gcno/gcda files to: $$dirname" ; \

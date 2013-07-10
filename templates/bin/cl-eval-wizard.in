@@ -150,7 +150,7 @@ cat << EOF
          Welcome to the OpenClovis Evaluation System Wizard
 
 This wizard will guide you through the steps of building an OpenClovis
-run-time ASP system.  It will build the system for a single-node
+run-time SAFplus system.  It will build the system for a single-node
 configuration running on your local host.  The documentation of the
 Evaluation System, found on your system in/as
     $CL_SDKDIR/$EVAL_DOC
@@ -222,7 +222,7 @@ else
 	echo "Found an existing project area.  We check if it has the evaluation"
 	echo -n "sample model in it ... "
 	
-	if [ -d "$projectarea/ASP/models/eval" ]; then
+	if [ -d "$projectarea/SAFplus/models/eval" ]; then
 		echo "yes"
 		echo "Your existing project area $projectarea"
 		echo "includes the evaluation sample system."
@@ -275,16 +275,16 @@ fi
 # modifying target.conf
 
 sed -e "s/^TRAP_IP=.*$/TRAP_IP=$SNMP_TRAP_IP/g" \
-	$projectarea/ASP/models/eval/target.conf > \
-	$projectarea/ASP/models/eval/target.conf.new
-if ! chmod u+w ${projectarea}/ASP/models/eval/target.conf >& /dev/null
+	$projectarea/SAFplus/models/eval/target.conf > \
+	$projectarea/SAFplus/models/eval/target.conf.new
+if ! chmod u+w ${projectarea}/SAFplus/models/eval/target.conf >& /dev/null
 then
-    mv $projectarea/ASP/models/eval/target.conf \
-        $projectarea/ASP/models/eval/target.conf.orig
+    mv $projectarea/SAFplus/models/eval/target.conf \
+        $projectarea/SAFplus/models/eval/target.conf.orig
 fi
 
-mv $projectarea/ASP/models/eval/target.conf.new \
-   $projectarea/ASP/models/eval/target.conf
+mv $projectarea/SAFplus/models/eval/target.conf.new \
+   $projectarea/SAFplus/models/eval/target.conf
 
 ##############################################################################
 #
@@ -293,11 +293,11 @@ mv $projectarea/ASP/models/eval/target.conf.new \
 #
 ##############################################################################
 
-cd $projectarea/ASP
+cd $projectarea/SAFplus
 
 # Configure evaluation kit
 echo
-echo "Configuring ASP ..."
+echo "Configuring SAFplus ..."
 
 configure_cmd="./configure --with-model-name=eval"
 if [ $verbosity -ge 1 ]; then
@@ -308,7 +308,7 @@ echo "Done"
 
 # Build evaluation kit
 echo
-echo "Building ASP ..."
+echo "Building SAFplus ..."
 
 build_cmd="make"
 if [ $verbosity -ge 1 ]; then

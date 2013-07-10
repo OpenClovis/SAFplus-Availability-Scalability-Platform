@@ -117,4 +117,4 @@ clean:
 	$(MODEL_BIN)/safplus_cm \
 	$(MODEL_BIN)/safplus_msg
 
-include $(CLOVIS_ROOT)/ASP/mk/prefix.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/prefix.mk

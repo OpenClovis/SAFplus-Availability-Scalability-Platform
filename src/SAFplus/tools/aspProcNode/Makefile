@@ -6,7 +6,7 @@ OBJS := $(SRCS:%.c=%.o)
 
 TARGET := aspCompNode
 
-THIRD_PARTY_EZXML_PATH := $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+THIRD_PARTY_EZXML_PATH := $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable
 
 CFLAGS := -Wall -I$(THIRD_PARTY_EZXML_PATH)
 

@@ -17,7 +17,7 @@
 
 ##############################################################################
 # Populate images with binaries, libraries, scripts, config files,
-# etc. from the ASP build.
+# etc. from the SAFplus build.
 ##############################################################################
 
 # create and populate an image directory.
@@ -109,7 +109,7 @@ populate_image() {
     # architectures and systems.
     # bleh.
     export ASP_KMOD=${SOURCE_MODEL_ROOT}/target/${ARCH}/${SYS}/kmod
-    # where the built-with-the-model ASP libraries reside
+    # where the built-with-the-model SAFplus libraries reside
     export ASP_LIB=${PROJECT_ROOT}/target/${ARCH}/${SYS}/lib
     # where the model specific libs reside
     export MODEL_LIB=${SOURCE_MODEL_ROOT}/target/${ARCH}/${SYS}/lib
@@ -126,14 +126,14 @@ populate_image() {
     mkdir $imagedir/modules
 
     # fail quietly if file not found
-    if [ -f $CLOVIS_ROOT/ASP/VERSION ]
+    if [ -f $CLOVIS_ROOT/SAFplus/VERSION ]
     then
-        cp $CLOVIS_ROOT/ASP/VERSION $imagedir/etc 2> /dev/null
+        cp $CLOVIS_ROOT/SAFplus/VERSION $imagedir/etc 2> /dev/null
     fi
 
     #
     # Invoke any model specific base-images.sh script
-    #MODEL_SOURCE_DIR=${CLOVIS_ROOT}/ASP/models/${ASP_MODEL_NAME}
+    #MODEL_SOURCE_DIR=${CLOVIS_ROOT}/SAFplus/models/${ASP_MODEL_NAME}
     SCRIPT=${SOURCE_MODEL}/build/scripts/base-images.sh
     if [ -f ${SCRIPT} ]
     then
@@ -159,7 +159,7 @@ populate_image() {
     # Copying libraries
     echo "  Copying shared libraries..."
 
-   # Install ASP shared libraries
+   # Install SAFplus shared libraries
     if [ $ASP_BUILD = 0 ]; then
         echo "    Prebuilt SAFplus libraries from $ASP_INSTALLDIR/target/$ARCH/$SYS/lib"
         ${INSTALL} $installflags $ASP_INSTALLDIR/target/$ARCH/$SYS/lib/*.so $imagedir/lib
@@ -203,14 +203,14 @@ populate_image() {
         strip ${ASP_STRIP_ARGS} $imagedir/bin/* 2>/dev/null
     fi
 
-    ${INSTALL} $exe_flags $CLOVIS_ROOT/ASP/build/base-images/scripts/safplus_run $imagedir/bin
-    ${INSTALL} $exe_flags $CLOVIS_ROOT/ASP/build/base-images/scripts/safplus_console $imagedir/bin
-    ${INSTALL} $exe_flags $CLOVIS_ROOT/ASP/build/base-images/scripts/safplus $imagedir/etc/init.d
-    ${INSTALL} $exe_flags $CLOVIS_ROOT/ASP/build/base-images/scripts/asp.py $imagedir/etc
-    ${INSTALL} $exe_flags $CLOVIS_ROOT/ASP/build/base-images/scripts/asp_*.py $imagedir/etc
-    ${INSTALL} $exe_flags $CLOVIS_ROOT/ASP/build/base-images/scripts/safplus_watchdog.py $imagedir/etc
-    ${INSTALL} $exe_flags $CLOVIS_ROOT/ASP/tools/logTools/clLogViewer/safplus_binlogviewer $imagedir/bin
-    ${INSTALL} $exe_flags $CLOVIS_ROOT/ASP/build/base-images/scripts/virtualIp $imagedir/bin
+    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_run $imagedir/bin
+    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_console $imagedir/bin
+    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus $imagedir/etc/init.d
+    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/asp.py $imagedir/etc
+    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/asp_*.py $imagedir/etc
+    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_watchdog.py $imagedir/etc
+    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/tools/logTools/clLogViewer/safplus_binlogviewer $imagedir/bin
+    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/virtualIp $imagedir/bin
     (cd $imagedir/bin; ln -s ./safplus_run asp_run)
     (cd $imagedir/bin; ln -s ./safplus_console asp_console)
     (cd $imagedir/bin; ln -s ./safplus_binlogviewer asp_binlogviewer)

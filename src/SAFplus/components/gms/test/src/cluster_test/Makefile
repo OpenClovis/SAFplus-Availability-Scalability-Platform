@@ -25,7 +25,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus SAFpluschecked out
 #
 #
 ################################################################################
@@ -37,7 +37,7 @@ COMPNAME	:= test_gms_cluster
 # List local source files needed for the component server:
 SRC_FILES   := main.c init_clean_test.c cluster_member_get_test.c cluster_member_track_and_trackstop.c cluster_join_leave_test.c cluster_leader_elect_test.c cluster_eject_test.c 
 
-# List other ASP components of which client libraries your component
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= gms ioc buffer utils debug gms osal timer rmd eo
@@ -47,7 +47,7 @@ DEP_COMP_LIST	:= gms ioc buffer utils debug gms osal timer rmd eo
 # added by hand for now:
 DEP_COMP_LIST	+= cnt
 
-# List ASP libraries needed to get this server built (or None):
+# List SAFplus libraries needed to get this server built (or None):
 
 ASP_LIBS	:= libClGms.a \
                    libClOsal.a \
@@ -82,4 +82,4 @@ SYS_LIBS	:= -lpthread -lcheck -lcurses
 EXE_NAME	= $(COMPNAME)
 
 
-include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk
