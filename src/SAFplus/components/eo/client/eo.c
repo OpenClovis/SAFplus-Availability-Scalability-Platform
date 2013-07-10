@@ -1093,10 +1093,7 @@ ClRcT clEoClientGetFuncVersion(ClIocPortT port, ClUint32T funcId, ClVersionT *ve
     rc = clRadixTreeLookup(client->funTable, index, (ClPtrT*)&latestVerCode);
     if (rc != CL_OK || !latestVerCode)
     {
-        /*
-         * Do a second lookup with own port since these could be app. specific
-         * clients with exported tables.
-         */
+        /* Do a second lookup with own port since these could be app. specific clients with exported tables. */
         index = __EO_CLIENT_TABLE_INDEX(pThis->eoPort, funcNo);
         rc = clRadixTreeLookup(client->funTable, index, (ClPtrT*)&latestVerCode);
         if(rc != CL_OK || !latestVerCode)
@@ -1106,8 +1103,7 @@ ClRcT clEoClientGetFuncVersion(ClIocPortT port, ClUint32T funcId, ClVersionT *ve
         }
         else
         {
-            clLogDebug("EO2", "DEBUG", "Radix tree lookup for Client [%d], Function [%d] succeeded",
-                       clientID, funcNo);
+            clLogDebug("EO2", "DEBUG", "Radix tree lookup for Client [%d], Function [%d] succeeded", clientID, funcNo);
         }
         rc = CL_OK;
     }
@@ -2377,17 +2373,16 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
      */
     if ((pThis == NULL) || (version == NULL) || (pFuncCallout == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: Improper input parameters \n"));
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Improper input parameters"));
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-            ("\n EO: validating the requested service ...... \n"));
+    /* CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("EO: validating the requested service ......")); */
     rc = clEoServiceValidate(pThis, func);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("\n EO: Service validation failed \n"));
+        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Service validation failed rc [0x%x]",rc));
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2397,23 +2392,35 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
     client = pThis->pServerTable + clientID;
     versionCode = CL_VERSION_CODE(version->releaseCode, version->majorVersion, version->minorVersion);
     index = __CLIENT_RADIX_TREE_INDEX(funcID, versionCode);
-    
-    rc = clRadixTreeLookup(client->funTable, index, (ClPtrT*)&fun);
 
+    if (1)  
+    {
+        int retries=0;
+
+        while (retries<10) /* Looping due to possible initialization race condition causing the function table to not be populated when accessed */
+        {
+            retries++;
+            rc = clRadixTreeLookup(client->funTable, index, (ClPtrT*)&fun);
+            if (rc == CL_OK) break;
+            sleep(1);            
+            clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "Retry RMD function [%d.%d] lookup due to error %x.", clientID, funcID, rc);            
+        }
+    } 
+    
     if (rc != CL_OK || !fun)
     {
+        int rc2;
         if(func == CPM_MGMT_NODE_CONFIG_GET)
             return CL_RMD_ERR_CONTINUE;
 
-        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, 
-                   "Function lookup returned 0x%x", rc);
+        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "Function lookup returned 0x%x", rc);
         
         /*
          * Try looking up the client table for the max. version of the function supported.
          */
         ClVersionT maxSupportedVersion = {0};
-        rc = clEoClientGetFuncVersion(pThis->eoPort, func, &maxSupportedVersion);
-        if(rc != CL_OK || !maxSupportedVersion.releaseCode)
+        rc2 = clEoClientGetFuncVersion(pThis->eoPort, func, &maxSupportedVersion);
+        if(rc2 != CL_OK || !maxSupportedVersion.releaseCode)
         {
             clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV,
                        "function id [%d] not registered in the client table for version [%#x]",
@@ -2421,8 +2428,8 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
             return CL_EO_RC(CL_ERR_DOESNT_EXIST);
         }
         clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV,
-                   "Max version of function id [%d], client id [%d], supported is [%d.%d.%d]. Requested version [%d.%d.%d]",
-                   funcID, clientID, maxSupportedVersion.releaseCode, maxSupportedVersion.majorVersion,
+                   "RMD function lookup error %x. Max version of function id [%d], client id [%d], supported is [%d.%d.%d]. Requested version [%d.%d.%d]",
+                   rc, funcID, clientID, maxSupportedVersion.releaseCode, maxSupportedVersion.majorVersion,
                    maxSupportedVersion.minorVersion, version->releaseCode, version->majorVersion,
                    version->minorVersion);
         if(outMsgHdl)

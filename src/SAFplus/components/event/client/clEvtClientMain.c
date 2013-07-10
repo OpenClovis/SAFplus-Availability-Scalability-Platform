@@ -1018,7 +1018,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
 
             clLogWarning("EVT", "INI", "Event server status is %d...waiting for it to come up.", status);
 
-            sleep(1);
+            sleep((i/2)+1);
         }
         if(i == CL_EVT_MAX_SVR_RETRY) {
             rc = CL_ERR_TRY_AGAIN;

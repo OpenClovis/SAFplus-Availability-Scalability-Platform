@@ -257,6 +257,7 @@ ClRcT clGmsInitialize(
     CL_IN    const ClGmsCallbacksT* const gmsCallbacks,
     CL_INOUT ClVersionT*   const      version)
 {
+    int retries=0;
     struct gms_instance *gms_instance_ptr = NULL;
     ClRcT rc = CL_OK;
     ClGmsClientInitRequestT req = {{0}};
@@ -290,9 +291,7 @@ ClRcT clGmsInitialize(
 
     /* Step 3: Obtain unique handle */
 
-    rc = clHandleCreate(handle_database,
-                        sizeof(struct gms_instance),
-                        gmsHandle);
+    rc = clHandleCreate(handle_database, sizeof(struct gms_instance), gmsHandle);
     if (rc != CL_OK)
     {
         rc = CL_GMS_RC(CL_ERR_NO_RESOURCE);
@@ -328,11 +327,20 @@ ClRcT clGmsInitialize(
     }
 
     /* Step 4: Negotiate version with the server */
-    req.clientVersion.releaseCode = version->releaseCode;
-    req.clientVersion.majorVersion= version->majorVersion;
-    req.clientVersion.minorVersion= version->minorVersion;
 
-    rc = cl_gms_clientlib_initialize_rmd((void*)&req, 0x0 ,&res );
+    retries=0;
+    while(retries<5)
+    {
+        retries++;
+        req.clientVersion.releaseCode = version->releaseCode;
+        req.clientVersion.majorVersion= version->majorVersion;
+        req.clientVersion.minorVersion= version->minorVersion;
+
+        rc = cl_gms_clientlib_initialize_rmd((void*)&req, 0x0 ,&res );
+        if (rc==CL_OK) break;
+        sleep(2);
+    }
+    
     if(rc != CL_OK )
     {
         CL_DEBUG_PRINT (CL_DEBUG_ERROR,
