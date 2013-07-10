@@ -2384,20 +2384,26 @@ _clAmsSANodeAdd(const ClCharT *nodeName)
     clNameSet(&entityRef.entity.name, nodeName);
     ++entityRef.entity.name.length;
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
-                                 &entityRef);
-    if(rc != CL_OK)
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &entityRef);
+    if (rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("AMS node [%s] found returned [%#x]\n",
-                                 nodeName, rc));
-        return rc;
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+        {
+            rc = clAmsEntityDbAddEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
+                                        &entityRef);
+        }
+
+        if(rc != CL_OK)
+        {
+            AMS_LOG(CL_DEBUG_ERROR, ("AMS node [%s] found returned [%#x]\n", nodeName, rc));
+            return rc;
+        }
     }
 
     rc = _clAmsSAEntityAdd(&entityRef);
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("AMS SA entity node [%s] add returned [%#x]\n",
-                                 nodeName, rc));
+        AMS_LOG(CL_DEBUG_ERROR, ("AMS SA entity node [%s] add returned [%#x]\n", nodeName, rc));
         return rc;
     }
 

@@ -3987,7 +3987,7 @@ clAmsEntityTimerGetValues(
             *entityTimer = &comp->status.timers.quiescingComplete;
             fnx = comp->methods.quiescingCompleteTimeout;
             break;
-        };
+        }
 
         case CL_AMS_COMP_TIMER_CSISET:
         {

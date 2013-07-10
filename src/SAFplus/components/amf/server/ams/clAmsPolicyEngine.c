@@ -3817,10 +3817,7 @@ clAmsPeNodeSwitchoverWork(
             AMS_CHECK_RC_ERROR ( clAmsPeSUSwitchoverWork(su, switchoverMode) );
         }
     }
-    else
-    {
-        AMS_CHECK_RC_ERROR ( clAmsPeNodeSwitchoverCallback(node, CL_OK, switchoverMode) );
-    }
+    AMS_CHECK_RC_ERROR ( clAmsPeNodeSwitchoverCallback(node, CL_OK, switchoverMode) );
 
     exitfn:
     if(suList)
