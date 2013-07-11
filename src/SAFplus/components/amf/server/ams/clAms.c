@@ -744,7 +744,7 @@ static ClRcT clAmsCCBHandleDBCleanupCallback(ClHandleDatabaseHandleT db, ClHandl
 
     if ((pNotification->id == CL_IOC_COMP_DEATH_NOTIFICATION)
         && (pNotification->nodeAddress.iocPhyAddress.nodeAddress == (ClIocNodeAddressT)CL_HDL_NODE_ADDR(handle) )
-        && (pNotification->nodeAddress.iocPhyAddress.portId == (ClIocNodeAddressT)CL_HDL_PORT_ADDR(handle)))
+        && (pNotification->nodeAddress.iocPhyAddress.portId == (ClIocPortT)CL_HDL_PORT_ADDR(handle)))
     {
         isDelete = CL_TRUE;
     }
