@@ -2040,6 +2040,7 @@ VDECL(_clAmsMgmtCCBInitialize)(
 
     clAmsMgmtCCBInitializeRequestT  req = {0};
     clAmsMgmtCCBInitializeResponseT  res = {0};
+    ClIocPhysicalAddressT srcAddr = {0};
 
     AMS_CALL( VDECL_VER(clXdrUnmarshallclAmsMgmtCCBInitializeRequestT, 4, 0, 0)(in,(ClPtrT)&req) );
 
@@ -2050,7 +2051,9 @@ VDECL(_clAmsMgmtCCBInitialize)(
      * Create a corresponding handle to be sent back to the client 
      */
 
-    AMS_CALL(clHandleCreate( gAms.ccbHandleDB, sizeof(clAmsMgmtCCBT), &handle));
+    AMS_CALL(clRmdSourceAddressGet(&srcAddr));
+
+    AMS_CALL(clHandleWithAddressCreate( gAms.ccbHandleDB, sizeof(clAmsMgmtCCBT), srcAddr, &handle));
 
     AMS_CALL(clHandleCheckout(gAms.ccbHandleDB,handle,(ClPtrT*)&ccbInstance));
 

@@ -209,6 +209,8 @@ extern const ClCharT *clAmsGetInstantiateCommand(void);
 
 extern void clAmsEntityInitialize(void);
 
+extern ClRcT clAmsCCBHandleDBCleanup(ClIocNotificationT *pNotification);
+
 #ifdef __cplusplus
 }
 #endif

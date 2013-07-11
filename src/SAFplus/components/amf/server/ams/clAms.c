@@ -52,6 +52,7 @@
 #include <clAmsEntityUserData.h>
 #include <clCpmInternal.h>
 #include <clList.h>
+#include <clHandleIpi.h>
 
 #define CONFIG_FILE_NAME        "clAmfConfig.xml"
 #define DEFN_FILE_NAME          "clAmfDefinitions.xml"
@@ -733,3 +734,45 @@ const ClCharT *clAmsGetInstantiateCommand(void)
 {
     return (const ClCharT*)gClAmfInstantiateCommand;
 }
+
+static ClRcT clAmsCCBHandleDBCleanupCallback(ClHandleDatabaseHandleT db, ClHandleT handle, ClPtrT cookie)
+{
+    ClRcT rc = CL_OK;
+    ClIocNotificationT *pNotification = (ClIocNotificationT *) cookie;
+    clAmsMgmtCCBT *ccbInstance = NULL;
+    ClBoolT isDelete = CL_FALSE;
+
+    if ((pNotification->id == CL_IOC_COMP_DEATH_NOTIFICATION)
+        && (pNotification->nodeAddress.iocPhyAddress.nodeAddress == (ClIocNodeAddressT)CL_HDL_NODE_ADDR(handle) )
+        && (pNotification->nodeAddress.iocPhyAddress.portId == (ClIocNodeAddressT)CL_HDL_PORT_ADDR(handle)))
+    {
+        isDelete = CL_TRUE;
+    }
+
+    if (((pNotification->id == CL_IOC_NODE_LEAVE_NOTIFICATION) || (pNotification->id == CL_IOC_NODE_LINK_DOWN_NOTIFICATION))
+        && (pNotification->nodeAddress.iocPhyAddress.nodeAddress == (ClIocNodeAddressT)CL_HDL_NODE_ADDR(handle) ))
+    {
+        isDelete = CL_TRUE;
+    }
+
+    if (isDelete)
+    {
+        rc = clHandleCheckout(db, handle, (ClPtrT*)&ccbInstance);
+        if(rc != CL_OK) return rc;
+        clAmsCCBOpListTerminate(&ccbInstance->ccbOpListHandle);
+        clHandleDestroy(db, handle);
+        clHandleCheckin(db, handle);
+    }
+
+    return rc;
+}
+
+ClRcT clAmsCCBHandleDBCleanup(ClIocNotificationT *pNotification)
+{
+    ClRcT rc = CL_OK;
+
+    rc = clHandleWalk(gAms.ccbHandleDB, clAmsCCBHandleDBCleanupCallback, (ClPtrT)pNotification);
+
+    return rc;
+}
+

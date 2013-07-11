@@ -91,9 +91,11 @@
 #define CL_HDL_DB_MASK      0x0000FFFF00000000ULL
 
 /* macros to manipulate handles */
-#define CL_HDL_DB(hdl) (((ClUint64T)hdl)>>48)
-#define CL_HDL_NODE(hdl) ((((ClUint64T)hdl)&CL_HDL_DB_MASK)>>32)
+#define CL_HDL_NODE(hdl) (((ClUint64T)hdl)>>48)
+#define CL_HDL_DB(hdl) ((((ClUint64T)hdl)&CL_HDL_DB_MASK)>>32)
 #define CL_HDL_MAKE(node,dbid, idx) (((ClHandleT) idx) | (((ClHandleT) node)<<48) | (((ClHandleT) dbid)<<32))
+
+#define CL_HDL_MAKE_ADDR(node, port, dbid, idx) (((ClHandleT) idx) | (((ClHandleT) node)<<52) | (((ClHandleT) port)<<40) | ((((ClHandleT) dbid)<<32)&CL_HDL_DB_ADDR_MASK) )
 
 
 const ClCharT  *CL_HDL_VALID_DB     = "clHandleDBValid";
@@ -162,6 +164,7 @@ typedef struct handle_entry {
     void         *instance;
 	ClUint32T    ref_count;
     ClCharT      flags;
+    ClHandleT    handle;
 } ClHdlEntryT;
 
 /* Struct for handle database */
@@ -291,7 +294,7 @@ free_exit:
 }
 
 ClRcT
-clHandleAdd (ClHandleDatabaseHandleT databaseHandle,  void* instance, ClHandleT* handle_out)
+clHandleAdd (ClHandleDatabaseHandleT databaseHandle,  void* instance, ClIocPhysicalAddressT *compAddr, ClHandleT* handle_out)
 {
   ClHandleT      handle       = 0;
   ClHdlEntryT    *new_handles = NULL;
@@ -347,7 +350,12 @@ clHandleAdd (ClHandleDatabaseHandleT databaseHandle,  void* instance, ClHandleT*
   /*
    * Adding 1 to handle to ensure the non-zero handle interface.
    */
-  *handle_out = CL_HDL_MAKE(ASP_NODEADDR,hdbp->id, handle + 1);
+  if (compAddr == NULL)
+      *handle_out = CL_HDL_MAKE(ASP_NODEADDR,hdbp->id, handle + 1);
+  else
+      *handle_out = CL_HDL_MAKE_ADDR(compAddr->nodeAddress,compAddr->portId, hdbp->id, handle + 1);
+
+  hdbp->handles[handle].handle     = *handle_out;
 
   clDbgResourceNotify(clDbgHandleResource, clDbgAllocate, hdbp, handle+1, ("Handle [%p:%#llX] allocated", (ClPtrT)hdbp, handle+1));
   
@@ -387,7 +395,7 @@ clHandleCreate (
       return rc;
     }
 
-  rc =  clHandleAdd (databaseHandle, instance, handle_out);
+  rc =  clHandleAdd (databaseHandle, instance, NULL, handle_out);
   idx = CL_HDL_IDX(*handle_out)-1;
   
   hdbp->handles[idx].flags = HANDLE_ALLOC_FLAG;
@@ -396,6 +404,40 @@ clHandleCreate (
   {
       clHeapFree(instance);
   }  
+  return rc;
+}
+
+ClRcT
+clHandleWithAddressCreate (
+                ClHandleDatabaseHandleT databaseHandle,
+                ClInt32T instance_size,
+                ClIocPhysicalAddressT compAddr,
+                ClHandleT *handle_out)
+{
+  ClWordT        idx       = 0;
+  void           *instance    = NULL;
+  ClRcT          rc           = CL_OK;
+  ClHdlDatabaseT *hdbp        = (ClHdlDatabaseT*) databaseHandle;
+
+  nullChkRet(handle_out);
+  hdlDbValidityChk(hdbp);
+
+  instance = clHeapCalloc (1, instance_size);
+  if (instance == NULL)
+    {
+      rc = CL_HANDLE_RC(CL_ERR_NO_MEMORY);
+      return rc;
+    }
+
+  rc =  clHandleAdd (databaseHandle, instance, &compAddr, handle_out);
+  idx = CL_HDL_IDX(*handle_out)-1;
+
+  hdbp->handles[idx].flags = HANDLE_ALLOC_FLAG;
+
+  if (rc != CL_OK)
+  {
+      clHeapFree(instance);
+  }
   return rc;
 }
 
@@ -409,6 +451,7 @@ clHandleCreateSpecifiedHandle (
     ClRcT          rc        = CL_OK;
     ClHdlDatabaseT *hdbp     = (ClHdlDatabaseT*) databaseHandle;
     ClRcT          ec        = CL_OK;
+    ClHandleT      orgHandle = handle;
 
     hdlDbValidityChk(hdbp);
     /* We allow handles to be created that are pointing to some other handle DB and node hdlValidityChk(handle,hdbp); */
@@ -481,6 +524,7 @@ clHandleCreateSpecifiedHandle (
 	hdbp->handles[handle].state = HANDLE_STATE_USED;
 	hdbp->handles[handle].instance = instance;
 	hdbp->handles[handle].ref_count = 1;
+	hdbp->handles[handle].handle = orgHandle;
 
     clDbgResourceNotify(clDbgHandleResource, clDbgAllocate, hdbp, handle+1, ("Specific handle [%p:%#llX] allocated", (ClPtrT) hdbp, handle+1));
     hdbp->n_handles_used++;
@@ -599,6 +643,7 @@ clHandleMove(
 	hdbp->handles[newHandle].state = HANDLE_STATE_USED;
 	hdbp->handles[newHandle].instance = instance;
 	hdbp->handles[newHandle].ref_count = 1;
+	hdbp->handles[newHandle].handle = CL_HDL_MAKE(ASP_NODEADDR, hdbp->id, newHandle + 1);;
 
     clDbgResourceNotify(clDbgHandleResource, clDbgAllocate, hdbp, newHandle+1, 
                         ("Specific handle [%p:%#llX] allocated", (ClPtrT) hdbp, newHandle+1));
@@ -939,7 +984,7 @@ clHandleWalk (ClHandleDatabaseHandleT databaseHandle,
         /*
          * Adding 1 to handle to ensure the non-zero handle interface.
          */
-        tempHandle = CL_HDL_MAKE(ASP_NODEADDR, hdbp->id, handle + 1);
+        tempHandle = hdbp->handles[handle].handle;
         rc = fpUserWalkCallback(databaseHandle, tempHandle, pCookie);
         if(rc != CL_OK) {
             goto exit;  /* Already unlocked */

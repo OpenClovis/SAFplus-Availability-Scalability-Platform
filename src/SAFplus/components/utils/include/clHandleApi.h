@@ -86,6 +86,7 @@ extern "C"
 #endif
 
 #include <clCommon.h>
+#include <clIocApi.h>
 
 /**
  * Defines
@@ -94,6 +95,15 @@ extern "C"
 #define CL_HANDLE_INVALID_VALUE     0x0
 #define CL_HDL_IDX_MASK     0x00000000FFFFFFFFULL
 #define CL_HDL_IDX(hdl) (ClUint32T)( (hdl) & CL_HDL_IDX_MASK)
+
+#define CL_HDL_NODE_ADDR_MASK    0xFFF0000000000000ULL
+#define CL_HDL_PORT_ADDR_MASK    0x000FFF0000000000ULL
+#define CL_HDL_DB_ADDR_MASK      0x000000FF00000000ULL
+
+#define CL_HDL_NODE_ADDR(hdl) ((((ClUint64T)hdl)&CL_HDL_NODE_ADDR_MASK)>>52)
+#define CL_HDL_PORT_ADDR(hdl) ((((ClUint64T)hdl)&CL_HDL_PORT_ADDR_MASK)>>40)
+#define CL_HDL_DB_ADDR(hdl) ((((ClUint64T)hdl)&CL_HDL_DB_ADDR_MASK)>>32)
+
 /**
  *  Handle database handle.
  */
@@ -201,8 +211,51 @@ extern ClRcT clHandleDatabaseDestroy(
  */
 extern ClRcT clHandleCreate(
         CL_IN    ClHandleDatabaseHandleT   databaseHandle,
-	    CL_IN    ClInt32T                  instanceSize,
-	    CL_OUT   ClHandleT                *handle);
+        CL_IN    ClInt32T                  instanceSize,
+        CL_OUT   ClHandleT                *handle);
+
+/**
+ ******************************************************************************
+ *  \brief Creates a handle with component address
+ *
+ *  \par Header File
+ *   clHandleApi.h
+ *
+ *  \param databaseHandle (in) The handle database handle.
+ *
+ *  \param instanceSize (in) Size of memory to be allocated.
+ *
+ *  \param compAddr (in) Component address to be included into the handle.
+ *
+ *  \param handle (out) Pointer to return the unique handle.
+ *
+ *  \retval CL_OK The API executed successfully, the returned handle is valid.
+ *  \retval CL_ERR_INVALID_HANDLE Invalid handle database handle.
+ *  \retval CL_ERR_MUTEX_ERROR Error in securing mutex on the database.
+ *  \retval CL_ERR_NO_RESOURCE The database is already marked for destroy
+ *  (perhaps on another thread), so it is not allowed to create new handles.
+ *  \retval CL_ERR_NO_MEMORY Could not allocated memory for handle or data
+ *
+ *  \note
+ *  Returned error is a combination of the component id and error code.
+ *  Use \c CL_GET_ERROR_CODE(RET_CODE) defined in clCommonErrors.h to get the error code.
+ *
+ *  \par Description
+ *  This API creates a new handle, unique within the context of the given
+ *  handle database.  It also allocates memory of given size for data that
+ *  the application can use to store any data associated with this handle.
+ *
+ *  \par Library File
+ *   ClUtil
+ *
+ *  \sa clHandleCreate, clHandleCheckout(), clHandleDestroy()
+ */
+extern ClRcT
+clHandleWithAddressCreate (
+        CL_IN    ClHandleDatabaseHandleT databaseHandle,
+        CL_IN    ClInt32T instance_size,
+        CL_IN    ClIocPhysicalAddressT compAddr,
+        CL_OUT   ClHandleT *handle_out);
 
 /**
  ******************************************************************************

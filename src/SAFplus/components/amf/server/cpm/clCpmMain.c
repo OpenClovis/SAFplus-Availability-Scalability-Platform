@@ -71,6 +71,7 @@
 #include <clDbg.h>
 #include <clLeakyBucket.h>
 #include <clJobQueue.h>
+#include <clAms.h>
 /*
  * ASP Internal header files
  */
@@ -3647,6 +3648,22 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                            ClUint32T length,
                            ClIocPhysicalAddressT srcAddr)
 {
+    ClIocNotificationT notification = {0};
+    ClUint32T len = sizeof(notification);
+
+    clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&notification, &len);
+
+    notification.id = ntohl(notification.id);
+    notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
+    notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
+
+    if(notification.id == CL_IOC_COMP_DEATH_NOTIFICATION ||
+       notification.id == CL_IOC_NODE_LEAVE_NOTIFICATION ||
+       notification.id == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+    {
+        clAmsCCBHandleDBCleanup(&notification);
+    }
+
     if(eoRecvMsg)
         clBufferDelete(&eoRecvMsg);
     return CL_OK;
