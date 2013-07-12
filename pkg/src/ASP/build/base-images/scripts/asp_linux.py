@@ -21,30 +21,68 @@ asp_shutdown_wait_timeout = 30
 def system(cmd):
     """Similar to the os.system call, except that both the output and
     return value is returned"""
-
-    #print 'Executing command: %s' % cmd
-    child = subprocess.Popen(cmd, shell=True,
+    if sys.version_info[0:2] <= (2, 4):
+        pipe=os.popen('%s' %cmd)
+        output=pipe.read()
+        sts=pipe.close()
+        retval=0
+        signal=0
+        core=0
+        if sts:
+            retval = int(sts)
+            signal = retval & 0x7f
+            core   = ((retval & 0x80) !=0)
+            retval = retval >> 8
+        #print 'popen Command return value %s, Output:\n%s' % (str(retval),output)
+        return (retval, output, signal, core)
+    else :
+        #print 'Executing command: %s' % cmd
+        child = subprocess.Popen(cmd, shell=True,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              close_fds=True)
-    output = []
-    while True:
-        pid, sts = os.waitpid(child.pid, os.WNOHANG)
-        output += child.stdout.readlines()
-        if pid == child.pid:
-            break
-        else:
-            time.sleep(0.00001)
+        output = []
+        while True:
+            pid, sts = os.waitpid(child.pid, os.WNOHANG)
+            output += child.stdout.readlines()
+            if pid == child.pid:
+                break
+            else:
+                time.sleep(0.00001)
+        child.stdout.close()
+        child.stderr.close()
+        retval = sts
+        signal = retval & 0x7f
+        core   = ((retval & 0x80) !=0)
+        retval = retval >> 8
+        #print 'Subprocess Command return value %s, Output:\n%s' % (str(retval),output)
+        del child
+        return (retval, output, signal, core)
 
-    child.stdout.close()
-    child.stderr.close()
-    retval = sts
-    signal = retval & 0x7f
-    core   = ((retval & 0x80) !=0)
-    retval = retval >> 8
-    #print 'Command return value %s, Output:\n%s' % (str(retval),output)
-    del child
-    return (retval, output, signal, core)
+def Popen(cmd):
+    """Similar to the os.popen call, except that using subprocess.Popen from python 2.6"""
+    if sys.version_info[0:2] <= (2, 4):
+        return os.popen('%s' %cmd)
+
+    else:
+        child = subprocess.Popen(cmd, shell=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             close_fds=True)
+        output = []
+        while True:
+            pid, sts = os.waitpid(child.pid, os.WNOHANG)
+            output += child.stdout.readlines()
+            if pid == child.pid:
+                break
+            else:
+                time.sleep(0.00001)
+        child.stdout.close()
+        child.stderr.close()
+        del child
+        return output
+
+
 
 def get_kill_asp_cmd(f):
     return 'killall -KILL %s 2> /dev/null' % f

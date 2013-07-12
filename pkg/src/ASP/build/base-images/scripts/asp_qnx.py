@@ -24,6 +24,12 @@ def system(cmd):
     #print 'Command return value %s, Output:\n%s' % (str(retval),output))
     return (retval, output, signal, core)
 
+def Popen(cmd):
+    """Similar to the os.system call, except that both the output and
+    return value is returned"""
+    retval, output, signal, core = system(cmd)
+    return output
+
 def get_kill_asp_cmd(f):
     return 'slay -9 %s 2> /dev/null' % os.path.basename(f)
 
