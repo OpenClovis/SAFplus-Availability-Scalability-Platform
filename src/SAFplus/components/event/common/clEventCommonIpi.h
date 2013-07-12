@@ -59,9 +59,8 @@ extern "C"
     /*
      * EM Timeout for value for making RMD call from EM/L to EM/S 
      */
-# define CL_EVT_RMD_TIME_OUT     10*1000 /* 10 second */
-# define CL_EVT_RMD_MAX_RETRIES  3 /* No of retried to make RMD call between
-                                     * EM/C to EM/S */
+# define CL_EVT_RMD_TIME_OUT     10*1000 /* 10 second timeout (but note that if the comp is not registered the RMD returns right away... */
+# define CL_EVT_RMD_MAX_RETRIES  3 /* Number of retries to make RMD calls from event client to event server */
 
     /*
      * CL_TRUE/CL_FALSE value 

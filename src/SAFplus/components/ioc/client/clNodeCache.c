@@ -715,13 +715,40 @@ ClRcT clNodeCacheCapabilitySet(ClIocNodeAddressT nodeAddress, ClUint32T capabili
     return CL_OK;
 }
 
-ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
-                              ClIocNodeAddressT currentLeader)
+//ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader, ClIocNodeAddressT currentLeader)
+ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader)
 {
-    if(!gpClNodeCache)
-        return CL_ERR_INVALID_PARAMETER;
+    int i;
+    if(!gpClNodeCache) return CL_ERR_INVALID_PARAMETER;
 
     clOsalSemLock(gClNodeCacheSem);
+
+#if 1    
+    /* Very Safe */
+    for (i=1;i<CL_IOC_MAX_NODES;i++)
+    {
+        if (CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability & __LEADER_CAPABILITY_MASK)
+        {
+            /* We are changing leader, when our own cache says someone else is leader???!!!  Probably VERY BAD */
+            clLogAlert("CAP", "SET", "Updating leader when [%d] is already leader with capability [%#x]", i, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability);
+        }
+        
+       CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability &= ~__LEADER_CAPABILITY_MASK; 
+    }
+    
+#else   /* fast */ 
+        
+    int cl = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader;
+    
+    if ((cl > 0)&&(cl<CL_IOC_MAX_NODES))
+    {
+      CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[cl].capability &= ~__LEADER_CAPABILITY_MASK; 
+    }
+    
+        
+#endif
+            
+#if 0  /* strange */ 
     if((ClInt32T)lastLeader > 0 && lastLeader < CL_IOC_MAX_NODES)
     {
         CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability &= ~__LEADER_CAPABILITY_MASK;
@@ -729,6 +756,8 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
         clLogNotice("CAP", "SET", "Node cache capability for last leader [%d] is [%#x]",
                     lastLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability);
     }
+#endif
+    
     if((ClInt32T)currentLeader > 0 && currentLeader < CL_IOC_MAX_NODES)
     {
         CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability |= __LEADER_CAPABILITY_MASK;
@@ -737,6 +766,9 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
                     currentLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability);
     }
     clOsalSemUnlock(gClNodeCacheSem);
+
+    /* TODO: update node cache on ALL nodes via a "gratuituous" IOC notification */
+
     return CL_OK;
 }
 
@@ -802,8 +834,7 @@ ClRcT clNodeCacheVersionAndCapabilityGet(ClIocNodeAddressT nodeAddress,
     return rc;
 }
 
-ClRcT clNodeCacheVersionGet(ClIocNodeAddressT nodeAddress, 
-                            ClUint32T *pVersion)
+ClRcT clNodeCacheVersionGet(ClIocNodeAddressT nodeAddress,ClUint32T *pVersion)
 {
     return clNodeCacheVersionAndCapabilityGet(nodeAddress, pVersion, NULL);
 }
@@ -894,8 +925,7 @@ ClRcT clNodeCacheSlotInfoGet(ClNodeCacheSlotInfoFieldT flag, ClNodeCacheSlotInfo
     return CL_ERR_NOT_EXIST;
 }
 
-ClRcT clNodeCacheSlotInfoGetSafe(ClNodeCacheSlotInfoFieldT flag, 
-                                 ClNodeCacheSlotInfoT *slotInfo)
+ClRcT clNodeCacheSlotInfoGetSafe(ClNodeCacheSlotInfoFieldT flag,ClNodeCacheSlotInfoT *slotInfo)
 {
     ClRcT rc = CL_OK;
     rc = clOsalSemLock(gClNodeCacheSem);

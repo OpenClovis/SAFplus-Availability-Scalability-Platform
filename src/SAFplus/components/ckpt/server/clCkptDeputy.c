@@ -75,8 +75,7 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
 
     CKPT_NULL_CHECK(gCkptSvr);
 
-    memcpy(&ckptVersion,gCkptSvr->versionDatabase.versionsSupported,
-           sizeof(ClVersionT));
+    memcpy(&ckptVersion,gCkptSvr->versionDatabase.versionsSupported, sizeof(ClVersionT));
     pMasterInfo = (CkptMasterDBInfoIDLT *) clHeapCalloc(1,
                            sizeof(CkptMasterDBInfoIDLT));       
     if(pMasterInfo == NULL)
@@ -116,8 +115,7 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
      * Unpack the Name xlation Entries
      */
     rc = ckptXlatioEntryUnpack(ckptCount,pXlationInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Ckpt: Failed to unpack the Xlation Entry rc[0x %x]\n", rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Ckpt: Failed to unpack the Xlation Entry rc[0x %x]\n", rc), rc);
     gCkptSvr->masterInfo.masterAddr = pMasterInfo->masterAddr;
     gCkptSvr->masterInfo.deputyAddr = pMasterInfo->deputyAddr;
     gCkptSvr->masterInfo.compId     = pMasterInfo->compId;
@@ -396,8 +394,7 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
     {
         if (pMasterDBInfo->ckptMasterHdl == CL_HANDLE_INVALID_VALUE)
         {
-            clLogWarning(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,
-                         "Skipping invalid 0 handle received during masterdb unpack");
+            clLogWarning(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Skipping invalid 0 handle received during masterdb unpack");
             ++pMasterDBInfo;
             continue;
         }
@@ -419,31 +416,28 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
             rc = CL_OK;     
             continue;
         }
-        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
+        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
                 
-        rc = clHandleCheckout( gCkptSvr->masterInfo.masterDBHdl,
-                pMasterDBInfo->ckptMasterHdl,
-                (void **)&pMasterDBEntry);
-        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
+        rc = clHandleCheckout( gCkptSvr->masterInfo.masterDBHdl, pMasterDBInfo->ckptMasterHdl, (void **)&pMasterDBEntry);
+        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
         
         /*
          * Increment the masterHdl count.
          */
         gCkptSvr->masterInfo.masterHdlCount++;
         
-        memcpy(&pMasterDBEntry->attrib, &pMasterDBInfo->attrib,
-                sizeof(ClCkptCheckpointCreationAttributesT));
+        memcpy(&pMasterDBEntry->attrib, &pMasterDBInfo->attrib, sizeof(ClCkptCheckpointCreationAttributesT));
         clNameCopy(&pMasterDBEntry->name, &pMasterDBInfo->name);
         pMasterDBEntry->markedDelete  = pMasterDBInfo->markedDelete;
         pMasterDBEntry->refCount      = pMasterDBInfo->refCount;
+            
         pMasterDBEntry->retenTimerHdl = 0;
         pMasterDBEntry->activeRepAddr = pMasterDBInfo->activeRepAddr;
-        pMasterDBEntry->prevActiveRepAddr
-            = pMasterDBInfo->prevActiveRepAddr;
+        pMasterDBEntry->prevActiveRepAddr = pMasterDBInfo->prevActiveRepAddr;
         pMasterDBEntry->activeRepHdl  = pMasterDBInfo->activeRepHdl;
 
+        clLogInfo(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Replicated checkpoint [%.*s] reference count [%d] active replica [%d]", pMasterDBEntry->name.length, pMasterDBEntry->name.value,pMasterDBEntry->refCount,pMasterDBEntry->activeRepAddr);
+       
         /*
          * TODO : Check the following flow.
          */

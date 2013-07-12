@@ -67,7 +67,7 @@
 #define AMS_CKPT_SIZE  0
 #define AMS_CKPT_MAX_SECTION_SIZE  0
 #define AMS_CKPT_MAX_SECTION_ID_SIZE  256 
-#define AMS_CKPT_RETENTION_DURATION  (0)
+#define AMS_CKPT_RETENTION_DURATION  (0x7ffffff)  /* retain the AMS checkpoint forever... */
 #define AMS_CKPT_MAX_SECTIONS           ((CL_AMS_DB_INVOCATION_PAIRS<<1)+2)
 #define CL_AMS_CKPT_VERSION  "B.02.01"
 #define CL_AMS_CKPT_GET_DB_INVOCATION_PAIR(pair)                        \

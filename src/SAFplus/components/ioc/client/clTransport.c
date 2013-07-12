@@ -562,11 +562,13 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
         case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
         {
-            clLogNotice("IOC", "LUT", "Triggering node leave for node [0x%x]", nodeAddr);
-            CL_LIST_FOR_EACH(iter, &gClXportDestNodeLUTList) {
+            clLogNotice("IOC", "LUT", "Transport leave/link down.  Triggering leave for node [%d]", nodeAddr);
+            CL_LIST_FOR_EACH(iter, &gClXportDestNodeLUTList)
+            {
                 ClXportDestNodeLUTDataT *map = CL_LIST_ENTRY(iter, ClXportDestNodeLUTDataT, list);
-                if (map->destIocNodeAddress == nodeAddr || map->bridgeIocNodeAddress == nodeAddr) {
-                    clLogDebug("IOC", "LUT", "Remove entry out of DestNodeLUT for node [%#x]", nodeAddr);
+                if (map->destIocNodeAddress == nodeAddr || map->bridgeIocNodeAddress == nodeAddr)
+                {
+                    clLogDebug("IOC", "LUT", "Remove entry out of DestNodeLUT for node [%d]", nodeAddr);
                     _clXportDestNodeLUTMapDel(map);
                     break;
                 }

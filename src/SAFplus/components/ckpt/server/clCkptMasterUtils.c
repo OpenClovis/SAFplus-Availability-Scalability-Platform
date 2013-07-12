@@ -229,27 +229,23 @@ _ckptClientHdlInfoFill(ClHandleT   masterHdl,
                             clientHdl);
         if( (CL_OK != rc))/* && (CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST) )*/
         {
-            CKPT_DEBUG_E(("Client Handle create err: rc [0x %x]\n",rc));
+            clLogCritical("CKP","MUT","Specific client handle [%llu] create error: rc [0x%x]\n",clientHdl,rc);
             return rc;
         }
+        clLogDebug("CKP","MUT","Created specific ckpt client handle [%llu]", clientHdl);
         rc = CL_OK;
     }
-    rc = clHandleCheckout(gCkptSvr->masterInfo.clientDBHdl, 
-            clientHdl, 
-            (void **)&pClientEntry);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Handle checkout failed rc[0x %x]\n",rc),
-            rc);
+    rc = clHandleCheckout(gCkptSvr->masterInfo.clientDBHdl,clientHdl, (void **)&pClientEntry);
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Handle checkout failed rc[0x %x]\n",rc),rc);
     pClientEntry->clientHdl  =  clientHdl;
     pClientEntry->masterHdl  =  masterHdl;
     
-    rc = clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl, 
-            clientHdl);
+    rc = clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl,clientHdl);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Client Hdl checkin failed rc[0x %x]\n",rc),
             rc);
     /*
-     * Increment the client handle count.
+     * Increment the client handle count.  GAS TODO: should this be inside the "if" block?
      */
     gCkptSvr->masterInfo.clientHdlCount++;        
     clLogDebug("MAS", "CKP", 
@@ -257,11 +253,10 @@ _ckptClientHdlInfoFill(ClHandleT   masterHdl,
              clientHdl);
     return rc;
 exitOnError:
-    clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl, 
-            clientHdl);
+    clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl, clientHdl);
 exitOnErrorBeforeHdlCheckout:
-    clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-            clientHdl);
+    clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl);  /* GAS TODO:  this may not even have been created in the routine! but probably a never-hit error condition... */
+    clLogDebug("CKP","MUT","Deleted ckpt client handle [%llu]", clientHdl);  
     return rc;
 }
 
@@ -286,8 +281,7 @@ _ckptPeerListMasterHdlAdd( ClHandleT          masterHdl,
     ClCntDataHandleT   dataHdl         = 0;
     ClHandleT          *pMasterHandle  = NULL;
 
-    CKPT_DEBUG_T(("MasterHdl: %#llX oldActAddr: %d NewActAddr: %d", masterHdl,
-                    oldActAddr, newActAddr));
+    CKPT_DEBUG_T(("MasterHdl: %#llX oldActAddr: %d NewActAddr: %d", masterHdl,oldActAddr, newActAddr));
                     
     /*
      * In case of node restart and collocated checkpoint the prevActiveAddr

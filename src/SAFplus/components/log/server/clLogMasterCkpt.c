@@ -115,8 +115,7 @@ clLogMasterCkptGet(void)
         return rc;
     }
     ckptAttr.creationFlags     = CL_CKPT_CHECKPOINT_COLLOCATED | CL_CKPT_ALL_OPEN_ARE_REPLICAS;
-    ckptAttr.checkpointSize    = pMasterEoEntry->maxFiles
-        * pMasterEoEntry->sectionSize;
+    ckptAttr.checkpointSize    = pMasterEoEntry->maxFiles * pMasterEoEntry->sectionSize;
     ckptAttr.retentionDuration = CL_LOGMASTER_CKPT_RETENTION_DURATION;
     ckptAttr.maxSections       = pMasterEoEntry->maxFiles;
     ckptAttr.maxSectionSize    = pMasterEoEntry->sectionSize;
@@ -127,8 +126,7 @@ clLogMasterCkptGet(void)
     //                          NULL, openFlags, 0,  &pMasterEoEntry->hCkpt);
     //    if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
     //  {
-    openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE
-        | CL_CKPT_CHECKPOINT_READ;
+    openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
 
     reopen:
     rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName,
@@ -649,6 +647,16 @@ clLogMasterGlobalCkptRead(ClLogSvrCommonEoDataT  *pCommonEoEntry, ClBoolT switch
     return rc;
 }
 
+void clLogMasterReinitCkpt(void)
+{
+    int rc = clLogMasterCkptGet();
+    if (rc != CL_OK)
+    {
+        clLogError("LOG","CKP","Error when reinitializing log checkpoint [%x]", rc);   
+    }    
+}
+
+
 ClRcT
 clLogMasterStateRecover(ClLogSvrCommonEoDataT  *pCommonEoEntry,
                         ClLogMasterEoDataT    *pMasterEoEntry,
@@ -661,9 +669,11 @@ clLogMasterStateRecover(ClLogSvrCommonEoDataT  *pCommonEoEntry,
     ClUint32T                         errIndex       = 0;
     ClCkptSectionCreationAttributesT  secAttr        = {0};
     ClBoolT                           logReadFlag    = CL_FALSE;
-
+    int                               retries=0;
+    
     CL_LOG_DEBUG_TRACE(("Enter"));
 
+        
     rc = clLogMasterEoEntrySet(pMasterEoEntry);
     if( CL_OK != rc )
     {
@@ -671,27 +681,39 @@ clLogMasterStateRecover(ClLogSvrCommonEoDataT  *pCommonEoEntry,
         return rc;
     }
 
-    if(switchover)
+    while(retries<5)
     {
-        rc = clCkptActiveReplicaSetSwitchOver(pMasterEoEntry->hCkpt);
+        retries++;
+        
+        if(switchover)
+        {
+            rc = clCkptActiveReplicaSetSwitchOver(pMasterEoEntry->hCkpt);
+        }
+        else
+        {
+            rc = clCkptActiveReplicaSet(pMasterEoEntry->hCkpt);
+        }
+        if (rc == CL_OK) break;
+        else
+        {
+            clLogInfo("LOG","CKP","clCkptActiveReplicaSet() failed : rc[%#x],switchover flag [%d]", rc, switchover);
+            sleep(1);
+            clLogMasterReinitCkpt();
+        }
+    
     }
-    else
+    if (CL_OK != rc )
     {
-        rc = clCkptActiveReplicaSet(pMasterEoEntry->hCkpt);
+       clLogCritical("LOG","CKP","clCkptActiveReplicaSet() failed : rc[%#x],switchover flag [%d]", rc, switchover);
+       /* TODO: Proposd to assert here */
+       return rc;
     }
-    if (CL_OK != rc)
-    {
-        CL_LOG_DEBUG_ERROR(("clCkptActiveReplicaSet(): rc[%#x],switchover flag [%d]", rc, switchover));
-        return rc;
-    }
-
-    rc = clCkptSectionIterationInitialize(pMasterEoEntry->hCkpt,
-                                          CL_CKPT_SECTIONS_ANY,
-                                          CL_TIME_END, &hSecIter);
+    
+    
+    rc = clCkptSectionIterationInitialize(pMasterEoEntry->hCkpt,CL_CKPT_SECTIONS_ANY,CL_TIME_END, &hSecIter);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clCkptSectionIterationInitialize(): rc[0x %x]",
-                            rc));
+        CL_LOG_DEBUG_ERROR(("clCkptSectionIterationInitialize(): rc[0x %x]", rc));
             return rc;
     }
 

@@ -151,11 +151,9 @@ static ClRcT ckptCloseOpenFailure(ClHandleT         clientHdl,
     /* 
      * Delete the entry from clientDB database 
      */
-    rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-                         clientHdl); 
-    CKPT_ERR_CHECK(CL_CKPT_SVR, CL_DEBUG_ERROR,
-                   ("MasterOpen ckpt close failed rc[0x %x]\n",rc),
-                   rc);
+    clLogDebug("CKP","MSTR","Deleting client handle [%llu]", clientHdl);
+    rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl); 
+    CKPT_ERR_CHECK(CL_CKPT_SVR, CL_DEBUG_ERROR, ("MasterOpen ckpt close failed rc[0x %x]\n",rc), rc);
 
     /*
      * Decrement the client handle count.
@@ -441,6 +439,7 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                 CKPT_DEBUG_E(("client Handle create err: rc[0x %x]\n",rc));
                 return rc;
             }
+            clLogDebug("CKP","MSTR","Created ckpt client handle [%llu]", clientHdl);
 
             if (CL_OK != (rc = _ckptClientHdlInfoFill(masterHdl, clientHdl, 
                                                       CL_CKPT_SOURCE_MASTER)))
@@ -463,8 +462,9 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                                                           CL_CKPT_CREAT,
                                                           pCreateAttr->creationFlags)))
             {
-                clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-                                clientHdl);
+                clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl);
+                clLogDebug("CKP","MSTR","Deleted client handle [%llu]", clientHdl);
+                
                 clCntAllNodesForKeyDelete(
                                           gCkptSvr->masterInfo.nameXlationDBHdl,
                                           (ClCntKeyHandleT)&lookup);
@@ -587,6 +587,7 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
             CKPT_DEBUG_E(("client Handle create err: rc[0x %x]\n",rc));
             return rc;
         }
+        clLogDebug("CKP","MSTR","Created ckpt client handle [%llu]", clientHdl);
         if (CL_OK != (rc = _ckptClientHdlInfoFill(storedDBHdl, clientHdl,
                                                   CL_CKPT_SOURCE_MASTER)))
         {
@@ -603,11 +604,10 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                                                       localAddr, localPort,
                                                       CL_CKPT_OPEN, 0)))
         {
-            clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-                            clientHdl);
+            clLogDebug("CKP","MSTR","Deleted ckpt client handle [%llu]", clientHdl);
+            clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl);
             --gCkptSvr->masterInfo.clientHdlCount;
-            clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
-                            storedDBHdl);
+            clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, storedDBHdl);
             CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
             return rc;                
         }
@@ -677,12 +677,10 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                                                &nodeAddr);
                     if( CL_OK != rc)
                     {
-                        clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN,
-                                   "No replicas available for this checkpoint rc[0x %x]", rc);
+                        clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, "No replicas available for this checkpoint rc[0x %x]", rc);
                         ckptCloseOpenFailure(clientHdl, localAddr);
                         --pStoredData->refCount;
-                        clLogNotice("CKP","MGT","Checkpoint [%s] reference count decremented. Now [%d].", 
-                                    pStoredData->name.value, pStoredData->refCount);
+                        clLogNotice("CKP","MGT","Checkpoint [%s] reference count decremented. Now [%d].", pStoredData->name.value, pStoredData->refCount);
                         rc = CL_CKPT_ERR_NO_RESOURCE;
                         goto exitOnError;
                     }
@@ -1095,18 +1093,12 @@ ClRcT VDECL_VER(clCkptMasterActiveReplicaSet, 4, 0, 0)(ClCkptHdlT           clie
     /*
      * Get the master handle from the client handle info.
      */
-    rc = clHandleCheckout(gCkptSvr->masterInfo.clientDBHdl,
-            clientHdl, 
-            (void **)&pClientEntry);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            (" MasterActiveReplicaSet failed rc[0x %x]\n",rc),
-            rc);
+    rc = clHandleCheckout(gCkptSvr->masterInfo.clientDBHdl, clientHdl, (void **)&pClientEntry);
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, (" Client handle [%llu] checkout error MasterActiveReplicaSet failed rc[0x %x]\n",clientHdl, rc), rc);
     masterHdl = pClientEntry->masterHdl;
-    rc = clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl,
-            clientHdl);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("MasterActiveReplicaSet failed rc[0x %x]\n",rc),
-            rc);
+    rc = clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl, clientHdl);
+    
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("MasterActiveReplicaSet failed rc[0x %x]\n",rc), rc);
 
     /*
      * Retrieve the data associated with the master handle.
@@ -1950,11 +1942,9 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
     /* 
      * Delete the entry from clientDB database 
      */
-    rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-                         clientHdl); 
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                                  (" MasterCheckpointClose failed rc[0x %x]\n",rc),
-                                  rc);
+    rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl); 
+    clLogDebug("CKP","MSTR","Deleted ckpt client handle [%llu]", clientHdl);
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, (" MasterCheckpointClose failed rc[0x %x]\n",rc), rc);
 
     /*
      * Decrement the client handle count.
@@ -2004,8 +1994,7 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
      * Decrement the checkpoint reference count.
      */
     pStoredData->refCount--;
-    clLogInfo("CKP","MGT","Checkpoint [%s] reference count decremented.  Now [%d].",
-              pStoredData->name.value, pStoredData->refCount);
+    clLogInfo("CKP","MGT","Checkpoint [%s] reference count decremented.  Now [%d].", pStoredData->name.value, pStoredData->refCount);
 
     if(pStoredData->refCount == 0)
     {
@@ -2957,10 +2946,8 @@ ClRcT  ckptMasterDBEntryCopy(ClHandleT             handle,
     /*
      * Retrieve the info associated with the master handle.
      */
-    rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl,
-            handle,(void **)&pStoredData);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Ckpt: Failed to allocate the memory rc[0x %x]\n", rc), rc);
+    rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, handle,(void **)&pStoredData);
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Ckpt: Failed to allocate the memory rc[0x %x]\n", rc), rc);
             
     if(pStoredData == NULL || pMasterEntry == NULL)
     {
@@ -2973,8 +2960,7 @@ ClRcT  ckptMasterDBEntryCopy(ClHandleT             handle,
      * Copy the data.
      */
     clNameCopy(&pMasterEntry->name, &pStoredData->name);
-    memcpy(&pMasterEntry->attrib, &pStoredData->attrib,
-            sizeof(ClCkptCheckpointCreationAttributesT));
+    memcpy(&pMasterEntry->attrib, &pStoredData->attrib, sizeof(ClCkptCheckpointCreationAttributesT));
     pMasterEntry->ckptMasterHdl     = handle;
     pMasterEntry->refCount          = pStoredData->refCount;
     pMasterEntry->markedDelete      = pStoredData->markedDelete;
@@ -3249,8 +3235,7 @@ ClRcT ckptMasterReplicaListDelete(ClCntKeyHandleT    userKey,
                             peerAddr, pXlation->name.length, pXlation->name.value);
                 clCntNodeDelete(pStoredData->replicaList, pNodeHandle);
             }   
-            rc = clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
-                                 pXlation->mastHdl);
+            rc = clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, pXlation->mastHdl);
         }    
     }
     return rc;

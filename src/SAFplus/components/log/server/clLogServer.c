@@ -2220,16 +2220,15 @@ clLogTimerCallback(void *pData)
 
     if( CL_FALSE == pSvrEoEntry->ckptInit )
     {
-        clLogDebug(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
-                   "Initializing client [CKPT]...");
+        clLogDebug(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Initializing client [CKPT]...");
         rc = clCkptInitialize(&pSvrCommonEoEntry->hSvrCkpt, NULL, &ckptVersion);
         if( CL_OK != rc )
         {
-            rc = clLogSvrTimerDeleteNStart(pSvrEoEntry, pData);
             if( CL_OK != rc )
             {
                 CL_LOG_DEBUG_ERROR(("clCkptInitialize failed rc[0x %x]", rc));
             }
+            rc = clLogSvrTimerDeleteNStart(pSvrEoEntry, pData);
             return rc;
         }
         pSvrEoEntry->ckptInit = CL_TRUE;

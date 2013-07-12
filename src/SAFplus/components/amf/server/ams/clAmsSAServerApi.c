@@ -1745,15 +1745,28 @@ _clAmsSACkptServerReady(
         CL_IN  ClCkptHdlT  ckptInitHandle,
         CL_IN  ClUint32T  mode )
 {
+    ClRcT rc;
     AMS_FUNC_ENTER (("\n"));
 
     if(gAms.ckptServerReady)
     {
-        clLogWarning("AMS", "CKP", "AMS checkpointing already ready. Skipping initialization");
+        clLogInfo("AMS", "CKP", "AMS checkpointing already ready. Skipping initialization");
         return CL_OK;
     }
 
-    AMS_CALL (clAmsCkptInitialize(&gAms,ckptInitHandle,mode));
+    for(int retry=0;retry<30;retry++)
+    {
+        rc = clAmsCkptInitialize(&gAms,ckptInitHandle,mode);
+        if (rc == CL_OK) break;
+        clLogInfo("AMS", "CKP", "AMS checkpoint initialization error [0x%x]...retrying in %d seconds",rc,retry/2+1);
+        sleep(retry/2+1);      
+    }
+    if (rc != CL_OK)
+    {
+        clLogCritical("AMS", "CKP", "AMS checkpoint initialization error [0x%x]",rc);
+        /* GAS: propose to assert(0) here... how can AMF function without its checkpoint? */
+    }
+    
 
     gAms.ckptServerReady = CL_TRUE;
 
@@ -2387,10 +2400,10 @@ _clAmsSANodeAdd(const ClCharT *nodeName)
     rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &entityRef);
     if (rc != CL_OK)
     {
+#if 0        /* Dynamically create non-existant nodes */
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
         {
-            rc = clAmsEntityDbAddEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
-                                        &entityRef);
+            rc = clAmsEntityDbAddEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &entityRef);
         }
 
         if(rc != CL_OK)
@@ -2398,6 +2411,10 @@ _clAmsSANodeAdd(const ClCharT *nodeName)
             AMS_LOG(CL_DEBUG_ERROR, ("AMS node [%s] found returned [%#x]\n", nodeName, rc));
             return rc;
         }
+#else
+        AMS_LOG(CL_DEBUG_ERROR, ("Node [%s] lookup returned [%#x]\n",nodeName, rc));
+        return rc;
+#endif        
     }
 
     rc = _clAmsSAEntityAdd(&entityRef);

@@ -518,14 +518,23 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
 
     nodeAddress = cpmLocalInfo.cpmAddress.nodeAddress;
 
-    if ((nodeAddress != clIocLocalAddressGet()) &&
-        (gpClCpm->bmTable->currentBootLevel < cpmLocalInfo.defaultBootLevel))
+    if ((nodeAddress != clIocLocalAddressGet()) && (gpClCpm->bmTable->currentBootLevel < cpmLocalInfo.defaultBootLevel))
     {
-        clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-                    "CPM/G active is returning try again for "
-                    "registration request by node [%d], "
-                    "because it is not ready...",
-                    nodeAddress);
+        /* clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
+           "CPM/G active is returning try again for registration request by node [name: %s, id: %d, addr: %d], because it is not ready.  Current boot level [%d], required boot level [%d]", cpmLocalInfo.nodeName,cpmLocalInfo.nodeId, nodeAddress, gpClCpm->bmTable->currentBootLevel,cpmLocalInfo.defaultBootLevel); */
+    clLogMultiline(CL_LOG_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
+                   "Active is at boot level [%d] so returning try again for registration request from [%s] Node ID: [%d] IOC address: [%d] IOC port: [%#x] Default boot level: [%d] Slot Number: [%d] Node Type: [%*s] Node Identifier: [%*s]",
+                   gpClCpm->bmTable->currentBootLevel,
+                   cpmLocalInfo.nodeName,
+                   cpmLocalInfo.nodeId,
+                   cpmLocalInfo.cpmAddress.nodeAddress,
+                   cpmLocalInfo.cpmAddress.portId,
+                   cpmLocalInfo.defaultBootLevel,
+                   cpmLocalInfo.slotNumber,
+                   cpmLocalInfo.nodeType.length,
+                   cpmLocalInfo.nodeType.value,
+                   cpmLocalInfo.nodeIdentifier.length,
+                   cpmLocalInfo.nodeIdentifier.value);        
         return CL_CPM_RC(CL_ERR_TRY_AGAIN);
     }
 
@@ -1999,6 +2008,10 @@ static void __cpmRegisterWithActive(ClBoolT reregister)
         (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE) ||
         (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE))
     {
+        /* ensure that it delays... clean up code below later */
+        ClTimerTimeOutT timeOut1 = {2, 0};
+        clOsalTaskDelay(timeOut1);
+        
         leaderless:
         if (CL_CPM_IS_ACTIVE())
         {

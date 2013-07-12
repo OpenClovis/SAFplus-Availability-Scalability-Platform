@@ -1264,15 +1264,11 @@ ClRcT clCkptActiveReplicaSet(ClCkptHdlT ckptHdl)
      * Update idl handle with master related info.
      */
     rc = ckptMasterHandleGet(ckptHdl,&mastHdl);    
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
-              ("Ckpt:Master Handle Get error rc[0x %x]\n",rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, ("Ckpt:Master Handle Get error rc[0x %x]\n",rc), rc);
     rc =  clCkptMasterAddressGet(&pInitInfo->mastNodeAddr);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
-          ("Ckpt: Failed in master Address Get rc[0x %x]\n",rc), rc);
-    rc = ckptIdlHandleUpdate(pInitInfo->mastNodeAddr, pInitInfo->ckptIdlHdl,
-                            CL_CKPT_MAX_RETRY);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
-              ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, ("Ckpt: Failed in master Address Get rc[0x %x]\n",rc), rc);
+    rc = ckptIdlHandleUpdate(pInitInfo->mastNodeAddr, pInitInfo->ckptIdlHdl, CL_CKPT_MAX_RETRY);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;    
     
     nodeAddr  = clIocLocalAddressGet();
@@ -1913,11 +1909,9 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
-              ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
-              ("Ckpt: Active server not exist rc[0x %x]\n",rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, ("Ckpt: Active server not exist rc[0x %x]\n",rc), rc);
  
     /* 
      * Fill the supported version information 
@@ -4789,11 +4783,10 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
           * occur only if the active address of non-collocated checkpoint
           * gets updated.
           */
-        rc = clEventInitialize(&gClntInfo.ckptEvtHdl, &ckptEvtCallbacks, 
-                               &evtVersion);
+        rc = clEventInitialize(&gClntInfo.ckptEvtHdl, &ckptEvtCallbacks, &evtVersion);
         if(CL_OK != rc)
         {
-            CKPT_DEBUG_E(("Ckpt:Ckpt Initialize failed in rc[0x %x]\n",rc));
+            CKPT_DEBUG_E(("Ckpt:Initialize failed in rc[0x %x]\n",rc));
             goto exitOnError;
         }
         else

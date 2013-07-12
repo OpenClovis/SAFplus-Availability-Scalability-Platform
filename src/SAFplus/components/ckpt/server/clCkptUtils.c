@@ -455,7 +455,7 @@ ClRcT _ckptClientDBInfoDeleteCallback(ClHandleDatabaseHandleT databaseHandle,
     ClRcT rc = CL_OK;
     
     rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, handle);
-    
+    clLogDebug("CKP","UTL","Deleted ckpt client handle [%llu]", handle);
     /*
      * Decrement the count of client handles.
      */
@@ -635,8 +635,7 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Master DB creation failed rc[0x %x]\n",rc),
              rc);
-    rc = clHandleDatabaseCreate( NULL, 
-                                 &pSvrCb->masterInfo.clientDBHdl);
+    rc = clHandleDatabaseCreate( NULL, &pSvrCb->masterInfo.clientDBHdl);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Master DB creation failed rc[0x %x]\n",rc),
              rc);

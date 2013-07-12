@@ -107,8 +107,7 @@ ClRcT ckptHandleInfoSet(ClCkptHdlT ckptLocalHdl,CkptHdlDbT *pData)
  * Function to get the active replica's address, given the checkpoint handle.
  */
  
-ClRcT ckptActiveAddressGet( ClCkptHdlT        ckptLocalHdl,
-                            ClIocNodeAddressT *pNodeAddr)
+ClRcT ckptActiveAddressGet( ClCkptHdlT        ckptLocalHdl, ClIocNodeAddressT *pNodeAddr)
 {
     ClRcT               rc        = CL_OK;
     CkptHdlDbT          *pHdlInfo = NULL;
@@ -116,11 +115,13 @@ ClRcT ckptActiveAddressGet( ClCkptHdlT        ckptLocalHdl,
     /*
      * Checkout the information assocaited with the checkpoint handle.
      */
-    rc = ckptHandleCheckout( ckptLocalHdl,
-            CL_CKPT_CHECKPOINT_HDL,
-            (void **)&pHdlInfo);
+    rc = ckptHandleCheckout( ckptLocalHdl, CL_CKPT_CHECKPOINT_HDL, (void **)&pHdlInfo);
     if(rc != CL_OK)
+    {
+        clLogWarning ("CKP", "HDL", "Bad handle [%llu] error [0x%x]", ckptLocalHdl, rc);
         return rc;
+    }
+    
 #if 0    
     /*
      * In case of SYNC checkpoints, local server is considered as active
@@ -153,7 +154,7 @@ ClRcT ckptActiveAddressGet( ClCkptHdlT        ckptLocalHdl,
     }
     
     /*
-     * Checkin the information assocaited with the checkpoint handle.
+     * Checkin the information associated with the checkpoint handle.
      */
     clHandleCheckin(gClntInfo.ckptDbHdl,(ClHandleT)ckptLocalHdl);
     return rc;

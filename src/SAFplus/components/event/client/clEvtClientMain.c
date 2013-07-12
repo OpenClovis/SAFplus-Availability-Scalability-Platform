@@ -1074,14 +1074,14 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
 
     do
     {
-        rc = clRmdWithMsg(destAddr, EO_CL_EVT_INTIALIZE, inMsgHandle, outMsgHandle,
-                          CL_RMD_CALL_NEED_REPLY | CL_RMD_CALL_ATMOST_ONCE,
-                          &rmdOptions, NULL);
-    } while(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN 
-            && 
-            ++tries < 5 
-            &&
-            clOsalTaskDelay(delay) == CL_OK);
+        rc = clRmdWithMsg(destAddr, EO_CL_EVT_INTIALIZE, inMsgHandle, outMsgHandle, CL_RMD_CALL_NEED_REPLY | CL_RMD_CALL_ATMOST_ONCE, &rmdOptions, NULL);
+        if (CL_GET_ERROR_CODE(rc) != CL_OK)
+        {
+            clOsalTaskDelay(delay);
+            delay.tsSec+=1;            
+        }
+        tries++;
+    } while( (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && (tries < 30));
 
     clBufferDelete(&inMsgHandle);
     if (CL_OK != rc)
@@ -1198,8 +1198,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
 #endif
 // success:
 
-    clLogTrace("EVT", "INI", 
-            "Event Library Initialized with evtHandle[%#llX]", *pEvtHandle);
+    clLogTrace("EVT", "INI","Event Library Initialized with evtHandle[%#llX]", *pEvtHandle);
 
     CL_FUNC_EXIT();
     return CL_OK;
@@ -1209,8 +1208,7 @@ inMsgCreated:
 
 failure:
     rc = CL_EVENTS_RC(rc);
-    clLogError("EVT", "INI", 
-            "Event Library Initialization failed, rc[%#X]", rc);
+    clLogError("EVT", "INI","Event Library Initialization failed, rc[%#X]", rc);
     CL_FUNC_EXIT();
     return rc;
 }

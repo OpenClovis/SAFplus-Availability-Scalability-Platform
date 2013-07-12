@@ -128,6 +128,7 @@ timerCallback( void *arg ){
 
     reElect = CL_FALSE; /* reset re-election trigger*/
     timerRestarted = CL_FALSE;
+    bootTimeElectionDone = CL_TRUE;
 
     rc = _clGmsEngineLeaderElect ( 
                                   0x0,
@@ -154,10 +155,12 @@ timerCallback( void *arg ){
             view->leader = leaderNodeId;
             view->deputy = deputyNodeId;
             view->leadershipChanged = leadershipChanged;
+#if 0            
             if(leadershipChanged)
             {
                 clNodeCacheLeaderUpdate(lastLeader, leaderNodeId);
             }
+#endif            
             clEoMyEoObjectSet ( gmsGlobalInfo.gmsEoObject );
             if (_clGmsTrackNotify ( 0x0 ) != CL_OK)
             {
@@ -166,9 +169,7 @@ timerCallback( void *arg ){
             }
         }
     }
-
-    bootTimeElectionDone = CL_TRUE;
-
+    
     // ready to Serve only to be set when there is Synch done 
     //readyToServeGroups = CL_TRUE;
 
@@ -231,7 +232,7 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId,
        ||
        eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
     {
-        clLogNotice("NOTIF", "LEAVE", "Triggering node leave for node [%#x], port [%#x]",
+        clLogNotice("NOTIF", "LEAVE", "Triggering node leave for node [%d], port [%#x]",
                     pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
         rc = _clGmsEngineClusterLeaveExtended(0, pAddress->iocPhyAddress.nodeAddress, CL_TRUE);
     }
@@ -274,20 +275,14 @@ static ClRcT gmsClusterStart(void)
 
     if(clAspNativeLeaderElection() && version >= CL_VERSION_CODE(5, 0, 0))
     {
-        rc = clCpmComponentRegister(
-                                    gmsGlobalInfo.cpmHandle,
-                                    &gmsGlobalInfo.gmsComponentName,
-                                    NULL
-                                    );
+        rc = clCpmComponentRegister(gmsGlobalInfo.cpmHandle,&gmsGlobalInfo.gmsComponentName,NULL);
         if(rc != CL_OK)
         {
-            clLogError("CLUSTER", "START",
-                       "clCpmComponent register failed with rc 0x%x", rc);
+            clLogError("CLUSTER", "START", "clCpmComponent register failed with rc 0x%x", rc);
         }
         else
         {
-            clLogMultiline(CL_LOG_DEBUG,"CLUSTER", "START",
-                           "clCpmComponentRegister successful. Updating GMS state as RUNNING");
+            clLogMultiline(CL_LOG_DEBUG,"CLUSTER", "START", "clCpmComponentRegister successful. Updating GMS state as RUNNING");
             gmsGlobalInfo.opState = CL_GMS_STATE_RUNNING;
         }
 
@@ -573,6 +568,9 @@ _clGmsEngineLeaderElect(
     ClGmsNodeIdT lastLeader = 0;
     ClUint32T           i = 0;
 
+    /* Leader election cannot happen yet... we must wait */
+    if (!bootTimeElectionDone) return CL_ERR_TRY_AGAIN;    
+    
     if ((leaderNodeId == NULL) || (deputyNodeId == NULL))
     {
         return CL_ERR_NULL_POINTER;
@@ -632,6 +630,8 @@ _clGmsEngineLeaderElect(
 
 
     clLog(CL_LOG_DEBUG,CLM,NA, "Leader election is done. Now updating the leadership status");
+    clNodeCacheLeaderUpdate(*leaderNodeId);
+    
     rc  = _clGmsViewDbFind(groupId, &thisViewDb);
 
     if (rc != CL_OK)
@@ -804,7 +804,7 @@ _clGmsEnginePreferredLeaderElect(
         /* leader changed */
         thisViewDb->view.leader = leaderNode;
         thisViewDb->view.leadershipChanged = CL_TRUE;
-        clNodeCacheLeaderUpdate(oldLeaderNode, leaderNode);
+        //now called in _clGmsEngineLeaderElect: clNodeCacheLeaderUpdate(oldLeaderNode, leaderNode);
     }
 
     thisViewDb->view.deputy = deputyNode;
@@ -1003,7 +1003,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         thisClusterView->leader = newLeader;
         thisClusterView->leadershipChanged = CL_TRUE;
         thisClusterView->deputy = newDeputy;
-        clNodeCacheLeaderUpdate(currentLeader, newLeader);
+        //now called in _clGmsEngineLeaderElect: clNodeCacheLeaderUpdate(currentLeader, newLeader);
     }
 
     thisClusterView->deputy = newDeputy;
@@ -1161,7 +1161,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
         {
             goto unlock_and_exit;
         }
-        clNodeCacheLeaderUpdate(thisClusterView->leader, new_leader);
+        //now called in _clGmsEngineLeaderElect: clNodeCacheLeaderUpdate(thisClusterView->leader, new_leader);
         if( nodeId == thisClusterView->leader )
         {
             thisClusterView->leader = new_leader;
