@@ -207,6 +207,62 @@ ClRcT clCpmClientRMDSync(ClIocNodeAddressT destAddr,
     return retCode;
 }
 
+ClRcT clCpmClientRMDSyncMaster(
+                            ClUint32T fcnId,
+                            ClUint8T *pInBuf,
+                            ClUint32T inBufLen,
+                            ClUint8T *pOutBuf,
+                            ClUint32T *pOutBufLen,
+                            ClUint32T flags,
+                            ClUint32T timeOut,
+                            ClUint32T maxRetries,
+                            ClUint8T priority,
+                            ClCpmMarshallT marshallFunction,
+                            ClCpmUnmarshallT unmarshallFunction)
+{
+    ClIocNodeAddressT masterAddress = 0;
+    ClRcT rc;
+    int retries=0;
+    
+
+    while (retries<5)
+    {
+        if ((retries&1)==1) masterAddress = CL_IOC_BROADCAST_ADDRESS;  /* Every other time, attempt the broadcast address */
+        else
+        {
+            
+            rc = clCpmMasterAddressGet(&masterAddress);
+    
+            if(rc != CL_OK)
+            {
+                if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_SUPPORTED)
+                    masterAddress = CL_IOC_BROADCAST_ADDRESS;
+                else
+                {
+                    clLogError("NODE", "CONFIG", "Get master address returned [%#x], trying broadcast", rc);
+                    masterAddress = CL_IOC_BROADCAST_ADDRESS;
+                }
+            }
+        }
+        
+
+        rc = clCpmClientRMDSyncNew(masterAddress, fcnId, pInBuf, inBufLen, pOutBuf, pOutBufLen,flags,timeOut,maxRetries,priority,marshallFunction,unmarshallFunction);
+        if(rc == CL_OK) return rc;
+        else
+        {
+            if (CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT)
+            {
+            }
+            sleep(retries/2+1);
+        }
+
+        retries++;
+    }
+    
+    return rc;
+}
+
+
 ClRcT clCpmClientRMDSyncNew(ClIocNodeAddressT destAddr,
                             ClUint32T fcnId,
                             ClUint8T *pInBuf,
@@ -1337,8 +1393,7 @@ ClRcT clCpmMasterAddressGetExtended(ClIocNodeAddressT *pIocAddress,
     if(!numRetries && !pDelay)
         rc = clIocMasterAddressGet(logicalAddr,CL_IOC_CPM_PORT,pIocAddress);
     else
-        rc = clIocMasterAddressGetExtended(logicalAddr, CL_IOC_CPM_PORT, pIocAddress,
-                                           numRetries, pDelay);
+        rc = clIocMasterAddressGetExtended(logicalAddr, CL_IOC_CPM_PORT, pIocAddress, numRetries, pDelay);
     if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_SUPPORTED)
     {
         rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
@@ -1796,7 +1851,6 @@ ClRcT clCpmNodeConfigSet(ClCpmNodeConfigT *nodeConfig)
 
 ClRcT clCpmNodeConfigGet(const ClCharT *nodeName, ClCpmNodeConfigT *nodeConfig)
 {
-    ClIocNodeAddressT masterAddress = 0;
     ClUint32T configSize = 0;
     ClNameT node = {0};
     ClRcT rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
@@ -1807,20 +1861,8 @@ ClRcT clCpmNodeConfigGet(const ClCharT *nodeName, ClCpmNodeConfigT *nodeConfig)
     }
 
     clNameSet(&node, nodeName);
-
-    rc = clCpmMasterAddressGet(&masterAddress);
-    if(rc != CL_OK)
-    {
-        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_SUPPORTED)
-            masterAddress = CL_IOC_BROADCAST_ADDRESS;
-        else
-        {
-            clLogError("NODE", "CONFIG", "Master address get returned [%#x]", rc);
-            goto out;
-        }
-    }
-
-    rc = clCpmClientRMDSyncNew(masterAddress, CPM_MGMT_NODE_CONFIG_GET,
+    
+    rc = clCpmClientRMDSyncMaster(CPM_MGMT_NODE_CONFIG_GET,
                                (ClUint8T *)&node, sizeof(node),
                                (ClUint8T *) nodeConfig, &configSize,
                                CL_RMD_CALL_NEED_REPLY, 0, 0, CL_IOC_LOW_PRIORITY,
@@ -1830,11 +1872,6 @@ ClRcT clCpmNodeConfigGet(const ClCharT *nodeName, ClCpmNodeConfigT *nodeConfig)
     if(rc != CL_OK)
     {
         clLogError("NODE", "CONFIG", "Node config get RMD returned [%#x]", rc);
-        if(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT 
-           && 
-           masterAddress == CL_IOC_BROADCAST_ADDRESS)
-            rc = CL_ERR_NOT_EXIST;
-
         goto out;
     }
 

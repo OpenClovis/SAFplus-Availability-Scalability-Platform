@@ -718,31 +718,41 @@ ClRcT clNodeCacheCapabilitySet(ClIocNodeAddressT nodeAddress, ClUint32T capabili
 //ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader, ClIocNodeAddressT currentLeader)
 ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader)
 {
-    int i;
     if(!gpClNodeCache) return CL_ERR_INVALID_PARAMETER;
 
     clOsalSemLock(gClNodeCacheSem);
 
-#if 1    
-    /* Very Safe */
+#if 0
+    int i;
+    /* Removing all the leaders marked in the node cache does not work because the
+       GMS election does not necessarily include all nodes known to the node cache.
+
+       The GMS election should be changed to reload all nodes from this cache before electing
+       but for now this code is removed.
+     */
     for (i=1;i<CL_IOC_MAX_NODES;i++)
     {
-        if (CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability & __LEADER_CAPABILITY_MASK)
-        {
-            /* We are changing leader, when our own cache says someone else is leader???!!!  Probably VERY BAD */
-            clLogAlert("CAP", "SET", "Updating leader when [%d] is already leader with capability [%#x]", i, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability);
+        if (i != currentLeader) /* we are about to set this one as leader so skip clearing it if its already set */
+        {            
+            if (CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability & __LEADER_CAPABILITY_MASK)
+            {
+                /* We are changing leader, when our own cache says someone else is leader???!!!  Probably VERY BAD */
+                clLogAlert("CAP", "SET", "Updating leader when [%d] is already leader with capability [%#x]", i, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability);
+            }        
+            CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability &= ~__LEADER_CAPABILITY_MASK;
         }
         
-       CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability &= ~__LEADER_CAPABILITY_MASK; 
     }
     
-#else   /* fast */ 
-        
-    int cl = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader;
+#else   /* fast */
     
-    if ((cl > 0)&&(cl<CL_IOC_MAX_NODES))
-    {
-      CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[cl].capability &= ~__LEADER_CAPABILITY_MASK; 
+    int cl = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader;
+    if (cl != currentLeader) /* we are about to set this one as leader so skip clearing it if its already set */
+    {    
+        if ((cl > 0)&&(cl<CL_IOC_MAX_NODES))
+        {
+            CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[cl].capability &= ~__LEADER_CAPABILITY_MASK; 
+        }
     }
     
         

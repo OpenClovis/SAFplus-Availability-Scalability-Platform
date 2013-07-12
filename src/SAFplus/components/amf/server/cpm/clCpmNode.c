@@ -2114,8 +2114,7 @@ static void __cpmRegisterWithActive(ClBoolT reregister)
                        ++tries >= 1)
                     {
                         ClCpmNodeConfigT nodeConfig = {{0}};
-                        rc1 = clCpmNodeConfigGet(gpClCpm->pCpmLocalInfo->nodeName,
-                                                &nodeConfig);
+                        rc1 = clCpmNodeConfigGet(gpClCpm->pCpmLocalInfo->nodeName, &nodeConfig);
                         if(rc1 == CL_OK)
                             continue;
                     }
@@ -2123,10 +2122,7 @@ static void __cpmRegisterWithActive(ClBoolT reregister)
                     if(CL_GET_ERROR_CODE(rc1) == CL_ERR_INVALID_STATE)
                         goto invalid_state;
 
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-                                  "CPM/G standby/Worker blade registration "
-                                  "with the CPM/G active failed, error [%#x]",
-                                  rc1);
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM, "CPM/G standby/Worker blade registration with the CPM/G active failed, error [%#x]", rc1);
                     goto failure;
                 }
                 else

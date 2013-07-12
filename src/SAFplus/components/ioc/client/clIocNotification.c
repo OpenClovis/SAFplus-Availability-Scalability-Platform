@@ -238,6 +238,7 @@ ClRcT clIocNotificationPacketSend(ClIocCommPortHandleT commPort,
         }
     }
 
+    /* clLogInfo("Sending discovery notification for myself []"); */
     retCode = clIocSendWithXport(commPort, message, CL_IOC_PORT_NOTIFICATION_PROTO, destAddress, &sendOption, xportType, CL_FALSE);
     if(retCode != CL_OK)
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to send notification. error code 0x%x", retCode));
@@ -320,14 +321,16 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
      */
     if(id == CL_IOC_NODE_VERSION_NOTIFICATION)
     {
-    static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
-    ClUint32T myCapability = 0;
-    clNodeCacheVersionAndCapabilityGet(gIocLocalBladeAddress, &nodeVersion, &myCapability);
-    notification->id = htonl(CL_IOC_NODE_VERSION_REPLY_NOTIFICATION);
-    notification->nodeVersion = htonl(nodeVersion);
-    notification->nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
-    notification->nodeAddress.iocPhyAddress.portId = htonl(myCapability);
-    rc = clIocNotificationPacketSend(commPort, notification, &destAddress, compat, xportType);
+        static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
+        ClUint32T myCapability = 0;
+        clNodeCacheVersionAndCapabilityGet(gIocLocalBladeAddress, &nodeVersion, &myCapability);
+        notification->id = htonl(CL_IOC_NODE_VERSION_REPLY_NOTIFICATION);
+        notification->nodeVersion = htonl(nodeVersion);
+        notification->nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
+        notification->nodeAddress.iocPhyAddress.portId = htonl(myCapability);
+
+        clLogDebug("IOC", "NTF", "Sending return discovery notification for myself at [%d], capability [0x%x]", gIocLocalBladeAddress,myCapability);
+        rc = clIocNotificationPacketSend(commPort, notification, &destAddress, compat, xportType);
     }
     
 
