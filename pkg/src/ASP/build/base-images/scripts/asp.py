@@ -288,7 +288,7 @@ def set_up_asp_config():
     def asp_getenv(var, default=None):
         val = os.getenv(var) or default
         if val is None:
-            fail_and_exit('The %s environment variable is not set in the %s/asp.conf file, '
+            fail_and_exit('The %s environment variable is not set in the %s/doasp.conf file, '
                           'or the %s/asp.conf file has not been sourced.' %
                           (var, d['etc_dir'], d['etc_dir']))
         return val
@@ -913,6 +913,7 @@ def save_asp_runtime_files():
         
         def dir_free_space(d, defsize=10*1024):
             cmd = 'df -Pk %s' % d
+            log.warn('run cmd  "%s"' % cmd)
             l = Popen(cmd)
             if len(l) == 1: # if the size cannot be determined
               log.warn('Cannot determine available space at "%s" (could it be a network mount?)  Assuming plenty of room.' % d)

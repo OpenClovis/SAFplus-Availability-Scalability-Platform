@@ -23,7 +23,7 @@ def system(cmd):
     return value is returned"""
     if sys.version_info[0:2] <= (2, 4):
         pipe=os.popen('%s' %cmd)
-        output=pipe.read()
+        output=pipe.readlines()
         sts=pipe.close()
         retval=0
         signal=0
@@ -62,7 +62,7 @@ def system(cmd):
 def Popen(cmd):
     """Similar to the os.popen call, except that using subprocess.Popen from python 2.6"""
     if sys.version_info[0:2] <= (2, 4):
-        return os.popen('%s' %cmd)
+        return os.popen('%s' %cmd).readlines()
 
     else:
         child = subprocess.Popen(cmd, shell=True,
