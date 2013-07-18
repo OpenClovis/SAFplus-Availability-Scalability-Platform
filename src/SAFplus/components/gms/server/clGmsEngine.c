@@ -630,7 +630,9 @@ _clGmsEngineLeaderElect(
 
 
     clLog(CL_LOG_DEBUG,CLM,NA, "Leader election is done. Now updating the leadership status");
-    clNodeCacheLeaderUpdate(*leaderNodeId);
+
+    /* Update current leader and "gratuitous" sending to others AMF */
+    clNodeCacheLeaderUpdate(*leaderNodeId, CL_TRUE);
     
     rc  = _clGmsViewDbFind(groupId, &thisViewDb);
 

@@ -715,8 +715,55 @@ ClRcT clNodeCacheCapabilitySet(ClIocNodeAddressT nodeAddress, ClUint32T capabili
     return CL_OK;
 }
 
-//ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader, ClIocNodeAddressT currentLeader)
-ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader)
+ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
+{
+    ClRcT rc = CL_OK;
+    ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 200 };
+    ClIocPhysicalAddressT compAddr = { .nodeAddress = CL_IOC_BROADCAST_ADDRESS, .portId = CL_IOC_CPM_PORT };
+    ClTimerTimeOutT delay = { .tsSec = 0, .tsMilliSec = 200 };
+    ClUint32T i = 0;
+    ClBufferHandleT message = 0;
+    ClEoExecutionObjT *eoObj = NULL;
+    ClIocNotificationT notification = {0};
+
+    notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
+    notification.id = htonl(CL_IOC_NODE_ARRIVAL_NOTIFICATION);
+    notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
+    notification.nodeAddress.iocPhyAddress.portId = htonl(CL_IOC_CPM_PORT);
+
+    clEoMyEoObjectGet(&eoObj);
+
+    while(!eoObj && i++ <= 3)
+    {
+        clEoMyEoObjectGet(&eoObj);
+        clOsalTaskDelay(delay);
+    }
+
+    if(!eoObj)
+    {
+        clLogWarning("CAP", "ARP", "Could not send current leader update since EO still uninitialized.");
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    clBufferCreate(&message);
+
+    currentLeader = htonl(currentLeader);
+    rc = clBufferNBytesWrite(message, (ClUint8T *)&notification, sizeof(ClIocNotificationT));
+    rc |= clBufferNBytesWrite(message, (ClUint8T*)&currentLeader, sizeof(currentLeader));
+    if (rc != CL_OK)
+    {
+        clLogError("CAP", "ARP", "clBufferNBytesWrite failed with rc = %#x", rc);
+        clBufferDelete(&message);
+        return rc;
+    }
+
+    rc = clIocSend(eoObj->commObj, message, CL_IOC_PORT_NOTIFICATION_PROTO, (ClIocAddressT *) &compAddr, &sendOption);
+
+    clBufferDelete(&message);
+    return rc;
+}
+
+ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader, ClBoolT send)
 {
     if(!gpClNodeCache) return CL_ERR_INVALID_PARAMETER;
 
@@ -777,7 +824,11 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader)
     }
     clOsalSemUnlock(gClNodeCacheSem);
 
-    /* TODO: update node cache on ALL nodes via a "gratuituous" IOC notification */
+    /* Update node cache on ALL nodes via a "gratuitous" IOC notification */
+    if (send)
+    {
+        clNodeCacheLeaderSend(currentLeader);
+    }
 
     return CL_OK;
 }
@@ -928,6 +979,7 @@ ClRcT clNodeCacheSlotInfoGet(ClNodeCacheSlotInfoFieldT flag, ClNodeCacheSlotInfo
             }
             ++entry;
         }
+        break;
     default:
         break;
     }

@@ -88,7 +88,7 @@ ClRcT clNodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *p
                                    ClUint32T retries, ClUint32T msecDelay);
 ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
                                        ClUint32T retries, ClUint32T msecDelay);
-ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader);
+ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader, ClBoolT send);
 
 ClRcT clNodeCacheLeaderGet(ClIocNodeAddressT *pCurrentLeader);
 

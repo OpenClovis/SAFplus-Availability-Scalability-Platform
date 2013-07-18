@@ -77,6 +77,7 @@
  */
 #include <clEoIpi.h>
 #include <clRmdIpi.h>
+#include <clNodeCache.h>
 
 /*
  * CPM internal header files 
@@ -3662,6 +3663,23 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
        notification.id == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
     {
         clAmsCCBHandleDBCleanup(&notification);
+    }
+    else if (notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION
+            && notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
+    {
+        len = length - sizeof(notification);
+        if (len == sizeof(ClUint32T))
+        {
+            ClUint32T currentLeader = 0;
+            ClRcT rc = clBufferHeaderTrim(eoRecvMsg, sizeof(notification));
+            if (rc == CL_OK)
+            {
+                clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&currentLeader, &len);
+                currentLeader = ntohl(currentLeader);
+                clLogDebug("GMS", "LEA", "Update current leader [%d]", currentLeader);
+                clNodeCacheLeaderUpdate(currentLeader, CL_FALSE);
+            }
+        }
     }
 
     if(eoRecvMsg)

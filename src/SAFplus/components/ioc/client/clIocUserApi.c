@@ -1140,15 +1140,12 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to get the status of the component. error code 0x%x", retCode));
             return retCode;
         }
-        retCode = clFindTransport(((ClIocPhysicalAddressT*)destAddress)->nodeAddress, 
-                                  &interimDestAddress, &xportType);
-        if (!interimDestAddress.iocPhyAddress.nodeAddress || !xportType)
+        retCode = clFindTransport(((ClIocPhysicalAddressT*)destAddress)->nodeAddress, &interimDestAddress, &xportType);
+        if (retCode != CL_OK || !interimDestAddress.iocPhyAddress.nodeAddress || !xportType)
         {
-            clDbgCodeError(CL_IOC_RC(CL_ERR_NOT_EXIST),
-                           ("Error : Not found in destNodeLUT %x:%x is passed.",
-                            ((ClIocPhysicalAddressT *)destAddress)->nodeAddress,
-                            ((ClIocPhysicalAddressT *)destAddress)->portId));
-            return CL_IOC_RC(CL_ERR_NOT_EXIST);
+            clLogNotice("XPORT", "LUT", "Not found in destNodeLUT %x:%x is passed.", ((ClIocPhysicalAddressT * )destAddress)->nodeAddress,
+                        ((ClIocPhysicalAddressT * )destAddress)->portId);
+            return CL_OK;
         }
 
         if (interimDestAddress.iocPhyAddress.nodeAddress && 
@@ -1188,16 +1185,14 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
         else 
         {
             /*
-             * Check status if destination isnt through a bridge.
+             * Check status if destination isn't through a bridge.
              */
             if(status == CL_IOC_NODE_DOWN)
             {
                 CL_DEBUG_PRINT(
                                CL_DEBUG_ERROR,
-                               ("Port [0x%x] is trying to reach component [0x%x:0x%x] "
-                                "but the component is not reachable.", 
-                                pIocCommPort->portId,
-                                ((ClIocPhysicalAddressT *)destAddress)->nodeAddress, 
+                               ("Port [0x%x] is trying to reach component [0x%x:0x%x] but the component is not reachable.",
+                                pIocCommPort->portId, ((ClIocPhysicalAddressT *)destAddress)->nodeAddress,
                                 ((ClIocPhysicalAddressT *)destAddress)->portId));
                 return CL_IOC_RC(CL_IOC_ERR_COMP_UNREACHABLE);
             }
@@ -1568,14 +1563,12 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to get the status of the component. error code 0x%x", retCode));
             return retCode;
         }
-        retCode = clFindTransport(((ClIocPhysicalAddressT*)destAddress)->nodeAddress, 
-                                  &interimDestAddress, &xportType);
-        if (!interimDestAddress.iocPhyAddress.nodeAddress || !xportType)
+        retCode = clFindTransport(((ClIocPhysicalAddressT*)destAddress)->nodeAddress, &interimDestAddress, &xportType);
+        if (retCode != CL_OK || !interimDestAddress.iocPhyAddress.nodeAddress || !xportType)
         {
-            clDbgCodeError(CL_IOC_RC(CL_ERR_NOT_EXIST),("Error : Not found in destNodeLUT %x:%x is passed.",
-                                                        ((ClIocPhysicalAddressT *)destAddress)->nodeAddress,
-                                                        ((ClIocPhysicalAddressT *)destAddress)->portId));
-            return CL_IOC_RC(CL_ERR_NOT_EXIST);
+            clLogNotice("XPORT", "LUT", "Not found in destNodeLUT %x:%x is passed.", ((ClIocPhysicalAddressT * )destAddress)->nodeAddress,
+                        ((ClIocPhysicalAddressT * )destAddress)->portId);
+            return CL_OK;
         }
 
         if (interimDestAddress.iocPhyAddress.nodeAddress && 
@@ -1603,8 +1596,7 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
             if(status == CL_IOC_NODE_DOWN)
             {
                 CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                               ("Port [0x%x] is trying to reach component [0x%x:0x%x] "
-                                "but the component is not reachable.",
+                               ("Port [0x%x] is trying to reach component [0x%x:0x%x] but the component is not reachable.",
                                 pIocCommPort->portId,
                                 ((ClIocPhysicalAddressT *)destAddress)->nodeAddress, 
                                 ((ClIocPhysicalAddressT *)destAddress)->portId));
@@ -1991,8 +1983,7 @@ static ClRcT internalSendReplicast(ClIocCommPortT *pIocCommPort,
     {
         ClIocAddressT interimDestAddress = {{0}};
         ClCharT *xportType = NULL;
-        rc = clFindTransport(((ClIocPhysicalAddressT*)&replicastList[i])->nodeAddress, 
-                             &interimDestAddress, &xportType);
+        rc = clFindTransport(((ClIocPhysicalAddressT*)&replicastList[i])->nodeAddress, &interimDestAddress, &xportType);
 
         if (rc != CL_OK || !interimDestAddress.iocPhyAddress.nodeAddress || !xportType) {
             clLogError("IOC", "REPLICAST", "Replicast to destination [%#x: %#x] failed with [%#x]",
