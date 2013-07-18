@@ -46,20 +46,22 @@ extern "C" {
  *  Data Types 
  *****************************************************************************/
 typedef enum{
-    CL_CM_BLADE_SURPRISE_EXTRACTION=0,
-    CL_CM_BLADE_REQ_EXTRACTION,
-    CL_CM_BLADE_REQ_INSERTION,
-    CL_CM_BLADE_NODE_ERROR_REPORT,
-    CL_CM_BLADE_NODE_ERROR_CLEAR
+    CL_CM_BLADE_SURPRISE_EXTRACTION=0,  /** Node was pulled */
+    CL_CM_BLADE_REQ_EXTRACTION,         /** Node's latch was popped or ACPI button pushed */
+    CL_CM_BLADE_REQ_INSERTION,          /** Node's latch wad closed */
+    CL_CM_BLADE_NODE_ERROR_REPORT,      /** A sensor reported a severe error -- fail AIS services to the redundant */
+    CL_CM_BLADE_NODE_ERROR_CLEAR        /** The severe sensor error was cleared */
 }ClCmCpmMsgTypeT;
 
 typedef struct 
 {
+    /* The event type */
     ClCmCpmMsgTypeT cmCpmMsgType;
-    ClUint32T physicalSlot ;
-    /*For future Use */
-    ClUint32T subSlot ;
-    /* Not to be used by CPM , but needed for CM */
+    /** The slot number (node identifier) with the problem */
+    ClUint32T physicalSlot;
+    /** For future Use */
+    ClUint32T subSlot;
+    /** Not to be used by AMF, can be used by the hardware manager to identify the problem */
     ClUint32T resourceId;
 }ClCmCpmMsgT;
 
