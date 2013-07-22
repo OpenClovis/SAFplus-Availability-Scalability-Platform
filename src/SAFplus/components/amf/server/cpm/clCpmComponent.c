@@ -83,7 +83,7 @@
     ClTimerTimeOutT _delay = {.tsSec = 0, .tsMilliSec = millisec }; \
     clOsalTaskDelay(_delay);                                        \
 }while(0)
-    
+
 /*
  * Versions supported
  */
