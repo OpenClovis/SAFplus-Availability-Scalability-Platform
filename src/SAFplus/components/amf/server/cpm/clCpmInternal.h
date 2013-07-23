@@ -731,6 +731,8 @@ extern ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp);
 
 extern ClRcT cpmCompParseArgs(ClCpmCompConfigT *compConfig, ClCharT *cmd, ClUint32T *pArgIndex);
 
+extern ClRcT cpmEventPublishQueueInit();
+
 #ifdef __cplusplus
 }
 #endif
