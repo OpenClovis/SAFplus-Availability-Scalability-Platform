@@ -4349,32 +4349,7 @@ ClRcT cpmComponentEventCleanup(ClCpmComponentT *comp)
     return rc;
 }
 
-static ClRcT cpmComponentEventPublishDelay(ClPtrT invocation)
-{
-    ClRcT rc = CL_OK;
-    ClEventPublishDataT *data = (ClEventPublishDataT *) invocation;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500};
-
-    while((!gpClCpm->emUp || !gpClCpm->emInitDone))
-    {
-        rc = clOsalTaskDelay(delay);
-        if (rc != CL_OK)
-        {
-            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
-                       "clOsalTaskDelay() error [%#x]", rc);
-            goto error;
-        }
-    }
-
-    cpmComponentEventPublish(&data->comp, data->compEvent, data->eventCleanup);
-
-error:
-    clHeapFree(data->comp.compConfig);
-    clHeapFree(data);
-    return rc;
-}
-
-ClRcT cpmComponentEventPublish(ClCpmComponentT *comp,
+static ClRcT _cpmComponentEventPublish(ClCpmComponentT *comp,
                                ClCpmCompEventT compEvent,
                                ClBoolT eventCleanup)
 {
@@ -4402,33 +4377,13 @@ ClRcT cpmComponentEventPublish(ClCpmComponentT *comp,
         0, sizeof(compDeathPattern)/sizeof(compDeathPattern[0]), compDeathPattern 
     };
 
-    ClEventPublishDataT *job = NULL;
     ClEventPatternArrayT *patternArray = &compDeathPatternArray;
 
     if (!gpClCpm->emUp || !gpClCpm->emInitDone)
     {
-        job = clHeapCalloc(1, sizeof(ClEventPublishDataT));
-        CL_ASSERT(job != NULL);
-
-        memcpy(&job->comp, comp, sizeof(ClCpmComponentT));
-
-        job->comp.compConfig = clHeapCalloc(1, sizeof(ClCpmCompConfigT));
-        CL_ASSERT(job->comp.compConfig != NULL);
-        memcpy(job->comp.compConfig, comp->compConfig, sizeof(ClCpmCompConfigT));
-
-        job->compEvent = compEvent;
-        job->eventCleanup = eventCleanup;
-
-        rc = clJobQueuePush(&eventPublishQueue, cpmComponentEventPublishDelay, (ClPtrT)job);
-        if(rc != CL_OK)
-        {
-            clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
                        "Event server is not %s. Hence not publishing the event",
                        !gpClCpm->emUp ? "up" : "initialized");
-            clHeapFree(job->comp.compConfig);
-            clHeapFree(job);
-        }
-
         return CL_OK;
     }
 
@@ -4568,6 +4523,63 @@ ClRcT cpmComponentEventPublish(ClCpmComponentT *comp,
         clHeapFree(payLoadBuffer);
     if(payLoadMsg)
         clBufferDelete(&payLoadMsg);
+
+    return rc;
+}
+
+static ClRcT cpmComponentEventPublishDelay(ClPtrT invocation)
+{
+    ClRcT rc = CL_OK;
+    ClEventPublishDataT *data = (ClEventPublishDataT *) invocation;
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500};
+
+    while((!gpClCpm->emUp || !gpClCpm->emInitDone))
+    {
+        rc = clOsalTaskDelay(delay);
+        if (rc != CL_OK)
+        {
+            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
+                       "clOsalTaskDelay() error [%#x]", rc);
+            goto error;
+        }
+    }
+
+    _cpmComponentEventPublish(&data->comp, data->compEvent, data->eventCleanup);
+
+error:
+    clHeapFree(data->comp.compConfig);
+    clHeapFree(data);
+    return rc;
+}
+
+ClRcT cpmComponentEventPublish(ClCpmComponentT *comp,
+                               ClCpmCompEventT compEvent,
+                               ClBoolT eventCleanup)
+{
+    ClRcT rc = CL_OK;
+
+    ClEventPublishDataT *job = NULL;
+
+    job = clHeapCalloc(1, sizeof(ClEventPublishDataT));
+    CL_ASSERT(job != NULL);
+
+    memcpy(&job->comp, comp, sizeof(ClCpmComponentT));
+
+    job->comp.compConfig = clHeapCalloc(1, sizeof(ClCpmCompConfigT));
+    CL_ASSERT(job->comp.compConfig != NULL);
+    memcpy(job->comp.compConfig, comp->compConfig, sizeof(ClCpmCompConfigT));
+
+    job->compEvent = compEvent;
+    job->eventCleanup = eventCleanup;
+
+    rc = clJobQueuePush(&eventPublishQueue, cpmComponentEventPublishDelay, (ClPtrT)job);
+    if(rc != CL_OK)
+    {
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
+                   "Can not push event into job queue. Hence not publishing the event");
+        clHeapFree(job->comp.compConfig);
+        clHeapFree(job);
+    }
 
     return rc;
 }
