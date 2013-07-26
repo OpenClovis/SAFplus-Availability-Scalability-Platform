@@ -165,10 +165,14 @@ ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT no
         return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
     
 
+    /* GMS triggers on the link up event but we must wait for the node hello message to update the node cache (AMF interpretes and processes it) before we
+       can run an election.  Its actually ok to just abort here as the election will be handled later but of course it best to handle it now.
+     */
+
     /* Must sync with the node cache every time b/c the leader flag can change */
-    if(clNodeCacheMemberGetExtendedSafe(nodeAddress, &member, 5, 200) != CL_OK)
+    if(clNodeCacheMemberGetExtendedSafe(nodeAddress, &member, 10, 200) != CL_OK)
     {
-        clLogWarning("VIEW", "CHECK", "Node view for [%d] not yet updated in the node cache", nodeAddress);
+        clLogError("VIEW", "CHECK", "Node [%d] not yet updated in the node cache", nodeAddress);
         return CL_GMS_RC(CL_ERR_NOT_INITIALIZED);
     }
     
@@ -183,19 +187,20 @@ ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT no
 
         node->viewMember.clusterMember.isPreferredLeader = CL_FALSE;
         node->viewMember.clusterMember.leaderPreferenceSet = CL_FALSE;
-        
-        if(CL_NODE_CACHE_SC_CAPABILITY(member.capability))
+        node->viewMember.clusterMember.bootTimestamp = clOsalStopWatchTimeGet();
+    }
+
+    /* Always update the capability from the node cache in case it has changed. */
+    if(CL_NODE_CACHE_SC_CAPABILITY(member.capability))
         {
             node->viewMember.clusterMember.credential = member.address + CL_IOC_MAX_NODES + 1;
         }
-        else if(CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(member.capability))
+    else if(CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(member.capability))
         {
             node->viewMember.clusterMember.credential = member.address;
-        }
-        node->viewMember.clusterMember.bootTimestamp = clOsalStopWatchTimeGet();
-    }
-    
+        }    
     node->viewMember.clusterMember.isCurrentLeader = CL_NODE_CACHE_LEADER_CAPABILITY(member.capability);
+    
     clLogNotice("VIEW", "CHECK", "Node [%s] slot/address [%d] added/updated to the view cache with capability [%#x] credentials [%d].  Is leader?: %d", member.name, member.address, member.capability, node->viewMember.clusterMember.credential, node->viewMember.clusterMember.isCurrentLeader);
     
     *pNode = node;

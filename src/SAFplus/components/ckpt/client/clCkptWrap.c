@@ -551,9 +551,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
      * Validate all input variables
      */
     if (NULL == pCkptHandle) return CL_CKPT_ERR_NULL_POINTER;
-    rc = ckptOpenParamValidate( checkpointOpenFlags,
-            pCkptName,
-            pCheckpointCreationAttributes);
+    rc = ckptOpenParamValidate( checkpointOpenFlags, pCkptName, pCheckpointCreationAttributes);
     if( rc != CL_OK)
     {
         CKPT_DEBUG_E(("\nInvalid Parameter [0x%x]\n",rc));
@@ -563,8 +561,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
     /* 
      * Checkout the data associated with the service handle 
      */
-    rc = ckptHandleCheckout(ckptSvcHdl,CL_CKPT_SERVICE_HDL,
-            (void **)&pInitInfo);
+    rc = ckptHandleCheckout(ckptSvcHdl,CL_CKPT_SERVICE_HDL, (void **)&pInitInfo);
     if(rc != CL_OK)
     {
         CKPT_DEBUG_E(("Passed handle is invalid rc[0x %x]\n",rc));
@@ -573,9 +570,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
 
     if(pCheckpointCreationAttributes != NULL)
     {
-        memcpy( &ckptAttr,
-                pCheckpointCreationAttributes,
-                sizeof(ClCkptCheckpointCreationAttributesT));
+        memcpy( &ckptAttr,pCheckpointCreationAttributes,sizeof(ClCkptCheckpointCreationAttributesT));
     }
 
     /*
@@ -589,14 +584,12 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
     rc =  clCkptMasterAddressGet(&pInitInfo->mastNodeAddr);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                ("Could not get master address during checkpoint open [rc = 0x%x]\n",rc));
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Could not get master address during checkpoint open [rc = 0x%x]\n",rc));
         rc = CL_CKPT_ERR_TRY_AGAIN;
         goto exitOnError;
     }
 
-    rc = ckptIdlHandleUpdate(pInitInfo->mastNodeAddr,
-            pInitInfo->ckptIdlHdl, 0);
+    rc = ckptIdlHandleUpdate(pInitInfo->mastNodeAddr,pInitInfo->ckptIdlHdl, 0);
     CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_INFO, 
             ("Checkpoint open failed rc[0x %x].  This is expected if the app is checking to see if the checkpoint was created by another node.",rc), rc);
 
@@ -613,8 +606,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
          */
          
         /*
-         * Send the call to the checkpoint server.
-         * Retry if the server is not fully up.
+         * Send the call to the checkpoint server. Retry if the server is not fully up.
          */
         do
         {

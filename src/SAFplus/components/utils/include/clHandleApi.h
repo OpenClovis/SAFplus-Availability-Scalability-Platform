@@ -374,6 +374,32 @@ extern ClRcT clHandleMove(
 	    CL_IN    ClHandleT                 oldHandle,
         CL_IN    ClHandleT                 newHandle);
 
+/**
+ ******************************************************************************
+ *  \brief Get the handle database Identifier
+ *
+ *  \par Header File 
+ *   clHandleApi.h
+ *
+ *  \param databaseHandle (in) The handle database handle.
+ *  
+ *  \retval The database Id
+ *
+ *  \par Description
+ *  This API returns the Id associated with a handle database.  This id is stored
+ *  in every handle created in this database.
+ *  However, note that this value will not ALWAYS correspond with a valid handle because
+ *  you can store handles created in other nodes in a local handle database using the
+ *  clHandleCreateSpecifiedHandle() API.
+ *
+ *  \par Library File
+ *   ClUtil 
+ *
+ *  \sa clHandleCreate, clHandleCheckout(), clHandleDestroy(), clHandleCreateSpecifiedHandle() 
+ *     
+ */
+    ClWordT clHandleGetDatabaseId(ClHandleDatabaseHandleT  *databaseHandle);
+    
 #ifdef __cplusplus
 }
 #endif

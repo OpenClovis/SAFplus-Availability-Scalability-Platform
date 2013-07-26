@@ -2001,7 +2001,7 @@ void clEvtSubsTestDeliverCallback(ClEventSubscriptionIdT subscriptionId,
                     goto out_free;
                 }
 
-                clLog(DBG,GEN,NA, "Component event received, Node [%*.s, %d] Comp [%*.s, id: 0x%x, eo: 0x%llx, port: 0x%x] Event [%s, %d]", payLoad.nodeName.length, payLoad.nodeName.value, payLoad.nodeIocAddress ,payLoad.compName.length, payLoad.compName.value, payLoad.compId, payLoad.eoId, payLoad.eoIocPort,ClCpmCompEventT2Str(payLoad.operation),payLoad.operation);
+                clLog(DBG,GEN,NA, "Component event received, Node [%.*s, %d] Comp [%.*s, id: 0x%x, eo: 0x%llx, port: 0x%x] Event [%s, %d]", payLoad.nodeName.length, payLoad.nodeName.value, payLoad.nodeIocAddress ,payLoad.compName.length, payLoad.compName.value, payLoad.compId, payLoad.eoId, payLoad.eoIocPort,ClCpmCompEventT2Str(payLoad.operation),payLoad.operation);
                 
                 if(payLoad.operation != CL_CPM_COMP_DEATH)
                     goto out_free;

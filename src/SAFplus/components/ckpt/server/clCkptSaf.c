@@ -835,7 +835,7 @@ clCkptSectionChkNAdd(ClCkptHdlT  ckptHdl,
     
      
     clLogInfo(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-              "Section [%.*s] of [%.*s] created successfully",
+              "Section [%.*s] of [%.*s] created/replicated successfully",
                pSectionId->idLen, pSectionId->id, pCkpt->ckptName.length,
                pCkpt->ckptName.value);
     return CL_OK;
@@ -4632,9 +4632,7 @@ VDECL_VER(clCkptReplicaAppInfoNotify, 4, 0, 0)(ClCkptHdlT  ckptHdl,
      * Retrieve the data associated with the active handle.
      */
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-              ("Handle checkout failed for handle [%#llX] rc[0x %x]\n", 
-               ckptHdl, rc), rc);
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Handle [%#llx] checkout failed from database [%lu (%p)].  rc[0x %x]\n", ckptHdl, clHandleGetDatabaseId(gCkptSvr->ckptHdl),gCkptSvr->ckptHdl, rc), rc);
     /*
      * Lock the checkpoint's mutex.
      */
@@ -4651,9 +4649,7 @@ VDECL_VER(clCkptReplicaAppInfoNotify, 4, 0, 0)(ClCkptHdlT  ckptHdl,
     {
         goto exitOnError;
     }
-    clLogDebug(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-               "App info got updated for masterHdl [%#llX]", 
-               ckptHdl);
+    clLogDebug(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "App info got updated for masterHdl [%#llX]", ckptHdl);
 exitOnError:
     /*
      * Unlock the checkpoint's mutex.

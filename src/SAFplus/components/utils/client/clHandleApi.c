@@ -80,6 +80,7 @@
 #include <clHandleErrors.h>
 #include <ipi/clHandleIpi.h>
 
+
 #define nullChkRet(ptr) clDbgIfNullReturn(ptr, CL_CID_HANDLE);
 
 #define CL_HDL_NUM_HDLS_BUNCH           8
@@ -87,13 +88,15 @@
 
 
 /* Reserve the top 16 bits to indicate the DB handle */
-#define CL_HDL_NODE_MASK    0xFFFF000000000000ULL /* (((1<<16)-1)<<(63-16)) */
-#define CL_HDL_DB_MASK      0x0000FFFF00000000ULL
+#define CL_HDL_NODE_MASK    (((1<<12ULL)-1ULL)<<(64-12))    /* 12 bits on the top  */
+#define CL_HDL_PORT_MASK    (((1<<12ULL)-1ULL)<<(64-24))    /* 12 bits 12 from the top  */
+#define CL_HDL_DB_MASK      (((1<<8ULL)-1ULL)<<32)
 
 /* macros to manipulate handles */
-#define CL_HDL_NODE(hdl) (((ClUint64T)hdl)>>48)
+#define CL_HDL_NODE(hdl) (((ClUint64T)hdl)>>(64-12))
 #define CL_HDL_DB(hdl) ((((ClUint64T)hdl)&CL_HDL_DB_MASK)>>32)
-#define CL_HDL_MAKE(node,dbid, idx) (((ClHandleT) idx) | (((ClHandleT) node)<<48) | (((ClHandleT) dbid)<<32))
+
+/* #define CL_HDL_MAKE(node,dbid, idx) (((ClHandleT) idx) | (((ClHandleT) node)<<48) | (((ClHandleT) dbid)<<32)) */
 
 #define CL_HDL_MAKE_ADDR(node, port, dbid, idx) (((ClHandleT) idx) | (((ClHandleT) node)<<52) | (((ClHandleT) port)<<40) | ((((ClHandleT) dbid)<<32)&CL_HDL_DB_ADDR_MASK) )
 
@@ -182,6 +185,13 @@ typedef struct handle_database
 /******************************************************************************
  * API FUNCTIONS
  *****************************************************************************/
+
+ClWordT clHandleGetDatabaseId(ClHandleDatabaseHandleT  *databaseHandle)
+{
+    ClHdlDatabaseT *hdbp = (ClHdlDatabaseT*)databaseHandle;
+    return hdbp->id;
+}
+
 
 /*
  * Creates a new handle database.  User is responsible to cleanup and free
@@ -351,7 +361,7 @@ clHandleAdd (ClHandleDatabaseHandleT databaseHandle,  void* instance, ClIocPhysi
    * Adding 1 to handle to ensure the non-zero handle interface.
    */
   if (compAddr == NULL)
-      *handle_out = CL_HDL_MAKE(ASP_NODEADDR,hdbp->id, handle + 1);
+      *handle_out = CL_HDL_MAKE_ADDR(ASP_NODEADDR,gEOIocPort,hdbp->id, handle + 1);
   else
       *handle_out = CL_HDL_MAKE_ADDR(compAddr->nodeAddress,compAddr->portId, hdbp->id, handle + 1);
 
@@ -643,10 +653,9 @@ clHandleMove(
 	hdbp->handles[newHandle].state = HANDLE_STATE_USED;
 	hdbp->handles[newHandle].instance = instance;
 	hdbp->handles[newHandle].ref_count = 1;
-	hdbp->handles[newHandle].handle = CL_HDL_MAKE(ASP_NODEADDR, hdbp->id, newHandle + 1);;
+	hdbp->handles[newHandle].handle = CL_HDL_MAKE_ADDR(ASP_NODEADDR, gEOIocPort, hdbp->id, newHandle + 1);;
 
-    clDbgResourceNotify(clDbgHandleResource, clDbgAllocate, hdbp, newHandle+1, 
-                        ("Specific handle [%p:%#llX] allocated", (ClPtrT) hdbp, newHandle+1));
+    clDbgResourceNotify(clDbgHandleResource, clDbgAllocate, hdbp, newHandle+1, ("Specific handle [%p:%#llx] allocated", (ClPtrT) hdbp, newHandle+1));
 
 	ec = pthread_mutex_unlock (&hdbp->mutex);
     if (ec != 0)
@@ -763,17 +772,17 @@ clHandleDestroy (
 ClRcT
 clHandleCheckout(
                  ClHandleDatabaseHandleT databaseHandle,
-                 ClHandleT               handle,
+                 ClHandleT               handleArg,
                  void                    **instance)
 { 
 	ClRcT           rc    = CL_OK;
     ClHdlDatabaseT  *hdbp = (ClHdlDatabaseT*)databaseHandle;
     ClHdlStateT     state = 0;
     ClRcT           ec    = CL_OK;
-    
+    ClHandleT       handle;
     hdlDbValidityChk(hdbp);
     /* sometimes people want to create the same handle across multiple nodes hdlValidityChk(handle,hdbp); */
-    handle = CL_HDL_IDX(handle); /* once we've verified it, we only care about the index */
+    handle = CL_HDL_IDX(handleArg); /* once we've verified it, we only care about the index */
     nullChkRet(instance);
     /*
      * Decrementing handle to ensure the non-zero handle interface.
@@ -794,7 +803,7 @@ clHandleCheckout(
     {
         rc = CL_HANDLE_RC(CL_ERR_INVALID_HANDLE);
         pthread_mutex_unlock(&hdbp->mutex);
-        clDbgCodeError(rc, ("Passed Invalid Handle [%p:%#llX]", (ClPtrT) hdbp, (handle+1)));
+        clDbgCodeError(rc, ("Passed Invalid Handle [%p:%#llx]", (ClPtrT) hdbp, handleArg));
         return rc;
     }
     
@@ -809,23 +818,20 @@ clHandleCheckout(
              * so removing the debug pause
              */
 #if 0
-            clDbgCodeError(rc, ("Handle [%p:%#llX] is not allocated", (ClPtrT)
-                                hdbp, (handle+1)));
+            clDbgCodeError(rc, ("Handle [%p:%#llX] is not allocated", (ClPtrT) hdbp, (handle+1)));
 #endif
         }
         else if (state == HANDLE_STATE_PENDINGREMOVAL)
         {
-            clDbgCodeError(rc, ("Handle [%p:%#llX] is being removed", (ClPtrT)
-                                hdbp, (handle+1)));
+            clDbgCodeError(rc, ("Handle [%p:%#llX] is being removed", (ClPtrT) hdbp, handleArg));
         }
         else
         {
-            clDbgCodeError(rc, ("Handle [%p:%#llX] invalid state %d", (ClPtrT)
-                                hdbp, (handle+1), state));
+            clDbgCodeError(rc, ("Handle [%p:%#llX] invalid state %d", (ClPtrT) hdbp, handleArg, state));
         }
 
         rc = CL_HANDLE_RC(CL_ERR_INVALID_HANDLE);
-        clDbgCodeError(rc, ("Handle [%p:%#llX] is invalid", (ClPtrT) hdbp, (handle+1)));
+        clDbgCodeError(rc, ("Handle [%p:%#llX] is invalid", (ClPtrT) hdbp, handleArg));
         return rc;
     }
 
@@ -841,7 +847,7 @@ clHandleCheckout(
     }
 #if 0
     clLogTrace(CL_HDL_AREA, CL_HDL_CTX_CHECKOUT, 
-               "Checked out handle [%p:%#llX]", (ClPtrT) hdbp, (handle + 1));
+               "Checked out handle [%p:%#llX]", (ClPtrT) hdbp, handleArg);
 #endif
     return rc;
 }

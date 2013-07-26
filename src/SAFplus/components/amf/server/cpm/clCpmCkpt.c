@@ -336,9 +336,7 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
         }
         else
         {
-            clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP,
-                      "Node [%s] added to CPM", 
-                      node->cpmLocalInfo.nodeName);
+            clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP, "Node [%s] added to CPM", node->cpmLocalInfo.nodeName);
         }
         clOsalMutexLock(gpClCpm->cpmTableMutex);
         rc = cpmNodeFindLocked(node->cpmLocalInfo.nodeName, &cpmL);

@@ -527,9 +527,7 @@ ClRcT clNodeCacheMemberGetSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMemb
     return rc;
 }
 
-static ClRcT nodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
-                                        ClUint32T retries, ClUint32T msecDelay,
-                                        ClBoolT compat)
+static ClRcT nodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,ClUint32T retries, ClUint32T msecDelay, ClBoolT compat)
 {
     ClRcT rc = CL_OK;
     ClUint32T i = 0;
@@ -547,6 +545,7 @@ static ClRcT nodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMembe
             if(i > retries)
                 goto out;
             clOsalTaskDelay(delay);
+            delay.tsMilliSec += msecDelay; /* Back off the time as retries increase */
             clOsalSemLock(gClNodeCacheSem);
         }
         else break;
@@ -563,8 +562,7 @@ ClRcT clNodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *p
     return nodeCacheMemberGetExtended(node, pMember, retries, msecDelay, CL_FALSE);
 }
 
-ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
-                                       ClUint32T retries, ClUint32T msecDelay)
+ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,ClUint32T retries, ClUint32T msecDelay)
 {
     return nodeCacheMemberGetExtended(node, pMember, retries, msecDelay, CL_TRUE);
 }
@@ -771,6 +769,22 @@ ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
     return rc;
 }
 
+ClRcT clNodeCacheLeaderSet(ClIocNodeAddressT leader)
+{
+    if(!gpClNodeCache) return CL_ERR_INVALID_PARAMETER;
+    
+    if((ClInt32T)leader > 0 && leader < CL_IOC_MAX_NODES)
+    {
+        clOsalSemLock(gClNodeCacheSem);
+        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[leader].capability |= __LEADER_CAPABILITY_MASK;
+        CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader = leader;
+        clOsalSemUnlock(gClNodeCacheSem);
+    }
+
+    return CL_OK; 
+}
+
+
 ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader, ClBoolT send)
 {
     if(!gpClNodeCache) return CL_ERR_INVALID_PARAMETER;
@@ -866,9 +880,7 @@ ClRcT clNodeCacheLeaderGet(ClIocNodeAddressT *pCurrentLeader)
     return rc;
 }
 
-ClRcT clNodeCacheVersionAndCapabilityGet(ClIocNodeAddressT nodeAddress, 
-                                         ClUint32T *pVersion,
-                                         ClUint32T *pCapability)
+ClRcT clNodeCacheVersionAndCapabilityGet(ClIocNodeAddressT nodeAddress, ClUint32T *pVersion, ClUint32T *pCapability)
 {
     ClRcT rc = CL_OK;
     if(nodeAddress >= CL_IOC_MAX_NODES) return CL_ERR_INVALID_PARAMETER;

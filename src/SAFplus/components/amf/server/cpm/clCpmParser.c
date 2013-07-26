@@ -3080,10 +3080,8 @@ ClRcT cpmSlotClassAdd(ClNameT *type, ClNameT *identifier, ClUint32T slotNumber)
             clNameCopy(&classType->name, type);
             clNameCopy(&classType->identifier, identifier);
         }
-        clLogInfo("SLOT", "ADD", "Class Type [%.*s] added to slot [%d]",
-                  type->length, type->value, slots[i]);
-        rc = clCntNodeAdd(gpClCpm->slotTable, (ClCntKeyHandleT)(ClWordT)slots[i],
-                          (ClCntDataHandleT)classType, NULL);
+        clLogDebug("SLOT", "ADD", "Class Type [%.*s] added to slot [%d]", type->length, type->value, slots[i]);
+        rc = clCntNodeAdd(gpClCpm->slotTable, (ClCntKeyHandleT)(ClWordT)slots[i], (ClCntDataHandleT)classType, NULL);
         if(rc != CL_OK)
         {
             clHeapFree(classType);

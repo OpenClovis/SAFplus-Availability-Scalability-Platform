@@ -70,12 +70,10 @@ clGmsServerTerminate(
 
     gmsGlobalInfo.opState = CL_GMS_STATE_SHUTING_DOWN;
 
-    clLog(CRITICAL,GEN,NA,
-          "Server Got Termination Request. Started Shutting Down...");
+    clLog(CRITICAL,GEN,NA, "Got termination request for component [%.*s]. Started Shutting Down...", compName->length,compName->value);
 
 
-    rc = clEoClientUninstallTables (gmsGlobalInfo.gmsEoObject,
-                                    CL_EO_SERVER_SYM_MOD(gAspFuncTable, GMS));
+    rc = clEoClientUninstallTables (gmsGlobalInfo.gmsEoObject, CL_EO_SERVER_SYM_MOD(gAspFuncTable, GMS));
     if (rc != CL_OK)
     {
         clLog(ERROR,GEN,NA,

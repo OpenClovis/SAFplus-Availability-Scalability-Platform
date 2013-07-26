@@ -535,6 +535,7 @@ clAmsFinalize(
     }
 
     AMS_CALL (clHandleDatabaseDestroy(ams->ccbHandleDB));
+    ams->ccbHandleDB = CL_HANDLE_INVALID_VALUE;
 
 exitfn:
 
@@ -757,11 +758,22 @@ static ClRcT clAmsCCBHandleDBCleanupCallback(ClHandleDatabaseHandleT db, ClHandl
 
     if (isDelete)
     {
-        rc = clHandleCheckout(db, handle, (ClPtrT*)&ccbInstance);
+        rc = clOsalMutexLock(gAms.mutex);
         if(rc != CL_OK) return rc;
+
+        rc = clHandleCheckout(db, handle, (ClPtrT*)&ccbInstance);
+        if(rc != CL_OK)
+        {
+            clOsalMutexUnlock(gAms.mutex);
+            return rc;
+        }
+
         clAmsCCBOpListTerminate(&ccbInstance->ccbOpListHandle);
         clHandleDestroy(db, handle);
         clHandleCheckin(db, handle);
+
+        rc = clOsalMutexUnlock(gAms.mutex);
+        if(rc != CL_OK) return rc;
     }
 
     return rc;
@@ -771,7 +783,10 @@ ClRcT clAmsCCBHandleDBCleanup(ClIocNotificationT *pNotification)
 {
     ClRcT rc = CL_OK;
 
-    rc = clHandleWalk(gAms.ccbHandleDB, clAmsCCBHandleDBCleanupCallback, (ClPtrT)pNotification);
+    if (CL_HANDLE_INVALID_VALUE != gAms.ccbHandleDB)
+    {
+        rc = clHandleWalk(gAms.ccbHandleDB, clAmsCCBHandleDBCleanupCallback, (ClPtrT)pNotification);
+    }
 
     return rc;
 }
