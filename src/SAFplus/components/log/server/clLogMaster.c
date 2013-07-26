@@ -1668,10 +1668,7 @@ clLogMasterEntryNodedownUpdate(ClLogFileDataT   *pFileData,
     return CL_OK;
 }
 
-ClRcT
-                            /* Suppressing coverity warning for pass by value with below comment */
-                            // coverity[pass_by_value]
-clLogNodeDownMasterDBUpdate(ClNameT  nodeName)
+ClRcT clLogNodeDownMasterDBUpdate(ClNameT*  nodeName)
 {
     ClRcT               rc              = CL_OK;
     ClLogMasterEoDataT  *pMasterEoEntry = NULL;
@@ -1680,11 +1677,12 @@ clLogNodeDownMasterDBUpdate(ClNameT  nodeName)
     ClBoolT             updatedFlag     = CL_FALSE;
     ClLogSvrCommonEoDataT *pSvrCommonEoEntry = NULL;
 
-    clLogDebug(CL_LOG_AREA_MASTER, CL_LOG_CTX_FO_INIT, 
-               "Received node down event for node name [%.*s]", nodeName.length, nodeName.value);
+    clLogDebug(CL_LOG_AREA_MASTER, CL_LOG_CTX_FO_INIT, "Received node down event for node name [%.*s]", nodeName->length, nodeName->value);
     rc = clLogMasterEoEntryGet(&pMasterEoEntry, &pSvrCommonEoEntry);
     if( CL_OK != rc)
     {
+        if (CL_GET_ERROR_CODE(rc) ==  CL_ERR_NOT_EXIST)
+          clLogDebug(CL_LOG_AREA_MASTER, CL_LOG_CTX_FO_INIT, "I cannot be master, so nothing to do");            
         return rc;
     }
     if( clIocLocalAddressGet() != pSvrCommonEoEntry->masterAddr )
@@ -1722,7 +1720,7 @@ clLogNodeDownMasterDBUpdate(ClNameT  nodeName)
          {
              break;
          }
-         rc = clLogMasterEntryNodedownUpdate(pFileData, &nodeName, &updatedFlag);
+         rc = clLogMasterEntryNodedownUpdate(pFileData, nodeName, &updatedFlag);
          if( CL_OK != rc )
          {
              /* Just keep on continue to look for some other entries */

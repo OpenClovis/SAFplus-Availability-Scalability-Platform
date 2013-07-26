@@ -158,10 +158,8 @@ clLogAddrUpdate(ClIocNodeAddressT  leader,
         return rc;
     }    
     
-    if( ((CL_IOC_RESERVED_ADDRESS == pSvrCommonEoData->masterAddr) && 
-         (localAddr == leader)) || 
-        ((CL_IOC_RESERVED_ADDRESS == pSvrCommonEoData->deputyAddr) &&
-         (localAddr == deputy)) ||
+    if( ((CL_IOC_RESERVED_ADDRESS == pSvrCommonEoData->masterAddr) && (localAddr == leader)) || 
+        ((CL_IOC_RESERVED_ADDRESS == pSvrCommonEoData->deputyAddr) && (localAddr == deputy)) ||
         (clCpmIsSCCapable() && (localAddr != leader) && (localAddr != deputy)) )
     {
         pSvrCommonEoData->masterAddr = leader;
@@ -180,8 +178,7 @@ clLogAddrUpdate(ClIocNodeAddressT  leader,
         }
         if( localAddr == leader )
         {
-            rc = clLogMasterEntryTLUpdate(pSvrEoEntry, pSvrCommonEoData,
-                                          CL_IOC_TL_ACTIVE);
+            rc = clLogMasterEntryTLUpdate(pSvrEoEntry, pSvrCommonEoData, CL_IOC_TL_ACTIVE);
         }
 
         /*

@@ -527,9 +527,7 @@ ClRcT clNodeCacheMemberGetSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMemb
     return rc;
 }
 
-static ClRcT nodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
-                                        ClUint32T retries, ClUint32T msecDelay,
-                                        ClBoolT compat)
+static ClRcT nodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,ClUint32T retries, ClUint32T msecDelay, ClBoolT compat)
 {
     ClRcT rc = CL_OK;
     ClUint32T i = 0;
@@ -547,6 +545,7 @@ static ClRcT nodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMembe
             if(i > retries)
                 goto out;
             clOsalTaskDelay(delay);
+            delay.tsMilliSec += msecDelay; /* Back off the time as retries increase */
             clOsalSemLock(gClNodeCacheSem);
         }
         else break;
@@ -563,8 +562,7 @@ ClRcT clNodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *p
     return nodeCacheMemberGetExtended(node, pMember, retries, msecDelay, CL_FALSE);
 }
 
-ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
-                                       ClUint32T retries, ClUint32T msecDelay)
+ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,ClUint32T retries, ClUint32T msecDelay)
 {
     return nodeCacheMemberGetExtended(node, pMember, retries, msecDelay, CL_TRUE);
 }
@@ -586,8 +584,8 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint
 
     if(!gpClNodeCache)
     {
-        clLogError("CACHE", "SET", "Cannot update node cache; not initialized");        
         clOsalSemUnlock(gClNodeCacheSem);
+        clLogError("CACHE", "SET", "Cannot update node cache; not initialized");        
         return CL_ERR_NOT_INITIALIZED;
     }
 
@@ -607,9 +605,7 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint
         entry->nodeName[0] = 0;
         strncat(entry->nodeName, (const ClCharT*)nodeName->value, CL_MIN(nodeName->length, sizeof(entry->nodeName)-1));
     }
-    clLogNotice("CACHE", "SET", "Updating node cache entry for node [%d: %s] with version [%#x], capability [%#x] (%s,%s,%s)",
-                nodeAddress, entry->nodeName, entry->version, entry->capability, CL_NODE_CACHE_LEADER_CAPABILITY(entry->capability) ? "LEADER":"_", CL_NODE_CACHE_SC_CAPABILITY(entry->capability) ? "Controller" : "_", CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(entry->capability) ? "Controller-promotable" : "_" );
-
+    
     /*
      * Update node min version/address.
      */
@@ -623,8 +619,17 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint
         gClMinVersionNode = nodeAddress;
     }
 
-    clOsalSemUnlock(gClNodeCacheSem);
-
+    if (1)
+    {
+        ClNodeCacheEntryT temp;
+        memcpy(&temp,entry,sizeof(ClNodeCacheEntryT));
+        
+        clOsalSemUnlock(gClNodeCacheSem);
+        /* I do not want to log inside the node cache sem lock because logging can block, esp if its going to stdout */
+        clLogInfo("CACHE", "SET", "Updating node cache entry for node [%d: %s] with version [%#x], capability [%#x] (%s,%s,%s)",
+                nodeAddress, temp.nodeName, temp.version, temp.capability, CL_NODE_CACHE_LEADER_CAPABILITY(temp.capability) ? "LEADER":"_", CL_NODE_CACHE_SC_CAPABILITY(temp.capability) ? "Controller" : "_", CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(temp.capability) ? "Controller-promotable" : "_" );
+    }
+    
     return CL_OK;
 }
 
@@ -709,9 +714,10 @@ ClRcT clNodeCacheCapabilitySet(ClIocNodeAddressT nodeAddress, ClUint32T capabili
     default:
         break;
     }
-    clLogNotice("CAP", "SET", "Node cache capability set to [%#x] for node [%d]",
-                CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].capability, nodeAddress);
+
+    capability = CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].capability;
     clOsalSemUnlock(gClNodeCacheSem);
+    clLogInfo("CAP", "SET", "Node cache capability set to [%#x] for node [%d]", capability, nodeAddress);
     return CL_OK;
 }
 
@@ -762,6 +768,22 @@ ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
     clBufferDelete(&message);
     return rc;
 }
+
+ClRcT clNodeCacheLeaderSet(ClIocNodeAddressT leader)
+{
+    if(!gpClNodeCache) return CL_ERR_INVALID_PARAMETER;
+    
+    if((ClInt32T)leader > 0 && leader < CL_IOC_MAX_NODES)
+    {
+        clOsalSemLock(gClNodeCacheSem);
+        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[leader].capability |= __LEADER_CAPABILITY_MASK;
+        CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader = leader;
+        clOsalSemUnlock(gClNodeCacheSem);
+    }
+
+    return CL_OK; 
+}
+
 
 ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader, ClBoolT send)
 {
@@ -819,8 +841,10 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader, ClBoolT send)
     {
         CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability |= __LEADER_CAPABILITY_MASK;
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader = currentLeader;
-        clLogNotice("CAP", "SET", "Node cache capability for current leader [%d] is [%#x]",
+        /* I do not want to log inside the sem take since that could slow all down
+          clLogInfo("CAP", "SET", "Node cache capability for current leader [%d] is [%#x]",
                     currentLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability);
+        */
     }
     clOsalSemUnlock(gClNodeCacheSem);
 
@@ -856,9 +880,7 @@ ClRcT clNodeCacheLeaderGet(ClIocNodeAddressT *pCurrentLeader)
     return rc;
 }
 
-ClRcT clNodeCacheVersionAndCapabilityGet(ClIocNodeAddressT nodeAddress, 
-                                         ClUint32T *pVersion,
-                                         ClUint32T *pCapability)
+ClRcT clNodeCacheVersionAndCapabilityGet(ClIocNodeAddressT nodeAddress, ClUint32T *pVersion, ClUint32T *pCapability)
 {
     ClRcT rc = CL_OK;
     if(nodeAddress >= CL_IOC_MAX_NODES) return CL_ERR_INVALID_PARAMETER;

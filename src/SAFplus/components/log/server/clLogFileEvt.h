@@ -110,7 +110,7 @@ extern ClRcT
 clLogCompAddEventDataExtract(ClUint8T   *pBuffer,
                              ClUint32T  size);
 extern ClRcT
-clLogNodeDownMasterDBUpdate(ClNameT  nodeName);
+clLogNodeDownMasterDBUpdate(ClNameT*  nodeName);
     
 #ifdef __cplusplus
 }

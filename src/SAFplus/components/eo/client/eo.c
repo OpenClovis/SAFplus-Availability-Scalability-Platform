@@ -356,7 +356,7 @@ ClEoProtoDefT gClEoProtoList[CL_IOC_NUM_PROTOS];
  * API simply fetch these values.
  */
 static ClEoExecutionObjT *gpExecutionObject;
-static ClIocPortT gEOIocPort;
+ClIocPortT gEOIocPort;
 static ClRadixTreeHandleT gAspClientIDTable;
 
 /*

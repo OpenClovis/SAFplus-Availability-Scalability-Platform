@@ -824,27 +824,14 @@ clAmsEntityFree(
         {
             ClAmsSUT  *su = (ClAmsSUT *) entity;
             
-            clAmsPeSUSIReassignEntryDelete(su);
+            clAmsEntityTimerDelete((ClAmsEntityT *) su,CL_AMS_SU_TIMER_SURESTART);
+            clAmsEntityTimerDelete((ClAmsEntityT *) su,CL_AMS_SU_TIMER_COMPRESTART);
+            clAmsEntityTimerDelete((ClAmsEntityT*) su,CL_AMS_SU_TIMER_PROBATION);
+            clAmsEntityTimerDelete((ClAmsEntityT*) su,CL_AMS_SU_TIMER_ASSIGNMENT);
 
+            clAmsPeSUSIReassignEntryDelete(su);          
             AMS_CALL ( clAmsEntityListTerminate(&su->config.compList) );
             AMS_CALL ( clAmsEntityListTerminate(&su->status.siList) );
-
-            AMS_CALL ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) su,
-                        CL_AMS_SU_TIMER_SURESTART) );
-
-            AMS_CALL ( clAmsEntityTimerDelete(
-                        (ClAmsEntityT *) su,
-                        CL_AMS_SU_TIMER_COMPRESTART) );
-
-            AMS_CALL ( clAmsEntityTimerDelete(
-                                              (ClAmsEntityT*) su,
-                                              CL_AMS_SU_TIMER_PROBATION) );
-
-            AMS_CALL ( clAmsEntityTimerDelete(
-                                              (ClAmsEntityT*) su,
-                                              CL_AMS_SU_TIMER_ASSIGNMENT) );
-
             break;
         }
 
@@ -4183,23 +4170,22 @@ clAmsEntityTimerCreate(
 }
 
 ClRcT
-clAmsEntityTimerDelete(
-        CL_IN  ClAmsEntityT  *entity, 
-        CL_IN  ClAmsEntityTimerTypeT  timerType )
+clAmsEntityTimerDelete(CL_IN  ClAmsEntityT  *entity, CL_IN  ClAmsEntityTimerTypeT  timerType )
 {
 
     ClTimeT  duration = 0;
     ClAmsEntityTimerT  *entityTimer = NULL;
     ClTimerCallBackT  fn = {0};
-
+    ClRcT rc;
+    
     AMS_CHECKPTR ( !entity );
 
-    AMS_CALL ( clAmsEntityTimerGetValues(
-                entity,
-                timerType,
-                &duration,
-                &entityTimer,
-                &fn) );
+    rc = clAmsEntityTimerGetValues(entity, timerType, &duration, &entityTimer,&fn);
+    if (CL_GET_ERROR_CODE(rc) == CL_AMS_ERR_INVALID_ENTITY)
+    {
+        return CL_RC(CL_CID_AMS,CL_ERR_NO_OP);        
+    }
+    
 
     if (entityTimer)
     {

@@ -1469,7 +1469,7 @@ clLogEventDeliverCb(ClEventSubscriptionIdT  subscriptionId,
             {
                 goto out_free;
             }
-            rc  = clLogNodeDownMasterDBUpdate(nodePayload.nodeName);
+            rc  = clLogNodeDownMasterDBUpdate(&nodePayload.nodeName);
             if( CL_OK != rc )
             {
                 goto out_free;

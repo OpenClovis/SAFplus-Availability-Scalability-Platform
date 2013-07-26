@@ -150,12 +150,11 @@ do\
     \
     do { \
         CL_CPM_MASTER_ADDRESS_GET(&destAddr.iocPhyAddress.nodeAddress);\
-        rc = clRmdWithMsg(destAddr,fcnId, inMsgHdl,\
-                        outMsgHdl, rmdFlags&(~CL_RMD_CALL_ASYNC), &rmdOptions, NULL);\
+        rc = clRmdWithMsg(destAddr,fcnId, inMsgHdl, outMsgHdl, rmdFlags&(~CL_RMD_CALL_ASYNC), &rmdOptions, NULL);\
         bRetry = clCorHandleRetryErrors(rc); \
         if (bRetry) \
         { \
-            clLogNotice("COR", CL_LOG_CONTEXT_UNSPECIFIED, "Cor Server has returned try again error. So retrying.."); \
+            clLogNotice("COR", CL_LOG_CONTEXT_UNSPECIFIED, "COR server has returned try again error. So retrying.."); \
         } \
     }while (bRetry && (noOfRetries++ < CL_COR_TRY_AGAIN_MAX_RETRIES)); \
 }\

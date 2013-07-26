@@ -149,6 +149,9 @@ extern ClBoolT SYSTEM_CONTROLLER;
 /** Variable to check if the current node is a SC capable node.  Loaded from the same-named environment variable.  */
 extern ClBoolT ASP_SC_PROMOTE;
 
+/** The IOC port assigned to this component.  */
+extern ClIocPortT gEOIocPort;
+
 /**
  * If you change \c CL_EO_MAX_NO_FUNC, make sure to change
  * \c CL_EO_CLIENT_BIT_SHIFT CL_EO_FN_MASK.

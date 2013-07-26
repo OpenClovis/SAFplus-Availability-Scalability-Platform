@@ -97,8 +97,7 @@ clLogMasterEoDataInit(ClLogMasterEoDataT  **ppMasterEoEntry)
            (sizeof(ClLogMasterStreamDataT) + sizeof(ClLogStreamKeyT)));
     (*ppMasterEoEntry)->sectionIdSize    = CL_LOG_MASTER_MAX_SECTIONID_SIZE;
 
-    rc = clEoPrivateDataSet(pEoObj, CL_LOG_MASTER_EO_ENTRY_KEY,
-                            *ppMasterEoEntry);
+    rc = clEoPrivateDataSet(pEoObj, CL_LOG_MASTER_EO_ENTRY_KEY, *ppMasterEoEntry);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clEoPrivateDataSet(): rc[0x %x]", rc));
@@ -191,11 +190,11 @@ clLogMasterEoEntryGet(ClLogMasterEoDataT     **ppMasterEoEntry,
 
     if( NULL != ppMasterEoEntry )
     {
-        rc = clEoPrivateDataGet(pEoObj, CL_LOG_MASTER_EO_ENTRY_KEY,
-                                (void **) ppMasterEoEntry);
+        rc = clEoPrivateDataGet(pEoObj, CL_LOG_MASTER_EO_ENTRY_KEY, (void **) ppMasterEoEntry);
         if( CL_OK != CL_GET_ERROR_CODE(rc) )
         {
-            CL_LOG_DEBUG_ERROR(("clEoPrivateDataGet(): rc[0x %x]", rc));
+            if (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST) /* If we get NOT_EXIST, its not a big deal; just means that I cannot become log master */
+                clLogWarning("MST","EO","clEoPrivateDataGet() failed with rc[0x %x]",rc);
             return rc;
         }
     }
@@ -222,8 +221,7 @@ clLogMasterEoEntrySet(ClLogMasterEoDataT  *pMasterEoEntry)
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    rc = clBitmapCreate(&pMasterEoEntry->hAllocedAddrMap,
-                        pMasterEoEntry->numMcastAddr);
+    rc = clBitmapCreate(&pMasterEoEntry->hAllocedAddrMap, pMasterEoEntry->numMcastAddr);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clBitmapCreate(): rc[0x%x]", rc));

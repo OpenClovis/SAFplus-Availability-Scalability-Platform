@@ -233,14 +233,10 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
      */
     CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
 
-    if( (CL_CKPT_CHECKPOINT_CREATE == 
-         (ckptOpenFlags & CL_CKPT_CHECKPOINT_CREATE)) 
-        && (pCreateAttr == NULL))
+    if( (CL_CKPT_CHECKPOINT_CREATE == (ckptOpenFlags & CL_CKPT_CHECKPOINT_CREATE)) && (pCreateAttr == NULL))
     {
         rc = CL_CKPT_RC(CL_ERR_NULL_POINTER);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                       ("ckptMasterOpen failed rc[0x %x]\n",
-                        rc), rc);
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("ckptMasterOpen failed rc[0x %x]\n", rc), rc);
     }
 
     /* 
@@ -526,7 +522,10 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
         }  
         pHdlInfo->ckptActiveHdl       = masterHdl;
         pHdlInfo->activeAddr          = activeAddr;
-        pHdlInfo->creationFlag        = pCreateAttr->creationFlags; 
+        pHdlInfo->creationFlag        = pCreateAttr->creationFlags;
+
+        clLogInfo("CKP","MSTR","Created Checkpoint [%.*s]  client handle [%llu] active handle [%llu] active addr [%d]", pName->length,pName->value,clientHdl, masterHdl,activeAddr);
+        
     }
     else /* Entry found in the Xlation table */
     {          
@@ -534,11 +533,8 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
          * Checkpoint already exists.
          */
         storedDBHdl = pStoredDBEntry->mastHdl;
-        rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, 
-                              storedDBHdl,(void **) &pStoredData);  
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                       ("Master DB creation failed rc[0x %x]\n",rc),
-                       rc);
+        rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, storedDBHdl,(void **) &pStoredData);  
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Master DB creation failed rc[0x %x]\n",rc), rc);
 
         /*
          */
@@ -584,10 +580,10 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
             clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
                             storedDBHdl);
             CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
-            CKPT_DEBUG_E(("client Handle create err: rc[0x %x]\n",rc));
+            CKPT_DEBUG_E(("client Handle create err: rc[0x%x]\n",rc));
             return rc;
         }
-        clLogDebug("CKP","MSTR","Created ckpt client handle [%llu]", clientHdl);
+        clLogDebug("CKP","MSTR","Created ckpt client handle [%llx]", clientHdl);
         if (CL_OK != (rc = _ckptClientHdlInfoFill(storedDBHdl, clientHdl,
                                                   CL_CKPT_SOURCE_MASTER)))
         {
@@ -619,7 +615,8 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
          * Increment the checkpoint ref count.
          */
         pStoredData->refCount = pStoredData->refCount+1;
-        clLogInfo("CKP","MGT","Checkpoint [%s] reference count incremented to [%d].", pStoredData->name.value, pStoredData->refCount);
+
+        clLogInfo("CKP","MSTR","Opened Checkpoint [%.*s]. Reference count [%d] client handle [0x%llx] active handle [0x%llx] active addr [%d]", pName->length,pName->value,pStoredData->refCount,clientHdl, masterHdl,activeAddr);
 
         /* 
          * Stop/Destroy the retention timer if runing.
@@ -628,18 +625,14 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
         {
             clTimerDelete(&pStoredData->retenTimerHdl);
         }
-        clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
-                        storedDBHdl);
+        clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, storedDBHdl);
 
         /* 
          * Update the backup/deputy/secondary master.
          */
         {
-            clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN,
-                       "Updating deputy clientHdl [%#llX] MasterHdl [%#llX]",
-                       clientHdl, storedDBHdl);
-            ckptIdlHandleUpdate( CL_IOC_BROADCAST_ADDRESS,
-                                 gCkptSvr->ckptIdlHdl,0);
+            clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, "Updating deputy for checkpoint [%.*s] clientHdl [%#llX] MasterHdl [%#llX]", pName->length,pName->value,clientHdl, storedDBHdl);
+            ckptIdlHandleUpdate( CL_IOC_BROADCAST_ADDRESS, gCkptSvr->ckptIdlHdl,0);
             VDECL_VER(clCkptDeputyCkptOpenClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
                                                                 storedDBHdl, clientHdl, localAddr,
                                                                 localPort, &ckptVersion,
@@ -673,11 +666,11 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                 if(rc != CL_OK)
                 {
 
-                    rc = clCkptFirstReplicaGet(pStoredData->replicaList,
-                                               &nodeAddr);
+                    rc = clCkptFirstReplicaGet(pStoredData->replicaList, &nodeAddr);
                     if( CL_OK != rc)
                     {
-                        clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, "No replicas available for this checkpoint rc[0x %x]", rc);
+                        /* GAS: this code does not make sense... At its most basic, shouldn't pStoredData->refCount be set to 0 */
+                        clLogCritical(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, "No replicas available for this checkpoint rc[0x %x]", rc);
                         ckptCloseOpenFailure(clientHdl, localAddr);
                         --pStoredData->refCount;
                         clLogNotice("CKP","MGT","Checkpoint [%s] reference count decremented. Now [%d].", pStoredData->name.value, pStoredData->refCount);
@@ -690,11 +683,8 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                      * even it fails,checkpoint server can proceed this 
                      * operation.
                      */
-                    clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
-                               "Notifying address [%d] to pull info from [%d] for handle [%#llX]", 
-                               localAddr, nodeAddr, storedDBHdl);
-                    clCkptReplicaCopy(localAddr, nodeAddr, storedDBHdl, 
-                                      clientHdl, activeAddr, pHdlInfo);
+                    clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, "Notifying address [%d] to pull info for Checkpoint [%.*s] (handle [%#llX]) from [%d]", localAddr, pStoredData->name.length, pStoredData->name.value, storedDBHdl, nodeAddr);
+                    clCkptReplicaCopy(localAddr, nodeAddr, storedDBHdl, clientHdl, activeAddr, pHdlInfo);
                 }
                 else
                 {

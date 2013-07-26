@@ -95,7 +95,7 @@ struct _ClCpmLocalInfoT_4_0_0;
 #define CL_CPM_CHECK_0(X, Z, retCode, logSeverity, logHandle)   \
     if(CL_GET_ERROR_CODE(retCode) != CL_OK)                     \
     {                                                           \
-        CL_DEBUG_PRINT(X, (Z));                                 \
+        /* CL_DEBUG_PRINT(X, (Z));                   */         \
         clLogWrite((logHandle), (logSeverity), NULL, Z);        \
         rc = retCode;                                           \
         goto failure;                                           \
@@ -104,7 +104,7 @@ struct _ClCpmLocalInfoT_4_0_0;
 #define CL_CPM_CHECK_1(X, Z, argv1, retCode, logSeverity, logHandle)    \
     if(CL_GET_ERROR_CODE(retCode) != CL_OK)                             \
     {                                                                   \
-        CL_DEBUG_PRINT(X, (Z, argv1));                                  \
+        /* CL_DEBUG_PRINT(X, (Z, argv1));              */               \
         clLogWrite((logHandle), (logSeverity), NULL, Z, argv1);         \
         rc = retCode;                                                   \
         goto failure;                                                   \
@@ -113,7 +113,7 @@ struct _ClCpmLocalInfoT_4_0_0;
 #define CL_CPM_CHECK_2(X, Z, argv1, argv2, retCode, logSeverity, logHandle) \
     if(CL_GET_ERROR_CODE(retCode) != CL_OK)                             \
     {                                                                   \
-        CL_DEBUG_PRINT(X, (Z, argv1, argv2));                           \
+        /* CL_DEBUG_PRINT(X, (Z, argv1, argv2));      */                \
         clLogWrite((logHandle), (logSeverity), NULL, Z, (argv1), (argv2)); \
         rc = retCode;                                                   \
         goto failure;                                                   \
@@ -122,7 +122,7 @@ struct _ClCpmLocalInfoT_4_0_0;
 #define CL_CPM_CHECK_3(X, Z, argv1, argv2, argv3, retCode, logSeverity, logHandle) \
     if(CL_GET_ERROR_CODE(retCode) != CL_OK)                             \
     {                                                                   \
-        CL_DEBUG_PRINT(X, (Z, argv1, argv2, argv3));                    \
+        /* CL_DEBUG_PRINT(X, (Z, argv1, argv2, argv3));    */           \
         clLogWrite(logHandle, logSeverity, NULL, Z, argv1, argv2, argv3); \
         rc = retCode;                                                   \
         goto failure;                                                   \

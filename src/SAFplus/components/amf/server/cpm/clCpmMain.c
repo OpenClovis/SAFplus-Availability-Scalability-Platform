@@ -3664,6 +3664,7 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
     {
         clAmsCCBHandleDBCleanup(&notification);
     }
+#if 0 /* GAS: moved to GMS so that a leader election can occur if split brain heal */   
     else if (notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION
             && notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
     {
@@ -3681,7 +3682,8 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
             }
         }
     }
-
+#endif
+    
     if(eoRecvMsg)
         clBufferDelete(&eoRecvMsg);
     return CL_OK;
