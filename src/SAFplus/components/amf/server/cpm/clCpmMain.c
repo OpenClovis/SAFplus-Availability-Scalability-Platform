@@ -1567,6 +1567,11 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
         goto failure;
     }
 
+    if( (rc = cpmEventPublishQueueInit() ) != CL_OK)
+    {
+        goto failure;
+    }
+
     clIocNotificationRegister(clCpmIocNotificationEnqueue, NULL);
 
     if( (rc = clTaskPoolCreate(&gCpmFaultPool, 1, 0, 0)) != CL_OK)

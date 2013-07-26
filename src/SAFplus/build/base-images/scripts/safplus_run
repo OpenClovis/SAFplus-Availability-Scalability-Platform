@@ -83,7 +83,7 @@ export ASP_MULTINODE
 export ASP_SIMULATION
 export ASP_WITHOUT_CPM=1
 export ASP_COMPNAME=${1##*/}_${ASP_NODENAME}
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/lib:/usr/local/lib:${ASP_DIR}/lib:${ASP_DIR}/lib/openhpi
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ASP_DIR}/lib:${ASP_DIR}/lib/openhpi:/usr/lib:/usr/local/lib
 export PYTHONPATH=$PYTHONPATH:${ASP_DIR}/lib
 
 if [ `uname` == 'SunOS' ]
