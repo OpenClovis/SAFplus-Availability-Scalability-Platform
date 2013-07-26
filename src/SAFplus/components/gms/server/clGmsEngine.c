@@ -106,8 +106,8 @@ static ClRcT gmsViewPopulate(ClBoolT *pTrackNotify)
     return rc;
 }
 
-static ClRcT 
-timerCallback( void *arg ){
+static ClRcT timerCallback( void *arg )
+{
 
     ClRcT rc = CL_OK;
     ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
@@ -143,25 +143,17 @@ timerCallback( void *arg ){
     }
     lastLeader = view->leader;
     leadershipChanged = (lastLeader != leaderNodeId);
-    if(leadershipChanged
-       ||
-       (view->deputy != deputyNodeId))
-        
+    if(leadershipChanged || (view->deputy != deputyNodeId))     
     {
         if(!trackNotify)
         {
             view->leader = leaderNodeId;
             view->deputy = deputyNodeId;
             view->leadershipChanged = leadershipChanged;
-            if(leadershipChanged)
-            {
-                clNodeCacheLeaderUpdate(lastLeader, leaderNodeId);
-            }
             clEoMyEoObjectSet ( gmsGlobalInfo.gmsEoObject );
             if (_clGmsTrackNotify ( 0x0 ) != CL_OK)
             {
-                clLog(ERROR,LEA,NA,
-                      "_clGmsTrackNotify failed in leader election timer callback");
+                clLog(ERROR,LEA,NA, "_clGmsTrackNotify failed in leader election timer callback");
             }
         }
     }
@@ -203,8 +195,7 @@ static ClRcT leaderElectionTimerRun(ClBoolT restart, ClTimerTimeOutT *pTimeOut)
         clTimerDeleteAsync(&timerHandle);
     if(pTimeOut)  timeOut = *pTimeOut;
     timerRestarted = CL_TRUE;
-    clLogNotice(GEN, NA,
-                "Starting boot time election timer for [%d] secs", timeOut.tsSec);
+    clLogNotice(GEN, NA, "Starting boot time election timer for [%d] secs", timeOut.tsSec);
     return clTimerCreateAndStart(
             timeOut,
             CL_TIMER_ONE_SHOT,
@@ -221,16 +212,13 @@ static ClRcT leaderElectionTimerRun(ClBoolT restart, ClTimerTimeOutT *pTimeOut)
 
 static ClHandleT  gNotificationCallbackHandle = CL_HANDLE_INVALID_VALUE;
 
-static void gmsNotificationCallback(ClIocNotificationIdT eventId,
-                                    ClPtrT unused,
-                                    ClIocAddressT *pAddress)
+static void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused, ClIocAddressT *pAddress)
 {
     ClRcT rc = CL_OK;
     if(gmsGlobalInfo.opState != CL_GMS_STATE_RUNNING)
         return;
-    if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION
-       ||
-       eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+    
+    if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION || eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
     {
         clLogNotice("NOTIF", "LEAVE", "Triggering node leave for node [%#x], port [%#x]",
                     pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
@@ -242,15 +230,73 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId,
         if(pAddress->iocPhyAddress.portId != CL_IOC_CPM_PORT)
            return;
 #endif
-        clLogNotice("NOTIF", "JOIN", "Triggering node join for node [%#x], port [%#x]",
-                    pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
+        clLogNotice("NOTIF", "JOIN", "Triggering node join for node [%u], port [%#x]", pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
         rc = _clGmsEngineClusterJoinWrapper(0, pAddress->iocPhyAddress.nodeAddress, NULL, CL_FALSE, NULL);
-    }
+    }  
+    
     if(rc != CL_OK)
     {
         clLogError("NOTIF", "CALLBACK", "GMS engine processing returned with [%#x]", rc);
     }
 }
+
+
+ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,ClUint8T priority,ClUint8T protoType,ClUint32T length,ClIocPhysicalAddressT srcAddr)
+{
+    ClIocNotificationT notification = {0};
+    ClUint32T len = sizeof(notification);
+
+    clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&notification, &len);
+
+    notification.id = ntohl(notification.id);
+    notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
+    notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
+    
+    gmsNotificationCallback(notification.id, 0, &notification.nodeAddress);
+
+    if ((notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION) && (notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet()))
+    {
+        clLogDebug("NTF", "LEA", "Node [%d] arrival msg len [%u] notif len [%lu]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,sizeof(notification));
+
+        if (length-sizeof(notification) >= sizeof(ClUint32T))  /* leader status is appended onto the end of the message */
+        {
+            ClUint32T reportedLeader = 0;
+            //ClRcT rc = clBufferHeaderTrim(eoRecvMsg, sizeof(notification));
+            if (1) // rc == CL_OK)
+            {
+                ClIocNodeAddressT currentLeader;
+                clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&reportedLeader, &len);
+                reportedLeader = ntohl(reportedLeader);
+                if (clNodeCacheLeaderGet(&currentLeader)==CL_OK)
+                {
+                    if (currentLeader == reportedLeader)
+                    {                        
+                    clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].  Consistent with this node.", currentLeader, reportedLeader);
+                    }
+                    else
+                    {
+                        ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
+                        ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
+
+                        clLogAlert("NTF", "LEA", "Split brain.  Node [%d] reports leader as [%d].  Inconsistent with this node's leader [%d]", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader,currentLeader);
+                        clNodeCacheLeaderSet(reportedLeader);
+                        _clGmsEngineLeaderElect (0x0, NULL , CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
+                    }
+                }
+                else
+                {
+                clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader);
+                clNodeCacheLeaderSet(reportedLeader);
+                }
+            }
+        }
+    }
+    
+    if(eoRecvMsg)
+        clBufferDelete(&eoRecvMsg);
+    return CL_OK;
+}
+
 
 static void gmsNotificationInitialize(void)
 {
@@ -264,6 +310,22 @@ static void gmsNotificationInitialize(void)
     compAddr.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     compAddr.portId = CL_IOC_CPM_PORT;
     clCpmNotificationCallbackInstall(compAddr, gmsNotificationCallback, NULL, &gNotificationCallbackHandle);
+
+    if (1)
+    {
+        
+        ClEoProtoDefT eoProtoDef = 
+        {
+            CL_IOC_PORT_NOTIFICATION_PROTO,
+            "IOC notification to GMS",
+            clGmsIocNotification,
+            NULL,
+            CL_EO_STATE_ACTIVE | CL_EO_STATE_SUSPEND | CL_EO_STATE_THREAD_SAFE
+        };
+
+        clEoProtoSwitch(&eoProtoDef);
+    }
+    
 }
 
 static ClRcT gmsClusterStart(void)
@@ -682,8 +744,10 @@ _clGmsEngineLeaderElect(
     }
 
 
-    clLog(DBG,CLM,NA,
-            "Leader election is done. Now updating the leadership status");
+    clLog(DBG,CLM,NA, "Leader election is done. Now updating the leadership status");
+    /* Update current leader and "gratuitous" sending of our view of the leader to other AMFs */
+    clNodeCacheLeaderUpdate(*leaderNodeId, CL_TRUE);
+   
     rc  = _clGmsViewDbFind(groupId, &thisViewDb);
 
     if (rc != CL_OK)
@@ -928,7 +992,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     timeout.tsSec = gmsGlobalInfo.config.bootElectionTimeout;
     timeout.tsMilliSec = 0;
     
-    clLog(CL_LOG_INFO,CLM,NA,"GMS engine cluster join is invoked for node Id [%d] for group [%d]", nodeId, groupId);
+    clLog(CL_LOG_INFO,CLM,"ENG","Cluster join invoked for node Id [%d] for group [%d]", nodeId, groupId);
 
     rc = _clGmsViewFindAndLock(groupId, &thisClusterView);
 
@@ -971,7 +1035,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     if (1)
     {
         ClGmsClusterMemberT *currentNode =  &node->viewMember.clusterMember;
-        clLog(CL_LOG_DEBUG,CLM,NA, "Node [%*.s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu] (%p)",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp,(void*) node);
+        clLog(CL_LOG_DEBUG,CLM,NA, "Node [%.*s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu] (%p)",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp,(void*) node);
     }
 
     if (0 == strncmp(node->viewMember.clusterMember.nodeName.value, gmsGlobalInfo.config.preferredActiveSCNodeName, node->viewMember.clusterMember.nodeName.length))

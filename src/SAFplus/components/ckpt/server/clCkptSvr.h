@@ -60,10 +60,8 @@ typedef struct ckptMasterDBInfo
     ClHandleDatabaseHandleT  masterDBHdl;     /* Meta data DB at master */
     ClHandleDatabaseHandleT  clientDBHdl;     /* client handle DB at master */
     ClCntHandleT             nameXlationDBHdl;     /* Xlation data DB at master */
-    ClOsalMutexIdT           ckptMasterDBSem;  /* Semaphore guarding the 
-                                            data structures */
-    ClCntHandleT             peerList;     /* List of checkpoint servers in 
-                                            the system.*/
+    ClOsalMutexIdT           ckptMasterDBSem;  /* Semaphore guarding the  data structures */
+    ClCntHandleT             peerList;     /* List of checkpoint servers in the system.*/
     ClInt8T                  availPeerCount; /* No.of peers ready to replicate */
     ClUint32T                clientHdlCount;
     ClUint32T                masterHdlCount;

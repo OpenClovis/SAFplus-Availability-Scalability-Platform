@@ -5321,20 +5321,19 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 AMS_LOG(CL_DEBUG_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_NODE_SU_LIST\n"));
 
-                clAmsMgmtCCBSetNodeSUListRequestT  *req = 
-                    (clAmsMgmtCCBSetNodeSUListRequestT *)opData->payload;
+                clAmsMgmtCCBSetNodeSUListRequestT  *req = (clAmsMgmtCCBSetNodeSUListRequestT *)opData->payload;
 
                 ClAmsEntityT *sourceEntity = NULL;
                 ClAmsEntityT *targetEntity = NULL;
                 ClAmsSUT *targetSU = NULL;
-                rc =                  clAmsAddGetEntityList(
-                                                        &req->nodeName,
-                                                        &req->suName,
-                                                        CL_AMS_NODE_CONFIG_SU_LIST,
-                                                        &sourceEntity, &targetEntity);
-                if (rc != CL_OK)
+                rc = clAmsAddGetEntityList(&req->nodeName,&req->suName,CL_AMS_NODE_CONFIG_SU_LIST,&sourceEntity, &targetEntity);
+                if (CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) /* Benign error */
                 {
-                    AMS_LOG(CL_DEBUG_ERROR,("Unable to add SU [%.*s] to node [%.*s], return code [0x%x]",req->suName.name.length-1,req->suName.name.value,req->nodeName.name.length-1,req->nodeName.name.value,rc));
+                    clLogDebug("AMS","MGT","Unable to add SU [%.*s] to node [%.*s] SU list, return code [CL_ERR_ALREADY_EXIST]",req->suName.name.length-1,req->suName.name.value,req->nodeName.name.length-1,req->nodeName.name.value);
+                }
+                else if (rc != CL_OK)
+                {
+                    AMS_LOG(CL_DEBUG_ERROR,("Unable to add SU [%.*s] to node [%.*s] SU list, return code [0x%x] ",req->suName.name.length-1,req->suName.name.value,req->nodeName.name.length-1,req->nodeName.name.value,rc));
                     AMS_CHECK_RC_ERROR(rc);
                 }
                 
@@ -5361,9 +5360,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                     AMS_CHECK_RC_ERROR(rc);
                 }
                 targetSU = (ClAmsSUT*)targetEntity;
-                if(targetSU && 
-                   targetSU->config.parentSG.ptr && 
-                   targetSU->config.parentNode.ptr)
+                if(targetSU && targetSU->config.parentSG.ptr && targetSU->config.parentNode.ptr)
                 {
                     /*
                      * Mark the SU as instantiable. Would be skipped if its already uninstantiable

@@ -303,8 +303,7 @@ ClRcT cpmNodeAdd(ClCharT *nodeName)
 
     if (!nodeName)
     {
-        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
-                   "NULL pointer passed.");
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM, "NULL pointer passed.");
         goto failure;
     }
 
@@ -313,9 +312,7 @@ ClRcT cpmNodeAdd(ClCharT *nodeName)
     clOsalMutexUnlock(gpClCpm->cpmTableMutex);
     if (cpm)
     {
-        clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
-                     "Node [%s] already exists on this node.",
-                     nodeName);
+        clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM, "Node [%s] already exists on this node.", nodeName);
         rc = CL_CPM_RC(CL_ERR_ALREADY_EXIST);
         goto failure;
     }
@@ -363,22 +360,18 @@ ClRcT cpmNodeAdd(ClCharT *nodeName)
     rc = clCpmSlotInfoGet(CL_CPM_SLOT_ID, &slotInfo);
     if(rc == CL_OK)
     {
-        rc = cpmCorMoIdToMoIdNameGet(&slotInfo.nodeMoId,
-                                     &cpm->nodeMoIdStr);
+        rc = cpmCorMoIdToMoIdNameGet(&slotInfo.nodeMoId, &cpm->nodeMoIdStr);
     }
     if(rc != CL_OK)
     {
-        if(CL_GET_ERROR_CODE(rc) != CL_IOC_ERR_COMP_UNREACHABLE
-           &&
-           CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST)
+        if((CL_GET_ERROR_CODE(rc) != CL_IOC_ERR_COMP_UNREACHABLE) && (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST))
         {
             goto failure;
         }
         else
         {
             rc = CL_OK;
-            clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM, 
-                         "COR server not running. Hence ignoring the error");
+            clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM, "COR server not running so cannot discover the Node's MoId");
         }
     }
 

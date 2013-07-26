@@ -79,9 +79,10 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
 #ifdef USE_COR        
         case CL_CPM_NODE_MOID:
         {
+            slotInfoRecv.nodeMoIdStr.length = 0;
+            slotInfoRecv.nodeMoIdStr.value[0] = 0;                
             rc = clCorMoIdToMoIdNameGet(&slotInfo->nodeMoId, &slotInfoRecv.nodeMoIdStr);
-            CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
-                    ("MoIdToMoIdNameGet Failed, rc=[0x%x]\n", rc), rc);
+            CPM_CLIENT_CHECK(CL_DEBUG_ERROR,("MoIdToMoIdNameGet Failed, rc=[0x%x]\n", rc), rc);
             break;
         }
 #endif        
@@ -107,8 +108,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
                                MARSHALL_FN(ClCpmSlotInfoRecvT, 4, 0, 0),
                                UNMARSHALL_FN(ClCpmSlotInfoRecvT, 4, 0, 0));
     
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
-            ("Unable to find information about given entity, rc=[0x%x]\n", rc), rc);
+    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to find information about given entity, rc=[0x%x]\n", rc), rc);
 
     switch(slotInfoRecv.flag)
     {

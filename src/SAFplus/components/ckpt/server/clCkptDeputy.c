@@ -126,24 +126,20 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
      * Unpack the peerList.
      */
     rc = ckptPeerListInfoUnpack(peerCount,pPeerListInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Ckpt: Failed to unpack the PeerList info rc[0x %x]\n", rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Ckpt: Failed to unpack the PeerList info rc[0x %x]\n", rc), rc);
 
     /*
      * Unpack the master DB info.
      */
     rc = ckptMasterDBInfoUnpack(mastHdlCount,pMasterDBInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Ckpt: Failed to unpack the MasterInfo rc[0x %x]\n", rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Ckpt: Failed to unpack the MasterInfo rc[0x %x]\n", rc), rc);
             
-    clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, 
-                "Received open handle [%d]", clntHdlCount);
+    clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,"Received open handle [%d]", clntHdlCount);
     /*
      * Unpack the client DB info.
      */
     rc = ckptClientDBInfoUnpack(clntHdlCount,pClientDBInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Ckpt: Failed to unpack the ClientDB Info rc[0x %x]\n", rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Ckpt: Failed to unpack the ClientDB Info rc[0x %x]\n", rc), rc);
     gCkptSvr->isSynced = CL_TRUE;
 
 exitOnError:
@@ -184,8 +180,7 @@ exitOnError:
  * Function for unpacking the name xlation table entries.
  */
  
-ClRcT ckptXlatioEntryUnpack( ClUint32T           ckptCount,
-                             CkptXlationDBEntryT *pXlationInfo)
+ClRcT ckptXlatioEntryUnpack( ClUint32T           ckptCount, CkptXlationDBEntryT *pXlationInfo)
 {
     CkptXlationDBEntryT  *pXlationEntry = NULL;
     ClUint32T             count         = 0;
@@ -204,8 +199,7 @@ ClRcT ckptXlatioEntryUnpack( ClUint32T           ckptCount,
         /*
          * Allocate memory and copy the unpacked data.
          */
-        pXlationEntry = (CkptXlationDBEntryT *)clHeapCalloc(1,
-                sizeof(CkptXlationDBEntryT));
+        pXlationEntry = (CkptXlationDBEntryT *)clHeapCalloc(1, sizeof(CkptXlationDBEntryT));
         if(pXlationEntry == NULL)
         {
             rc = CL_CKPT_ERR_NO_MEMORY;
@@ -221,17 +215,13 @@ ClRcT ckptXlatioEntryUnpack( ClUint32T           ckptCount,
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)
         {
             CkptXlationDBEntryT  *pStoredXlation = NULL;
-            rc = clCntDataForKeyGet(gCkptSvr->masterInfo.nameXlationDBHdl,
-                                    (ClCntKeyHandleT) pXlationEntry,
-                                    (ClCntDataHandleT*)&pStoredXlation);
+            rc = clCntDataForKeyGet(gCkptSvr->masterInfo.nameXlationDBHdl, (ClCntKeyHandleT) pXlationEntry, (ClCntDataHandleT*)&pStoredXlation);
             if(rc == CL_OK)
             {
                 /*
                  * Update the master handle in the db. from the received pack
                  */
-                clLogWarning("DEP", "XLATION", "Duplicate ckpt [%.*s] with master handle [%#llx] "
-                             "found while unpacking ckpt entry [%.*s] "
-                             "with master hdl [%#llx], sum [%#x]",
+                clLogWarning("DEP", "XLATION", "Duplicate ckpt [%.*s] with master handle [%#llx] found while unpacking ckpt entry [%.*s] with master hdl [%#llx], sum [%#x]",
                              pStoredXlation->name.length, pStoredXlation->name.value, 
                              pStoredXlation->mastHdl, pXlationEntry->name.length, 
                              pXlationEntry->name.value, pXlationEntry->mastHdl,
@@ -246,12 +236,18 @@ ClRcT ckptXlatioEntryUnpack( ClUint32T           ckptCount,
             }
         }
 
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-             ("Ckpt: Failed to add to the XlationEntry rc[0x %x]\n", rc), rc);
-        clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, 
-                   "Checkpoint [%.*s] has been created with master handle [%#llx], cksum [%#x]", 
-                   pXlationEntry->name.length, pXlationEntry->name.value, pXlationEntry->mastHdl,
-                   pXlationEntry->cksum);
+        /* GAS: was CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Ckpt: Failed to add to the XlationEntry rc[0x%x]\n", rc), rc);
+           but I think we should continue to add the other entries
+        */
+        if (rc != CL_OK)
+        {
+        clLogWarning(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,"Checkpoint [%.*s] with master handle [%#llx], cksum [%#x] cannot be added to the translation table, rc [%x]",pXlationEntry->name.length, pXlationEntry->name.value, pXlationEntry->mastHdl,pXlationEntry->cksum,rc);
+        }
+        else
+        {        
+        clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Checkpoint [%.*s] handle info has been replicated here. Master handle [%#llx], cksum [%#x]", pXlationEntry->name.length, pXlationEntry->name.value, pXlationEntry->mastHdl, pXlationEntry->cksum);
+        }
+        
         pXlationInfo++;      
     }
 exitOnError:    
@@ -510,11 +506,8 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
             }
             pReplicaListInfo++;
         }                                
-        clHandleCheckin( gCkptSvr->masterInfo.masterDBHdl,
-                pMasterDBInfo->ckptMasterHdl);
-        clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, 
-                   "Master handle [%#llX] has been created", 
-                   pMasterDBInfo->ckptMasterHdl);
+        clHandleCheckin( gCkptSvr->masterInfo.masterDBHdl, pMasterDBInfo->ckptMasterHdl);
+        clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Master handle [%#llX] has been created in database [%#lx %p]", pMasterDBInfo->ckptMasterHdl, clHandleGetDatabaseId(gCkptSvr->masterInfo.masterDBHdl), gCkptSvr->masterInfo.masterDBHdl);
         pMasterDBInfo++;
     }                       
     return rc;
@@ -1638,19 +1631,16 @@ ClRcT VDECL_VER(clCkptCreateInfoDeputyUpdate, 4, 0, 0)(ClVersionT         *pVers
                 {
                     rc = CL_CKPT_ERR_INVALID_STATE;
                 }
-                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                        ("Ckpt: Passed info got corrupted rc[0x %x]\n", rc), rc);
+                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Ckpt: Passed info got corrupted rc[0x %x]\n", rc), rc);
                 xlationInfo.mastHdl  = pMasterDBInfo->ckptMasterHdl;  
                 clNameCopy(&xlationInfo.name, &pMasterDBInfo->name);
                 clCksm32bitCompute ((ClUint8T *)xlationInfo.name.value, 
                         xlationInfo.name.length,
                         &xlationInfo.cksum);
                 rc = ckptXlatioEntryUnpack(1,&xlationInfo);
-                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                        ("Ckpt: Failed to unpack the Xlation Entry rc[0x %x]\n", rc), rc);
+                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Ckpt: Failed to unpack the Xlation Entry rc[0x %x]\n", rc), rc);
                 rc = ckptMasterDBInfoUnpack(1,pMasterDBInfo);
-                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                        ("Ckpt: Failed to unpack the MasterInfo rc[0x %x]\n", rc), rc);
+                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Ckpt: Failed to unpack the MasterInfo rc[0x %x]\n", rc), rc);
                 clientDBInfo.clientHdl = pCreateInfo->clientHdl;        
                 clientDBInfo.masterHdl = pMasterDBInfo->ckptMasterHdl; 
 

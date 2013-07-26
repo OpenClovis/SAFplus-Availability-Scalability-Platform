@@ -94,6 +94,15 @@ extern "C"
 #define CL_HANDLE_INVALID_VALUE     0x0
 #define CL_HDL_IDX_MASK     0x00000000FFFFFFFFULL
 #define CL_HDL_IDX(hdl) (ClUint32T)( (hdl) & CL_HDL_IDX_MASK)
+
+#define CL_HDL_NODE_ADDR_MASK    0xFFF0000000000000ULL
+#define CL_HDL_PORT_ADDR_MASK    0x000FFF0000000000ULL
+#define CL_HDL_DB_ADDR_MASK      0x000000FF00000000ULL
+
+#define CL_HDL_NODE_ADDR(hdl) ((((ClUint64T)hdl)&CL_HDL_NODE_ADDR_MASK)>>52)
+#define CL_HDL_PORT_ADDR(hdl) ((((ClUint64T)hdl)&CL_HDL_PORT_ADDR_MASK)>>40)
+#define CL_HDL_DB_ADDR(hdl) ((((ClUint64T)hdl)&CL_HDL_DB_ADDR_MASK)>>32)
+    
 /**
  *  Handle database handle.
  */
@@ -321,6 +330,32 @@ extern ClRcT clHandleMove(
 	    CL_IN    ClHandleT                 oldHandle,
         CL_IN    ClHandleT                 newHandle);
 
+/**
+ ******************************************************************************
+ *  \brief Get the handle database Identifier
+ *
+ *  \par Header File 
+ *   clHandleApi.h
+ *
+ *  \param databaseHandle (in) The handle database handle.
+ *  
+ *  \retval The database Id
+ *
+ *  \par Description
+ *  This API returns the Id associated with a handle database.  This id is stored
+ *  in every handle created in this database.
+ *  However, note that this value will not ALWAYS correspond with a valid handle because
+ *  you can store handles created in other nodes in a local handle database using the
+ *  clHandleCreateSpecifiedHandle() API.
+ *
+ *  \par Library File
+ *   ClUtil 
+ *
+ *  \sa clHandleCreate, clHandleCheckout(), clHandleDestroy(), clHandleCreateSpecifiedHandle() 
+ *     
+ */
+    ClWordT clHandleGetDatabaseId(ClHandleDatabaseHandleT  *databaseHandle);
+    
 #ifdef __cplusplus
 }
 #endif
@@ -340,6 +375,7 @@ typedef struct handle_entry {
     void         *instance;
 	ClUint32T    ref_count;
     ClCharT      flags;
+    ClHandleT    handle; /* The handle cannot be derived from the index because it contains node port and handledb info.  So easiest to just store it */
 } ClHdlEntryT;
 
 /* Struct for handle database */
@@ -355,13 +391,17 @@ typedef struct handle_database
 } ClHdlDatabaseT;
 
 /* Reserve the top 16 bits to indicate the DB handle */
-#define CL_HDL_NODE_MASK    0xFFFF000000000000ULL /* (((1<<16)-1)<<(63-16)) */
-#define CL_HDL_DB_MASK      0x0000FFFF00000000ULL
+#define CL_HDL_NODE_MASK    (((1<<12ULL)-1ULL)<<(64-12))    /* 12 bits on the top  */
+#define CL_HDL_PORT_MASK    (((1<<12ULL)-1ULL)<<(64-24))    /* 12 bits 12 from the top  */
+#define CL_HDL_DB_MASK      (((1<<8ULL)-1ULL)<<32)
 
 /* macros to manipulate handles */
-#define CL_HDL_DB(hdl) (((ClUint64T)hdl)>>48)
-#define CL_HDL_NODE(hdl) ((((ClUint64T)hdl)&CL_HDL_DB_MASK)>>32)
-#define CL_HDL_MAKE(node,dbid, idx) (((ClHandleT) idx) | (((ClHandleT) node)<<48) | (((ClHandleT) dbid)<<32))
+#define CL_HDL_NODE(hdl) (((ClUint64T)hdl)>>(64-12))
+#define CL_HDL_DB(hdl) ((((ClUint64T)hdl)&CL_HDL_DB_MASK)>>32)
+
+/* #define CL_HDL_MAKE(node,dbid, idx) (((ClHandleT) idx) | (((ClHandleT) node)<<48) | (((ClHandleT) dbid)<<32)) */
+
+#define CL_HDL_MAKE_ADDR(node, port, dbid, idx) (((ClHandleT) idx) | (((ClHandleT) node)<<52) | (((ClHandleT) port)<<40) | ((((ClHandleT) dbid)<<32)&CL_HDL_DB_ADDR_MASK) )
 
 
 

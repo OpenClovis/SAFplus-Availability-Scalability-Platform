@@ -605,7 +605,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
                 if ((pInitInfo) && (pInitInfo->servHdl == evtSecHeader.evtHandle))
                 {
                     
-                    evtSecHeader.evtHandle = CL_HDL_MAKE(ASP_NODEADDR,hdbp->id, handle + 1);
+                    evtSecHeader.evtHandle = hdbp->handles[handle].handle;
                     
                     rc=CL_OK;
                     hdbp->handles[handle].ref_count++;

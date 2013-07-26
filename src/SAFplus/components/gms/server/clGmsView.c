@@ -71,6 +71,20 @@ typedef struct ClGmsIocViewCache
     struct hashStruct hash;
 } ClGmsIocViewCacheT;
 
+void ClGmsViewNodeTFree(ClGmsViewNodeT* node)
+{
+    clLogDebug("VIEW","MEM", "Freeing [%p] Node [%d]", (void*) node, node->viewMember.clusterMember.nodeId);
+    bzero(node,sizeof(ClGmsViewNodeT));
+    clHeapFree(node);
+}
+
+ClGmsViewNodeT* ClGmsViewNodeTAlloc(ClGmsNodeIdT nodeId)
+{
+    ClGmsViewNodeT* ret = clHeapCalloc(1,sizeof(ClGmsViewNodeT));    
+    clLogDebug("VIEW","MEM", "Alloc [%p] for Node [%d]", (void*) ret, nodeId);
+    return ret;
+}
+
 /*
  * Stores the last leader cache node
  */
@@ -92,8 +106,7 @@ static ClGmsIocViewCacheT *gmsViewCacheFind(ClIocNodeAddressT nodeId)
 /*
  * When the node leaves, add it to the view cache.
  */
-static __inline__ void gmsViewCacheLastLeaderUpdate(ClIocNodeAddressT nodeId,
-                                                    ClGmsViewNodeT *node)
+static __inline__ void gmsViewCacheLastLeaderUpdate(ClIocNodeAddressT nodeId,ClGmsViewNodeT *node)
 {
     if(!gClLastLeaderViewNode 
        && 
@@ -136,63 +149,6 @@ static void gmsViewCacheAdd(ClIocNodeAddressT nodeId, ClGmsViewNodeT *node)
     gmsViewCacheLastLeaderUpdate(nodeId, node);
 }
 
-static ClRcT gmsViewCacheGet(ClGmsNodeIdT currentLeader, ClIocNodeAddressT nodeId, ClGmsViewNodeT **nodeMember)
-{
-    ClGmsIocViewCacheT *cache;
-    ClRcT rc = CL_OK;
-    if(nodeMember)
-        *nodeMember = NULL;
-    cache = gmsViewCacheFind(nodeId);
-    if(cache)
-    {
-        hashDel(&cache->hash);
-        /*
-         *If its the current leader and we are already the leader ourselves.
-         *then schedule a re-election.
-         */
-        if(!gClTotemRunning
-           &&
-           cache->nodeMember.viewMember.clusterMember.credential != CL_GMS_INELIGIBLE_CREDENTIALS)
-        {
-            rc = CL_GMS_RC(CL_ERR_TRY_AGAIN);
-            /*
-             * If we are leaderless, we retain the states.
-             * If its a split brain on the controllers, then the payloads would anyway be restarted
-             * If its a split only on the payloads, then the payloads restore back the last views
-             */
-            if(gClLastLeaderViewNode == nodeId)
-            {
-                cache->nodeMember.viewMember.clusterMember.isCurrentLeader = 
-                    __SC_PROMOTE_CAPABILITY_MASK;
-            }
-            else
-            {
-                cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_FALSE;
-            }
-        }
-        else
-        {
-            /*
-             * Reset the last view capability
-             */
-            clLogNotice("VIEW", "CACHE", "Resetting the view cache entry for node [%d]", cache->nodeAddress);
-            cache->nodeMember.viewMember.clusterMember.isCurrentLeader = CL_FALSE;
-        }
-        cache->nodeMember.viewMember.clusterMember.isPreferredLeader = CL_FALSE;
-        cache->nodeMember.viewMember.clusterMember.leaderPreferenceSet = CL_FALSE;
-        cache->nodeMember.viewMember.clusterMember.bootTimestamp = clOsalStopWatchTimeGet();
-        if(nodeMember)
-        {
-            *nodeMember = &cache->nodeMember;
-        }
-        /*
-         * Keep the node cache also in sync.
-         */
-        clNodeCacheUpdate(nodeId, 0, 0, NULL);
-    }
-    return rc;
-}
-
 /*
  * On a new node join, check if the node is in the view cache left to see determine faster joins    
  * after splits. If no, fetch the footprint from the node cache for the new node.
@@ -202,40 +158,51 @@ static ClRcT gmsViewCacheGet(ClGmsNodeIdT currentLeader, ClIocNodeAddressT nodeI
 ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT nodeAddress, ClGmsViewNodeT **pNode)
 {
     ClGmsViewNodeT *node = NULL;
+    //ClGmsIocViewCacheT *cacheE = NULL;
+    ClNodeCacheMemberT member = {0};
     ClRcT rc = CL_OK;
     if(!nodeAddress || !pNode)
         return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
-    rc = gmsViewCacheGet(currentLeader, nodeAddress, &node);
-    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_TRY_AGAIN) return rc;
+    
+
+    /* GMS triggers on the link up event but we must wait for the node hello message to update the node cache (AMF interpretes and processes it) before we
+       can run an election.  Its actually ok to just abort here as the election will be handled later but of course it best to handle it now.
+     */
+
+    /* Must sync with the node cache every time b/c the leader flag can change */
+    if(clNodeCacheMemberGetExtendedSafe(nodeAddress, &member, 10, 200) != CL_OK)
+    {
+        clLogError("VIEW", "CHECK", "Node [%d] not yet updated in the node cache", nodeAddress);
+        return CL_GMS_RC(CL_ERR_NOT_INITIALIZED);
+    }
+    
     if(!node)
     {
-        ClNodeCacheMemberT member = {0};
-        if(clNodeCacheMemberGetExtendedSafe(nodeAddress, &member, 5, 200) != CL_OK)
-        {
-            clLogWarning("VIEW", "CHECK", "Node view for [%d] not yet updated in the node cache", nodeAddress);
-            return CL_GMS_RC(CL_ERR_NOT_INITIALIZED);
-        }
-        node = clHeapCalloc(1, sizeof(*node));
+        node = ClGmsViewNodeTAlloc(member.address);
         CL_ASSERT(node !=  NULL);
         node->viewMember.clusterMember.nodeId = member.address;
         node->viewMember.clusterMember.nodeAddress.iocPhyAddress.nodeAddress = member.address;
         clNameSet(&node->viewMember.clusterMember.nodeName, member.name);
-        node->viewMember.clusterMember.isCurrentLeader = 
-            CL_NODE_CACHE_LEADER_CAPABILITY(member.capability);
         node->viewMember.clusterMember.credential = CL_GMS_INELIGIBLE_CREDENTIALS;
-        if(CL_NODE_CACHE_SC_CAPABILITY(member.capability))
+
+        node->viewMember.clusterMember.isPreferredLeader = CL_FALSE;
+        node->viewMember.clusterMember.leaderPreferenceSet = CL_FALSE;
+        node->viewMember.clusterMember.bootTimestamp = clOsalStopWatchTimeGet();
+    }
+
+    /* Always update the capability from the node cache in case it has changed. */
+    if(CL_NODE_CACHE_SC_CAPABILITY(member.capability))
         {
             node->viewMember.clusterMember.credential = member.address + CL_IOC_MAX_NODES + 1;
         }
-        else if(CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(member.capability))
+    else if(CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(member.capability))
         {
             node->viewMember.clusterMember.credential = member.address;
-        }
-        node->viewMember.clusterMember.bootTimestamp = clOsalStopWatchTimeGet();
-        clLogNotice("VIEW", "CHECK", "Node [%d] added to the view with capability [%#x] "
-                    "credentials [%d]", member.address, member.capability, 
-                    node->viewMember.clusterMember.credential);
-    }
+        }    
+    node->viewMember.clusterMember.isCurrentLeader = CL_NODE_CACHE_LEADER_CAPABILITY(member.capability);
+    
+    clLogNotice("VIEW", "CHECK", "Node [%s] slot/address [%d] added/updated to the view cache with capability [%#x] credentials [%d].  Is leader?: %d", member.name, member.address, member.capability, node->viewMember.clusterMember.credential, node->viewMember.clusterMember.isCurrentLeader);
+    
     *pNode = node;
     return rc;
 }
@@ -266,9 +233,7 @@ ClRcT _clGmsViewClusterGroupFind( CL_IN  const char * name)
 
 /* Find the view Db */
 
-ClRcT    _clGmsViewDbFind(
-        CL_IN   const ClGmsGroupIdT   groupId, 
-        CL_IN   ClGmsDbT** const      thisViewDb)
+ClRcT    _clGmsViewDbFind(CL_IN   const ClGmsGroupIdT   groupId, CL_IN   ClGmsDbT** const      thisViewDb)
 {
     const ClRcT rc = CL_GMS_RC(CL_ERR_DOESNT_EXIST);
     ClUint16T   index = 0x0;
@@ -285,8 +250,7 @@ ClRcT    _clGmsViewDbFind(
 
     for (index = 0; index < gmsGlobalInfo.config.noOfGroups; index++)
     {
-        if ((gmsGlobalInfo.db[index].view.isActive == CL_TRUE) && 
-                (gmsGlobalInfo.db[index].view.id == groupId))
+        if ((gmsGlobalInfo.db[index].view.isActive == CL_TRUE) && (gmsGlobalInfo.db[index].view.id == groupId))
         {
             *thisViewDb = &gmsGlobalInfo.db[index];
             return CL_OK;
@@ -819,14 +783,10 @@ fill_notification_buffer_from_viewdb(
 /*
  *  Gets the changed and changed only entries from the view.
  */
-ClRcT   _clGmsViewGetCurrentView(
-        CL_IN   const ClGmsGroupIdT    groupId,
-        CL_OUT  void* const            res)
+ClRcT   _clGmsViewGetCurrentView(CL_IN   const ClGmsGroupIdT    groupId, CL_OUT  void* const            res)
 {
     ClRcT       rc = CL_OK ;
     ClGmsDbT    *thisViewDb = NULL;
-
-
 
     rc = _clGmsViewDbFind(groupId, &thisViewDb);
 
@@ -850,9 +810,7 @@ ClRcT   _clGmsViewGetCurrentView(
  * Same as above function, but without locking (it assumes that the view is
  * already locked.
  */
-ClRcT   _clGmsViewGetCurrentViewLocked(
-        CL_IN   const ClGmsGroupIdT    groupId,
-        CL_OUT  void* const            res)
+ClRcT   _clGmsViewGetCurrentViewLocked(CL_IN   const ClGmsGroupIdT    groupId, CL_OUT  void* const            res)
 {
     ClRcT       rc = CL_OK;
     ClGmsDbT    *thisViewDb = NULL;
@@ -1180,7 +1138,7 @@ _clGmsViewAddNodePrivate(
 
     if (node->trackFlags == CL_GMS_MEMBER_JOINED)
     {
-        joinNode = (ClGmsViewNodeT*)clHeapAllocate(sizeof(ClGmsViewNodeT));
+        joinNode = ClGmsViewNodeTAlloc(node->viewMember.clusterMember.nodeId);
 
         if (joinNode == NULL)
         {
@@ -1215,7 +1173,7 @@ _clGmsViewAddNodePrivate(
             {
                 dbKey.nodeId = nodeId;
                 rc = _clGmsDbDelete(thisViewDb, CL_GMS_JOIN_LEFT_VIEW, dbKey);
-                clHeapFree(joinNode);
+                ClGmsViewNodeTFree(joinNode);
             }
         }
     }
@@ -1324,8 +1282,7 @@ _clGmsViewUpdateNodePrivate(
         return CL_GMS_RC(CL_ERR_ALREADY_EXIST);
     }
 
-    rc = _clGmsViewFindNodePrivate(thisViewDb, nodeId, CL_GMS_JOIN_LEFT_VIEW,
-            &joinLeftViewNode);
+    rc = _clGmsViewFindNodePrivate(thisViewDb, nodeId, CL_GMS_JOIN_LEFT_VIEW, &joinLeftViewNode);
     if (rc == CL_OK)
     {
         /*Node has been found in JOIN_LEFT_VIEW so update the same. No need to
@@ -1337,7 +1294,7 @@ _clGmsViewUpdateNodePrivate(
     } 
     else if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
     {
-        joinNode = (ClGmsViewNodeT*)clHeapAllocate(sizeof(ClGmsViewNodeT));
+        joinNode = ClGmsViewNodeTAlloc(node->viewMember.clusterMember.nodeId);
 
         if (joinNode == NULL)
         {
@@ -1353,16 +1310,12 @@ _clGmsViewUpdateNodePrivate(
         rc =  _clGmsDbAdd(thisViewDb, CL_GMS_JOIN_LEFT_VIEW, dbKey, joinNode);
         if (rc != CL_OK)
         {
-            clLogMultiline(ERROR,GEN,NA,
-                    "Adding an entry into CL_GMS_JOIN_LEFT_VIEW when node is"
-                     "reconfigured, failed with rc = 0x%x\n",rc);
+            clLogMultiline(ERROR,GEN,NA, "Adding an entry into CL_GMS_JOIN_LEFT_VIEW when node is reconfigured, failed with rc = 0x%x\n",rc);
         }
     }
     else
     {
-        clLogMultiline(ERROR,GEN,NA,
-                "Failed to find the node Id %d in JOIN_LEFT_VIEW."
-                 "RC = 0x%x\n",nodeId, rc);
+        clLogMultiline(ERROR,GEN,NA, "Failed to find the node Id %d in JOIN_LEFT_VIEW. RC = 0x%x\n",nodeId, rc);
     }
 
     *foundNode = *node;
@@ -1373,7 +1326,7 @@ _clGmsViewUpdateNodePrivate(
 }
 
 
-/* Add a node to the given view.
+/* Add a node to the given view.  I take the *node memory
  * This function does not lock the view. The caller
  * is supposed to lock the view first before calling this
  * function.
@@ -1404,29 +1357,26 @@ ClRcT   _clGmsViewAddNodeExtended(
 
     CL_ASSERT(thisViewDb != NULL);
 
-    if(!(node = *ppNode))
-    {
-        gmsViewCacheGet(0, nodeId, ppNode);
-        node = *ppNode;
-        if(!node)
-        {
-            rc = CL_ERR_ALREADY_EXIST;
-            goto ADD_ERROR;
-        }
-    }
 
-    rc = _clGmsViewFindNodePrivate(thisViewDb, nodeId, CL_GMS_CURRENT_VIEW, 
-            &foundNode);
+    node = *ppNode;
+
+    if (!node)
+    {
+        clLogCritical("VIEW", "CACHE", "node not passed (group %d, nodeId %d)", groupId,nodeId);
+        CL_ASSERT(node != 0);
+    }
+    
+    rc = _clGmsViewFindNodePrivate(thisViewDb, nodeId, CL_GMS_CURRENT_VIEW, &foundNode);
 
     switch (rc)
     {
         case CL_CNT_RC(CL_ERR_NOT_EXIST):
             node->trackFlags = CL_GMS_MEMBER_JOINED;
-            rc = _clGmsViewAddNodePrivate(thisViewDb, nodeId, 
-                    CL_GMS_CURRENT_VIEW, node);
+            rc = _clGmsViewAddNodePrivate(thisViewDb, nodeId, CL_GMS_CURRENT_VIEW, node);
             if (rc != CL_OK)
             {
-                goto ADD_ERROR;
+                ClGmsViewNodeTFree(node);
+                return rc;
             }
             break;
         case CL_OK:
@@ -1437,9 +1387,7 @@ ClRcT   _clGmsViewAddNodeExtended(
              */
             if(!reElection)
             {
-                foundNode->viewMember.clusterMember.isCurrentLeader &= ~__SC_PROMOTE_CAPABILITY_MASK;
-                foundNode->viewMember.clusterMember.isCurrentLeader =
-                    node->viewMember.clusterMember.isCurrentLeader;
+                foundNode->viewMember.clusterMember.isCurrentLeader = node->viewMember.clusterMember.isCurrentLeader;
             }
             if(!foundNode->viewMember.clusterMember.isCurrentLeader
                &&
@@ -1452,16 +1400,14 @@ ClRcT   _clGmsViewAddNodeExtended(
             {
                 foundNode->viewMember.clusterMember.bootTimestamp = node->viewMember.clusterMember.bootTimestamp;
             }
-            rc = _clGmsViewUpdateNodePrivate(thisViewDb, nodeId, node, 
-                    foundNode);
-            clHeapFree((void*)node);
+            rc = _clGmsViewUpdateNodePrivate(thisViewDb, nodeId, node, foundNode);
+            ClGmsViewNodeTFree(node);
             *ppNode = NULL;
             break;
         default:
             break; 
     }
 
-ADD_ERROR:
     return rc;
 }
 
@@ -1487,6 +1433,8 @@ ClRcT   _clGmsViewDeleteNodeExtended(
     ClGmsViewNodeT  *foundNode = NULL;
     ClGmsViewNodeT  *leftNode = NULL;
 
+    clLogDebug("VIEW", "DEL", "Deleting node [%d] from group [%d]", nodeId,groupId);
+
     rc = _clGmsViewDbFind(groupId, &thisViewDb);
 
     if (rc != CL_OK) 
@@ -1496,8 +1444,7 @@ ClRcT   _clGmsViewDeleteNodeExtended(
 
     CL_ASSERT(thisViewDb != NULL);
 
-    rc = _clGmsViewFindNodePrivate(thisViewDb, nodeId, CL_GMS_CURRENT_VIEW, 
-            &foundNode);
+    rc = _clGmsViewFindNodePrivate(thisViewDb, nodeId, CL_GMS_CURRENT_VIEW, &foundNode);
 
     if (rc != CL_OK) 
     {
@@ -1528,7 +1475,7 @@ ClRcT   _clGmsViewDeleteNodeExtended(
 
     thisViewDb->view.noOfViewMembers--;
 
-    leftNode = (ClGmsViewNodeT*)clHeapAllocate(sizeof(ClGmsViewNodeT));
+    leftNode = ClGmsViewNodeTAlloc(foundNode->viewMember.clusterMember.nodeId);
 
     if (!leftNode)
         goto DEL_ERROR;
@@ -1537,8 +1484,7 @@ ClRcT   _clGmsViewDeleteNodeExtended(
 
     leftNode->trackFlags = CL_GMS_MEMBER_LEFT;
 
-    rc = _clGmsViewFindNodePrivate(thisViewDb, nodeId,
-            CL_GMS_JOIN_LEFT_VIEW, &foundNode);
+    rc = _clGmsViewFindNodePrivate(thisViewDb, nodeId, CL_GMS_JOIN_LEFT_VIEW, &foundNode);
 
     if (rc == CL_OK)
     {
@@ -1552,9 +1498,7 @@ ClRcT   _clGmsViewDeleteNodeExtended(
 
             if (rc != CL_OK)
             {
-                clLogMultiline(ERROR,GEN,NA,
-                        "Unable delete the node ID = %d from "
-                         "CL_GMS_JOIN_LEFT_VIEW. RC = 0x%x\n",nodeId, rc);
+                clLog(CL_LOG_ERROR,GEN,NA, "Unable delete the node [%d] from CL_GMS_JOIN_LEFT_VIEW. rc [0x%x]",nodeId, rc);
             }
 
             if (bootTimeElectionDone == CL_TRUE)
@@ -1573,7 +1517,9 @@ ClRcT   _clGmsViewDeleteNodeExtended(
                         "NodeId %d, is leaving before leader election timer "
                          "expiry\n",nodeId);
             }
-        } else {
+        }
+        else
+        {
             /* No need to delete the entry. Just change the track flag to
              *  CL_GMS_MEMBER_LEFT.
              */
@@ -1583,10 +1529,11 @@ ClRcT   _clGmsViewDeleteNodeExtended(
 
             foundNode->trackFlags = CL_GMS_MEMBER_LEFT;
         }
-    } else {
+    }
+    else
+    {
         /*Node is not found in the CL_GMS_JOIN_LEFT_VIEW. So add it */
-        rc =  _clGmsViewAddNodePrivate(thisViewDb, nodeId,
-                CL_GMS_JOIN_LEFT_VIEW, leftNode);
+        rc =  _clGmsViewAddNodePrivate(thisViewDb, nodeId, CL_GMS_JOIN_LEFT_VIEW, leftNode);
         if (rc != CL_OK)
         {
             clLogMultiline(ERROR,GEN,NA,

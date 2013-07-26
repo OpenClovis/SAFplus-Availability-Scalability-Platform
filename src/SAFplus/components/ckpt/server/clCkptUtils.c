@@ -569,8 +569,7 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
     /*
      * Initialize the version database.
      */
-    pSvrCb->versionDatabase.versionCount = sizeof(clVersionSupported)/
-                                           sizeof(ClVersionT);
+    pSvrCb->versionDatabase.versionCount = sizeof(clVersionSupported)/sizeof(ClVersionT);
     pSvrCb->versionDatabase.versionsSupported = 
          (ClVersionT *)clHeapAllocate(pSvrCb->versionDatabase.versionCount * 
                                     sizeof(ClVersionT));
@@ -630,16 +629,10 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
     /* 
      * If Master, allocate DB for ckpt meta data.
      */
-    rc = clHandleDatabaseCreate( ckptMasterHdlDeleteCallback, 
-                                 &pSvrCb->masterInfo.masterDBHdl);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Master DB creation failed rc[0x %x]\n",rc),
-             rc);
-    rc = clHandleDatabaseCreate( NULL, 
-                                 &pSvrCb->masterInfo.clientDBHdl);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Master DB creation failed rc[0x %x]\n",rc),
-             rc);
+    rc = clHandleDatabaseCreate( ckptMasterHdlDeleteCallback, &pSvrCb->masterInfo.masterDBHdl);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Master DB creation failed rc[0x %x]\n",rc), rc);
+    rc = clHandleDatabaseCreate( NULL, &pSvrCb->masterInfo.clientDBHdl);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Master DB creation failed rc[0x %x]\n",rc), rc);
              
     clOsalMutexCreate(&pSvrCb->masterInfo.ckptMasterDBSem); 
     
@@ -1149,8 +1142,7 @@ ClRcT _ckptPresenceListUpdate(CkptT                *pCkpt,
         /*
          * Add the node to the presence list.
          */
-        rc = clCntNodeAdd(pCkpt->pCpInfo->presenceList, 
-        (ClPtrT)(ClWordT)peerAddr, 0, NULL);
+        rc = clCntNodeAdd(pCkpt->pCpInfo->presenceList, (ClPtrT)(ClWordT)peerAddr, 0, NULL);
         if (CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)   rc = CL_OK;
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                 ("Presence list add failed rc[0x %x]\n",rc), rc);
@@ -1712,6 +1704,7 @@ ClRcT ckptSvrHdlCheckout( ClHandleDatabaseHandleT ckptDbHdl,
      */
     if( pData == NULL)
     {
+        clLogWarning("UTL", "HDL", "Ckpt handle [%#llx] exists but associated data is NULL", ckptHdl);
         clHandleCheckin(ckptDbHdl, ckptHdl);
         return CL_CKPT_ERR_INVALID_HANDLE;
     }

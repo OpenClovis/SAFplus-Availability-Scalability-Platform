@@ -217,15 +217,12 @@ void clGmsServerTerminate(SaInvocationT invocation, const SaNameT *compName)
 
     gmsGlobalInfo.opState = CL_GMS_STATE_SHUTING_DOWN;
 
-    clLog(CRITICAL,GEN,NA,
-          "Server Got Termination Request. Started Shutting Down...");
-
-    rc = clEoClientUninstallTables (gmsGlobalInfo.gmsEoObject,
-                                    CL_EO_SERVER_SYM_MOD(gAspFuncTable, GMS));
+    clLog(CRITICAL,GEN,NA, "Got termination request for component [%.*s]. Started Shutting Down...", compName->length,compName->value);
+    
+    rc = clEoClientUninstallTables (gmsGlobalInfo.gmsEoObject, CL_EO_SERVER_SYM_MOD(gAspFuncTable, GMS));
     if (rc != CL_OK)
     {
-        clLog(ERROR,GEN,NA,
-              "clEoClientUninstall failed with rc = 0x%x", rc);
+        clLog(ERROR,GEN,NA, "clEoClientUninstall failed with rc = 0x%x", rc);
     }
     /*
      * Unregister with AMF and respond to AMF saying whether the
@@ -236,8 +233,7 @@ void clGmsServerTerminate(SaInvocationT invocation, const SaNameT *compName)
     rc = clDebugDeregister(gGmsDebugReg);
     if (rc != CL_OK)
     {
-        clLog(ERROR,GEN,NA,
-              "clDebugDeregister failed with rc = 0x%x", rc);
+        clLog(ERROR,GEN,NA, "clDebugDeregister failed with rc = 0x%x", rc);
     }
 
     /* Close the leader election algorithm dl if open */

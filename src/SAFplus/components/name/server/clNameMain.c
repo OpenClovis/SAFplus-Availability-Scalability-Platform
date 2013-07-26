@@ -4195,10 +4195,8 @@ ClRcT _nameSvcContextLevelWalkForSyncup(ClCntKeyHandleT    userKey,
     ClUint32T    contextId = (ClUint32T)(ClWordT)userKey;
     ClUint32T proceed  = 0;
     ClUint32T tag       = 1;
-    ClNameSvcContextInfoPtrT      pStatInfo = 
-                (ClNameSvcContextInfoPtrT) hashTable;
-    ClNameSvcDBSyncupWalkInfoPtrT pWalkInfo = 
-                (ClNameSvcDBSyncupWalkInfoPtrT) info;
+    ClNameSvcContextInfoPtrT      pStatInfo = (ClNameSvcContextInfoPtrT) hashTable;
+    ClNameSvcDBSyncupWalkInfoPtrT pWalkInfo = (ClNameSvcDBSyncupWalkInfoPtrT) info;
     ClBufferHandleT data = pWalkInfo->outMsgHandle;
     ClNameSvcContextInfoIDLT contextInfo;
 
@@ -4239,8 +4237,7 @@ ClRcT _nameSvcContextLevelWalkForSyncup(ClCntKeyHandleT    userKey,
 }
 
 
-ClRcT _nameSvcDBEntriesPack(ClBufferHandleT  outMsgHandle,
-                            ClUint32T flag)
+ClRcT _nameSvcDBEntriesPack(ClBufferHandleT  outMsgHandle, ClUint32T flag)
 {
     ClRcT                      ret      = CL_OK;
     ClNameSvcDBSyncupWalkInfoT walkInfo = {0};
@@ -4256,8 +4253,7 @@ ClRcT _nameSvcDBEntriesPack(ClBufferHandleT  outMsgHandle,
 
     gContextIndex = 0;
     gEntryIndex   = 0;
-    ret = clCntWalk(gNSHashTable, _nameSvcContextLevelWalkForSyncup, 
-                    (ClCntArgHandleT) &walkInfo, 0);
+    ret = clCntWalk(gNSHashTable, _nameSvcContextLevelWalkForSyncup, (ClCntArgHandleT) &walkInfo, 0);
 
     outMsgHandle = walkInfo.outMsgHandle;
     /* Release the semaphore */
@@ -4362,7 +4358,9 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
     ClNameSvcCompListIDLT       compList       = {0};
     ClUint32T                   infoToBeAdded  = 0;
     ClUint32T                   attribLen      = 0;
-
+    ClUint32T                     bufSize;
+    ClUint32T                     curLoc;
+    
     CL_FUNC_ENTER();
 
     clLogDebug("SVR", "INI", "Unpacking the entries after sync up from master");
@@ -4372,15 +4370,23 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n NS: Could not get Lock successfully---\n"));
     }
 
-    while(CL_OK == clXdrUnmarshallClUint32T(msgHdl,&tag))
+    clBufferLengthGet(msgHdl, &bufSize);    
+    clBufferReadOffsetGet(msgHdl,&curLoc);
+    
+    while(1)
     {
+        /* Buffer completely parsed is the termination condition */
+        clBufferReadOffsetGet(msgHdl,&curLoc);
+        if (curLoc == bufSize) break;
+
+        /* Error probably corrupt buffer termination */
+        if (CL_OK != clXdrUnmarshallClUint32T(msgHdl,&tag)) break;
+        
         if((infoToBeAdded == 1) && (tag !=4))
         {
                 if(attrCount > 0)
                 {
-                    clCksm32bitCompute ((ClUint8T *)pEntry->attr,
-                         attrCount * sizeof(ClNameSvcAttrEntryT),
-                         &cksum);
+                    clCksm32bitCompute ((ClUint8T *)pEntry->attr, attrCount * sizeof(ClNameSvcAttrEntryT), &cksum);
                     pEntry->cksum =  cksum;
                 }
                 else

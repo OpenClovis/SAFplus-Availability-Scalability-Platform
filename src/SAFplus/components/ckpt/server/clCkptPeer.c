@@ -539,7 +539,7 @@ ClRcT _ckptSectionInfoPack(CkptT            *pCkpt,
         {
             clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
                 "Checkpoint data pack failed while acquiring section level lock"
-                "for section [%*.s] rc [#%x]", pKey->scnId.idLen, pKey->scnId.id, rc);
+                "for section [%.*s] rc [#%x]", pKey->scnId.idLen, pKey->scnId.id, rc);
             return rc;
         }
         rc = _ckptSectionDataPack(pSec,
@@ -1857,8 +1857,7 @@ exitOnError:
  * Function to store the checkpoint info pulled from the active replica.
  */
  
-ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
-                             VDECL_VER(CkptInfoT, 5, 0, 0)   *pCkptInfo)
+ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl, VDECL_VER(CkptInfoT, 5, 0, 0)   *pCkptInfo)
 {
     ClRcT             rc            = CL_OK;
     CkptT             *pCkpt        = NULL;
@@ -1876,21 +1875,17 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
      */
     CKPT_NULL_CHECK(pCkptInfo->pName);
 
-    clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, 
-               "Replicating the checkpoint [%.*s] at address [%d]", pCkptInfo->pName->length,
-               pCkptInfo->pName->value, gCkptSvr->localAddr);
+    clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Replicating the checkpoint [%.*s] onto this node [%d]", pCkptInfo->pName->length, pCkptInfo->pName->value, gCkptSvr->localAddr);
     /*
      * Add the active handle to the list of handles.
      */
-    clCksm32bitCompute ((ClUint8T *)pCkptInfo->pName->value, pCkptInfo->pName->length,
-                        &cksum);
+    clCksm32bitCompute ((ClUint8T *)pCkptInfo->pName->value, pCkptInfo->pName->length, &cksum);
 
-    pCkptHdl = clHeapAllocate(sizeof(*pCkptHdl)); // Free where necessary NTC
+    pCkptHdl = clHeapAllocate(sizeof(ClCkptHdlT)); // Free where necessary NTC
     if(pCkptHdl == NULL)
     {
         rc =  CL_CKPT_ERR_NO_MEMORY;
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
-                   CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME, CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         return rc;            
     }
 
@@ -1904,11 +1899,8 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
     /*
      * If there is an existing key, find and delete it.
      */
-    (void)clCntNonUniqueKeyDelete(gCkptSvr->ckptHdlList, (ClPtrT)(ClWordT)cksum, 
-                                  (ClPtrT)pCkptInfo->pName,
-                                  ckptHdlNonUniqueKeyCompare);
-    rc = clCntNodeAdd(gCkptSvr->ckptHdlList, (ClPtrT)(ClWordT)cksum,
-                      pCkptHdl,NULL); 
+    (void)clCntNonUniqueKeyDelete(gCkptSvr->ckptHdlList, (ClPtrT)(ClWordT)cksum, (ClPtrT)pCkptInfo->pName, ckptHdlNonUniqueKeyCompare);
+    rc = clCntNodeAdd(gCkptSvr->ckptHdlList, (ClPtrT)(ClWordT)cksum, pCkptHdl,NULL); 
     if(rc != CL_OK)
     {
         /*
@@ -1916,30 +1908,31 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
          */ 
         CKPT_UNLOCK(gCkptSvr->ckptActiveSem );           
         clHeapFree(pCkptHdl);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("CheckpointInfo Updation Failed rc[0x %x]\n",
-                        rc));
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CheckpointInfo replication failed rc[0x %x]\n", rc));
         return rc;            
     }
 
-    clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, 
-               "Adding ckpt hdl [%#llX] to ckpt hdls list rc[0x %x]", 
-               ckptHdl, rc);
+    clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Adding ckpt hdl [%#llX] to ckpt hdls list",ckptHdl);
     /*
      * Obtain the active handle related memory from the handle database.
      */
-    rc = clHandleCreateSpecifiedHandle(gCkptSvr->ckptHdl, sizeof(CkptT),
-                                       *pCkptHdl);
+    rc = clHandleCreateSpecifiedHandle(gCkptSvr->ckptHdl, sizeof(CkptT),*pCkptHdl);
     if((CL_OK != rc) && (CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST)) 
     {
         /*
          * Unlock the active server ds.
          */ 
         CKPT_UNLOCK(gCkptSvr->ckptActiveSem );           
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("CheckpointHandle Create failed rc[0x %x]\n",
-                        rc));
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CheckpointHandle Create failed rc[0x %x]\n", rc));
         return rc;      
+    }
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST)
+    {
+      clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Checkpoint already exists");
+    }
+    else
+    {
+      clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "New checkpoint...");        
     }
     
     /*
@@ -1952,21 +1945,18 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
          * Unlock the active server ds.
          */ 
         CKPT_UNLOCK(gCkptSvr->ckptActiveSem );           
-        clLogError("REP", "UPD", "Failed to allocate memory for checkpoint %s rc[0x %x]",
-                   pCkptInfo->pName->value, rc);
+        clLogError("REP", "UPD", "Failed to allocate memory for checkpoint %s rc[0x %x]", pCkptInfo->pName->value, rc);
         goto exitOnErrorBeforeHdlCheckout;
     }
 
     /* 
      * Allocate memory for Control plane and Data plane info.
      */
-    rc = _ckptDplaneInfoAlloc(&pCkpt->pDpInfo,
-                              pCkptInfo->pDpInfo->maxScns); 
+    rc = _ckptDplaneInfoAlloc(&pCkpt->pDpInfo, pCkptInfo->pDpInfo->maxScns); 
     if(rc != CL_OK)
     {
         CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
-        clLogError("REP", "UPD", "Failed to allocate memory for checkpoint %s rc[0x %x]",
-                   pCkpt->ckptName.value, rc);
+        clLogError("REP", "UPD", "Failed to allocate memory for checkpoint %s rc[0x %x]", pCkptInfo->pName->value, rc);
         ckptUnlock = CL_FALSE;
         goto exitOnError;
     }
@@ -1975,8 +1965,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
     if(rc != CL_OK)
     {
         CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
-        clLogError("REP", "UPD", "Failed to allocate memory for checkpoint %s rc[0x %x]",
-                   pCkpt->ckptName.value, rc);
+        clLogError("REP", "UPD", "Failed to allocate memory for checkpoint %s rc[0x %x]", pCkptInfo->pName->value, rc);
         ckptUnlock = CL_FALSE;
         goto exitOnError;
     }
@@ -1985,8 +1974,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
      */
     clOsalMutexCreate( &pCkpt->ckptMutex );         
     /* Create the mutexs for the same */
-    pCkpt->numMutex = CL_MIN(pCkpt->pDpInfo->maxScns, 
-                             (ClUint32T)(sizeof(pCkpt->secMutex) / sizeof(pCkpt->secMutex[0])) );
+    pCkpt->numMutex = CL_MIN(pCkpt->pDpInfo->maxScns, (ClUint32T)(sizeof(pCkpt->secMutex) / sizeof(pCkpt->secMutex[0])) );
     /* If default section is not there, create mutexes */
     if( pCkpt->pDpInfo->maxScns != 1 )
     {
@@ -2012,8 +2000,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
     if(!pCkpt->ckptMutex)
     {
         clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
-        clLogWarning(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Ckpt [%.*s] already deleted for handle [%#llx]",
-                     pCkptInfo->pName->length, pCkptInfo->pName->value, ckptHdl);
+        clLogWarning(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Ckpt [%.*s] already deleted for handle [%#llx]", pCkptInfo->pName->length, pCkptInfo->pName->value, ckptHdl);
         return CL_OK;
     }
     clNameCopy(&pCkpt->ckptName, pCkptInfo->pName);
@@ -2033,8 +2020,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
         for(count = 0; count < pCkptInfo->pCpInfo->size ; count++)
         {
             rc = _ckptPresenceListUpdate(pCkpt, *(presenceList));
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                           ("Failed to update the presenceList rc[0x %x]\n", rc), rc);
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Failed to update the presenceList rc[0x %x]\n", rc), rc);
             (presenceList)++;
         }
         /*
@@ -2043,8 +2029,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
         pAppInfo = pCkptInfo->pCpInfo->pAppInfo;
         for( count = 0; count < pCkptInfo->pCpInfo->numApps; count++ )
         {
-            clCkptActiveAppInfoUpdate(pCkpt, pAppInfo->nodeAddress,
-                                      pAppInfo->portId, &pData);
+            clCkptActiveAppInfoUpdate(pCkpt, pAppInfo->nodeAddress, pAppInfo->portId, &pData);
             pAppInfo++;
         }
 
@@ -2052,8 +2037,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
          * Add local address as well to the replica list.
          */
         rc = _ckptPresenceListUpdate(pCkpt, gCkptSvr->localAddr);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                       ("Failed to update the presenceList rc[0x %x]\n", rc), rc);
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Failed to update the presenceList rc[0x %x]\n", rc), rc);
     }
 
     /*
@@ -2074,13 +2058,12 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
         if( pCkptInfo->pDpInfo->maxScns == 1 )
         {
             /* Adding the default section */
-            rc = clCkptDefaultSectionAdd(pCkpt, pSection->size,
-                                         pSection->pData);
+            rc = clCkptDefaultSectionAdd(pCkpt, pSection->size,pSection->pData);
+            clLogDebug(CL_CKPT_AREA_PEER,CL_CKPT_CTX_CKPT_OPEN,"Ckpt [%.*s]: Replicated the default section",pCkpt->ckptName.length,pCkpt->ckptName.value);
             if(CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE) rc = CL_OK;
             if( CL_OK != rc )
             {
-                clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_CKPT_OPEN, 
-                           "Adding the default sections failed rc[0x %x]", rc);
+                clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_CKPT_OPEN,"Adding the default sections failed rc[0x %x]", rc);
                 goto exitOnError;
             }
             pCkpt->pDpInfo->numScns      = 0;
@@ -2091,20 +2074,24 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
             {
                 rc = clCkptSectionChkNAdd(ckptHdl, pCkpt, &pSection->secId, 
                                           pSection->expiryTime, pSection->size, 
-                                          pSection->pData); 
+                                          pSection->pData);
                 if( CL_CKPT_ERR_ALREADY_EXIST == rc )
                 {
+                    clLogDebug(CL_CKPT_AREA_PEER,CL_CKPT_CTX_CKPT_OPEN,"Ckpt [%.*s] Section [%.*s] already exists",pCkpt->ckptName.length,pCkpt->ckptName.value,pSection->secId.idLen,pSection->secId.id);
                     rc = CL_OK;
                 }
-                if( CL_OK != rc )
+                else if( CL_OK != rc )
                 {
-                    clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_CKPT_OPEN, 
-                               "Adding the sections failed rc[0x %x]", rc);
+                    clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_CKPT_OPEN, "Ckpt [%.*s] Section [%.*s] addition failed rc[0x %x]",pCkpt->ckptName.length,pCkpt->ckptName.value,pSection->secId.idLen,pSection->secId.id, rc);
                     goto exitOnError;
                 }
-                if(!strncmp((ClCharT *)pSection->secId.id, 
-                            (ClCharT *)"generatedSection",
-                            strlen("generatedSection")))
+                else
+                {
+                    clLogDebug(CL_CKPT_AREA_PEER,CL_CKPT_CTX_CKPT_OPEN,"Ckpt [%.*s] Section [%.*s] added (expiry: [%llu], data Len: [%llu])",pCkpt->ckptName.length,pCkpt->ckptName.value,pSection->secId.idLen,pSection->secId.id, pSection->expiryTime, pSection->size);
+                }
+                
+                
+                if(0 == strncmp((ClCharT *)pSection->secId.id,(ClCharT *)"generatedSection",strlen("generatedSection")))
                 {
                     pCkpt->pDpInfo->indexGenScns++;
                 }
@@ -2113,7 +2100,6 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
             }
         }
     }
-    clHandleCheckin(gCkptSvr->ckptHdl,*pCkptHdl);
 
     /* 
      * Update presence list across all replicas. 
@@ -2126,11 +2112,16 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl,
 
     _ckptPresenceListPeerUpdate(pCkpt, ckptHdl, gCkptSvr->localAddr);
 
+    clLogInfo(CL_CKPT_AREA_PEER,CL_CKPT_CTX_CKPT_OPEN,"Ckpt [%.*s] replicated successfully on this node.",pCkpt->ckptName.length,pCkpt->ckptName.value);
+
+
     /*
      * Unlock the checkpoint's mutex.
      */
     CKPT_UNLOCK(pCkpt->ckptMutex);           
+    clHandleCheckin(gCkptSvr->ckptHdl,*pCkptHdl);
 
+    
     return rc;
     exitOnError:
     /*

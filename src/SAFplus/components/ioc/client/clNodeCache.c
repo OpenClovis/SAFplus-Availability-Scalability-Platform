@@ -37,7 +37,7 @@
 #define CL_CACHE_ALIGN(v, a)  ( ((v)+(a)-1) & ~((a)-1) )
 #define CL_NODE_CACHE_ALIGN(v)  CL_CACHE_ALIGN(v, 8)
 
-#define CL_NODE_CACHE_SEGMENT_SIZE  CL_NODE_CACHE_ALIGN((ClUint32T)(sizeof(ClNodeCacheHeaderT)+CL_IOC_MAX_NODES*sizeof(ClNodeCacheEntryT)))
+#define CL_NODE_CACHE_SEGMENT_SIZE  CL_NODE_CACHE_ALIGN((ClUint32T)(sizeof(ClNodeCacheHeaderT)+(CL_IOC_MAX_NODES*sizeof(ClNodeCacheEntryT))))
 
 #define CL_NODE_MAP_SIZE  (CL_CACHE_ALIGN(CL_IOC_MAX_NODES, 8) >> 3 )
 #define CL_NODE_MAP_WORDS (CL_CACHE_ALIGN(CL_NODE_MAP_SIZE, 4) >> 2 )
@@ -91,12 +91,13 @@ static ClRcT clNodeCacheCreate(void)
     ClRcT rc = CL_OK;
     ClFdT fd;
 
+    clLogDebug("NODE", "CACHE", "Creating/initializing node cache segment [%s]", gClNodeCacheSegment);
+
     clOsalShmUnlink(gClNodeCacheSegment);
     rc = clOsalShmOpen(gClNodeCacheSegment, O_RDWR | O_CREAT | O_EXCL, 0666, &fd);
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "Node cache shm open of segment [%s] returned [%#x]",
-                   gClNodeCacheSegment, rc);
+        clLogError("NODE", "CACHE", "Node cache shm open of segment [%s] returned [%#x]", gClNodeCacheSegment, rc);
         goto out;
     }
 
@@ -108,8 +109,7 @@ static ClRcT clNodeCacheCreate(void)
         goto out_unlink;
     }
 
-    rc = clOsalMmap(0, CL_NODE_CACHE_SEGMENT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0, 
-                    (ClPtrT*)&gpClNodeCache);
+    rc = clOsalMmap(0, CL_NODE_CACHE_SEGMENT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0, (ClPtrT*)&gpClNodeCache);
     if(rc != CL_OK)
     {
         clLogError("NODE", "CACHE", "Node cache segment mmap returned [%#x]", rc);
@@ -153,6 +153,8 @@ static ClRcT clNodeCacheOpen(void)
 {
     ClRcT rc = CL_OK;
     ClFdT fd;
+
+    clLogDebug("NODE", "CACHE", "Opening existing node cache segment [%s]", gClNodeCacheSegment);
     
     rc = clOsalShmOpen(gClNodeCacheSegment, O_RDWR, 0666, &fd);
     if(rc != CL_OK)
@@ -244,9 +246,7 @@ ClRcT clNodeCacheInitialize(ClBoolT createFlag)
     
     clCpmLocalNodeNameGet(&nodeName);
 
-    clNodeCacheUpdate(clIocLocalAddressGet(), 
-                      CL_VERSION_CURRENT, capability,
-                      &nodeName);
+    clNodeCacheUpdate(clIocLocalAddressGet(),CL_VERSION_CURRENT, capability, &nodeName);
 
     rc = clOsalMsync(gpClNodeCache, CL_NODE_CACHE_SEGMENT_SIZE, MS_ASYNC);
     if(rc != CL_OK)
@@ -409,8 +409,7 @@ ClRcT clNodeCacheViewGetWithFilterFastSafe(ClNodeCacheMemberT *pMembers, ClUint3
     return nodeCacheViewGetWithFilterFast(pMembers, pMaxMembers, capFilter, CL_TRUE);
 }
 
-ClRcT clNodeCacheViewGetWithFilter(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers,
-                                   ClUint32T capMask)
+ClRcT clNodeCacheViewGetWithFilter(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers, ClUint32T capMask)
 {
     ClRcT rc = CL_OK;
     clOsalSemLock(gClNodeCacheSem);
@@ -419,8 +418,7 @@ ClRcT clNodeCacheViewGetWithFilter(ClNodeCacheMemberT *pMembers, ClUint32T *pMax
     return rc;
 }
 
-ClRcT clNodeCacheViewGetWithFilterSafe(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers,
-                                       ClUint32T capMask)
+ClRcT clNodeCacheViewGetWithFilterSafe(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers, ClUint32T capMask)
 {
     ClRcT rc = CL_OK;
     clOsalSemLock(gClNodeCacheSem);
@@ -529,13 +527,14 @@ ClRcT clNodeCacheMemberGetSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMemb
     return rc;
 }
 
-static ClRcT nodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
-                                        ClUint32T retries, ClUint32T msecDelay,
-                                        ClBoolT compat)
+static ClRcT nodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,ClUint32T retries, ClUint32T msecDelay, ClBoolT compat)
 {
     ClRcT rc = CL_OK;
     ClUint32T i = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = msecDelay};
+    ClTimerTimeOutT delay;
+    delay.tsSec = 0;
+    delay.tsMilliSec = msecDelay;
+    
     clOsalSemLock(gClNodeCacheSem);
     while(i++ <= retries)
     {
@@ -546,6 +545,7 @@ static ClRcT nodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMembe
             if(i > retries)
                 goto out;
             clOsalTaskDelay(delay);
+            delay.tsMilliSec += msecDelay; /* Back off the time as retries increase */
             clOsalSemLock(gClNodeCacheSem);
         }
         else break;
@@ -562,14 +562,12 @@ ClRcT clNodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *p
     return nodeCacheMemberGetExtended(node, pMember, retries, msecDelay, CL_FALSE);
 }
 
-ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
-                                       ClUint32T retries, ClUint32T msecDelay)
+ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,ClUint32T retries, ClUint32T msecDelay)
 {
     return nodeCacheMemberGetExtended(node, pMember, retries, msecDelay, CL_TRUE);
 }
 
-ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, 
-                        ClUint32T capability, ClNameT *nodeName)
+ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint32T capability, ClNameT *nodeName)
 {
     ClRcT   rc = CL_OK;
     ClNodeCacheEntryT *entry;
@@ -578,11 +576,16 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version,
 
     rc = clOsalSemLock(gClNodeCacheSem);
     if (rc != CL_OK)
+    {
+        clLogError("CACHE", "SET", "Cannot update node cache; error taking lock");        
         return rc;
+    }
+    
 
     if(!gpClNodeCache)
     {
         clOsalSemUnlock(gClNodeCacheSem);
+        clLogError("CACHE", "SET", "Cannot update node cache; not initialized");        
         return CL_ERR_NOT_INITIALIZED;
     }
 
@@ -597,16 +600,12 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version,
         entry->version = version;
     if(capability)
         entry->capability = capability;
-
     if(nodeName)
     {
         entry->nodeName[0] = 0;
-        strncat(entry->nodeName, (const ClCharT*)nodeName->value, 
-                CL_MIN(nodeName->length, sizeof(entry->nodeName)-1));
+        strncat(entry->nodeName, (const ClCharT*)nodeName->value, CL_MIN(nodeName->length, sizeof(entry->nodeName)-1));
     }
-    clLogNotice("CACHE", "SET", "Updating node cache entry for node [%d: %s] with version [%#x], capability [%#x]",
-                nodeAddress, entry->nodeName, entry->version, entry->capability);
-
+    
     /*
      * Update node min version/address.
      */
@@ -620,8 +619,17 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version,
         gClMinVersionNode = nodeAddress;
     }
 
-    clOsalSemUnlock(gClNodeCacheSem);
-
+    if (1)
+    {
+        ClNodeCacheEntryT temp;
+        memcpy(&temp,entry,sizeof(ClNodeCacheEntryT));
+        
+        clOsalSemUnlock(gClNodeCacheSem);
+        /* I do not want to log inside the node cache sem lock because logging can block, esp if its going to stdout */
+        clLogInfo("CACHE", "SET", "Updating node cache entry for node [%d: %s] with version [%#x], capability [%#x] (%s,%s,%s)",
+                nodeAddress, temp.nodeName, temp.version, temp.capability, CL_NODE_CACHE_LEADER_CAPABILITY(temp.capability) ? "LEADER":"_", CL_NODE_CACHE_SC_CAPABILITY(temp.capability) ? "Controller" : "_", CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(temp.capability) ? "Controller-promotable" : "_" );
+    }
+    
     return CL_OK;
 }
 
@@ -706,19 +714,120 @@ ClRcT clNodeCacheCapabilitySet(ClIocNodeAddressT nodeAddress, ClUint32T capabili
     default:
         break;
     }
-    clLogNotice("CAP", "SET", "Node cache capability set to [%#x] for node [%d]",
-                CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].capability, nodeAddress);
+
+    capability = CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].capability;
     clOsalSemUnlock(gClNodeCacheSem);
+    clLogInfo("CAP", "SET", "Node cache capability set to [%#x] for node [%d]", capability, nodeAddress);
     return CL_OK;
 }
 
-ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
-                              ClIocNodeAddressT currentLeader)
+ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
 {
-    if(!gpClNodeCache)
-        return CL_ERR_INVALID_PARAMETER;
+    ClRcT rc = CL_OK;
+    ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 200 };
+    ClIocPhysicalAddressT compAddr = { .nodeAddress = CL_IOC_BROADCAST_ADDRESS, .portId = CL_IOC_CPM_PORT };
+    ClTimerTimeOutT delay = { .tsSec = 0, .tsMilliSec = 200 };
+    ClUint32T i = 0;
+    ClBufferHandleT message = 0;
+    ClEoExecutionObjT *eoObj = NULL;
+    ClIocNotificationT notification = {0};
+
+    notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
+    notification.id = htonl(CL_IOC_NODE_ARRIVAL_NOTIFICATION);
+    notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
+    notification.nodeAddress.iocPhyAddress.portId = htonl(CL_IOC_CPM_PORT);
+
+    clEoMyEoObjectGet(&eoObj);
+
+    while(!eoObj && i++ <= 3)
+    {
+        clEoMyEoObjectGet(&eoObj);
+        clOsalTaskDelay(delay);
+    }
+
+    if(!eoObj)
+    {
+        clLogWarning("CAP", "ARP", "Could not send current leader update since EO still uninitialized.");
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    clBufferCreate(&message);
+
+    currentLeader = htonl(currentLeader);
+    rc = clBufferNBytesWrite(message, (ClUint8T *)&notification, sizeof(ClIocNotificationT));
+    rc |= clBufferNBytesWrite(message, (ClUint8T*)&currentLeader, sizeof(currentLeader));
+    if (rc != CL_OK)
+    {
+        clLogError("CAP", "ARP", "clBufferNBytesWrite failed with rc = %#x", rc);
+        clBufferDelete(&message);
+        return rc;
+    }
+
+    rc = clIocSend(eoObj->commObj, message, CL_IOC_PORT_NOTIFICATION_PROTO, (ClIocAddressT *) &compAddr, &sendOption);
+
+    clBufferDelete(&message);
+    return rc;
+}
+
+ClRcT clNodeCacheLeaderSet(ClIocNodeAddressT leader)
+{
+    if(!gpClNodeCache) return CL_ERR_INVALID_PARAMETER;
+    
+    if((ClInt32T)leader > 0 && leader < CL_IOC_MAX_NODES)
+    {
+        clOsalSemLock(gClNodeCacheSem);
+        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[leader].capability |= __LEADER_CAPABILITY_MASK;
+        CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader = leader;
+        clOsalSemUnlock(gClNodeCacheSem);
+    }
+
+    return CL_OK; 
+}
+
+
+ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader, ClBoolT send)
+{
+    if(!gpClNodeCache) return CL_ERR_INVALID_PARAMETER;
 
     clOsalSemLock(gClNodeCacheSem);
+
+#if 0
+    int i;
+    /* Removing all the leaders marked in the node cache does not work because the
+       GMS election does not necessarily include all nodes known to the node cache.
+
+       The GMS election should be changed to reload all nodes from this cache before electing
+       but for now this code is removed.
+     */
+    for (i=1;i<CL_IOC_MAX_NODES;i++)
+    {
+        if (i != currentLeader) /* we are about to set this one as leader so skip clearing it if its already set */
+        {            
+            if (CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability & __LEADER_CAPABILITY_MASK)
+            {
+                /* We are changing leader, when our own cache says someone else is leader???!!!  Probably VERY BAD */
+                clLogAlert("CAP", "SET", "Updating leader when [%d] is already leader with capability [%#x]", i, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability);
+            }        
+            CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability &= ~__LEADER_CAPABILITY_MASK;
+        }
+        
+    }
+    
+#else   /* fast */
+    
+    int cl = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader;
+    if (cl != currentLeader) /* we are about to set this one as leader so skip clearing it if its already set */
+    {    
+        if ((cl > 0)&&(cl<CL_IOC_MAX_NODES))
+        {
+            CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[cl].capability &= ~__LEADER_CAPABILITY_MASK; 
+        }
+    }
+    
+        
+#endif
+            
+#if 0  /* strange */ 
     if((ClInt32T)lastLeader > 0 && lastLeader < CL_IOC_MAX_NODES)
     {
         CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability &= ~__LEADER_CAPABILITY_MASK;
@@ -726,14 +835,25 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
         clLogNotice("CAP", "SET", "Node cache capability for last leader [%d] is [%#x]",
                     lastLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability);
     }
+#endif
+    
     if((ClInt32T)currentLeader > 0 && currentLeader < CL_IOC_MAX_NODES)
     {
         CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability |= __LEADER_CAPABILITY_MASK;
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader = currentLeader;
-        clLogNotice("CAP", "SET", "Node cache capability for current leader [%d] is [%#x]",
+        /* I do not want to log inside the sem take since that could slow all down
+          clLogInfo("CAP", "SET", "Node cache capability for current leader [%d] is [%#x]",
                     currentLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability);
+        */
     }
     clOsalSemUnlock(gClNodeCacheSem);
+
+    /* Update node cache on ALL nodes via a "gratuitous" IOC notification */
+    if (send)
+    {
+        clNodeCacheLeaderSend(currentLeader);
+    }
+
     return CL_OK;
 }
 
@@ -760,9 +880,7 @@ ClRcT clNodeCacheLeaderGet(ClIocNodeAddressT *pCurrentLeader)
     return rc;
 }
 
-ClRcT clNodeCacheVersionAndCapabilityGet(ClIocNodeAddressT nodeAddress, 
-                                         ClUint32T *pVersion,
-                                         ClUint32T *pCapability)
+ClRcT clNodeCacheVersionAndCapabilityGet(ClIocNodeAddressT nodeAddress, ClUint32T *pVersion, ClUint32T *pCapability)
 {
     ClRcT rc = CL_OK;
     if(nodeAddress >= CL_IOC_MAX_NODES) return CL_ERR_INVALID_PARAMETER;
@@ -799,8 +917,7 @@ ClRcT clNodeCacheVersionAndCapabilityGet(ClIocNodeAddressT nodeAddress,
     return rc;
 }
 
-ClRcT clNodeCacheVersionGet(ClIocNodeAddressT nodeAddress, 
-                            ClUint32T *pVersion)
+ClRcT clNodeCacheVersionGet(ClIocNodeAddressT nodeAddress,ClUint32T *pVersion)
 {
     return clNodeCacheVersionAndCapabilityGet(nodeAddress, pVersion, NULL);
 }
@@ -884,6 +1001,7 @@ ClRcT clNodeCacheSlotInfoGet(ClNodeCacheSlotInfoFieldT flag, ClNodeCacheSlotInfo
             }
             ++entry;
         }
+        break;
     default:
         break;
     }
@@ -891,8 +1009,7 @@ ClRcT clNodeCacheSlotInfoGet(ClNodeCacheSlotInfoFieldT flag, ClNodeCacheSlotInfo
     return CL_ERR_NOT_EXIST;
 }
 
-ClRcT clNodeCacheSlotInfoGetSafe(ClNodeCacheSlotInfoFieldT flag, 
-                                 ClNodeCacheSlotInfoT *slotInfo)
+ClRcT clNodeCacheSlotInfoGetSafe(ClNodeCacheSlotInfoFieldT flag,ClNodeCacheSlotInfoT *slotInfo)
 {
     ClRcT rc = CL_OK;
     rc = clOsalSemLock(gClNodeCacheSem);

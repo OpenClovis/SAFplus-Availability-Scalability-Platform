@@ -56,6 +56,10 @@ ClRcT cpmCorMoIdToMoIdNameGet(ClCorMOIdT *moId, ClNameT *moIdName)
 #ifdef USE_COR
     
     ClRcT rc = CL_OK;
+
+    moIdName->length = 0; /* Clear the MOID name */
+    moIdName->value[0] = 0;
+    
     if(cpmIsAspSULoaded("corSU"))
     {
         rc = clCorMoIdToMoIdNameGet(moId, moIdName);
@@ -64,10 +68,6 @@ ClRcT cpmCorMoIdToMoIdNameGet(ClCorMOIdT *moId, ClNameT *moIdName)
          */
         if(CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE)
             rc = CL_OK; 
-    }
-    else
-    {
-        memset(moIdName, 0, sizeof(*moIdName));
     }
     return rc;
 #else

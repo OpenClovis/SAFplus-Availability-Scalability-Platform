@@ -758,14 +758,11 @@ clAmsCkptInitialize(
 
     if( clParseEnvBoolean("CL_AMF_CKPT_ASYNC") )
     {
-        clLogNotice("CKPT", "INIT", "Setting up AMF checkpointing in async distributed mode");
+        clLogNotice("CKPT", "INIT", "Setting up AMF checkpointing of [AMS_CKPT] in async distributed mode");
         ckptAttributes.creationFlags &= ~CL_CKPT_WR_ALL_REPLICAS;
     }
 
-    memset (&ckptName,0,sizeof (ClNameT));
-    strcpy (ckptName.value,CL_AMS_CKPT_NAME);
-    ckptName.length = strlen (CL_AMS_CKPT_NAME) ;
-    memcpy (&ams->ckptName, &ckptName, sizeof (ClNameT));
+    clNameSet(&ckptName,CL_AMS_CKPT_NAME);
 
     for(i = 0; i < 2; ++i)
     {

@@ -84,13 +84,15 @@ ClRcT clNodeCacheMemberGetFastSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *p
 ClRcT clNodeCacheMemberGet(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember);
 ClRcT clNodeCacheMemberGetSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember);
 
-ClRcT clNodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
-                                   ClUint32T retries, ClUint32T msecDelay);
-ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,
-                                       ClUint32T retries, ClUint32T msecDelay);
-ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
-                              ClIocNodeAddressT currentLeader);
+ClRcT clNodeCacheMemberGetExtended(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,ClUint32T retries, ClUint32T msecDelay);
+ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMemberT *pMember,ClUint32T retries, ClUint32T msecDelay);
 
+    /** This function authoritatively updates the leader, cleans out old leader markings and posts this information to all other nodes in the cluster */     
+ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader, ClBoolT send);
+
+    /** This function sets the leader without cleaning up any prior leader marking.  This is used to update the database so that split brain can be detected */
+ClRcT  clNodeCacheLeaderSet(ClIocNodeAddressT leader);
+    
 ClRcT clNodeCacheLeaderGet(ClIocNodeAddressT *pCurrentLeader);
 
 ClRcT clNodeCacheSlotInfoGet(ClNodeCacheSlotInfoFieldT flag, ClNodeCacheSlotInfoT *slotInfo);
