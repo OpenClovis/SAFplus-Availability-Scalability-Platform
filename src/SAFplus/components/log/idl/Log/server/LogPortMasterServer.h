@@ -26,9 +26,9 @@ extern "C" {
 
 
 
-ClRcT clLogMasterAttrVerifyNGet_4_0_0(CL_IN ClLogStreamAttrIDLT_4_0_0*  pStreamAttr, CL_INOUT ClNameT*  pStreamName, CL_INOUT ClUint32T*  pStreamScope, CL_INOUT ClNameT*  pStreamScopeNode, CL_INOUT ClUint16T*  pStreamId, CL_OUT ClUint64T*  pStreamMcastAddr);
+ClRcT clLogMasterAttrVerifyNGet_4_0_0(CL_IN ClLogStreamAttrIDLT_4_0_0*  pStreamAttr, CL_IN ClNameT*  pStreamName, CL_IN ClUint32T*  pStreamScope, CL_IN ClNameT*  pStreamScopeNode, CL_INOUT ClUint16T*  pStreamId, CL_OUT ClUint64T*  pStreamMcastAddr);
 
-ClRcT clLogMasterAttrVerifyNGetResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClNameT  pStreamName,CL_INOUT  ClUint32T  pStreamScope,CL_INOUT  ClNameT  pStreamScopeNode,CL_INOUT  ClUint16T  pStreamId,CL_OUT  ClUint64T  pStreamMcastAddr);
+ClRcT clLogMasterAttrVerifyNGetResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClUint16T  pStreamId,CL_OUT  ClUint64T  pStreamMcastAddr);
 
 ClRcT clLogMasterStreamCloseNotify_4_0_0(CL_IN ClStringT*  pFileName, CL_IN ClStringT*  pFileLocation, CL_IN ClNameT*  pStreamName, CL_IN ClUint32T  pStreamScope, CL_IN ClNameT*  pStreamScopeNode);
 

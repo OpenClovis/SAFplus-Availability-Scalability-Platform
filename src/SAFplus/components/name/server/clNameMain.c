@@ -4918,11 +4918,32 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
         return rc;
     }
 
-    rc = clNameSvcCkptInit();
+    int retries = 5;
+    do
+    {
+  	rc = clNameSvcCkptInit();
+        clLogInfo("SVR", "INI", "clNameSvcCkptInit return  [0x %x] ",rc);
+        if( CL_OK != rc )
+        {
+            retries--;
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clNameSvcCkptInit() rc[0x %x],try again", rc));
+            if (sleep(1) != 0)
+            {
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                        ("Failure in sleep system call: %s",strerror(errno)));
+            }            
+        }
+        else
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clNameSvcCkptInit() successful"));
+            break;
+        }
+    }while(retries);
     if(rc != CL_OK)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_WARNING, NULL,
                    CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "ckpt", rc);
+        return rc;
     }
     sNSInitDone = 1;
     sdAddr = clIocLocalAddressGet();
