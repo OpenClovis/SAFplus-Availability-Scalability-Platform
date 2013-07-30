@@ -778,6 +778,7 @@ clAmsCkptInitialize(
 
     if ( (mode&CL_AMS_INSTANTIATE_MODE_ACTIVE ) )
     {
+        ClRcT rc;
         ClCharT    *initialData = "SECTION-START";
 
         /*
@@ -785,32 +786,36 @@ clAmsCkptInitialize(
          */
         for(i = 0; i < CL_AMS_DB_INVOCATION_PAIRS; ++i)
         {
-            AMS_CHECK_RC_ERROR(
-                               clAmsCkptSectionCreate(ams,
-                                                      &ams->ckptDBSections[i],
-                                                      initialData,
-                                                      strlen(initialData)));
-
-            AMS_CHECK_RC_ERROR(
-                               clAmsCkptSectionCreate(ams,
-                                                      &ams->ckptInvocationSections[i],
-                                                      initialData,
-                                                      strlen(initialData)));
+           
+            rc = clAmsCkptSectionCreate(ams,&ams->ckptDBSections[i],initialData,strlen(initialData));
+            if ((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST))
+            {
+                goto exitfn;                
+            }
+            
+            rc = clAmsCkptSectionCreate(ams, &ams->ckptInvocationSections[i],initialData,strlen(initialData));
+            if ((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST))
+            {
+                goto exitfn;                
+            }
+             
         }
 
         /*
          * Create the AMS current active and version section
          * Current created with invocationPair 0 as active
          */
-        AMS_CHECK_RC_ERROR(clAmsCkptSectionCreate(ams,
-                                                  &ams->ckptCurrentSection,
-                                                  (ClCharT*)&gClAmsCkptCurrentDbInvocationPair,
-                                                  sizeof(gClAmsCkptCurrentDbInvocationPair)));
+        rc = clAmsCkptSectionCreate(ams,&ams->ckptCurrentSection,(ClCharT*)&gClAmsCkptCurrentDbInvocationPair,sizeof(gClAmsCkptCurrentDbInvocationPair));
+        if ((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST))
+            {
+                goto exitfn;                
+            }
         
-        AMS_CHECK_RC_ERROR(clAmsCkptSectionCreate(ams,
-                                                  &ams->ckptVersionSection,
-                                                  (ClCharT*)CL_AMS_CKPT_VERSION,
-                                                  strlen(CL_AMS_CKPT_VERSION)));
+        rc = clAmsCkptSectionCreate(ams,&ams->ckptVersionSection, (ClCharT*)CL_AMS_CKPT_VERSION, strlen(CL_AMS_CKPT_VERSION));
+        if ((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST))
+            {
+                goto exitfn;                
+            }
 
         /*
          * Do a first time ckpt write.
