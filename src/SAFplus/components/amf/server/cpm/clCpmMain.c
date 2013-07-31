@@ -3981,7 +3981,10 @@ void cpmShutdownHeartbeat(void)
     ClIocPhysicalAddressT compAddr;
     compAddr.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     compAddr.portId = CL_IOC_XPORT_PORT;
-    clIocHeartBeatMessageReqRep(gpClCpm->cpmEoObj->commObj, (ClIocAddressT *) &compAddr, CL_IOC_PROTO_ICMP, CL_TRUE);
+    if (gpClCpm->cpmEoObj != NULL)
+    {
+        clIocHeartBeatMessageReqRep(gpClCpm->cpmEoObj->commObj, (ClIocAddressT *) &compAddr, CL_IOC_PROTO_ICMP, CL_TRUE);
+    }
     clOsalCondSignal(&gpClCpm->heartbeatCond);
     clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
 }
