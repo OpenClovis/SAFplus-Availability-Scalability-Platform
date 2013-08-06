@@ -4935,7 +4935,6 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
         }
         else
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clNameSvcCkptInit() successful"));
             break;
         }
     }while(retries);
