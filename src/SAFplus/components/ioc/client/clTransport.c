@@ -525,7 +525,6 @@ static ClRcT _clTransportGmsTimerInitCallback() {
  */
 static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, ClIocNodeAddressT nodeAddr)
 {
-    register ClListHeadT *iter;
     ClXportNodeAddrDataT *nodeConfigAddrData = NULL;
     ClNodeCacheMemberT member = {0};
     clOsalMutexLock(&gClXportNodeAddrListMutex);
