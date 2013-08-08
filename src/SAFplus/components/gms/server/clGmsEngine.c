@@ -226,7 +226,7 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused,
                     pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
         rc = _clGmsEngineClusterLeaveExtended(0, pAddress->iocPhyAddress.nodeAddress, CL_TRUE);
     }
-    else
+    else if (eventId != CL_IOC_COMP_DEATH_NOTIFICATION)
     {
 #if 0
         if(pAddress->iocPhyAddress.portId != CL_IOC_CPM_PORT)
