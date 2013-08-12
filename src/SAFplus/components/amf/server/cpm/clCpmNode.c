@@ -1512,48 +1512,60 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
                 case CL_CM_BLADE_NODE_ERROR_REPORT:
                 {
                     ClRcT rc2 = cpmEnqueueCmRequest(&nodeName, &cmCpmMsg);
-                    rc = cpmToAmsCallback->nodeLeave(&nodeName, 
-                                                     CL_CPM_NODE_LEAVING, CL_FALSE);
-                    if (CL_OK != rc)
+                    if ((NULL != cpmToAmsCallback) &&
+                        (NULL != cpmToAmsCallback->nodeLeave))
                     {
-                        if(rc2 == CL_OK)
+                        rc = cpmToAmsCallback->nodeLeave(&nodeName,
+                                                         CL_CPM_NODE_LEAVING, CL_FALSE);
+                        if (CL_OK != rc)
                         {
-                            cpmDequeueCmRequest(&nodeName, &cmCpmMsg);
+                            if(rc2 == CL_OK)
+                            {
+                                cpmDequeueCmRequest(&nodeName, &cmCpmMsg);
+                            }
+                            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
+                                       "AMS node leave[leaving] failed for node [%s] with "
+                                       "error [%#x]", nodeName.value, rc);
+                            goto failure;
                         }
-                        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
-                                   "AMS node leave[leaving] failed for node [%s] with "
-                                   "error [%#x]", nodeName.value, rc);
-                        goto failure;
                     }
                 }
                 break;
                 case CL_CM_BLADE_SURPRISE_EXTRACTION:
                 {
                     ClRcT rc2 = cpmEnqueueCmRequest(&nodeName, &cmCpmMsg);
-                    rc = cpmToAmsCallback->nodeLeave(&nodeName, 
-                                                     CL_CPM_NODE_LEFT, CL_FALSE);
-                    if (CL_OK != rc)
+                    if ((NULL != cpmToAmsCallback) &&
+                        (NULL != cpmToAmsCallback->nodeLeave))
                     {
-                        if(rc2 == CL_OK)
+                        rc = cpmToAmsCallback->nodeLeave(&nodeName,
+                                                         CL_CPM_NODE_LEFT, CL_FALSE);
+                        if (CL_OK != rc)
                         {
-                            cpmDequeueCmRequest(&nodeName, &cmCpmMsg);
+                            if(rc2 == CL_OK)
+                            {
+                                cpmDequeueCmRequest(&nodeName, &cmCpmMsg);
+                            }
+                            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
+                                       "AMS node leave[left] failed for node [%s] with "
+                                       "error [%#x]", nodeName.value, rc);
+                            goto failure;
                         }
-                        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
-                                   "AMS node leave[left] failed for node [%s] with "
-                                   "error [%#x]", nodeName.value, rc);
-                        goto failure;
                     }
                 }
                 break;
                 case CL_CM_BLADE_NODE_ERROR_CLEAR:
                 {
-                    rc = cpmToAmsCallback->nodeJoin(&nodeName);
-                    if (CL_OK != rc)
+                    if ((NULL != cpmToAmsCallback) &&
+                        (NULL != cpmToAmsCallback->nodeJoin))
                     {
-                        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
-                                   "AMS node join failed for node [%s] with error [%#x]", 
-                                   nodeName.value, rc);
-                        goto failure;
+                        rc = cpmToAmsCallback->nodeJoin(&nodeName);
+                        if (CL_OK != rc)
+                        {
+                            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
+                                       "AMS node join failed for node [%s] with error [%#x]",
+                                       nodeName.value, rc);
+                            goto failure;
+                        }
                     }
                 }
                 break;

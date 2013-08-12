@@ -133,7 +133,7 @@ enum
 
 #define CL_DEBUG_PRINT(x,y) \
     do \
-    {\
+    { \
         char __str[256]; \
         if(x <= CL_DEBUG_LEVEL_THRESHOLD) \
         {\

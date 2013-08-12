@@ -67,6 +67,8 @@ ClEventInitHandleT gMedEevtHandle;
 ClEventChannelHandleT gCorEvtChannelHandle;
 ClEventChannelHandleT gNotificationEvtChannelHandle;
 
+extern ClUint32T clEoWithOutCpm;
+
 /**
  *
  * Initialise the mediation component 
@@ -249,6 +251,10 @@ ClRcT  clMedInitialize(ClMedHdlPtrT             *medHdl,
 
     clLogTrace(CL_MED_AREA, CL_MED_CTX_INT, "Subscribe Alarm event");
     notifyHandler->fpMedTrapHdler = fpTrapHdler;
+
+    if (clEoWithOutCpm)
+        clEventUnsubscribe(gNotificationEvtChannelHandle, CL_MED_NOTIFICATION_SUBS_ID);
+
     rc = clEventExtSubscribe(gNotificationEvtChannelHandle, eventType, CL_MED_NOTIFICATION_SUBS_ID, (void *)notifyHandler);
     if(CL_OK != rc)
     {
@@ -743,6 +749,10 @@ ClRcT clMedEventSubscribe(ClMedIdXlationT *pIdXlation,
             ClCorMOIdT provMoId = {{{0}}};
 
             subsId = subscriptionId++;
+
+            if (clEoWithOutCpm)
+                clEventUnsubscribe(gCorEvtChannelHandle, subsId);
+
             if (CL_OK != (clCorEventSubscribe(gCorEvtChannelHandle,
                             pIdXlation->tgtId->info.corId.moId,
                             NULL,
@@ -812,6 +822,9 @@ ClRcT clMedEventSubscribe(ClMedIdXlationT *pIdXlation,
                 pAttrList->attr[i] = (pAttrDef + i)->attrId;
             }
 
+            if (clEoWithOutCpm)
+                clEventUnsubscribe(gCorEvtChannelHandle, subscriptionId);
+
             /* Subscribe for index attribute change event */
             rc = clCorEventSubscribe(gCorEvtChannelHandle,
                     &provMoId,
@@ -834,6 +847,10 @@ ClRcT clMedEventSubscribe(ClMedIdXlationT *pIdXlation,
             attrList.attrCnt = 1;
             attrList.attr[0] = CL_CONTAINMENT_ATTR_VALID_ENTRY;
             subsId = subscriptionId++;
+
+            if (clEoWithOutCpm)
+                clEventUnsubscribe(gCorEvtChannelHandle, subsId);
+
             if (CL_OK != (clCorEventSubscribe(gCorEvtChannelHandle,
                                 pIdXlation->tgtId->info.corId.moId,
                                 pAttrPath,
@@ -852,6 +869,10 @@ ClRcT clMedEventSubscribe(ClMedIdXlationT *pIdXlation,
             {
                 attrList.attr[0] = corAttrId;
                 subsId = subscriptionId++;
+
+                if (clEoWithOutCpm)
+                    clEventUnsubscribe(gCorEvtChannelHandle, subsId);
+
                 if (CL_OK != (clCorEventSubscribe(gCorEvtChannelHandle,
                                    pIdXlation->tgtId->info.corId.moId,
                                    pAttrPath,
@@ -865,6 +886,10 @@ ClRcT clMedEventSubscribe(ClMedIdXlationT *pIdXlation,
                 }
             }
             subsId = subscriptionId++;
+
+            if (clEoWithOutCpm)
+                clEventUnsubscribe(gCorEvtChannelHandle, subsId);
+
             if (CL_OK != (clCorEventSubscribe(gCorEvtChannelHandle,
                                pIdXlation->tgtId->info.corId.moId,
                                NULL,

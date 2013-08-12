@@ -28,6 +28,7 @@
  *****************************************************************************/
 
 #include <string.h>
+#include <clList.h>
 #include <clDebugApi.h>
 #include "clCpmApi.h"
 #include "clCksmApi.h"
@@ -64,7 +65,45 @@ do{\
     }\
 }while(0);
 
-SaEvtHandleT *gpEvtHandle = NULL;
+typedef struct SaEvtHandleAsCookie
+{
+	SaEvtChannelHandleT channelHandle;
+	SaEvtSubscriptionIdT evtSubscriptionId;
+	SaEvtHandleT* pEvtHandle;	
+	ClListHeadT list;
+} SaEvtHandleAsCookieT;	
+
+static CL_LIST_HEAD_DECLARE(gpEvtHandle);
+
+static ClOsalMutexT gEvtCookieMutex;
+
+static void _clEvtHandleAdd(SaEvtHandleAsCookieT *entry)
+{   
+    clListAddTail(&entry->list, &gpEvtHandle);
+}
+static SaEvtHandleAsCookieT* _clEvtHandleFind(SaEvtChannelHandleT channelHandle,                                
+                                SaEvtSubscriptionIdT subscriptionId)
+{
+	clLogTrace("EVT", "HDLFIND", "_clEvtHandleFind(): enter: channelHandle[0x%x],subsId[0x%x]", (unsigned int)channelHandle, (unsigned int)subscriptionId);
+	register ClListHeadT *iter;
+    CL_LIST_FOR_EACH(iter, &gpEvtHandle)
+    {        
+        SaEvtHandleAsCookieT *entry = CL_LIST_ENTRY(iter, SaEvtHandleAsCookieT, list);
+        if (entry->channelHandle == channelHandle && entry->evtSubscriptionId == subscriptionId)
+		{			
+			return entry;
+		}
+    }
+	clLogWarning("EVT", "HDLFIND", "_clEvtHandleFind(): NOT Found entry for channelHandle[0x%x],subsId[0x%x]", (unsigned int)channelHandle, (unsigned int)subscriptionId);
+	return NULL;
+}
+static void _clEvtHandleDelete(SaEvtHandleAsCookieT *entry)
+{
+	clLogTrace("EVT", "HDLDEL", "_clEvtHandleDelete(): Delete entry for channelHandle[0x%x],subsId[0x%x]", (unsigned int)entry->channelHandle, (unsigned int)entry->evtSubscriptionId);
+    clHeapFree(entry->pEvtHandle);    
+    clListDel(&entry->list);
+    clHeapFree(entry);
+}
 
 extern ClRcT clEvtInitValidate(ClEoExecutionObjT **pEoObj,
         ClEvtClientHeadT **ppEvtClientHead);
@@ -429,6 +468,12 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT * pEvtHandle,
     SA_EVT_INIT_COUNT_INC();
 
     *pEvtHandle = (SaEvtHandleT) evtInitHandle;
+	
+	rc = clOsalMutexInit(&gEvtCookieMutex);
+	if (CL_OK != rc)
+	{
+		clLogError("EVT", "INI", "Evt cookie mutex init returned [%#x]", rc);		
+	}
 
     clEvtSafErrorMap(rc, &rc);
     return rc;
@@ -871,8 +916,8 @@ SaAisErrorT saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
     
     /*
      * Allocate memory to hold the Handle as a cookie as it is 64 bits.
-     */
-    gpEvtHandle = pEvtHandle =clHeapAllocate(sizeof(*pEvtHandle)); 
+     */    
+	pEvtHandle =clHeapAllocate(sizeof(*pEvtHandle)); 
     if(NULL == pEvtHandle)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to allocate Memory \n\r"));
@@ -894,6 +939,26 @@ SaAisErrorT saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
         clEvtSafErrorMap(rc, &rc);
         return rc;
     } 
+	else
+	{	
+		SaEvtHandleAsCookieT *pHdlCookie = clHeapAllocate(sizeof(SaEvtHandleAsCookieT));
+		if (NULL == pHdlCookie)
+		{			
+			CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to allocate Memory \n\r"));
+			clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+					CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+			rc = CL_EVENT_ERR_NO_MEM;
+			clEvtSafErrorMap(rc, &rc);			
+			return rc;	 
+		}		
+		clLogTrace("EVT", "SUBS", "saEvtEventSubscribe(): add new cookie: channelHandle[0x%x], subsId[0x%x]", (unsigned int)channelHandle, (unsigned int)subscriptionId);		
+		pHdlCookie->channelHandle = channelHandle;
+		pHdlCookie->evtSubscriptionId = subscriptionId;		
+		pHdlCookie->pEvtHandle = pEvtHandle;
+		clOsalMutexLock(&gEvtCookieMutex);
+		_clEvtHandleAdd(pHdlCookie);		
+		clOsalMutexUnlock(&gEvtCookieMutex);
+	}
     clEvtSafErrorMap(rc, &rc);
     return rc;
 }
@@ -904,8 +969,17 @@ SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle,
     ClRcT rc = CL_OK;
 
     rc = clEventUnsubscribe((ClEventChannelHandleT) channelHandle,
-                            subscriptionId);
-    clHeapFree(gpEvtHandle);
+                            subscriptionId);    
+	
+	SaEvtHandleAsCookieT* entry = _clEvtHandleFind(channelHandle, subscriptionId);
+	if (entry)
+	{
+		clLogTrace("EVT", "UNSUBS", "saEvtEventUnsubscribe(): Found entry for channelHandle[0x%x],subsId[0x%x].Delete it", (unsigned int)channelHandle, (unsigned int)subscriptionId);
+		clOsalMutexLock(&gEvtCookieMutex);
+		_clEvtHandleDelete(entry);
+		clOsalMutexUnlock(&gEvtCookieMutex);
+	}	
+	
     clEvtSafErrorMap(rc, &rc);
     return rc;
 }

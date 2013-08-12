@@ -525,7 +525,6 @@ static ClRcT _clTransportGmsTimerInitCallback() {
  */
 static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, ClIocNodeAddressT nodeAddr)
 {
-    register ClListHeadT *iter;
     ClXportNodeAddrDataT *nodeConfigAddrData = NULL;
     ClNodeCacheMemberT member = {0};
     clOsalMutexLock(&gClXportNodeAddrListMutex);
@@ -559,6 +558,7 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
             }
             break;
         }
+#if 0
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
         case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
         {
@@ -575,6 +575,7 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
             }
             break;
         }
+#endif
         default:
         {
             break;
