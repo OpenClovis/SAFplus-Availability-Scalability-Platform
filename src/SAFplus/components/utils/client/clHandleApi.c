@@ -167,7 +167,7 @@ typedef struct handle_entry {
     void         *instance;
 	ClUint32T    ref_count;
     ClCharT      flags;
-    ClHandleT    handle;
+    ClHandleT    handle; /* The handle cannot be derived from the index because it contains node port and handledb info.  So easiest to just store it */
 } ClHdlEntryT;
 
 /* Struct for handle database */
