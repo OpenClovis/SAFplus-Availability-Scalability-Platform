@@ -75,6 +75,7 @@
 #include <clDbg.h>
 #include <clOsalApi.h>
 #include <clLogApi.h>
+#include <clEoApi.h>
 
 #include <clHandleApi.h>
 #include <clHandleErrors.h>

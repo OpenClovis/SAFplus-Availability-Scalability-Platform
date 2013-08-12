@@ -52,7 +52,6 @@ extern "C" {
     
 #include <clCommon.h>
 #include <clCommonErrors.h>
-#include <clCorMetaData.h>
 
 #define UsingOpenHpi(x)
 
