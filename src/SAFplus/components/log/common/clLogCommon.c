@@ -1267,16 +1267,22 @@ clLogReadLink(ClCharT   *softFileName,
     ClCharT path[CL_MAX_NAME_LENGTH] = {0};
     ClUint32T dirPortion = 0;
     ClCharT actualFileName[CL_MAX_NAME_LENGTH] = {0};
+    ssize_t actualFileLen = 0;
 
     CL_LOG_DEBUG_TRACE(("fileName: %s fileNameLen : %d \n", softFileName, 
                         *pFileNameLength));
-    if( (*pFileNameLength = readlink(softFileName, newFileName,
-                                     *pFileNameLength)) < 0 )
+    if( (actualFileLen = readlink(softFileName, newFileName,
+                                     *pFileNameLength - 1)) < 0 )
     {
-        perror("readlink");
-        CL_LOG_DEBUG_ERROR(("readlink"));
+        char errorBuf[100];
+        strerror_r(errno, errorBuf, 99);
+
+        CL_LOG_DEBUG_ERROR(("readlink [%s] with length [%d] failed.  Error: [%s]", softFileName, *pFileNameLength,errorBuf));
         return CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
-    }   
+    }
+
+    *pFileNameLength = actualFileLen;
+    newFileName[actualFileLen] = '\0';
 
     /*
      * If soft link is absolute path and actual file is relative path,
