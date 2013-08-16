@@ -552,7 +552,7 @@ ClRcT saEvtFinalizeWalkCallback(ClHandleDatabaseHandleT databaseHandle, ClHandle
 SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
 {
 
-    ClRcT rc = CL_OK;
+    ClRcT rc = CL_OK;	
 
     rc = clEventFinalize((ClEventInitHandleT) evtHandle);
     /*
@@ -604,7 +604,7 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
         clLogInfo(CL_EVENT_LIB_NAME, "FIN",
                   "ASP finalize failed, rc[0x%X]", rc);
         return SA_AIS_ERR_LIBRARY;
-    }
+    }	
 
     clEvtSafErrorMap(rc, &rc);
     return rc;
@@ -925,32 +925,35 @@ SaAisErrorT saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
                 CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         rc = CL_EVENT_ERR_NO_MEM;
         clEvtSafErrorMap(rc, &rc);
-        return rc;
- 
+        return rc;		
     }
     *pEvtHandle = evtHandle;
 
-   rc = clEventSubscribe((ClEventChannelHandleT) channelHandle,
+	SaEvtHandleAsCookieT *pHdlCookie = clHeapAllocate(sizeof(SaEvtHandleAsCookieT));
+	if (NULL == pHdlCookie)
+	{			
+		CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to allocate Memory \n\r"));
+		clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+				CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+		clHeapFree(pEvtHandle);
+		rc = CL_EVENT_ERR_NO_MEM;		
+        clEvtSafErrorMap(rc, &rc);
+        return rc;
+	}	
+
+    rc = clEventSubscribe((ClEventChannelHandleT) channelHandle,
                           (const ClEventFilterArrayT *) pFilters,
                           subscriptionId, pEvtHandle);
+						  
     if(rc != CL_OK)
     {
         clHeapFree(pEvtHandle);
+		clHeapFree(pHdlCookie);
         clEvtSafErrorMap(rc, &rc);
         return rc;
     } 
 	else
-	{	
-		SaEvtHandleAsCookieT *pHdlCookie = clHeapAllocate(sizeof(SaEvtHandleAsCookieT));
-		if (NULL == pHdlCookie)
-		{			
-			CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to allocate Memory \n\r"));
-			clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
-					CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
-			rc = CL_EVENT_ERR_NO_MEM;
-			clEvtSafErrorMap(rc, &rc);			
-			return rc;	 
-		}		
+	{				
 		clLogTrace("EVT", "SUBS", "saEvtEventSubscribe(): add new cookie: channelHandle[0x%x], subsId[0x%x]", (unsigned int)channelHandle, (unsigned int)subscriptionId);		
 		pHdlCookie->channelHandle = channelHandle;
 		pHdlCookie->evtSubscriptionId = subscriptionId;		
@@ -965,7 +968,7 @@ SaAisErrorT saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
 
 SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle,
                                   SaEvtSubscriptionIdT subscriptionId)
-{
+{	
     ClRcT rc = CL_OK;
 
     rc = clEventUnsubscribe((ClEventChannelHandleT) channelHandle,
