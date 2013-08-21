@@ -1209,7 +1209,7 @@ clAmsPeSGInstantiateSUs(
         ClAmsEntityRefT *entityRef;
 
         entityRef = clAmsEntityListGetFirst(&sg->status.instantiableSUList);
-
+        ClUint32T numEntities=  sg->status.instantiableSUList.numEntities;
         while ( (entityRef != (ClAmsEntityRefT *) NULL) && (canInstantiate > 0) )
         {
             ClAmsSUT *su = (ClAmsSUT *)entityRef->ptr;
@@ -1264,6 +1264,16 @@ clAmsPeSGInstantiateSUs(
 
             AMS_CALL ( clAmsPeSUInstantiate(su) );
 
+            /*
+             * Check number of instantiableSUList. If more than one entity is removed,
+             * we force to intantiable from the begin to avoid dangling pointer crash the system.
+             */ 
+            if(sg->status.instantiableSUList.numEntities < numEntities -1)
+            {   
+                entityRef = clAmsEntityListGetFirst(&sg->status.instantiableSUList);
+            }
+
+            numEntities = sg->status.instantiableSUList.numEntities;
             canInstantiate--;
             instantiating++;
         }
