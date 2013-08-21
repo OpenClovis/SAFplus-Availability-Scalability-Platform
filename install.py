@@ -1238,7 +1238,7 @@ class ASPInstaller:
         self.feedback('Installing SAFplus...')
 
         cmds = ['cd $WORKING_DIR',
-                'tar cf - src/SAFplus src/SAFplus src/examples |( cd $PACKAGE_ROOT; tar xfm -)',
+                'tar cf - src/SAFplus src/ASP src/examples |( cd $PACKAGE_ROOT; tar xfm -)',
                 'cp VERSION $PACKAGE_ROOT',
                 """sed -e "s;buildtools_dir:=/opt/clovis/buildtools;buildtools_dir:=$BUILDTOOLS;g"
                     -e "s;NET_SNMP_CONFIG = net-snmp-config;NET_SNMP_CONFIG = $NET_SNMP_CONFIG;g"
