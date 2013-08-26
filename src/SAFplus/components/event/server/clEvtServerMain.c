@@ -2267,29 +2267,43 @@ ClRcT VDECL(clEvtEventPublishLocal)(ClEoDataT cData,
      ** Following code was added to provide network byte ordering on Little
      ** Endian Machines.
      */
-    if (CL_TRUE == clEvtUtilsIsLittleEndian())
+
+    /*
+     ** Provide Byte Ordering for PatternSize in the Pattern Section.
+     */
+    pPatternSize = pPatternSection;
+    noOfPatterns = pEvtPrimaryHeader->noOfPatterns;
+
+    while (noOfPatterns--)
     {
-        /*
-         ** Provide Byte Ordering for PatternSize in the Pattern Section.
-         */
-        pPatternSize = pPatternSection;
-        noOfPatterns = pEvtPrimaryHeader->noOfPatterns;
+        memcpy(&patternSize, pPatternSize, sizeof (*pPatternSize));
 
-        while (noOfPatterns--)
+        if (patternSize > (ClSizeT)inLen)
         {
-            memcpy(&patternSize, pPatternSize, sizeof (*pPatternSize));
+            rc = CL_ERR_INVALID_BUFFER;
+            clDbgCodeError(rc, ("Invalid data size, inLen[%u], patternSize[%llu], channelNameLen[%u], publisherNameLen[%u]"
+                    , inLen, patternSize
+                    , pEvtPrimaryHeader->channelNameLen
+                    , pEvtPrimaryHeader->publisherNameLen));
+            goto inDataAllocated;
+        }
 
-            /* Preserve since this value is lost - place in temporary location */
-            tmpPatternSize = patternSize; 
+        /* Preserve since this value is lost - place in temporary location */
+        tmpPatternSize = patternSize;
 
+        if (CL_TRUE == clEvtUtilsIsLittleEndian())
+        {
             patternSize = clEvtHostUint64toNetUint64(patternSize);
 
             memcpy(pPatternSize, &patternSize, sizeof (*pPatternSize) );
-
-            pPatternSize =
-                (ClSizeT *) ((ClUint8T *) (pPatternSize + 1) + tmpPatternSize);
         }
 
+        pPatternSize =
+            (ClSizeT *) ((ClUint8T *) (pPatternSize + 1) + tmpPatternSize);
+    }
+
+    if (CL_TRUE == clEvtUtilsIsLittleEndian())
+    {
         /*
          ** The following code was added to enable proper display in ethereal.
          ** This needs to change accordingly for mixed endian support.
@@ -2394,7 +2408,7 @@ ClRcT VDECL(clEvtEventPublishLocal)(ClEoDataT cData,
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "PUB", 
                 "RMD to Publish Proxy Failed, rc[%#X]", rc);
-        goto failure;
+        goto inDataAllocated;
     }
 
 // success:
@@ -2593,25 +2607,35 @@ ClRcT VDECL(clEvtEventPublishProxy)(ClEoDataT cData,
          (sizeof(ClEvtEventPrimaryHeaderT) + pEvtPrimaryHeader->channelNameLen +
           pEvtPrimaryHeader->publisherNameLen));
 
-    if (CL_TRUE == clEvtUtilsIsLittleEndian())
+    /*
+     ** Recover the PatternSize for each Pattern in the Pattern Section.
+     */
+    pPatternSize = pFlatBuff;
+    noOfPatterns = pEvtPrimaryHeader->noOfPatterns;
+
+    while (noOfPatterns--)
     {
-        /*
-         ** Recover the PatternSize for each Pattern in the Pattern Section.
-         */
-        pPatternSize = pFlatBuff;
-        noOfPatterns = pEvtPrimaryHeader->noOfPatterns;
+        memcpy( &patternSize, pPatternSize, sizeof(*pPatternSize));
 
-        while (noOfPatterns--)
+        if (CL_TRUE == clEvtUtilsIsLittleEndian())
         {
-            memcpy( &patternSize, pPatternSize, sizeof(*pPatternSize));
-
             patternSize = clEvtNetUint64toHostUint64(patternSize);
 
             memcpy( pPatternSize, &patternSize, sizeof(*pPatternSize));
-
-            pPatternSize =
-                (ClSizeT *) ((ClUint8T *) (pPatternSize + 1) + patternSize);
         }
+
+        if (patternSize > (ClSizeT)inLen)
+        {
+            rc = CL_ERR_INVALID_BUFFER;
+            clDbgCodeError(rc, ("Invalid data size, inLen[%u], patternSize[%llu], channelNameLen[%u], publisherNameLen[%u]"
+                    , inLen, patternSize
+                    , pEvtPrimaryHeader->channelNameLen
+                    , pEvtPrimaryHeader->publisherNameLen));
+            goto mutexLocked;
+        }
+
+        pPatternSize =
+            (ClSizeT *) ((ClUint8T *) (pPatternSize + 1) + patternSize);
     }
 
 #ifdef RETENTION_ENABLE
