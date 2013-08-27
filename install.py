@@ -646,7 +646,7 @@ class ASPInstaller:
             self.print_install_header()
 
             if self.NO_INTERACTION == True:
-                strin = INSTALL_DIR
+                strin = self.INSTALL_DIR
             else:
                 strin = self.get_user_feedback('Enter the installation root directory [default: %s]: ' % self.INSTALL_DIR)
 
