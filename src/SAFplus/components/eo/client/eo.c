@@ -4080,6 +4080,7 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
         /*
          * The EO is being stopped/terminated. Back out
          */
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid state."));
         clOsalMutexUnlock(&gClEoJobMutex);
         goto out_free;
     }
