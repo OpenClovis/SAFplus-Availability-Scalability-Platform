@@ -82,8 +82,12 @@ export ASP_NODEADDR
 export ASP_MULTINODE
 export ASP_SIMULATION
 export ASP_WITHOUT_CPM=1
-export ASP_COMPNAME=${1##*/}_${ASP_NODENAME}
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ASP_DIR}/lib:${ASP_DIR}/lib/openhpi:/usr/local/lib:/usr/lib
+
+# Check whether ASP_COMPNAME env is existing 
+if [ "x" == "x${ASP_COMPNAME}" ]; then
+    export ASP_COMPNAME=${1##*/}_${ASP_NODENAME}
+fi
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ASP_DIR}/lib:${ASP_DIR}/lib/openhpi:/usr/lib:/usr/local/lib
 export PYTHONPATH=${ASP_DIR}/lib:$PYTHONPATH
 
 if [ `uname` == 'SunOS' ]
