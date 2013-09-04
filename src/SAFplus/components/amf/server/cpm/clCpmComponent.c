@@ -4389,6 +4389,16 @@ static ClRcT _cpmComponentEventPublish(ClCpmComponentT *comp,
 
     if (compEvent == CL_CPM_COMP_DEATH)
     {
+        ClCpmComponentT *compTemp = NULL;
+        rc = cpmCompFind(comp->compConfig->compName, gpClCpm->compTable, &compTemp);
+        if (CL_OK == rc && (compTemp->compEventPublished == CL_TRUE))
+        {
+            clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
+                      "Skipping comp event already published for component eo port [%#x], eoID [%#llx]",
+                      comp->eoPort, comp->eoID);
+            return CL_OK;
+        }
+
         if(comp->compEventPublished == CL_TRUE) 
         {
             clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
@@ -4514,7 +4524,12 @@ static ClRcT _cpmComponentEventPublish(ClCpmComponentT *comp,
     {
         if (compEvent == CL_CPM_COMP_DEATH)
         {
-            comp->compEventPublished = CL_TRUE;
+            ClCpmComponentT *compTemp = NULL;
+            rc = cpmCompFind(comp->compConfig->compName, gpClCpm->compTable, &compTemp);
+            if (CL_OK == rc)
+            {
+                compTemp->compEventPublished = CL_TRUE;
+            }
         }
     }
 
