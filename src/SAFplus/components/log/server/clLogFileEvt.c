@@ -1411,7 +1411,13 @@ clLogEventDeliverCb(ClEventSubscriptionIdT  subscriptionId,
     ClUint8T               *pBuffer     = NULL;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
-    
+
+    if (!gClLogEventInitialize)
+    {
+        clEventFree(eventHandle);
+        return;
+    }
+
     switch(subscriptionId)
     {
     case CL_LOG_COMPDOWN_EVT_SUBID:
