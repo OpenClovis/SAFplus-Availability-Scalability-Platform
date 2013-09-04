@@ -34,9 +34,8 @@ COMPNAME	:= ioc
 export BUILD_WITHOUT_C99=1
 
 # List local source files needed for the component server:
-TRANSPORT_OBJS := $(wildcard clTipcUserApi*.c)
-SRC_FILES := $(filter-out $(TRANSPORT_OBJS), $(wildcard *.c)) \
-		     $(wildcard ../common/*.c)
+
+SRC_FILES := $(wildcard *.c) $(wildcard ../common/*.c)
 
 # List any third party libs needed to get this server built (or None):
 CPPFLAGS       += -I$(COMP_ROOT)/include/ipi -I$(COMP_ROOT)/ioc/server -I$(COMP_ROOT)/ioc/common
