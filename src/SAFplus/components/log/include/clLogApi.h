@@ -130,7 +130,7 @@ typedef struct
  */
     ClCharT               *fileName;
 /**
- * Its the path where the log file unit(s) will be created.
+ * Its the path where the log file unit(s) will be created.  The path can either be absolute (beginning with a /) or relative. If relative it will be placed in the specified directory under the ASP install directory. Additionally, this field must start with either a period (.) or an asterisk (*) followed by a colon (:). A period indicates that the log file should be written to the local machine. An asterisk indicates that the file should be written to the system controller.
  */
     ClCharT               *fileLocation;
 /**
