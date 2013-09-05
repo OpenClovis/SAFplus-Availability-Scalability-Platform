@@ -65,7 +65,7 @@ include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
 ifeq ($(ASP_BUILD),1)
 ifeq ($(MODEL_BUILD),0)        
         $(shell rm -f $(PROJECT_ROOT)/configure.conf)
-        $(shell echo "export CM_BUILD=$(CM_BUILD)\nexport HCL_CM=$(HCL_CM)\nexport HPI_EMERSON=$(HPI_EMERSON)\nexport HPI_OPENHPI=$(HPI_OPENHPI)\nexport SAFPLUS_BUILD_PYTHON=$(SAFPLUS_BUILD_PYTHON)\nexport SAFPLUS_BUILD_JAVA=$(SAFPLUS_BUILD_JAVA)\nexport SAFPLUS_BUILD_CPP=$(SAFPLUS_BUILD_CPP)" > $(PROJECT_ROOT)/configure.conf)
+        $(shell echo -e "export CM_BUILD=$(CM_BUILD)\nexport HCL_CM=$(HCL_CM)\nexport HPI_EMERSON=$(HPI_EMERSON)\nexport HPI_OPENHPI=$(HPI_OPENHPI)\nexport SAFPLUS_BUILD_PYTHON=$(SAFPLUS_BUILD_PYTHON)\nexport SAFPLUS_BUILD_JAVA=$(SAFPLUS_BUILD_JAVA)\nexport SAFPLUS_BUILD_CPP=$(SAFPLUS_BUILD_CPP)" > $(PROJECT_ROOT)/configure.conf)
 endif
 endif
 
