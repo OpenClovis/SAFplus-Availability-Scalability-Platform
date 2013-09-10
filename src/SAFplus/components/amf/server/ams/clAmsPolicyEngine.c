@@ -207,7 +207,7 @@ clAmsPeNodeComputeAdminStateExtended(
         CL_OUT  ClAmsAdminStateT *adminState,
         CL_IN   ClAmsAdminStateT nodeAdminState);
 
-static ClRcT
+static void
 clAmsPeSUComputeAdminStateExtended(
         CL_IN       ClAmsSUT *su,
         CL_OUT      ClAmsAdminStateT *adminState,
@@ -4083,7 +4083,6 @@ clAmsPeNodeComputeAdminStateExtended(
     if(!node->config.isASPAware)
     {
         *adminState = CL_AMS_ADMIN_STATE_UNLOCKED;
-        
         return CL_OK;
     }
 
@@ -4096,30 +4095,29 @@ clAmsPeNodeComputeAdminStateExtended(
 
     for ( eRef = clAmsEntityListGetFirst(&node->config.nodeDependenciesList);
           eRef != (ClAmsEntityRefT *) NULL;
-          eRef = clAmsEntityListGetNext(&node->config.nodeDependenciesList,
-                                        eRef) )
+          eRef = clAmsEntityListGetNext(&node->config.nodeDependenciesList, eRef) )
     {
         ClAmsNodeT *n = (ClAmsNodeT *) eRef->ptr;
-
-        AMS_CHECK_NODE (n);
-
-        if ( n->config.adminState == CL_AMS_ADMIN_STATE_LOCKED_I )
-        {
+        
+        if (AMS_ENTITY_OK(n,CL_AMS_ENTITY_TYPE_NODE))
+        {            
+          if ( n->config.adminState == CL_AMS_ADMIN_STATE_LOCKED_I )
+          {
             *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+            return CL_OK;  /* most restrictive state, so might as well return early */
+          }
 
-            return CL_OK;
-        }
-
-        if ( n->config.adminState == CL_AMS_ADMIN_STATE_LOCKED_A )
-        {
+          if ( n->config.adminState == CL_AMS_ADMIN_STATE_LOCKED_A )
+          {
             *adminState = CL_AMS_ADMIN_STATE_LOCKED_A;
-        }
+          }
 
-        if ( (n->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) &&
-             (*adminState != CL_AMS_ADMIN_STATE_LOCKED_A) )
-        {
+          if ( (n->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) && (*adminState != CL_AMS_ADMIN_STATE_LOCKED_A) )
+          {
             *adminState = CL_AMS_ADMIN_STATE_SHUTTINGDOWN;
+          }
         }
+        
     }
 
     return CL_OK;
@@ -4362,7 +4360,7 @@ clAmsPeSUUnlock(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
-    AMS_CALL ( clAmsPeSUComputeAdminStateExtended(su, &adminState, CL_AMS_ADMIN_STATE_UNLOCKED) );
+    clAmsPeSUComputeAdminStateExtended(su, &adminState, CL_AMS_ADMIN_STATE_UNLOCKED);
 
     if(adminState == CL_AMS_ADMIN_STATE_UNLOCKED)
     {
@@ -4435,7 +4433,7 @@ clAmsPeSULockAssignment(
 
     readinessState = su->status.readinessState;
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if(adminState == CL_AMS_ADMIN_STATE_UNLOCKED 
        &&
@@ -4510,7 +4508,7 @@ clAmsPeSUForceLockOperation(
 
     if(lock)
     {
-        AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+        clAmsPeSUComputeAdminState(su, &adminState);
 
         if(adminState != CL_AMS_ADMIN_STATE_UNLOCKED)
         {
@@ -4588,7 +4586,7 @@ clAmsPeSUForceLockInstantiationOperation(
     }
 #endif
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if(adminState == CL_AMS_ADMIN_STATE_LOCKED_I)
     {
@@ -4634,7 +4632,7 @@ clAmsPeSULockAssignmentCallback(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if ( adminState != CL_AMS_ADMIN_STATE_LOCKED_A )
     {
@@ -4691,7 +4689,7 @@ clAmsPeSULockInstantiation(
     }
 #endif
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_LOCKED_I);
 
@@ -4773,7 +4771,7 @@ clAmsPeSUShutdown(
 
     readinessState = su->status.readinessState;
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &oldAdminState) );
+    clAmsPeSUComputeAdminState(su, &oldAdminState);
 
     CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_SHUTTINGDOWN);
 
@@ -9163,7 +9161,7 @@ clAmsPeSUQuiesceSI(
     ClAmsSUSIRefT *siRef;
     ClRcT rc;
     ClRcT (*quiesceFn)(ClAmsCompT *, ClAmsCSIT *, ClUint32T);
-    ClUint32T assignedSIs;
+    //ClUint32T assignedSIs;
 
     AMS_CHECK_SU ( su );
     AMS_CHECK_SI ( si );
@@ -9216,7 +9214,7 @@ clAmsPeSUQuiesceSI(
         quiesceFn = clAmsPeCompQuiesceCSIImmediately;
     }
 
-    assignedSIs = su->status.numActiveSIs + su->status.numStandbySIs;
+    //assignedSIs = su->status.numActiveSIs + su->status.numStandbySIs;
 
     AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
         ("Quiescing SI [%s] assigned to SU [%s]\n",
@@ -9585,14 +9583,13 @@ clAmsPeSUFindCompWithCSIAssignment(
 /*
  * clAmsPeSUComputeAdminState
  * --------------------------
- * Compute the admin state of a SU based on its admin state and the
- * admin states of its node, SG and application group.
+ * Compute the effective admin state of a SU based on its admin state
+ * and the admin states of its node, SG and application group.
  *
  * Future: Add application and cluster.
  */
 
-static ClRcT
-clAmsPeSUComputeAdminStateExtended(
+static void clAmsPeSUComputeAdminStateExtended(
         CL_IN       ClAmsSUT *su,
         CL_OUT      ClAmsAdminStateT *adminState,
         CL_IN       ClAmsAdminStateT suAdminState)
@@ -9601,23 +9598,48 @@ clAmsPeSUComputeAdminStateExtended(
     ClAmsSGT *sg;
     ClAmsAdminStateT nodeAdminState, sgAdminState;
 
-    AMS_CHECKPTR (!adminState);
-    AMS_CHECK_SU (su);
-    AMS_CHECK_SG ( (sg = (ClAmsSGT *)su->config.parentSG.ptr) );
-    AMS_CHECK_NODE ( (node = (ClAmsNodeT *)su->config.parentNode.ptr) );
-
+    CL_ASSERT(adminState);
+    CL_ASSERT(AMS_ENTITY_OK(su,CL_AMS_ENTITY_TYPE_SU));
+    
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeNodeComputeAdminState(node, &nodeAdminState));
+    /* Instead of returning an error, return the effective admin
+       state given the error
+    */
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &sgAdminState));
+    /* If the SG or node does not exist, the effective admin state is "off" or LOCKED_I */
+    sg = (ClAmsSGT *)su->config.parentSG.ptr;
+    if (!AMS_ENTITY_OK(sg,CL_AMS_ENTITY_TYPE_SG))
+    {
+        *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+        return;
+    }
+    node = (ClAmsNodeT *)su->config.parentNode.ptr;
+    if (!AMS_ENTITY_OK(node,CL_AMS_ENTITY_TYPE_NODE))
+    {
+      *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+      return;          
+    }
+
+    /* If the SG or node's state can't be computed, its safe for us to be "off" */    
+    if (clAmsPeNodeComputeAdminState(node, &nodeAdminState) != CL_OK)
+    {
+        *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+        return;
+    }
+    if (clAmsPeSGComputeAdminState(sg, &sgAdminState) != CL_OK)
+    {
+        *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+        return;        
+    }
+    
 
     if ( (suAdminState == CL_AMS_ADMIN_STATE_UNLOCKED) &&
-         (nodeAdminState        == CL_AMS_ADMIN_STATE_UNLOCKED) &&
-         (sgAdminState          == CL_AMS_ADMIN_STATE_UNLOCKED) )
+         (nodeAdminState == CL_AMS_ADMIN_STATE_UNLOCKED) &&
+         (sgAdminState == CL_AMS_ADMIN_STATE_UNLOCKED) )
     {
         *adminState = CL_AMS_ADMIN_STATE_UNLOCKED;
-        return CL_OK;
+        return;
     }
 
     if ( (suAdminState == CL_AMS_ADMIN_STATE_LOCKED_I) ||
@@ -9625,7 +9647,7 @@ clAmsPeSUComputeAdminStateExtended(
          (sgAdminState          == CL_AMS_ADMIN_STATE_LOCKED_I) )
     {
         *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
-        return CL_OK;
+        return;
     }
 
     if ( (suAdminState == CL_AMS_ADMIN_STATE_LOCKED_A) ||
@@ -9633,34 +9655,41 @@ clAmsPeSUComputeAdminStateExtended(
          (sgAdminState          == CL_AMS_ADMIN_STATE_LOCKED_A) )
     {
         *adminState = CL_AMS_ADMIN_STATE_LOCKED_A;
-        return CL_OK;
+        return;
     }
 
     *adminState = CL_AMS_ADMIN_STATE_SHUTTINGDOWN;
 
-    return CL_OK;
+    return;
 }
 
-ClRcT
+void
 clAmsPeSUComputeAdminState(
         CL_IN       ClAmsSUT *su,
         CL_OUT      ClAmsAdminStateT *adminState)
 {
-    if(!su) 
-        return CL_AMS_RC(CL_ERR_NULL_POINTER);
+    CL_ASSERT(AMS_ENTITY_OK(su,CL_AMS_ENTITY_TYPE_SU));
+    CL_ASSERT(adminState);
 
-    return clAmsPeSUComputeAdminStateExtended(su, adminState, su->config.adminState);
+    clAmsPeSUComputeAdminStateExtended(su, adminState, su->config.adminState);
 }
 
-ClRcT clAmsPeCompComputeAdminState(
+void clAmsPeCompComputeAdminState(
                                    CL_IN ClAmsCompT *comp,
                                    CL_OUT ClAmsAdminStateT *adminState)
 {
     ClAmsSUT *su;
-    if(!comp)
-        return CL_AMS_RC(CL_ERR_NULL_POINTER);
-    AMS_CHECK_SU ( su = (ClAmsSUT*)comp->config.parentSU.ptr );
-    return clAmsPeSUComputeAdminStateExtended(su, adminState, su->config.adminState);
+    CL_ASSERT(AMS_ENTITY_OK(comp,CL_AMS_ENTITY_TYPE_COMP));
+    CL_ASSERT(adminState);
+
+    su = (ClAmsSUT*)comp->config.parentSU.ptr;
+    if (!AMS_ENTITY_OK(su,CL_AMS_ENTITY_TYPE_SU)) /* If the component has no SU, it can never be instantiated */
+    {
+        *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+        return;
+    }
+    
+    clAmsPeSUComputeAdminStateExtended(su, adminState, su->config.adminState);
 }
 
 /*
@@ -9670,23 +9699,37 @@ ClRcT clAmsPeCompComputeAdminState(
  * Future: add application and cluster entities
  */
 
-ClRcT
+void
 clAmsPeSUComputeReadinessState(
         CL_IN       ClAmsSUT *su,
         CL_OUT      ClAmsReadinessStateT *suState)
 {
     ClAmsSGT *sg;
     ClAmsNodeT *node;
-    ClAmsAdminStateT adminState;
+    ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
 
-    AMS_CHECKPTR ( !suState );
-    AMS_CHECK_SU ( su );
-    AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
-    AMS_CHECK_NODE ( node = (ClAmsNodeT *) su->config.parentNode.ptr );
+    CL_ASSERT(suState);
+    CL_ASSERT(AMS_ENTITY_OK(su,CL_AMS_ENTITY_TYPE_SU));
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
-
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    
+    /* If the SG or the Node does not exist, we must go out of service */
+    sg = (ClAmsSGT *) su->config.parentSG.ptr;
+    if (!AMS_ENTITY_OK(sg,CL_AMS_ENTITY_TYPE_SG))
+    {
+      *suState = CL_AMS_READINESS_STATE_OUTOFSERVICE;
+      clLog(CL_LOG_WARNING,"AMF","POL","SU [%.*s] has no SG",su->config.entity.name.length,su->config.entity.name.value);
+      return;
+    }
+    node = (ClAmsNodeT *) su->config.parentNode.ptr;
+    if (!AMS_ENTITY_OK(node,CL_AMS_ENTITY_TYPE_NODE))
+    {
+      clLog(CL_LOG_WARNING,"AMF","POL","SU [%.*s] has no Node",su->config.entity.name.length,su->config.entity.name.value);
+      *suState = CL_AMS_READINESS_STATE_OUTOFSERVICE;
+      return;          
+    }
+    
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if ( (su->status.operState    == CL_AMS_OPER_STATE_ENABLED)   &&
          (node->status.operState  == CL_AMS_OPER_STATE_ENABLED)   &&
@@ -9698,13 +9741,13 @@ clAmsPeSUComputeReadinessState(
                  (su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING) )
             {
                 *suState = CL_AMS_READINESS_STATE_INSERVICE;
-                return CL_OK;
+                return;
             }
         }
         else
         {
                 *suState = CL_AMS_READINESS_STATE_INSERVICE;
-                return CL_OK;
+                return;
         }
     }
 
@@ -9713,12 +9756,12 @@ clAmsPeSUComputeReadinessState(
          (adminState             == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) )
     {
         *suState = CL_AMS_READINESS_STATE_STOPPING;
-        return CL_OK;
+        return;
     }
 
     *suState = CL_AMS_READINESS_STATE_OUTOFSERVICE;
 
-    return CL_OK;
+    return;
 }
 
 /*
@@ -9734,13 +9777,13 @@ clAmsPeSUUpdateReadinessState(
     ClAmsReadinessStateT rstate;
     ClAmsEntityRefT *entityRef;
 
-    AMS_CHECK_SU ( su );
+    CL_ASSERT(AMS_ENTITY_OK(su,CL_AMS_ENTITY_TYPE_SU));
     
     /*
      * Update state of SU
      */
 
-    AMS_CALL ( clAmsPeSUComputeReadinessState(su, &rstate) );
+    clAmsPeSUComputeReadinessState(su, &rstate);
     CL_AMS_SET_R_STATE(su, rstate);
 
     /*
@@ -9773,7 +9816,7 @@ clAmsPeSUIsInstantiable(
     
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if ( ( (adminState == CL_AMS_ADMIN_STATE_LOCKED_A) ||
            (adminState == CL_AMS_ADMIN_STATE_UNLOCKED) ) &&
@@ -9803,7 +9846,7 @@ clAmsPeSUIsAssignable(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if ( (clAmsPeSUIsInstantiable(su) == CL_OK) &&
         (adminState == CL_AMS_ADMIN_STATE_UNLOCKED) )
@@ -10116,7 +10159,7 @@ clAmsPeSUMarkTerminated(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeSUComputeReadinessState(su, &rstate) );
+    clAmsPeSUComputeReadinessState(su, &rstate);
     CL_AMS_SET_R_STATE(su, rstate);
 
     rc = clAmsSGDeleteSURefFromSUList(&sg->status.inserviceSpareSUList, su);
@@ -11770,7 +11813,7 @@ clAmsPeCompComputeRecoveryAction(
      * don't restart a component/su that is not fully usable.
      */
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if ( (adminState == CL_AMS_ADMIN_STATE_LOCKED_A) ||
          (adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) )
@@ -18742,7 +18785,8 @@ clAmsPeCompComputeReadinessState(
 
             AMS_CHECK_SU ( su = (ClAmsSUT *) comp->config.parentSU.ptr );
 
-            AMS_CALL ( clAmsPeSUComputeReadinessState(su, &suRstate) );
+            clAmsPeSUComputeReadinessState(su, &suRstate);
+            
             CL_AMS_SET_R_STATE(su, suRstate);
             *compState = suRstate;
             break;

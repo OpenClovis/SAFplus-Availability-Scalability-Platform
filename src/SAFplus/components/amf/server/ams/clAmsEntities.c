@@ -1391,10 +1391,7 @@ clAmsEntityPrint(
         {
             ClAmsSUT  *su = (ClAmsSUT *) entity;
 
-            if( clAmsPeSUComputeAdminState(su, &adminState) != CL_OK)
-            {
-                adminState = su->config.adminState;
-            }
+            clAmsPeSUComputeAdminState(su, &adminState);
 
             CL_AMS_PRINT_TWO_COL("Configuration -------------------------------",
                     "%s","---------------------------");
@@ -2158,10 +2155,7 @@ clAmsEntityXMLPrint(
 
             CL_AMS_PRINT_OPEN_TAG_ATTR("su", "%s", entity->name.value);
 
-            if ( clAmsPeSUComputeAdminState(su, &adminState) != CL_OK)
-            {
-                adminState = su->config.adminState;
-            }
+            clAmsPeSUComputeAdminState(su, &adminState);
 
             CL_AMS_PRINT_OPEN_TAG("config");
 

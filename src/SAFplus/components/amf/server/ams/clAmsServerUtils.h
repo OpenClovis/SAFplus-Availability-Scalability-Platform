@@ -146,6 +146,8 @@ do {                                                                    \
     clOsalMutexUnlock(gAms.mutex);                                  \
 }while(0)
 
+#define AMS_ENTITY_OK(x,y) ((x)&&(((x)->config.entity.type) == (y) ))
+    
 #define AMS_CHECK_ENTITY(x,y)                                           \
 {                                                                       \
     AMS_CHECKPTR ( !(x) );                                              \
