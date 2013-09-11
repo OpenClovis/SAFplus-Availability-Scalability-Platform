@@ -222,7 +222,7 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused,
     
     if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION || eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
     {
-        clLogNotice("NOTIF", "LEAVE", "Triggering node leave for node [%d], port [%#x]",
+        clLogDebug("NOTIF", "LEAVE", "Triggering node leave for node [%d], port [%#x]",
                     pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
         rc = _clGmsEngineClusterLeaveExtended(0, pAddress->iocPhyAddress.nodeAddress, CL_TRUE);
     }
@@ -232,7 +232,7 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused,
         if(pAddress->iocPhyAddress.portId != CL_IOC_CPM_PORT)
            return;
 #endif
-        clLogNotice("NOTIF", "JOIN", "Triggering node join for node [%u], port [%#x]", pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
+        clLogDebug("NOTIF", "JOIN", "Triggering node join for node [%u], port [%#x]", pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
         rc = _clGmsEngineClusterJoinWrapper(0, pAddress->iocPhyAddress.nodeAddress, NULL, CL_FALSE, NULL);
     }  
     
