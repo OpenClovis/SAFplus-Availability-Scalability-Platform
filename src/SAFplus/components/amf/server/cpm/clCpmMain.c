@@ -214,16 +214,16 @@ extern void clEoCleanup(ClEoExecutionObjT* pThis);
 ClRcT cpmEventInitialize(void)
 {
     ClRcT rc = CL_OK;
-    ClNameT cpmChannelName = { 0 };
-    ClNameT cpmNodeChannelName = { 0 };
+    SaNameT cpmChannelName = { 0 };
+    SaNameT cpmNodeChannelName = { 0 };
     /*
      * Populate the channel name 
      */
-    strcpy(cpmChannelName.value, CL_CPM_EVENT_CHANNEL_NAME);
-    cpmChannelName.length = strlen(cpmChannelName.value);
+    strcpy((ClCharT *)cpmChannelName.value, CL_CPM_EVENT_CHANNEL_NAME);
+    cpmChannelName.length = strlen((const ClCharT *)cpmChannelName.value);
 
-    strcpy(cpmNodeChannelName.value, CL_CPM_NODE_EVENT_CHANNEL_NAME);
-    cpmNodeChannelName.length = strlen(cpmNodeChannelName.value);
+    strcpy((ClCharT *)cpmNodeChannelName.value, CL_CPM_NODE_EVENT_CHANNEL_NAME);
+    cpmNodeChannelName.length = strlen((const ClCharT *)cpmNodeChannelName.value);
 
     /*
      * initialization of EM variables 
@@ -311,7 +311,7 @@ ClRcT cpmEventInitialize(void)
  */
 ClRcT nodeArrivalDeparturePublish(ClIocNodeAddressT iocAddress,
                                   // coverity[pass_by_value]
-                                  ClNameT nodeName,
+                                  SaNameT nodeName,
                                   ClCpmNodeEventT operation)
 {
     ClCpmEventNodePayLoadT payLoad = {{0}};
@@ -331,7 +331,7 @@ ClRcT nodeArrivalDeparturePublish(ClIocNodeAddressT iocAddress,
     /*
      * fill in the payload data 
      */
-    memcpy(&(payLoad.nodeName), &(nodeName), sizeof(ClNameT));
+    memcpy(&(payLoad.nodeName), &(nodeName), sizeof(SaNameT));
     payLoad.nodeIocAddress = iocAddress;
     payLoad.operation = operation;
 
@@ -724,10 +724,10 @@ ClRcT cpmStopCompOps(ClCntNodeHandleT key,
 {
     ClCpmComponentT *comp = (ClCpmComponentT *)data;
 
-    ClNameT compName = {0};
+    SaNameT compName = {0};
 
-    strcpy(compName.value, comp->compConfig->compName);
-    compName.length = strlen(compName.value);
+    strcpy((ClCharT *)compName.value, comp->compConfig->compName);
+    compName.length = strlen((const ClCharT *)compName.value);
 
     cpmInvocationClearCompInvocation(&compName);
 
@@ -900,8 +900,8 @@ static ClRcT clCpmFinalize(void)
                                ("Unable to allocate memory \n"));
                 goto mallocFailed;
             }
-            strcpy(bootOp->nodeName.value, gpClCpm->pCpmLocalInfo->nodeName);
-            bootOp->nodeName.length = strlen(bootOp->nodeName.value);
+            strcpy((ClCharT *)bootOp->nodeName.value, gpClCpm->pCpmLocalInfo->nodeName);
+            bootOp->nodeName.length = strlen((const ClCharT *)bootOp->nodeName.value);
             bootOp->bootLevel = 0;
             bootOp->srcAddress.portId = 0;
             if(gpClCpm->bmTable != NULL)
@@ -1616,8 +1616,8 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
                    gpClCpm->pCpmLocalInfo->slotNumber,
                    gpClCpm->pCpmLocalInfo->nodeId);
     
-    strcpy(gpClCpm->name.value, CL_CPM_COMPONENT_NAME);
-    gpClCpm->name.length = strlen(gpClCpm->name.value);
+    strcpy((ClCharT *)gpClCpm->name.value, CL_CPM_COMPONENT_NAME);
+    gpClCpm->name.length = strlen((const ClCharT *)gpClCpm->name.value);
 
     /*
      * Initialize all the component names on which CPM is dependent upon 
@@ -1629,8 +1629,8 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     sprintf(gpClCpm->logServerName, "%s_%s", CL_CPM_COMPONENT_LOG_NAME,
             gpClCpm->pCpmConfig->nodeName);
 
-    sprintf(gpClCpm->ckptCpmLName.value, "%s", gpClCpm->name.value);
-    gpClCpm->ckptCpmLName.length = strlen(gpClCpm->ckptCpmLName.value);
+    sprintf((ClCharT *)gpClCpm->ckptCpmLName.value, "%s", gpClCpm->name.value);
+    gpClCpm->ckptCpmLName.length = strlen((const ClCharT *)gpClCpm->ckptCpmLName.value);
 
     gpClCpm->ckptHandle = CL_HANDLE_INVALID_VALUE;
     gpClCpm->ckptOpenHandle = CL_HANDLE_INVALID_VALUE;
@@ -2590,19 +2590,19 @@ static ClBoolT __cpmIsInfrastructureComponent(const ClCharT *compName)
         return CL_FALSE;
 }
 
-ClBoolT cpmIsInfrastructureComponent(ClNameT *compName)
+ClBoolT cpmIsInfrastructureComponent(SaNameT *compName)
 {
-    return __cpmIsInfrastructureComponent(compName->value);
+    return __cpmIsInfrastructureComponent((const ClCharT *)compName->value);
 }
 
-static ClBoolT cpmIsCriticalComponent(const ClNameT *compName)
+static ClBoolT cpmIsCriticalComponent(const SaNameT *compName)
 {
     CL_ASSERT(compName != NULL);
     
-    if(strstr(compName->value, "corServer")) goto yes;
-    else if (strstr(compName->value, "gmsServer")) goto yes;
-    else if (strstr(compName->value, "msgServer")) goto yes;
-    else if (strstr(compName->value, "ckptServer")) goto yes;
+    if(strstr((const ClCharT *)compName->value, "corServer")) goto yes;
+    else if (strstr((ClCharT *)compName->value, "gmsServer")) goto yes;
+    else if (strstr((ClCharT *)compName->value, "msgServer")) goto yes;
+    else if (strstr((ClCharT *)compName->value, "ckptServer")) goto yes;
     else goto no;
 
 yes:
@@ -3031,7 +3031,7 @@ static void cpmMarkRecovery(ClCpmComponentT *compRef, ClUint64T instantiateCooki
         ClAmsInvocationT *pAmsInvocation = clHeapCalloc(1, sizeof(*pAmsInvocation));
         ClInvocationT recoveryInvocation = 0;
         CL_ASSERT(pAmsInvocation != NULL);
-        clNameSet(&pAmsInvocation->compName, compRef->compConfig->compName);
+        saNameSet(&pAmsInvocation->compName, compRef->compConfig->compName);
         pAmsInvocation->invocation = (ClInvocationT)instantiateCookie;
         pAmsInvocation->cmd = CL_AMS_RECOVERY_REPLAY_CALLBACK;
         rc = cpmInvocationAdd(CL_AMS_RECOVERY_REPLAY_CALLBACK, (void*)pAmsInvocation,
@@ -3049,8 +3049,8 @@ void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
     time_t t1;
     ClRcT status = 0;
     ClRcT rc = CL_OK;
-    ClNameT nodeName = {0};
-    ClNameT compName = {0};
+    SaNameT nodeName = {0};
+    SaNameT compName = {0};
     ClCpmLcmReplyT srcInfo = {0};
     ClCpmComponentT *comp = NULL;
     ClUint64T instantiateCookie = 0;
@@ -3118,15 +3118,11 @@ void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
                        rc);
         }
 
-        strcpy(compName.value,
-               ((ClCpmEOListNodeT *) pThis)->compRef->compConfig->compName);
-        compName.length =
-            strlen(compName.value);
+        strcpy((ClCharT *) compName.value, ((ClCpmEOListNodeT *) pThis)->compRef->compConfig->compName);
+        compName.length = strlen((const ClCharT *)compName.value);
         
-        strcpy(nodeName.value,
-               gpClCpm->pCpmConfig->nodeName);
-        nodeName.length =
-            strlen(nodeName.value);
+        strcpy((ClCharT *) nodeName.value, gpClCpm->pCpmConfig->nodeName);
+        nodeName.length = strlen((const ClCharT *) nodeName.value);
 
         if(cpmIsInfrastructureComponent(&compName))
         {

@@ -123,7 +123,7 @@ static ClRcT clMsgQueueOpenNew(     SaMsgHandleT msgHandle,
     /* Allocate a new msg queue */
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
     CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
-    rc = clMsgQueueAllocate((ClNameT *)pQueueName, /* openFlags unused */ 0, (SaMsgQueueCreationAttributesT *)pCreationAttributes, pQueueHandle);
+    rc = clMsgQueueAllocate((SaNameT *)pQueueName, /* openFlags unused */ 0, (SaMsgQueueCreationAttributesT *)pCreationAttributes, pQueueHandle);
     CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
     CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
     if(rc != CL_OK)
@@ -140,7 +140,7 @@ static ClRcT clMsgQueueOpenNew(     SaMsgHandleT msgHandle,
     }
 
     /* Register queue with server*/
-    rc = VDECL_VER(clMsgQueueOpenClientSync, 4, 0, 0)(gIdlUcastHandle, (ClNameT*)pQueueName, 
+    rc = VDECL_VER(clMsgQueueOpenClientSync, 4, 0, 0)(gIdlUcastHandle, (SaNameT*)pQueueName, 
                                                             (SaMsgQueueCreationAttributesT *)pCreationAttributes, openFlags);
     if(rc != CL_OK)
     {
@@ -157,7 +157,7 @@ error_out1:
     *pQueueHandle = 0;
 
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
-    clMsgQEntryDel((ClNameT *)pQueueName);
+    clMsgQEntryDel((SaNameT *)pQueueName);
     CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
 
 error_out:
@@ -188,7 +188,7 @@ static ClRcT clMsgQueueOpenRemote(  SaMsgHandleT msgHandle,
     if (qDelete)
     {
         /* Look up msg queue in the cached checkpoint */
-        if(clMsgQCkptExists((ClNameT *)pQueueName, &queueData) == CL_FALSE)
+        if(clMsgQCkptExists((SaNameT *)pQueueName, &queueData) == CL_FALSE)
         {
             rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
             clLogError("QUE", "OPEN", "Failed to get the message queue information from the cached ckpt. error code [0x%x].", rc);
@@ -214,7 +214,7 @@ static ClRcT clMsgQueueOpenRemote(  SaMsgHandleT msgHandle,
     }
 
     /* Copy creation attributes from remote queue */
-    rc = VDECL_VER(clMsgQueueInfoGetClientSync, 4, 0, 0)(idlHandle, (ClNameT *) pQueueName, &qAttrs);
+    rc = VDECL_VER(clMsgQueueInfoGetClientSync, 4, 0, 0)(idlHandle, (SaNameT *) pQueueName, &qAttrs);
     if(rc != CL_OK)
     {
         clLogError("QUE", "OPEN", "Failed to get queue [%.*s]'s information. error code [0x%x].", pQueueName->length, pQueueName->value, rc);
@@ -224,7 +224,7 @@ static ClRcT clMsgQueueOpenRemote(  SaMsgHandleT msgHandle,
     /* Allocate a new msg queue */
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
     CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
-    rc = clMsgQueueAllocate((ClNameT *)pQueueName, /* openFlags unused */ 0, &qAttrs, pQueueHandle);
+    rc = clMsgQueueAllocate((SaNameT *)pQueueName, /* openFlags unused */ 0, &qAttrs, pQueueHandle);
     CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
     CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
     if(rc != CL_OK)
@@ -236,7 +236,7 @@ static ClRcT clMsgQueueOpenRemote(  SaMsgHandleT msgHandle,
     /* Copy messages from remote queue */
     if(!(openFlags & SA_MSG_QUEUE_EMPTY))
     {
-        rc = VDECL_VER(clMsgQueueMoveMessagesClientSync, 4, 0, 0)(idlHandle, (ClNameT *) pQueueName, openFlags, qDelete);
+        rc = VDECL_VER(clMsgQueueMoveMessagesClientSync, 4, 0, 0)(idlHandle, (SaNameT *) pQueueName, openFlags, qDelete);
         if(rc != CL_OK)
         {
             clLogError("QUE", "OPEN", "Failed to allocate queue [%.*s]. error code [0x%x].", pQueueName->length, pQueueName->value, rc);
@@ -252,7 +252,7 @@ static ClRcT clMsgQueueOpenRemote(  SaMsgHandleT msgHandle,
     }
 
     /* Register queue with server*/
-    rc = VDECL_VER(clMsgQueueOpenClientSync, 4, 0, 0)(gIdlUcastHandle, (ClNameT*)pQueueName, 
+    rc = VDECL_VER(clMsgQueueOpenClientSync, 4, 0, 0)(gIdlUcastHandle, (SaNameT*)pQueueName, 
                                                             (SaMsgQueueCreationAttributesT *)pCreationAttributes, openFlags);
     if(rc != CL_OK)
     {
@@ -270,7 +270,7 @@ error_out2:
     *pQueueHandle = 0;
 
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
-    clMsgQEntryDel((ClNameT *)pQueueName);
+    clMsgQEntryDel((SaNameT *)pQueueName);
     CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
 
 error_out1:
@@ -294,7 +294,7 @@ static ClRcT clMsgQueueOpenLocal(   SaMsgHandleT msgHandle,
     SaMsgQueueHandleT qHandle;
 
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
-    if(clMsgQNameEntryExists((ClNameT *)pQueueName, &pQEntry) == CL_FALSE)
+    if(clMsgQNameEntryExists((SaNameT *)pQueueName, &pQEntry) == CL_FALSE)
     {
         CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
@@ -315,7 +315,7 @@ static ClRcT clMsgQueueOpenLocal(   SaMsgHandleT msgHandle,
     *pQueueHandle = qHandle;
 
     /* Register queue with server*/
-    rc = VDECL_VER(clMsgQueueOpenClientSync, 4, 0, 0)(gIdlUcastHandle, (ClNameT*)pQueueName, 
+    rc = VDECL_VER(clMsgQueueOpenClientSync, 4, 0, 0)(gIdlUcastHandle, (SaNameT*)pQueueName, 
                                                             (SaMsgQueueCreationAttributesT *)pCreationAttributes, openFlags);
     if(rc != CL_OK)
     {
@@ -452,7 +452,7 @@ static SaAisErrorT clMsgQueueOpenInternal(
     if (pQueueName->length > CL_MAX_NAME_LENGTH)
     {
         rc = CL_MSG_RC(CL_ERR_INVALID_PARAMETER);
-        clDbgCodeError(rc, ("Invalid ClNameT structure."));
+        clDbgCodeError(rc, ("Invalid SaNameT structure."));
         goto error_out;
     }
 
@@ -493,7 +493,7 @@ static SaAisErrorT clMsgQueueOpenInternal(
     }
 
 retry:
-    qExists = clMsgQCkptExists((ClNameT *)pQueueName, &queueData);
+    qExists = clMsgQCkptExists((SaNameT *)pQueueName, &queueData);
 
     if ((qExists == CL_FALSE) && !(openFlags & SA_MSG_QUEUE_CREATE))
     {
@@ -741,7 +741,7 @@ SaAisErrorT saMsgQueueClose(SaMsgQueueHandleT queueHandle)
     ClBoolT qDeleteFlag = CL_FALSE;
     ClBoolT qPersistencyFlag = CL_FALSE;
     ClBoolT qUnlinkFlag = CL_FALSE;
-    ClNameT qName;
+    SaNameT qName;
     ClMsgQueueCkptDataT queueData = {{0}};
     ClBoolT isExist = CL_FALSE;
 
@@ -757,10 +757,10 @@ SaAisErrorT saMsgQueueClose(SaMsgQueueHandleT queueHandle)
     }
 
     CL_OSAL_MUTEX_LOCK(&pQInfo->qLock);
-    clNameCopy(&qName, &pQInfo->pQueueEntry->qName);
+    saNameCopy(&qName, &pQInfo->pQueueEntry->qName);
     CL_OSAL_MUTEX_UNLOCK(&pQInfo->qLock);
 
-    isExist = clMsgQCkptExists((ClNameT *)&qName, &queueData);
+    isExist = clMsgQCkptExists((SaNameT *)&qName, &queueData);
 
     CL_OSAL_MUTEX_LOCK(&pQInfo->qLock);
     if(pQInfo->state == CL_MSG_QUEUE_CLOSED)
@@ -838,7 +838,7 @@ error_out:
             goto persistency_out;
         }
 
-        clMsgToDestQueueMove(gLocalAddress, (ClNameT *)&qName);
+        clMsgToDestQueueMove(gLocalAddress, (SaNameT *)&qName);
         queueData.qAddress.nodeAddress = gLocalAddress;
         queueData.qAddress.portId = CL_IOC_MSG_PORT;
         queueData.state = CL_MSG_QUEUE_CLOSED;
@@ -849,7 +849,7 @@ error_out:
             goto persistency_out;
         }
 
-        rc = VDECL_VER(clMsgQueueRetentionCloseClientSync, 4, 0, 0)(gIdlUcastHandle, (ClNameT *)&qName);
+        rc = VDECL_VER(clMsgQueueRetentionCloseClientSync, 4, 0, 0)(gIdlUcastHandle, (SaNameT *)&qName);
         if(rc != CL_OK)
         {
             clLogError("QUE", "CLOS", "Failed to start queue retention timer. error code [0x%x].", rc);
@@ -868,11 +868,11 @@ persistency_out:
 
         /* Remove the message queue out of the database */
         CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
-        clMsgQEntryDel((ClNameT *)&qName);
+        clMsgQEntryDel((SaNameT *)&qName);
         CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
 
         if(qUnlinkFlag)
-            clMsgQueueUnlinkToServer((ClNameT *)&qName);
+            clMsgQueueUnlinkToServer((SaNameT *)&qName);
     }
     else
         CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
@@ -880,7 +880,7 @@ persistency_out:
     return CL_MSG_SA_RC(rc);
 }
 
-ClRcT VDECL_VER(clMsgQueueUnlink, 4, 0, 0)(ClNameT *pQName)
+ClRcT VDECL_VER(clMsgQueueUnlink, 4, 0, 0)(SaNameT *pQName)
 {
     ClRcT rc;
     ClRcT retCode;
@@ -965,7 +965,7 @@ SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *pQueueName)
 
     /* Look up msg queue in the cached checkpoint */
     ClMsgQueueCkptDataT queueData;
-    if(clMsgQCkptExists((ClNameT *)pQueueName, &queueData) == CL_FALSE)
+    if(clMsgQCkptExists((SaNameT *)pQueueName, &queueData) == CL_FALSE)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "QUL", "Failed to get the message queue information. error code [0x%x].", rc);
@@ -982,7 +982,7 @@ SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *pQueueName)
         if((queueData.qAddress.nodeAddress == gLocalAddress)
             && (queueData.qAddress.portId == gLocalPortId))
         {
-            rc = VDECL_VER(clMsgQueueUnlink, 4, 0, 0)((ClNameT *)pQueueName);
+            rc = VDECL_VER(clMsgQueueUnlink, 4, 0, 0)((SaNameT *)pQueueName);
             if(rc != CL_OK)
             {
                 clLogError("MSG", "QUL", "Failed to close the message queue. error code [0x%x].", rc);
@@ -1012,7 +1012,7 @@ SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *pQueueName)
     }
 
     /* Send request to the process where the MSG queue is located */
-    rc = VDECL_VER(clMsgQueueUnlinkClientSync, 4, 0, 0)(idlHandle, (ClNameT *)pQueueName);
+    rc = VDECL_VER(clMsgQueueUnlinkClientSync, 4, 0, 0)(idlHandle, (SaNameT *)pQueueName);
     if(rc != CL_OK)
     {
         clLogError("MSG", "QUL", "Failed to close the message queue. error code [0x%x].", rc);
@@ -1044,7 +1044,7 @@ SaAisErrorT saMsgQueueStatusGet(
 
     /* Look up msg queue in the cached checkpoint */
     ClMsgQueueCkptDataT queueData;
-    if(clMsgQCkptExists((ClNameT *)pQueueName, &queueData) == CL_FALSE)
+    if(clMsgQCkptExists((SaNameT *)pQueueName, &queueData) == CL_FALSE)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "QSG", "Message queue [%.*s] does not exist in the cached checkpoint. error code [0x%x]."
@@ -1064,7 +1064,7 @@ SaAisErrorT saMsgQueueStatusGet(
             && (queueData.qAddress.portId == gLocalPortId))
         {
             rc = VDECL_VER(clMsgQueueStatusGet, 4, 0, 0)
-                    ((ClNameT*)pQueueName, pQueueStatus);
+                    ((SaNameT*)pQueueName, pQueueStatus);
             if(rc != CL_OK)
             {
                 clLogError("MSG", "QSG", "Failed to get the message queue status from message server. error code [0x%x].", rc);
@@ -1094,7 +1094,7 @@ SaAisErrorT saMsgQueueStatusGet(
 
     /* Send request to the process where the MSG queue is located */
     rc = VDECL_VER(clMsgQueueStatusGetClientSync, 4, 0, 0)
-            (idlHandle, (ClNameT*)pQueueName, pQueueStatus);
+            (idlHandle, (SaNameT*)pQueueName, pQueueStatus);
     if(rc != CL_OK)
     {
         clLogError("MSG", "QSG", "Failed to get the message queue status from message server. error code [0x%x].", rc);
@@ -1153,7 +1153,7 @@ ClRcT clMsgQueuePersistRedundancy(const SaNameT *queue, const SaNameT *node)
 {
     ClRcT rc;
     ClIocAddressT iocAddress;
-    ClNameT *pNodeName = (ClNameT *) node;
+    SaNameT *pNodeName = (SaNameT *) node;
 
     CL_MSG_INIT_CHECK;
 
@@ -1168,7 +1168,7 @@ ClRcT clMsgQueuePersistRedundancy(const SaNameT *queue, const SaNameT *node)
 
     /* Look up msg queue in the cached checkpoint */
     ClMsgQueueCkptDataT queueData;
-    if(clMsgQCkptExists((ClNameT *)queue, &queueData) == CL_FALSE)
+    if(clMsgQCkptExists((SaNameT *)queue, &queueData) == CL_FALSE)
     {
         rc = CL_ERR_DOESNT_EXIST;
         clLogError("MSG", "QSG", "Failed to get the message queue information. error code [0x%x].", rc);
@@ -1204,9 +1204,9 @@ ClRcT clMsgQueuePersistRedundancy(const SaNameT *queue, const SaNameT *node)
     }
 
     if(queueData.qServerAddress.nodeAddress != 0)
-        rc = VDECL_VER(clMsgQueuePersistRedundancyClientSync, 4, 0, 0)(idlHandle, (ClNameT*) queue, queueData.qServerAddress, CL_TRUE);
+        rc = VDECL_VER(clMsgQueuePersistRedundancyClientSync, 4, 0, 0)(idlHandle, (SaNameT*) queue, queueData.qServerAddress, CL_TRUE);
     else
-        rc = VDECL_VER(clMsgQueuePersistRedundancyClientSync, 4, 0, 0)(idlHandle, (ClNameT*) queue, queueData.qAddress, CL_FALSE);
+        rc = VDECL_VER(clMsgQueuePersistRedundancyClientSync, 4, 0, 0)(idlHandle, (SaNameT*) queue, queueData.qAddress, CL_FALSE);
 
     if (rc != CL_OK)
     {

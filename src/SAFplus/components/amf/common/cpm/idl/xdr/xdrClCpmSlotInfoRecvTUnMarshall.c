@@ -68,13 +68,13 @@ ClRcT clXdrUnmarshallClCpmSlotInfoRecvT_4_0_0(ClBufferHandleT msg , void* pGenVa
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->nodeMoIdStr));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->nodeMoIdStr));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->nodeName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->nodeName));
     if (CL_OK != rc)
     {
         return rc;

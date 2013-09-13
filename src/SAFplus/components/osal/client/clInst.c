@@ -35,8 +35,8 @@
 #define CL_INST_VERSION (0x1)
 
 typedef struct InstrumentedId {
-    ClNameT compName;
-    ClNameT nodeName;
+    SaNameT compName;
+    SaNameT nodeName;
 } InstrumentedId;
 
 static InstrumentedId *myInstId = 0;
@@ -167,7 +167,7 @@ breakdown:
 }
 
 ClRcT
-clInstSetIdentity(const ClNameT *nodeName, const ClNameT *compName)
+clInstSetIdentity(const SaNameT *nodeName, const SaNameT *compName)
 {
     CL_FUNC_ENTER();
     if (myInstId == 0)

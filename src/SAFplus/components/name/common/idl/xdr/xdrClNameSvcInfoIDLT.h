@@ -53,7 +53,7 @@ typedef struct _ClNameSvcInfoIDLT_4_0_0 {
     ClUint32T    version;
     ClUint32T    dsIdCnt;
     ClUint32T    dsId;
-    ClNameT    name;
+    SaNameT    name;
     ClUint64T    objReference;
     ClNameSvcSourceIDLT_4_0_0    source;
     ClUint32T    compId;

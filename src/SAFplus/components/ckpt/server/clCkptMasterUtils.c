@@ -87,7 +87,7 @@ void ckptReplicaListDeleteCallback(ClCntKeyHandleT  userKey,
  
 ClRcT
 _ckptMasterHdlInfoFill(ClHandleT                           masterHdl,
-                       ClNameT                             *pName,
+                       SaNameT                             *pName,
                        ClCkptCheckpointCreationAttributesT *pCreateAttr,
                        ClIocNodeAddressT                   localAddr,
                        ClUint8T                            source,
@@ -128,7 +128,7 @@ _ckptMasterHdlInfoFill(ClHandleT                           masterHdl,
 
     memcpy(&pMasterDBEntry->attrib, pCreateAttr,
             sizeof(ClCkptCheckpointCreationAttributesT)); 
-    clNameCopy(&pMasterDBEntry->name, pName);
+    saNameCopy(&pMasterDBEntry->name, pName);
     pMasterDBEntry->markedDelete  = 0;
     pMasterDBEntry->refCount      = 1;
     pMasterDBEntry->retenTimerHdl = 0;
@@ -467,7 +467,7 @@ exitOnErrorBeforeHdlCheckout:
  */
  
 ClRcT 
-_ckptMasterXlationDBEntryAdd(ClNameT   *pName,
+_ckptMasterXlationDBEntryAdd(SaNameT   *pName,
                              ClUint32T  cksum,
                              ClHandleT  masterHdl)
 {
@@ -487,7 +487,7 @@ _ckptMasterXlationDBEntryAdd(ClNameT   *pName,
         CKPT_DEBUG_E(("Failed to allocated memory\n"));
         return rc;
     }
-    clNameCopy(&pXlationEntry->name, pName);
+    saNameCopy(&pXlationEntry->name, pName);
     pXlationEntry->cksum    = cksum; 
     pXlationEntry->mastHdl  = masterHdl; 
 

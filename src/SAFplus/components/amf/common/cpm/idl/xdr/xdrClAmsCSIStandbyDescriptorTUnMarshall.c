@@ -50,7 +50,7 @@ ClRcT clXdrUnmarshallClAmsCSIStandbyDescriptorT_4_0_0(ClBufferHandleT msg , void
     else
     {
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->activeCompName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->activeCompName));
     if (CL_OK != rc)
     {
         return rc;

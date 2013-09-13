@@ -28,11 +28,11 @@ ClRcT clMsgClientsTrackCallbackServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
     ClHandleT  clientHandle;
-    ClNameT  pGroupName;
+    SaNameT  pGroupName;
     SaMsgQueueGroupNotificationBufferT_4_0_0  pNotification;
 
     memset(&(clientHandle), 0, sizeof(ClHandleT));
-    memset(&(pGroupName), 0, sizeof(ClNameT));
+    memset(&(pGroupName), 0, sizeof(SaNameT));
     memset(&(pNotification), 0, sizeof(SaMsgQueueGroupNotificationBufferT_4_0_0));
 
 
@@ -42,7 +42,7 @@ ClRcT clMsgClientsTrackCallbackServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pGroupName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pGroupName));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -85,7 +85,7 @@ ClRcT clMsgClientsTrackCallbackServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
         goto L1;
     }
 
-    rc = clXdrMarshallClNameT(&(pGroupName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pGroupName), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -106,13 +106,13 @@ ClRcT clMsgClientsTrackCallbackServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
 L3:    return rc;
 
 LL2:  clXdrMarshallSaMsgQueueGroupNotificationBufferT_4_0_0(&(pNotification), 0, 1);
-LL1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
+LL1:  clXdrMarshallSaNameT(&(pGroupName), 0, 1);
 LL0:  clXdrMarshallClHandleT(&(clientHandle), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallClHandleT(&(clientHandle), 0, 1);
-L1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
+L1:  clXdrMarshallSaNameT(&(pGroupName), 0, 1);
 L2:  clXdrMarshallSaMsgQueueGroupNotificationBufferT_4_0_0(&(pNotification), 0, 1);
 
 

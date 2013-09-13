@@ -50,19 +50,19 @@ ClRcT clXdrUnmarshallClCpmLifeCycleOprT_4_0_0(ClBufferHandleT msg , void* pGenVa
     else
     {
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->name));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->name));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->proxyCompName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->proxyCompName));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->nodeName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->nodeName));
     if (CL_OK != rc)
     {
         return rc;

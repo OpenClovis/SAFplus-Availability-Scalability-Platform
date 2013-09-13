@@ -1264,7 +1264,7 @@ ClRcT
 clTxnClientDebugCliRegister(CL_OUT ClHandleT *pDbgHandle )
 {
     ClRcT rc = CL_OK;
-    ClNameT cliName = {0};
+    SaNameT cliName = {0};
     ClCharT debugPrompt[15] = {0};
     
     clLogTrace ( "TXN", "CLI", "Registering the COR CLI commands for the component [%s]", cliName.value );

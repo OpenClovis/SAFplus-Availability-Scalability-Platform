@@ -27,16 +27,16 @@ ClRcT clMsgQueueOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, ClB
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClNameT  pQueueName;
+    SaNameT  pQueueName;
     SaMsgQueueCreationAttributesT_4_0_0  pCreationAttributes;
     SaMsgQueueOpenFlagsT_4_0_0  openFlags;
 
-    memset(&(pQueueName), 0, sizeof(ClNameT));
+    memset(&(pQueueName), 0, sizeof(SaNameT));
     memset(&(pCreationAttributes), 0, sizeof(SaMsgQueueCreationAttributesT_4_0_0));
     memset(&(openFlags), 0, sizeof(SaMsgQueueOpenFlagsT_4_0_0));
 
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pQueueName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pQueueName));
     if (CL_OK != rc)
     {
         goto LL0;
@@ -79,7 +79,7 @@ ClRcT clMsgQueueOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, ClB
        goto L0;
     }
     
-    rc = clXdrMarshallClNameT(&(pQueueName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pQueueName), 0, 1);
     if (CL_OK != rc)
     {
         goto L1;
@@ -107,11 +107,11 @@ L3:    return rc;
 
 LL2:  clXdrMarshallSaMsgQueueOpenFlagsT_4_0_0(&(openFlags), 0, 1);
 LL1:  clXdrMarshallSaMsgQueueCreationAttributesT_4_0_0(&(pCreationAttributes), 0, 1);
-LL0:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
+LL0:  clXdrMarshallSaNameT(&(pQueueName), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
+L0:  clXdrMarshallSaNameT(&(pQueueName), 0, 1);
 L1:  clXdrMarshallSaMsgQueueCreationAttributesT_4_0_0(&(pCreationAttributes), 0, 1);
 L2:  clXdrMarshallSaMsgQueueOpenFlagsT_4_0_0(&(openFlags), 0, 1);
 
@@ -148,12 +148,12 @@ ClRcT clMsgQueueRetentionCloseServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inM
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClNameT  pQueueName;
+    SaNameT  pQueueName;
 
-    memset(&(pQueueName), 0, sizeof(ClNameT));
+    memset(&(pQueueName), 0, sizeof(SaNameT));
 
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pQueueName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pQueueName));
     if (CL_OK != rc)
     {
         goto LL0;
@@ -184,7 +184,7 @@ ClRcT clMsgQueueRetentionCloseServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inM
        goto L0;
     }
     
-    rc = clXdrMarshallClNameT(&(pQueueName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pQueueName), 0, 1);
     if (CL_OK != rc)
     {
         goto L1;
@@ -198,11 +198,11 @@ ClRcT clMsgQueueRetentionCloseServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inM
     
 L1:    return rc;
 
-LL0:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
+LL0:  clXdrMarshallSaNameT(&(pQueueName), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
+L0:  clXdrMarshallSaNameT(&(pQueueName), 0, 1);
 
 
     return rc;
@@ -237,16 +237,16 @@ ClRcT clMsgQueuePersistRedundancyServer_4_0_0(ClEoDataT eoData, ClBufferHandleT 
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClNameT  queue;
+    SaNameT  queue;
     ClIocPhysicalAddressT_4_0_0  srcAddr;
     ClUint16T  qDelete;
 
-    memset(&(queue), 0, sizeof(ClNameT));
+    memset(&(queue), 0, sizeof(SaNameT));
     memset(&(srcAddr), 0, sizeof(ClIocPhysicalAddressT_4_0_0));
     memset(&(qDelete), 0, sizeof(ClUint16T));
 
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(queue));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(queue));
     if (CL_OK != rc)
     {
         goto LL0;
@@ -289,7 +289,7 @@ ClRcT clMsgQueuePersistRedundancyServer_4_0_0(ClEoDataT eoData, ClBufferHandleT 
        goto L0;
     }
     
-    rc = clXdrMarshallClNameT(&(queue), 0, 1);
+    rc = clXdrMarshallSaNameT(&(queue), 0, 1);
     if (CL_OK != rc)
     {
         goto L1;
@@ -317,11 +317,11 @@ L3:    return rc;
 
 LL2:  clXdrMarshallClUint16T(&(qDelete), 0, 1);
 LL1:  clXdrMarshallClIocPhysicalAddressT_4_0_0(&(srcAddr), 0, 1);
-LL0:  clXdrMarshallClNameT(&(queue), 0, 1);
+LL0:  clXdrMarshallSaNameT(&(queue), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClNameT(&(queue), 0, 1);
+L0:  clXdrMarshallSaNameT(&(queue), 0, 1);
 L1:  clXdrMarshallClIocPhysicalAddressT_4_0_0(&(srcAddr), 0, 1);
 L2:  clXdrMarshallClUint16T(&(qDelete), 0, 1);
 

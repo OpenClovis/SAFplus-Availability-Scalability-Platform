@@ -363,7 +363,7 @@ static int gms_exec_init_fn (struct objdb_iface_ver0 *objdb)
 {
     ClRcT rc = CL_OK;
     extern ClRcT
-        clCpmComponentRegister(ClCpmHandleT ,const ClNameT *,const ClNameT *);
+        clCpmComponentRegister(ClCpmHandleT ,const SaNameT *,const SaNameT *);
 
     //log_init ("GMS");
     rc = clCpmComponentRegister(

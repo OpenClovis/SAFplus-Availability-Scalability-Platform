@@ -45,7 +45,7 @@ ClRcT clCkptRemSvrWelcomeClientSync_5_1_0(CL_IN ClIdlHandleT handle, CL_INOUT Cl
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,

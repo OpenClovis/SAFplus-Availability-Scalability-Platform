@@ -242,7 +242,7 @@ NOTE:-
                                   CL_IN ClUint32T eventType,
                                   CL_IN ClEventPriorityT priority,
                                   CL_IN ClTimeT retentionTime,
-                                  CL_IN const ClNameT *pPublisherName);
+                                  CL_IN const SaNameT *pPublisherName);
 
 
 
@@ -298,7 +298,7 @@ NOTE:-
                                   CL_OUT ClUint32T *pEventType,
                                   CL_OUT ClEventPriorityT * pPriority,
                                   CL_OUT ClTimeT *pRetentionTime,
-                                  CL_OUT ClNameT *pPublisherName,
+                                  CL_OUT SaNameT *pPublisherName,
                                   CL_OUT ClTimeT *pPublishTime,
                                   CL_OUT ClEventIdT * pEventId);
 

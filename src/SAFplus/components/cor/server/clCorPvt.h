@@ -374,7 +374,7 @@ ClRcT clCorOmInfoBuild();
 ClRcT _corMoIdToClassGet(ClCorMOIdPtrT pMoId, ClCorClassTypeT* pClassId);
 
 /* Function to get the MoId string from MoId value. */
-ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh,  ClNameT *moIdName);
+ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh,  SaNameT *moIdName);
 
 /* Wrapper IPI to print the MoId in string for debugging purposes */
 ClCharT* _clCorMoIdStrGet(ClCorMOIdPtrT moIdh, ClCharT* tmpStr);

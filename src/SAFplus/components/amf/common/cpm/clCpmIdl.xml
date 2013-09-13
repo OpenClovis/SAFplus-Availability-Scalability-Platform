@@ -56,8 +56,8 @@ material.
         <!-- Structure definitions for clCpmComponentRegister and clCpmComponentUnregister -->
 
         <Struct name="ClCpmCompRegisterT" defNeed="Yes">
-            <DataMember name="compName" type="ClNameT"/>
-            <DataMember name="proxyCompName" type="ClNameT"/>
+            <DataMember name="compName" type="SaNameT"/>
+            <DataMember name="proxyCompName" type="SaNameT"/>
             <DataMember name="eoPort" type="ClUint32T"/>
         </Struct>
 
@@ -78,7 +78,7 @@ material.
 
         <Struct name="ClCpmClientInfoIDLT" defNeed="Yes">
           <DataMember name="version" type="ClUint32T"/>
-          <DataMember name="compName" type="ClNameT"/>
+          <DataMember name="compName" type="SaNameT"/>
           <DataMember name="eoObj" type="ClEoExecutionObjIDLT"/>
         </Struct>
         
@@ -113,8 +113,8 @@ material.
         </Enum>
 
         <Struct name="ClCpmCompHealthcheckT" defNeed="Yes">
-            <DataMember name="compName" type="ClNameT"/>
-            <DataMember name="proxyCompName" type="ClNameT"/>
+            <DataMember name="compName" type="SaNameT"/>
+            <DataMember name="proxyCompName" type="SaNameT"/>
             <DataMember name="healthcheckKey" type="ClAmsCompHealthcheckKeyT"/>
             <DataMember name="invocationType" type="ClAmsCompHealthcheckInvocationT"/>
             <DataMember name="recommendedRecovery" type="ClAmsLocalRecoveryT"/>
@@ -140,9 +140,9 @@ material.
         </Struct>
 
         <Struct name="ClCpmLifeCycleOprT" defNeed="Yes">
-            <DataMember name="name" type="ClNameT"/>
-            <DataMember name="proxyCompName" type="ClNameT"/>
-            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="name" type="SaNameT"/>
+            <DataMember name="proxyCompName" type="SaNameT"/>
+            <DataMember name="nodeName" type="SaNameT"/>
             <DataMember name="srcAddress" type="ClIocPhysicalAddressT"/>
             <DataMember name="rmdNumber" type="ClUint32T"/>
             <DataMember name="requestType" type="ClCpmCompRequestTypeT"/>
@@ -180,7 +180,7 @@ material.
 
         <Struct name="ClCpmClientCompTerminateT" defNeed="Yes">
             <DataMember name="invocation" type="ClUint64T"/>
-            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="compName" type="SaNameT"/>
             <DataMember name="requestType" type="ClCpmCompRequestTypeT"/>
         </Struct>
 
@@ -225,7 +225,7 @@ material.
         <!-- Structure definitions for ClAmsCSIStateDescriptorT -->
 
         <Struct name="ClAmsCSIStandbyDescriptorT" defNeed="No">
-            <DataMember name="activeCompName" type="ClNameT"/>
+            <DataMember name="activeCompName" type="SaNameT"/>
             <DataMember name="standbyRank" type="ClUint32T"/>
         </Struct>
 
@@ -238,7 +238,7 @@ material.
 
         <Struct name="ClAmsCSIActiveDescriptorT" defNeed="No">
             <DataMember name="transitionDescriptor" type="ClAmsCSITransitionDescriptorT"/>
-            <DataMember name="activeCompName" type="ClNameT"/>
+            <DataMember name="activeCompName" type="SaNameT"/>
         </Struct>
 
         <Struct name="ClAmsCSIStateDescriptorT" defNeed="No">
@@ -264,9 +264,9 @@ material.
 
         <Struct name="ClCpmCompCSISetT" defNeed="Yes">
             <DataMember name="invocation" type="ClUint64T"/>
-            <DataMember name="compName" type="ClNameT"/>
-            <DataMember name="proxyCompName" type="ClNameT"/>
-            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="compName" type="SaNameT"/>
+            <DataMember name="proxyCompName" type="SaNameT"/>
+            <DataMember name="nodeName" type="SaNameT"/>
             <DataMember name="haState" type="ClAmsHAStateT"/>
             <DataMember name="bufferLength" type="ClUint32T"/>
             <DataMember name="buffer" type="ClUint8T" pointer="Single" lengthVar="bufferLength"/>
@@ -276,10 +276,10 @@ material.
 
         <Struct name="ClCpmCompCSIRmvT" defNeed="Yes">
             <DataMember name="invocation" type="ClUint64T"/>
-            <DataMember name="compName" type="ClNameT"/>
-            <DataMember name="proxyCompName" type="ClNameT"/>
-            <DataMember name="nodeName" type="ClNameT"/>
-            <DataMember name="csiName" type="ClNameT"/>
+            <DataMember name="compName" type="SaNameT"/>
+            <DataMember name="proxyCompName" type="SaNameT"/>
+            <DataMember name="nodeName" type="SaNameT"/>
+            <DataMember name="csiName" type="SaNameT"/>
             <DataMember name="csiFlags" type="ClUint32T"/>
         </Struct>
 
@@ -287,14 +287,14 @@ material.
 
         <Struct name="ClCpmPGTrackT" defNeed="Yes">
             <DataMember name="cpmHandle" type="ClHandleT"/>
-            <DataMember name="csiName" type="ClNameT"/>
+            <DataMember name="csiName" type="SaNameT"/>
             <DataMember name="trackFlags" type="ClUint8T"/>
             <DataMember name="iocAddress" type="ClIocAddressIDLT"/>
             <DataMember name="responseNeeded" type="ClUint32T"/>
         </Struct>
 
         <Struct name="ClAmsPGMemberT" defNeed="No">
-            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="compName" type="SaNameT"/>
             <DataMember name="haState" type="ClAmsHAStateT"/>
             <DataMember name="rank" type="ClUint32T"/>
         </Struct>
@@ -318,7 +318,7 @@ material.
 
         <Struct name="ClCpmPGResponseT" defNeed="Yes">
             <DataMember name="cpmHandle" type="ClHandleT"/>
-            <DataMember name="csiName" type="ClNameT"/>
+            <DataMember name="csiName" type="SaNameT"/>
             <DataMember name="numberOfMembers" type="ClUint32T"/>
             <DataMember name="error" type="ClUint32T"/>
             <DataMember name="bufferLength" type="ClUint32T"/>
@@ -330,7 +330,7 @@ material.
         <Struct name="ClCpmPGTrackStopT" defNeed="Yes">
             <DataMember name="iocAddress" type="ClIocAddressIDLT"/>
             <DataMember name="cpmHandle" type="ClHandleT"/>
-            <DataMember name="csiName" type="ClNameT"/>
+            <DataMember name="csiName" type="SaNameT"/>
         </Struct>
 
         <!-- Structure definitions for clCpmCSIQuiescingComplete -->
@@ -345,8 +345,8 @@ material.
 
         <Struct name="ClCpmHAStateGetSendT" defNeed="Yes">
             <DataMember name="cpmHandle" type="ClHandleT"/>
-            <DataMember name="compName" type="ClNameT"/>
-            <DataMember name="csiName" type="ClNameT"/>
+            <DataMember name="compName" type="SaNameT"/>
+            <DataMember name="csiName" type="SaNameT"/>
         </Struct>
 
         <Struct name="ClCpmHAStateGetRecvT" defNeed="Yes">
@@ -381,7 +381,7 @@ material.
         </Enum>
 
         <Struct name="ClErrorReportT" defNeed="Yes">
-            <DataMember name="compName" type="ClNameT"/>
+            <DataMember name="compName" type="SaNameT"/>
             <DataMember name="time" type="ClInt64T"/>
             <DataMember name="recommendedRecovery" type="ClAmsRecoveryT"/>
             <DataMember name="handle" type="ClUint32T"/>
@@ -400,9 +400,9 @@ material.
             <DataMember name="version" type="ClVersionT"/>
             <DataMember name="defaultBootLevel" type="ClUint32T"/>
             <DataMember name="slotNumber" type="ClUint32T"/>
-            <DataMember name="nodeType" type="ClNameT"/>
-            <DataMember name="nodeIdentifier" type="ClNameT"/>
-            <DataMember name="nodeMoIdStr" type="ClNameT"/>
+            <DataMember name="nodeType" type="SaNameT"/>
+            <DataMember name="nodeIdentifier" type="SaNameT"/>
+            <DataMember name="nodeMoIdStr" type="SaNameT"/>
         </Struct>
 
         <!-- Structures related to CPM-BM interaction -->
@@ -411,7 +411,7 @@ material.
 
         <Struct name="ClCpmBootOperationT" defNeed="Yes">
             <DataMember name="bootLevel" type="ClUint32T"/>
-            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="nodeName" type="SaNameT"/>
             <DataMember name="srcAddress" type="ClIocPhysicalAddressT"/>
             <DataMember name="rmdNumber" type="ClUint32T"/>
             <DataMember name="requestType" type="ClCpmCompRequestTypeT"/>
@@ -420,7 +420,7 @@ material.
         <!-- Structure definitions for ClCpmBmSetLevelResponseT -->
 
         <Struct name="ClCpmBmSetLevelResponseT" defNeed="No">
-            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="nodeName" type="SaNameT"/>
             <DataMember name="bootLevel" type="ClUint32T"/>
             <DataMember name="retCode" type="ClUint32T"/>
         </Struct>
@@ -428,7 +428,7 @@ material.
         <!-- Structures related to CPM-EVENT interaction -->
 
         <Struct name="ClCpmEventNodePayLoadT" defNeed="No">
-            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="nodeName" type="SaNameT"/>
             <DataMember name="nodeIocAddress" type="ClUint32T"/>
             <DataMember name="operation" type="ClCpmNodeEventT"/>
         </Struct>
@@ -446,8 +446,8 @@ material.
         </Enum>
 
         <Struct name="ClCpmEventPayLoadT" defNeed="No">
-            <DataMember name="compName" type="ClNameT"/>
-            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="compName" type="SaNameT"/>
+            <DataMember name="nodeName" type="SaNameT"/>
             <DataMember name="compId" type="ClUint32T"/>
             <DataMember name="eoId" type="ClUint64T"/>
             <DataMember name="nodeIocAddress" type="ClUint32T"/>
@@ -494,15 +494,15 @@ material.
             <DataMember name="flag" type="ClCpmSlotInfoFieldIdT"/>
             <DataMember name="slotId" type="ClUint32T"/>
             <DataMember name="nodeIocAddress" type="ClUint32T"/>
-            <DataMember name="nodeMoIdStr" type="ClNameT"/>
-            <DataMember name="nodeName" type="ClNameT"/>
+            <DataMember name="nodeMoIdStr" type="SaNameT"/>
+            <DataMember name="nodeName" type="SaNameT"/>
         </Struct>
 
         <Struct name="ClCpmNodeConfigT" defNeed="No">
             <DataMember name="nodeName" type="ClCharT" multiplicity="256" />
-            <DataMember name="nodeType" type="ClNameT"/>
-            <DataMember name="nodeIdentifier" type="ClNameT"/>
-            <DataMember name="nodeMoIdStr" type="ClNameT"/>
+            <DataMember name="nodeType" type="SaNameT"/>
+            <DataMember name="nodeIdentifier" type="SaNameT"/>
+            <DataMember name="nodeMoIdStr" type="SaNameT"/>
             <DataMember name="cpmType" type="ClCharT" multiplicity="256" />
         </Struct>
 

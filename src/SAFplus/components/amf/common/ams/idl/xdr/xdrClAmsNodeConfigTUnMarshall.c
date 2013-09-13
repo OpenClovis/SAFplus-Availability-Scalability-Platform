@@ -74,7 +74,7 @@ ClRcT clXdrUnmarshallClAmsNodeConfigT_4_0_0(ClBufferHandleT msg , void* pGenVar)
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->subClassType));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->subClassType));
     if (CL_OK != rc)
     {
         return rc;

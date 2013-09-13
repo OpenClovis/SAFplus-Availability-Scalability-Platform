@@ -68,7 +68,7 @@ static ClRcT checkpoint_finalize(void);
 static ClRcT checkpoint_write_counter(ClUint32T);
 static ClRcT checkpoint_read_counter(ClUint32T*);
 static ClRcT update_counter_in_cor(time_t, ClCorObjectHandleT,  ClUint32T);
-static ClRcT raise_alarm_on_counter(ClCorMOIdT, ClNameT, ClUint32T);
+static ClRcT raise_alarm_on_counter(ClCorMOIdT, SaNameT, ClUint32T);
 
 /******************************************************************************
  * Global Variables.
@@ -269,7 +269,7 @@ if ((rc = clDataTapInit(DATA_TAP_DEFAULT_FLAGS, 105)) != CL_OK)
             if (counter_threshold <= counter)
             {
                 clCorMoIdServiceSet(&moId, CL_COR_SVC_ID_ALARM_MANAGEMENT);
-                if (( rc = raise_alarm_on_counter (moId, *(ClNameT*)&appName, counter)) != CL_OK)
+                if (( rc = raise_alarm_on_counter (moId, *(SaNameT*)&appName, counter)) != CL_OK)
                 {
                     clprintf(CL_LOG_SEV_ERROR,"%s: Error [0x%x]: Alarm raise has failed. Exiting. ",
                                 appname, rc);
@@ -636,7 +636,7 @@ checkpoint_initialize()
 {
     ClRcT      rc = CL_OK;
     ClVersionT ckpt_version = {'B', 1, 1};
-    ClNameT    ckpt_name = { strlen(CKPT_NAME), CKPT_NAME };
+    SaNameT    ckpt_name = { strlen(CKPT_NAME), CKPT_NAME };
     ClUint32T  counter_no;
     ClCkptCheckpointCreationAttributesT create_atts = {
         .creationFlags     = CL_CKPT_WR_ALL_REPLICAS,
@@ -812,7 +812,7 @@ update_counter_in_cor(time_t now, ClCorObjectHandleT objH, ClUint32T counter)
 
   
 static ClRcT
-raise_alarm_on_counter (ClCorMOIdT moId , ClNameT compName, ClUint32T counter)
+raise_alarm_on_counter (ClCorMOIdT moId , SaNameT compName, ClUint32T counter)
 {
     ClRcT           rc = CL_OK;
     static ClUint32T       iterator = 0, lastCounter = 0;
@@ -898,7 +898,7 @@ raise_alarm_on_counter (ClCorMOIdT moId , ClNameT compName, ClUint32T counter)
     pAlarmInfo->moId = moId;
     pAlarmInfo->probCause = CL_ALARM_PROB_CAUSE_THRESHOLD_CROSSED; 
     pAlarmInfo->severity = CL_ALARM_SEVERITY_WARNING;
-    memcpy (&pAlarmInfo->compName, &compName, sizeof(ClNameT));
+    memcpy (&pAlarmInfo->compName, &compName, sizeof(SaNameT));
     pAlarmInfo->alarmState = CL_ALARM_STATE_ASSERT;
     pAlarmInfo->len = size;
 

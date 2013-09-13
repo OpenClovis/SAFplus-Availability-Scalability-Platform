@@ -94,7 +94,7 @@ typedef struct ClAmsRemoteProxiedSUsWalkArg
 
 typedef struct ClAmsCSIReplayFilter
 {
-    ClNameT *node;
+    SaNameT *node;
     ClBoolT clearInvocation;
 } ClAmsCSIReplayFilterT;
 
@@ -2511,7 +2511,7 @@ clAmsPeReplayCSIRemoveInvocations(ClAmsNodeT *node, ClAmsInvocationT *pInvocatio
          */
         if(scFailover)
         {
-            ClNameT localNodeName = {0};
+            SaNameT localNodeName = {0};
             ClAmsCSIReplayFilterT filters[] = {
                 { 
                     .node = &node->config.entity.name,
@@ -2553,7 +2553,7 @@ clAmsPeNodeHasLeftCluster(
                           CL_IN   ClBoolT scFailover)
 {
     ClRcT rc = CL_OK;
-    ClNameT *csiRemoveReplayNode = NULL;
+    SaNameT *csiRemoveReplayNode = NULL;
     ClAmsInvocationT *pInvocations = NULL;
     ClInt32T numInvocations = 0;
     ClUint32T switchoverMode = CL_AMS_ENTITY_SWITCHOVER_FAST;
@@ -6166,8 +6166,8 @@ clAmsPeSUInstantiateError(
         notification.type = CL_AMS_NOTIFICATION_SU_INSTANTIATION_FAILURE;
         notification.entityType = CL_AMS_ENTITY_TYPE_SU;
         memcpy ( &notification.entityName,&su->config.entity.name,
-                sizeof(ClNameT) );
-        notification.entityName.length = strlen(su->config.entity.name.value);
+                sizeof(SaNameT) );
+        notification.entityName.length = strlen((const ClCharT *)su->config.entity.name.value);
         notification.recoveryActionTaken = CL_AMS_RECOVERY_NONE;
         notification.repairNecessary = CL_TRUE;
 
@@ -7624,8 +7624,8 @@ ClBoolT clAmsPeCheckSUReassignOp(ClAmsSUT *su, ClAmsSIT *si, ClBoolT deleteEntry
         ClAmsEntityT *targetSI = reassignEntry->sis + i;
         if((targetSI->name.length ==
             si->config.entity.name.length) &&
-           !strncmp(targetSI->name.value,
-                    si->config.entity.name.value,
+           !strncmp((const ClCharT *)targetSI->name.value,
+                    (const ClCharT *)si->config.entity.name.value,
                     targetSI->name.length))
         {
             ClAmsEntityRefT *ref = NULL;
@@ -7729,7 +7729,7 @@ ClRcT clAmsPeAddReassignOp(ClAmsSIT *targetSI, ClAmsSUT *targetSU)
         ClAmsEntityT *si = reassignSUEntry->sis + i;
         if(si->name.length == targetSI->config.entity.name.length
            &&
-           !strncmp(si->name.value, targetSI->config.entity.name.value,
+           !strncmp((const ClCharT *)si->name.value, (const ClCharT *)targetSI->config.entity.name.value,
                     si->name.length))
             break;
     }
@@ -12877,7 +12877,7 @@ clAmsPeCompShutdown(
     ClRcT error = CL_OK;
     ClUint32T switchoverMode = CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE;
     ClAmsEntityTimerTypeT timerType = CL_AMS_COMP_TIMER_TERMINATE;
-    ClRcT (*compShutdown)(ClNameT *, ClNameT *) = _clAmsSAComponentTerminate;
+    ClRcT (*compShutdown)(SaNameT *, SaNameT *) = _clAmsSAComponentTerminate;
     ClRcT (*compShutdownCallback)(ClAmsCompT *, ClRcT ) = NULL;
     ClRcT (*compTimerStop)(ClAmsEntityT *, ClAmsEntityTimerTypeT) = NULL;
 
@@ -13065,7 +13065,7 @@ clAmsPeCompShutdown(
             ClAmsCompCSIRefT *csiRef = NULL;
             ClAmsCSIT *csi = NULL;
             ClAmsCSIDescriptorT *csiDescriptor = NULL;
-            ClNameT activeCompName = {0};
+            SaNameT activeCompName = {0};
             ClInvocationT invocation = 0;
 
             if ( !comp->status.proxyComp )
@@ -13397,7 +13397,7 @@ clAmsPeCompTerminate(
             csi = (ClAmsCSIT *) csiRef->entityRef.ptr;
 
             ClAmsCSIDescriptorT *csiDescriptor;
-            ClNameT activeCompName = {0};
+            SaNameT activeCompName = {0};
             ClInvocationT invocation = 0;
 
             activeCompName.length = 0;
@@ -16792,7 +16792,7 @@ clAmsPeCompQuiesceCSIGracefullyExtended(
         case CL_AMS_COMP_PROPERTY_SA_AWARE:
         {
             ClAmsCSIDescriptorT *csiDescriptor;
-            ClNameT activeCompName = {0};
+            SaNameT activeCompName = {0};
 
             activeCompName.length = 0;
 
@@ -16859,7 +16859,7 @@ clAmsPeCompQuiesceCSIGracefullyExtended(
             }
 
             ClAmsCSIDescriptorT *csiDescriptor;
-            ClNameT activeCompName = {0};
+            SaNameT activeCompName = {0};
 
             activeCompName.length = 0;
 
@@ -17070,7 +17070,7 @@ clAmsPeCompQuiesceCSIImmediatelyExtended(
         case CL_AMS_COMP_PROPERTY_SA_AWARE:
         {
             ClAmsCSIDescriptorT *csiDescriptor;
-            ClNameT activeCompName = {0};
+            SaNameT activeCompName = {0};
 
             activeCompName.length = 0;
 
@@ -17137,7 +17137,7 @@ clAmsPeCompQuiesceCSIImmediatelyExtended(
             }
 
             ClAmsCSIDescriptorT *csiDescriptor;
-            ClNameT activeCompName = {0};
+            SaNameT activeCompName = {0};
 
             activeCompName.length = 0;
 
@@ -17960,7 +17960,7 @@ clAmsPeCompRemoveCSI(
         {
 
             ClAmsCSIDescriptorT *csiDescriptor;
-            ClNameT activeCompName = {0};
+            SaNameT activeCompName = {0};
 
             activeCompName.length = 0;
 
@@ -18017,7 +18017,7 @@ clAmsPeCompRemoveCSI(
             }
 
             ClAmsCSIDescriptorT *csiDescriptor;
-            ClNameT activeCompName = {0};
+            SaNameT activeCompName = {0};
 
             activeCompName.length = 0;
 
@@ -18532,7 +18532,7 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
             ClUint32T c;
             for(c = 0; c < numFilters; ++c)
                 if(!filters[c].node ||
-                   !strncmp(node->config.entity.name.value, filters[c].node->value,
+                   !strncmp((const ClCharT *)node->config.entity.name.value, (const ClCharT *)filters[c].node->value,
                             filters[c].node->length))
                 {
                     clearInvocation = filters[c].clearInvocation;
@@ -18556,10 +18556,10 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
         }
         
         clLogNotice("CSI", "REPLAY", "Replaying CSI [%s] remove invocation [%#llx] for component [%.*s]",
-                    pInvocation->csi ? pInvocation->csi->config.entity.name.value : "All",
+                    pInvocation->csi ? (const ClCharT *)pInvocation->csi->config.entity.name.value : "All",
                     pInvocation->invocation, 
                     comp->config.entity.name.length,
-                    comp->config.entity.name.value);
+                    (const ClCharT *)comp->config.entity.name.value);
 
         pInvocation->invocation = 0;
 

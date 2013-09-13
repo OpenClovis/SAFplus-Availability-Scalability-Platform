@@ -23,11 +23,11 @@ extern "C" {
 
 
 
-typedef void (*MsgCltClMsgClientsTrackCallbackAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClHandleT  clientHandle, CL_IN ClNameT* pGroupName, CL_IN SaMsgQueueGroupNotificationBufferT_4_0_0* pNotification, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*MsgCltClMsgClientsTrackCallbackAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClHandleT  clientHandle, CL_IN SaNameT* pGroupName, CL_IN SaMsgQueueGroupNotificationBufferT_4_0_0* pNotification, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef MsgCltClMsgClientsTrackCallbackAsyncCallbackT_4_0_0 MsgCltClMsgClientsTrackCallbackAsyncCallbackT;
 
-ClRcT clMsgClientsTrackCallbackClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT  clientHandle, CL_IN ClNameT* pGroupName, CL_IN SaMsgQueueGroupNotificationBufferT_4_0_0* pNotification,CL_IN MsgCltClMsgClientsTrackCallbackAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clMsgClientsTrackCallbackClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT  clientHandle, CL_IN SaNameT* pGroupName, CL_IN SaMsgQueueGroupNotificationBufferT_4_0_0* pNotification,CL_IN MsgCltClMsgClientsTrackCallbackAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
 
 #ifdef __cplusplus

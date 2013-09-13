@@ -92,7 +92,7 @@ ClRcT clXdrUnmarshallClEvtUnsubscribeEventRequestT_4_0_0(ClBufferHandleT msg , v
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->evtChannelName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->evtChannelName));
     if (CL_OK != rc)
     {
         return rc;

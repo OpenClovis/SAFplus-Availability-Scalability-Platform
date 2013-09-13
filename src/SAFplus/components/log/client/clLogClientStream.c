@@ -45,8 +45,8 @@ clLogClientMsgArgCopy(ClUint16T   msgId,
 
 ClRcT
 clLogClntStreamOpen(ClLogHandleT        hLog,
-                    ClNameT             *pStreamName,
-                    ClNameT             *pNodeName,
+                    SaNameT             *pStreamName,
+                    SaNameT             *pNodeName,
                     ClStringT           *pShmName,
                     ClUint32T           shmSize,
                     ClLogStreamHandleT  *phStream)
@@ -261,8 +261,8 @@ clLogClntStreamDataCleanup(ClLogClntStreamDataT *pData)
 
 ClRcT
 clLogClntStreamEntryGet(ClLogClntEoDataT  *pClntEoEntry,
-                        ClNameT           *pStreamName,
-                        ClNameT           *pNodeName,
+                        SaNameT           *pStreamName,
+                        SaNameT           *pNodeName,
                         ClStringT         *pShmName,
                         ClUint32T         shmSize,
                         ClCntNodeHandleT  *phStreamNode,

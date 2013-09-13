@@ -46,7 +46,7 @@ struct _ClNameSvcBindingIDLT_4_0_0;
 
 typedef struct _ClNameSvcBindingIDLT_4_0_0 {
     ClUint32T    cksum;
-    ClNameT    name;
+    SaNameT    name;
     ClUint32T    refCount;
     ClUint32T    dsId;
     ClInt32T    hashId;

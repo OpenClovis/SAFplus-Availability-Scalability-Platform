@@ -550,7 +550,7 @@ typedef struct
     /**
      * Component name of the resource on which the alarm occurred.
      */
-    ClNameT compName;
+    SaNameT compName;
 
     /**
      * Resource on which the alarm occurred.

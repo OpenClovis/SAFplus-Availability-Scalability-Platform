@@ -91,7 +91,7 @@ clFaultVersionVerify(ClVersionT *version)
 
 
 ClRcT
-clFaultReport(ClNameT *compName,
+clFaultReport(SaNameT *compName,
                 ClCorMOIdPtrT hMoId,
 				ClAlarmStateT alarmState,
  				ClAlarmCategoryTypeT category, 
@@ -221,7 +221,7 @@ ClRcT clFaultRepairNotification(ClAmsNotificationDescriptorT *notification,
 }
 
 
-ClRcT clFaultClientIssueFaultRmd(ClNameT *compName,
+ClRcT clFaultClientIssueFaultRmd(SaNameT *compName,
 	                    ClCorMOIdPtrT hMoId,
 						ClAlarmStateT alarmState,
 				 		ClAlarmCategoryTypeT category, 

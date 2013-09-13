@@ -16,7 +16,7 @@
 
 #define CM_SUBSCRIPTION_ID	1
 
-static ClNameT gCmEvtChannelName = {
+static SaNameT gCmEvtChannelName = {
     .length = sizeof(CL_CM_EVENT_CHANNEL)-1,
     .value = CL_CM_EVENT_CHANNEL
 };
@@ -404,7 +404,7 @@ cmEventCallback (ClEventSubscriptionIdT subscriptionId,
     ClRcT rc = CL_OK;
     ClEventPriorityT priority = 0;
     ClTimeT retentionTime = 0;
-    ClNameT publisherName = { 0 };
+    SaNameT publisherName = { 0 };
     ClEventIdT eventId = 0;
     ClEventPatternArrayT patternArray = { 0 };
     ClTimeT publishTime = 0;

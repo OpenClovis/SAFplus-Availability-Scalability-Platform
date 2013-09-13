@@ -378,7 +378,7 @@ failure:
 #define CL_MED_COR_STR_MOID_PRINT(corMoId)                              \
 do                                                                      \
 {                                                                       \
-    ClNameT strMoId;                                                    \
+    SaNameT strMoId;                                                    \
     clCorMoIdToMoIdNameGet(corMoId, &strMoId );                         \
     clLogInfo("SNMP", "SUB", "%.*s", strMoId.length, strMoId.value);    \
 }while(0)

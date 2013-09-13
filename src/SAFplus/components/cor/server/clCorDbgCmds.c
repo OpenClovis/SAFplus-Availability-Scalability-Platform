@@ -1289,7 +1289,7 @@ ClRcT clCorDbgBundleCallback(CL_IN ClCorBundleHandleT bundleHandle,
                                   CL_IN ClPtrT          userArg )
 {
     ClRcT           rc = CL_OK;
-    ClNameT         moIdName    = {0};
+    SaNameT         moIdName    = {0};
     ClCntNodeHandleT    nodeH  = 0;
     ClCorDbgBundleDataPtrT pCorBundleData = NULL;
     ClCorDbgGetBundlePtrT  pCorGetBundle = (ClCorDbgGetBundlePtrT)userArg;
@@ -1886,11 +1886,11 @@ handleError:
 }
 
 static ClRcT
-corSlotGet(ClNameT *nodeName, ClIocNodeAddressT *nodeAddr)
+corSlotGet(SaNameT *nodeName, ClIocNodeAddressT *nodeAddr)
 {
     ClCpmSlotInfoT slotInfo = {0};
     ClRcT rc = CL_OK;
-    clNameCopy(&slotInfo.nodeName, nodeName);
+    saNameCopy(&slotInfo.nodeName, nodeName);
     rc = clCpmSlotGet(CL_CPM_NODENAME, &slotInfo);
     if(rc == CL_OK)
     {
@@ -1906,8 +1906,8 @@ cliCorPrimaryOIClear(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     ClIocNodeAddressT nodeAddr = 0;
     ClIocAddressT compAddr = {{0}};
     ClCorMOIdT  moId = {{{0}}};
-    ClNameT compName = {0};
-    ClNameT nodeName = {0};
+    SaNameT compName = {0};
+    SaNameT nodeName = {0};
     ClInt32T svcId = CL_COR_INVALID_SVC_ID;
 
     if (retStr == NULL)
@@ -1935,7 +1935,7 @@ cliCorPrimaryOIClear(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 
     if (argc == 5)
     {
-        clNameSet(&nodeName, argv[4]);
+        saNameSet(&nodeName, argv[4]);
         if((rc = corSlotGet(&nodeName, &nodeAddr)) != CL_OK)
         {
             clCorCliStrPrint("Invalid node name specified", retStr);
@@ -1968,7 +1968,7 @@ cliCorPrimaryOIClear(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
         return rc; 
     }
 
-    clNameSet(&compName, argv[3]);
+    saNameSet(&compName, argv[3]);
 
     rc = clCpmComponentAddressGet(nodeAddr, &compName, &compAddr);
     if (rc != CL_OK)
@@ -1996,8 +1996,8 @@ cliCorPrimaryOISet(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     ClIocNodeAddressT nodeAddr = 0;
     ClIocAddressT compAddr = {{0}};
     ClCorMOIdT  moId = {{{0}}};
-    ClNameT compName = {0};
-    ClNameT nodeName = {0};
+    SaNameT compName = {0};
+    SaNameT nodeName = {0};
     ClInt32T svcId = CL_COR_INVALID_SVC_ID;
 
     if (retStr == NULL)
@@ -2025,7 +2025,7 @@ cliCorPrimaryOISet(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 
     if (argc == 5)
     {
-        clNameSet(&nodeName, argv[4]);
+        saNameSet(&nodeName, argv[4]);
         if((rc = corSlotGet(&nodeName, &nodeAddr)) != CL_OK)
         {
             clCorCliStrPrint("Invalid node name specified", retStr);
@@ -2058,7 +2058,7 @@ cliCorPrimaryOISet(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
         return rc; 
     }
 
-    clNameSet(&compName, argv[3]);
+    saNameSet(&compName, argv[3]);
 
     rc = clCpmComponentAddressGet(nodeAddr, &compName, &compAddr);
     if (rc != CL_OK)
@@ -2086,8 +2086,8 @@ cliCorOIRegister(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     ClIocNodeAddressT nodeAddr = 0;
     ClIocAddressT compAddr = {{0}};
     ClCorMOIdT  moId = {{{0}}};
-    ClNameT compName = {0};
-    ClNameT nodeName = {0};
+    SaNameT compName = {0};
+    SaNameT nodeName = {0};
     ClInt32T svcId = CL_COR_INVALID_SVC_ID;
 
     if (retStr == NULL)
@@ -2115,7 +2115,7 @@ cliCorOIRegister(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 
     if (argc == 5)
     {
-        clNameSet(&nodeName, argv[4]);
+        saNameSet(&nodeName, argv[4]);
         if((rc = corSlotGet(&nodeName, &nodeAddr)) != CL_OK)
         {
             clCorCliStrPrint("Invalid node name specified", retStr);
@@ -2148,7 +2148,7 @@ cliCorOIRegister(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
         return rc; 
     }
 
-    clNameSet(&compName, argv[3]);
+    saNameSet(&compName, argv[3]);
 
     rc = clCpmComponentAddressGet(nodeAddr, &compName, &compAddr);
     if (rc != CL_OK)
@@ -2176,8 +2176,8 @@ cliCorOIUnRegister(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     ClIocNodeAddressT nodeAddr = 0;
     ClIocAddressT compAddr = {{0}};
     ClCorMOIdT  moId = {{{0}}};
-    ClNameT compName = {0};
-    ClNameT nodeName = {0};
+    SaNameT compName = {0};
+    SaNameT nodeName = {0};
     ClInt32T svcId = CL_COR_INVALID_SVC_ID;
 
     if (retStr == NULL)
@@ -2205,7 +2205,7 @@ cliCorOIUnRegister(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 
     if (argc == 5)
     {
-        clNameSet(&nodeName, argv[4]);
+        saNameSet(&nodeName, argv[4]);
         if((rc = corSlotGet(&nodeName, &nodeAddr)) != CL_OK)
         {
             clCorCliStrPrint("Invalid node name specified", retStr);
@@ -2238,7 +2238,7 @@ cliCorOIUnRegister(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
         return rc; 
     }
 
-    clNameSet(&compName, argv[3]);
+    saNameSet(&compName, argv[3]);
 
     rc = clCpmComponentAddressGet(nodeAddr, &compName, &compAddr);
     if (rc != CL_OK)

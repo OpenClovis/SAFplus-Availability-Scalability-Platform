@@ -190,7 +190,7 @@ extern ClRcT clGmsClusterJoin(
         CL_IN const ClGmsLeadershipCredentialsT         credentials,
         CL_IN const ClTimeT                             timeout,
         CL_IN const ClGmsNodeIdT                        nodeId,
-        CL_IN const ClNameT*                      const nodeName);
+        CL_IN const SaNameT*                      const nodeName);
 
 
 /*
@@ -237,7 +237,7 @@ extern ClRcT clGmsClusterJoinAsync(
         CL_IN const ClGmsClusterManageCallbacksT*  const clusterManageCallbacks,
         CL_IN const ClGmsLeadershipCredentialsT          credentials,
         CL_IN const ClGmsNodeIdT                         nodeId,
-        CL_IN const ClNameT*                       const nodeName);
+        CL_IN const SaNameT*                       const nodeName);
 
 
 /*

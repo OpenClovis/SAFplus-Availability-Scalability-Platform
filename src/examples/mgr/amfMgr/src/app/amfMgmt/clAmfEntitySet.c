@@ -29,7 +29,7 @@ ClRcT clAmfNodeSet(ClAmsMgmtHandleT mgmtHandle, const ClProvTxnDataT *pProvTxnDa
     rc = clAmsMgmtOIGet(pProvTxnData->pMoId, &entity);
     if(rc != CL_OK)
     {
-        ClNameT moidName = {0};
+        SaNameT moidName = {0};
         if(clCorMoIdToMoIdNameGet(pProvTxnData->pMoId, &moidName) == CL_OK)
             clLogError("OI", "READ", "AMF entity not found for moid [%.*s]",
                        moidName.length, moidName.value);

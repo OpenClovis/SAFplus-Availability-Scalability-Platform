@@ -29,7 +29,7 @@ ClRcT marshallClGmsClusterMemberT(ClGmsClusterMemberT *clusterNode, ClBufferHand
     CHECK_RETURN(clXdrMarshallArrayClCharT(&(clusterNode->nodeIpAddress.value),CL_GMS_MAX_ADDRESS_LENGTH,bufferHandle,0), CL_OK);
 
     /* Marshall nodeName filed */
-    CHECK_RETURN(clXdrMarshallClNameT(&(clusterNode->nodeName),bufferHandle,0), CL_OK);
+    CHECK_RETURN(clXdrMarshallSaNameT(&(clusterNode->nodeName),bufferHandle,0), CL_OK);
 
     /* Marshall memberActive field */
     CHECK_RETURN(clXdrMarshallClUint16T(&(clusterNode->memberActive),bufferHandle,0), CL_OK);
@@ -70,7 +70,7 @@ ClRcT   marshallClGmsGroupMemberT(ClGmsGroupMemberT *groupMember, ClBufferHandle
     CHECK_RETURN(clXdrMarshallClUint32T(&(groupMember->memberAddress.iocPhyAddress.portId),bufferHandle,0), CL_OK);
 
     /* Marshall memberName filed */
-    CHECK_RETURN(clXdrMarshallClNameT(&(groupMember->memberName),bufferHandle,0), CL_OK);
+    CHECK_RETURN(clXdrMarshallSaNameT(&(groupMember->memberName),bufferHandle,0), CL_OK);
 
     /* Marshall memberActive field */
     CHECK_RETURN(clXdrMarshallClUint16T(&(groupMember->memberActive),bufferHandle,0), CL_OK);
@@ -89,7 +89,7 @@ ClRcT   marshallClGmsGroupMemberT(ClGmsGroupMemberT *groupMember, ClBufferHandle
 ClRcT   marshallClGmsGroupInfoT(ClGmsGroupInfoT *groupInfo, ClBufferHandleT bufferHandle)
 {
     /* Marshall groupName filed */
-    CHECK_RETURN(clXdrMarshallClNameT(&(groupInfo->groupName),bufferHandle,0), CL_OK);
+    CHECK_RETURN(clXdrMarshallSaNameT(&(groupInfo->groupName),bufferHandle,0), CL_OK);
 
     /* Marshall groupId field */
     CHECK_RETURN(clXdrMarshallClUint32T(&(groupInfo->groupId),bufferHandle,0), CL_OK);

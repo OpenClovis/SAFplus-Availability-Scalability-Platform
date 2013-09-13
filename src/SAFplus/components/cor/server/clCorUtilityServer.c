@@ -66,7 +66,7 @@
 
 /* GLOBALS */
 extern ClRcT  corXlateMOPath(char *path, ClCorMOIdPtrT cAddr);
-extern ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh,  ClNameT *moIdName);
+extern ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh,  SaNameT *moIdName);
 extern ClCorInitStageT    gCorInitStage;
 extern ClOsalMutexIdT gCorRouteInfoMutex;
 extern _ClCorServerMutexT gCorMutexes;
@@ -237,7 +237,7 @@ ClRcT VDECL(_CORUtilExtendedOps) (ClUint32T cData, ClBufferHandleT  inMsgHandle,
     {
     case COR_MO_TO_OM_CLASS_UTIL_OP:
         {
-            ClNameT className = {0};
+            SaNameT className = {0};
 
             if((rc = clXdrUnmarshallClInt32T(inMsgHandle, (ClUint8T*)&classType)) != CL_OK)
                 return rc;
@@ -254,19 +254,19 @@ ClRcT VDECL(_CORUtilExtendedOps) (ClUint32T cData, ClBufferHandleT  inMsgHandle,
                 return rc;
             }
 
-            clNameSet(&className, omClassName);
+            saNameSet(&className, omClassName);
             rc =  clXdrMarshallClInt32T(&omClass, outMsgHandle, 0 );
-            rc |= clXdrMarshallClNameT(&className, outMsgHandle, 0);
+            rc |= clXdrMarshallSaNameT(&className, outMsgHandle, 0);
         }
         break;
 
     case COR_CONFIG_LOAD_UTIL_OP:
         {
-            ClNameT configFile = {0};
-            ClNameT routeFile =  {0};
-            if((rc = clXdrUnmarshallClNameT(inMsgHandle, &configFile)) != CL_OK)
+            SaNameT configFile = {0};
+            SaNameT routeFile =  {0};
+            if((rc = clXdrUnmarshallSaNameT(inMsgHandle, &configFile)) != CL_OK)
                 return rc;
-            if((rc = clXdrUnmarshallClNameT(inMsgHandle, &routeFile)) != CL_OK)
+            if((rc = clXdrUnmarshallSaNameT(inMsgHandle, &routeFile)) != CL_OK)
                 return rc;
 
             configFile.value[CL_MIN((ClUint32T)sizeof(configFile.value),
@@ -337,10 +337,10 @@ ClRcT VDECL(_corMOIdOp) (ClEoDataT cData, ClBufferHandleT  inMsgHandle,
 
        case CL_COR_NAME_TO_MOID_GET:
        {
-           ClNameT  moIdName = {0};
+           SaNameT  moIdName = {0};
            ClCorMOIdT        moId = {{{0}}};
 
-           if((rc = clXdrUnmarshallClNameT(inMsgHandle, (ClUint8T*)&moIdName)) != CL_OK)
+           if((rc = clXdrUnmarshallSaNameT(inMsgHandle, (ClUint8T*)&moIdName)) != CL_OK)
             return (rc);
 
            clCorMoIdInitialize(&moId);
@@ -359,7 +359,7 @@ ClRcT VDECL(_corMOIdOp) (ClEoDataT cData, ClBufferHandleT  inMsgHandle,
 
        case CL_COR_MOID_TO_NAME_GET:
        {
-           ClNameT  moIdName;
+           SaNameT  moIdName;
            ClCorMOIdT        moId;
 
            if((rc = VDECL_VER(clXdrUnmarshallClCorMOIdT, 4, 0, 0)(inMsgHandle, (ClUint8T*)&moId)) != CL_OK)
@@ -369,8 +369,8 @@ ClRcT VDECL(_corMOIdOp) (ClEoDataT cData, ClBufferHandleT  inMsgHandle,
            if ((rc = _clCorMoIdToMoIdNameGet(&moId, &moIdName)) != CL_OK)
              return (rc);
 
-           /* rc =  clBufferNBytesWrite(outMsgHandle, (ClUint8T *)&moIdName, sizeof(ClNameT)); */
-           rc =  clXdrMarshallClNameT(&moIdName, outMsgHandle, 0);
+           /* rc =  clBufferNBytesWrite(outMsgHandle, (ClUint8T *)&moIdName, sizeof(SaNameT)); */
+           rc =  clXdrMarshallSaNameT(&moIdName, outMsgHandle, 0);
        }
        break;
 

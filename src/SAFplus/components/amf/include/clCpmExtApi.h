@@ -123,7 +123,7 @@ typedef struct
     /**
      * Name of the node.
      */
-    ClNameT             nodeName;
+    SaNameT             nodeName;
 }ClCpmSlotInfoT;
 
 /*
@@ -132,9 +132,9 @@ typedef struct
 typedef struct ClCpmNodeConfig
 {
     ClCharT nodeName[CL_MAX_NAME_LENGTH];
-    ClNameT nodeType;
-    ClNameT nodeIdentifier;
-    ClNameT nodeMoIdStr;
+    SaNameT nodeType;
+    SaNameT nodeIdentifier;
+    SaNameT nodeMoIdStr;
     ClCharT cpmType[CL_MAX_NAME_LENGTH];
 }ClCpmNodeConfigT;
 
@@ -207,11 +207,11 @@ extern ClRcT clCpmEventPayLoadExtract(CL_IN ClEventHandleT eventHandle,
  *  ClAmfClient 
  *
  */
-extern ClRcT clCpmComponentPIDGet(CL_IN const ClNameT *compName,
+extern ClRcT clCpmComponentPIDGet(CL_IN const SaNameT *compName,
                                   CL_OUT ClUint32T *pid);
 
 extern ClRcT clCpmComponentPIDGetBySlot(ClIocNodeAddressT slot, 
-                                        const ClNameT *compName, ClUint32T *pid);
+                                        const SaNameT *compName, ClUint32T *pid);
 
 /**
  ************************************
@@ -319,7 +319,7 @@ extern ClRcT clCpmSlotGet(CL_IN ClCpmSlotInfoFieldIdT flag,
  *  libClAmfClient 
  * 
  */
-extern ClRcT clCpmIocAddressForNodeGet(CL_IN ClNameT nodeName, 
+extern ClRcT clCpmIocAddressForNodeGet(CL_IN SaNameT nodeName, 
                                        CL_OUT ClIocAddressT *pIocAddress);
 
 /**
@@ -342,7 +342,7 @@ extern ClRcT clCpmIocAddressForNodeGet(CL_IN ClNameT nodeName,
  *  libClAmfClient 
  * 
  */
-extern ClBoolT clCpmIsCompRestarted(CL_IN ClNameT compName);
+extern ClBoolT clCpmIsCompRestarted(CL_IN SaNameT compName);
 
 extern ClRcT clCpmNodeConfigSet(ClCpmNodeConfigT *nodeConfig);
 
@@ -354,7 +354,7 @@ extern ClRcT clCpmCompConfigSet(ClIocNodeAddressT node,
 
 extern ClRcT
 clCpmComponentFailureReportWithCookie(CL_IN ClCpmHandleT cpmHandle,
-                                      CL_IN const ClNameT *pCompName,
+                                      CL_IN const SaNameT *pCompName,
                                       CL_IN ClUint64T instantiateCookie,
                                       CL_IN ClTimeT errorDetectionTime,
                                       CL_IN ClAmsLocalRecoveryT recommendedRecovery,

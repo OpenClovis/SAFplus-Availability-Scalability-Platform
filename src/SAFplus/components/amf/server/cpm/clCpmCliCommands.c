@@ -401,7 +401,7 @@ ClRcT cliEOSetState(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 
 ClRcT clCpmComponentReport(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
 {
-    ClNameT compName;
+    SaNameT compName;
     ClCharT buffer[100] = "\0";
     ClRcT rc = CL_OK;
     ClTimeT time;
@@ -423,7 +423,7 @@ ClRcT clCpmComponentReport(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
         /*
          * Source Info 
          */
-        strcpy(compName.value, argv[1]);
+        strcpy((ClCharT *)compName.value, argv[1]);
         compName.length = strlen(argv[1]);
         /*
          * with All parameters
@@ -449,7 +449,7 @@ ClRcT clCpmComponentReport(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
             goto level1;
         }
-        strcpy(compName.value, argv[1]);
+        strcpy((ClCharT *)compName.value, argv[1]);
         compName.length = strlen(argv[1]);
 
         rc = clCpmComponentFailureClear(0, &compName);
@@ -479,7 +479,7 @@ ClRcT clCpmComponentReport(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
 ClRcT clCpmCompGet(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
 {
     ClRcT rc = CL_OK;
-    ClNameT compName = { 0 };
+    SaNameT compName = { 0 };
     ClIocAddressT compAddress;
     ClUint32T compId = 0;
     ClCharT buffer[2048] = "\0";
@@ -497,7 +497,7 @@ ClRcT clCpmCompGet(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
             goto done;
         }
-        strcpy(compName.value, argv[1]);
+        strcpy((ClCharT *)compName.value, argv[1]);
         compName.length = strlen(argv[1]);
         nodeAddress = (ClIocNodeAddressT) cpmCliStrToInt(argv[2]);
         rc = clCpmComponentAddressGet(nodeAddress, &compName, &compAddress);
@@ -518,7 +518,7 @@ ClRcT clCpmCompGet(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
            goto done;
         }
-        strcpy(compName.value, argv[1]);
+        strcpy((ClCharT *)compName.value, argv[1]);
         compName.length = strlen(argv[1]);
         rc = clCpmComponentIdGet(0, &compName, &compId);
         if (rc == CL_OK)
@@ -536,7 +536,7 @@ ClRcT clCpmCompGet(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
             goto done;
         }
-        strcpy(compName.value, argv[1]);
+        strcpy((ClCharT *)compName.value, argv[1]);
         compName.length = strlen(argv[1]);
         rc = clCpmComponentPIDGet(&compName, &compId);
         if (rc == CL_OK)
@@ -560,7 +560,7 @@ ClRcT clCpmCompGet(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
             goto done;
         }
-        strcpy(compName.value, argv[1]);
+        strcpy((ClCharT *)compName.value, argv[1]);
         snprintf(compShmSegment, sizeof(compShmSegment), "/CL_%s_exception_%d", compName.value, clIocLocalAddressGet());
         rc = clOsalShmOpen(compShmSegment, O_RDONLY, 0777, &fd);
         if(rc == CL_OK)
@@ -1088,7 +1088,7 @@ ClRcT clCpmShutDown(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
 ClRcT clCpmNodeNameGet(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
 {
     ClRcT rc = CL_OK;
-    ClNameT nodeName={0};
+    SaNameT nodeName={0};
     *retStr = NULL;
     if(argc > 1 )
     {
@@ -1113,7 +1113,7 @@ ClRcT clCpmNodeNameGet(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
         rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
         goto out;
     }
-    strncpy(*retStr,nodeName.value,nodeName.length);
+    strncpy(*retStr,(const ClCharT *)nodeName.value,nodeName.length);
     rc = CL_OK;
 
     out:

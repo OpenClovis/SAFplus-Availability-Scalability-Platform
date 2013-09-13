@@ -137,9 +137,9 @@ typedef struct
 } ClLogFileOwnerHdlrDataT;
 
 extern ClRcT
-clLogFileOwnerStreamCloseEvent(ClNameT              *pStreamName,
+clLogFileOwnerStreamCloseEvent(SaNameT              *pStreamName,
                                 ClLogStreamScopeT    streamScope,
-                                ClNameT              *pStreamScopeNode);
+                                SaNameT              *pStreamScopeNode);
 extern ClRcT
 clLogFileOwnerCompAddEvent(ClLogCompDataT  *pCompData);
 
@@ -159,8 +159,8 @@ clLogFileOwnerFileEntryGet(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
                             ClBoolT                 *pEntryAdd);
 extern ClRcT
 clLogFileOwnerStreamEntryGet(ClLogFileOwnerDataT  *pFileOwnerData, 
-                              ClNameT               *pStreamName, 
-                              ClNameT               *pStreamScopeNode, 
+                              SaNameT               *pStreamName, 
+                              SaNameT               *pStreamScopeNode, 
                               ClCntNodeHandleT      *phStreamNode,
                               ClBoolT               *pEntryAdd);
 extern ClRcT
@@ -174,15 +174,15 @@ clLogFileOwnerLocationVerify(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
                              ClBoolT                *pFileOwner);
 extern ClRcT
 clLogFileOwnerStreamClose(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry, 
-                           ClNameT                 *pStreamName,
+                           SaNameT                 *pStreamName,
                            ClLogStreamScopeT       streamScope,
-                           ClNameT                 *pStreamScopeNode);
+                           SaNameT                 *pStreamScopeNode);
 extern ClRcT
 clLogFileOwnerHandlerRegister(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
                                ClHandleT               hFileOwner, 
-                               ClNameT                 *pStreamName,
+                               SaNameT                 *pStreamName,
                                ClLogStreamScopeT       streamScope,
-                               ClNameT                 *pStreamScopeNode,
+                               SaNameT                 *pStreamScopeNode,
                                ClUint16T               streamId,
                                ClCntNodeHandleT        hFileNode,
                                ClCntNodeHandleT        hStreamNode,
@@ -196,9 +196,9 @@ clLogFileOwnerFileEntryCntDecrement(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 extern ClRcT
 clLogFileOwnerStreamEntryRemove(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
                                 ClCntNodeHandleT        hFileNode, 
-                                ClNameT                *pStreamName,
+                                SaNameT                *pStreamName,
                                 ClLogStreamScopeT      streamScope, 
-                                ClNameT                *pStreamScopeNode);
+                                SaNameT                *pStreamScopeNode);
 extern ClRcT
 clLogFileOwnerFileTableDestroy(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry, 
                                 ClCntNodeHandleT        hFileNode);
@@ -211,9 +211,9 @@ clLogFileOwnerFileTableDestroyWithLock(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry
 extern ClRcT
 clLogFileOwnerStreamEntryChkNGet(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
                                  ClCntNodeHandleT       hFileNode, 
-                                 ClNameT                *pStreamName,
+                                 SaNameT                *pStreamName,
                                  ClLogStreamScopeT      streamScope, 
-                                 ClNameT                *pStreamScopeNode,
+                                 SaNameT                *pStreamScopeNode,
                                  ClCntNodeHandleT       *phStreamNode);
 extern ClRcT
 clLogFileOwnerStreamChkNDestroy(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry, 

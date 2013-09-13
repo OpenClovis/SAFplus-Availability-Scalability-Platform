@@ -29,13 +29,13 @@ ClRcT clCkptRemSvrCkptInfoSyncServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inM
     ClRcT rc = CL_OK;
     ClVersionT  pVersion;
     ClHandleT  ckptActHdl;
-    ClNameT  pCkptName;
+    SaNameT  pCkptName;
     CkptCPInfoT_4_0_0  pCpInfo;
     CkptDPInfoT_4_0_0  pDpInfo;
 
     memset(&(pVersion), 0, sizeof(ClVersionT));
     memset(&(ckptActHdl), 0, sizeof(ClHandleT));
-    memset(&(pCkptName), 0, sizeof(ClNameT));
+    memset(&(pCkptName), 0, sizeof(SaNameT));
     memset(&(pCpInfo), 0, sizeof(CkptCPInfoT_4_0_0));
     memset(&(pDpInfo), 0, sizeof(CkptDPInfoT_4_0_0));
 
@@ -46,7 +46,7 @@ ClRcT clCkptRemSvrCkptInfoSyncServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inM
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pCkptName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pCkptName));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -101,7 +101,7 @@ ClRcT clCkptRemSvrCkptInfoSyncServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inM
         goto L1;
     }
 
-    rc = clXdrMarshallClNameT(&(pCkptName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pCkptName), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -136,13 +136,13 @@ L5:    return rc;
 LL4:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
 LL3:  clXdrMarshallCkptDPInfoT_4_0_0(&(pDpInfo), 0, 1);
 LL2:  clXdrMarshallCkptCPInfoT_4_0_0(&(pCpInfo), 0, 1);
-LL1:  clXdrMarshallClNameT(&(pCkptName), 0, 1);
+LL1:  clXdrMarshallSaNameT(&(pCkptName), 0, 1);
 LL0:  clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
-L1:  clXdrMarshallClNameT(&(pCkptName), 0, 1);
+L1:  clXdrMarshallSaNameT(&(pCkptName), 0, 1);
 L2:  clXdrMarshallCkptCPInfoT_4_0_0(&(pCpInfo), 0, 1);
 L3:  clXdrMarshallCkptDPInfoT_4_0_0(&(pDpInfo), 0, 1);
 
@@ -189,13 +189,13 @@ ClRcT clCkptRemSvrCkptInfoSyncServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inM
     ClRcT rc = CL_OK;
     ClVersionT  pVersion;
     ClHandleT  ckptActHdl;
-    ClNameT  pCkptName;
+    SaNameT  pCkptName;
     CkptCPInfoT_5_0_0  pCpInfo;
     CkptDPInfoT_4_0_0  pDpInfo;
 
     memset(&(pVersion), 0, sizeof(ClVersionT));
     memset(&(ckptActHdl), 0, sizeof(ClHandleT));
-    memset(&(pCkptName), 0, sizeof(ClNameT));
+    memset(&(pCkptName), 0, sizeof(SaNameT));
     memset(&(pCpInfo), 0, sizeof(CkptCPInfoT_5_0_0));
     memset(&(pDpInfo), 0, sizeof(CkptDPInfoT_4_0_0));
 
@@ -206,7 +206,7 @@ ClRcT clCkptRemSvrCkptInfoSyncServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inM
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pCkptName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pCkptName));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -261,7 +261,7 @@ ClRcT clCkptRemSvrCkptInfoSyncServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inM
         goto L1;
     }
 
-    rc = clXdrMarshallClNameT(&(pCkptName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pCkptName), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -296,13 +296,13 @@ L5:    return rc;
 LL4:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
 LL3:  clXdrMarshallCkptDPInfoT_4_0_0(&(pDpInfo), 0, 1);
 LL2:  clXdrMarshallCkptCPInfoT_5_0_0(&(pCpInfo), 0, 1);
-LL1:  clXdrMarshallClNameT(&(pCkptName), 0, 1);
+LL1:  clXdrMarshallSaNameT(&(pCkptName), 0, 1);
 LL0:  clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
-L1:  clXdrMarshallClNameT(&(pCkptName), 0, 1);
+L1:  clXdrMarshallSaNameT(&(pCkptName), 0, 1);
 L2:  clXdrMarshallCkptCPInfoT_5_0_0(&(pCpInfo), 0, 1);
 L3:  clXdrMarshallCkptDPInfoT_4_0_0(&(pDpInfo), 0, 1);
 

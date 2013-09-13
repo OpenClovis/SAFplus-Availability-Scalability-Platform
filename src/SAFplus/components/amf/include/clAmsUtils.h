@@ -71,12 +71,12 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 #define AMS_LOG(LEVEL, MSG) AMS_CLIENT_LOG(LEVEL,MSG)
 #endif
 
-#define AMS_CHECK_BAD_CLNAME(name)                          \
+#define AMS_CHECK_BAD_SANAME(name)                          \
 {                                                           \
     if ( (name).length > CL_MAX_NAME_LENGTH )               \
     {                                                       \
         AMS_CLIENT_LOG(CL_DEBUG_ERROR,                      \
-            ("ALERT [%s:%d] : Invalid ClNameT structure\n", \
+            ("ALERT [%s:%d] : Invalid SaNameT structure\n", \
              __FUNCTION__, __LINE__));                      \
         rc = CL_ERR_BUFFER_OVERRUN;                         \
         goto exitfn;                                        \

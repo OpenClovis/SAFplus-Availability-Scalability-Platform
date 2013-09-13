@@ -76,7 +76,7 @@ typedef struct ClCpmResetMsg
 #define _CM_RESET_MSG  0x1
 #define _ASP_RESET_MSG 0x2
     ClUint8T msgType;
-    ClNameT nodeName;
+    SaNameT nodeName;
     struct hashStruct hash;
     union
     {
@@ -478,16 +478,15 @@ ClUint32T cpmNodeFindByIocAddress(ClIocNodeAddressT nodeAddress, ClCpmLT **cpmL)
  * Need to revisit this in future during CPM-CM admission control
  * implementation.
  */
-ClUint32T clCpmCardMatch(ClNameT *nodeClassType, 
-                         ClNameT *nodeIdentifier,
+ClUint32T clCpmCardMatch(SaNameT *nodeClassType, 
+                         SaNameT *nodeIdentifier,
                          ClCpmSlotClassTypesT *slotClassTypes)
 {
     ClUint32T i = 0;
 
     for (i = 0; i < slotClassTypes->numItems; ++i)
     {
-        if (!strcmp(nodeClassType->value, 
-                    slotClassTypes->nodeClassTypes[i].name.value))
+        if (!strcmp((const ClCharT *) nodeClassType->value, (const ClCharT *) slotClassTypes->nodeClassTypes[i].name.value))
         {
             return CL_TRUE;
         }
@@ -503,7 +502,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
     ClRcT rc = CL_OK;
     ClCpmLT *cpmL;
     ClCpmLocalInfoT cpmLocalInfo = {{0}};
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
     ClCpmLcmReplyT srcInfo = {0};
     ClCpmSlotClassTypesT slotClassTypes = {0, NULL};
     ClUint32T flag = CL_FALSE;
@@ -578,7 +577,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
      * Locate the Node from node Table and assign the pointer to the data 
      */
     clOsalMutexLock(gpClCpm->cpmTableMutex);
-    rc = cpmNodeFindLocked(cpmLocalInfo.nodeName, &cpmL);
+    rc = cpmNodeFindLocked((SaUint8T *)cpmLocalInfo.nodeName, &cpmL);
     if(rc != CL_OK)
     {
         clOsalMutexUnlock(gpClCpm->cpmTableMutex);
@@ -636,8 +635,8 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
     if(flag == CL_TRUE)
     {
         /* Set the CPM/L to its default boot Level */
-        strcpy(nodeName.value, cpmLocalInfo.nodeName);
-        nodeName.length = strlen(nodeName.value);
+        strcpy((ClCharT *)nodeName.value, cpmLocalInfo.nodeName);
+        nodeName.length = strlen((const ClCharT *)nodeName.value);
 
         srcInfo.srcIocAddress = CPM_RESPOND_TO_ACTIVE;
         srcInfo.srcPort = gpClCpm->pCpmLocalInfo->cpmAddress.portId;
@@ -729,7 +728,7 @@ ClRcT VDECL(cpmCpmLocalDeregister)(ClEoDataT data,
      * Locate the Node from node Table and assign the pointer to the data 
      */
     clOsalMutexLock(gpClCpm->cpmTableMutex);
-    rc = cpmNodeFindLocked(cpmLocalInfo.nodeName, &cpmL);
+    rc = cpmNodeFindLocked((SaUint8T *)cpmLocalInfo.nodeName, &cpmL);
     if(rc != CL_OK)
     {
         clOsalMutexUnlock(gpClCpm->cpmTableMutex);
@@ -768,7 +767,7 @@ ClRcT VDECL(cpmCpmConfirm)(ClEoDataT data,
 {
     ClRcT rc = CL_OK;
     ClCpmLcmResponseT response;
-    ClNameT compName;
+    SaNameT compName;
 
     /*
      * Param Check 
@@ -780,8 +779,8 @@ ClRcT VDECL(cpmCpmConfirm)(ClEoDataT data,
     if (gpClCpm->cpmToAmsCallback != NULL &&
         gpClCpm->cpmToAmsCallback->compOperationComplete != NULL)
     {
-        strcpy(compName.value, response.name);
-        compName.length = strlen(compName.value);
+        strcpy((ClCharT *)compName.value, response.name);
+        compName.length = strlen((const ClCharT *)compName.value);
         gpClCpm->cpmToAmsCallback->compOperationComplete(compName,
                                                          response.requestType,
                                                          response.returnCode);
@@ -860,7 +859,7 @@ failure:
 static void cpmNodeDepartureEventPublish(ClIocNodeAddressT node, ClBoolT graceful, ClBoolT doSelf)
 {
     ClRcT rc;
-    ClNameT nodeName;
+    SaNameT nodeName;
     ClCpmNodeEventT nodeEvent = CL_CPM_NODE_DEPARTURE;
 
     if(doSelf
@@ -868,11 +867,13 @@ static void cpmNodeDepartureEventPublish(ClIocNodeAddressT node, ClBoolT gracefu
        node != clIocLocalAddressGet())
         goto out;
 
-    if(node == clIocLocalAddressGet())
+    if (node == clIocLocalAddressGet())
         memcpy(nodeName.value, gpClCpm->pCpmLocalInfo->nodeName, CL_MAX_NAME_LENGTH);
     else
         _cpmNodeNameForNodeAddressGet(node, &nodeName);
-    nodeName.length = (strlen(nodeName.value) > CL_MAX_NAME_LENGTH)? CL_MAX_NAME_LENGTH :strlen(nodeName.value);
+    nodeName.length =
+                    (strlen((const ClCharT *) nodeName.value) > CL_MAX_NAME_LENGTH) ?
+                                    CL_MAX_NAME_LENGTH : strlen((const ClCharT *) nodeName.value);
     if(!graceful)
         nodeEvent = CL_CPM_NODE_DEATH;
     rc = nodeArrivalDeparturePublish(node, nodeName, nodeEvent);
@@ -937,7 +938,7 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
     ClIocNodeAddressT masterAddress;
     ClRcT   rc = CL_OK;
     ClCpmLT *cpmL = NULL;
-    ClNameT nodeName;
+    SaNameT nodeName;
     
     rc = clXdrUnmarshallClUint32T(inMsgHandle, &iocAddress);
     if(rc != CL_OK)
@@ -1033,8 +1034,8 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
         rc = cpmNodeFindByIocAddress(iocAddress, &cpmL);
         if(rc == CL_OK)
         {
-            strcpy(nodeName.value, cpmL->pCpmLocalInfo->nodeName);
-            nodeName.length = strlen(nodeName.value) + 1;
+            strcpy((ClCharT *)nodeName.value, cpmL->pCpmLocalInfo->nodeName);
+            nodeName.length = strlen((const ClCharT *)nodeName.value) + 1;
             clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             /*
              * Setup a restart override to halt the node in case we are interrupted 
@@ -1234,7 +1235,7 @@ ClRcT VDECL(cpmNodeCpmLResponse)(ClEoDataT data,
     {
         if((gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL &&
                 gpClCpm->haState == CL_AMS_HA_STATE_ACTIVE) && 
-                !strcmp(cpmBmResponse.nodeName.value, 
+                !strcmp((const ClCharT *)cpmBmResponse.nodeName.value,
                     gpClCpm->pCpmLocalInfo->nodeName))
         {       
             cpmShutdownHeartbeat();
@@ -1320,11 +1321,11 @@ ClRcT cpmCmRequestDSInitialize(void)
     return rc;
 }
 
-static ClCpmResetMsgT *cpmResetRequestFind(const ClNameT *nodeName, ClUint32T msgType, ClUint32T *key)
+static ClCpmResetMsgT *cpmResetRequestFind(const SaNameT *nodeName, ClUint32T msgType, ClUint32T *key)
 {
     struct hashStruct *iter;
     ClUint16T hashKey = 0;
-    clCksm16bitCompute((ClUint8T*)nodeName->value, strlen(nodeName->value), &hashKey);
+    clCksm16bitCompute((SaUint8T *)nodeName->value, strlen((const ClCharT *)nodeName->value), &hashKey);
     hashKey &= CPM_RESET_TABLE_MASK;
     if(key) *key = hashKey;
     for(iter = cpmResetMsgTable[hashKey]; iter; iter = iter->pNext)
@@ -1341,12 +1342,12 @@ static ClCpmResetMsgT *cpmResetRequestFind(const ClNameT *nodeName, ClUint32T ms
 /*
  * Delete all the request entries for the node from table
  */
-void cpmResetDeleteRequest(const ClNameT *nodeName)
+void cpmResetDeleteRequest(const SaNameT *nodeName)
 {
     ClUint16T hashKey = 0;
     struct hashStruct *iter, *next = NULL;
     if(!nodeName) return;
-    clCksm16bitCompute((ClUint8T*)nodeName->value, strlen(nodeName->value), &hashKey);
+    clCksm16bitCompute((SaUint8T *)nodeName->value, strlen((const ClCharT *)nodeName->value), &hashKey);
     hashKey &= CPM_RESET_TABLE_MASK;
     clOsalMutexLock(gpClCpm->cmRequestMutex);
     for(iter = cpmResetMsgTable[hashKey]; iter; iter = next)
@@ -1372,7 +1373,7 @@ static ClRcT cpmEnqueueResetRequest(ClCpmResetMsgT *resetMsg)
     return CL_OK;
 }
 
-ClRcT cpmDequeueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest)
+ClRcT cpmDequeueCmRequest(SaNameT *pNodeName, ClCmCpmMsgT *pRequest)
 {
     ClCpmResetMsgT *msg;
     clOsalMutexLock(gpClCpm->cmRequestMutex);
@@ -1389,7 +1390,7 @@ ClRcT cpmDequeueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest)
     return CL_OK;
 }
 
-ClRcT cpmEnqueueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest)
+ClRcT cpmEnqueueCmRequest(SaNameT *pNodeName, ClCmCpmMsgT *pRequest)
 {
     ClRcT rc;
     ClCpmResetMsgT *resetMsg = clHeapCalloc(1, sizeof(*resetMsg));
@@ -1405,7 +1406,7 @@ ClRcT cpmEnqueueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest)
     return rc;
 }
 
-ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClUint32T *nodeRequest)
+ClRcT cpmDequeueAspRequest(SaNameT *pNodeName, ClUint32T *nodeRequest)
 {
     ClCpmResetMsgT *msg;
     clOsalMutexLock(gpClCpm->cmRequestMutex);
@@ -1422,7 +1423,7 @@ ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClUint32T *nodeRequest)
     return CL_OK;
 }
 
-ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, ClUint32T nodeRequest)
+ClRcT cpmEnqueueAspRequest(SaNameT *pNodeName, ClIocNodeAddressT nodeAddress, ClUint32T nodeRequest)
 {
     ClRcT rc = CL_OK;
     ClCpmResetMsgT *resetMsg = clHeapCalloc(1, sizeof(*resetMsg));
@@ -1447,10 +1448,10 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
     ClUint32T msgLength = 0;
     ClCmCpmMsgT cmCpmMsg;
     ClCpmLT *cpmL = NULL;
-    ClNameT nodeName;
+    SaNameT nodeName;
 
     memset(&cmCpmMsg, 0, sizeof(ClCmCpmMsgT));
-    memset(&nodeName, 0, sizeof(ClNameT));
+    memset(&nodeName, 0, sizeof(SaNameT));
  
     rc = clBufferLengthGet(inMsgHandle, &msgLength);
     if (msgLength == sizeof(ClCmCpmMsgT))
@@ -1494,8 +1495,8 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
         rc = cpmNodeFindByIocAddress(cmCpmMsg.physicalSlot, &cpmL);
         if (rc == CL_OK)
         {
-            strcpy(nodeName.value, cpmL->pCpmLocalInfo->nodeName);
-            nodeName.length = strlen(nodeName.value) + 1;
+            strcpy((ClCharT *)nodeName.value, cpmL->pCpmLocalInfo->nodeName);
+            nodeName.length = strlen((const ClCharT *)nodeName.value) + 1;
             clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             switch(cmCpmMsg.cmCpmMsgType)
             {
@@ -1567,7 +1568,7 @@ failure:
     return rc;
 }
 
-ClRcT _cpmIocAddressForNodeGet(ClNameT *nodeName, ClIocAddressT *pIocAddress) 
+ClRcT _cpmIocAddressForNodeGet(SaNameT *nodeName, ClIocAddressT *pIocAddress) 
 {
     ClRcT   rc = CL_OK;
     ClCpmLT *node = NULL;
@@ -1605,7 +1606,7 @@ failure:
     return rc;
 }
 
-ClRcT _cpmNodeNameForNodeAddressGet(ClIocNodeAddressT nodeAddress, ClNameT *pNodeName)
+ClRcT _cpmNodeNameForNodeAddressGet(ClIocNodeAddressT nodeAddress, SaNameT *pNodeName)
 {
     ClRcT   rc = CL_OK;
     ClCpmLT *node = NULL;
@@ -1621,7 +1622,7 @@ ClRcT _cpmNodeNameForNodeAddressGet(ClIocNodeAddressT nodeAddress, ClNameT *pNod
     }
     if(gpClCpm->pCpmLocalInfo->nodeId == nodeAddress)
     {
-        clNameSet(pNodeName, gpClCpm->pCpmLocalInfo->nodeName);
+        saNameSet(pNodeName, gpClCpm->pCpmLocalInfo->nodeName);
         clOsalMutexUnlock(&gpClCpm->cpmMutex);
         return CL_OK;
     }
@@ -1643,7 +1644,7 @@ ClRcT _cpmNodeNameForNodeAddressGet(ClIocNodeAddressT nodeAddress, ClNameT *pNod
      */
     if (node->pCpmLocalInfo != NULL)
     {
-        clNameSet(pNodeName, node->pCpmLocalInfo->nodeName);
+        saNameSet(pNodeName, node->pCpmLocalInfo->nodeName);
     }
     else
     {
@@ -1694,10 +1695,10 @@ ClRcT VDECL(cpmIocAddressForNodeGet)(ClEoDataT data,
 {
     ClRcT   rc = CL_OK;
     ClCpmLT *node = NULL;
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
     ClIocAddressIDLT idlIocAddress;
 
-    rc = clXdrUnmarshallClNameT(inMsgHandle, (void *) &nodeName);
+    rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &nodeName);
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
@@ -1741,11 +1742,11 @@ failure:
 ClRcT cpmUpdateNodeState(ClCpmLocalInfoT *pCpmLocalInfo)
 {
     ClRcT rc = CL_OK;
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
     ClIocNodeAddressT nodeAddress = 0;
 
-    strcpy(nodeName.value, pCpmLocalInfo->nodeName);
-    nodeName.length = strlen(nodeName.value);
+    strcpy((ClCharT *)nodeName.value, pCpmLocalInfo->nodeName);
+    nodeName.length = strlen((const ClCharT *)nodeName.value);
     nodeAddress = pCpmLocalInfo->cpmAddress.nodeAddress;
 
     pCpmLocalInfo->status = CL_CPM_EO_DEAD;
@@ -1768,7 +1769,7 @@ ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover)
     ClRcT rc = CL_OK;
     ClCpmLT *cpmL = NULL;
     ClCpmLocalInfoT *pCpmLocalInfo = NULL;
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
     ClUint32T slotNumber = 0;
     ClIocNodeAddressT nodeAddress = 0;
 
@@ -1816,8 +1817,8 @@ ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover)
     clIocTransparencyDeregisterNode(pCpmLocalInfo->cpmAddress.nodeAddress);
 #endif
 
-    strcpy(nodeName.value, pCpmLocalInfo->nodeName);
-    nodeName.length = strlen(nodeName.value) + 1;
+    strcpy((ClCharT *)nodeName.value, pCpmLocalInfo->nodeName);
+    nodeName.length = strlen((const ClCharT *)nodeName.value) + 1;
     
     /*
      * Reset the request queue pertaining to the node
@@ -1917,7 +1918,7 @@ static void cpmInstallNodeInfo(void)
     ClVersionT version = {'B',0x1,0x1};
     ClRcT rc = CL_OK;
     ClAmsEntityT entity = {0};
-    ClNameT key = {0};
+    SaNameT key = {0};
 
     rc = clAmsMgmtInitialize(&handle, NULL, &version);
     if(rc != CL_OK)
@@ -1926,9 +1927,9 @@ static void cpmInstallNodeInfo(void)
         goto out;
     }
     entity.type = CL_AMS_ENTITY_TYPE_NODE;
-    clNameSet(&entity.name, clCpmNodeName);
+    saNameSet(&entity.name, clCpmNodeName);
     entity.name.length += 1;
-    clNameSet(&key, ASP_INSTALL_KEY);
+    saNameSet(&key, ASP_INSTALL_KEY);
     rc = clAmsMgmtEntityUserDataSetKey(handle, &entity, &key, 
                                        gAspInstallInfo, 
                                        strlen(gAspInstallInfo));
@@ -2213,7 +2214,7 @@ ClRcT VDECL(cpmGoBackToRegisterCallback)(ClEoDataT data,
     }
 
     CL_ASSERT(CL_CPM_IS_WB());
-    CL_ASSERT((strncmp(bmSetLevelResp.nodeName.value,
+    CL_ASSERT((strncmp((const ClCharT *)bmSetLevelResp.nodeName.value,
                       gpClCpm->pCpmLocalInfo->nodeName,
                        CL_MAX_NAME_LENGTH-1) == 0));
 
@@ -2237,12 +2238,10 @@ static ClRcT cpmKillUserComp(ClCntNodeHandleT key,
                              ClUint32T size)
 {
     ClCpmComponentT *comp = (ClCpmComponentT *)data;
-    ClNameT compName = {0};
+    SaNameT compName = {0};
 
-    strncpy(compName.value,
-            comp->compConfig->compName,
-            CL_MAX_NAME_LENGTH-1);
-    compName.length = strlen(compName.value);
+    strncpy((ClCharT *) compName.value, comp->compConfig->compName, CL_MAX_NAME_LENGTH - 1);
+    compName.length = strlen((const ClCharT *)compName.value);
     
     if (!cpmIsInfrastructureComponent(&compName))
     {
@@ -2279,7 +2278,7 @@ static ClRcT cpmPayloadRegister(void)
 
 void cpmGoBackToRegister(void)
 {
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
     ClCpmLcmReplyT srcInfo = {0};
     ClRcT rc = CL_OK;
     
@@ -2295,10 +2294,8 @@ void cpmGoBackToRegister(void)
     
     cpmKillUserComps();
 
-    strncpy(nodeName.value,
-            gpClCpm->pCpmLocalInfo->nodeName,
-            CL_MAX_NAME_LENGTH-1);
-    nodeName.length = strlen(nodeName.value);
+    strncpy((ClCharT *) nodeName.value, gpClCpm->pCpmLocalInfo->nodeName, CL_MAX_NAME_LENGTH - 1);
+    nodeName.length = strlen((const ClCharT *) nodeName.value);
 
     srcInfo.srcIocAddress = clIocLocalAddressGet();
     srcInfo.srcPort = CL_IOC_CPM_PORT;
@@ -2347,7 +2344,7 @@ ClRcT VDECL(cpmNodeConfigSet)(ClEoDataT data,
         goto out;
     }
     clOsalMutexLock(gpClCpm->cpmTableMutex);
-    rc = cpmNodeFindLocked(nodeConfig.nodeName, &cpmL);
+    rc = cpmNodeFindLocked((SaUint8T *)nodeConfig.nodeName, &cpmL);
     if(rc != CL_OK)
     {
         clOsalMutexUnlock(gpClCpm->cpmTableMutex);
@@ -2360,9 +2357,9 @@ ClRcT VDECL(cpmNodeConfigSet)(ClEoDataT data,
         cpmg = CL_TRUE;
     }
 
-    clNameCopy(&cpmL->nodeType, &nodeConfig.nodeType);
-    clNameCopy(&cpmL->nodeIdentifier, &nodeConfig.nodeIdentifier);
-    clNameCopy(&cpmL->nodeMoIdStr, &nodeConfig.nodeMoIdStr);
+    saNameCopy(&cpmL->nodeType, &nodeConfig.nodeType);
+    saNameCopy(&cpmL->nodeIdentifier, &nodeConfig.nodeIdentifier);
+    saNameCopy(&cpmL->nodeMoIdStr, &nodeConfig.nodeMoIdStr);
     if(cpmg)
         strncpy(cpmL->classType, "CL_AMS_NODE_CLASS_A", sizeof(cpmL->classType)-1);
     else
@@ -2378,14 +2375,14 @@ ClRcT VDECL(cpmNodeConfigGet)(ClEoDataT data,
                               ClBufferHandleT outMsgHdl)
 {
     ClRcT rc = CL_OK;
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
     ClCpmLT *cpmL = NULL;
     ClCpmNodeConfigT nodeConfig = {{0}};
 
     if(!CL_CPM_IS_ACTIVE())
         return CL_RMD_ERR_CONTINUE;
 
-    rc = clXdrUnmarshallClNameT(inMsgHdl, &nodeName);
+    rc = clXdrUnmarshallSaNameT(inMsgHdl, &nodeName);
     if(rc != CL_OK)
     {
         clLogError("NODE", "CONFIG", "Node name unmarshall returned [%#x]", rc);
@@ -2400,7 +2397,7 @@ ClRcT VDECL(cpmNodeConfigGet)(ClEoDataT data,
         if(gpClCpm->cpmToAmsCallback &&
            gpClCpm->cpmToAmsCallback->nodeAdd)
         {
-            rc = gpClCpm->cpmToAmsCallback->nodeAdd(nodeName.value);
+            rc = gpClCpm->cpmToAmsCallback->nodeAdd((const ClCharT *)nodeName.value);
             if(rc == CL_OK)
             {
                 unlock = CL_TRUE;
@@ -2416,10 +2413,10 @@ ClRcT VDECL(cpmNodeConfigGet)(ClEoDataT data,
             goto out;
         }
     }
-    strncpy(nodeConfig.nodeName, nodeName.value, sizeof(nodeConfig.nodeName)-1);
-    clNameCopy(&nodeConfig.nodeType, &cpmL->nodeType);
-    clNameCopy(&nodeConfig.nodeIdentifier, &cpmL->nodeIdentifier);
-    clNameCopy(&nodeConfig.nodeMoIdStr, &cpmL->nodeMoIdStr);
+    strncpy(nodeConfig.nodeName, (const ClCharT *)nodeName.value, sizeof(nodeConfig.nodeName)-1);
+    saNameCopy(&nodeConfig.nodeType, &cpmL->nodeType);
+    saNameCopy(&nodeConfig.nodeIdentifier, &cpmL->nodeIdentifier);
+    saNameCopy(&nodeConfig.nodeMoIdStr, &cpmL->nodeMoIdStr);
     if(!strcmp(cpmL->classType, "CL_AMS_NODE_CLASS_A")
        ||
        !strcmp(cpmL->classType, "CL_AMS_NODE_CLASS_B"))
@@ -2454,7 +2451,7 @@ ClRcT VDECL(cpmMiddlewareRestart)(ClEoDataT data,
     ClBoolT graceful = CL_FALSE;
     ClBoolT nodeReset = CL_FALSE;
     ClCpmLT *cpm = NULL;
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
     ClRmdResponseContextHandleT responseHandle = 0;
 
     if (!CL_CPM_IS_ACTIVE())
@@ -2477,8 +2474,8 @@ ClRcT VDECL(cpmMiddlewareRestart)(ClEoDataT data,
         goto out;
     }
 
-    strcpy(nodeName.value, cpm->pCpmLocalInfo->nodeName);
-    nodeName.length = strlen(nodeName.value) + 1;
+    strcpy((ClCharT *)nodeName.value, cpm->pCpmLocalInfo->nodeName);
+    nodeName.length = strlen((const ClCharT *)nodeName.value) + 1;
     clOsalMutexUnlock(gpClCpm->cpmTableMutex);
 
     /*
@@ -2521,7 +2518,7 @@ ClRcT VDECL(cpmNodeRestart)(ClEoDataT data,
     ClIocNodeAddressT iocNodeAddress = 0;
     ClBoolT graceful = CL_FALSE;
     ClCpmLT *cpm = NULL;
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
     ClRmdResponseContextHandleT responseHandle = 0;
 
     if (!CL_CPM_IS_ACTIVE())
@@ -2543,8 +2540,8 @@ ClRcT VDECL(cpmNodeRestart)(ClEoDataT data,
         goto out;
     }
 
-    strcpy(nodeName.value, cpm->pCpmLocalInfo->nodeName);
-    nodeName.length = strlen(nodeName.value) + 1;
+    strcpy((ClCharT *)nodeName.value, cpm->pCpmLocalInfo->nodeName);
+    nodeName.length = strlen((const ClCharT *)nodeName.value) + 1;
     clOsalMutexUnlock(gpClCpm->cpmTableMutex);
 
     /*

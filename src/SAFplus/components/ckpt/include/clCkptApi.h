@@ -402,7 +402,7 @@ typedef struct {
 
 typedef ClRcT (*ClCkptNotificationCallbackT)( 
                         ClCkptHdlT              ckptHdl,
-                        ClNameT                 *pName,
+                        SaNameT                 *pName,
                         ClCkptIOVectorElementT  *pIOVector,
                         ClUint32T               numSections,
                         ClPtrT                  pCookie  );
@@ -668,7 +668,7 @@ extern ClRcT clCkptFinalize( CL_IN ClCkptSvcHdlT ckptHandle);
  */
 
 extern ClRcT clCkptCheckpointOpen( CL_IN ClCkptSvcHdlT          ckptHandle,   /* Service handle */
-                            CL_IN const ClNameT        *ckeckpointName, /* Name of the checkpoint */
+                            CL_IN const SaNameT        *ckeckpointName, /* Name of the checkpoint */
                             CL_IN const ClCkptCheckpointCreationAttributesT *checkpointCreationAttributes,
                             CL_IN ClCkptOpenFlagsT       checkpointOpenFlags, /* Open flags */
                             CL_IN ClTimeT               timeout,             /* Time out */
@@ -713,7 +713,7 @@ extern ClRcT clCkptCheckpointOpen( CL_IN ClCkptSvcHdlT          ckptHandle,   /*
 
 extern ClRcT clCkptCheckpointOpenAsync( CL_IN ClCkptSvcHdlT            ckptHandle,
                                  CL_IN ClInvocationT          invocation,
-                                 CL_IN const ClNameT          *checkpointName,
+                                 CL_IN const SaNameT          *checkpointName,
                                  CL_IN const ClCkptCheckpointCreationAttributesT *checkpoiNtCreationAttributes,
                                  CL_IN ClCkptOpenFlagsT          checkpointOpenFlags);
 
@@ -809,7 +809,7 @@ extern ClRcT clCkptCheckpointClose(CL_IN ClCkptHdlT checkpointHandle);
  */
 
 extern ClRcT clCkptCheckpointDelete( CL_IN ClCkptSvcHdlT       ckptHandle,      /* checkpoint svc handle */
-                              CL_IN const ClNameT     *checkpointName);
+                              CL_IN const SaNameT     *checkpointName);
 
 /**
  ************************************

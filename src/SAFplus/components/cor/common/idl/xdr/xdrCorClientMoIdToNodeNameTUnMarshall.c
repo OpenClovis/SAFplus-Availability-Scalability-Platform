@@ -62,7 +62,7 @@ ClRcT clXdrUnmarshallcorClientMoIdToNodeNameT_4_0_0(ClBufferHandleT msg , void* 
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->nodeName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->nodeName));
     if (CL_OK != rc)
     {
         return rc;

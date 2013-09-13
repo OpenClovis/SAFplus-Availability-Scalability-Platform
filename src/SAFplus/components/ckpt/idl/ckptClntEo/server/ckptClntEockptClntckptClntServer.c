@@ -27,18 +27,18 @@ ClRcT clCkptSectionUpdationNotificationServer_4_0_0(ClEoDataT eoData, ClBufferHa
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClNameT  pName;
+    SaNameT  pName;
     ClCkptSectionIdT_4_0_0  pSecId;
     ClUint32T  dataSize;
     ClUint8T*  pData;
 
-    memset(&(pName), 0, sizeof(ClNameT));
+    memset(&(pName), 0, sizeof(SaNameT));
     memset(&(pSecId), 0, sizeof(ClCkptSectionIdT_4_0_0));
     memset(&(dataSize), 0, sizeof(ClUint32T));
     memset(&(pData), 0, sizeof(ClUint8T*));
 
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pName));
     if (CL_OK != rc)
     {
         goto LL0;
@@ -87,7 +87,7 @@ ClRcT clCkptSectionUpdationNotificationServer_4_0_0(ClEoDataT eoData, ClBufferHa
        goto L0;
     }
     
-    rc = clXdrMarshallClNameT(&(pName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pName), 0, 1);
     if (CL_OK != rc)
     {
         goto L1;
@@ -122,11 +122,11 @@ L4:    return rc;
 LL3:  clXdrMarshallPtrClUint8T(pData, dataSize, 0, 1);
 LL2:  clXdrMarshallClUint32T(&(dataSize), 0, 1);
 LL1:  clXdrMarshallClCkptSectionIdT_4_0_0(&(pSecId), 0, 1);
-LL0:  clXdrMarshallClNameT(&(pName), 0, 1);
+LL0:  clXdrMarshallSaNameT(&(pName), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClNameT(&(pName), 0, 1);
+L0:  clXdrMarshallSaNameT(&(pName), 0, 1);
 L1:  clXdrMarshallClCkptSectionIdT_4_0_0(&(pSecId), 0, 1);
 L2:  clXdrMarshallClUint32T(&(dataSize), 0, 1);
 L3:  clXdrMarshallPtrClUint8T(pData, dataSize, 0, 1);
@@ -164,16 +164,16 @@ ClRcT clCkptWriteUpdationNotificationServer_4_0_0(ClEoDataT eoData, ClBufferHand
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClNameT  pName;
+    SaNameT  pName;
     ClUint32T  numberOfElements;
     ClCkptIOVectorElementT_4_0_0*  pIoVector;
 
-    memset(&(pName), 0, sizeof(ClNameT));
+    memset(&(pName), 0, sizeof(SaNameT));
     memset(&(numberOfElements), 0, sizeof(ClUint32T));
     memset(&(pIoVector), 0, sizeof(ClCkptIOVectorElementT_4_0_0*));
 
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pName));
     if (CL_OK != rc)
     {
         goto LL0;
@@ -216,7 +216,7 @@ ClRcT clCkptWriteUpdationNotificationServer_4_0_0(ClEoDataT eoData, ClBufferHand
        goto L0;
     }
     
-    rc = clXdrMarshallClNameT(&(pName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pName), 0, 1);
     if (CL_OK != rc)
     {
         goto L1;
@@ -244,11 +244,11 @@ L3:    return rc;
 
 LL2:  clXdrMarshallPtrClCkptIOVectorElementT_4_0_0(pIoVector, numberOfElements, 0, 1);
 LL1:  clXdrMarshallClUint32T(&(numberOfElements), 0, 1);
-LL0:  clXdrMarshallClNameT(&(pName), 0, 1);
+LL0:  clXdrMarshallSaNameT(&(pName), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClNameT(&(pName), 0, 1);
+L0:  clXdrMarshallSaNameT(&(pName), 0, 1);
 L1:  clXdrMarshallClUint32T(&(numberOfElements), 0, 1);
 L2:  clXdrMarshallPtrClCkptIOVectorElementT_4_0_0(pIoVector, numberOfElements, 0, 1);
 

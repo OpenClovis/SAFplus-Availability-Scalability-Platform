@@ -118,7 +118,7 @@ class Session:
     self.targetentity = asp.ClAmsEntityConfigT()
     self.metric = asp.ClMetricT()
 
-    self.cname = asp.ClNameT()
+    self.cname = asp.SaNameT()
 
     self.defaultAssociatedDataKey = None
 
@@ -899,13 +899,13 @@ class Session:
       mask |= asp.COMP_CONFIG_SUPPORTED_CSI_TYPE
  
       # Add the CSI types to the config    
-      cCsiList = asp.new_ClNameT_array(numSupportedCsis)
+      cCsiList = asp.new_SaNameT_array(numSupportedCsis)
       index = 0
-      tempcName = asp.ClNameT()
+      tempcName = asp.SaNameT()
       for csiType in comp.supportedCsis:
         #self.Log("CSI: %s" % csi.name)
         setCNameT(tempcName,str(csiType))
-        asp.ClNameT_array_setitem(cCsiList, index, tempcName) # Add this csi to the list of supported CSIs
+        asp.SaNameT_array_setitem(cCsiList, index, tempcName) # Add this csi to the list of supported CSIs
         index += 1
 
       config.pSupportedCSITypes = cCsiList
@@ -922,7 +922,7 @@ class Session:
 
     AspExcHandler(asp.clAmsMgmtCCBEntitySetConfig,(self.configHdl,config.entity,mask),config)
     AspExcHandler(asp.clAmsMgmtCCBCommit,(self.configHdl,),(comp,config),[],{0x220105:AmfError(0x220105)})
-    asp.delete_ClNameT_array(cCsiList)
+    asp.delete_SaNameT_array(cCsiList)
    
     self.Log("Committed component %s (command line: %s)" % (comp.name, config.instantiateCommand))
 

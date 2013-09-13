@@ -56,7 +56,7 @@ ClRcT clXdrUnmarshallClAlarmInfoIDLT_4_0_0(ClBufferHandleT msg , void* pGenVar)
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->compName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->compName));
     if (CL_OK != rc)
     {
         return rc;

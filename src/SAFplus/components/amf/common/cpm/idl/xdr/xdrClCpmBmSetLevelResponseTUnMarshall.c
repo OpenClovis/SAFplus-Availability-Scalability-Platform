@@ -50,7 +50,7 @@ ClRcT clXdrUnmarshallClCpmBmSetLevelResponseT_4_0_0(ClBufferHandleT msg , void* 
     else
     {
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->nodeName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->nodeName));
     if (CL_OK != rc)
     {
         return rc;

@@ -144,7 +144,7 @@ clLogStreamOwnerDeleteCb(ClCntKeyHandleT key, ClCntDataHandleT data)
  *
  */
 ClRcT
-clLogStreamOwnerOpenCleanup(ClNameT *pStreamName, ClNameT *pStreamScopeNode, ClLogSOCookieT  *pCookie)
+clLogStreamOwnerOpenCleanup(SaNameT *pStreamName, SaNameT *pStreamScopeNode, ClLogSOCookieT  *pCookie)
 {
     ClRcT                  rc                = CL_OK;
     ClLogSOEoDataT         *pSoEoEntry       = NULL;
@@ -233,8 +233,8 @@ clLogStreamOwnerOpenCleanup(ClNameT *pStreamName, ClNameT *pStreamScopeNode, ClL
 }
 
 ClRcT
-clLogStreamOwnerMasterClose(ClNameT              *pStreamName,
-                            ClNameT              *pStreamScopeNode,
+clLogStreamOwnerMasterClose(SaNameT              *pStreamName,
+                            SaNameT              *pStreamScopeNode,
                             ClLogStreamAttrIDLT  *pStreamAttr)
 {
     ClRcT      rc           = CL_OK;
@@ -523,8 +523,8 @@ clLogSOUnlock(ClLogSOEoDataT    *pSoEoEntry,
  */
 
 ClRcT
-clLogStreamOwnerCloseMasterNotify(ClNameT    *pStreamName,
-                                  ClNameT    *pStreamScopeNode, 
+clLogStreamOwnerCloseMasterNotify(SaNameT    *pStreamName,
+                                  SaNameT    *pStreamScopeNode, 
                                   ClStringT  *pFileName,
                                   ClStringT  *pFileLocation)
 {
@@ -780,9 +780,9 @@ clLogStreamOwnerInfoCopy(ClLogStreamOwnerDataT   *pStreamOwnerData,
  */
 ClRcT
 VDECL_VER(clLogStreamOwnerStreamClose, 4, 0, 0)(
-                            ClNameT            *pStreamName,
+                            SaNameT            *pStreamName,
                             ClLogStreamScopeT  streamScope,
-                            ClNameT            *pStreamScopeNode,
+                            SaNameT            *pStreamScopeNode,
                             ClIocNodeAddressT  nodeAddr, 
                             ClUint32T          compId)
 {
@@ -948,7 +948,7 @@ clLogStreamOwnerFilterFinalize(ClLogFilterInfoT  *pFilter)
 }
 
 ClRcT
-clLogStreamOwnerFilterInit(ClNameT *pStreamName, ClLogFilterInfoT  *pFilter)
+clLogStreamOwnerFilterInit(SaNameT *pStreamName, ClLogFilterInfoT  *pFilter)
 {
     ClRcT  rc = CL_OK;
 
@@ -975,9 +975,9 @@ clLogStreamOwnerFilterInit(ClNameT *pStreamName, ClLogFilterInfoT  *pFilter)
 }
 
 ClRcT
-clLogStreamOwnerEvtPublish(ClNameT                *pStreamName,
+clLogStreamOwnerEvtPublish(SaNameT                *pStreamName,
                            ClLogStreamScopeT      streamScope,
-                           ClNameT                *pStreamScopeNode,
+                           SaNameT                *pStreamScopeNode,
                            ClLogStreamOwnerDataT  *pStreamOwnerData)
 {
     ClRcT                rc         = CL_OK;
@@ -1013,9 +1013,9 @@ clLogStreamOwnerEvtPublish(ClNameT                *pStreamName,
 
 ClRcT
 clLogStreamOwnerEntryUpdate(ClLogSOEoDataT          *pSoEoEntry,
-                            ClNameT                 *pStreamName,
+                            SaNameT                 *pStreamName,
                             ClLogStreamScopeT       streamScope,
-                            ClNameT                 *pStreamScopeNode,
+                            SaNameT                 *pStreamScopeNode,
                             ClLogStreamOwnerDataT   *pStreamOwnerData,
                             ClLogStreamAttrIDLT     *pStreamAttr,
                             ClIocMulticastAddressT  multiCastAddr,
@@ -1078,8 +1078,8 @@ clLogStreamOwnerEntryUpdate(ClLogSOEoDataT          *pSoEoEntry,
 }    
 
 ClRcT
-clLogStreamOwnerMAVGResponseProcess(ClNameT                 *pStreamName,
-                                    ClNameT                 *pStreamScopeNode,
+clLogStreamOwnerMAVGResponseProcess(SaNameT                 *pStreamName,
+                                    SaNameT                 *pStreamScopeNode,
                                     ClLogStreamAttrIDLT     *pStreamAttr,
                                     ClIocMulticastAddressT  *pStreamMcastAddr,
                                     ClUint16T               *pStreamId,
@@ -1171,9 +1171,9 @@ clLogStreamOwnerMAVGResponseProcess(ClNameT                 *pStreamName,
 void
 clLogStreamOwnerMAVGResponse(ClIdlHandleT            hLogIdl,
                              ClLogStreamAttrIDLT     *pStreamAttr,
-                             ClNameT                 *pStreamName,
+                             SaNameT                 *pStreamName,
                              ClLogStreamScopeT       *pStreamScope, 
-                             ClNameT                 *pStreamScopeNode,
+                             SaNameT                 *pStreamScopeNode,
                              ClUint16T               *pStreamId,
                              ClIocMulticastAddressT  *pStreamMcastAddr,
                              ClRcT                   retCode,
@@ -1313,8 +1313,8 @@ clLogStreamOwnerMasterOpen(ClLogSOEoDataT         *pSoEoEntry,
                            ClLogStreamScopeT      streamScope,
                            ClCntNodeHandleT       hStreamOwnerNode,
                            ClUint32T              *pCompId,
-                           ClNameT                *pStreamName,
-                           ClNameT                *pStreamScopeNode,
+                           SaNameT                *pStreamName,
+                           SaNameT                *pStreamScopeNode,
                            ClLogStreamAttrIDLT    *pStreamAttr)
 {
     ClRcT                   rc            = CL_OK;
@@ -1466,9 +1466,9 @@ clLogStreamOwnerEntryProcess(ClLogSOEoDataT          *pSoEoEntry,
                              ClLogStreamOwnerDataT   *pStreamOwnerData,
                              ClCntNodeHandleT        hStreamOwnerNode,
                              ClUint32T               *pCompId,
-                             ClNameT                 *pStreamName,
+                             SaNameT                 *pStreamName,
                              ClLogStreamScopeT       streamScope,
-                             ClNameT                 *pStreamScopeNode,
+                             SaNameT                 *pStreamScopeNode,
                              ClLogStreamAttrIDLT     *pStreamAttr,
                              ClIocMulticastAddressT  *pStreamMcastAddr,
                              ClLogFilterT            *pStreamFilter,
@@ -1857,9 +1857,9 @@ clLogStreamOwnerEntryAdd(ClCntHandleT       hStreamTable,
 ClRcT
 clLogStreamOwnerEntryGet(ClLogSOEoDataT         *pSoEoEntry,
                          ClLogStreamOpenFlagsT  openFlags,
-                         ClNameT                *pStreamName, 
+                         SaNameT                *pStreamName, 
                          ClLogStreamScopeT      streamScope,
-                         ClNameT                *pStreamScopeNode,
+                         SaNameT                *pStreamScopeNode,
                          ClCntNodeHandleT       *phStreamOwnerNode,
                          ClLogStreamOwnerDataT  **ppStreamOwnerData,
                          ClBoolT                *pAddedEntry) 
@@ -2070,9 +2070,9 @@ ClRcT
 VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
                            ClLogStreamOpenFlagsT   openFlags,
                            ClIocNodeAddressT       nodeAddr,
-                           ClNameT                 *pStreamName,
+                           SaNameT                 *pStreamName,
                            ClLogStreamScopeT       *pStreamScope, 
-                           ClNameT                 *pStreamScopeNode,
+                           SaNameT                 *pStreamScopeNode,
                            ClUint32T               *pCompId,
                            ClLogStreamAttrIDLT     *pStreamAttr,
                            ClIocMulticastAddressT  *pStreamMcastAddr,
@@ -2223,9 +2223,9 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
  */
 ClRcT
 VDECL_VER(clLogStreamOwnerFilterSet, 4, 0, 0)(
-                          ClNameT            *pStreamName,
+                          SaNameT            *pStreamName,
                           ClLogStreamScopeT  streamScope,
-                          ClNameT            *pStreamScopeNode,
+                          SaNameT            *pStreamScopeNode,
                           ClLogFilterFlagsT  filterFlags,
                           ClLogFilterT       *pLogFilter)
 {
@@ -2790,9 +2790,9 @@ clLogStreamOwnerGlobalShutdown(void)
 
 ClRcT
 VDECL_VER(clLogStreamOwnerFilterGet, 4, 0, 0)(
-                          ClNameT            *pStreamName,
+                          SaNameT            *pStreamName,
                           ClLogStreamScopeT  streamScope,
-                          ClNameT            *pStreamScopeNode, 
+                          SaNameT            *pStreamScopeNode, 
                           ClLogFilterT       *pFilter)
 {
     ClRcT                  rc                = CL_OK;
@@ -2876,9 +2876,9 @@ VDECL_VER(clLogStreamOwnerFilterGet, 4, 0, 0)(
 
 ClRcT
 VDECL_VER(clLogStreamOwnerStreamMcastGet, 4, 0, 0)(
-                               ClNameT                 *pStreamName,
+                               SaNameT                 *pStreamName,
                                ClLogStreamScopeT       streamScope,
-                               ClNameT                 *pStreamScopeNode,
+                               SaNameT                 *pStreamScopeNode,
                                ClIocMulticastAddressT  *pMcastAddr) 
 {
     ClRcT                  rc                = CL_OK;
@@ -2943,9 +2943,9 @@ VDECL_VER(clLogStreamOwnerStreamMcastGet, 4, 0, 0)(
 
 ClRcT
 VDECL_VER(clLogStreamOwnerHandlerRegister, 4, 0, 0)(
-                                ClNameT                   *pStreamName,
+                                SaNameT                   *pStreamName,
                                 ClLogStreamScopeT         streamScope,
-                                ClNameT                   *pStreamScopeNode,
+                                SaNameT                   *pStreamScopeNode,
                                 ClLogStreamHandlerFlagsT  handlerFlags,
                                 ClIocNodeAddressT         nodeAddr, 
                                 ClUint32T                 compId)
@@ -3082,9 +3082,9 @@ VDECL_VER(clLogStreamOwnerHandlerRegister, 4, 0, 0)(
 
 ClRcT
 VDECL_VER(clLogStreamOwnerHandlerDeregister, 4, 0, 0)(
-                                  ClNameT                   *pStreamName,
+                                  SaNameT                   *pStreamName,
                                   ClLogStreamScopeT         streamScope,
-                                  ClNameT                   *pStreamScopeNode,
+                                  SaNameT                   *pStreamScopeNode,
                                   ClLogStreamHandlerFlagsT  handlerFlags,
                                   ClIocNodeAddressT         nodeAddr,
                                   ClUint32T                 compId)

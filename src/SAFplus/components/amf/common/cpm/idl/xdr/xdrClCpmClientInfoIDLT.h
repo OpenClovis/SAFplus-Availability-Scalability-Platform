@@ -52,7 +52,7 @@ struct _ClCpmClientInfoIDLT_4_0_0;
 
 typedef struct _ClCpmClientInfoIDLT_4_0_0 {
     ClUint32T    version;
-    ClNameT    compName;
+    SaNameT    compName;
     ClEoExecutionObjIDLT_4_0_0    eoObj;
 
 }ClCpmClientInfoIDLT_4_0_0;

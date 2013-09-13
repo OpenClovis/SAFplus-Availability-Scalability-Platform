@@ -583,7 +583,7 @@ ClRcT   _clGmsNameIdDbCreate (ClCntHandleT *dbPtr)
 }
 
 ClRcT   _clGmsNameIdDbAdd (ClCntHandleT  *dbPtr,
-                           ClNameT       *name,
+                           SaNameT       *name,
                            ClGmsGroupIdT  id)
 {
     ClRcT   rc = CL_OK;
@@ -596,7 +596,7 @@ ClRcT   _clGmsNameIdDbAdd (ClCntHandleT  *dbPtr,
         return CL_ERR_NULL_POINTER;
     }
 
-    memcpy(&key.name, name, sizeof(ClNameT));
+    memcpy(&key.name, name, sizeof(SaNameT));
     rc = _clGmsDbGetKey(CL_GMS_NAME_ID_DB, key, &cntKey);
 
     if (rc != CL_OK)
@@ -609,7 +609,7 @@ ClRcT   _clGmsNameIdDbAdd (ClCntHandleT  *dbPtr,
     {
         return CL_ERR_NO_MEMORY;
     }
-    memcpy(&node->name, name, sizeof(ClNameT));
+    memcpy(&node->name, name, sizeof(SaNameT));
     node->groupId = id;
 
     rc = clCntNodeAdd(*dbPtr, cntKey, (ClCntDataHandleT)node, NULL);
@@ -623,7 +623,7 @@ ClRcT   _clGmsNameIdDbAdd (ClCntHandleT  *dbPtr,
 
 
 ClRcT   _clGmsNameIdDbDelete(ClCntHandleT  *dbPtr,
-                             ClNameT       *name)
+                             SaNameT       *name)
 {
     ClRcT   rc = CL_OK;
     ClGmsDbKeyT key = {{0}};
@@ -634,7 +634,7 @@ ClRcT   _clGmsNameIdDbDelete(ClCntHandleT  *dbPtr,
         return CL_ERR_NULL_POINTER;
     }
 
-    memcpy(&key.name, name, sizeof(ClNameT));
+    memcpy(&key.name, name, sizeof(SaNameT));
     rc = _clGmsDbGetKey(CL_GMS_NAME_ID_DB, key, &cntKey);
 
     if (rc != CL_OK)
@@ -677,7 +677,7 @@ ClRcT   _clGmsNameIdDbDestroy (ClCntHandleT  *dbPtr)
 
 
 ClRcT   _clGmsNameIdDbFind(ClCntHandleT  *dbPtr,
-                           ClNameT       *name,
+                           SaNameT       *name,
                            ClGmsGroupIdT *id)
 {
     ClRcT   rc = CL_OK;
@@ -691,7 +691,7 @@ ClRcT   _clGmsNameIdDbFind(ClCntHandleT  *dbPtr,
         return CL_ERR_NULL_POINTER;
     }
 
-    memcpy(&key.name, name, sizeof(ClNameT));
+    memcpy(&key.name, name, sizeof(SaNameT));
     rc = _clGmsDbGetKey(CL_GMS_NAME_ID_DB, key, &cntKey);
 
     if (rc != CL_OK)

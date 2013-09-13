@@ -2112,7 +2112,7 @@ ClRcT VDECL(clEvtEventPublishLocal)(ClEoDataT cData,
      */
     evtChannelKey.channelId = pEvtPrimaryHeader->channelId;
     evtChannelKey.channelName.length = pEvtPrimaryHeader->channelNameLen;
-    strncpy(evtChannelKey.channelName.value,
+    strncpy((ClCharT *)evtChannelKey.channelName.value,
             (char *) (pInData + sizeof(ClEvtEventPrimaryHeaderT)),
             pEvtPrimaryHeader->channelNameLen);
 
@@ -2459,7 +2459,7 @@ ClRcT VDECL(clEvtEventPublishProxy)(ClEoDataT cData,
      */
     evtChannelKey.channelId = pEvtPrimaryHeader->channelId;
     evtChannelKey.channelName.length = pEvtPrimaryHeader->channelNameLen;
-    strncpy(evtChannelKey.channelName.value,
+    strncpy((ClCharT *)evtChannelKey.channelName.value,
             (char *) (pInData + sizeof(ClEvtEventPrimaryHeaderT)),
             pEvtPrimaryHeader->channelNameLen);
 

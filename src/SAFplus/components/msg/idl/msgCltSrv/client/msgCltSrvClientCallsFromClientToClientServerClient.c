@@ -23,7 +23,7 @@
 extern ClIdlClntT gIdlClnt;
 
 
-ClRcT clMsgQueueStatusGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pQueueName, CL_OUT SaMsgQueueStatusT_4_0_0* pQueueStatus)
+ClRcT clMsgQueueStatusGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pQueueName, CL_OUT SaMsgQueueStatusT_4_0_0* pQueueStatus)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -45,7 +45,7 @@ ClRcT clMsgQueueStatusGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNam
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -66,7 +66,7 @@ ClRcT clMsgQueueStatusGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNam
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pQueueName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pQueueName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -103,7 +103,7 @@ ClRcT clMsgQueueStatusGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNam
     return rc;
 }
 
-ClRcT clMsgQueueUnlinkClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pQueueName)
+ClRcT clMsgQueueUnlinkClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pQueueName)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -125,7 +125,7 @@ ClRcT clMsgQueueUnlinkClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT*
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -146,7 +146,7 @@ ClRcT clMsgQueueUnlinkClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT*
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pQueueName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pQueueName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -169,7 +169,7 @@ ClRcT clMsgQueueUnlinkClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT*
     return rc;
 }
 
-ClRcT clMsgQueueInfoGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pQName, CL_OUT SaMsgQueueCreationAttributesT_4_0_0* pQAttrs)
+ClRcT clMsgQueueInfoGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pQName, CL_OUT SaMsgQueueCreationAttributesT_4_0_0* pQAttrs)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -191,7 +191,7 @@ ClRcT clMsgQueueInfoGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -212,7 +212,7 @@ ClRcT clMsgQueueInfoGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pQName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pQName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -249,7 +249,7 @@ ClRcT clMsgQueueInfoGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT
     return rc;
 }
 
-ClRcT clMsgQueueMoveMessagesClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pQName, CL_IN ClUint32T openFlags, CL_IN ClUint16T qDelete)
+ClRcT clMsgQueueMoveMessagesClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pQName, CL_IN ClUint32T openFlags, CL_IN ClUint16T qDelete)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -271,7 +271,7 @@ ClRcT clMsgQueueMoveMessagesClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -292,7 +292,7 @@ ClRcT clMsgQueueMoveMessagesClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pQName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pQName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -327,7 +327,7 @@ ClRcT clMsgQueueMoveMessagesClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
     return rc;
 }
 
-ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint32T sendType, CL_IN ClNameT* pDestination, CL_IN ClMsgMessageIovecT_4_0_0* pMessage, CL_IN ClInt64T sendTime, CL_IN ClHandleT senderHandle, CL_IN ClInt64T timeout)
+ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint32T sendType, CL_IN SaNameT* pDestination, CL_IN ClMsgMessageIovecT_4_0_0* pMessage, CL_IN ClInt64T sendTime, CL_IN ClHandleT senderHandle, CL_IN ClInt64T timeout)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -349,7 +349,7 @@ ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUi
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -376,7 +376,7 @@ ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUi
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pDestination, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pDestination, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -429,14 +429,14 @@ static void clMsgMessageReceivedAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, 
     ClIdlCookieT* pCookie = (ClIdlCookieT*)pIdlCookie;
     ClRcT retVal = CL_OK;
     ClUint32T  sendType;
-    ClNameT  pDestination;
+    SaNameT  pDestination;
     ClMsgMessageIovecT_4_0_0  pMessage;
     ClInt64T  sendTime;
     ClHandleT  senderHandle;
     ClInt64T  timeout;
 
     memset(&(sendType), 0, sizeof(ClUint32T));
-    memset(&(pDestination), 0, sizeof(ClNameT));
+    memset(&(pDestination), 0, sizeof(SaNameT));
     memset(&(pMessage), 0, sizeof(ClMsgMessageIovecT_4_0_0));
     memset(&(sendTime), 0, sizeof(ClInt64T));
     memset(&(senderHandle), 0, sizeof(ClHandleT));
@@ -449,7 +449,7 @@ static void clMsgMessageReceivedAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, 
         goto L0;
     }
 
-    retVal = clXdrUnmarshallClNameT(inMsgHdl, &(pDestination));
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pDestination));
     if (CL_OK != retVal)
     {
         goto L1;
@@ -500,7 +500,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint32T  sendType, CL_IN ClNameT* pDestination, CL_IN ClMsgMessageIovecT_4_0_0* pMessage, CL_IN ClInt64T  sendTime, CL_IN ClHandleT  senderHandle, CL_IN ClInt64T  timeout,CL_IN MsgCltSrvClMsgMessageReceivedAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint32T  sendType, CL_IN SaNameT* pDestination, CL_IN ClMsgMessageIovecT_4_0_0* pMessage, CL_IN ClInt64T  sendTime, CL_IN ClHandleT  senderHandle, CL_IN ClInt64T  timeout,CL_IN MsgCltSrvClMsgMessageReceivedAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -524,7 +524,7 @@ ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClU
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -552,7 +552,7 @@ ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClU
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pDestination, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pDestination, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;

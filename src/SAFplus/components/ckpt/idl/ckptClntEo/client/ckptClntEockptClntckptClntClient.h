@@ -24,17 +24,17 @@ extern "C" {
 
 
 
-typedef void (*CkptClntEoClCkptSectionUpdationNotificationAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClNameT* pName, CL_IN ClCkptSectionIdT_4_0_0* pSecId, CL_IN ClUint32T  dataSize, CL_IN ClUint8T* pData, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*CkptClntEoClCkptSectionUpdationNotificationAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN SaNameT* pName, CL_IN ClCkptSectionIdT_4_0_0* pSecId, CL_IN ClUint32T  dataSize, CL_IN ClUint8T* pData, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef CkptClntEoClCkptSectionUpdationNotificationAsyncCallbackT_4_0_0 CkptClntEoClCkptSectionUpdationNotificationAsyncCallbackT;
 
-ClRcT clCkptSectionUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pName, CL_IN ClCkptSectionIdT_4_0_0* pSecId, CL_IN ClUint32T  dataSize, CL_IN ClUint8T* pData,CL_IN CkptClntEoClCkptSectionUpdationNotificationAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clCkptSectionUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pName, CL_IN ClCkptSectionIdT_4_0_0* pSecId, CL_IN ClUint32T  dataSize, CL_IN ClUint8T* pData,CL_IN CkptClntEoClCkptSectionUpdationNotificationAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
-typedef void (*CkptClntEoClCkptWriteUpdationNotificationAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClNameT* pName, CL_IN ClUint32T  numberOfElements, CL_IN ClCkptIOVectorElementT_4_0_0* pIoVector, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*CkptClntEoClCkptWriteUpdationNotificationAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN SaNameT* pName, CL_IN ClUint32T  numberOfElements, CL_IN ClCkptIOVectorElementT_4_0_0* pIoVector, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef CkptClntEoClCkptWriteUpdationNotificationAsyncCallbackT_4_0_0 CkptClntEoClCkptWriteUpdationNotificationAsyncCallbackT;
 
-ClRcT clCkptWriteUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pName, CL_IN ClUint32T  numberOfElements, CL_IN ClCkptIOVectorElementT_4_0_0* pIoVector,CL_IN CkptClntEoClCkptWriteUpdationNotificationAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clCkptWriteUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pName, CL_IN ClUint32T  numberOfElements, CL_IN ClCkptIOVectorElementT_4_0_0* pIoVector,CL_IN CkptClntEoClCkptWriteUpdationNotificationAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
 
 #ifdef __cplusplus

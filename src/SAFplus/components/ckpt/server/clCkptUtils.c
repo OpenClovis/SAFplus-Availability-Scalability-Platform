@@ -104,8 +104,8 @@ ClUint32T   ckptPeerHashFunc(ClCntKeyHandleT userKey)
  
 ClInt32T  ckptNameCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
-    ClNameT       *pName1 = (ClNameT *)key1;
-    ClNameT       *pName2 = (ClNameT *)key2;
+    SaNameT       *pName1 = (SaNameT *)key1;
+    SaNameT       *pName2 = (SaNameT *)key2;
     ClUint32T    minLen = 0;
     ClInt32T     result = 0; 
     
@@ -345,7 +345,7 @@ static ClInt32T ckptXlationHashKeyCmp(ClCntKeyHandleT key1,
      * Compare the name as well as the associated checksum.
      */
     if((pInfo1->cksum == pInfo2->cksum) &&
-       !strcmp(pInfo1->name.value, pInfo2->name.value))
+       !strcmp((const ClCharT *)pInfo1->name.value, (const ClCharT *)pInfo2->name.value))
     {
         return 0;
     }
@@ -2001,7 +2001,7 @@ exitOnError:
 
 ClInt32T ckptHdlNonUniqueKeyCompare(ClCntDataHandleT givenData, ClCntDataHandleT data)
 {
-    ClNameT *pName = (ClNameT*)givenData;
+    SaNameT *pName = (SaNameT*)givenData;
     ClCkptHdlT ckptHdl = *(ClCkptHdlT*)data;
     CkptT *pCkpt = NULL;
     ClRcT rc;
@@ -2025,7 +2025,7 @@ ClInt32T ckptHdlNonUniqueKeyCompare(ClCntDataHandleT givenData, ClCntDataHandleT
     return ret;
 }
 
-ClDifferenceVectorKeyT *ckptDifferenceVectorKeyGet(const ClNameT *pCkptName, const ClCkptSectionIdT *pSectionId)
+ClDifferenceVectorKeyT *ckptDifferenceVectorKeyGet(const SaNameT *pCkptName, const ClCkptSectionIdT *pSectionId)
 {
     ClDifferenceVectorKeyT *key = clHeapCalloc(1, sizeof(*key));
     static ClCkptSectionIdT defaultSectionId = { .idLen = sizeof("defaultSection")-1, 

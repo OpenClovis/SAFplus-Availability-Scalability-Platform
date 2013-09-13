@@ -384,7 +384,7 @@ static ClRcT clRmdUsageIllustrate(void)
 }
 
 ClCpmHandleT gCpmHandle;
-ClRcT appTerminate(ClInvocationT invocation, const ClNameT *compName)
+ClRcT appTerminate(ClInvocationT invocation, const SaNameT *compName)
 {
     ClRcT rc;
 
@@ -407,7 +407,7 @@ ClRcT appTerminate(ClInvocationT invocation, const ClNameT *compName)
 static ClRcT appInitialize(ClUint32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
-    ClNameT appName;
+    SaNameT appName;
     ClCpmCallbacksT callbacks;
     ClVersionT version;
     ClIocPortT iocPort;

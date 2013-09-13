@@ -50,7 +50,7 @@
 ClRcT clCorTestClientDataSave()
 {
     ClRcT    rc = CL_OK;
-    ClNameT   nodeName ;
+    SaNameT   nodeName ;
     ClCharT   *classDbName = NULL;
 
     clCpmLocalNodeNameGet(&nodeName);
@@ -2158,7 +2158,7 @@ cor_test_Association ()
 
 ClRcT cor_test_moId_nodeName_get()
 {
-    ClNameT nodeName, nodeName1;
+    SaNameT nodeName, nodeName1;
     ClRcT   rc = CL_OK;
     ClCorMOIdT  moId;
     ClCharT     ch[100] = {0};
@@ -2172,14 +2172,14 @@ ClRcT cor_test_moId_nodeName_get()
     if(rc == CL_OK) clCorMoIdShow(&moId);
     
 
-    memset(&nodeName1, 0, sizeof(ClNameT));
+    memset(&nodeName1, 0, sizeof(SaNameT));
     rc = clCorMoIdToNodeNameGet(&moId, &nodeName1);
     ch[0] = '\0';
     sprintf(ch , "\tFor the moId obtained the nodeName obtained: %s, len %d. rc 0x%x. Result[%s] ", nodeName1.value, nodeName1.length, rc, rc?"FAIL":"PASS" );
     CL_COR_TEST_PUT_IN_FILE(ch);
     
     clCorMoIdInstanceSet(&moId, 2, 2);
-    memset(&nodeName1, 0, sizeof(ClNameT));
+    memset(&nodeName1, 0, sizeof(SaNameT));
     rc = clCorMoIdToNodeNameGet(&moId, &nodeName1);
     ch[0] = '\0';
     sprintf(ch , "\tFor an invalid moId,the nodeName obtained: %s, len %d. rc 0x%x. Result[%s] ", 
@@ -3120,7 +3120,7 @@ ClRcT cor_test_oi_register()
 {
     ClRcT       rc = CL_OK;
     ClCharT str[50] = {0}; 
-    ClNameT     moIdName = {0};
+    SaNameT     moIdName = {0};
     ClCorMOIdT  moId;
     ClCorAddrT  compAddr = {clIocLocalAddressGet(), CL_COR_TEST_CLIENT_IOC_PORT };
     ClCorAddrT  compAddr1 = {clIocLocalAddressGet(), CL_COR_TEST_CLIENT_IOC_PORT};
@@ -3280,7 +3280,7 @@ cor_test_moId_2_moidNameGet()
     ClCharT str[] = "aBcDefGhIjKlMnOpQrStAbCdEfGhIjKlMnOpQrStUvWxYzAaBbCcDdEeFfGgHhIiJjKkLlMmNnOo";
     //ClCharT str[] = "aBcDefGhIjKlMnOpQrStAbCdEfGhIjKlMnOpQrStUvWxYzAaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZzAa";
     ClCorMOIdT moId ;
-    ClNameT moIdName = {0};
+    SaNameT moIdName = {0};
 
     clOsalPrintf("Size of the class Name is [%d] \n", strlen(str));
 
@@ -3324,7 +3324,7 @@ cor_test_moId_2_moidNameGet()
 ClRcT cor_test_moIdname_2_moid_get()
 {
     ClRcT   rc = CL_OK;
-    ClNameT moIdName = {0};
+    SaNameT moIdName = {0};
     ClCharT str1[]="\\Aclass:0"; 
     ClCharT str2[]="\\:0";
     ClCharT str3[]="\\";
@@ -3340,7 +3340,7 @@ ClRcT cor_test_moIdname_2_moid_get()
     /**
       * TC - 1 : Positive Test Case 
       */
-    memset(&moIdName, 0, sizeof(ClNameT));
+    memset(&moIdName, 0, sizeof(SaNameT));
     strncpy(moIdName.value, str1, strlen(str1));
     moIdName.length = strlen(str1); 
     clCorMoIdInitialize(&moIdGet);
@@ -3362,7 +3362,7 @@ tc2:
     /**
       * TC - 2 : Negative Test Case 
       */
-    memset(&moIdName, 0, sizeof(ClNameT));
+    memset(&moIdName, 0, sizeof(SaNameT));
     strncpy(moIdName.value, str2, strlen(str2));
     moIdName.length = strlen(str2); 
     clCorMoIdInitialize(&moIdGet);
@@ -3380,7 +3380,7 @@ tc3:
     /**
       * TC - 3 : Negative Test Case 
       */
-    memset(&moIdName, 0, sizeof(ClNameT));
+    memset(&moIdName, 0, sizeof(SaNameT));
     strncpy(moIdName.value, str3, strlen(str3));
     moIdName.length = strlen(str3); 
     clCorMoIdInitialize(&moIdGet);
@@ -3397,7 +3397,7 @@ tc4:
     /**
       * TC - 4 : Negative Test Case 
       */
-    memset(&moIdName, 0, sizeof(ClNameT));
+    memset(&moIdName, 0, sizeof(SaNameT));
     strncpy(moIdName.value, str4, strlen(str4));
     moIdName.length = strlen(str4); 
     clCorMoIdInitialize(&moIdGet);
@@ -3414,7 +3414,7 @@ tc5:
     /**
       * TC - 5 : Positive Test Case 
       */
-    memset(&moIdName, 0, sizeof(ClNameT));
+    memset(&moIdName, 0, sizeof(SaNameT));
     strncpy(moIdName.value, str5, strlen(str5));
     moIdName.length = strlen(str5); 
     clCorMoIdInitialize(&moIdGet);
@@ -3437,7 +3437,7 @@ tc6:
     /**
       * TC - 6 : Positive Test Case 
       */
-    memset(&moIdName, 0, sizeof(ClNameT));
+    memset(&moIdName, 0, sizeof(SaNameT));
     strncpy(moIdName.value, str6, strlen(str6));
     moIdName.length = strlen(str6); 
     clCorMoIdInitialize(&moIdGet);
@@ -3463,7 +3463,7 @@ tc7:
     /**
       * TC - 7 : Positive Test Case 
       */
-    memset(&moIdName, 0, sizeof(ClNameT));
+    memset(&moIdName, 0, sizeof(SaNameT));
     strncpy(moIdName.value, str7, strlen(str7));
     moIdName.length = strlen(str7); 
     clCorMoIdInitialize(&moIdGet);
@@ -3487,7 +3487,7 @@ tc8:
     /**
       * TC - 8 : Negative Test Case 
       */
-    memset(&moIdName, 0, sizeof(ClNameT));
+    memset(&moIdName, 0, sizeof(SaNameT));
     strncpy(moIdName.value, str8, strlen(str8));
     moIdName.length = strlen(str8); 
     clCorMoIdInitialize(&moIdGet);
@@ -4009,7 +4009,7 @@ ClRcT cor_test_retry_initialize_time_requests()
     ClUint32T   size64 = 0;
     ClCorObjectHandleT objH = {{0}};
     ClCorAddrT compAddr = { clIocLocalAddressGet(), CL_COR_TEST_CLIENT_IOC_PORT};
-    ClNameT moIdName = {0}, nodeName = {0};
+    SaNameT moIdName = {0}, nodeName = {0};
 
     rc = clCorClassCreate(0x5005, 0x0);
     if (CL_OK != rc)
@@ -4136,7 +4136,7 @@ ClRcT cor_test_retry_initialize_time_requests()
     else
         clOsalPrintf("TC-13: Successfully obtained the node name [%s]. \n", nodeName.value);
 
-    memset(&moIdName, 0, sizeof(ClNameT));
+    memset(&moIdName, 0, sizeof(SaNameT));
     rc = clCorNodeNameToMoIdGet(nodeName, &moId);
     if (CL_OK != rc)
     {
@@ -4146,7 +4146,7 @@ ClRcT cor_test_retry_initialize_time_requests()
     else
         clOsalPrintf("TC-13: Successfully obtained the moId given the node name. \n");
 
-    memset(&moIdName, 0, sizeof(ClNameT));
+    memset(&moIdName, 0, sizeof(SaNameT));
     memcpy(&moIdName, "//Chassis:0//SystemController:0", sizeof("//Chassis:0//SystemController:0"));
 
     rc = clCorMoIdNameToMoIdGet(&moIdName, &moId);
@@ -4168,14 +4168,14 @@ cor_test_moidName_2_moid_get()
 {
     ClRcT       rc = CL_OK;
     ClCharT     moidName [] = "\\Aclass";
-    ClNameT     tempName = {0};
+    SaNameT     tempName = {0};
     ClCorMOIdT  moId ;
     ClUint32T   i = 0;
     ClCorObjectHandleT  objH = {{0}};
 
     for ( i= 0; i < 200; i++)
     {
-        memset(&tempName, 0, sizeof(ClNameT));
+        memset(&tempName, 0, sizeof(SaNameT));
         clCorMoIdInitialize(&moId);
 
         sprintf(tempName.value, "%s:%d", moidName, i);
@@ -4309,7 +4309,7 @@ ClEventSubscriptionIdT generateSubscriptionId()
 ClRcT clCorTestClientEventInit()
 {
 	ClRcT rc;
-	ClNameT evtChannelName;
+	SaNameT evtChannelName;
         ClVersionT ver = CL_EVENT_VERSION;
 
 	CL_FUNC_ENTER();
@@ -4345,7 +4345,7 @@ ClRcT clCorTestClientEventInit()
 
 
 ClRcT testAppTerminate(ClInvocationT invocation,
-                     const ClNameT  *compName)
+                     const SaNameT  *compName)
 {
     ClRcT rc = CL_OK;
     clOsalPrintf("Inside appTerminate \n");
@@ -4383,7 +4383,7 @@ ClRcT testAppHealthCheck(ClEoSchedFeedBackT *schFeedback)
 
 ClRcT testAppCSISetCallback (
                     CL_IN ClInvocationT invocation,
-                    CL_IN const ClNameT *pCompName,
+                    CL_IN const SaNameT *pCompName,
                     CL_IN ClAmsHAStateT haState,
                     CL_IN ClAmsCSIDescriptorT csiDescriptor )
 {
@@ -4394,8 +4394,8 @@ ClRcT testAppCSISetCallback (
 
 ClRcT testAppCSIRmvCallback (
                         CL_IN ClInvocationT invocation,
-                        CL_IN const ClNameT *pCompName,
-                        CL_IN const ClNameT *pCsiName,
+                        CL_IN const SaNameT *pCompName,
+                        CL_IN const SaNameT *pCsiName,
                         CL_IN ClAmsCSIFlagsT csiFlags)
 {
     clCpmResponse(cpmHandle, invocation, CL_OK);

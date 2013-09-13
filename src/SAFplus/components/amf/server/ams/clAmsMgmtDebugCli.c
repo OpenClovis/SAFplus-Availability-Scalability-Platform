@@ -296,8 +296,8 @@ static ClRcT amsMgmtEntity(const ClCharT *op,
 
     entity.type = entityType;
 
-    strncpy(entity.name.value, entityName, CL_MAX_NAME_LENGTH-1);
-    entity.name.length = strlen(entity.name.value)+1;
+    strncpy((ClCharT*)entity.name.value, entityName, CL_MAX_NAME_LENGTH-1);
+    entity.name.length = strlen((const ClCharT*)entity.name.value)+1;
 
     rc = fn(gCcbHandle, &entity);
     if (CL_OK != rc) goto failure;
@@ -308,7 +308,7 @@ static ClRcT amsMgmtEntity(const ClCharT *op,
         ClAmsCSIConfigT csiConfig = {{0}};
         ClUint64T bitMask = CSI_CONFIG_TYPE;
         memcpy(&csiConfig.entity, &entity, sizeof(csiConfig.entity));
-        clNameSet(&csiConfig.type, entity.name.value);
+        saNameSet(&csiConfig.type, (const ClCharT*)entity.name.value);
         ++csiConfig.type.length;
         rc = clAmsMgmtCCBEntitySetConfig(gCcbHandle, &csiConfig.entity, bitMask);
         if(rc != CL_OK)
@@ -348,7 +348,7 @@ static ClRcT amsMgmtEntity(const ClCharT *op,
                 entity.name.value,
                 strlen(entity.name.value));
         cpmNodeConfig.nodeType.length = strlen(cpmNodeConfig.nodeType.value);
-        clNameCopy(&cpmNodeConfig.nodeIdentifier, &cpmNodeConfig.nodeType);
+        saNameCopy(&cpmNodeConfig.nodeIdentifier, &cpmNodeConfig.nodeType);
         strncpy(cpmNodeConfig.cpmType, "LOCAL", strlen("LOCAL"));
 
         rc = clAmsMgmtCCBCommit(gCcbHandle);
@@ -387,8 +387,8 @@ static ClRcT amsMgmtSGSet(ClUint32T argc,
     {
         targetEntity.type = CL_AMS_ENTITY_TYPE_SI;
         
-        strncpy(targetEntity.name.value, value, CL_MAX_NAME_LENGTH-1);
-        targetEntity.name.length = strlen(targetEntity.name.value)+1;
+        strncpy((ClCharT*)targetEntity.name.value, value, CL_MAX_NAME_LENGTH-1);
+        targetEntity.name.length = strlen((const ClCharT*)targetEntity.name.value)+1;
                 
         rc = clAmsMgmtCCBSetSGSIList(gCcbHandle,
                                      entity,
@@ -399,8 +399,8 @@ static ClRcT amsMgmtSGSet(ClUint32T argc,
     {
         targetEntity.type = CL_AMS_ENTITY_TYPE_SU;
 
-        strncpy(targetEntity.name.value, value, CL_MAX_NAME_LENGTH-1);
-        targetEntity.name.length = strlen(targetEntity.name.value)+1;
+        strncpy((ClCharT*)targetEntity.name.value, value, CL_MAX_NAME_LENGTH-1);
+        targetEntity.name.length = strlen((const ClCharT*)targetEntity.name.value)+1;
                 
         rc = clAmsMgmtCCBSetSGSUList(gCcbHandle,
                                      entity,
@@ -852,8 +852,8 @@ static ClRcT amsMgmtSISet(ClUint32T argc,
     {
         targetEntity.type = CL_AMS_ENTITY_TYPE_CSI;
 
-        strncpy(targetEntity.name.value, value, CL_MAX_NAME_LENGTH-1);
-        targetEntity.name.length = strlen(targetEntity.name.value)+1;
+        strncpy((ClCharT*)targetEntity.name.value, value, CL_MAX_NAME_LENGTH-1);
+        targetEntity.name.length = strlen((const ClCharT*)targetEntity.name.value)+1;
                 
         rc = clAmsMgmtCCBSetSICSIList(gCcbHandle,
                                       entity,
@@ -901,13 +901,13 @@ static ClRcT amsMgmtCSISet(ClUint32T argc,
             goto failure;
         }
 
-        clNameCopy(&nvp.csiName, &entity->name);
+        saNameCopy(&nvp.csiName, &entity->name);
         
-        strncpy(nvp.paramName.value, argv[4], strlen(argv[4]));
-        nvp.paramName.length = strlen(nvp.paramName.value);
+        strncpy((ClCharT*)nvp.paramName.value, argv[4], strlen(argv[4]));
+        nvp.paramName.length = strlen((const ClCharT*)nvp.paramName.value);
         
-        strncpy(nvp.paramValue.value, argv[5], strlen(argv[5]));
-        nvp.paramValue.length = strlen(nvp.paramValue.value);
+        strncpy((ClCharT*)nvp.paramValue.value, argv[5], strlen(argv[5]));
+        nvp.paramValue.length = strlen((const ClCharT*)nvp.paramValue.value);
 
         rc = clAmsMgmtCCBCSISetNVP(gCcbHandle, entity, &nvp);
         if (CL_OK != rc) goto failure;
@@ -945,8 +945,8 @@ static ClRcT amsMgmtNodeSet(ClUint32T argc,
     {
         targetEntity.type = CL_AMS_ENTITY_TYPE_SU;
 
-        strncpy(targetEntity.name.value, value, CL_MAX_NAME_LENGTH-1);
-        targetEntity.name.length = strlen(targetEntity.name.value)+1;
+        strncpy((ClCharT*)targetEntity.name.value, value, CL_MAX_NAME_LENGTH-1);
+        targetEntity.name.length = strlen((const ClCharT*)targetEntity.name.value)+1;
 
         rc = clAmsMgmtCCBSetNodeSUList(gCcbHandle,
                                        entity,
@@ -1084,8 +1084,8 @@ static ClRcT amsMgmtSUSet(ClUint32T argc,
     {
         targetEntity.type = CL_AMS_ENTITY_TYPE_COMP;
 
-        strncpy(targetEntity.name.value, value, CL_MAX_NAME_LENGTH-1);
-        targetEntity.name.length = strlen(targetEntity.name.value)+1;
+        strncpy((ClCharT*)targetEntity.name.value, value, CL_MAX_NAME_LENGTH-1);
+        targetEntity.name.length = strlen((const ClCharT*)targetEntity.name.value)+1;
 
         rc = clAmsMgmtCCBSetSUCompList(gCcbHandle,
                                        entity,
@@ -1176,11 +1176,11 @@ static ClRcT amsMgmtCompSet(ClUint32T argc,
 
     if (STREQ(attr, "supported_csi_types"))
     {
-        ClNameT supportedCSIType;
+        SaNameT supportedCSIType;
 
-        memset(&supportedCSIType, 0, sizeof(ClNameT));
+        memset(&supportedCSIType, 0, sizeof(SaNameT));
 
-        clNameSet(&supportedCSIType, value);
+        saNameSet(&supportedCSIType, value);
         ++supportedCSIType.length;
         rc = clAmsMgmtEntityGetConfig(gHandle,
                                       entity,
@@ -1516,8 +1516,8 @@ static ClRcT amsMgmtEntitySet(const ClAmsEntityTypeT entityType,
     
     entity.type = entityType;
 
-    strncpy(entity.name.value, targetEntityName, CL_MAX_NAME_LENGTH-1);
-    entity.name.length = strlen(entity.name.value)+1;
+    strncpy((ClCharT*)entity.name.value, targetEntityName, CL_MAX_NAME_LENGTH-1);
+    entity.name.length = strlen((const ClCharT*)entity.name.value)+1;
 
     switch (entityType)
     {

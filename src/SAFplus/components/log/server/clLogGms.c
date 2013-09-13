@@ -331,7 +331,7 @@ clLogMasterEntryTLUpdate(ClLogSvrEoDataT        *pSvrEoEntry,
                          ClUint32T              haState)
 {
     ClRcT         rc         = CL_OK;
-    ClNameT       logSvrName = {0};
+    SaNameT       logSvrName = {0};
     ClIocTLInfoT  tlInfo     = {0};
 
     CL_LOG_DEBUG_TRACE(("Enter"));

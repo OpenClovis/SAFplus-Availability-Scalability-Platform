@@ -46,8 +46,8 @@ clLogMasterFileEntryAdd(ClLogMasterEoDataT   *pMasterEoEntry,
 static ClRcT
 clLogMasterFileStreamAttrGet(ClLogMasterEoDataT      *pMasterEoEntry,
                              ClCntNodeHandleT        hFileNode,
-                             ClNameT                 *pStreamName,
-                             ClNameT                 *pStreamScopeNode,
+                             SaNameT                 *pStreamName,
+                             SaNameT                 *pStreamScopeNode,
                              ClUint16T               *pStreamId,
                              ClIocMulticastAddressT  *pStreamMcastAddr);
 
@@ -142,9 +142,9 @@ clLogMasterShutdown(void)
 ClRcT
 VDECL_VER(clLogMasterAttrVerifyNGet, 4, 0, 0)(
                           ClLogStreamAttrIDLT     *pStreamAttr,
-                          ClNameT                 *pStreamName,
+                          SaNameT                 *pStreamName,
                           ClLogStreamScopeT       *pStreamScope,
-                          ClNameT                 *pStreamScopeNode,
+                          SaNameT                 *pStreamScopeNode,
                           ClUint16T               *pStreamId,
                           ClIocMulticastAddressT  *pStreamMcastAddr)
 {
@@ -636,8 +636,8 @@ clLogMasterStreamEntryDeleteCb(ClCntKeyHandleT   key,
 static ClRcT
 clLogMasterFileStreamAttrGet(ClLogMasterEoDataT      *pMasterEoEntry,
                              ClCntNodeHandleT        hFileNode,
-                             ClNameT                 *pStreamName,
-                             ClNameT                 *pStreamScopeNode,
+                             SaNameT                 *pStreamName,
+                             SaNameT                 *pStreamScopeNode,
                              ClUint16T               *pStreamId,
                              ClIocMulticastAddressT  *pStreamMcastAddr)
 {
@@ -749,13 +749,12 @@ clLogMasterFileStreamEntryAdd(ClUint16T           streamId,
 
     pStreamData->streamMcastAddr = CL_IOC_RESERVED_ADDRESS;
     pStreamData->streamId        = streamId;
-    if( 0 == pStreamData->streamId )
+    if (0 == pStreamData->streamId)
     {
-        for( count = 0; count < nStdStream; count++ )
+        for (count = 0; count < nStdStream; count++)
         {
-            if( !strncmp(pStreamKey->streamName.value, 
-                         stdStreamList[count].streamName.value, 
-                         pStreamKey->streamName.length) )
+            if (!strncmp((const ClCharT *) pStreamKey->streamName.value, (const ClCharT *) stdStreamList[count].streamName.value,
+                            pStreamKey->streamName.length))
             {
                 pStreamData->streamId = count + 1;
                 break;
@@ -850,9 +849,9 @@ ClRcT
 VDECL_VER(clLogMasterStreamCloseNotify, 4, 0, 0)(
                              ClStringT          *pFileName,
                              ClStringT          *pFileLocation,
-                             ClNameT            *pStreamName,
+                             SaNameT            *pStreamName,
                              ClLogStreamScopeT  streamScope,
-                             ClNameT            *pStreamScopeNode)
+                             SaNameT            *pStreamScopeNode)
 {
     ClRcT                   rc              = CL_OK;
     ClLogMasterEoDataT      *pMasterEoEntry = NULL;
@@ -1007,12 +1006,12 @@ clLogMasterStreamInfoGet(ClCntKeyHandleT   key,
     {
         return rc;
     }
-    rc = clXdrMarshallClNameT(&pStreamKey->streamName, msg, 0);
+    rc = clXdrMarshallSaNameT(&pStreamKey->streamName, msg, 0);
     if( CL_OK != rc )
     {
         return rc;
     }
-    rc = clXdrMarshallClNameT(&pStreamKey->streamScopeNode, msg, 0);
+    rc = clXdrMarshallSaNameT(&pStreamKey->streamScopeNode, msg, 0);
     if( CL_OK != rc )
     {
         return rc;
@@ -1251,7 +1250,7 @@ ClRcT
 clLogMasterCompEntryGet(ClLogMasterEoDataT     *pMasterEoEntry,
                         ClLogSvrCommonEoDataT  *pCommonEoEntry, 
                         ClLogMasterCompKeyT    *pCompKey,
-                        ClNameT                *pCompName, 
+                        SaNameT                *pCompName, 
                         ClUint32T              *pClientId,
                         ClBoolT                restart)
 {
@@ -1367,7 +1366,7 @@ clLogMasterCompEntryGet(ClLogMasterEoDataT     *pMasterEoEntry,
 }
 
 ClRcT 
-clLogMasterCompNameGet(ClNameT  *pCompName, 
+clLogMasterCompNameGet(SaNameT  *pCompName, 
                        ClCharT  **ppCompPrefix)
 {
     ClRcT  rc = CL_OK;
@@ -1391,7 +1390,7 @@ clLogMasterCompNameGet(ClNameT  *pCompName,
 }
 
 ClRcT
-clLogMasterCompEntryUpdate(ClNameT    *pCompName,
+clLogMasterCompEntryUpdate(SaNameT    *pCompName,
                            ClUint32T  *pClientId,
                            ClBoolT    restart)
 {
@@ -1449,7 +1448,7 @@ clLogMasterCompEntryUpdate(ClNameT    *pCompName,
 }
 
 ClRcT
-VDECL_VER(clLogMasterCompIdChkNGet, 4, 0, 0)(ClNameT    *pCompName,
+VDECL_VER(clLogMasterCompIdChkNGet, 4, 0, 0)(SaNameT    *pCompName,
                                              ClUint32T  *pClientId)
 {
     ClRcT  rc = CL_OK;
@@ -1619,23 +1618,21 @@ clLogMasterStreamEntryChkNUnset(ClCntKeyHandleT  key,
     {
         return rc;
     }
-    if( pStreamKey->streamScopeNode.length == pArg->pNodeName->length && 
-        !strncmp(pStreamKey->streamScopeNode.value, pArg->pNodeName->value, pArg->pNodeName->length) )
+    if (pStreamKey->streamScopeNode.length == pArg->pNodeName->length
+                    && !strncmp((const ClCharT *) pStreamKey->streamScopeNode.value, (const ClCharT *) pArg->pNodeName->value,
+                                    pArg->pNodeName->length))
     {
         /*
          * This particular stream is created by this going node
          * Hence marking this as invalid 
          */
-        clLogDebug(CL_LOG_AREA_MASTER, CL_LOG_CTX_FO_INIT, 
-                "Invalidating the stream [%.*s:%.*s]", pStreamKey->streamScopeNode.length, 
-                pStreamKey->streamScopeNode.value, pStreamKey->streamName.length,
-                pStreamKey->streamName.value);
+        clLogDebug(CL_LOG_AREA_MASTER, CL_LOG_CTX_FO_INIT, "Invalidating the stream [%.*s:%.*s]", pStreamKey->streamScopeNode.length,
+                        pStreamKey->streamScopeNode.value, pStreamKey->streamName.length, pStreamKey->streamName.value);
         bitNum = pStreamData->streamMcastAddr - pMasterEoEntry->startMcastAddr;
         rc = clBitmapBitClear(pMasterEoEntry->hAllocedAddrMap, bitNum);
-        if( CL_OK != rc )
+        if (CL_OK != rc)
         {
-            clLogWarning(CL_LOG_AREA_MASTER, CL_LOG_CTX_FO_INIT, 
-                    "Failed to clear the bit [%d]", bitNum);
+            clLogWarning(CL_LOG_AREA_MASTER, CL_LOG_CTX_FO_INIT, "Failed to clear the bit [%d]", bitNum);
         }
         pStreamData->streamMcastAddr = CL_IOC_RESERVED_ADDRESS;
         ++pArg->numStreams;
@@ -1647,7 +1644,7 @@ clLogMasterStreamEntryChkNUnset(ClCntKeyHandleT  key,
 static
 ClRcT
 clLogMasterEntryNodedownUpdate(ClLogFileDataT   *pFileData, 
-                               ClNameT          *pNodeName, 
+                               SaNameT          *pNodeName, 
                                ClBoolT          *pFlag)
 {
     ClRcT  rc = CL_OK;
@@ -1668,7 +1665,7 @@ clLogMasterEntryNodedownUpdate(ClLogFileDataT   *pFileData,
     return CL_OK;
 }
 
-ClRcT clLogNodeDownMasterDBUpdate(ClNameT*  nodeName)
+ClRcT clLogNodeDownMasterDBUpdate(SaNameT*  nodeName)
 {
     ClRcT               rc              = CL_OK;
     ClLogMasterEoDataT  *pMasterEoEntry = NULL;

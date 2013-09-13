@@ -50,8 +50,8 @@ extern "C" {
 struct _ClCpmCompRegisterT_4_0_0;
 
 typedef struct _ClCpmCompRegisterT_4_0_0 {
-    ClNameT    compName;
-    ClNameT    proxyCompName;
+    SaNameT    compName;
+    SaNameT    proxyCompName;
     ClUint32T    eoPort;
 
 }ClCpmCompRegisterT_4_0_0;

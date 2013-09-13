@@ -69,25 +69,25 @@ def SaVersionT(releaseCode,major,minor):
   savt = asp.SaVersionT()
   return setSaVersionT(savt,releaseCode,major,minor)
 
-def getCNameT(clNameT):
-  """Convert a clNameT object into a string
-  Its probably a bug somewhere, but sometimes the clNameT is not correctly ended by SWIG, so this function applies fixups.
-  @param   clNameT  ASP clNameT C object
+def getCNameT(saNameT):
+  """Convert a saNameT object into a string
+  Its probably a bug somewhere, but sometimes the saNameT is not correctly ended by SWIG, so this function applies fixups.
+  @param   saNameT  ASP saNameT C object
   @returns string of the name
   """
   try:
-    if ord(clNameT.value[clNameT.length-1]) == 0: # Amf fixup
-      return clNameT.value[0:clNameT.length-1]
+    if ord(saNameT.value[saNameT.length-1]) == 0: # Amf fixup
+      return saNameT.value[0:saNameT.length-1]
     else:
-      return clNameT.value[0:clNameT.length]
+      return saNameT.value[0:saNameT.length]
   except IndexError:
-    return clNameT.value
+    return saNameT.value
 
-def setCNameT(clNameT, s):
-  """Put a string into an ASP clNameT C object
-  @param clNameT the destination C code
+def setCNameT(saNameT, s):
+  """Put a string into an ASP saNameT C object
+  @param saNameT the destination C code
   @param str     The source string
-  @returns clNameT
+  @returns saNameT
   """
   try: # strip unicode, if val is a string
     s = s.encode('utf8')
@@ -95,6 +95,6 @@ def setCNameT(clNameT, s):
     pass
   s = str(s)
 
-  clNameT.value  = s
-  clNameT.length = len(s) + 1
-  return clNameT
+  saNameT.value  = s
+  saNameT.length = len(s) + 1
+  return saNameT

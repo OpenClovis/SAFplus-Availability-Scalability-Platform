@@ -47,7 +47,7 @@ ClRcT clXdrMarshallSaMsgQueueGroupMemberT_4_0_0(void* pGenVar, ClBufferHandleT m
         length = 1;
         clXdrMarshallClUint32T(&length, msg, 0);
 
-    rc = clXdrMarshallClNameT(&(pVar->queueName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->queueName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

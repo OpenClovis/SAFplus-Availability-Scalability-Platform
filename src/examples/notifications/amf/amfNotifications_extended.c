@@ -48,7 +48,7 @@ extern ClRcT getSlotFromSU(const SaNameT *su, ClIocNodeAddressT *slot);
 /*
  * New auxiliary function to get active comp from sg name
  */
-extern ClRcT getCompsFromSG(ClAmsMgmtHandleT mgmtHandle, const ClNameT *sg);
+extern ClRcT getCompsFromSG(ClAmsMgmtHandleT mgmtHandle, const SaNameT *sg);
 /*
  * If SI/SU ha state notifications indicate active ha state for si/su,
  * get SU comp list. 
@@ -66,7 +66,7 @@ static ClRcT getComps(const SaNameT *si, const SaNameT *su)
     ClAmsSIConfigT *siConfig = NULL;
 
     targetEntity.type = CL_AMS_ENTITY_TYPE_SU;
-    clNameCopy(&targetEntity.name, (ClNameT*)su);
+    saNameCopy(&targetEntity.name, (SaNameT*)su);
 
     /*
      * If you want, get su or si config to check parent SG 
@@ -86,7 +86,7 @@ static ClRcT getComps(const SaNameT *si, const SaNameT *su)
      * Or you can fetch SG from si config as well
      */
     targetEntity.type = CL_AMS_ENTITY_TYPE_SI;
-    clNameCopy(&targetEntity.name, (ClNameT*)si);
+    saNameCopy(&targetEntity.name, (SaNameT*)si);
 
     rc = clAmsMgmtEntityGetConfig(mgmtHandle, &targetEntity, (ClAmsEntityConfigT**)&siConfig);
     if(rc != CL_OK)
@@ -107,7 +107,7 @@ static ClRcT getComps(const SaNameT *si, const SaNameT *su)
 #endif
 
     targetEntity.type = CL_AMS_ENTITY_TYPE_SU;
-    clNameCopy(&targetEntity.name, (ClNameT*)su);
+    saNameCopy(&targetEntity.name, (SaNameT*)su);
 
     /*  
      * Get SU comp list for the active components since we fetch this on 
@@ -230,8 +230,8 @@ static ClAmsMgmtDBHandleT cache;
  * if compName is provided and SUname is null, then get parent SU for the component
  * and si (when assigned csi) in suRet and siRet
  */
-ClRcT getCompRestartConfig(const SaNameT *suName, const ClNameT *compName,
-                           ClNameT *suRet, ClNameT *siRet)
+ClRcT getCompRestartConfig(const SaNameT *suName, const SaNameT *compName,
+                           SaNameT *suRet, SaNameT *siRet)
 {
     ClRcT rc = CL_OK;
     ClAmsCompConfigT *compConfig = NULL;
@@ -249,10 +249,10 @@ ClRcT getCompRestartConfig(const SaNameT *suName, const ClNameT *compName,
     {
         if(suRet)
         {
-            clNameCopy(suRet, (ClNameT*)suName);
+            saNameCopy(suRet, (SaNameT*)suName);
         }
         entity.type = CL_AMS_ENTITY_TYPE_SU;
-        clNameCopy(&entity.name, (ClNameT*)suName);
+        saNameCopy(&entity.name, (SaNameT*)suName);
         rc = clAmsMgmtDBGetSUCompList(cache, &entity, &compBuffer);
         if(rc != CL_OK) goto out;
         for(ClUint32T i = 0; i < compBuffer.count; ++i)
@@ -279,7 +279,7 @@ ClRcT getCompRestartConfig(const SaNameT *suName, const ClNameT *compName,
     else
     {
         entity.type = CL_AMS_ENTITY_TYPE_COMP;
-        clNameCopy(&entity.name, compName);
+        saNameCopy(&entity.name, compName);
         rc = clAmsMgmtDBGetEntityConfig(cache, &entity, (ClAmsEntityConfigT**)&compConfig);
         if(rc != CL_OK) goto out;
         if(compConfig->recoveryOnTimeout == CL_AMS_RECOVERY_COMP_RESTART
@@ -290,7 +290,7 @@ ClRcT getCompRestartConfig(const SaNameT *suName, const ClNameT *compName,
         }
         if(suRet)
         {
-            clNameCopy(suRet, &compConfig->parentSU.entity.name);
+            saNameCopy(suRet, &compConfig->parentSU.entity.name);
         }
         clHeapFree(compConfig);
         compConfig = NULL;
@@ -327,7 +327,7 @@ ClRcT getCompRestartConfig(const SaNameT *suName, const ClNameT *compName,
         clLogNotice("GET", "COMP", "Comp [%s] has SI [%s]",
                     entityComp->name.value, csiConfig->parentSI.entity.name.value);
         if(siRet)
-            clNameCopy(siRet, &csiConfig->parentSI.entity.name);
+            saNameCopy(siRet, &csiConfig->parentSI.entity.name);
         clHeapFree(csiConfig);
         break;
     }
@@ -555,7 +555,7 @@ void clAmsNotificationFinalize(void)
 /*
  * Auxiliary function: get active comp given an SG
  */
-ClRcT getCompsFromSG(ClAmsMgmtHandleT mgmtHandle, const ClNameT *sg)
+ClRcT getCompsFromSG(ClAmsMgmtHandleT mgmtHandle, const SaNameT *sg)
 {
     ClAmsEntityBufferT suBuffer = {0};
     ClAmsEntityBufferT compBuffer = {0};
@@ -565,7 +565,7 @@ ClRcT getCompsFromSG(ClAmsMgmtHandleT mgmtHandle, const ClNameT *sg)
     ClRcT rc = CL_OK;
     
     targetEntity.type = CL_AMS_ENTITY_TYPE_SG;
-    clNameCopy(&targetEntity.name, sg);
+    saNameCopy(&targetEntity.name, sg);
     rc = clAmsMgmtGetSGAssignedSUList(mgmtHandle, &targetEntity, &suBuffer);
     if(rc != CL_OK)
     {
@@ -646,7 +646,7 @@ ClRcT amfSGStart(const ClCharT *name)
     ClAmsSGConfigT *config = NULL;
 
     entity.type = CL_AMS_ENTITY_TYPE_SG;
-    clNameSet(&entity.name, name);
+    saNameSet(&entity.name, name);
     rc = clAmsMgmtEntityGetConfig(mgmtHandle, &entity, (ClAmsEntityConfigT**)&config);
     if(rc != CL_OK)
     {
@@ -732,14 +732,14 @@ ClRcT getSlotFromSU(const SaNameT *su, ClIocNodeAddressT *slot)
     if(slot)
         *slot = 0;
     entity.type = CL_AMS_ENTITY_TYPE_SU;
-    clNameCopy(&entity.name, (const ClNameT*)su);
+    saNameCopy(&entity.name, (const SaNameT*)su);
     rc = clAmsMgmtEntityGetConfig(mgmtHandle, &entity, (ClAmsEntityConfigT**)&suConfig);
     if(rc != CL_OK)
     {
         clLogError("SUS", "CONFIG", "SU [%.*s] get config returned [%#x]", su->length, su->value, rc);
         return rc;
     }
-    clNameSet(&slotInfo.nodeName, suConfig->parentNode.entity.name.value);
+    saNameSet(&slotInfo.nodeName, suConfig->parentNode.entity.name.value);
     rc = clCpmSlotGet(CL_CPM_NODENAME, &slotInfo);
     if(rc != CL_OK)
     {

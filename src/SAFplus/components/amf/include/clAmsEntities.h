@@ -114,7 +114,7 @@ typedef struct
 #define CL_AMS_FLAG_FREE         (0x8)
 #define CL_AMS_FLAG_DIRTY        (CL_AMS_FLAG_CONFIG_DIRTY | CL_AMS_FLAG_STATUS_DIRTY)
     ClAmsEntityTypeT        type;                   /**< Type of entity (SG,SU,SI,CSI, etc) */
-    ClNameT                 name;                   /**< unique name of entity */
+    SaNameT                 name;                   /**< unique name of entity */
     ClUint8T                debugFlags;             /* debug sub area flags  */
 
 #if defined (CL_AMS_MGMT_HOOKS)
@@ -368,7 +368,7 @@ typedef ClRcT (*ClAmsEntityRefCallbackT)(
 
 typedef struct
 {
-    ClNameT         typeString;                     /**< string representation */
+    SaNameT         typeString;                     /**< string representation */
     void            *defaultConfig;                 /**< default config        */
     ClUint32T       configSize;                     /**< size of config struct */
     void            *defaultMethods;                /**< default methods       */
@@ -390,7 +390,7 @@ typedef struct
     ClAmsAdminStateT        adminState;             /**< can AMS use entity?   */
     ClUint32T               id;                     /**< unique id in cluster  */
     ClAmsNodeClassT         classType;              /**< profile (A,B,C,D)     */
-    ClNameT                 subClassType;           /**< eg: SDH_OC48C_V3      */
+    SaNameT                 subClassType;           /**< eg: SDH_OC48C_V3      */
     ClBoolT                 isSwappable;            /**< is node a FRU ?       */
     ClBoolT                 isRestartable;          /**< is node restartable ? */
     ClBoolT                 autoRepair;             /**< does node autorepair  */
@@ -791,8 +791,8 @@ typedef struct
 {
     ClAmsEntityConfigT      entity;             /**< base class                */
     ClUint32T               numSupportedCSITypes; /**<supported csi type count*/
-    ClNameT                 *pSupportedCSITypes;  /**< CSI types supported */
-    ClNameT                 proxyCSIType;       /**< CSI type of proxy, if any */
+    SaNameT                 *pSupportedCSITypes;  /**< CSI types supported */
+    SaNameT                 proxyCSIType;       /**< CSI type of proxy, if any */
     ClAmsCompCapModelT      capabilityModel;    /**< how to assign CSIs        */
     ClAmsCompPropertyT      property;           /**< component type/property   */
     ClBoolT                 isRestartable;      /**< is component restart ok ? */
@@ -902,9 +902,9 @@ typedef struct
  */
 typedef struct
 {
-    ClNameT                 csiName;            /**< What CSI this NVP is associated with */
-    ClNameT                 paramName;          /**< String name of the parameter   */
-    ClNameT                 paramValue;         /**< String value of the parameter  */
+    SaNameT                 csiName;            /**< What CSI this NVP is associated with */
+    SaNameT                 paramName;          /**< String name of the parameter   */
+    SaNameT                 paramValue;         /**< String value of the parameter  */
 } ClAmsCSINameValuePairT;
 
     /**
@@ -914,7 +914,7 @@ typedef struct
 {
     ClAmsEntityConfigT      entity;             /**< base class                */
 
-    ClNameT                 type;               /**< type of CSI in SNMP       */
+    SaNameT                 type;               /**< type of CSI in SNMP       */
     ClBoolT                 isProxyCSI;         /**< Is this a proxy CSI?      */
                                                 /**< Future: Set this in CW    */
                                                 /**< For now we compute it     */

@@ -69,7 +69,7 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
                            ClLogStreamAttrIDLT     *pStreamAttr,
                            ClStringT               *pShmName,
                            ClUint32T               *pShmSize,
-                           ClNameT                 *pStreamName);
+                           SaNameT                 *pStreamName);
 
 static ClRcT
 clLogSvrShmAndFlusherClose(ClLogSvrStreamDataT    *pSvrStreamData);
@@ -79,9 +79,9 @@ clLogSvrFlusherClose(CL_IN ClLogSvrStreamDataT  *pSvrStreamData);
 
 
 static ClRcT
-clLogSvrSOStreamClose(ClNameT            *pStreamName,
+clLogSvrSOStreamClose(SaNameT            *pStreamName,
                       ClLogStreamScopeT  streamScope,
-                      ClNameT            *pStreamScopeNode,
+                      SaNameT            *pStreamScopeNode,
                       ClUint32T          compId,
                       ClIocNodeAddressT  localAddress);
 
@@ -97,7 +97,7 @@ clLogSvrFilterSetClientInformCb(ClCntKeyHandleT   key,
                                ClUint32T         size);
 
 static ClRcT
-clLogSvrStdStreamShmCreate(ClNameT                 *pStreamName,
+clLogSvrStdStreamShmCreate(SaNameT                 *pStreamName,
                            ClStringT               *pShmName,
                            ClUint32T               shmSize,
                            ClLogStreamAttrIDLT     *pStreamAttr,
@@ -113,8 +113,8 @@ clLogSvrLocalFileOwnerNFlusherStart(void);
 
 static ClRcT 
 clLogSvrStreamEntryUpdate(ClLogSvrEoDataT         *pSvrEoEntry,
-                          ClNameT                 *pStreamName,
-                          ClNameT                 *pStreamScopeNode,
+                          SaNameT                 *pStreamName,
+                          SaNameT                 *pStreamScopeNode,
                           ClCntNodeHandleT        hSvrStreamNode,
                           ClUint32T               compId, 
 			    	      ClLogStreamAttrIDLT     *pStreamAttr,
@@ -128,15 +128,15 @@ clLogSvrStreamEntryUpdate(ClLogSvrEoDataT         *pSvrEoEntry,
 static  ClRcT
 clLogSvrInitialEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
                         ClLogSvrCommonEoDataT  *pSvrCommonEoEntry,
-                        ClNameT                *pStreamName,
-                        ClNameT                *pStreamScopeNode,
+                        SaNameT                *pStreamName,
+                        SaNameT                *pStreamScopeNode,
                         ClUint32T              compId,
                         ClIocPortT             portId,
                         ClBoolT                addCompEntry,
                         ClCntNodeHandleT       *phSvrStreamNode);
 static ClRcT
-clLogLocalFlusherSetup(ClNameT              *pStreamName,
-                       ClNameT              *pStreamScopeNode, 
+clLogLocalFlusherSetup(SaNameT              *pStreamName,
+                       SaNameT              *pStreamScopeNode, 
                        ClLogStreamAttrIDLT  *pStreamAttr);
 
 ClRcT
@@ -367,9 +367,9 @@ clLogSvrSOSOResponseCleanup(ClLogSvrEoDataT  *pSvrEoEntry,
 }
 
 ClRcT
-clLogSvrSOSOResponseProcess(ClNameT                 *pStreamName,
+clLogSvrSOSOResponseProcess(SaNameT                 *pStreamName,
                             ClLogStreamScopeT       *pStreamScope,
-			    	    	ClNameT                 *pStreamScopeNode,
+			    	    	SaNameT                 *pStreamScopeNode,
 					     	ClUint32T        		*pCompId,
 			    	     	ClLogStreamAttrIDLT     *pStreamAttr,
                        		ClIocMulticastAddressT  *pStreamMcastAddr,
@@ -461,9 +461,9 @@ void
 clLogSvrSOSOResponse(CL_OUT     ClIdlHandleT            hLogIdl,
                      CL_OUT     ClLogStreamOpenFlagsT   streamOpenFlags,
                      CL_OUT     ClIocNodeAddressT       nodeAddr,
-			    	 CL_INOUT	ClNameT                 *pStreamName,
+			    	 CL_INOUT	SaNameT                 *pStreamName,
                      CL_INOUT   ClLogStreamScopeT       *pStreamScope,
-			    	 CL_INOUT	ClNameT                 *pStreamScopeNode,
+			    	 CL_INOUT	SaNameT                 *pStreamScopeNode,
 					 CL_INOUT  	ClUint32T        		*pCompId,
 			    	 CL_INOUT  	ClLogStreamAttrIDLT     *pStreamAttr,
                      CL_IN 		ClIocMulticastAddressT  *pStreamMcastAddr,
@@ -706,7 +706,7 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
                            ClLogStreamAttrIDLT     *pStreamAttr,
                            ClStringT               *pShmName,
                            ClUint32T               *pShmSize,
-                           ClNameT                 *pStreamName)
+                           SaNameT                 *pStreamName)
 {
     ClRcT                  rc                 = CL_OK;
     ClLogSvrStreamDataT    *pSvrStreamData    = NULL;
@@ -776,8 +776,8 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
 }
 
 ClRcT
-clLogSvrShmNameCreate(ClNameT    *pStreamName,
-                      ClNameT    *pStreamScopeNode,
+clLogSvrShmNameCreate(SaNameT    *pStreamName,
+                      SaNameT    *pStreamScopeNode,
                       ClStringT  *pShmName)
 {
     ClRcT       rc      = CL_OK;
@@ -817,9 +817,9 @@ clLogSvrShmNameDelete(ClStringT  *pShmName)
 
 
 static ClRcT
-clLogSvrSOStreamClose(ClNameT            *pStreamName,
+clLogSvrSOStreamClose(SaNameT            *pStreamName,
                       ClLogStreamScopeT  streamScope,
-                      ClNameT            *pStreamScopeNode,
+                      SaNameT            *pStreamScopeNode,
                       ClUint32T          compId,
                       ClIocNodeAddressT  localAddress)
 {
@@ -855,9 +855,9 @@ clLogSvrSOStreamClose(ClNameT            *pStreamName,
 
 ClRcT
 VDECL_VER(clLogSvrStreamClose, 4, 0, 0)(
-                    CL_IN  ClNameT            *pStreamName,
+                    CL_IN  SaNameT            *pStreamName,
                     CL_IN  ClLogStreamScopeT  streamScope,
-                    CL_IN  ClNameT            *pStreamScopeNode,
+                    CL_IN  SaNameT            *pStreamScopeNode,
                     CL_IN  ClUint32T          compId)
 {
     ClRcT                  rc                 = CL_OK;
@@ -1186,8 +1186,8 @@ clLogSvrStreamEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
 
 ClRcT
 clLogSvrStreamEntryGet(CL_IN   ClLogSvrEoDataT   *pSvrEoEntry,
-		               CL_IN   ClNameT           *pStreamName,
-		               CL_IN   ClNameT           *pStreamScopeNode,
+		               CL_IN   SaNameT           *pStreamName,
+		               CL_IN   SaNameT           *pStreamScopeNode,
                        CL_IN   ClBoolT           createFlag,
 		               CL_OUT  ClCntNodeHandleT  *phSvrStreamNode,
                        CL_OUT  ClBoolT           *pAddedEntry)
@@ -1312,9 +1312,9 @@ clLogSvrStreamEntryDeleteCb(ClCntKeyHandleT   userKey,
 
 ClRcT
 VDECL_VER(clLogSvrStreamOpen, 4, 0, 0)(
-                   CL_IN   ClNameT                *pStreamName,
+                   CL_IN   SaNameT                *pStreamName,
                    CL_IN   ClLogStreamScopeT      streamScope,
-                   CL_IN   ClNameT                *pStreamScopeNode,
+                   CL_IN   SaNameT                *pStreamScopeNode,
                    CL_IN   ClLogStreamAttrIDLT    *pStreamAttr,
                    CL_IN   ClLogStreamOpenFlagsT  streamOpenFlags,
                    CL_IN   ClUint32T              compId,
@@ -1633,8 +1633,8 @@ clLogSvrShmMapAndGet(ClOsalShmIdT  fd,
 }
 
 ClRcT
-clLogSvrDebugSeverityGet(ClNameT *pStreamName,
-                         ClNameT *pStreamScopeNode,
+clLogSvrDebugSeverityGet(SaNameT *pStreamName,
+                         SaNameT *pStreamScopeNode,
                          ClLogSeverityFilterT *pSeverityFilter)
 {
     ClRcT                  rc                 = CL_OK;
@@ -1643,7 +1643,7 @@ clLogSvrDebugSeverityGet(ClNameT *pStreamName,
     ClBoolT                addedEntry         = CL_FALSE;
     ClLogSvrStreamDataT    *pSvrStreamData    = NULL;
     ClLogSvrCommonEoDataT  *pSvrCommonEoEntry = NULL;
-    ClNameT streamScopeNode = {0};
+    SaNameT streamScopeNode = {0};
     ClLogSeverityFilterT severityFilter = 0;
     ClInt32T i;
 
@@ -1740,8 +1740,8 @@ clLogSvrDebugSeverityGet(ClNameT *pStreamName,
 /*****************Filter Set*****************************/
 
 ClRcT
-clLogSvrDebugFilterSet(ClNameT *pStreamName,
-                       ClNameT *pStreamScopeNode,
+clLogSvrDebugFilterSet(SaNameT *pStreamName,
+                       SaNameT *pStreamScopeNode,
                        ClLogFilterT *pFilter,
                        ClLogFilterFlagsT flags)
 {
@@ -1751,7 +1751,7 @@ clLogSvrDebugFilterSet(ClNameT *pStreamName,
     ClBoolT                addedEntry         = CL_FALSE;
     ClLogSvrStreamDataT    *pSvrStreamData    = NULL;
     ClLogSvrCommonEoDataT  *pSvrCommonEoEntry = NULL;
-    ClNameT streamScopeNode = {0};
+    SaNameT streamScopeNode = {0};
     ClLogSvrFilterCbDataT  filterCbData       = {0};
     ClLogStreamScopeT streamScope = CL_LOG_STREAM_LOCAL;
 
@@ -1853,9 +1853,9 @@ clLogSvrDebugFilterSet(ClNameT *pStreamName,
 
 ClRcT
 VDECL_VER(clLogSvrFilterSet, 4, 0, 0)(
-                  ClNameT            *pStreamName,
+                  SaNameT            *pStreamName,
                   ClLogStreamScopeT  streamScope,
-                  ClNameT            *pStreamScopeNode,
+                  SaNameT            *pStreamScopeNode,
                   ClLogFilterT       *pFilter)
 {
     ClRcT                  rc                 = CL_OK;
@@ -2028,7 +2028,7 @@ clLogSvrClientIdlHandleInitialize(ClIocPortT    portId,
 }
 
 ClRcT
-clLogShmCreateAndFill(ClNameT                 *pStreamName,
+clLogShmCreateAndFill(SaNameT                 *pStreamName,
                       ClStringT               *pShmName, 
                       ClUint32T               shmSize, 
                       ClUint16T               streamId,
@@ -2396,9 +2396,9 @@ clLogTimerCallback(void *pData)
 
 ClRcT
 VDECL_VER(clLogSvrStreamHandleFlagsUpdate, 4, 0, 0)(
-                                ClNameT                   *pStreamName,
+                                SaNameT                   *pStreamName,
                                 ClLogStreamScopeT         streamScope,
-                                ClNameT                   *pStreamScopeNode,
+                                SaNameT                   *pStreamScopeNode,
                                 ClLogStreamHandlerFlagsT  handlerFlags,
                                 ClBoolT                   flagsSet)
 {
@@ -2531,8 +2531,8 @@ clLogSvrPrecreatedStreamsOpen(void)
     ClUint32T            count                                      = 0;
     ClUint32T            i                                          = 0;
     ClLogStreamDataT     *streamAttr[CL_LOG_MAX_PRECREATED_STREAMS] = {0};
-    ClNameT              lNodeName                                  = {0};
-    ClNameT              gNodeName                                  = {0};
+    SaNameT              lNodeName                                  = {0};
+    SaNameT              gNodeName                                  = {0};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -2550,7 +2550,7 @@ clLogSvrPrecreatedStreamsOpen(void)
         return rc;
     }
     gNodeName.length = strlen(gStreamScopeGlobal);
-    strncpy(gNodeName.value, gStreamScopeGlobal, gNodeName.length);
+    strncpy((ClCharT *)gNodeName.value, gStreamScopeGlobal, gNodeName.length);
 
     for( i = 0; i < count; i++ )
     {
@@ -2622,7 +2622,7 @@ clLogSvrStdStreamClose(ClUint32T  tblSize)
 }
 
 static ClRcT
-clLogSvrStdStreamShmCreate(ClNameT                 *pStreamName,
+clLogSvrStdStreamShmCreate(SaNameT                 *pStreamName,
                            ClStringT               *pShmName,
                            ClUint32T               shmSize,
                            ClLogStreamAttrIDLT     *pStreamAttr,
@@ -2710,7 +2710,7 @@ clLogSvrMasterCompListUpdate(void)
     ClUint32T         compLen     = 0;
     ClIdlHandleT      hIdl        = CL_HANDLE_INVALID_VALUE;
     ClUint32T         localAddr   = 0;
-    ClNameT           nodeName    = {0};
+    SaNameT           nodeName    = {0};
     static ClUint32T  numStream   = 1;   
 
     CL_LOG_DEBUG_TRACE(("Enter"));
@@ -2734,10 +2734,10 @@ clLogSvrMasterCompListUpdate(void)
     for( count = 0; count < nLogAspComps; count++ )
     {
         compLen = strlen(aspCompMap[count].pCompName);
-        snprintf(pCompData[count].compName.value, sizeof(pCompData[count].compName.value), "%.*s_%.*s",
+        snprintf((ClCharT *)pCompData[count].compName.value, sizeof((const ClCharT *)pCompData[count].compName.value), "%.*s_%.*s",
                 compLen, aspCompMap[count].pCompName, nodeName.length,
-                nodeName.value);
-        pCompData[count].compName.length = strlen(pCompData[count].compName.value);
+                (const ClCharT *)nodeName.value);
+        pCompData[count].compName.length = strlen((const ClCharT *)pCompData[count].compName.value);
         pCompData[count].clientId        = localAddr | aspCompMap[count].clntId;
     }
 
@@ -2832,8 +2832,8 @@ attrFree:
 static  ClRcT
 clLogSvrInitialEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
                         ClLogSvrCommonEoDataT  *pSvrCommonEoEntry,
-                        ClNameT                *pStreamName,
-                        ClNameT                *pStreamScopeNode,
+                        SaNameT                *pStreamName,
+                        SaNameT                *pStreamScopeNode,
                         ClUint32T              compId,
                         ClIocPortT             portId,
                         ClBoolT                addCompEntry,
@@ -2886,8 +2886,8 @@ clLogSvrInitialEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
 }
 
 static ClRcT
-clLogLocalFlusherSetup(ClNameT              *pStreamName,
-                       ClNameT              *pStreamScopeNode, 
+clLogLocalFlusherSetup(SaNameT              *pStreamName,
+                       SaNameT              *pStreamScopeNode, 
                        ClLogStreamAttrIDLT  *pStreamAttr)
                        
 {
@@ -2983,8 +2983,8 @@ clLogFileKeyCopy(ClLogSvrStreamDataT  *pSvrStreamData,
 
 static ClRcT 
 clLogSvrStreamEntryUpdate(ClLogSvrEoDataT         *pSvrEoEntry,
-                          ClNameT                 *pStreamName,
-                          ClNameT                 *pStreamScopeNode,
+                          SaNameT                 *pStreamName,
+                          SaNameT                 *pStreamScopeNode,
                           ClCntNodeHandleT        hSvrStreamNode,
                           ClUint32T               compId, 
 			    	      ClLogStreamAttrIDLT     *pStreamAttr,

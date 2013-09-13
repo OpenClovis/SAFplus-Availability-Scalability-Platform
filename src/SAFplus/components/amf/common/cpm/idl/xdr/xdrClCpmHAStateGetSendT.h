@@ -51,8 +51,8 @@ struct _ClCpmHAStateGetSendT_4_0_0;
 
 typedef struct _ClCpmHAStateGetSendT_4_0_0 {
     ClHandleT    cpmHandle;
-    ClNameT    compName;
-    ClNameT    csiName;
+    SaNameT    compName;
+    SaNameT    csiName;
 
 }ClCpmHAStateGetSendT_4_0_0;
 

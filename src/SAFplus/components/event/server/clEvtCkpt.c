@@ -34,7 +34,7 @@
 extern ClHandleDatabaseHandleT gEvtHandleDatabaseHdl;
 static ClCkptSvcHdlT gClEvtCkptHandle;
 
-static ClNameT gClEvtCkptName = {
+static SaNameT gClEvtCkptName = {
     sizeof(CL_EVT_CKPT_NAME) - 1,
     CL_EVT_CKPT_NAME
 };
@@ -246,7 +246,7 @@ ClRcT clEvtCkptInit(void)
  ** crib if we attempt to create the check point again.
  */
 
-ClRcT clEvtCkptSubsDSCreate(ClNameT *pChannelName, ClUint32T channelScope)
+ClRcT clEvtCkptSubsDSCreate(SaNameT *pChannelName, ClUint32T channelScope)
 {
     ClRcT rc = CL_OK;
 
@@ -305,7 +305,7 @@ ClRcT clEvtCkptSubsDSCreate(ClNameT *pChannelName, ClUint32T channelScope)
  ** info. It is invoked each time a channel is deleted. The check point is
  ** deleted only when there is no data set under it.
  */
-ClRcT clEvtCkptSubsDSDelete(ClNameT *pChannelName, ClUint32T channelScope)
+ClRcT clEvtCkptSubsDSDelete(SaNameT *pChannelName, ClUint32T channelScope)
 {
     ClRcT rc = CL_OK;
 

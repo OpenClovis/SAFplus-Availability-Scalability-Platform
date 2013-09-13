@@ -205,7 +205,7 @@ typedef struct
 /**
  * Name of the serivce.
  */
- ClNameT       name;
+ SaNameT       name;
 
 /**
  * Object Reference.
@@ -278,7 +278,7 @@ typedef struct
 /**
  * Name of the service.
  */
-    ClNameT           name;
+    SaNameT           name;
 
 /**
  * Id of the Component.
@@ -354,7 +354,7 @@ typedef struct
 /**
  * Name of the component.
  */
-    ClNameT             name;
+    SaNameT             name;
 
 /**
  * Object Reference.
@@ -552,7 +552,7 @@ ClRcT clNameComponentDeregister(CL_IN ClUint32T compId);
 
 ClRcT clNameServiceDeregister(CL_IN ClUint32T contextId,
                               CL_IN ClUint32T compId,
-                              CL_IN ClNameT* serviceName);
+                              CL_IN SaNameT* serviceName);
 
 
 /**
@@ -664,10 +664,10 @@ ClRcT clNameContextDelete(CL_IN ClUint32T contextId);
  *  \par Library Files:
  *  libClNameClient
  *
- *  \sa clNameToObjectMappingGet()
+ *  \sa saNameToObjectMappingGet()
  *
  */
-ClRcT clNameToObjectReferenceGet(CL_IN  ClNameT* pName,
+ClRcT saNameToObjectReferenceGet(CL_IN  SaNameT* pName,
                                  CL_IN  ClUint32T attrCount,
                                  CL_IN  ClNameSvcAttrEntryT *pAttr,
                                  CL_IN  ClUint32T contextMapCookie,
@@ -711,9 +711,9 @@ ClRcT clNameToObjectReferenceGet(CL_IN  ClNameT* pName,
  *  \par Library Files:
  *  libClNameClient
  *
- *  \sa clNameObjectMappingCleanup(), clNameToObjectReferenceGet()
+ *  \sa clNameObjectMappingCleanup(), saNameToObjectReferenceGet()
  */
-ClRcT clNameToObjectMappingGet(CL_IN  ClNameT* pName,
+ClRcT saNameToObjectMappingGet(CL_IN  SaNameT* pName,
                                CL_IN  ClUint32T attrCount,
                                CL_IN  ClNameSvcAttrEntryT *pAttr,
                                CL_IN  ClUint32T contextMapCookie,
@@ -738,7 +738,7 @@ ClRcT clNameToObjectMappingGet(CL_IN  ClNameT* pName,
  *  \par Library Files:
  *  libClNameClient
  *
- *  \sa clNameToObjectMappingGet()
+ *  \sa saNameToObjectMappingGet()
  *
  */
 ClRcT clNameObjectMappingCleanup(CL_IN ClNameSvcEntryPtrT pObjMapping);

@@ -69,7 +69,7 @@ static void initHandles(void)
     
     ClAmsEntityConfigT csi;
     memset(&csi,0,sizeof(csi));
-    clNameSet(&csi.name,"unusedCSI");
+    saNameSet(&csi.name,"unusedCSI");
     csi.type = CL_AMS_ENTITY_TYPE_CSI;
     
     if ((rc = clAmsMgmtCCBEntityCreate(ccbHandle,&csi)) != CL_OK)
@@ -99,7 +99,7 @@ static void initHandles(void)
 
         // Specify a unique CSI type
         changeMask |= CSI_CONFIG_TYPE;
-        clNameSet(&csiConfig.type, CSI_TYPE_APP);
+        saNameSet(&csiConfig.type, CSI_TYPE_APP);
         csiConfig.type.length += 1;
 
         if ((rc = clAmsMgmtCCBEntitySetConfig(ccbHandle,&csiConfig.entity,changeMask)) != CL_OK)
@@ -118,7 +118,7 @@ static void initHandles(void)
   
 }
 
-static void clNameAppend(ClNameT* name, const char* suffix)
+static void saNameAppend(SaNameT* name, const char* suffix)
 {
   if (!suffix) return; // Nothing to append
   
@@ -137,10 +137,10 @@ static void initEntity(ClAmsEntityConfigT* entity, const char* basename, ClAmsEn
 {
   //ClRcT rc;
    memset(entity,0,sizeof(*entity));
-   clNameSet(&entity->name,basename);
+   saNameSet(&entity->name,basename);
    if (extra)
      {
-       clNameAppend(&entity->name,extra);
+       saNameAppend(&entity->name,extra);
      }
    entity->type = type;
    switch(type)
@@ -148,19 +148,19 @@ static void initEntity(ClAmsEntityConfigT* entity, const char* basename, ClAmsEn
      case CL_AMS_ENTITY_TYPE_NODE:  // Node has no name modifications
        break;
      case CL_AMS_ENTITY_TYPE_SG:       
-       // SGs for now are the exact name passed.  Otherwise we could: clNameAppend(&entity->name,"_SG");
+       // SGs for now are the exact name passed.  Otherwise we could: saNameAppend(&entity->name,"_SG");
        break;
      case CL_AMS_ENTITY_TYPE_SU:
-       clNameAppend(&entity->name,"_SU");
+       saNameAppend(&entity->name,"_SU");
        break;
      case CL_AMS_ENTITY_TYPE_SI:
-       clNameAppend(&entity->name,"_SI");
+       saNameAppend(&entity->name,"_SI");
        break;
      case CL_AMS_ENTITY_TYPE_COMP:
-       // As per Jim's request, COMPs are the exact name passed, not: clNameAppend(&entity->name,"_COMP");
+       // As per Jim's request, COMPs are the exact name passed, not: saNameAppend(&entity->name,"_COMP");
        break;
      case CL_AMS_ENTITY_TYPE_CSI:
-       // As per Jim's request, CSIs are exact name... clNameAppend(&entity->name,"_CSI");
+       // As per Jim's request, CSIs are exact name... saNameAppend(&entity->name,"_CSI");
        break;
      case CL_AMS_ENTITY_TYPE_ENTITY:
      case CL_AMS_ENTITY_TYPE_APP:
@@ -183,7 +183,7 @@ void removeNode(const char* safName)
   entityStop(entity);
 
   ClCpmSlotInfoT slotInfo;  
-  clNameSet(&slotInfo.nodeName,safName);
+  saNameSet(&slotInfo.nodeName,safName);
   if ((rc = clCpmSlotGet(CL_CPM_NODENAME, &slotInfo))  != CL_OK) checkError("Get node address",rc);
   
   if ((rc = clCpmNodeShutDown(slotInfo.nodeIocAddress))  != CL_OK) checkError("shutdown ASP on node",rc);
@@ -500,9 +500,9 @@ void acExtend(const char* appCnt, const char* nodeNames[], int numNodes,const ch
       checkError("Commit creation of SU and Component", rc);
     }
 
-  ClNameT            supportedCSIType;
+  SaNameT            supportedCSIType;
 
-  clNameSet(&supportedCSIType, CSI_TYPE_APP);
+  saNameSet(&supportedCSIType, CSI_TYPE_APP);
   supportedCSIType.length += 1;
 
   // Configure components
@@ -764,9 +764,9 @@ void acExtend(const char* appCnt, const char* nodeName, const char* compName,Saf
       checkError("Commit creation of SU and Component", rc);
     }
 
-  ClNameT            supportedCSIType;
+  SaNameT            supportedCSIType;
 
-  clNameSet(&supportedCSIType, CSI_TYPE_APP);
+  saNameSet(&supportedCSIType, CSI_TYPE_APP);
   supportedCSIType.length += 1;
 
   // Configure components
@@ -1108,7 +1108,7 @@ void acAddApp(const char* appCnt,const char* appName, const char* activeXml, con
 
       // Specify a unique CSI type
       changeMask |= CSI_CONFIG_TYPE;
-      clNameSet(&csiConfig.type, CSI_TYPE_APP);
+      saNameSet(&csiConfig.type, CSI_TYPE_APP);
       csiConfig.type.length += 1;
 
       if ((rc = clAmsMgmtCCBEntitySetConfig(ccbHandle,&csiConfig.entity,changeMask)) != CL_OK)
@@ -1117,15 +1117,15 @@ void acAddApp(const char* appCnt,const char* appName, const char* activeXml, con
         }
       
       // Set the name/value pairs
-      clNameSet(&nvp.paramName,"activexml");
-      clNameSet(&nvp.paramValue,activeXml);
+      saNameSet(&nvp.paramName,"activexml");
+      saNameSet(&nvp.paramValue,activeXml);
       if ((rc = clAmsMgmtCCBCSISetNVP(ccbHandle,&csi,&nvp)) != CL_OK)
         {
           checkError("Set CSI NVP", rc);
         }
       // Set the name/value pairs
-      clNameSet(&nvp.paramName,"standbyxml");
-      clNameSet(&nvp.paramValue,standbyXml);
+      saNameSet(&nvp.paramName,"standbyxml");
+      saNameSet(&nvp.paramValue,standbyXml);
       if ((rc = clAmsMgmtCCBCSISetNVP(ccbHandle,&csi,&nvp)) != CL_OK)
         {
           checkError("Set CSI NVP", rc);

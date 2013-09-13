@@ -37,9 +37,9 @@ typedef  enum
 typedef struct
 {
     ClBitmapHandleT       hStreamBitmap;
-    ClNameT               streamName;
+    SaNameT               streamName;
     ClLogStreamScopeT     streamScope;
-    ClNameT               nodeName;
+    SaNameT               nodeName;
     ClCntHandleT          hFlusherTable;     
     ClLogClntHdlrStatusT  status;
     ClUint32T             persistingCnt;
@@ -64,18 +64,18 @@ typedef struct
 
 extern ClRcT
 clLogClntHandlerRegister(ClLogHandleT              hLog,
-                         ClNameT                   *pStreamName,
+                         SaNameT                   *pStreamName,
                          ClLogStreamScopeT         streamScope,
-                         ClNameT                   *pNodeName,
+                         SaNameT                   *pNodeName,
                          ClLogStreamHandlerFlagsT  handlerFlags,
                          ClIocMulticastAddressT    mcastAddr,
                          ClLogStreamHandleT        *phStream);
 
 extern ClRcT
 clLogClntHandlerEntryGet(ClLogClntEoDataT        *pClntEoEntry,
-                         ClNameT                 *pStreamName,
+                         SaNameT                 *pStreamName,
                          ClLogStreamScopeT       streamScope, 
-                         ClNameT                 *pNodeName,
+                         SaNameT                 *pNodeName,
                          ClIocMulticastAddressT  mcastAddr,
                          ClCntNodeHandleT        *phHandlerNode,
                          ClBoolT                 *pAddedEntry);
@@ -83,9 +83,9 @@ clLogClntHandlerEntryGet(ClLogClntEoDataT        *pClntEoEntry,
 extern ClRcT
 clLogClntHandlerEntryAdd(ClCntHandleT            hStreamHandlerTable,
                          ClIocMulticastAddressT  *pMcastAddr,
-                         ClNameT                 *pStreamName,
+                         SaNameT                 *pStreamName,
                          ClLogStreamScopeT       streamScope,
-                         ClNameT                 *pNodeName,
+                         SaNameT                 *pNodeName,
                          ClCntNodeHandleT        *phHandlerNode);
 extern ClRcT
 clLogStreamMcastRegister(ClIocMulticastAddressT  *pStreamMcastAddr);

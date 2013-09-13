@@ -206,14 +206,14 @@ ClRcT clComponentCallBack(void *arg)
     ClRcT rc = CL_OK;
     struct timeval alarmTime;
     ClAlarmHandleT alarmHandle;
-    ClNameT moidName = {strlen("\\Chassis:0\\GigeBlade:0"),
+    SaNameT moidName = {strlen("\\Chassis:0\\GigeBlade:0"),
                         "\\Chassis:0\\GigeBlade:0"};
-    ClNameT moidName2 = {strlen("\\Chassis:0\\GigeBlade:0\\GigePort:0"),
+    SaNameT moidName2 = {strlen("\\Chassis:0\\GigeBlade:0\\GigePort:0"),
                         "\\Chassis:0\\GigeBlade:0\\GigePort:0"};
 
     ClAlarmInfoT *pAlarmInfo;
     ClCorMOIdT   moId;
-    ClNameT      moIdName = {0};
+    SaNameT      moIdName = {0};
 
     pAlarmInfo = clHeapAllocate(sizeof(ClAlarmInfoT)+strlen("HelloHelloHelloHelloHelloHelloHelloHello")+1);
     if(pAlarmInfo == NULL)
@@ -397,7 +397,7 @@ clCompAppInitialize(
     ClUint32T argc,
     ClCharT *argv[])
 {
-    ClNameT             appName;
+    SaNameT             appName;
     ClCpmCallbacksT     callbacks;
     ClVersionT          version;
     ClIocPortT          iocPort;
@@ -534,7 +534,7 @@ ClRcT clCompAppFinalize()
 ClRcT
 clCompAppTerminate(
     ClInvocationT       invocation,
-    const ClNameT       *compName)
+    const SaNameT       *compName)
 {
     ClRcT rc = CL_OK;
 
@@ -669,7 +669,7 @@ clCompAppHealthCheck(
 ClRcT
 clCompAppAMFCSISet(
     ClInvocationT       invocation,
-    const ClNameT       *compName,
+    const SaNameT       *compName,
     ClAmsHAStateT       haState,
     ClAmsCSIDescriptorT csiDescriptor)
 {
@@ -795,8 +795,8 @@ clCompAppAMFCSISet(
 ClRcT
 clCompAppAMFCSIRemove(
     ClInvocationT       invocation,
-    const ClNameT       *compName,
-    const ClNameT       *csiName,
+    const SaNameT       *compName,
+    const SaNameT       *csiName,
     ClAmsCSIFlagsT      csiFlags)
 {
     /*

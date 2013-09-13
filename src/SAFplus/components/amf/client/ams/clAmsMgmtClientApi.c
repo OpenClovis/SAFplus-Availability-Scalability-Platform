@@ -1549,7 +1549,7 @@ clAmsMgmtSISwapExtended(
 
     req.handle = ams_instance->server_handle;
     req.entity.type = CL_AMS_ENTITY_TYPE_SI;
-    clNameSet(&req.entity.name, si);
+    saNameSet(&req.entity.name, si);
     ++req.entity.name.length;
 
     AMS_ADMIN_API_CALL(amsHandle, retry, rc, cl_ams_mgmt_si_swap( &req, &res));
@@ -1606,7 +1606,7 @@ ClRcT clAmsMgmtSGAdjustExtended(ClHandleT handle, const ClCharT *sg, ClBoolT ena
     request.handle = ams_instance->server_handle;
     request.enable = (enable == CL_TRUE ? 1 : 0);
     request.entity.type = CL_AMS_ENTITY_TYPE_SG;
-    clNameSet(&request.entity.name, sg);
+    saNameSet(&request.entity.name, sg);
     ++request.entity.name.length;
 
     AMS_ADMIN_API_CALL(handle, retry, rc, cl_ams_mgmt_sg_adjust(&request, &response));
@@ -3206,7 +3206,7 @@ ClAmsNodeConfigT* clAmsMgmtNodeGetConfig(CL_IN   ClAmsMgmtHandleT    handle, CL_
     ClAmsNodeConfigT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_NODE;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetConfig(handle, &entity, (ClAmsEntityConfigT**) &ret);
@@ -3225,7 +3225,7 @@ ClAmsSGConfigT* clAmsMgmtServiceGroupGetConfig(CL_IN   ClAmsMgmtHandleT    handl
     ClAmsSGConfigT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_SG;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetConfig(handle, &entity, (ClAmsEntityConfigT**) &ret);
@@ -3244,7 +3244,7 @@ ClAmsSUConfigT* clAmsMgmtServiceUnitGetConfig(CL_IN   ClAmsMgmtHandleT    handle
     ClAmsSUConfigT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_SU;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetConfig(handle, &entity, (ClAmsEntityConfigT**) &ret);
@@ -3263,7 +3263,7 @@ ClAmsSIConfigT* clAmsMgmtServiceInstanceGetConfig(CL_IN   ClAmsMgmtHandleT    ha
     ClAmsSIConfigT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_SI;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetConfig(handle, &entity, (ClAmsEntityConfigT**) &ret);
@@ -3282,7 +3282,7 @@ ClAmsCSIConfigT* clAmsMgmtCompServiceInstanceGetConfig(CL_IN   ClAmsMgmtHandleT 
     ClAmsCSIConfigT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_CSI;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetConfig(handle, &entity, (ClAmsEntityConfigT**) &ret);
@@ -3301,7 +3301,7 @@ ClAmsCompConfigT* clAmsMgmtCompGetConfig(CL_IN   ClAmsMgmtHandleT    handle, CL_
     ClAmsCompConfigT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_COMP;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetConfig(handle, &entity, (ClAmsEntityConfigT**) &ret);
@@ -3377,7 +3377,7 @@ ClAmsNodeStatusT* clAmsMgmtNodeGetStatus(CL_IN   ClAmsMgmtHandleT    handle, CL_
     ClAmsNodeStatusT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_NODE;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetStatus(handle, &entity, (ClAmsEntityStatusT**) &ret);
@@ -3396,7 +3396,7 @@ ClAmsSGStatusT* clAmsMgmtServiceGroupGetStatus(CL_IN   ClAmsMgmtHandleT    handl
     ClAmsSGStatusT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_SG;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetStatus(handle, &entity, (ClAmsEntityStatusT**) &ret);
@@ -3415,7 +3415,7 @@ ClAmsSUStatusT* clAmsMgmtServiceUnitGetStatus(CL_IN   ClAmsMgmtHandleT    handle
     ClAmsSUStatusT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_SU;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetStatus(handle, &entity, (ClAmsEntityStatusT**) &ret);
@@ -3434,7 +3434,7 @@ ClAmsSIStatusT* clAmsMgmtServiceInstanceGetStatus(CL_IN   ClAmsMgmtHandleT    ha
     ClAmsSIStatusT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_SI;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetStatus(handle, &entity, (ClAmsEntityStatusT**) &ret);
@@ -3453,7 +3453,7 @@ ClAmsCSIStatusT* clAmsMgmtCompServiceInstanceGetStatus(CL_IN   ClAmsMgmtHandleT 
     ClAmsCSIStatusT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_CSI;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetStatus(handle, &entity, (ClAmsEntityStatusT**) &ret);
@@ -3472,7 +3472,7 @@ ClAmsCompStatusT* clAmsMgmtCompGetStatus(CL_IN   ClAmsMgmtHandleT    handle, CL_
     ClAmsCompStatusT* ret;
     ClAmsEntityT entity = {0};
     entity.type = CL_AMS_ENTITY_TYPE_COMP;
-    clNameSet(&entity.name, entName);
+    saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
     
     rc = clAmsMgmtEntityGetStatus(handle, &entity, (ClAmsEntityStatusT**) &ret);
@@ -4603,8 +4603,8 @@ ClRcT clAmsMgmtMigrateSG(ClAmsMgmtHandleT handle,
     AMS_CHECKPTR_SILENT(!sg || !prefix);
     memset(&request, 0, sizeof(request));
     memset(&response, 0, sizeof(response));
-    clNameSet(&request.sg, sg);
-    clNameSet(&request.prefix, prefix);
+    saNameSet(&request.sg, sg);
+    saNameSet(&request.prefix, prefix);
     ++request.sg.length;
     ++request.prefix.length;
     request.activeSUs = activeSUs;
@@ -4645,7 +4645,7 @@ ClRcT clAmsMgmtEntityUserDataSet(ClAmsMgmtHandleT handle,
 
 ClRcT clAmsMgmtEntityUserDataSetKey(ClAmsMgmtHandleT handle,
                                     ClAmsEntityT *entity,
-                                    ClNameT *key,
+                                    SaNameT *key,
                                     ClCharT *data,
                                     ClUint32T len)
                                     
@@ -4676,7 +4676,7 @@ ClRcT clAmsMgmtEntityUserDataGet(ClAmsMgmtHandleT handle,
 
 ClRcT clAmsMgmtEntityUserDataGetKey(ClAmsMgmtHandleT handle,
                                     ClAmsEntityT *entity,
-                                    ClNameT *key,
+                                    SaNameT *key,
                                     ClCharT **data,
                                     ClUint32T *len)
 {
@@ -4702,7 +4702,7 @@ ClRcT clAmsMgmtEntityUserDataDelete(ClAmsMgmtHandleT handle,
 
 ClRcT clAmsMgmtEntityUserDataDeleteKey(ClAmsMgmtHandleT handle,
                                        ClAmsEntityT *entity,
-                                       ClNameT *key)
+                                       SaNameT *key)
 {
     ClAmsMgmtUserDataDeleteRequestT request = {0};
     AMS_CHECKPTR_SILENT(!entity || !key);
@@ -4820,11 +4820,12 @@ static ClRcT clAmsMgmtSwitchoverActiveSU(ClAmsMgmtHandleT handle, ClAmsEntityT *
         if(suStatusList[i] && suStatusList[i]->numActiveSIs > 0)
         {
             ClBoolT canLock = CL_FALSE;
-            if(!activeSU) canLock = CL_TRUE;
+            if (!activeSU)
+                canLock = CL_TRUE;
             else
-                canLock = !strncmp(activeSU->name.value, suList.entity[i].name.value,
-                                   strlen(activeSU->name.value));
-            if(canLock)
+                canLock = !strncmp((const ClCharT*) activeSU->name.value, (const ClCharT*) suList.entity[i].name.value,
+                                strlen((const ClCharT*) activeSU->name.value));
+            if (canLock)
                 goto found;
         }
     }
@@ -5122,12 +5123,12 @@ ClRcT clAmsMgmtGetSIHAState(ClAmsMgmtHandleT handle,
     if(!handle || !si || !haState)
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     siEntity.type = CL_AMS_ENTITY_TYPE_SI;
-    clNameSet(&siEntity.name, si);
+    saNameSet(&siEntity.name, si);
     CL_AMS_NAME_LENGTH_CHECK(siEntity);
     if(su)
     {
         suEntity.type = CL_AMS_ENTITY_TYPE_SU;
-        clNameSet(&suEntity.name, su);
+        saNameSet(&suEntity.name, su);
         CL_AMS_NAME_LENGTH_CHECK(suEntity);
     }
     else
@@ -5147,7 +5148,7 @@ ClRcT clAmsMgmtGetSUHAState(ClAmsMgmtHandleT handle,
     if(!handle || !su || !haState)
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     suEntity.type = CL_AMS_ENTITY_TYPE_SU;
-    clNameSet(&suEntity.name, su);
+    saNameSet(&suEntity.name, su);
     CL_AMS_NAME_LENGTH_CHECK(suEntity);
     return clAmsMgmtGetSUHAStateHard(handle, &suEntity, checkAllSIs, haState, fullyAssigned);
 }
@@ -5276,7 +5277,7 @@ ClRcT clAmsMgmtTestCAS(const ClCharT *e, const ClCharT *type)
     else if(!strncasecmp(type, "su", 2)) entity.type = CL_AMS_ENTITY_TYPE_SU;
     else if(!strncasecmp(type, "comp", 4)) entity.type = CL_AMS_ENTITY_TYPE_COMP;
     else return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
-    clNameSet(&entity.name, e);
+    saNameSet(&entity.name, e);
     rc = clAmsMgmtComputedAdminStateGet(0, &entity, &cas);
     if(rc != CL_OK) return rc;
     clLogNotice("CAS", "GET", "Computed admin state for entity [%s: %s] is [%s]",
@@ -5400,20 +5401,20 @@ clAmsMgmtSIAssignSU(const ClCharT *si, const ClCharT *activeSU, const ClCharT *s
     AMS_CHECKPTR_SILENT(!si);
     
     req.si.type = CL_AMS_ENTITY_TYPE_SI;
-    clNameSet(&req.si.name, si);
+    saNameSet(&req.si.name, si);
     ++req.si.name.length;
 
     if(activeSU)
     {
         req.activeSU.type = CL_AMS_ENTITY_TYPE_SU;
-        clNameSet(&req.activeSU.name, activeSU);
+        saNameSet(&req.activeSU.name, activeSU);
         ++req.activeSU.name.length;
     }
 
     if(standbySU)
     {
         req.standbySU.type = CL_AMS_ENTITY_TYPE_SU;
-        clNameSet(&req.standbySU.name, standbySU);
+        saNameSet(&req.standbySU.name, standbySU);
         ++req.standbySU.name.length;
     }
 
@@ -5427,7 +5428,7 @@ clAmsMgmtGetAspInstallInfo(ClAmsMgmtHandleT mgmtHandle, const ClCharT *nodeName,
     ClRcT rc = CL_OK;
     ClCharT *installInfo = NULL;
     ClUint32T installInfoLen = 0;
-    ClNameT installInfoKey = {0};
+    SaNameT installInfoKey = {0};
     ClAmsEntityT entity = {0};
 
     if(!aspInstallInfo || !len)
@@ -5440,11 +5441,11 @@ clAmsMgmtGetAspInstallInfo(ClAmsMgmtHandleT mgmtHandle, const ClCharT *nodeName,
             goto out;
     }
     else
-        clNameSet(&entity.name, nodeName);
+        saNameSet(&entity.name, nodeName);
 
     ++entity.name.length;
     entity.type = CL_AMS_ENTITY_TYPE_NODE;
-    clNameSet(&installInfoKey, ASP_INSTALL_KEY);
+    saNameSet(&installInfoKey, ASP_INSTALL_KEY);
 
     rc = clAmsMgmtEntityUserDataGetKey(mgmtHandle, &entity, &installInfoKey, 
                                        &installInfo, &installInfoLen);
@@ -5820,7 +5821,7 @@ static ClRcT amsMgmtDBNodeCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCache
     for(__iter = __table[__hash]; __iter; __iter = __iter->pNext)       \
     {                                                                   \
         __index = hashEntry(__iter, cast, hash);                        \
-        if(!strncmp(__index->config.entity.name.value, (ent)->name.value, (ent)->name.length)) \
+        if(!strncmp((const ClCharT*)(__index->config.entity.name.value), (const ClCharT*)((ent)->name.value), (ent)->name.length)) \
         {                                                               \
             search = __index;                                           \
             break;                                                      \
@@ -5846,7 +5847,7 @@ static ClRcT amsMgmtDBCacheRelationSet(ClAmsMgmtDBCacheT *cache)
         if(!node)
         {
             clLogError("DB", "SET", "Node [%s] not found in the amf db cache. Cache looks stale",
-                       su->config.parentNode.entity.name.value);
+                            (const ClCharT* )su->config.parentNode.entity.name.value);
             return CL_AMS_RC(CL_ERR_INVALID_STATE);
         }
         clListAddTail(&su->nodeList, &node->suList);
@@ -6646,7 +6647,7 @@ ClRcT clAmsMgmtDBGetNodeCompList(ClAmsMgmtDBHandleT cache,
         compList->count = 0;
     }
 
-    clNameSet(&entity.name, nodeName);
+    saNameSet(&entity.name, nodeName);
 
     rc = clAmsMgmtDBGetNodeSUList(cache, &entity, &suBuffer);
     if(rc != CL_OK)

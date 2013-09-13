@@ -86,9 +86,9 @@ typedef struct
 
 typedef struct
 {
-    ClNameT            *pStreamName;
+    SaNameT            *pStreamName;
     ClLogStreamScopeT  *pStreamScope;
-    ClNameT            *pStreamScopeNode;
+    SaNameT            *pStreamScopeNode;
     ClLogFilterT       *pFilter;
 }ClLogSvrFilterCbDataT;
 
@@ -124,8 +124,8 @@ clLogSvrStreamTableGet(CL_IN ClLogSvrEoDataT  *pSvrEoEntry);
 
 extern ClRcT 
 clLogSvrStreamEntryGet(CL_IN   ClLogSvrEoDataT   *pSvrEoEntry,
-		               CL_IN   ClNameT           *pStreamName,
-		               CL_IN   ClNameT           *pStreamScopeNode,
+		               CL_IN   SaNameT           *pStreamName,
+		               CL_IN   SaNameT           *pStreamScopeNode,
                        CL_IN   ClBoolT           createFlag,
 		               CL_OUT  ClCntNodeHandleT  *pSvrStreamNode,
                        CL_OUT  ClBoolT           *pAddedEntry);
@@ -133,8 +133,8 @@ extern ClRcT
 clLogSvrStreamTableCreate(CL_IN  ClLogSvrEoDataT   *pSvrEoData);
 
 extern ClRcT
-clLogSvrShmNameCreate(CL_IN   ClNameT    *pStreamName,
-                      CL_IN   ClNameT    *pStreamScopeNode,
+clLogSvrShmNameCreate(CL_IN   SaNameT    *pStreamName,
+                      CL_IN   SaNameT    *pStreamScopeNode,
                       CL_OUT  ClStringT  *pShmName);
 
 extern ClRcT
@@ -158,7 +158,7 @@ extern  ClRcT
 clLogSvrIdlHandleInitialize(CL_IN  ClLogStreamScopeT  streamScope,
                             CL_OUT ClIdlHandleT       *phLogIdl);
 extern ClRcT
-clLogShmCreateAndFill(ClNameT                 *pStreamName,
+clLogShmCreateAndFill(SaNameT                 *pStreamName,
                       ClStringT               *pShmName, 
                       ClUint32T               shmSize, 
                       ClUint16T               streamId,
@@ -187,11 +187,11 @@ extern ClRcT
 clLogSvrEoDataFree(void);
 
 extern ClRcT
-clLogSvrDebugFilterSet(ClNameT *pStreamName, ClNameT *pStreamNodeName, ClLogFilterT *pFilter,
+clLogSvrDebugFilterSet(SaNameT *pStreamName, SaNameT *pStreamNodeName, ClLogFilterT *pFilter,
                        ClLogFilterFlagsT flags);
 
 extern ClRcT
-clLogSvrDebugSeverityGet(ClNameT *pStreamName, ClNameT *pStreamNodeName, ClLogSeverityFilterT *pSeverityFilter);
+clLogSvrDebugSeverityGet(SaNameT *pStreamName, SaNameT *pStreamNodeName, ClLogSeverityFilterT *pSeverityFilter);
 
 extern ClRcT
 clLogSvrCompRefCountIncrement(CL_IN  ClLogSvrEoDataT        *pSvrEoEntry,

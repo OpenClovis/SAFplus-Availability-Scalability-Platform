@@ -72,7 +72,7 @@ static ClRcT clPubsTriggerEvent(ClEoLibIdT libId, ClWaterMarkIdT wmId, ClUint32T
     ClRcT rc = CL_OK;
 
     ClEventIdT eventId = 0;
-    ClNameT publisherName = {sizeof(CL_EVENT_PUBLISHER_NAME)-1, CL_EVENT_PUBLISHER_NAME};
+    SaNameT publisherName = {sizeof(CL_EVENT_PUBLISHER_NAME)-1, CL_EVENT_PUBLISHER_NAME};
 
     ClEventPatternT patterns[5] = {{0}};
 
@@ -133,7 +133,7 @@ failure:
 
 static ClCpmHandleT gClEvtPubsCpmHandle; /* FIXME */
 ClRcT clEventPubsTerminate(ClInvocationT invocation,
-			const ClNameT  *compName)
+			const SaNameT  *compName)
 {
     ClRcT rc;
 
@@ -148,7 +148,7 @@ ClRcT clEventPubsTerminate(ClInvocationT invocation,
 
 ClRcT clEvtPubsCpmInit()
 {
-    ClNameT appName;
+    SaNameT appName;
     ClCpmCallbacksT callbacks;
     ClVersionT	version;
     ClIocPortT	iocPort;
@@ -221,7 +221,7 @@ static ClRcT clPubsEventLibrayInitialize(void)
     ClRcT rc = CL_OK;
 
     ClVersionT version = CL_EVENT_VERSION;    
-    ClNameT channelName = {sizeof(CL_EO_EVENT_CHANNEL_NAME)-1, CL_EO_EVENT_CHANNEL_NAME};
+    SaNameT channelName = {sizeof(CL_EO_EVENT_CHANNEL_NAME)-1, CL_EO_EVENT_CHANNEL_NAME};
 
     const ClEventCallbacksT evtCallbacks = 
     {

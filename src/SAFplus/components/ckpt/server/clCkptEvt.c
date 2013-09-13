@@ -57,7 +57,7 @@ extern  ClRcT clCkptMasterReplicaListUpdate(ClIocNodeAddressT peerAddr);
 /*
  * Publisher name for the events published by ckpt.
  */
-ClNameT publisherName = {sizeof(CL_CKPT_PUB_NAME)-1, CL_CKPT_PUB_NAME};
+SaNameT publisherName = {sizeof(CL_CKPT_PUB_NAME)-1, CL_CKPT_PUB_NAME};
 
 /* This routine is a call back routine for the subscribed events */
 static void ckptEvtSubscribeCallBack( 
@@ -78,8 +78,8 @@ ClRcT   ckptEventSvcInitialize()
     ClEventChannelOpenFlagsT  openFlags      = 0;
     ClEventCallbacksT         evtCallbacks   = {NULL, 
                                                ckptEvtSubscribeCallBack};
-    ClNameT                   clntUpdChlName = {0};
-    ClNameT                   cpmChnlName    = {0};
+    SaNameT                   clntUpdChlName = {0};
+    SaNameT                   cpmChnlName    = {0};
     ClUint32T                 deathPattern   = htonl(CL_CPM_COMP_DEATH_PATTERN);
     ClUint32T                 nodeArrivalPattern = htonl(CL_CPM_NODE_ARRIVAL_PATTERN);
     ClUint32T                 nodeDeparturePattern = htonl(CL_CPM_NODE_DEATH_PATTERN);

@@ -199,7 +199,7 @@ _clGmsServiceInitialize ( const int argc  , char* const argv[] )
 void 
 _clGmsSetThisNodeInfo(
                 const ClGmsNodeIdT                nodeId, 
-                const ClNameT* const              nodeName, 
+                const SaNameT* const              nodeName, 
                 const ClGmsLeadershipCredentialsT credential
                 )
 {
@@ -213,12 +213,11 @@ _clGmsSetThisNodeInfo(
 
     gmsGlobalInfo.config.thisNodeInfo.credential = credential;
 
-    strncpy(gmsGlobalInfo.config.thisNodeInfo.nodeName.value,
-            nodeName->value, CL_MAX_NAME_LENGTH);
+    strncpy((ClCharT *) gmsGlobalInfo.config.thisNodeInfo.nodeName.value, (const ClCharT *) nodeName->value, CL_MAX_NAME_LENGTH);
 
     /* NULL terminate in case of overflow, if no overflow, this has no effect */
     gmsGlobalInfo.config.thisNodeInfo.nodeName.value[CL_MAX_NAME_LENGTH-1] = 0;  
-    gmsGlobalInfo.config.thisNodeInfo.nodeName.length = strlen(nodeName->value);
+    gmsGlobalInfo.config.thisNodeInfo.nodeName.length = strlen((const ClCharT *)nodeName->value);
 
 
     gmsGlobalInfo.config.thisNodeInfo.nodeAddress.iocPhyAddress.nodeAddress

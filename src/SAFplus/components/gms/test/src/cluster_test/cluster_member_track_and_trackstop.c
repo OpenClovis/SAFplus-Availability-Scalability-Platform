@@ -49,7 +49,7 @@ static ClHandleT   handle = 0;
 static ClVersionT  correct_version = {'B',1,1};
 static ClBoolT     callback_invoked = CL_FALSE;
 static ClGmsNodeIdT dummyNodeId = 1234;
-static ClNameT      dummyNodeName = {
+static SaNameT      dummyNodeName = {
     .value = "Dummy Node",
     .length = 10
 };

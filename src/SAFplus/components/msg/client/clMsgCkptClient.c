@@ -37,7 +37,7 @@ ClRcT clMsgQCkptInitialize(void)
     ClRcT rc = CL_OK;
     ClRcT retCode;
 
-    const ClNameT msgQueueCkptName  = {
+    const SaNameT msgQueueCkptName  = {
                      sizeof("CL_MsgQueueCkpt") - 1,
                      "CL_MsgQueueCkpt"
                     };
@@ -48,7 +48,7 @@ ClRcT clMsgQCkptInitialize(void)
         goto out;
     }
 
-    const ClNameT msgQueueGroupCkptName  = {
+    const SaNameT msgQueueGroupCkptName  = {
                      sizeof("CL_MsgQueueGroupCkpt") - 1,
                      "CL_MsgQueueGroupCkpt"
                     };
@@ -82,7 +82,7 @@ ClRcT clMsgQCkptFinalize(void)
     return rc;
 }
 
-ClBoolT clMsgQCkptExists(const ClNameT *pQName, ClMsgQueueCkptDataT *pQueueData)
+ClBoolT clMsgQCkptExists(const SaNameT *pQName, ClMsgQueueCkptDataT *pQueueData)
 {
     ClCachedCkptDataT *sectionData = NULL;
 
@@ -102,7 +102,7 @@ ClBoolT clMsgQCkptExists(const ClNameT *pQName, ClMsgQueueCkptDataT *pQueueData)
 
 }
 
-ClBoolT clMsgQGroupCkptExists(const ClNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData)
+ClBoolT clMsgQGroupCkptExists(const SaNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData)
 {
     ClCachedCkptDataT *sectionData = NULL;
 
@@ -121,7 +121,7 @@ ClBoolT clMsgQGroupCkptExists(const ClNameT *pQGroupName, ClMsgQGroupCkptDataT *
     return CL_TRUE;
 }
 
-ClRcT clMsgQGroupCkptDataGet(const ClNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData)
+ClRcT clMsgQGroupCkptDataGet(const SaNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData)
 {
     ClRcT rc = CL_OK;
     ClCachedCkptDataT *sectionData = NULL;

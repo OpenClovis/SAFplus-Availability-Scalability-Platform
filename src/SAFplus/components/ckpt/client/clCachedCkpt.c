@@ -45,7 +45,7 @@ static ClUint32T clCachedCkptShmSizeGet(ClUint32T cachSize)
 }
 
 ClRcT clCachedCkptClientInitialize(ClCachedCkptClientSvcInfoT *serviceInfo,
-                                   const ClNameT *ckptName,
+                                   const SaNameT *ckptName,
                                    ClUint32T cachSize)
 {
     ClRcT            rc            = CL_OK;
@@ -104,7 +104,7 @@ ClRcT clCachedCkptClientFinalize(ClCachedCkptClientSvcInfoT *serviceInfo)
 }
 
 void clCachedCkptClientLookup(ClCachedCkptClientSvcInfoT *serviceInfo,
-                              const ClNameT *sectionName,
+                              const SaNameT *sectionName,
                               ClCachedCkptDataT **sectionData)
 {
     if (!sectionData)
@@ -271,7 +271,7 @@ ClRcT clCacheEntryAdd (ClCachedCkptSvcInfoT *serviceInfo,
 }
 
 ClRcT clCacheEntryDelete (ClCachedCkptSvcInfoT *serviceInfo, 
-                          const ClNameT *sectionName)
+                          const SaNameT *sectionName)
 {
     if (!serviceInfo->cache)
         return CL_ERR_NOT_INITIALIZED;
@@ -412,7 +412,7 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
         do
         {
             rc = clCkptCheckpointOpen(serviceInfo->ckptSvcHandle,
-                                      (ClNameT *)ckptName,
+                                      (SaNameT *)ckptName,
                                       (ClCkptCheckpointCreationAttributesT *)ckptAttributes,
                                       openFlags,
                                       0L,
@@ -696,7 +696,7 @@ error_out:
     return rc;
 }
 
-static ClBoolT clCkptEntryExist(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT *sectionName)
+static ClBoolT clCkptEntryExist(ClCachedCkptSvcInfoT *serviceInfo, const SaNameT *sectionName)
 {
     ClBoolT                    retVal         = CL_FALSE;
     ClRcT                      rc;
@@ -747,7 +747,7 @@ static ClBoolT clCkptEntryExist(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT
     return retVal;
 }
 
-ClRcT clCkptEntryDelete(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT *sectionName)
+ClRcT clCkptEntryDelete(ClCachedCkptSvcInfoT *serviceInfo, const SaNameT *sectionName)
 {
     ClRcT rc = CL_OK;
 
@@ -779,7 +779,7 @@ retry:
  * DELETE: This function deletes a section in the checkpoint.
  */
 ClRcT clCachedCkptSectionDelete(ClCachedCkptSvcInfoT *serviceInfo,
-                                const ClNameT *sectionName)
+                                const SaNameT *sectionName)
 {
     ClRcT rc = CL_OK;
 
@@ -805,7 +805,7 @@ ClRcT clCachedCkptSectionDelete(ClCachedCkptSvcInfoT *serviceInfo,
  * ClCachedCkptDataT record
  */
 void clCachedCkptSectionRead(ClCachedCkptSvcInfoT *serviceInfo,
-                                       const ClNameT *sectionName,
+                                       const SaNameT *sectionName,
                                        ClCachedCkptDataT **sectionData)
 {
     *sectionData = NULL;
@@ -920,7 +920,7 @@ ClRcT clCachedCkptSynch(ClCachedCkptSvcInfoT *serviceInfo, ClBoolT isEmpty)
             ckptedData = ioVector.dataBuffer;
             copyData = ckptedData;
             
-            memset(&sectionData.sectionName, 0, sizeof (ClNameT));
+            memset(&sectionData.sectionName, 0, sizeof (SaNameT));
             sectionData.sectionName.length = ioVector.sectionId.idLen;
             memcpy(sectionData.sectionName.value, ioVector.sectionId.id, sectionData.sectionName.length);
 

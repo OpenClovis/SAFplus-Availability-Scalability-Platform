@@ -81,7 +81,7 @@ typedef struct
 
 typedef struct
 {
-    ClNameT              streamName;
+    SaNameT              streamName;
     ClLogStreamScopeT    streamScope;
     ClLogStreamAttrIDLT  streamAttr;
 } ClLogStreamDataT;
@@ -129,9 +129,9 @@ extern ClIocNodeAddressT
 clLogFileOwnerAddressFetch(ClStringT  *pFileLocation);
 
 extern ClRcT
-clLogFileOwnerStreamCreateEvent(ClNameT              *pStreamName,
+clLogFileOwnerStreamCreateEvent(SaNameT              *pStreamName,
                                 ClLogStreamScopeT    streamScope,
-                                ClNameT              *pStreamScopeNode,
+                                SaNameT              *pStreamScopeNode,
                                 ClUint16T            streamId,
                                 ClLogStreamAttrIDLT  *pStreamAttr,
                                 ClBoolT              doHandlerRegister);

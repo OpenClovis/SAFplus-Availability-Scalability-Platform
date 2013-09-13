@@ -65,7 +65,7 @@ ClRcT clCkptSvrInitialize(void)
     ClIocNodeAddressT deputy = 0;
     ClIocNodeAddressT master = 0;
     ClBoolT           addressUpdate = CL_FALSE;
-    ClNameT           appName    = {0};   
+    SaNameT           appName    = {0};   
  
     /*
      * Allocate the memory for server control block.

@@ -214,11 +214,11 @@ ClRcT clAlarmClientResListWalk(ClCntKeyHandleT     key,
 
 #if 0
 ClRcT clAlarmNodeMoIdGet(
-    ClNameT* pNodeSrtingMoId);
+    SaNameT* pNodeSrtingMoId);
 #endif
 
 ClRcT clAlarmClientAlarmObjectCreate(
-    ClNameT moIdName,
+    SaNameT moIdName,
     ClCorMOIdPtrT pFullMoId, 
     ClCorAddrT* pProvAddr, 
     ClUint32T createFlag, 

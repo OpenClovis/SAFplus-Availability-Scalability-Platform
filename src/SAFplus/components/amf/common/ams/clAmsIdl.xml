@@ -256,7 +256,7 @@ material.
 
         <Struct name="ClAmsEntityConfigT"> <!---->
             <DataMember name="type" type="ClAmsEntityTypeT"/>
-            <DataMember name="name" type="ClNameT"/>
+            <DataMember name="name" type="SaNameT"/>
             <DataMember name="debugFlags" type="ClUint8T"/>
         </Struct>
 
@@ -433,8 +433,8 @@ material.
         <Struct name="ClAmsCompConfigT"> <!---->
             <DataMember name="entity" type="ClAmsEntityConfigT"/>
             <DataMember name="numSupportedCSITypes" type="ClUint32T"/>
-            <DataMember name="pSupportedCSITypes" type="ClNameT" pointer="Single" lengthVar="numSupportedCSITypes" />
-            <DataMember name="proxyCSIType" type="ClNameT"/>
+            <DataMember name="pSupportedCSITypes" type="SaNameT" pointer="Single" lengthVar="numSupportedCSITypes" />
+            <DataMember name="proxyCSIType" type="SaNameT"/>
             <DataMember name="capabilityModel" type="ClAmsCompCapModelT"/>
             <DataMember name="property" type="ClAmsCompPropertyT"/>
             <DataMember name="isRestartable" type="ClUint16T"/>
@@ -459,7 +459,7 @@ material.
             <DataMember name="adminState" type="ClAmsAdminStateT"/>
             <DataMember name="id" type="ClUint32T"/>
             <DataMember name="classType" type="ClAmsNodeClassT"/>
-            <DataMember name="subClassType" type="ClNameT"/>
+            <DataMember name="subClassType" type="SaNameT"/>
             <DataMember name="isSwappable" type="ClUint16T"/>
             <DataMember name="isRestartable" type="ClUint16T"/>
             <DataMember name="autoRepair" type="ClUint16T"/>
@@ -578,16 +578,16 @@ material.
 
         <Struct name="ClAmsCSIConfigT"> <!---->
             <DataMember name="entity" type="ClAmsEntityConfigT"/>
-            <DataMember name="type" type="ClNameT"/>
+            <DataMember name="type" type="SaNameT"/>
             <DataMember name="isProxyCSI" type="ClUint16T"/>
             <DataMember name="rank" type="ClUint32T"/>
             <DataMember name="parentSI" type="ClAmsEntityConfigT"/>
         </Struct>
 
         <Struct name="ClAmsCSINVPT"> <!---->
-            <DataMember name="csiName" type="ClNameT"/>
-            <DataMember name="paramName" type="ClNameT"/>
-            <DataMember name="paramValue" type="ClNameT"/>
+            <DataMember name="csiName" type="SaNameT"/>
+            <DataMember name="paramName" type="SaNameT"/>
+            <DataMember name="paramValue" type="SaNameT"/>
         </Struct>
 
         <Struct name="clAmsMgmtCCBCSISetNVPRequestT"> <!---->
@@ -960,10 +960,10 @@ material.
         <Struct name="ClAmsNotificationDescriptorT"> <!---->
             <DataMember name="type" type="ClAmsNotificationTypeT"/>
             <DataMember name="entityType" type="ClAmsEntityTypeT"/>
-            <DataMember name="entityName" type="ClNameT"/>
-            <DataMember name="faultyCompName" type="ClNameT"/>
-            <DataMember name="siName" type="ClNameT"/>
-            <DataMember name="suName" type="ClNameT"/>
+            <DataMember name="entityName" type="SaNameT"/>
+            <DataMember name="faultyCompName" type="SaNameT"/>
+            <DataMember name="siName" type="SaNameT"/>
+            <DataMember name="suName" type="SaNameT"/>
             <DataMember name="lastHAState" type="ClAmsHAStateT"/>
             <DataMember name="newHAState" type="ClAmsHAStateT"/>
             <DataMember name="recoveryActionTaken" type="ClAmsRecoveryT"/>
@@ -997,8 +997,8 @@ material.
         </Struct>
 
         <Struct name="ClAmsMgmtMigrateRequestT">
-          <DataMember name="sg" type="ClNameT"/>
-          <DataMember name="prefix" type="ClNameT"/>
+          <DataMember name="sg" type="SaNameT"/>
+          <DataMember name="prefix" type="SaNameT"/>
           <DataMember name="activeSUs" type="ClUint32T"/>
           <DataMember name="standbySUs" type="ClUint32T"/>
         </Struct>
@@ -1024,9 +1024,9 @@ material.
         <Struct name="ClAmsInvocationIDLT" version="4.1.0" defNeed="True">
           <DataMember name="invocation" type="ClUint64T"/>
           <DataMember name="cmd" type="ClUint32T"/>
-          <DataMember name="compName" type="ClNameT"/>
+          <DataMember name="compName" type="SaNameT"/>
           <DataMember name="csiTargetOne" type="ClUint16T"/>
-          <DataMember name="csiName" type="ClNameT"/>
+          <DataMember name="csiName" type="SaNameT"/>
           <DataMember name="reassignCSI" type="ClUint16T"/>
         </Struct>
 </IDLSpecs>

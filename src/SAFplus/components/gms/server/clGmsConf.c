@@ -124,12 +124,12 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
         }
     }
 
-    strncpy(gmsGlobalInfo.config.clusterName.value,
+    strncpy((ClCharT *)gmsGlobalInfo.config.clusterName.value,
             cluster_name->txt, 
             sizeof(gmsGlobalInfo.config.clusterName.value)-1);
 
     gmsGlobalInfo.config.clusterName.length = 
-        strlen(gmsGlobalInfo.config.clusterName.value);
+        strlen((const ClCharT *)gmsGlobalInfo.config.clusterName.value);
 
     /* Look for Max number of groups */
     max_group_num = clParserChild(gmsConfig, "maxNoOfGroups");

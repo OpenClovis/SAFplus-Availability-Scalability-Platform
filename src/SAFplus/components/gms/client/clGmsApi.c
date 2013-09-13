@@ -460,7 +460,7 @@ ClRcT clGmsClusterJoin(
     CL_IN const ClGmsLeadershipCredentialsT         credentials,
     CL_IN const ClTimeT                             timeout,
     CL_IN const ClGmsNodeIdT                        nodeId,
-    CL_IN const ClNameT*                      const nodeName)
+    CL_IN const SaNameT*                      const nodeName)
 {
     ClRcT                                rc = CL_OK;
     struct gms_instance                 *gms_instance_ptr = NULL;
@@ -495,7 +495,7 @@ ClRcT clGmsClusterJoin(
     req.gmsHandle   = gmsHandle;
     req.credentials = credentials;
     req.nodeId      = nodeId;
-    memcpy(&req.nodeName,nodeName, sizeof(ClNameT));
+    memcpy(&req.nodeName,nodeName, sizeof(SaNameT));
     req.sync        = CL_TRUE;
     req.address.iocPhyAddress.nodeAddress = clIocLocalAddressGet();
     if (clEoMyEoIocPortGet(&(req.address.iocPhyAddress.portId)) != CL_OK)
@@ -532,7 +532,7 @@ ClRcT clGmsClusterJoinAsync(
     CL_IN const ClGmsClusterManageCallbacksT* const clusterManageCallbacks,
     CL_IN const ClGmsLeadershipCredentialsT         credentials,
     CL_IN const ClGmsNodeIdT                        nodeId,
-    CL_IN const ClNameT*                      const nodeName)
+    CL_IN const SaNameT*                      const nodeName)
 {
     ClRcT                                rc = CL_OK;
     struct gms_instance                 *gms_instance_ptr = NULL;
@@ -566,7 +566,7 @@ ClRcT clGmsClusterJoinAsync(
     req.gmsHandle   = gmsHandle;
     req.credentials = credentials;
     req.nodeId      = nodeId;
-    memcpy(&req.nodeName,nodeName, sizeof(ClNameT));
+    memcpy(&req.nodeName,nodeName, sizeof(SaNameT));
     req.sync        = CL_FALSE;
     
     clGmsMutexLock(gms_instance_ptr->response_mutex);

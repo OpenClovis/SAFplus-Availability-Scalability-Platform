@@ -47,14 +47,14 @@ TC9	emTestCases.c	44;"	d	file:
 THIRDPARTY_LIBS	Makefile	/^THIRDPARTY_LIBS := None$/;"	m
 _CL_CONT_H_	emCont.h	13;"	d
 _CL_TEST_TEMP_H_	emTestTemplate.h	13;"	d
-appName	emCont.h	/^        ClNameT appName;$/;"	m	struct:ClEvtContSubInfoStorage
-appName	emCont.h	/^        ClNameT appName;$/;"	m	struct:clEvtContPubKey
-channelName	emCont.h	/^        ClNameT channelName;$/;"	m	struct:clEvtContPubKey
-channelName	emCont.h	/^        ClNameT channelName;$/;"	m	struct:clEvtContSubKey
+appName	emCont.h	/^        SaNameT appName;$/;"	m	struct:ClEvtContSubInfoStorage
+appName	emCont.h	/^        SaNameT appName;$/;"	m	struct:clEvtContPubKey
+channelName	emCont.h	/^        SaNameT channelName;$/;"	m	struct:clEvtContPubKey
+channelName	emCont.h	/^        SaNameT channelName;$/;"	m	struct:clEvtContSubKey
 clEoBasicLibs	emCont.c	/^ClUint8T clEoBasicLibs[] = {$/;"	v
 clEoClientLibs	emCont.c	/^ClUint8T clEoClientLibs[] = {$/;"	v
 clEoConfig	emCont.c	/^ClEoConfigT clEoConfig = {$/;"	v
-clEventTerminate	emCont.c	/^ClRcT clEventTerminate(ClInvocationT invocation, const ClNameT *compName)$/;"	f
+clEventTerminate	emCont.c	/^ClRcT clEventTerminate(ClInvocationT invocation, const SaNameT *compName)$/;"	f
 clEvntContAlloc	emContBrain.c	/^ClRcT clEvntContAlloc(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)$/;"	f
 clEvntContClose	emContBrain.c	/^ClRcT clEvntContClose(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)$/;"	f
 clEvntContGetAttr	emContBrain.c	/^ClRcT clEvntContGetAttr(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)$/;"	f
@@ -69,7 +69,7 @@ clEvtContAppInfoReset	emTestCases.c	/^void clEvtContAppInfoReset()$/;"	f
 clEvtContFin	emContBrain.c	/^ClRcT clEvtContFin(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)$/;"	f
 clEvtContGetApp	emTestCases.c	/^void clEvtContGetApp(ClUint32T *pNoOfApp)$/;"	f
 clEvtContInit	emContBrain.c	/^ClRcT clEvtContInit(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)$/;"	f
-clEvtContIocAddreGet	emTestCases.c	/^ClRcT clEvtContIocAddreGet(ClNameT *appName, ClIocPhysicalAddressT *pIocAddress)$/;"	f
+clEvtContIocAddreGet	emTestCases.c	/^ClRcT clEvtContIocAddreGet(SaNameT *appName, ClIocPhysicalAddressT *pIocAddress)$/;"	f
 clEvtContOpen	emContBrain.c	/^ClRcT clEvtContOpen(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)$/;"	f
 clEvtContParseTestInfo	emTestCases.c	/^ClRcT clEvtContParseTestInfo()$/;"	f
 clEvtContPrepareInfo	emContBrain.c	/^ClRcT clEvtContPrepareInfo(ClEvtContTestHeadT *pTestHead,$/;"	f
@@ -80,14 +80,14 @@ clEvtContRest	emContBrain.c	/^ClRcT clEvtContRest(ClIocAddressT destAddr)$/;"	f
 clEvtContResultPrint	emContBrain.c	/^void clEvtContResultPrint(ClRcT retCode, ClEvtContTestHeadT *pTestHead)$/;"	f
 clEvtContRmd	emContBrain.c	/^ClRcT clEvtContRmd(ClEvtContTestHeadT *pTestHead, ClUint32T funcNo,$/;"	f
 clEvtContSubDataDelete	emCont.c	/^void clEvtContSubDataDelete(ClCntKeyHandleT userKey, ClCntDataHandleT userData)$/;"	f
-clEvtContSubInfoInc	emTestCases.c	/^void clEvtContSubInfoInc(ClNameT *appName)$/;"	f
+clEvtContSubInfoInc	emTestCases.c	/^void clEvtContSubInfoInc(SaNameT *appName)$/;"	f
 clEvtContSubInfoWalk	emContBrain.c	/^ClRcT clEvtContSubInfoWalk(ClCntKeyHandleT userKey, ClCntDataHandleT userData,$/;"	f
 clEvtContSubKey	emCont.h	/^    typedef struct clEvtContSubKey$/;"	s
 clEvtContSubKeyCompare	emCont.c	/^ClInt32T clEvtContSubKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)$/;"	f
 clEvtContSubResultGet	emContBrain.c	/^ClRcT clEvtContSubResultGet(ClIocAddressT destAddr, ClUint32T noOfSubs)$/;"	f
 clEvtContTestDbInit	emCont.c	/^void clEvtContTestDbInit()$/;"	f
-clEvtContUtilsNameCmp	emContBrain.c	/^ClInt32T clEvtContUtilsNameCmp(ClNameT *pName1, ClNameT *pName2)$/;"	f
-clEvtContUtilsNameCpy	emContBrain.c	/^void clEvtContUtilsNameCpy(ClNameT *pNameDst, const ClNameT *pNameSrc)$/;"	f
+clEvtContUtilsNameCmp	emContBrain.c	/^ClInt32T clEvtContUtilsNameCmp(SaNameT *pName1, SaNameT *pName2)$/;"	f
+clEvtContUtilsNameCpy	emContBrain.c	/^void clEvtContUtilsNameCpy(SaNameT *pNameDst, const SaNameT *pNameSrc)$/;"	f
 clEvtContValidateResult	emTestCases.c	/^ClRcT clEvtContValidateResult()$/;"	f
 clEvtCpmInit	emCont.c	/^ClRcT clEvtCpmInit()$/;"	f
 clEvtCpmReplyCb	emCont.c	/^ClRcT clEvtCpmReplyCb(ClUint32T data, ClBufferHandleT inMsgHandle,$/;"	f
@@ -189,8 +189,8 @@ gTC9Head	emTestCases.c	/^ClEvtContTestHeadT gTC9Head[] = {$/;"	v
 gTC9Open	emTestCases.c	/^ClEvtContChOpenT gTC9Open[] = {$/;"	v
 gTC9Pub	emTestCases.c	/^ClEvtContPubT gTC9Pub[] = {$/;"	v
 gTC9Sub	emTestCases.c	/^ClEvtContSubT gTC9Sub[] = {$/;"	v
-gTCInit	emTestCases.c	/^ClNameT gTCInit = CL_NAME_SET(INIT);$/;"	v
-gTCNode	emTestCases.c	/^ClNameT gTCNode[] = {$/;"	v
+gTCInit	emTestCases.c	/^SaNameT gTCInit = CL_NAME_SET(INIT);$/;"	v
+gTCNode	emTestCases.c	/^SaNameT gTCNode[] = {$/;"	v
 gpPubInfo	emContBrain.c	/^ClEvtContPubT *gpPubInfo;$/;"	v
 gpSubStorage	emCont.c	/^ClEvtContSubInfoStorageT *gpSubStorage;$/;"	v
 noOfSubs	emCont.h	/^        ClUint32T noOfSubs;$/;"	m	struct:ClEvtContSubInfoStorage

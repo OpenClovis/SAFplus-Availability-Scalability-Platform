@@ -52,9 +52,9 @@ struct _ClCpmCompCSISetT_4_0_0;
 
 typedef struct _ClCpmCompCSISetT_4_0_0 {
     ClUint64T    invocation;
-    ClNameT    compName;
-    ClNameT    proxyCompName;
-    ClNameT    nodeName;
+    SaNameT    compName;
+    SaNameT    proxyCompName;
+    SaNameT    nodeName;
     ClAmsHAStateT_4_0_0    haState;
     ClUint32T    bufferLength;
     ClUint8T*    buffer;

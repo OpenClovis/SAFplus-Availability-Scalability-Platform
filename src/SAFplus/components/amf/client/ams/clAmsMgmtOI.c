@@ -687,7 +687,7 @@ ClRcT clAmsMgmtOIInitialize(ClAmsMgmtHandleT *pHandle,
     ClCorTxnSessionIdT txnSession = 0;
     ClUint32T i;
     ClCorAddrT appAddress = {0};
-    ClNameT chassisInstance = {0};
+    SaNameT chassisInstance = {0};
     ClUint32T chassisId = 0;
 
     if(!pClAmsMgmtOIConfigAttributesGet)

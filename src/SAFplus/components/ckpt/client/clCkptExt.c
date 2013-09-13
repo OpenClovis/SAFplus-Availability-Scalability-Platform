@@ -79,7 +79,7 @@
        ClCharT appBasePath[CL_MAX_NAME_LENGTH+1];                       \
        ClCharT *appBaseName = NULL;                                     \
        ClCharT  *path = NULL;                                           \
-       if(! (path = strrchr(appName, '/') ) )                           \
+       if(! (path = strrchr((ClCharT *)appName, '/') ) )                           \
        {                                                                \
            path = CKPT_DB_PATH;                                         \
            appBaseName = (ClCharT*)appName;                             \
@@ -87,7 +87,7 @@
        else                                                             \
        {                                                                \
            memset(appBasePath, 0, sizeof(appBasePath));                 \
-           strncpy(appBasePath, appName, CL_MIN(path-appName, sizeof(appBasePath)-1)); \
+           strncpy(appBasePath, (const ClCharT *)appName, CL_MIN(path-(ClCharT *)appName, sizeof(appBasePath)-1)); \
            appBaseName = path + 1;                                      \
            path = appBasePath;                                          \
        }                                                                \
@@ -100,12 +100,12 @@
 #define CKPT_LIST_GET_KEY(key, name) do {           \
     ClUint32T __len = (name)->length;               \
     ClCharT *__p = NULL ;                           \
-    if(__len >= (ClUint32T)sizeof((name)->value))   \
-        __len = sizeof((name)->value)-1;            \
+    if(__len >= (ClUint32T)sizeof((const ClCharT *)((name)->value)))   \
+        __len = sizeof((const ClCharT *)((name)->value))-1;            \
     if(!(key))                                      \
-        (key) = (name)->value;                      \
-    if( (key) != (name)->value)                     \
-        strncpy((key), (name)->value, __len);       \
+        (key) = ((ClCharT *)((name)->value));                      \
+    if( (key) != ((ClCharT *)((name)->value)))                     \
+        strncpy((key), (const ClCharT *)((name)->value), __len);       \
     if( (__p = strrchr ((key), '/')))               \
         key = __p + 1;                              \
 }while(0)
@@ -342,7 +342,7 @@ ClRcT clCkptLibraryInitialize (
     ClRcT               rc          =  CL_OK;       /* Return code*/
     ClCharT             ckptDB[CL_MAX_NAME_LENGTH + strlen (CL_CKPT_DB_NAME)]; 
     ClCpmHandleT        cpmHandle   =  0;           /* Cpm handle. */
-    ClNameT             appName = {0}; 
+    SaNameT             appName = {0}; 
     
     /*Validations */
     CKPT_NULL_CHECK (pCkptHdl);
@@ -410,7 +410,7 @@ exitOnError:
     Function for checkpoint open in clientSide
  */
 ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl, 
-                               ClNameT       *pCkptName) 
+                               SaNameT       *pCkptName) 
                               
 {
     CkptClnCbT      *pCkptClnt   =  NULL;        /*checkpoint library handle*/   
@@ -447,7 +447,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
     pCkptClnt =  (CkptClnCbT *)(ClWordT)ckptHdl ;
     CKPT_LOCK (pCkptClnt->ckptSem);
   
-    ckptDbName = pCkptName->value;
+    ckptDbName = (ClCharT *)pCkptName->value;
     
     CL_CKPT_APP_NAME_FORM(tempDb, ckptDbName);
 
@@ -491,7 +491,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
         return CL_CKPT_ERR_NO_MEMORY;
     }
     memset(pCkpt, 0,sizeof(ClnCkptT));
-    pCkpt->pCkptName  =  (ClNameT *)clHeapAllocate (sizeof (ClNameT));
+    pCkpt->pCkptName  =  (SaNameT *)clHeapAllocate (sizeof (SaNameT));
     if (pCkpt->pCkptName == NULL)
     {
         CL_DEBUG_PRINT (CL_DEBUG_CRITICAL, 
@@ -501,7 +501,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
         CKPT_UNLOCK (pCkptClnt->ckptSem);
         return CL_CKPT_ERR_NO_MEMORY;
     }        
-    memset (pCkpt->pCkptName, 0, sizeof (ClNameT));
+    memset (pCkpt->pCkptName, 0, sizeof (SaNameT));
     pCkpt->pCkptName->length = pCkptName->length;
     memcpy (pCkpt->pCkptName->value ,  pCkptName->value,  pCkptName->length);
         
@@ -577,7 +577,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
 */
 
 ClRcT clCkptLibraryCkptDelete (ClCkptSvcHdlT ckptHdl, 
-                              ClNameT     *pCkptName)
+                              SaNameT     *pCkptName)
 {
 
     CkptClnCbT       *pCkptClnt  =  NULL;        /*checkpoint handle*/
@@ -649,7 +649,7 @@ exitOnError:
 
 
 ClRcT clCkptLibraryCkptDataSetVersionCreate (ClCkptSvcHdlT   ckptHdl, 
-                                   ClNameT           *pCkptName, 
+                                   SaNameT           *pCkptName, 
                                    ClUint32T          dsId, 
                                    ClUint32T          grpId, 
                                    ClUint32T          order, 
@@ -782,7 +782,7 @@ exitOnError:
 */
 
 ClRcT clCkptLibraryCkptDataSetCreate (ClCkptSvcHdlT   ckptHdl, 
-                                   ClNameT           *pCkptName, 
+                                   SaNameT           *pCkptName, 
                                    ClUint32T          dsId, 
                                    ClUint32T          grpId, 
                                    ClUint32T          order, 
@@ -811,7 +811,7 @@ ClRcT clCkptLibraryCkptDataSetCreate (ClCkptSvcHdlT   ckptHdl,
  
  */
 ClRcT clCkptLibraryCkptDataSetDelete (ClCkptSvcHdlT  ckptHdl, 
-                                     ClNameT       *pCkptName, 
+                                     SaNameT       *pCkptName, 
                                      ClUint32T      dsId)
 {
     ClnCkptT          *pCkpt     =  NULL;     /*checkpoint object*/
@@ -1033,7 +1033,7 @@ static ClRcT clCkptDataSetSerialize(ClVersionT *pVersion,
      to some storage with version
 */     
 ClRcT clCkptLibraryCkptDataSetVersionWrite (ClCkptSvcHdlT   ckptHdl, 
-                                            ClNameT         *pCkptName, 
+                                            SaNameT         *pCkptName, 
                                             ClUint32T        dsId, 
                                             ClPtrT        cookie,
                                             ClVersionT    *pVersion)
@@ -1092,7 +1092,7 @@ ClRcT clCkptLibraryCkptDataSetVersionWrite (ClCkptSvcHdlT   ckptHdl,
                                 pDataInfo->numDataSetTableEntries);
     CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
             ("Ckpt: Error during version serialization rc[0x %x]\n",rc), rc);
-    ckptDbName = pCkptName->value;
+    ckptDbName = (ClCharT *)pCkptName->value;
     /*Creating  key*/
     dbKey.dsId = pDataInfo->dsId;
     dbKey.keyLen  = 0;
@@ -1119,7 +1119,7 @@ exitOnError:
 
 
 ClRcT clCkptLibraryCkptDataSetWrite (ClCkptSvcHdlT   ckptHdl, 
-                                     ClNameT         *pCkptName, 
+                                     SaNameT         *pCkptName, 
                                      ClUint32T        dsId, 
                                      ClPtrT        cookie)
 {
@@ -1135,7 +1135,7 @@ ClRcT clCkptLibraryCkptDataSetWrite (ClCkptSvcHdlT   ckptHdl,
  * Function for creating the element with version.
 */
 ClRcT clCkptLibraryCkptElementVersionCreate(ClCkptSvcHdlT        ckptHdl, 
-                                            ClNameT              *pCkptName, 
+                                            SaNameT              *pCkptName, 
                                             ClUint32T            dsId,
                                             ClCkptDataSetCallbackT *pTable,
                                             ClUint32T numTableEntries)
@@ -1240,7 +1240,7 @@ exitOnError:
 }
 
 ClRcT clCkptLibraryCkptElementCreate(ClCkptSvcHdlT        ckptHdl, 
-                                     ClNameT              *pCkptName, 
+                                     SaNameT              *pCkptName, 
                                      ClUint32T            dsId,
                                      ClCkptSerializeT     elemSerialiser,
                                      ClCkptDeserializeT   elemDeserialiser)
@@ -1266,7 +1266,7 @@ ClRcT clCkptLibraryCkptElementCreate(ClCkptSvcHdlT        ckptHdl,
 */     
                                      
 ClRcT clCkptLibraryCkptElementVersionWrite (ClCkptSvcHdlT   ckptHdl, 
-                                            ClNameT        *pCkptName, 
+                                            SaNameT        *pCkptName, 
                                             ClUint32T       dsId, 
                                             ClPtrT          elemKey,
                                             ClUint32T       keyLen,
@@ -1365,7 +1365,7 @@ exitOnError:
 }
 
 ClRcT clCkptLibraryCkptElementWrite (ClCkptSvcHdlT   ckptHdl, 
-                                    ClNameT        *pCkptName, 
+                                    SaNameT        *pCkptName, 
                                     ClUint32T       dsId, 
                                     ClPtrT          elemKey,
                                     ClUint32T       keyLen,
@@ -1386,7 +1386,7 @@ ClRcT clCkptLibraryCkptElementWrite (ClCkptSvcHdlT   ckptHdl,
  */     
                                      
 ClRcT clCkptLibraryCkptElementDelete(ClCkptSvcHdlT  ckptHdl, 
-                                     ClNameT        *pCkptName, 
+                                     SaNameT        *pCkptName, 
                                      ClUint32T      dsId, 
                                      ClPtrT         elemKey,
                                      ClUint32T      keyLen)
@@ -1480,7 +1480,7 @@ exitOnError:
 */
                 
 ClRcT clCkptLibraryCkptDataSetRead (ClCkptSvcHdlT      ckptHdl, 
-                                   ClNameT            *pCkptName, 
+                                   SaNameT            *pCkptName, 
                                    ClUint32T           dsId, 
                                    ClPtrT           cookie)
                               
@@ -1642,7 +1642,7 @@ exitOnError:
    Function to find the ckpt is already exist or not
 */
 ClRcT clCkptLibraryDoesCkptExist( ClCkptSvcHdlT      ckptHdl, 
-                                  ClNameT           *pCkptName, 
+                                  SaNameT           *pCkptName, 
                                   ClBoolT           *pRetVal)
 {
     CkptClnCbT      *pCkptClnt   = NULL;
@@ -1708,7 +1708,7 @@ ClRcT clCkptLibraryDoesCkptExist( ClCkptSvcHdlT      ckptHdl,
    Function to find the DataSet is already exist or not
 */
 ClRcT clCkptLibraryDoesDatasetExist( ClCkptSvcHdlT    ckptHdl, 
-                                     ClNameT            *pCkptName, 
+                                     SaNameT            *pCkptName, 
                                      ClUint32T           dsId,
                                      ClBoolT            *pRetVal)
 {
@@ -1790,8 +1790,8 @@ ClRcT clCkptPack (CkptClnCbT  *pCkptClnt,
               pBuffer = pBuffer + sizeof (ClnCkptT);
               if (pCkpt->pCkptName != NULL)
               {
-                memcpy (pBuffer,(ClCharT *)pCkpt->pCkptName, sizeof (ClNameT));
-                pBuffer = pBuffer + sizeof (ClNameT);
+                memcpy (pBuffer,(ClCharT *)pCkpt->pCkptName, sizeof (SaNameT));
+                pBuffer = pBuffer + sizeof (SaNameT);
                 dsCount = 0;
                 clCntSizeGet( pCkpt->dataSetList,
                               &dsCount); 
@@ -1897,7 +1897,7 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
         dataHdl = dataHdl + sizeof(ClnCkptT);
         if(pCkpt->pCkptName != NULL)
         {
-            pCkpt->pCkptName  =  (ClNameT *)clHeapCalloc (1, sizeof (ClNameT));
+            pCkpt->pCkptName  =  (SaNameT *)clHeapCalloc (1, sizeof (SaNameT));
             if (pCkpt->pCkptName == NULL)
             {
                 clHeapFree(pCkpt);
@@ -1907,15 +1907,15 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 return CL_CKPT_ERR_NO_MEMORY;
             }        
-            memset (pCkpt->pCkptName, 0, sizeof (ClNameT));
-            memcpy(pCkpt->pCkptName,dataHdl,sizeof(ClNameT));
+            memset (pCkpt->pCkptName, 0, sizeof (SaNameT));
+            memcpy(pCkpt->pCkptName,dataHdl,sizeof(SaNameT));
 
             if(pCkpt->pCkptName->length >= sizeof(pCkpt->pCkptName->value))
                 pCkpt->pCkptName->length = sizeof(pCkpt->pCkptName->value)-1;
 
             pCkpt->pCkptName->value[pCkpt->pCkptName->length] = 0;
 
-            dataHdl = dataHdl + sizeof(ClNameT);
+            dataHdl = dataHdl + sizeof(SaNameT);
 
             /* 
              * While opening the dbal later, make sure that the key is the basename
@@ -2007,7 +2007,7 @@ ClRcT clCkptBufferAlloc (CkptClnCbT *pCkptClnt,
               ("Ckpt: Error in getting size from Container rc[0x %x]\n",rc),rc);
    }
    totalSize = totalSize + nodeCount * sizeof(ClnCkptT) +
-                           nodeCount * sizeof(ClNameT) +
+                           nodeCount * sizeof(SaNameT) +
                            nodeCount * sizeof(ClUint32T);
    
   rc = clCntWalk(pCkptClnt->ckptList,

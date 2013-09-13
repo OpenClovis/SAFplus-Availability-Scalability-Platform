@@ -149,7 +149,7 @@ void clMsgQueueEmpty(ClMsgQueueInfoT *pQInfo)
 void clMsgQueueFree(ClMsgQueueInfoT *pQInfo)
 {
     ClRcT rc = CL_OK;
-    ClNameT qName = {strlen("--Unknow--"), "--Unknow--"};
+    SaNameT qName = {strlen("--Unknow--"), "--Unknow--"};
     ClUint32T i;
 
     CL_OSAL_MUTEX_LOCK(&pQInfo->qLock);
@@ -158,7 +158,7 @@ void clMsgQueueFree(ClMsgQueueInfoT *pQInfo)
 
     if(pQInfo->unlinkFlag == CL_FALSE && pQInfo->pQueueEntry != NULL)
     {
-        clNameCopy(&qName, &pQInfo->pQueueEntry->qName);
+        saNameCopy(&qName, &pQInfo->pQueueEntry->qName);
     }
     
     if(pQInfo->timerHandle != 0)
@@ -313,7 +313,7 @@ error_out:
 }
 
 ClRcT VDECL_VER(clMsgQueueStatusGet, 4, 0, 0)(
-        ClNameT *pQName,
+        SaNameT *pQName,
         SaMsgQueueStatusT *pQueueStatus
         )
 {
@@ -419,7 +419,7 @@ error_out:
 }
 
 ClRcT VDECL_VER(clMsgQueueInfoGet, 4, 0, 0)(
-        ClNameT *pQName, 
+        SaNameT *pQName, 
         SaMsgQueueCreationAttributesT *pQNewAttrs)
 {
     ClRcT rc, retCode;
@@ -467,7 +467,7 @@ error_out:
 }
 
 ClRcT VDECL_VER(clMsgQueueMoveMessages, 4, 0, 0)(
-        ClNameT *pQName,
+        SaNameT *pQName,
         SaMsgQueueOpenFlagsT openFlags,
         ClBoolT qDelete
         )
@@ -544,7 +544,7 @@ error_out_1:
 
         CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
 
-        clMsgQEntryDel((ClNameT *)pQName);
+        clMsgQEntryDel((SaNameT *)pQName);
         CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
     }
     else
@@ -557,7 +557,7 @@ error_out:
     return rc;
 }
 
-ClRcT clMsgToDestQueueMove(ClIocNodeAddressT destNode, ClNameT *pQName)
+ClRcT clMsgToDestQueueMove(ClIocNodeAddressT destNode, SaNameT *pQName)
 {
     ClRcT rc;
     SaMsgQueueCreationAttributesT tempQAttrs;
@@ -629,12 +629,12 @@ error_out_1:
     if(rc != CL_OK)
         clLogError("QUE", "CLOS", "Failed to destroy the queue handle. error code [0x%x].", rc);
 
-    clMsgQEntryDel((ClNameT *)pQName);
+    clMsgQEntryDel((SaNameT *)pQName);
 error_out:
     return rc;
 }
 
-ClRcT clMsgToLocalQueueMove(ClIocPhysicalAddressT srcAddr, ClNameT * pQName, ClBoolT qDelete)
+ClRcT clMsgToLocalQueueMove(ClIocPhysicalAddressT srcAddr, SaNameT * pQName, ClBoolT qDelete)
 {
     ClRcT rc = CL_OK;
     SaMsgQueueHandleT qHandle;
@@ -653,7 +653,7 @@ ClRcT clMsgToLocalQueueMove(ClIocPhysicalAddressT srcAddr, ClNameT * pQName, ClB
     }
 
     /* Copy creation attributes from remote queue */
-    rc = VDECL_VER(clMsgQueueInfoGetClientSync, 4, 0, 0)(idlHandle, (ClNameT *) pQName, &qAttrs);
+    rc = VDECL_VER(clMsgQueueInfoGetClientSync, 4, 0, 0)(idlHandle, (SaNameT *) pQName, &qAttrs);
     if(rc != CL_OK)
     {
         clLogError("MSG", "MOVE", "Failed to get queue [%.*s]'s information. error code [0x%x].", pQName->length, pQName->value, rc);
@@ -663,7 +663,7 @@ ClRcT clMsgToLocalQueueMove(ClIocPhysicalAddressT srcAddr, ClNameT * pQName, ClB
     /* Allocate a new msg queue */
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
     CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
-    rc = clMsgQueueAllocate((ClNameT *)pQName, /* openFlags unused */ 0, &qAttrs, &qHandle);
+    rc = clMsgQueueAllocate((SaNameT *)pQName, /* openFlags unused */ 0, &qAttrs, &qHandle);
     CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
     CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
     if(rc != CL_OK)
@@ -672,7 +672,7 @@ ClRcT clMsgToLocalQueueMove(ClIocPhysicalAddressT srcAddr, ClNameT * pQName, ClB
         goto error_out1;
     }
 
-    rc = VDECL_VER(clMsgQueueMoveMessagesClientSync, 4, 0, 0)(idlHandle, (ClNameT *) pQName, 0, qDelete);
+    rc = VDECL_VER(clMsgQueueMoveMessagesClientSync, 4, 0, 0)(idlHandle, (SaNameT *) pQName, 0, qDelete);
     if(rc != CL_OK)
     {
         clLogError("MSG", "MOVE", "Failed to move messages from the remote queue [%.*s]. error code [0x%x].", pQName->length, pQName->value, rc);
@@ -685,7 +685,7 @@ ClRcT clMsgToLocalQueueMove(ClIocPhysicalAddressT srcAddr, ClNameT * pQName, ClB
 error_out2:
     clMsgQueueFreeByHandle(qHandle);
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
-    clMsgQEntryDel((ClNameT *)pQName);
+    clMsgQEntryDel((SaNameT *)pQName);
     CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
 error_out1:
     clIdlHandleFinalize(idlHandle);
@@ -706,7 +706,7 @@ static void clMsgDeleteCallbackFunc(ClCntKeyHandleT userKey,
 }
 
 ClRcT clMsgQueueAllocate(
-        ClNameT *pQName, 
+        SaNameT *pQName, 
         SaMsgQueueOpenFlagsT openFlags,
         SaMsgQueueCreationAttributesT *pCreationAttributes,
         SaMsgQueueHandleT *pQueueHandle)
@@ -828,7 +828,7 @@ out:
     return rc;
 }
 
-ClRcT clMsgQueueDestroy(ClNameT * pQName)
+ClRcT clMsgQueueDestroy(SaNameT * pQName)
 {
     ClRcT rc;
     ClRcT retCode;
@@ -886,7 +886,7 @@ error_out:
 static struct hashStruct *ppMsgQNameHashTable[CL_MSG_QNAME_BUCKETS];
 
 
-static __inline__ ClUint32T clMsgQNameHash(const ClNameT *pQName)
+static __inline__ ClUint32T clMsgQNameHash(const SaNameT *pQName)
 {
     return (ClUint32T)((ClUint32T)pQName->value[0] & CL_MSG_QNAME_MASK);
 }
@@ -902,7 +902,7 @@ static __inline__ void clMsgQNameEntryDel(ClMsgQueueRecordT *pHashEntry)
     hashDel(&pHashEntry->qNameHash);
 }
 
-ClBoolT clMsgQNameEntryExists(const ClNameT *pQName, ClMsgQueueRecordT **ppQNameEntry)
+ClBoolT clMsgQNameEntryExists(const SaNameT *pQName, ClMsgQueueRecordT **ppQNameEntry)
 {
     register struct hashStruct *pTemp;
     ClUint32T key = clMsgQNameHash(pQName);
@@ -921,7 +921,7 @@ ClBoolT clMsgQNameEntryExists(const ClNameT *pQName, ClMsgQueueRecordT **ppQName
 }
 /****************************************************************************/
 
-ClRcT clMsgQEntryAdd(ClNameT *pName, SaMsgQueueHandleT queueHandle, ClMsgQueueRecordT **ppMsgQEntry)
+ClRcT clMsgQEntryAdd(SaNameT *pName, SaMsgQueueHandleT queueHandle, ClMsgQueueRecordT **ppMsgQEntry)
 {
     ClRcT rc;
     ClMsgQueueRecordT *pTemp;
@@ -942,7 +942,7 @@ ClRcT clMsgQEntryAdd(ClNameT *pName, SaMsgQueueHandleT queueHandle, ClMsgQueueRe
         goto error_out;
     }
 
-    memcpy(&pTemp->qName, pName, sizeof(ClNameT));
+    memcpy(&pTemp->qName, pName, sizeof(SaNameT));
     pTemp->qHandle = queueHandle;
 
     rc = clMsgQNameEntryAdd(pTemp);
@@ -965,7 +965,7 @@ out:
 }
 
 
-void clMsgQEntryDel(ClNameT *pQName)
+void clMsgQEntryDel(SaNameT *pQName)
 {
     ClMsgQueueRecordT *pTemp;
 

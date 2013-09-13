@@ -47,7 +47,7 @@ ClRcT cpmInvocationDeleteInvocation(ClInvocationT invocationId)
 }
 
 
-ClRcT cpmInvocationClearCompInvocation(ClNameT *compName)
+ClRcT cpmInvocationClearCompInvocation(SaNameT *compName)
 {
     ClRcT rc = CL_OK;
     ClCntNodeHandleT nodeHandle, nextNodeHandle;
@@ -85,16 +85,15 @@ ClRcT cpmInvocationClearCompInvocation(ClNameT *compName)
         if((data = invocationData->data))
         {
             ClUint32T matched = 0;
-            if( (invocationData->flags & CL_CPM_INVOCATION_AMS) )
+            if ((invocationData->flags & CL_CPM_INVOCATION_AMS))
             {
-                matched = !strncmp( ((ClAmsInvocationT*)data)->compName.value,
-                                    compName->value,
-                                    ((ClAmsInvocationT*)data)->compName.length);
+                matched = !strncmp((const ClCharT *) (((ClAmsInvocationT*) data)->compName.value), (const ClCharT *) compName->value,
+                                ((ClAmsInvocationT*) data)->compName.length);
             }
-            else if( (invocationData->flags & CL_CPM_INVOCATION_CPM ) )
+            else if ((invocationData->flags & CL_CPM_INVOCATION_CPM))
             {
-                matched = !strncmp( ((ClCpmComponentT*)data)->compConfig->compName,
-                                    compName->value, compName->length);
+                matched = !strncmp((const ClCharT *) (((ClCpmComponentT*) data)->compConfig->compName), (const ClCharT *) compName->value,
+                                compName->length);
             }
             
             if(matched)
@@ -291,14 +290,14 @@ ClRcT cpmInvocationAddKey(ClUint32T cbType,
     return rc;
 }
 
-ClRcT cpmNodeFindLocked(ClCharT *name, ClCpmLT **cpmL)
+ClRcT cpmNodeFindLocked(SaUint8T *name, ClCpmLT **cpmL)
 {
     ClUint16T nodeKey = 0;
     ClCntNodeHandleT hNode = 0;
     ClCpmLT *tempNode = NULL;
     ClUint32T rc = CL_OK, numNode=0;
 
-    rc = clCksm16bitCompute((ClUint8T *) name, strlen(name), &nodeKey);
+    rc = clCksm16bitCompute((ClUint8T *) name, strlen((const ClCharT*)name), &nodeKey);
     CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_CKSM_ERR, name, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
@@ -317,7 +316,7 @@ ClRcT cpmNodeFindLocked(ClCharT *name, ClCpmLT **cpmL)
                                   (ClCntDataHandleT *) &tempNode);
         CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR,
                        rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
-        if (!strcmp(tempNode->nodeName, name))
+        if (!strcmp(tempNode->nodeName, (const ClCharT*)name))
         {
             *cpmL = tempNode;
             goto done;
@@ -346,7 +345,7 @@ failure:
 /*
  * Called with the cpmTableMutex lock held.
  */
-ClRcT cpmNodeFind(ClCharT *name, ClCpmLT **cpmL)
+ClRcT cpmNodeFind(SaUint8T *name, ClCpmLT **cpmL)
 {
     ClRcT rc = CL_OK;
     clOsalMutexLock(gpClCpm->cpmTableMutex);
@@ -449,7 +448,7 @@ ClRcT cpmPrintDBXML(FILE *fp)
                 /*
                  * If the node is a SC, display its data 
                  */
-                if(!strcmp(cpmL->nodeType.value, gpClCpm->pCpmLocalInfo->nodeType.value)
+                if(!strcmp((const ClCharT *)cpmL->nodeType.value, (const ClCharT *)gpClCpm->pCpmLocalInfo->nodeType.value)
                     || cpmL->pCpmLocalInfo->nodeId == gpClCpm->activeMasterNodeId
                     || cpmL->pCpmLocalInfo->nodeId == gpClCpm->deputyNodeId)
                 {

@@ -1066,8 +1066,8 @@ clLogFlusherRecordsMcast(ClLogSvrStreamDataT  *pStreamData,
 
 ClRcT
 VDECL_VER(clLogHandlerSvrAckSend, 4, 0, 0)(
-                       ClNameT            *pStreamName,
-                       ClNameT            *pStreamScopeNode,
+                       SaNameT            *pStreamName,
+                       SaNameT            *pStreamScopeNode,
                        ClLogStreamScopeT  streamScope,
                        ClUint32T          seqeunceNum,
                        ClUint32T          numRecords, 

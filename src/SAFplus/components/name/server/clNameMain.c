@@ -165,13 +165,13 @@ ClRcT _nameSvcContextLevelWalkForDelete(ClCntKeyHandleT    userKey,
                                         ClUint32T          dataLength);
 
 static ClRcT
-clNSLookupKeyForm(ClNameT               *pName,
+clNSLookupKeyForm(SaNameT               *pName,
                   ClNameSvcNameLookupT  *pLookupKey)
 {
     ClRcT  rc = CL_OK;
 
     memset(pLookupKey, '\0', sizeof(ClNameSvcNameLookupT));
-    clNameCopy(&pLookupKey->name, pName);
+    saNameCopy(&pLookupKey->name, pName);
     rc = clCksm32bitCompute((ClUint8T *) pLookupKey->name.value, pLookupKey->name.length, &pLookupKey->cksum);
     if( CL_OK != rc )
     {
@@ -395,7 +395,7 @@ static ClInt32T nameSvcHashEntryKeyCmp(ClCntKeyHandleT key1,
             pNSInfo2->name.value, pNSInfo1->cksum, pNSInfo2->cksum);
     if((pNSInfo1->cksum == pNSInfo2->cksum) &&
        (pNSInfo1->name.length == pNSInfo2->name.length) && 
-       (!strncmp(pNSInfo1->name.value, pNSInfo2->name.value, pNSInfo2->name.length)) )
+       (!strncmp((const ClCharT *)pNSInfo1->name.value, (const ClCharT *)pNSInfo2->name.value, pNSInfo2->name.length)) )
     {
         return 0;
     }
@@ -766,7 +766,7 @@ ClRcT _nameSvcEntryLevelWalkForDisplay(ClCntKeyHandleT    userKey,
 #endif
         case CL_NS_LIST_BINDINGS:
             /* Copy the name & end with NULL character */
-            clNameCopy(&pWalkInfo->name, &pNSInfo->name);
+            saNameCopy(&pWalkInfo->name, &pNSInfo->name);
             clCntWalk((ClCntHandleT) pNSInfo->hashId,
                      _nameSvcEntryDisplayCallback,
                      (ClCntArgHandleT) pWalkInfo, dataLength);
@@ -1084,7 +1084,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
             return ret;
         }
         /* Copy the name and append null character */
-        clNameCopy(&pNSBinding->name, &nsInfo->name);
+        saNameCopy(&pNSBinding->name, &nsInfo->name);
         pNSBinding->refCount = 0;
         pNSBinding->cksum    = lookupData.cksum;
 
@@ -1630,7 +1630,7 @@ ClRcT _nameSvcMatchedEntryDeleteCallback(ClCntKeyHandleT    userKey,
                 eventInfo.operation        = htonl(userArg->operation);
                 eventInfo.objReference     = 
                         _clNameHostUint64toNetUint64(pNSInfo->objReference);
-                clNameCopy(&eventInfo.name, &userArg->nameEntry->name);
+                saNameCopy(&eventInfo.name, &userArg->nameEntry->name);
                 eventInfo.name.length = htons(eventInfo.name.length);
                 CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n NS: Publishing an event for"
                                      " service unavailability \n"));
@@ -3221,7 +3221,7 @@ ClRcT _nameSvcAttrDisplayCallback(ClCntKeyHandleT   userKey,
     ClUint32T attrCount=0, passedAttrCount=0, result=0;
     ClNameSvcAttrLevelQueryT  *pData     = (ClNameSvcAttrLevelQueryT*) userArg;
     ClNameSvcAttrSearchT      *pAttr     = pData->pAttrList;
-    ClNameT                   *pName     = pData->pName;
+    SaNameT                   *pName     = pData->pName;
     ClNameSvcBindingDetailsT  *pNSInfo   = (ClNameSvcBindingDetailsT*)nsInfo;
     ClNameSvcAttrEntryPtrT  pStoredAttr  =  pNSInfo->attr;
     ClNameSvcAttrEntryPtrT  pTempAttr    =  pNSInfo->attr;
@@ -3270,11 +3270,11 @@ ClRcT _nameSvcAttrDisplayCallback(ClCntKeyHandleT   userKey,
             if(memcmp(pPassedAttrEntry->type, "name", strlen("name")) == 0)
             {
                 len = strlen((ClCharT*)pPassedAttrEntry->value);
-                nameLen = strlen(pName->value);
+                nameLen = strlen((const ClCharT *)pName->value);
                                                                                                                              
                 if(((pPassedAttrEntry->value[0] == '*') && (len==1))  ||
                    ((memcmp(pName->value, pPassedAttrEntry->value,
-                     nameLen) == 0)  &&  strlen(pName->value) ==
+                     nameLen) == 0)  &&  strlen((const ClCharT *)pName->value) ==
                    strlen((ClCharT*)pPassedAttrEntry->value))  ||
                    ((len>1) && (pPassedAttrEntry->value[len-1] == '*') &&
                    (memcmp(pName->value, pPassedAttrEntry->value,
@@ -3507,7 +3507,7 @@ ClRcT _nameSvcAttributeQuery(ClUint32T contextMapCookie,
  */
                                                                                                                              
 ClRcT nameSvcBindingIntoMessageCopy(ClNameSvcBindingDetailsT *pStoredNSEntry,
-                                    ClNameT *pName,
+                                    SaNameT *pName,
                                     ClBufferHandleT outMsgHandle,
                                     ClNameSvcOpsT op) 
 {
@@ -3533,7 +3533,7 @@ ClRcT nameSvcBindingIntoMessageCopy(ClNameSvcBindingDetailsT *pStoredNSEntry,
             memcpy(attrib.attr, pStoredNSEntry->attr, attrib.attrLen);
         }
         clXdrMarshallClUint32T((void *)&size, outMsgHandle, 0);
-        clXdrMarshallClNameT((void *)pName, outMsgHandle, 0);
+        clXdrMarshallSaNameT((void *)pName, outMsgHandle, 0);
         clXdrMarshallClUint64T((void *)&pStoredNSEntry->objReference, 
                            outMsgHandle, 0);
         clXdrMarshallClUint32T((void *)&pStoredNSEntry->refCount,
@@ -3550,7 +3550,7 @@ ClRcT nameSvcBindingIntoMessageCopy(ClNameSvcBindingDetailsT *pStoredNSEntry,
     else
     {
         pNSData = (ClNameSvcEntryT*) clHeapAllocate(sizeof(ClNameSvcEntryT));
-        clNameCopy(&pNSData->name, pName);
+        saNameCopy(&pNSData->name, pName);
         memcpy(&pNSData->objReference, &pStoredNSEntry->objReference,
            sizeof(ClUint64T));
         pNSData->refCount = pStoredNSEntry->refCount;
@@ -4343,7 +4343,7 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
     ClNameSvcCompListT       tempComp    = {0};
     ClUint32T                contextMapCookie = 0, refCount = 0;
     ClUint32T                attrSize      = 0;
-    ClNameT                  name          = {0}; 
+    SaNameT                  name          = {0}; 
     ClUint32T                bindingSize   = sizeof(ClNameSvcBindingT);
     ClUint32T                cksum         = 0;
     ClNameSvcBindingT        *pBindingInfo = NULL;
@@ -4492,10 +4492,10 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
             case 2:
                VDECL_VER(clXdrUnmarshallClNameSvcBindingIDLT, 4, 0, 0)(msgHdl, &bindingInfo);
                pBindingInfo = (ClNameSvcBindingT*) clHeapAllocate(bindingSize);
-               clNameCopy(&name, &bindingInfo.name);
+               saNameCopy(&name, &bindingInfo.name);
                refCount = bindingInfo.refCount;
                priority = bindingInfo.priority;
-               clNameCopy(&pBindingInfo->name, &name);
+               saNameCopy(&pBindingInfo->name, &name);
                pBindingInfo->refCount = refCount;
                pBindingInfo->priority = priority;
 
@@ -4511,7 +4511,7 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
 
                memset(&lookupData, 0, sizeof(lookupData));
                lookupData.cksum = cksum;
-               clNameCopy(&lookupData.name, &name);
+               saNameCopy(&lookupData.name, &name);
                /* Find the appropriate context */
                ret = clCntNodeFind(gNSHashTable, (ClPtrT)(ClWordT)context, &pNodeHandle);
                ret = clCntNodeUserDataGet(gNSHashTable,pNodeHandle,
@@ -5122,7 +5122,7 @@ clNameSvcCtxRecreate(ClUint32T   key)
 }    
 
 static ClRcT nameSvcEntryRecreate(ClUint32T key, ClUint32T dsId, 
-                                  ClNameT *nsCkptName, ClNameSvcContextInfoT *pCtxData)
+                                  SaNameT *nsCkptName, ClNameSvcContextInfoT *pCtxData)
 {
     ClRcT rc = CL_OK;
     ClNsEntryPackT nsEntryInfo  = {0};
@@ -5155,7 +5155,7 @@ clNameSvcEntryRecreate(ClUint32T              key,
                        ClNameSvcContextInfoT  *pCtxData)
 {
     ClRcT          rc           = CL_OK;
-    ClNameT        nsCkptName   = {0};
+    SaNameT        nsCkptName   = {0};
     ClUint32T      count        = 0;
     ClNameSvcContextInfoT contextInfo = {0};
     
@@ -5430,7 +5430,7 @@ clNameSvcBindingEntryCreate(ClNameSvcContextInfoT  *pCtxData,
                 ("clHeapCalloc(): rc[0x %x]", rc));
         return rc;
     }
-    clNameCopy(&pBindData->name, &pData->name);
+    saNameCopy(&pBindData->name, &pData->name);
     (pBindData)->priority = pData->priority;
     rc = clCntHashtblCreate(CL_NS_MAX_NO_OBJECT_REFERENCES,
             nameSvcEntryDetailsHashKeyCmp,

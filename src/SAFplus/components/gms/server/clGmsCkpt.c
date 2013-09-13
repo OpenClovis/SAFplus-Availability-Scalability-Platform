@@ -27,7 +27,7 @@
 
 extern ClGmsNodeT	gmsGlobalInfo;
 ClGmsCkptMetaDataT	gmsCkptMetaData;
-ClNameT				metaDataCkptName = {
+SaNameT				metaDataCkptName = {
 	.value = "GmsCkptMetadata_1",
 	.length = 17
 };
@@ -371,7 +371,7 @@ clGmsCheckpointTrackData(ClGmsTrackCkptDataT *trackData,
      * with section ID created uniquly in from the global
 	 * counter.
      */
-    ClNameT         ckptName      = {0};
+    SaNameT         ckptName      = {0};
     ClBoolT         ckptExists    = CL_FALSE;
     ClBoolT         dataSetExists = CL_FALSE;
 	ClUint32T		cookie        = 0;
@@ -385,10 +385,10 @@ clGmsCheckpointTrackData(ClGmsTrackCkptDataT *trackData,
     }
 
     /* Create checkpoint for the cluster group */
-    snprintf(ckptName.value,CL_MAX_NAME_LENGTH,"%s%d",CKPT_NAME,trackData->groupId);
+    snprintf((ClCharT*)ckptName.value,CL_MAX_NAME_LENGTH,"%s%d",CKPT_NAME,trackData->groupId);
     /* strlen here would not hurt as the value parameter is initialized
      * with null characters.*/
-    ckptName.length=strlen(ckptName.value);
+    ckptName.length=strlen((const ClCharT*)ckptName.value);
 
     /* Now check if the checkpoint already exists. If so, then dont
      * create it again. */
@@ -489,7 +489,7 @@ clGmsCkptReadOldCheckpoint()
     ClGmsGroupIdT       groupId       = 0;
     ClUint32T           dsId          = 0;
     ClGmsTrackCkptDataT trackData     = {0};
-    ClNameT             ckptName      = {0};
+    SaNameT             ckptName      = {0};
     ClUint32T           cookie        = 0;
     ClBoolT             ckptExists    = CL_FALSE;
     ClBoolT             dataSetExists = CL_FALSE;
@@ -511,13 +511,13 @@ clGmsCkptReadOldCheckpoint()
     /* For all the groups read the track data and add the track nodes */
     for (groupId = 0; groupId < gmsCkptMetaData.currentNoOfGroups; groupId++)
     {
-        memset(&ckptName, 0, sizeof(ClNameT));
+        memset(&ckptName, 0, sizeof(SaNameT));
 
         /* Formulate the checkpoint name for the group */
-        snprintf(ckptName.value,CL_MAX_NAME_LENGTH,"%s%d",CKPT_NAME,trackData.groupId);
+        snprintf((ClCharT*)ckptName.value,CL_MAX_NAME_LENGTH,"%s%d",CKPT_NAME,trackData.groupId);
         /* strlen here would not hurt as the value parameter is initialized
          * with null characters.*/
-        ckptName.length=strlen(ckptName.value);
+        ckptName.length=strlen((const ClCharT*)ckptName.value);
 
         /* Verify if the checkpoint exists */
         rc = clCkptLibraryDoesCkptExist(gmsGlobalInfo.ckptSvcHandle, &ckptName, &ckptExists);
@@ -635,14 +635,14 @@ ClRcT
 clGmsCheckpointTrackDataDelete(ClGmsGroupIdT    groupId,
                                ClUint32T        dsId)
 {
-    ClNameT         ckptName = {0};
+    SaNameT         ckptName = {0};
     ClRcT           rc       = CL_OK;
 
     /* Create checkpoint for the cluster group */
-    snprintf(ckptName.value,CL_MAX_NAME_LENGTH,"%s%d",CKPT_NAME,groupId);
+    snprintf((ClCharT*)ckptName.value,CL_MAX_NAME_LENGTH,"%s%d",CKPT_NAME,groupId);
     /* strlen here would not hurt as the value parameter is initialized
      * with null characters.*/
-    ckptName.length=strlen(ckptName.value);
+    ckptName.length=strlen((const ClCharT*)ckptName.value);
 
     rc = clCkptLibraryCkptDataSetDelete (gmsGlobalInfo.ckptSvcHandle,
                                          &ckptName,

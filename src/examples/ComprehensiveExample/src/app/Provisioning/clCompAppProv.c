@@ -94,7 +94,7 @@ ClRcT _clProvisioningCompAlarmRaise(ClAlarmStateT alarmState)
     ClUint32T   dummyVal = alarmState;
     ClCorMOIdT  moId ;
     ClCorObjectHandleT  objH = NULL; 
-    ClNameT         compName = {0};
+    SaNameT         compName = {0};
 
     
     clCorMoIdInitialize(&moId);
@@ -179,7 +179,7 @@ ClRcT _clProvisioningCompAlarmRaise(ClAlarmStateT alarmState)
     pAlarmInfo->moId = moId;
     pAlarmInfo->probCause = CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL; 
     pAlarmInfo->severity = CL_ALARM_SEVERITY_MAJOR;
-    memcpy (&pAlarmInfo->compName, &compName, sizeof(ClNameT));
+    memcpy (&pAlarmInfo->compName, &compName, sizeof(SaNameT));
     pAlarmInfo->alarmState = alarmState;
     pAlarmInfo->len = size;
 

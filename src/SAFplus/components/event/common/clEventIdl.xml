@@ -57,7 +57,7 @@ material.
           <DataMember name="userId" type="ClEvtUserIdT"/>
           <DataMember name="subscriptionId" type="ClEventSubscriptionIdT"/>
           <DataMember name="pCookie" type="ClUint64T"/>
-          <DataMember name="evtChannelName" type="ClNameT"/>
+          <DataMember name="evtChannelName" type="SaNameT"/>
           <DataMember name="packedRbeLen" type="ClUint32T"/>
           <DataMember name="packedRbe" type="ClUint8T" pointer="Single" lengthVar="packedRbeLen"/>
         </Struct>
@@ -82,7 +82,7 @@ material.
           <DataMember name="reserved" type="ClUint8T"/>
           <DataMember name="evtChannelHandle" type="ClEventChannelHandleT"/>
           <DataMember name="userId" type="ClEvtUserIdT"/>
-          <DataMember name="evtChannelName" type="ClNameT"/>
+          <DataMember name="evtChannelName" type="SaNameT"/>
        </Struct>
 
         <!-- Structure definitions for clEventUnsubscribe -->
@@ -95,7 +95,7 @@ material.
           <DataMember name="evtChannelHandle" type="ClEventChannelHandleT"/>
           <DataMember name="userId" type="ClEvtUserIdT"/>
           <DataMember name="subscriptionId" type="ClEventSubscriptionIdT"/>
-          <DataMember name="evtChannelName" type="ClNameT"/>
+          <DataMember name="evtChannelName" type="SaNameT"/>
           <DataMember name="reqFlag" type="ClUint8T"/>
         </Struct>
 

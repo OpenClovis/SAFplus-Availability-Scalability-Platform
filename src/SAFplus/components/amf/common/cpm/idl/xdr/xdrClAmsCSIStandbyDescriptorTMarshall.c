@@ -47,7 +47,7 @@ ClRcT clXdrMarshallClAmsCSIStandbyDescriptorT_4_0_0(void* pGenVar, ClBufferHandl
         length = 1;
         clXdrMarshallClUint32T(&length, msg, 0);
 
-    rc = clXdrMarshallClNameT(&(pVar->activeCompName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->activeCompName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

@@ -206,12 +206,12 @@ clAmsParserStringParser(
 
 
 /*
- * Function to parse the ClName type tag in the XML 
+ * Function to parse the SaName type tag in the XML 
  */
 
 extern ClRcT 
-clAmsParserClNameParser (
-        CL_OUT ClNameT *clName, 
+clAmsParserSaNameParser (
+        CL_OUT SaNameT *clName, 
         CL_IN ClParserPtrT ptr, 
         CL_IN ClCharT *str );
 

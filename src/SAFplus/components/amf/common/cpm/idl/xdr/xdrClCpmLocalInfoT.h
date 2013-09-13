@@ -58,9 +58,9 @@ typedef struct _ClCpmLocalInfoT_4_0_0 {
     ClVersionT    version;
     ClUint32T    defaultBootLevel;
     ClUint32T    slotNumber;
-    ClNameT    nodeType;
-    ClNameT    nodeIdentifier;
-    ClNameT    nodeMoIdStr;
+    SaNameT    nodeType;
+    SaNameT    nodeIdentifier;
+    SaNameT    nodeMoIdStr;
 
 }ClCpmLocalInfoT_4_0_0;
 

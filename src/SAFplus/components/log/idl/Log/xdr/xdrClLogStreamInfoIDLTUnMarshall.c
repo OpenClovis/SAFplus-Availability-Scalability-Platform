@@ -50,7 +50,7 @@ ClRcT clXdrUnmarshallClLogStreamInfoIDLT_4_0_0(ClBufferHandleT msg , void* pGenV
     else
     {
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->streamName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->streamName));
     if (CL_OK != rc)
     {
         return rc;
@@ -62,7 +62,7 @@ ClRcT clXdrUnmarshallClLogStreamInfoIDLT_4_0_0(ClBufferHandleT msg , void* pGenV
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->nodeName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->nodeName));
     if (CL_OK != rc)
     {
         return rc;

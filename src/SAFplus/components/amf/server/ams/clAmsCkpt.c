@@ -93,28 +93,28 @@ static ClJobQueueT gClAmsCkptJobQueue;
 static ClCkptSvcHdlT gClAmsCkptDBHdl;
 static ClBoolT gClAmsCkptDBInitialized = CL_FALSE;
 static ClBoolT gClAmsCkptDBDatasetInitialized = CL_FALSE;
-static ClNameT gClAmsCkptDBName ;
+static SaNameT gClAmsCkptDBName ;
 static ClRcT clAmsCkptDBConfigSerialize(ClUint32T dsId, ClAddrT *pData, ClUint32T *pDataLen, ClPtrT cookie);
 static ClRcT clAmsCkptDBConfigDeserialize(ClUint32T dsId, ClAddrT pData, ClUint32T dataLen, ClPtrT cookie);
                                        
 static ClUint32T gClAmsCkptCurrentDbInvocationPair;
 static ClUint32T gClAmsCkptLastDbInvocationPair;
-static ClNameT gClAmsCkptDBSectionCache[2];
-static ClNameT gClAmsCkptDirtySectionCache[2];
-static ClNameT gClAmsCkptInvocationSectionCache[2];
-static ClNameT gClAmsCkptCurrentSectionCache;
+static SaNameT gClAmsCkptDBSectionCache[2];
+static SaNameT gClAmsCkptDirtySectionCache[2];
+static SaNameT gClAmsCkptInvocationSectionCache[2];
+static SaNameT gClAmsCkptCurrentSectionCache;
 static ClInt32T gClAmsPersistentDBDisabled = -1;
 
 static ClRcT
 clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
-                        ClNameT                 *pName,
+                        SaNameT                 *pName,
                         ClCkptIOVectorElementT  *pIOVector,
                         ClUint32T               numSections,
                         ClPtrT                  pCookie);
 
 static ClRcT clAmsCkptCheckpointRead(
                                      ClAmsT *ams,
-                                     ClNameT *pSection,
+                                     SaNameT *pSection,
                                      ClCkptIOVectorElementT *pIOVector
                                      )
 {
@@ -128,7 +128,7 @@ static ClRcT clAmsCkptCheckpointRead(
     /*
      * Read the AMS ckpt version section
      */
-    pIOVector->sectionId.idLen = strlen(pSection->value);
+    pIOVector->sectionId.idLen = strlen((const ClCharT*)pSection->value);
     rc = CL_AMS_RC(CL_ERR_NO_MEMORY);
     pIOVector->sectionId.id=(ClUint8T *)clHeapAllocate(pIOVector->sectionId.idLen);
     if(pIOVector->sectionId.id == NULL)
@@ -153,7 +153,7 @@ static ClRcT clAmsCkptCheckpointRead(
     return rc;
 }
 
-static void amsCkptDifferenceVectorKeyGet(ClDifferenceVectorKeyT *key, ClNameT *pSection)
+static void amsCkptDifferenceVectorKeyGet(ClDifferenceVectorKeyT *key, SaNameT *pSection)
 {
     key->groupKey = clHeapCalloc(1, sizeof(*key->groupKey));
     CL_ASSERT(key->groupKey != NULL);
@@ -168,7 +168,7 @@ static void amsCkptDifferenceVectorKeyGet(ClDifferenceVectorKeyT *key, ClNameT *
 }
 
 static ClRcT clAmsCkptSectionOverwriteNoLock(ClCkptHdlT ckptHandle,
-                                             ClNameT *pSection,
+                                             SaNameT *pSection,
                                              ClUint8T *pData,
                                              ClUint32T dataLen,
                                              ClUint32T mode
@@ -187,7 +187,7 @@ static ClRcT clAmsCkptSectionOverwriteNoLock(ClCkptHdlT ckptHandle,
     {
         goto error;
     }
-    sectionAttribs.sectionId->idLen = strlen(pSection->value);
+    sectionAttribs.sectionId->idLen = strlen((const ClCharT*)pSection->value);
     sectionAttribs.sectionId->id=(ClUint8T *) clHeapAllocate(sectionAttribs.sectionId->idLen);
     if(sectionAttribs.sectionId->id == NULL)
     {
@@ -218,7 +218,7 @@ static ClRcT clAmsCkptSectionOverwriteNoLock(ClCkptHdlT ckptHandle,
 }
 
 static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
-                                       ClNameT *pSection,
+                                       SaNameT *pSection,
                                        ClDifferenceVectorKeyT *key,
                                        ClUint8T *pData,
                                        ClUint32T dataLen,
@@ -239,7 +239,7 @@ static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
     {
         goto error;
     }
-    sectionAttribs.sectionId->idLen = strlen(pSection->value);
+    sectionAttribs.sectionId->idLen = strlen((const ClCharT*)pSection->value);
     sectionAttribs.sectionId->id=(ClUint8T *) clHeapAllocate(sectionAttribs.sectionId->idLen);
     if(sectionAttribs.sectionId->id == NULL)
     {
@@ -314,7 +314,7 @@ static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
 }
 
 static ClRcT clAmsCkptSectionCreate(ClAmsT  *ams,
-                                    ClNameT *pSection,
+                                    SaNameT *pSection,
                                     ClCharT *pData,
                                     ClUint32T dataLen
                                     )
@@ -333,7 +333,7 @@ static ClRcT clAmsCkptSectionCreate(ClAmsT  *ams,
     {
         goto error;
     }
-    sectionAttribs.sectionId->idLen = strlen (pSection->value);
+    sectionAttribs.sectionId->idLen = strlen ((const ClCharT*)pSection->value);
     sectionAttribs.sectionId->id=(ClUint8T *) clHeapAllocate(sectionAttribs.sectionId->idLen);
     if(sectionAttribs.sectionId->id == NULL)
     {
@@ -360,7 +360,7 @@ static ClRcT clAmsCkptSectionCreate(ClAmsT  *ams,
 }
 
 static ClRcT clAmsCkptSectionDelete(ClAmsT *ams,
-                                    ClNameT *pSection
+                                    SaNameT *pSection
                                     )
                 
 {
@@ -368,7 +368,7 @@ static ClRcT clAmsCkptSectionDelete(ClAmsT *ams,
     ClCkptSectionIdT  sectionId;
 
     memset(&sectionId,0,sizeof(sectionId));
-    sectionId.idLen = strlen (pSection->value);
+    sectionId.idLen = strlen ((const ClCharT*)pSection->value);
 
     rc = CL_AMS_RC(CL_ERR_NO_MEMORY);
     sectionId.id=(ClUint8T *) clHeapAllocate(sectionId.idLen);
@@ -471,10 +471,10 @@ static ClRcT clAmsCkptDBInitialize(void)
         goto out;
     }
 
-    snprintf(gClAmsCkptDBName.value, sizeof(gClAmsCkptDBName.value),
+    snprintf((ClCharT*)gClAmsCkptDBName.value, sizeof((const ClCharT*)gClAmsCkptDBName.value),
              "%s/%s", dbPath, CL_AMS_CKPT_DB_NAME);
 
-    gClAmsCkptDBName.length = strlen(gClAmsCkptDBName.value);
+    gClAmsCkptDBName.length = strlen((const ClCharT*)gClAmsCkptDBName.value);
 
     gClAmsCkptDBInitialized = CL_TRUE;
 
@@ -726,7 +726,7 @@ clAmsCkptInitialize(
 {
     ClRcT  rc = CL_OK ;
     ClCkptHdlT  ckptOpenHandle = -1;
-    ClNameT  ckptName = {0};
+    SaNameT  ckptName = {0};
     const ClTimeT  timeout = CL_TIME_END;
     const ClCkptOpenFlagsT  flags = 
         CL_CKPT_CHECKPOINT_CREATE|CL_CKPT_CHECKPOINT_WRITE|CL_CKPT_CHECKPOINT_READ;
@@ -762,24 +762,24 @@ clAmsCkptInitialize(
         ckptAttributes.creationFlags &= ~CL_CKPT_WR_ALL_REPLICAS;
     }
 
-    clNameSet(&ckptName,CL_AMS_CKPT_NAME);
+    saNameSet(&ckptName,CL_AMS_CKPT_NAME);
 
     for(i = 0; i < 2; ++i)
     {
-        ClCharT buf[sizeof(ClNameT)];
+        ClCharT buf[sizeof(SaNameT)];
         snprintf(buf,sizeof(buf),"%s_%d",AMS_CKPT_DB_SECTION,i+1);
-        memset (&ams->ckptDBSections[i],0,sizeof (ClNameT));
-        strncpy(ams->ckptDBSections[i].value,buf,
-                sizeof(ams->ckptDBSections[i].value)-1);
+        memset (&ams->ckptDBSections[i],0,sizeof (SaNameT));
+        strncpy((ClCharT*)ams->ckptDBSections[i].value,buf,
+                sizeof((const ClCharT*)ams->ckptDBSections[i].value)-1);
         ams->ckptDBSections[i].length = strlen(buf)+1;
-        memset(&ams->ckptDirtySections[i], 0, sizeof(ClNameT));
+        memset(&ams->ckptDirtySections[i], 0, sizeof(SaNameT));
         snprintf(buf, sizeof(buf), "%s_%d", AMS_CKPT_DIRTY_SECTION, i+1);
-        strncpy(ams->ckptDirtySections[i].value, buf, sizeof(ams->ckptDirtySections[i].value)-1);
+        strncpy((ClCharT*)ams->ckptDirtySections[i].value, buf, sizeof((const ClCharT*)ams->ckptDirtySections[i].value)-1);
         ams->ckptDirtySections[i].length = strlen(buf)+1;
-        memset (&ams->ckptInvocationSections[i],0,sizeof (ClNameT));
+        memset (&ams->ckptInvocationSections[i],0,sizeof (SaNameT));
         snprintf(buf,sizeof(buf),"%s_%d",AMS_CKPT_INVOCATION_SECTION,i+1);
-        strncpy (ams->ckptInvocationSections[i].value,buf,
-                 sizeof(ams->ckptInvocationSections[i].value)-1);
+        strncpy ((ClCharT*)ams->ckptInvocationSections[i].value,buf,
+                 sizeof((const ClCharT*)ams->ckptInvocationSections[i].value)-1);
         ams->ckptInvocationSections[i].length = strlen(buf)+1;
         memcpy(&gClAmsCkptDBSectionCache[i], &ams->ckptDBSections[i], 
                sizeof(gClAmsCkptDBSectionCache[i]));
@@ -793,14 +793,14 @@ clAmsCkptInitialize(
 
     /*Make the current section as the first DB INVOCATION PAIR*/
     memset(&ams->ckptCurrentSection,0,sizeof(ams->ckptCurrentSection));
-    strncpy(ams->ckptCurrentSection.value,AMS_CKPT_CURRENT_SECTION,
-            sizeof(ams->ckptCurrentSection.value)-1);
+    strncpy((ClCharT*)ams->ckptCurrentSection.value,AMS_CKPT_CURRENT_SECTION,
+            sizeof((const ClCharT*)ams->ckptCurrentSection.value)-1);
     ams->ckptCurrentSection.length = strlen(AMS_CKPT_CURRENT_SECTION) + 1;
     memcpy(&gClAmsCkptCurrentSectionCache, &ams->ckptCurrentSection, 
            sizeof(gClAmsCkptCurrentSectionCache));
-    memset (&ams->ckptVersionSection,0,sizeof (ClNameT));
-    strncpy (ams->ckptVersionSection.value, AMS_CKPT_VERSION_SECTION,
-             sizeof(ams->ckptVersionSection.value)-1);
+    memset (&ams->ckptVersionSection,0,sizeof (SaNameT));
+    strncpy ((ClCharT*)ams->ckptVersionSection.value, AMS_CKPT_VERSION_SECTION,
+             sizeof((const ClCharT*)ams->ckptVersionSection.value)-1);
     ams->ckptVersionSection.length = strlen (AMS_CKPT_VERSION_SECTION) + 1;
 
     ams->ckptInitHandle = ckptInitHandle;
@@ -886,7 +886,7 @@ clAmsCkptInitialize(
 
 static ClRcT
 clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
-                        ClNameT                 *pName,
+                        SaNameT                 *pName,
                         ClCkptIOVectorElementT  *pIOVector,
                         ClUint32T               numSections,
                         ClPtrT                  pCookie)
@@ -1173,11 +1173,8 @@ clAmsCkptRead (
 
     if(!strncmp(gClAmsCkptVersionBuf, "B.01.01", 7))
     {
-        if ( ( rc = clAmsWriteXMLFile(
-                                      ams->ckptInvocationSections[dbInvocationPair].value,
-                                      (char *)ioVector.dataBuffer,
-                                      ioVector.dataSize))
-             != CL_OK )
+        if ((rc = clAmsWriteXMLFile((ClCharT*) ams->ckptInvocationSections[dbInvocationPair].value, (char *) ioVector.dataBuffer,
+                        ioVector.dataSize)) != CL_OK)
         {
             clAmsFreeMemory(ioVector.dataBuffer);
             goto exitfn;
@@ -1259,7 +1256,7 @@ clAmsCkptRead (
         rc = clBufferNBytesWrite(dataBuf, (ClUint8T*)invocationBuffer, invocationSize);
         if(rc != CL_OK)
             goto exitfn;
-        rc = clAmsInvocationUnmarshall(ams, ams->ckptInvocationSections[dbInvocationPair].value, dataBuf);
+        rc = clAmsInvocationUnmarshall(ams, (ClCharT*)ams->ckptInvocationSections[dbInvocationPair].value, dataBuf);
         if(rc != CL_OK)
         {
             AMS_LOG(CL_DEBUG_ERROR, ("Invocation unmarshall returned [%#x]\n", rc));
@@ -1267,11 +1264,9 @@ clAmsCkptRead (
         }
     }
 
-    if(xmlize)
+    if (xmlize)
     {
-        AMS_CHECK_RC_ERROR(clAmsDeXMLizeInvocation(
-                                                   ams,
-                                                   ams->ckptInvocationSections[dbInvocationPair].value));
+        AMS_CHECK_RC_ERROR(clAmsDeXMLizeInvocation(ams, (ClCharT* )ams->ckptInvocationSections[dbInvocationPair].value));
     }
 
     exitfn:
@@ -1292,7 +1287,7 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
     ClCharT *readData = NULL;
     ClUint32T dbInvocationPair;
     ClBoolT dirty = CL_TRUE;
-    ClNameT *dirtySection = NULL;
+    SaNameT *dirtySection = NULL;
 
     if ( ams->ckptServerReady == CL_FALSE || 
          ams->serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE || 
@@ -1383,8 +1378,7 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
         ClUint32T invocationLen = 0;
 
         AMS_CHECK_RC_ERROR(clBufferCreate(&invocationBuf));
-        rc = clAmsInvocationMarshall(ams, ams->ckptInvocationSections[dbInvocationPair].value, 
-                                     invocationBuf);
+        rc = clAmsInvocationMarshall(ams, (ClCharT*) ams->ckptInvocationSections[dbInvocationPair].value, invocationBuf);
         if(rc != CL_OK)
         {
             clBufferDelete(&invocationBuf);
@@ -1452,7 +1446,7 @@ amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
     ClUint32T dbInvocationPair = 0;
     ClBoolT updateInvocationPair = CL_FALSE;
     ClBoolT dirty = CL_TRUE;
-    ClNameT *dirtySection = NULL;
+    SaNameT *dirtySection = NULL;
     ClCkptHdlT ckptHandle = 0;
 
     clOsalMutexLock(gAms.mutex);
@@ -1534,7 +1528,7 @@ amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
         if(rc != CL_OK)
             goto out_unlock;
 
-        rc = clAmsInvocationMarshall(ams, ams->ckptInvocationSections[dbInvocationPair].value, 
+        rc = clAmsInvocationMarshall(ams, (ClCharT*)ams->ckptInvocationSections[dbInvocationPair].value,
                                      invocationBuf);
         if(rc != CL_OK)
         {

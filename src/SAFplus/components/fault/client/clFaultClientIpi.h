@@ -67,7 +67,7 @@ extern "C" {
  *****************************************************************************/
 
 /* forward declarations */
-ClRcT clFaultClientIssueFaultRmd(ClNameT *compName,
+ClRcT clFaultClientIssueFaultRmd(SaNameT *compName,
                         ClCorMOIdPtrT hMoId,
 						ClAlarmStateT alarmState,
 						ClAlarmCategoryTypeT category, 

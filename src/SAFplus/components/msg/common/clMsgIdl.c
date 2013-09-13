@@ -100,7 +100,7 @@ void clMsgCommIdlFinalize(void)
 
 ClRcT clMsgSendMessage_idl(ClMsgMessageSendTypeT sendType,
         ClIocPhysicalAddressT compAddr,
-        ClNameT *pName,
+        SaNameT *pName,
         ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,
         ClHandleT senderHandle,
@@ -168,13 +168,13 @@ error_out:
     return rc;
 }
 
-ClBoolT clMsgQCkptExists(const ClNameT *pQName, ClMsgQueueCkptDataT *pQueueData);
-ClRcT clMsgQueueUnlinkToServer(ClNameT *pQName)
+ClBoolT clMsgQCkptExists(const SaNameT *pQName, ClMsgQueueCkptDataT *pQueueData);
+ClRcT clMsgQueueUnlinkToServer(SaNameT *pQName)
 {
     ClRcT rc;
     /* Look up msg queue in the cached checkpoint */
     ClMsgQueueCkptDataT queueData;
-    if(clMsgQCkptExists((ClNameT *)pQName, &queueData) == CL_FALSE)
+    if(clMsgQCkptExists((SaNameT *)pQName, &queueData) == CL_FALSE)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "UNL", "Failed to get the message queue information.");
@@ -199,7 +199,7 @@ ClRcT clMsgQueueUnlinkToServer(ClNameT *pQName)
         goto error_out;
     }
 
-    rc = VDECL_VER(clMsgQueueUnlinkClientSync, 4, 0, 0)(idlHandle, (ClNameT *)pQName);
+    rc = VDECL_VER(clMsgQueueUnlinkClientSync, 4, 0, 0)(idlHandle, (SaNameT *)pQName);
     if(rc != CL_OK)
     {
         clLogError("MSG", "UNL", "Failed to close the message queue at message server. error code [0x%x].", rc);
@@ -212,7 +212,7 @@ error_out:
 }
 
 ClRcT clMsgCallClientsTrackCallback(ClIocPhysicalAddressT compAddr,
-        ClNameT *pGroupName,
+        SaNameT *pGroupName,
         SaMsgHandleT appHandle,
         SaMsgQueueGroupNotificationBufferT *pData)
 {
@@ -245,7 +245,7 @@ error_out:
 
 ClRcT clMsgQueueAllocateThroughIdl(
         ClIocPhysicalAddressT destNode,
-        ClNameT *pQName,
+        SaNameT *pQName,
         SaMsgQueueOpenFlagsT openFlags,
         SaMsgQueueCreationAttributesT *pCreationAttrs,
         SaMsgQueueHandleT *pQHandle)
@@ -279,7 +279,7 @@ error_out:
 
 ClRcT clMsgMessageGet_Idl(
         ClIocPhysicalAddressT destNode,
-        ClNameT *pQName,
+        SaNameT *pQName,
         SaTimeT timeout)
 {
     ClRcT rc;

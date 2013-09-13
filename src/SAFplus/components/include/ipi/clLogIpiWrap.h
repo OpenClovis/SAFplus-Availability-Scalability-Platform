@@ -585,17 +585,17 @@ typedef struct
 /**
  *  The Service Group name.
  */
-	ClNameT	sgName;
+	SaNameT	sgName;
 
 /**
  *  The Service Unit name.
  */
-	ClNameT	suName;
+	SaNameT	suName;
 
 /**
  *  The Component name.
  */
-	ClNameT	compName;
+	SaNameT	compName;
 }ClLogFilterPatternT;
 
 

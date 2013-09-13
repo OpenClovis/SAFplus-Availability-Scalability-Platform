@@ -177,7 +177,7 @@ typedef struct  ClIdlNameAddressT {
 /**
  * The name of the service requested.
  */
-    ClNameT        name;
+    SaNameT        name;
 
 /**
  * The number of attributes passed.

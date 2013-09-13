@@ -2006,7 +2006,7 @@ ClRcT clEventFinalize(ClEventInitHandleT evtHandle)
 }
 
 ClRcT clEvtChannelOpenPrologue(ClEventInitHandleT evtHandle,
-        const ClNameT *pChannelName,
+        const SaNameT *pChannelName,
         ClEventChannelOpenFlagsT evtChannelOpenFlag,
         ClEventChannelHandleT *pEvtChannelHandle,
         ClEvtClientHeadT **ppEvtClientHead,
@@ -2231,7 +2231,7 @@ failure:
  * invoking RMD call. 
  */
 ClRcT clEventChannelOpen(ClEventInitHandleT evtHandle,
-        const ClNameT *pChannelName,
+        const SaNameT *pChannelName,
         ClEventChannelOpenFlagsT evtChannelOpenFlag,
         ClTimeT timeout, ClEventChannelHandleT *pChannelHandle)
 {
@@ -2420,7 +2420,7 @@ failure:
 
 ClRcT clEventChannelOpenAsync(ClEventInitHandleT evtHandle,
         ClInvocationT invocation,
-        const ClNameT *pChannelName,
+        const SaNameT *pChannelName,
         ClEventChannelOpenFlagsT channelOpenFlags)
 {
     ClRcT rc = CL_OK;
@@ -3419,7 +3419,7 @@ ClRcT clEventAllocate(ClEventChannelHandleT channelHandle,
 
 ClRcT clEventExtAttributesSet(ClEventHandleT eventHandle, ClUint32T eventType,
         ClEventPriorityT priority, ClTimeT retentionTime,
-        const ClNameT *pPublisherName)
+        const SaNameT *pPublisherName)
 {
     ClRcT rc = CL_OK;
     ClEventPatternT pattern = { 0, sizeof(ClUint32T), (ClUint8T *) &eventType };
@@ -3443,7 +3443,7 @@ ClRcT clEventExtAttributesSet(ClEventHandleT eventHandle, ClUint32T eventType,
 ClRcT clEventAttributesSet(ClEventHandleT eventHandle,
         const ClEventPatternArrayT *pPatternArray,
         ClEventPriorityT priority, ClTimeT retentionTime,
-        const ClNameT *pPublisherName)
+        const SaNameT *pPublisherName)
 {
     ClRcT rc = CL_OK;
     ClEvtEventHandleT *pEventHandle = NULL;
@@ -4052,7 +4052,7 @@ failure:
 
 ClRcT clEventExtAttributesGet(ClEventHandleT eventHandle, ClUint32T *pEventType,
         ClEventPriorityT * pPriority,
-        ClTimeT *pRetentionTime, ClNameT *pPublisherName,
+        ClTimeT *pRetentionTime, SaNameT *pPublisherName,
         ClTimeT *pPublishTime, ClEventIdT * pEventId)
 {
     ClRcT rc = CL_OK;
@@ -4079,7 +4079,7 @@ ClRcT clEventExtAttributesGet(ClEventHandleT eventHandle, ClUint32T *pEventType,
 ClRcT clEventAttributesGet(ClEventHandleT eventHandle,
         ClEventPatternArrayT *pPatternArray,
         ClEventPriorityT * pPriority,
-        ClTimeT *pRetentionTime, ClNameT *pPublisherName,
+        ClTimeT *pRetentionTime, SaNameT *pPublisherName,
         ClTimeT *pPublishTime, ClEventIdT * pEventId)
 {
     ClRcT rc = CL_OK;
@@ -4851,7 +4851,7 @@ failure:
 }
 
 ClRcT clEventChannelUnlink(CL_IN ClEventInitHandleT evtHandle,
-        CL_IN const ClNameT *pEvtChannelName)
+        CL_IN const SaNameT *pEvtChannelName)
 {
     ClRcT rc = CL_OK;
     /*

@@ -43,7 +43,7 @@ typedef struct
     ClOsalMutexId_LT         fileTableLock;
     ClCntHandleT             hFileTable;
     ClLogHandleT             hLog;
-    ClNameT                  nodeName;
+    SaNameT                  nodeName;
     ClLogFileOwnerStateT     status;
     ClUint32T                activeCnt;
     ClBoolT                  terminate;

@@ -46,7 +46,7 @@ extern "C" {
 struct _ClLogCompDataT_4_0_0;
 
 typedef struct _ClLogCompDataT_4_0_0 {
-    ClNameT    compName;
+    SaNameT    compName;
     ClUint32T    clientId;
 
 }ClLogCompDataT_4_0_0;

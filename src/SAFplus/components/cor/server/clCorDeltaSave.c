@@ -641,7 +641,7 @@ ClRcT clCorCreateObjFromCont (CL_IN ClCntKeyHandleT userKey, CL_IN  ClCntDataHan
 ClRcT clCorDeltaDbsOpen(ClDBTypeT deltaDbFlag)
 {
 	ClRcT rc = CL_OK, ret = CL_OK;
-	ClNameT	nodeName = {0};
+	SaNameT	nodeName = {0};
     ClCharT *dbFileName = NULL; 
     ClUint32T    sizeofFileName = 0;
     FILE* file = NULL;

@@ -299,7 +299,7 @@ int clCreateCsiPython(char* s, int maxLen, const SaNameT* compName, SaAmfCSIDesc
           ClRcT rc;
           ClCpmCompCSIRefT csiRef = { 0 };
           unsigned int i,j;
-          ClNameT clcName;
+          SaNameT clcName;
           
           clprintf(CL_LOG_SEV_INFO,"New CODE");
 

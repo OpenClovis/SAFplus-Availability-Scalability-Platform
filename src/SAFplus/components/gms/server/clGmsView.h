@@ -59,7 +59,7 @@ typedef struct clGmsViewNode {
 
 typedef struct {
 
-    ClNameT                     name;
+    SaNameT                     name;
 
     /* id = 0 represents the cluster */
     ClGmsGroupIdT               id;
@@ -157,7 +157,7 @@ ClRcT _clGmsViewClusterGroupFind( CL_IN const char *name);
  */
 
 ClRcT      _clGmsViewCreate(
-                    CL_IN   ClNameT         name,
+                    CL_IN   SaNameT         name,
                     CL_IN   ClGmsGroupIdT   groupId);
 
 

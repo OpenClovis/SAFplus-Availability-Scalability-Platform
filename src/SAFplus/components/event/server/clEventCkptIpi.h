@@ -149,7 +149,7 @@ extern "C"
         ClUint32T operation;    /* Open/Close */
         ClEvtUserIdT userId;    /* User Id */
         ClUint32T chanHandle;   /* Channel Handle */
-        ClNameT chanName;       /* Channel Name */
+        SaNameT chanName;       /* Channel Name */
 
     } ClEvtCkptECHInfoT;
 
@@ -198,7 +198,7 @@ extern "C"
         ClEvtCkptSubsInfoT *pSubsInfo;
         ClUint32T subsInfoLen;
         ClUint32T scope;
-        ClNameT chanName;
+        SaNameT chanName;
 
     } ClEvtCkptSubsInfoWithLenT;
 
@@ -221,7 +221,7 @@ extern "C"
          * For easy access 
          */
         ClUint32T chanHandle;
-        ClNameT *pChanName;
+        SaNameT *pChanName;
 
         ClCntHandleT eventTypeContainer;    /* Event Type Container Handle */
 
@@ -240,9 +240,9 @@ extern "C"
     extern ClRcT clEvtCkptInit(void);
     extern ClRcT clEvtCkptExit(void);
 
-    extern ClRcT clEvtCkptSubsDSCreate(ClNameT *pChannelName,
+    extern ClRcT clEvtCkptSubsDSCreate(SaNameT *pChannelName,
                                        ClUint32T channelScope);
-    extern ClRcT clEvtCkptSubsDSDelete(ClNameT *pChannelName,
+    extern ClRcT clEvtCkptSubsDSDelete(SaNameT *pChannelName,
                                        ClUint32T channelScope);
 
     extern ClRcT clEvtCkptCheckPointAll(void);

@@ -23,7 +23,7 @@
 extern ClIdlClntT gIdlClnt;
 
 
-ClRcT clCkptMasterCkptOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT ckptSvcHdl, CL_IN ClNameT* pCkptName, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0* pCheckpointCreationAtrributes, CL_IN ClUint32T checkpointOpenFlags, CL_IN ClUint32T localAddr, CL_IN ClUint32T portId, CL_OUT CkptHdlDbT_4_0_0* pHdlInfo)
+ClRcT clCkptMasterCkptOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT ckptSvcHdl, CL_IN SaNameT* pCkptName, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0* pCheckpointCreationAtrributes, CL_IN ClUint32T checkpointOpenFlags, CL_IN ClUint32T localAddr, CL_IN ClUint32T portId, CL_OUT CkptHdlDbT_4_0_0* pHdlInfo)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -45,7 +45,7 @@ ClRcT clCkptMasterCkptOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT C
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -72,7 +72,7 @@ ClRcT clCkptMasterCkptOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT C
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pCkptName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pCkptName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -152,7 +152,7 @@ static void clCkptMasterCkptOpenAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, 
     ClRcT retVal = CL_OK;
     ClVersionT  pVersion;
     ClHandleT  ckptSvcHdl;
-    ClNameT  pCkptName;
+    SaNameT  pCkptName;
     ClCkptCheckpointCreationAttributesT_4_0_0  pCheckpointCreationAtrributes;
     ClUint32T  checkpointOpenFlags;
     ClUint32T  localAddr;
@@ -161,7 +161,7 @@ static void clCkptMasterCkptOpenAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, 
 
     memset(&(pVersion), 0, sizeof(ClVersionT));
     memset(&(ckptSvcHdl), 0, sizeof(ClHandleT));
-    memset(&(pCkptName), 0, sizeof(ClNameT));
+    memset(&(pCkptName), 0, sizeof(SaNameT));
     memset(&(pCheckpointCreationAtrributes), 0, sizeof(ClCkptCheckpointCreationAttributesT_4_0_0));
     memset(&(checkpointOpenFlags), 0, sizeof(ClUint32T));
     memset(&(localAddr), 0, sizeof(ClUint32T));
@@ -175,7 +175,7 @@ static void clCkptMasterCkptOpenAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, 
         goto L0;
     }
 
-    retVal = clXdrUnmarshallClNameT(inMsgHdl, &(pCkptName));
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pCkptName));
     if (CL_OK != retVal)
     {
         goto L1;
@@ -246,7 +246,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clCkptMasterCkptOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptSvcHdl, CL_IN ClNameT* pCkptName, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0* pCheckpointCreationAtrributes, CL_IN ClUint32T  checkpointOpenFlags, CL_IN ClUint32T  localAddr, CL_IN ClUint32T  portId, CL_OUT CkptHdlDbT_4_0_0* pHdlInfo,CL_IN CkptEoClCkptMasterCkptOpenAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clCkptMasterCkptOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptSvcHdl, CL_IN SaNameT* pCkptName, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0* pCheckpointCreationAtrributes, CL_IN ClUint32T  checkpointOpenFlags, CL_IN ClUint32T  localAddr, CL_IN ClUint32T  portId, CL_OUT CkptHdlDbT_4_0_0* pHdlInfo,CL_IN CkptEoClCkptMasterCkptOpenAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -270,7 +270,7 @@ ClRcT clCkptMasterCkptOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT 
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -298,7 +298,7 @@ ClRcT clCkptMasterCkptOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT 
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pCkptName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pCkptName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
@@ -413,7 +413,7 @@ ClRcT clCkptMasterCkptCloseClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClH
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -560,7 +560,7 @@ ClRcT clCkptMasterCkptCloseClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -657,7 +657,7 @@ L:
 }
 
 
-ClRcT clCkptMasterCkptUnlinkClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pCkptName, CL_IN ClUint32T localAddr, CL_INOUT ClVersionT* pVersion)
+ClRcT clCkptMasterCkptUnlinkClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pCkptName, CL_IN ClUint32T localAddr, CL_INOUT ClVersionT* pVersion)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -679,7 +679,7 @@ ClRcT clCkptMasterCkptUnlinkClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -700,7 +700,7 @@ ClRcT clCkptMasterCkptUnlinkClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pCkptName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pCkptName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -754,16 +754,16 @@ static void clCkptMasterCkptUnlinkAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie
 {
     ClIdlCookieT* pCookie = (ClIdlCookieT*)pIdlCookie;
     ClRcT retVal = CL_OK;
-    ClNameT  pCkptName;
+    SaNameT  pCkptName;
     ClUint32T  localAddr;
     ClVersionT  pVersion;
 
-    memset(&(pCkptName), 0, sizeof(ClNameT));
+    memset(&(pCkptName), 0, sizeof(SaNameT));
     memset(&(localAddr), 0, sizeof(ClUint32T));
     memset(&(pVersion), 0, sizeof(ClVersionT));
 
 
-    retVal = clXdrUnmarshallClNameT(inMsgHdl, &(pCkptName));
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pCkptName));
     if (CL_OK != retVal)
     {
         goto L0;
@@ -802,7 +802,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clCkptMasterCkptUnlinkClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pCkptName, CL_IN ClUint32T  localAddr, CL_INOUT ClVersionT* pVersion,CL_IN CkptEoClCkptMasterCkptUnlinkAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clCkptMasterCkptUnlinkClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pCkptName, CL_IN ClUint32T  localAddr, CL_INOUT ClVersionT* pVersion,CL_IN CkptEoClCkptMasterCkptUnlinkAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -826,7 +826,7 @@ ClRcT clCkptMasterCkptUnlinkClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN C
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -848,7 +848,7 @@ ClRcT clCkptMasterCkptUnlinkClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN C
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pCkptName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pCkptName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
@@ -945,7 +945,7 @@ ClRcT _ckptCheckpointStatusGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN 
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -1095,7 +1095,7 @@ ClRcT _ckptCheckpointStatusGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -1208,7 +1208,7 @@ ClRcT _ckptSectionCreateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHand
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -1424,7 +1424,7 @@ ClRcT _ckptSectionCreateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHan
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -1567,7 +1567,7 @@ ClRcT _ckptSectionDeleteClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHand
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -1729,7 +1729,7 @@ ClRcT _ckptSectionDeleteClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHan
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -1854,7 +1854,7 @@ ClRcT _ckptCheckpointWriteClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHa
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -2064,7 +2064,7 @@ ClRcT _ckptCheckpointWriteClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClH
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -2201,7 +2201,7 @@ ClRcT _ckptSectionOverwriteClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClH
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -2438,7 +2438,7 @@ ClRcT _ckptSectionOverwriteClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -2593,7 +2593,7 @@ ClRcT _ckptCheckpointReadClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHan
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -2791,7 +2791,7 @@ ClRcT _ckptCheckpointReadClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHa
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -2916,7 +2916,7 @@ ClRcT clCkptSvrIterationInitializeClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -3114,7 +3114,7 @@ ClRcT clCkptSvrIterationInitializeClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -3239,7 +3239,7 @@ ClRcT _ckptIterationNextGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClH
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -3404,7 +3404,7 @@ ClRcT _ckptIterationNextGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -3523,7 +3523,7 @@ ClRcT clCkptMasterActiveReplicaSetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -3670,7 +3670,7 @@ ClRcT clCkptMasterActiveReplicaSetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -3789,7 +3789,7 @@ ClRcT clCkptMasterActiveReplicaSetSwitchOverClientSync_4_0_0(CL_IN ClIdlHandleT 
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -3936,7 +3936,7 @@ ClRcT clCkptMasterActiveReplicaSetSwitchOverClientAsync_4_0_0(CL_IN ClIdlHandleT
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -4055,7 +4055,7 @@ ClRcT clCkptMasterCkptRetentionDurationSetClientSync_4_0_0(CL_IN ClIdlHandleT ha
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -4202,7 +4202,7 @@ ClRcT clCkptMasterCkptRetentionDurationSetClientAsync_4_0_0(CL_IN ClIdlHandleT h
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -4321,7 +4321,7 @@ ClRcT _ckptCheckpointSynchronizeClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -4498,7 +4498,7 @@ ClRcT _ckptCheckpointSynchronizeClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -4629,7 +4629,7 @@ ClRcT _ckptSectionExpirationTimeSetClientSync_4_0_0(CL_IN ClIdlHandleT handle, C
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -4791,7 +4791,7 @@ ClRcT _ckptSectionExpirationTimeSetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, 
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -4916,7 +4916,7 @@ ClRcT clCkptMasterActiveAddrGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -5066,7 +5066,7 @@ ClRcT clCkptMasterActiveAddrGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -5179,7 +5179,7 @@ ClRcT clCkptServerFinalizeClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT C
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -5326,7 +5326,7 @@ ClRcT clCkptServerFinalizeClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT 
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,

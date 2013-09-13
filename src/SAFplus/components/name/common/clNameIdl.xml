@@ -70,7 +70,7 @@ material.
             <DataMember name="version" type="ClUint32T"/>
             <DataMember name="dsIdCnt" type="ClUint32T"/>
             <DataMember name="dsId" type="ClUint32T"/>
-            <DataMember name="name" type="ClNameT"/>
+            <DataMember name="name" type="SaNameT"/>
             <DataMember name="objReference" type="ClUint64T"/>
             <DataMember name="source" type="ClNameSvcSourceIDLT"/>
             <DataMember name="compId" type="ClUint32T"/>
@@ -99,7 +99,7 @@ material.
 
         <Struct name="ClNameSvcBindingIDLT" defNeed="true">
             <DataMember name="cksum" type="ClUint32T"/>
-            <DataMember name="name" type="ClNameT"/>
+            <DataMember name="name" type="SaNameT"/>
             <DataMember name="refCount" type="ClUint32T"/>
             <DataMember name="dsId"     type="ClUint32T"/>
             <DataMember name="hashId" type="ClInt32T"/>

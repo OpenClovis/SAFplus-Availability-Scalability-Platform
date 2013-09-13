@@ -45,7 +45,7 @@
 #include <clMsgCkptServer.h>
 
 
-ClRcT VDECL_VER(clMsgQueueGroupCreate, 4, 0, 0)(ClNameT *pGroupName, SaMsgQueueGroupPolicyT qPolicy)
+ClRcT VDECL_VER(clMsgQueueGroupCreate, 4, 0, 0)(SaNameT *pGroupName, SaMsgQueueGroupPolicyT qPolicy)
 {
     ClRcT rc;
     ClRcT retCode;
@@ -61,7 +61,7 @@ ClRcT VDECL_VER(clMsgQueueGroupCreate, 4, 0, 0)(ClNameT *pGroupName, SaMsgQueueG
 
         /* Remove MSG queue group if it does not exist in the cached checkpoint */
         ClMsgQGroupCkptDataT qGroupData;
-        if(clMsgQGroupCkptExists((ClNameT*)pGroupName, &qGroupData) == CL_FALSE)
+        if(clMsgQGroupCkptExists((SaNameT*)pGroupName, &qGroupData) == CL_FALSE)
         {
             goto error_out_1;
         }
@@ -82,7 +82,7 @@ ClRcT VDECL_VER(clMsgQueueGroupCreate, 4, 0, 0)(ClNameT *pGroupName, SaMsgQueueG
     qGroupAddress.portId = CL_IOC_MSG_PORT;
 
     /* Add group into the cached checkpoint */
-    rc = clMsgQGroupCkptDataUpdate(CL_MSG_DATA_ADD, (ClNameT *)pGroupName, qPolicy, qGroupAddress, CL_TRUE);
+    rc = clMsgQGroupCkptDataUpdate(CL_MSG_DATA_ADD, (SaNameT *)pGroupName, qPolicy, qGroupAddress, CL_TRUE);
     if (rc != CL_OK)
     {
         clLogError("GRP", "CRT", "Fail to add Message Queue Group with name [%.*s] into the cached checkpoint. error code [0x%x].", pGroupName->length, pGroupName->value, rc);
@@ -103,8 +103,8 @@ error_out:
 
 
 ClRcT VDECL_VER(clMsgQueueGroupInsert, 4, 0, 0)(
-        ClNameT *pGroupName,
-        ClNameT *pQName
+        SaNameT *pGroupName,
+        SaNameT *pQName
         )
 {
     ClRcT rc;
@@ -144,8 +144,8 @@ error_out:
 }
 
 ClRcT VDECL_VER(clMsgQueueGroupRemove, 4, 0, 0)(
-        ClNameT *pGroupName,
-        ClNameT *pQName
+        SaNameT *pGroupName,
+        SaNameT *pQName
         )
 {
     ClRcT rc;
@@ -175,14 +175,14 @@ error_out:
 
 
 ClRcT VDECL_VER(clMsgQueueGroupDelete, 4, 0, 0)(
-        const ClNameT *pGroupName
+        const SaNameT *pGroupName
         )
 {
     ClRcT rc;
 
     CL_MSG_INIT_CHECK;
 
-    rc = clMsgGroupInfoUpdate(CL_MSG_DATA_DEL, (ClNameT*)pGroupName, 0);
+    rc = clMsgGroupInfoUpdate(CL_MSG_DATA_DEL, (SaNameT*)pGroupName, 0);
     if(rc != CL_OK)
     {
         CL_OSAL_MUTEX_LOCK(&gClGroupDbLock);
@@ -200,7 +200,7 @@ ClRcT VDECL_VER(clMsgQueueGroupDelete, 4, 0, 0)(
     }
 
     ClIocPhysicalAddressT qGroupAddress = {0};
-    rc = clMsgQGroupCkptDataUpdate(CL_MSG_DATA_DEL, (ClNameT *)pGroupName, 0, qGroupAddress, CL_TRUE);
+    rc = clMsgQGroupCkptDataUpdate(CL_MSG_DATA_DEL, (SaNameT *)pGroupName, 0, qGroupAddress, CL_TRUE);
     if(rc != CL_OK)
     {
         clLogError("GRP", "DEL", "Fail to remove Message Queue Group with name %.*s from the cached checkpoint. error code [0x%x].", pGroupName->length, pGroupName->value, rc);
@@ -217,7 +217,7 @@ error_out:
 ClRcT VDECL_VER(clMsgQueueGroupTrack, 4, 0, 0)(
         SaMsgHandleT appHandle,
         SaMsgHandleT msgHandle,
-        const ClNameT *pGroupName,
+        const SaNameT *pGroupName,
         ClUint8T trackFlags,
         SaMsgQueueGroupNotificationBufferT *pNotificationBuffer
         )
@@ -353,7 +353,7 @@ error_out:
 ClRcT clMsgQueueGroupTrackStopInternal(
         ClMsgClientDetailsT *pClient,
         SaMsgHandleT msgHandle,
-        const ClNameT *pGroupName
+        const SaNameT *pGroupName
         )
 {
     ClRcT rc;
@@ -405,7 +405,7 @@ error_out:
 
 ClRcT VDECL_VER(clMsgQueueGroupTrackStop, 4, 0, 0)(
         SaMsgHandleT msgHandle,
-        const ClNameT *pGroupName
+        const SaNameT *pGroupName
         )
 {
     ClRcT rc;

@@ -200,7 +200,7 @@ clFaultCliDebugCompleteHistoryShow( ClUint32T argc,
                                     ClCharT** ret)
 {
     ClRcT               rc = CL_OK;
-    ClNameT             moIdName = {0};
+    SaNameT             moIdName = {0};
     ClCorMOIdT          moid;
     ClCorObjectHandleT  hMSOObj;
 
@@ -250,7 +250,7 @@ clFaultCliDebugHistoryShow( ClUint32T argc,
                             ClCharT** ret)
 {
     ClRcT               rc = CL_OK;
-    ClNameT             moIdName = {0};
+    SaNameT             moIdName = {0};
     ClUint8T            catIndex, sevIndex;
     ClUint8T    		recordFound = 0;	
     ClCorMOIdT          moid;
@@ -392,7 +392,7 @@ clFaultCliDebugGenerateFault(ClUint32T argc,
                              ClCharT** ret)
 {
 	ClRcT               rc = CL_OK;
-    ClNameT             moIdName = {0};
+    SaNameT             moIdName = {0};
 	ClCorMOIdT          moid;
 	ClFaultRecordT*     fRecord;
 	ClCorObjectHandleT  hMSOObj;

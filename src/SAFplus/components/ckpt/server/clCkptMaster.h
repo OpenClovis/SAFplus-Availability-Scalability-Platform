@@ -78,7 +78,7 @@ extern "C" {
  
 typedef struct ckptMasterDBEntry
 {
-    ClNameT             name;              /* ckpt name */   
+    SaNameT             name;              /* ckpt name */   
     ClCkptCheckpointCreationAttributesT 
                         attrib;            /* creation attributes */
     ClUint32T           refCount;          /* No. of opens per ckpt */
@@ -101,7 +101,7 @@ typedef struct ckptMasterDBEntry
 typedef struct ckptXlationLookup
 {
     ClUint32T cksum; /* Checksum of the name */
-    ClNameT   name;  /* Ckpt name */
+    SaNameT   name;  /* Ckpt name */
 }CkptXlationLookupT;
 
 
@@ -175,7 +175,7 @@ extern void 	ckptCkptListDeleteCallback();
 extern ClInt32T ckptCkptListKeyComp();
 extern ClInt32T ckptMastHdlListtKeyComp();
 
-extern ClRcT clCkpMastertReplicaInfoUpdate(ClHandleT hdl, ClNameT *pName,
+extern ClRcT clCkpMastertReplicaInfoUpdate(ClHandleT hdl, SaNameT *pName,
                                            ClIocNodeAddressT *pActAddr);
                                             
 extern ClRcT clCkptReplicaNodeGet(ClIocNodeAddressT *pNodeAddr);

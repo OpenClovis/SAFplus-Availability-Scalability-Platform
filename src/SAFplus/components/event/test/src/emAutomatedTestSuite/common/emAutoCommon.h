@@ -87,14 +87,14 @@ extern "C"
 
     typedef struct ClChanKey 
     {
-        ClNameT channelName;
+        SaNameT channelName;
         ClUint8T channelscope;
     
     } ClChanKeyT;
     
     typedef struct ClEvtContAppToIocAddr
     {
-        ClNameT appName;
+        SaNameT appName;
         ClIocPhysicalAddressT iocPhyAddr;
         ClUint32T noOfSubs;
 
@@ -102,7 +102,7 @@ extern "C"
 
     typedef struct ClEvtContTestHead
     {
-        ClNameT testAppName;
+        SaNameT testAppName;
         ClEvtContTestOpT operation;
         ClRcT expectedResult;
         void *pTestInfo;
@@ -112,14 +112,14 @@ extern "C"
     typedef struct ClEvtContResult
     {
         ClUint32T priority;
-        ClNameT pubName;
+        SaNameT pubName;
         ClUint32T noOfSubs;
 
     } ClEvtContResultT;
 
     typedef struct ClEvtContTestCase
     {
-        ClNameT testCaseName;
+        SaNameT testCaseName;
         ClEvtContTestHeadT *pTestHead;
         ClUint32T noOfSteps;
 
@@ -127,8 +127,8 @@ extern "C"
 
     typedef struct ClEvtContChOpen
     {
-        ClNameT initName;
-        ClNameT channelName;
+        SaNameT initName;
+        SaNameT channelName;
         ClUint32T openFlag;
         ClTimeT timeOut;
 
@@ -136,16 +136,16 @@ extern "C"
 
     typedef struct ClEvtContChClose
     {
-        ClNameT initName;
-        ClNameT channelName;
+        SaNameT initName;
+        SaNameT channelName;
         ClUint32T openFlag;
 
     } ClEvtContChCloseT;
 
     typedef struct ClEvtContSub
     {
-        ClNameT initName;
-        ClNameT channelName;
+        SaNameT initName;
+        SaNameT channelName;
         ClUint32T openFlag;
         ClUint32T filterNo;
         ClEventSubscriptionIdT subId;
@@ -155,8 +155,8 @@ extern "C"
 
     typedef struct ClEvtContUnsub
     {
-        ClNameT initName;
-        ClNameT channelName;
+        SaNameT initName;
+        SaNameT channelName;
         ClUint32T openFlag;
         ClEventSubscriptionIdT subId;
 
@@ -164,40 +164,40 @@ extern "C"
 
     typedef struct ClEvtContAlloc
     {
-        ClNameT initName;
-        ClNameT channelName;
+        SaNameT initName;
+        SaNameT channelName;
         ClUint32T openFlag;
 
     } ClEvtContAllocT;
 
     typedef struct ClEvtContAttrSet
     {
-        ClNameT initName;
-        ClNameT channelName;
+        SaNameT initName;
+        SaNameT channelName;
         ClUint32T openFlag;
         ClUint32T pattNo;
         ClEventPriorityT priorityNo;
         ClTimeT retentionTime;
-        ClNameT publisherName;
+        SaNameT publisherName;
 
     } ClEvtContAttrSetT;
 
     typedef struct ClEvtContAttrGet
     {
-        ClNameT initName;
-        ClNameT channelName;
+        SaNameT initName;
+        SaNameT channelName;
         ClUint32T openFlag;
         ClUint32T pattNo;
         ClEventPriorityT priorityNo;
         ClTimeT retentionTime;
-        ClNameT publisherName;
+        SaNameT publisherName;
 
     } ClEvtContAttrGetT;
 
     typedef struct ClEvtContPub
     {
-        ClNameT initName;
-        ClNameT channelName;
+        SaNameT initName;
+        SaNameT channelName;
         ClUint32T openFlag;
         ClUint32T dataLen;
         ClUint8T payLoad[100];

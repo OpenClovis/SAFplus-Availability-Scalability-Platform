@@ -156,7 +156,7 @@ void clEvtSubsTestDeliverCallback( ClEventSubscriptionIdT subscriptionId,
 {
     ClEventPriorityT priority = 0;
     ClTimeT  retentionTime = 0;
-    ClNameT  publisherName = {0};
+    SaNameT  publisherName = {0};
     ClEventIdT eventId = 0;
     ClRcT rc = CL_OK;
     static ClUint64T callbackCount;
@@ -319,7 +319,7 @@ ClRcT clEvtSubsTest()
     ClVersionT version = CL_EVENT_VERSION;    
 #endif
 #ifdef DIAG_ENABLE
-    ClNameT testName = {sizeof(TEST_NAME), TEST_NAME};
+    SaNameT testName = {sizeof(TEST_NAME), TEST_NAME};
     ClDmInstHandleT testInst = 0;
     ClDmDestHandleT destHandle = 0;
     ClDmProgIndicatorT diagProgIndicator;
@@ -474,7 +474,7 @@ ClRcT   clEvtSubscriptionTest(void);
 
 static ClCpmHandleT gClEvtSubsCpmHandle; /* FIXME */
 ClRcT clEventSubsTerminate(ClInvocationT invocation,
-			const ClNameT  *compName)
+			const SaNameT  *compName)
 {
     ClRcT rc;
 
@@ -489,7 +489,7 @@ ClRcT clEventSubsTerminate(ClInvocationT invocation,
 
 ClRcT clEvtSubsCpmInit()
 {
-    ClNameT appName;
+    SaNameT appName;
     ClCpmCallbacksT callbacks;
     ClVersionT	version;
     ClIocPortT	iocPort;
@@ -646,8 +646,8 @@ ClRcT   clEvtSubscriptionTest(void)
     };
     ClVersionT version = CL_EVENT_VERSION;
     
-    ClNameT gEvtECHNameLocal    = {sizeof(LOCAL_CHANNEL)-1, LOCAL_CHANNEL};
-    ClNameT gEvtECHNameGlobal   = {sizeof(GLOBAL_CHANNEL)-1, GLOBAL_CHANNEL};
+    SaNameT gEvtECHNameLocal    = {sizeof(LOCAL_CHANNEL)-1, LOCAL_CHANNEL};
+    SaNameT gEvtECHNameGlobal   = {sizeof(GLOBAL_CHANNEL)-1, GLOBAL_CHANNEL};
 
     ClRuleExprT* pRbeExpr = NULL;
 

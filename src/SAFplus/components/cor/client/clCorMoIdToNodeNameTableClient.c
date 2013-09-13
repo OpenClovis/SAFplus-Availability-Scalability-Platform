@@ -29,7 +29,7 @@
  #include <clCorRMDWrap.h>
  #include <xdrCorClientMoIdToNodeNameT.h>
  
-ClRcT clCorMoIdToNodeNameGet(ClCorMOIdPtrT pMoId, ClNameT* nodeName)
+ClRcT clCorMoIdToNodeNameGet(ClCorMOIdPtrT pMoId, SaNameT* nodeName)
 {
     	ClRcT rc;
     	corClientMoIdToNodeNameT tab = {{0}};
@@ -64,7 +64,7 @@ ClRcT clCorMoIdToNodeNameGet(ClCorMOIdPtrT pMoId, ClNameT* nodeName)
 }
  
                              // coverity[pass_by_value]
-ClRcT clCorNodeNameToMoIdGet(ClNameT nodeName, 
+ClRcT clCorNodeNameToMoIdGet(SaNameT nodeName, 
                              ClCorMOIdPtrT  pMoId)
 {
     ClRcT rc;

@@ -56,13 +56,13 @@ ClRcT clXdrUnmarshallClCpmHAStateGetSendT_4_0_0(ClBufferHandleT msg , void* pGen
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->compName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->compName));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->csiName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->csiName));
     if (CL_OK != rc)
     {
         return rc;

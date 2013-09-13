@@ -204,15 +204,15 @@ int clTcCkptDelete (
 	ClTcCkptDataT* ckpt_data )
 {
 	ClRcT 		ret_code = CL_OK;
-	ClNameT 	ckpt_name_t={0};
+	SaNameT 	ckpt_name_t={0};
     ClTimeT startTime = 0;
     ClTimeT endTime = 0;
 	ClTimeT time_taken_us =0;
 
 	/* Initialize name struct for ckpt
 	 */
-	strncpy(ckpt_name_t.value, ckpt_name,CL_MAX_NAME_LENGTH-1);
-	ckpt_name_t.length = strlen(ckpt_name_t.value);
+	strncpy((ClCharT *)ckpt_name_t.value, ckpt_name,CL_MAX_NAME_LENGTH-1);
+	ckpt_name_t.length = strlen((const ClCharT *)ckpt_name_t.value);
 
 	/* time check 1 start 
 	 */
@@ -284,7 +284,7 @@ clTcCkptCreate (
 {
 
 	ClRcT 								ret_code = CL_OK;
-	ClNameT 							ckpt_name_t = {0};
+	SaNameT 							ckpt_name_t = {0};
 	ClCkptCheckpointCreationAttributesT	ckpt_cr_attr;
 	ClCkptOpenFlagsT					ckpt_open_flags;
 	ClTimeT								timeout;
@@ -313,8 +313,8 @@ clTcCkptCreate (
 
 	/* Initiailze name struct for ckpt
 	 */
-	strncpy(ckpt_name_t.value, ckpt_name, CL_MAX_NAME_LENGTH-1);
-	ckpt_name_t.length = strlen(ckpt_name_t.value);
+	strncpy((ClCharT *)ckpt_name_t.value, ckpt_name, CL_MAX_NAME_LENGTH-1);
+	ckpt_name_t.length = strlen((const ClCharT *)ckpt_name_t.value);
 
 	/* Get the max size for a  name of sectionId
 	 */
@@ -752,7 +752,7 @@ clTestCkptCreate(ClCkptSvcHdlT svcHandle,
                  ClCkptHdlT    *pCkptHdl)
 {
     ClRcT                                rc       = CL_OK;
-    ClNameT                              ckptName = {0};
+    SaNameT                              ckptName = {0};
     ClCkptCheckpointCreationAttributesT  creationAtt = {0};
     ClCkptOpenFlagsT                     openFlags = {0};
 
@@ -763,8 +763,8 @@ clTestCkptCreate(ClCkptSvcHdlT svcHandle,
     creationAtt.maxSectionIdSize  = 127;
     openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_READ | CL_CKPT_CHECKPOINT_WRITE;
 
-    snprintf(ckptName.value, CL_MAX_NAME_LENGTH,"ckpt%d", ckptIdx);
-    ckptName.length = strlen(ckptName.value);
+    snprintf((ClCharT *)ckptName.value, CL_MAX_NAME_LENGTH,"ckpt%d", ckptIdx);
+    ckptName.length = strlen((const ClCharT *)ckptName.value);
 
     rc = clCkptCheckpointOpen(svcHandle, &ckptName, &creationAtt, openFlags, 
             0, pCkptHdl);

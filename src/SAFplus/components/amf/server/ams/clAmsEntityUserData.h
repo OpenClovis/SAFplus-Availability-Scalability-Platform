@@ -23,12 +23,12 @@ extern "C" {
 
 extern ClRcT clAmsEntityUserDataInitialize(void);
 extern ClRcT clAmsEntityUserDataFinalize(void);
-extern ClRcT _clAmsEntityUserDataSet(ClNameT *entity, ClCharT *data, ClUint32T len);
-extern ClRcT _clAmsEntityUserDataSetKey(ClNameT *entity, ClNameT *key, ClCharT *data, ClUint32T len);
-extern ClRcT _clAmsEntityUserDataGet(ClNameT *entity, ClCharT **data, ClUint32T *length);
-extern ClRcT _clAmsEntityUserDataGetKey(ClNameT *entity, ClNameT *key, ClCharT **data, ClUint32T *length);
-extern ClRcT _clAmsEntityUserDataDelete(ClNameT *entity, ClBoolT clear);
-extern ClRcT _clAmsEntityUserDataDeleteKey(ClNameT *entity, ClNameT *key);
+extern ClRcT _clAmsEntityUserDataSet(SaNameT *entity, ClCharT *data, ClUint32T len);
+extern ClRcT _clAmsEntityUserDataSetKey(SaNameT *entity, SaNameT *key, ClCharT *data, ClUint32T len);
+extern ClRcT _clAmsEntityUserDataGet(SaNameT *entity, ClCharT **data, ClUint32T *length);
+extern ClRcT _clAmsEntityUserDataGetKey(SaNameT *entity, SaNameT *key, ClCharT **data, ClUint32T *length);
+extern ClRcT _clAmsEntityUserDataDelete(SaNameT *entity, ClBoolT clear);
+extern ClRcT _clAmsEntityUserDataDeleteKey(SaNameT *entity, SaNameT *key);
 extern ClRcT clAmsEntityUserDataDestroy(void);
 extern ClRcT clAmsEntityUserDataPackAll (ClBufferHandleT inMsgHdl);
 extern ClRcT clAmsEntityUserDataUnpackAll(ClBufferHandleT inMsgHdl);

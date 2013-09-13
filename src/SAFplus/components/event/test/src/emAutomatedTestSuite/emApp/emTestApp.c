@@ -60,7 +60,7 @@ static ClEoPayloadWithReplyCallbackT gClEvtTestAppFuncList[] = {
 
 
 static ClCpmHandleT gEvtTestAppCpmHandle;
-ClRcT clEventTerminate(ClInvocationT invocation, const ClNameT *compName)
+ClRcT clEventTerminate(ClInvocationT invocation, const SaNameT *compName)
 {
     ClRcT rc;
 
@@ -73,7 +73,7 @@ ClRcT clEventTerminate(ClInvocationT invocation, const ClNameT *compName)
 
 ClRcT clEvtCpmInit()
 {
-    ClNameT appName;
+    SaNameT appName;
     ClCpmCallbacksT callbacks;
     ClVersionT version = { 0 };
     ClIocPortT iocPort;
@@ -149,8 +149,8 @@ ClInt32T clEvtContInitKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
     ClUint32T cmpResult = 0;
 
-    ClNameT *pInitName1 = (ClNameT *) key1;
-    ClNameT *pInitName2 = (ClNameT *) key2;
+    SaNameT *pInitName1 = (SaNameT *) key1;
+    SaNameT *pInitName2 = (SaNameT *) key2;
 
     cmpResult = pInitName1->length - pInitName2->length;
 

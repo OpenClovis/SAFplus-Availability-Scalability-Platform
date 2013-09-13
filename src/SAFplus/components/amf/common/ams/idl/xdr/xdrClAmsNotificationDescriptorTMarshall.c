@@ -59,25 +59,25 @@ ClRcT clXdrMarshallClAmsNotificationDescriptorT_4_0_0(void* pGenVar, ClBufferHan
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->entityName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->entityName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->faultyCompName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->faultyCompName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->siName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->siName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->suName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->suName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

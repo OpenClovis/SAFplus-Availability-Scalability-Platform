@@ -59,12 +59,12 @@ void clOampRtSetResourceDepth(ClOampRtResourceArrayT* pResourceArray)
     ClUint32T i = 0;
     ClUint32T depth = 0;
     ClUint32T noOfRes = pResourceArray->noOfResources;
-    ClNameT tempName;
+    SaNameT tempName;
 
     for(i=0; i<noOfRes; i++)
     {
-        clNameCopy(&tempName, &pResourceArray->pResources[i].resourceName);
-        q = tempName.value;
+        saNameCopy(&tempName, &pResourceArray->pResources[i].resourceName);
+        q = (char *)tempName.value;
         depth = 0;
         while(1)
         {
@@ -94,7 +94,7 @@ void clOampRtSortResource(ClOampRtResourceArrayT* pResourceArray)
           sizeof(*pResourceArray->pResources), clOampRtResourceCmp);
 }
 
-ClRcT clOampRtComponentResourceInfoGet(ClParserPtrT top, ClNameT* pCompName, ClOampRtResourceArrayT* pResourceArray,
+ClRcT clOampRtComponentResourceInfoGet(ClParserPtrT top, SaNameT* pCompName, ClOampRtResourceArrayT* pResourceArray,
                                        ClListHeadT *pCompResourceList)
 {
     ClRcT rc = 0;
@@ -146,7 +146,7 @@ ClRcT clOampRtComponentResourceInfoGet(ClParserPtrT top, ClNameT* pCompName, ClO
                 {
                     clLogNotice("UTL", "OAM", 
                                 "There is no resource to be managed for this component %s",
-                                pCompName ? pCompName->value : "");
+                                pCompName ? (char *)pCompName->value : "");
                     clParserFree(compInstances);
                     clBufferDelete(&msgBuf);
                     CL_FUNC_EXIT();
@@ -181,7 +181,7 @@ ClRcT clOampRtComponentResourceInfoGet(ClParserPtrT top, ClNameT* pCompName, ClO
                     return CL_OAMP_RT_RC(CL_OAMP_RT_ERR_INVALID_CONFIG);
                 }
 
-                strcpy(rtResource.resourceName.value, pMoId);
+                strcpy((char *)rtResource.resourceName.value, pMoId);
                 rtResource.resourceName.length = strlen(pMoId)+1;
                 rtResource.objCreateFlag = CL_FALSE;
                 if(pObjFlag 
@@ -305,7 +305,7 @@ ClRcT clOampRtComponentResourceInfoGet(ClParserPtrT top, ClNameT* pCompName, ClO
     return CL_OK;
 }
 
-ClRcT clOampRtResourceInfoGet(ClParserPtrT top, ClNameT* pCompName, ClOampRtResourceArrayT* pResourceArray)
+ClRcT clOampRtResourceInfoGet(ClParserPtrT top, SaNameT* pCompName, ClOampRtResourceArrayT* pResourceArray)
 {
     return clOampRtComponentResourceInfoGet(top, pCompName, pResourceArray, NULL);
 }

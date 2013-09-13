@@ -52,7 +52,7 @@ ClOsalMutexT gClGroupDbLock;
 static ClUint32T gClNumMsgGroups;
 
 static void clMsgDeleteAllQueuesOfGroup(ClMsgGroupRecordT *pGroup);
-static void clMsgGroupMembershipChangeInformTrackers(ClMsgGroupRecordT *pGroupEntry, ClNameT *pQueueName);
+static void clMsgGroupMembershipChangeInformTrackers(ClMsgGroupRecordT *pGroupEntry, SaNameT *pQueueName);
 
 
 /****************************************************************************/
@@ -65,7 +65,7 @@ static void clMsgGroupMembershipChangeInformTrackers(ClMsgGroupRecordT *pGroupEn
 static struct hashStruct *ppMsgQGroupHashTable[CL_MSG_QUE_GROUP_BUCKETS];
 
 
-static __inline__ ClUint32T clMsgGroupHash(const ClNameT *pQGroupName)
+static __inline__ ClUint32T clMsgGroupHash(const SaNameT *pQGroupName)
 {
     return (ClUint32T)((ClUint32T)pQGroupName->value[0] & CL_MSG_QUE_GROUP_MASK);
 }
@@ -84,7 +84,7 @@ static __inline__ void clMsgGroupEntryDel(ClMsgGroupRecordT *pGroupHashEntry)
 }
 
 
-ClBoolT clMsgGroupEntryExists(const ClNameT *pQGroupName, ClMsgGroupRecordT **ppQGroupEntry)
+ClBoolT clMsgGroupEntryExists(const SaNameT *pQGroupName, ClMsgGroupRecordT **ppQGroupEntry)
 {
     register struct hashStruct *pTemp;
     ClUint32T key = clMsgGroupHash(pQGroupName);
@@ -105,7 +105,7 @@ ClBoolT clMsgGroupEntryExists(const ClNameT *pQGroupName, ClMsgGroupRecordT **pp
 
 /***********************************************************************************************/
 
-static ClRcT clMsgNewGroupAdd(ClNameT *pGroupName, SaMsgQueueGroupPolicyT policy, ClMsgGroupRecordT **ppGroupEntry)
+static ClRcT clMsgNewGroupAdd(SaNameT *pGroupName, SaMsgQueueGroupPolicyT policy, ClMsgGroupRecordT **ppGroupEntry)
 {
     ClRcT rc, retCode;
     ClMsgGroupRecordT *pGroupEntry;
@@ -136,7 +136,7 @@ static ClRcT clMsgNewGroupAdd(ClNameT *pGroupName, SaMsgQueueGroupPolicyT policy
         goto error_out;
     }
 
-    clNameCopy(&pGroupEntry->name, pGroupName);
+    saNameCopy(&pGroupEntry->name, pGroupName);
     pGroupEntry->policy = policy;
     CL_LIST_HEAD_INIT(&pGroupEntry->qList);
     CL_LIST_HEAD_INIT(&pGroupEntry->trackList);
@@ -166,7 +166,7 @@ error_out:
     return rc;
 }
 
-static ClRcT clMsgGroupDelete(ClNameT *pGroupName)
+static ClRcT clMsgGroupDelete(SaNameT *pGroupName)
 {
     ClRcT rc;
     ClMsgGroupRecordT *pGroupEntry;
@@ -213,7 +213,7 @@ error_out:
     return rc;
 }
 
-ClRcT clMsgGroupInfoUpdate(ClMsgSyncActionT syncupType, ClNameT *pGroupName, SaMsgQueueGroupPolicyT policy)
+ClRcT clMsgGroupInfoUpdate(ClMsgSyncActionT syncupType, SaNameT *pGroupName, SaMsgQueueGroupPolicyT policy)
 {
     ClRcT rc = CL_OK;
 
@@ -242,7 +242,7 @@ ClRcT clMsgGroupInfoUpdate(ClMsgSyncActionT syncupType, ClNameT *pGroupName, SaM
 /****************************************************************************************/
 
 
-ClBoolT clMsgDoesQExistInGroup(ClMsgGroupRecordT *pQGroupEntry, const ClNameT *pQueueName, 
+ClBoolT clMsgDoesQExistInGroup(ClMsgGroupRecordT *pQGroupEntry, const SaNameT *pQueueName, 
         ClMsgGroupsQueueDetailsT **ppQListEntry)
 {
     register ClListHeadT *pTemp = NULL;
@@ -264,7 +264,7 @@ ClBoolT clMsgDoesQExistInGroup(ClMsgGroupRecordT *pQGroupEntry, const ClNameT *p
 }
 
 
-ClRcT clMsgAddQueueToGroup(ClNameT *pGroupName, ClNameT *pQueueName)
+ClRcT clMsgAddQueueToGroup(SaNameT *pGroupName, SaNameT *pQueueName)
 {
     ClRcT rc = CL_OK;
     ClMsgGroupRecordT *pGroupEntry;
@@ -293,7 +293,7 @@ ClRcT clMsgAddQueueToGroup(ClNameT *pGroupName, ClNameT *pQueueName)
         goto error_out_1;
     }
 
-    clNameCopy(&pGQueueTemp->qName, pQueueName);
+    saNameCopy(&pGQueueTemp->qName, pQueueName);
     pGQueueTemp->change = SA_MSG_QUEUE_GROUP_ADDED;
 
     clListAddTail(&pGQueueTemp->list, &pGroupEntry->qList);
@@ -314,7 +314,7 @@ error_out:
     return rc;
 }
 
-static ClRcT clMsgDelQueueFromGroup(ClNameT *pGroupName, ClNameT *pQueueName)
+static ClRcT clMsgDelQueueFromGroup(SaNameT *pGroupName, SaNameT *pQueueName)
 {
     ClRcT rc = CL_OK;
     ClMsgGroupRecordT *pGroupEntry;
@@ -359,7 +359,7 @@ error_out:
 }
 
 
-ClRcT clMsgGroupMembershipInfoSend(ClMsgSyncActionT syncupType, ClNameT *pGroupName, ClNameT *pQueueName)
+ClRcT clMsgGroupMembershipInfoSend(ClMsgSyncActionT syncupType, SaNameT *pGroupName, SaNameT *pQueueName)
 {
     ClRcT rc = CL_OK;
 
@@ -437,7 +437,7 @@ ClRcT clMsgAllQueuesOfGroupGet(ClMsgGroupRecordT *pMsgGroup, SaMsgQueueGroupNoti
     for(pTemp = pMsgQList->pNext, i = 0 ; pTemp != pMsgQList && i < count; pTemp = pTemp->pNext, i++)
     {
         pQueueTemp = CL_LIST_ENTRY(pTemp, ClMsgGroupsQueueDetailsT , list);
-        memcpy(&((*ppData)[i].member.queueName), &pQueueTemp->qName, sizeof(ClNameT));
+        memcpy(&((*ppData)[i].member.queueName), &pQueueTemp->qName, sizeof(SaNameT));
         (*ppData)[i].change = pQueueTemp->change; 
         pQueueTemp->change = SA_MSG_QUEUE_GROUP_NO_CHANGE;
     }
@@ -452,7 +452,7 @@ error_out:
 }
 
 
-static ClRcT clMsgOnlyChangedEntriesOfGroupGet(ClMsgGroupRecordT *pMsgGroup, ClNameT *pQueueName, SaMsgQueueGroupNotificationT **ppData)
+static ClRcT clMsgOnlyChangedEntriesOfGroupGet(ClMsgGroupRecordT *pMsgGroup, SaNameT *pQueueName, SaMsgQueueGroupNotificationT **ppData)
 {
     ClRcT rc = CL_OK;
     register ClListHeadT *pTemp;
@@ -474,7 +474,7 @@ static ClRcT clMsgOnlyChangedEntriesOfGroupGet(ClMsgGroupRecordT *pMsgGroup, ClN
         if(pQueueTemp->qName.length == pQueueName->length || 
                 memcpy(pQueueTemp->qName.value, pQueueName->value, pQueueName->length) == 0)
         {
-            memcpy(&(*ppData)->member.queueName, pQueueName, sizeof(ClNameT));
+            memcpy(&(*ppData)->member.queueName, pQueueName, sizeof(SaNameT));
             (*ppData)->change = pQueueTemp->change;
             pQueueTemp->change = SA_MSG_QUEUE_GROUP_NO_CHANGE;
             break;
@@ -488,7 +488,7 @@ error_out:
 }
 
 
-static void clMsgGroupMembershipChangeInformTrackers(ClMsgGroupRecordT *pGroupEntry, ClNameT *pQueueName)
+static void clMsgGroupMembershipChangeInformTrackers(ClMsgGroupRecordT *pGroupEntry, SaNameT *pQueueName)
 {
     register ClListHeadT *pTemp = NULL;
     ClListHeadT *pTrackList;

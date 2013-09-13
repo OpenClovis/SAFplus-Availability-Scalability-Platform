@@ -26,7 +26,7 @@ ClEventChannelHandleT  evtPublishChannelHdl;
 ClEventChannelHandleT  evtSubscribeChannelHdl;
 
 /* Publisher name */
-ClNameT            eventPublisher = {sizeof(CL_NTF_EVENT_PUBLISHER_NAME)-1, CL_NTF_EVENT_PUBLISHER_NAME};
+SaNameT            eventPublisher = {sizeof(CL_NTF_EVENT_PUBLISHER_NAME)-1, CL_NTF_EVENT_PUBLISHER_NAME};
 /* File descriptor variable used to store fd value for the 
  * notification ID counter file fd */
 ClFdT   ntfIdFileFd;
@@ -112,7 +112,7 @@ clNtfLibInitialize(void)
     ClEventCallbacksT   eventCallbacks = {
                         NULL,
                         clNtfEventDeliveryCallback };
-    ClNameT             evtChannelName = { CL_NTF_EVENT_CHANNEL_NAME_SIZE,
+    SaNameT             evtChannelName = { CL_NTF_EVENT_CHANNEL_NAME_SIZE,
                                            CL_NTF_EVENT_CHANNEL_NAME };
     
     clLogDebug("NTF","INIT","Initializing the NTF library");

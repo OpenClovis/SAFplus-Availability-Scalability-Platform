@@ -949,7 +949,7 @@ ClRcT _clTxnAgentProcessMgrCmd(
                             rc = clTxnAppJobRemove(pTxnDefn, tCmd.jobId);
                             if(CL_OK != rc)
                             {
-                                ClNameT name = {0};
+                                SaNameT name = {0};
                                 clCpmComponentNameGet(0, &name);
                                 clLog(CL_LOG_ERROR, "AGT", NULL,
                                      "REMOVE cmd received. Error in removing the job information for component [%s] rc [0x%x]", 

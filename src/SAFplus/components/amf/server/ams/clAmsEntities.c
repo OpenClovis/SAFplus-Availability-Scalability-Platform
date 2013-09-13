@@ -1914,7 +1914,7 @@ clAmsEntityPrint(
                     "%s","---------------------------");
             CL_AMS_PRINT_TWO_COL("Proxy for Component",
                     "%s",comp->status.proxyComp ?
-                            comp->status.proxyComp->name.value : "None");
+                            (const ClCharT *)comp->status.proxyComp->name.value : "None");
             CL_AMS_PRINT_TWO_COL("Presence State",
                     "%s",CL_AMS_STRING_P_STATE(comp->status.presenceState));
             CL_AMS_PRINT_TWO_COL("Oper State",
@@ -2724,8 +2724,7 @@ clAmsEntityXMLPrint(
             CL_AMS_PRINT_OPEN_TAG("status");
             
             CL_AMS_PRINT_TAG_VALUE("proxy_for_component", "%s",
-                                   comp->status.proxyComp ?
-                                   comp->status.proxyComp->name.value : "None");
+                                comp->status.proxyComp ? (const ClCharT * )comp->status.proxyComp->name.value : "None");
 
             CL_AMS_PRINT_TAG_VALUE("presence_state", "%s",
                                    CL_AMS_STRING_P_STATE(comp->status.
@@ -3030,13 +3029,13 @@ clAmsProxiedClearOps(ClAmsCompT *comp)
              */
             if(compRef->status.proxyComp
                &&
-               !strncmp(compRef->status.proxyComp->name.value,
-                        comp->config.entity.name.value,
+               !strncmp((const ClCharT *)compRef->status.proxyComp->name.value,
+                               (const ClCharT *)comp->config.entity.name.value,
                         comp->config.entity.name.length))
             {
                 clLogNotice("PROXIED", "CLEAR", "Clearing pending operations for proxied [%s] with proxy [%s]",
                             compRef->config.entity.name.value,
-                            compRef->status.proxyComp->name.value);
+                            (const ClCharT *)compRef->status.proxyComp->name.value);
                 cpmProxiedHealthcheckStop(&compRef->config.entity.name);
                 amsCompClearOps(compRef);
             }
@@ -4984,7 +4983,7 @@ clAmsCSIMarshalCSIDescriptorExtended(
                                      CL_IN  ClAmsCSIFlagsT  csiFlags,
                                      CL_IN  ClAmsHAStateT haState,
                                      // coverity[pass_by_value]
-                                     CL_IN  ClNameT  activeCompName,
+                                     CL_IN  SaNameT  activeCompName,
                                      CL_IN  ClAmsCSITransitionDescriptorT  transitionDescr,
                                      CL_IN  ClUint32T  standbyRank,
                                      CL_IN  ClBoolT    reassignCSI)
@@ -5008,7 +5007,7 @@ clAmsCSIMarshalCSIDescriptorExtended(
 
     if (csi && (CL_AMS_CSI_FLAG_TARGET_ALL != csiFlags))
     {
-        memcpy ( &csiDescriptor->csiName, &csi->config.entity.name, sizeof (ClNameT));
+        memcpy ( &csiDescriptor->csiName, &csi->config.entity.name, sizeof (SaNameT));
     }
 
     if (csi && 
@@ -5064,12 +5063,12 @@ clAmsCSIMarshalCSIDescriptorExtended(
     {
         csiDescriptor->csiStateDescriptor.activeDescriptor.transitionDescriptor = transitionDescr;
         memcpy ( &csiDescriptor->csiStateDescriptor.activeDescriptor.activeCompName,
-                 &activeCompName, sizeof (ClNameT)) ;
+                 &activeCompName, sizeof (SaNameT)) ;
     }
     else if (CL_AMS_HA_STATE_STANDBY == haState)
     {
         memcpy ( &csiDescriptor->csiStateDescriptor.standbyDescriptor.activeCompName,
-                 &activeCompName, sizeof (ClNameT)) ;
+                 &activeCompName, sizeof (SaNameT)) ;
         csiDescriptor->csiStateDescriptor.standbyDescriptor.standbyRank = standbyRank;
     }
 
@@ -5096,7 +5095,7 @@ clAmsCSIMarshalCSIDescriptor(
         CL_IN  ClAmsCSIFlagsT  csiFlags,
         CL_IN  ClAmsHAStateT haState,
         // coverity[pass_by_value]
-        CL_IN  ClNameT  activeCompName,
+        CL_IN  SaNameT  activeCompName,
         CL_IN  ClAmsCSITransitionDescriptorT  transitionDescr,
         CL_IN  ClUint32T  standbyRank )
 {
@@ -5148,7 +5147,7 @@ clAmsCSIMarshalPGTrackNotificationBuffer(
             ClAmsCompT  *comp = (ClAmsCompT *)compRef->entityRef.ptr;
 
             memcpy ( &notificationBuffer->notification[count].member.compName,
-                    &comp->config.entity.name, sizeof (ClNameT));
+                    &comp->config.entity.name, sizeof (SaNameT));
             notificationBuffer->notification[count].member.haState = compRef->haState;
             //XXX: notificationBuffer->notification[count].member.rank = comp->status
             notificationBuffer->notification[count].change = CL_AMS_PG_NO_CHANGE; 
@@ -5178,11 +5177,11 @@ clAmsCSIMarshalPGTrackNotificationBuffer(
             ClAmsCompT  *comp    = (ClAmsCompT *)compRef->entityRef.ptr;
 
             memcpy ( &notificationBuffer->notification[count].member.compName,
-                    &comp->config.entity.name, sizeof (ClNameT));
+                    &comp->config.entity.name, sizeof (SaNameT));
             notificationBuffer->notification[count].member.haState = compRef->haState;
             //XXX: notificationBuffer->notification[count].member.rank = comp->status
 
-            if ( !strcmp(changedComp->config.entity.name.value, comp->config.entity.name.value))
+            if ( !strcmp((const ClCharT *)changedComp->config.entity.name.value, (const ClCharT *)comp->config.entity.name.value))
             {
                 notificationBuffer->notification[count].change = pgChange;
             }
@@ -5216,11 +5215,11 @@ clAmsCSIMarshalPGTrackNotificationBuffer(
             ClAmsCSICompRefT  *compRef = (ClAmsCSICompRefT *) entityRef;
             ClAmsCompT  *comp = (ClAmsCompT *)compRef->entityRef.ptr;
 
-            if ( !strcmp(changedComp->config.entity.name.value, comp->config.entity.name.value))
+            if ( !strcmp((const ClCharT *)changedComp->config.entity.name.value, (const ClCharT *)comp->config.entity.name.value))
             {
 
                 memcpy ( &notificationBuffer->notification[0].member.compName,
-                        &comp->config.entity.name, sizeof (ClNameT));
+                        &comp->config.entity.name, sizeof (SaNameT));
                 notificationBuffer->notification[0].member.haState = compRef->haState;
                 notificationBuffer->notification[0].change = pgChange;
                 notificationBuffer->numItems++;

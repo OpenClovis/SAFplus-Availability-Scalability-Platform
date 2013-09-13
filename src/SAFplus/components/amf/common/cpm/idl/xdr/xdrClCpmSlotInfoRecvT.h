@@ -54,8 +54,8 @@ typedef struct _ClCpmSlotInfoRecvT_4_0_0 {
     ClCpmSlotInfoFieldIdT_4_0_0    flag;
     ClUint32T    slotId;
     ClUint32T    nodeIocAddress;
-    ClNameT    nodeMoIdStr;
-    ClNameT    nodeName;
+    SaNameT    nodeMoIdStr;
+    SaNameT    nodeName;
 
 }ClCpmSlotInfoRecvT_4_0_0;
 

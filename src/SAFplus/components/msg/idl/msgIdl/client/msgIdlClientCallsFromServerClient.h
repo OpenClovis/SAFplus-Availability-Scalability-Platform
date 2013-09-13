@@ -37,21 +37,21 @@ typedef MsgIdlClMsgQDatabaseUpdateAsyncCallbackT_4_0_0 MsgIdlClMsgQDatabaseUpdat
 
 ClRcT clMsgQDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncupType, CL_IN ClMsgQueueCkptDataT_4_0_0* queueData, CL_IN ClUint16T  updateCkpt,CL_IN MsgIdlClMsgQDatabaseUpdateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
-ClRcT clMsgGroupDatabaseUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0 syncupType, CL_IN ClNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0 policy, CL_IN ClIocPhysicalAddressT_4_0_0 qGroupAddress, CL_IN ClUint16T updateCkpt);
+ClRcT clMsgGroupDatabaseUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0 syncupType, CL_IN SaNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0 policy, CL_IN ClIocPhysicalAddressT_4_0_0 qGroupAddress, CL_IN ClUint16T updateCkpt);
 
-typedef void (*MsgIdlClMsgGroupDatabaseUpdateAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncupType, CL_IN ClNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0  policy, CL_IN ClIocPhysicalAddressT_4_0_0  qGroupAddress, CL_IN ClUint16T  updateCkpt, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*MsgIdlClMsgGroupDatabaseUpdateAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncupType, CL_IN SaNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0  policy, CL_IN ClIocPhysicalAddressT_4_0_0  qGroupAddress, CL_IN ClUint16T  updateCkpt, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef MsgIdlClMsgGroupDatabaseUpdateAsyncCallbackT_4_0_0 MsgIdlClMsgGroupDatabaseUpdateAsyncCallbackT;
 
-ClRcT clMsgGroupDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncupType, CL_IN ClNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0  policy, CL_IN ClIocPhysicalAddressT_4_0_0  qGroupAddress, CL_IN ClUint16T  updateCkpt,CL_IN MsgIdlClMsgGroupDatabaseUpdateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clMsgGroupDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncupType, CL_IN SaNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0  policy, CL_IN ClIocPhysicalAddressT_4_0_0  qGroupAddress, CL_IN ClUint16T  updateCkpt,CL_IN MsgIdlClMsgGroupDatabaseUpdateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
-typedef void (*MsgIdlClMsgGroupMembershipUpdateAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncAct, CL_IN ClNameT* pGroupName, CL_IN ClNameT* pQueueName, CL_IN ClUint16T  updateCkpt, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*MsgIdlClMsgGroupMembershipUpdateAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncAct, CL_IN SaNameT* pGroupName, CL_IN SaNameT* pQueueName, CL_IN ClUint16T  updateCkpt, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef MsgIdlClMsgGroupMembershipUpdateAsyncCallbackT_4_0_0 MsgIdlClMsgGroupMembershipUpdateAsyncCallbackT;
 
-ClRcT clMsgGroupMembershipUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncAct, CL_IN ClNameT* pGroupName, CL_IN ClNameT* pQueueName, CL_IN ClUint16T  updateCkpt,CL_IN MsgIdlClMsgGroupMembershipUpdateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clMsgGroupMembershipUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncAct, CL_IN SaNameT* pGroupName, CL_IN SaNameT* pQueueName, CL_IN ClUint16T  updateCkpt,CL_IN MsgIdlClMsgGroupMembershipUpdateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
-ClRcT clMsgQueueAllocateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pQName, CL_IN SaMsgQueueOpenFlagsT_4_0_0 openFlags, CL_IN SaMsgQueueCreationAttributesT_4_0_0* pCreationAttributes, CL_OUT ClHandleT* pQueueHandle);
+ClRcT clMsgQueueAllocateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pQName, CL_IN SaMsgQueueOpenFlagsT_4_0_0 openFlags, CL_IN SaMsgQueueCreationAttributesT_4_0_0* pCreationAttributes, CL_OUT ClHandleT* pQueueHandle);
 
 
 #ifdef __cplusplus

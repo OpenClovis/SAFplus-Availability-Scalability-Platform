@@ -1271,11 +1271,11 @@ static ClRcT clAmsMgmtTestFillConfig(ClAmsMgmtHandleT mgmtHandle,
              */
             ClAmsCSINVPT nvp;
             memset(&nvp, 0, sizeof(nvp));
-            clNameSet(&nvp.paramName, "model");
+            saNameSet(&nvp.paramName, "model");
             nvp.paramName.length++;
-            clNameSet(&nvp.paramValue, "twoN");
+            saNameSet(&nvp.paramValue, "twoN");
             nvp.paramValue.length++;
-            clNameCopy(&nvp.csiName, &entity.name);
+            saNameCopy(&nvp.csiName, &entity.name);
             clDhaExmpExec(("CSI set nvplist"),
                           (rc = clAmsMgmtCCBCSISetNVP(ccbHandle,
                                                       &entity,
@@ -1435,7 +1435,7 @@ static ClRcT clAmsMgmtTestFillConfig(ClAmsMgmtHandleT mgmtHandle,
         {
             ClAmsCompConfigT compConfig;
             ClUint64T bitMask = 0;
-            ClNameT supportedCSIType;
+            SaNameT supportedCSIType;
             memset(&supportedCSIType, 0, sizeof(supportedCSIType));
             memset(&compConfig, 0, sizeof(compConfig));
             snprintf(entity.name.value, sizeof(entity.name.value), "%s0", NEW_COMP_PREFIX);

@@ -27,23 +27,23 @@ extern "C" {
 
 
 
-ClRcT clMsgQueueStatusGet_4_0_0(CL_IN ClNameT*  pQueueName, CL_OUT SaMsgQueueStatusT_4_0_0*  pQueueStatus);
+ClRcT clMsgQueueStatusGet_4_0_0(CL_IN SaNameT*  pQueueName, CL_OUT SaMsgQueueStatusT_4_0_0*  pQueueStatus);
 
 ClRcT clMsgQueueStatusGetResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_OUT  SaMsgQueueStatusT_4_0_0  pQueueStatus);
 
-ClRcT clMsgQueueUnlink_4_0_0(CL_IN ClNameT*  pQueueName);
+ClRcT clMsgQueueUnlink_4_0_0(CL_IN SaNameT*  pQueueName);
 
 ClRcT clMsgQueueUnlinkResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clMsgQueueInfoGet_4_0_0(CL_IN ClNameT*  pQName, CL_OUT SaMsgQueueCreationAttributesT_4_0_0*  pQAttrs);
+ClRcT clMsgQueueInfoGet_4_0_0(CL_IN SaNameT*  pQName, CL_OUT SaMsgQueueCreationAttributesT_4_0_0*  pQAttrs);
 
 ClRcT clMsgQueueInfoGetResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_OUT  SaMsgQueueCreationAttributesT_4_0_0  pQAttrs);
 
-ClRcT clMsgQueueMoveMessages_4_0_0(CL_IN ClNameT*  pQName, CL_IN ClUint32T  openFlags, CL_IN ClUint16T  qDelete);
+ClRcT clMsgQueueMoveMessages_4_0_0(CL_IN SaNameT*  pQName, CL_IN ClUint32T  openFlags, CL_IN ClUint16T  qDelete);
 
 ClRcT clMsgQueueMoveMessagesResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clMsgMessageReceived_4_0_0(CL_IN ClUint32T  sendType, CL_IN ClNameT*  pDestination, CL_IN ClMsgMessageIovecT_4_0_0*  pMessage, CL_IN ClInt64T  sendTime, CL_IN ClHandleT  senderHandle, CL_IN ClInt64T  timeout);
+ClRcT clMsgMessageReceived_4_0_0(CL_IN ClUint32T  sendType, CL_IN SaNameT*  pDestination, CL_IN ClMsgMessageIovecT_4_0_0*  pMessage, CL_IN ClInt64T  sendTime, CL_IN ClHandleT  senderHandle, CL_IN ClInt64T  timeout);
 
 ClRcT clMsgMessageReceivedResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 

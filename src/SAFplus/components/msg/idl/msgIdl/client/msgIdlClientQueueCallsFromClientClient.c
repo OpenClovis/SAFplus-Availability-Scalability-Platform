@@ -23,7 +23,7 @@
 extern ClIdlClntT gIdlClnt;
 
 
-ClRcT clMsgQueueOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pQueueName, CL_IN SaMsgQueueCreationAttributesT_4_0_0* pCreationAttributes, CL_IN SaMsgQueueOpenFlagsT_4_0_0 openFlags)
+ClRcT clMsgQueueOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pQueueName, CL_IN SaMsgQueueCreationAttributesT_4_0_0* pCreationAttributes, CL_IN SaMsgQueueOpenFlagsT_4_0_0 openFlags)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -45,7 +45,7 @@ ClRcT clMsgQueueOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* p
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -66,7 +66,7 @@ ClRcT clMsgQueueOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* p
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pQueueName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pQueueName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -101,7 +101,7 @@ ClRcT clMsgQueueOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* p
     return rc;
 }
 
-ClRcT clMsgQueueRetentionCloseClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pQueueName)
+ClRcT clMsgQueueRetentionCloseClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pQueueName)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -123,7 +123,7 @@ ClRcT clMsgQueueRetentionCloseClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN 
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -144,7 +144,7 @@ ClRcT clMsgQueueRetentionCloseClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN 
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pQueueName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pQueueName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -167,7 +167,7 @@ ClRcT clMsgQueueRetentionCloseClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN 
     return rc;
 }
 
-ClRcT clMsgQueuePersistRedundancyClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* queue, CL_IN ClIocPhysicalAddressT_4_0_0 srcAddr, CL_IN ClUint16T qDelete)
+ClRcT clMsgQueuePersistRedundancyClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* queue, CL_IN ClIocPhysicalAddressT_4_0_0 srcAddr, CL_IN ClUint16T qDelete)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -189,7 +189,7 @@ ClRcT clMsgQueuePersistRedundancyClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -210,7 +210,7 @@ ClRcT clMsgQueuePersistRedundancyClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(queue, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(queue, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;

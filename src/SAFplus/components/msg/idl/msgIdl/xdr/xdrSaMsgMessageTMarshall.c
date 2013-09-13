@@ -65,7 +65,7 @@ ClRcT clXdrMarshallSaMsgMessageT_4_0_0(void* pGenVar, ClBufferHandleT msg, ClUin
         return rc;
     }
 
-    rc = clXdrMarshallPtrClNameT(pVar->senderName, 1,msg,isDelete);
+    rc = clXdrMarshallPtrSaNameT(pVar->senderName, 1,msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

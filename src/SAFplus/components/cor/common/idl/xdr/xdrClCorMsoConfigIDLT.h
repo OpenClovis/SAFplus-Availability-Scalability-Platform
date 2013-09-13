@@ -57,7 +57,7 @@ struct _ClCorMsoConfigIDLT_4_1_0;
 typedef struct _ClCorMsoConfigIDLT_4_1_0 {
     ClVersionT    version;
     ClCorMsoConfigOpIDLT_4_0_0    msoConfigOp;
-    ClNameT    compName;
+    SaNameT    compName;
     ClIocPhysicalAddressT_4_0_0    compAddr;
     ClCorAlarmConfiguredDataIDLT_4_1_0    alarmInfo;
 

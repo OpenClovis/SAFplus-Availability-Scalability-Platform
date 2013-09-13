@@ -98,7 +98,7 @@ static ClEoPayloadWithReplyCallbackT serverFuncList[] = {
 
 
 ClCpmHandleT gCpmHandle;
-ClRcT appTerminate(ClInvocationT invocation, const ClNameT *compName)
+ClRcT appTerminate(ClInvocationT invocation, const SaNameT *compName)
 {
     ClRcT rc;
 
@@ -144,7 +144,7 @@ failure:
 static ClRcT appInitialize(ClUint32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
-    ClNameT appName;
+    SaNameT appName;
     ClCpmCallbacksT callbacks;
     ClVersionT version;
     ClIocPortT iocPort;

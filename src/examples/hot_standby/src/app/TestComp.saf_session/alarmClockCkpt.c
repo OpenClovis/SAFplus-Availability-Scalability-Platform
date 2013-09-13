@@ -113,7 +113,7 @@ alarm clock structure
 
 Arguments In: 
     1. ClCkptHdlT : ckpt handle
-    2. ClNameT *    ckpt_name being updated
+    2. SaNameT *    ckpt_name being updated
     3. ClCkptIOVectorElementT   *io_vector containing updated checkpoint data (all sections)
     4. ClInt32T     number of sections within checkpoint
     5. ClPtrT       cookie; can be used to keep globals within the task
@@ -123,7 +123,7 @@ Return Value:
 *******************************************************************************/
 static ClRcT 
 alarmClockCkptCallback( ClCkptHdlT              ckpt_hdl,
-                        ClNameT                 *ckpt_name,
+                        SaNameT                 *ckpt_name,
                         ClCkptIOVectorElementT  *io_vector,
                         ClUint32T               num_sections,
                         ClPtrT                  cookie )

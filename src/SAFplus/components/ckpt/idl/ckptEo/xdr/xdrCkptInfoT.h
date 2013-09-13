@@ -50,7 +50,7 @@ struct _CkptInfoT_4_0_0;
 
 typedef struct _CkptInfoT_4_0_0 {
     ClHandleT    ckptHdl;
-    ClNameT*    pName;
+    SaNameT*    pName;
     CkptCPInfoT_4_0_0*    pCpInfo;
     CkptDPInfoT_4_0_0*    pDpInfo;
 
@@ -87,7 +87,7 @@ struct _CkptInfoT_5_0_0;
 
 typedef struct _CkptInfoT_5_0_0 {
     ClHandleT    ckptHdl;
-    ClNameT*    pName;
+    SaNameT*    pName;
     CkptCPInfoT_5_0_0*    pCpInfo;
     CkptDPInfoT_4_0_0*    pDpInfo;
 

@@ -70,12 +70,12 @@ SaAisErrorT saMsgQueueGroupCreate(SaMsgHandleT msgHandle,
     if (pQueueGroupName->length > CL_MAX_NAME_LENGTH)
     {
         rc = CL_MSG_RC(CL_ERR_INVALID_PARAMETER);
-        clLogError("MSG", "QGC", "Invalid ClNameT structure. error code [0x%x].", rc);
+        clLogError("MSG", "QGC", "Invalid SaNameT structure. error code [0x%x].", rc);
         goto error_out;
     }
 
     /* Look up msg queue group in the cached checkpoint */
-    if(clMsgQGroupCkptExists((ClNameT*)pQueueGroupName, &qGroupData) == CL_TRUE)
+    if(clMsgQGroupCkptExists((SaNameT*)pQueueGroupName, &qGroupData) == CL_TRUE)
     {
         rc = CL_MSG_RC(CL_ERR_ALREADY_EXIST);
         clLogError("MSG", "QGC", "Message queue group [%.*s] already exists. error code [0x%x]."
@@ -99,7 +99,7 @@ SaAisErrorT saMsgQueueGroupCreate(SaMsgHandleT msgHandle,
         goto error_out;
     }
 
-    rc = VDECL_VER(clMsgQueueGroupCreateClientSync, 4, 0, 0)(gIdlUcastHandle, (ClNameT*)pQueueGroupName, groupPolicy);
+    rc = VDECL_VER(clMsgQueueGroupCreateClientSync, 4, 0, 0)(gIdlUcastHandle, (SaNameT*)pQueueGroupName, groupPolicy);
     if(rc != CL_OK)
     {
         clLogError("MSG", "QGC", "Failed to create message queue group [%.*s]. error code [0x%x].", pQueueGroupName->length, pQueueGroupName->value, rc);
@@ -141,7 +141,7 @@ SaAisErrorT saMsgQueueGroupInsert(
     }
 
     /* Look up msg queue group in the cached checkpoint */
-    if(clMsgQGroupCkptDataGet((ClNameT*)pQueueGroupName, &qGroupData) != CL_OK)
+    if(clMsgQGroupCkptDataGet((SaNameT*)pQueueGroupName, &qGroupData) != CL_OK)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "QGI", "Message queue group [%.*s] does not exists. error code [0x%x]."
@@ -150,7 +150,7 @@ SaAisErrorT saMsgQueueGroupInsert(
         goto error_out;
     }
 
-    if (clMsgQGroupCkptQueueExist(&qGroupData, (ClNameT *)pQueueName, &pos) == CL_TRUE)
+    if (clMsgQGroupCkptQueueExist(&qGroupData, (SaNameT *)pQueueName, &pos) == CL_TRUE)
     {
         rc = CL_MSG_RC(CL_ERR_ALREADY_EXIST);
         clLogError("MSG", "QGI", "Message queue [%.*s] already exists in message queue group [%.*s]. error code [0x%x]."
@@ -163,7 +163,7 @@ SaAisErrorT saMsgQueueGroupInsert(
     clMsgQGroupCkptDataFree(&qGroupData);
 
     /* Look up msg queue in the cached checkpoint */
-    if(clMsgQCkptExists((ClNameT *)pQueueName, &queueData) == CL_FALSE)
+    if(clMsgQCkptExists((SaNameT *)pQueueName, &queueData) == CL_FALSE)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "QGI", "Failed to get the message queue information from the cached ckpt. error code [0x%x].", rc);
@@ -187,7 +187,7 @@ SaAisErrorT saMsgQueueGroupInsert(
         goto error_out_1;
     }
 
-    rc = VDECL_VER(clMsgQueueGroupInsertClientSync, 4, 0, 0)(idlQGroupHandle, (ClNameT*)pQueueGroupName, (ClNameT*)pQueueName);
+    rc = VDECL_VER(clMsgQueueGroupInsertClientSync, 4, 0, 0)(idlQGroupHandle, (SaNameT*)pQueueGroupName, (SaNameT*)pQueueName);
     if(rc != CL_OK)
     {
         clLogError("MSG", "QGR", "Failed to add message queue [%.*s] to message queue group [%.*s]. error code [0x%x]."
@@ -234,7 +234,7 @@ SaAisErrorT saMsgQueueGroupRemove(
     }
 
     /* Look up msg queue group in the cached checkpoint */
-    if(clMsgQGroupCkptDataGet((ClNameT*)pQueueGroupName, &qGroupData) != CL_OK)
+    if(clMsgQGroupCkptDataGet((SaNameT*)pQueueGroupName, &qGroupData) != CL_OK)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "QGR", "Message queue group [%.*s] does not exist. error code [0x%x]."
@@ -243,7 +243,7 @@ SaAisErrorT saMsgQueueGroupRemove(
         goto error_out;
     }
 
-    if (clMsgQGroupCkptQueueExist(&qGroupData, (ClNameT *)pQueueName, &pos) == CL_FALSE)
+    if (clMsgQGroupCkptQueueExist(&qGroupData, (SaNameT *)pQueueName, &pos) == CL_FALSE)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "QGR", "Message queue [%.*s] does not exist in message queue group [%.*s]. error code [0x%x]."
@@ -256,7 +256,7 @@ SaAisErrorT saMsgQueueGroupRemove(
     clMsgQGroupCkptDataFree(&qGroupData);
 
     /* Look up msg queue in the cached checkpoint */
-    if(clMsgQCkptExists((ClNameT *)pQueueName, &queueData) == CL_FALSE)
+    if(clMsgQCkptExists((SaNameT *)pQueueName, &queueData) == CL_FALSE)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "QGR", "Failed to get the message queue information from the cached ckpt. error code [0x%x].", rc);
@@ -280,7 +280,7 @@ SaAisErrorT saMsgQueueGroupRemove(
         goto error_out_1;
     }
 
-    rc = VDECL_VER(clMsgQueueGroupRemoveClientSync, 4, 0, 0)(idlQGroupHandle, (ClNameT*)pQueueGroupName, (ClNameT*)pQueueName);
+    rc = VDECL_VER(clMsgQueueGroupRemoveClientSync, 4, 0, 0)(idlQGroupHandle, (SaNameT*)pQueueGroupName, (SaNameT*)pQueueName);
     if(rc != CL_OK)
     {
         clLogError("MSG", "QGR", "Failed to remove message queue [%.*s] from message queue group [%.*s]. error code [0x%x]."
@@ -325,7 +325,7 @@ SaAisErrorT saMsgQueueGroupDelete(
     }
 
     /* Look up msg queue group in the cached checkpoint */
-    if(clMsgQGroupCkptExists((ClNameT*)pQueueGroupName, &qGroupData) == CL_FALSE)
+    if(clMsgQGroupCkptExists((SaNameT*)pQueueGroupName, &qGroupData) == CL_FALSE)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "QGD", "Message queue group [%.*s] does not exist. error code [0x%x]."
@@ -351,7 +351,7 @@ SaAisErrorT saMsgQueueGroupDelete(
         goto error_out_1;
     }
 
-    rc = VDECL_VER(clMsgQueueGroupDeleteClientSync, 4, 0, 0)(idlQGroupHandle, (ClNameT*)pQueueGroupName);
+    rc = VDECL_VER(clMsgQueueGroupDeleteClientSync, 4, 0, 0)(idlQGroupHandle, (SaNameT*)pQueueGroupName);
     if(rc != CL_OK)
     {
         clLogError("MSG", "QGD", "Failed to delete [%.*s] queue group. error code [0x%x].", pQueueGroupName->length, pQueueGroupName->value, rc);
@@ -396,7 +396,7 @@ error_out:
 }
 
 
-ClRcT VDECL_VER(clMsgClientsTrackCallback, 4, 0, 0)(SaMsgHandleT clientHandle, ClNameT *pGroupName, SaMsgQueueGroupNotificationBufferT *pData)
+ClRcT VDECL_VER(clMsgClientsTrackCallback, 4, 0, 0)(SaMsgHandleT clientHandle, SaNameT *pGroupName, SaMsgQueueGroupNotificationBufferT *pData)
 {
     ClRcT rc = CL_OK;
     ClMsgAppQGroupTrackCallbakParamsT *pParam;
@@ -447,7 +447,7 @@ out:
 }
 
 
-static void clMsgQGroupTrackCallback(ClIdlHandleT idlHandle, SaMsgHandleT clientHandle, SaMsgHandleT msgHandle, ClNameT *pQueueGroupName, ClUint8T trackFlags, SaMsgQueueGroupNotificationBufferT *pNotificationBuffer, ClRcT rc, ClPtrT pCallbackParam)
+static void clMsgQGroupTrackCallback(ClIdlHandleT idlHandle, SaMsgHandleT clientHandle, SaMsgHandleT msgHandle, SaNameT *pQueueGroupName, ClUint8T trackFlags, SaMsgQueueGroupNotificationBufferT *pNotificationBuffer, ClRcT rc, ClPtrT pCallbackParam)
 {
     ClMsgAppQGroupTrackCallbakParamsT *pParam;
 
@@ -515,7 +515,7 @@ SaAisErrorT saMsgQueueGroupTrack(
     }
 
     /* Look up msg queue group in the cached checkpoint */
-    if(clMsgQGroupCkptExists((ClNameT*)pQueueGroupName, &qGroupData) == CL_FALSE)
+    if(clMsgQGroupCkptExists((SaNameT*)pQueueGroupName, &qGroupData) == CL_FALSE)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "QGT", "Failed to get the message queue group information from the cached ckpt. error code [0x%x].", rc);
@@ -591,7 +591,7 @@ SaAisErrorT saMsgQueueGroupTrack(
         }
 
         rc = VDECL_VER(clMsgQueueGroupTrackClientSync, 4, 0, 0)(idlQGroupHandle, msgHandle, 
-                pMsgLibInfo->handle, (ClNameT*)pQueueGroupName, trackFlags, pTempNotif);
+                pMsgLibInfo->handle, (SaNameT*)pQueueGroupName, trackFlags, pTempNotif);
         if(rc != CL_OK)
         {
             /*Here I am not freeing the memory of pTempNotif->notification as it would have been freed by IDL */
@@ -629,7 +629,7 @@ SaAisErrorT saMsgQueueGroupTrack(
             goto error_out_4;
         }
 
-        rc = VDECL_VER(clMsgQueueGroupTrackClientAsync, 4, 0, 0)(idlQGroupHandle, msgHandle, pMsgLibInfo->handle, (ClNameT*)pQueueGroupName, trackFlags, pTempNotif, clMsgQGroupTrackCallback, NULL);
+        rc = VDECL_VER(clMsgQueueGroupTrackClientAsync, 4, 0, 0)(idlQGroupHandle, msgHandle, pMsgLibInfo->handle, (SaNameT*)pQueueGroupName, trackFlags, pTempNotif, clMsgQGroupTrackCallback, NULL);
         if(rc != CL_OK)
         {
             /* pTempNotif->notification is not freed, as it would have been freed by IDL */
@@ -681,7 +681,7 @@ saMsgQueueGroupTrackStop (
     }
 
     /* Look up msg queue group in the cached checkpoint */
-    if(clMsgQGroupCkptExists((ClNameT*)pGroupName, &qGroupData) == CL_FALSE)
+    if(clMsgQGroupCkptExists((SaNameT*)pGroupName, &qGroupData) == CL_FALSE)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "QGS", "Failed to get the message queue group information from the cached ckpt. error code [0x%x].", rc);
@@ -705,7 +705,7 @@ saMsgQueueGroupTrackStop (
         goto error_out_1;
     }
 
-    rc = VDECL_VER(clMsgQueueGroupTrackStopClientSync, 4, 0, 0)(idlQGroupHandle, pMsgLibInfo->handle, (ClNameT *)pGroupName);
+    rc = VDECL_VER(clMsgQueueGroupTrackStopClientSync, 4, 0, 0)(idlQGroupHandle, pMsgLibInfo->handle, (SaNameT *)pGroupName);
     if(rc != CL_OK)
     {
         clLogError("MSG", "GTS", "Failed to stop the tracking at the server. error code [0x%x].",rc);

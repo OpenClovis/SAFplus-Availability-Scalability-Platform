@@ -2800,7 +2800,7 @@ marshallClAmsMgmtUserDataSetRequest(ClPtrT req,
     if(rc != CL_OK) return rc;
     if(request->key)
     {
-        rc = clXdrMarshallClNameT(request->key, inMsgHdl, 0);
+        rc = clXdrMarshallSaNameT(request->key, inMsgHdl, 0);
         if(rc != CL_OK) return rc;
     }
     rc = clXdrMarshallClUint32T(&request->len, inMsgHdl, 0);
@@ -2829,7 +2829,7 @@ marshallClAmsMgmtUserDataGetRequest(ClPtrT req,
     if(rc != CL_OK) return rc;
     if(request->key)
     {
-        rc = clXdrMarshallClNameT(request->key, inMsgHdl, 0);
+        rc = clXdrMarshallSaNameT(request->key, inMsgHdl, 0);
     }
     return rc;
 }
@@ -2867,7 +2867,7 @@ static ClRcT marshallClAmsMgmtUserDataDeleteRequest(ClPtrT req,
     if(rc != CL_OK) return rc;
     if(request->key)
     {
-        rc = clXdrMarshallClNameT(request->key, inMsgHdl, 0);
+        rc = clXdrMarshallSaNameT(request->key, inMsgHdl, 0);
         if(rc != CL_OK)
             return rc;
     }

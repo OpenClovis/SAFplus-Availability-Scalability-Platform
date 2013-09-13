@@ -69,7 +69,7 @@ extern "C" {
 
 typedef void (*ClAmsSACSISetCallbackT)(
         CL_IN       ClInvocationT               invocation,
-        CL_IN       const ClNameT               *compName,
+        CL_IN       const SaNameT               *compName,
         CL_IN       ClAmsHAStateT               haState,
         CL_IN       ClAmsCSIDescriptorT         csiDescriptor);
 
@@ -90,8 +90,8 @@ typedef void (*ClAmsSACSISetCallbackT)(
 
 typedef void (*ClAmsSACSIRemoveCallbackT)(
         CL_IN   ClInvocationT                   invocation,
-        CL_IN   const ClNameT                   *compName,
-        CL_IN   const ClNameT                   *csiName,
+        CL_IN   const SaNameT                   *compName,
+        CL_IN   const SaNameT                   *csiName,
         CL_IN   ClAmsCSIFlagsT                  csiFlags);
 
 /*
@@ -112,7 +112,7 @@ typedef void (*ClAmsSACSIRemoveCallbackT)(
  */
 
 typedef void (*ClAmsSAPGTrackCallbackT)(
-        CL_IN       const ClNameT               *csiName,
+        CL_IN       const SaNameT               *csiName,
         CL_IN       ClAmsPGNotificationBufferT  notificationBuffer,
         CL_IN       ClUint32T                   numMembers,
         CL_IN       ClRcT                       error);
@@ -130,7 +130,7 @@ typedef void (*ClAmsSAPGTrackCallbackT)(
 
 typedef void (*ClAmsSACompHealthcheckCallbackT)(
         CL_IN       ClInvocationT               invocation,
-        CL_IN       const ClNameT               *compName,
+        CL_IN       const SaNameT               *compName,
         CL_IN       ClAmsCompHealthcheckKeyT    *healthcheckkey);
 
 /*
@@ -146,7 +146,7 @@ typedef void (*ClAmsSACompHealthcheckCallbackT)(
 
 typedef void (*ClAmsSACompTerminateCallbackT)(
         CL_IN       ClInvocationT               invocation,
-        CL_IN       const ClNameT               *compName);
+        CL_IN       const SaNameT               *compName);
 
 /*
  * ClAmsSAProxiedCompInstantiateCallbackT
@@ -162,7 +162,7 @@ typedef void (*ClAmsSACompTerminateCallbackT)(
 
 typedef void (*ClAmsSAProxiedCompInstantiateCallbackT)(
         CL_IN       ClInvocationT               invocation,
-        CL_IN       const ClNameT               *proxiedCompName);
+        CL_IN       const SaNameT               *proxiedCompName);
 
 /*
  * ClAmsSAProxiedCompCleanupCallbackT
@@ -178,7 +178,7 @@ typedef void (*ClAmsSAProxiedCompInstantiateCallbackT)(
 
 typedef void (*ClAmsSAProxiedCompCleanupCallbackT)(
         CL_IN       ClInvocationT               invocation,
-        CL_IN       const ClNameT               *proxiedCompName);
+        CL_IN       const SaNameT               *proxiedCompName);
  
 typedef struct
 {
@@ -297,8 +297,8 @@ extern ClRcT clAmsSASelectionObjectGet(
 
 extern ClRcT clAmsSACompRegister(
         CL_IN       ClAmsClientHandleT          amsHandle,
-        CL_IN       const ClNameT               *compName,
-        CL_IN       const ClNameT               *proxyCompName);
+        CL_IN       const SaNameT               *compName,
+        CL_IN       const SaNameT               *proxyCompName);
 
 /*
  * clAmsSAComponentUnregister
@@ -318,8 +318,8 @@ extern ClRcT clAmsSACompRegister(
 
 extern ClRcT clAmsSACompUnregister(
         CL_IN       ClAmsClientHandleT          amsHandle,
-        CL_IN       const ClNameT               *compName,
-        CL_IN       const ClNameT               *proxyCompName);
+        CL_IN       const SaNameT               *compName,
+        CL_IN       const SaNameT               *proxyCompName);
 
 /*
  * clAmsSAComponentNameGet
@@ -338,7 +338,7 @@ extern ClRcT clAmsSACompUnregister(
 
 extern ClRcT clAmsSACompNameGet(
         CL_IN       ClAmsClientHandleT          amsHandle,
-        CL_OUT      ClNameT               *compName);
+        CL_OUT      SaNameT               *compName);
 
 /*
  * clAmsSACSIHAStateGet
@@ -359,8 +359,8 @@ extern ClRcT clAmsSACompNameGet(
 
 extern ClRcT clAmsSACSIHAStateGet(
         CL_IN       ClAmsClientHandleT          amsHandle,
-        CL_IN       const ClNameT               *compName,
-        CL_IN       const ClNameT               *csiName,
+        CL_IN       const SaNameT               *compName,
+        CL_IN       const SaNameT               *csiName,
         CL_OUT      ClAmsHAStateT               *haState);
 
 /*
@@ -404,7 +404,7 @@ extern ClRcT clAmsSACSIQuiescingComplete(
 
 extern ClRcT clAmsSAPGTrack(
         CL_IN       ClAmsClientHandleT          amsHandle,
-        CL_IN       ClNameT                     *csiName,
+        CL_IN       SaNameT                     *csiName,
         CL_IN       ClUint8T                    trackFlags,
         CL_IN       ClAmsPGNotificationBufferT  *notificationBuffer);
 
@@ -425,7 +425,7 @@ extern ClRcT clAmsSAPGTrack(
 
 extern ClRcT clAmsSAPGTrackStop(
         CL_IN       ClAmsClientHandleT          amsHandle,
-        CL_IN       const ClNameT               *csiName);
+        CL_IN       const SaNameT               *csiName);
 
 /*
  * clAmsSAResponse

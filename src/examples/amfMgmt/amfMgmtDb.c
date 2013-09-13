@@ -694,7 +694,7 @@ ClRcT clAmsDBGetNodeCompList(ClAmsMgmtDBHandleT cache,
         compList->count = 0;
     }
 
-    clNameSet(&entity.name, nodeName);
+    saNameSet(&entity.name, nodeName);
 
     rc = clAmsMgmtDBGetNodeSUList(cache, &entity, &suBuffer);
     if(rc != CL_OK)
@@ -821,7 +821,7 @@ ClRcT clAmsGetCompListStats(const ClCharT *pNodeName,
     ClAmsEntityBufferT compList = {0};
     ClCompStatBufferT *statBuffer = NULL;
     ClUint32T numStats = 0;
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
     ClIocNodeAddressT slotId = 0;
     ClRcT rc = CL_OK;
     
@@ -840,7 +840,7 @@ ClRcT clAmsGetCompListStats(const ClCharT *pNodeName,
         if(rc != CL_OK)
             return rc;
     }
-    else clNameSet(&nodeName, pNodeName);
+    else saNameSet(&nodeName, pNodeName);
 
     slotId = clIocLocalAddressGet();
     /* 
@@ -859,7 +859,7 @@ ClRcT clAmsGetCompListStats(const ClCharT *pNodeName,
     for(ClUint32T c = 0; c < compList.count; ++c)
     {
         ClAmsEntityT *comp = compList.entity + c;
-        ClNameT compName = {0};
+        SaNameT compName = {0};
         ClAmsCompStatusT *status = NULL;
         ClUint32T pid = 0;
         ClAmsPresenceStateT presenceState = 0;
@@ -878,7 +878,7 @@ ClRcT clAmsGetCompListStats(const ClCharT *pNodeName,
         if(presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED)
             continue;
         /* amf uses length + 1. Hence map */
-        clNameSet(&compName, (const ClCharT*)comp->name.value);
+        saNameSet(&compName, (const ClCharT*)comp->name.value);
         /* local slot query for the component pid */
         rc = clCpmComponentPIDGet(&compName, &pid);
         if(rc != CL_OK) 

@@ -47,7 +47,7 @@ ClRcT clXdrMarshallClMsgQueueCkptDataT_4_0_0(void* pGenVar, ClBufferHandleT msg,
         length = 1;
         clXdrMarshallClUint32T(&length, msg, 0);
 
-    rc = clXdrMarshallClNameT(&(pVar->qName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->qName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

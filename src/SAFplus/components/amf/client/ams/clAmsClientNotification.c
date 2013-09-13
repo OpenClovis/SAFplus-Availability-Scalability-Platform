@@ -76,7 +76,7 @@ static void clAmsClientNotificationCallback(
     ClEventPatternArrayT    patternArray = {0};
     ClEventPriorityT        priority = 0;
     ClTimeT                 retentionTime = 0;
-    ClNameT                 publisherName = {0};
+    SaNameT                 publisherName = {0};
     ClTimeT                 publishTime = 0;
     ClEventIdT              eventId = 0;
     ClAmsNotificationInfoT  amsNotificationInfo = {0};
@@ -168,7 +168,7 @@ ClRcT clAmsClientNotificationInitialize(ClAmsClientNotificationCallbackT callbac
         NULL,
         .clEvtEventDeliverCallback=clAmsClientNotificationCallback,
     };
-    ClNameT evtChannelName = { sizeof(CL_AMS_EVENT_CHANNEL_NAME)-1, CL_AMS_EVENT_CHANNEL_NAME };
+    SaNameT evtChannelName = { sizeof(CL_AMS_EVENT_CHANNEL_NAME)-1, CL_AMS_EVENT_CHANNEL_NAME };
     ClVersionT version = {'B', 0x1, 0x1};
     ClEventFilterT stateFilters[] = 
         {
@@ -229,7 +229,7 @@ ClRcT clAmsClientNotificationInitialize(ClAmsClientNotificationCallbackT callbac
         goto out_free;
     }
 
-    clNameSet(&evtChannelName, CL_CPM_EVENT_CHANNEL_NAME);
+    saNameSet(&evtChannelName, CL_CPM_EVENT_CHANNEL_NAME);
     rc = clEventChannelOpen(gClAmsEventNotificationHandle,
                             &evtChannelName, 
                             CL_EVENT_CHANNEL_SUBSCRIBER | 
@@ -269,7 +269,7 @@ ClRcT clAmsClientNotificationInitialize(ClAmsClientNotificationCallbackT callbac
         goto out_free;
     }
 
-    clNameSet(&evtChannelName, CL_CPM_NODE_EVENT_CHANNEL_NAME);
+    saNameSet(&evtChannelName, CL_CPM_NODE_EVENT_CHANNEL_NAME);
     rc = clEventChannelOpen(gClAmsEventNotificationHandle, 
                             &evtChannelName, 
                             CL_EVENT_CHANNEL_SUBSCRIBER | 

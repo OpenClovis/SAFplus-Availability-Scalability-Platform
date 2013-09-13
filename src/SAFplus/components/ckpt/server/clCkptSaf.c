@@ -88,7 +88,7 @@ do {                                                                    \
     }                                                                   \
 }while(0)
 
-//static ClRcT _ckptUpdateClientImmConsmptn(ClNameT *pName);
+//static ClRcT _ckptUpdateClientImmConsmptn(SaNameT *pName);
 
 typedef struct ClCkptReadSectionsHint
 {
@@ -106,7 +106,7 @@ typedef struct ClCkptReadSectionsHint
  * Core functionality for creating a checkpoint on active server.
  */
 ClRcT _ckptLocalDataUpdate(ClCkptHdlT         ckptHdl,
-                           ClNameT            *pName,
+                           SaNameT            *pName,
       ClCkptCheckpointCreationAttributesT     *pCreateAttr,
                            ClUint32T          cksum,
                            ClIocNodeAddressT  appAddr,
@@ -212,7 +212,7 @@ ClRcT _ckptLocalDataUpdate(ClCkptHdlT         ckptHdl,
           ("Failed to allocate memory for checkpoint %s rc[0x %x]\n",
            pCkpt->ckptName.value,rc),rc);
 
-    clNameCopy(&pCkpt->ckptName, pName);
+    saNameCopy(&pCkpt->ckptName, pName);
     
     /*
      * Copy Data plane Information. 
@@ -322,7 +322,7 @@ exitOnErrorBeforeHdlCheckout:
  
 ClRcT  VDECL_VER(clCkptActiveCkptOpen, 4, 0, 0)(ClVersionT        *pVersion,
                             ClCkptHdlT        ckptMastHdl,
-             		    ClNameT           *pName,
+             		    SaNameT           *pName,
                             ClCkptOpenFlagsT  checkpointOpenFlags,
                             ClCkptCheckpointCreationAttributesT *pCreateAttr,
                             ClIocNodeAddressT appAddr, 
@@ -3413,7 +3413,7 @@ exitOnError:
 /*
  * Updates the client that data is ready for consumption
  */
-ClRcT _ckptUpdateClientImmConsmptn(ClNameT *pName)
+ClRcT _ckptUpdateClientImmConsmptn(SaNameT *pName)
 {
     ClRcT                rc        = CL_OK;
     ClCkptClientUpdInfoT eventInfo = {0};
@@ -3424,7 +3424,7 @@ ClRcT _ckptUpdateClientImmConsmptn(ClNameT *pName)
      */
     memset(&eventInfo, 0, sizeof(ClCkptClientUpdInfoT));
     eventInfo.eventType = htonl(CL_CKPT_IMMEDIATE_CONS_EVENT);
-    clNameCopy(&eventInfo.name, pName);
+    saNameCopy(&eventInfo.name, pName);
     eventInfo.name.length = htons(pName->length);
     CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n Ckpt: Publishing an event for"
           " immediate consumption\n"));
@@ -3445,7 +3445,7 @@ static
 void VDECL_VER(ckptRemSvrCkptAddCallback, 5, 0, 0)( ClIdlHandleT  ckptIdlHdl,
                                                     ClVersionT    *pVersion,
                                                     ClHandleT     ckptActHdl,
-                                                    ClNameT       *pName,
+                                                    SaNameT       *pName,
                                                     VDECL_VER(CkptCPInfoT, 5, 0, 0)   *pCpInfo,
                                                     CkptDPInfoT   *pDpInfo,
                                                     ClRcT         retCode,
@@ -3497,7 +3497,7 @@ static
 void VDECL_VER(ckptRemSvrCkptAddCallback, 4, 0, 0)( ClIdlHandleT  ckptIdlHdl,
                                                     ClVersionT    *pVersion,
                                                     ClHandleT     ckptActHdl,
-                                                    ClNameT       *pName,
+                                                    SaNameT       *pName,
                                                     CkptCPInfoT   *pCpInfo,
                                                     CkptDPInfoT   *pDpInfo,
                                                     ClRcT         retCode,
@@ -4336,7 +4336,7 @@ VDECL_VER(clCkptCheckpointReplicaRemove, 4, 0, 0)(ClHandleT  ckptHdl,
     CkptT              *pCkpt      = NULL;
     ClUint32T          cksum       = 0;
     ClOsalMutexIdT     ckptMutex   = CL_HANDLE_INVALID_VALUE;
-    ClNameT            ckptName    = {0};
+    SaNameT            ckptName    = {0};
 
     /*
      * Check whether the server is fully up or not.

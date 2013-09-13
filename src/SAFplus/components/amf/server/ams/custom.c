@@ -637,7 +637,7 @@ clAmsPeSGAssignSUCustom(
 
 ClRcT clAmsCustomAssignmentIterInit(ClAmsCustomAssignmentIterT *iter, ClAmsSIT *si)
 {
-    ClNameT customAssignmentKey = { .value = CUSTOM_ASSIGNMENT_KEY,
+    SaNameT customAssignmentKey = { .value = CUSTOM_ASSIGNMENT_KEY,
                                     .length = sizeof(CUSTOM_ASSIGNMENT_KEY) -1
     };
     ClRcT rc;
@@ -711,7 +711,7 @@ void clAmsCustomAssignmentIterEnd(ClAmsCustomAssignmentIterT *iter)
 
 ClRcT clAmsPeDequeueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU)
 {
-    ClNameT customAssignmentKey = { .value = CUSTOM_ASSIGNMENT_KEY,
+    SaNameT customAssignmentKey = { .value = CUSTOM_ASSIGNMENT_KEY,
                                     .length = sizeof(CUSTOM_ASSIGNMENT_KEY)-1 
     };
     ClUint8T *customAssignmentBuffer = NULL;
@@ -745,12 +745,11 @@ ClRcT clAmsPeDequeueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU)
          */
         for(i = 0; i < buffer.count; ++i)
         {
-            if(!strncmp(buffer.entityRef[i].entityRef.entity.name.value,
-                        activeSU->config.entity.name.value,
-                        activeSU->config.entity.name.length))
+            if (!strncmp((const ClCharT*) buffer.entityRef[i].entityRef.entity.name.value,
+                            (const ClCharT*) activeSU->config.entity.name.value, activeSU->config.entity.name.length))
             {
-                clLogNotice("CUSTOM", "ASSIGNMENT", "Dequeuing SU [%s] from SI [%s]",
-                            activeSU->config.entity.name.value, si->config.entity.name.value);
+                clLogNotice("CUSTOM", "ASSIGNMENT", "Dequeuing SU [%s] from SI [%s]", activeSU->config.entity.name.value,
+                                si->config.entity.name.value);
                 break;
             }
         }
@@ -849,7 +848,7 @@ ClRcT clAmsPeDequeueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU)
 
 ClRcT clAmsPeEnqueueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsHAStateT haState)
 {
-    ClNameT customAssignmentKey = { .value = CUSTOM_ASSIGNMENT_KEY,
+    SaNameT customAssignmentKey = { .value = CUSTOM_ASSIGNMENT_KEY,
                                     .length = sizeof(CUSTOM_ASSIGNMENT_KEY)-1 
     };
     ClUint8T *customAssignmentBuffer = NULL;
@@ -883,12 +882,11 @@ ClRcT clAmsPeEnqueueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsHASt
          */
         for(i = 0; i < buffer.count; ++i)
         {
-            if(!strncmp(buffer.entityRef[i].entityRef.entity.name.value,
-                        activeSU->config.entity.name.value,
-                        activeSU->config.entity.name.length))
+            if (!strncmp((const ClCharT*) buffer.entityRef[i].entityRef.entity.name.value,
+                            (const ClCharT*) activeSU->config.entity.name.value, activeSU->config.entity.name.length))
             {
                 clLogNotice("CUSTOM", "ASSIGNMENT", "Skipping enqueueing SU [%s] to SI [%s] as its already enqueued",
-                            activeSU->config.entity.name.value, si->config.entity.name.value);
+                                activeSU->config.entity.name.value, si->config.entity.name.value);
                 goto out_free;
             }
         }

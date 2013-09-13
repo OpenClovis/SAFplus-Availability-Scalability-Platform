@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
     if (1)
     {
         SaNameT publisherName;
-        clNameSet((ClNameT*) &publisherName,PUBLISHER_NAME);
+        saNameSet((SaNameT*) &publisherName,PUBLISHER_NAME);
         
         rc = saEvtEventAllocate(evtChannelHandle, &eventHandle);
         if (rc != SA_AIS_OK)

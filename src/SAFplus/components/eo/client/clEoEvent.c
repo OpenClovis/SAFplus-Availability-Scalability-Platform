@@ -72,7 +72,7 @@ static void eoEventOnWaterMarkHit( ClEventSubscriptionIdT subscriptionId,
 
     ClEventPriorityT priority = 0;
     ClTimeT retentionTime = 0;
-    ClNameT publisherName = { 0 };
+    SaNameT publisherName = { 0 };
     ClEventIdT eventId = 0;
     ClEventPatternArrayT patternArray = { 0 };
     ClTimeT publishTime = 0;
@@ -150,7 +150,7 @@ static ClRcT eoEventInit(void)
     ClRcT rc = CL_OK;
 
     ClVersionT version = CL_EVENT_VERSION;    
-    ClNameT channelName = {sizeof(CL_EO_EVENT_CHANNEL_NAME)-1, CL_EO_EVENT_CHANNEL_NAME};
+    SaNameT channelName = {sizeof(CL_EO_EVENT_CHANNEL_NAME)-1, CL_EO_EVENT_CHANNEL_NAME};
 
 #ifdef CL_EO_DEBUG
     const ClEventCallbacksT evtCallbacks = 
@@ -232,7 +232,7 @@ ClRcT clEoTriggerEvent(ClEoLibIdT libId, ClWaterMarkIdT wmId, ClUint32T wmValue,
     ClRcT rc = CL_OK;
 
     ClEventIdT eventId = 0;
-    ClNameT publisherName = {sizeof(CL_EO_EVENT_PUBLISHER_NAME)-1, CL_EO_EVENT_PUBLISHER_NAME};
+    SaNameT publisherName = {sizeof(CL_EO_EVENT_PUBLISHER_NAME)-1, CL_EO_EVENT_PUBLISHER_NAME};
 
     ClEventPatternT patterns[5] = {{0}};
 

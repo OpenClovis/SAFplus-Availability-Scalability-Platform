@@ -51,7 +51,7 @@ extern "C" {
 struct _ClErrorReportT_4_0_0;
 
 typedef struct _ClErrorReportT_4_0_0 {
-    ClNameT    compName;
+    SaNameT    compName;
     ClInt64T    time;
     ClAmsRecoveryT_4_0_0    recommendedRecovery;
     ClUint32T    handle;

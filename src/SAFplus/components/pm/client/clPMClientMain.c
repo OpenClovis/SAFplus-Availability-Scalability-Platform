@@ -431,7 +431,7 @@ ClRcT clPMAlarmTableCreate()
     ClParserPtrT pmAttrInfo = NULL;
     ClParserPtrT pmAlarmInfo = NULL;
     ClParserPtrT compInst = NULL;
-    ClNameT compName = {0};
+    SaNameT compName = {0};
     const ClCharT *pConfigFile = CL_PM_CONFIG_FILE;
 
     configPath = getenv("ASP_CONFIG");

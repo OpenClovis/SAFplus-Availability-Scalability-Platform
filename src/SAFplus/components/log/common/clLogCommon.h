@@ -196,16 +196,16 @@ typedef struct
 
 typedef struct
 {
-    ClNameT    streamName;
-    ClNameT    streamScopeNode;
+    SaNameT    streamName;
+    SaNameT    streamScopeNode;
     ClUint32T  hash;
 } ClLogStreamKeyT;
 
 typedef struct
 {
-    ClNameT              streamName;
+    SaNameT              streamName;
     ClLogStreamScopeT    streamScope;
-    ClNameT              streamScopeNode;
+    SaNameT              streamScopeNode;
     ClLogStreamHandleT   hStream;
 } ClLogStdStreamDataT;
 
@@ -243,7 +243,7 @@ ClRcT
 clLogMasterAddressGet(ClIocAddressT  *pMasterAddr);
 
 ClRcT
-clLogStreamScopeGet(ClNameT            *pNodeName,
+clLogStreamScopeGet(SaNameT            *pNodeName,
                     ClLogStreamScopeT  *pScope);
 
 ClInt32T
@@ -254,8 +254,8 @@ ClUint32T
 clLogStreamHashFn(ClCntKeyHandleT key);
 
 ClRcT
-clLogStreamKeyCreate(ClNameT          *pStreamName,
-                     ClNameT          *pNodeName,
+clLogStreamKeyCreate(SaNameT          *pStreamName,
+                     SaNameT          *pNodeName,
                      ClUint32T        maxStreams,
                      ClLogStreamKeyT  **ppStreamKey);
 
@@ -267,7 +267,7 @@ clLogShmGet(ClCharT   *shmName,
             ClInt32T  *pShmFd);
 
 ClRcT
-clLogStreamShmSegInit(ClNameT                 *pStreamName,
+clLogStreamShmSegInit(SaNameT                 *pStreamName,
                       ClCharT                 *pShmName,
                       ClInt32T                shmFd,
                       ClUint32T               shmSize,
@@ -296,15 +296,15 @@ ClRcT
 clLogPSharedCondCreate(ClLogStreamHeaderT *pHeader);
 
 ClRcT
-clLogShmNameCreate(ClNameT    *pStreamName,
-                   ClNameT    *pStreamScopeNode,
+clLogShmNameCreate(SaNameT    *pStreamName,
+                   SaNameT    *pStreamScopeNode,
                    ClStringT  *pShmName);
 
 ClRcT
 clLogShmNameDestroy(ClStringT  *pStreamName);
 
 ClRcT
-clLogCompNamePrefixGet(ClNameT   *pCompName,
+clLogCompNamePrefixGet(SaNameT   *pCompName,
                        ClCharT   **ppCompPrefix);
 
 ClRcT
@@ -403,7 +403,7 @@ clLogSharedSemGet(const ClCharT *pShmName, const ClCharT *pSuffix, ClOsalSemIdT 
 #endif
 
 ClUint32T
-clLogDefaultStreamSeverityGet(ClNameT *pStreamName);
+clLogDefaultStreamSeverityGet(SaNameT *pStreamName);
 
 #ifdef __cplusplus
 }

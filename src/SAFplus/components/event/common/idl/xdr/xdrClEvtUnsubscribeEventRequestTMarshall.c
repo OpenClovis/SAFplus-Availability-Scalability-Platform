@@ -89,7 +89,7 @@ ClRcT clXdrMarshallClEvtUnsubscribeEventRequestT_4_0_0(void* pGenVar, ClBufferHa
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->evtChannelName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->evtChannelName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

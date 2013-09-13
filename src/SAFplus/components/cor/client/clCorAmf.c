@@ -180,7 +180,7 @@ ClRcT corAmfMibTreeInitialize(void)
     ClAmsEntityBufferT csiList = {0};
     ClCorClassTypeT classIds[CL_AMS_ENTITY_TYPE_MAX+2] = {0};
     ClInt32T chassisId = 0;
-    ClNameT entityName = {0};
+    SaNameT entityName = {0};
     ClUint32T i = 0;
     static ClUint32T extendedIndexTable[CL_AMS_MGMT_OI_EXTENDED_CLASS_MAX];
 
@@ -779,7 +779,7 @@ ClRcT clCorAmfMoIdGet(const ClCharT *name,
     }
 
     entity.type = type;
-    clNameSet(&entity.name, name);
+    saNameSet(&entity.name, name);
     ++entity.name.length;
     rc = clAmsMgmtEntityUserDataGetKey(mgmtHandle, &entity, &entity.name, &data, &dataLen);
     if(rc != CL_OK)

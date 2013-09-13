@@ -378,7 +378,7 @@ typedef ClAmsRecoveryT ClAmsLocalRecoveryT;
 #define CL_AMS_CSI_FLAG_TARGET_ALL              0x4
 
 typedef ClUint32T   ClAmsCSIFlagsT;
-typedef ClNameT     ClAmsCSITypeT;
+typedef SaNameT     ClAmsCSITypeT;
 
 typedef enum
 {
@@ -391,12 +391,12 @@ typedef enum
 typedef struct
 {
     ClAmsCSITransitionDescriptorT   transitionDescriptor;
-    ClNameT                         activeCompName;
+    SaNameT                         activeCompName;
 } ClAmsCSIActiveDescriptorT;
 
 typedef struct
 {
-    ClNameT                         activeCompName;
+    SaNameT                         activeCompName;
     ClUint32T                       standbyRank;
 } ClAmsCSIStandbyDescriptorT;
 
@@ -426,7 +426,7 @@ typedef struct
 typedef struct
 {
     ClAmsCSIFlagsT                  csiFlags;
-    ClNameT                         csiName;
+    SaNameT                         csiName;
     ClAmsCSIStateDescriptorT        csiStateDescriptor;
     ClAmsCSIAttributeListT          csiAttributeList;
 } ClAmsCSIDescriptorT;
@@ -435,7 +435,7 @@ typedef struct
 {
     ClAmsCSIDescriptorT             csiDescriptor;
     ClAmsCSITypeT                   csiType;
-    ClNameT                         compName;
+    SaNameT                         compName;
 }ClAmsCSITypeDescriptorT;
 
 /******************************************************************************
@@ -459,7 +459,7 @@ typedef enum
 
 typedef struct
 {
-    ClNameT                         compName;   /* component for CSI         */
+    SaNameT                         compName;   /* component for CSI         */
     ClAmsHAStateT                   haState;    /* ha state for CSI          */
     ClUint32T                       rank;       /* rank, if state is standby */
 } ClAmsPGMemberT;

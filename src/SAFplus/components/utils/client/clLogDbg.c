@@ -835,7 +835,7 @@ clLogHeaderGetWithContext(const ClCharT *pArea, const ClCharT *pContext,
                           ClCharT *pMsgHeader, ClUint32T maxHeaderSize)
 {
     ClRcT rc = CL_OK;
-    static ClNameT nodeName = {0};
+    static SaNameT nodeName = {0};
     ClCharT timeStr[40] = {0};
 
     if(!pMsgHeader || !maxHeaderSize)
@@ -901,7 +901,7 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
                      const ClCharT   *pFmtStr,
                      va_list vaargs)
 {
-    static ClNameT    nodeName            = {0};
+    static SaNameT    nodeName            = {0};
     static ClUint32T  msgIdCnt            = 0;
     ClCharT           msg[CL_LOG_MAX_MSG_LEN] = {0};
     ClCharT           msgHeader[CL_MAX_NAME_LENGTH];
@@ -934,7 +934,7 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
     
     if( clLogSeveritySet == CL_FALSE )
     {
-        match = clLogRulesTest(nodeName.value, CL_EO_NAME,
+        match = clLogRulesTest((ClCharT *)nodeName.value, CL_EO_NAME,
                                pArea, pContext, pFileName, severity, &filterMatch);
     }
     else

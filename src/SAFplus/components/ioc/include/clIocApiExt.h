@@ -315,7 +315,7 @@ extern "C"
     ) CL_DEPRECATED;
 
     ClRcT clIocBind(
-    CL_IN ClNameT * toName,
+    CL_IN SaNameT * toName,
     CL_OUT ClIocToBindHandleT * pToHandle
     ) CL_DEPRECATED;
 

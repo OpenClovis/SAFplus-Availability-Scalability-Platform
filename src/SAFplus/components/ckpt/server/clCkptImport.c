@@ -121,7 +121,7 @@ clCkptMasterAddressUpdate(ClIocNodeAddressT  leader,
                           ClIocNodeAddressT  deputy)
 {
     ClIocTLInfoT tlInfo    = {0};
-    ClNameT      name      = {0};
+    SaNameT      name      = {0};
     ClRcT        rc        = CL_OK;
     ClBoolT      updateReq = CL_FALSE;
 
@@ -369,7 +369,7 @@ ClRcT clCkptMasterAddressesSet()
     {
         ClIocTLInfoT tlInfo = {0};
         ClUint32T    compId = 0; 
-        ClNameT      name   = {0};
+        SaNameT      name   = {0};
  
         clCpmComponentNameGet(gCkptSvr->amfHdl, &name);
         clCpmComponentIdGet(gCkptSvr->amfHdl, &name, &compId);
@@ -718,7 +718,7 @@ ClRcT _clCkpMastertReplicaAddressUpdate(ClHandleT         mastHdl,
     {
         eventInfo.eventType   = htonl(CL_CKPT_ACTIVE_REP_CHG_EVENT);
         eventInfo.actAddr     = htonl(pMasterDBEntry->activeRepAddr);
-        clNameCopy(&eventInfo.name, &pMasterDBEntry->name);
+        saNameCopy(&eventInfo.name, &pMasterDBEntry->name);
         eventInfo.name.length = htons(pMasterDBEntry->name.length);
 
         clLogNotice(CL_CKPT_AREA_MAS_DEP, CL_CKPT_CTX_PEER_DOWN, 

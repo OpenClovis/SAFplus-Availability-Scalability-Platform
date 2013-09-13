@@ -229,7 +229,7 @@ typedef struct corClientMoIdToNodeName
 {
     ClVersionT         version;
     ClCorMOIdT 		moId;
-    ClNameT       nodeName;
+    SaNameT       nodeName;
     corMoIdToNodeNameTableOp_e op;
 }corClientMoIdToNodeNameT;
 

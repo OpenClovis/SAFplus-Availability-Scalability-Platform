@@ -53,7 +53,7 @@ struct _ClCpmPGTrackStopT_4_0_0;
 typedef struct _ClCpmPGTrackStopT_4_0_0 {
     ClIocAddressIDLT_4_0_0    iocAddress;
     ClHandleT    cpmHandle;
-    ClNameT    csiName;
+    SaNameT    csiName;
 
 }ClCpmPGTrackStopT_4_0_0;
 

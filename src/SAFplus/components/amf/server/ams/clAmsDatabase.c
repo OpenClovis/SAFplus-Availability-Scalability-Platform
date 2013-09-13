@@ -3065,13 +3065,12 @@ clAmsAuditComp(ClAmsCompT *comp)
                     cbType = CL_AMS_TERMINATE_REPLAY_CALLBACK;
                     pTimer = &comp->status.timers.terminate;
                 }
-                if( (rc = cpmReplayInvocationAdd(cbType, 
-                                                 comp->config.entity.name.value, 
-                                                 node->config.entity.name.value, &responsePending)) != CL_OK)
+                if ((rc = cpmReplayInvocationAdd(cbType, (const ClCharT *) comp->config.entity.name.value,
+                                (const ClCharT *) node->config.entity.name.value, &responsePending)) != CL_OK)
                 {
                     clLogError("COMP", "AUDIT", "CPM [%s] invocation for component [%s] returned [%#x]",
-                               cbType == CL_AMS_INSTANTIATE_REPLAY_CALLBACK ? "instantiate":"terminate",
-                               comp->config.entity.name.value, rc);
+                                    cbType == CL_AMS_INSTANTIATE_REPLAY_CALLBACK ? "instantiate" : "terminate",
+                                    comp->config.entity.name.value, rc);
                 }
                 else
                 {
@@ -3118,7 +3117,7 @@ static ClRcT clAmsAuditNode(ClAmsNodeT *node, ClPtrT arg)
          * failovers
          */
         ClCpmLT *cpmL = NULL;
-        cpmNodeFindLocked((ClCharT*)node->config.entity.name.value, &cpmL);
+        cpmNodeFindLocked(node->config.entity.name.value, &cpmL);
         if(cpmL && cpmL->pCpmLocalInfo)
         {
             ClIocNodeAddressT nodeId = cpmL->pCpmLocalInfo->nodeId;
@@ -3184,7 +3183,7 @@ clAmsAuditDb(ClAmsNodeT *pThisNode)
 }
 
 ClRcT
-clAmsAuditDbEpilogue(ClNameT *nodeName, ClBoolT scFailover)
+clAmsAuditDbEpilogue(SaNameT *nodeName, ClBoolT scFailover)
 {
     ClRcT rc = CL_OK;
     ClBoolT dirty = CL_FALSE;

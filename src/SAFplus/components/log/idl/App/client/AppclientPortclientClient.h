@@ -23,11 +23,11 @@ extern "C" {
 
 
 
-typedef void (*AppClLogClientFilterSetNotifyAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClNameT  streamName, CL_IN ClUint32T  streamScope, CL_IN ClNameT  streamScopeNode, CL_IN ClLogFilterT_4_0_0  filter, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*AppClLogClientFilterSetNotifyAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN SaNameT  streamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT  streamScopeNode, CL_IN ClLogFilterT_4_0_0  filter, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef AppClLogClientFilterSetNotifyAsyncCallbackT_4_0_0 AppClLogClientFilterSetNotifyAsyncCallbackT;
 
-ClRcT clLogClientFilterSetNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT  streamName, CL_IN ClUint32T  streamScope, CL_IN ClNameT  streamScopeNode, CL_IN ClLogFilterT_4_0_0  filter,CL_IN AppClLogClientFilterSetNotifyAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clLogClientFilterSetNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT  streamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT  streamScopeNode, CL_IN ClLogFilterT_4_0_0  filter,CL_IN AppClLogClientFilterSetNotifyAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
 typedef void (*AppClLogClntFileHdlrDataReceiveAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClUint64T  streamMcaseAddr, CL_IN ClUint32T  seqNum, CL_IN ClUint32T  srcAddr, CL_IN ClHandleT  hFlusher, CL_IN ClUint32T  nRecords, CL_IN ClUint32T  buffLen, CL_IN ClUint8T* pBuffer, CL_IN ClRcT rc, CL_IN void* pCookie);
 

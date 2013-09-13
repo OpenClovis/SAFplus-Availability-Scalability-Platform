@@ -56,7 +56,7 @@ ClRcT clXdrUnmarshallCkptXlationDBEntryT_4_0_0(ClBufferHandleT msg , void* pGenV
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->name));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->name));
     if (CL_OK != rc)
     {
         return rc;

@@ -99,8 +99,8 @@ ClRcT  clMedInitialize(ClMedHdlPtrT             *medHdl,
     ClRcT          rc=CL_OK ;     /* Return code */
     ClEoExecutionObjT*  hEoObj; /* Eo Obj Pointer */
 	ClEventCallbacksT  evtCallBack;
-    ClNameT channelName;
-    ClNameT notificationChannelName;
+    SaNameT channelName;
+    SaNameT notificationChannelName;
     ClVersionT emVersion = CL_EVENT_VERSION;
     ClMedNotifyT  *notifyHandler;
     ClUint32T     eventType = CL_BIT_H2N32(CL_ALARM_EVENT);
@@ -1626,7 +1626,7 @@ void clMedNotificationHandler( ClEventSubscriptionIdT subscriptionId, ClEventHan
     ClUint32T  eventType = 0;
     ClEventPriorityT priority = 0;
     ClTimeT  retentionTime = 0;
-    ClNameT  publisherName = {0};
+    SaNameT  publisherName = {0};
     ClTimeT  publishTime = 0;
     ClEventIdT eventId = 0;
     ClAlarmHandleInfoT* pAlarmHandleInfo = NULL;

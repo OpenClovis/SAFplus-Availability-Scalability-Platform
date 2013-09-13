@@ -273,7 +273,7 @@ ClRcT clNameRegister(ClUint32T contextId, ClNameSvcRegisterT* pNSRegisInfo,
     pNSInfo->source       = CL_NS_CLIENT;
     pNSInfo->objReference = *pObjReference;
     /* Copy the name, make it null terminated also */
-    clNameCopy(&pNSInfo->name, &pNSRegisInfo->name);
+    saNameCopy(&pNSInfo->name, &pNSRegisInfo->name);
     pNSInfo->compId       = pNSRegisInfo->compId;
     pNSInfo->priority     = pNSRegisInfo->priority;
     pNSInfo->contextId    = contextId;
@@ -428,7 +428,7 @@ ClRcT clNameComponentDeregister(ClUint32T compId)
  */
                                                                                                                              
 ClRcT clNameServiceDeregister(ClUint32T contextId, ClUint32T compId,
-                              ClNameT* serviceName)
+                              SaNameT* serviceName)
 {
     ClRcT                  rc      = CL_OK;
     ClNameSvcInfoIDLT      nsInfo;
@@ -473,7 +473,7 @@ ClRcT clNameServiceDeregister(ClUint32T contextId, ClUint32T compId,
     nsInfo.compId       = compId;
     nsInfo.contextId    = contextId;
     /* copy the name & put the null terminating character */
-    clNameCopy(&nsInfo.name, serviceName);
+    saNameCopy(&nsInfo.name, serviceName);
     nsInfo.source       = CL_NS_CLIENT;
     sAddr = clIocLocalAddressGet();
 
@@ -569,7 +569,7 @@ ClRcT clNameContextDelete(ClUint32T contextId)
                                                                                                                              
 
 /**
- *  NAME: clNameToObjectReferenceGet
+ *  NAME: saNameToObjectReferenceGet
  *
  *  This API is for getting/querying the object reference given the
  *  service name
@@ -594,7 +594,7 @@ ClRcT clNameContextDelete(ClUint32T contextId)
  *           CL_ERR_NOT_INITIALIZED         
  */
 
-ClRcT clNameToObjectReferenceGet(ClNameT*            pName,
+ClRcT saNameToObjectReferenceGet(SaNameT*            pName,
                                  ClUint32T           attrCount,
                                  ClNameSvcAttrEntryT *pAttr,
                                  ClUint32T           contextMapCookie,
@@ -610,7 +610,7 @@ ClRcT clNameToObjectReferenceGet(ClNameT*            pName,
     ClNameVersionT         version     = {0};
 
     CL_FUNC_ENTER();
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n NS: Inside clNameToObjectReferenceGet \n"));
+    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n NS: Inside saNameToObjectReferenceGet \n"));
 
     if(sNSLibInitDone == 0)
     {
@@ -661,7 +661,7 @@ ClRcT clNameToObjectReferenceGet(ClNameT*            pName,
     pNSInfo->version          = CL_NS_VERSION_NO;
     pNSInfo->source           = CL_NS_CLIENT;
     /* copy the name & put NULL terminating character */
-    clNameCopy(&pNSInfo->name, pName);
+    saNameCopy(&pNSInfo->name, pName);
     pNSInfo->contextMapCookie = contextMapCookie;
     pNSInfo->op               = CL_NS_QUERY_OBJREF;
                                                                                                                            
@@ -695,7 +695,7 @@ ClRcT clNameToObjectReferenceGet(ClNameT*            pName,
     CL_NS_CALL_RMD(sAddr, CL_NS_QUERY, inMsgHandle, outMsgHandle, rc);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n clNameToObjectReferenceGet Failed," \
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n saNameToObjectReferenceGet Failed," \
                              " rc =%x",rc));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
@@ -720,7 +720,7 @@ ClRcT clNameToObjectReferenceGet(ClNameT*            pName,
 }
 
 /**
- *  NAME: clNameToObjectMappingGet
+ *  NAME: saNameToObjectMappingGet
  *
  *  This API is for getting the entire entry given the service name
  *
@@ -744,7 +744,7 @@ ClRcT clNameToObjectReferenceGet(ClNameT*            pName,
  *           CL_ERR_NOT_INITIALIZED         
  */
 
-ClRcT clNameToObjectMappingGet(ClNameT* pName,
+ClRcT saNameToObjectMappingGet(SaNameT* pName,
                                ClUint32T attrCount,
                                ClNameSvcAttrEntryT *pAttr,
                                ClUint32T contextMapCookie,
@@ -766,7 +766,7 @@ ClRcT clNameToObjectMappingGet(ClNameT* pName,
     ClNameSvcAttrEntryWithSizeIDLT attrList;
 
     CL_FUNC_ENTER();
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n NS: Inside clNameToObjectMappingGet \n"));
+    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n NS: Inside saNameToObjectMappingGet \n"));
 
     if(sNSLibInitDone == 0)
     {
@@ -818,7 +818,7 @@ ClRcT clNameToObjectMappingGet(ClNameT* pName,
     pNSInfo->version          = CL_NS_VERSION_NO;
     pNSInfo->source           = CL_NS_CLIENT;
     /* copy the name & put NULL terminating character */
-    clNameCopy(&pNSInfo->name, pName);
+    saNameCopy(&pNSInfo->name, pName);
     pNSInfo->contextMapCookie = contextMapCookie;
     pNSInfo->op               = CL_NS_QUERY_MAPPING;
                                                                                                                            
@@ -850,7 +850,7 @@ ClRcT clNameToObjectMappingGet(ClNameT* pName,
     CL_NS_CALL_RMD(sAddr, CL_NS_QUERY, inMsgHandle, outMsgHandle, rc);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n clNameToObjectMappingGet  Failed,"\
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n saNameToObjectMappingGet  Failed,"\
                              " rc =%x",rc));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
@@ -863,7 +863,7 @@ ClRcT clNameToObjectMappingGet(ClNameT* pName,
     {
         clXdrUnmarshallClUint32T(outMsgHandle, (void*)&size);
         *pOutBuff = (ClNameSvcEntryPtrT) clHeapAllocate(size);
-        clXdrUnmarshallClNameT(outMsgHandle, (void*)&((*pOutBuff)->name));
+        clXdrUnmarshallSaNameT(outMsgHandle, (void*)&((*pOutBuff)->name));
         clXdrUnmarshallClUint64T(outMsgHandle, (void*)&((*pOutBuff)->objReference));
         clXdrUnmarshallClUint32T(outMsgHandle, (void*)&((*pOutBuff)->refCount));
         clXdrUnmarshallClUint32T(outMsgHandle, (void*)&((*pOutBuff)->compId.compId));

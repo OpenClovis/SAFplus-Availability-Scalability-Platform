@@ -18,7 +18,7 @@
  */
 /*******************************************************************************
  * ModuleName  : utils
- * File        : xdrClNameTMarshall.c
+ * File        : xdrSaNameTMarshall.c
  *******************************************************************************/
 
 /*******************************************************************************
@@ -29,9 +29,9 @@
 
 #include "clXdrApi.h"
 
-ClRcT clXdrMarshallClNameT(void* pGenVar, ClBufferHandleT msg, ClUint32T isDelete)
+ClRcT clXdrMarshallSaNameT(void* pGenVar, ClBufferHandleT msg, ClUint32T isDelete)
 {
-    ClNameT* pVar = (ClNameT*)pGenVar;
+    SaNameT* pVar = (SaNameT*)pGenVar;
     ClRcT rc;
 
     if ((void*)0 == pVar)

@@ -163,19 +163,19 @@ material.
         </Struct> 
         <Struct name="CkptInfoT" defNeed="true">
             <DataMember name="ckptHdl" type="ClHandleT"/>
-            <DataMember name="pName" type="ClNameT" pointer="Single"/>
+            <DataMember name="pName" type="SaNameT" pointer="Single"/>
             <DataMember name="pCpInfo" type="CkptCPInfoT" pointer="Single"/>
             <DataMember name="pDpInfo" type="CkptDPInfoT" pointer="Single"/>
         </Struct> 
         <Struct name="CkptInfoT" defNeed="true" version="5.0.0">
             <DataMember name="ckptHdl" type="ClHandleT"/>
-            <DataMember name="pName" type="ClNameT" pointer="Single"/>
+            <DataMember name="pName" type="SaNameT" pointer="Single"/>
             <DataMember name="pCpInfo" type="CkptCPInfoT" pointer="Single" version="5.0.0"/>
             <DataMember name="pDpInfo" type="CkptDPInfoT" pointer="Single"/>
         </Struct> 
         <Struct name="CkptXlationDBEntryT" defNeed="true">
             <DataMember name="cksum" type="ClUint32T"/>
-            <DataMember name="name" type="ClNameT"/>
+            <DataMember name="name" type="SaNameT"/>
             <DataMember name="mastHdl" type="ClHandleT"/>
         </Struct> 
         <Struct name="CkptMasterDBInfoIDLT" defNeed="true">
@@ -187,7 +187,7 @@ material.
         </Struct> 
         <Struct name="CkptMasterDBEntryIDLT" defNeed="true">
             <DataMember name="ckptMasterHdl" type="ClHandleT"/>
-            <DataMember name="name" type="ClNameT"/>
+            <DataMember name="name" type="SaNameT"/>
             <DataMember name="attrib" type="ClCkptCheckpointCreationAttributesT"/>
             <DataMember name="refCount" type="ClUint32T"/>
             <DataMember name="markedDelete" type="ClInt8T"/>
@@ -264,7 +264,7 @@ material.
                      type="ClVersionT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"  name="ckptSvcHdl"
                     type="ClHandleT"/>
-                    <Argument ParameterType="CL_IN"  name="pCkptName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN"  name="pCkptName" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"  name="pCheckpointCreationAtrributes" type="ClCkptCheckpointCreationAttributesT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"  name="checkpointOpenFlags" type="ClUint32T"/>
                     <Argument ParameterType="CL_IN"  name="localAddr" type="ClUint32T"/>
@@ -281,7 +281,7 @@ material.
             <!-- 3) -->
                 <Operation name="clCkptMasterCkptUnlink">
                     <Argument ParameterType="CL_IN"  name="pCkptName" 
-                       type="ClNameT" pointer="Single"/>
+                       type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"  name="localAddr"
                     type="ClUint32T"/>
                     <Argument ParameterType="CL_INOUT" name="pVersion"
@@ -486,7 +486,7 @@ material.
                     <Argument ParameterType="CL_IN" name="ckptClntHdl"
                     type="ClHandleT"/>
                     <Argument ParameterType="CL_IN"  name="pCkptName"
-                    type="ClNameT" pointer="Single"/>
+                    type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pCkptCreatAtrr" 
                     type="ClCkptCheckpointCreationAttributesT" 
                     pointer="Single"/>
@@ -545,7 +545,7 @@ material.
                     <Argument ParameterType="CL_IN" name="ckptMastHdl"
                     type="ClHandleT"/>
                     <Argument ParameterType="CL_IN"  name="pCkptName" 
-                    type="ClNameT" pointer="Single"/>
+                    type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"  name="ckptOpenFlags"
                     type="ClUint32T"/>
                     <Argument ParameterType="CL_IN" name="pCkptCreateAttr" 
@@ -677,7 +677,7 @@ material.
                     <Argument ParameterType="CL_IN" name="ckptActHdl"
                     type="ClHandleT"/>
                     <Argument ParameterType="CL_IN" name="pCkptName"
-                    type="ClNameT" pointer="Single"/>
+                    type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pCpInfo"
                     type="CkptCPInfoT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pDpInfo"
@@ -689,7 +689,7 @@ material.
                     <Argument ParameterType="CL_IN" name="ckptActHdl"
                     type="ClHandleT"/>
                     <Argument ParameterType="CL_IN" name="pCkptName"
-                    type="ClNameT" pointer="Single"/>
+                    type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pCpInfo"
                     type="CkptCPInfoT" pointer="Single" version="5.0.0"/>
                     <Argument ParameterType="CL_IN" name="pDpInfo"
@@ -892,7 +892,7 @@ material.
             <Group name="ckptClnt">
                 <Operation name="clCkptSectionUpdationNotification" type="async">
                     <Argument ParameterType="CL_IN"  name="pName"
-                       type="ClNameT" pointer="Single"/>
+                       type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pSecId"
                     type="ClCkptSectionIdT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="dataSize"
@@ -903,7 +903,7 @@ material.
                 </Operation>	
                 <Operation name="clCkptWriteUpdationNotification" type="async">
                     <Argument ParameterType="CL_IN"  name="pName"
-                       type="ClNameT" pointer="Single"/>
+                       type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="numberOfElements"
                     type="ClUint32T"/>
                     <Argument ParameterType="CL_IN" name="pIoVector"

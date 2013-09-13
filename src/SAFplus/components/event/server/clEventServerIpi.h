@@ -221,7 +221,7 @@ do \
     typedef struct EvtSuppressionInfo
     {
         ClUint32T suppFlag;
-        ClNameT publisherName;
+        SaNameT publisherName;
         ClRuleExprT *filterRule;
         ClRuleExprT *payloadRule;
     } ClEvtSuppressionInfoT;

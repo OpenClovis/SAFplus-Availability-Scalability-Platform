@@ -35,15 +35,15 @@ extern "C" {
 
 typedef struct {
     struct hashStruct hash;
-    ClNameT name;
+    SaNameT name;
     ClUint32T rrIndex;
 }ClMsgGroupRoundRobinT;
 
 extern ClOsalMutexT gClGroupRRLock;
 
-ClBoolT clMsgGroupRRExists(const ClNameT *pQGroupName, ClMsgGroupRoundRobinT **ppGroupRR);
-ClRcT clMsgGroupRRAdd(ClNameT *pGroupName, ClUint32T rrIndex, ClMsgGroupRoundRobinT **ppGroupRR);
-ClRcT clMsgGroupRRDelete(ClNameT *pGroupName);
+ClBoolT clMsgGroupRRExists(const SaNameT *pQGroupName, ClMsgGroupRoundRobinT **ppGroupRR);
+ClRcT clMsgGroupRRAdd(SaNameT *pGroupName, ClUint32T rrIndex, ClMsgGroupRoundRobinT **ppGroupRR);
+ClRcT clMsgGroupRRDelete(SaNameT *pGroupName);
 
 #ifdef	__cplusplus
 }

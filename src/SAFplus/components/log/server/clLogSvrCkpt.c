@@ -33,7 +33,7 @@
 #include <clLogFlusher.h>
 #include <clLogOsal.h>
 
-const ClNameT 
+const SaNameT 
 gSvrLocalCkptName = {sizeof("clLogServerLocalCkpt") - 1, "clLogServerLocalCkpt"};
 
 static ClRcT
@@ -93,8 +93,8 @@ clLogSvrDsIdMapRecreate(CL_IN  ClUint32T  dsId,
 
 static ClRcT
 clLogSvrShmOpenNFlusherCreate(CL_IN  ClLogSvrEoDataT   *pSvrEoEntry, 
-                              CL_IN  ClNameT           *pStreamName,
-                              CL_IN  ClNameT           *pStreamNodeName,
+                              CL_IN  SaNameT           *pStreamName,
+                              CL_IN  SaNameT           *pStreamNodeName,
                               CL_IN  ClStringT         *pFileName,
                               CL_IN  ClStringT         *pFileLocation,
                               CL_IN  ClCntNodeHandleT  svrStreamNode,
@@ -127,8 +127,8 @@ clLogSvrStreamInfoPack(CL_IN  ClLogSvrEoDataT     *pSvrEoEntry,
 
 ClRcT
 clLogSvrStreamCurrentFilterGet(ClCntNodeHandleT  hStreamOwnerNode, 
-                               ClNameT           *pStreamName,
-                               ClNameT           *pStreamNodeName,
+                               SaNameT           *pStreamName,
+                               SaNameT           *pStreamNodeName,
                                ClPtrT            pStreamHeader);
                            
 static ClRcT
@@ -152,7 +152,7 @@ clLogSvrCkptGet(ClLogSvrEoDataT        *pSvrEoEntry,
     
    *pLogRestart = CL_FALSE;
     rc = clCkptLibraryDoesCkptExist(pSvrCommonEoEntry->hLibCkpt,
-                                    (ClNameT *) &gSvrLocalCkptName, 
+                                    (SaNameT *) &gSvrLocalCkptName, 
                                     &ckptExists);
     if( CL_OK != rc )
     {
@@ -203,7 +203,7 @@ clLogSvrStateRecover(ClLogSvrEoDataT        *pSvrEoEntry,
     
     /* this will internaly call deserializer, clLogSvrDsIdMapRecreate() */
     rc = clCkptLibraryCkptDataSetRead(pSvrCommonEoEntry->hLibCkpt,
-                                      (ClNameT *) &gSvrLocalCkptName,
+                                      (SaNameT *) &gSvrLocalCkptName,
                                       CL_LOG_DSID_START, 
                                       CL_HANDLE_INVALID_VALUE);
     if( CL_OK != rc )
@@ -247,7 +247,7 @@ clLogSvrStreamEntryRecover(ClBitmapHandleT  hBitmap,
     }
 
     rc = clCkptLibraryDoesDatasetExist(pSvrCommonEoEntry->hLibCkpt,
-                                       (ClNameT *)&gSvrLocalCkptName,
+                                       (SaNameT *)&gSvrLocalCkptName,
                                        dsId, &dataSetExists);
 
     if(rc != CL_OK || !dataSetExists)
@@ -257,7 +257,7 @@ clLogSvrStreamEntryRecover(ClBitmapHandleT  hBitmap,
     }
 
     rc = clCkptLibraryCkptDataSetCreate(pSvrCommonEoEntry->hLibCkpt, 
-                                        (ClNameT *) &gSvrLocalCkptName, 
+                                        (SaNameT *) &gSvrLocalCkptName, 
                                         dsId, 0, 0, 
                                         clLogSvrStreamEntryPack, 
                                         clLogSvrStreamEntryRecreate);
@@ -270,7 +270,7 @@ clLogSvrStreamEntryRecover(ClBitmapHandleT  hBitmap,
 
     /* this will internaly call deserializer, clLogSvrStreamEntryRecreate() */
     rc = clCkptLibraryCkptDataSetRead(pSvrCommonEoEntry->hLibCkpt, 
-                                      (ClNameT *) &gSvrLocalCkptName, dsId, 
+                                      (SaNameT *) &gSvrLocalCkptName, dsId, 
                                       CL_HANDLE_INVALID_VALUE);
     if( CL_OK != rc )
     {
@@ -293,7 +293,7 @@ clLogSvrCkptCreate(ClLogSvrEoDataT        *pSvrEoEntry,
     CL_LOG_DEBUG_TRACE(("Enter"));
     
     rc = clCkptLibraryCkptCreate(pSvrCommonEoEntry->hLibCkpt, 
-                                 (ClNameT *) &gSvrLocalCkptName);
+                                 (SaNameT *) &gSvrLocalCkptName);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCkptLibraryCkptCreate(): rc[0x %x]", rc));
@@ -301,7 +301,7 @@ clLogSvrCkptCreate(ClLogSvrEoDataT        *pSvrEoEntry,
     }
     
     rc = clCkptLibraryCkptDataSetCreate(pSvrCommonEoEntry->hLibCkpt,
-                                        (ClNameT *) &gSvrLocalCkptName, 
+                                        (SaNameT *) &gSvrLocalCkptName, 
                                         CL_LOG_DSID_START, 0, 0, 
                                         clLogSvrDsIdMapPack,
                                         clLogSvrDsIdMapRecreate);
@@ -309,7 +309,7 @@ clLogSvrCkptCreate(ClLogSvrEoDataT        *pSvrEoEntry,
     {
         CL_LOG_DEBUG_ERROR(("clCkptLibraryCkptDelete(): rc[0x %x]", rc));
         clCkptLibraryCkptDelete(pSvrCommonEoEntry->hLibCkpt, 
-                                (ClNameT *) &gSvrLocalCkptName);
+                                (SaNameT *) &gSvrLocalCkptName);
     }
 
     CL_LOG_DEBUG_TRACE(("Exit"));
@@ -530,16 +530,16 @@ clLogSvrStreamInfoPack(ClLogSvrEoDataT     *pSvrEoEntry,
         CL_LOG_DEBUG_ERROR(("clCntNodeUserKeyGet(): rc[0x %x]\n", rc));
         return rc;
     }
-    rc = clXdrMarshallClNameT(&(pStreamKey->streamName), msg, 0);
+    rc = clXdrMarshallSaNameT(&(pStreamKey->streamName), msg, 0);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         return rc;
     }
-    rc = clXdrMarshallClNameT(&(pStreamKey->streamScopeNode), msg, 0);
+    rc = clXdrMarshallSaNameT(&(pStreamKey->streamScopeNode), msg, 0);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         return rc;
     }
     /*
@@ -665,8 +665,8 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
                               ClUint32T               dsId)
 {
     ClRcT             rc              = CL_OK;
-    ClNameT           streamName      = {0};
-    ClNameT           streamScopeNode = {0};
+    SaNameT           streamName      = {0};
+    SaNameT           streamScopeNode = {0};
     ClUint32T         compTableSize   = 0;
     ClCntNodeHandleT  hSvrStreamNode   = CL_HANDLE_INVALID_VALUE;
     ClLogStreamKeyT   *pStreamKey     = NULL;
@@ -682,19 +682,19 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
         CL_LOG_DEBUG_ERROR(("clLogSvrStreamTableCreate(): rc[0x %x]\n", rc));
         return rc;
     }
-    rc = clXdrUnmarshallClNameT(msg, &streamName);
+    rc = clXdrUnmarshallSaNameT(msg, &streamName);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrUnmarshallClNameT(): rc[0x %x]\n", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrUnmarshallSaNameT(): rc[0x %x]\n", rc));
         return rc;
     }
     CL_LOG_DEBUG_VERBOSE(("streamName: %*s", streamName.length,
                           streamName.value));
 
-    rc = clXdrUnmarshallClNameT(msg, &streamScopeNode);
+    rc = clXdrUnmarshallSaNameT(msg, &streamScopeNode);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrUnmarshallClNameT(): rc[0x %x]\n", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrUnmarshallSaNameT(): rc[0x %x]\n", rc));
         return rc;
     }
     CL_LOG_DEBUG_VERBOSE(("streamScopeNode: %*s", streamScopeNode.length,
@@ -773,8 +773,8 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
 */
 static ClRcT
 clLogSvrShmOpenNFlusherCreate(ClLogSvrEoDataT   *pSvrEoEntry, 
-                              ClNameT           *pStreamName,
-                              ClNameT           *pStreamNodeName,
+                              SaNameT           *pStreamName,
+                              SaNameT           *pStreamNodeName,
                               ClStringT         *pFileName,
                               ClStringT         *pFileLocation,
                               ClCntNodeHandleT  hSvrStreamNode,
@@ -901,8 +901,8 @@ clLogSvrShmOpenNFlusherCreate(ClLogSvrEoDataT   *pSvrEoEntry,
 
 void 
 clLogSvrSOFGResponse(ClIdlHandleT  hLogIdl,
-                     ClNameT       *pStreamName,
-                     ClNameT       *pStreamScopeNode,
+                     SaNameT       *pStreamName,
+                     SaNameT       *pStreamScopeNode,
                      ClLogFilterT  *pStreamFilter,
                      ClRcT         retCode,
                      ClPtrT        pCookie)
@@ -987,8 +987,8 @@ clLogSvrSOFGResponseProcess(ClLogFilterT  *pStreamFilter,
 
 ClRcT
 clLogSvrStreamCurrentFilterGet(ClCntNodeHandleT  hStreamOwnerNode, 
-                               ClNameT           *pStreamName,
-                               ClNameT           *pStreamNodeName,
+                               SaNameT           *pStreamName,
+                               SaNameT           *pStreamNodeName,
                                ClPtrT            pStreamHeader)
 {
     ClRcT              rc              = CL_OK;
@@ -1135,7 +1135,7 @@ clLogSvrCkptDataSetDelete(ClUint32T         dsId)
     }    
         
     rc = clCkptLibraryCkptDataSetDelete(pSvrCommonEoEntry->hLibCkpt, 
-                                        (ClNameT *) &gSvrLocalCkptName,
+                                        (SaNameT *) &gSvrLocalCkptName,
                                         dsId); 
     if( CL_OK != rc )
     {
@@ -1143,7 +1143,7 @@ clLogSvrCkptDataSetDelete(ClUint32T         dsId)
         return rc;
     }    
     rc = clCkptLibraryCkptDataSetWrite(pSvrCommonEoEntry->hLibCkpt, 
-                                       (ClNameT *) &gSvrLocalCkptName, 
+                                       (SaNameT *) &gSvrLocalCkptName, 
                                        CL_LOG_DSID_START, 
                                        pSvrEoEntry);
     if( CL_OK != rc )
@@ -1191,7 +1191,7 @@ clLogSvrStreamCheckpoint(ClLogSvrEoDataT     *pSvrEoEntry,
             return rc;
         }    
         rc = clCkptLibraryCkptDataSetCreate(pSvrCommonEoEntry->hLibCkpt, 
-                                            (ClNameT *) &gSvrLocalCkptName, 
+                                            (SaNameT *) &gSvrLocalCkptName, 
                                             pSvrStreamData->dsId, 0, 0, 
                                             clLogSvrStreamEntryPack, 
                                             clLogSvrStreamEntryRecreate);
@@ -1210,14 +1210,14 @@ clLogSvrStreamCheckpoint(ClLogSvrEoDataT     *pSvrEoEntry,
          * clLogSvrDsIdMapPack()
          */ 
         rc = clCkptLibraryCkptDataSetWrite(pSvrCommonEoEntry->hLibCkpt, 
-                                           (ClNameT *) &gSvrLocalCkptName, 
+                                           (SaNameT *) &gSvrLocalCkptName, 
                                            CL_LOG_DSID_START, 
                                            pSvrEoEntry);
         if( CL_OK != rc )
         {
             CL_LOG_DEBUG_ERROR(("clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc));
             clCkptLibraryCkptDataSetDelete(pSvrCommonEoEntry->hLibCkpt,
-                                           (ClNameT *) &gSvrLocalCkptName,
+                                           (SaNameT *) &gSvrLocalCkptName,
                                            pSvrStreamData->dsId);
             CL_LOG_CLEANUP(clLogCkptDsIdGetCleanup(pSvrEoEntry,
                            pSvrStreamData->dsId), CL_OK);
@@ -1228,7 +1228,7 @@ clLogSvrStreamCheckpoint(ClLogSvrEoDataT     *pSvrEoEntry,
     }    
     /* This function will internally call, clLogSvrStreamEntryPack() */
     rc = clCkptLibraryCkptDataSetWrite(pSvrCommonEoEntry->hLibCkpt, 
-                                       (ClNameT *) &gSvrLocalCkptName, 
+                                       (SaNameT *) &gSvrLocalCkptName, 
                                        pSvrStreamData->dsId, svrStreamNode);
     if( CL_OK != rc )
     {
@@ -1236,7 +1236,7 @@ clLogSvrStreamCheckpoint(ClLogSvrEoDataT     *pSvrEoEntry,
         if( CL_TRUE == addedDataSet )
         {
             clCkptLibraryCkptDataSetDelete(pSvrCommonEoEntry->hLibCkpt, 
-                                           (ClNameT *) &gSvrLocalCkptName, 
+                                           (SaNameT *) &gSvrLocalCkptName, 
                                             pSvrStreamData->dsId);
         }
     }    

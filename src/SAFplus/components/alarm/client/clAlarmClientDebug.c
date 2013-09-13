@@ -90,7 +90,7 @@ static ClRcT
 _clAlarmCliAlarmRaise (ClUint32T argc, ClCharT** argv, ClCharT** retStr)
 {
     ClRcT           rc = CL_OK;
-    ClNameT         moIdName = {0};
+    SaNameT         moIdName = {0};
     ClCharT         almStr[CL_COR_MAX_NAME_SZ] = {0};
     ClUint32T       i = 0;
     ClUint64T       size = 0;
@@ -207,7 +207,7 @@ ClRcT
 clAlarmClientDebugRegister (CL_OUT ClHandleT * pAlarmDebugHandle)
 {
     ClRcT   rc = CL_OK;
-    ClNameT cliName = {0};
+    SaNameT cliName = {0};
     ClCpmHandleT cpmHandle = {0};
     ClCharT debugPrompt[CL_DEBUG_COMP_PROMPT_LEN] = {0};
     

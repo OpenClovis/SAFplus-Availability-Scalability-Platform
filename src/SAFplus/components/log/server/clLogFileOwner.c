@@ -185,7 +185,7 @@ clLogFileOwnerLocationVerify(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
     }
     else if( pFileOwnerEoEntry->nodeName.length == strlen(nodeStr)
              &&
-             !(strncmp(pFileOwnerEoEntry->nodeName.value, nodeStr,
+             !(strncmp((const ClCharT *)pFileOwnerEoEntry->nodeName.value, nodeStr,
                        pFileOwnerEoEntry->nodeName.length)) )
     {
         *pFileOwner = CL_TRUE;
@@ -1100,8 +1100,8 @@ clLogFileOwnerHdlCreate(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 
 ClRcT
 clLogFileOwnerStreamEntryGet(ClLogFileOwnerDataT  *pFileOwnerData, 
-                              ClNameT               *pStreamName, 
-                              ClNameT               *pStreamScopeNode, 
+                              SaNameT               *pStreamName, 
+                              SaNameT               *pStreamScopeNode, 
                               ClCntNodeHandleT      *phStreamNode,
                               ClBoolT               *pEntryAdd)
 {
@@ -1155,7 +1155,7 @@ clLogFileOwnerStreamEntryGet(ClLogFileOwnerDataT  *pFileOwnerData,
 
 ClRcT
 clLogFileOwnerCfgFileStreamInfoUpdate(ClLogFileOwnerDataT  *pFileOwnerData, 
-                                       ClNameT               *pStreamName,
+                                       SaNameT               *pStreamName,
                                        ClUint16T             streamId)
 {
     ClRcT             rc           = CL_OK;
@@ -1966,9 +1966,9 @@ clLogFileOwnerRecordDeliverCb(ClHandleT  hStream,
 
 ClRcT
 clLogFileOwnerStreamOpen(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
-                          ClNameT                 *pStreamName,
+                          SaNameT                 *pStreamName,
                           ClLogStreamScopeT       streamScope,
-                          ClNameT                 *pStreamScopeNode,
+                          SaNameT                 *pStreamScopeNode,
                           ClUint16T               streamId,
                           ClLogStreamAttrIDLT     *pStreamAttr, 
                           ClCntNodeHandleT        *phFileNode,
@@ -2032,9 +2032,9 @@ clLogFileOwnerStreamOpen(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 ClRcT
 clLogFileOwnerHandlerRegister(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
                               ClHandleT               hFileOwner, 
-                              ClNameT                 *pStreamName,
+                              SaNameT                 *pStreamName,
                               ClLogStreamScopeT       streamScope,
-                              ClNameT                 *pStreamScopeNode,
+                              SaNameT                 *pStreamScopeNode,
                               ClUint16T               streamId,
                               ClCntNodeHandleT        hFileNode,
                               ClCntNodeHandleT        hStreamNode,
@@ -2098,9 +2098,9 @@ clLogFileOwnerHandlerRegister(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 ClRcT
 clLogFileOwnerStreamEntryChkNGet(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
                                  ClCntNodeHandleT       hFileNode, 
-                                 ClNameT                *pStreamName,
+                                 SaNameT                *pStreamName,
                                  ClLogStreamScopeT      streamScope, 
-                                 ClNameT                *pStreamScopeNode,
+                                 SaNameT                *pStreamScopeNode,
                                  ClCntNodeHandleT       *phStreamNode)
 {
     ClRcT                 rc             = CL_OK;
@@ -2141,9 +2141,9 @@ clLogFileOwnerStreamEntryChkNGet(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 ClRcT
 clLogFileOwnerStreamEntryRemove(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
                                 ClCntNodeHandleT       hFileNode, 
-                                ClNameT                *pStreamName,
+                                SaNameT                *pStreamName,
                                 ClLogStreamScopeT      streamScope, 
-                                ClNameT                *pStreamScopeNode)
+                                SaNameT                *pStreamScopeNode)
 {
     ClRcT                rc              = CL_OK;
     ClLogFileOwnerDataT  *pFileOwnerData = NULL;
@@ -2178,9 +2178,9 @@ clLogFileOwnerStreamEntryRemove(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 }
 
 ClRcT
-clLogFileOwnerStreamCreateEvent(ClNameT              *pStreamName,
+clLogFileOwnerStreamCreateEvent(SaNameT              *pStreamName,
                                 ClLogStreamScopeT    streamScope,
-                                ClNameT              *pStreamScopeNode,
+                                SaNameT              *pStreamScopeNode,
                                 ClUint16T            streamId,
                                 ClLogStreamAttrIDLT  *pStreamAttr,
                                 ClBoolT              doHandlerRegister)
@@ -2328,9 +2328,9 @@ clLogFileOwnerStreamCreateEvent(ClNameT              *pStreamName,
 }
 
 ClRcT
-clLogFileOwnerStreamCloseEvent(ClNameT             *pStreamName,
+clLogFileOwnerStreamCloseEvent(SaNameT             *pStreamName,
                                 ClLogStreamScopeT  streamScope,
-                                ClNameT            *pStreamScopeNode)
+                                SaNameT            *pStreamScopeNode)
 {
     ClRcT                   rc                  = CL_OK;
     ClLogFileOwnerEoDataT  *pFileOwnerEoEntry = NULL;
@@ -2371,9 +2371,9 @@ clLogFileOwnerStreamCloseEvent(ClNameT             *pStreamName,
 
 ClRcT
 clLogFileOwnerStreamClose(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry, 
-                          ClNameT                *pStreamName,
+                          SaNameT                *pStreamName,
                           ClLogStreamScopeT      streamScope,
-                          ClNameT                *pStreamScopeNode)
+                          SaNameT                *pStreamScopeNode)
 {
     ClRcT                      rc              = CL_OK;
     ClLogFileOwnerDataT        *pFileOwnerData = NULL;
@@ -2541,7 +2541,7 @@ clLogFileOwnerStreamChkNDestroy(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 
 ClRcT
 clLogFileOwnerCfgFileCompDataUpdate(ClLogFileOwnerDataT  *pFileOwnerData, 
-                                     ClNameT               *pCompName,
+                                     SaNameT               *pCompName,
                                      ClUint32T             clientId)
 {
     ClRcT             rc         = CL_OK;
@@ -2605,31 +2605,30 @@ clLogFileOwnerCompAdd(ClCntKeyHandleT   key,
     ClRcT                 rc               = CL_OK;
     ClLogFileOwnerDataT  *pFileOwnerData = (ClLogFileOwnerDataT *) data;
     ClLogCompDataT        *pCompData       = (ClLogCompDataT *) arg;
-    ClNameT               nodeName         = {0};
-    ClNameT               compName         = {0};
-    ClNameT               compPrefix       = {0};
+    SaNameT               nodeName         = {0};
+    SaNameT               compName         = {0};
+    SaNameT               compPrefix       = {0};
     ClUint32T             count            = 0;
     ClUint32T             compLen          = 0;
     ClUint32T             clientId         = 0;
 
     CL_LOG_DEBUG_TRACE(("Enter:"));
 
-    sscanf(pCompData->compName.value, "%[^_]_%s", compPrefix.value,
-                                                  nodeName.value);
-    nodeName.length   = strlen(nodeName.value);
-    compPrefix.length = strlen(compPrefix.value);
+    sscanf((ClCharT *) pCompData->compName.value, "%[^_]_%s", compPrefix.value, (ClCharT *) nodeName.value);
+    nodeName.length   = strlen((const ClCharT *)nodeName.value);
+    compPrefix.length = strlen((const ClCharT *)compPrefix.value);
 
-    if( !(strncmp(compPrefix.value, aspCompMap[1].pCompName, 
+    if( !(strncmp((const ClCharT *)compPrefix.value, aspCompMap[1].pCompName,
                   compPrefix.length)) )
     {
         /* ASP components, so by default we can add */
         for( count = 0; count < nLogAspComps; count++ )
         {
             compLen = strlen(aspCompMap[count].pCompName);
-            snprintf(compName.value, sizeof(compName.value), "%.*s_%.*s", compLen, 
+            snprintf((ClCharT *)compName.value, sizeof((const ClCharT *)compName.value), "%.*s_%.*s", compLen,
                     aspCompMap[count].pCompName, nodeName.length,
-                    nodeName.value);
-            compName.length = strlen(compName.value);
+                    (const ClCharT *)nodeName.value);
+            compName.length = strlen((const ClCharT *)compName.value);
             clientId        = pCompData->clientId | aspCompMap[count].clntId;
 
             CL_LOG_DEBUG_TRACE(("compName: %s and clientId : %d \n", compName.value,

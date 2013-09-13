@@ -212,7 +212,7 @@ clAmsInvocationInstanceXMLize (
     CL_PARSER_SET_ATTR (
             ptr,
             "compName",
-            invocationData->compName.value);
+            (const ClCharT*)invocationData->compName.value);
 
     CL_PARSER_SET_ATTR (
             ptr,
@@ -234,7 +234,7 @@ clAmsInvocationInstanceXMLize (
         CL_PARSER_SET_ATTR (
             ptr,
             "csi",
-            invocationData->csi->config.entity.name.value);
+            (const ClCharT*)invocationData->csi->config.entity.name.value);
     }
 
 exitfn:
@@ -344,11 +344,11 @@ clAmsInvocationInstanceDeXMLize (
 
 ClRcT 
 clAmsDBConstructInvocation(
-        CL_IN  const ClNameT  *compName,
+        CL_IN  const SaNameT  *compName,
         CL_IN  ClInvocationT id,
         CL_IN  ClAmsInvocationCmdT cmd,
         CL_IN  ClBoolT csiTargetOne,
-        CL_IN  const ClNameT  *csiName ) 
+        CL_IN  const SaNameT  *csiName ) 
 {
     ClRcT  rc = CL_OK;
     ClAmsInvocationT  *invocationData = NULL;
@@ -362,7 +362,7 @@ clAmsDBConstructInvocation(
     invocationData->invocation = id;
     invocationData->cmd = cmd;
     invocationData->csiTargetOne = csiTargetOne;
-    clNameCopy(&invocationData->compName, compName);
+    saNameCopy(&invocationData->compName, compName);
     invocationData->csi = NULL;
     invocationData->reassignCSI = CL_FALSE;
 
@@ -371,10 +371,10 @@ clAmsDBConstructInvocation(
 
         ClAmsEntityRefT  entityRef = {{0},NULL,0};
 
-        clNameCopy(&invocationData->csiName, csiName);
+        saNameCopy(&invocationData->csiName, csiName);
 
         memset (&entityRef,0,sizeof (ClAmsEntityRefT));
-        clNameCopy(&entityRef.entity.name, csiName);
+        saNameCopy(&entityRef.entity.name, csiName);
         entityRef.entity.type = CL_AMS_ENTITY_TYPE_CSI;
 
         AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
@@ -418,7 +418,7 @@ clAmsDBConstructInvocationList(
     invocationData->invocation = atoll (id);
     invocationData->cmd = atoi (command);
     invocationData->csiTargetOne = atoi (csiTargetOne);
-    clNameSet(&invocationData->compName, compName);
+    saNameSet(&invocationData->compName, compName);
     ++invocationData->compName.length;
     invocationData->csi = NULL;
     invocationData->reassignCSI = CL_FALSE;
@@ -428,11 +428,11 @@ clAmsDBConstructInvocationList(
 
         ClAmsEntityRefT  entityRef = {{0},NULL,0};
 
-        clNameSet(&invocationData->csiName, csiName);
+        saNameSet(&invocationData->csiName, csiName);
         ++invocationData->csiName.length;
 
         memset (&entityRef,0,sizeof (ClAmsEntityRefT));
-        strcpy (entityRef.entity.name.value,csiName);
+        strcpy ((ClCharT*)entityRef.entity.name.value,csiName);
         entityRef.entity.name.length = strlen (csiName) + 1;
         entityRef.entity.type = CL_AMS_ENTITY_TYPE_CSI;
 
@@ -1011,7 +1011,7 @@ clAmsDBNodeXMLize(
     CL_PARSER_SET_ATTR (
             nodePtr,
             AMS_XML_TAG_NAME,
-            node->config.entity.name.value);
+            (const ClCharT*)node->config.entity.name.value);
 
     ClParserPtrT configPtr = CL_PARSER_ADD_CHILD(nodePtr,AMS_XML_TAG_CONFIG , 0);
 
@@ -1047,7 +1047,7 @@ clAmsDBNodeXMLize(
     CL_PARSER_SET_ATTR (
             configPtr,
             "subClass",
-            node->config.subClassType.value);
+            (const ClCharT*)node->config.subClassType.value);
 
     AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
                 node->config.isSwappable,
@@ -1320,7 +1320,7 @@ clAmsDBNodeListDeXMLize(
 
     ClAmsEntityT  entity = {0};
 
-    strcpy ( entity.name.value, name);
+    strcpy ((ClCharT*)entity.name.value, name);
     entity.name.length = strlen (name) + 1;
     entity.type = CL_AMS_ENTITY_TYPE_NODE;
 
@@ -1592,7 +1592,7 @@ clAmsDBNodeDeXMLize(
     ClAmsNodeT      node ;
 
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
-    strcpy (entityRef.entity.name.value,name);
+    strcpy ((ClCharT*)entityRef.entity.name.value,name);
     entityRef.entity.name.length = strlen(name) + 1 ;
 
 #ifdef AMS_TEST_CKPT
@@ -1615,7 +1615,7 @@ clAmsDBNodeDeXMLize(
     node.config.adminState = atoi (adminState);
     node.config.id= atoi (id);
     node.config.classType = atoi (class);
-    strcpy (node.config.subClassType.value, subClass);
+    strcpy ((ClCharT*)node.config.subClassType.value, subClass);
     node.config.subClassType.length = strlen (subClass) + 1;
     node.config.isSwappable= atoi (isSwappable);
     node.config.isRestartable= atoi (isRestartable);
@@ -1743,7 +1743,7 @@ clAmsDBSUXMLize(
     CL_PARSER_SET_ATTR(
             suPtr,
             AMS_XML_TAG_NAME,
-            su->config.entity.name.value);
+            (const ClCharT*)su->config.entity.name.value);
 
     ClParserPtrT configPtr = CL_PARSER_ADD_CHILD( suPtr,AMS_XML_TAG_CONFIG , 0);
 
@@ -1813,12 +1813,12 @@ clAmsDBSUXMLize(
     CL_PARSER_SET_ATTR (
             configPtr,
             "parentSG",
-            su->config.parentSG.entity.name.value);
+            (const ClCharT*)su->config.parentSG.entity.name.value);
 
     CL_PARSER_SET_ATTR (
             configPtr,
             "parentNode",
-            su->config.parentNode.entity.name.value);
+            (const ClCharT*)su->config.parentNode.entity.name.value);
 
     /*
      * Write the compList
@@ -2247,7 +2247,7 @@ clAmsDBSUDeXMLize(
     memset (&entityRef,0,sizeof (ClAmsEntityRefT));
     memset (&su,0,sizeof (ClAmsSUT));
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_SU;
-    strcpy (entityRef.entity.name.value,name);
+    strcpy ((ClCharT*)entityRef.entity.name.value,name);
     entityRef.entity.name.length = strlen(name) + 1 ;
 
 #ifdef AMS_TEST_CKPT
@@ -2371,9 +2371,9 @@ clAmsDBSUListDeXMLize(
     sgRef.entity.type = CL_AMS_ENTITY_TYPE_SG;
     nodeRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
 
-    strcpy (suRef.entity.name.value,name);
-    strcpy (sgRef.entity.name.value,parentSG);
-    strcpy (nodeRef.entity.name.value,parentNode);
+    strcpy ((ClCharT*)suRef.entity.name.value,name);
+    strcpy ((ClCharT*)sgRef.entity.name.value,parentSG);
+    strcpy ((ClCharT*)nodeRef.entity.name.value,parentNode);
     suRef.entity.name.length = strlen(name) + 1 ;
     sgRef.entity.name.length = strlen(parentSG) + 1 ;
     nodeRef.entity.name.length = strlen(parentNode) + 1 ;
@@ -2410,7 +2410,7 @@ clAmsDBSUListDeXMLize(
 
     ClAmsEntityT  entity = {0};
     memset (&entity,0,sizeof (ClAmsEntityT));
-    strcpy ( entity.name.value, name);
+    strcpy ((ClCharT*) entity.name.value, name);
     entity.name.length = strlen (name) + 1;
     entity.type = CL_AMS_ENTITY_TYPE_SU;
 
@@ -2427,7 +2427,7 @@ clAmsDBSUListDeXMLize(
                 "suRestartTimer") );
 
     memset (&entity,0,sizeof (ClAmsEntityT));
-    strcpy ( entity.name.value, name);
+    strcpy ((ClCharT*)entity.name.value, name);
     entity.name.length = strlen (name) + 1;
     entity.type = CL_AMS_ENTITY_TYPE_SU;
 
@@ -2459,7 +2459,7 @@ clAmsDBSUListDeXMLize(
     const ClCharT  *siName = NULL;
 
     memset (&sourceEntityRef,0,sizeof (ClAmsEntityRefT));
-    strcpy (sourceEntityRef.entity.name.value, name);
+    strcpy ((ClCharT*)sourceEntityRef.entity.name.value, name);
     sourceEntityRef.entity.name.length = strlen (name) + 1;
     sourceEntityRef.entity.type = CL_AMS_ENTITY_TYPE_SU;
 
@@ -2507,7 +2507,7 @@ clAmsDBSUListDeXMLize(
 
         AMS_CHECK_NO_MEMORY (siRef);
 
-        strcpy (siRef->entityRef.entity.name.value,siName);
+        strcpy ((ClCharT*)siRef->entityRef.entity.name.value,siName);
         siRef->entityRef.entity.name.length = strlen (siName) + 1;
         siRef->entityRef.entity.type = CL_AMS_ENTITY_TYPE_SI;
 
@@ -2689,7 +2689,7 @@ clAmsDBCompXMLize(
     CL_PARSER_SET_ATTR(
             compPtr,
             AMS_XML_TAG_NAME,
-            comp->config.entity.name.value);
+            (const ClCharT*)comp->config.entity.name.value);
 
     ClParserPtrT configPtr = CL_PARSER_ADD_CHILD( compPtr,AMS_XML_TAG_CONFIG , 0);
 
@@ -2787,13 +2787,13 @@ clAmsDBCompXMLize(
 
         CL_PARSER_SET_ATTR(csiTypeInstance, 
                            AMS_XML_TAG_NAME,
-                           comp->config.pSupportedCSITypes[i].value);
+                           (const ClCharT*)comp->config.pSupportedCSITypes[i].value);
     }
 
     CL_PARSER_SET_ATTR (
             configPtr,
             "proxyCSIType",
-            comp->config.proxyCSIType.value);
+            (const ClCharT*)comp->config.proxyCSIType.value);
 
     CL_PARSER_SET_ATTR (
             configPtr,
@@ -2863,7 +2863,7 @@ clAmsDBCompXMLize(
     CL_PARSER_SET_ATTR (
             configPtr,
             "parentSU",
-            comp->config.parentSU.entity.name.value);
+            (const ClCharT*)comp->config.parentSU.entity.name.value);
 
     ClParserPtrT timeoutsPtr = CL_PARSER_ADD_CHILD(configPtr,"timeouts", 0);
 
@@ -3145,7 +3145,7 @@ clAmsDBCompXMLize(
         CL_PARSER_SET_ATTR (
                 statusPtr,
                 "proxyComp",
-                comp->status.proxyComp->name.value);
+                (const ClCharT*)comp->status.proxyComp->name.value);
     }
     else
     {
@@ -3443,7 +3443,7 @@ clAmsDBCompDeXMLize(
     const ClCharT  *numMaxStandbyCSIs = NULL;
     const ClCharT  *recoveryOnTimeout = NULL;
     const ClCharT  *pNumSupportedCSITypes = NULL;
-    ClNameT *pSupportedCSITypes = NULL;
+    SaNameT *pSupportedCSITypes = NULL;
     ClUint32T numSupportedCSITypes = 0;
     ClUint32T i;
     ClParserPtrT  csiTypeInstances = NULL;
@@ -3462,7 +3462,7 @@ clAmsDBCompDeXMLize(
     AMS_CHECKPTR_AND_EXIT(!csiTypeInstance);
     
     pSupportedCSITypes = clHeapCalloc(numSupportedCSITypes,
-                                      sizeof(ClNameT));
+                                      sizeof(SaNameT));
 
     AMS_CHECKPTR_AND_EXIT(!pSupportedCSITypes);
 
@@ -3473,7 +3473,7 @@ clAmsDBCompDeXMLize(
 
         pSupportedCSITypes[i].length = 
             CL_MIN(strlen(pData)+1, CL_MAX_NAME_LENGTH-1);
-        strncpy(pSupportedCSITypes[i].value, pData, CL_MAX_NAME_LENGTH-1);
+        strncpy((ClCharT*)pSupportedCSITypes[i].value, pData, CL_MAX_NAME_LENGTH-1);
         csiTypeInstance = csiTypeInstance->next;
     }
 
@@ -3725,7 +3725,7 @@ clAmsDBCompDeXMLize(
     memset (&entityRef,0,sizeof (ClAmsEntityRefT));
     memset (&comp,0,sizeof (ClAmsCompT));
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
-    strcpy (entityRef.entity.name.value,name);
+    strcpy ((ClCharT*)entityRef.entity.name.value,name);
     entityRef.entity.name.length = strlen(name) + 1 ;
 
 #ifdef AMS_TEST_CKPT
@@ -3747,7 +3747,7 @@ clAmsDBCompDeXMLize(
     memcpy (&comp.config.entity, &entityRef.entity, sizeof (ClAmsEntityT));
     comp.config.numSupportedCSITypes = numSupportedCSITypes;
     comp.config.pSupportedCSITypes = pSupportedCSITypes;
-    strcpy (comp.config.proxyCSIType.value,proxyCSIType);
+    strcpy ((ClCharT*)comp.config.proxyCSIType.value,proxyCSIType);
     comp.config.proxyCSIType.length = strlen (proxyCSIType) + 1;
     comp.config.capabilityModel = atoi (capabilityModel);
     comp.config.property= atoi (property);
@@ -3947,8 +3947,8 @@ clAmsDBCompListDeXMLize(
     compRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
     suRef.entity.type = CL_AMS_ENTITY_TYPE_SU;
 
-    strcpy (compRef.entity.name.value,name);
-    strcpy (suRef.entity.name.value,parentSU);
+    strcpy ((ClCharT*)compRef.entity.name.value,name);
+    strcpy ((ClCharT*)suRef.entity.name.value,parentSU);
     compRef.entity.name.length = strlen(name) + 1 ;
     suRef.entity.name.length = strlen(parentSU) + 1 ;
 
@@ -3982,7 +3982,7 @@ clAmsDBCompListDeXMLize(
 
     memset (&proxyCompRef,0,sizeof (ClAmsEntityRefT));
     proxyCompRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
-    strcpy (proxyCompRef.entity.name.value,proxyComp);
+    strcpy ((ClCharT*)proxyCompRef.entity.name.value,proxyComp);
     proxyCompRef.entity.name.length = strlen(proxyComp) + 1 ;
 
     if ( !strcmp(proxyComp,"") )
@@ -4022,7 +4022,7 @@ clAmsDBCompListDeXMLize(
     const ClCharT  *pendingOp = NULL;
 
     memset (&sourceEntityRef, 0, sizeof (ClAmsEntityRefT));
-    strcpy (sourceEntityRef.entity.name.value, name);
+    strcpy ((ClCharT*)sourceEntityRef.entity.name.value, name);
     sourceEntityRef.entity.name.length = strlen (name) + 1;
     sourceEntityRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
 
@@ -4070,7 +4070,7 @@ clAmsDBCompListDeXMLize(
 
         AMS_CHECK_NO_MEMORY ( csiRef );
 
-        strcpy (csiRef->entityRef.entity.name.value,csiName);
+        strcpy ((ClCharT*)csiRef->entityRef.entity.name.value,csiName);
         csiRef->entityRef.entity.name.length = strlen (csiName) + 1;
         csiRef->entityRef.entity.type = CL_AMS_ENTITY_TYPE_CSI;
 
@@ -4090,7 +4090,7 @@ clAmsDBCompListDeXMLize(
         csiRef->pendingOp = atoi (pendingOp); 
         
         memset (&activeCompRef,0,sizeof (ClAmsEntityRefT));
-        strcpy (activeCompRef.entity.name.value, activeComp);
+        strcpy ((ClCharT*)activeCompRef.entity.name.value, activeComp);
         activeCompRef.entity.name.length = strlen (activeComp) + 1;
         activeCompRef.entity.type = CL_AMS_ENTITY_TYPE_COMP; 
         
@@ -4209,7 +4209,7 @@ clAmsDBSIXMLize(
     CL_PARSER_SET_ATTR(
             siPtr,
             AMS_XML_TAG_NAME,
-            si->config.entity.name.value);
+            (const ClCharT*)si->config.entity.name.value);
 
     ClParserPtrT configPtr = CL_PARSER_ADD_CHILD( siPtr,AMS_XML_TAG_CONFIG , 0);
 
@@ -4264,7 +4264,7 @@ clAmsDBSIXMLize(
     CL_PARSER_SET_ATTR (
             configPtr,
             "parentSG",
-            si->config.parentSG.entity.name.value);
+            (const ClCharT*)si->config.parentSG.entity.name.value);
 
     /*
      * Write the config lists 
@@ -4555,7 +4555,7 @@ clAmsDBSIDeXMLize(
     memset (&si,0,sizeof (ClAmsSIT));
 
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_SI;
-    strcpy (entityRef.entity.name.value,name);
+    strcpy ((ClCharT*)entityRef.entity.name.value,name);
     entityRef.entity.name.length = strlen(name) + 1 ;
 
 #ifdef AMS_TEST_CKPT
@@ -4655,8 +4655,8 @@ clAmsDBSIListDeXMLize(
     siRef.entity.type = CL_AMS_ENTITY_TYPE_SI;
     sgRef.entity.type = CL_AMS_ENTITY_TYPE_SG;
 
-    strcpy (siRef.entity.name.value,name);
-    strcpy (sgRef.entity.name.value,parentSG);
+    strcpy ((ClCharT*)siRef.entity.name.value,name);
+    strcpy ((ClCharT*)sgRef.entity.name.value,parentSG);
     siRef.entity.name.length = strlen(name) + 1 ;
     sgRef.entity.name.length = strlen(parentSG) + 1 ;
 
@@ -4717,7 +4717,7 @@ clAmsDBSIListDeXMLize(
     const ClCharT  *suName = NULL;
 
     memset (&sourceEntityRef,0,sizeof (ClAmsEntityRefT));
-    strcpy (sourceEntityRef.entity.name.value, name);
+    strcpy ((ClCharT*)sourceEntityRef.entity.name.value, name);
     sourceEntityRef.entity.name.length = strlen (name) + 1;
     sourceEntityRef.entity.type = CL_AMS_ENTITY_TYPE_SI;
 
@@ -4753,7 +4753,7 @@ clAmsDBSIListDeXMLize(
 
         AMS_CHECK_NO_MEMORY (suRef);
 
-        strcpy (suRef->entityRef.entity.name.value,suName);
+        strcpy ((ClCharT*)suRef->entityRef.entity.name.value,suName);
         suRef->entityRef.entity.name.length = strlen (suName) + 1;
         suRef->entityRef.entity.type = CL_AMS_ENTITY_TYPE_SU;
 
@@ -4925,7 +4925,7 @@ clAmsDBCSIXMLize(
     CL_PARSER_SET_ATTR(
             csiPtr,
             AMS_XML_TAG_NAME,
-            csi->config.entity.name.value);
+            (const ClCharT*)csi->config.entity.name.value);
 
     ClParserPtrT configPtr = CL_PARSER_ADD_CHILD( csiPtr,AMS_XML_TAG_CONFIG , 0);
 
@@ -4961,12 +4961,12 @@ clAmsDBCSIXMLize(
     CL_PARSER_SET_ATTR (
             configPtr,
             "type",
-             csi->config.type.value);
+            (const ClCharT*)csi->config.type.value);
 
     CL_PARSER_SET_ATTR (
             configPtr,
             "parentSI",
-             csi->config.parentSI.entity.name.value);
+            (const ClCharT*)csi->config.parentSI.entity.name.value);
 
     /*
      * Write the nameValuePairList
@@ -5004,12 +5004,12 @@ clAmsDBCSIXMLize(
         CL_PARSER_SET_ATTR (
                 nvpPtr,
                 "name",
-                 pNVP->paramName.value);
+                (const ClCharT*)pNVP->paramName.value);
 
         CL_PARSER_SET_ATTR (
                 nvpPtr,
                 "value",
-                 pNVP->paramValue.value);
+                (const ClCharT*)pNVP->paramValue.value);
 
     }
 
@@ -5288,7 +5288,7 @@ clAmsDBCSIDeXMLize(
     memset (&csi,0,sizeof (ClAmsCSIT));
 
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_CSI;
-    strcpy (entityRef.entity.name.value,name);
+    strcpy ((ClCharT*)entityRef.entity.name.value,name);
     entityRef.entity.name.length = strlen(name) + 1 ;
 
 #ifdef AMS_TEST_CKPT
@@ -5310,7 +5310,7 @@ clAmsDBCSIDeXMLize(
     memcpy (&csi.config.entity, &entityRef.entity, sizeof (ClAmsEntityT));
     csi.config.rank= atoi (rank);
     csi.config.isProxyCSI= atoi (isProxyCSI);
-    strcpy (csi.config.type.value,type);
+    strcpy ((ClCharT*)csi.config.type.value,type);
     csi.config.type.length = strlen (type) + 1;
 
     AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig (
@@ -5387,9 +5387,9 @@ clAmsDBCSIListDeXMLize(
     csiRef.entity.type = CL_AMS_ENTITY_TYPE_CSI;
     siRef.entity.type = CL_AMS_ENTITY_TYPE_SI;
 
-    strcpy (csiRef.entity.name.value,name);
+    strcpy ((ClCharT*)csiRef.entity.name.value,name);
     csiRef.entity.name.length = strlen(name) + 1 ;
-    strcpy (siRef.entity.name.value,parentSI);
+    strcpy ((ClCharT*)siRef.entity.name.value,parentSI);
     siRef.entity.name.length = strlen(parentSI) + 1 ;
 
     AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr(
@@ -5425,9 +5425,9 @@ clAmsDBCSIListDeXMLize(
 
             ClAmsCSINameValuePairT  nvp = {{0},{0},{0}};
 
-            strcpy (nvp.csiName.value, name);
-            strcpy (nvp.paramName.value, nvpName);
-            strcpy (nvp.paramValue.value, value);
+            strcpy ((ClCharT*)nvp.csiName.value, name);
+            strcpy ((ClCharT*)nvp.paramName.value, nvpName);
+            strcpy ((ClCharT*)nvp.paramValue.value, value);
             nvp.csiName.length = strlen (name) + 1;
             nvp.paramName.length = strlen (nvpName) + 1;
             nvp.paramValue.length = strlen (value) + 1;
@@ -5436,7 +5436,7 @@ clAmsDBCSIListDeXMLize(
 
             memset (&csiEntity,0, sizeof (ClAmsEntityT));
             csiEntity.type = CL_AMS_ENTITY_TYPE_CSI;
-            strcpy (csiEntity.name.value,name);
+            strcpy ((ClCharT*)csiEntity.name.value,name);
             csiEntity.name.length = strlen (name) + 1;
 
             AMS_CHECK_RC_ERROR ( clAmsCSISetNVP(
@@ -5477,7 +5477,7 @@ clAmsDBCSIListDeXMLize(
         ClAmsEntityRefT  sourceEntityRef = {{0},0,0};
 
         memset (&sourceEntityRef,0,sizeof (ClAmsEntityRefT));
-        strcpy (sourceEntityRef.entity.name.value, name);
+        strcpy ((ClCharT*)sourceEntityRef.entity.name.value, name);
         sourceEntityRef.entity.name.length = strlen (name) + 1;
         sourceEntityRef.entity.type = CL_AMS_ENTITY_TYPE_CSI;
 
@@ -5515,7 +5515,7 @@ clAmsDBCSIListDeXMLize(
 
             AMS_CHECK_NO_MEMORY (compRef);
 
-            strcpy (compRef->entityRef.entity.name.value,compName);
+            strcpy ((ClCharT*)compRef->entityRef.entity.name.value,compName);
             compRef->entityRef.entity.name.length = strlen (compName) + 1;
             compRef->entityRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
             compRef->haState = atoi (haState);
@@ -5576,7 +5576,7 @@ clAmsDBCSIListDeXMLize(
 
             memset (&csiEntity,0,sizeof (ClAmsEntityT));
             csiEntity.type = CL_AMS_ENTITY_TYPE_CSI;
-            strcpy (csiEntity.name.value,name);
+            strcpy ((ClCharT*)csiEntity.name.value,name);
             csiEntity.name.length = strlen(name) + 1;
 
             ClAmsCSIPGTrackClientT  *pgTrackClient = NULL;
@@ -5831,7 +5831,7 @@ clAmsDBSGXMLize(
     CL_PARSER_SET_ATTR(
             sgPtr,
             AMS_XML_TAG_NAME,
-            sg->config.entity.name.value);
+            (const ClCharT*)sg->config.entity.name.value);
 
     ClParserPtrT  configPtr = CL_PARSER_ADD_CHILD( sgPtr,AMS_XML_TAG_CONFIG , 0);
 
@@ -6478,7 +6478,7 @@ clAmsDBSGDeXMLize(
     ClAmsSGT  sg;
 
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_SG;
-    strcpy (entityRef.entity.name.value,name);
+    strcpy ((ClCharT*)entityRef.entity.name.value,name);
     entityRef.entity.name.length = strlen(name) + 1 ;
 
 #ifdef AMS_TEST_CKPT
@@ -6603,7 +6603,7 @@ clAmsDBSGListDeXMLize(
 
     ClAmsEntityT  entity = {0};
 
-    strcpy ( entity.name.value, name);
+    strcpy ((ClCharT*)entity.name.value, name);
     entity.name.length = strlen (name) + 1;
     entity.type = CL_AMS_ENTITY_TYPE_SG;
 
@@ -7168,7 +7168,7 @@ clAmsDBXMLToList(
     ClAmsEntityT  sourceEntity = {0};
     ClAmsEntityT  targetEntity = {0};
 
-    strcpy (sourceEntity.name.value, sourceEntityName);
+    strcpy ((ClCharT*)sourceEntity.name.value, sourceEntityName);
     sourceEntity.name.length = strlen (sourceEntityName) + 1;
     sourceEntity.type = sourceEntityType;
     targetEntity.type = targetEntityType;
@@ -7189,7 +7189,7 @@ clAmsDBXMLToList(
 
         AMS_CHECKPTR_AND_EXIT (!targetEntityName);
 
-        strcpy (targetEntity.name.value, targetEntityName);
+        strcpy ((ClCharT*)targetEntity.name.value, targetEntityName);
         targetEntity.name.length = strlen (targetEntityName) + 1;
 
         AMS_CHECK_RC_ERROR ( clAmsAddToEntityList(
@@ -7540,7 +7540,7 @@ clAmsDBListToXML(
             CL_PARSER_SET_ATTR (
                     list2Ptr,
                     AMS_XML_TAG_NAME,
-                    csiRef->entityRef.entity.name.value);
+                    (const ClCharT*)csiRef->entityRef.entity.name.value);
 
             CL_PARSER_SET_ATTR (
                     list2Ptr,
@@ -7560,7 +7560,7 @@ clAmsDBListToXML(
             CL_PARSER_SET_ATTR (
                     list2Ptr,
                     "activeComp",
-                    csiRef->activeComp->name.value);
+                    (const ClCharT*)csiRef->activeComp->name.value);
            
             CL_PARSER_SET_ATTR (
                     list2Ptr,
@@ -7619,7 +7619,7 @@ clAmsDBListToXML(
             CL_PARSER_SET_ATTR (
                     list2Ptr,
                     AMS_XML_TAG_NAME,
-                    siRef->entityRef.entity.name.value);
+                    (const ClCharT*)siRef->entityRef.entity.name.value);
 
             CL_PARSER_SET_ATTR (
                     list2Ptr,
@@ -7686,7 +7686,7 @@ clAmsDBListToXML(
             CL_PARSER_SET_ATTR (
                     list2Ptr,
                     AMS_XML_TAG_NAME,
-                    suRef->entityRef.entity.name.value);
+                    (const ClCharT*)suRef->entityRef.entity.name.value);
 
             CL_PARSER_SET_ATTR (
                     list2Ptr,
@@ -7731,7 +7731,7 @@ clAmsDBListToXML(
             CL_PARSER_SET_ATTR (
                     list2Ptr,
                     AMS_XML_TAG_NAME,
-                    compRef->entityRef.entity.name.value);
+                    (const ClCharT*)compRef->entityRef.entity.name.value);
 
             CL_PARSER_SET_ATTR (
                     list2Ptr,
@@ -7762,7 +7762,7 @@ clAmsDBListToXML(
             CL_PARSER_SET_ATTR (
                     list2Ptr,
                     AMS_XML_TAG_NAME,
-                    entityRef->entity.name.value);
+                    (const ClCharT*)entityRef->entity.name.value);
 
         }
     }

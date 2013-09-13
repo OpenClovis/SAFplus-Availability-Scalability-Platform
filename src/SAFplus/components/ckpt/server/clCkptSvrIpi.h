@@ -90,14 +90,14 @@ ClRcT _ckptRemSvrInitialWelcome(ClEoDataT data,
 ClRcT _ckptCheckpointOpenAsync(
        ClCkptHdlT     mastHdl,
        ClInvocationT  invocation,
-       ClNameT        *pName,
+       SaNameT        *pName,
        ClCkptCheckpointCreationAttributesT *pCreateAttr,
        ClCkptOpenFlagsT        checkpointOpenFlags,
        ClCkptHdlT   *pCkptActHdl );
 ClRcT  ckptSvrCbAlloc(CkptSvrCbT **pSvrCb);
 ClRcT  ckptSvrCbFree(CkptSvrCbT *pSvrCb);
 
-ClRcT  ckptEntryAlloc(const ClNameT  *ckptName,  CkptT   **pCkpt);
+ClRcT  ckptEntryAlloc(const SaNameT  *ckptName,  CkptT   **pCkpt);
 ClRcT  ckptEntryFree(CkptT   *pCkpt);
 ClRcT  _ckptSvrIterationInitialize(ClEoDataT data,
                                    ClBufferHandleT inMsg,
@@ -174,7 +174,7 @@ ClRcT   _ckptActiveReplicaSyncUp( ClEoDataT data,
 
 
 ClRcT _ckptCheckpointOpen(ClCkptHdlT           mastHdl,
-			              ClNameT             *pName,
+			              SaNameT             *pName,
                           ClCkptCheckpointCreationAttributesT *pCreateAttr,
                           ClCkptOpenFlagsT     checkpointOpenFlags,
                           ClCkptHdlT           *pCkptActHdl);
@@ -279,7 +279,7 @@ void ckptCliPrint( char *str,
 void ckptPeerDown(ClIocNodeAddressT   peerAddr, ClUint32T flag, ClIocPortT portId); /* Gopal */
 
 /* Routine to get the next most prefered node */
-ClRcT ckptMostPrefNodeGet(ClNameT *pName, ClIocNodeAddressT *pPrefNode);
+ClRcT ckptMostPrefNodeGet(SaNameT *pName, ClIocNodeAddressT *pPrefNode);
 
 /* Routine for getting status relted to a ckpt */
 ClRcT clMasterStatusInfoGet(ClEoDataT data,
@@ -299,7 +299,7 @@ ClRcT clDeputyMasterUpdate(ClEoDataT data,
 ClRcT ckptActiveRepAddressUpdate(ClIocNodeAddressT newAddr);
 
 ClRcT   clCkptNackSend(ClVersionT version, ClUint32T funId);                                        
-ClRcT   _ckptAddAndUpdatePeerList(ClCkptHdlT ckptActHdl,ClNameT *pCkptName,ClIocNodeAddressT nodeAddr);
+ClRcT   _ckptAddAndUpdatePeerList(ClCkptHdlT ckptActHdl,SaNameT *pCkptName,ClIocNodeAddressT nodeAddr);
 ClRcT ckptCheckpointEntryPack( CkptT                    *pCkpt,
                                ClCkptHdlT                ckptHdl,
                                ClBufferHandleT   *pMsgHdl,
@@ -340,7 +340,7 @@ ClRcT ckptMasterActiveAddressGet(ClEoDataT eoData,
                                  ClBufferHandleT outMsg);
 
 ClRcT _ckptLocalDataUpdate(ClCkptHdlT         ckptHdl,
-                           ClNameT            *pName,
+                           SaNameT            *pName,
       ClCkptCheckpointCreationAttributesT     *pCreateAttr,
                            ClUint32T          cksum,
                            ClIocNodeAddressT  appAddr,

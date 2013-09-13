@@ -191,7 +191,7 @@ typedef struct ckptDPlaneInfo
 
 typedef struct ckpt
 {
-    ClNameT            ckptName;    /* Name of the checkpoint */
+    SaNameT            ckptName;    /* Name of the checkpoint */
     CkptCPlaneInfoT    *pCpInfo;    /* Controlplane information */
     CkptDPlaneInfoT    *pDpInfo;    /* Dataplane info */
     ClOsalMutexIdT     ckptMutex;   /* Mutex to protect the data */

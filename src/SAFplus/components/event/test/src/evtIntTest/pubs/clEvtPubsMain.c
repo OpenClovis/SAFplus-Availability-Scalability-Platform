@@ -120,7 +120,7 @@ void clEvtSubsTestDeliverCallback( ClEventSubscriptionIdT subscriptionId,
 
     ClEventPriorityT priority = 0;
     ClTimeT  retentionTime = 0;
-    ClNameT  publisherName = {0};
+    SaNameT  publisherName = {0};
     ClEventIdT eventId = 0;
     
     ClUint8T payLoad[50];
@@ -171,7 +171,7 @@ void clEvtSubsTestDeliverCallback( ClEventSubscriptionIdT subscriptionId,
     ClTimeT  publishTime;
     ClEventPriorityT priority;
     ClTimeT  retentionTime;
-    ClNameT  publisherName;
+    SaNameT  publisherName;
     ClEventIdT eventId;
     ClRcT rc = CL_OK;
     ClUint8T payLoad[50];
@@ -253,7 +253,7 @@ ClRcT   clDmTestTestsEnumerate( CL_IN ClDmDestHandleT destHandle, CL_OUT ClDmNum
     
     return CL_OK;
 }
-ClRcT   clDmTestTestStart( CL_IN ClDmDestHandleT destHandle, CL_IN ClNameT diagTestName, CL_IN ClInt8T diagTestParms[CL_DM_TEST_PARMSLEN], CL_OUT ClDmInstHandleT* pDiagInstHandle )
+ClRcT   clDmTestTestStart( CL_IN ClDmDestHandleT destHandle, CL_IN SaNameT diagTestName, CL_IN ClInt8T diagTestParms[CL_DM_TEST_PARMSLEN], CL_OUT ClDmInstHandleT* pDiagInstHandle )
 {
     clOsalPrintf(":::: clDmTestTestStart\r\n");
     clOsalPrintf(":::: Handle : [0x%X]\r\n",destHandle);
@@ -288,7 +288,7 @@ ClRcT   clDmTestTestResultsGet( CL_IN ClDmDestHandleT destHandle, CL_IN ClDmResu
 #endif
 
 
-ClNameT publishCleanupName = {sizeof("CLEANUP"),"CLEANUP"};
+SaNameT publishCleanupName = {sizeof("CLEANUP"),"CLEANUP"};
 ClRcT clEvtPubsTest()
 {
     ClRcT rc;
@@ -303,7 +303,7 @@ ClRcT clEvtPubsTest()
     ClEventChannelHandleT evtChannelHandle;
     ClEventHandleT eventHandle;    
     ClEventHandleT eventHandle1;    
-    ClNameT publisherName = {sizeof(EVENT_TEST_PUB_NAME),EVENT_TEST_PUB_NAME};
+    SaNameT publisherName = {sizeof(EVENT_TEST_PUB_NAME),EVENT_TEST_PUB_NAME};
     ClEventIdT eventId;
     ClUint8T count;//,loop;
     ClCharT buff[40] = {0};
@@ -441,7 +441,7 @@ ClRcT clEvtPubsTest()
 #ifdef NEW_TEST_ENABLE
 
 #if 0
-extern ClRcT clEvtSubsInfoShow(ClNameT *pChannelName, ClUint8T channelScope, 
+extern ClRcT clEvtSubsInfoShow(SaNameT *pChannelName, ClUint8T channelScope, 
         ClUint8T disDetailFlag, ClDebugPrintHandleT dbgPrintHandle);
 #endif
 
@@ -452,7 +452,7 @@ ClRcT   clEvtCleanupUnsubscribeTest(void);
 #endif
 static ClCpmHandleT gClEvtPubsCpmHandle; /* FIXME */
 ClRcT clEventPubsTerminate(ClInvocationT invocation,
-			const ClNameT  *compName)
+			const SaNameT  *compName)
 {
     ClRcT rc;
 
@@ -471,7 +471,7 @@ ClRcT clEventPubsTerminate(ClInvocationT invocation,
 
 ClRcT clEvtPubsCpmInit()
 {
-    ClNameT appName;
+    SaNameT appName;
     ClCpmCallbacksT callbacks;
     ClVersionT	version;
     ClIocPortT	iocPort;
@@ -646,10 +646,10 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     ClEventHandleT eventHandleX;    
     ClEventHandleT eventHandleY;
 
-    ClNameT gEvtECHNameLocal     = {sizeof(LOCAL_CHANNEL)-1, LOCAL_CHANNEL};
-    ClNameT gEvtECHNameGlobal    = {sizeof(GLOBAL_CHANNEL)-1, GLOBAL_CHANNEL};
+    SaNameT gEvtECHNameLocal     = {sizeof(LOCAL_CHANNEL)-1, LOCAL_CHANNEL};
+    SaNameT gEvtECHNameGlobal    = {sizeof(GLOBAL_CHANNEL)-1, GLOBAL_CHANNEL};
     
-    ClNameT publisherName = {sizeof(EVENT_TEST_PUB_NAME),EVENT_TEST_PUB_NAME};
+    SaNameT publisherName = {sizeof(EVENT_TEST_PUB_NAME),EVENT_TEST_PUB_NAME};
     ClEventIdT eventId;
 
 /*    CL_OUT ClEvtSuppressionHandleT suppressionHandleMatch, suppressionHandleNoMatch;
@@ -785,7 +785,7 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
 #if 0
     if(1)  /* Display Flag */
     {
-        ClNameT channelName     = { sizeof("-a")-1, "-a"};
+        SaNameT channelName     = { sizeof("-a")-1, "-a"};
         
         ClDebugPrintHandleT     dbgPrintHandle = 0;
 
@@ -944,8 +944,8 @@ ClRcT   clEvtCleanupFinalizeTest(void)
     
     ClEventChannelHandleT evtChannelHandleLocal, evtChannelHandleGlobal;
 
-    ClNameT channelA = {sizeof("ChannelA")-1,"ChannelA"};
-    ClNameT channelB = {sizeof("ChannelB")-1,"ChannelB"};
+    SaNameT channelA = {sizeof("ChannelA")-1,"ChannelA"};
+    SaNameT channelB = {sizeof("ChannelB")-1,"ChannelB"};
     
     rc = clEventInitialize(&evtHandle, &evtCallbacks, &version);
     if(CL_OK != rc)
@@ -1030,8 +1030,8 @@ ClRcT   clEvtCleanupChannelCloseTest(void)
     
     ClEventChannelHandleT evtChannelHandleLocal, evtChannelHandleGlobal;
 
-    ClNameT channelC = {sizeof("ChannelC")-1,"ChannelC"};
-    ClNameT channelD = {sizeof("ChannelD")-1,"ChannelD"};
+    SaNameT channelC = {sizeof("ChannelC")-1,"ChannelC"};
+    SaNameT channelD = {sizeof("ChannelD")-1,"ChannelD"};
     
     rc = clEventInitialize(&evtHandle, &evtCallbacks, &version);
     if(CL_OK != rc)
@@ -1123,8 +1123,8 @@ ClRcT   clEvtCleanupUnsubscribeTest(void)
     
     ClEventChannelHandleT evtChannelHandleLocal, evtChannelHandleGlobal;
 
-    ClNameT channelE = {sizeof("ChannelE")-1,"ChannelE"};
-    ClNameT channelF = {sizeof("ChannelF")-1,"ChannelF"};
+    SaNameT channelE = {sizeof("ChannelE")-1,"ChannelE"};
+    SaNameT channelF = {sizeof("ChannelF")-1,"ChannelF"};
     
     rc = clEventInitialize(&evtHandle, &evtCallbacks, &version);
     if(CL_OK != rc)

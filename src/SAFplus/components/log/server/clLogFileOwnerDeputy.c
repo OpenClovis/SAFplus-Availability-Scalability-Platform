@@ -27,9 +27,9 @@
 
 ClRcT
 clLogFileOwnerStreamReopen(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
-                            ClNameT                 *pStreamName,
+                            SaNameT                 *pStreamName,
                             ClLogStreamScopeT       streamScope, 
-                            ClNameT                 *pStreamScopeNode,
+                            SaNameT                 *pStreamScopeNode,
                             ClUint16T               streamId,
                             ClLogStreamAttrIDLT     *pStreamAttr, 
                             ClBoolT                 logRestart,
@@ -88,9 +88,9 @@ clLogFileOwnerStreamReopen(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 }
 
 ClRcT
-clLogFileOwnerStreamEntryAdd(ClNameT             *pStreamName,
+clLogFileOwnerStreamEntryAdd(SaNameT             *pStreamName,
                              ClLogStreamScopeT    streamScope, 
-                             ClNameT              *pStreamScopeNode,
+                             SaNameT              *pStreamScopeNode,
                              ClUint16T            streamId,
                              ClLogStreamAttrIDLT  *pStreamAttr, 
                              ClBoolT              logRestart)
@@ -214,8 +214,8 @@ clLogFileOwnerStreamListEntryGet(ClBufferHandleT      msg,
                                   ClLogStreamAttrIDLT  *pStreamAttr)
 {
     ClRcT              rc              = CL_OK;
-    ClNameT            streamName      = {0};
-    ClNameT            streamScopeNode = {0};
+    SaNameT            streamName      = {0};
+    SaNameT            streamScopeNode = {0};
     ClLogStreamScopeT  streamScope     = 0;
     ClUint16T          streamId        = 0;
     ClUint32T          validEntry      = 0;
@@ -232,12 +232,12 @@ clLogFileOwnerStreamListEntryGet(ClBufferHandleT      msg,
         return CL_OK;
     }
         
-    rc = clXdrUnmarshallClNameT(msg, &streamName);
+    rc = clXdrUnmarshallSaNameT(msg, &streamName);
     if( CL_OK != rc )
     {
         return rc;
     }
-    rc = clXdrUnmarshallClNameT(msg, &streamScopeNode);
+    rc = clXdrUnmarshallSaNameT(msg, &streamScopeNode);
     if( CL_OK != rc )
     {
         return rc;

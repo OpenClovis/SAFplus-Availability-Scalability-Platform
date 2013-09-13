@@ -177,22 +177,22 @@ _clAmsEventEntityLeave(
 
 extern ClRcT clAmsEventEntityJoin2(
         CL_IN   ClAmsT *ams,
-        CL_IN   ClNameT *name,
+        CL_IN   SaNameT *name,
         CL_IN   ClAmsEntityTypeT type);
 
 extern ClRcT clAmsEventEntityHasLeft2(
         CL_IN   ClAmsT *ams,
-        CL_IN   ClNameT *name,
+        CL_IN   SaNameT *name,
         CL_IN   ClAmsEntityTypeT type);
 
 extern ClRcT clAmsEventEntityIsLeaving2(
         CL_IN   ClAmsT *ams,
-        CL_IN   ClNameT *name,
+        CL_IN   SaNameT *name,
         CL_IN   ClAmsEntityTypeT type);
 
 extern ClRcT clAmsEventEntityFault2(
         CL_IN   ClAmsT *ams,
-        CL_IN   ClNameT *name,
+        CL_IN   SaNameT *name,
         CL_IN   ClAmsEntityTypeT type,
         CL_IN   ClAmsFaultDescriptorT *fault);
 
@@ -203,7 +203,7 @@ unmarshalFaultReport (
 
 extern ClRcT
 clAmsGetFaultReport(
-        const ClNameT     *compName,
+        const SaNameT     *compName,
         ClAmsLocalRecoveryT recommendedRecovery,
         ClUint64T instantiateCookie);
 
@@ -218,7 +218,7 @@ clAmsGetFaultReport(
  */
 
 extern ClRcT clAmsEventEntityJoin(
-        CL_IN   ClNameT *name,
+        CL_IN   SaNameT *name,
         CL_IN   ClAmsEntityTypeT type);
 
 /*
@@ -228,7 +228,7 @@ extern ClRcT clAmsEventEntityJoin(
  */
 
 extern ClRcT clAmsEventEntityLeave(
-        CL_IN   ClNameT *name,
+        CL_IN   SaNameT *name,
         CL_IN   ClAmsEntityTypeT type);
 
 /*
@@ -243,7 +243,7 @@ extern ClRcT clAmsEventEntityLeave(
  */
 
 extern ClRcT clAmsEventEntityFault(
-        CL_IN   ClNameT *name,
+        CL_IN   SaNameT *name,
         CL_IN   ClAmsEntityTypeT type,
         CL_IN   ClAmsFaultDescriptorT *fault);
 

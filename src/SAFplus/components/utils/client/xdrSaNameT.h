@@ -17,14 +17,14 @@
  * material.
  */
 
-#ifndef _XDR_CLNAMET_H_
-#define _XDR_CLNAMET_H_
+#ifndef _XDR_SANAMET_H_
+#define _XDR_SANAMET_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct _ClNameT;
+struct _SaNameT;
 #include "clXdrApi.h"
 
 #include "clIocApi.h"
@@ -34,25 +34,25 @@ struct _ClNameT;
 
 
 
-ClRcT  clXdrMarshallClNameT(void *,ClBufferHandleT , ClUint32T);
+ClRcT  clXdrMarshallSaNameT(void *,ClBufferHandleT , ClUint32T);
 
-ClRcT  clXdrUnmarshallClNameT(ClBufferHandleT, void *);
+ClRcT  clXdrUnmarshallSaNameT(ClBufferHandleT, void *);
 
-#define clXdrMarshallArrayClNameT(pointer, multiplicity, msg, isDelete) \
-clXdrMarshallArray((pointer), sizeof(ClNameT), (multiplicity), clXdrMarshallClNameT, (msg), (isDelete))
+#define clXdrMarshallArraySaNameT(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallArray((pointer), sizeof(SaNameT), (multiplicity), clXdrMarshallSaNameT, (msg), (isDelete))
 
-#define clXdrUnmarshallArrayClNameT(msg,pointer, multiplicity) \
-clXdrUnmarshallArray((msg),(pointer), sizeof(ClNameT), (multiplicity), clXdrUnmarshallClNameT)
+#define clXdrUnmarshallArraySaNameT(msg,pointer, multiplicity) \
+clXdrUnmarshallArray((msg),(pointer), sizeof(SaNameT), (multiplicity), clXdrUnmarshallSaNameT)
 
-#define clXdrMarshallPtrClNameT(pointer, multiplicity, msg, isDelete) \
-clXdrMarshallPtr((pointer), sizeof(ClNameT), (multiplicity), clXdrMarshallClNameT, (msg), (isDelete))
+#define clXdrMarshallPtrSaNameT(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPtr((pointer), sizeof(SaNameT), (multiplicity), clXdrMarshallSaNameT, (msg), (isDelete))
 
-#define clXdrUnmarshallPtrClNameT(msg,pointer) \
-clXdrUnmarshallPtr((msg),(pointer), sizeof(ClNameT), clXdrUnmarshallClNameT)
+#define clXdrUnmarshallPtrSaNameT(msg,pointer) \
+clXdrUnmarshallPtr((msg),(pointer), sizeof(SaNameT), clXdrUnmarshallSaNameT)
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /*_XDR_CLNAMET_H_*/
+#endif /*_XDR_SANAMET_H_*/
 

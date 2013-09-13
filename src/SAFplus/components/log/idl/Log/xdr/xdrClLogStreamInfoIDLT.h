@@ -47,9 +47,9 @@ extern "C" {
 struct _ClLogStreamInfoIDLT_4_0_0;
 
 typedef struct _ClLogStreamInfoIDLT_4_0_0 {
-    ClNameT    streamName;
+    SaNameT    streamName;
     ClUint32T    streamScope;
-    ClNameT    nodeName;
+    SaNameT    nodeName;
     ClUint16T    streamId;
     ClLogStreamAttrIDLT_4_0_0    streamAttr;
 

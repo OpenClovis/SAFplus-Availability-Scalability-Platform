@@ -52,7 +52,7 @@ extern "C"
 typedef struct EvtTestSuppSetReq
 {
     ClEventChannelHandleT channelHandle;
-    ClNameT publisherName;
+    SaNameT publisherName;
 
 } EvtTestSuppSetReq_t;
 
@@ -71,7 +71,7 @@ typedef struct EvtTestInitReq
 typedef struct EvtTestOpenReq
 {
     ClUint32T flag;
-    ClNameT channelName;
+    SaNameT channelName;
 
 } EvtTestOpenReq_t;
 
@@ -98,7 +98,7 @@ typedef struct EvtTestUnsubsReq
 typedef struct EvtTestPublishReq
 {
     ClEventChannelHandleT channelHandle;
-    ClNameT publisherName;
+    SaNameT publisherName;
 
 } EvtTestPublishReq_t;
 

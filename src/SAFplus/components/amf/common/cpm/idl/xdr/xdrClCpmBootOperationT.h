@@ -53,7 +53,7 @@ struct _ClCpmBootOperationT_4_0_0;
 
 typedef struct _ClCpmBootOperationT_4_0_0 {
     ClUint32T    bootLevel;
-    ClNameT    nodeName;
+    SaNameT    nodeName;
     ClIocPhysicalAddressT_4_0_0    srcAddress;
     ClUint32T    rmdNumber;
     ClCpmCompRequestTypeT_4_0_0    requestType;

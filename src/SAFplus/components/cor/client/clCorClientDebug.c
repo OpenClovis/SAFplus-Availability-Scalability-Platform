@@ -48,10 +48,10 @@ clCorDbgCliClCorObjectAttrTypeGet ( ClUint32T argc,
                                  ClCharT **retStr );
 
 static ClRcT 
-clCorClntDbgCtNStExecute ( ClNameT txnIdName, ClCorCtAndSetInfoPtrT pAttrList, ClCharT* moToCreate );
+clCorClntDbgCtNStExecute ( SaNameT txnIdName, ClCorCtAndSetInfoPtrT pAttrList, ClCharT* moToCreate );
 
 static ClRcT 
-clCorClntDbgSetExecute ( ClNameT txnName, ClCorCtAndSetInfoPtrT pAttrList );
+clCorClntDbgSetExecute ( SaNameT txnName, ClCorCtAndSetInfoPtrT pAttrList );
 
 static ClRcT 
 _clCorClientCliCommonFunc ( ClCorClientCliOpT cliOp, 
@@ -60,7 +60,7 @@ _clCorClientCliCommonFunc ( ClCorClientCliOpT cliOp,
                             ClCorCtAndSetInfoPtrT pAttrList );
 
 static ClRcT
-_clCorTxnIdGet(ClNameT txnIdName, ClCorTxnSessionIdT* pTxnId);
+_clCorTxnIdGet(SaNameT txnIdName, ClCorTxnSessionIdT* pTxnId);
 
 static ClRcT
 clCorDbgCliClCorTxnSessionCommit ( ClUint32T argc, ClCharT* argv[], ClCharT** retStr );
@@ -81,7 +81,7 @@ static void clCorCliTxnIdMapDelFn(ClCntKeyHandleT key, ClCntDataHandleT data);
 
 static ClInt32T clCorCliTxnIdMapCompFn(ClCntKeyHandleT key1, ClCntKeyHandleT key2);
 
-static ClRcT _clCorTxnIdMapCntNodeDelete(ClNameT txnIdName);
+static ClRcT _clCorTxnIdMapCntNodeDelete(SaNameT txnIdName);
 
 static ClRcT 
 clCorDbgCliObjectDelete ( ClUint32T argc, ClCharT* argv[], ClCharT **retStr );
@@ -137,7 +137,7 @@ ClRcT
 clCorClientDebugCliRegister ( CL_OUT ClHandleT *pDbgHandle )
 {
     ClRcT rc = CL_OK;
-    ClNameT cliName = {0};
+    SaNameT cliName = {0};
     ClCpmHandleT cpmHandle = {0};
     ClCharT debugPrompt[15] = {0};
     
@@ -210,7 +210,7 @@ ClRcT
 clCorDbgCliClCorTxnNextFailedJobGet( ClUint32T argc, ClCharT* argv[], ClCharT** retStr )
 {
     ClCorTxnSessionIdT txnId = 0;
-    ClNameT txnIdName;
+    SaNameT txnIdName;
     ClRcT rc = CL_OK;
     ClCharT corStr[CL_MAX_NAME_LENGTH];
     ClCorTxnInfoT corTxnInfo = {0};
@@ -287,7 +287,7 @@ ClRcT
 clCorDbgCliClCorTxnFirstFailedJobGet( ClUint32T argc, ClCharT* argv[], ClCharT** retStr )
 {
     ClCorTxnSessionIdT txnId = 0;
-    ClNameT txnIdName;
+    SaNameT txnIdName;
     ClRcT rc = CL_OK;
     ClCharT corStr[CL_MAX_NAME_LENGTH];
     ClCorTxnInfoT corTxnInfo = {0};
@@ -385,7 +385,7 @@ clCorDbgCliClCorTxnFirstFailedJobGet( ClUint32T argc, ClCharT* argv[], ClCharT**
 ClRcT _clCorPrintFailedJobInfo(ClCorTxnInfoT* corTxnInfo, ClCharT* pCorStr)
 {
     ClRcT rc = CL_OK;
-    ClNameT moIdName;
+    SaNameT moIdName;
 
     /* Display the failed job information */
     rc = clCorMoIdToMoIdNameGet(&(corTxnInfo->moId), &moIdName);
@@ -487,7 +487,7 @@ ClRcT
 clCorDbgCliClCorTxnSessionFinalize ( ClUint32T argc, ClCharT* argv[], ClCharT** retStr )
 {
     ClCorTxnSessionIdT txnId = 0;
-    ClNameT txnIdName;
+    SaNameT txnIdName;
     ClRcT rc = CL_OK;
     ClCharT corStr[CL_MAX_NAME_LENGTH];
 
@@ -547,7 +547,7 @@ clCorDbgCliClCorTxnSessionCancel ( ClUint32T argc, ClCharT* argv[], ClCharT** re
 }
 
                                   // coverity[pass_by_value]
-ClRcT _clCorTxnIdMapCntNodeDelete(ClNameT txnIdName)
+ClRcT _clCorTxnIdMapCntNodeDelete(SaNameT txnIdName)
 {
     ClCntNodeHandleT nodeHandle = 0;
     ClRcT rc = CL_OK;
@@ -612,7 +612,7 @@ ClRcT
 clCorDbgCliClCorTxnSessionCommit ( ClUint32T argc, ClCharT* argv[], ClCharT** retStr )
 {
     ClCorTxnSessionIdT txnId = 0;
-    ClNameT txnIdName;
+    SaNameT txnIdName;
     ClRcT rc = CL_OK;
     ClCharT corStr[CL_MAX_NAME_LENGTH];
 
@@ -666,7 +666,7 @@ clCorDbgCliClCorTxnSessionCommit ( ClUint32T argc, ClCharT* argv[], ClCharT** re
 
 ClRcT
                // coverity[pass_by_value]
-_clCorTxnIdGet(ClNameT txnIdName, 
+_clCorTxnIdGet(SaNameT txnIdName, 
                ClCorTxnSessionIdT* pTxnId)
 {
     ClRcT rc = CL_OK;
@@ -702,7 +702,7 @@ clCorDbgCliClCorObjectCreateAndSet ( ClUint32T argc, ClCharT *argv[], ClCharT **
     ClCharT             corStr[CL_COR_MAX_NAME_SZ] = {0};
     ClCorClientCliOpT   cliOp = CL_COR_CLIENT_CLI_CREATE_AND_SET_OP;
     ClCorCtAndSetInfoT  attrList = {{{{0}}}};
-    ClNameT             txnIdName;
+    SaNameT             txnIdName;
 
     if ( argc < 4 )
     {
@@ -761,7 +761,7 @@ clCorDbgCliClCorObjectAttributeSet ( ClUint32T argc, ClCharT *argv[], ClCharT **
     ClCharT             corStr[CL_COR_MAX_NAME_SZ] = {0};
     ClCorClientCliOpT   cliOp = CL_COR_CLIENT_CLI_ATTR_SET_OP;
     ClCorCtAndSetInfoT  attrList = {{{{0}}}};
-    ClNameT             txnIdName = {0};
+    SaNameT             txnIdName = {0};
 
     if( ( argc < 6 ) || ( argc % 2 != 0 ) )
     {
@@ -1152,7 +1152,7 @@ clCorClntDbgCtNStUnmarshall ( ClBufferHandleT msgH, ClCorCtAndSetInfoPtrT pAttrL
  */ 
 ClRcT
                           // coverity[pass_by_value]
-clCorClntDbgCtNStExecute (ClNameT txnIdName, 
+clCorClntDbgCtNStExecute (SaNameT txnIdName, 
                           ClCorCtAndSetInfoPtrT pAttrList, 
                           ClCharT* moToCreate)
 {
@@ -1221,7 +1221,7 @@ clCorClntDbgCtNStExecute (ClNameT txnIdName,
     else
     {
         ClCorTxnSessionIdT* pTxnId = NULL;
-        ClNameT* pTxnIdName = NULL;
+        SaNameT* pTxnIdName = NULL;
         ClCorTxnSessionIdT tid = 0;
 
         clLogInfo ( "DBG", "CST", "Creating MO in the complex transaction.");
@@ -1247,7 +1247,7 @@ clCorClntDbgCtNStExecute (ClNameT txnIdName,
             }
         
             /* Add the mapping into the table */
-            pTxnIdName = clHeapAllocate(sizeof(ClNameT));
+            pTxnIdName = clHeapAllocate(sizeof(SaNameT));
             if (pTxnIdName == NULL)
             {
                 clLogError("DBG", "CST", "Failed to allocate memory");
@@ -1256,7 +1256,7 @@ clCorClntDbgCtNStExecute (ClNameT txnIdName,
                 return (CL_COR_SET_RC(CL_COR_ERR_NO_MEM));
             }
 
-            memcpy(pTxnIdName, &txnIdName, sizeof(ClNameT));
+            memcpy(pTxnIdName, &txnIdName, sizeof(SaNameT));
 
             pTxnId = clHeapAllocate(sizeof(ClCorTxnSessionIdT));
             if (pTxnId == NULL)
@@ -1324,11 +1324,11 @@ ClRcT clCorCliTxnIdMapCntCreate()
 
 ClInt32T clCorCliTxnIdMapCompFn(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
-    ClNameT txnIdName1;
-    ClNameT txnIdName2;
+    SaNameT txnIdName1;
+    SaNameT txnIdName2;
 
-    txnIdName1 = * (ClNameT *) key1;
-    txnIdName2 = * (ClNameT *) key2;
+    txnIdName1 = * (SaNameT *) key1;
+    txnIdName2 = * (SaNameT *) key2;
 
     if (strcmp(txnIdName1.value, txnIdName2.value) == 0)
     {
@@ -1344,10 +1344,10 @@ ClInt32T clCorCliTxnIdMapCompFn(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 
 void clCorCliTxnIdMapDelFn(ClCntKeyHandleT key, ClCntDataHandleT data)
 {
-    ClNameT* pTxnIdName = NULL;
+    SaNameT* pTxnIdName = NULL;
     ClCorTxnSessionIdT* pTxnId = NULL;
 
-    pTxnIdName = (ClNameT *) key;
+    pTxnIdName = (SaNameT *) key;
     pTxnId = (ClCorTxnSessionIdT *) data;
 
     clHeapFree(pTxnIdName);
@@ -1386,14 +1386,14 @@ ClRcT clCorCliTxnIdMapCntFinalize()
  */ 
 ClRcT
                        // coverity[pass_by_value]
-clCorClntDbgSetExecute(ClNameT txnName, 
+clCorClntDbgSetExecute(SaNameT txnName, 
                        ClCorCtAndSetInfoPtrT pAttrList)
 {
     ClRcT               rc = CL_OK;
     ClCorTxnSessionIdT  tid = 0;
     ClUint32T           index = 0;
     ClCorTxnSessionIdT  *pTxnId = NULL;
-    ClNameT             *pTxnName = NULL;
+    SaNameT             *pTxnName = NULL;
 
     if (strcmp(txnName.value, "0") != 0)
     {
@@ -1457,7 +1457,7 @@ clCorClntDbgSetExecute(ClNameT txnName,
                 return CL_COR_SET_RC(CL_COR_ERR_NO_MEM);
             }
 
-            pTxnName = clHeapAllocate(sizeof(ClNameT));
+            pTxnName = clHeapAllocate(sizeof(SaNameT));
             if (NULL == pTxnName)
             {
                 clLogError("COR", "DBG", "Failed while allocating the memory for the txn session name. ");
@@ -1467,7 +1467,7 @@ clCorClntDbgSetExecute(ClNameT txnName,
             
             memcpy (pTxnId, &tid, sizeof(ClCorTxnSessionIdT));
 
-            memcpy (pTxnName, &txnName, sizeof(ClNameT));
+            memcpy (pTxnName, &txnName, sizeof(SaNameT));
 
             rc = clCntNodeAdd(gCorCliTxnIdMap, (ClCntKeyHandleT) pTxnName, (ClCntDataHandleT) pTxnId, NULL);
             if ((rc != CL_OK) && (rc != CL_ERR_DUPLICATE))
@@ -1577,8 +1577,8 @@ clCorDbgCliObjectDelete ( ClUint32T argc, ClCharT *argv[], ClCharT **retStr )
     ClRcT   rc  =   CL_OK;
     ClCorMOIdT  moId;
     ClCorServiceIdT    serviceId = 0;
-    ClNameT     *pTxnIdName = NULL;
-    ClNameT     moIdName = {0}, txnIdName = {0};
+    SaNameT     *pTxnIdName = NULL;
+    SaNameT     moIdName = {0}, txnIdName = {0};
     ClCorTxnSessionIdT txnId = 0;
     ClCorTxnSessionIdT* pTxnId = NULL;
     ClCharT             corStr[1024] = {0};
@@ -1709,7 +1709,7 @@ clCorDbgCliObjectDelete ( ClUint32T argc, ClCharT *argv[], ClCharT **retStr )
             }
         
             /* Add the mapping into the table */
-            pTxnIdName = clHeapAllocate(sizeof(ClNameT));
+            pTxnIdName = clHeapAllocate(sizeof(SaNameT));
             if (pTxnIdName == NULL)
             {
                 corStr[0]='\0';
@@ -1721,7 +1721,7 @@ clCorDbgCliObjectDelete ( ClUint32T argc, ClCharT *argv[], ClCharT **retStr )
                 return (CL_COR_SET_RC(CL_COR_ERR_NO_MEM));
             }
 
-            memcpy(pTxnIdName, &txnIdName, sizeof(ClNameT));
+            memcpy(pTxnIdName, &txnIdName, sizeof(SaNameT));
 
             pTxnId = clHeapAllocate(sizeof(ClCorTxnSessionIdT));
             if (pTxnId == NULL)

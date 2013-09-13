@@ -88,7 +88,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
 #endif        
         case CL_CPM_NODENAME:
         {
-            memcpy(&slotInfoRecv.nodeName, &slotInfo->nodeName, sizeof(ClNameT));
+            memcpy(&slotInfoRecv.nodeName, &slotInfo->nodeName, sizeof(SaNameT));
             break;
         }
         default:
@@ -120,7 +120,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
             CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
                     ("MoIdNameToMoIdGet Failed, rc=[0x%x]\n", rc), rc);
 #endif            
-            memcpy(&slotInfo->nodeName, &slotInfoRecv.nodeName, sizeof(ClNameT));
+            memcpy(&slotInfo->nodeName, &slotInfoRecv.nodeName, sizeof(SaNameT));
 
             break;
         }
@@ -132,7 +132,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
             CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
                     ("MoIdNameToMoIdGet Failed, rc=[0x%x]\n", rc), rc);
 #endif
-            memcpy(&slotInfo->nodeName, &slotInfoRecv.nodeName, sizeof(ClNameT));
+            memcpy(&slotInfo->nodeName, &slotInfoRecv.nodeName, sizeof(SaNameT));
 
             break;
         }
@@ -142,7 +142,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
             
             slotInfo->nodeIocAddress = slotInfoRecv.nodeIocAddress;
             
-            memcpy(&slotInfo->nodeName, &slotInfoRecv.nodeName, sizeof(ClNameT));
+            memcpy(&slotInfo->nodeName, &slotInfoRecv.nodeName, sizeof(SaNameT));
 
             break;
         }

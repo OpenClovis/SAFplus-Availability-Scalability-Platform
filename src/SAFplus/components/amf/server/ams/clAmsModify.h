@@ -580,14 +580,14 @@ clAmsDeXMLizeDB (
 
 extern ClRcT
 clAmsUpdateAlarmHandle(
-        CL_INOUT  const ClNameT  *compName,
+        CL_INOUT  const SaNameT  *compName,
         CL_IN  ClUint32T  alarmHandle );
 
 extern ClRcT
 clAmsReplayAssignCSIInvocation(ClPtrT arg);
 
 extern ClRcT
-clAmsGetCSIRemoveInvocations(ClNameT *pNodeName,
+clAmsGetCSIRemoveInvocations(SaNameT *pNodeName,
                              ClAmsInvocationT **ppInvocations,
                              ClInt32T *pNumInvocations);
 
@@ -822,7 +822,7 @@ extern ClRcT
 clAmsEntityDeleteRefs(ClAmsEntityRefT *eRef);
 
 extern ClRcT
-clAmsFindCSIType(ClAmsCSIT *csi, ClNameT *csiType);
+clAmsFindCSIType(ClAmsCSIT *csi, SaNameT *csiType);
 
 extern ClRcT clAmsSGFailoverHistoryConfigure(ClAmsSGT *sg);
 

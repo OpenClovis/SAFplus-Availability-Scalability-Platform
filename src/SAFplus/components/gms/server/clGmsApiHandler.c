@@ -2031,7 +2031,7 @@ void clGmsEventInit(void)
     ClVersionT               version = {'B', 0x01, 0x01};
     ClEventChannelHandleT    evtChannelHandleGlobal = 0;
     ClEventChannelHandleT    nodeEvtChannelHandleGlobal = 0;
-    ClNameT                  cpmChannelName = {0};
+    SaNameT                  cpmChannelName = {0};
     const ClEventCallbacksT  evtCallbacks = {
                                 NULL,
                                 clEvtSubsTestDeliverCallback
@@ -2053,7 +2053,7 @@ void clGmsEventInit(void)
     };
 
     cpmChannelName.length = strlen(CL_CPM_EVENT_CHANNEL_NAME);
-    strncpy(cpmChannelName.value, CL_CPM_EVENT_CHANNEL_NAME, cpmChannelName.length);
+    strncpy((ClCharT *)cpmChannelName.value, CL_CPM_EVENT_CHANNEL_NAME, cpmChannelName.length);
 
     rc = clEventInitialize(&evtInitHandle, &evtCallbacks, &version);
     if (rc != CL_OK)
@@ -2090,7 +2090,7 @@ void clGmsEventInit(void)
     }
 
     cpmChannelName.length = strlen(CL_CPM_NODE_EVENT_CHANNEL_NAME);
-    strncpy(cpmChannelName.value, CL_CPM_NODE_EVENT_CHANNEL_NAME, cpmChannelName.length);
+    strncpy((ClCharT *)cpmChannelName.value, CL_CPM_NODE_EVENT_CHANNEL_NAME, cpmChannelName.length);
 
     rc = clEventChannelOpen(evtInitHandle,
             &cpmChannelName,

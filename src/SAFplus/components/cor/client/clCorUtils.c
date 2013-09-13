@@ -72,7 +72,7 @@ ClRcT clCorOmClassNameFromInfoModelGet(ClCorClassTypeT moClass, ClCorServiceIdT 
     ClBufferHandleT inMessageHandle = 0;
     ClBufferHandleT outMessageHandle = 0;
     ClVersionT version;
-    ClNameT className = {0};
+    SaNameT className = {0};
     ClCorUtilExtendedOpT opCode = 0;
 
     if (!pOmClass || !pClassName || !maxClassSize)
@@ -117,7 +117,7 @@ ClRcT clCorOmClassNameFromInfoModelGet(ClCorClassTypeT moClass, ClCorServiceIdT 
 	if(CL_OK != clXdrUnmarshallClInt32T(outMessageHandle, (ClUint8T*)pOmClass))
 		goto HandleError;
     
-    if(CL_OK != clXdrUnmarshallClNameT(outMessageHandle, &className))
+    if(CL_OK != clXdrUnmarshallSaNameT(outMessageHandle, &className))
         goto HandleError;
 
     strncpy(pClassName, (const ClCharT*)className.value, CL_MIN(className.length, maxClassSize));
@@ -193,7 +193,7 @@ ClRcT clCorConfigLoad(const ClCharT *pConfigFile, const ClCharT *pRouteFile)
     ClBufferHandleT inMessageHandle = 0;
     ClVersionT version;
     ClCorUtilExtendedOpT opCode = 0;
-    ClNameT configFile = {0};
+    SaNameT configFile = {0};
 
     if (!pConfigFile || !pRouteFile)
     {
@@ -217,13 +217,13 @@ ClRcT clCorConfigLoad(const ClCharT *pConfigFile, const ClCharT *pRouteFile)
 		goto HandleError;
 
     opCode = COR_CONFIG_LOAD_UTIL_OP;
-    clNameSet(&configFile, pConfigFile);
+    saNameSet(&configFile, pConfigFile);
     if((rc = clXdrMarshallClInt32T(&opCode, inMessageHandle, 0)))
         goto HandleError;
-    if((rc = clXdrMarshallClNameT(&configFile, inMessageHandle, 0)))
+    if((rc = clXdrMarshallSaNameT(&configFile, inMessageHandle, 0)))
         goto HandleError;
-    clNameSet(&configFile, pRouteFile);
-    if((rc = clXdrMarshallClNameT(&configFile, inMessageHandle, 0)))
+    saNameSet(&configFile, pRouteFile);
+    if((rc = clXdrMarshallSaNameT(&configFile, inMessageHandle, 0)))
         goto HandleError;
 
     COR_CALL_RMD_SYNC_WITH_MSG(COR_UTIL_EXTENDED_OP, inMessageHandle, 0, rc);

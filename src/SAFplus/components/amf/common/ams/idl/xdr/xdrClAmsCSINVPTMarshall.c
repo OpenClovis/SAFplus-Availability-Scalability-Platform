@@ -47,19 +47,19 @@ ClRcT clXdrMarshallClAmsCSINVPT_4_0_0(void* pGenVar, ClBufferHandleT msg, ClUint
         length = 1;
         clXdrMarshallClUint32T(&length, msg, 0);
 
-    rc = clXdrMarshallClNameT(&(pVar->csiName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->csiName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->paramName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->paramName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->paramValue),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->paramValue),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

@@ -74,8 +74,8 @@ typedef ClUint32T       ClRcT;
 %include "clCommonErrors.h"
 %include "clAmsErrors.h"
 
-%pointer_functions(ClNameT, ClNameT_p)
-%array_functions(ClNameT, ClNameT_array)
+%pointer_functions(SaNameT, SaNameT_p)
+%array_functions(SaNameT, SaNameT_array)
 %array_functions(ClAmsCSINameValuePairT, ClAmsCSINameValuePairT_array)
 %array_functions(ClAmsEntityT, ClAmsEntityT_array)
 // Overrides:
@@ -201,7 +201,7 @@ typedef struct
 
 extern ClRcT
 clLogStreamOpen(CL_IN  ClLogHandleT            hLog,
-                CL_IN  ClNameT                 streamName,
+                CL_IN  SaNameT                 streamName,
                 CL_IN  ClLogStreamScopeT       streamScope,
                 CL_IN  ClLogStreamAttributesT  *pStreamAttr,
                 CL_IN  ClLogStreamOpenFlagsT   streamOpenFlags,
@@ -391,7 +391,7 @@ extern ClRcT clAmsMgmtGetSGInstantiableSUList(
 %apply (char *STRING, int LENGTH) { (ClCharT *data, ClUint32T len) };
 extern ClRcT clAmsMgmtEntityUserDataSetKey(ClAmsMgmtHandleT handle, 
                                            ClAmsEntityT *entity,
-                                           ClNameT *key,
+                                           SaNameT *key,
                                            ClCharT *data, ClUint32T len);
 extern ClRcT clAmsMgmtEntityUserDataSet(ClAmsMgmtHandleT handle, 
                                         ClAmsEntityT *entity,
@@ -400,7 +400,7 @@ extern ClRcT clAmsMgmtEntityUserDataSet(ClAmsMgmtHandleT handle,
 %cstring_output_allocate_size(ClCharT **data, ClUint32T *len, clHeapFree(*$1));
 extern ClRcT clAmsMgmtEntityUserDataGetKey(ClAmsMgmtHandleT handle, 
                                            ClAmsEntityT *entity,
-                                           ClNameT *key,
+                                           SaNameT *key,
                                            ClCharT **data, ClUint32T *len);
 extern ClRcT clAmsMgmtEntityUserDataGet(ClAmsMgmtHandleT handle, 
                                         ClAmsEntityT *entity,

@@ -353,7 +353,7 @@ static ClRcT clTestSIEntityNameGet(SaNameT csiName,
     memset(&entity, 0, sizeof(entity));
     entity.type = CL_AMS_ENTITY_TYPE_CSI;
 
-    clNameSet(&entity.name, (ClCharT *) csiName.value);
+    saNameSet(&entity.name, (ClCharT *) csiName.value);
     ++entity.name.length; /* add for the extra null byte*/
 
     rc = clAmsMgmtEntityGetConfig(gAmsMgmtHandle, &entity, (ClAmsEntityConfigT **) &pCsiConfig);
@@ -363,7 +363,7 @@ static ClRcT clTestSIEntityNameGet(SaNameT csiName,
         return rc;
     }
     
-    strncpy((ClCharT*) (*siName).value, pCsiConfig->parentSI.entity.name.value, CL_MAX_NAME_LENGTH-1);
+    strncpy((ClCharT*) (*siName).value, (const ClCharT*)pCsiConfig->parentSI.entity.name.value, CL_MAX_NAME_LENGTH-1);
     (*siName).length = (pCsiConfig->parentSI.entity.name.length -1);
 
     clHeapFree(pCsiConfig);

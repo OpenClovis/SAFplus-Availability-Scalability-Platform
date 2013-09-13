@@ -47,7 +47,7 @@
 
 ClRcT cpmCpmLCheckpointWrite(void);
 
-static ClRcT cpmCkptReplicaChangeCallback(const ClNameT *pCkptName, ClIocNodeAddressT replicaAddr)
+static ClRcT cpmCkptReplicaChangeCallback(const SaNameT *pCkptName, ClIocNodeAddressT replicaAddr)
 {
     ClRcT rc = CL_OK;
     ClCpmLT *pCpmL = NULL;
@@ -267,7 +267,7 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
             tempLength -= tlv.LENGTH;
 
             clOsalMutexLock(gpClCpm->cpmTableMutex);
-            rc = cpmNodeFindLocked(cpmLBuffer.nodeName, &cpmL);
+            rc = cpmNodeFindLocked((SaUint8T *)cpmLBuffer.nodeName, &cpmL);
             if(CL_OK != rc)
             {
                 clOsalMutexUnlock(gpClCpm->cpmTableMutex);
@@ -339,7 +339,7 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
             clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP, "Node [%s] added to CPM", node->cpmLocalInfo.nodeName);
         }
         clOsalMutexLock(gpClCpm->cpmTableMutex);
-        rc = cpmNodeFindLocked(node->cpmLocalInfo.nodeName, &cpmL);
+        rc = cpmNodeFindLocked((SaUint8T *)node->cpmLocalInfo.nodeName, &cpmL);
         if(rc == CL_OK)
         {
             cpmL->pCpmLocalInfo = clHeapCalloc(1, sizeof(*cpmL->pCpmLocalInfo));

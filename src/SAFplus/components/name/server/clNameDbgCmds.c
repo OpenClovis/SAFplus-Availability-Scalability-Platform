@@ -198,8 +198,8 @@ ClRcT cliNSRegister(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
         else
             context = (ClUint32T)strtol (argv[1], NULL, 10);
 
-        strcpy(pRegInfo->name.value, argv[2]);
-        pRegInfo->name.length = strlen(pRegInfo->name.value);
+        strcpy((ClCharT *)pRegInfo->name.value, argv[2]);
+        pRegInfo->name.length = strlen((const ClCharT *)pRegInfo->name.value);
 
         if ((argv[3][1] == 'x') || (argv[3][1] == 'X'))
             obj[1] = (ClUint32T)strtol (argv[3], NULL, 16);
@@ -336,7 +336,7 @@ ClRcT cliNSServiceDeregister(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
 {
     ClRcT          rc         = CL_OK;
     ClUint32T      compId, contextId;
-    ClNameT            name;
+    SaNameT            name;
     if (argc < 4 )
     {
         clNameCliStrPrint("\nUsage:  NSServiceDeregister <contextId> "
@@ -363,8 +363,8 @@ ClRcT cliNSServiceDeregister(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
         else
             compId = (ClUint32T)strtol (argv[2], NULL, 10);
 
-        strcpy(name.value, argv[3]);
-        name.length = strlen(name.value);
+        strcpy((ClCharT *)name.value, argv[3]);
+        name.length = strlen((const ClCharT *)name.value);
      
         rc = clNameServiceDeregister(contextId, compId, &name);
         if(rc != CL_OK)
@@ -596,7 +596,7 @@ ClRcT cliNSObjectReferenceQuery(ClUint32T argc, ClCharT **argv,
 {
     ClRcT               rc  = CL_OK;
     ClUint32T           contextMapCookie;
-    ClNameT             name;
+    SaNameT             name;
     ClUint64T          objRef;
     ClNameSvcAttrEntryT attrList[CL_NS_MAX_NO_ATTR];
     ClUint32T           attrCount = 0;
@@ -656,8 +656,8 @@ ClRcT cliNSObjectReferenceQuery(ClUint32T argc, ClCharT **argv,
         else
             contextMapCookie = (ClUint32T)strtol (argv[2], NULL, 10);
 
-        strcpy(name.value, argv[1]);
-        name.length = strlen(name.value);
+        strcpy((ClCharT *)name.value, argv[1]);
+        name.length = strlen((const ClCharT *)name.value);
        
         memset(attrList, 0, attrCount*sizeof(ClNameSvcAttrEntryT));
         for(i=0; i<attrCount; i++)
@@ -677,7 +677,7 @@ ClRcT cliNSObjectReferenceQuery(ClUint32T argc, ClCharT **argv,
         if(tempCnt == 1)
             attrCount = 0xF;
 
-        rc = clNameToObjectReferenceGet(&name, attrCount, attrList, 
+        rc = saNameToObjectReferenceGet(&name, attrCount, attrList, 
                                             contextMapCookie, &objRef);
         if (rc == CL_OK)
         {
@@ -721,7 +721,7 @@ ClRcT cliNSAllObjectMapsQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
 {
     ClRcT                rc      = CL_OK;
     ClUint32T            contextMapCookie, i = 0, j = 1;
-    ClNameT              name;
+    SaNameT              name;
     ClNameSvcInfoIDLT*   pNSInfo = NULL;
     ClNameSvcAttrEntryT  attrList[CL_NS_MAX_NO_ATTR];
     ClUint32T            attrCount = 0, size =0;
@@ -784,8 +784,8 @@ ClRcT cliNSAllObjectMapsQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
         else
             contextMapCookie = (ClUint32T)strtol (argv[2], NULL, 10);
                                                                                                                              
-        strcpy(name.value, argv[1]);
-        name.length = strlen(name.value);
+        strcpy((ClCharT *)name.value, argv[1]);
+        name.length = strlen((const ClCharT *)name.value);
                                                                                                                              
 
         memset(attrList, 0, attrCount*sizeof(ClNameSvcAttrEntryT));
@@ -813,7 +813,7 @@ ClRcT cliNSAllObjectMapsQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
                                                                                                                              
         memset(pNSInfo, 0, sizeof(ClNameSvcInfoIDLT));
         pNSInfo->version          = CL_NS_VERSION_NO;
-        memcpy (&pNSInfo->name, &name, sizeof(ClNameT));
+        memcpy (&pNSInfo->name, &name, sizeof(SaNameT));
         pNSInfo->contextMapCookie = contextMapCookie;
         pNSInfo->op               = CL_NS_QUERY_ALL_MAPPINGS;
         pNSInfo->attrCount = attrCount;
@@ -901,7 +901,7 @@ ClRcT cliNSObjectMapQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
 {
     ClRcT                rc      = CL_OK;
     ClUint32T            contextMapCookie, i = 0, j = 1;
-    ClNameT              name;
+    SaNameT              name;
     ClNameSvcEntryT*     pNSInfo = NULL;
     ClUint32T            tempCnt = 0;
     ClNameSvcAttrEntryT  attrList[CL_NS_MAX_NO_ATTR];
@@ -962,8 +962,8 @@ ClRcT cliNSObjectMapQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
         else
             contextMapCookie = (ClUint32T)strtol (argv[2], NULL, 10);
 
-        strcpy(name.value, argv[1]);
-        name.length = strlen(name.value);
+        strcpy((ClCharT *)name.value, argv[1]);
+        name.length = strlen((const ClCharT *)name.value);
 
         memset(attrList, 0, attrCount*sizeof(ClNameSvcAttrEntryT));
         for(i=0; i<attrCount; i++)
@@ -981,7 +981,7 @@ ClRcT cliNSObjectMapQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
         if(tempCnt == 1)
             attrCount = 0xF;
 
-        rc = clNameToObjectMappingGet(&name, attrCount, attrList,
+        rc = saNameToObjectMappingGet(&name, attrCount, attrList,
                                       contextMapCookie, &pNSInfo);
         if (rc != CL_OK)
         {

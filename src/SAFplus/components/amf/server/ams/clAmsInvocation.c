@@ -211,7 +211,7 @@ clAmsInvocationCreateExtended(
 
     AMS_CHECK_NO_MEMORY ( invocationData );
 
-    memcpy(&invocationData->compName, &comp->config.entity.name, sizeof (ClNameT));
+    memcpy(&invocationData->compName, &comp->config.entity.name, sizeof (SaNameT));
 
     invocationData->cmd = cmd;
     invocationData->csi = csi;
@@ -463,7 +463,7 @@ clAmsInvocationGetAndDeleteExtended(
             ClAmsEntityRefT compRef = { {0} };
 
             compRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
-            memcpy (&compRef.entity.name, &invocationData->compName, sizeof (ClNameT));
+            memcpy (&compRef.entity.name, &invocationData->compName, sizeof (SaNameT));
             AMS_CALL ( clAmsEntityDbFindEntity(
                                                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
                                                &compRef) );
@@ -518,7 +518,7 @@ clAmsInvocationDeleteAll(
 
     clAmsInvocationListDeleteAll(
             gAms.invocationList,
-            comp->config.entity.name.value);
+            (ClCharT*)comp->config.entity.name.value);
 
     AMS_CALL ( clAmsInvocationUpdateCSI(comp, NULL, 0) );
 
@@ -1259,7 +1259,7 @@ clAmsCntMatchInvocationInstanceName(
 
     *match = CL_FALSE;
 
-    if ( !strcmp (srcName,target->compName.value) )
+    if ( !strcmp (srcName,(const ClCharT*)target->compName.value) )
     {
         *match = CL_TRUE;
     }
@@ -1476,7 +1476,7 @@ clAmsInvocationListUpdateCSIAll(ClBoolT updateCSI)
             clLogInfo("INVOCATION", "AUDIT",
                       "Deleting stale invocation [%#llx] from AMS for CSI [%s]",
                       data->invocation, entityRef.entity.name.length > 0 ? 
-                      entityRef.entity.name.value : "");
+                                      (const ClCharT*)entityRef.entity.name.value : "");
             if(clAmsInvocationListDelete(gAms.invocationList,
                                          data) != CL_OK)
             {

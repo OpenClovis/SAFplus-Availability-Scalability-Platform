@@ -53,25 +53,25 @@ ClRcT clXdrMarshallClCpmCompCSIRmvT_4_0_0(void* pGenVar, ClBufferHandleT msg, Cl
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->compName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->compName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->proxyCompName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->proxyCompName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->nodeName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->nodeName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->csiName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->csiName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

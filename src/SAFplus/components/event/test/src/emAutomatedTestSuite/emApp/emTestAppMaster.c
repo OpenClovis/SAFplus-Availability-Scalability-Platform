@@ -42,7 +42,7 @@
 
 ClCntHandleT gChanHandleInitInfo;
 extern ClRcT clEventChannelHandleGet(ClEventInitHandleT evtHandle,
-        const ClNameT *pChannelName,
+        const SaNameT *pChannelName,
         ClEventChannelOpenFlagsT
         evtChannelOpenFlag,
         ClEventChannelHandleT *pEvtChannelHandle);
@@ -57,7 +57,7 @@ void clEvtTestAppDeliverCallback(ClEventSubscriptionIdT subscriptionId,
 
     ClEventPriorityT priority = 0;
     ClTimeT retentionTime = 0;
-    ClNameT publisherName = { 0 };
+    SaNameT publisherName = { 0 };
     ClEventIdT eventId = 0;
 
     ClUint8T payLoad[50];
@@ -135,8 +135,8 @@ ClRcT clEvtTestAppInit(ClUint32T cData, ClBufferHandleT inMsg,
     ClRcT rc = CL_OK;
     ClVersionT version = CL_EVENT_VERSION;
 
-    ClNameT *pInitKey = NULL;
-    ClUint32T initDataLen = sizeof(ClNameT);    /* Since we know the size */
+    SaNameT *pInitKey = NULL;
+    ClUint32T initDataLen = sizeof(SaNameT);    /* Since we know the size */
 
     pInitKey = clHeapAllocate(sizeof(*pInitKey)); /* Allocate memory as it's used 
                                                  * as key for the container */
@@ -173,7 +173,7 @@ ClRcT clEvtTestAppFin(ClUint32T cData, ClBufferHandleT inMsg,
 {
     ClRcT rc = CL_OK;
 
-    ClNameT *pInitKey = NULL;
+    SaNameT *pInitKey = NULL;
 
     rc = clBufferFlatten(inMsg, (ClUint8T **) &pInitKey);
     rc = clBufferDelete(&inMsg);

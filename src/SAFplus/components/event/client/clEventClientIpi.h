@@ -174,7 +174,7 @@ do{\
         ClEventInitHandleT evtHandle;   /* The handle created in
                                          * clEventInitialize */
         ClUint32T evtChannelKey;
-        ClNameT evtChannelName;
+        SaNameT evtChannelName;
         ClUint8T flag;
 
     } ClEvtClientChannelInfoT;
@@ -192,7 +192,7 @@ do{\
 /**************************************************************************************
                                 Function Prototype
 **************************************************************************************/
-    ClRcT clEvtSubsInfoShow(ClNameT *pChannelName, ClUint8T channelScope,
+    ClRcT clEvtSubsInfoShow(SaNameT *pChannelName, ClUint8T channelScope,
                             ClUint8T disDetailFlag,
                             ClDebugPrintHandleT dbgPrintHandle);
 

@@ -711,7 +711,7 @@ error_out:
 
 static void clMsgAppMessageDeliveredCallbackFunc(ClIdlHandleT idlHandle,
         ClUint32T  sendType,
-        ClNameT *pDest,
+        SaNameT *pDest,
         ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,
         ClHandleT  senderHandle,
@@ -767,11 +767,11 @@ static ClRcT clMsgQueueDestAddrGet(SaNameT *pDestination, ClIocAddressT *pQueueA
     ClMsgQueueCkptDataT queueData = {{0}};
     ClMsgQGroupCkptDataT qGroupData = {{0}};
     ClMsgGroupRoundRobinT *pGroupRR;
-    ClNameT *pTempQName;
+    SaNameT *pTempQName;
     ClUint32T rrIndex = 0;
     ClUint32T startIndex = 0;
 
-    retVal = clMsgQCkptExists((ClNameT*)pDestination, &queueData);
+    retVal = clMsgQCkptExists((SaNameT*)pDestination, &queueData);
 
     if (retVal)
     {
@@ -795,7 +795,7 @@ static ClRcT clMsgQueueDestAddrGet(SaNameT *pDestination, ClIocAddressT *pQueueA
     }
     else
     {
-        if (clMsgQGroupCkptDataGet((ClNameT*)pDestination, &qGroupData) == CL_OK)
+        if (clMsgQGroupCkptDataGet((SaNameT*)pDestination, &qGroupData) == CL_OK)
         {
             if (qGroupData.numberOfQueues == 0)
             {
@@ -806,10 +806,10 @@ static ClRcT clMsgQueueDestAddrGet(SaNameT *pDestination, ClIocAddressT *pQueueA
 
             if(qGroupData.policy != SA_MSG_QUEUE_GROUP_BROADCAST)
             {
-                if(clMsgGroupRRExists((ClNameT*)pDestination, &pGroupRR) == CL_FALSE)
+                if(clMsgGroupRRExists((SaNameT*)pDestination, &pGroupRR) == CL_FALSE)
                 {
                     ClUint32T randIndex = rand() % qGroupData.numberOfQueues;
-                    clMsgGroupRRAdd((ClNameT*)pDestination, randIndex, &pGroupRR);
+                    clMsgGroupRRAdd((SaNameT*)pDestination, randIndex, &pGroupRR);
                 }
 
                 startIndex = pGroupRR->rrIndex;
@@ -839,7 +839,7 @@ static ClRcT clMsgQueueDestAddrGet(SaNameT *pDestination, ClIocAddressT *pQueueA
                             {
                                 pQueueAddr->iocPhyAddress = queueData.qAddress;
                                 pQServerAddr->iocPhyAddress = queueData.qServerAddress;
-                                clNameCopy((ClNameT *)pDestination, &queueData.qName);
+                                saNameCopy((SaNameT *)pDestination, &queueData.qName);
                                 rc = CL_OK;
                                 retVal = CL_TRUE;
                             }
@@ -875,7 +875,7 @@ static ClRcT clMsgQueueDestAddrGet(SaNameT *pDestination, ClIocAddressT *pQueueA
                                 {
                                     pQueueAddr->iocPhyAddress = queueData.qAddress;
                                     pQServerAddr->iocPhyAddress = queueData.qServerAddress;
-                                    clNameCopy((ClNameT *)pDestination, &queueData.qName);
+                                    saNameCopy((SaNameT *)pDestination, &queueData.qName);
                                     rc = CL_OK;
                                     retVal = CL_TRUE;
                                 }
@@ -929,7 +929,7 @@ static SaAisErrorT clMsgMessageSendInternal(
 
     CL_MSG_INIT_CHECK;
 
-    clNameCopy((ClNameT *) &tempDest, (ClNameT *)pDestination);
+    saNameCopy((SaNameT *) &tempDest, (SaNameT *)pDestination);
 
     if(pDestination == NULL || pMessage == NULL || pMessage->pIovec == NULL)
     {
@@ -993,11 +993,11 @@ static SaAisErrorT clMsgMessageSendInternal(
 
         pCallbackParam->msgHandle = msgHandle;
         pCallbackParam->invocation = invocation;
-        rc = clMsgClientMessageSend(&queueAddr, &queueServerAddr, (ClNameT*)&tempDest, &tempMessage, sendTime, timeout, isSync, ackFlags, &clMsgAppMessageDeliveredCallbackFunc, pCallbackParam);
+        rc = clMsgClientMessageSend(&queueAddr, &queueServerAddr, (SaNameT*)&tempDest, &tempMessage, sendTime, timeout, isSync, ackFlags, &clMsgAppMessageDeliveredCallbackFunc, pCallbackParam);
     }
     else
     {
-        rc = clMsgClientMessageSend(&queueAddr, &queueServerAddr, (ClNameT*)&tempDest, &tempMessage, sendTime, timeout, isSync, ackFlags, NULL, NULL);
+        rc = clMsgClientMessageSend(&queueAddr, &queueServerAddr, (SaNameT*)&tempDest, &tempMessage, sendTime, timeout, isSync, ackFlags, NULL, NULL);
     }
 
     if(rc != CL_OK)
@@ -1145,7 +1145,7 @@ SaAisErrorT saMsgMessageGet(SaMsgQueueHandleT queueHandle,
     ClTimerTimeOutT tempTimeout;
     ClMsgQueueInfoT *pQInfo = NULL;
     ClMsgReceivedMessageDetailsT *pRecvInfo;
-    ClNameT qName;
+    SaNameT qName;
     ClMsgQueueCkptDataT queueData = {{0}};
 
     CL_MSG_INIT_CHECK;
@@ -1171,7 +1171,7 @@ SaAisErrorT saMsgMessageGet(SaMsgQueueHandleT queueHandle,
     CL_OSAL_MUTEX_LOCK(&pQInfo->qLock);
     CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
 
-    clNameCopy(&qName, &pQInfo->pQueueEntry->qName);
+    saNameCopy(&qName, &pQInfo->pQueueEntry->qName);
 
 get_message:
     for(i = 0; i < CL_MSG_QUEUE_PRIORITIES; i++)
@@ -1223,7 +1223,7 @@ get_message:
         pMessage->size = pRecvMessage->size;
         pMessage->priority = pRecvMessage->priority;
         if(pMessage->senderName != NULL)
-            memcpy(pMessage->senderName, pRecvMessage->senderName, sizeof(ClNameT));
+            memcpy(pMessage->senderName, pRecvMessage->senderName, sizeof(SaNameT));
         memcpy(pMessage->data, pRecvMessage->data, pRecvMessage->size);
 
         /*
@@ -1329,14 +1329,14 @@ out:
     /* GAS: What is the purpose of this code? Is it to clear one message from the redundant queue? */
     if(rc == CL_OK)
     {
-        if (clMsgQCkptExists((ClNameT *)&qName, &queueData) == CL_TRUE)
+        if (clMsgQCkptExists((SaNameT *)&qName, &queueData) == CL_TRUE)
         {
             if ((queueData.qAddress.nodeAddress == gLocalAddress)
                  && (queueData.qAddress.portId == gLocalPortId)
                  && (queueData.creationFlags == SA_MSG_QUEUE_PERSISTENT)
                  && (queueData.qServerAddress.nodeAddress != 0))
             {
-                clMsgMessageGet_Idl(queueData.qServerAddress, (ClNameT *)&qName, timeout);
+                clMsgMessageGet_Idl(queueData.qServerAddress, (SaNameT *)&qName, timeout);
             }
         }
     }
@@ -1460,7 +1460,7 @@ SaAisErrorT saMsgMessageSendReceive(
 
     CL_MSG_INIT_CHECK;
 
-    clNameCopy((ClNameT *)&tempDest, (ClNameT *)pDestAddress);
+    saNameCopy((SaNameT *)&tempDest, (SaNameT *)pDestAddress);
 
     if(pDestAddress == NULL || pSendMsg  == NULL || pReceiveMsg  == NULL)
     {
@@ -1504,7 +1504,7 @@ SaAisErrorT saMsgMessageSendReceive(
         goto error_out_2;
     }
 
-    rc = clMsgClientMessageSendReceive(&queueAddr, &queueServerAddr, (ClNameT*)&tempDest,
+    rc = clMsgClientMessageSendReceive(&queueAddr, &queueServerAddr, (SaNameT*)&tempDest,
             &tempSendMsg, sendTime, pTempMessage, &replySentTime, timeout);
     if(rc != CL_OK)
     {
@@ -1559,7 +1559,7 @@ error_out:
 
 static void clMsgAppMessageReplyDeliveredCallbackFunc(ClIdlHandleT idlHandle,
         ClUint32T  sendType,
-        ClNameT *pDest,
+        SaNameT *pDest,
         ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,
         ClHandleT  senderHandle,

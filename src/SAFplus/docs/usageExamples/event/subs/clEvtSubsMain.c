@@ -74,7 +74,7 @@ static void clSubEoEventWaterMarkCb( ClEventSubscriptionIdT subscriptionId,
 
     ClEventPriorityT priority = 0;
     ClTimeT retentionTime = 0;
-    ClNameT publisherName = { 0 };
+    SaNameT publisherName = { 0 };
     ClEventIdT eventId = 0;
     ClEventPatternArrayT patternArray = { 0 };
     ClTimeT publishTime = 0;
@@ -191,7 +191,7 @@ failure:
 
 static ClCpmHandleT gClEvtSubsCpmHandle; /* FIXME */
 ClRcT clEventSubsTerminate(ClInvocationT invocation,
-			const ClNameT  *compName)
+			const SaNameT  *compName)
 {
     ClRcT rc;
 
@@ -206,7 +206,7 @@ ClRcT clEventSubsTerminate(ClInvocationT invocation,
 
 ClRcT clEvtSubsCpmInit()
 {
-    ClNameT appName;
+    SaNameT appName;
     ClCpmCallbacksT callbacks;
     ClVersionT	version;
     ClIocPortT	iocPort;
@@ -273,7 +273,7 @@ static ClRcT clSubsEventLibrayInitialize(void)
     ClRcT rc = CL_OK;
 
     ClVersionT version = CL_EVENT_VERSION;    
-    ClNameT channelName = {sizeof(CL_EO_EVENT_CHANNEL_NAME)-1, CL_EO_EVENT_CHANNEL_NAME};
+    SaNameT channelName = {sizeof(CL_EO_EVENT_CHANNEL_NAME)-1, CL_EO_EVENT_CHANNEL_NAME};
 
     const ClEventCallbacksT evtCallbacks = 
     {

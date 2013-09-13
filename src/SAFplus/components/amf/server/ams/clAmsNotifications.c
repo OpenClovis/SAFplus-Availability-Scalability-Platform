@@ -143,9 +143,9 @@ clAmsNotificationEventInitialize (void)
 
     AMS_CALL ( clEventInitialize( &ams->eventInitHandle, NULL, &eventVersion) );
 
-    ClNameT clAmsEventChannelName = {0};
+    SaNameT clAmsEventChannelName = {0};
 
-    strcpy(clAmsEventChannelName.value, CL_AMS_EVENT_CHANNEL_NAME);
+    strcpy((ClCharT*)clAmsEventChannelName.value, CL_AMS_EVENT_CHANNEL_NAME);
     clAmsEventChannelName.length = strlen(CL_AMS_EVENT_CHANNEL_NAME) ;
 
 
@@ -179,9 +179,9 @@ clAmsNotificationEventInitialize (void)
             != CL_OK )
         goto error;
 
-    ClNameT  clAmsEventPublisherName = {0};
+    SaNameT  clAmsEventPublisherName = {0};
 
-    strcpy (clAmsEventPublisherName.value, CL_AMS_EVENT_PUBLISHER_NAME);
+    strcpy ((ClCharT*)clAmsEventPublisherName.value, CL_AMS_EVENT_PUBLISHER_NAME);
     clAmsEventPublisherName.length = strlen (CL_AMS_EVENT_PUBLISHER_NAME);
 
     if ( ( rc = clEventAttributesSet(
@@ -520,7 +520,7 @@ ClRcT clAmsGenericNotificationEventPayloadSet(ClAmsNotificationTypeT type,
 
     notification->entityType = entity->type;
     memcpy(&notification->entityName, &entity->name, sizeof(notification->entityName));
-    notification->entityName.length = strlen(entity->name.value);
+    notification->entityName.length = strlen((const ClCharT*)entity->name.value);
     return CL_OK;
 }
 
@@ -535,10 +535,10 @@ static ClRcT clAmsSINotificationEventPayloadSet(const ClAmsEntityT *entity,
             
     notification->type = ntfType;
     notification->entityType = CL_AMS_ENTITY_TYPE_SI;
-    memcpy(&notification->siName, &siRef->entityRef.entity.name, sizeof(ClNameT));
-    memcpy(&notification->suName, &su->config.entity.name, sizeof(ClNameT));
-    notification->siName.length = strlen(siRef->entityRef.entity.name.value);
-    notification->suName.length = strlen(su->config.entity.name.value);
+    memcpy(&notification->siName, &siRef->entityRef.entity.name, sizeof(SaNameT));
+    memcpy(&notification->suName, &su->config.entity.name, sizeof(SaNameT));
+    notification->siName.length = strlen((const ClCharT*)siRef->entityRef.entity.name.value);
+    notification->suName.length = strlen((const ClCharT*)su->config.entity.name.value);
     notification->lastHAState = lastHAState;
     notification->newHAState = siRef->haState;
 
@@ -555,10 +555,10 @@ static ClRcT clAmsSUNotificationEventPayloadSet(const ClAmsEntityT *entity,
 
     notification->type = CL_AMS_NOTIFICATION_SU_HA_STATE_CHANGE;
     notification->entityType = CL_AMS_ENTITY_TYPE_SU;
-    memcpy(&notification->suName, &suRef->entityRef.entity.name, sizeof(ClNameT));
-    memcpy(&notification->siName, &si->config.entity.name, sizeof(ClNameT));
-    notification->suName.length = strlen(suRef->entityRef.entity.name.value);
-    notification->siName.length = strlen(si->config.entity.name.value);
+    memcpy(&notification->suName, &suRef->entityRef.entity.name, sizeof(SaNameT));
+    memcpy(&notification->siName, &si->config.entity.name, sizeof(SaNameT));
+    notification->suName.length = strlen((const ClCharT*)suRef->entityRef.entity.name.value);
+    notification->siName.length = strlen((const ClCharT*)si->config.entity.name.value);
     notification->lastHAState = lastHAState;
     notification->newHAState = suRef->haState;
 
@@ -575,10 +575,10 @@ static ClRcT clAmsCompNotificationEventPayloadSet(const ClAmsEntityT *entity,
 
     notification->type = CL_AMS_NOTIFICATION_COMP_HA_STATE_CHANGE;
     notification->entityType = CL_AMS_ENTITY_TYPE_COMP;
-    memcpy(&notification->entityName, &compRef->entityRef.entity.name, sizeof(ClNameT));
-    memcpy(&notification->siName, &csi->config.entity.name, sizeof(ClNameT));
-    notification->entityName.length = strlen(compRef->entityRef.entity.name.value);
-    notification->siName.length = strlen(csi->config.entity.name.value);
+    memcpy(&notification->entityName, &compRef->entityRef.entity.name, sizeof(SaNameT));
+    memcpy(&notification->siName, &csi->config.entity.name, sizeof(SaNameT));
+    notification->entityName.length = strlen((const ClCharT*)compRef->entityRef.entity.name.value);
+    notification->siName.length = strlen((const ClCharT*)csi->config.entity.name.value);
     notification->lastHAState = lastHAState;
     notification->newHAState = compRef->haState;
 
@@ -647,7 +647,7 @@ ClRcT clAmsOperStateNotificationPublish(ClAmsEntityT *pEntity,
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     descriptor.type = CL_AMS_NOTIFICATION_OPER_STATE_CHANGE;
     descriptor.entityType = pEntity->type;
-    clNameSet((ClNameT*)&descriptor.entityName, pEntity->name.value);
+    saNameSet((SaNameT*)&descriptor.entityName, (const ClCharT*)pEntity->name.value);
     descriptor.lastOperState = lastOperState;
     descriptor.newOperState = newOperState;
     return clAmsNotificationEventPublish(&descriptor);
@@ -662,7 +662,7 @@ ClRcT clAmsAdminStateNotificationPublish(ClAmsEntityT *pEntity,
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     descriptor.type = CL_AMS_NOTIFICATION_ADMIN_STATE_CHANGE;
     descriptor.entityType = pEntity->type;
-    clNameSet((ClNameT*)&descriptor.entityName, pEntity->name.value);
+    saNameSet((SaNameT*)&descriptor.entityName, (const ClCharT*)pEntity->name.value);
     descriptor.lastAdminState = lastAdminState;
     descriptor.newAdminState =  newAdminState;
     return clAmsNotificationEventPublish(&descriptor);

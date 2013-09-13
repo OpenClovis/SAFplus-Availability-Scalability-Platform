@@ -110,7 +110,7 @@ ClRcT clTxnServiceCkptInitialize()
     ClRcT       rc      = CL_OK;
     if(!clTxnServiceCfg->dsblCkpt)
     {
-        ClNameT     txnCkptName;
+        SaNameT     txnCkptName;
 
         CL_FUNC_ENTER();
 
@@ -180,7 +180,7 @@ ClRcT clTxnServiceCkptFinalize()
     ClRcT       rc = CL_OK;
     if(!clTxnServiceCfg->dsblCkpt)
     {
-        ClNameT     txnCkptName;
+        SaNameT     txnCkptName;
 
         CL_FUNC_ENTER();
 
@@ -216,7 +216,7 @@ ClRcT clTxnServiceCkptAppStateCheckpoint()
     ClRcT rc = CL_OK;
     if(!clTxnServiceCfg->dsblCkpt)
     {
-        ClNameT     txnCkptName;
+        SaNameT     txnCkptName;
 
         CL_FUNC_ENTER();
 
@@ -247,7 +247,7 @@ ClRcT clTxnServiceCkptAppStateRestore()
     ClRcT       rc = CL_OK;
     if(!clTxnServiceCfg->dsblCkpt)
     {
-        ClNameT     txnCkptName;
+        SaNameT     txnCkptName;
 
         CL_FUNC_ENTER();
 
@@ -283,7 +283,7 @@ ClRcT clTxnServiceCkptRecoveryLogCheckpoint(
     ClRcT   rc  = CL_OK;
     if(!clTxnServiceCfg->dsblCkpt)
     {
-        ClNameT     txnCkptName;
+        SaNameT     txnCkptName;
         ClCharT     elementName[200];
 
         CL_FUNC_ENTER();
@@ -321,7 +321,7 @@ ClRcT clTxnServiceCkptRecoveryLogCheckpointDelete(
     ClRcT   rc  = CL_OK;
     if(!clTxnServiceCfg->dsblCkpt)
     {
-        ClNameT     txnCkptName;
+        SaNameT     txnCkptName;
         ClCharT     elementName[200];
 
         CL_FUNC_ENTER();
@@ -358,7 +358,7 @@ ClRcT clTxnServiceCkptRecoveryLogRestore()
     ClRcT       rc = CL_OK;
     if(!clTxnServiceCfg->dsblCkpt)
     {
-        ClNameT     txnCkptName;
+        SaNameT     txnCkptName;
 
         CL_FUNC_ENTER();
 
@@ -395,7 +395,7 @@ ClRcT clTxnServiceCkptNewTxnCheckpoint(
     ClRcT rc = CL_OK;
     if(!clTxnServiceCfg->dsblCkpt)
     {
-        ClNameT     txnCkptName;
+        SaNameT     txnCkptName;
 
         CL_FUNC_ENTER();
 
@@ -446,7 +446,7 @@ ClRcT clTxnServiceCkptTxnRestore(
     ClRcT rc = CL_OK;
     if(!clTxnServiceCfg->dsblCkpt)
     {
-        ClNameT     txnCkptName;
+        SaNameT     txnCkptName;
 
         CL_FUNC_ENTER();
 
@@ -495,7 +495,7 @@ ClRcT clTxnServiceCkptTxnDelete(
     ClRcT   rc  = CL_OK;
     if(!clTxnServiceCfg->dsblCkpt)
     {
-        ClNameT     txnCkptName;
+        SaNameT     txnCkptName;
 
         CL_FUNC_ENTER();
 

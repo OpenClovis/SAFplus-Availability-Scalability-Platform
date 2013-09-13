@@ -51,7 +51,7 @@
 #include "xdrClCpmSlotInfoRecvT.h"
 #include "xdrClCpmSlotInfoFieldIdT.h"
 
-ClRcT cpmCorMoIdToMoIdNameGet(ClCorMOIdT *moId, ClNameT *moIdName)
+ClRcT cpmCorMoIdToMoIdNameGet(ClCorMOIdT *moId, SaNameT *moIdName)
 {
 #ifdef USE_COR
     
@@ -76,7 +76,7 @@ ClRcT cpmCorMoIdToMoIdNameGet(ClCorMOIdT *moId, ClNameT *moIdName)
 }
 
                             // coverity[pass_by_value]
-ClRcT cpmCorNodeObjectCreate(ClNameT nodeMoIdName)
+ClRcT cpmCorNodeObjectCreate(SaNameT nodeMoIdName)
 {
 #ifdef USE_COR
     
@@ -167,10 +167,10 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
                 {
                     slotInfoRecv.nodeIocAddress = cpmL->pCpmLocalInfo->cpmAddress.nodeAddress;
 
-                    memcpy(&slotInfoRecv.nodeMoIdStr, &cpmL->pCpmLocalInfo->nodeMoIdStr, sizeof(ClNameT));
+                    memcpy(&slotInfoRecv.nodeMoIdStr, &cpmL->pCpmLocalInfo->nodeMoIdStr, sizeof(SaNameT));
 
-                    strcpy(slotInfoRecv.nodeName.value, cpmL->pCpmLocalInfo->nodeName);
-                    slotInfoRecv.nodeName.length = strlen(slotInfoRecv.nodeName.value);
+                    strcpy((ClCharT *)slotInfoRecv.nodeName.value, cpmL->pCpmLocalInfo->nodeName);
+                    slotInfoRecv.nodeName.length = strlen((const ClCharT *)slotInfoRecv.nodeName.value);
 
                     rc = VDECL_VER(clXdrMarshallClCpmSlotInfoRecvT, 4, 0, 0)((void *)&slotInfoRecv, outMsgHandle, 0);
                     CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
@@ -203,10 +203,10 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
                 {
                     slotInfoRecv.slotId = cpmL->pCpmLocalInfo->slotNumber;
 
-                    memcpy(&slotInfoRecv.nodeMoIdStr, &cpmL->pCpmLocalInfo->nodeMoIdStr, sizeof(ClNameT));
+                    memcpy(&slotInfoRecv.nodeMoIdStr, &cpmL->pCpmLocalInfo->nodeMoIdStr, sizeof(SaNameT));
 
-                    strcpy(slotInfoRecv.nodeName.value, cpmL->pCpmLocalInfo->nodeName);
-                    slotInfoRecv.nodeName.length = strlen(slotInfoRecv.nodeName.value);
+                    strcpy((ClCharT *)slotInfoRecv.nodeName.value, cpmL->pCpmLocalInfo->nodeName);
+                    slotInfoRecv.nodeName.length = strlen((const ClCharT *)slotInfoRecv.nodeName.value);
 
                     rc = VDECL_VER(clXdrMarshallClCpmSlotInfoRecvT, 4, 0, 0)((void *)&slotInfoRecv, outMsgHandle, 0);
                     CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
@@ -232,17 +232,16 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
         {
             while (cpmLCount)
             {
-                if(cpmL->pCpmLocalInfo != NULL && 
-                        cpmL->pCpmLocalInfo->status == CL_CPM_EO_ALIVE &&
-                        (strcmp(slotInfoRecv.nodeMoIdStr.value, 
-                            cpmL->pCpmLocalInfo->nodeMoIdStr.value) == 0))
-                {
+                    if (cpmL->pCpmLocalInfo != NULL && cpmL->pCpmLocalInfo->status == CL_CPM_EO_ALIVE
+                                    && (strcmp((const ClCharT *) slotInfoRecv.nodeMoIdStr.value,
+                                                    (const ClCharT *) (cpmL->pCpmLocalInfo->nodeMoIdStr.value)) == 0))
+                    {
                     slotInfoRecv.slotId = cpmL->pCpmLocalInfo->slotNumber;
 
                     slotInfoRecv.nodeIocAddress = cpmL->pCpmLocalInfo->cpmAddress.nodeAddress;
 
-                    strcpy(slotInfoRecv.nodeName.value, cpmL->pCpmLocalInfo->nodeName);
-                    slotInfoRecv.nodeName.length = strlen(slotInfoRecv.nodeName.value);
+                    strcpy((ClCharT *)slotInfoRecv.nodeName.value, cpmL->pCpmLocalInfo->nodeName);
+                    slotInfoRecv.nodeName.length = strlen((const ClCharT *)slotInfoRecv.nodeName.value);
 
                     rc = VDECL_VER(clXdrMarshallClCpmSlotInfoRecvT, 4, 0, 0)((void *)&slotInfoRecv, outMsgHandle, 0);
                     CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
@@ -268,16 +267,14 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
         {
             while (cpmLCount)
             {
-                if(cpmL->pCpmLocalInfo != NULL && 
-                        cpmL->pCpmLocalInfo->status == CL_CPM_EO_ALIVE &&
-                        (strcmp(slotInfoRecv.nodeName.value, 
-                            cpmL->pCpmLocalInfo->nodeName) == 0))
+                    if (cpmL->pCpmLocalInfo != NULL && cpmL->pCpmLocalInfo->status == CL_CPM_EO_ALIVE
+                                    && (strcmp((const ClCharT *) slotInfoRecv.nodeName.value, cpmL->pCpmLocalInfo->nodeName) == 0))
                 {
                     slotInfoRecv.slotId = cpmL->pCpmLocalInfo->slotNumber;
 
                     slotInfoRecv.nodeIocAddress = cpmL->pCpmLocalInfo->cpmAddress.nodeAddress;
 
-                    memcpy(&slotInfoRecv.nodeMoIdStr, &cpmL->pCpmLocalInfo->nodeMoIdStr, sizeof(ClNameT));
+                    memcpy(&slotInfoRecv.nodeMoIdStr, &cpmL->pCpmLocalInfo->nodeMoIdStr, sizeof(SaNameT));
 
                     rc = VDECL_VER(clXdrMarshallClCpmSlotInfoRecvT, 4, 0, 0)((void *)&slotInfoRecv, outMsgHandle, 0);
                     CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);

@@ -112,9 +112,9 @@ clLogStreamHandlerDeleteCb(ClCntKeyHandleT userKey, ClCntDataHandleT userData)
 }
 ClRcT
 clLogClntHandlerRegister(ClLogHandleT              hLog,
-                         ClNameT                   *pStreamName,
+                         SaNameT                   *pStreamName,
                          ClLogStreamScopeT         streamScope,
-                         ClNameT                   *pNodeName,
+                         SaNameT                   *pNodeName,
                          ClLogStreamHandlerFlagsT  handlerFlags,
                          ClIocMulticastAddressT    streamMcastAddr,
                          ClLogStreamHandleT        *phStream)
@@ -267,9 +267,9 @@ clLogClntHandlerRegister(ClLogHandleT              hLog,
  */
 ClRcT
 clLogClntHandlerEntryGet(ClLogClntEoDataT        *pClntEoEntry,
-                         ClNameT                 *pStreamName,
+                         SaNameT                 *pStreamName,
                          ClLogStreamScopeT       streamScope, 
-                         ClNameT                 *pNodeName,
+                         SaNameT                 *pNodeName,
                          ClIocMulticastAddressT  mcastAddr,
                          ClCntNodeHandleT        *phHandlerNode,
                          ClBoolT                 *pAddedEntry)
@@ -312,9 +312,9 @@ clLogClntHandlerEntryGet(ClLogClntEoDataT        *pClntEoEntry,
 ClRcT
 clLogClntHandlerEntryAdd(ClCntHandleT            hStreamHandlerTable,
                          ClIocMulticastAddressT  *pStreamMcastAddr,
-                         ClNameT                 *pStreamName,
+                         SaNameT                 *pStreamName,
                          ClLogStreamScopeT       streamScope,
-                         ClNameT                 *pNodeName,
+                         SaNameT                 *pNodeName,
                          ClCntNodeHandleT        *phHandlerNode)
 {
     ClRcT                   rc            = CL_OK;
@@ -730,9 +730,9 @@ clLogClntHandlerDeregister(ClLogStreamHandleT  hStream,
     ClRcT                     rc              = CL_OK;
     ClUint32T                 nBits           = 0;
     ClIdlHandleT              hClntIdl        = {0};
-    ClNameT                   streamName      = {0};
+    SaNameT                   streamName      = {0};
     ClLogStreamScopeT         streamScope     = CL_LOG_STREAM_LOCAL;
-    ClNameT                   nodeName        = {0};
+    SaNameT                   nodeName        = {0};
     ClLogStreamHandlerFlagsT  handlerFlag     = 0;
     ClCntNodeHandleT          hHandlerNode    = CL_HANDLE_INVALID_VALUE;
     ClIocAddressT             destAddr        = {{0}};
@@ -846,8 +846,8 @@ clLogClntHandlerDeregister(ClLogStreamHandleT  hStream,
          */
         for(i = 0; i < nStdStream; i++ ) 
         {
-            if( !strncmp(stdStreamList[i].streamName.value, 
-                        streamName.value, streamName.length) ) 
+            if( !strncmp((const ClCharT *)stdStreamList[i].streamName.value,
+                        (const ClCharT *)streamName.value, streamName.length) )
             {
                 destAddr.iocPhyAddress.nodeAddress = clIocLocalAddressGet(); 
                 destAddr.iocPhyAddress.portId      = CL_IOC_LOG_PORT;

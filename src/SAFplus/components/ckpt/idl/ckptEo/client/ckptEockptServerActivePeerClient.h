@@ -43,15 +43,15 @@ extern "C" {
 
 
 
-typedef void (*CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClNameT* pCkptName, CL_IN CkptCPInfoT_4_0_0* pCpInfo, CL_IN CkptDPInfoT_4_0_0* pDpInfo, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN SaNameT* pCkptName, CL_IN CkptCPInfoT_4_0_0* pCpInfo, CL_IN CkptDPInfoT_4_0_0* pDpInfo, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_4_0_0 CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT;
 
-ClRcT clCkptRemSvrCkptInfoSyncClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClNameT* pCkptName, CL_IN CkptCPInfoT_4_0_0* pCpInfo, CL_IN CkptDPInfoT_4_0_0* pDpInfo,CL_IN CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clCkptRemSvrCkptInfoSyncClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN SaNameT* pCkptName, CL_IN CkptCPInfoT_4_0_0* pCpInfo, CL_IN CkptDPInfoT_4_0_0* pDpInfo,CL_IN CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
-typedef void (*CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_5_0_0) (CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClNameT* pCkptName, CL_IN CkptCPInfoT_5_0_0* pCpInfo, CL_IN CkptDPInfoT_4_0_0* pDpInfo, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_5_0_0) (CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN SaNameT* pCkptName, CL_IN CkptCPInfoT_5_0_0* pCpInfo, CL_IN CkptDPInfoT_4_0_0* pDpInfo, CL_IN ClRcT rc, CL_IN void* pCookie);
 
-ClRcT clCkptRemSvrCkptInfoSyncClientAsync_5_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClNameT* pCkptName, CL_IN CkptCPInfoT_5_0_0* pCpInfo, CL_IN CkptDPInfoT_4_0_0* pDpInfo,CL_IN CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_5_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clCkptRemSvrCkptInfoSyncClientAsync_5_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN SaNameT* pCkptName, CL_IN CkptCPInfoT_5_0_0* pCpInfo, CL_IN CkptDPInfoT_4_0_0* pDpInfo,CL_IN CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_5_0_0 fpAsyncCallback, CL_IN void *cookie);
 
 ClRcT clCkptRemSvrCkptInfoGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT ckptActHdl, CL_IN ClUint32T peerAddr, CL_OUT CkptInfoT_4_0_0* pCkptInfo);
 

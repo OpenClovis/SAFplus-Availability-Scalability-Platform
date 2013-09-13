@@ -92,7 +92,7 @@ clLogFileLocationFindNGet(ClCharT    *recvFileLoc,
     ClRcT  rc = CL_OK;
     ClCharT nodeStr[CL_MAX_NAME_LENGTH] = {0};
     ClCharT path[CL_MAX_NAME_LENGTH] = {0};
-    ClNameT localName = {0};
+    SaNameT localName = {0};
 
     sscanf(recvFileLoc, "%[^:]:%s", nodeStr, path);
     if( ('.' == recvFileLoc[0]) && ('\0' == nodeStr[1]) )
@@ -300,7 +300,7 @@ clLogPerennialStreamsDataGet(ClLogStreamAttrIDLT  *pStreamAttr,
     {
         if( stdStreamList[i].streamScope == CL_LOG_STREAM_LOCAL )
         {
-            memset(&stdStreamList[i].streamScopeNode, '\0', sizeof(ClNameT));
+            memset(&stdStreamList[i].streamScopeNode, '\0', sizeof(SaNameT));
             rc = clCpmLocalNodeNameGet(&stdStreamList[i].streamScopeNode);
             if( CL_OK != rc )
             {
@@ -354,7 +354,7 @@ clLogMasterAddressGet(ClIocAddressT  *pIocAddress)
 }
 
 ClRcT
-clLogStreamScopeGet(ClNameT            *pNodeName,
+clLogStreamScopeGet(SaNameT            *pNodeName,
                     ClLogStreamScopeT  *pScope)
 {
     ClRcT  rc = CL_OK;
@@ -366,7 +366,7 @@ clLogStreamScopeGet(ClNameT            *pNodeName,
 
     CL_LOG_DEBUG_VERBOSE(("NodeName: %.*s", pNodeName->length,
                           pNodeName->value));
-    if( !strncmp(pNodeName->value, gStreamScopeGlobal, pNodeName->length) )
+    if( !strncmp((const ClCharT *)pNodeName->value, gStreamScopeGlobal, pNodeName->length) )
     {
         *pScope = CL_LOG_STREAM_GLOBAL;
     }
@@ -406,7 +406,7 @@ clLogStreamKeyCompare(ClCntKeyHandleT  key1,
         return -1;
     }
 
-    if( strncmp(pKey1->streamName.value, pKey2->streamName.value,
+    if( strncmp((const ClCharT *)pKey1->streamName.value, (const ClCharT *)pKey2->streamName.value,
                 pKey1->streamName.length)  )
     {
         CL_LOG_DEBUG_TRACE(("Mismatched stream name"));
@@ -419,7 +419,7 @@ clLogStreamKeyCompare(ClCntKeyHandleT  key1,
         return -1;
     }
 
-    if( strncmp(pKey1->streamScopeNode.value, pKey2->streamScopeNode.value,
+    if( strncmp((const ClCharT *)pKey1->streamScopeNode.value, (const ClCharT *)pKey2->streamScopeNode.value,
                 pKey1->streamScopeNode.length)  )
     {
         CL_LOG_DEBUG_TRACE(("Mismatched scopenode name"));
@@ -438,8 +438,8 @@ clLogStreamHashFn(ClCntKeyHandleT key)
 
 
 ClRcT
-clLogStreamKeyCreate(ClNameT          *pStreamName,
-                     ClNameT          *pNodeName,
+clLogStreamKeyCreate(SaNameT          *pStreamName,
+                     SaNameT          *pNodeName,
                      ClUint32T        maxStreams,
                      ClLogStreamKeyT  **ppStreamKey)
 {
@@ -538,7 +538,7 @@ clLogShmGet(ClCharT   *shmName,
 }
 
 ClRcT
-clLogStreamShmSegInit(ClNameT                 *pStreamName,
+clLogStreamShmSegInit(SaNameT                 *pStreamName,
                       ClCharT                 *pShmName,
                       ClInt32T                shmFd,
                       ClUint32T               shmSize,
@@ -937,8 +937,8 @@ clLogPSharedCondCreate(ClLogStreamHeaderT *pHeader)
 }
 
 ClRcT
-clLogShmNameCreate(ClNameT    *pStreamName,
-                   ClNameT    *pStreamScopeNode,
+clLogShmNameCreate(SaNameT    *pStreamName,
+                   SaNameT    *pStreamScopeNode,
                    ClStringT  *pShmName)
 {
     ClRcT       rc    = CL_OK;
@@ -1003,7 +1003,7 @@ clLogShmNameDestroy(ClStringT  *pShmName)
 }
 
 ClRcT
-clLogCompNamePrefixGet(ClNameT   *pCompName,
+clLogCompNamePrefixGet(SaNameT   *pCompName,
                        ClCharT   **ppCompPrefix)
 {
     ClRcT      rc     = CL_OK;
@@ -1027,7 +1027,7 @@ clLogCompNamePrefixGet(ClNameT   *pCompName,
     }
     else
     {
-        sscanf(pCompName->value, "%[^_]", *ppCompPrefix);
+        sscanf((ClCharT *)pCompName->value, "%[^_]", *ppCompPrefix);
         (*ppCompPrefix)[pCompName->length] = '\0';
     }
 
@@ -1334,8 +1334,8 @@ clLogAddressForLocationGet(ClCharT        *pStr,
     }
     else
     {
-        strncpy(slotInfo.nodeName.value, pStr, CL_MAX_NAME_LENGTH-1);
-        slotInfo.nodeName.length = strlen(slotInfo.nodeName.value);
+        strncpy((ClCharT *)slotInfo.nodeName.value, pStr, CL_MAX_NAME_LENGTH-1);
+        slotInfo.nodeName.length = strlen((const ClCharT *)slotInfo.nodeName.value);
 
         rc = clCpmSlotGet(CL_CPM_NODENAME, &slotInfo);
         if( CL_OK != rc )
@@ -1544,7 +1544,7 @@ clLogFileIOVwrite(ClLogFilePtrT  fp,
     return rc;
 }
 
-ClUint32T clLogDefaultStreamSeverityGet(ClNameT *pStreamName)
+ClUint32T clLogDefaultStreamSeverityGet(SaNameT *pStreamName)
 {
     static ClUint32T defaultStreamSeverity, customStreamSeverity;
     const ClCharT *sev = NULL;

@@ -47,7 +47,7 @@ ClRcT clXdrMarshallClErrorReportT_4_0_0(void* pGenVar, ClBufferHandleT msg, ClUi
         length = 1;
         clXdrMarshallClUint32T(&length, msg, 0);
 
-    rc = clXdrMarshallClNameT(&(pVar->compName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->compName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

@@ -62,8 +62,8 @@ SRC_FILES	:= clPool.c \
 	           xdrClInt64T.c \
 	           xdrClUint64T.c \
 		   xdrClStringT.c \
-               xdrClNameTMarshall.c \
-               xdrClNameTUnMarshall.c \
+               xdrSaNameTMarshall.c \
+               xdrSaNameTUnMarshall.c \
                xdrClVersionTMarshall.c \
                xdrClVersionTUnMarshall.c \
                xdrClMD5TMarshall.c \

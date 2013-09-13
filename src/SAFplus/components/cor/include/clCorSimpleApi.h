@@ -66,7 +66,7 @@ typedef struct ClCorObjectTreeNode
 {
     ClCorTreeNodeT      cmn;
     
-    ClNameT             name;    
+    SaNameT             name;    
     ClPtrT*             value;
     ClWordT             size;
     ClCorTypeT          type;
@@ -77,7 +77,7 @@ typedef struct ClCorObjectTreeNode
 typedef struct ClCorClassTreeNode
 {
     ClCorTreeNodeT      cmn;
-    ClNameT             name;
+    SaNameT             name;
 } ClCorClassTreeNodeT;
 
 /** Object Tree.  This tree contains actual objects and their values */

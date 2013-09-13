@@ -129,39 +129,39 @@ ClUnion64T_DWord_swigregister = _safplusCApi.ClUnion64T_DWord_swigregister
 ClUnion64T_DWord_swigregister(ClUnion64T_DWord)
 
 CL_MAX_NAME_LENGTH = _safplusCApi.CL_MAX_NAME_LENGTH
-class ClNameT(_object):
+class SaNameT(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, ClNameT, name, value)
+    __setattr__ = lambda self, name, value: _swig_setattr(self, SaNameT, name, value)
     __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, ClNameT, name)
+    __getattr__ = lambda self, name: _swig_getattr(self, SaNameT, name)
     __repr__ = _swig_repr
-    __swig_setmethods__["length"] = _safplusCApi.ClNameT_length_set
-    __swig_getmethods__["length"] = _safplusCApi.ClNameT_length_get
-    if _newclass:length = _swig_property(_safplusCApi.ClNameT_length_get, _safplusCApi.ClNameT_length_set)
-    __swig_setmethods__["value"] = _safplusCApi.ClNameT_value_set
-    __swig_getmethods__["value"] = _safplusCApi.ClNameT_value_get
-    if _newclass:value = _swig_property(_safplusCApi.ClNameT_value_get, _safplusCApi.ClNameT_value_set)
+    __swig_setmethods__["length"] = _safplusCApi.SaNameT_length_set
+    __swig_getmethods__["length"] = _safplusCApi.SaNameT_length_get
+    if _newclass:length = _swig_property(_safplusCApi.SaNameT_length_get, _safplusCApi.SaNameT_length_set)
+    __swig_setmethods__["value"] = _safplusCApi.SaNameT_value_set
+    __swig_getmethods__["value"] = _safplusCApi.SaNameT_value_get
+    if _newclass:value = _swig_property(_safplusCApi.SaNameT_value_get, _safplusCApi.SaNameT_value_set)
     def __init__(self): 
-        this = _safplusCApi.new_ClNameT()
+        this = _safplusCApi.new_SaNameT()
         try: self.this.append(this)
         except: self.this = this
-    __swig_destroy__ = _safplusCApi.delete_ClNameT
+    __swig_destroy__ = _safplusCApi.delete_SaNameT
     __del__ = lambda self : None;
-ClNameT_swigregister = _safplusCApi.ClNameT_swigregister
-ClNameT_swigregister(ClNameT)
+SaNameT_swigregister = _safplusCApi.SaNameT_swigregister
+SaNameT_swigregister(SaNameT)
 
 
-def clNameSet(*args):
-  return _safplusCApi.clNameSet(*args)
-clNameSet = _safplusCApi.clNameSet
+def saNameSet(*args):
+  return _safplusCApi.saNameSet(*args)
+saNameSet = _safplusCApi.saNameSet
 
-def clNameCopy(*args):
-  return _safplusCApi.clNameCopy(*args)
-clNameCopy = _safplusCApi.clNameCopy
+def saNameCopy(*args):
+  return _safplusCApi.saNameCopy(*args)
+saNameCopy = _safplusCApi.saNameCopy
 
-def clNameConcat(*args):
-  return _safplusCApi.clNameConcat(*args)
-clNameConcat = _safplusCApi.clNameConcat
+def saNameConcat(*args):
+  return _safplusCApi.saNameConcat(*args)
+saNameConcat = _safplusCApi.saNameConcat
 
 def clStrdup(*args):
   return _safplusCApi.clStrdup(*args)
@@ -411,41 +411,41 @@ CL_AMS_ERR_SI_NOT_ASSIGNABLE = _safplusCApi.CL_AMS_ERR_SI_NOT_ASSIGNABLE
 CL_AMS_ERR_CSI_NOT_ASSIGNABLE = _safplusCApi.CL_AMS_ERR_CSI_NOT_ASSIGNABLE
 CL_AMS_ERR_UNMARSHALING_FAILED = _safplusCApi.CL_AMS_ERR_UNMARSHALING_FAILED
 
-def new_ClNameT_p():
-  return _safplusCApi.new_ClNameT_p()
-new_ClNameT_p = _safplusCApi.new_ClNameT_p
+def new_SaNameT_p():
+  return _safplusCApi.new_SaNameT_p()
+new_SaNameT_p = _safplusCApi.new_SaNameT_p
 
-def copy_ClNameT_p(*args):
-  return _safplusCApi.copy_ClNameT_p(*args)
-copy_ClNameT_p = _safplusCApi.copy_ClNameT_p
+def copy_SaNameT_p(*args):
+  return _safplusCApi.copy_SaNameT_p(*args)
+copy_SaNameT_p = _safplusCApi.copy_SaNameT_p
 
-def delete_ClNameT_p(*args):
-  return _safplusCApi.delete_ClNameT_p(*args)
-delete_ClNameT_p = _safplusCApi.delete_ClNameT_p
+def delete_SaNameT_p(*args):
+  return _safplusCApi.delete_SaNameT_p(*args)
+delete_SaNameT_p = _safplusCApi.delete_SaNameT_p
 
-def ClNameT_p_assign(*args):
-  return _safplusCApi.ClNameT_p_assign(*args)
-ClNameT_p_assign = _safplusCApi.ClNameT_p_assign
+def SaNameT_p_assign(*args):
+  return _safplusCApi.SaNameT_p_assign(*args)
+SaNameT_p_assign = _safplusCApi.SaNameT_p_assign
 
-def ClNameT_p_value(*args):
-  return _safplusCApi.ClNameT_p_value(*args)
-ClNameT_p_value = _safplusCApi.ClNameT_p_value
+def SaNameT_p_value(*args):
+  return _safplusCApi.SaNameT_p_value(*args)
+SaNameT_p_value = _safplusCApi.SaNameT_p_value
 
-def new_ClNameT_array(*args):
-  return _safplusCApi.new_ClNameT_array(*args)
-new_ClNameT_array = _safplusCApi.new_ClNameT_array
+def new_SaNameT_array(*args):
+  return _safplusCApi.new_SaNameT_array(*args)
+new_SaNameT_array = _safplusCApi.new_SaNameT_array
 
-def delete_ClNameT_array(*args):
-  return _safplusCApi.delete_ClNameT_array(*args)
-delete_ClNameT_array = _safplusCApi.delete_ClNameT_array
+def delete_SaNameT_array(*args):
+  return _safplusCApi.delete_SaNameT_array(*args)
+delete_SaNameT_array = _safplusCApi.delete_SaNameT_array
 
-def ClNameT_array_getitem(*args):
-  return _safplusCApi.ClNameT_array_getitem(*args)
-ClNameT_array_getitem = _safplusCApi.ClNameT_array_getitem
+def SaNameT_array_getitem(*args):
+  return _safplusCApi.SaNameT_array_getitem(*args)
+SaNameT_array_getitem = _safplusCApi.SaNameT_array_getitem
 
-def ClNameT_array_setitem(*args):
-  return _safplusCApi.ClNameT_array_setitem(*args)
-ClNameT_array_setitem = _safplusCApi.ClNameT_array_setitem
+def SaNameT_array_setitem(*args):
+  return _safplusCApi.SaNameT_array_setitem(*args)
+SaNameT_array_setitem = _safplusCApi.SaNameT_array_setitem
 
 def new_ClAmsCSINameValuePairT_array(*args):
   return _safplusCApi.new_ClAmsCSINameValuePairT_array(*args)

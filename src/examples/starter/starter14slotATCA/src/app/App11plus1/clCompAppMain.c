@@ -41,9 +41,9 @@
  
 #include "clCompAppMain.h"
 #include "../common/netwrapper.h"
-ClRcT GetVaiFromCsi(const ClNameT       *compName,const char* name, VirtualIpAddress* ret);
-ClRcT OperateOnAllCsis(const ClNameT       *compName,char* op,ClAmsCSIDescriptorT* csiDescriptor);
-void HandleCsiChange(char* op, const ClNameT* compName, ClAmsCSIDescriptorT* csiDescriptor);
+ClRcT GetVaiFromCsi(const SaNameT       *compName,const char* name, VirtualIpAddress* ret);
+ClRcT OperateOnAllCsis(const SaNameT       *compName,char* op,ClAmsCSIDescriptorT* csiDescriptor);
+void HandleCsiChange(char* op, const SaNameT* compName, ClAmsCSIDescriptorT* csiDescriptor);
 
 /******************************************************************************
  * Optional Features
@@ -337,7 +337,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * AMF has requested application to take the active HA state 
              * for the CSI.
              */
-            HandleCsiChange("up", (ClNameT *)compName, (ClAmsCSIDescriptorT *)&csiDescriptor);
+            HandleCsiChange("up", (SaNameT *)compName, (ClAmsCSIDescriptorT *)&csiDescriptor);
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -348,7 +348,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * AMF has requested application to take the standby HA state 
              * for this CSI.
              */
-            HandleCsiChange("down", (ClNameT *)compName, (ClAmsCSIDescriptorT *)&csiDescriptor);
+            HandleCsiChange("down", (SaNameT *)compName, (ClAmsCSIDescriptorT *)&csiDescriptor);
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -360,7 +360,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * assigned the active or quiescing HA state. The application 
              * must stop work associated with the CSI immediately.
              */
-            HandleCsiChange("down", (ClNameT *)compName, (ClAmsCSIDescriptorT *)&csiDescriptor);
+            HandleCsiChange("down", (SaNameT *)compName, (ClAmsCSIDescriptorT *)&csiDescriptor);
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -373,7 +373,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * associated with the CSI gracefully and not accept any new
              * workloads while the work is being terminated.
              */
-             HandleCsiChange("down", (ClNameT *)compName, (ClAmsCSIDescriptorT *)&csiDescriptor);
+             HandleCsiChange("down", (SaNameT *)compName, (ClAmsCSIDescriptorT *)&csiDescriptor);
             saAmfCSIQuiescingComplete(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -484,7 +484,7 @@ void clCompAppAMFPrintCSI(SaAmfCSIDescriptorT csiDescriptor,
 /*
  * Insert any other utility functions here.
  */
-ClRcT GetVaiFromCsi(const ClNameT       *compName,const char* name, VirtualIpAddress* ret)
+ClRcT GetVaiFromCsi(const SaNameT       *compName,const char* name, VirtualIpAddress* ret)
 {
     ClRcT rc;
     ClCpmCompCSIRefT csiRef = { 0 };
@@ -526,7 +526,7 @@ ClRcT GetVaiFromCsi(const ClNameT       *compName,const char* name, VirtualIpAdd
 }
 
 
-ClRcT OperateOnAllCsis(const ClNameT       *compName,char* op,ClAmsCSIDescriptorT* csiDescriptor)
+ClRcT OperateOnAllCsis(const SaNameT       *compName,char* op,ClAmsCSIDescriptorT* csiDescriptor)
 {    
     ClRcT rc;
     ClCpmCompCSIRefT csiRef = { 0 };
@@ -562,7 +562,7 @@ ClRcT OperateOnAllCsis(const ClNameT       *compName,char* op,ClAmsCSIDescriptor
     
 }
 
-void HandleCsiChange(char* op,const ClNameT* compName, ClAmsCSIDescriptorT* csiDescriptor)
+void HandleCsiChange(char* op,const SaNameT* compName, ClAmsCSIDescriptorT* csiDescriptor)
 {
     
             if (csiDescriptor->csiFlags == CL_AMS_CSI_FLAG_TARGET_ALL)
