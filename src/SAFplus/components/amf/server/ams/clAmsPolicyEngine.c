@@ -5399,6 +5399,13 @@ clAmsPeSUFaultCallback_Step2(
                    faultyComp->config.entity.name.value,
                    CL_AMS_STRING_RECOVERY(su->status.recovery));
 
+        /* If SU restart failed, we need to failover.  Reset this SU so it can become standby */
+        if (su->status.recovery == CL_AMS_RECOVERY_SU_RESTART)
+        {           
+          AMS_CALL ( clAmsPeSUReset(su) );
+          AMS_CALL ( clAmsPeSUMarkInstantiable(su) );
+        }        
+
         CL_AMS_SET_O_STATE(su, CL_AMS_OPER_STATE_DISABLED);
     }
     else
@@ -5414,7 +5421,7 @@ clAmsPeSUFaultCallback_Step2(
             repairNecessary = CL_FALSE;
 
             su->status.recovery = CL_AMS_RECOVERY_NONE;
-
+            
             for ( entityRef = clAmsEntityListGetFirst(&su->config.compList);
                   entityRef != (ClAmsEntityRefT *) NULL;
                   entityRef = clAmsEntityListGetNext(&su->config.compList, entityRef) )
@@ -14638,9 +14645,9 @@ clAmsPeCompReassignWork(
                 {
                     if(cSU != su
                        &&
-                       c->config.capabilityModel != CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY
+                       (c->config.capabilityModel != CL_AMS_COMP_CAP_X_ACTIVE_AND_Y_STANDBY)
                        && 
-                       sg->config.redundancyModel != CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM)
+                       (sg->config.redundancyModel != CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM))
                     {
                         *activeSU = cSU;
                         standby = NULL;
