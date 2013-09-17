@@ -73,7 +73,7 @@ ClRcT clCorMoIdToNodeNameTableFromConfigCreate(void)
     ClUint32T numEntries = 0;
     ClInt32T  i = 0;
     ClCorMOIdT moId;
-	ClNameT	   nodeName = {0};
+	SaNameT	   nodeName = {0};
     ClUint32T master = 0;
     ClParserPtrT    top = NULL;
     ClCharT         *aspPath = NULL;
@@ -125,7 +125,7 @@ ClRcT clCorMoIdToNodeNameTableFromConfigCreate(void)
             return rc;
 		}
 
-		memset(&nodeName, 0, sizeof(ClNameT));
+		memset(&nodeName, 0, sizeof(SaNameT));
 		memcpy(nodeName.value, table[i].NodeName, strlen(table[i].NodeName));
 		nodeName.length = strlen(table[i].NodeName);
 

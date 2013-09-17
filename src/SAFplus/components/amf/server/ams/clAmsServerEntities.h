@@ -325,7 +325,7 @@ extern ClRcT clAmsCSIMarshalCSIDescriptor(
         ClAmsCSIT                       *csi,
         ClAmsCSIFlagsT                  csiFlags,
         ClAmsHAStateT                   haState,
-        ClNameT                         activeCompName,
+        SaNameT                         activeCompName,
         ClAmsCSITransitionDescriptorT   transitionDescr,
         ClUint32T                       standbyRank);
 
@@ -334,7 +334,7 @@ extern ClRcT clAmsCSIMarshalCSIDescriptorExtended(
         ClAmsCSIT                       *csi,
         ClAmsCSIFlagsT                  csiFlags,
         ClAmsHAStateT                   haState,
-        ClNameT                         activeCompName,
+        SaNameT                         activeCompName,
         ClAmsCSITransitionDescriptorT   transitionDescr,
         ClUint32T                       standbyRank,
         ClBoolT                         reassignCSI);

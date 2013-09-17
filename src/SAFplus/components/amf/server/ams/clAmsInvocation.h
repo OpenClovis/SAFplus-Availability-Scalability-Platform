@@ -72,10 +72,10 @@ typedef struct
 {
     ClInvocationT       invocation;
     ClAmsInvocationCmdT cmd;
-    ClNameT             compName;
+    SaNameT             compName;
     ClBoolT             csiTargetOne;
     ClAmsCSIT           *csi;
-    ClNameT             csiName;
+    SaNameT             csiName;
     ClBoolT             reassignCSI;
 }ClAmsInvocationT;
 

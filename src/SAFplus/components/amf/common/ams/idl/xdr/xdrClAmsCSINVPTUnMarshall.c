@@ -50,19 +50,19 @@ ClRcT clXdrUnmarshallClAmsCSINVPT_4_0_0(ClBufferHandleT msg , void* pGenVar)
     else
     {
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->csiName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->csiName));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->paramName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->paramName));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->paramValue));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->paramValue));
     if (CL_OK != rc)
     {
         return rc;

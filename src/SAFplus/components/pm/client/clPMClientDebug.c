@@ -64,7 +64,7 @@ static ClRcT clPMCliPMStart(ClUint32T argc, ClCharT* argv[], ClCharT** retStr)
     ClCorMOIdListT moIdList = {0};
     ClCharT pmStr[CL_MAX_NAME_LENGTH] = {0};
     ClCorMOIdT moId = {{{0}}};
-    ClNameT moIdname = {0};
+    SaNameT moIdname = {0};
 
     if (argc != 2)
     {
@@ -73,7 +73,7 @@ static ClRcT clPMCliPMStart(ClUint32T argc, ClCharT* argv[], ClCharT** retStr)
         return CL_OK;
     }
 
-    clNameSet(&moIdname, argv[1]);
+    saNameSet(&moIdname, argv[1]);
 
     rc = clCorMoIdNameToMoIdGet(&moIdname, &moId);
     if (rc != CL_OK)
@@ -107,7 +107,7 @@ static ClRcT clPMCliPMStop(ClUint32T argc, ClCharT* argv[], ClCharT** retStr)
     ClCorMOIdListT moIdList = {0};
     ClCharT pmStr[CL_MAX_NAME_LENGTH] = {0};
     ClCorMOIdT moId = {{{0}}};
-    ClNameT moIdname = {0};
+    SaNameT moIdname = {0};
 
     if (argc != 2)
     {
@@ -116,7 +116,7 @@ static ClRcT clPMCliPMStop(ClUint32T argc, ClCharT* argv[], ClCharT** retStr)
         return CL_OK;
     }
 
-    clNameSet(&moIdname, argv[1]);
+    saNameSet(&moIdname, argv[1]);
 
     rc = clCorMoIdNameToMoIdGet(&moIdname, &moId);
     if (rc != CL_OK)
@@ -182,7 +182,7 @@ ClRcT clPMClientDebugRegister(ClHandleT* pDebugHandle)
 {
     ClRcT rc = CL_OK;
     ClCpmHandleT cpmHandle = 0;
-    ClNameT compName = {0};
+    SaNameT compName = {0};
 
     rc = clCpmComponentNameGet(cpmHandle, &compName);
     if (rc != CL_OK)

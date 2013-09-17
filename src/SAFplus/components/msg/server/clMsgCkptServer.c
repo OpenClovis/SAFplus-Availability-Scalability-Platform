@@ -45,7 +45,7 @@ ClRcT clMsgQCkptInitialize(void)
     ClRcT retCode;
 
     /* Initialize MSG queue cached ckpt */
-    const ClNameT msgQueueCkptName  = {
+    const SaNameT msgQueueCkptName  = {
                      sizeof("CL_MsgQueueCkpt") - 1,
                      "CL_MsgQueueCkpt"
                     };
@@ -72,7 +72,7 @@ ClRcT clMsgQCkptInitialize(void)
     }
 
     /* Initialize MSG group queue cached ckpt */
-    const ClNameT msgQGroupCkptName  = {
+    const SaNameT msgQGroupCkptName  = {
                      sizeof("CL_MsgQueueGroupCkpt") - 1,
                      "CL_MsgQueueGroupCkpt"
                     };
@@ -135,7 +135,7 @@ static void clMsgGroupDatabaseSynch()
 
         for (int i = 0; i < qGroupData.numberOfQueues; i++)
         {
-            ClNameT *qName = (ClNameT *) (qGroupData.pQueueList + i);
+            SaNameT *qName = (SaNameT *) (qGroupData.pQueueList + i);
             clMsgGroupMembershipInfoSend(CL_MSG_DATA_ADD, &qGroupData.qGroupName, qName);
         }
 
@@ -167,7 +167,7 @@ error:
     return rc;
 }
 
-ClBoolT clMsgQCkptExists(const ClNameT *pQName, ClMsgQueueCkptDataT *pQueueData)
+ClBoolT clMsgQCkptExists(const SaNameT *pQName, ClMsgQueueCkptDataT *pQueueData)
 {
     ClCachedCkptDataT *sectionData = NULL;
 
@@ -187,7 +187,7 @@ ClBoolT clMsgQCkptExists(const ClNameT *pQName, ClMsgQueueCkptDataT *pQueueData)
 
 }
 
-ClBoolT clMsgQGroupCkptExists(const ClNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData)
+ClBoolT clMsgQGroupCkptExists(const SaNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData)
 {
     ClCachedCkptDataT *sectionData = NULL;
 
@@ -206,7 +206,7 @@ ClBoolT clMsgQGroupCkptExists(const ClNameT *pQGroupName, ClMsgQGroupCkptDataT *
     return CL_TRUE;
 }
 
-ClRcT clMsgQGroupCkptDataGet(const ClNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData)
+ClRcT clMsgQGroupCkptDataGet(const SaNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData)
 {
     ClRcT rc = CL_OK;
     ClCachedCkptDataT *sectionData = NULL;
@@ -227,7 +227,7 @@ ClRcT clMsgQGroupCkptDataGet(const ClNameT *pQGroupName, ClMsgQGroupCkptDataT *p
     return rc;
 }
 
-static ClRcT clMsgQGroupCkptDataGet_Nolock(const ClNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData)
+static ClRcT clMsgQGroupCkptDataGet_Nolock(const SaNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData)
 {
     ClRcT rc = CL_OK;
     ClCachedCkptDataT *sectionData = NULL;
@@ -244,7 +244,7 @@ static ClRcT clMsgQGroupCkptDataGet_Nolock(const ClNameT *pQGroupName, ClMsgQGro
     return rc;
 }
 
-static void clMsgQueueGroupsRemove(ClNameT *pQName)
+static void clMsgQueueGroupsRemove(SaNameT *pQName)
 {
     ClRcT			rc = CL_OK;
     ClUint32T                   i = 0;
@@ -286,12 +286,12 @@ static void clMsgQueueGroupsRemove(ClNameT *pQName)
             }
             else
             {
-                ClNameT *pNameTemp = (ClNameT *) clHeapAllocate(qGroupData.numberOfQueues * sizeof(ClNameT));
-                memcpy(pNameTemp, qGroupData.pQueueList, pos * sizeof(ClNameT));
+                SaNameT *pNameTemp = (SaNameT *) clHeapAllocate(qGroupData.numberOfQueues * sizeof(SaNameT));
+                memcpy(pNameTemp, qGroupData.pQueueList, pos * sizeof(SaNameT));
 
-                ClNameT *pNameDes = pNameTemp + pos;
-                ClNameT *pNameSrc = qGroupData.pQueueList + pos + 1;
-                memcpy(pNameDes, pNameSrc, (qGroupData.numberOfQueues - pos) * sizeof(ClNameT));
+                SaNameT *pNameDes = pNameTemp + pos;
+                SaNameT *pNameSrc = qGroupData.pQueueList + pos + 1;
+                memcpy(pNameDes, pNameSrc, (qGroupData.numberOfQueues - pos) * sizeof(SaNameT));
                 clHeapFree(qGroupData.pQueueList);
                 qGroupData.pQueueList = pNameTemp;
             }
@@ -366,7 +366,7 @@ ClRcT clMsgQCkptDataUpdate(ClMsgSyncActionT syncupType, ClMsgQueueCkptDataT *pQu
             else
                 rc = clCacheEntryDelete(&gMsgQCkptServer, &ckptData.sectionName);
 
-            clMsgQueueGroupsRemove((ClNameT *)&ckptData.sectionName);
+            clMsgQueueGroupsRemove((SaNameT *)&ckptData.sectionName);
             break;
         case CL_MSG_DATA_UPD:
             if (updateCkpt)
@@ -403,7 +403,7 @@ error_out:
     return rc;
 }
 
-ClRcT clMsgQGroupCkptDataUpdate(ClMsgSyncActionT syncupType, ClNameT *pGroupName, SaMsgQueueGroupPolicyT policy, ClIocPhysicalAddressT qGroupAddress, ClBoolT updateCkpt)
+ClRcT clMsgQGroupCkptDataUpdate(ClMsgSyncActionT syncupType, SaNameT *pGroupName, SaMsgQueueGroupPolicyT policy, ClIocPhysicalAddressT qGroupAddress, ClBoolT updateCkpt)
 {
     ClRcT rc = CL_OK, retCode;
 
@@ -414,7 +414,7 @@ ClRcT clMsgQGroupCkptDataUpdate(ClMsgSyncActionT syncupType, ClNameT *pGroupName
     switch(syncupType)
     {
         case CL_MSG_DATA_ADD:
-            clNameCopy(&qGroupData.qGroupName,pGroupName);
+            saNameCopy(&qGroupData.qGroupName,pGroupName);
             qGroupData.policy = policy;
             qGroupData.qGroupAddress = qGroupAddress;
             qGroupData.numberOfQueues = 0;
@@ -475,7 +475,7 @@ error_out:
     return rc;
 }
 
-ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, ClNameT *pGroupName, ClNameT *pQueueName, ClBoolT updateCkpt)
+ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, SaNameT *pGroupName, SaNameT *pQueueName, ClBoolT updateCkpt)
 {
     ClRcT rc = CL_OK, retCode;
 
@@ -485,7 +485,7 @@ ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, ClNameT *
 
     clOsalSemLock(gMsgQGroupCkptServer.cacheSem);
 
-    if(clMsgQGroupCkptDataGet_Nolock((ClNameT*)pGroupName, &qGroupData) != CL_OK)
+    if(clMsgQGroupCkptDataGet_Nolock((SaNameT*)pGroupName, &qGroupData) != CL_OK)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("MSG", "GroupCkpt_UPD", "Message queue group [%.*s] does not exist. error code [0x%x]."
@@ -498,7 +498,7 @@ ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, ClNameT *
     switch(syncupType)
     {
         case CL_MSG_DATA_ADD:
-            if (clMsgQGroupCkptQueueExist(&qGroupData, (ClNameT *)pQueueName, &pos) == CL_TRUE)
+            if (clMsgQGroupCkptQueueExist(&qGroupData, (SaNameT *)pQueueName, &pos) == CL_TRUE)
             {
                 clMsgQGroupCkptDataFree(&qGroupData);
                 clOsalSemUnlock(gMsgQGroupCkptServer.cacheSem);
@@ -506,15 +506,15 @@ ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, ClNameT *
             }
 
             qGroupData.numberOfQueues++;
-            ClNameT *pNameTemp = (ClNameT *) clHeapAllocate(qGroupData.numberOfQueues * sizeof(ClNameT));
+            SaNameT *pNameTemp = (SaNameT *) clHeapAllocate(qGroupData.numberOfQueues * sizeof(SaNameT));
 
             if (qGroupData.pQueueList != NULL)
             {
-                memcpy(pNameTemp, qGroupData.pQueueList, (qGroupData.numberOfQueues - 1) * sizeof(ClNameT));
+                memcpy(pNameTemp, qGroupData.pQueueList, (qGroupData.numberOfQueues - 1) * sizeof(SaNameT));
                 clHeapFree(qGroupData.pQueueList);
             }
-            ClNameT *pNameCopy = pNameTemp + qGroupData.numberOfQueues -1;
-            memcpy(pNameCopy, pQueueName, sizeof(ClNameT));
+            SaNameT *pNameCopy = pNameTemp + qGroupData.numberOfQueues -1;
+            memcpy(pNameCopy, pQueueName, sizeof(SaNameT));
             qGroupData.pQueueList = pNameTemp;
 
             rc = clMsgQGroupCkptDataMarshal(&qGroupData, &ckptData);
@@ -538,7 +538,7 @@ ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, ClNameT *
         case CL_MSG_DATA_UPD:
             break;
         case CL_MSG_DATA_DEL:
-            if (clMsgQGroupCkptQueueExist(&qGroupData, (ClNameT *)pQueueName, &pos) == CL_FALSE)
+            if (clMsgQGroupCkptQueueExist(&qGroupData, (SaNameT *)pQueueName, &pos) == CL_FALSE)
             {
                 clMsgQGroupCkptDataFree(&qGroupData);
                 clOsalSemUnlock(gMsgQGroupCkptServer.cacheSem);
@@ -553,12 +553,12 @@ ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, ClNameT *
             }
             else
             {
-                ClNameT *pNameTemp = (ClNameT *) clHeapAllocate(qGroupData.numberOfQueues * sizeof(ClNameT));
-                memcpy(pNameTemp, qGroupData.pQueueList, pos * sizeof(ClNameT));
+                SaNameT *pNameTemp = (SaNameT *) clHeapAllocate(qGroupData.numberOfQueues * sizeof(SaNameT));
+                memcpy(pNameTemp, qGroupData.pQueueList, pos * sizeof(SaNameT));
 
-                ClNameT *pNameDes = pNameTemp + pos;
-                ClNameT *pNameSrc = qGroupData.pQueueList + pos + 1;
-                memcpy(pNameDes, pNameSrc, (qGroupData.numberOfQueues - pos) * sizeof(ClNameT));
+                SaNameT *pNameDes = pNameTemp + pos;
+                SaNameT *pNameSrc = qGroupData.pQueueList + pos + 1;
+                memcpy(pNameDes, pNameSrc, (qGroupData.numberOfQueues - pos) * sizeof(SaNameT));
                 clHeapFree(qGroupData.pQueueList);
                 qGroupData.pQueueList = pNameTemp;
             }

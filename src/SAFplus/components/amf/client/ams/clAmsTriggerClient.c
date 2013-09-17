@@ -89,8 +89,8 @@ static ClRcT clAmsTriggerLoadRmd(ClAmsEntityT *pEntity, ClMetricT *pMetric,
         /*
          * Patch the entity name incase user hasn't given the right thing
          */
-        if(pEntity->name.length != strlen(pEntity->name.value) + 1)
-            pEntity->name.length = strlen(pEntity->name.value) + 1;
+        if(pEntity->name.length != strlen((const ClCharT*)pEntity->name.value) + 1)
+            pEntity->name.length = strlen((const ClCharT*)pEntity->name.value) + 1;
 
         rc = VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(pEntity, inMsg, 0);
         if(rc != CL_OK)
@@ -245,8 +245,8 @@ static ClRcT clAmsTriggerGetMetricHandler(ClAmsEntityT *pEntity, ClMetricIdT id,
     /*
      * patch entity if required.
      */
-    if(pEntity->name.length != strlen(pEntity->name.value) + 1)
-        pEntity->name.length = strlen(pEntity->name.value) + 1;
+    if(pEntity->name.length != strlen((const ClCharT*)pEntity->name.value) + 1)
+        pEntity->name.length = strlen((const ClCharT*)pEntity->name.value) + 1;
 
     rc = VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(pEntity, inMsg, 0);
     if(rc != CL_OK)

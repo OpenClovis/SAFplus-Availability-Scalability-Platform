@@ -907,7 +907,7 @@ clProvTxnValidate( CL_IN       ClTxnTransactionHandleT txnHandle,
         rc = clOmMoIdToOmObjectReferenceGet(&moId, &pOmObj);
         if (rc != CL_OK)
         {
-            ClNameT moidName = {0};
+            SaNameT moidName = {0};
             (void)clCorMoIdToMoIdNameGet(&moId, &moidName);
             /*
              * It could be created from builtin mib implementation in COR.
@@ -1266,7 +1266,7 @@ clProvReadSession( CL_IN       ClTxnTransactionHandleT txnHandle,
     rc = clOmMoIdToOmObjectReferenceGet(&moId, &pOmObj);
     if (rc != CL_OK)
     {
-        ClNameT moidName = {0};
+        SaNameT moidName = {0};
         (void)clCorMoIdToMoIdNameGet(&moId, &moidName);
         /*
          * It could be created from builtin mib implementation in COR.

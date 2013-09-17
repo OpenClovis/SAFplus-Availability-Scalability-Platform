@@ -65,7 +65,7 @@ static ClInt32T dumpMoidTable(ClMedIdXlationT *pIdx, void* pNativeId, ClUint32T 
     ClCntNodeHandleT     nextNode = 0;
     ClCorMOIdPtrT  hMoId = NULL;
     ClInt32T rc;
-    ClNameT nameMoId;
+    SaNameT nameMoId;
 
     if(length != 0 )
         if(length != pIdx->nativeId.len || ((0 != strncmp((char*)pIdx->nativeId.id, (char*)pNativeId, length))))
@@ -162,7 +162,7 @@ static ClInt32T dumpInstnaceXlationTbl(ClMedIdXlationT *pIdx, void* pNativeId, C
     ClCntNodeHandleT     nextNode = 0;
     ClMedInstXlationT    *pInstXln = NULL;
     ClInt32T rc;
-    ClNameT nameMoId;
+    SaNameT nameMoId;
     
     
     if(length != 0 )

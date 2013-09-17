@@ -316,7 +316,7 @@ static void *bmInitialize(void *threadArg)
                     {
                         setLevelResponse.bootLevel = pBootOp->bootLevel;
                         setLevelResponse.retCode = rc;
-                        strcpy(setLevelResponse.nodeName.value, 
+                        strcpy((ClCharT *)setLevelResponse.nodeName.value,
                                gpClCpm->pCpmLocalInfo->nodeName);
                         setLevelResponse.nodeName.length = 
                             strlen(gpClCpm->pCpmLocalInfo->nodeName);
@@ -810,7 +810,7 @@ ClRcT VDECL(cpmBootLevelGet)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    if (!strcmp(bootOp.nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
+    if (!strcmp((const ClCharT *)bootOp.nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
     {
         currentBootLevel = gpClCpm->bmTable->currentBootLevel;
 
@@ -896,7 +896,7 @@ ClRcT VDECL(cpmBootLevelSet)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    if (!strcmp(bootOp->nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
+    if (!strcmp((const ClCharT *)bootOp->nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
     {
         rc = clOsalMutexLock(gpClCpm->bmTable->bmQueueCondVarMutex);
         CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
@@ -986,7 +986,7 @@ ClRcT VDECL(cpmBootLevelMax)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    if (!strcmp(bootOp.nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
+    if (!strcmp((const ClCharT *)bootOp.nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
     {
         maxBootLevel = gpClCpm->bmTable->maxBootLevel;
 
@@ -1340,16 +1340,16 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
         p = pDList->listHead;
         while (p != NULL)
         {
-            ClNameT compName={0}, nodeName={0};
+            SaNameT compName={0}, nodeName={0};
             ClCpmLcmReplyT srcInfo = {0};
 
-            strcpy(compName.value, p->compName);
-            compName.length = strlen(compName.value);
+            strcpy((ClCharT *)compName.value, p->compName);
+            compName.length = strlen((const ClCharT *)compName.value);
             srcInfo.srcIocAddress = 0;
             srcInfo.srcPort = 0xFFFF;
             srcInfo.rmdNumber = 0;
-            strcpy(nodeName.value, gpClCpm->pCpmConfig->nodeName);
-            nodeName.length = strlen(nodeName.value);
+            strcpy((ClCharT *)nodeName.value, gpClCpm->pCpmConfig->nodeName);
+            nodeName.length = strlen((const ClCharT *)nodeName.value);
 
             rc = clCpmComponentInstantiate(&compName, &nodeName, &srcInfo);
             if (rc != CL_OK)
@@ -1509,8 +1509,8 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
         &&
         gpClCpm->bmTable->currentBootLevel == CL_CPM_BOOT_LEVEL_4)
     {
-        ClNameT nodeName = {0};
-        strcpy(nodeName.value, gpClCpm->pCpmConfig->nodeName);
+        SaNameT nodeName = {0};
+        strcpy((ClCharT *)nodeName.value, gpClCpm->pCpmConfig->nodeName);
         nodeName.length = strlen(gpClCpm->pCpmConfig->nodeName);
         /*
          * Node arrival event publish. 
@@ -1713,17 +1713,17 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
         p = pDList->listHead;
         while (p != NULL)
         {
-            ClNameT compName = {0}, nodeName = {0};
+            SaNameT compName = {0}, nodeName = {0};
             ClCpmLcmReplyT srcInfo = {0};
 
-            strcpy(compName.value, p->compName);
-            compName.length = strlen(compName.value);
+            strcpy((ClCharT *)compName.value, p->compName);
+            compName.length = strlen((const ClCharT *)compName.value);
             srcInfo.srcIocAddress = 0;
             srcInfo.srcPort = 0xFFFF;
             srcInfo.rmdNumber = 0;
 
-            strcpy(nodeName.value, gpClCpm->pCpmConfig->nodeName);
-            nodeName.length = strlen(nodeName.value);
+            strcpy((ClCharT *)nodeName.value, gpClCpm->pCpmConfig->nodeName);
+            nodeName.length = strlen((const ClCharT *)nodeName.value);
             rc = clCpmComponentTerminate(&compName, &nodeName, &srcInfo);
             if (rc != CL_OK)
             {

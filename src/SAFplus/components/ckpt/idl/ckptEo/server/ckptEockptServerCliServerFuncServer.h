@@ -31,7 +31,7 @@ extern "C" {
 
 
 
-ClRcT clCkptMasterCkptOpen_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptSvcHdl, CL_IN ClNameT*  pCkptName, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0*  pCheckpointCreationAtrributes, CL_IN ClUint32T  checkpointOpenFlags, CL_IN ClUint32T  localAddr, CL_IN ClUint32T  portId, CL_OUT CkptHdlDbT_4_0_0*  pHdlInfo);
+ClRcT clCkptMasterCkptOpen_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptSvcHdl, CL_IN SaNameT*  pCkptName, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0*  pCheckpointCreationAtrributes, CL_IN ClUint32T  checkpointOpenFlags, CL_IN ClUint32T  localAddr, CL_IN ClUint32T  portId, CL_OUT CkptHdlDbT_4_0_0*  pHdlInfo);
 
 ClRcT clCkptMasterCkptOpenResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion,CL_OUT  CkptHdlDbT_4_0_0  pHdlInfo);
 
@@ -39,7 +39,7 @@ ClRcT clCkptMasterCkptClose_4_0_0(CL_IN ClHandleT  ckptHandle, CL_IN ClUint32T  
 
 ClRcT clCkptMasterCkptCloseResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
 
-ClRcT clCkptMasterCkptUnlink_4_0_0(CL_IN ClNameT*  pCkptName, CL_IN ClUint32T  localAddr, CL_INOUT ClVersionT*  pVersion);
+ClRcT clCkptMasterCkptUnlink_4_0_0(CL_IN SaNameT*  pCkptName, CL_IN ClUint32T  localAddr, CL_INOUT ClVersionT*  pVersion);
 
 ClRcT clCkptMasterCkptUnlinkResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
 

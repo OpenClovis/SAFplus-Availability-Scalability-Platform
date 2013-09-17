@@ -45,11 +45,11 @@ extern "C" {
 
 
 
-ClRcT clCkptRemSvrCkptInfoSync_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClNameT*  pCkptName, CL_IN CkptCPInfoT_4_0_0*  pCpInfo, CL_IN CkptDPInfoT_4_0_0*  pDpInfo);
+ClRcT clCkptRemSvrCkptInfoSync_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN SaNameT*  pCkptName, CL_IN CkptCPInfoT_4_0_0*  pCpInfo, CL_IN CkptDPInfoT_4_0_0*  pDpInfo);
 
 ClRcT clCkptRemSvrCkptInfoSyncResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
 
-ClRcT clCkptRemSvrCkptInfoSync_5_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClNameT*  pCkptName, CL_IN CkptCPInfoT_5_0_0*  pCpInfo, CL_IN CkptDPInfoT_4_0_0*  pDpInfo);
+ClRcT clCkptRemSvrCkptInfoSync_5_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN SaNameT*  pCkptName, CL_IN CkptCPInfoT_5_0_0*  pCpInfo, CL_IN CkptDPInfoT_4_0_0*  pDpInfo);
 
 ClRcT clCkptRemSvrCkptInfoSyncResponseSend_5_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
 

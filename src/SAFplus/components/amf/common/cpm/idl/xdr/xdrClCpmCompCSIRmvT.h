@@ -51,10 +51,10 @@ struct _ClCpmCompCSIRmvT_4_0_0;
 
 typedef struct _ClCpmCompCSIRmvT_4_0_0 {
     ClUint64T    invocation;
-    ClNameT    compName;
-    ClNameT    proxyCompName;
-    ClNameT    nodeName;
-    ClNameT    csiName;
+    SaNameT    compName;
+    SaNameT    proxyCompName;
+    SaNameT    nodeName;
+    SaNameT    csiName;
     ClUint32T    csiFlags;
 
 }ClCpmCompCSIRmvT_4_0_0;

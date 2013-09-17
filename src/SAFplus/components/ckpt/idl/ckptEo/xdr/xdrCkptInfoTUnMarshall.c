@@ -56,7 +56,7 @@ ClRcT clXdrUnmarshallCkptInfoT_4_0_0(ClBufferHandleT msg , void* pGenVar)
         return rc;
     }
 
-    rc = clXdrUnmarshallPtrClNameT(msg,(void**)&(pVar->pName),1);
+    rc = clXdrUnmarshallPtrSaNameT(msg,(void**)&(pVar->pName),1);
     if (CL_OK != rc)
     {
         return rc;
@@ -105,7 +105,7 @@ ClRcT clXdrUnmarshallCkptInfoT_5_0_0(ClBufferHandleT msg , void* pGenVar)
         return rc;
     }
 
-    rc = clXdrUnmarshallPtrClNameT(msg,(void**)&(pVar->pName),1);
+    rc = clXdrUnmarshallPtrSaNameT(msg,(void**)&(pVar->pName),1);
     if (CL_OK != rc)
     {
         return rc;

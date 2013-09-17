@@ -563,7 +563,7 @@ clAmsFaultQueueFindNoLock(ClAmsEntityT *entity, void **faultEntry)
     CL_LIST_FOR_EACH(iter, &gClAmsFaultQueue)
     {
         ClAmsFaultQueueT *entry = CL_LIST_ENTRY(iter, ClAmsFaultQueueT, list);
-        if(!strncmp(entry->entity.name.value, entity->name.value, entry->entity.name.length))
+        if(!strncmp((const ClCharT*)entry->entity.name.value, (const ClCharT*)entity->name.value, entry->entity.name.length))
         {
             if(faultEntry) *faultEntry = (void*)entry;
             return CL_OK;
@@ -655,7 +655,7 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister)
         goto out_unlock;
     }
     
-    clNameSet(&entityRef.entity.name, pNodeName);
+    saNameSet(&entityRef.entity.name, pNodeName);
     ++entityRef.entity.name.length;
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
     rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &entityRef);

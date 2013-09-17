@@ -2809,7 +2809,7 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
 #define SWIGTYPE_p_ClMetricOptionsT swig_types[148]
 #define SWIGTYPE_p_ClMetricType swig_types[149]
 #define SWIGTYPE_p_ClMgdLeafT swig_types[150]
-#define SWIGTYPE_p_ClNameT swig_types[151]
+#define SWIGTYPE_p_SaNameT swig_types[151]
 #define SWIGTYPE_p_ClStatusT swig_types[152]
 #define SWIGTYPE_p_ClStringT swig_types[153]
 #define SWIGTYPE_p_ClTimerHandleT swig_types[154]
@@ -3397,39 +3397,39 @@ SWIG_AsVal_unsigned_SS_long_SS_long (PyObject *obj, unsigned long long *val)
 }
 
 
-  static ClNameT *new_ClNameT_p() { 
-    return (ClNameT *)malloc(sizeof(ClNameT));
+  static SaNameT *new_SaNameT_p() { 
+    return (SaNameT *)malloc(sizeof(SaNameT));
   }
   
-  static ClNameT *copy_ClNameT_p(ClNameT value) { 
-    return (ClNameT *)memcpy((ClNameT *)malloc(sizeof(ClNameT)),&value,sizeof(ClNameT));
+  static SaNameT *copy_SaNameT_p(SaNameT value) { 
+    return (SaNameT *)memcpy((SaNameT *)malloc(sizeof(SaNameT)),&value,sizeof(SaNameT));
   }
 
-  static void delete_ClNameT_p(ClNameT *self) { 
+  static void delete_SaNameT_p(SaNameT *self) { 
     if (self) free((char*)self);
   }
 
-  static void ClNameT_p_assign(ClNameT *self, ClNameT value) {
+  static void SaNameT_p_assign(SaNameT *self, SaNameT value) {
     *self = value;
   }
 
-  static ClNameT ClNameT_p_value(ClNameT *self) {
+  static SaNameT SaNameT_p_value(SaNameT *self) {
     return *self;
   }
 
 
-  static ClNameT *new_ClNameT_array(size_t nelements) { 
-    return (ClNameT *)malloc((nelements)*sizeof(ClNameT));
+  static SaNameT *new_SaNameT_array(size_t nelements) { 
+    return (SaNameT *)malloc((nelements)*sizeof(SaNameT));
   }
 
-  static void delete_ClNameT_array(ClNameT *ary) {
+  static void delete_SaNameT_array(SaNameT *ary) {
     free((char*)ary);
   }
 
-  static ClNameT ClNameT_array_getitem(ClNameT *ary, size_t index) {
+  static SaNameT SaNameT_array_getitem(SaNameT *ary, size_t index) {
     return ary[index];
   }
-  static void ClNameT_array_setitem(ClNameT *ary, size_t index, ClNameT value) {
+  static void SaNameT_array_setitem(SaNameT *ary, size_t index, SaNameT value) {
     ary[index] = value;
   }
 
@@ -3981,9 +3981,9 @@ SWIGINTERN PyObject *ClUnion64T_DWord_swigregister(PyObject *SWIGUNUSEDPARM(self
   return SWIG_Py_Void();
 }
 
-SWIGINTERN PyObject *_wrap_ClNameT_length_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SaNameT_length_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
   ClUint16T arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3992,15 +3992,15 @@ SWIGINTERN PyObject *_wrap_ClNameT_length_set(PyObject *SWIGUNUSEDPARM(self), Py
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:ClNameT_length_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:SaNameT_length_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClNameT_length_set" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SaNameT_length_set" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
+  arg1 = (SaNameT *)(argp1);
   ecode2 = SWIG_AsVal_unsigned_SS_short(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ClNameT_length_set" "', argument " "2"" of type '" "ClUint16T""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SaNameT_length_set" "', argument " "2"" of type '" "ClUint16T""'");
   } 
   arg2 = (ClUint16T)(val2);
   if (arg1) (arg1)->length = arg2;
@@ -4011,20 +4011,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ClNameT_length_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SaNameT_length_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   ClUint16T result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:ClNameT_length_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:SaNameT_length_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClNameT_length_get" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SaNameT_length_get" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
+  arg1 = (SaNameT *)(argp1);
   result = (ClUint16T) ((arg1)->length);
   resultobj = SWIG_From_unsigned_SS_short((unsigned short)(result));
   return resultobj;
@@ -4033,9 +4033,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ClNameT_value_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SaNameT_value_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
   ClCharT *arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4044,15 +4044,15 @@ SWIGINTERN PyObject *_wrap_ClNameT_value_set(PyObject *SWIGUNUSEDPARM(self), PyO
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:ClNameT_value_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:SaNameT_value_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClNameT_value_set" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SaNameT_value_set" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
+  arg1 = (SaNameT *)(argp1);
   res2 = SWIG_AsCharArray(obj1, temp2, 256);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClNameT_value_set" "', argument " "2"" of type '" "char [256]""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SaNameT_value_set" "', argument " "2"" of type '" "char [256]""'");
   }
   arg2 = (char *)(temp2);
   if (arg2) memcpy(arg1->value,arg2,256*sizeof(char));
@@ -4064,20 +4064,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ClNameT_value_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SaNameT_value_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   ClCharT *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:ClNameT_value_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:SaNameT_value_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClNameT_value_get" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SaNameT_value_get" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
+  arg1 = (SaNameT *)(argp1);
   result = (ClCharT *)(ClCharT *) ((arg1)->value);
   {
     size_t size = 256;
@@ -4092,32 +4092,32 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_new_ClNameT(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_SaNameT(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)":new_ClNameT")) SWIG_fail;
-  result = (ClNameT *)calloc(1, sizeof(ClNameT));
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, SWIG_POINTER_NEW |  0 );
+  if (!PyArg_ParseTuple(args,(char *)":new_SaNameT")) SWIG_fail;
+  result = (SaNameT *)calloc(1, sizeof(SaNameT));
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_ClNameT(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_delete_SaNameT(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:delete_ClNameT",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, SWIG_POINTER_DISOWN |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_SaNameT",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, SWIG_POINTER_DISOWN |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_ClNameT" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_SaNameT" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
+  arg1 = (SaNameT *)(argp1);
   free((char *) arg1);
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -4126,16 +4126,16 @@ fail:
 }
 
 
-SWIGINTERN PyObject *ClNameT_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *SaNameT_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *obj;
   if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
-  SWIG_TypeNewClientData(SWIGTYPE_p_ClNameT, SWIG_NewClientData(obj));
+  SWIG_TypeNewClientData(SWIGTYPE_p_SaNameT, SWIG_NewClientData(obj));
   return SWIG_Py_Void();
 }
 
-SWIGINTERN PyObject *_wrap_clNameSet(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_saNameSet(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
   char *arg2 = (char *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4145,18 +4145,18 @@ SWIGINTERN PyObject *_wrap_clNameSet(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:clNameSet",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:saNameSet",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "clNameSet" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "saNameSet" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
+  arg1 = (SaNameT *)(argp1);
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "clNameSet" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "saNameSet" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
-  clNameSet(arg1,(char const *)arg2);
+  saNameSet(arg1,(char const *)arg2);
   resultobj = SWIG_Py_Void();
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -4166,10 +4166,10 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_clNameCopy(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_saNameCopy(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -4177,18 +4177,18 @@ SWIGINTERN PyObject *_wrap_clNameCopy(PyObject *SWIGUNUSEDPARM(self), PyObject *
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:clNameCopy",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:saNameCopy",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "clNameCopy" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "saNameCopy" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  arg1 = (SaNameT *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "clNameCopy" "', argument " "2"" of type '" "ClNameT const *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "saNameCopy" "', argument " "2"" of type '" "SaNameT const *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
-  clNameCopy(arg1,(ClNameT const *)arg2);
+  arg2 = (SaNameT *)(argp2);
+  saNameCopy(arg1,(SaNameT const *)arg2);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4196,12 +4196,12 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_clNameConcat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_saNameConcat(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   char *arg3 = (char *) 0 ;
-  ClNameT *arg4 = (ClNameT *) 0 ;
+  SaNameT *arg4 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -4216,28 +4216,28 @@ SWIGINTERN PyObject *_wrap_clNameConcat(PyObject *SWIGUNUSEDPARM(self), PyObject
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:clNameConcat",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:saNameConcat",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "clNameConcat" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "saNameConcat" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  arg1 = (SaNameT *)(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "clNameConcat" "', argument " "2"" of type '" "ClNameT const *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "saNameConcat" "', argument " "2"" of type '" "SaNameT const *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "clNameConcat" "', argument " "3"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "saNameConcat" "', argument " "3"" of type '" "char const *""'");
   }
   arg3 = (char *)(buf3);
-  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "clNameConcat" "', argument " "4"" of type '" "ClNameT const *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "saNameConcat" "', argument " "4"" of type '" "SaNameT const *""'"); 
   }
-  arg4 = (ClNameT *)(argp4);
-  clNameConcat(arg1,(ClNameT const *)arg2,(char const *)arg3,(ClNameT const *)arg4);
+  arg4 = (SaNameT *)(argp4);
+  saNameConcat(arg1,(SaNameT const *)arg2,(char const *)arg3,(SaNameT const *)arg4);
   resultobj = SWIG_Py_Void();
   if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
   return resultobj;
@@ -4995,61 +4995,61 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_new_ClNameT_p(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_SaNameT_p(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)":new_ClNameT_p")) SWIG_fail;
-  result = (ClNameT *)new_ClNameT_p();
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)":new_SaNameT_p")) SWIG_fail;
+  result = (SaNameT *)new_SaNameT_p();
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_copy_ClNameT_p(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_copy_SaNameT_p(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT arg1 ;
+  SaNameT arg1 ;
   void *argp1 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:copy_ClNameT_p",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:copy_SaNameT_p",&obj0)) SWIG_fail;
   {
-    res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_ClNameT,  0 );
+    res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_SaNameT,  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "copy_ClNameT_p" "', argument " "1"" of type '" "ClNameT""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "copy_SaNameT_p" "', argument " "1"" of type '" "SaNameT""'"); 
     }  
     if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "copy_ClNameT_p" "', argument " "1"" of type '" "ClNameT""'");
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "copy_SaNameT_p" "', argument " "1"" of type '" "SaNameT""'");
     } else {
-      arg1 = *((ClNameT *)(argp1));
+      arg1 = *((SaNameT *)(argp1));
     }
   }
-  result = (ClNameT *)copy_ClNameT_p(arg1);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)copy_SaNameT_p(arg1);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_ClNameT_p(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_delete_SaNameT_p(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:delete_ClNameT_p",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_SaNameT_p",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_ClNameT_p" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_SaNameT_p" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
-  delete_ClNameT_p(arg1);
+  arg1 = (SaNameT *)(argp1);
+  delete_SaNameT_p(arg1);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -5057,10 +5057,10 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ClNameT_p_assign(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SaNameT_p_assign(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
-  ClNameT arg2 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
+  SaNameT arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 ;
@@ -5068,24 +5068,24 @@ SWIGINTERN PyObject *_wrap_ClNameT_p_assign(PyObject *SWIGUNUSEDPARM(self), PyOb
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:ClNameT_p_assign",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:SaNameT_p_assign",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClNameT_p_assign" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SaNameT_p_assign" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
+  arg1 = (SaNameT *)(argp1);
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_ClNameT,  0 );
+    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_SaNameT,  0 );
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClNameT_p_assign" "', argument " "2"" of type '" "ClNameT""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SaNameT_p_assign" "', argument " "2"" of type '" "SaNameT""'"); 
     }  
     if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "ClNameT_p_assign" "', argument " "2"" of type '" "ClNameT""'");
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SaNameT_p_assign" "', argument " "2"" of type '" "SaNameT""'");
     } else {
-      arg2 = *((ClNameT *)(argp2));
+      arg2 = *((SaNameT *)(argp2));
     }
   }
-  ClNameT_p_assign(arg1,arg2);
+  SaNameT_p_assign(arg1,arg2);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -5093,64 +5093,64 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ClNameT_p_value(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SaNameT_p_value(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT result;
+  SaNameT result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:ClNameT_p_value",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:SaNameT_p_value",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClNameT_p_value" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SaNameT_p_value" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
-  result = ClNameT_p_value(arg1);
-  resultobj = SWIG_NewPointerObj((ClNameT *)memcpy((ClNameT *)malloc(sizeof(ClNameT)),&result,sizeof(ClNameT)), SWIGTYPE_p_ClNameT, SWIG_POINTER_OWN |  0 );
+  arg1 = (SaNameT *)(argp1);
+  result = SaNameT_p_value(arg1);
+  resultobj = SWIG_NewPointerObj((SaNameT *)memcpy((SaNameT *)malloc(sizeof(SaNameT)),&result,sizeof(SaNameT)), SWIGTYPE_p_SaNameT, SWIG_POINTER_OWN |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_new_ClNameT_array(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_SaNameT_array(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   size_t arg1 ;
   size_t val1 ;
   int ecode1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:new_ClNameT_array",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:new_SaNameT_array",&obj0)) SWIG_fail;
   ecode1 = SWIG_AsVal_size_t(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_ClNameT_array" "', argument " "1"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_SaNameT_array" "', argument " "1"" of type '" "size_t""'");
   } 
   arg1 = (size_t)(val1);
-  result = (ClNameT *)new_ClNameT_array(arg1);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)new_SaNameT_array(arg1);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_ClNameT_array(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_delete_SaNameT_array(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:delete_ClNameT_array",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_SaNameT_array",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_ClNameT_array" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_SaNameT_array" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
-  delete_ClNameT_array(arg1);
+  arg1 = (SaNameT *)(argp1);
+  delete_SaNameT_array(arg1);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -5158,9 +5158,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ClNameT_array_getitem(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SaNameT_array_getitem(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
   size_t arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -5168,32 +5168,32 @@ SWIGINTERN PyObject *_wrap_ClNameT_array_getitem(PyObject *SWIGUNUSEDPARM(self),
   int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  ClNameT result;
+  SaNameT result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:ClNameT_array_getitem",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:SaNameT_array_getitem",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClNameT_array_getitem" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SaNameT_array_getitem" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
+  arg1 = (SaNameT *)(argp1);
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ClNameT_array_getitem" "', argument " "2"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SaNameT_array_getitem" "', argument " "2"" of type '" "size_t""'");
   } 
   arg2 = (size_t)(val2);
-  result = ClNameT_array_getitem(arg1,arg2);
-  resultobj = SWIG_NewPointerObj((ClNameT *)memcpy((ClNameT *)malloc(sizeof(ClNameT)),&result,sizeof(ClNameT)), SWIGTYPE_p_ClNameT, SWIG_POINTER_OWN |  0 );
+  result = SaNameT_array_getitem(arg1,arg2);
+  resultobj = SWIG_NewPointerObj((SaNameT *)memcpy((SaNameT *)malloc(sizeof(SaNameT)),&result,sizeof(SaNameT)), SWIGTYPE_p_SaNameT, SWIG_POINTER_OWN |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_ClNameT_array_setitem(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SaNameT_array_setitem(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  ClNameT *arg1 = (ClNameT *) 0 ;
+  SaNameT *arg1 = (SaNameT *) 0 ;
   size_t arg2 ;
-  ClNameT arg3 ;
+  SaNameT arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   size_t val2 ;
@@ -5204,29 +5204,29 @@ SWIGINTERN PyObject *_wrap_ClNameT_array_setitem(PyObject *SWIGUNUSEDPARM(self),
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:ClNameT_array_setitem",&obj0,&obj1,&obj2)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClNameT, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OOO:SaNameT_array_setitem",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClNameT_array_setitem" "', argument " "1"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SaNameT_array_setitem" "', argument " "1"" of type '" "SaNameT *""'"); 
   }
-  arg1 = (ClNameT *)(argp1);
+  arg1 = (SaNameT *)(argp1);
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ClNameT_array_setitem" "', argument " "2"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SaNameT_array_setitem" "', argument " "2"" of type '" "size_t""'");
   } 
   arg2 = (size_t)(val2);
   {
-    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_ClNameT,  0 );
+    res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_SaNameT,  0 );
     if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "ClNameT_array_setitem" "', argument " "3"" of type '" "ClNameT""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SaNameT_array_setitem" "', argument " "3"" of type '" "SaNameT""'"); 
     }  
     if (!argp3) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "ClNameT_array_setitem" "', argument " "3"" of type '" "ClNameT""'");
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "SaNameT_array_setitem" "', argument " "3"" of type '" "SaNameT""'");
     } else {
-      arg3 = *((ClNameT *)(argp3));
+      arg3 = *((SaNameT *)(argp3));
     }
   }
-  ClNameT_array_setitem(arg1,arg2,arg3);
+  SaNameT_array_setitem(arg1,arg2,arg3);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -6291,7 +6291,7 @@ SWIGINTERN PyObject *ClLogStreamAttributesT_swigregister(PyObject *SWIGUNUSEDPAR
 SWIGINTERN PyObject *_wrap_clLogStreamOpen(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClLogHandleT arg1 ;
-  ClNameT arg2 ;
+  SaNameT arg2 ;
   ClLogStreamScopeT arg3 ;
   ClLogStreamAttributesT *arg4 = (ClLogStreamAttributesT *) 0 ;
   ClLogStreamOpenFlagsT arg5 ;
@@ -6333,14 +6333,14 @@ SWIGINTERN PyObject *_wrap_clLogStreamOpen(PyObject *SWIGUNUSEDPARM(self), PyObj
     }
   }
   {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_ClNameT,  0 );
+    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_SaNameT,  0 );
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "clLogStreamOpen" "', argument " "2"" of type '" "ClNameT""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "clLogStreamOpen" "', argument " "2"" of type '" "SaNameT""'"); 
     }  
     if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "clLogStreamOpen" "', argument " "2"" of type '" "ClNameT""'");
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "clLogStreamOpen" "', argument " "2"" of type '" "SaNameT""'");
     } else {
-      arg2 = *((ClNameT *)(argp2));
+      arg2 = *((SaNameT *)(argp2));
     }
   }
   ecode3 = SWIG_AsVal_int(obj2, &val3);
@@ -9945,7 +9945,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsEntityConfigT_name_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsEntityConfigT *arg1 = (ClAmsEntityConfigT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -9959,11 +9959,11 @@ SWIGINTERN PyObject *_wrap_ClAmsEntityConfigT_name_set(PyObject *SWIGUNUSEDPARM(
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsEntityConfigT_name_set" "', argument " "1"" of type '" "ClAmsEntityConfigT *""'"); 
   }
   arg1 = (ClAmsEntityConfigT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsEntityConfigT_name_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsEntityConfigT_name_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->name = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -9978,7 +9978,7 @@ SWIGINTERN PyObject *_wrap_ClAmsEntityConfigT_name_get(PyObject *SWIGUNUSEDPARM(
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsEntityConfigT_name_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsEntityConfigT, 0 |  0 );
@@ -9986,8 +9986,8 @@ SWIGINTERN PyObject *_wrap_ClAmsEntityConfigT_name_get(PyObject *SWIGUNUSEDPARM(
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsEntityConfigT_name_get" "', argument " "1"" of type '" "ClAmsEntityConfigT *""'"); 
   }
   arg1 = (ClAmsEntityConfigT *)(argp1);
-  result = (ClNameT *)& ((arg1)->name);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->name);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -12438,7 +12438,7 @@ SWIGINTERN PyObject *ClAmsEntityListT_swigregister(PyObject *SWIGUNUSEDPARM(self
 SWIGINTERN PyObject *_wrap_ClAmsEntityParamsT_typeString_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsEntityParamsT *arg1 = (ClAmsEntityParamsT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -12452,11 +12452,11 @@ SWIGINTERN PyObject *_wrap_ClAmsEntityParamsT_typeString_set(PyObject *SWIGUNUSE
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsEntityParamsT_typeString_set" "', argument " "1"" of type '" "ClAmsEntityParamsT *""'"); 
   }
   arg1 = (ClAmsEntityParamsT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsEntityParamsT_typeString_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsEntityParamsT_typeString_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->typeString = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -12471,7 +12471,7 @@ SWIGINTERN PyObject *_wrap_ClAmsEntityParamsT_typeString_get(PyObject *SWIGUNUSE
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsEntityParamsT_typeString_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsEntityParamsT, 0 |  0 );
@@ -12479,8 +12479,8 @@ SWIGINTERN PyObject *_wrap_ClAmsEntityParamsT_typeString_get(PyObject *SWIGUNUSE
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsEntityParamsT_typeString_get" "', argument " "1"" of type '" "ClAmsEntityParamsT *""'"); 
   }
   arg1 = (ClAmsEntityParamsT *)(argp1);
-  result = (ClNameT *)& ((arg1)->typeString);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->typeString);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -12995,7 +12995,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsNodeConfigT_subClassType_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsNodeConfigT *arg1 = (ClAmsNodeConfigT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -13009,11 +13009,11 @@ SWIGINTERN PyObject *_wrap_ClAmsNodeConfigT_subClassType_set(PyObject *SWIGUNUSE
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsNodeConfigT_subClassType_set" "', argument " "1"" of type '" "ClAmsNodeConfigT *""'"); 
   }
   arg1 = (ClAmsNodeConfigT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsNodeConfigT_subClassType_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsNodeConfigT_subClassType_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->subClassType = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -13028,7 +13028,7 @@ SWIGINTERN PyObject *_wrap_ClAmsNodeConfigT_subClassType_get(PyObject *SWIGUNUSE
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsNodeConfigT_subClassType_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsNodeConfigT, 0 |  0 );
@@ -13036,8 +13036,8 @@ SWIGINTERN PyObject *_wrap_ClAmsNodeConfigT_subClassType_get(PyObject *SWIGUNUSE
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsNodeConfigT_subClassType_get" "', argument " "1"" of type '" "ClAmsNodeConfigT *""'"); 
   }
   arg1 = (ClAmsNodeConfigT *)(argp1);
-  result = (ClNameT *)& ((arg1)->subClassType);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->subClassType);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -24698,7 +24698,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsCompConfigT_pSupportedCSITypes_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsCompConfigT *arg1 = (ClAmsCompConfigT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -24712,11 +24712,11 @@ SWIGINTERN PyObject *_wrap_ClAmsCompConfigT_pSupportedCSITypes_set(PyObject *SWI
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCompConfigT_pSupportedCSITypes_set" "', argument " "1"" of type '" "ClAmsCompConfigT *""'"); 
   }
   arg1 = (ClAmsCompConfigT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, SWIG_POINTER_DISOWN |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, SWIG_POINTER_DISOWN |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCompConfigT_pSupportedCSITypes_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCompConfigT_pSupportedCSITypes_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->pSupportedCSITypes = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -24731,7 +24731,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCompConfigT_pSupportedCSITypes_get(PyObject *SWI
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsCompConfigT_pSupportedCSITypes_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsCompConfigT, 0 |  0 );
@@ -24739,8 +24739,8 @@ SWIGINTERN PyObject *_wrap_ClAmsCompConfigT_pSupportedCSITypes_get(PyObject *SWI
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCompConfigT_pSupportedCSITypes_get" "', argument " "1"" of type '" "ClAmsCompConfigT *""'"); 
   }
   arg1 = (ClAmsCompConfigT *)(argp1);
-  result = (ClNameT *) ((arg1)->pSupportedCSITypes);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *) ((arg1)->pSupportedCSITypes);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -24750,7 +24750,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsCompConfigT_proxyCSIType_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsCompConfigT *arg1 = (ClAmsCompConfigT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -24764,11 +24764,11 @@ SWIGINTERN PyObject *_wrap_ClAmsCompConfigT_proxyCSIType_set(PyObject *SWIGUNUSE
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCompConfigT_proxyCSIType_set" "', argument " "1"" of type '" "ClAmsCompConfigT *""'"); 
   }
   arg1 = (ClAmsCompConfigT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCompConfigT_proxyCSIType_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCompConfigT_proxyCSIType_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->proxyCSIType = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -24783,7 +24783,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCompConfigT_proxyCSIType_get(PyObject *SWIGUNUSE
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsCompConfigT_proxyCSIType_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsCompConfigT, 0 |  0 );
@@ -24791,8 +24791,8 @@ SWIGINTERN PyObject *_wrap_ClAmsCompConfigT_proxyCSIType_get(PyObject *SWIGUNUSE
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCompConfigT_proxyCSIType_get" "', argument " "1"" of type '" "ClAmsCompConfigT *""'"); 
   }
   arg1 = (ClAmsCompConfigT *)(argp1);
-  result = (ClNameT *)& ((arg1)->proxyCSIType);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->proxyCSIType);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -28072,7 +28072,7 @@ SWIGINTERN PyObject *ClAmsCSIPGTrackClientT_swigregister(PyObject *SWIGUNUSEDPAR
 SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_csiName_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsCSINameValuePairT *arg1 = (ClAmsCSINameValuePairT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -28086,11 +28086,11 @@ SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_csiName_set(PyObject *SWIGUNUS
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSINameValuePairT_csiName_set" "', argument " "1"" of type '" "ClAmsCSINameValuePairT *""'"); 
   }
   arg1 = (ClAmsCSINameValuePairT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSINameValuePairT_csiName_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSINameValuePairT_csiName_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->csiName = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -28105,7 +28105,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_csiName_get(PyObject *SWIGUNUS
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsCSINameValuePairT_csiName_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsCSINameValuePairT, 0 |  0 );
@@ -28113,8 +28113,8 @@ SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_csiName_get(PyObject *SWIGUNUS
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSINameValuePairT_csiName_get" "', argument " "1"" of type '" "ClAmsCSINameValuePairT *""'"); 
   }
   arg1 = (ClAmsCSINameValuePairT *)(argp1);
-  result = (ClNameT *)& ((arg1)->csiName);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->csiName);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -28124,7 +28124,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_paramName_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsCSINameValuePairT *arg1 = (ClAmsCSINameValuePairT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -28138,11 +28138,11 @@ SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_paramName_set(PyObject *SWIGUN
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSINameValuePairT_paramName_set" "', argument " "1"" of type '" "ClAmsCSINameValuePairT *""'"); 
   }
   arg1 = (ClAmsCSINameValuePairT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSINameValuePairT_paramName_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSINameValuePairT_paramName_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->paramName = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -28157,7 +28157,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_paramName_get(PyObject *SWIGUN
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsCSINameValuePairT_paramName_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsCSINameValuePairT, 0 |  0 );
@@ -28165,8 +28165,8 @@ SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_paramName_get(PyObject *SWIGUN
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSINameValuePairT_paramName_get" "', argument " "1"" of type '" "ClAmsCSINameValuePairT *""'"); 
   }
   arg1 = (ClAmsCSINameValuePairT *)(argp1);
-  result = (ClNameT *)& ((arg1)->paramName);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->paramName);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -28176,7 +28176,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_paramValue_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsCSINameValuePairT *arg1 = (ClAmsCSINameValuePairT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -28190,11 +28190,11 @@ SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_paramValue_set(PyObject *SWIGU
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSINameValuePairT_paramValue_set" "', argument " "1"" of type '" "ClAmsCSINameValuePairT *""'"); 
   }
   arg1 = (ClAmsCSINameValuePairT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSINameValuePairT_paramValue_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSINameValuePairT_paramValue_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->paramValue = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -28209,7 +28209,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_paramValue_get(PyObject *SWIGU
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsCSINameValuePairT_paramValue_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsCSINameValuePairT, 0 |  0 );
@@ -28217,8 +28217,8 @@ SWIGINTERN PyObject *_wrap_ClAmsCSINameValuePairT_paramValue_get(PyObject *SWIGU
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSINameValuePairT_paramValue_get" "', argument " "1"" of type '" "ClAmsCSINameValuePairT *""'"); 
   }
   arg1 = (ClAmsCSINameValuePairT *)(argp1);
-  result = (ClNameT *)& ((arg1)->paramValue);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->paramValue);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -28321,7 +28321,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsCSIConfigT_type_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsCSIConfigT *arg1 = (ClAmsCSIConfigT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -28335,11 +28335,11 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIConfigT_type_set(PyObject *SWIGUNUSEDPARM(sel
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSIConfigT_type_set" "', argument " "1"" of type '" "ClAmsCSIConfigT *""'"); 
   }
   arg1 = (ClAmsCSIConfigT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSIConfigT_type_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSIConfigT_type_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->type = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -28354,7 +28354,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIConfigT_type_get(PyObject *SWIGUNUSEDPARM(sel
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsCSIConfigT_type_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsCSIConfigT, 0 |  0 );
@@ -28362,8 +28362,8 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIConfigT_type_get(PyObject *SWIGUNUSEDPARM(sel
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSIConfigT_type_get" "', argument " "1"" of type '" "ClAmsCSIConfigT *""'"); 
   }
   arg1 = (ClAmsCSIConfigT *)(argp1);
-  result = (ClNameT *)& ((arg1)->type);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->type);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -30464,7 +30464,7 @@ SWIGINTERN PyObject *_wrap_clAmsMgmtEntityUserDataSetKey(PyObject *SWIGUNUSEDPAR
   PyObject *resultobj = 0;
   ClAmsMgmtHandleT arg1 ;
   ClAmsEntityT *arg2 = (ClAmsEntityT *) 0 ;
-  ClNameT *arg3 = (ClNameT *) 0 ;
+  SaNameT *arg3 = (SaNameT *) 0 ;
   ClCharT *arg4 = (ClCharT *) 0 ;
   ClUint32T arg5 ;
   unsigned long long val1 ;
@@ -30494,11 +30494,11 @@ SWIGINTERN PyObject *_wrap_clAmsMgmtEntityUserDataSetKey(PyObject *SWIGUNUSEDPAR
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "clAmsMgmtEntityUserDataSetKey" "', argument " "2"" of type '" "ClAmsEntityT *""'"); 
   }
   arg2 = (ClAmsEntityT *)(argp2);
-  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "clAmsMgmtEntityUserDataSetKey" "', argument " "3"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "clAmsMgmtEntityUserDataSetKey" "', argument " "3"" of type '" "SaNameT *""'"); 
   }
-  arg3 = (ClNameT *)(argp3);
+  arg3 = (SaNameT *)(argp3);
   res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, &size4, &alloc4);
   if (!SWIG_IsOK(res4)) {
     SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "clAmsMgmtEntityUserDataSetKey" "', argument " "4"" of type '" "ClCharT *""'");
@@ -30581,7 +30581,7 @@ SWIGINTERN PyObject *_wrap_clAmsMgmtEntityUserDataGetKey(PyObject *SWIGUNUSEDPAR
   PyObject *resultobj = 0;
   ClAmsMgmtHandleT arg1 ;
   ClAmsEntityT *arg2 = (ClAmsEntityT *) 0 ;
-  ClNameT *arg3 = (ClNameT *) 0 ;
+  SaNameT *arg3 = (SaNameT *) 0 ;
   ClCharT **arg4 = (ClCharT **) 0 ;
   ClUint32T *arg5 = (ClUint32T *) 0 ;
   unsigned long long val1 ;
@@ -30609,11 +30609,11 @@ SWIGINTERN PyObject *_wrap_clAmsMgmtEntityUserDataGetKey(PyObject *SWIGUNUSEDPAR
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "clAmsMgmtEntityUserDataGetKey" "', argument " "2"" of type '" "ClAmsEntityT *""'"); 
   }
   arg2 = (ClAmsEntityT *)(argp2);
-  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "clAmsMgmtEntityUserDataGetKey" "', argument " "3"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "clAmsMgmtEntityUserDataGetKey" "', argument " "3"" of type '" "SaNameT *""'"); 
   }
-  arg3 = (ClNameT *)(argp3);
+  arg3 = (SaNameT *)(argp3);
   result = (ClRcT)clAmsMgmtEntityUserDataGetKey(arg1,arg2,arg3,arg4,arg5);
   {
     if (result!=0x00)
@@ -41532,7 +41532,7 @@ SWIGINTERN PyObject *ClAmsMgmtMigrateListT_swigregister(PyObject *SWIGUNUSEDPARM
 SWIGINTERN PyObject *_wrap_ClAmsMgmtMigrateRequestT_sg_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsMgmtMigrateRequestT *arg1 = (ClAmsMgmtMigrateRequestT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -41546,11 +41546,11 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtMigrateRequestT_sg_set(PyObject *SWIGUNUSEDP
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsMgmtMigrateRequestT_sg_set" "', argument " "1"" of type '" "ClAmsMgmtMigrateRequestT *""'"); 
   }
   arg1 = (ClAmsMgmtMigrateRequestT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsMgmtMigrateRequestT_sg_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsMgmtMigrateRequestT_sg_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->sg = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -41565,7 +41565,7 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtMigrateRequestT_sg_get(PyObject *SWIGUNUSEDP
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsMgmtMigrateRequestT_sg_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsMgmtMigrateRequest, 0 |  0 );
@@ -41573,8 +41573,8 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtMigrateRequestT_sg_get(PyObject *SWIGUNUSEDP
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsMgmtMigrateRequestT_sg_get" "', argument " "1"" of type '" "ClAmsMgmtMigrateRequestT *""'"); 
   }
   arg1 = (ClAmsMgmtMigrateRequestT *)(argp1);
-  result = (ClNameT *)& ((arg1)->sg);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->sg);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -41584,7 +41584,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsMgmtMigrateRequestT_prefix_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsMgmtMigrateRequestT *arg1 = (ClAmsMgmtMigrateRequestT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -41598,11 +41598,11 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtMigrateRequestT_prefix_set(PyObject *SWIGUNU
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsMgmtMigrateRequestT_prefix_set" "', argument " "1"" of type '" "ClAmsMgmtMigrateRequestT *""'"); 
   }
   arg1 = (ClAmsMgmtMigrateRequestT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsMgmtMigrateRequestT_prefix_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsMgmtMigrateRequestT_prefix_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->prefix = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -41617,7 +41617,7 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtMigrateRequestT_prefix_get(PyObject *SWIGUNU
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsMgmtMigrateRequestT_prefix_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsMgmtMigrateRequest, 0 |  0 );
@@ -41625,8 +41625,8 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtMigrateRequestT_prefix_get(PyObject *SWIGUNU
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsMgmtMigrateRequestT_prefix_get" "', argument " "1"" of type '" "ClAmsMgmtMigrateRequestT *""'"); 
   }
   arg1 = (ClAmsMgmtMigrateRequestT *)(argp1);
-  result = (ClNameT *)& ((arg1)->prefix);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->prefix);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -41926,7 +41926,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataSetRequestT_key_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsMgmtUserDataSetRequestT *arg1 = (ClAmsMgmtUserDataSetRequestT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -41940,11 +41940,11 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataSetRequestT_key_set(PyObject *SWIGUN
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsMgmtUserDataSetRequestT_key_set" "', argument " "1"" of type '" "ClAmsMgmtUserDataSetRequestT *""'"); 
   }
   arg1 = (ClAmsMgmtUserDataSetRequestT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, SWIG_POINTER_DISOWN |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, SWIG_POINTER_DISOWN |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsMgmtUserDataSetRequestT_key_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsMgmtUserDataSetRequestT_key_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->key = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -41959,7 +41959,7 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataSetRequestT_key_get(PyObject *SWIGUN
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsMgmtUserDataSetRequestT_key_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsMgmtUserDataSetRequest, 0 |  0 );
@@ -41967,8 +41967,8 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataSetRequestT_key_get(PyObject *SWIGUN
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsMgmtUserDataSetRequestT_key_get" "', argument " "1"" of type '" "ClAmsMgmtUserDataSetRequestT *""'"); 
   }
   arg1 = (ClAmsMgmtUserDataSetRequestT *)(argp1);
-  result = (ClNameT *) ((arg1)->key);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *) ((arg1)->key);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -42184,7 +42184,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataGetRequestT_key_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsMgmtUserDataGetRequestT *arg1 = (ClAmsMgmtUserDataGetRequestT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -42198,11 +42198,11 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataGetRequestT_key_set(PyObject *SWIGUN
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsMgmtUserDataGetRequestT_key_set" "', argument " "1"" of type '" "ClAmsMgmtUserDataGetRequestT *""'"); 
   }
   arg1 = (ClAmsMgmtUserDataGetRequestT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, SWIG_POINTER_DISOWN |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, SWIG_POINTER_DISOWN |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsMgmtUserDataGetRequestT_key_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsMgmtUserDataGetRequestT_key_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->key = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -42217,7 +42217,7 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataGetRequestT_key_get(PyObject *SWIGUN
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsMgmtUserDataGetRequestT_key_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsMgmtUserDataGetRequest, 0 |  0 );
@@ -42225,8 +42225,8 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataGetRequestT_key_get(PyObject *SWIGUN
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsMgmtUserDataGetRequestT_key_get" "', argument " "1"" of type '" "ClAmsMgmtUserDataGetRequestT *""'"); 
   }
   arg1 = (ClAmsMgmtUserDataGetRequestT *)(argp1);
-  result = (ClNameT *) ((arg1)->key);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *) ((arg1)->key);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -42433,7 +42433,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataDeleteRequestT_key_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsMgmtUserDataDeleteRequestT *arg1 = (ClAmsMgmtUserDataDeleteRequestT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -42447,11 +42447,11 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataDeleteRequestT_key_set(PyObject *SWI
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsMgmtUserDataDeleteRequestT_key_set" "', argument " "1"" of type '" "ClAmsMgmtUserDataDeleteRequestT *""'"); 
   }
   arg1 = (ClAmsMgmtUserDataDeleteRequestT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, SWIG_POINTER_DISOWN |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, SWIG_POINTER_DISOWN |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsMgmtUserDataDeleteRequestT_key_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsMgmtUserDataDeleteRequestT_key_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->key = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -42466,7 +42466,7 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataDeleteRequestT_key_get(PyObject *SWI
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsMgmtUserDataDeleteRequestT_key_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsMgmtUserDataDeleteRequest, 0 |  0 );
@@ -42474,8 +42474,8 @@ SWIGINTERN PyObject *_wrap_ClAmsMgmtUserDataDeleteRequestT_key_get(PyObject *SWI
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsMgmtUserDataDeleteRequestT_key_get" "', argument " "1"" of type '" "ClAmsMgmtUserDataDeleteRequestT *""'"); 
   }
   arg1 = (ClAmsMgmtUserDataDeleteRequestT *)(argp1);
-  result = (ClNameT *) ((arg1)->key);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *) ((arg1)->key);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -46641,7 +46641,7 @@ SWIGINTERN PyObject *_wrap_clAmsMgmtEntityUserDataDeleteKey(PyObject *SWIGUNUSED
   PyObject *resultobj = 0;
   ClAmsMgmtHandleT arg1 ;
   ClAmsEntityT *arg2 = (ClAmsEntityT *) 0 ;
-  ClNameT *arg3 = (ClNameT *) 0 ;
+  SaNameT *arg3 = (SaNameT *) 0 ;
   unsigned long long val1 ;
   int ecode1 = 0 ;
   void *argp2 = 0 ;
@@ -46664,11 +46664,11 @@ SWIGINTERN PyObject *_wrap_clAmsMgmtEntityUserDataDeleteKey(PyObject *SWIGUNUSED
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "clAmsMgmtEntityUserDataDeleteKey" "', argument " "2"" of type '" "ClAmsEntityT *""'"); 
   }
   arg2 = (ClAmsEntityT *)(argp2);
-  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "clAmsMgmtEntityUserDataDeleteKey" "', argument " "3"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "clAmsMgmtEntityUserDataDeleteKey" "', argument " "3"" of type '" "SaNameT *""'"); 
   }
-  arg3 = (ClNameT *)(argp3);
+  arg3 = (SaNameT *)(argp3);
   result = (ClRcT)clAmsMgmtEntityUserDataDeleteKey(arg1,arg2,arg3);
   {
     if (result!=0x00)
@@ -52809,7 +52809,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsCSIActiveDescriptorT_activeCompName_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsCSIActiveDescriptorT *arg1 = (ClAmsCSIActiveDescriptorT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -52823,11 +52823,11 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIActiveDescriptorT_activeCompName_set(PyObject
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSIActiveDescriptorT_activeCompName_set" "', argument " "1"" of type '" "ClAmsCSIActiveDescriptorT *""'"); 
   }
   arg1 = (ClAmsCSIActiveDescriptorT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSIActiveDescriptorT_activeCompName_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSIActiveDescriptorT_activeCompName_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->activeCompName = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -52842,7 +52842,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIActiveDescriptorT_activeCompName_get(PyObject
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsCSIActiveDescriptorT_activeCompName_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsCSIActiveDescriptorT, 0 |  0 );
@@ -52850,8 +52850,8 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIActiveDescriptorT_activeCompName_get(PyObject
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSIActiveDescriptorT_activeCompName_get" "', argument " "1"" of type '" "ClAmsCSIActiveDescriptorT *""'"); 
   }
   arg1 = (ClAmsCSIActiveDescriptorT *)(argp1);
-  result = (ClNameT *)& ((arg1)->activeCompName);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->activeCompName);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -52902,7 +52902,7 @@ SWIGINTERN PyObject *ClAmsCSIActiveDescriptorT_swigregister(PyObject *SWIGUNUSED
 SWIGINTERN PyObject *_wrap_ClAmsCSIStandbyDescriptorT_activeCompName_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsCSIStandbyDescriptorT *arg1 = (ClAmsCSIStandbyDescriptorT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -52916,11 +52916,11 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIStandbyDescriptorT_activeCompName_set(PyObjec
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSIStandbyDescriptorT_activeCompName_set" "', argument " "1"" of type '" "ClAmsCSIStandbyDescriptorT *""'"); 
   }
   arg1 = (ClAmsCSIStandbyDescriptorT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSIStandbyDescriptorT_activeCompName_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSIStandbyDescriptorT_activeCompName_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->activeCompName = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -52935,7 +52935,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIStandbyDescriptorT_activeCompName_get(PyObjec
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsCSIStandbyDescriptorT_activeCompName_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsCSIStandbyDescriptorT, 0 |  0 );
@@ -52943,8 +52943,8 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIStandbyDescriptorT_activeCompName_get(PyObjec
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSIStandbyDescriptorT_activeCompName_get" "', argument " "1"" of type '" "ClAmsCSIStandbyDescriptorT *""'"); 
   }
   arg1 = (ClAmsCSIStandbyDescriptorT *)(argp1);
-  result = (ClNameT *)& ((arg1)->activeCompName);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->activeCompName);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -53534,7 +53534,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsCSIDescriptorT_csiName_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsCSIDescriptorT *arg1 = (ClAmsCSIDescriptorT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -53548,11 +53548,11 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIDescriptorT_csiName_set(PyObject *SWIGUNUSEDP
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSIDescriptorT_csiName_set" "', argument " "1"" of type '" "ClAmsCSIDescriptorT *""'"); 
   }
   arg1 = (ClAmsCSIDescriptorT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSIDescriptorT_csiName_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSIDescriptorT_csiName_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->csiName = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -53567,7 +53567,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIDescriptorT_csiName_get(PyObject *SWIGUNUSEDP
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsCSIDescriptorT_csiName_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsCSIDescriptorT, 0 |  0 );
@@ -53575,8 +53575,8 @@ SWIGINTERN PyObject *_wrap_ClAmsCSIDescriptorT_csiName_get(PyObject *SWIGUNUSEDP
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSIDescriptorT_csiName_get" "', argument " "1"" of type '" "ClAmsCSIDescriptorT *""'"); 
   }
   arg1 = (ClAmsCSIDescriptorT *)(argp1);
-  result = (ClNameT *)& ((arg1)->csiName);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->csiName);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -53797,7 +53797,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCSITypeDescriptorT_csiType_set(PyObject *SWIGUNU
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSITypeDescriptorT_csiType_set" "', argument " "1"" of type '" "ClAmsCSITypeDescriptorT *""'"); 
   }
   arg1 = (ClAmsCSITypeDescriptorT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSITypeDescriptorT_csiType_set" "', argument " "2"" of type '" "ClAmsCSITypeT *""'"); 
   }
@@ -53825,7 +53825,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCSITypeDescriptorT_csiType_get(PyObject *SWIGUNU
   }
   arg1 = (ClAmsCSITypeDescriptorT *)(argp1);
   result = (ClAmsCSITypeT *)& ((arg1)->csiType);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -53835,7 +53835,7 @@ fail:
 SWIGINTERN PyObject *_wrap_ClAmsCSITypeDescriptorT_compName_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsCSITypeDescriptorT *arg1 = (ClAmsCSITypeDescriptorT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -53849,11 +53849,11 @@ SWIGINTERN PyObject *_wrap_ClAmsCSITypeDescriptorT_compName_set(PyObject *SWIGUN
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSITypeDescriptorT_compName_set" "', argument " "1"" of type '" "ClAmsCSITypeDescriptorT *""'"); 
   }
   arg1 = (ClAmsCSITypeDescriptorT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSITypeDescriptorT_compName_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsCSITypeDescriptorT_compName_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->compName = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -53868,7 +53868,7 @@ SWIGINTERN PyObject *_wrap_ClAmsCSITypeDescriptorT_compName_get(PyObject *SWIGUN
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsCSITypeDescriptorT_compName_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsCSITypeDescriptorT, 0 |  0 );
@@ -53876,8 +53876,8 @@ SWIGINTERN PyObject *_wrap_ClAmsCSITypeDescriptorT_compName_get(PyObject *SWIGUN
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsCSITypeDescriptorT_compName_get" "', argument " "1"" of type '" "ClAmsCSITypeDescriptorT *""'"); 
   }
   arg1 = (ClAmsCSITypeDescriptorT *)(argp1);
-  result = (ClNameT *)& ((arg1)->compName);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->compName);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -53928,7 +53928,7 @@ SWIGINTERN PyObject *ClAmsCSITypeDescriptorT_swigregister(PyObject *SWIGUNUSEDPA
 SWIGINTERN PyObject *_wrap_ClAmsPGMemberT_compName_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ClAmsPGMemberT *arg1 = (ClAmsPGMemberT *) 0 ;
-  ClNameT *arg2 = (ClNameT *) 0 ;
+  SaNameT *arg2 = (SaNameT *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 = 0 ;
@@ -53942,11 +53942,11 @@ SWIGINTERN PyObject *_wrap_ClAmsPGMemberT_compName_set(PyObject *SWIGUNUSEDPARM(
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsPGMemberT_compName_set" "', argument " "1"" of type '" "ClAmsPGMemberT *""'"); 
   }
   arg1 = (ClAmsPGMemberT *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_ClNameT, 0 |  0 );
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SaNameT, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsPGMemberT_compName_set" "', argument " "2"" of type '" "ClNameT *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ClAmsPGMemberT_compName_set" "', argument " "2"" of type '" "SaNameT *""'"); 
   }
-  arg2 = (ClNameT *)(argp2);
+  arg2 = (SaNameT *)(argp2);
   if (arg1) (arg1)->compName = *arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -53961,7 +53961,7 @@ SWIGINTERN PyObject *_wrap_ClAmsPGMemberT_compName_get(PyObject *SWIGUNUSEDPARM(
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  ClNameT *result = 0 ;
+  SaNameT *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"O:ClAmsPGMemberT_compName_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ClAmsPGMemberT, 0 |  0 );
@@ -53969,8 +53969,8 @@ SWIGINTERN PyObject *_wrap_ClAmsPGMemberT_compName_get(PyObject *SWIGUNUSEDPARM(
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ClAmsPGMemberT_compName_get" "', argument " "1"" of type '" "ClAmsPGMemberT *""'"); 
   }
   arg1 = (ClAmsPGMemberT *)(argp1);
-  result = (ClNameT *)& ((arg1)->compName);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ClNameT, 0 |  0 );
+  result = (SaNameT *)& ((arg1)->compName);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_SaNameT, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -57265,16 +57265,16 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"new_ClUnion64T_DWord", _wrap_new_ClUnion64T_DWord, METH_VARARGS, NULL},
 	 { (char *)"delete_ClUnion64T_DWord", _wrap_delete_ClUnion64T_DWord, METH_VARARGS, NULL},
 	 { (char *)"ClUnion64T_DWord_swigregister", ClUnion64T_DWord_swigregister, METH_VARARGS, NULL},
-	 { (char *)"ClNameT_length_set", _wrap_ClNameT_length_set, METH_VARARGS, NULL},
-	 { (char *)"ClNameT_length_get", _wrap_ClNameT_length_get, METH_VARARGS, NULL},
-	 { (char *)"ClNameT_value_set", _wrap_ClNameT_value_set, METH_VARARGS, NULL},
-	 { (char *)"ClNameT_value_get", _wrap_ClNameT_value_get, METH_VARARGS, NULL},
-	 { (char *)"new_ClNameT", _wrap_new_ClNameT, METH_VARARGS, NULL},
-	 { (char *)"delete_ClNameT", _wrap_delete_ClNameT, METH_VARARGS, NULL},
-	 { (char *)"ClNameT_swigregister", ClNameT_swigregister, METH_VARARGS, NULL},
-	 { (char *)"clNameSet", _wrap_clNameSet, METH_VARARGS, NULL},
-	 { (char *)"clNameCopy", _wrap_clNameCopy, METH_VARARGS, NULL},
-	 { (char *)"clNameConcat", _wrap_clNameConcat, METH_VARARGS, NULL},
+	 { (char *)"SaNameT_length_set", _wrap_SaNameT_length_set, METH_VARARGS, NULL},
+	 { (char *)"SaNameT_length_get", _wrap_SaNameT_length_get, METH_VARARGS, NULL},
+	 { (char *)"SaNameT_value_set", _wrap_SaNameT_value_set, METH_VARARGS, NULL},
+	 { (char *)"SaNameT_value_get", _wrap_SaNameT_value_get, METH_VARARGS, NULL},
+	 { (char *)"new_SaNameT", _wrap_new_SaNameT, METH_VARARGS, NULL},
+	 { (char *)"delete_SaNameT", _wrap_delete_SaNameT, METH_VARARGS, NULL},
+	 { (char *)"SaNameT_swigregister", SaNameT_swigregister, METH_VARARGS, NULL},
+	 { (char *)"saNameSet", _wrap_saNameSet, METH_VARARGS, NULL},
+	 { (char *)"saNameCopy", _wrap_saNameCopy, METH_VARARGS, NULL},
+	 { (char *)"saNameConcat", _wrap_saNameConcat, METH_VARARGS, NULL},
 	 { (char *)"clStrdup", _wrap_clStrdup, METH_VARARGS, NULL},
 	 { (char *)"clParseEnvBoolean", _wrap_clParseEnvBoolean, METH_VARARGS, NULL},
 	 { (char *)"clParseEnvStr", _wrap_clParseEnvStr, METH_VARARGS, NULL},
@@ -57309,15 +57309,15 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"delete_ClStringT", _wrap_delete_ClStringT, METH_VARARGS, NULL},
 	 { (char *)"ClStringT_swigregister", ClStringT_swigregister, METH_VARARGS, NULL},
 	 { (char *)"clStringDup", _wrap_clStringDup, METH_VARARGS, NULL},
-	 { (char *)"new_ClNameT_p", _wrap_new_ClNameT_p, METH_VARARGS, NULL},
-	 { (char *)"copy_ClNameT_p", _wrap_copy_ClNameT_p, METH_VARARGS, NULL},
-	 { (char *)"delete_ClNameT_p", _wrap_delete_ClNameT_p, METH_VARARGS, NULL},
-	 { (char *)"ClNameT_p_assign", _wrap_ClNameT_p_assign, METH_VARARGS, NULL},
-	 { (char *)"ClNameT_p_value", _wrap_ClNameT_p_value, METH_VARARGS, NULL},
-	 { (char *)"new_ClNameT_array", _wrap_new_ClNameT_array, METH_VARARGS, NULL},
-	 { (char *)"delete_ClNameT_array", _wrap_delete_ClNameT_array, METH_VARARGS, NULL},
-	 { (char *)"ClNameT_array_getitem", _wrap_ClNameT_array_getitem, METH_VARARGS, NULL},
-	 { (char *)"ClNameT_array_setitem", _wrap_ClNameT_array_setitem, METH_VARARGS, NULL},
+	 { (char *)"new_SaNameT_p", _wrap_new_SaNameT_p, METH_VARARGS, NULL},
+	 { (char *)"copy_SaNameT_p", _wrap_copy_SaNameT_p, METH_VARARGS, NULL},
+	 { (char *)"delete_SaNameT_p", _wrap_delete_SaNameT_p, METH_VARARGS, NULL},
+	 { (char *)"SaNameT_p_assign", _wrap_SaNameT_p_assign, METH_VARARGS, NULL},
+	 { (char *)"SaNameT_p_value", _wrap_SaNameT_p_value, METH_VARARGS, NULL},
+	 { (char *)"new_SaNameT_array", _wrap_new_SaNameT_array, METH_VARARGS, NULL},
+	 { (char *)"delete_SaNameT_array", _wrap_delete_SaNameT_array, METH_VARARGS, NULL},
+	 { (char *)"SaNameT_array_getitem", _wrap_SaNameT_array_getitem, METH_VARARGS, NULL},
+	 { (char *)"SaNameT_array_setitem", _wrap_SaNameT_array_setitem, METH_VARARGS, NULL},
 	 { (char *)"new_ClAmsCSINameValuePairT_array", _wrap_new_ClAmsCSINameValuePairT_array, METH_VARARGS, NULL},
 	 { (char *)"delete_ClAmsCSINameValuePairT_array", _wrap_delete_ClAmsCSINameValuePairT_array, METH_VARARGS, NULL},
 	 { (char *)"ClAmsCSINameValuePairT_array_getitem", _wrap_ClAmsCSINameValuePairT_array_getitem, METH_VARARGS, NULL},
@@ -59552,7 +59552,7 @@ static swig_type_info _swigt__p_ClMetricId = {"_p_ClMetricId", "ClMetricIdT *|en
 static swig_type_info _swigt__p_ClMetricOptionsT = {"_p_ClMetricOptionsT", "enum ClMetricOptionsT *|ClMetricOptionsT *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ClMetricType = {"_p_ClMetricType", "ClMetricTypeT *|enum ClMetricType *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ClMgdLeafT = {"_p_ClMgdLeafT", "ClMgdLeafT *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_ClNameT = {"_p_ClNameT", "ClAmsCSITypeT *|ClNameT *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_SaNameT = {"_p_SaNameT", "ClAmsCSITypeT *|SaNameT *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ClStatusT = {"_p_ClStatusT", "enum ClStatusT *|ClStatusT *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ClStringT = {"_p_ClStringT", "ClStringT *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_ClTimerHandleT = {"_p_ClTimerHandleT", "ClTimerHandleT *", 0, 0, (void*)0, 0};
@@ -59821,7 +59821,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_ClMetricOptionsT,
   &_swigt__p_ClMetricType,
   &_swigt__p_ClMgdLeafT,
-  &_swigt__p_ClNameT,
+  &_swigt__p_SaNameT,
   &_swigt__p_ClStatusT,
   &_swigt__p_ClStringT,
   &_swigt__p_ClTimerHandleT,
@@ -60090,7 +60090,7 @@ static swig_cast_info _swigc__p_ClMetricId[] = {  {&_swigt__p_ClMetricId, 0, 0, 
 static swig_cast_info _swigc__p_ClMetricOptionsT[] = {  {&_swigt__p_ClMetricOptionsT, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ClMetricType[] = {  {&_swigt__p_ClMetricType, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ClMgdLeafT[] = {  {&_swigt__p_ClMgdLeafT, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_ClNameT[] = {  {&_swigt__p_ClNameT, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_SaNameT[] = {  {&_swigt__p_SaNameT, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ClStatusT[] = {  {&_swigt__p_ClStatusT, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ClStringT[] = {  {&_swigt__p_ClStringT, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_ClTimerHandleT[] = {  {&_swigt__p_ClTimerHandleT, 0, 0, 0},{0, 0, 0, 0}};
@@ -60359,7 +60359,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_ClMetricOptionsT,
   _swigc__p_ClMetricType,
   _swigc__p_ClMgdLeafT,
-  _swigc__p_ClNameT,
+  _swigc__p_SaNameT,
   _swigc__p_ClStatusT,
   _swigc__p_ClStringT,
   _swigc__p_ClTimerHandleT,

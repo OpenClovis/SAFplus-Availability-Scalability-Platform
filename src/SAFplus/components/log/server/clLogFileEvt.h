@@ -97,20 +97,20 @@ extern ClRcT
 clLogStreamCreationEvtPublish(ClLogStreamInfoIDLT  *pLogStreamInfo);
 
 extern ClRcT
-clLogStreamCloseEvtPublish(ClNameT            *pStreamName,
+clLogStreamCloseEvtPublish(SaNameT            *pStreamName,
                            ClLogStreamScopeT  streamScope,
-                           ClNameT            *pStreamScopeNode);
+                           SaNameT            *pStreamScopeNode);
 extern ClRcT
 clLogFileOwnerEventSubscribe(void);
 
 extern ClRcT
-clLogCompAddEvtPublish(ClNameT    *pCompName,
+clLogCompAddEvtPublish(SaNameT    *pCompName,
                        ClUint32T  clientId);
 extern ClRcT
 clLogCompAddEventDataExtract(ClUint8T   *pBuffer,
                              ClUint32T  size);
 extern ClRcT
-clLogNodeDownMasterDBUpdate(ClNameT*  nodeName);
+clLogNodeDownMasterDBUpdate(SaNameT*  nodeName);
     
 #ifdef __cplusplus
 }

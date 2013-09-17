@@ -86,7 +86,7 @@ void clDifferenceVectorFree(ClDifferenceVectorT *differenceVector, ClBoolT freeD
 
 extern 
 ClDifferenceVectorKeyT *clDifferenceVectorKeyMake(ClDifferenceVectorKeyT *key,
-                                                  const ClNameT *groupKey,
+                                                  const SaNameT *groupKey,
                                                   const ClCharT *sectionFmt, ...) CL_PRINTF_FORMAT(3,4);
 
 extern

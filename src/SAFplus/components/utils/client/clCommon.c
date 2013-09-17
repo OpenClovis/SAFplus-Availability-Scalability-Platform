@@ -35,18 +35,18 @@
 static ClInt32T gClSyslogFacility;
 #endif
 
-/** \brief  Load the ClNameT structure.
+/** \brief  Load the SaNameT structure.
     \param  name The structure you want to load
-    \param  str  The value to be put into the ClNameT structure
+    \param  str  The value to be put into the SaNameT structure
 
     If str is too long, then this function will ASSERT in debug mode, and crop in production mode 
 */
-void clNameSet(ClNameT* name, const char* str)
+void saNameSet(SaNameT* name, const char* str)
 {
     int sz = strlen(str);
     /* Make sure that the name is not too big when in debugging mode */
     CL_ASSERT(sz < CL_MAX_NAME_LENGTH);
-    strncpy(name->value,str,CL_MAX_NAME_LENGTH-1);
+    strncpy((ClCharT *)name->value,str,CL_MAX_NAME_LENGTH-1);
     /* If the name is too big, then crop it */
     if (sz >= CL_MAX_NAME_LENGTH)
     {
@@ -55,13 +55,13 @@ void clNameSet(ClNameT* name, const char* str)
     }
     else name->length = sz;
 }
-/** \brief  Load the ClNameT structure.
+/** \brief  Load the SaNameT structure.
     \param  name The structure you want to load
-    \param  str  The structure to be put into the ClNameT structure
+    \param  str  The structure to be put into the SaNameT structure
 
     If str is too long, then this function will ASSERT in debug mode, and crop in production mode 
 */
-void clNameCopy(ClNameT* nameOut, const ClNameT *nameIn)
+void saNameCopy(SaNameT* nameOut, const SaNameT *nameIn)
 {
     /* Make sure that the name is not too big when in debugging mode */
     CL_ASSERT(nameIn->length < CL_MAX_NAME_LENGTH);
@@ -76,7 +76,7 @@ void clNameCopy(ClNameT* nameOut, const ClNameT *nameIn)
     nameOut->value[nameOut->length] = 0;
 }
 
-void clNameConcat(ClNameT* nameOut, const ClNameT *prefix, const char* separator, const ClNameT *suffix)
+void saNameConcat(SaNameT* nameOut, const SaNameT *prefix, const char* separator, const SaNameT *suffix)
 {
     int curpos = 0;
 

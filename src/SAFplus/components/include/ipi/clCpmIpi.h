@@ -269,7 +269,7 @@ typedef struct
     /**
      * Name of the node for which boot set level was requested.
      */
-    ClNameT nodeName;
+    SaNameT nodeName;
     /**
      * BootLevel, which was requested to be set.
      */
@@ -369,7 +369,7 @@ extern ClRcT clCpmExecutionObjectStateSet(CL_IN ClIocNodeAddressT destAddr,
  *  \sa clCpmBootLevelSet(), clCpmBootLevelMax()
  *
  */
-extern ClRcT clCpmBootLevelGet(CL_IN ClNameT *pNodeName,
+extern ClRcT clCpmBootLevelGet(CL_IN SaNameT *pNodeName,
                                CL_OUT ClUint32T *pBootLevel);
 
 /**
@@ -407,7 +407,7 @@ extern ClRcT clCpmBootLevelGet(CL_IN ClNameT *pNodeName,
  *  \sa clCpmBootLevelGet(), clCpmBootLevelMax()
  *
  */
-extern ClRcT clCpmBootLevelSet(CL_IN ClNameT *pNodeName,
+extern ClRcT clCpmBootLevelSet(CL_IN SaNameT *pNodeName,
                                CL_IN ClCpmLcmReplyT *pSrcInfo,
                                CL_IN ClUint32T bootLevel);
 
@@ -439,7 +439,7 @@ extern ClRcT clCpmBootLevelSet(CL_IN ClNameT *pNodeName,
  *  \sa clCpmBootLevelGet(), clCpmBootLevelSet()
  *
  */
-extern ClRcT clCpmBootLevelMax(CL_IN ClNameT *pNodeName,
+extern ClRcT clCpmBootLevelMax(CL_IN SaNameT *pNodeName,
                                CL_OUT ClUint32T *pBootLevel);
 
 /**
@@ -491,8 +491,8 @@ extern ClRcT clCpmBootLevelMax(CL_IN ClNameT *pNodeName,
  *      clCpmComponentRestart()
  *
  */
-extern ClRcT clCpmComponentInstantiate(CL_IN ClNameT *pCompName,
-                                       CL_IN ClNameT *pNodeName,
+extern ClRcT clCpmComponentInstantiate(CL_IN SaNameT *pCompName,
+                                       CL_IN SaNameT *pNodeName,
                                        CL_IN ClCpmLcmReplyT *pSrcInfo);
 
 /**
@@ -527,8 +527,8 @@ extern ClRcT clCpmComponentInstantiate(CL_IN ClNameT *pCompName,
  *      clCpmComponentRestart()
  *
  */
-extern ClRcT clCpmComponentTerminate(CL_IN ClNameT *pCompName,
-                                     CL_IN ClNameT *pNodeName,
+extern ClRcT clCpmComponentTerminate(CL_IN SaNameT *pCompName,
+                                     CL_IN SaNameT *pNodeName,
                                      CL_IN ClCpmLcmReplyT *pSrcInfo);
 
 /**
@@ -563,8 +563,8 @@ extern ClRcT clCpmComponentTerminate(CL_IN ClNameT *pCompName,
  *      clCpmComponentRestart()
  *
  */
-extern ClRcT clCpmComponentCleanup(CL_IN ClNameT *pCompName,
-                                   CL_IN ClNameT *pNodeName,
+extern ClRcT clCpmComponentCleanup(CL_IN SaNameT *pCompName,
+                                   CL_IN SaNameT *pNodeName,
                                    CL_IN ClCpmLcmReplyT *pSrcInfo);
 
 /**
@@ -606,8 +606,8 @@ extern ClRcT clCpmComponentCleanup(CL_IN ClNameT *pCompName,
  *      clCpmComponentCleanup()
  *
  */
-extern ClRcT clCpmComponentRestart(ClNameT *pCompName,
-                                   CL_IN ClNameT *pNodeName,
+extern ClRcT clCpmComponentRestart(SaNameT *pCompName,
+                                   CL_IN SaNameT *pNodeName,
                                    CL_IN ClCpmLcmReplyT *pSrcInfo);
 
 extern ClRcT clCpmTargetInfoInitialize(void);

@@ -510,7 +510,7 @@ clAmsParserCompTimeoutsParser(
     ClParserPtrT data = NULL;
     ClCharT *compName = NULL;
 
-    compName = ((ClAmsEntityConfigT *)compConfig)->name.value;
+    compName = (ClCharT *)(((ClAmsEntityConfigT *)compConfig)->name.value);
 
     AMS_CHECKPTR_SILENT (!compConfig || !ptr );
 
@@ -813,27 +813,27 @@ clAmsParserStringParser(
 
 /*
  * Function to parse the child with a given name in the XML File and copy it to
- * ClNameT structure
+ * SaNameT structure
  */
 
 ClRcT 
-clAmsParserClNameParser (
-        CL_OUT ClNameT *clName, 
+clAmsParserSaNameParser (
+        CL_OUT SaNameT *saName,
         CL_IN ClParserPtrT ptr, 
         CL_IN ClCharT *str )
 {
 
     ClParserPtrT data = NULL;
 
-    AMS_CHECKPTR_SILENT ( !clName||!ptr||!str );
+    AMS_CHECKPTR_SILENT ( !saName||!ptr||!str );
 
     data = clParserChild( ptr, str);
 
     AMS_CHECKPTR_SILENT ( !data||!data->txt );
 
-    memset (clName,0,sizeof(ClNameT));
-    strcpy (clName->value, data->txt);
-    clName->length = strlen (data->txt) + 1;
+    memset ((ClCharT *)saName,0,sizeof(SaNameT));
+    strcpy ((ClCharT *)saName->value, data->txt);
+    saName->length = strlen (data->txt) + 1;
 
     return CL_OK;
 }
@@ -860,7 +860,7 @@ ClRcT clAmsParserEntityAttrParser(
 
     AMS_CHECKPTR_SILENT (!attr);
 
-    memset (&entityConfig->name,0,sizeof (ClNameT));
+    memset (&entityConfig->name,0,sizeof (SaNameT));
 
     switch (entityType)
     {
@@ -871,8 +871,8 @@ ClRcT clAmsParserEntityAttrParser(
             {
                 ClAmsNodeConfigT    *config = (ClAmsNodeConfigT *)entityConfig;
                 config->entity.type = CL_AMS_ENTITY_TYPE_NODE;
-                strcpy (config->entity.name.value, attr );
-                config->entity.name.length = strlen (config->entity.name.value)+1;
+                strcpy ((ClCharT *)config->entity.name.value, attr );
+                config->entity.name.length = strlen ((const ClCharT *)config->entity.name.value)+1;
 
                 break;
             }
@@ -881,8 +881,8 @@ ClRcT clAmsParserEntityAttrParser(
             {
                 ClAmsAppConfigT *config = (ClAmsAppConfigT *)entityConfig;
                 config->entity.type = CL_AMS_ENTITY_TYPE_APP;
-                strcpy (config->entity.name.value, attr);
-                config->entity.name.length = strlen (config->entity.name.value)+1;
+                strcpy ((ClCharT *)config->entity.name.value, attr);
+                config->entity.name.length = strlen ((const ClCharT *)config->entity.name.value)+1;
 
                 break;
             }
@@ -890,8 +890,8 @@ ClRcT clAmsParserEntityAttrParser(
             {
                 ClAmsSGConfigT  *config = (ClAmsSGConfigT *)entityConfig;
                 config->entity.type = CL_AMS_ENTITY_TYPE_SG;
-                strcpy (config->entity.name.value, attr);
-                config->entity.name.length = strlen (config->entity.name.value)+1;
+                strcpy ((ClCharT *)config->entity.name.value, attr);
+                config->entity.name.length = strlen ((const ClCharT *)config->entity.name.value)+1;
 
                 break;
             }
@@ -899,8 +899,8 @@ ClRcT clAmsParserEntityAttrParser(
             {
                 ClAmsSUConfigT  *config = (ClAmsSUConfigT *)entityConfig;
                 config->entity.type = CL_AMS_ENTITY_TYPE_SU;
-                strcpy (config->entity.name.value, attr);
-                config->entity.name.length = strlen (config->entity.name.value)+1;
+                strcpy ((ClCharT *)config->entity.name.value, attr);
+                config->entity.name.length = strlen ((const ClCharT *)config->entity.name.value)+1;
 
                 break;
             }
@@ -908,8 +908,8 @@ ClRcT clAmsParserEntityAttrParser(
             {
                 ClAmsSIConfigT  *config = (ClAmsSIConfigT *)entityConfig;
                 config->entity.type = CL_AMS_ENTITY_TYPE_SI;
-                strcpy (config->entity.name.value, attr);
-                config->entity.name.length = strlen (config->entity.name.value)+1;
+                strcpy ((ClCharT *)config->entity.name.value, attr);
+                config->entity.name.length = strlen ((const ClCharT *)config->entity.name.value)+1;
 
                 break;
             }
@@ -917,8 +917,8 @@ ClRcT clAmsParserEntityAttrParser(
             {
                 ClAmsCompConfigT    *config = (ClAmsCompConfigT *)entityConfig;
                 config->entity.type = CL_AMS_ENTITY_TYPE_COMP;
-                strcpy (config->entity.name.value, attr);
-                config->entity.name.length = strlen (config->entity.name.value)+1;
+                strcpy ((ClCharT *)config->entity.name.value, attr);
+                config->entity.name.length = strlen ((const ClCharT *)config->entity.name.value)+1;
 
                 break;
             }
@@ -926,8 +926,8 @@ ClRcT clAmsParserEntityAttrParser(
             {
                 ClAmsCSIConfigT *config = (ClAmsCSIConfigT *)entityConfig;
                 config->entity.type = CL_AMS_ENTITY_TYPE_CSI;
-                strcpy (config->entity.name.value, attr);
-                config->entity.name.length = strlen (config->entity.name.value)+1;
+                strcpy ((ClCharT *)config->entity.name.value, attr);
+                config->entity.name.length = strlen ((const ClCharT *)config->entity.name.value)+1;
 
                 break;
             }
@@ -988,7 +988,7 @@ clAmsParserCSIDefParser(
         return rc;
     }
 
-    if ( ( rc = clAmsParserClNameParser (
+    if ( ( rc = clAmsParserSaNameParser (
                     &csiConfig->type,
                     csi,
                     "type" ))
@@ -1060,10 +1060,10 @@ clAmsParserCSIDefParser(
              return rc;
          } 
          
-         nvp->csiName = clHeapAllocate(strlen(csiConfig->entity.name.value) + 1);
+         nvp->csiName = clHeapAllocate(strlen((const ClCharT *)csiConfig->entity.name.value) + 1);
          AMS_CHECK_NO_MEMORY (nvp->csiName);
-         memset (nvp->csiName,0,strlen(csiConfig->entity.name.value) + 1);
-         strcpy (nvp->csiName,csiConfig->entity.name.value);
+         memset (nvp->csiName,0,strlen((const ClCharT *)csiConfig->entity.name.value) + 1);
+         strcpy (nvp->csiName,(const ClCharT *)csiConfig->entity.name.value);
 
          nvp->next = NULL;
          ptr = nvpHead;
@@ -1122,7 +1122,7 @@ clAmsParserCompDefParser(
 
     ClRcT rc = CL_OK;
     ClAmsCompConfigT *compConfig = NULL ;
-    ClNameT *pSupportedCSITypes =  NULL;
+    SaNameT *pSupportedCSITypes =  NULL;
     ClUint32T numSupportedCSITypes = 1;
     ClParserPtrT csiTypeInstances = NULL;
     ClParserPtrT csiTypeInstance = NULL;
@@ -1209,11 +1209,11 @@ clAmsParserCompDefParser(
                                     sizeof(compConfig->instantiateCommand) - 1);*/
 
     pSupportedCSITypes = clHeapCalloc(numSupportedCSITypes, 
-                                      (ClUint32T)sizeof(ClNameT));
+                                      (ClUint32T)sizeof(SaNameT));
     if(!pSupportedCSITypes)
     {
         AMS_LOG(CL_DEBUG_ERROR, ("Error allocating [%d] bytes", 
-                                 (ClUint32T)sizeof(ClNameT)));
+                                 (ClUint32T)sizeof(SaNameT)));
         return CL_AMS_RC(CL_ERR_NO_MEMORY);
     }
 
@@ -1226,7 +1226,7 @@ clAmsParserCompDefParser(
         /*
          * Be backward compatible
          */
-        if ( ( rc = clAmsParserClNameParser (
+        if ( ( rc = clAmsParserSaNameParser (
                                              pSupportedCSITypes,
                                              comp,
                                              CSI_TYPE_TAG_NAME))
@@ -1282,26 +1282,26 @@ clAmsParserCompDefParser(
                 return CL_AMS_RC(CL_AMS_ERR_BAD_CONFIG);
             }
             /*
-             * TODO - call clNameSet instead but we cannot be consistent
+             * TODO - call saNameSet instead but we cannot be consistent
              * in one place and different in another.
              */
             pSupportedCSITypes[numSupportedCSITypes].length =
                 CL_MIN(strlen(pData)+1, CL_MAX_NAME_LENGTH-1);
-            strncpy(pSupportedCSITypes[numSupportedCSITypes].value,
+            strncpy((ClCharT *)pSupportedCSITypes[numSupportedCSITypes].value,
                     pData, CL_MAX_NAME_LENGTH-1);
             ++numSupportedCSITypes;
             csiTypeInstance = csiTypeInstance->next;
             if(csiTypeInstance)
             {
                 pSupportedCSITypes = clHeapRealloc(pSupportedCSITypes,
-                                                   (ClUint32T)sizeof(ClNameT)
+                                                   (ClUint32T)sizeof(SaNameT)
                                                    * (numSupportedCSITypes+1));
                 if(!pSupportedCSITypes)
                 {
                     AMS_LOG(CL_DEBUG_ERROR,
                             ("Error allocating [%d] bytes while iterating over "\
                              "comp supported csitype instances\n", 
-                             (ClUint32T)sizeof(ClNameT)*(numSupportedCSITypes+1)));
+                             (ClUint32T)sizeof(SaNameT)*(numSupportedCSITypes+1)));
                     return CL_AMS_RC(CL_ERR_NO_MEMORY);
                 }
             }
@@ -1321,7 +1321,7 @@ clAmsParserCompDefParser(
 
     proxy_csi_type:
 
-        if ( ( rc = clAmsParserClNameParser (
+        if ( ( rc = clAmsParserSaNameParser (
                                              &compConfig->proxyCSIType,
                                              comp,
                                              "proxyCSIType" ))
@@ -1360,7 +1360,7 @@ clAmsParserCompDefParser(
                              &compConfig->timeouts.instantiateDelay,
                              comp,
                              "instantiateDelay",
-                             compConfig->entity.name.value);
+                             (ClCharT *)compConfig->entity.name.value);
 
     clAmsParserUint32Parser(
                             &compConfig->numMaxInstantiate,
@@ -1811,7 +1811,7 @@ clAmsParserSGDefParser(
              &sgConfig->instantiateDuration,
              sg,
              "restartDuration",
-             sgConfig->entity.name.value);
+             (ClCharT *)sgConfig->entity.name.value);
 
     /*
      * Read the numPrefActiveSUs 
@@ -1884,7 +1884,7 @@ clAmsParserSGDefParser(
               &sgConfig->compRestartDuration,
               sg,
               "compRestartDuration",
-              sgConfig->entity.name.value);
+              (ClCharT *)sgConfig->entity.name.value);
 
     /*
      * Read the compRestartCountMax
@@ -1903,7 +1903,7 @@ clAmsParserSGDefParser(
              &sgConfig->suRestartDuration,
              sg,
              "suRestartDuration",
-             sgConfig->entity.name.value);
+             (ClCharT *)sgConfig->entity.name.value);
 
     /*
      * Read the suRestartCountMax 
@@ -1956,7 +1956,7 @@ clAmsParserSGDefParser(
       clAmsParserTimeoutParser(&sgConfig->autoAdjustProbation,
                                sg,
                                "autoAdjustProbation",
-                               sgConfig->entity.name.value);
+                               (ClCharT *)sgConfig->entity.name.value);
 
       /*
        * Reduction procedure.
@@ -1975,7 +1975,7 @@ clAmsParserSGDefParser(
       clAmsParserTimeoutParser(&sgConfig->failoverDuration,
                                sg,
                                "failoverDuration",
-                               sgConfig->entity.name.value);
+                               (ClCharT *)sgConfig->entity.name.value);
 
 
      /* 
@@ -2132,7 +2132,7 @@ clAmsParserNodeDefParser(
      * subClass
      */ 
 
-     clAmsParserClNameParser (
+     clAmsParserSaNameParser (
              &nodeConfig->subClassType,
              node,
              "subClassType");
@@ -2181,7 +2181,7 @@ clAmsParserNodeDefParser(
              &nodeConfig->suFailoverDuration,
              node,
              "suFailoverDuration",
-             nodeConfig->entity.name.value);
+             (ClCharT *)nodeConfig->entity.name.value);
 
 
     /*
@@ -2781,7 +2781,7 @@ clAmsParserFindConfigType(
 
     while (ptr )
     {
-        if ( !strcmp (ptr->entityConfig->name.value,typeName) && 
+        if ( !strcmp ((const ClCharT *)ptr->entityConfig->name.value,typeName) &&
                 (ptr->entityConfig->type == entityType))
         {
             memcpy (entityConfigType->entityConfig, ptr->entityConfig,size) ;
@@ -3013,7 +3013,7 @@ clAmsParserSUCreation(
          */
 
         memset (targetEntity.name.value,0,CL_MAX_NAME_LENGTH);
-        strcpy (targetEntity.name.value, parentNode);
+        strcpy ((ClCharT *)targetEntity.name.value, parentNode);
         targetEntity.name.length = strlen(parentNode) +1;
         targetEntity.type = CL_AMS_ENTITY_TYPE_NODE;
 
@@ -3146,7 +3146,7 @@ clAmsParserCompCreation(
          */
 
         memset (targetEntity.name.value,0,CL_MAX_NAME_LENGTH);
-        strcpy (targetEntity.name.value, parentSU);
+        strcpy ((ClCharT *)targetEntity.name.value, parentSU);
         targetEntity.name.length = strlen(parentSU) +1;
         targetEntity.type = CL_AMS_ENTITY_TYPE_SU;
 
@@ -3341,7 +3341,7 @@ clAmsParserSICreation(
          */
 
         memset (targetEntity.name.value,0,CL_MAX_NAME_LENGTH);
-        strcpy (targetEntity.name.value, parentSG);
+        strcpy ((ClCharT *)targetEntity.name.value, parentSG);
         targetEntity.name.length = strlen(parentSG) +1;
         targetEntity.type = CL_AMS_ENTITY_TYPE_SG;
 
@@ -3470,7 +3470,7 @@ ClRcT clAmsParserCSICreation(
 
         csiConfig->parentSI.entity.type = CL_AMS_ENTITY_TYPE_SI;
         memset ( &csiConfig->parentSI.entity.name,0,CL_MAX_NAME_LENGTH );
-        strcpy ( csiConfig->parentSI.entity.name.value,parentSIName);
+        strcpy ( (ClCharT *)csiConfig->parentSI.entity.name.value,parentSIName);
         csiConfig->parentSI.entity.name.length = strlen (parentSIName) + 1;
 
         AMS_CHECK_RC_ERROR( clAmsParserEntityCreate (
@@ -3507,7 +3507,7 @@ ClRcT clAmsParserCSICreation(
         }
 
         if (( rc = clAmsParserCreateCSINVPList (
-                        csiConfig->entity.name.value,
+                        (ClCharT *)csiConfig->entity.name.value,
                         csiType ))
                 != CL_OK )
         {
@@ -3619,7 +3619,7 @@ clAmsParserCreateRelationship(
         }
 
         memset (sourceEntity.name.value,0,CL_MAX_NAME_LENGTH);
-        strcpy (sourceEntity.name.value, sourceEntityName);
+        strcpy ((ClCharT *)sourceEntity.name.value, sourceEntityName);
         sourceEntity.name.length = strlen(sourceEntityName) +1;
 
         /*
@@ -3644,7 +3644,7 @@ clAmsParserCreateRelationship(
             targetName = pEntity->txt;
 
             memset (targetEntity.name.value,0,CL_MAX_NAME_LENGTH);
-            strcpy (targetEntity.name.value, targetName);
+            strcpy ((ClCharT *)targetEntity.name.value, targetName);
             targetEntity.name.length = strlen(targetName) +1;
 
             
@@ -3829,7 +3829,7 @@ clAmsParserEntityCreate (
 
     AMS_CHECKPTR ( !entityConfig );
     
-    memcpy (&entity.name,&entityConfig->name,sizeof (ClNameT));
+    memcpy (&entity.name,&entityConfig->name,sizeof (SaNameT));
     entity.type = entityConfig->type; 
     
     if ( ( rc = clAmsMgmtEntityCreate(
@@ -3874,7 +3874,7 @@ clAmsParserSetEntityName(
 
     AMS_CHECKPTR ( !entityConfig || !name );
 
-    memset (&entityConfig->name,0,sizeof (ClNameT));
+    memset (&entityConfig->name,0,sizeof (SaNameT));
 
     switch (entityConfig->type )
     {
@@ -3882,7 +3882,7 @@ clAmsParserSetEntityName(
         case CL_AMS_ENTITY_TYPE_NODE:
             {
                 ClAmsNodeConfigT    *config = (ClAmsNodeConfigT *)entityConfig;
-                strcpy (config->entity.name.value, name);
+                strcpy ((ClCharT *)config->entity.name.value, name);
                 config->entity.name.length = strlen(name) +1;
                 break;
             }
@@ -3890,7 +3890,7 @@ clAmsParserSetEntityName(
         case CL_AMS_ENTITY_TYPE_APP:
             {
                 ClAmsAppConfigT    *config = (ClAmsAppConfigT *)entityConfig;
-                strcpy (config->entity.name.value, name);
+                strcpy ((ClCharT *)config->entity.name.value, name);
                 config->entity.name.length = strlen(name) +1;
                 break;
             }
@@ -3899,7 +3899,7 @@ clAmsParserSetEntityName(
             {
 
                 ClAmsSGConfigT    *config = (ClAmsSGConfigT *)entityConfig;
-                strcpy (config->entity.name.value, name);
+                strcpy ((ClCharT *)config->entity.name.value, name);
                 config->entity.name.length = strlen(name) +1;
                 break;
             }
@@ -3907,7 +3907,7 @@ clAmsParserSetEntityName(
         case CL_AMS_ENTITY_TYPE_SI:
             {
                 ClAmsSIConfigT    *config = (ClAmsSIConfigT *)entityConfig;
-                strcpy (config->entity.name.value, name);
+                strcpy ((ClCharT *)config->entity.name.value, name);
                 config->entity.name.length = strlen(name) +1;
                 break;
             }
@@ -3915,7 +3915,7 @@ clAmsParserSetEntityName(
         case CL_AMS_ENTITY_TYPE_SU:
             {
                 ClAmsSUConfigT    *config = (ClAmsSUConfigT *)entityConfig;
-                strcpy (config->entity.name.value, name);
+                strcpy ((ClCharT *)config->entity.name.value, name);
                 config->entity.name.length = strlen(name) +1;
                 break;
             }
@@ -3923,7 +3923,7 @@ clAmsParserSetEntityName(
         case CL_AMS_ENTITY_TYPE_COMP:
             {
                 ClAmsCompConfigT    *config = (ClAmsCompConfigT *)entityConfig;
-                strcpy (config->entity.name.value, name);
+                strcpy ((ClCharT *)config->entity.name.value, name);
                 config->entity.name.length = strlen(name) +1;
                 break;
             }
@@ -3931,7 +3931,7 @@ clAmsParserSetEntityName(
         case CL_AMS_ENTITY_TYPE_CSI:
             {
                 ClAmsCSIConfigT    *config = (ClAmsCSIConfigT *)entityConfig;
-                strcpy (config->entity.name.value, name);
+                strcpy ((ClCharT *)config->entity.name.value, name);
                 config->entity.name.length = strlen(name) +1;
                 break;
             }
@@ -3973,10 +3973,10 @@ clAmsParserCreateCSINVPList (
 
 
     entity.type = CL_AMS_ENTITY_TYPE_CSI;
-    strcpy ( entity.name.value, csiName);
+    strcpy ((ClCharT *)entity.name.value, csiName);
     entity.name.length = strlen (csiName)+1;
 
-    memcpy ( &nvp.csiName, &entity.name, sizeof (ClNameT));
+    memcpy ( &nvp.csiName, &entity.name, sizeof (SaNameT));
 
     /*
      * find this csi in the types list
@@ -4003,8 +4003,8 @@ clAmsParserCreateCSINVPList (
         memset ( &nvp,0,sizeof (ClAmsCSINameValuePairT));
         memcpy (&nvp.csiName,&entity.name,sizeof (nvp.csiName));
 
-        strcpy (nvp.paramName.value,ptr->paramName);
-        strcpy (nvp.paramValue.value,ptr->paramValue);
+        strcpy ((ClCharT *)nvp.paramName.value,ptr->paramName);
+        strcpy ((ClCharT *)nvp.paramValue.value,ptr->paramValue);
 
         nvp.paramName.length = strlen (ptr->paramName)+1;
         nvp.paramValue.length = strlen (ptr->paramValue)+1;

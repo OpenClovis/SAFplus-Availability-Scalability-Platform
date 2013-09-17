@@ -56,7 +56,7 @@
 static ClRcT _clMsoConfigResourceArrayGet(ClOampRtResourceArrayT* pResourcesArray)
 {    
     ClCpmHandleT    cpmHandle                       = 0;
-    ClNameT         compName                        = { 0 };
+    SaNameT         compName                        = { 0 };
     ClParserPtrT    top                             = NULL;
     ClCharT         fileName[CL_MAX_NAME_LENGTH]    = { 0 };
     ClCharT         *pFileName = fileName;

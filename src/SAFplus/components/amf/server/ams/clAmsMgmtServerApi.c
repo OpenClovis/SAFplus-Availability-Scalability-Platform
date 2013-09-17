@@ -2503,7 +2503,7 @@ __clAmsMgmtCCBBatchEntitySetConfig(
     }
  
     req->entityConfig = entityConfig;
-    if(entityConfig->name.length == strlen(entityConfig->name.value))
+    if(entityConfig->name.length == strlen((const ClCharT*)entityConfig->name.value))
         ++entityConfig->name.length;
 
     return CL_OK;
@@ -2642,7 +2642,7 @@ __clAmsMgmtCCBEntitySetConfig(
     req->entityConfig = entityConfig;
     handle = req->handle;
     ccbInstance = NULL;
-    if(entityConfig->name.length == strlen(entityConfig->name.value))
+    if(entityConfig->name.length == strlen((const ClCharT*)entityConfig->name.value))
         ++entityConfig->name.length;
 
     AMS_CHECK_RC_ERROR( clAmsCCBValidateOperation( (ClPtrT)req,
@@ -3895,7 +3895,7 @@ aspGetEntityConfig(ClAmsCompConfigT *compConfig)
 
     for(i = 0; aspCompMap[i].name != NULL 
             &&
-            strncmp(aspCompMap[i].name, compConfig->entity.name.value, 
+            strncmp(aspCompMap[i].name, (const ClCharT*)compConfig->entity.name.value,
                     CL_MIN(compConfig->entity.name.length, strlen(aspCompMap[i].name)));
         ++i);
 
@@ -3913,7 +3913,7 @@ aspGetEntityConfig(ClAmsCompConfigT *compConfig)
     compConfig->numMaxStandbyCSIs = aspCompMap[i].numMaxStandbyCSIs;
     compConfig->recoveryOnTimeout = aspCompMap[i].recoveryOnTimeout;
     if(aspCompMap[i].parentSU)
-        clNameSet(&compConfig->parentSU.entity.name, aspCompMap[i].parentSU);
+        saNameSet(&compConfig->parentSU.entity.name, aspCompMap[i].parentSU);
     if(aspCompMap[i].instantiateCommand)
         strncpy(compConfig->instantiateCommand, aspCompMap[i].instantiateCommand, 
                 sizeof(compConfig->instantiateCommand)-1);
@@ -4630,7 +4630,7 @@ VDECL(_clAmsMgmtEntityUserDataSetKey)(ClEoDataT userData,
     ClRcT rc = CL_OK;
     ClCharT *data = NULL;
     ClUint32T len = 0;
-    ClNameT key = {0};
+    SaNameT key = {0};
     ClAmsEntityRefT entityRef = {{0}};
 
     if(gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING
@@ -4639,7 +4639,7 @@ VDECL(_clAmsMgmtEntityUserDataSetKey)(ClEoDataT userData,
         return CL_AMS_RC(CL_ERR_BAD_OPERATION);
 
     AMS_CALL (VDECL_VER(clXdrUnmarshallClAmsEntityConfigT, 4, 0, 0)(inMsg, &entityRef.entity));
-    AMS_CALL (clXdrUnmarshallClNameT(inMsg, &key) );
+    AMS_CALL (clXdrUnmarshallSaNameT(inMsg, &key) );
     AMS_CALL (clXdrUnmarshallClUint32T(inMsg, &len));
 
     if(len)
@@ -4745,7 +4745,7 @@ VDECL(_clAmsMgmtEntityUserDataGetKey)(ClEoDataT userData,
                                       ClBufferHandleT outMsgHdl)
 {
     ClRcT rc = CL_OK;
-    ClNameT key = {0};
+    SaNameT key = {0};
     ClCharT *data = NULL;
     ClUint32T len = 0;
     ClAmsEntityRefT entityRef = {{0}};
@@ -4756,7 +4756,7 @@ VDECL(_clAmsMgmtEntityUserDataGetKey)(ClEoDataT userData,
         return CL_AMS_RC(CL_ERR_BAD_OPERATION);
 
     AMS_CALL(VDECL_VER(clXdrUnmarshallClAmsEntityConfigT, 4, 0, 0)(inMsgHdl, &entityRef.entity));
-    AMS_CALL (clXdrUnmarshallClNameT(inMsgHdl, &key));
+    AMS_CALL (clXdrUnmarshallSaNameT(inMsgHdl, &key));
 
     clOsalMutexLock(gAms.mutex);
     rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityRef.entity.type],
@@ -4842,7 +4842,7 @@ VDECL(_clAmsMgmtEntityUserDataDeleteKey)(ClEoDataT userData,
 {
     ClRcT rc = CL_OK;
     ClAmsEntityRefT entityRef = {{0}};
-    ClNameT key = {0};
+    SaNameT key = {0};
 
     if(gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING
        &&
@@ -4850,7 +4850,7 @@ VDECL(_clAmsMgmtEntityUserDataDeleteKey)(ClEoDataT userData,
         return CL_AMS_RC(CL_ERR_BAD_OPERATION);
     
     AMS_CALL (VDECL_VER(clXdrUnmarshallClAmsEntityConfigT, 4, 0, 0)(inMsgHdl, &entityRef));
-    AMS_CALL (clXdrUnmarshallClNameT(inMsgHdl, &key));
+    AMS_CALL (clXdrUnmarshallSaNameT(inMsgHdl, &key));
 
     clOsalMutexLock(gAms.mutex);
     rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityRef.entity.type],

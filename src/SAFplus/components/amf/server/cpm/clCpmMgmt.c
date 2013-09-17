@@ -125,7 +125,7 @@ static ClRcT cpmComponentAdd(ClCharT *compName)
         if(access(cleanupCMD, R_OK | X_OK))
             cleanupCMD[0] = 0;
     }
-    rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+    rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
     if (comp)
     {
         clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
@@ -191,7 +191,7 @@ static ClRcT cpmComponentRmv(ClCharT *compName)
     ClUint32T numNode = 0;
     ClCpmComponentT *comp = NULL;
     ClBoolT done = CL_NO;
-    ClNameT entity = {0};
+    SaNameT entity = {0};
 
     if (!compName)
     {
@@ -211,7 +211,7 @@ static ClRcT cpmComponentRmv(ClCharT *compName)
                    rc);
         goto failure;
     }
-    clNameSet(&entity, compName);
+    saNameSet(&entity, compName);
     /*
      * Clear pending invocations for the component being removed.
      */
@@ -308,7 +308,7 @@ ClRcT cpmNodeAdd(ClCharT *nodeName)
     }
 
     clOsalMutexLock(gpClCpm->cpmTableMutex);
-    rc = cpmNodeFindLocked(nodeName, &cpm);
+    rc = cpmNodeFindLocked((SaUint8T *)nodeName, &cpm);
     clOsalMutexUnlock(gpClCpm->cpmTableMutex);
     if (cpm)
     {
@@ -345,8 +345,8 @@ ClRcT cpmNodeAdd(ClCharT *nodeName)
      * Filling the CPML with defaults.  
      */
 
-    clNameSet(&cpm->nodeType, nodeName);
-    clNameSet(&cpm->nodeIdentifier, nodeName);
+    saNameSet(&cpm->nodeType, nodeName);
+    saNameSet(&cpm->nodeIdentifier, nodeName);
     /*
      * Set the class type to CLASS_C.
      */
@@ -536,13 +536,13 @@ ClRcT cpmEntityAdd(ClAmsEntityRefT *entityRef)
         {
             ClAmsCompT *comp = (ClAmsCompT *) entityRef->ptr;
             
-            return cpmComponentAdd(comp->config.entity.name.value);
+            return cpmComponentAdd((ClCharT *)comp->config.entity.name.value);
         }
         case CL_AMS_ENTITY_TYPE_NODE:
         {
             ClAmsNodeT *node = (ClAmsNodeT *) entityRef->ptr;
             
-            return cpmNodeAdd(node->config.entity.name.value);
+            return cpmNodeAdd((ClCharT *)node->config.entity.name.value);
         }
         default:
         {
@@ -561,13 +561,13 @@ ClRcT cpmEntityRmv(ClAmsEntityRefT *entityRef)
         {
             ClAmsCompT *comp = (ClAmsCompT *) entityRef->ptr;
 
-            return cpmComponentRmv(comp->config.entity.name.value);
+            return cpmComponentRmv((ClCharT *)comp->config.entity.name.value);
         }
         case CL_AMS_ENTITY_TYPE_NODE:
         {
             ClAmsNodeT *node = (ClAmsNodeT *) entityRef->ptr;
             
-            return cpmNodeRmv(node->config.entity.name.value);
+            return cpmNodeRmv((ClCharT *)node->config.entity.name.value);
         }
         default:
         {
@@ -692,7 +692,7 @@ ClRcT VDECL_VER(cpmCompConfigSet, 5, 1, 0)(ClEoDataT data,
     }
 
     clOsalMutexLock(gpClCpm->compTableMutex);
-    rc = cpmCompFindWithLock((ClCharT*)compConfig.name, gpClCpm->compTable, &comp);
+    rc = cpmCompFindWithLock((SaUint8T *)compConfig.name, gpClCpm->compTable, &comp);
     if(rc != CL_OK)
     {
         clOsalMutexUnlock(gpClCpm->compTableMutex);
@@ -781,11 +781,8 @@ static ClRcT compSetConfig(ClAmsCompConfigT *compConfig, ClUint64T mask)
 
     clLogNotice("COMP", "CONFIG", "Updating component config at node [%d]",
                 nodeAddress.iocPhyAddress.nodeAddress);
-    rc = clCpmCompConfigSet(nodeAddress.iocPhyAddress.nodeAddress,
-                            compConfig->entity.name.value,
-                            compConfig->instantiateCommand,
-                            compConfig->property,
-                            mask);
+    rc = clCpmCompConfigSet(nodeAddress.iocPhyAddress.nodeAddress, (ClCharT *) compConfig->entity.name.value,
+                    compConfig->instantiateCommand, compConfig->property, mask);
 
     out:
     return rc;
@@ -1011,7 +1008,7 @@ ClRcT cpmComponentsAddDynamic(const ClCharT *node)
         goto out;
     }
     
-    clNameSet(&entityNode.name, node);
+    saNameSet(&entityNode.name, node);
     ++entityNode.name.length;
     entityNode.type = CL_AMS_ENTITY_TYPE_NODE;
 
@@ -1053,7 +1050,7 @@ ClRcT cpmComponentsAddDynamic(const ClCharT *node)
             clHeapFree(entityConfig);
             clLogNotice("DYNCOMPS", "SET", "Adding comp [%.*s] - node [%s]",
                         comp->name.length-1, comp->name.value, node);
-            rc = cpmComponentAdd(comp->name.value);
+            rc = cpmComponentAdd((ClCharT *)comp->name.value);
             if(rc != CL_OK)
             {
                 clLogError("DYNCOMPS", "SET", "Component add returned [%#x]", rc);
@@ -1062,7 +1059,7 @@ ClRcT cpmComponentsAddDynamic(const ClCharT *node)
             rc = cpmCompSetConfig(&compConfig.entity, CL_AMS_CONFIG_ATTR_ALL);
             if(rc != CL_OK)
             {
-                cpmComponentRmv(comp->name.value);
+                cpmComponentRmv((ClCharT *)comp->name.value);
                 clLogError("DYNCOMPS", "SET", "Comp set config returned [%#x]", rc);
                 goto out_free;
             }
@@ -1104,7 +1101,7 @@ ClRcT cpmComponentAddDynamic(const ClCharT *compName)
     }
     
     comp.type = CL_AMS_ENTITY_TYPE_COMP;
-    clNameSet(&comp.name, compName);
+    saNameSet(&comp.name, compName);
     ++comp.name.length;
 
     /*
@@ -1143,7 +1140,7 @@ ClRcT cpmComponentAddDynamic(const ClCharT *compName)
     }
     clLogNotice("DYNCOMP", "SET", "Adding comp [%s]", compName);
 
-    rc = cpmComponentAdd(comp.name.value);
+    rc = cpmComponentAdd((ClCharT *)comp.name.value);
     if(rc != CL_OK)
     {
         clLogError("DYNCOMP", "SET", "Component add returned [%#x]", rc);
@@ -1152,7 +1149,7 @@ ClRcT cpmComponentAddDynamic(const ClCharT *compName)
     rc = cpmCompSetConfig(&compConfig.entity, CL_AMS_CONFIG_ATTR_ALL);
     if(rc != CL_OK)
     {
-        cpmComponentRmv(comp.name.value);
+        cpmComponentRmv((ClCharT *)comp.name.value);
         clLogError("DYNCOMP", "SET", "Comp set config returned [%#x]", rc);
         goto out_free;
     }
@@ -1174,7 +1171,7 @@ ClRcT cpmCompAppendInstantiateCommand(ClCharT *compName,
     ClUint32T len = strlen(instantiateCommand);
     ClInt32T bytes = 0, i;
 
-    rc = cpmCompFindWithLock(compName, gpClCpm->compTable, &comp);
+    rc = cpmCompFindWithLock((SaUint8T *)compName, gpClCpm->compTable, &comp);
     if(rc != CL_OK)
     {
         clLogWarning("INST", "APPEND", "Comp [%s] not found in cpm",

@@ -192,7 +192,7 @@ ClRcT clNodeCacheInitialize(ClBoolT createFlag)
 {
     ClRcT rc = CL_OK;
     ClUint32T capability = 0;
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
 
     if(gpClNodeCache)
         goto out;
@@ -567,7 +567,7 @@ ClRcT clNodeCacheMemberGetExtendedSafe(ClIocNodeAddressT node, ClNodeCacheMember
     return nodeCacheMemberGetExtended(node, pMember, retries, msecDelay, CL_TRUE);
 }
 
-ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint32T capability, ClNameT *nodeName)
+ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint32T capability, SaNameT *nodeName)
 {
     ClRcT   rc = CL_OK;
     ClNodeCacheEntryT *entry;
@@ -988,13 +988,13 @@ ClRcT clNodeCacheSlotInfoGet(ClNodeCacheSlotInfoFieldT flag, ClNodeCacheSlotInfo
         slot = slotInfo->slotId;
         if(slot >= CL_IOC_MAX_NODES)
             return CL_ERR_OUT_OF_RANGE;
-        clNameSet(&slotInfo->nodeName, entry[slot].nodeName);
+        saNameSet(&slotInfo->nodeName, entry[slot].nodeName);
         return CL_OK;
 
     case CL_NODE_CACHE_NODENAME:
         for(i = 0; i < CL_IOC_MAX_NODES; ++i)
         {
-            if(!strcmp(entry->nodeName, slotInfo->nodeName.value))
+            if(!strcmp(entry->nodeName, (const ClCharT *)slotInfo->nodeName.value))
             {
                 slotInfo->slotId = i;
                 return CL_OK;

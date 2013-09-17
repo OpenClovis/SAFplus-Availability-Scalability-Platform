@@ -53,8 +53,8 @@ extern "C" {
 struct _ClCpmCompHealthcheckT_4_0_0;
 
 typedef struct _ClCpmCompHealthcheckT_4_0_0 {
-    ClNameT    compName;
-    ClNameT    proxyCompName;
+    SaNameT    compName;
+    SaNameT    proxyCompName;
     ClAmsCompHealthcheckKeyT_4_0_0    healthcheckKey;
     ClAmsCompHealthcheckInvocationT_4_0_0    invocationType;
     ClAmsLocalRecoveryT_4_0_0    recommendedRecovery;

@@ -318,13 +318,13 @@ typedef struct
 typedef struct
 {
     ClInvocationT invocation;
-    ClNameT compName;
+    SaNameT compName;
     ClAmsCompHealthcheckKeyT healthCheckKey;
 } ClCpmCompHealthCheckSendT;
 
 typedef struct
 {
-    ClNameT compName;
+    SaNameT compName;
     ClAmsPGNotificationBufferT notificationBuffer;
     ClUint32T numberOfMembers;
     ClUint32T error;
@@ -333,12 +333,12 @@ typedef struct
 typedef struct
 {
     ClInvocationT invocation;
-    ClNameT proxiedCompName;
+    SaNameT proxiedCompName;
 } ClCpmCompProxiedCompOperationT;
 
 typedef struct {
     ClCmCpmMsgT cmMsg;
-    ClNameT     nodeName;
+    SaNameT     nodeName;
 }ClCpmCmQueuedataT;
 
 extern ClBoolT gClAmsSwitchoverInline;
@@ -351,7 +351,7 @@ extern ClRcT cpmParseSlotFile(void);
 extern ClRcT cpmSlotClassTypesGet(ClCntHandleT slotTable, 
                                   ClUint32T slotNumber, 
                                   ClCpmSlotClassTypesT *slotClassTypes);
-extern ClRcT cpmSlotClassAdd(ClNameT *type, ClNameT *identifier, ClUint32T slot);
+extern ClRcT cpmSlotClassAdd(SaNameT *type, SaNameT *identifier, ClUint32T slot);
 extern ClRcT cpmSlotClassDelete(const ClCharT *type);
 
 /**
@@ -401,11 +401,11 @@ extern ClRcT _cpmComponentRestart(ClCharT *compName,
                                   ClIocPhysicalAddressT *srcAddress,
                                   ClUint32T rmdNumber);
 
-extern ClRcT cpmCompFind(ClCharT *name,
+extern ClRcT cpmCompFind(SaUint8T *name,
                          ClCntHandleT compTable,
                          ClCpmComponentT **comp);
 
-extern ClRcT cpmCompFindWithLock(ClCharT *name,
+extern ClRcT cpmCompFindWithLock(SaUint8T *name,
                                  ClCntHandleT compTable,
                                  ClCpmComponentT **comp);
 
@@ -492,7 +492,7 @@ extern ClRcT CL_CPM_CALL_RMD_SYNC_NEW(ClIocNodeAddressT destAddr,
                                       ClCpmUnmarshallT unmarshallFunction);
 
 extern ClRcT nodeArrivalDeparturePublish(ClIocNodeAddressT iocAddress,
-                                         ClNameT nodeName,
+                                         SaNameT nodeName,
                                          ClCpmNodeEventT operation);
 
 extern ClRcT clEventCpmCleanup(ClCpmEventPayLoadT *pEvtCpmCleanupInfo);
@@ -507,28 +507,28 @@ extern void cpmResponse(ClRcT retCode,
 
 extern ClRcT cpmUpdateTL(ClAmsHAStateT haState);
 
-extern ClRcT _cpmNodeDepartureAllowed(ClNameT *nodeName, ClCpmNodeLeaveT nodeLeave);
+extern ClRcT _cpmNodeDepartureAllowed(SaNameT *nodeName, ClCpmNodeLeaveT nodeLeave);
 
-extern ClRcT _cpmIocAddressForNodeGet(ClNameT *nodeName, 
+extern ClRcT _cpmIocAddressForNodeGet(SaNameT *nodeName, 
                                       ClIocAddressT *pIocAddress);
 
 extern ClRcT _cpmNodeNameForNodeAddressGet(ClIocNodeAddressT nodeAddress,
-                                           ClNameT *pNodeName);
+                                           SaNameT *pNodeName);
 
 extern ClRcT cpmCmRequestDSInitialize();
 
 extern ClRcT cpmCmRequestDSFinalize();
 
-extern ClRcT cpmEnqueueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest);
+extern ClRcT cpmEnqueueCmRequest(SaNameT *pNodeName, ClCmCpmMsgT *pRequest);
 
-extern ClRcT cpmDequeueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest);
+extern ClRcT cpmDequeueCmRequest(SaNameT *pNodeName, ClCmCpmMsgT *pRequest);
 
-extern ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, 
+extern ClRcT cpmEnqueueAspRequest(SaNameT *pNodeName, ClIocNodeAddressT nodeAddress, 
                                   ClUint32T nodeRequest);
 
-extern ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClUint32T *nodeRequest);
+extern ClRcT cpmDequeueAspRequest(SaNameT *pNodeName, ClUint32T *nodeRequest);
 
-extern void  cpmResetDeleteRequest(const ClNameT *pNodeName);
+extern void  cpmResetDeleteRequest(const SaNameT *pNodeName);
 
 /**
  ************************************
@@ -545,7 +545,7 @@ extern void  cpmResetDeleteRequest(const ClNameT *pNodeName);
  *
  *  \par Syntax:
  *  \code     extern ClRcT clCpmComponentLogicalAddressUpdate(
- *                CL_IN ClNameT         *pCompName, 
+ *                CL_IN SaNameT         *pCompName, 
  *                CL_IN ClIocAddressT   *pLogicalAddress);
  *  \endcode
  *
@@ -567,7 +567,7 @@ extern void  cpmResetDeleteRequest(const ClNameT *pNodeName);
  *
  */
 extern ClRcT
-clCpmComponentLogicalAddressUpdate(CL_IN ClNameT *pCompName,
+clCpmComponentLogicalAddressUpdate(CL_IN SaNameT *pCompName,
                                    CL_IN ClIocAddressT *pLogicalAddress);
 
 /**
@@ -649,7 +649,7 @@ extern ClRcT cpmInitiatedSwitchOver(ClBoolT checkDeputy);
  
 extern ClRcT cpmGmsTimerCallback(void *arg);
 
-extern ClBoolT cpmIsInfrastructureComponent(ClNameT *compName);
+extern ClBoolT cpmIsInfrastructureComponent(SaNameT *compName);
 
 extern ClRcT cpmSelfShutDown(void);
 
@@ -713,9 +713,9 @@ extern ClBoolT cpmIsAspSULoaded(const ClCharT *su);
 
 extern ClRcT cpmLoggerRotateEnable(void);
 
-extern ClRcT cpmProxiedHealthcheckStop(ClNameT *compName);
+extern ClRcT cpmProxiedHealthcheckStop(SaNameT *compName);
 
-extern ClRcT cpmCompHealthcheckStop(ClNameT *compName);
+extern ClRcT cpmCompHealthcheckStop(SaNameT *compName);
 
 extern void cpmResetNodeElseCommitSuicide(ClUint32T restartFlag);
 

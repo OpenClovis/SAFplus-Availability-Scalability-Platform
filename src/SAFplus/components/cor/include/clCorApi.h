@@ -896,7 +896,7 @@ clCorVersionCheck( CL_INOUT ClVersionT *version);
  *  \sa clCorNodeNameToMoIdGet()
  */
 ClRcT
-clCorMoIdToNodeNameGet(CL_IN ClCorMOIdPtrT pMoId, CL_OUT ClNameT* nodeName);
+clCorMoIdToNodeNameGet(CL_IN ClCorMOIdPtrT pMoId, CL_OUT SaNameT* nodeName);
 
 /**
  ************************************************
@@ -919,7 +919,7 @@ clCorMoIdToNodeNameGet(CL_IN ClCorMOIdPtrT pMoId, CL_OUT ClNameT* nodeName);
  *  \sa clCorMoIdToNodeNameGet()
  */
 ClRcT
-clCorNodeNameToMoIdGet(CL_IN ClNameT nodeName, CL_OUT ClCorMOIdPtrT  pMoId);
+clCorNodeNameToMoIdGet(CL_IN SaNameT nodeName, CL_OUT ClCorMOIdPtrT  pMoId);
 
 /**
  ************************************************

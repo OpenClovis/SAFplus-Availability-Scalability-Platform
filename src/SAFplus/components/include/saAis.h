@@ -156,8 +156,11 @@ typedef struct {
    SaUint8T  *bufferAddr;
 } SaAnyT;
 
+/** A name */
 typedef struct {
+    /** Length of the name in bytes excluding '\0' */
     SaUint16T length;
+    /** Actual name represented as a null terminated ASCII string */
     SaUint8T value[SA_MAX_NAME_LENGTH];
 } SaNameT;
 

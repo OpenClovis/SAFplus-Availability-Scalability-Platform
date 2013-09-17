@@ -57,19 +57,19 @@ extern "C"
     ClRcT clEvtSubsInfoShowLocal(ClUint32T cData,
                                  ClBufferHandleT inMsgHandle,
                                  ClBufferHandleT outMsgHandle);
-    void clEvtUtilsNameCpy(ClNameT *pNameDst, const ClNameT *pNameSrc);
+    void clEvtUtilsNameCpy(SaNameT *pNameDst, const SaNameT *pNameSrc);
     ClRcT clEvtUtilsFilter2Rbe(const ClEventFilterArrayT *pFilterArray,
                                ClRuleExprT **pRbeExpr);
 
     void clEvtUtilsChannelKeyConstruct(ClUint32T channelHandle,
-                                       ClNameT *pChannelName,
+                                       SaNameT *pChannelName,
                                        ClEvtChannelKeyT *pEvtChannelKey);
     ClRcT clEvtUtilsFlatPattern2Rbe(void *pData, ClUint32T noOfPattern,
                                     ClRuleExprT **pRbeExpr);
     ClRcT clEvtUtilsFlatPattern2FlatBuffer(void *pData, ClUint32T noOfPattern,
                                            ClUint8T **ppData,
                                            ClUint32T *pDataLen);
-    ClInt32T clEvtUtilsNameCmp(ClNameT *pName1, ClNameT *pName2);
+    ClInt32T clEvtUtilsNameCmp(SaNameT *pName1, SaNameT *pName2);
 
 # ifdef __cplusplus
 }

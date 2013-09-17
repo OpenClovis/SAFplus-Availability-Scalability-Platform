@@ -83,7 +83,7 @@ clAlarmCliInfoShow(ClUint32T argc, ClCharT **argv, ClCharT** ret)
     ClAlarmInfoT*         pAlarmInfo;
     ClAlarmHandleT        alarmHandle;
     ClCharT               displayStr[MAX_DISPLAY_SIZE];
-    ClNameT moidName={0,"\0"};
+    SaNameT moidName={0,"\0"};
 
     if(argc != 2)
     {
@@ -211,7 +211,7 @@ ClRcT _clAlarmCliShowRaisedAlarms(void* pData, void* cookie)
     ClRcT rc = CL_OK;
     ClAlarmProbableCauseT probCause = 0;
     ClAlarmSpecificProblemT specProb = 0;
-    ClNameT moIdname = {0};
+    SaNameT moIdname = {0};
     ClUint64T publishedalarms = 0;
     ClUint32T i = 0;
 
@@ -736,7 +736,7 @@ static ClRcT _clAlarmCliShowAssociatedAlarms(void* pData, void* cookie)
     ClUint64T publishedAlarms = 0;
     ClCorMOIdT moId = {{{0}}};
     ClCorServiceIdT svcId = CL_COR_INVALID_SVC_ID;
-    ClNameT moIdname = {0};
+    SaNameT moIdname = {0};
 
     rc = clCorObjectHandleToMoIdGet(objH, &moId, &svcId);
     if (rc != CL_OK)

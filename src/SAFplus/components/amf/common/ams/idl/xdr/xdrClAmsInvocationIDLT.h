@@ -52,9 +52,9 @@ struct _ClAmsInvocationIDLT_4_1_0;
 typedef struct _ClAmsInvocationIDLT_4_1_0 {
     ClUint64T    invocation;
     ClUint32T    cmd;
-    ClNameT    compName;
+    SaNameT    compName;
     ClUint16T    csiTargetOne;
-    ClNameT    csiName;
+    SaNameT    csiName;
     ClUint16T    reassignCSI;
 
 }ClAmsInvocationIDLT_4_1_0;

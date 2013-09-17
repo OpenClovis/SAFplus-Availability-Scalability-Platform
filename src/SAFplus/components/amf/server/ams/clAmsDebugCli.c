@@ -146,7 +146,7 @@ clAmsDebugCliMakeEntityStruct(
         return CL_AMS_RC (CL_AMS_ERR_INVALID_ARGS);
     }
 
-    strcpy (entity->name.value,entityName);
+    strcpy ((ClCharT*)entity->name.value,entityName);
     entity->name.length = strlen (entityName) + 1;
 
     return CL_OK;
@@ -761,7 +761,7 @@ static ClRcT amsForceLockTask(ClPtrT cookie)
     ClAmsEntityT entity = {0};
     ClRcT rc;
     entity.type = CL_AMS_ENTITY_TYPE_SU;
-    clNameSet(&entity.name, lockContext->entity);
+    saNameSet(&entity.name, lockContext->entity);
     clHeapFree(lockContext);
     respBuffer[0] = 0; /*zero off the response buffer*/
     rc = clAmsMgmtEntityLockInstantiation(gHandle, (const ClAmsEntityT*)&entity);
@@ -821,7 +821,7 @@ ClRcT clAmsDebugCliForceLock(
     outMsgHandle = lockContext->outMsgHandle;
 
     entity.type = CL_AMS_ENTITY_TYPE_SU;
-    clNameSet(&entity.name, (const ClCharT*)argv[1]);
+    saNameSet(&entity.name, (const ClCharT*)argv[1]);
     
     if ( ( rc = clAmsMgmtEntityForceLockExtended(
                                                  gHandle,
@@ -865,7 +865,7 @@ static ClRcT amsForceLockInstantiationTask(ClPtrT cookie)
     ClAmsEntityT entity = {0};
     ClRcT rc;
     entity.type = CL_AMS_ENTITY_TYPE_SU;
-    clNameSet(&entity.name, lockContext->entity);
+    saNameSet(&entity.name, lockContext->entity);
     clHeapFree(lockContext);
     respBuffer[0] = 0; /*zero off the response buffer*/
     rc = clAmsMgmtEntityForceLockInstantiation(gHandle, (const ClAmsEntityT*)&entity);
@@ -924,7 +924,7 @@ ClRcT clAmsDebugCliForceLockInstantiation(
     responseHandle = lockContext->responseHandle;
     outMsgHandle = lockContext->outMsgHandle;
     entity.type = CL_AMS_ENTITY_TYPE_SU;
-    clNameSet(&entity.name, (const ClCharT*)argv[1]);
+    saNameSet(&entity.name, (const ClCharT*)argv[1]);
     if(!pool)
     {
         rc = clTaskPoolCreate(&pool, 1, NULL, NULL);
@@ -1021,7 +1021,7 @@ clAmsDebugCliFaultReport(
 {
 
     ClRcT  rc = CL_OK;
-    ClNameT  compName = {0};
+    SaNameT  compName = {0};
     ClTimeT  errorDetectionTime = 0;
     ClAmsLocalRecoveryT  recommendedRecovery = 0;
     ClUint32T  dummy = 0;
@@ -1036,7 +1036,7 @@ clAmsDebugCliFaultReport(
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    strcpy (compName.value,argv[1]);
+    strcpy ((ClCharT*)compName.value,argv[1]);
     compName.length = strlen(argv[1]) +1;
     recommendedRecovery = atoi (argv[2]);
 
@@ -1063,7 +1063,7 @@ clAmsDebugCliNodeJoin(
 {
 
     ClRcT  rc = CL_OK;
-    ClNameT  nodeName = {0};
+    SaNameT  nodeName = {0};
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -1075,7 +1075,7 @@ clAmsDebugCliNodeJoin(
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    strcpy (nodeName.value,argv[1]);
+    strcpy ((ClCharT*)nodeName.value,argv[1]);
     nodeName.length = strlen(argv[1]) +1;
 
     if ( ( rc = _clAmsSANodeJoin(
@@ -1098,7 +1098,7 @@ clAmsDebugCliPGTrackAdd(
 {
 
     ClRcT  rc = CL_OK;
-    ClNameT  csiName = {0};
+    SaNameT  csiName = {0};
     ClUint8T  trackFlags = 1;
     ClIocAddressT  iocAddress;
     ClCpmHandleT  cpmHandle = -1;
@@ -1114,7 +1114,7 @@ clAmsDebugCliPGTrackAdd(
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    strcpy (csiName.value,argv[1]);
+    strcpy ((ClCharT*)csiName.value,argv[1]);
     csiName.length = strlen(argv[1]) +1;
 
     trackFlags = atoi(argv[2]);
@@ -1145,7 +1145,7 @@ clAmsDebugCliPGTrackStop(
 {
 
     ClRcT  rc = CL_OK;
-    ClNameT  csiName = {0};
+    SaNameT  csiName = {0};
     ClIocAddressT  iocAddress;
     ClCpmHandleT  cpmHandle = -1;
 
@@ -1159,7 +1159,7 @@ clAmsDebugCliPGTrackStop(
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    strcpy (csiName.value,argv[1]);
+    strcpy ((ClCharT*)csiName.value,argv[1]);
     csiName.length = strlen(argv[1]) +1;
 
     iocAddress.iocPhyAddress.nodeAddress = atoi(argv[2]);
@@ -2194,8 +2194,8 @@ clAmsDebugCliEntityTrigger(
                     return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
                 }
                 memset(entity.name.value, 0, sizeof(entity.name.value));
-                strncpy(entity.name.value, argv[2], sizeof(entity.name.value)-1);
-                entity.name.length = strlen(entity.name.value)+1;
+                strncpy((ClCharT*)entity.name.value, argv[2], sizeof((const ClCharT*)entity.name.value)-1);
+                entity.name.length = strlen((const ClCharT*)entity.name.value)+1;
                 return clAmsEntityTriggerLoadTrigger(&entity, id);
             }
         }
@@ -2215,9 +2215,9 @@ clAmsDebugCliEntityTrigger(
 
         reset_entity:
 
-        memset(entity.name.value, 0, sizeof(entity.name.value));
-        strncpy(entity.name.value, argv[3], sizeof(entity.name.value)-1);
-        entity.name.length = strlen(entity.name.value)+1;
+        memset(entity.name.value, 0, sizeof((const ClCharT*)entity.name.value));
+        strncpy((ClCharT*)entity.name.value, argv[3], sizeof((const ClCharT*)entity.name.value)-1);
+        entity.name.length = strlen((const ClCharT*)entity.name.value)+1;
 
         if(doReset == CL_TRUE)
         {
@@ -2252,8 +2252,8 @@ clAmsDebugCliEntityTrigger(
 
         entity_recovery:
         memset(entity.name.value, 0, sizeof(entity.name.value));
-        strncpy(entity.name.value, pEntity, sizeof(entity.name.value)-1);
-        entity.name.length = strlen(entity.name.value)+1;
+        strncpy((ClCharT*)entity.name.value, pEntity, sizeof((const ClCharT*)entity.name.value)-1);
+        entity.name.length = strlen((const ClCharT*)entity.name.value)+1;
         return clAmsEntityTriggerRecoveryReset(&entity, id);
     }
 

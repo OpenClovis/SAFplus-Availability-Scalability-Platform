@@ -50,13 +50,13 @@ ClRcT clXdrUnmarshallClAmsMgmtMigrateRequestT_4_0_0(ClBufferHandleT msg , void* 
     else
     {
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->sg));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->sg));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->prefix));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->prefix));
     if (CL_OK != rc)
     {
         return rc;

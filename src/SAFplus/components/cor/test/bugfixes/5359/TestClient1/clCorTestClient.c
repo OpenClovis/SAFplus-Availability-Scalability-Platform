@@ -53,7 +53,7 @@ ClRcT corIMCreate();
 ClRcT clCorTestClientDataSave();
 ClRcT testAppInitialize(ClUint32T argc, ClCharT *argv[]);
 ClRcT testAppTerminate(ClInvocationT invocation,
-                        const ClNameT *compName);
+                        const SaNameT *compName);
 ClRcT testAppHealthCheck(ClEoSchedFeedBackT *schFeedback);
 ClRcT testAppStateChange(ClEoStateT eoState);
 ClRcT testAppFinalize();
@@ -66,7 +66,7 @@ ClRcT testAppInitialize(ClUint32T argc, ClCharT *argv[])
 {
     ClEoExecutionObjT *pEoHandle = NULL;
     ClRcT rc = CL_OK;
-    ClNameT appName = {0};
+    SaNameT appName = {0};
     ClCpmCallbacksT callbacks = {0};
     ClIocPortT iocPort = {0};
     ClVersionT corVersion = {0};
@@ -448,7 +448,7 @@ ClRcT testAppHealthCheck(ClEoSchedFeedBackT *schFeedback)
 }
 
 ClRcT testAppTerminate(ClInvocationT invocation,
-                    const ClNameT *compName)
+                    const SaNameT *compName)
 {
     ClRcT rc = CL_OK;
 

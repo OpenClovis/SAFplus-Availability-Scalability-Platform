@@ -603,7 +603,7 @@ SaAisErrorT saEvtChannelOpen(SaEvtHandleT evtHandle,
     }
 
     rc = clEventChannelOpen((ClEventInitHandleT) evtHandle,
-                            (const ClNameT *) pEvtChannelName,
+                            (const SaNameT *) pEvtChannelName,
                             flag | CL_EVENT_GLOBAL_CHANNEL, timeout,
                             &channelHandle);
     if (CL_OK != rc)
@@ -682,7 +682,7 @@ SaAisErrorT saEvtChannelOpenAsync(SaEvtHandleT evtHandle,
     invocation = (ClInvocationT)(ClWordT)pSaEvtInvInfo;
     
     rc = clEventChannelOpenAsync((ClEventInitHandleT) evtHandle, invocation,
-                                 (const ClNameT *) pEvtChannelName,
+                                 (const SaNameT *) pEvtChannelName,
                                  channelOpenFlags | CL_EVENT_GLOBAL_CHANNEL);
     if(rc != CL_OK) 
     {
@@ -732,7 +732,7 @@ SaAisErrorT saEvtChannelUnlink(SaEvtHandleT evtHandle,
     }        
 
     rc = clEventChannelUnlink((ClEventInitHandleT) evtHandle,
-                              (const ClNameT *) pEvtChannelName);
+                              (const SaNameT *) pEvtChannelName);
     clEvtSafErrorMap(rc, &rc);
     return rc;
 }
@@ -777,7 +777,7 @@ SaAisErrorT saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
     rc = clEventAttributesSet((ClEventHandleT) eventHandle,
                               (const ClEventPatternArrayT *) pPatternArray,
                               priority, retentionTime,
-                              (const ClNameT *) pPublisherName);
+                              (const SaNameT *) pPublisherName);
     clEvtSafErrorMap(rc, &rc);
     return rc;
 }
@@ -794,7 +794,7 @@ SaAisErrorT saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
 
     rc = clEventAttributesGet((ClEventHandleT) eventHandle,
                               (ClEventPatternArrayT *) pPatternArray, pPriority,
-                              pRetentionTime, (ClNameT *) pPublisherName,
+                              pRetentionTime, (SaNameT *) pPublisherName,
                               pPublishTime, (ClEventIdT *) pEventId);
     clEvtSafErrorMap(rc, &rc);
     return rc;

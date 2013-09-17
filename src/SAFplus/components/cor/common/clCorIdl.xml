@@ -289,7 +289,7 @@ material.
      <Struct name="corClientMoIdToNodeNameT">
         <DataMember name="version" type="ClVersionT"/> 
         <DataMember name="moId" type="ClCorMOIdT"/> 
-        <DataMember name="nodeName" type="ClNameT"/> 
+        <DataMember name="nodeName" type="SaNameT"/> 
         <DataMember name="op" type="corMoIdToNodeNameTableOp_e"/> 
     </Struct> 
 
@@ -567,7 +567,7 @@ material.
   <Struct name="ClCorMsoConfigIDLT" defNeed="Yes" version="4.1.0">
     <DataMember name="version" type="ClVersionT" />
     <DataMember name="msoConfigOp" type="ClCorMsoConfigOpIDLT" />
-    <DataMember name="compName" type="ClNameT" />
+    <DataMember name="compName" type="SaNameT" />
     <DataMember name="compAddr" type="ClIocPhysicalAddressT" />
     <DataMember name="alarmInfo" type="ClCorAlarmConfiguredDataIDLT" version="4.1.0" />
   </Struct>

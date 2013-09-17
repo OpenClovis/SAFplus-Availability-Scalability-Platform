@@ -134,12 +134,12 @@ typedef struct {
 typedef union {
     ClGmsTrackNodeKeyT     track;
     ClGmsNodeIdT           nodeId;
-    ClNameT                name;
+    SaNameT                name;
 } ClGmsDbKeyT;
 
 typedef struct ClGmsNodeIdPair {
     ClGmsGroupIdT          groupId;
-    ClNameT                name;
+    SaNameT                name;
 } ClGmsNodeIdPairT;
 
 /* Get the Db hash Key */
@@ -307,18 +307,18 @@ ClRcT   _clGmsViewFindNodePrivate(
 ClRcT   _clGmsNameIdDbCreate (ClCntHandleT  *dbPtr);
 
 ClRcT   _clGmsNameIdDbAdd (ClCntHandleT  *dbPtr,
-                           ClNameT       *name,
+                           SaNameT       *name,
                            ClGmsGroupIdT  id);
 
 ClRcT   _clGmsNameIdDbDelete(ClCntHandleT  *dbPtr,
-                             ClNameT       *name);
+                             SaNameT       *name);
 
 ClRcT   _clGmsNameIdDbDeleteAll(ClCntHandleT  *dbPtr);
 
 ClRcT   _clGmsNameIdDbDestroy (ClCntHandleT  *dbPtr);
 
 ClRcT   _clGmsNameIdDbFind(ClCntHandleT  *dbPtr,
-                           ClNameT       *name,
+                           SaNameT       *name,
                            ClGmsGroupIdT *id);
 
 /* Function used to get the list of members of the given view. */

@@ -58,7 +58,7 @@ static ClTxnAgentServiceHandleT    gCorTestTxnAgntHdl = 0,gCorTestBundleAgntHdl 
 ClRcT clCorTestClientDataSave()
 {
     ClRcT    rc = CL_OK;
-    ClNameT   nodeName ;
+    SaNameT   nodeName ;
     ClCharT   classDbName[CL_COR_MAX_NAME_SZ] = {0};
 
     clCpmLocalNodeNameGet(&nodeName);
@@ -527,7 +527,7 @@ clCorTestBundleCallBack( CL_IN ClCorBundleHandleT bundleHandle,
 {
     ClRcT       rc = CL_OK;
     ClUint32T   i = 0;
-    ClNameT     moIdName    = {0};
+    SaNameT     moIdName    = {0};
     ClCorTestBundleCookiePtrT pTestCookie = (ClCorTestBundleCookiePtrT )data;
     ClCorTestBundleDataPtrT    pTempData = NULL;
         
@@ -2600,7 +2600,7 @@ clCorTestTxnDeregister()
 
 
 ClRcT clCorTestTerminate(ClInvocationT invocation,
-                     const ClNameT  *compName)
+                     const SaNameT  *compName)
 {
     ClRcT rc = CL_OK;
     clOsalPrintf("Inside appTerminate \n");
@@ -2638,7 +2638,7 @@ ClRcT clCorTestHealthCheck(ClEoSchedFeedBackT *schFeedback)
 
 ClRcT clCorTestCSISetCallback (
                     CL_IN ClInvocationT invocation,
-                    CL_IN const ClNameT *pCompName,
+                    CL_IN const SaNameT *pCompName,
                     CL_IN ClAmsHAStateT haState,
                     CL_IN ClAmsCSIDescriptorT csiDescriptor )
 {
@@ -2649,8 +2649,8 @@ ClRcT clCorTestCSISetCallback (
 
 ClRcT clCorTestCSIRmvCallback (
                         CL_IN ClInvocationT invocation,
-                        CL_IN const ClNameT *pCompName,
-                        CL_IN const ClNameT *pCsiName,
+                        CL_IN const SaNameT *pCompName,
+                        CL_IN const SaNameT *pCsiName,
                         CL_IN ClAmsCSIFlagsT csiFlags)
 {
     clCpmResponse(cpmHandle, invocation, CL_OK);
@@ -2663,7 +2663,7 @@ ClRcT  clCorTestInitialize(ClUint32T argc, ClCharT *argv[])
 {
     ClEoExecutionObjT  *pEoHandle;
     ClRcT rc;
-	ClNameT                     appName;
+	SaNameT                     appName;
 	ClCpmCallbacksT             callbacks;
 	ClIocPortT                  iocPort;
 	ClVersionT                  corVersion;

@@ -56,7 +56,7 @@ ClRcT clXdrUnmarshallClCpmPGTrackT_4_0_0(ClBufferHandleT msg , void* pGenVar)
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->csiName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->csiName));
     if (CL_OK != rc)
     {
         return rc;

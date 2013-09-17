@@ -733,8 +733,8 @@ typedef struct ClAmsMgmtMigrateList
 
 typedef struct ClAmsMgmtMigrateRequest
 {
-    ClNameT sg;
-    ClNameT prefix;
+    SaNameT sg;
+    SaNameT prefix;
     ClUint32T activeSUs;
     ClUint32T standbySUs;
 }ClAmsMgmtMigrateRequestT;
@@ -747,7 +747,7 @@ typedef struct ClAmsMgmtMigrateResponse
 typedef struct ClAmsMgmtUserDataSetRequest
 {
     ClAmsEntityT *entity;
-    ClNameT *key;
+    SaNameT *key;
     ClCharT *data;
     ClUint32T len;
 }ClAmsMgmtUserDataSetRequestT;
@@ -755,7 +755,7 @@ typedef struct ClAmsMgmtUserDataSetRequest
 typedef struct ClAmsMgmtUserDataGetRequest
 {
     ClAmsEntityT *entity;
-    ClNameT *key;
+    SaNameT *key;
     ClCharT **data;
     ClUint32T *len;
 }ClAmsMgmtUserDataGetRequestT;
@@ -763,7 +763,7 @@ typedef struct ClAmsMgmtUserDataGetRequest
 typedef struct ClAmsMgmtUserDataDeleteRequest
 {
     ClAmsEntityT *entity;
-    ClNameT *key;
+    SaNameT *key;
     ClBoolT clear;
 }ClAmsMgmtUserDataDeleteRequestT;
 

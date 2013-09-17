@@ -62,7 +62,7 @@ ClRcT clXdrUnmarshallClAmsCompConfigT_4_0_0(ClBufferHandleT msg , void* pGenVar)
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->proxyCSIType));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->proxyCSIType));
     if (CL_OK != rc)
     {
         return rc;
@@ -164,7 +164,7 @@ ClRcT clXdrUnmarshallClAmsCompConfigT_4_0_0(ClBufferHandleT msg , void* pGenVar)
         return rc;
     }
 
-    rc = clXdrUnmarshallPtrClNameT(msg,(void**)&(pVar->pSupportedCSITypes),pVar->numSupportedCSITypes);
+    rc = clXdrUnmarshallPtrSaNameT(msg,(void**)&(pVar->pSupportedCSITypes),pVar->numSupportedCSITypes);
     if (CL_OK != rc)
     {
         return rc;

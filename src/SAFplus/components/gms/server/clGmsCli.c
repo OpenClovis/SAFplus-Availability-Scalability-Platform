@@ -326,7 +326,7 @@ static ClRcT gmsCliGetGroupInfo (
                     CL_IN   ClCharT** argv,
                     CL_OUT  ClCharT** ret)
 {
-    ClNameT          groupName      = {0};
+    SaNameT          groupName      = {0};
     ClGmsGroupIdT    groupId        = 0;
     ClGmsGroupInfoT  groupInfo      = {{0}};
     ClCharT          timeBuffer[256]= {0};
@@ -358,7 +358,7 @@ static ClRcT gmsCliGetGroupInfo (
         return CL_OK;
     }
 
-    strncpy(groupName.value,argv[1],groupName.length);
+    strncpy((ClCharT *)groupName.value,argv[1],groupName.length);
 
     /* Take the lock on the database */
     clGmsMutexLock(gmsGlobalInfo.nameIdMutex);
@@ -676,7 +676,7 @@ static ClRcT   gmsCliAddView(
     ClRcT   rc = CL_OK;
     ClUint64T       num = 0;
     ClGmsGroupIdT   groupId = CL_GMS_INVALID_GROUP_ID;
-    ClNameT         name = {0};
+    SaNameT         name = {0};
 
     if (argc != 3)
     {

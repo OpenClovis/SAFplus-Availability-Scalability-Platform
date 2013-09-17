@@ -177,7 +177,7 @@ typedef struct
 {
     ClUint32T           cksum;    /* Cksum of name. Needed during
                                      hash key compare function */ 
-    ClNameT             name;     /* Name of the service */
+    SaNameT             name;     /* Name of the service */
     ClUint32T           refCount; /* Count of components providing the 
                                      service */
     ClUint32T           dsId;     /* dsId of checkpoint */
@@ -215,7 +215,7 @@ typedef struct
 /* Cookie in display related walk */
 typedef struct
 {
-    ClNameT                name;      /* Name of the service */
+    SaNameT                name;      /* Name of the service */
     ClUint32T              operation; /* Whether name or binding display */
     ClBufferHandleT outMsgHdl; /* Will carry displat info */
 } ClNameSvcDisplayInfoT;
@@ -233,13 +233,13 @@ typedef struct
 typedef struct
 {
     ClUint32T   cksum;    /* Cksum of name */ 
-    ClNameT     name;     /* Name of the service */
+    SaNameT     name;     /* Name of the service */
 }ClNameSvcNameLookupT;
 
 /* Cookie for attribute level query */
 typedef struct
 {
-    ClNameT                 *pName;       /* Name of the service */
+    SaNameT                 *pName;       /* Name of the service */
     ClNameSvcAttrSearchT    *pAttrList;   /* attribute list */
     ClBufferHandleT  outMsgHandle; /* Buffer that would contain the
                                             packed information */

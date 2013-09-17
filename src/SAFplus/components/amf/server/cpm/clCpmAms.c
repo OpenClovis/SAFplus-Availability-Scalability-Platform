@@ -121,7 +121,7 @@ static ClRcT _cpmCsiDescriptorPack(ClAmsCSIDescriptorT csiDescriptor,
 
     if (CL_AMS_CSI_FLAG_TARGET_ALL != csiDescriptor.csiFlags)
     {
-        rc = clXdrMarshallClNameT((void *) &(csiDescriptor.csiName), message, 0);
+        rc = clXdrMarshallSaNameT((void *) &(csiDescriptor.csiName), message, 0);
         CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
     }
 
@@ -235,9 +235,9 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
     ClCpmComponentT *comp = NULL;
     ClCpmComponentT *proxyComp = NULL;
     ClCpmLT *cpmL = NULL;
-    ClNameT compName={0};
-    ClNameT proxyCompName={0};
-    ClNameT nodeName={0};
+    SaNameT compName={0};
+    SaNameT proxyCompName={0};
+    SaNameT nodeName={0};
     ClUint8T *buffer = NULL;
     ClUint32T bufferLength = 0;
 
@@ -248,11 +248,11 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
         CL_CPM_CHECK(CL_DEBUG_ERROR, ("Null pointer passed"),
                      CL_CPM_RC(CL_ERR_NULL_POINTER));
 
-    strcpy(compName.value, targetComponentName);
+    strcpy((ClCharT *)compName.value, targetComponentName);
     compName.length = strlen(targetComponentName);
-    strcpy(proxyCompName.value, targetProxyComponentName);
+    strcpy((ClCharT *)proxyCompName.value, targetProxyComponentName);
     proxyCompName.length = strlen(targetProxyComponentName);
-    strcpy(nodeName.value, targetNodeName);
+    strcpy((ClCharT *)nodeName.value, targetNodeName);
     nodeName.length = strlen(targetNodeName);
 
     /*
@@ -273,9 +273,9 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
     /*
      * Populate the send buffer appropriatly 
      */
-    memcpy(&(sendBuff->compName), &(compName), sizeof(ClNameT));
-    memcpy(&(sendBuff->proxyCompName), &(proxyCompName), sizeof(ClNameT));
-    memcpy(&(sendBuff->nodeName), &(nodeName), sizeof(ClNameT));
+    memcpy(&(sendBuff->compName), &(compName), sizeof(SaNameT));
+    memcpy(&(sendBuff->proxyCompName), &(proxyCompName), sizeof(SaNameT));
+    memcpy(&(sendBuff->nodeName), &(nodeName), sizeof(SaNameT));
     sendBuff->invocation = invocation;
     sendBuff->haState = haState;
     sendBuff->bufferLength = bufferLength;
@@ -284,7 +284,7 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
     /*
      * If the local Node name and the passed node name matches 
      */
-    if (!strcmp(gpClCpm->pCpmConfig->nodeName, nodeName.value))
+    if (!strcmp((const ClCharT *)gpClCpm->pCpmConfig->nodeName, (const ClCharT *)nodeName.value))
     {
         /*
          * Find the component Name from the component Hash Table 
@@ -296,7 +296,7 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
          */
         if(rc != CL_OK 
            && 
-           cpmComponentAddDynamic(compName.value) == CL_OK)
+           cpmComponentAddDynamic((const ClCharT *)compName.value) == CL_OK)
         {
             rc = cpmCompFind(compName.value, gpClCpm->compTable, &comp);
         }
@@ -467,7 +467,7 @@ ClRcT VDECL(cpmComponentCSISet)(ClEoDataT data,
      * Check for component property. For proxied components CSI set request
      * is sent to the managing proxy component.
      */
-    if (!strcmp(gpClCpm->pCpmConfig->nodeName, recvBuff->nodeName.value))
+    if (!strcmp((const ClCharT *)gpClCpm->pCpmConfig->nodeName, (const ClCharT *)recvBuff->nodeName.value))
     {
         /*
          * Find the component Name from the component Hash Table 
@@ -475,7 +475,7 @@ ClRcT VDECL(cpmComponentCSISet)(ClEoDataT data,
         rc = cpmCompFind(recvBuff->compName.value, gpClCpm->compTable, &comp);
         if(rc != CL_OK 
            &&
-           cpmComponentAddDynamic(recvBuff->compName.value) == CL_OK)
+           cpmComponentAddDynamic((const ClCharT *)recvBuff->compName.value) == CL_OK)
         {
             rc = cpmCompFind(recvBuff->compName.value, gpClCpm->compTable, &comp);
         }
@@ -557,7 +557,7 @@ ClRcT _cpmComponentCSIRmv(ClCharT *targetComponentName,
                           ClCharT *targetProxyComponentName,
                           ClCharT *targetNodeName,
                           ClInvocationT invocation,
-                          ClNameT *csiName,
+                          SaNameT *csiName,
                           ClAmsCSIFlagsT csiFlags)
 {
     ClRcT rc = CL_OK;
@@ -565,9 +565,9 @@ ClRcT _cpmComponentCSIRmv(ClCharT *targetComponentName,
     ClCpmComponentT *comp = NULL;
     ClCpmComponentT *proxyComp = NULL;
     ClCpmLT *cpmL = NULL;
-    ClNameT compName={0};
-    ClNameT proxyCompName={0};
-    ClNameT nodeName={0};
+    SaNameT compName={0};
+    SaNameT proxyCompName={0};
+    SaNameT nodeName={0};
 
     /*
      * Check/validate the input param check 
@@ -590,22 +590,22 @@ ClRcT _cpmComponentCSIRmv(ClCharT *targetComponentName,
         goto failure;
     }
 
-    strcpy(compName.value, targetComponentName);
+    strcpy((ClCharT *)compName.value, targetComponentName);
     compName.length = strlen(targetComponentName);
-    strcpy(proxyCompName.value, targetProxyComponentName);
+    strcpy((ClCharT *)proxyCompName.value, targetProxyComponentName);
     proxyCompName.length = strlen(targetProxyComponentName);
-    strcpy(nodeName.value, targetNodeName);
+    strcpy((ClCharT *)nodeName.value, targetNodeName);
     nodeName.length = strlen(targetNodeName);
 
     /*
      * Populate the send buffer appropriatly 
      */
-    memcpy(&(sendBuff.compName), &(compName), sizeof(ClNameT));
-    memcpy(&(sendBuff.proxyCompName), &(proxyCompName), sizeof(ClNameT));
-    memcpy(&(sendBuff.nodeName), &(nodeName), sizeof(ClNameT));
+    memcpy(&(sendBuff.compName), &(compName), sizeof(SaNameT));
+    memcpy(&(sendBuff.proxyCompName), &(proxyCompName), sizeof(SaNameT));
+    memcpy(&(sendBuff.nodeName), &(nodeName), sizeof(SaNameT));
     if (csiName != NULL)
     {
-        memcpy(&(sendBuff.csiName), csiName, sizeof(ClNameT));
+        memcpy(&(sendBuff.csiName), csiName, sizeof(SaNameT));
     }
 
     sendBuff.invocation = invocation;
@@ -614,7 +614,7 @@ ClRcT _cpmComponentCSIRmv(ClCharT *targetComponentName,
     /*
      * If the local Node name and the passed node name matches 
      */
-    if (!strcmp(gpClCpm->pCpmConfig->nodeName, nodeName.value))
+    if (!strcmp(gpClCpm->pCpmConfig->nodeName, (const ClCharT *)nodeName.value))
     {
         /*
          * Find the component Name from the component Hash Table 
@@ -744,7 +744,7 @@ ClRcT _cpmComponentCSIRmv(ClCharT *targetComponentName,
 ClRcT _cpmComponentPGTrack(CL_IN ClIocAddressT iocAddress,
                            CL_IN ClCpmHandleT cpmHandle,
                            // coverity[pass_by_value]
-                           CL_IN ClNameT     csiName,
+                           CL_IN SaNameT     csiName,
                            CL_IN ClAmsPGNotificationBufferT *notificationBuffer,
                            CL_IN ClUint32T   numberOfMembers,
                            CL_IN ClUint32T   error
@@ -787,7 +787,7 @@ ClRcT _cpmComponentPGTrack(CL_IN ClIocAddressT iocAddress,
     
     
     sendBuff->cpmHandle = cpmHandle;
-    memcpy(&(sendBuff->csiName), &csiName, sizeof(ClNameT));
+    memcpy(&(sendBuff->csiName), &csiName, sizeof(SaNameT));
     sendBuff->numberOfMembers = numberOfMembers;
     sendBuff->error = error;
 
@@ -823,7 +823,7 @@ failure:
     return rc;
 }
 
-ClRcT _cpmNodeDepartureAllowed(ClNameT *nodeName,
+ClRcT _cpmNodeDepartureAllowed(SaNameT *nodeName,
                                ClCpmNodeLeaveT nodeLeave
                                )
 {
@@ -863,7 +863,7 @@ ClRcT _cpmNodeDepartureAllowed(ClNameT *nodeName,
                      rc);
     }
     
-    if (!strcmp(nodeName->value, gpClCpm->pCpmLocalInfo->nodeName) && CL_CPM_IS_ACTIVE())
+    if (!strcmp((const ClCharT *)nodeName->value, gpClCpm->pCpmLocalInfo->nodeName) && CL_CPM_IS_ACTIVE())
     {
         clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
                    "CPM/G active got termination request for itself...");
@@ -1072,7 +1072,7 @@ failure:
  *  called. The node is also restarted if its configured to be restartable
  */
 
-static ClRcT _cpmNodeFailFastRestart(ClNameT *nodeName, ClUint32T restartFlag)
+static ClRcT _cpmNodeFailFastRestart(SaNameT *nodeName, ClUint32T restartFlag)
 {
     ClRcT rc = CL_OK;
     ClCpmLT *cpmL = NULL;
@@ -1093,7 +1093,7 @@ static ClRcT _cpmNodeFailFastRestart(ClNameT *nodeName, ClUint32T restartFlag)
             restartFlag |= CL_CPM_SET_RESTART_OVERRIDE(nodeRequest);
         }
 
-        if (!strcmp(nodeName->value,
+        if (!strcmp((const ClCharT *)nodeName->value,
                     gpClCpm->pCpmLocalInfo->nodeName))
         {
             cpmResetNodeElseCommitSuicide(restartFlag);
@@ -1172,7 +1172,7 @@ failure:
     return rc;
 }
 
-static ClRcT cpmResetLegacyNode(ClNameT *nodeName)
+static ClRcT cpmResetLegacyNode(SaNameT *nodeName)
 {
     ClRcT rc = CL_OK;
     ClCpmLT *cpmL = NULL;
@@ -1210,7 +1210,7 @@ static ClRcT cpmResetLegacyNode(ClNameT *nodeName)
     return rc;
 }
 
-ClRcT _cpmNodeFailFast(ClNameT *nodeName, ClBoolT isASPAware)
+ClRcT _cpmNodeFailFast(SaNameT *nodeName, ClBoolT isASPAware)
 {
     if(isASPAware)
         return _cpmNodeFailFastRestart(nodeName, CL_CPM_RESTART_NODE);
@@ -1228,7 +1228,7 @@ ClRcT _cpmNodeFailFast(ClNameT *nodeName, ClBoolT isASPAware)
  *  as CM does not support power off, doing reset as of now
  *  Does the failover of the given node.
  */
-ClRcT _cpmNodeFailOver(ClNameT *nodeName, ClBoolT isASPAware)
+ClRcT _cpmNodeFailOver(SaNameT *nodeName, ClBoolT isASPAware)
 {
     if(isASPAware)
         return _cpmNodeFailFastRestart(nodeName, CL_CPM_RESTART_NONE);
@@ -1236,7 +1236,7 @@ ClRcT _cpmNodeFailOver(ClNameT *nodeName, ClBoolT isASPAware)
     return cpmResetLegacyNode(nodeName);
 }
 
-ClRcT _cpmNodeFailOverRestart(ClNameT *nodeName, ClBoolT isASPAware)
+ClRcT _cpmNodeFailOverRestart(SaNameT *nodeName, ClBoolT isASPAware)
 {
     if(isASPAware)
         return _cpmNodeFailFastRestart(nodeName, CL_CPM_RESTART_ASP);
@@ -1244,7 +1244,7 @@ ClRcT _cpmNodeFailOverRestart(ClNameT *nodeName, ClBoolT isASPAware)
     return cpmResetLegacyNode(nodeName);
 }
 
-ClRcT _cpmNodeHalt(ClNameT *nodeName, ClBoolT aspAware)
+ClRcT _cpmNodeHalt(SaNameT *nodeName, ClBoolT aspAware)
 {
     if(aspAware)
         return _cpmNodeFailFastRestart(nodeName, CL_CPM_HALT_ASP);
@@ -1347,7 +1347,7 @@ ClRcT VDECL(cpmComponentCSIRmv)(ClEoDataT data,
      *  node, make RMD to the component which will in turn invoke the callback 
      */
 
-    if (!strcmp(gpClCpm->pCpmConfig->nodeName, recvBuff.nodeName.value))
+    if (!strcmp(gpClCpm->pCpmConfig->nodeName, (const ClCharT*)recvBuff.nodeName.value))
     {
         /*
          * Find the component Name from the component Hash Table 
@@ -1867,7 +1867,7 @@ ClRcT cpmReplayInvocationAdd(ClUint32T cbType, const ClCharT *pCompName,
 {
     ClCpmComponentT *comp = NULL;
     ClInvocationT invocation = 0;
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
     ClIocAddressT nodeAddress = {{0}};
     ClAmsInvocationT *pInvocation = NULL;
     ClBoolT addInvocation = CL_TRUE;
@@ -1879,7 +1879,7 @@ ClRcT cpmReplayInvocationAdd(ClUint32T cbType, const ClCharT *pCompName,
     if(!gpClCpm->polling) 
         return CL_CPM_RC(CL_ERR_INVALID_STATE);
 
-    clNameSet(&nodeName, pNode);
+    saNameSet(&nodeName, pNode);
 
     rc = _cpmIocAddressForNodeGet(&nodeName, &nodeAddress);
 
@@ -1893,7 +1893,7 @@ ClRcT cpmReplayInvocationAdd(ClUint32T cbType, const ClCharT *pCompName,
 
     if(nodeAddress.iocPhyAddress.nodeAddress == clIocLocalAddressGet())
     {
-        rc = cpmCompFindWithLock((ClCharT*)pCompName, gpClCpm->compTable, &comp);
+        rc = cpmCompFindWithLock((SaUint8T *)pCompName, gpClCpm->compTable, &comp);
         if(rc != CL_OK)
         {
             clLogError("INVOCATION", "ADD", "Component [%s] not found in the comp table",
@@ -1907,8 +1907,8 @@ ClRcT cpmReplayInvocationAdd(ClUint32T cbType, const ClCharT *pCompName,
     pInvocation = clHeapCalloc(1, sizeof(*pInvocation));
     CL_ASSERT(pInvocation != NULL);
     pInvocation->cmd = cbType;
-    clNameSet(&pInvocation->compName, pCompName);
-    clNameSet(&pInvocation->csiName,  pNode);
+    saNameSet(&pInvocation->compName, pCompName);
+    saNameSet(&pInvocation->csiName,  pNode);
 
     switch(cbType)
     {

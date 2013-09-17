@@ -65,13 +65,13 @@ ClRcT clXdrMarshallClCpmSlotInfoRecvT_4_0_0(void* pGenVar, ClBufferHandleT msg, 
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->nodeMoIdStr),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->nodeMoIdStr),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->nodeName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->nodeName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

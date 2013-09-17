@@ -964,14 +964,14 @@ _clAlarmNotify ( ClAlarmInfoT *pAlarmInfo , ClAlarmHandleT alarmHandle)
 {
     ClRcT                   rc = CL_OK;
     ClEventIdT              eventId = 0;
-    ClNameT                 publisherName = {strlen("ALARM_SERVER"), "ALARM_SERVER"}; 
+    SaNameT                 publisherName = {strlen("ALARM_SERVER"), "ALARM_SERVER"}; 
     ClSizeT                 eventSize = 0;
     ClUint32T               eventType = 0, bufferSize = 0;
     ClBufferHandleT         inMsgHandle;
     ClUint8T                *pData = NULL;
     ClAlarmHandleInfoIDLT   alarmHandleInfoIdl = {0};
     ClEventHandleT          alarmEvtHdl = 0;
-    ClNameT                 moIdName;
+    SaNameT                 moIdName;
 
     CL_ALARM_FUNC_ENTER();
 

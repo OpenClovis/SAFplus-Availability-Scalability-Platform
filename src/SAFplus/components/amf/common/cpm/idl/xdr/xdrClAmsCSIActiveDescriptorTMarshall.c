@@ -53,7 +53,7 @@ ClRcT clXdrMarshallClAmsCSIActiveDescriptorT_4_0_0(void* pGenVar, ClBufferHandle
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->activeCompName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->activeCompName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

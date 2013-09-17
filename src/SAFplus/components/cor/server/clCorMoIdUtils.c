@@ -319,7 +319,7 @@ _clCorMoIdNextSiblingGet(ClCorMOIdPtrT this)
 /* Wrapper IPI to print the MoId in string for debugging purposes */
 ClCharT* _clCorMoIdStrGet(ClCorMOIdPtrT moIdh, ClCharT* tmpStr)
 {
-    ClNameT moIdName;
+    SaNameT moIdName;
     ClRcT rc = CL_OK;
     ClCharT moIdStr[CL_MAX_NAME_LENGTH] = {0};
 

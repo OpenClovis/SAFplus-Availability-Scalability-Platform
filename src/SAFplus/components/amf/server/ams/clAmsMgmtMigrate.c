@@ -34,7 +34,7 @@ static ClRcT clAmsMgmtSGRedundancyModelNoRedundancy(ClAmsSGRedundancyModelT mode
     ClUint64T bitMask = 0;
 
     sgName.type = CL_AMS_ENTITY_TYPE_SG;
-    clNameSet(&sgName.name, sg);
+    saNameSet(&sgName.name, sg);
     ++sgName.name.length;
     rc = clAmsMgmtEntityGetConfig(gHandle, &sgName, &entityConfig);
     if(rc != CL_OK)
@@ -211,9 +211,9 @@ static ClRcT clAmsMgmtGetSUFreeNodes(ClAmsEntityT *sgName,
         for(i = nodeBuffer.count; i < nodeBuffer.count + extraNodes; ++i)
         {
             nodes[i - nodeBuffer.count].type= CL_AMS_ENTITY_TYPE_NODE;
-            snprintf(nodes[i-nodeBuffer.count].name.value, sizeof(nodes[i-nodeBuffer.count].name.value),
+            snprintf((ClCharT*)nodes[i-nodeBuffer.count].name.value, sizeof(nodes[i-nodeBuffer.count].name.value),
                      "%s_Node%d", prefix, i);
-            nodes[i-nodeBuffer.count].name.length = strlen(nodes[i-nodeBuffer.count].name.value)+1;
+            nodes[i-nodeBuffer.count].name.length = strlen((const ClCharT*)nodes[i-nodeBuffer.count].name.value)+1;
             nodes[i-nodeBuffer.count].debugFlags = 1;
         }
         *pNumNodes = extraNodes;
@@ -321,7 +321,7 @@ static ClRcT clAmsMgmtGetSUFreeNodes(ClAmsEntityT *sgName,
         clHeapFree(entityConfig);
         for(j = 0; j < nodeBuffer.count+extraNodes; ++j)
         {
-            if(!strncmp(nodeList[j].name.value, suConfig.parentNode.entity.name.value,
+            if(!strncmp((const ClCharT*)nodeList[j].name.value, (const ClCharT*)suConfig.parentNode.entity.name.value,
                         nodeList[j].name.length-1))
             {
                 /*
@@ -467,7 +467,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
     ClAmsEntityConfigT *pSGConfig = NULL;
     ClAmsSGConfigT sgConfig = {{0}};
     ClUint32T numSupportedCSITypes = 0;
-    ClNameT *pNumSupportedCSITypes = NULL;
+    SaNameT *pNumSupportedCSITypes = NULL;
     ClAmsMgmtCCBHandleT ccbHandle = 0;
     ClAmsMgmtMigrateListT *unlockList = NULL;
 
@@ -597,7 +597,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             goto out_free;
         }
         pNumSupportedCSITypes = clHeapRealloc(pNumSupportedCSITypes,
-                                              (numSupportedCSITypes+csiBuffer.count)*sizeof(ClNameT));
+                                              (numSupportedCSITypes+csiBuffer.count)*sizeof(SaNameT));
         for(j = 0; j < csiBuffer.count ; ++j)
         {
             ClAmsEntityConfigT *entityConfig = NULL;
@@ -656,10 +656,10 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             ClAmsSIConfigT siConfig = {{0}};
             ClAmsCSIConfigT csiConfig = {{0}};
             si.type = CL_AMS_ENTITY_TYPE_SI;
-            snprintf(si.name.value, sizeof(si.name.value)-1, "%s_%.*s_SI%d", prefix,
-                     sgName->name.length-1, sgName->name.value, i);
+            snprintf((ClCharT*)si.name.value, sizeof((const ClCharT*)si.name.value)-1, "%s_%.*s_SI%d", prefix,
+                     sgName->name.length-1, (const ClCharT*)sgName->name.value, i);
             clLogNotice("AMS", "MIGRATE", "Creating SI [%s]", si.name.value);
-            si.name.length = strlen(si.name.value)+1;
+            si.name.length = strlen((const ClCharT*)si.name.value)+1;
             rc = clAmsMgmtCCBEntityCreate(ccbHandle, &si);
             if(rc != CL_OK)
             {
@@ -699,9 +699,9 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             }
 
             csi.type = CL_AMS_ENTITY_TYPE_CSI;
-            snprintf(csi.name.value, sizeof(csi.name.value),
-                     "%s_CSI%d", si.name.value, i-siBuffer.count);
-            csi.name.length = strlen(csi.name.value)+1;
+            snprintf((ClCharT*)csi.name.value, sizeof((const ClCharT*)csi.name.value),
+                     "%s_CSI%d", (const ClCharT*)si.name.value, i-siBuffer.count);
+            csi.name.length = strlen((const ClCharT*)csi.name.value)+1;
             clLogNotice("AMS", "MIGRATE", "Creating CSI [%s]", csi.name.value);
             rc = clAmsMgmtCCBEntityCreate(ccbHandle, &csi);
             if(rc != CL_OK)
@@ -738,9 +738,9 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
              * Add this to the supported list.
              */
             pNumSupportedCSITypes = clHeapRealloc(pNumSupportedCSITypes,
-                                                  (numSupportedCSITypes+1)*sizeof(ClNameT));
+                                                  (numSupportedCSITypes+1)*sizeof(SaNameT));
             CL_ASSERT(pNumSupportedCSITypes != NULL);
-            memcpy(pNumSupportedCSITypes+numSupportedCSITypes, &csi.name, sizeof(ClNameT));
+            memcpy(pNumSupportedCSITypes+numSupportedCSITypes, &csi.name, sizeof(SaNameT));
             ++numSupportedCSITypes;
         }
     }
@@ -760,9 +760,8 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
         {
             ClAmsEntityT node = {0};
             node.type = CL_AMS_ENTITY_TYPE_NODE;
-            snprintf(node.name.value,  sizeof(node.name.value),
-                     "%s_Node%d", prefix, i);
-            node.name.length = strlen(node.name.value)+1;
+            snprintf((ClCharT*) node.name.value, sizeof((const ClCharT*) node.name.value), "%s_Node%d", prefix, i);
+            node.name.length = strlen((const ClCharT*) node.name.value) + 1;
             clLogNotice("AMS", "MIGRATE", "Creating node [%s]", node.name.value);
             rc = clAmsMgmtCCBEntityCreate(ccbHandle, &node);
             if(rc != CL_OK)
@@ -840,7 +839,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
                     clHeapRealloc(compConfig.pSupportedCSITypes, 
                                   (compConfig.numSupportedCSITypes
                                    + extraSIs)*
-                                  sizeof(ClNameT));
+                                  sizeof(SaNameT));
                 CL_ASSERT(compConfig.pSupportedCSITypes);
                 for(k = compConfig.numSupportedCSITypes;
                     k < compConfig.numSupportedCSITypes + extraSIs;
@@ -848,7 +847,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
                 {
                     memcpy(compConfig.pSupportedCSITypes+k,
                            &csis[k-compConfig.numSupportedCSITypes].name,
-                           sizeof(ClNameT));
+                           sizeof(SaNameT));
                 }
                 compConfig.numSupportedCSITypes += extraSIs;
             }
@@ -901,10 +900,10 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             ClUint64T bitMask = 0;
 
             su.type = CL_AMS_ENTITY_TYPE_SU;
-            snprintf(su.name.value, sizeof(su.name.value), 
-                     "%s_%s_SU%d", prefix, nodeList[i-suBuffer.count].name.value, i);
+            snprintf((ClCharT*)su.name.value, sizeof((const ClCharT*)su.name.value),
+                     "%s_%s_SU%d", prefix, (const ClCharT*)nodeList[i-suBuffer.count].name.value, i);
 
-            su.name.length = strlen(su.name.value)+1;
+            su.name.length = strlen((const ClCharT*)su.name.value)+1;
             clLogNotice("AMS", "MIGRATE", "Creating SU [%s]", su.name.value);
             rc = clAmsMgmtCCBEntityCreate(ccbHandle, &su);
             if(rc != CL_OK)
@@ -943,10 +942,8 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             }
             
             comp.type = CL_AMS_ENTITY_TYPE_COMP;
-            snprintf(comp.name.value, sizeof(comp.name.value),
-                     "%s_Comp%d",
-                     su.name.value, i - suBuffer.count);
-            comp.name.length = strlen(comp.name.value)+1;
+            snprintf((ClCharT*) comp.name.value, sizeof((const ClCharT*) comp.name.value), "%s_Comp%d", su.name.value, i - suBuffer.count);
+            comp.name.length = strlen((const ClCharT*) comp.name.value) + 1;
             clLogNotice("AMS", "MIGRATE", "Creating component [%s]",
                         comp.name.value);
             rc = clAmsMgmtCCBEntityCreate(ccbHandle, &comp);
@@ -1127,7 +1124,7 @@ static ClRcT clAmsMgmtSGRedundancyModelTwoN(ClAmsSGRedundancyModelT model,
 {
     ClAmsEntityT sgName = {0};
     sgName.type = CL_AMS_ENTITY_TYPE_SG;
-    clNameSet(&sgName.name, sg);
+    saNameSet(&sgName.name, sg);
     ++sgName.name.length;
     return clAmsMgmtSGMigrateMPlusN(model, &sgName, prefix, numActiveSUs, numStandbySUs,
                                     migrateList);
@@ -1142,7 +1139,7 @@ static ClRcT clAmsMgmtSGRedundancyModelMPlusN(ClAmsSGRedundancyModelT model,
 {
     ClAmsEntityT sgName = {0};
     sgName.type = CL_AMS_ENTITY_TYPE_SG;
-    clNameSet(&sgName.name, sg);
+    saNameSet(&sgName.name, sg);
     ++sgName.name.length;
     return clAmsMgmtSGMigrateMPlusN(model, &sgName, prefix, numActiveSUs, numStandbySUs, migrateList);
 }

@@ -67,7 +67,7 @@ typedef struct ClFaultEvent {
     /**
      * Name of the component on which the fault occurred.
      */
-    ClNameT compName;
+    SaNameT compName;
 
 #ifdef USE_COR    
     /**

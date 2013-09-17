@@ -612,7 +612,7 @@ extern "C"
  *
  */
     ClRcT clEventChannelOpen(CL_IN ClEventInitHandleT evtHandle,
-                             CL_IN const ClNameT *pEvtChannelName,
+                             CL_IN const SaNameT *pEvtChannelName,
                              CL_IN ClEventChannelOpenFlagsT evtChannelOpenFlag,
                              CL_IN ClTimeT timeout,
                              CL_OUT ClEventChannelHandleT *pChannelHandle);
@@ -675,7 +675,7 @@ extern "C"
  */
     ClRcT clEventChannelOpenAsync(CL_IN ClEventInitHandleT evtHandle,
                                   CL_IN ClInvocationT invocation,
-                                  CL_IN const ClNameT *pEvtChannelName,
+                                  CL_IN const SaNameT *pEvtChannelName,
                                   CL_IN ClEventChannelOpenFlagsT
                                   channelOpenFlags);
 
@@ -758,7 +758,7 @@ extern "C"
  *
  */
      ClRcT clEventChannelUnlink(CL_IN ClEventInitHandleT evtHandle,
-                                CL_IN const ClNameT *pEvtChannelName);
+                                CL_IN const SaNameT *pEvtChannelName);
 
 
 /**
@@ -875,7 +875,7 @@ extern "C"
                                CL_IN const ClEventPatternArrayT *pPatternArray,
                                CL_IN ClEventPriorityT priority,
                                CL_IN ClTimeT retentionTime,
-                               CL_IN const ClNameT *pPublisherName);
+                               CL_IN const SaNameT *pPublisherName);
 
 
 /**
@@ -960,7 +960,7 @@ extern "C"
                                CL_IN ClEventPatternArrayT *pPatternArray,
                                CL_OUT ClEventPriorityT * pPriority,
                                CL_OUT ClTimeT *pRetentionTime,
-                               CL_OUT ClNameT *pPublisherName,
+                               CL_OUT SaNameT *pPublisherName,
                                CL_OUT ClTimeT *pPublishTime,
                                CL_OUT ClEventIdT * pEventId);
 

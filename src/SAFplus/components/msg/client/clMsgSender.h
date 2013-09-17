@@ -52,7 +52,7 @@ void clMsgSenderDatabaseFin(void);
 
 ClRcT clMsgClientMessageSend(ClIocAddressT *pDestAddr, 
                              ClIocAddressT *pServerAddr, 
-                             ClNameT *pDest, 
+                             SaNameT *pDest, 
                              ClMsgMessageIovecT *pMessage,
                              SaTimeT sendTime, 
                              SaTimeT timeout,
@@ -62,7 +62,7 @@ ClRcT clMsgClientMessageSend(ClIocAddressT *pDestAddr,
                              void *cookie);
 ClRcT clMsgClientMessageSendReceive(ClIocAddressT * pDestAddr,
                              ClIocAddressT * pServerAddr,
-                             ClNameT *pDest,
+                             SaNameT *pDest,
                              SaMsgMessageT *pSendMessage,
                              SaTimeT sendTime,
                              SaMsgMessageT *pRecvMessage,

@@ -73,7 +73,7 @@ typedef struct ckptSvrInfo
 /* Check point Object */
 typedef struct clnCkpt
 {
-    ClNameT         *pCkptName;       /* Name of the checkpoint */
+    SaNameT         *pCkptName;       /* Name of the checkpoint */
     ClDBHandleT     usrDbHdl;         /* Db handle for user checkpoint */
     ClCntHandleT    dataSetList;      /* Information about sections */
 }ClnCkptT;

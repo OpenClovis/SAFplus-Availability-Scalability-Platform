@@ -88,8 +88,8 @@ typedef struct
 typedef struct
 {
     ClAmsClientHandleT      handle;
-    ClNameT                 compName;             
-    ClNameT                 csiName;             
+    SaNameT                 compName;             
+    SaNameT                 csiName;             
 } clAmsClientCSIHAStateGetRequestT;
 
 typedef struct
@@ -124,7 +124,7 @@ typedef struct
 typedef struct
 {
     ClAmsClientHandleT handle;
-    const ClNameT    *csiName;
+    const SaNameT    *csiName;
 } clAmsClientPGTrackStopRequestT;
 
 typedef struct

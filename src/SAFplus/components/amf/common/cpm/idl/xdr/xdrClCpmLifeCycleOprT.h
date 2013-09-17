@@ -52,9 +52,9 @@ extern "C" {
 struct _ClCpmLifeCycleOprT_4_0_0;
 
 typedef struct _ClCpmLifeCycleOprT_4_0_0 {
-    ClNameT    name;
-    ClNameT    proxyCompName;
-    ClNameT    nodeName;
+    SaNameT    name;
+    SaNameT    proxyCompName;
+    SaNameT    nodeName;
     ClIocPhysicalAddressT_4_0_0    srcAddress;
     ClUint32T    rmdNumber;
     ClCpmCompRequestTypeT_4_0_0    requestType;

@@ -21,7 +21,7 @@
 #include <clLogSvrCommon.h>
 #include <clLogServer.h>
 
-extern const ClNameT gDefaultStreamName;
+extern const SaNameT gDefaultStreamName;
 extern const ClCharT gStreamScopeGlobal[];
 extern const ClCharT gLogDefaultShmName[];
 
@@ -40,7 +40,7 @@ clLogSvrDefaultStreamCreate(void)
     ClLogSvrCommonEoDataT  *pCommonEoEntry = NULL;
     ClLogSvrEoDataT        *pSvrEoEntry    = NULL;
     ClLogStreamKeyT        *pStreamKey     = NULL;
-    ClNameT                scopeNode       = {0};
+    SaNameT                scopeNode       = {0};
     ClLogSvrStreamDataT    *pStreamData    = NULL;
 
     CL_LOG_DEBUG_ERROR(("Enter"));
@@ -67,7 +67,7 @@ clLogSvrDefaultStreamCreate(void)
     scopeNode.length = strlen(gStreamScopeGlobal);
     memcpy(scopeNode.value, gStreamScopeGlobal, scopeNode.length);
     
-    rc = clLogStreamKeyCreate((ClNameT *) &gDefaultStreamName, &scopeNode,
+    rc = clLogStreamKeyCreate((SaNameT *) &gDefaultStreamName, &scopeNode,
                                CL_LOG_DEFAULT_STREAMS, &pStreamKey);
     if( CL_OK != rc )
     {

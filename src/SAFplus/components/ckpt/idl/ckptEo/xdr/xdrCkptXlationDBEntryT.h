@@ -48,7 +48,7 @@ struct _CkptXlationDBEntryT_4_0_0;
 
 typedef struct _CkptXlationDBEntryT_4_0_0 {
     ClUint32T    cksum;
-    ClNameT    name;
+    SaNameT    name;
     ClHandleT    mastHdl;
 
 }CkptXlationDBEntryT_4_0_0;

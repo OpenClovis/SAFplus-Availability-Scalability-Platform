@@ -31,13 +31,13 @@
 
 const ClCharT  soSecPrefix[] = "cl_log_so_section_";    
 
-const ClNameT 
+const SaNameT 
 gSOLocalCkptName  = {
                      sizeof("clLogStreamOwnerLocalCkpt") - 1,
                      "clLogStreamOwnerLocalCkpt"
                     };
 
-const ClNameT 
+const SaNameT 
 gSOSvrCkptName     = {
                       sizeof("clLogStreamOwnerGlobalCkpt") - 1,
                       "clLogStreamOwnerGlobalCkpt"
@@ -484,8 +484,8 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
     ClRcT             rc         = CL_OK;
     ClUint32T                 size              = 0;
     ClUint32T         count      = 0;
-    ClNameT                   streamName        = {0};
-    ClNameT                   streamScopeNode   = {0};
+    SaNameT                   streamName        = {0};
+    SaNameT                   streamScopeNode   = {0};
     ClLogStreamOwnerDataIDLT  soData            = {0};
     ClLogStreamKeyT           *pStreamKey       = NULL;
     ClCntHandleT              hStreamTable      = CL_HANDLE_INVALID_VALUE;
@@ -496,19 +496,19 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
-    rc = clXdrUnmarshallClNameT(msg, &streamName);
+    rc = clXdrUnmarshallSaNameT(msg, &streamName);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         return rc;
     }    
     CL_LOG_DEBUG_TRACE(("streamName: %*s", streamName.length,
                         streamName.value));
     
-    rc = clXdrUnmarshallClNameT(msg, &streamScopeNode);
+    rc = clXdrUnmarshallSaNameT(msg, &streamScopeNode);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         return rc;
     }    
     CL_LOG_DEBUG_TRACE(("streamScopeNode: %*s", streamScopeNode.length,
@@ -524,7 +524,7 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
     rc = VDECL_VER(clXdrUnmarshallClLogStreamOwnerDataIDLT, 4, 0, 0)(msg, &soData);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         return rc;
     }    
 
@@ -696,7 +696,7 @@ clLogSOLocalStreamEntryRecover(ClBitmapHandleT  hDsIdMap,
     }    
     /* internally calls the deserializer, clLogSOStreamEntryRecreate() */
     rc = clCkptLibraryDoesDatasetExist(pCommonEoData->hLibCkpt,
-                                       (ClNameT *) &gSOLocalCkptName,
+                                       (SaNameT *) &gSOLocalCkptName,
                                        dsId, &dataSetExists);
     if(rc != CL_OK || !dataSetExists)
     {
@@ -705,7 +705,7 @@ clLogSOLocalStreamEntryRecover(ClBitmapHandleT  hDsIdMap,
     }
 
     rc = clCkptLibraryCkptDataSetCreate(pCommonEoData->hLibCkpt, 
-                                        (ClNameT *) &gSOLocalCkptName,
+                                        (SaNameT *) &gSOLocalCkptName,
                                         dsId, 0, 0, 
                                         clLogStreamOwnerEntrySerialiser,
                                         clLogSOStreamEntryRecreate);
@@ -717,7 +717,7 @@ clLogSOLocalStreamEntryRecover(ClBitmapHandleT  hDsIdMap,
     }    
 
     rc = clCkptLibraryCkptDataSetRead(pCommonEoData->hLibCkpt, 
-                                      (ClNameT *) &gSOLocalCkptName,
+                                      (SaNameT *) &gSOLocalCkptName,
                                       dsId, CL_HANDLE_INVALID_VALUE);
     if( CL_OK != rc )
     {
@@ -742,7 +742,7 @@ clLogSOLocalStateRecover(ClHandleT       hLibCkpt,
     CL_LOG_DEBUG_TRACE(("clLogSODsIdMapRecreate: %s  %d\n",
                 gSOLocalCkptName.value, CL_LOG_DSID_START));
     rc = clCkptLibraryCkptDataSetRead(hLibCkpt, 
-                                      (ClNameT *) &gSOLocalCkptName,
+                                      (SaNameT *) &gSOLocalCkptName,
                                       CL_LOG_DSID_START, 
                                       CL_HANDLE_INVALID_VALUE);
     if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
@@ -774,7 +774,7 @@ clLogStreamOwnerLocalCkptCreate(ClCkptSvcHdlT   hLibInit)
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    rc = clCkptLibraryCkptCreate(hLibInit, (ClNameT *) &gSOLocalCkptName);
+    rc = clCkptLibraryCkptCreate(hLibInit, (SaNameT *) &gSOLocalCkptName);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCkptLibraryCreate(): rc[0x %x]", rc));
@@ -782,7 +782,7 @@ clLogStreamOwnerLocalCkptCreate(ClCkptSvcHdlT   hLibInit)
     }    
 
     rc = clCkptLibraryCkptDataSetCreate(hLibInit, 
-                                        (ClNameT *) &gSOLocalCkptName, 
+                                        (SaNameT *) &gSOLocalCkptName, 
                                         CL_LOG_DSID_START, 0, 0,
                                         clLogSODsIdMapPack,
                                         clLogSODsIdMapRecreate);
@@ -790,7 +790,7 @@ clLogStreamOwnerLocalCkptCreate(ClCkptSvcHdlT   hLibInit)
     {
         CL_LOG_DEBUG_ERROR(("clCkptLibraryCkptDataSetCreate(): rc[0x %x]", rc));
         CL_LOG_CLEANUP(clCkptLibraryCkptDelete(hLibInit, 
-                                               (ClNameT *) &gSOLocalCkptName),
+                                               (SaNameT *) &gSOLocalCkptName),
                        CL_OK);
     }    
         
@@ -816,7 +816,7 @@ clLogSOLocalCkptGet(ClLogSOEoDataT  *pSoEoEntry)
     }    
 
     rc = clCkptLibraryDoesCkptExist(pCommonEoData->hLibCkpt, 
-                                    (ClNameT *) &gSOLocalCkptName, 
+                                    (SaNameT *) &gSOLocalCkptName, 
                                     &ckptExist);
     if( CL_OK != rc )
     {
@@ -862,10 +862,10 @@ clLogStreamOwnerCkptDsIdDelete(ClLogSOEoDataT  *pSoEoEntry,
         return rc;
     }    
     CL_LOG_CLEANUP(clCkptLibraryCkptDataSetDelete(pCommonEoData->hLibCkpt,
-                                                  (ClNameT *) &gSOLocalCkptName, dsId),
+                                                  (SaNameT *) &gSOLocalCkptName, dsId),
                   CL_OK);
     CL_LOG_CLEANUP(clCkptLibraryCkptDataSetWrite(pCommonEoData->hLibCkpt, 
-                                                 (ClNameT *) &gSOLocalCkptName,
+                                                 (SaNameT *) &gSOLocalCkptName,
                                                  CL_LOG_SO_DSID_START,
                                                  pSoEoEntry),
                  CL_OK);
@@ -876,7 +876,7 @@ clLogStreamOwnerCkptDsIdDelete(ClLogSOEoDataT  *pSoEoEntry,
 
 ClRcT
 clLogStreamOwnerCheckpointCreate(ClLogSOEoDataT  *pSoEoEntry,
-                                 ClNameT         *pCkptName,
+                                 SaNameT         *pCkptName,
                                  ClHandleT       *phCkpt)
 {
     ClRcT         rc     = CL_OK;
@@ -964,7 +964,7 @@ clLogStreamOwnerCkptDsIdGet(ClLogSOEoDataT  *pSoEoEntry,
         return rc;
     }    
     rc = clCkptLibraryCkptDataSetCreate(pCommonEoData->hLibCkpt, 
-                                        (ClNameT *) &gSOLocalCkptName,
+                                        (SaNameT *) &gSOLocalCkptName,
                                         dsId, 0, 0, 
                                         clLogStreamOwnerEntrySerialiser,
                                         clLogSOStreamEntryRecreate);
@@ -979,7 +979,7 @@ clLogStreamOwnerCkptDsIdGet(ClLogSOEoDataT  *pSoEoEntry,
     *pDsId = dsId;
 
     CL_LOG_CLEANUP(clCkptLibraryCkptDataSetWrite(pCommonEoData->hLibCkpt, 
-                                       (ClNameT *) &gSOLocalCkptName,
+                                       (SaNameT *) &gSOLocalCkptName,
                                        CL_LOG_SO_DSID_START,
                                        pSoEoEntry), CL_OK);
 
@@ -989,8 +989,8 @@ clLogStreamOwnerCkptDsIdGet(ClLogSOEoDataT  *pSoEoEntry,
 
 ClRcT
 clLogStreamOwnerGlobalCheckpoint(ClLogSOEoDataT         *pSoEoEntry,
-                                 ClNameT                *pStreamName,
-                                 ClNameT                *pStreamScopeNode,
+                                 SaNameT                *pStreamName,
+                                 SaNameT                *pStreamScopeNode,
                                  ClLogStreamOwnerDataT  *pStreamOwnerData)
 {
     ClRcT                             rc                      = CL_OK;
@@ -1176,8 +1176,8 @@ clLogCompTablePack(ClCntKeyHandleT   key,
 }    
 
 ClRcT
-clLogStreamOwnerEntryPack(ClNameT                *pStreamName,
-                          ClNameT                *pStreamScopeNode,
+clLogStreamOwnerEntryPack(SaNameT                *pStreamName,
+                          SaNameT                *pStreamScopeNode,
                           ClLogStreamOwnerDataT  *pStreamOwnerData,
                           ClBufferHandleT        msg)
 {
@@ -1187,16 +1187,16 @@ clLogStreamOwnerEntryPack(ClNameT                *pStreamName,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    rc = clXdrMarshallClNameT(pStreamName, msg, 0);
+    rc = clXdrMarshallSaNameT(pStreamName, msg, 0);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         return rc;
     }    
-    rc = clXdrMarshallClNameT(pStreamScopeNode, msg, 0);
+    rc = clXdrMarshallSaNameT(pStreamScopeNode, msg, 0);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         return rc;
     }    
     soData.streamId        = pStreamOwnerData->streamId;
@@ -1212,7 +1212,7 @@ clLogStreamOwnerEntryPack(ClNameT                *pStreamName,
     rc = VDECL_VER(clXdrMarshallClLogStreamOwnerDataIDLT, 4, 0, 0)(&soData, msg, 0);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         clHeapFree(soData.streamAttr.fileName.pValue);
         clHeapFree(soData.streamAttr.fileLocation.pValue);
         return rc;
@@ -1220,7 +1220,7 @@ clLogStreamOwnerEntryPack(ClNameT                *pStreamName,
     rc = clLogStreamOwnerFilterInfoPack(pStreamOwnerData, msg);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         clHeapFree(soData.streamAttr.fileName.pValue);
         clHeapFree(soData.streamAttr.fileLocation.pValue);
         return rc;
@@ -1258,8 +1258,8 @@ clLogStreamOwnerEntryPack(ClNameT                *pStreamName,
  */
 ClRcT
 clLogStreamOwnerLocalCheckpoint(ClLogSOEoDataT         *pSoEoEntry,
-                                ClNameT                *pStreamName,
-                                ClNameT                *pStreamScopeNode,
+                                SaNameT                *pStreamName,
+                                SaNameT                *pStreamScopeNode,
                                 ClLogStreamOwnerDataT  *pStreamOwnerData)
 {
     ClRcT                  rc              = CL_OK;
@@ -1287,7 +1287,7 @@ clLogStreamOwnerLocalCheckpoint(ClLogSOEoDataT         *pSoEoEntry,
         return rc;
     }    
     rc = clCkptLibraryCkptDataSetWrite(pCommonEoData->hLibCkpt,
-                                        (ClNameT *) &gSOLocalCkptName, 
+                                        (SaNameT *) &gSOLocalCkptName, 
                                         pStreamOwnerData->dsId,
                                         msg);
     if( CL_OK != rc )
@@ -1456,7 +1456,7 @@ clLogStreamOwnerGlobalCkptGet(ClLogSOEoDataT         *pSoEoEntry,
     {
 #endif
         rc = clLogStreamOwnerCheckpointCreate(pSoEoEntry, 
-                                              (ClNameT *) &gSOSvrCkptName, 
+                                              (SaNameT *) &gSOSvrCkptName, 
                                                &pSoEoEntry->hCkpt);
         if( (CL_OK != rc) && (CL_ERR_ALREADY_EXIST != CL_GET_ERROR_CODE(rc)) )
         {
@@ -1497,12 +1497,12 @@ clLogStreamOwnerLocalCkptDelete(void)
     }
 
     CL_LOG_CLEANUP(clCkptLibraryCkptDataSetDelete(pCommonEoData->hLibCkpt,
-                                                  (ClNameT *) &gSOLocalCkptName,
+                                                  (SaNameT *) &gSOLocalCkptName,
                                                   CL_LOG_SO_DSID_START),
                   CL_OK);
 
     CL_LOG_CLEANUP(clCkptLibraryCkptDelete(pCommonEoData->hLibCkpt,
-                                           (ClNameT *) &gSOLocalCkptName), CL_OK);
+                                           (SaNameT *) &gSOLocalCkptName), CL_OK);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;

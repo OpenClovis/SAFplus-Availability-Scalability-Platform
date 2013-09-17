@@ -171,7 +171,7 @@ ClRcT clProvisioningCLOCKTABLEProvValidate(CL_OM_PROV_CLASS* pThis, ClHandleT tx
     /*
      * ---BEGIN_APPLICATION_CODE---
      */
-    ClNameT     moIdName = {0};
+    SaNameT     moIdName = {0};
 
     clprintf(CL_LOG_SEV_INFO, "Inside the function %s", __FUNCTION__);
 
@@ -272,7 +272,7 @@ ClRcT clProvisioningCLOCKTABLEProvUpdate(CL_OM_PROV_CLASS* pThis, ClHandleT txnH
      * ---BEGIN_APPLICATION_CODE---
      */
 
-    ClNameT     moIdName = {0};
+    SaNameT     moIdName = {0};
 
     clprintf(CL_LOG_SEV_INFO, "Inside the function %s", __FUNCTION__);
 
@@ -402,7 +402,7 @@ ClRcT clProvisioningCLOCKTABLEProvRollback(CL_OM_PROV_CLASS* pThis, ClHandleT tx
      * ---BEGIN_APPLICATION_CODE---
      */
 
-    ClNameT moIdName = {0};
+    SaNameT moIdName = {0};
 
     clprintf(CL_LOG_SEV_INFO, "Inside the function %s", __FUNCTION__);
 
@@ -494,7 +494,7 @@ ClRcT clProvisioningCLOCKTABLEProvRead(CL_OM_PROV_CLASS* pThis, ClHandleT txnHan
      * ---BEGIN_APPLICATION_CODE---
      */
 
-    ClNameT     moIdName = {0};
+    SaNameT     moIdName = {0};
 
     clprintf(CL_LOG_SEV_INFO, "Inside the function %s", __FUNCTION__);
 

@@ -381,7 +381,7 @@ _clGmsEngineStart()
 {
     ClRcT       rc = CL_OK;
     ClGmsNodeIdT    thisNodeId = 0;
-    ClNameT         thisNodeName = {0};
+    SaNameT         thisNodeName = {0};
     ClGmsLeadershipCredentialsT     credentials = 0;
     
     /* Get the details of this node and set it */
@@ -1038,7 +1038,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         clLog(CL_LOG_DEBUG,CLM,NA, "Node [%.*s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu] (%p)",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp,(void*) node);
     }
 
-    if (0 == strncmp(node->viewMember.clusterMember.nodeName.value, gmsGlobalInfo.config.preferredActiveSCNodeName, node->viewMember.clusterMember.nodeName.length))
+    if (0 == strncmp((const ClCharT*)node->viewMember.clusterMember.nodeName.value, gmsGlobalInfo.config.preferredActiveSCNodeName, node->viewMember.clusterMember.nodeName.length))
     {
         /* This node is a preferred Leader. So set ifPreferredLeader flag to TRUE */
         node->viewMember.clusterMember.isPreferredLeader = CL_TRUE;
@@ -1430,7 +1430,7 @@ ClRcT   _clGmsEngineGroupCreate(CL_IN    ClGmsGroupNameT     groupName,
     thisViewDb->view.id         = groupId;
     thisViewDb->groupInfo.iocMulticastAddr = 
                                 CL_IOC_MULTICAST_ADDRESS_FORM(0, groupId);
-    strncpy(thisViewDb->view.name.value,groupName.value,
+    strncpy((ClCharT*)thisViewDb->view.name.value, (const ClCharT*)groupName.value,
                             groupName.length);
     thisViewDb->view.name.length = groupName.length;
 
@@ -1961,7 +1961,7 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
         thisViewDb->view.isActive   = CL_TRUE;
         thisViewDb->viewType        = CL_GMS_GROUP;
         thisViewDb->view.id         = groupId;
-        strncpy(thisViewDb->view.name.value,thisGroupInfo->groupName.value,
+        strncpy((ClCharT*)thisViewDb->view.name.value, (const ClCharT*)thisGroupInfo->groupName.value,
                 thisGroupInfo->groupName.length);
         thisViewDb->view.name.length = thisGroupInfo->groupName.length;
 

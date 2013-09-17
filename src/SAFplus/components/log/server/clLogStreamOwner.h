@@ -142,9 +142,9 @@ clLogStreamOwnerEntryProcess(ClLogSOEoDataT          *pSoEoData,
                              ClLogStreamOwnerDataT   *pStreamOwnerData,
                              ClCntNodeHandleT        hStreamOwnerNode,
                              ClUint32T               *pCompId,
-                             ClNameT                 *pStreamName,
+                             SaNameT                 *pStreamName,
                              ClLogStreamScopeT       streamScope,
-                             ClNameT                 *pStreamScopeNode,
+                             SaNameT                 *pStreamScopeNode,
                              ClLogStreamAttrIDLT     *pStreamAttr,
                              ClIocMulticastAddressT  *pMultiCastAddr,
                              ClLogFilterT            *pStreamFilter,
@@ -170,14 +170,14 @@ clLogStreamOwnerOpenMasterOpen(ClLogSOEoDataT         *pSoEoData,
                                ClLogStreamOwnerDataT  *pStreamOwnerData,
                                ClCntNodeHandleT       hStreamOwnerNode,
                                ClUint32T              *pCompId,
-                               ClNameT                *pStreamName,
-                               ClNameT                *pStreamScope,
+                               SaNameT                *pStreamName,
+                               SaNameT                *pStreamScope,
                                ClLogStreamAttrIDLT    *pStreamAttr);
 extern ClRcT
 clLogStreamOwnerEntryUpdate(ClLogSOEoDataT          *pSoEoData,
-                            ClNameT                 *pStreamName,
+                            SaNameT                 *pStreamName,
                             ClLogStreamScopeT       streamScope,
-                            ClNameT                 *pStreamScope,
+                            SaNameT                 *pStreamScope,
                             ClLogStreamOwnerDataT   *pStreamOwnerData,
                             ClLogStreamAttrIDLT     *pStreamAttr,
                             ClIocMulticastAddressT  multiCastAddr,
@@ -187,9 +187,9 @@ clLogStreamOwnerEntryUpdate(ClLogSOEoDataT          *pSoEoData,
 extern ClRcT
 clLogStreamOwnerEntryGet(ClLogSOEoDataT         *pSoEoData,
                          ClLogStreamOpenFlagsT  openFlags,
-                         ClNameT                *pStreamName, 
+                         SaNameT                *pStreamName, 
                          ClLogStreamScopeT      streamScope,
-                         ClNameT                *pStreamScope,
+                         SaNameT                *pStreamScope,
                          ClCntNodeHandleT       *phStreamOwnerNode,
                          ClLogStreamOwnerDataT  **ppStreamOwnerData,
                          ClBoolT                *pEntryAdd); 
@@ -217,8 +217,8 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
                                 ClCntNodeHandleT   hStreamOwnerNode);
 
 extern ClRcT
-clLogStreamOwnerMAVGResponseProcess(ClNameT                *pStreamName,
-                                    ClNameT                *pStreamScope,
+clLogStreamOwnerMAVGResponseProcess(SaNameT                *pStreamName,
+                                    SaNameT                *pStreamScope,
                                     ClLogStreamAttrIDLT    *pStreamAttr,
                                     ClIocMulticastAddressT *pMultiCastAddr,
                                     ClUint16T              *pStreamId,
@@ -257,13 +257,13 @@ clLogStreamOwnerCompEntryAdd(ClLogStreamOwnerDataT  *pStreamOwnerData,
                              ClUint32T              compId,
                              ClLogStreamOpenFlagsT  openFlags);
 extern ClRcT
-clLogStreamOwnerOpenCleanup(ClNameT *pStreamName, ClNameT *pStreamScopeNode, ClLogSOCookieT  *pCookie);
+clLogStreamOwnerOpenCleanup(SaNameT *pStreamName, SaNameT *pStreamScopeNode, ClLogSOCookieT  *pCookie);
 
 extern void 
 clLogStreamOwnerFilterFinalize(ClLogFilterInfoT  *pFilter);
 
 extern ClRcT
-clLogStreamOwnerFilterInit(ClNameT *pStreamName, ClLogFilterInfoT  *pFilter);
+clLogStreamOwnerFilterInit(SaNameT *pStreamName, ClLogFilterInfoT  *pFilter);
 
 extern ClRcT
 clLogStreamOwnerDataUpdate(ClLogSOEoDataT         *pSoEoEntry,
@@ -301,8 +301,8 @@ extern ClRcT
 clLogFilterFormatConvert(ClLogFilterInfoT  *pStoredFilter,
                          ClLogFilterT      *pPassedFilter);
 extern ClRcT
-clLogStreamOwnerCloseMasterNotify(ClNameT    *pStreamName,
-                                  ClNameT    *pStreamScopeNode, 
+clLogStreamOwnerCloseMasterNotify(SaNameT    *pStreamName,
+                                  SaNameT    *pStreamScopeNode, 
                                   ClStringT  *pFileName,
                                   ClStringT  *pFileLocation);
 extern ClRcT

@@ -89,19 +89,19 @@ ClRcT clXdrMarshallClCpmLocalInfoT_4_0_0(void* pGenVar, ClBufferHandleT msg, ClU
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->nodeType),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->nodeType),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->nodeIdentifier),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->nodeIdentifier),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->nodeMoIdStr),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->nodeMoIdStr),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

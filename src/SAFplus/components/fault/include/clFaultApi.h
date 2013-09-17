@@ -134,7 +134,7 @@ extern "C" {
  *
  *
  */
-extern ClRcT clFaultReport(CL_IN ClNameT *compName,
+extern ClRcT clFaultReport(CL_IN SaNameT *compName,
                            CL_IN ClCorMOIdPtrT hMoId,
                            CL_IN ClAlarmStateT alarmState,
                            CL_IN ClAlarmCategoryTypeT category,

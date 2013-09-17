@@ -61,7 +61,7 @@ extern ClCorInitStageT    gCorInitStage;
  *    CL_COR_SET_RC(CL_COR_ERR_NOT_EXIST) If an entry is not present for given MOId<br/>
  *    CL_COR_SET_RC(CL_COR_ERR_NULL_PTR) if moId is NULL <br/>
  */
-ClRcT _clCorMoIdToNodeNameGet(ClCorMOIdPtrT pMoId, ClNameT** nodeName)
+ClRcT _clCorMoIdToNodeNameGet(ClCorMOIdPtrT pMoId, SaNameT** nodeName)
 {
     ClRcT rc;
     ClUint16T OriginalDepth;
@@ -138,11 +138,11 @@ ClRcT _clCorMoIdToNodeNameGet(ClCorMOIdPtrT pMoId, ClNameT** nodeName)
  */
 
 
-ClRcT _clCorNodeNameToMoIdGet(ClNameT *nodeName, ClCorNodeDataPtrT *dataNode)
+ClRcT _clCorNodeNameToMoIdGet(SaNameT *nodeName, ClCorNodeDataPtrT *dataNode)
 {
     ClRcT rc = CL_OK;
     ClCntNodeHandleT nodeHandle = 0;
-    ClNameT *tempName = NULL;
+    SaNameT *tempName = NULL;
 
 	if(nodeName == NULL)
 		return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
@@ -220,7 +220,7 @@ static void clCorNodeNameTableNodeNameDestroyCallBack(ClCntKeyHandleT userKey,
 	clHeapFree((void *) userData);
 }
 
-static ClUint32T clCorNodeNameKeyGen(ClNameT *name)
+static ClUint32T clCorNodeNameKeyGen(SaNameT *name)
 {
 	ClUint32T hashVal = 0, keyLen = 0;
 
@@ -234,7 +234,7 @@ static ClUint32T clCorNodeNameKeyGen(ClNameT *name)
 static ClUint32T clCorNodeNameTableNodeNameHashFn(ClCntKeyHandleT key)
 {
     /* This is for node name  to MoId mapping. The key is node name */
-    ClNameT *name = (ClNameT*)key;
+    SaNameT *name = (SaNameT*)key;
 
     ClUint32T hashVal = clCorNodeNameKeyGen(name);
     return (hashVal % NODE_NAME_TO_MOID_NUM_BUCKETS);
@@ -243,9 +243,9 @@ static ClUint32T clCorNodeNameTableNodeNameHashFn(ClCntKeyHandleT key)
 static ClInt32T clCorNodeNameTableNodeNameKeyCompare(ClCntKeyHandleT key1, 
 			ClCntKeyHandleT key2)
 {
-	ClNameT *name_x, *name_y;
-	name_x = (ClNameT*)key1;
-	name_y = (ClNameT*)key2;
+	SaNameT *name_x, *name_y;
+	name_x = (SaNameT*)key1;
+	name_y = (SaNameT*)key2;
 
 	ClUint32T count_x = 0 , count_y = 0;
 
@@ -353,22 +353,22 @@ ClRcT clCorMoIdNodeNameMapCreate(void)
 /* This API adds an entry into the hash table for given MOId <-> NodeName map */
 /* This API shall be called when a new entry is to be added in the table. This typically */
 /* happens only once during the booting of the system */
-ClRcT clCorMOIdNodeNameMapAdd(ClCorMOIdPtrT pMoId, ClNameT *nodeName)
+ClRcT clCorMOIdNodeNameMapAdd(ClCorMOIdPtrT pMoId, SaNameT *nodeName)
 {
     ClRcT rc;
     /* Add the mapping in both the hash tables */
     /* In this table key is node Name and value is MoId */
     /* allocate MoId first */
     ClCorMOIdPtrT keyMoId = clHeapAllocate(sizeof(ClCorMOIdT));
-	ClNameT		  *dataNodeName  = clHeapAllocate (sizeof(ClNameT));
-	ClNameT		  *keyNodeName  = clHeapAllocate (sizeof(ClNameT));
+	SaNameT		  *dataNodeName  = clHeapAllocate (sizeof(SaNameT));
+	SaNameT		  *keyNodeName  = clHeapAllocate (sizeof(SaNameT));
     ClCorNodeDataPtrT dataNode = clHeapAllocate(sizeof(ClCorNodeDataT));
     if(dataNode == NULL)
     { 
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Failed to allocate Node Data")); 
         return CL_COR_SET_RC(CL_COR_ERR_NO_MEM) ;
     }
-    memset(&dataNode->nodeName, 0, sizeof(ClNameT));
+    memset(&dataNode->nodeName, 0, sizeof(SaNameT));
     dataNode->pMoId = clHeapAllocate(sizeof(ClCorMOIdT));
 
     if( keyMoId == NULL || dataNodeName == NULL || dataNode->pMoId == NULL || keyNodeName == NULL)
@@ -380,10 +380,10 @@ ClRcT clCorMOIdNodeNameMapAdd(ClCorMOIdPtrT pMoId, ClNameT *nodeName)
     }
 
     memcpy(keyMoId, pMoId, sizeof(ClCorMOIdT));
-    memcpy(dataNodeName, nodeName, sizeof(ClNameT));
+    memcpy(dataNodeName, nodeName, sizeof(SaNameT));
     memcpy(dataNode->pMoId, pMoId, sizeof(ClCorMOIdT));
-    memcpy(&dataNode->nodeName, nodeName, sizeof(ClNameT));
-    memcpy(keyNodeName, nodeName, sizeof(ClNameT));
+    memcpy(&dataNode->nodeName, nodeName, sizeof(SaNameT));
+    memcpy(keyNodeName, nodeName, sizeof(SaNameT));
 
     rc = clCntNodeAdd(nodeNameToMoIdTableHandle, (ClCntKeyHandleT) dataNodeName, (ClCntDataHandleT )dataNode , NULL);
     
@@ -405,7 +405,7 @@ ClRcT VDECL(_corMoIdToNodeNameTableOp) (ClEoDataT cData, ClBufferHandleT  inMsgH
 {
 	ClRcT rc;
 	corClientMoIdToNodeNameT tab = {{0}};
-	ClNameT		 *nodeName = NULL;
+	SaNameT		 *nodeName = NULL;
     ClCorNodeDataPtrT  dataNode = NULL;
  
     if(gCorInitStage == CL_COR_INIT_INCOMPLETE)

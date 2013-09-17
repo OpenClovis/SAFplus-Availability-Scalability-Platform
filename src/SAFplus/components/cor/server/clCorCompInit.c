@@ -73,7 +73,7 @@
 
 ClUint32T corRunningMode = 0;
 
-ClNameT gCompName ;
+SaNameT gCompName ;
 
 ClCorSyncStateT pCorSyncState = CL_COR_SYNC_STATE_INVALID;
 
@@ -144,7 +144,7 @@ void corSaveInit(ClUint32T saveType)
 ClRcT clCorLoadData(ClCorComponentConfigPtrT pThis)
 {
 	ClRcT rc = CL_OK;
-	ClNameT	nodeName = {0};
+	SaNameT	nodeName = {0};
 	ClCharT fileExt[] =".corClassDb";
 	ClUint32T	fileSize = 0;
 
@@ -477,7 +477,7 @@ corInitComponent(ClCorComponentConfigPtrT pThis)
 
 
 ClRcT  corFinalize(ClInvocationT invocation,
-                const ClNameT  *compName)
+                const SaNameT  *compName)
 {
     gCompName = *compName;
     /* Cor finalize */
@@ -769,7 +769,7 @@ ClRcT clCorCreateResources(const ClCharT *pDirName, const ClCharT *pSuffixName, 
     return rc;
 }
 
-ClOampRtResourceArrayT *corComponentResourceGet(ClNameT *compName)
+ClOampRtResourceArrayT *corComponentResourceGet(SaNameT *compName)
 {
     register ClListHeadT *iter;
     CL_LIST_FOR_EACH(iter, &gClCorCompResourceList)
@@ -785,7 +785,7 @@ ClRcT   corAppInitialize(ClUint32T argc, ClCharT *argv[])
 { 
     ClRcT  rc = CL_OK;
     
-    ClNameT            appName = {0};
+    SaNameT            appName = {0};
     ClCpmCallbacksT     callbacks = {0};
     ClVersionT  version = {0};
     ClIocPortT  iocPort = {0};

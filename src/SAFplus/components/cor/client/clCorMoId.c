@@ -843,7 +843,7 @@ HandleError:
  *    CL_OK - everything is ok <br>
  */
 
-ClRcT clCorMoIdNameToMoIdGet(ClNameT *moIdName, ClCorMOIdT *moId)
+ClRcT clCorMoIdNameToMoIdGet(SaNameT *moIdName, ClCorMOIdT *moId)
 {
     ClRcT rc;
     ClCorMoIdOpT op = CL_COR_NAME_TO_MOID_GET;
@@ -887,7 +887,7 @@ ClRcT clCorMoIdNameToMoIdGet(ClNameT *moIdName, ClCorMOIdT *moId)
     if (rc != CL_OK)
        goto HandleError;
 
-    rc = clXdrMarshallClNameT((void *)moIdName, inMessageHandle, 0);
+    rc = clXdrMarshallSaNameT((void *)moIdName, inMessageHandle, 0);
     if (rc != CL_OK)
        goto HandleError;
 
@@ -926,7 +926,7 @@ HandleError:
  *    CL_OK - everything is ok <br>
  */
 
-ClRcT clCorMoIdToMoIdNameGet(ClCorMOIdT *moId, ClNameT *moIdName)
+ClRcT clCorMoIdToMoIdNameGet(ClCorMOIdT *moId, SaNameT *moIdName)
 {
     ClRcT rc;
     ClCorMoIdOpT op = CL_COR_MOID_TO_NAME_GET;
@@ -982,7 +982,7 @@ ClRcT clCorMoIdToMoIdNameGet(ClCorMOIdT *moId, ClNameT *moIdName)
     if(rc == CL_OK)
     { 
         /* Read the outBuf*/
-        rc = clXdrUnmarshallClNameT(outMessageHandle, moIdName);
+        rc = clXdrUnmarshallSaNameT(outMessageHandle, moIdName);
         if (rc != CL_OK)
             goto HandleError;
     }

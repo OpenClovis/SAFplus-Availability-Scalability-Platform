@@ -29,16 +29,16 @@ static void clLogMasterAttrVerifyNGetAsyncCallback_4_0_0(ClRcT rc, void *pIdlCoo
     ClIdlCookieT* pCookie = (ClIdlCookieT*)pIdlCookie;
     ClRcT retVal = CL_OK;
     ClLogStreamAttrIDLT_4_0_0  pStreamAttr;
-    ClNameT  pStreamName;
+    SaNameT  pStreamName;
     ClUint32T  pStreamScope;
-    ClNameT  pStreamScopeNode;
+    SaNameT  pStreamScopeNode;
     ClUint16T  pStreamId;
     ClUint64T  pStreamMcastAddr;
 
     memset(&(pStreamAttr), 0, sizeof(ClLogStreamAttrIDLT_4_0_0));
-    memset(&(pStreamName), 0, sizeof(ClNameT));
+    memset(&(pStreamName), 0, sizeof(SaNameT));
     memset(&(pStreamScope), 0, sizeof(ClUint32T));
-    memset(&(pStreamScopeNode), 0, sizeof(ClNameT));
+    memset(&(pStreamScopeNode), 0, sizeof(SaNameT));
     memset(&(pStreamId), 0, sizeof(ClUint16T));
     memset(&(pStreamMcastAddr), 0, sizeof(ClUint64T));
 
@@ -51,7 +51,7 @@ static void clLogMasterAttrVerifyNGetAsyncCallback_4_0_0(ClRcT rc, void *pIdlCoo
 
     if (CL_OK == rc)
     {
-        retVal = clXdrUnmarshallClNameT(outMsgHdl, &(pStreamName));
+        retVal = clXdrUnmarshallSaNameT(outMsgHdl, &(pStreamName));
         if (CL_OK != retVal)
         {
             goto L1;
@@ -69,7 +69,7 @@ static void clLogMasterAttrVerifyNGetAsyncCallback_4_0_0(ClRcT rc, void *pIdlCoo
 
     if (CL_OK == rc)
     {
-        retVal = clXdrUnmarshallClNameT(outMsgHdl, &(pStreamScopeNode));
+        retVal = clXdrUnmarshallSaNameT(outMsgHdl, &(pStreamScopeNode));
         if (CL_OK != retVal)
         {
             goto L3;
@@ -115,7 +115,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_INOUT ClNameT* pStreamName, CL_INOUT ClUint32T* pStreamScope, CL_INOUT ClNameT* pStreamScopeNode, CL_INOUT ClUint16T* pStreamId, CL_OUT ClUint64T* pStreamMcastAddr,CL_IN LogClLogMasterAttrVerifyNGetAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_INOUT SaNameT* pStreamName, CL_INOUT ClUint32T* pStreamScope, CL_INOUT SaNameT* pStreamScopeNode, CL_INOUT ClUint16T* pStreamId, CL_OUT ClUint64T* pStreamMcastAddr,CL_IN LogClLogMasterAttrVerifyNGetAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -139,7 +139,7 @@ ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -167,7 +167,7 @@ ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pStreamName, inMsgHdl, 1);
+    rc = clXdrMarshallSaNameT(pStreamName, inMsgHdl, 1);
     if (CL_OK != rc)
     {
         goto L;
@@ -179,7 +179,7 @@ ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pStreamScopeNode, inMsgHdl, 1);
+    rc = clXdrMarshallSaNameT(pStreamScopeNode, inMsgHdl, 1);
     if (CL_OK != rc)
     {
         goto L;
@@ -255,15 +255,15 @@ static void clLogMasterStreamCloseNotifyAsyncCallback_4_0_0(ClRcT rc, void *pIdl
     ClRcT retVal = CL_OK;
     ClStringT  pFileName;
     ClStringT  pFileLocation;
-    ClNameT  pStreamName;
+    SaNameT  pStreamName;
     ClUint32T  pStreamScope;
-    ClNameT  pStreamScopeNode;
+    SaNameT  pStreamScopeNode;
 
     memset(&(pFileName), 0, sizeof(ClStringT));
     memset(&(pFileLocation), 0, sizeof(ClStringT));
-    memset(&(pStreamName), 0, sizeof(ClNameT));
+    memset(&(pStreamName), 0, sizeof(SaNameT));
     memset(&(pStreamScope), 0, sizeof(ClUint32T));
-    memset(&(pStreamScopeNode), 0, sizeof(ClNameT));
+    memset(&(pStreamScopeNode), 0, sizeof(SaNameT));
 
 
     retVal = clXdrUnmarshallClStringT(inMsgHdl, &(pFileName));
@@ -278,7 +278,7 @@ static void clLogMasterStreamCloseNotifyAsyncCallback_4_0_0(ClRcT rc, void *pIdl
         goto L1;
     }
 
-    retVal = clXdrUnmarshallClNameT(inMsgHdl, &(pStreamName));
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pStreamName));
     if (CL_OK != retVal)
     {
         goto L2;
@@ -290,7 +290,7 @@ static void clLogMasterStreamCloseNotifyAsyncCallback_4_0_0(ClRcT rc, void *pIdl
         goto L3;
     }
 
-    retVal = clXdrUnmarshallClNameT(inMsgHdl, &(pStreamScopeNode));
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pStreamScopeNode));
     if (CL_OK != retVal)
     {
         goto L4;
@@ -316,7 +316,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClStringT* pFileName, CL_IN ClStringT* pFileLocation, CL_IN ClNameT* pStreamName, CL_IN ClUint32T  pStreamScope, CL_IN ClNameT* pStreamScopeNode,CL_IN LogClLogMasterStreamCloseNotifyAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClStringT* pFileName, CL_IN ClStringT* pFileLocation, CL_IN SaNameT* pStreamName, CL_IN ClUint32T  pStreamScope, CL_IN SaNameT* pStreamScopeNode,CL_IN LogClLogMasterStreamCloseNotifyAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -340,7 +340,7 @@ ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -374,7 +374,7 @@ ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pStreamName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pStreamName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
@@ -386,7 +386,7 @@ ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pStreamScopeNode, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pStreamScopeNode, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
@@ -471,7 +471,7 @@ ClRcT clLogMasterStreamListGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_OUT
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -612,7 +612,7 @@ ClRcT clLogMasterStreamListGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_OU
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -685,7 +685,7 @@ L:
 }
 
 
-ClRcT clLogMasterCompIdChkNGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pCompName, CL_INOUT ClUint32T* pClientId)
+ClRcT clLogMasterCompIdChkNGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pCompName, CL_INOUT ClUint32T* pClientId)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -707,7 +707,7 @@ ClRcT clLogMasterCompIdChkNGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN 
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -728,7 +728,7 @@ ClRcT clLogMasterCompIdChkNGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN 
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pCompName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pCompName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -793,7 +793,7 @@ ClRcT clLogMasterCompListGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_OUT C
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -934,7 +934,7 @@ ClRcT clLogMasterCompListGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_OUT 
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -1072,7 +1072,7 @@ ClRcT clLogMasterCompListNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,

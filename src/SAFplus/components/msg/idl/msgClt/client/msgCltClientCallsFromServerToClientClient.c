@@ -29,11 +29,11 @@ static void clMsgClientsTrackCallbackAsyncCallback_4_0_0(ClRcT rc, void *pIdlCoo
     ClIdlCookieT* pCookie = (ClIdlCookieT*)pIdlCookie;
     ClRcT retVal = CL_OK;
     ClHandleT  clientHandle;
-    ClNameT  pGroupName;
+    SaNameT  pGroupName;
     SaMsgQueueGroupNotificationBufferT_4_0_0  pNotification;
 
     memset(&(clientHandle), 0, sizeof(ClHandleT));
-    memset(&(pGroupName), 0, sizeof(ClNameT));
+    memset(&(pGroupName), 0, sizeof(SaNameT));
     memset(&(pNotification), 0, sizeof(SaMsgQueueGroupNotificationBufferT_4_0_0));
 
 
@@ -43,7 +43,7 @@ static void clMsgClientsTrackCallbackAsyncCallback_4_0_0(ClRcT rc, void *pIdlCoo
         goto L0;
     }
 
-    retVal = clXdrUnmarshallClNameT(inMsgHdl, &(pGroupName));
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pGroupName));
     if (CL_OK != retVal)
     {
         goto L1;
@@ -73,7 +73,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clMsgClientsTrackCallbackClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT  clientHandle, CL_IN ClNameT* pGroupName, CL_IN SaMsgQueueGroupNotificationBufferT_4_0_0* pNotification,CL_IN MsgCltClMsgClientsTrackCallbackAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clMsgClientsTrackCallbackClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT  clientHandle, CL_IN SaNameT* pGroupName, CL_IN SaMsgQueueGroupNotificationBufferT_4_0_0* pNotification,CL_IN MsgCltClMsgClientsTrackCallbackAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -97,7 +97,7 @@ ClRcT clMsgClientsTrackCallbackClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -125,7 +125,7 @@ ClRcT clMsgClientsTrackCallbackClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pGroupName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pGroupName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;

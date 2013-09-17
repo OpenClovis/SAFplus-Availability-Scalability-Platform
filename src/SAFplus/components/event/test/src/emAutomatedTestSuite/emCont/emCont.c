@@ -133,7 +133,7 @@ static ClEoPayloadWithReplyCallbackT gClEvtTestContFuncList[] = {
 };
 
 
-ClRcT clEventTerminate(ClInvocationT invocation, const ClNameT *compName)
+ClRcT clEventTerminate(ClInvocationT invocation, const SaNameT *compName)
 {
     ClRcT rc;
 
@@ -146,7 +146,7 @@ ClRcT clEventTerminate(ClInvocationT invocation, const ClNameT *compName)
 
 ClRcT clEvtCpmInit()
 {
-    ClNameT appName;
+    SaNameT appName;
     ClCpmCallbacksT callbacks;
     ClVersionT version;
     ClIocPortT iocPort;

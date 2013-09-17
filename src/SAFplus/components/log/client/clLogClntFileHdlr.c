@@ -505,12 +505,12 @@ clLogClntStreamListEntryGet(ClBufferHandleT      msg,
     {
         return CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
     }
-    rc = clXdrUnmarshallClNameT(msg, &pLogStream->streamName);
+    rc = clXdrUnmarshallSaNameT(msg, &pLogStream->streamName);
     if( CL_OK != rc )
     {
         return rc;
     }
-    rc = clXdrUnmarshallClNameT(msg, &pLogStream->streamScopeNode);
+    rc = clXdrUnmarshallSaNameT(msg, &pLogStream->streamScopeNode);
     if( CL_OK != rc )
     {
         return rc;

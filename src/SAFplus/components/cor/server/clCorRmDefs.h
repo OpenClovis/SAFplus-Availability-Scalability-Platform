@@ -214,7 +214,7 @@ CORInfo_h corListGet(ClCorAddrT id);
 ClUint32T corListPack(void * buf);
 ClRcT  corListUnpack(void * buf, ClUint32T size);  
 ClRcT  corListShow();
-ClRcT _clCorStationEnable(ClNameT *compName, ClCorAddrT *stationAdd);
+ClRcT _clCorStationEnable(SaNameT *compName, ClCorAddrT *stationAdd);
 ClRcT _clCorStationDisable(ClCorAddrT stationAdd);
 /* In case of Node Shutdown Remove the Peer COR from COR-List and the stations from the Route List */
 ClRcT _clCorRemoveStations(ClIocNodeAddressT nodeAddr);

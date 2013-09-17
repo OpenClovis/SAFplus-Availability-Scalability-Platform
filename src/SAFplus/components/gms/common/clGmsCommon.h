@@ -360,7 +360,7 @@ typedef struct
     ClGmsGroupIdT       groupId;            /* Id of the requested group */
     ClGmsLeadershipCredentialsT credentials;/* Leadership credentials */
     ClGmsNodeIdT        nodeId;             /* Node id of the joining node */
-    ClNameT             nodeName;           /* Node name of joining node */
+    SaNameT             nodeName;           /* Node name of joining node */
     ClBoolT             sync;               /* Indicate if this is a sync req */
     ClIocAddressT       address;         /* ioc address of the eo */
     ClVersionT          clientVersion;

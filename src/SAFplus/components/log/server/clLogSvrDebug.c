@@ -240,7 +240,7 @@ clLogDebugCliStreamOpen(ClUint32T   argc,
     ClRcT                   rc         = CL_OK;
     ClLogStreamHandleT      hStream    = CL_HANDLE_INVALID_VALUE;
     ClLogStreamAttributesT  streamAttr = {0};
-    ClNameT                 streamName = {0};
+    SaNameT                 streamName = {0};
     ClLogStreamOpenFlagsT   openFlags  = 0;
 
     if( argc < 5  || argc > 16 || 
@@ -274,7 +274,7 @@ clLogDebugCliStreamOpen(ClUint32T   argc,
     openFlags = atoi(argv[4]);
 
     streamName.length = strlen(argv[2]);
-    strncpy(streamName.value, argv[2], streamName.length);
+    strncpy((ClCharT *)streamName.value, argv[2], streamName.length);
     
     if(0 == openFlags)
     {
@@ -395,8 +395,8 @@ clLogDebugCliFilterSet(ClUint32T   argc,
     ClUint32T     compIdSet = 0;
     ClUint32T     i         = 0;
     ClUint32T     nextPos   = 0;
-    ClNameT streamName = {0};
-    ClNameT nodeName = {0};
+    SaNameT streamName = {0};
+    SaNameT nodeName = {0};
     ClLogFilterFlagsT filterFlags = CL_LOG_FILTER_ASSIGN;
 
     if( argc < 3 )
@@ -436,14 +436,14 @@ clLogDebugCliFilterSet(ClUint32T   argc,
 
     if(!strncasecmp(argv[1], "sys", 3))
     {
-        clNameSet(&streamName, "LOG_SYSTEM");
+        saNameSet(&streamName, "LOG_SYSTEM");
     }
     else if(!strncasecmp(argv[1], "app", 3))
     {
-        clNameSet(&streamName, "LOG_APPLICATION");
+        saNameSet(&streamName, "LOG_APPLICATION");
     }
     else
-        clNameSet(&streamName, argv[1]);
+        saNameSet(&streamName, argv[1]);
     filter.severityFilter = atoi(argv[2]);
     if(filter.severityFilter < CL_LOG_SEV_EMERGENCY || filter.severityFilter > CL_LOG_SEV_TRACE)
     {
@@ -461,7 +461,7 @@ clLogDebugCliFilterSet(ClUint32T   argc,
         goto filter_set;
     }
 
-    clNameSet(&nodeName, argv[3]);
+    saNameSet(&nodeName, argv[3]);
 
     nextPos = 4;
     if(argc > 4)
@@ -572,8 +572,8 @@ clLogDebugCliSeverityGet(ClUint32T   argc,
                          ClCharT     **ppRet)
 {
     ClRcT         rc        = CL_OK;
-    ClNameT streamName = {0};
-    ClNameT nodeName = {0};
+    SaNameT streamName = {0};
+    SaNameT nodeName = {0};
     ClLogSeverityFilterT severity = 0;
     const ClCharT *pSev = NULL;
     struct ClLogSeverityTable
@@ -600,17 +600,17 @@ clLogDebugCliSeverityGet(ClUint32T   argc,
 
     if(!strncasecmp(argv[1], "sys", 3))
     {
-        clNameSet(&streamName, "LOG_SYSTEM");
+        saNameSet(&streamName, "LOG_SYSTEM");
     }
     else if(!strncasecmp(argv[1], "app", 3))
     {
-        clNameSet(&streamName, "LOG_APPLICATION");
+        saNameSet(&streamName, "LOG_APPLICATION");
     }
     else
-        clNameSet(&streamName, argv[1]);
+        saNameSet(&streamName, argv[1]);
 
     if(argc > 2)
-        clNameSet(&nodeName, argv[2]);
+        saNameSet(&nodeName, argv[2]);
     else
         clCpmLocalNodeNameGet(&nodeName);
 

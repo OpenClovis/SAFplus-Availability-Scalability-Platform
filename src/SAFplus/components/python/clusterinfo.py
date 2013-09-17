@@ -448,7 +448,7 @@ class data:
     """
     if key is None: key = self.associatedDataKey
     if key is not None:
-      ckey = asp.ClNameT()
+      ckey = asp.SaNameT()
       setCNameT(ckey,key)
     
     self.log("Loading associated data using key [%s]" % key)
@@ -510,7 +510,7 @@ class data:
 
       # Hook the possible CSIs to the component
       for j in range(0,i.cconfig.numSupportedCSITypes):
-        name = asp.ClNameT_array_getitem(i.cconfig.pSupportedCSITypes,j).value
+        name = asp.SaNameT_array_getitem(i.cconfig.pSupportedCSITypes,j).value
         i.supportedCsis.add(name)
 
 

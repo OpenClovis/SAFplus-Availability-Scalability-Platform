@@ -226,7 +226,7 @@ do{\
         ClUint8T reserved;
         ClEventChannelHandleT evtChannelHandle;
         ClEvtUserIdT userId;
-        ClNameT evtChannelName;
+        SaNameT evtChannelName;
 
     } ClEvtChannelOpenRequestT;
 
@@ -241,7 +241,7 @@ do{\
         ClEvtUserIdT userId;
         ClEventSubscriptionIdT subscriptionId;
         ClUint64T pCookie;
-        ClNameT evtChannelName;
+        SaNameT evtChannelName;
         ClUint8T *packedRbe;
         ClUint32T packedRbeLen;
     } ClEvtSubscribeEventRequestT;
@@ -255,7 +255,7 @@ do{\
         ClEventChannelHandleT evtChannelHandle;
         ClEvtUserIdT userId;
         ClEventSubscriptionIdT subscriptionId;
-        ClNameT evtChannelName;
+        SaNameT evtChannelName;
         ClUint8T reqFlag;
 
     } ClEvtUnsubscribeEventRequestT;
@@ -309,7 +309,7 @@ do{\
     typedef struct EvtChannelKey
     {
         ClUint16T channelId;
-        ClNameT channelName;
+        SaNameT channelName;
 
     } ClEvtChannelKeyT;
 

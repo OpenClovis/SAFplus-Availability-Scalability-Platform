@@ -58,17 +58,17 @@ void nameSvcEventCallback( ClEventSubscriptionIdT subscriptionId,
 
 extern void invokeWalkForDelete(ClNameSvcDeregisInfoT *walkData);
 
-ClNameT nameSvcPubChannelName = {
+SaNameT nameSvcPubChannelName = {
     sizeof(CL_NAME_PUB_CHANNEL)-1,
     CL_NAME_PUB_CHANNEL
 };
                                                                                                                              
-ClNameT nameSvcNodeSubChannelName = {
+SaNameT nameSvcNodeSubChannelName = {
     sizeof(CL_CPM_NODE_EVENT_CHANNEL_NAME)-1,
     CL_CPM_NODE_EVENT_CHANNEL_NAME
 };
 
-ClNameT nameSvcSubChannelName = {
+SaNameT nameSvcSubChannelName = {
     sizeof(CL_CPM_EVENT_CHANNEL_NAME)-1,
     CL_CPM_EVENT_CHANNEL_NAME
 };
@@ -99,7 +99,7 @@ ClRcT nameSvcEventInitialize()
 {
     ClVersionT version = CL_EVENT_VERSION;
     ClRcT rc;
-    ClNameT publisherName = {sizeof(CL_NAME_PUB_NAME)-1, CL_NAME_PUB_NAME}; 
+    SaNameT publisherName = {sizeof(CL_NAME_PUB_NAME)-1, CL_NAME_PUB_NAME}; 
     ClUint32T                 deathPattern   = htonl(CL_CPM_COMP_DEATH_PATTERN);
     ClUint32T                 nodeDeparturePattern = htonl(CL_CPM_NODE_DEATH_PATTERN);
     ClEventFilterT            compDeathFilter[]  = {{CL_EVENT_EXACT_FILTER, 

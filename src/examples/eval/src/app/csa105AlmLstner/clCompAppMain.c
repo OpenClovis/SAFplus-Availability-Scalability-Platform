@@ -512,7 +512,7 @@ ClRcT
 alarm_event_subscribe_callback(const ClAlarmHandleInfoT* pAlarmInfo)
 {
     ClRcT   rc = CL_OK;
-    ClNameT moIdName = {0};
+    SaNameT moIdName = {0};
     ClCorMOIdT  moId = pAlarmInfo->alarmInfo.moId;
     ClAlarmUtilPayLoadListPtrT pPayloadList = NULL;
 

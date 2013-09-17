@@ -31,7 +31,7 @@ ClRcT clMsgQueueCkptDataMarshal(ClMsgQueueCkptDataT *qCkptData, ClCachedCkptData
     ClUint8T *copyData;
     ClUint32T network_byte_order;
 
-    clNameCopy(&outData->sectionName, &qCkptData->qName);
+    saNameCopy(&outData->sectionName, &qCkptData->qName);
     outData->sectionAddress.iocPhyAddress = qCkptData->qAddress;
     outData->dataSize = CL_MSG_QUEUE_DATA_SIZE;
 
@@ -62,7 +62,7 @@ void clMsgQueueCkptDataUnmarshal(ClMsgQueueCkptDataT *qCkptData, const ClCachedC
     ClUint8T *copyData;
     ClUint32T network_byte_order;
 
-    clNameCopy(&qCkptData->qName, &inData->sectionName);
+    saNameCopy(&qCkptData->qName, &inData->sectionName);
     qCkptData->qAddress = inData->sectionAddress.iocPhyAddress;
 
     copyData = inData->data;
@@ -92,12 +92,12 @@ ClRcT clMsgQGroupCkptDataMarshal(ClMsgQGroupCkptDataT *qCkptData, ClCachedCkptDa
     ClUint16T len16 = 0;
     ClUint32T i, dataSize;
 
-    clNameCopy(&outData->sectionName, &qCkptData->qGroupName);
+    saNameCopy(&outData->sectionName, &qCkptData->qGroupName);
     outData->sectionAddress.iocPhyAddress = qCkptData->qGroupAddress;
     dataSize = 2 * sizeof(ClUint32T);
     for (i = 0; i < qCkptData->numberOfQueues; i++)
     {
-        ClNameT *queueName = (ClNameT *)(qCkptData->pQueueList + i);
+        SaNameT *queueName = (SaNameT *)(qCkptData->pQueueList + i);
         dataSize += sizeof(ClUint16T);
         dataSize += queueName->length;
     }
@@ -116,7 +116,7 @@ ClRcT clMsgQGroupCkptDataMarshal(ClMsgQGroupCkptDataT *qCkptData, ClCachedCkptDa
 
     for (i = 0; i < qCkptData->numberOfQueues; i++)
     {
-        ClNameT *queueName = (ClNameT *)(qCkptData->pQueueList + i);
+        SaNameT *queueName = (SaNameT *)(qCkptData->pQueueList + i);
         len16 = (ClUint16T)htons((ClUint16T)queueName->length);
         memcpy(copyData, &len16, sizeof(len16));
         copyData = copyData + sizeof(len16);
@@ -132,7 +132,7 @@ void clMsgQGroupCkptHeaderUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCac
     ClUint8T *copyData;
     ClUint32T network_byte_order;
 
-    clNameCopy(&qCkptData->qGroupName, &inData->sectionName);
+    saNameCopy(&qCkptData->qGroupName, &inData->sectionName);
     qCkptData->qGroupAddress = inData->sectionAddress.iocPhyAddress;
 
     copyData = inData->data;
@@ -159,7 +159,7 @@ ClRcT clMsgQGroupCkptDataUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCach
     ClUint16T len16 = 0;
     ClUint32T i;
 
-    clNameCopy(&qCkptData->qGroupName, &inData->sectionName);
+    saNameCopy(&qCkptData->qGroupName, &inData->sectionName);
     qCkptData->qGroupAddress = inData->sectionAddress.iocPhyAddress;
 
     copyData = inData->data;
@@ -174,18 +174,18 @@ ClRcT clMsgQGroupCkptDataUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCach
 
     if (qCkptData->numberOfQueues > 0)
     {
-        qCkptData->pQueueList = (ClNameT *)clHeapCalloc(qCkptData->numberOfQueues, sizeof(ClNameT));
+        qCkptData->pQueueList = (SaNameT *)clHeapCalloc(qCkptData->numberOfQueues, sizeof(SaNameT));
         if (qCkptData->pQueueList == NULL)
         {
             rc = CL_ERR_NO_MEMORY;
-            clLogError("MSG", "UMS", "Failed to allocate memory for %zd bytes.", qCkptData->numberOfQueues * sizeof(ClNameT));
+            clLogError("MSG", "UMS", "Failed to allocate memory for %zd bytes.", qCkptData->numberOfQueues * sizeof(SaNameT));
             return rc;
         }
     }
 
     for (i = 0; i < qCkptData->numberOfQueues; i++)
     {
-        ClNameT *queueName = (ClNameT *)(qCkptData->pQueueList + i);
+        SaNameT *queueName = (SaNameT *)(qCkptData->pQueueList + i);
         memcpy(&len16, copyData, sizeof(len16));
         queueName->length = (ClUint16T)ntohs(len16);
         copyData = copyData + sizeof(len16);
@@ -195,7 +195,7 @@ ClRcT clMsgQGroupCkptDataUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCach
     return rc;
 }
 
-ClBoolT clMsgQGroupCkptQueueExist(ClMsgQGroupCkptDataT *qCkptData, ClNameT *pQueueName, ClUint32T *pPos)
+ClBoolT clMsgQGroupCkptQueueExist(ClMsgQGroupCkptDataT *qCkptData, SaNameT *pQueueName, ClUint32T *pPos)
 {
     ClUint32T i;
 
@@ -204,7 +204,7 @@ ClBoolT clMsgQGroupCkptQueueExist(ClMsgQGroupCkptDataT *qCkptData, ClNameT *pQue
 
     for (i = 0; i< qCkptData->numberOfQueues; i++)
     {
-        ClNameT *pQueueTemp = (ClNameT *)(qCkptData->pQueueList + i);
+        SaNameT *pQueueTemp = (SaNameT *)(qCkptData->pQueueList + i);
 
         if ((pQueueTemp->length == pQueueName->length) 
           && (memcmp(pQueueTemp->value, pQueueName->value, pQueueTemp->length)==0) )

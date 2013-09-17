@@ -224,7 +224,7 @@ extern ClRcT clCkptLibraryFinalize( CL_IN ClCkptSvcHdlT ckptHdl);
  *
  */
 extern ClRcT clCkptLibraryCkptCreate( CL_IN ClCkptSvcHdlT  ckptHdl,
-                                      CL_IN ClNameT       *pCkptName);
+                                      CL_IN SaNameT       *pCkptName);
 
 
 /**
@@ -255,7 +255,7 @@ extern ClRcT clCkptLibraryCkptCreate( CL_IN ClCkptSvcHdlT  ckptHdl,
 
 
 extern ClRcT clCkptLibraryCkptDelete(CL_IN ClCkptSvcHdlT ckptHdl,
-                              CL_IN ClNameT     *pCkptName);
+                              CL_IN SaNameT     *pCkptName);
 
 
 /**
@@ -297,7 +297,7 @@ extern ClRcT clCkptLibraryCkptDelete(CL_IN ClCkptSvcHdlT ckptHdl,
  *
  */
 extern ClRcT clCkptLibraryCkptDataSetCreate( CL_IN ClCkptSvcHdlT    ckptHdl,
-                                      CL_IN ClNameT          *pCkptName,
+                                      CL_IN SaNameT          *pCkptName,
                                       CL_IN ClUint32T         dsId,
                                       CL_IN ClUint32T         grpId,
                                       CL_IN ClUint32T         order,
@@ -305,7 +305,7 @@ extern ClRcT clCkptLibraryCkptDataSetCreate( CL_IN ClCkptSvcHdlT    ckptHdl,
                                       CL_IN ClCkptDeserializeT dsDeserialiser);
 
 extern ClRcT clCkptLibraryCkptDataSetVersionCreate( CL_IN ClCkptSvcHdlT    ckptHdl,
-                                      CL_IN ClNameT          *pCkptName,
+                                      CL_IN SaNameT          *pCkptName,
                                       CL_IN ClUint32T         dsId,
                                       CL_IN ClUint32T         grpId,
                                       CL_IN ClUint32T         order,
@@ -346,7 +346,7 @@ extern ClRcT clCkptLibraryCkptDataSetVersionCreate( CL_IN ClCkptSvcHdlT    ckptH
  *
  */
 extern ClRcT clCkptLibraryCkptDataSetDelete( CL_IN ClCkptSvcHdlT  ckptHdl,
-                                      CL_IN ClNameT       *pCkptName,
+                                      CL_IN SaNameT       *pCkptName,
                                       CL_IN ClUint32T      dsId );
 
 /**
@@ -380,12 +380,12 @@ extern ClRcT clCkptLibraryCkptDataSetDelete( CL_IN ClCkptSvcHdlT  ckptHdl,
  *
  */
 extern ClRcT clCkptLibraryCkptDataSetWrite(CL_IN ClCkptSvcHdlT   ckptHdl,
-                                    CL_IN ClNameT        *pCkptName,
+                                    CL_IN SaNameT        *pCkptName,
                                     CL_IN ClUint32T       dsId,
                                     CL_IN ClPtrT       cookie );
 
 extern ClRcT clCkptLibraryCkptDataSetVersionWrite(CL_IN ClCkptSvcHdlT   ckptHdl,
-                                    CL_IN ClNameT        *pCkptName,
+                                    CL_IN SaNameT        *pCkptName,
                                     CL_IN ClUint32T       dsId,
                                     CL_IN ClPtrT          cookie,
                                     CL_IN ClVersionT      *pVersion);
@@ -421,7 +421,7 @@ extern ClRcT clCkptLibraryCkptDataSetVersionWrite(CL_IN ClCkptSvcHdlT   ckptHdl,
  *
  */
 extern ClRcT clCkptLibraryCkptDataSetRead( CL_IN ClCkptSvcHdlT      ckptHdl,
-                                    CL_IN ClNameT           *pCkptName,
+                                    CL_IN SaNameT           *pCkptName,
                                     CL_IN ClUint32T          dsId,
                                     CL_IN ClPtrT          cookie);
 
@@ -451,7 +451,7 @@ extern ClRcT clCkptLibraryCkptDataSetRead( CL_IN ClCkptSvcHdlT      ckptHdl,
  *
  */
 extern ClRcT clCkptLibraryDoesCkptExist(CL_IN  ClCkptSvcHdlT      ckptHdl,
-                                        CL_IN  ClNameT           *pCkptName,
+                                        CL_IN  SaNameT           *pCkptName,
                                         CL_OUT ClBoolT           *pRetVal);
 
 /**
@@ -481,7 +481,7 @@ extern ClRcT clCkptLibraryDoesCkptExist(CL_IN  ClCkptSvcHdlT      ckptHdl,
  *
  */
 extern ClRcT clCkptLibraryDoesDatasetExist( CL_IN  ClCkptSvcHdlT    ckptHdl,
-                                            CL_IN  ClNameT            *pCkptName,
+                                            CL_IN  SaNameT            *pCkptName,
                                             CL_IN  ClUint32T           dsId,
                                             CL_OUT ClBoolT            *pRetVal);
 /**
@@ -514,13 +514,13 @@ extern ClRcT clCkptLibraryDoesDatasetExist( CL_IN  ClCkptSvcHdlT    ckptHdl,
  *
  */
 extern ClRcT clCkptLibraryCkptElementCreate(ClCkptSvcHdlT        ckptHdl,
-                                     ClNameT              *pCkptName,
+                                     SaNameT              *pCkptName,
                                      ClUint32T            dsId,
                                      ClCkptSerializeT     elemSerialiser,
                                      ClCkptDeserializeT   elemDeserialiser);
 
 extern ClRcT clCkptLibraryCkptElementVersionCreate(ClCkptSvcHdlT        ckptHdl,
-                                     ClNameT              *pCkptName,
+                                     SaNameT              *pCkptName,
                                      ClUint32T            dsId,
                                      ClCkptDataSetCallbackT *pTable,
                                      ClUint32T numTableEntries);
@@ -558,14 +558,14 @@ extern ClRcT clCkptLibraryCkptElementVersionCreate(ClCkptSvcHdlT        ckptHdl,
  *
  */
 extern ClRcT clCkptLibraryCkptElementWrite (ClCkptSvcHdlT   ckptHdl,
-                                    ClNameT        *pCkptName,
+                                    SaNameT        *pCkptName,
                                     ClUint32T       dsId,
                                     ClPtrT          elemId,
                                     ClUint32T       elemLen,
                                     ClPtrT       cookie);
 
 extern ClRcT clCkptLibraryCkptElementVersionWrite (ClCkptSvcHdlT   ckptHdl,
-                                    ClNameT        *pCkptName,
+                                    SaNameT        *pCkptName,
                                     ClUint32T       dsId,
                                     ClPtrT          elemId,
                                     ClUint32T       elemLen,
@@ -605,13 +605,13 @@ extern ClRcT clCkptLibraryCkptElementVersionWrite (ClCkptSvcHdlT   ckptHdl,
  *
  */
 extern ClRcT clCkptLibraryCkptElementDelete (ClCkptSvcHdlT   ckptHdl,
-                                    ClNameT        *pCkptName,
+                                    SaNameT        *pCkptName,
                                     ClUint32T       dsId,
                                     ClPtrT          elemId,
                                     ClUint32T       elemLen);
 
 extern ClRcT clCkptReplicaChangeRegister(ClRcT (*pCkptRelicaChangeCallback)
-                                         (const ClNameT *pCkptName, ClIocNodeAddressT replicaAddr));
+                                         (const SaNameT *pCkptName, ClIocNodeAddressT replicaAddr));
 
 extern ClRcT clCkptReplicaChangeDeregister(void);
 

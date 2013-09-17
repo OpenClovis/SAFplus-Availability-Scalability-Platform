@@ -40,7 +40,7 @@
 
 
 
-ClInt32T clEvtUtilsNameCmp(ClNameT *pName1, ClNameT *pName2)
+ClInt32T clEvtUtilsNameCmp(SaNameT *pName1, SaNameT *pName2)
 {
     ClUint32T result;
 
@@ -58,7 +58,7 @@ ClInt32T clEvtUtilsNameCmp(ClNameT *pName1, ClNameT *pName2)
     return result;
 }
 
-void clEvtUtilsNameCpy(ClNameT *pNameDst, const ClNameT *pNameSrc)
+void clEvtUtilsNameCpy(SaNameT *pNameDst, const SaNameT *pNameSrc)
 {
 
     CL_FUNC_ENTER();
@@ -204,7 +204,7 @@ ClRcT clEvtUtilsFilter2Rbe(const ClEventFilterArrayT *pFilterArray,
 }
 
 void clEvtUtilsChannelKeyConstruct(ClUint32T channelHandle,
-                                   ClNameT *pChannelName,
+                                   SaNameT *pChannelName,
                                    ClEvtChannelKeyT *pEvtChannelKey)
 {
 

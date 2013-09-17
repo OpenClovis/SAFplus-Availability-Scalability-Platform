@@ -75,7 +75,7 @@ typedef struct {
     /**
      * Name of the checkpoint section.
      */
-    ClNameT sectionName;
+    SaNameT sectionName;
     /**
      * IOC address of the component "responsible" for this section.
      */
@@ -302,7 +302,7 @@ ClRcT clCachedCkptSectionUpdate(ClCachedCkptSvcInfoT *serviceInfo,
  * 
  */
 ClRcT clCachedCkptSectionDelete(ClCachedCkptSvcInfoT *serviceInfo,
-                                       const ClNameT *sectionName);
+                                       const SaNameT *sectionName);
 /*******************************************************************************/
 
 /**
@@ -329,7 +329,7 @@ ClRcT clCachedCkptSectionDelete(ClCachedCkptSvcInfoT *serviceInfo,
  * 
  */
 void clCachedCkptSectionRead(ClCachedCkptSvcInfoT *serviceInfo,
-                                       const ClNameT *sectionName,
+                                       const SaNameT *sectionName,
                                        ClCachedCkptDataT **sectionData);
 
 /**
@@ -419,7 +419,7 @@ ClRcT clCacheEntryAdd (ClCachedCkptSvcInfoT *serviceInfo,
 ClRcT clCacheEntryUpdate (ClCachedCkptSvcInfoT *serviceInfo, 
                                        const ClCachedCkptDataT *sectionData);
 ClRcT clCacheEntryDelete (ClCachedCkptSvcInfoT *serviceInfo, 
-                                       const ClNameT *sectionName);
+                                       const SaNameT *sectionName);
 
 /*
  * Append the data chunk to the last section
@@ -438,7 +438,7 @@ ClRcT clCacheEntryDataDelete(ClCachedCkptSvcInfoT *serviceInfo,
 /* Functions to update checkpoint */
 ClRcT clCkptEntryUpdate(ClCachedCkptSvcInfoT *serviceInfo,
                                        const ClCachedCkptDataT *sectionData);
-ClRcT clCkptEntryDelete(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT *sectionName);
+ClRcT clCkptEntryDelete(ClCachedCkptSvcInfoT *serviceInfo, const SaNameT *sectionName);
 
 /****************************Client Side APIs**************************/
 /**
@@ -464,10 +464,10 @@ typedef struct {
 }ClCachedCkptClientSvcInfoT;
 
 void clCachedCkptClientLookup(ClCachedCkptClientSvcInfoT *serviceInfo,
-                                       const ClNameT *sectionName,
+                                       const SaNameT *sectionName,
                                        ClCachedCkptDataT **sectionData);
 ClRcT clCachedCkptClientInitialize(ClCachedCkptClientSvcInfoT *serviceInfo,
-                                       const ClNameT *ckptName,
+                                       const SaNameT *ckptName,
                                        ClUint32T cachSize);
 ClRcT clCachedCkptClientFinalize(ClCachedCkptClientSvcInfoT *serviceInfo);
 

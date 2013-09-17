@@ -507,7 +507,7 @@ ClRcT clDebugLibInitialize(void)
     ClEoExecutionObjT  *pEoObj     = NULL;
     ClDebugObjT        *pDebugObj  = NULL;
     ClRcT              rc          = CL_OK;
-    ClNameT            compName    = {0};
+    SaNameT            compName    = {0};
     
     rc = clEoMyEoObjectGet(&pEoObj);
     if (CL_OK != rc)

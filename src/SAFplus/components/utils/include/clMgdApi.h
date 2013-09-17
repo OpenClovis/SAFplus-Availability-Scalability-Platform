@@ -6,7 +6,7 @@
 
 struct ClMgdCommon
 {
-  ClNameT      name;
+  SaNameT      name;
   struct ClMgdCommon* parent;
 };
 

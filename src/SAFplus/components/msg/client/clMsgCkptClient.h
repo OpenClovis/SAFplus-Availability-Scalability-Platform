@@ -35,9 +35,9 @@ extern ClCachedCkptClientSvcInfoT gMsgQGroupCkptClient;
     
 ClRcT clMsgQCkptInitialize(void);
 ClRcT clMsgQCkptFinalize(void);
-ClBoolT clMsgQCkptExists(const ClNameT *pQName, ClMsgQueueCkptDataT *pQueueData);
-ClBoolT clMsgQGroupCkptExists(const ClNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData);
-ClRcT clMsgQGroupCkptDataGet(const ClNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData);
+ClBoolT clMsgQCkptExists(const SaNameT *pQName, ClMsgQueueCkptDataT *pQueueData);
+ClBoolT clMsgQGroupCkptExists(const SaNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData);
+ClRcT clMsgQGroupCkptDataGet(const SaNameT *pQGroupName, ClMsgQGroupCkptDataT *pQGroupData);
 
 #ifdef	__cplusplus
 }

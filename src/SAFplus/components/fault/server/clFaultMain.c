@@ -76,7 +76,7 @@ ClFaultSeqTblT  **fmSeqTbls[] =
 
 
 /* static */
-static ClNameT sFaultCompName;
+static SaNameT sFaultCompName;
 static ClUint32T sFaultCompId;
 static ClCpmHandleT cpmHandle;
 extern ClFaultRepairHandlerTableT gRepairHdlrList[];
@@ -262,7 +262,7 @@ VDECL (clFaultServerRepairAction)(
 /*************************************************************************/
                                                                                                                              
 ClRcT   clFaultServiceTerminate(ClInvocationT invocation,
-                    const ClNameT  *compName)
+                    const SaNameT  *compName)
 {
     ClRcT rc=CL_OK;
     

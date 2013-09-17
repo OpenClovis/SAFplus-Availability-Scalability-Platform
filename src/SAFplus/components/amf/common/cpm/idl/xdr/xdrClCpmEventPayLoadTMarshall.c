@@ -47,13 +47,13 @@ ClRcT clXdrMarshallClCpmEventPayLoadT_4_0_0(void* pGenVar, ClBufferHandleT msg, 
         length = 1;
         clXdrMarshallClUint32T(&length, msg, 0);
 
-    rc = clXdrMarshallClNameT(&(pVar->compName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->compName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->nodeName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->nodeName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

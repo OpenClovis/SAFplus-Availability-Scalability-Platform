@@ -13,7 +13,7 @@
 #define CL_MED_COR_STR_MOID_PRINT(corMoId)          \
 do\
 { \
-    ClNameT strMoId;                        \
+    SaNameT strMoId;                        \
     clCorMoIdToMoIdNameGet(corMoId, &strMoId );       \
     clLog(CL_LOG_INFO, CL_SNMP_AREA, CL_SNMP_GEN_XLA_COTX, "%s", strMoId.value);\
 }while(0)                                   \

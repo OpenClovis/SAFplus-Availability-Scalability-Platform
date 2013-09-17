@@ -26,7 +26,7 @@ ClRcT clMsgInitClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint32T* pVer
 
 ClRcT clMsgFinClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT msgHandle);
 
-ClRcT clMsgMessageGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pQueueName, CL_IN ClInt64T timeout);
+ClRcT clMsgMessageGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pQueueName, CL_IN ClInt64T timeout);
 
 
 #ifdef __cplusplus

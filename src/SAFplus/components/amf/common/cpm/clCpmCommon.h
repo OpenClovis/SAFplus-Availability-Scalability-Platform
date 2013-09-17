@@ -205,9 +205,9 @@ typedef struct clCpmL
 
     ClOsalMutexIdT compTableMutex;
 
-    ClNameT nodeType;
-    ClNameT nodeIdentifier;
-    ClNameT nodeMoIdStr;
+    SaNameT nodeType;
+    SaNameT nodeIdentifier;
+    SaNameT nodeMoIdStr;
     ClCharT classType[CL_MAX_NAME_LENGTH];
     ClUint32T chassisID;
     ClUint32T slotID;
@@ -266,12 +266,12 @@ typedef struct clCpm
     /**
      * Name used for event.
      */
-    ClNameT name;
+    SaNameT name;
 
     /**
      * Name used for checkpoint service.
      */
-    ClNameT ckptCpmLName;
+    SaNameT ckptCpmLName;
 
     /**
      * Server based checkpoint handles.
@@ -751,8 +751,8 @@ struct EOListNode
         
 extern ClCpmT *gpClCpm;
 
-extern ClUint32T cpmNodeFind(ClCharT *name, ClCpmLT **cpmL);
-extern ClUint32T cpmNodeFindLocked(ClCharT *name, ClCpmLT **cpmL);
+extern ClUint32T cpmNodeFind(SaUint8T *name, ClCpmLT **cpmL);
+extern ClUint32T cpmNodeFindLocked(SaUint8T *name, ClCpmLT **cpmL);
 extern ClUint32T cpmNodeFindByNodeId(ClGmsNodeIdT nodeId, ClCpmLT **cpmL);
     
 #ifdef __cplusplus

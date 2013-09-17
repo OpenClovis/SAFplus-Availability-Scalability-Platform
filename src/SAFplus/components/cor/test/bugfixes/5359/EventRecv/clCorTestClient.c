@@ -49,7 +49,7 @@
 ClRcT clCorTestClientDataSave()
 {
     ClRcT    rc = CL_OK;
-    ClNameT   nodeName ;
+    SaNameT   nodeName ;
     ClCharT   *classDbName = NULL;
 
     clCpmLocalNodeNameGet(&nodeName);
@@ -1786,7 +1786,7 @@ cor_test_Association ()
 
 ClRcT cor_test_moId_nodeName_get()
 {
-    ClNameT nodeName, nodeName1;
+    SaNameT nodeName, nodeName1;
     ClRcT   rc = CL_OK;
     ClCorMOIdT  moId;
     ClCharT     ch[100] = {0};
@@ -1800,14 +1800,14 @@ ClRcT cor_test_moId_nodeName_get()
     if(rc == CL_OK) clCorMoIdShow(&moId);
     
 
-    memset(&nodeName1, 0, sizeof(ClNameT));
+    memset(&nodeName1, 0, sizeof(SaNameT));
     rc = clCorMoIdToNodeNameGet(&moId, &nodeName1);
     ch[0] = '\0';
     sprintf(ch , "\tFor the moId obtained the nodeName obtained: %s, len %d. rc 0x%x. Result[%s] ", nodeName1.value, nodeName1.length, rc, rc?"FAIL":"PASS" );
     CL_COR_TEST_PUT_IN_FILE(ch);
     
     clCorMoIdInstanceSet(&moId, 2, 2);
-    memset(&nodeName1, 0, sizeof(ClNameT));
+    memset(&nodeName1, 0, sizeof(SaNameT));
     rc = clCorMoIdToNodeNameGet(&moId, &nodeName1);
     ch[0] = '\0';
     sprintf(ch , "\tFor an invalid moId,the nodeName obtained: %s, len %d. rc 0x%x. Result[%s] ", 
@@ -2031,7 +2031,7 @@ ClEventSubscriptionIdT generateSubscriptionId()
 ClRcT clCorTestClientEventInit()
 {
 	ClRcT rc;
-	ClNameT evtChannelName;
+	SaNameT evtChannelName;
         ClVersionT ver = CL_EVENT_VERSION;
 
 	CL_FUNC_ENTER();
@@ -2067,7 +2067,7 @@ ClRcT clCorTestClientEventInit()
 
 
 ClRcT testAppTerminate(ClInvocationT invocation,
-                     const ClNameT  *compName)
+                     const SaNameT  *compName)
 {
     ClRcT rc = CL_OK;
     clOsalPrintf("Inside appTerminate \n");
@@ -2105,7 +2105,7 @@ ClRcT testAppHealthCheck(ClEoSchedFeedBackT *schFeedback)
 
 ClRcT testAppCSISetCallback (
                     CL_IN ClInvocationT invocation,
-                    CL_IN const ClNameT *pCompName,
+                    CL_IN const SaNameT *pCompName,
                     CL_IN ClAmsHAStateT haState,
                     CL_IN ClAmsCSIDescriptorT csiDescriptor )
 {
@@ -2116,8 +2116,8 @@ ClRcT testAppCSISetCallback (
 
 ClRcT testAppCSIRmvCallback (
                         CL_IN ClInvocationT invocation,
-                        CL_IN const ClNameT *pCompName,
-                        CL_IN const ClNameT *pCsiName,
+                        CL_IN const SaNameT *pCompName,
+                        CL_IN const SaNameT *pCsiName,
                         CL_IN ClAmsCSIFlagsT csiFlags)
 {
     clCpmResponse(cpmHandle, invocation, CL_OK);
@@ -2130,7 +2130,7 @@ ClRcT  testAppInitialize(ClUint32T argc, ClCharT *argv[])
 {
     ClEoExecutionObjT  *pEoHandle;
     ClRcT rc;
-	ClNameT                     appName;
+	SaNameT                     appName;
 	ClCpmCallbacksT             callbacks;
 	ClIocPortT                  iocPort;
 	ClVersionT                  corVersion;

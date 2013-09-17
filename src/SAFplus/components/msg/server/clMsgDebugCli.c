@@ -35,7 +35,7 @@ static ClRcT clMsgQueueInfoCb(ClHandleDatabaseHandleT hdlDb,
     ClRcT rc = CL_OK;
     ClMsgQueueInfoT *pQInfo = NULL;
     ClDebugPrintHandleT dbgHdl = (ClDebugPrintHandleT)pCookie;
-    ClNameT *qName = NULL;
+    SaNameT *qName = NULL;
     ClUint32T i = 0;
 
     rc = clHandleCheckout(hdlDb, hdl, (void **)&pQInfo);

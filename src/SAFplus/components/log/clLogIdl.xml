@@ -55,20 +55,20 @@ material.
         <DataMember name="streamAttr" type="ClLogStreamAttrIDLT"/>
      </Struct>
     <Struct name="ClLogStreamMapT">
-        <DataMember name="streamName" type="ClNameT"/>
+        <DataMember name="streamName" type="SaNameT"/>
         <DataMember name="streamScope" type="ClUint32T"/>
-        <DataMember name="nodeName" type="ClNameT"/>
+        <DataMember name="nodeName" type="SaNameT"/>
         <DataMember name="streamId" type="ClUint16T"/>
      </Struct>
     <Struct name="ClLogStreamInfoIDLT" defNeed="yes">
-        <DataMember name="streamName" type="ClNameT"/>
+        <DataMember name="streamName" type="SaNameT"/>
         <DataMember name="streamScope" type="ClUint32T"/>
-        <DataMember name="nodeName" type="ClNameT"/>
+        <DataMember name="nodeName" type="SaNameT"/>
         <DataMember name="streamId" type="ClUint16T"/>
         <DataMember name="streamAttr" type="ClLogStreamAttrIDLT"/>
      </Struct>
     <Struct name="ClLogCompDataT" defNeed="yes">
-        <DataMember name="compName" type="ClNameT"/>
+        <DataMember name="compName" type="SaNameT"/>
         <DataMember name="clientId" type="ClUint32T"/>
      </Struct>
     <Struct name="ClLogFilterT">
@@ -97,11 +97,11 @@ material.
                     <Argument ParameterType="CL_IN" name="pStreamAttr"
                     type="ClLogStreamAttrIDLT" pointer="Single"/>
                     <Argument ParameterType="CL_INOUT" name="pStreamName"
-                    type="ClNameT" pointer="Single"/>
+                    type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_INOUT" name="pStreamScope"
                     type="ClUint32T" pointer="Single"/>
                     <Argument ParameterType="CL_INOUT" name="pStreamScopeNode"
-                    type="ClNameT" pointer="Single"/>
+                    type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_INOUT" name="pStreamId"  type="ClUint16T" pointer="Single"/>
                     <Argument ParameterType="CL_OUT" name="pStreamMcastAddr"  type="ClUint64T" pointer="Single"/>
                 </Operation>	
@@ -111,11 +111,11 @@ material.
                     <Argument ParameterType="CL_IN" name="pFileLocation"
                     type="ClStringT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pStreamName" 
-                    type="ClNameT" pointer="Single"/>
+                    type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pStreamScope"
                     type="ClUint32T"/>
                     <Argument ParameterType="CL_IN" name="pStreamScopeNode" 
-                    type="ClNameT" pointer="Single"/>
+                    type="SaNameT" pointer="Single"/>
                 </Operation>	
 	      <Operation name="clLogMasterStreamListGet">
                     <Argument ParameterType="CL_OUT" name="pNumStreams"
@@ -127,7 +127,7 @@ material.
                 </Operation>	
 	      <Operation name="clLogMasterCompIdChkNGet" type="sync">
                     <Argument ParameterType="CL_IN" name="pCompName"
-                    type="ClNameT" pointer="Single"/>
+                    type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_INOUT" name="pClientId"
                     type="ClUint32T" pointer="Single"/>
                 </Operation>	
@@ -150,10 +150,10 @@ material.
 	      <Operation name="clLogStreamOwnerStreamOpen" type="async">
                     <Argument ParameterType="CL_IN" name="logOpenFlags" type="ClUint8T"/>
                     <Argument ParameterType="CL_IN" name="nodeAddr" type="ClUint32T"/>
-                    <Argument ParameterType="CL_INOUT" name="pStreamName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_INOUT" name="pStreamName" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_INOUT" name="pStreamScope"
                     type="ClUint32T" pointer="Single"/>
-                    <Argument ParameterType="CL_INOUT" name="pStreamScopeNode" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_INOUT" name="pStreamScopeNode" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_INOUT" name="compId"  type="ClUint32T" pointer="Single"/>
                     <Argument ParameterType="CL_INOUT" name="pStreamAttr"
                               type="ClLogStreamAttrIDLT" pointer="Single"/>
@@ -166,57 +166,57 @@ material.
                     <Argument ParameterType="CL_INOUT" name="pStreamId" type="ClUint16T" pointer="Single"/>
               </Operation>
 	      <Operation name="clLogStreamOwnerStreamClose" type="async">
-                    <Argument ParameterType="CL_IN" name="pStreamName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamName" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pStreamScope" type="ClUint32T"/>
-                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="nodeAddress" type="ClUint32T"/>
                     <Argument ParameterType="CL_IN" name="compId"  type="ClUint32T"/>
               </Operation>
 	      <Operation name="clLogStreamOwnerFilterSet" type="async">
-                    <Argument ParameterType="CL_IN" name="pStreamName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamName" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pStreamScope" type="ClUint32T"/>
-                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="filterFlags"
                     type="ClUint8T"/>
                     <Argument ParameterType="CL_IN" name="pFilter" type="ClLogFilterT" pointer="Single"/>
               </Operation>
 	      <Operation name="clLogStreamOwnerHandlerRegister">
-                    <Argument ParameterType="CL_IN" name="pStreamName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamName" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pStreamScope" type="ClUint32T"/>
-                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="handlerFlags" type="ClUint8T"/>
                     <Argument ParameterType="CL_IN" name="localAddr" type="ClUint32T"/>
                     <Argument ParameterType="CL_IN" name="compId" type="ClUint32T"/>
               </Operation>
 	      <Operation name="clLogStreamOwnerStreamMcastGet" type="sync">
-                    <Argument ParameterType="CL_IN" name="pStreamName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamName" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pStreamScope" type="ClUint32T"/>
-                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_OUT" name="mcastAddr" type="ClUint64T" pointer="Single"/>
               </Operation>
 	      <Operation name="clLogStreamOwnerHandlerDeregister">
-                    <Argument ParameterType="CL_IN" name="pStreamName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamName" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pStreamScope" type="ClUint32T"/>
-                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="handlerFlags" type="ClUint8T"/>
                     <Argument ParameterType="CL_IN" name="localAddr" type="ClUint32T"/>
                     <Argument ParameterType="CL_IN" name="compId" type="ClUint32T"/>
               </Operation>
 	      <Operation name="clLogStreamOwnerFilterGet">
-                    <Argument ParameterType="CL_IN" name="pStreamName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamName" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pStreamScope" type="ClUint32T"/>
-                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_OUT" name="pFilter" type="ClLogFilterT" pointer="Single"/>
               </Operation>
             </Group>
             <Group name="Svr">
               <Operation name="clLogSvrStreamOpen">
                     <Argument ParameterType="CL_IN"   name="streamName"
-                        type="ClNameT" pointer="Single"/>
+                        type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"   name="streamScope"
                         type="ClUint32T"/>
                     <Argument ParameterType="CL_IN"   name="streamScopeNode"
-                        type="ClNameT" pointer="Single"/>
+                        type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"   name="pStreamAttr"
                         type="ClLogStreamAttrIDLT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"   name="streamOpenFlags"
@@ -232,32 +232,32 @@ material.
               </Operation>
               <Operation name="clLogSvrStreamClose">
                     <Argument ParameterType="CL_IN"   name="streamName"
-                        type="ClNameT" pointer="Single"/>
+                        type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"   name="streamScope"
                         type="ClUint32T" />
                     <Argument ParameterType="CL_IN"   name="streamScopeNode"
-                        type="ClNameT" pointer="Single"/>
+                        type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"  name="compId"
                         type="ClUint32T"/>
               </Operation>
 	      <Operation name="clLogSvrFilterSet" type="async">
-                    <Argument ParameterType="CL_IN" name="pStreamName"  type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamName"  type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="streamScope" type="ClUint32T"/>
-                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pFilter" type="ClLogFilterT" pointer="Single"/>
               </Operation>	
 	      <Operation name="clLogSvrStreamHandleFlagsUpdate" type="async">
-                    <Argument ParameterType="CL_IN" name="pStreamName"  type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamName"  type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="streamScope" type="ClUint32T"/>
-                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="handleFlags"
                     type="ClUint8T"/>
                     <Argument ParameterType="CL_IN" name="setFlags"
                     type="ClUint16T"/>
               </Operation>	
               <Operation name="clLogHandlerSvrAckSend" type="async">
-                    <Argument ParameterType="CL_IN" name="pStreamName"  type="ClNameT" pointer="Single"/>
-                    <Argument ParameterType="CL_IN" name="pNodeName"  type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamName"  type="SaNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pNodeName"  type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN"   name="streamScope" type="ClUint32T"/>
                     <Argument ParameterType="CL_IN"   name="sequenceNumber" type="ClUint32T"/>
                     <Argument ParameterType="CL_IN"   name="numRecords" type="ClUint32T" />
@@ -324,11 +324,11 @@ material.
             <Group name="client">
 	      <Operation name="clLogClientFilterSetNotify" type="async">
                     <Argument ParameterType="CL_IN" name="streamName" 
-                    type="ClNameT" />
+                    type="SaNameT" />
                     <Argument ParameterType="CL_IN" name="streamScope" 
                     type="ClUint32T" />
                     <Argument ParameterType="CL_IN" name="streamScopeNode" 
-                    type="ClNameT" />
+                    type="SaNameT" />
                     <Argument ParameterType="CL_IN" name="filter"
                     type="ClLogFilterT" />
               </Operation>	

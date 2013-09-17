@@ -58,7 +58,7 @@ char *gEvtCodeCovFileNameList[] = {
 };
 ClRcT (*fpCodeCovFilesRegisterCallout) (void **);
 void clEvtChannelOpenAsyncTestWrapper(ClEventInitHandleT evtHandle,ClInvocationT invocation, 
-        	  ClNameT *channelName, ClEventChannelOpenFlagsT evtChannelOpenFlag);
+        	  SaNameT *channelName, ClEventChannelOpenFlagsT evtChannelOpenFlag);
 void clEvtChannelOpenCallback(ClInvocationT invocation,ClEventChannelHandleT evtCHhandle,ClRcT rc);
 
 
@@ -213,7 +213,7 @@ void clEvtChannelOpenCallback(ClInvocationT invocation,
 ClEventPriorityT tPriority = 0;
 ClTimeT tRetentionTime = 0;
 
-ClNameT tPublisherName = { sizeof(EVT_TEST_PUBLISHER_NAME) - 1,
+SaNameT tPublisherName = { sizeof(EVT_TEST_PUBLISHER_NAME) - 1,
     EVT_TEST_PUBLISHER_NAME
 };
 ClTimeT tPublishTime;
@@ -236,7 +236,7 @@ void clEvtDeliverCallback(ClEventSubscriptionIdT subscriptionId,
     ClEventPatternArrayT patternArray;
     ClEventPriorityT priority;
     ClTimeT retentionTime;
-    ClNameT publisherName = {0};
+    SaNameT publisherName = {0};
     ClTimeT publishTime;
     ClEventIdT eventId;
     ClSizeT payLoadLen = sizeof(ClUint32T);
@@ -264,7 +264,7 @@ void clEvtDeliverCallback(ClEventSubscriptionIdT subscriptionId,
 
     ClEventPriorityT priority = 0;
     ClTimeT retentionTime = 0;
-    ClNameT publisherName = { 0 };
+    SaNameT publisherName = { 0 };
     ClEventIdT eventId = 0;
     ClUint32T payLoad = 0;
     ClSizeT payLoadLen = sizeof(payLoad);
@@ -578,7 +578,7 @@ void clEvtOpenCodeCoveTest()
     const ClEventCallbacksT evtCallbacks;
     ClVersionT version = CL_EVENT_VERSION;
     ClEventChannelHandleT evtChannelHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
 
@@ -602,7 +602,7 @@ void clEvtOpenCodeCoveTest()
 #endif
 
 void clEvtChannelOpenTestWrapper(ClEventInitHandleT evtHandle,
-                                 const ClNameT *pChannelName,
+                                 const SaNameT *pChannelName,
                                  ClEventChannelOpenFlagsT evtChannelOpenFlag,
                                  ClTimeT timeout,
                                  ClEventChannelHandleT *pEvtChannelHandle)
@@ -638,7 +638,7 @@ ClRcT clEvtChannelOpenTest()
 {
     ClRcT rc = CL_OK;
     ClEventInitHandleT evtHandle = CL_OK;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag = CL_EVENT_CHANNEL_SUBSCRIBER;
@@ -788,7 +788,7 @@ void clEvtEventDeliveryCallback(ClEventSubscriptionIdT evtSubscriptionId, ClEven
 **  Calling clEventChannelOpenAsync() with the parameters passed 
 */
 void clEvtChannelOpenAsyncTestWrapper(ClEventInitHandleT evtHandle,ClInvocationT invocation, 
-        ClNameT *channelName, ClEventChannelOpenFlagsT evtChannelOpenFlag)
+        SaNameT *channelName, ClEventChannelOpenFlagsT evtChannelOpenFlag)
 {
     ClRcT rc = CL_OK;
     rc = clEventChannelOpenAsync(evtHandle,invocation,channelName,evtChannelOpenFlag);
@@ -830,7 +830,7 @@ void clEvtChannelOpenAsyncTest()
     //ClRcT rc = CL_OK;
     ClEventInitHandleT evtHandle;
 #if 1
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag = CL_EVENT_CHANNEL_SUBSCRIBER|CL_EVENT_LOCAL_CHANNEL;
@@ -917,7 +917,7 @@ Mynk - NTI void clEvtCloseCodeCoveTest()
     const ClEventCallbacksT evtCallbacks;
     ClVersionT version = CL_EVENT_VERSION;
     ClEventChannelHandleT evtChannelHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
 
@@ -960,7 +960,7 @@ ClRcT clEvtChannelCloseTest()
 {
     ClRcT rc = CL_OK;
     ClEventInitHandleT evtHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag = CL_EVENT_CHANNEL_SUBSCRIBER;
@@ -1045,7 +1045,7 @@ Mynk - TBI void clEvtAllocateCodeCoveTest()
     const ClEventCallbacksT evtCallbacks;
     ClVersionT version = CL_EVENT_VERSION;
     ClEventChannelHandleT evtChannelHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
 
@@ -1100,7 +1100,7 @@ ClRcT clEvtAllocateTest()
 {
     ClRcT rc = CL_OK;
     ClEventInitHandleT evtHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag =
@@ -1224,7 +1224,7 @@ Mynk - NTI void clEvtFreeCodeCoveTest()
     const ClEventCallbacksT evtCallbacks;
     ClVersionT version = CL_EVENT_VERSION;
     ClEventChannelHandleT evtChannelHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
 
@@ -1268,7 +1268,7 @@ ClRcT clEvtFreeTest()
 {
     ClRcT rc = CL_OK;
     ClEventInitHandleT evtHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag =
@@ -1353,7 +1353,7 @@ Mynk - TBI void clEvtAttributesSetCodeCoveTest()
     const ClEventCallbacksT evtCallbacks;
     ClVersionT version = CL_EVENT_VERSION;
     ClEventChannelHandleT evtChannelHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
 
@@ -1380,7 +1380,7 @@ void clEvtAttributesSetTestWrapper(ClEventHandleT eventHandle,
                                    const ClEventPatternArrayT *pPatternArray,
                                    ClEventPriorityT priority,
                                    ClTimeT retentionTime,
-                                   const ClNameT *pPublisherName)
+                                   const SaNameT *pPublisherName)
 {
     ClRcT rc = CL_OK;
 
@@ -1409,7 +1409,7 @@ ClRcT clEvtAttributesSetTest()
 {
     ClRcT rc = CL_OK;
     ClEventInitHandleT evtHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag =
@@ -1424,10 +1424,10 @@ ClRcT clEvtAttributesSetTest()
     const ClEventPatternArrayT *pPatternArray = &gPatternArray;
     ClEventPriorityT priority = 0x2;
     ClTimeT retentionTime = 0;  /* Mynk - Not supported yet */
-    ClNameT publisherName = { strlen(EVT_TEST_PUBLISHER_NAME),
+    SaNameT publisherName = { strlen(EVT_TEST_PUBLISHER_NAME),
         EVT_TEST_PUBLISHER_NAME
     };
-    const ClNameT *pPublisherName = &publisherName;
+    const SaNameT *pPublisherName = &publisherName;
     //ClInvocationT invocation = 100;
 
     /*** Set the attrinute *****/
@@ -1561,7 +1561,7 @@ Mynk - TBI void clEvtAttributesGetCodeCoveTest()
     const ClEventCallbacksT evtCallbacks;
     ClVersionT version = CL_EVENT_VERSION;
     ClEventChannelHandleT evtChannelHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
 
@@ -1589,7 +1589,7 @@ void clEvtAttributesGetTestWrapper(ClEventHandleT eventHandle,
                                    ClEventPatternArrayT *pPatternArray,
                                    ClEventPriorityT * pPriority,
                                    ClTimeT *pRetentionTime,
-                                   ClNameT *pPublisherName,
+                                   SaNameT *pPublisherName,
                                    ClTimeT *pPublishTime, ClEventIdT * pEventId)
 {
     ClRcT rc = CL_OK;
@@ -1625,7 +1625,7 @@ ClRcT clEvtAttributesGetTest()
 {
     ClRcT rc = CL_OK;
     ClEventInitHandleT evtHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag = CL_EVENT_CHANNEL_SUBSCRIBER | CL_EVENT_CHANNEL_PUBLISHER;
@@ -1641,11 +1641,11 @@ ClRcT clEvtAttributesGetTest()
     ClEventPatternArrayT *getPatternArray = NULL;
     ClEventPriorityT priority = 0x1,getPriority;
     ClTimeT retentionTime = 0,getRetentionTime;  /* Mynk - Not supported yet */
-    ClNameT publisherName = { strlen(EVT_TEST_PUBLISHER_NAME),
+    SaNameT publisherName = { strlen(EVT_TEST_PUBLISHER_NAME),
         EVT_TEST_PUBLISHER_NAME
     };
-    ClNameT *pPublisherName = &publisherName;
-    ClNameT getPublisherName;
+    SaNameT *pPublisherName = &publisherName;
+    SaNameT getPublisherName;
     ClTimeT getPublishTime;
     ClEventIdT getEventId;
     ClEventPatternT getEventPattern[4],lessEventPattern[4];
@@ -1924,7 +1924,7 @@ Mynk - TBI void clEvtPublishCodeCoveTest()
     const ClEventCallbacksT evtCallbacks;
     ClVersionT version = CL_EVENT_VERSION;
     ClEventChannelHandleT evtChannelHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
 
@@ -1980,7 +1980,7 @@ ClRcT clEvtPublishTest()
 {
     ClRcT rc = CL_OK;
     ClEventInitHandleT evtHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag =
@@ -1990,10 +1990,10 @@ ClRcT clEvtPublishTest()
 //    const ClEventCallbacksT evtCallbacks;
     ClVersionT version = CL_EVENT_VERSION;
 
-    ClNameT publisherName = { strlen(EVT_TEST_PUBLISHER_NAME),
+    SaNameT publisherName = { strlen(EVT_TEST_PUBLISHER_NAME),
         EVT_TEST_PUBLISHER_NAME
     };
-    const ClNameT *pPublisherName = &publisherName;
+    const SaNameT *pPublisherName = &publisherName;
 
     ClEventHandleT evtEventHandle;
 
@@ -2151,7 +2151,7 @@ Mynk - NTI void clEvtSubscribeCodeCoveTest()
     const ClEventCallbacksT evtCallbacks;
     ClVersionT version = CL_EVENT_VERSION;
     ClEventChannelHandleT evtChannelHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
 
@@ -2211,7 +2211,7 @@ ClRcT clEvtSubscribeTest()
 {
     ClRcT rc = CL_OK;
     ClEventInitHandleT evtHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag = CL_EVENT_CHANNEL_SUBSCRIBER|CL_EVENT_CHANNEL_PUBLISHER;
@@ -2476,7 +2476,7 @@ Mynk - NTI void clEvtUnsubscribeCodeCoveTest()
     const ClEventCallbacksT evtCallbacks;
     ClVersionT version = CL_EVENT_VERSION;
     ClEventChannelHandleT evtChannelHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
    
@@ -2526,7 +2526,7 @@ ClRcT clEvtUnsubscribeTest()
 {
     ClRcT rc = CL_OK;
     ClEventInitHandleT evtHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag = CL_EVENT_CHANNEL_SUBSCRIBER|CL_EVENT_CHANNEL_PUBLISHER;
@@ -2698,7 +2698,7 @@ void clEvtCookieGet()
     ClEventInitHandleT evtHandle;
 #if 0
     ClEventChannelHandleT evtChannelHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag = CL_EVENT_CHANNEL_SUBSCRIBER | 
@@ -2741,7 +2741,7 @@ Mynk - NTI void clEvtDataGetCodeCoveTest()
     const ClEventCallbacksT evtCallbacks;
     ClVersionT version = CL_EVENT_VERSION;
     ClEventChannelHandleT evtChannelHandle;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
 
@@ -2779,7 +2779,7 @@ void clEvtDataGetTestWrapper(ClEventHandleT eventHandle, void *pEventData,
 ClRcT clEvtDataGetTest()
 {
     ClRcT rc = CL_OK;
-    ClNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
+    SaNameT channelName = { strlen(EVT_TEST_CHANNEL_NAME),
         EVT_TEST_CHANNEL_NAME
     };
     ClEventChannelOpenFlagsT evtChannelOpenFlag =
@@ -2895,7 +2895,7 @@ ClUint32T gClEvtUnitTestFuncListSize =
 
 static ClCpmHandleT gClEvtUnitTestCpmHandle;
 
-ClRcT clEvtUnitTestTerminate(ClInvocationT invocation, const ClNameT *compName)
+ClRcT clEvtUnitTestTerminate(ClInvocationT invocation, const SaNameT *compName)
 {
     ClRcT rc;
 
@@ -2910,7 +2910,7 @@ ClRcT clEvtUnitTestTerminate(ClInvocationT invocation, const ClNameT *compName)
 
 ClRcT clEvtUnitTestCpmInit()
 {
-    ClNameT appName;
+    SaNameT appName;
     ClCpmCallbacksT callbacks;
     ClVersionT version;
     ClIocPortT iocPort;

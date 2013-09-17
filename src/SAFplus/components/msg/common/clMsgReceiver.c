@@ -275,7 +275,7 @@ error_out:
 }
 
 ClRcT clMsgReplyReceived(ClMsgMessageIovecT *pMessage, SaTimeT sendTime, SaMsgSenderIdT senderHandle, SaTimeT timeout);
-ClRcT VDECL_VER(clMsgMessageReceived, 4, 0, 0)(ClMsgMessageSendTypeT sendType, ClNameT *pDest, ClMsgMessageIovecT *pMessage, SaTimeT sendTime, ClHandleT senderHandle, SaTimeT timeout)
+ClRcT VDECL_VER(clMsgMessageReceived, 4, 0, 0)(ClMsgMessageSendTypeT sendType, SaNameT *pDest, ClMsgMessageIovecT *pMessage, SaTimeT sendTime, ClHandleT senderHandle, SaTimeT timeout)
 {
     ClRcT rc = CL_OK;
     ClMsgQueueRecordT *pQueue;

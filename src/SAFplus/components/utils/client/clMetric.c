@@ -19,7 +19,7 @@ void clMetricInit(ClMetric2T* metric, char* name, int initialValue, void* placem
 {
   ClWordT i;
   bzero((char *)metric,sizeof(ClMetric2T));
-  clNameSet(&metric->mgd.cmn.name, name);
+  saNameSet(&metric->mgd.cmn.name, name);
   metric->value = initialValue;
   metric->desc  = desc;
   for (i = 0; i < CL_LOG_SEV_DEBUG+1 ; i++)

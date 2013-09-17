@@ -171,8 +171,8 @@ ClRcT   marshallNotificationHeaderBuffer(ClBufferHandleT bufferHandle,
 
     CHECK_RETURN(clXdrMarshallClUint64T(&ntfPtr->notificationHandle, bufferHandle, 0), CL_OK);
     CHECK_RETURN(clXdrMarshallClUint32T(&ntfPtr->eventType, bufferHandle, 0), CL_OK);
-    CHECK_RETURN(clXdrMarshallClNameT(&ntfPtr->notificationObject, bufferHandle, 0), CL_OK);
-    CHECK_RETURN(clXdrMarshallClNameT(&ntfPtr->notifyingObject, bufferHandle, 0), CL_OK);
+    CHECK_RETURN(clXdrMarshallSaNameT(&ntfPtr->notificationObject, bufferHandle, 0), CL_OK);
+    CHECK_RETURN(clXdrMarshallSaNameT(&ntfPtr->notifyingObject, bufferHandle, 0), CL_OK);
     CHECK_RETURN(marshallNtfClassIdT(&ntfPtr->notificationClassId, bufferHandle), CL_OK);
     CHECK_RETURN(clXdrMarshallClInt64T(&ntfPtr->eventTime, bufferHandle, 0), CL_OK);
     CHECK_RETURN(clXdrMarshallClInt16T(&ntfPtr->numCorrelatedNotifications, bufferHandle, 0), CL_OK);
@@ -196,8 +196,8 @@ ClRcT   unmarshallNotificationHeaderBuffer(ClBufferHandleT bufferHandle,
 
     CHECK_RETURN(clXdrUnmarshallClUint64T(bufferHandle, &ntfPtr->notificationHandle), CL_OK);
     CHECK_RETURN(clXdrUnmarshallClUint32T(bufferHandle, &ntfPtr->eventType), CL_OK);
-    CHECK_RETURN(clXdrUnmarshallClNameT(bufferHandle, &ntfPtr->notificationObject), CL_OK);
-    CHECK_RETURN(clXdrUnmarshallClNameT(bufferHandle, &ntfPtr->notifyingObject), CL_OK);
+    CHECK_RETURN(clXdrUnmarshallSaNameT(bufferHandle, &ntfPtr->notificationObject), CL_OK);
+    CHECK_RETURN(clXdrUnmarshallSaNameT(bufferHandle, &ntfPtr->notifyingObject), CL_OK);
     CHECK_RETURN(unmarshallNtfClassIdT(bufferHandle, &ntfPtr->notificationClassId), CL_OK);
     CHECK_RETURN(clXdrUnmarshallClInt64T(bufferHandle, &ntfPtr->eventTime), CL_OK);
     CHECK_RETURN(clXdrUnmarshallClInt16T(bufferHandle, &ntfPtr->numCorrelatedNotifications), CL_OK);

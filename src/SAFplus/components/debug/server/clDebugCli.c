@@ -1746,7 +1746,7 @@ static ClRcT exitContext( ClDebugCliT* pDebugObj)
 static ClRcT enterContext( ClDebugCliT* pDebugObj, ClCharT* name )
 {
     ClRcT                   rc = CL_OK;
-    ClNameT                 nameStr;
+    SaNameT                 nameStr;
     ClIocAddressT           iocAddress;
 
     if (pDebugObj->context.isNodeAddressValid)
@@ -1755,7 +1755,7 @@ static ClRcT enterContext( ClDebugCliT* pDebugObj, ClCharT* name )
         {
             if (strcmp(name, "cpm"))
             {
-                strcpy (nameStr.value, name);
+                strcpy ((ClCharT *)nameStr.value, name);
                 nameStr.length = strlen(name);
                 if(nameStr.length == 0)
                 {

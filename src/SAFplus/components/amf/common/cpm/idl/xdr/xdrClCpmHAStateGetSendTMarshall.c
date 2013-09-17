@@ -53,13 +53,13 @@ ClRcT clXdrMarshallClCpmHAStateGetSendT_4_0_0(void* pGenVar, ClBufferHandleT msg
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->compName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->compName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->csiName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->csiName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

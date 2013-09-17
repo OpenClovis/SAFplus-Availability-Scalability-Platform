@@ -488,7 +488,7 @@ void clDifferenceVectorCopy(ClDifferenceVectorT *dest, ClDifferenceVectorT *src)
 }
 
 ClDifferenceVectorKeyT *clDifferenceVectorKeyMake(ClDifferenceVectorKeyT *key,
-                                                  const ClNameT *groupKey, 
+                                                  const SaNameT *groupKey, 
                                                   const ClCharT *sectionFmt, ...)
 {
     ClInt32T sectionLen = 0;

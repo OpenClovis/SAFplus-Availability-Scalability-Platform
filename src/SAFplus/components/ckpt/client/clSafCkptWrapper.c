@@ -354,7 +354,7 @@ SaAisErrorT saCkptCheckpointOpen(
         ckptAttr.maxSectionIdSize  = ckptAttributes->maxSectionIdSize;
         
         rc = clCkptCheckpointOpen( (ClCkptSvcHdlT) ckptHandle,
-                (ClNameT *)checkpointName, 
+                (SaNameT *)checkpointName, 
                 &ckptAttr,
                 (ClCkptOpenFlagsT) checkpointOpenFlags, 
                 (ClTimeT)timeout, 
@@ -363,7 +363,7 @@ SaAisErrorT saCkptCheckpointOpen(
     else
     {
         rc = clCkptCheckpointOpen( (ClCkptSvcHdlT) ckptHandle,
-                (ClNameT *)checkpointName, 
+                (SaNameT *)checkpointName, 
                 NULL,
                 (ClCkptOpenFlagsT) checkpointOpenFlags, 
                 (ClTimeT)timeout, 
@@ -423,7 +423,7 @@ SaAisErrorT saCkptCheckpointUnlink(SaCkptHandleT ckptHandle,
      * Call the corresponding ckpt client library function.
      */
     rc = clCkptCheckpointDelete((ClCkptSvcHdlT) ckptHandle,
-            (ClNameT *)checkpointName);
+            (SaNameT *)checkpointName);
 
     /*
      * Translate the clovis error type to SAF error type.
@@ -895,7 +895,7 @@ SaAisErrorT saCkptCheckpointOpenAsync (
         ckptAttr.maxSectionIdSize = ckptAttributes->maxSectionIdSize;
         rc = clCkptCheckpointOpenAsync( (ClCkptSvcHdlT)ckptHandle,
                 (ClInvocationT) invocation,
-                (ClNameT *)checkpointName,
+                (SaNameT *)checkpointName,
                 &ckptAttr,
                 (ClCkptOpenFlagsT)checkpointOpenFlags);
     }
@@ -903,7 +903,7 @@ SaAisErrorT saCkptCheckpointOpenAsync (
     {
         rc = clCkptCheckpointOpenAsync( (ClCkptSvcHdlT)ckptHandle,
                 (ClInvocationT) invocation,
-                (ClNameT *)checkpointName,
+                (SaNameT *)checkpointName,
                 NULL,
                 (ClCkptOpenFlagsT)checkpointOpenFlags);
 

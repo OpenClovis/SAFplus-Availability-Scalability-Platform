@@ -57,12 +57,12 @@ typedef enum
 typedef struct ClNodeCacheSlotInfo
 {
     ClUint32T           slotId;
-    ClNameT             nodeName;
+    SaNameT             nodeName;
 } ClNodeCacheSlotInfoT;
 
 ClRcT clNodeCacheInitialize(ClBoolT createFlag);
 ClRcT clNodeCacheFinalize(void);
-ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint32T capability, ClNameT *nodeName);
+ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint32T capability, SaNameT *nodeName);
 ClRcT clNodeCacheViewGetFast(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers);
 ClRcT clNodeCacheViewGetFastSafe(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers);
 ClRcT clNodeCacheViewGet(ClNodeCacheMemberT *pMembers, ClUint32T *pMaxMembers);

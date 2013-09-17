@@ -56,7 +56,7 @@ ClRcT clXdrUnmarshallClAmsCSIActiveDescriptorT_4_0_0(ClBufferHandleT msg , void*
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->activeCompName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->activeCompName));
     if (CL_OK != rc)
     {
         return rc;

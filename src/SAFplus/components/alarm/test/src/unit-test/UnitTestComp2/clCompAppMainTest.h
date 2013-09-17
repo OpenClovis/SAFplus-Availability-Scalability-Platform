@@ -88,7 +88,7 @@ clCompAppHealthCheck(
 ClRcT
 clCompAppTerminate(
         ClInvocationT       invocation,
-        const ClNameT       *compName);
+        const SaNameT       *compName);
 
 /******************************************************************************
  * Application Work Assignment Functions
@@ -97,15 +97,15 @@ clCompAppTerminate(
 ClRcT
 clCompAppAMFCSISet(
         ClInvocationT       invocation,
-        const ClNameT       *compName,
+        const SaNameT       *compName,
         ClAmsHAStateT       haState,
         ClAmsCSIDescriptorT csiDescriptor);
 
 ClRcT
 clCompAppAMFCSIRemove(
         ClInvocationT       invocation,
-        const ClNameT       *compName,
-        const ClNameT       *csiName,
+        const SaNameT       *compName,
+        const SaNameT       *csiName,
         ClAmsCSIFlagsT      csiFlags);
 
 /******************************************************************************

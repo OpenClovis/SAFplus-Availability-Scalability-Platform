@@ -111,7 +111,7 @@ ClRcT clMsgReplyReceived(ClMsgMessageIovecT *pMessage, SaTimeT sendTime, SaMsgSe
     pReplyInfo->pRecvMessage->type = pMessage->type;
     pReplyInfo->pRecvMessage->version = pMessage->version;
     pReplyInfo->pRecvMessage->priority = pMessage->priority;
-    memcpy(pReplyInfo->pRecvMessage->senderName, pMessage->senderName, sizeof(ClNameT));
+    memcpy(pReplyInfo->pRecvMessage->senderName, pMessage->senderName, sizeof(SaNameT));
     memcpy(pReplyInfo->pRecvMessage->data, pMessage->pIovec[0].iov_base, pMessage->pIovec[0].iov_len);
     pReplyInfo->pRecvMessage->size = pMessage->pIovec[0].iov_len;
 
@@ -132,7 +132,7 @@ error_out:
 
 static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr, 
                          ClMsgMessageSendTypeT sendType, 
-                         ClNameT *pDest, 
+                         SaNameT *pDest, 
                          ClMsgMessageIovecT *pMessage,
                          SaTimeT sendTime, 
                          ClHandleT senderHandle, 
@@ -214,7 +214,7 @@ out:
 
 ClRcT clMsgClientMessageSend(ClIocAddressT *pDestAddr, 
                              ClIocAddressT *pServerAddr, 
-                             ClNameT *pDest, 
+                             SaNameT *pDest, 
                              ClMsgMessageIovecT *pMessage,
                              SaTimeT sendTime, 
                              SaTimeT timeout,
@@ -225,22 +225,22 @@ ClRcT clMsgClientMessageSend(ClIocAddressT *pDestAddr,
 {
     ClRcT rc = CL_OK;
     ClUint32T i;
-    ClNameT tempDest;
+    SaNameT tempDest;
     ClIocAddressT queueAddr;
     ClMsgQGroupCkptDataT qGroupData = {{0}};
     ClMsgQueueCkptDataT queueData = {{0}};
 
     if(pDestAddr->iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS)
     {
-        if (clMsgQGroupCkptDataGet((ClNameT*)pDest, &qGroupData) == CL_OK)
+        if (clMsgQGroupCkptDataGet((SaNameT*)pDest, &qGroupData) == CL_OK)
         {
             for (i = 0; i < qGroupData.numberOfQueues; i++)
             {
-                ClNameT *queueName = (ClNameT *)(qGroupData.pQueueList + i);
+                SaNameT *queueName = (SaNameT *)(qGroupData.pQueueList + i);
 
-                clNameCopy(&tempDest, (ClNameT *)queueName);
+                saNameCopy(&tempDest, (SaNameT *)queueName);
 
-                if(clMsgQCkptExists((ClNameT*)&tempDest, &queueData))
+                if(clMsgQCkptExists((SaNameT*)&tempDest, &queueData))
                 {
                     if (queueData.qAddress.nodeAddress != 0)
                     {
@@ -305,7 +305,7 @@ error_out:
 
 ClRcT clMsgClientMessageSendReceive(ClIocAddressT * pDestAddr,
                              ClIocAddressT * pServerAddr,
-                             ClNameT *pDest,
+                             SaNameT *pDest,
                              SaMsgMessageT *pSendMessage,
                              SaTimeT sendTime,
                              SaMsgMessageT *pRecvMessage,
@@ -461,7 +461,7 @@ ClRcT clMsgClientMessageReply(SaMsgMessageT *pMessage,
 {
     ClRcT rc;
     ClRcT retCode;
-    ClNameT dummyName = {0, {0}};
+    SaNameT dummyName = {0, {0}};
     ClMsgReplyDetailsT *pReplyInfo;
 
     ClMsgMessageIovecT msgVector;

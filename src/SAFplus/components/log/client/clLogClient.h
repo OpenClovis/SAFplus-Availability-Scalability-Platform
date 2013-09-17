@@ -39,16 +39,16 @@ extern "C" {
 
 ClRcT
 clLogClntSSOResponseProcess(ClHandleT  hLog,
-                            ClNameT    *pStreamName,
-                            ClNameT    *pNodeName,
+                            SaNameT    *pStreamName,
+                            SaNameT    *pNodeName,
                             ClStringT  *pShmName,
                             ClUint32T  shmSize,
                             ClHandleT  *phStream);
 ClRcT
 clLogClntHandlerRegisterParamValidate(ClLogHandleT              hLog, 
-                                      ClNameT                   *pStreamName, 
+                                      SaNameT                   *pStreamName, 
                                       ClLogStreamScopeT         streamScope,
-                                      ClNameT                   *pNodeName, 
+                                      SaNameT                   *pNodeName, 
                                       ClLogStreamHandlerFlagsT  handlerFlags,
                                       ClLogStreamHandleT        *phStream);
 
@@ -56,9 +56,9 @@ ClRcT clLogClntFilterSetCb(ClBitmapHandleT  hBitmap,
                            ClUint32T        bitNum, 
                            void             *pCookie);
 ClRcT
-clLogClientFilterSetNotify(ClNameT            streamName,
+clLogClientFilterSetNotify(SaNameT            streamName,
                            ClLogStreamScopeT  streamScope,
-                           ClNameT            nodeName,
+                           SaNameT            nodeName,
                            ClLogFilterT       filter);
 
 ClRcT

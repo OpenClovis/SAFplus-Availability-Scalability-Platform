@@ -304,7 +304,7 @@ corXlateMOPath(ClCharT *path, ClCorMOIdPtrT cAddr)
         return(CL_COR_SET_RC(CL_COR_ERR_INVALID_PARAM));
 }
 
-ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh,  ClNameT *moIdName)
+ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh,  SaNameT *moIdName)
 {
     ClRcT rc = CL_OK;
     ClCorInstanceIdT inst = -1;
@@ -413,7 +413,7 @@ ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh,  ClNameT *moIdName)
                                   // coverity[pass_by_value]
 ClRcT _clCorAttrPathToAttrNameGet(ClCorMOIdT moIdh, 
                                   ClCorAttrPathT attrPath,  
-                                  ClNameT *moIdName)
+                                  SaNameT *moIdName)
 
 {
     ClRcT rc = CL_OK;
@@ -1529,8 +1529,8 @@ corObjShowByName(ClCorMOIdT* pMoId, ClCorServiceIdT srvcId, ClCharT *cAttrPath, 
             return rc;
         }
 #if 0
-			ClNameT name;
-			memset(&name, 0 ,sizeof(ClNameT));
+			SaNameT name;
+			memset(&name, 0 ,sizeof(SaNameT));
 			_clCorAttrPathToAttrNameGet(moId, *pAttrPath, &name);
 #endif
     }

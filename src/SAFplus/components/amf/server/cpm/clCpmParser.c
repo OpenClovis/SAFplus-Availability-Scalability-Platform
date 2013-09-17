@@ -1162,19 +1162,16 @@ ClRcT cpmParseNodeInfo(ClParserPtrT file)
                                   "type doesn't exist in nodeInstance");
 
             /* For CPM-CM interaction */
-            strcpy(gpClCpm->pCpmLocalInfo->nodeType.value, cpmNodeType);
-            gpClCpm->pCpmLocalInfo->nodeType.length = 
-                strlen(gpClCpm->pCpmLocalInfo->nodeType.value);
-            clNameSet(&gpClCpm->pCpmLocalInfo->nodeIdentifier,
-                      clCpmNodeName);
+            strcpy((ClCharT *)gpClCpm->pCpmLocalInfo->nodeType.value, cpmNodeType);
+            gpClCpm->pCpmLocalInfo->nodeType.length = strlen((const ClCharT *) gpClCpm->pCpmLocalInfo->nodeType.value);
+            saNameSet(&gpClCpm->pCpmLocalInfo->nodeIdentifier, clCpmNodeName);
             /* For creation of COR object. */
             CPM_PARSER_NULL_CHECK(nodeMoId,
                                   clParserAttr(nodeInstance,
                                                CL_CPM_PARSER_ATTR_NODE_INST_NODE_MOID),
                                   "MoId doesn't exist in nodeInstance");
-            strcpy(gpClCpm->pCpmLocalInfo->nodeMoIdStr.value, nodeMoId);
-            gpClCpm->pCpmLocalInfo->nodeMoIdStr.length = 
-                            strlen(gpClCpm->pCpmLocalInfo->nodeMoIdStr.value);
+            strcpy((ClCharT *)gpClCpm->pCpmLocalInfo->nodeMoIdStr.value, nodeMoId);
+            gpClCpm->pCpmLocalInfo->nodeMoIdStr.length = strlen((const ClCharT *)gpClCpm->pCpmLocalInfo->nodeMoIdStr.value);
 
             break;
         }
@@ -1287,7 +1284,7 @@ ClRcT cpmParseNodeInfo(ClParserPtrT file)
                 nodeType = clParserAttr(nodeInstance, CL_CPM_PARSER_ATTR_NODE_INST_TYPE);
                 if(nodeType)
                 {
-                    clNameSet(&cpmL->nodeType, nodeType);
+                    saNameSet(&cpmL->nodeType, nodeType);
                 }
 
                 chassisID = clParserAttr(nodeInstance, CL_CPM_PARSER_ATTR_NODE_INST_CHASSIS_ID);
@@ -2717,8 +2714,8 @@ ClRcT cpmGetConfig(void)
                      */
                     strncpy(nodeConfig.nodeName, clCpmNodeName, sizeof(nodeConfig.nodeName)-1);
                     strncpy(nodeConfig.cpmType, "GLOBAL", sizeof(nodeConfig.cpmType)-1);
-                    clNameSet(&nodeConfig.nodeType, clCpmNodeName);
-                    clNameSet(&nodeConfig.nodeIdentifier, clCpmNodeName);
+                    saNameSet(&nodeConfig.nodeType, clCpmNodeName);
+                    saNameSet(&nodeConfig.nodeIdentifier, clCpmNodeName);
                     goto config_set;
                 }
                 tries &= maxTries;
@@ -2763,9 +2760,9 @@ ClRcT cpmGetConfig(void)
         if(rc == CL_OK)
         {
             config_set:
-            clNameCopy(&gpClCpm->pCpmLocalInfo->nodeType, &nodeConfig.nodeType);
-            clNameCopy(&gpClCpm->pCpmLocalInfo->nodeIdentifier, &nodeConfig.nodeIdentifier);
-            clNameCopy(&gpClCpm->pCpmLocalInfo->nodeMoIdStr, &nodeConfig.nodeMoIdStr);
+            saNameCopy(&gpClCpm->pCpmLocalInfo->nodeType, &nodeConfig.nodeType);
+            saNameCopy(&gpClCpm->pCpmLocalInfo->nodeIdentifier, &nodeConfig.nodeIdentifier);
+            saNameCopy(&gpClCpm->pCpmLocalInfo->nodeMoIdStr, &nodeConfig.nodeMoIdStr);
             if(!strcmp(nodeConfig.cpmType, "LOCAL"))
             {
                 gpClCpm->pCpmConfig->cpmType = CL_CPM_LOCAL;
@@ -2934,18 +2931,18 @@ ClRcT cpmParseSlotFile(void)
                                   clParserAttr(classType,
                                                CL_CPM_PARSER_ATTR_CLASS_TYPE_NAME),
                                   "name doesn't exist in identifier");
-            strcpy(nodeClassType->name.value, temp);
-            nodeClassType->name.length = strlen(nodeClassType->name.value);
+            strcpy((ClCharT *)nodeClassType->name.value, temp);
+            nodeClassType->name.length = strlen((const ClCharT *)nodeClassType->name.value);
             
             temp = clParserAttr(classType, CL_CPM_PARSER_ATTR_CLASS_TYPE_ID);
             if (temp != NULL)
             {
-                strcpy(nodeClassType->identifier.value, temp);
-                nodeClassType->identifier.length = strlen(nodeClassType->identifier.value);
+                strcpy((ClCharT *)nodeClassType->identifier.value, temp);
+                nodeClassType->identifier.length = strlen((const ClCharT *)nodeClassType->identifier.value);
             }
             else
             {
-                strcpy(nodeClassType->identifier.value, "\0");
+                strcpy((ClCharT *) nodeClassType->identifier.value, "\0");
                 nodeClassType->identifier.length = 0;
             }
             clOsalMutexLock(&gpClCpm->cpmMutex);
@@ -3036,7 +3033,7 @@ failure:
     
 }
 
-ClRcT cpmSlotClassAdd(ClNameT *type, ClNameT *identifier, ClUint32T slotNumber)
+ClRcT cpmSlotClassAdd(SaNameT *type, SaNameT *identifier, ClUint32T slotNumber)
 {
     ClCpmNodeClassTypeT *classType =  NULL;
     ClUint32T *slots = NULL;
@@ -3055,8 +3052,8 @@ ClRcT cpmSlotClassAdd(ClNameT *type, ClNameT *identifier, ClUint32T slotNumber)
 
     classType = clHeapCalloc(1, sizeof(*classType));
     CL_ASSERT(classType != NULL);
-    clNameCopy(&classType->name, type);
-    clNameCopy(&classType->identifier, identifier);
+    saNameCopy(&classType->name, type);
+    saNameCopy(&classType->identifier, identifier);
     numSlots = 0;
     if(slotNumber)
     {
@@ -3096,8 +3093,8 @@ ClRcT cpmSlotClassAdd(ClNameT *type, ClNameT *identifier, ClUint32T slotNumber)
         {
             classType = clHeapCalloc(1, sizeof(*classType));
             CL_ASSERT(classType != NULL);
-            clNameCopy(&classType->name, type);
-            clNameCopy(&classType->identifier, identifier);
+            saNameCopy(&classType->name, type);
+            saNameCopy(&classType->identifier, identifier);
         }
         clLogDebug("SLOT", "ADD", "Class Type [%.*s] added to slot [%d]", type->length, type->value, slots[i]);
         rc = clCntNodeAdd(gpClCpm->slotTable, (ClCntKeyHandleT)(ClWordT)slots[i], (ClCntDataHandleT)classType, NULL);
@@ -3141,7 +3138,7 @@ ClRcT cpmSlotClassDelete(const ClCharT *type)
         rc = clCntNextNodeGet(gpClCpm->slotTable, nodeHandle, &nextNodeHandle);
         if(clCntNodeUserDataGet(gpClCpm->slotTable, nodeHandle, (ClCntDataHandleT*)&cpmClassType) == CL_OK)
         {
-            if(!strcmp(cpmClassType->name.value, type))
+            if(!strcmp((const ClCharT *)cpmClassType->name.value, type))
             {
                 ClCntKeyHandleT key = 0;
                 if(clCntNodeUserKeyGet(gpClCpm->slotTable, nodeHandle, &key) == CL_OK)

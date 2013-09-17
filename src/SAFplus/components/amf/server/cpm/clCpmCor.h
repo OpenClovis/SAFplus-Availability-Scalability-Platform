@@ -39,9 +39,9 @@ extern "C"
 #include <clCorUtilityApi.h>
 #include <clAmsTypes.h>
 
-extern ClRcT cpmCorNodeObjectCreate(ClNameT nodeMoIdName);
+extern ClRcT cpmCorNodeObjectCreate(SaNameT nodeMoIdName);
 
-extern ClRcT cpmCorMoIdToMoIdNameGet(ClCorMOIdT *moId, ClNameT *moIdName);
+extern ClRcT cpmCorMoIdToMoIdNameGet(ClCorMOIdT *moId, SaNameT *moIdName);
 
 #ifdef __cplusplus
 }

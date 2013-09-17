@@ -52,7 +52,7 @@ struct _ClAlarmInfoIDLT_4_0_0;
 
 typedef struct _ClAlarmInfoIDLT_4_0_0 {
     ClAlarmProbableCauseT_4_0_0    probCause;
-    ClNameT    compName;
+    SaNameT    compName;
     ClCorMOIdT_4_0_0    moId;
     ClAlarmStateT_4_0_0    alarmState;
     ClAlarmCategoryTypeT_4_0_0    category;

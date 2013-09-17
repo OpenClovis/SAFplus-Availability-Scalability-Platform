@@ -2253,13 +2253,13 @@ clXdrUnmarshallPtr((msg),(pointer), sizeof(ClStringT),multiplicity, clXdrUnmarsh
     
 /**
  ************************************************
- *  \brief Marshall data of ClNameT type. 
+ *  \brief Marshall data of SaNameT type. 
  *
  *  \par Header File:
  *  clXdrApi.h
  *
  *  \param pPyld (in)    This parameter is the reference to the payload data 
- *  of type ClNameT, which is to be marshalled.
+ *  of type SaNameT, which is to be marshalled.
  *
  *  \param msg   (inout) This is the handle to the buffer which is created 
  *  by the user. On success this message handle is updated and it
@@ -2275,7 +2275,7 @@ clXdrUnmarshallPtr((msg),(pointer), sizeof(ClStringT),multiplicity, clXdrUnmarsh
  *  \retval CL_ERR_NULL_POINTER On passing any of the pointer parameter as NULL.
  *
  *  \par Description:
- *  This function is used to marshall the payload data of ClNameT type. The
+ *  This function is used to marshall the payload data of SaNameT type. The
  *  successful execution of this function adds the marshalled data into  
  *  message handle which should be used to transfer the data over network 
  *  using rmd call.
@@ -2283,13 +2283,13 @@ clXdrUnmarshallPtr((msg),(pointer), sizeof(ClStringT),multiplicity, clXdrUnmarsh
  *  \par Library File:
  *  ClUtil
  *
- *  \sa clXdrUnmarshallClNameT
+ *  \sa clXdrUnmarshallSaNameT
  */
-ClRcT  clXdrMarshallClNameT(void *pPyld, ClBufferHandleT msg, ClUint32T isDelete);
+ClRcT  clXdrMarshallSaNameT(void *pPyld, ClBufferHandleT msg, ClUint32T isDelete);
 
 /**
  ************************************************
- *  \brief Unmarshall data of ClNameT type. 
+ *  \brief Unmarshall data of SaNameT type. 
  *
  *  \par Header File:
  *  clXdrApi.h
@@ -2310,28 +2310,28 @@ ClRcT  clXdrMarshallClNameT(void *pPyld, ClBufferHandleT msg, ClUint32T isDelete
  *  \retval CL_ERR_INVALID_PARAMETER On passing msg handle as 0(invalid).
  *
  *  \par Description:
- *  This function is used to unmarshall the payload data of ClNameT type. The
+ *  This function is used to unmarshall the payload data of SaNameT type. The
  *  successful execution of this function unmarshalles the marshalled data into  
  *  pPyld i.e. pPyld contains the data.
  *
  *  \par Library File:
  *  ClUtil
  *
- *  \sa clXdrMarshallClNameT()
+ *  \sa clXdrMarshallSaNameT()
  */
-ClRcT  clXdrUnmarshallClNameT(ClBufferHandleT msg, void *pPyld);
+ClRcT  clXdrUnmarshallSaNameT(ClBufferHandleT msg, void *pPyld);
 
 /**
  ************************************************
- *  \brief Marshall array of ClNameT type. 
+ *  \brief Marshall array of SaNameT type. 
  *
  *  \par Header File:
  *  clXdrApi.h
  *
- *  \param pointer (in) This parameter is the array of type ClNameT, 
+ *  \param pointer (in) This parameter is the array of type SaNameT, 
  *  which is to be marshalled.
  *
- *  \param multiplicity (in) This is the number of elements of type ClNameT to
+ *  \param multiplicity (in) This is the number of elements of type SaNameT to
  *  be marshalled.
  *
  *  \param msg   (inout) This is the handle to the buffer which is created 
@@ -2348,22 +2348,22 @@ ClRcT  clXdrUnmarshallClNameT(ClBufferHandleT msg, void *pPyld);
  *  \retval CL_ERR_NULL_POINTER On passing any of the pointer parameter as NULL.
  *
  *  \par Description:
- *  This function is used to marshall the payload data of ClNameT array type. The
+ *  This function is used to marshall the payload data of SaNameT array type. The
  *  successful execution of this function adds the marshalled data into  
  *  message handle which should be used to transfer the data over network using rmd call.
  *
  *  \par Library File:
  *  ClUtil
  *
- *  \sa clXdrUnmarshallArrayClNameT()
+ *  \sa clXdrUnmarshallArraySaNameT()
  */
-#define clXdrMarshallArrayClNameT(pointer, multiplicity, msg, isDelete) \
-clXdrMarshallArray((pointer), sizeof(ClNameT), \
-                   (multiplicity), clXdrMarshallClNameT, \
+#define clXdrMarshallArraySaNameT(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallArray((pointer), sizeof(SaNameT), \
+                   (multiplicity), clXdrMarshallSaNameT, \
                    (msg), (isDelete))
 /**
  ************************************************
- *  \brief Unmarshall data of ClNameT array type. 
+ *  \brief Unmarshall data of SaNameT array type. 
  *
  *  \par Header File:
  *  clXdrApi.h
@@ -2375,9 +2375,9 @@ clXdrMarshallArray((pointer), sizeof(ClNameT), \
  *  and still not unmarshalled.  
  *
  *  \param pointer (out) This parameter is pointer to the payload data 
- *  of ClNameT array type and the unmarshalled data is filled into this.
+ *  of SaNameT array type and the unmarshalled data is filled into this.
  *
- *  \param multiplicity (in) This is the number of elements of type ClNameT in the
+ *  \param multiplicity (in) This is the number of elements of type SaNameT in the
  *  array to be unmarshalled.
  * 
  *  \retval CL_OK The function executed successfully.
@@ -2387,30 +2387,30 @@ clXdrMarshallArray((pointer), sizeof(ClNameT), \
  *  \retval CL_ERR_INVALID_PARAMETER On passing msg handle as 0(invalid).
  *
  *  \par Description:
- *  This function is used to unmarshall the payload data of ClNameT array type. The
+ *  This function is used to unmarshall the payload data of SaNameT array type. The
  *  successful execution of this function unmarshalles the marshalled data into  
  *  'pointer' parameter.
  *
  *  \par Library File:
  *  ClUtil
  *
- *  \sa clXdrMarshallArrayClNameT()
+ *  \sa clXdrMarshallArraySaNameT()
  */
-#define clXdrUnmarshallArrayClNameT(msg, pointer, multiplicity) \
+#define clXdrUnmarshallArraySaNameT(msg, pointer, multiplicity) \
 clXdrUnmarshallArray((msg), \
-                     (pointer), sizeof(ClNameT), \
-                     (multiplicity), clXdrUnmarshallClNameT)
+                     (pointer), sizeof(SaNameT), \
+                     (multiplicity), clXdrUnmarshallSaNameT)
 /**
  ************************************************
- *  \brief Marshall pointer of ClNameT type. 
+ *  \brief Marshall pointer of SaNameT type. 
  *
  *  \par Header File:
  *  clXdrApi.h
  *
  *  \param pointer (in) This parameter is the pointer to the payload data 
- *  of type ClNameT, which is to be marshalled.
+ *  of type SaNameT, which is to be marshalled.
  *
- *  \param multiplicity (in) This is the number of elements of type ClNameT to
+ *  \param multiplicity (in) This is the number of elements of type SaNameT to
  *  be marshalled.
  *
  *  \param msg   (inout) This is the handle to the buffer which is created 
@@ -2428,23 +2428,23 @@ clXdrUnmarshallArray((msg), \
  *  \retval CL_ERR_NULL_POINTER On passing any of the pointer parameter as NULL.
  *
  *  \par Description:
- *  This function is used to marshall the payload data of ClNameT type. The
+ *  This function is used to marshall the payload data of SaNameT type. The
  *  successful execution of this function adds the marshalled data into  
  *  message handle which should be used to transfer the data over network using rmd call.
  *
  *  \par Library File:
  *  ClUtil
  *
- *  \sa clXdrUnmarshallPtrClNameT()
+ *  \sa clXdrUnmarshallPtrSaNameT()
  */
 
-#define clXdrMarshallPtrClNameT(pointer, multiplicity, msg, isDelete) \
-clXdrMarshallPtr((pointer), sizeof(ClNameT), \
-                 (multiplicity), clXdrMarshallClNameT, \
+#define clXdrMarshallPtrSaNameT(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPtr((pointer), sizeof(SaNameT), \
+                 (multiplicity), clXdrMarshallSaNameT, \
                  (msg), (isDelete))
 /**
  ************************************************
- *  \brief Unmarshall data of ClNameT pointer type. 
+ *  \brief Unmarshall data of SaNameT pointer type. 
  *
  *  \par Header File:
  *  clXdrApi.h
@@ -2455,10 +2455,10 @@ clXdrMarshallPtr((pointer), sizeof(ClNameT), \
  *  remaining data which were marshalled using this handle 
  *  and still not unmarshalled.  
  *
- *  \param pointer (out) This parameter is of ClNameT pointer type and 
+ *  \param pointer (out) This parameter is of SaNameT pointer type and 
  *  the unmarshalled data is filled into this.
  *
- *  \param multiplicity (in) This is the number of elements of type ClNameT
+ *  \param multiplicity (in) This is the number of elements of type SaNameT
  *  to be unmarshalled.
  * 
  *  \retval CL_OK The function executed successfully.
@@ -2468,19 +2468,19 @@ clXdrMarshallPtr((pointer), sizeof(ClNameT), \
  *  \retval CL_ERR_INVALID_PARAMETER On passing msg handle as 0(invalid).
  *
  *  \par Description:
- *  This function is used to unmarshall the payload data of ClNameT pointer type. The
+ *  This function is used to unmarshall the payload data of SaNameT pointer type. The
  *  successful execution of this function unmarshalles the marshalled data into  
  *  'pointer' parameter.
  *
  *  \par Library File:
  *  ClUtil
  *
- *  \sa clXdrMarshallPtrClNameT()
+ *  \sa clXdrMarshallPtrSaNameT()
  */
-#define clXdrUnmarshallPtrClNameT(msg, pointer, multiplicity) \
+#define clXdrUnmarshallPtrSaNameT(msg, pointer, multiplicity) \
 clXdrUnmarshallPtr((msg), \
-                   (pointer), sizeof(ClNameT), \
-                    multiplicity, clXdrUnmarshallClNameT)
+                   (pointer), sizeof(SaNameT), \
+                    multiplicity, clXdrUnmarshallSaNameT)
 /**
  ************************************************
  *  \brief Marshall data of ClVersionT type. 

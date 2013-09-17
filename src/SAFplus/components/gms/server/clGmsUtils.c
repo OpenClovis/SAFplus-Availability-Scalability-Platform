@@ -379,7 +379,7 @@ int OpenAisConfFileCreate(char* ipAddr,
     return 0;
 }
 
-int getNameString(ClNameT *name, ClCharT *retName)
+int getNameString(SaNameT *name, ClCharT *retName)
 {
     ClUint32T   i=0;
 

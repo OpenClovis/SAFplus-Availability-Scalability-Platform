@@ -59,7 +59,7 @@ ClCpmHandleT              gAlarmCpmHandle;
 /**********************************************************************/
 
 ClRcT   alarmSvcTerminate(ClInvocationT invocation,
-                            const ClNameT  *compName)
+                            const SaNameT  *compName)
 {
     ClRcT rc =CL_OK;
 
@@ -109,7 +109,7 @@ ClRcT alarmServerInitialize (ClUint32T argc, ClCharT *argv[])
     ClEoExecutionObjT*  pEOObj  =   NULL;
     ClRcT               rc      =   CL_OK;    
     ClCpmCallbacksT     callbacks;
-    ClNameT             appName;
+    SaNameT             appName;
     ClVersionT          version =   CL_EVENT_VERSION;
 
     CL_FUNC_ENTER();
@@ -219,7 +219,7 @@ ClRcT clAlarmServerAlarmChannelInit()
 {
     ClRcT rc = CL_OK;
     ClVersionT emVersion = CL_EVENT_VERSION; 
-    ClNameT channelName = {strlen(ClAlarmEventName), ClAlarmEventName};
+    SaNameT channelName = {strlen(ClAlarmEventName), ClAlarmEventName};
 
     if(CL_OK!=( rc =  clEventInitialize( &gAlarmInitHandle, NULL, &emVersion)))
     {
@@ -280,7 +280,7 @@ ClRcT VDECL(clAlarmHandleToInfoGet) (ClEoDataT data,
     }
     
     alarmInfoIDL.probCause = pAlarmInfo->probCause;
-    clNameCopy(&alarmInfoIDL.compName, &pAlarmInfo->compName);
+    saNameCopy(&alarmInfoIDL.compName, &pAlarmInfo->compName);
     alarmInfoIDL.moId = pAlarmInfo->moId;
     alarmInfoIDL.alarmState = pAlarmInfo->alarmState;
     alarmInfoIDL.category = pAlarmInfo->category;

@@ -141,7 +141,7 @@ clCorServiceRuleAdd(ClCorMOIdPtrT moh, ClCorAddrT addr)
     ClRcT          rc = CL_OK;
     corRouteApiInfo_t  param;
     ClUint32T      size =  sizeof(param);
-    ClNameT        name = {0};
+    SaNameT        name = {0};
     
     CL_FUNC_ENTER();
 
@@ -208,7 +208,7 @@ ClRcT clCorMoIdToComponentAddressGet(ClCorMOIdPtrT moh, ClCorAddrT* addr)
     ClRcT          rc = CL_OK;
     corRouteApiInfo_t  param;
     ClUint32T      size =  sizeof(param);
-    ClNameT        name = {0};
+    SaNameT        name = {0};
     
     CL_FUNC_ENTER();
 
@@ -273,7 +273,7 @@ ClRcT clCorServiceRuleDisable(ClCorMOIdPtrT moh, ClCorAddrT addr)
     ClRcT   rc = CL_OK;
     corRouteApiInfo_t  param;
     ClUint32T      size =  sizeof(param);
-    ClNameT        name = {0};
+    SaNameT        name = {0};
     
     CL_FUNC_ENTER();
 
@@ -411,7 +411,7 @@ ClRcT clCorServiceRuleDelete(ClCorMOIdPtrT moh, ClCorAddrT addr)
     ClRcT   rc = CL_OK;
     corRouteApiInfo_t  param;
     ClUint32T      size =  sizeof(param);
-    ClNameT        name = {0};
+    SaNameT        name = {0};
     
     CL_FUNC_ENTER();
 
@@ -496,7 +496,7 @@ ClRcT clCorServiceRuleStatusGet(ClCorMOIdPtrT moh, ClCorAddrT addr, ClInt8T *sta
     ClRcT   rc = CL_OK;
     corRouteApiInfo_t  param;
     ClUint32T      size =  sizeof(param);
-    ClNameT        name = {0};
+    SaNameT        name = {0};
     
     CL_FUNC_ENTER();
 
@@ -555,7 +555,7 @@ corPrimaryOISet( CL_IN const ClCorMOIdPtrT pMoId,
 {
     corRouteApiInfo_t  param;
     ClUint32T      size =  sizeof(param);
-    ClNameT        name = {0};
+    SaNameT        name = {0};
     ClRcT rc = CL_OK;
 
     memset(&param, 0, sizeof(param));
@@ -627,11 +627,11 @@ ClRcT clCorNIPrimaryOISet(const ClCharT *pResource)
 {
     ClRcT rc = CL_OK;
     ClCorMOIdT moid;
-    ClNameT moidName = {0};
+    SaNameT moidName = {0};
     ClCorAddrT compAddress;
     if(!pResource) return CL_COR_SET_RC(CL_ERR_INVALID_PARAMETER);
 
-    clNameSet(&moidName, pResource);
+    saNameSet(&moidName, pResource);
     rc = clCorMoIdNameToMoIdGet(&moidName, &moid);
     if(rc != CL_OK)
     {
@@ -655,7 +655,7 @@ corPrimaryOIClear( CL_IN const ClCorMOIdPtrT pMoId,
     ClRcT      rc = CL_OK;
     corRouteApiInfo_t  param;
     ClUint32T      size =  sizeof(param);
-    ClNameT        name = {0};
+    SaNameT        name = {0};
     
     CL_FUNC_ENTER();
 
@@ -728,11 +728,11 @@ ClRcT clCorNIPrimaryOIClear(const ClCharT *pResource)
 {
     ClRcT rc = CL_OK;
     ClCorMOIdT moid;
-    ClNameT moidName = {0};
+    SaNameT moidName = {0};
     ClCorAddrT compAddress;
     if(!pResource) return CL_COR_SET_RC(CL_ERR_INVALID_PARAMETER);
 
-    clNameSet(&moidName, pResource);
+    saNameSet(&moidName, pResource);
     rc = clCorMoIdNameToMoIdGet(&moidName, &moid);
     if(rc != CL_OK)
     {
@@ -760,7 +760,7 @@ clCorPrimaryOIGet (  CL_IN const ClCorMOIdPtrT pMoId,
     ClRcT      rc = CL_OK;
     corRouteApiInfo_t  param;
     ClUint32T      size =  sizeof(param);
-    ClNameT        name = {0};
+    SaNameT        name = {0};
     
     CL_FUNC_ENTER();
 
@@ -852,7 +852,7 @@ clCorOIRegisterAndDisable(ClCorMOIdPtrT pMoId, ClCorAddrT addr)
     ClRcT               rc = CL_OK;
     corRouteApiInfo_t   param;
     ClUint32T           size = sizeof(param);
-    ClNameT             moIdName;
+    SaNameT             moIdName;
 
     CL_FUNC_ENTER();
 

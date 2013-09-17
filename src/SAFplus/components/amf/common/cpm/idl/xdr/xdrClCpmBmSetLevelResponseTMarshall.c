@@ -47,7 +47,7 @@ ClRcT clXdrMarshallClCpmBmSetLevelResponseT_4_0_0(void* pGenVar, ClBufferHandleT
         length = 1;
         clXdrMarshallClUint32T(&length, msg, 0);
 
-    rc = clXdrMarshallClNameT(&(pVar->nodeName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->nodeName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

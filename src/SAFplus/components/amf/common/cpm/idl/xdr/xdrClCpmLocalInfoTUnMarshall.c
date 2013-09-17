@@ -92,19 +92,19 @@ ClRcT clXdrUnmarshallClCpmLocalInfoT_4_0_0(ClBufferHandleT msg , void* pGenVar)
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->nodeType));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->nodeType));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->nodeIdentifier));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->nodeIdentifier));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->nodeMoIdStr));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->nodeMoIdStr));
     if (CL_OK != rc)
     {
         return rc;

@@ -59,7 +59,7 @@ ClRcT clXdrMarshallClCorMsoConfigIDLT_4_1_0(void* pGenVar, ClBufferHandleT msg, 
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->compName),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->compName),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

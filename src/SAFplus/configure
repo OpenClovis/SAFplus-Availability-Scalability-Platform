@@ -8599,7 +8599,7 @@ if [ ! -z $ASP_MODEL_NAME ]; then
         echo " To build and install SAFplus libraries for this specific architecture, issue"
         echo " the following:"
         echo "     cd $PROJECT_ROOT/$ASP_MODEL_NAME/build/$CROSS_BUILD"
-        echo "     make safplus-libs"
+        echo "     make"
         echo ""
         echo " If your SDK is installed at a location writeable only by root, please run"
         echo "     make safplus-install"

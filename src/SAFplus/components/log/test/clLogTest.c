@@ -58,7 +58,7 @@ clTcLogStreamOpen(ClLogHandleT      hLog,
 {
     ClRcT                   rc         = CL_OK;
     ClLogStreamAttributesT  streamAttr = {0};
-    ClNameT                 streamName = {0};
+    SaNameT                 streamName = {0};
 
     /* initializing the stream attributes with the given values */
     rc = clLogTestStreamAttributesInit(fileName, fileLocation,

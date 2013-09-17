@@ -362,7 +362,7 @@ ClRcT clamfMgmtSAAMFSUTABLEProvRead(CL_OM_PROV_CLASS* pThis, ClHandleT txnHandle
     rc = clAmsMgmtOIGet(pProvTxnData->pMoId, &entity);
     if(rc != CL_OK)
     {
-        ClNameT moidName = {0};
+        SaNameT moidName = {0};
         if(clCorMoIdToMoIdNameGet(pProvTxnData->pMoId, &moidName) == CL_OK)
             clLogError("OI", "READ", "AMF entity get for moid [%.*s] returned [%#x]",
                     moidName.length, moidName.value, rc);

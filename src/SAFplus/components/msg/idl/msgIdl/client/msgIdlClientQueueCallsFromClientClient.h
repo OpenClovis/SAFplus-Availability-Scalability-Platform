@@ -25,11 +25,11 @@ extern "C" {
 
 
 
-ClRcT clMsgQueueOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pQueueName, CL_IN SaMsgQueueCreationAttributesT_4_0_0* pCreationAttributes, CL_IN SaMsgQueueOpenFlagsT_4_0_0 openFlags);
+ClRcT clMsgQueueOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pQueueName, CL_IN SaMsgQueueCreationAttributesT_4_0_0* pCreationAttributes, CL_IN SaMsgQueueOpenFlagsT_4_0_0 openFlags);
 
-ClRcT clMsgQueueRetentionCloseClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pQueueName);
+ClRcT clMsgQueueRetentionCloseClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pQueueName);
 
-ClRcT clMsgQueuePersistRedundancyClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* queue, CL_IN ClIocPhysicalAddressT_4_0_0 srcAddr, CL_IN ClUint16T qDelete);
+ClRcT clMsgQueuePersistRedundancyClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* queue, CL_IN ClIocPhysicalAddressT_4_0_0 srcAddr, CL_IN ClUint16T qDelete);
 
 
 #ifdef __cplusplus

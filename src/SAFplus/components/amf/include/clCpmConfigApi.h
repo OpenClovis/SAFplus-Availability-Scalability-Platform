@@ -90,11 +90,11 @@ typedef struct
     /**
      *  Node name.
      */
-    ClNameT     name;
+    SaNameT     name;
     /**
      * Node identifier, an opaque string to the CPM.
      */
-    ClNameT     identifier;
+    SaNameT     identifier;
 } ClCpmNodeClassTypeT;
 
 /**

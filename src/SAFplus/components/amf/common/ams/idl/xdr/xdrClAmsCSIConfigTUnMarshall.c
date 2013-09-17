@@ -56,7 +56,7 @@ ClRcT clXdrUnmarshallClAmsCSIConfigT_4_0_0(ClBufferHandleT msg , void* pGenVar)
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->type));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->type));
     if (CL_OK != rc)
     {
         return rc;

@@ -46,19 +46,19 @@ extern "C"
 
     typedef struct clEvtContPubKey
     {
-        ClNameT appName;
-        ClNameT channelName;
+        SaNameT appName;
+        SaNameT channelName;
     } ClEvtContPubKey;
 
     typedef struct clEvtContSubKey
     {
         ClUint32T filterNo;
-        ClNameT channelName;
+        SaNameT channelName;
     } ClEvtContSubKey;
 
     typedef struct ClEvtContSubInfoStorage
     {
-        ClNameT appName;
+        SaNameT appName;
         ClUint32T noOfSubs;
     } ClEvtContSubInfoStorageT;
 
@@ -74,7 +74,7 @@ extern "C"
     extern ClRcT clEvtContValidateResult();
 
     extern void clEvtContGetApp(ClUint32T *pNoOfApp);
-    extern void clEvtContSubInfoInc(ClNameT *appName);
+    extern void clEvtContSubInfoInc(SaNameT *appName);
     extern void clEvtContAppInfoReset();
 
     extern ClRcT clEvtContParseTestInfo();
@@ -103,11 +103,11 @@ extern "C"
     extern ClRcT clEvntContRestart(ClEvtContTestHeadT *pTestHead,
                                    ClRcT *pRetCode);
 
-    extern ClRcT clEvtContIocAddreGet(ClNameT *appName,
+    extern ClRcT clEvtContIocAddreGet(SaNameT *appName,
                                       ClIocPhysicalAddressT *pIocAddress);
     extern void clEvtContResultPrint(ClRcT retCode,
                                      ClEvtContTestHeadT *pTestHead);
-    extern ClInt32T clEvtContUtilsNameCmp(ClNameT *pName1, ClNameT *pName2);
+    extern ClInt32T clEvtContUtilsNameCmp(SaNameT *pName1, SaNameT *pName2);
 
 # ifdef __cplusplus
 }

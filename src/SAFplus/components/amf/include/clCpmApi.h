@@ -208,11 +208,11 @@ typedef struct
     /**
      * Component which failed/lost heartbeat to the CPM.
      */
-    ClNameT compName;
+    SaNameT compName;
     /**
      * Node name containing the component.
      */
-    ClNameT nodeName;
+    SaNameT nodeName;
     /**
      * Component ID.
      */
@@ -248,7 +248,7 @@ typedef struct
     /**
      * Name of the node for which this event is published.
      */
-    ClNameT nodeName;
+    SaNameT nodeName;
     /**
      * Node IOC Address, where this component is located.
      */
@@ -317,7 +317,7 @@ typedef struct ClCpmCompSpecInfo
  *
  */
 typedef ClRcT (*ClCpmHealthCheckCallbackT)(CL_IN ClInvocationT invocation,
-                                           CL_IN const ClNameT *pCompName,
+                                           CL_IN const SaNameT *pCompName,
                                            CL_IN ClAmsCompHealthcheckKeyT
                                            *pHealthCheckKey);
 
@@ -332,7 +332,7 @@ typedef ClRcT (*ClCpmHealthCheckCallbackT)(CL_IN ClInvocationT invocation,
  *
  */
 typedef ClRcT (*ClCpmTerminateCallbackT) (CL_IN ClInvocationT invocation,
-                                          CL_IN const ClNameT *pCompName);
+                                          CL_IN const SaNameT *pCompName);
 
 /**
  * \brief Component Manager requests the component, identified by \e
@@ -353,7 +353,7 @@ typedef ClRcT (*ClCpmTerminateCallbackT) (CL_IN ClInvocationT invocation,
  * \sa ClCpmCSIRmvCallbackT
  */
 typedef ClRcT (*ClCpmCSISetCallbackT) (CL_IN ClInvocationT invocation,
-                                       CL_IN const ClNameT *pCompName,
+                                       CL_IN const SaNameT *pCompName,
                                        CL_IN ClAmsHAStateT haState,
                                        CL_IN ClAmsCSIDescriptorT csiDescriptor);
 
@@ -376,8 +376,8 @@ typedef ClRcT (*ClCpmCSISetCallbackT) (CL_IN ClInvocationT invocation,
  * \sa ClCpmCSISetCallbackT
  */
 typedef ClRcT (*ClCpmCSIRmvCallbackT) (CL_IN ClInvocationT invocation,
-                                       CL_IN const ClNameT *pCompName,
-                                       CL_IN const ClNameT *pCsiName,
+                                       CL_IN const SaNameT *pCompName,
+                                       CL_IN const SaNameT *pCsiName,
                                        CL_IN ClAmsCSIFlagsT csiFlags);
 
 /**
@@ -400,7 +400,7 @@ typedef ClRcT (*ClCpmCSIRmvCallbackT) (CL_IN ClInvocationT invocation,
  *
  */
 typedef
-void (*ClCpmProtectionGroupTrackCallbackT) (CL_IN const ClNameT *pCsiName,
+void (*ClCpmProtectionGroupTrackCallbackT) (CL_IN const SaNameT *pCsiName,
                                             CL_IN ClAmsPGNotificationBufferT
                                             *pNotificationBuffer,
                                             CL_IN ClUint32T numberOfMembers,
@@ -420,7 +420,7 @@ void (*ClCpmProtectionGroupTrackCallbackT) (CL_IN const ClNameT *pCsiName,
  */
 typedef ClRcT (*ClCpmProxiedComponentInstantiateCallbackT) (CL_IN ClInvocationT
                                                             invocation,
-                                                            CL_IN const ClNameT
+                                                            CL_IN const SaNameT
                                                             *pProxiedCompName);
 
 /**
@@ -437,7 +437,7 @@ typedef ClRcT (*ClCpmProxiedComponentInstantiateCallbackT) (CL_IN ClInvocationT
  */
 typedef ClRcT (*ClCpmProxiedComponentCleanupCallbackT) (CL_IN ClInvocationT
                                                         invocation,
-                                                        CL_IN const ClNameT
+                                                        CL_IN const SaNameT
                                                         *pProxiedCompName);
 
 /**
@@ -656,8 +656,8 @@ extern ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle,
  *
  */
 extern ClRcT clCpmComponentRegister(CL_IN ClCpmHandleT cpmHandle,
-                                    CL_IN const ClNameT *pCompName,
-                                    CL_IN const ClNameT *pProxyCompName);
+                                    CL_IN const SaNameT *pCompName,
+                                    CL_IN const SaNameT *pProxyCompName);
 
 /**
  ************************************
@@ -695,8 +695,8 @@ extern ClRcT clCpmComponentRegister(CL_IN ClCpmHandleT cpmHandle,
  *
  */
 extern ClRcT clCpmComponentUnregister(CL_IN ClCpmHandleT cpmHandle,
-                                      CL_IN const ClNameT *pCompName,
-                                      CL_IN const ClNameT *pProxyCompName);
+                                      CL_IN const SaNameT *pCompName,
+                                      CL_IN const SaNameT *pProxyCompName);
 
 /**
  ************************************
@@ -727,11 +727,11 @@ extern ClRcT clCpmComponentUnregister(CL_IN ClCpmHandleT cpmHandle,
  *
  */
 extern ClRcT clCpmComponentNameGet(CL_IN ClCpmHandleT cpmHandle,
-                                   CL_OUT ClNameT *pCompName);
+                                   CL_OUT SaNameT *pCompName);
 
 extern ClRcT clCpmComponentDNNameGet(CL_IN ClCpmHandleT cpmHandle,
-                                     CL_OUT ClNameT *pCompName,
-                                     CL_OUT ClNameT *pDNName);
+                                     CL_OUT SaNameT *pCompName,
+                                     CL_OUT SaNameT *pDNName);
 
 /**
  ************************************
@@ -803,8 +803,8 @@ extern ClRcT clCpmResponse(CL_IN ClCpmHandleT cpmHandle,
  *
  */
 extern ClRcT clCpmHAStateGet(CL_IN ClCpmHandleT cpmHandle,
-                             CL_IN ClNameT *compName,
-                             CL_IN ClNameT *csiName,
+                             CL_IN SaNameT *compName,
+                             CL_IN SaNameT *csiName,
                              CL_OUT ClAmsHAStateT *haState);
 
 /**
@@ -888,7 +888,7 @@ extern ClRcT clCpmCSIQuiescingComplete(CL_IN ClCpmHandleT cpmHandle,
  */
 extern ClRcT
 clCpmComponentFailureReport(CL_IN ClCpmHandleT cpmHandle,
-                            CL_IN const ClNameT *pCompName,
+                            CL_IN const SaNameT *pCompName,
                             CL_IN ClTimeT errorDetectionTime,
                             CL_IN ClAmsLocalRecoveryT recommendedRecovery,
                             CL_IN ClUint32T alarmHandle);
@@ -923,7 +923,7 @@ clCpmComponentFailureReport(CL_IN ClCpmHandleT cpmHandle,
  *
  */
 extern ClRcT clCpmComponentFailureClear(CL_IN ClCpmHandleT cpmHandle,
-                                        CL_IN ClNameT *pCompName);
+                                        CL_IN SaNameT *pCompName);
 
 /**
  ************************************
@@ -966,7 +966,7 @@ extern ClRcT clCpmComponentFailureClear(CL_IN ClCpmHandleT cpmHandle,
  */
 extern ClRcT
 clCpmHealthcheckStart(CL_IN ClCpmHandleT cpmHandle,
-                      CL_IN const ClNameT *pCompName,
+                      CL_IN const SaNameT *pCompName,
                       CL_IN const ClAmsCompHealthcheckKeyT *pCompHealthCheck,
                       CL_IN ClAmsCompHealthcheckInvocationT invocationType,
                       CL_IN ClAmsRecoveryT recommondedRecovery);
@@ -1007,7 +1007,7 @@ clCpmHealthcheckStart(CL_IN ClCpmHandleT cpmHandle,
  */
 extern ClRcT
 clCpmHealthcheckConfirm(CL_IN ClCpmHandleT cpmHandle,
-                        CL_IN const ClNameT *pCompName,
+                        CL_IN const SaNameT *pCompName,
                         CL_IN const ClAmsCompHealthcheckKeyT *pCompHealthCheck,
                         CL_IN ClRcT healthCheckResult);
 
@@ -1042,7 +1042,7 @@ clCpmHealthcheckConfirm(CL_IN ClCpmHandleT cpmHandle,
  */
 extern ClRcT
 clCpmHealthcheckStop(CL_IN ClCpmHandleT cpmHandle,
-                     CL_IN const ClNameT *pCompName,
+                     CL_IN const SaNameT *pCompName,
                      CL_IN const ClAmsCompHealthcheckKeyT *pCompHealthCheck);
 
 /**
@@ -1087,7 +1087,7 @@ clCpmHealthcheckStop(CL_IN ClCpmHandleT cpmHandle,
  *
  */
 extern ClRcT clCpmProtectionGroupTrack(CL_IN ClCpmHandleT cpmHandle,
-                                       CL_IN ClNameT *pCsiName,
+                                       CL_IN SaNameT *pCsiName,
                                        CL_IN ClUint8T trackFlags,
                                        CL_INOUT ClAmsPGNotificationBufferT
                                        *pNotificationBuffer);
@@ -1122,7 +1122,7 @@ extern ClRcT clCpmProtectionGroupTrack(CL_IN ClCpmHandleT cpmHandle,
  *
  */
 extern ClRcT clCpmProtectionGroupTrackStop(CL_IN ClCpmHandleT cpmHandle,
-                                           CL_IN ClNameT *pCsiName);
+                                           CL_IN SaNameT *pCsiName);
 
 /**
  * Other utility APIs exposed by CPM.
@@ -1155,7 +1155,7 @@ extern ClRcT clCpmProtectionGroupTrackStop(CL_IN ClCpmHandleT cpmHandle,
  *
  */
 extern ClRcT clCpmComponentIdGet(CL_IN ClCpmHandleT cpmHandle,
-                                 CL_IN ClNameT *pCompName,
+                                 CL_IN SaNameT *pCompName,
                                  CL_OUT ClUint32T *pCompId);
 extern ClRcT clAmfGetComponentId(CL_IN ClCpmHandleT cpmHandle,
                                  CL_IN SaNameT *pCompName,
@@ -1189,7 +1189,7 @@ extern ClRcT clAmfGetComponentId(CL_IN ClCpmHandleT cpmHandle,
  *
  */
 extern ClRcT clCpmComponentAddressGet(CL_IN ClIocNodeAddressT nodeAddress,
-                                      CL_IN ClNameT *pCompName,
+                                      CL_IN SaNameT *pCompName,
                                       CL_OUT ClIocAddressT *pCompAddress);
 
 /**
@@ -1222,8 +1222,8 @@ extern ClRcT clCpmComponentAddressGet(CL_IN ClIocNodeAddressT nodeAddress,
  *  \sa clCpmComponentAddressGet()
  *
  */
-extern ClRcT clCpmComponentStatusGet(CL_IN ClNameT *pCompName,
-                                     CL_IN ClNameT *pNodeName,
+extern ClRcT clCpmComponentStatusGet(CL_IN SaNameT *pCompName,
+                                     CL_IN SaNameT *pNodeName,
                                      CL_OUT ClAmsPresenceStateT *pPresenceState,
                                      CL_OUT ClAmsOperStateT *pOperationalState);
 
@@ -1406,7 +1406,7 @@ extern ClRcT clCpmMiddlewareRestart(ClIocNodeAddressT iocNodeAddress, ClBoolT gr
  *  ClAmfClient
  *
  */
-extern ClRcT clCpmLocalNodeNameGet(CL_IN ClNameT *nodeName);
+extern ClRcT clCpmLocalNodeNameGet(CL_IN SaNameT *nodeName);
 
 
 
@@ -1545,7 +1545,7 @@ extern ClRcT clCpmNotificationCallbackUninstall(ClHandleT *pHandle);
  *  ClAmfClient
  *
  */
-extern ClRcT clCpmCompCSIList(const ClNameT *pCompName, ClCpmCompCSIRefT *pCSIRef);
+extern ClRcT clCpmCompCSIList(const SaNameT *pCompName, ClCpmCompCSIRefT *pCSIRef);
 
 /**
  ************************************
@@ -1593,7 +1593,7 @@ extern ClBoolT clCpmIsSC(void);
  *  ClAmfClient
  *
  */
-extern ClRcT clCpmCompInfoGet(const ClNameT *compName,
+extern ClRcT clCpmCompInfoGet(const SaNameT *compName,
                               const ClIocNodeAddressT nodeAddress,
                               CL_OUT ClCpmCompSpecInfoT *compInfo);
 

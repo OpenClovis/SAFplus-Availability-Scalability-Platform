@@ -63,7 +63,7 @@ extern "C" {
 
 extern ClRcT
 _ckptMasterHdlInfoFill(ClHandleT                           masterHdl,
-                       ClNameT                             *pName,
+                       SaNameT                             *pName,
                        ClCkptCheckpointCreationAttributesT *pCreateAttr,
                        ClIocNodeAddressT                   localAddr,
                        ClUint8T                            source,
@@ -80,7 +80,7 @@ _ckptMasterPeerListHdlsAdd(ClHandleT         clientHdl,
                            ClUint32T        openFlag,
                            ClCkptCreationFlagsT creationFlags);
 extern ClRcT 
-_ckptMasterXlationDBEntryAdd(ClNameT   *pName,
+_ckptMasterXlationDBEntryAdd(SaNameT   *pName,
                              ClUint32T  cksum,
                              ClHandleT  masterHdl);
 

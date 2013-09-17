@@ -66,7 +66,7 @@ typedef enum {
 typedef struct {
 
    ClUint64T         nodeId;
-   ClNameT           nodeName;
+   SaNameT           nodeName;
    ClIocAddressT     nodeAddr;
 
 } ClGmsMsgHeaderT;
@@ -75,7 +75,7 @@ typedef struct {
 typedef struct {
 
     ClUint64T   id;
-    ClNameT     name;
+    SaNameT     name;
 #define     CL_GMS_LEADER_BIT           0x1
 #define     CL_GMS_DEPUTY_BIT           0x2
 

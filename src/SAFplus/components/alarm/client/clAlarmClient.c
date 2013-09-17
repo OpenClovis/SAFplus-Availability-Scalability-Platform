@@ -1526,7 +1526,7 @@ ClRcT clAlarmChannelOpen()
     ClRcT    rc = CL_OK;
     ClEventCallbacksT  evtCallBack;
     ClVersionT emVersion = CL_EVENT_VERSION;
-    ClNameT channelName;
+    SaNameT channelName;
 
 	clLogTrace( "ALM", "AEM", " Entering [%s] ", __FUNCTION__);
 	
@@ -2092,7 +2092,7 @@ ClRcT clAlarmClientResourceTableInfoGet(ClCorAddrT* pAlarmAddr, ClOampRtResource
 {
     ClRcT           rc = CL_OK;
     ClCpmHandleT    cpmHandle = 0;
-    ClNameT         compName = {0};
+    SaNameT         compName = {0};
     ClParserPtrT    top = NULL;
     ClCharT         fileName[CL_MAX_NAME_LENGTH] = {0};
     ClCharT         *pFileName = fileName;
@@ -2192,7 +2192,7 @@ ClRcT clAlarmClientResourceTableInfoGet(ClCorAddrT* pAlarmAddr, ClOampRtResource
 
 
                                         // coverity[pass_by_value]
-ClRcT clAlarmClientAlarmObjectCreate(   ClNameT moIdName,
+ClRcT clAlarmClientAlarmObjectCreate(   SaNameT moIdName,
                                         ClCorMOIdPtrT pFullMoId,
                                         ClCorAddrT* pAlarmAddr,
                                         ClUint32T createFlag,
@@ -2673,7 +2673,7 @@ ClRcT clAlarmClientAlarmOMCreate(ClCorMOIdPtrT hMoId)
 ClRcT clAlarmClientCorNodeAddressToMoIdGet(ClCorMOIdPtrT moId)
 {
     ClRcT rc = CL_OK;
-    ClNameT nodeName;
+    SaNameT nodeName;
 
 	clLogTrace( "ALM", "INT", "Entering [%s]", __FUNCTION__);
 
@@ -4361,7 +4361,7 @@ ClRcT
 clAlarmEventSubscribe(ClAlarmEventCallbackFuncPtrT pAlarmEvtCallbackFuncFP)
 {
     ClRcT               rc = CL_OK;
-    ClNameT             almClntChannelName = {0};
+    SaNameT             almClntChannelName = {0};
     ClVersionT          almEvtVersion = CL_EVENT_VERSION;
     ClUint32T           eventType = CL_ALARM_EVENT;
     ClEventCallbacksT   almEvtCallBack;

@@ -50,7 +50,7 @@ ClRcT clXdrUnmarshallSaMsgQueueGroupMemberT_4_0_0(ClBufferHandleT msg , void* pG
     else
     {
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->queueName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->queueName));
     if (CL_OK != rc)
     {
         return rc;

@@ -45,7 +45,7 @@ ClRcT clMsgQDatabaseUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMs
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -175,7 +175,7 @@ ClRcT clMsgQDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClM
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -272,7 +272,7 @@ L:
 }
 
 
-ClRcT clMsgGroupDatabaseUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0 syncupType, CL_IN ClNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0 policy, CL_IN ClIocPhysicalAddressT_4_0_0 qGroupAddress, CL_IN ClUint16T updateCkpt)
+ClRcT clMsgGroupDatabaseUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0 syncupType, CL_IN SaNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0 policy, CL_IN ClIocPhysicalAddressT_4_0_0 qGroupAddress, CL_IN ClUint16T updateCkpt)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -294,7 +294,7 @@ ClRcT clMsgGroupDatabaseUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN 
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -321,7 +321,7 @@ ClRcT clMsgGroupDatabaseUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN 
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pGroupName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pGroupName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -368,13 +368,13 @@ static void clMsgGroupDatabaseUpdateAsyncCallback_4_0_0(ClRcT rc, void *pIdlCook
     ClIdlCookieT* pCookie = (ClIdlCookieT*)pIdlCookie;
     ClRcT retVal = CL_OK;
     ClMsgSyncActionT_4_0_0  syncupType;
-    ClNameT  pGroupName;
+    SaNameT  pGroupName;
     SaMsgQueueGroupPolicyT_4_0_0  policy;
     ClIocPhysicalAddressT_4_0_0  qGroupAddress;
     ClUint16T  updateCkpt;
 
     memset(&(syncupType), 0, sizeof(ClMsgSyncActionT_4_0_0));
-    memset(&(pGroupName), 0, sizeof(ClNameT));
+    memset(&(pGroupName), 0, sizeof(SaNameT));
     memset(&(policy), 0, sizeof(SaMsgQueueGroupPolicyT_4_0_0));
     memset(&(qGroupAddress), 0, sizeof(ClIocPhysicalAddressT_4_0_0));
     memset(&(updateCkpt), 0, sizeof(ClUint16T));
@@ -386,7 +386,7 @@ static void clMsgGroupDatabaseUpdateAsyncCallback_4_0_0(ClRcT rc, void *pIdlCook
         goto L0;
     }
 
-    retVal = clXdrUnmarshallClNameT(inMsgHdl, &(pGroupName));
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pGroupName));
     if (CL_OK != retVal)
     {
         goto L1;
@@ -430,7 +430,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clMsgGroupDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncupType, CL_IN ClNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0  policy, CL_IN ClIocPhysicalAddressT_4_0_0  qGroupAddress, CL_IN ClUint16T  updateCkpt,CL_IN MsgIdlClMsgGroupDatabaseUpdateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clMsgGroupDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncupType, CL_IN SaNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0  policy, CL_IN ClIocPhysicalAddressT_4_0_0  qGroupAddress, CL_IN ClUint16T  updateCkpt,CL_IN MsgIdlClMsgGroupDatabaseUpdateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -454,7 +454,7 @@ ClRcT clMsgGroupDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -482,7 +482,7 @@ ClRcT clMsgGroupDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pGroupName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pGroupName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
@@ -569,13 +569,13 @@ static void clMsgGroupMembershipUpdateAsyncCallback_4_0_0(ClRcT rc, void *pIdlCo
     ClIdlCookieT* pCookie = (ClIdlCookieT*)pIdlCookie;
     ClRcT retVal = CL_OK;
     ClMsgSyncActionT_4_0_0  syncAct;
-    ClNameT  pGroupName;
-    ClNameT  pQueueName;
+    SaNameT  pGroupName;
+    SaNameT  pQueueName;
     ClUint16T  updateCkpt;
 
     memset(&(syncAct), 0, sizeof(ClMsgSyncActionT_4_0_0));
-    memset(&(pGroupName), 0, sizeof(ClNameT));
-    memset(&(pQueueName), 0, sizeof(ClNameT));
+    memset(&(pGroupName), 0, sizeof(SaNameT));
+    memset(&(pQueueName), 0, sizeof(SaNameT));
     memset(&(updateCkpt), 0, sizeof(ClUint16T));
 
 
@@ -585,13 +585,13 @@ static void clMsgGroupMembershipUpdateAsyncCallback_4_0_0(ClRcT rc, void *pIdlCo
         goto L0;
     }
 
-    retVal = clXdrUnmarshallClNameT(inMsgHdl, &(pGroupName));
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pGroupName));
     if (CL_OK != retVal)
     {
         goto L1;
     }
 
-    retVal = clXdrUnmarshallClNameT(inMsgHdl, &(pQueueName));
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pQueueName));
     if (CL_OK != retVal)
     {
         goto L2;
@@ -622,7 +622,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clMsgGroupMembershipUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncAct, CL_IN ClNameT* pGroupName, CL_IN ClNameT* pQueueName, CL_IN ClUint16T  updateCkpt,CL_IN MsgIdlClMsgGroupMembershipUpdateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clMsgGroupMembershipUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgSyncActionT_4_0_0  syncAct, CL_IN SaNameT* pGroupName, CL_IN SaNameT* pQueueName, CL_IN ClUint16T  updateCkpt,CL_IN MsgIdlClMsgGroupMembershipUpdateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -646,7 +646,7 @@ ClRcT clMsgGroupMembershipUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -674,13 +674,13 @@ ClRcT clMsgGroupMembershipUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pGroupName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pGroupName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pQueueName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pQueueName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
@@ -749,7 +749,7 @@ L:
 }
 
 
-ClRcT clMsgQueueAllocateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pQName, CL_IN SaMsgQueueOpenFlagsT_4_0_0 openFlags, CL_IN SaMsgQueueCreationAttributesT_4_0_0* pCreationAttributes, CL_OUT ClHandleT* pQueueHandle)
+ClRcT clMsgQueueAllocateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pQName, CL_IN SaMsgQueueOpenFlagsT_4_0_0 openFlags, CL_IN SaMsgQueueCreationAttributesT_4_0_0* pCreationAttributes, CL_OUT ClHandleT* pQueueHandle)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -771,7 +771,7 @@ ClRcT clMsgQueueAllocateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClName
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -792,7 +792,7 @@ ClRcT clMsgQueueAllocateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClName
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(pQName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pQName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;

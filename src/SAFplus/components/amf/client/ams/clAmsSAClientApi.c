@@ -426,8 +426,8 @@ error:
 ClRcT
 clAmsSACSIHAStateGet(
         CL_IN   ClAmsClientHandleT              amsHandle,
-        CL_IN   const ClNameT                   *compName,
-        CL_IN   const ClNameT                   *csiName,
+        CL_IN   const SaNameT                   *compName,
+        CL_IN   const SaNameT                   *csiName,
         CL_OUT  ClAmsHAStateT                   *haState)
 {
 
@@ -453,8 +453,8 @@ clAmsSACSIHAStateGet(
      */
 
     if ( ( rc = _clAmsSACSIHAStateGet(
-                    (ClNameT *)compName,
-                    (ClNameT *)csiName,
+                    (SaNameT *)compName,
+                    (SaNameT *)csiName,
                     haState ))
             != CL_OK )
         goto error;
@@ -548,7 +548,7 @@ error:
 ClRcT
 clAmsSAPGTrack(
         CL_IN   ClAmsClientHandleT              amsHandle,
-        CL_IN   ClNameT                         *csiName,
+        CL_IN   SaNameT                         *csiName,
         CL_IN   ClUint8T                        trackFlags,
         CL_IN   ClAmsPGNotificationBufferT      *notificationBuffer)
 {
@@ -573,7 +573,7 @@ clAmsSAPGTrack(
 ClRcT
 clAmsSAPGTrackStop(
         CL_IN   ClAmsClientHandleT              amsHandle,
-        CL_IN   const ClNameT                   *csiName)
+        CL_IN   const SaNameT                   *csiName)
 {
 
     ClRcT                                       rc;
@@ -602,7 +602,7 @@ clAmsSAPGTrackStop(
 
     req.handle = ams_instance->server_handle;
 
-    memcpy (&req.csiName, csiName, sizeof(ClNameT) );
+    memcpy (&req.csiName, csiName, sizeof(SaNameT) );
 
     /* 
      * Send the information to the server to 
@@ -719,33 +719,33 @@ error:
 }
 ClRcT
 clAmsSAComponentInstantiateCallback (
-        ClNameT             *compName )
+        SaNameT             *compName )
 {
     return CL_OK;
 }
 ClRcT
 clAmsSAProxyComponentInstantiateCallback (
-        ClNameT             *compName )
+        SaNameT             *compName )
 {
     return CL_OK;
 }
 ClRcT
 clAmsSAComponentTerminateCallback (
-        ClNameT             *compName )
+        SaNameT             *compName )
 {
     return CL_OK;
 }
 
 ClRcT
 clAmsSAComponentCleanupCallback (
-        ClNameT             *compName )
+        SaNameT             *compName )
 {
     return CL_OK;
 }
 
 ClRcT
 clAmsSAComponentRestartCallback (
-        ClNameT             *compName )
+        SaNameT             *compName )
 {
 
     return CL_OK;
@@ -753,7 +753,7 @@ clAmsSAComponentRestartCallback (
 
 ClRcT
 clAmsSACSISetCallback(
-        ClNameT             *compName,
+        SaNameT             *compName,
         ClInvocationT       invocation,
         ClAmsHAStateT       haState,
         ClAmsCSIDescriptorT csiDescriptor )
@@ -776,7 +776,7 @@ clAmsSACSISetCallback(
 
 ClRcT
 clAmsSACSIRemoveCallback(
-        ClNameT             *compName,
+        SaNameT             *compName,
         ClInvocationT       invocation,
         ClAmsCSIDescriptorT csiDescriptor )
 {

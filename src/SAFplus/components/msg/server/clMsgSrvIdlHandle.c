@@ -36,17 +36,17 @@
 #include <clMsgReceiver.h>
 #include <clTaskPool.h>
 
-ClRcT VDECL_VER(clMsgQueueUnlink, 4, 0, 0)(ClNameT *pQName)
+ClRcT VDECL_VER(clMsgQueueUnlink, 4, 0, 0)(SaNameT *pQName)
 {
     ClRcT rc=CL_OK;  /* Return OK even if the message queue does not exist, because the end state is the same */
     ClMsgQueueCkptDataT queueData;
-    ClBoolT isExist = clMsgQCkptExists((ClNameT *)pQName, &queueData);
+    ClBoolT isExist = clMsgQCkptExists((SaNameT *)pQName, &queueData);
 
     CL_MSG_INIT_CHECK;
 
     if(queueData.creationFlags == SA_MSG_QUEUE_PERSISTENT)
     {
-        rc = clMsgQueueDestroy((ClNameT *)pQName);
+        rc = clMsgQueueDestroy((SaNameT *)pQName);
         if(rc != CL_OK)
         {
             clLogError("MSG", "QUL", "Failed to destroy msg queue [%.*s]. error code [0x%x].", pQName->length, pQName->value, rc);
@@ -68,14 +68,14 @@ error_out:
     return rc;
 }
 
-ClRcT VDECL_VER(clMsgQueueOpen, 4, 0, 0)(ClNameT *pQName, 
+ClRcT VDECL_VER(clMsgQueueOpen, 4, 0, 0)(SaNameT *pQName, 
         SaMsgQueueCreationAttributesT *pCreationAttributes, 
         SaMsgQueueOpenFlagsT openFlags)
 {
     ClRcT rc = CL_OK;
     ClIocPhysicalAddressT srcAddr;
     ClMsgQueueCkptDataT queueData;
-    ClBoolT isExist = clMsgQCkptExists((ClNameT *)pQName, &queueData);
+    ClBoolT isExist = clMsgQCkptExists((SaNameT *)pQName, &queueData);
     SaMsgQueueHandleT qHandle;
 
     CL_MSG_INIT_CHECK;
@@ -92,7 +92,7 @@ ClRcT VDECL_VER(clMsgQueueOpen, 4, 0, 0)(ClNameT *pQName,
     {
         CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
         CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
-        rc = clMsgQueueAllocate((ClNameT *)pQName, /* openFlags unused */ 0, pCreationAttributes, &qHandle);
+        rc = clMsgQueueAllocate((SaNameT *)pQName, /* openFlags unused */ 0, pCreationAttributes, &qHandle);
         CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
         CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
         if(rc != CL_OK)
@@ -147,7 +147,7 @@ static ClRcT clMsgQueueDeleteTimerCallback(void *pParam)
     ClRcT rc;
     SaMsgQueueHandleT qHandle = *(SaMsgQueueHandleT*)pParam;
     ClMsgQueueInfoT *pQInfo;
-    ClNameT qName;
+    SaNameT qName;
 
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
     CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
@@ -161,7 +161,7 @@ static ClRcT clMsgQueueDeleteTimerCallback(void *pParam)
     }
 
     CL_OSAL_MUTEX_LOCK(&pQInfo->qLock);
-    clNameCopy(&qName, &pQInfo->pQueueEntry->qName);
+    saNameCopy(&qName, &pQInfo->pQueueEntry->qName);
     CL_OSAL_MUTEX_UNLOCK(&pQInfo->qLock);
 
     clMsgQueueFree(pQInfo);
@@ -178,15 +178,15 @@ static ClRcT clMsgQueueDeleteTimerCallback(void *pParam)
         clLogError("QUE", "TIMcb", "Failed to destroy a queue handle. error code [0x%x].", rc);
 
     /* Remove the message queue out of the database */
-    clMsgQEntryDel((ClNameT *)&qName);
+    clMsgQEntryDel((SaNameT *)&qName);
     CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
-    VDECL_VER(clMsgQueueUnlink, 4, 0, 0)((ClNameT *)&qName);
+    VDECL_VER(clMsgQueueUnlink, 4, 0, 0)((SaNameT *)&qName);
 
 error_out:
     return rc;
 }
 
-ClRcT VDECL_VER(clMsgQueueRetentionClose, 4, 0, 0)(const ClNameT *pQName)
+ClRcT VDECL_VER(clMsgQueueRetentionClose, 4, 0, 0)(const SaNameT *pQName)
 {
     ClRcT rc = CL_OK, retCode;
     ClMsgQueueCkptDataT queueData;
@@ -201,7 +201,7 @@ ClRcT VDECL_VER(clMsgQueueRetentionClose, 4, 0, 0)(const ClNameT *pQName)
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
 
     /* Look up msg queue in the cached checkpoint */
-    if(clMsgQCkptExists((ClNameT *)pQName, &queueData) == CL_FALSE)
+    if(clMsgQCkptExists((SaNameT *)pQName, &queueData) == CL_FALSE)
     {
         CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
         rc = CL_ERR_DOESNT_EXIST;
@@ -256,7 +256,7 @@ ClRcT VDECL_VER(clMsgQueueRetentionClose, 4, 0, 0)(const ClNameT *pQName)
             goto error_out;
         }
 
-        clMsgToDestQueueMove(gQMoveDestNode, (ClNameT *)pQName);
+        clMsgToDestQueueMove(gQMoveDestNode, (SaNameT *)pQName);
         clMsgFinBlockStatusSet(MSG_MOVE_DONE);
 
         /* Set nodeAddress with new address after moving queue */
@@ -286,7 +286,7 @@ error_out:
     return rc;
 }
 
-ClRcT VDECL_VER(clMsgQueuePersistRedundancy, 4, 0, 0)(const ClNameT *pQName, ClIocPhysicalAddressT srcAddr, ClBoolT isDelete)
+ClRcT VDECL_VER(clMsgQueuePersistRedundancy, 4, 0, 0)(const SaNameT *pQName, ClIocPhysicalAddressT srcAddr, ClBoolT isDelete)
 {
     ClRcT rc = CL_OK;
 
@@ -294,7 +294,7 @@ ClRcT VDECL_VER(clMsgQueuePersistRedundancy, 4, 0, 0)(const ClNameT *pQName, ClI
 
     /* Look up msg queue in the cached checkpoint */
     ClMsgQueueCkptDataT queueData;
-    if(clMsgQCkptExists((ClNameT *)pQName, &queueData) == CL_FALSE)
+    if(clMsgQCkptExists((SaNameT *)pQName, &queueData) == CL_FALSE)
     {
         rc = CL_ERR_DOESNT_EXIST;
         clLogError("MSG", "REDUN", "Failed to get the message queue information. error code [0x%x].", rc);
@@ -310,7 +310,7 @@ ClRcT VDECL_VER(clMsgQueuePersistRedundancy, 4, 0, 0)(const ClNameT *pQName, ClI
         goto error_out;
     }
 
-    rc = clMsgToLocalQueueMove(srcAddr, (ClNameT *) pQName, isDelete);
+    rc = clMsgToLocalQueueMove(srcAddr, (SaNameT *) pQName, isDelete);
     if(rc != CL_OK)
     {
         clLogError("MSG", "REDUN", "Failed to move messages from the remote queue [%.*s]. error code [0x%x].", pQName->length, pQName->value, rc);
@@ -356,7 +356,7 @@ out:
     return rc;
 }
 
-ClRcT VDECL_VER(clMsgGroupDatabaseUpdate, 4, 0, 0)(ClMsgSyncActionT syncupType, ClNameT *pGroupName, SaMsgQueueGroupPolicyT policy, ClIocPhysicalAddressT qGroupAddress,ClBoolT updateCkpt)
+ClRcT VDECL_VER(clMsgGroupDatabaseUpdate, 4, 0, 0)(ClMsgSyncActionT syncupType, SaNameT *pGroupName, SaMsgQueueGroupPolicyT policy, ClIocPhysicalAddressT qGroupAddress,ClBoolT updateCkpt)
 {
     ClRcT rc;
     ClIocPhysicalAddressT srcAddr;
@@ -380,7 +380,7 @@ out:
     return rc;
 }
 
-ClRcT VDECL_VER(clMsgGroupMembershipUpdate, 4, 0, 0)(ClMsgSyncActionT syncupType, ClNameT *pGroupName, ClNameT *pQueueName, ClBoolT updateCkpt)
+ClRcT VDECL_VER(clMsgGroupMembershipUpdate, 4, 0, 0)(ClMsgSyncActionT syncupType, SaNameT *pGroupName, SaNameT *pQueueName, ClBoolT updateCkpt)
 {
     ClRcT rc = CL_OK;
     ClIocPhysicalAddressT srcAddr;
@@ -405,7 +405,7 @@ out:
 }
 
 ClRcT VDECL_VER(clMsgQueueAllocate, 4, 0, 0)(
-        ClNameT *pQName, 
+        SaNameT *pQName, 
         SaMsgQueueOpenFlagsT openFlags,
         SaMsgQueueCreationAttributesT *pCreationAttributes,
         SaMsgQueueHandleT *pQueueHandle)
@@ -413,7 +413,7 @@ ClRcT VDECL_VER(clMsgQueueAllocate, 4, 0, 0)(
     return clMsgQueueAllocate(pQName, openFlags, pCreationAttributes, pQueueHandle);
 }
 
-ClRcT VDECL_VER(clMsgMessageGet, 4, 0, 0)(const ClNameT *pQName, SaTimeT timeout)
+ClRcT VDECL_VER(clMsgMessageGet, 4, 0, 0)(const SaNameT *pQName, SaTimeT timeout)
 {
     ClRcT rc = CL_OK;
     ClRcT retCode;

@@ -131,9 +131,9 @@ ClRcT clEvtContAppAddressGet(void)
 }
 
 #define INIT   "App_Init"
-ClNameT gTCInit = CL_NAME_SET(INIT);
+SaNameT gTCInit = CL_NAME_SET(INIT);
 
-ClNameT gTCNode[] = {
+SaNameT gTCNode[] = {
     CL_NAME_SET("TestNode2"),
     CL_NAME_SET("TestNode3"),
     CL_NAME_SET("TestNode4"),
@@ -1999,7 +1999,7 @@ void clEvtContGetApp(ClUint32T *pNoOfApp)
     *pNoOfApp = sizeof(gEvtAppToIoc) / sizeof(ClEvtContAppToIocAddrT);
 }
 
-void clEvtContSubInfoInc(ClNameT *appName)
+void clEvtContSubInfoInc(SaNameT *appName)
 {
 
     ClInt32T result;
@@ -2111,7 +2111,7 @@ ClRcT clEvtContParseTestInfo()
     return CL_OK;
 }
 
-ClRcT clEvtContIocAddreGet(ClNameT *appName, ClIocPhysicalAddressT *pIocAddress)
+ClRcT clEvtContIocAddreGet(SaNameT *appName, ClIocPhysicalAddressT *pIocAddress)
 {
     ClUint32T noOfEntry = 0;
     ClUint32T i = 0;

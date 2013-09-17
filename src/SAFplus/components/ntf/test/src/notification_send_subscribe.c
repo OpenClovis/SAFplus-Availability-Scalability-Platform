@@ -106,7 +106,7 @@ static void notificationCallback2 (SaNtfSubscriptionIdT subscriptionId,
     fail_unless(rc == SA_AIS_OK, "Couldnt retrive ptr val");
     if (rc != SA_AIS_OK)
         return;
-    printf("dataSize = %d ptr.length = %d , ptr.value= %s", dataSize, ((ClNameT*)ptr)->length, ((ClNameT*)ptr)->value);
+    printf("dataSize = %d ptr.length = %d , ptr.value= %s", dataSize, ((SaNameT*)ptr)->length, ((SaNameT*)ptr)->value);
 }
 
 static SaNtfCallbacksT_3 nonnull_callbacks = {
@@ -404,7 +404,7 @@ START_TEST_EXTERN(object_create_delete_ntf_send_with_ptr_val)
     SaNtfObjectCreateDeleteNotificationFilterT filter = {0};
     SaNtfNotificationTypeFilterHandlesT_3 notificationFilterHandles = {0};
     void *ptr=NULL;
-    ClNameT     *ptr3 = NULL;
+    SaNameT     *ptr3 = NULL;
     ClUint16T   size = 0;
 
     rc = saNtfInitialize_3(&handle, &callbacks, &correct_version);
@@ -454,19 +454,19 @@ START_TEST_EXTERN(object_create_delete_ntf_send_with_ptr_val)
 
     strncpy((ClCharT*)ptr,"Hello How are you man",200);
 
-    // allocate an ClNameT object 
+    // allocate an SaNameT object 
     notification.objectAttributes[1].attributeType = SA_NTF_VALUE_UINT32;
     notification.objectAttributes[1].attributeValue.uint32Val = 1000;
 
     // allocate an Uint32 object 
-    printf("Sizeof ClNameT %d\n",sizeof(ClNameT));
+    printf("Sizeof SaNameT %d\n",sizeof(SaNameT));
     notification.objectAttributes[2].attributeType = SA_NTF_VALUE_LDAP_NAME;
     rc = saNtfPtrValAllocate(notification.notificationHandle,
-                             sizeof(ClNameT),
+                             sizeof(SaNameT),
                              (void**)&ptr3,
                              &notification.objectAttributes[2].attributeValue);
 
-    fail_unless(rc==SA_AIS_OK, "saNtfPtrValAllocate for ClNameT failed with rc 0x%x",rc);
+    fail_unless(rc==SA_AIS_OK, "saNtfPtrValAllocate for SaNameT failed with rc 0x%x",rc);
 
     if (rc == SA_AIS_OK)
     {

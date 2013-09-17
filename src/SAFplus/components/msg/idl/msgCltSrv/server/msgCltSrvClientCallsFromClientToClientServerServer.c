@@ -27,14 +27,14 @@ ClRcT clMsgQueueStatusGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClNameT  pQueueName;
+    SaNameT  pQueueName;
     SaMsgQueueStatusT_4_0_0  pQueueStatus;
 
-    memset(&(pQueueName), 0, sizeof(ClNameT));
+    memset(&(pQueueName), 0, sizeof(SaNameT));
     memset(&(pQueueStatus), 0, sizeof(SaMsgQueueStatusT_4_0_0));
 
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pQueueName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pQueueName));
     if (CL_OK != rc)
     {
         goto LL0;
@@ -65,7 +65,7 @@ ClRcT clMsgQueueStatusGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl
        goto L0;
     }
     
-    rc = clXdrMarshallClNameT(&(pQueueName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pQueueName), 0, 1);
     if (CL_OK != rc)
     {
         goto L1;
@@ -85,11 +85,11 @@ ClRcT clMsgQueueStatusGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl
 
 L2:    return rc;
 
-LL0:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
+LL0:  clXdrMarshallSaNameT(&(pQueueName), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
+L0:  clXdrMarshallSaNameT(&(pQueueName), 0, 1);
 
 L1:  clXdrMarshallSaMsgQueueStatusT_4_0_0(&(pQueueStatus), 0, 1);
 
@@ -134,12 +134,12 @@ ClRcT clMsgQueueUnlinkServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, C
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClNameT  pQueueName;
+    SaNameT  pQueueName;
 
-    memset(&(pQueueName), 0, sizeof(ClNameT));
+    memset(&(pQueueName), 0, sizeof(SaNameT));
 
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pQueueName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pQueueName));
     if (CL_OK != rc)
     {
         goto LL0;
@@ -170,7 +170,7 @@ ClRcT clMsgQueueUnlinkServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, C
        goto L0;
     }
     
-    rc = clXdrMarshallClNameT(&(pQueueName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pQueueName), 0, 1);
     if (CL_OK != rc)
     {
         goto L1;
@@ -184,11 +184,11 @@ ClRcT clMsgQueueUnlinkServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, C
     
 L1:    return rc;
 
-LL0:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
+LL0:  clXdrMarshallSaNameT(&(pQueueName), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
+L0:  clXdrMarshallSaNameT(&(pQueueName), 0, 1);
 
 
     return rc;
@@ -223,14 +223,14 @@ ClRcT clMsgQueueInfoGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, 
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClNameT  pQName;
+    SaNameT  pQName;
     SaMsgQueueCreationAttributesT_4_0_0  pQAttrs;
 
-    memset(&(pQName), 0, sizeof(ClNameT));
+    memset(&(pQName), 0, sizeof(SaNameT));
     memset(&(pQAttrs), 0, sizeof(SaMsgQueueCreationAttributesT_4_0_0));
 
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pQName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pQName));
     if (CL_OK != rc)
     {
         goto LL0;
@@ -261,7 +261,7 @@ ClRcT clMsgQueueInfoGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, 
        goto L0;
     }
     
-    rc = clXdrMarshallClNameT(&(pQName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pQName), 0, 1);
     if (CL_OK != rc)
     {
         goto L1;
@@ -281,11 +281,11 @@ ClRcT clMsgQueueInfoGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, 
 
 L2:    return rc;
 
-LL0:  clXdrMarshallClNameT(&(pQName), 0, 1);
+LL0:  clXdrMarshallSaNameT(&(pQName), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClNameT(&(pQName), 0, 1);
+L0:  clXdrMarshallSaNameT(&(pQName), 0, 1);
 
 L1:  clXdrMarshallSaMsgQueueCreationAttributesT_4_0_0(&(pQAttrs), 0, 1);
 
@@ -330,16 +330,16 @@ ClRcT clMsgQueueMoveMessagesServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsg
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClNameT  pQName;
+    SaNameT  pQName;
     ClUint32T  openFlags;
     ClUint16T  qDelete;
 
-    memset(&(pQName), 0, sizeof(ClNameT));
+    memset(&(pQName), 0, sizeof(SaNameT));
     memset(&(openFlags), 0, sizeof(ClUint32T));
     memset(&(qDelete), 0, sizeof(ClUint16T));
 
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pQName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pQName));
     if (CL_OK != rc)
     {
         goto LL0;
@@ -382,7 +382,7 @@ ClRcT clMsgQueueMoveMessagesServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsg
        goto L0;
     }
     
-    rc = clXdrMarshallClNameT(&(pQName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pQName), 0, 1);
     if (CL_OK != rc)
     {
         goto L1;
@@ -410,11 +410,11 @@ L3:    return rc;
 
 LL2:  clXdrMarshallClUint16T(&(qDelete), 0, 1);
 LL1:  clXdrMarshallClUint32T(&(openFlags), 0, 1);
-LL0:  clXdrMarshallClNameT(&(pQName), 0, 1);
+LL0:  clXdrMarshallSaNameT(&(pQName), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClNameT(&(pQName), 0, 1);
+L0:  clXdrMarshallSaNameT(&(pQName), 0, 1);
 L1:  clXdrMarshallClUint32T(&(openFlags), 0, 1);
 L2:  clXdrMarshallClUint16T(&(qDelete), 0, 1);
 
@@ -452,14 +452,14 @@ ClRcT clMsgMessageReceivedServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
     ClUint32T  sendType;
-    ClNameT  pDestination;
+    SaNameT  pDestination;
     ClMsgMessageIovecT_4_0_0  pMessage;
     ClInt64T  sendTime;
     ClHandleT  senderHandle;
     ClInt64T  timeout;
 
     memset(&(sendType), 0, sizeof(ClUint32T));
-    memset(&(pDestination), 0, sizeof(ClNameT));
+    memset(&(pDestination), 0, sizeof(SaNameT));
     memset(&(pMessage), 0, sizeof(ClMsgMessageIovecT_4_0_0));
     memset(&(sendTime), 0, sizeof(ClInt64T));
     memset(&(senderHandle), 0, sizeof(ClHandleT));
@@ -472,7 +472,7 @@ ClRcT clMsgMessageReceivedServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pDestination));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pDestination));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -533,7 +533,7 @@ ClRcT clMsgMessageReceivedServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
         goto L1;
     }
 
-    rc = clXdrMarshallClNameT(&(pDestination), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pDestination), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -575,13 +575,13 @@ LL5:  clXdrMarshallClInt64T(&(timeout), 0, 1);
 LL4:  clXdrMarshallClHandleT(&(senderHandle), 0, 1);
 LL3:  clXdrMarshallClInt64T(&(sendTime), 0, 1);
 LL2:  clXdrMarshallClMsgMessageIovecT_4_0_0(&(pMessage), 0, 1);
-LL1:  clXdrMarshallClNameT(&(pDestination), 0, 1);
+LL1:  clXdrMarshallSaNameT(&(pDestination), 0, 1);
 LL0:  clXdrMarshallClUint32T(&(sendType), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallClUint32T(&(sendType), 0, 1);
-L1:  clXdrMarshallClNameT(&(pDestination), 0, 1);
+L1:  clXdrMarshallSaNameT(&(pDestination), 0, 1);
 L2:  clXdrMarshallClMsgMessageIovecT_4_0_0(&(pMessage), 0, 1);
 L3:  clXdrMarshallClInt64T(&(sendTime), 0, 1);
 L4:  clXdrMarshallClHandleT(&(senderHandle), 0, 1);

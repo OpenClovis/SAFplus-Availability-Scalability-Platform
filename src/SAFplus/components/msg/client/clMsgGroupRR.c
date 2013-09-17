@@ -40,7 +40,7 @@ ClOsalMutexT gClGroupRRLock;
 static struct hashStruct *ppMsgQGroupHashTable[CL_MSG_GROUP_RR_BUCKETS];
 
 
-static __inline__ ClUint32T clMsgGroupHash(const ClNameT *pQGroupName)
+static __inline__ ClUint32T clMsgGroupHash(const SaNameT *pQGroupName)
 {
     return (ClUint32T)((ClUint32T)pQGroupName->value[0] & CL_MSG_GROUP_RR_MASK);
 }
@@ -59,7 +59,7 @@ static __inline__ void _clMsgGroupRRDel(ClMsgGroupRoundRobinT *pGroupHashEntry)
 }
 
 
-ClBoolT clMsgGroupRRExists(const ClNameT *pQGroupName, ClMsgGroupRoundRobinT **ppGroupRR)
+ClBoolT clMsgGroupRRExists(const SaNameT *pQGroupName, ClMsgGroupRoundRobinT **ppGroupRR)
 {
     register struct hashStruct *pTemp;
     ClUint32T key = clMsgGroupHash(pQGroupName);
@@ -78,7 +78,7 @@ ClBoolT clMsgGroupRRExists(const ClNameT *pQGroupName, ClMsgGroupRoundRobinT **p
     return CL_FALSE;
 }
 
-ClRcT clMsgGroupRRAdd(ClNameT *pGroupName, ClUint32T rrIndex, ClMsgGroupRoundRobinT **ppGroupRR)
+ClRcT clMsgGroupRRAdd(SaNameT *pGroupName, ClUint32T rrIndex, ClMsgGroupRoundRobinT **ppGroupRR)
 {
     ClRcT rc;
     ClMsgGroupRoundRobinT *pGroupRR;
@@ -101,7 +101,7 @@ ClRcT clMsgGroupRRAdd(ClNameT *pGroupName, ClUint32T rrIndex, ClMsgGroupRoundRob
 
     memset(pGroupRR, 0, sizeof(ClMsgGroupRoundRobinT));
 
-    clNameCopy(&pGroupRR->name, pGroupName);
+    saNameCopy(&pGroupRR->name, pGroupName);
     pGroupRR->rrIndex = rrIndex;
 
     rc = _clMsgGroupRRAdd(pGroupRR);
@@ -118,7 +118,7 @@ error_out:
     return rc;
 }
 
-ClRcT clMsgGroupRRDelete(ClNameT *pGroupName)
+ClRcT clMsgGroupRRDelete(SaNameT *pGroupName)
 {
     ClRcT rc = CL_OK;
     ClMsgGroupRoundRobinT *pGroupRR;

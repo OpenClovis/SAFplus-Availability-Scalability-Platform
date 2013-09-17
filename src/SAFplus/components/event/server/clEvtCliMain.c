@@ -65,7 +65,7 @@ typedef struct EvtTestDisplayInfo
 {
     ClUint16T channelScope;
     ClUint16T disDetailFlag;
-    ClNameT channelName;
+    SaNameT channelName;
     ClDebugPrintHandleT dbgPrintHandle;
 
 } ClEvtTestDisplayInfoT;
@@ -244,7 +244,7 @@ void clEvtEventDeliverCallback_t(ClEventSubscriptionIdT subscriptionId,
 
     ClEventPriorityT priority = 0;
     ClTimeT retentionTime = 0;
-    ClNameT publisherName = { 0 };
+    SaNameT publisherName = { 0 };
     ClEventIdT eventId = 0;
     ClUint32T payLoad[2] = { 0 };
     ClSizeT payLoadLen = 20;
@@ -854,7 +854,7 @@ ClRcT cliEvtChannelOpen(int argc, char **argv, char **retStr)
 {
     ClRcT rc = CL_OK;
 
-    ClNameT channelName = { 0 };
+    SaNameT channelName = { 0 };
     ClUint32T channelScope = 0;
     ClUint32T userType = 0;
 
@@ -903,7 +903,7 @@ ClRcT cliEvtChannelOpen(int argc, char **argv, char **retStr)
             break;
     }
 
-    channelName.length = strlen(channelName.value);
+    channelName.length = strlen((const ClCharT *)channelName.value);
 
     rc = clEventChannelOpen(gEvtHandle, &channelName, userType | channelScope,
                             1000 * 5, &gEvtChannelHandle);
@@ -935,7 +935,7 @@ ClRcT cliEvtChannelOpenAsync(int argc, char **argv, char **retStr)
     ClRcT rc = CL_OK;
 
     ClInvocationT invocation = 0;
-    ClNameT channelName = { 0 };
+    SaNameT channelName = { 0 };
     ClUint32T channelScope = 0;
     ClUint32T userType = 0;
 
@@ -987,7 +987,7 @@ ClRcT cliEvtChannelOpenAsync(int argc, char **argv, char **retStr)
             break;
     }
 
-    channelName.length = strlen(channelName.value);
+    channelName.length = strlen((const ClCharT *)channelName.value);
 
     rc = clEventChannelOpenAsync(gEvtHandle, invocation, &channelName,
                                  userType | channelScope);
@@ -1281,7 +1281,7 @@ ClRcT cliEvtEventPublish(int argc, char **argv, char **retStr)
     sscanf(argv[2], "%s", evtTestPublishReq.publisherName.value);
 
     evtTestPublishReq.publisherName.length =
-        strlen(evtTestPublishReq.publisherName.value);
+        strlen((const ClCharT *)evtTestPublishReq.publisherName.value);
 
     evtTestPublishReq.channelHandle = channelHandle;
 
@@ -1338,7 +1338,7 @@ ClRcT cliEvtEventExtPublish(int argc, char **argv, char **retStr)
     sscanf(argv[3], "%s", evtTestPublishReq.publisherName.value);
 
     evtTestPublishReq.publisherName.length =
-        strlen(evtTestPublishReq.publisherName.value);
+        strlen((const ClCharT *)evtTestPublishReq.publisherName.value);
 
     evtTestPublishReq.channelHandle = channelHandle;
 
@@ -1403,7 +1403,7 @@ static ClRcT cliEvtEventStrPublish(int argc, char **argv, char **retStr)
     patternArray.pPatterns = &pattern;
 
     evtTestPublishReq.publisherName.length =
-        strlen(evtTestPublishReq.publisherName.value);
+        strlen((const ClCharT *)evtTestPublishReq.publisherName.value);
     evtTestPublishReq.channelHandle = channelHandle;
 
     rc = clEventAllocate(evtTestPublishReq.channelHandle, &eventHandle);
@@ -1637,7 +1637,7 @@ ClRcT cliEvtShow(int argc, char **argv, char **retStr)
         /*
          * Default Setting 
          */
-        strcpy(displayInfo.channelName.value, "-a");
+        strcpy((ClCharT *)displayInfo.channelName.value, "-a");
         displayInfo.disDetailFlag = 1;
         displayInfo.channelScope = 1;
     }
@@ -1660,7 +1660,7 @@ ClRcT cliEvtShow(int argc, char **argv, char **retStr)
         }
     }
 
-    displayInfo.channelName.length = strlen(displayInfo.channelName.value);
+    displayInfo.channelName.length = strlen((const ClCharT *)displayInfo.channelName.value);
 
     /*
      ** Initialize the debug handle to print the information

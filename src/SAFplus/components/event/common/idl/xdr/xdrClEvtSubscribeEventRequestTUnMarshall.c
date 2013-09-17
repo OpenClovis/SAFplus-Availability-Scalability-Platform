@@ -104,7 +104,7 @@ ClRcT clXdrUnmarshallClEvtSubscribeEventRequestT_4_0_0(ClBufferHandleT msg , voi
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->evtChannelName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->evtChannelName));
     if (CL_OK != rc)
     {
         return rc;

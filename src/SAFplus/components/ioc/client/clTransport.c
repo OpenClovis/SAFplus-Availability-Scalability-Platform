@@ -159,7 +159,7 @@ static ClOsalMutexT gClXportNodeAddrListMutex;
 static void _clSetupDestNodeLUTData(void);
 
 static ClXportNodeAddrDataT gClXportDefaultNodeName;
-static ClNameT gClLocalNodeName;
+static SaNameT gClLocalNodeName;
 /*
  * Global xports ID
  */
@@ -1562,7 +1562,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
             ClTransportLayerT *xport = findTransport(token);
 
             /* On destination node there maybe existing protocol not available in this blade */
-            if (xport || strcmp(name, gClLocalNodeName.value))
+            if (xport || strcmp(name, (const ClCharT *)gClLocalNodeName.value))
             {
                 xports[numxn++] = token;
             }
@@ -1646,7 +1646,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
         i = 0;
         nodeAddrConfig = clHeapCalloc(1, sizeof(*nodeAddrConfig));
         CL_ASSERT(nodeAddrConfig != NULL);
-        nodeAddrConfig->nodeName = clStrdup(gClLocalNodeName.value);
+        nodeAddrConfig->nodeName = clStrdup((const ClCharT *)gClLocalNodeName.value);
         nodeAddrConfig->numXport = 0;
         nodeAddrConfig->bridge = CL_FALSE;
         CL_LIST_FOR_EACH(iter, &gClTransportList) 

@@ -27,23 +27,23 @@ extern "C" {
 
 
 
-ClRcT clMsgQueueGroupCreateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0 groupPolicy);
+ClRcT clMsgQueueGroupCreateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0 groupPolicy);
 
-ClRcT clMsgQueueGroupDeleteClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pGroupName);
+ClRcT clMsgQueueGroupDeleteClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pGroupName);
 
-ClRcT clMsgQueueGroupInsertClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pGroupName, CL_IN ClNameT* pQueueName);
+ClRcT clMsgQueueGroupInsertClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pGroupName, CL_IN SaNameT* pQueueName);
 
-ClRcT clMsgQueueGroupRemoveClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pGroupName, CL_IN ClNameT* pQueueName);
+ClRcT clMsgQueueGroupRemoveClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pGroupName, CL_IN SaNameT* pQueueName);
 
-ClRcT clMsgQueueGroupTrackClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT clientHandle, CL_IN ClHandleT msgHandle, CL_IN ClNameT* pGroupName, CL_IN ClUint8T trackFlag, CL_INOUT SaMsgQueueGroupNotificationBufferT_4_0_0* pNotificationBuffer);
+ClRcT clMsgQueueGroupTrackClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT clientHandle, CL_IN ClHandleT msgHandle, CL_IN SaNameT* pGroupName, CL_IN ClUint8T trackFlag, CL_INOUT SaMsgQueueGroupNotificationBufferT_4_0_0* pNotificationBuffer);
 
-typedef void (*MsgIdlClMsgQueueGroupTrackAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClHandleT  clientHandle, CL_IN ClHandleT  msgHandle, CL_IN ClNameT* pGroupName, CL_IN ClUint8T  trackFlag, CL_INOUT SaMsgQueueGroupNotificationBufferT_4_0_0* pNotificationBuffer, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*MsgIdlClMsgQueueGroupTrackAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClHandleT  clientHandle, CL_IN ClHandleT  msgHandle, CL_IN SaNameT* pGroupName, CL_IN ClUint8T  trackFlag, CL_INOUT SaMsgQueueGroupNotificationBufferT_4_0_0* pNotificationBuffer, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef MsgIdlClMsgQueueGroupTrackAsyncCallbackT_4_0_0 MsgIdlClMsgQueueGroupTrackAsyncCallbackT;
 
-ClRcT clMsgQueueGroupTrackClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT  clientHandle, CL_IN ClHandleT  msgHandle, CL_IN ClNameT* pGroupName, CL_IN ClUint8T  trackFlag, CL_INOUT SaMsgQueueGroupNotificationBufferT_4_0_0* pNotificationBuffer,CL_IN MsgIdlClMsgQueueGroupTrackAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clMsgQueueGroupTrackClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT  clientHandle, CL_IN ClHandleT  msgHandle, CL_IN SaNameT* pGroupName, CL_IN ClUint8T  trackFlag, CL_INOUT SaMsgQueueGroupNotificationBufferT_4_0_0* pNotificationBuffer,CL_IN MsgIdlClMsgQueueGroupTrackAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
-ClRcT clMsgQueueGroupTrackStopClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT msgHandle, CL_IN ClNameT* pGroupName);
+ClRcT clMsgQueueGroupTrackStopClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHandleT msgHandle, CL_IN SaNameT* pGroupName);
 
 
 #ifdef __cplusplus

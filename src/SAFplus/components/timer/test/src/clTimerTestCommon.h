@@ -93,9 +93,10 @@ typedef union cl_u64_u /* FIXME: This is not endian-safe; shouldn't be used */
 
 #define CL_MAX_NAME_LENGTH  256
 typedef struct {
-    ClUint16T       length; /* Length of the name in bytes excluding '\0' */
-    ClCharT         value[CL_MAX_NAME_LENGTH]; /* Actual name */
-} ClNameT;
+    SaUint16T length;
+    /** Actual name represented as a null terminated ASCII string */
+    SaUint8T value[CL_MAX_NAME_LENGTH];
+} SaNameT;
 
 /* Version Information for various services */
 typedef struct {

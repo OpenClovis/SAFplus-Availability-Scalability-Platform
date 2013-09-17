@@ -127,7 +127,7 @@ material.
 
      <Struct name="ClAlarmInfoIDLT" defNeed="Yes">
        <DataMember name="probCause" type="ClAlarmProbableCauseT"/>
-       <DataMember name="compName" type="ClNameT"/>
+       <DataMember name="compName" type="SaNameT"/>
        <DataMember name="moId" type="ClCorMOIdT"/>
        <DataMember name="alarmState" type="ClAlarmStateT"/>
        <DataMember name="category" type="ClAlarmCategoryTypeT"/>

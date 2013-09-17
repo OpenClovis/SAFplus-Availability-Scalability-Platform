@@ -52,7 +52,7 @@ ClRcT clTmsGroupCreate(
     CL_ASSERT(gms_instance_ptr != NULL);
     
     req.gmsHandle = gmsHandle;
-    memcpy((void*)&req.groupName, (void*)groupName, sizeof(ClNameT));
+    memcpy((void*)&req.groupName, (void*)groupName, sizeof(SaNameT));
     if (groupParams != NULL)
     {
         memcpy((void*)&req.groupParams, (void*)groupParams,
@@ -170,7 +170,7 @@ ClRcT clTmsGroupJoin(
     req.memberId    = memberId;
     if (memberName != NULL)
     {
-        memcpy(&req.memberName, memberName, sizeof(ClNameT));
+        memcpy(&req.memberName, memberName, sizeof(SaNameT));
     }
 
     req.credentials = credentials;

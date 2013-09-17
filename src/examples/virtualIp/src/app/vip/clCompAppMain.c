@@ -486,7 +486,7 @@ void clCompAppAMFPrintCSI(SaAmfCSIDescriptorT csiDescriptor,
 /*
  * Insert any other utility functions here.
  */
-void clNameFromSaName(ClNameT* dst, const SaNameT* src)
+void saNameFromSaName(SaNameT* dst, const SaNameT* src)
 {
     dst->length = src->length;
     memcpy(dst->value,src->value,src->length);
@@ -503,11 +503,11 @@ ClRcT GetVaiFromCsi(const SaNameT       *compName,const unsigned char* name, Vir
     ClRcT rc;
     ClCpmCompCSIRefT csiRef = { 0 };
     ClInt32T i;
-    ClNameT clname;
+    SaNameT saname;
 
-    clNameFromSaName(&clname,compName);
+    saNameFromSaName(&saname,compName);
            
-    rc = clCpmCompCSIList(&clname, &csiRef);
+    rc = clCpmCompCSIList(&saname, &csiRef);
     if(rc != CL_OK)
     {
         clLogError("APP", "CSISET", "Comp CSI get returned [%#x]", rc);
@@ -549,11 +549,11 @@ ClRcT OperateOnAllCsis(const SaNameT       *compName,char* op,SaAmfCSIDescriptor
     ClRcT rc;
     ClCpmCompCSIRefT csiRef = { 0 };
     ClInt32T i;
-    ClNameT clname;
+    SaNameT saname;
 
-    clNameFromSaName(&clname,compName);
+    saNameFromSaName(&saname,compName);
 
-    rc = clCpmCompCSIList(&clname, &csiRef);
+    rc = clCpmCompCSIList(&saname, &csiRef);
     if(rc != CL_OK)
     {
         clLogError("APP", "CSISET", "Comp CSI get returned [%#x]", rc);

@@ -58,7 +58,7 @@ ClTimerHandleT         gTimerHdl;
 #define CL_CKPT_METADATA            1
 
 /* Checkpoint name */
-ClNameT gCkptName = {sizeof(CL_CKPT_MASTERDB_CKPT_NAME),
+SaNameT gCkptName = {sizeof(CL_CKPT_MASTERDB_CKPT_NAME),
                      CL_CKPT_MASTERDB_CKPT_NAME};
 
 

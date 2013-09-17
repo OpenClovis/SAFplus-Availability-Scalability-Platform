@@ -77,7 +77,7 @@ typedef struct ClOampRtResource
 /**
  *  Resource Name.
  */   
-    ClNameT   resourceName;        
+    SaNameT   resourceName;        
 
 /*
  * Depth of the resource in the MO tree.
@@ -129,7 +129,7 @@ typedef struct ClOampRtCompResourceArray
  *  \par Syntax:
  *  \code 	ClRcT clOampRtResourceInfoGet(
  *                          CL_IN ClParserPtrT top,
- *                          CL_IN ClNameT* pCompName,
+ *                          CL_IN SaNameT* pCompName,
  *                          CL_OUT ClOampRtComponentResourceArrayT* pResourceArray);
  *  \endcode
  *
@@ -147,7 +147,7 @@ typedef struct ClOampRtCompResourceArray
  */
 
 
-ClRcT clOampRtResourceInfoGet(CL_IN ClParserPtrT top, CL_IN ClNameT* pCompName, CL_OUT ClOampRtResourceArrayT* pResourceArray);
+ClRcT clOampRtResourceInfoGet(CL_IN ClParserPtrT top, CL_IN SaNameT* pCompName, CL_OUT ClOampRtResourceArrayT* pResourceArray);
 
 ClRcT clOampRtResourceScanFiles(const ClCharT *dirName, const ClCharT *suffix, 
                                 ClInt32T suffixLen, ClOampRtResourceArrayT **ppResourceArray,

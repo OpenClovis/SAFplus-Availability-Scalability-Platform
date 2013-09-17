@@ -587,7 +587,7 @@ extern ClRcT clCorMoIdToClassGet(CL_IN ClCorMOIdPtrT pMoId, CL_IN ClCorMoIdClass
                                                            CL_OUT ClCorClassTypeT *pClassId);
 /**
  ************************************
- *  \brief Retrieves \e moId in ClCorMOIdT format, when \e moId is provided in ClNameT format.
+ *  \brief Retrieves \e moId in ClCorMOIdT format, when \e moId is provided in SaNameT format.
  *
  *  \par Header File:
  *  clCorUtilityApi.h
@@ -599,7 +599,7 @@ extern ClRcT clCorMoIdToClassGet(CL_IN ClCorMOIdPtrT pMoId, CL_IN ClCorMoIdClass
  *  \retval CL_COR_ERR_NULL_PTR moIdName or moId is a NULL pointer.
  *
  *  \par Description:
- *  This function is used to retrieve \e moId in ClCorMOIdT format, when \e moId is given in ClNameT format.
+ *  This function is used to retrieve \e moId in ClCorMOIdT format, when \e moId is given in SaNameT format.
  * 
  *  \sa
  *  clCorMoIdInitialize, clCorMoIdAlloc, clCorMoIdFree, clCorMoIdTruncate, clCorMoIdSet,
@@ -609,23 +609,23 @@ extern ClRcT clCorMoIdToClassGet(CL_IN ClCorMOIdPtrT pMoId, CL_IN ClCorMoIdClass
  *  clCorMoIdClone, clCorMoIdCompare.
  *
  */
-extern ClRcT clCorMoIdNameToMoIdGet(CL_IN ClNameT *moIdName, CL_OUT ClCorMOIdT *moId);
+extern ClRcT clCorMoIdNameToMoIdGet(CL_IN SaNameT *moIdName, CL_OUT ClCorMOIdT *moId);
 
 /**
  ************************************
- *  \brief Retrieves MoId in ClNameT format, when MoId is provided in ClCorMOIdT format. 
+ *  \brief Retrieves MoId in SaNameT format, when MoId is provided in ClCorMOIdT format. 
  *
  *  \par Header File:
  *  clCorUtilityApi.h
  *
  *  \param moId (in) \e MoId in ClCorMOIdT format.
- *  \param moIdName (out) \e MoId in ClNameT format.
+ *  \param moIdName (out) \e MoId in SaNameT format.
  *
  *  \retval CL_OK The function executed successfully.
  *  \retval CL_COR_ERR_NULL_PTR moIdName or moId is a NULL pointer.
  *
  *  \par Description:
- *  This API is used to retrieve MOID in ClNameT format, when MOID is provided in
+ *  This API is used to retrieve MOID in SaNameT format, when MOID is provided in
  *  ClCorMOIdT format.
  * 
  *  \par Library File:
@@ -639,7 +639,7 @@ extern ClRcT clCorMoIdNameToMoIdGet(CL_IN ClNameT *moIdName, CL_OUT ClCorMOIdT *
  *  clCorMoIdClone, clCorMoIdCompare.
  *
  */
-extern ClRcT clCorMoIdToMoIdNameGet(CL_IN ClCorMOIdT *moId, CL_OUT ClNameT *moIdName);
+extern ClRcT clCorMoIdToMoIdNameGet(CL_IN ClCorMOIdT *moId, CL_OUT SaNameT *moIdName);
 
 /**
  ************************************

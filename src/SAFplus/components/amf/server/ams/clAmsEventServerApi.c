@@ -52,7 +52,7 @@ extern ClAmsT gAms;
 
 ClRcT
 clAmsGetFaultReport(
-        CL_IN  const ClNameT  *compName,
+        CL_IN  const SaNameT  *compName,
         CL_IN  ClAmsLocalRecoveryT  recommendedRecovery,
         CL_IN  ClUint64T instantiateCookie)
 {
@@ -72,7 +72,7 @@ clAmsGetFaultReport(
      * level fault escalation. In this case find the node in the node database.
      */
 
-    memcpy (&entityRef.entity.name, compName, sizeof (ClNameT));
+    memcpy (&entityRef.entity.name, compName, sizeof (SaNameT));
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_COMP; 
     
     AMS_CALL ( clOsalMutexLock(gAms.mutex));

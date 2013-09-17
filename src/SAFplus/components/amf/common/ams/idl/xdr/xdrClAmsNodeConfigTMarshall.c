@@ -71,7 +71,7 @@ ClRcT clXdrMarshallClAmsNodeConfigT_4_0_0(void* pGenVar, ClBufferHandleT msg, Cl
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->subClassType),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->subClassType),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

@@ -18,7 +18,7 @@
  */
 /*******************************************************************************
  * ModuleName  : utils
- * File        : xdrClNameTUnMarshall.c
+ * File        : xdrSaNameTUnMarshall.c
  *******************************************************************************/
 
 /*******************************************************************************
@@ -29,9 +29,9 @@
 #include "clXdrApi.h"
 
         
-ClRcT clXdrUnmarshallClNameT(ClBufferHandleT msg , void* pGenVar)
+ClRcT clXdrUnmarshallSaNameT(ClBufferHandleT msg , void* pGenVar)
 {
-    ClNameT* pVar = (ClNameT*)pGenVar;
+    SaNameT* pVar = (SaNameT*)pGenVar;
     ClRcT rc;
 
     if ((void*)0 == pVar)

@@ -182,7 +182,7 @@ static char*    gCliTxnStatusStr[] = {
 ClRcT clTxnDebugRegister(ClEoExecutionObjT *pEoObj, 
                          /* Suppressing coverity warning for pass by value with below comment */
                          // coverity[pass_by_value]
-                         ClNameT appName)
+                         SaNameT appName)
 {
     ClRcT rc = CL_OK;
 
@@ -553,7 +553,7 @@ ClRcT clCliTxnComponentSet(int argc, char **argv, char **retStr)
     ClTxnJobHandleT             jobHandle;
     ClIocAddressT               txnCompAddr;
 
-    ClNameT                     compName = {
+    SaNameT                     compName = {
         .length = CL_MAX_NAME_LENGTH
     };
 
@@ -1689,7 +1689,7 @@ ClRcT clCliShowAgentState(int argc, char **argv, char **retStr)
     ClBufferHandleT         output;
     ClUint32T               count;
     ClIocAddressT           txnCompAddr;
-    ClNameT                     compName = {
+    SaNameT                     compName = {
         .length = CL_MAX_NAME_LENGTH
     };
     ClRmdOptionsT           rmdOptions = CL_RMD_DEFAULT_OPTIONS;

@@ -316,7 +316,7 @@ static SaAisErrorT clMsgQueueGroupSendWithKeyIovec(ClBoolT isSync,
         goto error_out;
     }
 
-    rc = clMsgQGroupCkptDataGet((ClNameT*)group, &qGroupData);
+    rc = clMsgQGroupCkptDataGet((SaNameT*)group, &qGroupData);
     if (rc != CL_OK)
     {
         clLogError("QGH", "SEND", "Group [%.*s] does not exist. error code [0x%x]", group->length, group->value, rc);
@@ -361,7 +361,7 @@ static SaAisErrorT clMsgQueueGroupSendWithKeyIovec(ClBoolT isSync,
     }
 
     /* Find target based on the consistent hash ring */
-    ClNameT *pQName = &qGroupData.pQueueList[queueGroupHash->nodeIndex];
+    SaNameT *pQName = &qGroupData.pQueueList[queueGroupHash->nodeIndex];
 
     if (isSync)
         return clMsgMessageSendIovec(msgHandle, (SaNameT *)pQName, message, timeout);

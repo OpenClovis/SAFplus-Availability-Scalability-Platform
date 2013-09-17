@@ -35,15 +35,15 @@ ClRcT clMsgQDatabaseUpdate_4_0_0(CL_IN ClMsgSyncActionT_4_0_0  syncupType, CL_IN
 
 ClRcT clMsgQDatabaseUpdateResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clMsgGroupDatabaseUpdate_4_0_0(CL_IN ClMsgSyncActionT_4_0_0  syncupType, CL_IN ClNameT*  pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0  policy, CL_IN ClIocPhysicalAddressT_4_0_0  qGroupAddress, CL_IN ClUint16T  updateCkpt);
+ClRcT clMsgGroupDatabaseUpdate_4_0_0(CL_IN ClMsgSyncActionT_4_0_0  syncupType, CL_IN SaNameT*  pGroupName, CL_IN SaMsgQueueGroupPolicyT_4_0_0  policy, CL_IN ClIocPhysicalAddressT_4_0_0  qGroupAddress, CL_IN ClUint16T  updateCkpt);
 
 ClRcT clMsgGroupDatabaseUpdateResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clMsgGroupMembershipUpdate_4_0_0(CL_IN ClMsgSyncActionT_4_0_0  syncAct, CL_IN ClNameT*  pGroupName, CL_IN ClNameT*  pQueueName, CL_IN ClUint16T  updateCkpt);
+ClRcT clMsgGroupMembershipUpdate_4_0_0(CL_IN ClMsgSyncActionT_4_0_0  syncAct, CL_IN SaNameT*  pGroupName, CL_IN SaNameT*  pQueueName, CL_IN ClUint16T  updateCkpt);
 
 ClRcT clMsgGroupMembershipUpdateResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clMsgQueueAllocate_4_0_0(CL_IN ClNameT*  pQName, CL_IN SaMsgQueueOpenFlagsT_4_0_0  openFlags, CL_IN SaMsgQueueCreationAttributesT_4_0_0*  pCreationAttributes, CL_OUT ClHandleT*  pQueueHandle);
+ClRcT clMsgQueueAllocate_4_0_0(CL_IN SaNameT*  pQName, CL_IN SaMsgQueueOpenFlagsT_4_0_0  openFlags, CL_IN SaMsgQueueCreationAttributesT_4_0_0*  pCreationAttributes, CL_OUT ClHandleT*  pQueueHandle);
 
 ClRcT clMsgQueueAllocateResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_OUT  ClHandleT  pQueueHandle);
 

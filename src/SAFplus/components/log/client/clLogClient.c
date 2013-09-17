@@ -49,7 +49,7 @@ static ClRcT
 clLogStreamAttributesCopy(ClLogStreamAttributesT  *pCreateAttr,
                           ClLogStreamAttrIDLT     *pAttrIDL);
 static ClRcT
-clLogStreamNameValidate(ClNameT  *pStreamName);
+clLogStreamNameValidate(SaNameT  *pStreamName);
 
 static ClRcT
 clLogStreamFileParamValidate(ClCharT  *fileName,
@@ -60,7 +60,7 @@ clLogStreamAttrValidate(ClLogStreamAttributesT  *pAttr);
 
 static ClRcT
 clLogStreamOpenParamValidate(ClLogHandleT            hLog,
-                             ClNameT                 *pStreamName,
+                             SaNameT                 *pStreamName,
                              ClLogStreamScopeT       streamScope,
                              ClLogStreamAttributesT  *pStreamAttr,
                              ClLogStreamOpenFlagsT   streamOpenFlags,
@@ -156,7 +156,7 @@ clLogStreamAttributesCopy(ClLogStreamAttributesT  *pCreateAttr,
 }
 
 static ClRcT
-clLogStreamNameValidate(ClNameT  *pStreamName)
+clLogStreamNameValidate(SaNameT  *pStreamName)
 {
     ClRcT      rc = CL_OK;
     ClUint32T  i  = 0;
@@ -331,7 +331,7 @@ clLogStreamAttrValidate(ClLogStreamAttributesT  *pAttr)
 
 static ClRcT
 clLogStreamOpenParamValidate(ClLogHandleT            hLog,
-                             ClNameT                 *pStreamName,
+                             SaNameT                 *pStreamName,
                              ClLogStreamScopeT       streamScope,
                              ClLogStreamAttributesT  *pStreamAttr,
                              ClLogStreamOpenFlagsT   streamOpenFlags,
@@ -449,7 +449,7 @@ clLogClntMasterCompIdAdd(ClLogClntEoDataT  *pClntEoEntry)
     ClIdlHandleT    hIdl         = CL_HANDLE_INVALID_VALUE;
     ClUint32T       clientId     = 0;
     ClIocAddressT   mastAddr     = {{0}};
-    ClNameT         compName     = {0};
+    SaNameT         compName     = {0};
     static ClBoolT  masterNotify = CL_FALSE;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
@@ -500,7 +500,7 @@ ClRcT
 clLogStreamOpen(ClLogHandleT            hLog,
                 /* Suppressing coverity warning for pass by value with below comment */
                 // coverity[pass_by_value]
-                ClNameT                 streamName,
+                SaNameT                 streamName,
                 ClLogStreamScopeT       streamScope,
                 ClLogStreamAttributesT  *pStreamAttr,
                 ClLogStreamOpenFlagsT   streamOpenFlags,
@@ -509,7 +509,7 @@ clLogStreamOpen(ClLogHandleT            hLog,
 {
     ClRcT                rc            = CL_OK;
     ClLogClntEoDataT     *pClntEoEntry = NULL;
-    ClNameT              nodeName      = {0};
+    SaNameT              nodeName      = {0};
     ClStringT            shmName       = {0};
     ClIdlAddressT        server        = {0};
     ClIdlHandleObjT      idlObj        = CL_IDL_HANDLE_INVALID_VALUE;
@@ -541,7 +541,7 @@ clLogStreamOpen(ClLogHandleT            hLog,
     else
     {
         nodeName.length = strlen(gStreamScopeGlobal);
-        strncpy(nodeName.value, gStreamScopeGlobal, nodeName.length);
+        strncpy((ClCharT *)nodeName.value, gStreamScopeGlobal, nodeName.length);
         if(pStreamAttr 
            && 
            (streamOpenFlags & CL_LOG_STREAM_CREATE)
@@ -556,7 +556,7 @@ clLogStreamOpen(ClLogHandleT            hLog,
             ClCharT *pLoc = strchr(pStreamAttr->fileLocation, ':');
             if(pLoc)
             {
-                strncpy(nodeName.value, 
+                strncpy((ClCharT *)nodeName.value,
                         pStreamAttr->fileLocation,
                         (nodeName.length = CL_MIN(sizeof(nodeName.value)-1, pLoc - pStreamAttr->fileLocation))
                         );
@@ -657,8 +657,8 @@ clLogStreamOpen(ClLogHandleT            hLog,
 
 ClRcT
 clLogClntSSOResponseProcess(ClHandleT  hLog,
-                            ClNameT    *pStreamName,
-                            ClNameT    *pNodeName,
+                            SaNameT    *pStreamName,
+                            SaNameT    *pNodeName,
                             ClStringT  *pShmName,
                             ClUint32T  shmSize,
                             ClHandleT  *phStream)
@@ -965,9 +965,9 @@ clLogFilterSet(ClLogStreamHandleT  hStream,
 }
 
 
-ClRcT clLogStreamFilterSet(ClNameT                    *pStreamName, 
+ClRcT clLogStreamFilterSet(SaNameT                    *pStreamName, 
                                 ClLogStreamScopeT     streamScope,
-                                ClNameT               *pStreamScopeNode,
+                                SaNameT               *pStreamScopeNode,
                                 ClLogFilterFlagsT     filterFlags,
                                 ClLogFilterT          filter)
 {
@@ -1037,9 +1037,9 @@ ClRcT clLogStreamFilterSet(ClNameT                    *pStreamName,
 }
 
 ClRcT
-clLogStreamFilterGet(ClNameT                  *pStreamName,
+clLogStreamFilterGet(SaNameT                  *pStreamName,
                         ClLogStreamScopeT     streamScope,
-                        ClNameT               *pStreamScopeNode,
+                        SaNameT               *pStreamScopeNode,
                         ClLogFilterT          *pFilter)
 {
     ClRcT rc = CL_OK;
@@ -1163,11 +1163,11 @@ ClRcT
 clLogHandlerRegister(ClLogHandleT              hLog,
                      /* Suppressing coverity warning for pass by value with below comment */
                      // coverity[pass_by_value]
-                     ClNameT                   streamName,
+                     SaNameT                   streamName,
                      ClLogStreamScopeT         streamScope,
                      /* Suppressing coverity warning for pass by value with below comment */
                      // coverity[pass_by_value]
-                     ClNameT                   nodeName,
+                     SaNameT                   nodeName,
                      ClLogStreamHandlerFlagsT  handlerFlags,
                      ClLogHandleT              *phStream)
 {
@@ -1295,9 +1295,9 @@ clLogHandlerRegister(ClLogHandleT              hLog,
  */
 ClRcT
 clLogClntHandlerRegisterParamValidate(ClLogHandleT              hLog,
-                                      ClNameT                   *pStreamName,
+                                      SaNameT                   *pStreamName,
                                       ClLogStreamScopeT         streamScope,
-                                      ClNameT                   *pNodeName,
+                                      SaNameT                   *pNodeName,
                                       ClLogStreamHandlerFlagsT  handlerFlags,
                                       ClLogStreamHandleT        *phStream)
 {
@@ -1363,7 +1363,7 @@ clLogHandlerRecordAck(ClLogStreamHandleT  hStream,
     ClLogStreamHandlerHandleDataT  *pData              = NULL;
     ClLogClntHandlerNodeT          *pStreamHandlerData = NULL;
     ClLogClntFlushKeyT             *pKey               = (ClLogClntFlushKeyT *) (ClWordT) seqNum; 
-    ClNameT                        nodeName            = {0};
+    SaNameT                        nodeName            = {0};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -1430,7 +1430,7 @@ clLogHandlerRecordAck(ClLogStreamHandleT  hStream,
     else
     {
         nodeName.length = strlen(gStreamScopeGlobal);
-        strncpy(nodeName.value, gStreamScopeGlobal, nodeName.length);
+        strncpy((ClCharT *)nodeName.value, gStreamScopeGlobal, nodeName.length);
     }
 
     rc = VDECL_VER(clLogHandlerSvrAckSendClientAsync, 4, 0, 0)(hClntIdl,
@@ -1533,9 +1533,9 @@ ClRcT
 VDECL_VER(clLogClientFilterSetNotify, 4, 0, 0)(
                            /* Suppressing coverity warning for pass by value with below comment */
                            // coverity[pass_by_value]
-                           ClNameT            streamName,
+                           SaNameT            streamName,
                            ClLogStreamScopeT  streamScope,
-                           ClNameT            nodeName,
+                           SaNameT            nodeName,
                            ClLogFilterT       filter)
 {
     ClRcT                 rc            = CL_OK;

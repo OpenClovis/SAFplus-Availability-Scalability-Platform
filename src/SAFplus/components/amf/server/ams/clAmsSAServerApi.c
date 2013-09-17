@@ -93,8 +93,8 @@ extern ClRcT clFaultRepairNotification(ClAmsNotificationDescriptorT *notificatio
 
 ClRcT
 _clAmsSACSIHAStateGet( 
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *csiName,
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *csiName,
         CL_OUT  ClAmsHAStateT  *haState )
 {
 
@@ -113,9 +113,9 @@ _clAmsSACSIHAStateGet(
      */
 
     *haState = CL_AMS_HA_STATE_NONE;
-    memcpy (&compRef.entity.name,compName,sizeof (ClNameT) );
+    memcpy (&compRef.entity.name,compName,sizeof (SaNameT) );
     compRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
-    memcpy (&csiRef.entity.name,csiName,sizeof (ClNameT) );
+    memcpy (&csiRef.entity.name,csiName,sizeof (SaNameT) );
     csiRef.entity.type = CL_AMS_ENTITY_TYPE_CSI;
     compRef.ptr = NULL;
     csiRef.ptr  = NULL;
@@ -177,7 +177,7 @@ ClRcT
 _clAmsSAPGTrackAdd( 
         CL_IN  ClIocAddressT  iocAddress,
         CL_IN  ClCpmHandleT  cpmHandle,
-        CL_IN  ClNameT  *csiName,
+        CL_IN  SaNameT  *csiName,
         CL_IN  ClUint8T  trackFlags,
         CL_INOUT  ClAmsPGNotificationBufferT  *notificationBuffer)
 {
@@ -189,7 +189,7 @@ _clAmsSAPGTrackAdd(
 
     AMS_CHECKPTR ( !csiName );
 
-    AMS_CHECK_BAD_CLNAME ((*csiName));
+    AMS_CHECK_BAD_SANAME ((*csiName));
 
     /*
      * Add the client in the csi's pgTrackList 
@@ -204,7 +204,7 @@ _clAmsSAPGTrackAdd(
     pgTrackClient->cpmHandle = cpmHandle;
 
     entity.type = CL_AMS_ENTITY_TYPE_CSI;
-    memcpy ( &entity.name, csiName, sizeof (ClNameT) );
+    memcpy ( &entity.name, csiName, sizeof (SaNameT) );
 
     AMS_CALL ( clOsalMutexLock(gAms.mutex));
 
@@ -258,7 +258,7 @@ ClRcT
 _clAmsSAPGTrackStop( 
         CL_IN  ClIocAddressT  iocAddress,
         CL_IN  ClCpmHandleT  cpmHandle,
-        CL_IN  ClNameT  *csiName)
+        CL_IN  SaNameT  *csiName)
 {
 
     ClRcT  rc = CL_OK;
@@ -273,7 +273,7 @@ _clAmsSAPGTrackStop(
     pgTrackClient.cpmHandle = cpmHandle;
 
     entity.type = CL_AMS_ENTITY_TYPE_CSI;
-    memcpy ( &entity.name, csiName, sizeof (ClNameT) );
+    memcpy ( &entity.name, csiName, sizeof (SaNameT) );
 
     AMS_CALL ( clOsalMutexLock(gAms.mutex));
 
@@ -317,7 +317,7 @@ ClRcT
 _clAmsSAPGTrackDispatch( 
         CL_IN  ClIocAddressT  iocAddress,
         CL_IN  ClCpmHandleT  cpmHandle,
-        CL_IN  ClNameT  *csiName,
+        CL_IN  SaNameT  *csiName,
         CL_IN  ClAmsPGNotificationBufferT  *buffer )
 {
     ClRcT  rc = CL_OK;
@@ -513,7 +513,7 @@ _clAmsSACSIQuiescingComplete(
     AMS_CHECKPTR (!invocationData);
 
     compRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
-    memcpy ( &compRef.entity.name, &invocationData->compName, sizeof (ClNameT));
+    memcpy ( &compRef.entity.name, &invocationData->compName, sizeof (SaNameT));
 
     AMS_CALL ( clOsalMutexLock(gAms.mutex));
 
@@ -553,8 +553,8 @@ exitfn:
 
 static ClRcT
 _clAmsSACSISetWithCkpt(
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *proxyCompName,
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *proxyCompName,
         CL_IN  ClInvocationT  invocation,
         CL_IN  ClAmsHAStateT  haState,
         // coverity[pass_by_value]
@@ -564,7 +564,7 @@ _clAmsSACSISetWithCkpt(
     ClRcT  rc = CL_OK;
     ClIocPhysicalAddressT  srcPhyAddr = {0};
     ClCharT  *nodeName = NULL;
-    ClNameT *compRef = compName;
+    SaNameT *compRef = compName;
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -580,13 +580,8 @@ _clAmsSACSISetWithCkpt(
 
     AMS_CHECKPTR(!nodeName);
 
-    rc =  (*gAmsToCpmCallbackFuncs->compCSISet)(
-                compName->value,
-                proxyCompName->value,
-                nodeName,
-                invocation,
-                haState,
-                csiDescriptor);
+    rc = (*gAmsToCpmCallbackFuncs->compCSISet)((ClCharT*) compName->value, (ClCharT*) proxyCompName->value, nodeName, invocation, haState,
+                    csiDescriptor);
 
     if(doCkpt == CL_TRUE)
     {
@@ -600,8 +595,8 @@ _clAmsSACSISetWithCkpt(
 
 ClRcT
 _clAmsSACSISetNoCkpt(
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *proxyCompName,
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *proxyCompName,
         CL_IN  ClInvocationT  invocation,
         CL_IN  ClAmsHAStateT  haState,
         // coverity[pass_by_value]
@@ -639,8 +634,8 @@ _clAmsSACSISetNoCkpt(
 
 ClRcT
 _clAmsSACSISet(
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *proxyCompName,
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *proxyCompName,
         CL_IN  ClInvocationT  invocation,
         CL_IN  ClAmsHAStateT  haState,
         // coverity[pass_by_value]
@@ -676,8 +671,8 @@ _clAmsSACSISet(
 
 ClRcT
 _clAmsSACSIRemove(
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *proxyCompName,
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *proxyCompName,
         CL_IN  ClInvocationT  invocation,
         // coverity[pass_by_value]
         CL_IN  ClAmsCSIDescriptorT  csiDescriptor )
@@ -687,7 +682,7 @@ _clAmsSACSIRemove(
     ClRcT  rc = CL_OK;
     ClCharT  *nodeName = NULL;
     ClIocPhysicalAddressT  srcPhyAddr = {0};
-    ClNameT *compRef = compName;
+    SaNameT *compRef = compName;
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -703,13 +698,8 @@ _clAmsSACSIRemove(
 
     AMS_CHECKPTR ( !nodeName );
 
-    rc =  (*gAmsToCpmCallbackFuncs->compCSIRmv)(
-                compName->value,
-                proxyCompName->value,
-                nodeName,
-                invocation, 
-                &csiDescriptor.csiName,
-                csiDescriptor.csiFlags);
+    rc = (*gAmsToCpmCallbackFuncs->compCSIRmv)((ClCharT*) compName->value, (ClCharT*) proxyCompName->value, nodeName, invocation,
+                    &csiDescriptor.csiName, csiDescriptor.csiFlags);
 
     AMS_CALL_CKPT_WRITE (clAmsCkptWrite(&gAms,CL_AMS_CKPT_WRITE_ALL));
 
@@ -819,7 +809,7 @@ _clAmsSACSIOperationResponse(
     AMS_CHECKPTR ( !invocationData );
 
     compRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
-    memcpy ( &compRef.entity.name, &invocationData->compName, sizeof (ClNameT));
+    memcpy ( &compRef.entity.name, &invocationData->compName, sizeof (SaNameT));
 
     AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX (
             clAmsEntityDbFindEntity(
@@ -910,7 +900,7 @@ exitfn:
 
 ClRcT
 _clAmsSAComponentErrorReport (
-        CL_IN  const ClNameT  *compName,
+        CL_IN  const SaNameT  *compName,
         CL_IN  ClTimeT  errorDetectionTime,
         CL_IN  ClAmsLocalRecoveryT  recommendedRecovery,
         CL_IN  ClUint32T  alarmHandle,
@@ -952,7 +942,7 @@ _clAmsSAFaultReportCallback(
     ClAmsSUT  *su = NULL;
     ClAmsNodeT  *node = NULL;
     ClAmsNotificationDescriptorT notification = {0};
-    ClNameT faultyCompName = {0};
+    SaNameT faultyCompName = {0};
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -1016,7 +1006,7 @@ _clAmsSAFaultReportCallback(
     notification.entityType = entity->type;
     memcpy ( &notification.entityName,&entity->name,sizeof(notification.entityName) );
     memcpy (&notification.faultyCompName, &faultyCompName, sizeof(notification.faultyCompName));
-    notification.entityName.length = strlen(entity->name.value);
+    notification.entityName.length = strlen((const ClCharT*)entity->name.value);
     notification.recoveryActionTaken = recovery;
     notification.repairNecessary = repairNecessary;
 
@@ -1065,7 +1055,7 @@ _clAmsSAFaultReportCallback(
  */
 
 ClRcT _clAmsSANodeFailFast(
-                           CL_IN  ClNameT  *nodeName,
+                           CL_IN  SaNameT  *nodeName,
                            CL_IN  ClBoolT  isASPAware)
 {
 
@@ -1091,7 +1081,7 @@ ClRcT _clAmsSANodeFailFast(
  */
 
 ClRcT _clAmsSANodeFailOver(
-                           CL_IN   ClNameT *nodeName,
+                           CL_IN   SaNameT *nodeName,
                            CL_IN   ClBoolT isASPAware)
 {
     ClRcT   rc = CL_OK;
@@ -1126,7 +1116,7 @@ ClRcT _clAmsSANodeFailOver(
  */
 
 ClRcT _clAmsSANodeFailOverRestart(
-                                  CL_IN   ClNameT *nodeName,
+                                  CL_IN   SaNameT *nodeName,
                                   CL_IN   ClBoolT isASPAware)
 {
     ClRcT   rc = CL_OK;
@@ -1166,15 +1156,15 @@ ClRcT _clAmsSANodeFailOverRestart(
 
 ClRcT
 _clAmsSAComponentInstantiate(
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *proxyCompName,
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *proxyCompName,
         CL_IN  ClUint64T instantiateCookie )
 {
 
     ClRcT  rc = CL_OK;
     ClIocPhysicalAddressT  srcPhyAddr = {0};
     ClCharT  *nodeName = NULL;
-    ClNameT  *compRef = compName;
+    SaNameT  *compRef = compName;
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -1190,13 +1180,8 @@ _clAmsSAComponentInstantiate(
 
     AMS_CHECKPTR (!nodeName);
 
-    rc = (*gAmsToCpmCallbackFuncs->compInstantiate)(
-                compName->value,
-                proxyCompName->value,
-                instantiateCookie,
-                nodeName,
-                &srcPhyAddr,
-                CPM_CPML_CONFIRM);
+    rc = (*gAmsToCpmCallbackFuncs->compInstantiate)((ClCharT*) compName->value, (ClCharT*) proxyCompName->value, instantiateCookie,
+                    nodeName, &srcPhyAddr, CPM_CPML_CONFIRM);
 
     AMS_CALL_CKPT_WRITE (clAmsCkptWrite(&gAms,CL_AMS_CKPT_WRITE_ALL));
 
@@ -1224,14 +1209,14 @@ _clAmsSAComponentInstantiate(
 
 ClRcT
 _clAmsSAComponentTerminate(
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *proxyCompName )
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *proxyCompName )
 {
 
     ClRcT  rc = CL_OK;
     ClIocPhysicalAddressT  srcPhyAddr = {0};
     ClCharT  *nodeName = NULL;
-    ClNameT *compRef = compName;
+    SaNameT *compRef = compName;
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -1247,12 +1232,8 @@ _clAmsSAComponentTerminate(
 
     AMS_CHECKPTR (!nodeName);
 
-    rc =  (*gAmsToCpmCallbackFuncs->compTerminate)(
-                compName->value,
-                proxyCompName->value,
-                nodeName,
-                &srcPhyAddr,
-                CPM_CPML_CONFIRM);
+    rc = (*gAmsToCpmCallbackFuncs->compTerminate)((ClCharT*) compName->value, (ClCharT*) proxyCompName->value, nodeName, &srcPhyAddr,
+                    CPM_CPML_CONFIRM);
 
     AMS_CALL_CKPT_WRITE (clAmsCkptWrite(&gAms,CL_AMS_CKPT_WRITE_ALL));
 
@@ -1280,14 +1261,14 @@ _clAmsSAComponentTerminate(
 
 ClRcT
 _clAmsSAComponentCleanup(
-        CL_IN  ClNameT  *compName, 
-        CL_IN  ClNameT  *proxyCompName )
+        CL_IN  SaNameT  *compName, 
+        CL_IN  SaNameT  *proxyCompName )
 {
 
     ClRcT  rc = CL_OK;
     ClIocPhysicalAddressT  srcPhyAddr = {0};
     ClCharT  *nodeName = NULL;
-    ClNameT *compRef = compName;
+    SaNameT *compRef = compName;
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -1303,13 +1284,8 @@ _clAmsSAComponentCleanup(
 
     AMS_CHECKPTR (!nodeName);
 
-    rc = (*gAmsToCpmCallbackFuncs->compCleanup)(
-                compName->value,
-                proxyCompName->value,
-                nodeName,
-                &srcPhyAddr,
-                CPM_CPML_CONFIRM,
-                CL_CPM_CLEANUP);
+    rc = (*gAmsToCpmCallbackFuncs->compCleanup)((ClCharT*) compName->value, (ClCharT*) proxyCompName->value, nodeName, &srcPhyAddr,
+                    CPM_CPML_CONFIRM, CL_CPM_CLEANUP);
 
     AMS_CALL_CKPT_WRITE (clAmsCkptWrite(&gAms,CL_AMS_CKPT_WRITE_ALL));
 
@@ -1338,7 +1314,7 @@ _clAmsSAComponentCleanup(
 ClRcT 
 _clAmsSAComponentOperationResponse(
         // coverity[pass_by_value]
-        CL_IN  ClNameT  compName,
+        CL_IN  SaNameT  compName,
         CL_IN  ClCpmCompRequestTypeT  requestType,
         CL_IN  ClRcT  retCode)
 {
@@ -1355,7 +1331,7 @@ _clAmsSAComponentOperationResponse(
     }
 
     compRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
-    memcpy ( &compRef.entity.name, &compName, sizeof (ClNameT));
+    memcpy ( &compRef.entity.name, &compName, sizeof (SaNameT));
     compRef.entity.name.length +=1;
    
     AMS_CALL ( clOsalMutexLock(gAms.mutex));
@@ -1570,7 +1546,7 @@ exitfn:
 
 ClRcT 
 _clAmsSANodeJoin(
-        CL_IN  ClNameT  *nodeName )
+        CL_IN  SaNameT  *nodeName )
 {
 
     ClRcT  rc = CL_OK;
@@ -1582,7 +1558,7 @@ _clAmsSANodeJoin(
     AMS_CHECKPTR (!nodeName);
 
     nodeRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
-    memcpy ( &nodeRef.entity.name, nodeName, sizeof (ClNameT));
+    memcpy ( &nodeRef.entity.name, nodeName, sizeof (SaNameT));
    
     AMS_CALL ( clOsalMutexLock(gAms.mutex));
 
@@ -1633,7 +1609,7 @@ exitfn:
 
 ClRcT 
 _clAmsSANodeLeave(
-        CL_IN  ClNameT  *nodeName,
+        CL_IN  SaNameT  *nodeName,
         CL_IN  ClCpmNodeLeaveT  request,
         CL_IN  ClBoolT scFailover)
 {
@@ -1648,7 +1624,7 @@ _clAmsSANodeLeave(
     AMS_CHECKPTR (!nodeName);
 
     nodeRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
-    memcpy ( &nodeRef.entity.name, nodeName, sizeof (ClNameT));
+    memcpy ( &nodeRef.entity.name, nodeName, sizeof (SaNameT));
 
     AMS_CALL ( clOsalMutexLock(gAms.mutex));
 
@@ -1726,7 +1702,7 @@ exitfn:
 
 ClRcT 
 _clAmsSANodeLeaveCompleted(
-                           CL_IN  ClNameT  *nodeName,
+                           CL_IN  SaNameT  *nodeName,
                            ClCpmNodeLeaveT nodeLeft)
 {
     AMS_FUNC_ENTER (("\n"));
@@ -1990,7 +1966,7 @@ _clAmsSAStateChangeStandby2Active(
         goto shutdown;
     }
     thisNodeRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
-    thisNodeRef.entity.name.length = strlen(thisNodeRef.entity.name.value)+1;
+    thisNodeRef.entity.name.length = strlen((const ClCharT*)thisNodeRef.entity.name.value)+1;
     
     rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
                                  &thisNodeRef);
@@ -2013,13 +1989,11 @@ _clAmsSAStateChangeStandby2Active(
     return CL_OK;
 
     shutdown:
-    clLogCritical("STATE", "CHANGE", 
-                  "This node [ %d:%s] cannot become active as its not in the cluster."
-                  "Node Cluster Member state [%s]."
-                  "Immediately terminating the node and its components and scheduling a restart",
-                  clIocLocalAddressGet(), thisNodeRef.entity.name.length > 0 ? 
-                  thisNodeRef.entity.name.value:"",
-                  CL_AMS_STRING_NODE_ISCLUSTERMEMBER(nodeStatus));
+    clLogCritical("STATE", "CHANGE", "This node [ %d:%s] cannot become active as its not in the cluster."
+                    "Node Cluster Member state [%s]."
+                    "Immediately terminating the node and its components and scheduling a restart", clIocLocalAddressGet(),
+                    thisNodeRef.entity.name.length > 0 ? (const ClCharT* )thisNodeRef.entity.name.value : "",
+                    CL_AMS_STRING_NODE_ISCLUSTERMEMBER(nodeStatus));
     cpmResetNodeElseCommitSuicide(CL_CPM_SET_RESTART_OVERRIDE(CL_CPM_RESTART_ASP));
     return CL_CPM_RC(CL_ERR_INVALID_STATE);
 
@@ -2155,8 +2129,7 @@ _clAmsSAXMLizeDB(void)
     {
         return rc;
     }
-    rc = clAmsXMLizeDB (&gAms,
-                        gAms.ckptDBSections[dbInvocationPair].value,&pData);
+    rc = clAmsXMLizeDB(&gAms, (ClCharT*) gAms.ckptDBSections[dbInvocationPair].value, &pData);
     
     if(rc != CL_OK)
     {
@@ -2170,7 +2143,7 @@ _clAmsSAXMLizeDB(void)
     /*
      * Now write into the db file.
      */
-    fp = fopen(gAms.ckptDBSections[dbInvocationPair].value,"w");
+    fp = fopen((const ClCharT*)gAms.ckptDBSections[dbInvocationPair].value,"w");
     if(!fp)
     {
         free(pData);
@@ -2207,8 +2180,7 @@ _clAmsSADeXMLizeDB(void)
     {
         return rc;
     }
-    return clAmsDeXMLizeDB (&gAms,
-                            gAms.ckptDBSections[dbInvocationPair].value);
+    return clAmsDeXMLizeDB(&gAms, (ClCharT*) gAms.ckptDBSections[dbInvocationPair].value);
 }
 
 /*
@@ -2237,8 +2209,7 @@ _clAmsSAXMLizeInvocation(void)
     {
         return rc;
     }
-    rc = clAmsXMLizeInvocation(&gAms,
-                               gAms.ckptInvocationSections[dbInvocationPair].value, &pData);
+    rc = clAmsXMLizeInvocation(&gAms, (ClCharT*) gAms.ckptInvocationSections[dbInvocationPair].value, &pData);
     if(rc != CL_OK)
     {
         return rc;
@@ -2248,7 +2219,7 @@ _clAmsSAXMLizeInvocation(void)
         return CL_AMS_RC(CL_ERR_UNSPECIFIED);
     }
 
-    fp = fopen(gAms.ckptInvocationSections[dbInvocationPair].value, "w");
+    fp = fopen((const ClCharT*)gAms.ckptInvocationSections[dbInvocationPair].value, "w");
     if(!fp)
     {
         free(pData);
@@ -2283,8 +2254,7 @@ _clAmsSADeXMLizeInvocation(void)
     {
         return rc;
     }
-    AMS_CALL (clAmsDeXMLizeInvocation(&gAms,
-                                      gAms.ckptInvocationSections[dbInvocationPair].value));
+    AMS_CALL(clAmsDeXMLizeInvocation(&gAms, (ClCharT* )gAms.ckptInvocationSections[dbInvocationPair].value));
     return CL_OK;
 }
 
@@ -2308,7 +2278,7 @@ _clAmsSADeXMLizeInvocation(void)
 
 ClRcT
 _clAmsSAMarshalRmdParams(
-        CL_IN  ClNameT  *compName,
+        CL_IN  SaNameT  *compName,
         CL_OUT  ClCharT  **nodeName,
         CL_OUT  ClIocPhysicalAddressT  *physAddr )
 {
@@ -2323,7 +2293,7 @@ _clAmsSAMarshalRmdParams(
     AMS_CHECKPTR ( !compName );
 
     compRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
-    memcpy ( &compRef.entity.name, compName, sizeof (ClNameT));
+    memcpy ( &compRef.entity.name, compName, sizeof (SaNameT));
 
     AMS_CALL( clAmsEntityDbFindEntity(
                 &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
@@ -2394,7 +2364,7 @@ _clAmsSANodeAdd(const ClCharT *nodeName)
     ClRcT rc = CL_OK;
 
     if(!nodeName) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
-    clNameSet(&entityRef.entity.name, nodeName);
+    saNameSet(&entityRef.entity.name, nodeName);
     ++entityRef.entity.name.length;
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
     rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
@@ -2418,7 +2388,7 @@ _clAmsSANodeAdd(const ClCharT *nodeName)
 }
 
 ClRcT
-_clAmsSANodeRestart(const ClNameT *nodeName, ClBoolT graceful)
+_clAmsSANodeRestart(const SaNameT *nodeName, ClBoolT graceful)
 {
     ClRcT rc = CL_OK;
     ClAmsLocalRecoveryT recovery = CL_AMS_RECOVERY_NONE;
@@ -2431,7 +2401,7 @@ _clAmsSANodeRestart(const ClNameT *nodeName, ClBoolT graceful)
     recovery = graceful ? CL_AMS_RECOVERY_NODE_SWITCHOVER :
                           CL_AMS_RECOVERY_NODE_FAILFAST;
 
-    memcpy(&entityRef.entity.name, nodeName, sizeof(ClNameT));
+    memcpy(&entityRef.entity.name, nodeName, sizeof(SaNameT));
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
 
     AMS_CALL (clOsalMutexLock(gAms.mutex));
@@ -2472,7 +2442,7 @@ exitfn:
 }
 
 ClRcT
-_clAmsSANodeHalt(ClNameT *nodeName, ClBoolT aspAware, ClBoolT ckpt)
+_clAmsSANodeHalt(SaNameT *nodeName, ClBoolT aspAware, ClBoolT ckpt)
 {
     if(ckpt)
     {

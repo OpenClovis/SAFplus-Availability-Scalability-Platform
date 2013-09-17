@@ -48,7 +48,8 @@
 extern "C" {
 #endif
 
-#include <clArchHeaders.h>    
+#include <clArchHeaders.h>
+#include <saAis.h>
 
 /******************************************************************************
  *  Clovis Data Types 
@@ -190,31 +191,23 @@ typedef union cl_u64_u /* FIXME: This is not endian-safe; shouldn't be used */
   /** The Maximum length of most string names in the OpenClovis ASP framework */
 #define CL_MAX_NAME_LENGTH  256
 
-  /** A name */
-typedef struct {
-    /** Length of the name in bytes excluding '\0' */
-    ClUint16T       length;
-    /** Actual name represented as a null terminated ASCII string */
-    ClCharT         value[CL_MAX_NAME_LENGTH];
-} ClNameT;
-
-  /** \brief  Load the ClNameT structure.
+  /** \brief  Load the SaNameT structure.
       \param  name The structure you want to load
-      \param  str  The value to be put into the ClNameT structure
+      \param  str  The value to be put into the SaNameT structure
 
       If str is too long, then this function will ASSERT in debug mode, and crop in production mode 
    */
-void clNameSet(ClNameT* name, const char* str);
+void saNameSet(SaNameT* name, const char* str);
 
-  /** \brief  Load the ClNameT structure.
+  /** \brief  Load the SaNameT structure.
       \param  name The structure you want to load
-      \param  name The structure to be put into the ClNameT structure
+      \param  name The structure to be put into the SaNameT structure
 
       If length is too long, then this function will ASSERT in debug mode, and crop in production mode 
    */
-void clNameCopy(ClNameT* nameOut, const ClNameT *nameIn);
+void saNameCopy(SaNameT* nameOut, const SaNameT *nameIn);
 
-  /** \brief  Join ClNameT structures
+  /** \brief  Join SaNameT structures
       \param  nameOut The result
       \param  prefix The beginning string.  Pass NULL if there is no beginning
       \param  separator The middle string. Pass NULL for no separator
@@ -222,7 +215,7 @@ void clNameCopy(ClNameT* nameOut, const ClNameT *nameIn);
 
       If the sum of the lengths of the prefix, separator, and suffix is too long, the function will crop.
    */
-void clNameConcat(ClNameT* nameOut, const ClNameT *prefix, const char* separator, const ClNameT *suffix);
+void saNameConcat(SaNameT* nameOut, const SaNameT *prefix, const char* separator, const SaNameT *suffix);
 
   /** \brief  Duplicate a string
       \param  str The string to be duplicated
@@ -542,14 +535,14 @@ typedef struct
 extern ClStringT *clStringDup(const ClStringT *);
 
 /* Macro to print into the name */
-  /** \brief  Load the ClNameT structure.
+  /** \brief  Load the SaNameT structure.
       \param  name The structure you want to load
       \param  fmtString & params 
    */
 #define clNamePrintf(name, ...)       \
 do                                    \
 {                                     \
-    name.length = snprintf(name.value, CL_MAX_NAME_LENGTH - 1, __VA_ARGS__);\
+    name.length = snprintf((ClCharT *)name.value, CL_MAX_NAME_LENGTH - 1, __VA_ARGS__);\
     name.value[CL_MIN(name.length, CL_MAX_NAME_LENGTH - 1)] = '\0';         \
 }while(0)
 

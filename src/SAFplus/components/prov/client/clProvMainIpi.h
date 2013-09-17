@@ -171,7 +171,7 @@ ClRcT   clProvAttrWalk( ClCorAttrPathPtrT pAttrPath,
                         ClCorAttrFlagT attrFlag,
                         void* cookie );
 
-ClRcT   clCorStringToMoIdXlate( ClNameT* pStringMoId,
+ClRcT   clCorStringToMoIdXlate( SaNameT* pStringMoId,
                                 ClCorMOIdPtrT  moIdh );
     
 ClRcT   clProvTxnJobWalk( ClCorTxnIdT     corTxnId,
@@ -245,13 +245,13 @@ ClRcT   clCpmComponentHandle( ClCpmHandleT* pCpmHandle );
 ClRcT   clCorNodeAddressToMoIdGet( ClIocNodeAddressT iocNodeAddress,
                                    ClCorMOIdPtrT moId );
 ClRcT   clCorMoIdToStringXlate( ClCorMOIdPtrT moIdh,
-                                ClNameT* pStringMoId );
-ClRcT   clCorStringToMoIdXlate( ClNameT* pStringMoId,
+                                SaNameT* pStringMoId );
+ClRcT   clCorStringToMoIdXlate( SaNameT* pStringMoId,
                                 ClCorMOIdPtrT  moIdh );
 ClRcT   clProvRuleAdd( ClCorMOIdPtrT fullMoId,
                        ClCorAddrT* pProvAddr );
 ClRcT   clProvOmClassCreate();
-ClRcT   clProvProvisionOmCreateAndRuleAdd( ClNameT* pResourceStringMoId,
+ClRcT   clProvProvisionOmCreateAndRuleAdd( SaNameT* pResourceStringMoId,
                                            ClCorMOIdPtrT pFullMoId,
                                            ClCorAddrT* pProvAddr,
                                            ClUint32T createFlag,

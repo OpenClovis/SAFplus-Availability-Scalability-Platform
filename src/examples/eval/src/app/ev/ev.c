@@ -66,7 +66,7 @@ clEvalAppLogStreamOpen(ClCharT             *pAppName,
 {
     ClRcT       rc          = CL_OK;
     ClVersionT  version     = CL_LOG_CLNT_VERSION; 
-    ClNameT     streamName  = {0};
+    SaNameT     streamName  = {0};
     ClLogStreamAttributesT  streamAttributes = {0};
    
    /*

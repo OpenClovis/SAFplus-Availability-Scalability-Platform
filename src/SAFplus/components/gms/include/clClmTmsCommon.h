@@ -260,7 +260,7 @@ typedef struct ClGmsClusterMemberT {
     /**
      * Textual name of node.
      */
-    ClNameT                     nodeName        __attribute__((__aligned__(8)));
+    SaNameT                     nodeName        __attribute__((__aligned__(8)));
 
     /**
      * This is \c TRUE if the node is a member of the cluster
@@ -371,7 +371,7 @@ typedef struct ClGmsClusterNotificationBufferT {
 /**
  * System-wide unique name of the group.
  */
-typedef ClNameT ClGmsGroupNameT;        
+typedef SaNameT ClGmsGroupNameT;        
 
 
 /**
@@ -383,7 +383,7 @@ typedef ClUint32T ClGmsGroupIdT;
 /**
  * Group-unique name of the member.
  */
-typedef ClNameT ClGmsMemberNameT;       
+typedef SaNameT ClGmsMemberNameT;       
 
 
 /**

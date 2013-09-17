@@ -107,7 +107,7 @@ typedef struct
     ClUint32T            version;      /* Version */
     ClUint32T            dsIdCnt;
     ClUint32T            dsId;
-    ClNameT              name;         /* Service name */
+    SaNameT              name;         /* Service name */
     ClUint64T            objReference; /* Object Reference */
     ClNameSvcSourceT     source;       /* Source of the packet */
     ClUint32T            compId;       /* Id of the component providing the service */

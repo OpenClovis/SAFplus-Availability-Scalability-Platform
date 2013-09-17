@@ -52,7 +52,7 @@ struct _ClCpmClientCompTerminateT_4_0_0;
 
 typedef struct _ClCpmClientCompTerminateT_4_0_0 {
     ClUint64T    invocation;
-    ClNameT    compName;
+    SaNameT    compName;
     ClCpmCompRequestTypeT_4_0_0    requestType;
 
 }ClCpmClientCompTerminateT_4_0_0;

@@ -29,7 +29,7 @@ ClRcT clCkptDeputyCkptCreateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsg
     ClRcT rc = CL_OK;
     ClHandleT  ckptMastHdl;
     ClHandleT  ckptClntHdl;
-    ClNameT  pCkptName;
+    SaNameT  pCkptName;
     ClCkptCheckpointCreationAttributesT_4_0_0  pCkptCreatAtrr;
     ClUint32T  localAddr;
     ClUint32T  portId;
@@ -37,7 +37,7 @@ ClRcT clCkptDeputyCkptCreateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsg
 
     memset(&(ckptMastHdl), 0, sizeof(ClHandleT));
     memset(&(ckptClntHdl), 0, sizeof(ClHandleT));
-    memset(&(pCkptName), 0, sizeof(ClNameT));
+    memset(&(pCkptName), 0, sizeof(SaNameT));
     memset(&(pCkptCreatAtrr), 0, sizeof(ClCkptCheckpointCreationAttributesT_4_0_0));
     memset(&(localAddr), 0, sizeof(ClUint32T));
     memset(&(portId), 0, sizeof(ClUint32T));
@@ -56,7 +56,7 @@ ClRcT clCkptDeputyCkptCreateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsg
         goto LL1;
     }
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pCkptName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pCkptName));
     if (CL_OK != rc)
     {
         goto LL2;
@@ -123,7 +123,7 @@ ClRcT clCkptDeputyCkptCreateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsg
         goto L2;
     }
 
-    rc = clXdrMarshallClNameT(&(pCkptName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pCkptName), 0, 1);
     if (CL_OK != rc)
     {
         goto L3;
@@ -165,7 +165,7 @@ LL6:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
 LL5:  clXdrMarshallClUint32T(&(portId), 0, 1);
 LL4:  clXdrMarshallClUint32T(&(localAddr), 0, 1);
 LL3:  clXdrMarshallClCkptCheckpointCreationAttributesT_4_0_0(&(pCkptCreatAtrr), 0, 1);
-LL2:  clXdrMarshallClNameT(&(pCkptName), 0, 1);
+LL2:  clXdrMarshallSaNameT(&(pCkptName), 0, 1);
 LL1:  clXdrMarshallClHandleT(&(ckptClntHdl), 0, 1);
 LL0:  clXdrMarshallClHandleT(&(ckptMastHdl), 0, 1);
 
@@ -173,7 +173,7 @@ LL0:  clXdrMarshallClHandleT(&(ckptMastHdl), 0, 1);
 
 L0:  clXdrMarshallClHandleT(&(ckptMastHdl), 0, 1);
 L1:  clXdrMarshallClHandleT(&(ckptClntHdl), 0, 1);
-L2:  clXdrMarshallClNameT(&(pCkptName), 0, 1);
+L2:  clXdrMarshallSaNameT(&(pCkptName), 0, 1);
 L3:  clXdrMarshallClCkptCheckpointCreationAttributesT_4_0_0(&(pCkptCreatAtrr), 0, 1);
 L4:  clXdrMarshallClUint32T(&(localAddr), 0, 1);
 L5:  clXdrMarshallClUint32T(&(portId), 0, 1);
@@ -765,7 +765,7 @@ ClRcT clCkptActiveCkptOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
     ClRcT rc = CL_OK;
     ClVersionT  pVersion;
     ClHandleT  ckptMastHdl;
-    ClNameT  pCkptName;
+    SaNameT  pCkptName;
     ClUint32T  ckptOpenFlags;
     ClCkptCheckpointCreationAttributesT_4_0_0  pCkptCreateAttr;
     ClUint32T  peerAddr;
@@ -773,7 +773,7 @@ ClRcT clCkptActiveCkptOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
 
     memset(&(pVersion), 0, sizeof(ClVersionT));
     memset(&(ckptMastHdl), 0, sizeof(ClHandleT));
-    memset(&(pCkptName), 0, sizeof(ClNameT));
+    memset(&(pCkptName), 0, sizeof(SaNameT));
     memset(&(ckptOpenFlags), 0, sizeof(ClUint32T));
     memset(&(pCkptCreateAttr), 0, sizeof(ClCkptCheckpointCreationAttributesT_4_0_0));
     memset(&(peerAddr), 0, sizeof(ClUint32T));
@@ -786,7 +786,7 @@ ClRcT clCkptActiveCkptOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pCkptName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pCkptName));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -853,7 +853,7 @@ ClRcT clCkptActiveCkptOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
         goto L1;
     }
 
-    rc = clXdrMarshallClNameT(&(pCkptName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pCkptName), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -902,13 +902,13 @@ LL5:  clXdrMarshallClUint32T(&(portId), 0, 1);
 LL4:  clXdrMarshallClUint32T(&(peerAddr), 0, 1);
 LL3:  clXdrMarshallClCkptCheckpointCreationAttributesT_4_0_0(&(pCkptCreateAttr), 0, 1);
 LL2:  clXdrMarshallClUint32T(&(ckptOpenFlags), 0, 1);
-LL1:  clXdrMarshallClNameT(&(pCkptName), 0, 1);
+LL1:  clXdrMarshallSaNameT(&(pCkptName), 0, 1);
 LL0:  clXdrMarshallClHandleT(&(ckptMastHdl), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallClHandleT(&(ckptMastHdl), 0, 1);
-L1:  clXdrMarshallClNameT(&(pCkptName), 0, 1);
+L1:  clXdrMarshallSaNameT(&(pCkptName), 0, 1);
 L2:  clXdrMarshallClUint32T(&(ckptOpenFlags), 0, 1);
 L3:  clXdrMarshallClCkptCheckpointCreationAttributesT_4_0_0(&(pCkptCreateAttr), 0, 1);
 L4:  clXdrMarshallClUint32T(&(peerAddr), 0, 1);

@@ -30,7 +30,7 @@ ClRcT   unmarshallClGmsClusterMemberT(ClBufferHandleT bufferHandle, ClGmsCluster
     CHECK_RETURN(clXdrUnmarshallArrayClCharT(bufferHandle, &(clusterNode->nodeIpAddress.value),CL_GMS_MAX_ADDRESS_LENGTH), CL_OK);
 
     /* Unmarshall nodeName filed */
-    CHECK_RETURN(clXdrUnmarshallClNameT(bufferHandle, &(clusterNode->nodeName)), CL_OK);
+    CHECK_RETURN(clXdrUnmarshallSaNameT(bufferHandle, &(clusterNode->nodeName)), CL_OK);
 
     /* Unmarshall memberActive field */
     CHECK_RETURN(clXdrUnmarshallClUint16T(bufferHandle, &(clusterNode->memberActive)), CL_OK);
@@ -72,7 +72,7 @@ ClRcT   unmarshallClGmsGroupMemberT(ClBufferHandleT bufferHandle, ClGmsGroupMemb
     CHECK_RETURN(clXdrUnmarshallClUint32T(bufferHandle, &(groupMember->memberAddress.iocPhyAddress.portId)), CL_OK);
 
     /* Unmarshall memberName filed */
-    CHECK_RETURN(clXdrUnmarshallClNameT(bufferHandle, &(groupMember->memberName)), CL_OK);
+    CHECK_RETURN(clXdrUnmarshallSaNameT(bufferHandle, &(groupMember->memberName)), CL_OK);
 
     /* Unmarshall memberActive field */
     CHECK_RETURN(clXdrUnmarshallClUint16T(bufferHandle, &(groupMember->memberActive)), CL_OK);
@@ -92,7 +92,7 @@ ClRcT   unmarshallClGmsGroupMemberT(ClBufferHandleT bufferHandle, ClGmsGroupMemb
 ClRcT   unmarshallClGmsGroupInfoT(ClBufferHandleT bufferHandle, ClGmsGroupInfoT *groupInfo)
 {
     /* Unmarshall groupName filed */
-    CHECK_RETURN(clXdrUnmarshallClNameT(bufferHandle, &(groupInfo->groupName)), CL_OK);
+    CHECK_RETURN(clXdrUnmarshallSaNameT(bufferHandle, &(groupInfo->groupName)), CL_OK);
 
     /* Unmarshall groupId field */
     CHECK_RETURN(clXdrUnmarshallClUint32T(bufferHandle, &(groupInfo->groupId)), CL_OK);

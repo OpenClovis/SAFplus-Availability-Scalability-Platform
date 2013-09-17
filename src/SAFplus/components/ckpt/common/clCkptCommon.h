@@ -178,7 +178,7 @@ do\
 
 typedef struct {
     ClUint32T         eventType; /* Type of event */
-    ClNameT           name;      /* Ckpt Name whose active replica address 
+    SaNameT           name;      /* Ckpt Name whose active replica address 
                                     is changing. */
     ClIocNodeAddressT actAddr ;  /* Address of the new active replica */
 } ClCkptClientUpdInfoT;
@@ -205,7 +205,7 @@ typedef struct hdlDb
     ClCkptHdlT           ckptActiveHdl;   /* Active handle -
                                              for checkpoint handle type */
     ClUint32T            cksum;           /* Index into ckptHdl list */
-    ClNameT              ckptName;        /* name of the checkpoint */
+    SaNameT              ckptName;        /* name of the checkpoint */
     ClUint32T            openFlag;        /* Type of open */
     ClCkptCreationFlagsT creationFlag;    /* Creation flags */
     ClCkptNotificationCallbackT notificationCallback; 

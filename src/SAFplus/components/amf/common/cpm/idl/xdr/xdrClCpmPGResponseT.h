@@ -51,7 +51,7 @@ struct _ClCpmPGResponseT_4_0_0;
 
 typedef struct _ClCpmPGResponseT_4_0_0 {
     ClHandleT    cpmHandle;
-    ClNameT    csiName;
+    SaNameT    csiName;
     ClUint32T    numberOfMembers;
     ClUint32T    error;
     ClUint32T    bufferLength;

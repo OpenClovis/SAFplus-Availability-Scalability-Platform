@@ -41,7 +41,7 @@ extern "C" {
 
 
 
-ClRcT clCkptDeputyCkptCreate_4_0_0(CL_IN ClHandleT  ckptMastHdl, CL_IN ClHandleT  ckptClntHdl, CL_IN ClNameT*  pCkptName, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0*  pCkptCreatAtrr, CL_IN ClUint32T  localAddr, CL_IN ClUint32T  portId, CL_INOUT ClVersionT*  pVersion);
+ClRcT clCkptDeputyCkptCreate_4_0_0(CL_IN ClHandleT  ckptMastHdl, CL_IN ClHandleT  ckptClntHdl, CL_IN SaNameT*  pCkptName, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0*  pCkptCreatAtrr, CL_IN ClUint32T  localAddr, CL_IN ClUint32T  portId, CL_INOUT ClVersionT*  pVersion);
 
 ClRcT clCkptDeputyCkptCreateResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
 
@@ -61,7 +61,7 @@ ClRcT clCkptCreateInfoDeputyUpdate_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN C
 
 ClRcT clCkptCreateInfoDeputyUpdateResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
 
-ClRcT clCkptActiveCkptOpen_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptMastHdl, CL_IN ClNameT*  pCkptName, CL_IN ClUint32T  ckptOpenFlags, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0*  pCkptCreateAttr, CL_IN ClUint32T  peerAddr, CL_IN ClUint32T  portId);
+ClRcT clCkptActiveCkptOpen_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptMastHdl, CL_IN SaNameT*  pCkptName, CL_IN ClUint32T  ckptOpenFlags, CL_IN ClCkptCheckpointCreationAttributesT_4_0_0*  pCkptCreateAttr, CL_IN ClUint32T  peerAddr, CL_IN ClUint32T  portId);
 
 ClRcT clCkptActiveCkptOpenResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
 

@@ -339,7 +339,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
                 ClRcT rc;
                 ClCpmCompCSIRefT csiRef = { 0 };
                 ClInt32T i;
-                rc = clCpmCompCSIList((ClNameT*)compName, &csiRef);
+                rc = clCpmCompCSIList((SaNameT*)compName, &csiRef);
                 if(rc != CL_OK)
                   {
                     clLogError("APP", "CSISET", "Comp CSI get returned [%#x]", rc);
@@ -406,7 +406,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
                 ClRcT rc;
                 ClCpmCompCSIRefT csiRef = { 0 };
                 ClInt32T i;
-                rc = clCpmCompCSIList((ClNameT*)compName, &csiRef);
+                rc = clCpmCompCSIList((SaNameT*)compName, &csiRef);
                 if(rc != CL_OK)
                   {
                     clLogError("APP", "CSISET", "Comp CSI get returned [%#x]", rc);

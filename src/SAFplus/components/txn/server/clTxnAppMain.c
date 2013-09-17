@@ -55,7 +55,7 @@ ClCpmHandleT		gCpmHandle;
 /* Forward Declarations */
 
 ClRcT clTxnAppTerminate(ClInvocationT invocation,
-			const ClNameT  *compName)
+			const SaNameT  *compName)
 {
     ClEoExecutionObjT   *pEoObj;
     ClRcT rc = CL_OK;
@@ -88,7 +88,7 @@ ClRcT clTxnAppTerminate(ClInvocationT invocation,
 
 ClRcT clTxnAppInitialize(ClUint32T argc,  ClCharT *argv[])
 {
-    ClNameT             appName;
+    SaNameT             appName;
     ClCpmCallbacksT     callbacks;
     ClVersionT          version;
     ClIocPortT          iocPort;

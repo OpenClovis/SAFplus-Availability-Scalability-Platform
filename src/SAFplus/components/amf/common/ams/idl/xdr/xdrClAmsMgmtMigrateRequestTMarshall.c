@@ -47,13 +47,13 @@ ClRcT clXdrMarshallClAmsMgmtMigrateRequestT_4_0_0(void* pGenVar, ClBufferHandleT
         length = 1;
         clXdrMarshallClUint32T(&length, msg, 0);
 
-    rc = clXdrMarshallClNameT(&(pVar->sg),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->sg),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->prefix),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->prefix),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

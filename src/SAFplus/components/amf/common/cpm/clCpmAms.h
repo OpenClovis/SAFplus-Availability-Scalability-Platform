@@ -127,30 +127,30 @@ typedef ClRcT
                           CL_IN ClCharT *proxyCompName,
                           CL_IN ClCharT *nodeName,
                           CL_IN ClInvocationT invocation,
-                          CL_IN ClNameT *csiName,
+                          CL_IN SaNameT *csiName,
                           CL_IN ClAmsCSIFlagsT csiFlags);
 
 typedef ClRcT
 (*ClCpmComponentPGTrackT) (CL_IN ClIocAddressT iocAddress,
                            CL_IN ClCpmHandleT cpmHandle,
-                           CL_IN ClNameT csiName,
+                           CL_IN SaNameT csiName,
                            CL_IN ClAmsPGNotificationBufferT *notificationBuffer,
                            CL_IN ClUint32T numberOfMembers,
                            CL_IN ClUint32T error);
     
-typedef ClRcT (*ClCpmNodeDepartureAllowedT) (CL_IN ClNameT *nodeName, CL_IN ClCpmNodeLeaveT nodeLeave);
+typedef ClRcT (*ClCpmNodeDepartureAllowedT) (CL_IN SaNameT *nodeName, CL_IN ClCpmNodeLeaveT nodeLeave);
 
-typedef ClRcT (*ClCpmIocAddressForNodeGetT) (CL_IN ClNameT *nodeName,
+typedef ClRcT (*ClCpmIocAddressForNodeGetT) (CL_IN SaNameT *nodeName,
                                              CL_OUT ClIocAddressT *pIocAddress);
 
 typedef ClRcT (*ClCpmNodeNameForNodeAddressGetT) (CL_IN ClIocNodeAddressT nodeAddress,
-                                                  CL_OUT ClNameT *pNodeName);
+                                                  CL_OUT SaNameT *pNodeName);
 
-typedef ClRcT (*ClCpmNodeFailFastT) (CL_IN ClNameT *nodeName, CL_IN ClBoolT isASPAware);
+typedef ClRcT (*ClCpmNodeFailFastT) (CL_IN SaNameT *nodeName, CL_IN ClBoolT isASPAware);
 
-typedef ClRcT (*ClCpmNodeFailOverT) (CL_IN ClNameT *nodeName, CL_IN ClBoolT isASPAware);
+typedef ClRcT (*ClCpmNodeFailOverT) (CL_IN SaNameT *nodeName, CL_IN ClBoolT isASPAware);
 
-typedef  ClRcT (*ClCpmNodeFailoverRestartT) (CL_IN ClNameT *nodeName, CL_IN ClBoolT isASPAware);
+typedef  ClRcT (*ClCpmNodeFailoverRestartT) (CL_IN SaNameT *nodeName, CL_IN ClBoolT isASPAware);
 
 typedef ClRcT (*ClCpmEntityAddT) (CL_IN ClAmsEntityRefT *entityRef);
 
@@ -159,7 +159,7 @@ typedef ClRcT (*ClCpmEntityRmvT) (CL_IN ClAmsEntityRefT *entityRef);
 typedef ClRcT (*ClCpmEntitySetConfigT) (CL_IN ClAmsEntityConfigT *entityConfig,
                                         CL_IN ClUint64T bitMask);
 
-typedef ClRcT (*ClCpmNodeHaltT)(CL_IN ClNameT *nodeName, ClBoolT aspAware);
+typedef ClRcT (*ClCpmNodeHaltT)(CL_IN SaNameT *nodeName, ClBoolT aspAware);
 
 typedef ClRcT (*ClCpmClusterResetT)(void);
 
@@ -192,8 +192,8 @@ typedef struct
 /**
  * Get the HA State from AMS
  */
-typedef ClRcT (*ClAmsCompHAStateGetT) (CL_IN ClNameT *compName,
-                                       CL_IN ClNameT *csiName,
+typedef ClRcT (*ClAmsCompHAStateGetT) (CL_IN SaNameT *compName,
+                                       CL_IN SaNameT *csiName,
                                        CL_OUT ClAmsHAStateT *haState);
 
 /**
@@ -204,7 +204,7 @@ typedef ClRcT (*ClAmsQuiescingCompleteT) (CL_IN ClInvocationT invocation,
                                           CL_IN ClRcT retCode);
 
 typedef ClRcT
-(*ClAmsComponentErrorReportT) (CL_IN const ClNameT *compName,
+(*ClAmsComponentErrorReportT) (CL_IN const SaNameT *compName,
                                CL_IN ClTimeT errorDetectionTime,
                                CL_IN ClAmsLocalRecoveryT recommendedRecovery,
                                CL_IN ClUint32T alarmHandle,
@@ -220,19 +220,19 @@ typedef ClRcT (*ClAmsCSIOperationResponseT) (CL_IN ClInvocationT invocation,
  * Inform component operation response to AMS.
  */
 typedef ClRcT
-(*ClAmsComponentOperationResponseT)(CL_IN ClNameT compName,
+(*ClAmsComponentOperationResponseT)(CL_IN SaNameT compName,
                                     CL_IN ClCpmCompRequestTypeT requestType,
                                     CL_IN ClRcT retCode);
 
 /**
  * Inform AMS that the node is ready to provide service.
  */
-typedef ClRcT (*ClAmsNodeJoinT) (CL_IN ClNameT *nodeName);
+typedef ClRcT (*ClAmsNodeJoinT) (CL_IN SaNameT *nodeName);
 
 /**
  * Inform AMS that node is leaving/left the cluster.
  */
-typedef ClRcT (*ClAmsNodeLeaveT) (CL_IN ClNameT *nodeName,
+typedef ClRcT (*ClAmsNodeLeaveT) (CL_IN SaNameT *nodeName,
                                   CL_IN ClCpmNodeLeaveT nodeLeave,
                                   CL_IN ClBoolT scFailover);
 
@@ -243,7 +243,7 @@ typedef ClRcT (*ClAmsNodeLeaveT) (CL_IN ClNameT *nodeName,
 typedef ClRcT
 (*ClAmsPgTrackT) (CL_IN ClIocAddressT iocAddress,
                   CL_IN ClCpmHandleT cpmHandle,
-                  CL_IN ClNameT *csiName,
+                  CL_IN SaNameT *csiName,
                   CL_IN ClUint8T trackFlags,
                   CL_OUT ClAmsPGNotificationBufferT *notificationBuffer);
 
@@ -253,7 +253,7 @@ typedef ClRcT
  */
 typedef ClRcT (*ClAmsPgTrackStopT) (CL_IN ClIocAddressT iocAddress,
                                     CL_IN ClCpmHandleT cpmHandle,
-                                    CL_IN ClNameT *csiName);
+                                    CL_IN SaNameT *csiName);
 
 /**
  * Inform AMS that checkpoint server is ready to provide service.
@@ -275,7 +275,7 @@ typedef ClRcT (*ClAmsSAAmsStateChange) (ClUint32T mode);
  */
 typedef ClRcT (*ClAmsSANodeAdd)(const ClCharT *node);
 
-typedef ClRcT (*ClAmsSANodeRestart)(const ClNameT *nodeName, ClBoolT graceful);
+typedef ClRcT (*ClAmsSANodeRestart)(const SaNameT *nodeName, ClBoolT graceful);
 
 typedef struct
 {
@@ -320,7 +320,7 @@ extern ClRcT cpmInvocationGetWithLock(ClInvocationT invocationId,
 /**
  * Delete all the invocation entries for a given component name 
  */
-extern ClRcT cpmInvocationClearCompInvocation(ClNameT *compName);
+extern ClRcT cpmInvocationClearCompInvocation(SaNameT *compName);
 
 /**
  * Delete a specific invocation entry 
@@ -339,7 +339,7 @@ extern ClRcT _cpmComponentCSIRmv(ClCharT *compName,
                                  ClCharT *proxyCompName,
                                  ClCharT *nodeName,
                                  ClInvocationT invocation,
-                                 ClNameT *csiName,
+                                 SaNameT *csiName,
                                  ClAmsCSIFlagsT csiFlags);
 
 extern ClRcT _cpmComponentCSISet(ClCharT *compName,

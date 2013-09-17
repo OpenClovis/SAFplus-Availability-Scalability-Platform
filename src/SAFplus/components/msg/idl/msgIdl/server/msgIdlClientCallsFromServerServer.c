@@ -149,13 +149,13 @@ ClRcT clMsgGroupDatabaseUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inM
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
     ClMsgSyncActionT_4_0_0  syncupType;
-    ClNameT  pGroupName;
+    SaNameT  pGroupName;
     SaMsgQueueGroupPolicyT_4_0_0  policy;
     ClIocPhysicalAddressT_4_0_0  qGroupAddress;
     ClUint16T  updateCkpt;
 
     memset(&(syncupType), 0, sizeof(ClMsgSyncActionT_4_0_0));
-    memset(&(pGroupName), 0, sizeof(ClNameT));
+    memset(&(pGroupName), 0, sizeof(SaNameT));
     memset(&(policy), 0, sizeof(SaMsgQueueGroupPolicyT_4_0_0));
     memset(&(qGroupAddress), 0, sizeof(ClIocPhysicalAddressT_4_0_0));
     memset(&(updateCkpt), 0, sizeof(ClUint16T));
@@ -167,7 +167,7 @@ ClRcT clMsgGroupDatabaseUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inM
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pGroupName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pGroupName));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -222,7 +222,7 @@ ClRcT clMsgGroupDatabaseUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inM
         goto L1;
     }
 
-    rc = clXdrMarshallClNameT(&(pGroupName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pGroupName), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -257,13 +257,13 @@ L5:    return rc;
 LL4:  clXdrMarshallClUint16T(&(updateCkpt), 0, 1);
 LL3:  clXdrMarshallClIocPhysicalAddressT_4_0_0(&(qGroupAddress), 0, 1);
 LL2:  clXdrMarshallSaMsgQueueGroupPolicyT_4_0_0(&(policy), 0, 1);
-LL1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
+LL1:  clXdrMarshallSaNameT(&(pGroupName), 0, 1);
 LL0:  clXdrMarshallClMsgSyncActionT_4_0_0(&(syncupType), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallClMsgSyncActionT_4_0_0(&(syncupType), 0, 1);
-L1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
+L1:  clXdrMarshallSaNameT(&(pGroupName), 0, 1);
 L2:  clXdrMarshallSaMsgQueueGroupPolicyT_4_0_0(&(policy), 0, 1);
 L3:  clXdrMarshallClIocPhysicalAddressT_4_0_0(&(qGroupAddress), 0, 1);
 L4:  clXdrMarshallClUint16T(&(updateCkpt), 0, 1);
@@ -302,13 +302,13 @@ ClRcT clMsgGroupMembershipUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT i
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
     ClMsgSyncActionT_4_0_0  syncAct;
-    ClNameT  pGroupName;
-    ClNameT  pQueueName;
+    SaNameT  pGroupName;
+    SaNameT  pQueueName;
     ClUint16T  updateCkpt;
 
     memset(&(syncAct), 0, sizeof(ClMsgSyncActionT_4_0_0));
-    memset(&(pGroupName), 0, sizeof(ClNameT));
-    memset(&(pQueueName), 0, sizeof(ClNameT));
+    memset(&(pGroupName), 0, sizeof(SaNameT));
+    memset(&(pQueueName), 0, sizeof(SaNameT));
     memset(&(updateCkpt), 0, sizeof(ClUint16T));
 
 
@@ -318,13 +318,13 @@ ClRcT clMsgGroupMembershipUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT i
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pGroupName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pGroupName));
     if (CL_OK != rc)
     {
         goto LL1;
     }
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pQueueName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pQueueName));
     if (CL_OK != rc)
     {
         goto LL2;
@@ -367,13 +367,13 @@ ClRcT clMsgGroupMembershipUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT i
         goto L1;
     }
 
-    rc = clXdrMarshallClNameT(&(pGroupName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pGroupName), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
     }
 
-    rc = clXdrMarshallClNameT(&(pQueueName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pQueueName), 0, 1);
     if (CL_OK != rc)
     {
         goto L3;
@@ -394,15 +394,15 @@ ClRcT clMsgGroupMembershipUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT i
 L4:    return rc;
 
 LL3:  clXdrMarshallClUint16T(&(updateCkpt), 0, 1);
-LL2:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
-LL1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
+LL2:  clXdrMarshallSaNameT(&(pQueueName), 0, 1);
+LL1:  clXdrMarshallSaNameT(&(pGroupName), 0, 1);
 LL0:  clXdrMarshallClMsgSyncActionT_4_0_0(&(syncAct), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallClMsgSyncActionT_4_0_0(&(syncAct), 0, 1);
-L1:  clXdrMarshallClNameT(&(pGroupName), 0, 1);
-L2:  clXdrMarshallClNameT(&(pQueueName), 0, 1);
+L1:  clXdrMarshallSaNameT(&(pGroupName), 0, 1);
+L2:  clXdrMarshallSaNameT(&(pQueueName), 0, 1);
 L3:  clXdrMarshallClUint16T(&(updateCkpt), 0, 1);
 
 
@@ -438,18 +438,18 @@ ClRcT clMsgQueueAllocateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl,
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClNameT  pQName;
+    SaNameT  pQName;
     SaMsgQueueOpenFlagsT_4_0_0  openFlags;
     SaMsgQueueCreationAttributesT_4_0_0  pCreationAttributes;
     ClHandleT  pQueueHandle;
 
-    memset(&(pQName), 0, sizeof(ClNameT));
+    memset(&(pQName), 0, sizeof(SaNameT));
     memset(&(openFlags), 0, sizeof(SaMsgQueueOpenFlagsT_4_0_0));
     memset(&(pCreationAttributes), 0, sizeof(SaMsgQueueCreationAttributesT_4_0_0));
     memset(&(pQueueHandle), 0, sizeof(ClHandleT));
 
 
-    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pQName));
+    rc = clXdrUnmarshallSaNameT( inMsgHdl,&(pQName));
     if (CL_OK != rc)
     {
         goto LL0;
@@ -492,7 +492,7 @@ ClRcT clMsgQueueAllocateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl,
        goto L0;
     }
     
-    rc = clXdrMarshallClNameT(&(pQName), 0, 1);
+    rc = clXdrMarshallSaNameT(&(pQName), 0, 1);
     if (CL_OK != rc)
     {
         goto L1;
@@ -526,11 +526,11 @@ L4:    return rc;
 
 LL2:  clXdrMarshallSaMsgQueueCreationAttributesT_4_0_0(&(pCreationAttributes), 0, 1);
 LL1:  clXdrMarshallSaMsgQueueOpenFlagsT_4_0_0(&(openFlags), 0, 1);
-LL0:  clXdrMarshallClNameT(&(pQName), 0, 1);
+LL0:  clXdrMarshallSaNameT(&(pQName), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClNameT(&(pQName), 0, 1);
+L0:  clXdrMarshallSaNameT(&(pQName), 0, 1);
 L1:  clXdrMarshallSaMsgQueueOpenFlagsT_4_0_0(&(openFlags), 0, 1);
 L2:  clXdrMarshallSaMsgQueueCreationAttributesT_4_0_0(&(pCreationAttributes), 0, 1);
 

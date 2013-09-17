@@ -409,7 +409,7 @@ saClmClusterTrack (
                 memcpy( 
                         &notificationBuffer->notification[i].clusterNode.nodeName,
                         &gms_cluster_notf_buffer.notification[i].clusterNode.nodeName,
-                        sizeof(ClNameT)
+                        sizeof(SaNameT)
                       );
                 /* copy the node ipaddress */
                 memcpy(&notificationBuffer->notification[i].clusterNode.nodeAddress,
@@ -519,7 +519,7 @@ saClmClusterNodeGet (
     clusterNode->member = gms_node.memberActive;
     clusterNode->bootTimestamp = gms_node.bootTimestamp;
     clusterNode->initialViewNumber= gms_node.initialViewNumber;
-    memcpy(&clusterNode->nodeName, &gms_node.nodeName ,sizeof(ClNameT));
+    memcpy(&clusterNode->nodeName, &gms_node.nodeName ,sizeof(SaNameT));
     memcpy(&clusterNode->nodeAddress,&gms_node.nodeIpAddress,
             sizeof(SaClmNodeAddressT));
 error_return:
@@ -857,7 +857,7 @@ static void clGmsClusterTrackCallbackWrapper (
             /* Copy the node name */
             memcpy(&safbuf->notification[index].clusterNode.nodeName,
                    &notificationBuffer->notification[index].clusterNode.nodeName,
-                   sizeof(ClNameT));
+                   sizeof(SaNameT));
 
             /* copy the node ipaddress */
             memcpy(&safbuf->notification[index].clusterNode.nodeAddress,

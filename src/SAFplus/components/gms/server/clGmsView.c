@@ -182,7 +182,7 @@ ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT no
         CL_ASSERT(node !=  NULL);
         node->viewMember.clusterMember.nodeId = member.address;
         node->viewMember.clusterMember.nodeAddress.iocPhyAddress.nodeAddress = member.address;
-        clNameSet(&node->viewMember.clusterMember.nodeName, member.name);
+        saNameSet(&node->viewMember.clusterMember.nodeName, member.name);
         node->viewMember.clusterMember.credential = CL_GMS_INELIGIBLE_CREDENTIALS;
 
         node->viewMember.clusterMember.isPreferredLeader = CL_FALSE;
@@ -270,7 +270,7 @@ ClRcT    _clGmsViewDbFind(CL_IN   const ClGmsGroupIdT   groupId, CL_IN   ClGmsDb
 ClRcT	_clGmsViewCreate(
         /* Below comment suppresses the warning from coverity */
         // coverity[pass_by_value]
-        CL_IN   ClNameT               name,
+        CL_IN   SaNameT               name,
         CL_IN   const ClGmsGroupIdT   groupId)
 {
     ClRcT   		rc = CL_OK;
@@ -316,14 +316,14 @@ ClRcT	_clGmsViewCreate(
     /* viewName and groupId are passed only for group */ 
     if (groupId) 
     {
-        strncpy(thisViewDb->view.name.value,name.value,
+        strncpy((ClCharT *)thisViewDb->view.name.value, (const ClCharT *)name.value,
                 name.length);
         thisViewDb->view.name.length = name.length;
         thisViewDb->view.id         = groupId;
     }
     else 
     {
-        strncpy(thisViewDb->view.name.value, CL_GMS_CLUSTER_NAME,
+        strncpy((ClCharT *)thisViewDb->view.name.value, CL_GMS_CLUSTER_NAME,
                 CL_MAX_NAME_LENGTH-1);
         thisViewDb->view.name.length = strlen(CL_GMS_CLUSTER_NAME);
         thisViewDb->view.id  = CL_GMS_CLUSTER_ID;
@@ -1198,8 +1198,8 @@ _clGmsViewNodeCompare(
 
     if (thisViewDb->viewType == CL_GMS_CLUSTER)
     {
-        if (strncmp(node1->viewMember.clusterMember.nodeName.value, 
-                    node2->viewMember.clusterMember.nodeName.value,
+        if (strncmp((const ClCharT *)node1->viewMember.clusterMember.nodeName.value,
+                        (const ClCharT *)node2->viewMember.clusterMember.nodeName.value,
                     node1->viewMember.clusterMember.nodeName.length))
         {
             *result = CL_GMS_VIEW_NOT_EQUAL;
@@ -1222,8 +1222,8 @@ _clGmsViewNodeCompare(
     }
     else
     {
-        if (strncmp(node1->viewMember.groupMember.memberName.value, 
-                    node2->viewMember.groupMember.memberName.value,
+        if (strncmp((const ClCharT *)node1->viewMember.groupMember.memberName.value,
+                        (const ClCharT *)node2->viewMember.groupMember.memberName.value,
                     node1->viewMember.groupMember.memberName.length))
         {
             *result = CL_GMS_VIEW_NOT_EQUAL;

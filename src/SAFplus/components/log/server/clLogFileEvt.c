@@ -175,7 +175,7 @@ clLogEventPatternSet(ClLogSvrCommonEoDataT  *pSvrCommonEoEntry,
 
 	ClRcT                 rc             = CL_OK;
     ClEventPatternArrayT  *pPatternArray = NULL;
-    ClNameT               publisherName  = {10, "LOG_SERVER"};
+    SaNameT               publisherName  = {10, "LOG_SERVER"};
     ClEventHandleT        eventHandle    = 0;
     /*
      * Set the attributes of the event based on the patternType passed.
@@ -238,7 +238,7 @@ ClRcT
 clLogEventInitialize(ClLogSvrCommonEoDataT  *pSvrCommonEoEntry)
 {
     ClRcT   rc                = CL_OK;
-    ClNameT logEvtChannelName = { 20, "CL_LOG_EVENT_CHANNEL"};
+    SaNameT logEvtChannelName = { 20, "CL_LOG_EVENT_CHANNEL"};
 
     /* Initialize the event library */
     rc = clEventInitialize(&pSvrCommonEoEntry->hEventInitHandle,
@@ -904,9 +904,9 @@ clLogStreamEvtDataPrepare(ClLogStreamInfoIDLT  *pLogStreamInfo,
  * pPayloadLen
  */
 ClRcT
-clLogStreamDataPrepare(ClNameT            *pStreamName,
+clLogStreamDataPrepare(SaNameT            *pStreamName,
                        ClLogStreamScopeT  streamScope, 
-                       ClNameT            *pStreamScopeNode,
+                       SaNameT            *pStreamScopeNode,
                        ClUint8T           **ppPayLoad,
                        ClUint32T          *pPayloadLen)
 {
@@ -923,10 +923,10 @@ clLogStreamDataPrepare(ClNameT            *pStreamName,
     }
     
     /* Marshall the pLogStreamInfo struct */
-    rc = clXdrMarshallClNameT(pStreamName, buffHandle, 0);
+    rc = clXdrMarshallSaNameT(pStreamName, buffHandle, 0);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         clBufferDelete(&buffHandle);
         return rc;
     }
@@ -937,10 +937,10 @@ clLogStreamDataPrepare(ClNameT            *pStreamName,
         clBufferDelete(&buffHandle);
         return rc;
     }
-    rc = clXdrMarshallClNameT(pStreamScopeNode, buffHandle, 0);
+    rc = clXdrMarshallSaNameT(pStreamScopeNode, buffHandle, 0);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         clBufferDelete(&buffHandle);
         return rc;
     }
@@ -1041,9 +1041,9 @@ clLogStreamCreationEvtPublish(ClLogStreamInfoIDLT  *pLogStreamInfo)
 }    
 
 ClRcT
-clLogStreamCloseEvtPublish(ClNameT            *pStreamName,
+clLogStreamCloseEvtPublish(SaNameT            *pStreamName,
                            ClLogStreamScopeT  streamScope,
-                           ClNameT            *pStreamScopeNode)
+                           SaNameT            *pStreamScopeNode)
 {
 
     ClRcT                  rc              = CL_OK;
@@ -1095,7 +1095,7 @@ clLogStreamCloseEvtPublish(ClNameT            *pStreamName,
 }    
 
 ClRcT
-clLogCompDataPrepare(ClNameT            *pCompName,
+clLogCompDataPrepare(SaNameT            *pCompName,
                      ClUint32T          clientId, 
                      ClUint8T           **ppPayLoad,
                      ClUint32T          *pPayloadLen)
@@ -1119,7 +1119,7 @@ clLogCompDataPrepare(ClNameT            *pCompName,
     rc = VDECL_VER(clXdrMarshallClLogCompDataT, 4, 0, 0)(&compData, buffHandle, 0);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         clBufferDelete(&buffHandle);
         return rc;
     }
@@ -1163,7 +1163,7 @@ clLogCompDataPrepare(ClNameT            *pCompName,
 }
 
 ClRcT
-clLogCompAddEvtPublish(ClNameT    *pCompName,
+clLogCompAddEvtPublish(SaNameT    *pCompName,
                        ClUint32T  clientId)
 {
 
@@ -1318,7 +1318,7 @@ clLogCompDownSubscribe(ClEventInitHandleT  hEvtSvcInit,
                        ClHandleT           *phCompChl)
 {
     ClRcT                     rc           = 0;
-    ClNameT                   cpmChnlName  = {0};
+    SaNameT                   cpmChnlName  = {0};
     ClEventChannelOpenFlagsT  openFlags    = 0;
     ClUint32T                 deathPattern   = htonl(CL_CPM_COMP_DEATH_PATTERN);
     ClEventFilterT            compDeathFilter[]  = {{CL_EVENT_EXACT_FILTER, 
@@ -1361,7 +1361,7 @@ clLogNodeDownSubscribe(ClEventInitHandleT hEvtSvcInit,
 {
     ClRcT                     rc           = CL_OK;
     ClEventChannelOpenFlagsT  openFlags    = 0;
-    ClNameT                   cpmChnlName  = {0};
+    SaNameT                   cpmChnlName  = {0};
     ClUint32T                 nodeDeparturePattern = htonl(CL_CPM_NODE_DEATH_PATTERN);
     ClEventFilterT            nodeDepartureFilter[]         = { {CL_EVENT_EXACT_FILTER,
                                                                 {0, (ClSizeT)sizeof(nodeDeparturePattern),
@@ -1618,9 +1618,9 @@ clLogStreamCloseEventDataExtract(ClUint8T   *pBuffer,
 {
     ClRcT              rc              = CL_OK;
     ClBufferHandleT    msg             = CL_HANDLE_INVALID_VALUE;
-    ClNameT            streamName      = {0}; 
+    SaNameT            streamName      = {0}; 
     ClLogStreamScopeT  streamScope     = 0; 
-    ClNameT            streamScopeNode = {0}; 
+    SaNameT            streamScopeNode = {0}; 
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
@@ -1638,7 +1638,7 @@ clLogStreamCloseEventDataExtract(ClUint8T   *pBuffer,
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg, &streamName);
+    rc = clXdrUnmarshallSaNameT(msg, &streamName);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clXdrUnmarshallClLogNameT(): rc[0x %x]", rc));
@@ -1652,7 +1652,7 @@ clLogStreamCloseEventDataExtract(ClUint8T   *pBuffer,
         CL_LOG_CLEANUP(clBufferDelete(&msg), CL_OK);
         return rc;
     }
-    rc = clXdrUnmarshallClNameT(msg, &streamScopeNode);
+    rc = clXdrUnmarshallSaNameT(msg, &streamScopeNode);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clXdrUnmarshallClLogNameT(): rc[0x %x]", rc));

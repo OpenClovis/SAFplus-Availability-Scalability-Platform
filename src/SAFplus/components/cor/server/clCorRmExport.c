@@ -60,7 +60,7 @@
 
 extern ClUint32T COR_ISBD;
 extern ClRcT clCorSlaveIdGet( ClIocNodeAddressT *corSlaveNodeAddressId);
-extern ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh,  ClNameT *moIdName);
+extern ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh,  SaNameT *moIdName);
 
 ClUint32T gCorSlaveSyncUpDone = CL_FALSE;
 extern ClOsalMutexIdT gCorRouteInfoMutex;

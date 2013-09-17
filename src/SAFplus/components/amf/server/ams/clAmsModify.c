@@ -111,7 +111,7 @@ extern ClAmsEntityDbParamsT    gClAmsEntityDbParams[];
 
 typedef struct ClAmsCSIRemoveInvocation
 {
-    ClNameT *pNodeName;
+    SaNameT *pNodeName;
     ClAmsInvocationT *pInvocations;
     ClInt32T nr;
 }ClAmsCSIRemoveInvocationT;
@@ -714,7 +714,7 @@ clAmsEntitySetConfigNew(
             if ( (allAttr) || (bitMask&NODE_CONFIG_SUB_CLASS_TYPE))
             {
                 memcpy (&nodeConfig->subClassType,&newNodeConfig->subClassType,
-                        sizeof(ClNameT));
+                        sizeof(SaNameT));
             }
 
             if ( (allAttr) || (bitMask&NODE_CONFIG_IS_SWAPPABLE))
@@ -981,7 +981,7 @@ clAmsEntitySetConfigNew(
             if ( (allAttr) || (bitMask&COMP_CONFIG_SUPPORTED_CSI_TYPE) )
             {
                 ClInt32T i;
-                ClNameT *pSupportedCSITypes = NULL;
+                SaNameT *pSupportedCSITypes = NULL;
                 ClUint32T numSupportedCSITypes = 0;
  
                if(!newCompConfig->numSupportedCSITypes
@@ -1009,8 +1009,8 @@ clAmsEntitySetConfigNew(
                 for(i = 0; i < newCompConfig->numSupportedCSITypes; ++i)
                 {
                     ClAmsEntityRefT entityRef = {{0}};
-                    ClNameT *pCSIType = newCompConfig->pSupportedCSITypes+i;
-                    pCSIType->length = strlen(pCSIType->value)+1;
+                    SaNameT *pCSIType = newCompConfig->pSupportedCSITypes+i;
+                    pCSIType->length = strlen((const ClCharT*)pCSIType->value)+1;
                     entityRef.entity.type = CL_AMS_ENTITY_TYPE_CSI;
                     memcpy(&entityRef.entity.name, pCSIType, sizeof(entityRef.entity.name));
 
@@ -1046,8 +1046,8 @@ clAmsEntitySetConfigNew(
             if ( (allAttr) || (bitMask&COMP_CONFIG_PROXY_CSI_TYPE) )
             {
                 memcpy (&compConfig->proxyCSIType,
-                        &newCompConfig->proxyCSIType, sizeof(ClNameT) );
-                if(compConfig->proxyCSIType.length == strlen(compConfig->proxyCSIType.value))
+                        &newCompConfig->proxyCSIType, sizeof(SaNameT) );
+                if(compConfig->proxyCSIType.length == strlen((const ClCharT*)compConfig->proxyCSIType.value))
                     ++compConfig->proxyCSIType.length;
             }
 
@@ -1162,8 +1162,8 @@ clAmsEntitySetConfigNew(
             ClAmsCSIConfigT  *newCSIConfig = (ClAmsCSIConfigT *)entityConfig;
             if ( (allAttr) || (bitMask&CSI_CONFIG_TYPE) )
             {
-                newCSIConfig->type.length = strlen(newCSIConfig->type.value) + 1;
-                memcpy (&csiConfig->type, &newCSIConfig->type, sizeof(ClNameT));
+                newCSIConfig->type.length = strlen((const ClCharT*)newCSIConfig->type.value) + 1;
+                memcpy (&csiConfig->type, &newCSIConfig->type, sizeof(SaNameT));
             }
 
             if ( (allAttr) || (bitMask&CSI_CONFIG_IS_PROXY_CSI) )
@@ -2222,9 +2222,9 @@ amsCSISetNVP(
         {
             AMS_CHECKPTR (!pNVP); 
             
-            if ( !memcmp(&pNVP->paramName, &nvp->paramName, sizeof(ClNameT)))
+            if ( !memcmp(&pNVP->paramName, &nvp->paramName, sizeof(SaNameT)))
             {
-                memcpy ( &pNVP->paramValue, &nvp->paramValue, sizeof(ClNameT));
+                memcpy ( &pNVP->paramValue, &nvp->paramValue, sizeof(SaNameT));
                 return CL_OK;
             } 
         }
@@ -2426,7 +2426,7 @@ clAmsCSIDeleteNVP(
 
             AMS_CHECKPTR (!pNVP);
 
-            if ( !memcmp(&pNVP->paramName, &nvp.paramName, sizeof(ClNameT)))
+            if ( !memcmp(&pNVP->paramName, &nvp.paramName, sizeof(SaNameT)))
             {
                 AMS_CHECK_RC_ERROR (clCntNodeDelete(nvpListHandle,nvpHandle));
                 return CL_OK;
@@ -5906,8 +5906,8 @@ clAmsInvocationListMarshall(ClCntHandleT listHandle, ClBufferHandleT msg)
         invocationDataIDL.cmd = invocationData->cmd;
         invocationDataIDL.csiTargetOne = invocationData->csiTargetOne;
         invocationDataIDL.reassignCSI = invocationData->reassignCSI;
-        clNameCopy(&invocationDataIDL.compName, &invocationData->compName);
-        clNameCopy(&invocationDataIDL.csiName, &invocationData->csiName);
+        saNameCopy(&invocationDataIDL.compName, &invocationData->compName);
+        saNameCopy(&invocationDataIDL.csiName, &invocationData->csiName);
         AMS_CHECK_RC_ERROR( VDECL_VER(clXdrMarshallClAmsInvocationIDLT, 4, 1, 0)(&invocationDataIDL, msg, 0));
     }
     
@@ -7197,7 +7197,7 @@ clAmsTimerResetValues (
 
 ClRcT
 clAmsUpdateAlarmHandle(
-        CL_INOUT  const ClNameT  *compName,
+        CL_INOUT  const SaNameT  *compName,
         CL_IN  ClUint32T  alarmHandle )
 {
     ClRcT  rc = CL_OK;
@@ -7209,7 +7209,7 @@ clAmsUpdateAlarmHandle(
 
     AMS_CALL ( clOsalMutexLock(gAms.mutex));
 
-    memcpy (&entityRef.entity.name, compName, sizeof (ClNameT));
+    memcpy (&entityRef.entity.name, compName, sizeof (SaNameT));
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_COMP; 
     
     if ( (rc = clAmsEntityDbFindEntity(
@@ -7367,11 +7367,9 @@ clAmsInvocationCSIRemoveWalkCallback(ClAmsInvocationT *pInvocation,
 
     AMS_CHECK_NODE( node = (ClAmsNodeT*)su->config.parentNode.ptr);
 
-    if(pCSIRemoveInvocation->pNodeName
-       &&
-       strncmp(node->config.entity.name.value,
-               pCSIRemoveInvocation->pNodeName->value,
-               pCSIRemoveInvocation->pNodeName->length))
+    if (pCSIRemoveInvocation->pNodeName
+                    && strncmp((const ClCharT*) node->config.entity.name.value, (const ClCharT*) pCSIRemoveInvocation->pNodeName->value,
+                                    pCSIRemoveInvocation->pNodeName->length))
     {
         return CL_OK;
     }
@@ -7397,7 +7395,7 @@ clAmsInvocationCSIRemoveWalkCallback(ClAmsInvocationT *pInvocation,
 }
 
 ClRcT 
-clAmsGetCSIRemoveInvocations(ClNameT *pNodeName,
+clAmsGetCSIRemoveInvocations(SaNameT *pNodeName,
                              ClAmsInvocationT **ppInvocations,
                              ClInt32T *pNumInvocations)
 {
@@ -7812,7 +7810,7 @@ clAmsInitiateNodeFailFast(
 
 ClBoolT
 clAmsIsNodeActiveSC(
-        CL_IN  ClNameT  *nodeName )
+        CL_IN  SaNameT  *nodeName )
 {
 
     ClIocNodeAddressT  nodeAddress ;
@@ -7903,7 +7901,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 AMS_CHECK_SU(su);
                 su->config.parentSG.ptr = NULL;
                 su->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
-                clNameSet(&su->config.parentSG.entity.name,
+                saNameSet(&su->config.parentSG.entity.name,
                           "ParentSGUndefined");
                 ++su->config.parentSG.entity.name.length;
             }
@@ -7916,7 +7914,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 AMS_CHECK_SI(si);
                 si->config.parentSG.ptr = NULL;
                 si->config.parentSG.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
-                clNameSet(&si->config.parentSG.entity.name,
+                saNameSet(&si->config.parentSG.entity.name,
                           "ParentSGUndefined");
                 ++si->config.parentSG.entity.name.length;
             }
@@ -7948,7 +7946,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 AMS_CHECK_CSI(csi);
                 csi->config.parentSI.ptr = NULL;
                 csi->config.parentSI.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
-                clNameSet(&csi->config.parentSI.entity.name,
+                saNameSet(&csi->config.parentSI.entity.name,
                           "ParentSIUndefined");
                 ++csi->config.parentSI.entity.name.length;
             }
@@ -7995,7 +7993,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 AMS_CHECK_SU(su);
                 su->config.parentNode.ptr = NULL;
                 su->config.parentNode.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
-                clNameSet(&su->config.parentNode.entity.name,
+                saNameSet(&su->config.parentNode.entity.name,
                           "ParentNodeUndefined");
                 ++su->config.parentNode.entity.name.length;
             }
@@ -8106,7 +8104,7 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                 AMS_CHECK_COMP(comp);
                 comp->config.parentSU.ptr = NULL;
                 comp->config.parentSU.entity.debugFlags |= CL_AMS_MGMT_SUB_AREA_UNDEFINED;
-                clNameSet(&comp->config.parentSU.entity.name,
+                saNameSet(&comp->config.parentSU.entity.name,
                           "ParentSUUndefined");
                 ++comp->config.parentSU.entity.name.length;
             }
@@ -8183,12 +8181,12 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
 }
 
 static __inline__ ClBoolT clAmsMatchCSIType(ClAmsCSIT *csi, 
-                                            ClNameT *csiType)
+                                            SaNameT *csiType)
 {
     if(csi)
     {
         return (csi->config.type.length == csiType->length &&
-                !strncmp(csi->config.type.value, csiType->value, csi->config.type.length)) ?
+                !strncmp((const ClCharT*)csi->config.type.value, (const ClCharT*)csiType->value, csi->config.type.length)) ?
             CL_TRUE : CL_FALSE;
     }
     return CL_FALSE;
@@ -8198,7 +8196,7 @@ static ClRcT
 clAmsMatchCSITypeCallback(ClAmsEntityT *entity, ClPtrT userArg)
 {
     ClAmsCSIT *csi = (ClAmsCSIT*)entity;
-    ClNameT *csiType = userArg;
+    SaNameT *csiType = userArg;
     if(clAmsMatchCSIType(csi, csiType))
         return CL_AMS_RC(CL_ERR_ALREADY_EXIST);
     return CL_OK;
@@ -8207,7 +8205,7 @@ clAmsMatchCSITypeCallback(ClAmsEntityT *entity, ClPtrT userArg)
 /*
  * Returns true if exists. 
  */
-ClRcT clAmsFindCSIType(ClAmsCSIT *csi, ClNameT *csiType)
+ClRcT clAmsFindCSIType(ClAmsCSIT *csi, SaNameT *csiType)
 {
     ClRcT rc = CL_OK;
 

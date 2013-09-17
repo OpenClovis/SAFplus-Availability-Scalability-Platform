@@ -64,7 +64,7 @@ extern ClBoolT gClTotemRunning;
 
 typedef struct {
     /* Cluster Name from the config file */
-    ClNameT	                clusterName;
+    SaNameT	                clusterName;
 
     /* Max number of groups allowed on this node */
     ClUint16T               noOfGroups;
@@ -185,7 +185,7 @@ typedef struct {
     ClCpmHandleT         cpmHandle;
 
     /* GMS Component Name */
-    ClNameT              gmsComponentName;
+    SaNameT              gmsComponentName;
 
     /* Ckpt svn handle */
     ClCkptSvcHdlT        ckptSvcHandle;
@@ -248,7 +248,7 @@ void _clGmsGetThisNodeInfo(
 
 void _clGmsSetThisNodeInfo(
                     CL_IN const  ClGmsNodeIdT                nodeId,
-                    CL_IN const  ClNameT* const              nodeName,
+                    CL_IN const  SaNameT* const              nodeName,
                     CL_IN const  ClGmsLeadershipCredentialsT  credential);
 
 /*
@@ -283,7 +283,7 @@ _clGmsDefaultLeaderElectionAlgorithm(
 void 
 _clGmsServiceInitialize ( const int argc , char* const argv[] );
 
-int getNameString(ClNameT  *name,ClCharT   *retStr);
+int getNameString(SaNameT  *name,ClCharT   *retStr);
 
 #ifdef  __cplusplus
 }

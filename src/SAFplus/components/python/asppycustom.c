@@ -56,7 +56,7 @@ static PyObject* GetWorkOnServiceGroup(PyObject *self, PyObject *args)
 
   ClAmsEntityT svcgrp;
   svcgrp.type = CL_AMS_ENTITY_TYPE_SG;
-  clNameSet(&svcgrp.name, arg0);
+  saNameSet(&svcgrp.name, arg0);
   svcgrp.name.length+=1;
 
   curLen += snprintf(buf+curLen, bufLen-curLen, "{");
@@ -155,7 +155,7 @@ static PyObject* GetWorkOnNode(PyObject *self, PyObject *args)
 
   ClAmsEntityT node;
   node.type = CL_AMS_ENTITY_TYPE_NODE;
-  clNameSet(&node.name, arg0);
+  saNameSet(&node.name, arg0);
   node.name.length+=1;
 
   curLen += snprintf(buf+curLen, bufLen-curLen, "{");

@@ -53,7 +53,7 @@ ClRcT clXdrMarshallCkptMasterDBEntryIDLT_4_0_0(void* pGenVar, ClBufferHandleT ms
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pVar->name),msg,isDelete);
+    rc = clXdrMarshallSaNameT(&(pVar->name),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

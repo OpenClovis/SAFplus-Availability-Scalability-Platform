@@ -85,7 +85,7 @@ static ClRcT  ckptDPlaneInfoShow(
 
 /* Function to display a single checkpoint */
 static ClRcT  ckptSingleEntryShow(
-        ClNameT    *pName,
+        SaNameT    *pName,
         ClDebugPrintHandleT msg);
 
 /* Routine to display the presence list */
@@ -382,8 +382,8 @@ ClRcT ckptCliCkptShow( int argc,
     if (argc == 1) ckptEntriesShow(msg);
     else 
     {
-        ClNameT    ckptName;
-        clNameSet(&ckptName,argv[1]);
+        SaNameT    ckptName;
+        saNameSet(&ckptName,argv[1]);
         ckptSingleEntryShow(&ckptName,msg);
     }
     clDebugPrintFinalize(&msg,ret);
@@ -433,7 +433,7 @@ ClRcT  ckptCliCkptOpen( int argc,
                         char **argv,
                         ClCharT **ret)
 {
-    ClNameT                                 ckptName;
+    SaNameT                                 ckptName;
     ClCkptOpenFlagsT                        openFlags =0;
     ClCkptCheckpointCreationAttributesT     createAttr; 
     ClRcT                                   rc = 0;
@@ -976,7 +976,7 @@ ClRcT  ckptCliCkptUnlink( int argc,
                           char **argv,
                           ClCharT** ret)/*FIXME this function name changed from ckpt to tCkpt*/
 {
-    ClNameT                                 ckptName;
+    SaNameT                                 ckptName;
     ClRcT                                   rc =0;
     ClDebugPrintHandleT                     inMsg = 0;
                                                                                                  
@@ -1005,7 +1005,7 @@ ClRcT ckptCliCkptStatusGet( int argc ,
                             char **argv,
                             ClCharT** ret)
 {
-   /* ClNameT          ckptName;*/
+   /* SaNameT          ckptName;*/
     ClRcT            rc = 0 ;
     ClCkptHdlT       hdl = 0;
     ClCkptCheckpointDescriptorT  ckptStatus;
@@ -1142,7 +1142,7 @@ exitOnError:
 }
 
 /* Function to display a single checkpoint */
-ClRcT  ckptSingleEntryShow( ClNameT    *pName,
+ClRcT  ckptSingleEntryShow( SaNameT    *pName,
                             ClDebugPrintHandleT msg)
 {
     ClRcT               rc      = CL_OK;  /* Return code */
@@ -1161,7 +1161,7 @@ ClRcT  ckptSingleEntryShow( ClNameT    *pName,
     /*CKPT_LOCK(gCkptSvr->ckptSem);*/
 
     clCksm32bitCompute ((ClUint8T *)pName->value,
-                        strlen(pName->value), &cksum);
+                        strlen((const ClCharT *)pName->value), &cksum);
     rc = clCntNonUniqueKeyFind(gCkptSvr->ckptHdlList, 
                                (ClCntKeyHandleT)(ClWordT)cksum, 
                                (ClPtrT)pName, ckptHdlNonUniqueKeyCompare, &dataHdl);

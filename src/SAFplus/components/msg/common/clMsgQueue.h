@@ -49,7 +49,7 @@ typedef enum {
 
 typedef struct {
     struct hashStruct qNameHash;
-    ClNameT qName;
+    SaNameT qName;
     SaMsgQueueHandleT qHandle;
 }ClMsgQueueRecordT;
 
@@ -76,7 +76,7 @@ typedef struct {
 
 typedef struct {
     ClListHeadT list;
-    ClNameT groupName;
+    SaNameT groupName;
 }ClMsgQueuesGroupDetailsT;
 
 extern ClHandleDatabaseHandleT gClMsgQDatabase; 
@@ -96,21 +96,21 @@ ClRcT clMsgQueueStatusGet(SaMsgQueueHandleT qHandle,
 ClRcT clMsgQueueRetentionTimeSet(SaMsgQueueHandleT qHandle, SaTimeT *pRetenTime);
 ClRcT clMsgMessageCancel(SaMsgQueueHandleT qHandle);
 ClRcT clMsgQueueAllocate(
-        ClNameT *pQName, 
+        SaNameT *pQName, 
         SaMsgQueueOpenFlagsT openFlags,
         SaMsgQueueCreationAttributesT *pCreationAttributes,
         SaMsgQueueHandleT *pQueueHandle);
 ClRcT clMsgQueueOpen(SaMsgQueueHandleT qHandle,
         SaMsgQueueOpenFlagsT openFlags);
-ClRcT clMsgQueueDestroy(ClNameT * pQName);
+ClRcT clMsgQueueDestroy(SaNameT * pQName);
 /*
  * Queue entry IPIs
  */
-ClBoolT clMsgQNameEntryExists(const ClNameT *pQName, ClMsgQueueRecordT **ppQNameEntry);
-ClRcT clMsgQEntryAdd(ClNameT *pName, SaMsgQueueHandleT queueHandle, ClMsgQueueRecordT **ppMsgQEntry);
-void clMsgQEntryDel(ClNameT *pQName);
-ClRcT clMsgToDestQueueMove(ClIocNodeAddressT destNode, ClNameT *pQName);
-ClRcT clMsgToLocalQueueMove(ClIocPhysicalAddressT srcAddr, ClNameT * pQName, ClBoolT qDelete);
+ClBoolT clMsgQNameEntryExists(const SaNameT *pQName, ClMsgQueueRecordT **ppQNameEntry);
+ClRcT clMsgQEntryAdd(SaNameT *pName, SaMsgQueueHandleT queueHandle, ClMsgQueueRecordT **ppMsgQEntry);
+void clMsgQEntryDel(SaNameT *pQName);
+ClRcT clMsgToDestQueueMove(ClIocNodeAddressT destNode, SaNameT *pQName);
+ClRcT clMsgToLocalQueueMove(ClIocPhysicalAddressT srcAddr, SaNameT * pQName, ClBoolT qDelete);
 
 #ifdef __cplusplus
 }

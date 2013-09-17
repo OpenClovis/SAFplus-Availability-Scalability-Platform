@@ -643,7 +643,7 @@ clProvOmClassCreate()
 }
 
 ClRcT
-clProvProvisionOmCreateAndRuleAdd( ClNameT* pResourceStringMoId,
+clProvProvisionOmCreateAndRuleAdd( SaNameT* pResourceStringMoId,
                                    ClCorMOIdPtrT pFullMoId,
                                    ClCorAddrT* pProvAddr,
                                    ClUint32T createFlag,

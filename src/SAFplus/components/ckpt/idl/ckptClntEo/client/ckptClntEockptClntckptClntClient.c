@@ -28,18 +28,18 @@ static void clCkptSectionUpdationNotificationAsyncCallback_4_0_0(ClRcT rc, void 
 {
     ClIdlCookieT* pCookie = (ClIdlCookieT*)pIdlCookie;
     ClRcT retVal = CL_OK;
-    ClNameT  pName;
+    SaNameT  pName;
     ClCkptSectionIdT_4_0_0  pSecId;
     ClUint32T  dataSize;
     ClUint8T* pData;
 
-    memset(&(pName), 0, sizeof(ClNameT));
+    memset(&(pName), 0, sizeof(SaNameT));
     memset(&(pSecId), 0, sizeof(ClCkptSectionIdT_4_0_0));
     memset(&(dataSize), 0, sizeof(ClUint32T));
     memset(&(pData), 0, sizeof(ClUint8T*));
 
 
-    retVal = clXdrUnmarshallClNameT(inMsgHdl, &(pName));
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pName));
     if (CL_OK != retVal)
     {
         goto L0;
@@ -82,7 +82,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clCkptSectionUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pName, CL_IN ClCkptSectionIdT_4_0_0* pSecId, CL_IN ClUint32T  dataSize, CL_IN ClUint8T* pData,CL_IN CkptClntEoClCkptSectionUpdationNotificationAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clCkptSectionUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pName, CL_IN ClCkptSectionIdT_4_0_0* pSecId, CL_IN ClUint32T  dataSize, CL_IN ClUint8T* pData,CL_IN CkptClntEoClCkptSectionUpdationNotificationAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -106,7 +106,7 @@ ClRcT clCkptSectionUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT hand
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -128,7 +128,7 @@ ClRcT clCkptSectionUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT hand
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
@@ -214,16 +214,16 @@ static void clCkptWriteUpdationNotificationAsyncCallback_4_0_0(ClRcT rc, void *p
 {
     ClIdlCookieT* pCookie = (ClIdlCookieT*)pIdlCookie;
     ClRcT retVal = CL_OK;
-    ClNameT  pName;
+    SaNameT  pName;
     ClUint32T  numberOfElements;
     ClCkptIOVectorElementT_4_0_0* pIoVector;
 
-    memset(&(pName), 0, sizeof(ClNameT));
+    memset(&(pName), 0, sizeof(SaNameT));
     memset(&(numberOfElements), 0, sizeof(ClUint32T));
     memset(&(pIoVector), 0, sizeof(ClCkptIOVectorElementT_4_0_0*));
 
 
-    retVal = clXdrUnmarshallClNameT(inMsgHdl, &(pName));
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pName));
     if (CL_OK != retVal)
     {
         goto L0;
@@ -259,7 +259,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clCkptWriteUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClNameT* pName, CL_IN ClUint32T  numberOfElements, CL_IN ClCkptIOVectorElementT_4_0_0* pIoVector,CL_IN CkptClntEoClCkptWriteUpdationNotificationAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clCkptWriteUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* pName, CL_IN ClUint32T  numberOfElements, CL_IN ClCkptIOVectorElementT_4_0_0* pIoVector,CL_IN CkptClntEoClCkptWriteUpdationNotificationAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -283,7 +283,7 @@ ClRcT clCkptWriteUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT handle
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -305,7 +305,7 @@ ClRcT clCkptWriteUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT handle
         goto L;
     }
 
-    rc = clXdrMarshallClNameT(pName, inMsgHdl, 0);
+    rc = clXdrMarshallSaNameT(pName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;

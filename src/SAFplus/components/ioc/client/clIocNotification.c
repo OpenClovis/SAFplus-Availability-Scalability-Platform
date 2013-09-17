@@ -144,7 +144,7 @@ ClRcT clIocNotificationProxySend(ClIocCommPortHandleT commPort,
 static ClRcT clIocNotificationNodeNamePack(ClBufferHandleT message) 
 {
     ClRcT retCode = CL_OK;
-    static ClNameT nodeName = {0};
+    static SaNameT nodeName = {0};
     static ClUint16T len;
 
     if(!len)
@@ -265,7 +265,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
     ClIocNodeAddressT nodeId = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
     ClUint32T theirCapability = ntohl(notification->nodeAddress.iocPhyAddress.portId);
     ClIocNotificationIdT id = ntohl(notification->id);
-    ClNameT nodeName = {0};
+    SaNameT nodeName = {0};
     ClUint8T *nodeInfo = NULL;
     ClUint32T nodeInfoLen = 0;
     ClBoolT compat = CL_FALSE;

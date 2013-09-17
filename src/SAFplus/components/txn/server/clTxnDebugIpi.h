@@ -95,7 +95,7 @@ typedef struct clTxnDebugShadowMemory
     ClUint32T               newValue;
 } ClTxnDebugShadowMemoryT;
 
-ClRcT clTxnDebugRegister(ClEoExecutionObjT *pEoObj, ClNameT appName);
+ClRcT clTxnDebugRegister(ClEoExecutionObjT *pEoObj, SaNameT appName);
 
 ClRcT clTxnDebugUnregister(ClEoExecutionObjT *pEoObj);
 /* Initialize txn-client */

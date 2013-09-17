@@ -64,7 +64,7 @@ static ClInt32T corRouteInfoCompare(ClRbTreeT *, ClRbTreeT *);
 static CL_RBTREE_DECLARE(gClCorRouteInfoTree, corRouteInfoCompare);
 ClCorCpuIdT   gMasterCpuId;
 
-extern ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh,  ClNameT *moIdName);
+extern ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh,  SaNameT *moIdName);
 
 CORVector_t  routeVector;
 ClUint32T   nRouteConfig=0;
@@ -1841,7 +1841,7 @@ ClRcT  corRouteStnInit(RouteInfo_t    *pRt)
     return rc;
 }
 
-ClRcT _clCorStationEnable(ClNameT *pCompName, ClCorAddrT *pStationAddr)
+ClRcT _clCorStationEnable(SaNameT *pCompName, ClCorAddrT *pStationAddr)
 {
     ClRcT rc = CL_OK;
     ClOampRtResourceArrayT *pResourceArray = NULL;
@@ -1975,7 +1975,7 @@ ClRcT _clCorStationDisable(ClCorAddrT stationAdd)
                 rc = _corRmRouteStationStatusOp(&routeInfo, pRt, pStn);
                 if(rc != CL_OK)
                 {
-                    ClNameT name = {0};
+                    SaNameT name = {0};
                     _clCorMoIdToMoIdNameGet(pRt->moH, &name);
                     CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Failed to Delete the Route Info for MoId [%s] and Station [0x%x:0x%x] rc[0x%x]", 
                                                    name.value, 
@@ -2051,7 +2051,7 @@ ClRcT _clCorRemoveStations(ClIocNodeAddressT nodeAddr)
             rc = _clCorRmRouteStationStatusOp(&routeInfo);
             if(rc != CL_OK)
             {
-                ClNameT name = {0};
+                SaNameT name = {0};
                 _clCorMoIdToMoIdNameGet(pRt->moH, &name);
                 CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Failed to Delete the Route Info for MoId [%s] and Station [0x%x:0x%x] rc[0x%x]", 
                                                name.value, 
@@ -2087,7 +2087,7 @@ _clCorPrimaryOISet(corRouteApiInfo_t *pRouteInfo)
     CORAppResource_t *appResource = NULL;
     ClCorMOIdPtrT   pMoId = NULL;
     ClCorAddrPtrT   pCompAddr = NULL;
-    ClNameT         moIdName = {0};
+    SaNameT         moIdName = {0};
     ClCharT         moName[CL_MAX_NAME_LENGTH];
     ClInt32T        count = 0;
 
@@ -2395,7 +2395,7 @@ ClRcT
 _clCorPrimaryOIEntryCheck( RouteInfo_t* pRt, ClCorAddrT *pCompAddr, ClCorMOIdPtrT pMoId )
 {
     ClUint32T       index = 0;
-    ClNameT         moIdName = {0};
+    SaNameT         moIdName = {0};
     CORStation_t    *pStn = NULL;
 
     CL_COR_FUNC_ENTER("RMR", "POS");

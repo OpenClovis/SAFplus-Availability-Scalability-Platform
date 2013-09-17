@@ -464,8 +464,9 @@ clLogPrecreatedStreamsDataGet(ClLogStreamDataT     *pStreamAttr[],
                     rc = CL_LOG_RC(CL_ERR_NO_MEMORY);
                     goto ParseError;
                 }
-                snprintf((pData->streamName).value, sizeof((pData->streamName).value), "%s", fd1->attr[1]);
-                (pData->streamName).length = strlen((pData->streamName).value);
+                        snprintf((ClCharT *) ((pData->streamName).value), sizeof((const ClCharT *) ((pData->streamName).value)), "%s",
+                                        fd1->attr[1]);
+                        (pData->streamName).length = strlen((const ClCharT *)((pData->streamName).value));
 
                 if(NULL != (temp = clParserChild(fd1, "streamScope")))
                 {
@@ -716,7 +717,7 @@ clLogFileOwnerAddressFetch(ClStringT  *pFileLocation)
     ClLogSvrCommonEoDataT  *pSvrCommonEoEntry          = NULL;
     ClIocNodeAddressT      localAddr                   =
         clIocLocalAddressGet(); 
-    ClNameT                nodeName                    = {0};
+    SaNameT                nodeName                    = {0};
     ClCharT                nodeStr[CL_MAX_NAME_LENGTH] = {0};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
@@ -741,7 +742,7 @@ clLogFileOwnerAddressFetch(ClStringT  *pFileLocation)
     }
     else if( nodeName.length == strlen(nodeStr) 
              && 
-             !(strncmp(nodeName.value, nodeStr, nodeName.length)) )
+             !(strncmp((const ClCharT *)nodeName.value, nodeStr, nodeName.length)) )
     {
         return localAddr;
     }

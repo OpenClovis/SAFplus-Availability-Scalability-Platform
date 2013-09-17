@@ -61,7 +61,7 @@ extern "C" {
 
 #define ASP_INSTALL_KEY "ASP_INSTALL_INFO"
 #define CL_AMS_NAME_LENGTH_CHECK(entity) do {               \
-    if((entity).name.length == strlen((entity).name.value)) \
+    if((entity).name.length == strlen((const ClCharT*)((entity).name.value))) \
     {                                                       \
         ++(entity).name.length;                             \
     }                                                       \
@@ -3449,7 +3449,7 @@ extern ClRcT clAmsMgmtEntityUserDataSet(ClAmsMgmtHandleT handle,
  */     
 extern ClRcT clAmsMgmtEntityUserDataSetKey(ClAmsMgmtHandleT handle, 
                                            ClAmsEntityT *entity,
-                                           ClNameT *key,
+                                           SaNameT *key,
                                            ClCharT *data, ClUint32T len);
 /**
  ************************************
@@ -3502,7 +3502,7 @@ extern ClRcT clAmsMgmtEntityUserDataGet(ClAmsMgmtHandleT handle,
  */      
 extern ClRcT clAmsMgmtEntityUserDataGetKey(ClAmsMgmtHandleT handle, 
                                            ClAmsEntityT *entity,
-                                           ClNameT *key,
+                                           SaNameT *key,
                                            ClCharT **data, ClUint32T *len);
     
 /**
@@ -3551,7 +3551,7 @@ extern ClRcT clAmsMgmtEntityUserDataDelete(ClAmsMgmtHandleT handle,
  */    
 extern ClRcT clAmsMgmtEntityUserDataDeleteKey(ClAmsMgmtHandleT handle, 
                                               ClAmsEntityT *entity,
-                                              ClNameT *key);
+                                              SaNameT *key);
 
 
 /**

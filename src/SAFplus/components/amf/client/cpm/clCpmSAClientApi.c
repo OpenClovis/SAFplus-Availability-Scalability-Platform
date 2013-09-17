@@ -126,7 +126,7 @@ static ClOsalMutexIdT gCpmCompCSIListMutex;
  */
 typedef struct ClCpmCompCSIList
 {
-    ClNameT compName;
+    SaNameT compName;
     ClCpmHandleT cpmHandle;
     ClCntHandleT csiList;
 } ClCpmCompCSIListT;
@@ -251,13 +251,13 @@ static ClHandleDatabaseHandleT handle_database;
 typedef struct component_handle_table
 {
     ClHandleT amfHandle;
-    ClNameT componentName;
+    SaNameT componentName;
     struct component_handle_table *next;
 } component_handle_table_t;
 
 static component_handle_table_t *component_handle_mapping_db;
 
-static ClRcT component_handle_mapping_create(CL_IN const ClNameT *compName,
+static ClRcT component_handle_mapping_create(CL_IN const SaNameT *compName,
                                              CL_IN ClHandleT amfHandle)
 {
     ClRcT rc = CL_OK;
@@ -280,7 +280,7 @@ static ClRcT component_handle_mapping_create(CL_IN const ClNameT *compName,
      * Populate the node in the list 
      */
     temp->amfHandle = amfHandle;
-    memcpy(&(temp->componentName), compName, sizeof(ClNameT));
+    memcpy(&(temp->componentName), compName, sizeof(SaNameT));
     temp->next = NULL;
 
     /*
@@ -301,7 +301,7 @@ static ClRcT component_handle_mapping_create(CL_IN const ClNameT *compName,
              * Compare the name 
              */
             if (compName->length == (currPtr->componentName).length &&
-                !(strcmp(compName->value, (currPtr->componentName).value)))
+                !(strcmp((const ClCharT*)compName->value, (const ClCharT*)((currPtr->componentName).value))))
             {
                 rc = CL_CPM_RC(CL_CPM_ERR_EXIST);
                 if (rc != CL_OK)
@@ -329,7 +329,7 @@ static ClRcT component_handle_mapping_create(CL_IN const ClNameT *compName,
     return rc;
 }
 
-static ClRcT component_handle_mapping_get(CL_IN ClNameT *compName,
+static ClRcT component_handle_mapping_get(CL_IN SaNameT *compName,
                                           CL_OUT ClHandleT *amfHandle)
 {
 
@@ -341,7 +341,7 @@ static ClRcT component_handle_mapping_get(CL_IN ClNameT *compName,
     while (currPtr != NULL)
     {
         if (compName->length == (currPtr->componentName).length &&
-            !(strcmp(compName->value, (currPtr->componentName).value)))
+            !(strcmp((const ClCharT*)compName->value, (const ClCharT*)((currPtr->componentName).value))))
         {
             found = 1;
             break;
@@ -363,7 +363,7 @@ static ClRcT component_handle_mapping_get(CL_IN ClNameT *compName,
     return rc;
 }
 
-static ClRcT component_handle_mapping_delete(CL_IN const ClNameT *compName,
+static ClRcT component_handle_mapping_delete(CL_IN const SaNameT *compName,
                                              CL_IN ClHandleT amfHandle)
 {
     ClRcT rc = CL_OK;
@@ -376,7 +376,7 @@ static ClRcT component_handle_mapping_delete(CL_IN const ClNameT *compName,
     while (currPtr != NULL)
     {
         if (compName->length == (currPtr->componentName).length &&
-            !(strcmp(compName->value, (currPtr->componentName).value)))
+            !(strcmp((const ClCharT*)compName->value, (const ClCharT*)((currPtr->componentName).value))))
         {
             if (memcmp(&(amfHandle), &(currPtr->amfHandle), sizeof(ClHandleT)))
             {
@@ -427,21 +427,21 @@ static ClRcT component_handle_mapping_delete(CL_IN const ClNameT *compName,
     return rc;
 }
 
-static ClInt32T clCpmNameKeyCmp(ClNameT *pNameA,ClNameT *pNameB)
+static ClInt32T clCpmNameKeyCmp(SaNameT *pNameA,SaNameT *pNameB)
 {
     ClInt32T cmp = pNameA->length - pNameB->length;
     if(cmp)
     {
         return cmp;
     }
-    return strncmp(pNameA->value,pNameB->value,pNameA->length);
+    return strncmp((const ClCharT*)pNameA->value,(const ClCharT*)pNameB->value,pNameA->length);
 
 }
 
 static ClInt32T cpmCompCSIListKeyCmp(ClCntKeyHandleT key1,
                                      ClCntKeyHandleT key2)
 {
-    return clCpmNameKeyCmp((ClNameT*)key1,(ClNameT*)key2);
+    return clCpmNameKeyCmp((SaNameT*)key1,(SaNameT*)key2);
 }
 
 static void cpmCompCSIListDeleteCallback(ClCntKeyHandleT key,
@@ -454,7 +454,7 @@ static void cpmCompCSIListDeleteCallback(ClCntKeyHandleT key,
 
 static ClInt32T cpmCompCSIKeyCmp(ClCntKeyHandleT key1,ClCntKeyHandleT key2)
 {
-    return clCpmNameKeyCmp((ClNameT*)key1, (ClNameT*)key2);
+    return clCpmNameKeyCmp((SaNameT*)key1, (SaNameT*)key2);
 }
 
 static void cpmCompCSIDeleteCallback(ClCntKeyHandleT key,
@@ -665,7 +665,7 @@ static ClRcT VDECL(_clCpmClientCompHealthCheck)(ClEoDataT eoArg,
 {
     ClRcT rc = CL_OK;
     ClCpmClientCompTerminateT *info = NULL;
-    ClNameT appName = {0};
+    SaNameT appName = {0};
     ClHandleT cpmHandle = 0;
     ClCpmInstanceT *cpmInstance = NULL;
 
@@ -811,7 +811,7 @@ ClRcT handleProxiedComponentCleanup(ClCpmClientCompTerminateT *info,
 /*
  * Called with lock held.
  */
-static ClRcT cpmCompCSIListGet(const ClNameT *pCompName,
+static ClRcT cpmCompCSIListGet(const SaNameT *pCompName,
                                ClCpmCompCSIListT **ppCompCSIList,
                                ClCntNodeHandleT *pNodeHandle)
 {
@@ -845,7 +845,7 @@ static ClRcT cpmCompCSIListGet(const ClNameT *pCompName,
 /*  
  * Called with lock held
  */
-static ClRcT cpmCompCSIGet(ClNameT *pCSIName,
+static ClRcT cpmCompCSIGet(SaNameT *pCSIName,
                            ClCpmCompCSIListT *pCompCSIList,
                            ClCpmCompCSIT **ppCSI,
                            ClCntNodeHandleT *pNodeHandle)
@@ -875,7 +875,7 @@ static ClRcT cpmCompCSIGet(ClNameT *pCSIName,
     return rc;
 }
 
-static ClRcT cpmCompCSIListDel(const ClNameT *pCompName)
+static ClRcT cpmCompCSIListDel(const SaNameT *pCompName)
 {
     ClRcT rc = CL_OK;
     ClCntNodeHandleT nodeHandle=0;
@@ -942,7 +942,7 @@ static ClRcT cpmCompCSIDel(ClCpmCompCSIRmvT *pInfo, ClCpmHandleT *pHandle)
     return rc;
 }
 
-static ClRcT cpmCompCSIListAdd(const ClNameT *pCompName,ClCpmHandleT cpmHandle)
+static ClRcT cpmCompCSIListAdd(const SaNameT *pCompName,ClCpmHandleT cpmHandle)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
     ClCpmCompCSIListT *pCompCSIList = NULL;
@@ -985,7 +985,7 @@ static ClRcT cpmCompCSIListAdd(const ClNameT *pCompName,ClCpmHandleT cpmHandle)
     return rc;
 }
 
-static ClRcT cpmCompCSIAdd(ClNameT *pCompName,
+static ClRcT cpmCompCSIAdd(SaNameT *pCompName,
                            ClCpmCompCSIListT *pCompCSIList,
                            ClAmsCSIDescriptorT *pCSIDescriptor,
                            ClAmsHAStateT haState)
@@ -1116,12 +1116,12 @@ static ClRcT _cpmCsiDescriptorUnpack(ClAmsCSIDescriptorT *csiDescriptor,
 
     if (CL_AMS_CSI_FLAG_TARGET_ALL != tempCsi.csiFlags)
     {
-        rc = clXdrUnmarshallClNameT(message, (void *)&(tempCsi.csiName));
+        rc = clXdrUnmarshallSaNameT(message, (void *)&(tempCsi.csiName));
         CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to read the message \n"), rc);
     }
     else
     {
-        memset(&(tempCsi.csiName), '\0', sizeof(ClNameT));
+        memset(&(tempCsi.csiName), '\0', sizeof(SaNameT));
     }
 
     if (CL_AMS_HA_STATE_ACTIVE == haState)
@@ -1429,13 +1429,9 @@ ClRcT handleCompCSIAssign(ClCpmCompCSISetT *info,
         skip_csi_set:
         cpmHandle = pCompCSIList->cpmHandle;
         clOsalMutexUnlock(gCpmCompCSIListMutex);
-        clLogInfo("CSI", "SET",
-                  "Skipping duplicate CSI Assignment for component "
-                  "[%s], CSI [%s], haState [0x%x]",
-                  info->compName.value,
-                  csiDescriptor.csiName.length ? 
-                  csiDescriptor.csiName.value : "TARGET_ALL",
-                  info->haState);
+        clLogInfo("CSI", "SET", "Skipping duplicate CSI Assignment for component "
+                        "[%s], CSI [%s], haState [0x%x]", (const ClCharT* )info->compName.value,
+                        csiDescriptor.csiName.length ? (const ClCharT* )csiDescriptor.csiName.value : "TARGET_ALL", info->haState);
         rc = clCpmResponse(cpmHandle,info->invocation,CL_OK);
         if(rc != CL_OK)
         {
@@ -1641,7 +1637,7 @@ static ClRcT VDECL(_clCpmClientCompTerminate)(ClEoDataT eoArg,
 {
     ClRcT rc = CL_OK;
     ClCpmClientCompTerminateT *info = { 0 };
-    ClNameT appName = { 0 };
+    SaNameT appName = { 0 };
     ClHandleT cpmHandle;
     ClCpmInstanceT *cpmInstance = NULL;
 
@@ -1687,7 +1683,7 @@ static ClRcT VDECL(_clCpmClientCompTerminate)(ClEoDataT eoArg,
 
     /* Don't think really need this now for new proxy-proxied interface
      * Put it for time being */  
-    if (!strcmp(appName.value, info->compName.value))
+    if (!strcmp((const ClCharT*)appName.value, (const ClCharT*)info->compName.value))
         componentTerminate = CL_TRUE;
 
     /* End PROXIED change */
@@ -1739,7 +1735,7 @@ static ClRcT VDECL(_clCpmClientCompCSISet)(ClEoDataT eoArg,
     ClHandleT cpmHandle;
     ClCpmInstanceT *cpmInstance = NULL;
     ClUint32T cbType = 0;
-    ClNameT appName = {0};
+    SaNameT appName = {0};
 
     rc = clBufferLengthGet(inMsgHandle, &msgLength);
 
@@ -1837,7 +1833,7 @@ static ClRcT VDECL(_clCpmClientCompCSIRmv)(ClEoDataT eoArg,
     ClUint32T msgLength = 0;
     ClHandleT cpmHandle;
     ClCpmInstanceT *cpmInstance = NULL;
-    ClNameT appName = { 0 };
+    SaNameT appName = { 0 };
 
     rc = clBufferLengthGet(inMsgHandle, &msgLength);
     if(!msgLength || rc != CL_OK)
@@ -2020,7 +2016,7 @@ VDECL(_clCpmClientCompProxiedComponentInstantiate)(ClEoDataT eoArg,
     ClCpmClientCompTerminateT *info = NULL;
     ClHandleT cpmHandle;
     ClCpmInstanceT *cpmInstance = NULL;
-    ClNameT appName = { 0 };
+    SaNameT appName = { 0 };
 
     info =
         (ClCpmClientCompTerminateT *)
@@ -2107,7 +2103,7 @@ VDECL(_clCpmClientCompProxiedComponentCleanup)(ClEoDataT eoArg,
     ClCpmClientCompTerminateT *info = NULL; 
     ClHandleT cpmHandle;
     ClCpmInstanceT *cpmInstance = NULL;
-    ClNameT appName = { 0 };
+    SaNameT appName = { 0 };
     
     info =
         (ClCpmClientCompTerminateT *)
@@ -2223,7 +2219,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     ClRcT rc = CL_OK;
     ClCpmCompInitSendT compInitSend = { 0 };
     ClCpmCompInitRecvT compInitRecv = { 0 };
-    ClNameT compName = { 0 };
+    SaNameT compName = { 0 };
     ClUint32T outBufLen = sizeof(ClCpmCompInitRecvT);
     ClCpmInstanceT *cpmInstance = NULL;
 
@@ -2365,7 +2361,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     }
     CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
                      ("Unable to Get Component Name, rc = %x\n", rc), rc);
-    strcpy((compInitSend.compName), compName.value);
+    strcpy((compInitSend.compName), (const ClCharT*)compName.value);
     if(clEoWithOutCpm != CL_TRUE)  /* GAS this RMD is not necessary */
     {
         rc = clCpmClientRMDSyncNew(clIocLocalAddressGet(), 
@@ -2421,7 +2417,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
 ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
 {
     ClRcT rc = CL_OK;
-    ClNameT compName = { 0 };
+    SaNameT compName = { 0 };
     ClCpmCompFinalizeSendT compFinalize = { 0 };
     ClEoExecutionObjT *pEoObj = NULL;
     ClCpmInstanceT *cpmInstance = NULL;
@@ -2510,7 +2506,7 @@ ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
     CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
                      ("Unable to Get Component Name, rc = %x\n", rc), rc);
 
-    strcpy((compFinalize.compName), compName.value);
+    strcpy((compFinalize.compName), (const ClCharT*)compName.value);
 
     compFinalize.cpmHandle = cpmHandle;
 
@@ -2873,8 +2869,8 @@ ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle,
 }
 
 ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
-                             const ClNameT *compName,
-                             const ClNameT *proxyCompName)
+                             const SaNameT *compName,
+                             const SaNameT *proxyCompName)
 {
     ClRcT rc = CL_OK;
     ClCpmCompRegisterT compReg = {{0}};
@@ -2915,7 +2911,7 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
     /*
      * Add this comp to the cache.
      */
-    rc = cpmCompCSIListAdd((ClNameT*)compName,cpmHandle);
+    rc = cpmCompCSIListAdd((SaNameT*)compName,cpmHandle);
     if (CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)
     {
         if (proxyCompName)
@@ -2987,12 +2983,12 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
     /*
      * Copy the component Name 
      */
-    memcpy(&(compReg.compName), compName, sizeof(ClNameT));
+    memcpy(&(compReg.compName), compName, sizeof(SaNameT));
     /*
      * Copy the proxy component Name if the registered component is proxied 
      */
     if (proxyCompName != NULL)
-        memcpy(&(compReg.proxyCompName), proxyCompName, sizeof(ClNameT));
+        memcpy(&(compReg.proxyCompName), proxyCompName, sizeof(SaNameT));
     else
         compReg.proxyCompName.length = 0;
 
@@ -3035,8 +3031,8 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
 }
 
 ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
-                               const ClNameT *compName,
-                               const ClNameT *proxyCompName)
+                               const SaNameT *compName,
+                               const SaNameT *proxyCompName)
 {
     ClRcT rc = CL_OK;
     ClCpmCompRegisterT compReg = { {0} };
@@ -3062,7 +3058,7 @@ ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
     CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to checkout handle %x\n", rc),
                      rc);
 
-    rc = cpmCompCSIListDel((ClNameT*)compName);
+    rc = cpmCompCSIListDel((SaNameT*)compName);
     CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
                      ("Unable to delete Component [%s] from cache. "
                       "rc = [0x%x]",
@@ -3091,9 +3087,9 @@ ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
     }
     CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to checkin handle %x\n", rc), rc);
 
-    memcpy(&(compReg.compName), compName, sizeof(ClNameT));
+    memcpy(&(compReg.compName), compName, sizeof(SaNameT));
     if (proxyCompName != NULL)
-        memcpy(&(compReg.proxyCompName), proxyCompName, sizeof(ClNameT));
+        memcpy(&(compReg.proxyCompName), proxyCompName, sizeof(SaNameT));
     else
         compReg.proxyCompName.length = 0;
 
@@ -3134,8 +3130,8 @@ ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
 }
 
 ClRcT clCpmComponentDNNameGet(ClCpmHandleT cpmHandle,
-                              ClNameT *compName,
-                              ClNameT *pDNName)
+                              SaNameT *compName,
+                              SaNameT *pDNName)
 {
     ClRcT rc = CL_OK;
     ClAmsEntityT entity = {0};
@@ -3152,7 +3148,7 @@ ClRcT clCpmComponentDNNameGet(ClCpmHandleT cpmHandle,
         return rc;
 
     entity.type = CL_AMS_ENTITY_TYPE_COMP;
-    clNameCopy(&entity.name, compName);
+    saNameCopy(&entity.name, compName);
     rc = clAmsMgmtInitialize(&mgmtHandle, NULL, &version);
     if(rc != CL_OK)
         return rc;
@@ -3171,11 +3167,11 @@ ClRcT clCpmComponentDNNameGet(ClCpmHandleT cpmHandle,
         goto out_free;
     }
 
-    snprintf(pDNName->value, sizeof(pDNName->value), 
+    snprintf((ClCharT *)pDNName->value, sizeof(pDNName->value),
              "safComp=%s,safSu=%s,safSg=%s", 
              compName->value, pSUConfig->entity.name.value, pSUConfig->parentSG.entity.name.value);
 
-    pDNName->length = strlen(pDNName->value);
+    pDNName->length = strlen((const ClCharT*)pDNName->value);
     
     out_free:
     clAmsMgmtFinalize(mgmtHandle);
@@ -3193,7 +3189,7 @@ ClRcT clCpmComponentDNNameGet(ClCpmHandleT cpmHandle,
  * Note that this is a local function, NO RMD involved 
  */
 ClRcT clCpmComponentNameGet(ClCpmHandleT cpmHandle,
-                            ClNameT *compName)
+                            SaNameT *compName)
 {
     ClRcT rc = CL_OK;
     ClCharT *cName = NULL;
@@ -3232,8 +3228,8 @@ ClRcT clCpmComponentNameGet(ClCpmHandleT cpmHandle,
     cName = getenv("ASP_COMPNAME");
     if (cName != NULL)
     {
-        strcpy(compName->value, cName);
-        compName->length = strlen(compName->value);
+        strcpy((ClCharT *)compName->value, cName);
+        compName->length = strlen((const ClCharT*)compName->value);
     }
     else
     {
@@ -3247,7 +3243,7 @@ failure:
 }
 
 ClRcT clCpmHealthcheckStart(ClCpmHandleT cpmHandle,
-                            const ClNameT *compName,
+                            const SaNameT *compName,
                             const ClAmsCompHealthcheckKeyT *healthcheckKey,
                             ClAmsCompHealthcheckInvocationT invocationType,
                             ClAmsRecoveryT recommendedRecovery)
@@ -3255,7 +3251,7 @@ ClRcT clCpmHealthcheckStart(ClCpmHandleT cpmHandle,
     ClRcT rc = CL_OK;
     ClCpmCompHealthcheckT cpmCompHealthcheck = {{0}};
     ClCpmInstanceT *cpmInstance = NULL;
-    ClNameT appName = {0};
+    SaNameT appName = {0};
     
     rc = clHandleValidate(handle_database, cpmHandle);
     if (CL_OK != rc)
@@ -3309,7 +3305,7 @@ ClRcT clCpmHealthcheckStart(ClCpmHandleT cpmHandle,
         goto failure;
     }
 
-    clNameCopy(&cpmCompHealthcheck.compName, compName);
+    saNameCopy(&cpmCompHealthcheck.compName, compName);
     rc = clCpmComponentNameGet(0, &appName);
     if (CL_OK != rc)
     {
@@ -3318,7 +3314,7 @@ ClRcT clCpmHealthcheckStart(ClCpmHandleT cpmHandle,
                    rc);
         goto failure;
     }
-    clNameCopy(&cpmCompHealthcheck.proxyCompName, &appName);
+    saNameCopy(&cpmCompHealthcheck.proxyCompName, &appName);
     cpmCompHealthcheck.invocationType = invocationType;
     cpmCompHealthcheck.recommendedRecovery = recommendedRecovery;
     
@@ -3347,7 +3343,7 @@ failure:
 }
 
 ClRcT clCpmHealthcheckStop(ClCpmHandleT cpmHandle,
-                           const ClNameT *compName,
+                           const SaNameT *compName,
                            const ClAmsCompHealthcheckKeyT *compHealthCheck)
 {
     ClRcT rc = CL_OK;
@@ -3361,7 +3357,7 @@ ClRcT clCpmHealthcheckStop(ClCpmHandleT cpmHandle,
         goto failure;
     }
 
-    clNameCopy(&cpmCompHealthcheck.compName, compName);
+    saNameCopy(&cpmCompHealthcheck.compName, compName);
 
     rc = clCpmClientRMDAsyncNew(clIocLocalAddressGet(),
                                 CPM_COMPONENT_HEALTHCHECK_STOP,
@@ -3388,7 +3384,7 @@ failure:
 }
 
 ClRcT clCpmHealthcheckConfirm(ClCpmHandleT cpmHandle,
-                              const ClNameT *compName,
+                              const SaNameT *compName,
                               const ClAmsCompHealthcheckKeyT *compHealthCheck,
                               ClRcT healthcheckResult)
 {
@@ -3403,7 +3399,7 @@ ClRcT clCpmHealthcheckConfirm(ClCpmHandleT cpmHandle,
         goto failure;
     }
     
-    clNameCopy(&cpmCompHealthcheck.compName, compName);
+    saNameCopy(&cpmCompHealthcheck.compName, compName);
     cpmCompHealthcheck.healthcheckResult = healthcheckResult;
     
     rc = clCpmClientRMDAsyncNew(clIocLocalAddressGet(),
@@ -3429,7 +3425,7 @@ failure:
 }
 
 ClRcT clCpmComponentFailureReport(ClCpmHandleT cpmHandle,
-                                  const ClNameT *compName,
+                                  const SaNameT *compName,
                                   ClTimeT errorDetectionTime,
                                   ClAmsLocalRecoveryT recommendedRecovery,
                                   ClUint32T alarmHandle)
@@ -3440,7 +3436,7 @@ ClRcT clCpmComponentFailureReport(ClCpmHandleT cpmHandle,
 }
 
 ClRcT clCpmComponentFailureClear(CL_IN ClCpmHandleT cpmHandle,
-                                 CL_IN ClNameT *compName)
+                                 CL_IN SaNameT *compName)
 {
     ClRcT rc = CL_OK;
     ClErrorReportT *errorReport = NULL;
@@ -3479,7 +3475,7 @@ ClRcT clCpmComponentFailureClear(CL_IN ClCpmHandleT cpmHandle,
         CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to allocate memory \n"),
                          CL_CPM_RC(CL_ERR_NO_MEMORY));
     }
-    memcpy(&(errorReport->compName), compName, sizeof(ClNameT));
+    memcpy(&(errorReport->compName), compName, sizeof(SaNameT));
     errorReport->instantiateCookie = 0;
     tempLength = sizeof(ClErrorReportT); 
     rc = clCpmClientRMDAsync(clIocLocalAddressGet(),
@@ -3505,8 +3501,8 @@ ClRcT clCpmComponentFailureClear(CL_IN ClCpmHandleT cpmHandle,
 }
 
 ClRcT clCpmHAStateGet(CL_IN ClCpmHandleT cpmHandle,
-                      CL_IN ClNameT *compName,
-                      CL_IN ClNameT *csiName,
+                      CL_IN SaNameT *compName,
+                      CL_IN SaNameT *csiName,
                       CL_OUT ClAmsHAStateT *haState)
 {
     ClCpmHAStateGetSendT sendBuff;
@@ -3537,8 +3533,8 @@ ClRcT clCpmHAStateGet(CL_IN ClCpmHandleT cpmHandle,
     /*
      * Prepare the buffer 
      */
-    memcpy(&(sendBuff.compName), compName, sizeof(ClNameT));
-    memcpy(&(sendBuff.csiName), csiName, sizeof(ClNameT));
+    memcpy(&(sendBuff.compName), compName, sizeof(SaNameT));
+    memcpy(&(sendBuff.csiName), csiName, sizeof(SaNameT));
     sendBuff.cpmHandle = cpmHandle;
 
     /*
@@ -3726,7 +3722,7 @@ failure:
 }
 
 ClRcT clCpmProtectionGroupTrack(CL_IN ClCpmHandleT cpmHandle,
-                                CL_IN ClNameT *csiName,
+                                CL_IN SaNameT *csiName,
                                 CL_IN ClUint8T trackFlags,
                                 CL_INOUT ClAmsPGNotificationBufferT
                                 *notificationBuffer)
@@ -3779,7 +3775,7 @@ ClRcT clCpmProtectionGroupTrack(CL_IN ClCpmHandleT cpmHandle,
     }
 
     sendBuff.cpmHandle = cpmHandle;
-    memcpy(&(sendBuff.csiName), csiName, sizeof(ClNameT));
+    memcpy(&(sendBuff.csiName), csiName, sizeof(SaNameT));
     sendBuff.trackFlags = trackFlags;
     
     sendBuff.iocAddress.discriminant = CLIOCADDRESSIDLTIOCPHYADDRESS;
@@ -3838,7 +3834,7 @@ ClRcT clCpmProtectionGroupTrack(CL_IN ClCpmHandleT cpmHandle,
 
 
 ClRcT clCpmProtectionGroupTrackStop(CL_IN ClCpmHandleT cpmHandle,
-                                    CL_IN ClNameT *csiName)
+                                    CL_IN SaNameT *csiName)
 {
     ClRcT rc = CL_OK;
     ClCpmPGTrackStopT sendBuff;
@@ -3863,7 +3859,7 @@ ClRcT clCpmProtectionGroupTrackStop(CL_IN ClCpmHandleT cpmHandle,
     }
 
     sendBuff.cpmHandle = cpmHandle;
-    memcpy(&(sendBuff.csiName), csiName, sizeof(ClNameT));
+    memcpy(&(sendBuff.csiName), csiName, sizeof(SaNameT));
 
     sendBuff.iocAddress.discriminant = CLIOCADDRESSIDLTIOCPHYADDRESS;
     sendBuff.iocAddress.clIocAddressIDLT.iocPhyAddress.nodeAddress = clIocLocalAddressGet();
@@ -3911,7 +3907,7 @@ static ClRcT cpmCompCSIListWalk(ClCntKeyHandleT key,
     return CL_OK;
 }
 
-ClRcT clCpmCompCSIList(const ClNameT *pCompName, ClCpmCompCSIRefT *pCSIRef)
+ClRcT clCpmCompCSIList(const SaNameT *pCompName, ClCpmCompCSIRefT *pCSIRef)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
     ClUint32T numCSIs = 0;
@@ -3923,7 +3919,7 @@ ClRcT clCpmCompCSIList(const ClNameT *pCompName, ClCpmCompCSIRefT *pCSIRef)
     }
 
     clOsalMutexLock(gCpmCompCSIListMutex);
-    rc = cpmCompCSIListGet((ClNameT*)pCompName,  &pCompCSIList, NULL);
+    rc = cpmCompCSIListGet((SaNameT*)pCompName,  &pCompCSIList, NULL);
     CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Comp [%.*s] not found. rc [%#x]\n",
                                       pCompName->length, pCompName->value, rc),
                      rc);

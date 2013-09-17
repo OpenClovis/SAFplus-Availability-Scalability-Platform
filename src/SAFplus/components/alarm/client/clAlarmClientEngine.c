@@ -955,7 +955,7 @@ clAlarmClientEnginePrepare2Generate(ClCorMOIdPtrT pMoId, ClCorObjectHandleT hMSO
     ClCpmHandleT cpmHandle = 0;
 	ClCorMOIdPtrT hMOId;
 	ClCorServiceIdT srvcId;
-    ClNameT alarmClientCompName;
+    SaNameT alarmClientCompName;
 
 	clLogTrace( "ALM", "ALE", " Entering [%s]", __FUNCTION__);
 
@@ -1480,7 +1480,7 @@ _clAlarmInfoAddToList ( ClCorMOIdPtrT pMoId,
     ClUint32T               size = 0;
     ClAlarmInfoPtrT         pAlarmInfo = NULL;
     ClAlarmInfoT            alarmInfo = {0};
-    ClNameT                 moIdName = {0};
+    SaNameT                 moIdName = {0};
 
     alarmHandleInfoIdl.alarmInfo.moId = *pMoId;
     
@@ -1640,7 +1640,7 @@ _clAlarmClientPendingAlmsForMOGet ( ClCorMOIdPtrT pMoId,
     ClCorObjectHandleT  objH = NULL;
     const ClUint64T     one = 1;
     ClUint32T           nPendingAlms = 0;
-    ClNameT             moIdName;
+    SaNameT             moIdName;
 
     rc = clCorObjectHandleGet(pMoId, &objH);
     if (CL_OK != rc)

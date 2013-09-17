@@ -48,7 +48,7 @@ namespace SAFplus
 
   void MsgServer::Init(ClWordT _port, ClWordT maxPending, ClWordT maxThreads, Options flags)
   {
-    ClNameT myName;
+    SaNameT myName;
     ClRcT rc;
 
     Wipe();

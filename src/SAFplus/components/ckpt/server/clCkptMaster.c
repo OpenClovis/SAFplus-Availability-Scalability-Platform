@@ -186,7 +186,7 @@ static ClRcT ckptCloseOpenFailure(ClHandleT         clientHdl,
  
 ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                                                ClCkptSvcHdlT                       ckptSvcHdl,
-                                               ClNameT                             *pName,
+                                               SaNameT                             *pName,
                                                ClCkptCheckpointCreationAttributesT *pCreateAttr,
                                                ClCkptOpenFlagsT                    ckptOpenFlags,
                                                ClIocNodeAddressT                   localAddr,
@@ -247,7 +247,7 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
     memset(&lookup, 0, sizeof(lookup));
     clCksm32bitCompute ((ClUint8T *)pName->value, pName->length, &cksum);
     lookup.cksum = cksum;
-    clNameCopy(&lookup.name, pName);
+    saNameCopy(&lookup.name, pName);
     memcpy( &ckptVersion,
             gCkptSvr->versionDatabase.versionsSupported,
             sizeof(ClVersionT));
@@ -1051,7 +1051,7 @@ ClRcT VDECL_VER(clCkptMasterActiveReplicaSet, 4, 0, 0)(ClCkptHdlT           clie
     ClHandleT               masterHdl       = CL_CKPT_INVALID_HDL;
     ClIocNodeAddressT       prevActiveAddr  = 0;
     CkptMasterDBEntryT      *pStoredData    = NULL;
-    ClNameT                 name            = {0};
+    SaNameT                 name            = {0};
     ClCkptClientUpdInfoT    eventInfo       = {0};
     ClEventIdT              eventId         = 0;
 
@@ -1134,7 +1134,7 @@ ClRcT VDECL_VER(clCkptMasterActiveReplicaSet, 4, 0, 0)(ClCkptHdlT           clie
      */
     prevActiveAddr = pStoredData->activeRepAddr;
     pStoredData->prevActiveRepAddr = prevActiveAddr;
-    clNameCopy(&name, &pStoredData->name);
+    saNameCopy(&name, &pStoredData->name);
     pStoredData->activeRepAddr = localAddr;
 
     /*
@@ -1147,7 +1147,7 @@ ClRcT VDECL_VER(clCkptMasterActiveReplicaSet, 4, 0, 0)(ClCkptHdlT           clie
      * Publish event to inform the clients about change in active replica.
      */
     memset(&eventInfo, 0, sizeof(ClCkptClientUpdInfoT));
-    clNameCopy(&eventInfo.name, &name);
+    saNameCopy(&eventInfo.name, &name);
     eventInfo.name.length = htons(name.length);
     eventInfo.eventType   = htonl(CL_CKPT_ACTIVE_REP_CHG_EVENT);
     eventInfo.actAddr     = htonl(localAddr);
@@ -1214,7 +1214,7 @@ ClRcT VDECL_VER(clCkptMasterActiveReplicaSetSwitchOver, 4, 0, 0)(ClCkptHdlT     
     ClHandleT               masterHdl       = CL_CKPT_INVALID_HDL;
     ClIocNodeAddressT       prevActiveAddr  = {0};
     CkptMasterDBEntryT      *pStoredData    = NULL;
-    ClNameT                 name            = {0};
+    SaNameT                 name            = {0};
     ClCkptClientUpdInfoT    eventInfo       = {0};
     ClEventIdT              eventId         = {0};
     ClVersionT              ckptVersion     = {0};
@@ -1283,7 +1283,7 @@ ClRcT VDECL_VER(clCkptMasterActiveReplicaSetSwitchOver, 4, 0, 0)(ClCkptHdlT     
          */
         prevActiveAddr = pStoredData->activeRepAddr;
         pStoredData->prevActiveRepAddr = prevActiveAddr;
-        clNameCopy(&name, &pStoredData->name);
+        saNameCopy(&name, &pStoredData->name);
         pStoredData->activeRepAddr = localAddr;
     }   
     
@@ -1332,7 +1332,7 @@ ClRcT VDECL_VER(clCkptMasterActiveReplicaSetSwitchOver, 4, 0, 0)(ClCkptHdlT     
      * Publish event to inform the clients.
      */
     memset(&eventInfo, 0, sizeof(ClCkptClientUpdInfoT));
-    clNameCopy(&eventInfo.name, &name);
+    saNameCopy(&eventInfo.name, &name);
     eventInfo.name.length = htons(name.length);
     eventInfo.eventType   = htonl(CL_CKPT_ACTIVE_REP_CHG_EVENT);
     eventInfo.actAddr     = htonl(localAddr);
@@ -1613,7 +1613,7 @@ ClRcT ckptReplicaListWalk(ClCntKeyHandleT  key,
  * Function to delete the entry from name-tranalation table.
  */
      
-ClRcT ckptDeleteEntryFromXlationTable(ClNameT  *pName)
+ClRcT ckptDeleteEntryFromXlationTable(SaNameT  *pName)
 {
     ClCntNodeHandleT    pNodeHandle = 0;
     ClUint32T           cksum       = 0;
@@ -1629,7 +1629,7 @@ ClRcT ckptDeleteEntryFromXlationTable(ClNameT  *pName)
     clCksm32bitCompute ((ClUint8T *)pName->value, pName->length, &cksum);
     lookup.cksum = cksum;
     
-    clNameCopy(&lookup.name, pName);
+    saNameCopy(&lookup.name, pName);
     
     /*
      * Find the entry and delete it.
@@ -2149,7 +2149,7 @@ ClRcT _clCkptMasterClose(ClHandleT         clientHdl,
  * Server implementation of checkpoint delete functionality.
  */
  
-ClRcT VDECL_VER(clCkptMasterCkptUnlink, 4, 0, 0)(ClNameT           *pName,
+ClRcT VDECL_VER(clCkptMasterCkptUnlink, 4, 0, 0)(SaNameT           *pName,
                              ClIocNodeAddressT localAddr,
                              ClVersionT        *pVersion)
 {
@@ -2193,7 +2193,7 @@ ClRcT VDECL_VER(clCkptMasterCkptUnlink, 4, 0, 0)(ClNameT           *pName,
     memset(&lookup, 0, sizeof(lookup));
     clCksm32bitCompute ((ClUint8T *)pName->value, pName->length, &cksum);
     lookup.cksum = cksum;
-    clNameCopy(&lookup.name, pName);
+    saNameCopy(&lookup.name, pName);
     rc = clCntDataForKeyGet(
             (ClCntHandleT)gCkptSvr->masterInfo.nameXlationDBHdl,
             (ClCntKeyHandleT)&lookup,
@@ -2700,7 +2700,7 @@ ClRcT _ckptMasterXlationTablePack(ClCntKeyHandleT    userKey,
         CKPT_NULL_CHECK(pOutXlation);
         pOutXlation->cksum  = pInXlation->cksum;
         pOutXlation->mastHdl = pInXlation->mastHdl;
-        clNameCopy(&pOutXlation->name, &pInXlation->name);
+        saNameCopy(&pOutXlation->name, &pInXlation->name);
     }
     return rc;
 }
@@ -2959,7 +2959,7 @@ ClRcT  ckptMasterDBEntryCopy(ClHandleT             handle,
     /*
      * Copy the data.
      */
-    clNameCopy(&pMasterEntry->name, &pStoredData->name);
+    saNameCopy(&pMasterEntry->name, &pStoredData->name);
     memcpy(&pMasterEntry->attrib, &pStoredData->attrib,
             sizeof(ClCkptCheckpointCreationAttributesT));
     pMasterEntry->ckptMasterHdl     = handle;
@@ -3333,7 +3333,7 @@ _ckptMastHdlListWalk(ClCntKeyHandleT   userKey,
         memset(&eventInfo, 0, sizeof(ClCkptClientUpdInfoT));
         eventInfo.eventType = htonl(CL_CKPT_ACTIVE_REP_CHG_EVENT);
         eventInfo.actAddr   = htonl(pStoredData->activeRepAddr);
-        clNameCopy(&eventInfo.name, &pStoredData->name);
+        saNameCopy(&eventInfo.name, &pStoredData->name);
         eventInfo.name.length = htons(pStoredData->name.length);
 	clLogInfo(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_ACTADDR_SET,
 		  "Changing the active address from [%d] to [%d] for checkpoint [%.*s]",

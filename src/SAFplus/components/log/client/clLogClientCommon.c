@@ -104,7 +104,7 @@ clLogClntIdlHandleFinalize(ClIdlHandleT  *phClntIdl)
 }
 
 ClRcT
-clLogClntCompNameChkNCompIdGet(ClNameT    *pCompName,
+clLogClntCompNameChkNCompIdGet(SaNameT    *pCompName,
                                ClUint32T  *pClientId)
 {
     ClRcT      rc           = CL_OK;

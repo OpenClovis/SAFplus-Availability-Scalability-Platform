@@ -42,7 +42,7 @@ extern "C" {
 
 typedef struct {
     struct hashStruct hash;
-    ClNameT name;
+    SaNameT name;
     SaMsgQueueGroupPolicyT policy;
     ClListHeadT qList;
     ClListHeadT trackList;
@@ -63,23 +63,23 @@ typedef struct {
 
 typedef struct {
     ClListHeadT list;
-    ClNameT qName;
+    SaNameT qName;
     SaMsgQueueGroupChangesT change;
 }ClMsgGroupsQueueDetailsT;
 
 
 extern ClOsalMutexT gClGroupDbLock;
 
-ClBoolT clMsgGroupEntryExists(const ClNameT *pQGroupName, ClMsgGroupRecordT **ppQGroupEntry);
-ClBoolT clMsgDoesQExistInGroup(ClMsgGroupRecordT *pQGroupEntry, const ClNameT *pQName,
+ClBoolT clMsgGroupEntryExists(const SaNameT *pQGroupName, ClMsgGroupRecordT **ppQGroupEntry);
+ClBoolT clMsgDoesQExistInGroup(ClMsgGroupRecordT *pQGroupEntry, const SaNameT *pQName,
         ClMsgGroupsQueueDetailsT **ppQListEntry);
 
 ClRcT clMsgNodeGroupEntriesGet(ClUint8T **ppData, ClUint32T *pCount);
 
-ClRcT clMsgAddQueueToGroup(ClNameT *pGroupName, ClNameT *pQueueName);
-ClRcT clMsgGroupInfoUpdate(ClMsgSyncActionT syncupType, ClNameT *pGroupName, SaMsgQueueGroupPolicyT policy);
+ClRcT clMsgAddQueueToGroup(SaNameT *pGroupName, SaNameT *pQueueName);
+ClRcT clMsgGroupInfoUpdate(ClMsgSyncActionT syncupType, SaNameT *pGroupName, SaMsgQueueGroupPolicyT policy);
 
-ClRcT clMsgGroupMembershipInfoSend(ClMsgSyncActionT syncupType, ClNameT *pGroupName, ClNameT *pQueueName);
+ClRcT clMsgGroupMembershipInfoSend(ClMsgSyncActionT syncupType, SaNameT *pGroupName, SaNameT *pQueueName);
 
 ClRcT clMsgAllQueuesOfGroupGet(ClMsgGroupRecordT *pMsgGroup, SaMsgQueueGroupNotificationT **ppData, ClUint32T *pCount);
 
@@ -90,7 +90,7 @@ void clMsgGroupDatabaseShow(void);
 /* As of now I am putting the "clMsgGroupCalls.c"s declarations in this file. */
 
 #include <clMsgEo.h>
-ClRcT clMsgQueueGroupTrackStopInternal(ClMsgClientDetailsT *pClient, SaMsgHandleT msgHandle, const ClNameT *pGroupName);
+ClRcT clMsgQueueGroupTrackStopInternal(ClMsgClientDetailsT *pClient, SaMsgHandleT msgHandle, const SaNameT *pGroupName);
 
 #ifdef __cplusplus
 }

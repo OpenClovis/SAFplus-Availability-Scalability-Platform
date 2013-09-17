@@ -68,7 +68,7 @@ ClRcT clXdrUnmarshallSaMsgMessageT_4_0_0(ClBufferHandleT msg , void* pGenVar)
         return rc;
     }
 
-    rc = clXdrUnmarshallPtrClNameT(msg,(void**)&(pVar->senderName),1);
+    rc = clXdrUnmarshallPtrSaNameT(msg,(void**)&(pVar->senderName),1);
     if (CL_OK != rc)
     {
         return rc;

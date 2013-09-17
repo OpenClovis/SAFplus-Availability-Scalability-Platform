@@ -78,17 +78,17 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,
 
     if(!compName) return SA_AIS_ERR_INVALID_PARAM;
 
-    clNameCopy((ClNameT*)&compNameInternal, (const ClNameT*)compName);
+    saNameCopy((SaNameT*)&compNameInternal, (const SaNameT*)compName);
     
     if(proxyCompName)
     {
-        clNameCopy((ClNameT*)&proxyCompNameInternal, 
-                   (const ClNameT*)proxyCompName);
+        saNameCopy((SaNameT*)&proxyCompNameInternal, 
+                   (const SaNameT*)proxyCompName);
         proxy = &proxyCompNameInternal;
     }
     rc = clCpmComponentRegister(amfHandle,
-                                (const ClNameT*)&compNameInternal,
-                                (const ClNameT*)proxy);
+                                (const SaNameT*)&compNameInternal,
+                                (const SaNameT*)proxy);
     return clClovisToSafError(rc);
 }
 
@@ -103,18 +103,18 @@ SaAisErrorT saAmfComponentUnregister(SaAmfHandleT amfHandle,
     
     if(!compName) return SA_AIS_ERR_INVALID_PARAM;
     
-    clNameCopy((ClNameT*)&compNameInternal, (const ClNameT*)compName);
+    saNameCopy((SaNameT*)&compNameInternal, (const SaNameT*)compName);
 
     if(proxyCompName)
     {
-        clNameCopy((ClNameT*)&proxyCompNameInternal, 
-                   (const ClNameT*)proxyCompName);
+        saNameCopy((SaNameT*)&proxyCompNameInternal, 
+                   (const SaNameT*)proxyCompName);
         proxy = &proxyCompNameInternal;
     }
 
     rc = clCpmComponentUnregister(amfHandle,
-                                  (const ClNameT*)&compNameInternal,
-                                  (const ClNameT*)proxy);
+                                  (const SaNameT*)&compNameInternal,
+                                  (const SaNameT*)proxy);
 
     return clClovisToSafError(rc);
 }
@@ -124,7 +124,7 @@ SaAisErrorT saAmfComponentNameGet(SaAmfHandleT amfHandle,
 {
     ClRcT rc;
     
-    rc = clCpmComponentNameGet(amfHandle, (ClNameT *)compName);
+    rc = clCpmComponentNameGet(amfHandle, (SaNameT *)compName);
 
     return clClovisToSafError(rc);
 }
@@ -173,15 +173,15 @@ SaAisErrorT saAmfHAStateGet(SaAmfHandleT amfHandle,
 
     if(!compName || !csiName || !haState) return SA_AIS_ERR_INVALID_PARAM;
 
-    clNameCopy((ClNameT*)&compNameInternal, 
-               (const ClNameT*)compName);
+    saNameCopy((SaNameT*)&compNameInternal, 
+               (const SaNameT*)compName);
 
-    clNameCopy((ClNameT*)&csiNameInternal,
-               (const ClNameT*)csiName);
+    saNameCopy((SaNameT*)&csiNameInternal,
+               (const SaNameT*)csiName);
 
     rc = clCpmHAStateGet(amfHandle,
-                         (ClNameT *)&compNameInternal,
-                         (ClNameT *)&csiNameInternal,
+                         (SaNameT *)&compNameInternal,
+                         (SaNameT *)&csiNameInternal,
                          (ClAmsHAStateT *)haState);
 
     return clClovisToSafError(rc);
@@ -198,11 +198,11 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT amfHandle,
     
     if(!csiName) return SA_AIS_ERR_INVALID_PARAM;
     
-    clNameCopy((ClNameT*)&csiNameInternal, 
-               (const ClNameT*)csiName);
+    saNameCopy((SaNameT*)&csiNameInternal, 
+               (const SaNameT*)csiName);
 
     rc = clCpmProtectionGroupTrack(amfHandle,
-                                   (ClNameT *)&csiNameInternal,
+                                   (SaNameT *)&csiNameInternal,
                                    trackFlags, 
                                    (ClAmsPGNotificationBufferT *)
                                    notificationBuffer);
@@ -218,10 +218,10 @@ SaAisErrorT saAmfProtectionGroupTrackStop(SaAmfHandleT amfHandle,
     
     if(!csiName) return SA_AIS_ERR_INVALID_PARAM;
 
-    clNameCopy((ClNameT*)&csiNameInternal,
-               (const ClNameT*)csiName);
+    saNameCopy((SaNameT*)&csiNameInternal,
+               (const SaNameT*)csiName);
 
-    rc = clCpmProtectionGroupTrackStop(amfHandle, (ClNameT *)&csiNameInternal);
+    rc = clCpmProtectionGroupTrackStop(amfHandle, (SaNameT *)&csiNameInternal);
 
     return clClovisToSafError(rc);
 }
@@ -238,11 +238,11 @@ SaAisErrorT saAmfComponentErrorReport(SaAmfHandleT amfHandle,
 
     if(!erroneousComponent) return SA_AIS_ERR_INVALID_PARAM;
 
-    clNameCopy((ClNameT*)&compNameInternal,
-               (const ClNameT*)erroneousComponent);
+    saNameCopy((SaNameT*)&compNameInternal,
+               (const SaNameT*)erroneousComponent);
 
     rc = clCpmComponentFailureReport(amfHandle,
-                                     (const ClNameT *)&compNameInternal,
+                                     (const SaNameT *)&compNameInternal,
                                      errorDetectionTime,
                                      recommendedRecovery,
                                      (ClUint32T)ntfIdentifier);
@@ -259,10 +259,10 @@ SaAisErrorT saAmfComponentErrorClear(SaAmfHandleT amfHandle,
 
     if(!compName) return SA_AIS_ERR_INVALID_PARAM;
 
-    clNameCopy((ClNameT*)&compNameInternal, 
-               (const ClNameT*)compName);
+    saNameCopy((SaNameT*)&compNameInternal, 
+               (const SaNameT*)compName);
 
-    rc = clCpmComponentFailureClear(amfHandle, (ClNameT *)&compNameInternal);
+    rc = clCpmComponentFailureClear(amfHandle, (SaNameT *)&compNameInternal);
 
     return clClovisToSafError(rc);
 }
@@ -289,11 +289,11 @@ SaAisErrorT saAmfHealthcheckStart(SaAmfHandleT amfHandle,
 
     if(!compName) return SA_AIS_ERR_INVALID_PARAM;
 
-    clNameCopy((ClNameT*)&compNameInternal,
-               (const ClNameT*)compName);
+    saNameCopy((SaNameT*)&compNameInternal,
+               (const SaNameT*)compName);
 
     rc = clCpmHealthcheckStart(amfHandle,
-                               (ClNameT *)&compNameInternal,
+                               (SaNameT *)&compNameInternal,
                                (ClAmsCompHealthcheckKeyT *)healthcheckKey,
                                invocationType,
                                recommendedRecovery);
@@ -310,11 +310,11 @@ SaAisErrorT saAmfHealthcheckStop(SaAmfHandleT amfHandle,
 
     if(!compName) return SA_AIS_ERR_INVALID_PARAM;
     
-    clNameCopy((ClNameT*)&compNameInternal,
-               (const ClNameT*)compName);
+    saNameCopy((SaNameT*)&compNameInternal,
+               (const SaNameT*)compName);
 
     rc = clCpmHealthcheckStop(amfHandle,
-                              (ClNameT *)&compNameInternal,
+                              (SaNameT *)&compNameInternal,
                               (ClAmsCompHealthcheckKeyT *)healthcheckKey);
 
     return clClovisToSafError(rc);
@@ -330,11 +330,11 @@ SaAisErrorT saAmfHealthcheckConfirm(SaAmfHandleT amfHandle,
 
     if(!compName) return SA_AIS_ERR_INVALID_PARAM;
 
-    clNameCopy((ClNameT*)&compNameInternal,
-               (const ClNameT*)compName);
+    saNameCopy((SaNameT*)&compNameInternal,
+               (const SaNameT*)compName);
 
     rc = clCpmHealthcheckConfirm(amfHandle,
-                                 (ClNameT *)&compNameInternal,
+                                 (SaNameT *)&compNameInternal,
                                  (ClAmsCompHealthcheckKeyT *)healthcheckKey,
                                  clSafToClovisError(healthcheckResult));
 

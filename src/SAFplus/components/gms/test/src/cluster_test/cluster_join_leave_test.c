@@ -50,7 +50,7 @@
 
 static ClHandleT   handle = 0;
 static ClVersionT  correct_version = {'B',1,1};
-static ClNameT     nodeName = {
+static SaNameT     nodeName = {
                 .value = "TestNode",
                 .length = 8
             };

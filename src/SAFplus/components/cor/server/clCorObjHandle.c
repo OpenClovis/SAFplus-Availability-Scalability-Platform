@@ -47,7 +47,7 @@
 #endif
 /* GLOBALS */
 extern ClUint32T COR_ISBD;
-extern ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh, ClNameT *moIdName);
+extern ClRcT _clCorMoIdToMoIdNameGet(ClCorMOIdPtrT moIdh, SaNameT *moIdName);
 
 #ifdef DEBUG
 ClRcT corObjDbgInit()

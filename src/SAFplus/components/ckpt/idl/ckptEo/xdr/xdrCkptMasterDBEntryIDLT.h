@@ -49,7 +49,7 @@ struct _CkptMasterDBEntryIDLT_4_0_0;
 
 typedef struct _CkptMasterDBEntryIDLT_4_0_0 {
     ClHandleT    ckptMasterHdl;
-    ClNameT    name;
+    SaNameT    name;
     ClCkptCheckpointCreationAttributesT_4_0_0    attrib;
     ClUint32T    refCount;
     ClInt8T    markedDelete;

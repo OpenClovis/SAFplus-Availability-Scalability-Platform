@@ -44,7 +44,7 @@
 typedef struct ClAmsEntityUserData
 {
 #define CL_AMS_ENTITY_USER_DATA_MAX_KEYS (0x40)
-    ClNameT name;
+    SaNameT name;
     ClCharT *data;
     ClUint32T len;
     struct hashStruct hash;
@@ -55,7 +55,7 @@ typedef struct ClAmsEntityUserData
 
 typedef struct ClAmsEntityUserDataStorage
 {
-    ClNameT key;
+    SaNameT key;
     ClCharT *data;
     ClUint32T len;
     ClListHeadT list;
@@ -67,7 +67,7 @@ static ClOsalMutexT gClAmsEntityUserDataMutex;
 static ClUint32T numUserDataEntries;
 static ClBoolT gClAmsEntityUserDataInitialized = CL_FALSE;
 
-static __inline__ ClUint32T clAmsEntityUserDataHash(ClNameT *name)
+static __inline__ ClUint32T clAmsEntityUserDataHash(SaNameT *name)
 {
     ClUint32T hash = 0;
     ClRcT rc = CL_OK;
@@ -115,7 +115,7 @@ static ClRcT clAmsEntityUserDataFree(ClAmsEntityUserDataT *userData)
     return CL_OK;
 }
 
-static ClAmsEntityUserDataT *clAmsEntityUserDataFind(ClNameT *name)
+static ClAmsEntityUserDataT *clAmsEntityUserDataFind(SaNameT *name)
 {
     register struct hashStruct *iter;
     ClUint32T key = clAmsEntityUserDataHash(name);
@@ -129,7 +129,7 @@ static ClAmsEntityUserDataT *clAmsEntityUserDataFind(ClNameT *name)
     return NULL;
 }
 
-ClRcT _clAmsEntityUserDataSet(ClNameT *entity, ClCharT *data, ClUint32T len )
+ClRcT _clAmsEntityUserDataSet(SaNameT *entity, ClCharT *data, ClUint32T len )
 {
     ClAmsEntityUserDataT *userData = NULL;
 
@@ -163,7 +163,7 @@ ClRcT _clAmsEntityUserDataSet(ClNameT *entity, ClCharT *data, ClUint32T len )
 }
 
 static ClAmsEntityUserDataStorageT *clAmsEntityUserDataFindKey(ClAmsEntityUserDataT *userData,
-                                                               ClNameT *key)
+                                                               SaNameT *key)
 {
     ClListHeadT *iter = NULL;
     CL_LIST_FOR_EACH(iter, &userData->keyValueList)
@@ -177,7 +177,7 @@ static ClAmsEntityUserDataStorageT *clAmsEntityUserDataFindKey(ClAmsEntityUserDa
     return NULL;
 }
                                                                
-ClRcT _clAmsEntityUserDataSetKey(ClNameT *entity, ClNameT *key, ClCharT *data, ClUint32T len)
+ClRcT _clAmsEntityUserDataSetKey(SaNameT *entity, SaNameT *key, ClCharT *data, ClUint32T len)
 {
     ClRcT rc = CL_OK;
 
@@ -230,7 +230,7 @@ ClRcT _clAmsEntityUserDataSetKey(ClNameT *entity, ClNameT *key, ClCharT *data, C
     return rc;
 }
 
-ClRcT _clAmsEntityUserDataGet(ClNameT *entity,
+ClRcT _clAmsEntityUserDataGet(SaNameT *entity,
                               ClCharT **data,
                               ClUint32T *length)
 {
@@ -262,8 +262,8 @@ ClRcT _clAmsEntityUserDataGet(ClNameT *entity,
     return rc;
 }
 
-ClRcT _clAmsEntityUserDataGetKey(ClNameT *entity,
-                                 ClNameT *key,
+ClRcT _clAmsEntityUserDataGetKey(SaNameT *entity,
+                                 SaNameT *key,
                                  ClCharT **data,
                                  ClUint32T *length)
 {
@@ -307,7 +307,7 @@ ClRcT _clAmsEntityUserDataGetKey(ClNameT *entity,
 /*
  * Delete the key entry for the user data.
  */
-ClRcT _clAmsEntityUserDataDeleteKey(ClNameT *entity, ClNameT *key)
+ClRcT _clAmsEntityUserDataDeleteKey(SaNameT *entity, SaNameT *key)
 {
     ClRcT rc = CL_OK;
     ClAmsEntityUserDataT *userData = NULL;
@@ -344,7 +344,7 @@ ClRcT _clAmsEntityUserDataDeleteKey(ClNameT *entity, ClNameT *key)
     return rc;
 }
 
-ClRcT _clAmsEntityUserDataDelete(ClNameT *entity, ClBoolT clear)
+ClRcT _clAmsEntityUserDataDelete(SaNameT *entity, ClBoolT clear)
 {
     ClRcT rc = CL_OK;
     ClAmsEntityUserDataT *userData = NULL;
@@ -409,7 +409,7 @@ static ClRcT clAmsEntityUserDataPack(ClAmsEntityUserDataT *userData,
     /*
      * First dump the data and then the key value list.
      */
-    AMS_CALL(clXdrMarshallClNameT(&userData->name, inMsgHdl, 0));
+    AMS_CALL(clXdrMarshallSaNameT(&userData->name, inMsgHdl, 0));
     AMS_CALL(clXdrMarshallClUint32T(&userData->len, inMsgHdl, 0));
     if(userData->len)
         AMS_CALL(clXdrMarshallArrayClCharT(userData->data, userData->len, inMsgHdl, 0));
@@ -417,7 +417,7 @@ static ClRcT clAmsEntityUserDataPack(ClAmsEntityUserDataT *userData,
     CL_LIST_FOR_EACH(iter, &userData->keyValueList)
     {
         ClAmsEntityUserDataStorageT *userDataStorage = CL_LIST_ENTRY(iter, ClAmsEntityUserDataStorageT, list);
-        AMS_CALL(clXdrMarshallClNameT(&userDataStorage->key, inMsgHdl, 0));
+        AMS_CALL(clXdrMarshallSaNameT(&userDataStorage->key, inMsgHdl, 0));
         AMS_CALL(clXdrMarshallClUint32T(&userDataStorage->len, inMsgHdl, 0));
         if(userDataStorage->len)
             AMS_CALL(clXdrMarshallArrayClCharT(userDataStorage->data, userDataStorage->len, inMsgHdl, 0));
@@ -461,13 +461,13 @@ ClRcT clAmsEntityUserDataUnpackAll(ClBufferHandleT inMsgHdl)
     for(i = 0; i < numEntries; ++i)
     {
         ClUint32T numKeyValues = 0;
-        ClNameT name = {0};
+        SaNameT name = {0};
         ClCharT *data = NULL;
         ClUint32T len = 0;
         ClUint32T j = 0;
         ClAmsEntityUserDataT *userData = NULL;
 
-        AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(clXdrUnmarshallClNameT(inMsgHdl, &name),
+        AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(clXdrUnmarshallSaNameT(inMsgHdl, &name),
                                             &gClAmsEntityUserDataMutex);
 
         AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(clXdrUnmarshallClUint32T(inMsgHdl, &len),
@@ -507,7 +507,7 @@ ClRcT clAmsEntityUserDataUnpackAll(ClBufferHandleT inMsgHdl)
             CL_ASSERT(userDataStorage != NULL);
             clListAddTail(&userDataStorage->list, &userData->keyValueList);
             ++userData->numKeyValues;
-            AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(clXdrUnmarshallClNameT(inMsgHdl,
+            AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(clXdrUnmarshallSaNameT(inMsgHdl,
                                                                        &userDataStorage->key),
                                                 &gClAmsEntityUserDataMutex);
             AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(clXdrUnmarshallClUint32T(inMsgHdl, &len),

@@ -36,7 +36,7 @@ static ClCorObjectReferenceT *clCorObjRefGetByMoid(const void *moid)
 
 ClCorObjectReferenceT *clCorObjRefGet(const ClCharT *name,int type)
 {
-    ClNameT objectName = {0};
+    SaNameT objectName = {0};
     ClRcT rc;
     ClCorObjectReferenceT *ref = NULL;
     ClTimerTimeOutT delay = { 0 ,100 };
@@ -47,7 +47,7 @@ ClCorObjectReferenceT *clCorObjRefGet(const ClCharT *name,int type)
     ref = clHeapCalloc(1, sizeof(*ref));
     CL_ASSERT(ref != NULL);
     
-    clNameSet(&objectName, name);
+    saNameSet(&objectName, name);
 
     do 
     {        
@@ -484,7 +484,7 @@ void clCorObjectTreeInit(ClCorObjectTreeT* obj)
 {
     clCorTreeInit(&obj->cmn,sizeof(ClCorObjectTreeNodeT));    
     obj->root = clCorObjectTreeNewNode(obj);  /* Create an empty root node to eliminate special root handling in the algorithms */
-    clNameSet(&obj->root->name, "*the fake root*");
+    saNameSet(&obj->root->name, "*the fake root*");
     
 }
 
@@ -537,7 +537,7 @@ static ClRcT attrWalkFunc( ClCorAttrPathPtrT pAttrPath, ClCorAttrIdT attrId, ClC
         ClCorObjectTreeNodeT* node = (ClCorObjectTreeNodeT*) awc->node;
         printf("node: %s\n", node->name.value);
         assert(newnode);
-        clNameSet(&newnode->name,name);
+        saNameSet(&newnode->name,name);
         newnode->size = size;
         newnode->ordinality = attrType;
         newnode->type = attrDataType;
@@ -557,7 +557,7 @@ ClRcT WalkAttributes(ClCorObjectHandleT   objHdl,ClCorTreeT* tree,ClCorObjectTre
 {    
    ClCorMOIdT           moId;
    ClCorServiceIdT      svcId;
-   ClNameT              name;
+   SaNameT              name;
    ClCorObjAttrWalkFilterT walkFilter = {0};
 
    AttrWalkCookie awc = {0};
@@ -603,7 +603,7 @@ ClCorObjectTreeNodeT* clCorObjectTreeNodeFindSib(ClCorObjectTreeNodeT* sib,char*
 }
 
 
-ClCorObjectTreeNodeT* clCorObjectTreeTraverse(ClCorObjectTreeT* tree,ClNameT name,ClWordT* rest)
+ClCorObjectTreeNodeT* clCorObjectTreeTraverse(ClCorObjectTreeT* tree,SaNameT name,ClWordT* rest)
 {       
     char* start = name.value;
     ClCorObjectTreeNodeT* cur;
@@ -645,7 +645,7 @@ static ClRcT corObjectTreeFillWalk( void *data, void * cookie)
     ClCorMOIdT           moId;
     ClCorObjectHandleT   objHdl = *((ClCorObjectHandleT *)data);
     ClCorObjectTreeT*    tree = (ClCorObjectTreeT*) cookie;
-    ClNameT              name;
+    SaNameT              name;
     clCorObjectHandleToMoIdGet(objHdl, &moId, &svcId);
     clCorMoIdToMoIdNameGet(&moId,&name);
 
@@ -672,7 +672,7 @@ static ClRcT corObjectTreeFillWalk( void *data, void * cookie)
                 /* Create the new node and hook it up as a child of the last node */
                 newnode = clCorObjectTreeNewNode(tree);
                 assert(newnode);            
-                clNameSet(&newnode->name,start);
+                saNameSet(&newnode->name,start);
                 newnode->cmn.parent =(ClCorTreeNodeT*) node;
                 newnode->cmn.sib = node->cmn.child;
                 node->cmn.child = (ClCorTreeNodeT*) newnode;
@@ -730,7 +730,7 @@ void clCorClassTreeInit(ClCorClassTreeT* obj)
     obj->cmn.nodeSize = sizeof(ClCorClassTreeNodeT);
     clMemGroupInit(&obj->cmn.allocated,sizeof(ClCorClassTreeNodeT));
     obj->root = clCorClassTreeNewNode(obj);  /* Create an empty root node to eliminate special root handling in the algorithms */
-    clNameSet(&obj->root->name, "*the fake root*");
+    saNameSet(&obj->root->name, "*the fake root*");
 }
 
 void clCorClassTreeDelete(ClCorClassTreeT* obj)
@@ -805,7 +805,7 @@ void clCorClassTreePrint(ClCorClassTreeT* tree)
 
 
 
-ClCorClassTreeNodeT* clCorClassTreeTraverse(ClCorClassTreeT* tree,ClNameT name,ClWordT* rest)
+ClCorClassTreeNodeT* clCorClassTreeTraverse(ClCorClassTreeT* tree,SaNameT name,ClWordT* rest)
 {       
     char* start = name.value;
     ClCorClassTreeNodeT* cur;
@@ -851,7 +851,7 @@ static ClRcT corClassTreeFillWalk( void *data, void * cookie)
     ClCorMOIdT           moId;
     ClCorObjectHandleT   objHdl = *((ClCorObjectHandleT *)data);
     ClCorClassTreeT* tree = (ClCorClassTreeT*) cookie;
-    ClNameT              name;
+    SaNameT              name;
     clCorObjectHandleToMoIdGet(objHdl, &moId, &svcId);
     clCorMoIdToMoIdNameGet(&moId,&name);
 
@@ -878,7 +878,7 @@ static ClRcT corClassTreeFillWalk( void *data, void * cookie)
                 /* Create the new node and hook it up as a child of the last node */
                 ClCorClassTreeNodeT* newnode = clCorClassTreeNewNode(tree);
                 assert(newnode);            
-                clNameSet(&newnode->name,start);
+                saNameSet(&newnode->name,start);
                 newnode->cmn.parent = (ClCorTreeNodeT*) node;
                 newnode->cmn.sib = node->cmn.child;
                 node->cmn.child = (ClCorTreeNodeT*) newnode;

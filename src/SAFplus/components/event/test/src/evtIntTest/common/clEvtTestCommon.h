@@ -34,7 +34,7 @@
 #define EVENT_TEST_CHANNEL "EVENT_TEST_CHANNEL"
 
 #define EVENT_TEST_EVENT_TYPE 0x100
-ClNameT gEvtTestChannelName = { 
+SaNameT gEvtTestChannelName = { 
         sizeof(EVENT_TEST_CHANNEL)-1,
         EVENT_TEST_CHANNEL
         };

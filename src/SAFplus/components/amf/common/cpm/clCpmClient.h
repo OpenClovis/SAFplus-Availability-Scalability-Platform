@@ -164,7 +164,7 @@ typedef struct compMgrClientInfo
     ClIocPortT eoPort;
     ClEoStateT state;
     ClCpmFuncWalkT walkInfo;
-    ClNameT compName;
+    SaNameT compName;
 }ClCpmClientInfoT;
 
 /**

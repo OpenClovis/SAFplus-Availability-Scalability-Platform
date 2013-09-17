@@ -897,7 +897,7 @@ extern ClRcT
 clAmsAuditDb(ClAmsNodeT *pThisNode);
 
 extern ClRcT
-clAmsAuditDbEpilogue(ClNameT *nodeName, ClBoolT scFailover);
+clAmsAuditDbEpilogue(SaNameT *nodeName, ClBoolT scFailover);
 
 #ifdef __cplusplus
 }

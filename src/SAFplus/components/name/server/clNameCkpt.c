@@ -32,12 +32,12 @@ ClRcT
 clNameSvcCkptInit(void)
 {
     ClRcT    rc        = CL_OK;
-    ClNameT  ckptName  = {0};
+    SaNameT  ckptName  = {0};
     ClBoolT  retVal    = CL_FALSE;
 
     CL_NAME_DEBUG_TRACE(("Enter"));
 
-    clNameSet(&ckptName, CL_NAME_SVC_CKPT_NAME);
+    saNameSet(&ckptName, CL_NAME_SVC_CKPT_NAME);
     rc = clCkptLibraryInitialize(&gNsCkptSvcHdl);
     if( CL_OK != rc )
     {    
@@ -83,10 +83,10 @@ ClRcT
 clNameSvcCkptCreate(void)
 {    
     ClRcT    rc        = CL_OK;
-    ClNameT  ckptName  = {0};
+    SaNameT  ckptName  = {0};
 
     CL_NAME_DEBUG_TRACE(("Enter"));
-    clNameSet(&ckptName, CL_NAME_SVC_CKPT_NAME);
+    saNameSet(&ckptName, CL_NAME_SVC_CKPT_NAME);
     rc = clCkptLibraryCkptCreate(gNsCkptSvcHdl, &ckptName);
     if( CL_OK != rc  )
     {
@@ -143,10 +143,10 @@ ClRcT
 clNameSvcCkptRead(void)
 {
     ClRcT    rc        = CL_OK;
-    ClNameT  ckptName  = {0};
+    SaNameT  ckptName  = {0};
 
     CL_NAME_DEBUG_TRACE(("Enter"));
-    clNameSet(&ckptName, CL_NAME_SVC_CKPT_NAME);
+    saNameSet(&ckptName, CL_NAME_SVC_CKPT_NAME);
     rc = clCkptLibraryCkptDataSetRead(gNsCkptSvcHdl, &ckptName, 
                                      CL_NAME_CONTEXT_GBL_DSID, 0);
     if( CL_OK != rc )
@@ -170,10 +170,10 @@ ClRcT
 clNameCkptCtxInfoWrite(void)
 {
     ClRcT     rc         = CL_OK;
-    ClNameT   ckptName   = {0};
+    SaNameT   ckptName   = {0};
 
     CL_NAME_DEBUG_TRACE(("Enter"));
-    clNameSet(&ckptName, CL_NAME_SVC_CKPT_NAME);
+    saNameSet(&ckptName, CL_NAME_SVC_CKPT_NAME);
     /*
      * this internally calls the clNameContextCkptSerializer function 
      * to pack the information
@@ -196,7 +196,7 @@ clNameSvcPerCtxDataSetCreate(ClUint32T  contexId,
                              ClUint32T  dsIdCnt)
 {
     ClRcT    rc           = CL_OK;
-    ClNameT  nsCkptName   = {0};
+    SaNameT  nsCkptName   = {0};
 
     CL_NAME_DEBUG_TRACE(("Enter"));
 
@@ -223,7 +223,7 @@ clNameCkptCtxAllDSDelete(ClUint32T  contexId,
                          ClUint32T  freeMapSize)
 {
     ClRcT     rc           = CL_OK;
-    ClNameT   nsCkptName   = {0};
+    SaNameT   nsCkptName   = {0};
     ClUint32T count        = 0;
 
     CL_NAME_DEBUG_TRACE(("Enter"));
@@ -342,7 +342,7 @@ clNameSvcPerCtxInfoWrite(ClUint32T              contexId,
                          ClNameSvcContextInfoT  *pCtxData) 
 {
     ClRcT          rc           = CL_OK;
-    ClNameT        nsCkptName   = {0};
+    SaNameT        nsCkptName   = {0};
 
     CL_NAME_DEBUG_TRACE(("Enter"));
 
@@ -375,7 +375,7 @@ clNameSvcBindingDataWrite(ClUint32T              contexId,
     ClRcT          rc           = CL_OK;
     ClNsEntryPackT nsEntryInfo  = {0};
     ClUint32T      dsIdCnt      = 0;
-    ClNameT        nsCkptName   = {0};
+    SaNameT        nsCkptName   = {0};
 
     CL_NAME_DEBUG_TRACE(("Enter"));
     clNamePrintf(nsCkptName, "clNSCkpt%d", contexId);
@@ -387,7 +387,7 @@ clNameSvcBindingDataWrite(ClUint32T              contexId,
         return rc;
     }    
     nsEntryInfo.type    = CL_NAME_SVC_ENTRY;
-    clNameCopy(&nsEntryInfo.nsInfo.name, &pBindData->name);
+    saNameCopy(&nsEntryInfo.nsInfo.name, &pBindData->name);
     nsEntryInfo.nsInfo.priority = pBindData->priority;
     nsEntryInfo.nsInfo.dsId     = dsIdCnt;
     pBindData->dsId             = dsIdCnt;
@@ -414,7 +414,7 @@ clNameSvcBindingDetailsWrite(ClUint32T                 contexId,
     ClRcT          rc             = CL_OK;
     ClNsEntryPackT *pNsEntryInfo  = NULL;
     ClUint32T      dsIdCnt        = 0;
-    ClNameT        nsCkptName   = {0};
+    SaNameT        nsCkptName   = {0};
 
     CL_NAME_DEBUG_TRACE(("Enter"));
     clNamePrintf(nsCkptName, "clNSCkpt%d", contexId);
@@ -432,7 +432,7 @@ clNameSvcBindingDetailsWrite(ClUint32T                 contexId,
         return CL_NS_RC(CL_ERR_NO_MEMORY);
     }    
     pNsEntryInfo->type    = CL_NAME_SVC_BINDING_DATA;
-    clNameCopy(&pNsEntryInfo->nsInfo.name, &pBindData->name);
+    saNameCopy(&pNsEntryInfo->nsInfo.name, &pBindData->name);
     pNsEntryInfo->nsInfo.objReference = pBindDetail->objReference;
     pNsEntryInfo->nsInfo.compId       = pBindDetail->compId.compId;
     pNsEntryInfo->nsInfo.eoID       = pBindDetail->compId.eoID;
@@ -483,7 +483,7 @@ clNameSvcCompInfoWrite(ClUint32T                  contexId,
     ClRcT          rc             = CL_OK;
     ClNsEntryPackT *pNsEntryInfo  = NULL;
     ClUint32T      dsIdCnt        = 0;
-    ClNameT        nsCkptName     = {0};
+    SaNameT        nsCkptName     = {0};
 
     CL_NAME_DEBUG_TRACE(("Enter"));
     clNamePrintf(nsCkptName, "clNSCkpt%d", contexId);
@@ -501,7 +501,7 @@ clNameSvcCompInfoWrite(ClUint32T                  contexId,
         return CL_NS_RC(CL_ERR_NO_MEMORY);
     }    
     pNsEntryInfo->type    = CL_NAME_SVC_COMP_INFO;
-    clNameCopy(&pNsEntryInfo->nsInfo.name, &pBindData->name);
+    saNameCopy(&pNsEntryInfo->nsInfo.name, &pBindData->name);
     pNsEntryInfo->nsInfo.objReference = pBindDetail->objReference;
     pNsEntryInfo->nsInfo.compId       = pBindDetail->compId.compId;
     pNsEntryInfo->nsInfo.eoID       = pBindDetail->compId.eoID;
@@ -547,7 +547,7 @@ clNameSvcPerCtxCkptCreate(ClUint32T  key,
                           ClBoolT    isDelete)
 {
     ClRcT      rc           = CL_OK;
-    ClNameT    nsCkptName   = {0}; 
+    SaNameT    nsCkptName   = {0}; 
 
     CL_NAME_DEBUG_TRACE(("Enter"));
 
@@ -598,7 +598,7 @@ ClRcT
 clNameSvcCkptDelete(void)
 {    
     ClRcT    rc        = CL_OK;
-    ClNameT  ckptName  = {strlen(CL_NAME_SVC_CKPT_NAME),
+    SaNameT  ckptName  = {strlen(CL_NAME_SVC_CKPT_NAME),
                           CL_NAME_SVC_CKPT_NAME};
 
     CL_NAME_DEBUG_TRACE(("Enter"));
@@ -650,7 +650,7 @@ clNameSvcDataSetDelete(ClUint32T  contexId,
                        ClUint32T  dsId)
 {
     ClRcT    rc           = CL_OK;
-    ClNameT  nsCkptName   = {0};
+    SaNameT  nsCkptName   = {0};
 
     CL_NAME_DEBUG_TRACE(("Enter"));
     clNamePrintf(nsCkptName, "clNSCkpt%d", contexId);

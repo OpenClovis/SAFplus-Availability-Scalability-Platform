@@ -129,13 +129,13 @@ typedef struct
     ClEventHandleT          eventHandle;
     ClBoolT                 eventServerReady;
     ClBoolT                 eventServerInitialized;
-    ClNameT                 ckptName;
-    ClNameT                 ckptDBSections[CL_AMS_DB_INVOCATION_PAIRS];
-    ClNameT                 ckptDirtySections[CL_AMS_DB_INVOCATION_PAIRS];
-    ClNameT                 ckptInvocationSections[CL_AMS_DB_INVOCATION_PAIRS];
+    SaNameT                 ckptName;
+    SaNameT                 ckptDBSections[CL_AMS_DB_INVOCATION_PAIRS];
+    SaNameT                 ckptDirtySections[CL_AMS_DB_INVOCATION_PAIRS];
+    SaNameT                 ckptInvocationSections[CL_AMS_DB_INVOCATION_PAIRS];
     ClDifferenceVectorKeyT  ckptDifferenceVectorKeys[CL_AMS_DB_INVOCATION_PAIRS];
-    ClNameT                 ckptCurrentSection;
-    ClNameT                 ckptVersionSection;
+    SaNameT                 ckptCurrentSection;
+    SaNameT                 ckptVersionSection;
     ClBoolT                 ckptServerReady;
 
     ClHandleDatabaseHandleT ccbHandleDB;

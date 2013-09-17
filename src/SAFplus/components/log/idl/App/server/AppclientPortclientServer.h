@@ -25,7 +25,7 @@ extern "C" {
 
 
 
-ClRcT clLogClientFilterSetNotify_4_0_0(CL_IN ClNameT  streamName, CL_IN ClUint32T  streamScope, CL_IN ClNameT  streamScopeNode, CL_IN ClLogFilterT_4_0_0  filter);
+ClRcT clLogClientFilterSetNotify_4_0_0(CL_IN SaNameT  streamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT  streamScopeNode, CL_IN ClLogFilterT_4_0_0  filter);
 
 ClRcT clLogClientFilterSetNotifyResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 

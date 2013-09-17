@@ -100,7 +100,7 @@ typedef struct ClMedDebugXlationWalkData
 
 #define CL_MED_DEBUG_MO_PRINT(moid, context)            \
   {\
-    ClNameT moIdName;\
+    SaNameT moIdName;\
     clCorMoIdToMoIdNameGet(moid,&moIdName);\
     clLog(CL_LOG_DEBUG, CL_MED_AREA, context, "MOID[%s]\n",moIdName.value); \
   }

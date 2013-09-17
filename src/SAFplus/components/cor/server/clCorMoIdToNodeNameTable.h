@@ -46,7 +46,7 @@ extern "C"
 
 /* This structure is used as data in case of NodenameToMoId hash table */
 struct ClCorNodeData{
-    ClNameT nodeName;
+    SaNameT nodeName;
     ClCorMOIdPtrT pMoId;
 };
 
@@ -60,12 +60,12 @@ extern ClRcT clCorMoIdNodeNameMapCreate(void);
 /* This API adds an entry into the hash table for given MOId <-> node Name map */
 /* This API shall be called when a new entry is to be added in the table. This typically */
 /* happens only once during the booting of the system */
-extern ClRcT clCorMOIdNodeNameMapAdd(ClCorMOIdPtrT pMoId, ClNameT *nodeName);
+extern ClRcT clCorMOIdNodeNameMapAdd(ClCorMOIdPtrT pMoId, SaNameT *nodeName);
 
 /* This API shall update the MOId corresponding to the specific node name. This is required */
 /* when a card is plugged in or out. Whn a card is plugged in exact moId is stored. When */
 /* the card is plugged out, moId with wildcard cardtype is added */
-extern ClRcT clCorMoIdForNodeNameChange(ClCorMOIdPtrT pMoId, ClNameT *nodeName);
+extern ClRcT clCorMoIdForNodeNameChange(ClCorMOIdPtrT pMoId, SaNameT *nodeName);
 
 /* This API shall clean up the tables that already exist */
 void clCorMoIdToNodeNameTablesCleanUp(void);

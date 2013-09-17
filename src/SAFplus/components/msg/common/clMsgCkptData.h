@@ -45,7 +45,7 @@ extern "C" {
 #define CL_MSG_QGROUP_MAX_SECTIONS             1024
 #define CL_MSG_QGROUP_DATA_SIZE                (sizeof(SaMsgQueueGroupPolicyT) \
                                               + sizeof(ClUint32T) \
-                                              + CL_MSG_QGROUP_MAX_QUEUES  * sizeof(ClNameT))
+                                              + CL_MSG_QGROUP_MAX_QUEUES  * sizeof(SaNameT))
 #define CL_MSG_QGROUP_MAX_SECTION_SIZE         (sizeof(ClCachedCkptDataT)  \
                                               + CL_MSG_QGROUP_DATA_SIZE)
 #define CL_MSG_QGROUP_MAX_SECTION_ID_SIZE      CL_MAX_NAME_LENGTH
@@ -54,7 +54,7 @@ extern "C" {
 
 typedef struct {
     /* Message queue name*/
-    ClNameT qName;
+    SaNameT qName;
     /* Component address of a message queue */
     ClIocPhysicalAddressT qAddress;
     /* Ioc address of server that store persistent queue instance */
@@ -67,7 +67,7 @@ typedef struct {
 
 typedef struct {
     /* Message queue group name*/
-    ClNameT qGroupName;
+    SaNameT qGroupName;
     /* Component address of a message queue group */
     ClIocPhysicalAddressT qGroupAddress;
     /* Message queue group policy */
@@ -75,10 +75,10 @@ typedef struct {
     /* Number of message queues */
     ClUint32T numberOfQueues;
     /* Message queue list */
-    ClNameT *pQueueList;
+    SaNameT *pQueueList;
 }ClMsgQGroupCkptDataT;
 
-//ClRcT clMsgQueueCkptDataMarshal(const ClNameT *qName, 
+//ClRcT clMsgQueueCkptDataMarshal(const SaNameT *qName, 
 //                                const ClIocPhysicalAddressT *qAddress,
 //                                const ClIocPhysicalAddressT *qServerAddress,
 //                                const ClMsgQueueStateFlagT *state,
@@ -91,7 +91,7 @@ ClRcT clMsgQGroupCkptDataMarshal(ClMsgQGroupCkptDataT *qCkptData, ClCachedCkptDa
 void clMsgQGroupCkptHeaderUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCachedCkptDataT *inData);
 ClRcT clMsgQGroupCkptDataUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCachedCkptDataT *inData);
 void clMsgQGroupCkptDataFree(ClMsgQGroupCkptDataT *qCkptData);
-ClBoolT clMsgQGroupCkptQueueExist(ClMsgQGroupCkptDataT *qCkptData, ClNameT *pQueueName, ClUint32T *pPos);
+ClBoolT clMsgQGroupCkptQueueExist(ClMsgQGroupCkptDataT *qCkptData, SaNameT *pQueueName, ClUint32T *pPos);
 
 #ifdef	__cplusplus
 }

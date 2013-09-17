@@ -127,7 +127,7 @@ typedef struct ckptSvrCb
     ClEventChannelHandleT  evtChHdl;     /* Event Channel handle */
     ClEventChannelHandleT  clntUpdHdl;   /* Event Channel handle */
     ClEventHandleT         clntUpdEvtHdl;   /* Event Channel handle */
-    ClNameT                evtChName;    /* Event channel name */ 
+    SaNameT                evtChName;    /* Event channel name */ 
     ClEventHandleT         pubHdl;       /* Event handle */
     ClEventChannelHandleT  compChHdl;    /* CPM Channel handle 
                                             for component related events */

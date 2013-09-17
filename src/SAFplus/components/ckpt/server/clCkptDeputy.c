@@ -206,7 +206,7 @@ ClRcT ckptXlatioEntryUnpack( ClUint32T           ckptCount, CkptXlationDBEntryT 
             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                     ("Ckpt: Failed to allocate memory rc[0x %x]\n", rc), rc);
         }
-        clNameCopy(&pXlationEntry->name, &pXlationInfo->name);
+        saNameCopy(&pXlationEntry->name, &pXlationInfo->name);
         pXlationEntry->cksum   = pXlationInfo->cksum;
         pXlationEntry->mastHdl = pXlationInfo->mastHdl;
         rc = clCntNodeAdd(gCkptSvr->masterInfo.nameXlationDBHdl,
@@ -431,7 +431,7 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
         
         memcpy(&pMasterDBEntry->attrib, &pMasterDBInfo->attrib,
                 sizeof(ClCkptCheckpointCreationAttributesT));
-        clNameCopy(&pMasterDBEntry->name, &pMasterDBInfo->name);
+        saNameCopy(&pMasterDBEntry->name, &pMasterDBInfo->name);
         pMasterDBEntry->markedDelete  = pMasterDBInfo->markedDelete;
         pMasterDBEntry->refCount      = pMasterDBInfo->refCount;
         pMasterDBEntry->retenTimerHdl = 0;
@@ -457,7 +457,7 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
              * Publish event to inform the clients.
              */
             memset(&eventInfo, 0, sizeof(ClCkptClientUpdInfoT));
-            clNameCopy(&eventInfo.name, &pMasterDBEntry->name);
+            saNameCopy(&eventInfo.name, &pMasterDBEntry->name);
             eventInfo.name.length = htons(pMasterDBEntry->name.length);
             eventInfo.eventType = htonl(CL_CKPT_ACTIVE_REP_CHG_EVENT);
             eventInfo.actAddr   = htonl(pMasterDBEntry->activeRepAddr);
@@ -847,7 +847,7 @@ ClRcT ckptCheckpointDelete(ClHandleT          clientHdl,
         clCksm32bitCompute ((ClUint8T *)pStoredData->name.value, pStoredData->name.length,
                 &cksum);
         lookup.cksum = cksum;
-        clNameCopy(&lookup.name, &pStoredData->name);
+        saNameCopy(&lookup.name, &pStoredData->name);
         clCntDelete(pStoredData->replicaList);
         pStoredData->replicaList = 0;
         if(pStoredData->retenTimerHdl)
@@ -923,7 +923,7 @@ ClRcT ckptCheckpointCalltoDelete(ClHandleT masterHdl)
         clCksm32bitCompute ((ClUint8T *)pStoredData->name.value, pStoredData->name.length,
                 &cksum);
         lookup.cksum = cksum;
-        clNameCopy(&lookup.name, &pStoredData->name);
+        saNameCopy(&lookup.name, &pStoredData->name);
     }    
     rc = clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl,
                          masterHdl);
@@ -1254,7 +1254,7 @@ exitOnErrorBeforeHdlCheckout:
 ClRcT 
 VDECL_VER(clCkptDeputyCkptCreate, 4, 0, 0)(ClHandleT                           masterHdl,
                        ClHandleT                           clientHdl,
-                       ClNameT                             *pName,
+                       SaNameT                             *pName,
                        ClCkptCheckpointCreationAttributesT *pCreateAttr,
                        ClIocNodeAddressT                   localAddr,
                        ClIocPortT                          localPort,
@@ -1306,7 +1306,7 @@ VDECL_VER(clCkptDeputyCkptCreate, 4, 0, 0)(ClHandleT                           m
     clCksm32bitCompute ((ClUint8T *)pName->value, pName->length, &cksum);
     lookup.cksum = cksum;
     
-    clNameCopy(&lookup.name, pName);
+    saNameCopy(&lookup.name, pName);
 
     /*
      * Update the checkpoint metadata.
@@ -1633,7 +1633,7 @@ ClRcT VDECL_VER(clCkptCreateInfoDeputyUpdate, 4, 0, 0)(ClVersionT         *pVers
                 }
                 CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Ckpt: Passed info got corrupted rc[0x %x]\n", rc), rc);
                 xlationInfo.mastHdl  = pMasterDBInfo->ckptMasterHdl;  
-                clNameCopy(&xlationInfo.name, &pMasterDBInfo->name);
+                saNameCopy(&xlationInfo.name, &pMasterDBInfo->name);
                 clCksm32bitCompute ((ClUint8T *)xlationInfo.name.value, 
                         xlationInfo.name.length,
                         &xlationInfo.cksum);

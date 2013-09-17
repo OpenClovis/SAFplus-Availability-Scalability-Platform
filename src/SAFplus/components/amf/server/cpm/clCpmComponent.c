@@ -344,9 +344,9 @@ failure:
 static ClRcT cpmHealthCheckTimerCallback(void *arg)
 {
     ClCpmComponentT *comp = (ClCpmComponentT *)arg;
-    ClNameT compName = {0};
+    SaNameT compName = {0};
 
-    clNameSet(&compName, comp->compConfig->compName);
+    saNameSet(&compName, comp->compConfig->compName);
 
     /*
      * Publish death notifications for non SAF components which
@@ -657,7 +657,7 @@ ClRcT cpmCompConfigure(ClCpmCompConfigT *compCfg, ClCpmComponentT **component)
     return rc;
 }
 
-ClRcT cpmCompFindWithLock(ClCharT *name, ClCntHandleT compTable, ClCpmComponentT **comp)
+ClRcT cpmCompFindWithLock(SaUint8T *name, ClCntHandleT compTable, ClCpmComponentT **comp)
 {
     ClUint16T compKey = 0;
     ClCntNodeHandleT hNode = 0;
@@ -710,7 +710,7 @@ failure:
     return rc;
 }
 
-ClRcT cpmCompFind(ClCharT *name, ClCntHandleT compTable, ClCpmComponentT **comp)
+ClRcT cpmCompFind(SaUint8T *name, ClCntHandleT compTable, ClCpmComponentT **comp)
 {
     ClRcT rc = CL_OK;
     clOsalMutexLock(gpClCpm->compTableMutex);
@@ -805,8 +805,8 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
     else
     {
         ClUint8T priority = 0;
-        ClNameT compName = {0};
-        clNameSet(&compName, comp->compConfig->compName);
+        SaNameT compName = {0};
+        saNameSet(&compName, comp->compConfig->compName);
         if(requestType == CL_CPM_INSTANTIATE)
         {
             priority = CL_IOC_CPM_INSTANTIATE_PRIORITY;
@@ -1030,9 +1030,9 @@ void cpmResponse(ClRcT retCode,
         {
         case CL_CPM_HEALTHCHECK:
             {
-                ClNameT compName = {0};
+                SaNameT compName = {0};
 
-                clNameSet(&compName, comp->compConfig->compName);
+                saNameSet(&compName, comp->compConfig->compName);
                 clCpmCompPreCleanupInvoke(comp);
                 clCpmComponentFailureReportWithCookie(0,
                                                       &compName,
@@ -1193,7 +1193,7 @@ static ClRcT cpmRouteRequestWithCookie(ClCharT *compName,
      * Find the node Info 
      */
     clOsalMutexLock(gpClCpm->cpmTableMutex);
-    rc = cpmNodeFindLocked(nodeName, &cpmL);
+    rc = cpmNodeFindLocked((SaUint8T *)nodeName, &cpmL);
     if(rc != CL_OK)
     {
         clOsalMutexUnlock(gpClCpm->cpmTableMutex);
@@ -1295,7 +1295,7 @@ ClRcT VDECL(cpmClientInitialize)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    rc = cpmCompFind(info.compName, gpClCpm->compTable, &comp);
+    rc = cpmCompFind((SaUint8T *)info.compName, gpClCpm->compTable, &comp);
     CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", info.compName, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
@@ -1361,7 +1361,7 @@ ClRcT VDECL(cpmClientFinalize)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    rc = cpmCompFind(info.compName, gpClCpm->compTable, &comp);
+    rc = cpmCompFind((SaUint8T *)info.compName, gpClCpm->compTable, &comp);
     CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", info.compName, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
@@ -1447,7 +1447,7 @@ ClRcT VDECL(cpmComponentRegister)(ClEoDataT data,
          */
         comp->proxyCompRef = proxyComp;
 
-        strcpy(comp->proxyCompName, info.proxyCompName.value);
+        strcpy(comp->proxyCompName, (const ClCharT *)info.proxyCompName.value);
 
         /*
          * Increase the references 
@@ -1523,9 +1523,9 @@ ClRcT VDECL(cpmComponentRegister)(ClEoDataT data,
         {
             if (gpClCpm->nodeEventPublished != 1)
             {
-                ClNameT nodeName = {0};
+                SaNameT nodeName = {0};
 
-                strcpy(nodeName.value, gpClCpm->pCpmConfig->nodeName);
+                strcpy((ClCharT *)nodeName.value, gpClCpm->pCpmConfig->nodeName);
                 nodeName.length = strlen(gpClCpm->pCpmConfig->nodeName);
 
                 /*
@@ -1606,7 +1606,7 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
          * Check whether it is the right proxy, which is unregistering the
          * proxied component 
          */
-        if (strcmp(info.proxyCompName.value, comp->proxyCompName) != 0)
+        if (strcmp((const ClCharT *)info.proxyCompName.value, comp->proxyCompName) != 0)
         {
             rc = CL_CPM_RC(CL_CPM_ERR_BAD_OPERATION);
             CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_LCM_INVALID_PROXY_ERR,
@@ -2095,15 +2095,15 @@ ClRcT _cpmProxiedComponentInstantiate(ClCharT *compName,
                 __FUNCTION__, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 
-    strcpy(compInstantiate.compName.value, compName);
-    compInstantiate.compName.length = strlen(compInstantiate.compName.value);
+    strcpy((ClCharT *)compInstantiate.compName.value, compName);
+    compInstantiate.compName.length = strlen((const ClCharT *)compInstantiate.compName.value);
     compInstantiate.requestType = CL_CPM_PROXIED_INSTANTIATE;
     
     rc = cpmInvocationAdd(CL_CPM_PROXIED_INSTANTIATE_CALLBACK, (void *) comp,
                           &compInstantiate.invocation,
                           CL_CPM_INVOCATION_CPM | CL_CPM_INVOCATION_DATA_SHARED);
 
-    rc = cpmCompFind(proxyCompName, gpClCpm->compTable, &proxyComp);
+    rc = cpmCompFind((SaUint8T *)proxyCompName, gpClCpm->compTable, &proxyComp);
     CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", proxyCompName, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
@@ -2305,7 +2305,7 @@ ClRcT _cpmComponentInstantiate(ClCharT *compName,
          */
         ClIocPortT lastEoPort = 0;
 
-        rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+        rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
         if (rc != CL_OK)
         {
             /*
@@ -2313,7 +2313,7 @@ ClRcT _cpmComponentInstantiate(ClCharT *compName,
              */
             if(cpmComponentAddDynamic(compName) == CL_OK)
             {
-                rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+                rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
             }
             if(rc != CL_OK)
             {
@@ -2421,10 +2421,10 @@ ClRcT VDECL(cpmComponentInstantiate)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    rc = _cpmComponentInstantiate((info.name).value,
-                                  (info.proxyCompName).value,
+    rc = _cpmComponentInstantiate((ClCharT *)((info.name).value),
+                                  (ClCharT *)((info.proxyCompName).value),
                                   info.instantiateCookie,
-                                  (info.nodeName).value,
+                                  (ClCharT *)((info.nodeName).value),
                                   &(info.srcAddress), 
                                   info.rmdNumber);
 
@@ -2628,7 +2628,7 @@ ClRcT _cpmComponentTerminate(ClCharT *compName,
         /*
          * Find the component Name from the component Hash Table 
          */
-        rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+        rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
         if (rc != CL_OK)
         {
             cpmRequestFailedResponse(compName, nodeName, srcAddress, rmdNumber,
@@ -2731,7 +2731,7 @@ ClRcT _cpmComponentTerminate(ClCharT *compName,
                          CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE)
                 {
                     
-                    rc = cpmCompFind(proxyCompName, gpClCpm->compTable, &proxyComp);
+                    rc = cpmCompFind((SaUint8T *)proxyCompName, gpClCpm->compTable, &proxyComp);
                     if (rc != CL_OK)
                     {
                         cpmRequestFailedResponse(compName, nodeName, &comp->requestSrcAddress, rmdNumber,
@@ -2832,9 +2832,9 @@ ClRcT VDECL(cpmComponentTerminate)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    rc = _cpmComponentTerminate((info.name).value,
-                                (info.proxyCompName).value, 
-                                (info.nodeName).value,
+    rc = _cpmComponentTerminate((ClCharT *)((info.name).value),
+                                (ClCharT *)((info.proxyCompName).value),
+                                (ClCharT *)((info.nodeName).value),
                                 &(info.srcAddress), 
                                 info.rmdNumber);
 
@@ -2916,7 +2916,7 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
     return rc;
 }
 
-ClRcT cpmProxiedHealthcheckStop(ClNameT *pCompName)
+ClRcT cpmProxiedHealthcheckStop(SaNameT *pCompName)
 {
     ClCharT compName[CL_MAX_NAME_LENGTH];
     ClCpmComponentT *comp = NULL;
@@ -2924,8 +2924,8 @@ ClRcT cpmProxiedHealthcheckStop(ClNameT *pCompName)
     if(!pCompName)
         return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
     compName[0] = 0;
-    strncat(compName, pCompName->value, pCompName->length);
-    rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+    strncat(compName, (const ClCharT *)pCompName->value, pCompName->length);
+    rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
     if(rc != CL_OK)
     {
         clLogError("HB", "STOP", "Proxied component [%s] not found in CPM component table",
@@ -2958,11 +2958,11 @@ ClRcT cpmCompCleanup(ClCharT *compName)
 {
 
     ClCpmComponentT *comp = NULL;
-    ClNameT compInstance = {0};
+    SaNameT compInstance = {0};
     ClCpmEOListNodeT *ptr = NULL;
     ClCpmEOListNodeT *pTemp = NULL;
     ClRcT rc;
-    rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+    rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
     if (rc != CL_OK)
     {
         return rc;
@@ -2972,7 +2972,7 @@ ClRcT cpmCompCleanup(ClCharT *compName)
     if (strcmp(comp->compConfig->compName, gpClCpm->eventServerName) == 0)
         gpClCpm->emUp = 0;
 
-    clNameSet(&compInstance, comp->compConfig->compName);
+    saNameSet(&compInstance, comp->compConfig->compName);
     cpmInvocationClearCompInvocation(&compInstance);
     switch (comp->compPresenceState)
     {
@@ -3099,7 +3099,7 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
     ClUint32T rc = CL_OK;
     ClCpmEOListNodeT *ptr = NULL;
     ClCpmEOListNodeT *pTemp = NULL;
-    ClNameT compInstance = {0};
+    SaNameT compInstance = {0};
 
     if (clDbgNoKillComponents)
     {
@@ -3109,7 +3109,7 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
 
     if(!comp)
     {
-        rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+        rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
         if (rc != CL_OK)
         {
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
@@ -3120,7 +3120,7 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
     }
 
     memset(&comp->requestSrcAddress, 0, sizeof(comp->requestSrcAddress));
-    clNameSet(&compInstance, comp->compConfig->compName);
+    saNameSet(&compInstance, comp->compConfig->compName);
     cpmInvocationClearCompInvocation(&compInstance);
     switch (comp->compPresenceState)
     {
@@ -3258,15 +3258,14 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
                 comp->hcConfirmed = CL_NO;
                 clOsalMutexUnlock(comp->compMutex);
 
-                strcpy(compCleanup.compName.value, compName);
-                compCleanup.compName.length =
-                    strlen(compCleanup.compName.value);
+                strcpy((ClCharT *) compCleanup.compName.value, compName);
+                compCleanup.compName.length = strlen((const ClCharT *) compCleanup.compName.value);
                 compCleanup.requestType = CL_CPM_PROXIED_CLEANUP;
 
                 if(proxyCompName)
                 {
                     ClCpmComponentT *proxyComp = NULL;
-                    rc = cpmCompFind(proxyCompName, gpClCpm->compTable, &proxyComp);
+                    rc = cpmCompFind((SaUint8T *)proxyCompName, gpClCpm->compTable, &proxyComp);
                     CL_CPM_CHECK_3(CL_DEBUG_ERROR, 
                                    CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                                    "proxy component", proxyCompName, rc, rc, CL_LOG_DEBUG,
@@ -3380,8 +3379,8 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
     }
     else
     {
-        ClNameT compInstance = {0};
-        rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+        SaNameT compInstance = {0};
+        rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
         if (rc != CL_OK)
         {
             cpmRequestFailedResponse(compName, nodeName, srcAddress, rmdNumber,
@@ -3407,7 +3406,7 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
             memset(&comp->requestSrcAddress, 0, sizeof(comp->requestSrcAddress));
         }
         comp->requestRmdNumber = rmdNumber;
-        clNameSet(&compInstance, comp->compConfig->compName);
+        saNameSet(&compInstance, comp->compConfig->compName);
         cpmInvocationClearCompInvocation(&compInstance);
         switch (comp->compPresenceState)
         {
@@ -3554,12 +3553,11 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
                     comp->hcConfirmed = CL_NO;
                     clOsalMutexUnlock(comp->compMutex);
 
-                    strcpy(compCleanup.compName.value, compName);
-                    compCleanup.compName.length =
-                        strlen(compCleanup.compName.value);
+                    strcpy((ClCharT *) compCleanup.compName.value, compName);
+                    compCleanup.compName.length = strlen((const ClCharT *) compCleanup.compName.value);
                     compCleanup.requestType = CL_CPM_PROXIED_CLEANUP;
 
-                    rc = cpmCompFind(proxyCompName, gpClCpm->compTable, &proxyComp);
+                    rc = cpmCompFind((SaUint8T *)proxyCompName, gpClCpm->compTable, &proxyComp);
                     CL_CPM_CHECK_3(CL_DEBUG_ERROR, 
                                    CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                                    "proxy component", proxyCompName, rc, rc, CL_LOG_DEBUG,
@@ -3695,9 +3693,9 @@ ClRcT VDECL(cpmComponentCleanup)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    rc = _cpmComponentCleanup((info.name).value,
-                              (info.proxyCompName).value, 
-                              (info.nodeName).value,
+    rc = _cpmComponentCleanup((ClCharT *)((info.name).value),
+                              (ClCharT *)((info.proxyCompName).value),
+                              (ClCharT *)((info.nodeName).value),
                               &(info.srcAddress), 
                               info.rmdNumber,
                               CL_CPM_CLEANUP);
@@ -3734,7 +3732,7 @@ ClRcT _cpmComponentRestart(ClCharT *compName,
     }
     else
     {
-        rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+        rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
         if (rc != CL_OK)
         {
             cpmRequestFailedResponse(compName, nodeName, srcAddress, rmdNumber,
@@ -3810,9 +3808,8 @@ ClRcT VDECL(cpmComponentRestart)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    rc = _cpmComponentRestart((info.name).value, (info.proxyCompName).value, 
-                              (info.nodeName).value, &(info.srcAddress), 
-                              info.rmdNumber);
+    rc = _cpmComponentRestart((ClCharT *) ((info.name).value), (ClCharT *) ((info.proxyCompName).value),
+                    (ClCharT *) ((info.nodeName).value), &(info.srcAddress), info.rmdNumber);
     CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to restart component %x\n", rc), rc);
 
   failure:
@@ -3911,11 +3908,11 @@ ClRcT VDECL(cpmComponentIdGet)(ClEoDataT data,
                                ClBufferHandleT outMsgHandle)
 {
     ClRcT rc = CL_OK;
-    ClNameT compName = { 0 };
+    SaNameT compName = { 0 };
     ClCpmComponentT *comp = NULL;
     ClUint32T compId = 0;
 
-    rc = clXdrUnmarshallClNameT(inMsgHandle, (void *) &compName);
+    rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &compName);
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
@@ -3951,7 +3948,7 @@ ClRcT VDECL(cpmComponentStatusGet)(ClEoDataT data,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     if (status.nodeName.length == 0 ||
-        !(strcmp(status.nodeName.value, gpClCpm->pCpmLocalInfo->nodeName)))
+        !(strcmp((const ClCharT *)status.nodeName.value, gpClCpm->pCpmLocalInfo->nodeName)))
     {
         rc = cpmCompFind(status.name.value, gpClCpm->compTable, &comp);
         CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
@@ -4026,11 +4023,11 @@ ClRcT VDECL(cpmComponentAddressGet)(ClEoDataT data,
                                     ClBufferHandleT outMsgHandle)
 {
     ClRcT rc = CL_OK;
-    ClNameT compName = { 0 };
+    SaNameT compName = { 0 };
     ClCpmComponentT *comp = NULL;
     ClIocAddressIDLT idlIocAddress;
 
-    rc = clXdrUnmarshallClNameT(inMsgHandle, (void *) &compName);
+    rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &compName);
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
@@ -4061,11 +4058,11 @@ ClRcT VDECL(cpmComponentPIDGet)(ClEoDataT data,
                                 ClBufferHandleT outMsgHandle)
 {
     ClRcT rc = CL_OK;
-    ClNameT compName = { 0 };
+    SaNameT compName = { 0 };
     ClCpmComponentT *comp = NULL;
     ClUint32T pid = 0;
 
-    rc = clXdrUnmarshallClNameT(inMsgHandle, (void *) &compName);
+    rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &compName);
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
@@ -4097,7 +4094,7 @@ ClRcT VDECL(cpmComponentLAUpdate)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    rc = cpmCompFind(cpmLA.compName, gpClCpm->compTable, &comp);
+    rc = cpmCompFind((SaUint8T *)cpmLA.compName, gpClCpm->compTable, &comp);
     CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", cpmLA.compName, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
@@ -4328,11 +4325,11 @@ ClRcT cpmComponentEventCleanup(ClCpmComponentT *comp)
         return CL_OK;
     }
         
-    strcpy(cpmPayLoadData.compName.value, comp->compConfig->compName);
-    cpmPayLoadData.compName.length = strlen(cpmPayLoadData.compName.value);
+    strcpy((ClCharT *)cpmPayLoadData.compName.value, comp->compConfig->compName);
+    cpmPayLoadData.compName.length = strlen((const ClCharT *)cpmPayLoadData.compName.value);
 
-    strcpy(cpmPayLoadData.nodeName.value, gpClCpm->pCpmConfig->nodeName);
-    cpmPayLoadData.nodeName.length = strlen(cpmPayLoadData.nodeName.value);
+    strcpy((ClCharT *)cpmPayLoadData.nodeName.value, gpClCpm->pCpmConfig->nodeName);
+    cpmPayLoadData.nodeName.length = strlen((const ClCharT *)cpmPayLoadData.nodeName.value);
 
     cpmPayLoadData.compId = comp->compId;
     cpmPayLoadData.eoId = comp->eoID;
@@ -4417,11 +4414,11 @@ ClRcT cpmComponentEventPublish(ClCpmComponentT *comp,
     }
     else return CL_OK ; /*unknown event type*/
         
-    strcpy(cpmPayLoadData.compName.value, comp->compConfig->compName);
-    cpmPayLoadData.compName.length = strlen(cpmPayLoadData.compName.value);
+    strcpy((ClCharT *)cpmPayLoadData.compName.value, comp->compConfig->compName);
+    cpmPayLoadData.compName.length = strlen((const ClCharT *)cpmPayLoadData.compName.value);
 
-    strcpy(cpmPayLoadData.nodeName.value, gpClCpm->pCpmConfig->nodeName);
-    cpmPayLoadData.nodeName.length = strlen(cpmPayLoadData.nodeName.value);
+    strcpy((ClCharT *)cpmPayLoadData.nodeName.value, gpClCpm->pCpmConfig->nodeName);
+    cpmPayLoadData.nodeName.length = strlen((const ClCharT *)cpmPayLoadData.nodeName.value);
 
     cpmPayLoadData.compId = comp->compId;
     cpmPayLoadData.eoId = comp->eoID;
@@ -4543,12 +4540,12 @@ ClRcT VDECL(cpmIsCompRestarted)(ClEoDataT data,
 {
 	ClRcT rc = CL_OK;
 
-	ClNameT compName = {0};
+	SaNameT compName = {0};
 	ClCpmComponentT *comp = NULL;
 
 	ClUint32T isRestarted = 0;
 
-	rc = clXdrUnmarshallClNameT(inMsgHandle, (void *) &compName);
+	rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &compName);
     	CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
@@ -4576,7 +4573,7 @@ ClRcT VDECL(cpmAspCompLcmResHandle)(ClEoDataT data,
 {
     ClRcT rc = CL_OK;
     ClCpmLcmResponseT lcmResponse = {{0}};
-    ClNameT compName = {0};
+    SaNameT compName = {0};
 
     rc = VDECL_VER(clXdrUnmarshallClCpmLcmResponseT, 4, 0, 0)(inMsgHandle, (void *)&lcmResponse);
     if (CL_OK != rc)
@@ -4587,8 +4584,8 @@ ClRcT VDECL(cpmAspCompLcmResHandle)(ClEoDataT data,
         return rc;
     }
 
-    strncpy(compName.value, lcmResponse.name, CL_MAX_NAME_LENGTH);
-    compName.length = strlen(compName.value);
+    strncpy((ClCharT *)compName.value, lcmResponse.name, CL_MAX_NAME_LENGTH);
+    compName.length = strlen((const ClCharT *)compName.value);
     
     if (CL_OK != lcmResponse.returnCode || cpmIsInfrastructureComponent(&compName) == CL_FALSE)
     {
@@ -4734,7 +4731,7 @@ static ClRcT compHealthCheckAmfInvokedCB(ClPtrT arg)
             goto unlock;
         }
         
-        clNameSet(&compHealthcheck.compName, comp->compConfig->compName);
+        saNameSet(&compHealthcheck.compName, comp->compConfig->compName);
         
         cpmHealthCheckTimerStart(comp);
         rc = CL_CPM_CALL_RMD_ASYNC_NEW(clIocLocalAddressGet(),
@@ -4781,9 +4778,9 @@ static ClRcT compHealthCheckClientInvokedCB(ClPtrT arg)
     
     if (!comp->hcConfirmed)
     {
-        ClNameT compName = {0};
+        SaNameT compName = {0};
 
-        clNameSet(&compName, comp->compConfig->compName);
+        saNameSet(&compName, comp->compConfig->compName);
 
         clCpmCompPreCleanupInvoke(comp);
         clCpmComponentFailureReportWithCookie(0,
@@ -4818,9 +4815,9 @@ static ClRcT cpmCompHealthcheckDispatch(const ClCpmCompHealthcheckT
     CL_ASSERT(cpmCompHealthcheck != NULL);
 
     strncpy(compName,
-            cpmCompHealthcheck->compName.value,
+            (const ClCharT *)cpmCompHealthcheck->compName.value,
             cpmCompHealthcheck->compName.length);
-    rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+    rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
     if (CL_OK != rc)
     {
         /*
@@ -4830,7 +4827,7 @@ static ClRcT cpmCompHealthcheckDispatch(const ClCpmCompHealthcheckT
         rc = cpmComponentAddDynamic(compName);
         if(rc == CL_OK)
         {
-            rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+            rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
         }
         if(rc != CL_OK)
         {
@@ -4849,9 +4846,9 @@ static ClRcT cpmCompHealthcheckDispatch(const ClCpmCompHealthcheckT
         ClCpmComponentT *proxyComp = NULL;
 
         strncpy(proxyCompName,
-                cpmCompHealthcheck->proxyCompName.value,
+                (const ClCharT *)cpmCompHealthcheck->proxyCompName.value,
                 cpmCompHealthcheck->proxyCompName.length);
-        rc = cpmCompFind(proxyCompName, gpClCpm->compTable, &proxyComp);
+        rc = cpmCompFind((SaUint8T *)proxyCompName, gpClCpm->compTable, &proxyComp);
         if (CL_OK != rc)
         {
             clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
@@ -4979,7 +4976,7 @@ failure:
     return rc;
 }
 
-ClRcT cpmCompHealthcheckStop(ClNameT *pCompName)
+ClRcT cpmCompHealthcheckStop(SaNameT *pCompName)
 {
     ClRcT rc = CL_OK;
     ClCharT compName[CL_MAX_NAME_LENGTH];
@@ -4987,8 +4984,8 @@ ClRcT cpmCompHealthcheckStop(ClNameT *pCompName)
     ClBoolT stopped = CL_FALSE;
 
     compName[0] = 0;
-    strncat(compName, pCompName->value, pCompName->length);
-    rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+    strncat(compName, (const ClCharT *)pCompName->value, pCompName->length);
+    rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
     if (CL_OK != rc)
     {
         clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
@@ -5069,10 +5066,10 @@ ClRcT VDECL(cpmComponentHealthcheckConfirm)(ClEoDataT data,
     }
 
     strncpy(compName,
-            cpmCompHealthcheck.compName.value,
+            (const ClCharT *)cpmCompHealthcheck.compName.value,
             cpmCompHealthcheck.compName.length);
 
-    rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+    rc = cpmCompFind((SaUint8T *)compName, gpClCpm->compTable, &comp);
     if (CL_OK != rc)
     {
         clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
@@ -5121,7 +5118,7 @@ ClRcT VDECL(cpmComponentInfoGet)(ClEoDataT data,
                                  ClBufferHandleT outMsgHandle)
 {
     ClRcT rc = CL_OK;
-    ClNameT compName;
+    SaNameT compName;
     ClCharT name[CL_MAX_NAME_LENGTH];
     ClCpmComponentT *comp = NULL;
     ClCpmCompSpecInfoRecvT compInfoRecv;
@@ -5132,16 +5129,16 @@ ClRcT VDECL(cpmComponentInfoGet)(ClEoDataT data,
     memset(name, 0, sizeof(name));
     memset(&compInfoRecv, 0, sizeof(ClCpmCompSpecInfoRecvT));
 
-    rc = clXdrUnmarshallClNameT(inMsgHandle, (void *) &compName);
+    rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &compName);
     if (CL_OK != rc)
     {
         clLogError("CPM", "CPM", "Invalid buffer, errro [%#x]", rc);
         goto out;
     }
 
-    strncpy(name, compName.value, compName.length);
+    strncpy(name, (const ClCharT *)compName.value, compName.length);
 
-    rc = cpmCompFind(name, gpClCpm->compTable, &comp);
+    rc = cpmCompFind((SaUint8T *)name, gpClCpm->compTable, &comp);
     if (CL_OK != rc)
     {
         clLogError("CPM", "CPM", "Unable to find component %s, "

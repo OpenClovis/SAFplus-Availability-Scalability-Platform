@@ -85,7 +85,7 @@ clLogMasterStreamTableRecreate(ClLogSvrCommonEoDataT  *pCommonEoEntry,
                                ClBufferHandleT        hFileEntryBuf,
                                ClLogFileDataT         *pFileData);
 
-ClNameT gLogMasterCkptName
+SaNameT gLogMasterCkptName
     = {sizeof("clLogMasterCkpt") - 1 , "clLogMasterCkpt"};
 
 ClCkptSectionIdT gLogMasterDefaultSectionId
@@ -591,18 +591,18 @@ clLogMasterStreamEntryPack(ClCntKeyHandleT   key,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    rc = clXdrMarshallClNameT(&(pStreamKey->streamName), hFileEntryBuf, 0);
+    rc = clXdrMarshallSaNameT(&(pStreamKey->streamName), hFileEntryBuf, 0);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         return rc;
     }
 
-    rc = clXdrMarshallClNameT(&(pStreamKey->streamScopeNode), hFileEntryBuf,
+    rc = clXdrMarshallSaNameT(&(pStreamKey->streamScopeNode), hFileEntryBuf,
                               0);
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         return rc;
     }
 
@@ -1069,11 +1069,11 @@ clLogMasterFileDataRecreate(ClLogFileDataT   *pFileData,
 }
 
 static ClBoolT
-clLogMasterStreamIsValid(ClNameT  *pNodeName)
+clLogMasterStreamIsValid(SaNameT  *pNodeName)
 {
     ClCpmSlotInfoT  slotInfo  = {0};
 
-    clNameCopy(&slotInfo.nodeName, pNodeName);
+    saNameCopy(&slotInfo.nodeName, pNodeName);
     if( CL_OK == (clCpmSlotGet(CL_CPM_NODENAME, &slotInfo)) )
     {
         return CL_TRUE;
@@ -1102,17 +1102,17 @@ clLogMasterStreamTableRecreate(ClLogSvrCommonEoDataT  *pCommonEoEntry,
       return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(hFileEntryBuf, &(streamKey.streamName));
+    rc = clXdrUnmarshallSaNameT(hFileEntryBuf, &(streamKey.streamName));
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(hFileEntryBuf, &(streamKey.streamScopeNode));
+    rc = clXdrUnmarshallSaNameT(hFileEntryBuf, &(streamKey.streamScopeNode));
     if( CL_OK != rc )
     {
-        CL_LOG_DEBUG_ERROR(("clXdrMarshallClNameT(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_ERROR(("clXdrMarshallSaNameT(): rc[0x %x]", rc));
         return rc;
     }
 
@@ -1161,7 +1161,7 @@ clLogMasterStreamTableRecreate(ClLogSvrCommonEoDataT  *pCommonEoEntry,
         return rc;
     }
     /* Find out the partiuclar stream is still valid */
-    if( strncmp(gStreamScopeGlobal, pStreamKey->streamScopeNode.value,
+    if( strncmp(gStreamScopeGlobal, (const ClCharT *)pStreamKey->streamScopeNode.value,
                 pStreamKey->streamScopeNode.length)
         &&
         CL_FALSE == clLogMasterStreamIsValid(&pStreamKey->streamScopeNode))

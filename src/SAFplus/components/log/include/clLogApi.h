@@ -193,7 +193,7 @@ typedef struct
 /**
  * Name of the log stream.
  */
-    ClNameT                 streamName;
+    SaNameT                 streamName;
 /**
  * Scope of the log stream.
  */
@@ -201,7 +201,7 @@ typedef struct
 /**
  * The name of the node on which the stream exist.
  */
-    ClNameT                 streamScopeNode;
+    SaNameT                 streamScopeNode;
 /**
  * The unique id for the stream in the cluster. 
  */
@@ -221,7 +221,7 @@ typedef struct
 /**
  * Name of the log stream. 
  */
-    ClNameT           streamName;
+    SaNameT           streamName;
 /**
  * Scope of the log stream. 
  */
@@ -229,7 +229,7 @@ typedef struct
 /**
  * Node name on which the stream exist. 
  */
-    ClNameT           nodeName;
+    SaNameT           nodeName;
 /**
  * Unique id of the stream in the cluster.
  */
@@ -881,7 +881,7 @@ extern ClRcT clLogFinalize(CL_IN ClLogHandleT  hLog);
  */
 extern ClRcT
 clLogStreamOpen(CL_IN  ClLogHandleT            hLog,
-                CL_IN  ClNameT                 streamName,
+                CL_IN  SaNameT                 streamName,
                 CL_IN  ClLogStreamScopeT       streamScope,
                 CL_IN  ClLogStreamAttributesT  *pStreamAttr,
                 CL_IN  ClLogStreamOpenFlagsT   streamOpenFlags,
@@ -1242,9 +1242,9 @@ clLogFilterSet(CL_IN ClLogStreamHandleT  hStream,
  */
 extern ClRcT
 clLogHandlerRegister(CL_IN   ClLogHandleT              hLog,
-                     CL_IN   ClNameT                   streamName, 
+                     CL_IN   SaNameT                   streamName, 
                      CL_IN   ClLogStreamScopeT         streamScope,
-                     CL_IN   ClNameT                   nodeName,   
+                     CL_IN   SaNameT                   nodeName,   
                      CL_IN   ClLogStreamHandlerFlagsT  handlerFlags,
                      CL_OUT  ClLogHandleT              *phStream);
 /**
@@ -1768,16 +1768,16 @@ clLogMsgWriteConsole(ClHandleT       streamHdl,
 ClRcT clLogSeverityFilterToValueGet(ClLogSeverityFilterT filter, ClLogSeverityT* pSeverity);
 ClRcT clLogSeverityValueToFilterGet(ClLogSeverityT severity, ClLogSeverityFilterT* pFilter);
 
-ClRcT clLogStreamFilterSet(ClNameT                  *pStreamName, 
+ClRcT clLogStreamFilterSet(SaNameT                  *pStreamName, 
                                 ClLogStreamScopeT   streamScope,
-                                ClNameT             *pStreamScopeNode,
+                                SaNameT             *pStreamScopeNode,
                                 ClLogFilterFlagsT   filterFlags,
                                 ClLogFilterT        filter);
 
 ClRcT
-clLogStreamFilterGet(ClNameT                *pStreamName,
+clLogStreamFilterGet(SaNameT                *pStreamName,
                         ClLogStreamScopeT   streamScope,
-                        ClNameT             *pStreamScopeNode,
+                        SaNameT             *pStreamScopeNode,
                         ClLogFilterT        *pFilter);
 
 ClLogSeverityT

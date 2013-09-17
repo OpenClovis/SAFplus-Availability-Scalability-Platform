@@ -25,7 +25,7 @@ extern "C" {
 
 
 
-ClRcT clMsgClientsTrackCallback_4_0_0(CL_IN ClHandleT  clientHandle, CL_IN ClNameT*  pGroupName, CL_IN SaMsgQueueGroupNotificationBufferT_4_0_0*  pNotification);
+ClRcT clMsgClientsTrackCallback_4_0_0(CL_IN ClHandleT  clientHandle, CL_IN SaNameT*  pGroupName, CL_IN SaMsgQueueGroupNotificationBufferT_4_0_0*  pNotification);
 
 ClRcT clMsgClientsTrackCallbackResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 

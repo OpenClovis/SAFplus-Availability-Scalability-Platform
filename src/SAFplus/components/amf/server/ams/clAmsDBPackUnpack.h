@@ -268,11 +268,11 @@ clAmsDBConstructInvocationList(
 
 extern ClRcT
 clAmsDBConstructInvocation(
-        CL_IN  const ClNameT  *compName,
+        CL_IN  const SaNameT  *compName,
         CL_IN  ClInvocationT id,
         CL_IN  ClAmsInvocationCmdT cmd,
         CL_IN  ClBoolT csiTargetOne,
-        CL_IN  const ClNameT  *csiName ) ;
+        CL_IN  const SaNameT  *csiName ) ;
 
 extern ClRcT
 clAmsInvocationInstanceXMLize (

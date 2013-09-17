@@ -57,7 +57,7 @@ typedef struct corEO
 
 } COREoData_t;
 
-extern ClOampRtResourceArrayT *corComponentResourceGet(ClNameT *compName);
+extern ClOampRtResourceArrayT *corComponentResourceGet(SaNameT *compName);
 
 # ifdef __cplusplus
 }

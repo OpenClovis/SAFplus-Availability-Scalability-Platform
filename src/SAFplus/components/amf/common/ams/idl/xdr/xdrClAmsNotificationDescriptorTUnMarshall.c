@@ -62,25 +62,25 @@ ClRcT clXdrUnmarshallClAmsNotificationDescriptorT_4_0_0(ClBufferHandleT msg , vo
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->entityName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->entityName));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->faultyCompName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->faultyCompName));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->siName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->siName));
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->suName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->suName));
     if (CL_OK != rc)
     {
         return rc;

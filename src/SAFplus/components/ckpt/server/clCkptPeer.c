@@ -215,7 +215,7 @@ ClRcT ckptCheckpointEntryPack( CkptT                    *pCkpt,
     rc = clXdrMarshallClHandleT(&ckptHdl,*pMsgHdl,0);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Failed: Marshalling rc[0x %x]\n",rc), rc);
-    rc = clXdrMarshallClNameT(&pCkpt->ckptName, *pMsgHdl,0);
+    rc = clXdrMarshallSaNameT(&pCkpt->ckptName, *pMsgHdl,0);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Failed: Marshalling rc[0x %x]\n",rc), rc);
     if (pCkpt->pCpInfo != NULL)
@@ -1034,7 +1034,7 @@ clCkptSectionInfoUpdate(ClCkptHdlT        ckptHdl,
 
 ClRcT  VDECL_VER(clCkptRemSvrCkptInfoSync, 5, 0, 0)(ClVersionT  *pVersion, 
                                                     ClHandleT   ckptHdl,
-                                                    ClNameT     *pName, 
+                                                    SaNameT     *pName, 
                                                     VDECL_VER(CkptCPInfoT, 5, 0, 0) *pCpInfo,
                                                     CkptDPInfoT *pDpInfo)
 {
@@ -1087,7 +1087,7 @@ ClRcT  VDECL_VER(clCkptRemSvrCkptInfoSync, 5, 0, 0)(ClVersionT  *pVersion,
     /*
      * Copy the checkpoint name.
      */
-    clNameCopy(&pCkpt->ckptName, pName);
+    saNameCopy(&pCkpt->ckptName, pName);
     
     /* 
      * Copy the control plane information.
@@ -1182,7 +1182,7 @@ ClRcT  VDECL_VER(clCkptRemSvrCkptInfoSync, 5, 0, 0)(ClVersionT  *pVersion,
  */
 ClRcT  VDECL_VER(clCkptRemSvrCkptInfoSync, 4, 0, 0)(ClVersionT  *pVersion, 
                                                     ClHandleT   ckptHdl,
-                                                    ClNameT     *pName, 
+                                                    SaNameT     *pName, 
                                                     CkptCPInfoT *pCpInfo,
                                                     CkptDPInfoT *pDpInfo)
 {
@@ -1517,10 +1517,10 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 4, 0, 0)(ClVersionT         *pVersion,
     /*
      * Copy the checkpoint name.
      */
-    ckptInfo.pName   = (ClNameT *)clHeapCalloc(1,sizeof(ClNameT));
+    ckptInfo.pName   = (SaNameT *)clHeapCalloc(1,sizeof(SaNameT));
     CL_ASSERT(ckptInfo.pName != NULL);
 
-    clNameCopy(ckptInfo.pName, &pCkpt->ckptName);
+    saNameCopy(ckptInfo.pName, &pCkpt->ckptName);
 
     /*
      * Unlock the checkpoint's mutex.
@@ -1638,10 +1638,10 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 5, 0, 0)(ClVersionT         *pVersion,
     /*
      * Copy the checkpoint name.
      */
-    pCkptInfo->pName   = (ClNameT *)clHeapCalloc(1,sizeof(ClNameT));
+    pCkptInfo->pName   = (SaNameT *)clHeapCalloc(1,sizeof(SaNameT));
     CL_ASSERT(pCkptInfo->pName != NULL);
 
-    clNameCopy(pCkptInfo->pName, &pCkpt->ckptName);
+    saNameCopy(pCkptInfo->pName, &pCkpt->ckptName);
 
     /*
      * Unlock the checkpoint's mutex.
@@ -2003,7 +2003,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl, VDECL_VER(CkptInfoT, 5, 0, 0) 
         clLogWarning(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Ckpt [%.*s] already deleted for handle [%#llx]", pCkptInfo->pName->length, pCkptInfo->pName->value, ckptHdl);
         return CL_OK;
     }
-    clNameCopy(&pCkpt->ckptName, pCkptInfo->pName);
+    saNameCopy(&pCkpt->ckptName, pCkptInfo->pName);
 
     /*
      * Update the control plane information.

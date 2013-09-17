@@ -55,7 +55,7 @@ typedef struct
 
 typedef struct
 {
-    ClNameT   *pNodeName;
+    SaNameT   *pNodeName;
     ClBoolT   flag;
     ClUint32T numStreams;
 }ClLogMasterWalkArgT;
@@ -92,13 +92,13 @@ clLogMasterStreamEntryDeleteCb(CL_IN ClCntKeyHandleT   key,
 
 ClRcT
 clLogMasterAttrVerifyNGet(CL_IN    ClLogStreamAttrIDLT     *pStreamAttr,
-                          CL_INOUT ClNameT                 *pStreamName,
+                          CL_INOUT SaNameT                 *pStreamName,
                           CL_INOUT ClLogStreamScopeT       *pStreamScope,
-                          CL_INOUT ClNameT                 *pStreamScopeNode,
+                          CL_INOUT SaNameT                 *pStreamScopeNode,
                           CL_OUT   ClUint16T               *pStreamId,
                           CL_OUT   ClIocMulticastAddressT  *pStreamMcastAddr);
 ClRcT
-clLogMasterCompEntryUpdate(ClNameT    *pCompName,
+clLogMasterCompEntryUpdate(SaNameT    *pCompName,
                            ClUint32T  *pClientId,
                            ClBoolT    restart);
 

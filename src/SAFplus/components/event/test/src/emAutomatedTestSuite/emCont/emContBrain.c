@@ -102,7 +102,7 @@ void clEvtContResultPrint(ClRcT retCode, ClEvtContTestHeadT *pTestHead)
     return;
 }
 
-void clEvtContUtilsNameCpy(ClNameT *pNameDst, const ClNameT *pNameSrc)
+void clEvtContUtilsNameCpy(SaNameT *pNameDst, const SaNameT *pNameSrc)
 {
     CL_FUNC_ENTER();
 
@@ -113,7 +113,7 @@ void clEvtContUtilsNameCpy(ClNameT *pNameDst, const ClNameT *pNameSrc)
     return;
 }
 
-ClInt32T clEvtContUtilsNameCmp(ClNameT *pName1, ClNameT *pName2)
+ClInt32T clEvtContUtilsNameCmp(SaNameT *pName1, SaNameT *pName2)
 {
     ClUint32T result;
 
@@ -177,7 +177,7 @@ ClRcT clEvtContInit(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
     ClRcT rc = CL_OK;
 
     rc = clEvtContRmd(pTestHead, EM_TEST_APP_INIT,
-                      (void *) pTestHead->pTestInfo, sizeof(ClNameT), pRetCode);
+                      (void *) pTestHead->pTestInfo, sizeof(SaNameT), pRetCode);
     if (CL_OK != rc)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("RMD->INIT failed  :: [0x%X]\r\n", rc));
@@ -193,7 +193,7 @@ ClRcT clEvtContFin(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
     ClRcT rc = CL_OK;
 
     rc = clEvtContRmd(pTestHead, EM_TEST_APP_FIN, (void *) pTestHead->pTestInfo,
-                      sizeof(ClNameT), pRetCode);
+                      sizeof(SaNameT), pRetCode);
     if (CL_OK != rc)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("RMD->FIN failed  :: [0x%X]\r\n", rc));
@@ -471,8 +471,8 @@ ClRcT clEvntContKill(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
 {
     ClRcT rc = CL_OK;
 
-    ClNameT compName = { sizeof("eventServer_") - 1, "eventServer_" };
-    ClNameT *pNodeName = (ClNameT *) pTestHead->pTestInfo;
+    SaNameT compName = { sizeof("eventServer_") - 1, "eventServer_" };
+    SaNameT *pNodeName = (SaNameT *) pTestHead->pTestInfo;
 
     ClCpmLcmReplyT srcInfo;
 
@@ -506,8 +506,8 @@ ClRcT clEvntContRestart(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
 {
     ClRcT rc = CL_OK;
 
-    ClNameT compName = { sizeof("eventServer_") - 1, "eventServer_" };
-    ClNameT *pNodeName = (ClNameT *) pTestHead->pTestInfo;
+    SaNameT compName = { sizeof("eventServer_") - 1, "eventServer_" };
+    SaNameT *pNodeName = (SaNameT *) pTestHead->pTestInfo;
 
 
     ClCpmLcmReplyT srcInfo;

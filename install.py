@@ -1465,7 +1465,7 @@ class ASPInstaller:
              self.feedback('Building SAFplus %s' % b)
              cmd = 'asp/build/%s' % b
              os.chdir (cmd)
-             os.system ('make safplus-libs')
+             os.system ('make')
              #os.system ('make safplus-install')           
            # write to configure.conf file
            if self.WITH_CM_BUILD :           

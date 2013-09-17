@@ -53,7 +53,7 @@ void  clMsgCommIdlFinalize(void);
 
 ClRcT clMsgSendMessage_idl(ClMsgMessageSendTypeT sendType,
         ClIocPhysicalAddressT compAddr,
-        ClNameT *pName,
+        SaNameT *pName,
         ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,
         ClHandleT senderHandle,
@@ -65,7 +65,7 @@ ClRcT clMsgSendMessage_idl(ClMsgMessageSendTypeT sendType,
 
 ClRcT clMsgSendMessage_IocSend(ClMsgMessageSendTypeT sendType,
         ClIocPhysicalAddressT compAddr,
-        ClNameT *pName,
+        SaNameT *pName,
         SaMsgMessageT *pMessage,
         SaTimeT sendTime,
         ClHandleT senderHandle,
@@ -75,23 +75,23 @@ ClRcT clMsgSendMessage_IocSend(ClMsgMessageSendTypeT sendType,
         MsgCltSrvClMsgMessageReceivedAsyncCallbackT fpAsyncCallback,
         void *cookie);
 
-ClRcT clMsgQueueUnlinkToServer(ClNameT *pQName);
+ClRcT clMsgQueueUnlinkToServer(SaNameT *pQName);
 
 ClRcT clMsgCallClientsTrackCallback(ClIocPhysicalAddressT compAddr,
-        ClNameT *pGroupName,
+        SaNameT *pGroupName,
         SaMsgHandleT appHandle,
         SaMsgQueueGroupNotificationBufferT *pData);
 
 ClRcT clMsgQueueAllocateThroughIdl(
         ClIocPhysicalAddressT destNode,
-        ClNameT *pQName,
+        SaNameT *pQName,
         SaMsgQueueOpenFlagsT openFlags,
         SaMsgQueueCreationAttributesT *pCreationAttrs,
         SaMsgQueueHandleT *pQHandle);
 
 ClRcT clMsgMessageGet_Idl(
         ClIocPhysicalAddressT destNode,
-        ClNameT *pQName,
+        SaNameT *pQName,
         SaTimeT timeout);
 
 #ifdef __cplusplus

@@ -217,7 +217,7 @@ ClRcT clcsa105CompCSA105RESProvUpdate(CL_OM_PROV_CLASS* pThis, ClHandleT txnHand
 
     clprintf(CL_LOG_SEV_INFO, "Inside the function %s", __FUNCTION__);
 
-    ClNameT     moIdName = {0};
+    SaNameT     moIdName = {0};
     
     rc = clCorMoIdToMoIdNameGet((ClCorMOIdPtrT)pProvTxnData->pMoId, &moIdName);
     if (CL_OK != rc)

@@ -50,7 +50,7 @@ ClRcT clXdrUnmarshallClMsgQueueCkptDataT_4_0_0(ClBufferHandleT msg , void* pGenV
     else
     {
 
-    rc = clXdrUnmarshallClNameT(msg,&(pVar->qName));
+    rc = clXdrUnmarshallSaNameT(msg,&(pVar->qName));
     if (CL_OK != rc)
     {
         return rc;

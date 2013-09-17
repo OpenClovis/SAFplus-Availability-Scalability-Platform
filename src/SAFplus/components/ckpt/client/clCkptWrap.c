@@ -80,7 +80,7 @@ static ClVersionDatabaseT versionDatabase=
     clVersionSupported
 }; 
 
-static ClRcT (*gClCkptReplicaChangeCallback)(const ClNameT *pCkptName, ClIocNodeAddressT replicaAddr);
+static ClRcT (*gClCkptReplicaChangeCallback)(const SaNameT *pCkptName, ClIocNodeAddressT replicaAddr);
 
 static ClRcT ckptVerifyAndCheckout(ClCkptHdlT    ckptHdl, ClCkptSvcHdlT*      ckptSvcHdl, CkptInitInfoT  **pInitInfo)
 {
@@ -207,7 +207,7 @@ ClEventCallbacksT ckptEvtCallbacks =
  * Client side event channel name.
  */
  
-ClNameT ckptSubChannelName = 
+SaNameT ckptSubChannelName = 
 {
     sizeof(CL_CKPT_CLNTUPD_EVENT_CHANNEL)-1,
     CL_CKPT_CLNTUPD_EVENT_CHANNEL
@@ -223,7 +223,7 @@ ClNameT ckptSubChannelName =
 void  _ckptCheckpointOpenAsyncCallback(ClIdlHandleT ckptIdlHdl,
         ClVersionT                          *pVersion,
         ClCkptSvcHdlT                       ckptSvcHdl,
-        ClNameT                             *pName,
+        SaNameT                             *pName,
         ClCkptCheckpointCreationAttributesT *pCreateAttr,
         ClCkptOpenFlagsT                    ckptOpenFlags,
         ClIocNodeAddressT                   localAddr,
@@ -280,7 +280,7 @@ void  _ckptCheckpointOpenAsyncCallback(ClIdlHandleT ckptIdlHdl,
                 pCkptHdl,
                 NULL);
         pHdlInfo->cksum = cksum ;                 
-        clNameCopy(&pHdlInfo->ckptName, pName);
+        saNameCopy(&pHdlInfo->ckptName, pName);
         pHdlInfo->openFlag = ckptOpenFlags;
         pHdlInfo->hdlType     = CL_CKPT_CHECKPOINT_HDL;
         ckptHandleInfoSet(*pCkptHdl,pHdlInfo);
@@ -379,7 +379,7 @@ void  _ckptCheckpointOpenAsyncCallback(ClIdlHandleT ckptIdlHdl,
  */
  
 ClRcT  ckptOpenParamValidate(ClCkptOpenFlagsT  checkpointOpenFlags,
-                             ClNameT           *pCkptName,
+                             SaNameT           *pCkptName,
            ClCkptCheckpointCreationAttributesT *pCkptCreationAttributes)
 {
     ClRcT rc  = CL_OK;
@@ -527,7 +527,7 @@ static void ckptNotificationCallback(ClIocNotificationIdT id,
  */
  
 ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
-                           ClNameT           *pCkptName,
+                           SaNameT           *pCkptName,
         ClCkptCheckpointCreationAttributesT  *pCheckpointCreationAttributes,
                            ClCkptOpenFlagsT  checkpointOpenFlags,
                            ClTimeT           timeout,
@@ -614,7 +614,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
                     pInitInfo->ckptIdlHdl,
                     &version,
                     ckptSvcHdl,
-                    (ClNameT *)pCkptName,
+                    (SaNameT *)pCkptName,
                     &ckptAttr,
                     checkpointOpenFlags,
                     clIocLocalAddressGet(),
@@ -682,7 +682,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
         rc = VDECL_VER(clCkptMasterCkptOpenClientAsync, 4, 0, 0)(pInitInfo->ckptIdlHdl,
                 &version,
                 ckptSvcHdl,
-                (ClNameT *)pCkptName,
+                (SaNameT *)pCkptName,
                 &ckptAttr,
                 checkpointOpenFlags,
                 clIocLocalAddressGet(),
@@ -738,7 +738,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
         hdlInfo.openFlag       = checkpointOpenFlags;
         hdlInfo.cksum          = cksum;
         hdlInfo.hdlType        = CL_CKPT_CHECKPOINT_HDL;
-        clNameCopy(&hdlInfo.ckptName, pCkptName);
+        saNameCopy(&hdlInfo.ckptName, pCkptName);
         clLogNotice(CL_CKPT_AREA_CLIENT, CL_LOG_CONTEXT_UNSPECIFIED, 
                 "Checkpoint [%.*s] is opened act address [%d]", 
                 pCkptName->length, pCkptName->value, hdlInfo.activeAddr);
@@ -787,7 +787,7 @@ exitOnError:
 
 ClRcT clCkptCheckpointOpen(
    ClCkptSvcHdlT                             ckptSvcHdl,
-   const ClNameT                             *pCkptName, 
+   const SaNameT                             *pCkptName, 
    const ClCkptCheckpointCreationAttributesT *pCheckpointCreationAttributes,
    ClCkptOpenFlagsT                          checkpointOpenFlags, 
    ClTimeT                                   timeout,            
@@ -808,7 +808,7 @@ ClRcT clCkptCheckpointOpen(
     }
     
     return (ckptLocalCallForOpen(ckptSvcHdl,
-                   (ClNameT *)pCkptName,
+                   (SaNameT *)pCkptName,
                    (ClCkptCheckpointCreationAttributesT *)
                              pCheckpointCreationAttributes,
                      checkpointOpenFlags,
@@ -826,7 +826,7 @@ ClRcT clCkptCheckpointOpen(
 ClRcT clCkptCheckpointOpenAsync(
         ClCkptSvcHdlT                             ckptSvcHdl,
         ClInvocationT                             invocation,
-        const ClNameT                             *pCkptName,
+        const SaNameT                             *pCkptName,
         const ClCkptCheckpointCreationAttributesT *pCkptCreationAttributes,
         ClCkptOpenFlagsT                          checkpointOpenFlags)
 {
@@ -846,7 +846,7 @@ ClRcT clCkptCheckpointOpenAsync(
     }
     
     return(ckptLocalCallForOpen(ckptSvcHdl,
-              (ClNameT *)pCkptName,
+              (SaNameT *)pCkptName,
               (ClCkptCheckpointCreationAttributesT *)pCkptCreationAttributes,
               checkpointOpenFlags,
               timeout,&ckptHdl,
@@ -1018,10 +1018,10 @@ exitOnError:
  */
  
 ClRcT clCkptCheckpointDelete(ClCkptSvcHdlT     ckptSvcHdl,
-                             const ClNameT     *pCkptName)
+                             const SaNameT     *pCkptName)
 {
     ClRcT              rc         = CL_OK;
-    ClNameT            ckptName   = {0};
+    SaNameT            ckptName   = {0};
     CkptInitInfoT      *pInitInfo = NULL;
     ClVersionT         version    = {0};
     ClUint32T          numRetries = 0;
@@ -1039,7 +1039,7 @@ ClRcT clCkptCheckpointDelete(ClCkptSvcHdlT     ckptSvcHdl,
      * Validate the name.
      */
     CL_CKPT_NAME_VALIDATE(pCkptName);    
-    clNameCopy(&ckptName, pCkptName);
+    saNameCopy(&ckptName, pCkptName);
 
     /* 
      * Checkout the data associated with the service handle.
@@ -5262,7 +5262,7 @@ void ckptEventCallback(ClEventSubscriptionIdT    subscriptionId,
        && 
        ntohl(payLoad.actAddr) != CL_CKPT_UNINIT_VALUE)
     {
-        if(CL_OK != gClCkptReplicaChangeCallback((const ClNameT*)&payLoad.name, 
+        if(CL_OK != gClCkptReplicaChangeCallback((const SaNameT*)&payLoad.name, 
                                                  ntohl(payLoad.actAddr)))
         {
             clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
@@ -5385,7 +5385,7 @@ void ckptEventCallback(ClEventSubscriptionIdT    subscriptionId,
 }
 
 ClRcT
-VDECL_VER(clCkptSectionUpdationNotification, 4, 0, 0)(ClNameT          *pName,
+VDECL_VER(clCkptSectionUpdationNotification, 4, 0, 0)(SaNameT          *pName,
                                   ClCkptSectionIdT *pSecId,      
                                   ClUint32T        dataSize,   
                                   ClUint8T         *pData) 
@@ -5532,7 +5532,7 @@ VDECL_VER(clCkptSectionUpdationNotification, 4, 0, 0)(ClNameT          *pName,
 }
 
 ClRcT
-VDECL_VER(clCkptWriteUpdationNotification, 4, 0, 0)(ClNameT                 *pName,
+VDECL_VER(clCkptWriteUpdationNotification, 4, 0, 0)(SaNameT                 *pName,
                                 ClUint32T               numSections,
                                 ClCkptIOVectorElementT  *pIoVector)
 {
@@ -5954,7 +5954,7 @@ exitOnError:
  * Allow 1 callback per application. to allow/disallow replica change events.
  */
 ClRcT clCkptReplicaChangeRegister(ClRcT (*pCkptReplicaChangeCallback)
-                                  (const ClNameT *pCkptName, ClIocNodeAddressT replicaAddr))
+                                  (const SaNameT *pCkptName, ClIocNodeAddressT replicaAddr))
 {
     if(gClCkptReplicaChangeCallback)
         return CKPT_RC(CL_ERR_INITIALIZED);

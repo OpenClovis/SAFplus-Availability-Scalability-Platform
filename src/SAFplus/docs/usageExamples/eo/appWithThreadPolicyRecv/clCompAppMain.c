@@ -196,7 +196,7 @@ clCompAppInitialize(
     ClUint32T argc,
     ClCharT *argv[])
 {
-    ClNameT             appName;
+    SaNameT             appName;
     ClCpmCallbacksT     callbacks;
     ClVersionT          version;
     ClIocPortT          iocPort;
@@ -324,7 +324,7 @@ ClRcT clCompAppFinalize()
 ClRcT
 clCompAppTerminate(
     ClInvocationT       invocation,
-    const ClNameT       *compName)
+    const SaNameT       *compName)
 {
     ClRcT rc = CL_OK;
 
@@ -459,7 +459,7 @@ clCompAppHealthCheck(
 ClRcT
 clCompAppAMFCSISet(
     ClInvocationT       invocation,
-    const ClNameT       *compName,
+    const SaNameT       *compName,
     ClAmsHAStateT       haState,
     ClAmsCSIDescriptorT csiDescriptor)
 {
@@ -585,8 +585,8 @@ clCompAppAMFCSISet(
 ClRcT
 clCompAppAMFCSIRemove(
     ClInvocationT       invocation,
-    const ClNameT       *compName,
-    const ClNameT       *csiName,
+    const SaNameT       *compName,
+    const SaNameT       *csiName,
     ClAmsCSIFlagsT      csiFlags)
 {
     /*

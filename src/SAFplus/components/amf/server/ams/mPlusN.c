@@ -1885,7 +1885,7 @@ clAmsPeSGAutoAdjustMPlusN(ClAmsSGT *sg)
     leastSU = getLeastPreferredSU(&sg->status.assignedSUList,leastSU);
 
     clLogInfo("SG", "ADJUST", "Least preferred SU to start with [%s], inservice spares [%d]",
-              leastSU ? leastSU->config.entity.name.value:"None", 
+              leastSU ? (const ClCharT*)leastSU->config.entity.name.value:"None",
               sg->status.inserviceSpareSUList.numEntities);
 
     for(SURef = clAmsEntityListGetFirst(&sg->status.inserviceSpareSUList);

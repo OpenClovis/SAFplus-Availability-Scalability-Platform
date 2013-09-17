@@ -362,7 +362,7 @@ ClRcT ${name}ClientSync${version}(CL_IN ClIdlHandleT handle${decl})
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -491,7 +491,7 @@ ClRcT ${name}ClientAsync${version}(CL_IN ClIdlHandleT handle${call_decl}${cookie
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -1612,7 +1612,7 @@ elem_types =\
     'ClInt16T',
     'ClInt32T',
     'ClInt64T',
-    'ClNameT',
+    'SaNameT',
     'ClUint8T',
     'ClUint16T',
     'ClUint32T',
@@ -1686,7 +1686,7 @@ def find_typedef(s):
     'ClInt16T',
     'ClInt32T',
     'ClInt64T',
-    'ClNameT',
+    'SaNameT',
     'ClUint8T',
     'ClUint16T',
     'ClUint32T',

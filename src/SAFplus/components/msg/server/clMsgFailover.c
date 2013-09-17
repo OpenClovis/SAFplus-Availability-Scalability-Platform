@@ -276,7 +276,7 @@ static ClRcT clMsgEventInitialize(void)
     ClVersionT version = CL_EVENT_VERSION;
     ClEventCallbacksT msgEvtCallbacks = { NULL, clMsgEventCallbackFunc };
 
-    ClNameT cpmEvtCh = {0};
+    SaNameT cpmEvtCh = {0};
     ClEventChannelOpenFlagsT cpmChOpenFlags = CL_EVENT_CHANNEL_SUBSCRIBER | CL_EVENT_GLOBAL_CHANNEL;
 
     ClUint32T nodeDepPattern = htonl(CL_CPM_NODE_DEPART_PATTERN);
@@ -290,7 +290,7 @@ static ClRcT clMsgEventInitialize(void)
         goto error_out;
     }
 
-    clNameSet(&cpmEvtCh, CL_CPM_NODE_EVENT_CHANNEL_NAME);
+    saNameSet(&cpmEvtCh, CL_CPM_NODE_EVENT_CHANNEL_NAME);
 
     rc = clEventChannelOpen(gMsgEvtHdl, &cpmEvtCh, cpmChOpenFlags, SA_TIME_MAX, &gCpmChHdl);
     if(rc != CL_OK)

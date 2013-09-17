@@ -1337,7 +1337,7 @@ static ClRcT clAmsMgmtTestFillConfig(ClAmsMgmtHandleT mgmtHandle,
             ClAmsCSINVPT nvp = { .paramName = { .value = "model", .length=sizeof("model") },
                                  .paramValue = {.value = "twoN",  .length = sizeof("twoN") },
             };
-            clNameCopy(&nvp.csiName, &entity.name);
+            saNameCopy(&nvp.csiName, &entity.name);
             clDhaExmpExec(("CSI set nvplist"),
                           (rc = clAmsMgmtCCBBatchCSISetNVP(ccbHandle,
                                                       &entity,
@@ -1495,7 +1495,7 @@ static ClRcT clAmsMgmtTestFillConfig(ClAmsMgmtHandleT mgmtHandle,
         {
             ClAmsCompConfigT compConfig = {{0}};
             ClUint64T bitMask = 0;
-            ClNameT supportedCSIType = { 0 };
+            SaNameT supportedCSIType = { 0 };
             snprintf(entity.name.value, sizeof(entity.name.value), "%s0", NEW_COMP_PREFIX);
             entity.name.length = strlen(entity.name.value) + 1;
             clDhaExmpExec(("COMP config get [%s]", entity.name.value),

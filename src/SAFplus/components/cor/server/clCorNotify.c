@@ -111,7 +111,7 @@ ClRcT
 corEventInit(void)
 {
 	ClRcT rc;
-	ClNameT evtChannelName;
+	SaNameT evtChannelName;
 	ClVersionT ver = CL_EVENT_VERSION;
     ClUint32T                 compDeathPattern   = htonl(CL_CPM_COMP_DEATH_PATTERN);
     ClUint32T                 compDeparturePattern   = htonl(CL_CPM_COMP_DEPART_PATTERN);
@@ -422,7 +422,7 @@ corEventPublish (ClCorOpsT                  op,
 	ClUint8T* corEventAttrPath = NULL;
 	ClUint8T* corEventAttrBits = NULL;
 	ClEventPatternArrayT eventPatternArray;
-	ClNameT corEventChannelName;
+	SaNameT corEventChannelName;
 	ClEventIdT corPublishEvtId;
 	ClUint32T	patternSize;
 	ClEventPatternT eventPattern[4];

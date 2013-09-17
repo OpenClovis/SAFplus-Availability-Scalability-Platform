@@ -31,7 +31,7 @@ extern "C" {
 
 typedef struct
 {
-    ClNameT    compName;
+    SaNameT    compName;
     ClUint32T  compId;
 } ClLogCompInfoT;
 
@@ -46,7 +46,7 @@ ClRcT
 clLogClntIdlHandleFinalize(ClIdlHandleT  *phClntIdl);
 
 ClRcT
-clLogClntCompNameChkNCompIdGet(ClNameT    *pCompName,
+clLogClntCompNameChkNCompIdGet(SaNameT    *pCompName,
                                ClUint32T  *pClientId);
 
 #ifdef __cplusplus

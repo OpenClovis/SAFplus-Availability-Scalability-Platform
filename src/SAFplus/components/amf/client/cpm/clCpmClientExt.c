@@ -535,7 +535,7 @@ ClRcT clCpmExecutionObjectRegister(ClEoExecutionObjT *pEOptr)
     ClRcT rc = CL_OK;
     ClEoIdT eoID = 0;
     ClUint32T outLen = sizeof(eoID);
-    ClNameT compName = { 0, {0} };
+    SaNameT compName = { 0, {0} };
     VDECL_VER(ClCpmClientInfoIDLT, 4, 0, 0) compInfo;
 
     if (pEOptr == NULL)
@@ -557,7 +557,7 @@ ClRcT clCpmExecutionObjectRegister(ClEoExecutionObjT *pEOptr)
     CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
                      ("Unable to Get Component Name, rc = %x\n", rc), rc);
 
-    memcpy(&(compInfo.compName), &compName, sizeof(ClNameT));
+    memcpy(&(compInfo.compName), &compName, sizeof(SaNameT));
     compInfo.version = CL_CPM_EO_VERSION_NO;
     strncpy(compInfo.eoObj.name, pEOptr->name, sizeof(compInfo.eoObj.name)-1);
     compInfo.eoObj.eoID = pEOptr->eoID;
@@ -645,7 +645,7 @@ ClRcT clCpmExecutionObjectStateUpdate(ClEoExecutionObjT *pEOptr)
 {
     ClRcT rc = CL_OK;
     VDECL_VER(ClCpmClientInfoIDLT, 4, 0, 0) compInfo = {0};
-    ClNameT compName = {0};
+    SaNameT compName = {0};
 
     if (pEOptr == NULL)
     {
@@ -680,7 +680,7 @@ ClRcT clCpmExecutionObjectStateUpdate(ClEoExecutionObjT *pEOptr)
     CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
                      ("Unable to Get Component Name, rc = %x\n", rc), rc);
 
-    memcpy(&(compInfo.compName), &compName, sizeof(ClNameT));
+    memcpy(&(compInfo.compName), &compName, sizeof(SaNameT));
     rc = clCpmClientRMDSyncNew(clIocLocalAddressGet(), COMPO_UPD_EOINFO,
                                (ClUint8T *) &compInfo, sizeof(ClCpmClientInfoT),
                                NULL, NULL, 0, 0, 0, 0,
@@ -704,8 +704,8 @@ ClRcT clCpmExecutionObjectStateUpdate(ClEoExecutionObjT *pEOptr)
  * Obsolete CPM life cycle management functions. Will be removed in future.
  */
 
-ClRcT clCpmComponentInstantiate(ClNameT *compName,
-                                ClNameT *nodeName,
+ClRcT clCpmComponentInstantiate(SaNameT *compName,
+                                SaNameT *nodeName,
                                 ClCpmLcmReplyT *srcInfo)
 {
     ClRcT rc = CL_OK;
@@ -719,8 +719,8 @@ ClRcT clCpmComponentInstantiate(ClNameT *compName,
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
-    memcpy(&(compInstantiate.name), compName, sizeof(ClNameT));
-    memcpy(&(compInstantiate.nodeName), nodeName, sizeof(ClNameT));
+    memcpy(&(compInstantiate.name), compName, sizeof(SaNameT));
+    memcpy(&(compInstantiate.nodeName), nodeName, sizeof(SaNameT));
     if (srcInfo != NULL)
     {
         compInstantiate.srcAddress.nodeAddress = srcInfo->srcIocAddress;
@@ -754,8 +754,8 @@ ClRcT clCpmComponentInstantiate(ClNameT *compName,
     return rc;
 }
 
-ClRcT clCpmComponentTerminate(ClNameT *compName,
-                              ClNameT *nodeName,
+ClRcT clCpmComponentTerminate(SaNameT *compName,
+                              SaNameT *nodeName,
                               ClCpmLcmReplyT *srcInfo)
 {
     ClRcT rc = CL_OK;
@@ -769,8 +769,8 @@ ClRcT clCpmComponentTerminate(ClNameT *compName,
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
-    memcpy(&(compTerminate.name), compName, sizeof(ClNameT));
-    memcpy(&(compTerminate.nodeName), nodeName, sizeof(ClNameT));
+    memcpy(&(compTerminate.name), compName, sizeof(SaNameT));
+    memcpy(&(compTerminate.nodeName), nodeName, sizeof(SaNameT));
 
     if (srcInfo != NULL)
     {
@@ -804,8 +804,8 @@ ClRcT clCpmComponentTerminate(ClNameT *compName,
     return rc;
 }
 
-ClRcT clCpmComponentCleanup(ClNameT *compName,
-                            ClNameT *nodeName,
+ClRcT clCpmComponentCleanup(SaNameT *compName,
+                            SaNameT *nodeName,
                             ClCpmLcmReplyT *srcInfo)
 {
     ClRcT rc = CL_OK;
@@ -819,8 +819,8 @@ ClRcT clCpmComponentCleanup(ClNameT *compName,
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
-    memcpy(&(compCleanup.name), compName, sizeof(ClNameT));
-    memcpy(&(compCleanup.nodeName), nodeName, sizeof(ClNameT));
+    memcpy(&(compCleanup.name), compName, sizeof(SaNameT));
+    memcpy(&(compCleanup.nodeName), nodeName, sizeof(SaNameT));
 
     if (srcInfo != NULL)
     {
@@ -854,8 +854,8 @@ ClRcT clCpmComponentCleanup(ClNameT *compName,
     return rc;
 }
 
-ClRcT clCpmComponentRestart(ClNameT *compName,
-                            ClNameT *nodeName,
+ClRcT clCpmComponentRestart(SaNameT *compName,
+                            SaNameT *nodeName,
                             ClCpmLcmReplyT *srcInfo)
 {
     ClRcT rc = CL_OK;
@@ -869,8 +869,8 @@ ClRcT clCpmComponentRestart(ClNameT *compName,
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
-    memcpy(&(compRestart.name), compName, sizeof(ClNameT));
-    memcpy(&(compRestart.nodeName), nodeName, sizeof(ClNameT));
+    memcpy(&(compRestart.name), compName, sizeof(SaNameT));
+    memcpy(&(compRestart.nodeName), nodeName, sizeof(SaNameT));
     if (srcInfo != NULL)
     {
         compRestart.srcAddress.nodeAddress = srcInfo->srcIocAddress;
@@ -903,7 +903,7 @@ ClRcT clCpmComponentRestart(ClNameT *compName,
     return rc;
 }
 
-ClRcT clCpmComponentLogicalAddressUpdate(ClNameT *compName,
+ClRcT clCpmComponentLogicalAddressUpdate(SaNameT *compName,
                                          ClIocAddressT *logicalAddress)
 {
     ClRcT rc = CL_OK;
@@ -917,7 +917,7 @@ ClRcT clCpmComponentLogicalAddressUpdate(ClNameT *compName,
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
-    strcpy((cpmLA.compName), compName->value);
+    strcpy((cpmLA.compName), (const ClCharT*)compName->value);
     memcpy(&(cpmLA.logicalAddress), logicalAddress, sizeof(ClIocAddressT));
 
     rc = clCpmClientRMDSyncNew(clIocLocalAddressGet(), CPM_COMPONENT_LA_UPDATE,
@@ -937,7 +937,7 @@ ClRcT clCpmComponentLogicalAddressUpdate(ClNameT *compName,
     return rc;
 }
 
-ClRcT clCpmComponentPIDGetBySlot(ClIocNodeAddressT slot, const ClNameT *compName, ClUint32T *pid)
+ClRcT clCpmComponentPIDGetBySlot(ClIocNodeAddressT slot, const SaNameT *compName, ClUint32T *pid)
 {
     ClRcT rc = CL_OK;
     ClUint32T tempPid = 0;
@@ -954,10 +954,10 @@ ClRcT clCpmComponentPIDGetBySlot(ClIocNodeAddressT slot, const ClNameT *compName
     if(!slot) slot = clIocLocalAddressGet();
 
     rc = clCpmClientRMDSyncNew(slot, CPM_COMPONENT_PID_GET,
-                               (ClUint8T *) compName, sizeof(ClNameT),
+                               (ClUint8T *) compName, sizeof(SaNameT),
                                (ClUint8T *) &tempPid, &size,
                                CL_RMD_CALL_NEED_REPLY, 0, 0, 0,
-                               clXdrMarshallClNameT,
+                               clXdrMarshallSaNameT,
                                clXdrUnmarshallClUint32T);
     if (rc != CL_OK)
     {
@@ -973,13 +973,13 @@ ClRcT clCpmComponentPIDGetBySlot(ClIocNodeAddressT slot, const ClNameT *compName
 
 }
 
-ClRcT clCpmComponentPIDGet(const ClNameT *compName, ClUint32T *pid)
+ClRcT clCpmComponentPIDGet(const SaNameT *compName, ClUint32T *pid)
 {
     return clCpmComponentPIDGetBySlot(clIocLocalAddressGet(), compName, pid);
 }
 
 ClRcT clCpmComponentAddressGet(ClIocNodeAddressT nodeAddress,
-                               ClNameT *compName,
+                               SaNameT *compName,
                                ClIocAddressT *compAddress)
 {
     ClRcT               rc = CL_OK;
@@ -996,10 +996,10 @@ ClRcT clCpmComponentAddressGet(ClIocNodeAddressT nodeAddress,
 
     bufSize = sizeof(ClIocAddressIDLT);
     rc = clCpmClientRMDSyncNew(nodeAddress, CPM_COMPONENT_ADDRESS_GET,
-                               (ClUint8T *) compName, sizeof(ClNameT),
+                               (ClUint8T *) compName, sizeof(SaNameT),
                                (ClUint8T *) &idlCompAddress, &bufSize,
                                CL_RMD_CALL_NEED_REPLY, 0, 0, 0,
-                               clXdrMarshallClNameT,
+                               clXdrMarshallSaNameT,
                                UNMARSHALL_FN(ClIocAddressIDLT, 4, 0, 0));
     
     if (rc != CL_OK)
@@ -1026,7 +1026,7 @@ ClRcT clCpmComponentAddressGet(ClIocNodeAddressT nodeAddress,
 }
 
 ClRcT clCpmComponentIdGet(ClCpmHandleT cpmHandle,
-                          ClNameT *compName,
+                          SaNameT *compName,
                           ClUint32T *compId)
 {
     ClRcT rc = CL_OK;
@@ -1061,7 +1061,7 @@ ClRcT clAmfGetComponentId(ClCpmHandleT cpmHandle,
                                (ClUint8T *) compName, sizeof(SaNameT),
                                (ClUint8T *) compId, &bufSize,
                                CL_RMD_CALL_NEED_REPLY, 0, 0, 0,
-                               clXdrMarshallClNameT,
+                               clXdrMarshallSaNameT,
                                clXdrUnmarshallClUint32T);
    if (rc != CL_OK)
     {
@@ -1076,8 +1076,8 @@ ClRcT clAmfGetComponentId(ClCpmHandleT cpmHandle,
 
 
 
-ClRcT clCpmComponentStatusGet(ClNameT *compName,
-                              ClNameT *nodeName,
+ClRcT clCpmComponentStatusGet(SaNameT *compName,
+                              SaNameT *nodeName,
                               ClUint32T *presenceState,
                               ClUint32T *OperationalState)
 {
@@ -1102,8 +1102,8 @@ ClRcT clCpmComponentStatusGet(ClNameT *compName,
         status.nodeName.length = 0;
     }
     else
-        memcpy(&(status.nodeName), nodeName, sizeof(ClNameT));
-    memcpy(&(status.name), compName, sizeof(ClNameT));
+        memcpy(&(status.nodeName), nodeName, sizeof(SaNameT));
+    memcpy(&(status.name), compName, sizeof(SaNameT));
 
     rc = clCpmClientRMDSyncNew(clIocLocalAddressGet(), CPM_COMPONENT_STATUS_GET,
                                (ClUint8T *) &status, sizeof(ClCpmLifeCycleOprT),
@@ -1198,7 +1198,7 @@ ClRcT clCpmCpmLocalDeregister(ClCpmLocalInfoT *cpmLocalInfo)
     return rc;
 }
 
-ClRcT clCpmBootLevelGet(CL_IN ClNameT *nodeName, CL_OUT ClUint32T *bootLevel)
+ClRcT clCpmBootLevelGet(CL_IN SaNameT *nodeName, CL_OUT ClUint32T *bootLevel)
 {
     ClRcT rc = CL_OK;
     ClUint32T size = 0;
@@ -1214,7 +1214,7 @@ ClRcT clCpmBootLevelGet(CL_IN ClNameT *nodeName, CL_OUT ClUint32T *bootLevel)
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
-    memcpy(&(bootOp.nodeName), nodeName, sizeof(ClNameT));
+    memcpy(&(bootOp.nodeName), nodeName, sizeof(SaNameT));
 
     rc = clCpmClientRMDSyncNew(clIocLocalAddressGet(), CPM_BM_GET_CURRENT_LEVEL,
                                (ClUint8T *) &bootOp,
@@ -1235,7 +1235,7 @@ ClRcT clCpmBootLevelGet(CL_IN ClNameT *nodeName, CL_OUT ClUint32T *bootLevel)
     return rc;
 }
 
-ClRcT clCpmBootLevelSet(CL_IN ClNameT *nodeName,
+ClRcT clCpmBootLevelSet(CL_IN SaNameT *nodeName,
                         CL_IN ClCpmLcmReplyT *srcInfo,
                         CL_IN ClUint32T bootLevel)
 {
@@ -1265,7 +1265,7 @@ ClRcT clCpmBootLevelSet(CL_IN ClNameT *nodeName,
         bootOp.srcAddress.portId = srcInfo->srcPort;
         bootOp.rmdNumber = srcInfo->rmdNumber;
     }
-    memcpy(&(bootOp.nodeName), nodeName, sizeof(ClNameT));
+    memcpy(&(bootOp.nodeName), nodeName, sizeof(SaNameT));
     bootOp.bootLevel = bootLevel;
     bootOp.requestType = 0;
 
@@ -1287,7 +1287,7 @@ ClRcT clCpmBootLevelSet(CL_IN ClNameT *nodeName,
     return rc;
 }
 
-ClRcT clCpmBootLevelMax(CL_IN ClNameT *nodeName, CL_OUT ClUint32T *bootLevel)
+ClRcT clCpmBootLevelMax(CL_IN SaNameT *nodeName, CL_OUT ClUint32T *bootLevel)
 {
     ClRcT rc = CL_OK;
     ClCpmBootOperationT bootOp = {0};
@@ -1301,7 +1301,7 @@ ClRcT clCpmBootLevelMax(CL_IN ClNameT *nodeName, CL_OUT ClUint32T *bootLevel)
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
-    memcpy(&(bootOp.nodeName), nodeName, sizeof(ClNameT));
+    memcpy(&(bootOp.nodeName), nodeName, sizeof(SaNameT));
     size = sizeof(ClUint32T);
 
     rc = clCpmClientRMDSyncNew(clIocLocalAddressGet(), CPM_BM_GET_MAX_LEVEL,
@@ -1470,7 +1470,7 @@ ClRcT clCpmNodeShutDown(ClIocNodeAddressT iocNodeAddress)
     return rc;
 }
 
-ClRcT clCpmLocalNodeNameGet(CL_IN ClNameT *nodeName)
+ClRcT clCpmLocalNodeNameGet(CL_IN SaNameT *nodeName)
 {
     ClRcT rc = CL_OK;
     ClCharT *cName = NULL;
@@ -1492,7 +1492,7 @@ ClRcT clCpmLocalNodeNameGet(CL_IN ClNameT *nodeName)
     }
 
     if(ASP_NODENAME[0])
-        clNameSet(nodeName, ASP_NODENAME);
+        saNameSet(nodeName, ASP_NODENAME);
     else
     {
         rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
@@ -1523,7 +1523,7 @@ ClRcT clCpmHotSwapEventHandle(ClCmCpmMsgT *pCmCpmMsg)
 }
 
                                 // coverity[pass_by_value]
-ClRcT clCpmIocAddressForNodeGet(ClNameT nodeName, 
+ClRcT clCpmIocAddressForNodeGet(SaNameT nodeName, 
                                 ClIocAddressT *pIocAddress)
 {
     ClRcT   rc = CL_OK;
@@ -1537,10 +1537,10 @@ ClRcT clCpmIocAddressForNodeGet(ClNameT nodeName,
 
     bufSize = sizeof(ClIocAddressIDLT);
     rc = clCpmClientRMDSyncNew(masterAddress, CPM_NODE_IOC_ADDR_GET,
-                               (ClUint8T *) &nodeName, sizeof(ClNameT),
+                               (ClUint8T *) &nodeName, sizeof(SaNameT),
                                (ClUint8T *) &idlNodeAddress, &bufSize,
                                CL_RMD_CALL_NEED_REPLY, 0, 0, 0,
-                               clXdrMarshallClNameT,
+                               clXdrMarshallSaNameT,
                                UNMARSHALL_FN(ClIocAddressIDLT, 4, 0, 0));
 
     /*
@@ -1559,7 +1559,7 @@ failure:
 }
 
                              // coverity[pass_by_value]
-ClBoolT clCpmIsCompRestarted(ClNameT compName)
+ClBoolT clCpmIsCompRestarted(SaNameT compName)
 {
 	ClRcT rc = CL_OK;
 	ClUint32T isRestarted = 0;
@@ -1568,11 +1568,11 @@ ClBoolT clCpmIsCompRestarted(ClNameT compName)
     rc = clCpmClientRMDSyncNew(clIocLocalAddressGet(), 
                                CPM_COMPONENT_IS_COMP_RESTARTED,
                                (ClUint8T *) &compName, 
-                               sizeof(ClNameT),
+                               sizeof(SaNameT),
                                (ClUint8T *) &isRestarted, 
                                &bufSize,
                                CL_RMD_CALL_NEED_REPLY, 0, 0, 0,
-                               clXdrMarshallClNameT,
+                               clXdrMarshallSaNameT,
                                clXdrUnmarshallClUint32T);
 	if (CL_OK != rc)
 	{
@@ -1620,7 +1620,7 @@ static ClRcT cpmSlotGet(ClCpmSlotInfoT *pSlotInfo,
         break;
 
     case CL_CPM_NODENAME:
-        memcpy(&pSlotInfoRecv->nodeName, &pSlotInfo->nodeName, sizeof(ClNameT));
+        memcpy(&pSlotInfoRecv->nodeName, &pSlotInfo->nodeName, sizeof(SaNameT));
         break;
 
     default:
@@ -1643,12 +1643,12 @@ static ClRcT cpmSlotGet(ClCpmSlotInfoT *pSlotInfo,
     {
         case CL_CPM_SLOT_ID:
             pSlotInfo->nodeIocAddress = pSlotInfoRecv->nodeIocAddress;
-            memcpy(&pSlotInfo->nodeName, &pSlotInfoRecv->nodeName, sizeof(ClNameT));
+            memcpy(&pSlotInfo->nodeName, &pSlotInfoRecv->nodeName, sizeof(SaNameT));
             break;
 
         case CL_CPM_IOC_ADDRESS:
             pSlotInfo->slotId = pSlotInfoRecv->slotId;
-            memcpy(&pSlotInfo->nodeName, &pSlotInfoRecv->nodeName, sizeof(ClNameT));
+            memcpy(&pSlotInfo->nodeName, &pSlotInfoRecv->nodeName, sizeof(SaNameT));
             break;
 
         case CL_CPM_NODENAME:
@@ -1699,14 +1699,14 @@ ClRcT clCpmSlotGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
         rc = clNodeCacheSlotInfoGet(nodeCacheField, &nodeCacheSlotInfo);
         if(rc == CL_OK)
         {
-            clNameCopy(&slotInfo->nodeName, &nodeCacheSlotInfo.nodeName);
+            saNameCopy(&slotInfo->nodeName, &nodeCacheSlotInfo.nodeName);
             return rc;
         }
     }
     else if(flag == CL_CPM_NODENAME)
     {
         nodeCacheField = CL_NODE_CACHE_NODENAME;
-        clNameCopy(&nodeCacheSlotInfo.nodeName, &slotInfo->nodeName);
+        saNameCopy(&nodeCacheSlotInfo.nodeName, &slotInfo->nodeName);
         rc = clNodeCacheSlotInfoGet(nodeCacheField, &nodeCacheSlotInfo);
         if(rc == CL_OK)
         {
@@ -1813,7 +1813,7 @@ ClRcT clCpmNodeConfigGet(const ClCharT *nodeName, ClCpmNodeConfigT *nodeConfig)
 {
     ClIocNodeAddressT masterAddress = 0;
     ClUint32T configSize = 0;
-    ClNameT node = {0};
+    SaNameT node = {0};
     ClRcT rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
 
     if(!nodeName || !nodeConfig)
@@ -1821,7 +1821,7 @@ ClRcT clCpmNodeConfigGet(const ClCharT *nodeName, ClCpmNodeConfigT *nodeConfig)
         goto out;
     }
 
-    clNameSet(&node, nodeName);
+    saNameSet(&node, nodeName);
 
     rc = clCpmMasterAddressGet(&masterAddress);
     if(rc != CL_OK)
@@ -1839,7 +1839,7 @@ ClRcT clCpmNodeConfigGet(const ClCharT *nodeName, ClCpmNodeConfigT *nodeConfig)
                                (ClUint8T *)&node, sizeof(node),
                                (ClUint8T *) nodeConfig, &configSize,
                                CL_RMD_CALL_NEED_REPLY, 0, 0, CL_IOC_LOW_PRIORITY,
-                               clXdrMarshallClNameT,
+                               clXdrMarshallSaNameT,
                                UNMARSHALL_FN(ClCpmNodeConfigT, 4, 0, 0));
 
     if(rc != CL_OK)
@@ -2039,7 +2039,7 @@ ClBoolT clCpmIsSC(void)
     return cachedState ? CL_TRUE : CL_FALSE;
 }
 
-ClRcT clCpmCompInfoGet(const ClNameT *compName,
+ClRcT clCpmCompInfoGet(const SaNameT *compName,
                        const ClIocNodeAddressT nodeAddress,
                        ClCpmCompSpecInfoT *compInfo)
 {
@@ -2060,14 +2060,14 @@ ClRcT clCpmCompInfoGet(const ClNameT *compName,
     rc = clCpmClientRMDSyncNew(nodeAddress,
                                CPM_COMPONENT_INFO_GET,
                                (ClUint8T *)compName,
-                               sizeof(ClNameT),
+                               sizeof(SaNameT),
                                (ClUint8T *)&compInfoRecv,
                                &compInfoSize,
                                CL_RMD_CALL_NEED_REPLY,
                                0,
                                0,
                                CL_IOC_LOW_PRIORITY,
-                               clXdrMarshallClNameT,
+                               clXdrMarshallSaNameT,
                                UNMARSHALL_FN(ClCpmCompSpecInfoRecvT, 4, 0, 0));
     if (rc != CL_OK)
     {
@@ -2120,7 +2120,7 @@ failure:
 }
 
 ClRcT clCpmComponentFailureReportWithCookie(ClCpmHandleT cpmHandle,
-                                            const ClNameT *compName,
+                                            const SaNameT *compName,
                                             ClUint64T instantiateCookie,
                                             ClTimeT errorDetectionTime,
                                             ClAmsLocalRecoveryT recommendedRecovery,
@@ -2167,7 +2167,7 @@ ClRcT clCpmComponentFailureReportWithCookie(ClCpmHandleT cpmHandle,
                          CL_CPM_RC(CL_ERR_NO_MEMORY));
     }
 
-    memcpy(&(errorReport->compName), compName, sizeof(ClNameT));
+    memcpy(&(errorReport->compName), compName, sizeof(SaNameT));
     memcpy(&(errorReport->time), &errorDetectionTime, sizeof(ClTimeT));
     errorReport->recommendedRecovery = recommendedRecovery;
     errorReport->handle = alarmHandle;

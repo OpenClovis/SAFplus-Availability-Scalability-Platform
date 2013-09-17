@@ -28,9 +28,9 @@ extern "C" {
 #include <clLogStreamOwner.h>
 #include <clLogSvrCommon.h>    
 
-#define  CL_LOG_SO_SEC_SIZE          2 * sizeof(ClNameT) + \
+#define  CL_LOG_SO_SEC_SIZE          2 * sizeof(SaNameT) + \
                                      sizeof(ClLogStreamOwnerDataT)  
-#define  CL_LOG_SO_SEC_ID_SIZE       sizeof(ClNameT) + sizeof(soSecPrefix) 
+#define  CL_LOG_SO_SEC_ID_SIZE       sizeof(SaNameT) + sizeof(soSecPrefix) 
 /*#define  CL_LOG_CKPT_RETENTION_TIME  (1000L * 1000L * 1000L * 60) */
 #define  CL_LOG_MICROS_IN_SEC        (1000L * 1000L)  
                                         /* 5 minutes */    
@@ -68,12 +68,12 @@ clLogSOStreamEntryRecreate(ClUint32T  dsId,
 
 extern ClRcT
 clLogStreamOwnerLocalCheckpoint(CL_IN ClLogSOEoDataT         *pSoEoData,
-                                CL_IN ClNameT                *pStreamName,
-                                CL_IN ClNameT                *pStreamScope,
+                                CL_IN SaNameT                *pStreamName,
+                                CL_IN SaNameT                *pStreamScope,
                                 CL_IN ClLogStreamOwnerDataT  *pStreamOwnerData);
 extern ClRcT
-clLogStreamOwnerEntryPack(CL_IN ClNameT                *pStreamName,
-                          CL_IN ClNameT                *pStreamScopeNode,
+clLogStreamOwnerEntryPack(CL_IN SaNameT                *pStreamName,
+                          CL_IN SaNameT                *pStreamScopeNode,
                           CL_IN ClLogStreamOwnerDataT  *pStreamOwnerData,
                           CL_IN ClBufferHandleT        msg);
 extern ClRcT
@@ -87,7 +87,7 @@ clLogStreamOwnerLocalRecreate(ClHandleT       hLibCkpt,
 
 extern ClRcT
 clLogStreamOwnerCheckpointOpen(ClLogSOEoDataT  *pSoEoEntry,
-                               ClNameT         *pCkptName,
+                               SaNameT         *pCkptName,
                                ClHandleT       *phCkpt);
 
 extern ClRcT
@@ -97,8 +97,8 @@ clLogStreamOwnerCheckpoint(CL_IN ClLogSOEoDataT     *pSoEoEntry,
                            CL_IN ClLogStreamKeyT    *pStreamKey);
 extern ClRcT
 clLogStreamOwnerGlobalCheckpoint(CL_IN ClLogSOEoDataT         *pSoEoEntry,
-                                 CL_IN ClNameT                *pStreamName,
-                                 CL_IN ClNameT                *pStreamScopeNode,
+                                 CL_IN SaNameT                *pStreamName,
+                                 CL_IN SaNameT                *pStreamScopeNode,
                                  CL_IN ClLogStreamOwnerDataT  *pStreamOwnerData);
 
 extern ClRcT
@@ -127,7 +127,7 @@ clLogDsIdMapUnpack(ClBufferHandleT  msg,
 /* May be a common function */
 extern ClRcT
 clLogCheckpointOpen(CL_IN  ClLogSOEoDataT  *pSoEoEntry,
-                    CL_IN  ClNameT         *pCkptName,
+                    CL_IN  SaNameT         *pCkptName,
                     CL_OUT ClHandleT       *phCkpt);
 
 extern ClRcT

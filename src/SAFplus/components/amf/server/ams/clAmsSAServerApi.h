@@ -68,8 +68,8 @@ extern "C" {
 
 extern ClRcT
 _clAmsSACSIHAStateGet( 
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *csiName,
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *csiName,
         CL_OUT  ClAmsHAStateT  *haState );
 
 /*
@@ -92,7 +92,7 @@ extern ClRcT
 _clAmsSAPGTrackStop( 
         CL_IN  ClIocAddressT  iocAddress,
         CL_IN  ClCpmHandleT  cpmHandle,
-        CL_IN  ClNameT  *csiName);
+        CL_IN  SaNameT  *csiName);
 
 /*
  * _clAmsSAPGTrackAdd 
@@ -118,7 +118,7 @@ extern ClRcT
 _clAmsSAPGTrackAdd( 
         CL_IN  ClIocAddressT  iocAddress,
         CL_IN  ClCpmHandleT  cpmHandle,
-        CL_IN  ClNameT  *csiName,
+        CL_IN  SaNameT  *csiName,
         CL_IN  ClUint8T  trackFlags,
         CL_INOUT  ClAmsPGNotificationBufferT  *notificationBuffer);
 
@@ -164,7 +164,7 @@ extern ClRcT
 _clAmsSAPGTrackDispatch( 
         CL_IN  ClIocAddressT  iocAddress,
         CL_IN  ClCpmHandleT  cpmHandle,
-        CL_IN  ClNameT  *csiName,
+        CL_IN  SaNameT  *csiName,
         CL_IN  ClAmsPGNotificationBufferT  *buffer );
 
 /*
@@ -190,8 +190,8 @@ _clAmsSAPGTrackDispatch(
 
 extern ClRcT
 _clAmsSACSISet(
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *proxyCompName,
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *proxyCompName,
         CL_IN  ClInvocationT  invocation,
         CL_IN  ClAmsHAStateT  haState,
         CL_IN  ClAmsCSIDescriptorT  csiDescriptor );
@@ -201,8 +201,8 @@ _clAmsSACSISet(
  */
 extern ClRcT
 _clAmsSACSISetNoCkpt(
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *proxyCompName,
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *proxyCompName,
         CL_IN  ClInvocationT  invocation,
         CL_IN  ClAmsHAStateT  haState,
         CL_IN  ClAmsCSIDescriptorT  csiDescriptor );
@@ -229,8 +229,8 @@ _clAmsSACSISetNoCkpt(
 
 extern ClRcT
 _clAmsSACSIRemove(
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *proxyCompName,
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *proxyCompName,
         CL_IN  ClInvocationT  invocation,
         CL_IN  ClAmsCSIDescriptorT  csiDescriptor );
 
@@ -296,7 +296,7 @@ _clAmsSACSIOperationResponse(
 
 extern ClRcT
 _clAmsSAComponentErrorReport (
-        CL_IN  const ClNameT  *compName,
+        CL_IN  const SaNameT  *compName,
         CL_IN  ClTimeT  errorDetectionTime,
         CL_IN  ClAmsLocalRecoveryT  recommendedRecovery,
         CL_IN  ClUint32T  alarmHandle,
@@ -337,7 +337,7 @@ _clAmsSAFaultReportCallback(
  */
 
 extern ClRcT _clAmsSANodeFailFast(
-                                  CL_IN  ClNameT  *nodeName,
+                                  CL_IN  SaNameT  *nodeName,
                                   CL_IN  ClBoolT isASPAware);
 
 /*
@@ -353,11 +353,11 @@ extern ClRcT _clAmsSANodeFailFast(
  */
 
 extern ClRcT _clAmsSANodeFailOver(
-                                  CL_IN   ClNameT *nodeName,
+                                  CL_IN   SaNameT *nodeName,
                                   CL_IN   ClBoolT isASPAware);
 
 extern ClRcT _clAmsSANodeFailOverRestart(
-                                         CL_IN   ClNameT *nodeName,
+                                         CL_IN   SaNameT *nodeName,
                                          CL_IN   ClBoolT isASPAware);
 
 /*
@@ -379,8 +379,8 @@ extern ClRcT _clAmsSANodeFailOverRestart(
 
 extern ClRcT
 _clAmsSAComponentInstantiate(
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *proxyCompName,
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *proxyCompName,
         CL_IN  ClUint64T instantiateCookie );
 
 
@@ -401,7 +401,7 @@ _clAmsSAComponentInstantiate(
  */
 extern ClRcT
 _clAmsSAProxiedComponentInstantiate(
-        CL_IN   ClNameT             *compName,
+        CL_IN   SaNameT             *compName,
         CL_IN   ClInvocationT       invocation);
 
 /*
@@ -423,8 +423,8 @@ _clAmsSAProxiedComponentInstantiate(
 
 extern ClRcT
 _clAmsSAComponentTerminate(
-        CL_IN  ClNameT  *compName,
-        CL_IN  ClNameT  *proxyCompName );
+        CL_IN  SaNameT  *compName,
+        CL_IN  SaNameT  *proxyCompName );
 
 /*
  * _clAmsSAComponentCleanup
@@ -445,8 +445,8 @@ _clAmsSAComponentTerminate(
 
 extern ClRcT
 _clAmsSAComponentCleanup(
-        CL_IN  ClNameT  *compName, 
-        CL_IN  ClNameT  *proxyCompName );
+        CL_IN  SaNameT  *compName, 
+        CL_IN  SaNameT  *proxyCompName );
 
 /*
  * _clAmsSAProxiedComponentCleanup
@@ -465,7 +465,7 @@ _clAmsSAComponentCleanup(
 
 extern ClRcT
 _clAmsSAProxiedComponentCleanup(
-       CL_IN    ClNameT             *compName,
+       CL_IN    SaNameT             *compName,
        CL_IN    ClInvocationT       invocation );
 
 /*
@@ -484,7 +484,7 @@ _clAmsSAProxiedComponentCleanup(
 
 extern ClRcT
 _clAmsSAComponentRestart(
-        CL_IN   ClNameT             *compName );
+        CL_IN   SaNameT             *compName );
 
 /*
  * _clAmsSAComponentOperationResponse
@@ -505,7 +505,7 @@ _clAmsSAComponentRestart(
 
 extern ClRcT 
 _clAmsSAComponentOperationResponse(
-        CL_IN  ClNameT  compName,
+        CL_IN  SaNameT  compName,
         CL_IN  ClCpmCompRequestTypeT  requestType,
         CL_IN  ClRcT  retCode );
 
@@ -575,7 +575,7 @@ extern ClRcT _clAmsSAEntitySetConfig(CL_IN ClAmsEntityConfigT *entityConfig,
 
 extern ClRcT 
 _clAmsSANodeJoin(
-        CL_IN  ClNameT  *nodeName );
+        CL_IN  SaNameT  *nodeName );
 
 /*
  * _clAmsSANodeLeave
@@ -595,7 +595,7 @@ _clAmsSANodeJoin(
 
 extern ClRcT 
 _clAmsSANodeLeave(
-        CL_IN  ClNameT  *nodeName,
+        CL_IN  SaNameT  *nodeName,
         CL_IN  ClCpmNodeLeaveT  request,
         CL_IN  ClBoolT scFailover);
 
@@ -615,7 +615,7 @@ _clAmsSANodeLeave(
 
 extern ClRcT 
 _clAmsSANodeLeaveCompleted(
-                           CL_IN  ClNameT  *nodeName,
+                           CL_IN  SaNameT  *nodeName,
                            ClCpmNodeLeaveT nodeLeave);
 
 /*
@@ -666,10 +666,10 @@ extern ClRcT
 _clAmsSANodeAdd(const ClCharT *node);
 
 extern ClRcT
-_clAmsSANodeRestart(const ClNameT *nodeName, ClBoolT graceful);
+_clAmsSANodeRestart(const SaNameT *nodeName, ClBoolT graceful);
 
 extern ClRcT
-_clAmsSANodeHalt(ClNameT *nodeName, ClBoolT aspAware, ClBoolT ckpt);
+_clAmsSANodeHalt(SaNameT *nodeName, ClBoolT aspAware, ClBoolT ckpt);
 
 extern ClRcT
 _clAmsSAClusterReset(ClAmsT *ams);
@@ -876,7 +876,7 @@ _clAmsSAXMLizeDB(void);
 
 extern ClRcT
 _clAmsSAMarshalRmdParams(
-        CL_IN   ClNameT                 *compName,
+        CL_IN   SaNameT                 *compName,
         CL_OUT  ClCharT                 **nodeName,
         CL_OUT  ClIocPhysicalAddressT   *physAddr );
 

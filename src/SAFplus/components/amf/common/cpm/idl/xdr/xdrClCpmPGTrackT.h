@@ -52,7 +52,7 @@ struct _ClCpmPGTrackT_4_0_0;
 
 typedef struct _ClCpmPGTrackT_4_0_0 {
     ClHandleT    cpmHandle;
-    ClNameT    csiName;
+    SaNameT    csiName;
     ClUint8T    trackFlags;
     ClIocAddressIDLT_4_0_0    iocAddress;
     ClUint32T    responseNeeded;
