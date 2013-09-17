@@ -45,6 +45,10 @@
 #include <clIocApiExt.h>
 #include <clEoIpi.h>
 
+#ifdef NO_SAF
+# include <rmdServerTest.h>
+#endif
+
 #ifdef DMALLOC
 # include "dmalloc.h"
 #endif
@@ -327,6 +331,7 @@ ClRcT rmdHandleAsyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
         clientID &= CL_EO_CLIENT_ID_MASK;
 
         RMD_DBG4((" RMD No Need to send the reply\n"));
+#ifndef NO_SAF
         rc = clEoServiceValidate(pThis,
                                  pReq->ClRmdHdr.fnID);
         if (rc != CL_OK)
@@ -335,7 +340,23 @@ ClRcT rmdHandleAsyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
                       (rc)));
             return rc;
         }
-
+#endif
+#ifdef NO_SAF
+        if (!pThis->pServerTable
+                    ||
+                    !clRmdServerClientTableFilter(pThis->eoPort, clientID))
+        {
+            rc = clRmdServerWalk(pThis, pReq->ClRmdHdr.fnID,
+                          clRmdInvoke, inMsgHdl, 0);
+        }
+        else
+        {
+            ClVersionT version =  {0};
+            memcpy(&version, &pReq->ClRmdHdr.clientVersion, sizeof(version));
+            rc = clRmdServerWalkWithVersion(pThis, pReq->ClRmdHdr.fnID,
+                                     &version, clRmdInvoke, inMsgHdl, 0);
+        }
+#else
         if(!pThis->pServerTable || !clEoClientTableFilter(pThis->eoPort,
                                                           clientID))
         {
@@ -349,6 +370,7 @@ ClRcT rmdHandleAsyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
             rc = clEoWalkWithVersion(pThis, pReq->ClRmdHdr.fnID,
                                      &version, clRmdInvoke, inMsgHdl, 0);
         }
+#endif
 
         return CL_OK;
 
@@ -386,13 +408,15 @@ ClRcT rmdHandleAsyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
 
     if(!recordActive)
     {
+#ifndef NO_SAF
         rc = clEoServiceValidate(pThis, pReq->ClRmdHdr.fnID);
         if (rc != CL_OK)
         {
             RMD_DBG1(("%s: Service Not Running RC : [0x%x]\n", __FUNCTION__, (rc)));
         }
-
+#endif
     }
+
     else
     {
         /* remove atmost once from the flags for active record*/
@@ -408,7 +432,22 @@ ClRcT rmdHandleAsyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
     {
         ClUint32T clientID = pReq->ClRmdHdr.fnID >> CL_EO_CLIENT_BIT_SHIFT;
         clientID &= CL_EO_CLIENT_ID_MASK;
-
+#ifdef NO_SAF
+        if (!pThis->pServerTable
+            ||
+            !clRmdServerClientTableFilter(pThis->eoPort, clientID))
+        {
+            rc = clRmdServerWalk(pThis, pReq->ClRmdHdr.fnID,
+                          clRmdInvoke, inMsgHdl, replyMsg);
+        }
+        else
+        {
+            ClVersionT version  = {0};
+            memcpy(&version, &pReq->ClRmdHdr.clientVersion, sizeof(version));
+            rc = clRmdServerWalkWithVersion(pThis, pReq->ClRmdHdr.fnID,
+                                     &version, clRmdInvoke, inMsgHdl, replyMsg);
+        }
+#else
         if (!pThis->pServerTable
             || 
             !clEoClientTableFilter(pThis->eoPort, clientID))
@@ -423,6 +462,7 @@ ClRcT rmdHandleAsyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
             rc = clEoWalkWithVersion(pThis, pReq->ClRmdHdr.fnID,
                                      &version, clRmdInvoke, inMsgHdl, replyMsg);
         }
+#endif
     }
     if (responseContext.isInProgress != CL_TRUE)
     {
@@ -690,7 +730,7 @@ ClRcT rmdHandleSyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
         /*
          * not converting the msgID in host order will use it as it is
          */
-        rc = atmostOnceProcessing(pThis, pReq, srcAddr, priority, &recvRecord, &responseContext.atmostOnceKey, 
+        rc = atmostOnceProcessing(pThis, pReq, srcAddr, priority, &recvRecord, &responseContext.atmostOnceKey,
                                   &recordActive);
         if (rc != CL_OK)        /* it is either dup or some other error */
         {
@@ -707,15 +747,19 @@ ClRcT rmdHandleSyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
                   rc));
         return rc;
     }
-    
+
+
+
     if(!recordActive)
     {
-        rc = clEoServiceValidate(pThis,
+#ifndef NO_SAF
+    	rc = clEoServiceValidate(pThis,
                                  pReq->ClRmdHdr.fnID);
         if (rc != CL_OK)
         {
             RMD_DBG1(("%s: Service Not Running RC : [0x%x]\n", __FUNCTION__, (rc)));
         }
+#endif
     }
     else
     {
@@ -746,9 +790,24 @@ ClRcT rmdHandleSyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
                       __FUNCTION__, rc));
             return rc;
         }
-
+#ifdef NO_SAF
         if (!pThis->pServerTable
-            || 
+            ||
+            !clRmdServerClientTableFilter(pThis->eoPort, clientID))
+        {
+            rc = clRmdServerWalk(pThis, pReq->ClRmdHdr.fnID,
+                          clRmdInvoke, inMsgHdl, replyMsg);
+        }
+        else
+        {
+            ClVersionT version = {0};
+            memcpy(&version, &pReq->ClRmdHdr.clientVersion, sizeof(version));
+            rc = clRmdServerWalkWithVersion(pThis, pReq->ClRmdHdr.fnID,
+                                     &version, clRmdInvoke, inMsgHdl, replyMsg);
+        }
+#else
+        if (!pThis->pServerTable
+            ||
             !clEoClientTableFilter(pThis->eoPort, clientID))
         {
             rc = clEoWalk(pThis, pReq->ClRmdHdr.fnID,
@@ -761,6 +820,7 @@ ClRcT rmdHandleSyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
             rc = clEoWalkWithVersion(pThis, pReq->ClRmdHdr.fnID,
                                      &version, clRmdInvoke, inMsgHdl, replyMsg);
         }
+#endif
     }
 
     if (responseContext.isInProgress != CL_TRUE)
@@ -853,7 +913,6 @@ ClRcT rmdResponseSend(ClEoExecutionObjT *pThis,
     /*
      * Set Return Code 
      */
-
     sndOption.linkHandle = 0;
     sndOption.msgOption = CL_IOC_PERSISTENT_MSG;
     sndOption.timeout = pSendContext->ClRmdHdr.callTimeout;
@@ -867,7 +926,6 @@ ClRcT rmdResponseSend(ClEoExecutionObjT *pThis,
     clOsalMutexLock(pRmdObject->semaForRecvHashTable);
 
     RMD_STAT_INC(pRmdObject->rmdStats.nReplySend);
-
     rc = clIocSend(pThis->commObj, replyMsg,
                    replyType, &srcAddr, &sndOption);
     if (rc != CL_OK)
@@ -1539,11 +1597,11 @@ static ClRcT rmdAtmostTimerDBCleanup(ClRmdObjT *pRmdObject, ClTimeT td)
                 else
                 {
                     if ((rec->atmostOnceEntryLifeTime) < td)
-                        rec->atmostOnceEntryLifeTime = 
-                            CL_MIN(td * (rec->maxTries), 
-                                   CL_RMD_DEFAULT_TIMEOUT * CL_RMD_DEFAULT_RETRIES);    /* reset 
-                                                                                         * to 
-                                                                                         * higher 
+                        rec->atmostOnceEntryLifeTime =
+                            CL_MIN(td * (rec->maxTries),
+                                   CL_RMD_DEFAULT_TIMEOUT * CL_RMD_DEFAULT_RETRIES);    /* reset
+                                                                                         * to
+                                                                                         * higher
                                                                                          * value */
                     nodeHandle = nodeHandle1;
                     continue;

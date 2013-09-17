@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+      <cpmConfigs>
+        <cpmConfig cpmType="GLOBAL" nodeType="SysController">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="corSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="cmSU"/>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+        <cpmConfig cpmType="LOCAL" nodeType="WorkerNode">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+      </cpmConfigs>
+      <nodeInstances>
+        <nodeInstance name="SysControllerI0" nodeMoId="\Chassis:0\GenericBlade:0" type="SysController">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="RmdReceiverSUI0" rank="0" type="RmdReceiverSU">
+              <componentInstances>
+                <componentInstance name="RmdReceiverI0" type="RmdReceiver"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="EventReceiverSUI0" rank="0" type="EventReceiverSU">
+              <componentInstances>
+                <componentInstance name="EventReceiverI0" type="EventReceiver"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="SysLogWriterSUI0" rank="0" type="SysLogWriterSU">
+              <componentInstances>
+                <componentInstance name="SysLogWriterI0" type="SysLogWriter"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="CkptReaderWriterSUI0" rank="0" type="CkptReaderWriterSU">
+              <componentInstances>
+                <componentInstance name="CkptReaderWriterI0" type="CkptReaderWriter"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="SysControllerI1" nodeMoId="\Chassis:0\GenericBlade:1" type="SysController">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="CkptReaderWriterSUI1" rank="0" type="CkptReaderWriterSU">
+              <componentInstances>
+                <componentInstance name="CkptReaderWriterI1" type="CkptReaderWriter"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="WorkerNodeI0" nodeMoId="\Chassis:0\GenericBlade:2" type="WorkerNode">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="RmdSenderSUI0" rank="0" type="RmdSenderSU">
+              <componentInstances>
+                <componentInstance name="RmdSenderI0" type="RmdSender"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="EventSenderSUI0" rank="0" type="EventSenderSU">
+              <componentInstances>
+                <componentInstance name="EventSenderI0" type="EventSender"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="WkrLogWriterSUI0" rank="0" type="WkrLogWriterSU">
+              <componentInstances>
+                <componentInstance name="WkrLogWriterI0" type="WkrLogWriter"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="WorkerNodeI1" nodeMoId="\Chassis:0\GenericBlade:3" type="WorkerNode">
+          <serviceUnitInstances/>
+          <dependencies node=""/>
+        </nodeInstance>
+      </nodeInstances>
+      <serviceGroups>
+        <serviceGroup name="RmdReceiverSGI0" type="RmdReceiverSG">
+          <serviceInstances>
+            <serviceInstance name="RmdReceiverSII0" type="RmdReceiverSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="RmdReceiverCSII0" type="RmdReceiverCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>RmdReceiverSUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="EventReceiverSGI0" type="EventReceiverSG">
+          <serviceInstances>
+            <serviceInstance name="EventReceiverSII0" type="EventReceiverSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="EventReceiverCSII0" type="EventReceiverCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>EventReceiverSUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="SysLogWriterSGI0" type="SysLogWriterSG">
+          <serviceInstances>
+            <serviceInstance name="SysLogWriterSII0" type="SysLogWriterSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="SysLogWriterCSII0" type="SysLogWriterCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>SysLogWriterSUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="CkptReaderWriterSGI0" type="CkptReaderWriterSG">
+          <serviceInstances>
+            <serviceInstance name="CkptReaderWriterSII0" type="CkptReaderWriterSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="CkptReaderWriterCSII0" type="CkptReaderWriterCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>CkptReaderWriterSUI0</associatedServiceUnit>
+            <associatedServiceUnit>CkptReaderWriterSUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="RmdSenderSGI0" type="RmdSenderSG">
+          <serviceInstances>
+            <serviceInstance name="RmdSenderSII0" type="RmdSenderSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="RmdSenderCSII0" type="RmdSenderCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>RmdSenderSUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="EventSenderSGI0" type="EventSenderSG">
+          <serviceInstances>
+            <serviceInstance name="EventSenderSII0" type="EventSenderSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="EventSenderCSII0" type="EventSenderCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>EventSenderSUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="WkrLogWriterSGI0" type="WkrLogWriterSG">
+          <serviceInstances>
+            <serviceInstance name="WkrLogWriterSII0" type="WkrLogWriterSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="WkrLogWriterCSII0" type="WkrLogWriterCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>WkrLogWriterSUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+      </serviceGroups>
+    </amfConfig>
+  </version>
+</openClovisAsp>

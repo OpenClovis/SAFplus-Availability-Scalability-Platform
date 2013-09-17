@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<multixport:multixport xmlns:multixport="multixport.ecore">
+  <xports>
+    <xport>
+      <type>TIPC</type>
+      <plugin>libClTIPC.so</plugin>
+    </xport>
+    <xport>
+      <type>UDP</type>
+      <plugin>libClUDP.so</plugin>
+    </xport>
+  </xports>
+  <protocol default="TIPC">
+    <node protocol="TIPC UDP" name="Node0I0"/>
+    <node protocol="TIPC UDP" name="Node0I1"/>
+    <node protocol="TIPC UDP" name="Node1I0"/>
+    <node protocol="TIPC UDP" name="Node1I1"/>
+  </protocol>
+  <multicast address="225.1.1.1" port="5678"/>
+  <heartbeat>
+    <interval>3000</interval>
+    <intervalLocal>3000</intervalLocal>
+    <retries>3</retries>
+  </heartbeat>
+</multixport:multixport>

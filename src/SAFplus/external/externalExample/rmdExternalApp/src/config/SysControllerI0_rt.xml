@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <compInstances xmlns="cpmconfig.ecore">
+      <compInst compName="RmdReceiverI0"/>
+      <compInst compName="EventReceiverI0"/>
+      <compInst compName="SysLogWriterI0"/>
+      <compInst compName="CkptReaderWriterI0"/>
+    </compInstances>
+  </version>
+</openClovisAsp>

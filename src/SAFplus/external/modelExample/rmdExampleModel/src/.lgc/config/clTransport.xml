@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <multixport:multixport xmlns:multixport="multixport.ecore">
+      <xports>
+        <xport>
+          <type>TIPC</type>
+          <plugin>libClTIPC.so</plugin>
+        </xport>
+        <xport>
+          <type>UDP</type>
+          <plugin>libClUDP.so</plugin>
+        </xport>
+      </xports>
+      <protocol default="TIPC">
+        <node name="Node0I0" protocol="TIPC UDP"/>
+        <node name="Node0I1" protocol="TIPC UDP"/>
+        <node name="Node1I0" protocol="TIPC UDP"/>
+        <node name="Node1I1" protocol="TIPC UDP"/>
+      </protocol>
+    </multixport:multixport>
+  </version>
+</openClovisAsp>

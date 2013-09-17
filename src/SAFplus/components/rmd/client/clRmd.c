@@ -54,7 +54,9 @@
 # include "dmalloc.h"
 #endif
 #include <sys/time.h>
-
+#ifdef NO_SAF
+# include <rmdServer.h>
+#endif
 #ifdef MORE_CODE_COVERAGE
 # include<clCodeCovStub.h>
 #endif
@@ -289,9 +291,11 @@ ClRcT clRmdWithMsg(ClIocAddressT remoteObjAddr, /* remote Obj addr */
         rc = CL_RMD_RC(CL_ERR_NOT_INITIALIZED);
         goto err_out;
     }
-
+#ifdef NO_SAF
+    clRmdServerIocPortGet(&srcPort);
+#else
     clEoMyEoIocPortGet(&srcPort);
-
+#endif
 #ifdef RMD_DISABLE_HIGH_PRI
     if ((srcPort != CL_IOC_CPM_PORT) && (pOptions && CL_IOC_HIGH_PRIORITY == pOptions->priority))
     {
@@ -343,8 +347,12 @@ ClRcT clRmdWithMsg(ClIocAddressT remoteObjAddr, /* remote Obj addr */
     {
         dstPort = remoteObjAddr.iocPhyAddress.portId;
     }
-
+#ifdef NO_SAF
+    clRmdServerClientGetFuncVersion(dstPort, funcId, &version);
+#else
     clEoClientGetFuncVersion(dstPort, funcId, &version);
+#endif
+
 
     /*
      * Check node cache version only if function version is greater than minimum.
@@ -475,13 +483,11 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
     ClRcT retVal = 0, retVal1 = 0;
     ClRcT retCode = 0;
     ClEoExecutionObjT *pThis = NULL;
-    ClEoExecutionObjT *remoteEoObj = NULL;
     ClRmdObjT *pRmdObject = NULL;
     ClUint64T msgId = 0, nwOrderMsgId = 0;
     ClRmdOptionsT tempOptions = { 0 };
     ClRmdAsyncOptionsT tempAsyncOptions = { 0 };
     ClBufferHandleT message = 0;
-    ClIocPortT locIocPort = 0;
     ClRmdRecordSendT *pSendRec = NULL;
     ClCntNodeHandleT nodeHandle = 0;
     ClUint32T payloadLen = 0;
@@ -489,8 +495,15 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
     ClUint32T hdrLen = 0;
 
     CL_FUNC_ENTER();
-
+#ifdef NO_SAF
+    retVal = clRmdServerMyRmdObjectGet(&pThis);
+#else
+    ClIocPortT locIocPort = 0;
+    ClEoExecutionObjT *remoteEoObj = NULL;
     retVal = clEoMyEoObjectGet(&pThis);
+
+#endif
+
     if (retVal != CL_OK)
     {
         /*
@@ -643,6 +656,9 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
             ((flags & CL_RMD_CALL_DO_NOT_OPTIMIZE) == 0) &&
             (remoteObjAddr.iocPhyAddress.nodeAddress == clIocLocalAddressGet()))
         {
+#ifdef NO_SAF
+        	return CL_RMD_RC(CL_ERR_NOT_SUPPORTED);
+#else
             retVal =
                 clEoGetRemoteObjectAndBlock(remoteObjAddr.iocPhyAddress.portId,
                                             &remoteEoObj);
@@ -717,6 +733,7 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
                 (void) clEoRemoteObjectUnblock(remoteEoObj);
                 return retVal;
             }
+#endif
         }
 
         RMD_DBG3(("  RMD Sync Path\n"));
@@ -820,7 +837,7 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
         }
 
         clRmdDumpPkt("sending async req", message);
-        
+
         retVal1 =
             clIocSend(pThis->commObj, message, protoType,
                       &remoteObjAddr, &sndOption);
@@ -853,8 +870,12 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
                 clBufferDelete(&notificationMsg);
                 goto error_out;
             }
-
+#ifdef NO_SAF
+            clRmdServerSendErrorNotify(notificationMsg, &recvParam);
+#else
             clEoSendErrorNotify(notificationMsg, &recvParam);
+#endif
+
         } else if(retVal1 != CL_OK) {
             RMD_DBG1(("%s: Failed in IOC Rc :0x%x\n", __FUNCTION__,
                       CL_RMD_RC(retVal1)));
@@ -937,7 +958,12 @@ ClRcT clRmdStatsReset(void)
     ClRmdObjT *pRmdObject = NULL;
 
     CL_FUNC_ENTER();
+#ifdef NO_SAF
+    retVal = clRmdServerMyRmdObjectGet(&pThis);
+#else
     retVal = clEoMyEoObjectGet(&pThis);
+#endif
+
     if (retVal != CL_OK)
     {
         /*
@@ -969,8 +995,11 @@ ClRcT clRmdStatsGet(ClRmdStatsT *pStats)
     {
         return CL_RMD_RC(CL_ERR_INVALID_PARAMETER);
     }
-
+#ifdef NO_SAF
+    rc = clRmdServerMyRmdObjectGet(&pThis);
+#else
     rc = clEoMyEoObjectGet(&pThis);
+#endif
     if (rc != CL_OK)
     {
         /*
@@ -1337,7 +1366,12 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
     if(!pRmdObj)
     {
         ClEoExecutionObjT *pThis = NULL;
+#ifdef NO_SAF
+         rc = clRmdServerMyRmdObjectGet(&pThis);
+#else
         rc = clEoMyEoObjectGet(&pThis);
+#endif
+
         if(rc != CL_OK)
         {
             CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to get my EO object. error code [0x%x].\n", rc));

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource:resourceInformation xmlns:resource="resource.ecore">
+  <chassisResource rdn="0" name="Chassis" maxInstances="1" numSlots="16">
+    <contains target="Blade0" sourceMultiplicity="1" targetMultiplicity="1"/>
+  </chassisResource>
+  <nodeHardwareResource rdn="390584951" name="Blade0" documentation="" maxInstances="1000" deviceObject="">
+    <alarmManagement isEnabled="false" pollingInterval="100"/>
+    <provisioning isEnabled="false"/>
+  </nodeHardwareResource>
+</resource:resourceInformation>
