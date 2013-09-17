@@ -30,7 +30,7 @@ SRC_FILES       :=  iocExternalMain.c iocExternalReceiver.c iocExternalSender.c
 #DEP_COMP_LIST	:= 	utils osal timer buffer cnt ioc eo rmd 
  
 
-ASP_LIBS	:= libexternal.a \
+ASP_LIBS := libmw.a
  
                    
 #SYS_LIBS	:= 	-lpthread
