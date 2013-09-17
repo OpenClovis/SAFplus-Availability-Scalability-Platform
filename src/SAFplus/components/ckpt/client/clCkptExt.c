@@ -100,11 +100,11 @@
 #define CKPT_LIST_GET_KEY(key, name) do {           \
     ClUint32T __len = (name)->length;               \
     ClCharT *__p = NULL ;                           \
-    if(__len >= (ClUint32T)sizeof((const ClCharT *)((name)->value)))   \
-        __len = sizeof((const ClCharT *)((name)->value))-1;            \
+    if(__len >= (ClUint32T)sizeof((name)->value))   \
+        __len = sizeof((name)->value)-1;            \
     if(!(key))                                      \
-        (key) = ((ClCharT *)((name)->value));                      \
-    if( (key) != ((ClCharT *)((name)->value)))                     \
+        (key) = (ClCharT *)(name)->value;                      \
+    if( (key) != (ClCharT *)(name)->value)                     \
         strncpy((key), (const ClCharT *)((name)->value), __len);       \
     if( (__p = strrchr ((key), '/')))               \
         key = __p + 1;                              \
