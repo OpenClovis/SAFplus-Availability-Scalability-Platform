@@ -63,6 +63,7 @@ ClRcT clRmdInvoke(ClEoPayloadWithReplyCallbackT func, ClEoDataT eoArg,
                   ClBufferHandleT inMsgHdl,
                   ClBufferHandleT outMsgHdl)
 {
+
     ClRmdHdrT inHdr = {{0}};
     ClRcT rc = CL_OK;
     ClUint8T hdrBuffer[sizeof(ClRmdHdrT)*2] = {0};
@@ -128,6 +129,7 @@ ClRcT clRmdInvoke(ClEoPayloadWithReplyCallbackT func, ClEoDataT eoArg,
 
     if ((inHdr.flags & CL_RMD_CALL_NEED_REPLY))
     {
+
         RMD_DBG3((" RMD Reply needed Params\n"));
         rc = clBufferWriteOffsetSet(outMsgHdl, 0, CL_BUFFER_SEEK_SET);
         if (CL_OK != rc)
@@ -143,6 +145,7 @@ ClRcT clRmdInvoke(ClEoPayloadWithReplyCallbackT func, ClEoDataT eoArg,
     }
     else
     {
+
         RMD_DBG3((" RMD Reply not needed \n"));
         rc = func(eoArg, inMsgHdl, 0);
         if (CL_OK != rc)

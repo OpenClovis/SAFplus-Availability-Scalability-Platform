@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ckpt:BootConfig xmlns:ckpt="ckpt.ecore">
+  <ckptPerf>
+      <!--Type of checkpoint, the valid values would be 
+      "sync", "async", "collocated" -->
+      <ckptType>sync</ckptType>
+      <!--Num of checkpoints need to be created -->
+      <numCkpts>10</numCkpts>
+      <!--Num of Sections of each Checkpoint-->
+      <numSections>1000</numSections>
+      <!--Max Size of the data that will be written 
+      to each section in bytes-->
+      <sectionSize>100</sectionSize>
+      <!--While measuring CPU performance, interval 
+      between two calls in second-->
+      <timeInterval>1</timeInterval>
+  </ckptPerf>
+</ckpt:BootConfig>

@@ -42,6 +42,9 @@
 #include <sys/time.h>
 #include <clIocApiExt.h>
 
+#ifdef NO_SAF
+# include <rmdServerTest.h>
+#endif
 
 #ifdef DMALLOC
 # include "dmalloc.h"
@@ -160,7 +163,7 @@ ClRcT clRmdCreateAndAddRmdSendRecord(ClEoExecutionObjT *pThis,
     rec->recType.asyncRec.outLen = payloadLen;
     rec->recType.asyncRec.priority = pOptions->priority;
     rec->recType.asyncRec.destAddr = destAddr;
-
+    clLogNotice("RMD", "IOCSend","port send reply : %d  %d %d ",destAddr.iocPhyAddress.nodeAddress, destAddr.iocPhyAddress.portId,(int)destAddr.iocLogicalAddress );
     rec->recType.asyncRec.sndMsgHdl = message;
 
     rec->recType.asyncRec.timerID   = 0;
@@ -256,8 +259,11 @@ static ClRcT rmdSendTimerFunc(void *pData)
     {
         return (CL_RMD_RC(CL_ERR_INVALID_BUFFER));
     }
-
+#ifdef NO_SAF
+    rc = clRmdServerMyRmdObjectGet(&pThis);
+#else
     rc = clEoMyEoObjectGet(&pThis);
+#endif
     if ( CL_OK != rc )
     {
         return rc;
@@ -271,17 +277,18 @@ static ClRcT rmdSendTimerFunc(void *pData)
 
     rc = clOsalMutexLock(pRmdObject->semaForSendHashTable);
     CL_ASSERT(rc == CL_OK);
-
+    clLogNotice("CALLBACK", "TASKS","Enter rmdSendTimerFunc 0");
     rc = clCntNodeFind(pRmdObject->sndRecContainerHandle, (ClPtrT)(ClWordT)msgId,
                        &nodeHandle);
     if (rc == CL_OK)
     {
+    	clLogNotice("CALLBACK", "TASKS","Enter rmdSendTimerFunc 1");
 
         rc = clCntNodeUserDataGet(pRmdObject->sndRecContainerHandle, nodeHandle,
                                   (ClCntDataHandleT *) &rec);
         if (rc == CL_OK)
         {
-
+        	clLogNotice("CALLBACK", "TASKS","Enter rmdSendTimerFunc 2");
             if (rec)
             {
                 /*
