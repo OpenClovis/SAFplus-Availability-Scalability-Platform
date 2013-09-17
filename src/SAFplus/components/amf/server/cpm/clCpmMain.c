@@ -47,6 +47,7 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <dlfcn.h>
 #endif
 
 /*
@@ -72,6 +73,7 @@
 #include <clLeakyBucket.h>
 #include <clJobQueue.h>
 #include <clAms.h>
+#include <clCpmPluginApi.h>
 /*
  * ASP Internal header files
  */
@@ -202,6 +204,54 @@ static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                                   ClUint8T protoType,
                                   ClUint32T length,
                                   ClIocPhysicalAddressT srcAddr);
+
+ClPluginHandle* clNodeDetectStatusPluginHandle = NULL;
+
+extern ClIocNodeAddressT gIocLocalBladeAddress;
+
+static ClIocAddressT allNodeReps;
+static ClIocLogicalAddressT allLocalComps;
+
+/*
+ * bypassed the function into extension plugin
+ */
+void clCpmPluginNotification(ClIocNodeAddressT node, ClNodeStatus status)
+{
+    /*
+     * All node in cluster
+     */
+    allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+
+    /*
+     * All local components
+     */
+    allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress, CL_IOC_BROADCAST_ADDRESS);
+
+    CL_DEBUG_PRINT (CL_DEBUG_TRACE, ("clCpmPluginNotification plugin notification node: [%d] status [%d]\n", node, status));
+
+    switch (status)
+    {
+        case ClNodeStatusUp:
+        {
+                clIocNotificationNodeStatusSend(gpClCpm->cpmEoObj->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, node,
+                                (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
+                break;
+        }
+
+        case ClNodeStatusDown:
+        {
+            clIocNotificationNodeStatusSend(gpClCpm->cpmEoObj->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, node,
+                            (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
+            break;
+        }
+        default:
+        {
+            /* GAS */
+            break;
+        }
+    }
+}
 
 /*
  * FIXME: added to get around unresolved symbol errors for clEoConfig and
@@ -1715,6 +1765,30 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     gpClCpm->activeMasterNodeId = 0;
     
     gpClCpm->polling = 1;
+
+    /*
+     * Load a customer's node detect status plugin, if it exists
+     */
+    clNodeDetectStatusPluginHandle = clLoadPlugin(CL_CPM_NODE_DETECT_STATUS_PLUGIN_ID, CL_CPM_NODE_DETECT_STATUS_PLUGIN_VERSION,
+                    CL_CPM_NODE_DETECT_STATUS_PLUGIN_NAME);
+    if (NULL != clNodeDetectStatusPluginHandle)
+    {
+        clPluginNotificationRunT pluginTaskRun;
+
+        *(void**) &pluginTaskRun = dlsym(clNodeDetectStatusPluginHandle->dlHandle, CL_CPM_PLUGIN_RUN_TASK_NAME);
+        if (NULL == pluginTaskRun)
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
+                            ("Unable to find the '%s' in plugin '%s', reason: [%s]", CL_CPM_NODE_DETECT_STATUS_PLUGIN_NAME, CL_CPM_PLUGIN_RUN_TASK_NAME, dlerror()));
+        }
+        else
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
+                            ("Running '%s' in plugin '%s'", CL_CPM_PLUGIN_RUN_TASK_NAME, CL_CPM_NODE_DETECT_STATUS_PLUGIN_NAME));
+            pluginTaskRun(clCpmPluginNotification);
+        }
+
+    }
 
     /*
      * Initialization is done. So now start the BM which will create a thread
