@@ -241,7 +241,7 @@ void clCpmPluginNotification(ClIocNodeAddressT node, ClNodeStatus status)
 
         case ClNodeStatusDown:
         {
-            clIocNotificationNodeStatusSend(gpClCpm->cpmEoObj->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, node,
+            clIocNotificationNodeStatusSend(gpClCpm->cpmEoObj->commObj, CL_IOC_NODE_LEAVE_NOTIFICATION, node,
                             (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
             break;
         }
