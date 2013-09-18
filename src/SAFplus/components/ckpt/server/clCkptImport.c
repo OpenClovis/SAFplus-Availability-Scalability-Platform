@@ -435,7 +435,7 @@ ClRcT clCkptMasterPeerUpdateNoLock(ClIocPortT        portId,
             CL_ASSERT(pPeerInfo->ckptList != 0);
             pPeerInfo->credential = credential;
             pPeerInfo->available  = CL_CKPT_NODE_AVAIL;
-#if 0
+
             if(localAddr != gCkptSvr->localAddr)
             {
                 clLogNotice("PEER", "UPDATE", 
@@ -443,7 +443,6 @@ ClRcT clCkptMasterPeerUpdateNoLock(ClIocPortT        portId,
                 clCkptMasterReplicaListUpdateNoLock(localAddr);
                 pPeerInfo->replicaCount = 0;
             }
-#endif
         }
         else
         {
