@@ -64,6 +64,7 @@
 #include <clIocUserApi.h>
 #include "clTipcSetup.h"
 #include <clTransport.h>
+#include <clAmfPluginApi.h>
 
 #define CL_TIPC_HANDLER_MAX_SOCKETS            3
 
@@ -289,6 +290,18 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
 
                 compAddr.nodeAddress = event.found_lower;
                 compAddr.portId = CL_IOC_XPORT_PORT;
+
+                /*
+                 * Calling AMF plugin to get status if it is defined
+                 */
+                if (clAmfPlugin && clAmfPlugin->clAmfNodeStatus)
+                {
+                    if ((event.event == TIPC_WITHDRAWN) && (clAmfPlugin->clAmfNodeStatus(compAddr.nodeAddress) == ClNodeStatusUp))
+                    {
+                        /* DO NOT let the rest of the system see the failure */
+                        return CL_OK;
+                    }
+                }
 
                 clLogInfo("TIPC", "NOTIF", "Got node [%s] notification for node [%d]", 
                           event.event == TIPC_PUBLISHED ? "arrival" : "death", compAddr.nodeAddress);

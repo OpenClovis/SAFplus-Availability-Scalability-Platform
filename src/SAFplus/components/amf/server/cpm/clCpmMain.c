@@ -35,7 +35,6 @@
 #include <signal.h>
 #include <errno.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <errno.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -47,7 +46,6 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <dlfcn.h>
 #endif
 
 /*
@@ -73,7 +71,7 @@
 #include <clLeakyBucket.h>
 #include <clJobQueue.h>
 #include <clAms.h>
-#include <clCpmPluginApi.h>
+#include <clAmfPluginApi.h>
 /*
  * ASP Internal header files
  */
@@ -205,8 +203,6 @@ static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                                   ClUint32T length,
                                   ClIocPhysicalAddressT srcAddr);
 
-ClPluginHandle* clNodeDetectStatusPluginHandle = NULL;
-
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 
 static ClIocAddressT allNodeReps;
@@ -215,7 +211,7 @@ static ClIocLogicalAddressT allLocalComps;
 /*
  * bypassed the function into extension plugin
  */
-void clCpmPluginNotification(ClIocNodeAddressT node, ClNodeStatus status)
+void clAmfPluginNotificationCallback(ClIocNodeAddressT node, ClNodeStatus status)
 {
     /*
      * All node in cluster
@@ -227,8 +223,7 @@ void clCpmPluginNotification(ClIocNodeAddressT node, ClNodeStatus status)
      * All local components
      */
     allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress, CL_IOC_BROADCAST_ADDRESS);
-
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE, ("clCpmPluginNotification plugin notification node: [%d] status [%d]\n", node, status));
+    CL_DEBUG_PRINT (CL_DEBUG_TRACE, ("%s node: [%d] status [%d]\n", __FUNCTION__, node, status));
 
     switch (status)
     {
@@ -1769,25 +1764,16 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     /*
      * Load a customer's node detect status plugin, if it exists
      */
-    clNodeDetectStatusPluginHandle = clLoadPlugin(CL_CPM_NODE_DETECT_STATUS_PLUGIN_ID, CL_CPM_NODE_DETECT_STATUS_PLUGIN_VERSION,
-                    CL_CPM_NODE_DETECT_STATUS_PLUGIN_NAME);
-    if (NULL != clNodeDetectStatusPluginHandle)
+    clAmfPluginHandle = clLoadPlugin(CL_AMF_PLUGIN_ID, CL_AMF_PLUGIN_VERSION, CL_AMF_PLUGIN_NAME);
+    if (NULL != clAmfPluginHandle)
     {
-        clPluginNotificationRunT pluginTaskRun;
+        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Loaded AMF plugin [%s].", CL_AMF_PLUGIN_NAME));
 
-        *(void**) &pluginTaskRun = dlsym(clNodeDetectStatusPluginHandle->dlHandle, CL_CPM_PLUGIN_RUN_TASK_NAME);
-        if (NULL == pluginTaskRun)
+        clAmfPlugin = (ClAmfPluginApi*) clAmfPluginHandle->pluginApi;
+        if (clAmfPlugin->clAmfRunTask)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                            ("Unable to find the '%s' in plugin '%s', reason: [%s]", CL_CPM_NODE_DETECT_STATUS_PLUGIN_NAME, CL_CPM_PLUGIN_RUN_TASK_NAME, dlerror()));
+            clAmfPlugin->clAmfRunTask(clAmfPluginNotificationCallback);
         }
-        else
-        {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                            ("Running '%s' in plugin '%s'", CL_CPM_PLUGIN_RUN_TASK_NAME, CL_CPM_NODE_DETECT_STATUS_PLUGIN_NAME));
-            pluginTaskRun(clCpmPluginNotification);
-        }
-
     }
 
     /*

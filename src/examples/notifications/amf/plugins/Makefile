@@ -11,8 +11,8 @@ SRC_FILES	:= $(wildcard *.c)
 
 DEP_COMP_LIST	:= utils osal timer buffer cnt debug eo rmd ioc amf
 
-SRC_FILES_cpmStatusNodeGet := $(SRC_FILES)
-PURIFY_SHARED_LIB_NAMES := cpmStatusNodeGet
+SRC_FILES_amfPlugin := $(SRC_FILES)
+PURIFY_SHARED_LIB_NAMES := amfPlugin
 
 #ifdef SOLARIS_BUILD
 #EXTRA_SHARED_LDFLAGS=-L$(ASP_LIB) -lmw $(LIB_BERKELEY_DB) -L$(MODEL_LIB) -L$(COMP_ROOT)/ground/client -lClGround

@@ -1,5 +1,5 @@
 /*
- * A example plugin to faster node detect status
+ * An example AMF plugin to faster node detect status
  */
 #include <stdio.h>
 #include <string.h>
@@ -9,18 +9,18 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#include <clCpmPluginApi.h>
+#include <clAmfPluginApi.h>
 #include <sys/inotify.h>
 
 // This structure defines the plugin's interface with the program that loads it.
-ClCpmPluginApi api;
+ClAmfPluginApi api;
 
 #define NODESTATUS "/tmp/nodeStatus.txt"
 
 static ClNodeStatus nodeMap[1024];
 static unsigned char buffer[1024];
 
-ClNodeStatus status(int node)
+ClNodeStatus clAmfPluginStatus(ClIocNodeAddressT node)
 {
     return nodeMap[node];
 }
@@ -44,8 +44,8 @@ void updateANotificationNodeStatus()
                 // Check to call passed notification func about node status change
                 if (nodeMap[nodeNum] == ClNodeStatusUp)
                 {
-                    if (api.callback)
-                        api.callback(nodeNum, ClNodeStatusDown);
+                    if (api.clAmfNotificationCallback)
+                        api.clAmfNotificationCallback(nodeNum, ClNodeStatusDown);
                 }
                 nodeMap[nodeNum] = ClNodeStatusDown;
             }
@@ -54,8 +54,8 @@ void updateANotificationNodeStatus()
                 // Check to call passed notification func about node status change
                 if (nodeMap[nodeNum] == ClNodeStatusDown)
                 {
-                    if (api.callback)
-                        api.callback(nodeNum, ClNodeStatusUp);
+                    if (api.clAmfNotificationCallback)
+                        api.clAmfNotificationCallback(nodeNum, ClNodeStatusUp);
                 }
                 nodeMap[nodeNum] = ClNodeStatusUp;
             }
@@ -113,12 +113,12 @@ void *clPluginRunTask(void *pParam)
     return EXIT_SUCCESS;
 }
 
-extern "C" int clPluginNotificationRun(clCpmNotificationCallbackT callback)
+ClRcT clAmfPluginNotificationRun(clAmfPluginNotificationCallbackT callback)
 {
     if (callback)
-        api.callback = callback;
+        api.clAmfNotificationCallback = callback;
 
-    clLogInfo("CPM", "PLG", "Example cpm plugin node detect status");
+    clLogInfo("AMF", "PLG", "An example AMF plugin");
     /*
      * main loop here...
      */
@@ -126,13 +126,15 @@ extern "C" int clPluginNotificationRun(clCpmNotificationCallbackT callback)
     return rc;
 }
 
-extern "C" ClPlugin *clPluginInitialize(ClWordT preferredPluginVersion)
+ClPlugin *clPluginInitialize(ClWordT preferredPluginVersion)
 {
     // We can only provide a single version, so don't bother with the 'preferredPluginVersion' variable.
 
     // Initialize the plugin data structure
-    api.pluginInfo.pluginId = CL_CPM_NODE_DETECT_STATUS_PLUGIN_ID;
-    api.pluginInfo.pluginVersion = CL_CPM_NODE_DETECT_STATUS_PLUGIN_VERSION;
+    api.pluginInfo.pluginId = CL_AMF_PLUGIN_ID;
+    api.pluginInfo.pluginVersion = CL_AMF_PLUGIN_VERSION;
+    api.clAmfRunTask = clAmfPluginNotificationRun;
+    api.clAmfNodeStatus = clAmfPluginStatus;
 
     // return it
     return (ClPlugin*) &api;
