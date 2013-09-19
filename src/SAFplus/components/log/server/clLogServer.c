@@ -2734,7 +2734,7 @@ clLogSvrMasterCompListUpdate(void)
     for( count = 0; count < nLogAspComps; count++ )
     {
         compLen = strlen(aspCompMap[count].pCompName);
-        snprintf((ClCharT *)pCompData[count].compName.value, sizeof((const ClCharT *)pCompData[count].compName.value), "%.*s_%.*s",
+        snprintf((ClCharT *)pCompData[count].compName.value, sizeof(pCompData[count].compName.value), "%.*s_%.*s",
                 compLen, aspCompMap[count].pCompName, nodeName.length,
                 (const ClCharT *)nodeName.value);
         pCompData[count].compName.length = strlen((const ClCharT *)pCompData[count].compName.value);

@@ -464,9 +464,8 @@ clLogPrecreatedStreamsDataGet(ClLogStreamDataT     *pStreamAttr[],
                     rc = CL_LOG_RC(CL_ERR_NO_MEMORY);
                     goto ParseError;
                 }
-                        snprintf((ClCharT *) ((pData->streamName).value), sizeof((const ClCharT *) ((pData->streamName).value)), "%s",
-                                        fd1->attr[1]);
-                        (pData->streamName).length = strlen((const ClCharT *)((pData->streamName).value));
+                snprintf((ClCharT *) ((pData->streamName).value), sizeof((pData->streamName).value), "%s", fd1->attr[1]);
+                (pData->streamName).length = strlen((const ClCharT *) ((pData->streamName).value));
 
                 if(NULL != (temp = clParserChild(fd1, "streamScope")))
                 {

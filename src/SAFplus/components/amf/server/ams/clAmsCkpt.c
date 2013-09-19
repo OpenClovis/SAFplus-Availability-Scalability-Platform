@@ -187,7 +187,7 @@ static ClRcT clAmsCkptSectionOverwriteNoLock(ClCkptHdlT ckptHandle,
     {
         goto error;
     }
-    sectionAttribs.sectionId->idLen = strlen((const ClCharT*)pSection->value);
+    sectionAttribs.sectionId->idLen = strlen((const ClCharT *)pSection->value) + 1;
     sectionAttribs.sectionId->id=(ClUint8T *) clHeapAllocate(sectionAttribs.sectionId->idLen);
     if(sectionAttribs.sectionId->id == NULL)
     {
@@ -239,7 +239,7 @@ static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
     {
         goto error;
     }
-    sectionAttribs.sectionId->idLen = strlen((const ClCharT*)pSection->value);
+    sectionAttribs.sectionId->idLen = strlen((const ClCharT *)pSection->value) + 1;
     sectionAttribs.sectionId->id=(ClUint8T *) clHeapAllocate(sectionAttribs.sectionId->idLen);
     if(sectionAttribs.sectionId->id == NULL)
     {
@@ -333,7 +333,7 @@ static ClRcT clAmsCkptSectionCreate(ClAmsT  *ams,
     {
         goto error;
     }
-    sectionAttribs.sectionId->idLen = strlen ((const ClCharT*)pSection->value);
+    sectionAttribs.sectionId->idLen = strlen((const ClCharT *)pSection->value) + 1;
     sectionAttribs.sectionId->id=(ClUint8T *) clHeapAllocate(sectionAttribs.sectionId->idLen);
     if(sectionAttribs.sectionId->id == NULL)
     {
@@ -471,7 +471,7 @@ static ClRcT clAmsCkptDBInitialize(void)
         goto out;
     }
 
-    snprintf((ClCharT*)gClAmsCkptDBName.value, sizeof((const ClCharT*)gClAmsCkptDBName.value),
+    snprintf((ClCharT*)gClAmsCkptDBName.value, sizeof(gClAmsCkptDBName.value),
              "%s/%s", dbPath, CL_AMS_CKPT_DB_NAME);
 
     gClAmsCkptDBName.length = strlen((const ClCharT*)gClAmsCkptDBName.value);
@@ -764,53 +764,38 @@ clAmsCkptInitialize(
 
     saNameSet(&ckptName,CL_AMS_CKPT_NAME);
 
-    for(i = 0; i < 2; ++i)
+    for (i = 0; i < 2; ++i)
     {
         ClCharT buf[sizeof(SaNameT)];
-        snprintf(buf,sizeof(buf),"%s_%d",AMS_CKPT_DB_SECTION,i+1);
-        memset (&ams->ckptDBSections[i],0,sizeof (SaNameT));
-        strncpy((ClCharT*)ams->ckptDBSections[i].value,buf,
-                sizeof((const ClCharT*)ams->ckptDBSections[i].value)-1);
-        ams->ckptDBSections[i].length = strlen(buf)+1;
+        snprintf(buf, sizeof(buf), "%s_%d", AMS_CKPT_DB_SECTION, i + 1);
+        memset(&ams->ckptDBSections[i], 0, sizeof(SaNameT));
+        strncpy((ClCharT *)ams->ckptDBSections[i].value, buf, sizeof(ams->ckptDBSections[i].value) - 1);
+        ams->ckptDBSections[i].length = strlen(buf) + 1;
         memset(&ams->ckptDirtySections[i], 0, sizeof(SaNameT));
-        snprintf(buf, sizeof(buf), "%s_%d", AMS_CKPT_DIRTY_SECTION, i+1);
-        strncpy((ClCharT*)ams->ckptDirtySections[i].value, buf, sizeof((const ClCharT*)ams->ckptDirtySections[i].value)-1);
-        ams->ckptDirtySections[i].length = strlen(buf)+1;
-        memset (&ams->ckptInvocationSections[i],0,sizeof (SaNameT));
-        snprintf(buf,sizeof(buf),"%s_%d",AMS_CKPT_INVOCATION_SECTION,i+1);
-        strncpy ((ClCharT*)ams->ckptInvocationSections[i].value,buf,
-                 sizeof((const ClCharT*)ams->ckptInvocationSections[i].value)-1);
-        ams->ckptInvocationSections[i].length = strlen(buf)+1;
-        memcpy(&gClAmsCkptDBSectionCache[i], &ams->ckptDBSections[i], 
-               sizeof(gClAmsCkptDBSectionCache[i]));
-        memcpy(&gClAmsCkptDirtySectionCache[i], &ams->ckptDirtySections[i],
-               sizeof(gClAmsCkptDirtySectionCache[i]));
-        memcpy(&gClAmsCkptInvocationSectionCache[i], &ams->ckptInvocationSections[i],
-               sizeof(gClAmsCkptInvocationSectionCache[i]));
-        amsCkptDifferenceVectorKeyGet(&ams->ckptDifferenceVectorKeys[i],
-                                      &ams->ckptDBSections[i]);
+        snprintf(buf, sizeof(buf), "%s_%d", AMS_CKPT_DIRTY_SECTION, i + 1);
+        strncpy((ClCharT *)ams->ckptDirtySections[i].value, buf, sizeof(ams->ckptDirtySections[i].value) - 1);
+        ams->ckptDirtySections[i].length = strlen(buf) + 1;
+        memset(&ams->ckptInvocationSections[i], 0, sizeof(SaNameT));
+        snprintf(buf, sizeof(buf), "%s_%d", AMS_CKPT_INVOCATION_SECTION, i + 1);
+        strncpy((ClCharT *)ams->ckptInvocationSections[i].value, buf, sizeof(ams->ckptInvocationSections[i].value) - 1);
+        ams->ckptInvocationSections[i].length = strlen(buf) + 1;
+        memcpy(&gClAmsCkptDBSectionCache[i], &ams->ckptDBSections[i], sizeof(gClAmsCkptDBSectionCache[i]));
+        memcpy(&gClAmsCkptDirtySectionCache[i], &ams->ckptDirtySections[i], sizeof(gClAmsCkptDirtySectionCache[i]));
+        memcpy(&gClAmsCkptInvocationSectionCache[i], &ams->ckptInvocationSections[i], sizeof(gClAmsCkptInvocationSectionCache[i]));
+        amsCkptDifferenceVectorKeyGet(&ams->ckptDifferenceVectorKeys[i], &ams->ckptDBSections[i]);
     }
 
     /*Make the current section as the first DB INVOCATION PAIR*/
-    memset(&ams->ckptCurrentSection,0,sizeof(ams->ckptCurrentSection));
-    strncpy((ClCharT*)ams->ckptCurrentSection.value,AMS_CKPT_CURRENT_SECTION,
-            sizeof((const ClCharT*)ams->ckptCurrentSection.value)-1);
+    memset(&ams->ckptCurrentSection, 0, sizeof(ams->ckptCurrentSection));
+    strncpy((ClCharT *)ams->ckptCurrentSection.value, AMS_CKPT_CURRENT_SECTION, sizeof(ams->ckptCurrentSection.value) - 1);
     ams->ckptCurrentSection.length = strlen(AMS_CKPT_CURRENT_SECTION) + 1;
-    memcpy(&gClAmsCkptCurrentSectionCache, &ams->ckptCurrentSection, 
-           sizeof(gClAmsCkptCurrentSectionCache));
-    memset (&ams->ckptVersionSection,0,sizeof (SaNameT));
-    strncpy ((ClCharT*)ams->ckptVersionSection.value, AMS_CKPT_VERSION_SECTION,
-             sizeof((const ClCharT*)ams->ckptVersionSection.value)-1);
-    ams->ckptVersionSection.length = strlen (AMS_CKPT_VERSION_SECTION) + 1;
+    memcpy(&gClAmsCkptCurrentSectionCache, &ams->ckptCurrentSection, sizeof(gClAmsCkptCurrentSectionCache));
+    memset(&ams->ckptVersionSection, 0, sizeof(SaNameT));
+    strncpy((ClCharT *)ams->ckptVersionSection.value, AMS_CKPT_VERSION_SECTION, sizeof(ams->ckptVersionSection.value) - 1);
+    ams->ckptVersionSection.length = strlen(AMS_CKPT_VERSION_SECTION) + 1;
 
     ams->ckptInitHandle = ckptInitHandle;
-    AMS_CHECK_RC_ERROR ( clCkptCheckpointOpen(
-                                              ckptInitHandle,
-                                              &ckptName,
-                                              &ckptAttributes,
-                                              flags,
-                                              timeout,
-                                              &ckptOpenHandle));
+    AMS_CHECK_RC_ERROR(clCkptCheckpointOpen(ckptInitHandle, &ckptName, &ckptAttributes, flags, timeout, &ckptOpenHandle));
     
     ams->ckptOpenHandle = ckptOpenHandle;
 

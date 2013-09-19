@@ -79,7 +79,7 @@
        ClCharT appBasePath[CL_MAX_NAME_LENGTH+1];                       \
        ClCharT *appBaseName = NULL;                                     \
        ClCharT  *path = NULL;                                           \
-       if(! (path = strrchr((ClCharT *)appName, '/') ) )                           \
+       if(! (path = strrchr(appName, '/') ) )                           \
        {                                                                \
            path = CKPT_DB_PATH;                                         \
            appBaseName = (ClCharT*)appName;                             \
@@ -87,7 +87,7 @@
        else                                                             \
        {                                                                \
            memset(appBasePath, 0, sizeof(appBasePath));                 \
-           strncpy(appBasePath, (const ClCharT *)appName, CL_MIN(path-(ClCharT *)appName, sizeof(appBasePath)-1)); \
+           strncpy(appBasePath, appName, CL_MIN(path-appName, sizeof(appBasePath)-1)); \
            appBaseName = path + 1;                                      \
            path = appBasePath;                                          \
        }                                                                \
@@ -1680,7 +1680,7 @@ ClRcT clCkptLibraryDoesCkptExist( ClCkptSvcHdlT      ckptHdl,
             if(pCkpt && !pCkpt->usrDbHdl)
             {
                 ClCharT  tempDb[CL_MAX_NAME_LENGTH];
-                CL_CKPT_APP_NAME_FORM(tempDb, pCkptName->value);
+                CL_CKPT_APP_NAME_FORM(tempDb, (ClCharT *)pCkptName->value);
                 /* Open the file in APPEND mode */
                 clLogDebug("DBAL", "CHECK", "Opening the dbal ckpt at [%s]", tempDb);
                 rc   = clDbalOpen (tempDb,

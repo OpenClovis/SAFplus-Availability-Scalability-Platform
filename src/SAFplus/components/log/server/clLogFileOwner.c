@@ -2625,7 +2625,7 @@ clLogFileOwnerCompAdd(ClCntKeyHandleT   key,
         for( count = 0; count < nLogAspComps; count++ )
         {
             compLen = strlen(aspCompMap[count].pCompName);
-            snprintf((ClCharT *)compName.value, sizeof((const ClCharT *)compName.value), "%.*s_%.*s", compLen,
+            snprintf((ClCharT *)compName.value, sizeof(compName.value), "%.*s_%.*s", compLen,
                     aspCompMap[count].pCompName, nodeName.length,
                     (const ClCharT *)nodeName.value);
             compName.length = strlen((const ClCharT *)compName.value);

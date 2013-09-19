@@ -656,7 +656,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             ClAmsSIConfigT siConfig = {{0}};
             ClAmsCSIConfigT csiConfig = {{0}};
             si.type = CL_AMS_ENTITY_TYPE_SI;
-            snprintf((ClCharT*)si.name.value, sizeof((const ClCharT*)si.name.value)-1, "%s_%.*s_SI%d", prefix,
+            snprintf((ClCharT*)si.name.value, sizeof(si.name.value)-1, "%s_%.*s_SI%d", prefix,
                      sgName->name.length-1, (const ClCharT*)sgName->name.value, i);
             clLogNotice("AMS", "MIGRATE", "Creating SI [%s]", si.name.value);
             si.name.length = strlen((const ClCharT*)si.name.value)+1;
@@ -699,7 +699,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             }
 
             csi.type = CL_AMS_ENTITY_TYPE_CSI;
-            snprintf((ClCharT*)csi.name.value, sizeof((const ClCharT*)csi.name.value),
+            snprintf((ClCharT*)csi.name.value, sizeof(csi.name.value),
                      "%s_CSI%d", (const ClCharT*)si.name.value, i-siBuffer.count);
             csi.name.length = strlen((const ClCharT*)csi.name.value)+1;
             clLogNotice("AMS", "MIGRATE", "Creating CSI [%s]", csi.name.value);
@@ -760,7 +760,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
         {
             ClAmsEntityT node = {0};
             node.type = CL_AMS_ENTITY_TYPE_NODE;
-            snprintf((ClCharT*) node.name.value, sizeof((const ClCharT*) node.name.value), "%s_Node%d", prefix, i);
+            snprintf((ClCharT*) node.name.value, sizeof(node.name.value), "%s_Node%d", prefix, i);
             node.name.length = strlen((const ClCharT*) node.name.value) + 1;
             clLogNotice("AMS", "MIGRATE", "Creating node [%s]", node.name.value);
             rc = clAmsMgmtCCBEntityCreate(ccbHandle, &node);
@@ -900,7 +900,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             ClUint64T bitMask = 0;
 
             su.type = CL_AMS_ENTITY_TYPE_SU;
-            snprintf((ClCharT*)su.name.value, sizeof((const ClCharT*)su.name.value),
+            snprintf((ClCharT*)su.name.value, sizeof(su.name.value),
                      "%s_%s_SU%d", prefix, (const ClCharT*)nodeList[i-suBuffer.count].name.value, i);
 
             su.name.length = strlen((const ClCharT*)su.name.value)+1;
@@ -942,7 +942,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             }
             
             comp.type = CL_AMS_ENTITY_TYPE_COMP;
-            snprintf((ClCharT*) comp.name.value, sizeof((const ClCharT*) comp.name.value), "%s_Comp%d", su.name.value, i - suBuffer.count);
+            snprintf((ClCharT*) comp.name.value, sizeof(comp.name.value), "%s_Comp%d", su.name.value, i - suBuffer.count);
             comp.name.length = strlen((const ClCharT*) comp.name.value) + 1;
             clLogNotice("AMS", "MIGRATE", "Creating component [%s]",
                         comp.name.value);

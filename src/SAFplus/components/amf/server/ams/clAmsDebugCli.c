@@ -2194,7 +2194,7 @@ clAmsDebugCliEntityTrigger(
                     return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
                 }
                 memset(entity.name.value, 0, sizeof(entity.name.value));
-                strncpy((ClCharT*)entity.name.value, argv[2], sizeof((const ClCharT*)entity.name.value)-1);
+                strncpy((ClCharT*)entity.name.value, argv[2], sizeof(entity.name.value)-1);
                 entity.name.length = strlen((const ClCharT*)entity.name.value)+1;
                 return clAmsEntityTriggerLoadTrigger(&entity, id);
             }
@@ -2215,8 +2215,8 @@ clAmsDebugCliEntityTrigger(
 
         reset_entity:
 
-        memset(entity.name.value, 0, sizeof((const ClCharT*)entity.name.value));
-        strncpy((ClCharT*)entity.name.value, argv[3], sizeof((const ClCharT*)entity.name.value)-1);
+        memset(entity.name.value, 0, sizeof(entity.name.value));
+        strncpy((ClCharT*)entity.name.value, argv[3], sizeof(entity.name.value)-1);
         entity.name.length = strlen((const ClCharT*)entity.name.value)+1;
 
         if(doReset == CL_TRUE)
@@ -2252,7 +2252,7 @@ clAmsDebugCliEntityTrigger(
 
         entity_recovery:
         memset(entity.name.value, 0, sizeof(entity.name.value));
-        strncpy((ClCharT*)entity.name.value, pEntity, sizeof((const ClCharT*)entity.name.value)-1);
+        strncpy((ClCharT*)entity.name.value, pEntity, sizeof(entity.name.value)-1);
         entity.name.length = strlen((const ClCharT*)entity.name.value)+1;
         return clAmsEntityTriggerRecoveryReset(&entity, id);
     }
