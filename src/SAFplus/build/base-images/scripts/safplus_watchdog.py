@@ -19,6 +19,7 @@ import asp
 import os
 import sys
 import time
+import logging
 
 ASP_RESTART_FILE = 'safplus_restart'
 ASP_WATCHDOG_RESTART_FILE='safplus_restart_watchdog'
@@ -68,14 +69,14 @@ def amf_watchdog_loop():
     while True:
         pid = asp.get_amf_pid()
         if pid == 0:
-            asp.log.critical('AMF watchdog invoked on %s' %\
+            logging.critical('AMF watchdog invoked on %s' %\
                              time.strftime('%a %d %b %Y %H:%M:%S'))
             is_restart = os.access(restart_file, os.F_OK)
             is_forced_restart = os.access(watchdog_restart_file, os.F_OK)
             if is_restart or is_forced_restart:
                 safe_remove(restart_file) 
                 safe_remove(watchdog_restart_file)
-                asp.log.debug('AMF watchdog restarting ASP...')
+                logging.debug('AMF watchdog restarting ASP...')
                 asp.zap_asp(False)
                 ## give time for pending ops to complete
                 ## we unload the TIPC module and let ASP start reload it, 
@@ -93,14 +94,14 @@ def amf_watchdog_loop():
                     asp.zap_asp()
                     sys.exit(1)
                 else:
-                    asp.log.debug('AMF watchdog rebooting %s...'
+                    logging.debug('AMF watchdog rebooting %s...'
                                   % asp.get_asp_node_name())
                     asp.run_custom_scripts('reboot')
                     asp.proc_lock_file('remove')
                     os.system('reboot')
             elif os.access(restart_disable_file, os.F_OK):
                 safe_remove(restart_disable_file)
-                asp.log.debug('AMF watchdog ignoring failure of %s '
+                logging.debug('AMF watchdog ignoring failure of %s '
                               'as node failfast/failover recovery action '
                               'was called on it and ASP_NODE_REBOOT_DISABLE '
                               'environment variable is set for it.'
@@ -108,7 +109,7 @@ def amf_watchdog_loop():
                 asp.zap_asp()
                 sys.exit(1)
             else:
-                asp.log.debug('AMF watchdog invocation default case')
+                logging.debug('AMF watchdog invocation default case')
 
                 if not asp_admin_stop():
                     asp.zap_asp(False)
@@ -129,14 +130,14 @@ def amf_watchdog_loop():
                 if openhpid_pid == 0:
                     # openhpid is DOWN and we have seen it before
                     # we should bring it back
-                    asp.log.debug('AMF watchdog expected openhpid but did not find it. Restarting openhpid...')
+                    logging.debug('AMF watchdog expected openhpid but did not find it. Restarting openhpid...')
 
                     # zap it to make sure its DEAD
                     os.popen('killall openhpid 2>/dev/null')
                     #time.sleep(1)
                     asp.start_openhpid()
                 else:
-                    asp.log.debug('AMF watchdog openhpid pid(%d) found as expected, nothing to do.' % openhpid_pid)
+                    logging.debug('AMF watchdog openhpid pid(%d) found as expected, nothing to do.' % openhpid_pid)
 
             else:
                 if openhpid_pid != 0:
@@ -165,20 +166,21 @@ def redirect_file():
             os.close(fd)
         except OSError:
             pass
+    # We don't redirect stdout, stderr to amf_watchdog.log, so comment out these code
+    #redirect_to = '%s/amf_watchdog.log' % asp.get_asp_log_dir()
 
-    redirect_to = '%s/amf_watchdog.log' % asp.get_asp_log_dir()
+    #os.open(redirect_to, os.O_RDWR | os.O_CREAT)
+    #os.dup2(0, 1)
+    #os.dup2(0, 2)
 
-    os.open(redirect_to, os.O_RDWR | os.O_CREAT)
-    os.dup2(0, 1)
-    os.dup2(0, 2)
-
-def main():
+def main():    
     asp.check_py_version()
     redirect_file()
+    logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(message)s', level=logging.INFO)    
     amf_pid = asp.wait_until_amf_up()
     if not amf_pid:
-        asp.log.critical('ASP did not come up successfully...')
-        asp.log.critical('Cleaning up...')
+        logging.critical('ASP did not come up successfully...')
+        logging.critical('Cleaning up...')
         asp.kill_asp()
         sys.exit(1)
     amf_watchdog_loop()
