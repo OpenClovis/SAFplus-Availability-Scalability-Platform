@@ -45,7 +45,7 @@ ClRcT clMsgQDatabaseUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMs
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -175,7 +175,7 @@ ClRcT clMsgQDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClM
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -294,7 +294,7 @@ ClRcT clMsgGroupDatabaseUpdateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN 
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -454,7 +454,7 @@ ClRcT clMsgGroupDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -646,7 +646,7 @@ ClRcT clMsgGroupMembershipUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -771,7 +771,7 @@ ClRcT clMsgQueueAllocateClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaName
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,

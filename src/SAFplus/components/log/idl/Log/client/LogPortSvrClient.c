@@ -45,7 +45,7 @@ ClRcT clLogSvrStreamOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaName
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -279,7 +279,7 @@ ClRcT clLogSvrStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNam
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -422,7 +422,7 @@ ClRcT clLogSvrStreamCloseClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNam
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -567,7 +567,7 @@ ClRcT clLogSvrStreamCloseClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNa
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -753,7 +753,7 @@ ClRcT clLogSvrFilterSetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaName
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -948,7 +948,7 @@ ClRcT clLogSvrStreamHandleFlagsUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -1158,7 +1158,7 @@ ClRcT clLogHandlerSvrAckSendClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN S
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,

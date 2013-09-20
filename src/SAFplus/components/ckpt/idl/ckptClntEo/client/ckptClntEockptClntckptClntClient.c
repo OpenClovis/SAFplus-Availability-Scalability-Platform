@@ -106,7 +106,7 @@ ClRcT clCkptSectionUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT hand
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
@@ -283,7 +283,7 @@ ClRcT clCkptWriteUpdationNotificationClientAsync_4_0_0(CL_IN ClIdlHandleT handle
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = saNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
                                         pHandleObj->address.address.nameAddress.attrCount,
                                         pHandleObj->address.address.nameAddress.attr,
                                         pHandleObj->address.address.nameAddress.contextCookie,
