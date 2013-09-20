@@ -69,8 +69,7 @@ def amf_watchdog_loop():
     while True:
         pid = asp.get_amf_pid()
         if pid == 0:
-            logging.critical('AMF watchdog invoked on %s' %\
-                             time.strftime('%a %d %b %Y %H:%M:%S'))
+            logging.critical('SAFplus watchdog invoked on %s' % time.strftime('%a %d %b %Y %H:%M:%S'))
             is_restart = os.access(restart_file, os.F_OK)
             is_forced_restart = os.access(watchdog_restart_file, os.F_OK)
             if is_restart or is_forced_restart:
@@ -94,8 +93,7 @@ def amf_watchdog_loop():
                     asp.zap_asp()
                     sys.exit(1)
                 else:
-                    logging.debug('AMF watchdog rebooting %s...'
-                                  % asp.get_asp_node_name())
+                    logging.debug('SAFplus watchdog rebooting %s...' % asp.get_asp_node_name())
                     asp.run_custom_scripts('reboot')
                     asp.proc_lock_file('remove')
                     os.system('reboot')
