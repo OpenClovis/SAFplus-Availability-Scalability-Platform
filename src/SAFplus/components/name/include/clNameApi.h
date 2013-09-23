@@ -664,10 +664,10 @@ ClRcT clNameContextDelete(CL_IN ClUint32T contextId);
  *  \par Library Files:
  *  libClNameClient
  *
- *  \sa saNameToObjectMappingGet()
+ *  \sa clNameToObjectMappingGet()
  *
  */
-ClRcT saNameToObjectReferenceGet(CL_IN  SaNameT* pName,
+ClRcT clNameToObjectReferenceGet(CL_IN  SaNameT* pName,
                                  CL_IN  ClUint32T attrCount,
                                  CL_IN  ClNameSvcAttrEntryT *pAttr,
                                  CL_IN  ClUint32T contextMapCookie,
@@ -711,9 +711,9 @@ ClRcT saNameToObjectReferenceGet(CL_IN  SaNameT* pName,
  *  \par Library Files:
  *  libClNameClient
  *
- *  \sa clNameObjectMappingCleanup(), saNameToObjectReferenceGet()
+ *  \sa clNameObjectMappingCleanup(), clNameToObjectReferenceGet()
  */
-ClRcT saNameToObjectMappingGet(CL_IN  SaNameT* pName,
+ClRcT clNameToObjectMappingGet(CL_IN  SaNameT* pName,
                                CL_IN  ClUint32T attrCount,
                                CL_IN  ClNameSvcAttrEntryT *pAttr,
                                CL_IN  ClUint32T contextMapCookie,
@@ -738,7 +738,7 @@ ClRcT saNameToObjectMappingGet(CL_IN  SaNameT* pName,
  *  \par Library Files:
  *  libClNameClient
  *
- *  \sa saNameToObjectMappingGet()
+ *  \sa clNameToObjectMappingGet()
  *
  */
 ClRcT clNameObjectMappingCleanup(CL_IN ClNameSvcEntryPtrT pObjMapping);

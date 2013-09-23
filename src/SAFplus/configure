@@ -1657,7 +1657,12 @@ else
   fi
 fi;
 
-export MODEL_PATH=$PROJECT_ROOT/$ASP_MODEL_NAME/src  # AA: adding model path
+if [ $MODEL_BUILD = 1 ]; then
+   export MODEL_PATH=$PROJECT_ROOT/$ASP_MODEL_NAME/src  # AA: adding model path   
+else  
+   export MODEL_PATH=$PROJECT_ROOT/$ASP_MODEL_NAME  # for prebuild   
+fi
+
 
 export SAFPLUS_MODEL_DIR=$PROJECT_ROOT/$ASP_MODEL_NAME
 
@@ -8319,6 +8324,7 @@ s,@CROSS_FLAG@,$CROSS_FLAG,;t t
 s,@CROSS_BUILD@,$CROSS_BUILD,;t t
 s,@PREFIX@,$PREFIX,;t t
 s,@CM_BUILD@,$CM_BUILD,;t t
+s,@MODEL_PATH@,$MODEL_PATH,;t t
 s,@HPI_OPENHPI@,$HPI_OPENHPI,;t t
 s,@HPI_EMERSON@,$HPI_EMERSON,;t t
 s,@HCL_CM@,$HCL_CM,;t t

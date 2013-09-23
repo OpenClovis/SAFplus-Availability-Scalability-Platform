@@ -677,7 +677,7 @@ ClRcT cliNSObjectReferenceQuery(ClUint32T argc, ClCharT **argv,
         if(tempCnt == 1)
             attrCount = 0xF;
 
-        rc = saNameToObjectReferenceGet(&name, attrCount, attrList, 
+        rc = clNameToObjectReferenceGet(&name, attrCount, attrList, 
                                             contextMapCookie, &objRef);
         if (rc == CL_OK)
         {
@@ -981,7 +981,7 @@ ClRcT cliNSObjectMapQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
         if(tempCnt == 1)
             attrCount = 0xF;
 
-        rc = saNameToObjectMappingGet(&name, attrCount, attrList,
+        rc = clNameToObjectMappingGet(&name, attrCount, attrList,
                                       contextMapCookie, &pNSInfo);
         if (rc != CL_OK)
         {

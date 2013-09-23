@@ -569,7 +569,7 @@ ClRcT clNameContextDelete(ClUint32T contextId)
                                                                                                                              
 
 /**
- *  NAME: saNameToObjectReferenceGet
+ *  NAME: clNameToObjectReferenceGet
  *
  *  This API is for getting/querying the object reference given the
  *  service name
@@ -594,7 +594,7 @@ ClRcT clNameContextDelete(ClUint32T contextId)
  *           CL_ERR_NOT_INITIALIZED         
  */
 
-ClRcT saNameToObjectReferenceGet(SaNameT*            pName,
+ClRcT clNameToObjectReferenceGet(SaNameT*            pName,
                                  ClUint32T           attrCount,
                                  ClNameSvcAttrEntryT *pAttr,
                                  ClUint32T           contextMapCookie,
@@ -610,7 +610,7 @@ ClRcT saNameToObjectReferenceGet(SaNameT*            pName,
     ClNameVersionT         version     = {0};
 
     CL_FUNC_ENTER();
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n NS: Inside saNameToObjectReferenceGet \n"));
+    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n NS: Inside clNameToObjectReferenceGet \n"));
 
     if(sNSLibInitDone == 0)
     {
@@ -695,7 +695,7 @@ ClRcT saNameToObjectReferenceGet(SaNameT*            pName,
     CL_NS_CALL_RMD(sAddr, CL_NS_QUERY, inMsgHandle, outMsgHandle, rc);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n saNameToObjectReferenceGet Failed," \
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n clNameToObjectReferenceGet Failed," \
                              " rc =%x",rc));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
@@ -720,7 +720,7 @@ ClRcT saNameToObjectReferenceGet(SaNameT*            pName,
 }
 
 /**
- *  NAME: saNameToObjectMappingGet
+ *  NAME: clNameToObjectMappingGet
  *
  *  This API is for getting the entire entry given the service name
  *
@@ -744,7 +744,7 @@ ClRcT saNameToObjectReferenceGet(SaNameT*            pName,
  *           CL_ERR_NOT_INITIALIZED         
  */
 
-ClRcT saNameToObjectMappingGet(SaNameT* pName,
+ClRcT clNameToObjectMappingGet(SaNameT* pName,
                                ClUint32T attrCount,
                                ClNameSvcAttrEntryT *pAttr,
                                ClUint32T contextMapCookie,
@@ -766,7 +766,7 @@ ClRcT saNameToObjectMappingGet(SaNameT* pName,
     ClNameSvcAttrEntryWithSizeIDLT attrList;
 
     CL_FUNC_ENTER();
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n NS: Inside saNameToObjectMappingGet \n"));
+    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n NS: Inside clNameToObjectMappingGet \n"));
 
     if(sNSLibInitDone == 0)
     {
@@ -850,7 +850,7 @@ ClRcT saNameToObjectMappingGet(SaNameT* pName,
     CL_NS_CALL_RMD(sAddr, CL_NS_QUERY, inMsgHandle, outMsgHandle, rc);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n saNameToObjectMappingGet  Failed,"\
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n clNameToObjectMappingGet  Failed,"\
                              " rc =%x",rc));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
