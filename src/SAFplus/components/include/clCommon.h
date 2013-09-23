@@ -228,7 +228,7 @@ void saNameConcat(SaNameT* nameOut, const SaNameT *prefix, const char* separator
 
 ClCharT *clStrdup(const ClCharT *str);
 
-ClBoolT clParseEnvBoolean(ClCharT* envvar);
+ClBoolT clParseEnvBoolean(const ClCharT* envvar);
 
 ClCharT *clParseEnvStr(const ClCharT* envvar);
 
