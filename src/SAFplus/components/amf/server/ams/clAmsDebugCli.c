@@ -1143,6 +1143,7 @@ ClRcT clAmsDebugCliForceLock(
     return rc;
 }
 
+#if 0
 static ClRcT amsForceLockInstantiationTask(ClPtrT cookie)
 {
     ClAmsForceLockContextT *lockContext = (ClAmsForceLockContextT*)cookie;
@@ -1164,7 +1165,8 @@ static ClRcT amsForceLockInstantiationTask(ClPtrT cookie)
     clHeapFree(respBuffer);
     return rc;
 }
-
+#endif
+#if 0
 ClRcT clAmsDebugCliForceLockInstantiation(
                           CL_IN  ClUint32T argc,
                           CL_IN  ClCharT **argv,
@@ -1235,6 +1237,41 @@ ClRcT clAmsDebugCliForceLockInstantiation(
     *ret = NULL; /* let it be done by the task pool task*/
     return rc;
 }
+#else 
+ClRcT clAmsDebugCliForceLockInstantiation(
+                          CL_IN  ClUint32T argc,
+                          CL_IN  ClCharT **argv,
+                          CL_OUT ClCharT **ret)
+{
+    ClRcT rc = CL_OK;
+    ClAmsEntityT entity = {0};
+
+    AMS_FUNC_ENTER(("\n"));
+
+    if(ret == NULL) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+
+    *ret = clHeapCalloc(1, MAX_BUFFER_SIZE+1);
+
+    CL_ASSERT(*ret != NULL);
+
+    if(argc != 3)
+    {
+        strncat(*ret, "amsForceLockInstantiation su [suname] or node [nodename]\n", MAX_BUFFER_SIZE);
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    }
+
+    rc = clAmsDebugCliMakeEntityStruct( &entity, argv[1], argv[2]);
+
+    if ( !(entity.type == CL_AMS_ENTITY_TYPE_NODE || entity.type == CL_AMS_ENTITY_TYPE_SU ) || (rc != CL_OK) )
+    {
+        strncpy (*ret,"invalid entity type, valid entity types are node, sg, and su\n", MAX_BUFFER_SIZE);
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    }
+
+    clAmsMgmtEntityForceLockInstantiationExtended(gHandle, (const ClAmsEntityT*)&entity, CL_FALSE);
+    return rc;
+}
+#endif
 
 void 
 clAmsDebugCliUsage(

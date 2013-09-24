@@ -1284,6 +1284,8 @@ extern ClRcT clAmsPeSUForceLockOperation(
 
 extern ClRcT clAmsPeSUForceLockInstantiationOperation(
                                                       CL_IN       ClAmsSUT        *entity);
+extern ClRcT clAmsPeNodeForceLockInstantiationOperation(
+                                                      CL_IN       ClAmsNodeT        *entity);
 
 /*
  * clAmsPeEntityShutdown

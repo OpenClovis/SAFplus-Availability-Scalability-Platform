@@ -2137,6 +2137,45 @@ clAmsPeNodeLockInstantiation(
     return CL_OK;
 }
 
+#if 1 // LGER mod for test
+ClRcT
+clAmsPeNodeForceLockInstantiationOperation(
+        CL_IN       ClAmsNodeT        *node)
+{
+    ClAmsAdminStateT adminState;
+
+    AMS_CHECK_NODE ( node );
+
+    AMS_FUNC_ENTER ( ("Node [%s]\n",node->config.entity.name.value) );
+
+    if ( !node->config.isASPAware )
+    {
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+                 ("Node [%s] is not ASP aware. Nothing to do.\n",
+                  node->config.entity.name.value));
+
+        return CL_AMS_RC(CL_ERR_NO_OP);
+    }
+
+    clLogNotice("NODE", "LOCK-FORCE", "Admin Operation [Forced lock instantiation trigger] on Node [%s]",
+                node->config.entity.name.value);
+
+    AMS_CALL ( clAmsPeNodeComputeAdminState(node, &adminState) );
+
+    if(adminState == CL_AMS_ADMIN_STATE_LOCKED_I)
+    {
+        return CL_AMS_RC(CL_ERR_NO_OP);
+    }
+
+    CL_AMS_SET_A_STATE(node, CL_AMS_ADMIN_STATE_LOCKED_I);
+
+    AMS_CALL ( clAmsPeNodeTerminate(node) );
+
+    return CL_OK;
+}
+#endif
+
+
 /*
  * clAmsPeNodeLockInstantiationCallback
  * ------------------------------------
