@@ -920,10 +920,10 @@ VDECL(_clAmsMgmtEntityForceLock)(
 
     AMS_CALL( VDECL_VER(clXdrUnmarshallclAmsMgmtEntityForceLockRequestT, 4, 0, 0)(in, &req));
 
-    if(req.entity.type != CL_AMS_ENTITY_TYPE_SU)
+    if( (req.entity.type != CL_AMS_ENTITY_TYPE_SU) && (req.entity.type != CL_AMS_ENTITY_TYPE_NODE) )
     {
-        AMS_LOG(CL_DEBUG_ERROR, 
-                ("AMF force lock operation allowed only on SUs. Operation failed on entity [%s]\n",
+        AMS_LOG(CL_DEBUG_ERROR,                 
+                ("AMF force lock instantiation operation allowed only on SUs and Node. Operation failed on entity [%s]\n",
                  CL_AMS_STRING_ENTITY_TYPE(req.entity.type)));
         return CL_AMS_RC(CL_ERR_NOT_SUPPORTED);
     }
@@ -1014,10 +1014,16 @@ VDECL_VER(_clAmsMgmtEntityForceLockInstantiation, 5, 0, 0)(
 
     AMS_CHECKPTR_AND_UNLOCK ( !entityRef.ptr, gAms.mutex );
 
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(
-                                        clAmsPeSUForceLockInstantiationOperation( (ClAmsSUT*)entityRef.ptr),
-                                        gAms.mutex );
+//    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX(
+//                                        clAmsPeSUForceLockInstantiationOperation( (ClAmsSUT*)entityRef.ptr),
+//                                        gAms.mutex );
 
+    if(CL_AMS_ENTITY_TYPE_SU == entityRef.entity.type){
+        AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( clAmsPeSUForceLockInstantiationOperation( (ClAmsSUT*)entityRef.ptr), gAms.mutex );
+    }
+    else if(CL_AMS_ENTITY_TYPE_NODE == entityRef.entity.type){
+        AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( clAmsPeNodeForceLockInstantiationOperation( (ClAmsNodeT*)entityRef.ptr), gAms.mutex );
+    }
     clAmsCkptWrite(&gAms, CL_AMS_CKPT_WRITE_DB);
 
     clAmsCkptDBWrite();
