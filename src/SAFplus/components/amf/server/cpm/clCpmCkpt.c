@@ -438,7 +438,7 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
     ClCkptOpenFlagsT flags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_READ;
     ClTimeT time = 0;
     ClInt32T tries = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500};
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000};
 
     ClCkptCheckpointCreationAttributesT ckptAttributes =
     {
@@ -462,7 +462,9 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
     do
     {
         rc = clCkptInitialize(&handle, &ckptCallbacks, &cpmCkptVersion);
-    } while( rc != CL_OK && tries++ < 3 && clOsalTaskDelay(delay) == CL_OK);
+        tries++;
+        clLogNotice("CKP", "INI", "Try [%d] of [3] to initialize checkpoint service", tries);
+    } while( rc != CL_OK && tries < 3 && clOsalTaskDelay(delay) == CL_OK);
     
     if(rc != CL_OK)
     {
@@ -474,18 +476,29 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
 
     clCkptReplicaChangeRegister(cpmCkptReplicaChangeCallback);
 
-    if ((rc = clCkptCheckpointOpen(gpClCpm->ckptHandle,
-                                   &gpClCpm->ckptCpmLName,
-                                   &ckptAttributes,
-                                   flags,
-                                   time,
-                                   &handle)) != CL_OK)
-        goto failure;
-    gpClCpm->ckptOpenHandle = handle;
+    tries = 0;
+    do
+    {   
+        rc = clCkptCheckpointOpen(gpClCpm->ckptHandle,
+                                    &gpClCpm->ckptCpmLName,
+                                    &ckptAttributes,
+                                    flags,
+                                    time,
+                                    &handle);
+	tries++;
+        clLogNotice("CKP", "OPEN", "Try [%d] of [3] to open checkpoint service", tries);
+     } while( rc != CL_OK && tries < 3 && clOsalTaskDelay(delay) == CL_OK);
 
-    return CL_OK;
+     if(rc != CL_OK)
+     {
+         clLogError("CKP", "OPEN", "CKPT open for standby failed with [%#x]", rc);
+         goto failure;
+     }
+     gpClCpm->ckptOpenHandle = handle;
+
+     return CL_OK;
 failure:
-    return rc;
+     return rc;
 }
 
 ClRcT cpmCpmLActiveCheckpointInitialize(void)
