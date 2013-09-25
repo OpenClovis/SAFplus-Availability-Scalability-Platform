@@ -4391,21 +4391,17 @@ static ClRcT _cpmComponentEventPublish(ClCpmComponentT *comp,
     {
         ClCpmComponentT *compTemp = NULL;
         rc = cpmCompFind(comp->compConfig->compName, gpClCpm->compTable, &compTemp);
-        if (CL_OK == rc && (compTemp->compEventPublished == CL_TRUE))
+        if (CL_OK == rc && (compTemp->compEventPublished == CL_TRUE || (compTemp->instantiateCookie != comp->instantiateCookie)))
         {
+            /*
+             * If event already published or component arrival just come, ignore publishing
+             */
             clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
-                      "Skipping comp event already published for component eo port [%#x], eoID [%#llx]",
-                      comp->eoPort, comp->eoID);
+                            "Skipping comp event already published for component eo port [%#x], eoID [%#llx]",
+                            compTemp->eoPort, compTemp->eoID);
             return CL_OK;
         }
 
-        if(comp->compEventPublished == CL_TRUE) 
-        {
-            clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
-                      "Skipping comp event already published for component eo port [%#x], eoID [%#llx]",
-                      comp->eoPort, comp->eoID);
-            return CL_OK;
-        }
     }
     else if (compEvent == CL_CPM_COMP_DEPARTURE)
     {
@@ -4526,7 +4522,10 @@ static ClRcT _cpmComponentEventPublish(ClCpmComponentT *comp,
         {
             ClCpmComponentT *compTemp = NULL;
             rc = cpmCompFind(comp->compConfig->compName, gpClCpm->compTable, &compTemp);
-            if (CL_OK == rc)
+            /*
+             * If component table is still refer to old, mark as published
+             */
+            if (CL_OK == rc && (compTemp->instantiateCookie == comp->instantiateCookie))
             {
                 compTemp->compEventPublished = CL_TRUE;
             }
