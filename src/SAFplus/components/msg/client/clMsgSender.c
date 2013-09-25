@@ -146,32 +146,36 @@ static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr,
     ClMsgQueueRecordT *pQueue = NULL;
     ClMsgMessageIovecT *pTempMessage = NULL;
 
-    CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
-    CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
-
     clLogDebug("MSG", "SND", "Sending message to component [0x%x,0x%x].",
                pDestAddr->iocPhyAddress.nodeAddress, pDestAddr->iocPhyAddress.portId);
 
     if((pDestAddr->iocPhyAddress.nodeAddress == gLocalAddress)
             && (pDestAddr->iocPhyAddress.portId == gLocalPortId))
     {
+        CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
+
         if(clMsgQNameEntryExists(pDest, &pQueue) == CL_FALSE)
         {
+            CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
             rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
             clLogError("MSG", "SND", "Queue [%.*s] doesnt exists. error code [0x%x].",
                             pDest->length, pDest->value, rc);
-            goto out;
+            return rc;
         }
 
         SaMsgQueueHandleT qHandle = pQueue->qHandle;
+
+        CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
+        CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
 
         /* Allocate memory to queue message on the same machine */
         rc = clMsgIovecToIovecCopy(&pTempMessage, pMessage);
         if(rc != CL_OK)
         {
+            CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
             clLogCritical("MSG", "SND", "Failed to copy the message to the local memory.");
             rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
-            goto out;
+            return rc;
         }
 
         /* Queuing the message as the destination queue is on the same machine. */
@@ -193,6 +197,8 @@ static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr,
             clHeapFree(pTempMessage);
         }
 
+        CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
+
         if (ackFlag == SA_MSG_MESSAGE_DELIVERED_ACK)
         {
             fpAsyncCallback(0
@@ -206,9 +212,6 @@ static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr,
         rc = clMsgSendMessage_idl(sendType, pDestAddr->iocPhyAddress, pDest, pMessage, sendTime, senderHandle, timeout, isSync, ackFlag, fpAsyncCallback, cookie);
     }
 
-out:
-    CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);
-    CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
     return rc;
 }
 
