@@ -717,6 +717,7 @@ static ClBoolT osalShmExistsForComp(const ClCharT *compName)
 }
 #endif
 
+#if 0
 #ifdef __i386__
 static const char *registerMap[NGREG] = { "gs", "fs", "es", "ds", "edi", "esi", "ebp", "esp",
                                           "ebx", "edx", "ecx", "eax", "trap", "err", "eip", "cs",
@@ -746,9 +747,10 @@ static const char *registerMap[3+NGREG] = {"trap_no", "error_code", "oldmask",
 
 #else
 static const char *registerMap[NGREG] = { NULL, };
-
+#endif
 #endif
 
+#if 0
 static void registerDump(ucontext_t *ucontext, ClCharT *exceptionSegment, ClUint32T maxBytes)
 {
     register int i;
@@ -765,20 +767,20 @@ static void registerDump(ucontext_t *ucontext, ClCharT *exceptionSegment, ClUint
     }
     bytes += snprintf(exceptionSegment + bytes, maxBytes - bytes, "\n");
 }
+#endif
 
 static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
 {
     char sigName[16];
     int logfd = -1;
     ClFdT fd = 0;
-    void *buffer[STACK_DEPTH] = {NULL};
     void *trace[STACK_DEPTH];
     int trace_size = 0;
     ClRcT rc = CL_OK;
     ClUint32T segmentSize = getpagesize();
     ClCharT *exceptionSegment = NULL;
     ucontext_t *uc = (ucontext_t *)param;
-    ClInt32T bytes = 0;
+
     switch(signum)
     {
     case SIGHUP:
@@ -835,7 +837,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
     trace_size = get_backtrace(buffer, trace, 16, uc);
     
     if(clDbgLogLevel > 0)
-        logfd = open("/var/log/aspdbg.log", O_APPEND | O_RDWR | O_CREAT, 0666);
+        logfd = open("/var/log/safplusdbg.log", O_APPEND | O_RDWR | O_CREAT, 0666);
 
     {
         ClCharT *compName = getenv("ASP_COMPNAME");
@@ -850,7 +852,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             {
                 snprintf(logBuffer, sizeof(logBuffer), "Opening shared segment [%s] returned [%#x]\n", 
                          shmName, rc);
-                bytes = write(logfd, logBuffer, strlen(logBuffer));
+                write(logfd, logBuffer, strlen(logBuffer));
             }
             goto out;
         }
@@ -861,7 +863,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             {
                 snprintf(logBuffer, sizeof(logBuffer), "Ftruncate on shared segment [%s] returned [%#x]\n",
                          shmName, rc);
-                bytes = write(logfd, logBuffer, strlen(logBuffer));
+                write(logfd, logBuffer, strlen(logBuffer));
             }
             goto out;
         }
@@ -872,16 +874,22 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             {
                 snprintf(logBuffer, sizeof(logBuffer), "Mmap on shared segment [%s] returned [%#x]\n",
                          shmName, rc);
-                bytes = write(logfd, logBuffer, strlen(logBuffer));
+                write(logfd, logBuffer, strlen(logBuffer));
             }
             goto out;
         }
     }
 
+    /* backtrace_symbols uses malloc and so it can block */
+#if 0    
     {
+    void *buffer[STACK_DEPTH] = {NULL};
+    ClInt32T bytes = 0;
+        
         int         count = 0;
         char        **message = (char **)NULL;
         bytes = 0;
+        
         message = backtrace_symbols(trace, trace_size);
         if(exceptionSegment != NULL)
         {
@@ -906,10 +914,16 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             clOsalMunmap(exceptionSegment, segmentSize);
         }
     }
+#else
+    if (logfd > 0)
+      backtrace_symbols_fd(trace, trace_size,logfd);
+#endif    
 
     out:
     if(logfd >= 0) close(logfd);
+    logfd = 0;
     if(fd >= 0) close(fd);
+    fd = 0;
     raise(signum);
 }
 
