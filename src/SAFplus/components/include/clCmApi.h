@@ -364,6 +364,7 @@ extern ClRcT clCmLibFinalize(void);
 #define UsingOpenHpi(x) x
 #include <SaHpi.h>
 #include <oHpi.h>    
+#include <oh_utils.h>
 #endif
     
 #ifdef __cplusplus
