@@ -579,17 +579,20 @@ def start_amf():
 
 def run_custom_scripts(cmd):
     d = get_asp_script_dir()
-    
+    scriptOk = True
     if os.path.isdir(d):
         for f in os.listdir(d):
             f = os.path.abspath(d + '/' + f)
             if is_executable_file(f):
                 st = os.system('%s %s' % (f, cmd))
                 if os.WEXITSTATUS(st):
-                    log.info('Script [%s] exitted abnormally with status [%d].'
-                             % (f, os.WEXITSTATUS(st)))
-                    if cmd == 'start':
-                        fail_and_exit('Custom script execution failure')
+                    log.info('Script [%s] exitted abnormally with status [%d].' % (f, os.WEXITSTATUS(st)))
+                    scriptOk = False
+    return scriptOk 
+
+# Stone 9/20/2013 -- do not put conditional behavior deep within a library function. 
+#                    if cmd == 'start':
+#                        fail_and_exit('Custom script execution failure')
 
 def setup_gms_config():
     return

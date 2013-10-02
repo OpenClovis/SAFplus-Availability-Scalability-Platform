@@ -793,17 +793,11 @@ extern ClRcT clAmsPeSUProbationTimeout(
 extern ClRcT clAmsPeSUAssignmentTimeout(
                                        CL_IN ClAmsEntityTimerT *timer);
 
-extern ClRcT clAmsPeSUComputeAdminState(
-        CL_IN   ClAmsSUT *su,
-        CL_OUT  ClAmsAdminStateT *adminState);
+extern void clAmsPeSUComputeAdminState(CL_IN   ClAmsSUT *su, CL_OUT  ClAmsAdminStateT *adminState);
 
-extern ClRcT clAmsPeCompComputeAdminState(
-        CL_IN ClAmsCompT *comp,
-        CL_OUT ClAmsAdminStateT *adminState);
+extern void clAmsPeCompComputeAdminState(CL_IN ClAmsCompT *comp, CL_OUT ClAmsAdminStateT *adminState);
 
-extern ClRcT clAmsPeSUComputeReadinessState(
-        CL_IN   ClAmsSUT *su,
-        CL_OUT  ClAmsReadinessStateT *suState);
+extern void clAmsPeSUComputeReadinessState(CL_IN   ClAmsSUT *su, CL_OUT  ClAmsReadinessStateT *suState);
 
 extern ClRcT clAmsPeSUUpdateReadinessState(
         CL_IN   ClAmsSUT *su);

@@ -1824,7 +1824,7 @@ clAmsPeSGAutoAdjustMPlusN(ClAmsSGT *sg)
         eRef = clAmsEntityListGetFirst(&sg->status.instantiableSUList);
         CL_ASSERT(eRef != NULL);
         instantiableSU = (ClAmsSUT*)eRef->ptr;
-        AMS_CALL ( clAmsPeSUComputeAdminState(instantiableSU, &adminState) );
+        clAmsPeSUComputeAdminState(instantiableSU, &adminState);
 
         leastSU = getLeastPreferredSU(&sg->status.assignedSUList,NULL);
        

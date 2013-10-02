@@ -5053,7 +5053,7 @@ VDECL_VER(_clAmsMgmtComputedAdminStateGet, 5, 0, 0)(ClEoDataT userData,
         {
             ClAmsSUT *su = (ClAmsSUT*)entityRef.ptr;
             AMS_CHECKPTR(!su);
-            rc = clAmsPeSUComputeAdminState(su, &computedAdminState);
+            clAmsPeSUComputeAdminState(su, &computedAdminState);
         }
         break;
 
@@ -5061,7 +5061,7 @@ VDECL_VER(_clAmsMgmtComputedAdminStateGet, 5, 0, 0)(ClEoDataT userData,
         {
             ClAmsCompT *comp = (ClAmsCompT*)entityRef.ptr;
             AMS_CHECKPTR(!comp);
-            rc = clAmsPeCompComputeAdminState(comp, &computedAdminState);
+            clAmsPeCompComputeAdminState(comp, &computedAdminState);
         }
         break;
 
