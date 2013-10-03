@@ -435,7 +435,7 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                 CKPT_DEBUG_E(("client Handle create err: rc[0x %x]\n",rc));
                 return rc;
             }
-            clLogDebug("CKP","MSTR","Created ckpt client handle [%llu]", clientHdl);
+            clLogDebug("CKP","MSTR","Created ckpt client handle [%llx]", clientHdl);
 
             if (CL_OK != (rc = _ckptClientHdlInfoFill(masterHdl, clientHdl, 
                                                       CL_CKPT_SOURCE_MASTER)))
@@ -459,7 +459,7 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                                                           pCreateAttr->creationFlags)))
             {
                 clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl);
-                clLogDebug("CKP","MSTR","Deleted client handle [%llu]", clientHdl);
+                clLogDebug("CKP","MSTR","Deleted client handle [%llx]", clientHdl);
                 
                 clCntAllNodesForKeyDelete(
                                           gCkptSvr->masterInfo.nameXlationDBHdl,
@@ -600,7 +600,7 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                                                       localAddr, localPort,
                                                       CL_CKPT_OPEN, 0)))
         {
-            clLogDebug("CKP","MSTR","Deleted ckpt client handle [%llu]", clientHdl);
+            clLogDebug("CKP","MSTR","Deleted ckpt client handle [%llx]", clientHdl);
             clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl);
             --gCkptSvr->masterInfo.clientHdlCount;
             clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, storedDBHdl);
@@ -1084,7 +1084,7 @@ ClRcT VDECL_VER(clCkptMasterActiveReplicaSet, 4, 0, 0)(ClCkptHdlT           clie
      * Get the master handle from the client handle info.
      */
     rc = clHandleCheckout(gCkptSvr->masterInfo.clientDBHdl, clientHdl, (void **)&pClientEntry);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, (" Client handle [%llu] checkout error MasterActiveReplicaSet failed rc[0x %x]\n",clientHdl, rc), rc);
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, (" Client handle [%llx] checkout error MasterActiveReplicaSet failed rc[0x %x]\n",clientHdl, rc), rc);
     masterHdl = pClientEntry->masterHdl;
     rc = clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl, clientHdl);
     
@@ -1933,7 +1933,7 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
      * Delete the entry from clientDB database 
      */
     rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl); 
-    clLogDebug("CKP","MSTR","Deleted ckpt client handle [%llu]", clientHdl);
+    clLogDebug("CKP","MSTR","Deleted ckpt client handle [%llx]", clientHdl);
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, (" MasterCheckpointClose failed rc[0x %x]\n",rc), rc);
 
     /*

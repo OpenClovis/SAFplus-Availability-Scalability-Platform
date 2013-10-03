@@ -455,7 +455,7 @@ ClRcT _ckptClientDBInfoDeleteCallback(ClHandleDatabaseHandleT databaseHandle,
     ClRcT rc = CL_OK;
     
     rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, handle);
-    clLogDebug("CKP","UTL","Deleted ckpt client handle [%llu]", handle);
+    clLogDebug("CKP","UTL","Deleted ckpt client handle [%llx]", handle);
     /*
      * Decrement the count of client handles.
      */

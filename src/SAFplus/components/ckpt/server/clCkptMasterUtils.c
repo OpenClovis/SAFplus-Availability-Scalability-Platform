@@ -229,10 +229,10 @@ _ckptClientHdlInfoFill(ClHandleT   masterHdl,
                             clientHdl);
         if( (CL_OK != rc))/* && (CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST) )*/
         {
-            clLogCritical("CKP","MUT","Specific client handle [%llu] create error: rc [0x%x]\n",clientHdl,rc);
+            clLogCritical("CKP","MUT","Specific client handle [%llx] create error: rc [0x%x]\n",clientHdl,rc);
             return rc;
         }
-        clLogDebug("CKP","MUT","Created specific ckpt client handle [%llu]", clientHdl);
+        clLogDebug("CKP","MUT","Created specific ckpt client handle [%llx]", clientHdl);
         rc = CL_OK;
     }
     rc = clHandleCheckout(gCkptSvr->masterInfo.clientDBHdl,clientHdl, (void **)&pClientEntry);
@@ -256,7 +256,7 @@ exitOnError:
     clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl, clientHdl);
 exitOnErrorBeforeHdlCheckout:
     clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl);  /* GAS TODO:  this may not even have been created in the routine! but probably a never-hit error condition... */
-    clLogDebug("CKP","MUT","Deleted ckpt client handle [%llu]", clientHdl);  
+    clLogDebug("CKP","MUT","Deleted ckpt client handle [%llx]", clientHdl);  
     return rc;
 }
 
