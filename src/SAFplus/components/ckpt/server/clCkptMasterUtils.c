@@ -229,9 +229,10 @@ _ckptClientHdlInfoFill(ClHandleT   masterHdl,
                             clientHdl);
         if( (CL_OK != rc))/* && (CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST) )*/
         {
-            CKPT_DEBUG_E(("Client Handle create err: rc [0x %x]\n",rc));
+            clLogCritical("CKP","MUT","Specific client handle [%llx] create error: rc [0x%x]\n",clientHdl,rc);
             return rc;
         }
+        clLogDebug("CKP","MUT","Created specific ckpt client handle [%llx]", clientHdl);        
         rc = CL_OK;
     }
     rc = clHandleCheckout(gCkptSvr->masterInfo.clientDBHdl, 
@@ -252,16 +253,14 @@ _ckptClientHdlInfoFill(ClHandleT   masterHdl,
      * Increment the client handle count.
      */
     gCkptSvr->masterInfo.clientHdlCount++;        
-    clLogDebug("MAS", "CKP", 
-            "HandleCount [%d] clietHdl [%#llX]", gCkptSvr->masterInfo.clientHdlCount, 
-             clientHdl);
+    clLogDebug("MAS", "CKP", "HandleCount [%d] clientHdl [%#llX]", gCkptSvr->masterInfo.clientHdlCount, clientHdl);
     return rc;
 exitOnError:
     clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl, 
             clientHdl);
 exitOnErrorBeforeHdlCheckout:
-    clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-            clientHdl);
+    clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl);
+    clLogDebug("CKP","MUT","Deleted ckpt client handle [%llx]", clientHdl);
     return rc;
 }
 

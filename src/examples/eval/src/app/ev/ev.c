@@ -78,7 +78,7 @@ clEvalAppLogStreamOpen(ClCharT             *pAppName,
         return rc;
     }
 
-    streamName.length = snprintf(streamName.value, CL_MAX_NAME_LENGTH, "%s%s", APP_PREFIX, pAppName);
+    streamName.length = snprintf((char*)streamName.value, CL_MAX_NAME_LENGTH, "%s%s", APP_PREFIX, pAppName);
 
     /*
      * copy the attributes & open the stream  

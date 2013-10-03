@@ -259,9 +259,8 @@ void    ckptSvrHdlDeleteCallback(ClCntKeyHandleT userKey,
         clOsalMutexDelete(ckptMutex);
     clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
     clHandleDestroy(gCkptSvr->ckptHdl,ckptHdl);
-    clLogDebug(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_DEL, 
-               "Deleted the checkpoint handle [%#llX]", ckptHdl);
-    
+    clLogDebug(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_DEL,"Deleted the checkpoint handle [%#llX]", ckptHdl);
+      
     clHeapFree(userData);
     return;
 }
@@ -400,8 +399,7 @@ ClRcT _ckptMasterDBInfoDeleteCallback(ClHandleDatabaseHandleT databaseHandle,
     /*
      * Retrieve the information associated with the passed handle.
      */
-    rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl,
-                          handle, (void **)&pStoredData);
+    rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, handle, (void **)&pStoredData);
     
     /*
      * Delete the associated retention timer.
@@ -411,11 +409,11 @@ ClRcT _ckptMasterDBInfoDeleteCallback(ClHandleDatabaseHandleT databaseHandle,
         
     rc = clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, handle);
     rc = clHandleDestroy(gCkptSvr->masterInfo.masterDBHdl, handle);
-
     /*
      * Decrement the count of master handles.
      */
     gCkptSvr->masterInfo.masterHdlCount--;
+    clLogDebug("CKP","UTL","Deleted ckpt handle [%llx]", handle);           
     return CL_OK;
 }
 
@@ -455,11 +453,11 @@ ClRcT _ckptClientDBInfoDeleteCallback(ClHandleDatabaseHandleT databaseHandle,
     ClRcT rc = CL_OK;
     
     rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, handle);
-    
     /*
      * Decrement the count of client handles.
      */
     gCkptSvr->masterInfo.clientHdlCount--;
+    clLogDebug("CKP","UTL","Deleted ckpt client handle [%llx]", handle);
     return CL_OK;
 }
 

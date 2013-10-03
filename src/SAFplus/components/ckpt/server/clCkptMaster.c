@@ -524,7 +524,7 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
         pHdlInfo->activeAddr          = activeAddr;
         pHdlInfo->creationFlag        = pCreateAttr->creationFlags;
 
-        clLogInfo("CKP","MSTR","Created Checkpoint [%.*s]  client handle [%llu] active handle [%llu] active addr [%d]", pName->length,pName->value,clientHdl, masterHdl,activeAddr);
+        clLogInfo("CKP","MSTR","Created Checkpoint [%.*s]  client handle [%llx] active handle [%llx] active addr [%d]", pName->length,pName->value,clientHdl, masterHdl,activeAddr);
         
     }
     else /* Entry found in the Xlation table */
