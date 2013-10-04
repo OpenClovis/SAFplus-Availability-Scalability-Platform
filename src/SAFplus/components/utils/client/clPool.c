@@ -61,6 +61,7 @@
 #define POOL_LOCK(mutex) (clOsalMutexLock(mutex))
 #define POOL_UNLOCK(mutex) (clOsalMutexUnlock(mutex))
 
+/* Pool cannot use the normal log because log allocates memory (uses pool) */
 #define CL_POOL_LOG(sev,str,...) clEoLibLog(CL_CID_POOL,sev,str,__VA_ARGS__)
 
 #define CL_POOL_ALLOC_EXT(size) malloc(size)
@@ -824,9 +825,7 @@ clPoolDestroyWithForce(
             && (!CL_POOL_EXTENDED_PARTIALLIST_EMPTY (pPoolHeader)
                 || !CL_POOL_EXTENDED_FULLLIST_EMPTY (pPoolHeader)))
     {
-        CL_DEBUG_PRINT (CL_DEBUG_WARN,
-            ("Warning!!Destroy called when pool is being used. Chunk size:%d\n",
-             pPoolHeader->poolConfig.chunkSize));
+        CL_POOL_LOG(CL_LOG_SEV_ERROR,"Destroy called when pool is being used. Chunk size [%d]",pPoolHeader->poolConfig.chunkSize);
         goto out;
     }
     rc = CL_POOL_SHRINK_FREELIST (pPoolHeader, &shrinkOptions);
@@ -897,7 +896,7 @@ clPoolDestroy(
     NULL_CHECK (pPoolHeader);
     flags = pPoolHeader->flags;
     CL_POOL_LOG(CL_LOG_NOTICE,
-                "Destroying %d byte pool of %d chunksize",
+                "Destroying %d byte pool of chunksize [%d]",
                 pPoolHeader->poolConfig.incrementPoolSize,
                 pPoolHeader->poolConfig.chunkSize
                 );
@@ -907,7 +906,6 @@ clPoolDestroy(
 
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Error destroying the pool\n"));
         CL_POOL_LOG(CL_LOG_ERROR,
                     "Error destroying %d byte pool of %d chunksize",
                     pPoolHeader->poolConfig.incrementPoolSize,

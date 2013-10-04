@@ -1006,8 +1006,7 @@ ClRcT clHeapHooksDeregister(void)
 }
 
 /*  Called by EO to initialize the POOL */
-ClRcT
-clHeapLibInitialize(const ClHeapConfigT *pHeapConfig)
+ClRcT clHeapLibInitialize(const ClHeapConfigT *pHeapConfig)
 {
     ClRcT rc = CL_OK;
     ClPoolFlagsT flags;
@@ -1016,7 +1015,7 @@ clHeapLibInitialize(const ClHeapConfigT *pHeapConfig)
 
     if(gHeapList.initialized == CL_TRUE)
     {
-        goto out;
+        return CL_OK;
     }
 
     NULL_CHECK(pHeapConfig);
@@ -1239,8 +1238,7 @@ clHeapLibFinalize(void)
             rc = clPoolDestroy(gHeapList.pPoolHandles[i]);
             if(rc != CL_OK)
             {
-                CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                                ("Error destroying pool handle:%d\n", i));
+                /* lower level logs it.. CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Problem destroying pool handle [%d]\n", i)); */
             }
         }
     }
