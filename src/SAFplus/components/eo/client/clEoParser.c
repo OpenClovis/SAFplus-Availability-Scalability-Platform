@@ -109,7 +109,7 @@ static ClRcT clEoMemConfigDataInit(ClPtrT pParentBase,
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     if(pBase == NULL || pBaseOffset == NULL || pNumInstances == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid param\n");
         goto out;
     }
     *pBase = pData;
@@ -138,7 +138,7 @@ static ClRcT clHeapConfigPoolDataInit(ClPtrT pParentBase,
        || pBaseOffset == NULL
        )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid param\n");
         goto out;
     }
     switch(op)
@@ -149,7 +149,7 @@ static ClRcT clHeapConfigPoolDataInit(ClPtrT pParentBase,
             if(pPoolConfig == NULL)
             {
                 rc = CL_EO_RC(CL_ERR_NO_MEMORY);
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("calloc error\n"));
+                clLogError(CL_LOG_AREA,CL_LOG_CTXT,"calloc error\n");
                 goto out;
             }
             pHeapConfig->numPools = *pNumInstances;
@@ -163,7 +163,7 @@ static ClRcT clHeapConfigPoolDataInit(ClPtrT pParentBase,
         }
         break;
     default:
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid parser op: %d\n",op));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid parser op: %d\n",op);
         rc = CL_EO_RC(CL_ERR_UNSPECIFIED);
         goto out;
     }
@@ -190,7 +190,7 @@ static ClRcT clBufferConfigPoolDataInit(ClPtrT pParentBase,
        || pBaseOffset == NULL
        )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid param\n");
         goto out;
     }
     switch(op)
@@ -201,7 +201,7 @@ static ClRcT clBufferConfigPoolDataInit(ClPtrT pParentBase,
             if(pPoolConfig == NULL)
             {
                 rc = CL_EO_RC(CL_ERR_NO_MEMORY);
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("calloc error\n"));
+                clLogError(CL_LOG_AREA,CL_LOG_CTXT,"calloc error\n");
                 goto out;
             }
             pBufferConfig->numPools = *pNumInstances;
@@ -215,7 +215,7 @@ static ClRcT clBufferConfigPoolDataInit(ClPtrT pParentBase,
         }
         break;
     default:
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid parser op: %d\n",op));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid parser op: %d\n",op);
         rc = CL_EO_RC(CL_ERR_UNSPECIFIED);
         goto out;
     }
@@ -246,7 +246,7 @@ static ClRcT clWaterMarkActionDataInit(ClPtrT pParentBase,
     };
     if(pParentBase == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("parent base NULL\n"));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"parent base NULL\n");
         return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     }
     for(i = 0; pBases[i] && pParentBase != pBases[i]; ++i);
@@ -266,7 +266,7 @@ static ClRcT clWaterMarkActionDataInit(ClPtrT pParentBase,
         for(i = 0; pActionBases[i] && pActionBases[i] != pParentBase; ++i);
         if(pActionBases[i] == NULL)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid parent base:%p\n",pParentBase));
+            clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid parent base:%p\n",pParentBase);
             return CL_EO_RC(CL_ERR_UNSPECIFIED);
         }
         pCurrentBase = pActionBases[i];
@@ -292,7 +292,7 @@ static ClRcT clHeapConfigModeTagFmt(ClParserTagT *pTag,
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     if(pBase == NULL || pAttr == NULL || pValue == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid param\n");
         goto out;
     }
     rc = CL_TAG_SKIP_UPDATE ;
@@ -316,7 +316,7 @@ static ClRcT clHeapConfigModeTagFmt(ClParserTagT *pTag,
             }
             else 
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid mode:%s\n",pAttr));
+                clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid mode:%s\n",pAttr);
                 rc = CL_EO_RC(CL_ERR_UNSPECIFIED);
                 goto out;
             }
@@ -348,7 +348,7 @@ static ClRcT clHeapConfigModeTagFmt(ClParserTagT *pTag,
         break;
     default:
         rc = CL_EO_RC(CL_ERR_UNSPECIFIED);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unknown op:%d\n",op));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Unknown op:%d\n",op);
         goto out;
     }
     out:
@@ -367,7 +367,7 @@ static ClRcT clBufferConfigModeTagFmt(ClParserTagT *pTag,
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     if(pBase == NULL || pAttr == NULL || pValue == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid param\n");
         goto out;
     }
     rc = CL_TAG_SKIP_UPDATE ;
@@ -386,7 +386,7 @@ static ClRcT clBufferConfigModeTagFmt(ClParserTagT *pTag,
             }
             else 
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid mode:%s\n",pAttr));
+                clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid mode:%s\n",pAttr);
                 rc = CL_EO_RC(CL_ERR_UNSPECIFIED);
                 goto out;
             }
@@ -413,7 +413,7 @@ static ClRcT clBufferConfigModeTagFmt(ClParserTagT *pTag,
         break;
     default:
         rc = CL_EO_RC(CL_ERR_UNSPECIFIED);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unknown op:%d\n",op));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Unknown op:%d\n",op);
         goto out;
     }
     out:
@@ -441,14 +441,14 @@ static ClRcT clWaterMarkActionTagFmt(ClParserTagT *pTag,
     ClUint32T bit;
     if(pData == NULL || pBase == NULL || pAttr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid param\n");
         goto out;
     }
     for(i = 0; pActionTags[i] && strcasecmp(pActionTags[i],pData->pTag); ++i);
 
     if(pActionTags[i] == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid tag specified:%s\n",pData->pTag));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid tag specified:%s\n",pData->pTag);
         goto out;
     }
     bit = actionBitMap[i];
@@ -470,7 +470,7 @@ static ClRcT clWaterMarkActionTagFmt(ClParserTagT *pTag,
             }
             else
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid attribute:%s\n",pAttr));
+                clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid attribute:%s\n",pAttr);
                 rc = CL_EO_RC(CL_ERR_UNSPECIFIED);
                 goto out;
             }
@@ -488,7 +488,7 @@ static ClRcT clWaterMarkActionTagFmt(ClParserTagT *pTag,
         }
         break;
     default:
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid op:%d\n",op));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid op:%d\n",op);
         rc = CL_EO_RC(CL_ERR_UNSPECIFIED);
         goto out;
     }
@@ -508,7 +508,7 @@ static ClRcT clEoConfigNameTagFmt(ClParserTagT *pTag,
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     if(pAttr == NULL || pName == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid param\n");
         goto out;
     }
     /*
@@ -534,7 +534,7 @@ static ClRcT clEoConfigNameTagFmt(ClParserTagT *pTag,
         }
         break;
     default:
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid op:%d\n",op));
+        clLogError(CL_LOG_AREA,CL_LOG_CTXT,"Invalid op:%d\n",op);
         rc = CL_EO_RC(CL_ERR_UNSPECIFIED);
         goto out;
     }

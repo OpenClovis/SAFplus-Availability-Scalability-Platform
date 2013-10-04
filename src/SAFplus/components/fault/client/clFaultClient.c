@@ -54,6 +54,10 @@
 #include <clFaultServerFuncTable.h>
 #include <clCorAmf.h>
 
+#define FAULT_LOG_AREA_FAULT	"FLT"
+#define FAULT_LOG_CTX_VERSION	"VER"
+#define FAULT_LOG_CTX_RMD	"RMD"
+#define FAULT_LOG_CTX_ACTION	"ACT"
 /**
  *  Determine the supported fault Version.  
  *
@@ -72,8 +76,8 @@ clFaultVersionVerify(ClVersionT *version)
     ClRcT rc = CL_OK;
 	if(version == NULL)
 	{
-		CL_DEBUG_PRINT(CL_DEBUG_ERROR,("NULL pointer passed as version \
-					address.with rc: 0x%x", rc));
+		clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_VERSION,"NULL pointer passed as version \
+		           address.with rc: 0x%x", rc);
 		return CL_ERR_NULL_POINTER;
 	}
 
@@ -82,7 +86,7 @@ clFaultVersionVerify(ClVersionT *version)
 	rc = clVersionVerify(&gFaultClientToServerVersionDb,version);
 	if(rc != CL_OK)
 	{
-		CL_DEBUG_PRINT(CL_DEBUG_ERROR,("The Cor Version is not supported. 0x%x", rc));
+		clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_VERSION,"The Cor Version is not supported. 0x%x", rc);
 		return CL_FAULT_ERR_VERSION_UNSUPPORTED;
 	}
     CL_FUNC_EXIT();
@@ -124,8 +128,8 @@ clFaultReport(SaNameT *compName,
 							         CL_FAULT_REPORT_API_HANDLER);
 	if (CL_OK != rc )
     {
-         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clFaultClientIssueFaultRmd failed \
-					 with rec:%x\n", rc));
+         clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_RMD,"clFaultClientIssueFaultRmd failed \
+	             with rec:%x\n", rc);
     }
 	
 	return rc;
@@ -147,7 +151,7 @@ ClRcT clFaultRepairAction(ClIocAddressT iocAddress,ClAlarmHandleT alarmHandle,Cl
 	faultVersionInfo = clHeapAllocate((ClUint32T)sizeof(ClFaultVersionInfoT));
 	if(faultVersionInfo == NULL)
 	{
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Memory allocation failed \n"));
+        clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_ACTION,"Memory allocation failed \n");
         return CL_ERR_NO_MEMORY;
     }
 	CL_FAULT_VERSION_SET(faultVersionInfo->version);
@@ -168,8 +172,8 @@ ClRcT clFaultRepairAction(ClIocAddressT iocAddress,ClAlarmHandleT alarmHandle,Cl
 	rc = clBufferCreate(&inMsgHandle);
 	if (rc != CL_OK )
     {
-         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Could not create buffer for \
-					 message\n"));
+         clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_ACTION,"Could not create buffer for \
+		     message\n");
 		 clHeapFree(faultVersionInfo);
          return rc;
     }
@@ -181,7 +185,7 @@ ClRcT clFaultRepairAction(ClIocAddressT iocAddress,ClAlarmHandleT alarmHandle,Cl
         /* Free buffer allocated above */
         clBufferDelete(&inMsgHandle);
 		clHeapFree(faultVersionInfo);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Could not write into Buffer\n"));
+        clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_ACTION,"Could not write into Buffer\n");
         return rc;
     }
 	
@@ -199,7 +203,7 @@ ClRcT clFaultRepairAction(ClIocAddressT iocAddress,ClAlarmHandleT alarmHandle,Cl
 					   NULL );
 	if(rc != CL_OK)
 	{
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n RMD call to FM server failed with rc:0x%x",rc));
+        clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_RMD,"\n RMD call to FM server failed with rc:0x%x",rc);
 	}
 	
 	clBufferDelete(&inMsgHandle);	
@@ -251,30 +255,30 @@ ClRcT clFaultClientIssueFaultRmd(SaNameT *compName,
 		
 	if (hMoId == NULL)
 	{
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clFmFaultPublish ERROR: MOID is NULL for the fault \r\n"));
+        clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_RMD,"clFmFaultPublish ERROR: MOID is NULL for the fault \r\n");
 		return CL_FAULT_RC(CL_FAULT_ERR_MOID_NULL);
     }
 	
 	if (compName == NULL)
 	{
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clFmFaultPublish ERROR: compname\
-					being passed to fault is NULL\r\n"));
+        clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_RMD,"clFmFaultPublish ERROR: compname\
+			being passed to fault is NULL\r\n");
 		return CL_FAULT_RC(CL_FAULT_ERR_COMPNAME_NULL);
     }
 	
 	rc = clFaultValidateCategory(category);
     if (rc != CL_OK)
 	{
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clFmFaultPublish ERROR: Invalid Category for\
-					the fault:0x%x\r\n",category));
+        clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_RMD,"clFmFaultPublish ERROR: Invalid Category for\
+					the fault:0x%x\r\n",category);
 		return CL_FAULT_RC(CL_FAULT_ERR_INVALID_CATEGORY);
     }
 	
 	rc = clFaultValidateSeverity(severity);
     if (rc != CL_OK)
 	{
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clFmFaultPublish ERROR: Invalid severity for \
-					the fault:0x%x\r\n",severity));
+        clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_RMD,"clFmFaultPublish ERROR: Invalid severity for \
+					the fault:0x%x\r\n",severity);
 		return CL_FAULT_RC(CL_FAULT_ERR_INVALID_SEVERITY);
     }
     opts.retries  = CL_FAULT_RMDCALL_RETRIES;
@@ -283,7 +287,7 @@ ClRcT clFaultClientIssueFaultRmd(SaNameT *compName,
 	
 	if((hFaultEvent = (ClFaultEventPtr)clHeapAllocate(sizeof(ClFaultEventT)+len  ))== NULL)
 	{
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Memory allocation failed \n"));
+        clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_RMD,"Memory allocation failed \n");
         return CL_ERR_NO_MEMORY;
     }
 	memset(hFaultEvent,0,sizeof(ClFaultEventT)+len);
@@ -307,8 +311,8 @@ ClRcT clFaultClientIssueFaultRmd(SaNameT *compName,
 	rc = clBufferCreate(&inMsgHandle);
 	if (rc != CL_OK )
     {
-         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Could not create buffer for \
-					 message\n"));
+         clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_RMD,"Could not create buffer for \
+					 message\n");
          return rc;
     }
 	
@@ -317,7 +321,7 @@ ClRcT clFaultClientIssueFaultRmd(SaNameT *compName,
     {
         /* Free buffer allocated above */
         clBufferDelete(&inMsgHandle);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Could not write into Buffer\n"));
+        clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_RMD,"Could not write into Buffer\n");
         return rc;
     }
 	
@@ -331,7 +335,7 @@ ClRcT clFaultClientIssueFaultRmd(SaNameT *compName,
                        NULL );
 	if(rc != CL_OK)
 	{
-		CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nRMD Call to FM server failed with rc:0x%x",rc));
+		clLogError(FAULT_LOG_AREA_FAULT,FAULT_LOG_CTX_RMD,"\nRMD Call to FM server failed with rc:0x%x",rc);
 		/*
 		sprintf(rmdmsg,"Fault Manager Local/Global depending on the context \
 				when trying to restart %s",compName->value);

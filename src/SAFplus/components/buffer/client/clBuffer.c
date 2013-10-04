@@ -37,6 +37,7 @@
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clLogApi.h>
 #include <clOsalApi.h>
 #include <clClistApi.h>
@@ -63,10 +64,10 @@
 #endif
 
 #define CL_BUFFER_DEPRECATED() do {                                     \
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("%s buffer API is deprecated. "  \
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"%s buffer API is deprecated. "  \
                                        "Please use clBuffer equivalents " \
                                        "or refer to clBufferApi.h",     \
-                                       __FUNCTION__));                  \
+                                       __FUNCTION__);                  \
     }while(0)
 
 #define CL_BUFFER_DEFAULT_INDEX  (0)
@@ -267,12 +268,12 @@ static ClRcT clBufferValidateConfig(const ClBufferPoolConfigT *pBufferPoolConfig
     ClRcT rc = CL_BUFFER_RC(CL_ERR_INVALID_PARAMETER);
     if(pBufferPoolConfig->numPools == 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_WARN,("Buffer pool count 0\n"));
+        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer pool count 0\n");
         goto out;
     }
     if(pBufferPoolConfig->pPoolConfig[0].chunkSize < CL_BUFFER_MIN_CHUNK_SIZE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Min chunk size %d is less than allowed min chunk size %d for buffer\n",pBufferPoolConfig->pPoolConfig[0].chunkSize,CL_BUFFER_MIN_CHUNK_SIZE));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Min chunk size %d is less than allowed min chunk size %d for buffer\n",                                           pBufferPoolConfig->pPoolConfig[0].chunkSize,CL_BUFFER_MIN_CHUNK_SIZE);
         goto out;
     }
     rc = CL_OK;
@@ -443,7 +444,7 @@ clBufferFromPoolAllocate (ClPoolT pool,
     rc =  clPoolAllocate(pool,ppChunk,ppCookie);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Buffer alloc:Error allocating %d bytes\n",size));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer alloc:Error allocating %d bytes\n",size);
         CL_BUFFER_LOG(CL_LOG_ERROR,
                       "Buffer allocation failed for %d bytes",
                       size);
@@ -502,7 +503,7 @@ static ClRcT clBufferFromPoolFree(ClUint8T *pChunk,ClUint32T size,ClPtrT pCookie
     rc =  clPoolFree(pChunk,pCookie);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Buffer free error for %d bytes\n",size));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer free error for %d bytes\n",size);
         CL_BUFFER_LOG(CL_LOG_ERROR,
                       "Buffer free failed for %d bytes",
                       size);
@@ -583,9 +584,9 @@ static ClRcT clBMBufferPoolStatsGet(ClUint32T numPools,ClUint32T *pPoolSize,ClPo
                                    pPoolStats+i);
         if(errorCode != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in getting pool stats "
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error in getting pool stats "
                                            "for pool size:%d\n",
-                                           gBufferManagementInfo.bufferPoolConfig.pPoolConfig[i].chunkSize));
+                                           gBufferManagementInfo.bufferPoolConfig.pPoolConfig[i].chunkSize);
             goto out;
         }
         currentPoolSize += pPoolStats[i].numExtendedPools * pPoolStats[i].poolConfig.incrementPoolSize;
@@ -616,13 +617,13 @@ clBufferPoolInitialize(const ClBufferPoolConfigT *pBufferPoolConfigUser)
 
     if(! (pBufferPoolConfig->pPoolConfig = (ClPoolConfigT*) clHeapAllocate(sizeof(*pBufferPoolConfig->pPoolConfig) * pBufferPoolConfigUser->numPools)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory\n");
         goto out;
     }
 
     if(!(gBufferManagementInfo.pPoolHandles = (void**) clHeapAllocate(sizeof(ClPoolT) * pBufferPoolConfigUser->numPools)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory\n");
         goto out_free;
     }
 
@@ -643,7 +644,7 @@ clBufferPoolInitialize(const ClBufferPoolConfigT *pBufferPoolConfigUser)
 
     if( (rc = clBufferValidateConfig(pBufferPoolConfig) ) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Buffer config validation failed\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer config validation failed\n");
         goto out_free;
     }
     
@@ -660,7 +661,7 @@ clBufferPoolInitialize(const ClBufferPoolConfigT *pBufferPoolConfigUser)
             rc = clPoolCreate(&pool,flags,pBufferPoolConfig->pPoolConfig+i);
             if(rc != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in pool create:0x%x\n",rc));
+                clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error in pool create:0x%x\n",rc);
                 goto out_destroy;
             }
             gBufferManagementInfo.pPoolHandles[i] = pool;
@@ -681,7 +682,7 @@ clBufferPoolInitialize(const ClBufferPoolConfigT *pBufferPoolConfigUser)
         {
             if(clPoolDestroy(gBufferManagementInfo.pPoolHandles[j]) != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in destroying pool:%d\n",j));
+                clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error in destroying pool:%d\n",j);
             }
         }
     }
@@ -716,7 +717,7 @@ clBufferPoolFinalize(void)
             ClPoolT pool = gBufferManagementInfo.pPoolHandles[i];
             if(pool && (rc = clPoolDestroyForce(pool)) != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error destroying pool:%d\n",i));
+                clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error destroying pool:%d\n",i);
                 goto out;
             }
         }
@@ -941,7 +942,7 @@ clBMBufferChainFree(ClBufferCtrlHeaderT *pCtrlHeader,
 
             if(rc != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in freeing buffer:%p\n",(ClPtrT)pFreeAddress));
+                clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error in freeing buffer:%p\n",(ClPtrT)pFreeAddress);
                 goto out;
             }
         }
@@ -1088,8 +1089,8 @@ clBMBufferChainAllocate(ClUint32T size, ClBufferHeaderT** ppBuffer)
         
         if(errorCode != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating buffer of size "
-                                           " [%d]",chunkSize));
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating buffer of size "
+                                           " [%d]",chunkSize);
             goto out;
         }
 
@@ -1801,9 +1802,9 @@ clBMBufferConcatenate(ClBufferCtrlHeaderT *pCtrlHeaderDestination,
            pTempBufferHeader->pNextBufferHeader == NULL
            )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Buffer concat: "
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer concat: "
                                            "Error allocating memory for "
-                                           "%d bytes\n",nbytes));
+                                           "%d bytes\n",nbytes);
             goto out;
         }
 
@@ -2092,7 +2093,7 @@ clBMBufferFlatten(ClBufferCtrlHeaderT *pCtrlHeader,
     pCopyToBuffer = (ClUint8T*) clHeapAllocate(len);
     if(NULL == pCopyToBuffer)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in allocating memory of size:%d\n",len));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error in allocating memory of size:%d\n",len);
         goto out;
     }
     pStartBufferHeader->readOffset = pStartBufferHeader->startOffset;
@@ -2100,7 +2101,7 @@ clBMBufferFlatten(ClBufferCtrlHeaderT *pCtrlHeader,
                                      pCopyToBuffer,&len);
     if(errorCode != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in nbytes read of len:%d\n",len));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error in nbytes read of len:%d\n",len);
         clHeapFree(pCopyToBuffer);
         goto out_restore;
     }
@@ -2184,7 +2185,7 @@ clBMBufferChainCopy(ClBufferHeaderT* pStartBufferHeader,
                                           );
         if(errorCode != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in nbytes write of %d bytes\n",bytesToWrite));
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error in nbytes write of %d bytes\n",bytesToWrite);
             return errorCode;
         }
         if((ClInt32T)numberOfBytes <= 0 )
@@ -2193,7 +2194,7 @@ clBMBufferChainCopy(ClBufferHeaderT* pStartBufferHeader,
         }
         pCurrentBufferHeader = pCurrentBufferHeader->pNextBufferHeader;
     }
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in chain copy\n"));
+    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error in chain copy\n");
     errorCode = CL_BUFFER_RC(CL_ERR_INVALID_PARAMETER);
     clDbgCodeError(errorCode, ("Tried to copy beyond the end of the buffer"));
     return(errorCode);
@@ -2221,7 +2222,7 @@ clBMBufferChainDuplicate(ClBufferCtrlHeaderT *pCtrlHeaderSource,
 
     if(ppFirstBuffer == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid parameter\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid parameter\n");
         return CL_BUFFER_RC(CL_ERR_INVALID_PARAMETER);
     }
 
@@ -2236,9 +2237,9 @@ clBMBufferChainDuplicate(ClBufferCtrlHeaderT *pCtrlHeaderSource,
                                                &pChunk,&pCookie);
         if(errorCode != CL_OK)
 		{
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating buffer of size "
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating buffer of size "
                                            " %d\n",
-                                           pCurrentBufferHeader->chunkSize));
+                                           pCurrentBufferHeader->chunkSize);
             return errorCode;
 		}
 		
@@ -2371,7 +2372,7 @@ clBufferInitialize(const ClBufferPoolConfigT *pConfig)
 
     if(errorCode != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error initializing mutex\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error initializing mutex\n");
         goto out;
     }
 
@@ -2379,7 +2380,7 @@ clBufferInitialize(const ClBufferPoolConfigT *pConfig)
 
     if(errorCode != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error initializing buffer pool:0x%x\n",errorCode));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error initializing buffer pool:0x%x\n",errorCode);
         goto out;
     }
 
@@ -2403,7 +2404,7 @@ clBufferFinalize ()
 
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Buffer Management is not initialised\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer Management is not initialised\n");
         goto out;
     }
 
@@ -2415,7 +2416,7 @@ clBufferFinalize ()
 
     clBufferPoolFinalize();
 
-    CL_DEBUG_PRINT(CL_DEBUG_INFO,("Buffer Management clean up DONE\n"));
+    clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer Management clean up DONE\n");
 
     out:
     CL_FUNC_EXIT();
@@ -2443,7 +2444,7 @@ clBufferCreateAndAllocate (ClUint32T size, ClBufferHandleT *pBufferHandle)
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -2492,7 +2493,7 @@ clBufferDelete (ClBufferHandleT *pBufferHandle)
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Buffer Management is not initialized"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer Management is not initialized");
         rc = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(rc);
@@ -2587,7 +2588,7 @@ clBufferClear (ClBufferHandleT bufferHandle)
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -2614,7 +2615,7 @@ clBufferLengthGet (ClBufferHandleT bufferHandle, ClUint32T *pBufferLength)
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -2728,7 +2729,7 @@ clBufferNBytesRead (ClBufferHandleT bufferHandle,
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -2763,7 +2764,7 @@ ClRcT clDbgBufferPrint(ClBufferHandleT bufferHdl)
     
     clBufferNBytesRead(bufferHdl,buf,&len);
     buf[len]=0;
-    CL_DEBUG_PRINT(CL_DEBUG_INFO,("Buffer [%p] length [%d] is [%s]",bufferHdl,len,buf));
+    clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer [%p] length [%d] is [%s]",bufferHdl,len,buf);
     printf("Buffer [%p] length [%d] is [%s]\n",bufferHdl,len,buf);
     clHeapFree(buf);
     return CL_OK;
@@ -2781,7 +2782,7 @@ clBufferNBytesWrite (ClBufferHandleT bufferHandle, ClUint8T *pByteBuffer,
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         return(errorCode);
     }
@@ -2812,7 +2813,7 @@ clBufferNBytesWrite (ClBufferHandleT bufferHandle, ClUint8T *pByteBuffer,
                                                  &dupBufferHeader);
             if(errorCode != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error [%#x] duplicating a cloned buffer\n", errorCode));
+                clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error [%#x] duplicating a cloned buffer\n", errorCode);
                 CL_FUNC_EXIT();
                 return errorCode;
             }
@@ -2859,7 +2860,7 @@ clBufferNBytesWrite (ClBufferHandleT bufferHandle, ClUint8T *pByteBuffer,
         errorCode = clBMBufferChainFree(dupCtrlHeader, dupBufferHeader);
         if(CL_OK != errorCode)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error [%#x] freeing the cloned duplicate chain error\n", errorCode));
+           clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error [%#x] freeing the cloned duplicate chain error\n", errorCode);
         }
         /*
          * Update the read buffer in the new COW chain.
@@ -2870,8 +2871,8 @@ clBufferNBytesWrite (ClBufferHandleT bufferHandle, ClUint8T *pByteBuffer,
                                                 pCtrlHeader->currentReadOffset, CL_BUFFER_SEEK_SET);
             if(CL_OK != errorCode)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error [%#x] setting read offset to [%d] bytes in the cloned buffer\n",
-                                                errorCode, pCtrlHeader->currentReadOffset));
+                clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error [%#x] setting read offset to [%d] bytes in the cloned buffer\n",
+                                                errorCode, pCtrlHeader->currentReadOffset);
                 resetMode |= 1;
             }
         }
@@ -2885,8 +2886,8 @@ clBufferNBytesWrite (ClBufferHandleT bufferHandle, ClUint8T *pByteBuffer,
                                                  pCtrlHeader->currentWriteOffset, CL_BUFFER_SEEK_SET);
             if(CL_OK != errorCode)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error [%#x] setting write offset to [%d] bytes in the cloned buffer\n",
-                                                errorCode, pCtrlHeader->currentWriteOffset));
+                clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error [%#x] setting write offset to [%d] bytes in the cloned buffer\n",
+                                                errorCode, pCtrlHeader->currentWriteOffset);
                 resetMode |= 2;
             }
         }
@@ -2936,7 +2937,7 @@ clBufferChecksum16Compute(ClBufferHandleT bufferHandle,
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -2969,7 +2970,7 @@ clBufferChecksum32Compute(ClBufferHandleT bufferHandle,
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3002,7 +3003,7 @@ clBufferDataPrepend (ClBufferHandleT bufferHandle, ClUint8T *pByteBuffer,
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3045,7 +3046,7 @@ clBufferConcatenate (ClBufferHandleT destination, ClBufferHandleT *pSource)
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3067,7 +3068,7 @@ clBufferConcatenate (ClBufferHandleT destination, ClBufferHandleT *pSource)
 
     if(pSourceHeader->parent || pDestinationHeader->parent)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nCannot concatenate cloned buffers\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCannot concatenate cloned buffers\n");
         errorCode = CL_BUFFER_RC(CL_ERR_INVALID_PARAMETER);
         CL_FUNC_EXIT();
         return errorCode;
@@ -3102,7 +3103,7 @@ clBufferReadOffsetGet (ClBufferHandleT bufferHandle, ClUint32T *pReadOffset)
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3133,7 +3134,7 @@ clBufferWriteOffsetGet (ClBufferHandleT bufferHandle, ClUint32T *pWriteOffset)
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3166,7 +3167,7 @@ clBufferReadOffsetSet (ClBufferHandleT bufferHandle, ClInt32T newReadOffset, ClB
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3212,7 +3213,7 @@ clBufferWriteOffsetSet (ClBufferHandleT bufferHandle, ClInt32T newWriteOffset, C
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3261,7 +3262,7 @@ clBufferHeaderTrim (ClBufferHandleT bufferHandle, ClUint32T numberOfBytes)
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3306,7 +3307,7 @@ clBufferTrailerTrim (ClBufferHandleT bufferHandle, ClUint32T numberOfBytes)
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3345,7 +3346,7 @@ clBufferToBufferCopy(ClBufferHandleT source, ClUint32T sourceOffset, ClBufferHan
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3392,7 +3393,7 @@ clBufferAppendHeap (ClBufferHandleT source, ClUint8T *buffer, ClUint32T size)
 
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3421,14 +3422,14 @@ clBufferAppendHeap (ClBufferHandleT source, ClUint8T *buffer, ClUint32T size)
 
     if(pCtrlHeader->refCnt > 1 || pCtrlHeader->parent)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Can't append a heap chain to a cloned buffer\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Can't append a heap chain to a cloned buffer\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_SUPPORTED);
         CL_FUNC_EXIT();
         return errorCode;
     }
     if(!pCtrlHeader->pCurrentWriteBuffer)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Can't append a heap chain without a write buffer\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Can't append a heap chain without a write buffer\n");
         errorCode = CL_BUFFER_RC(CL_ERR_INVALID_STATE);
         CL_FUNC_EXIT();
         return errorCode;
@@ -3480,7 +3481,7 @@ clBufferClone (ClBufferHandleT source, ClBufferHandleT *pDuplicate)
 
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3512,7 +3513,7 @@ clBufferClone (ClBufferHandleT source, ClBufferHandleT *pDuplicate)
 
     if(errorCode != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in buffer clone allocate\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error in buffer clone allocate\n");
         CL_FUNC_EXIT();
         return (errorCode);
     }
@@ -3550,7 +3551,7 @@ clBufferDuplicate (ClBufferHandleT source, ClBufferHandleT *pDuplicate)
 
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3582,7 +3583,7 @@ clBufferDuplicate (ClBufferHandleT source, ClBufferHandleT *pDuplicate)
 
     if(NULL == pFirstBufferHeader || pDuplicateHeader == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in duplicate\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error in duplicate\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return (errorCode);
@@ -3609,7 +3610,7 @@ clBufferFlatten(ClBufferHandleT source,
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nBuffer Management is not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBuffer Management is not initialized\n");
         errorCode = CL_BUFFER_RC(CL_ERR_NOT_INITIALIZED);
         CL_FUNC_EXIT();
         return(errorCode);
@@ -3642,7 +3643,7 @@ ClRcT clBufferStatsGet(ClMemStatsT *pBufferStats)
 
     if(gBufferManagementInfo.isInitialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Stats get:buffer not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Stats get:buffer not initialized\n");
         goto out;
     }
 
@@ -3667,7 +3668,7 @@ ClRcT clBufferPoolStatsGet(ClUint32T numPools,ClUint32T *pPoolSize,ClPoolStatsT 
 
     if(gBufferManagementInfo.isInitialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Stats get:buffer not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Stats get:buffer not initialized\n");
         goto out;
     }
 
@@ -3690,7 +3691,7 @@ ClRcT clBufferPoolStatsGet(ClUint32T numPools,ClUint32T *pPoolSize,ClPoolStatsT 
 
     if(errorCode != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error getting buffer pool stats\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error getting buffer pool stats\n");
         goto out;
     }
 
@@ -3709,7 +3710,7 @@ ClRcT clBufferShrink(ClPoolShrinkOptionsT *pShrinkOptions)
 
     if(gBufferManagementInfo.isInitialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Buffer shrink:Buffer mgmt. uninitialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer shrink:Buffer mgmt. uninitialized\n");
         goto out;
     }
 
@@ -3724,7 +3725,7 @@ ClRcT clBufferShrink(ClPoolShrinkOptionsT *pShrinkOptions)
         rc = clPoolShrink(pool,pShrinkOptions);
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error shrinking %d sized pool\n",gBufferManagementInfo.bufferPoolConfig.pPoolConfig[i].chunkSize));
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error shrinking %d sized pool\n",gBufferManagementInfo.bufferPoolConfig.pPoolConfig[i].chunkSize);
             goto out;
         }
     }
@@ -3741,7 +3742,7 @@ ClRcT clBufferVectorize(ClBufferHandleT buffer,struct iovec **ppIOVector,ClInt32
 
     if(gBufferManagementInfo.isInitialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Buffer not initialized\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer not initialized\n");
         goto out;
     }
     NULL_CHECK(pCtrlHeader);

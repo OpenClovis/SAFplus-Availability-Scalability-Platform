@@ -37,6 +37,7 @@
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clDbalCfg.h>
 #include <clOsalApi.h>
 #include <clDbalApi.h>
@@ -95,7 +96,7 @@ clDbalLibInitialize(void)
         rc  = dbalGetLibName(libName);   
         if( rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error getting the DBAL plugin filename. rc [0x %x]\n",rc));
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error getting the DBAL plugin filename. rc [0x %x]\n",rc);
         } 
         /*open the dynamic loaded library*/
         rc = CL_DBAL_RC(CL_ERR_UNSPECIFIED);
@@ -108,14 +109,14 @@ clDbalLibInitialize(void)
                 char* err = dlerror();
                 if (!err) err = "unknown";
 
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("Error in finding the symbol 'clDbalInterface' in shared library '%s': [%s]",
-                                libName, err));
+                clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                               "Error in finding the symbol 'clDbalInterface' in shared library '%s': [%s]",
+                                libName, err);
 
                 if(0 != dlclose(gDlHandle))
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                   ("Error while unloading DBAL shared library!"));
+                    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                                   "Error while unloading DBAL shared library!");
                 }
                 goto out;
             }
@@ -132,9 +133,9 @@ clDbalLibInitialize(void)
         {
             char* err = dlerror();
             if (!err) err = "unknown";          
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("Error finding opening shared library '%s': [%s]",
-                            libName,err));
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                           "Error finding opening shared library '%s': [%s]",
+                            libName,err);
             goto out;
         }
         rc = CL_OK;
@@ -164,8 +165,8 @@ clDbalLibFinalize(void)
     {
         if(0 != dlclose(gDlHandle))
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("Error while unloading DBAL shared library!"));
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                    "Error while unloading DBAL shared library!");
         }
     }
 #endif

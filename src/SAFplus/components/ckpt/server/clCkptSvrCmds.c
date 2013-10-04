@@ -36,6 +36,7 @@
 #include <clCommon.h>
 #include <clCntApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clLogApi.h>
 #include <clEoApi.h>
 #include <clVersionApi.h>
@@ -318,7 +319,7 @@ ClRcT ckptDebugRegister(ClEoExecutionObjT* pEoObj)
     rc = clDebugPromptSet("CKPT");
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clDebugPromptSet(): rc[0x %x]", rc));
+        clLogError("CKPT","DBG","clDebugPromptSet(): rc[0x %x]", rc);
         return rc;
     }
    return clDebugRegister(ckptDebugFuncList,
@@ -1130,7 +1131,7 @@ ClRcT  ckptEntriesShow(ClDebugPrintHandleT msg)
     /*CKPT_LOCK(gCkptSvr->ckptSem);*/
     
     rc = clCntWalk(gCkptSvr->ckptHdlList,ckptNameShow, &msg,sizeof(msg));
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             (" Checkpoint names walk failed rc[0x %x]\n", rc), rc);
 /*    CKPT_UNLOCK(gCkptSvr->ckptSem);*/ /* Good citizen */
     return rc;
@@ -1415,7 +1416,7 @@ void ckptCliPrint(char *str,ClCharT ** ret)
      *ret = clHeapAllocate(strlen(str)+1);
       if(NULL == *ret)
       {
-           CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Malloc Failed \r\n"));
+           clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Malloc Failed \r\n");
            return;
       }
       snprintf(*ret, strlen(str)+1, str);
@@ -1621,12 +1622,12 @@ ClRcT ckptMasterDBEntryPrint(ClHandleDatabaseHandleT databaseHandle,
 
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl,
             handle,(void **)&pStoredData);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Failed to allocate the memory rc[0x %x]\n", rc), rc);
     if(pStoredData == NULL )
     {
        rc = CL_CKPT_ERR_INVALID_STATE;
-       CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+       CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt:Proper data is not there rc[0x %x]\n", rc), rc);
     }
     clOsalPrintf("Name       :%s\t",pStoredData->name.value);
@@ -1642,7 +1643,7 @@ ClRcT ckptMasterDBEntryPrint(ClHandleDatabaseHandleT databaseHandle,
     {
         rc = clCntWalk(pStoredData->replicaList, ckptMasterReplicaListPrint,
             NULL,0);
-       CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+       CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt:Proper data is not there rc[0x %x]\n", rc), rc);
     }
     clOsalPrintf("\n");
@@ -1659,13 +1660,13 @@ ClRcT   ckptClientDBEntryPrint(ClHandleDatabaseHandleT databaseHandle,
 
     rc = clHandleCheckout( gCkptSvr->masterInfo.clientDBHdl,
             handle,(void **)&pClientData);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Failed to allocate the memory rc[0x %x]\n", rc), rc);
     if(pClientData == NULL)
     {
        rc = CL_CKPT_ERR_INVALID_STATE;
        clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl,handle);
-       CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+       CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt:Proper data is not there rc[0x %x]\n", rc), rc);
     }
 clOsalPrintf("%#llX\t%#llX\n",handle, pClientData->masterHdl);;

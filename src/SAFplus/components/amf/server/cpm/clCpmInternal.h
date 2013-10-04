@@ -79,6 +79,7 @@ extern ClTaskPoolHandleT gCpmFaultPool;
 #define CPM_LOG_CTX_CPM_HB               "_HB"    
 #define CPM_LOG_CTX_CPM_LCM              "LCM"
 #define CPM_LOG_CTX_CPM_TL               "_TL"
+#define CPM_LOG_CTX_CPM_RMD		 "RMD"
 #define CPM_LOG_CTX_CPM_MGM              "MGM"
 
 /**

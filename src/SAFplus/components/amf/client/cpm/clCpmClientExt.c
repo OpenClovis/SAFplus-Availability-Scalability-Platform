@@ -80,6 +80,10 @@
 #include "xdrClCpmClientInfoIDLT.h"
 #include "xdrClEoExecutionObjIDLT.h"
 
+#define CPM_LOG_AREA_RMD		"RMD"
+#define CPM_LOG_CTX_RMD_SYNC		"SYN"
+#define CPM_LOG_CTX_NODE_SHUTDOWN	"SHUTDOWN"
+
 typedef struct ClTargetClusterInfo
 {
     ClTargetInfoT targetInfo;
@@ -200,8 +204,8 @@ ClRcT clCpmClientRMDSync(ClIocNodeAddressT destAddr,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_RMD_CALL_ERR, retCode);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("RMD Failed with an error %x\n ", retCode));
+        clLogError(CPM_LOG_AREA_RMD,CPM_LOG_CTX_RMD_SYNC,
+                   "RMD Failed with an error %x\n ", retCode);
     }
   failure:
     return retCode;
@@ -319,8 +323,8 @@ ClRcT clCpmClientRMDSyncNew(ClIocNodeAddressT destAddr,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_RMD_CALL_ERR, retCode);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("RMD Failed with an error %x\n ", retCode));
+        clLogError(CPM_LOG_AREA_RMD,CPM_LOG_CTX_RMD_SYNC,
+                   "RMD Failed with an error %x\n ", retCode);
     }
   failure:
     return retCode;
@@ -523,7 +527,7 @@ ClRcT clCpmExecutionObjectStateSet(ClIocNodeAddressT compAddr,
                    CL_CPM_LOG_1_CLIENT_EO_STATE_SET_ERR, rc);
     }
 
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("clCpmExecutionObjectStateSet  Failed %d\n", rc), rc);
 
   failure:
@@ -542,7 +546,7 @@ ClRcT clCpmExecutionObjectRegister(ClEoExecutionObjT *pEOptr)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                          ("clCpmExecutionObjectRegister: NULL ptr passed \n"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
@@ -554,7 +558,7 @@ ClRcT clCpmExecutionObjectRegister(ClEoExecutionObjT *pEOptr)
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_LCM_COMP_NAME_GET_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("Unable to Get Component Name, rc = %x\n", rc), rc);
 
     memcpy(&(compInfo.compName), &compName, sizeof(SaNameT));
@@ -584,7 +588,7 @@ ClRcT clCpmExecutionObjectRegister(ClEoExecutionObjT *pEOptr)
                    CL_CPM_LOG_1_CLIENT_EO_REG_ERR, rc);
     }
 
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("clCpmExecutionObjectRegister Failed, rc = %x\n", rc),
                      rc);
     pEOptr->eoID = eoID;
@@ -602,7 +606,7 @@ ClRcT clCpmFuncEOWalk(ClCpmFuncWalkT *pWalk)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                          ("clCpmFuncEOWalk: Null ptr passed \n"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
@@ -614,7 +618,7 @@ ClRcT clCpmFuncEOWalk(ClCpmFuncWalkT *pWalk)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to malloc \n"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to malloc \n"),
                          CL_CPM_RC(CL_ERR_NO_MEMORY));
     }
     pCompInfo->walkInfo.funcNo = pWalk->funcNo;
@@ -632,7 +636,7 @@ ClRcT clCpmFuncEOWalk(ClCpmFuncWalkT *pWalk)
                    CL_CPM_LOG_1_CLIENT_EO_FUNC_WALK_ERR, rc);
     }
 
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("clCpmFuncEOWalk Failed, rc = %x \n", rc),
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("clCpmFuncEOWalk Failed, rc = %x \n", rc),
                      rc);
 
     clHeapFree(pCompInfo);
@@ -651,9 +655,9 @@ ClRcT clCpmExecutionObjectStateUpdate(ClEoExecutionObjT *pEOptr)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("clCpmExecutionObjectStateUpdate: Null ptr passed, rc = %x\n",
-                        rc));
+        clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCpmExecutionObjectStateUpdate: Null ptr passed, rc = %x\n",
+                   rc);
         return CL_CPM_RC(CL_ERR_NULL_POINTER);
     }
 
@@ -677,7 +681,7 @@ ClRcT clCpmExecutionObjectStateUpdate(ClEoExecutionObjT *pEOptr)
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_LCM_COMP_NAME_GET_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("Unable to Get Component Name, rc = %x\n", rc), rc);
 
     memcpy(&(compInfo.compName), &compName, sizeof(SaNameT));
@@ -692,7 +696,7 @@ ClRcT clCpmExecutionObjectStateUpdate(ClEoExecutionObjT *pEOptr)
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_EO_STATE_UPDATE_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("clCpmExecutionObjectStateUpdate Failed, rc = %x \n", rc),
                      rc);
 
@@ -715,7 +719,7 @@ ClRcT clCpmComponentInstantiate(SaNameT *compName,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -747,7 +751,7 @@ ClRcT clCpmComponentInstantiate(SaNameT *compName,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_INSTANTIATE_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("clCpmComponentInstantiate Failed rc =%x\n", rc), rc);
 
   failure:
@@ -765,7 +769,7 @@ ClRcT clCpmComponentTerminate(SaNameT *compName,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -797,7 +801,7 @@ ClRcT clCpmComponentTerminate(SaNameT *compName,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_TERMINATE_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("clCpmComponentTerminate Failed rc =%x\n", rc), rc);
 
   failure:
@@ -815,7 +819,7 @@ ClRcT clCpmComponentCleanup(SaNameT *compName,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -847,7 +851,7 @@ ClRcT clCpmComponentCleanup(SaNameT *compName,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_CLEANUP_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("clCpmComponentCleanup Failed rc =%x\n", rc), rc);
 
   failure:
@@ -865,7 +869,7 @@ ClRcT clCpmComponentRestart(SaNameT *compName,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -896,7 +900,7 @@ ClRcT clCpmComponentRestart(SaNameT *compName,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_RESTART_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("clCpmComponentRestart Failed rc =%x\n", rc), rc);
 
   failure:
@@ -913,7 +917,7 @@ ClRcT clCpmComponentLogicalAddressUpdate(SaNameT *compName,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -930,7 +934,7 @@ ClRcT clCpmComponentLogicalAddressUpdate(SaNameT *compName,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_LA_UPDATE_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("%s Failed rc =%x\n", __FUNCTION__, rc), rc);
 
   failure:
@@ -947,7 +951,7 @@ ClRcT clCpmComponentPIDGetBySlot(ClIocNodeAddressT slot, const SaNameT *compName
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -964,7 +968,7 @@ ClRcT clCpmComponentPIDGetBySlot(ClIocNodeAddressT slot, const SaNameT *compName
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_PID_GET_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("%s Failed rc =%x\n", __FUNCTION__, rc), rc);
     *pid = tempPid;
 
@@ -990,7 +994,7 @@ ClRcT clCpmComponentAddressGet(ClIocNodeAddressT nodeAddress,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -1007,7 +1011,7 @@ ClRcT clCpmComponentAddressGet(ClIocNodeAddressT nodeAddress,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_ADDR_GET_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("%s Failed rc =%x\n", __FUNCTION__, rc), rc);
 
     /*
@@ -1052,7 +1056,7 @@ ClRcT clAmfGetComponentId(ClCpmHandleT cpmHandle,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed\n"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed\n"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -1090,7 +1094,7 @@ ClRcT clCpmComponentStatusGet(SaNameT *compName,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed\n"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed\n"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -1116,7 +1120,7 @@ ClRcT clCpmComponentStatusGet(SaNameT *compName,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_STATUS_GET_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("%s Failed rc =%x\n", __FUNCTION__, rc), rc);
 
     *presenceState = state.compPresenceState;
@@ -1134,7 +1138,7 @@ ClRcT clCpmCpmLocalRegister(ClCpmLocalInfoT *cpmLocalInfo)
     if (cpmLocalInfo == NULL)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB, CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"), CL_CPM_RC(CL_ERR_NULL_POINTER));
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"), CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
     rc = clCpmMasterAddressGet(&masterIocAddress);
@@ -1171,7 +1175,7 @@ ClRcT clCpmCpmLocalDeregister(ClCpmLocalInfoT *cpmLocalInfo)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -1191,7 +1195,7 @@ ClRcT clCpmCpmLocalDeregister(ClCpmLocalInfoT *cpmLocalInfo)
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_CPML_UNREG_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("%s Failed rc =%x\n", __FUNCTION__, rc), rc);
 
   failure:
@@ -1210,7 +1214,7 @@ ClRcT clCpmBootLevelGet(CL_IN SaNameT *nodeName, CL_OUT ClUint32T *bootLevel)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -1229,7 +1233,7 @@ ClRcT clCpmBootLevelGet(CL_IN SaNameT *nodeName, CL_OUT ClUint32T *bootLevel)
                    CL_CPM_LOG_1_CLIENT_BM_GET_LEVEL_ERR, rc);
     }
 
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("%s Failed rc =%x \n", __FUNCTION__, rc),
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("%s Failed rc =%x \n", __FUNCTION__, rc),
                      rc);
   failure:
     return rc;
@@ -1249,7 +1253,7 @@ ClRcT clCpmBootLevelSet(CL_IN SaNameT *nodeName,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -1280,7 +1284,7 @@ ClRcT clCpmBootLevelSet(CL_IN SaNameT *nodeName,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_BM_SET_LEVEL_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("clCpmBootLevelSet Failed rc =%x \n", rc),
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("clCpmBootLevelSet Failed rc =%x \n", rc),
                      rc);
 
   failure:
@@ -1297,7 +1301,7 @@ ClRcT clCpmBootLevelMax(CL_IN SaNameT *nodeName, CL_OUT ClUint32T *bootLevel)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -1317,7 +1321,7 @@ ClRcT clCpmBootLevelMax(CL_IN SaNameT *nodeName, CL_OUT ClUint32T *bootLevel)
                    CL_CPM_LOG_1_CLIENT_BM_GET_MAX_LEVEL_ERR, rc);
     }
 
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("%s Failed rc =%x \n", __FUNCTION__, rc),
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("%s Failed rc =%x \n", __FUNCTION__, rc),
                      rc);
 
   failure:
@@ -1340,7 +1344,7 @@ ClRcT clCpmMasterAddressGetExtended(ClIocNodeAddressT *pIocAddress,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -1464,7 +1468,7 @@ ClRcT clCpmNodeShutDown(ClIocNodeAddressT iocNodeAddress)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_NODE_SHUTDOWN, rc);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCpmNodeShutDown Failed rc =%x\n", rc));
+        clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_NODE_SHUTDOWN,"clCpmNodeShutDown Failed rc =%x\n", rc);
     }
 
     return rc;
@@ -1532,7 +1536,7 @@ ClRcT clCpmIocAddressForNodeGet(SaNameT nodeName,
     ClIocAddressIDLT idlNodeAddress = {0};
     
     rc = clCpmMasterAddressGet(&masterAddress);
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, 
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, 
             ("Unable to get the master address, rc=[0x%x]\n", rc), rc);
 
     bufSize = sizeof(ClIocAddressIDLT);
@@ -1576,8 +1580,8 @@ ClBoolT clCpmIsCompRestarted(SaNameT compName)
                                clXdrUnmarshallClUint32T);
 	if (CL_OK != rc)
 	{
-		CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("[%s] failed, rc = [%#x]", __FUNCTION__, rc));
+		clLogError(CPM_LOG_AREA_RMD,CL_LOG_CONTEXT_UNSPECIFIED,
+                           "[%s] failed, rc = [%#x]", __FUNCTION__, rc);
 		goto failure;
 	}
 
@@ -1625,8 +1629,8 @@ static ClRcT cpmSlotGet(ClCpmSlotInfoT *pSlotInfo,
 
     default:
         rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Invalid flag passed, rc=[0x%x]\n", rc));
+        clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Invalid flag passed, rc=[0x%x]\n", rc);
         goto failure;
     }
 
@@ -1636,7 +1640,7 @@ static ClRcT cpmSlotGet(ClCpmSlotInfoT *pSlotInfo,
                                CL_RMD_CALL_NEED_REPLY, 0, 0, CL_IOC_LOW_PRIORITY,
                                MARSHALL_FN(ClCpmSlotInfoRecvT, 4, 0, 0),
                                UNMARSHALL_FN(ClCpmSlotInfoRecvT, 4, 0, 0));
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                      ("Unable to find information about given entity, rc=[0x%x]\n", rc), rc);
 
     switch(pSlotInfoRecv->flag)
@@ -2134,7 +2138,7 @@ ClRcT clCpmComponentFailureReportWithCookie(ClCpmHandleT cpmHandle,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -2147,8 +2151,8 @@ ClRcT clCpmComponentFailureReportWithCookie(ClCpmHandleT cpmHandle,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_2_HANDLE_INVALID, compName->value, rc);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Invalid CPM handle, rc = [%#x]", rc));
+        clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Invalid CPM handle, rc = [%#x]", rc);
         goto failure;
     }
 #endif
@@ -2163,7 +2167,7 @@ ClRcT clCpmComponentFailureReportWithCookie(ClCpmHandleT cpmHandle,
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to allocate memory \n"),
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"),
                          CL_CPM_RC(CL_ERR_NO_MEMORY));
     }
 
@@ -2193,7 +2197,7 @@ ClRcT clCpmComponentFailureReportWithCookie(ClCpmHandleT cpmHandle,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_FAILURE_REPORT_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("%s Failed rc =%x\n", __FUNCTION__, rc),
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("%s Failed rc =%x\n", __FUNCTION__, rc),
                      rc);
 
 failure:

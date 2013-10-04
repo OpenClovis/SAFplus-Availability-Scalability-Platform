@@ -38,6 +38,7 @@ extern "C" {
 #include <clCkptSvr.h>
 #include <clCkptDs.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clCkptCommon.h>
 #include <xdrCkptInfoT.h>
 #include <xdrCkptPrimInfoT.h>

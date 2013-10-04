@@ -122,7 +122,7 @@ _ckptMasterHdlInfoFill(ClHandleT                           masterHdl,
      */
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, 
             masterHdl, (void **)&pMasterDBEntry);  
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Handle Checkout failed rc[0x %x]\n",rc),
             rc);
 
@@ -164,13 +164,13 @@ _ckptMasterHdlInfoFill(ClHandleT                           masterHdl,
             ckptReplicaListDeleteCallback,
             CL_CNT_UNIQUE_KEY,
             &pMasterDBEntry->replicaList);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Replica List create failed rc[0x %x]\n",rc),
             rc);
     rc = clCntNodeAdd( pMasterDBEntry->replicaList,
             (ClCntKeyHandleT)(ClWordT)localAddr, 
             (ClCntDataHandleT)(ClWordT)localAddr, NULL);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Replica List add failed rc[0x %x]\n",rc),
             rc);
             
@@ -181,7 +181,7 @@ _ckptMasterHdlInfoFill(ClHandleT                           masterHdl,
     
     rc = clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
             masterHdl);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Handle checkin failed rc[0x %x]\n",rc),
             rc);
             
@@ -238,7 +238,7 @@ _ckptClientHdlInfoFill(ClHandleT   masterHdl,
     rc = clHandleCheckout(gCkptSvr->masterInfo.clientDBHdl, 
             clientHdl, 
             (void **)&pClientEntry);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Handle checkout failed rc[0x %x]\n",rc),
             rc);
     pClientEntry->clientHdl  =  clientHdl;
@@ -246,7 +246,7 @@ _ckptClientHdlInfoFill(ClHandleT   masterHdl,
     
     rc = clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl, 
             clientHdl);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Client Hdl checkin failed rc[0x %x]\n",rc),
             rc);
     /*
@@ -299,7 +299,7 @@ _ckptPeerListMasterHdlAdd( ClHandleT          masterHdl,
          */
         rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList,
                 (ClPtrT)(ClWordT)oldActAddr, &dataHdl);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Peeraddr [%d] doesn't exist in peerList rc[0x %x]\n",
                  oldActAddr, rc), rc);
         pPeerInfo = (CkptPeerInfoT *)dataHdl;         
@@ -315,7 +315,7 @@ _ckptPeerListMasterHdlAdd( ClHandleT          masterHdl,
     {
         rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList,
                 (ClPtrT)(ClWordT)newActAddr, &dataHdl);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Peeraddr [%d] doesn't exist in peerList rc[0x %x]\n",
                  newActAddr, rc), rc);
         pPeerInfo = (CkptPeerInfoT *)dataHdl;         
@@ -326,7 +326,7 @@ _ckptPeerListMasterHdlAdd( ClHandleT          masterHdl,
         pMasterHandle = clHeapAllocate(sizeof(*pMasterHandle)); // Free on Error
         if(NULL == pMasterHandle)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Memory Allocation Failed\n"));
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Memory Allocation Failed\n");
             goto exitOnError;
         }
         *pMasterHandle = masterHdl;
@@ -399,7 +399,7 @@ _ckptMasterPeerListHdlsAdd(ClHandleT            clientHdl,
         rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList,
                                 (ClPtrT)(ClWordT)nodeAddr, &dataHdl);
     }
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("peerAddr [%d] doesn't exist in peerList rc[0x %x]\n",
              nodeAddr, rc), rc);
     pPeerInfo = (CkptPeerInfoT *)dataHdl;         
@@ -411,7 +411,7 @@ _ckptMasterPeerListHdlsAdd(ClHandleT            clientHdl,
         pMasterHandle = clHeapAllocate(sizeof(*pMasterHandle)); // Free on Error
         if(NULL == pMasterHandle)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Memory Allocation Failed\n"));
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Memory Allocation Failed\n");
             goto exitOnError;
         }
         *pMasterHandle = masterHdl;
@@ -432,7 +432,7 @@ _ckptMasterPeerListHdlsAdd(ClHandleT            clientHdl,
     if(pNodeListInfo == NULL)
     {
         rc = CL_CKPT_ERR_NO_MEMORY;
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Failed to allocate the memory rc[0x %x]\n", rc), rc);
     }
     pNodeListInfo->clientHdl  = clientHdl;
@@ -444,7 +444,7 @@ _ckptMasterPeerListHdlsAdd(ClHandleT            clientHdl,
             (ClCntDataHandleT)pNodeListInfo, NULL)))
     {
        clHeapFree(pNodeListInfo); 
-       CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+       CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("clientHdl list add err rc[0x %x]\n", rc), rc);
     }
     return rc;
@@ -496,7 +496,7 @@ _ckptMasterXlationDBEntryAdd(SaNameT   *pName,
     rc = clCntNodeAdd(gCkptSvr->masterInfo.nameXlationDBHdl,
             (ClCntKeyHandleT )pXlationEntry,
             (ClCntDataHandleT)pXlationEntry, NULL);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed to add the entry rc[0x %x]\n", rc), rc);
     return rc;
 exitOnError:

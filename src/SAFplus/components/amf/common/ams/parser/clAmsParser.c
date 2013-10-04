@@ -245,7 +245,7 @@ clAmsParserTimeoutParser (
 
     if ( (*data_ptr) == 0 )
     {
-        AMS_LOG ( CL_DEBUG_WARN, ("Configuration Timeout Value for "
+        AMS_LOG ( CL_LOG_SEV_WARNING, ("Configuration Timeout Value for "
                     "entityType [%s] and timer [%s] is Zero, Resetting "
                     "it to default value \n",entityTypeName,str)); 
 
@@ -933,7 +933,7 @@ ClRcT clAmsParserEntityAttrParser(
             }
         default:
             { 
-                AMS_LOG(CL_DEBUG_ERROR,
+                AMS_LOG(CL_LOG_SEV_ERROR,
                         ("Function[%s]:invalid entity type [%d]\n",__FUNCTION__,entityType)); 
                 return CL_AMS_ERR_INVALID_ENTITY;
             }
@@ -983,7 +983,7 @@ clAmsParserCSIDefParser(
                     "name" ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("<csiType>: missing name attribute \n")); 
         return rc;
     }
@@ -1042,7 +1042,7 @@ clAmsParserCSIDefParser(
                          "name"))
                  != CL_OK )
          {
-             AMS_LOG(CL_DEBUG_ERROR,
+             AMS_LOG(CL_LOG_SEV_ERROR,
                      ("csiType[%s] : missing <name> attribute for tag <nameValue> \n", 
                       csiConfig->entity.name.value)); 
              return rc;
@@ -1054,7 +1054,7 @@ clAmsParserCSIDefParser(
                          "value"))
                  != CL_OK )
          {
-             AMS_LOG(CL_DEBUG_ERROR,
+             AMS_LOG(CL_LOG_SEV_ERROR,
                      ("csiType[%s] : missing <value> attribute for tag <nameValue> \n", 
                       csiConfig->entity.name.value)); 
              return rc;
@@ -1100,7 +1100,7 @@ setCSIConfig:
                      newConfigType))
              != CL_OK )
      {
-         AMS_LOG(CL_DEBUG_ERROR,
+         AMS_LOG(CL_LOG_SEV_ERROR,
                  ("CSI Type [%s] : Error in adding to the configuration type list\n", 
                   csiConfig->entity.name.value)); 
          return rc;
@@ -1153,7 +1153,7 @@ clAmsParserCompDefParser(
                                             "name"))
          != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("<compType>: missing name attribute \n")); 
         return rc;
     }
@@ -1169,7 +1169,7 @@ clAmsParserCompDefParser(
     {
         if ( rc == CL_AMS_ERR_BAD_CONFIG )
         {
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("Component Type [%s] : bad <capabilityModel> tag\n",
                      compConfig->entity.name.value));
             return rc;
@@ -1183,7 +1183,7 @@ clAmsParserCompDefParser(
     {
         if ( rc == CL_AMS_ERR_BAD_CONFIG )
         {
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("Component Type [%s] : bad <property> tag\n",
                      compConfig->entity.name.value));
             return rc;
@@ -1197,7 +1197,7 @@ clAmsParserCompDefParser(
     {
         if ( rc == CL_AMS_ERR_BAD_CONFIG )
         {
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("Component Type [%s] : bad <instantiateCommand> tag\n",
                      compConfig->entity.name.value));
             return rc;
@@ -1212,7 +1212,7 @@ clAmsParserCompDefParser(
                                       (ClUint32T)sizeof(SaNameT));
     if(!pSupportedCSITypes)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error allocating [%d] bytes", 
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error allocating [%d] bytes", 
                                  (ClUint32T)sizeof(SaNameT)));
         return CL_AMS_RC(CL_ERR_NO_MEMORY);
     }
@@ -1237,7 +1237,7 @@ clAmsParserCompDefParser(
                 (compConfig->property != CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE))
             {
                
-                AMS_LOG(CL_DEBUG_ERROR,
+                AMS_LOG(CL_LOG_SEV_ERROR,
                         ("Component Type [%s] : missing [%s] tag\n",
                          compConfig->entity.name.value, CSI_TYPE_TAG_NAME));
                 clAmsFreeMemory(pSupportedCSITypes);
@@ -1260,7 +1260,7 @@ clAmsParserCompDefParser(
                 goto proxy_csi_type;
             }
 
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("Component type [%.*s]: missing [%s] tags\n",
                      compConfig->entity.name.length, 
                      compConfig->entity.name.value,
@@ -1274,7 +1274,7 @@ clAmsParserCompDefParser(
             const ClCharT *pData = clParserAttr(csiTypeInstance, "name");
             if(!pData)
             {
-                AMS_LOG(CL_DEBUG_ERROR,
+                AMS_LOG(CL_LOG_SEV_ERROR,
                         ("Component type [%.*s] missing csi name tag\n",
                          compConfig->entity.name.length, 
                          compConfig->entity.name.value));
@@ -1298,7 +1298,7 @@ clAmsParserCompDefParser(
                                                    * (numSupportedCSITypes+1));
                 if(!pSupportedCSITypes)
                 {
-                    AMS_LOG(CL_DEBUG_ERROR,
+                    AMS_LOG(CL_LOG_SEV_ERROR,
                             ("Error allocating [%d] bytes while iterating over "\
                              "comp supported csitype instances\n", 
                              (ClUint32T)sizeof(SaNameT)*(numSupportedCSITypes+1)));
@@ -1328,7 +1328,7 @@ clAmsParserCompDefParser(
              != CL_OK )
         {
 
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("Component Type [%s] : missing/bad <proxyCSIType> tag\n",
                      compConfig->entity.name.value));
             return CL_AMS_RC (rc);
@@ -1427,7 +1427,7 @@ clAmsParserCompDefParser(
                                                newConfigType))
         != CL_OK )
     { 
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("Component Type [%s] : Error in adding to the configuration type list\n", 
                  compConfig->entity.name.value)); 
         return rc;
@@ -1475,7 +1475,7 @@ clAmsParserSIDefParser(
                     "name"))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("<siType>: missing name attribute \n")); 
         return rc;
     }
@@ -1491,7 +1491,7 @@ clAmsParserSIDefParser(
     {
         if ( rc == CL_AMS_ERR_BAD_CONFIG )
         {
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("SI Type [%s] : bad <adminState> tag\n",
                      siConfig->entity.name.value));
             return rc;
@@ -1545,7 +1545,7 @@ clAmsParserSIDefParser(
                      newConfigType ))
              != CL_OK )
      {
-         AMS_LOG(CL_DEBUG_ERROR,
+         AMS_LOG(CL_LOG_SEV_ERROR,
                  ("SI Type [%s] : Error in adding to the configuration type list\n", 
                   siConfig->entity.name.value)); 
          return rc;
@@ -1594,7 +1594,7 @@ clAmsParserSUDefParser(
                     "name"))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("<suType>: missing name attribute \n")); 
         return rc;
     }
@@ -1611,7 +1611,7 @@ clAmsParserSUDefParser(
     {
         if ( rc == CL_AMS_ERR_BAD_CONFIG )
         {
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("SU Type [%s] : bad <adminState> tag\n",
                      suConfig->entity.name.value));
             return rc;
@@ -1677,7 +1677,7 @@ clAmsParserSUDefParser(
                      newConfigType))
              != CL_OK )
      {
-         AMS_LOG(CL_DEBUG_ERROR,
+         AMS_LOG(CL_LOG_SEV_ERROR,
                  ("SU Type [%s] : Error in adding to the configuration type list\n", 
                   suConfig->entity.name.value)); 
          return rc;
@@ -1726,7 +1726,7 @@ clAmsParserSGDefParser(
             "name"))
             != CL_OK )
     { 
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("<sgType>: missing name attribute \n")); 
         return rc;
     }
@@ -1742,7 +1742,7 @@ clAmsParserSGDefParser(
     {
         if ( rc == CL_AMS_ERR_BAD_CONFIG )
         {
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("SG Type [%s] : bad <adminState> tag\n",
                      sgConfig->entity.name.value));
             return rc;
@@ -1760,7 +1760,7 @@ clAmsParserSGDefParser(
     {
         if ( rc == CL_AMS_ERR_BAD_CONFIG )
         {
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("SG Type [%s] : bad <redundancyModel> tag\n",
                      sgConfig->entity.name.value));
             return rc;
@@ -1778,7 +1778,7 @@ clAmsParserSGDefParser(
     {
         if ( rc == CL_AMS_ERR_BAD_CONFIG )
         {
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("SG Type [%s] : bad <loadingStrategy> tag\n",
                      sgConfig->entity.name.value));
             return rc;
@@ -1992,7 +1992,7 @@ clAmsParserSGDefParser(
                      newConfigType))
              != CL_OK )
      {
-         AMS_LOG(CL_DEBUG_ERROR,
+         AMS_LOG(CL_LOG_SEV_ERROR,
                  ("SG Type [%s] : Error in adding to the configuration type list\n", 
                   sgConfig->entity.name.value)); 
          return rc;
@@ -2078,7 +2078,7 @@ clAmsParserNodeDefParser(
                     "name"))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("<nodeType>: missing name attribute \n")); 
         return rc;
     }
@@ -2095,7 +2095,7 @@ clAmsParserNodeDefParser(
     {
         if ( rc == CL_AMS_ERR_BAD_CONFIG )
         {
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("Node Type [%s] : bad <adminState> tag\n",
                      nodeConfig->entity.name.value));
             return rc;
@@ -2121,7 +2121,7 @@ clAmsParserNodeDefParser(
      {
         if ( rc == CL_AMS_ERR_BAD_CONFIG )
         {
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("Node Type [%s] : bad <classType> tag\n",
                      nodeConfig->entity.name.value));
             return rc;
@@ -2207,7 +2207,7 @@ clAmsParserNodeDefParser(
                      newConfigType))
              != CL_OK )
      {
-         AMS_LOG(CL_DEBUG_ERROR,
+         AMS_LOG(CL_LOG_SEV_ERROR,
                  ("Node Type [%s] : Error in adding to the configuration type list\n", 
                   nodeConfig->entity.name.value)); 
          return rc;
@@ -2319,7 +2319,7 @@ clAmsParserEntityTypeParser(
 
             default:
                 {
-                    AMS_LOG(CL_DEBUG_ERROR,
+                    AMS_LOG(CL_LOG_SEV_ERROR,
                             ("Function[%s]:invalid entity type [%d]\n",__FUNCTION__,entityType)); 
                     return CL_AMS_ERR_INVALID_ENTITY;
                 }
@@ -2352,14 +2352,14 @@ clAmsParserMain(
     
     if ( !filePath )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("Environment variable [CL_ASP_CONFIG_PATH] is not set\n"));
         return CL_AMS_RC (CL_AMS_ERR_BAD_CONFIG);
     }
 
     AMS_CHECKPTR ( !amfDefinitionFileName || !amfConfigFileName );
 
-    AMS_LOG (CL_DEBUG_TRACE,
+    AMS_LOG (CL_LOG_SEV_TRACE,
             ("Loading Config File [%s], Definitions File [%s]\n",
              amfConfigFileName,
              amfDefinitionFileName));
@@ -2370,13 +2370,13 @@ clAmsParserMain(
                     &gVersion ))
             != CL_OK )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("Error in AMS Management library initialization\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR,("Error in AMS Management library initialization\n"));
         return CL_AMS_RC (rc);
     }
 
     if ( (defFilePtr = clParserOpenFile(filePath,amfDefinitionFileName) ) == NULL )
     {
-        AMS_LOG(CL_DEBUG_ERROR,( "Error in reading file [%s]\n",amfDefinitionFileName));
+        AMS_LOG(CL_LOG_SEV_ERROR,( "Error in reading file [%s]\n",amfDefinitionFileName));
         return CL_AMS_RC (CL_AMS_ERR_BAD_CONFIG);
     }
 
@@ -2387,7 +2387,7 @@ clAmsParserMain(
                     defFilePtr ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     NODE_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
@@ -2399,7 +2399,7 @@ clAmsParserMain(
                     defFilePtr ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     APP_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
@@ -2412,7 +2412,7 @@ clAmsParserMain(
                     defFilePtr ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     SG_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
@@ -2425,7 +2425,7 @@ clAmsParserMain(
                     defFilePtr ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     SU_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
@@ -2438,7 +2438,7 @@ clAmsParserMain(
                     defFilePtr ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     SI_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
@@ -2451,7 +2451,7 @@ clAmsParserMain(
                     defFilePtr ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     COMP_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
@@ -2464,7 +2464,7 @@ clAmsParserMain(
                     defFilePtr ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     CSI_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
@@ -2476,7 +2476,7 @@ clAmsParserMain(
 
     if (( configFilePtr = clParserOpenFile(filePath,amfConfigFileName)) == NULL )
     {
-        AMS_LOG(CL_DEBUG_ERROR,( "Error in reading file [%s]\n",amfConfigFileName));
+        AMS_LOG(CL_LOG_SEV_ERROR,( "Error in reading file [%s]\n",amfConfigFileName));
         rc = CL_AMS_ERR_BAD_CONFIG;
         goto exitfn;
     }
@@ -2485,7 +2485,7 @@ clAmsParserMain(
 
     if (( rc = clAmsParserAmsConfigParser(configFilePtr )) != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     AMS_CONFIG,amfConfigFileName )) ;
         goto exitfn;
     }
@@ -2499,7 +2499,7 @@ clAmsParserMain(
 
     if (( rc = clAmsParserNodeCreation(configFilePtr) ) != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     NODE_INSTANCES_TAG_NAME,amfConfigFileName )) ;
         goto exitfn;
     }
@@ -2510,7 +2510,7 @@ clAmsParserMain(
 
     if (( rc =  clAmsParserSGCreation(configFilePtr) ) != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     SG_INSTANCES_TAG_NAME, amfConfigFileName )) ;
         goto exitfn;
     }
@@ -2530,7 +2530,7 @@ clAmsParserMain(
                     CL_AMS_ENTITY_TYPE_NODE ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     NODE_INSTANCES_TAG_NAME,amfConfigFileName )) ;
         goto exitfn;
     }
@@ -2546,7 +2546,7 @@ clAmsParserMain(
                     CL_AMS_ENTITY_TYPE_SU ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                     SG_INSTANCES_TAG_NAME, amfConfigFileName )) ;
         goto exitfn;
     }
@@ -2581,7 +2581,7 @@ clAmsParserMain(
                     CL_AMS_ENTITY_TYPE_SI ))
             != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                         SERVICE_INSTANCES_TAG_NAME, amfConfigFileName )) ;
             goto exitfn;
         }
@@ -2597,7 +2597,7 @@ clAmsParserMain(
                     CL_AMS_ENTITY_TYPE_SU ))
             != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
                         SERVICE_INSTANCES_TAG_NAME, amfConfigFileName )) ;
             goto exitfn;
         }
@@ -2618,7 +2618,7 @@ clAmsParserMain(
                                                    CL_AMS_ENTITY_TYPE_CSI);
                 if(rc != CL_OK)
                 {
-                    AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> in file <%s>\n",
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file <%s>\n",
                                              CSI_INSTANCES_TAG_NAME, amfConfigFileName));
                     goto exitfn;
                 }
@@ -2632,7 +2632,7 @@ clAmsParserMain(
 
     if (( rc = clAmsMgmtFinalize(gHandle) )!= CL_OK )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("Error in AMS Management library finalization\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR,("Error in AMS Management library finalization\n"));
         goto exitfn;
     }
 
@@ -2773,7 +2773,7 @@ clAmsParserFindConfigType(
 
         default:
             {
-                AMS_LOG(CL_DEBUG_ERROR,
+                AMS_LOG(CL_LOG_SEV_ERROR,
                         ("Function[%s]:invalid entity type [%d]\n",__FUNCTION__,entityType)); 
                 return CL_AMS_ERR_INVALID_ENTITY;
             }
@@ -2864,7 +2864,7 @@ clAmsParserNodeCreation(
 
     if ( !nodeInstances)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Tag <%s> is missing in file [clAmfConfig.xml \n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Tag <%s> is missing in file [clAmfConfig.xml \n",
                     NODE_INSTANCES_TAG_NAME));
         return CL_ERR_NULL_POINTER;
     }
@@ -2873,7 +2873,7 @@ clAmsParserNodeCreation(
 
     if ( !nodeInstance)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Tag <%s> is missing in file [clAmfConfig.xml] \n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Tag <%s> is missing in file [clAmfConfig.xml] \n",
                     NODE_INSTANCE_TAG_NAME));
         return CL_ERR_NULL_POINTER;
     }
@@ -2905,7 +2905,7 @@ clAmsParserNodeCreation(
                         nodeConfig )) 
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> for Node [%s]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> for Node [%s]\n",
                         SU_INSTANCES_TAG_NAME,nodeConfig->entity.name.value)) ;
             return rc;
         }
@@ -2944,7 +2944,7 @@ clAmsParserSUCreation(
     suInstances  = clParserChild( nodePtr, SU_INSTANCES_TAG_NAME);
     if ( !suInstances)
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing for Node [%s] \n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing for Node [%s] \n",
                         SU_INSTANCES_TAG_NAME,nodeConfig->entity.name.value));
         return CL_OK;
     }
@@ -2952,7 +2952,7 @@ clAmsParserSUCreation(
     suInstance  = clParserChild( suInstances, SU_INSTANCE_TAG_NAME);
     if ( !suInstance )
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing for Node [%s] \n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing for Node [%s] \n",
                         SU_INSTANCE_TAG_NAME,nodeConfig->entity.name.value));
         return CL_OK;
     }
@@ -2970,7 +2970,7 @@ clAmsParserSUCreation(
                     "name"))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Attribute <name> is missing for Node [%s] \n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Attribute <name> is missing for Node [%s] \n",
                     nodeConfig->entity.name.value));
         goto exitfn;
     }
@@ -3023,7 +3023,7 @@ clAmsParserSUCreation(
                         &targetEntity))
                 != CL_OK )
         { 
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in setting Node [%s] reference for SU  [%s] \n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in setting Node [%s] reference for SU  [%s] \n",
                         parentNode,suConfig->entity.name.value));
             goto exitfn;
         }
@@ -3037,7 +3037,7 @@ clAmsParserSUCreation(
                         parentNode)) 
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> for SU [%s]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> for SU [%s]\n",
                         COMP_INSTANCES_TAG_NAME,suConfig->entity.name.value)) ;
             goto exitfn;
         }
@@ -3053,7 +3053,7 @@ clAmsParserSUCreation(
                         CL_AMS_NODE_CONFIG_SU_LIST))
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in adding SU [%s] in the Node [%s] SU list \n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in adding SU [%s] in the Node [%s] SU list \n",
                         suConfig->entity.name.value,nodeConfig->entity.name.value ));
             goto exitfn;
         }
@@ -3099,7 +3099,7 @@ clAmsParserCompCreation(
     compInstances  = clParserChild( suPtr, COMP_INSTANCES_TAG_NAME);
     if ( !compInstances)
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing for SU [%s] \n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing for SU [%s] \n",
                     COMP_INSTANCES_TAG_NAME,suConfig->entity.name.value));
         return CL_OK;
     }
@@ -3107,7 +3107,7 @@ clAmsParserCompCreation(
     compInstance  = clParserChild( compInstances, COMP_INSTANCE_TAG_NAME);
     if ( !compInstance)
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing for SU [%s] \n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing for SU [%s] \n",
                     COMP_INSTANCE_TAG_NAME,suConfig->entity.name.value));
         return CL_OK;
     }
@@ -3124,7 +3124,7 @@ clAmsParserCompCreation(
                     "name"))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Attribute <name> is missing for SU [%s] \n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Attribute <name> is missing for SU [%s] \n",
                     suConfig->entity.name.value));
         goto exitfn;
     }
@@ -3156,7 +3156,7 @@ clAmsParserCompCreation(
                         &targetEntity))
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in setting SU [%s] reference for Component [%s] \n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in setting SU [%s] reference for Component [%s] \n",
                         suConfig->entity.name.value,compConfig->entity.name.value));
             goto exitfn;
         }
@@ -3172,7 +3172,7 @@ clAmsParserCompCreation(
                         CL_AMS_SU_CONFIG_COMP_LIST))
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in adding Component [%s] in the SU [%s] Comp list \n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in adding Component [%s] in the SU [%s] Comp list \n",
                         compConfig->entity.name.value,suConfig->entity.name.value ));
             goto exitfn;
         }
@@ -3213,7 +3213,7 @@ clAmsParserSGCreation(
 
     if ( !sgInstances)
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
                     SG_INSTANCES_TAG_NAME));
         return CL_OK;
     }
@@ -3221,7 +3221,7 @@ clAmsParserSGCreation(
     sgInstance = clParserChild (sgInstances, SG_INSTANCE_TAG_NAME);
     if ( !sgInstance)
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
                     SG_INSTANCE_TAG_NAME));
         return CL_OK;
     }
@@ -3250,7 +3250,7 @@ clAmsParserSGCreation(
                         sgConfig )) 
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> for SG [%s]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> for SG [%s]\n",
                         SERVICE_INSTANCES_TAG_NAME,sgConfig->entity.name.value)) ;
             goto exitfn;
         }
@@ -3293,7 +3293,7 @@ clAmsParserSICreation(
     siInstances  = clParserChild( sgPtr, SERVICE_INSTANCES_TAG_NAME);
     if ( !siInstances)
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
                     SERVICE_INSTANCES_TAG_NAME));
         return CL_OK;
     }
@@ -3301,7 +3301,7 @@ clAmsParserSICreation(
     siInstance  = clParserChild( siInstances, SERVICE_INSTANCE_TAG_NAME);
     if ( !siInstance)
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
                     SERVICE_INSTANCE_TAG_NAME));
         return CL_OK;
     }
@@ -3319,7 +3319,7 @@ clAmsParserSICreation(
                      "name"))
              != CL_OK )
      {
-        AMS_LOG(CL_DEBUG_ERROR, ("Attribute <name> is missing for SG[%s] \n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Attribute <name> is missing for SG[%s] \n",
                     sgConfig->entity.name.value));
          goto exitfn;
      }
@@ -3351,7 +3351,7 @@ clAmsParserSICreation(
                         &targetEntity))
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in setting SG [%s] reference for SI [%s]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in setting SG [%s] reference for SI [%s]\n",
                         parentSG,siConfig->entity.name.value));
             goto exitfn;
         }
@@ -3365,7 +3365,7 @@ clAmsParserSICreation(
                         siConfig)) 
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in parsing XML tag <%s> for SI [%s]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> for SI [%s]\n",
                         CSI_INSTANCES_TAG_NAME,siConfig->entity.name.value)) ;
             goto exitfn;
         }
@@ -3381,7 +3381,7 @@ clAmsParserSICreation(
                         CL_AMS_SG_CONFIG_SI_LIST))
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("error in setting sg config si list si = %s  sg = %s \n", 
+            AMS_LOG(CL_LOG_SEV_ERROR, ("error in setting sg config si list si = %s  sg = %s \n", 
                         siConfig->entity.name.value,sgConfig->entity.name.value)) ;
             goto exitfn;
         }
@@ -3424,7 +3424,7 @@ ClRcT clAmsParserCSICreation(
     csiInstances  = clParserChild( siPtr, CSI_INSTANCES_TAG_NAME);
     if ( !csiInstances)
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
                     CSI_INSTANCES_TAG_NAME));
         return CL_OK;
     }
@@ -3432,7 +3432,7 @@ ClRcT clAmsParserCSICreation(
     csiInstance  = clParserChild( csiInstances, CSI_INSTANCE_TAG_NAME);
     if ( !csiInstance)
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
                     CSI_INSTANCE_TAG_NAME));
         return CL_OK;
     }
@@ -3450,7 +3450,7 @@ ClRcT clAmsParserCSICreation(
                     "name" ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Attribute <name> is missing for SI [%s] \n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Attribute <name> is missing for SI [%s] \n",
                     siConfig->entity.name.value));
         goto exitfn;
     }
@@ -3485,7 +3485,7 @@ ClRcT clAmsParserCSICreation(
                         &csiConfig->parentSI.entity ))
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in setting SI [%s] reference for CSI [%s] \n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in setting SI [%s] reference for CSI [%s] \n",
                         parentSIName,csiConfig->entity.name.value));
             goto exitfn;
         }
@@ -3500,7 +3500,7 @@ ClRcT clAmsParserCSICreation(
                         "type" ))
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR,
+            AMS_LOG(CL_LOG_SEV_ERROR,
                     ("CSI [%s] : missing <type> attribute in file [clAmfConfig.xml]\n", 
                      csiConfig->entity.name.value)); 
             goto exitfn;
@@ -3511,7 +3511,7 @@ ClRcT clAmsParserCSICreation(
                         csiType ))
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("CSI [%s] : Error in creating Name Value Pair list\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("CSI [%s] : Error in creating Name Value Pair list\n",
                         csiConfig->entity.name.value)) ;
             goto exitfn;
         }
@@ -3527,7 +3527,7 @@ ClRcT clAmsParserCSICreation(
                         CL_AMS_SI_CONFIG_CSI_LIST ))
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Error in adding CSI [%s] in the SI [%s] CSI list \n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in adding CSI [%s] in the SI [%s] CSI list \n",
                         csiConfig->entity.name.value,siConfig->entity.name.value ));
             goto exitfn;
         }
@@ -3587,7 +3587,7 @@ clAmsParserCreateRelationship(
     pInstances = clParserChild( fileParserPtr, instancesName);
     if ( !pInstances)
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
                     instancesName ));
         return CL_OK;
     }
@@ -3595,7 +3595,7 @@ clAmsParserCreateRelationship(
     pInstance = clParserChild (pInstances,instanceName); 
     if ( !pInstance )
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
                     instanceName ));
         return CL_OK;
     }
@@ -3613,7 +3613,7 @@ clAmsParserCreateRelationship(
                         "name" ))
                 != CL_OK )
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Tag <name> is missing for entity tag <%s> \n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Tag <name> is missing for entity tag <%s> \n",
                     instanceName));
             goto exitfn;
         }
@@ -3655,10 +3655,10 @@ clAmsParserCreateRelationship(
                             entityListName ))
                     != CL_OK )
             {
-                AMS_LOG(CL_DEBUG_ERROR, 
+                AMS_LOG(CL_LOG_SEV_ERROR, 
                         ("EntityList [%d] : Error in adding entity [%s] in the entity[%s] list\n",
                          entityListName,targetEntity.name.value, sourceEntity.name.value ));
-                AMS_LOG(CL_DEBUG_ERROR, 
+                AMS_LOG(CL_LOG_SEV_ERROR, 
                         ("Entity [%s] reference may not be valid," 
                          "Create the instance of the entity before adding it into a list\n",
                          targetEntity.name.value ));
@@ -3755,7 +3755,7 @@ clAmsParserSetEntityConfig (
                     "type" ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, 
+        AMS_LOG(CL_LOG_SEV_ERROR, 
                 ("Attribute <type> is missing for XML Tag [%s] in the file [clAmfConfig.xml\n", 
                  ptr->name ));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
@@ -3771,7 +3771,7 @@ clAmsParserSetEntityConfig (
                     "name" ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, 
+        AMS_LOG(CL_LOG_SEV_ERROR, 
                 ("Attribute <name> is missing for XML Tag [%s] in the file [clAmfConfig.xml\n", 
                  ptr->name ));
         goto exitfn;
@@ -3786,7 +3786,7 @@ clAmsParserSetEntityConfig (
                     &amfConfigType ))
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, 
+        AMS_LOG(CL_LOG_SEV_ERROR, 
                 ("Error in creating entity instance [%s], entity type [%s] is not modelled in file " 
                  "[clAmfDefinitions.xml] \n", name, type ));
         goto exitfn;
@@ -3837,7 +3837,7 @@ clAmsParserEntityCreate (
                     &entity ))
             != CL_OK )
     {
-        AMS_LOG ( CL_DEBUG_ERROR,
+        AMS_LOG ( CL_LOG_SEV_ERROR,
                 ("Error in AMS Management Entity [%s] creation\n",entity.name.value ));
         return CL_AMS_RC (rc);
     }
@@ -3852,7 +3852,7 @@ clAmsParserEntityCreate (
                     1 ))
             != CL_OK )
     {
-        AMS_LOG ( CL_DEBUG_ERROR,
+        AMS_LOG ( CL_LOG_SEV_ERROR,
                 ("Error in AMS Management Set Configuration API for Entity [%s]\n",entity.name.value)); 
         return CL_AMS_RC (rc); 
     }
@@ -3938,7 +3938,7 @@ clAmsParserSetEntityName(
 
         default:
             { 
-                AMS_LOG(CL_DEBUG_ERROR,
+                AMS_LOG(CL_LOG_SEV_ERROR,
                         ("Function[%s]:invalid entity type [%d]\n",__FUNCTION__,entityConfig->type)); 
                 return CL_AMS_ERR_INVALID_ENTITY;
             } 
@@ -4052,7 +4052,7 @@ clAmsParserAmsConfigParser(
 
     if ( amsConfig == NULL )
     { 
-        AMS_LOG ( CL_DEBUG_WARN, ("Missing tag [%s] in file "
+        AMS_LOG ( CL_LOG_SEV_WARNING, ("Missing tag [%s] in file "
                 "amfConfiguration.xml, AMS will use the default values for "
                 "console logging and log message types\n",AMS_CONFIG));
         return CL_OK;
@@ -4062,7 +4062,7 @@ clAmsParserAmsConfigParser(
 
     if ( amsLogging == NULL )
     { 
-        AMS_LOG ( CL_DEBUG_WARN, ("Missing tag [%s] in file "
+        AMS_LOG ( CL_LOG_SEV_WARNING, ("Missing tag [%s] in file "
                 "amfConfiguration.xml, AMS will use the default values for "
                 "console logging and log message types\n",AMS_LOGGING));
         return CL_OK;
@@ -4081,7 +4081,7 @@ clAmsParserAmsConfigParser(
 
             if ( ( rc = clAmsMgmtDebugEnableLogToConsole (gHandle) ) != CL_OK )
             { 
-                AMS_LOG(CL_DEBUG_ERROR, ("Error in enabling console logging "
+                AMS_LOG(CL_LOG_SEV_ERROR, ("Error in enabling console logging "
                             "for AMS \n"));
                 return rc;
             }
@@ -4093,7 +4093,7 @@ clAmsParserAmsConfigParser(
 
             if ( ( rc = clAmsMgmtDebugDisableLogToConsole (gHandle) ) != CL_OK )
             { 
-                AMS_LOG(CL_DEBUG_ERROR, ("Error in disabling console logging "
+                AMS_LOG(CL_LOG_SEV_ERROR, ("Error in disabling console logging "
                             "for AMS \n"));
                 return rc;
             }
@@ -4107,7 +4107,7 @@ clAmsParserAmsConfigParser(
     if ( amsLogMessageTypes == NULL )
     { 
 
-        AMS_LOG ( CL_DEBUG_WARN, ("Missing tag [%s] in file "
+        AMS_LOG ( CL_LOG_SEV_WARNING, ("Missing tag [%s] in file "
                 "amfConfiguration.xml, AMS will use the default values for "
                 "log message types\n",AMS_LOG_MESSAGE_TYPES));
         return CL_OK;
@@ -4164,7 +4164,7 @@ clAmsParserAmsConfigParser(
 
     if ( ( rc = clAmsMgmtDebugEnable (gHandle, NULL, debugFlags) ) != CL_OK )
     { 
-        AMS_LOG(CL_DEBUG_ERROR, ("Error in setting log message types for "
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in setting log message types for "
                     "AMS \n"));
         return rc;
     }

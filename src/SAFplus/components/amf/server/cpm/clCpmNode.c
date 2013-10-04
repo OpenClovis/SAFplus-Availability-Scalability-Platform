@@ -65,6 +65,9 @@
 #include "xdrClCpmRestartSendT.h"
 #include "xdrClCpmMiddlewareResetT.h"
 
+#define CPM_LOG_AREA_NODE		"NODE"
+#define CPM_LOG_CTX_NODE_SHUTDOWN	"SHUTDOWN"
+
 typedef struct ClCpmAspResetMsg
 {
     ClIocNodeAddressT nodeAddress;
@@ -177,7 +180,7 @@ ClRcT CL_CPM_CALL_RMD_SYNC(ClIocNodeAddressT destAddr,
     }
     else if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("RMD Failed with an error %x", rc));
+        clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_RMD,"RMD Failed with an error %x", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_CPM_LOG_1_RMD_CALL_ERR, rc);
     }
@@ -252,7 +255,7 @@ ClRcT CL_CPM_CALL_RMD_SYNC_NEW(ClIocNodeAddressT destAddr,
     }
     else if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("RMD Failed with an error %x", rc));
+        clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_RMD,"RMD Failed with an error %x", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_CPM_LOG_1_RMD_CALL_ERR, rc);
     }
@@ -423,14 +426,14 @@ ClUint32T cpmNodeFindByIocAddress(ClIocNodeAddressT nodeAddress, ClCpmLT **cpmL)
     if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL && cpmLCount != 0)
     {
         rc = clCntFirstNodeGet(gpClCpm->cpmTable, &cpmNode);
-        CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
+        CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
                        "CPM-L", rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
         while (cpmLCount)
         {
             rc = clCntNodeUserDataGet(gpClCpm->cpmTable, cpmNode,
                                       (ClCntDataHandleT *) &tempCpmL);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                            CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
@@ -449,7 +452,7 @@ ClUint32T cpmNodeFindByIocAddress(ClIocNodeAddressT nodeAddress, ClCpmLT **cpmL)
             if (cpmLCount)
             {
                 rc = clCntNextNodeGet(gpClCpm->cpmTable, cpmNode, &cpmNode);
-                CL_CPM_CHECK_2(CL_DEBUG_ERROR,
+                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, "CPM-L", rc,
                                rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             }
@@ -512,7 +515,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
      * Param Check 
      */
     rc = VDECL_VER(clXdrUnmarshallClCpmLocalInfoT, 4, 0, 0)(inMsgHandle, (void *) &cpmLocalInfo);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     nodeAddress = cpmLocalInfo.cpmAddress.nodeAddress;
@@ -591,7 +594,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
     {
         clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
-        CL_CPM_CHECK_0(CL_DEBUG_ERROR,
+        CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
@@ -720,7 +723,7 @@ ClRcT VDECL(cpmCpmLocalDeregister)(ClEoDataT data,
      * Param Check 
      */
     rc = VDECL_VER(clXdrUnmarshallClCpmLocalInfoT, 4, 0, 0)(inMsgHandle, (void *) &cpmLocalInfo);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
 
@@ -773,7 +776,7 @@ ClRcT VDECL(cpmCpmConfirm)(ClEoDataT data,
      * Param Check 
      */
     rc = VDECL_VER(clXdrUnmarshallClCpmLcmResponseT, 4, 0, 0)(inMsgHandle, (void *) &response);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     if (gpClCpm->cpmToAmsCallback != NULL &&
@@ -813,8 +816,8 @@ ClRcT VDECL(cpmNodeShutDown)(ClEoDataT data,
     clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ALERT, NULL,
                CL_CPM_LOG_1_SERVER_CPM_NODE_SHUTDOWN_INFO, iocAddress);
 
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, 
-            ("Got ShutDown Allowed Response from master, shutting down...\n"));
+    clLogInfo(CPM_LOG_AREA_NODE,CPM_LOG_CTX_NODE_SHUTDOWN, 
+              "Got ShutDown Allowed Response from master, shutting down...\n");
     
     if(iocAddress == clIocLocalAddressGet())
     {
@@ -843,9 +846,9 @@ ClRcT VDECL(cpmNodeShutDown)(ClEoDataT data,
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                ("Got shutdown allowed command at node [%d] for node [%d]...", 
-                 clIocLocalAddressGet(), iocAddress));
+        clLogError(CPM_LOG_AREA_NODE,CPM_LOG_CTX_NODE_SHUTDOWN, 
+                   "Got shutdown allowed command at node [%d] for node [%d]...", 
+                   clIocLocalAddressGet(), iocAddress);
         rc = CL_CPM_RC(CL_CPM_ERR_BAD_OPERATION);
     }
 
@@ -947,7 +950,7 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
     clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ALERT, NULL,
                CL_CPM_LOG_1_SERVER_CPM_NODE_SHUTDOWN_INFO, iocAddress);
 
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Processing Shut down request for Node [%d]\n", iocAddress));
+    clLogInfo(CPM_LOG_AREA_CPM,CPM_LOG_CTX_NODE_SHUTDOWN,"Processing Shut down request for Node [%d]\n", iocAddress);
     
     /* If boot level has not reached default then Do not ask AMS
      * for node leave as AMS does not consider node as part of 
@@ -965,9 +968,9 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
             rc = cpmSelfShutDown();
             if(rc != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                        ("Unable to do SelfShutDown, Node Address [%d]," 
-                         " error code [0x%x]", iocAddress, rc));
+                clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_NODE_SHUTDOWN,
+                           "Unable to do SelfShutDown, Node Address [%d]," 
+                           " error code [0x%x]", iocAddress, rc);
             }
             return rc;
         }
@@ -985,9 +988,9 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
     {
         rc = clCpmMasterAddressGet(&masterAddress);
         
-        CL_DEBUG_PRINT(CL_DEBUG_INFO,
-                ("Shutdown node [%d] and master Address is [%d]", 
-                 iocAddress, masterAddress));
+        clLogInfo(CPM_LOG_AREA_CPM,CPM_LOG_CTX_NODE_SHUTDOWN,
+                  "Shutdown node [%d] and master Address is [%d]", 
+                  iocAddress, masterAddress);
 
         if(rc == CL_OK)
         {
@@ -997,25 +1000,25 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
                     clXdrMarshallClUint32T);
             if(CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE || CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                        ("Sending shutdown request for [%d] to master failed..."
-                         " master unreachabele. Doing self shutdown...", 
-                         iocAddress));
+                clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_NODE_SHUTDOWN, 
+                           "Sending shutdown request for [%d] to master failed..."
+                           " master unreachabele. Doing self shutdown...", 
+                           iocAddress);
                 rc = cpmSelfShutDown();
             }
             else if (rc != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                        ("Failure in sending request for Shutdown of node [%d], rc=[0x%x]", 
-                         iocAddress, rc));
+                clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_NODE_SHUTDOWN, 
+                           "Failure in sending request for Shutdown of node [%d], rc=[0x%x]", 
+                           iocAddress, rc);
             }
         }
         else
         {
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
                     CL_CPM_LOG_1_CLIENT_NODE_SHUTDOWN, rc);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Shutdown [%d] self, master Address not valid\n",
-                iocAddress));
+            clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_NODE_SHUTDOWN,"Shutdown [%d] self, master Address not valid\n",
+                       iocAddress);
             rc = cpmSelfShutDown();
         }
 
@@ -1045,15 +1048,15 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
             if(gpClCpm->cpmToAmsCallback != NULL &&  
                     gpClCpm->cpmToAmsCallback->nodeLeave != NULL)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Calling AMS node leave..."));
+                clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_AMS,"Calling AMS node leave...");
                 rc = gpClCpm->cpmToAmsCallback->nodeLeave(&nodeName, 
                                                           CL_CPM_NODE_LEAVING, CL_FALSE);
                 if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_INFO, 
-                                   ("Node [%.*s] is not a cluster member. "\
-                                    "Calling node departure allowed\n",
-                                    nodeName.length, nodeName.value));
+                    clLogInfo(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED, 
+                              "Node [%.*s] is not a cluster member. "\
+                              "Calling node departure allowed\n",
+                              nodeName.length, nodeName.value);
                     rc = _cpmNodeDepartureAllowed(&nodeName, CL_CPM_NODE_LEAVING);
                 }
             }
@@ -1076,7 +1079,7 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
              *  But check if it will not cause problema for non-existance case
              * BUT all this LATER
              */
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_CLIENT_NODE_SHUTDOWN, 
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CLIENT_NODE_SHUTDOWN, 
                     rc, rc, CL_LOG_ERROR, CL_LOG_HANDLE_APP);
         }
     }
@@ -1096,7 +1099,7 @@ ClRcT cpmSelfShutDown(void)
 {
     ClRcT rc = CL_OK;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Setting polling to zero...\n"));
+    clLogTrace(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,"Setting polling to zero...\n");
 
     cpmShutdownHeartbeat();
     return rc;
@@ -1185,7 +1188,7 @@ ClRcT VDECL(cpmNodeCpmLResponse)(ClEoDataT data,
     ClCpmLT *tempNode = NULL;
     
     rc = VDECL_VER(clXdrUnmarshallClCpmBmSetLevelResponseT, 4, 0, 0)(inMsgHandle, &cpmBmResponse);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     
     if(cpmBmResponse.retCode == CL_OK)
@@ -1458,10 +1461,10 @@ ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
     {
         rc = clBufferNBytesRead(inMsgHandle, (ClUint8T *) &cmCpmMsg,
                                        &msgLength);
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to read the message \n"), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to read the message \n"), rc);
     }
     else
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid Buffer Passed \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"),
                      CL_CPM_RC(CL_ERR_INVALID_BUFFER));
 
     clLogMultiline(CL_LOG_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
@@ -1711,7 +1714,7 @@ ClRcT VDECL(cpmIocAddressForNodeGet)(ClEoDataT data,
     ClIocAddressIDLT idlIocAddress;
 
     rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &nodeName);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     clOsalMutexLock(gpClCpm->cpmTableMutex);
@@ -1737,7 +1740,7 @@ ClRcT VDECL(cpmIocAddressForNodeGet)(ClEoDataT data,
 
     rc = VDECL_VER(clXdrMarshallClIocAddressIDLT, 4, 0, 0)((void *) &idlIocAddress, outMsgHandle,
                                        0);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
 failure:
@@ -1768,7 +1771,7 @@ ClRcT cpmUpdateNodeState(ClCpmLocalInfoT *pCpmLocalInfo)
                  nodeName.value, nodeAddress);
 
     rc = nodeArrivalDeparturePublish(nodeAddress, nodeName, CL_CPM_NODE_DEATH);
-    CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_EVT_PUB_NODE_DEPART_ERR,
+    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_EVT_PUB_NODE_DEPART_ERR,
                    nodeName.value, rc, rc, CL_LOG_ERROR,
                    CL_LOG_HANDLE_APP);
 

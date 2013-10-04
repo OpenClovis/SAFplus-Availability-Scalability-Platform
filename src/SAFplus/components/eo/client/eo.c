@@ -55,6 +55,7 @@
 #include <clEoQueueStats.h>
 #include <clRmdIpi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clLogApi.h>
 #include <clIocApiExt.h>
 #include <clTransport.h>
@@ -184,12 +185,14 @@ static ClEoStaticQueueT gEoStaticQueue = {
 
 #define CL_EO_RECV_THREAD_INDEX (1)
 /* Log area and context codes are always 3 letter (left fill with _ OK) */
-#define CL_LOG_EO_AREA             "_EO"
-#define CL_LOG_EO_CONTEXT_STATIC   "STA"
-#define CL_LOG_EO_CONTEXT_WORKER   "WRK"
-#define CL_LOG_EO_CONTEXT_PRIORITY "PRI"
-#define CL_LOG_EO_CONTEXT_RECV     "RCV"
-#define CL_LOG_EO_CONTEXT_CREATE   "INI"
+#define CL_LOG_EO_AREA            	 "_EO"
+#define CL_LOG_EO_CONTEXT_STATIC  	 "STA"
+#define CL_LOG_EO_CONTEXT_WORKER  	 "WRK"
+#define CL_LOG_EO_CONTEXT_PRIORITY	 "PRI"
+#define CL_LOG_EO_CONTEXT_RECV    	 "RCV"
+#define CL_LOG_EO_CONTEXT_CREATE  	 "INI"
+#define CL_LOG_EO_CONTEXT_WATERMARK   	 "WMH"
+#define CL_LOG_EO_CONTEXT_DELETE            "DEL"
 
 static ClOsalTaskIdT *gClEoTaskIds;
 static ClInt32T gClEoThreadCount;
@@ -201,7 +204,7 @@ extern ClIocNodeAddressT gIocLocalBladeAddress;
  */
 #ifdef CL_EO_DEBUG
 # include <pthread.h>
-# define PTHREAD_DEBUG(STR) CL_DEBUG_PRINT(CL_DEBUG_ERROR,((STR), (int)pthread_self()))
+# define PTHREAD_DEBUG(STR) clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,(STR), (int)pthread_self())
 #else
 # define PTHREAD_DEBUG(STR)
 #endif
@@ -529,14 +532,14 @@ static ClRcT eoStaticQueueInit(void)
     rc = clOsalMutexInit(&(gEoStaticQueue.jobQueueLock));
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clOsalMutexInit Failed 0x%x\n", rc));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clOsalMutexInit Failed 0x%x\n", rc);
         return rc;
     }
 
     rc = clOsalCondInit(&(gEoStaticQueue.jobQueueCond));
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Message Write Failed 0x%x\n", rc));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Message Write Failed 0x%x\n", rc);
         clOsalMutexDestroy(&gEoStaticQueue.jobQueueLock);
         return rc;
     }
@@ -627,15 +630,15 @@ static ClRcT clEoJobQueueWMAction(ClEoExecutionObjT *pThis,
         wmValue = (pJob->WMType == CL_WM_HIGH_LIMIT)? 
             pJob->WMValues.highLimit : pJob->WMValues.lowLimit;
 
-        CL_DEBUG_PRINT(CL_DEBUG_INFO, ("EO[%s]:LIB[%s]:The Action being triggered for "
+        clLogInfo(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_WATERMARK,"EO[%s]:LIB[%s]:The Action being triggered for "
                     "Water Mark[%d]->[%s] with the value [%lld]\n", 
                     ASP_COMPNAME, LIB_NAME(pJob->libId), pJob->WMId, pJob->WMType? "HIGH_LIMIT" : "LOW_LIMIT", 
-                    wmValue));
+                    wmValue);
 
         /*
          * Fix for bug 5554.
          */
-        clLogCritical("EO", "WMH",  /* Water Mark Hit */
+        clLogCritical("EO","WMH",  /* Water Mark Hit */
                 "EO[%s]:LIB[%s]:The Water Mark[%d]->[%s] has been hit"
                 "with the value [%lld]", 
                 ASP_COMPNAME, LIB_NAME(pJob->libId), pJob->WMId, 
@@ -649,14 +652,14 @@ static ClRcT clEoJobQueueWMAction(ClEoExecutionObjT *pThis,
                         &pJob->WMValues, pJob->WMType, pJob->WMActionArgList);
                 if (rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                            ("EO: Custom Action for Water Mark Hit Failed, rc=0x%x\n", rc));
+                    clLogError(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_WATERMARK,
+                               "EO: Custom Action for Water Mark Hit Failed, rc=0x%x\n", rc);
                 }
             }
             else
             {
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                        ("EO: Custom Action for Water Mark Hit not specified.\n"));
+                clLogTrace(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_WATERMARK,
+                           "EO: Custom Action for Water Mark Hit not specified.\n");
             }
         }
 
@@ -665,8 +668,8 @@ static ClRcT clEoJobQueueWMAction(ClEoExecutionObjT *pThis,
             rc = clEoTriggerEvent(pJob->libId, pJob->WMId, wmValue, pJob->WMType);
             if (rc != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                        ("EO: Water Mark Event Publish Failed, rc=0x%x\n", rc));
+                clLogError(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_WATERMARK,
+                           "EO: Water Mark Event Publish Failed, rc=0x%x\n", rc);
             }
         }
 
@@ -1269,7 +1272,7 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
      */
     if ((pConfig == NULL) || (ppThis == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: Improper input parameters \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Improper input parameters \n");
         rc = CL_EO_RC(CL_ERR_NULL_POINTER);
         goto failure;
     }
@@ -1353,8 +1356,8 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
     rc = eoStaticQueueInit();
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEO: eoStaticQueueInit() failed, rc[0x%x]\n", rc));
+        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
+                   "\nEO: eoStaticQueueInit() failed, rc[0x%x]\n", rc);
         goto eoPrivateDataCntAllocated;
     }
 
@@ -1518,40 +1521,40 @@ ClRcT clEoClientInstall(ClEoExecutionObjT *pThis, ClUint32T clientID,
 
     CL_FUNC_ENTER();
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-            ("\n EO: Installing the function table ...... \n"));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "\n EO: Installing the function table ...... \n");
 
     /*
      * Sanity check for function parameters 
      */
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to EO Object \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to EO Object \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
     if (pFuncs == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to pFuncs \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to pFuncs \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
     if (clientID > (int) pThis->maxNoClients)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to pFuncs \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to pFuncs \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_EO_ERR_INVALID_CLIENTID);
     }
 
     if (nfuncs > CL_EO_MAX_NO_FUNC)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper No. of services passed \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper No. of services passed \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_EO_ERR_INVALID_SERVICEID);
     }
@@ -1567,7 +1570,7 @@ ClRcT clEoClientInstall(ClEoExecutionObjT *pThis, ClUint32T clientID,
                         sizeof(ClEoServiceObjT));
             if (pTemp == NULL)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: MALLOC FAILED \n"));
+                clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: MALLOC FAILED \n");
                 CL_FUNC_EXIT();
                 return CL_EO_RC(CL_ERR_NO_MEMORY);
             }
@@ -1755,8 +1758,8 @@ static ClRcT clEoStart(ClEoExecutionObjT *pThis)
      */
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n EO: NULL passed for Exectuion Object\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: NULL passed for Exectuion Object\n");
         rc = CL_EO_RC(CL_ERR_NULL_POINTER);
         goto failure;
     }
@@ -1770,8 +1773,8 @@ static ClRcT clEoStart(ClEoExecutionObjT *pThis)
                            sizeof(ClEoPayloadWithReplyCallbackT));
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEO: clEoClientInstall() failed for CL_EO_EO_MGR_CLIENT_TABLE_ID, rc[0x%x]\n", rc));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\nEO: clEoClientInstall() failed for CL_EO_EO_MGR_CLIENT_TABLE_ID, rc[0x%x]\n", rc);
         goto failure;
     }
 
@@ -1783,16 +1786,16 @@ static ClRcT clEoStart(ClEoExecutionObjT *pThis)
     rc = eoAddEntryInGlobalTable(pThis, pThis->eoPort);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEO: eoAddEntryInGlobalTable() failed, rc[0x%x]\n", rc));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\nEO: eoAddEntryInGlobalTable() failed, rc[0x%x]\n", rc);
         goto eoClientInstalled;
     }
 
     rc = clEoPriorityQueuesInitialize();
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEO: clEoPriorityQueueInitialize() failed, rc[0x%x]\n", rc));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\nEO: clEoPriorityQueueInitialize() failed, rc[0x%x]\n", rc);
         goto eoAddedEntry;
     }
 
@@ -1808,12 +1811,12 @@ static ClRcT clEoStart(ClEoExecutionObjT *pThis)
 
     if(!gClEoTaskIds)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory for [%d] threads\n", gClEoThreadCount));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory for [%d] threads\n", gClEoThreadCount);
         goto eoStaticQueueInitialized;
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                   ("\n EO: Spawning the required no of EO Receive Loop \n"));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "\n EO: Spawning the required no of EO Receive Loop \n");
     /*
      * Create thread for picking up the IOC messages and putting it on user
      * level Queue
@@ -1842,23 +1845,23 @@ static ClRcT clEoStart(ClEoExecutionObjT *pThis)
      * Sync up the component manager with the updated state of EO 
      */
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                   ("\n EO: Calling EO Create Callouts ...... \n"));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "\n EO: Calling EO Create Callouts ...... \n");
     rc = clEoCreateSystemCallout(pThis);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n EO: clEoCreateSystemCallout() failed, rc[0x%x]\n", rc));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: clEoCreateSystemCallout() failed, rc[0x%x]\n", rc);
         goto eoStaticQueueInitialized;
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                   ("\n EO: Calling clEoStateChangeSystemCallout() ...... \n"));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "\n EO: Calling clEoStateChangeSystemCallout() ...... \n");
     rc = clEoStateChangeSystemCallout(pThis);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n EO: clEoStateChangeSystemCallout() failed, rc[0x%x]\n", rc));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: clEoStateChangeSystemCallout() failed, rc[0x%x]\n", rc);
         goto eoStaticQueueInitialized;
     }
 
@@ -1911,7 +1914,7 @@ ClRcT clEoServiceIndexGet(ClUint32T func, ClUint32T *pClientID,
      */
     if ((pClientID == NULL) || (pFuncNo == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: Improper input parameters \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Improper input parameters \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
@@ -1963,8 +1966,8 @@ ClRcT clEoServiceInstall(ClEoExecutionObjT *pThis,
      */
     if ((pThis == NULL) || (pFunction == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to EO Object \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to EO Object \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
@@ -1975,9 +1978,9 @@ ClRcT clEoServiceInstall(ClEoExecutionObjT *pThis,
     if (iFuncNum >=
              CL_EO_GET_FULL_FN_NUM(pThis->maxNoClients, CL_EO_MAX_NO_FUNC))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper service no. passed. Svc no passed is %d\n",
-                 iFuncNum));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper service no. passed. Svc no passed is %d\n",
+                   iFuncNum);
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_EO_ERR_INVALID_SERVICEID);
     }
@@ -1987,8 +1990,8 @@ ClRcT clEoServiceInstall(ClEoExecutionObjT *pThis,
      */
     if ((order != CL_EO_ADD_TO_BACK) && (order != CL_EO_ADD_TO_FRONT))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper order specified for addition \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper order specified for addition \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     }
@@ -1999,8 +2002,8 @@ ClRcT clEoServiceInstall(ClEoExecutionObjT *pThis,
     rc = clEoServiceIndexGet((ClUint32T) iFuncNum, &clientID, &funcNo);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: clEoServiceIndexGet failed \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: clEoServiceIndexGet failed \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2011,7 +2014,7 @@ ClRcT clEoServiceInstall(ClEoExecutionObjT *pThis,
         (ClEoServiceObjT *) clHeapAllocate((ClUint32T) sizeof(ClEoServiceObjT));
     if (pTemp == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: MALLOC failed \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: MALLOC failed \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NO_MEMORY);
     }
@@ -2057,8 +2060,8 @@ void clEoCleanup(ClEoExecutionObjT *pThis)
 
     rc = eoDeleteEntryFromGlobalTable(pThis->eoPort);
     if (rc != CL_OK)
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n EO: eoDeleteEntryFromGlobalTable failed \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_DELETE,
+                   "\n EO: eoDeleteEntryFromGlobalTable failed \n");
 
     pThis->state = CL_EO_STATE_KILL;
     (void) clIocCommPortDelete(pThis->commObj);
@@ -2106,7 +2109,7 @@ ClRcT clEoUnblock(ClEoExecutionObjT *pThis)
         rc = clEoMyEoObjectGet(&pThis);
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("EO: Failed to get my EO object. error code [0x%x].\n", rc));
+            clLogError(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_WORKER,"EO: Failed to get my EO object. error code [0x%x].\n", rc);
             return rc;
         }
     }
@@ -2193,14 +2196,14 @@ static ClRcT eoInit(ClEoExecutionObjT *pThis)
 
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to EO Object \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to EO Object \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-            ("\n EO: Calling the init routines .... \n"));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "\n EO: Calling the init routines .... \n");
     for (i = 0; i <= CL_EO_NATIVE_COMPONENT_TABLE_ID; i++)
     {
         pTemp = (ClEoServiceObjT *) (pThis->pClient + i);
@@ -2240,16 +2243,16 @@ ClRcT clEoClientDataSet(ClEoExecutionObjT *pThis, ClUint32T clientID,
      */
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to EO Object \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to EO Object \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
     if (clientID > pThis->maxNoClients)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to clientID \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to clientID \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_EO_ERR_INVALID_CLIENTID);
     }
@@ -2284,15 +2287,15 @@ ClRcT clEoClientDataGet(ClEoExecutionObjT *pThis, ClUint32T clientID,
      */
     if ((pThis == NULL) || (pData == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: Improper input parameters \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Improper input parameters \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
     if (clientID > pThis->maxNoClients)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to clientID \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to clientID \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_EO_ERR_INVALID_CLIENTID);
     }
@@ -2330,8 +2333,8 @@ ClRcT clEoServiceValidate(ClEoExecutionObjT *pThis, ClUint32T func)
      */
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to EO Object \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to EO Object \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
@@ -2339,8 +2342,8 @@ ClRcT clEoServiceValidate(ClEoExecutionObjT *pThis, ClUint32T func)
     rc = clEoServiceIndexGet(func, &clientID, &funcNo);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                ("\n EO: clEoServiceIndexGet failed \n"));
+        clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: clEoServiceIndexGet failed \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2348,8 +2351,8 @@ ClRcT clEoServiceValidate(ClEoExecutionObjT *pThis, ClUint32T func)
     if ((funcNo >= CL_EO_MAX_NO_FUNC) ||   /* out of range fn # */
         (clientID > pThis->maxNoClients))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid service index : Func id [%d], Client ID [%d]\n",
-                                        funcNo, clientID));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid service index : Func id [%d], Client ID [%d]\n",
+                   funcNo, clientID);
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_EO_ERR_FUNC_NOT_REGISTERED);
     }
@@ -2368,23 +2371,23 @@ ClRcT clEoServiceValidate(ClEoExecutionObjT *pThis, ClUint32T func)
             (clientID == CL_EO_NATIVE_COMPONENT_TABLE_ID) &&
             (funcNo != CL_EO_SET_STATE_COMMON_FN_ID))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("EO: FUNC registered but EO SUSPENDED \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "EO: FUNC registered but EO SUSPENDED \n");
         rc = CL_EO_RC(CL_EO_ERR_EO_SUSPENDED);
     }
     else if ( ((ClEoServiceObjT *) (*(pTemp + funcNo)).pNextServObj == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("EO: FUNC %d  not registered for EOId %llx Port %x.",
-                 funcNo, pThis->eoID, pThis->eoPort));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "EO: FUNC %d  not registered for EOId %llx Port %x.",
+                   funcNo, pThis->eoID, pThis->eoPort);
         rc = CL_EO_RC(CL_EO_ERR_FUNC_NOT_REGISTERED);
     }
 
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                ("EO: Function Validation failed for EoId %llx EoPort %x.",
-                 pThis->eoID, pThis->eoPort));
+        clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "EO: Function Validation failed for EoId %llx EoPort %x.",
+                   pThis->eoID, pThis->eoPort);
     }
 
     CL_FUNC_EXIT();
@@ -2422,28 +2425,28 @@ ClRcT clEoWalk(ClEoExecutionObjT *pThis, ClUint32T func,
      */
     if ((pThis == NULL) || (pFuncCallout == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: Improper input parameters \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Improper input parameters \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-            ("\n EO: validating the requested service ...... \n"));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "\n EO: validating the requested service ...... \n");
     rc = clEoServiceValidate(pThis, func);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("\n EO: Service validation failed \n"));
+        clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Service validation failed \n");
         CL_FUNC_EXIT();
         return rc;
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-            ("\n EO: Obtaining the table indices ...... \n"));
+    clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "\n EO: Obtaining the table indices ...... \n");
     rc = clEoServiceIndexGet(func, &clientID, &funcNo);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                ("\n EO: clEoServiceIndexGet failed \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: clEoServiceIndexGet failed \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2460,9 +2463,9 @@ ClRcT clEoWalk(ClEoExecutionObjT *pThis, ClUint32T func,
         rmdMetricUpdate(rc, clientID, funcNo, outMsgHdl, CL_TRUE);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                    ("\n EO: Callback function FAILED in EOId:%llx EOPort:%x rc =%d \n",
-                     pThis->eoID, rc, pThis->eoPort));
+            clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "\n EO: Callback function FAILED in EOId:%llx EOPort:%x rc =%d \n",
+                       pThis->eoID, rc, pThis->eoPort);
             break;
         }
 
@@ -2494,17 +2497,17 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
      */
     if ((pThis == NULL) || (version == NULL) || (pFuncCallout == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: Improper input parameters \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Improper input parameters \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-            ("\n EO: validating the requested service ...... \n"));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "\n EO: validating the requested service ...... \n");
     rc = clEoServiceValidate(pThis, func);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("\n EO: Service validation failed \n"));
+        clLogTrace(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_RECV,"\n EO: Service validation failed \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2588,8 +2591,8 @@ ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
      */
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to EO Object \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to EO Object \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
@@ -2609,8 +2612,8 @@ ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
                 rc = pThis->clEoStateChgCallout(CL_EO_STATE_SUSPEND);
                 if (rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                            ("\n EO: StateChg User Callout function failed while suspending \n"));
+                    clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                               "\n EO: StateChg User Callout function failed while suspending \n");
                     CL_FUNC_EXIT();
                     return rc;
                 }
@@ -2640,8 +2643,8 @@ ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
                 rc = pThis->clEoStateChgCallout(CL_EO_STATE_RESUME);
                 if (rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                            ("\n EO: StateChg User Callout function failed \n"));
+                    clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                               "\n EO: StateChg User Callout function failed \n");
                     CL_FUNC_EXIT();
                     return rc;
                 }
@@ -2649,7 +2652,7 @@ ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
             pThis->state = CL_EO_STATE_ACTIVE;
             break;
         default:
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: STATE NOT PROPER \n"));
+            clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: STATE NOT PROPER \n");
             return CL_EO_RC(CL_EO_ERR_IMPROPER_STATE);
             break;
     }
@@ -2698,22 +2701,22 @@ ClRcT clEoPrivateDataSet(ClEoExecutionObjT *pThis, ClUint32T key, void *pData)
     ClRcT rc = CL_OK;
     ClCntNodeHandleT nodeHandle;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("\n EO: Inside clEoPrivateDataSet \n"));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Inside clEoPrivateDataSet \n");
 
     /*
      * Sanity checks for function parameters 
      */
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to EO Object \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to EO Object \n");
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
     if (pData == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper input parameter pData \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper input parameter pData \n");
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
@@ -2767,15 +2770,15 @@ ClRcT clEoPrivateDataGet(ClEoExecutionObjT *pThis, ClUint32T key, void **pData)
      */
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to EO Object \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to EO Object \n");
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
     if (pData == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper input parameter pData \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper input parameter pData \n");
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
@@ -2833,24 +2836,24 @@ ClRcT clEoClientUninstall(ClEoExecutionObjT *pThis, ClUint32T clientID)
 
     CL_FUNC_ENTER();
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-            ("\n EO: UnInstalling the function table ...... \n"));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "\n EO: UnInstalling the function table ...... \n");
 
     /*
      * Sanity checks for function parameters 
      */
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to EO Object \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to EO Object \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
     if (clientID > (int) pThis->maxNoClients)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to pFuncs \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to pFuncs \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_EO_ERR_INVALID_CLIENTID);
     }
@@ -2907,34 +2910,34 @@ ClRcT clEoServiceUninstall(ClEoExecutionObjT *pThis,
 
     CL_FUNC_ENTER();
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("\n EO: Inside clEoServiceUnInstall \n"));
+    clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Inside clEoServiceUnInstall \n");
 
     /*
      * Sanity checks for function parameters 
      */
     if ((pThis == NULL) || (pFunction == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper reference to EO Object \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper reference to EO Object \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
     if (iFuncNum >= CL_EO_MAX_NO_FUNC)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Improper service no. passed \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Improper service no. passed \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_EO_ERR_INVALID_SERVICEID);
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-            ("\n EO: Obtaining the table indices ...... \n"));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "\n EO: Obtaining the table indices ...... \n");
     rc = clEoServiceIndexGet((ClUint32T) iFuncNum, &clientID, &funcNo);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: clEoServiceIndexGet failed \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: clEoServiceIndexGet failed \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2942,11 +2945,11 @@ ClRcT clEoServiceUninstall(ClEoExecutionObjT *pThis,
     if ((funcNo >= CL_EO_MAX_NO_FUNC) ||    /* out of range fn # */
             (clientID > pThis->maxNoClients))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                ("\n EO: Trying to unregister a function which is not registered \n"));
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                ("\n EO: FUNC %d  not registered for EOId:%llx EoPort:%x\n",
-                 funcNo, pThis->eoID, pThis->eoPort));
+        clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Trying to unregister a function which is not registered \n");
+        clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: FUNC %d  not registered for EOId:%llx EoPort:%x\n",
+                   funcNo, pThis->eoID, pThis->eoPort);
         rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     }
 
@@ -2970,8 +2973,8 @@ ClRcT clEoServiceUninstall(ClEoExecutionObjT *pThis,
     }
     if (found == 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                ("\n EO: Trying to unregister a function which is not registered \n"));
+        clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Trying to unregister a function which is not registered \n");
         CL_FUNC_EXIT();
         return CL_EO_RC(CL_EO_ERR_FUNC_NOT_REGISTERED);
     }
@@ -2999,7 +3002,7 @@ ClRcT clEoLibInitialize()
     rc = dbgAddComponent(COMP_PREFIX, COMP_NAME, COMP_DEBUG_VAR_PTR);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: dbgAddComponent FAILED \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: dbgAddComponent FAILED \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -3007,13 +3010,13 @@ ClRcT clEoLibInitialize()
 
     CL_FUNC_ENTER();
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("\n EO: Inside clEoLibInitialize \n"));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Inside clEoLibInitialize \n");
 
     rc = clOsalMutexInit(&gClEoJobMutex);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                       ("EO job mutex init returned [%#x]", rc));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "EO job mutex init returned [%#x]", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -3024,8 +3027,8 @@ ClRcT clEoLibInitialize()
             &gEOObjHashTable);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Hash Table Creation FAILED \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Hash Table Creation FAILED \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -3033,8 +3036,8 @@ ClRcT clEoLibInitialize()
     if (rc != CL_OK)
     {
         clCntDelete(gEOObjHashTable);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: EOHashTableLock  creation failed \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: EOHashTableLock  creation failed \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -3061,7 +3064,7 @@ ClRcT clEoLibFinalize()
 
     CL_FUNC_ENTER();
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("\n EO: Inside %s \n", __FUNCTION__));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Inside %s \n", __FUNCTION__);
 
     CL_EO_LIB_VERIFY();
 
@@ -3073,8 +3076,8 @@ ClRcT clEoLibFinalize()
     rc = clCntDelete(gEOObjHashTable);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n EO: Hash Table Deleteion FAILED \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n EO: Hash Table Deleteion FAILED \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -3204,7 +3207,7 @@ static ClRcT clEoDropPkt(ClEoExecutionObjT *pThis,
         ClIocPhysicalAddressT srcAddr)
 {
     clBufferDelete(&eoRecvMsg);
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: Unknown Protocol ID\n"));
+    clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Unknown Protocol ID\n");
     return CL_OK;
 }
 
@@ -3243,9 +3246,9 @@ static ClRcT eoAddEntryInGlobalTable(ClEoExecutionObjT *eoObj,
     rc = clCntNodeAdd(gEOObjHashTable, (ClCntKeyHandleT) (ClWordT)eoPort,
             (ClCntDataHandleT) eoObj, NULL);
     if (rc != CL_OK)
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("EO: Node addition Failed rc=0x%xfor eoid 0x%x\n", rc,
-                 eoPort));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "EO: Node addition Failed rc=0x%xfor eoid 0x%x\n", rc,
+                   eoPort);
     clOsalMutexUnlock(&gEOObjHashTableLock);
 
     return rc;
@@ -3271,9 +3274,9 @@ static ClRcT eoDeleteEntryFromGlobalTable(ClIocPortT eoPort)
     clOsalMutexUnlock(&gEOObjHashTableLock);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("EO: Node delete from gEOObjHashTable Failed rc=0x%x\n",
-                 rc));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "EO: Node delete from gEOObjHashTable Failed rc=0x%x\n",
+                   rc);
     }
     return CL_OK;
 }
@@ -3393,21 +3396,21 @@ static ClRcT clEoSvcPrioritySet(ClUint32T data,
         ClUint32T msgLength = 0;
 
         rc = clEoMyEoObjectGet(&eoObj);
-        EO_CHECK(CL_DEBUG_ERROR,
+        EO_CHECK(CL_LOG_SEV_ERROR,
                 ("\n EO: clEoMyEoObjectGet failed, rc = %x \n", rc), rc);
 
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                ("Inside clEoSvcPrioritySet for pThis->eoPort 0x%x\n",
-                 eoObj->eoPort));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Inside clEoSvcPrioritySet for pThis->eoPort 0x%x\n",
+                   eoObj->eoPort);
         rc = clBufferLengthGet(inMsgHandle, &msgLength);
         if (msgLength == sizeof(ClOsalThreadPriorityT))
         {
             rc = clBufferNBytesRead(inMsgHandle, (ClUint8T *) &priority,
                     &msgLength);
-            EO_CHECK(CL_DEBUG_ERROR, ("Unable to Get message \n"), rc);
+            EO_CHECK(CL_LOG_SEV_ERROR, ("Unable to Get message \n"), rc);
         }
         else
-            EO_CHECK(CL_DEBUG_ERROR, ("Invalid Buffer Passed \n"),
+            EO_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"),
                     CL_EO_RC(CL_ERR_INVALID_BUFFER));
 
         eoObj->pri = priority;
@@ -3462,11 +3465,11 @@ static ClRcT clEoGetState(ClUint32T data, ClBufferHandleT inMsgHandle,
     ClRcT rc = CL_OK;
 
     rc = clEoMyEoObjectGet(&eoObj);
-    EO_CHECK(CL_DEBUG_ERROR, ("clEoMyEoObjectGet Failed \n"), rc);
+    EO_CHECK(CL_LOG_SEV_ERROR, ("clEoMyEoObjectGet Failed \n"), rc);
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-            ("Inside clEoGetState for pThis->eoPort 0x%x\n",
-             eoObj->eoPort));
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "Inside clEoGetState for pThis->eoPort 0x%x\n",
+               eoObj->eoPort);
     state = eoObj->state;
 
     rc = clBufferNBytesWrite(outMsgHandle, (ClUint8T *) state,
@@ -3496,9 +3499,9 @@ static ClRcT clEoSetState(ClUint32T data, ClBufferHandleT inMsgHandle,
     EO_CHECK(CL_DEBUG_ERROR, ("Unable to Get EO Object \n"), rc);
 
     if ((state == CL_EO_STATE_STOP) || (state == CL_EO_STATE_KILL))
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Setting EO 0x%x state to %d is Not supported \n",
-                 pThis->eoPort, state));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Setting EO 0x%x state to %d is Not supported \n",
+                   pThis->eoPort, state);
 
     clEoStateSet(pThis, state);
 
@@ -3799,12 +3802,12 @@ static ClRcT clEoMemShrink(ClPoolShrinkOptionsT *pShrinkOptions)
     rc = clBufferShrink(pShrinkOptions);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error shrinking buffer pool.rc=0x%x\n",rc));
+        clLogWarning(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Error shrinking buffer pool.rc=0x%x\n",rc);
     }
     rc = clHeapShrink(pShrinkOptions);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error shrinking heap pool.rc=0x%x\n",rc));
+        clLogWarning(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Error shrinking heap pool.rc=0x%x\n",rc);
     }
     return rc;
 }
@@ -3884,7 +3887,7 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
 
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: Improper reference to EO Object \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: Improper reference to EO Object \n");
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
@@ -3894,7 +3897,7 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
     rc = clEoMyEoIocPortSet(pThis->eoPort);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: clEoMyEoIdSet failed \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: clEoMyEoIdSet failed \n");
         return rc;
     }
     /*
@@ -3903,7 +3906,7 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
     rc = clEoMyEoObjectSet(pThis);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: clEoMyEoObjectSet failed \n"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: clEoMyEoObjectSet failed \n");
         return rc;
     }
 
@@ -3912,7 +3915,7 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
         rc = eoInit(pThis);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: eoInit failed \n"));
+            clLogError(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_RECV,"\n EO: eoInit failed \n");
             CL_FUNC_EXIT();
             return rc;
         }
@@ -3929,9 +3932,9 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
         rc = clBufferCreate(&eoRecvMsg);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                           ("Create Message Failed for EOID : 0x%llx\t Port %x\n",
-                            pThis->eoID, pThis->eoPort));
+            clLogTrace(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_RECV,
+                       "Create Message Failed for EOID : 0x%llx\t Port %x\n",
+                       pThis->eoID, pThis->eoPort);
             return rc;
         }
 
@@ -3992,9 +3995,9 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
         {
             retCode = clBufferDelete(&eoRecvMsg);
             if (retCode != CL_OK)
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("EO: clBufferDelete Failed, rc=0x%x",
-                                retCode));
+                clLogError(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_RECV,
+                           "EO: clBufferDelete Failed, rc=0x%x",
+                           retCode);
             break;
         }
         else if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_MEMORY)
@@ -4022,9 +4025,9 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
              * We are done now. Giving up.
              */
             clBufferDelete(&eoRecvMsg);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nEO[%s] :clIocReceive out of Memory."\
-                            "Exiting ioc receive thread\n",CL_EO_NAME));
+            clLogError(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_RECV,
+                       "\nEO[%s] :clIocReceive out of Memory."\
+                       "Exiting ioc receive thread\n",CL_EO_NAME);
             CL_ASSERT(0);
             break;
         }
@@ -4032,9 +4035,9 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
         {
             retry:
             retCode = clBufferDelete(&eoRecvMsg);
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                           ("\n EO: clIocReceive failed EOID 0x%llx\t EO Port %x\n",
-                            pThis->eoID, pThis->eoPort));
+            clLogTrace(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_RECV,
+                       "\n EO: clIocReceive failed EOID 0x%llx\t EO Port %x\n",
+                       pThis->eoID, pThis->eoPort);
         }
     }        
 
@@ -4054,7 +4057,7 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
     ClIocRecvParamT *pRecvParam = NULL;
     ClEoExecutionObjT *pThis = gpExecutionObject;
 
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("clEoJobHandler"));
+    clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clEoJobHandler");
 
     if(pJob == NULL)
     {
@@ -4083,13 +4086,13 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
 
         if((rc = gpClEoSerialize((ClPtrT)&serialize)) != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("EO Serialization " \
-                                           "failed with [rc=0x%x]\n",rc));
+            clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"EO Serialization " \
+                       "failed with [rc=0x%x]\n",rc);
             goto done;
         }
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("clEoJobHandler, calling a registered message handler"));
+    clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clEoJobHandler, calling a registered message handler");
     rc = gClEoProtoList[pRecvParam->protoType].func(pThis,
                                                     pJob->msg,
                                                     pRecvParam->priority,
@@ -4107,8 +4110,8 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
     }
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Invoking Callback Failed, rc=0x%x\n", rc));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Invoking Callback Failed, rc=0x%x\n", rc);
     }
 
  done:
@@ -4129,7 +4132,7 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
        ||
        !pRecvParam)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid param"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid param");
         goto out;
     }
 
@@ -4137,7 +4140,7 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
     pJob = clHeapCalloc(1, sizeof(*pJob));
     if(pJob == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Allocation error"));
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Allocation error");
         goto out;
     }
     pJob->msg = recvMsg;
@@ -4153,7 +4156,7 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
     
         if(priority >= CL_IOC_MAX_PRIORITIES)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid priority [%d]", priority));
+            clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid priority [%d]", priority);
             goto out_free;
         }
     }
@@ -4199,7 +4202,7 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
         goto out_free;
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Enqueuing job priority %d",priority));
+    clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Enqueuing job priority %d",priority);
   
     rc = clJobQueuePush(pQueue,(ClCallbackT) clEoJobHandler, pJob);
 

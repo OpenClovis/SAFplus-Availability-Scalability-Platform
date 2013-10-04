@@ -68,7 +68,7 @@ extern "C" {
          * Pre-change notification                                          \
          */                                                                 \
                                                                             \
-        AMS_ENTITY_LOG((ENTITY), CL_AMS_MGMT_SUB_AREA_STATE_CHANGE, CL_DEBUG_TRACE,\
+        AMS_ENTITY_LOG((ENTITY), CL_AMS_MGMT_SUB_AREA_STATE_CHANGE, CL_LOG_SEV_TRACE,\
                 ("State Change: Entity [%s] Readiness State (%s -> %s)\n",  \
                  (ENTITY)->config.entity.name.value,                        \
                  CL_AMS_STRING_R_STATE((ENTITY)->status.readinessState),    \
@@ -90,7 +90,7 @@ extern "C" {
         /*                                                              \
          * Pre-change notification                                      \
          */                                                             \
-        AMS_ENTITY_LOG( (ENTITY), CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, \
+        AMS_ENTITY_LOG( (ENTITY), CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, \
                 ("State Change: Entity [%s] Operational State (%s -> %s)\n", \
                  (ENTITY)->config.entity.name.value,                    \
                  CL_AMS_STRING_O_STATE((ENTITY)->status.operState),     \
@@ -127,7 +127,7 @@ extern "C" {
          * Pre-change notification                                          \
          */                                                                 \
                                                                             \
-        AMS_ENTITY_LOG((ENTITY), CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE,\
+        AMS_ENTITY_LOG((ENTITY), CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE,\
                 ("State Change: Entity [%s] Presence State (%s -> %s)\n",   \
                  (ENTITY)->config.entity.name.value,                        \
                  CL_AMS_STRING_P_STATE((ENTITY)->status.presenceState),     \
@@ -160,7 +160,7 @@ extern "C" {
          * Pre-change notification                                      \
          */                                                             \
                                                                         \
-        AMS_ENTITY_LOG((ENTITY), CL_AMS_MGMT_SUB_AREA_STATE_CHANGE, CL_DEBUG_TRACE, \
+        AMS_ENTITY_LOG((ENTITY), CL_AMS_MGMT_SUB_AREA_STATE_CHANGE, CL_LOG_SEV_TRACE, \
                 ("State Change: Entity [%s] Admin State (%s -> %s)\n",  \
                  (ENTITY)->config.entity.name.value,                    \
                  CL_AMS_STRING_A_STATE((ENTITY)->config.adminState),    \
@@ -220,7 +220,7 @@ do{                                                                     \
         /*                                                              \
          * Pre-change notification                                      \
          */                                                             \
-        AMS_ENTITY_LOG((ENTITY), CL_AMS_MGMT_SUB_AREA_STATE_CHANGE, CL_DEBUG_TRACE, \
+        AMS_ENTITY_LOG((ENTITY), CL_AMS_MGMT_SUB_AREA_STATE_CHANGE, CL_LOG_SEV_TRACE, \
                 ("State Change: Entity [%s] / Entity [%s] HA State (%s -> %s)\n", \
                  (ENTITY)->config.entity.name.value,                    \
                  (ENTITYREF)->entityRef.entity.name.value,              \

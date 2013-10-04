@@ -131,7 +131,7 @@ static ClRcT cpmCpmLSerializer(ClInt8T **data, ClUint32T *size)
     };
 
     rc = clBufferCreate(&message);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_CREATE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_CREATE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     /*
@@ -153,14 +153,14 @@ static ClRcT cpmCpmLSerializer(ClInt8T **data, ClUint32T *size)
     if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL && cpmLCount != 0)
     {
         rc = clCntFirstNodeGet(gpClCpm->cpmTable, &cpmNode);
-        CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
+        CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
                        "CPM-L", rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
         while (cpmLCount)
         {
             rc = clCntNodeUserDataGet(gpClCpm->cpmTable, cpmNode,
                                       (ClCntDataHandleT *) &cpmL);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                            CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
@@ -171,38 +171,38 @@ static ClRcT cpmCpmLSerializer(ClInt8T **data, ClUint32T *size)
 
                 rc = clBufferNBytesWrite(message, (ClUint8T *) &tlv,
                                                 sizeof(ClCpmTlvT));
-                CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc,
+                CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc,
                                rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
                 rc = clBufferNBytesWrite(message,
                                                 (ClUint8T *) (cpmL->
                                                               pCpmLocalInfo),
                                                 sizeof(ClCpmLocalInfoT));
-                CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc,
+                CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc,
                                rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             }
             cpmLCount--;
             if (cpmLCount)
             {
                 rc = clCntNextNodeGet(gpClCpm->cpmTable, cpmNode, &cpmNode);
-                CL_CPM_CHECK_2(CL_DEBUG_ERROR,
+                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, "CPM-L", rc,
                                rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             }
         }
     }
     rc = clBufferLengthGet(message, &msgLength);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     tmpStr = (ClCharT *) clHeapAllocate(msgLength);
     if (tmpStr == NULL)
-        CL_CPM_CHECK_0(CL_DEBUG_ERROR,
+        CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clBufferNBytesRead(message, (ClUint8T *) tmpStr, &msgLength);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     *data = (ClAddrT) tmpStr;
     *size = msgLength;
@@ -241,7 +241,7 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
     if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL)
     {
         rc = clBufferNBytesRead(message, (ClUint8T *) &tlv, &tlvLength);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         tempLength -= sizeof(ClCpmTlvT);
 
@@ -262,7 +262,7 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
 
             rc = clBufferNBytesRead(message, (ClUint8T *) &cpmLBuffer,
                                     &(tlv.LENGTH));
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             tempLength -= tlv.LENGTH;
 
@@ -306,7 +306,7 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
             {
                 rc = clBufferNBytesRead(message, (ClUint8T *) &tlv,
                                         &tlvLength);
-                CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc,
+                CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc,
                                rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
                 tempLength -= sizeof(ClCpmTlvT);
             }
@@ -374,21 +374,21 @@ static ClRcT cpmCpmLDeSerializer(ClInt8T *data, ClUint32T size)
     ClVersionT version = {0};
 
     rc = clBufferCreate(&message);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_CREATE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_CREATE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clBufferNBytesWrite(message, (ClUint8T *) data, size);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clBufferLengthGet(message, &msgLength);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_LENGTH_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_LENGTH_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     if(msgLength <= sizeof(ClVersionT))
     {
         rc = CL_CPM_RC(CL_ERR_INVALID_BUFFER);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_LENGTH_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_LENGTH_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 

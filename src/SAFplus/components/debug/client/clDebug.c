@@ -38,6 +38,7 @@
 #include <clEoApi.h>
 #include <clEoIpi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clXdrApi.h>
 #include <clVersionApi.h>
 #include "clDebug.h"
@@ -139,7 +140,7 @@ clDebugFuncInvokeCallback(ClHandleDatabaseHandleT  hHandleDB,
     rc = clHandleCheckout(hHandleDB, handle, (void *) &pFuncGroup); 
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleCheckout(): rc[0x %x]", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clHandleCheckout(): rc[0x %x]", rc);
         return rc;
     }
 
@@ -402,7 +403,7 @@ clDebugContexDetailsPack(ClHandleDatabaseHandleT  hHandleDB,
     rc = clHandleCheckout(hHandleDB, handle, (void *) &pFuncGroup); 
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleCheckout(): rc[0x %x]", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"clHandleCheckout(): rc[0x %x]", rc);
         return rc;
     }
 
@@ -526,7 +527,7 @@ ClRcT clDebugLibInitialize(void)
     rc = clOsalTaskKeyCreate(&pDebugObj->debugTaskKey, NULL);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Debug task key create returned with [%#x]\n", rc));
+        clLogError("DBG","TSK","Debug task key create returned with [%#x]\n", rc);
         clHeapFree(pDebugObj);
         return CL_DEBUG_RC(CL_GET_ERROR_CODE(rc));
     }
@@ -534,8 +535,8 @@ ClRcT clDebugLibInitialize(void)
     rc = clHandleDatabaseCreate(NULL, &pDebugObj->hDebugFnDB);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleDatabaseCreate(): rc[0x %x]",
-                rc));
+        clLogError("DBG","DBC","clHandleDatabaseCreate(): rc[0x %x]",
+                rc);
         clHeapFree(pDebugObj);
         return CL_DEBUG_RC(CL_ERR_NO_MEMORY);
     }
@@ -544,8 +545,8 @@ ClRcT clDebugLibInitialize(void)
     rc = clCpmComponentNameGet(0, &compName);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCpmComponentNameGet(): rc[0x %x]",
-                    rc));
+        clLogError("DBG","INI","clCpmComponentNameGet(): rc[0x %x]",
+                    rc);
         clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_WARNING,CL_DEBUG_LIB_CLIENT,
                    CL_LOG_MESSAGE_1_INVALID_PARAMETER, 
                    "CompNameGet is not proper");
@@ -576,7 +577,7 @@ ClRcT clDebugLibInitialize(void)
                                             pDebugObj);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoClientInstall(): rc[0x %x]", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"clEoClientInstall(): rc[0x %x]", rc);
         clHandleDatabaseDestroy(pDebugObj->hDebugFnDB);
         clHeapFree(pDebugObj);
         return rc;
@@ -594,7 +595,7 @@ ClRcT clDebugLibInitialize(void)
     rc = clEoPrivateDataSet(pEoObj, CL_EO_DEBUG_OBJECT_COOKIE_ID, pDebugObj);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoPrivateDataSet(): rc[0x %x]", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"clEoPrivateDataSet(): rc[0x %x]", rc);
         clEoClientUninstallTables(pEoObj, 
                                   CL_EO_SERVER_SYM_MOD(gAspFuncTable, DEBUGCli));
         clHandleDatabaseDestroy(pDebugObj->hDebugFnDB);
@@ -630,16 +631,16 @@ ClRcT clDebugLibFinalize(void)
 
     if( CL_OK != (rc = clHandleDatabaseDestroy(pDebugObj->hDebugFnDB))) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleDatabaseDestroy(): "
-                       "rc[0x %x]", rc));
+        clLogError("DBG","DBC","clHandleDatabaseDestroy():" 
+                       "rc[0x %x]", rc);
     }
     
     clDebugClientTableDeregister(pEoObj);
 
     if( CL_OK != (rc = clEoClientUninstallTables(pEoObj, CL_EO_SERVER_SYM_MOD(gAspFuncTable, DEBUGCli))) )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoClientUninstall(): rc[0x %x]",
-                    rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"clEoClientUninstall(): rc[0x %x]",
+                    rc);
     }
 
     clHeapFree(pDebugObj);
@@ -656,14 +657,14 @@ clDebugPromptSet(const ClCharT  *pCompPrompt)
 
     if( NULL == pCompPrompt )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Passed Prompt is NULL"));
+        clLogError("DBG","PRMT","Passed Prompt is NULL");
         return CL_DEBUG_RC(CL_ERR_NULL_POINTER);
     }
     rc = clEoMyEoObjectGet(&pEoObj);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoMyEoObjectGet(): rc[0x %x]",
-                    rc));
+        clLogError("DBG","PRMT","clEoMyEoObjectGet(): rc[0x %x]",
+                    rc);
         return rc;
     }
     rc = clEoPrivateDataGet( pEoObj,
@@ -671,8 +672,8 @@ clDebugPromptSet(const ClCharT  *pCompPrompt)
                              (void**) &pDebugObj);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoPrivateDataGet(): rc[0x %x]",
-                    rc));
+        clLogError("DBG","PRMT","clEoPrivateDataGet(): rc[0x %x]",
+                    rc);
         return rc;
     }
 
@@ -704,7 +705,7 @@ clDebugDuplicateDetectWalk(ClHandleDatabaseHandleT  hHandleDB,
     rc = clHandleCheckout(hHandleDB, handle, (void *) &pFuncGroup); 
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleCheckout(): rc[0x %x]", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"clHandleCheckout(): rc[0x %x]", rc);
         return rc;
     }
 
@@ -716,8 +717,8 @@ clDebugDuplicateDetectWalk(ClHandleDatabaseHandleT  hHandleDB,
                         pPassedData->pFuncDescList[i].funcName))
             {
                 clHandleCheckin(hHandleDB, handle);
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Duplicate command found : %s", 
-                            pFuncGroup->pFuncDescList[j].funcName));
+                clLogError("DUP","DTW","Duplicate command found : %s", 
+                            pFuncGroup->pFuncDescList[j].funcName);
                 return CL_DEBUG_RC(CL_ERR_DUPLICATE);
             }
         }
@@ -750,8 +751,8 @@ clDebugDuplicateCommandDetect(ClDebugObjT        *pDebugObj,
                 if( !(strcasecmp(pFuncArray[i].funcName,
                             pFuncArray[j].funcName)) )
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Duplicate command found : %s", 
-                                pFuncArray[i].funcName));
+                    clLogError("DUP","CMD","Duplicate command found : %s", 
+                                pFuncArray[i].funcName);
                     return CL_DEBUG_RC(CL_ERR_DUPLICATE);
                 }
             }
@@ -768,7 +769,7 @@ clDebugDuplicateCommandDetect(ClDebugObjT        *pDebugObj,
                       &funcGroup);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleWalk(); rc[0x %x]", rc));
+        clLogError("DUP","CMD","clHandleWalk(); rc[0x %x]", rc);
     }
 
     return rc;
@@ -793,7 +794,7 @@ ClRcT clDebugRegister(ClDebugFuncEntryT  *funcArray,
     rc = clEoMyEoObjectGet(&pEoObj);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoMyEoObjectGet(): rc[0x %x]",rc));
+        clLogError("DBG","REG","clEoMyEoObjectGet(): rc[0x %x]",rc);
         return rc;
     }
     rc = clEoPrivateDataGet( pEoObj,CL_EO_DEBUG_OBJECT_COOKIE_ID,(void**) &pDebugObj);
@@ -813,7 +814,7 @@ ClRcT clDebugRegister(ClDebugFuncEntryT  *funcArray,
     rc = clHandleCreate(pDebugObj->hDebugFnDB, sizeof(ClDebugFuncGroupT), phDebugReg);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleCreate(): rc[0x %x]", rc));
+        clLogError("DBG","REG","clHandleCreate(): rc[0x %x]", rc);
         return rc;
     }
 
@@ -821,7 +822,7 @@ ClRcT clDebugRegister(ClDebugFuncEntryT  *funcArray,
                           (void **) &pFuncGroup);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleCheckout(): rc[0x %x]", rc));
+        clLogError("DBG","REG","clHandleCheckout(): rc[0x %x]", rc);
         clHandleDestroy(pDebugObj->hDebugFnDB, *phDebugReg);
         return rc;
     }
@@ -846,7 +847,7 @@ ClRcT clDebugRegister(ClDebugFuncEntryT  *funcArray,
     pDebugObj->numFunc += pFuncGroup->numFunc;
     if( CL_OK != (rc = clHandleCheckin(pDebugObj->hDebugFnDB, *phDebugReg)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleCheckin(): rc[0x %x]", rc));
+        clLogError("DBG","REG","clHandleCheckin(): rc[0x %x]", rc);
     }
 
     return CL_OK;
@@ -862,22 +863,22 @@ ClRcT clDebugDeregister(ClHandleT  hReg)
     rc = clEoMyEoObjectGet(&pEoObj);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoMyEoObjectGet(): rc[0x %x]",
-                    rc));
+        clLogError("DBG","DRG","clEoMyEoObjectGet(): rc[0x %x]",
+                    rc);
         return rc;
     }
     rc = clEoPrivateDataGet( pEoObj, CL_EO_DEBUG_OBJECT_COOKIE_ID, (void**) &pDebugObj);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoPrivateDataGet(): rc[0x %x]",
-                    rc));
+        clLogError("DBG","DRG","clEoPrivateDataGet(): rc[0x %x]",
+                    rc);
         return rc;
     }
 
     rc = clHandleCheckout(pDebugObj->hDebugFnDB, hReg, (void **) &pFuncGroup);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleCheckout(): rc[0x %x]", rc));
+        clLogError("DBG","DRG","clHandleCheckout(): rc[0x %x]", rc);
         return rc;
     }
     pDebugObj->numFunc -= pFuncGroup->numFunc;
@@ -886,12 +887,12 @@ ClRcT clDebugDeregister(ClHandleT  hReg)
 
     if( CL_OK != (rc = clHandleCheckin(pDebugObj->hDebugFnDB, hReg)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleCheckin(): rc[0x %x]", rc));
+        clLogError("DBG","DRG","clHandleCheckin(): rc[0x %x]", rc);
     }
     rc = clHandleDestroy(pDebugObj->hDebugFnDB, hReg);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleDestroy(): rc[0x %x]", rc));
+        clLogError("DBG","DRG","clHandleDestroy(): rc[0x %x]", rc);
     }
 
     return CL_OK;

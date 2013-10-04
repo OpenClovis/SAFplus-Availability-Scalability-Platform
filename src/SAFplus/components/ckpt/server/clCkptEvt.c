@@ -111,7 +111,7 @@ ClRcT   ckptEventSvcInitialize()
                            &evtCallbacks,
                            &version);
     if (rc != CL_EVENT_ERR_ALREADY_INITIALIZED )
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Failed to initialize Event service rc[0x %x]\n",rc), rc);
 
     /* 
@@ -160,7 +160,7 @@ ClRcT   ckptEventSvcInitialize()
             &gCkptSvr->compChHdl);
     if (rc != CL_EVENT_ERR_EXIST)
     {
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, 
                 ("Channel %s open failed rc[0x%x]\n", cpmChnlName.value, rc),
                 rc);
     }
@@ -170,7 +170,7 @@ ClRcT   ckptEventSvcInitialize()
      */
     rc = clEventSubscribe(gCkptSvr->compChHdl, &compDeathFilterArray,
                           CL_CKPT_COMP_DEATH_SUBSCRIPTION_ID, NULL);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Event Subscribe failed :Channel %s rc[0x %x]\n",
              cpmChnlName.value, rc), rc);
 
@@ -186,7 +186,7 @@ ClRcT   ckptEventSvcInitialize()
                             &gCkptSvr->nodeChHdl);
     if (rc != CL_EVENT_ERR_EXIST)
     {
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, 
                        ("Channel %s open failed [Rc: 0x%x]\n", 
                        cpmChnlName.value, rc), rc);
     }
@@ -196,13 +196,13 @@ ClRcT   ckptEventSvcInitialize()
      */
     rc = clEventSubscribe(gCkptSvr->nodeChHdl, &nodeArrivalFilterArray,
                           CL_CKPT_NODE_ARRIVAL_SUBSCRIPTION_ID, NULL);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Event Subscribe failed for node arrival : Channel %s rc[0x %x]\n", 
              cpmChnlName.value, rc), rc);
 
     rc = clEventSubscribe(gCkptSvr->nodeChHdl, &nodeDepartureFilterArray,
                           CL_CKPT_NODE_DEATH_SUBSCRIPTION_ID, NULL);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Event Subscribe failed for node death : Channel %s rc[0x %x]\n", 
              cpmChnlName.value, rc), rc);
 
@@ -274,7 +274,7 @@ void ckptEvtSubscribeCallBack( ClEventSubscriptionIdT    subscriptionId,
              */
             rc = clCpmEventPayLoadExtract(eventHandle, eventDataSize,
                                           CL_CPM_COMP_EVENT, (void *)&payLoad);
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, 
                            ("Event Data Get failed rc[0x %x]\n", rc), rc);
             if(payLoad.operation != CL_CPM_COMP_DEATH)
                 goto out_free;
@@ -303,7 +303,7 @@ void ckptEvtSubscribeCallBack( ClEventSubscriptionIdT    subscriptionId,
              */
             rc = clCpmEventPayLoadExtract(eventHandle, eventDataSize,
                                           CL_CPM_NODE_EVENT, (void *)&nodePayload);
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, 
                            ("Event Data Get failed  [Rc: 0x%x]" , rc), rc);
                     
             /* 
@@ -316,8 +316,8 @@ void ckptEvtSubscribeCallBack( ClEventSubscriptionIdT    subscriptionId,
             /*
              * Node going down.
              */
-            CL_DEBUG_PRINT(CL_DEBUG_INFO,("Node is going down, name [%s], IOC address [%d]",
-                                          nodePayload.nodeName.value, nodePayload.nodeIocAddress));
+            clLogInfo(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_NOTIFY,"Node is going down, name [%s], IOC address [%d]",
+                                          nodePayload.nodeName.value, nodePayload.nodeIocAddress);
                 
             /*
              * This call is not required for self node departure events.
@@ -338,7 +338,7 @@ void ckptEvtSubscribeCallBack( ClEventSubscriptionIdT    subscriptionId,
              */
             rc = clCpmEventPayLoadExtract(eventHandle, eventDataSize,
                                           CL_CPM_NODE_EVENT, (void *)&nodePayload);
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, 
                            ("Event Data Get failed  [Rc: 0x%x]" , rc), rc);
 
             if(nodePayload.operation != CL_CPM_NODE_ARRIVAL)

@@ -71,7 +71,7 @@ ClRcT clCkptSvrInitialize(void)
      * Allocate the memory for server control block.
      */
     rc = ckptSvrCbAlloc(&gCkptSvr);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, 
                    ("Checkpoint service CB create failed rc[0x %x]\n", rc), rc); 
 
     /*

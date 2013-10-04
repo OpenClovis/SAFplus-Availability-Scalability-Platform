@@ -31,6 +31,7 @@
 /* INCLUDES */
 #include <clCommon.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clHalApi.h>
 #include <clHalInternal.h>
 #include <stdlib.h>
@@ -69,7 +70,7 @@ ClRcT halObjCreate(ClUint32T omId,
 
     if (NULL == phalObjHandle)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s Error NULL Pointer  \n ",aFunction));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL Pointer  \n ",aFunction);
         CL_FUNC_EXIT();
         return (CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -77,7 +78,7 @@ ClRcT halObjCreate(ClUint32T omId,
         
     if (NULL == phalObject)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s Error Malloc Failed\n ",aFunction));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error Malloc Failed\n ",aFunction);
         CL_FUNC_EXIT();
         return (CL_HAL_SET_RC( CL_ERR_NO_MEMORY)) ;
     }
@@ -93,7 +94,7 @@ ClRcT halObjCreate(ClUint32T omId,
         if (NULL == phalObject->moId)
         {
             clHeapFree (phalObject);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n %s Error Malloc Failed\n ",aFunction));
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error Malloc Failed\n ",aFunction);
             CL_FUNC_EXIT();
             return (CL_HAL_SET_RC( CL_ERR_NO_MEMORY)) ;
         }
@@ -107,7 +108,7 @@ ClRcT halObjCreate(ClUint32T omId,
         /* This needs to be uncommented after fixing the call to clOmObjectCreate &
         clOmCorAndOmObjectsCreate by passing hMOId ,sizeof(ClCorMOIdT) as the last 2parameters.
         As of now  NULL is being passed */
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n %s Error Invalid Parameter \n ",aFunction));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error Invalid Parameter \n ",aFunction);
         CL_FUNC_EXIT();
         return (CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER));
     }
@@ -118,8 +119,8 @@ ClRcT halObjCreate(ClUint32T omId,
     {
         clHeapFree (phalObject);
         phalObject =NULL;
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s Error returned by \
-        clCntLlistCreate \n ", aFunction));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error returned by \
+        clCntLlistCreate \n ", aFunction);
         CL_FUNC_EXIT(); 
         return ret;
     }
@@ -127,7 +128,7 @@ ClRcT halObjCreate(ClUint32T omId,
     (*phalObjHandle) =  (ClHalObjectHandleT)phalObject;
 
     
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK  \n ",aFunction));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK  \n ",aFunction);
     CL_FUNC_EXIT();
     return CL_OK;
 }
@@ -151,14 +152,14 @@ ClRcT halObjDevObjectInstall(ClHalObjectHandleT hHalObjHandle,
     
     if (NULL ==phalObject)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Invalid Hal Obj Handle ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Invalid Hal Obj Handle ",aFunction);
         CL_FUNC_EXIT();
         return CL_HAL_SET_RC(CL_ERR_NULL_POINTER);
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s phalObject->omId=%d,deviceId=%d,  \
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s phalObject->omId=%d,deviceId=%d,  \
     deviceAccessPriority=%d", aFunction,phalObject->omId, deviceId,
-    deviceAccessPriority));
+    deviceAccessPriority);
 
     /* To Do  Print ClCorMOId phalObject->moId
     */
@@ -172,7 +173,7 @@ ClRcT halObjDevObjectInstall(ClHalObjectHandleT hHalObjHandle,
 
     if (NULL == phDevObjectHandle)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s No Memory ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s No Memory ",aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_ERR_NO_MEMORY));
     }
@@ -182,8 +183,8 @@ ClRcT halObjDevObjectInstall(ClHalObjectHandleT hHalObjHandle,
     {
         clHeapFree (phDevObjectHandle);
         phDevObjectHandle =NULL;
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n%s Error returned by halDevObjHandleGet",
-        aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n%s Error returned by halDevObjHandleGet",
+        aFunction);
         CL_FUNC_EXIT();
         return ret ; 
     }
@@ -196,7 +197,7 @@ ClRcT halObjDevObjectInstall(ClHalObjectHandleT hHalObjHandle,
     {
         clHeapFree(phDevObjectHandle);
         phDevObjectHandle =NULL;
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n%s Error returned by clCntNodeAdd",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n%s Error returned by clCntNodeAdd",aFunction);
         CL_FUNC_EXIT(); 
         return ret ;
     }
@@ -205,8 +206,8 @@ ClRcT halObjDevObjectInstall(ClHalObjectHandleT hHalObjHandle,
 
     if (CL_OK != ret)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n%s Error returned by halDevObjMaxRspTimeGet",
-        aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n%s Error returned by halDevObjMaxRspTimeGet",
+        aFunction);
         clHeapFree (phDevObjectHandle);
         phDevObjectHandle =NULL;
         CL_FUNC_EXIT(); 
@@ -219,15 +220,15 @@ ClRcT halObjDevObjectInstall(ClHalObjectHandleT hHalObjHandle,
     ret =halDevObjRefCountIncr( *phDevObjectHandle);
     if (CL_OK != ret)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n%s Error returned by halDevObjRefCountIncr",
-        aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n%s Error returned by halDevObjRefCountIncr",
+        aFunction);
         clHeapFree (phDevObjectHandle);
         phDevObjectHandle =NULL;
         CL_FUNC_EXIT(); 
         return ret ;
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("\n %s CL_OK ", aFunction));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK ", aFunction);
     CL_FUNC_EXIT(); 
     return CL_OK;
 }
@@ -249,14 +250,14 @@ ClRcT halObjCreateDevObjectInstall(ClUint32T omId,
     
     if ( NULL ==pDevObjInfo ||NULL==phalObjHandle )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
     
     if (nDevObj <= 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error Invalid Parameter ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error Invalid Parameter ",aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER));
     }
@@ -265,8 +266,8 @@ ClRcT halObjCreateDevObjectInstall(ClUint32T omId,
 
     if ( CL_OK != CL_GET_ERROR_CODE(ret))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error returned by halObjCreate",
-        aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error returned by halObjCreate",
+        aFunction);
         CL_FUNC_EXIT();
         return ret;
     }
@@ -280,8 +281,8 @@ ClRcT halObjCreateDevObjectInstall(ClUint32T omId,
 
         if (CL_OK !=ret)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error returned by \
-            halObjDevObjectInstall ", aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error returned by \
+            halObjDevObjectInstall ", aFunction);
             CL_FUNC_EXIT(); 
             return ret;
         }
@@ -312,7 +313,7 @@ ClRcT clHalObjectOperate(ClHalObjectHandleT halObjHandle,
     CL_FUNC_ENTER();
 
     #if 0
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s,halObjHandle=%L,operation=%u,suboperation=%d,\
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s,halObjHandle=%L,operation=%u,suboperation=%d,\
     accessOrder=%d, pUserData=%x,usrdataLen=%u,flag=%u,userflag2=%u \n", 
     aFunction,halObjHandle,operation,suboperation,accessOrder,
     pUserData,usrdataLen,flag, userflag2));
@@ -322,13 +323,13 @@ ClRcT clHalObjectOperate(ClHalObjectHandleT halObjHandle,
 
     if (NULL ==pHalObject )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
     if(operation >= halConfig.halDevNumOperations)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER));
     }
@@ -338,8 +339,8 @@ ClRcT clHalObjectOperate(ClHalObjectHandleT halObjHandle,
         ret=clCntFirstNodeGet(pHalObject->hTableRefDevObject, & nodeHandle);
         if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s error returned by clCntFirstNodeGet",
-            aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s error returned by clCntFirstNodeGet",
+            aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
@@ -349,8 +350,8 @@ ClRcT clHalObjectOperate(ClHalObjectHandleT halObjHandle,
             & userDataHandle);
             if(CL_OK !=ret) 
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error returned by \
-                clCntNodeUserDataGet", aFunction));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error returned by \
+                clCntNodeUserDataGet", aFunction);
                 CL_FUNC_EXIT();
                 return ret;
             }
@@ -365,23 +366,23 @@ ClRcT clHalObjectOperate(ClHalObjectHandleT halObjHandle,
             {
                 if (!CL_IS_CONTINUE_ON_ERR(flag))
                 {
-                  CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by \
-                  halDevObjOperationExecute ",aFunction));
+                  clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by \
+                  halDevObjOperationExecute ",aFunction);
                   CL_FUNC_EXIT();
                   return ret;
                 }
                 else 
                 {
-                  CL_DEBUG_PRINT(CL_DEBUG_TRACE,(" \n %s Error returned by \
-                  halDevObjOperationExecute ret =%d ",aFunction,ret));
+                  clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by \
+                  halDevObjOperationExecute ret =%d ",aFunction,ret);
                 }        
             }
             ret =clCntNextNodeGet(pHalObject->hTableRefDevObject, nodeHandle ,
             &nodeHandle);
             if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by \
-                clCntNextNodeGet ",aFunction));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by \
+                clCntNextNodeGet ",aFunction);
                 CL_FUNC_EXIT();
                 return ret;
             }
@@ -392,8 +393,8 @@ ClRcT clHalObjectOperate(ClHalObjectHandleT halObjHandle,
         ret=clCntLastNodeGet(pHalObject->hTableRefDevObject, & nodeHandle);
         if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s error returned by clCntLastNodeGet",
-            aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s error returned by clCntLastNodeGet",
+            aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
@@ -403,8 +404,8 @@ ClRcT clHalObjectOperate(ClHalObjectHandleT halObjHandle,
             & userDataHandle);
             if (CL_OK !=ret)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s error returned by \
-                clCntNodeUserDataGet ", aFunction));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s error returned by \
+                clCntNodeUserDataGet ", aFunction);
                 CL_FUNC_EXIT();
                 return ret;
             }
@@ -418,23 +419,23 @@ ClRcT clHalObjectOperate(ClHalObjectHandleT halObjHandle,
             {
                 if (!CL_IS_CONTINUE_ON_ERR(flag))
                 {
-                     CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by \
-                     halDevObjOperationExecute ",aFunction));
+                     clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by \
+                     halDevObjOperationExecute ",aFunction);
                      CL_FUNC_EXIT();
                      return ret;
                  }
                  else 
                  {
-                     CL_DEBUG_PRINT(CL_DEBUG_TRACE,(" \n %s Error returned by \
-                     halDevObjOperationExecute ret =%d ",aFunction,ret));
+                     clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by \
+                     halDevObjOperationExecute ret =%d ",aFunction,ret);
                   }        
              }
             ret = clCntPreviousNodeGet(pHalObject->hTableRefDevObject, 
             nodeHandle , &nodeHandle);
             if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by \
-                clCntPreviousNodeGet ",aFunction));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by \
+                clCntPreviousNodeGet ",aFunction);
                 CL_FUNC_EXIT();
                 return ret;
             }
@@ -443,12 +444,12 @@ ClRcT clHalObjectOperate(ClHalObjectHandleT halObjHandle,
     }/*end else if */
     else 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error Invalid Parameter accessOrder ",
-        aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error Invalid Parameter accessOrder ",
+        aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER));
     }
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK  \n ",aFunction));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK  \n ",aFunction);
     CL_FUNC_EXIT(); 
     return (CL_OK);
 }
@@ -474,7 +475,7 @@ ClRcT clHalObjectDOPriorityGet(ClHalObjectHandleT hHalObjHandle,
 
     if (NULL ==pHalObject )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -484,7 +485,7 @@ ClRcT clHalObjectDOPriorityGet(ClHalObjectHandleT hHalObjHandle,
     
     if (CL_OK !=ret)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error returned by halDevObjHandleGet ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error returned by halDevObjHandleGet ",aFunction);
         CL_FUNC_EXIT();
         return((CL_HAL_SET_RC(CL_ERR_NOT_EXIST)));
     }
@@ -492,7 +493,7 @@ ClRcT clHalObjectDOPriorityGet(ClHalObjectHandleT hHalObjHandle,
     ret=clCntFirstNodeGet(pHalObject->hTableRefDevObject,& nodeHandle);
     if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by clCntFirstNodeGet ",aFunction)); 
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by clCntFirstNodeGet ",aFunction); 
         CL_FUNC_EXIT();
         return ret;
     }
@@ -505,8 +506,8 @@ ClRcT clHalObjectDOPriorityGet(ClHalObjectHandleT hHalObjHandle,
         & userDataHandle);
         if (CL_OK !=ret)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by clCntNodeUserDataGet ",
-             aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by clCntNodeUserDataGet ",
+             aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
@@ -520,8 +521,8 @@ ClRcT clHalObjectDOPriorityGet(ClHalObjectHandleT hHalObjHandle,
                     
             if (CL_OK !=ret)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by clCntNodeUserKeyGet ",
-                aFunction));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by clCntNodeUserKeyGet ",
+                aFunction);
                 CL_FUNC_EXIT(); 
                 return ret ;
             }
@@ -534,8 +535,8 @@ ClRcT clHalObjectDOPriorityGet(ClHalObjectHandleT hHalObjHandle,
             &nodeHandle);
             if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by \
-                clCntNextNodeGet ",aFunction));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by \
+                clCntNextNodeGet ",aFunction);
                 CL_FUNC_EXIT();
                 return ret;
             }
@@ -544,14 +545,14 @@ ClRcT clHalObjectDOPriorityGet(ClHalObjectHandleT hHalObjHandle,
     
     if (found == CL_TRUE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK devPriority=%d  \n ",aFunction,
-        *pDevAccessPriority));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK devPriority=%d  \n ",aFunction,
+        *pDevAccessPriority);
         CL_FUNC_EXIT();
         return CL_OK;
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error Device not Installed  ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error Device not Installed  ",aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_DEV_NOT_INSTALLED));
     }
@@ -578,7 +579,7 @@ ClRcT clHalObjectDOPriorityModify(ClHalObjectHandleT hHalObjHandle,
 
     if (NULL ==pHalObject )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -586,7 +587,7 @@ ClRcT clHalObjectDOPriorityModify(ClHalObjectHandleT hHalObjHandle,
     ret = halDevObjHandleGet( deviceId, & devObjHandle);
     if (CL_OK !=ret)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error returned by halDevObjHandleGet ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error returned by halDevObjHandleGet ",aFunction);
         CL_FUNC_EXIT();
         return( (CL_HAL_SET_RC(CL_ERR_NOT_EXIST)));
     }
@@ -594,7 +595,7 @@ ClRcT clHalObjectDOPriorityModify(ClHalObjectHandleT hHalObjHandle,
     ret=clCntFirstNodeGet(pHalObject->hTableRefDevObject,& nodeHandle);
     if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s error returned by clCntFirstNodeGet ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s error returned by clCntFirstNodeGet ",aFunction);
         CL_FUNC_EXIT();
         return ret;
     }
@@ -608,8 +609,8 @@ ClRcT clHalObjectDOPriorityModify(ClHalObjectHandleT hHalObjHandle,
         & userDataHandle);
         if (CL_OK !=ret)
         {
-             CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by clCntNodeUserDataGet ",
-                    aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by clCntNodeUserDataGet ",
+                    aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
@@ -620,8 +621,8 @@ ClRcT clHalObjectDOPriorityModify(ClHalObjectHandleT hHalObjHandle,
             ret= clCntNodeDelete(pHalObject->hTableRefDevObject, nodeHandle);
             if (CL_OK !=ret)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by clCntNodeDelete ",
-                    aFunction));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by clCntNodeDelete ",
+                    aFunction);
                 CL_FUNC_EXIT(); 
                 return ret;
             }
@@ -630,8 +631,8 @@ ClRcT clHalObjectDOPriorityModify(ClHalObjectHandleT hHalObjHandle,
             (ClCntDataHandleT)userDataHandle, NULL);
             if (CL_OK !=ret)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by clCntNodeAdd ",
-                    aFunction));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by clCntNodeAdd ",
+                    aFunction);
                 CL_FUNC_EXIT();
                 return ret ;
             }
@@ -644,8 +645,8 @@ ClRcT clHalObjectDOPriorityModify(ClHalObjectHandleT hHalObjHandle,
             & nodeHandle);
             if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by \
-                clCntNextNodeGet ",aFunction));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by \
+                clCntNextNodeGet ",aFunction);
                 CL_FUNC_EXIT();
                 return ret;
             }
@@ -654,13 +655,13 @@ ClRcT clHalObjectDOPriorityModify(ClHalObjectHandleT hHalObjHandle,
     
     if (found == CL_TRUE)
     {
-       CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK  \n ",aFunction));
+       clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK  \n ",aFunction);
        CL_FUNC_EXIT();
        return CL_OK;
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error Device not Installed  ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error Device not Installed  ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_DEV_NOT_INSTALLED));
     }
@@ -679,14 +680,14 @@ ClRcT clHalObjectMaxRespTimeGet(ClHalObjectHandleT halObjHandle,
 
     if (NULL ==pHalObject || NULL == phalDevMaxRespTime)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
 
     *phalDevMaxRespTime = pHalObject->maxRspTime;
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK halDevMaxRespTime=%d  \n ",aFunction,
-             *phalDevMaxRespTime));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK halDevMaxRespTime=%d  \n ",aFunction,
+             *phalDevMaxRespTime);
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -711,7 +712,7 @@ ClRcT clHalObjectCapLenGet(ClHalObjectHandleT halObjHandle,
 
     if ((NULL ==pHalObject)||(NULL ==pHalObjCapLen))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -721,7 +722,7 @@ ClRcT clHalObjectCapLenGet(ClHalObjectHandleT halObjHandle,
     ret=clCntFirstNodeGet(pHalObject->hTableRefDevObject, & nodeHandle);
     if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s error returned by clCntFirstNodeGet ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s error returned by clCntFirstNodeGet ",aFunction);
         CL_FUNC_EXIT();
         return ret;
     }
@@ -731,8 +732,8 @@ ClRcT clHalObjectCapLenGet(ClHalObjectHandleT halObjHandle,
         & userDataHandle);
         if (CL_OK !=ret)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by clCntNodeUserDataGet ",
-                    aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by clCntNodeUserDataGet ",
+                    aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
@@ -741,8 +742,8 @@ ClRcT clHalObjectCapLenGet(ClHalObjectHandleT halObjHandle,
         ret =halDevObjCapLenGet (hDevObject, &devCapLen);
         if(CL_OK !=ret)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by halDevObjCapLenGet ",
-                    aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by halDevObjCapLenGet ",
+                    aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
@@ -753,15 +754,15 @@ ClRcT clHalObjectCapLenGet(ClHalObjectHandleT halObjHandle,
         &nodeHandle);
         if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by \
-            clCntNextNodeGet ",aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by \
+            clCntNextNodeGet ",aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
     }
     
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK HalObjCapLen=%d  \n ",aFunction,
-            *pHalObjCapLen));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK HalObjCapLen=%d  \n ",aFunction,
+            *pHalObjCapLen);
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -791,13 +792,13 @@ ClRcT clHalObjectCapabilityGet(ClHalObjectHandleT halObjHandle,
 
     if (NULL ==pHalObject||NULL ==phalObjCap )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
     if(0==halObjCapLen)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER));
     }
@@ -808,7 +809,7 @@ ClRcT clHalObjectCapabilityGet(ClHalObjectHandleT halObjHandle,
     ret=clCntFirstNodeGet(pHalObject->hTableRefDevObject, & nodeHandle);
     if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s error returned by clCntFirstNodeGet ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s error returned by clCntFirstNodeGet ",aFunction);
         CL_FUNC_EXIT();
         return ret;
     }
@@ -818,8 +819,8 @@ ClRcT clHalObjectCapabilityGet(ClHalObjectHandleT halObjHandle,
         & userDataHandle);
         if (CL_OK !=ret)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by clCntNodeUserDataGet ",
-                    aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by clCntNodeUserDataGet ",
+                    aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
@@ -830,8 +831,8 @@ ClRcT clHalObjectCapabilityGet(ClHalObjectHandleT halObjHandle,
         ret =halDevObjCapLenGet (hDevObject, &devCapLen);
         if (CL_OK !=ret)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by halDevObjCapLenGet ",
-                    aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by halDevObjCapLenGet ",
+                    aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
@@ -840,8 +841,8 @@ ClRcT clHalObjectCapabilityGet(ClHalObjectHandleT halObjHandle,
         ret=halDevObjCapGet(hDevObject, devCapLen, pTemp);
         if(CL_OK !=ret)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by halDevObjCapGet ",
-                    aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by halDevObjCapGet ",
+                    aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
@@ -850,7 +851,7 @@ ClRcT clHalObjectCapabilityGet(ClHalObjectHandleT halObjHandle,
         /* To ensure that proper halObjCap is passed to the API */
         if(halObjCapLenLeft < 0)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n %s Error Invalid Parameter ",aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error Invalid Parameter ",aFunction);
             CL_FUNC_EXIT(); 
             return(CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER));
         }
@@ -862,14 +863,14 @@ ClRcT clHalObjectCapabilityGet(ClHalObjectHandleT halObjHandle,
         &nodeHandle);
         if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error returned by clCntNextNodeGet ",
-                    aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error returned by clCntNextNodeGet ",
+                    aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK  \n ",aFunction));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK  \n ",aFunction);
     CL_FUNC_EXIT(); 
     return (CL_OK);
 }
@@ -894,7 +895,7 @@ ClRcT halObjDevObjectUnInstall(ClHalObjectHandleT halObjHandle,
 
     if (NULL ==pHalObject )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -904,7 +905,7 @@ ClRcT halObjDevObjectUnInstall(ClHalObjectHandleT halObjHandle,
     
     if (CL_OK !=ret)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s error returned by halDevObjHandleGet ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s error returned by halDevObjHandleGet ",aFunction);
         CL_FUNC_EXIT();
         return( (CL_HAL_SET_RC(CL_ERR_NOT_EXIST)));
     }
@@ -912,7 +913,7 @@ ClRcT halObjDevObjectUnInstall(ClHalObjectHandleT halObjHandle,
     ret=clCntFirstNodeGet(pHalObject->hTableRefDevObject,& nodeHandle);
     if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
     {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s error returned by clCntFirstNodeGet ",aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s error returned by clCntFirstNodeGet ",aFunction);
             CL_FUNC_EXIT();
             return ret;
     }
@@ -925,8 +926,8 @@ ClRcT halObjDevObjectUnInstall(ClHalObjectHandleT halObjHandle,
         & userDataHandle);
         if (CL_OK !=ret)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s error returned by clCntNodeUserDataGet ",
-                aFunction));
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s error returned by clCntNodeUserDataGet ",
+                aFunction);
             CL_FUNC_EXIT();
             return ret;
         }
@@ -938,8 +939,8 @@ ClRcT halObjDevObjectUnInstall(ClHalObjectHandleT halObjHandle,
             ret =halDevObjRefCountDecr(hDevObject);
             if (CL_OK !=ret)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s error returned by halDevObjRefCountDecr ",
-                aFunction));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s error returned by halDevObjRefCountDecr ",
+                aFunction);
                 CL_FUNC_EXIT();
                 return ret ;
             }
@@ -949,8 +950,8 @@ ClRcT halObjDevObjectUnInstall(ClHalObjectHandleT halObjHandle,
             ret= clCntNodeDelete(pHalObject->hTableRefDevObject, nodeHandle);
             if (CL_OK !=ret)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s error returned by clCntNodeDelete ",
-                aFunction));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s error returned by clCntNodeDelete ",
+                aFunction);
                 CL_FUNC_EXIT();
                 return ret ;
             }
@@ -964,8 +965,8 @@ ClRcT halObjDevObjectUnInstall(ClHalObjectHandleT halObjHandle,
             &nodeHandle);
             if((CL_OK !=ret)&&(CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(ret)))
             {
-                 CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s error returned by clCntNextNodeGet ",
-                aFunction));
+                 clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s error returned by clCntNextNodeGet ",
+                aFunction);
                 CL_FUNC_EXIT();
                 return ret;
             }
@@ -974,13 +975,13 @@ ClRcT halObjDevObjectUnInstall(ClHalObjectHandleT halObjHandle,
     
     if (found == CL_TRUE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK   \n ",aFunction ));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK   \n ",aFunction );
         CL_FUNC_EXIT();
         return CL_OK;;
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,(" \n %s Error Device not Installed  ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," \n %s Error Device not Installed  ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_DEV_NOT_INSTALLED));
     }
@@ -999,14 +1000,14 @@ ClRcT clHalObjectNumDOGet(ClHalObjectHandleT hHalObjHandle,
 
     if(NULL == pHalObject|| NULL ==pNumDevObject)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
     
     *pNumDevObject= pHalObject->numDevObj;
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK NumDevObject=%d \n",aFunction,\
-    *pNumDevObject));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK NumDevObject=%d \n",aFunction,\
+    *pNumDevObject);
     CL_FUNC_EXIT(); 
     return CL_OK;;
 }
@@ -1037,7 +1038,7 @@ ClRcT clHalObjectCreate(ClUint32T omHandle,
     CL_ASSERT(halConfig.pHalObjConf);
     if(NULL==halConfig.pHalObjConf)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("halConfig.pHalObjConf is NULL\n"));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"halConfig.pHalObjConf is NULL\n");
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -1046,13 +1047,13 @@ ClRcT clHalObjectCreate(ClUint32T omHandle,
     ret=clCorMoIdAlloc(&hMOIdFromTable);
     if(CL_OK != ret)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("clCorMoIdAlloc Failed \n"));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clCorMoIdAlloc Failed \n");
         CL_FUNC_EXIT();
         return ret; 
     }
 #endif
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("halConfig.halNumHalObject=%d\n",
-    halConfig.halNumHalObject));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"halConfig.halNumHalObject=%d\n",
+    halConfig.halNumHalObject);
 
     for(nIndex=0;nIndex<halConfig.halNumHalObject;nIndex++)
     {
@@ -1064,7 +1065,7 @@ ClRcT clHalObjectCreate(ClUint32T omHandle,
             ret=corXlateMOPath(halConfig.pHalObjConf[nIndex].strMOId,hMOIdFromTable);
             if(CL_OK != ret)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clCorMoIdAlloc Failed \n"));
+                clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clCorMoIdAlloc Failed \n");
                 CL_FUNC_EXIT();
                 return ret;
             }
@@ -1075,18 +1076,18 @@ ClRcT clHalObjectCreate(ClUint32T omHandle,
             ret =clCorMoIdServiceSet(hMOId,CL_COR_INVALID_SVC_ID); 
             if(CL_OK != ret)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clCorMoIdServiceSet Failed \n"));
+                clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clCorMoIdServiceSet Failed \n");
                 CL_FUNC_EXIT();
                 return ret;
             }
             if(0==moIdWildCardCompare(hMOIdFromTable,hMOId))
             {
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE,("MOID Matched"));
+                clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"MOID Matched");
                 bFound = CL_TRUE ;
                 break;
             }
 #else 
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,("OMID Matched"));
+            clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"OMID Matched");
             bFound = CL_TRUE ;
             break;
 #endif         
@@ -1101,20 +1102,20 @@ ClRcT clHalObjectCreate(ClUint32T omHandle,
                                phHalObj);
         if (ret != CL_OK)
          { 
-             CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("\n 0x%x Error returned by  \
-             halObjCreateDevObjectInstall",ret));
+             clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n 0x%x Error returned by  \
+             halObjCreateDevObjectInstall",ret);
              CL_FUNC_EXIT ();
              return ret;
          }
-         CL_DEBUG_PRINT (CL_DEBUG_TRACE,(" CL_OK\n"));
+         clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," CL_OK\n");
          CL_FUNC_EXIT();
          return CL_OK ;
     }
     else 
     {
         /* Entry not found in the HAL Config Table , return ERROR */
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,("Entry for the specified ClCorMOId and OM Handle not \
-                              found in the Hal Config Table\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Entry for the specified ClCorMOId and OM Handle not \
+                              found in the Hal Config Table\n");
         CL_FUNC_EXIT ();
         return(CL_HAL_SET_RC(CL_ERR_NOT_EXIST));
     }
@@ -1135,7 +1136,7 @@ static ClRcT halObjDevObjPrint(ClCntKeyHandleT userKey,
    rc=halDevObjIdGet(hDevObjHandle,&deviceId);
    if (CL_OK != rc)
    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR ,("halDevObjIdGet Failed \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"halDevObjIdGet Failed \n");
         CL_FUNC_EXIT();
         return rc; 
     }
@@ -1166,7 +1167,7 @@ static ClRcT halObjPrint(ClHalObjectHandleT halObjHandle)
 
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR ,("clCntWalk Failed \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clCntWalk Failed \n");
         CL_FUNC_EXIT();
         return rc; 
     }
@@ -1197,7 +1198,7 @@ ClRcT showHalObjects(void * pData)
     rc=clCorMoIdInitialize(&moId);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR ,("clCorMoIdInitialize Failed \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clCorMoIdInitialize Failed \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -1205,7 +1206,7 @@ ClRcT showHalObjects(void * pData)
     rc=clCorObjectHandleToMoIdGet(hCORObj, &moId, &srvcId);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR ,("clCorObjectHandleToMoIdGet Failed \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clCorObjectHandleToMoIdGet Failed \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -1240,7 +1241,7 @@ ClRcT showHalObjects(void * pData)
     rc=clOmMoIdToOmHandleGet(&moId,&omHandle);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR ,("clOmMoIdToOmHandleGet Failed \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clOmMoIdToOmHandleGet Failed \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -1249,13 +1250,13 @@ ClRcT showHalObjects(void * pData)
     {
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR ,("omCOROMObjHandleGet Failed \n"));
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"omCOROMObjHandleGet Failed \n");
             CL_FUNC_EXIT();
             return rc;
         }
         if(NULL == pObjRef)
         {
-           CL_DEBUG_PRINT(CL_DEBUG_ERROR,("omCOROMObjHandleGet returned NULL Pointer\n"));
+           clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"omCOROMObjHandleGet returned NULL Pointer\n");
            CL_FUNC_EXIT();
            return rc;
         }
@@ -1308,7 +1309,7 @@ ClRcT cliShowHalObjects(int argc, char **argv)
     rc=clCorMoIdAlloc(&hMOId);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR ,(" clCorMoIdAlloc Failed \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED," clCorMoIdAlloc Failed \n");
         CL_FUNC_EXIT();
         return rc; 
     }
@@ -1316,7 +1317,7 @@ ClRcT cliShowHalObjects(int argc, char **argv)
     rc=clCorMoIdInitialize(hMOId);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR ,("clCorMoIdInitialize Failed \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clCorMoIdInitialize Failed \n");
         CL_FUNC_EXIT();
         clCorMoIdFree(hMOId);
         return rc; 
@@ -1325,7 +1326,7 @@ ClRcT cliShowHalObjects(int argc, char **argv)
    rc=clCorObjectWalk(hMOId, NULL, showHalObjects ,CL_COR_MSO_WALK);
    if (CL_OK != rc)
    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR ,("clCorMoIdServiceSet Failed \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clCorMoIdServiceSet Failed \n");
         CL_FUNC_EXIT();
         clCorMoIdFree(hMOId);
         return rc; 
@@ -1350,7 +1351,7 @@ ClRcT clHalObjectDelete (ClHalObjectHandleT halObjHandle)
     phalObject =(HalObjectT *)halObjHandle;
     if (NULL == phalObject)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s Error NULL Pointer  \n ",aFunction));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL Pointer  \n ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER)) ;
     }
@@ -1358,13 +1359,13 @@ ClRcT clHalObjectDelete (ClHalObjectHandleT halObjHandle)
     rc=clCntDelete(phalObject->hTableRefDevObject);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n %s clCntAllNodesDelete returned Error =%x\n ",
-        aFunction,rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s clCntAllNodesDelete returned Error =%x\n ",
+        aFunction,rc);
         CL_FUNC_EXIT();
         return rc;
     }
     clHeapFree(phalObject);
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("%s CL_OK ",aFunction));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"%s CL_OK ",aFunction);
     CL_FUNC_EXIT();
     return rc;
 }
@@ -1381,15 +1382,15 @@ static void halObjContainerDestroy(ClCntKeyHandleT userKey,
     if(hDevObject >=halConfig.halNumDevObject)
     {
         CL_FUNC_EXIT();
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error  Invalid Handle =%d ",hDevObject));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Error  Invalid Handle =%d ",hDevObject);
     }
     rc =halDevObjRefCountDecr(hDevObject);
     if (CL_OK !=rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error returned by halDevObjRefCountDecr =%u",rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Error returned by halDevObjRefCountDecr =%u",rc);
         CL_FUNC_EXIT();
     }
     clHeapFree((void *)userData);
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("halObjContainerDestroy Success for %p", (void *)userKey));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"halObjContainerDestroy Success for %p", (void *)userKey);
     CL_FUNC_EXIT();
 }

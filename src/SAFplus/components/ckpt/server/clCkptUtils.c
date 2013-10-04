@@ -36,6 +36,7 @@
 #include <clCntApi.h>
 #include <clCksmApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clVersionApi.h>
 #include <clIocApi.h>
 #include <clIocIpi.h>
@@ -189,7 +190,7 @@ void  ckptMasterHdlDeleteCallback( void *pData)
          */
         if(pMasterDBEntry->replicaList != 0)
         {
-          CL_DEBUG_PRINT(CL_DEBUG_INFO,("Deleting checkpoint [%s]'s replica list in the master handle delete callback",pMasterDBEntry->name.value));
+          clLogInfo(CL_CKPT_AREA_MASTER,CL_CKPT_CTX_CKPT_DEL,"Deleting checkpoint [%s]'s replica list in the master handle delete callback",pMasterDBEntry->name.value);
 
           clCntDelete(pMasterDBEntry->replicaList);
           pMasterDBEntry->replicaList = 0;
@@ -534,13 +535,13 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
     pSvrCb->evtChName.length = strlen(CL_CKPT_EVT_CH);
 
     rc = clOsalMutexInit(&pSvrCb->ckptClusterSem);
-    CKPT_ERR_CHECK( CL_CKPT_SVR, CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK( CL_CKPT_SVR, CL_LOG_SEV_ERROR,
                     ("Init failed rc [%#x]", rc), rc);
     /*
      * Create the mutex to guard the active server DB.
      */
     rc = clOsalMutexCreate( &(pSvrCb->ckptActiveSem));
-    CKPT_ERR_CHECK( CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK( CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Init failed rc[0x %x]\n", rc), rc);
             
     /*
@@ -554,13 +555,13 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
                          ckptSvrHdlDeleteCallback,
                          CL_CNT_NON_UNIQUE_KEY,
                          &pSvrCb->ckptHdlList);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
        ("Linked list create for checkpoint handles failed rc[0x %x]\n", 
        rc), rc);
        
     rc = clHandleDatabaseCreate(NULL,&pSvrCb->ckptHdl);
     
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
        ("Database create for checkpoint handles failed rc[0x %x]\n",
        rc), rc);
             
@@ -591,7 +592,7 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
                              ckptPeerDeleteCallback,
                              CL_CNT_UNIQUE_KEY,
                              &pSvrCb->peerList);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Hash table create for checkpoint peers failed rc[0x %x]\n", rc),
              rc);
 
@@ -606,7 +607,7 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
                             ckpXlationtHashDeleteCallback,
                             CL_CNT_UNIQUE_KEY, 
                             &pSvrCb->masterInfo.nameXlationDBHdl);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Name to global handle DB creation failed rc[0x %x]\n",rc),
              rc);
 
@@ -620,7 +621,7 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
                              ckptPeerListDeleteCallback,
                              CL_CNT_UNIQUE_KEY,
                              &pSvrCb->masterInfo.peerList);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Hash table create for checkpoint peers failed rc[0x %x]\n", rc),
              rc);
              
@@ -628,9 +629,9 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
      * If Master, allocate DB for ckpt meta data.
      */
     rc = clHandleDatabaseCreate( ckptMasterHdlDeleteCallback, &pSvrCb->masterInfo.masterDBHdl);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Master DB creation failed rc[0x %x]\n",rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("Master DB creation failed rc[0x %x]\n",rc), rc);
     rc = clHandleDatabaseCreate( NULL, &pSvrCb->masterInfo.clientDBHdl);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Master DB creation failed rc[0x %x]\n",rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("Master DB creation failed rc[0x %x]\n",rc), rc);
              
     clOsalMutexCreate(&pSvrCb->masterInfo.ckptMasterDBSem); 
     
@@ -650,7 +651,7 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
     idlObj.options.retries  = 0;
     
     rc = clIdlHandleInitialize(&idlObj,&pSvrCb->ckptIdlHdl);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Idl handle initialize is failed rc[0x %x]\n",rc),
              rc);
     *ppSvrCb = pSvrCb;
@@ -1008,7 +1009,7 @@ ClRcT  _ckptCplaneInfoAlloc(CkptCPlaneInfoT  **pCplaneInfo)
      */
     rc = clCntLlistCreate (ckptPrefNodeCompare, NULL, NULL,
                        CL_CNT_UNIQUE_KEY, &(pTmpCp->presenceList));
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                      ("Presence list creation failed rc[0x %x]\n", rc), rc);
     rc = clCntLlistCreate(clCkptAppKeyInfoCompare, clCkptAppKeyDelete,
                           clCkptAppKeyDelete, CL_CNT_UNIQUE_KEY, &(pTmpCp->appInfoList));
@@ -1016,7 +1017,7 @@ ClRcT  _ckptCplaneInfoAlloc(CkptCPlaneInfoT  **pCplaneInfo)
     {
         clCntDelete(pTmpCp->presenceList);
     }
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                      ("App info list creation failed rc[0x %x]\n", rc), rc);
                      
     *pCplaneInfo = pTmpCp;
@@ -1082,7 +1083,7 @@ ClRcT  _ckptSectionFind(CkptT             *pCkpt,
      */
     if ((pCkpt->pDpInfo == NULL))
         rc = CL_CKPT_ERR_INVALID_STATE;
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Dataplane information not present for %s rc[0x %x]\n",
              pCkpt->ckptName.value, rc), rc);
 
@@ -1142,7 +1143,7 @@ ClRcT _ckptPresenceListUpdate(CkptT                *pCkpt,
          */
         rc = clCntNodeAdd(pCkpt->pCpInfo->presenceList, (ClPtrT)(ClWordT)peerAddr, 0, NULL);
         if (CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)   rc = CL_OK;
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Presence list add failed rc[0x %x]\n",rc), rc);
     }
 exitOnError:
@@ -1159,7 +1160,7 @@ ClRcT VDECL_VER(clCkptNackReceive, 4, 0, 0)(ClVersionT  version,
   ClIocAddressT srcAddr;
 
   rc = clRmdSourceAddressGet(&srcAddr.iocPhyAddress);
-  CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+  CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
           ("Fail: Nack Receive failed [0x %x]\n", rc), rc);
   switch(nackId)
   {
@@ -1171,11 +1172,11 @@ ClRcT VDECL_VER(clCkptNackReceive, 4, 0, 0)(ClVersionT  version,
                     srcAddr.iocPhyAddress.portId, version.releaseCode,
                     version.majorVersion, version.minorVersion);
 
-          CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Ckpt nack recieved from "
+          clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Ckpt nack recieved from "
                         "NODE[0x%x:0x%x], rc=[0x%x]\n", 
                         srcAddr.iocPhyAddress.nodeAddress,
                         srcAddr.iocPhyAddress.portId,
-                        CL_CKPT_ERR_VERSION_MISMATCH));
+                        CL_CKPT_ERR_VERSION_MISMATCH);
             break;
 
       }
@@ -1187,11 +1188,11 @@ ClRcT VDECL_VER(clCkptNackReceive, 4, 0, 0)(ClVersionT  version,
                     srcAddr.iocPhyAddress.portId, version.releaseCode,
                     version.majorVersion, version.minorVersion);
 
-          CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Ckpt nack recieved from "
+          clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Ckpt nack recieved from "
                         "NODE[0x%x:0x%x], rc=[0x%x]\n", 
                         srcAddr.iocPhyAddress.nodeAddress,
                         srcAddr.iocPhyAddress.portId,
-                        CL_CKPT_ERR_VERSION_MISMATCH));
+                        CL_CKPT_ERR_VERSION_MISMATCH);
             break;
 
       }
@@ -1203,11 +1204,11 @@ ClRcT VDECL_VER(clCkptNackReceive, 4, 0, 0)(ClVersionT  version,
                     srcAddr.iocPhyAddress.portId, version.releaseCode,
                     version.majorVersion, version.minorVersion);
 
-          CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Ckpt nack recieved from "
+          clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Ckpt nack recieved from "
                         "NODE[0x%x:0x%x], rc=[0x%x]\n", 
                         srcAddr.iocPhyAddress.nodeAddress,
                         srcAddr.iocPhyAddress.portId,
-                        CL_CKPT_ERR_VERSION_MISMATCH));
+                        CL_CKPT_ERR_VERSION_MISMATCH);
             break;
 
       }
@@ -1219,11 +1220,11 @@ ClRcT VDECL_VER(clCkptNackReceive, 4, 0, 0)(ClVersionT  version,
                     srcAddr.iocPhyAddress.portId, version.releaseCode,
                     version.majorVersion, version.minorVersion);
 
-          CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Ckpt nack recieved from "
+          clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Ckpt nack recieved from "
                         "NODE[0x%x:0x%x], rc=[0x%x]\n", 
                         srcAddr.iocPhyAddress.nodeAddress,
                         srcAddr.iocPhyAddress.portId,
-                        CL_CKPT_ERR_VERSION_MISMATCH));
+                        CL_CKPT_ERR_VERSION_MISMATCH);
             break;
 
       }
@@ -1306,7 +1307,7 @@ ClRcT _ckptCheckpointLocalWriteVector(ClCkptHdlT             ckptHdl,
              * size.
              */
             rc = CL_CKPT_ERR_INVALID_PARAMETER;
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                            ("Trying to write vector beyond the section's"
                             " maximum size %.*s rc[0x %x]\n",
                             pCkpt->ckptName.length,
@@ -1318,7 +1319,7 @@ ClRcT _ckptCheckpointLocalWriteVector(ClCkptHdlT             ckptHdl,
              * Return ERROR as offset exceeds the max section size. 
              */
             rc = CL_CKPT_ERR_INVALID_PARAMETER;
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                            ("Invalid vector offset for ckpt %.*s rc[0x %x]\n",
                             pCkpt->ckptName.length, 
                             pCkpt->ckptName.value,rc), rc);
@@ -1526,7 +1527,7 @@ ClRcT _ckptCheckpointLocalWrite(ClCkptHdlT             ckptHdl,
              * size.
              */
             rc = CL_CKPT_ERR_INVALID_PARAMETER;
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Trying to write beyond the section's"
                      " maximum size %.*s rc[0x %x]\n",
                      pCkpt->ckptName.length,
@@ -1538,7 +1539,7 @@ ClRcT _ckptCheckpointLocalWrite(ClCkptHdlT             ckptHdl,
              * Return ERROR as offset exceeds the max section size. 
              */
             rc = CL_CKPT_ERR_INVALID_PARAMETER;
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Invalid Offset %.*s rc[0x %x]\n",
                      pCkpt->ckptName.length, 
                      pCkpt->ckptName.value,rc), rc);
@@ -1792,7 +1793,7 @@ ClRcT _ckptSectionExpiryTimeoutGet(ClTimeT expiryTime,
      * Compute the absolute time.
      */
     rc = clOsalTimeOfDayGet(&currentTime);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Can not get the current time of day rc[0x %x]\n",
              rc), rc);
     timeOut->tsSec      = expiryTime / CL_CKPT_NANOS_IN_SEC;
@@ -1810,7 +1811,7 @@ ClRcT _ckptSectionExpiryTimeoutGet(ClTimeT expiryTime,
 			 * Return ERROR as section has already expired.
 			 */
 			rc = CL_CKPT_ERR_INVALID_PARAMETER;
-			CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+			CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
 					("The expiration time has already "
 					 "passed rc[0x %x]\n", rc), rc);					 
 		}
@@ -1911,7 +1912,7 @@ ClRcT _ckptSectionTimerCallback(void *pArg)
      * Get the associated EO object.
      */
     rc = clEoMyEoObjectSet(gCkptSvr->eoHdl);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Eo object set failed rc[0x %x]\n",rc), rc);
 
     /*
@@ -1920,7 +1921,7 @@ ClRcT _ckptSectionTimerCallback(void *pArg)
      */
     rc = clHandleCheckout(gCkptSvr->ckptHdl, pSecInfo->ckptHdl, 
             (void **)&pCkpt);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Handle is invalid  rc[0x %x]\n",rc), rc);
 
     CKPT_LOCK(pCkpt->ckptMutex);
@@ -1984,7 +1985,7 @@ ClRcT VDECL_VER(clCkptServerFinalize, 4, 0, 0)(ClVersionT        *pVersion,
      */
     rc = ckptIdlHandleUpdate(CL_IOC_BROADCAST_ADDRESS,
                              gCkptSvr->ckptIdlHdl,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed to update the idl handle rc[0x %x]\n",rc), rc);
     rc = VDECL_VER(clCkptRemSvrByeClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
                                     *pVersion,

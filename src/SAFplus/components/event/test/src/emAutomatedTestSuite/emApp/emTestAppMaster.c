@@ -147,8 +147,8 @@ ClRcT clEvtTestAppInit(ClUint32T cData, ClBufferHandleT inMsg,
     rc = clEventInitialize(&gEvtTestInitHandle, &gEvtTestCallbacks, &version);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Event Initialize Failed, rc[0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "Event Initialize Failed, rc[0x%X]", rc);
     }
     rc = clBufferNBytesWrite(outMsg, (ClUint8T *) &rc, sizeof(ClRcT));
 
@@ -159,9 +159,9 @@ ClRcT clEvtTestAppInit(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gEvtTestInitMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n\r\nFailed to add the node into Init List, rc[0x%X]\n\r\n",
-                 rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "\n\r\nFailed to add the node into Init List, rc[0x%X]\n\r\n",
+                   rc);
         return rc;
     }
 
@@ -184,8 +184,8 @@ ClRcT clEvtTestAppFin(ClUint32T cData, ClBufferHandleT inMsg,
             (ClCntDataHandleT *) &initHandle);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc);
         return rc;
     } 
     gEvtTestInitHandle = (ClEventInitHandleT)(ClWordT)initHandle;
@@ -193,7 +193,7 @@ ClRcT clEvtTestAppFin(ClUint32T cData, ClBufferHandleT inMsg,
     rc = clEventFinalize(gEvtTestInitHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Event Finalize Failed, rc[0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Finalize Failed, rc[0x%X]", rc);
     }
     rc = clBufferNBytesWrite(outMsg, (ClUint8T *) &rc, sizeof(ClRcT));
     rc = clCntAllNodesForKeyDelete(gEvtTestInitInfo,
@@ -224,8 +224,8 @@ ClRcT clEvtTestAppOpen(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gEvtTestInitMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc);
         return rc;
     }
     gEvtTestInitHandle = (ClEventInitHandleT)(ClWordT)initHandle;
@@ -235,8 +235,8 @@ ClRcT clEvtTestAppOpen(ClUint32T cData, ClBufferHandleT inMsg,
             &evtChannelHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Event Channel Open Failed, rc[0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "Event Channel Open Failed, rc[0x%X]", rc);
     }
     pChanKey = clHeapAllocate(sizeof(*pChanKey));
     pChanKey->channelscope = CL_EVT_CHANNEL_SCOPE_GET_FROM_FLAG(pOpenReq->openFlag);
@@ -250,8 +250,8 @@ ClRcT clEvtTestAppOpen(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gChanHandleDBMutex);
     if(rc!=CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Adding to the Channel handle list failed, rc[0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "Adding to the Channel handle list failed, rc[0x%X]", rc);
     }
     rc = clBufferNBytesWrite(outMsg, (ClUint8T *) &rc, sizeof(ClRcT));
 
@@ -275,8 +275,8 @@ ClRcT clEvtTestAppClose(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gEvtTestInitMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc);
         return rc;
     }
 
@@ -291,7 +291,7 @@ ClRcT clEvtTestAppClose(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gChanHandleDBMutex);                      
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCntDataForKeyGet Failed, rc[0x%X]",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"clCntDataForKeyGet Failed, rc[0x%X]",rc);
         return rc;
     }
     channelHandle = (ClEventChannelHandleT)(ClWordT)channelHdl;
@@ -299,8 +299,8 @@ ClRcT clEvtTestAppClose(ClUint32T cData, ClBufferHandleT inMsg,
     rc = clEventChannelClose(channelHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Event Channel Close Failed, rc[0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "Event Channel Close Failed, rc[0x%X]", rc);
     }
     clOsalMutexLock(gChanHandleDBMutex);
     rc = clCntAllNodesForKeyDelete(gChanHandleInitInfo,
@@ -308,7 +308,7 @@ ClRcT clEvtTestAppClose(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gChanHandleDBMutex);                                   
     if(rc!=CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Node Deletion for Key Failed, rc[0x%X]",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Node Deletion for Key Failed, rc[0x%X]",rc);
         return rc;
     }
     rc = clBufferNBytesWrite(outMsg, (ClUint8T *) &rc, sizeof(ClRcT));
@@ -359,8 +359,8 @@ ClRcT clEvtTestAppSub(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gEvtTestInitMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nclCntDataForKeyGet Failed, rc[0x%X]\n\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "\nclCntDataForKeyGet Failed, rc[0x%X]\n\r\n", rc);
         return rc;
     }
 
@@ -374,14 +374,14 @@ ClRcT clEvtTestAppSub(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gChanHandleDBMutex);                      
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCntNodeFind Failed, rc[0x%X]",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"clCntNodeFind Failed, rc[0x%X]",rc);
         return rc;
     }
 
     rc = clEvtTestAppFilterGet(pSubReq->filterNo, &pFilters);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Filter Get Failed, rc[0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Filter Get Failed, rc[0x%X]", rc);
         return rc;
     }
 
@@ -389,8 +389,8 @@ ClRcT clEvtTestAppSub(ClUint32T cData, ClBufferHandleT inMsg,
             pSubReq->pCookie);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Event Subscribe Failed, rc[0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "Event Subscribe Failed, rc[0x%X]", rc);
     }
 
     rc = clBufferNBytesWrite(outMsg, (ClUint8T *) &rc, sizeof(ClRcT));
@@ -416,8 +416,8 @@ ClRcT clEvtTestAppUnsub(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gEvtTestInitMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc);
         return rc;
     }
 
@@ -431,15 +431,15 @@ ClRcT clEvtTestAppUnsub(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gChanHandleDBMutex);                      
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCntDataForKeyGet Failed, rc[0x%X]",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"clCntDataForKeyGet Failed, rc[0x%X]",rc);
         return rc;
     }
 
     rc = clEventUnsubscribe(channelHandle, pUnsubReq->subId);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Event Unsubscribe Failed, rc[0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "Event Unsubscribe Failed, rc[0x%X]", rc);
     }
     rc = clBufferNBytesWrite(outMsg, (ClUint8T *) &rc, sizeof(ClRcT));
 
@@ -465,8 +465,8 @@ ClRcT clEvtTestAppPub(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gEvtTestInitMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc);
         return rc;
     }
 
@@ -480,7 +480,7 @@ ClRcT clEvtTestAppPub(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gChanHandleDBMutex);                      
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCntDataForKeyGet Failed, rc[0x%X]",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"clCntDataForKeyGet Failed, rc[0x%X]",rc);
         return rc;
     }
 
@@ -488,7 +488,7 @@ ClRcT clEvtTestAppPub(ClUint32T cData, ClBufferHandleT inMsg,
             &eventId);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Event Publish Failed, rc[0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Publish Failed, rc[0x%X]", rc);
     }
     rc = clBufferNBytesWrite(outMsg, (ClUint8T *) &rc, sizeof(ClRcT));
     return CL_OK;
@@ -513,8 +513,8 @@ ClRcT clEvtTestAppAttSet(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gEvtTestInitMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc);
         return rc;
     }
 
@@ -528,7 +528,7 @@ ClRcT clEvtTestAppAttSet(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gChanHandleDBMutex);                      
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCntDataForKeyGet Failed, rc[0x%X]",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"clCntDataForKeyGet Failed, rc[0x%X]",rc);
         return rc;
     }
 
@@ -542,8 +542,8 @@ ClRcT clEvtTestAppAttSet(ClUint32T cData, ClBufferHandleT inMsg,
             pAttr->retentionTime, &pAttr->publisherName);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Event AttributesSet Failed, rc[0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "Event AttributesSet Failed, rc[0x%X]", rc);
     }
     rc = clBufferNBytesWrite(outMsg, (ClUint8T *) &rc, sizeof(ClRcT));
 
@@ -568,8 +568,8 @@ ClRcT clEvtTestAppEvtAlloc(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gEvtTestInitMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "\nNode Find in Init List Failed, rc[0x%X]\n\r\n", rc);
         return rc;
     }
 
@@ -583,14 +583,14 @@ ClRcT clEvtTestAppEvtAlloc(ClUint32T cData, ClBufferHandleT inMsg,
     clOsalMutexUnlock(gChanHandleDBMutex);                      
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCntDataForKeyGet Failed, rc[0x%X]",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"clCntDataForKeyGet Failed, rc[0x%X]",rc);
         return rc;
     }
 
     rc = clEventAllocate(channelHandle, &gEvtTestEventHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Event Allocate Failed, rc[0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Allocate Failed, rc[0x%X]", rc);
     }
     rc = clBufferNBytesWrite(outMsg, (ClUint8T *) &rc, sizeof(ClRcT));
 

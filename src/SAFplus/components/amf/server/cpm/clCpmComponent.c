@@ -137,9 +137,9 @@ static ClRcT cpmTimerCallback(void *arg)
                 clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
                            CL_CPM_LOG_2_LCM_COMP_OPER_ERR,
                            comp->compConfig->compName, "instantiated");
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("Component %s did not start within the specified limit\n",
-                                comp->compConfig->compName));
+                clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                           "Component %s did not start within the specified limit\n",
+                                comp->compConfig->compName);
                 rc = _cpmComponentCleanup(comp->compConfig->compName,
                                           NULL,
                                           gpClCpm->pCpmConfig->nodeName,
@@ -156,9 +156,9 @@ static ClRcT cpmTimerCallback(void *arg)
                 clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
                            CL_CPM_LOG_2_LCM_COMP_OPER_ERR,
                            comp->compConfig->compName, "terminated");
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("Component %s did not terminate within the specified limit\n",
-                                comp->compConfig->compName));
+                clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                           "Component %s did not terminate within the specified limit\n",
+                           comp->compConfig->compName);
                 rc = _cpmComponentCleanup(comp->compConfig->compName,
                                           NULL,
                                           gpClCpm->pCpmConfig->nodeName,
@@ -170,7 +170,7 @@ static ClRcT cpmTimerCallback(void *arg)
                 {
                     ;
                     /*
-                     * CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to respond to
+                     * CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to respond to
                      * caller %x\n", rc), rc);
                      */
                 }
@@ -246,16 +246,16 @@ ClRcT cpmTimerWait(ClCpmComponentT *comp, ClUint32T milliSeconds)
     if (timerHandle)
     {
         rc = clTimerStop(timerHandle);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_STOP_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_STOP_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         rc = clTimerStart(timerHandle);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_START_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_START_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
     else
     {
         rc = CL_CPM_RC(CL_ERR_NOT_INITIALIZED);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_INIT_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_INIT_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 
@@ -277,16 +277,16 @@ static ClRcT clCompTimerInstantiate(ClCpmComponentT *comp)
     if (comp->cpmInstantiateTimerHandle)
     {
         rc = clTimerStop(comp->cpmInstantiateTimerHandle);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_STOP_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_STOP_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         rc = clTimerStart(comp->cpmInstantiateTimerHandle);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_START_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_START_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
     else
     {
         rc = CL_CPM_RC(CL_ERR_NOT_INITIALIZED);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_INIT_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_INIT_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 
@@ -301,16 +301,16 @@ static ClRcT clCompTimerTerminate(ClCpmComponentT *comp)
     if (comp->cpmTerminateTimerHandle)
     {
         rc = clTimerStop(comp->cpmTerminateTimerHandle);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_STOP_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_STOP_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         rc = clTimerStart(comp->cpmTerminateTimerHandle);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_START_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_START_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
     else
     {
         rc = CL_CPM_RC(CL_ERR_NOT_INITIALIZED);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_INIT_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_INIT_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 
@@ -421,16 +421,16 @@ static ClRcT clCompTimerProxiedInstantiate(ClCpmComponentT *comp)
     if (comp->cpmProxiedInstTimerHandle)
     {
         rc = clTimerStop(comp->cpmProxiedInstTimerHandle);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_STOP_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_STOP_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         rc = clTimerStart(comp->cpmProxiedInstTimerHandle);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_START_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_START_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
     else
     {
         rc = CL_CPM_RC(CL_ERR_NOT_INITIALIZED);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_INIT_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_INIT_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 
@@ -445,16 +445,16 @@ static ClRcT clCompTimerProxiedCleanup(ClCpmComponentT *comp)
     if (comp->cpmProxiedCleanupTimerHandle)
     {
         rc = clTimerStop(comp->cpmProxiedCleanupTimerHandle);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_STOP_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_STOP_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         rc = clTimerStart(comp->cpmProxiedCleanupTimerHandle);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_START_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_START_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
     else
     {
         rc = CL_CPM_RC(CL_ERR_NOT_INITIALIZED);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_TIMER_INIT_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_TIMER_INIT_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 
@@ -645,7 +645,7 @@ ClRcT cpmCompConfigure(ClCpmCompConfigT *compCfg, ClCpmComponentT **component)
     }
 
     rc = clOsalMutexCreate(&(tmpComp->compMutex));
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     
     *component = tmpComp;
@@ -667,7 +667,7 @@ ClRcT cpmCompFindWithLock(SaUint8T *name, ClCntHandleT compTable, ClCpmComponent
 
     rc = clCksm16bitCompute((ClUint8T *) name, strlen((ClCharT *) name),
                             &compKey);
-    CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_CKSM_ERR, name, rc, rc,
+    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_CKSM_ERR, name, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clCntNodeFind(compTable, (ClCntKeyHandleT)(ClWordT)compKey, &hNode);
@@ -675,13 +675,13 @@ ClRcT cpmCompFindWithLock(SaUint8T *name, ClCntHandleT compTable, ClCpmComponent
         goto failure;
 
     rc = clCntKeySizeGet(compTable, (ClCntKeyHandleT)(ClWordT)compKey, &numNode);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_CNT_KEY_SIZE_GET_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_KEY_SIZE_GET_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     while (numNode > 0)
     {
         rc = clCntNodeUserDataGet(compTable, hNode,
                                   (ClCntDataHandleT *) &tempComp);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR,
                        rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
         if (!strcmp
@@ -1013,8 +1013,8 @@ void cpmResponse(ClRcT retCode,
             {
                 rc = CL_CPM_RC(CL_CPM_ERR_INVALID_ARGUMENTS);
                 cpmCompRespondToCaller(comp, requestType, CL_OK);
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("Invalid Response Received \n"));
+                clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                           "Invalid Response Received \n");
             }
         }
     }
@@ -1083,18 +1083,18 @@ void cpmResponse(ClRcT retCode,
 
                 if (comp->restartPending)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                   ("Component %s restart pending, termination failed\n",
-                                    comp->compConfig->compName));
+                    clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                               "Component %s restart pending, termination failed\n",
+                               comp->compConfig->compName);
                     rc = _cpmComponentCleanup(comp->compConfig->compName,
                                               NULL,
                                               gpClCpm->pCpmConfig->nodeName,
                                               &(comp->requestSrcAddress),
                                               comp->requestRmdNumber,
                                               CL_CPM_TERMINATE);
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                   ("Unable to cleanup component while restarting %x\n",
-                                    rc));
+                    clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                               "Unable to cleanup component while restarting %x\n",
+                               rc);
 
                     CPM_TIMED_WAIT(CL_CPM_RESTART_SLEEP);
 
@@ -1165,7 +1165,7 @@ ClRcT cpmRequestFailedResponse(ClCharT *name,
                                        NULL,
                                        NULL,
                                        MARSHALL_FN(ClCpmLcmResponseT, 4, 0, 0));
-        CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_LCM_RESPONSE_FAILED,
+        CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_LCM_RESPONSE_FAILED,
                        srcAddress->nodeAddress, srcAddress->portId, rc, rc,
                        CL_LOG_ERROR, CL_LOG_HANDLE_APP);
     }
@@ -1243,7 +1243,7 @@ static ClRcT cpmRouteRequestWithCookie(ClCharT *compName,
                                        NULL,
                                        NULL,
                                        MARSHALL_FN(ClCpmLifeCycleOprT, 4, 0, 0));
-        CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_LCM_OPER_FWD_ERR,
+        CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_LCM_OPER_FWD_ERR,
                        destNode.nodeAddress,
                        destNode.portId, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
@@ -1258,7 +1258,7 @@ static ClRcT cpmRouteRequestWithCookie(ClCharT *compName,
          * has not registered yet.
          */
         rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
-        CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_LCM_NODE_UNAVAILABLE_ERR,
+        CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_LCM_NODE_UNAVAILABLE_ERR,
                        nodeName, rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP)
     }
     return rc;
@@ -1292,18 +1292,18 @@ ClRcT VDECL(cpmClientInitialize)(ClEoDataT data,
     ClUint32T rc = CL_OK;
 
     rc = VDECL_VER(clXdrUnmarshallClCpmCompInitSendT, 4, 0, 0)(inMsgHandle, (void *) &info);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = cpmCompFind((SaUint8T *)info.compName, gpClCpm->compTable, &comp);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", info.compName, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                   ("Client Version is RC = %c\t MJC = %c\t MNC = %c\n",
-                    info.cpmVersion.releaseCode, info.cpmVersion.majorVersion,
-                    info.cpmVersion.minorVersion));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+               "Client Version is RC = %c\t MJC = %c\t MNC = %c\n",
+               info.cpmVersion.releaseCode, info.cpmVersion.majorVersion,
+               info.cpmVersion.minorVersion);
 
     /*
      * XXX NOT USED 
@@ -1318,11 +1318,11 @@ ClRcT VDECL(cpmClientInitialize)(ClEoDataT data,
      * Verify the version information 
      */
     rc = clVersionVerify(&version_database, &(outBuff.cpmVersion));
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_VERSION_MISMATCH, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_VERSION_MISMATCH, rc, rc,
                    CL_LOG_WARNING, CL_LOG_HANDLE_APP);
 
     rc = VDECL_VER(clXdrMarshallClCpmCompInitRecvT, 4, 0, 0)((void *) &outBuff, outMsgHandle, 0);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     /*
@@ -1337,9 +1337,9 @@ ClRcT VDECL(cpmClientInitialize)(ClEoDataT data,
      */
     comp->processId = info.myPid;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                   ("Inside cpmClientInitialize CompName %s\t compId %d\t eoPort %x\n",
-                    comp->compConfig->compName, comp->compId, comp->eoPort));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+               "Inside cpmClientInitialize CompName %s\t compId %d\t eoPort %x\n",
+               comp->compConfig->compName, comp->compId, comp->eoPort);
 
     return rc;
 
@@ -1355,14 +1355,14 @@ ClRcT VDECL(cpmClientFinalize)(ClEoDataT data,
     ClCpmComponentT *comp = NULL;
     ClCpmCompFinalizeSendT info;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside cpmClientFinalize \n"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Inside cpmClientFinalize \n");
 
     rc = VDECL_VER(clXdrUnmarshallClCpmCompFinalizeSendT, 4, 0, 0)(inMsgHandle, (void *) &info);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = cpmCompFind((SaUint8T *)info.compName, gpClCpm->compTable, &comp);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", info.compName, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
 
@@ -1382,10 +1382,10 @@ ClRcT VDECL(cpmComponentRegister)(ClEoDataT data,
     ClCpmCompRegisterT info = {{0}};
     ClBoolT isProxied = CL_FALSE;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside cpmComponentRegister \n"));
+    clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_LCM,"Inside cpmComponentRegister \n");
 
     rc = VDECL_VER(clXdrUnmarshallClCpmCompRegisterT, 4, 0, 0)(inMsgHandle, (void *) &info);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     if (info.proxyCompName.length)
@@ -1395,7 +1395,7 @@ ClRcT VDECL(cpmComponentRegister)(ClEoDataT data,
            so if it is not found in this table something is very wrong.
         */
     rc = cpmCompFind(info.compName.value, gpClCpm->compTable, &comp);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", info.compName.value, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
 
@@ -1419,7 +1419,7 @@ ClRcT VDECL(cpmComponentRegister)(ClEoDataT data,
         }
 
         rc = cpmCompFind(info.proxyCompName.value, gpClCpm->compTable, &proxyComp);
-        CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+        CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                        "component", info.proxyCompName.value, rc, rc, CL_LOG_DEBUG,
                        CL_LOG_HANDLE_APP);
 
@@ -1439,7 +1439,7 @@ ClRcT VDECL(cpmComponentRegister)(ClEoDataT data,
         }
         
         if (comp->proxyCompRef != NULL)
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_LCM_REG_MULTI_ERR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_LCM_REG_MULTI_ERR,
                            info.compName.value, CL_CPM_RC(CL_CPM_ERR_EXIST),
                            CL_LOG_ERROR, CL_LOG_HANDLE_APP);
         /*
@@ -1461,7 +1461,7 @@ ClRcT VDECL(cpmComponentRegister)(ClEoDataT data,
     else
     {
         if (comp->compPresenceState == CL_AMS_PRESENCE_STATE_INSTANTIATED)
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_LCM_REG_MULTI_ERR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_LCM_REG_MULTI_ERR,
                            info.compName.value, CL_CPM_RC(CL_CPM_ERR_EXIST),
                            CL_LOG_ERROR, CL_LOG_HANDLE_APP);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFO, NULL,
@@ -1539,7 +1539,7 @@ ClRcT VDECL(cpmComponentRegister)(ClEoDataT data,
             }
         }
         rc = cpmCompRespondToCaller(comp, CL_CPM_INSTANTIATE, CL_OK);
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to respond to caller %x\n", rc),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to respond to caller %x\n", rc),
                      rc);
     }
 
@@ -1563,17 +1563,17 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
     ClCpmEOListNodeT *ptr = NULL;
     ClCpmEOListNodeT *pTemp = NULL;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside cpmComponentUnregister \n"));
+    clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_LCM,"Inside cpmComponentUnregister \n");
 
     rc = VDECL_VER(clXdrUnmarshallClCpmCompRegisterT, 4, 0, 0)(inMsgHandle, (void *) &info);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     if (info.proxyCompName.length)
         isProxied = CL_TRUE;
 
     rc = cpmCompFind(info.compName.value, gpClCpm->compTable, &comp);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", info.compName.value, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
 
@@ -1599,7 +1599,7 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
 
         rc = cpmCompFind(info.proxyCompName.value, gpClCpm->compTable,
                          &proxyComp);
-        CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+        CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                        "component", info.compName, rc, rc, CL_LOG_DEBUG,
                        CL_LOG_HANDLE_APP);
         /*
@@ -1609,7 +1609,7 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
         if (strcmp((const ClCharT *)info.proxyCompName.value, comp->proxyCompName) != 0)
         {
             rc = CL_CPM_RC(CL_CPM_ERR_BAD_OPERATION);
-            CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_LCM_INVALID_PROXY_ERR,
+            CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_LCM_INVALID_PROXY_ERR,
                            info.proxyCompName.value, info.compName,
                            comp->proxyCompName, rc, CL_LOG_ERROR,
                            CL_LOG_HANDLE_APP);
@@ -1633,16 +1633,16 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
     }
     else if (comp->compPresenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Already unregistered this component %s\n",
-                        info.compName.value));
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
+                   "Already unregistered this component %s\n",
+                   info.compName.value);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_WARNING, NULL,
                    CL_CPM_LOG_1_LCM_REG_MULTI_ERR, info.compName.value);
     }
     else
     {
         if (comp->numProxiedComps != 0)
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_LCM_NOT_UNREG_PROXY_ERR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_LCM_NOT_UNREG_PROXY_ERR,
                            info.compName.value,
                            CL_CPM_RC(CL_CPM_ERR_BAD_OPERATION), CL_LOG_ERROR,
                            CL_LOG_HANDLE_APP);
@@ -1660,7 +1660,7 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
          * Cleanup the EOs of that Component 
          */
         rc = clOsalMutexLock(gpClCpm->eoListMutex);
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to lock mutex %x\n", rc), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to lock mutex %x\n", rc), rc);
 
         ptr = comp->eoHandle;
         while (ptr != NULL && ptr->eoptr != NULL)
@@ -1682,7 +1682,7 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
         comp->eoPort = 0;
 
         rc = clOsalMutexUnlock(gpClCpm->eoListMutex);
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to unlock mutex %x\n", rc), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to unlock mutex %x\n", rc), rc);
 
         if (comp->restartPending)
         {
@@ -2091,7 +2091,7 @@ ClRcT _cpmProxiedComponentInstantiate(ClCharT *compName,
         (strcmp(compName, proxyCompName) == 0))
     {
         rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_LOG_MESSAGE_1_INVALID_PARAMETER,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_1_INVALID_PARAMETER,
                 __FUNCTION__, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 
@@ -2104,7 +2104,7 @@ ClRcT _cpmProxiedComponentInstantiate(ClCharT *compName,
                           CL_CPM_INVOCATION_CPM | CL_CPM_INVOCATION_DATA_SHARED);
 
     rc = cpmCompFind((SaUint8T *)proxyCompName, gpClCpm->compTable, &proxyComp);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", proxyCompName, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
 
@@ -2133,7 +2133,7 @@ ClRcT _cpmProxiedComponentInstantiate(ClCharT *compName,
                                    NULL,
                                    NULL,
                                    MARSHALL_FN(ClCpmClientCompTerminateT, 4, 0, 0));
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD to proxy component failed %x\n", rc),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD to proxy component failed %x\n", rc),
             rc);
 
     return rc;
@@ -2292,7 +2292,7 @@ ClRcT _cpmComponentInstantiate(ClCharT *compName,
         {
             cpmRequestFailedResponse(compName, nodeName, srcAddress, rmdNumber,
                                      CL_CPM_INSTANTIATE, rc);
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                          ("Request Route failed for component %s to node %s\n",
                           compName, nodeName), rc);
         }
@@ -2319,7 +2319,7 @@ ClRcT _cpmComponentInstantiate(ClCharT *compName,
             {
                 cpmRequestFailedResponse(compName, nodeName, srcAddress, rmdNumber,
                                          CL_CPM_INSTANTIATE, rc);
-                CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+                CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                                "component", compName, rc, rc, CL_LOG_DEBUG,
                                CL_LOG_HANDLE_APP);
             }
@@ -2401,7 +2401,7 @@ ClRcT _cpmComponentInstantiate(ClCharT *compName,
             }
         }
     }
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_LCM_COMP_OPER1_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_LCM_COMP_OPER1_ERR,
                    "instantiate", comp->compConfig->compName, rc, rc,
                    CL_LOG_ERROR, CL_LOG_HANDLE_APP);
     return rc;
@@ -2418,7 +2418,7 @@ ClRcT VDECL(cpmComponentInstantiate)(ClEoDataT data,
     ClCpmLifeCycleOprT info = {{0}};
 
     rc = VDECL_VER(clXdrUnmarshallClCpmLifeCycleOprT, 4, 0, 0)(inMsgHandle, (void *) &info);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = _cpmComponentInstantiate((ClCharT *)((info.name).value),
@@ -2618,7 +2618,7 @@ ClRcT _cpmComponentTerminate(ClCharT *compName,
         {
             cpmRequestFailedResponse(compName, nodeName, srcAddress, rmdNumber,
                                      CL_CPM_TERMINATE, rc);
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                          ("\n Unable to terminate component %s 0x%x\n",
                           compName, rc), rc);
         }
@@ -2633,7 +2633,7 @@ ClRcT _cpmComponentTerminate(ClCharT *compName,
         {
             cpmRequestFailedResponse(compName, nodeName, srcAddress, rmdNumber,
                                      CL_CPM_TERMINATE, rc);
-            CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+            CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                            "component", compName, rc, rc, CL_LOG_DEBUG,
                            CL_LOG_HANDLE_APP);
         }
@@ -2725,7 +2725,7 @@ ClRcT _cpmComponentTerminate(ClCharT *compName,
                                                    NULL,
                                                    NULL,
                                                    MARSHALL_FN(ClCpmClientCompTerminateT, 4, 0, 0));
-                    CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD failed \n"), rc);
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD failed \n"), rc);
                 }
                 else if (comp->compConfig->compProperty ==
                          CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE)
@@ -2736,7 +2736,7 @@ ClRcT _cpmComponentTerminate(ClCharT *compName,
                     {
                         cpmRequestFailedResponse(compName, nodeName, &comp->requestSrcAddress, rmdNumber,
                                                  CL_CPM_TERMINATE, rc);
-                        CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+                        CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                                        "Proxy component", proxyCompName, rc, rc, CL_LOG_DEBUG,
                                        CL_LOG_HANDLE_APP);
                     }
@@ -2773,7 +2773,7 @@ ClRcT _cpmComponentTerminate(ClCharT *compName,
                                                    NULL,
                                                    NULL,
                                                    MARSHALL_FN(ClCpmClientCompTerminateT, 4, 0, 0));
-                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                             ("Sending RMD to proxy component %s failed \n",
                              proxyCompName), rc);
                 }
@@ -2812,7 +2812,7 @@ ClRcT _cpmComponentTerminate(ClCharT *compName,
         }
     }
 
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_LCM_COMP_OPER1_ERR, "terminate",
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_LCM_COMP_OPER1_ERR, "terminate",
                    comp->compConfig->compName, rc, rc, CL_LOG_ERROR,
                    CL_LOG_HANDLE_APP);
     return rc;
@@ -2829,7 +2829,7 @@ ClRcT VDECL(cpmComponentTerminate)(ClEoDataT data,
     ClCpmLifeCycleOprT info = {{0}};
 
     rc = VDECL_VER(clXdrUnmarshallClCpmLifeCycleOprT, 4, 0, 0)(inMsgHandle, (void *) &info);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = _cpmComponentTerminate((ClCharT *)((info.name).value),
@@ -3103,7 +3103,7 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
 
     if (clDbgNoKillComponents)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("In debug mode (clDbgNoKillComponents is set), so will not clean up component %s", compName));
+        clLogCritical(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_LCM,"In debug mode (clDbgNoKillComponents is set), so will not clean up component %s", compName);
         return CL_CPM_ERR_OPERATION_FAILED;
     }
 
@@ -3209,7 +3209,7 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
                      * process 
                      */
                     rc = CL_ERR_NOT_IMPLEMENTED;
-                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                                  ("COMP MULTITHREAD is not implemented \n"),
                                  rc);
                 }
@@ -3217,7 +3217,7 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
                          CL_CPM_COMP_THREADED)
                 {
                     rc = CL_ERR_NOT_IMPLEMENTED;
-                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                                  ("COMP MULTITHREAD is not implemented \n"),
                                  rc);
                 }
@@ -3225,7 +3225,7 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
                          CL_CPM_COMP_NONE)
                 {
                     rc = CL_ERR_NOT_IMPLEMENTED;
-                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                                  ("COMP Script based instantiation is not implemented \n"),
                                  rc);
                 }
@@ -3266,7 +3266,7 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
                 {
                     ClCpmComponentT *proxyComp = NULL;
                     rc = cpmCompFind((SaUint8T *)proxyCompName, gpClCpm->compTable, &proxyComp);
-                    CL_CPM_CHECK_3(CL_DEBUG_ERROR, 
+                    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, 
                                    CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                                    "proxy component", proxyCompName, rc, rc, CL_LOG_DEBUG,
                                    CL_LOG_HANDLE_APP);
@@ -3349,7 +3349,7 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
 
     if (clDbgNoKillComponents)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("In debug mode (clDbgNoKillComponents is set), so will not clean up component %s", compName));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"In debug mode (clDbgNoKillComponents is set), so will not clean up component %s", compName);
         return CL_CPM_ERR_OPERATION_FAILED;
     }
 
@@ -3363,9 +3363,9 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
         {
             cpmRequestFailedResponse(compName, nodeName, srcAddress, rmdNumber,
                                      CL_CPM_CLEANUP, rc);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\n Unable to cleanup component %s 0x%x\n",
-                            compName, rc));
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "\n Unable to cleanup component %s 0x%x\n",
+                       compName, rc);
             return rc;
         }
         else
@@ -3437,7 +3437,7 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
                      * Cleanup the EOs of that Component 
                      */
                     rc = clOsalMutexLock(gpClCpm->eoListMutex);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                                  ("Unable to lock mutex %x\n", rc), rc);
                     ptr = comp->eoHandle;
                     while (ptr != NULL && ptr->eoptr != NULL)
@@ -3456,7 +3456,7 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
                     comp->eoHandle = NULL;
                     comp->eoCount = 0;
                     rc = clOsalMutexUnlock(gpClCpm->eoListMutex);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                                  ("Unable to unlock mutex %x\n", rc), rc);
                     if(!comp->compEventPublished && comp->eoPort && !comp->compTerminated)
                         cpmComponentEventPublish(comp, CL_CPM_COMP_DEATH, CL_TRUE);
@@ -3504,7 +3504,7 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
                          * process 
                          */
                         rc = CL_ERR_NOT_IMPLEMENTED;
-                        CL_CPM_CHECK(CL_DEBUG_ERROR,
+                        CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                                      ("COMP MULTITHREAD is not implemented \n"),
                                      rc);
                     }
@@ -3512,7 +3512,7 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
                              CL_CPM_COMP_THREADED)
                     {
                         rc = CL_ERR_NOT_IMPLEMENTED;
-                        CL_CPM_CHECK(CL_DEBUG_ERROR,
+                        CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                                      ("COMP MULTITHREAD is not implemented \n"),
                                      rc);
                     }
@@ -3520,7 +3520,7 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
                              CL_CPM_COMP_NONE)
                     {
                         rc = CL_ERR_NOT_IMPLEMENTED;
-                        CL_CPM_CHECK(CL_DEBUG_ERROR,
+                        CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                                      ("COMP Script based instantiation is not implemented \n"),
                                      rc);
                     }
@@ -3558,7 +3558,7 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
                     compCleanup.requestType = CL_CPM_PROXIED_CLEANUP;
 
                     rc = cpmCompFind((SaUint8T *)proxyCompName, gpClCpm->compTable, &proxyComp);
-                    CL_CPM_CHECK_3(CL_DEBUG_ERROR, 
+                    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, 
                                    CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                                    "proxy component", proxyCompName, rc, rc, CL_LOG_DEBUG,
                                    CL_LOG_HANDLE_APP);
@@ -3690,7 +3690,7 @@ ClRcT VDECL(cpmComponentCleanup)(ClEoDataT data,
     ClCpmLifeCycleOprT info = {{0}};
 
     rc = VDECL_VER(clXdrUnmarshallClCpmLifeCycleOprT, 4, 0, 0)(inMsgHandle, (void *) &info);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = _cpmComponentCleanup((ClCharT *)((info.name).value),
@@ -3699,7 +3699,7 @@ ClRcT VDECL(cpmComponentCleanup)(ClEoDataT data,
                               &(info.srcAddress), 
                               info.rmdNumber,
                               CL_CPM_CLEANUP);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_LCM_COMP_OPER1_ERR, "cleanup",
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_LCM_COMP_OPER1_ERR, "cleanup",
                    info.name.value, rc, rc, CL_LOG_ERROR, CL_LOG_HANDLE_APP);
 
   failure:
@@ -3725,7 +3725,7 @@ ClRcT _cpmComponentRestart(ClCharT *compName,
         {
             rc = cpmRequestFailedResponse(compName, nodeName, srcAddress,
                                           rmdNumber, CL_CPM_RESTART, rc);
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                          ("\n Unable to route the Restart Request component %s 0x%x\n",
                           compName, rc), rc);
         }
@@ -3737,7 +3737,7 @@ ClRcT _cpmComponentRestart(ClCharT *compName,
         {
             cpmRequestFailedResponse(compName, nodeName, srcAddress, rmdNumber,
                                      CL_CPM_RESTART, rc);
-            CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+            CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                            "component", compName, rc, rc, CL_LOG_DEBUG,
                            CL_LOG_HANDLE_APP);
         }
@@ -3766,7 +3766,7 @@ ClRcT _cpmComponentRestart(ClCharT *compName,
             clOsalMutexUnlock(comp->compMutex);
             rc = _cpmComponentTerminate(compName, NULL, nodeName, srcAddress,
                                         rmdNumber);
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                          ("Unable to terminate component while restarting %x\n",
                           rc), rc);
         }
@@ -3775,7 +3775,7 @@ ClRcT _cpmComponentRestart(ClCharT *compName,
             clOsalMutexUnlock(comp->compMutex);
             rc = _cpmComponentCleanup(compName, NULL, nodeName, srcAddress, rmdNumber,
                                       CL_CPM_CLEANUP);
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                          ("Unable to cleanup component while restarting %x\n",
                           rc), rc);
 
@@ -3805,12 +3805,12 @@ ClRcT VDECL(cpmComponentRestart)(ClEoDataT data,
     ClCpmLifeCycleOprT info = {{0}};
 
     rc = VDECL_VER(clXdrUnmarshallClCpmLifeCycleOprT, 4, 0, 0)(inMsgHandle, (void *) &info);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = _cpmComponentRestart((ClCharT *) ((info.name).value), (ClCharT *) ((info.proxyCompName).value),
                     (ClCharT *) ((info.nodeName).value), &(info.srcAddress), info.rmdNumber);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to restart component %x\n", rc), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to restart component %x\n", rc), rc);
 
   failure:
     return rc;
@@ -3913,7 +3913,7 @@ ClRcT VDECL(cpmComponentIdGet)(ClEoDataT data,
     ClUint32T compId = 0;
 
     rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &compName);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = cpmCompFind(compName.value, gpClCpm->compTable, &comp);
@@ -3927,7 +3927,7 @@ ClRcT VDECL(cpmComponentIdGet)(ClEoDataT data,
     }
 
     rc = clXdrMarshallClUint32T((void *) &compId, outMsgHandle, 0);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
   failure:
@@ -3944,14 +3944,14 @@ ClRcT VDECL(cpmComponentStatusGet)(ClEoDataT data,
     ClCpmComponentStateT state;
 
     rc = VDECL_VER(clXdrUnmarshallClCpmLifeCycleOprT, 4, 0, 0)(inMsgHandle, (void *) &status);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     if (status.nodeName.length == 0 ||
         !(strcmp((const ClCharT *)status.nodeName.value, gpClCpm->pCpmLocalInfo->nodeName)))
     {
         rc = cpmCompFind(status.name.value, gpClCpm->compTable, &comp);
-        CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+        CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                        "component", status.name.value, rc, rc, CL_LOG_DEBUG,
                        CL_LOG_HANDLE_APP);
 
@@ -3967,7 +3967,7 @@ ClRcT VDECL(cpmComponentStatusGet)(ClEoDataT data,
 
         rc = VDECL_VER(clXdrMarshallClCpmComponentStateT, 4, 0, 0)((void *) &state, outMsgHandle,
                                                0);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
     else
@@ -4000,12 +4000,12 @@ ClRcT VDECL(cpmComponentStatusGet)(ClEoDataT data,
                                           UNMARSHALL_FN(ClCpmComponentStateT, 4, 0, 0)
             );
 
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                          ("Unable to get Response from the other Node %x\n",
                           rc), rc);
             rc = VDECL_VER(clXdrMarshallClCpmComponentStateT, 4, 0, 0)((void *) &state,
                                                    outMsgHandle, 0);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
         else
@@ -4028,11 +4028,11 @@ ClRcT VDECL(cpmComponentAddressGet)(ClEoDataT data,
     ClIocAddressIDLT idlIocAddress;
 
     rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &compName);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = cpmCompFind(compName.value, gpClCpm->compTable, &comp);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", compName.value, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
 
@@ -4046,7 +4046,7 @@ ClRcT VDECL(cpmComponentAddressGet)(ClEoDataT data,
 
     rc = VDECL_VER(clXdrMarshallClIocAddressIDLT, 4, 0, 0)((void *) &idlIocAddress, outMsgHandle,
                                        0);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
   failure:
@@ -4063,18 +4063,18 @@ ClRcT VDECL(cpmComponentPIDGet)(ClEoDataT data,
     ClUint32T pid = 0;
 
     rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &compName);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = cpmCompFind(compName.value, gpClCpm->compTable, &comp);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", compName.value, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
 
     pid = comp->processId;
 
     rc = clXdrMarshallClUint32T((void *) &pid, outMsgHandle, 0);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
   failure:
@@ -4091,11 +4091,11 @@ ClRcT VDECL(cpmComponentLAUpdate)(ClEoDataT data,
 
 
     rc = VDECL_VER(clXdrUnmarshallClCpmCompLAUpdateT, 4, 0, 0)(inMsgHandle, (void *) &cpmLA);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = cpmCompFind((SaUint8T *)cpmLA.compName, gpClCpm->compTable, &comp);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", cpmLA.compName, rc, rc, CL_LOG_DEBUG,
                    CL_LOG_HANDLE_APP);
 
@@ -4143,13 +4143,13 @@ ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data,
     ClCpmComponentT *comp = NULL;
 #endif
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside cpmComponentFailureReport \n"));
+    clLogTrace("COMP","FAILURE","Inside cpmComponentFailureReport \n");
 
     errorReport = clHeapCalloc(1, sizeof(*errorReport));
     CL_ASSERT(errorReport != NULL);
     
     rc = VDECL_VER(clXdrUnmarshallClErrorReportT, 4, 0, 0)(inMsgHandle, (void *)errorReport);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     clLogDebug("COMP", "FAILURE", "Component failure reported for component [%s], "
@@ -4164,7 +4164,7 @@ ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data,
      */
 #if 0
     rc = cpmCompFind(errorReport->compName.value, gpClCpm->compTable, &comp);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", errorReport->compName.value, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 #endif
@@ -4201,7 +4201,7 @@ ClRcT VDECL(cpmComponentFailureClear)(ClEoDataT data,
     ClUint32T msgLength = 0;
     ClCpmComponentT *comp = NULL;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside cpmComponentF`ailureReport \n"));
+    clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_AMS,"Inside cpmComponentF`ailureReport \n");
 
     rc = clBufferLengthGet(inMsgHandle, &msgLength);
     if (msgLength >= sizeof(ClErrorReportT))
@@ -4217,7 +4217,7 @@ ClRcT VDECL(cpmComponentFailureClear)(ClEoDataT data,
 
         rc = clBufferNBytesRead(inMsgHandle, (ClUint8T *) errorReport,
                                 &msgLength);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
     else
@@ -4230,7 +4230,7 @@ ClRcT VDECL(cpmComponentFailureClear)(ClEoDataT data,
     }
 
     rc = cpmCompFind(errorReport->compName.value, gpClCpm->compTable, &comp);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "component", errorReport->compName.value, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
@@ -4255,12 +4255,12 @@ ClRcT VDECL(cpmComponentListDebugAll)(ClEoDataT data,
     count = gpClCpm->noOfComponent;
 
     rc = clCntFirstNodeGet(gpClCpm->compTable, &hNode);
-    CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
+    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
                    "component", rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
                               (ClCntDataHandleT *) &comp);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc,
                    rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     while (count)
@@ -4275,7 +4275,7 @@ ClRcT VDECL(cpmComponentListDebugAll)(ClEoDataT data,
                 sprintf(tempStr, "%s\n", comp->compConfig->compName);
                 rc = clBufferNBytesWrite(outMsgHandle, (ClUint8T *) tempStr,
                                          strlen(tempStr));
-                CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+                CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                                CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             }
             else
@@ -4288,12 +4288,12 @@ ClRcT VDECL(cpmComponentListDebugAll)(ClEoDataT data,
         if (count)
         {
             rc = clCntNextNodeGet(gpClCpm->compTable, hNode, &hNode);
-            CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR,
+            CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR,
                            "CPM-L", rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
             rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
                                       (ClCntDataHandleT *) &comp);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                            CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
@@ -4303,7 +4303,7 @@ ClRcT VDECL(cpmComponentListDebugAll)(ClEoDataT data,
      */
     sprintf(tempStr, "%s", "\0");
     rc = clBufferNBytesWrite(outMsgHandle, (ClUint8T *) tempStr, 1);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     return CL_OK;
@@ -4546,11 +4546,11 @@ ClRcT VDECL(cpmIsCompRestarted)(ClEoDataT data,
 	ClUint32T isRestarted = 0;
 
 	rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &compName);
-    	CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    	CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
 	rc = cpmCompFind(compName.value, gpClCpm->compTable, &comp);
-    	CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    	CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
 		       "component", compName.value, rc, rc, CL_LOG_DEBUG,
 		       CL_LOG_HANDLE_APP);
 	if (comp->compRestartCount)
@@ -4559,7 +4559,7 @@ ClRcT VDECL(cpmIsCompRestarted)(ClEoDataT data,
 	}
 
     	rc = clXdrMarshallClUint32T((void *) &isRestarted, outMsgHandle, 0);
-    	CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+    	CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 	return CL_OK;
 

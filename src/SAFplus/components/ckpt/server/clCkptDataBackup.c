@@ -44,6 +44,7 @@
 #include "clCpmApi.h"
 #include "clCksmApi.h"
 #include "clLogApi.h"
+#include "clLogUtilApi.h"
 #include "clCkptExtApi.h"
 #include "clCkptMaster.h"
 
@@ -97,8 +98,8 @@ ClRcT ckptDataPeriodicSave()
                 CL_CKPT_METADATA, 0);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nCKPT DataSet Write Failed, "
-                                       "rc = %x \n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Write Failed, "
+                    "  rc = %x \n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
                    CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
 
@@ -110,8 +111,8 @@ ClRcT ckptDataPeriodicSave()
                 CL_CKPT_CHECKPOINTS, 0);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nCKPT DataSet Write Failed, "
-                                       "rc = %x \n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Write Failed, " 
+                  " rc = %x \n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
                    CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
 
@@ -152,8 +153,8 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
     rc = clCkptLibraryInitialize(&gCkptHandle);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n CKPT Library Initialize Failed, "
-                                       "rc = %x \n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Library Initialize Failed, "
+                   "rc = %x \n", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -163,8 +164,8 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
     rc = clCkptLibraryDoesCkptExist(gCkptHandle, &gCkptName, &retVal);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n Ckpt: CKPT Initialize Failed,"
-                                       " rc = %x \n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n Ckpt: CKPT Initialize Failed,"
+                   "rc = %x \n", rc);
         CL_FUNC_EXIT();
         goto label4;
     }
@@ -181,9 +182,8 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
     rc = clCkptLibraryCkptCreate(gCkptHandle, &gCkptName); 
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n CKPT Check Point Create Failed, "
-                                       "rc = %x \n",
-                             rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Check Point Create Failed, "
+                   "rc = %x \n",rc);
         goto label4;
     }
 
@@ -196,8 +196,8 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
                         );
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n CKPT Data Set Create Failed, "
-                                       "rc = %x \n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Data Set Create Failed "
+                   "rc = %x \n", rc);
         goto label3;
     }
 
@@ -210,8 +210,8 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
                         );
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n CKPT Data Set Create Failed, "
-                                       "rc = %x \n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Data Set Create Failed, "
+                   "rc = %x \n", rc);
         goto label2;
     }
                                                                                                                              
@@ -223,8 +223,8 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
                     (void*)NULL, &gTimerHdl);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n CKPT Data Set Create Failed, "
-                                       "rc = %x \n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Data Set Create Failed, "
+                                       "rc = %x \n", rc);
         goto label1;
     }
     
@@ -557,7 +557,7 @@ ClRcT ckptPersistentMemoryRead()
     /* take the semaphore */
     if(clOsalMutexLock(gMutex)  != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n Ckpt: Could not get Lock \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n Ckpt: Could not get Lock \n");
     }
 
     /* Read checkpoint meta data */
@@ -565,8 +565,8 @@ ClRcT ckptPersistentMemoryRead()
            CL_CKPT_METADATA, 0);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nCKPT DataSet Read Failed, "
-                                       "rc = %x \n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Read Failed, "
+                                       "rc = %x \n", rc);
         /* Release the semaphore */
         clOsalMutexUnlock(gMutex);
         CL_FUNC_EXIT();
@@ -578,8 +578,8 @@ ClRcT ckptPersistentMemoryRead()
            CL_CKPT_CHECKPOINTS, 0);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nCKPT DataSet Read Failed, "
-                                       "rc = %x \n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Read Failed, "
+                                       "rc = %x \n", rc);
         /* Release the semaphore */
         clOsalMutexUnlock(gMutex);
         CL_FUNC_EXIT();

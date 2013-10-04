@@ -50,6 +50,7 @@ extern "C" {
 #include <clCntApi.h>
 #include <clTimerApi.h>
 #include <clIocApi.h>
+#include <clLogUtilApi.h>
 
 #include <clAmsTypes.h>
 #include <clAmsSAClientApi.h>
@@ -974,7 +975,7 @@ typedef struct ClAmsSIReassignEntry
     if ( ((x)->config.adminState < 1) ||                                \
          ((x)->config.adminState > 4) )                                 \
     {                                                                   \
-        AMS_LOG(CL_DEBUG_ERROR,                                         \
+        AMS_LOG(CL_LOG_SEV_ERROR,                                         \
                 ("Entity[%s] fails adminState validation.\n",           \
                  (x)->config.entity.name.value));                       \
         return CL_AMS_ERR_INVALID_ENTITY;                               \
@@ -986,7 +987,7 @@ typedef struct ClAmsSIReassignEntry
     if ( ((x)->status.operState < 1) ||                                 \
          ((x)->status.operState > 2) )                                  \
     {                                                                   \
-        AMS_LOG(CL_DEBUG_ERROR,                                         \
+        AMS_LOG(CL_LOG_SEV_ERROR,                                         \
                 ("Entity[%s] fails operState validation.\n",            \
                  (x)->config.entity.name.value));                       \
     }                                                                   \
@@ -997,7 +998,7 @@ typedef struct ClAmsSIReassignEntry
     if ( ((x)->status.presenceState < 1) ||                             \
          ((x)->status.presenceState > 10) )                             \
     {                                                                   \
-        AMS_LOG(CL_DEBUG_ERROR,                                         \
+        AMS_LOG(CL_LOG_SEV_ERROR,                                         \
                 ("Entity[%s] fails presenceState validation.\n",        \
                  (x)->config.entity.name.value));                       \
     }                                                                   \
@@ -1008,7 +1009,7 @@ typedef struct ClAmsSIReassignEntry
     if ( ((x)->status.readinessState < 1) ||                            \
          ((x)->status.readinessState > 10) )                            \
     {                                                                   \
-        AMS_LOG(CL_DEBUG_ERROR,                                         \
+        AMS_LOG(CL_LOG_SEV_ERROR,                                         \
                 ("Entity[%s] fails readinessState validation.\n",       \
                  (x)->config.entity.name.value));                       \
     }                                                                   \
@@ -1019,7 +1020,7 @@ typedef struct ClAmsSIReassignEntry
     if ( ((x)->config.classType) < CL_AMS_NODE_CLASS_NONE ||            \
             ((x)->config.classType) > CL_AMS_NODE_CLASS_D )             \
     {                                                                   \
-        AMS_LOG(CL_DEBUG_ERROR,                                         \
+        AMS_LOG(CL_LOG_SEV_ERROR,                                         \
                 ("Entity[%s] fails node class type validation.\n",      \
                  (x)->config.entity.name.value));                       \
         return CL_AMS_ERR_INVALID_ENTITY;                                \
@@ -1033,7 +1034,7 @@ typedef struct ClAmsSIReassignEntry
          ((x)->config.capabilityModel >                                 \
           CL_AMS_COMP_CAP_NON_PREINSTANTIABLE) )                        \
     {                                                                   \
-        AMS_LOG(CL_DEBUG_ERROR,                                         \
+        AMS_LOG(CL_LOG_SEV_ERROR,                                         \
                 ("Entity[%s] fails comp capability model validation.\n",\
                  (x)->config.entity.name.value));                       \
         return CL_AMS_ERR_INVALID_ENTITY;                               \
@@ -1048,7 +1049,7 @@ typedef struct ClAmsSIReassignEntry
          ((x)->config.recoveryOnTimeout >                               \
           CL_AMS_RECOVERY_SU_RESTART) )                              \
     {                                                                   \
-        AMS_LOG(CL_DEBUG_ERROR,                                         \
+        AMS_LOG(CL_LOG_SEV_ERROR,                                         \
                 ("Entity[%s] fails comp recoveryOnError validation.\n", \
                  (x)->config.entity.name.value));                       \
         return CL_AMS_ERR_INVALID_ENTITY;                               \
@@ -1063,7 +1064,7 @@ typedef struct ClAmsSIReassignEntry
             ((x)->config.property >                                     \
              CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE ))    \
     {                                                                   \
-        AMS_LOG(CL_DEBUG_ERROR,                                         \
+        AMS_LOG(CL_LOG_SEV_ERROR,                                         \
                 ("Entity[%s] fails comp property validation.\n",        \
                  (x)->config.entity.name.value));                       \
         return CL_AMS_ERR_INVALID_ENTITY;                               \
@@ -1075,7 +1076,7 @@ typedef struct ClAmsSIReassignEntry
 {                                                                   \
     if ( ! ( (x) == CL_TRUE || (x) == CL_FALSE) )                   \
     {                                                               \
-        AMS_LOG(CL_DEBUG_ERROR,                                     \
+        AMS_LOG(CL_LOG_SEV_ERROR,                                     \
                 ("Expecting boolean value, received value %d \n",   \
                  x));                                               \
         return CL_ERR_INVALID_PARAMETER;                            \
@@ -1085,7 +1086,7 @@ typedef struct ClAmsSIReassignEntry
 #define AMS_VALIDATE_RESTART_COUNT(x)                       do {        \
     if( !(x) )                                                          \
     {                                                                   \
-        AMS_LOG(CL_DEBUG_ERROR,("Expecting non-zero restart count\n")); \
+        AMS_LOG(CL_LOG_SEV_ERROR,("Expecting non-zero restart count\n")); \
         return CL_ERR_INVALID_PARAMETER;                                \
     }                                                                   \
 }while(0)
@@ -1094,7 +1095,7 @@ typedef struct ClAmsSIReassignEntry
 #define AMS_VALIDATE_RESTART_DURATION(x)                       do {         \
     if( !(x) )                                                              \
     {                                                                       \
-        AMS_LOG(CL_DEBUG_ERROR,("Expecting non-zero restart duration\n"));  \
+        AMS_LOG(CL_LOG_SEV_ERROR,("Expecting non-zero restart duration\n"));  \
         return CL_ERR_INVALID_PARAMETER;                                    \
     }                                                                       \
 }while(0)

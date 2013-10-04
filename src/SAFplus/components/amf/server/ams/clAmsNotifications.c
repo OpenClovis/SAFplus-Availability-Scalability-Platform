@@ -460,7 +460,7 @@ ClRcT clAmsNotificationEventPublish(
 
     if ( ams->eventServerReady == CL_FALSE )
     {
-        AMS_LOG (CL_DEBUG_TRACE,("Event server not ready\n"));
+        AMS_LOG (CL_LOG_SEV_TRACE,("Event server not ready\n"));
         return CL_OK;
     }
 
@@ -507,7 +507,7 @@ ClRcT clAmsGenericNotificationEventPayloadSet(ClAmsNotificationTypeT type,
 
     if ( gAms.eventServerReady == CL_FALSE )
     {
-        AMS_LOG (CL_DEBUG_TRACE,("Event server not ready\n"));
+        AMS_LOG (CL_LOG_SEV_TRACE,("Event server not ready\n"));
         return CL_AMS_RC(CL_ERR_INVALID_STATE);
     }
 
@@ -595,7 +595,7 @@ ClRcT clAmsNotificationEventPayloadSet(const ClAmsEntityT *entity,
 
     if ( gAms.eventServerReady == CL_FALSE )
     {
-        AMS_LOG (CL_DEBUG_TRACE,("Event server not ready\n"));
+        AMS_LOG (CL_LOG_SEV_TRACE,("Event server not ready\n"));
         return CL_AMS_RC(CL_ERR_INVALID_STATE);
     }
 

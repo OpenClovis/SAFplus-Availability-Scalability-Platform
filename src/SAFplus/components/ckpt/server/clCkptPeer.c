@@ -103,11 +103,11 @@ ClRcT   ckptDbPack( ClBufferHandleT   *pOutMsg,
     {
         rc = clCntNodeUserDataGet(gCkptSvr->ckptHdlList, nodeHdl, 
                                  (ClCntDataHandleT *)&pCkptHdl);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Could not get user data rc[0x %x]\n",rc), rc);
         clCntNextNodeGet(gCkptSvr->ckptHdlList, nodeHdl, &nodeHdl);
         rc = clHandleCheckout(gCkptSvr->ckptHdl,*pCkptHdl,(void **)&pCkpt);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Handle check out Error rc[0x %x]\n",rc), rc);
         if( pCkpt != NULL && (pCkpt->pCpInfo != NULL)) 
         {
@@ -119,7 +119,7 @@ ClRcT   ckptDbPack( ClBufferHandleT   *pOutMsg,
             {
                rc = ckptCheckpointEntryPack(pCkpt,*pCkptHdl, &msgHdl, peerAddr);
                clHandleCheckin(gCkptSvr->ckptHdl,*pCkptHdl);
-               CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+               CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                    ("Cant update peer rc[0x %x]\n",rc), rc);
             }
             else
@@ -128,7 +128,7 @@ ClRcT   ckptDbPack( ClBufferHandleT   *pOutMsg,
                {
                    rc = ckptCheckpointEntryPack(pCkpt,*pCkptHdl, &msgHdl, peerAddr);
                    clHandleCheckin(gCkptSvr->ckptHdl,*pCkptHdl);
-                   CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                   CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                    ("Cant update peer rc[0x %x]\n",rc), rc);
                }
                else
@@ -167,7 +167,7 @@ ClRcT _ckptCheckpointInfoPack(CkptT       *pCkpt,
     if(pCkpt->pCpInfo != NULL)
     {
         rc = _ckptCPlaneInfoPack(pCkpt->pCpInfo, pCpInfo);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                  ("Failed to pack Control plane rc[0x %x]\n",rc), rc);
     }
 
@@ -177,7 +177,7 @@ ClRcT _ckptCheckpointInfoPack(CkptT       *pCkpt,
     if (pCkpt->pDpInfo != NULL) 
     {
         rc = _ckptDPlaneInfoPack(pCkpt, pCkpt->pDpInfo,pDpInfo);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
              ("Pack: CP Info Write failed rc[0x %x]\n",rc), rc);
     }
     return rc;
@@ -210,28 +210,28 @@ ClRcT ckptCheckpointEntryPack( CkptT                    *pCkpt,
     
     ckptFlag = CKPT_CKPT_INFO;
     rc = clXdrMarshallClInt32T(&ckptFlag,*pMsgHdl,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed: Marshalling rc[0x %x]\n",rc), rc);
     rc = clXdrMarshallClHandleT(&ckptHdl,*pMsgHdl,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed: Marshalling rc[0x %x]\n",rc), rc);
     rc = clXdrMarshallSaNameT(&pCkpt->ckptName, *pMsgHdl,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed: Marshalling rc[0x %x]\n",rc), rc);
     if (pCkpt->pCpInfo != NULL)
     {
         
         rc = _ckptControlPlaneInfoPack(pMsgHdl, pCkpt);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
              ("Pack: CP Info Write failed rc[0x %x]\n",rc), rc);
     }
     if (pCkpt->pDpInfo != NULL) 
     {
         rc = _ckptDataPlaneInfoPack(pMsgHdl, pCkpt);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
              ("Pack: CP Info Write failed rc[0x %x]\n",rc), rc);
     }
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed: Marshalling rc[0x %x]\n",rc), rc);
     
     return rc;
@@ -255,7 +255,7 @@ clCkptAppInfoPack(CkptCPlaneInfoT   *pCpInfo,
      * Find the no. of entries in the presence list of the checkpoint.
      */
     rc = clCntSizeGet(pCpInfo->appInfoList, &pCpOutInfo->numApps);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
            ("Failed to get the size of the presencelist rc[0x %x]\n",rc), rc);
     
     /*
@@ -266,7 +266,7 @@ clCkptAppInfoPack(CkptCPlaneInfoT   *pCpInfo,
     if( pCpOutInfo->pAppInfo == NULL)
     {
         rc = CL_CKPT_ERR_NO_MEMORY;
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Failed to allocate memory rc[0x %x]\n",rc), rc);
     }
     pAppInfo = pCpOutInfo->pAppInfo;
@@ -326,7 +326,7 @@ ClRcT   _ckptCPlaneInfoPack(CkptCPlaneInfoT  *pCpInfo,
      * Find the no. of entries in the presence list of the checkpoint.
      */
     rc = clCntSizeGet(pCpInfo->presenceList,&pCpOutInfo->size);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
            ("Failed to get the size of the presencelist rc[0x %x]\n",rc), rc);
     
     /*
@@ -337,7 +337,7 @@ ClRcT   _ckptCPlaneInfoPack(CkptCPlaneInfoT  *pCpInfo,
     if( pCpOutInfo->presenceList == NULL)
     {
         rc = CL_CKPT_ERR_NO_MEMORY;
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Failed to allocate memory rc[0x %x]\n",rc), rc);
     }
     
@@ -388,13 +388,13 @@ ClRcT   _ckptControlPlaneInfoPack(ClBufferHandleT      *pMsgHdl,
     ckptCpInfo.updateOption  = pCkpt->pCpInfo->updateOption;
     ckptCpInfo.id = pCkpt->pCpInfo->id;
     rc = VDECL_VER(clXdrMarshallCkptCPInfoT, 4, 0, 0)(&ckptCpInfo,*pMsgHdl,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed: Marshalling rc[0x %x]\n",rc), rc);
     rc = clCntSizeGet(pCkpt->pCpInfo->presenceList,&numPresList);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed: Marshalling rc[0x %x]\n",rc), rc);
     rc = clXdrMarshallClUint32T(&numPresList,*pMsgHdl,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed: Marshalling rc[0x %x]\n",rc), rc);
     clCntWalk(pCkpt->pCpInfo->presenceList, ckptPresenceListPack, pMsgHdl, sizeof(pMsgHdl));
     
@@ -462,7 +462,7 @@ ClRcT   _ckptDPlaneInfoPack(CkptT           *pCkpt,
     if(pDpOutInfo->pSection == NULL)               
     {                   
         rc = CL_CKPT_ERR_NO_MEMORY;
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed to allocate memory rc[0x %x]\n",rc), rc);
     }            
 
@@ -470,7 +470,7 @@ ClRcT   _ckptDPlaneInfoPack(CkptT           *pCkpt,
      * Pack the section data.
      */
     rc = _ckptSectionInfoPack(pCkpt, pDpInfo,pDpOutInfo->pSection, pDpOutInfo->numScns);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed to pack the section Info rc[0x %x]\n",rc), rc);
     return rc;        
  exitOnError:
@@ -585,7 +585,7 @@ ClRcT   _ckptDataPlaneInfoPack(ClBufferHandleT   *pMsgHdl,
      */
     dpFlag = CKPT_DPLANE_INFO;
     rc = clXdrMarshallClInt32T(&dpFlag,*pMsgHdl,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed: Marshalling rc[0x %x]\n",rc), rc);
 
     /*
@@ -598,7 +598,7 @@ ClRcT   _ckptDataPlaneInfoPack(ClBufferHandleT   *pMsgHdl,
     ckptDpInfo.numScns      = pCkpt->pDpInfo->numScns;
 
     rc = VDECL_VER(clXdrMarshallCkptDpT, 4, 0, 0)(&ckptDpInfo,*pMsgHdl,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed: Marshalling rc[0x %x]\n",rc), rc);
 
     /*
@@ -642,12 +642,12 @@ ClRcT   _ckptDataPlaneInfoPack(ClBufferHandleT   *pMsgHdl,
             rc = clXdrMarshallClUint8T(&defaultSec,*pMsgHdl,0);
             rc = clXdrMarshallClUint16T( &pKey->scnId.idLen ,
                     *pMsgHdl,0);
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Failed: Marshalling rc[0x %x]\n",rc), rc);
             rc = clXdrMarshallArrayClCharT( pKey->scnId.id,
                     pKey->scnId.idLen,
                     *pMsgHdl,0);  
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Failed: Marshalling rc[0x %x]\n",rc), rc);
         }
         else
@@ -660,7 +660,7 @@ ClRcT   _ckptDataPlaneInfoPack(ClBufferHandleT   *pMsgHdl,
          * Copy the section size.
          */
         rc = clXdrMarshallClUint64T(&pSec->size,*pMsgHdl,0);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Failed: Marshalling rc[0x %x]\n",rc), rc);
 
         /*
@@ -669,7 +669,7 @@ ClRcT   _ckptDataPlaneInfoPack(ClBufferHandleT   *pMsgHdl,
         rc = clXdrMarshallArrayClUint8T( (ClUint8T *)pSec->pData,
                 pSec->size,
                 *pMsgHdl,0);     
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Failed: Marshalling rc[0x %x]\n",rc), rc);
         rc = clCntNextNodeGet(pCkpt->pDpInfo->secHashTbl, secNode,
                 &nextNode);
@@ -714,7 +714,7 @@ ClRcT   _ckptSvrArrvlAnnounce()
 
              rc = _ckptMasterPeerListInfoCreate(gCkptSvr->localAddr,
                      credential, 0);
-             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                      ("PeerList Info create failed rc[0x %x]\n",rc),
                      rc);
          }   
@@ -735,7 +735,7 @@ ClRcT   _ckptSvrArrvlAnnounce()
              if(!pTimerArgs)
                  rc = CL_CKPT_RC(CL_ERR_NO_MEMORY);
 
-             CKPT_ERR_CHECK(CL_CKPT_SVR, CL_DEBUG_ERROR,
+             CKPT_ERR_CHECK(CL_CKPT_SVR, CL_LOG_SEV_ERROR,
                             ("Failed to allocate memory for timer\n"),
                             rc);
              pTimerArgs->nodeAddress = gCkptSvr->masterInfo.masterAddr;
@@ -775,7 +775,7 @@ ClRcT   _ckptSvrArrvlAnnounce()
 
              rc = _ckptMasterPeerListInfoCreate(gCkptSvr->localAddr,
                      credential, 0);
-             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                      ("PeerList Info create failed rc[0x %x]\n",rc),
                      rc);
          }   
@@ -804,7 +804,7 @@ ClRcT   _ckptSvrArrvlAnnounce()
           */
          rc = ckptIdlHandleUpdate( gCkptSvr->masterInfo.masterAddr,
                                    gCkptSvr->ckptIdlHdl, 2);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             (" Idl Handle Update failed rc[0x %x]\n",rc),
             rc);
 
@@ -827,7 +827,7 @@ ClRcT   _ckptSvrArrvlAnnounce()
                                                                     credential,
                                                                     NULL,NULL);
         }
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                        ("Failed to announce arrival message to master [%d]. rc[0x %x]\n", 
                         gCkptSvr->masterInfo.masterAddr, rc), rc);
         gCkptSvr->isAnnounced = CL_TRUE;    
@@ -866,8 +866,8 @@ ClRcT    VDECL_VER(clCkptDeputyCkptInfoUpdate, 4, 0, 0)(ClVersionT *pVersion,
     {
         /*TODO nack send has to be uncommented*/
         //       rc = clCkptNackSend(*pVersion,CKPT_PEER_HELLO);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Deputy info update version verify returned rc[0x %x]\n", rc));
+        clLogError(CL_CKPT_AREA_DEPUTY,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Deputy info update version verify returned rc[0x %x]\n", rc);
         return rc;
     }
     ckptInfo.pCpInfo = &cpInfo;
@@ -879,7 +879,7 @@ ClRcT    VDECL_VER(clCkptDeputyCkptInfoUpdate, 4, 0, 0)(ClVersionT *pVersion,
         {
             ckptInfoVersionConvertForward(&ckptInfo, pCkptInfo);
             rc = _ckptReplicaInfoUpdate(pCkptInfo->ckptHdl, &ckptInfo);
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, 
                            ("Failed to unpack DB rc[0x %x]\n", rc), rc);
             pCkptInfo++;
         }
@@ -907,8 +907,8 @@ ClRcT    VDECL_VER(clCkptDeputyCkptInfoUpdate, 5, 0, 0)(ClVersionT *pVersion,
     {
         /*TODO nack send has to be uncommented*/
         //       rc = clCkptNackSend(*pVersion,CKPT_PEER_HELLO);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Deputy info update version verify returned rc[0x %x]\n", rc));
+        clLogError(CL_CKPT_AREA_DEPUTY,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Deputy info update version verify returned rc[0x %x]\n", rc);
         return rc;
     }
 
@@ -918,7 +918,7 @@ ClRcT    VDECL_VER(clCkptDeputyCkptInfoUpdate, 5, 0, 0)(ClVersionT *pVersion,
         for(count = 0; count < numOfCkpts; count++)
         {
             rc = _ckptReplicaInfoUpdate(pCkptInfo->ckptHdl, pCkptInfo);
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, 
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, 
                            ("Failed to unpack DB rc[0x %x]\n", rc), rc);
             pCkptInfo++;
         }
@@ -968,7 +968,7 @@ ClRcT   ckptSvrDepartureAnnounce()
      */
     rc = ckptIdlHandleUpdate(CL_IOC_BROADCAST_ADDRESS,
                              gCkptSvr->ckptIdlHdl,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed to update the idl handle rc[0x %x]\n",rc), rc);
     rc = VDECL_VER(clCkptRemSvrByeClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
                                     ckptVersion,
@@ -1064,9 +1064,9 @@ ClRcT  VDECL_VER(clCkptRemSvrCkptInfoSync, 5, 0, 0)(ClVersionT  *pVersion,
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);      
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Handle checkout in checkpoint create failed rc[0x %x]\n",
-                 rc));
+        clLogError(CL_CKPT_AREA_PEER,CL_CKPT_CTX_DEP_SYNCUP,
+                   "Handle checkout in checkpoint create failed rc[0x %x]\n",
+                   rc);
         return rc;
     }
 
@@ -1101,7 +1101,7 @@ ClRcT  VDECL_VER(clCkptRemSvrCkptInfoSync, 5, 0, 0)(ClVersionT  *pVersion,
     for( count = 0; count < pCpInfo->size ; count++)
     {
         rc = _ckptPresenceListUpdate(pCkpt,*(pCpInfo->presenceList));
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Failed to update the presenceList rc[0x %x]\n", rc), rc);
         (pCpInfo->presenceList)++;
     }
@@ -1231,7 +1231,7 @@ ClRcT _ckptSectionDataPack(CkptSectionT      *pSec,
         if(pSection->secId.id == NULL)        
         {                   
             rc = CL_CKPT_ERR_NO_MEMORY;
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Failed to allocate memory rc[0x %x]\n",rc), rc);
         }            
         memcpy( pSection->secId.id,pSecId->id,
@@ -1266,7 +1266,7 @@ ClRcT _ckptSectionDataPack(CkptSectionT      *pSec,
             if(pSection->pData == NULL)        
             {                   
                 rc = CL_CKPT_ERR_NO_MEMORY;
-                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                         ("Failed to allocate memory rc[0x %x]\n",rc), rc);
             }            
             memcpy(pSection->pData, pSec->pData, pSec->size);
@@ -1280,7 +1280,7 @@ ClRcT _ckptSectionDataPack(CkptSectionT      *pSec,
             break;
         default:
             rc = CL_CKPT_ERR_INVALID_STATE;
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Update flag is not proper rc[0x %x]\n",rc), rc);
     }
     /*
@@ -1407,7 +1407,7 @@ ClRcT _ckptPresenceListPeerUpdate(CkptT             *pCkpt,
         if( tempAddr != gCkptSvr->localAddr && peerAddr != tempAddr)
         {
             rc = ckptIdlHandleUpdate(tempAddr,gCkptSvr->ckptIdlHdl,0);        
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                            ("Failed to update the IDL handle rc[0x %x]\n",rc), rc);
             rc = VDECL_VER(clCkptAllReplicaPresenceListUpdateClientAsync, 4, 0, 0)(
                                                                gCkptSvr->ckptIdlHdl,
@@ -1477,7 +1477,7 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 4, 0, 0)(ClVersionT         *pVersion,
      */
 
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl,  ckptHdl, (void **)&pCkpt);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Fail: Handle checkout [0x %x]\n", rc), rc);
 
     /*
@@ -1509,7 +1509,7 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 4, 0, 0)(ClVersionT         *pVersion,
      */
     rc = _ckptCheckpointInfoPack(pCkpt, ckptInfo.pCpInfo, ckptInfo.pDpInfo);
 
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Fail: Handle checkout [0x %x]\n", rc), rc);
 
     ckptInfo.ckptHdl = ckptHdl;
@@ -1596,7 +1596,7 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 5, 0, 0)(ClVersionT         *pVersion,
      */
 
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl,  ckptHdl, (void **)&pCkpt);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Fail: Handle checkout [0x %x]\n", rc), rc);
 
 
@@ -1630,7 +1630,7 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 5, 0, 0)(ClVersionT         *pVersion,
      */
     rc = _ckptCheckpointInfoPack(pCkpt, pCkptInfo->pCpInfo, pCkptInfo->pDpInfo);
 
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Fail: Handle checkout [0x %x]\n", rc), rc);
 
     pCkptInfo->ckptHdl = ckptHdl;
@@ -1693,14 +1693,14 @@ ClRcT VDECL_VER(clCkptAllReplicaPresenceListUpdate, 4, 0, 0)(ClVersionT        v
      * Verify the version.
      */
     rc = clVersionVerify(&gCkptSvr->versionDatabase, &version);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: VersionMismatch rc[0x %x]\n", rc), rc);
     
     /*
      * Retrieve the info associated with the active handle.
      */
     rc = clHandleCheckout(gCkptSvr->ckptHdl, ckptActHdl, (void **)&pCkpt);    
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Fail: Handle checkout failure  rc[0x %x]\n", rc), rc);
             
     /*
@@ -1722,7 +1722,7 @@ ClRcT VDECL_VER(clCkptAllReplicaPresenceListUpdate, 4, 0, 0)(ClVersionT        v
      */
 
     rc = _ckptPresenceListUpdate(pCkpt, peerAddr);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Fail: Presence List Update failed rc[0x %x]\n", rc), rc);
 exitOnError:
     clHandleCheckin(gCkptSvr->ckptHdl,ckptActHdl);
@@ -1764,7 +1764,7 @@ ClRcT VDECL_VER(clCkptActiveAddrInform, 4, 0, 0)(ClVersionT         version,
      */
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, 
                           masterHdl, (void **)&pStoredData);  
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("MasterActiveReplicaSet failed rc[0x %x]\n",rc),
             rc);
             
@@ -1778,7 +1778,7 @@ ClRcT VDECL_VER(clCkptActiveAddrInform, 4, 0, 0)(ClVersionT         version,
      */
     rc = clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
             masterHdl);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("MasterActiveReplicaSet failed rc[0x %x]\n",rc),
             rc);
 exitOnError:
@@ -1817,25 +1817,25 @@ ClRcT clCkptNackSend(ClVersionT suppVersion, ClUint32T funId)
      * Get the source address.
      */
     rc = clRmdSourceAddressGet(&destAddr.iocPhyAddress);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Fail: Nack Send problem [0x %x]\n", rc), rc);
             
     rc = clBufferCreate(&inMsg);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Fail: Nack Send problem [0x %x]\n", rc), rc);
         
     /*
      * Store the supported version info.
      */
     rc = clXdrMarshallClVersionT(&suppVersion,inMsg,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Fail: Nack Send failed [0x %x]\n", rc), rc);
             
     /*
      * Store the function no.
      */
     rc = clXdrMarshallClUint32T(&funId,inMsg,0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Fail: Nack Send failed [0x %x]\n", rc), rc);
 
     /*
@@ -1845,7 +1845,7 @@ ClRcT clCkptNackSend(ClVersionT suppVersion, ClUint32T funId)
                       inMsg, 0, rmdFlags, &rmdOptions, NULL);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("RMD Failed with an error %x", rc)); 
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"RMD Failed with an error %x", rc); 
     }
 exitOnError:
     {
@@ -1908,7 +1908,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl, VDECL_VER(CkptInfoT, 5, 0, 0) 
          */ 
         CKPT_UNLOCK(gCkptSvr->ckptActiveSem );           
         clHeapFree(pCkptHdl);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CheckpointInfo replication failed rc[0x %x]\n", rc));
+        clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE,"CheckpointInfo replication failed rc[0x %x]\n", rc);
         return rc;            
     }
 
@@ -1923,7 +1923,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl, VDECL_VER(CkptInfoT, 5, 0, 0) 
          * Unlock the active server ds.
          */ 
         CKPT_UNLOCK(gCkptSvr->ckptActiveSem );           
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CheckpointHandle Create failed rc[0x %x]\n", rc));
+        clLogError(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE,"CheckpointHandle Create failed rc[0x %x]\n", rc);
         return rc;      
     }
     if (CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST)
@@ -2020,7 +2020,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl, VDECL_VER(CkptInfoT, 5, 0, 0) 
         for(count = 0; count < pCkptInfo->pCpInfo->size ; count++)
         {
             rc = _ckptPresenceListUpdate(pCkpt, *(presenceList));
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Failed to update the presenceList rc[0x %x]\n", rc), rc);
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("Failed to update the presenceList rc[0x %x]\n", rc), rc);
             (presenceList)++;
         }
         /*
@@ -2037,7 +2037,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl, VDECL_VER(CkptInfoT, 5, 0, 0) 
          * Add local address as well to the replica list.
          */
         rc = _ckptPresenceListUpdate(pCkpt, gCkptSvr->localAddr);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Failed to update the presenceList rc[0x %x]\n", rc), rc);
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("Failed to update the presenceList rc[0x %x]\n", rc), rc);
     }
 
     /*
@@ -2241,14 +2241,14 @@ ClRcT VDECL_VER(clCkptRemSvrCkptWriteVector, 4, 0, 0)(ClVersionT             *pV
      * Verify the version.
      */
     rc = clVersionVerify(&gCkptSvr->versionDatabase,pVersion);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: VersionMismatch rc[0x %x]\n", rc), rc);
 
     /*
      * Retrieve the data associated with the active handle.
      */
     rc = clHandleCheckout(gCkptSvr->ckptHdl, ckptHdl, (void **)&pCkpt);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Handle [%#llX] failed during updation rc[0x %x]\n", ckptHdl, rc), rc);
 
 
@@ -2344,14 +2344,14 @@ ClRcT VDECL_VER(clCkptRemSvrCkptWrite, 4, 0, 0)(ClVersionT             *pVersion
      * Verify the version.
      */
     rc = clVersionVerify(&gCkptSvr->versionDatabase,pVersion);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: VersionMismatch rc[0x %x]\n", rc), rc);
 
     /*
      * Retrieve the data associated with the active handle.
      */
     rc = clHandleCheckout(gCkptSvr->ckptHdl, ckptHdl, (void **)&pCkpt);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Handle [%#llX] failed during updation rc[0x %x]\n", ckptHdl, rc), rc);
 
 
@@ -2841,13 +2841,13 @@ clCkptRemSvrSectionCreate(ClCkptHdlT                        ckptHdl,
         if(pCallInfo == NULL)
         {
             rc = CL_CKPT_ERR_NO_MEMORY;
-            CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Failed to allocate the memory rc[0x %x]\n", rc), rc);
         }
         pCallInfo->delFlag   = CL_TRUE;
         pCallInfo->cbCount   = 0;
         rc = clCkptEoIdlSyncDefer((ClIdlHandleT *)&pCallInfo->rmdHdl);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Failed to defer the call rc[0x %x]\n", rc), rc);
     }
 
@@ -2865,7 +2865,7 @@ clCkptRemSvrSectionCreate(ClCkptHdlT                        ckptHdl,
     {
         rc = clCntNodeUserKeyGet (pCkpt->pCpInfo->presenceList, nodeHdl, 
                 (ClCntKeyHandleT *) &dataHdl);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Cant update peer rc[0x %x]\n", rc), rc);
         peerAddr = (ClIocNodeAddressT)(ClWordT)dataHdl;
         clCntNextNodeGet(pCkpt->pCpInfo->presenceList, nodeHdl, &nodeHdl);
@@ -2881,7 +2881,7 @@ clCkptRemSvrSectionCreate(ClCkptHdlT                        ckptHdl,
              * replicas.
              */
             rc = ckptIdlHandleUpdate(peerAddr,gCkptSvr->ckptIdlHdl,0);
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Failed to update the handle rc[0x %x]\n", rc), rc);
 
             /*
@@ -2973,13 +2973,13 @@ clCkptRemSvrSectionOverwriteVector(ClCkptHdlT        ckptHdl,
         if(pCallInfo == NULL)
         {
             rc = CL_CKPT_ERR_NO_MEMORY;
-            CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                                           ("Failed to allocate the memory rc[0x %x]\n", rc), rc);
         }
         pCallInfo->delFlag   = CL_TRUE;
         pCallInfo->cbCount   = 0;
         rc = clCkptEoIdlSyncDefer((ClIdlHandleT *)&pCallInfo->rmdHdl);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                        ("Failed to defer the call rc[0x %x]\n", rc), rc);
     }
 
@@ -2996,7 +2996,7 @@ clCkptRemSvrSectionOverwriteVector(ClCkptHdlT        ckptHdl,
     while (nodeHdl != 0)
     {
         rc = clCntNodeUserKeyGet (pCkpt->pCpInfo->presenceList, nodeHdl, &dataHdl);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                        ("Cant update peer rc[0x %x]\n", rc), rc);
         peerAddr = (ClIocNodeAddressT)(ClWordT)dataHdl;
         clCntNextNodeGet(pCkpt->pCpInfo->presenceList, nodeHdl, &nodeHdl);
@@ -3013,7 +3013,7 @@ clCkptRemSvrSectionOverwriteVector(ClCkptHdlT        ckptHdl,
              * replicas.
              */
             rc = ckptIdlHandleUpdate(peerAddr,gCkptSvr->ckptIdlHdl,0);
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                            ("Failed to update the handle rc[0x %x]\n", rc), rc);
 
             if(differenceVector)
@@ -3171,14 +3171,14 @@ clCkptRemSvrSectionDelete(ClCkptHdlT        ckptHdl,
         if(pCallInfo == NULL)
         {
             rc = CL_CKPT_ERR_NO_MEMORY;
-            CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Failed to allocate the memory rc[0x %x]\n", rc), rc);
         }
         pCallInfo->delFlag   = CL_TRUE;
         pCallInfo->cbCount   = 0;
         pCallInfo->retCode   = CL_OK;
         rc = clCkptEoIdlSyncDefer((ClIdlHandleT *)&pCallInfo->rmdHdl);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Failed to defer the call rc[0x %x]\n", rc), rc);
     }
 
@@ -3196,7 +3196,7 @@ clCkptRemSvrSectionDelete(ClCkptHdlT        ckptHdl,
     {
         rc = clCntNodeUserKeyGet (pCkpt->pCpInfo->presenceList, nodeHdl, 
                 (ClCntKeyHandleT *) &dataHdl);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Cant update peer rc[0x %x]\n", rc), rc);
         peerAddr = (ClIocNodeAddressT)(ClWordT)dataHdl;
         clCntNextNodeGet(pCkpt->pCpInfo->presenceList, nodeHdl, &nodeHdl);
@@ -3212,7 +3212,7 @@ clCkptRemSvrSectionDelete(ClCkptHdlT        ckptHdl,
              * replicas.
              */
             rc = ckptIdlHandleUpdate(peerAddr,gCkptSvr->ckptIdlHdl,0);
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Failed to update the handle rc[0x %x]\n", rc), rc);
 
             /*
@@ -3400,7 +3400,7 @@ VDECL_VER(clCkptActiveCallbackNotify, 4, 0, 0)(ClCkptHdlT        ckptHdl,
      * Retrieve the data associated with the active handle.
      */
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
               ("Handle checkout failed for handle [%#llX] rc[0x %x]\n", 
                ckptHdl, rc), rc);
     /*

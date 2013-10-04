@@ -35,6 +35,7 @@
 #include <clCommonErrors.h>
 
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clLogApi.h>
 #include <clIocErrors.h>
 #include <clOsalApi.h>
@@ -107,7 +108,7 @@ ClRcT cpmBmInitialize(ClOsalTaskIdT *pTaskId, ClEoExecutionObjT *pThis)
                                   bmInitialize,
                                   pThis,
                                   pTaskId);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_TASK_CREATE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_TASK_CREATE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
   failure:
@@ -155,12 +156,12 @@ static void *bmInitialize(void *threadArg)
     /* GAS: should be a no-op already inited when the EO was initialized */
     rc = clEoMyEoIocPortSet(pThis->eoPort);
     
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_IOC_MY_EO_IOC_PORT_GET_ERR, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_IOC_MY_EO_IOC_PORT_GET_ERR, rc,
                    rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     /* GAS: should be a no-op already inited when the EO was initialized. Cruft from when multiple EOs in one process */
     rc = clEoMyEoObjectSet(pThis);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_EO_MY_OBJ_SET_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_MY_OBJ_SET_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
 #if 0
@@ -176,9 +177,9 @@ static void *bmInitialize(void *threadArg)
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
                    CL_CPM_LOG_2_BM_START_ERR,
                    gpClCpm->bmTable->defaultBootLevel, rc);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Booting up process failure %x, not aborting at this point \n",
-                        rc));
+        clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,
+                   "Booting up process failure %x, not aborting at this point \n",
+                    rc);
         cpmSelfShutDown();
     }
 
@@ -187,15 +188,15 @@ static void *bmInitialize(void *threadArg)
         rc = clOsalMutexLock(gpClCpm->bmTable->bmQueueCondVarMutex);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Unable to Lock %x\n", rc));
+            clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,"Unable to Lock %x\n", rc);
             continue;
         }
 
         queueSize = 0;
         rc = clQueueSizeGet(gpClCpm->bmTable->setRequestQueueHead, &queueSize);
         if (rc != CL_OK)
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("Unable to get queue Size %x\n", rc));
+            clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "Unable to get queue Size %x\n", rc);
 
         /*
          * Wait indefinitely for the signal.
@@ -213,12 +214,12 @@ static void *bmInitialize(void *threadArg)
             rc = clQueueSizeGet(gpClCpm->bmTable->setRequestQueueHead,
                                 &queueSize);
             if (rc != CL_OK)
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("Unable to get queue Size %x\n", rc));
+                clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,
+                           "Unable to get queue Size %x\n", rc);
 
             rc = clOsalMutexUnlock(gpClCpm->bmTable->bmQueueCondVarMutex);
             if (rc != CL_OK)
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Unable to unlock %x\n", rc));
+                clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,"Unable to unlock %x\n", rc);
             
             while (queueSize != 0)
             {
@@ -231,14 +232,14 @@ static void *bmInitialize(void *threadArg)
                 if(!gpClCpm->cpmShutDown)
                 {
                     /* Go out of Upper while (check for shutdown flag loop)*/
-                    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Got Shutdown, Breaking out of while loop"));
+                    clLogInfo(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,"Got Shutdown, Breaking out of while loop");
                     break;
                 }
 
                 rc = clOsalMutexLock(gpClCpm->bmTable->bmQueueCondVarMutex);
                 if (rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Unable to Lock %x\n", rc));
+                    clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,"Unable to Lock %x\n", rc);
                     continue;
                 }
                 
@@ -246,13 +247,13 @@ static void *bmInitialize(void *threadArg)
                             (ClQueueDataT *)&pBootOp);   
                 if(rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                            ("Unable to delete Queue node %x\n", rc));
+                    clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT, 
+                               "Unable to delete Queue node %x\n", rc);
                     continue;
                 }
                 rc = clOsalMutexUnlock(gpClCpm->bmTable->bmQueueCondVarMutex);
                 if (rc != CL_OK)
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Unable to unlock %x\n", rc));
+                    clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,"Unable to unlock %x\n", rc);
 
                 rc = cpmBmSetLevel(gpClCpm->bmTable, pBootOp->bootLevel);
                 if (rc != CL_OK)
@@ -260,8 +261,8 @@ static void *bmInitialize(void *threadArg)
                     clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
                                CL_CPM_LOG_2_BM_SET_LEVEL_ERR,
                                pBootOp->bootLevel, rc);
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                   ("Unable to set boot level\n"));
+                    clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,
+                               "Unable to set boot level\n");
                 }
                 if (pBootOp->srcAddress.portId != 0)
                 {
@@ -341,16 +342,16 @@ static void *bmInitialize(void *threadArg)
                                                        NULL,
                                                        MARSHALL_FN(ClCpmBmSetLevelResponseT, 4, 0, 0));
                         if (rc != CL_OK)
-                            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                           ("Response call failed. %x\n", rc));
+                            clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,
+                                       "Response call failed. %x\n", rc);
                     }
                 }
                 
                 rc = clQueueSizeGet(gpClCpm->bmTable->setRequestQueueHead,
                                     &queueSize);
                 if (rc != CL_OK)
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                   ("Unable to get queue Size %x\n", rc));
+                    clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,
+                               "Unable to get queue Size %x\n", rc);
 
                 clHeapFree(pBootOp);
             } /* end while(queueSize !=0) */
@@ -360,9 +361,9 @@ static void *bmInitialize(void *threadArg)
         {
             rc = clOsalMutexUnlock(gpClCpm->bmTable->bmQueueCondVarMutex);
             if (rc != CL_OK)
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Unable to unlock %x\n", rc));
+                clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,"Unable to unlock %x\n", rc);
 
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CondWait failed.\n"));
+            clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,"CondWait failed.\n");
         }
     } /* end of while(gpClCpm->cpmShutDown) */
 
@@ -374,16 +375,16 @@ static void *bmInitialize(void *threadArg)
      */
     if(gpClCpm->bmTable->currentBootLevel != CL_CPM_BOOT_LEVEL_0) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_INFO,
-                ("Out of while loop, shutting down the node...\n"));
+        clLogInfo(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,
+                  "Out of while loop, shutting down the node...\n");
         rc = cpmBmSetLevel(gpClCpm->bmTable, CL_CPM_BOOT_LEVEL_0);
         if (rc != CL_OK)
         {
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
                        CL_CPM_LOG_2_BM_SET_LEVEL_ERR,
                        CL_CPM_BOOT_LEVEL_0, rc);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("Unable to set boot level while shutting down\n"));
+            clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,
+                       "Unable to set boot level while shutting down\n");
         }
     }
     
@@ -425,33 +426,33 @@ ClRcT cpmBmInitDS(void)
     gpClCpm->bmTable = cpmBmTable = (cpmBMT *) clHeapAllocate(sizeof(cpmBMT));
     if (cpmBmTable == NULL)
     {
-        CL_CPM_CHECK_0(CL_DEBUG_ERROR,
+        CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
                        CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_DEBUG,
                        CL_LOG_HANDLE_APP);
     }
 
     rc = clOsalCondCreate(&cpmBmTable->lcmCondVar);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexCreate(&cpmBmTable->lcmCondVarMutex);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     cpmBmTable->countComponent = 0;
 
     rc = clOsalCondCreate(&cpmBmTable->bmQueueCondVar);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexCreate(&cpmBmTable->bmQueueCondVarMutex);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clQueueCreate(0, userDequeueCallBack, userDestroyCallback,
                        &gpClCpm->bmTable->setRequestQueueHead);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_QUEUE_CREATE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_QUEUE_CREATE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clTimerCreate(timeOut,
@@ -570,14 +571,14 @@ static ClRcT cpmBmStartup(cpmBMT *cpmBmTable)
 {
     ClUint32T rc = CL_OK;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Booting up...\n"));
+    clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,"Booting up...\n");
 
     if (cpmBmTable->defaultBootLevel > cpmBmTable->currentBootLevel)
     {
         cpmBmTable->lastBootStatus = CL_TRUE;
         /* By default, go till 2 only */
         rc = cpmBmSetLevel(gpClCpm->bmTable, CL_CPM_BOOT_LEVEL_2);
-        CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_BM_START_ERR,
+        CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_BM_START_ERR,
                        CL_CPM_BOOT_LEVEL_2, rc, rc, CL_LOG_DEBUG,
                        CL_LOG_HANDLE_APP);
     }
@@ -613,10 +614,10 @@ void *cpmBMResponse(ClCpmLcmResponseT *response)
 
     cpmBMT *cpmBmTable = gpClCpm->bmTable;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("ENTERED FUNCTION: "
-                "Request type [%d], retcode [0x%x], abandoningBootLevel = [%d]", 
-                response->requestType, response->returnCode, 
-                abandoningBootLevel));
+    clLogTrace(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,"ENTERED FUNCTION: "
+               "Request type [%d], retcode [0x%x], abandoningBootLevel = [%d]", 
+               response->requestType, response->returnCode, 
+               abandoningBootLevel);
     /*
      * Bug 3610:
      * Added abandoningBootLevel if condition
@@ -633,25 +634,25 @@ void *cpmBMResponse(ClCpmLcmResponseT *response)
                                           NULL, 0, CL_CPM_CLEANUP);
                 if (rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                            ("Unable to cleanup the component [%s], rc =[0x%x]\n",
-                             response->name, rc));
+                    clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED, 
+                               "Unable to cleanup the component [%s], rc =[0x%x]\n",
+                               response->name, rc);
                 }
             }
             
             rc = clOsalMutexLock(cpmBmTable->lcmCondVarMutex);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
                     CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             
             compTerminationCount--;
             
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
                     rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             if (compTerminationCount == 0)
             {
                 rc = clOsalCondSignal(cpmBmTable->lcmCondVar);
-                CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR,
+                CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR,
                         rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             }
         }
@@ -659,19 +660,19 @@ void *cpmBMResponse(ClCpmLcmResponseT *response)
     else if (response->returnCode == CL_OK)
     {
         rc = clOsalMutexLock(cpmBmTable->lcmCondVarMutex);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
         cpmBmTable->countComponent++;
 
         rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
                        rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
         if (cpmBmTable->countComponent == cpmBmTable->numComponent)
         {
             rc = clOsalCondSignal(cpmBmTable->lcmCondVar);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR,
                            rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
     }
@@ -681,29 +682,29 @@ void *cpmBMResponse(ClCpmLcmResponseT *response)
                 (gpClCpm->cpmShutDown == CL_FALSE))
         {
             rc = clOsalMutexLock(cpmBmTable->lcmCondVarMutex);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc,
                            rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
             cpmBmTable->countComponent++;
 
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
                            rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
             if (cpmBmTable->countComponent == cpmBmTable->numComponent)
             {
                 rc = clOsalCondSignal(cpmBmTable->lcmCondVar);
-                CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR,
+                CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR,
                         rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             }
         } /* end if requestType CL_CPM_TERMINATE and cpmShutDown is FALSE */ 
         else
         {
-            CL_DEBUG_PRINT(CL_DEBUG_WARN, ("Request Type [%d], failed", response->requestType));
+            clLogWarning(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,"Request Type [%d], failed", response->requestType);
             clOsalMutexLock(cpmBmTable->lcmCondVarMutex);
             clOsalCondSignal(cpmBmTable->lcmCondVar);
             clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR, rc,
                     rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
     }/* end else if cpmBMResponse returnCode is not CL_OK */
@@ -734,23 +735,23 @@ ClRcT cpmBmCleanupDS(void)
     bootRowT *rList = NULL;
 
     rc = clOsalCondDelete(cpmBmTable->lcmCondVar);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_DELETE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_DELETE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexDelete(cpmBmTable->lcmCondVarMutex);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_DELETE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_DELETE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clOsalCondDelete(cpmBmTable->bmQueueCondVar);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_DELETE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_DELETE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexDelete(cpmBmTable->bmQueueCondVarMutex);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_DELETE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_DELETE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clQueueDelete(&cpmBmTable->setRequestQueueHead);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_QUEUE_DELETE_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_QUEUE_DELETE_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     clTimerDelete(&gpClCpm->bmTable->bmRespTimer);
@@ -807,7 +808,7 @@ ClRcT VDECL(cpmBootLevelGet)(ClEoDataT data,
     ClUint32T currentBootLevel = CL_CPM_BOOT_LEVEL_0;
 
     rc = VDECL_VER(clXdrUnmarshallClCpmBootOperationT, 4, 0, 0)(inMsgHandle, (void *) &bootOp);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     if (!strcmp((const ClCharT *)bootOp.nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
@@ -816,7 +817,7 @@ ClRcT VDECL(cpmBootLevelGet)(ClEoDataT data,
 
         rc = clXdrMarshallClUint32T((void *) &currentBootLevel, outMsgHandle,
                                     0);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
     else
@@ -850,19 +851,19 @@ ClRcT VDECL(cpmBootLevelGet)(ClEoDataT data,
                                           0,
                                           MARSHALL_FN(ClCpmBootOperationT, 4, 0, 0),
                                           clXdrUnmarshallClUint32T);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_RMD_CALL_ERR, rc, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_RMD_CALL_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
             rc = clXdrMarshallClUint32T((void *) &currentBootLevel,
                                         outMsgHandle, 0);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
         else
         {
             clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
                            rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
     }
@@ -887,19 +888,19 @@ ClRcT VDECL(cpmBootLevelSet)(ClEoDataT data,
     bootOp = (ClCpmBootOperationT *) clHeapAllocate(sizeof(ClCpmBootOperationT));
     if (bootOp == NULL)
     {
-        CL_CPM_CHECK_0(CL_DEBUG_ERROR,
+        CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
                        CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_DEBUG,
                        CL_LOG_HANDLE_APP);
     }
     rc = VDECL_VER(clXdrUnmarshallClCpmBootOperationT, 4, 0, 0)(inMsgHandle, (void *) bootOp);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     if (!strcmp((const ClCharT *)bootOp->nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
     {
         rc = clOsalMutexLock(gpClCpm->bmTable->bmQueueCondVarMutex);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
         rc = clQueueNodeInsert(gpClCpm->bmTable->setRequestQueueHead,
@@ -907,17 +908,17 @@ ClRcT VDECL(cpmBootLevelSet)(ClEoDataT data,
         if (rc != CL_OK)
         {
             clOsalMutexUnlock(gpClCpm->bmTable->bmQueueCondVarMutex);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_QUEUE_INSERT_ERR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_QUEUE_INSERT_ERR,
                            CL_CPM_RC(rc), CL_CPM_RC(rc), CL_LOG_DEBUG,
                            CL_LOG_HANDLE_APP);
         }
 
         rc = clOsalCondSignal(gpClCpm->bmTable->bmQueueCondVar);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR, rc,
                        rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
         rc = clOsalMutexUnlock(gpClCpm->bmTable->bmQueueCondVarMutex);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
                        rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     }
@@ -952,14 +953,14 @@ ClRcT VDECL(cpmBootLevelSet)(ClEoDataT data,
                                            NULL,
                                            NULL,
                                            MARSHALL_FN(ClCpmBootOperationT, 4, 0, 0));
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_RMD_CALL_ERR, rc, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_RMD_CALL_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
         else
         {
             clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
                            rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
         clHeapFree(bootOp);
@@ -983,7 +984,7 @@ ClRcT VDECL(cpmBootLevelMax)(ClEoDataT data,
     ClUint32T maxBootLevel = 0;
 
     rc = VDECL_VER(clXdrUnmarshallClCpmBootOperationT, 4, 0, 0)(inMsgHandle, (void *) &bootOp);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     if (!strcmp((const ClCharT *)bootOp.nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
@@ -991,7 +992,7 @@ ClRcT VDECL(cpmBootLevelMax)(ClEoDataT data,
         maxBootLevel = gpClCpm->bmTable->maxBootLevel;
 
         rc = clXdrMarshallClUint32T((void *) &maxBootLevel, outMsgHandle, 0);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
     else
@@ -1025,19 +1026,19 @@ ClRcT VDECL(cpmBootLevelMax)(ClEoDataT data,
                                           0,
                                           MARSHALL_FN(ClCpmBootOperationT, 4, 0, 0),
                                           clXdrUnmarshallClUint32T);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_RMD_CALL_ERR, rc, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_RMD_CALL_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
             rc = clXdrMarshallClUint32T((void *) &maxBootLevel, outMsgHandle,
                                         0);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
         else
         {
             clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
                            rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
     }
@@ -1068,7 +1069,7 @@ static ClRcT cpmBmSetLevel(cpmBMT *bmTable, ClUint32T bootLevel)
                     ;
                 else
                 {
-                    CL_CPM_CHECK_2(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                    CL_CPM_LOG_2_BM_SET_LEVEL_ERR, bootLevel, rc,
                                    rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
                 }
@@ -1087,7 +1088,7 @@ static ClRcT cpmBmSetLevel(cpmBMT *bmTable, ClUint32T bootLevel)
                 }
                 else
                 {
-                    CL_CPM_CHECK_2(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                    CL_CPM_LOG_2_BM_SET_LEVEL_ERR, bootLevel, rc,
                                    rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
                 }
@@ -1101,7 +1102,7 @@ static ClRcT cpmBmSetLevel(cpmBMT *bmTable, ClUint32T bootLevel)
             rc = cpmBmStopCurrentLevel(cpmBmTable);
             if (rc != CL_OK)
             {
-                CL_CPM_CHECK_2(CL_DEBUG_ERROR,
+                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                         CL_CPM_LOG_2_BM_SET_LEVEL_ERR, bootLevel, rc,
                         rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             }
@@ -1109,9 +1110,9 @@ static ClRcT cpmBmSetLevel(cpmBMT *bmTable, ClUint32T bootLevel)
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("setlevel argument and current boot level [%d] are the same.\n",
-                        cpmBmTable->currentBootLevel));
+        clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,
+                   "setlevel argument and current boot level [%d] are the same.\n",
+                    cpmBmTable->currentBootLevel);
     }
 
     return CL_OK;
@@ -1136,7 +1137,7 @@ static ClRcT cpmBmAbandonCurrentLevel(bootTableT *pDList)
     ClRcT rc = CL_OK;
     ClTimerTimeOutT timeOut = {0, 0};
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Entered function...\n"));
+    clLogTrace(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,"Entered function...\n");
 
     abandoningBootLevel = CL_TRUE;
 
@@ -1144,8 +1145,8 @@ static ClRcT cpmBmAbandonCurrentLevel(bootTableT *pDList)
 
     if (compTerminationCount != 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, 
-                ("CondWait for components response...\n"));
+        clLogTrace(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED, 
+                   "CondWait for components response...\n");
         if ((rc = clOsalCondWait(gpClCpm->bmTable->lcmCondVar, 
                         gpClCpm->bmTable->lcmCondVarMutex, timeOut)) == CL_OK)
         {
@@ -1155,7 +1156,7 @@ static ClRcT cpmBmAbandonCurrentLevel(bootTableT *pDList)
         }
         else
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CondWait failed, rc=[0x%x]\n", rc));
+            clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,"CondWait failed, rc=[0x%x]\n", rc);
             clOsalMutexUnlock(gpClCpm->bmTable->lcmCondVarMutex);
             abandoningBootLevel = CL_FALSE;
             return rc;
@@ -1163,8 +1164,8 @@ static ClRcT cpmBmAbandonCurrentLevel(bootTableT *pDList)
     }
     clOsalMutexUnlock(gpClCpm->bmTable->lcmCondVarMutex);
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, 
-            ("Returning CL_OK...\n"));
+    clLogTrace(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED, 
+               "Returning CL_OK...\n");
 
     abandoningBootLevel = CL_FALSE;
     return CL_OK;
@@ -1290,7 +1291,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
     if (cpmBmTable->lastBootStatus == CL_FALSE)
     {
         rc = CL_CPM_RC(CL_ERR_INVALID_STATE);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BM_SET_INVALID_STATE, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_SET_INVALID_STATE, rc,
                        rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 
@@ -1334,7 +1335,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
         cpmBmTable->countComponent = 0;
 
         rc = clOsalMutexLock(cpmBmTable->lcmCondVarMutex);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
         p = pDList->listHead;
@@ -1355,7 +1356,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
             if (rc != CL_OK)
             {
                 clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
-                CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_BM_SU_INST_ERR,
+                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_BM_SU_INST_ERR,
                                p->compName, rc, rc, CL_LOG_DEBUG,
                                CL_LOG_HANDLE_APP);
             }
@@ -1392,10 +1393,10 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
          */
         if (gpClCpm->cpmShutDown == CL_FALSE)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Out of TimedCondWait loop: Shutdown Flag is False"));
+            clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,"Out of TimedCondWait loop: Shutdown Flag is False");
             
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
                            rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             /*
              * Call the function to cleanup components
@@ -1415,12 +1416,12 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
             cpmBmTable->currentBootLevel = pDList->bootLevel;
 
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
                            rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
             if (cpmBmTable->countComponent == pDList->numComp)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Out of TimedCondWait loop: All SUs instantiated successfully"));
+                clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,"Out of TimedCondWait loop: All SUs instantiated successfully");
                 /*
                  * Booting up of all components in this boot level 
                  * was a success. 
@@ -1440,10 +1441,10 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
                  */
                 cpmBmTable->countComponent = 0;
                 rc = CL_CPM_RC(CL_CPM_ERR_OPERATION_FAILED);
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("Out of TimedCondWait loop: Operation on one of the Service Unit with an error %x\n",
-                                rc));
-                CL_CPM_CHECK_1(CL_DEBUG_ERROR,
+                clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,
+                           "Out of TimedCondWait loop: Operation on one of the Service Unit with an error %x\n",
+                           rc);
+                CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_1_SERVER_ERR_OPERATION_FAILED, rc, rc,
                                CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             }
@@ -1457,9 +1458,9 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
              */
             cpmBmTable->currentBootLevel = pDList->bootLevel;
 
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Out of TimedCondWait loop: CondWait failed"));
+            clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,"Out of TimedCondWait loop: CondWait failed");
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
                            rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
     }
@@ -1477,7 +1478,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
     else
     {
         rc = CL_CPM_RC(CL_CPM_ERR_OPERATION_FAILED);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BM_MAX_LEVEL_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_MAX_LEVEL_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 
@@ -1488,16 +1489,16 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
         {
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_CPM_LOG_1_EVT_CPM_OPER_ERR, rc);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("Failure in event Initialization %x\n", rc));
+            clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,
+                       "Failure in event Initialization %x\n", rc);
         }
         gpClCpm->emInitDone = 1;
 
         rc = clGmsCompUpNotify(0);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                           ("Failed to notify GMS server about event up."));
+            clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,
+                       "Failed to notify GMS server about event up.");
         }
     }
 
@@ -1594,7 +1595,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
     if (cpmBmTable->currentBootLevel == CL_CPM_BOOT_LEVEL_1)
     {
         rc = clLogLibInitialize();
-        CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "LOG",
+        CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "LOG",
                        rc, rc, CL_LOG_ERROR, CL_LOG_HANDLE_APP);
     }
     else if (cpmBmTable->currentBootLevel == CL_CPM_BOOT_LEVEL_2)
@@ -1643,7 +1644,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
     if (cpmBmTable->currentBootLevel == CL_CPM_BOOT_LEVEL_0)
     {
         rc = CL_CPM_RC(CL_ERR_INVALID_STATE);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BM_MIN_LEVEL_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_MIN_LEVEL_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 #ifdef CL_CPM_GMS
@@ -1673,9 +1674,9 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
                  */
                 if (rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                            ("CheckpointClose Failed while Booting down"
-                              "rc=[0x%x]\n",rc));
+                    clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                               "CheckpointClose Failed while Booting down"
+                               "rc=[0x%x]\n",rc);
                 }
             }
 
@@ -1684,9 +1685,9 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
                 rc = clCkptFinalize(gpClCpm->ckptHandle);
                 if (rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                            ("CheckpointFinalize failed while Booting down"
-                              "rc=[0x%x]\n",rc));
+                    clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                               "CheckpointFinalize failed while Booting down"
+                               "rc=[0x%x]\n",rc);
                 }
             }
         }
@@ -1708,7 +1709,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
         cpmBmTable->countComponent = 0;
 
         rc = clOsalMutexLock(cpmBmTable->lcmCondVarMutex);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         p = pDList->listHead;
         while (p != NULL)
@@ -1728,7 +1729,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
             if (rc != CL_OK)
             {
                 clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
-                CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_BM_SU_TERM_ERR,
+                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_BM_SU_TERM_ERR,
                                p->compName, rc, rc, CL_LOG_DEBUG,
                                CL_LOG_HANDLE_APP);
             }
@@ -1743,7 +1744,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
              timeOut) == CL_OK)
         {
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
                            rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
             if (cpmBmTable->countComponent == pDList->numComp)
@@ -1752,7 +1753,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
                  * Shutting down of all the components in this boot level 
                  * was a success.
                  */
-                CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Out of CondWait: All SUs terminated successfully"));
+                clLogInfo(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,"Out of CondWait: All SUs terminated successfully");
                 cpmBmTable->lastBootStatus = CL_TRUE;
                 cpmBmTable->countComponent = 0;
                 /*
@@ -1777,10 +1778,10 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
                  * Failure status. 
                  */
                 rc = CL_CPM_RC(CL_CPM_ERR_OPERATION_FAILED);
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("Operation on one of the Service Unit with an error %x\n",
-                                rc));
-                CL_CPM_CHECK_1(CL_DEBUG_ERROR,
+                clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                           "Operation on one of the Service Unit with an error %x\n",
+                           rc);
+                CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_1_SERVER_ERR_OPERATION_FAILED, rc, rc,
                                CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             }
@@ -1788,7 +1789,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
         else
         {
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
                            rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         }
     }
@@ -1808,7 +1809,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
     else
     {
         rc = CL_CPM_RC(CL_CPM_ERR_OPERATION_FAILED);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BM_MIN_LEVEL_ERR, rc, rc,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_MIN_LEVEL_ERR, rc, rc,
                        CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
 

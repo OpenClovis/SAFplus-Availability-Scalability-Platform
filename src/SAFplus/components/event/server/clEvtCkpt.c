@@ -29,6 +29,7 @@
 
 #include "clEventCkptIpi.h"
 #include <ipi/clHandleIpi.h>
+#include <clLogUtilApi.h>
 #ifdef CKPT_ENABLED
 
 extern ClHandleDatabaseHandleT gEvtHandleDatabaseHdl;
@@ -144,6 +145,23 @@ static ClRcT clEvtCkptSubsInfoReconstructWalk(ClCntKeyHandleT userKey,
 static ClRcT clEvtCkptSubsInfoReconstruct(ClEvtCkptSubsInfoWithLenT
                                           *pSubsInfoWithLen);
 
+#define EVENT_LOG_AREA_CKPT	"CKP"
+#define EVENT_LOG_AREA_EVENT	"EVT"
+#define EVENT_LOG_AREA_MSG	"MSG"
+#define EVENT_LOG_AREA_SEC	"SEC"
+#define EVENT_LOG_AREA_USER	"USR"
+#define EVENT_LOG_CTX_INI	"INI"
+#define EVENT_LOG_CTX_READ	"READ"
+#define EVENT_LOG_CTX_OPEN	"OPE"
+#define EVENT_LOG_CTX_DELETE	"DEL"
+#define EVENT_LOG_CTX_FINALISE	"FIN"
+#define EVENT_LOG_CTX_PACK	"PACK"
+#define EVENT_LOG_CTX_INFO	"INFO"
+#define EVENT_LOG_CTX_RECONSTRUCT "CONSTRUCT"
+#define EVENT_LOG_CTX_WALK	"WALK"
+#define EVENT_LOG_CTX_WRITE	"WRITE"
+#define EVENT_LOG_CTX_SUBSCRIBE	"SUB"
+
 
 /*
  ** Initialize the CKPT Library and Attempt recovery -
@@ -166,8 +184,8 @@ ClRcT clEvtCkptInit(void)
     rc = clEvtCkptInitialize(&isRecovery);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Library Initialize Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                   "\n CKPT Library Initialize Failed [%x]\n", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -183,8 +201,8 @@ ClRcT clEvtCkptInit(void)
         rc = clEvtCkptReconstruct();
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("Reconstruction failed [0x%x], proceeding with normal recovery", rc));
+            clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                       "Reconstruction failed [0x%x], proceeding with normal recovery", rc);
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
                        CL_EVENT_LOG_MSG_1_RECOVERY_FAILED, rc);
             /* Andrew Stone -- if the recovery fails, why give up and take this blade out of service?
@@ -207,8 +225,8 @@ ClRcT clEvtCkptInit(void)
     rc = clEvtBufferMessageInit();
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nBuffer Allocation Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_MSG,EVENT_LOG_CTX_INI,
+                   "\nBuffer Allocation Failed [%x]\n", rc);
         clEvtCkptFinalize();
         CL_FUNC_EXIT();
         return rc;
@@ -219,8 +237,8 @@ ClRcT clEvtCkptInit(void)
         rc = clEvtCkptCheckPointAll();
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                           ("Complete Checkpointing after Reconstruction failed [%#x]\n\r", rc));
+            clLogCritical(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                         "Complete Checkpointing after Reconstruction failed [%#x]\n\r", rc);
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
                        CL_EVENT_LOG_MSG_1_RECOVERY_FAILED, rc);
             clCkptLibraryFinalize(gClEvtCkptHandle);
@@ -266,8 +284,8 @@ ClRcT clEvtCkptSubsDSCreate(SaNameT *pChannelName, ClUint32T channelScope)
     rc = clCkptLibraryCkptCreate(gClEvtCkptHandle, pChannelName);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Check Point Create Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_READ,
+                   "\n CKPT Check Point Create Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_CKPT_CREATION_FAILED, rc);
         CL_FUNC_EXIT();
@@ -284,8 +302,8 @@ ClRcT clEvtCkptSubsDSCreate(SaNameT *pChannelName, ClUint32T channelScope)
                                         clEvtCkptSubsDeserializer);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Data Set Create Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_READ,
+                   "\n CKPT Data Set Create Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_CKPT_DATASET_CREATION_FAILED, rc);
         rc = clCkptLibraryCkptDataSetDelete(gClEvtCkptHandle, pChannelName,
@@ -317,8 +335,8 @@ ClRcT clEvtCkptSubsDSDelete(SaNameT *pChannelName, ClUint32T channelScope)
                                         CL_EVT_CKPT_SUBS_DSID(channelScope));
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Dataset Delete Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_DELETE,
+                   "\n CKPT Dataset Delete Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -347,9 +365,9 @@ ClRcT clEvtCkptSubsDSDelete(SaNameT *pChannelName, ClUint32T channelScope)
         rc = clCkptLibraryCkptDelete(gClEvtCkptHandle, pChannelName);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\n CKPT Check Point [%*s] Delete Failed [%x]\n",
-                            pChannelName->length, pChannelName->value, rc));
+            clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_DELETE,
+                       "\n CKPT Check Point [%*s] Delete Failed [%x]\n",
+                       pChannelName->length, pChannelName->value, rc);
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
             CL_FUNC_EXIT();
@@ -381,8 +399,8 @@ ClRcT clEvtCkptInitialize(ClBoolT * pIsRecovery)
     rc = clCkptLibraryInitialize(&gClEvtCkptHandle);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Library Initialize Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                   "\n CKPT Library Initialize Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
                    CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "Checkpoint Library",
                    rc);
@@ -399,9 +417,9 @@ ClRcT clEvtCkptInitialize(ClBoolT * pIsRecovery)
                                     pIsRecovery);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nChecking if Recovery Failed."
-                        "Assuming Normal Startup... [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                   "\nChecking if Recovery Failed."
+                   "Assuming Normal Startup... [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         *pIsRecovery = CL_FALSE;    /* Marking Normal Recovery */
@@ -413,8 +431,8 @@ ClRcT clEvtCkptInitialize(ClBoolT * pIsRecovery)
     rc = clCkptLibraryCkptCreate(gClEvtCkptHandle, &gClEvtCkptName);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Check Point Create Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                   "\n CKPT Check Point Create Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_CKPT_CREATION_FAILED, rc);
         clCkptLibraryFinalize(gClEvtCkptHandle);
@@ -429,8 +447,8 @@ ClRcT clEvtCkptInitialize(ClBoolT * pIsRecovery)
                                         clEvtCkptUserInfoDeserializer);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Data Set Create Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                   "\n CKPT Data Set Create Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_CKPT_DATASET_CREATION_FAILED, rc);
 
@@ -448,8 +466,8 @@ ClRcT clEvtCkptInitialize(ClBoolT * pIsRecovery)
                                         clEvtCkptECHDeserializer);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Data Set Create Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                   "\n CKPT Data Set Create Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_CKPT_DATASET_CREATION_FAILED, rc);
 
@@ -469,8 +487,8 @@ ClRcT clEvtCkptInitialize(ClBoolT * pIsRecovery)
                                         clEvtCkptECHDeserializer);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Data Set Create Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                   "\n CKPT Data Set Create Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_CKPT_DATASET_CREATION_FAILED, rc);
 
@@ -506,8 +524,8 @@ ClRcT clEvtBufferMessageInit(void)
     rc = clBufferCreate(&gEvtCkptUserInfoMsg);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n Buffer message create Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_MSG,EVENT_LOG_CTX_INI,
+                   "\n Buffer message create Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_CREATION_FAILED, rc);
         CL_FUNC_EXIT();
@@ -517,8 +535,8 @@ ClRcT clEvtBufferMessageInit(void)
     rc = clBufferCreate(&gEvtCkptECHMsg[CL_EVENT_LOCAL_CHANNEL]);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n Buffer message create Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_MSG,EVENT_LOG_CTX_INI,
+                   "\n Buffer message create Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_CREATION_FAILED, rc);
         clBufferDelete(&gEvtCkptUserInfoMsg);
@@ -529,8 +547,8 @@ ClRcT clEvtBufferMessageInit(void)
     rc = clBufferCreate(&gEvtCkptECHMsg[CL_EVENT_GLOBAL_CHANNEL]);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n Buffer message create Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_MSG,EVENT_LOG_CTX_INI,
+                   "\n Buffer message create Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_CREATION_FAILED, rc);
         clBufferDelete(&gEvtCkptECHMsg[CL_EVENT_LOCAL_CHANNEL]);
@@ -562,8 +580,8 @@ ClRcT clEvtCkptExit(void)
     rc = clEvtCkptFinalize();
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n Checkpoint Delete Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_DELETE,
+                   "\n Checkpoint Delete Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         /*
@@ -574,8 +592,8 @@ ClRcT clEvtCkptExit(void)
     rc = clEvtCkptMessageBufferRelease();
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Library Finalize Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_DELETE,
+                   "\n CKPT Library Finalize Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -607,8 +625,8 @@ ClRcT clEvtCkptFinalize(void)
                                         CL_EVT_CKPT_USER_DSID);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n Checkpoint Delete Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_FINALISE,
+                   "\n Checkpoint Delete Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
     }
@@ -619,8 +637,8 @@ ClRcT clEvtCkptFinalize(void)
                                         (CL_EVENT_LOCAL_CHANNEL));
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n Checkpoint Delete Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_FINALISE,
+                   "\n Checkpoint Delete Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
     }
@@ -630,8 +648,8 @@ ClRcT clEvtCkptFinalize(void)
                                         (CL_EVENT_GLOBAL_CHANNEL));
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n Checkpoint Delete Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_FINALISE,
+                   "\n Checkpoint Delete Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
     }
@@ -643,8 +661,8 @@ ClRcT clEvtCkptFinalize(void)
     rc = clCkptLibraryCkptDelete(gClEvtCkptHandle, &gClEvtCkptName);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Checkpoint Delete Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_FINALISE,
+                   "\n CKPT Checkpoint Delete Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
     }
@@ -655,8 +673,8 @@ ClRcT clEvtCkptFinalize(void)
     rc = clCkptLibraryFinalize(gClEvtCkptHandle);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n CKPT Library Finalize Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_FINALISE,
+                   "\n CKPT Library Finalize Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
     }
@@ -685,7 +703,7 @@ ClRcT clEvtCkptMessageBufferRelease(void)
     rc = clBufferDelete(&gEvtCkptUserInfoMsg);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n Msg delete Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_MSG,EVENT_LOG_CTX_DELETE,"\n Msg delete Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_DELETE_FAILED, rc);
     }
@@ -693,7 +711,7 @@ ClRcT clEvtCkptMessageBufferRelease(void)
     rc = clBufferDelete(&gEvtCkptECHMsg[CL_EVENT_LOCAL_CHANNEL]);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n Msg delete Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_MSG,EVENT_LOG_CTX_DELETE,"\n Msg delete Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_DELETE_FAILED, rc);
     }
@@ -701,7 +719,7 @@ ClRcT clEvtCkptMessageBufferRelease(void)
     rc = clBufferDelete(&gEvtCkptECHMsg[CL_EVENT_GLOBAL_CHANNEL]);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n Msg delete Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_MSG,EVENT_LOG_CTX_DELETE,"\n Msg delete Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_DELETE_FAILED, rc);
     }
@@ -742,8 +760,8 @@ ClRcT clEvtCkptUserInfoWalk(ClHandleDatabaseHandleT databaseHandle, ClHandleT ha
                                     sizeof(ClEvtCkptUserInfoT));
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nBuffer Message Write Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_MSG,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\nBuffer Message Write Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_WRITE_FAILED, rc);
         rc = clHandleCheckin(databaseHandle, handle);           
@@ -782,8 +800,8 @@ ClRcT clEvtCkptUserInfoSecPackComplete(ClUint32T dataSetID, ClAddrT *ppData,
     rc = clBufferClear(gEvtCkptUserInfoMsg);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nSet Buffer Message Write Offset Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\nSet Buffer Message Write Offset Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -794,8 +812,8 @@ ClRcT clEvtCkptUserInfoSecPackComplete(ClUint32T dataSetID, ClAddrT *ppData,
                    (void *) &evtCkptUserInfo);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nclEvtCkptUserInfoWalk Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\nclEvtCkptUserInfoWalk Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -809,8 +827,8 @@ ClRcT clEvtCkptUserInfoSecPackComplete(ClUint32T dataSetID, ClAddrT *ppData,
     rc = clBufferLengthGet(gEvtCkptUserInfoMsg, pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nGet Buffer Message Length Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_MSG,CL_LOG_CONTEXT_UNSPECIFIED,
+                    "\nGet Buffer Message Length Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -820,7 +838,7 @@ ClRcT clEvtCkptUserInfoSecPackComplete(ClUint32T dataSetID, ClAddrT *ppData,
     *ppData = clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMemory Allocation Failed\n\r\n"));
+        clLogError(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,"\nMemory Allocation Failed\n\r\n");
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CL_FUNC_EXIT();
@@ -831,7 +849,7 @@ ClRcT clEvtCkptUserInfoSecPackComplete(ClUint32T dataSetID, ClAddrT *ppData,
                                    pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMessage Read Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,"\nMessage Read Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_READ_FAILED, rc);
         clHeapFree(*ppData);
@@ -845,7 +863,7 @@ ClRcT clEvtCkptUserInfoSecPackComplete(ClUint32T dataSetID, ClAddrT *ppData,
 
         if (NULL == gEvtFp)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Failed to open the Flat file\n"));
+            clLogError(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,"Failed to open the Flat file\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         }
@@ -893,8 +911,8 @@ ClRcT clEvtCkptUserInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
                                     sizeof(ClEvtCkptUserInfoT));
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nBuffer Message Write Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                   "\nBuffer Message Write Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_WRITE_FAILED, rc);
         CL_FUNC_EXIT();
@@ -908,8 +926,8 @@ ClRcT clEvtCkptUserInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
     rc = clBufferLengthGet(gEvtCkptUserInfoMsg, pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nGet Buffer Message Length Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                   "\nGet Buffer Message Length Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -919,7 +937,7 @@ ClRcT clEvtCkptUserInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
     *ppData = clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMemory Allocation Failed\n\r\n"));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMemory Allocation Failed\n\r\n");
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CL_FUNC_EXIT();
@@ -934,8 +952,8 @@ ClRcT clEvtCkptUserInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
                                       CL_BUFFER_SEEK_SET);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nSet Message Buffer Read Offset Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                   "\nSet Message Buffer Read Offset Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         clHeapFree(*ppData);
@@ -947,7 +965,7 @@ ClRcT clEvtCkptUserInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
                                    pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMessage Read Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMessage Read Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_READ_FAILED, rc);
         clHeapFree(*ppData);
@@ -961,7 +979,7 @@ ClRcT clEvtCkptUserInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
 
         if (NULL == gEvtFp)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Failed to open the Flat file\n"));
+            clLogTrace(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"Failed to open the Flat file\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         }
@@ -993,9 +1011,9 @@ ClRcT clEvtCkptUserInfoSerializer(ClUint32T dataSetId, ClAddrT *ppData,
                                               pCookie);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nEvent CKPT UserInfo Complete Pack Failed [%x]\n",
-                            rc));
+            clLogError(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_INFO,
+                       "\nEvent CKPT UserInfo Complete Pack Failed [%x]\n",
+                       rc);
             CL_FUNC_EXIT();
             return rc;
         }
@@ -1005,9 +1023,9 @@ ClRcT clEvtCkptUserInfoSerializer(ClUint32T dataSetId, ClAddrT *ppData,
         rc = clEvtCkptUserInfoSecPackInc(dataSetId, ppData, pDataLen, pCookie);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nEvent CKPT UserInfo Incremental Pack Failed [%x]\n",
-                            rc));
+            clLogError(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_INFO,
+                       "\nEvent CKPT UserInfo Incremental Pack Failed [%x]\n",
+                       rc);
             CL_FUNC_EXIT();
             return rc;
         }
@@ -1031,8 +1049,8 @@ ClRcT clEvtCkptUserInfoWrite(ClEvtCkptUserInfoWithMutexT *pEvtUserInfoWithMutex)
                                         pEvtUserInfoWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEvent CKPT DataSet Write Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_INFO,
+                     "\nEvent CKPT DataSet Write Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -1064,8 +1082,8 @@ ClRcT clEvtCkptUserInfoDeserializer(ClUint32T dataSetId, ClAddrT pData,
 
         if (NULL == pInfo)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nMemory Allocation Failed\n\r\n"));
+            clLogError(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_INFO,
+                       "\nMemory Allocation Failed\n\r\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             CL_FUNC_EXIT();
@@ -1076,7 +1094,7 @@ ClRcT clEvtCkptUserInfoDeserializer(ClUint32T dataSetId, ClAddrT pData,
 
         if (NULL == gEvtFp)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Failed to open the Flat file\n"));
+            clLogtrace(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_INFO,"Failed to open the Flat file\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         }
@@ -1121,8 +1139,8 @@ ClRcT clEvtCkptInitializeSimulator(ClEvtCkptUserInfoWithLenT *pUserInfoWithLen)
                                            CL_EVT_CKPT_REQUEST);
             if (CL_OK != rc)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("\nInitialize via Request Failed [%x]\n", rc));
+                clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                           "\nInitialize via Request Failed [%x]\n", rc);
                 CL_FUNC_EXIT();
                 return rc;
             }
@@ -1168,8 +1186,8 @@ ClRcT clEvtCkptFinalizeSimulator(ClEvtCkptUserInfoWithLenT *pUserInfoWithLen)
                                              CL_EVT_CKPT_REQUEST);
             if (CL_OK != rc)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("\nFinalize via Request Failed [%x]\n", rc));
+                clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_FINALISE,
+                           "\nFinalize via Request Failed [%x]\n", rc);
                 CL_FUNC_EXIT();
                 return rc;
             }
@@ -1194,8 +1212,8 @@ ClRcT clEvtCkptUserInfoRead(ClEvtCkptUserInfoWithLenT *pUserInfoWithLen)
                                        pUserInfoWithLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEvent CKPT DataSet Read Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_READ,
+                   "\nEvent CKPT DataSet Read Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -1237,8 +1255,8 @@ ClRcT clEvtCkptUserofECHInfoWalk(ClCntKeyHandleT userKey,
                                     sizeof(ClEvtCkptECHInfoT));
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nBuffer Message Write Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_INFO,
+                   "\nBuffer Message Write Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_WRITE_FAILED, rc);
         CL_FUNC_EXIT();
@@ -1284,8 +1302,8 @@ ClRcT clEvtCkptECHWalk(ClCntKeyHandleT userKey, ClCntDataHandleT userData,
                    (ClCntArgHandleT) &evtCkptUserofECHInfo, 0);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nclEvtCkptUserofECHInfoWalk Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_WALK,
+                   "\nclEvtCkptUserofECHInfoWalk Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         /*
@@ -1321,8 +1339,8 @@ ClRcT clEvtCkptECHSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
     rc = clBufferClear(gEvtCkptECHMsg[pEvtECHInfoWithMutex->scope]);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nSet Buffer Message Write Offset Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                   "\nSet Buffer Message Write Offset Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -1334,7 +1352,7 @@ ClRcT clEvtCkptECHSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
                    (ClCntArgHandleT) pCookie, 0);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nclEvtCkpECHWalk Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nclEvtCkpECHWalk Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         clOsalMutexUnlock(pEvtECHInfoWithMutex->mutexId);
@@ -1351,8 +1369,8 @@ ClRcT clEvtCkptECHSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
                                   pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nSet Message Buffer Read Offset Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                   "\nSet Message Buffer Read Offset Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -1362,7 +1380,7 @@ ClRcT clEvtCkptECHSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
     *ppData = clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMemory Allocation Failed\n\r\n"));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMemory Allocation Failed\n\r\n");
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CL_FUNC_EXIT();
@@ -1373,7 +1391,7 @@ ClRcT clEvtCkptECHSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
                                    (ClUint8T *) *ppData, pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMessage Read Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMessage Read Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_READ_FAILED, rc);
         clHeapFree(*ppData);
@@ -1387,7 +1405,7 @@ ClRcT clEvtCkptECHSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
 
         if (NULL == gEvtFp)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Failed to open the Flat file\n"));
+            clLogTrace(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"Failed to open the Flat file\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         }
@@ -1454,8 +1472,8 @@ ClRcT clEvtCkptECHSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
                                     sizeof(ClEvtCkptECHInfoT));
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nBuffer Message Write Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                   "\nBuffer Message Write Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_WRITE_FAILED, rc);
         CL_FUNC_EXIT();
@@ -1470,8 +1488,8 @@ ClRcT clEvtCkptECHSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
                                   pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nGet Buffer Message Length Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                   "\nGet Buffer Message Length Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -1481,7 +1499,7 @@ ClRcT clEvtCkptECHSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
     *ppData = clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMemory Allocation Failed\n\r\n"));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMemory Allocation Failed\n\r\n");
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CL_FUNC_EXIT();
@@ -1497,8 +1515,8 @@ ClRcT clEvtCkptECHSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
                                       CL_BUFFER_SEEK_SET);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nSet Message Buffer Read Offset Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                   "\nSet Message Buffer Read Offset Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         clHeapFree(*ppData);
@@ -1510,7 +1528,7 @@ ClRcT clEvtCkptECHSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
                                    (ClUint8T *) *ppData, pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMessage Read Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMessage Read Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_READ_FAILED, rc);
         clHeapFree(*ppData);
@@ -1523,7 +1541,7 @@ ClRcT clEvtCkptECHSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
 
         if (NULL == gEvtFp)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Failed to open the Flat file\n"));
+            clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"Failed to open the Flat file\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         }
@@ -1553,9 +1571,9 @@ ClRcT clEvtCkptECHSerializer(ClUint32T dataSetId, ClAddrT *ppData,
         rc = clEvtCkptECHSecPackComplete(dataSetId, ppData, pDataLen, pCookie);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nEvent CKPT UserInfo Complete Pack Failed [%x]\n",
-                            rc));
+            clLogError(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_INFO,
+                       "\nEvent CKPT UserInfo Complete Pack Failed [%x]\n",
+                       rc);
             CL_FUNC_EXIT();
             return rc;
         }
@@ -1565,9 +1583,9 @@ ClRcT clEvtCkptECHSerializer(ClUint32T dataSetId, ClAddrT *ppData,
         rc = clEvtCkptECHSecPackInc(dataSetId, ppData, pDataLen, pCookie);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nEvent CKPT UserInfo Incremental Pack Failed [%x]\n",
-                            rc));
+            clLogError(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_INFO,
+                       "\nEvent CKPT UserInfo Incremental Pack Failed [%x]\n",
+                       rc);
             CL_FUNC_EXIT();
             return rc;
         }
@@ -1592,8 +1610,8 @@ ClRcT clEvtCkptECHInfoWrite(ClEvtCkptECHInfoWithMutexT *pEvtECHInfoWithMutex)
                                         pEvtECHInfoWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEvent CKPT Dataset Write Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INFO,
+                   "\nEvent CKPT Dataset Write Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -1625,8 +1643,8 @@ ClRcT clEvtCkptECHDeserializer(ClUint32T dataSetId, ClAddrT pData,
 
         if (NULL == pInfo)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nMemory Allocation Failed\n\r\n"));
+            clLogError(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "\nMemory Allocation Failed\n\r\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             CL_FUNC_EXIT();
@@ -1637,7 +1655,7 @@ ClRcT clEvtCkptECHDeserializer(ClUint32T dataSetId, ClAddrT pData,
 
         if (NULL == gEvtFp)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Failed to open the Flat file\n"));
+            clLogTrace(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,"Failed to open the Flat file\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         }
@@ -1687,9 +1705,9 @@ ClRcT clEvtCkptChannelOpenSimulator(ClEvtCkptECHInfoWithLenT *pECHInfoWithLen)
                                             CL_EVT_CKPT_REQUEST);
             if (CL_OK != rc)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("\nChannel Open via Request Failed [%x]\n",
-                                rc));
+                clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                           "\nChannel Open via Request Failed [%x]\n",
+                           rc);
                 CL_FUNC_EXIT();
                 return rc;
             }
@@ -1739,9 +1757,9 @@ ClRcT clEvtCkptChannelCloseSimulator(ClEvtCkptECHInfoWithLenT *pECHInfoWithLen)
                                              CL_EVT_CKPT_REQUEST);
             if (CL_OK != rc)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("\nChannel Close via Request Failed [%x]\n",
-                                rc));
+                clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                           "\nChannel Close via Request Failed [%x]\n",
+                           rc);
                 CL_FUNC_EXIT();
                 return rc;
             }
@@ -1777,12 +1795,12 @@ ClRcT clEvtCkptECHInfoRead(ClEvtCkptECHInfoWithLenT *pECHInfoWithLen)
     }
     else if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEvent CKPT ECHInfoRead Failed for %s channel %*s [%x]\n",
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_READ,
+                    "\nEvent CKPT ECHInfoRead Failed for %s channel %*s [%x]\n",
                         (pECHInfoWithLen->scope ==
                          CL_EVENT_GLOBAL_CHANNEL) ? "global" : "local",
                         pECHInfoWithLen->pECHInfo->chanName.length,
-                        pECHInfoWithLen->pECHInfo->chanName.value, rc));
+                        pECHInfoWithLen->pECHInfo->chanName.value, rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -1802,7 +1820,7 @@ ClRcT clEvtCkptChannelOpenSimulate(ClEvtCkptECHInfoWithLenT *pECHInfoWithLen)
     rc = clEvtCkptECHInfoRead(pECHInfoWithLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nECH Read Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_READ,"\nECH Read Failed [%x]\n", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -1811,8 +1829,8 @@ ClRcT clEvtCkptChannelOpenSimulate(ClEvtCkptECHInfoWithLenT *pECHInfoWithLen)
         rc = clEvtCkptChannelOpenSimulator(pECHInfoWithLen);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nChannel Open Simulation Failed [%x]\n", rc));
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "\nChannel Open Simulation Failed [%x]\n", rc);
             CL_FUNC_EXIT();
             return rc;
         }
@@ -1833,8 +1851,8 @@ ClRcT clEvtCkptChannelCloseSimulate(ClEvtCkptECHInfoWithLenT *pECHInfoWithLen)
         rc = clEvtCkptChannelCloseSimulator(pECHInfoWithLen);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nChannel Close Simulation Failed [%x]\n", rc));
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "\nChannel Close Simulation Failed [%x]\n", rc);
             CL_FUNC_EXIT();
             return rc;
         }
@@ -1878,8 +1896,8 @@ ClRcT clEvtCkptSubsInfoWalk(ClCntKeyHandleT userKey, ClCntDataHandleT userData,
                              sizeof(ClEvtCkptSubsInfoT));
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nBuffer Message Write Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_WALK,
+                   "\nBuffer Message Write Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_WRITE_FAILED, rc);
         CL_FUNC_EXIT();
@@ -1945,7 +1963,7 @@ ClRcT clEvtCkptEventInfoWalk(ClCntKeyHandleT userKey, ClCntDataHandleT userData,
                    (ClCntArgHandleT) &evtSubsInfoWithMsgHdl, 0);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nclEvtCkpECHWalk Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_WALK,"\nclEvtCkpECHWalk Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -1983,8 +2001,8 @@ ClRcT clEvtCkptSubsInfoSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
     rc = clBufferClear(subsMsgHandle);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nSet Buffer Message Write Offset Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                   "\nSet Buffer Message Write Offset Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -1995,8 +2013,8 @@ ClRcT clEvtCkptSubsInfoSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
                    clEvtCkptEventInfoWalk, (ClCntArgHandleT) pCookie, 0);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nclEvtCkptEventInfoWalk Failed [%x]\n", rc));
+         clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_PACK,
+                    "\nclEvtCkptEventInfoWalk Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -2010,8 +2028,8 @@ ClRcT clEvtCkptSubsInfoSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
     rc = clBufferLengthGet(subsMsgHandle, pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nGet Buffer Message Length Failed [%x]\n", rc));
+         clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                    "\nGet Buffer Message Length Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -2021,7 +2039,7 @@ ClRcT clEvtCkptSubsInfoSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
     *ppData = clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMemory Allocation Failed\n\r\n"));
+         clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMemory Allocation Failed\n\r\n");
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CL_FUNC_EXIT();
@@ -2032,7 +2050,7 @@ ClRcT clEvtCkptSubsInfoSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
                                    pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMessage Read Failed [%x]\n", rc));
+         clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMessage Read Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_READ_FAILED, rc);
         clHeapFree(*ppData);
@@ -2046,7 +2064,7 @@ ClRcT clEvtCkptSubsInfoSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
 
         if (NULL == gEvtFp)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Failed to open the Flat file\n"));
+            clLogTrace(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"Failed to open the Flat file\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         }
@@ -2144,8 +2162,8 @@ ClRcT clEvtCkptSubsInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
                              sizeof(ClEvtCkptSubsInfoT));
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nBuffer Message Write Failed [%x]\n", rc));
+         clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                    "\nBuffer Message Write Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_WRITE_FAILED, rc);
         CL_FUNC_EXIT();
@@ -2166,8 +2184,8 @@ ClRcT clEvtCkptSubsInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
     rc = clBufferLengthGet(subsMsgHandle, pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nGet Buffer Message Length Failed [%x]\n", rc));
+         clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                    "\nGet Buffer Message Length Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -2177,7 +2195,7 @@ ClRcT clEvtCkptSubsInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
     *ppData = clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMemory Allocation Failed\n\r\n"));
+         clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMemory Allocation Failed\n\r\n");
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CL_FUNC_EXIT();
@@ -2191,8 +2209,8 @@ ClRcT clEvtCkptSubsInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
     rc = clBufferReadOffsetSet(subsMsgHandle, 0, CL_BUFFER_SEEK_SET);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nSet Message Buffer Read Offset Failed [%x]\n", rc));
+         clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                    "\nSet Message Buffer Read Offset Failed [%x]\n", rc);
         clHeapFree(*ppData);
         CL_FUNC_EXIT();
         return rc;
@@ -2203,7 +2221,7 @@ ClRcT clEvtCkptSubsInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
                                    pDataLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nMessage Read Failed [%x]\n", rc));
+         clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMessage Read Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_LOG_MESSAGE_1_BUFFER_MSG_READ_FAILED, rc);
         clHeapFree(*ppData);
@@ -2219,7 +2237,7 @@ ClRcT clEvtCkptSubsInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
 
         if (NULL == gEvtFp)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Failed to open the Flat file\n"));
+            clLogTrace(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"Failed to open the Flat file\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         }
@@ -2250,9 +2268,9 @@ ClRcT clEvtCkptSubsSerializer(ClUint32T dataSetId, ClAddrT *ppData,
                                               pCookie);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nEvent CKPT Complete SubsInfo Pack Failed [%x]\n",
-                            rc));
+             clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_PACK,
+                        "\nEvent CKPT Complete SubsInfo Pack Failed [%x]\n",
+                        rc);
             CL_FUNC_EXIT();
             return rc;
         }
@@ -2262,9 +2280,9 @@ ClRcT clEvtCkptSubsSerializer(ClUint32T dataSetId, ClAddrT *ppData,
         rc = clEvtCkptSubsInfoSecPackInc(dataSetId, ppData, pDataLen, pCookie);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nEvent CKPT Incremental SubsInfo Pack Failed [%x]\n",
-                            rc));
+             clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,
+                        "\nEvent CKPT Incremental SubsInfo Pack Failed [%x]\n",
+                        rc);
             CL_FUNC_EXIT();
             return rc;
         }
@@ -2287,8 +2305,8 @@ ClRcT clEvtCkptSubsInfoWrite(ClEvtCkptSubsInfoWithMutexT *pEvtSubsInfoWithMutex)
     if (NULL == pEvtSubsInfoWithMutex ||
         NULL == pEvtSubsInfoWithMutex->pChanName)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nSubscription Request or Channel Name is NULL\n"));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_WRITE,
+                    "\nSubscription Request or Channel Name is NULL\n");
         CL_FUNC_EXIT();
         return CL_EVENT_ERR_NULL_PTR;
     }
@@ -2301,8 +2319,8 @@ ClRcT clEvtCkptSubsInfoWrite(ClEvtCkptSubsInfoWithMutexT *pEvtSubsInfoWithMutex)
                                         pEvtSubsInfoWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEvent CKPT Dataset Write Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_WRITE, 
+                   "\nEvent CKPT Dataset Write Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -2335,8 +2353,8 @@ ClRcT clEvtCkptSubsDeserializer(ClUint32T dataSetId, ClAddrT pData,
 
         if (NULL == pInfo)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nMemory Allocation Failed\n\r\n"));
+            clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_READ,
+                       "\nMemory Allocation Failed\n\r\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             CL_FUNC_EXIT();
@@ -2347,7 +2365,7 @@ ClRcT clEvtCkptSubsDeserializer(ClUint32T dataSetId, ClAddrT pData,
 
         if (NULL == gEvtFp)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Failed to open the Flat file\n"));
+            clLogTrace(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_WRITE,"Failed to open the Flat file\n");
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         }
@@ -2414,11 +2432,11 @@ ClRcT clEvtCkptSubsUnsubsSimulator(ClEvtCkptSubsInfoWithLenT *pSubsInfoWithLen)
             rc = clEvtEventSubscribeViaRequest(&subsReq, CL_EVT_CKPT_REQUEST);
             if (CL_OK != rc)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("\nSubscribe via Request for Channel[%*s]"
-                                "Failed [%x]\n",
-                                subsReq.evtChannelName.length,
-                                subsReq.evtChannelName.value, rc));
+                clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_SUBSCRIBE,
+                           "\nSubscribe via Request for Channel[%*s]"
+                           "Failed [%x]\n",
+                           subsReq.evtChannelName.length,
+                           subsReq.evtChannelName.value, rc);
                 CL_FUNC_EXIT();
                 return rc;
             }
@@ -2443,11 +2461,11 @@ ClRcT clEvtCkptSubsUnsubsSimulator(ClEvtCkptSubsInfoWithLenT *pSubsInfoWithLen)
             rc = clEvtEventCleanupViaRequest(&unsubsReq, CL_EVT_CKPT_REQUEST);
             if (CL_OK != rc)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("\nUnsubscribe via Request for Channel[%*s]"
-                                "Failed [%x]\n",
-                                unsubsReq.evtChannelName.length,
-                                unsubsReq.evtChannelName.value, rc));
+                clLogError(EVENT_LOG_AREA_EVENT,CL_LOG_CONTEXT_UNSPECIFIED,
+                           "\nUnsubscribe via Request for Channel[%*s]"
+                           "Failed [%x]\n",
+                           unsubsReq.evtChannelName.length,
+                           unsubsReq.evtChannelName.value, rc);
                 CL_FUNC_EXIT();
                 return rc;
             }
@@ -2498,12 +2516,12 @@ ClRcT clEvtCkptSubsInfoRead(ClEvtCkptSubsInfoWithLenT *pSubsInfoWithLen)
     }
     else if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEvent CKPT SubsInfoRead Failed for %s channel %*s [%x]\n",
-                        (pSubsInfoWithLen->scope ==
-                         CL_EVENT_GLOBAL_CHANNEL) ? "global" : "local",
-                        pSubsInfoWithLen->chanName.length,
-                        pSubsInfoWithLen->chanName.value, rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_READ,
+                   "\nEvent CKPT SubsInfoRead Failed for %s channel %*s [%x]\n",
+                   (pSubsInfoWithLen->scope ==
+                   CL_EVENT_GLOBAL_CHANNEL) ? "global" : "local",
+                   pSubsInfoWithLen->chanName.length,
+                   pSubsInfoWithLen->chanName.value, rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -2540,8 +2558,8 @@ ClRcT clEvtCkptCheckPointInitialize(ClEvtInitRequestT *pEvtInitReq)
     rc = clEvtCkptUserInfoWrite(&userInfoWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Check Pointing Initialize Failed [%x]", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                   "Check Pointing Initialize Failed [%x]", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2591,8 +2609,8 @@ ClRcT clEvtCkptCheckPointFinalize(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq)
     rc = clEvtCkptUserInfoWrite(&userInfoWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Check Pointing Finalize Failed [%x]", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_FINALISE,
+                   "Check Pointing Finalize Failed [%x]", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2631,8 +2649,8 @@ ClRcT clEvtCkptCheckPointChannelOpen(ClEvtChannelOpenRequestT
     rc = clEvtCkptECHInfoWrite(&echWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEvent CKPT ECHWrite Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_WRITE,
+                   "\nEvent CKPT ECHWrite Failed [%x]\n", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2687,8 +2705,8 @@ ClRcT clEvtCkptCheckPointChannelClose(ClEvtUnsubscribeEventRequestT
     rc = clEvtCkptECHInfoWrite(&echWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Check Pointing Channel Close Failed [%x]", rc));
+       clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_WRITE,
+                  "Check Pointing Channel Close Failed [%x]", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2721,8 +2739,8 @@ ClRcT clEvtCkptCheckPointSubscribe(ClEvtSubscribeEventRequestT *pEvtSubsReq,
     rc = clEvtCkptSubsInfoWrite(&subsInfoWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Check Pointing Subscription Failed [%x]", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_SUBSCRIBE,
+                   "Check Pointing Subscription Failed [%x]", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2795,8 +2813,8 @@ ClRcT clEvtCkptCheckPointUnsubscribe(ClEvtUnsubscribeEventRequestT
     rc = clEvtCkptSubsInfoWrite(&subsInfoWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Check Pointing Unsubscription Failed [%x]", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Check Pointing Unsubscription Failed [%x]", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2827,8 +2845,8 @@ ClRcT clEvtCkptUserInfoCheckPoint(void)
     rc = clEvtCkptUserInfoWrite(&userInfo);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nCheck Pointing User Info Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INFO,
+                   "\nCheck Pointing User Info Failed [%x]\n", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2861,8 +2879,8 @@ ClRcT clEvtCkptECHInfoCheckPoint(void)
     rc = clEvtCkptECHInfoWrite(&echInfoWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nCheck Pointing Local ECH Info Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INFO,
+                   "\nCheck Pointing Local ECH Info Failed [%x]\n", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2878,8 +2896,8 @@ ClRcT clEvtCkptECHInfoCheckPoint(void)
     rc = clEvtCkptECHInfoWrite(&echInfoWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nCheck Pointing Global ECH Info Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INFO,
+                   "\nCheck Pointing Global ECH Info Failed [%x]\n", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2923,9 +2941,9 @@ ClRcT clEvtCkptSubsInfoCheckPointWalk(ClCntKeyHandleT userKey,
     rc = clEvtCkptSubsInfoWrite(pSubsInfoWithMutex);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nEvent CKPT Subcription Info Write Failed [%x]\n",
-                        rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_WALK,
+                   "\nEvent CKPT Subcription Info Write Failed [%x]\n",
+                   rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2964,9 +2982,9 @@ ClRcT clEvtCkptSubsInfoCheckPoint(void)
 
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nLocal clEvtCkptSubsInfoCheckPointWalk Failed [%x]\n",
-                        rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_WALK,
+                   "\nLocal clEvtCkptSubsInfoCheckPointWalk Failed [%x]\n",
+                   rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -2984,9 +3002,9 @@ ClRcT clEvtCkptSubsInfoCheckPoint(void)
 
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nGlobal clEvtCkptSubsInfoCheckPointWalk Failed [%x]\n",
-                        rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_WALK,
+                   "\nGlobal clEvtCkptSubsInfoCheckPointWalk Failed [%x]\n",
+                   rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -3006,8 +3024,8 @@ ClRcT clEvtCkptCheckPointAll(void)
     rc = clEvtCkptUserInfoCheckPoint();
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nCheck Pointing User Info Write Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_INFO,
+                   "\nCheck Pointing User Info Write Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -3017,8 +3035,8 @@ ClRcT clEvtCkptCheckPointAll(void)
     rc = clEvtCkptECHInfoCheckPoint();
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nCheck Pointing ECH Info Write Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\nCheck Pointing ECH Info Write Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -3028,9 +3046,9 @@ ClRcT clEvtCkptCheckPointAll(void)
     rc = clEvtCkptSubsInfoCheckPoint();
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nCheck Pointing Subscription Info Write Failed [%x]\n",
-                        rc));
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_WRITE,
+                   "\nCheck Pointing Subscription Info Write Failed [%x]\n",
+                    rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -3091,9 +3109,9 @@ ClRcT clEvtCkptSubsInfoReconstruct(ClEvtCkptSubsInfoWithLenT *pSubsInfoWithLen)
                    (ClCntArgHandleT) pSubsInfoWithLen, 0);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nLocal clEvtCkptSubsInfoReconstructWalk Failed [%x]\n",
-                        rc));
+        clLogError(EVENT_LOG_CTX_SUBSCRIBE,EVENT_LOG_CTX_RECONSTRUCT,
+                   "\nLocal clEvtCkptSubsInfoReconstructWalk Failed [%x]\n",
+                   rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -3112,9 +3130,9 @@ ClRcT clEvtCkptSubsInfoReconstruct(ClEvtCkptSubsInfoWithLenT *pSubsInfoWithLen)
                    (ClCntArgHandleT) pSubsInfoWithLen, 0);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nGlobal clEvtCkptSubsInfoReconstructWalk Failed [%x]\n",
-                        rc));
+        clLogError(EVENT_LOG_CTX_SUBSCRIBE,EVENT_LOG_CTX_RECONSTRUCT,
+                   "\nGlobal clEvtCkptSubsInfoReconstructWalk Failed [%x]\n",
+                   rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -3150,7 +3168,7 @@ ClRcT clEvtCkptReconstruct(void)
     rc = clEvtCkptUserInfoRead(&userInfoWithLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nUser Info Read Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_USER,EVENT_LOG_CTX_INFO,"\nUser Info Read Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -3158,19 +3176,19 @@ ClRcT clEvtCkptReconstruct(void)
     }
     else if (0 == userInfoWithLen.userInfoLen)
     {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Checkpoint reconstruction failed, user info length is 0"));
+      clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_RECONSTRUCT,"Checkpoint reconstruction failed, user info length is 0");
     }
     else if (userInfoWithLen.pUserInfo->userId.evtHandle == CL_HANDLE_INVALID_VALUE) 
     {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Checkpoint reconstruction failed, handle is invalid"));
+      clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_RECONSTRUCT,"Checkpoint reconstruction failed, handle is invalid");
     }
     else
       {
         rc = clEvtCkptInitializeSimulator(&userInfoWithLen);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nInitialize Simulation Failed [%x]\n", rc));
+            clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI,
+                       "\nInitialize Simulation Failed [%x]\n", rc);
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                        CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
             CL_FUNC_EXIT();
@@ -3186,8 +3204,8 @@ ClRcT clEvtCkptReconstruct(void)
     rc = clEvtCkptChannelOpenSimulate(&echInfoWithLen[CL_EVENT_LOCAL_CHANNEL]);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n Local Channel Open Simulate Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_OPEN,
+                   "\n Local Channel Open Simulate Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -3198,8 +3216,8 @@ ClRcT clEvtCkptReconstruct(void)
     rc = clEvtCkptChannelOpenSimulate(&echInfoWithLen[CL_EVENT_GLOBAL_CHANNEL]);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n Global Channel Open Simulate Failed [%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_OPEN,
+                   "\n Global Channel Open Simulate Failed [%x]\n", rc);
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         CL_FUNC_EXIT();
@@ -3212,9 +3230,9 @@ ClRcT clEvtCkptReconstruct(void)
     rc = clEvtCkptSubsInfoReconstruct(&subsInfoWithLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nReconstructing Subcription Info Write Failed [%x]\n",
-                        rc));
+        clLogError(EVENT_LOG_CTX_SUBSCRIBE,EVENT_LOG_CTX_RECONSTRUCT,
+                   "\nReconstructing Subcription Info Write Failed [%x]\n",
+                   rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -3225,8 +3243,8 @@ ClRcT clEvtCkptReconstruct(void)
     rc = clEvtCkptChannelCloseSimulate(&echInfoWithLen[CL_EVENT_LOCAL_CHANNEL]);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n Local Channel Close Simulate Failed [%x]\n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n Local Channel Close Simulate Failed [%x]\n", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -3235,8 +3253,8 @@ ClRcT clEvtCkptReconstruct(void)
                                        [CL_EVENT_GLOBAL_CHANNEL]);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n Global Channel Close Simulate Failed [%x]\n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\n Global Channel Close Simulate Failed [%x]\n", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -3251,8 +3269,8 @@ ClRcT clEvtCkptReconstruct(void)
         rc = clEvtCkptFinalizeSimulator(&userInfoWithLen);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nFinalize Simulation Failed [%x]\n", rc));
+            clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_FINALISE,
+                       "\nFinalize Simulation Failed [%x]\n", rc);
             CL_FUNC_EXIT();
             return rc;
         }

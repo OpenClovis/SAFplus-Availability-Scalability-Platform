@@ -46,6 +46,7 @@
 #include "clEvtCliCommon.h"
 
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 /*
  * #include "commonMetaStruct.h" #include "compMgrClientCompId.h"
  */
@@ -60,6 +61,18 @@
  */
 #include "clEventServerIpi.h"
 #define CL_EVT_SHOW_ALL_STRING "-a"
+
+#define EVENT_LOG_AREA_EVENT	"EVT"
+#define EVENT_LOG_AREA_ECH	"ECH"
+#define EVENT_LOG_AREA_CKPT	"CKP"
+#define EVENT_LOG_CTX_REGISTER	"REG"
+#define EVENT_LOG_CTX_SUBSCRIBE	"SUB"
+#define EVENT_LOG_CTX_PUBLISH	"PUB"
+#define EVENT_LOG_CTX_UNSUBSCRIBE	"UNSUB"
+#define EVENT_LOG_CTX_READ	"READ"
+#define EVENT_LOG_CTX_INI	"INI"
+#define EVENT_LOG_CTX_OPEN	"OPE"
+#define EVENT_LOG_CTX_FINALISE	"FIN"
 
 typedef struct EvtTestDisplayInfo
 {
@@ -205,7 +218,7 @@ ClRcT clEventDebugRegister(ClEoExecutionObjT *pEoObj)
     rc = clDebugPromptSet("EVENT");
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clDebugPromptSet(): rc[0x %x]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_REGISTER,"clDebugPromptSet(): rc[0x %x]", rc);
         return rc;
     }
     return clDebugRegister(gClEventCliTab,
@@ -318,7 +331,7 @@ void clEvtCliStrPrint(char *str, char **retStr)
     *retStr = clHeapAllocate(strlen(str) + 1);
     if (NULL == *retStr)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Malloc Failed \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Malloc Failed \n");
         return;
     }
     sprintf(*retStr, str);
@@ -374,8 +387,8 @@ static ClRcT cliEvtCkptAll(int argc, char **argv, char **retStr)
     }
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Checkpointing Failed, rc = [0x%x]\n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Checkpointing Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Checkpointing Failed, rc = [0x%X]\n", rc);
@@ -433,8 +446,8 @@ static ClRcT cliEvtCkptUserInfoRead(void)
     rc = clEvtCkptUserInfoRead(&userInfoWithLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nUser Info Read Failed [0x%X]\n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\nUser Info Read Failed [0x%X]\n", rc);
     }
     else if (CL_OK == rc && 0 != userInfoWithLen.userInfoLen)
     {
@@ -496,8 +509,8 @@ static ClRcT cliEvtCkptECHInfoRead(ClUint32T channelScope)
     rc = clEvtCkptECHInfoRead(&echInfoWithLen);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nCKPT Local ECH Read Failed [0x%X]\n", rc));
+        clLogError(EVENT_LOG_AREA_ECH,EVENT_LOG_CTX_READ,
+                   "\nCKPT Local ECH Read Failed [0x%X]\n", rc);
     }
     else if (0 != echInfoWithLen.echInfoLen)
     {
@@ -572,8 +585,8 @@ static void cliEvtCkptSubsInfoShow(ClEvtCkptSubsInfoWithLenT *pSubsInfoWithLen)
                                   &pRbeExpr);
             if (CL_OK != rc)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("\nRBE Expression Unpack Failed [0x%X]\n", rc));
+                clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                           "\nRBE Expression Unpack Failed [0x%X]\n", rc);
                 /*
                  ** If not successful continue the Reconstruction
                  ** and log a message at debug level.
@@ -650,8 +663,8 @@ static ClRcT cliEvtCkptSubsInfoRead(ClUint32T channelScope)
                    (ClCntArgHandleT) &subsInfoWithLen, 0);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\ncliEvtCkptSubsInfoReadWalk Failed [0x%X]\n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\ncliEvtCkptSubsInfoReadWalk Failed [0x%X]\n", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -737,8 +750,8 @@ static ClRcT cliEvtCkptShow(int argc, char **argv, char **retStr)
     }
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Show Checkpoints Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED, 
+                   "Show Checkpoints Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Show Checkpoints Failed, rc = [0x%X]\n", rc);
@@ -765,8 +778,8 @@ static ClRcT cliEvtCkptRecover(int argc, char **argv, char **retStr)
     rc = clEvtCkptReconstruct();
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Recovery Simulation Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Recovery Simulation Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Recovery Simulation Failed, rc = [0x%X]\n", rc);
@@ -796,8 +809,8 @@ ClRcT cliEvtInit(int argc, char **argv, char **retStr)
     rc = clEventInitialize(&gEvtHandle, &gEvtCallbacks, &version);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Initialize Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_INI,
+                   "Initialize Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Initialize Failed, rc = [0x%X]\n", rc);
@@ -834,7 +847,7 @@ ClRcT cliEvtFinalize(int argc, char **argv, char **retStr)
     rc = clEventFinalize(gEvtHandle);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Finalize Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_FINALISE,"Finalize Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Finalize Failed, rc = [0x%X]\n", rc);
@@ -909,8 +922,8 @@ ClRcT cliEvtChannelOpen(int argc, char **argv, char **retStr)
                             1000 * 5, &gEvtChannelHandle);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Channel Open Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_ECH,EVENT_LOG_CTX_OPEN,
+                   "Channel Open Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Channel Open Failed, rc = [0x%X]\n", rc);
@@ -1034,8 +1047,8 @@ ClRcT cliEvtChannelClose(int argc, char **argv, char **retStr)
     rc = clEventChannelClose(channelHandle);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Channel Close Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_ECH,EVENT_LOG_CTX_FINALISE,
+                   "Channel Close Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Channel Close Failed, rc = [0x%X]\n", rc);
@@ -1081,8 +1094,8 @@ ClRcT cliEvtEventSubscribe(int argc, char **argv, char **retStr)
                           evtTestSubsReq.subscriptionId, (ClPtrT)(ClWordT)gEvtHandle);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Subscription Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_SUBSCRIBE,
+                   "Subscription Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Subscription Failed, rc = [0x%X]\n", rc);
@@ -1133,8 +1146,8 @@ ClRcT cliEvtEventExtSubscribe(int argc, char **argv, char **retStr)
                              (ClPtrT)(ClWordT)gEvtHandle);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Subscription Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_SUBSCRIBE,
+                   "Subscription Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Subscription Failed, rc = [0x%X]\n", rc);
@@ -1194,8 +1207,8 @@ ClRcT cliEvtEventStrSubscribe(int argc, char **argv, char **retStr)
                           evtTestSubsReq.subscriptionId, (ClPtrT)(ClWordT)gEvtHandle);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Subscription Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_SUBSCRIBE,
+                   "Subscription Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Subscription Failed, rc = [0x%X]\n", rc);
@@ -1239,8 +1252,8 @@ ClRcT cliEvtEventUnsubscribe(int argc, char **argv, char **retStr)
                             evtTestUnsubsReq.subscriptionId);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Unsubscription Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_UNSUBSCRIBE,
+                   "Unsubscription Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Unsubscription Failed, rc = [0x%X]\n", rc);
@@ -1292,7 +1305,7 @@ ClRcT cliEvtEventPublish(int argc, char **argv, char **retStr)
                         sizeof(ClUint32T) * 2, &eventId);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Publish Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_PUBLISH,"Publish Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Publish Failed, rc = [0x%X]\n", rc);
@@ -1349,7 +1362,7 @@ ClRcT cliEvtEventExtPublish(int argc, char **argv, char **retStr)
                         sizeof(ClUint32T) * 2, &eventId);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Publish Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_PUBLISH,"Publish Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Publish Failed, rc = [0x%X]\n", rc);
@@ -1413,7 +1426,7 @@ static ClRcT cliEvtEventStrPublish(int argc, char **argv, char **retStr)
                         sizeof(ClUint32T) * 2, &eventId);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Publish Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_PUBLISH,"Publish Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Publish Failed, rc = [0x%X]\n", rc);
@@ -1603,8 +1616,8 @@ ClRcT cliEvtSubsInfoShowLocal(ClEvtTestDisplayInfoT * pDisplayInfo)
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         clOsalMutexUnlock(mutexId);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Failed to walk channel info [0x%X]", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,CL_LOG_AREA_UNSPECIFIED,
+                   "Failed to walk channel info [0x%X]", rc);
         CL_FUNC_EXIT();
         return CL_EVENT_ERR_INTERNAL;
     }
@@ -1671,7 +1684,7 @@ ClRcT cliEvtShow(int argc, char **argv, char **retStr)
     rc = cliEvtSubsInfoShowLocal(&displayInfo);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Display Failed, rc = [0x%x]\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,CL_LOG_CONTEXT_UNSPECIFIED,"Display Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Display Failed, rc = [0x%X]\n", rc);

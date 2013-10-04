@@ -140,7 +140,7 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
                 clLogInfo("IOC", "MASTER", "Setting node [%d] as master for comp [%d].", node, portId);
                 break;
             }
-            CL_DEBUG_PRINT(CL_DEBUG_WARN,("Cannot get IOC master, return code [0x%x]",rc));
+            clLogWarning("IOC","MASTER","Cannot get IOC master, return code [0x%x]",rc);
 
             clOsalTaskDelay(delay);
         } while(--retryCnt > 0);

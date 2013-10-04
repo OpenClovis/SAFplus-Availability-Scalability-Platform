@@ -4,6 +4,9 @@
 #include <clCpmLog.h>
 #include "xdrClCpmLocalInfoT.h"
 
+#define CPM_LOG_AREA_DB		"DB"
+#define CPM_LOG_CTX_DB_XML	"XML"
+
 ClCpmT *gpClCpm = NULL;
 
 ClRcT cpmInvocationDeleteInvocation(ClInvocationT invocationId)
@@ -59,7 +62,7 @@ ClRcT cpmInvocationClearCompInvocation(SaNameT *compName)
      */
     if (!compName)
     {
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid parameter passed \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid parameter passed \n"),
                      CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
@@ -139,7 +142,7 @@ ClRcT cpmInvocationGetWithLock(ClInvocationT invocationId,
      * Check the input parameter 
      */
     if ((data == NULL) || (cbType == NULL))
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid parameter passed \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid parameter passed \n"),
                      CL_CPM_RC(CL_ERR_NULL_POINTER));
 
     rc = clCntNodeFind(gpClCpm->invocationTable,
@@ -182,13 +185,13 @@ ClRcT cpmInvocationAdd(ClUint32T cbType,
     ClUint32T invocationKey = 0;
 
     if (cbType < 0x1LL || cbType >= CL_CPM_MAX_CALLBACK || invocationId == NULL)
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid parameter passed \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid parameter passed \n"),
                      CL_CPM_RC(CL_ERR_INVALID_PARAMETER));
 
     temp =
             (ClCpmInvocationT *) clHeapAllocate(sizeof(ClCpmInvocationT));
     if (temp == NULL)
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to allocate memory \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"),
                      CL_CPM_RC(CL_ERR_NO_MEMORY));
 
     clOsalMutexLock(gpClCpm->invocationMutex);
@@ -234,12 +237,12 @@ ClRcT cpmInvocationAddKey(ClUint32T cbType,
     ClUint32T invocationKey = 0;
 
     if (cbType < 0x1LL || cbType >= CL_CPM_MAX_CALLBACK)
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid parameter passed \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid parameter passed \n"),
                      CL_CPM_RC(CL_ERR_INVALID_PARAMETER));
     temp =
         (ClCpmInvocationT *) clHeapAllocate(sizeof(ClCpmInvocationT));
     if (temp == NULL)
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to allocate memory \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"),
                      CL_CPM_RC(CL_ERR_NO_MEMORY));
 
     clOsalMutexLock(gpClCpm->invocationMutex);
@@ -298,23 +301,23 @@ ClRcT cpmNodeFindLocked(SaUint8T *name, ClCpmLT **cpmL)
     ClUint32T rc = CL_OK, numNode=0;
 
     rc = clCksm16bitCompute((ClUint8T *) name, strlen((const ClCharT*)name), &nodeKey);
-    CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_CKSM_ERR, name, rc, rc,
+    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_CKSM_ERR, name, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clCntNodeFind(gpClCpm->cpmTable, (ClPtrT)(ClWordT)nodeKey, &hNode);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR, "node",
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR, "node",
                    name, rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clCntKeySizeGet(gpClCpm->cpmTable, (ClPtrT)(ClWordT)nodeKey,
                          &numNode);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_CNT_KEY_SIZE_GET_ERR, rc, rc,
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_KEY_SIZE_GET_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     while (numNode > 0)
     {
         rc = clCntNodeUserDataGet(gpClCpm->cpmTable, hNode,
                                   (ClCntDataHandleT *) &tempNode);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR,
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR,
                        rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
         if (!strcmp(tempNode->nodeName, (const ClCharT*)name))
         {
@@ -332,7 +335,7 @@ ClRcT cpmNodeFindLocked(SaUint8T *name, ClCpmLT **cpmL)
     }
 
     rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
-    CL_CPM_CHECK_3(CL_DEBUG_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
+    CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
                    "node", name, rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
 done:
@@ -366,14 +369,14 @@ ClUint32T cpmNodeFindByNodeId(ClUint32T nodeId, ClCpmLT **cpmL)
     if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL && cpmLCount != 0)
     {
         rc = clCntFirstNodeGet(gpClCpm->cpmTable, &cpmNode);
-        CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
+        CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
                        "CPM-L", rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
         while (cpmLCount)
         {
             rc = clCntNodeUserDataGet(gpClCpm->cpmTable, cpmNode,
                                       (ClCntDataHandleT *) &tempCpmL);
-            CL_CPM_CHECK_1(CL_DEBUG_ERROR,
+            CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                            CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc, rc,
                            CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
@@ -391,7 +394,7 @@ ClUint32T cpmNodeFindByNodeId(ClUint32T nodeId, ClCpmLT **cpmL)
             if (cpmLCount)
             {
                 rc = clCntNextNodeGet(gpClCpm->cpmTable, cpmNode, &cpmNode);
-                CL_CPM_CHECK_2(CL_DEBUG_ERROR,
+                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, "CPM-L", rc,
                                rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
             }
@@ -426,7 +429,7 @@ ClRcT cpmPrintDBXML(FILE *fp)
         rc = clCntFirstNodeGet(gpClCpm->cpmTable, &cpmNode);
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, (CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR, "CPM-L", rc));
+            clLogError(CPM_LOG_AREA_DB,CPM_LOG_CTX_DB_XML,CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR, "CPM-L", rc);
             clLogWrite((CL_LOG_HANDLE_APP), (CL_LOG_DEBUG), NULL, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR, ("CPM-L"), (rc));
             goto out_unlock;
         }
@@ -438,7 +441,7 @@ ClRcT cpmPrintDBXML(FILE *fp)
 
             if(rc != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, (CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc));
+                clLogError(CPM_LOG_AREA_DB,CPM_LOG_CTX_DB_XML,CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc);
                 clLogWrite((CL_LOG_HANDLE_APP), (CL_LOG_DEBUG), NULL, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc);
                 goto out_unlock;
             }
@@ -466,7 +469,7 @@ ClRcT cpmPrintDBXML(FILE *fp)
                 rc = clCntNextNodeGet(gpClCpm->cpmTable, cpmNode, &cpmNode);
                 if(rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR, (CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, "CPM-L", rc));
+                    clLogError(CPM_LOG_AREA_DB,CPM_LOG_CTX_DB_XML,CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, "CPM-L", rc);
                     clLogWrite((CL_LOG_HANDLE_APP), (CL_LOG_DEBUG), NULL, CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, ("CPM-L"), (rc));
                     goto out_unlock;
                 }

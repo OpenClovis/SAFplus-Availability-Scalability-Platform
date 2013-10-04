@@ -31,7 +31,11 @@
 #include <clOsalApi.h>
 #include <clIdlApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 
+#define IDL_LOG_AREA_IDL	"IDL"
+#define IDL_LOG_CTX_IDL_INIT	"INI"
+#define	IDL_LOG_CTX_IDL_FINAL	"FIN"
 /*Supporetd version*/
 static ClVersionT clVersionSupported[]={
 {'B',0x01 , 0x01}
@@ -66,8 +70,8 @@ ClRcT clIdlHandleInitialize(
         rc = clOsalMutexInit(&idlMutex);
         if( CL_OK != rc )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("clOsalMutexCreate(): rc[0x %x]", rc));
+            clLogError(IDL_LOG_AREA_IDL,IDL_LOG_CTX_IDL_INIT,
+                       "clOsalMutexCreate(): rc[0x %x]", rc);
             return rc;
         }    
         idlInit = CL_TRUE;
@@ -75,8 +79,8 @@ ClRcT clIdlHandleInitialize(
     rc = clOsalMutexLock(&idlMutex);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clOsalMutexLock(&): rc[0x %x]", rc));
+        clLogError(IDL_LOG_AREA_IDL,IDL_LOG_CTX_IDL_INIT,
+                   "clOsalMutexLock(&): rc[0x %x]", rc);
         return rc;
     }        
     if( 0 == gIdlClnt.idlDbHdl)
@@ -207,15 +211,15 @@ ClRcT clIdlHandleFinalize(ClIdlHandleT handle)
    rc = clOsalMutexLock(&idlMutex);
    if( CL_OK != rc )
    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clOsalMutexLock(&): rc[0x %x]", rc));
+        clLogError(IDL_LOG_AREA_IDL,IDL_LOG_CTX_IDL_FINAL,
+                   "clOsalMutexLock(&): rc[0x %x]", rc);
         return rc;
    }        
    rc = clHandleDestroy(gIdlClnt.idlDbHdl,handle);
    if(rc != CL_OK)
    {    
-       CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleDestroy(): rc[0x %x]", rc));
+       clLogError(IDL_LOG_AREA_IDL,IDL_LOG_CTX_IDL_FINAL,
+                  "clHandleDestroy(): rc[0x %x]", rc);
        clOsalMutexUnlock(&idlMutex);
        return CL_IDL_RC(rc);
    }    

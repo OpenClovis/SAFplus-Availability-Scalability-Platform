@@ -35,6 +35,7 @@
 #include <string.h>
 #include <clOsalApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clCommonErrors.h>
 #include <clHalInternal.h>
 
@@ -55,7 +56,7 @@ ClRcT clHalLibInitialize()
     CL_FUNC_ENTER();
     if (CL_TRUE == halInitDone)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n clHalLibInitialize Called Again \n"));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n clHalLibInitialize Called Again \n");
         CL_FUNC_EXIT();
         return (CL_HAL_SET_RC(CL_ERR_INVALID_STATE));
     }
@@ -63,7 +64,7 @@ ClRcT clHalLibInitialize()
     rc= dbgAddComponent(COMP_PREFIX, COMP_NAME, COMP_DEBUG_VAR_PTR);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("dbgAddComponent Failed \n "));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"dbgAddComponent Failed \n ");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -76,7 +77,7 @@ ClRcT clHalLibInitialize()
 
     if (NULL == halDevObjTable.pphalDeviceObj)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n clHalLibInitialize Error no memory HAL\n"));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n clHalLibInitialize Error no memory HAL\n");
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NO_MEMORY));
     }
@@ -90,11 +91,11 @@ ClRcT clHalLibInitialize()
     rc = halDevObjTableCreate ();
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_CRITICAL, ("\n halDevObjTableCreate  Failed"));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n halDevObjTableCreate  Failed");
         CL_FUNC_EXIT();
         return rc ;
     }
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\nclHalLibInitialize CL_OK\n"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nclHalLibInitialize CL_OK\n");
     CL_FUNC_EXIT();
     return (CL_OK) ;
 }
@@ -113,29 +114,29 @@ ClRcT halDevObjCreate (ClUint32T deviceID,
     
     if(deviceID<=0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\nhalDevObjCreate Error Invalid DeviceId\n"));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nhalDevObjCreate Error Invalid DeviceId\n");
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC( CL_ERR_INVALID_PARAMETER)) ;
     }
 
     if(NULL ==phalDevObj) 
     { 
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n halDevObjCreate Error NULL for Device \
-        Object Handle\n")) ;
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n halDevObjCreate Error NULL for Device \
+                      Object Handle\n") ;
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
 
     if(devCapLen == 0 || NULL == pdevCapability)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\nhalDevObjCreate Error Dev Capability\n")) ;
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nhalDevObjCreate Error Dev Capability\n");
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC( CL_ERR_NULL_POINTER));
     }
 
     if ((NULL == halDevObjTable.pphalDeviceObj))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n halDevObjCreate Error NULL PTR\n")) ;
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n halDevObjCreate Error NULL PTR\n") ;
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -153,9 +154,9 @@ ClRcT halDevObjCreate (ClUint32T deviceID,
     /* Check for out of bound checking for nextIndex */
     if (halDevObjTable.nextIndex>= halConfig.halNumDevObject)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n Error All device Objects Created, cannot \
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n Error All device Objects Created, cannot \
         create any more, modify the halConf.c file to create more device \
-        Objects \n")) ;
+        Objects \n") ;
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_OUT_OF_RANGE));
     }
@@ -168,8 +169,8 @@ ClRcT halDevObjCreate (ClUint32T deviceID,
            (bootUpPriority== 
             halDevObjTable.pphalDeviceObj[index]->bootUpPriority))
           {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\nhalDevObjCreate Error deviceID or \
-            bootUpPriority already exist \n")) ;
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nhalDevObjCreate Error deviceID or \
+            bootUpPriority already exist \n") ;
             CL_FUNC_EXIT();
             return(CL_HAL_SET_RC( CL_ERR_DUPLICATE));
           }
@@ -181,7 +182,7 @@ ClRcT halDevObjCreate (ClUint32T deviceID,
 
     if (NULL ==halDevObjTable.pphalDeviceObj[halDevObjTable.nextIndex])
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n halDevObjCreate Error no memory \n"));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n halDevObjCreate Error no memory \n");
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NO_MEMORY));
     }
@@ -197,7 +198,7 @@ ClRcT halDevObjCreate (ClUint32T deviceID,
         if (NULL== halDevObjTable.pphalDeviceObj[halDevObjTable.nextIndex]->
         pdevCapability)
         {
-         CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n halDevObjCreate Error no memory \n"));
+         clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n halDevObjCreate Error no memory \n");
          CL_FUNC_EXIT();
          return(CL_HAL_SET_RC( CL_ERR_NO_MEMORY));
         }
@@ -220,7 +221,7 @@ ClRcT halDevObjCreate (ClUint32T deviceID,
     if (NULL == halDevObjTable.pphalDeviceObj[halDevObjTable.nextIndex]->
         pdevOperations)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n halDevObjCreate Error no memory \n"));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n halDevObjCreate Error no memory \n");
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC( CL_ERR_NO_MEMORY));
     }
@@ -251,7 +252,7 @@ ClRcT halDevObjCreate (ClUint32T deviceID,
     halDevObjTable.nextIndex ++ ; 
 
     CL_FUNC_EXIT();
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n halDevObjCreate CL_OK\n"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n halDevObjCreate CL_OK\n");
     return (CL_OK) ;
     
 }
@@ -275,15 +276,15 @@ ClRcT halDevObjHandlerRegister(ClHalDeviceObjectH hDevObj,
         (NULL == halDevObjTable.pphalDeviceObj[hDevObj])||
         (NULL == halDevObjTable.pphalDeviceObj[hDevObj]->pdevOperations))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
     
     if (operation >= halConfig.halDevNumOperations)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error operation=%d is invalid \n",\
-        aFunction,operation)) ;
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error operation=%d is invalid \n",\
+        aFunction,operation);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER));
     }
@@ -295,7 +296,7 @@ ClRcT halDevObjHandlerRegister(ClHalDeviceObjectH hDevObj,
     halDevObjTable.pphalDeviceObj[hDevObj]->pdevOperations[operation]
     =fpOperation;
     
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK\n",aFunction));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK\n",aFunction);
     CL_FUNC_EXIT();
     return (CL_OK) ;
 }
@@ -313,7 +314,7 @@ ClRcT halDevObjCreateHandlersReg(ClHalDevObjectT * phalDevObject,
     
     if ((NULL == phalDevObject) ||(NULL==phalDevObjHandle))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error Invalid Parameters",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error Invalid Parameters",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC( CL_ERR_NULL_POINTER));
     }
@@ -327,8 +328,8 @@ ClRcT halDevObjCreateHandlersReg(ClHalDevObjectT * phalDevObject,
 
     if ((CL_OK)!=ret)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error returned by halDevObjCreate ", \
-        aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error returned by halDevObjCreate ", \
+        aFunction);
         CL_FUNC_EXIT();
         return(ret) ;
     }
@@ -338,7 +339,7 @@ ClRcT halDevObjCreateHandlersReg(ClHalDevObjectT * phalDevObject,
         (NULL ==halDevObjTable.pphalDeviceObj[*phalDevObjHandle]->
          pdevOperations))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
      }
@@ -349,7 +350,7 @@ ClRcT halDevObjCreateHandlersReg(ClHalDevObjectT * phalDevObject,
         = phalDevObject->pDevOperations[index];
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK\n",aFunction));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK\n",aFunction);
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -367,22 +368,22 @@ ClRcT halDevObjHandleGet(ClUint32T deviceID,
     
     if ((deviceID <=0))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error Invalid Device Id ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error Invalid Device Id ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC( CL_ERR_INVALID_PARAMETER)) ;
     }
 
     if (NULL == phalDevObjHandle)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL Pointer passed as o/p \
-        parameter ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL Pointer passed as o/p \
+        parameter ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC( CL_ERR_INVALID_PARAMETER)) ;
     }
 
     if ((NULL==halDevObjTable.pphalDeviceObj))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -401,16 +402,16 @@ ClRcT halDevObjHandleGet(ClUint32T deviceID,
 
     if (found == CL_TRUE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK *phalDevObjHandle =%d\n",
-        aFunction, *phalDevObjHandle));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK *phalDevObjHandle =%d\n",
+        aFunction, *phalDevObjHandle);
         CL_FUNC_EXIT();
         return CL_OK;
     }
     else
     {
         CL_FUNC_EXIT();
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error Device Id Not Found ",
-        aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error Device Id Not Found ",
+        aFunction);
         return(CL_HAL_SET_RC(CL_ERR_NOT_EXIST)) ;
     }
 }
@@ -425,27 +426,27 @@ ClRcT clHalDOStateGet(ClHalDeviceObjectH hDevObjHandle, ClUint32T * pState)
 
     if (NULL==pState)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s NULL o/p Parameter",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s NULL o/p Parameter",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER));
     }
     if(hDevObjHandle == 0 || hDevObjHandle >= halConfig.halNumDevObject)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error Invalid Device Handle",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error Invalid Device Handle",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC( CL_ERR_INVALID_HANDLE));
     }
     if ((NULL==halDevObjTable.pphalDeviceObj)||
         (NULL == halDevObjTable.pphalDeviceObj[hDevObjHandle]))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
      }
 
     *pState= halDevObjTable.pphalDeviceObj[hDevObjHandle]->state;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK *pState =%d\n",aFunction,*pState));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK *pState =%d\n",aFunction,*pState);
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -458,7 +459,7 @@ ClRcT clHalDOStateSet(ClHalDeviceObjectH hDevObjHandle, ClUint32T state)
     CL_FUNC_ENTER();
     if(hDevObjHandle == 0 || hDevObjHandle >= halConfig.halNumDevObject)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n%s Error Invalid Device Handle",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n%s Error Invalid Device Handle",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC( CL_ERR_INVALID_HANDLE));
     }
@@ -466,13 +467,13 @@ ClRcT clHalDOStateSet(ClHalDeviceObjectH hDevObjHandle, ClUint32T state)
     if ((NULL==halDevObjTable.pphalDeviceObj)||
         (NULL == halDevObjTable.pphalDeviceObj[hDevObjHandle]))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
      }
 
     halDevObjTable.pphalDeviceObj[hDevObjHandle]->state= state;
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK \n",aFunction));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK \n",aFunction);
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -486,14 +487,14 @@ ClRcT halDevObjDelete(ClHalDeviceObjectH hDevObjHandle)
     if(hDevObjHandle >=halConfig.halNumDevObject)
     {
         CL_FUNC_EXIT();
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n%s Error Invalid Device Handle",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n%s Error Invalid Device Handle",aFunction);
         return(CL_HAL_SET_RC( CL_ERR_INVALID_HANDLE));
     }
 
     if ((NULL==halDevObjTable.pphalDeviceObj)||
         (NULL == halDevObjTable.pphalDeviceObj[hDevObjHandle]))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -510,7 +511,7 @@ ClRcT halDevObjDelete(ClHalDeviceObjectH hDevObjHandle)
         clHeapFree(halDevObjTable.pphalDeviceObj[hDevObjHandle]);
         halDevObjTable.pphalDeviceObj[hDevObjHandle]=NULL ;
         
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK \n",aFunction));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK \n",aFunction);
         CL_FUNC_EXIT();
         return (CL_OK) ;
     }
@@ -518,7 +519,7 @@ ClRcT halDevObjDelete(ClHalDeviceObjectH hDevObjHandle)
     {
         /* STill some of the MSP have reference to this Device Object 
         and hence this cannot be deleted */
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error refCount!=0 \n",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error refCount!=0 \n",aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_ERR_INVALID_STATE));
     }
@@ -569,8 +570,8 @@ ClRcT clHalDevObjectLayerInit(void * pUserData,
 
     if((usrDataLen == 0) || (NULL==pUserData))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s userDataLen is >0 but pUserData=NULL\n",
-        aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s userDataLen is >0 but pUserData=NULL\n",
+        aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER));
     }
@@ -583,14 +584,14 @@ ClRcT clHalDevObjectLayerInit(void * pUserData,
 
     if(NULL==pDevBootTable)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error No Memory \n",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error No Memory \n",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NO_MEMORY));
     }
 
     if ((NULL==halDevObjTable.pphalDeviceObj))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -630,15 +631,15 @@ ClRcT clHalDevObjectLayerInit(void * pUserData,
         {
             if (CL_IS_CONTINUE_ON_ERR(flags))
             {
-               CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s Error retuned by init fn of \
+               clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error retuned by init fn of \
                devHandle=%d \n",aFunction, \
-               pDevBootTable[index].devHandle));
+               pDevBootTable[index].devHandle);
                continue ;
             }
             else
             {
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s Error retuned by init fn of \
-                devHandle=%d \n",aFunction,pDevBootTable[index].devHandle));
+                clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error retuned by init fn of \
+                devHandle=%d \n",aFunction,pDevBootTable[index].devHandle);
                 errFound = CL_TRUE ;
                 break ;
             }
@@ -651,7 +652,7 @@ ClRcT clHalDevObjectLayerInit(void * pUserData,
 
     if (CL_TRUE == errFound)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK \n",aFunction));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK \n",aFunction);
         CL_FUNC_EXIT();
         return ret;
     }
@@ -673,7 +674,7 @@ ClRcT halDevObjCapLenGet(ClHalDeviceObjectH hDevObjHandle,
 
     if (NULL == pDevCapLen)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT(); 
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -686,14 +687,14 @@ ClRcT halDevObjCapLenGet(ClHalDeviceObjectH hDevObjHandle,
     if (NULL==halDevObjTable.pphalDeviceObj ||
         NULL ==halDevObjTable.pphalDeviceObj[hDevObjHandle])
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
     
     *pDevCapLen= halDevObjTable.pphalDeviceObj[hDevObjHandle]->devCapLen;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("%s SuCCESS devCapLen=%d ",aFunction,*pDevCapLen));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"%s SuCCESS devCapLen=%d ",aFunction,*pDevCapLen);
     CL_FUNC_EXIT();
     return CL_OK;
 }
@@ -708,7 +709,7 @@ ClRcT halDevObjCapGet(ClHalDeviceObjectH hDevObjHandle,
     CL_FUNC_ENTER();
     if (NULL == pDevCap)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -721,7 +722,7 @@ ClRcT halDevObjCapGet(ClHalDeviceObjectH hDevObjHandle,
     if (NULL==halDevObjTable.pphalDeviceObj ||
         NULL ==halDevObjTable.pphalDeviceObj[hDevObjHandle])
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -729,7 +730,7 @@ ClRcT halDevObjCapGet(ClHalDeviceObjectH hDevObjHandle,
     of dev Capability structure */
     if (devCapLen < halDevObjTable.pphalDeviceObj[hDevObjHandle]->devCapLen)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error Invalid Param ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error Invalid Param ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER));
     }
@@ -740,7 +741,7 @@ ClRcT halDevObjCapGet(ClHalDeviceObjectH hDevObjHandle,
       halDevObjTable.pphalDeviceObj[hDevObjHandle]->devCapLen);
     }
     
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("%s SuCCESS ",aFunction));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"%s SuCCESS ",aFunction);
     CL_FUNC_EXIT(); 
     return (CL_OK);
 }
@@ -754,7 +755,7 @@ ClRcT halDevObjMaxRspTimeGet(ClHalDeviceObjectH hDevObjHandle,
     CL_FUNC_ENTER();
     if (NULL == pMaxRspTime)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -767,14 +768,14 @@ ClRcT halDevObjMaxRspTimeGet(ClHalDeviceObjectH hDevObjHandle,
      if (NULL==halDevObjTable.pphalDeviceObj ||
          NULL ==halDevObjTable.pphalDeviceObj[hDevObjHandle])
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
 
     *pMaxRspTime = halDevObjTable.pphalDeviceObj[hDevObjHandle]->maxRspTime;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK respTime=%d ",aFunction,*pMaxRspTime));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK respTime=%d ",aFunction,*pMaxRspTime);
     CL_FUNC_EXIT();
     return (CL_OK);
 
@@ -790,7 +791,7 @@ ClRcT halDevObjRefCountIncr(ClHalDeviceObjectH hDevObjHandle)
     if (NULL==halDevObjTable.pphalDeviceObj ||
         NULL ==halDevObjTable.pphalDeviceObj[hDevObjHandle])
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -801,8 +802,8 @@ ClRcT halDevObjRefCountIncr(ClHalDeviceObjectH hDevObjHandle)
     }
     halDevObjTable.pphalDeviceObj[hDevObjHandle]->refCount ++;
     
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK DevHandle =%d ,refCount=%d ",aFunction,
-    hDevObjHandle, halDevObjTable.pphalDeviceObj[hDevObjHandle]->refCount ));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK DevHandle =%d ,refCount=%d ",aFunction,
+    hDevObjHandle, halDevObjTable.pphalDeviceObj[hDevObjHandle]->refCount );
 
     CL_FUNC_EXIT();
     return(CL_OK);    
@@ -817,7 +818,7 @@ ClRcT halDevObjRefCountDecr(ClHalDeviceObjectH hDevObjHandle)
     if (NULL==halDevObjTable.pphalDeviceObj ||
         NULL ==halDevObjTable.pphalDeviceObj[hDevObjHandle])
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -829,8 +830,8 @@ ClRcT halDevObjRefCountDecr(ClHalDeviceObjectH hDevObjHandle)
     
     halDevObjTable.pphalDeviceObj[hDevObjHandle]->refCount --; 
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK DevHandle =%d ,refCount=%d ",aFunction,
-      hDevObjHandle, halDevObjTable.pphalDeviceObj[hDevObjHandle]->refCount ));
+      clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK DevHandle =%d ,refCount=%d ",aFunction,
+      hDevObjHandle, halDevObjTable.pphalDeviceObj[hDevObjHandle]->refCount );
 
     CL_FUNC_EXIT();
     return(CL_OK);    
@@ -853,8 +854,8 @@ ClRcT halDevObjOperationExecute(ClHalDeviceObjectH hDevObjHandle,
 
     if((usrDataLen >0)&&(NULL==pUserData))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s userDataLen is >0 but pUserData=NULL\n",
-        aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s userDataLen is >0 but pUserData=NULL\n",
+        aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER));
     }
@@ -869,8 +870,8 @@ ClRcT halDevObjOperationExecute(ClHalDeviceObjectH hDevObjHandle,
         NULL ==halDevObjTable.pphalDeviceObj[hDevObjHandle]||
         NULL==halDevObjTable.pphalDeviceObj[hDevObjHandle]->pdevOperations)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR hDevObjHandle= %d ",
-        aFunction, hDevObjHandle));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR hDevObjHandle= %d ",
+        aFunction, hDevObjHandle);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -882,12 +883,12 @@ ClRcT halDevObjOperationExecute(ClHalDeviceObjectH hDevObjHandle,
     }
     else 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s Device Object API Operation not installed\
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Device Object API Operation not installed\
         for hDevObjHandle= %d operation =%d\n", aFunction ,\
-        hDevObjHandle,operation));
+        hDevObjHandle,operation);
     }
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK for hDevObjHandle= %d, \
-    operation=%d \n", aFunction ,hDevObjHandle,operation));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK for hDevObjHandle= %d, \
+    operation=%d \n", aFunction ,hDevObjHandle,operation);
     CL_FUNC_EXIT(); 
     return ret;
 }
@@ -901,7 +902,7 @@ ClRcT halDevObjIdGet(ClHalDeviceObjectH hDevObjHandle,ClUint32T *pDeviceId)
     CL_FUNC_ENTER();
     if (NULL == pDeviceId)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT(); 
         return( CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -914,15 +915,15 @@ ClRcT halDevObjIdGet(ClHalDeviceObjectH hDevObjHandle,ClUint32T *pDeviceId)
     if(NULL==halDevObjTable.pphalDeviceObj ||
        NULL ==halDevObjTable.pphalDeviceObj[hDevObjHandle])
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NULL PTR ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NULL PTR ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
 
     *pDeviceId = halDevObjTable.pphalDeviceObj[hDevObjHandle]->deviceId;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\n %s CL_OK for hDevObjHandle= %d, deviceId=%d \
-    \n", aFunction ,hDevObjHandle,*pDeviceId));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s CL_OK for hDevObjHandle= %d, deviceId=%d \
+    \n", aFunction ,hDevObjHandle,*pDeviceId);
      
     CL_FUNC_EXIT();
     return CL_OK;
@@ -939,7 +940,7 @@ ClRcT buffPrint(char srcBuff[],int * pBuffLeft, char destBuff[])
     }
     else
     { 
-       CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n Error BuffLen \n"));
+       clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n Error BuffLen \n");
        CL_FUNC_EXIT(); 
        return(CL_HAL_SET_RC(CL_ERR_INVALID_PARAMETER)); 
     }
@@ -1035,7 +1036,7 @@ ClRcT cliShowDevObjects(int argc, char **argv)
     pBuff=clHeapAllocate(buffSize);
     if(NULL == pBuff)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error NO Memory ",aFunction));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NO Memory ",aFunction);
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NO_MEMORY));
     }
@@ -1077,7 +1078,7 @@ ClRcT halDevObjTableCreate()
     CL_ASSERT(halConfig.pDevObjectTable);
     if(NULL==halConfig.pDevObjectTable)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("halConfig.pDevObjectTableis NULL\n"));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"halConfig.pDevObjectTableis NULL\n");
         CL_FUNC_EXIT();
         return(CL_HAL_SET_RC(CL_ERR_NULL_POINTER));
     }
@@ -1092,8 +1093,8 @@ ClRcT halDevObjTableCreate()
                             & hdevObj);
        if (CL_OK!= ret)
        {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n %s Error returned by halDevObjCreate",
-            aFunction));
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error returned by halDevObjCreate",
+            aFunction);
             CL_FUNC_EXIT();
             return ret ;
        }
@@ -1106,8 +1107,8 @@ ClRcT halDevObjTableCreate()
                                            halConfig.pDevObjectTable[index].pDevOperations[nIndex]);
                 if (CL_OK!= ret)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n %s Error returned by \
-                    halDevObjHandlerRegister", aFunction));
+                    clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error returned by \
+                    halDevObjHandlerRegister", aFunction);
                     CL_FUNC_EXIT();
                     return ret ;
                 }
@@ -1116,7 +1117,7 @@ ClRcT halDevObjTableCreate()
        /* To Initialize to  Large Invalid Value */
        hdevObj=0xEFFFFFFF ;
     }
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("\nBoot Manager Succeeded in creating Dev Objects\n"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nBoot Manager Succeeded in creating Dev Objects\n");
     CL_FUNC_EXIT();
     return CL_OK ;
 }    
@@ -1139,8 +1140,8 @@ ClRcT halDevObjTableDelete()
                 ret=halDevObjDelete(index);
                 if(CL_OK!=ret)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("\n %s Error ret=%x by \
-                    halDevObjDelete",aFunction,ret));
+                    clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error ret=%x by \
+                    halDevObjDelete",aFunction,ret);
                     return ret;
                 }
             }
@@ -1148,7 +1149,7 @@ ClRcT halDevObjTableDelete()
         }
     }
     halDevObjTable.nextIndex =0;
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("%s , CL_OK",aFunction)); 
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"%s , CL_OK",aFunction); 
     CL_FUNC_EXIT();
     return ret;
 }

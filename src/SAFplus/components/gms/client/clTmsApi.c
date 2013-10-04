@@ -209,8 +209,8 @@ ClRcT clTmsGroupJoin(
         rc = clIocMulticastRegister(&multicastInfo);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("IOC mutlicast address register failed with rc %d\n",rc));
+            clLogError(GROUPS,NA,
+                       "IOC mutlicast address register failed with rc %d\n",rc);
             rc = CL_GMS_ERR_IOC_REGISTRATION;
         }
     }
@@ -280,8 +280,8 @@ ClRcT clTmsGroupLeave(
         rc = clIocMulticastDeregister(&multicastInfo);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("IOC Multicast Deregister failed with rc = 0x%x",rc));
+            clLogError(GROUPS,NA,
+                       "IOC Multicast Deregister failed with rc = 0x%x",rc);
             rc = CL_GMS_ERR_IOC_DEREGISTRATION;
         }
     }
@@ -449,8 +449,8 @@ error_unlock_checkin:
 error_checkin:
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin Failed"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\nclHandleCheckin Failed");
     }
     
     return rc;

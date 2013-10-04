@@ -44,6 +44,10 @@
 #include <ipi/clEoIpi.h>
 #include <clErrorApi.h>
 
+#define GMS_LOG_AREA_CLM		"CLM"
+#define GMS_LOG_CTX_CLM_FINALISE	"FIN"
+#define GMS_LOG_CTX_CLM_DB		"DB"
+#define GMS_LOG_CTX_CLM_CALLBACK	"CALLBACK"
 
 static ClHandleDatabaseHandleT  databaseHandle = CL_HANDLE_INVALID_VALUE;
 ClUint32T saGmsInitCount = 0;
@@ -62,8 +66,8 @@ static ClRcT saClmLibInitialize()
                                 &databaseHandle);
     if (rc != CL_OK)
         {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Handle database create failed with rc 0x%x\n",rc));
+        clLogError("DB","CRE",
+                   "Handle database create failed with rc 0x%x\n",rc);
         }
     return rc;
         }
@@ -131,8 +135,8 @@ saClmInitialize (
                          (ClVersionT*)version);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clGmsInitialize failed with rc 0x%x\n",rc));
+        clLogError("CLM","INI",
+                   "clGmsInitialize failed with rc 0x%x\n",rc);
         return _aspErrToAisErr(rc);
     }
 
@@ -148,8 +152,8 @@ saClmInitialize (
                                        localHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCreateSpecifiedHandle failed with rc 0x%x\n",rc));
+        clLogError("CLM","INI",
+                   "clHandleCreateSpecifiedHandle failed with rc 0x%x\n",rc);
         return _aspErrToAisErr(rc);
     }
 
@@ -180,8 +184,8 @@ saClmInitialize (
                             dispatchQDestroyCallback);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clDispatchRegister failed with rc 0x%x\n",rc));
+        clLogError("CLM","INI",
+                   "clDispatchRegister failed with rc 0x%x\n",rc);
         goto error_return;
     }
     /* Store dispatchHandle in the clmHandle */
@@ -190,8 +194,8 @@ saClmInitialize (
 error_return:
     if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clHandleCheckin failed");
 }
 
     return _aspErrToAisErr(rc);
@@ -224,30 +228,30 @@ saClmFinalize (
     rc = clGmsFinalize(localHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clGmsFinalize failed with rc 0x%x\n",rc));
+        clLogError("CLM","FIN",
+                   "clGmsFinalize failed with rc 0x%x\n",rc);
     }
 
     /* Deregister with dispatch */
     rc = clDispatchDeregister(clmInstance->dispatchHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clDispatchDeregister failed with rc 0x%x\n",rc));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_FINALISE,
+                   "clDispatchDeregister failed with rc 0x%x\n",rc);
     }
 
     /* Checkin the handle */
     if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_FINALISE,
+                    "clHandleCheckin failed");
     }
 
     /* Destroy the handle */
     if ((clHandleDestroy(databaseHandle, localHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleDestroy failed"));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_FINALISE,
+                   "clHandleDestroy failed");
     }
 
     SA_GMS_INIT_COUNT_DEC();
@@ -256,8 +260,8 @@ saClmFinalize (
         rc = clHandleDatabaseDestroy(databaseHandle);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("clHandleDatabaseDestroy failed with rc 0x%x\n",rc));
+            clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_DB,
+                       "clHandleDatabaseDestroy failed with rc 0x%x\n",rc);
         }
     }
     
@@ -423,8 +427,8 @@ saClmClusterTrack (
 error_return:
     if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(GMS_LOG_AREA_CLM,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clHandleCheckin failed");
     }
     return _aspErrToAisErr(rc);
 }
@@ -456,8 +460,8 @@ saClmClusterTrackStop (
 
     if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(GMS_LOG_AREA_CLM,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clHandleCheckin failed");
     }
 
     return _aspErrToAisErr(rc);
@@ -525,8 +529,8 @@ saClmClusterNodeGet (
 error_return:
     if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(GMS_LOG_AREA_CLM,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clHandleCheckin failed");
 }
 
     return _aspErrToAisErr(rc);
@@ -561,8 +565,8 @@ saClmClusterNodeGetAsync (
 
     if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(GMS_LOG_AREA_CLM,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clHandleCheckin failed");
     }
 
     return _aspErrToAisErr(rc);
@@ -600,8 +604,8 @@ saClmSelectionObjectGet (
 
     if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(GMS_LOG_AREA_CLM,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clHandleCheckin failed");
     }
 
     return _aspErrToAisErr(rc);
@@ -641,8 +645,8 @@ saClmDispatch (
      */
     if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(GMS_LOG_AREA_CLM,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clHandleCheckin failed");
     }
     
     rc = clDispatchCbDispatch(
@@ -695,8 +699,8 @@ static void clGmsClusterMemberGetCallbackWrapper (
     error = clOsalTaskDataGet(clGmsPrivateDataKey, (ClOsalTaskDataT*)&pGmsHandle);
     if (error != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clOsalTaskDataGet failed with rc 0x%x\n",error));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                   "clOsalTaskDataGet failed with rc 0x%x\n",error);
     }
     localHandle = *pGmsHandle;
 
@@ -706,8 +710,8 @@ static void clGmsClusterMemberGetCallbackWrapper (
                           (void*)&clmInstance);
     if (error != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("localHandle checkout failed with rc 0x%x\n",error));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                   "localHandle checkout failed with rc 0x%x\n",error);
         return;
     }
 
@@ -717,8 +721,8 @@ static void clGmsClusterMemberGetCallbackWrapper (
         safNode = clHeapAllocate(sizeof(SaClmClusterNodeT));
         if (safNode == NULL)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("MemberGet Callback invocation faile due to no memory"));
+            clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                       "MemberGet Callback invocation faile due to no memory");
             goto error_exit;
         }
         else
@@ -745,8 +749,8 @@ static void clGmsClusterMemberGetCallbackWrapper (
     callbackArg = (SaClmClusterNodeGetDataT*)clHeapAllocate(sizeof(SaClmClusterNodeGetDataT));
     if (callbackArg == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("MemberGet Callback invocation faile due to no memory"));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                   "MemberGet Callback invocation faile due to no memory");
         if (safNode != NULL)
         {
             clHeapFree(safNode);
@@ -762,15 +766,15 @@ static void clGmsClusterMemberGetCallbackWrapper (
                                 (void*)callbackArg);
     if (error != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clDispatchCbEnqueue failed with rc 0x%x",error));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                   "clDispatchCbEnqueue failed with rc 0x%x",error);
     }
 
 error_exit:
     if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                   "clHandleCheckin failed");
     }
 
     return;
@@ -796,8 +800,8 @@ static void clGmsClusterTrackCallbackWrapper (
     error = clOsalTaskDataGet(clGmsPrivateDataKey, (ClOsalTaskDataT*)&pGmsHandle);
     if (error != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clOsalTaskDataGet failed with error 0x%x\n",error));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                   "clOsalTaskDataGet failed with error 0x%x\n",error);
     }
     localHandle = *pGmsHandle;
 
@@ -807,8 +811,8 @@ static void clGmsClusterTrackCallbackWrapper (
                              (void*)&clmInstance);
     if (error != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("localHandle checkout failed with error 0x%x\n",error));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                   "localHandle checkout failed with error 0x%x\n",error);
         return;
     }
 
@@ -816,8 +820,8 @@ static void clGmsClusterTrackCallbackWrapper (
     safbuf = clHeapAllocate(sizeof(SaClmClusterNotificationBufferT));
     if (safbuf == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Cluster Track Callback failed due to no memory"));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                   "Cluster Track Callback failed due to no memory");
         goto error_return;
     }
 
@@ -831,8 +835,8 @@ static void clGmsClusterTrackCallbackWrapper (
                                        *(sizeof(SaClmClusterNotificationT)));
         if (safbuf->notification == NULL)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("Cluster Track Callback failed due to no memory"));
+            clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                       "Cluster Track Callback failed due to no memory");
             clHeapFree(safbuf);
             goto error_return;
         }
@@ -869,8 +873,8 @@ static void clGmsClusterTrackCallbackWrapper (
     callbackArg = (SaClmClusterTrackDataT*)clHeapAllocate(sizeof(SaClmClusterTrackDataT));
     if (callbackArg == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Cluster track callback failed due to no memory"));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                   "Cluster track callback failed due to no memory");
         clHeapFree(safbuf->notification);
         clHeapFree(safbuf);
         goto error_return;
@@ -885,15 +889,15 @@ static void clGmsClusterTrackCallbackWrapper (
                                 (void*)callbackArg);
     if (error != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clDispatchCbEnqueue failed with rc 0x%x",error));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                   "clDispatchCbEnqueue failed with rc 0x%x",error);
     }
 
 error_return:
     if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
+                   "clHandleCheckin failed");
     }
 
     return;
@@ -921,8 +925,8 @@ static void dispatchWrapperCallback (ClHandleT  localHandle,
                           (void*)&clmInstance);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("localHandle checkout failed with rc 0x%x\n",rc));
+        clLogError(GMS_LOG_AREA_CLM,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "localHandle checkout failed with rc 0x%x\n",rc);
         return;
     }
     
@@ -946,8 +950,8 @@ static void dispatchWrapperCallback (ClHandleT  localHandle,
     
      if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
      {
-         CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                 ("clHandleCheckin failed"));
+         clLogError(GMS_LOG_AREA_CLM,CL_LOG_CONTEXT_UNSPECIFIED,
+                    "clHandleCheckin failed");
      }
      return;
 }

@@ -97,7 +97,7 @@ typedef ClHandleT CkptMastHdlInfoT;
 #define CKPT_DEBUG_E(y)\
 do\
 {\
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, y);\
+    CL_DEBUG_PRINT(CL_LOG_SEV_ERROR, y);\
 }while(0)\
 
 
@@ -109,7 +109,7 @@ do\
 #define CKPT_DEBUG_T(y)\
 do\
 {\
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, y);\
+    CL_DEBUG_PRINT(CL_LOG_SEV_TRACE, y);\
 }while(0)\
 
 

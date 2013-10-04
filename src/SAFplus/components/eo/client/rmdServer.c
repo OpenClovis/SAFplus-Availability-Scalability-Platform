@@ -143,7 +143,7 @@ ClRcT clRmdServerJobHandler(ClEoJobT *pJob)
     ClIocRecvParamT *pRecvParam = NULL;
     ClEoExecutionObjT *pThis = gpRmdServerExecutionObject;
 
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("clRmdServerJobHandler"));
+    clLogInfo("RMDSERVER","clRmdServerJobHandler","clRmdServerJobHandler");
 
     if(pJob == NULL)
     {
@@ -177,7 +177,7 @@ ClRcT clRmdServerJobHandler(ClEoJobT *pJob)
                                                     pRecvParam->srcAddr.iocPhyAddress);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invoking Callback Failed, rc=0x%x\n", rc));
+        clLogError("RMDSERVER", "clRmdServerJobHandler","Invoking Callback Failed, rc=0x%x\n", rc);
     }
 
 
@@ -227,7 +227,7 @@ ClRcT clRmdServerEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam
         goto out_free;
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Enqueuing job priority %d",priority));
+    clLogInfo("RMDSERVER","clRmdServerEnqueueJob","Enqueuing job priority %d",priority);
     rc = clJobQueuePush(pQ,(ClCallbackT) clRmdServerJobHandler, pJob);
     clOsalMutexUnlock(&gClRmdServerJobMutex);
 
@@ -1033,8 +1033,8 @@ ClRcT clRmdServerWalk(ClEoExecutionObjT *pThis, ClUint32T func,
         return CL_RMD_RC(CL_ERR_NULL_POINTER);
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-            ("\n RMDSERVER: Obtaining the table indices ...... \n"));
+    clLogTrace("RMDSERVER","clRmdServerWalk",
+               "\n RMDSERVER: Obtaining the table indices ...... \n");
     rc = clRmdServerServiceIndexGet(func, &clientID, &funcNo);
     if (rc != CL_OK)
     {
@@ -1076,20 +1076,20 @@ static ClRcT clRmdServerStart(ClEoExecutionObjT *pThis)
      */
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n EO: NULL passed for Exectuion Object\n"));
+        clLogError("RMDSERVER", "clRmdServerStart",
+                   "\n EO: NULL passed for Exectuion Object\n");
         rc = CL_RMD_RC(CL_ERR_NULL_POINTER);
         goto failure;
     }
     gClRmdServerTaskId = calloc(1, sizeof(ClOsalTaskIdT));
     if(!gClRmdServerTaskId)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory for threads\n"));
+        clLogError("RMDSERVER", "clRmdServerStart","Error allocating memory for threads\n");
         goto eoStaticQueueInitialized;
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                   ("\n EO: Spawning the required no of EO Receive Loop \n"));
+    clLogTrace("RMDSERVER", "clRmdServerStart",
+               "\n EO: Spawning the required no of EO Receive Loop \n");
     /*
      * Create thread for picking up the IOC messages and putting it on user
      * level Queue

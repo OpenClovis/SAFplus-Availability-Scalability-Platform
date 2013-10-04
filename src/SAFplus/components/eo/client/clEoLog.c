@@ -39,6 +39,8 @@ File        : clEoLog.c
 #include <clDebugApi.h>
 #include <clLogApi.h>
 #include <clEoLibs.h>
+
+#define EO_LOG_AREA_LOG		"LOG"	
     
 extern ClEoEssentialLibInfoT gEssentialLibInfo[];
 ClRcT clEoLibLog (ClUint32T compId,ClUint32T severity, const ClCharT *msg, ...)
@@ -69,8 +71,8 @@ ClRcT clEoLogInitialize(void)
     rc = clLogLibInitialize();
     if ( rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Log Open Failed\n"));
+        clLogError(EO_LOG_AREA_LOG,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Log Open Failed\n");
     return rc;
     }
     return CL_OK;
