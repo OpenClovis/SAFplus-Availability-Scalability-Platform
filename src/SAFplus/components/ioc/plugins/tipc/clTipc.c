@@ -96,6 +96,14 @@
 #include <clTimeServer.h>
 #include <clTransport.h>
 
+#define TIPC_LOG_AREA_TIPC		"TIPC"
+#define TIPC_LOG_CTX_TIPC_DISPATCH	"DISP"
+#define TIPC_LOG_CTX_TIPC_BIND		"BIND"
+#define TIPC_LOG_CTX_TIPC_SEND		"SEND"
+#define TIPC_LOG_CTX_TIPC_GET		"GET"
+#define TIPC_LOG_CTX_TIPC_RECV		"RECV"
+#define TIPC_LOG_CTX_TIPC_READY		"RDY"
+
 extern ClUint32T clEoWithOutCpm;
 extern ClUint32T clAspLocalId;
 extern ClIocNodeAddressT gIocLocalBladeAddress;
@@ -175,7 +183,7 @@ static ClRcT tipcDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
 
     if(!xportPrivate)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("No private data\n"));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_DISPATCH,"No private data\n");
         rc = CL_IOC_RC(CL_ERR_INVALID_HANDLE);
         goto out;
     }
@@ -199,7 +207,7 @@ static ClRcT tipcDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
         if(errno == EINTR)
             goto recv;
         perror("Receive : ");
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("recv error. errno = %d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_DISPATCH,"recv error. errno = %d\n",errno);
         rc = CL_ERR_LIBRARY;
         goto out;
     }
@@ -238,15 +246,15 @@ static ClRcT __xportBind(ClIocPortT portId, ClBoolT listen)
 
     if(pTipcCommPort->fd < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                       ("Error : socket() failed. system error [%s].\n", strerror(errno)));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_BIND, 
+                   "Error : socket() failed. system error [%s].\n", strerror(errno));
         goto out_free;
     }
     
     if(fcntl(pTipcCommPort->fd, F_SETFD, FD_CLOEXEC) < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error: socket fcntl failed with error [%s]\n",
-                                        strerror(errno)));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_BIND,"Error: socket fcntl failed with error [%s]\n",
+                                        strerror(errno));
         goto out_close;
     }
 
@@ -260,7 +268,7 @@ static ClRcT __xportBind(ClIocPortT portId, ClBoolT listen)
 
     if(bind(pTipcCommPort->fd,(struct sockaddr*)&address,sizeof(struct sockaddr_tipc)) < 0 )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in bind.errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_BIND,"Error in bind.errno=%d\n",errno);
         goto out_close;
     }
 
@@ -282,9 +290,9 @@ static ClRcT __xportBind(ClIocPortT portId, ClBoolT listen)
         if (err == ENOPROTOOPT)
         {
             tipcPriorityChangePossible = CL_FALSE;
-            CL_DEBUG_PRINT(CL_DEBUG_WARN,("Message priority not available in this version of TIPC."));
+            clLogWarning(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_BIND,"Message priority not available in this version of TIPC.");
         }            
-        else CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in setting TIPC message priority. errno [%d]",err));
+        else clLogWarning(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_BIND,"Error in setting TIPC message priority. errno [%d]",err);
 
         pTipcCommPort->priority = CL_TIPC_DEFAULT_PRIORITY;
     }
@@ -302,7 +310,7 @@ static ClRcT __xportBind(ClIocPortT portId, ClBoolT listen)
 
         if(bind(pTipcCommPort->fd, (struct sockaddr *)&address, sizeof(struct sockaddr_tipc)) < 0)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : bind failed. errno = %d", errno));
+            clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_BIND,"Error : bind failed. errno = %d", errno);
             goto out_close;
         }
     }
@@ -664,9 +672,9 @@ ClRcT xportSend(ClIocPortT port, ClUint32T tempPriority, ClIocAddressT *pIocAddr
             if (err == ENOPROTOOPT)
             {
                 tipcPriorityChangePossible = CL_FALSE;
-                CL_DEBUG_PRINT(CL_DEBUG_WARN,("Message priority not available in this version of TIPC."));
+                clLogWarning(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SEND,"Message priority not available in this version of TIPC.");
             }            
-            else CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in setting TIPC message priority. errno [%d]",err));
+            else clLogWarning(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_BIND,"Error in setting TIPC message priority. errno [%d]",err);
         }
     }
     memset((char*)&msgHdr, 0, sizeof(msgHdr));
@@ -818,14 +826,14 @@ ClRcT xportTransparencyRegister(ClIocPortT port,
     rc = CL_IOC_RC(CL_ERR_LIBRARY);
     if(bind(pTipcCommPort->fd,(struct sockaddr*)&address,sizeof(address))<0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in bind.errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_BIND,"Error in bind.errno=%d\n",errno);
         goto out;
     }
     address.addr.name.name.type = CL_IOC_MASTER_TYPE(pTipcCommPort->portId);
     address.addr.name.name.instance = gIocLocalBladeAddress;
     if(bind(pTipcCommPort->fd,(struct sockaddr*)&address,sizeof(address))<0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in bind.errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_BIND,"Error in bind.errno=%d\n",errno);
         goto out_unbind;
     }
     if(bindFlag)
@@ -841,7 +849,7 @@ ClRcT xportTransparencyRegister(ClIocPortT port,
     address.scope = -scope*TIPC_ZONE_SCOPE;
     if(bind(pTipcCommPort->fd,(struct sockaddr*)&address,sizeof(address))<0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in bind.errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_BIND,"Error in bind.errno=%d\n",errno);
     }
     out:
     return rc;
@@ -875,7 +883,7 @@ static ClRcT __xportMulticastBind(ClIocPortT port, ClIocMulticastAddressT mcastA
     /*Fire the bind*/
     if(bind(pTipcCommPort->fd,(struct sockaddr*)&address,sizeof(address)) < 0 )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in bind.errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_BIND,"Error in bind.errno=%d\n",errno);
         goto out;
     }
     rc = CL_OK;
@@ -928,7 +936,7 @@ ClRcT xportServerReady(ClIocAddressT *pAddress)
     fd = socket(AF_TIPC,SOCK_SEQPACKET,0);
     if(fd < 0 )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error creating socket.errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_READY,"Error creating socket.errno=%d\n",errno);
         goto out;
     }
     ret = fcntl(fd, F_SETFD, FD_CLOEXEC);
@@ -943,7 +951,7 @@ ClRcT xportServerReady(ClIocAddressT *pAddress)
     topsrv.addr.name.name.instance = TIPC_TOP_SRV;
     if(connect(fd,(struct sockaddr*)&topsrv,sizeof(topsrv))<0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in connecting to topology server.errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_READY,"Error in connecting to topology server.errno=%d\n",errno);
         goto out_close;
     }
     /*
@@ -957,17 +965,17 @@ ClRcT xportServerReady(ClIocAddressT *pAddress)
     subscr.filter = TIPC_SUB_SERVICE;
     if(send(fd, (const char *)&subscr,sizeof(subscr),0)!=sizeof(subscr))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error send to topology service.errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SEND,"Error send to topology service.errno=%d\n",errno);
         goto out_close;
     }
     if(recv(fd, (char *)&event,sizeof(event),0) != sizeof(event))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error recv from topology.errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_RECV,"Error recv from topology.errno=%d\n",errno);
         goto out_close;
     }
     if(event.event != TIPC_PUBLISHED)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in recv. event=%d\n",event.event));
+        clLogWarning(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_READY,"Error in recv. event=%d\n",event.event);
         goto out_close;
     }
 
@@ -993,7 +1001,7 @@ ClRcT xportMasterAddressGet(ClIocLogicalAddressT logicalAddress, ClIocPortT port
     fd = socket(AF_TIPC,SOCK_SEQPACKET,0);
     if(fd < 0 )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error creating socket.errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_GET,"Error creating socket.errno=%d\n",errno);
         goto out;
     }
     ret = fcntl(fd, F_SETFD, FD_CLOEXEC);
@@ -1008,7 +1016,7 @@ ClRcT xportMasterAddressGet(ClIocLogicalAddressT logicalAddress, ClIocPortT port
     topsrv.addr.name.name.instance = TIPC_TOP_SRV;
     if(connect(fd,(struct sockaddr*)&topsrv,sizeof(topsrv))<0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in connecting to topology server.errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_GET,"Error in connecting to topology server.errno=%d\n",errno);
         goto out_close;
     }
 
@@ -1024,12 +1032,12 @@ ClRcT xportMasterAddressGet(ClIocLogicalAddressT logicalAddress, ClIocPortT port
     subscr.filter = TIPC_SUB_SERVICE;
     if(send(fd, (const char*)&subscr,sizeof(subscr),0) != sizeof(subscr))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in send. errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SEND,"Error in send. errno=%d\n",errno);
         goto out_close;
     }
     if(recv(fd, (char*)&event,sizeof(event),0) != sizeof(event))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in recv. errno=%d\n",errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_RECV,"Error in recv. errno=%d\n",errno);
         goto out_close;
     }
     if(event.event != TIPC_PUBLISHED)

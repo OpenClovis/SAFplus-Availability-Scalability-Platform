@@ -46,6 +46,8 @@
 
 #define CL_UDP_HANDLER_MAX_SOCKETS            2
 #define UDP_CLUSTER_SYNC_WAIT_TIME 2 /* in seconds*/
+#define UDP_LOG_AREA		"UDP"
+#define	UDP_LOG_CTX_UDP_EVENT	"EVT"
 static struct {
     ClOsalMutexT lock;
     ClOsalCondT condVar;
@@ -476,17 +478,17 @@ static void clUdpEventHandler(ClPtrT pArg)
                     {
                         if (!(recvErrors++ & 255))  /* just slow down the logging */
                         {
-                            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Recvmsg failed with [%s]\n", strerror(errno)));
+                            clLogError(UDP_LOG_AREA,UDP_LOG_CTX_UDP_EVENT,"Recvmsg failed with [%s]\n", strerror(errno));
                             sleep(1);  /* Is this going to cause keep-alive failure after 255 receive errors? */
                         }
                         if (errno == ENOTCONN) 
                         {
                             if (udpEventSubscribe(CL_FALSE) != CL_OK)  /* This call creates a thread that runs this routine, potentially leading to infinite loop */
                             {
-                                CL_DEBUG_PRINT(
-                                               CL_DEBUG_CRITICAL,
-                                               ("UDP topology subsciption retry failed. "
-                                                "Shutting down the notification thread and process\n"));
+                                clLogCritical(UDP_LOG_AREA,
+                                              UDP_LOG_CTX_UDP_EVENT,
+                                              "UDP topology subsciption retry failed. "
+                                              "Shutting down the notification thread and process\n");
                                 threadContFlag = 0;
                                 exit(0);
                                 continue; /*unreached*/
@@ -499,15 +501,15 @@ static void clUdpEventHandler(ClPtrT pArg)
                 } 
                 else if ((pollfds[i].revents & (POLLHUP | POLLERR | POLLNVAL))) 
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                   ("Error : Handler \"poll\" hangup.\n"));
+                    clLogError(UDP_LOG_AREA,UDP_LOG_CTX_UDP_EVENT,
+                               "Error : Handler \"poll\" hangup.\n");
                 }
             }
         } 
         else if (pollStatus < 0)
         {
             if (errno != EINTR) /* If the system call is interrupted just loop, its not an error */
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : poll failed. errno=%d\n",errno));
+                clLogError(UDP_LOG_AREA,UDP_LOG_CTX_UDP_EVENT,"Error : poll failed. errno=%d\n",errno);
         }
     }
     close(handlerFd[0]);

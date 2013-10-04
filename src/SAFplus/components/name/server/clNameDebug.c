@@ -32,6 +32,9 @@
 #include <clEoApi.h>
 #include <clDebugApi.h>
 
+#define NAME_LOG_AREA_DEBUG	"DBG"
+#define NAME_LOG_CTX_NAME_REG	"REG"
+
 ClHandleT  gNameDebugReg = CL_HANDLE_INVALID_VALUE;
 
 extern ClRcT cliNSRegister(int argc, char **argv, char** retStr, ClUint32T flag);
@@ -82,7 +85,7 @@ ClRcT nameDebugRegister(ClEoExecutionObjT* pEoObj)
     rc = clDebugPromptSet("NAME");
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clDebugPromptSet(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_DEBUG,NAME_LOG_CTX_NAME_REG,"clDebugPromptSet(): rc[0x %x]", rc);
         return rc;
     }
     return clDebugRegister(nameDebugFuncList, 

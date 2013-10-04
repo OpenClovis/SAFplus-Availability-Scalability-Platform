@@ -45,7 +45,9 @@
 #include <clTimerErrors.h>
 
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clDbg.h>
+
 /*FIXME: #include <timerLibCompId.h>*/
 /*************************************************************************/
 #define TIMER_TASK_STACK_SIZE         65535 /* bytes */
@@ -55,6 +57,13 @@
 
 #define CL_TIMER_INTERVAL(timeOut) (((timeOut).tsSec*1000000ULL+(timeOut).tsMilliSec*1000ULL)/CL_TIMER_TICK_USECS)
 
+#define CL_TIMER_AREA "TIMER"
+#define CL_TIMER_CTX_TIMER_INIT   "INI"
+#define CL_TIMER_CTX_TIMER_CREATE "CRE"
+#define CL_TIMER_CTX_TIMER_DEL    "DEL"
+#define CL_TIMER_CTX_TIMER_FIN    "FIN"
+#define CL_TIMER_CTX_TIMER_TASK   "TSK"   
+#define CL_TIMER_CTX_TIMER_DBG    "DBG"
 /*
  * time of day drift thresholds.
  */
@@ -186,7 +195,7 @@ clTimerInitialize (ClPtrT pConfig)
 
     if (gActiveTimerQueue.timerServiceInitialized == 1) {
         CL_FUNC_EXIT();
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nTimer already initialized"));
+        clLogInfo(CL_TIMER_AREA,CL_TIMER_CTX_TIMER_INIT,"\nTimer already initialized");
         return (CL_OK);
     }
 
@@ -194,7 +203,7 @@ clTimerInitialize (ClPtrT pConfig)
     returnCode= dbgAddComponent (COMP_PREFIX, COMP_NAME, COMP_DEBUG_VAR_PTR);
     if (CL_OK != returnCode)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("dbgAddComponent Failed \n "));
+        clLogError(CL_TIMER_AREA,CL_TIMER_CTX_TIMER_DBG,"dbgAddComponent Failed \n ");
         CL_FUNC_EXIT();
         return (returnCode);
     }
@@ -205,7 +214,7 @@ clTimerInitialize (ClPtrT pConfig)
 
     if (returnCode != CL_OK) {
         
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,("\nTimer Init : NOT DONE"));
+        clLogError(CL_TIMER_AREA,CL_TIMER_CTX_TIMER_INIT,"\nTimer Init : NOT DONE");
         CL_FUNC_EXIT();
         return (CL_ERR_UNSPECIFIED);
     }
@@ -216,7 +225,7 @@ clTimerInitialize (ClPtrT pConfig)
     if (returnCode != CL_OK) {
         /* debug message */
         returnCode = tsFreeTimersPoolDestroy ();
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,("\nTimer Init : NOT DONE"));
+        clLogError(CL_TIMER_AREA,CL_TIMER_CTX_TIMER_INIT,"\nTimer Init : NOT DONE");
         CL_FUNC_EXIT();
         return (CL_ERR_UNSPECIFIED);
     }
@@ -231,12 +240,12 @@ clTimerInitialize (ClPtrT pConfig)
         /* debug message */
         returnCode = tsFreeTimersPoolDestroy ();
         returnCode = tsActiveTimersQueueDestroy ();
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,("\nTimer Init : NOT DONE"));
+        clLogError(CL_TIMER_AREA,CL_TIMER_CTX_TIMER_INIT,"\nTimer Init : NOT DONE");
         CL_FUNC_EXIT();
         return (CL_ERR_UNSPECIFIED);
     }
 
-    CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nTimer Init : DONE"));
+    clLogInfo(CL_TIMER_AREA,CL_TIMER_CTX_TIMER_INIT,"\nTimer Init : DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -256,7 +265,7 @@ clTimerFinalize (void)
     /* create re-enqueue Queue */
     retCode = clQueueDelete(&(gActiveTimerQueue.reEnqueueQueue));
 
-    CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nTimer Cleanup : DONE"));
+    clLogInfo(CL_TIMER_AREA,CL_TIMER_CTX_TIMER_FIN,"\nTimer Cleanup : DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -319,8 +328,8 @@ clTimerCreate (ClTimerTimeOutT      timeOut,        /* the timeout, in clocktick
     if (pUserTimer == NULL) {
         /* debug message */
         errorCode = CL_TIMER_RC(CL_ERR_NO_MEMORY);
-        CL_DEBUG_PRINT (CL_DEBUG_WARN,
-                  ("\nTimer create failed"));
+        clLogWarning(CL_TIMER_AREA,CL_TIMER_CTX_TIMER_CREATE
+                  "\nTimer create failed");
         CL_FUNC_EXIT();
         return (errorCode);
     }
@@ -380,7 +389,7 @@ clTimerDelete (ClTimerHandleT*  pTimerHandle)
     returnCode = clTimerStop (*pTimerHandle);
 
     if (returnCode != CL_OK) {
-        CL_DEBUG_PRINT (CL_DEBUG_WARN, ("\nTimer delete failed"));
+        clLOgWarning(CL_TIMER_AREA,CL_TIMER_CTX_TIMER_DEL,"\nTimer delete failed");
         CL_FUNC_EXIT();
         return (returnCode);
     }
@@ -902,7 +911,7 @@ tsTimerTask (void* pArgument)
 
         if(currentTime > currentTime+iteration+skewTicks)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Timer overflow detected.Exiting timer\n"));
+            clLogError(CL_TIMER_AREA,CL_TIMER_CTX_TIMER_TASK,"Timer overflow detected.Exiting timer\n");
             clOsalMutexUnlock(gActiveTimerQueue.timerMutex);
             break;
         }

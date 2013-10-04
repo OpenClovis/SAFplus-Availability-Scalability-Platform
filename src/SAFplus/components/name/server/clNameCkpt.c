@@ -18,6 +18,7 @@
  */
 #include <string.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clCpmApi.h>
 #include <clHandleApi.h>
 #include <clNameCkptIpi.h>
@@ -27,6 +28,12 @@ ClCkptSvcHdlT          gNsCkptSvcHdl = CL_HANDLE_INVALID_VALUE;
 extern ClCntHandleT    gNSHashTable;
 
 #define CL_NAME_SVC_CKPT_NAME       "clNameCtxCkpt"
+#define NAME_LOG_AREA_CKPT       "CKPT"
+#define NAME_LOG_AREA_NAME	 "SER"
+#define NAME_CTX_CKPT_INI        "INI"
+#define NAME_CTX_CKPT_CREATE	 "CRE"
+
+
 
 ClRcT
 clNameSvcCkptInit(void)
@@ -41,16 +48,16 @@ clNameSvcCkptInit(void)
     rc = clCkptLibraryInitialize(&gNsCkptSvcHdl);
     if( CL_OK != rc )
     {    
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                ("clCkptLibraryInitialize(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_CTX_CKPT_INI,
+                   "clCkptLibraryInitialize(): rc[0x %x]", rc);
         return rc;
     }    
     rc = clCkptLibraryDoesCkptExist(gNsCkptSvcHdl, &ckptName, &retVal);
     if( CL_OK != rc )
     {
         clCkptLibraryFinalize(gNsCkptSvcHdl);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryDoesCkptExist(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_CTX_CKPT_INI,
+                   "clCkptLibraryDoesCkptExist(): rc[0x %x]", rc);
         return rc;
     }    
     if( retVal == CL_TRUE )
@@ -58,8 +65,8 @@ clNameSvcCkptInit(void)
         rc = clNameSvcCkptCreate();
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("clNameSvcCkptCreate returned [%#x]", rc));
+            clLogError(NAME_LOG_AREA_CKPT,NAME_CTX_CKPT_INI,
+                       "clNameSvcCkptCreate returned [%#x]", rc);
             clCkptLibraryFinalize(gNsCkptSvcHdl);
             return rc;
         }
@@ -90,8 +97,8 @@ clNameSvcCkptCreate(void)
     rc = clCkptLibraryCkptCreate(gNsCkptSvcHdl, &ckptName);
     if( CL_OK != rc  )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptCreate(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_CTX_CKPT_CREATE,
+                   "clCkptLibraryCkptCreate(): rc[0x %x]", rc);
         return rc;
     }    
     rc = clCkptLibraryCkptDataSetCreate(gNsCkptSvcHdl, &ckptName,
@@ -100,8 +107,8 @@ clNameSvcCkptCreate(void)
                                         clNameContextCkptDeserializer);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptDataSetCreate(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_CTX_CKPT_CREATE,
+                   "clCkptLibraryCkptDataSetCreate(): rc[0x %x]", rc);
         clCkptLibraryCkptDataSetDelete(gNsCkptSvcHdl, &ckptName,
                 CL_NAME_CONTEXT_GBL_DSID);
     }    
@@ -126,7 +133,7 @@ clNameSvcGNSTableWalk(ClCntKeyHandleT  key,
     rc = clCpmMasterAddressGet(&masterAddr);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clCpmMasterAddressGet failed with rc 0x%x",rc));
+        clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"clCpmMasterAddressGet failed with rc 0x%x",rc);
         return rc;
     }
 
@@ -151,15 +158,15 @@ clNameSvcCkptRead(void)
                                      CL_NAME_CONTEXT_GBL_DSID, 0);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptDataSetRead(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCkptLibraryCkptDataSetRead(): rc[0x %x]", rc);
         return rc;
     }    
     rc = clCntWalk(gNSHashTable, clNameSvcGNSTableWalk, NULL, 0);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCntWalk() rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCntWalk() rc[0x %x]", rc);
         return rc;
     }    
     CL_NAME_DEBUG_TRACE(("Exit"));
@@ -184,8 +191,8 @@ clNameCkptCtxInfoWrite(void)
                                        0);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc);
     }    
     CL_NAME_DEBUG_TRACE(("Exit"));
     return rc;
@@ -207,8 +214,8 @@ clNameSvcPerCtxDataSetCreate(ClUint32T  contexId,
                                         clNameSvcEntryDeserializer);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptDataSetCreate(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCkptLibraryCkptDataSetCreate(): rc[0x %x]", rc);
         return rc;
     }    
     clLogInfo("DATA", "CREATE", "Data set [%d] created", dsIdCnt);
@@ -242,9 +249,9 @@ clNameCkptCtxAllDSDelete(ClUint32T  contexId,
                                                 dsId);
             if( CL_OK != rc )
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("clCkptLibraryCkptDataSetDelete for dsId [%d] returned rc[0x %x]", 
-                                dsId, rc));
+                clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                           "clCkptLibraryCkptDataSetDelete for dsId [%d] returned rc[0x %x]", 
+                                dsId, rc);
             }    
         }
     }    
@@ -358,8 +365,8 @@ clNameSvcPerCtxInfoWrite(ClUint32T              contexId,
     {
         clCkptLibraryCkptDataSetDelete(gNsCkptSvcHdl, &nsCkptName, 
                                        CL_NS_PER_CTX_DSID); 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc);
         return rc;
     }    
 
@@ -396,8 +403,8 @@ clNameSvcBindingDataWrite(ClUint32T              contexId,
     if( CL_OK != rc )
     {
         clCkptLibraryCkptDataSetDelete(gNsCkptSvcHdl, &nsCkptName, dsIdCnt); 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc);
         return rc;
     }    
     
@@ -428,7 +435,7 @@ clNameSvcBindingDetailsWrite(ClUint32T                 contexId,
     pNsEntryInfo = (ClNsEntryPackT *)clHeapCalloc(1, sizeof(ClNsEntryPackT));
     if( NULL == pNsEntryInfo )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHeapCalloc()"));
+        clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"clHeapCalloc()");
         return CL_NS_RC(CL_ERR_NO_MEMORY);
     }    
     pNsEntryInfo->type    = CL_NAME_SVC_BINDING_DATA;
@@ -447,7 +454,7 @@ clNameSvcBindingDetailsWrite(ClUint32T                 contexId,
         pNsEntryInfo->nsInfo.attr = clHeapCalloc(1, pBindDetail->attrLen);
         if( NULL == pNsEntryInfo->nsInfo.attr )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHeapCalloc"));
+            clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"clHeapCalloc");
             clHeapFree(pNsEntryInfo);
             return CL_NS_RC(CL_ERR_NO_MEMORY);
         }
@@ -461,8 +468,8 @@ clNameSvcBindingDetailsWrite(ClUint32T                 contexId,
     if( CL_OK != rc )
     {
         clCkptLibraryCkptDataSetDelete(gNsCkptSvcHdl, &nsCkptName, dsIdCnt); 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc);
         return rc;
     }    
     if( pBindDetail->attrCount > 0 )
@@ -497,7 +504,7 @@ clNameSvcCompInfoWrite(ClUint32T                  contexId,
     pNsEntryInfo = (ClNsEntryPackT *)clHeapCalloc(1, sizeof(ClNsEntryPackT)); 
     if( NULL == pNsEntryInfo )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHeapCalloc()"));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,"clHeapCalloc()");
         return CL_NS_RC(CL_ERR_NO_MEMORY);
     }    
     pNsEntryInfo->type    = CL_NAME_SVC_COMP_INFO;
@@ -516,7 +523,7 @@ clNameSvcCompInfoWrite(ClUint32T                  contexId,
         pNsEntryInfo->nsInfo.attr = clHeapCalloc(1, pBindDetail->attrLen);
         if( NULL == pNsEntryInfo->nsInfo.attr )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHeapCalloc"));
+            clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,"clHeapCalloc");
             clHeapFree(pNsEntryInfo);
             return CL_NS_RC(CL_ERR_NO_MEMORY);
         }
@@ -529,8 +536,8 @@ clNameSvcCompInfoWrite(ClUint32T                  contexId,
     if( CL_OK != rc )
     {
         clCkptLibraryCkptDataSetDelete(gNsCkptSvcHdl, &nsCkptName, dsIdCnt); 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc);
         return rc;
     }    
     if( pBindDetail->attrCount > 0 )
@@ -558,14 +565,14 @@ clNameSvcPerCtxCkptCreate(ClUint32T  key,
                                             CL_NS_PER_CTX_DSID);
         if( CL_OK != rc )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("clCkptLibraryCkptDataSetDelete(): rc[0x %x]", rc));
+            clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "clCkptLibraryCkptDataSetDelete(): rc[0x %x]", rc);
         }    
         rc = clCkptLibraryCkptDelete(gNsCkptSvcHdl, &nsCkptName);
         if( CL_OK != rc )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("clCkptLibraryCkptDelete(): rc[0x %x]", rc));
+            clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "clCkptLibraryCkptDelete(): rc[0x %x]", rc);
             return rc;
         }    
     }   
@@ -574,8 +581,8 @@ clNameSvcPerCtxCkptCreate(ClUint32T  key,
         rc = clCkptLibraryCkptCreate(gNsCkptSvcHdl, &nsCkptName);
         if( CL_OK != rc )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("clCkptLibraryCkptCreate(); rc[0x %x]", rc));
+            clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "clCkptLibraryCkptCreate(); rc[0x %x]", rc);
             return rc;
         }    
         rc = clCkptLibraryCkptDataSetCreate(gNsCkptSvcHdl, &nsCkptName, 
@@ -585,8 +592,8 @@ clNameSvcPerCtxCkptCreate(ClUint32T  key,
         if( CL_OK != rc )
         {
             clCkptLibraryCkptDelete(gNsCkptSvcHdl, &nsCkptName);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("clCkptLibraryCkptDataSetCreate(): rc[0x %x]", rc));
+            clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "clCkptLibraryCkptDataSetCreate(): rc[0x %x]", rc);
             return rc;
         }    
     } 
@@ -607,14 +614,14 @@ clNameSvcCkptDelete(void)
                                         CL_NAME_CONTEXT_GBL_DSID);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptDataSetDelete(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCkptLibraryCkptDataSetDelete(): rc[0x %x]", rc);
     }
     rc = clCkptLibraryCkptDelete(gNsCkptSvcHdl, &ckptName);
     if( CL_OK != rc  )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptDelete(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCkptLibraryCkptDelete(): rc[0x %x]", rc);
     }    
 
     CL_NAME_DEBUG_TRACE(("Exit"));
@@ -631,13 +638,13 @@ clNameSvcCkptFinalize(void)
 
     if( CL_OK != (rc =  clNameSvcCkptDelete()) )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clNameSvcCkptDelete() failed"));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clNameSvcCkptDelete() failed");
     }    
     if( CL_OK != (rc = clCkptLibraryFinalize(gNsCkptSvcHdl)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryFinalize(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCkptLibraryFinalize(): rc[0x %x]", rc);
     }    
     gNsCkptSvcHdl = CL_HANDLE_INVALID_VALUE;
 
@@ -658,8 +665,8 @@ clNameSvcDataSetDelete(ClUint32T  contexId,
                                         dsId);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCkptLibraryCkptDataSetDelete(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clCkptLibraryCkptDataSetDelete(): rc[0x %x]", rc);
         return rc;
     }    
     clLogInfo("DATA", "DELETE", "Dataset [%d] deleted", dsId);

@@ -35,6 +35,7 @@
 #include "clTimerApi.h"
 #include "clRmdApi.h"
 #include "clDebugApi.h"
+#include "clLogUtilApi.h"
 #include "clNameErrors.h"
 #include "clCommonErrors.h"
 #include "xdrClNameSvcInfoIDLT.h"
@@ -71,7 +72,7 @@ void clNameCliStrPrint(ClCharT* str, ClCharT**retStr)
     *retStr = clHeapAllocate(strlen(str)+1);
     if(NULL == *retStr)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Malloc Failed \r\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Malloc Failed \r\n");
         return;
     }
     sprintf(*retStr, str);

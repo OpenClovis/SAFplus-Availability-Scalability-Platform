@@ -37,11 +37,15 @@ Description: Provides APIs to parse a XML configuration file
 #include <clTcUtils.h>
 #include <clTcParserTags.h>
 
+#define TC_LOG_AREA_PARSE	"PAR"
+#define TC_LOG_CTX_WORKLOAD	"WLD"
+#define TC_LOG_CTX_CONFIG	"CONFIG"
+
 #if 0 /* used for debugging */
 #if defined(CL_DEBUG_LEVEL_THRESHOLD)
 #undef  CL_DEBUG_LEVEL_THRESHOLD
 #endif
-#define CL_DEBUG_LEVEL_THRESHOLD CL_DEBUG_INFO
+#define CL_DEBUG_LEVEL_THRESHOLD CL_LOG_SEV_INFO
 #endif
 /*******************************************************************************
 Function : clTcParseWorkLoad
@@ -76,9 +80,9 @@ clTcParseWorkLoad (
 
 	if (csi_desc->csiAttributeList.numAttributes < TC_CSI_WORK_LOAD_NUM_ARGS) 
 	{
-		CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clTcParseWorkLoad: expected:%d params got %d\n", 
-			   							TC_CSI_WORK_LOAD_NUM_ARGS,
-			   							csi_desc->csiAttributeList.numAttributes));
+		clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_WORKLOAD,"clTcParseWorkLoad: expected:%d params got %d\n", 
+			   					 TC_CSI_WORK_LOAD_NUM_ARGS,
+			   					 csi_desc->csiAttributeList.numAttributes);
 		return CL_ERR_INVALID_PARAMETER;
 	}
 
@@ -101,8 +105,8 @@ clTcParseWorkLoad (
 		}
 		else
 		{
-			CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clTcParseWorkLoad: received invalid attribute:%s\n", 
-				   							attr_name));
+			clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_WORKLOAD,"clTcParseWorkLoad: received invalid attribute:%s\n", 
+				   					 attr_name);
 			return CL_ERR_INVALID_PARAMETER;
 		}
 	}
@@ -166,10 +170,10 @@ clTcParseConfigFile (
     if (file_path == NULL || file_name == NULL || subsystem_name == NULL  || 
 	    test_case_name == NULL || param_list == NULL)
     { 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clTcParseConfigFile: NULL pointer input argument \
+        clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG,"clTcParseConfigFile: NULL pointer input argument \
 		       							path=%s name=%s list=%p\n subsyetm=%s test_case=%s\n",
 			   							file_path, file_name, (ClPtrT)param_list, 
-			   							subsystem_name, test_case_name));
+			   							subsystem_name, test_case_name);
         
         return CL_ERR_NULL_POINTER;
     }
@@ -178,10 +182,10 @@ clTcParseConfigFile (
     file_ptr = clParserOpenFile(file_path, file_name);
     if (file_ptr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clTcParseConfigFile: Error opening config file \
+        clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG,"clTcParseConfigFile: Error opening config file \
 			   							(path=%s name=%s). "\
                                         "Trying ASP_CONFIG path\n",
-			   							file_path, file_name));
+			   							file_path, file_name);
         file_path = getenv("ASP_CONFIG");
         if(!file_path)
         {
@@ -192,10 +196,10 @@ clTcParseConfigFile (
             file_ptr = clParserOpenFile(file_path, file_name);
             if(!file_ptr)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clTcParseConfigFile: Error "\
+                clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG,"clTcParseConfigFile: Error "\
                                                 "opening file "\
                                                 "(path=%s name=%s).\n",
-                                                file_path, file_name));
+                                                file_path, file_name);
                 return CL_ERR_NULL_POINTER;
             }
         }
@@ -207,10 +211,10 @@ clTcParseConfigFile (
 	test_cases = clParserChild(file_ptr, TC_TAG_TEST_CASES); 
 	if (test_cases == NULL)
 	{
-       	CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-						("clTcParseConfigFile: could not find tag: %s \
+       	clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG,
+						"clTcParseConfigFile: could not find tag: %s \
 						(path=%s name=%s)\n", 
-						TC_TAG_TEST_CASES, file_path, file_name));
+						TC_TAG_TEST_CASES, file_path, file_name);
 		ret_code = CL_ERR_INVALID_BUFFER;
        	goto finish_parsing_file;
 	}
@@ -225,9 +229,9 @@ clTcParseConfigFile (
 		sub_name = clParserAttr(test_case, TC_ATTR_SUBSYSTEM_NAME);
 		if (sub_name == NULL) 
 		{
-        	CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-							("clTcParseConfigFile: subsystem attribute missing \
-							(path=%s name=%s)\n", file_path, file_name));
+        	clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG, 
+							"clTcParseConfigFile: subsystem attribute missing \
+							(path=%s name=%s)\n", file_path, file_name);
 			ret_code = CL_ERR_INVALID_BUFFER;
         	goto finish_parsing_file;
 		}
@@ -235,16 +239,16 @@ clTcParseConfigFile (
 		test_name = clParserAttr(test_case, TC_ATTR_TEST_CASE_NAME);
 		if ( test_name == NULL)
 		{
-        	CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-						   ("clTcParseConfigFile: test_case name attribute missing \
-				   			(path=%s name=%s)\n", file_path, file_name));
+        	clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG, 
+						   "clTcParseConfigFile: test_case name attribute missing \
+				   			(path=%s name=%s)\n", file_path, file_name);
 			ret_code = CL_ERR_INVALID_BUFFER;
         	goto finish_parsing_file;
 		}
 
-		CL_DEBUG_PRINT(CL_DEBUG_INFO,
-		               ("clTcParseConfigFile: sub system=%s; test case=%s\n",
-					    sub_name, test_name));
+		clLogInfo(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG,
+		           "clTcParseConfigFile: sub system=%s; test case=%s\n",
+					    sub_name, test_name);
 
 		if ((strcasecmp(test_name, test_case_name) == 0) &&
 			(strcasecmp(sub_name, subsystem_name) == 0))
@@ -261,19 +265,19 @@ clTcParseConfigFile (
 
 			param_list->num_params = num_params;
 
-			CL_DEBUG_PRINT(CL_DEBUG_INFO, 
-						   ("clTcParseConfigFile: sub-system:%s; \
+			clLogInfo(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG, 
+						   "clTcParseConfigFile: sub-system:%s; \
 						    test-case=%s; num params=%d\n",
-						    subsystem_name, test_case_name, num_params));
+						    subsystem_name, test_case_name, num_params);
 
 			/* Allocate memory for paramaters
 			 */
 			param_list->params = clHeapAllocate(num_params * sizeof(ClTcParamT));
 			if (param_list->params == NULL)
 			{
-        		CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-				               ("clTcParseConfigFile: failed allocation for params \
-					   			(path=%s name=%s)\n", file_path, file_name));
+        		clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG, 
+				               "clTcParseConfigFile: failed allocation for params \
+					   			(path=%s name=%s)\n", file_path, file_name);
 				ret_code = CL_ERR_NO_MEMORY;
         		goto finish_parsing_file;
 			}
@@ -287,9 +291,9 @@ clTcParseConfigFile (
 				/* validate for correct parsing */
 				if (!param_name)
 				{
-					CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-								   ("clTcParseConfigFile: error parsing name; parameter # %d\n", 
-								   	num_params));
+					clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG, 
+								   "clTcParseConfigFile: error parsing name; parameter # %d\n", 
+								   	num_params);
 					ret_code = CL_ERR_INVALID_BUFFER;
         			goto error_parsing_params;
 				}
@@ -301,9 +305,9 @@ clTcParseConfigFile (
 				/* validate for correct parsing */
 				if (!param_id)
 				{
-					CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-								   ("clTcParseConfigFile: error parsing id; parameter # %d\n", 
-								   	num_params));
+					clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG,
+								   "clTcParseConfigFile: error parsing id; parameter # %d\n", 
+								   	num_params);
 					ret_code = CL_ERR_INVALID_BUFFER;
         			goto error_parsing_params;
 				}
@@ -328,12 +332,12 @@ clTcParseConfigFile (
 													TC_TAG_PARAM_VAL_FLT);
 						if (param_value == NULL) /* error */
 						{
-							CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-							               ("clTcParseConfigFile:param value type: has \
+							clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG, 
+							               "clTcParseConfigFile:param value type: has \
 							       		    be one of %s, %s, %s(path=%s name=%s)\n",
 								   			TC_TAG_PARAM_VAL_STR,TC_TAG_PARAM_VAL_INT,
 								   			TC_TAG_PARAM_VAL_FLT, 
-											file_path, file_name)); 
+											file_path, file_name); 
 							ret_code = CL_ERR_INVALID_BUFFER;
         					goto error_parsing_params;
 						}
@@ -366,9 +370,9 @@ clTcParseConfigFile (
 	 */
 	if (found_test_case != CL_TRUE)
 	{
-   		CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clTcParseConfigFile: could not find test_case=%s for \
+   		clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG,"clTcParseConfigFile: could not find test_case=%s for \
 			   							subsystem=%s (path=%s name=%s)\n", 
-			   							test_case_name, subsystem_name, file_path, file_name));
+			   							test_case_name, subsystem_name, file_path, file_name);
 		ret_code = CL_ERR_DOESNT_EXIST; 
 	}
 

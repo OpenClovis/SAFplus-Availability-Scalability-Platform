@@ -51,6 +51,11 @@ typedef struct ClUdpAddrCacheEntry
 #define CL_UDP_ADDR_CACHE_SEGMENT "/CL_UDP_ADDR_CACHE"
 #define CL_UDP_ADDR_CACHE_SEGMENT_SIZE  CL_IOC_ALIGN((ClUint32T)(CL_IOC_MAX_NODES*sizeof(ClUdpAddrCacheEntryT)), 8)
 
+#define UDP_LOG_AREA_UDP	"UDP"
+#define UDP_LOG_CTX_UDP_MAP	"MAP"
+#define	UDP_LOG_CTX_UDP_SEND	"SEND"
+#define	UDP_LOG_CTX_UDP_RECV	"RECV"
+
 static ClUint8T *gpClUdpAddrCache;
 static ClCharT gClUdpAddrCacheSegment[CL_MAX_NAME_LENGTH+1];
 static ClOsalSemIdT gClUdpAddrCacheSem;
@@ -416,9 +421,9 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
             if (err == ENOPROTOOPT)
             {
                 udpPriorityChangePossible = CL_FALSE;
-                CL_DEBUG_PRINT(CL_DEBUG_WARN,("Message priority not available in this version of UDP."));
+                clLogWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_MAP,"Message priority not available in this version of UDP.");
             }
-            else CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in setting UDP message priority. errno [%d]",err));
+            else clLogWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_MAP,"Error in setting UDP message priority. errno [%d]",err);
             goto out_free;
         }
     }
@@ -853,7 +858,7 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
 
     if(!xportPrivate)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("No private data\n"));
+        clLogError(UDP_LOG_AREA_UDP,CL_LOG_CONTEXT_UNSPECIFIED,"No private data\n");
         rc = CL_IOC_RC(CL_ERR_INVALID_HANDLE);
         goto out;
     }
@@ -878,7 +883,7 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
         if(errno == EINTR)
             goto recv;
         perror("Receive : ");
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("recv error. errno = %d\n",errno));
+        clLogError(UDP_LOG_AREA_UDP,CL_LOG_CONTEXT_UNSPECIFIED,"recv error. errno = %d\n",errno);
         rc = CL_ERR_LIBRARY;
         goto out;
     }
@@ -1131,13 +1136,13 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
                     if(errno == EINTR)
                         goto recv;
                     perror("Receive : ");
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("recv error. errno = %d\n",errno));
+                    clLogError(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"recv error. errno = %d\n",errno);
                     goto out;
                 }
             } 
             else 
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("poll error. errno = %d\n", errno));
+                clLogError(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"poll error. errno = %d\n", errno);
                 goto out;
             }
         } 
@@ -1145,7 +1150,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         {
             if(errno == EINTR)
                 continue;
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in poll. errno = %d\n",errno));
+            clLogError(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"Error in poll. errno = %d\n",errno);
             goto out;
         } 
         else 
@@ -1175,9 +1180,9 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         else
         {
             rc = CL_ERR_TIMEOUT;
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("Dropping a received fragmented-packet. "
+            clLogCritical(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"Dropping a received fragmented-packet. "
                                               "Could not receive the complete packet within "
-                                              "the specified timeout. Packet size is %d", bytes));
+                                              "the specified timeout. Packet size is %d", bytes);
 
         }
     }
@@ -1211,9 +1216,9 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
             if (err == ENOPROTOOPT)
             {
                 udpPriorityChangePossible = CL_FALSE;
-                CL_DEBUG_PRINT(CL_DEBUG_WARN,("Message priority not available in this version of UDP."));
+                clLogWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_SEND,"Message priority not available in this version of UDP.");
             }
-            else CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in setting UDP message priority. errno [%d]",err));
+            else clLogWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_SEND,"Error in setting UDP message priority. errno [%d]",err);
         }
     }
 

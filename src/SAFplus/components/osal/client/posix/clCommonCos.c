@@ -54,6 +54,7 @@
 #include "../osal.h"
 #include <clCksmApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clDbg.h>
 #include <clBitApi.h>
 #include <clLogApi.h>
@@ -140,7 +141,7 @@ cosPosixFileOpen(ClCharT *file, ClInt32T flags, ClHandleT *fd)
     rc = open((char *)file,(int)flags);
     if(rc < 0) 
     {    
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to open [%s] file. system errorcode [%d]", file, rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Failed to open [%s] file. system errorcode [%d]", file, rc);
         return CL_OSAL_RC(CL_OSAL_ERR_OS_ERROR);
     }    
 
@@ -161,7 +162,7 @@ cosPosixFileClose(ClFdT *fd)
     rc = close(*fd);
     if(rc < 0) 
     {    
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to close the file. system errorcode [%d]\n", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Failed to close the file. system errorcode [%d]\n", rc);
         return CL_OSAL_RC(CL_OSAL_ERR_OS_ERROR);
     }    
 
@@ -182,7 +183,7 @@ cosPosixMmap(ClPtrT start, ClUint32T length, ClInt32T prot, ClInt32T flags, ClHa
     actualMap = mmap((void*)start, (size_t)length, (int)prot, (int)flags, (int)fd, (off_t)offset);
     if(actualMap == MAP_FAILED)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Memory mapping of the file failed with error [%s]", strerror(errno)));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Memory mapping of the file failed with error [%s]", strerror(errno));
         return CL_OSAL_RC(CL_OSAL_ERR_OS_ERROR);
     }
         
@@ -203,7 +204,7 @@ cosPosixMunmap(ClPtrT start, ClUint32T length)
     rc = munmap((void *)start, (size_t)length);
     if(rc < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to unmap the mapped memory. system errorcode [%d]", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Failed to unmap the mapped memory. system errorcode [%d]", rc);
         return CL_OSAL_RC(CL_OSAL_ERR_OS_ERROR);
     }
 
@@ -222,7 +223,7 @@ cosPosixMsync(ClPtrT start, ClUint32T length, ClInt32T flags)
     rc = msync((void*)start, (size_t)length,(int)flags);
     if(rc < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to sync the file to the mapped memory. system errorcode [%d]", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Failed to sync the file to the mapped memory. system errorcode [%d]", rc);
         return CL_OSAL_RC(CL_OSAL_ERR_OS_ERROR);
     }
 
@@ -246,12 +247,12 @@ cosPosixShmOpen(const ClCharT *name, ClInt32T oflag, ClUint32T mode, ClFdT *fd)
 
         if (EEXIST == err)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_WARN, ("Shared memory object [%s] already exists. system errorcode [%d]", name, err));
+            clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Shared memory object [%s] already exists. system errorcode [%d]", name, err);
             retCode = CL_ERR_ALREADY_EXIST;
             goto err;
         }
 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to open shared memory object [%s]. system errorcode [%d]", name, errno));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Failed to open shared memory object [%s]. system errorcode [%d]", name, errno);
         retCode = CL_OSAL_ERR_OS_ERROR;
         goto err;
     }
@@ -280,7 +281,7 @@ cosPosixShmUnlink(const ClCharT *name)
             rc2 = CL_ERR_DOESNT_EXIST;
         else  /* A non-existent shared memory object is a "normal" error -- it just means that the app was programming defensively */
           {
-          CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to remove shared memory object. system errorcode [%d]", err));
+          clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Failed to remove shared memory object. system errorcode [%d]", err);
           }
         return CL_OSAL_RC(rc2);
     }
@@ -299,7 +300,7 @@ cosPosixFtruncate(ClFdT fd, off_t length)
     rc = ftruncate((int)fd, (off_t)length);
     if(rc < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to truncate the file. system errorcode [%d]", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Failed to truncate the file. system errorcode [%d]", rc);
         return CL_OSAL_RC(CL_OSAL_ERR_OS_ERROR);
     }
     
@@ -350,7 +351,7 @@ cosTaskCreate(const ClCharT* pTaskName, ClOsalSchedulePolicyT schedulePolicy, Cl
       {
         if ((priority < COS_MIN_PRIORITY) || (priority > COS_MAX_PRIORITY))
           {
-            CL_DEBUG_PRINT (CL_DEBUG_INFO,("Task creation FAILED"));
+            clLogInfo("OSAL",CL_LOG_CONTEXT_UNSPECIFIED,"Task creation FAILED");
             retCode = CL_OSAL_RC(CL_ERR_INVALID_PARAMETER);
             clDbgCodeError(retCode, ("Priority '%d' is invalid, allowed range is %d-%d inclusive", priority, COS_MIN_PRIORITY, COS_MAX_PRIORITY));
             CL_FUNC_EXIT();
@@ -373,7 +374,7 @@ cosTaskCreate(const ClCharT* pTaskName, ClOsalSchedulePolicyT schedulePolicy, Cl
 
     if (0 != retCode)
 	{
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nTask creation FAILED"));
+        clLogInfo("OSAL",CL_LOG_CONTEXT_UNSPECIFIED,"\nTask creation FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_TASK_ATTRIBUTE_INIT);
         CL_FUNC_EXIT();
         return(retCode);
@@ -382,7 +383,7 @@ cosTaskCreate(const ClCharT* pTaskName, ClOsalSchedulePolicyT schedulePolicy, Cl
 
     if(0 != retCode)
 	{
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nTask creation FAILED"));
+        clLogInfo("OSAL",CL_LOG_CONTEXT_UNSPECIFIED,"\nTask creation FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_TASK_STACK_SIZE);
         CL_FUNC_EXIT();
         return(retCode);
@@ -397,7 +398,7 @@ cosTaskCreate(const ClCharT* pTaskName, ClOsalSchedulePolicyT schedulePolicy, Cl
     
 	if(0 != retCode)
           {
-            CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nSet detachstate FAILED"));
+            clLogInfo("OSAL",CL_LOG_CONTEXT_UNSPECIFIED,"\nSet detachstate FAILED");
             retCode = CL_OSAL_RC(CL_OSAL_ERR_TASK_ATTRIBUTE_SET);
             CL_FUNC_EXIT();
             return(retCode);
@@ -408,7 +409,7 @@ cosTaskCreate(const ClCharT* pTaskName, ClOsalSchedulePolicyT schedulePolicy, Cl
 
     if(NULL == pTaskInfo)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nTask creation FAILED"));
+        clLogInfo("OSAL",CL_LOG_CONTEXT_UNSPECIFIED,"\nTask creation FAILED");
         retCode = CL_OSAL_RC(CL_ERR_NO_MEMORY);
         CL_FUNC_EXIT();
         return(retCode);
@@ -422,7 +423,7 @@ cosTaskCreate(const ClCharT* pTaskName, ClOsalSchedulePolicyT schedulePolicy, Cl
        (geteuid() != 0)
        )
        ) {
-      CL_DEBUG_PRINT (CL_DEBUG_WARN,("Need superuser privileges to set CL_OSAL_SCHED_RR/CL_OSAL_SCHED_FIFO; task scheduling will not work as directed."));
+      clLogWarning("OSAL",CL_LOG_CONTEXT_UNSPECIFIED,"Need superuser privileges to set CL_OSAL_SCHED_RR/CL_OSAL_SCHED_FIFO; task scheduling will not work as directed.");
     }
 
     pTaskInfo->schedPolicy = schedulePolicy;
@@ -453,8 +454,8 @@ cosTaskCreate(const ClCharT* pTaskName, ClOsalSchedulePolicyT schedulePolicy, Cl
 
     if (0 != retCode)
 	{
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,("Task creation failed with error [%d] - [%s]",retCode,
-                                        strerror(retCode)));
+        clLogError("OSAL",CL_LOG_CONTEXT_UNSPECIFIED,"Task creation failed with error [%d] - [%s]",retCode,
+                                        strerror(retCode));
         clDbgPause();
         clHeapFree(pTaskInfo);
         retCode = CL_OSAL_RC(CL_OSAL_ERR_TASK_CREATE);
@@ -522,7 +523,7 @@ cosPosixTaskDelete (ClOsalTaskIdT taskId)
         retCode = (ClUint32T)pthread_detach (taskId);
         if(0 != retCode)
           {
-            CL_DEBUG_PRINT (CL_DEBUG_WARN, ("Task delete FAILED, system error code [%d]", retCode));
+            clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Task delete FAILED, system error code [%d]", retCode);
             retCode = CL_OSAL_RC(CL_OSAL_ERR_TASK_DELETE);
             CL_FUNC_EXIT();
             return(retCode);
@@ -538,7 +539,7 @@ cosPosixTaskDelete (ClOsalTaskIdT taskId)
         retCode = (ClUint32T)pthread_cancel (taskId);
         if(0 != retCode)
           {
-            CL_DEBUG_PRINT (CL_DEBUG_WARN, ("Task delete FAILED, system error code [%d]", retCode));
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Task delete FAILED, system error code [%d]", retCode);
             retCode = CL_OSAL_RC(CL_OSAL_ERR_TASK_DELETE);
             CL_FUNC_EXIT();
             return(retCode);
@@ -567,7 +568,7 @@ cosPosixTaskKill(ClOsalTaskIdT taskId, ClInt32T sig)
     retCode = (ClUint32T)pthread_kill (taskId, sig);
     if(0 != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_WARN, ("Task delete FAILED, system error code [%d]", retCode));
+        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Task delete FAILED, system error code [%d]", retCode);
         retCode = CL_OSAL_RC(CL_OSAL_ERR_TASK_DELETE);
         CL_FUNC_EXIT();
         return(retCode);
@@ -693,7 +694,7 @@ cosPosixTaskNameGet (ClOsalTaskIdT taskId, ClUint8T** ppTaskName)
     retCode = clOsalTaskDataGet(gTaskControl.taskNameKey, (ClOsalTaskDataT*)ppTaskName);
     if(CL_OK != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO, ("Task Name Get Failed, rc [0x%x]\n", retCode));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Task Name Get Failed, rc [0x%x]\n", retCode);
     }
 
     CL_FUNC_EXIT();
@@ -724,7 +725,7 @@ cosPosixTaskPriorityGet (ClOsalTaskIdT taskId,ClUint32T* pTaskPriority)
             return CL_OSAL_RC(CL_ERR_INVALID_PARAMETER);
           }
 
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Task [%llu] priority get failed, system error [%s] code [%d]", taskId, strerror(retCode), retCode));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Task [%llu] priority get failed, system error [%s] code [%d]",taskId,strerror(retCode),retCode);
         CL_FUNC_EXIT();
         return(CL_OSAL_RC(CL_OSAL_ERR_TASK_ATTRIBUTE_GET));
     }
@@ -758,7 +759,7 @@ cosPosixTaskPrioritySet (ClOsalTaskIdT taskId,ClUint32T taskPriority)
 
     if(0 != retCode)
 	{
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Task priority set failed.  System error [%d]",retCode));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Task priority set failed.  System error [%d]",retCode);
         retCode = CL_OSAL_RC(CL_ERR_INVALID_PARAMETER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -774,7 +775,7 @@ cosPosixTaskPrioritySet (ClOsalTaskIdT taskId,ClUint32T taskPriority)
 
     if (0 != retCode)
 	{
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Task priority set failed.  System error [%d]",retCode));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Task priority set failed.  System error [%d]",retCode);
         retCode = CL_OSAL_RC(CL_OSAL_ERR_TASK_ATTRIBUTE_SET);
         CL_FUNC_EXIT();
         return(retCode);
@@ -853,7 +854,8 @@ cosPosixStopWatchTimeGet(void)
                 CL_ASSERT(0);
                 break;
             default: 
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Unknow/Undocumented error while calling clock_gettime(). system error code %d.", errno ));
+                clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Error:Unknow/Undocumented error while calling clock_gettime(). system error code %d.",
+                            errno );
                 break;
         }
         return -1;
@@ -878,7 +880,7 @@ cosPosixTimeOfDayGet(ClTimerTimeOutT* pTime)
     if(0 != gettimeofday(&tv, NULL)) 
     {
         int err = errno;
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Error getting time of day, system error code %d", err));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error getting time of day, system error code %d", err);
         retCode = CL_OSAL_RC(CL_OSAL_ERR_TIME_OF_DAY);
         CL_FUNC_EXIT();
         return(retCode);
@@ -915,7 +917,7 @@ static void taskSetScheduling(ClOsalTaskIdT tid, const char *taskName, int polic
       int retCode = (ClRcT)pthread_setschedparam(tid,policy,(const struct sched_param*)&schedParam);
       if( 0 != retCode ) 
         { 
-          CL_DEBUG_PRINT(CL_DEBUG_WARN,("Task [%s] creation partial failure.  Unable to set scheduling policy.  Error [%s], code [%d], when calling pthread_setschedparam", taskName, strerror(retCode), retCode));
+          clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Task [%s] creation partial failure.  Unable to set scheduling policy.  Error [%s], code                           [%d], when calling pthread_setschedparam", taskName, strerror(retCode), retCode);
         }
     }
 
@@ -931,21 +933,20 @@ cosPosixTaskWrapper(void* pArgument)
 
     CL_FUNC_ENTER();
 
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE, ("Task wrapper invoked."));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Task wrapper invoked.");
     taskInfo = *pTaskInfo;
     clHeapFree(pTaskInfo);
     
     retCode = clOsalTaskDataSet(gTaskControl.taskNameKey, taskInfo.taskName);
     if(CL_OK != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_WARN,("Task [%s] creation partial failure.  Unable to set task data.  Error [0x%x]", taskInfo.taskName, retCode));
+        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Task [%s] creation partial failure.  Unable to set task data.  Error [0x%x]",                                     taskInfo.taskName, retCode);
         CL_FUNC_EXIT();
         pTemp = NULL;
     }
-
     taskSetScheduling(pthread_self(), taskInfo.taskName, taskInfo.schedPolicy, taskInfo.schedPriority);
 
-    CL_DEBUG_PRINT (CL_DEBUG_INFO,("Creating Task [%s]", taskInfo.taskName));
+    clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Creating Task [%s]", taskInfo.taskName);
 
     /* Call the function to be executed */
     pTemp = (void*)(*taskInfo.fpTaskFunction) (taskInfo.pArgument);
@@ -1229,7 +1230,7 @@ cosPosixMutexCreate (ClOsalMutexIdT* pMutexId)
     pMutex = (ClOsalMutexT*) clHeapAllocate((ClUint32T)sizeof(ClOsalMutexT));
     if(NULL == pMutex)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex creation failed, out of memory."));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Mutex creation failed, out of memory.");
         retCode = CL_OSAL_RC(CL_ERR_NO_MEMORY);
         CL_FUNC_EXIT();
         return(retCode);
@@ -1240,7 +1241,7 @@ cosPosixMutexCreate (ClOsalMutexIdT* pMutexId)
     if(0 != retCode)
 	{
         clHeapFree(pMutex);
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex creation failed, error [0x%x]", retCode));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Mutex creation failed, error [0x%x]", retCode);
         CL_FUNC_EXIT();
         return(CL_OSAL_RC(CL_OSAL_ERR_MUTEX_CREATE));
 	}
@@ -1261,7 +1262,7 @@ cosPosixMutexErrorCheckCreate (ClOsalMutexIdT* pMutexId)
     pMutex = (ClOsalMutexT*) clHeapAllocate((ClUint32T)sizeof(ClOsalMutexT));
     if(NULL == pMutex)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex creation failed, out of memory."));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Mutex creation failed, out of memory.");
         retCode = CL_OSAL_RC(CL_ERR_NO_MEMORY);
         CL_FUNC_EXIT();
         return(retCode);
@@ -1272,7 +1273,7 @@ cosPosixMutexErrorCheckCreate (ClOsalMutexIdT* pMutexId)
     if(0 != retCode)
 	{
         clHeapFree(pMutex);
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex creation failed, error [0x%x]", retCode));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Mutex creation failed, error [0x%x]", retCode);
         CL_FUNC_EXIT();
         return(CL_OSAL_RC(CL_OSAL_ERR_MUTEX_CREATE));
 	}
@@ -1474,7 +1475,7 @@ cosPosixCondCreate(ClOsalCondIdT *pConditionId)
 
     if(NULL == pConditionVar)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO, ("Condition create failed: out of memory"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Condition create failed: out of memory");
         retCode = CL_OSAL_RC(CL_ERR_NO_MEMORY);
         CL_FUNC_EXIT();
         return(retCode);
@@ -1732,7 +1733,7 @@ cosPosixTaskDataGet(ClUint32T key, ClOsalTaskDataT* pThreadData)
     {
       int retCode  = CL_OSAL_RC(CL_OSAL_ERR_OS_ERROR);
       *pThreadData = 0; /* Clear it out in case the app is misbehaved */
-      CL_DEBUG_PRINT (CL_DEBUG_WARN,("Access of non-existent task-specific data key [0x%x]", key));
+      clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Access of non-existent task-specific data key [0x%x]", key);
       CL_FUNC_EXIT();
       return(retCode);
     }
@@ -1783,7 +1784,7 @@ cosPosixProcessDelete(ClOsalPidT processId)
     CL_FUNC_ENTER();
     if((processId ==0)||((int)processId < 0))
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nProcess Delete: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess Delete: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_PROCESS_DELETE);
         CL_FUNC_EXIT();
         return(retCode);
@@ -1793,13 +1794,13 @@ cosPosixProcessDelete(ClOsalPidT processId)
 
     if(0 != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nProcess Delete: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess Delete: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_PROCESS_DELETE);
         CL_FUNC_EXIT();
         return(retCode);
     }
 
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nProcess Delete: DONE"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess Delete: DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -1819,13 +1820,13 @@ cosPosixProcessWait(ClOsalPidT processId)
 
     if(retCode < 0)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nProcess wait: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess wait: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_PROCESS_WAIT);
         CL_FUNC_EXIT();
         return(retCode);
     }
 
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nProcess wait: DONE"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess wait: DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -1838,7 +1839,7 @@ cosPosixProcessSelfIdGet(ClOsalPidT* pProcessId)
     CL_FUNC_ENTER();
     if(NULL == pProcessId)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nProcess ID Get: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess ID Get: FAILED");
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -1846,7 +1847,7 @@ cosPosixProcessSelfIdGet(ClOsalPidT* pProcessId)
 
     *pProcessId = (ClOsalPidT)getpid();
 
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nProcess ID Get: DONE"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess ID Get: DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -1894,7 +1895,7 @@ cosPosixMaxPathGet(const ClCharT* path, ClInt32T* pLength)
     return CL_OK;
    
 err:
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nFetching maximum pathname size: FAILED"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nFetching maximum pathname size: FAILED");
     CL_FUNC_EXIT();
     return CL_OSAL_RC(rc);
 }
@@ -1932,7 +1933,7 @@ cosPosixPageSizeGet(ClInt32T* pSize)
     return CL_OK;
    
 err:
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nFetching page size: FAILED"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nFetching page size: FAILED");
     CL_FUNC_EXIT();
     return CL_OSAL_RC(rc);
 }

@@ -27,6 +27,7 @@
 #include <clLogCommon.h>
 #include <clCpmExtApi.h>
 #include <clIocLogicalAddresses.h>
+#include <clLogUtilApi.h>
 
 #ifdef POSIX_BUILD
 ClOsalSharedMutexFlagsT gClLogMutexMode = CL_OSAL_SHARED_POSIX_SEM;
@@ -100,13 +101,13 @@ clLogFileLocationFindNGet(ClCharT    *recvFileLoc,
         rc = clCpmLocalNodeNameGet(&localName);
         if( CL_OK != rc )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to get the local node rc[0x %x]", rc));
+            clLogError("LOC","GET","Failed to get the local node rc[0x %x]", rc);
         }
         destFileLoc->length = localName.length + strlen(path) + 3;
         destFileLoc->pValue = clHeapCalloc(1, destFileLoc->length);
         if( NULL == destFileLoc->pValue )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to allocate memory"));
+            clLogError("LOC","GET","Failed to allocate memory");
             return CL_LOG_RC(CL_ERR_NO_MEMORY);
         }
         snprintf( destFileLoc->pValue, destFileLoc->length, "%.*s:%s",
@@ -118,7 +119,7 @@ clLogFileLocationFindNGet(ClCharT    *recvFileLoc,
         destFileLoc->pValue = clHeapCalloc(1, destFileLoc->length);
         if( NULL == destFileLoc->pValue )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to allocate memory"));
+            clLogError("LOC","GET","Failed to allocate memory");
             return CL_LOG_RC(CL_ERR_NO_MEMORY);
         }
         snprintf(destFileLoc->pValue, destFileLoc->length, "%s", recvFileLoc);
@@ -159,7 +160,7 @@ clLogPerennialStreamsDataGet(ClLogStreamAttrIDLT  *pStreamAttr,
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("ASP_CONFIG path is not set in the environment \n"));
+        clLogError("SVR","INI","ASP_CONFIG path is not set in the environment \n");
         return CL_LOG_RC(CL_ERR_DOESNT_EXIST);
     }
 
@@ -304,7 +305,7 @@ clLogPerennialStreamsDataGet(ClLogStreamAttrIDLT  *pStreamAttr,
             rc = clCpmLocalNodeNameGet(&stdStreamList[i].streamScopeNode);
             if( CL_OK != rc )
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to get the local node rc[0x %x]", rc));
+                clLogError("SEV","INI","Failed to get the local node rc[0x %x]", rc);
             }
         }
     }

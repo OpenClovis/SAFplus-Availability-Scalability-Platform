@@ -441,7 +441,7 @@ clLogPrecreatedStreamsDataGet(ClLogStreamDataT     *pStreamAttr[],
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("ASP_CONFIG path is not set in the environment \n"));
+        clLogError("SVR","INI","ASP_CONFIG path is not set in the environment \n");
         return CL_LOG_RC(CL_ERR_DOESNT_EXIST);
     }
     if(NULL != head)

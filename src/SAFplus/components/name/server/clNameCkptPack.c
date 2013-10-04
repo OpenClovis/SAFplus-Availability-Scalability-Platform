@@ -22,6 +22,11 @@
 extern ClCkptSvcHdlT   gNsCkptSvcHdl ;
 extern ClCntHandleT    gNSHashTable;
 
+#define NAME_LOG_AREA_CKPT	"CKPT"
+#define NAME_LOG_AREA_NAME	"SER"
+#define NAME_LOG_CTX_SERIALIZER	"SERIALIZER"
+#define NAME_LOG_CTX_PACK	"PACK"
+
 ClRcT
 clNameContextCkptSerializer(ClUint32T  dsId,
                             ClAddrT    *pBuffer,
@@ -34,21 +39,21 @@ clNameContextCkptSerializer(ClUint32T  dsId,
     CL_NAME_DEBUG_TRACE(("Enter"));
     if( CL_NAME_CONTEXT_GBL_DSID != dsId )
     {        
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                ("dsId is not proper\n"));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER, 
+                   "dsId is not proper\n");
         return CL_NS_RC(CL_ERR_INVALID_PARAMETER);
     }    
     if( (NULL == pBuffer) || (NULL == pSize) )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                 ("Passed Value is NULL"));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER,
+                   "Passed Value is NULL");
         return CL_NS_RC(CL_ERR_NULL_POINTER);
     }    
     rc = clBufferCreate(&inMsg);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                  ("clBufferCreate() : rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER,
+                   "clBufferCreate() : rc[0x %x]", rc);
         return rc;
     }    
     rc = clNameContextCkptNamePack(inMsg);
@@ -60,16 +65,16 @@ clNameContextCkptSerializer(ClUint32T  dsId,
     rc = clBufferLengthGet(inMsg, pSize);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clBufferLengthGet(); rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER,
+                   "clBufferLengthGet(); rc[0x %x]", rc);
         clBufferDelete(&inMsg);
         return rc;
     }    
     *pBuffer = clHeapCalloc(*pSize, sizeof(ClUint8T));
     if( NULL == *pBuffer )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHeapCalloc()"));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER,
+                   "clHeapCalloc()");
         clBufferDelete(&inMsg);
         return CL_NS_RC(CL_ERR_NO_MEMORY);
     }    
@@ -77,15 +82,15 @@ clNameContextCkptSerializer(ClUint32T  dsId,
     if( CL_OK != rc )
     {
         clHeapFree(*pBuffer);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clBufferNBytesRead"));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER,
+                   "clBufferNBytesRead");
         clBufferDelete(&inMsg);
         return rc ;
     }    
     if( CL_OK != (rc = clBufferDelete(&inMsg)) ) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clBufferDelete(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER,
+                   "clBufferDelete(): rc[0x %x]", rc);
     }    
 
     CL_NAME_DEBUG_TRACE(("Exit"));
@@ -105,8 +110,8 @@ clNameNSTableWalk(ClCntKeyHandleT   key,
     rc = clXdrMarshallClUint32T(&key, inMsg, 0); 
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clXdrMarshallClUint32T(): rc[0x %x]", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clXdrMarshallClUint32T(): rc[0x %x]", rc);
         return rc;
     }    
     CL_NAME_DEBUG_TRACE(("Exit"));
@@ -125,15 +130,15 @@ clNameContextCkptNamePack(ClBufferHandleT  inMsg)
     rc = clCntSizeGet(gNSHashTable, &size);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCntSizeGet(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_PACK,
+                   "clCntSizeGet(): rc[0x %x]", rc);
         return rc;
     }    
     rc = clXdrMarshallClUint32T(&size, inMsg, 0);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clXdrMarshallClUint32T(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_PACK,
+                   "clXdrMarshallClUint32T(): rc[0x %x]", rc);
         return rc;
     }    
     rc = clCntWalk(gNSHashTable, clNameNSTableWalk,
@@ -159,8 +164,8 @@ clNameSvcEntrySerializer(ClUint32T  dsId,
     *pBuffer = clHeapCalloc(1, sizeof(ClNsEntryPackT)+ pNsEntry->nsInfo.attrLen);
     if( NULL == *pBuffer )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHeapCalloc(); rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_SERIALIZER,
+                   "clHeapCalloc(); rc[0x %x]", rc);
         return CL_NS_RC(CL_ERR_NULL_POINTER);
     }    
     pTemp = *pBuffer;
@@ -192,8 +197,8 @@ clNameSvcPerCtxSerializer(ClUint32T  dsId,
     *pBuffer = clHeapCalloc(1, sizeof(ClNameSvcContextInfoT));
     if( NULL == *pBuffer )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHeapCalloc()"));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER,
+                   "clHeapCalloc()");
         return CL_NS_RC(CL_ERR_NO_MEMORY);
     }    
     memcpy(*pBuffer, pCtxData, sizeof(ClNameSvcContextInfoT));

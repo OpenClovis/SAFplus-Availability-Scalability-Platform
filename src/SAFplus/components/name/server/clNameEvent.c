@@ -46,6 +46,9 @@
 
 #define CL_NM_EVT_COMP_DEATH_SUBSCRIPTION_ID 1
 #define CL_NM_EVT_NODE_DEATH_SUBSCRIPTION_ID 2
+#define NAME_LOG_AREA_EVENT		"EVT"
+#define NAME_LOG_CTX_EVENT_INI		"INI"
+#define NAME_LOG_CTX_EVENT_CALLBACK	"CALLBACK"
 
 ClEventChannelHandleT gEvtChannelHdl;
 ClEventChannelHandleT gEvtChannelSubHdl;
@@ -120,7 +123,7 @@ ClRcT nameSvcEventInitialize()
     rc = clEventInitialize(&gNameEvtHdl, &evtCallbacks, &version);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Init Failed [%x]\n\r",rc));
+        clLogError(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_INI,"\n NS: Init Failed [%x]\n\r",rc);
         return rc;
     }
 
@@ -129,7 +132,7 @@ ClRcT nameSvcEventInitialize()
                      CL_EVENT_CHANNEL_PUBLISHER, (ClTimeT)-1, &gEvtChannelHdl);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Channel Open Failed [%x]\n\r",rc));
+        clLogError(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_INI,"\n NS: Channel Open Failed [%x]\n\r",rc);
         /* Do necessary cleanup */
         goto label3;
     }
@@ -138,7 +141,7 @@ ClRcT nameSvcEventInitialize()
     rc = clEventAllocate(gEvtChannelHdl, &gEventHdl);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Event Allocate Failed [%x]\n\r",rc));
+        clLogError(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_INI,"\n NS: Event Allocate Failed [%x]\n\r",rc);
         /* Do necessary cleanup */
         goto label2;
     }
@@ -148,7 +151,7 @@ ClRcT nameSvcEventInitialize()
                                  1, 0, &publisherName);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Attribute Set Failed [%x]\n\r",rc));
+        clLogError(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_INI,"Event Attribute Set Failed [%x]\n\r",rc);
         /* Do necessary cleanup */
         goto label1;
     }
@@ -159,7 +162,7 @@ ClRcT nameSvcEventInitialize()
                      (ClTimeT)-1, &gEvtChannelSubHdl);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Channel Open Failed [%x]\n\r",rc));
+        clLogError(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_INI,"\n NS: Channel Open Failed [%x]\n\r",rc);
         /* Do necessary cleanup */
         goto label3;
     }
@@ -167,7 +170,7 @@ ClRcT nameSvcEventInitialize()
     rc = clEventSubscribe(gEvtChannelSubHdl, &compDeathFilterArray, CL_NM_EVT_COMP_DEATH_SUBSCRIPTION_ID, NULL);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [%x]\n\r",rc));
+        clLogError(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_INI,"Subscriptions Failed [%x]\n\r",rc);
         return rc;
     }
 
@@ -177,7 +180,7 @@ ClRcT nameSvcEventInitialize()
                      (ClTimeT)-1, &gEvtNodeChannelSubHdl);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Channel Open Failed [%x]\n\r",rc));
+        clLogError(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_INI,"\n NS: Channel Open Failed [%x]\n\r",rc);
         /* Do necessary cleanup */
         goto label3;
     }
@@ -185,7 +188,7 @@ ClRcT nameSvcEventInitialize()
     rc = clEventSubscribe(gEvtNodeChannelSubHdl, &nodeDepartureFilterArray, CL_NM_EVT_NODE_DEATH_SUBSCRIPTION_ID, NULL);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [%x]\n\r",rc));
+        clLogError(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_INI,"Subscriptions Failed [%x]\n\r",rc);
         return rc;
     }
     goto label4;
@@ -239,17 +242,17 @@ void nameSvcEventCallback( ClEventSubscriptionIdT subscriptionId,
                                       CL_CPM_NODE_EVENT, &nodePayload);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Could not extract payload info from "
-                                           "CPM event. rc 0x%x",rc));
+            clLogError(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_CALLBACK,"Could not extract payload info from "
+                       "CPM event. rc 0x%x",rc);
             break;
         }
 
         if (nodePayload.operation != CL_CPM_NODE_DEATH)
             goto out_free;
 
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Node with IOC address %d is going down"
-                                       " Removing the name entries from that node",
-                                       nodePayload.nodeIocAddress));
+        clLogTrace(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_CALLBACK,"Node with IOC address %d is going down"
+                   " Removing the name entries from that node",
+                   nodePayload.nodeIocAddress);
 
         walkData.nodeAddress = nodePayload.nodeIocAddress;
         walkData.operation   = CL_NS_NODE_DEREGISTER_OP;
@@ -262,17 +265,17 @@ void nameSvcEventCallback( ClEventSubscriptionIdT subscriptionId,
                                       CL_CPM_COMP_EVENT, &compPayload);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Could not extract payload info from "
-                                           "CPM event. rc 0x%x",rc));
+            clLogError(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_CALLBACK,"Could not extract payload info from "
+                        "CPM event. rc 0x%x",rc);
             break;
         }
 
         if (compPayload.operation != CL_CPM_COMP_DEATH)
             goto out_free;
 
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Component with ID %d going down"
-                                       " Removing the name entries from this component",
-                                       compPayload.compId));
+        clLogTrace(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_CALLBACK,"Component with ID %d going down"
+                   " Removing the name entries from this component",
+                   compPayload.compId);
         walkData.compId    = compPayload.compId;
         walkData.eoID      = compPayload.eoId;
         walkData.operation = CL_NS_COMP_DEATH_DEREGISTER_OP;
@@ -281,8 +284,8 @@ void nameSvcEventCallback( ClEventSubscriptionIdT subscriptionId,
             
         break;
     default:
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Received an event with subID %d",
-                                       subscriptionId));
+        clLogError(NAME_LOG_AREA_EVENT,NAME_LOG_CTX_EVENT_CALLBACK,"Received an event with subID %d",
+                   subscriptionId);
     }
 
     out_free:

@@ -31,6 +31,7 @@
 #ifndef _INC_RMDMAIN_H_
 # define _INC_RMDMAIN_H_
 # include <clDebugApi.h>
+# include <clLogUtilApi.h>
 # include <clEoApi.h>
 # include <ipi/clRmdIpi.h>
 # include <clHandleApi.h>
@@ -86,11 +87,11 @@ extern "C"
 # define RMD_STAT_INC(value) do { (value)++; } while(0)
 
 # if RMD_DEBUG
-#  define RMD_DBG(args)    CL_DEBUG_PRINT(CL_DEBUG_ERROR, args)
-#  define RMD_DBG1(args)   CL_DEBUG_PRINT(CL_DEBUG_ERROR, args)
-#  define RMD_DBG2(args)   CL_DEBUG_PRINT(CL_DEBUG_TRACE, args)
-#  define RMD_DBG3(args)   CL_DEBUG_PRINT(CL_DEBUG_TRACE, args)
-#  define RMD_DBG4(args)   CL_DEBUG_PRINT(CL_DEBUG_TRACE, args)
+#  define RMD_DBG(args)    CL_DEBUG_PRINT(CL_LOG_SEV_ERROR, args)
+#  define RMD_DBG1(args)   CL_DEBUG_PRINT(CL_LOG_SEV_ERROR, args)
+#  define RMD_DBG2(args)   CL_DEBUG_PRINT(CL_LOG_SEV_TRACE, args)
+#  define RMD_DBG3(args)   CL_DEBUG_PRINT(CL_LOG_SEV_TRACE, args)
+#  define RMD_DBG4(args)   CL_DEBUG_PRINT(CL_LOG_SEV_TRACE, args)
 # else
 #  define RMD_DBG(args)   {}
 #  define RMD_DBG1(args)  {}

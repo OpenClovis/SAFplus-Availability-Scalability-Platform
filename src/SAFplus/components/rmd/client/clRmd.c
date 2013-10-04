@@ -40,6 +40,7 @@
 #include <clLogApi.h>
 #include "clRmdMain.h"
 #include "clDebugApi.h"
+#include <clLogUtilApi.h>
 #include "clRmdConfigApi.h"
 #include <clIocApiExt.h>
 #include <clIocErrors.h>
@@ -54,9 +55,7 @@
 # include "dmalloc.h"
 #endif
 #include <sys/time.h>
-#ifdef NO_SAF
-# include <rmdServer.h>
-#endif
+
 #ifdef MORE_CODE_COVERAGE
 # include<clCodeCovStub.h>
 #endif
@@ -291,18 +290,16 @@ ClRcT clRmdWithMsg(ClIocAddressT remoteObjAddr, /* remote Obj addr */
         rc = CL_RMD_RC(CL_ERR_NOT_INITIALIZED);
         goto err_out;
     }
-#ifdef NO_SAF
-    clRmdServerIocPortGet(&srcPort);
-#else
+
     clEoMyEoIocPortGet(&srcPort);
-#endif
+
 #ifdef RMD_DISABLE_HIGH_PRI
     if ((srcPort != CL_IOC_CPM_PORT) && (pOptions && CL_IOC_HIGH_PRIORITY == pOptions->priority))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, 
-                       ("High priority RMD called by someone "
+        clLogCritical("RMD","MSG",
+                       "High priority RMD called by someone "
                         "other than CPM !!!, port = [%#x]\n", 
-                        srcPort));
+                        srcPort);
     }
 #endif
 
@@ -347,12 +344,8 @@ ClRcT clRmdWithMsg(ClIocAddressT remoteObjAddr, /* remote Obj addr */
     {
         dstPort = remoteObjAddr.iocPhyAddress.portId;
     }
-#ifdef NO_SAF
-    clRmdServerClientGetFuncVersion(dstPort, funcId, &version);
-#else
-    clEoClientGetFuncVersion(dstPort, funcId, &version);
-#endif
 
+    clEoClientGetFuncVersion(dstPort, funcId, &version);
 
     /*
      * Check node cache version only if function version is greater than minimum.
@@ -483,11 +476,13 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
     ClRcT retVal = 0, retVal1 = 0;
     ClRcT retCode = 0;
     ClEoExecutionObjT *pThis = NULL;
+    ClEoExecutionObjT *remoteEoObj = NULL;
     ClRmdObjT *pRmdObject = NULL;
     ClUint64T msgId = 0, nwOrderMsgId = 0;
     ClRmdOptionsT tempOptions = { 0 };
     ClRmdAsyncOptionsT tempAsyncOptions = { 0 };
     ClBufferHandleT message = 0;
+    ClIocPortT locIocPort = 0;
     ClRmdRecordSendT *pSendRec = NULL;
     ClCntNodeHandleT nodeHandle = 0;
     ClUint32T payloadLen = 0;
@@ -495,15 +490,8 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
     ClUint32T hdrLen = 0;
 
     CL_FUNC_ENTER();
-#ifdef NO_SAF
-    retVal = clRmdServerMyRmdObjectGet(&pThis);
-#else
-    ClIocPortT locIocPort = 0;
-    ClEoExecutionObjT *remoteEoObj = NULL;
+
     retVal = clEoMyEoObjectGet(&pThis);
-
-#endif
-
     if (retVal != CL_OK)
     {
         /*
@@ -656,9 +644,6 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
             ((flags & CL_RMD_CALL_DO_NOT_OPTIMIZE) == 0) &&
             (remoteObjAddr.iocPhyAddress.nodeAddress == clIocLocalAddressGet()))
         {
-#ifdef NO_SAF
-        	return CL_RMD_RC(CL_ERR_NOT_SUPPORTED);
-#else
             retVal =
                 clEoGetRemoteObjectAndBlock(remoteObjAddr.iocPhyAddress.portId,
                                             &remoteEoObj);
@@ -733,7 +718,6 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
                 (void) clEoRemoteObjectUnblock(remoteEoObj);
                 return retVal;
             }
-#endif
         }
 
         RMD_DBG3(("  RMD Sync Path\n"));
@@ -837,7 +821,7 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
         }
 
         clRmdDumpPkt("sending async req", message);
-
+        
         retVal1 =
             clIocSend(pThis->commObj, message, protoType,
                       &remoteObjAddr, &sndOption);
@@ -870,12 +854,8 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
                 clBufferDelete(&notificationMsg);
                 goto error_out;
             }
-#ifdef NO_SAF
-            clRmdServerSendErrorNotify(notificationMsg, &recvParam);
-#else
-            clEoSendErrorNotify(notificationMsg, &recvParam);
-#endif
 
+            clEoSendErrorNotify(notificationMsg, &recvParam);
         } else if(retVal1 != CL_OK) {
             RMD_DBG1(("%s: Failed in IOC Rc :0x%x\n", __FUNCTION__,
                       CL_RMD_RC(retVal1)));
@@ -958,12 +938,7 @@ ClRcT clRmdStatsReset(void)
     ClRmdObjT *pRmdObject = NULL;
 
     CL_FUNC_ENTER();
-#ifdef NO_SAF
-    retVal = clRmdServerMyRmdObjectGet(&pThis);
-#else
     retVal = clEoMyEoObjectGet(&pThis);
-#endif
-
     if (retVal != CL_OK)
     {
         /*
@@ -995,11 +970,8 @@ ClRcT clRmdStatsGet(ClRmdStatsT *pStats)
     {
         return CL_RMD_RC(CL_ERR_INVALID_PARAMETER);
     }
-#ifdef NO_SAF
-    rc = clRmdServerMyRmdObjectGet(&pThis);
-#else
+
     rc = clEoMyEoObjectGet(&pThis);
-#endif
     if (rc != CL_OK)
     {
         /*
@@ -1366,15 +1338,10 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
     if(!pRmdObj)
     {
         ClEoExecutionObjT *pThis = NULL;
-#ifdef NO_SAF
-         rc = clRmdServerMyRmdObjectGet(&pThis);
-#else
         rc = clEoMyEoObjectGet(&pThis);
-#endif
-
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to get my EO object. error code [0x%x].\n", rc));
+            clLogError("EO","GET","Failed to get my EO object. error code [0x%x].\n", rc);
             return rc;
         }
         pRmdObj = pThis->rmdObj;
@@ -1388,7 +1355,7 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
     rc = clCntFirstNodeGet(pRmdObj->sndRecContainerHandle, &nodeHandle);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Trace : No records present in RMD's sendRecContainer. error code 0x%x\n",rc));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Trace : No records present in RMD's sendRecContainer. error code 0x%x\n",rc);
         rc = CL_OK;
         goto error_ret_1;
     }
@@ -1396,7 +1363,7 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
     while(nodeHandle != NULL) {
         rc = clCntNodeUserDataGet(pRmdObj->sndRecContainerHandle, nodeHandle, (ClCntDataHandleT*)&pRec);
         if(rc != CL_OK) {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Failed to get the data of a record. error code 0x%x\n",rc));
+            clLogError("USR","GET","Error : Failed to get the data of a record. error code 0x%x\n",rc);
             continue;
         }
 
@@ -1451,7 +1418,7 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
                         clTimerDeleteAsync(&pRec->recType.asyncRec.timerID);
                         rc = clBufferHeaderTrim(pRec->recType.asyncRec.sndMsgHdl, pRec->hdrLen);
                         if(rc != CL_OK)
-                            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Failed to trim the buffer header. error code [0x%x]",rc));
+                            clLogError("DB","CLN","Failed to trim the buffer header. error code [0x%x]",rc);
                         
                         pCallbackData = clHeapCalloc(1, sizeof(*pCallbackData));
                         CL_ASSERT(pCallbackData != NULL);
@@ -1495,7 +1462,7 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
                         clTimerDeleteAsync(&pRec->recType.asyncRec.timerID);
                         rc = clBufferHeaderTrim(pRec->recType.asyncRec.sndMsgHdl, pRec->hdrLen);
                         if(rc != CL_OK)
-                            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Failed to trim the buffer header. error code [0x%x]",rc));
+                            clLogError("DB","CLN","Failed to trim the buffer header. error code [0x%x]",rc);
                         pCallbackData->rc = CL_RMD_RC(CL_IOC_ERR_COMP_UNREACHABLE);
                         pCallbackData->cookie = pRec->recType.asyncRec.cookie;
                         pCallbackData->inMsgHdl = pRec->recType.asyncRec.sndMsgHdl;
@@ -1597,7 +1564,7 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
 next_node:
        rc = clCntNextNodeGet(pRmdObj->sndRecContainerHandle,  nodeHandle, &nextNodeHandle);
        if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST) {
-           CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Failed to get the next handle from sndRecHandler. error code 0x%x\n", rc));
+           clLogError("CNT","GET","Error : Failed to get the next handle from sndRecHandler. error code 0x%x\n", rc);
            goto error_ret_1;
        }
        rc = CL_OK;
@@ -1607,12 +1574,12 @@ next_node:
 node_del:
        rc = clCntNextNodeGet(pRmdObj->sndRecContainerHandle,  nodeHandle, &nextNodeHandle);
        if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST) {
-           CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Failed to get the next handle from sndRecHandler. error code 0x%x\n", rc));
+           clLogError("DB","CLN","Error : Failed to get the next handle from sndRecHandler. error code 0x%x\n", rc);
            goto error_ret_1;
        }
        rc = clCntNodeDelete(pRmdObj->sndRecContainerHandle, nodeHandle);
        if(rc != CL_OK) {
-           CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Failed to delete a record form RMD hashtable. error code 0x%x\n", rc));
+           clLogError("HASH","DEL","Error : Failed to delete a record form RMD hashtable. error code 0x%x\n", rc);
            goto error_ret_1;
        }
        nodeHandle = nextNodeHandle;
