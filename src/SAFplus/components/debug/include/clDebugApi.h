@@ -73,7 +73,8 @@ void backtrace_symbols_fd(void *const *array, int size, int fd);
     and will ultimately be deprecated as logs are converted over to 
     the new format
 */
-
+/* These Defines are deprecated as logs are converted over to new format */
+#if 0
 /**
  * This debug level in \c CL_DEBUG_PRINT is used to report a critical error.
  */
@@ -104,8 +105,9 @@ void backtrace_symbols_fd(void *const *array, int size, int fd);
  * or by some file that includes this file) to make the debug output
  * either more or less voluminous
  */
+#endif
 #if !defined(CL_DEBUG_LEVEL_THRESHOLD)
-#define CL_DEBUG_LEVEL_THRESHOLD CL_DEBUG_ERROR
+#define CL_DEBUG_LEVEL_THRESHOLD CL_LOG_SEV_ERROR
 #endif
 
 /**

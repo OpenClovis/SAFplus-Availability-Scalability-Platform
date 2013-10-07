@@ -356,7 +356,7 @@ int gettimeofday(struct timeval *pTV, void *tz)
     if(!pTV) return -1;
     if(clock_gettime(CLOCK_REALTIME, &tv) < 0 )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("gettimeofday returned with [%s]\n", strerror(errno)));
+        clLogError("TIME","GET","gettimeofday returned with [%s]\n", strerror(errno));
         return -1;
     }
     pTV->tv_sec = tv.tv_sec;

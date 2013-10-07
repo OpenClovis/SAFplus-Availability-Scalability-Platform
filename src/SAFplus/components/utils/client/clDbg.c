@@ -38,7 +38,7 @@ int    clDbgPauseOnCodeError    = 0; /* 0/1; */  /* Set to 1 to execute clDbgPau
 int    clDbgNoKillComponents    = 0; /* 0/1; */  /* Set to 1 to stop Components from being killed */
 int    clDbgCompTimeoutOverride = 0000; /* 10000; */  /* Set to > 0 to cause all component timeouts to be this many seconds */
 int    clDbgLogLevel            = 0; /* CL_DEBUG_WARN is a good choice or 0 to turn off */
-int    clDbgResourceLogLevel    = CL_DEBUG_TRACE; /* CL_DEBUG_TRACE to turn off, CL_DEBUG_INFO a good choice.  Level to log resource allocation/free */
+int    clDbgResourceLogLevel    = CL_LOG_SEV_TRACE; /* CL_DEBUG_TRACE to turn off, CL_DEBUG_INFO a good choice.  Level to log resource allocation/free */
 
 /* Variables that can shake out bugs */
 
@@ -80,7 +80,7 @@ void clDbgPauseFn(const char* file, int line)
           rc = sem_init(&clDbgSem,0,0);
           if (rc == 0)
             {
-              CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("dbgPause function called from %s:%d.  Thread is paused.  Open the debugger and execute dbgResume() to continue.",file,line));
+               clLogCritical("DBG","PAUSE","dbgPause function called from %s:%d.  Thread is paused.  Open the debugger and execute dbgResume() to continue.",file,line);
               do {
                 rc = sem_wait(&clDbgSem);
               } while ((rc == -1)&&(errno == EINTR));
@@ -88,7 +88,7 @@ void clDbgPauseFn(const char* file, int line)
           else 
             {
               int err = errno;          
-              CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("Can't create debug semaphore, error: %s, errno %d.", strerror(err), err));
+              clLogCritical("DBG","PAUSE","Can't create debug semaphore, error: %s, errno %d.", strerror(err), err);
             }
         }
     }
@@ -106,11 +106,11 @@ void clDbgMsg(int pid, const char* file, int line, const char* fn, int level, co
 {
     char* levelStr="Invalid Level";
 
-    if      (level >= CL_DEBUG_TRACE)    levelStr = "trace";
-    else if (level >= CL_DEBUG_INFO)     levelStr = "info";
-    else if (level >= CL_DEBUG_WARN)     levelStr = "warn";
-    else if (level >= CL_DEBUG_ERROR)    levelStr = "error";
-    else if (level >= CL_DEBUG_CRITICAL) levelStr = "critical";
+    if      (level >= CL_LOG_SEV_TRACE)    levelStr = "trace";
+    else if (level >= CL_LOG_SEV_INFO)     levelStr = "info";
+    else if (level >= CL_LOG_SEV_WARNING)     levelStr = "warn";
+    else if (level >= CL_LOG_SEV_ERROR)    levelStr = "error";
+    else if (level >= CL_LOG_SEV_CRITICAL) levelStr = "critical";
 
 
     if (level <= clDbgLogLevel)

@@ -99,7 +99,7 @@ clQueueCreate(ClUint32T  maxSize,
   if(CL_OK != errorCode) {
      /* failed to create a circular list. return error */
      clHeapFree(pQueue);
-     CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nFailed to create a circular list"));
+     clLogTrace("QUEUE","CRE","\nFailed to create a circular list");
      return(errorCode);
   }
 

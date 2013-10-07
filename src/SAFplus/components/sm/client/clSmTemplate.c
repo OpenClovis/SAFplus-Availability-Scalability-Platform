@@ -34,6 +34,7 @@
 
 #include <clCommon.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 
 #include <clSmErrors.h>
 #include <clSmTemplateApi.h>
@@ -42,6 +43,13 @@
 #include "clCodeCovStub.h"
 #endif
 
+#define SM_LOG_AREA		"SM"
+#define SM_LOG_CTX_CREATE	"CRE"
+#define SM_LOG_CTX_DELETE	"DEL"
+#define SM_LOG_CTX_TRANSITION	"TRANS"
+#define SM_LOG_CTX_ADD		"ADD"
+#define SM_LOG_CTX_SET		"SET"
+#define SM_LOG_CTX_GET		"GET"
 /**
  *  Create a new State machine type.
  *
@@ -71,7 +79,7 @@ clSmTypeCreate(ClUint16T maxStates,
   CL_FUNC_ENTER();
   CL_ASSERT(sm);  
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Create State Machine Type [%d]", maxStates));
+  clLogTrace(SM_LOG_AREA,SM_LOG_CTX_CREATE,"Create State Machine Type [%d]", maxStates);
 
   if(sm && (maxStates > 0)) {
     /* allocate the states and assign to top */
@@ -151,7 +159,7 @@ clSmTypeDelete(ClSmTemplatePtrT this
   CL_FUNC_ENTER();
   CL_ASSERT(this);  
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Delete State Machine Type"));
+  clLogTrace(SM_LOG_AREA,SM_LOG_CTX_DELETE,"Delete State Machine Type");
 
   if(this && this->top)
     {
@@ -220,8 +228,8 @@ clSmStateCreate(ClUint16T maxTOs,
   CL_FUNC_ENTER();
   CL_ASSERT(state);
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Create State with [%d] Transitions", 
-                        maxTOs));
+  clLogTrace(SM_LOG_AREA,SM_LOG_CTX_CREATE,"Create State with [%d] Transitions", 
+                        maxTOs);
 
   if(state)
     {
@@ -289,7 +297,7 @@ clSmStateDelete(ClSmStatePtrT this
   CL_FUNC_ENTER();
   CL_ASSERT(this);  
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Delete State"));
+  clLogTrace(SM_LOG_AREA,SM_LOG_CTX_DELETE,"Delete State");
 
   if(this) 
     {
@@ -351,7 +359,7 @@ clSmTransitionCreate(ClSmStatePtrT next,
   CL_ASSERT(next);  
   CL_ASSERT(to);  
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Create State Transition "));
+  clLogTrace(SM_LOG_AREA,SM_LOG_CTX_TRANSITION,"Create State Transition ");
 
   if(next && to) 
     {
@@ -407,7 +415,7 @@ clSmTransitionDelete(ClSmTransitionPtrT this
   CL_FUNC_ENTER();
   CL_ASSERT(this);  
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Delete State Transition"));
+  clLogTrace(SM_LOG_AREA,SM_LOG_CTX_TRANSITION,"Delete State Transition");
 
   if(this) 
     {
@@ -499,8 +507,8 @@ clSmStateTransitionAdd(ClSmStatePtrT this,
   CL_ASSERT(this);  
   CL_ASSERT(to); 
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("State Transition Add [%d]",
-                        eventId));
+  clLogTrace(SM_LOG_CTX_TRANSITION,SM_LOG_CTX_ADD,"State Transition Add [%d]",
+                        eventId);
 
   if(this && this->eventTransitionTable && to) 
     {
@@ -631,8 +639,8 @@ clSmTypeInitStateSet(ClSmTemplatePtrT this,
   CL_FUNC_ENTER();
   CL_ASSERT(this);
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Set Init State [%d]", 
-                        sId));
+  clLogTrace(SM_LOG_AREA,SM_LOG_CTX_SET,"Set Init State [%d]", 
+                        sId);
 
   /* initialize current, temporarily to the init of top */
   /* This just sets the init state and doesn't start anything */
@@ -688,9 +696,9 @@ clSmTypeStateAdd(ClSmTemplatePtrT this,
   if(this && this->top && state) 
     {
 
-      CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Add State [%d] Type [%d]", 
+      clLogTrace(SM_LOG_AREA,SM_LOG_CTX_ADD,"Add State [%d] Type [%d]", 
                             sId, 
-                            state->type));
+                            state->type);
 
       /* see if there is more space */
       if(sId >= this->maxStates) 
@@ -737,8 +745,8 @@ clSmTypeStateRemove(ClSmTemplatePtrT this,
   if(this && this->top) 
     {
 
-      CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Remove State [%d]", 
-                            sId));
+      clLogTrace(SM_LOG_AREA,SM_LOG_CTX_DELETE,"Remove State [%d]", 
+                            sId);
 
       /* see if its a valid state */
       if(sId >= this->maxStates) 
@@ -793,7 +801,7 @@ clSmTypeStateGet(ClSmTemplatePtrT this,
   if(this && this->top && sm) 
     {
 
-      CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Get State [%d]", sId));
+      clLogTrace(SM_LOG_AREA,SM_LOG_CTX_GET,"Get State [%d]", sId);
 
       /* see if its a valid state */
       if(sId >= this->maxStates) 

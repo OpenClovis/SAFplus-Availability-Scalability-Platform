@@ -22,6 +22,7 @@
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clLogApi.h>
 #include <clOsalApi.h>
 #include <clHeapApi.h>
@@ -209,7 +210,7 @@ ClRcT clMemStatsInitialize(const ClEoMemConfigT *pConfig)
     rc = CL_ERR_INVALID_PARAMETER;
     if(pConfig == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError("MEM","INI","Invalid param\n");
         goto out;
     }
 
@@ -217,15 +218,15 @@ ClRcT clMemStatsInitialize(const ClEoMemConfigT *pConfig)
 
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error setting watermarks\n"));
+        clLogError("MEM","INI","Error setting watermarks\n");
         goto out;
     }
 
     rc = CL_MEM_STATS_LOCK_INIT();
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("CL_MEM_STATS_LOCK_INIT failed, rc=[%#X]\n", rc));
+        clLogError("MEM","INI",
+                   "CL_MEM_STATS_LOCK_INIT failed, rc=[%#X]\n", rc);
         goto out;
     }
 

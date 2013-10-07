@@ -29,6 +29,7 @@
 #include <clBinSearchApi.h>
 #include <clPoolIpi.h>
 #include "clMemTracker.h"
+#include <clLogUtilApi.h>
 
 /*
  * We rely on cksumming on the chunk underrun part as a previous chunk
@@ -206,6 +207,9 @@
 
 #define CL_HEAP_OVERRUN_VERIFY(word,bytes)                              \
     ((bytes) ? CL_HEAP_MAGIC_VERIFY_BYTES(word,CL_HEAP_MAGIC_WORD2,bytes):1)
+	
+#define HEAP_LOG_AREA_HEAP		"HEAP"
+#define HEAP_LOG_CTX_DEBUG		"DBG"	
 
 static const ClUint32T magic_word1 = MAGIC_WORD1;
 static const ClUint32T magic_word2 = MAGIC_WORD2;
@@ -317,8 +321,8 @@ heapAllocateDebug(
     if (rc != CL_OK)
     {
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("Error in getting pool handle for size:%d\n", size));
+        clLogError(HEAP_LOG_AREA_HEAP,HEAP_LOG_CTX_DEBUG,
+                   "Error in getting pool handle for size:%d\n", size);
         goto out;
     }
 
@@ -329,9 +333,9 @@ heapAllocateDebug(
     if (rc != CL_OK)
     {
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("Error allocating memory from pool size:%d for input "
-                 "size:%d\n", pPoolConfig->chunkSize, size));
+        clLogError(HEAP_LOG_AREA_HEAP,HEAP_LOG_CTX_DEBUG,
+                   "Error allocating memory from pool size:%d for input "
+                   "size:%d\n", pPoolConfig->chunkSize, size);
         goto out;
     }
 
@@ -431,7 +435,7 @@ static ClPtrT heapReallocDebug(ClPtrT pAddress,ClUint32T size)
     {
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory for size:%d\n",size));
+        clLogError(HEAP_LOG_AREA_HEAP,HEAP_LOG_CTX_DEBUG,"Error allocating memory for size:%d\n",size);
         goto out;
     }
     /*
@@ -448,7 +452,7 @@ static ClPtrT heapReallocDebug(ClPtrT pAddress,ClUint32T size)
         rc = clPoolFree((ClUint8T*)pTempAddress,pCookie);
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error freeing the old chunk:%p\n",pAddress));
+            clLogError(HEAP_LOG_AREA_HEAP,HEAP_LOG_CTX_DEBUG,"Error freeing the old chunk:%p\n",pAddress);
             heapFreeDebug(pRetAddress);
             pRetAddress = NULL;
             goto out;
@@ -480,7 +484,7 @@ static ClPtrT heapCallocDebug(ClUint32T numChunks,ClUint32T chunkSize)
     {
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in pool calloc for size:%d\n",size));
+        clLogError(HEAP_LOG_AREA_HEAP,HEAP_LOG_CTX_DEBUG,"Error in pool calloc for size:%d\n",size);
         goto out;
     }
     memset(pAddress,0,size);
@@ -509,8 +513,8 @@ heapFreeDebug(
 
     if (!CL_HEAP_MAGIC_WORD1_VERIFY (magic1, cksum))
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("Buffer underrun detected for address:%p\n", pAddress));
+        clLogError(HEAP_LOG_AREA_HEAP,HEAP_LOG_CTX_DEBUG,
+                   "Buffer underrun detected for address:%p\n", pAddress);
         CL_HEAP_MEM_TRACKER_TRACE (pAddress, 0);
         CL_HEAP_DETECT_CORRUPTION (pAddress, CL_TRUE);
         CL_ASSERT(0);
@@ -542,7 +546,7 @@ heapFreeDebug(
     rc = clPoolFree((ClUint8T*)pAddress,pCookie);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error freeing memory:%p\n",pAddress));
+        clLogError(HEAP_LOG_AREA_HEAP,HEAP_LOG_CTX_DEBUG,"Error freeing memory:%p\n",pAddress);
     }
     out:
 
@@ -550,9 +554,9 @@ heapFreeDebug(
 
     out_overrun:
 
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Buffer overrun detected for "\
+    clLogError(HEAP_LOG_AREA_HEAP,HEAP_LOG_CTX_DEBUG,"Buffer overrun detected for "\
                                    "address:%p,size:%d\n",pAddress,\
-                                   chunkSize));
+                                   chunkSize);
     CL_HEAP_MEM_TRACKER_TRACE(pAddress,chunkSize);
 
     CL_ASSERT(0);

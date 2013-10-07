@@ -81,7 +81,7 @@ typedef struct
 {\
     (ops)->lastOp = ((((ops)->lastOp)+1) % (CL_AMS_OPS_MAX_COUNT)); \
     (ops)->currentOp = (ops)->lastOp ;  \
-    AMS_LOG(CL_DEBUG_TRACE, ("--- New Operation [ID = %05d]\n", (ops)->currentOp)); \
+    AMS_LOG(CL_LOG_SEV_TRACE, ("--- New Operation [ID = %05d]\n", (ops)->currentOp)); \
 }
 
 /******************************************************************************

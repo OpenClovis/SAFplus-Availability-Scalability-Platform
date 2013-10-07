@@ -138,7 +138,7 @@ static ClRcT clAmsCkptCheckpointRead(
     memcpy(pIOVector->sectionId.id, (ClUint8T*) pSection->value, pIOVector->sectionId.idLen);
     if ((rc = clCkptCheckpointRead(ams->ckptOpenHandle, pIOVector, 1, &erroneousVectorIndex)) != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("AMS Ckpt Read Error: Reading checkpoint for section [%s],rc [0x%x]\n",pSection->value,rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("AMS Ckpt Read Error: Reading checkpoint for section [%s],rc [0x%x]\n",pSection->value,rc));
         clAmsFreeMemory(pIOVector->sectionId.id);
         goto error;
     }
@@ -199,7 +199,7 @@ static ClRcT clAmsCkptSectionOverwriteNoLock(ClCkptHdlT ckptHandle,
 
     if(rc != CL_OK )
     { 
-        AMS_LOG(CL_DEBUG_ERROR,("AMS Ckpt section overwrite failed for Section [%s] with error [0x%x]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR,("AMS Ckpt section overwrite failed for Section [%s] with error [0x%x]\n",
                                 pSection->value, rc));
         goto out_free;
     }
@@ -295,7 +295,7 @@ static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
 
     if(rc != CL_OK )
     { 
-        AMS_LOG(CL_DEBUG_ERROR,("AMS Ckpt section overwrite failed for Section [%s] with error [0x%x]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR,("AMS Ckpt section overwrite failed for Section [%s] with error [0x%x]\n",
                                 pSection->value, rc));
         goto out_free;
     }
@@ -374,7 +374,7 @@ static ClRcT clAmsCkptSectionDelete(ClAmsT *ams,
     memcpy(sectionId.id,(ClUint8T*)pSection->value,sectionId.idLen);
     if((rc = clCkptSectionDelete(ams->ckptOpenHandle, &sectionId)) != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR,("AMS Ckpt Delete:Failed to delete section [%s]\n",pSection->value));
+        AMS_LOG(CL_LOG_SEV_ERROR,("AMS Ckpt Delete:Failed to delete section [%s]\n",pSection->value));
         clAmsFreeMemory(sectionId.id);
         goto error;
     }
@@ -392,7 +392,7 @@ static ClRcT clAmsCkptDBDatasetInitialize(void)
     
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Ckpt library create returned [%#x] "\
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Ckpt library create returned [%#x] "\
                                  "AMS configuration persistency disabled\n", rc));
         goto out;
     }
@@ -408,7 +408,7 @@ static ClRcT clAmsCkptDBDatasetInitialize(void)
 
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Ckpt dataset create returned [%#x] "\
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Ckpt dataset create returned [%#x] "\
                                  "AMS configuration persistency disabled\n", rc));
         clCkptLibraryCkptDelete(gClAmsCkptDBHdl, &gClAmsCkptDBName);
         goto out;
@@ -445,7 +445,7 @@ static ClRcT clAmsCkptDBInitialize(void)
 
     if( (err = mkdir(dbPath, 0755)) < 0 && errno != EEXIST)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Unable to create db directory [%s]. Creation error [%s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Unable to create db directory [%s]. Creation error [%s]\n",
                                  dbPath, strerror(errno)));
         rc = CL_AMS_RC(CL_ERR_LIBRARY);
         goto out;
@@ -461,7 +461,7 @@ static ClRcT clAmsCkptDBInitialize(void)
 
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Ckpt library initialize returned [%#x]. "\
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Ckpt library initialize returned [%#x]. "\
                                  "AMS configuration persistency disabled\n", rc));
         goto out;
     }
@@ -487,14 +487,14 @@ clAmsCkptDBConfigSerialize(ClUint32T dsId, ClAddrT *pData, ClUint32T *pDataLengt
 
     if(dsId != CL_AMS_CKPT_CONFIG_DS_ID)
     {
-        AMS_LOG(CL_DEBUG_CRITICAL, ("Ckpt config serialize invoked with invalid data set id [%d]\n", dsId));
+        AMS_LOG(CL_LOG_SEV_CRITICAL, ("Ckpt config serialize invoked with invalid data set id [%d]\n", dsId));
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
     rc = clBufferCreate(&msgHdl);
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Buffer create in ckpt config serialize returned [%#x]\n", rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Buffer create in ckpt config serialize returned [%#x]\n", rc));
         goto out;
     }
 
@@ -502,24 +502,24 @@ clAmsCkptDBConfigSerialize(ClUint32T dsId, ClAddrT *pData, ClUint32T *pDataLengt
 
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("DB config serialize returned [%#x]\n", rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("DB config serialize returned [%#x]\n", rc));
         goto out_free;
     }
     rc = clBufferLengthGet(msgHdl, pDataLength);
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Buffer length get in ckpt config serialize returned [%#x]\n", rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Buffer length get in ckpt config serialize returned [%#x]\n", rc));
         goto out_free;
     }
     
     rc = clBufferFlatten(msgHdl, (ClUint8T**)pData);
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Buffer flatten in ckpt config serialize returned [%#x]\n", rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Buffer flatten in ckpt config serialize returned [%#x]\n", rc));
         goto out_free;
     }
 
-    AMS_LOG(CL_DEBUG_INFO, ("AMS ckpt config [%d] bytes written to [%s]\n", 
+    AMS_LOG(CL_LOG_SEV_INFO, ("AMS ckpt config [%d] bytes written to [%s]\n", 
                             *pDataLength, CL_AMS_CKPT_DB_NAME));
 
     out_free:
@@ -537,19 +537,19 @@ clAmsCkptDBConfigDeserialize(ClUint32T dsId, ClAddrT pData, ClUint32T dataLength
 
     if(!pData || !dataLength) return CL_OK;
 
-    AMS_LOG(CL_DEBUG_INFO, ("AMS ckpt loading [%d] bytes of config from [%s]\n", dataLength, CL_AMS_CKPT_DB_NAME));
+    AMS_LOG(CL_LOG_SEV_INFO, ("AMS ckpt loading [%d] bytes of config from [%s]\n", dataLength, CL_AMS_CKPT_DB_NAME));
 
     rc = clBufferCreate(&msgHdl);
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Buffer create in ckpt config deserialize returned [%#x]\n", rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Buffer create in ckpt config deserialize returned [%#x]\n", rc));
         goto out;
     }
 
     rc = clBufferNBytesWrite(msgHdl, (ClUint8T*)pData, dataLength);
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Buffer write in ckpt config deserialize returned [%#x]\n", rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Buffer write in ckpt config deserialize returned [%#x]\n", rc));
         goto out_free;
     }
 
@@ -557,7 +557,7 @@ clAmsCkptDBConfigDeserialize(ClUint32T dsId, ClAddrT pData, ClUint32T dataLength
 
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("AMS DB deserialize returned [%#x]\n", rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("AMS DB deserialize returned [%#x]\n", rc));
         goto out_free;
     }
 
@@ -657,13 +657,13 @@ clAmsCkptDBRead(void)
     {
 		ClRcT ret;
         clAmsDbTerminate(&gAms.db);
-        AMS_LOG(CL_DEBUG_ERROR, ("AMS config data set read returned [%#x]\n", rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("AMS config data set read returned [%#x]\n", rc));
         if ((ret = clAmsDbInstantiate(&gAms.db)) != CL_OK) 
             clLogError("CKPT", "NOTIFY", "AMS db instantiate returned [%#x]", ret);
         goto out;
     }
 
-    AMS_LOG(CL_DEBUG_INFO, ("AMS config loaded from DB [%s]\n", CL_AMS_CKPT_DB_NAME));
+    AMS_LOG(CL_LOG_SEV_INFO, ("AMS config loaded from DB [%s]\n", CL_AMS_CKPT_DB_NAME));
 
     out:
     return rc;
@@ -1244,7 +1244,7 @@ clAmsCkptRead (
         rc = clAmsInvocationUnmarshall(ams, (ClCharT*)ams->ckptInvocationSections[dbInvocationPair].value, dataBuf);
         if(rc != CL_OK)
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Invocation unmarshall returned [%#x]\n", rc));
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Invocation unmarshall returned [%#x]\n", rc));
             goto exitfn;
         }
     }
@@ -1278,7 +1278,7 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
          ams->serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE || 
          !ams->isEnabled)
     { 
-        AMS_LOG (CL_DEBUG_TRACE,("Checkpoint server not ready\n")); 
+        AMS_LOG (CL_LOG_SEV_TRACE,("Checkpoint server not ready\n")); 
         return CL_OK; 
     }
 
@@ -1326,7 +1326,7 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
         if(rc != CL_OK)
         {
             clBufferDelete(&dataBuf);
-            AMS_LOG(CL_DEBUG_ERROR, ("DB marshall returned [%#x]\n", rc));
+            AMS_LOG(CL_LOG_SEV_ERROR, ("DB marshall returned [%#x]\n", rc));
             goto exitfn;
         }
         clBufferLengthGet(dataBuf, &dataLen);
@@ -1336,7 +1336,7 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
         if(rc != CL_OK)
         {
             clBufferDelete(&dataBuf);
-            AMS_LOG(CL_DEBUG_ERROR, ("Buffer flatten returned [%#x]\n", rc));
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Buffer flatten returned [%#x]\n", rc));
             goto exitfn;
         }
         clBufferDelete(&dataBuf);
@@ -1371,11 +1371,11 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
         }
 
         clBufferLengthGet(invocationBuf, &invocationLen);
-        AMS_LOG(CL_DEBUG_INFO, ("Invocation DB marshall done for [%d] bytes\n", invocationLen));
+        AMS_LOG(CL_LOG_SEV_INFO, ("Invocation DB marshall done for [%d] bytes\n", invocationLen));
         rc = clBufferFlatten(invocationBuf, (ClUint8T**)&readData);
         if(rc != CL_OK)
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Invocation buffer flatten returned [%#x]\n", rc));
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Invocation buffer flatten returned [%#x]\n", rc));
             clBufferDelete(&invocationBuf);
             goto exitfn;
         }
@@ -1404,7 +1404,7 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
     {
         gClAmsCkptLastDbInvocationPair = dbInvocationPair;
 
-        AMS_LOG(CL_DEBUG_TRACE,("AMS CKPT Section overwrite for [%s],dbInvocation pair [0x%x]\n",ams->ckptCurrentSection.value,dbInvocationPair));
+        AMS_LOG(CL_LOG_SEV_TRACE,("AMS CKPT Section overwrite for [%s],dbInvocation pair [0x%x]\n",ams->ckptCurrentSection.value,dbInvocationPair));
 
         AMS_CHECK_RC_ERROR(clAmsCkptSectionOverwrite(
                                                      ams,
@@ -1440,7 +1440,7 @@ amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
          !ams->isEnabled)
     { 
         clOsalMutexUnlock(gAms.mutex);
-        AMS_LOG (CL_DEBUG_TRACE,("Checkpoint server not ready\n")); 
+        AMS_LOG (CL_LOG_SEV_TRACE,("Checkpoint server not ready\n")); 
         return CL_OK; 
     }
 
@@ -1489,17 +1489,17 @@ amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
         if(rc != CL_OK)
         {
             clBufferDelete(&dataBuf);
-            AMS_LOG(CL_DEBUG_ERROR, ("DB marshall returned [%#x]\n", rc));
+            AMS_LOG(CL_LOG_SEV_ERROR, ("DB marshall returned [%#x]\n", rc));
             goto out_unlock;
         }
         clBufferLengthGet(dataBuf, &dataLen);
-        AMS_LOG(CL_DEBUG_INFO, ("DB %smarshall done for [%d] bytes\n", 
+        AMS_LOG(CL_LOG_SEV_INFO, ("DB %smarshall done for [%d] bytes\n", 
                                 dirty ? "dirty ":"", dataLen));
         rc = clBufferFlatten(dataBuf, (ClUint8T**)&ckptData);
         if(rc != CL_OK)
         {
             clBufferDelete(&dataBuf);
-            AMS_LOG(CL_DEBUG_ERROR, ("Buffer flatten returned [%#x]\n", rc));
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Buffer flatten returned [%#x]\n", rc));
             goto out_unlock;
         }
         clBufferDelete(&dataBuf);
@@ -1522,11 +1522,11 @@ amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
         }
 
         clBufferLengthGet(invocationBuf, &invocationLen);
-        AMS_LOG(CL_DEBUG_INFO, ("Invocation DB marshall done for [%d] bytes\n", invocationLen));
+        AMS_LOG(CL_LOG_SEV_INFO, ("Invocation DB marshall done for [%d] bytes\n", invocationLen));
         rc = clBufferFlatten(invocationBuf, (ClUint8T**)&invocationData);
         if(rc != CL_OK)
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("Invocation buffer flatten returned [%#x]\n", rc));
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Invocation buffer flatten returned [%#x]\n", rc));
             clBufferDelete(&invocationBuf);
             goto out_unlock;
         }
@@ -1566,7 +1566,7 @@ amsCkptWriteNoLock(ClAmsT *ams, ClUint32T mode )
 
     if(updateInvocationPair)
     {
-        AMS_LOG(CL_DEBUG_TRACE,
+        AMS_LOG(CL_LOG_SEV_TRACE,
                 ("AMS CKPT Section overwrite for [%s],dbInvocation pair [0x%x]",
                  gClAmsCkptCurrentSectionCache.value, dbInvocationPair));
 
@@ -1749,7 +1749,7 @@ clAmsReadXMLFile(
     if ( stat (fileName,&buf) != 0 )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("Error in stating File[%s]\n",fileName));
+        AMS_LOG (CL_LOG_SEV_ERROR,("Error in stating File[%s]\n",fileName));
         goto exitfn;
     }
 
@@ -1762,14 +1762,14 @@ clAmsReadXMLFile(
     if ( !fp )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("Error in opening File[%s]\n",fileName));
+        AMS_LOG (CL_LOG_SEV_ERROR,("Error in opening File[%s]\n",fileName));
         goto exitfn;
     }
 
     if ( !fread (data,1,buf.st_size,fp))
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("Error in Reading data from File[%s]\n",fileName));
+        AMS_LOG (CL_LOG_SEV_ERROR,("Error in Reading data from File[%s]\n",fileName));
         fclose (fp); 
         goto exitfn;
     }
@@ -1811,7 +1811,7 @@ clAmsWriteXMLFile(
     if ( !fp )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("Error in opening File[%s]\n",fileName));
+        AMS_LOG (CL_LOG_SEV_ERROR,("Error in opening File[%s]\n",fileName));
         goto exitfn;
     }
 
@@ -1906,12 +1906,12 @@ clAmsCkptReadCurrentDBInvocationPair(ClAmsT *ams,
     if(dbInvocationPair >= 2)
     {
         rc = CL_AMS_RC(CL_ERR_UNSPECIFIED);
-        AMS_LOG(CL_DEBUG_ERROR,("Ams Ckpt Read: Invalid dbInvocationPair [0x%x] found in AMS current section [%s]\n",dbInvocationPair,ams->ckptCurrentSection.value));
+        AMS_LOG(CL_LOG_SEV_ERROR,("Ams Ckpt Read: Invalid dbInvocationPair [0x%x] found in AMS current section [%s]\n",dbInvocationPair,ams->ckptCurrentSection.value));
         clAmsFreeMemory(ioVector.dataBuffer);
         goto exitfn;
     }
 
-    AMS_LOG(CL_DEBUG_TRACE,("AMS Ckpt Read: Reading DBInvocation Pair [0x%x] for DB Section [%s],Invocation [%s], \n",
+    AMS_LOG(CL_LOG_SEV_TRACE,("AMS Ckpt Read: Reading DBInvocation Pair [0x%x] for DB Section [%s],Invocation [%s], \n",
                             dbInvocationPair,
                             ams->ckptDBSections[dbInvocationPair].value,
                             ams->ckptInvocationSections[dbInvocationPair].value));

@@ -557,6 +557,14 @@ static ClHeapListT gHeapList =
 };
 #endif
 
+#define HEAP_LOG_AREA			"HEAP"
+#define HEAP_LOG_CTX_INI		"INI"
+#define HEAP_LOG_CTX_FINALISE	"FIN"
+#define HEAP_LOG_CTX_GET		"GET"
+#define HEAP_LOG_CTX_REGISTER	"REG"
+#define HEAP_LOG_CTX_DEREGISTER	"DREG"
+#define HEAP_LOG_CTX_ALLOCATION	"ALLOC"
+
 /*Function declarations*/
 static ClPtrT heapAllocatePreAllocated(ClUint32T size);
 static ClPtrT heapReallocPreAllocated(ClPtrT pAddress,ClUint32T size);
@@ -726,7 +734,7 @@ ClRcT clHeapInit(void)
     rc = clMemStatsInitialize(&memConfig);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in memstats init\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_INI,"Error in memstats init\n");
         goto out;
     }
 
@@ -794,7 +802,7 @@ ClRcT clHeapInit(void)
     rc = clHeapLibInitialize(pHeapConfig);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in pool initialize\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_INI,"Error in pool initialize\n");
     }
     out:
     return rc;
@@ -810,7 +818,7 @@ ClRcT clHeapExit(void)
     rc = clHeapLibFinalize();
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in pool finalize\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_FINALISE,"Error in pool finalize\n");
     }
     clMemStatsFinalize();
     return rc;
@@ -822,7 +830,7 @@ ClRcT clHeapModeGet(ClHeapModeT *pMode)
     rc = CL_HEAP_RC(CL_ERR_NOT_INITIALIZED);
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap isnt initialized\n"));
+        clLogError(HEAP_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Heap isnt initialized\n");
         goto out;
     }
     NULL_CHECK(pMode);
@@ -842,7 +850,7 @@ ClRcT clHeapShrink(const ClPoolShrinkOptionsT *pShrinkOptions)
     rc = CL_HEAP_RC(CL_ERR_NOT_INITIALIZED);
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Pool system isnt initialized\n"));
+        clLogError(HEAP_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Pool system isnt initialized\n");
         goto out;
     }
     if(pShrinkOptions == NULL)
@@ -855,7 +863,7 @@ ClRcT clHeapShrink(const ClPoolShrinkOptionsT *pShrinkOptions)
         rc = clPoolShrink(pool,pShrinkOptions);
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error shrinking %d sized pool\n",gHeapList.heapConfig.pPoolConfig[i].chunkSize));
+            clLogError(HEAP_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Error shrinking %d sized pool\n",gHeapList.heapConfig.pPoolConfig[i].chunkSize);
             goto out;
         }
     }
@@ -872,7 +880,7 @@ ClRcT clHeapStatsGet(ClMemStatsT *pHeapStats)
 
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap system isnt initialized\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_GET,"Heap system isnt initialized\n");
         goto out;
     }
 
@@ -903,7 +911,7 @@ ClRcT clHeapPoolStatsGet(ClUint32T numPools,ClUint32T *pPoolSize,ClPoolStatsT *p
 
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap system isnt initialized\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_GET,"Heap system isnt initialized\n");
         goto out;
     }
 
@@ -914,7 +922,7 @@ ClRcT clHeapPoolStatsGet(ClUint32T numPools,ClUint32T *pPoolSize,ClPoolStatsT *p
         rc = clPoolStatsGet(gHeapList.pPoolHandles[i],pPoolStats+i);
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error fetching pool stats for pool:%d\n",gHeapList.heapConfig.pPoolConfig[i].chunkSize));
+            clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_GET,"Error fetching pool stats for pool:%d\n",gHeapList.heapConfig.pPoolConfig[i].chunkSize);
             goto out;
         }
         currentPoolSize += pPoolStats[i].numExtendedPools *
@@ -948,18 +956,18 @@ ClRcT clHeapHooksRegister(ClPtrT (*allocHook) (ClUint32T),
 
     if(gHeapList.initialized == CL_TRUE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap system is already running. "
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_REGISTER,"Heap system is already running. "
                                       "Please try to shove the register "
                                       "before a heap initialize,preferably "
                                       "through the clHeapCustomInitialize hook"
-                                      )
+                                      
                        );
         goto out;
     }
 
     if(gHeapHooksDefined == CL_TRUE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Hooks already defined\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_REGISTER,"Hooks already defined\n");
         goto out;
     }
 
@@ -985,18 +993,18 @@ ClRcT clHeapHooksDeregister(void)
     rc = CL_HEAP_RC(CL_ERR_INITIALIZED);
     if(gHeapList.initialized == CL_TRUE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap system should be finalized "
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_DEREGISTER,"Heap system should be finalized "
                                       "before you shove this one through."
                                       "This should be done preferably through "
                                       "a clHeapLibFinalize before the "
-                                      "clHeapCustomFinalize hook\n")
+                                      "clHeapCustomFinalize hook\n"
                        );
         goto out;
     }
     rc = CL_HEAP_RC(CL_ERR_NOT_INITIALIZED);
     if(gHeapHooksDefined == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Hooks not present\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_DEREGISTER,"Hooks not present\n");
         goto out;
     }
     gHeapHooksDefined = CL_FALSE;
@@ -1025,7 +1033,7 @@ clHeapLibInitialize(const ClHeapConfigT *pHeapConfig)
 
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error initialising heap stats mutex\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_INI,"Error initialising heap stats mutex\n");
         goto out;
     }
 
@@ -1057,14 +1065,14 @@ clHeapLibInitialize(const ClHeapConfigT *pHeapConfig)
              * If hooks are defined, then custom heap is on.
              * So please stay away:-)
              */
-            CL_DEBUG_PRINT(CL_DEBUG_INFO,("Using heap in custom mode\n"));
+            clLogInfo(HEAP_LOG_AREA,HEAP_LOG_CTX_INI,"Using heap in custom mode\n");
             gHeapList.heapConfig.numPools = 0;
             gHeapList.initialized = CL_TRUE;
             goto out;
         }
         else
         {
-            CL_DEBUG_PRINT(CL_DEBUG_INFO,("Falling back to preallocated mode\n"));
+            clLogInfo(HEAP_LOG_AREA,HEAP_LOG_CTX_REGISTER,"Falling back to preallocated mode\n");
             gHeapHooksDefined = CL_FALSE;
 
             gHeapList.heapConfig.mode = CL_HEAP_PREALLOCATED_MODE;
@@ -1087,7 +1095,7 @@ clHeapLibInitialize(const ClHeapConfigT *pHeapConfig)
     rc = CL_OK;
     if (mode == CL_HEAP_NATIVE_MODE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_INFO,("Setting pool mode to native\n"));
+        clLogInfo(HEAP_LOG_AREA,HEAP_LOG_CTX_INI,"Setting pool mode to native\n");
         /*resetting pool count if given by mistake*/
         gHeapList.heapConfig.numPools = 0;
         gHeapList.initialized = CL_TRUE;
@@ -1105,7 +1113,7 @@ clHeapLibInitialize(const ClHeapConfigT *pHeapConfig)
     rc = CL_HEAP_RC(CL_ERR_INVALID_PARAMETER);
     if(pHeapConfig->numPools == 0) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Pool count 0\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_INI,"Pool count 0\n");
         goto out_free;
     }
 
@@ -1114,7 +1122,7 @@ clHeapLibInitialize(const ClHeapConfigT *pHeapConfig)
          CL_HEAP_ALLOC_EXTERNAL (sizeof (ClPoolConfigT)
                                  * pHeapConfig->numPools) ) == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_INI,"Error allocating memory\n");
         goto out_free;
     }
 
@@ -1122,7 +1130,7 @@ clHeapLibInitialize(const ClHeapConfigT *pHeapConfig)
          CL_HEAP_ALLOC_EXTERNAL (sizeof (ClPoolT) * pHeapConfig->numPools))
         == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_INI,"Error allocating memory\n");
         goto out_free;
     }
 
@@ -1143,8 +1151,8 @@ clHeapLibInitialize(const ClHeapConfigT *pHeapConfig)
         rc = clPoolCreate(&handle,flags,pPoolConfig);
         if(rc != CL_OK) 
         {
-            CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                            ("Error creating pool of size:%d\n", pPoolConfig->chunkSize));
+            clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_INI,
+                       "Error creating pool of size:%d\n", pPoolConfig->chunkSize);
             goto out_destroy;
         }
         gHeapList.pPoolHandles[i] = handle;
@@ -1197,7 +1205,7 @@ clHeapLibFinalize(void)
 
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Pool system isnt initialised\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_FINALISE,"Pool system isnt initialised\n");
         goto out;
     }
 
@@ -1210,13 +1218,13 @@ clHeapLibFinalize(void)
         rc = clHeapLibCustomFinalize();
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error deregistering heap hooks\n"));
+            clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_FINALISE,"Error deregistering heap hooks\n");
             goto out;
         }
         rc = CL_HEAP_RC(CL_ERR_UNSPECIFIED);
         if(gHeapHooksDefined == CL_TRUE)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Hooks still defined after custom finalize\n"));
+            clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_FINALISE,"Hooks still defined after custom finalize\n");
             goto out;
         }
         goto out_reset;
@@ -1239,8 +1247,8 @@ clHeapLibFinalize(void)
             rc = clPoolDestroy(gHeapList.pPoolHandles[i]);
             if(rc != CL_OK)
             {
-                CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                                ("Error destroying pool handle:%d\n", i));
+                clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_FINALISE,
+                           "Error destroying pool handle:%d\n", i);
             }
         }
     }
@@ -1317,7 +1325,7 @@ clHeapAllocate(
 
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap isnt initialized\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Heap isnt initialized\n");
         goto out;
     }
 
@@ -1326,8 +1334,8 @@ clHeapAllocate(
     pAddress = gClHeapAllocate(size);
     if(pAddress == NULL)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                        ("Error allocating memory for size:%d\n", size));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,
+                    "Error allocating memory for size:%d\n", size);
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
         goto out;
     }
@@ -1352,7 +1360,7 @@ ClPtrT clHeapRealloc(ClPtrT pAddress,ClUint32T size)
 
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap isnt initialized\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Heap isnt initialized\n");
         goto out;
     }
 
@@ -1374,7 +1382,7 @@ ClPtrT clHeapRealloc(ClPtrT pAddress,ClUint32T size)
     if(pRetAddress == NULL)
     {
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap realloc failure for size:%d,address:%p\n",size,pAddress));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Heap realloc failure for size:%d,address:%p\n",size,pAddress);
         goto out;
     }
 
@@ -1405,7 +1413,7 @@ ClPtrT clHeapCalloc(ClUint32T numChunks,ClUint32T chunkSize)
 
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap isnt initialized\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Heap isnt initialized\n");
         goto out;
     }
 
@@ -1419,7 +1427,7 @@ ClPtrT clHeapCalloc(ClUint32T numChunks,ClUint32T chunkSize)
     {
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in calloc of size:%d - %d chunks,chunksize:%d\n",size,numChunks,chunkSize));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Error in calloc of size:%d - %d chunks,chunksize:%d\n",size,numChunks,chunkSize);
         goto out;
     }
 
@@ -1442,7 +1450,8 @@ clHeapFree(
 
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap isnt initialized\n"));
+        
+		clLogError(HEAP_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Heap isnt initialized\n"));
         return ;
     }
 
@@ -1494,7 +1503,7 @@ clHeapAllocate(
 
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap isnt initialized\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Heap isnt initialized\n");
         goto out;
     }
 
@@ -1507,8 +1516,8 @@ clHeapAllocate(
     pAddress = gClHeapAllocate(size);
     if(pAddress == NULL)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("Error allocating memory for size:%d\n", size));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,
+                   "Error allocating memory for size:%d\n", size);
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
         goto out;
     }
@@ -1531,7 +1540,7 @@ ClPtrT clHeapRealloc(ClPtrT pAddress,ClUint32T size)
 
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap isnt initialized\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Heap isnt initialized\n");
         goto out;
     }
 
@@ -1554,7 +1563,7 @@ ClPtrT clHeapRealloc(ClPtrT pAddress,ClUint32T size)
     if(pRetAddress == NULL)
     {
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap realloc failure for size:%d,address:%p\n",size,pAddress));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Heap realloc failure for size:%d,address:%p\n",size,pAddress);
         goto out;
     }
 
@@ -1584,7 +1593,7 @@ ClPtrT clHeapCalloc(ClUint32T numChunks,ClUint32T chunkSize)
 
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap isnt initialized\n"));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Heap isnt initialized\n");
         goto out;
     }
 
@@ -1602,7 +1611,7 @@ ClPtrT clHeapCalloc(ClUint32T numChunks,ClUint32T chunkSize)
     {
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in calloc of size:%d - %d chunks,chunksize:%d\n",size,numChunks,chunkSize));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Error in calloc of size:%d - %d chunks,chunksize:%d\n",size,numChunks,chunkSize);
         goto out;
     }
 
@@ -1623,7 +1632,7 @@ clHeapFree(
 
     if(gHeapList.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Heap isnt initialized\n"));
+        clLogError(HEAP_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Heap isnt initialized\n");
         return ;
     }
 
@@ -1715,8 +1724,8 @@ heapAllocatePreAllocated(
             clPoolCmp, (ClPtrT*)&pPoolConfig);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("Error getting pool handle for size:%d\n", size));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,
+                   "Error getting pool handle for size:%d\n", size);
         goto out;
     }
 
@@ -1726,9 +1735,9 @@ heapAllocatePreAllocated(
     rc = clPoolAllocate(poolHandle,(ClUint8T **) &pAddress,&pCookie);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("Error allocating memory from pool size:%d for input size:%d"
-                 "\n", pPoolConfig->chunkSize, size));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,
+                   "Error allocating memory from pool size:%d for input size:%d"
+                   "\n", pPoolConfig->chunkSize, size);
         goto out;
     }
    
@@ -1783,7 +1792,7 @@ static ClPtrT heapReallocPreAllocated(ClPtrT pAddress,ClUint32T size)
 
     if(pRetAddress == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("realloc:Error allocating memory for size:%d\n",size));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"realloc:Error allocating memory for size:%d\n",size);
         goto out;
     }
     /*  
@@ -1807,7 +1816,7 @@ static ClPtrT heapReallocPreAllocated(ClPtrT pAddress,ClUint32T size)
 
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error freeing the old chunk:%p\n",pAddress));
+            clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Error freeing the old chunk:%p\n",pAddress);
             /*Never mind this to be slow as its a rare case*/
             clHeapFree(pRetAddress);
 
@@ -1829,7 +1838,7 @@ static ClPtrT heapCallocPreAllocated(ClUint32T numChunks,ClUint32T chunkSize)
     pAddress = heapAllocatePreAllocated(size);
     if(pAddress == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in pool calloc for size:%d\n",size));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Error in pool calloc for size:%d\n",size);
         goto out;
     }
     memset(pAddress,0,size);
@@ -1848,7 +1857,7 @@ static void heapFreePreAllocated(ClPtrT pAddress)
     rc = clPoolFree((ClUint8T*)pAddress,pCookie);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error freeing memory:%p\n",pAddress));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Error freeing memory:%p\n",pAddress);
     }
 }
 
@@ -1930,8 +1939,8 @@ ClRcT clHeapReferenceLargeChunk(ClPtrT pAddress, ClUint32T size)
        ||
        !largeChunk->refCnt)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Large chunk at [%p] of size [%d] already freed\n", 
-                                           chunkEntry.chunk, size));
+        clLogCritical(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Large chunk at [%p] of size [%d] already freed\n", 
+                                           chunkEntry.chunk, size);
         rc = CL_HEAP_RC(CL_ERR_INVALID_STATE);
         goto out_unlock;
     }
@@ -1962,8 +1971,8 @@ heapAllocateNative(
 
     if(CL_HEAP_GRANT_SIZE(size) == CL_FALSE)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("%d bytes would exceed process upper limit\n", size));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,
+                   "%d bytes would exceed process upper limit\n", size);
         CL_HEAP_LOG(CL_LOG_ERROR,
                     "Allocation of %d bytes would exceed process upper limit",
                     size);
@@ -1974,7 +1983,7 @@ heapAllocateNative(
     pAddress = malloc(size);
     if(pAddress == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating %d bytes\n",size));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Error allocating %d bytes\n",size);
         CL_HEAP_REVOKE_SIZE(size);
         CL_HEAP_LOG(CL_LOG_ERROR,"Malloc of %d bytes failed",size);
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
@@ -2029,15 +2038,15 @@ static ClPtrT heapReallocNative(ClPtrT pAddress,ClUint32T size)
         largeChunkEntry = (ClHeapLargeChunkT*)pAddress;
         if(largeChunkEntry->magic != CL_HEAP_LARGE_CHUNK_MAGIC)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Trying to realloc an invalid large chunk at [%p] of size [%d]\n",
-                                               pAddress, osize));
+            clLogCritical(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Trying to realloc an invalid large chunk at [%p] of size [%d]\n",
+                                               pAddress, osize);
             goto out;
         }
         if(largeChunkEntry->refCnt > 1)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Trying to realloc a large chunk at [%p] of size [%d] "
+            clLogCritical(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Trying to realloc a large chunk at [%p] of size [%d] "
                                                "with [%d] references\n", 
-                                               pAddress, osize, largeChunkEntry->refCnt));
+                                               pAddress, osize, largeChunkEntry->refCnt);
             goto out;
         }
         clOsalMutexLock(&gHeapList.mutex);
@@ -2055,7 +2064,7 @@ static ClPtrT heapReallocNative(ClPtrT pAddress,ClUint32T size)
     size += overhead;
     if(CL_HEAP_GRANT_SIZE(size) == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("%d bytes realloc would exceed process wide limit\n",size));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"%d bytes realloc would exceed process wide limit\n",size);
         CL_HEAP_LOG(CL_LOG_ERROR,
                     "Realloc %d bytes would exceed process upper limit",
                     size);
@@ -2066,7 +2075,7 @@ static ClPtrT heapReallocNative(ClPtrT pAddress,ClUint32T size)
     pRetAddress = realloc(pAddress,size);
     if(pRetAddress == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in realloc of %d bytes\n",size));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Error in realloc of %d bytes\n",size);
         CL_HEAP_REVOKE_SIZE(size);
         CL_HEAP_LOG(CL_LOG_ERROR,
                     "Realloc %d bytes failed",
@@ -2120,7 +2129,7 @@ static ClPtrT heapCallocNative(ClUint32T chunk,ClUint32T chunkSize)
     size += overhead;
     if(CL_HEAP_GRANT_SIZE(size) == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("%d bytes would exceed process upper limit\n",size));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"%d bytes would exceed process upper limit\n",size);
         CL_HEAP_LOG(CL_LOG_ERROR,
                     "calloc %d bytes would exceed process upper limit",
                     size);
@@ -2131,7 +2140,7 @@ static ClPtrT heapCallocNative(ClUint32T chunk,ClUint32T chunkSize)
     pAddress = calloc(1,size);
     if(pAddress == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in calloc of %d chunks of %d size\n",chunk,chunkSize));
+        clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Error in calloc of %d chunks of %d size\n",chunk,chunkSize);
         CL_HEAP_REVOKE_SIZE(size);
         CL_HEAP_LOG(CL_LOG_ERROR,"calloc %d bytes failed",size);
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);

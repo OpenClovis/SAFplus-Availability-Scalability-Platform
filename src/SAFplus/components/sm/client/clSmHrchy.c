@@ -33,6 +33,7 @@
 
 #include <clCommon.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 
 #include <clSmErrors.h>
 #include <clSmTemplateApi.h>
@@ -42,6 +43,9 @@
 #ifdef MORE_CODE_COVERAGE
 #include "clCodeCovStub.h"
 #endif
+
+#define HSM_LOG_AREA		"HSM"
+#define HSM_LOG_CTX_EVENT	"EVT"
 
 static ClUint16T _findLCA(ClSmInstancePtrT this, ClSmStatePtrT curr, ClSmStatePtrT next);
 static ClRcT  _transition(ClSmInstancePtrT this, ClSmTransitionPtrT tO, 
@@ -109,15 +113,15 @@ clHsmInstanceOnEvent(ClSmInstancePtrT this,
     if(curr && tO)
       {
 #ifdef DEBUG
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("StateMachine [%s] OnEvent [%d] in State [%d:%s]", 
+        clLogTrace(HSM_LOG_AREA,HSM_LOG_CTX_EVENT,"StateMachine [%s] OnEvent [%d] in State [%d:%s]", 
                               this->name,
                               msg->eventId,
                               curr->type,
-                              curr->name));
+                              curr->name);
 #else
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("OnEvent %d in state %d", 
+        clLogTrace(HSM_LOG_AREA,HSM_LOG_CTX_EVENT,"OnEvent %d in state %d", 
                               msg->eventId,
-                              curr->type));
+                              curr->type);
 #endif
         retCode = _transition(this, tO, this->current, tO->nextState, msg);
       } 
@@ -224,9 +228,9 @@ _transition(ClSmInstancePtrT this,
     if(tO) 
       { 
         lvls =(int)_findLCA(this,curr,next);
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("HSM Transition from %d to %d", 
+        clLogTrace(HSM_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"HSM Transition from %d to %d", 
                               curr->type, 
-                              next->type)); 
+                              next->type); 
         /* exit till LCA */
         for(;tmp && lvls>-1;lvls--) 
           {

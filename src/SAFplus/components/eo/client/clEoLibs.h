@@ -157,7 +157,7 @@ extern "C" {
 #define CL_EO_LIB_VERIFY() do { \
     if(CL_TRUE != clEoLibInitialized) \
     { \
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("The EO Library not initialized\n")); \
+        CL_DEBUG_PRINT(CL_LOG_SEV_TRACE, ("The EO Library not initialized\n")); \
         return CL_OK; \
     } \
 } while(0) 

@@ -273,7 +273,7 @@ void clTaskPoolEntry(ClTaskPoolArgT *pArg)
                 pStats->startTime = clOsalStopWatchTimeGet();
             }
             clOsalMutexUnlock(&tp->mutex);
-            CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Task pool is running a user's fn")); 
+            clLogInfo("TASK","POOL","Task pool is running a user's fn"); 
             fn(cookie);
             clOsalMutexLock(&tp->mutex);
             pStats->startTime = 0;
@@ -392,14 +392,14 @@ ClRcT clTaskPoolCreate(ClTaskPoolHandleT *pHandle, ClInt32T maxTasks, ClCallback
     pTaskPool = (ClTaskPoolT*) clHeapCalloc(1, sizeof(*pTaskPool));
     if(pTaskPool == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory"));
+        clLogError("POOL","CRE","Error allocating memory");
         goto out;
     }
 
     pTaskPool->pStats = clHeapCalloc(maxTasks, sizeof(*pTaskPool->pStats));
     if(!pTaskPool->pStats)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory"));
+        clLogError("POOL","CRE","Error allocating memory");
         goto out_free;
     }
 

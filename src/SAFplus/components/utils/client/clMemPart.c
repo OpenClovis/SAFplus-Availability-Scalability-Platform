@@ -7,6 +7,7 @@
 #include <string.h>
 #include <clCommon.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clHeapApi.h>
 #include <clMemPart.h>
 #include <memPartLib.h>
@@ -14,6 +15,12 @@
 #define CL_MEM_PART_SIZE  (4<<20U)
 #define CL_MEM_PART_EXPANSION_SLOTS (0x7)
 #define CL_MEM_PART_EXPANSION_SIZE  (1 << 20U)
+
+#define MEM_LOG_AREA_PART		"MEMPART"
+#define MEM_LOG_CTX_INI			"INI"
+#define MEM_LOG_CTX_FINALISE	"FIN"
+#define MEM_LOG_CTX_EXPAND		"EXP"
+#define MEM_LOG_CTX_ALLOCATION	"ALLOC"
 
 typedef struct ClMemPart
 {
@@ -49,15 +56,15 @@ ClRcT clMemPartInitialize(ClMemPartHandleT *pMemPartHandle, ClUint32T memPartSiz
     pool = malloc(memPartSize);
     if(!pool)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CALLOC failed for size [%d] while trying to create MEM partition\n", 
-                                        memPartSize));
+        clLogError(MEM_LOG_AREA_PART,MEM_LOG_CTX_INI,"CALLOC failed for size [%d] while trying to create MEM partition\n", 
+                                        memPartSize);
         return CL_ERR_NO_MEMORY;
     }
     pMemPart->partId = memPartCreate(pool, memPartSize);
     if(!pMemPart->partId)
     {
         free(pool);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("memPartCreate for size [%d] failed\n", memPartSize));
+        clLogError(MEM_LOG_AREA_PART,MEM_LOG_CTX_INI,"memPartCreate for size [%d] failed\n", memPartSize);
         return CL_ERR_NO_MEMORY;
     }
     pMemPart->partitions[pMemPart->index++] = pool;
@@ -79,7 +86,7 @@ ClRcT clMemPartFinalize(ClMemPartHandleT *pHandle)
     *pHandle = 0;
     if(rc == ERROR)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("memPartDelete returned [%s]\n", strerror(errno)));
+        clLogError(MEM_LOG_AREA_PART,MEM_LOG_CTX_FINALISE,"memPartDelete returned [%s]\n", strerror(errno));
         return CL_ERR_UNSPECIFIED;
     }
     return CL_OK;
@@ -91,26 +98,26 @@ static ClRcT clMemPartExpand(ClMemPartT *pMemPart, ClUint32T size)
     STATUS rc = 0;
     if(pMemPart->index >= CL_MEM_PART_EXPANSION_SLOTS)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Mem part out of expansion slots trying to expand for size [%d]\n", size));
+        clLogError(MEM_LOG_AREA_PART,MEM_LOG_CTX_EXPAND,"Mem part out of expansion slots trying to expand for size [%d]\n", size);
         return CL_ERR_NO_SPACE;
     }
     if(pMemPart->partitions[pMemPart->index])
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Mem part already expanded\n"));
+        clLogError(MEM_LOG_AREA_PART,MEM_LOG_CTX_EXPAND,"Mem part already expanded\n");
         return CL_ERR_UNSPECIFIED;
     }
     pMemPart->partitions[pMemPart->index] = malloc(size);
     if(!pMemPart->partitions[pMemPart->index])
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Mem part expand calloc failure for size [%d]\n", size));
+        clLogError(MEM_LOG_AREA_PART,MEM_LOG_CTX_EXPAND,"Mem part expand calloc failure for size [%d]\n", size);
         return CL_ERR_NO_MEMORY;
     }
     if( (rc = memPartAddToPool(pMemPart->partId, pMemPart->partitions[pMemPart->index], size) ) == ERROR )
     {
         free(pMemPart->partitions[pMemPart->index]);
         pMemPart->partitions[pMemPart->index] = NULL;
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Mem part add to pool for size [%d] failed with [%s]\n",
-                                        size, strerror(errno)));
+        clLogError(MEM_LOG_AREA_PART,MEM_LOG_CTX_EXPAND,"Mem part add to pool for size [%d] failed with [%s]\n",
+                                        size, strerror(errno));
         return CL_ERR_NO_MEMORY;
     }
     ++pMemPart->index;
@@ -134,7 +141,7 @@ ClPtrT clMemPartAlloc(ClMemPartHandleT handle, ClUint32T size)
     if(memPartInfoGet(pMemPart->partId, &memStats) == ERROR)
     {
         clOsalMutexUnlock(&pMemPart->mutex);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("memPartInfoGet failed with [%s]\n", strerror(errno)));
+        clLogError(MEM_LOG_AREA_PART,MEM_LOG_CTX_ALLOCATION,"memPartInfoGet failed with [%s]\n", strerror(errno));
         return mem;
     }
     /*
@@ -151,7 +158,7 @@ ClPtrT clMemPartAlloc(ClMemPartHandleT handle, ClUint32T size)
     clOsalMutexUnlock(&pMemPart->mutex);
     if(!mem)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Critical memPartAlloc error for size [%d]\n", size));
+        clLogError(MEM_LOG_AREA_PART,MEM_LOG_CTX_ALLOCATION,"Critical memPartAlloc error for size [%d]\n", size);
         CL_ASSERT(0);
     }
     memset(mem, 0, size);
@@ -174,7 +181,7 @@ ClPtrT clMemPartRealloc(ClMemPartHandleT handle, ClPtrT memBase, ClUint32T size)
     if(memPartInfoGet(pMemPart->partId, &memPartStats) == ERROR)
     {
         clOsalMutexUnlock(&pMemPart->mutex);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("memPartInfoGet for size [%d] failed with [%s]\n", size, strerror(errno)));
+        clLogError(MEM_LOG_AREA_PART,MEM_LOG_CTX_ALLOCATION,"memPartInfoGet for size [%d] failed with [%s]\n", size, strerror(errno));
         return mem;
     }
     if(size >= memPartStats.numBytesFree)
@@ -188,7 +195,7 @@ ClPtrT clMemPartRealloc(ClMemPartHandleT handle, ClPtrT memBase, ClUint32T size)
     clOsalMutexUnlock(&pMemPart->mutex);
     if(!mem)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Mem part realloc failure for size [%d]\n", size));
+        clLogError(MEM_LOG_AREA_PART,MEM_LOG_CTX_ALLOCATION,"Mem part realloc failure for size [%d]\n", size);
         CL_ASSERT(0);
     }
     return mem;

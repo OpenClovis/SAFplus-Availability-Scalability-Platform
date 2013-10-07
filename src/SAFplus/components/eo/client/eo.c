@@ -841,7 +841,7 @@ static ClRcT clEoCreateSystemCallout(ClEoExecutionObjT *pThis)
     ClRcT rc = CL_OK;
 
     if (pThis == NULL)
-        EO_CHECK(CL_DEBUG_ERROR, ("Improper reference to EO Object \n"),
+        EO_CHECK(CL_LOG_SEV_ERROR, ("Improper reference to EO Object \n"),
                 CL_EO_RC(CL_ERR_NULL_POINTER));
 
     /*
@@ -863,7 +863,7 @@ static ClRcT clEoCreateSystemCallout(ClEoExecutionObjT *pThis)
     if (pThis->eoPort != CL_IOC_CPM_PORT && clEoWithOutCpm != CL_TRUE)
     {
         rc = clCpmExecutionObjectRegister(pThis);
-        EO_CHECK(CL_DEBUG_ERROR, ("clCpmExecutionObjectRegister Failed\n"), rc);
+        EO_CHECK(CL_LOG_SEV_ERROR, ("clCpmExecutionObjectRegister Failed\n"), rc);
     }
 
     return CL_OK;
@@ -888,7 +888,7 @@ static ClRcT clEoStateChangeSystemCallout(ClEoExecutionObjT *pThis)
     ClRcT rc = CL_OK;
 
     if (pThis == NULL)
-        EO_CHECK(CL_DEBUG_ERROR, ("Improper reference to EO Object \n"),
+        EO_CHECK(CL_LOG_SEV_ERROR, ("Improper reference to EO Object \n"),
                 CL_EO_RC(CL_ERR_NULL_POINTER));
 
     /*
@@ -897,7 +897,7 @@ static ClRcT clEoStateChangeSystemCallout(ClEoExecutionObjT *pThis)
     if (pThis->eoPort != CL_IOC_CPM_PORT && clEoWithOutCpm != CL_TRUE)
     {
         rc = clCpmExecutionObjectStateUpdate(pThis);
-        EO_CHECK(CL_DEBUG_ERROR, ("clCpmExecutionObjectStateUpdate Failed\n"),
+        EO_CHECK(CL_LOG_SEV_ERROR, ("clCpmExecutionObjectStateUpdate Failed\n"),
                 rc);
     }
 
@@ -2765,7 +2765,7 @@ ClRcT clEoPrivateDataGet(ClEoExecutionObjT *pThis, ClUint32T key, void **pData)
     ClRcT retCode = CL_OK;
     ClBoolT locked = CL_TRUE;
 
-    /* CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("\n EO: Inside clEoPrivateDataGet \n")); */
+    /* CL_DEBUG_PRINT(CL_LOG_SEV_TRACE, ("\n EO: Inside clEoPrivateDataGet \n")); */
 
     /*
      * Sanity checks for function parameters 
@@ -3476,7 +3476,7 @@ static ClRcT clEoGetState(ClUint32T data, ClBufferHandleT inMsgHandle,
 
     rc = clBufferNBytesWrite(outMsgHandle, (ClUint8T *) state,
             sizeof(ClEoStateT));
-    EO_CHECK(CL_DEBUG_ERROR, ("clBufferNBytesWrite Failed \n"), rc);
+    EO_CHECK(CL_LOG_SEV_ERROR, ("clBufferNBytesWrite Failed \n"), rc);
 
 failure:
     return rc;
@@ -3490,7 +3490,7 @@ static ClRcT clEoSetState(ClUint32T data, ClBufferHandleT inMsgHandle,
     ClEoExecutionObjT *pThis = NULL;
 
     rc = VDECL_VER(clXdrUnmarshallClEoStateT, 4, 0, 0)(inMsgHandle, (void *) &state);
-    EO_CHECK(CL_DEBUG_ERROR, ("Unable to Get message \n"), rc);
+    EO_CHECK(CL_LOG_SEV_ERROR, ("Unable to Get message \n"), rc);
 
     if (state < CL_EO_STATE_INIT || state > CL_EO_STATE_FAILED)
     {
@@ -3498,7 +3498,7 @@ static ClRcT clEoSetState(ClUint32T data, ClBufferHandleT inMsgHandle,
     }
 
     rc = clEoMyEoObjectGet(&pThis);
-    EO_CHECK(CL_DEBUG_ERROR, ("Unable to Get EO Object \n"), rc);
+    EO_CHECK(CL_LOG_SEV_ERROR, ("Unable to Get EO Object \n"), rc);
 
     if ((state == CL_EO_STATE_STOP) || (state == CL_EO_STATE_KILL))
         clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
@@ -3532,14 +3532,14 @@ static ClRcT clEoIsAlive(ClUint32T data, ClBufferHandleT inMsgHandle,
         CL_EO_DEFAULT_POLL, 0};
 
         rc = clEoMyEoObjectGet(&pThis); // Checking RC value (CID 82 for coverity on #1780)
-        EO_CHECK(CL_DEBUG_ERROR, ("Message Write Failed 0x%x\n", rc), rc);
+        EO_CHECK(CL_LOG_SEV_ERROR, ("Message Write Failed 0x%x\n", rc), rc);
 
         if (pThis->clEoHealthCheckCallout)
         {
             pThis->clEoHealthCheckCallout(&schFeedback);
             rc = VDECL_VER(clXdrMarshallClEoSchedFeedBackT, 4, 0, 0)((void *) &schFeedback,
                     outMsgHandle, 0);
-            EO_CHECK(CL_DEBUG_ERROR, ("Message Write Failed 0x%x\n", rc), rc);
+            EO_CHECK(CL_LOG_SEV_ERROR, ("Message Write Failed 0x%x\n", rc), rc);
         }
         else
             rc = CL_EO_RC(CL_ERR_NOT_IMPLEMENTED);
@@ -4174,7 +4174,7 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
         goto out_free;
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Enqueuing job priority %d",priority));
+    clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Enqueuing job priority %d",priority);
     rc = clJobQueuePush(pQ,(ClCallbackT) clEoJobHandler, pJob);
 
 #else
@@ -4488,20 +4488,20 @@ static ClRcT clRmdServerStart(ClEoExecutionObjT *pThis)
      */
     if (pThis == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\n EO: NULL passed for Exectuion Object\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                    "\n EO: NULL passed for Exectuion Object\n");
         rc = CL_RMD_RC(CL_ERR_NULL_POINTER);
         goto failure;
     }
     gClEoTaskIds = calloc(1, sizeof(ClOsalTaskIdT));
     if(!gClEoTaskIds)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory for threads\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory for threads\n");
         goto eoStaticQueueInitialized;
     }
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                   ("\n EO: Spawning the required no of EO Receive Loop \n"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+               "\n EO: Spawning the required no of EO Receive Loop \n");
     /*
      * Create thread for picking up the IOC messages and putting it on user
      * level Queue
@@ -4722,8 +4722,8 @@ ClRcT rmdSeverInit(ClEoConfigT pConfig)
             &gEOObjHashTable);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n RmdServer: Hash Table Creation FAILED \n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                    "\n RmdServer: Hash Table Creation FAILED \n");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -4731,8 +4731,8 @@ ClRcT rmdSeverInit(ClEoConfigT pConfig)
     if (rc != CL_OK)
     {
         clCntDelete(gEOObjHashTable);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\n RmdServer: RmdServerHashTableLock  creation failed \n"));
+        clLogError("RMDSERVER","rmdServerInit",
+                   "\n RmdServer: RmdServerHashTableLock  creation failed \n");
         CL_FUNC_EXIT();
         return rc;
     }

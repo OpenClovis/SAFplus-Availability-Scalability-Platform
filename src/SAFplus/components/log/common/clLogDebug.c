@@ -20,7 +20,7 @@
 
 #if defined(CL_DEBUG)
 
-ClUint32T  clLogDebugLevel = CL_DEBUG_ERROR;
+ClUint32T  clLogDebugLevel = CL_LOG_SEV_ERROR;
 
 void
 clLogDebugLevelSet(void)

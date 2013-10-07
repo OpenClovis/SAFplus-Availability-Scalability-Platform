@@ -87,8 +87,8 @@
         CL_PARSER_TAG_RESULT_CHECK(rc);                             \
         if(!( (rc) & CL_TAG_FILTER_MASK))                           \
         {                                                           \
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error processing tag "  \
-                                           ":%s\n",(tag)->pTag));   \
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Error processing tag "  \
+                                           ":%s\n",(tag)->pTag);   \
             goto label;                                             \
         }                                                           \
         if(( (rc) & CL_TAG_CONT_MASK))                              \
@@ -97,8 +97,8 @@
         }                                                           \
         if(( (rc) & CL_TAG_SKIP_CHILD_MASK))                        \
         {                                                           \
-            CL_DEBUG_PRINT(CL_DEBUG_INFO,("Skipping child "         \
-                                           ":%s\n",(tag)->pTag));   \
+            clLogInfo(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Skipping child "         \
+                                           ":%s\n",(tag)->pTag);   \
             goto label;                                             \
         }                                                           \
 }while(0)
@@ -125,8 +125,8 @@
         CL_PARSER_TAG_RESULT_CHECK(rc);                             \
         if(!( (rc) & CL_TAG_FILTER_MASK))                           \
         {                                                           \
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error processing tag "  \
-                                           ":%s\n",(tag)->pTag));   \
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Error processing tag "  \
+                                           ":%s\n",(tag)->pTag);   \
             goto label;                                             \
         }                                                           \
         (rc) &= ~(CL_TAG_SKIP_CHILD_INSTANCES_MASK|CL_TAG_OK_MASK); \
@@ -144,12 +144,19 @@
         CL_PARSER_TAG_RESULT_CHECK(rc);                             \
         if(!( (rc) & CL_TAG_FILTER_MASK))                           \
         {                                                           \
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error processing tag "  \
-                                           ":%s\n",(tag)->pTag));   \
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Error processing tag "  \
+                                           ":%s\n",(tag)->pTag);   \
             goto label;                                             \
         }                                                           \
         (rc) = CL_OK ;                                              \
 }while(0)
+
+#define PARSER_LOG_AREA_PARSER		"PAR"
+#define PARSER_LOG_CTX_VERSION		"VER"
+#define PARSER_LOG_CTX_DISPLAY		"DISPLAY"
+#define PARSER_LOG_CTX_TAG			"TAG"
+#define PARSER_LOG_CTX_CHILD		"CHD"
+#define PARSER_LOG_CTX_XML			"XML"
 
 static ClRcT clParseDisplayChild(ClParserDataT *pData,ClPtrT pParentBase,ClUint32T level);
 static ClRcT clParseInstance(ClParserPtrT node,
@@ -347,8 +354,8 @@ ClParserPtrT clParserOpenFileWithVer(const ClCharT *path,
 
     if (!found)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_WARN,
-                ("Could not find the entry for version %s in %s",verStr,file));
+        clLogWarning(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_VERSION,
+                     "Could not find the entry for version %s in %s",verStr,file);
         goto done;
     }
 
@@ -382,8 +389,8 @@ static ClRcT clParseTag(ClParserPtrT node,ClParserTagT *pTag,ClParserDataT *pDat
 
     if(pAttr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_WARN,("XML attribute [%s] not defined, but may be optional.",pTag->pTag));
-        /* clDbgCodeError(CL_DEBUG_WARN,("Required attribute %s in xml configuration file is not defined\n",pTag->pTag)); */
+        clLogWarning(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_TAG,"XML attribute [%s] not defined, but may be optional.",pTag->pTag);
+        /* clDbgCodeError(CL_LOG_SEV_WARNING,("Required attribute %s in xml configuration file is not defined\n",pTag->pTag)); */
         goto out;
     }
 
@@ -395,7 +402,7 @@ static ClRcT clParseTag(ClParserPtrT node,ClParserTagT *pTag,ClParserDataT *pDat
     if(pValue == NULL)
     {
         rc = CL_PARSER_RC(CL_ERR_NO_MEMORY);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+        clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_TAG,"Error allocating memory\n");
         goto out;
     }
 
@@ -431,9 +438,9 @@ static ClRcT clParseTag(ClParserPtrT node,ClParserTagT *pTag,ClParserDataT *pDat
             }
             else
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unknown bool value:%s " \
+                clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_TAG,"Unknown bool value:%s " \
                                                "for tag:%s\n",
-                                               pAttr,pData->pTag));
+                                               pAttr,pData->pTag);
                 rc = CL_PARSER_RC(CL_ERR_INVALID_PARAMETER);
              
                 goto out_free;
@@ -469,14 +476,14 @@ static ClRcT clParseTag(ClParserPtrT node,ClParserTagT *pTag,ClParserDataT *pDat
         if(pTag->pTagFmt == NULL)
         {
             rc = CL_PARSER_RC(CL_ERR_UNSPECIFIED);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Tag:%s - Custom tag type with no fmt handler\n",pTag->pTag));
+            clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_TAG,"Tag:%s - Custom tag type with no fmt handler\n",pTag->pTag);
             goto out_free;
         }
         break;
     default:
         {
             rc = CL_PARSER_RC(CL_ERR_UNSPECIFIED);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unknown tag type:%d\n",pTag->tagType));
+            clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_TAG,"Unknown tag type:%d\n",pTag->tagType);
             goto out_free;
         }
     }
@@ -500,7 +507,7 @@ static ClRcT clParseTag(ClParserPtrT node,ClParserTagT *pTag,ClParserDataT *pDat
        )
     {
         rc = CL_PARSER_RC(CL_ERR_INVALID_PARAMETER);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Tag validation failed for tag:%s\n",pTag->pTag));
+        clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_TAG,"Tag validation failed for tag:%s\n",pTag->pTag);
         goto out_free;
     }
 
@@ -568,7 +575,7 @@ static ClRcT clParseChild(ClParserPtrT parent,
         ) != CL_OK
        )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in data init function for tag:%s\n",pChild->pTag));
+        clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_CHILD,"Error in data init function for tag:%s\n",pChild->pTag);
         goto out;
     }
 
@@ -576,7 +583,7 @@ static ClRcT clParseChild(ClParserPtrT parent,
 
     if(pBase == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Data base isnt set\n"));
+        clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_CHILD,"Data base isnt set\n");
         goto out;
     }
 
@@ -621,14 +628,14 @@ static ClRcT clParseInstance(ClParserPtrT node,
             /*This could be a conditional child*/
             if(pChild->dontSkip == CL_TRUE)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Child tag:%s not present when it "\
+                clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_CHILD,"Child tag:%s not present when it "\
                                               "was supposed to be\n",
-                                              pChild->pTag));
+                                              pChild->pTag);
                 rc = CL_PARSER_RC(CL_ERR_UNSPECIFIED);
                 goto out;
             }
             /*safely skip*/
-            CL_DEBUG_PRINT(CL_DEBUG_WARN,("Skipping child tag:%s\n",pChild->pTag));
+            clLogWarning(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_CHILD,"Skipping child tag:%s\n",pChild->pTag);
             continue;
         }
         rc = clParseChild(node,child,pChild,pCurrentBase);
@@ -651,7 +658,7 @@ ClRcT clParseXML(ClCharT *pPath,ClCharT *pFileName,ClParserDataT *pData)
     rc = CL_PARSER_RC(CL_ERR_INVALID_PARAMETER);
     if(pFileName == NULL || pData == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid parameter\n"));
+        clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_XML,"Invalid parameter\n");
         goto out;
     }
     if(pPath == NULL)
@@ -659,7 +666,7 @@ ClRcT clParseXML(ClCharT *pPath,ClCharT *pFileName,ClParserDataT *pData)
         pPath = getenv("ASP_CONFIG");
         if(pPath == NULL)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Please export ASP_CONFIG\n"));
+            clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_XML,"Please export ASP_CONFIG\n");
             goto out;
         }
     }
@@ -668,8 +675,8 @@ ClRcT clParseXML(ClCharT *pPath,ClCharT *pFileName,ClParserDataT *pData)
     root = clParserOpenFile(pPath,pFileName);
     if(root == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_INFO,("Opening xml configuration file [%s] failed",
-                                       pFileName));
+        clLogInfo(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_XML,"Opening xml configuration file [%s] failed",
+                                       pFileName);
         goto out;
     }
     rc = clParseChild(NULL,root,pData,NULL);
@@ -778,7 +785,7 @@ static ClRcT clParseDisplayTag(ClParserDataT *pData,ClParserTagT *pTag,
         }
         break;
     default:
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unknown tag type for tag:%s\n",pTag->pTag));
+        clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_TAG,"Unknown tag type for tag:%s\n",pTag->pTag);
         rc = CL_PARSER_RC(CL_ERR_UNSPECIFIED);
         goto out_free;
     }
@@ -847,14 +854,14 @@ static ClRcT clParseDisplayChild(ClParserDataT *pData,ClPtrT pParentBase,ClUint3
                               CL_PARSER_TAG_DISPLAY)
         ) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in data init\n"));
+        clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_DISPLAY,"Error in data init\n");
         goto out;
     }
 
     rc = CL_PARSER_RC(CL_ERR_UNSPECIFIED);
     if(pBase == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Data base isnt set\n"));
+        clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_CHILD,"Data base isnt set\n");
         goto out;
     }
 
@@ -879,7 +886,7 @@ ClRcT clParseDisplay(ClParserDataT *pData)
 
     if(pData == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_DISPLAY,"Invalid param\n");
         goto out;
     }
     rc = clParseDisplayChild(pData,NULL,0);
