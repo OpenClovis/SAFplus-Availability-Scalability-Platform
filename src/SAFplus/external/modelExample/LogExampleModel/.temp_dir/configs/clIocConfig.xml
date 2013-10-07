@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ioc:BootConfig xmlns:ioc="ioc.ecore">
+  <ioc heartBeatInterval="1000" reassemblyTimeout="1000">
+    <sendQueue size="0">
+      <waterMark highLimit="90" lowLimit="35">
+        <action>
+          <event enable="false"/>
+          <notification enable="false"/>
+          <log enable="false"/>
+          <custom enable="false"/>
+        </action>
+      </waterMark>
+    </sendQueue>
+    <receiveQueue size="0">
+      <waterMark highLimit="90" lowLimit="35">
+        <action>
+          <event enable="false"/>
+          <notification enable="false"/>
+          <log enable="false"/>
+          <custom enable="false"/>
+        </action>
+      </waterMark>
+    </receiveQueue>
+    <transport transportId="6736" transportName="UDP" transportPriority="1">
+      <link linkInterface="eth0" linkMulticastAddress="224.0.1.1" linkName="link0" linkPriority="1" linkSupportsChksum="true"/>
+    </transport>
+    <nodeInstances>
+      <nodeInstance name="Node0I0">
+        <sendQueue size="0">
+          <waterMark highLimit="90" lowLimit="35">
+            <action>
+              <event enable="false"/>
+              <notification enable="false"/>
+              <log enable="false"/>
+              <custom enable="false"/>
+            </action>
+          </waterMark>
+        </sendQueue>
+        <receiveQueue size="0">
+          <waterMark highLimit="90" lowLimit="35">
+            <action>
+              <event enable="false"/>
+              <notification enable="false"/>
+              <log enable="false"/>
+              <custom enable="false"/>
+            </action>
+          </waterMark>
+        </receiveQueue>
+      </nodeInstance>
+      <nodeInstance name="Node1I0">
+        <sendQueue size="0">
+          <waterMark highLimit="90" lowLimit="35">
+            <action>
+              <event enable="false"/>
+              <notification enable="false"/>
+              <log enable="false"/>
+              <custom enable="false"/>
+            </action>
+          </waterMark>
+        </sendQueue>
+        <receiveQueue size="0">
+          <waterMark highLimit="90" lowLimit="35">
+            <action>
+              <event enable="false"/>
+              <notification enable="false"/>
+              <log enable="false"/>
+              <custom enable="false"/>
+            </action>
+          </waterMark>
+        </receiveQueue>
+      </nodeInstance>
+    </nodeInstances>
+  </ioc>
+</ioc:BootConfig>
