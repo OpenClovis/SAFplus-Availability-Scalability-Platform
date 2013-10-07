@@ -1395,7 +1395,9 @@ typedef void (*ClEoCrashNotificationCallbackT)(const ClEoCrashNotificationT *cra
  * during deadlock or any other reason
  */
 extern ClRcT clEoCrashNotificationRegister(ClEoCrashNotificationCallbackT callback);
-
+#ifdef NO_SAF
+extern ClRcT rmdSeverInit(ClEoConfigT pConfig);
+#endif
 #ifdef __cplusplus
 }
 

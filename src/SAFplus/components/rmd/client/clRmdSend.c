@@ -42,9 +42,6 @@
 #include <sys/time.h>
 #include <clIocApiExt.h>
 
-#ifdef NO_SAF
-# include <rmdServerTest.h>
-#endif
 
 #ifdef DMALLOC
 # include "dmalloc.h"
@@ -259,11 +256,8 @@ static ClRcT rmdSendTimerFunc(void *pData)
     {
         return (CL_RMD_RC(CL_ERR_INVALID_BUFFER));
     }
-#ifdef NO_SAF
-    rc = clRmdServerMyRmdObjectGet(&pThis);
-#else
     rc = clEoMyEoObjectGet(&pThis);
-#endif
+
     if ( CL_OK != rc )
     {
         return rc;
