@@ -4107,7 +4107,7 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
             goto done;
         }
     }
-
+#endif
     clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clEoJobHandler, calling a registered message handler");
     rc = gClEoProtoList[pRecvParam->protoType].func(pThis,
                                                     pJob->msg,
