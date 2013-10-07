@@ -55,7 +55,6 @@
 #include <clEoQueueStats.h>
 #include <clRmdIpi.h>
 #include <clDebugApi.h>
-#include <clLogUtilApi.h>
 #include <clLogApi.h>
 #include <clIocApiExt.h>
 #include <clTransport.h>
@@ -251,7 +250,9 @@ ClJobQueueT gEoJobQueues[CL_NUM_JOB_QUEUES];
 static ClJobQueueT gClEoReplyJobQueue;
 extern ClRcT clEoClientCallbackDbInitialize(void);
 extern ClRcT clEoClientCallbackDbFinalize(void);
-
+#ifdef NO_SAF
+static ClJobQueueT pRmdQueue;
+#endif
 static ClRcT (*gpClEoSerialize)(ClPtrT pData);
 static ClRcT (*gpClEoDeSerialize)(ClPtrT pData);
 
@@ -375,9 +376,9 @@ static ClOsalMutexT gClEoJobMutex;
 /*
  * static ClRcT eoReceiveLoop(ClEoExecutionObjT* pThis);
  */
-
+#ifndef NO_SAF
 static ClRcT eoInit(ClEoExecutionObjT *pThis);
-
+#endif
 typedef void *(*ClEoTaskFuncPtrT) (void *);
 
 static ClUint32T clEoDataCompare(ClCntKeyHandleT inputData,
@@ -2185,7 +2186,7 @@ ClRcT clEoUnblock(ClEoExecutionObjT *pThis)
  *  @returns CL_OK        - Success<br>
  *           CL_ERR_NULL_POINTER     - Input parameter improper(NULL)
  */
-
+#ifndef NO_SAF
 static ClRcT eoInit(ClEoExecutionObjT *pThis)
 {
     ClRcT rc = CL_OK;
@@ -2219,7 +2220,7 @@ static ClRcT eoInit(ClEoExecutionObjT *pThis)
     CL_FUNC_EXIT();
     return rc;
 }
-
+#endif
 /**
  *  NAME: clEoClientDataSet  
  * 
@@ -2522,9 +2523,10 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
 
     if (rc != CL_OK || !fun)
     {
+#ifndef NO_SAF
         if(func == CPM_MGMT_NODE_CONFIG_GET)
             return CL_RMD_ERR_CONTINUE;
-
+#endif
         clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "RMD function lookup returned fn: [%p] error: [0x%x]", (void*) fun, rc);
         
         /*
@@ -3781,16 +3783,20 @@ static ClRcT clEoPriorityQueuesInitialize(void)
 
 ClRcT clEoPriorityQueuesFinalize(ClBoolT force)
 {
-  ClInt32T i = 0;
+
   /*
    * Grab the job mutex to avoid parallelism with new eo jobs getting queued   
    */
   clOsalMutexLock(&gClEoJobMutex);
-
+#ifdef NO_SAF
+  clJobQueueDelete(&pRmdQueue);
+#else
+  ClInt32T i = 0;
   for (i=0;i<CL_NUM_JOB_QUEUES;i++)
     clJobQueueDelete(&gEoJobQueues[i]);
 
   clJobQueueDelete(&gClEoReplyJobQueue);
+#endif
   clOsalMutexUnlock(&gClEoJobMutex);
   return CL_OK;
 }
@@ -3903,13 +3909,14 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
     /*
      * Set the EO object reference in the EO Area 
      */
+
     rc = clEoMyEoObjectSet(pThis);
     if (rc != CL_OK)
     {
         clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\n EO: clEoMyEoObjectSet failed \n");
         return rc;
     }
-
+#ifndef NO_SAF
     if (pThis->eoInitDone == 0)
     {
         rc = eoInit(pThis);
@@ -3921,9 +3928,9 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
         }
         pThis->eoInitDone = 1;
     }
+#endif
 
     recvOption.recvTimeout = CL_IOC_TIMEOUT_FOREVER;
-
     clOsalSelfTaskIdGet(&selfTaskId);
     clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "IOC Receive Thread is running with id [%llx]", selfTaskId);
 
@@ -3937,7 +3944,13 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
                        pThis->eoID, pThis->eoPort);
             return rc;
         }
-
+#ifdef NO_SAF
+        if(pThis==NULL)
+        {
+        	clLogError("RMDSERVER", "clRmdServerRecvQueueProcess","RmdServer Server Execution Object is NULL");
+        	pThis=gpExecutionObject;
+        }
+#endif
         /*
          * Block on this to recv message 
          */
@@ -3988,6 +4001,7 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
             {
                 retCode = clBufferDelete(&eoRecvMsg);
             }
+
 
         }
         else if (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_RECV_UNBLOCKED)
@@ -4053,7 +4067,7 @@ void clEoSendErrorNotify(ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 ClRcT clEoJobHandler(ClEoJobT *pJob)
 {
     ClRcT rc = CL_OK;
-    ClEoSerializeT serialize = { 0 };
+
     ClIocRecvParamT *pRecvParam = NULL;
     ClEoExecutionObjT *pThis = gpExecutionObject;
 
@@ -4075,6 +4089,8 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
     /*
      * _RMD_ uncomment following line 
      */
+#ifndef NO_SAF
+    ClEoSerializeT serialize = { 0 };
     if(gpClEoSerialize && (gClEoProtoList[pRecvParam->protoType].flags & CL_EO_STATE_THREAD_SAFE))
     {
         /**
@@ -4100,7 +4116,7 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
                                                     pRecvParam->length,
                                                     pRecvParam->srcAddr.
                                                     iocPhyAddress);
-
+#ifndef NO_SAF
     if(gpClEoDeSerialize && (gClEoProtoList[pRecvParam->protoType].flags & CL_EO_STATE_THREAD_SAFE))
     {
         /**
@@ -4108,6 +4124,7 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
          */
         (void)gpClEoDeSerialize((ClPtrT)&serialize);
     }
+#endif
     if (rc != CL_OK)
     {
         clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
@@ -4125,7 +4142,6 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
 {
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     ClEoJobT *pJob = NULL;
-    ClJobQueueT* pQueue = NULL; 
     ClUint32T priority ;
 
     if(recvMsg == CL_HANDLE_INVALID_VALUE
@@ -4145,7 +4161,24 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
     }
     pJob->msg = recvMsg;
     memcpy(&pJob->msgParam, pRecvParam, sizeof(pJob->msgParam));
+    clLogNotice("CALLBACK", "TASKS","clEoEnqueueJob %d  -- %d -- %d  --%d " , pRecvParam->srcAddr.iocPhyAddress.nodeAddress ,pRecvParam->srcAddr.iocPhyAddress.portId,(int)pRecvParam->srcAddr.iocLogicalAddress,pRecvParam->protoType);
+#ifdef NO_SAF
+    rc = CL_RMD_RC(CL_ERR_INVALID_STATE);
+    clOsalMutexLock(&gClEoJobMutex);
+    rc = CL_RMD_RC(CL_ERR_NOT_EXIST);
+    ClJobQueueT* pQ = NULL;
+    pQ = &pRmdQueue;
+    if(pQ == NULL)
+    {
+        clOsalMutexUnlock(&gClEoJobMutex);
+        goto out_free;
+    }
 
+    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Enqueuing job priority %d",priority));
+    rc = clJobQueuePush(pQ,(ClCallbackT) clEoJobHandler, pJob);
+
+#else
+    ClJobQueueT* pQueue = NULL;
     if(pJob->msgParam.priority > CL_IOC_MAX_PRIORITIES)
     {
         priority = CL_IOC_HIGH_PRIORITY;
@@ -4193,7 +4226,6 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
             goto out_free;
         }
     }
-
     rc = CL_EO_RC(CL_ERR_NOT_EXIST);
     pQueue = &gEoJobQueues[priority];
     if(pQueue == NULL)
@@ -4205,7 +4237,7 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
     clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Enqueuing job priority %d",priority);
   
     rc = clJobQueuePush(pQueue,(ClCallbackT) clEoJobHandler, pJob);
-
+#endif
     clOsalMutexUnlock(&gClEoJobMutex);
 
     if(rc != CL_OK)
@@ -4445,3 +4477,281 @@ ClBoolT clEoQueueAmfResponseFind(ClUint32T pri)
     return status;
 }
 
+#ifdef NO_SAF
+static ClRcT clRmdServerStart(ClEoExecutionObjT *pThis)
+{
+    ClRcT rc = CL_OK;
+    CL_FUNC_ENTER();
+    clLogDebug("RMDSERVER", "clRmdServerStart","Enter clRmdServerStart");
+    /*
+     * Sanity check for function parameters
+     */
+    if (pThis == NULL)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                       ("\n EO: NULL passed for Exectuion Object\n"));
+        rc = CL_RMD_RC(CL_ERR_NULL_POINTER);
+        goto failure;
+    }
+    gClEoTaskIds = calloc(1, sizeof(ClOsalTaskIdT));
+    if(!gClEoTaskIds)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory for threads\n"));
+        goto eoStaticQueueInitialized;
+    }
+
+    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
+                   ("\n EO: Spawning the required no of EO Receive Loop \n"));
+    /*
+     * Create thread for picking up the IOC messages and putting it on user
+     * level Queue
+     */
+    pThis->state = CL_EO_STATE_ACTIVE;
+    rc = clEoTaskCreate("clEoIocRecvQueueProcess", (ClEoTaskFuncPtrT) clEoIocRecvQueueProcess,
+    		pThis, gClEoTaskIds);
+    if (CL_OK != rc)
+    {
+        goto eoStaticQueueInitialized;
+    }
+
+    CL_FUNC_EXIT();
+    return CL_OK;
+
+    eoStaticQueueInitialized:
+    if(gClEoTaskIds)
+    {
+        free(gClEoTaskIds);
+        gClEoTaskIds = NULL;
+    }
+    failure:
+    CL_FUNC_EXIT();
+    return rc;
+}
+
+typedef struct {
+/**
+ * The requested IOC communication port.
+ */
+    ClIocPortT              reqIocPort;
+/**
+ * Indicates the maximum number of EO client.
+ */
+    ClUint32T               maxNoClients;
+}ClRmdConfigT;
+
+ClRmdConfigT rmdConfig =
+{
+    0,
+    (CL_EO_USER_CLIENT_ID_START + 0)
+};
+
+ClRcT clRmdServerCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
+{
+    clLogDebug("RMDSERVER", "clRmdServerCreate","Enter create Rmd Server func");
+    ClRcT rc = CL_OK;
+    ClEoClientObjT *pClient = NULL;
+    ClTimerTimeOutT delay;
+    delay.tsSec = 1;
+    delay.tsMilliSec = 0;
+    ClInt32T tries = 0;
+    CL_FUNC_ENTER();
+
+    /*
+     * Sanity check for function parameters
+     */
+    if ((pConfig == NULL) || (ppThis == NULL))
+    {
+        clLogError("RMDSERVER", "clRmdServerCreate","ClEoExecutionObjT is null");
+        rc = CL_RMD_RC(CL_ERR_NULL_POINTER);
+        goto failure;
+    }
+
+    *ppThis = (ClEoExecutionObjT *) clHeapCalloc(1, sizeof(ClEoExecutionObjT));
+    if (*ppThis == NULL)
+    {
+        rc = CL_RMD_RC(CL_ERR_NO_MEMORY);
+        clLogError("RMDSERVER", "clRmdServerCreate","Memory allocation failed, error [0x%x]", rc);
+        goto failure;
+    }
+    (*ppThis)->eoPort = pConfig->reqIocPort;
+    (*ppThis)->maxNoClients = pConfig->maxNoClients+1;
+    rc = clCntLlistCreate((ClCntKeyCompareCallbackT) clEoDataCompare,
+                          (ClCntDeleteCallbackT) NULL,
+                          (ClCntDeleteCallbackT) NULL, CL_CNT_UNIQUE_KEY,
+                          &((*ppThis)->pEOPrivDataHdl));
+    if (rc != CL_OK)
+    {
+        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
+                   "clCntLlistCreate() failed, error [0x%x]", rc);
+    }
+    rc = clOsalMutexInit(&(*ppThis)->eoMutex);
+    if(rc != CL_OK)
+    {
+    	clLogError("RMDSERVER", "clRmdServerCreate","clOsalMutexInit() failed, error [0x%x]", rc);
+        goto rmdPrivateDataCntAllocated;
+    }
+
+    rc = clOsalCondInit(&(*ppThis)->eoCond);
+    if(rc != CL_OK)
+    {
+    	clLogError("RMDSERVER", "clRmdServerCreate","clOsalCondInit() failed, error [0x%x]", rc);
+        goto rmdPrivateDataCntAllocated;
+    }
+
+    pClient =
+        (ClEoClientObjT *) clHeapAllocate(sizeof(ClEoClientObjT) *
+                                          ((*ppThis)->maxNoClients + 1));
+    if (pClient == NULL)
+    {
+        rc = CL_RMD_RC(CL_ERR_NO_MEMORY);
+        clLogError("RMDSERVER", "clRmdServerCreate","Memory allocation failed, error [0x%x]", rc);
+        goto rmdStaticQueueInitialized;
+    }
+
+    memset(pClient, 0, sizeof(ClEoClientObjT) * ((*ppThis)->maxNoClients));
+    (*ppThis)->pClient = pClient;
+    rc = eoClientTableAlloc((*ppThis)->maxNoClients, &(*ppThis)->pClientTable);
+    CL_ASSERT(rc == CL_OK);
+    rc = eoServerTableAlloc((*ppThis)->maxNoClients, &(*ppThis)->pServerTable);
+    CL_ASSERT(rc == CL_OK);
+
+    rc = clEoClientCallbackDbInitialize();
+    CL_ASSERT(rc == CL_OK);
+    clLogInfo("RMDSERVER", "clRmdServerCreate","create comport, port [0x%u]", (ClUint32T) pConfig->reqIocPort);
+    do
+    {
+        rc = clIocCommPortCreate((ClUint32T) pConfig->reqIocPort,
+                                 CL_IOC_RELIABLE_MESSAGING, &((*ppThis)->commObj));
+    } while( CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST &&
+             ++tries <= 5 &&
+             clOsalTaskDelay(delay) == CL_OK);
+
+
+    if( CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST )
+    {
+        clLogError("RMDSERVER", "clRmdServerCreate","This component instance [%s] is already running on this node.   Exiting...", ASP_COMPNAME);
+        /*
+         * Do necessary cleanup
+         */
+        goto rmdClientObjCreated;
+    }
+    if (rc != CL_OK)
+    {
+    	clLogError("RMDSERVER", "clRmdServerCreate","clIocCommPortCreate() failed, error [0x%x]", rc);
+        /*
+         * Do necessary cleanup
+         */
+        goto rmdClientObjCreated;
+    }
+
+    if (pConfig->reqIocPort == 0)
+    {
+        rc = clIocCommPortGet((*ppThis)->commObj, &((*ppThis)->eoPort));
+        clLogInfo("RMDSERVER", "clRmdServerCreate","Own commObj port is [0x%d]", (int)(*ppThis)->commObj);
+        if (rc != CL_OK)
+        {
+        	clLogError("RMDSERVER", "clRmdServerCreate","Could not get IOC communication port info, error [0x%x]",
+                       rc);
+            goto rmdIocCommPortCreated;
+        }
+    }
+
+//    rc = clIocPortNotification((*ppThis)->eoPort, CL_IOC_NOTIFICATION_DISABLE);
+//    if(rc != CL_OK)
+//    {
+//    	clLogError("RMDSERVER", "clRmdServerCreate","Error : failed to disable the port notifications from IOC. error code [0x%x].", rc);
+//        exit(1);
+//    }
+    rc = clIocPortNotification((*ppThis)->eoPort, CL_IOC_NOTIFICATION_ENABLE);
+    if(rc != CL_OK)
+    {
+    	clLogError("RMDSERVER", "clRmdServerCreate","Failed to enable the port notification. error [0x%x]", rc);
+        goto rmdIocCommPortCreated;
+    }
+
+    clLogInfo("RMDSERVER", "clRmdServerCreate","Own IOC port is [0x%x]", (*ppThis)->eoPort);
+    rc = clRmdObjInit(&(*ppThis)->rmdObj);
+    if (rc != CL_OK)
+    {
+    	clLogError("RMDSERVER", "clRmdCreate","clRmdObjInit() failed, error [0x%x]", rc);
+        goto rmdIocCommPortCreated;
+    }
+    /*
+     * Added the following to fix Bug 3920.
+     * The Get API can fetch the values from the
+     * global placeholders.
+     */
+    gpExecutionObject = *ppThis;
+    gEOIocPort = (*ppThis)->eoPort;
+    rc = clRmdServerStart(*ppThis);
+    if (rc != CL_OK)
+    {
+    	gpExecutionObject = NULL;
+        clLogError("RMDSERVER", "clRmdServerCreate","clRmdServerStart error");
+        goto rmdStaticQueueInitialized;
+    }
+    CL_FUNC_EXIT();
+    clLogInfo("RMDSERVER", "clRmdServerCreate","Rmd Sever is created");
+    return CL_OK;
+
+    rmdIocCommPortCreated:
+    clIocCommPortDelete((*ppThis)->commObj);
+
+    rmdClientObjCreated:
+    clHeapFree((*ppThis)->pClient);
+
+    rmdStaticQueueInitialized:
+    rmdPrivateDataCntAllocated:
+
+    failure:
+
+    CL_FUNC_EXIT();
+    return rc;
+}
+#define MAX_PENDING 0
+#define MAX_THREAD 8
+ClRcT rmdSeverInit(ClEoConfigT pConfig)
+{
+
+	clLogDebug("RMDSERVER", "rmdSeverInit","Enter startRmdServerSever");
+	ClRcT rc;
+	ClEoExecutionObjT *pThis = NULL;
+    rc = clCntHashtblCreate(EO_BUCKET_SZ, eoGlobalHashKeyCmp,
+            eoGlobalHashFunction, eoGlobalHashDeleteCallback,
+            eoGlobalHashDeleteCallback, CL_CNT_UNIQUE_KEY,
+            &gEOObjHashTable);
+    if (rc != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                ("\n RmdServer: Hash Table Creation FAILED \n"));
+        CL_FUNC_EXIT();
+        return rc;
+    }
+    rc = clOsalMutexInit(&gEOObjHashTableLock);
+    if (rc != CL_OK)
+    {
+        clCntDelete(gEOObjHashTable);
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                ("\n RmdServer: RmdServerHashTableLock  creation failed \n"));
+        CL_FUNC_EXIT();
+        return rc;
+    }
+	eoProtoInit();
+	rc=clRmdServerCreate(&pConfig,&pThis);
+	if(rc != CL_OK)
+	{
+	    clLogError("RMDSERVER", "rmdSeverInit","failed to create rmd Server");
+	    return rc;
+	}
+	if(pThis == NULL)
+	{
+	    clLogError("RMDSERVER", "rmdSeverInit","failed to create rmd Server");
+	    return rc;
+	}
+	clLogDebug("RMDSERVER", "rmdSeverInit","init queue");
+	clJobQueueInit(&pRmdQueue, MAX_PENDING, MAX_THREAD);
+    return rc;
+}
+
+
+#endif

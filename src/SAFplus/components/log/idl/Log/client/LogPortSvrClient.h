@@ -25,13 +25,13 @@ extern "C" {
 
 
 
-ClRcT clLogSvrStreamOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* streamName, CL_IN ClUint32T streamScope, CL_IN SaNameT* streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN ClUint8T streamOpenFlags, CL_IN ClUint32T compId, CL_IN ClUint32T portId, CL_OUT ClStringT* pShmName, CL_OUT ClUint32T* pShmSize);
+ClRcT clLogSvrStreamOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* streamName, CL_IN ClUint32T streamScope, CL_IN SaNameT* streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN ClUint8T streamOpenFlags, CL_IN ClUint32T compId, CL_IN ClUint32T portId, CL_IN ClUint32T isExternal, CL_OUT ClUint32T* recordSize, CL_OUT ClStringT* pShmName, CL_OUT ClUint32T* pShmSize);
 
-typedef void (*LogClLogSvrStreamOpenAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN SaNameT* streamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT* streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN ClUint8T  streamOpenFlags, CL_IN ClUint32T  compId, CL_IN ClUint32T  portId, CL_OUT ClStringT* pShmName, CL_OUT ClUint32T* pShmSize, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*LogClLogSvrStreamOpenAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN SaNameT* streamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT* streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN ClUint8T  streamOpenFlags, CL_IN ClUint32T  compId, CL_IN ClUint32T  portId, CL_IN ClUint32T  isExternal, CL_OUT ClUint32T* recordSize, CL_OUT ClStringT* pShmName, CL_OUT ClUint32T* pShmSize, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef LogClLogSvrStreamOpenAsyncCallbackT_4_0_0 LogClLogSvrStreamOpenAsyncCallbackT;
 
-ClRcT clLogSvrStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* streamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT* streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN ClUint8T  streamOpenFlags, CL_IN ClUint32T  compId, CL_IN ClUint32T  portId, CL_OUT ClStringT* pShmName, CL_OUT ClUint32T* pShmSize,CL_IN LogClLogSvrStreamOpenAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clLogSvrStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* streamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT* streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN ClUint8T  streamOpenFlags, CL_IN ClUint32T  compId, CL_IN ClUint32T  portId, CL_IN ClUint32T  isExternal, CL_OUT ClUint32T* recordSize, CL_OUT ClStringT* pShmName, CL_OUT ClUint32T* pShmSize,CL_IN LogClLogSvrStreamOpenAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
 ClRcT clLogSvrStreamCloseClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* streamName, CL_IN ClUint32T streamScope, CL_IN SaNameT* streamScopeNode, CL_IN ClUint32T compId);
 

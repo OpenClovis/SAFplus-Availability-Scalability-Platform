@@ -34,6 +34,9 @@ struct ClLogClntStreamData
     ClUint8T            *pStreamRecords;
     ClStringT           shmName;
     ClBitmapHandleT     hStreamBitmap;
+#ifdef NO_SAF
+    ClUint32T         recSize;
+#endif
 #ifdef VXWORKS_BUILD
     /*
      * cache the named semaphore ids since only named semaphores with '/' prefixed names have RTP shared access
@@ -51,7 +54,8 @@ clLogClntStreamOpen(ClLogHandleT        hLog,
                     SaNameT             *pNodeName,
                     ClStringT           *pShmName,
                     ClUint32T           shmSize,
-                    ClLogStreamHandleT  *phStream);
+                    ClLogStreamHandleT  *phStream,
+                    ClUint32T           recSize);
 void
 clLogClntStreamDeleteCb(ClCntKeyHandleT   userKey,
                         ClCntDataHandleT  userData);

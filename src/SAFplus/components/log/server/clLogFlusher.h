@@ -23,6 +23,7 @@ extern "C" {
 #endif
     
 #include <clLogCommon.h>
+#include <clLogServer.h>
 
 #define  CL_LOG_FLUSH_SEND_RETRIES  3    
 
@@ -33,7 +34,9 @@ typedef struct
 }ClLogFlushCookieT;
 extern void*
 clLogFlusherStart(CL_IN  void *pData);
-
+extern ClRcT
+clLogFlusherExternalRecordsFlush(ClLogSvrStreamDataT  *pStreamData,
+		                             ClUint8T          *pRecord);
 extern ClRcT
 clLogFlusherCookieHandleDestroy(ClHandleT  hFlusher, 
                                 ClBoolT    timerExpired);

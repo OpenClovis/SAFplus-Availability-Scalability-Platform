@@ -101,7 +101,9 @@ clLogClntEoEntryCreate(ClLogClntEoDataT  **ppClntEoEntry)
     ClUint32T       maxStreams = 0;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
+#ifdef NO_SAF
 
+#else
     rc = clLogClntCompInfoGet(&compInfo);
     if( CL_OK != rc )
     {
@@ -113,7 +115,7 @@ clLogClntEoEntryCreate(ClLogClntEoDataT  **ppClntEoEntry)
     {
         return rc;
     }
-
+#endif
     localAddr.iocPhyAddress.nodeAddress = clIocLocalAddressGet();
     localAddr.iocPhyAddress.portId      = CL_IOC_LOG_PORT;
     rc = clLogClntIdlHandleInitialize(localAddr, &hClntIdl);

@@ -39,7 +39,8 @@ extern "C" {
 #endif
 
 #include "clXdrApi.h"
-
+#include "clIocApi.h"
+#include "clLogApi.h"
 #include "clIocApi.h"
 #include "clLogApi.h"
 

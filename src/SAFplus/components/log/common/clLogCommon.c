@@ -480,7 +480,9 @@ clLogStreamKeyCreate(SaNameT          *pStreamName,
     (*ppStreamKey)->streamName      = *pStreamName;
     (*ppStreamKey)->streamScopeNode = *pNodeName;
     (*ppStreamKey)->hash            = cksum % maxStreams;
-
+#ifdef NO_SAF
+    (*ppStreamKey)->sequenceNum      = 0;
+#endif
     CL_LOG_DEBUG_VERBOSE(("Created Key: %hu %.*s %hu %.*s",
                           (*ppStreamKey)->streamName.length, (*ppStreamKey)->streamName.length,
                           (*ppStreamKey)->streamName.value,

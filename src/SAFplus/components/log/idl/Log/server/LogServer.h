@@ -54,6 +54,7 @@ extern ClRcT clLogHandlerSvrAckSendServer_4_0_0(ClEoDataT eoData, ClBufferHandle
 extern ClRcT clLogFileHdlrFileOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clLogFileHdlrFileRecordsGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clLogFileHdlrFileMetaDataGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
+extern ClRcT clLogExternalSendServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 
 
 #ifdef __cplusplus

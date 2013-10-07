@@ -1137,3 +1137,105 @@ VDECL_VER(clLogHandlerSvrAckSend, 4, 0, 0)(
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
 }    
+
+static ClRcT
+clLogFlusherExternalRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
+                            ClUint32T            nRecords,
+                            ClLogFlushRecordT    *pFlushRecord,
+                            ClUint8T            *pRecords)
+{
+    ClRcT      rc       = CL_OK;
+    ClLogStreamHeaderT  *pHeader  = pStreamData->pStreamHeader;
+    ClUint32T           startIdx  = 0;
+    ClUint32T           buffLen   = 0;
+    ClIocNodeAddressT   localAddr = 0;
+    ClUint8T            *pBuffer  = NULL;
+    ClBoolT             doMulticast = CL_FALSE;
+    clLogDebug("LOG", "FLS", "Minh : Enter clLogFlusherExternalRecordsGetMcast");
+    if(pFlushRecord->multicast < 0 )
+    {
+        doMulticast = ( (0 < (pStreamData->ackersCount + pStreamData->nonAckersCount)) &&
+                        (pHeader->streamMcastAddr.iocMulticastAddress != 0) )? CL_TRUE: CL_FALSE;
+
+        if( (pStreamData->ackersCount + pStreamData->nonAckersCount) == 1 &&
+            (pStreamData->fileOwnerAddr == clIocLocalAddressGet()) )
+        {
+            doMulticast = CL_FALSE;
+        }
+        pFlushRecord->multicast = doMulticast;
+        pFlushRecord->mcastAddr = pHeader->streamMcastAddr;
+        pFlushRecord->ackersCount = pStreamData->ackersCount;
+
+    }
+    else
+    {
+        doMulticast = (pFlushRecord->multicast ? CL_TRUE : CL_FALSE) ;
+    }
+    localAddr = clIocLocalAddressGet();
+
+    buffLen = nRecords * pHeader->recordSize;
+    pBuffer = pRecords;
+    pFlushRecord->pBuffs = clHeapRealloc(pFlushRecord->pBuffs,
+                                         (pFlushRecord->numBufs+1) * sizeof(*pFlushRecord->pBuffs));
+    CL_ASSERT(pFlushRecord->pBuffs != NULL);
+    memset(pFlushRecord->pBuffs + pFlushRecord->numBufs, 0,
+           sizeof(*pFlushRecord->pBuffs));
+    pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = clHeapCalloc(sizeof(ClUint8T), buffLen);
+    CL_ASSERT(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord != NULL);
+    memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord,
+           pBuffer, buffLen);
+    pFlushRecord->pBuffs[pFlushRecord->numBufs++].numRecords = nRecords;
+    CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pRecords + (startIdx*pHeader->recordSize),
+                          nRecords * pHeader->recordSize));
+    CL_LOG_DEBUG_TRACE(("Exit"));
+    return rc;
+}
+
+ClRcT
+clLogFlusherExternalRecordsFlush(ClLogSvrStreamDataT  *pStreamData,
+		                             ClUint8T          *pRecord)
+{
+	clLogDebug("LOG", "FLS", "Enter clLogFlusherExternalRecordsFlush function");
+    ClRcT     rc        = CL_OK;
+    ClLogStreamHeaderT     *pHeader           = pStreamData->pStreamHeader;
+    ClLogSvrCommonEoDataT  *pSvrCommonEoEntry = NULL;
+    ClLogSvrEoDataT        *pSvrEoEntry       = NULL;
+    //ClUint32T              nFlushableRecords  = 0;
+    ClUint32T              nFlushedRecords    = 1;
+    ClLogFlushRecordT      flushRecord = {0};
+    CL_LOG_DEBUG_TRACE(("Enter"));
+    rc = clLogSvrEoEntryGet(&pSvrEoEntry, &pSvrCommonEoEntry);
+    if( CL_OK != rc )
+    {
+        return rc;
+    }
+
+    CL_LOG_DEBUG_TRACE((" recordIdx: %d startAck : %d \n", pHeader->recordIdx,
+                pHeader->startAck));
+    flushRecord.fileName.pValue = clHeapCalloc(1, pStreamData->fileName.length+1);
+    CL_ASSERT(flushRecord.fileName.pValue != NULL);
+    flushRecord.fileName.length = pStreamData->fileName.length;
+    memcpy(flushRecord.fileName.pValue, pStreamData->fileName.pValue, flushRecord.fileName.length);
+    flushRecord.fileLocation.pValue = clHeapCalloc(1, pStreamData->fileLocation.length+1);
+    CL_ASSERT(flushRecord.fileLocation.pValue != NULL);
+    flushRecord.fileLocation.length = pStreamData->fileLocation.length;
+    memcpy(flushRecord.fileLocation.pValue, pStreamData->fileLocation.pValue,
+           flushRecord.fileLocation.length);
+
+    flushRecord.fileOwnerAddr = pStreamData->fileOwnerAddr;
+    flushRecord.seqNum = pStreamData->seqNum;
+    flushRecord.multicast = -1;
+    flushRecord.recordSize = pHeader->recordSize;
+    rc = clLogFlusherExternalRecordsGetMcast(pStreamData, nFlushedRecords, &flushRecord,pRecord);
+    rc = clLogServerStreamMutexUnlock(pStreamData);
+	if( CL_OK != rc )
+    {
+        clLogError("SVR", "FLU", "Faild to unlock the stream");
+    }
+    logRecordsFlush(&flushRecord);
+    clLogServerStreamMutexLockFlusher(pStreamData);
+    CL_LOG_DEBUG_TRACE(("Exit"));
+    return CL_OK;
+}
+
+

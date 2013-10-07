@@ -40,8 +40,7 @@ extern "C" {
 
 #include "clXdrApi.h"
 
-#include "clIocApi.h"
-#include "clLogApi.h"
+
 
 struct _ClLogFilterT_4_0_0;
 

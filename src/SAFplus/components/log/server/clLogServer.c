@@ -497,7 +497,7 @@ clLogSvrSOSOResponse(CL_OUT     ClIdlHandleT            hLogIdl,
                 retCode, pStreamName->length, pStreamName->value);
         if( rc == CL_OK )
         {
-            rc = VDECL_VER(clLogSvrStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, rc, 
+            rc = VDECL_VER(clLogSvrStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, rc, pStreamAttr->recordSize,
                                                 shmName, shmSize);
             if( CL_OK != rc )
             {
@@ -508,7 +508,7 @@ clLogSvrSOSOResponse(CL_OUT     ClIdlHandleT            hLogIdl,
         {
             shmName.length = 0;
             shmName.pValue = NULL;
-            rc = VDECL_VER(clLogSvrStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, rc, 
+            rc = VDECL_VER(clLogSvrStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, rc, 0,
                                                 shmName, 0);
             if( CL_OK != rc )
             {
@@ -1319,9 +1319,17 @@ VDECL_VER(clLogSvrStreamOpen, 4, 0, 0)(
                    CL_IN   ClLogStreamOpenFlagsT  streamOpenFlags,
                    CL_IN   ClUint32T              compId,
                    CL_IN   ClIocPortT             portId,
+                   CL_IN   ClUint32T              isExternal,
+                   CL_OUT  ClUint32T              *recSize,
                    CL_OUT  ClStringT              *pShmName,
                    CL_OUT  ClUint32T              *pShmSize)
 {
+	if(!clCpmIsMaster() && isExternal==1)
+	{
+		sleep(10);
+		clLogDebug("SVR", "OPE", "ignore openstream broadcast from external app");
+		return CL_LOG_RC(CL_ERR_NO_MEMORY);
+	}
     ClRcT                   rc                 = CL_OK;
     ClLogSvrEoDataT         *pSvrEoEntry       = NULL;
     ClLogSvrCommonEoDataT   *pSvrCommonEoEntry = NULL;
@@ -1496,7 +1504,7 @@ VDECL_VER(clLogSvrStreamOpen, 4, 0, 0)(
         {
             pShmName->length = 0;
             pShmName->pValue = NULL;
-            CL_LOG_CLEANUP(VDECL_VER(clLogSvrStreamOpenResponseSend, 4, 0, 0)(hIdlDefer, rc,
+            CL_LOG_CLEANUP(VDECL_VER(clLogSvrStreamOpenResponseSend, 4, 0, 0)(hIdlDefer, rc,0,
                                                       *pShmName, 0),
                        CL_OK);
         }
@@ -2429,7 +2437,6 @@ VDECL_VER(clLogSvrStreamHandleFlagsUpdate, 4, 0, 0)(
         CL_LOG_DEBUG_ERROR(("clOsalMutexLock_L(): rc[0x %x]", rc));
         return rc;
     }
-
     rc = clLogSvrStreamEntryGet(pSvrEoEntry, pStreamName, pStreamScopeNode,
                                 CL_FALSE, &hSvrStreamNode, &addedEntry );
     if( CL_OK != rc )
@@ -2486,6 +2493,7 @@ clLogSvrPerennialStreamsOpen(ClUint32T  *pErrIndex)
     ClRcT                rc            = CL_OK;
     ClStringT            shmName       = {0};
     ClUint32T            shmSize       = 0;
+    ClUint32T            recSize       = 0;
     ClUint32T            count         = 0;
     ClLogStreamAttrIDLT  streamAttr[2] = {{{0}}};
 
@@ -2505,7 +2513,7 @@ clLogSvrPerennialStreamsOpen(ClUint32T  *pErrIndex)
                                &stdStreamList[count].streamScopeNode,
                                &streamAttr[count], CL_LOG_STREAM_CREATE, 
                                CL_LOG_DEFAULT_COMPID,
-                               CL_LOG_DEFAULT_PORTID,
+                               CL_LOG_DEFAULT_PORTID,0,&recSize,
                                &shmName, &shmSize);
        if( CL_OK != rc )
        {
@@ -2528,6 +2536,7 @@ clLogSvrPrecreatedStreamsOpen(void)
     ClRcT                rc                                         = CL_OK;
     ClStringT            shmName                                    = {0};
     ClUint32T            shmSize                                    = 0;
+    ClUint32T            recSize                                    = 0;
     ClUint32T            count                                      = 0;
     ClUint32T            i                                          = 0;
     ClLogStreamDataT     *streamAttr[CL_LOG_MAX_PRECREATED_STREAMS] = {0};
@@ -2563,7 +2572,7 @@ clLogSvrPrecreatedStreamsOpen(void)
                                    &streamAttr[i]->streamAttr, 
                                    CL_LOG_STREAM_CREATE, 
                                    CL_LOG_DEFAULT_COMPID,
-                                   CL_LOG_DEFAULT_PORTID,
+                                   CL_LOG_DEFAULT_PORTID,0,&recSize,
                                    &shmName, &shmSize);
         }
         else if( CL_LOG_STREAM_GLOBAL == streamAttr[i]->streamScope )
@@ -2575,7 +2584,7 @@ clLogSvrPrecreatedStreamsOpen(void)
                                    &streamAttr[i]->streamAttr, 
                                    CL_LOG_STREAM_CREATE, 
                                    CL_LOG_DEFAULT_COMPID,
-                                   CL_LOG_DEFAULT_PORTID,
+                                   CL_LOG_DEFAULT_PORTID,0,&recSize,
                                    &shmName, &shmSize);
         }
         else
@@ -3065,3 +3074,72 @@ clLogSvrStreamEntryUpdate(ClLogSvrEoDataT         *pSvrEoEntry,
 
     return rc;
 }
+
+ClRcT VDECL_VER(clLogExternalSend, 4, 0, 0)(CL_IN ClUint16T  recsize, CL_IN ClUint8T*  pRecord, CL_IN SaNameT*  pStreamName, CL_IN SaNameT*  pStreamScopeNode)
+{
+	if(! clCpmIsMaster())
+	{
+		clLogDebug("SVR", "OPE", "ignore external log  broadcast from external app ");
+		return CL_LOG_RC(CL_ERR_NO_MEMORY);
+	}
+	clLogDebug("LOG", "FLS", "Enter clLogExternalSend ");
+	ClRcT                  rc                 = CL_OK;
+	ClLogSvrEoDataT        *pSvrEoEntry       = NULL;
+	ClCntNodeHandleT       svrStreamNode      = CL_HANDLE_INVALID_VALUE;
+	ClBoolT                addedEntry         = CL_FALSE;
+	ClLogSvrStreamDataT    *pSvrStreamData    = NULL;
+	ClLogSvrCommonEoDataT  *pSvrCommonEoEntry = NULL;
+	SaNameT streamScopeNode = {0};
+	CL_LOG_DEBUG_TRACE(("Enter"));
+	if(!pStreamName ) return CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
+    if(!pStreamScopeNode)
+    {
+         pStreamScopeNode = &streamScopeNode;
+         clCpmLocalNodeNameGet(pStreamScopeNode);
+	}
+	rc = clLogSvrEoEntryGet(&pSvrEoEntry, &pSvrCommonEoEntry);
+	if( CL_OK != rc )
+	{
+	    CL_LOG_DEBUG_ERROR(("clLogSvrEoEntryGet(): rc[0x %x]", rc));
+	    return rc;
+	}
+    rc = clOsalMutexLock_L(&pSvrEoEntry->svrStreamTableLock);
+    if( CL_OK != rc )
+    {
+        CL_LOG_DEBUG_ERROR(("clOsalMutexLock_L(): rc[0x %x]", rc));
+        return rc;
+    }
+    rc = clLogSvrStreamEntryGet(pSvrEoEntry, pStreamName, pStreamScopeNode,
+                                CL_FALSE, &svrStreamNode, &addedEntry );
+    if( CL_OK != rc )
+    {
+        CL_LOG_DEBUG_ERROR(("clLogSvrStreamEntryGet(): rc[0x %x]", rc));
+        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock), CL_OK);
+        return rc;
+    }
+    if( CL_HANDLE_INVALID_VALUE == svrStreamNode )
+    {
+        CL_LOG_DEBUG_ERROR(("clLogSvrFilterSet() failed: Unknown streamKey"));
+        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock), CL_OK);
+        return rc;
+    }
+	rc = clCntNodeUserDataGet(pSvrEoEntry->hSvrStreamTable, svrStreamNode,
+                              (ClCntDataHandleT *) &pSvrStreamData);
+    if( CL_OK != rc )
+    {
+    	CL_LOG_DEBUG_ERROR(("clCntNodeUserDataGet(): rc[0x %x]", rc));
+    	        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock), CL_OK);
+    	        return rc;
+    }
+    rc = clLogFlusherExternalRecordsFlush(pSvrStreamData,pRecord);
+    rc = clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock);
+    if( CL_OK != rc )
+    {
+        CL_LOG_DEBUG_ERROR(("clOsalMutexUnlock_L(&): rc[0x %x]", rc));
+    }
+    return rc;
+
+
+}
+
+

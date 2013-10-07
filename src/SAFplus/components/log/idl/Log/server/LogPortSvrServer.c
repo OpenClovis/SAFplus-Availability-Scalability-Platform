@@ -34,6 +34,8 @@ ClRcT clLogSvrStreamOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl,
     ClUint8T  streamOpenFlags;
     ClUint32T  compId;
     ClUint32T  portId;
+    ClUint32T  isExternal;
+    ClUint32T  recordSize;
     ClStringT  pShmName;
     ClUint32T  pShmSize;
 
@@ -44,6 +46,8 @@ ClRcT clLogSvrStreamOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl,
     memset(&(streamOpenFlags), 0, sizeof(ClUint8T));
     memset(&(compId), 0, sizeof(ClUint32T));
     memset(&(portId), 0, sizeof(ClUint32T));
+    memset(&(isExternal), 0, sizeof(ClUint32T));
+    memset(&(recordSize), 0, sizeof(ClUint32T));
     memset(&(pShmName), 0, sizeof(ClStringT));
     memset(&(pShmSize), 0, sizeof(ClUint32T));
 
@@ -90,6 +94,12 @@ ClRcT clLogSvrStreamOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl,
         goto LL6;
     }
 
+    rc = clXdrUnmarshallClUint32T( inMsgHdl,&(isExternal));
+    if (CL_OK != rc)
+    {
+        goto LL7;
+    }
+
     pIdlCtxInfo = (ClIdlContextInfoT *)clHeapAllocate(sizeof(ClIdlContextInfoT));
     if(pIdlCtxInfo == NULL)
     {
@@ -104,7 +114,7 @@ ClRcT clLogSvrStreamOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl,
         clHeapFree(pIdlCtxInfo);
         goto L0;
     }
-    rc = clLogSvrStreamOpen_4_0_0(&(streamName), streamScope, &(streamScopeNode), &(pStreamAttr), streamOpenFlags, compId, portId, &(pShmName), &(pShmSize));
+    rc = clLogSvrStreamOpen_4_0_0(&(streamName), streamScope, &(streamScopeNode), &(pStreamAttr), streamOpenFlags, compId, portId, isExternal, &(recordSize), &(pShmName), &(pShmSize));
     if(pIdlCtxInfo->inProgress == CL_FALSE)
     {
       clHeapFree(pIdlCtxInfo);
@@ -157,26 +167,39 @@ ClRcT clLogSvrStreamOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl,
         goto L7;
     }
 
+    rc = clXdrMarshallClUint32T(&(isExternal), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L8;
+    }
+
     if(pIdlCtxInfo != NULL)
     {
       clHeapFree(pIdlCtxInfo);
       return rc;
     }
     
-    rc = clXdrMarshallClStringT(&(pShmName), outMsgHdl, 1);
-    if (CL_OK != rc)
-    {
-        goto L8;
-    }
-
-    rc = clXdrMarshallClUint32T(&(pShmSize), outMsgHdl, 1);
+    rc = clXdrMarshallClUint32T(&(recordSize), outMsgHdl, 1);
     if (CL_OK != rc)
     {
         goto L9;
     }
 
-L9:    return rc;
+    rc = clXdrMarshallClStringT(&(pShmName), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L10;
+    }
 
+    rc = clXdrMarshallClUint32T(&(pShmSize), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L11;
+    }
+
+L11:    return rc;
+
+LL7:  clXdrMarshallClUint32T(&(isExternal), 0, 1);
 LL6:  clXdrMarshallClUint32T(&(portId), 0, 1);
 LL5:  clXdrMarshallClUint32T(&(compId), 0, 1);
 LL4:  clXdrMarshallClUint8T(&(streamOpenFlags), 0, 1);
@@ -194,14 +217,16 @@ L3:  clXdrMarshallClLogStreamAttrIDLT_4_0_0(&(pStreamAttr), 0, 1);
 L4:  clXdrMarshallClUint8T(&(streamOpenFlags), 0, 1);
 L5:  clXdrMarshallClUint32T(&(compId), 0, 1);
 L6:  clXdrMarshallClUint32T(&(portId), 0, 1);
+L7:  clXdrMarshallClUint32T(&(isExternal), 0, 1);
 
-L7:  clXdrMarshallClStringT(&(pShmName), 0, 1);
-L8:  clXdrMarshallClUint32T(&(pShmSize), 0, 1);
+L8:  clXdrMarshallClUint32T(&(recordSize), 0, 1);
+L9:  clXdrMarshallClStringT(&(pShmName), 0, 1);
+L10:  clXdrMarshallClUint32T(&(pShmSize), 0, 1);
 
     return rc;
 }
 
-ClRcT clLogSvrStreamOpenResponseSend_4_0_0(ClIdlHandleT idlHdl,ClRcT retCode,CL_OUT  ClStringT  pShmName,CL_OUT  ClUint32T  pShmSize)
+ClRcT clLogSvrStreamOpenResponseSend_4_0_0(ClIdlHandleT idlHdl,ClRcT retCode,CL_OUT  ClUint32T  recordSize,CL_OUT  ClStringT  pShmName,CL_OUT  ClUint32T  pShmSize)
 {
     ClIdlSyncInfoT    *pIdlSyncDeferInfo = NULL;
     ClRcT              rc                = CL_OK;
@@ -214,23 +239,30 @@ ClRcT clLogSvrStreamOpenResponseSend_4_0_0(ClIdlHandleT idlHdl,ClRcT retCode,CL_
     }
     outMsgHdl = pIdlSyncDeferInfo->idlRmdDeferMsg;
     
-    rc = clXdrMarshallClStringT(&(pShmName), outMsgHdl, 1);
-    if (CL_OK != rc)
-    {
-        goto L8;
-    }
-
-    rc = clXdrMarshallClUint32T(&(pShmSize), outMsgHdl, 1);
+    rc = clXdrMarshallClUint32T(&(recordSize), outMsgHdl, 1);
     if (CL_OK != rc)
     {
         goto L9;
     }
 
+    rc = clXdrMarshallClStringT(&(pShmName), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L10;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pShmSize), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L11;
+    }
+
     rc = clIdlSyncResponseSend(pIdlSyncDeferInfo->idlRmdDeferHdl,outMsgHdl,
                                 retCode);
     goto Label1; 
-L8:  clXdrMarshallClStringT(&(pShmName), 0, 1);
-L9:  clXdrMarshallClUint32T(&(pShmSize), 0, 1);
+L9:  clXdrMarshallClUint32T(&(recordSize), 0, 1);
+L10:  clXdrMarshallClStringT(&(pShmName), 0, 1);
+L11:  clXdrMarshallClUint32T(&(pShmSize), 0, 1);
 
     clHandleCheckin(LogidlDatabaseHdl, idlHdl);
     clHandleDestroy(LogidlDatabaseHdl, idlHdl);

@@ -199,6 +199,9 @@ typedef struct
     SaNameT    streamName;
     SaNameT    streamScopeNode;
     ClUint32T  hash;
+#ifdef NO_SAF
+    ClUint64T sequenceNum;
+#endif
 } ClLogStreamKeyT;
 
 typedef struct
