@@ -21,6 +21,8 @@
 
 #include <clIocApi.h>
 
+#define CL_TIPC_SUBSCR_TIMEOUT 3000
+
 ClRcT clTipcEventHandlerInitialize(void);
 ClRcT clTipcEventHandlerFinalize(void);
 
