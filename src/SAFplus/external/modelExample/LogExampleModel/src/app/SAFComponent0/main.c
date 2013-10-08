@@ -88,7 +88,6 @@ ClBoolT unblockNow = CL_FALSE;
  * Application Life Cycle Management Functions
  *****************************************************************************/
 
-void MsgReceiver(void);
 int main(int argc, char *argv[])
 {
     SaAisErrorT rc = SA_AIS_OK;
@@ -182,7 +181,6 @@ void safAssignWork(SaInvocationT       invocation,
         {
             /* Typically you would spawn a thread here to initiate active 
                processing of the work. */
-        	MsgReceiver();
         	alarmClockLogInitialize();
             /* The AMF times the interval between the assignment and acceptance
                of the work (the time interval is configurable).
