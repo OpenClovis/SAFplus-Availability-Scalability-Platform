@@ -320,7 +320,7 @@ __bufferPoolNativeCacheAdd(ClUint8T *chunk, ClUint32T chunkSize, ClBoolT limit)
     if(limit && 
        (gBufferPoolNativeCacheEntries >= gBufferPoolNativeCacheLimit))
         return CL_BUFFER_RC(CL_ERR_NO_SPACE);
-    pCache = calloc(1, sizeof(*pCache));
+    pCache = (ClBufferPoolNativeCacheT *) calloc(1, sizeof(*pCache));
     CL_ASSERT(pCache != NULL);
     pCache->chunk = chunk;
     pCache->chunkSize = chunkSize;
@@ -345,7 +345,7 @@ static void nativeChunkFree(ClUint8T *chunk)
 
 static ClUint8T *nativeChunkAlloc(ClUint32T size)
 {
-    return calloc(1, size);
+    return (ClUint8T *) calloc(1, size);
 }
 
 static void nativeChunkFree(ClUint8T *chunk)
@@ -359,7 +359,7 @@ static ClRcT
 clBufferPoolNativeCacheInitialize(const ClBufferPoolConfigT *pBufferPoolConfig)
 {
     ClRcT rc = CL_OK;
-    ClInt32T i;
+    ClUint32T i;
     clOsalMutexInit(&gBufferPoolNativeCacheMutex);
     /*
      * Don't use the cache when running with valgrind
@@ -1367,10 +1367,7 @@ clBMBufferChainChecksum32Compute(ClBufferHeaderT* pStartBufferHeader,
 }
 
 /*****************************************************************************/
-static ClRcT
-clBMBufferNBytesWrite(ClBufferCtrlHeaderT *pCtrlHeader,
-                      ClBufferHeaderT* pBufferHeader, ClUint8T* pInputBuffer, 
-                      ClUint32T numberOfBytes)
+static ClRcT clBMBufferNBytesWrite(ClBufferCtrlHeaderT *pCtrlHeader, ClBufferHeaderT* pBufferHeader, ClUint8T* pInputBuffer, ClUint32T numberOfBytes)
 {
     ClRcT errorCode;
     ClUint8T* pTemp = pInputBuffer;
@@ -1391,7 +1388,7 @@ clBMBufferNBytesWrite(ClBufferCtrlHeaderT *pCtrlHeader,
 
         if(pBufferHeader->pool == CL_BUFFER_HEAP_MARKER)
         {
-            pCopyLocation = pBufferHeader->pCookie;
+            pCopyLocation = (ClUint8T*) pBufferHeader->pCookie;
         }
         else
         {
@@ -1446,14 +1443,11 @@ clBMBufferNBytesWrite(ClBufferCtrlHeaderT *pCtrlHeader,
 }
 
 /*****************************************************************************/
-static ClRcT
-clBMBufferNBytesRead(ClBufferCtrlHeaderT *pCtrlHeader,
-                     ClBufferHeaderT* pBufferHeader, ClUint8T* pOutputBuffer, 
-                     ClUint32T* pNumberOfBytes)
+static ClRcT clBMBufferNBytesRead(ClBufferCtrlHeaderT *pCtrlHeader, ClBufferHeaderT* pBufferHeader, ClUint8T* pOutputBuffer,ClUint32T* pNumberOfBytes)
 {
-    ClUint32T bytesRemaining = *pNumberOfBytes;
-    ClUint32T readOffset = pBufferHeader->readOffset;
-    ClUint32T currentReadOffset = 0;
+    ClInt32T bytesRemaining = *pNumberOfBytes;
+    ClInt32T readOffset = pBufferHeader->readOffset;
+    ClInt32T currentReadOffset = 0;
     do {
         ClUint8T* pTemp;
         ClInt32T bytesRead;
@@ -2175,7 +2169,7 @@ clBMBufferChainCopy(ClBufferHeaderT* pStartBufferHeader,
         }
         bytesToWrite = (ClInt32T)(pCurrentBufferHeader->dataLength - pCurrentBufferHeader->startOffset - offset);
         CL_ASSERT(bytesToWrite >= 0);
-        bytesToWrite = CL_MIN(bytesToWrite,numberOfBytes);
+        bytesToWrite = CL_MIN(bytesToWrite,(ClInt32T) numberOfBytes);
         numberOfBytes -= bytesToWrite;
         offset = 0;
         errorCode = clBMBufferNBytesWrite(pDestination,
@@ -2322,7 +2316,7 @@ static ClRcT clBMBufferVectorize(ClBufferHeaderT *pBufferHeader,
 
     for(pTemp = pBufferHeader; pTemp && ++numVectors; pTemp = pTemp->pNextBufferHeader);
 
-    pIOVector = clHeapCalloc(numVectors, sizeof(*pIOVector));
+    pIOVector = (struct iovec*) clHeapCalloc(numVectors, sizeof(*pIOVector));
     CL_ASSERT(pIOVector != NULL);
     numVectors = 0;
     for(pTemp = pBufferHeader; pTemp; pTemp = pTemp->pNextBufferHeader)
@@ -2759,7 +2753,7 @@ ClRcT clDbgBufferPrint(ClBufferHandleT bufferHdl)
     ClUint8T* buf;
     unsigned int len;
     clBufferLengthGet(bufferHdl,&len);
-    buf = clHeapAllocate(len+1);
+    buf = (ClUint8T*) clHeapAllocate(len+1);
     assert(buf);
     
     clBufferNBytesRead(bufferHdl,buf,&len);

@@ -447,7 +447,7 @@ ClInitFinalizeDef gClClientLibCleanupTable[] = {
 /*
  * Gets the EO name.
  */
-ClCharT* clEoNameGet(void)
+const ClCharT* clEoNameGet(void)
 {    
     return ASP_COMPNAME;    
 }

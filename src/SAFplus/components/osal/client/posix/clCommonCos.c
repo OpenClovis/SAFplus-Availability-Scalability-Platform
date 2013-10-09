@@ -585,7 +585,7 @@ cosPosixTaskJoin (ClOsalTaskIdT taskId)
 {
     ClUint32T retCode = 0;
     ClRcT rc = CL_OK;
-
+    (void) rc;  /* avoid a set but not used error */
     CL_FUNC_ENTER(); 
     /* You can't join to yourself! */
     if ((0 == taskId) || (taskId == (ClOsalTaskIdT) pthread_self ()))
@@ -626,6 +626,7 @@ cosPosixTaskDetach (ClOsalTaskIdT taskId)
 {
     ClUint32T retCode = 0;
     ClRcT rc = CL_OK;
+    (void) rc;  /* avoid a set but not used error */
 
     CL_FUNC_ENTER(); 
     /* You can't join to yourself! */
@@ -749,8 +750,8 @@ cosPosixTaskPrioritySet (ClOsalTaskIdT taskId,ClUint32T taskPriority)
     if ((taskPriority < COS_MIN_PRIORITY) || 
         (taskPriority > COS_MAX_PRIORITY))
 	{
-          clDbgCodeError(clErr, ("Task priority [%d] is out of range [%d] to [%d]", taskPriority, COS_MIN_PRIORITY,COS_MAX_PRIORITY));
           retCode = CL_OSAL_RC(CL_ERR_INVALID_PARAMETER);
+          clDbgCodeError(retCode, ("Task priority [%d] is out of range [%d] to [%d]", taskPriority, COS_MIN_PRIORITY,COS_MAX_PRIORITY));
           CL_FUNC_EXIT();
           return(retCode);
 	}
@@ -985,7 +986,7 @@ cosPosixMutexErrorCheckInit(ClOsalMutexT *pMutex)
     pthread_mutexattr_t attr;
     nullChkRet(pMutex);
     CL_FUNC_ENTER();
-    pMutex->flags = CL_OSAL_SHARED_NORMAL | CL_OSAL_SHARED_ERROR_CHECK;
+    pMutex->flags = (ClOsalSharedMutexFlagsT) (CL_OSAL_SHARED_NORMAL | CL_OSAL_SHARED_ERROR_CHECK);
     sysRetErrChkRet(pthread_mutexattr_init(&attr));
 #ifndef POSIX_BUILD
     sysRetErrChkRet(pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK));
@@ -1022,7 +1023,7 @@ ClRcT cosPosixProcessSharedFutexInit(ClOsalMutexT *pMutex)
         clDbgCodeError(retCode, ("pthread_mutexattr initialization error: %d", retCode));
         return CL_OSAL_RC(CL_ERR_LIBRARY);
     }
-    pMutex->flags |= CL_OSAL_SHARED_PROCESS;
+    pMutex->flags = (ClOsalSharedMutexFlagsT) ( pMutex->flags |  CL_OSAL_SHARED_PROCESS);
     retCode = (ClUint32T) pthread_mutex_init (&pMutex->shared_lock.mutex, &mattr);
 
     switch (retCode)

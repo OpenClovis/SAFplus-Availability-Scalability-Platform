@@ -123,11 +123,7 @@ static ClOsalMutexT gClTimerDebugLock;
 static ClHandleT gTimerDebugReg;
 
 static ClInt32T clTimerCompare(ClRbTreeT *node, ClRbTreeT *entry);
-static ClTimerBaseT gTimerBase = { 
-    .timerTree = CL_RBTREE_INITIALIZER(gTimerBase.timerTree, clTimerCompare),
-    .clusterList = CL_LIST_HEAD_INITIALIZER(gTimerBase.clusterList),
-    .clusterSyncList = CL_LIST_HEAD_INITIALIZER(gTimerBase.clusterSyncList),
-};
+static ClTimerBaseT gTimerBase = { 0};
 
 static ClInt32T clTimerCompare(ClRbTreeT *refTimer, ClRbTreeT *timer)
 {
@@ -511,7 +507,7 @@ static ClRcT timerCreate(ClTimerTimeOutT timeOut,
     }
 
     rc = CL_TIMER_RC(CL_ERR_NO_MEMORY);
-    pTimer = clHeapCalloc(1,sizeof(*pTimer));
+    pTimer = (ClTimerT *) clHeapCalloc(1,sizeof(*pTimer));
     if(pTimer == NULL)
     {
         clLogError("TIMER", "CREATE", "Allocation failed");
@@ -1054,7 +1050,7 @@ ClRcT clTimerCheckAndDelete(ClTimerHandleT *pTimerHandle)
 
 static ClRcT clTimerCallbackTask(ClPtrT invocation)
 {
-    ClTimerT *pTimer = invocation;
+    ClTimerT *pTimer = (ClTimerT *) invocation;
     ClTimerTypeT type = pTimer->timerType;
     ClBoolT canFree = CL_FALSE;
     ClInt16T callbackTaskIndex = -1;
@@ -1349,7 +1345,9 @@ static ClRcT clTimerRun(void)
 
 void *clTimerTask(void *pArg)
 {
-    ClTimerTimeOutT timeOut = {.tsSec = 0, .tsMilliSec = gTimerBase.frequency };
+    ClTimerTimeOutT timeOut;
+    timeOut.tsSec = 0;
+    timeOut.tsMilliSec = gTimerBase.frequency;
 
     clOsalMutexLock(&gTimerBase.clusterListLock);
     clOsalMutexLock(&gTimerBase.timerListLock);
@@ -1381,11 +1379,13 @@ void *clTimerTask(void *pArg)
 static ClRcT clTimerBaseInitialize(ClTimerBaseT *pBase)
 {
     ClRcT rc = CL_OK;
+    
+    clRbTreeInit(&pBase->timerTree, clTimerCompare);
     pBase->timerCallbackQueue.flags = 0;
     pBase->frequency = CL_TIMER_FREQUENCY;
     clOsalMutexInit(&pBase->timerListLock);
     clOsalMutexInit(&pBase->clusterListLock);
-    gTimerBase.clusterTimers = 0;
+    pBase->clusterTimers = 0;
     CL_LIST_HEAD_INIT(&pBase->clusterList);
     CL_LIST_HEAD_INIT(&pBase->clusterSyncList);
     return rc;
@@ -1462,7 +1462,7 @@ ClRcT clTimerInitialize(ClPtrT config)
     {
         goto out;
     }
-
+    
     if(clParseEnvBoolean("CL_TIMER_DEBUG") == CL_TRUE)
     {
         gClTimerDebug = CL_TRUE;
@@ -1608,7 +1608,7 @@ static ClRcT timerClusterUnpack(ClBufferHandleT msg, ClTimerHandleT *pTimerHandl
     pTimer = (ClTimerT*)*pTimerHandle;
     if(!pTimer)
     {
-        pTimer = clHeapCalloc(1, sizeof(*pTimer));
+        pTimer = (ClTimerT*)clHeapCalloc(1, sizeof(*pTimer));
         CL_ASSERT(pTimer != NULL);
     }
     else
@@ -1676,9 +1676,9 @@ static ClRcT timerClusterUnpackAll(ClBufferHandleT msg)
         goto out;
     if(!clusterTimers)
         goto out;
-    pClusterTimers = clHeapCalloc(clusterTimers, sizeof(*pClusterTimers));
+    pClusterTimers = (ClTimerT*)clHeapCalloc(clusterTimers, sizeof(*pClusterTimers));
     CL_ASSERT(pClusterTimers != NULL);
-    for(i = 0; i < clusterTimers; ++i)
+    for(i = 0; i < (ClInt32T) clusterTimers; ++i)
     {
         ClTimerHandleT timer = (ClTimerHandleT)&pClusterTimers[i];
         rc = timerClusterUnpack(msg, &timer);
@@ -1687,7 +1687,7 @@ static ClRcT timerClusterUnpackAll(ClBufferHandleT msg)
     }
     clOsalMutexLock(&gTimerBase.clusterListLock);
     clListMoveInit(&gTimerBase.clusterSyncList, &lastSyncList);
-    for(i = 0; i < clusterTimers; ++i)
+    for(i = 0; i < (ClInt32T) clusterTimers; ++i)
     {
         clListAddTail(&pClusterTimers[i].timerClusterList, &gTimerBase.clusterSyncList);
     }
@@ -1898,7 +1898,7 @@ ClRcT clTimerStatsGet(ClTimerStatsT **ppStats, ClUint32T *pNumTimers)
     if(!ppStats || !pNumTimers)
         return CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
     
-    pStats = clHeapCalloc(16, sizeof(*pStats));
+    pStats = (ClTimerStatsT *) clHeapCalloc(16, sizeof(*pStats));
     CL_ASSERT(pStats != NULL);
 
     clOsalMutexLock(&gTimerBase.clusterListLock);
@@ -1917,7 +1917,7 @@ ClRcT clTimerStatsGet(ClTimerStatsT **ppStats, ClUint32T *pNumTimers)
         ++numTimers;
         if(!(numTimers & 15))
         {
-            pStats = clHeapRealloc(pStats, sizeof(*pStats) * (numTimers+16));
+            pStats = (ClTimerStatsT *) clHeapRealloc(pStats, sizeof(*pStats) * (numTimers+16));
             CL_ASSERT(pStats != NULL);
         }
     }

@@ -42,7 +42,7 @@ ClRcT clEoLibLog(ClUint32T compId,ClUint32T severity,const ClCharT *msg,...) CL_
 ClRcT clEoWaterMarkHit(ClCompIdT compId, ClWaterMarkIdT wmId, ClWaterMarkT *pWaterMark, ClEoWaterMarkFlagT wmType, ClEoActionArgListT argList) CL_WEAK;
 
 ClRcT clEoProgNameGet(ClCharT *pName,ClUint32T maxSize) CL_WEAK;
-ClCharT* clEoNameGet(void) CL_WEAK;
+const ClCharT* clEoNameGet(void) CL_WEAK;
 
 
 /* These files are only used to compile clEo.c in the main component.
@@ -93,7 +93,7 @@ ClRcT clEoProgNameGet(ClCharT *pName,ClUint32T maxSize)
     return rc;
 }
 
-ClCharT* clEoNameGet(void)
+const ClCharT* clEoNameGet(void)
 {
     return "NOT_AN_EO";
 }

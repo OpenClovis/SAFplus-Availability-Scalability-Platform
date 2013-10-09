@@ -321,9 +321,9 @@ cosPosixSemCreate (ClUint8T* pName, ClUint32T count, ClOsalSemIdT* pSemId)
 
     sem_getvalue(pSem, &semValue);
 
-    if (semValue < count)
+    if (semValue < (ClInt32T)count)
     {
-        for (i = semValue; i < count; ++i)
+        for (i = semValue; i < (ClInt32T)count; ++i)
         {
             sem_post(pSem);
         }

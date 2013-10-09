@@ -36,6 +36,8 @@ include ../Makefile.inc
 include $(CLOVIS_ROOT)/SAFplus/mk/prefix.mk
 include $(CLOVIS_ROOT)/SAFplus/mk/make-path.mk
 
+override CC = gcc
+
 override CFLAGS += -I../include \
                 -I$(BUILDTOOLS_PATH)/include \
                 -I$(BUILDTOOLS_PATH)/$(TARGET)/include

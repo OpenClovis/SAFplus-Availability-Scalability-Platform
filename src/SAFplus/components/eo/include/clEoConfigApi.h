@@ -338,7 +338,7 @@ ClRcT clEoProgNameGet(ClCharT *pName,ClUint32T maxSize);
 /**
  * Gives the name of the EO. 
  */
-ClCharT* clEoNameGet(void);
+const ClCharT* clEoNameGet(void);
 
 /***********************************************************************/
 /*                      external symbols we expect here                */

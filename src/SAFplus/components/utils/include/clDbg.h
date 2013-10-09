@@ -146,10 +146,10 @@ void clDbgMsg(int pid, const char* file, int line, const char* fn, int level, co
  */
 #define CL_DEBUG_CODE_ERROR clDbgCodeError
 
-#define clDbgCodeError(clErr, printfParams) do { CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
+#define clDbgCodeError(clErr, printfParams) do { (void)clErr; CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
   /* A clDbgCodeError is also a root cause error, so you don't have to call both functions */
-#define clDbgRootCauseError(clErr, printfParams) do { CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
+#define clDbgRootCauseError(clErr, printfParams) do { (void)clErr; CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
 #define clDbgNotImplemented(printfParams) do { CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
 

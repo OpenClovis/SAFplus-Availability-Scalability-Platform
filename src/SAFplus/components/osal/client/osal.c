@@ -94,7 +94,7 @@ clOsalTaskCreateDetached (const ClCharT* taskName, ClOsalSchedulePolicyT schedul
   ClRcT ret = gOsalFunction.fpFunctionTaskCreateDetached(taskName,schedulePolicy, priority, stackSize, fpTaskFunction, pTaskFuncArgument);
   if (clDbgReverseTiming)   /* Allows the child thread to run BEFORE this parent, which will discover race conditions */
     {
-      ClTimerTimeOutT timer = { 0, clDbgReverseTiming };
+      ClTimerTimeOutT timer = { 0, (ClUint32T) clDbgReverseTiming };
       clOsalTaskDelay(timer);
     }
   return ret;
@@ -109,7 +109,7 @@ clOsalTaskCreateAttached(const ClCharT* taskName, ClOsalSchedulePolicyT schedule
   ClRcT ret = gOsalFunction.fpFunctionTaskCreateAttached(taskName,schedulePolicy, priority, stackSize, fpTaskFunction, pTaskFuncArgument, pTaskId);
   if (clDbgReverseTiming)  /* Allows the child thread to run BEFORE this parent, which will discover race conditions */
     {
-      ClTimerTimeOutT timer = { 0, clDbgReverseTiming };
+      ClTimerTimeOutT timer = { 0, (ClUint32T) clDbgReverseTiming };
       clOsalTaskDelay(timer);
     }
   return ret;

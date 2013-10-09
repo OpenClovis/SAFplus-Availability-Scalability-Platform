@@ -199,19 +199,25 @@ static ClParserTagT clIocNodeInstanceParserTags[] = {
     },
 };
 
+#define CPDI(ptag,numTags,pTags,pDataInit,numInstances,pTagChildren,numChild) { ptag,numTags,pTags,pDataInit,0,0,numInstances,CL_FALSE,numChild,pTagChildren }
+
 static ClParserDataT clIocLocationParserData[] = {
     {
-        .pTag = "location",
-        .numTags = CL_PARSER_NUM(clIocLocationParserTags),
-        .pTags = clIocLocationParserTags,
-        .pDataInit = clIocLocationDataInit,
-        .numInstances = 0,
-        .pTagChildren = NULL,
-        .numChild = 0,
+        "location",
+        CL_PARSER_NUM(clIocLocationParserTags),
+        clIocLocationParserTags,
+        /*.pDataInit = */ clIocLocationDataInit,
+        0,0,
+        /* .numInstances = */ 0,
+        CL_FALSE,
+        0,
+        NULL
     },
 };
 
 static ClParserDataT clIocLinkParserData[]  = {
+    CPDI("link",CL_PARSER_NUM(clIocLinkParserTags),clIocLinkParserTags,clIocLinkDataInit,0,clIocLocationParserData,CL_PARSER_NUM(clIocLocationParserData))
+#if 0    
     {
         .pTag = "link",
         .numTags = CL_PARSER_NUM(clIocLinkParserTags),
@@ -221,6 +227,7 @@ static ClParserDataT clIocLinkParserData[]  = {
         .pTagChildren = clIocLocationParserData,
         .numChild = CL_PARSER_NUM(clIocLocationParserData),
     },
+#endif    
 };
 
 static ClParserDataT clIocWaterMarkActionChildrenParserData[] = {

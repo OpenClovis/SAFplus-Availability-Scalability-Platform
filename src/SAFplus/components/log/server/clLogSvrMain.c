@@ -28,6 +28,10 @@
 #include <clLogSvrDebug.h>
 #include <saAmf.h>
 
+/* A marking whether we are the log server used in one place in clLogUtils.
+   TODO: investigate why necessary
+ */
+extern ClBoolT gClLogServer;
 
 extern ClRcT clLogSvrDefaultStreamCreate(void);
 
@@ -123,6 +127,8 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
     ClIocAddressT    invalidAddr   = {{0}};
 	
     clLogCompName = "LOG"; /* Override generated eo name with a short name for our server */
+    gClLogServer = CL_FALSE;  /* Mark me as the log server */
+
     clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Log Server initialization started...");
 
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);

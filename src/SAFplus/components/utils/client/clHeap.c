@@ -301,7 +301,7 @@ clHeapCheckerInitialize(void)
         if(freeListSize < FREELIST_SIZE)
         {
             ClUint32T shift = 0;
-            for(shift = 0; (1<<shift) < freeListSize; ++shift);
+            for(shift = 0; (((ClUint32T)1)<<shift) < freeListSize; ++shift);
             freeListSize = 1 << shift;
             CL_ASSERT(freeListSize <= FREELIST_SIZE);
             gClFreeListIndexMask = freeListSize-1;
@@ -1670,7 +1670,7 @@ void *clHeapFenceAllocate(ClUint32T bytes)
     bytes = abytes;
     bytes += pagemask;
     bytes &= ~pagemask;
-    map = mmap(0, bytes + pagemask + 1, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    map = (char *) mmap(0, bytes + pagemask + 1, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if(map == MAP_FAILED)
         return NULL;
     /*
@@ -1684,7 +1684,7 @@ void clHeapFenceFree(void *addr, ClUint32T bytes)
 {
     static int pagemask;
     int abytes = bytes;
-    char *map = addr;
+    char *map = (char*) addr;
     if(!pagemask)
         pagemask = getpagesize()-1;
     abytes += sizeof(unsigned long)-1;

@@ -33,7 +33,7 @@ ClUint16T             writeIdx    = 0;
 ClUint16T             readIdx     = 0;
 ClUint16T             overWriteFlag = 0;
 ClOsalTaskIdT         taskId        = 0;
-static ClBoolT gClLogServer = CL_FALSE;
+ClBoolT               gClLogServer = CL_FALSE;
 const ClCharT  *CL_LOG_UTIL_TASK_NAME= "LogUtilLibThread";
 #define CL_LOG_UTIL_FLUSH_RECORDS  64
 #define CL_LOG_FLUSH_FREQ          CL_LOG_UTIL_FLUSH_RECORDS
@@ -57,11 +57,12 @@ clLogNumFlushableRecordsGet(ClLogDeferredHeaderT  *pMsg,
                             ClUint16T             *pReadIdx,
                             ClUint16T             *pOverwriteFlag);
 
-ClRcT 
-clLogUtilLibInitialize(void)
+
+
+ClRcT clLogUtilLibInitialize(void)
 {
     ClRcT  rc = CL_OK;
-    ClCharT *pEOName = NULL;
+    const ClCharT *pEOName = NULL;
     if( gUtilLibInitialized == CL_TRUE )
     {
         return CL_OK;
@@ -80,10 +81,6 @@ clLogUtilLibInitialize(void)
         return rc;
     }
     pEOName = CL_EO_NAME;
-    if(pEOName && !strncasecmp(pEOName, "LOG", 3))
-    {
-        gClLogServer = CL_TRUE;
-    }
 
     clLogDebugFilterInitialize();
 
