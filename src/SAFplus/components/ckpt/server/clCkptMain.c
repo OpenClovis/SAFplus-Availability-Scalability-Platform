@@ -159,6 +159,9 @@ SaAisErrorT initializeAmf(void)
    
     ClIocPortT          iocPort=0;
     SaAisErrorT         rc = SA_AIS_OK;
+
+    clLogCompName = "CKP"; /* Override generated eo name with a short name for our server */
+
     /*This function overrides the default EO Configuaration */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
     /*

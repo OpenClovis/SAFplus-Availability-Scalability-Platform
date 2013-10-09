@@ -285,7 +285,7 @@ ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
 {
     ClIocPortT	      iocPort   = 0;
     ClRcT             rc        = CL_OK;
-    ClSvcHandleT      svcHandle = {0};
+    //ClSvcHandleT      svcHandle = {0};
     ClEoExecutionObjT *eoObj    = NULL ;
     //ClOsalTaskIdT     taskId    = 0;
       
@@ -308,8 +308,8 @@ ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
     clNameCompCfg();
 
     cpmHandle = amfHandle;
-    svcHandle.cpmHandle = &cpmHandle;
 #if 0
+    svcHandle.cpmHandle = &cpmHandle;
     svcHandle.evtHandle = &evtHandle;
     svcHandle.cpsHandle = &cpsHandle;
     svcHandle.gmsHandle = &gmsHandle;
@@ -3441,7 +3441,7 @@ ClRcT _nameSvcAttributeQuery(ClUint32T contextMapCookie,
 
 {
     ClRcT                    ret         = CL_OK;
-    ClIocNodeAddressT        sdAddr      = 0;
+    //ClIocNodeAddressT        sdAddr      = 0;
     ClCntNodeHandleT         pNodeHandle = 0;
     ClNameSvcContextInfoPtrT pStatInfo   = NULL;
     ClCntHandleT             pStdInfo    = 0;
@@ -3452,7 +3452,7 @@ ClRcT _nameSvcAttributeQuery(ClUint32T contextMapCookie,
     CL_FUNC_ENTER();
     clLogTrace(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: Inside nameSvcAttributeQuery\n");
 
-    sdAddr = clIocLocalAddressGet();
+    //sdAddr = clIocLocalAddressGet();
 
     if(contextMapCookie == CL_NS_DEFT_GLOBAL_MAP_COOKIE)
         contextMapCookie = CL_NS_DEFAULT_GLOBAL_MAP_COOKIE;
@@ -3687,7 +3687,7 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
     ClNameSvcContextInfoPtrT pStatInfo       = NULL;
     ClUint32T                contextId       = 0, size=0;
     ClBufferHandleT          inMsgHandle     = 0;
-    ClUint32T                noEntries       = 0;
+    //ClUint32T                noEntries       = 0;
     ClNameSvcAllBindingsGetT walkData        = {0};
     ClNameSvcNameLookupT     lookupData      = {0};
 
@@ -3879,10 +3879,7 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
                     sizeof(ClNameSvcAllBindingsGetT));
         break;
         case CL_NS_QUERY_MAPPING:
-            noEntries = 1;
-        
-            nameSvcBindingIntoMessageCopy(pStoredNSEntry, &pStoredInfo->name,
-                                          outMsgHandle, nsInfo->op);
+            nameSvcBindingIntoMessageCopy(pStoredNSEntry, &pStoredInfo->name, outMsgHandle, nsInfo->op);
         break;
         default:
         break;
@@ -4352,7 +4349,7 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
     ClCntHandleT             pStoredInfo = 0;
     ClNameSvcContextInfoPtrT pContStat   = NULL;
     ClNameSvcContextInfoPtrT pStatInfo   = NULL;
-    ClUint32T                count       = 0, attrCount = 0;
+    ClUint32T                attrCount = 0;
     ClNameSvcCompListPtrT    pContList   = NULL;
     ClNameSvcCompListT       tempComp    = {0};
     ClUint32T                contextMapCookie = 0, refCount = 0;
@@ -4601,8 +4598,7 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
                pEntry->compId.pNext= NULL;
                if(priority == pEntry->compId.priority)
                    updatePriorityHash = 1;
-                                                                                                                             
-               count = pEntry->refCount;
+               //count = pEntry->refCount;
                clHeapFree(pBindData);
                break;
             case 4:
@@ -5054,10 +5050,10 @@ ClRcT _nameSvcContextLevelWalkForFinalize(ClCntKeyHandleT    userKey,
 {
     ClNameSvcInfoIDLT      nsInfo      = {0};
     ClRcT               ret         = CL_OK;
-    ClIocNodeAddressT   sAddr       = 0;
+    //ClIocNodeAddressT   sAddr       = 0;
     ClBufferHandleT     inMsgHandle = 0 ;
 
-    sAddr = clIocLocalAddressGet();
+    //sAddr = clIocLocalAddressGet();
     ret = clBufferCreate (&inMsgHandle);
 
     memset(&nsInfo, 0, sizeof(nsInfo));
@@ -5582,6 +5578,7 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
 
+    clLogCompName = "NAM"; /* Override generated eo name with a short name for our server */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
     rc = nameSvcInitialize(argc,argv);
     if(rc != CL_OK)

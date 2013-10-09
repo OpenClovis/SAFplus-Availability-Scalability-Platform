@@ -4314,7 +4314,7 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
     ClCharT cpmName[CL_MAX_NAME_LENGTH] = {0};
 
     loadAspInstallInfo();
-
+    clLogCompName = "AMF"; /* Override generated eo name with a short name for our server */
     clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
                 "%s %s", CPM_ASP_WELCOME_MSG, gAspVersion);
     

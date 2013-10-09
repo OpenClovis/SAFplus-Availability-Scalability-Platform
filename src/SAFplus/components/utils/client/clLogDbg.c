@@ -90,6 +90,8 @@ static  volatile ClInt32T gClLogParseFilter;
 static  ClOsalMutexT gClRuleLock;
 static  ClBoolT gClRuleLockValid = CL_FALSE;
 
+ClCharT  *clLogCompName = NULL;
+
 #define  CL_LOG_CLNT_RECUR_DETECT(threadId)\
 do\
 {\
@@ -857,7 +859,7 @@ clLogHeaderGetWithContext(const ClCharT *pArea, const ClCharT *pContext,
     clLogTimeGet(timeStr, (ClUint32T)sizeof(timeStr));
     snprintf(pMsgHeader, maxHeaderSize, CL_LOG_PRNT_FMT_STR_WO_FILE, timeStr,
              nodeName.length, nodeName.value, (int)getpid(),
-             CL_EO_NAME, pArea, pContext);
+             ((clLogCompName!=NULL) ? clLogCompName:ASP_COMPNAME), pArea, pContext);
     return CL_OK;
 }
 
@@ -934,7 +936,7 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
     
     if( clLogSeveritySet == CL_FALSE )
     {
-        match = clLogRulesTest((ClCharT *)nodeName.value, CL_EO_NAME,
+        match = clLogRulesTest((ClCharT *)nodeName.value, ((clLogCompName!=NULL) ? clLogCompName:ASP_COMPNAME),
                                pArea, pContext, pFileName, severity, &filterMatch);
     }
     else
@@ -953,10 +955,10 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
     {
         formatStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRNT_FMT_STR_CONSOLE, 
                                 timeStr, pFileName, lineNum, nodeName.length, nodeName.value, (int)getpid(),
-                                CL_EO_NAME, pArea, pContext, msgIdCnt, pSevName);
+                                ((clLogCompName!=NULL) ? clLogCompName:ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);
         snprintf(msgHeader, sizeof(msgHeader), CL_LOG_PRNT_FMT_STR,
                  timeStr, pFileName, lineNum, nodeName.length, nodeName.value, (int)getpid(),
-                 CL_EO_NAME, pArea, pContext);
+                 ((clLogCompName!=NULL) ? clLogCompName:ASP_COMPNAME), pArea, pContext);
         
     }
     else
@@ -964,11 +966,11 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
         formatStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1,
                                 CL_LOG_PRNT_FMT_STR_WO_FILE_CONSOLE, timeStr,  
                                 nodeName.length, nodeName.value, (int)getpid(),
-                                CL_EO_NAME, pArea, pContext,
+                                ((clLogCompName!=NULL) ? clLogCompName:ASP_COMPNAME), pArea, pContext,
                                 msgIdCnt, pSevName);
         snprintf(msgHeader, sizeof(msgHeader), CL_LOG_PRNT_FMT_STR_WO_FILE, timeStr,
                  nodeName.length, nodeName.value, (int)getpid(),
-                 CL_EO_NAME, pArea, pContext);
+                 ((clLogCompName!=NULL) ? clLogCompName:ASP_COMPNAME), pArea, pContext);
     }
 
     /*

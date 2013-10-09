@@ -122,8 +122,8 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
     ClBoolT          *pCookie      = NULL;
     ClIocAddressT    invalidAddr   = {{0}};
 	
-    clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
-              "Log Server initialization is started...");
+    clLogCompName = "LOG"; /* Override generated eo name with a short name for our server */
+    clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Log Server initialization started...");
 
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
 

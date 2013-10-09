@@ -314,6 +314,7 @@ ClRcT initializeAmf(void)
     SaVersionT          version;
     ClRcT	        rc = CL_OK;
 
+    clLogCompName = "GMS"; /* Override generated eo name with a short name for our server */
     /* this function overrides the default EO configuration */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs); 
 

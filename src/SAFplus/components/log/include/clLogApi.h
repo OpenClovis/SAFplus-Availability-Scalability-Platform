@@ -650,7 +650,9 @@ typedef struct
 #define CL_LOG_TLV_STRING(var)                              \
     CL_LOG_TAG_STRING, (strlen( var ) + 1), (var)
 
-
+/** Override the standard component name in the logs */
+extern ClCharT  *clLogCompName;
+    
 /**
  ************************************
  *  \brief  Initializes the Log service for the calling process and ensures

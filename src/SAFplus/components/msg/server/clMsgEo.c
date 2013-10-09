@@ -174,6 +174,7 @@ static ClRcT initializeAmf(void)
     SaAisErrorT         retCode;
     ClIocPhysicalAddressT notificationForComp = { CL_IOC_BROADCAST_ADDRESS, 0};
     
+    clLogCompName = "MSG"; /* Override generated eo name with a short name for our server */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
   
     clMsgRegisterWithCpm();
