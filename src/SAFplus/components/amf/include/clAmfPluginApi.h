@@ -10,7 +10,7 @@ extern "C"
 #endif
 
 #define CL_AMF_PLUGIN_VERSION 1
-#define CL_AMF_PLUGIN_ID 0x201309091029
+#define CL_AMF_PLUGIN_ID 0x20130909
 #define CL_AMF_PLUGIN_NAME "amfPlugin.so"
 
 typedef enum
