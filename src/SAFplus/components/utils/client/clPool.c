@@ -50,7 +50,7 @@
 #define CL_POOL_BOUNDS_CHECK(cond,rc,...) do {              \
         if( !(cond) )                                       \
         {                                                   \
-            CL_DEBUG_PRINT(CL_LOG_SEV_ERROR,(__VA_ARGS__));   \
+            CL_POOL_LOG(CL_LOG_SEV_ERROR,__VA_ARGS__);   \
             return (rc);                                    \
         }                                                   \
 }while(0)
@@ -61,7 +61,10 @@
 #define POOL_LOCK(mutex) (clOsalMutexLock(mutex))
 #define POOL_UNLOCK(mutex) (clOsalMutexUnlock(mutex))
 
-#define CL_POOL_LOG(sev,str,...) clEoLibLog(CL_CID_POOL,sev,str,__VA_ARGS__)
+/* Note DO NOT USE normal logging in this module because it is used BY logging, resulting in a deadlock */
+#undef clLog
+#define clLog(severity, area, context, ...)  ***ERROR Do not use logging in this module.  Use CL_POOL_LOG***
+#define CL_POOL_LOG(sev,...) clEoLibLog(CL_CID_POOL,sev,__VA_ARGS__)
 
 #define CL_POOL_ALLOC_EXT(size) malloc(size)
 
@@ -518,9 +521,7 @@ clPoolPartitionExtendedPoolDebug(
                     sizeof (*pFreeList) * numChunks);
     if (pFreeList == NULL)
     {
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                   "Error allocating memory for freelist for chunk Size:%d\n",
-                   chunkSize);
+        CL_POOL_LOG(CL_LOG_ERROR,"Error allocating memory for freelist for chunk Size:%d",chunkSize);
         goto out;
     }
     pCurrentChunkStart = pExtendedPoolHeader->pExtendedPoolStart;
@@ -592,8 +593,7 @@ clPoolAllocateExtendedPool(
     if ((pExtendedPoolHeader->pExtendedPoolStart =
         (ClUint8T*)CL_POOL_ALLOC_EXT (incrementPoolSize)) == NULL)
     {
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                   "Error allocating memory of size:%d\n", incrementPoolSize);
+        CL_POOL_LOG(CL_LOG_ERROR,"Error allocating memory of size:%d\n", incrementPoolSize);
         goto out;
     }
 
@@ -608,9 +608,7 @@ clPoolAllocateExtendedPool(
     }
 
     /*Add this extended pool to the free list*/
-    clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-               "Adding extended pool %p to free list\n",
-               (void*)pExtendedPoolHeader);
+    CL_POOL_LOG(CL_LOG_TRACE,"Adding extended pool %p to free list",(void*)pExtendedPoolHeader);
 
     CL_POOL_EXTENDED_FREELIST_QUEUE(pPoolHeader,pExtendedPoolHeader);
 
@@ -647,7 +645,7 @@ clPoolCreate(
     rc = clPoolValidateConfig (pPoolConfig);
     if(rc != CL_OK)
     {
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,"Invalid param\n");
+        CL_POOL_LOG(CL_LOG_ERROR,"Invalid param");
         goto out;
     }
 
@@ -656,12 +654,9 @@ clPoolCreate(
     extendedPools = pPoolConfig->initialPoolSize/incrementPoolSize;
 
     rc = CL_POOL_RC (CL_ERR_NO_MEMORY);
-    if ((pPoolHeader = (ClPoolHeaderT*)CL_POOL_ALLOC_EXTERNAL
-                            (flags, sizeof (*pPoolHeader))) == NULL)
+    if ((pPoolHeader = (ClPoolHeaderT*)CL_POOL_ALLOC_EXTERNAL(flags, sizeof (*pPoolHeader))) == NULL)
     {
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                   "Error in allocating memory for pool header, chunk size:%d\n",
-                   chunkSize);
+        CL_POOL_LOG(CL_LOG_ERROR,"Error in allocating memory for pool header, chunk size:%d\n",chunkSize);
         goto out;
     }
     memset (pPoolHeader, 0, sizeof (*pPoolHeader));
@@ -672,8 +667,7 @@ clPoolCreate(
     rc = CL_POOL_LOCK_INIT (pPoolHeader);
     if(CL_OK != rc)
     {
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                   "CL_POOL_LOCK_INIT failed, rc=[%#X]\n", rc);
+        CL_POOL_LOG(CL_LOG_ERROR,"CL_POOL_LOCK_INIT failed, rc=[%#X]\n", rc);
         goto out;
     }
 
@@ -696,9 +690,7 @@ clPoolCreate(
                     (ClExtendedPoolHeaderT*)CL_POOL_ALLOC_EXTERNAL (flags,
                         sizeof (*pExtendedPoolHeader))) == NULL)
         {
-            clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                       "Error allocating memory for extended pool header, chunk "
-                       "size:%d extended pool number:%d\n", chunkSize, i);
+            CL_POOL_LOG(CL_LOG_ERROR,"Error allocating memory for extended pool header, chunk size:%d extended pool number:%d\n", chunkSize, i);
             goto out_free;
         }
         memset (pExtendedPoolHeader, 0, sizeof (*pExtendedPoolHeader));
@@ -706,18 +698,14 @@ clPoolCreate(
         rc = clPoolAllocateExtendedPool (pPoolHeader, pExtendedPoolHeader);
         if(rc != CL_OK)
         {
-            CL_POOL_FREE_EXTERNAL (flags, pExtendedPoolHeader,
-                    sizeof (*pExtendedPoolHeader));
-            clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                       "Error allocating extended pool, chunk size:%d extended "
-                       "pool number:%d\n", chunkSize, i);
+            CL_POOL_FREE_EXTERNAL (flags, pExtendedPoolHeader, sizeof (*pExtendedPoolHeader));
+            CL_POOL_LOG(CL_LOG_ERROR,"Error allocating extended pool, chunk size:%d extended pool number:%d\n", chunkSize, i);
             goto out_free;
         }
         CL_POOL_STATS_UPDATE_EXTENDED_POOLS_INCR(pPoolHeader);
     }
     *pHandle = (ClPoolT)pPoolHeader;
-    CL_POOL_LOG(CL_LOG_TRACE,
-                "%d extended pools created for %d byte pool with chunksize:%d",
+    CL_POOL_LOG(CL_LOG_TRACE, "%d extended pools created for %d byte pool with chunksize:%d",
                 extendedPools,
                 pPoolHeader->poolConfig.incrementPoolSize,
                 pPoolHeader->poolConfig.chunkSize);
@@ -746,17 +734,14 @@ clPoolExtend(
 
     NULL_CHECK (pPoolHeader);
 
-    clLogInfo(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-              "clPoolExtend() :: extendedPoolSize = %d, chunkSize = %d \n",
+    CL_POOL_LOG(CL_LOG_INFO,"clPoolExtend() :: extendedPoolSize = %d, chunkSize = %d \n",
                 pPoolHeader->poolConfig.incrementPoolSize,
                 pPoolHeader->poolConfig.chunkSize);
 
     rc = CL_POOL_RC (CL_ERR_NO_MEMORY);
     if (CL_POOL_MAX_EXTENDED_POOLS (pPoolHeader))
     {
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                   "POOL extend of %d byte pool failed.Max pool size :%d, "
-                   "extended pools:%d\n",
+        CL_POOL_LOG(CL_LOG_ERROR,"POOL extend of %d byte pool failed.Max pool size :%d, extended pools:%d\n",
                    pPoolHeader->poolConfig.chunkSize,
                    pPoolHeader->poolConfig.maxPoolSize,
                    pPoolHeader->stats.numExtendedPools);
@@ -767,9 +752,7 @@ clPoolExtend(
         (ClExtendedPoolHeaderT*)CL_POOL_ALLOC_EXTERNAL (pPoolHeader->flags,
             sizeof (ClExtendedPoolHeaderT))) == NULL)
     {
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                   "Error allocating memory for extended pool header, chunk "
-                   "size:%d extended pool number:%d\n",
+        CL_POOL_LOG(CL_LOG_ERROR,"Error allocating memory for extended pool header, chunk size:%d extended pool number:%d\n",
                    pPoolHeader->poolConfig.chunkSize,
                    pPoolHeader->stats.numExtendedPools);
         goto out;
@@ -787,15 +770,10 @@ clPoolExtend(
     if (rc != CL_OK)
     {
         CL_POOL_LOG(CL_LOG_ERROR,
-                    "Extended pool allocation of %d byte pool of %d chunksize failed",
+                    "Extended pool allocation of %d byte pool of %d chunksize failed. pool number:%d",
                     pPoolHeader->poolConfig.incrementPoolSize,
-                    pPoolHeader->poolConfig.chunkSize
+                    pPoolHeader->poolConfig.chunkSize, pPoolHeader->stats.numExtendedPools
                     );
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                   "Error allocating extended pool, chunk size:%d extended "
-                   "pool number:%d\n",
-                    pPoolHeader->poolConfig.chunkSize,
-                    pPoolHeader->stats.numExtendedPools);
         goto out_free;
     }
 
@@ -827,23 +805,19 @@ clPoolDestroyWithForce(
             && (!CL_POOL_EXTENDED_PARTIALLIST_EMPTY (pPoolHeader)
                 || !CL_POOL_EXTENDED_FULLLIST_EMPTY (pPoolHeader)))
     {
-        clLogWarning(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                     "Warning!!Destroy called when pool is being used. Chunk size:%d\n",
-                     pPoolHeader->poolConfig.chunkSize);
+        CL_POOL_LOG(CL_LOG_WARNING, "Warning!!Destroy called when pool is being used. Chunk size:%d", pPoolHeader->poolConfig.chunkSize);
         goto out;
     }
     rc = CL_POOL_SHRINK_FREELIST (pPoolHeader, &shrinkOptions);
     if (rc != CL_OK)
     {
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                   "Error shrinking pools free list for chunk size:%d\n",
-                    pPoolHeader->poolConfig.chunkSize);
+        CL_POOL_LOG(CL_LOG_ERROR, "Error shrinking pools free list for chunk size:%d", pPoolHeader->poolConfig.chunkSize);
         goto out;
     }
 
     if (!CL_POOL_EXTENDED_PARTIALLIST_EMPTY(pPoolHeader))
     {
-        clLogWarning(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
+        CL_POOL_LOG(CL_LOG_WARNING,
                      "Warning!!Partial list isnt empty for chunk size:%d Count :%d\n",
                      pPoolHeader->poolConfig.chunkSize,
                      CL_POOL_EXTENDED_PARTIALLIST_COUNT (pPoolHeader));
@@ -852,7 +826,7 @@ clPoolDestroyWithForce(
 
     if (!CL_POOL_EXTENDED_FULLLIST_EMPTY (pPoolHeader))
     {
-        clLogWarning(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
+        CL_POOL_LOG(CL_LOG_WARNING,
                      "Warning !!Full list isnt empty for chunk size:%d Count :%d\n",
                      pPoolHeader->poolConfig.chunkSize,
                      CL_POOL_EXTENDED_FULLLIST_COUNT (pPoolHeader));
@@ -910,7 +884,6 @@ clPoolDestroy(
 
     if (rc != CL_OK)
     {
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,"Error destroying the pool\n");
         CL_POOL_LOG(CL_LOG_ERROR,
                     "Error destroying %d byte pool of %d chunksize",
                     pPoolHeader->poolConfig.incrementPoolSize,
@@ -953,7 +926,7 @@ clPoolAllocate(
                           pPoolHeader->poolConfig.chunkSize) == CL_FALSE)
     {
         rc = CL_POOL_RC(CL_ERR_NO_MEMORY);
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,"Request of %d bytes would exceed process upper limit\n",pPoolHeader->poolConfig.chunkSize);
+        CL_POOL_LOG(CL_LOG_ERROR,"Request of %d bytes would exceed process upper limit\n",pPoolHeader->poolConfig.chunkSize);
         goto out_unlock;
     }
 
@@ -967,19 +940,14 @@ clPoolAllocate(
             rc = clPoolExtend(poolHandle);
             if(rc != CL_OK)
             {
-                clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                           "Pool extension error for chunksize:%d\n",
-                           pPoolHeader->poolConfig.chunkSize);
-                CL_POOL_LOG(CL_LOG_ERROR,
-                            "Pool allocate failed to extend %d byte pool of %d chunksize",
+                CL_POOL_LOG(CL_LOG_ERROR,"Pool allocate failed to extend %d byte pool of %d chunksize",
                             pPoolHeader->poolConfig.incrementPoolSize,
                             pPoolHeader->poolConfig.chunkSize);
                 goto out_unlock;
             }
         }
-        CL_POOL_EXTENDED_FREELIST_POP_DEQUEUE (pPoolHeader,
-                pExtendedPoolHeader);
-        CL_POOL_EXTENDED_PARTIALLIST_QUEUE (pPoolHeader ,pExtendedPoolHeader);
+        CL_POOL_EXTENDED_FREELIST_POP_DEQUEUE (pPoolHeader, pExtendedPoolHeader);
+        CL_POOL_EXTENDED_PARTIALLIST_QUEUE (pPoolHeader, pExtendedPoolHeader);
     }
     /*
      * We are here when we have a free chunk:
@@ -996,11 +964,8 @@ clPoolAllocate(
 
     --pExtendedPoolHeader->numFreeChunks;
 
-    clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-               "pExtendedPoolHeader = %p pExtendedPoolHeader->numFreeChunks "
-               "= %d pPoolHeader->poolConfig.chunkSize = %d from address = %p\n",
-               (void*)pExtendedPoolHeader, pExtendedPoolHeader->numFreeChunks,
-                pPoolHeader->poolConfig.chunkSize, (void*)pFreeChunk->pChunk);
+    CL_POOL_LOG(CL_LOG_TRACE,"pExtendedPoolHeader = %p pExtendedPoolHeader->numFreeChunks = %d pPoolHeader->poolConfig.chunkSize = %d from address = %p\n",
+               (void*)pExtendedPoolHeader, pExtendedPoolHeader->numFreeChunks, pPoolHeader->poolConfig.chunkSize, (void*)pFreeChunk->pChunk);
 
     /*
      * Was free partially but now full.
@@ -1008,9 +973,7 @@ clPoolAllocate(
      */
     if (pExtendedPoolHeader->numFreeChunks == 0)
     {
-        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                   "Dequeuing extended pool %p from partial list and queueing it to "
-                   "full list\n", (void*)pExtendedPoolHeader);
+        CL_POOL_LOG(CL_LOG_TRACE,"Dequeuing extended pool %p from partial list and queueing it to full list\n", (void*)pExtendedPoolHeader);
         CL_POOL_EXTENDED_PARTIALLIST_DEQUEUE (pPoolHeader, pExtendedPoolHeader);
         CL_POOL_EXTENDED_FULLLIST_QUEUE (pPoolHeader, pExtendedPoolHeader);
     }
@@ -1080,7 +1043,7 @@ clPoolShrinkList(
 
     if (numExtendedFreePools == 0)
     {
-        clLogWarning(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,"No free list to shrink\n");
+        CL_POOL_LOG(CL_LOG_WARNING,"No free list to shrink");
         goto out;
     }
 
@@ -1093,8 +1056,7 @@ clPoolShrinkList(
         rc = clExtendedPoolDestroy (pPoolHeader, pExtendedPoolHeader);
         if(rc != CL_OK)
         {
-            clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                       "Error in destroying extended pool\n");
+            CL_POOL_LOG(CL_LOG_ERROR,"Error in destroying extended pool");
             goto out;
         }
         pExtendedPoolHeader = pNext;
@@ -1130,11 +1092,7 @@ clPoolShrink(
 
     if(rc != CL_OK)
     {
-        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,"Error in shrinking free list\n");
-        CL_POOL_LOG(CL_LOG_ERROR,
-                    "Error shrinking %d byte pool of %d chunksize",
-                    pPoolHeader->poolConfig.incrementPoolSize,
-                    pPoolHeader->poolConfig.chunkSize);
+        CL_POOL_LOG(CL_LOG_ERROR,"Error shrinking %d byte pool of %d chunksize",pPoolHeader->poolConfig.incrementPoolSize,pPoolHeader->poolConfig.chunkSize);
     }
     return rc;
 }
@@ -1158,9 +1116,7 @@ clPoolFree(
     pExtendedPoolHeader = (ClExtendedPoolHeaderT*)pCookie;
     pPoolHeader = pExtendedPoolHeader->pPoolHeader;
 
-    clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-               "freeing chunk  pChunk = %p,extended pool = %p\n", pChunk,
-               (void*)pExtendedPoolHeader);
+    CL_POOL_LOG(CL_LOG_TRACE,"freeing chunk  pChunk = %p,extended pool = %p\n", pChunk,(void*)pExtendedPoolHeader);
 
     CL_POOL_LOCK (pPoolHeader);
 
@@ -1179,9 +1135,7 @@ clPoolFree(
     if (freeChunk == 1)
     {
         /*Was full before. Move it to partial*/
-        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                   "Dequeuing extended pool %p from full list and moving the "
-                   "extended pool to partial list\n", (void*)pExtendedPoolHeader);
+        CL_POOL_LOG(CL_LOG_TRACE,"Dequeuing extended pool %p from full list and moving the extended pool to partial list\n", (void*)pExtendedPoolHeader);
         CL_POOL_EXTENDED_FULLLIST_DEQUEUE (pPoolHeader, pExtendedPoolHeader);
         CL_POOL_EXTENDED_PARTIALLIST_QUEUE (pPoolHeader, pExtendedPoolHeader);
     }
@@ -1191,9 +1145,7 @@ clPoolFree(
          *  Add to the free extended pool list after deleting from the partial
          *  list
          */
-        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_POOL,
-                   "Dequeuing extended pool %p from partial list and moving the "
-                   "extended pool to free list\n", (void*)pExtendedPoolHeader);
+        CL_POOL_LOG(CL_LOG_TRACE, "Dequeuing extended pool %p from partial list and moving the extended pool to free list\n", (void*)pExtendedPoolHeader);
         CL_POOL_EXTENDED_PARTIALLIST_DEQUEUE(pPoolHeader,pExtendedPoolHeader);
         CL_POOL_EXTENDED_FREELIST_QUEUE(pPoolHeader,pExtendedPoolHeader);
     }

@@ -255,7 +255,7 @@ def load_xml_file(filename, strip_root=None):
 
 def load_xml_string(string, strip_root=None):
     """Parse given xml string and turn it into a nested dot object"""
-
+    
     dom = minidom.parseString(string)
     
     def decode_dom(dom):
@@ -456,7 +456,7 @@ def load_amf_db():
         raise DebugCliError('No access to active system controller')
     
     res = res[-1]
-    
+    res = res[res.find("<asp>"):] # Strip off everything except the XML
     _amf_db = load_xml_string(res, strip_root=(('asp',),))
     
     _amf_db_timestamp = time.time()
