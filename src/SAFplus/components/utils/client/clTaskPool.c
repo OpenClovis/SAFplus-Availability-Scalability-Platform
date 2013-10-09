@@ -273,7 +273,7 @@ void clTaskPoolEntry(ClTaskPoolArgT *pArg)
                 pStats->startTime = clOsalStopWatchTimeGet();
             }
             clOsalMutexUnlock(&tp->mutex);
-            clLogInfo("TASK","POOL","Task pool is running a user's fn"); 
+            /* clLogDebug("TASK","POOL","Task pool is running a user's fn");  */
             fn(cookie);
             clOsalMutexLock(&tp->mutex);
             pStats->startTime = 0;
