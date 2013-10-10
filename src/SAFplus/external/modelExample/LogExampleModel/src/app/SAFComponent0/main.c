@@ -513,7 +513,7 @@ ClRcT alarmClockLogInitialize( void )
     clprintf(CL_LOG_SEV_ERROR, "open clockStream 0 \n");
     myStreamAttr.fileName = (char *)"clock.log";
     myStreamAttr.fileLocation=(char *)".:var/log";
-    myStreamAttr.recordSize = 100;
+    myStreamAttr.recordSize = 300;
     myStreamAttr.fileUnitSize = 1000000;
     myStreamAttr.fileFullAction = CL_LOG_FILE_FULL_ACTION_ROTATE;
     myStreamAttr.maxFilesRotated = 10;

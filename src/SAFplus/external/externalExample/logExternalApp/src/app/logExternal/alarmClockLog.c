@@ -73,10 +73,8 @@ ClRcT alarmClockLogInitialize( void )
     /* Stream Name is defined in the IDE during
      * modeling phase
      */
-//    saNameSet(&streamName,"clockStream");    
     saNameSet(&streamName,"clockStream");    
-    //strcpy(streamName.value, "clockStream");
-    //streamName.length = strlen("clockStream");
+//    saNameSet(&streamName,"clockStreamPay");    
 
 
     /* open the clock stream 
@@ -88,7 +86,7 @@ ClRcT alarmClockLogInitialize( void )
      * ClTimeT   timeout      - timeout set to zero, if failed return immed.
      * ClLogStreamHandleT *   - stream handle returned if successful
     */
-    clprintf(CL_LOG_SEV_ERROR, "open clockStream \n");
+    printf("open clockStream \n");
     rc = clLogStreamOpen(logSvcHandle, 
                          streamName, 
                          CL_LOG_STREAM_GLOBAL,
@@ -117,7 +115,7 @@ ClRcT alarmClockLogInitialize( void )
      *                      - CL_LOG_MSGID_BUFFER     (Binary)
      *                             
      */
-    clprintf(CL_LOG_SEV_ERROR, "WRITE clockStream \n");
+    printf("WRITE to clockStream \n");
     int count=0;
     do
     {
