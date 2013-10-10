@@ -68,13 +68,16 @@ void clCkptLogError(ClUint32T   logLvl,
 /* 
  * Macros for error checking.
  */
+#define CL_LOG_SP(...) __VA_ARGS__
  
 #define CKPT_ERR_CHECK(libCode , logLvl, message, rc)\
 {\
     if(rc != CL_OK)\
     {\
+        char __tempstr[256];   \
+        snprintf(__tempstr,256,CL_LOG_SP message); \
         clCkptLogError(logLvl, rc, libCode);\
-        CL_DEBUG_PRINT(logLvl, message);\
+        clLog(logLvl,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr);\
         goto exitOnError;\
     }\
 }\
@@ -83,8 +86,10 @@ void clCkptLogError(ClUint32T   logLvl,
 {\
     if(rc != CL_OK)\
     {\
+        char __tempstr[256];   \
+        snprintf(__tempstr,256,CL_LOG_SP message); \
         clCkptLogError(logLvl, rc, libCode);\
-        CL_DEBUG_PRINT(logLvl, message);\
+        clLog(logLvl,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr);\
         goto exitOnErrorBeforeHdlCheckout;\
     }\
 }

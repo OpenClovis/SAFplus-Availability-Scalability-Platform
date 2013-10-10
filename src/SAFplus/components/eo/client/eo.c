@@ -227,12 +227,16 @@ extern ClRcT clCpmExecutionObjectStateUpdate(CL_IN ClEoExecutionObjT *pEOptr);
 /*
  * MACROS 
  */
+#define CL_LOG_SP(...) __VA_ARGS__
+
 #define EO_CHECK(X, Z, retCode)\
     do \
 {\
     if(retCode != CL_OK)\
     {\
-        CL_DEBUG_PRINT(X,Z);\
+        char __str[256]; \
+        snprintf(__str,256,CL_LOG_SP Z); \
+        clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str);\
         goto failure;\
     }\
 }while(0)

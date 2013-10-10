@@ -30,6 +30,9 @@
 #ifndef _CL_DBG_H_
 #define _CL_DBG_H_
 
+#include <clLogUtilApi.h>
+#include <clLogApi.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,14 +49,14 @@ extern int clDbgReverseTiming;
 
 #define clDbgIfNullReturn(ptr,comp) if ( ptr == NULL) \
     { \
-        CL_DEBUG_PRINT(CL_LOG_SEV_ERROR, ("NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__)); \
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__); \
         clDbgCodeError(CL_RC(comp,CL_ERR_NULL_POINTER),("NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__)); \
         return CL_RC(comp,CL_ERR_NULL_POINTER); \
     }
 
 #define clDbgCheckNull(ptr,comp) if ( ptr == NULL) \
     { \
-        CL_DEBUG_PRINT(CL_LOG_SEV_ERROR, ("NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__)); \
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__); \
         clDbgCodeError(CL_RC(comp,CL_ERR_NULL_POINTER),("NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__)); \
     }
 
@@ -201,9 +204,22 @@ enum
     clDbgRelease  = 1001
   };
 
-#define clDbgResourceNotify(resourceType, operation, resourceGroup, resourceId, printfParams) do { CL_DEBUG_PRINT(clDbgResourceLogLevel, printfParams); } while(0)
+#define CL_LOG_SP(...) __VA_ARGS__
 
-#define clDbgResourceLimitExceeded(resourceType, resourceGroup, printfParams) do { CL_DEBUG_PRINT(clDbgResourceLogLevel, printfParams); clDbgRootCauseError(CL_ERR_NO_RESOURCE,printfParams); } while(0)
+#define clDbgResourceNotify(resourceType, operation, resourceGroup, resourceId, printfParams) \
+do { \
+      char __str[256]; \
+      snprintf(__str,256,CL_LOG_SP printfParams);  \
+      clLog(clDbgResourceLogLevel,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); \
+} while(0)
+
+#define clDbgResourceLimitExceeded(resourceType, resourceGroup, printfParams) \
+do { \
+     char __str[256];  \
+     snprintf(__str,256,CL_LOG_SP printfParams);   \
+     clLog(clDbgResourceLogLevel,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED, __str); \
+     clDbgRootCauseError(CL_ERR_NO_RESOURCE,printfParams); \
+} while(0)
 
 
 #ifdef __cplusplus

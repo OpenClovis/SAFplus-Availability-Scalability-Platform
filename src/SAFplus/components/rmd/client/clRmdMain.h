@@ -86,12 +86,14 @@ extern "C"
 
 # define RMD_STAT_INC(value) do { (value)++; } while(0)
 
+#define CL_LOG_SP(...)  __VA_ARGS__
+
 # if RMD_DEBUG
-#  define RMD_DBG(args)    CL_DEBUG_PRINT(CL_LOG_SEV_ERROR, args)
-#  define RMD_DBG1(args)   CL_DEBUG_PRINT(CL_LOG_SEV_ERROR, args)
-#  define RMD_DBG2(args)   CL_DEBUG_PRINT(CL_LOG_SEV_TRACE, args)
-#  define RMD_DBG3(args)   CL_DEBUG_PRINT(CL_LOG_SEV_TRACE, args)
-#  define RMD_DBG4(args)   CL_DEBUG_PRINT(CL_LOG_SEV_TRACE, args)
+#  define RMD_DBG(args)    do { char __str[256]; snprintf(__str,256,CL_LOG_SP args); clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); } while(0)
+#  define RMD_DBG1(args)   do { char __str[256]; snprintf(__str,256,CL_LOG_SP args); clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); } while(0)
+#  define RMD_DBG2(args)   do { char __str[256]; snprintf(__str,256,CL_LOG_SP args); clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); } while(0)
+#  define RMD_DBG3(args)   do { char __str[256]; snprintf(__str,256,CL_LOG_SP args); clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); } while(0)
+#  define RMD_DBG4(args)   do { char __str[256]; snprintf(__str,256,CL_LOG_SP args); clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); } while(0)
 # else
 #  define RMD_DBG(args)   {}
 #  define RMD_DBG1(args)  {}

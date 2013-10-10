@@ -44,10 +44,13 @@ extern "C"
 #include <clCpmCommon.h>
 #include <clVersion.h>
 
+#define CL_LOG_SP(...) __VA_ARGS__
 #define CPM_CLIENT_CHECK(X, Z, retCode)         \
     if (retCode != CL_OK)                       \
     {                                           \
-        CL_DEBUG_PRINT(X,Z);                    \
+        char __tempstr[256];                    \
+        snprintf(__tempstr,256,CL_LOG_SP Z);    \
+        clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr);                \
         rc = retCode;                           \
         goto failure;                           \
     }
