@@ -19,7 +19,7 @@ extern "C" {
 
 #include <clCommon.h>
 #include <clIocApi.h>
-#include "rmdServer.h"
+
 
 ClRcT clAlarm_clock_EOClientTableRegister(ClIocPortT clientPort);
 

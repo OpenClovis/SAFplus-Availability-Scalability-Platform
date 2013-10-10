@@ -8,16 +8,14 @@
 #include <clBufferApi.h>
 #include <clCntApi.h>
 #include <clHeapApi.h>
-#ifdef USE_EO
 #include <clEoApi.h>
-#endif
 #include <clIocApi.h>
 #include <clIocApiExt.h>
 #include <clIocErrors.h>
 #include <clIocParseConfig.h>
-#include "rmdExternalDefs.h"
 #include <clIocLogicalAddresses.h>
 #include "alarm_clock_EOServer.h"
+#include "rmdExternalDefs.h"
 #include "alarm_clock_EOClient.h"
 #include "alarm_clock_EOAlarmClockopServer.h"
 
@@ -84,7 +82,7 @@ Initialize ( ClInt32T ioc_address_local )
     return rc;
 }
 
-ClRcT RmdServerTableInitialize(ClIocLogicalAddressT addr, ClIocPortT port)
+ClRcT eoTableInitialize(ClIocLogicalAddressT addr, ClIocPortT port)
 {
     ClRcT clrc = CL_OK;
     ClIocTLInfoT tlInfo = {0};
@@ -114,9 +112,23 @@ ClRcT RmdServerTableInitialize(ClIocLogicalAddressT addr, ClIocPortT port)
     return clrc;
 }
 
+
 int
 main(int argc, char **argv)
 {
+    ClEoConfigT eoConfig =
+    {
+        CL_OSAL_THREAD_PRI_MEDIUM,    /* EO Thread Priority                       */
+        2,                            /* No of EO thread needed                   */
+        0,                            /* Required Ioc Port                        */
+        (CL_EO_USER_CLIENT_ID_START + 0), 
+        CL_EO_USE_THREAD_FOR_APP,     /* Thread Model                             */
+        NULL,                         /* Application Initialize Callback          */
+        NULL,                         /* Application Terminate Callback           */
+        NULL,                         /* Application State Change Callback        */
+        NULL                          /* Application Health Check Callback        */
+    };
+
     int ioc_port = DEF_IOC_PORT; /* IOC port number, default is DEF_IOC_PORT */
     int ioc_address_local = 4;
     extern ClIocConfigT pAllConfig;
@@ -148,14 +160,14 @@ main(int argc, char **argv)
         exit(1);
     }
     printf("Info: start rmd server\n");
-    rc = rmdSeverInit();
+    rc = rmdSeverInit(eoConfig);
     if(rc != CL_OK)
     {
         printf("Info: start rmd server ok\n");
     }
     else
     {
-        RmdServerTableInitialize(__RPC_SERVER_ADDRESS,ioc_port);
+        eoTableInitialize(__RPC_SERVER_ADDRESS,ioc_port);
     }
   
     printf("Info: start rmd server ok\n");
@@ -163,7 +175,7 @@ main(int argc, char **argv)
     do
     {
         sleep(20);
-        clLogNotice("CALLBACK", "TASKS","running ....");
+        printf("Info : running ....");
     }while(1);
 
 }

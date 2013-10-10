@@ -35,13 +35,13 @@ ClRcT clAlarm_clock_EOClientInstall(void)
     ClEoExecutionObjT* pEoObj = NULL;
     ClRcT rc = CL_OK;
 
-    rc = clRmdServerMyRmdObjectGet(&pEoObj);
+    rc = clEoMyEoObjectGet(&pEoObj);
     if (CL_OK != rc)
     {
         return rc;
     }
 
-    rc = clRmdServerClientInstallTables(pEoObj,CL_EO_SERVER_SYM_MOD(gAspFuncTable,Alarm_clock_EO));
+    rc = clEoClientInstallTables(pEoObj,CL_EO_SERVER_SYM_MOD(gAspFuncTable,Alarm_clock_EO));
     if (CL_OK != rc)
     {
         return rc;
@@ -63,7 +63,7 @@ ClRcT clAlarm_clock_EOClientUninstall(void)
     ClEoExecutionObjT* pEoObj = NULL;
     ClRcT rc = CL_OK;
 
-    rc = clRmdServerMyRmdObjectGet(&pEoObj);
+    rc = clEoMyEoObjectGet(&pEoObj);
     if (CL_OK != rc)
     {
         return rc;
@@ -79,7 +79,7 @@ ClRcT clAlarm_clock_EOClientUninstall(void)
         return rc;
     }
 
-    clRmdServerClientUninstallTables(pEoObj,CL_EO_SERVER_SYM_MOD(gAspFuncTable,Alarm_clock_EO));
+    clEoClientUninstallTables(pEoObj,CL_EO_SERVER_SYM_MOD(gAspFuncTable,Alarm_clock_EO));
 
     return rc;
 }

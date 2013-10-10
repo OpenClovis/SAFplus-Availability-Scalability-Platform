@@ -20,7 +20,7 @@ ClRcT clAlarm_clock_EOClientTableRegister(ClIocPortT clientPort)
 {
     ClRcT rc = CL_OK;
 
-    rc = clRmdServerClientTableRegister(CL_EO_CLIENT_SYM_MOD(gAspFuncTable, Alarm_clock_EO),
+    rc = clEoClientTableRegister(CL_EO_CLIENT_SYM_MOD(gAspFuncTable, Alarm_clock_EO),
                                  clientPort);
     if (CL_OK != rc)
     {

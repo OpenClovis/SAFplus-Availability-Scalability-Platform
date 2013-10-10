@@ -22,7 +22,6 @@ extern "C" {
 #include "../common/clientIDDefinitions.h"
 #include "xdrAlarmReactionT.h"
 #include "xdrAcTimeT.h"
-#include "rmdServer.h"
 
 ClRcT clAlarm_clock_EOIdlSyncDefer(ClIdlHandleT *pIdlHdl);
 ClRcT clAlarm_clock_EOClientInstall(void);
