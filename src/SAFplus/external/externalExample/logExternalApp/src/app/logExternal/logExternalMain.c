@@ -21,7 +21,7 @@
 
 #define __LOGICAL_ADDRESS(a) CL_IOC_LOGICAL_ADDRESS_FORM(CL_IOC_STATIC_LOGICAL_ADDRESS_START + (a))
 #define __RPC_SERVER_ADDRESS __LOGICAL_ADDRESS(4)
-
+#define LOCAL_ADDRESS 4
 extern ClRcT clRmdLibInitialize(ClPtrT pConfig);
 extern ClBoolT gIsNodeRepresentative;
 static ClIocConfigT *gpClIocConfig;
@@ -48,10 +48,8 @@ static ClRcT clMemInitialize(void)
 ClRcT
 Initialize ( ClInt32T ioc_address_local )
 {
-    ClRcT rc = CL_OK;
-    
-	clAspLocalId = ioc_address_local;
-
+    ClRcT rc = CL_OK;    
+    clAspLocalId = ioc_address_local;
     rc = clIocParseConfig(NULL, &gpClIocConfig);
     if(rc != CL_OK)
     {
@@ -82,37 +80,6 @@ Initialize ( ClInt32T ioc_address_local )
     return rc;
 }
 
-/*
-ClRcT eoTableInitialize(ClIocLogicalAddressT addr, ClIocPortT port)
-{
-    ClRcT clrc = CL_OK;
-    ClIocTLInfoT tlInfo = {0};
-    printf("Enter RmdInitialize\n");
-    if ( (clrc = clAlarm_clock_EOClientInstall()) != CL_OK)  // Actually ignore the name, it starts the server
-    {
-        printf ("RPC server initialization failed. error: 0x%x", clrc);
-    }
-
-    if ( (clrc = clAlarm_clock_EOClientTableRegister(port) ) != CL_OK)
-    {
-        printf ("RPC server client initialization failed. error: 0x%x", clrc);
-    }
-
-    tlInfo.physicalAddr.nodeAddress = addr;
-    printf ("RPC server nodeAddress: %d \n", tlInfo.physicalAddr.nodeAddress);
-    tlInfo.physicalAddr.portId = port;
-    tlInfo.haState = CL_IOC_TL_ACTIVE;
-    tlInfo.logicalAddr = addr;
-    printf ("RPC server logicalAddr: %d \n", (int)addr);
-    printf ("RPC server portId: %d \n", (int)port);
-    if ( (clrc = clIocTransparencyRegister(&tlInfo) ) != CL_OK )
-    {
-        printf("RPC server transparency layer init failed with [%#x]", clrc);
-    }
-    printf("finish Initialize");
-    return clrc;
-}
-*/
 int
 main(int argc, char **argv)
 {
@@ -128,15 +95,10 @@ main(int argc, char **argv)
         NULL,                         /* Application Terminate Callback           */
         NULL,                         /* Application State Change Callback        */
         NULL                          /* Application Health Check Callback        */
-    };
-    //int ioc_port = DEF_IOC_PORT; /* IOC port number, default is DEF_IOC_PORT */
-    int ioc_address_local = 4;
+    };    
+    int ioc_address_local = LOCAL_ADDRESS;
     extern ClIocConfigT pAllConfig;
-    printf("start rmd external \n");
     int socket_type;
-    char a=10;
-    printf("value of aA %c", a);
-    printf("value of aA %d", (int)a);
     ClRcT rc = CL_OK;
     socket_type = CL_IOC_RELIABLE_MESSAGING;
     heapConfig.mode = CL_HEAP_NATIVE_MODE;
@@ -169,7 +131,6 @@ main(int argc, char **argv)
     }
     else
     {
-        //eoTableInitialize(__RPC_SERVER_ADDRESS,ioc_port);
         sleep(10);
         rc = alarmClockLogInitialize();
         if(rc != CL_OK)
@@ -177,9 +138,6 @@ main(int argc, char **argv)
              printf("alarmClockLogInitialize FAILED\n");
         }
     }
-  
-    printf("Info: start rmd server ok\n");
-
     do
     {
         sleep(20);

@@ -21,7 +21,7 @@
 
 #define __LOGICAL_ADDRESS(a) CL_IOC_LOGICAL_ADDRESS_FORM(CL_IOC_STATIC_LOGICAL_ADDRESS_START + (a))
 #define __RPC_SERVER_ADDRESS __LOGICAL_ADDRESS(4)
-
+#define  LOCAL_ADDRESS 4
 extern ClRcT clRmdLibInitialize(ClPtrT pConfig);
 extern ClBoolT gIsNodeRepresentative;
 static ClIocConfigT *gpClIocConfig;
@@ -130,13 +130,9 @@ main(int argc, char **argv)
     };
 
     int ioc_port = DEF_IOC_PORT; /* IOC port number, default is DEF_IOC_PORT */
-    int ioc_address_local = 4;
+    int ioc_address_local = LOCAL_ADDRESS;
     extern ClIocConfigT pAllConfig;
-    printf("start rmd external \n");
-    int socket_type;
-    char a=10;
-    printf("value of aA %c", a);
-    printf("value of aA %d", (int)a);
+    int socket_type;   
     ClRcT rc = CL_OK;
     socket_type = CL_IOC_RELIABLE_MESSAGING;
     heapConfig.mode = CL_HEAP_NATIVE_MODE;

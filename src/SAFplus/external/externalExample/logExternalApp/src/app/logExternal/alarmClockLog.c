@@ -170,9 +170,6 @@ ClRcT alarmClockLogInitialize( void )
  *  \param ... (in) use a printf style string and arguments for your log message.
  */
 
-//    clprintf(CL_LOG_SEV_ERROR, "\n \n \n open clockStream \n \n \n \n ");
-//    clAppLog(streamHandle, CL_LOG_SEV_NOTICE, AlarmClockLogId, "ALM", "CLK", "\n(%s:%d[pid=%d]) -->Alarm Clock Logging Begun<--\n", __FILE__, __LINE__,getpid());
-//    clprintf(CL_LOG_SEV_ERROR, "\n \n \n open clockStream \n \n \n \n ");
     return CL_OK;
 }
 
