@@ -1437,17 +1437,22 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
             if( (endian == '1' || endian == '0') && (severity > 0  && severity <= CL_LOG_SEV_MAX) )
 
             {
-                ClUint32T hdrLen = 0, len = 0;
+                ClUint32T hdrLen = 0, len = 0, choppedLen = 0;
                 sscanf((char*)pRecordIter, LOG_ASCII_HDR_LEN_FMT, &hdrLen);
                 pRecordIter += LOG_ASCII_HDR_LEN;
                 sscanf((char*)pRecordIter, LOG_ASCII_DATA_LEN_FMT LOG_DATA_DELIMITER_FMT, &len);
                 pRecordIter += LOG_ASCII_DATA_LEN + LOG_DATA_DELIMITER_LEN; 
                 iov[idx].iov_base = (char*)pRecordIter;
                 iov[idx].iov_len  = CL_MIN(hdrLen + len + 1, recordSize - LOG_ASCII_METADATA_LEN);
+                choppedLen = strlen((ClCharT *)iov[idx].iov_base) + 1;
                 /* Ensure that the record is CR terminated.
                    All ASCII records should have a \n from the client, but
                    may not if the message len was chopped during the send 
                 */
+                if (iov[idx].iov_len > choppedLen)
+                {
+                    iov[idx].iov_len = choppedLen - 1;
+                }
                 *((ClCharT *)iov[idx].iov_base + iov[idx].iov_len - 1) = '\n';
                 if(syslogEnabled) 
                 {
