@@ -217,15 +217,6 @@ extern ClTaskPoolHandleT gCpmFaultPool;
 
 #define CL_CPM_LOG_SP(...)  __VA_ARGS__
 
-#define CL_CPM_CHECK(X, Z, retCode)					 \
-    if(CL_GET_ERROR_CODE(retCode) != CL_OK)				 \
-    {									 \
-        char __str[256];						 \
-        snprintf(__str,256,CL_CPM_LOG_SP Z);				 \
-        clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str);\
-        rc = retCode;							 \
-        goto failure;							 \
-    }
 
 #define CL_CPM_LOCK_CHECK(X, Z, retCode)			        \
     if(retCode != CL_OK)			                        \
