@@ -303,8 +303,8 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                     }
                 }
 
-                clLogInfo("TIPC", "NOTIF", "Got node [%s] notification for node [%d]", 
-                          event.event == TIPC_PUBLISHED ? "arrival" : "death", compAddr.nodeAddress);
+                clLogInfo("TIPC", "NOTIF", "Got node [%s] notification (%d) for node [%d]", 
+                          event.event == TIPC_PUBLISHED ? "arrival" : "death", event.event, compAddr.nodeAddress);
 
                 rc = clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
                                                      event.event == TIPC_PUBLISHED ? 

@@ -1416,6 +1416,18 @@ ClRcT clEventDispatch(ClEventInitHandleT evtHandle,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         goto failure;
     }
+    /* If the receiver logic has not been initialized (saEvtSelectionObjecGet has not been called) I better init it now */
+    if (pInitInfo->queueFlag == CL_FALSE)
+    {
+        ClSelectionObjectT temp;
+        rc = clEventSelectionObjectGet(evtHandle,&temp);
+        if (CL_OK != rc)
+        {
+        clLogError("EVT", "DPT","Cannot create selection object error [%x]", rc);
+        goto eventHdlCheckedOut;
+        }        
+    }
+    CL_ASSERT(pInitInfo->queueFlag == CL_TRUE);    
 
     switch (dispatchFlags)
     {
