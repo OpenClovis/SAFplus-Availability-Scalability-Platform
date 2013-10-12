@@ -96,7 +96,8 @@ ClRcT   clDispatchRegister(
     ClRcT   rc = CL_OK;
     ClDispatchDbEntryT* thisDbEntry = NULL;
     ClFdT   fds[2] = {0};
-
+    ClInt32T ec = 0;
+    
     if (svcInstanceHandle == CL_HANDLE_INVALID_VALUE)
     {
         return CL_ERR_INVALID_PARAMETER;
@@ -120,7 +121,7 @@ ClRcT   clDispatchRegister(
     CL_ASSERT (*pDispatchHandle != CL_HANDLE_INVALID_VALUE);
 
     /* Checkout the handle */
-    rc = clHandleCheckout(databaseHandle, *pDispatchHandle, (void *)&thisDbEntry);
+    rc = clHandleCheckout(databaseHandle, *pDispatchHandle, (void **)&thisDbEntry);
 
     if (rc != CL_OK)
     {
@@ -152,7 +153,7 @@ ClRcT   clDispatchRegister(
 
     errno = 0;
     /* Create the pipe */
-    ClInt32T ec = pipe(fds); // since return code for system call can be -ve
+    ec = pipe(fds); // since return code for system call can be -ve
     if (ec < 0)
     {
         clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_REGISTER,
@@ -195,7 +196,7 @@ ClRcT   clDispatchDeregister(
 
     CHECK_LIB_INIT;
 
-    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void *)&thisDbEntry);
+    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void **)&thisDbEntry);
     if (rc != CL_OK)
     {
         return CL_ERR_INVALID_HANDLE;
@@ -267,7 +268,7 @@ ClRcT   clDispatchSelectionObjectGet(
 
     CHECK_LIB_INIT;
 
-    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void *)&thisDbEntry);
+    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void **)&thisDbEntry);
     if (rc != CL_OK)
     {
         return CL_ERR_INVALID_HANDLE;
@@ -331,7 +332,7 @@ ClRcT   clDispatchCbDispatch(
 
     CHECK_LIB_INIT;
 
-    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void *)&thisDbEntry);
+    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void **)&thisDbEntry);
     if (rc != CL_OK)
     {
         return CL_ERR_INVALID_HANDLE;
@@ -586,7 +587,7 @@ ClRcT   clDispatchCbEnqueue(
     CHECK_LIB_INIT;
 
     /* Checkout the handle */
-    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void *)&thisDbEntry);
+    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void **)&thisDbEntry);
     if (rc != CL_OK)
     {
         return CL_ERR_INVALID_HANDLE;
@@ -608,7 +609,7 @@ ClRcT   clDispatchCbEnqueue(
         goto error_return;
     }
 
-    queueData = clHeapAllocate(sizeof(ClDispatchCbQueueDataT));
+    queueData = (ClDispatchCbQueueDataT*) clHeapAllocate(sizeof(ClDispatchCbQueueDataT));
     queueData->callbackType = callbackType;
     queueData->callbackArgs = callbackArgs;
 

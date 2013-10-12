@@ -89,7 +89,7 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
                                ClLogSeverityT      severity,
                                ClUint16T           serviceId,
                                ClUint16T           msgId,
-                               ClCharT             *pMsgHeader,
+                               const ClCharT             *pMsgHeader,
                                va_list             args,
                                ClCntNodeHandleT    hClntStreamNode);
 
@@ -110,7 +110,7 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
                               ClUint16T          msgId,
                               ClUint32T          compId,
                               ClUint64T          sequenceNum,
-                              ClCharT            *pMsgHeader,
+                              const ClCharT            *pMsgHeader,
                               va_list            args,
                               ClUint32T          recSize,
                               ClUint8T           *pRecord);

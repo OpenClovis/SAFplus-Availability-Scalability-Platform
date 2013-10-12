@@ -26,7 +26,7 @@ int clTestOn                    =       1;
 int clTestPrintIndent           =       0;
 FILE* clTestFp                  =       0; 
 ClTestCaseData clCurTc;
-ClTestVerbosity clTestVerbosity = CL_TEST_PRINT_ALL & (~CL_TEST_PRINT_TEST_OK);
+ClTestVerbosity clTestVerbosity = (ClTestVerbosity) (CL_TEST_PRINT_ALL & (~CL_TEST_PRINT_TEST_OK));
 ClOsalMutexT testLogMutex; /* Serializes writes to the test output log */
 
 

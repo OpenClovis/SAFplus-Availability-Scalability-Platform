@@ -1723,7 +1723,7 @@ clLogWriteDeferred(ClHandleT      handle,
                    ClLogSeverityT severity,
                    ClUint16T      servicId,
                    ClUint16T      msgId,
-                   ClCharT        *pFmtStr,
+                   const ClCharT        *pFmtStr,
                    ...) CL_PRINTF_FORMAT(5, 6);
 
 ClRcT

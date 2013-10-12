@@ -104,7 +104,7 @@ void clDbgResume()
 /* Function to collate debugging messages */
 void clDbgMsg(int pid, const char* file, int line, const char* fn, int level, const char* str)
 {
-    char* levelStr="Invalid Level";
+    const char* levelStr="Invalid Level";
 
     if      (level >= CL_LOG_SEV_TRACE)    levelStr = "trace";
     else if (level >= CL_LOG_SEV_INFO)     levelStr = "info";

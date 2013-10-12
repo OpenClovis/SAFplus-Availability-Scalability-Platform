@@ -77,7 +77,7 @@ static ClLogRulesT gClLogRules  = { .numFilters = 0, .pFilters = NULL };
 
 ClHandleT         CL_LOG_HANDLE_SYS = CL_HANDLE_INVALID_VALUE;
 ClHandleT         CL_LOG_HANDLE_APP = CL_HANDLE_INVALID_VALUE;
-static  ClCharT  *clLogToFile      = "stdout";
+static  const ClCharT  *clLogToFile      = "stdout";
 static  ClBoolT  clLogStreamEnable = CL_TRUE;
 static  FILE     *clDbgFp          = NULL; 
 static  ClLogSeverityT   clLogDefaultSeverity = CL_LOG_SEV_DEBUG;
@@ -215,7 +215,7 @@ static ClRcT clLogParse(const ClCharT *file, ClLogRulesFilterT **ppFilters, ClUi
         /*allocate in batches of 4. who cares for the little pees :-)*/
         if( !(i & 3))
         {
-            pFilters = realloc(pFilters, sizeof(*pFilters) * (i+4));
+            pFilters = (ClLogRulesFilterT *) realloc(pFilters, sizeof(*pFilters) * (i+4));
             CL_ASSERT(pFilters);
             memset(pFilters+i, 0, sizeof(*pFilters) * 4);
         }
@@ -342,7 +342,7 @@ clLogRulesParse(void)
        if( (buffer[0] != '#') && (!isspace(buffer[0])) )
             numRules++;
     }
-   if( NULL == ( pRules = calloc(numRules, sizeof(ClLogRuleT))) )
+    if( NULL == ( pRules = (ClLogRuleT  *)calloc(numRules, sizeof(ClLogRuleT))) )
    {
        CL_LOG_PRNT_ERR("calloc failed");
        fclose(fp);
@@ -517,7 +517,7 @@ clLogRulesTest(ClCharT         *pNodeName,
             {
                 if(numFilters < lastFilters)
                 {
-                    newFilter = realloc(newFilter, sizeof(*newFilter) * lastFilters);
+                    newFilter = (ClLogRulesFilterT *) realloc(newFilter, sizeof(*newFilter) * lastFilters);
                     CL_ASSERT(newFilter != NULL);
                     memset(newFilter + numFilters, 0, sizeof(*newFilter) * (lastFilters - numFilters));
                 }
@@ -988,16 +988,14 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
     {
         if(deferred)
         {
-            if( CL_OK != clLogWriteDeferredForceWithHeader(streamHdl, severity, serviceId, 
-                                                           CL_LOG_MSGID_PRINTF_FMT, msgHeader, "%s", msg + formatStrLen) )
+            if( CL_OK != clLogWriteDeferredForceWithHeader(streamHdl, severity, serviceId, CL_LOG_MSGID_PRINTF_FMT, msgHeader, "%s", msg + formatStrLen) )
             {
                 /* How do we return the error */
             }
         }
         else
         {
-            if( CL_OK != clLogWriteDeferredWithHeader(streamHdl, severity, serviceId, 
-                                                      CL_LOG_MSGID_PRINTF_FMT, msgHeader, "%s", msg + formatStrLen) )
+            if( CL_OK != clLogWriteDeferredWithHeader(streamHdl, severity, serviceId, CL_LOG_MSGID_PRINTF_FMT, msgHeader, "%s", msg + formatStrLen) )
             {
                 /* How do we return the error */
             }

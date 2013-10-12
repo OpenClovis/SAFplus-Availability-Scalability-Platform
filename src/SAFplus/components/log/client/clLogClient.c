@@ -758,7 +758,7 @@ clLogWriteWithHeader(ClLogStreamHandleT   hStream,
                      ClLogSeverityT       logSeverity,
                      ClUint16T            serviceId,
                      ClUint16T            msgId,
-                     ClCharT              *pMsgHeader,
+                     const ClCharT              *pMsgHeader,
                      ...)
 {
     ClRcT    rc = CL_OK;
@@ -840,7 +840,7 @@ clLogVWriteAsyncWithHeader(ClLogStreamHandleT  hStream,
                            ClLogSeverityT      severity,
                            ClUint16T           serviceId,
                            ClUint16T           msgId,
-                           ClCharT             *pMsgHeader,
+                           const ClCharT             *pMsgHeader,
                            va_list             args)
 {
     ClRcT                   rc            = CL_OK;

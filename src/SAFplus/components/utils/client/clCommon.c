@@ -78,7 +78,7 @@ void saNameCopy(SaNameT* nameOut, const SaNameT *nameIn)
 
 void saNameConcat(SaNameT* nameOut, const SaNameT *prefix, const char* separator, const SaNameT *suffix)
 {
-    int curpos = 0;
+    unsigned int curpos = 0;
 
     if (prefix)
     {
@@ -160,7 +160,7 @@ ClCharT *clStrdup(const ClCharT *str)
 {
     ClCharT *dest = NULL;
     if(!str) return NULL;
-    dest = clHeapCalloc(1, strlen(str)+1);
+    dest = (ClCharT *) clHeapCalloc(1, strlen(str)+1);
     if(!dest) return NULL;
     strcpy(dest, str);
     return dest;
@@ -170,9 +170,9 @@ ClStringT *clStringDup(const ClStringT *str)
 {
     ClStringT *dest;
     if(!str) return NULL;
-    dest = clHeapCalloc(1, sizeof(*dest));
+    dest = (ClStringT *) clHeapCalloc(1, sizeof(*dest));
     if(!dest) return NULL;
-    dest->pValue = clHeapCalloc(str->length, sizeof(*dest->pValue));
+    dest->pValue = (ClCharT*) clHeapCalloc(str->length, sizeof(*dest->pValue));
     if(!dest->pValue)
     {
         clHeapFree(dest);

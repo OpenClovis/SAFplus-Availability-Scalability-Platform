@@ -106,8 +106,8 @@ clLogWriteDeferredForceWithHeader(ClHandleT       handle,
                                   ClLogSeverityT  severity,
                                   ClUint16T       serviceId,
                                   ClUint16T       msgId,
-                                  ClCharT         *pMsgHeader,
-                                  ClCharT         *pFmtStr,
+                                  const ClCharT         *pMsgHeader,
+                                  const ClCharT         *pFmtStr,
                                   ...);
 
 extern ClRcT
@@ -115,8 +115,8 @@ clLogWriteDeferredWithHeader(ClHandleT       handle,
                              ClLogSeverityT  severity,
                              ClUint16T       serviceId,
                              ClUint16T       msgId,
-                             ClCharT         *pMsgHeader,
-                             ClCharT         *pFmtStr,
+                             const ClCharT         *pMsgHeader,
+                             const ClCharT         *pFmtStr,
                              ...);
 
 extern void clLogDebugFilterInitialize(void);

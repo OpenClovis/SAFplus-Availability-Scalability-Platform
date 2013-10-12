@@ -44,7 +44,7 @@ clBitmapRealloc(ClBitmapInfoT  *pBitmapInfo,
 
     nBytes = bitNum / CL_BM_BITS_IN_BYTE;
     ++nBytes; /* bitNum is 0-based */
-    pBitmapInfo->pBitmap = clHeapRealloc(pBitmapInfo->pBitmap, nBytes); 
+    pBitmapInfo->pBitmap = (ClUint8T*) clHeapRealloc(pBitmapInfo->pBitmap, nBytes); 
     if( NULL == pBitmapInfo->pBitmap )
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clHeapRealloc() failed");
@@ -109,7 +109,7 @@ clBitmapCreate(ClBitmapHandleT  *phBitmap,
         return CL_BITMAP_RC(CL_ERR_NULL_POINTER);
     }
 
-    *phBitmap = clHeapRealloc(NULL, sizeof(ClBitmapInfoT)); 
+    *phBitmap = (ClBitmapInfoT*) clHeapRealloc(NULL, sizeof(ClBitmapInfoT)); 
     if( NULL == *phBitmap)
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clHeapRealloc() failed");
@@ -456,7 +456,7 @@ clBitmapWalkUnlocked(ClBitmapHandleT  hBitmap,
         return rc;
     }
     nBits = pBitmapInfo->nBits;
-    copyMap = clHeapCalloc(pBitmapInfo->nBytes, sizeof(*copyMap));
+    copyMap = (ClUint8T*) clHeapCalloc(pBitmapInfo->nBytes, sizeof(*copyMap));
     CL_ASSERT(copyMap != NULL);
     memcpy(copyMap, pBitmapInfo->pBitmap, pBitmapInfo->nBytes);
     clOsalMutexUnlock(pBitmapInfo->bitmapLock);
@@ -582,7 +582,7 @@ clBitmap2BufferGet(ClBitmapHandleT  hBitmap,
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clOsalMutexLock() rc: %x", rc); 
         return rc;
     }
-    *ppPositionList = clHeapCalloc(pBitmapInfo->nBytes, sizeof(ClUint8T));
+    *ppPositionList = (ClUint8T*) clHeapCalloc(pBitmapInfo->nBytes, sizeof(ClUint8T));
     if( NULL == *ppPositionList )
     {
         clOsalMutexUnlock(pBitmapInfo->bitmapLock);
@@ -671,7 +671,7 @@ clBitmap2PositionListGet(ClBitmapHandleT  hBitmap,
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clOsalMutexLock() rc: %x", rc); 
         return rc;
     }
-    *ppPositionList = clHeapCalloc(pBitmapInfo->nBitsSet, sizeof(ClUint32T));
+    *ppPositionList = (ClUint32T*) clHeapCalloc(pBitmapInfo->nBitsSet, sizeof(ClUint32T));
     if( NULL == *ppPositionList )
     {
         clOsalMutexUnlock(pBitmapInfo->bitmapLock);
