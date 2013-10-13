@@ -108,7 +108,7 @@ typedef struct clMetricTstruct
   
   /** \brief Description of this metric
    */
-  ClCharT*  desc;
+  const ClCharT*  desc;
 
   /** \brief What type of data is stored.  That is, what is a unit of? Is it a measure of time, bytes, percentage, etc */
   ClMetricTypeT type;
@@ -176,7 +176,7 @@ typedef struct ClMetric
  *
  *  \sa clMetricDelete()
  */
-void clMetricInit(ClMetric2T* metric, char* name, int initialValue, void* placement, ClMetricOptionsT options, char* desc);
+void clMetricInit(ClMetric2T* metric, const char* name, int initialValue, void* placement, ClMetricOptionsT options, const char* desc);
 
 /**
  ************************************

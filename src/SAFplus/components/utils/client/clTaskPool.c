@@ -300,7 +300,7 @@ static void clTaskPoolNewTask(ClTaskPoolT *tp)
             if (tp->pStats[i].tId == 0)
             {
                 ClRcT rc = CL_OK;
-                ClTaskPoolArgT *pArg = clHeapCalloc(1, sizeof(*pArg));
+                ClTaskPoolArgT *pArg = (ClTaskPoolArgT *) clHeapCalloc(1, sizeof(*pArg));
                 CL_ASSERT(pArg != NULL);
                 clLog(CL_LOG_SEV_TRACE,"TSK","POL", "Creating new task");
                 pArg->tp = tp;
@@ -393,7 +393,7 @@ ClRcT clTaskPoolCreate(ClTaskPoolHandleT *pHandle, ClInt32T maxTasks, ClCallback
         goto out;
     }
 
-    pTaskPool->pStats = clHeapCalloc(maxTasks, sizeof(*pTaskPool->pStats));
+    pTaskPool->pStats = (ClTaskPoolStatsT*) clHeapCalloc(maxTasks, sizeof(*pTaskPool->pStats));
     if(!pTaskPool->pStats)
     {
         clLogError("POOL","CRE","Error allocating memory");
@@ -406,9 +406,9 @@ ClRcT clTaskPoolCreate(ClTaskPoolHandleT *pHandle, ClInt32T maxTasks, ClCallback
     CL_ASSERT(rc == CL_OK);
     pTaskPool->flags |= (CL_TASK_POOL_RUNNING | CL_TASK_POOL_ACTIVE);
     memset(&pTaskPool->monitorThreshold, 0, sizeof(pTaskPool->monitorThreshold));
-    clMetricInit(&pTaskPool->maxTasks, "maxTasks", maxTasks, NULL, 0, "Maximum number of threads that can be in this pool.");
-    clMetricInit(&pTaskPool->numTasks, "numTasks", 0, NULL, 0, "Current number of threads in this pool.");
-    clMetricInit(&pTaskPool->numIdleTasks, "numIdleTasks", 0, NULL, 0, "Current number of threads in this pool that are waiting for something to do.");
+    clMetricInit(&pTaskPool->maxTasks, "maxTasks", maxTasks, NULL, CL_METRIC_NO_OPTIONS, "Maximum number of threads that can be in this pool.");
+    clMetricInit(&pTaskPool->numTasks, "numTasks", 0, NULL, CL_METRIC_NO_OPTIONS, "Current number of threads in this pool.");
+    clMetricInit(&pTaskPool->numIdleTasks, "numIdleTasks", 0, NULL, CL_METRIC_NO_OPTIONS, "Current number of threads in this pool that are waiting for something to do.");
     pTaskPool->monitorActive = CL_FALSE;
     pTaskPool->priority = CL_OSAL_THREAD_PRI_NOT_APPLICABLE;
     pTaskPool->preIdleFn = preIdleFunc;
@@ -577,7 +577,7 @@ ClRcT clTaskPoolQuiesce(ClTaskPoolHandleT handle)
     ClOsalTaskIdT taskId = 0;
     ClInt32T pendingJobs = 0;
     ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 50 };
-    ClUint32T i = 0;
+    ClInt32T i = 0;
 
     if(!tp)
         return CL_TASKPOOL_RC(CL_ERR_INVALID_HANDLE);
@@ -615,7 +615,7 @@ ClRcT clTaskPoolQuiesce(ClTaskPoolHandleT handle)
 
 static ClRcT clTaskPoolMonitor(void *pArg)
 {
-    ClTaskPoolT *tp = pArg;
+    ClTaskPoolT *tp = (ClTaskPoolT *) pArg;
     ClInt32T i;
     ClTimeT threshold = 0;
     clOsalMutexLock(&tp->mutex);
@@ -775,7 +775,7 @@ static ClRcT taskPoolMonitorSet(ClBoolT disable)
     ClTaskPoolRefT *tRef = NULL;
     ClTaskPoolT *tp = NULL;
     ClOsalTaskIdT tid = 0;
-    ClUint32T i;
+    ClInt32T i;
     tRef = clTaskPoolDataGet();
     if(tRef == NULL)
     {
@@ -851,7 +851,7 @@ ClRcT clTaskPoolRecordIOCSend(ClBoolT start)
     ClTaskPoolRefT *tRef = NULL;
     ClTaskPoolT *tp = NULL;
     ClOsalTaskIdT tid = 0;
-    ClUint32T i;
+    ClInt32T i;
 
     tRef = clTaskPoolDataGet();
 

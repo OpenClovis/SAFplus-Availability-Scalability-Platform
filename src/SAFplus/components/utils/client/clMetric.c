@@ -15,7 +15,7 @@
 #include <clMetricApi.h>
 #include <clDebugApi.h>
 
-void clMetricInit(ClMetric2T* metric, char* name, int initialValue, void* placement, ClMetricOptionsT options, char* desc)
+void clMetricInit(ClMetric2T* metric, const char* name, int initialValue, void* placement, ClMetricOptionsT options, const char* desc)
 {
   ClWordT i;
   bzero((char *)metric,sizeof(ClMetric2T));

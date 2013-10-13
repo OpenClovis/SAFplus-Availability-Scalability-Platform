@@ -293,7 +293,7 @@ ClRcT clJobQueueQuiesce(ClJobQueueT* hdl)
 static ClRcT jobQueueWalkCallback(ClQueueDataT data, ClPtrT arg)
 {
     ClJobT *job = (ClJobT*)data;
-    ClJobQueueWalkArgT *walkArg = arg;
+    ClJobQueueWalkArgT *walkArg = (ClJobQueueWalkArgT *) arg;
     ClRcT rc = CL_OK;
     if(walkArg->cb)
     {
