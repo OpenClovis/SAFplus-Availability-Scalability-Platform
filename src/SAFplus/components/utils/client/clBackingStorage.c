@@ -555,23 +555,23 @@ ClRcT clBackingStorageReadVectorFile(ClBackingStorageHandleT handle, struct iove
     if(( size % readSize))
         ++numVectors;
 
-    pIOVec = clHeapCalloc(numVectors, sizeof(*pIOVec));
+    pIOVec = (struct iovec*) clHeapCalloc(numVectors, sizeof(*pIOVec));
     if(!pIOVec)
     {
         clLogError(CL_LOG_AREA_BACKING_STORAGE, CL_LOG_CONTEXT_READV_FILE, "No memory");
         goto out_restore;
     }
-    ppDataBlocks = clHeapCalloc(numVectors, sizeof(*ppDataBlocks));
+    ppDataBlocks = (ClCharT**) clHeapCalloc(numVectors, sizeof(*ppDataBlocks));
     if(!ppDataBlocks)
     {
         clLogError(CL_LOG_AREA_BACKING_STORAGE, CL_LOG_CONTEXT_READV_FILE, "No memory");
         goto out_restore;
     }
 
-    for(i = 0; i < numVectors && size > 0;++i)
+    for(i = 0; (i < (ClInt32T) numVectors) && (size > 0);++i)
     {
         ClUint32T bytes = CL_MIN(readSize, size);
-        ppDataBlocks[i] = clHeapAllocate(bytes);
+        ppDataBlocks[i] = (ClCharT*) clHeapAllocate(bytes);
         if(!ppDataBlocks[i])
         {
             clLogError(CL_LOG_AREA_BACKING_STORAGE, CL_LOG_CONTEXT_READV_FILE, "No memory");
@@ -581,12 +581,7 @@ ClRcT clBackingStorageReadVectorFile(ClBackingStorageHandleT handle, struct iove
         pIOVec[i].iov_len = bytes;
         size -= readSize;
         n += readSize;
-        if(i+1 >= numVectors
-           ||
-           readSize >=  0x3fff
-           ||
-           n >= 0x3fff
-           )
+        if((i+1 >= (ClInt32T)numVectors) || (readSize >=  0x3fff) || (n >= 0x3fff) )
         {
             if(n >= 0x3fff)
             {
@@ -639,7 +634,7 @@ ClRcT clBackingStorageReadWalkFile(ClBackingStorageHandleT handle,
                                    ClUint32T readSize,
                                    ClPtrT pPrivateData)
 {
-    ClBackingStorageAttributesFileT *pAttr = pPrivateData;
+    ClBackingStorageAttributesFileT *pAttr = (ClBackingStorageAttributesFileT *) pPrivateData;
     ClCharT data[0xffff+1];
     ClSizeT size = 0;
     ClOffsetT curOffset = 0;
@@ -692,7 +687,7 @@ ClRcT clBackingStorageReadWalkFile(ClBackingStorageHandleT handle,
                 goto out_restore;
             }
             chunkSize = readSize;
-            pData = clHeapAllocate(chunkSize);
+            pData = (ClCharT*) clHeapAllocate(chunkSize);
             if(!pData)
             {
                 clLogError(CL_LOG_AREA_BACKING_STORAGE, 

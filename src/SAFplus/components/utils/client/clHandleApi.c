@@ -737,7 +737,7 @@ clHandleCheckout(
 { 
 	ClRcT           rc    = CL_OK;
     ClHdlDatabaseT  *hdbp = (ClHdlDatabaseT*)databaseHandle;
-    ClHdlStateT     state = 0;
+    ClHdlStateT     state = HANDLE_STATE_EMPTY;
     ClRcT           ec    = CL_OK;
     ClHandleT       handle;
     hdlDbValidityChk(hdbp);

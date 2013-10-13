@@ -160,7 +160,7 @@ ClRcT clOampRtComponentResourceInfoGet(ClParserPtrT top, SaNameT* pCompName, ClO
 
             if(pCompResourceList)
             {
-                pCompResourceArray = clHeapCalloc(1, sizeof(*pCompResourceArray));
+                pCompResourceArray = (ClOampRtComponentResourceArrayT *) clHeapCalloc(1, sizeof(*pCompResourceArray));
                 CL_ASSERT(pCompResourceArray != NULL);
             }
 

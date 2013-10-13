@@ -199,7 +199,11 @@ static ClParserTagT clIocNodeInstanceParserTags[] = {
     },
 };
 
-#define CPDI(ptag,numTags,pTags,pDataInit,numInstances,pTagChildren,numChild) { ptag,numTags,pTags,pDataInit,0,0,numInstances,CL_FALSE,numChild,pTagChildren }
+#define CPDI_LEAF(ptag,pTags,pDataInit) { ptag,CL_PARSER_NUM(pTags),pTags,pDataInit,0,0,1,CL_FALSE,0,NULL }
+#define CPDI_NODE(ptag,pTags,pDataInit,numInstances,pTagChildren) { ptag,CL_PARSER_NUM(pTags),pTags,pDataInit,0,0,numInstances,CL_FALSE,CL_PARSER_NUM(pTagChildren),pTagChildren }
+#define CPDI_BASE(ptag,pTags,pBase,numInstances,pTagChildren) { ptag,CL_PARSER_NUM(pTags),pTags,NULL,pBase,0,numInstances,CL_FALSE,CL_PARSER_NUM(pTagChildren),pTagChildren }
+
+
 
 static ClParserDataT clIocLocationParserData[] = {
     {
@@ -216,7 +220,7 @@ static ClParserDataT clIocLocationParserData[] = {
 };
 
 static ClParserDataT clIocLinkParserData[]  = {
-    CPDI("link",CL_PARSER_NUM(clIocLinkParserTags),clIocLinkParserTags,clIocLinkDataInit,0,clIocLocationParserData,CL_PARSER_NUM(clIocLocationParserData))
+    CPDI_NODE("link",clIocLinkParserTags,clIocLinkDataInit,0,clIocLocationParserData)
 #if 0    
     {
         .pTag = "link",
@@ -231,6 +235,11 @@ static ClParserDataT clIocLinkParserData[]  = {
 };
 
 static ClParserDataT clIocWaterMarkActionChildrenParserData[] = {
+    CPDI_LEAF("event",clIocWaterMarkActionParserTags,clIocWaterMarkActionDataInit),
+    CPDI_LEAF("notification",clIocWaterMarkActionParserTags,clIocWaterMarkActionDataInit),
+    CPDI_LEAF("log",clIocWaterMarkActionParserTags,clIocWaterMarkActionDataInit),
+    CPDI_LEAF("custom",clIocWaterMarkActionParserTags,clIocWaterMarkActionDataInit)
+#if 0    
     {
         .pTag = "event",
         .numTags = CL_PARSER_NUM(clIocWaterMarkActionParserTags),
@@ -267,9 +276,12 @@ static ClParserDataT clIocWaterMarkActionChildrenParserData[] = {
         .numChild = 0,
         .pTagChildren = NULL,
     },
+#endif    
 };
 
 static ClParserDataT clIocWaterMarkChildrenParserData[] = {
+    CPDI_NODE("action",((ClParserTagT *)NULL),clIocWaterMarkActionDataInit,1,clIocWaterMarkActionChildrenParserData)
+#if 0    
     {
         .pTag = "action",
         .numTags = 0,
@@ -279,9 +291,12 @@ static ClParserDataT clIocWaterMarkChildrenParserData[] = {
         .numChild = CL_PARSER_NUM(clIocWaterMarkActionChildrenParserData),
         .pTagChildren = clIocWaterMarkActionChildrenParserData,
     },
+#endif
 };
 
 static ClParserDataT clIocQueueChildrenParserData[] = {
+    CPDI_NODE("waterMark",clIocWaterMarkParserTags,clIocWaterMarkDataInit,1,clIocWaterMarkChildrenParserData)
+#if 0    
     {
         .pTag = "waterMark",
         .numTags = CL_PARSER_NUM(clIocWaterMarkParserTags),
@@ -291,9 +306,14 @@ static ClParserDataT clIocQueueChildrenParserData[] = {
         .numChild = CL_PARSER_NUM(clIocWaterMarkChildrenParserData),
         .pTagChildren = clIocWaterMarkChildrenParserData,
     },
+#endif
 };
 
 static ClParserDataT clIocNodeInstanceChildrenParserData[] = {
+    CPDI_BASE("sendQueue",clIocQueueParserTags,(ClPtrT)&pAllConfig.iocConfigInfo.iocSendQInfo,1,clIocQueueChildrenParserData),
+    CPDI_BASE("receiveQueue",clIocQueueParserTags,(ClPtrT)&pAllConfig.iocConfigInfo.iocRecvQInfo,1,clIocQueueChildrenParserData),
+    
+#if 0    
     {
         .pTag = "sendQueue",
         .numTags = CL_PARSER_NUM(clIocQueueParserTags),
@@ -316,9 +336,12 @@ static ClParserDataT clIocNodeInstanceChildrenParserData[] = {
         .numChild = CL_PARSER_NUM(clIocQueueChildrenParserData),
         .pTagChildren = clIocQueueChildrenParserData,
     },
+#endif
 };
 
 static ClParserDataT clIocNodeInstancesChildrenParserData[] = {
+    CPDI_BASE("nodeInstance",clIocNodeInstanceParserTags,(ClPtrT)&pAllConfig.iocConfigInfo,0,clIocNodeInstanceChildrenParserData),
+#if 0    
     {
         .pTag = "nodeInstance",
         .numTags = CL_PARSER_NUM(clIocNodeInstanceParserTags),
@@ -329,9 +352,16 @@ static ClParserDataT clIocNodeInstancesChildrenParserData[] = {
         .pTagChildren = clIocNodeInstanceChildrenParserData,
         .numChild = CL_PARSER_NUM(clIocNodeInstanceChildrenParserData),
     },
+#endif
 };
 
 static ClParserDataT clIocChildrenParserData[] = {
+#if 0    
+    CPDI_BASE("sendQueue",clIocQueueParserTags,(ClPtrT)&pAllConfig.iocConfigInfo.iocSendQInfo,1,clIocQueueChildrenParserData)
+    CPDI_BASE("receiveQueue",clIocQueueParserTags,,,)
+    CPDI_BASE(,,,,)
+    CPDI_BASE(,,,,)
+#endif    
     {
         .pTag = "sendQueue",
         .numTags = CL_PARSER_NUM(clIocQueueParserTags),
@@ -373,7 +403,8 @@ static ClParserDataT clIocChildrenParserData[] = {
         .numInstances = 1,
         .pTagChildren = clIocNodeInstancesChildrenParserData,
         .numChild = CL_PARSER_NUM(clIocNodeInstancesChildrenParserData),
-    },
+    }
+
 };
 
 static ClParserDataT clIocParserData[] = {
@@ -387,10 +418,11 @@ static ClParserDataT clIocParserData[] = {
         .numInstances = 1,
         .pTagChildren = clIocChildrenParserData,
         .numChild = CL_PARSER_NUM(clIocChildrenParserData),
-    }
+    }   
 };
 
-static ClParserDataT clIocConfigParserData = {
+static ClParserDataT clIocConfigParserData =
+{
     .pTag = "ioc:BootConfig",
     .numTags = 0,
     .pTags = NULL,
@@ -401,7 +433,6 @@ static ClParserDataT clIocConfigParserData = {
     .numChild = CL_PARSER_NUM(clIocParserData),
     .pTagChildren = clIocParserData,
 };
-
 /*
  * End of IOC config parser data.
 */

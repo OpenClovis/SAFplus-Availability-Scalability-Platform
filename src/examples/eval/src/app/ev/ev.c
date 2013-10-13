@@ -39,13 +39,13 @@ clEvalAppStreamAttrCopy(ClCharT                 *pAppName,
     ClUint32T  length = 0;
     
     length = FILESUFFIX_LEN + strlen(pAppName) + 1;
-    pStreamAttr->fileName = clHeapAllocate(length);
+    pStreamAttr->fileName = (ClCharT*) clHeapAllocate(length);
     if( pStreamAttr->fileName )
     {
         snprintf(pStreamAttr->fileName, length, "%s%s", pAppName, FILESUFFIX);
     }
     length = strlen(FILELOCATION) + 1;
-    pStreamAttr->fileLocation = clHeapAllocate(length);
+    pStreamAttr->fileLocation = (ClCharT*) clHeapAllocate(length);
     if( pStreamAttr->fileLocation )
     {
         snprintf(pStreamAttr->fileLocation, length, "%s", FILELOCATION);
