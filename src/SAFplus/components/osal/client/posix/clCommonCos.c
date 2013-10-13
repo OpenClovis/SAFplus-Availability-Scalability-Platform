@@ -952,9 +952,11 @@ cosPosixTaskWrapper(void* pArgument)
     /* Call the function to be executed */
     pTemp = (void*)(*taskInfo.fpTaskFunction) (taskInfo.pArgument);
 
-    pthread_exit(pTemp);
-    /*FIXME : What should be returned here? */
-    return NULL;
+   /* Implied by returning from this function pthread_exit(pTemp); */
+
+    /* Note from web: Crashes in __nptl_deallocate_tsd() are symptomatic of invalid dangling thread key cleanup function (the callback to pthread_key_create()). Most probably a library registered a thread-local variable with a callback, then failed to delete the thread-local variable and got unloaded
+*/
+    return pTemp;
 }
 
 
@@ -1708,8 +1710,6 @@ ClRcT
 cosPosixTaskDataSet(ClUint32T key, ClOsalTaskDataT threadData)
 {
     void* tmp = (void *)threadData;
-
-    nullChkRet(tmp);
 
     CL_FUNC_ENTER();
     sysRetErrChkRet(pthread_setspecific ((pthread_key_t)key, tmp));

@@ -266,7 +266,8 @@ ClEoEssentialLibInfoT gEssentialLibInfo[] = {
     { .libName = "OSAL", CL_EO_LIB_INITIALIZE_FUNC(clOsalInitialize), clOsalFinalize, NULL},
     { .libName = "MEMORY",CL_EO_LIB_INITIALIZE_FUNC(clMemStatsInitialize), clMemStatsFinalize, (ClPtrT )&gClEoMemConfig, 
         CL_SIZEOF_ARRAY(gMemWaterMark), (ClPtrT)gMemWaterMark},
-    { .libName = "HEAP", CL_EO_LIB_INITIALIZE_FUNC(clHeapLibInitialize), clHeapLibFinalize, (ClPtrT)&gClEoHeapConfig},
+    { .libName = "HEAP", CL_EO_LIB_INITIALIZE_FUNC(clHeapLibInitialize), NULL, (ClPtrT)&gClEoHeapConfig},  /* Heap will be freed when program quits, leave it in case leaks */
+    /* { .libName = "HEAP", CL_EO_LIB_INITIALIZE_FUNC(clHeapLibInitialize), clHeapLibFinalize, (ClPtrT)&gClEoHeapConfig}, */
     { .libName = "BUFFER", CL_EO_LIB_INITIALIZE_FUNC(clBufferInitialize), clBufferFinalize, (ClPtrT)&gClEoBuffConfig},
     { .libName = "TIMER", CL_EO_LIB_INITIALIZE_FUNC(clTimerInitialize), clTimerFinalize, NULL},
     { .libName = "IOC", CL_EO_LIB_INITIALIZE_FUNC(clIocLibInitialize), clIocLibFinalize, (ClPtrT)&gClIocRecvQInfo, 
@@ -484,8 +485,7 @@ static ClRcT clEoEssentialLibInitialize(void)
 
     for (i = 0; i < tableSize; i++)
     {
-        clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "Initializing essential library [%s]...", gEssentialLibInfo[i].libName);
+        clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing essential library [%s]...", gEssentialLibInfo[i].libName);
         if (CL_OK != (rc = gEssentialLibInfo[i].pLibInitializeFunc(gEssentialLibInfo[i].pConfig)))
         {
             if (CL_GET_ERROR_CODE(rc) != CL_ERR_INITIALIZED) /* Already Initialized is benign */
@@ -515,16 +515,16 @@ static ClRcT clEoEssentialLibFinalize(void)
 
     for (i = tableSize-1; i >= 0; i--)
     {
-        rc = gEssentialLibInfo[i].pLibFinalizeFunc();
-        if (CL_OK != rc)
-        {
-            clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
-                  "Failed to finalize essential library [%s], error [0x%x]",
-                  gEssentialLibInfo[i].libName, rc);
-            return rc;
-        }
+        if (gEssentialLibInfo[i].pLibFinalizeFunc)
+        {            
+            rc = gEssentialLibInfo[i].pLibFinalizeFunc();
+            if (CL_OK != rc)
+            {
+                clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Failed to finalize essential library [%s], error [0x%x]", gEssentialLibInfo[i].libName, rc);
+                return rc;
+            }
+        }        
     }
-
     return CL_OK;
 }
 
@@ -889,8 +889,7 @@ ClRcT clASPFinalize(void)
     
     if (CL_FALSE == gClASPInitialized)
     {
-        clLog(CL_LOG_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN,
-              "Called ASP finalize without initializing ASP");
+        clLog(CL_LOG_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Called SAFplus finalize without initializing first.");
         
         return CL_ERR_NOT_INITIALIZED;
     }
@@ -910,8 +909,7 @@ ClRcT clASPFinalize(void)
     rc = clEoTearDown();
     if(rc != CL_OK)
     {
-        clLog(CL_LOG_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN,
-              "ASP finalize failed, error[0x%x]", rc);
+        clLog(CL_LOG_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN, "SAFplus finalize failed, error[0x%x]", rc);
         return rc;
     }
     
