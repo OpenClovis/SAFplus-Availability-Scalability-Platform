@@ -152,7 +152,7 @@ void clErrorCodeToString(ClRcT errorCode, ClCharT *buf, ClUint32T maxBufSize)
     return;
 }
 
-ClCharT *clErrorToString(ClRcT errorCode)
+const ClCharT *clErrorToString(ClRcT errorCode)
 {
     ClUint32T compId;
     ClUint32T errNo;

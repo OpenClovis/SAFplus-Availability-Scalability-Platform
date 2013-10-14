@@ -7,7 +7,7 @@
 
 ClPluginHandle* clLoadPlugin(ClWordT pluginId, ClWordT version, const char* name)
 {
-    ClPluginHandle* ph = clHeapAllocate(sizeof(ClPluginHandle));
+    ClPluginHandle* ph = (ClPluginHandle*) clHeapAllocate(sizeof(ClPluginHandle));
     if (!ph)
     {
         clDbgResourceLimitExceeded(clDbgMemoryResource,0,("Failed to allocate [%u] bytes of memory.",(unsigned int) sizeof(ClPluginHandle)));

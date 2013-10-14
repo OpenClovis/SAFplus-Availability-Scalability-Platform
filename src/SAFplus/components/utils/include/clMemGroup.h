@@ -99,7 +99,7 @@ void clMemGroupInit(ClMemGroupT* obj,ClWordT baseSize);
  *  \sa clMemGroupInit(), clMemGroupAlloc(), clMemGroupFreeAll(), clMemGroupDelete()
  *
  */    
-void* clMemGroupAlloc(ClMemGroupT* obj,int amt);
+void* clMemGroupAlloc(ClMemGroupT* obj,unsigned int amt);
 
 /**
  ************************************

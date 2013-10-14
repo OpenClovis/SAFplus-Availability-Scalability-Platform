@@ -11,7 +11,7 @@ extern "C" {
 
 extern SaAisErrorT clErrorToSaf(ClRcT errorCode);
 extern void clErrorCodeToString(ClRcT errorCode, ClCharT *buf, ClUint32T maxBufSize);
-extern ClCharT *clErrorToString(ClRcT errorCode);
+extern const ClCharT *clErrorToString(ClRcT errorCode);
 
 #ifdef __cplusplus
 }

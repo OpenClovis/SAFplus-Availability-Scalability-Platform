@@ -650,7 +650,7 @@ static ClRcT clParseInstance(ClParserPtrT node,
  * The main parser entry point
  *
 */
-ClRcT clParseXML(ClCharT *pPath,ClCharT *pFileName,ClParserDataT *pData)
+ClRcT clParseXML(ClCharT *pPath,const ClCharT *pFileName,ClParserDataT *pData)
 {
     ClRcT rc = CL_OK;
     ClParserPtrT root;

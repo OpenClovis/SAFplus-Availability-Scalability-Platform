@@ -10,11 +10,11 @@
 #define CL_INVALID_ERROR_CODE                   "No error-to-string mapping in the table, yet."
 
 typedef struct {
-    ClCharT *pCompId;
-    ClCharT **ppCompErrs;
+    const ClCharT *pCompId;
+    const ClCharT **ppCompErrs;
 } ClCompErrorT;
 
-static ClCharT *gpSafErrs[] = {
+static const ClCharT *gpSafErrs[] = {
     CL_STRING_REP_OF(CL_OK),
     CL_STRING_REP_OF(SA_AIS_OK),
     CL_STRING_REP_OF(SA_AIS_ERR_LIBRARY),
@@ -46,7 +46,7 @@ static ClCharT *gpSafErrs[] = {
 };
 
 
-static ClCharT *gpClCommonErrs[] = {
+static const ClCharT *gpClCommonErrs[] = {
     CL_STRING_REP_OF(CL_OK),
     CL_STRING_REP_OF(CL_ERR_NO_MEMORY),
     CL_STRING_REP_OF(CL_ERR_INVALID_PARAMETER),

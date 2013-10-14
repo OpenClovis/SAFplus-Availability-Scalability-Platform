@@ -235,8 +235,8 @@ static ClRcT clIocWaterMarkDataInit(ClPtrT pParentBase,
                                     ClParserTagOpT op)
 {
     register ClInt32T i;
-    ClPtrT *pParentBases[] = { (ClPtrT)&pAllConfig.iocConfigInfo.iocSendQInfo,
-                               (ClPtrT)&pAllConfig.iocConfigInfo.iocRecvQInfo,
+    ClPtrT *pParentBases[] = { (ClPtrT*)&pAllConfig.iocConfigInfo.iocSendQInfo,
+                               (ClPtrT*)&pAllConfig.iocConfigInfo.iocRecvQInfo,
                                NULL,
     };
     ClRcT rc = CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
@@ -274,8 +274,8 @@ static ClRcT clIocWaterMarkActionDataInit(ClPtrT pParentBase,
     ClPtrT pCurrentBase = NULL;
     register ClInt32T i;
     ClPtrT *pBases[] = { 
-        (ClPtrT)&pAllConfig.iocConfigInfo.iocSendQInfo.queueWM,
-        (ClPtrT)&pAllConfig.iocConfigInfo.iocRecvQInfo.queueWM,
+        (ClPtrT*)&pAllConfig.iocConfigInfo.iocSendQInfo.queueWM,
+        (ClPtrT*)&pAllConfig.iocConfigInfo.iocRecvQInfo.queueWM,
         NULL,
     };
     ClRcT rc = CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
@@ -295,8 +295,8 @@ static ClRcT clIocWaterMarkActionDataInit(ClPtrT pParentBase,
          * Search for the matching parent base in water marks
          */
         ClPtrT *pActionBases[] = { 
-            (ClPtrT)&pAllConfig.wmActions[CL_IOC_SENDQ],
-            (ClPtrT)&pAllConfig.wmActions[CL_IOC_RECVQ],
+            (ClPtrT*)&pAllConfig.wmActions[CL_IOC_SENDQ],
+            (ClPtrT*)&pAllConfig.wmActions[CL_IOC_RECVQ],
             NULL,
         };
         for(i = 0; pActionBases[i] && pActionBases[i] != pParentBase; ++i);
@@ -340,7 +340,7 @@ static ClRcT clIocTransportDataInit(ClPtrT pParentBase,
         {
             ClUint32T numInstances = *pNumInstances;
             /*Allocate the memory for transport*/
-            pTransport = calloc(numInstances,sizeof(ClIocUserTransportConfigT));
+            pTransport = (ClIocUserTransportConfigT*) calloc(numInstances,sizeof(ClIocUserTransportConfigT));
             rc = CL_PARSER_RC(CL_ERR_NO_MEMORY);
             if(pTransport == NULL)
             {
@@ -376,7 +376,7 @@ static ClRcT clIocLinkDataInit(ClPtrT pParentBase,
                                )
 {
     ClRcT rc = CL_PARSER_RC(CL_ERR_INVALID_PARAMETER);
-    ClIocUserTransportConfigT *pTransport = pParentBase;
+    ClIocUserTransportConfigT *pTransport = (ClIocUserTransportConfigT *) pParentBase;
     ClIocUserLinkCfgT *pLinkCfg = NULL;
     if(pParentBase == NULL || pNumInstances == NULL || 
        pBase==NULL || pBaseOffset==NULL)
@@ -390,7 +390,7 @@ static ClRcT clIocLinkDataInit(ClPtrT pParentBase,
         {
             ClUint32T numInstances = *pNumInstances;
             rc = CL_PARSER_RC(CL_ERR_NO_MEMORY);
-            pLinkCfg = calloc(numInstances,sizeof(ClIocUserLinkCfgT));
+            pLinkCfg = (ClIocUserLinkCfgT*) calloc(numInstances,sizeof(ClIocUserLinkCfgT));
             if(pLinkCfg == NULL)
             {
                 clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_DATA,"Error allocating memory\n");
@@ -425,7 +425,7 @@ static ClRcT clIocLocationDataInit(ClPtrT pParentBase,
                                    )
 {
     ClRcT rc = CL_PARSER_RC(CL_ERR_INVALID_PARAMETER);
-    ClIocUserLinkCfgT *pLinkCfg = pParentBase;
+    ClIocUserLinkCfgT *pLinkCfg = (ClIocUserLinkCfgT *)pParentBase;
     ClIocLocationInfoT *pLocation = NULL;
 
     if(pParentBase== NULL || pNumInstances == NULL 
@@ -440,7 +440,7 @@ static ClRcT clIocLocationDataInit(ClPtrT pParentBase,
         {
             ClUint32T numInstances = *pNumInstances;
             rc = CL_PARSER_RC(CL_ERR_NO_MEMORY);
-            pLocation = calloc(numInstances,sizeof(ClIocLocationInfoT));
+            pLocation = (ClIocLocationInfoT*) calloc(numInstances,sizeof(ClIocLocationInfoT));
             if(pLocation == NULL)
             {
                 clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory\n");
