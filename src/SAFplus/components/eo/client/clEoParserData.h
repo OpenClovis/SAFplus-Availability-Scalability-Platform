@@ -48,11 +48,7 @@ static ClParserTagValidateFunctionT clWaterMarkValidate;
 
 static ClParserTagT clEoConfigParserTags[] = {
     {
-        .pTag = "name",
-        .tagType = CL_PARSER_STR_TAG,
-        .tagSize = CL_TAG_SIZE(ClEoParseInfoT,eoName),
-        .tagOffset = CL_TAG_OFFSET(ClEoParseInfoT,eoName),
-        .pTagFmt = clEoConfigTagFmt,
+        "name", CL_PARSER_STR_TAG, CL_TAG_SIZE(ClEoParseInfoT,eoName), CL_TAG_OFFSET(ClEoParseInfoT,eoName), clEoConfigTagFmt, NULL
     },
 };
 

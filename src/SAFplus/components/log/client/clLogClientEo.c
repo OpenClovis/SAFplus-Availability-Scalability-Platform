@@ -124,7 +124,7 @@ clLogClntEoEntryCreate(ClLogClntEoDataT  **ppClntEoEntry)
         return rc;
     }
 
-    *ppClntEoEntry = clHeapCalloc(1, sizeof(ClLogClntEoDataT));
+    *ppClntEoEntry = (ClLogClntEoDataT*) clHeapCalloc(1, sizeof(ClLogClntEoDataT));
     if( NULL == *ppClntEoEntry )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));

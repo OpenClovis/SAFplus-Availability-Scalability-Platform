@@ -43,8 +43,9 @@ extern "C" {
 #include <clEoApi.h>
 #include <clEoIpi.h>
 #include <clLogApi.h>
-
+#include <clDebugApi.h>
 #include <clIocParseConfig.h>
+#include <clEoConfigApi.h>
 
     /* 
      * Defines 
@@ -59,24 +60,6 @@ extern "C" {
      * TypeDefs 
      */
 
-    /*
-     * The Essential Libraries Will always be initialized hence there
-     * isn't a need for the dummy function in the Ground Library.
-     */
-    typedef enum{
-        CL_EO_LIB_ID_OSAL,
-        CL_EO_LIB_ID_MEM,
-        CL_EO_LIB_ID_HEAP,
-        CL_EO_LIB_ID_BUFFER,
-        CL_EO_LIB_ID_TIMER,
-        CL_EO_LIB_ID_IOC,
-        CL_EO_LIB_ID_RMD,
-        CL_EO_LIB_ID_EO,
-        CL_EO_LIB_ID_RES,
-        CL_EO_LIB_ID_POOL  =  CL_EO_LIB_ID_RES,
-        CL_EO_LIB_ID_CPM,
-        CL_EO_LIB_ID_MAX 
-    }ClEoLibIdT; 
 
     typedef ClRcT (*ClEoEssentialLibInitializeFuncT) (const ClPtrT pConfig);
     typedef ClRcT (*ClEoEssentialLibFinalizeFuncT) (void);
@@ -87,7 +70,7 @@ extern "C" {
         ClEoEssentialLibFinalizeFuncT   pLibFinalizeFunc;
         ClPtrT                          pConfig;
         ClUint32T                       noOfWaterMarks;
-        ClEoActionInfoT                 *pActionInfo;
+        ClEoActionInfoT*                pActionInfo;
 
 #define LIB_NAME(_libId) gEssentialLibInfo[(_libId)].libName
 #define LIB_ACTION(_libId) gEssentialLibInfo[(_libId)].pActionInfo
@@ -126,8 +109,9 @@ extern "C" {
         case CL_CID_IOC:
             return CL_EO_LIB_ID_IOC;
 
-        default: 
-            return CL_CID_MAX;
+        default:
+            CL_ASSERT(0);
+            return CL_EO_LIB_ID_MAX;
         }
     }
 
@@ -179,8 +163,7 @@ extern "C" {
     extern ClRcT clEoQueueWaterMarkInfo(ClEoLibIdT libId, ClWaterMarkIdT wmId, 
                                         ClWaterMarkT *pWaterMark, ClEoWaterMarkFlagT wmType, ClEoActionArgListT argList);
 
-    extern ClRcT clEoQueueLogInfo(ClEoLibIdT libId,ClLogSeverityT severity,
-                                  const ClCharT *pMsg);
+    extern ClRcT clEoQueueLogInfo(ClEoLibIdT libId,ClLogSeverityT severity, const ClCharT *pMsg);
 
     extern ClRcT clEoIocCommPortWMNotification(ClCompIdT compId, ClIocPortT port,
                                                ClIocNodeAddressT node,

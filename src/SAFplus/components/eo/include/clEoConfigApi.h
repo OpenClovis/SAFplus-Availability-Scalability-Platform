@@ -51,7 +51,6 @@ extern "C" {
 
 #include <clCommon.h>
 
-
 /******************************************************************************
  *  Constant and Macro Definitions
  *****************************************************************************/
@@ -88,10 +87,33 @@ typedef ClUint64T               ClEoIdT;
  *  Data Types
  *****************************************************************************/
 
+    /*
+     * The Essential Libraries Will always be initialized hence there
+     * isn't a need for the dummy function in the Ground Library.
+     */
+    typedef enum{
+        CL_EO_LIB_ID_OSAL,
+        CL_EO_LIB_ID_MEM,
+        CL_EO_LIB_ID_HEAP,
+        CL_EO_LIB_ID_BUFFER,
+        CL_EO_LIB_ID_TIMER,
+        CL_EO_LIB_ID_IOC,
+        CL_EO_LIB_ID_RMD,
+        CL_EO_LIB_ID_EO,
+        CL_EO_LIB_ID_RES,
+        CL_EO_LIB_ID_POOL  =  CL_EO_LIB_ID_RES,
+        CL_EO_LIB_ID_CPM,
+        CL_EO_LIB_ID_MAX 
+    }ClEoLibIdT; 
+
 /**
  * This is the EO state enumeration.
  */
 typedef enum {
+/**
+ * This initializes the variables... it is an illegal state
+ */
+    CL_EO_STATE_INVALID        = 0x0,
 
 /**
  * This indicates the initial state of the EO.
@@ -260,10 +282,9 @@ typedef ClRcT   (* ClEoAppHealthCheckCallbackT)(
         CL_OUT ClEoSchedFeedBackT  *schFeedback);
 
 /**
- * The application performs custom action in this callback
+ * Application can handle watermarks getting hit
  */
-typedef ClRcT (*ClEoCustomActionT)(ClCompIdT compId, ClWaterMarkIdT wmId, 
-        ClWaterMarkT *pWaterMark, ClEoWaterMarkFlagT wmType, ClEoActionArgListT argList);
+typedef ClRcT (*ClEoCustomActionT)(ClEoLibIdT libId, ClWaterMarkIdT wmId, ClWaterMarkT *pWaterMark, ClEoWaterMarkFlagT wmType, ClEoActionArgListT argList);
 
 /**
  * This structure is passed during the clEoCreate API and contains the EO related

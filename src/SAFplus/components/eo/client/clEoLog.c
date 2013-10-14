@@ -43,27 +43,6 @@ File        : clEoLog.c
 #define EO_LOG_AREA_LOG		"LOG"	
     
 extern ClEoEssentialLibInfoT gEssentialLibInfo[];
-ClRcT clEoLibLog (ClUint32T compId,ClUint32T severity, const ClCharT *msg, ...)
-{
-    ClRcT rc = CL_OK;
-    ClCharT clEoLogMsg[CL_EOLIB_MAX_LOG_MSG] = "";
-    ClEoLibIdT libId = eoCompId2LibId(compId);
-    va_list args;
-    
-    if((rc = eoLibIdValidate(libId)) != CL_OK)
-    {
-        return rc;
-    }
-    va_start(args, msg);
-    vsnprintf(clEoLogMsg, CL_EOLIB_MAX_LOG_MSG, msg, args);
-    va_end(args);
-    /*Dont use the return val. as of now*/
-    //if(clLogCheckLog(severity) == CL_TRUE)
-    {
-        clEoQueueLogInfo(libId,severity,(const ClCharT *)clEoLogMsg);
-    }
-    return CL_OK;
-}
 
 ClRcT clEoLogInitialize(void)
 {

@@ -73,7 +73,7 @@ clTcParseWorkLoad (
 			ClCharT				*test_case_name,
 			ClTcParamListT 		*param_list )
 {
-	int 	iter;
+	unsigned int 	iter;
 	ClCharT *attr_name;
 	ClCharT	config_file[TC_MAX_STR_LENGTH];
 	ClCharT	file_path[TC_MAX_STR_LENGTH];
@@ -272,7 +272,7 @@ clTcParseConfigFile (
 
 			/* Allocate memory for paramaters
 			 */
-			param_list->params = clHeapAllocate(num_params * sizeof(ClTcParamT));
+			param_list->params = (ClTcParamT*) clHeapAllocate(num_params * sizeof(ClTcParamT));
 			if (param_list->params == NULL)
 			{
         		clLogError(TC_LOG_AREA_PARSE,TC_LOG_CTX_CONFIG, 

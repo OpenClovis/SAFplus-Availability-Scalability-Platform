@@ -327,7 +327,8 @@ clHandleAdd (ClHandleDatabaseHandleT databaseHandle,  void* instance, ClIocPhysi
 
   hdbp->handles[handle].handle     = *handle_out;
 
-  clDbgResourceNotify(clDbgHandleResource, clDbgAllocate, hdbp, handle+1, ("Handle [%p:%#llX] allocated", (ClPtrT)hdbp, handle+1));
+  // Log uses handle so handle cant' use log
+  // clDbgResourceNotify(clDbgHandleResource, clDbgAllocate, hdbp, handle+1, ("Handle [%p:%#llX] allocated", (ClPtrT)hdbp, handle+1));
   
   rc = pthread_mutex_unlock (&hdbp->mutex);
   if (rc != 0)

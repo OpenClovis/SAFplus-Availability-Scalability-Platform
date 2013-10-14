@@ -496,7 +496,7 @@ clLogRulesTest(ClCharT         *pNodeName,
         gClLogParseFilter = 0;
         if(!ruleLockValid)
         {
-            ClLogRulesFilterT *firstFilter;
+            /* ClLogRulesFilterT *firstFilter; */
             ClUint32T lastFilters;
             ClLogRulesFilterT *newFilter = NULL;
             ClUint32T numFilters = 0;
@@ -510,7 +510,7 @@ clLogRulesTest(ClCharT         *pNodeName,
             if(clOsalMutexLockSilent(&gClRuleLock) != CL_OK)
                 return CL_FALSE;
             ruleLockValid = gClRuleLockValid = CL_TRUE;
-            firstFilter = gClLogRules.pFilters;
+            /* firstFilter = gClLogRules.pFilters; */
             lastFilters = gClLogRules.numFilters;
             clLogParse(CL_LOG_RULES_FILE, &newFilter, &numFilters);
             if(newFilter && numFilters)
@@ -908,7 +908,7 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
     ClCharT           msg[CL_LOG_MAX_MSG_LEN] = {0};
     ClCharT           msgHeader[CL_MAX_NAME_LENGTH];
     ClUint32T         formatStrLen        = 0;
-    ClCharT           *pSevName           = NULL;
+    const ClCharT    *pSevName           = NULL;
     ClCharT           timeStr[40]          = {0};
     ClBoolT           match = CL_FALSE;
     ClBoolT           filterMatch = CL_FALSE;

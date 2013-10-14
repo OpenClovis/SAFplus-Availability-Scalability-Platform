@@ -344,7 +344,7 @@ static ClRcT clMemTrackerProcessNameGet(ClCharT *pProcessBuf,ClUint32T maxSize)
 
 static ClRcT clMemTrackerFileNameGet(ClCharT *pFileName,ClUint32T maxSize)
 {
-    ClCharT *pBase ;
+    const ClCharT *pBase ;
     ClCharT dirBuf[MAX_BUFFER_SIZE] = {0};
     ClCharT processBuf[MAX_BUFFER_SIZE] = {0};
     ClRcT rc ;

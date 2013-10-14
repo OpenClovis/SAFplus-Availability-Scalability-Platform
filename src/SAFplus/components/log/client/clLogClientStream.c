@@ -335,15 +335,14 @@ clLogClntStreamEntryAdd(ClCntHandleT       hClntTable,
 #endif
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    pStreamData = clHeapCalloc(1, sizeof(ClLogClntStreamDataT));
+    pStreamData = (ClLogClntStreamDataT*) clHeapCalloc(1, sizeof(ClLogClntStreamDataT));
     if( pStreamData == NULL )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
         return CL_LOG_RC(CL_ERR_NO_MEMORY);
     }
     
-    pStreamData->shmName.pValue = clHeapCalloc(pShmName->length,
-                                               sizeof(ClCharT));
+    pStreamData->shmName.pValue = (ClCharT*) clHeapCalloc(pShmName->length, sizeof(ClCharT));
     if( NULL == pStreamData->shmName.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -500,7 +499,7 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
         CL_LOG_DEBUG_ERROR(("clCntNodeUserKeyGet(): rc[0x %x]", rc));
         return rc;
     }
-    ClUint32T recSize= pClntData->recSize;
+    ClInt32T recSize= pClntData->recSize;
 #define __UPDATE_REC_SIZE do {                  \
         if(recSize < nbytes )                   \
             recSize = nbytes;                   \
@@ -837,7 +836,7 @@ clLogClientMsgArgCopy(ClUint16T   msgId,
         {
             ClInt32T   nBytes  = 0;
             ClCharT   *pFmtStr = va_arg(args, ClCharT *);
-            ClUint32T tempLen  = bufLength - 2; /* In case of ascii, one for \n one for '\0' */
+            ClInt32T   tempLen  = bufLength - 2; /* In case of ascii, one for \n one for '\0' */
 
             if( (nBytes = (vsnprintf((char *) pBuffer, tempLen  , pFmtStr,
                             args))) < 0 )
@@ -881,7 +880,7 @@ clLogClientMsgArgCopy(ClUint16T   msgId,
                     break; /* out of while */
                 }
 
-                pVal = va_arg(args, void *);
+                pVal = va_arg(args, void **);
                 if( NULL == pVal )
                 {
                     return CL_LOG_RC(CL_ERR_NULL_POINTER);
@@ -924,7 +923,7 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
                               ClUint8T           *pRecord)
 {
 #define __UPDATE_REC_SIZE do {                  \
-        if(recSize < nbytes )                   \
+        if(recSize < (ClUint32T) nbytes )              \
             recSize = nbytes;                   \
         recSize -= nbytes;                      \
         if(!recSize)                            \
@@ -957,7 +956,7 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
         pRecord += nbytes;
         __UPDATE_REC_SIZE;
         {
-            ClCharT *pSeverity = clLogSeverityStrGet(severity);
+            const ClCharT *pSeverity = clLogSeverityStrGet(severity);
             ClCharT c = 0;
             ClInt32T hdrLen = 0;
             ClInt32T len = 0;
@@ -974,12 +973,12 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
             len = vsnprintf(&c, 1, pFmtStr, argsCopy);
             va_end(argsCopy);
             if(len < 0) len = 0;
-            hdrLen = CL_MIN(hdrLen, recSize - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - 1);
-            len = CL_MIN(len, recSize - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - hdrLen - 1);
-            nbytes = snprintf((ClCharT*)pRecord, recSize - 1, LOG_ASCII_HDR_LEN_FMT, hdrLen);
+            hdrLen = CL_MIN((ClUint32T) hdrLen, recSize - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - 1);
+            len = CL_MIN((ClUint32T)len, recSize - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - hdrLen - 1);
+            nbytes = snprintf((ClCharT*)pRecord, (ClInt32T) recSize - 1, LOG_ASCII_HDR_LEN_FMT, hdrLen);
             pRecord += nbytes;
             __UPDATE_REC_SIZE;
-            nbytes = snprintf((ClCharT*)pRecord, recSize - 1, LOG_ASCII_DATA_LEN_DELIMITER_FMT, len);
+            nbytes = snprintf((ClCharT*)pRecord, (ClInt32T) recSize - 1, LOG_ASCII_DATA_LEN_DELIMITER_FMT, len);
             pRecord += nbytes;
             __UPDATE_REC_SIZE;
             if(pMsgHeader && pMsgHeader[0])

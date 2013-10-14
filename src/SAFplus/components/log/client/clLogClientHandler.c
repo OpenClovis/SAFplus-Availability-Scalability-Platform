@@ -281,7 +281,7 @@ clLogClntHandlerEntryGet(ClLogClntEoDataT        *pClntEoEntry,
 
     *pAddedEntry = CL_FALSE;
     
-    pKey = clHeapCalloc(1, sizeof(ClIocMulticastAddressT));
+    pKey = (ClIocMulticastAddressT*)clHeapCalloc(1, sizeof(ClIocMulticastAddressT));
     if( NULL == pKey )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -322,7 +322,7 @@ clLogClntHandlerEntryAdd(ClCntHandleT            hStreamHandlerTable,
     
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    pHandlerData = clHeapCalloc(1, sizeof(ClLogClntHandlerNodeT));
+    pHandlerData = (ClLogClntHandlerNodeT*)clHeapCalloc(1, sizeof(ClLogClntHandlerNodeT));
     if( NULL == pHandlerData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -609,7 +609,7 @@ clLogClntHandlersNotify(ClBitmapHandleT  hBitmap,
     ClLogClntEoDataT               *pClntEoEntry  = NULL;
     ClLogStreamHandlerHandleDataT  *pData         = NULL;
     ClLogInitHandleDataT           *pInitData     = NULL;
-    ClLogClntHdlrRecvDataT         *pRecvData     = pCookie;
+    ClLogClntHdlrRecvDataT         *pRecvData     = (ClLogClntHdlrRecvDataT*) pCookie;
     ClLogClntFlushKeyT             *pKey          = NULL; 
 
     CL_LOG_DEBUG_TRACE(("Enter"));
@@ -639,7 +639,7 @@ clLogClntHandlersNotify(ClBitmapHandleT  hBitmap,
     }
     if( CL_LOG_HANDLER_WILL_ACK == pData->handlerFlag )
     {
-        pKey = clHeapCalloc(1, sizeof(ClLogClntFlushKeyT));
+        pKey = (ClLogClntFlushKeyT*) clHeapCalloc(1, sizeof(ClLogClntFlushKeyT));
         if( NULL == pKey )
         {
             CL_LOG_DEBUG_ERROR(("Allocation failed rc[0x %x]", rc));

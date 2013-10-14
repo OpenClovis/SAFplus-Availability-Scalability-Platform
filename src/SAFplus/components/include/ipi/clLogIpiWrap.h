@@ -57,13 +57,12 @@
 #define CL_LOG_MAX            0x15
 #define CL_LOG_END            CL_LOG_MAX
 
-
 /**
- * This contains the list of all common log messages used by ASP
+ * This contains the list of all common log messages used by SAFplus
  * components.
  */
 
-extern ClCharT		*clLogCommonMsg[];
+extern const ClCharT		*clLogCommonMsg[];
 
 /**
  * "[%s] Service Started".

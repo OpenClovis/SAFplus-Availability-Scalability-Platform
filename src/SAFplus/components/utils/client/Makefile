@@ -94,7 +94,7 @@ SRC_FILES	:= clPool.c \
 	       clErrorTable.c \
 	       md5.c\
 	       clDifferenceVector.c \
-	clIocParseConfig.c	
+	       clIocParseConfig.c	
 
 #	           clOampRtParser.c
 

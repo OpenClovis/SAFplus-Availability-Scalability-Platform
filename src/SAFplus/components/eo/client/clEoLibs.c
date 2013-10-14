@@ -132,8 +132,8 @@ static ClRcT clEoIocWMNotification(ClCompIdT compId,
 {
     ClRcT rc = CL_OK;
     ClIocQueueNotificationT *pIocQueueNotification = NULL;
-    ClIocQueueNotificationT queueNotification = {0};
-    ClIocNotificationIdT id = ntohl(pIocNotification->id);
+    ClIocQueueNotificationT queueNotification = {CL_WM_LOW};
+    ClIocNotificationIdT id = (ClIocNotificationIdT) ntohl(pIocNotification->id);
     ClWaterMarkIdT wmID;
     const ClCharT *msgStr = NULL;
 
@@ -170,10 +170,7 @@ static ClRcT clEoIocWMNotification(ClCompIdT compId,
             queueNotification.queueSize,queueNotification.messageLength);
 
     /*Trigger EO watermark hit to take the specific actions*/
-    rc = clEoWaterMarkHit(compId,wmID,
-            &queueNotification.wm,
-            queueNotification.wmID == CL_WM_HIGH \
-            ? CL_TRUE : CL_FALSE,NULL);
+    rc = clEoWaterMarkHit(compId,wmID, &queueNotification.wm, queueNotification.wmID == CL_WM_HIGH ? CL_WM_HIGH_LIMIT : CL_WM_LOW_LIMIT,NULL);
 
 out:
     return rc;
@@ -189,31 +186,26 @@ ClRcT clEoProcessIocRecvPortNotification(ClEoExecutionObjT* pThis, ClBufferHandl
 
     ClIocNotificationT notificationInfo = {0};
     ClUint32T msgLength = sizeof(ClIocNotificationT);
-    ClIocNotificationIdT notificationId = 0;
+    ClIocNotificationIdT notificationId;
     ClUint32T protoVersion = 0;
 
     CL_EO_LIB_VERIFY();
 
-    rc = clBufferNBytesRead(eoRecvMsg, (ClUint8T *)&notificationInfo,
-            &msgLength);
+    rc = clBufferNBytesRead(eoRecvMsg, (ClUint8T *)&notificationInfo, &msgLength);
     if (rc != CL_OK)
     {
-        clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "EO: clBufferNBytesRead() Failed, rc=[0x%x]\n",
-                   rc);
+        clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED, "EO: clBufferNBytesRead() Failed, rc=[0x%x]\n", rc);
         goto out_delete;
     }
     
     protoVersion = ntohl(notificationInfo.protoVersion);
     if(protoVersion != CL_IOC_NOTIFICATION_VERSION)
     {
-        clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "EO: Ioc recv notification received with version [%d]. Supported [%d]\n",
-                   protoVersion, CL_IOC_NOTIFICATION_VERSION);
+        clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED, "EO: Ioc recv notification received with version [%d]. Supported [%d]\n", protoVersion, CL_IOC_NOTIFICATION_VERSION);
         goto out_delete;
     }
 
-    notificationId = ntohl(notificationInfo.id); 
+    notificationId = (ClIocNotificationIdT) ntohl(notificationInfo.id); 
 
     switch(notificationId)
     {
@@ -237,9 +229,7 @@ ClRcT clEoProcessIocRecvPortNotification(ClEoExecutionObjT* pThis, ClBufferHandl
                 rc = clEoIocWMNotification(CL_CID_IOC,portId,nodeId,&notificationInfo);
                 if (rc != CL_OK)
                 {
-                    clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,
-                               "EO: clEoIocWMNotification() Failed, rc=[0x%x]\n",
-                               rc);
+                    clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED, "EO: clEoIocWMNotification() Failed, rc=[0x%x]\n", rc);
                     goto out_delete;
                 }
             }
@@ -260,8 +250,7 @@ ClRcT clEoProcessIocRecvPortNotification(ClEoExecutionObjT* pThis, ClBufferHandl
             clEoClientNotification(&notificationInfo);
             return rc;
         default:
-            clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid notification id[%d]\n",
-                        notificationId);
+            clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid notification id[%d]\n", notificationId);
             rc = CL_EO_RC(CL_ERR_BAD_OPERATION);
             goto out_delete; 
     }
@@ -272,7 +261,7 @@ out_delete:
     return rc;
 }
 
-ClRcT clEoLibLog (ClUint32T compId,ClUint32T severity, const ClCharT *msg, ...)
+ClRcT clEoLibLog (ClUint32T compId,ClLogSeverityT severity, const ClCharT *msg, ...)
 {
     ClRcT rc = CL_OK;
     ClCharT clEoLogMsg[CL_EOLIB_MAX_LOG_MSG] = "";
@@ -303,8 +292,7 @@ ClRcT clEoLogInitialize(void)
     rc = clLogLibInitialize();
     if ( rc != CL_OK)
     {
-        clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "Log Open Failed\n");
+        clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,"Log Open Failed\n");
         return rc;
     }
     return CL_OK;
@@ -406,7 +394,7 @@ re_check:
         }
     }
     
-    tempDb = clHeapRealloc(gpCallbackDb.pDb, sizeof(ClEoCallbackRecT *) * gpCallbackDb.numRecs * 2);
+    tempDb = (ClEoCallbackRecT**) clHeapRealloc(gpCallbackDb.pDb, sizeof(ClEoCallbackRecT *) * gpCallbackDb.numRecs * 2);
     if(tempDb == NULL)
     {
         rc  = CL_EO_RC(CL_ERR_NO_MEMORY);
@@ -457,7 +445,7 @@ static ClRcT clEoClientNotification(ClIocNotificationT *notification)
     ClIocAddressT address = {{0}};
 
     if(!notification) return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
-    event = ntohl(notification->id);
+    event = (ClIocNotificationIdT) ntohl(notification->id);
     node = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
     port = ntohl(notification->nodeAddress.iocPhyAddress.portId);
 
@@ -485,7 +473,7 @@ static ClRcT clEoClientNotification(ClIocNotificationT *notification)
      * granularity and give scope for further client registrations
      * in this window.
      */
-    pMatchedRecords = clHeapAllocate(sizeof(*pMatchedRecords) * numRecs);
+    pMatchedRecords = (ClEoCallbackRecT*) clHeapAllocate(sizeof(*pMatchedRecords) * numRecs);
     if(!pMatchedRecords)
     {
         clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,"Memory allocation error\n");

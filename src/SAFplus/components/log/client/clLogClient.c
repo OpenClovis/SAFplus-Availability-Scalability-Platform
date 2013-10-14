@@ -67,8 +67,7 @@ clLogStreamOpenParamValidate(ClLogHandleT            hLog,
                              ClTimeT                 timeout,
                              ClLogStreamHandleT      *phStream);
 
-ClCharT*
-clLogSeverityStrGet(ClLogSeverityT severity)
+const ClCharT* clLogSeverityStrGet(ClLogSeverityT severity)
 {
     if( severity == CL_LOG_SEV_EMERGENCY )
     {
@@ -131,8 +130,7 @@ clLogStreamAttributesCopy(ClLogStreamAttributesT  *pCreateAttr,
     pAttrIDL->flushInterval       = pCreateAttr->flushInterval;
     pAttrIDL->waterMark           = pCreateAttr->waterMark;
     pAttrIDL->syslog              = pCreateAttr->syslog;
-    pAttrIDL->fileName.pValue
-        = clHeapCalloc(pAttrIDL->fileName.length, sizeof(ClCharT));
+    pAttrIDL->fileName.pValue     = (ClCharT*) clHeapCalloc(pAttrIDL->fileName.length, sizeof(ClCharT));
     if( NULL == pAttrIDL->fileName.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -567,7 +565,7 @@ clLogStreamOpen(ClLogHandleT            hLog,
             {
                 strncpy((ClCharT *)nodeName.value,
                         pStreamAttr->fileLocation,
-                        (nodeName.length = CL_MIN(sizeof(nodeName.value)-1, pLoc - pStreamAttr->fileLocation))
+                        (nodeName.length = CL_MIN((int)sizeof(nodeName.value)-1, pLoc - pStreamAttr->fileLocation))
                         );
                 nodeName.value[nodeName.length] = 0;
             }
@@ -940,7 +938,7 @@ clLogFilterSet(ClLogStreamHandleT  hStream,
                ClLogFilterT        filter)
 {
     ClRcT                   rc            = CL_OK;
-    ClLogStreamScopeT       scope         = 0;
+    ClLogStreamScopeT       scope         = CL_LOG_STREAM_GLOBAL;
     ClLogStreamHandleDataT  *pInfo        = NULL;
     ClLogClntEoDataT        *pClntEoEntry = NULL;
     ClLogStreamKeyT         *pUserKey     = NULL;
@@ -1429,7 +1427,7 @@ clLogHandlerRecordAck(ClLogStreamHandleT  hStream,
         return rc;            
     }
 
-    rc = clHandleCheckout(pClntEoEntry->hClntHandleDB, hStream, (void *) &pData);
+    rc = clHandleCheckout(pClntEoEntry->hClntHandleDB, hStream, (void **) &pData);
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pClntEoEntry->streamHandlerTblLock),

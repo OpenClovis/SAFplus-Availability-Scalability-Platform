@@ -139,10 +139,10 @@ typedef struct ClEoStaticQueue
 #define EO_STATIC_QUEUES (0x2)
 #define EO_ACTION_QUEUE_INDEX (0x0)
 #define EO_LOG_QUEUE_INDEX (0x1)
-    ClBoolT initialized;
-    ClOsalCondT jobQueueCond;
+    ClBoolT      running;
+    ClOsalCondT  jobQueueCond;
     ClOsalMutexT jobQueueLock;
-    ClUint32T jobCount;
+    ClUint32T    jobCount;
     ClEoStaticJobQueueT eoStaticJobQueue[EO_STATIC_QUEUES];
 } ClEoStaticQueueT;
 
@@ -160,7 +160,9 @@ static ClEoStaticQueueInfoT gEoActionStaticQueueInfo[EO_ACTION_STATIC_QUEUE_INFO
 static ClEoStaticQueueInfoT gEoLogStaticQueueInfo[EO_LOG_STATIC_QUEUE_INFO_SIZE];
 
 /*Fill up the static queue entries here*/
-static ClEoStaticQueueT gEoStaticQueue = {
+static ClEoStaticQueueT gEoStaticQueue;
+#if 0
+= {
     .initialized = CL_FALSE,
     .jobCount = 0,
     .eoStaticJobQueue = {
@@ -178,6 +180,7 @@ static ClEoStaticQueueT gEoStaticQueue = {
         },
     },
 };
+#endif
 
 #define gEoActionStaticQueue gEoStaticQueue.eoStaticJobQueue[EO_ACTION_QUEUE_INDEX]
 #define gEoLogStaticQueue gEoStaticQueue.eoStaticJobQueue[EO_LOG_QUEUE_INDEX]
@@ -418,7 +421,7 @@ void clEoCleanup(ClEoExecutionObjT *pThis);
 
 
 /**************   API to create EO Threads   ***************************/
-static ClRcT clEoTaskCreate(ClCharT *pTaskName, ClEoTaskFuncPtrT pTaskFunc, ClPtrT pTaskArg, ClOsalTaskIdT *pTaskId)
+static ClRcT clEoTaskCreate(const ClCharT *pTaskName, ClEoTaskFuncPtrT pTaskFunc, ClPtrT pTaskArg, ClOsalTaskIdT *pTaskId)
 {
     ClRcT rc = CL_OK;
 
@@ -517,7 +520,7 @@ void clEoSendCrashNotification(ClEoCrashNotificationT *crash)
     {
         crash->pid = getpid();
         crash->compName = ASP_COMPNAME;
-        gClEoCrashNotificationCallback((const ClEoCrashNotificationT*)crash);
+        gClEoCrashNotificationCallback(crash);
     }
 }
 
@@ -549,6 +552,17 @@ static ClRcT eoStaticQueueInit(void)
         return rc;
     }
 
+    gEoStaticQueue.running = CL_FALSE;
+    gEoStaticQueue.jobCount = 0;
+    gEoStaticQueue.eoStaticJobQueue[0].jobCount = 0;
+    gEoStaticQueue.eoStaticJobQueue[0].pJobQueueAction = clEoJobQueueWMAction;
+    gEoStaticQueue.eoStaticJobQueue[0].jobQueueSize = EO_QUEUE_SIZE(gEoActionStaticQueueInfo);
+    gEoStaticQueue.eoStaticJobQueue[0].pJobQueue = gEoActionStaticQueueInfo;
+    gEoStaticQueue.eoStaticJobQueue[1].jobCount = 0;
+    gEoStaticQueue.eoStaticJobQueue[1].pJobQueueAction = clEoJobQueueLogAction;
+    gEoStaticQueue.eoStaticJobQueue[1].jobQueueSize = EO_QUEUE_SIZE(gEoLogStaticQueueInfo);
+    gEoStaticQueue.eoStaticJobQueue[1].pJobQueue = gEoActionStaticQueueInfo;
+    
     gClEoStaticQueueInitialized = CL_TRUE;
     return CL_OK;
 }
@@ -589,7 +603,7 @@ static __inline__ ClRcT clEoQueueStaticQueueInfo(ClEoStaticQueueInfoT *pStaticQu
 ClRcT clEoQueueWaterMarkInfo(ClEoLibIdT libId, ClWaterMarkIdT wmId, ClWaterMarkT *pWaterMark, ClEoWaterMarkFlagT wmType, ClEoActionArgListT argList)
 {
     ClRcT rc = CL_EO_RC(CL_ERR_NOT_INITIALIZED);
-    ClEoStaticQueueInfoT eoStaticQueueInfo = {0};
+    ClEoStaticQueueInfoT eoStaticQueueInfo;
 
     eoStaticQueueInfo.libId = libId;
     eoStaticQueueInfo.elementType = CL_EO_ELEMENT_TYPE_WM;
@@ -605,7 +619,7 @@ ClRcT clEoQueueWaterMarkInfo(ClEoLibIdT libId, ClWaterMarkIdT wmId, ClWaterMarkT
 ClRcT clEoQueueLogInfo(ClEoLibIdT libId, ClLogSeverityT severity,const ClCharT *pMsg)
 {
     ClRcT rc = CL_EO_RC(CL_ERR_NOT_INITIALIZED);
-    ClEoStaticQueueInfoT eoStaticQueueInfo = {0};
+    ClEoStaticQueueInfoT eoStaticQueueInfo;
 
     eoStaticQueueInfo.libId = libId;
     eoStaticQueueInfo.elementType = CL_EO_ELEMENT_TYPE_LOG;
@@ -653,12 +667,10 @@ static ClRcT clEoJobQueueWMAction(ClEoExecutionObjT *pThis,
         {
             if(NULL != eoConfig.clEoCustomAction)
             {
-                rc = eoConfig.clEoCustomAction(pJob->libId, pJob->WMId, 
-                        &pJob->WMValues, pJob->WMType, pJob->WMActionArgList);
+                rc = eoConfig.clEoCustomAction(pJob->libId, pJob->WMId, &pJob->WMValues, pJob->WMType, pJob->WMActionArgList);
                 if (rc != CL_OK)
                 {
-                    clLogError(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_WATERMARK,
-                               "EO: Custom Action for Water Mark Hit Failed, rc=0x%x\n", rc);
+                    clLogError(CL_LOG_EO_AREA,CL_LOG_EO_CONTEXT_WATERMARK, "EO: Custom Action for Water Mark Hit Failed, rc=0x%x\n", rc);
                 }
             }
             else
@@ -725,7 +737,7 @@ static ClRcT eoStaticQueueProcess(ClEoExecutionObjT *pThis)
     clOsalMutexLock(&gEoStaticQueue.jobQueueLock);
 
 
-    gEoStaticQueue.initialized = CL_TRUE;
+    gEoStaticQueue.running = CL_TRUE;
 
     while (pThis->threadRunning == CL_TRUE)
     {
@@ -800,7 +812,7 @@ static ClRcT eoStaticQueueProcess(ClEoExecutionObjT *pThis)
         /*We are here with lock held*/
     }
     /*We are here with static queue lock held*/
-    gEoStaticQueue.initialized = CL_FALSE;
+    gEoStaticQueue.running = CL_FALSE;
     clOsalMutexUnlock(&gEoStaticQueue.jobQueueLock);
 
 done:
@@ -820,12 +832,12 @@ static void eoNotificationCallback(ClIocNotificationIdT eventId,
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
     notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(pAddress->iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = htonl(pAddress->iocPhyAddress.portId);
+    notification.nodeVersion = 0;
+    //notification.sendqWMNotification = 0;
     /*
      * Invoke all the registrants
      */
-    clLogDebug("IOC", "NOTIF", "Invoking notification registrants for id [%d],"
-               "node [%d], port [%d]", eventId,
-               pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
+    clLogDebug("IOC", "NOTIF", "Invoking notification registrants for id [%d], node [%d], port [%d]", eventId, pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
     clIocNotificationRegistrants(&notification);
 }
 
@@ -923,7 +935,7 @@ static ClRcT eoClientIDRegister(ClIocPortT port, ClUint32T clientID)
 {
     ClRcT rc = CL_OK;
     ClUint32T *lastItem = NULL;
-    ClUint32T *item = clHeapCalloc(1, sizeof(*item));
+    ClUint32T *item = (ClUint32T*) clHeapCalloc(1, sizeof(*item));
     ClUint32T index = __EO_CLIENT_FILTER_INDEX(port, clientID);
 
     CL_ASSERT(item != NULL);
@@ -968,7 +980,7 @@ static ClRcT eoClientTableRegister(ClEoExecutionObjT *pThis,
         ClEoPayloadWithReplyCallbackClientT *funTable = clientTable[i].funTable;
         ClUint32T funTableSize = clientTable[i].funTableSize;
         ClEoClientTableT *client = NULL;
-        ClInt32T j;
+        unsigned int j;
 
         if (clientID > pThis->maxNoClients) continue;
 
@@ -1011,7 +1023,7 @@ static ClRcT eoClientTableDeregister(ClEoExecutionObjT *pThis,
         ClEoPayloadWithReplyCallbackClientT *funTable = clientTable[i].funTable;
         ClUint32T funTableSize = clientTable[i].funTableSize;
         ClEoClientTableT *client = NULL;
-        ClInt32T j;
+        unsigned int j;
 
         if (clientID > pThis->maxNoClients) continue;
 
@@ -1067,7 +1079,7 @@ ClRcT clEoClientTableDeregister(ClEoPayloadWithReplyCallbackTableClientT *client
 
 ClRcT eoClientTableAlloc(ClUint32T maxClients, ClEoClientTableT **ppClientTable)
 {
-    register int i;
+    unsigned int i;
     ClEoClientTableT *clients = NULL;
 
     ClRcT rc;
@@ -1075,7 +1087,7 @@ ClRcT eoClientTableAlloc(ClUint32T maxClients, ClEoClientTableT **ppClientTable)
     rc = clRadixTreeInit(&gAspClientIDTable);
     CL_ASSERT(rc == CL_OK);
 
-    clients = clHeapCalloc(maxClients, sizeof(*clients));
+    clients = (ClEoClientTableT*) clHeapCalloc(maxClients, sizeof(*clients));
     CL_ASSERT(clients != NULL);
 
     clients->maxClients = maxClients;
@@ -1093,7 +1105,7 @@ ClRcT eoClientTableAlloc(ClUint32T maxClients, ClEoClientTableT **ppClientTable)
 
 ClRcT eoClientTableFree(ClEoClientTableT **ppClientTable)
 {
-    register int i;
+    unsigned int i;
     ClEoClientTableT *clients = NULL;
     
     if(!ppClientTable || !(clients = *ppClientTable))
@@ -1144,11 +1156,10 @@ ClRcT eoClientTableFinalize(ClEoExecutionObjT *pThis)
 ClRcT eoServerTableAlloc(ClUint32T maxClients, ClEoServerTableT **ppServerTable)
 {
     ClRcT rc;
-    
-    register int i;
+    unsigned int i;
     ClEoServerTableT *clients = NULL;
 
-    clients = clHeapCalloc(maxClients, sizeof(*clients));
+    clients = (ClEoServerTableT*) clHeapCalloc(maxClients, sizeof(*clients));
     CL_ASSERT(clients != NULL);
 
     clients->maxClients = maxClients;
@@ -1166,7 +1177,7 @@ ClRcT eoServerTableAlloc(ClUint32T maxClients, ClEoServerTableT **ppServerTable)
 
 ClRcT eoServerTableFree(ClEoServerTableT **ppServerTable)
 {
-    register int i;
+    unsigned int i;
     ClEoServerTableT *clients = NULL;
     
     if(!ppServerTable || !(clients = *ppServerTable)) 
@@ -1520,7 +1531,7 @@ ClRcT clEoClientInstall(ClEoExecutionObjT *pThis, ClUint32T clientID,
         ClEoPayloadWithReplyCallbackT *pFuncs, ClEoDataT data,
         ClUint32T nfuncs)
 {
-    int i = 0;
+    unsigned int i = 0;
     ClEoServiceObjT *pTemp = NULL;
     ClEoServiceObjT *pFunction = NULL;
 
@@ -1548,7 +1559,7 @@ ClRcT clEoClientInstall(ClEoExecutionObjT *pThis, ClUint32T clientID,
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
-    if (clientID > (int) pThis->maxNoClients)
+    if (clientID > pThis->maxNoClients)
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
                    "\n EO: Improper reference to pFuncs \n");
@@ -1596,7 +1607,7 @@ ClRcT clEoClientUninstallTable(ClEoExecutionObjT *pThis,
                                ClEoPayloadWithReplyCallbackServerT *pfunTable,
                                ClUint32T nentries)
 {
-    ClInt32T i;
+    unsigned int i;
     ClEoServerTableT *client = NULL;
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     
@@ -1628,7 +1639,7 @@ ClRcT clEoClientInstallTable(ClEoExecutionObjT *pThis,
 {
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     ClEoServerTableT *client = NULL;
-    ClInt32T i;
+    unsigned int i;
     
     if (!pThis || !pThis->pServerTable) return rc;
     
@@ -1662,7 +1673,7 @@ ClRcT clEoClientInstallTable(ClEoExecutionObjT *pThis,
 
     out_delete:
     {
-        int j;
+        unsigned int j;
         for(j = 0; j < i; ++j)
         {
             ClEoPayloadWithReplyCallbackServerT *entry = pfunTable + j;
@@ -1755,7 +1766,7 @@ ClRcT clEoClientUninstallTables(ClEoExecutionObjT *pThis,
 static ClRcT clEoStart(ClEoExecutionObjT *pThis)
 {
     ClRcT rc = CL_OK; 
-    ClUint32T thrCount = 0;
+    ClInt32T thrCount = 0;
     CL_FUNC_ENTER();
 
     /*
@@ -1812,7 +1823,7 @@ static ClRcT clEoStart(ClEoExecutionObjT *pThis)
     /*
      * No point in using heap here as we are early even though its up.
      */
-    gClEoTaskIds = calloc(gClEoThreadCount, sizeof(ClOsalTaskIdT));
+    gClEoTaskIds = (ClOsalTaskIdT*) calloc(gClEoThreadCount, sizeof(ClOsalTaskIdT));
 
     if(!gClEoTaskIds)
     {
@@ -1837,8 +1848,7 @@ static ClRcT clEoStart(ClEoExecutionObjT *pThis)
         /*
          * EO receiver thread must be the last thread under gClEoTaskIds.
          */
-        rc = clEoTaskCreate("clEoIocRecvQueueProcess", (ClEoTaskFuncPtrT) clEoIocRecvQueueProcess, 
-                            pThis, &gClEoTaskIds[thrCount++]);
+        rc = clEoTaskCreate("clEoIocRecvQueueProcess", (ClEoTaskFuncPtrT) clEoIocRecvQueueProcess, pThis, &gClEoTaskIds[thrCount++]);
         if (CL_OK != rc)
         {
             goto eoStaticQueueInitialized;
@@ -2856,7 +2866,7 @@ ClRcT clEoClientUninstall(ClEoExecutionObjT *pThis, ClUint32T clientID)
         return CL_EO_RC(CL_ERR_NULL_POINTER);
     }
 
-    if (clientID > (int) pThis->maxNoClients)
+    if (clientID > pThis->maxNoClients)
     {
         clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
                    "\n EO: Improper reference to pFuncs \n");
@@ -3390,45 +3400,41 @@ static void eoGlobalHashDeleteCallback(ClCntKeyHandleT userKey,
  *
  *  @returns  CL_OK if success, else the return value from the rmdCall.
  */
-static ClRcT clEoSvcPrioritySet(ClUint32T data,
-        ClBufferHandleT inMsgHandle,
-        ClBufferHandleT outMsgHandle)
+static ClRcT clEoSvcPrioritySet(ClUint32T data,ClBufferHandleT inMsgHandle,ClBufferHandleT outMsgHandle)
 {
     ClEoExecutionObjT *eoObj = NULL;
     ClRcT rc = CL_OK;
-    ClOsalThreadPriorityT priority =
+    ClOsalThreadPriorityT priority = CL_OSAL_THREAD_PRI_NOT_APPLICABLE;
+    
+    ClUint32T msgLength = 0;
+
+    rc = clEoMyEoObjectGet(&eoObj);
+    EO_CHECK(CL_LOG_SEV_ERROR,
+             ("\n EO: clEoMyEoObjectGet failed, rc = %x \n", rc), rc);
+
+    clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+               "Inside clEoSvcPrioritySet for pThis->eoPort 0x%x\n",
+               eoObj->eoPort);
+    rc = clBufferLengthGet(inMsgHandle, &msgLength);
+    if (msgLength == sizeof(ClOsalThreadPriorityT))
     {
-        0};
-        ClUint32T msgLength = 0;
+        rc = clBufferNBytesRead(inMsgHandle, (ClUint8T *) &priority,
+                                &msgLength);
+        EO_CHECK(CL_LOG_SEV_ERROR, ("Unable to Get message \n"), rc);
+    }
+    else
+        EO_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"),
+                 CL_EO_RC(CL_ERR_INVALID_BUFFER));
 
-        rc = clEoMyEoObjectGet(&eoObj);
-        EO_CHECK(CL_LOG_SEV_ERROR,
-                ("\n EO: clEoMyEoObjectGet failed, rc = %x \n", rc), rc);
+    eoObj->pri = priority;
 
-        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "Inside clEoSvcPrioritySet for pThis->eoPort 0x%x\n",
-                   eoObj->eoPort);
-        rc = clBufferLengthGet(inMsgHandle, &msgLength);
-        if (msgLength == sizeof(ClOsalThreadPriorityT))
-        {
-            rc = clBufferNBytesRead(inMsgHandle, (ClUint8T *) &priority,
-                    &msgLength);
-            EO_CHECK(CL_LOG_SEV_ERROR, ("Unable to Get message \n"), rc);
-        }
-        else
-            EO_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"),
-                    CL_EO_RC(CL_ERR_INVALID_BUFFER));
-
-        eoObj->pri = priority;
-
-        return rc;
+    return rc;
 
 failure:
-        return rc;
+    return rc;
 }
 
-static ClRcT clEoLogLevelSet(ClUint32T data, ClBufferHandleT inMsgHandle,
-        ClBufferHandleT outMsgHandle)
+static ClRcT clEoLogLevelSet(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle)
 {
     ClLogSeverityT severity = CL_LOG_SEV_ERROR;
     ClUint32T i = sizeof(ClLogSeverityT);
@@ -3448,7 +3454,7 @@ static ClRcT clEoLogLevelSet(ClUint32T data, ClBufferHandleT inMsgHandle,
 static ClRcT clEoLogLevelGet(ClUint32T data, ClBufferHandleT inMsgHandle,
         ClBufferHandleT outMsgHandle)
 {
-    ClLogSeverityT severity = CL_LOG_ERROR;
+    ClLogSeverityT severity = CL_LOG_SEV_ERROR;
     ClRcT rc = CL_OK;
 
     rc = clLogLevelGet(&severity);
@@ -3467,29 +3473,25 @@ static ClRcT clEoGetState(ClUint32T data, ClBufferHandleT inMsgHandle,
         ClBufferHandleT outMsgHandle)
 {
     ClEoExecutionObjT *eoObj;
-    ClEoStateT state = {0};
+    ClEoStateT state;
     ClRcT rc = CL_OK;
 
     rc = clEoMyEoObjectGet(&eoObj);
     EO_CHECK(CL_LOG_SEV_ERROR, ("clEoMyEoObjectGet Failed \n"), rc);
 
-    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
-               "Inside clEoGetState for pThis->eoPort 0x%x\n",
-               eoObj->eoPort);
+    clLogTrace(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED, "Inside clEoGetState for pThis->eoPort 0x%x\n", eoObj->eoPort);
     state = eoObj->state;
 
-    rc = clBufferNBytesWrite(outMsgHandle, (ClUint8T *) state,
-            sizeof(ClEoStateT));
+    rc = clBufferNBytesWrite(outMsgHandle, (ClUint8T *) state, sizeof(ClEoStateT));
     EO_CHECK(CL_LOG_SEV_ERROR, ("clBufferNBytesWrite Failed \n"), rc);
 
 failure:
     return rc;
 }
 
-static ClRcT clEoSetState(ClUint32T data, ClBufferHandleT inMsgHandle,
-        ClBufferHandleT outMsgHandle)
+static ClRcT clEoSetState(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle)
 {
-    ClEoStateT state = 0;
+    ClEoStateT state = CL_EO_STATE_INVALID;
     ClRcT rc = CL_OK;
     ClEoExecutionObjT *pThis = NULL;
 
@@ -3556,7 +3558,7 @@ ClRcT clEoCustomActionRegister(void (*callback)(ClUint32T type, ClUint8T *data, 
 {
     ClEoCustomActionInfoT *info = NULL;
     if(!callback) return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
-    info = clHeapCalloc(1, sizeof(*info));
+    info = (ClEoCustomActionInfoT*) clHeapCalloc(1, sizeof(*info));
     CL_ASSERT(info != NULL);
     info->callback = callback;
     clListAddTail(&info->list, &gClEoCustomActionList);
@@ -3673,12 +3675,14 @@ static ClRcT clEoCustomActionIntimation(ClUint32T data, ClBufferHandleT inMsgHan
 
 static ClRcT clEoQueueMonitor(ClOsalTaskIdT tid, ClTimeT interval, ClTimeT threshold)
 {
-    ClEoCrashDeadlockT crash = {.reason = CL_EO_CRASH_DEADLOCK, 
-                                .tid = tid, .interval = interval 
-    };
-    clLogNotice("EO", "MONITOR", "Task ID [%lld] still locked up for [%lld] usecs which exceeds "
-                "configured threshold of [%lld] usecs",
-                tid, interval, threshold);
+    ClEoCrashDeadlockT crash;
+
+    crash.reason = CL_EO_CRASH_DEADLOCK;
+    crash.tid = tid;
+    crash.interval = interval;
+    /* compname and pid are filled in by the send function */
+    
+    clLogNotice("EO", "MON", "Task ID [%lld] still locked up for [%lld] usecs which exceeds configured threshold of [%lld] usecs", tid, interval, threshold);
     clEoSendCrashNotification((ClEoCrashNotificationT*)&crash);
     if (!clDbgNoKillComponents)  /* Goodbye unless we are debugging, in which case we would expect stuck threads! */
     {
@@ -3690,7 +3694,7 @@ static ClRcT clEoQueueMonitor(ClOsalTaskIdT tid, ClTimeT interval, ClTimeT thres
 
 static ClRcT clEoPriorityQueuesInitialize(void)
 {
-    ClInt32T index = 0 ;
+    ClUint32T index = 0 ;
     ClRcT rc = CL_OK;
     ClTimerTimeOutT monitorThreshold = { .tsSec = CL_TASKPOOL_MONITOR_INTERVAL, .tsMilliSec = 0 };
     typedef struct ClEoPriorityQueueConfig
@@ -4071,7 +4075,9 @@ void clEoSendErrorNotify(ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 ClRcT clEoJobHandler(ClEoJobT *pJob)
 {
     ClRcT rc = CL_OK;
-
+#ifndef NO_SAF
+        ClEoSerializeT serialize = { 0 };
+#endif
     ClIocRecvParamT *pRecvParam = NULL;
     ClEoExecutionObjT *pThis = gpExecutionObject;
 
@@ -4094,23 +4100,22 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
      * _RMD_ uncomment following line 
      */
 #ifndef NO_SAF
-    ClEoSerializeT serialize = { 0 };
-    if(gpClEoSerialize && (gClEoProtoList[pRecvParam->protoType].flags & CL_EO_STATE_THREAD_SAFE))
-    {
-        /**
-         * Call the registered EO serialize method
-         *
-         */
-        serialize.msg = pJob->msg;
-        serialize.pMsgParam = pRecvParam;
-
-        if((rc = gpClEoSerialize((ClPtrT)&serialize)) != CL_OK)
+        if(gpClEoSerialize && (gClEoProtoList[pRecvParam->protoType].flags & CL_EO_STATE_THREAD_SAFE))
         {
-            clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"EO Serialization " \
-                       "failed with [rc=0x%x]\n",rc);
-            goto done;
-        }
-    }
+            /**
+             * Call the registered EO serialize method
+             *
+             */
+            serialize.msg = pJob->msg;
+            serialize.pMsgParam = pRecvParam;
+
+            if((rc = gpClEoSerialize((ClPtrT)&serialize)) != CL_OK)
+            {
+                clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"EO Serialization " \
+                           "failed with [rc=0x%x]\n",rc);
+                goto done;
+            }
+        }    
 #endif
     clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clEoJobHandler, calling a registered message handler");
     rc = gClEoProtoList[pRecvParam->protoType].func(pThis,
@@ -4157,7 +4162,7 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
     }
 
     rc = CL_EO_RC(CL_ERR_NO_MEMORY);
-    pJob = clHeapCalloc(1, sizeof(*pJob));
+    pJob = (ClEoJobT*) clHeapCalloc(1, sizeof(*pJob));
     if(pJob == NULL)
     {
         clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Allocation error");
@@ -4182,65 +4187,69 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
     rc = clJobQueuePush(pQ,(ClCallbackT) clEoJobHandler, pJob);
 
 #else
-    ClJobQueueT* pQueue = NULL;
-    if(pJob->msgParam.priority > CL_IOC_MAX_PRIORITIES)
-    {
-        priority = CL_IOC_HIGH_PRIORITY;
-    }
-    else
-    {
-        priority = CL_EO_RECV_QUEUE_PRI(pJob->msgParam);
-    
-        if(priority >= CL_IOC_MAX_PRIORITIES)
+    if (1)
+    {        
+        ClJobQueueT* pQueue = NULL;
+        if(pJob->msgParam.priority > CL_IOC_MAX_PRIORITIES)
         {
-            clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid priority [%d]", priority);
+            priority = CL_IOC_HIGH_PRIORITY;
+        }
+        else
+        {
+            priority = CL_EO_RECV_QUEUE_PRI(pJob->msgParam);
+    
+            if(priority >= CL_IOC_MAX_PRIORITIES)
+            {
+                clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid priority [%d]", priority);
+                goto out_free;
+            }
+        }
+
+        /*
+         * Take the global job mutex. We would only take this in priqueue finalize
+         * just to protect ourselves from a parallel priqueue finalize. Other instances
+         * are safe since its anyway true that EO job queue is quiesced.
+         */
+        rc = CL_EO_RC(CL_ERR_INVALID_STATE);
+        clOsalMutexLock(&gClEoJobMutex);
+        if(!gpExecutionObject 
+           || 
+           gpExecutionObject->state != CL_EO_STATE_ACTIVE)
+        {
+            /*
+             * The EO is being stopped/terminated. Back out
+             */
+            clOsalMutexUnlock(&gClEoJobMutex);
             goto out_free;
         }
-    }
 
-    /*
-     * Take the global job mutex. We would only take this in priqueue finalize
-     * just to protect ourselves from a parallel priqueue finalize. Other instances
-     * are safe since its anyway true that EO job queue is quiesced.
-     */
-    rc = CL_EO_RC(CL_ERR_INVALID_STATE);
-    clOsalMutexLock(&gClEoJobMutex);
-    if(!gpExecutionObject 
-       || 
-       gpExecutionObject->state != CL_EO_STATE_ACTIVE)
-    {
-        /*
-         * The EO is being stopped/terminated. Back out
-         */
-        clOsalMutexUnlock(&gClEoJobMutex);
-        goto out_free;
-    }
-
-    if(!gpExecutionObject->threadRunning)
-    {
-        /*
-         * Allow notification packets which could unblock any threads blocked
-         * on rmds. to unreachable destinations.
-         */
-        if(!gpExecutionObject->refCnt
-           ||
-           pJob->msgParam.protoType != CL_IOC_PORT_NOTIFICATION_PROTO)
+        if(!gpExecutionObject->threadRunning)
+        {
+            /*
+             * Allow notification packets which could unblock any threads blocked
+             * on rmds. to unreachable destinations.
+             */
+            if(!gpExecutionObject->refCnt
+               ||
+               pJob->msgParam.protoType != CL_IOC_PORT_NOTIFICATION_PROTO)
+            {
+                clOsalMutexUnlock(&gClEoJobMutex);
+                goto out_free;
+            }
+        }
+        rc = CL_EO_RC(CL_ERR_NOT_EXIST);
+        pQueue = &gEoJobQueues[priority];
+        if(pQueue == NULL)
         {
             clOsalMutexUnlock(&gClEoJobMutex);
             goto out_free;
         }
-    }
-    rc = CL_EO_RC(CL_ERR_NOT_EXIST);
-    pQueue = &gEoJobQueues[priority];
-    if(pQueue == NULL)
-    {
-        clOsalMutexUnlock(&gClEoJobMutex);
-        goto out_free;
-    }
 
-    clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Enqueuing job priority %d",priority);
+        clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Enqueuing job priority %d",priority);
   
-    rc = clJobQueuePush(pQueue,(ClCallbackT) clEoJobHandler, pJob);
+        rc = clJobQueuePush(pQueue,(ClCallbackT) clEoJobHandler, pJob);
+    }
+    
 #endif
     clOsalMutexUnlock(&gClEoJobMutex);
 
@@ -4268,17 +4277,17 @@ void clEoQueuesQuiesce(void)
 
 static ClRcT eoQueueStatsCallback(ClCallbackT cb, ClPtrT data, ClPtrT pArg)
 {
-    ClEoQueueDetailsT *pEoQueueDetails = pArg;
+    ClEoQueueDetailsT *pEoQueueDetails = (ClEoQueueDetailsT *) pArg;
     /*
      * Handle eo jobqueue requests.
      */
     if(cb == (ClCallbackT)clEoJobHandler && data && pArg)
     {
-        ClEoJobT *job = data;
+        ClEoJobT *job = (ClEoJobT *) data;
         ClIocRecvParamT *recvParam = &job->msgParam;
         ClEoQueueProtoUsageT *protoUsage = NULL;
         ClEoQueuePriorityUsageT *priorityUsage = NULL;
-        ClInt32T i;
+        unsigned int i;
         /*
          * Get queue proto and priority reference if present.
          */
@@ -4300,8 +4309,7 @@ static ClRcT eoQueueStatsCallback(ClCallbackT cb, ClPtrT data, ClPtrT pArg)
         }
         if(!protoUsage)
         {
-            pEoQueueDetails->protos = clHeapRealloc(pEoQueueDetails->protos,
-                                                    (pEoQueueDetails->numProtos+1)*sizeof(*pEoQueueDetails->protos));
+            pEoQueueDetails->protos = (ClEoQueueProtoUsageT*) clHeapRealloc(pEoQueueDetails->protos, (pEoQueueDetails->numProtos+1)*sizeof(*pEoQueueDetails->protos));
             CL_ASSERT(pEoQueueDetails->protos != NULL);
             memset(pEoQueueDetails->protos+pEoQueueDetails->numProtos, 0, sizeof(*pEoQueueDetails->protos));
             protoUsage = pEoQueueDetails->protos+pEoQueueDetails->numProtos;
@@ -4310,8 +4318,7 @@ static ClRcT eoQueueStatsCallback(ClCallbackT cb, ClPtrT data, ClPtrT pArg)
         }
         if(!priorityUsage)
         {
-            pEoQueueDetails->priorities = clHeapRealloc(pEoQueueDetails->priorities,
-                                                        (pEoQueueDetails->numPriorities+1)*sizeof(*pEoQueueDetails->priorities));
+            pEoQueueDetails->priorities = (ClEoQueuePriorityUsageT*) clHeapRealloc(pEoQueueDetails->priorities, (pEoQueueDetails->numPriorities+1)*sizeof(*pEoQueueDetails->priorities));
             CL_ASSERT(pEoQueueDetails->priorities != NULL);
             memset(pEoQueueDetails->priorities+pEoQueueDetails->numPriorities, 0, sizeof(*pEoQueueDetails->priorities));
             priorityUsage = pEoQueueDetails->priorities + pEoQueueDetails->numPriorities;
@@ -4326,9 +4333,9 @@ static ClRcT eoQueueStatsCallback(ClCallbackT cb, ClPtrT data, ClPtrT pArg)
     return CL_OK;
 }
 
-static ClCharT *eoProtoNameGet(ClUint8T proto)
+static const ClCharT *eoProtoNameGet(ClUint8T proto)
 {
-    ClInt32T i;
+    unsigned int i;
     for(i = 0; i < sizeof(protos)/sizeof(protos[0]); ++i)
     {
         if(protos[i].protoID == proto)
@@ -4342,7 +4349,7 @@ static ClCharT *eoProtoNameGet(ClUint8T proto)
  */
 ClRcT clEoQueueStatsGet(ClEoQueueDetailsT *pEoQueueDetails)
 {
-    register ClInt32T i;
+    unsigned int i;
     ClJobQueueT *pJobQueue;
     ClEoQueueDetailsT eoQueueDetails = {0};
     ClBoolT dumpDetails = CL_FALSE;
@@ -4377,7 +4384,7 @@ ClRcT clEoQueueStatsGet(ClEoQueueDetailsT *pEoQueueDetails)
                 /*
                  * Store the entry in the job queue priority array.
                  */
-                register ClInt32T j;
+                unsigned int j;
                 for(j = 0; j < pEoQueueDetails->numPriorities; ++j)
                 {
                     if(pEoQueueDetails->priorities[j].priority == i)
@@ -4435,7 +4442,7 @@ static ClRcT eoQueueAmfMsgCallback(ClCallbackT cb, ClPtrT data, ClPtrT arg)
     if(cb == (ClCallbackT)clEoJobHandler && data && arg)
     {
         ClUint32T pri = *(ClUint32T*)arg;
-        ClEoJobT *job = data;
+        ClEoJobT *job = (ClEoJobT *) data;
         ClIocRecvParamT *recvParam = &job->msgParam;
         if(pri == recvParam->priority)
         {

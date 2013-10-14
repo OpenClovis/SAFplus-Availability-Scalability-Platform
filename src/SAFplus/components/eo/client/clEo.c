@@ -158,7 +158,7 @@ typedef ClRcT (*ClInitFinalizeFunc) (void);
 typedef struct
 {
     ClInitFinalizeFunc fn;
-    char*        libName;
+    const char*        libName;
 } ClInitFinalizeDef;
 
 
@@ -263,22 +263,19 @@ static ClBoolT gClASPInitialized = CL_FALSE;
 static ClUint32T gClASPInitCount = 0;
 
 ClEoEssentialLibInfoT gEssentialLibInfo[] = {
-    { .libName = "OSAL", CL_EO_LIB_INITIALIZE_FUNC(clOsalInitialize), clOsalFinalize, NULL},
-    { .libName = "MEMORY",CL_EO_LIB_INITIALIZE_FUNC(clMemStatsInitialize), clMemStatsFinalize, (ClPtrT )&gClEoMemConfig, 
-        CL_SIZEOF_ARRAY(gMemWaterMark), (ClPtrT)gMemWaterMark},
-    { .libName = "HEAP", CL_EO_LIB_INITIALIZE_FUNC(clHeapLibInitialize), NULL, (ClPtrT)&gClEoHeapConfig},  /* Heap will be freed when program quits, leave it in case leaks */
+    { "OSAL", CL_EO_LIB_INITIALIZE_FUNC(clOsalInitialize), clOsalFinalize, NULL},
+    { "MEMORY",CL_EO_LIB_INITIALIZE_FUNC(clMemStatsInitialize), clMemStatsFinalize, (ClPtrT )&gClEoMemConfig, CL_SIZEOF_ARRAY(gMemWaterMark), (ClEoActionInfoT*)gMemWaterMark},
+    { "HEAP", CL_EO_LIB_INITIALIZE_FUNC(clHeapLibInitialize), NULL, (ClPtrT)&gClEoHeapConfig},  /* Heap will be freed when program quits, leave it in case leaks */
     /* { .libName = "HEAP", CL_EO_LIB_INITIALIZE_FUNC(clHeapLibInitialize), clHeapLibFinalize, (ClPtrT)&gClEoHeapConfig}, */
-    { .libName = "BUFFER", CL_EO_LIB_INITIALIZE_FUNC(clBufferInitialize), clBufferFinalize, (ClPtrT)&gClEoBuffConfig},
-    { .libName = "TIMER", CL_EO_LIB_INITIALIZE_FUNC(clTimerInitialize), clTimerFinalize, NULL},
-    { .libName = "IOC", CL_EO_LIB_INITIALIZE_FUNC(clIocLibInitialize), clIocLibFinalize, (ClPtrT)&gClIocRecvQInfo, 
-        CL_SIZEOF_ARRAY(gIocWaterMark), (ClPtrT)gIocWaterMark},
-    { .libName = "RMD", CL_EO_LIB_INITIALIZE_FUNC(clRmdLibInitialize), clRmdLibFinalize, NULL},
-    { .libName = "EO", CL_EO_LIB_INITIALIZE_FUNC(clEoLibInitialize), clEoLibFinalize, NULL},
-    { .libName = "POOL" },  /* Bounded by CL_EO_LIB_ID_RES */
-    { .libName = "CPM" }, 
-#ifdef CL_EO_TBD 
-#endif
+    { "BUFFER", CL_EO_LIB_INITIALIZE_FUNC(clBufferInitialize), clBufferFinalize, (ClPtrT)&gClEoBuffConfig},
+    { "TIMER", CL_EO_LIB_INITIALIZE_FUNC(clTimerInitialize), clTimerFinalize, NULL},
+    { "IOC", CL_EO_LIB_INITIALIZE_FUNC(clIocLibInitialize), clIocLibFinalize, (ClPtrT)&gClIocRecvQInfo, CL_SIZEOF_ARRAY(gIocWaterMark), (ClEoActionInfoT*)gIocWaterMark},
+    { "RMD", CL_EO_LIB_INITIALIZE_FUNC(clRmdLibInitialize), clRmdLibFinalize, NULL},
+    { "EO", CL_EO_LIB_INITIALIZE_FUNC(clEoLibInitialize), clEoLibFinalize, NULL},
+    { "POOL" },  /* Bounded by CL_EO_LIB_ID_RES */
+    { "CPM" }
 };
+
 
 void clAppConfigure(ClEoConfigT* clEoConfig,ClUint8T* basicLibs,ClUint8T* clientLibs)
 {
@@ -298,7 +295,7 @@ void clLoadEnvVars()
 
     if (1) /* Required environment variables */
     {       
-        ClCharT* envvars[] = { "ASP_NODENAME", "ASP_COMPNAME", "ASP_RUNDIR", "ASP_LOGDIR", "ASP_BINDIR", "ASP_CONFIG", "ASP_DBDIR", 0 };
+        const ClCharT* envvars[] = { "ASP_NODENAME", "ASP_COMPNAME", "ASP_RUNDIR", "ASP_LOGDIR", "ASP_BINDIR", "ASP_CONFIG", "ASP_DBDIR", 0 };
         ClCharT* storage[] = { ASP_NODENAME ,  ASP_COMPNAME ,  ASP_RUNDIR ,  ASP_LOGDIR ,  ASP_BINDIR ,  ASP_CONFIG , ASP_DBDIR, 0 };
     
         for (i=0; envvars[i] != 0; i++)
@@ -314,7 +311,7 @@ void clLoadEnvVars()
     }
     if (1)  /* Optional environment variables */
     {       
-        ClCharT* envvars[] = { "ASP_APP_BINDIR", 0 };  /* This won't be defined if the AMF is run */
+        const ClCharT* envvars[] = { "ASP_APP_BINDIR", 0 };  /* This won't be defined if the AMF is run */
         ClCharT* storage[] = { ASP_APP_BINDIR, 0 };
     
         for (i=0; envvars[i] != 0; i++)

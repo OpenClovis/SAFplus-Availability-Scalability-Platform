@@ -195,7 +195,7 @@ ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -396,7 +396,7 @@ ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -632,7 +632,7 @@ ClRcT clLogMasterStreamListGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_OU
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -954,7 +954,7 @@ ClRcT clLogMasterCompListGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_OUT 
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1110,7 +1110,7 @@ ClRcT clLogMasterCompListNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);

@@ -33,7 +33,7 @@
 #include <string.h>
 #endif
 
-typedef ClRcT (*dispatchfun) ();
+typedef ClRcT (*dispatchfun) (CL_IN ClCpmHandleT cpmHandle,CL_IN ClDispatchFlagsT dispatchFlags);
 
 #define MAX_AREA 5
 
@@ -48,7 +48,7 @@ extern ClUint32T componentTerminate;
 static void *clDispatchHandleAllCallBacks(void *threadArg)
 {
     fd_set rfds;
-    int nfds = 0;
+    unsigned int nfds = 0;
     int i = 0;
     ClEoExecutionObjT *pEoObj = (ClEoExecutionObjT *) threadArg;
     int retCode = 0;
