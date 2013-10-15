@@ -1498,7 +1498,7 @@ ClRcT   _clGmsViewDeleteNodeExtended(
 
             if (rc != CL_OK)
             {
-                clLog(CL_LOG_ERROR,GEN,NA, "Unable delete the node [%d] from CL_GMS_JOIN_LEFT_VIEW. rc [0x%x]",nodeId, rc);
+                clLog(CL_LOG_SEV_ERROR,GEN,NA, "Unable delete the node [%d] from CL_GMS_JOIN_LEFT_VIEW. rc [0x%x]",nodeId, rc);
             }
 
             if (bootTimeElectionDone == CL_TRUE)

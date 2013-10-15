@@ -160,7 +160,7 @@ static ClRcT clEoIocWMNotification(ClCompIdT compId,
 
     clIocQueueNotificationUnpack(pIocQueueNotification,&queueNotification);
 
-    clEoLibLog(compId,CL_LOG_INFORMATIONAL,
+    clEoLibLog(compId,CL_LOG_SEV_INFO,
             "Port: %d, node: %d hit %s watermark event for %s." \
             "Watermark limits(low:%lld,high:%lld), queue size:%d bytes " \
             "message length: %d bytes\n",

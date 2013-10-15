@@ -272,13 +272,13 @@ ClRcT   clFaultServiceTerminate(ClInvocationT invocation,
     rc = clCpmComponentUnregister(cpmHandle, compName, NULL);
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_DEREGISTER,"CPM");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_DEREGISTER,"CPM");
         return rc;
     }
     rc = clCpmClientFinalize(cpmHandle);
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_FINALIZATION,"Cpm Client");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_FINALIZATION,"Cpm Client");
         return rc;
     }
     clCpmResponse(cpmHandle, invocation, CL_OK);
@@ -305,7 +305,7 @@ ClRcT   clFaultCpmRegister()
     rc = clCpmClientInitialize(&cpmHandle, &callbacks, &version);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_INITIALIZATION,"Cpm Client");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_INITIALIZATION,"Cpm Client");
         return rc;
     }
 
@@ -319,7 +319,7 @@ ClRcT   clFaultCpmRegister()
     rc = clCpmComponentRegister(cpmHandle, &sFaultCompName, NULL);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_REGISTER,"CPM");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_REGISTER,"CPM");
         return rc;
     }    
     
@@ -368,14 +368,14 @@ ClRcT clFaultInitialize(ClUint32T argc, ClCharT *argv[])
     rc = clFaultDebugRegister(eoObj);
     if(CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_ERROR,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_REGISTER,"Debug");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_ERROR,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_REGISTER,"Debug");
         return rc;
     }    
 
     clFaultHistoryInit(clFaultLocalProbationPeriod);
     faultactiveSeqTbls=fmSeqTbls;
     
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_NOTICE, CL_FAULT_SERVER_LIB,
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_NOTICE, CL_FAULT_SERVER_LIB,
             CL_LOG_MESSAGE_1_SERVICE_STARTED, "Fault" );
 
     CL_FUNC_EXIT();
@@ -424,7 +424,7 @@ ClRcT clFaultFinalize()
     rc = clFaultDebugDeregister(pEOObj);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_ERROR,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_DEREGISTER,"Debug");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_ERROR,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_DEREGISTER,"Debug");
         return rc;
     }
 
@@ -435,7 +435,7 @@ ClRcT clFaultFinalize()
        return rc;
     }    
     
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_NOTICE,
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_NOTICE,
             CL_FAULT_SERVER_LIB,CL_LOG_MESSAGE_1_SERVICE_STOPPED, "Fault" );
     
     return rc;

@@ -217,17 +217,6 @@ extern ClTaskPoolHandleT gCpmFaultPool;
 
 #define CL_CPM_LOG_SP(...)  __VA_ARGS__
 
-
-#define CL_CPM_LOCK_CHECK(X, Z, retCode)			        \
-    if(retCode != CL_OK)			                        \
-    {					                                \
-     char __tempstr[256];						\
-     snprintf(__tempstr,256,CL_CPM_LOG_SP Z);				\
-     clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr);\
-    rc = retCode;							\
-    goto withlock;							\
-    }
-
 #define IS_ASP_COMP(comp) ((comp)->compConfig->isAspComp)
 
 typedef enum

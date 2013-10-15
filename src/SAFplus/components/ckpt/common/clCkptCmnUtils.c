@@ -55,10 +55,10 @@ void clCkptLogError(ClUint32T   logLvl,
                     ClRcT       retCode, 
                     ClUint32T   libCode)
 {
-    ClLogSeverityT severity = CL_LOG_ERROR;
+    ClLogSeverityT severity = CL_LOG_SEV_ERROR;
     ClCharT        *libName = "clAspCkptLib";
 
-    if (logLvl  == CL_LOG_SEV_CRITICAL) severity = CL_LOG_CRITICAL; 
+    if (logLvl  == CL_LOG_SEV_CRITICAL) severity = CL_LOG_SEV_CRITICAL; 
     if (libCode == CL_CKPT_SVR) libName = NULL;
     switch(CL_GET_ERROR_CODE(retCode))
     {

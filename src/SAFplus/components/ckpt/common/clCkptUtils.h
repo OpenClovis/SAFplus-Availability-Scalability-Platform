@@ -74,10 +74,8 @@ void clCkptLogError(ClUint32T   logLvl,
 {\
     if(rc != CL_OK)\
     {\
-        char __tempstr[256];   \
-        snprintf(__tempstr,256,CL_LOG_SP message); \
         clCkptLogError(logLvl, rc, libCode);\
-        clLog(logLvl,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr);\
+        clLog(logLvl,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP message);\
         goto exitOnError;\
     }\
 }\
@@ -86,10 +84,8 @@ void clCkptLogError(ClUint32T   logLvl,
 {\
     if(rc != CL_OK)\
     {\
-        char __tempstr[256];   \
-        snprintf(__tempstr,256,CL_LOG_SP message); \
         clCkptLogError(logLvl, rc, libCode);\
-        clLog(logLvl,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr);\
+        clLog(logLvl,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP message);\
         goto exitOnErrorBeforeHdlCheckout;\
     }\
 }

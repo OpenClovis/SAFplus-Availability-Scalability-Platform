@@ -50,7 +50,7 @@ do{\
     if(CL_OK != rc)\
     {\
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Failed to get EO object [0x%X]",rc);\
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME, CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);\
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME, CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);\
         CL_FUNC_EXIT();\
         return CL_EVENT_INTERNAL_ERROR;\
     }\
@@ -58,14 +58,14 @@ do{\
     if((CL_OK != rc) && (CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(rc)))\
     {\
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Failed to get EO private data [0x%X]",rc);\
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME, CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);\
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME, CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);\
         CL_FUNC_EXIT();\
         return CL_EVENT_INTERNAL_ERROR;\
     }\
     else if(CL_ERR_NOT_EXIST == rc)\
     {\
         CL_FUNC_EXIT();\
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME, CL_LOG_MESSAGE_0_COMPONENT_UNINITIALIZED);\
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME, CL_LOG_MESSAGE_0_COMPONENT_UNINITIALIZED);\
         return CL_EVT_INIT_NOT_DONE;\
     }\
 }while(0);
@@ -76,21 +76,21 @@ do{\
     if(NULL == (pName))\
     {\
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Passed NULL for channel name\n\r");\
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME, CL_EVENT_LOG_MSG_1_NULL_ARGUMENT, "Channel Name");\
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME, CL_EVENT_LOG_MSG_1_NULL_ARGUMENT, "Channel Name");\
         CL_FUNC_EXIT();\
         return CL_EVENT_ERR_NULL_PTR;\
     }\
     if(0 == (pName)->length)\
     {\
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Channel Name has 0 lenth\n\r");\
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME, CL_EVENT_LOG_MSG_1_INVALID_PARAMETER, "Channel Name has 0 length");\
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME, CL_EVENT_LOG_MSG_1_INVALID_PARAMETER, "Channel Name has 0 length");\
         CL_FUNC_EXIT();\
         return CL_EVENT_ERR_INVALID_PARAM;\
     }\
     if((pName)->length >= CL_MAX_NAME_LENGTH)\
     {\
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Channel Name too long\n\r");\
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME, CL_EVENT_LOG_MSG_1_INVALID_PARAMETER, "Channel Name too long");\
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME, CL_EVENT_LOG_MSG_1_INVALID_PARAMETER, "Channel Name too long");\
         CL_FUNC_EXIT();\
         return CL_EVENT_ERR_INVALID_PARAM;\
     }\

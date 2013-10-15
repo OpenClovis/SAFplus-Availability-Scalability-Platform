@@ -143,7 +143,7 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
 
     rc = VDECL_VER(clXdrUnmarshallClCpmSlotInfoRecvT, 4, 0, 0)(inMsgHandle, (void *)&slotInfoRecv);
     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clCntFirstNodeGet(gpClCpm->cpmTable, &hNode);
     CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to get first cpmTable Node %x\n", rc),

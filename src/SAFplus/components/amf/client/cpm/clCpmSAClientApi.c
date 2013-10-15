@@ -272,7 +272,7 @@ static ClRcT component_handle_mapping_create(CL_IN const SaNameT *compName,
         clHeapAllocate(sizeof(struct component_handle_table));
     if (temp == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory"),
                          CL_CPM_RC(CL_ERR_NO_MEMORY));
@@ -308,7 +308,7 @@ static ClRcT component_handle_mapping_create(CL_IN const SaNameT *compName,
                 rc = CL_CPM_RC(CL_CPM_ERR_EXIST);
                 if (rc != CL_OK)
                 {
-                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG,
+                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG,
                                CL_CPM_CLIENT_LIB,
                                CL_CPM_LOG_1_LCM_MULT_REG_REQ_ERR, compName->value);
                 }
@@ -359,7 +359,7 @@ static ClRcT component_handle_mapping_get(CL_IN SaNameT *compName,
     else
     {
         rc = CL_CPM_RC(CL_ERR_NOT_EXIST);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_RESOURCE_NON_EXISTENT);
     }
     return rc;
@@ -382,7 +382,7 @@ static ClRcT component_handle_mapping_delete(CL_IN const SaNameT *compName,
         {
             if (memcmp(&(amfHandle), &(currPtr->amfHandle), sizeof(ClHandleT)))
             {
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                            CL_CPM_LOG_2_HANDLE_INVALID, compName->value,
                            CL_CPM_RC(CL_ERR_INVALID_HANDLE));
                 CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -421,7 +421,7 @@ static ClRcT component_handle_mapping_delete(CL_IN const SaNameT *compName,
     else
     {
         rc = CL_CPM_RC(CL_ERR_NOT_EXIST);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_RESOURCE_NON_EXISTENT);
     }
 
@@ -506,7 +506,7 @@ static ClRcT clAmfLibInitialize(void)
         rc = clEoMyEoObjectGet(&eo);
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                        CL_LOG_MESSAGE_1_MY_EO_OBJ_GET_FAILED, rc);
         }
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -516,7 +516,7 @@ static ClRcT clAmfLibInitialize(void)
                                                               CPMMgmtClient));
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                        CL_CPM_LOG_1_EO_CLIENT_INST_ERR, rc);
         }
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, (" Unable to initialize the \
@@ -525,7 +525,7 @@ static ClRcT clAmfLibInitialize(void)
         rc = clCpmClientTableRegister(eo);
         if(rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                        CL_CPM_LOG_1_EO_CLIENT_INST_ERR, rc);
         }
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to install CPM client table. rc [%#x]", rc), rc);
@@ -534,7 +534,7 @@ static ClRcT clAmfLibInitialize(void)
                                     &handle_database);
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                        CL_CPM_LOG_1_HANDLE_DB_CREATE_ERR, rc);
         }
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -559,7 +559,7 @@ static ClRcT check_lib_init(void)
         rc = clAmfLibInitialize();
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                        CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "AMF", rc);
         }
     }
@@ -574,7 +574,7 @@ ClRcT clCpmComponentResourceCleanup(void)
     rc = clEoMyEoObjectGet(&pThis);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_1_MY_EO_OBJ_GET_FAILED, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("MyEoObject Get failed rc=%x\n", rc), rc);
@@ -583,7 +583,7 @@ ClRcT clCpmComponentResourceCleanup(void)
         rc = pThis->clEoDeleteCallout();
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                        CL_CPM_LOG_1_EO_DEL_CALL_OUT_ERR, rc);
             clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
                        "\n EO: Delete User Callout function failed \n");
@@ -771,7 +771,7 @@ ClRcT handleProxiedComponentInstantiate(ClCpmClientCompTerminateT *info,
     
     if ((cpmInstance->callbacks).appProxiedComponentInstantiate != NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_0_LCM_INVOKE_CALLBACK_INFO);
         cpmInstance->callbacks.appProxiedComponentInstantiate(info->invocation,
                                                               &(info->compName));
@@ -794,7 +794,7 @@ ClRcT handleProxiedComponentCleanup(ClCpmClientCompTerminateT *info,
     
     if (cpmInstance->callbacks.appProxiedComponentCleanup != NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_0_LCM_INVOKE_CALLBACK_INFO);
 
         cpmInstance->callbacks.appProxiedComponentCleanup(info->invocation, 
@@ -1161,7 +1161,7 @@ static ClRcT _cpmCsiDescriptorUnpack(ClAmsCSIDescriptorT *csiDescriptor,
                                               sizeof(ClAmsCSIAttributeT));
         if (attrList == NULL)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("unable to allocate memory \n"),
                              CL_CPM_RC(CL_ERR_NO_MEMORY));
@@ -1180,7 +1180,7 @@ static ClRcT _cpmCsiDescriptorUnpack(ClAmsCSIDescriptorT *csiDescriptor,
             CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to read the message \n"), rc);
             if (attrType != CL_CPM_CSI_ATTR_NAME)
             {
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                            CL_LOG_MESSAGE_0_INVALID_BUFFER);
                 CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("invalide buffer received \n"),
                                  CL_CPM_RC(CL_ERR_INVALID_BUFFER));
@@ -1192,7 +1192,7 @@ static ClRcT _cpmCsiDescriptorUnpack(ClAmsCSIDescriptorT *csiDescriptor,
             attributeName = (ClUint8T *) clHeapAllocate(attributeNameLength);
             if (attributeName == NULL)
             {
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("unable to allocate memory \n"),
                                  CL_CPM_RC(CL_ERR_NO_MEMORY));
@@ -1213,7 +1213,7 @@ static ClRcT _cpmCsiDescriptorUnpack(ClAmsCSIDescriptorT *csiDescriptor,
                                                              (void *)&(attrType));
             if (attrType != CL_CPM_CSI_ATTR_VALUE)
             {
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                            CL_LOG_MESSAGE_0_INVALID_BUFFER);
                 CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("invalide buffer received \n"),
                                  CL_CPM_RC(CL_ERR_INVALID_BUFFER));
@@ -1225,7 +1225,7 @@ static ClRcT _cpmCsiDescriptorUnpack(ClAmsCSIDescriptorT *csiDescriptor,
             attributeValue = (ClUint8T *) clHeapAllocate(attributeValueLength);
             if (attributeValue == NULL)
             {
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("unable to allocate memory \n"),
                                  CL_CPM_RC(CL_ERR_NO_MEMORY));
@@ -1518,7 +1518,7 @@ ClRcT handleCompCSIRmv(ClCpmCompCSIRmvT *info,
                 goto out_free;
             }
         }
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_0_LCM_INVOKE_CALLBACK_INFO);
         cpmInstance->callbacks.appCSIRmv(info->invocation,
                                          &(info->compName),
@@ -1552,7 +1552,7 @@ ClRcT handlePGTrack(ClCpmPGResponseT *recvBuff,
      */
     if ((cpmInstance->callbacks).appProtectionGroupTrack != NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_0_LCM_INVOKE_CALLBACK_INFO);
 
 
@@ -1652,7 +1652,7 @@ static ClRcT VDECL(_clCpmClientCompTerminate)(ClEoDataT eoArg,
     rc = VDECL_VER(clXdrUnmarshallClCpmClientCompTerminateT, 4, 0, 0)(inMsgHandle, (void *) info);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_BUF_READ_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to Get message \n"), rc);
@@ -1668,7 +1668,7 @@ static ClRcT VDECL(_clCpmClientCompTerminate)(ClEoDataT eoArg,
     rc = clCpmComponentNameGet(0, &appName);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_1_LCM_COMP_NAME_GET_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Component name get failed rc=%x\n", rc),
@@ -1676,7 +1676,7 @@ static ClRcT VDECL(_clCpmClientCompTerminate)(ClEoDataT eoArg,
     rc = component_handle_mapping_get(&appName, &cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_2_HANDLE_GET_ERR, appName.value, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -1696,7 +1696,7 @@ static ClRcT VDECL(_clCpmClientCompTerminate)(ClEoDataT eoArg,
     rc = clHandleCheckout(handle_database, cpmHandle, (void *) &cpmInstance);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc),
@@ -1715,7 +1715,7 @@ static ClRcT VDECL(_clCpmClientCompTerminate)(ClEoDataT eoArg,
     rc = clHandleCheckin(handle_database, cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
     }
 
@@ -1772,7 +1772,7 @@ static ClRcT VDECL(_clCpmClientCompCSISet)(ClEoDataT eoArg,
     rc = clCpmComponentNameGet(0, &appName);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_LCM_COMP_NAME_GET_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Component name get failed rc=%x\n", rc),
@@ -1780,7 +1780,7 @@ static ClRcT VDECL(_clCpmClientCompCSISet)(ClEoDataT eoArg,
     rc = component_handle_mapping_get(&appName, &cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_2_HANDLE_GET_ERR, appName.value, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -1809,7 +1809,7 @@ static ClRcT VDECL(_clCpmClientCompCSISet)(ClEoDataT eoArg,
     rc = clHandleCheckin(handle_database, cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
     }
 
@@ -1840,7 +1840,7 @@ static ClRcT VDECL(_clCpmClientCompCSIRmv)(ClEoDataT eoArg,
     rc = clBufferLengthGet(inMsgHandle, &msgLength);
     if(!msgLength || rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_INVALID_BUFFER);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"),
                          CL_CPM_RC(CL_ERR_INVALID_BUFFER));
@@ -1859,7 +1859,7 @@ static ClRcT VDECL(_clCpmClientCompCSIRmv)(ClEoDataT eoArg,
     rc = VDECL_VER(clXdrUnmarshallClCpmCompCSIRmvT, 4, 0, 0)(inMsgHandle, recvBuff);
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to read the message \n"), rc);
 
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, CL_CPM_CLIENT_LIB,
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, CL_CPM_CLIENT_LIB,
                CL_CPM_LOG_2_LCM_CSI_RMV_INFO, recvBuff->compName.value,
                recvBuff->csiName.value);
 
@@ -1874,7 +1874,7 @@ static ClRcT VDECL(_clCpmClientCompCSIRmv)(ClEoDataT eoArg,
     rc = clCpmComponentNameGet(0, &appName);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_1_LCM_COMP_NAME_GET_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Component name get failed rc=%x\n", rc),
@@ -1882,7 +1882,7 @@ static ClRcT VDECL(_clCpmClientCompCSIRmv)(ClEoDataT eoArg,
     rc = component_handle_mapping_get(&appName, &cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_2_HANDLE_GET_ERR, appName.value, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -1897,7 +1897,7 @@ static ClRcT VDECL(_clCpmClientCompCSIRmv)(ClEoDataT eoArg,
     rc = clHandleCheckout(handle_database, cpmHandle, (void *) &cpmInstance);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc),
@@ -1917,7 +1917,7 @@ static ClRcT VDECL(_clCpmClientCompCSIRmv)(ClEoDataT eoArg,
     rc = clHandleCheckin(handle_database, cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
     }
 
@@ -1943,7 +1943,7 @@ static ClRcT VDECL(_clCpmClientCompProtectionGroupTrack)(ClEoDataT eoArg,
 
     if(!msgLength || rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_INVALID_BUFFER);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"),
                          CL_CPM_RC(CL_ERR_INVALID_BUFFER));
@@ -1961,7 +1961,7 @@ static ClRcT VDECL(_clCpmClientCompProtectionGroupTrack)(ClEoDataT eoArg,
     rc = VDECL_VER(clXdrUnmarshallClCpmPGResponseT, 4, 0, 0)(inMsgHandle, (void *)recvBuff);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_BUF_READ_ERR, rc);
     }
 
@@ -1976,7 +1976,7 @@ static ClRcT VDECL(_clCpmClientCompProtectionGroupTrack)(ClEoDataT eoArg,
                           (void *) &cpmInstance);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc),
@@ -1993,7 +1993,7 @@ static ClRcT VDECL(_clCpmClientCompProtectionGroupTrack)(ClEoDataT eoArg,
     rc = clHandleCheckin(handle_database, recvBuff->cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
     }
 
@@ -2041,7 +2041,7 @@ VDECL(_clCpmClientCompProxiedComponentInstantiate)(ClEoDataT eoArg,
     rc = clCpmComponentNameGet(0, &appName);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_1_LCM_COMP_NAME_GET_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Component name get failed rc=%x\n", rc),
@@ -2050,7 +2050,7 @@ VDECL(_clCpmClientCompProxiedComponentInstantiate)(ClEoDataT eoArg,
     rc = component_handle_mapping_get(&appName, &cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_2_HANDLE_GET_ERR, appName.value, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -2065,7 +2065,7 @@ VDECL(_clCpmClientCompProxiedComponentInstantiate)(ClEoDataT eoArg,
     rc = clHandleCheckout(handle_database, cpmHandle, (void *) &cpmInstance);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc),
@@ -2085,7 +2085,7 @@ VDECL(_clCpmClientCompProxiedComponentInstantiate)(ClEoDataT eoArg,
     rc = clHandleCheckin(handle_database, cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
     }
     return rc;
@@ -2129,7 +2129,7 @@ VDECL(_clCpmClientCompProxiedComponentCleanup)(ClEoDataT eoArg,
     rc = clCpmComponentNameGet(0, &appName);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_1_LCM_COMP_NAME_GET_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Component name get failed rc=%x\n", rc),
@@ -2137,7 +2137,7 @@ VDECL(_clCpmClientCompProxiedComponentCleanup)(ClEoDataT eoArg,
     rc = component_handle_mapping_get(&appName, &cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_2_HANDLE_GET_ERR, appName.value, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -2152,7 +2152,7 @@ VDECL(_clCpmClientCompProxiedComponentCleanup)(ClEoDataT eoArg,
     rc = clHandleCheckout(handle_database, cpmHandle, (void *) &cpmInstance);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc),
@@ -2184,7 +2184,7 @@ VDECL(_clCpmClientCompProxiedComponentCleanup)(ClEoDataT eoArg,
     rc = clHandleCheckin(handle_database, cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
     }
 
@@ -2230,7 +2230,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
      */
     if (cpmHandle == NULL || callback == NULL || version == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null pointer passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
@@ -2250,7 +2250,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     rc = check_lib_init();
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "AMF", rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -2262,7 +2262,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     rc = clVersionVerify(&version_database, version);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_VERSION_MISMATCH);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Version verification failed %x\n", rc),
@@ -2271,7 +2271,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     rc = clOsalMutexCreate(&gCpmCompCSIListMutex);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to create mutex.rc=[0x%x]\n", rc), rc);
@@ -2289,7 +2289,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
                           );
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_1_CNT_CREATE_FAILED,rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("List container creation failed.rc=[%x]\n", rc),
@@ -2300,7 +2300,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     rc = clHandleCreate(handle_database, sizeof(ClCpmInstanceT), cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CREATE_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to create handle %x\n", rc), rc);
@@ -2314,7 +2314,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     rc = clHandleCheckout(handle_database, *cpmHandle, (void *) &cpmInstance);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc),
@@ -2323,19 +2323,19 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     rc = clOsalMutexCreate(&cpmInstance->response_mutex);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to create mutex %x\n", rc), rc);
 
     rc = clOsalMutexCreate(&cpmInstance->cbMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clQueueCreate(0, userDequeueCallBack, userDestroyCallback,
                        &cpmInstance->cbQueue);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_QUEUE_CREATE_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
 
     cpmInstance->readFd = 0;
     cpmInstance->writeFd = 0;
@@ -2349,7 +2349,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     rc = clEoMyEoIocPortGet(&compInitSend.eoPort);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_IOC_MY_EO_IOC_PORT_GET_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("MyEoIocPort Get failed rc=%x\n", rc),
@@ -2358,7 +2358,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     rc = clCpmComponentNameGet(0, &compName);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_LCM_COMP_NAME_GET_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -2381,7 +2381,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
                                    UNMARSHALL_FN(ClCpmCompInitRecvT, 4, 0, 0));
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_INIT_ERR, rc);
         }
     }
@@ -2396,7 +2396,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
      */
     memcpy(&(cpmInstance->callbacks), callback, sizeof(ClCpmCallbacksT));
 
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, CL_CPM_CLIENT_LIB,
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, CL_CPM_CLIENT_LIB,
                CL_CPM_LOG_0_CLIENT_INIT_INFO);
     clLogTrace(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,"clCpmClientInitialize Sucess");
 
@@ -2406,7 +2406,7 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
     rc = clHandleCheckin(handle_database, *cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
     }
 
@@ -2431,7 +2431,7 @@ ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
     rc = clHandleCheckout(handle_database, cpmHandle, (void *) &cpmInstance);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc),
@@ -2440,7 +2440,7 @@ ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
     rc = clOsalMutexLock(cpmInstance->response_mutex);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to lock %x\n", rc), rc);
@@ -2453,7 +2453,7 @@ ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
         rc = clOsalMutexUnlock(cpmInstance->response_mutex);
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                        CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc);
         }
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to unlock %x\n", rc), rc);
@@ -2461,7 +2461,7 @@ ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
         rc = clHandleCheckin(handle_database, cpmHandle);
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                        CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
         }
         rc = CL_CPM_RC(CL_ERR_INVALID_HANDLE);
@@ -2485,7 +2485,7 @@ ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
     rc = clOsalMutexUnlock(cpmInstance->response_mutex);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to unlock %x\n", rc), rc);
@@ -2493,7 +2493,7 @@ ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
     rc = clHandleCheckin(handle_database, cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
     }
     /*
@@ -2502,7 +2502,7 @@ ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
     rc = clCpmComponentNameGet(0, &compName);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_LCM_COMP_NAME_GET_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -2515,7 +2515,7 @@ ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
     rc = clEoMyEoObjectGet(&pEoObj);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_1_MY_EO_OBJ_GET_FAILED, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("MyEoObject Get failed rc=%x\n", rc), rc);
@@ -2538,7 +2538,7 @@ ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
 
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                     CL_CPM_LOG_1_CLIENT_FINALIZE_ERR, rc);
         }
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("%s Failed rc =%x\n", 
@@ -2560,7 +2560,7 @@ ClRcT clCpmSelectionObjectGet(ClCpmHandleT cpmHandle,
 
     if (pSelectionObject == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null pointer passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
@@ -2577,7 +2577,7 @@ ClRcT clCpmSelectionObjectGet(ClCpmHandleT cpmHandle,
             (void *) &cpmInstance);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc),
@@ -2607,7 +2607,7 @@ ClRcT clCpmSelectionObjectGet(ClCpmHandleT cpmHandle,
     rc = clHandleCheckin(handle_database, cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                 CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
     }
 
@@ -2699,7 +2699,7 @@ ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle,
     rc = clHandleCheckout(handle_database, cpmHandle, (void *) &cpmInstance);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc),
@@ -2883,7 +2883,7 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
      */
     if (compName == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
@@ -2895,7 +2895,7 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
     rc = clHandleCheckout(handle_database, cpmHandle, (void *) &cpmInstance);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc),
@@ -2904,7 +2904,7 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
     rc = component_handle_mapping_create(compName, cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_HANDLE_MAP_CREATE_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -2918,7 +2918,7 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
     {
         if (proxyCompName)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                        "The component [%.*s] is already registered and is now "
                        "being registered as proxied component with [%.*s] as a "
                        "proxy. Please note that second parameter to the component "
@@ -2929,7 +2929,7 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
         }
         else
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                        "The component [%.*s] is already registered",
                        compName->length, compName->value);
         }
@@ -2970,7 +2970,7 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
     rc = clHandleCheckin(handle_database, cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkin handle %x\n", rc), rc);
@@ -3001,7 +3001,7 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
     rc = clEoMyEoIocPortGet(&compReg.eoPort);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_IOC_MY_EO_IOC_PORT_GET_ERR, rc);
     }
 
@@ -3022,7 +3022,7 @@ ClRcT clCpmComponentRegister(ClCpmHandleT cpmHandle,
                                    NULL);
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                     CL_CPM_LOG_1_CLIENT_COMP_REG_ERR, rc);
         }
     }
@@ -3042,7 +3042,7 @@ ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
 
     if (compName == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
@@ -3054,7 +3054,7 @@ ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
     rc = clHandleCheckout(handle_database, cpmHandle, (void *) &cpmInstance);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc),
@@ -3071,7 +3071,7 @@ ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
     rc = component_handle_mapping_delete(compName, cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_HANDLE_MAP_DELETE_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
@@ -3084,7 +3084,7 @@ ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
     rc = clHandleCheckin(handle_database, cpmHandle);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_HANDLE_CHECKIN_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkin handle %x\n", rc), rc);
@@ -3101,7 +3101,7 @@ ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
     rc = clEoMyEoIocPortGet(&compReg.eoPort);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_IOC_MY_EO_IOC_PORT_GET_ERR, rc);
     }
     if(clEoWithOutCpm != CL_TRUE)
@@ -3120,7 +3120,7 @@ ClRcT clCpmComponentUnregister(ClCpmHandleT cpmHandle,
                                     MARSHALL_FN(ClCpmCompRegisterT, 4, 0, 0));
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                     CL_CPM_LOG_1_CLIENT_COMP_UNREG_ERR, rc);
         }
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("%s Failed rc =%x\n", 
@@ -3198,7 +3198,7 @@ ClRcT clCpmComponentNameGet(ClCpmHandleT cpmHandle,
 
     if (compName == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
@@ -3211,7 +3211,7 @@ ClRcT clCpmComponentNameGet(ClCpmHandleT cpmHandle,
     rc = clHandleValidate(handle_database, cpmHandle);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_2_HANDLE_INVALID, compName->value, rc);
         clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
                        ("Invalid CPM handle, rc = [%#x]", rc));
@@ -3236,7 +3236,7 @@ ClRcT clCpmComponentNameGet(ClCpmHandleT cpmHandle,
     else
     {
         rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_ERR_DOESNT_EXIST, rc);
     }
 
@@ -3446,7 +3446,7 @@ ClRcT clCpmComponentFailureClear(CL_IN ClCpmHandleT cpmHandle,
 
     if (compName == NULL )
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
@@ -3459,7 +3459,7 @@ ClRcT clCpmComponentFailureClear(CL_IN ClCpmHandleT cpmHandle,
     rc = clHandleValidate(handle_database, cpmHandle);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_2_HANDLE_INVALID, compName->value, rc);
         clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
                    "Invalid CPM handle, rc = [%#x]", rc);
@@ -3472,7 +3472,7 @@ ClRcT clCpmComponentFailureClear(CL_IN ClCpmHandleT cpmHandle,
                                         
     if (errorReport == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"),
                          CL_CPM_RC(CL_ERR_NO_MEMORY));
@@ -3486,7 +3486,7 @@ ClRcT clCpmComponentFailureClear(CL_IN ClCpmHandleT cpmHandle,
                              CL_RMD_CALL_ATMOST_ONCE, 0, 0, 0);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_FAILURE_CLEAR_ERR, rc);
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("%s Failed rc =%x\n", __FUNCTION__, rc),
@@ -3516,7 +3516,7 @@ ClRcT clCpmHAStateGet(CL_IN ClCpmHandleT cpmHandle,
 
     if (compName == NULL || csiName == NULL || haState == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
@@ -3525,7 +3525,7 @@ ClRcT clCpmHAStateGet(CL_IN ClCpmHandleT cpmHandle,
     rc = clHandleValidate(handle_database, cpmHandle);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_2_HANDLE_INVALID, compName->value, rc);
         clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
                    "Invalid CPM handle, rc = [%#x]", rc);
@@ -3546,7 +3546,7 @@ ClRcT clCpmHAStateGet(CL_IN ClCpmHandleT cpmHandle,
     rc = clCpmMasterAddressGet(&masterIocAddress);
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                 "Failed to get master CPM address. error code [0x%x].", rc);
         goto failure;
     }
@@ -3565,7 +3565,7 @@ ClRcT clCpmHAStateGet(CL_IN ClCpmHandleT cpmHandle,
                                UNMARSHALL_FN(ClCpmHAStateGetRecvT, 4, 0, 0));
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_HA_STATE_GET_ERR, rc);
     }
 
@@ -3590,7 +3590,7 @@ ClRcT clCpmResponse(CL_IN ClCpmHandleT cpmHandle,
     rc = clHandleValidate(handle_database, cpmHandle);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_2_HANDLE_INVALID, "component", rc);
         clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
                    "Invalid CPM handle, rc = [%#x]", rc);
@@ -3612,7 +3612,7 @@ ClRcT clCpmResponse(CL_IN ClCpmHandleT cpmHandle,
 
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_CB_RESPONSE_ERR, rc);
     }
 
@@ -3636,7 +3636,7 @@ ClRcT clCpmCSIQuiescingComplete(CL_IN ClCpmHandleT cpmHandle,
     rc = clHandleValidate(handle_database, cpmHandle);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_2_HANDLE_INVALID, "component", rc);
         clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
                    "Invalid CPM handle, rc = [%#x]", rc);
@@ -3656,7 +3656,7 @@ ClRcT clCpmCSIQuiescingComplete(CL_IN ClCpmHandleT cpmHandle,
     
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_CLIENT_COMP_QUIESCING_ERR, rc);
     }
 
@@ -3698,7 +3698,7 @@ ClRcT unmarshallPGResponse(ClBufferHandleT outMsgHandle, void* notification)
 
         if (notificationBuffer->notification == NULL)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                     CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory"),
                     CL_CPM_RC(CL_ERR_NO_MEMORY));
@@ -3737,7 +3737,7 @@ ClRcT clCpmProtectionGroupTrack(CL_IN ClCpmHandleT cpmHandle,
 
     if (csiName == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
@@ -3746,7 +3746,7 @@ ClRcT clCpmProtectionGroupTrack(CL_IN ClCpmHandleT cpmHandle,
     rc = clHandleValidate(handle_database, cpmHandle);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_2_HANDLE_INVALID, csiName->value, rc);
         clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_CLEAN,
                    "Invalid CPM handle, rc = [%#x]", rc);
@@ -3785,14 +3785,14 @@ ClRcT clCpmProtectionGroupTrack(CL_IN ClCpmHandleT cpmHandle,
     rc = clEoMyEoIocPortGet(&sendBuff.iocAddress.clIocAddressIDLT.iocPhyAddress.portId);
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB, "Failed to get my EO port. error code [0x%x].", rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, "Failed to get my EO port. error code [0x%x].", rc);
         goto failure;
     }
 
     rc = clCpmMasterAddressGet(&masterIocAddress);
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB, "Failed to get master CPM address. error code [0x%x].",rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, "Failed to get master CPM address. error code [0x%x].",rc);
         goto failure;
     }
     if ((trackFlags & CL_AMS_PG_TRACK_CURRENT) && notificationBuffer != NULL)
@@ -3844,7 +3844,7 @@ ClRcT clCpmProtectionGroupTrackStop(CL_IN ClCpmHandleT cpmHandle,
     
     if (csiName == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_LOG_MESSAGE_0_NULL_ARGUMENT);
         CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
                          CL_CPM_RC(CL_ERR_NULL_POINTER));
@@ -3853,7 +3853,7 @@ ClRcT clCpmProtectionGroupTrackStop(CL_IN ClCpmHandleT cpmHandle,
     rc = clHandleValidate(handle_database, cpmHandle);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_2_HANDLE_INVALID, csiName->value, rc);
         clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
                    "Invalid CPM handle, rc = [%#x]", rc);
@@ -3868,14 +3868,14 @@ ClRcT clCpmProtectionGroupTrackStop(CL_IN ClCpmHandleT cpmHandle,
     rc = clEoMyEoIocPortGet(&sendBuff.iocAddress.clIocAddressIDLT.iocPhyAddress.portId);
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB, "Failed to get my EO port. error code [0x%x].", rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, "Failed to get my EO port. error code [0x%x].", rc);
         goto failure;
     }
 
     rc = clCpmMasterAddressGet(&masterIocAddress);
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB, "Failed to get master CPM address. erro code [0x%x].",rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, "Failed to get master CPM address. erro code [0x%x].",rc);
         goto failure;
     }
     rc = clCpmClientRMDAsyncNew(masterIocAddress,

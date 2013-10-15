@@ -17,31 +17,31 @@ ClPluginHandle* clLoadPlugin(ClWordT pluginId, ClWordT version, const char* name
     ph->dlHandle = dlopen(name,RTLD_GLOBAL|RTLD_NOW);
     if (!ph->dlHandle)
     {
-        clLog(CL_LOG_WARNING, UTL, PLG, "Plugin [%s] was not found.", name);
+        clLog(CL_LOG_SEV_WARNING, UTL, PLG, "Plugin [%s] was not found.", name);
         goto errorOut;        
     }
     
     *(void**)&ph->init =  dlsym(ph->dlHandle,CL_CM_PLUGIN_INIT_FN);
     if (ph->init == NULL)
     {
-        clLog(CL_LOG_ERROR, UTL, PLG, "Plugin [%s] does not contain an initialization function [%s].",name,CL_CM_PLUGIN_INIT_FN);
+        clLog(CL_LOG_SEV_ERROR, UTL, PLG, "Plugin [%s] does not contain an initialization function [%s].",name,CL_CM_PLUGIN_INIT_FN);
         goto errorOut;        
     }
 
     ph->pluginApi = (ClPlugin*) ph->init(version);
     if (ph->pluginApi == 0)
     {
-        clLog(CL_LOG_ERROR, UTL, PLG, "Plugin [%s] failed initialization.",name);
+        clLog(CL_LOG_SEV_ERROR, UTL, PLG, "Plugin [%s] failed initialization.",name);
         goto errorOut;        
     }
     if (ph->pluginApi->pluginId != pluginId)
     {
-        clLog(CL_LOG_ERROR, UTL, PLG, "Incorrect type of plugin [%s] (type identifiers do not match).  Expected 0x%x got 0x%x.",name,(unsigned int) pluginId, (unsigned int) ph->pluginApi->pluginId);
+        clLog(CL_LOG_SEV_ERROR, UTL, PLG, "Incorrect type of plugin [%s] (type identifiers do not match).  Expected 0x%x got 0x%x.",name,(unsigned int) pluginId, (unsigned int) ph->pluginApi->pluginId);
         goto errorOut;
     }
      if (ph->pluginApi->pluginVersion != version)
     {
-        clLog(CL_LOG_ERROR, UTL, PLG, "Incompatible version for plugin [%s].  Expected 0x%x got 0x%x.",name,(unsigned int)version, (unsigned int)ph->pluginApi->pluginVersion);
+        clLog(CL_LOG_SEV_ERROR, UTL, PLG, "Incompatible version for plugin [%s].  Expected 0x%x got 0x%x.",name,(unsigned int)version, (unsigned int)ph->pluginApi->pluginVersion);
         goto errorOut;
     }
    

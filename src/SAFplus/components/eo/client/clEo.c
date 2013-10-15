@@ -333,7 +333,7 @@ void clLoadEnvVars()
 
     if (missing[0])
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
               "The following required environment variables are not set: %s. Exiting", missing);
         exit(1);  
     }
@@ -352,7 +352,7 @@ void clLoadEnvVars()
     
         else
         {
-            clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "ASP_NODEADDR environment variable not set, exiting");
+            clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "ASP_NODEADDR environment variable not set, exiting");
             exit(1);
         }
     }
@@ -482,13 +482,13 @@ static ClRcT clEoEssentialLibInitialize(void)
 
     for (i = 0; i < tableSize; i++)
     {
-        clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing essential library [%s]...", gEssentialLibInfo[i].libName);
+        clLog(CL_LOG_SEV_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing essential library [%s]...", gEssentialLibInfo[i].libName);
         if (CL_OK != (rc = gEssentialLibInfo[i].pLibInitializeFunc(gEssentialLibInfo[i].pConfig)))
         {
             if (CL_GET_ERROR_CODE(rc) != CL_ERR_INITIALIZED) /* Already Initialized is benign */
             {
                 
-            clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
+            clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
                   "Failed to initialize essential library [%s], error [0x%x]",
                   gEssentialLibInfo[i].libName, rc);
             return rc;
@@ -517,7 +517,7 @@ static ClRcT clEoEssentialLibFinalize(void)
             rc = gEssentialLibInfo[i].pLibFinalizeFunc();
             if (CL_OK != rc)
             {
-                clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Failed to finalize essential library [%s], error [0x%x]", gEssentialLibInfo[i].libName, rc);
+                clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Failed to finalize essential library [%s], error [0x%x]", gEssentialLibInfo[i].libName, rc);
                 return rc;
             }
         }        
@@ -537,12 +537,12 @@ static ClRcT clAspBasicLibInitialize()
 
         if (eoBasicLibs[i] == CL_TRUE)
         {
-            clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI,
+            clLog(CL_LOG_SEV_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI,
                   "Initializing basic library [%s]...",
                   gClBasicLibInitTable[i].libName);
             if (CL_OK != (rc = gClBasicLibInitTable[i].fn()))
             {
-                clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
+                clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
                       "Failed to initialize basic library [%s], error [0x%x]",
                       gClBasicLibInitTable[i].libName, rc);
                 return rc;
@@ -553,7 +553,7 @@ static ClRcT clAspBasicLibInitialize()
     rc = clDispatchLibInitialize();
     if (CL_OK != rc)
     {
-	    clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
+	    clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
 		      "Error Initializing Basic Library"
 			  "clDispatchLibInitialize(), rc=[0x%x]\n",
 			  rc);
@@ -573,7 +573,7 @@ static ClRcT clAspBasicLibFinalize()
     rc = clDispatchLibFinalize();
     if (CL_OK != rc)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
               "Error finalizing Dispatch Library "
               "clDispatchLibFinalize(), rc=[0x%x]\n",rc);
         return rc;
@@ -587,7 +587,7 @@ static ClRcT clAspBasicLibFinalize()
         {
             if (CL_OK != (rc = gClBasicLibCleanupTable[i].fn()))
             {
-                clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
+                clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
                       "Failed to finalize basic library [%s], error [0x%x]",
                       gClBasicLibCleanupTable[i].libName, rc);
             }
@@ -617,12 +617,12 @@ ClRcT clAspClientLibInitialize(void)
 
         if (eoClientLibs[i] == CL_TRUE)
         {
-            clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI,
+            clLog(CL_LOG_SEV_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI,
                   "Initializing client library [%s]...",
                   gClClientLibInitTable[i].libName);
             if (CL_OK != (rc = gClClientLibInitTable[i].fn()))
             {
-                clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
+                clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
                       "Failed to initialize client library [%s], error [0x%x]",
                       gClClientLibInitTable[i].libName, rc);
                 return rc;
@@ -652,12 +652,12 @@ ClRcT clAspClientLibFinalize(void)
 
         if (eoClientLibs[i] == CL_TRUE)
         {
-            clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_FIN,
+            clLog(CL_LOG_SEV_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_FIN,
                   "Finalizing client library [%s]...",
                   gClClientLibCleanupTable[i].libName);
             if (CL_OK != (rc = gClClientLibCleanupTable[i].fn()))
             {
-                clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
+                clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
                       "Failed to finalize client library [%s], error [0x%x]",
                       gClClientLibCleanupTable[i].libName, rc);
             }
@@ -696,12 +696,12 @@ ClRcT clEoSetup(void)
     /*
      * Okay always parse the ioc config file
      */
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
           "Reading IOC configuration file, for node [%s]", gClEoNodeName);
     rc = clIocParseConfig(gClEoNodeName,&gpClEoIocConfig);
     if(rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
               "Failed to parse IOC config file, error [0x%x]", rc);
         return rc;
     }
@@ -713,7 +713,7 @@ ClRcT clEoSetup(void)
     }
 #endif 
 
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
           "Reading EO configuration file");
     
     if(NULL != clEoProgName)
@@ -729,27 +729,27 @@ ClRcT clEoSetup(void)
         
     if ( rc != CL_OK )
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
               "Failed to parse EO config file, error [0x%x]", rc);
         return rc;
     }
 
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
           "Initializing essential libraries...");
     rc = clEoEssentialLibInitialize();
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
               "Failed to initialize all essential libraries, error [0x%x]", rc);
         return rc;
     }
     clLogUtilLibInitialize();
 
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing basic libraries...");
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing basic libraries...");
     rc = clAspBasicLibInitialize();
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Failed to initialize all basic libraries, error [0x%x]", rc);
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Failed to initialize all basic libraries, error [0x%x]", rc);
         return rc;
     }
 
@@ -762,9 +762,9 @@ ClRcT clEoSetup(void)
     {
         if (clEoWithOutCpm == CL_TRUE)
         {
-            clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "This is an EO running without the CPM.");
+            clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "This is an EO running without the CPM.");
         }
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "The ASP_COMPNAME environment variable is not set.");
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "The ASP_COMPNAME environment variable is not set.");
         return CL_ERR_NULL_POINTER;
     }
 
@@ -774,16 +774,16 @@ ClRcT clEoSetup(void)
         return rc;
     }
 
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing client libraries...");
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing client libraries...");
     rc = clAspClientLibInitialize();
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
               "Failed to initialize all client libraries, error [0x%x]", rc);
         return rc;
     }
 
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
           "All libraries initialized, progressing to server initialization...");
 
     return CL_OK;
@@ -805,7 +805,7 @@ ClRcT clASPInitialize(void)
     rc = clEoSetup();
     if(rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Exiting : SAFplus initialize failed, error [0x%x]", rc);
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Exiting : SAFplus initialize failed, error [0x%x]", rc);
         return rc;
     }
 
@@ -839,14 +839,14 @@ ClRcT clEoTearDown(void)
     rc = clEoEventExit();  
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Failed to release event related resources, error [0x%x]", rc);
+        clLog(CL_LOG_SEV_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Failed to release event related resources, error [0x%x]", rc);
     }
 
     clEoMyEoObjectGet(&pThis);
 
     clEoReceiverUnblock(pThis);
 
-    clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Cleaning up EO layer...");
+    clLog(CL_LOG_SEV_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Cleaning up EO layer...");
     clLogUtilLibFinalize(eoClientLibs[3]);
     /*
      * In case, the EO didn't have the gmslib flag,
@@ -858,23 +858,23 @@ ClRcT clEoTearDown(void)
     if(pThis)
         clEoCleanup(pThis);
     
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Finalizing basic libraries...");
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Finalizing basic libraries...");
     rc = clAspBasicLibFinalize();
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Failed to finalize all basic libraries, error [0x%x]", rc);
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Failed to finalize all basic libraries, error [0x%x]", rc);
         return rc;
     }
 
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Finalizing essential libraries...");
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Finalizing essential libraries...");
     rc = clEoEssentialLibFinalize();
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
               "Failed to finalize all essential libraries, error [0x%x]", rc);
         return rc;
     }
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN,
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN,
           "All libraries are finalized");
 
     return CL_OK;
@@ -886,7 +886,7 @@ ClRcT clASPFinalize(void)
     
     if (CL_FALSE == gClASPInitialized)
     {
-        clLog(CL_LOG_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Called SAFplus finalize without initializing first.");
+        clLog(CL_LOG_SEV_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Called SAFplus finalize without initializing first.");
         
         return CL_ERR_NOT_INITIALIZED;
     }
@@ -906,7 +906,7 @@ ClRcT clASPFinalize(void)
     rc = clEoTearDown();
     if(rc != CL_OK)
     {
-        clLog(CL_LOG_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN, "SAFplus finalize failed, error[0x%x]", rc);
+        clLog(CL_LOG_SEV_ERROR, CL_LOG_AREA, CL_LOG_CTXT_FIN, "SAFplus finalize failed, error[0x%x]", rc);
         return rc;
     }
     
@@ -945,14 +945,14 @@ ClRcT clEoInitialize(ClInt32T argc, ClCharT *argv[])
 
     clEoProgName = argv[0];
     
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Process [%s] started. PID [%d]", clEoProgName, (int)getpid());
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Process [%s] started. PID [%d]", clEoProgName, (int)getpid());
 
     clASPInitialize();
     
     rc = clEoMyEoObjectGet(&pThis);
     if(rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Exiting : EO my object get failed. error [%x0x].\n", rc);
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Exiting : EO my object get failed. error [%x0x].\n", rc);
         exit(1);
     }
         
@@ -968,7 +968,7 @@ ClRcT clEoInitialize(ClInt32T argc, ClCharT *argv[])
     rc = eoConfig.clEoCreateCallout(argc, argv);
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Application initialization failed, error [0x%x]", rc);
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Application initialization failed, error [0x%x]", rc);
         exit(1);
     }
 
@@ -989,11 +989,11 @@ ClRcT clEoInitialize(ClInt32T argc, ClCharT *argv[])
     clOsalMutexUnlock(&pThis->eoMutex);
 
     clEoTearDown();
-    clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Process [%s] exited normally", argv[0]);
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Process [%s] exited normally", argv[0]);
 
     if (clDbgNoKillComponents)
     {
-      clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
+      clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_FIN,
             "In debug mode and 'clDbgNoKillComponents' is set, so this process will pause, not exit.");
       while(1) sleep(10000); /* Using sleep here instead of Osal because Osal is likely shutdown */
     }

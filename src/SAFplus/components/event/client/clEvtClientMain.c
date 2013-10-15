@@ -391,7 +391,7 @@ void clEvtCallbackDispatcher(ClEvtCbQueueDataT *pQueueData, ClEvtInitInfoT *pIni
             {
                 ClEvtEventPublishInfoT *pPublishInfo = pQueueData->cbArg;
 
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO,
                         CL_EVENT_LIB_NAME,
                         CL_EVENT_LOG_MSG_0_EVENT_DELIVER_CALLBACK);
                 evtEventDeliverCallbackDispatch(pInitInfo,
@@ -407,7 +407,7 @@ void clEvtCallbackDispatcher(ClEvtCbQueueDataT *pQueueData, ClEvtInitInfoT *pIni
             {
                 ClEvtClientAsyncChanOpenCbArgT *pCallbackArg = pQueueData->cbArg;
 
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO,
                         CL_EVENT_LIB_NAME,
                         CL_EVENT_LOG_MSG_0_ASYNC_CHAN_OPEN_CALLBACK);
                 
@@ -673,12 +673,12 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
                 goto resetReceiveStatus;
             }
 
-            clLog(CL_LOG_TRACE, "EVT", "EVR", 
+            clLog(CL_LOG_SEV_TRACE, "EVT", "EVR", 
                   CL_EVENT_LOG_MSG_0_EVENT_QUEUED);
         }
         else
         {
-            clLog(CL_LOG_TRACE, "EVT", "EVR", 
+            clLog(CL_LOG_SEV_TRACE, "EVT", "EVR", 
                   CL_EVENT_LOG_MSG_0_EVENT_DELIVER_CALLBACK);
             evtEventDeliverCallbackDispatch(pInitInfo, 
                                             pEvtPrimaryHeader->version,

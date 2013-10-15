@@ -1613,7 +1613,7 @@ ClRcT cliEvtSubsInfoShowLocal(ClEvtTestDisplayInfoT * pDisplayInfo)
                    sizeof(ClEvtTestDisplayInfoT));
     if (CL_OK != rc && CL_EVENT_ERR_INFO_WALK_STOP != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
         clOsalMutexUnlock(mutexId);
         clLogError(EVENT_LOG_AREA_EVENT,CL_LOG_AREA_UNSPECIFIED,

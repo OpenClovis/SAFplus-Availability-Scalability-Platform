@@ -119,7 +119,7 @@ ClRcT clNameContextCreate(ClNameSvcContextT contextType,
     {
         rc = CL_NS_RC(CL_ERR_NOT_INITIALIZED);
         clLogTrace(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CREATE,"\n NS: Lib not initialized \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -129,7 +129,7 @@ ClRcT clNameContextCreate(ClNameSvcContextT contextType,
     {
         rc = CL_NS_RC(CL_ERR_NULL_POINTER);
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CREATE,"\n NS: NULL input parameter \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -140,7 +140,7 @@ ClRcT clNameContextCreate(ClNameSvcContextT contextType,
     {
         rc = CL_NS_RC(CL_ERR_INVALID_PARAMETER);
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CREATE,"\n NS: Invalid contextType specified \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -151,7 +151,7 @@ ClRcT clNameContextCreate(ClNameSvcContextT contextType,
     {
         rc = CL_NS_RC(CL_ERR_INVALID_PARAMETER);
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CREATE,"\n NS: Invalid cookie specified \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -178,7 +178,7 @@ ClRcT clNameContextCreate(ClNameSvcContextT contextType,
     if(rc != CL_OK)
     {
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CREATE,"clNameContextCreate  Failed \n rc =%x",rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_VERSION_MISMATCH)
         {
@@ -243,7 +243,7 @@ ClRcT clNameRegister(ClUint32T contextId, ClNameSvcRegisterT* pNSRegisInfo,
     {
         rc = CL_NS_RC(CL_ERR_NOT_INITIALIZED);
         clLogTrace(NAME_LOG_AREA_NAME,NAME_LOG_CTX_REG,"\n NS: Lib not initialized \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_REGISTRATION_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -253,7 +253,7 @@ ClRcT clNameRegister(ClUint32T contextId, ClNameSvcRegisterT* pNSRegisInfo,
     {
         rc = CL_NS_RC(CL_ERR_NULL_POINTER);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_REG,"\n NS: NULL input parameter \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_REGISTRATION_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -267,7 +267,7 @@ ClRcT clNameRegister(ClUint32T contextId, ClNameSvcRegisterT* pNSRegisInfo,
     {
         rc = CL_NS_RC(CL_ERR_NO_MEMORY);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_REG,"\n NS: MALLOC FAILED \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_REGISTRATION_FAILED, rc);
         clBufferDelete(&inMsgHandle);
         CL_FUNC_EXIT();
@@ -298,7 +298,7 @@ ClRcT clNameRegister(ClUint32T contextId, ClNameSvcRegisterT* pNSRegisInfo,
     if (rc != CL_OK)
     {
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_REG,"clEoMyEoObjectGet  Failed \n rc =%x",rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_NAME_SERVER_LIB,
                 "clEoMyEoObjectGet failed with rc 0x%x", rc);
         return CL_NS_RC(rc);
     }
@@ -326,7 +326,7 @@ ClRcT clNameRegister(ClUint32T contextId, ClNameSvcRegisterT* pNSRegisInfo,
     if(rc != CL_OK)
     {
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_REG,"clNameRegister  Failed \n rc =%x",rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_REGISTRATION_FAILED, rc);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_VERSION_MISMATCH)
         {
@@ -375,7 +375,7 @@ ClRcT clNameComponentDeregister(ClUint32T compId)
     {
         rc = CL_NS_RC(CL_ERR_NOT_INITIALIZED);
         clLogTrace(NAME_LOG_AREA_NAME,NAME_LOG_CTX_DEREG,"\n NS: Lib not initialized \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_COMPONENT_DEREGIS_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -401,7 +401,7 @@ ClRcT clNameComponentDeregister(ClUint32T compId)
     if(rc != CL_OK)
     {
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_DEREG,"\n clNameComponentDeregister Failed rc =%x",rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_COMPONENT_DEREGIS_FAILED, rc);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_VERSION_MISMATCH)
         {
@@ -456,7 +456,7 @@ ClRcT clNameServiceDeregister(ClUint32T contextId, ClUint32T compId,
     {
         rc = CL_NS_RC(CL_ERR_NOT_INITIALIZED);
         clLogTrace(NAME_LOG_AREA_NAME,NAME_LOG_CTX_DEREG,"\n NS: Lib not initialized \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_SERVICE_DEREGIS_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -466,7 +466,7 @@ ClRcT clNameServiceDeregister(ClUint32T contextId, ClUint32T compId,
     {
         rc = CL_NS_RC(CL_ERR_NULL_POINTER);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_DEREG,"\n NS: NULL input parameter \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_SERVICE_DEREGIS_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -495,7 +495,7 @@ ClRcT clNameServiceDeregister(ClUint32T contextId, ClUint32T compId,
     if(rc != CL_OK)
     {
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_DEREG,"\nclNameServiceDeregister Failed rc =%x",rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_SERVICE_DEREGIS_FAILED, rc);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_VERSION_MISMATCH)
         {
@@ -539,7 +539,7 @@ ClRcT clNameContextDelete(ClUint32T contextId)
     {
         rc = CL_NS_RC(CL_ERR_NOT_INITIALIZED);
         clLogTrace(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_DELETE,"\n NS: Lib not initialized \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_CONTEXT_DELETION_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -565,7 +565,7 @@ ClRcT clNameContextDelete(ClUint32T contextId)
     if(rc != CL_OK)
     {
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_DELETE,"clNameContextDelete  Failed \n rc =%x",rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_CONTEXT_DELETION_FAILED, rc);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_VERSION_MISMATCH)
         {
@@ -628,7 +628,7 @@ ClRcT clNameToObjectReferenceGet(SaNameT*            pName,
     {
         rc = CL_NS_RC(CL_ERR_NOT_INITIALIZED);
         clLogTrace(NAME_LOG_AREA_OBJECT,NAME_LOG_CTX_GET,"\n NS: Lib not initialized \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -640,7 +640,7 @@ ClRcT clNameToObjectReferenceGet(SaNameT*            pName,
     {
         rc = CL_NS_RC(CL_ERR_NULL_POINTER);
         clLogError(NAME_LOG_AREA_OBJECT,NAME_LOG_CTX_GET,"\n NS: NULL input parameter \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -657,7 +657,7 @@ ClRcT clNameToObjectReferenceGet(SaNameT*            pName,
     {
         rc = CL_NS_RC(CL_ERR_NO_MEMORY);
         clLogError(NAME_LOG_AREA_OBJECT,NAME_LOG_CTX_GET,"\n NS: MALLOC FAILED \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -709,7 +709,7 @@ ClRcT clNameToObjectReferenceGet(SaNameT*            pName,
     {
         clLogError(NAME_LOG_AREA_OBJECT,NAME_LOG_CTX_GET,"\n clNameToObjectReferenceGet Failed," \
                              " rc =%x",rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_VERSION_MISMATCH)
         {
@@ -784,7 +784,7 @@ ClRcT clNameToObjectMappingGet(SaNameT* pName,
     {
         rc = CL_NS_RC(CL_ERR_NOT_INITIALIZED);
         clLogTrace(NAME_LOG_AREA_MAPPING,NAME_LOG_CTX_GET,"\n NS: Lib not initialized \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -796,7 +796,7 @@ ClRcT clNameToObjectMappingGet(SaNameT* pName,
     {
         rc = CL_NS_RC(CL_ERR_NULL_POINTER);
         clLogError(NAME_LOG_AREA_MAPPING,NAME_LOG_CTX_GET,"\n NS: NULL input parameter \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -814,7 +814,7 @@ ClRcT clNameToObjectMappingGet(SaNameT* pName,
     {
         rc = CL_NS_RC(CL_ERR_NO_MEMORY);
         clLogError(NAME_LOG_AREA_MAPPING,NAME_LOG_CTX_GET,"\n NS: MALLOC FAILED \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -864,7 +864,7 @@ ClRcT clNameToObjectMappingGet(SaNameT* pName,
     {
         clLogError(NAME_LOG_AREA_MAPPING,NAME_LOG_CTX_GET,"\n clNameToObjectMappingGet  Failed,"\
                              " rc =%x",rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_VERSION_MISMATCH)
         {
@@ -944,7 +944,7 @@ ClRcT clNameObjectMappingCleanup(ClNameSvcEntryPtrT pObjMapping)
     {
         rc = CL_NS_RC(CL_ERR_NOT_INITIALIZED);
         clLogTrace(NAME_LOG_AREA_MAPPING,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: Lib not initialized \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_QUERY_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -954,7 +954,7 @@ ClRcT clNameObjectMappingCleanup(ClNameSvcEntryPtrT pObjMapping)
     {
         rc = CL_NS_RC(CL_ERR_NULL_POINTER);
         clLogError(NAME_LOG_AREA_MAPPING,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: NULL input parameter \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_ENTRY_CLEANUP_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -1000,7 +1000,7 @@ ClRcT clNameLibVersionVerify(ClVersionT *pVersion)
     {
         clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"NS: NULL passed for Version\n");
         rc = CL_NS_RC(CL_ERR_NULL_POINTER);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_INIT_FAILED, rc);
         return rc;
     }
@@ -1009,7 +1009,7 @@ ClRcT clNameLibVersionVerify(ClVersionT *pVersion)
     if(rc != CL_OK)
     {
         clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"NS: Version Mismatch\n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_INIT_FAILED, rc);
     }
 
@@ -1048,7 +1048,7 @@ ClRcT clNameLibInitialize()
     {
         rc = CL_NS_RC(CL_ERR_INITIALIZED);
         clLogTrace(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: Lib already initialized \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_NAME_SERVER_LIB,
                    CL_NS_LOG_1_NS_INIT_FAILED, rc);
     }
     return rc; 

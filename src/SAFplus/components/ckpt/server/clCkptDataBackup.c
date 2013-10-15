@@ -100,7 +100,7 @@ ClRcT ckptDataPeriodicSave()
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Write Failed, "
                     "  rc = %x \n", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
 
         CL_FUNC_EXIT();
@@ -113,7 +113,7 @@ ClRcT ckptDataPeriodicSave()
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Write Failed, " 
                   " rc = %x \n", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
 
         CL_FUNC_EXIT();

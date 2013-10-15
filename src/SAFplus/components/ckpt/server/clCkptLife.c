@@ -132,7 +132,7 @@ ClRcT clCkptSvrInitialize(void)
 
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_WARNING, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_WARNING, NULL,
                    CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "ckpt", rc);
     }
 

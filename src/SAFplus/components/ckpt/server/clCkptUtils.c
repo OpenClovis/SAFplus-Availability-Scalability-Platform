@@ -1166,7 +1166,7 @@ ClRcT VDECL_VER(clCkptNackReceive, 4, 0, 0)(ClVersionT  version,
   {
       case CKPT_REM_CKPT_DEL:
       {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_6_VERSION_NACK, "RemoteSvrCkptAdd",
                     srcAddr.iocPhyAddress.nodeAddress,
                     srcAddr.iocPhyAddress.portId, version.releaseCode,
@@ -1182,7 +1182,7 @@ ClRcT VDECL_VER(clCkptNackReceive, 4, 0, 0)(ClVersionT  version,
       }
       case CKPT_REM_SEC_ADD:
       {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_6_VERSION_NACK, "RemoteSvrSectionAdd",
                     srcAddr.iocPhyAddress.nodeAddress,
                     srcAddr.iocPhyAddress.portId, version.releaseCode,
@@ -1198,7 +1198,7 @@ ClRcT VDECL_VER(clCkptNackReceive, 4, 0, 0)(ClVersionT  version,
       }
       case CKPT_REM_SEC_DEL:
       {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_6_VERSION_NACK, "RemoteSvrSectionDelete",
                     srcAddr.iocPhyAddress.nodeAddress,
                     srcAddr.iocPhyAddress.portId, version.releaseCode,
@@ -1214,7 +1214,7 @@ ClRcT VDECL_VER(clCkptNackReceive, 4, 0, 0)(ClVersionT  version,
       }
       case CKPT_REM_SEC_OVERWRITE:
       {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_6_VERSION_NACK, "RemoteSvrSectionOverwrite",
                     srcAddr.iocPhyAddress.nodeAddress,
                     srcAddr.iocPhyAddress.portId, version.releaseCode,

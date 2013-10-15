@@ -285,7 +285,7 @@ clFaultCliDebugHistoryShow( ClUint32T argc,
 
         if(fRecord == NULL || historyRec == NULL)
         {
-            clLogWrite(CL_LOG_HANDLE_SYS, CL_LOG_CRITICAL, CL_FAULT_SERVER_LIB,
+            clLogWrite(CL_LOG_HANDLE_SYS, CL_LOG_SEV_CRITICAL, CL_FAULT_SERVER_LIB,
                     CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             return CL_FAULT_RC(CL_ERR_NO_MEMORY);
         }

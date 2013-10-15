@@ -91,7 +91,7 @@
 #define CL_BUFFER_LOG(sev,str,...) clEoLibLog(CL_CID_BUFFER,sev,str,__VA_ARGS__)
 
 #define CL_BUFFER_LOG_WRAP(dir)                                         \
-    clEoLibLog(CL_CID_BUFFER,CL_LOG_NOTICE,gClBufferLogWrapStrList[(dir)])
+    clEoLibLog(CL_CID_BUFFER,CL_LOG_SEV_NOTICE,gClBufferLogWrapStrList[(dir)])
 
 /*Buffer stats*/
 #define __CL_BUFFER_STATS_UPDATE(size,memDir) do {                      \
@@ -445,7 +445,7 @@ clBufferFromPoolAllocate (ClPoolT pool,
     if(rc != CL_OK)
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer alloc:Error allocating %d bytes\n",size);
-        CL_BUFFER_LOG(CL_LOG_ERROR,
+        CL_BUFFER_LOG(CL_LOG_SEV_ERROR,
                       "Buffer allocation failed for %d bytes",
                       size);
         goto out;
@@ -504,7 +504,7 @@ static ClRcT clBufferFromPoolFree(ClUint8T *pChunk,ClUint32T size,ClPtrT pCookie
     if(rc != CL_OK)
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer free error for %d bytes\n",size);
-        CL_BUFFER_LOG(CL_LOG_ERROR,
+        CL_BUFFER_LOG(CL_LOG_SEV_ERROR,
                       "Buffer free failed for %d bytes",
                       size);
     }

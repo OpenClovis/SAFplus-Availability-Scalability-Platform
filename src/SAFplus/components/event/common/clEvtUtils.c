@@ -252,7 +252,7 @@ ClRcT clEvtUtilsFlatPattern2FlatBuffer(void *pData, ClUint32T noOfPattern,
 
     if (NULL == pDataLen)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                    CL_EVENT_LOG_MSG_1_INTERNAL_ERROR, rc);
          return CL_EVENT_ERR_INTERNAL;
     }
@@ -285,7 +285,7 @@ ClRcT clEvtUtilsFlatPattern2FlatBuffer(void *pData, ClUint32T noOfPattern,
     *ppData = clHeapAllocate(len);
     if (NULL == *ppData)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CL_FUNC_EXIT();
         return CL_EVENT_ERR_NO_MEM;

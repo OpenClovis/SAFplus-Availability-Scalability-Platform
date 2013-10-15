@@ -116,13 +116,13 @@ ClRcT clSnmpSendSyncRequestToServer (void **my_loop_context,
         tblIndex++;
     }
 
-    clLog(CL_LOG_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Finding Index Information for OID[%s] with SNMP GET_FIRST[%d]/GET-NEXT[%d] CURRENT[%d]", appOidInfo[tblIndex].oid, CL_SNMP_GET_FIRST, CL_SNMP_GET_NEXT, opCode );
+    clLog(CL_LOG_SEV_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Finding Index Information for OID[%s] with SNMP GET_FIRST[%d]/GET-NEXT[%d] CURRENT[%d]", appOidInfo[tblIndex].oid, CL_SNMP_GET_FIRST, CL_SNMP_GET_NEXT, opCode );
 
     if (appOidInfo[tblIndex].numAttr == 0)
     {
         /* Table entry not found after entries being exhausted */
         retVal = CL_MED_SET_RC(CL_ERR_NOT_EXIST);
-        clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "appOidInfo don't have necessary index information");
+        clLog(CL_LOG_SEV_ERROR, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "appOidInfo don't have necessary index information");
         return retVal;
     }
 
@@ -141,7 +141,7 @@ ClRcT clSnmpSendSyncRequestToServer (void **my_loop_context,
             switch(appOidInfo[tblIndex].attr[count].type)
             {
                 case CL_SNMP_STRING_ATTR:
-                    clLog(CL_LOG_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Index Info Input : Possion[%d] AttrType[STRING] Value [%s] Size[%d]",count, vptr->val.string, appOidInfo[tblIndex].attr[count].size);
+                    clLog(CL_LOG_SEV_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Index Info Input : Possion[%d] AttrType[STRING] Value [%s] Size[%d]",count, vptr->val.string, appOidInfo[tblIndex].attr[count].size);
                     memcpy(sendData, vptr->val.string, (vptr->val_len + 1));
                     /*Add 1 here so that when
                      * vptr->val_len is added after the
@@ -150,7 +150,7 @@ ClRcT clSnmpSendSyncRequestToServer (void **my_loop_context,
                     sendData += 1;     
                     break;
                 case CL_SNMP_NON_STRING_ATTR:
-                    clLog(CL_LOG_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Index Info Input : Possion[%d] AttrType[NON-STRING] Value[%d] Size[%d]",count, *(ClUint32T*)vptr->val.integer, appOidInfo[tblIndex].attr[count].size);
+                    clLog(CL_LOG_SEV_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Index Info Input : Possion[%d] AttrType[NON-STRING] Value[%d] Size[%d]",count, *(ClUint32T*)vptr->val.integer, appOidInfo[tblIndex].attr[count].size);
                     memcpy(sendData, vptr->val.integer, appOidInfo[tblIndex].attr[count].size);
                     break;
                 default:
@@ -193,7 +193,7 @@ ClRcT clSnmpSendSyncRequestToServer (void **my_loop_context,
     {
         case CL_OK:   /* No errors : successful operation */
             {
-                clLog(CL_LOG_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Successfully got index information for OID[%s]",appOidInfo[tblIndex].oid);
+                clLog(CL_LOG_SEV_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Successfully got index information for OID[%s]",appOidInfo[tblIndex].oid);
                 put_index_data->val.string = NULL;
                 memset(vptr->buf, '\0', sizeof(vptr->buf));
 
@@ -203,16 +203,16 @@ ClRcT clSnmpSendSyncRequestToServer (void **my_loop_context,
                     switch(appOidInfo[tblIndex].attr[count].type)
                     {
                         case CL_SNMP_STRING_ATTR:
-                            clLog(CL_LOG_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Index Info Output : Possion[%d] AttrType[STRING] Value[%s] Size[%d] ",count, sendData, appOidInfo[tblIndex].attr[count].size);
+                            clLog(CL_LOG_SEV_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Index Info Output : Possion[%d] AttrType[STRING] Value[%s] Size[%d] ",count, sendData, appOidInfo[tblIndex].attr[count].size);
                             snmp_set_var_value(vptr, (u_char *) sendData, strlen(sendData) + 1);
                             sendData += 1;
                             break;
                         case CL_SNMP_NON_STRING_ATTR:
-                            clLog(CL_LOG_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Index Info Output : Possion[%d] AttrType[NON-STRING] Value[%d] Size[%d]",count, *(ClUint32T*)sendData, appOidInfo[tblIndex].attr[count].size);
+                            clLog(CL_LOG_SEV_DEBUG, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "Index Info Output : Possion[%d] AttrType[NON-STRING] Value[%d] Size[%d]",count, *(ClUint32T*)sendData, appOidInfo[tblIndex].attr[count].size);
                             snmp_set_var_value(vptr, (u_char *)sendData, appOidInfo[tblIndex].attr[count].size);
                             break;
                         default:
-                            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "AttrType is not Supported");
+                            clLog(CL_LOG_SEV_ERROR, CL_SNMP_AREA, CL_SNMP_CTX_SOP, "AttrType is not Supported");
                     }
                     sendData += appOidInfo[tblIndex].attr[count].size;
                     vptr = vptr->next_variable;

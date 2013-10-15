@@ -99,9 +99,7 @@ typedef ClHandleT CkptMastHdlInfoT;
 #define CKPT_DEBUG_E(y)\
 do\
 {\
-    char __tempstr[256];   \
-    snprintf(__tempstr,256,CL_LOG_SP y); \
-    clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr);\
+    clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP y);\
 }while(0)\
 
 
@@ -113,9 +111,7 @@ do\
 #define CKPT_DEBUG_T(y)\
 do\
 {\
-    char __tempstr[256];   \
-    snprintf(__tempstr,256,CL_LOG_SP y); \
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr);\
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP y);\
 }while(0)\
 
 

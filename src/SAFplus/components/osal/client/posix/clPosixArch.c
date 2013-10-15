@@ -691,7 +691,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
      
      if (!osalShmExistsForComp(compName))
      {
-         clLog(CL_LOG_DEBUG, "OSAL", CL_LOG_CONTEXT_UNSPECIFIED,
+         clLog(CL_LOG_SEV_DEBUG, "OSAL", CL_LOG_CONTEXT_UNSPECIFIED,
                "Creating shared memory for [%s]...", compName);
          
          rc = clOsalShmCreate((ClUint8T *) compName,
@@ -699,11 +699,11 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
                               &gClCompUniqueShmId);
          if (CL_OK != rc)
          {
-             clLog(CL_LOG_CRITICAL, "OSAL", CL_LOG_CONTEXT_UNSPECIFIED,
+             clLog(CL_LOG_SEV_CRITICAL, "OSAL", CL_LOG_CONTEXT_UNSPECIFIED,
                    "Could not create shared memory for component [%s], error [%#x]",
                    compName,
                    rc);
-             clLogMultiline(CL_LOG_CRITICAL, "OSAL", CL_LOG_CONTEXT_UNSPECIFIED,
+             clLogMultiline(CL_LOG_SEV_CRITICAL, "OSAL", CL_LOG_CONTEXT_UNSPECIFIED,
                             "- This typically indicates a component name mismatch.\n"
                             "Please compare component name in clEoConfig with "
                             "content of clAmfConfig.xml");
@@ -712,7 +712,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
      }
      else
      {
-         clLog(CL_LOG_DEBUG, "OSAL", CL_LOG_CONTEXT_UNSPECIFIED,
+         clLog(CL_LOG_SEV_DEBUG, "OSAL", CL_LOG_CONTEXT_UNSPECIFIED,
                "The [%s] already has shared memory with id [%d]...",
                compName, gClCompUniqueShmId);
      }

@@ -48,9 +48,7 @@ extern "C"
 #define CPM_CLIENT_CHECK(X, Z, retCode)         \
     if (retCode != CL_OK)                       \
     {                                           \
-        char __tempstr[256];                    \
-        snprintf(__tempstr,256,CL_LOG_SP Z);    \
-        clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr);                \
+        clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP Z);                \
         rc = retCode;                           \
         goto failure;                           \
     }

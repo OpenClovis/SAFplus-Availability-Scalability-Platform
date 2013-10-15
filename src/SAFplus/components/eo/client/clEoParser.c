@@ -619,7 +619,7 @@ ClRcT clEoGetConfig(ClCharT* compCfgFile)
     filePath = getenv(CL_ASP_CONFIG_PATH);
     if (NULL == filePath)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT,
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT,
             "ASP_CONFIG environment variable not set");
         goto failure;
     }
@@ -633,7 +633,7 @@ ClRcT clEoGetConfig(ClCharT* compCfgFile)
     
     if(CL_OK != rc)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT,
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT,
               "Could not read or parse XML file [%s/%s], return code [0x%x]",
               filePath, CL_EO_CONFIG_FILE_NAME, rc);
 
@@ -650,14 +650,14 @@ ClRcT clEoGetConfig(ClCharT* compCfgFile)
                 rc = clParseXML(filePath,compCfgFile,&clEoConfigListParserData);
                 if(CL_OK != rc)
                 {
-                    clLog(CL_LOG_WARNING, CL_LOG_AREA, CL_LOG_CTXT,
+                    clLog(CL_LOG_SEV_WARNING, CL_LOG_AREA, CL_LOG_CTXT,
                           "Could not parse optional component configuration XML file [%s], return code [0x%x]",
                           fileName, rc);
                 }
             }
             else
             {
-                clLog(CL_LOG_INFO, CL_LOG_AREA, CL_LOG_CTXT,
+                clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT,
                       "Optional component configuration XML file [%s] does not exist.",
                       fileName);
             }
@@ -681,7 +681,7 @@ ClRcT clEoGetConfig(ClCharT* compCfgFile)
 #if 0
         /* Multiline logging wont work at this point since the heap is not initialized */
         clLog(
-            CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT,
+            CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT,
             "Configuration file [%s/%s] failed validation, return code [0x%x]\n"
             "EO names of ASP components have been changed in this release to 3-letter acronyms\n"
             "Please check and update your clEoConfig.xml file.",
@@ -721,7 +721,7 @@ ClRcT clEoGetConfig(ClCharT* compCfgFile)
     rc = clParseXML(filePath,CL_EO_DEFINITIONS_FILE_NAME,&clEoDefinitionsParserData);
     if(rc != CL_OK)
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT,
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT,
             "Could not read or parse XML file [%s/%s] in 2nd pass, error [0x%x]",
             filePath, CL_EO_CONFIG_FILE_NAME, rc);
         goto failure;
@@ -731,7 +731,7 @@ ClRcT clEoGetConfig(ClCharT* compCfgFile)
     
     if(!CL_EO_CONFIG_VALID())
     {
-        clLog(CL_LOG_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT,
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT,
             "Configuration file [%s/%s] failed validation in 2nd pass, error [0x%x]",
             filePath, CL_EO_CONFIG_FILE_NAME, rc);
         goto failure;
@@ -742,7 +742,7 @@ ClRcT clEoGetConfig(ClCharT* compCfgFile)
     clParseDisplay(&clEoDefinitionsParserData);
 #endif
     
-    clLog(CL_LOG_DEBUG, CL_LOG_AREA, CL_LOG_CTXT,
+    clLog(CL_LOG_SEV_DEBUG, CL_LOG_AREA, CL_LOG_CTXT,
         "Configuration file [%s/%s] loaded",
         filePath, CL_EO_CONFIG_FILE_NAME);
 

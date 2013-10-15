@@ -288,7 +288,7 @@ static ClRcT _clCkptLibraryInitializeDB(ClCkptSvcHdlT *pCkptHdl,
         {
             clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED, 
                           "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             return CL_CKPT_ERR_NO_MEMORY;
         }
@@ -485,7 +485,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
     {
         clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
                       "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CKPT_UNLOCK (pCkptClnt->ckptSem);
         return CL_CKPT_ERR_NO_MEMORY;
@@ -496,7 +496,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
     {
         clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
                       "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CKPT_UNLOCK (pCkptClnt->ckptSem);
         return CL_CKPT_ERR_NO_MEMORY;
@@ -1857,7 +1857,7 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
     {
         clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                       "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         return CL_CKPT_ERR_NO_MEMORY;
     }  
@@ -1888,7 +1888,7 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
         {
             clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                           "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             return CL_CKPT_ERR_NO_MEMORY;
         }
@@ -1903,7 +1903,7 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
                 clHeapFree(pCkpt);
                 clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                               "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-                clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+                clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 return CL_CKPT_ERR_NO_MEMORY;
             }        
@@ -1970,7 +1970,7 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
                 }
                 clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
                               "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-                clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+                clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 return CL_CKPT_ERR_NO_MEMORY;
             }             
@@ -2021,7 +2021,7 @@ ClRcT clCkptBufferAlloc (CkptClnCbT *pCkptClnt,
    {
       clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                     "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-      clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+      clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                  CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
       return CL_CKPT_ERR_NO_MEMORY;
    }

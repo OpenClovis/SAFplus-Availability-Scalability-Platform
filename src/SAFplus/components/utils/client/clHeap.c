@@ -101,7 +101,7 @@
 #define CL_HEAP_LOG(sev,str,...) clEoLibLog(CL_CID_HEAP,sev,str,__VA_ARGS__)
 
 #define CL_HEAP_LOG_WRAP(dir)                                   \
-    clEoLibLog(CL_CID_HEAP,CL_LOG_TRACE,gClHeapLogWrapStrList[(dir)])
+    clEoLibLog(CL_CID_HEAP,CL_LOG_SEV_TRACE,gClHeapLogWrapStrList[(dir)])
 
 #define __CL_HEAP_STATS_UPDATE(size,memDir) do {        \
     ClBoolT wrapped = CL_FALSE;                         \
@@ -1971,7 +1971,7 @@ heapAllocateNative(
     {
         clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,
                    "%d bytes would exceed process upper limit\n", size);
-        CL_HEAP_LOG(CL_LOG_ERROR,
+        CL_HEAP_LOG(CL_LOG_SEV_ERROR,
                     "Allocation of %d bytes would exceed process upper limit",
                     size);
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
@@ -1983,7 +1983,7 @@ heapAllocateNative(
     {
         clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Error allocating %d bytes\n",size);
         CL_HEAP_REVOKE_SIZE(size);
-        CL_HEAP_LOG(CL_LOG_ERROR,"Malloc of %d bytes failed",size);
+        CL_HEAP_LOG(CL_LOG_SEV_ERROR,"Malloc of %d bytes failed",size);
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
         goto out;
     }
@@ -2063,7 +2063,7 @@ static ClPtrT heapReallocNative(ClPtrT pAddress,ClUint32T size)
     if(CL_HEAP_GRANT_SIZE(size) == CL_FALSE)
     {
         clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"%d bytes realloc would exceed process wide limit\n",size);
-        CL_HEAP_LOG(CL_LOG_ERROR,
+        CL_HEAP_LOG(CL_LOG_SEV_ERROR,
                     "Realloc %d bytes would exceed process upper limit",
                     size);
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
@@ -2075,7 +2075,7 @@ static ClPtrT heapReallocNative(ClPtrT pAddress,ClUint32T size)
     {
         clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Error in realloc of %d bytes\n",size);
         CL_HEAP_REVOKE_SIZE(size);
-        CL_HEAP_LOG(CL_LOG_ERROR,
+        CL_HEAP_LOG(CL_LOG_SEV_ERROR,
                     "Realloc %d bytes failed",
                     size);
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
@@ -2128,7 +2128,7 @@ static ClPtrT heapCallocNative(ClUint32T chunk,ClUint32T chunkSize)
     if(CL_HEAP_GRANT_SIZE(size) == CL_FALSE)
     {
         clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"%d bytes would exceed process upper limit\n",size);
-        CL_HEAP_LOG(CL_LOG_ERROR,
+        CL_HEAP_LOG(CL_LOG_SEV_ERROR,
                     "calloc %d bytes would exceed process upper limit",
                     size);
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
@@ -2140,7 +2140,7 @@ static ClPtrT heapCallocNative(ClUint32T chunk,ClUint32T chunkSize)
     {
         clLogError(HEAP_LOG_AREA,HEAP_LOG_CTX_ALLOCATION,"Error in calloc of %d chunks of %d size\n",chunk,chunkSize);
         CL_HEAP_REVOKE_SIZE(size);
-        CL_HEAP_LOG(CL_LOG_ERROR,"calloc %d bytes failed",size);
+        CL_HEAP_LOG(CL_LOG_SEV_ERROR,"calloc %d bytes failed",size);
         CL_HEAP_MEM_TRACKER_TRACE(NULL,size);
         goto out;
     }

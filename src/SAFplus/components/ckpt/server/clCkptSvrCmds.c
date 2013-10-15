@@ -745,7 +745,7 @@ ClRcT  ckptCliSectionCreate( int argc,
     if (createAttr.sectionId == NULL)
     {
         ckptCliPrint("Malloc failed \n",ret);
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_SVR_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_SVR_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         return CL_CKPT_ERR_NO_MEMORY;
     }
@@ -763,7 +763,7 @@ ClRcT  ckptCliSectionCreate( int argc,
         {
             clHeapFree(createAttr.sectionId);
             ckptCliPrint("Malloc failed \n",ret);
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_SVR_NAME,
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_SVR_NAME,
                     CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             return CL_CKPT_ERR_NO_MEMORY;
         }
@@ -823,7 +823,7 @@ ClRcT  ckptCliSectionOverwrite( int argc,
        if (sectionId.id == NULL)
        {
           ckptCliPrint(" Malloc failed \n",ret);
-          clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_SVR_NAME,
+          clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_SVR_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
           return CL_CKPT_ERR_NO_MEMORY;
        }
@@ -882,7 +882,7 @@ ClRcT  ckptCliSectionExpirationTimeSet( int argc,
        if (sectionId.id == NULL)
        {
           ckptCliPrint(" Malloc failed \n",ret);
-          clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_SVR_NAME,
+          clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_SVR_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
           return CL_CKPT_ERR_NO_MEMORY;
        }
@@ -930,7 +930,7 @@ ClRcT  ckptCliSectionDelete( int argc,
     if (sectionId.id == NULL)
     {
         ckptCliPrint("Malloc failed \n",ret);
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_SVR_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_SVR_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         return CL_CKPT_ERR_NO_MEMORY;
     }

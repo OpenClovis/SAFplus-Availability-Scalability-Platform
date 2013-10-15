@@ -9762,13 +9762,13 @@ void clAmsPeSUComputeReadinessState(
     if (!AMS_ENTITY_OK(sg,CL_AMS_ENTITY_TYPE_SG))
     {
       *suState = CL_AMS_READINESS_STATE_OUTOFSERVICE;
-      clLog(CL_LOG_WARNING,"AMF","POL","SU [%.*s] has no SG",su->config.entity.name.length,su->config.entity.name.value);
+      clLog(CL_LOG_SEV_WARNING,"AMF","POL","SU [%.*s] has no SG",su->config.entity.name.length,su->config.entity.name.value);
       return;
     }
     node = (ClAmsNodeT *) su->config.parentNode.ptr;
     if (!AMS_ENTITY_OK(node,CL_AMS_ENTITY_TYPE_NODE))
     {
-      clLog(CL_LOG_WARNING,"AMF","POL","SU [%.*s] has no Node",su->config.entity.name.length,su->config.entity.name.value);
+      clLog(CL_LOG_SEV_WARNING,"AMF","POL","SU [%.*s] has no Node",su->config.entity.name.length,su->config.entity.name.value);
       *suState = CL_AMS_READINESS_STATE_OUTOFSERVICE;
       return;          
     }

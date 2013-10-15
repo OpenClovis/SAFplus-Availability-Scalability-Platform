@@ -836,7 +836,7 @@ ClRcT _cpmNodeDepartureAllowed(SaNameT *nodeName,
     rc = cpmDequeueCmRequest(nodeName, &cmRequest);
     if (rc == CL_OK)
     {
-        clLogMultiline(CL_LOG_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
+        clLogMultiline(CL_LOG_SEV_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
                        "After dequeueing the message from CM queue:\n"
                        "Message type : [%s]\n"
                        "Physical slot : [%d]\n"
@@ -1710,7 +1710,7 @@ ClRcT VDECL(cpmPGTrack)(ClEoDataT data,
             if (notificationBuffer->notification == NULL)
             {
                 /* FIXME: handle this case */
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                         CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory"),
                         CL_CPM_RC(CL_ERR_NO_MEMORY));

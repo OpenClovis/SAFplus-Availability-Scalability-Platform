@@ -96,7 +96,7 @@ ClRcT cpmUpdateTL(ClAmsHAStateT haState)
         tlInfo.haState = CL_IOC_TL_STDBY;
     }
 
-    clLogMultiline(CL_LOG_DEBUG, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
+    clLogMultiline(CL_LOG_SEV_DEBUG, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                    "Updating transparency layer information for node [%s] -- \n"
                    "Component ID : [%#x] \n"
                    "Context type : [%s] \n"
@@ -182,7 +182,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                 rc = cpmUpdateTL(CL_AMS_HA_STATE_ACTIVE);
                 if (rc != CL_OK)
                 {
-                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                                CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
                 }
             }
@@ -203,7 +203,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             rc = cpmUpdateTL(CL_AMS_HA_STATE_STANDBY);
             if (rc != CL_OK)
             {
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                            CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
             }
         }
@@ -532,7 +532,7 @@ static void cpmPayload2StandbySC(const ClGmsClusterNotificationBufferT *notifica
     rc = cpmUpdateTL(CL_AMS_HA_STATE_STANDBY);
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
     }
     rc = clAmsStart(&gAms,
@@ -629,7 +629,7 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT *notificati
             {
                 if (-1 == notificationBuffer->leader)
                 {
-                    clLogMultiline(CL_LOG_CRITICAL,
+                    clLogMultiline(CL_LOG_SEV_CRITICAL,
                                    CPM_LOG_AREA_CPM,
                                    CPM_LOG_CTX_CPM_GMS,
                                    "The cluster has no leader !! "
@@ -665,7 +665,7 @@ void cpmClusterTrackCallBack(const ClGmsClusterNotificationBufferT
                              ClUint32T nMembers,
                              ClRcT rc)
 {
-    clLogMultiline(CL_LOG_DEBUG, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
+    clLogMultiline(CL_LOG_SEV_DEBUG, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                    "Received cluster track callback from GMS on node [%s] -- \n"
                    "Leader : [%d] \n"
                    "Deputy : [%d] (-1 -> No deputy) \n"
@@ -685,13 +685,13 @@ void cpmClusterTrackCallBack(const ClGmsClusterNotificationBufferT
     rc = clOsalMutexLock(&gpClCpm->cpmGmsMutex);
     gpClCpm->trackCallbackInProgress = CL_FALSE;
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
     rc = clOsalCondSignal(&gpClCpm->cpmGmsCondVar);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
     rc = clOsalMutexUnlock(&gpClCpm->cpmGmsMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
 failure:
     return;
 }
@@ -723,7 +723,7 @@ ClRcT cpmGmsInitialize(void)
 
     rc = clOsalMutexLock(&gpClCpm->cpmGmsMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
 
     rc = clGmsClusterTrack(gpClCpm->cpmGmsHdl, CL_GMS_TRACK_CHANGES_ONLY | CL_GMS_TRACK_CURRENT, NULL);
     if (CL_OK != rc)
@@ -771,7 +771,7 @@ ClRcT cpmGmsInitialize(void)
 
     rc = clOsalMutexUnlock(&gpClCpm->cpmGmsMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
-                   rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+                   rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
 
     return CL_OK;
 

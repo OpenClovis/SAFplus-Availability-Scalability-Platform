@@ -126,7 +126,7 @@ ClRcT _ckptLocalDataUpdate(ClCkptHdlT         ckptHdl,
     if(pCkptHdl == NULL)
     {
         rc =  CL_CKPT_ERR_NO_MEMORY;
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                 CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         return rc;            
     }
@@ -359,7 +359,7 @@ ClRcT  VDECL_VER(clCkptActiveCkptOpen, 4, 0, 0)(ClVersionT        *pVersion,
                 ("Checkpoint %s create get failed rc[0x %x]\n",
                  pName->value,rc), rc);
     }
-    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_INFORMATIONAL,CL_LOG_CKPT_SVR_NAME,
+    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_INFO,CL_LOG_CKPT_SVR_NAME,
             CL_CKPT_LOG_1_CKPT_CREATED, pName->value);
 exitOnError:
     {
@@ -1951,7 +1951,7 @@ static void  _ckptRemSvrWriteVectorCallback(ClHandleT              ckptIdlHdl,
         {
             memcpy(&ckptVersion,pVersion,sizeof(ClVersionT));
             rc = clRmdSourceAddressGet(&srcAddr.iocPhyAddress);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                        CL_CKPT_LOG_6_VERSION_NACK, "CkptRemSvrAdd",
                        srcAddr.iocPhyAddress.nodeAddress,
                        srcAddr.iocPhyAddress.portId, pVersion->releaseCode,
@@ -2203,7 +2203,7 @@ ClRcT VDECL_VER(_ckptCheckpointWriteVector, 4, 0, 0)(ClCkptHdlT             ckpt
             }
         }
     }
-    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_INFORMATIONAL,CL_LOG_CKPT_SVR_NAME,
+    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_INFO,CL_LOG_CKPT_SVR_NAME,
                CL_CKPT_LOG_1_CKPT_WRITTEN, pCkpt->ckptName.value);
 
     /*
@@ -2422,7 +2422,7 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
         }
     }
 
-    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_INFORMATIONAL,CL_LOG_CKPT_SVR_NAME,
+    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_INFO,CL_LOG_CKPT_SVR_NAME,
                CL_CKPT_LOG_1_CKPT_WRITTEN, pCkpt->ckptName.value);
 
     /*
@@ -3107,7 +3107,7 @@ ClRcT VDECL_VER(_ckptCheckpointRead, 4, 0, 0)(ClCkptHdlT               ckptHdl,
     pOutVec = pTempVec;
 
     rc = clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
-    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_INFORMATIONAL,CL_LOG_CKPT_SVR_NAME,
+    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_INFO,CL_LOG_CKPT_SVR_NAME,
             CL_CKPT_LOG_1_CKPT_READ,  pCkpt->ckptName.value);
     /*
      * Unlock the checkpoint's mutex.
@@ -3472,7 +3472,7 @@ void VDECL_VER(ckptRemSvrCkptAddCallback, 5, 0, 0)( ClIdlHandleT  ckptIdlHdl,
         if(CL_GET_ERROR_CODE(retCode) == CL_ERR_VERSION_MISMATCH)
         {
             rc = clRmdSourceAddressGet(&srcAddr.iocPhyAddress);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                        CL_CKPT_LOG_6_VERSION_NACK, "CkptRemSvrAdd",
                        srcAddr.iocPhyAddress.nodeAddress,
                        srcAddr.iocPhyAddress.portId, pVersion->releaseCode,
@@ -3684,7 +3684,7 @@ void _ckptRemSvrSectionUpdateCallback(ClIdlHandleT      ckptIdlHdl,
         {
             memcpy(&ckptVersion, pVersion, sizeof(ClVersionT));
             rc = clRmdSourceAddressGet(&srcAddr.iocPhyAddress);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_6_VERSION_NACK, "CkptRemSvrAdd",
                     srcAddr.iocPhyAddress.nodeAddress,
                     srcAddr.iocPhyAddress.portId, pVersion->releaseCode,

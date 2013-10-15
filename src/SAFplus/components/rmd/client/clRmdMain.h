@@ -89,11 +89,11 @@ extern "C"
 #define CL_LOG_SP(...)  __VA_ARGS__
 
 # if RMD_DEBUG
-#  define RMD_DBG(args)    do { char __str[256]; snprintf(__str,256,CL_LOG_SP args); clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); } while(0)
-#  define RMD_DBG1(args)   do { char __str[256]; snprintf(__str,256,CL_LOG_SP args); clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); } while(0)
-#  define RMD_DBG2(args)   do { char __str[256]; snprintf(__str,256,CL_LOG_SP args); clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); } while(0)
-#  define RMD_DBG3(args)   do { char __str[256]; snprintf(__str,256,CL_LOG_SP args); clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); } while(0)
-#  define RMD_DBG4(args)   do { char __str[256]; snprintf(__str,256,CL_LOG_SP args); clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); } while(0)
+#  define RMD_DBG(args)    clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP args)
+#  define RMD_DBG1(args)   clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP args)
+#  define RMD_DBG2(args)   clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP args)
+#  define RMD_DBG3(args)   clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP args)
+#  define RMD_DBG4(args)   clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP args)
 # else
 #  define RMD_DBG(args)   {}
 #  define RMD_DBG1(args)  {}

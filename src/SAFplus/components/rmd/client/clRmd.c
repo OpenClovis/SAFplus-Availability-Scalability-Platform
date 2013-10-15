@@ -1738,7 +1738,7 @@ ClRcT rmdMetricUpdate(ClRcT status, ClUint32T clientId, ClUint32T funcId, ClBuff
 static void rmdMetricDisplay(ClRmdMetricT *entry, ClInt32T index)
 {
     clLogNotice("RMD", "METRIC", "RMD Metric Entry [%d]", index);
-    clLogMultiline(CL_LOG_NOTICE, "RMD", "METRIC", "Client [%d], Func [%d], Total request bytes [%lld], "
+    clLogMultiline(CL_LOG_SEV_NOTICE, "RMD", "METRIC", "Client [%d], Func [%d], Total request bytes [%lld], "
                    "Total response bytes [%lld], Total requests [%lld], Total responses [%lld]\n"
                    "Min request bytes [%lld], Max request bytes [%lld], Avg request bytes [%.2f]\n"
                    "Min response bytes [%lld], Max response bytes [%lld], Avg response bytes [%.2f]\n"

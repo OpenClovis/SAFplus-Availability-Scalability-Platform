@@ -159,7 +159,7 @@ clFaultHistoryInit(ClUint32T binNumbers){
     if (rc != CL_OK)
     {
         clLogWrite(CL_LOG_HANDLE_APP, 
-               CL_LOG_ERROR,   
+               CL_LOG_SEV_ERROR,   
                CL_FAULT_SERVER_LIB,
                CL_FAULT_LOG_1_MUTEX,
                "Fault History data base");

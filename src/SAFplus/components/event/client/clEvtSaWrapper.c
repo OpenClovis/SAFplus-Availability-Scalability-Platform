@@ -57,7 +57,7 @@ do{\
     if(0 == gSaEvtInitCount)\
     {\
             clLogError(CL_EVENT_LIB_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"Event Initialization not done [0x%X]\n\r\n", CL_EVENT_ERR_INIT_NOT_DONE);\
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME, CL_LOG_MESSAGE_0_COMPONENT_UNINITIALIZED);\
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME, CL_LOG_MESSAGE_0_COMPONENT_UNINITIALIZED);\
             CL_FUNC_EXIT();\
             rc = CL_EVENTS_RC(CL_EVENT_ERR_INIT_NOT_DONE); \
             clEvtSafErrorMap(rc, &rc); \
@@ -91,7 +91,7 @@ ClRcT saEvtClientInit(void)
         if(rc != CL_OK)
         {
             clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_INI,"clHandleDatabaseCreate Failed, rc[0x%X]", rc);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                     CL_LOG_MESSAGE_1_HANDLE_DB_CREATION_FAILED, rc);
             return SA_AIS_ERR_NO_RESOURCES;
         }
@@ -205,7 +205,7 @@ void clEventOpenAsyncCallbackTrap(ClInvocationT invocation,
     if (rc != CL_OK)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_OPEN,"clHandleCheckout Failed, rc[0x%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         return ;
     }
@@ -216,7 +216,7 @@ void clEventOpenAsyncCallbackTrap(ClInvocationT invocation,
     if (CL_OK != rc)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_OPEN,"clHandleCheckin Failed, rc[0X%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         return ;
     }
@@ -228,7 +228,7 @@ void clEventOpenAsyncCallbackTrap(ClInvocationT invocation,
     if (rc != CL_OK)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_OPEN,"clHandleCheckout Failed, rc[0x%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
 
         return;
@@ -254,7 +254,7 @@ void clEventOpenAsyncCallbackTrap(ClInvocationT invocation,
     if (CL_OK != rc)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_OPEN,"clHandleCheckin Failed, rc[0X%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         return;
     }
@@ -293,7 +293,7 @@ void clEventDeliverCallbackTrap(ClEventSubscriptionIdT subscriptionId,
     if (rc != CL_OK)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_CALLBACK,"clHandleCheckout Failed, rc[0x%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         
         goto failure;
@@ -319,7 +319,7 @@ void clEventDeliverCallbackTrap(ClEventSubscriptionIdT subscriptionId,
     if (CL_OK != rc)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_CALLBACK,"clHandleCheckin Failed, rc[0X%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         goto failure;
     }
@@ -409,7 +409,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT * pEvtHandle,
     if (rc != CL_OK)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_INI,"clHandleCheckout Failed, rc[0x%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         return SA_AIS_ERR_BAD_HANDLE;
     }
@@ -429,7 +429,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT * pEvtHandle,
     if (CL_OK != rc)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_INI,"clHandleCheckin Failed, rc[0X%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         return SA_AIS_ERR_LIBRARY;
     }
@@ -486,7 +486,7 @@ ClRcT saEvtFinalizeWalkCallback(ClHandleDatabaseHandleT databaseHandle, ClHandle
     if (rc != CL_OK)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_FINALISE,"clHandleCheckout Failed, rc[0x%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         return CL_OK;
     }
@@ -535,7 +535,7 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
     if(CL_OK != rc)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_FINALISE,"clHandleDestroy Failed, rc[0x%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_DB_DESTROY_FAILED, rc);
         rc = CL_EVENT_ERR_INTERNAL;
         clEvtSafErrorMap(rc, &rc);
@@ -555,7 +555,7 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
         if(CL_OK != rc)
         {
             clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_FINALISE,"clHandleDestroy Failed, rc[0x%X]", rc);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                     CL_LOG_MESSAGE_1_HANDLE_DB_DESTROY_FAILED, rc);
             rc = CL_EVENT_ERR_INTERNAL;
             clEvtSafErrorMap(rc, &rc);
@@ -631,7 +631,7 @@ SaAisErrorT saEvtChannelOpen(SaEvtHandleT evtHandle,
     if (rc != CL_OK)
     {
         clLogError(EVENT_LOG_AREA_ECH,EVENT_LOG_CTX_OPEN,"clHandleCheckout Failed, rc[0x%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         return SA_AIS_ERR_BAD_HANDLE;
     }
@@ -642,7 +642,7 @@ SaAisErrorT saEvtChannelOpen(SaEvtHandleT evtHandle,
     if (CL_OK != rc)
     {
         clLogError(EVENT_LOG_AREA_ECH,EVENT_LOG_CTX_OPEN,"clHandleCheckin Failed, rc[0X%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         return SA_AIS_ERR_LIBRARY;
     }
@@ -675,7 +675,7 @@ SaAisErrorT saEvtChannelOpenAsync(SaEvtHandleT evtHandle,
     if(NULL == pSaEvtInvInfo)
     {
         clLogError(EVENT_LOG_AREA_ECH,EVENT_LOG_CTX_OPEN,"Failed to allocate Memory \n\r");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CL_FUNC_EXIT();
         rc = CL_EVENT_ERR_NO_MEM;
@@ -721,7 +721,7 @@ SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
     if(CL_OK != rc)
     {
         clLogError(EVENT_LOG_AREA_ECH,CL_LOG_CONTEXT_UNSPECIFIED,"clHandleDestroy Failed, rc[0x%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_DB_DESTROY_FAILED, rc);
         rc = CL_EVENT_ERR_INTERNAL;
         clEvtSafErrorMap(rc, &rc);
@@ -853,7 +853,7 @@ SaAisErrorT saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
     if (rc != CL_OK)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_SUBSCRIBE,"clHandleCheckout Failed, rc[0x%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         return SA_AIS_ERR_BAD_HANDLE;
     }
@@ -874,7 +874,7 @@ SaAisErrorT saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
     if (CL_OK != rc)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_SUBSCRIBE,"clHandleCheckin Failed, rc[0X%X]", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         return SA_AIS_ERR_LIBRARY;
     }
@@ -886,7 +886,7 @@ SaAisErrorT saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
     if(NULL == pEvtHandle)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_SUBSCRIBE,"Failed to allocate Memory \n\r");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_EVENT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         rc = CL_EVENT_ERR_NO_MEM;
         clEvtSafErrorMap(rc, &rc);

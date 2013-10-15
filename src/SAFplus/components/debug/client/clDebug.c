@@ -280,7 +280,7 @@ ClRcT VDECL(clDebugInvoke)(ClEoDataT        data,
 
     if ((NULL == pDebugObj) || (0 == outMsgHdl))
     {
-        clLogWrite( CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_DEBUG_LIB_CLIENT,
+        clLogWrite( CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_DEBUG_LIB_CLIENT,
                     CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         return CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
     }
@@ -445,7 +445,7 @@ ClRcT VDECL(clDebugGetContext)(ClEoDataT        data,
 
     if ((NULL == pDebugObj) || (0 == outMsgHdl) || (0 == inMsgHdl))
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_WARNING,CL_DEBUG_LIB_CLIENT,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_WARNING,CL_DEBUG_LIB_CLIENT,
                    CL_LOG_MESSAGE_1_INVALID_PARAMETER,"Invalid debugObj");
         return CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
     }
@@ -519,7 +519,7 @@ ClRcT clDebugLibInitialize(void)
     pDebugObj = clHeapCalloc(1, sizeof(ClDebugObjT));
     if (NULL == pDebugObj)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_DEBUG_LIB_CLIENT,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_DEBUG_LIB_CLIENT,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         return CL_DEBUG_RC(CL_ERR_NO_MEMORY);
     }
@@ -547,7 +547,7 @@ ClRcT clDebugLibInitialize(void)
     {
         clLogError("DBG","INI","clCpmComponentNameGet(): rc[0x %x]",
                     rc);
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_WARNING,CL_DEBUG_LIB_CLIENT,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_WARNING,CL_DEBUG_LIB_CLIENT,
                    CL_LOG_MESSAGE_1_INVALID_PARAMETER, 
                    "CompNameGet is not proper");
         return rc;
@@ -563,7 +563,7 @@ ClRcT clDebugLibInitialize(void)
     }
     else
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_WARNING,CL_DEBUG_LIB_CLIENT,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_WARNING,CL_DEBUG_LIB_CLIENT,
                    CL_LOG_MESSAGE_1_INVALID_PARAMETER,"CompName is Invalid");
         return CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
     }
@@ -683,7 +683,7 @@ clDebugPromptSet(const ClCharT  *pCompPrompt)
     }
     else
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_WARNING,CL_DEBUG_LIB_CLIENT,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_WARNING,CL_DEBUG_LIB_CLIENT,
                    CL_LOG_MESSAGE_1_INVALID_PARAMETER,"Prompt is Invalid");
         return CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
     }
@@ -787,7 +787,7 @@ ClRcT clDebugRegister(ClDebugFuncEntryT  *funcArray,
 
     if ((0 == funcArrayLen) || (NULL == funcArray))
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_WARNING,CL_DEBUG_LIB_CLIENT, CL_LOG_MESSAGE_1_INVALID_PARAMETER,"Arguments are Invalid");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_WARNING,CL_DEBUG_LIB_CLIENT, CL_LOG_MESSAGE_1_INVALID_PARAMETER,"Arguments are Invalid");
         return CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
     }
 
@@ -831,7 +831,7 @@ ClRcT clDebugRegister(ClDebugFuncEntryT  *funcArray,
                                                          funcArrayLen);
     if (NULL == pFuncGroup->pFuncDescList)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_DEBUG_LIB_CLIENT,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_DEBUG_LIB_CLIENT,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         clHandleCheckin(pDebugObj->hDebugFnDB, *phDebugReg);
         clHandleDestroy(pDebugObj->hDebugFnDB, *phDebugReg);

@@ -264,7 +264,7 @@ ClBoolT clEoMemAdmitAllocate(ClUint32T size)
     if(CL_MEM_STATS_CHECK_LIMIT(size))
     {
         allowRequest = CL_FALSE;
-        CL_MEM_STATS_LOG(CL_LOG_ERROR,
+        CL_MEM_STATS_LOG(CL_LOG_SEV_ERROR,
                          "Admit allocate failed.Request %d bytes exceeds process upper limit of %d bytes",
                          size,CL_MEM_STATS_MEM_LIMIT);
         goto out_unlock;

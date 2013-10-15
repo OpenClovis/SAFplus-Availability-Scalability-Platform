@@ -237,9 +237,7 @@ extern ClRcT clCpmExecutionObjectStateUpdate(CL_IN ClEoExecutionObjT *pEOptr);
 {\
     if(retCode != CL_OK)\
     {\
-        char __str[256]; \
-        snprintf(__str,256,CL_LOG_SP Z); \
-        clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str);\
+        clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP Z);\
         goto failure;\
     }\
 }while(0)

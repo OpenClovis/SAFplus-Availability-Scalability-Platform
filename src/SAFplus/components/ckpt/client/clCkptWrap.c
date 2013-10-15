@@ -325,7 +325,7 @@ void  _ckptCheckpointOpenAsyncCallback(ClIdlHandleT ckptIdlHdl,
             {
                 clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                               "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL,
                            CL_LOG_CKPT_LIB_NAME,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 /*
@@ -637,7 +637,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
          */
         if(version.releaseCode != '\0' && rc == CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Open call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
@@ -670,7 +670,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
         if(pInvocation == NULL)
         {
             rc =  CL_CKPT_ERR_NO_MEMORY;
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                     CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                     ("Ckpt: CheckpoinAsync open failed rc[0x %x]\n",rc), rc);
@@ -708,7 +708,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
         if(pCkptHdl == NULL)
         {
             rc =  CL_CKPT_ERR_NO_MEMORY;
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                     CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                     ("Ckpt: CheckpoinAsync open failed rc[0x %x]\n",rc), rc);
@@ -928,7 +928,7 @@ ClRcT clCkptCheckpointClose(ClCkptHdlT ckptHdl)
      */
     if ((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                    version.releaseCode,version.majorVersion, 
                    version.minorVersion);
@@ -1094,7 +1094,7 @@ ClRcT clCkptCheckpointDelete(ClCkptSvcHdlT     ckptSvcHdl,
      */
     if(version.releaseCode != '\0' && rc == CL_OK)
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
@@ -1176,7 +1176,7 @@ ClRcT clCkptCheckpointRetentionDurationSet(ClCkptHdlT ckptHdl,
      */
     if((version.releaseCode != '\0') && (CL_OK ==rc))
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
@@ -1287,7 +1287,7 @@ ClRcT clCkptActiveReplicaSet(ClCkptHdlT ckptHdl)
      */
     if( version.releaseCode != '\0' && (rc == CL_OK) )
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                    version.releaseCode, version.majorVersion, 
                    version.minorVersion);
@@ -1619,7 +1619,7 @@ ClRcT clCkptCheckpointStatusGet(ClCkptHdlT                  ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                 CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                 version.releaseCode,version.majorVersion, 
                 version.minorVersion);
@@ -1771,7 +1771,7 @@ ClRcT clCkptSectionCreate(
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
@@ -1965,7 +1965,7 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
      */
     if((version.releaseCode != '\0')  && (rc == CL_OK))
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
@@ -2120,7 +2120,7 @@ ClRcT clCkptSectionExpirationTimeSet(ClCkptHdlT              ckptHdl,
      */
     if((version.releaseCode != '\0')  && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                    version.releaseCode, version.majorVersion, 
                    version.minorVersion);
@@ -2318,7 +2318,7 @@ ClRcT clCkptSectionIterationInitialize(ClCkptHdlT             ckptHdl,
     {
         clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                       "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         /* Don't need to free pSecId, because it will happen in the exitOnError call. clHeapFree(pSecId); */
         clHandleCheckin(gClntInfo.ckptDbHdl,*pSecItrHdl);
@@ -2340,7 +2340,7 @@ ClRcT clCkptSectionIterationInitialize(ClCkptHdlT             ckptHdl,
             {
                 clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                               "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL,
                            CL_LOG_CKPT_LIB_NAME,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 /* Andrew Stone: But what about all the other iteratrions? */ 
@@ -2514,7 +2514,7 @@ ClRcT clCkptSectionIterationNext(ClHandleT                secIterHdl,
          */
         if((version.releaseCode != '\0')  && (rc == CL_OK))
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                        CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                        version.releaseCode, version.majorVersion, 
                        version.minorVersion);
@@ -2982,7 +2982,7 @@ ClRcT clCkptCheckpointWriteVector(ClCkptHdlT                     ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                    version.releaseCode,version.majorVersion,
                    version.minorVersion);
@@ -3227,7 +3227,7 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                    version.releaseCode,version.majorVersion,
                    version.minorVersion);
@@ -3433,7 +3433,7 @@ ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
         {
             clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                           "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             rc = CL_CKPT_ERR_NO_MEMORY;
         
@@ -3493,7 +3493,7 @@ ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Overwrite call failed",
                    version.releaseCode,version.majorVersion, 
                    version.minorVersion);
@@ -3646,7 +3646,7 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
         {
             clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                           "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             rc = CL_CKPT_ERR_NO_MEMORY;
         
@@ -3737,7 +3737,7 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Overwrite call failed",
                    version.releaseCode,version.majorVersion, 
                    version.minorVersion);
@@ -3942,7 +3942,7 @@ ClRcT  clCkptCheckpointRead(ClCkptHdlT              ckptHdl,
      */
     if(version.releaseCode != '\0' && (rc == CL_OK))
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
@@ -4247,7 +4247,7 @@ ClRcT clCkptCheckpointSynchronize(ClCkptHdlT ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
@@ -4296,7 +4296,7 @@ void _ckptSynchronizeCallback(ClIdlHandleT  handle,
      */
     if(suppVersion->releaseCode != '\0')
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                 CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Synchrnoize call failed",
                 suppVersion->releaseCode,suppVersion->majorVersion, 
                 suppVersion->minorVersion);
@@ -4350,7 +4350,7 @@ void _ckptSynchronizeCallback(ClIdlHandleT  handle,
             {
                 clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                               "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, 
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, 
                            CL_LOG_CKPT_LIB_NAME,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 /*
@@ -4500,7 +4500,7 @@ ClRcT clCkptCheckpointSynchronizeAsync(ClCkptHdlT    ckptHdl,
     if(pInvocation == NULL)
     {
        rc =  CL_CKPT_ERR_NO_MEMORY;
-       clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+       clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                   CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: CheckpoinAsync open failed rc[0x %x]\n",rc), rc);

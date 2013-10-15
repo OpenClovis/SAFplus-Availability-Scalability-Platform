@@ -360,7 +360,7 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                 if( (ckptVersion.releaseCode != '\0') && (rc == CL_OK))
                 {
                     rc = CL_CKPT_ERR_VERSION_MISMATCH;
-                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                                CL_CKPT_LOG_6_VERSION_NACK, "CkptOpen",
                                localAddr,
                                CL_IOC_CKPT_PORT, ckptVersion.releaseCode,
@@ -1711,7 +1711,7 @@ ClRcT ckptMasterLocalCkptDelete(ClHandleT masterHdl)
                 masterHdl);
         gCkptSvr->masterInfo.masterHdlCount--;        
     }
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
             "MasterCheckpointClose retention timer \
             creation failed, rc = %x", rc);
 

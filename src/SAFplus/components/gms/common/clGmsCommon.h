@@ -61,17 +61,17 @@ extern "C" {
 #define OPN         "OPN"       /* Log area for logging in OpenAIS context */
 
 /* Creating shortcuts for log severity macros */
-#define EMER        CL_LOG_EMERGENCY
-#define ALERT       CL_LOG_ALERT
-#define CRITICAL    CL_LOG_CRITICAL
+#define EMER        CL_LOG_SEV_EMERGENCY
+#define ALERT       CL_LOG_SEV_ALERT
+#define CRITICAL    CL_LOG_SEV_CRITICAL
 #undef ERROR
-#define ERROR       CL_LOG_ERROR
-#define WARN        CL_LOG_WARNING
-#define NOTICE      CL_LOG_NOTICE
-#define INFO        CL_LOG_INFO
-#define DBG         CL_LOG_DEBUG
+#define ERROR       CL_LOG_SEV_ERROR
+#define WARN        CL_LOG_SEV_WARNING
+#define NOTICE      CL_LOG_SEV_NOTICE
+#define INFO        CL_LOG_SEV_INFO
+#define DBG         CL_LOG_SEV_DEBUG
 #undef TRACE
-#define TRACE       CL_LOG_TRACE
+#define TRACE       CL_LOG_SEV_TRACE
 
 /* Shortcuts for log context */
 #define NA          CL_LOG_CONTEXT_UNSPECIFIED

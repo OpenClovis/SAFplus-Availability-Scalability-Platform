@@ -141,9 +141,7 @@ struct _ClCpmLocalInfoT_4_0_0;
 #define CL_CPM_LOCK_CHECK(X, Z, retCode)			        \
     if(retCode != CL_OK)			                        \
     {					                                \
-     char __tempstr[256];						\
-     snprintf(__tempstr,256,CL_CPM_LOG_SP Z);				\
-     clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr);\
+     clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_CPM_LOG_SP Z);\
     rc = retCode;							\
     goto withlock;							\
     }

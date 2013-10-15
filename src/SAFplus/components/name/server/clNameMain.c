@@ -839,31 +839,31 @@ ClRcT VDECL(nameSvcNack)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
         case CL_NS_NACK_REGISTER:
             clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_NACK,"\n NS: Registration failed at %x\n",
                        srcAddr.iocPhyAddress.nodeAddress);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                        CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
             break;
         case CL_NS_NACK_COMPONENT_DEREGISTER:
             clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_NACK,"\n NS: Component deregistration failed at %x\n",
                        srcAddr.iocPhyAddress.nodeAddress);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                        CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
             break;
         case CL_NS_NACK_SERVICE_DEREGISTER:
             clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_NACK,"\n NS: Service deregistration failed at %x\n",
                        srcAddr.iocPhyAddress.nodeAddress);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                        CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
             break;
         case CL_NS_NACK_CONTEXT_CREATE:
             clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_NACK,"\n NS: Context create failed at %x\n",
                        srcAddr.iocPhyAddress.nodeAddress);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                        CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
             break;
         case CL_NS_NACK_CONTEXT_DELETE:
             clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_NACK,"\n NS: Context delete failed at %x\n",
                        srcAddr.iocPhyAddress.nodeAddress);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                        CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
             break;
         default:
@@ -1006,7 +1006,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
         if(ret != CL_OK)
         {
             clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_REG,"\n NS: Registration failed \n");
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                        CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
         }
 
@@ -1032,7 +1032,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
         ret = CL_NS_RC(CL_NS_ERR_CONTEXT_NOT_CREATED);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_REG,"\n NS: Context %d not found"\
                    " in NS \n",  nsInfo->contextId);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret); 
         /* delete the message created for updating peers */
         clBufferDelete(&inMsgHdl);
@@ -1053,7 +1053,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
         ret = CL_NS_RC(CL_NS_ERR_LIMIT_EXCEEDED);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_REG,"\n NS: Max no. of entries per "\
                    "context limit reached \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
         /* delete the message created for updating peers */
         clBufferDelete(&inMsgHdl);
@@ -1085,7 +1085,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
         {
             ret = CL_NS_RC(CL_ERR_NO_MEMORY);
             clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_REG,"\n NS: MALLOC FAILED \n");
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
             /* delete the message created for updating peers */
             clBufferDelete(&inMsgHdl);
@@ -1173,7 +1173,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
     {
         ret = CL_NS_RC(CL_ERR_NO_MEMORY);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_REG,"\n NS: MALLOC FAILED \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
         /* delete the message created for updating peers */
         clBufferDelete(&inMsgHdl);
@@ -1271,7 +1271,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
             {
                 ret = CL_NS_RC(CL_ERR_NO_MEMORY);
                 clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_REG,"\n NS: MALLOC FAILED \n");
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
                 /* delete the message created for updating peers */
                 clBufferDelete(&inMsgHdl);
@@ -1323,7 +1323,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
         else
         {
             clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_REG,"\n NS: Registration request failed \n");
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
             /* delete the message created for updating peers */
             clBufferDelete(&inMsgHdl);
@@ -1872,7 +1872,7 @@ ClRcT VDECL(nameSvcComponentDeregister)(ClEoDataT data,
     {
         ret = CL_NS_RC(CL_ERR_NO_MEMORY);    
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_DEREG,"\n NS: Malloc failed \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_COMPONENT_DEREGIS_FAILED, ret); 
         CL_FUNC_EXIT();
         return ret;
@@ -1892,7 +1892,7 @@ ClRcT VDECL(nameSvcComponentDeregister)(ClEoDataT data,
     if(ret != CL_OK)
     {
         clLogError(NAME_LOG_AREA_COMP,NAME_LOG_CTX_NAME_DEREG,"\n NS: Version not suppoterd \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_COMPONENT_DEREGIS_FAILED, ret); 
 
         clBufferClear(inMsgHdl);
@@ -1941,7 +1941,7 @@ ClRcT VDECL(nameSvcComponentDeregister)(ClEoDataT data,
                     NULL, ret);
         if(ret != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                        CL_NS_LOG_1_COMPONENT_DEREGIS_FAILED, ret); 
             clLogError(NAME_LOG_AREA_COMP,NAME_LOG_CTX_NAME_DEREG,"\n NS: NS deregister failed \n");
         }
@@ -2061,7 +2061,7 @@ ClRcT VDECL(nameSvcServiceDeregister)(ClEoDataT data,
     {
         ret = CL_NS_RC(CL_ERR_NO_MEMORY);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_DEREG,"\n NS: Malloc failed \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_SERVICE_DEREGIS_FAILED, ret);
         CL_FUNC_EXIT();
         return ret;
@@ -2082,7 +2082,7 @@ ClRcT VDECL(nameSvcServiceDeregister)(ClEoDataT data,
     if(ret != CL_OK)
     {
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_DEREG,"\n NS: Version not suppoterd \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_SERVICE_DEREGIS_FAILED, ret);
 
         clBufferClear(inMsgHdl);
@@ -2138,7 +2138,7 @@ ClRcT VDECL(nameSvcServiceDeregister)(ClEoDataT data,
                     NULL, ret);
         if(ret != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                        CL_NS_LOG_1_SERVICE_DEREGIS_FAILED, ret);
             clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_DEREG,"\n NS: NS deregister failed \n");
         }
@@ -2162,7 +2162,7 @@ ClRcT VDECL(nameSvcServiceDeregister)(ClEoDataT data,
         ret = CL_NS_RC(CL_NS_ERR_CONTEXT_NOT_CREATED);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_DEREG,"\n NS: Context %d not found in NS \n", 
                    nsInfo->contextId);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_SERVICE_DEREGIS_FAILED, ret);
         /* Release the semaphore */
         clOsalMutexUnlock(gSem);
@@ -2189,7 +2189,7 @@ ClRcT VDECL(nameSvcServiceDeregister)(ClEoDataT data,
         ret = CL_NS_RC(CL_NS_ERR_SERVICE_NOT_REGISTERED);
         clLogTrace(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_DEREG,"\n NS: Service not registered" \
                              "by this component \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_SERVICE_DEREGIS_FAILED, ret);
         /* Release the semaphore */
         clOsalMutexUnlock(gSem);
@@ -2284,7 +2284,7 @@ ClRcT VDECL(nameSvcServiceDeregister)(ClEoDataT data,
         ret = CL_NS_RC(CL_NS_ERR_SERVICE_NOT_REGISTERED);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_DEREG,"\n NS: Service not registered"\
                    " by this component \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_SERVICE_DEREGIS_FAILED, ret);
         /* Release the semaphore */
         clOsalMutexUnlock(gSem);
@@ -2387,7 +2387,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
     {
         rc = CL_NS_RC(CL_ERR_NO_MEMORY);
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n NS: Malloc failed \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc); 
         CL_FUNC_EXIT();
         return rc; 
@@ -2407,7 +2407,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
     if(rc != CL_OK)
     {
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n NS: Version not suppoterd \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc); 
                                                                                                                              
         if(nsInfo->source == CL_NS_MASTER)
@@ -2443,7 +2443,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
     {
         rc = CL_NS_RC(CL_NS_ERR_CONTEXT_ALREADY_CREATED);
         clXdrMarshallClUint32T((void*)&recvdContextId, outMsgHandle, 0);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc);          
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n NS: Context already created \n");
         if(nsInfo->attr) clHeapFree(nsInfo->attr);
@@ -2487,7 +2487,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
             else
             {
                 clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n NS: Context Creation failed \n");
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                            CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc);          
                 /* delete the message created for updating NS/M */
                 clBufferDelete(&inMsgHdl);
@@ -2511,7 +2511,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
             rc = CL_NS_RC(CL_NS_ERR_LIMIT_EXCEEDED);
             clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n NS: Limit on Max no. of"\
                                  " NODE LOCAL CONTEXTS already reached \n");
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                        CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc); 
             /* delete the message */
             clBufferDelete(&inMsgHdl);
@@ -2525,7 +2525,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
         {
             rc = CL_NS_RC(CL_ERR_NO_MEMORY);
             clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n NS: MALLOC FAILED \n");
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                        CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc); 
             /* delete the message */
             clBufferDelete(&inMsgHdl);
@@ -2540,7 +2540,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
         {
             rc = CL_NS_RC(CL_ERR_NO_MEMORY);
             clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n NS: MALLOC FAILED \n");
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                        CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc); 
             /* delete the message */
             clBufferDelete(&inMsgHdl);
@@ -2589,7 +2589,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
             rc = CL_NS_RC(CL_NS_ERR_LIMIT_EXCEEDED);
             clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n NS: Limit on Max no. of "\
                        "GLOBAL CONTEXTS already reached \n");
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                        CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc); 
             /* delete the message */
             clBufferDelete(&inMsgHdl);
@@ -2603,7 +2603,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
         {
             rc = CL_NS_RC(CL_ERR_NO_MEMORY); 
             clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n NS: MALLOC FAILED \n");
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                        CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc); 
             /* delete the message */
             clBufferDelete(&inMsgHdl);
@@ -2618,7 +2618,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
         {
             rc = CL_NS_RC(CL_ERR_NO_MEMORY); 
             clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n NS: MALLOC FAILED \n");
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                        CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc); 
             /* delete the message */
             clBufferDelete(&inMsgHdl);
@@ -2674,7 +2674,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
         clBufferDelete(&inMsgHdl);
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n NS: Improper CONTEXT TYPE \n"); 
         CL_FUNC_EXIT();
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc); 
         return rc;
     }
@@ -2739,7 +2739,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
             if(nsInfo->contextId != contxtId)
             {
                 rc = CL_NS_RC(CL_NS_ERR_CONTEXT_CREATION_FAILED);
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, 
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, 
                            NULL, 
                            CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc);
                 clBufferDelete(&inMsgHdl);
@@ -2755,7 +2755,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
             if(recvdContextId != contxtId)
             {
                 rc = CL_NS_RC(CL_NS_ERR_CONTEXT_CREATION_FAILED);
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, 
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, 
                            NULL, 
                            CL_NS_LOG_1_CONTEXT_CREATION_FAILED, rc);
                 clBufferDelete(&inMsgHdl);
@@ -2885,7 +2885,7 @@ ClRcT VDECL(nameSvcContextDelete)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     if(ret != CL_OK)
     {
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\n NS: Version not suppoterd \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret); 
         CL_FUNC_EXIT();
         return ret;
@@ -2896,7 +2896,7 @@ ClRcT VDECL(nameSvcContextDelete)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     {
         ret = CL_NS_RC(CL_ERR_NO_MEMORY);
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\n NS: Malloc failed \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret); 
         CL_FUNC_EXIT();
         return ret;
@@ -2916,7 +2916,7 @@ ClRcT VDECL(nameSvcContextDelete)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     if(ret != CL_OK)
     {
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\n NS: Version not suppoterd \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret); 
 
         if(nsInfo->source == CL_NS_MASTER)
@@ -2959,7 +2959,7 @@ ClRcT VDECL(nameSvcContextDelete)(ClEoDataT data, ClBufferHandleT inMsgHandle,
    {
         ret = CL_NS_RC(CL_NS_ERR_OPERATION_NOT_PERMITTED);
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\n NS: Trying to delete default contexts \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret);
         if(nsInfo->attr) clHeapFree(nsInfo->attr);        
         clHeapFree(nsInfo);
@@ -2971,7 +2971,7 @@ ClRcT VDECL(nameSvcContextDelete)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     if(ret != CL_OK)
     {
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\nNS: Context deletion failed, ret=%x \n", ret);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret);
     }
     if(nsInfo->attr) clHeapFree(nsInfo->attr);        
@@ -3003,7 +3003,7 @@ ClRcT _nameSvcContextDeleteLocked(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
     {
         ret = CL_NS_RC(CL_ERR_NULL_POINTER);
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\n NS: NULL input parameter \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret); 
         CL_FUNC_EXIT();
         return ret;
@@ -3054,7 +3054,7 @@ ClRcT _nameSvcContextDeleteLocked(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
             if(ret != CL_OK)
             {
                 clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\n NS: Context Deletion failed \n");
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                         CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret); 
             }
             /* delete the message created for updating NS/M */
@@ -3070,7 +3070,7 @@ ClRcT _nameSvcContextDeleteLocked(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
         ret = CL_NS_RC(CL_NS_ERR_CONTEXT_NOT_CREATED);
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\n NS: Context %d not found in NS \n",
                              nsInfo->contextId);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret);
         /* delete the message created for updating peers */
         clBufferDelete(&inMsgHdl);
@@ -3103,7 +3103,7 @@ ClRcT _nameSvcContextDeleteLocked(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
         ret = clCntNodeFind(pStatInfo->hashId, gNameEntryUserKey, &pTempHandle);
         if(ret != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                     CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret);
             /* delete the message created for updating peers */
             clBufferDelete(&inMsgHdl);
@@ -3112,7 +3112,7 @@ ClRcT _nameSvcContextDeleteLocked(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
         ret = clCntNodeDelete(pStatInfo->hashId, pTempHandle);
         if(ret != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                     CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret);
             /* delete the message created for updating peers */
             clBufferDelete(&inMsgHdl);
@@ -3464,7 +3464,7 @@ ClRcT _nameSvcAttributeQuery(ClUint32T contextMapCookie,
     {
         ret = CL_NS_RC(CL_NS_ERR_CONTEXT_NOT_CREATED);
         clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: Context not found in NS \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_NS_QUERY_FAILED, ret);
         CL_FUNC_EXIT();
         return ret;
@@ -3479,7 +3479,7 @@ ClRcT _nameSvcAttributeQuery(ClUint32T contextMapCookie,
     ret = clCntNodeFind(gNSHashTable, (ClPtrT)(ClWordT)contextId, &pNodeHandle);
     if(ret != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_NS_QUERY_FAILED, ret);
         CL_FUNC_EXIT();
         /* Release the semaphore */
@@ -3714,7 +3714,7 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
     {
         ret = CL_NS_RC(CL_NS_ERR_CONTEXT_NOT_CREATED);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_QUERY,"\n NS: Context not found in NS \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_NS_QUERY_FAILED, ret);
         CL_FUNC_EXIT();
         return ret;
@@ -3731,7 +3731,7 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
     ret = clCntNodeFind(gNSHashTable, (ClPtrT)(ClWordT)contextId, &pNodeHandle);
     if(ret != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_NS_QUERY_FAILED, ret);
         /* Release the semaphore */
         clOsalMutexUnlock(gSem);
@@ -3812,7 +3812,7 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
             CL_FUNC_EXIT();
             /* Release the semaphore */
             clOsalMutexUnlock(gSem);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                        CL_NS_LOG_1_NS_QUERY_FAILED, ret);
             return ret;
         }
@@ -3858,7 +3858,7 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
         clHeapFree(pNSEntry);
         /* Release the semaphore */
         clOsalMutexUnlock(gSem);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_NS_QUERY_FAILED, ret);
         return CL_NS_RC(CL_NS_ERR_ENTRY_NOT_FOUND);
     }
@@ -3930,7 +3930,7 @@ ClRcT VDECL(nameSvcQuery)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
     {
         ret = CL_NS_RC(CL_ERR_INVALID_BUFFER);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_QUERY,"\n NS: Invalid Buffer Passed \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_NS_QUERY_FAILED, ret)
         CL_FUNC_EXIT();
         return ret;
@@ -3939,7 +3939,7 @@ ClRcT VDECL(nameSvcQuery)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
     {
         ret = CL_NS_RC(CL_ERR_NO_MEMORY);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_QUERY,"\n NS: Malloc failed \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_NS_QUERY_FAILED, ret)
         CL_FUNC_EXIT();
         return ret;
@@ -3960,7 +3960,7 @@ ClRcT VDECL(nameSvcQuery)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_QUERY,"\n NS: Version not suppoterd \n");
         if(nsInfo->attr) clHeapFree(nsInfo->attr);        
         clHeapFree(nsInfo);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_NS_QUERY_FAILED, ret);
         VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version, outMsgHandle, 0);
         CL_FUNC_EXIT();
@@ -4027,7 +4027,7 @@ ClRcT _nameSvcPerContextInfo(ClUint32T contextMapCookie,
     {
         ret = CL_NS_RC(CL_NS_ERR_CONTEXT_NOT_CREATED);
         clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: Context not found in NS 1\n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                 CL_NS_LOG_1_NS_DISPLAY_FAILED, ret);
         CL_FUNC_EXIT();
         return ret;
@@ -4044,7 +4044,7 @@ ClRcT _nameSvcPerContextInfo(ClUint32T contextMapCookie,
     {
         ret = CL_NS_RC(CL_NS_ERR_CONTEXT_NOT_CREATED);
         clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: Context not found in NS \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                 CL_NS_LOG_1_NS_DISPLAY_FAILED, ret);
         /* Release the semaphore */
         clOsalMutexUnlock(gSem);
@@ -4307,7 +4307,7 @@ ClRcT VDECL(nameSvcDBEntriesPack)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     if(ret != CL_OK)
     {
         clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: Version not suppoterd \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                    CL_NS_LOG_1_SYNCUP_FAILED, ret); 
         CL_FUNC_EXIT();
         return ret;
@@ -4317,7 +4317,7 @@ ClRcT VDECL(nameSvcDBEntriesPack)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     if(ret != CL_OK)
     {
         clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: DB Packing failed, ret = %x \n", ret);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_SYNCUP_FAILED, ret); 
     } 
     CL_FUNC_EXIT();
@@ -4451,7 +4451,7 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
                     {
                         ret = CL_NS_RC(CL_ERR_NO_MEMORY);
                         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INI,"\n NS: MALLOC FAILED \n");
-                        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                                    CL_NS_LOG_1_SYNCUP_FAILED, ret);
                         /* Release the semaphore */
                         clOsalMutexUnlock(gSem);
@@ -4471,7 +4471,7 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
                    {
                        ret = CL_NS_RC(CL_ERR_NO_MEMORY);
                        clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INI,"\n NS: MALLOC FAILED \n");
-                       clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                       clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                                CL_NS_LOG_1_SYNCUP_FAILED, ret);
                        /* Release the semaphore */
                        clOsalMutexUnlock(gSem);
@@ -4549,7 +4549,7 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
                {
                     ret = CL_NS_RC(CL_ERR_NO_MEMORY);
                     clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: MALLOC FAILED \n");
-                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                                CL_NS_LOG_1_SYNCUP_FAILED, ret);
                     /* Release the semaphore */
                     clOsalMutexUnlock(gSem);
@@ -4585,7 +4585,7 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
                {
                     ret = CL_NS_RC(CL_ERR_NO_MEMORY);
                     clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: MALLOC FAILED \n");
-                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                                CL_NS_LOG_1_SYNCUP_FAILED, ret);
                     /* Release the semaphore */
                     clOsalMutexUnlock(gSem);
@@ -4609,7 +4609,7 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
                {
                    ret = CL_NS_RC(CL_ERR_NO_MEMORY);
                    clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: MALLOC FAILED \n");
-                   clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                   clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                               CL_NS_LOG_1_SYNCUP_FAILED, ret);
                    /* Release the semaphore */
                    clOsalMutexUnlock(gSem);
@@ -4877,9 +4877,9 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     {
         rc = CL_NS_RC(CL_ERR_NO_MEMORY);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INI,"\n NS: MALLOC FAILED \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_NS_INIT_FAILED, rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL, 
                    CL_LOG_MESSAGE_2_SERVICE_START_FAILED, "Name Service", rc);
         clHeapFree(gpContextIdArray);
         clHeapFree(gNSClientToServerVersionInfo.versionsSupported);
@@ -4910,9 +4910,9 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     {
         rc = CL_NS_RC(CL_ERR_NO_MEMORY);
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INI,"\n NS: MALLOC FAILED \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_NS_INIT_FAILED, rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL, 
                    CL_LOG_MESSAGE_2_SERVICE_START_FAILED, "Name Service", rc);
         CL_FUNC_EXIT();
         clHeapFree(pgDeftGlobalHashTableStat);
@@ -4939,9 +4939,9 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     if(CL_OK != rc)
     {
         clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INI,"\n NS: Native clEoClientInstall failed \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_NS_INIT_FAILED, rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL, 
                    CL_LOG_MESSAGE_2_SERVICE_START_FAILED, "Name Service", rc);
         /* Do all necessary cleanups */
         (void)clIocCommPortDelete((sNameService.EOId)->commObj);
@@ -4959,7 +4959,7 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     rc = clNameSvcCkptInit();
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_WARNING, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_WARNING, NULL,
                    CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "ckpt", rc);
     }
     sNSInitDone = 1;
@@ -4981,7 +4981,7 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     rc = nameSvcEventInitialize();
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_WARNING, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_WARNING, NULL, 
                 CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "event", rc);
     }                                                                                                                        
 
@@ -5065,7 +5065,7 @@ ClRcT _nameSvcContextLevelWalkForFinalize(ClCntKeyHandleT    userKey,
     {
         clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\n NS: Context deletion failed :%x \n",
                    ret);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                    CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret);
     }
       
@@ -5315,7 +5315,7 @@ clNameSvcCompInfoAdd(ClNameSvcContextInfoT *pCtxData,
         clHeapFree(pNSEntry);
         rc = CL_NS_RC(CL_ERR_NO_MEMORY);
         clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"\n NS: MALLOC FAILED \n");
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
                 CL_NS_LOG_1_NS_REGISTRATION_FAILED, rc);
         return rc;
     }
@@ -5466,7 +5466,7 @@ clNameSvcBindingEntryCreate(ClNameSvcContextInfoT  *pCtxData,
     {
         clCntDelete((pBindData)->hashId);
         clHeapFree(pBindData);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
                 CL_NS_LOG_1_SYNCUP_FAILED, rc);
         return rc;
     }

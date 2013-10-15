@@ -339,7 +339,7 @@ ClRcT clFaultClientIssueFaultRmd(SaNameT *compName,
 		/*
 		sprintf(rmdmsg,"Fault Manager Local/Global depending on the context \
 				when trying to restart %s",compName->value);
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_ERROR,CL_FAULT_CLIENT_LIB,CL_FAULT_LOG_1_RMD,rmdmsg);*/
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_ERROR,CL_FAULT_CLIENT_LIB,CL_FAULT_LOG_1_RMD,rmdmsg);*/
 	}
 	
 	clBufferDelete(&inMsgHandle);	

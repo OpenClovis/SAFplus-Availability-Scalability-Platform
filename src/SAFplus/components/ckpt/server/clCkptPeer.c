@@ -1885,7 +1885,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl, VDECL_VER(CkptInfoT, 5, 0, 0) 
     if(pCkptHdl == NULL)
     {
         rc =  CL_CKPT_ERR_NO_MEMORY;
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME, CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME, CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         return rc;            
     }
 
@@ -2540,7 +2540,7 @@ void clCkptRemSvcSecCreateCb(ClIdlHandleT                     ckptIdlHdl,
         {
             memcpy(&ckptVersion, pVersion, sizeof(ClVersionT));
             rc = clRmdSourceAddressGet(&srcAddr.iocPhyAddress);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_6_VERSION_NACK, "CkptRemSvrAdd",
                     srcAddr.iocPhyAddress.nodeAddress,
                     srcAddr.iocPhyAddress.portId, pVersion->releaseCode,
@@ -2639,7 +2639,7 @@ static void clCkptRemSvrSecOverwriteVectorCb(ClIdlHandleT      ckptIdlHdl,
         {
             memcpy(&ckptVersion, pVersion, sizeof(ClVersionT));
             rc = clRmdSourceAddressGet(&srcAddr.iocPhyAddress);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                        CL_CKPT_LOG_6_VERSION_NACK, "CkptRemSvrSecoverwrite",
                        srcAddr.iocPhyAddress.nodeAddress,
                        srcAddr.iocPhyAddress.portId, pVersion->releaseCode,
@@ -2771,7 +2771,7 @@ void clCkptRemSvrSecDeleteCb(ClIdlHandleT      ckptIdlHdl,
         {
             memcpy(&ckptVersion, pVersion, sizeof(ClVersionT));
             rc = clRmdSourceAddressGet(&srcAddr.iocPhyAddress);
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_6_VERSION_NACK, "CkptRemSvrSecoverwrite",
                     srcAddr.iocPhyAddress.nodeAddress,
                     srcAddr.iocPhyAddress.portId, pVersion->releaseCode,

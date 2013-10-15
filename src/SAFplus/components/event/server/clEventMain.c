@@ -76,7 +76,7 @@ ClRcT initializeAmf()
     rc = saAmfInitialize(&gClEvtAmfHandle, &callbacks, &version);
     if(rc != SA_AIS_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL,
                    CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, " CPM Library", rc);
         return clSafToClovisError(rc);
     }
@@ -120,7 +120,7 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
         clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
                       "Event: Installing Native table failed [0x%X]\n\r",
                       rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL,
                    CL_LOG_MESSAGE_1_FUNC_TABLE_INSTALL_FAILED, rc);
         clCntDelete(gEvtMasterECHHandle);
         clEvtChannelDBClean();
@@ -133,7 +133,7 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
         clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
                       "Event: Installing Native Server to Server table failed [0x%X]\n\r",
                       rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL,
                    CL_LOG_MESSAGE_1_FUNC_TABLE_INSTALL_FAILED, rc);
         clCntDelete(gEvtMasterECHHandle);
         clEvtChannelDBClean();
@@ -145,7 +145,7 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
     {
         clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
                       "Event: Debug Register failed [0x%X]\n\r", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL,
                    CL_LOG_MESSAGE_1_DBG_REGISTER_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -171,7 +171,7 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
     {
         clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
                       "Event: CKPT Init failed [0x%X]\n\r", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL,
                    CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "Checkpoint Library",
                    rc);
         CL_FUNC_EXIT();
