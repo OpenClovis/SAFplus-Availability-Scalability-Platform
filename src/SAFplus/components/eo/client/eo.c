@@ -4180,8 +4180,6 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
         clOsalMutexUnlock(&gClEoJobMutex);
         goto out_free;
     }
-
-    clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Enqueuing job priority %d",priority);
     rc = clJobQueuePush(pQ,(ClCallbackT) clEoJobHandler, pJob);
 
 #else

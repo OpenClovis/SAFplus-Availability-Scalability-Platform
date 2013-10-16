@@ -500,7 +500,7 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
         return rc;
     }
     ClInt32T recSize= pClntData->recSize;
-#define __UPDATE_REC_SIZE do {                  \
+#define __UPDATE_RECORD_SIZE do {                  \
         if(recSize < nbytes )                   \
             recSize = nbytes;                   \
         recSize -= nbytes;                      \
@@ -532,9 +532,9 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
          */
         nbytes = snprintf((ClCharT *)pRecord, recSize, LOG_ASCII_HDR_FMT, endian, severity & 0x1f);
         pRecord += nbytes;
-        __UPDATE_REC_SIZE;
+        __UPDATE_RECORD_SIZE;
         {
-            ClCharT *pSeverity = clLogSeverityStrGet(severity);
+            ClCharT *pSeverity = (ClCharT *)clLogSeverityStrGet(severity);
             ClCharT c = 0;
             ClInt32T hdrLen = 0;
             ClInt32T len = 0;
@@ -555,17 +555,17 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
             len = CL_MIN(len, recSize - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - hdrLen - 1);
             nbytes = snprintf((ClCharT*)pRecord, recSize - 1, LOG_ASCII_HDR_LEN_FMT, hdrLen);
             pRecord += nbytes;
-            __UPDATE_REC_SIZE;
+            __UPDATE_RECORD_SIZE;
             nbytes = snprintf((ClCharT*)pRecord, recSize - 1, LOG_ASCII_DATA_LEN_DELIMITER_FMT, len);
             pRecord += nbytes;
-            __UPDATE_REC_SIZE;
+            __UPDATE_RECORD_SIZE;
             if(pMsgHeader && pMsgHeader[0])
             {
                 nbytes = snprintf((ClCharT*)pRecord, recSize - 1, "%s.%05lld : %6s) ",
                                   pMsgHeader, sequenceNum, pSeverity ? pSeverity : "DEBUG");
                 if(nbytes < 0) nbytes = 0;
                 pRecord += nbytes;
-                __UPDATE_REC_SIZE;
+                __UPDATE_RECORD_SIZE;
             }
             pFmtStr = va_arg(args, ClCharT *);
             nbytes = vsnprintf((ClCharT*)pRecord, recSize - 1, pFmtStr, args);
