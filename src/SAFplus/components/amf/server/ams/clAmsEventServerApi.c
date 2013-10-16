@@ -77,20 +77,14 @@ clAmsGetFaultReport(
     
     AMS_CALL ( clOsalMutexLock(gAms.mutex));
 
-    if ( (rc = clAmsEntityDbFindEntity(
-                    &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
-                    &entityRef))
-            == CL_OK )
+    if ( (rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],&entityRef)) == CL_OK )
     {
         ClUint64T currentInstantiateCookie = 0;
         ClAmsCompT *comp = (ClAmsCompT*)entityRef.ptr;
-        clLogInfo("COMP", "FAILURE", 
-                  "Processing fault for component [%s], instantiate Cookie [%lld]",
-                  comp->config.entity.name.value, instantiateCookie);
+        clLogInfo("COMP", "FAILURE", "Processing fault for component [%s], instantiate Cookie [%lld]", comp->config.entity.name.value, instantiateCookie);
+        
         currentInstantiateCookie = comp->status.instantiateCookie;
-        if(instantiateCookie 
-           &&
-           instantiateCookie != currentInstantiateCookie)
+        if(instantiateCookie && instantiateCookie != currentInstantiateCookie)
         {
             clLogInfo("COMP", "FAILURE", 
                       "Ignoring fault for component [%s], instantiation identifier [%lld] "

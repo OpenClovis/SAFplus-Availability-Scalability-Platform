@@ -4145,7 +4145,7 @@ ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    clLogDebug("COMP", "FAILURE", "Component failure reported for component [%s], "
+    clLogInfo("COMP", "FAILURE", "Component failure reported for component [%s], "
                "instantiate cookie [%lld]", errorReport->compName.value, 
                errorReport->instantiateCookie);
 
@@ -4167,8 +4167,7 @@ ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data,
         (ClUint32T)errorReport->time,
         (ClUint32T)errorReport->recommendedRecovery);*/
 
-    if (gpClCpm->cpmToAmsCallback != NULL &&
-            gpClCpm->cpmToAmsCallback->compErrorReport != NULL)
+    if (gpClCpm->cpmToAmsCallback != NULL && gpClCpm->cpmToAmsCallback->compErrorReport != NULL)
     {
         ClAmsEntityT entity = {0};
         errorReport->compName.length += 1;
@@ -4178,7 +4177,11 @@ ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data,
         errorReport = NULL;
     }
     else
-         rc = CL_CPM_RC(CL_CPM_ERR_OPERATION_NOT_ALLOWED);
+    {
+        rc = CL_CPM_RC(CL_CPM_ERR_OPERATION_NOT_ALLOWED);
+        clLogAlert(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Cannot handle component failure report: error [%#x]",rc);
+    }
+    
         
   failure:
     if(errorReport) clHeapFree(errorReport);

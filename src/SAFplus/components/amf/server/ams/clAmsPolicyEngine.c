@@ -6486,12 +6486,11 @@ clAmsPeSUTerminateCallback(
  * code below should not have any side effects if this happens.
  */
 
-ClRcT
-clAmsPeSUCleanup(
-        CL_IN   ClAmsSUT    *su) 
+ClRcT clAmsPeSUCleanup(CL_IN   ClAmsSUT    *su) 
 {
     ClAmsEntityRefT *entityRef;
     ClAmsNodeT *node;
+    ClRcT rc;
 
     AMS_CHECK_SU ( su );
     AMS_CHECK_NODE ( node = (ClAmsNodeT *) su->config.parentNode.ptr );
@@ -6503,7 +6502,7 @@ clAmsPeSUCleanup(
         return clAmsPeSUCleanupCallback(su, CL_OK);
     }
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_DEBUG,
         ("Cleaning up SU [%s] in Presence State [%s]\n",
          su->config.entity.name.value,
          CL_AMS_STRING_P_STATE(su->status.presenceState)) ); 
@@ -6577,20 +6576,21 @@ clAmsPeSUCleanup(
 
         AMS_CHECK_COMP ( sucomp );
 
-        if ( sucomp->status.presenceState ==
-                        CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
+        if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
             continue;
 
-        if ( sucomp->status.presenceState ==
-                        CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED )
+        if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED )
             continue;
 
-        AMS_CALL ( clAmsPeCompCleanup(sucomp) );
-
+        rc = clAmsPeCompCleanup(sucomp);
+        if (rc != CL_OK)
+        {
+          AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_WARNING, ("Component [%s] cleanup failed with error code [%d]", sucomp->config.entity.name.value));
+        }
+        
         count++;
 
-        if ( sucomp->status.presenceState ==
-                        CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
+        if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
         {
             /*
              * If a component cleanup fails, it will result in a fault
@@ -6598,9 +6598,7 @@ clAmsPeSUCleanup(
              * cleanup and recovery actions. So, this cleanup is aborted.
              */
 
-            AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
-                ("Component [%s] cleanup failed. Marking SU termination-failed and exiting SU cleanup..\n",
-                sucomp->config.entity.name.value));
+            AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_WARNING,("Component [%s] cleanup failed. Marking SU termination-failed and exiting SU cleanup..", sucomp->config.entity.name.value));
 
             CL_AMS_SET_P_STATE(su, CL_AMS_PRESENCE_STATE_TERMINATION_FAILED);
 
@@ -11482,9 +11480,7 @@ clAmsPeCompFaultReport(
      */
     if(clAmsFaultQueueFind((ClAmsEntityT*)comp, NULL) != CL_OK)
     {
-        clLogWarning("AMF", "FLT-COMP", "Fault on component [%s] is not present "
-                     "in the fault queue. Ignoring the component fault",
-                     comp->config.entity.name.value);
+        clLogWarning("AMF", "FLT-COMP", "Fault on component [%s] is not present in the fault queue. Ignoring", comp->config.entity.name.value);
         return CL_OK;
     }
     /*
@@ -11502,7 +11498,7 @@ clAmsPeCompFaultReport(
                                        (ClAmsEntityT *) comp,
                                        CL_AMS_COMP_TIMER_INSTANTIATE) == CL_TRUE )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
                             ("Fault on Component [%s]: Translating to Component Instantiate Error\n",
                              comp->config.entity.name.value) );
 
@@ -11514,7 +11510,7 @@ clAmsPeCompFaultReport(
                                        (ClAmsEntityT *) comp,
                                        CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE) == CL_TRUE )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
                             ("Fault on Component [%s]: Translating to Proxied Component Instantiate Error\n",
                              comp->config.entity.name.value) );
 
@@ -11522,12 +11518,10 @@ clAmsPeCompFaultReport(
                                                           comp, CL_AMS_RC(CL_AMS_ERR_OPERATION_FAILED));
         }
 
-        if ( clAmsEntityTimerIsRunning(
-                                       (ClAmsEntityT *) comp,
-                                       CL_AMS_COMP_TIMER_TERMINATE) == CL_TRUE )
+        if ( clAmsEntityTimerIsRunning((ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_TERMINATE) == CL_TRUE )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-                            ("Fault on Component [%s]: Translating to Component Terminate Error\n",
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
+                            ("Fault on Component [%s] during terminate: Translating to Component Terminate Error\n",
                              comp->config.entity.name.value) );
 
             return clAmsPeCompTerminateError(
@@ -12938,7 +12932,7 @@ clAmsPeCompShutdown(
 
     CL_AMS_RESET_EPOCH(comp);
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_INFO,
         ("Terminating Component [%s] in Presence State [%s]\n",
          comp->config.entity.name.value,
          CL_AMS_STRING_P_STATE(comp->status.presenceState)) ); 
@@ -13743,18 +13737,14 @@ clAmsPeCompTerminateError(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_CHECK_SU ( su = (ClAmsSUT*)comp->config.parentSU.ptr );
+    /* comp should always have a SU but its not necessary at this level so why require it? */
+    /* AMS_CHECK_SU ( su = (ClAmsSUT*)comp->config.parentSU.ptr ); */
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
-        ("Component [%s] terminate error [0x%x]. Will cleanup\n",
-        comp->config.entity.name.value,
-        error));
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,("Component [%s] terminate error [0x%x]. Will cleanup\n",comp->config.entity.name.value,error));
 
-    AMS_CALL ( clAmsEntityTimerStop(
-                    (ClAmsEntityT *) comp,
-                    CL_AMS_COMP_TIMER_TERMINATE) );
+    clAmsEntityTimerStop((ClAmsEntityT *) comp,CL_AMS_COMP_TIMER_TERMINATE);
 
-    AMS_CALL ( clAmsInvocationDeleteAll(comp) );
+    clAmsInvocationDeleteAll(comp);
 
     /*
      * If SU is in the middle of terminating, then cleanup all the components
@@ -13762,7 +13752,7 @@ clAmsPeCompTerminateError(
      * if lower level comps fail to respond to terminate.
      */
 
-    if(su->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING)
+    if(su && (su->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING))
     {
         return clAmsPeSUCleanup(su);
     }
@@ -13805,7 +13795,7 @@ clAmsPeCompCleanup(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_INFO,
         ("Cleaning up Component [%s] in Presence State [%s]\n",
          comp->config.entity.name.value,
          CL_AMS_STRING_P_STATE(comp->status.presenceState)) ); 
@@ -13937,7 +13927,6 @@ clAmsPeCompCleanup(
                             CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP) );
 
 #ifdef AMS_CPM_INTEGRATION
-
             ClAmsCompT *proxy = (ClAmsCompT *) comp->status.proxyComp;
 
             error = _clAmsSAComponentCleanup(
@@ -20982,11 +20971,7 @@ clAmsPeEntityFaultReport(
     {
         case CL_AMS_ENTITY_TYPE_COMP:
         {
-
-            return clAmsPeCompFaultReport(
-                        (ClAmsCompT *) entity,
-                        recovery,
-                        escalation);
+            return clAmsPeCompFaultReport((ClAmsCompT *) entity, recovery, escalation);
         }
 
         case CL_AMS_ENTITY_TYPE_NODE:
