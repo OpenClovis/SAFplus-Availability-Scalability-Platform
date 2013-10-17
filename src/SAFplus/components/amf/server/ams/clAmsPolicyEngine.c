@@ -6620,6 +6620,30 @@ ClRcT clAmsPeSUCleanup(CL_IN   ClAmsSUT    *su)
     return CL_OK;
 }
 
+static ClUint32T clAmsSURestartingCompCount(CL_IN       ClAmsSUT        *su)
+{
+    ClAmsEntityRefT *entityRef;
+    ClUint32T restartCompCount = 0;
+
+    if (!su)
+        return 0;
+
+    for ( entityRef = clAmsEntityListGetLast(&su->config.compList);
+          entityRef != (ClAmsEntityRefT *) NULL;
+          entityRef = clAmsEntityListGetPrevious(&su->config.compList, entityRef) )
+    {
+        ClAmsCompT *sucomp = (ClAmsCompT *) entityRef->ptr;
+
+        if (sucomp)
+        {
+            if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING )
+                restartCompCount++;
+        }
+    }
+
+    return restartCompCount;
+}
+
 /*
  * clAmsPeSUCleanupCallback
  * ------------------------
@@ -6648,7 +6672,7 @@ clAmsPeSUCleanupCallback(
         return clAmsPeSUCleanupError(su, error);
     }
 
-    if ( su->status.numInstantiatedComp )
+    if ( su->status.numInstantiatedComp > clAmsSURestartingCompCount(su) )
     {
         return CL_OK;
     }
