@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <errno.h>
 
+#include <saAmf.h>
 /*
  * ASP header files 
  */
@@ -607,7 +608,7 @@ ClRcT cpmPostCallback(ClCpmCallbackTypeT cbType,
     ClCpmCallbackQueueDataT *queueData = NULL;
     ClRcT rc = CL_OK;
     char chr = 'c';
-    ClInt32T count = 0;
+    //ClInt32T count = 0;
         
     queueData = clHeapAllocate(sizeof(ClCpmCallbackQueueDataT));
     CL_ASSERT(queueData != NULL);
@@ -624,7 +625,7 @@ ClRcT cpmPostCallback(ClCpmCallbackTypeT cbType,
         goto failure;
     }
     if(cbType != CL_CPM_FINALIZE)
-        count = write(cpmInstance->writeFd, (void *) &chr, 1);
+        /* count = */ write(cpmInstance->writeFd, (void *) &chr, 1);
     clOsalMutexUnlock(cpmInstance->cbMutex);
     
     return rc;
@@ -1444,9 +1445,11 @@ ClRcT handleCompCSIAssign(ClCpmCompCSISetT *info,
         goto failure;
 
         csi_set:
+        clCompStatLog("csiSet for invocation [%llx] comp [%.*s] hastate [%s]", info->invocation, info->compName.length, info->compName.value, ClHaState2Str((SaAmfHAStateT) info->haState));
         cpmInstance->callbacks.appCSISet(info->invocation,
                                          &(info->compName),
                                          info->haState, csiDescriptor);
+        clCompStatLog("csiSet complete for invocation [%llx]", info->invocation);
     }
     else
     {

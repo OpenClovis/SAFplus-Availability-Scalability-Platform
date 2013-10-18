@@ -21,7 +21,7 @@
  * This file implements wrapper calls on OpenClovis APIs to provide
  * SAF compliant APIs for AMF.
  */
-
+#include <clDebugApi.h>
 #include <clCpmApi.h>
 
 #include <clSafUtils.h>
@@ -53,6 +53,8 @@ SaAisErrorT saAmfInitialize(SaAmfHandleT *amfHandle,
         rc = clCpmSelectionObjectGet(*amfHandle, &dispatchFd);
     }
 
+    clCompStatLog("saAmfInitialize completed. result [%x]", rc);
+    
     return clClovisToSafError(rc);
 }
 
@@ -155,9 +157,8 @@ SaAisErrorT saAmfCSIQuiescingComplete(SaAmfHandleT amfHandle,
 {
     ClRcT rc;
 
-    rc = clCpmCSIQuiescingComplete(amfHandle,
-                                   invocation,
-                                   clSafToClovisError(error));
+    clCompStatLog("QuiescingComplete for invocation [%llx] saError [%x]", invocation, error);
+    rc = clCpmCSIQuiescingComplete(amfHandle,invocation, clSafToClovisError(error));
 
     return clClovisToSafError(rc);
 }
@@ -273,6 +274,7 @@ SaAisErrorT saAmfResponse(SaAmfHandleT amfHandle,
 {
     ClRcT rc;
 
+    clCompStatLog("saAmfResponse for invocation [%llx] saferror [%x]", invocation, error);    
     rc = clCpmResponse(amfHandle, invocation, clSafToClovisError(error));
 
     return clClovisToSafError(rc);

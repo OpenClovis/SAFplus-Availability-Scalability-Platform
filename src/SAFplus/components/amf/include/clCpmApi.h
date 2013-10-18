@@ -200,6 +200,13 @@ typedef enum
 } ClCpmCompEventT;
 
 #define ClCpmCompEventT2Str(x) (((x) == CL_CPM_COMP_ARRIVAL) ? "CL_CPM_COMP_ARRIVAL" : ((x) == CL_CPM_COMP_DEPARTURE) ? "CL_CPM_COMP_DEPARTURE" : ((x) == CL_CPM_COMP_DEATH) ? "CL_CPM_COMP_DEATH" : "Invalid")
+
+#define ClHaState2Str(S)                                                  \
+(   ((S) == SA_AMF_HA_ACTIVE)             ? "Active" :                \
+    ((S) == SA_AMF_HA_STANDBY)            ? "Standby" :               \
+    ((S) == SA_AMF_HA_QUIESCED)           ? "Quiesced" :              \
+    ((S) == SA_AMF_HA_QUIESCING)          ? "Quiescing" :             \
+                                            "Unknown" )
     
 /**
  * Payload data for the component death event published by the CPM.

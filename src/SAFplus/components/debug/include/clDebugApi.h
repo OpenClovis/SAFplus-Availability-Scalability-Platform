@@ -125,6 +125,9 @@ void backtrace_symbols_fd(void *const *array, int size, int fd);
 
 #define CL_DEBUG_SP(...) __VA_ARGS__
 
+#define clCompStatLog(...) clLog(CL_LOG_SEV_DEBUG,"COMP","STAT", __VA_ARGS__)
+
+    
 
 enum
   {
