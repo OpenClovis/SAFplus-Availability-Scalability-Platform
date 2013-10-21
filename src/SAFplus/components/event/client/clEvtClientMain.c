@@ -1003,10 +1003,17 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
     }
 
 
+#ifdef NO_SAF
+    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    evtInitReq.isExternal=1;
+#else
+    ClIocNodeAddressT localIocAddress;
     localIocAddress = clIocLocalAddressGet();
     destAddr.iocPhyAddress.nodeAddress = localIocAddress;
+    evtInitReq.isExternal=0;
+#endif
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
-
+#ifndef NO_SAF
     {    
         ClUint32T i = 0;
         ClStatusT status;
@@ -2133,6 +2140,12 @@ ClRcT clEvtChannelOpenPrologue(ClEventInitHandleT evtHandle,
     evtChannelOpenRequest.userId.evtHandle = pInitInfo->servHdl;
 
     rc = clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, evtHandle);
+#ifdef NO_SAF
+   evtChannelOpenRequest.isExternal=1;
+#else
+    evtChannelOpenRequest.isExternal=0;
+#endif
+
     if (CL_OK != rc)
     {
         clLogError("EVT", "COP", CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
@@ -2282,6 +2295,10 @@ ClRcT clEventChannelOpen(ClEventInitHandleT evtHandle,
     rmdOptions.timeout = timeout;
     destAddr.iocPhyAddress.nodeAddress = clIocLocalAddressGet();
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
+#ifdef NO_SAF
+    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    clLogDebug("LOG", "OPE", "broadcast open stream external ");
+#endif
 
     do
     {
@@ -2894,7 +2911,11 @@ ClRcT clEventExtWithRbeSubscribe(const ClEventChannelHandleT channelHandle,
     subscribeRequest.userId.evtHandle = pInitInfo->servHdl;  /*  Pass server handle to the server */
     subscribeRequest.subscriptionId = subscriptionId;
     subscribeRequest.pCookie = (ClUint64T)(ClWordT)pCookie;
-
+#ifdef NO_SAF
+    subscribeRequest.externalAddress=clIocLocalAddressGet();
+#else
+    subscribeRequest.externalAddress=0;
+#endif
     clEvtUtilsNameCpy(&subscribeRequest.evtChannelName,
             &pEvtChannelInfo->evtChannelName);
 
@@ -2933,7 +2954,9 @@ ClRcT clEventExtWithRbeSubscribe(const ClEventChannelHandleT channelHandle,
 
     destAddr.iocPhyAddress.nodeAddress = localIocAddress;
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
-
+#ifdef NO_SAF
+    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+#endif
     do
     {
         rc = clRmdWithMsg(destAddr, EO_CL_EVT_SUBSCRIBE, inMsgHandle, outMsgHandle,
@@ -4739,9 +4762,16 @@ ClRcT clEventPublish(ClEventHandleT eventHandle, const void *pEventData,
     rmdOptions.timeout = CL_EVT_RMD_TIME_OUT;
     destAddr.iocPhyAddress.nodeAddress = localIocAddress;
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
+#ifdef NO_SAF
+    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+#endif
 
     do
     {
+#ifdef NO_SAF
+        rc = clRmdWithMsg(destAddr, EO_CL_EVT_PUBLISH_EXTERNAL, newMsgHandle, outMsgHandle,
+                          CL_RMD_CALL_NEED_REPLY, &rmdOptions, NULL);
+#else
         rc = clRmdWithMsg(destAddr, EO_CL_EVT_PUBLISH, newMsgHandle, outMsgHandle,
                           CL_RMD_CALL_NEED_REPLY, &rmdOptions, NULL);
     } while(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN

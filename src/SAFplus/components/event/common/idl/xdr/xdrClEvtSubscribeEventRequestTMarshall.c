@@ -70,8 +70,7 @@ ClRcT clXdrMarshallClEvtSubscribeEventRequestT_4_0_0(void* pGenVar, ClBufferHand
     {
         return rc;
     }
-
-    rc = clXdrMarshallClHandleT(&(pVar->evtChannelHandle),msg,isDelete);
+    rc = clXdrMarshallClHandleT(&(pVar->evtChannelHandle),msg,isDelete);    
     if (CL_OK != rc)
     {
         return rc;
@@ -88,8 +87,7 @@ ClRcT clXdrMarshallClEvtSubscribeEventRequestT_4_0_0(void* pGenVar, ClBufferHand
     {
         return rc;
     }
-
-    rc = clXdrMarshallClUint32T(&(pVar->subscriptionId),msg,isDelete);
+    rc = clXdrMarshallClUint32T(&(pVar->subscriptionId),msg,isDelete);    
     if (CL_OK != rc)
     {
         return rc;
@@ -108,6 +106,12 @@ ClRcT clXdrMarshallClEvtSubscribeEventRequestT_4_0_0(void* pGenVar, ClBufferHand
     }
 
     rc = clXdrMarshallClUint32T(&(pVar->packedRbeLen),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->externalAddress),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

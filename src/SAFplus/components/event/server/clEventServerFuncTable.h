@@ -53,6 +53,7 @@ CL_EO_CALLBACK_TABLE_DECL(evtNativeFuncList)[] =
 #ifdef RETENTION_ENABLE
     VSYM(clEvtQueryRetentionDB, EO_CL_EVT_RETENTION_QUERY),        /* 8 */
 #endif
+    VSYM(clEvtEventPublishExternal, EO_CL_EVT_PUBLISH_EXTERNAL),               /* 9 */
     VSYM_NULL,
 };
 

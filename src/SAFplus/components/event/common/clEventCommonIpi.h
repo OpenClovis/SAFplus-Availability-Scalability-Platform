@@ -101,6 +101,7 @@ extern "C"
 # ifdef RETENTION_ENABLE
 #  define EO_CL_EVT_RETENTION_QUERY     CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID,0x8)
 # endif
+# define EO_CL_EVT_PUBLISH_EXTERNAL              CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID,0x9)
 # define EVT_FUNC_ID(n)                 CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID,n)
 
     /* Macro used by event server to make RMD to an event client */
@@ -151,7 +152,7 @@ extern "C"
 do{\
     if((X & CL_EVENT_CHANNEL_SUBSCRIBER) == 0)\
     {\
-        clLog(CL_LOG_SEV_ERROR, "CLT", "VAL", CL_EVENT_LOG_MSG_1_BAD_FLAGS, X);\
+        clLog(CL_LOG_ERROR, "CLT", "VAL", CL_EVENT_LOG_MSG_1_BAD_FLAGS, X);\
         rc = CL_EVENT_ERR_NOT_OPENED_FOR_SUBSCRIPTION;\
         goto failure;\
     }\
@@ -162,8 +163,8 @@ do{\
 do{\
     if((X & CL_EVENT_CHANNEL_PUBLISHER) == 0)\
     {\
-        clLog(CL_LOG_SEV_ERROR, "CLT", "VAL","This channel is not opened it for Publish event");\
-        clLog(CL_LOG_SEV_ERROR, "CLT", "VAL", CL_EVENT_LOG_MSG_1_BAD_FLAGS, X);\
+        clLog(CL_LOG_ERROR, "CLT", "VAL","This channel is not opened it for Publish event");\
+        clLog(CL_LOG_ERROR, "CLT", "VAL", CL_EVENT_LOG_MSG_1_BAD_FLAGS, X);\
         rc = CL_EVENT_ERR_NOT_OPENED_FOR_PUBLISH;\
         goto failure;\
     }\
@@ -185,7 +186,7 @@ do{\
 do{\
     if(CL_EVT_FALSE == gEvtInitDone)\
     {\
-        clLog(CL_LOG_SEV_ERROR, "CLT", "VAL","EM Init is not done\n");\
+        clLog(CL_LOG_ERROR, "CLT", "VAL","EM Init is not done\n");\
         return CL_EVENT_ERR_INIT_NOT_DONE;\
     }\
 }while(0);
@@ -216,6 +217,7 @@ do{\
         ClUint8T reserved;
         ClEvtUserIdT userId;
         ClHandleT clientHdl;
+        ClUint8T isExternal;
     } ClEvtInitRequestT;
 
     typedef struct EvtChannelOpenRequest
@@ -227,6 +229,8 @@ do{\
         ClEventChannelHandleT evtChannelHandle;
         ClEvtUserIdT userId;
         SaNameT evtChannelName;
+        ClUint8T isExternal;
+
 
     } ClEvtChannelOpenRequestT;
 
@@ -244,6 +248,7 @@ do{\
         SaNameT evtChannelName;
         ClUint8T *packedRbe;
         ClUint32T packedRbeLen;
+        ClUint32T externalAddress;
     } ClEvtSubscribeEventRequestT;
 
     typedef struct EvtUnsubscribeEventRequest

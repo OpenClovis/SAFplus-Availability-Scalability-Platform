@@ -1023,7 +1023,16 @@ ClRcT VDECL(clEvtInitializeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle, 
     }
 
     evtInitReq.userId.evtHandle = evtHandle;  /* Update the Init Request with the evtHandle */
-
+	if(!clCpmIsMaster() && evtInitReq.isExternal==1)
+	{
+		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore initial broadcast from external app");
+		sleep(20);
+		return CL_EVENTS_RC(CL_ERR_NOT_SUPPORTED);
+	}
+	if(evtInitReq.isExternal==1)
+	{
+		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "initial broadcast from external app");
+	}
     rc = clEvtInitializeViaRequest(&evtInitReq, CL_EVT_NORMAL_REQUEST);
     if (CL_EVENT_ERR_ALREADY_INITIALIZED == rc)
     {
@@ -1178,6 +1187,16 @@ ClRcT VDECL(clEvtChannelOpenLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle,
     /*
      * Make the Call to the ViaRequest Api 
      */
+	if(!clCpmIsMaster() && evtChannelOpenRequest.isExternal==1)
+	{
+		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore openchannel broadcast from external app");
+		sleep(20);
+		return CL_EVENTS_RC(CL_ERR_NOT_SUPPORTED);
+	}
+	if(evtChannelOpenRequest.isExternal==1)
+	{
+		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "openchannel broadcast from external app");
+	}
     rc = clEvtChannelOpenViaRequest(&evtChannelOpenRequest, CL_EVT_NORMAL_REQUEST);
     if (CL_EVENT_ERR_EXIST == rc)
     {
@@ -1757,6 +1776,8 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq, Cl
     pSubsKey->userId = pEvtSubsReq->userId;
     pSubsKey->subscriptionId = pEvtSubsReq->subscriptionId;
     pSubsKey->pCookie = pEvtSubsReq->pCookie;
+    pSubsKey->externalAddress = pEvtSubsReq->externalAddress;
+
 
     clLogInfo(CL_EVENT_LOG_AREA_SRV, "SUB","Added subscriber [" PFMT_ClEvtUserIdT "] to channel [%.*s]",PVAL_ClEvtUserIdT(pSubsKey->userId),pEvtSubsReq->evtChannelName.length,pEvtSubsReq->evtChannelName.value);
     
@@ -1940,7 +1961,11 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey, ClCntDataHandleT use
     
     remoteObjAddr.iocPhyAddress.nodeAddress = iocLocalAddress;
     remoteObjAddr.iocPhyAddress.portId      = subsCommPort;
-
+    if(pEvtSubsKey->externalAddress!=0)
+    {
+    	//external event subscript
+        remoteObjAddr.iocPhyAddress.nodeAddress = pEvtSubsKey->externalAddress;
+    }
     rc = clRmdWithMsg(remoteObjAddr, CL_EVT_EVENT_DELIVERY_FN_ID, inMsgHandle, 0, CL_RMD_CALL_ASYNC | CL_RMD_CALL_ORDERED, &rmdOptions, NULL);
     (void) clBufferDelete(&inMsgHandle);
     if (CL_OK != rc)
@@ -2031,6 +2056,20 @@ success:
 failure:
     CL_FUNC_EXIT();
     return rc;
+}
+
+ClRcT VDECL(clEvtEventPublishExternal)(ClEoDataT cData,
+        ClBufferHandleT inMsgHandle,
+        ClBufferHandleT outMsgHandle)
+{
+	clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "Enter clEvtEventPublishExternal func");
+	if(!clCpmIsMaster())
+	{
+		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore event public broadcast from external app");
+		sleep(20);
+		return CL_EVENTS_RC(CL_ERR_NOT_SUPPORTED);
+	}
+	return VDECL(clEvtEventPublishLocal)(cData,inMsgHandle,outMsgHandle);
 }
 
 /*
@@ -2589,7 +2628,7 @@ ClRcT VDECL(clEvtEventPublishProxy)(ClEoDataT cData,
     clOsalMutexUnlock(mutexId);
 
 // success:
-    clLogMultiline(CL_LOG_SEV_TRACE, CL_EVENT_LOG_AREA_SRV, "PUB", 
+    clLogMultiline(CL_LOG_TRACE, CL_EVENT_LOG_AREA_SRV, "PUB", 
             "Event{\n"
             "\tno of patterns[%d]\n"
             "\teventId[%#llX]\n"

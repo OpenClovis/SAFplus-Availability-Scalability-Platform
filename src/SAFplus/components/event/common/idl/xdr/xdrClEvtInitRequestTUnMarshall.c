@@ -86,6 +86,12 @@ ClRcT clXdrUnmarshallClEvtInitRequestT_4_0_0(ClBufferHandleT msg , void* pGenVar
         return rc;
     }
 
+    rc = clXdrUnmarshallClUint8T(msg,&(pVar->isExternal));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
     }
 
     return rc;
