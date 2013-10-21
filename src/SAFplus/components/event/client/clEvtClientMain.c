@@ -947,7 +947,6 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
     ClEvtClientHeadT *pEvtClientHead = NULL;
     ClEvtInitInfoT *pInitInfo = NULL;
     ClRmdOptionsT rmdOptions = { 0 };
-    ClIocNodeAddressT localIocAddress;
     ClIocAddressT destAddr;
     ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec=500};
     ClInt32T tries = 0;
@@ -1036,7 +1035,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
             goto failure;
         }
     } 
-
+#endif
 
     evtInitReq.userId.eoIocPort = pEoObj->eoID;
 
@@ -4774,6 +4773,7 @@ ClRcT clEventPublish(ClEventHandleT eventHandle, const void *pEventData,
 #else
         rc = clRmdWithMsg(destAddr, EO_CL_EVT_PUBLISH, newMsgHandle, outMsgHandle,
                           CL_RMD_CALL_NEED_REPLY, &rmdOptions, NULL);
+#endif
     } while(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN
             &&
             ++tries < 5
