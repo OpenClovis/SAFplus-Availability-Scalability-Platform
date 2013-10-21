@@ -109,7 +109,7 @@ ClRcT cpmBmInitialize(ClOsalTaskIdT *pTaskId, ClEoExecutionObjT *pThis)
                                   pThis,
                                   pTaskId);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_TASK_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
   failure:
     return rc;
@@ -157,12 +157,12 @@ static void *bmInitialize(void *threadArg)
     rc = clEoMyEoIocPortSet(pThis->eoPort);
     
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_IOC_MY_EO_IOC_PORT_GET_ERR, rc,
-                   rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   rc, CL_LOG_HANDLE_APP);
 
     /* GAS: should be a no-op already inited when the EO was initialized. Cruft from when multiple EOs in one process */
     rc = clEoMyEoObjectSet(pThis);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_MY_OBJ_SET_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
 #if 0
     display(gpClCpm->bmTable);
@@ -428,32 +428,32 @@ ClRcT cpmBmInitDS(void)
     {
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                       CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                       CL_CPM_RC(CL_ERR_NO_MEMORY), 
                        CL_LOG_HANDLE_APP);
     }
 
     rc = clOsalCondCreate(&cpmBmTable->lcmCondVar);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexCreate(&cpmBmTable->lcmCondVarMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     cpmBmTable->countComponent = 0;
 
     rc = clOsalCondCreate(&cpmBmTable->bmQueueCondVar);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexCreate(&cpmBmTable->bmQueueCondVarMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clQueueCreate(0, userDequeueCallBack, userDestroyCallback,
                        &gpClCpm->bmTable->setRequestQueueHead);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_QUEUE_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clTimerCreate(timeOut,
                        CL_TIMER_ONE_SHOT,
@@ -579,7 +579,7 @@ static ClRcT cpmBmStartup(cpmBMT *cpmBmTable)
         /* By default, go till 2 only */
         rc = cpmBmSetLevel(gpClCpm->bmTable, CL_CPM_BOOT_LEVEL_2);
         CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_BM_START_ERR,
-                       CL_CPM_BOOT_LEVEL_2, rc, rc, CL_LOG_SEV_DEBUG,
+                       CL_CPM_BOOT_LEVEL_2, rc, rc, 
                        CL_LOG_HANDLE_APP);
     }
     else
@@ -642,18 +642,18 @@ void *cpmBMResponse(ClCpmLcmResponseT *response)
             
             rc = clOsalMutexLock(cpmBmTable->lcmCondVarMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                    CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
             
             compTerminationCount--;
             
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
-                    rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                    rc, CL_LOG_HANDLE_APP);
             if (compTerminationCount == 0)
             {
                 rc = clOsalCondSignal(cpmBmTable->lcmCondVar);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR,
-                        rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                        rc, rc, CL_LOG_HANDLE_APP);
             }
         }
     }
@@ -661,19 +661,19 @@ void *cpmBMResponse(ClCpmLcmResponseT *response)
     {
         rc = clOsalMutexLock(cpmBmTable->lcmCondVarMutex);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
 
         cpmBmTable->countComponent++;
 
         rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
-                       rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
 
         if (cpmBmTable->countComponent == cpmBmTable->numComponent)
         {
             rc = clOsalCondSignal(cpmBmTable->lcmCondVar);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR,
-                           rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, rc, CL_LOG_HANDLE_APP);
         }
     }
     else
@@ -683,19 +683,19 @@ void *cpmBMResponse(ClCpmLcmResponseT *response)
         {
             rc = clOsalMutexLock(cpmBmTable->lcmCondVarMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc,
-                           rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, CL_LOG_HANDLE_APP);
 
             cpmBmTable->countComponent++;
 
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
-                           rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, rc, CL_LOG_HANDLE_APP);
 
             if (cpmBmTable->countComponent == cpmBmTable->numComponent)
             {
                 rc = clOsalCondSignal(cpmBmTable->lcmCondVar);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR,
-                        rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                        rc, rc, CL_LOG_HANDLE_APP);
             }
         } /* end if requestType CL_CPM_TERMINATE and cpmShutDown is FALSE */ 
         else
@@ -705,7 +705,7 @@ void *cpmBMResponse(ClCpmLcmResponseT *response)
             clOsalCondSignal(cpmBmTable->lcmCondVar);
             clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR, rc,
-                    rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                    rc, CL_LOG_HANDLE_APP);
         }
     }/* end else if cpmBMResponse returnCode is not CL_OK */
 
@@ -736,23 +736,23 @@ ClRcT cpmBmCleanupDS(void)
 
     rc = clOsalCondDelete(cpmBmTable->lcmCondVar);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_DELETE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexDelete(cpmBmTable->lcmCondVarMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_DELETE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalCondDelete(cpmBmTable->bmQueueCondVar);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_DELETE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexDelete(cpmBmTable->bmQueueCondVarMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_DELETE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clQueueDelete(&cpmBmTable->setRequestQueueHead);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_QUEUE_DELETE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     clTimerDelete(&gpClCpm->bmTable->bmRespTimer);
     gpClCpm->bmTable->bmRespTimer = CL_HANDLE_INVALID_VALUE;
@@ -809,7 +809,7 @@ ClRcT VDECL(cpmBootLevelGet)(ClEoDataT data,
 
     rc = VDECL_VER(clXdrUnmarshallClCpmBootOperationT, 4, 0, 0)(inMsgHandle, (void *) &bootOp);
     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     if (!strcmp((const ClCharT *)bootOp.nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
     {
@@ -818,7 +818,7 @@ ClRcT VDECL(cpmBootLevelGet)(ClEoDataT data,
         rc = clXdrMarshallClUint32T((void *) &currentBootLevel, outMsgHandle,
                                     0);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
     }
     else
     {
@@ -852,19 +852,19 @@ ClRcT VDECL(cpmBootLevelGet)(ClEoDataT data,
                                           MARSHALL_FN(ClCpmBootOperationT, 4, 0, 0),
                                           clXdrUnmarshallClUint32T);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_RMD_CALL_ERR, rc, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
 
             rc = clXdrMarshallClUint32T((void *) &currentBootLevel,
                                         outMsgHandle, 0);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
         }
         else
         {
             clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
-                           rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, CL_LOG_HANDLE_APP);
         }
     }
 
@@ -890,18 +890,18 @@ ClRcT VDECL(cpmBootLevelSet)(ClEoDataT data,
     {
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                       CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                       CL_CPM_RC(CL_ERR_NO_MEMORY), 
                        CL_LOG_HANDLE_APP);
     }
     rc = VDECL_VER(clXdrUnmarshallClCpmBootOperationT, 4, 0, 0)(inMsgHandle, (void *) bootOp);
     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     if (!strcmp((const ClCharT *)bootOp->nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
     {
         rc = clOsalMutexLock(gpClCpm->bmTable->bmQueueCondVarMutex);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
 
         rc = clQueueNodeInsert(gpClCpm->bmTable->setRequestQueueHead,
                                (ClQueueDataT) bootOp);
@@ -909,17 +909,17 @@ ClRcT VDECL(cpmBootLevelSet)(ClEoDataT data,
         {
             clOsalMutexUnlock(gpClCpm->bmTable->bmQueueCondVarMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_QUEUE_INSERT_ERR,
-                           CL_CPM_RC(rc), CL_CPM_RC(rc), CL_LOG_SEV_DEBUG,
+                           CL_CPM_RC(rc), CL_CPM_RC(rc),
                            CL_LOG_HANDLE_APP);
         }
 
         rc = clOsalCondSignal(gpClCpm->bmTable->bmQueueCondVar);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR, rc,
-                       rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
 
         rc = clOsalMutexUnlock(gpClCpm->bmTable->bmQueueCondVarMutex);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
-                       rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
 
     }
     else
@@ -954,14 +954,14 @@ ClRcT VDECL(cpmBootLevelSet)(ClEoDataT data,
                                            NULL,
                                            MARSHALL_FN(ClCpmBootOperationT, 4, 0, 0));
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_RMD_CALL_ERR, rc, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
         }
         else
         {
             clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
-                           rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, CL_LOG_HANDLE_APP);
         }
         clHeapFree(bootOp);
     }
@@ -985,7 +985,7 @@ ClRcT VDECL(cpmBootLevelMax)(ClEoDataT data,
 
     rc = VDECL_VER(clXdrUnmarshallClCpmBootOperationT, 4, 0, 0)(inMsgHandle, (void *) &bootOp);
     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     if (!strcmp((const ClCharT *)bootOp.nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
     {
@@ -993,7 +993,7 @@ ClRcT VDECL(cpmBootLevelMax)(ClEoDataT data,
 
         rc = clXdrMarshallClUint32T((void *) &maxBootLevel, outMsgHandle, 0);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
     }
     else
     {
@@ -1027,19 +1027,19 @@ ClRcT VDECL(cpmBootLevelMax)(ClEoDataT data,
                                           MARSHALL_FN(ClCpmBootOperationT, 4, 0, 0),
                                           clXdrUnmarshallClUint32T);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_RMD_CALL_ERR, rc, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
 
             rc = clXdrMarshallClUint32T((void *) &maxBootLevel, outMsgHandle,
                                         0);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
         }
         else
         {
             clOsalMutexUnlock(gpClCpm->cpmTableMutex);
             rc = CL_CPM_RC(CL_CPM_ERR_FORWARDING_FAILED);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_FORWARD_ERR, rc,
-                           rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, CL_LOG_HANDLE_APP);
         }
     }
 
@@ -1071,7 +1071,7 @@ static ClRcT cpmBmSetLevel(cpmBMT *bmTable, ClUint32T bootLevel)
                 {
                     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                    CL_CPM_LOG_2_BM_SET_LEVEL_ERR, bootLevel, rc,
-                                   rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                                   rc, CL_LOG_HANDLE_APP);
                 }
             }
         }
@@ -1090,7 +1090,7 @@ static ClRcT cpmBmSetLevel(cpmBMT *bmTable, ClUint32T bootLevel)
                 {
                     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                    CL_CPM_LOG_2_BM_SET_LEVEL_ERR, bootLevel, rc,
-                                   rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                                   rc, CL_LOG_HANDLE_APP);
                 }
             }
         }
@@ -1104,7 +1104,7 @@ static ClRcT cpmBmSetLevel(cpmBMT *bmTable, ClUint32T bootLevel)
             {
                 CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                         CL_CPM_LOG_2_BM_SET_LEVEL_ERR, bootLevel, rc,
-                        rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                        rc, CL_LOG_HANDLE_APP);
             }
         }
     }
@@ -1292,7 +1292,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
     {
         rc = CL_CPM_RC(CL_ERR_INVALID_STATE);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_SET_INVALID_STATE, rc,
-                       rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
     }
 
 
@@ -1336,7 +1336,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
 
         rc = clOsalMutexLock(cpmBmTable->lcmCondVarMutex);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
 
         p = pDList->listHead;
         while (p != NULL)
@@ -1357,7 +1357,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
             {
                 clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
                 CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_BM_SU_INST_ERR,
-                               p->compName, rc, rc, CL_LOG_SEV_DEBUG,
+                               p->compName, rc, rc,
                                CL_LOG_HANDLE_APP);
             }
             p = p->pNext;
@@ -1397,7 +1397,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
             
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
-                           rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, rc, CL_LOG_HANDLE_APP);
             /*
              * Call the function to cleanup components
              * at this level.
@@ -1417,7 +1417,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
 
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
-                           rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, rc, CL_LOG_HANDLE_APP);
 
             if (cpmBmTable->countComponent == pDList->numComp)
             {
@@ -1446,7 +1446,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
                            rc);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_1_SERVER_ERR_OPERATION_FAILED, rc, rc,
-                               CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                               CL_LOG_HANDLE_APP);
             }
         }
         else
@@ -1461,7 +1461,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
             clLogError(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_BOOT,"Out of TimedCondWait loop: CondWait failed");
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
-                           rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, rc, CL_LOG_HANDLE_APP);
         }
     }
     else if (pDList != NULL && pDList->numComp == 0)
@@ -1479,7 +1479,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
     {
         rc = CL_CPM_RC(CL_CPM_ERR_OPERATION_FAILED);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_MAX_LEVEL_ERR, rc, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
     }
 
     if (gpClCpm->emUp && gpClCpm->emInitDone == 0)
@@ -1596,7 +1596,7 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
     {
         rc = clLogLibInitialize();
         CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "LOG",
-                       rc, rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                       rc, rc, CL_LOG_HANDLE_APP);
     }
     else if (cpmBmTable->currentBootLevel == CL_CPM_BOOT_LEVEL_2)
     {
@@ -1645,7 +1645,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
     {
         rc = CL_CPM_RC(CL_ERR_INVALID_STATE);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_MIN_LEVEL_ERR, rc, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
     }
 #ifdef CL_CPM_GMS
     /**
@@ -1710,7 +1710,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
 
         rc = clOsalMutexLock(cpmBmTable->lcmCondVarMutex);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
         p = pDList->listHead;
         while (p != NULL)
         {
@@ -1730,7 +1730,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
             {
                 clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
                 CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_BM_SU_TERM_ERR,
-                               p->compName, rc, rc, CL_LOG_SEV_DEBUG,
+                               p->compName, rc, rc,
                                CL_LOG_HANDLE_APP);
             }
             p = p->pNext;
@@ -1745,7 +1745,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
         {
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
-                           rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, rc, CL_LOG_HANDLE_APP);
 
             if (cpmBmTable->countComponent == pDList->numComp)
             {
@@ -1783,14 +1783,14 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
                            rc);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_1_SERVER_ERR_OPERATION_FAILED, rc, rc,
-                               CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                               CL_LOG_HANDLE_APP);
             }
         }
         else
         {
             rc = clOsalMutexUnlock(cpmBmTable->lcmCondVarMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
-                           rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, rc, CL_LOG_HANDLE_APP);
         }
     }
     else if (pDList != NULL && pDList->numComp == 0)
@@ -1810,7 +1810,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
     {
         rc = CL_CPM_RC(CL_CPM_ERR_OPERATION_FAILED);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_MIN_LEVEL_ERR, rc, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
     }
 
     return CL_OK;

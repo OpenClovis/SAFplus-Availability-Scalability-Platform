@@ -427,7 +427,7 @@ ClUint32T cpmNodeFindByIocAddress(ClIocNodeAddressT nodeAddress, ClCpmLT **cpmL)
     {
         rc = clCntFirstNodeGet(gpClCpm->cpmTable, &cpmNode);
         CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
-                       "CPM-L", rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       "CPM-L", rc, rc, CL_LOG_HANDLE_APP);
 
         while (cpmLCount)
         {
@@ -435,7 +435,7 @@ ClUint32T cpmNodeFindByIocAddress(ClIocNodeAddressT nodeAddress, ClCpmLT **cpmL)
                                       (ClCntDataHandleT *) &tempCpmL);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                            CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
 
             if (tempCpmL->pCpmLocalInfo)
             {
@@ -454,7 +454,7 @@ ClUint32T cpmNodeFindByIocAddress(ClIocNodeAddressT nodeAddress, ClCpmLT **cpmL)
                 rc = clCntNextNodeGet(gpClCpm->cpmTable, cpmNode, &cpmNode);
                 CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, "CPM-L", rc,
-                               rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                               rc, CL_LOG_HANDLE_APP);
             }
         }
     }
@@ -516,7 +516,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
      */
     rc = VDECL_VER(clXdrUnmarshallClCpmLocalInfoT, 4, 0, 0)(inMsgHandle, (void *) &cpmLocalInfo);
     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     nodeAddress = cpmLocalInfo.cpmAddress.nodeAddress;
 
@@ -596,7 +596,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
         rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
     }
 
     memcpy(cpmL->pCpmLocalInfo, &cpmLocalInfo, sizeof(ClCpmLocalInfoT));
@@ -724,7 +724,7 @@ ClRcT VDECL(cpmCpmLocalDeregister)(ClEoDataT data,
      */
     rc = VDECL_VER(clXdrUnmarshallClCpmLocalInfoT, 4, 0, 0)(inMsgHandle, (void *) &cpmLocalInfo);
     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
 
     /*
@@ -777,7 +777,7 @@ ClRcT VDECL(cpmCpmConfirm)(ClEoDataT data,
      */
     rc = VDECL_VER(clXdrUnmarshallClCpmLcmResponseT, 4, 0, 0)(inMsgHandle, (void *) &response);
     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     if (gpClCpm->cpmToAmsCallback != NULL &&
         gpClCpm->cpmToAmsCallback->compOperationComplete != NULL)
@@ -1080,7 +1080,7 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
              * BUT all this LATER
              */
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CLIENT_NODE_SHUTDOWN, 
-                    rc, rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                    rc, rc, CL_LOG_HANDLE_APP);
         }
     }
 
@@ -1189,7 +1189,7 @@ ClRcT VDECL(cpmNodeCpmLResponse)(ClEoDataT data,
     
     rc = VDECL_VER(clXdrUnmarshallClCpmBmSetLevelResponseT, 4, 0, 0)(inMsgHandle, &cpmBmResponse);
     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
     
     if(cpmBmResponse.retCode == CL_OK)
     {
@@ -1715,7 +1715,7 @@ ClRcT VDECL(cpmIocAddressForNodeGet)(ClEoDataT data,
 
     rc = clXdrUnmarshallSaNameT(inMsgHandle, (void *) &nodeName);
     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     clOsalMutexLock(gpClCpm->cpmTableMutex);
     rc = cpmNodeFindLocked(nodeName.value, &node);
@@ -1741,7 +1741,7 @@ ClRcT VDECL(cpmIocAddressForNodeGet)(ClEoDataT data,
     rc = VDECL_VER(clXdrMarshallClIocAddressIDLT, 4, 0, 0)((void *) &idlIocAddress, outMsgHandle,
                                        0);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
 failure:
     return rc;
@@ -1772,7 +1772,7 @@ ClRcT cpmUpdateNodeState(ClCpmLocalInfoT *pCpmLocalInfo)
 
     rc = nodeArrivalDeparturePublish(nodeAddress, nodeName, CL_CPM_NODE_DEATH);
     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_EVT_PUB_NODE_DEPART_ERR,
-                   nodeName.value, rc, rc, CL_LOG_SEV_ERROR,
+                   nodeName.value, rc, rc,
                    CL_LOG_HANDLE_APP);
 
     failure:

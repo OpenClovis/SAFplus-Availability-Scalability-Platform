@@ -302,23 +302,23 @@ ClRcT cpmNodeFindLocked(SaUint8T *name, ClCpmLT **cpmL)
 
     rc = clCksm16bitCompute((ClUint8T *) name, strlen((const ClCharT*)name), &nodeKey);
     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_CKSM_ERR, name, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clCntNodeFind(gpClCpm->cpmTable, (ClPtrT)(ClWordT)nodeKey, &hNode);
     CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR, "node",
-                   name, rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   name, rc, rc, CL_LOG_HANDLE_APP);
 
     rc = clCntKeySizeGet(gpClCpm->cpmTable, (ClPtrT)(ClWordT)nodeKey,
                          &numNode);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_KEY_SIZE_GET_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     while (numNode > 0)
     {
         rc = clCntNodeUserDataGet(gpClCpm->cpmTable, hNode,
                                   (ClCntDataHandleT *) &tempNode);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR,
-                       rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       rc, rc, CL_LOG_HANDLE_APP);
         if (!strcmp(tempNode->nodeName, (const ClCharT*)name))
         {
             *cpmL = tempNode;
@@ -336,7 +336,7 @@ ClRcT cpmNodeFindLocked(SaUint8T *name, ClCpmLT **cpmL)
 
     rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
     CL_CPM_CHECK_3(CL_LOG_SEV_ERROR, CL_CPM_LOG_3_CNT_ENTITY_SEARCH_ERR,
-                   "node", name, rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   "node", name, rc, rc, CL_LOG_HANDLE_APP);
 
 done:
     return CL_OK;
@@ -370,7 +370,7 @@ ClUint32T cpmNodeFindByNodeId(ClUint32T nodeId, ClCpmLT **cpmL)
     {
         rc = clCntFirstNodeGet(gpClCpm->cpmTable, &cpmNode);
         CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
-                       "CPM-L", rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       "CPM-L", rc, rc, CL_LOG_HANDLE_APP);
 
         while (cpmLCount)
         {
@@ -378,7 +378,7 @@ ClUint32T cpmNodeFindByNodeId(ClUint32T nodeId, ClCpmLT **cpmL)
                                       (ClCntDataHandleT *) &tempCpmL);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                            CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
 
             if (tempCpmL->pCpmLocalInfo)
             {
@@ -396,7 +396,7 @@ ClUint32T cpmNodeFindByNodeId(ClUint32T nodeId, ClCpmLT **cpmL)
                 rc = clCntNextNodeGet(gpClCpm->cpmTable, cpmNode, &cpmNode);
                 CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, "CPM-L", rc,
-                               rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                               rc, CL_LOG_HANDLE_APP);
             }
         }
     }

@@ -685,13 +685,13 @@ void cpmClusterTrackCallBack(const ClGmsClusterNotificationBufferT
     rc = clOsalMutexLock(&gpClCpm->cpmGmsMutex);
     gpClCpm->trackCallbackInProgress = CL_FALSE;
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
     rc = clOsalCondSignal(&gpClCpm->cpmGmsCondVar);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
     rc = clOsalMutexUnlock(&gpClCpm->cpmGmsMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 failure:
     return;
 }
@@ -723,7 +723,7 @@ ClRcT cpmGmsInitialize(void)
 
     rc = clOsalMutexLock(&gpClCpm->cpmGmsMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clGmsClusterTrack(gpClCpm->cpmGmsHdl, CL_GMS_TRACK_CHANGES_ONLY | CL_GMS_TRACK_CURRENT, NULL);
     if (CL_OK != rc)
@@ -771,7 +771,7 @@ ClRcT cpmGmsInitialize(void)
 
     rc = clOsalMutexUnlock(&gpClCpm->cpmGmsMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
-                   rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   rc, CL_LOG_HANDLE_APP);
 
     return CL_OK;
 
