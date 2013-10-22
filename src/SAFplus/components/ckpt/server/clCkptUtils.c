@@ -671,11 +671,18 @@ exitOnError:
  
 ClRcT  ckptSvrCbFree(CkptSvrCbT *pSvrCb)
 {
+    CKPT_LOCK(gCkptSvr->ckptActiveSem);
+    /* the server is going down setting this flag as FALSE */
+    gCkptSvr->serverUp = CL_FALSE;
+
     clCntDelete(pSvrCb->ckptHdlList);
     clHandleDatabaseDestroy(pSvrCb->ckptHdl);
     clCntDelete(pSvrCb->peerList);
+    CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
+
     ckptClientDBInfoDelete();
     ckptMasterDBInfoDelete();
+
     clOsalCondDelete(gCkptSvr->condVar);
     clOsalMutexDelete(gCkptSvr->mutexVar);
     clHandleDatabaseDestroy(pSvrCb->masterInfo.clientDBHdl);
@@ -684,6 +691,7 @@ ClRcT  ckptSvrCbFree(CkptSvrCbT *pSvrCb)
     clCntDelete(pSvrCb->masterInfo.nameXlationDBHdl);
     clOsalMutexDelete(pSvrCb->masterInfo.ckptMasterDBSem);
     clHeapFree(pSvrCb->versionDatabase.versionsSupported);
+
     return CL_OK;
 }
 
