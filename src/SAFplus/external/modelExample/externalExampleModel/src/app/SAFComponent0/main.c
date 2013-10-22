@@ -31,9 +31,15 @@
 #include <clLogApi.h>
 #include <clCpmApi.h>
 #include <saAmf.h>
-#include <clHandleApi.h>
-ClRcT alarmClockLogInitialize( void );
+#include <saAis.h>
+#include <saEvt.h>
+#include <clEventApi.h>
+#include <clEventExtApi.h>
 
+
+
+/* SAFplus Client Includes */
+#include <clHandleApi.h>
 
 /* Local function declarations */
 
@@ -68,7 +74,35 @@ int  errorExit(SaAisErrorT rc);
 /******************************************************************************
  * Global Variables.
  *****************************************************************************/
+#define EVENT_CHANNEL_NAME "TestEventChannel1"
+#define PUBLISHER_NAME "TestEventPublisher1"
 
+static int              running = 1;    // run state: 0=suspended, 1=resumed
+//static int              exiting = 0;    // Flag to tell main loop to exit
+SaNameT                 evtChannelName;
+SaEvtChannelHandleT   evtChannelHandle = 0;
+ClAmsHAStateT           ha_state = CL_AMS_HA_STATE_NONE;
+static char             appname[80];
+SaEvtHandleT      evtHandle;
+ClRcT alarmClockLogInitialize( void );
+
+
+
+static inline void
+logmsg(ClLogSeverityT severity, char *buffer, char *appname)
+{
+    clLogWrite(CL_LOG_HANDLE_APP, severity, NULL, buffer, appname);
+}
+
+static inline void
+logrc(ClLogSeverityT severity, char *buffer, char *appname, ClRcT rc)
+{
+    clLogWrite(CL_LOG_HANDLE_APP, severity, NULL, buffer, appname, rc);
+}
+
+static void  appEventCallback( SaEvtSubscriptionIdT	subscriptionId,
+                                          SaEvtEventHandleT     eventHandle,
+					  SaSizeT eventDataSize);
 /* The process ID is stored in this variable.  This is only used in our logging. */
 pid_t        mypid;
 
@@ -88,6 +122,7 @@ ClBoolT unblockNow = CL_FALSE;
  * Application Life Cycle Management Functions
  *****************************************************************************/
 
+
 int main(int argc, char *argv[])
 {
     SaAisErrorT rc = SA_AIS_OK;
@@ -95,8 +130,58 @@ int main(int argc, char *argv[])
     /* Connect to the SAF cluster */
     initializeAmf();
 
+    const SaEvtCallbacksT evtCallbacks =
+    {
+        NULL,
+        appEventCallback
+    };
+    SaVersionT  evtVersion = CL_EVENT_VERSION;
     /* Do the application specific initialization here. */
-    
+#define min(x,y) ((x < y)? x: y)
+
+    strncpy(appname, (char*)appName.value, min(sizeof appname, appName.length));
+    appname[min(sizeof appname - 1, appName.length)] = 0;
+    //(void)ev_init(argc, argv, (char*)appName.value);
+
+    printf("EventSubscriber : Initializing and registering with CPM...\n");
+
+    // publish our event callbacks
+    rc = saEvtInitialize(&evtHandle, &evtCallbacks, &evtVersion);
+    if (rc != SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s: Failed to init event mechanism [0x%x]\n",
+                appname, rc);
+        return rc;
+    }
+    // Open an event chanel so that we can subscribe to events on that channel
+    saNameSet(&evtChannelName,EVENT_CHANNEL_NAME);
+    rc = saEvtChannelOpen(evtHandle,&evtChannelName,
+            (SA_EVT_CHANNEL_SUBSCRIBER |
+                SA_EVT_CHANNEL_CREATE),
+            (SaTimeT)SA_TIME_END,
+            &evtChannelHandle);
+    if (rc != SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failure opening event channel[0x%x] at %ld\n", appname,
+                    rc, time(0L));
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failure opening event channel[0x%x]\n",
+                    appname, rc);
+        goto errorexit;
+    }
+
+    rc = saEvtEventSubscribe(evtChannelHandle, NULL, 1);
+    if (rc != SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t: Failed to subscribe to event channel [0x%x]\n",
+                    appname, rc);
+        clprintf(CL_LOG_SEV_ERROR,
+                    "%s\t:Failed to subscribe to event channel [0x%x]\n",
+                    appname, rc);
+        goto errorexit;
+    }
+
+
+    clprintf(CL_LOG_SEV_INFO, "Instantiated as component instance %s.\n", appName.value);
     /* Block on AMF dispatch file descriptor for callbacks.
        When this function returns its time to quit. */
     dispatchLoop();
@@ -110,6 +195,12 @@ int main(int argc, char *argv[])
       clprintf (CL_LOG_SEV_INFO, "AMF Finalized");   
 
     return 0;
+
+    errorexit:
+        clprintf (CL_LOG_SEV_ERROR, "Component [%.*s] : PID [%d]. Initialization error [0x%x]\n",
+                  appName.length, appName.value, mypid, rc);
+
+        return -1;
 }
 
 
@@ -181,11 +272,14 @@ void safAssignWork(SaInvocationT       invocation,
         {
             /* Typically you would spawn a thread here to initiate active 
                processing of the work. */
-        	alarmClockLogInitialize();
+
+
             /* The AMF times the interval between the assignment and acceptance
                of the work (the time interval is configurable).
                So it is important to call this saAmfResponse function ASAP.
              */
+        	alarmClockLogInitialize();
+        	ha_state = CL_AMS_HA_STATE_ACTIVE;
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -473,6 +567,49 @@ void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState)
                   standbyDescriptor.activeCompName.value);
     }
 }
+
+
+static void
+appEventCallback( SaEvtSubscriptionIdT	subscriptionId,
+                             SaEvtEventHandleT     eventHandle,
+			     SaSizeT eventDataSize)
+{
+    SaAisErrorT  saRc = SA_AIS_OK;
+    static ClPtrT   resTest = 0;
+    static ClSizeT  resSize = 0;
+
+    if (running == 0 || ha_state != CL_AMS_HA_STATE_ACTIVE)
+    {
+        return;
+    }
+    clprintf (CL_LOG_SEV_INFO,"We've got an event to receive\n");
+    if (resTest != 0)
+    {
+        // Maybe try to save the previously allocated buffer if it's big
+        // enough to hold the new event message.
+        clHeapFree((char *)resTest);
+        resTest = 0;
+        resSize = 0;
+    }
+    resTest = clHeapAllocate(eventDataSize + 1);
+    if (resTest == 0)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failed to allocate space for event\n",
+                    appname);
+        return;
+    }
+    *(((char *)resTest) + eventDataSize) = 0;
+    resSize = eventDataSize;
+    saRc = saEvtEventDataGet(eventHandle, resTest, &resSize);
+    if (saRc!= SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failed to get event data [0x%x]\n",
+                    appname, saRc);
+    }
+
+    clprintf (CL_LOG_SEV_INFO,"received event: %s\n", (char *)resTest);
+    return;
+}
 static ClLogHandleT        logSvcHandle = CL_HANDLE_INVALID_VALUE;
 
 ClLogStreamHandleT  streamHandle = CL_HANDLE_INVALID_VALUE;
@@ -493,7 +630,7 @@ ClRcT alarmClockLogInitialize( void )
 
         ClLogHandleT    *phLog,
                 - used for subsequent invocation of Log Service APIs
-
+alarmClockLogInitialize();
         ClLogCallbacksT *pLogCallbacks,
           ClLogFilterSetCallbackT - Callback after filter update is completed.
           ClLogRecordDeliveryCallbackT - Callback for retrieving records
@@ -558,64 +695,12 @@ ClRcT alarmClockLogInitialize( void )
         (void)clLogFinalize(logSvcHandle);
         return rc;
     }
-
-#if 1
-    /* Log a message to the stream being created
-     * ClLogStreamHandleT   - returned from clLogStreamOpen()
-     * ClLogSeverityT       - defined in clLogApi.h
-     * ClUint16T  serviceid - identifies the module within a process that
-     *                       generates the log message
-     * ClUint16T   msgId    - identifies msg type being logged
-     *                      - CL_LOG_MSGID_PRINTF_FMT (ASCII)
-     *                      - CL_LOG_MSGID_BUFFER     (Binary)
-     *
-     */
     rc = clLogWriteAsync(streamHandle,
                          CL_LOG_SEV_NOTICE,
                          10,
                          CL_LOG_MSGID_PRINTF_FMT,
                          "\n(%s:%d[pid=%d]) -->Alarm Clock Logging Begun<--\n",
                          __FILE__, __LINE__,getpid());
-#endif
-    /**
- *  \brief Logging for applications
- *  \par Description
- *  This macro provides the support to log messages by specifying
- *  the severity of log message and server information like the
- *  sub-component area and the context of logging.
- *  \par
- *  This macro is for applications as opposed to system components. By default
- *  it outputs to "app.log" instead of "sys.log" but of course these outputs
- *  are configurable through the clLog.xml file.
- *
- *  \param streamHandle (in) This handle should be a valid stream handle. It should be
- *   either default handles(CL_LOG_HANDLE_APP & CL_LOG_HANDLE_SYS) or should
- *  have obtained from previous clLogStreamOpen() call. The stream handle is CL_LOG_HANDLE_SYS,
- *  then it outputs to "sys.log". It is CL_LOG_HANDLE_APP, then it outputs to "app.log".
- *
- *  \param severity (in) This field must be set to one of the values defined
- *  in this file (CL_LOG_SEV_DEBUG ... CL_LOG_SEV_EMERGENCY).  It defines the
- *  severity level of the Log Record being written.
- *
- *  \param serviceId (in) This field identifies the module within the process
- *  which is generating this Log Record. If the Log Record message is a generic
- *  one like out of memory, this field can be used to narrow down on the module
- *  impacted. For SAFplus client libraries, these values are defined in clCommon.h.
- *  For application modules, it is up-to the application developer to define the
- *  values and scope of those values.
- *
- *  \param area (in) This is a 3 letter string identifying the process (or
- *  component) that generated this message.
- *
- *  \param context (in) This is a string (3 letters preferred) identifying
- *  the library that generated this message.
- *
- *  \param ... (in) use a printf style string and arguments for your log message.
- */
-
-//    clprintf(CL_LOG_SEV_ERROR, "\n \n \n open clockStream \n \n \n \n ");
-//    clAppLog(streamHandle, CL_LOG_SEV_NOTICE, AlarmClockLogId, "ALM", "CLK", "\n(%s:%d[pid=%d]) -->Alarm Clock Logging Begun<--\n", __FILE__, __LINE__,getpid());
-//    clprintf(CL_LOG_SEV_ERROR, "\n \n \n open clockStream \n \n \n \n ");
     return CL_OK;
 }
 

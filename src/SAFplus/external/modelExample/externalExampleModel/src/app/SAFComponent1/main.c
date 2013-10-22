@@ -31,7 +31,12 @@
 #include <clLogApi.h>
 #include <clCpmApi.h>
 #include <saAmf.h>
-#include <clHandleApi.h>
+#include <saAis.h>
+#include <saEvt.h>
+#include <clEventApi.h>
+#include <clEventExtApi.h>
+
+
 /* Local function declarations */
 
 /* The application should fill these functions */
@@ -50,7 +55,6 @@ void initializeAmf(void);
 void dispatchLoop(void);
 void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState);
 int  errorExit(SaAisErrorT rc);
-ClRcT alarmClockLogInitialize( void );
 
 
 /******************************************************************************
@@ -67,24 +71,81 @@ ClRcT alarmClockLogInitialize( void );
  * Global Variables.
  *****************************************************************************/
 
-/* The process ID is stored in this variable.  This is only used in our logging. */
-pid_t        mypid;
 
-/* Access to the SAF AMF framework occurs through this handle */
-SaAmfHandleT amfHandle;
 
 /* This process's SAF name */
 SaNameT      appName = {0};
 
+#define EVENT_CHANNEL_NAME "TestEventChannel"
+#define PUBLISHER_NAME "TestEventPublisher"
+
+
+static char     appname[80];
+
+/*
+ * ---END_APPLICATION_CODE---
+ */
+
+/******************************************************************************
+ * Global Variables.
+ *****************************************************************************/
+
+pid_t mypid;
+SaAmfHandleT amfHandle;
 
 ClBoolT unblockNow = CL_FALSE;
 
-/* Declare other global variables here. */
+/*
+ * Declare other global variables here.
+ */
 
+
+// Poor man's namespace.  Gather together some globals that don't
+// really need to be global.
+typedef struct
+{
+    ClEoExecutionObjT             *tstRegEoObj;
+    ClCpmHandleT                  cpmHandle;
+    SaEvtHandleT		          evtInitHandle;
+    SaEvtEventHandleT		      eventHandle;
+    SaAmfCallbacksT               callbacks;
+    ClVersionT                    version;
+    SaVersionT                    evtVersion;
+    SaNameT                       evtChannelName;
+    SaNameT                       publisherName;
+    int                           running;
+    int                           exiting;
+    ClAmsHAStateT                 haState;
+} gTestInfoT;
+
+static gTestInfoT gTestInfo;
+
+
+
+
+
+/* Declare other global variables here. */
+static inline void
+logrc(ClLogSeverityT severity, char *buffer, char *appname, ClRcT rc)
+{
+    clLogWrite(CL_LOG_HANDLE_APP, severity, NULL, buffer, appname, rc);
+}
+
+static inline void
+logmsg(ClLogSeverityT severity, char *buffer, char *appname)
+{
+    clLogWrite(CL_LOG_HANDLE_APP, severity, NULL, buffer, appname);
+}
+
+static ClRcT appPublishEvent();
+
+static void* testEvtMainLoop(void *thdParam);
 
 /******************************************************************************
  * Application Life Cycle Management Functions
  *****************************************************************************/
+
+
 int main(int argc, char *argv[])
 {
     SaAisErrorT rc = SA_AIS_OK;
@@ -93,7 +154,97 @@ int main(int argc, char *argv[])
     initializeAmf();
 
     /* Do the application specific initialization here. */
-    
+
+    gTestInfo.tstRegEoObj      = 0;
+  	gTestInfo.cpmHandle        = 0;                 // CPM service instance handle
+  	gTestInfo.evtInitHandle    = 0;
+  	gTestInfo.eventHandle      = 0;
+  	gTestInfo.callbacks.saAmfHealthcheckCallback          = NULL; /* rarely necessary because SAFplus monitors the process */
+  	gTestInfo.callbacks.saAmfComponentTerminateCallback   = safTerminate;
+  	gTestInfo.callbacks.saAmfCSISetCallback               = safAssignWork;
+  	gTestInfo.callbacks.saAmfCSIRemoveCallback            = safRemoveWork;
+  	gTestInfo.callbacks.saAmfProtectionGroupTrackCallback = NULL;
+    gTestInfo.version.releaseCode                    = 'B';
+    gTestInfo.version.majorVersion                   = 01;
+    gTestInfo.version.minorVersion                   = 01;
+    gTestInfo.evtVersion.releaseCode                    = 'B';
+    gTestInfo.evtVersion.majorVersion                   = 01;
+    gTestInfo.evtVersion.minorVersion                   = 01;
+    saNameSet(&gTestInfo.evtChannelName,EVENT_CHANNEL_NAME);
+    saNameSet(&gTestInfo.publisherName,PUBLISHER_NAME);
+    gTestInfo.running          = 1;
+    gTestInfo.exiting          = 0;
+    gTestInfo.haState          = CL_AMS_HA_STATE_STANDBY;
+    SaEvtChannelHandleT evtChannelHandle      = 0;
+    SaEvtCallbacksT     evtCallbacks          = {NULL, NULL};
+
+#define min(x,y) ((x < y)? x: y)
+
+    strncpy(appname, (char*)appName.value, min(sizeof appname, appName.length));
+    appname[min(sizeof appname - 1, appName.length)] = 0;
+    //(void)ev_init(argc, argv, (char*)appName.value);
+
+    /* Set up console redirection for demo purposes */
+    /* Set up console redirection for demo purposes */
+    //(void)ev_init(argc, argv, appname);
+
+    printf("EventPublisher : Initializing and registering with CPM...\n");
+
+    // Initialize the the event code
+    rc = saEvtInitialize(&gTestInfo.evtInitHandle,
+                           &evtCallbacks,
+                           &gTestInfo.evtVersion);
+    if (rc != SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failed to init event system[0x%x]\n",
+                    appname, rc);
+        return rc;
+    }
+
+    // Open an event channel so we can publish our events.
+    rc = saEvtChannelOpen (gTestInfo.evtInitHandle,
+                             &gTestInfo.evtChannelName,
+                            (SA_EVT_CHANNEL_PUBLISHER |
+                             SA_EVT_CHANNEL_CREATE),
+                             (ClTimeT)SA_TIME_END,
+                             &evtChannelHandle);
+    if (rc != SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failed to open event channel [0x%x]\n",
+                appname, rc);
+        return rc;
+    }
+
+    rc = saEvtEventAllocate(evtChannelHandle, &gTestInfo.eventHandle);
+    if (rc != SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failed to cllocate event [0x%x]\n",
+                appname, rc);
+        return rc;
+    }
+
+    rc = saEvtEventAttributesSet(gTestInfo.eventHandle,
+            NULL,
+            1,
+            0,
+            &gTestInfo.publisherName);
+    if (rc != SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failed to set event attributes [0x%x]\n",
+                appname, rc);
+        return rc;
+    }
+
+
+    clOsalTaskCreateDetached("testEvtMainLoop",
+                             CL_OSAL_SCHED_OTHER,
+                             CL_OSAL_THREAD_PRI_NOT_APPLICABLE,
+                             65536,
+                             testEvtMainLoop,
+                             (void*)appname);
+
+    clprintf(CL_LOG_SEV_INFO, "%s: Instantiated as component instance %s.\n", appname,
+                appName.value);
     /* Block on AMF dispatch file descriptor for callbacks.
        When this function returns its time to quit. */
     dispatchLoop();
@@ -178,11 +329,13 @@ void safAssignWork(SaInvocationT       invocation,
         {
             /* Typically you would spawn a thread here to initiate active 
                processing of the work. */
-        	alarmClockLogInitialize();
+
+
             /* The AMF times the interval between the assignment and acceptance
                of the work (the time interval is configurable).
                So it is important to call this saAmfResponse function ASAP.
              */
+        	gTestInfo.haState          = CL_AMS_HA_STATE_ACTIVE;
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -472,149 +625,167 @@ void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState)
 }
 
 
-static ClLogHandleT        logSvcHandle = CL_HANDLE_INVALID_VALUE;
-
-ClLogStreamHandleT  streamHandle = CL_HANDLE_INVALID_VALUE;
-ClLogStreamAttributesT myStreamAttr;
-
-ClRcT alarmClockLogInitialize( void )
+static void
+generate_time_of_day(char **data, ClSizeT *data_len)
 {
-    ClRcT      rc     = CL_OK;
-    ClVersionT version= {'B', 0x1, 0x1};
-    ClLogCallbacksT  logCallbacks = {0};
-    SaNameT       streamName;
+    time_t t;
 
-    logSvcHandle = CL_HANDLE_INVALID_VALUE;
-    streamHandle = CL_HANDLE_INVALID_VALUE;
-
-    /*
-    Initialize the client log library.
-
-        ClLogHandleT    *phLog,
-                - used for subsequent invocation of Log Service APIs
-
-        ClLogCallbacksT *pLogCallbacks,
-          ClLogFilterSetCallbackT - Callback after filter update is completed.
-          ClLogRecordDeliveryCallbackT - Callback for retrieving records
-          ClLogStreamOpenCallbackT     - Callback for clLogStreamOpenAsync()
-
-        ClVersionT         *pVersion`
-    */
-
-    rc = clLogInitialize(&logSvcHandle, &logCallbacks, &version);
-    if(CL_OK != rc)
+    // minimal error checking
+    if (data == 0 || data_len == 0)
     {
-        // Error occured. Take appropriate action.
-        clprintf(CL_LOG_SEV_ERROR, "Failed to initialze log: %x\n", rc);
-        return rc;
-    }
-    sleep(5);
-    clprintf(CL_LOG_SEV_ERROR, "open clockStream 0 \n");
-    myStreamAttr.fileName = (char *)"clockPay.log";
-    myStreamAttr.fileLocation=(char *)".:var/log";
-    myStreamAttr.recordSize = 600;
-    myStreamAttr.fileUnitSize = 1000000;
-    myStreamAttr.fileFullAction = CL_LOG_FILE_FULL_ACTION_ROTATE;
-    myStreamAttr.maxFilesRotated = 10;
-    myStreamAttr.flushFreq = 10;
-    myStreamAttr.haProperty = 0;
-    myStreamAttr.flushInterval = 1 * (1000L * 1000L * 1000L);
-    myStreamAttr.waterMark.lowLimit = 0;
-    myStreamAttr.waterMark.highLimit = 0;
-    myStreamAttr.syslog = CL_FALSE;
-    clprintf(CL_LOG_SEV_ERROR, "open clockStream 1 \n");
-    /* Stream Name is defined in the IDE during
-     * modeling phase
-     */
-    saNameSet(&streamName,"clockStreamPay");
-    //strcpy(streamName.value, "clockStream");
-    //streamName.length = strlen("clockStream");
-
-
-    /* open the clock stream
-     * ClLogHandleT  - returned with clLogInitialize()
-     * ClNameT       - name of the stream to open
-     * ClLogStreamScopeT  - scope can be global (cluster wide) or local
-     * ClLogStreamAttributesT * - set to null because this is precreated stream
-     * ClLogStreamOpenFlagsT  -  no stream open flags specified
-     * ClTimeT   timeout      - timeout set to zero, if failed return immed.
-     * ClLogStreamHandleT *   - stream handle returned if successful
-    */
-
-    clprintf(CL_LOG_SEV_ERROR, "open clockStream \n \n \n \n");
-    rc = clLogStreamOpen(logSvcHandle,
-                         streamName,
-                         CL_LOG_STREAM_GLOBAL,
-                         &myStreamAttr,
-                         CL_LOG_STREAM_CREATE,
-                         0,
-                         &streamHandle);
-    if(CL_OK != rc)
-    {
-        /* error occurred. Close Log Service handle and
-           return error code
-         */
-        clprintf(CL_LOG_SEV_ERROR, "Failed to open clockStream : %x\n", rc);
-        (void)clLogFinalize(logSvcHandle);
-        return rc;
+        clprintf(CL_LOG_SEV_ERROR,
+                "%s\t: generate_time_of_day passed null pointer\n", appname);
+        return;
     }
 
-#if 1
-    /* Log a message to the stream being created
-     * ClLogStreamHandleT   - returned from clLogStreamOpen()
-     * ClLogSeverityT       - defined in clLogApi.h
-     * ClUint16T  serviceid - identifies the module within a process that
-     *                       generates the log message
-     * ClUint16T   msgId    - identifies msg type being logged
-     *                      - CL_LOG_MSGID_PRINTF_FMT (ASCII)
-     *                      - CL_LOG_MSGID_BUFFER     (Binary)
-     *
-     */
-    rc = clLogWriteAsync(streamHandle,
-                         CL_LOG_SEV_NOTICE,
-                         10,
-                         CL_LOG_MSGID_PRINTF_FMT,
-                         "\n(%s:%d[pid=%d]) -->Alarm Clock Logging Begun<--\n",
-                         __FILE__, __LINE__,getpid());
-#endif
-    /**
- *  \brief Logging for applications
- *  \par Description
- *  This macro provides the support to log messages by specifying
- *  the severity of log message and server information like the
- *  sub-component area and the context of logging.
- *  \par
- *  This macro is for applications as opposed to system components. By default
- *  it outputs to "app.log" instead of "sys.log" but of course these outputs
- *  are configurable through the clLog.xml file.
- *
- *  \param streamHandle (in) This handle should be a valid stream handle. It should be
- *   either default handles(CL_LOG_HANDLE_APP & CL_LOG_HANDLE_SYS) or should
- *  have obtained from previous clLogStreamOpen() call. The stream handle is CL_LOG_HANDLE_SYS,
- *  then it outputs to "sys.log". It is CL_LOG_HANDLE_APP, then it outputs to "app.log".
- *
- *  \param severity (in) This field must be set to one of the values defined
- *  in this file (CL_LOG_SEV_DEBUG ... CL_LOG_SEV_EMERGENCY).  It defines the
- *  severity level of the Log Record being written.
- *
- *  \param serviceId (in) This field identifies the module within the process
- *  which is generating this Log Record. If the Log Record message is a generic
- *  one like out of memory, this field can be used to narrow down on the module
- *  impacted. For SAFplus client libraries, these values are defined in clCommon.h.
- *  For application modules, it is up-to the application developer to define the
- *  values and scope of those values.
- *
- *  \param area (in) This is a 3 letter string identifying the process (or
- *  component) that generated this message.
- *
- *  \param context (in) This is a string (3 letters preferred) identifying
- *  the library that generated this message.
- *
- *  \param ... (in) use a printf style string and arguments for your log message.
- */
+    // magic number, but well, that's what ctime_r needs
+    *data_len = 26;
+    *data = (char*)clHeapAllocate(*data_len);
+    if (*data == 0)
+    {
+        *data_len = 0;
+        return;
+    }
+    time(&t);
+    ctime_r(&t, *data);
+    *(*data + 24) = 0;
+    (*data_len) -= 1;
+    return;
+}
 
-//    clprintf(CL_LOG_SEV_ERROR, "\n \n \n open clockStream \n \n \n \n ");
-//    clAppLog(streamHandle, CL_LOG_SEV_NOTICE, AlarmClockLogId, "ALM", "CLK", "\n(%s:%d[pid=%d]) -->Alarm Clock Logging Begun<--\n", __FILE__, __LINE__,getpid());
-//    clprintf(CL_LOG_SEV_ERROR, "\n \n \n open clockStream \n \n \n \n ");
+static void
+generate_load_average(char **data, ClSizeT *data_len)
+{
+    int fd;
+    char *tmp_ptr;
+    char buf[500];                  //insane over doing it
+    ssize_t num_read;
+
+    // minimal error checking
+    if (data == 0 || data_len == 0)
+    {
+        clprintf(CL_LOG_SEV_ERROR,
+                "%s\t: generate_load_average passed null pointer\n ", appname);
+        return;
+    }
+
+    // Now open the load average file in /proc, read the file into a local
+    // buffer, allocate memory to hold the file contents, copy the contents
+    // of the file into the newly allocated buffer.
+    if ((fd = open("/proc/loadavg", O_RDONLY, 0)) == -1)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t: failed to open /proc/loadavg\n", appname);
+        return;
+    }
+    num_read = read(fd, buf, sizeof buf);
+    if (num_read == 0 || num_read == -1)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t: bogus result from read of loadavg\n",
+                appname);
+        return;
+    }
+    close(fd);
+    *data_len = num_read + 1;
+    *data = (char*)clHeapAllocate(*data_len);
+    if (data == 0)
+    {
+        clprintf(CL_LOG_SEV_ERROR,
+                "%s: failed to allocate memory for loadavg contents\n",
+                appname);
+        *data_len = 0;
+        close(fd);
+        return;
+    }
+    *(*data + (*data_len) - 1) = 0;     // preemptively null-terminate the line
+    strncpy(*data, buf, *data_len);
+
+    //
+    // Do MINIMAL parsing in that we look for the third space in the buffer
+    // (which comes after the load average information proper) and we replace
+    // the space with a nul character to terminate the string.
+    // If there is no third space character, just return the buffer unchanged.
+    tmp_ptr = strchr(*data, ' ');
+    if (tmp_ptr == 0)
+    {
+        return;
+    }
+    tmp_ptr = strchr(tmp_ptr + 1, ' ');
+    if (tmp_ptr == 0)
+    {
+        return;
+    }
+    tmp_ptr = strchr(tmp_ptr + 1, ' ');
+    if (tmp_ptr == 0)
+    {
+        return;
+    }
+    *tmp_ptr = 0;
+    return;
+}
+
+static ClRcT
+appPublishEvent()
+{
+    ClEventIdT      eventId         = 0;
+    static int      index           = 0;
+    SaSizeT         data_len        = 0;
+    SaAisErrorT	    saRc = SA_AIS_OK;
+    char            *data           = 0;
+    typedef void (*Generator)(char **, ClSizeT*);
+    clprintf(CL_LOG_SEV_ERROR, "Enter appPublishEvent\n");
+    //
+    // Note: to add a new generator, just define it above and then include
+    // the new functions name in the generators list.
+    // Next, maybe something that gets disk free info by way of getfsent
+    // and statfs?
+    static Generator generators[]   =
+    {
+        generate_time_of_day,
+        generate_load_average
+    };
+
+    //
+    // every time through increment index and then set index to
+    // it's value modulo the number of entries in the generators
+    // array.  This will cause us to cycle through the list of
+    // generators as we're called to publish events.
+    (*generators[index++])(&data, &data_len);
+    index %= (int)(sizeof generators / sizeof generators[0]);
+    if (data == 0 || data_len == 0)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s: no event data generated\n", appname);
+        return CL_ERR_NO_MEMORY;
+    }
+    clOsalPrintf("%s: Publishing Event: %.*s\n", appname, (int)data_len, data);
+    saRc = saEvtEventPublish(gTestInfo.eventHandle, (void *)data, data_len, &eventId);
+    clHeapFree(data);
+
     return CL_OK;
+}
+
+static void*
+testEvtMainLoop(void *thdParam)
+{
+    char *appname = (char*)thdParam;
+
+    printf("%s: Waiting for CSI assignment...\n", appname);
+
+    /* Letting the world know that we entered the mainloop */
+    //clprintf(CL_LOG_SVR_DEBUG, "%s entered main loop", appname);
+
+    /* Main loop: Keep printing and publishing unless we are suspended */
+    while (!gTestInfo.exiting)
+    {
+    	printf("publish Event...\n");
+        if (gTestInfo.running && gTestInfo.haState == CL_AMS_HA_STATE_ACTIVE)
+        {
+            appPublishEvent();
+        }
+        sleep(1);
+    }
+
+    /* Letting the world know that we exited from mainloop */
+    //clprintf(CL_LOG_SVR_DEBUG, "%s exited main loop", appname);
+
+    return NULL;
 }

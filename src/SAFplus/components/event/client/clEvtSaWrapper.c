@@ -345,7 +345,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT * pEvtHandle,
     ClEventInitHandleT evtInitHandle = 0;
     SaEvtInitInfoT * pSaEvtCallbackInfo = NULL;/* structure containing callba                                                 -ks for this initialization                                               */ 
     ClEventCallbacksT clEventCallBackTrap = { NULL, NULL };
-
+#ifndef NO_SAF
     rc = clASPInitialize();
     if(CL_OK != rc)
     {
@@ -353,7 +353,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT * pEvtHandle,
                       "ASP initialize failed, rc[0x%X]", rc);
         return SA_AIS_ERR_LIBRARY;
     }
-    
+#endif
     if (NULL == pEvtHandle)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_INI,"Passed NULL for Init Handle, rc[0x%X]\n", SA_AIS_ERR_BAD_HANDLE);

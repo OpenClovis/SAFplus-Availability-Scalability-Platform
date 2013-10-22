@@ -3,7 +3,7 @@
   <chassisResource rdn="0" name="Chassis" maxInstances="1" numSlots="16">
     <contains target="Blade0" sourceMultiplicity="1" targetMultiplicity="1"/>
   </chassisResource>
-  <nodeHardwareResource rdn="26696208" name="Blade0" documentation="" maxInstances="1000" deviceObject="">
+  <nodeHardwareResource rdn="843580683" name="Blade0" documentation="" maxInstances="1000" deviceObject="">
     <alarmManagement isEnabled="false" pollingInterval="100"/>
     <provisioning isEnabled="false"/>
   </nodeHardwareResource>
