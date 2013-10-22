@@ -2330,12 +2330,12 @@ ClRcT clCpmClientInitialize(ClCpmHandleT *cpmHandle,
 
     rc = clOsalMutexCreate(&cpmInstance->cbMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clQueueCreate(0, userDequeueCallBack, userDestroyCallback,
                        &cpmInstance->cbQueue);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_QUEUE_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     cpmInstance->readFd = 0;
     cpmInstance->writeFd = 0;

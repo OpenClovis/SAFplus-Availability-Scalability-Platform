@@ -247,7 +247,7 @@ ClRcT cpmEventInitialize(void)
                            &gpClCpm->version);
     if (rc != CL_EVENT_ERR_ALREADY_INITIALIZED)
         CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED,
-                       "EVENT", rc, rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                       "EVENT", rc, rc, CL_LOG_HANDLE_APP);
 
     /*
      * Open an event channel for component failure publish 
@@ -258,7 +258,7 @@ ClRcT cpmEventInitialize(void)
                             &gpClCpm->cpmEvtChannelHandle);
     if (rc != CL_EVENT_ERR_EXIST)
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EVT_CHANNEL_OPEN_ERR, rc,
-                       rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
 
     /* Andrew Stone: the handle as an arg of clEventAllocate is 0, but has a
        value in the var, so I suspect a race condition. But ChannelOpen is
@@ -276,7 +276,7 @@ ClRcT cpmEventInitialize(void)
     rc = clEventAllocate(gpClCpm->cpmEvtChannelHandle,
                          &gpClCpm->cpmEventHandle);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EVT_CHANNEL_ALLOC_ERR, rc, rc,
-                   CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
 
     /*
@@ -288,7 +288,7 @@ ClRcT cpmEventInitialize(void)
                             &gpClCpm->cpmEvtNodeChannelHandle);
     if (rc != CL_EVENT_ERR_EXIST)
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EVT_CHANNEL_OPEN_ERR, rc,
-                       rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
 
     /*
      * Create event for Node Arrival and Departure event publish 
@@ -297,7 +297,7 @@ ClRcT cpmEventInitialize(void)
 
                          &gpClCpm->cpmEventNodeHandle);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EVT_CHANNEL_ALLOC_ERR, rc, rc,
-                   CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     return CL_OK;
 
@@ -366,19 +366,19 @@ ClRcT nodeArrivalDeparturePublish(ClIocNodeAddressT iocAddress,
      */
     rc = clBufferCreate(&payLoadMsg);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_CREATE_ERR, rc, rc,
-            CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = VDECL_VER(clXdrMarshallClCpmEventNodePayLoadT, 4, 0, 0)((void *) &payLoad, payLoadMsg, 0);
     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-            CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clBufferLengthGet(payLoadMsg, &msgLength);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_LENGTH_ERR, rc, rc,
-            CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clBufferFlatten(payLoadMsg, &payLoadBuffer);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_FLATTEN_ERR, rc, rc,
-            CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clEventAttributesSet(gpClCpm->cpmEventNodeHandle,
             &nodeEvtPatternArray,
@@ -404,13 +404,13 @@ ClRcT nodeArrivalDeparturePublish(ClIocNodeAddressT iocAddress,
         {
             CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                     CL_CPM_LOG_2_EVT_PUB_NODE_ARRIVAL_ERR,
-                    nodeName.value, rc, rc, CL_LOG_SEV_ERROR,
+                    nodeName.value, rc, rc, 
                     CL_LOG_HANDLE_APP);
         }
         else
         {
             CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_EVT_PUB_NODE_DEPART_ERR,
-                    nodeName.value, rc, rc, CL_LOG_SEV_ERROR,
+                    nodeName.value, rc, rc, 
                     CL_LOG_HANDLE_APP);
         }
     }
@@ -499,7 +499,7 @@ static ClRcT cpmAllocate(void)
     if (gpClCpm->pCpmLocalInfo == NULL)
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                       CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                       CL_CPM_RC(CL_ERR_NO_MEMORY), 
                        CL_LOG_HANDLE_APP);
 
     gpClCpm->pCpmConfig =
@@ -507,20 +507,20 @@ static ClRcT cpmAllocate(void)
     if (gpClCpm->pCpmConfig == NULL)
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                       CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                       CL_CPM_RC(CL_ERR_NO_MEMORY),
                        CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexInit(&gpClCpm->cpmMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexInit(&gpClCpm->heartbeatMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalCondInit(&gpClCpm->heartbeatCond);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     /*
      * Disable heartbeating by default.
@@ -531,19 +531,19 @@ static ClRcT cpmAllocate(void)
 
     rc = clOsalMutexInit(&gpClCpm->cpmGmsMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
     
     rc = clOsalCondInit(&gpClCpm->cpmGmsCondVar);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexCreate(&(gpClCpm->eoListMutex));
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexCreate(&(gpClCpm->cpmTableMutex));
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
     /*
      * CompId needs to be unique in the system/cluster. But at the same time 
      * compId are allocated/generated locally. Hence to generate the globally 
@@ -566,23 +566,23 @@ static ClRcT cpmAllocate(void)
                             cpmInvocationDelete, CL_CNT_UNIQUE_KEY,
                             &gpClCpm->invocationTable);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_1_CNT_CREATE_FAILED, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexCreate(&(gpClCpm->invocationMutex));
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexInit(&gpClCpm->clusterMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexInit(&gpClCpm->compTerminateMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexInit(&gpClCpm->cpmShutdownMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     clOsalMutexLock(&gpClCpm->cpmGmsMutex); 
     gpClCpm->trackCallbackInProgress = CL_FALSE;
@@ -911,23 +911,23 @@ static ClRcT clCpmFinalize(void)
                 rc = clOsalMutexLock(gpClCpm->bmTable->bmQueueCondVarMutex);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, 
                         CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc,
-                        rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                        rc, CL_LOG_HANDLE_APP);
 
                 rc = clQueueNodeInsert(gpClCpm->bmTable->setRequestQueueHead,
                         (ClQueueDataT) bootOp);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, 
                         CL_CPM_LOG_1_QUEUE_INSERT_ERR, rc,
-                        rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                        rc, CL_LOG_HANDLE_APP);
 
                 rc = clOsalCondSignal(gpClCpm->bmTable->bmQueueCondVar);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, 
                         CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR,
-                        rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                        rc, rc, CL_LOG_HANDLE_APP);
                 
                 rc = clOsalMutexUnlock(gpClCpm->bmTable->bmQueueCondVarMutex);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, 
                         CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR,
-                        rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                        rc, rc, CL_LOG_HANDLE_APP);
 
                 /*
                  * clCpmBootLevelSet(&(bootOp->nodeName), NULL, 0);
@@ -1528,14 +1528,14 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
      */
     rc = cpmAllocate();
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_CPM_ALLOCATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     /*
      * Read/parse the configuration file and populate the gpClCpm structure 
      */
     rc = cpmGetConfig();
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_CPM_CONFIG_GET_ERR, rc,
-                   rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   rc, CL_LOG_HANDLE_APP);
 
     gClAmsSwitchoverInline = clParseEnvBoolean("CL_AMF_SWITCHOVER_INLINE");
     gClAmsPayloadResetDisable = clParseEnvBoolean("CL_AMF_PAYLOAD_RESET_DISABLE");
@@ -1644,7 +1644,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
 
     rc = clEoMyEoObjectGet(&gpClCpm->cpmEoObj);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_OBJECT_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     CL_ASSERT(gpClCpm->cpmEoObj != NULL);
 
@@ -1652,10 +1652,10 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
                                  CL_EO_SERVER_SYM_MOD(gAspFuncTable, AMF));
 
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_CLIENT_INST_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
     rc = clCpmClientTableRegister(gpClCpm->cpmEoObj);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_CLIENT_INST_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
     
     /*
      * Install EO protocol to get IOC notifications for component
@@ -1672,10 +1672,10 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
      */
     rc = clDebugLibInitialize();
     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED,
-                   "DEBUG", rc, rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                   "DEBUG", rc, rc, CL_LOG_HANDLE_APP);
     rc = cpmDebugRegister();
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_DEBUG_REG_ERR, rc, rc,
-                   CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
     
     /*
      * this flag will be unset during BM shutdown 
@@ -1720,7 +1720,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
      */
     rc = cpmBmInitialize(&(gpClCpm->bmTaskId), gpClCpm->cpmEoObj);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_INIT_ERR, rc, rc,
-                   CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     /*
      * Start doing health check of all component/EO running in the system.
@@ -1800,11 +1800,11 @@ ClRcT VDECL(compMgrEORegister)(ClEoDataT data,
 
     rc = VDECL_VER(clXdrUnmarshallClCpmClientInfoIDLT, 4, 0, 0)(inMsgHdl, &info);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     if (info.version > CL_CPM_EO_VERSION_NO)
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_VERSION_MISMATCH,
-                       CL_ERR_VERSION_MISMATCH, CL_LOG_SEV_DEBUG,
+                       CL_ERR_VERSION_MISMATCH,
                        CL_LOG_HANDLE_APP);
 
     memset(&eoObj, 0, sizeof(eoObj));
@@ -1831,7 +1831,7 @@ ClRcT VDECL(compMgrEORegister)(ClEoDataT data,
     if (pTemp == NULL)
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                       CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                       CL_CPM_RC(CL_ERR_NO_MEMORY),
                        CL_LOG_HANDLE_APP);
 
     tmpEOh =
@@ -1840,7 +1840,7 @@ ClRcT VDECL(compMgrEORegister)(ClEoDataT data,
     if (tmpEOh == NULL)
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                       CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                       CL_CPM_RC(CL_ERR_NO_MEMORY),
                        CL_LOG_HANDLE_APP);
 
     memcpy(tmpEOh, pEOptr, sizeof(ClEoExecutionObjT));
@@ -1878,7 +1878,7 @@ ClRcT VDECL(compMgrEORegister)(ClEoDataT data,
          */
         if (clOsalMutexLock(gpClCpm->eoListMutex) != CL_OK)
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc,
-                           rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, CL_LOG_HANDLE_APP);
         comp->eoPort = tmpEOh->eoPort;
         if(comp->lastEoID)
         {
@@ -1937,7 +1937,7 @@ static ClRcT _compMgrFuncEOWalk(ClCpmFuncWalkT *pWalk)
     clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_MGM,"Inside compMgrFuncEOWalk \n");
     if (pWalk == NULL)
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_NULL_ARGUMENT,
-                       CL_CPM_RC(CL_ERR_NULL_POINTER), CL_LOG_SEV_DEBUG,
+                       CL_CPM_RC(CL_ERR_NULL_POINTER),
                        CL_LOG_HANDLE_APP);
 
     /*
@@ -1946,19 +1946,19 @@ static ClRcT _compMgrFuncEOWalk(ClCpmFuncWalkT *pWalk)
     myOMAddress = clIocLocalAddressGet();
     rc = clCntFirstNodeGet(gpClCpm->compTable, &hNode);
     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
-                   "component", rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   "component", rc, rc, CL_LOG_HANDLE_APP);
 
     rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
                               (ClCntDataHandleT *) &comp);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc,
-                   rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   rc, CL_LOG_HANDLE_APP);
 
     /*
      * FIXME: Quit a Big Lock !! 
      */
     rc = clOsalMutexLock(gpClCpm->eoListMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     compCount = gpClCpm->noOfComponent;
     while (compCount != 0)
@@ -2071,7 +2071,7 @@ ClRcT VDECL(compMgrFuncEOWalk)(ClEoDataT data,
         rc = clBufferNBytesRead(inMsgHandle, (ClUint8T *) &info,
                                        &msgLength);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
     }
     else
     {
@@ -2084,7 +2084,7 @@ ClRcT VDECL(compMgrFuncEOWalk)(ClEoDataT data,
 
     if (info.version > CL_CPM_EO_VERSION_NO)
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_VERSION_MISMATCH,
-                       CL_ERR_VERSION_MISMATCH, CL_LOG_SEV_DEBUG,
+                       CL_ERR_VERSION_MISMATCH, 
                        CL_LOG_HANDLE_APP);
 
     rc = _compMgrFuncEOWalk(&(info.walkInfo));
@@ -2138,11 +2138,11 @@ ClRcT VDECL(compMgrEOStateUpdate)(ClEoDataT data,
     rc = VDECL_VER(clXdrUnmarshallClCpmClientInfoIDLT, 4, 0, 0)(inMsgHandle, (ClUint8T *) &info);
 
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     if (info.version > CL_CPM_EO_VERSION_NO)
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_VERSION_MISMATCH,
-                       CL_ERR_VERSION_MISMATCH, CL_LOG_SEV_DEBUG,
+                       CL_ERR_VERSION_MISMATCH,
                        CL_LOG_HANDLE_APP);
 
     memset(&eoObj, 0, sizeof(eoObj));
@@ -2312,7 +2312,7 @@ ClRcT VDECL(compMgrEOStateSet)(ClEoDataT data,
         rc = clBufferNBytesRead(inMsgHandle, (ClUint8T *) &info,
                                        &msgLength);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_READ_ERR, rc, rc,
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
     }
     else
     {
@@ -2325,7 +2325,7 @@ ClRcT VDECL(compMgrEOStateSet)(ClEoDataT data,
 
     if (info.version > CL_CPM_EO_VERSION_NO)
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_VERSION_MISMATCH,
-                       CL_ERR_VERSION_MISMATCH, CL_LOG_SEV_DEBUG,
+                       CL_ERR_VERSION_MISMATCH,
                        CL_LOG_HANDLE_APP);
 
     eoId = info.eoId;
@@ -2345,7 +2345,7 @@ ClRcT VDECL(compMgrEOStateSet)(ClEoDataT data,
         if (pWalk == NULL)
             CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                           CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                           CL_CPM_RC(CL_ERR_NO_MEMORY),
                            CL_LOG_HANDLE_APP);
 
         pWalk->funcNo = CL_EO_SET_STATE_COMMON_FN_ID;
@@ -2367,7 +2367,7 @@ ClRcT VDECL(compMgrEOStateSet)(ClEoDataT data,
          */
         if ((rc = clOsalMutexLock(gpClCpm->eoListMutex)) != CL_OK)
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc,
-                           rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, CL_LOG_HANDLE_APP);
 
         rc = clCntFirstNodeGet(gpClCpm->compTable, &hNode);
         CL_CPM_LOCK_CHECK(CL_LOG_SEV_ERROR,
@@ -2421,7 +2421,7 @@ ClRcT VDECL(compMgrEOStateSet)(ClEoDataT data,
          */
         rc = clOsalMutexUnlock(gpClCpm->eoListMutex);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
-                       rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
 
         /*
          * Call the set state function for the given EO 
@@ -2439,13 +2439,13 @@ ClRcT VDECL(compMgrEOStateSet)(ClEoDataT data,
                 );
 
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_RMD_CALL_ERR, rc,
-                               rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                               rc, CL_LOG_HANDLE_APP);
             }
         }
         else
         {
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_EO_UNREACHABLE,
-                           rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           rc, rc, CL_LOG_HANDLE_APP);
         }
     }
 
@@ -2462,7 +2462,7 @@ ClRcT VDECL(compMgrEOStateSet)(ClEoDataT data,
      */
     rc = clOsalMutexUnlock(gpClCpm->eoListMutex);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
   failure:
     if (pWalk)
     {
@@ -3260,7 +3260,7 @@ ClRcT cpmEoPtrFind(ClEoIdT eoID, ClCpmEOListNodeT **pThis)
 
     rc = clCntFirstNodeGet(gpClCpm->compTable, &hNode);
     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR,
-            "component", rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+            "component", rc, rc, CL_LOG_HANDLE_APP);
 
     /*
      * For every component 
@@ -3271,13 +3271,13 @@ ClRcT cpmEoPtrFind(ClEoIdT eoID, ClCpmEOListNodeT **pThis)
         rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
                 (ClCntDataHandleT *) &comp);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR,
-                rc, rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                rc, rc, CL_LOG_HANDLE_APP);
 
         if (comp->compPresenceState == CL_AMS_PRESENCE_STATE_INSTANTIATED)
         {
             if ((rc = clOsalMutexLock(gpClCpm->eoListMutex)) != CL_OK)
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR,
-                        rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                        rc, rc, CL_LOG_HANDLE_APP);
             ptr = comp->eoHandle;
             while (ptr != NULL)
             {
@@ -3302,7 +3302,7 @@ ClRcT cpmEoPtrFind(ClEoIdT eoID, ClCpmEOListNodeT **pThis)
         {
             rc = clCntNextNodeGet(gpClCpm->compTable, hNode, &hNode);
             CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR,
-                    "component", rc, rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                    "component", rc, rc, CL_LOG_HANDLE_APP);
         }
     }
 
@@ -3348,7 +3348,7 @@ ClRcT cpmHBFailureProcess(ClOsalTaskIdT *pTaskId,
     rc = clOsalTaskCreateAttached("cpmCompHbFail", CL_OSAL_SCHED_OTHER, priority, stackSize,
                           compHBProcess, hbFailedComp, pTaskId);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_TASK_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
   failure:
     return rc;
@@ -3377,7 +3377,7 @@ void compMgrHealthFeedBack(ClRcT retCode,
         CL_ASSERT((ClCpmEOListNodeT *) pThis);
         if ((ClCpmEOListNodeT *) pThis == NULL)
             CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_NULL_ARGUMENT,
-                    CL_CPM_RC(CL_ERR_NULL_POINTER), CL_LOG_SEV_DEBUG,
+                    CL_CPM_RC(CL_ERR_NULL_POINTER),
                     CL_LOG_HANDLE_APP);
         /*
          * Get the local OMAddress 
@@ -3389,7 +3389,7 @@ void compMgrHealthFeedBack(ClRcT retCode,
          */
         if (clOsalMutexLock(gpClCpm->eoListMutex) != CL_OK)
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                    CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
 
         if (CL_RMD_TIMEOUT_UNREACHABLE_CHECK(retCode))
         {
@@ -3706,10 +3706,10 @@ ClRcT compMgrPollThread(void)
 
     rc = clEoMyEoIocPortSet(gpClCpm->cpmEoObj->eoPort);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_IOC_MY_EO_IOC_PORT_GET_ERR, rc,
-                   rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   rc, CL_LOG_HANDLE_APP);
     rc = clEoMyEoObjectSet(gpClCpm->cpmEoObj);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_MY_OBJ_SET_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     /*
      * Get the local OMAddress 
@@ -3861,7 +3861,7 @@ ClRcT compMgrPollThread(void)
                                           (ClCntDataHandleT *) &cpmInfo);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc, rc,
-                               CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                               CL_LOG_HANDLE_APP);
                 if ((cpmInfo->pCpmLocalInfo) &&
                     (cpmInfo->pCpmLocalInfo->cpmAddress.nodeAddress !=
                      gpClCpm->pCpmLocalInfo->cpmAddress.nodeAddress) &&

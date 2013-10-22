@@ -457,7 +457,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
         if (newType == NULL)
             CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                           CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                           CL_CPM_RC(CL_ERR_NO_MEMORY), 
                            CL_LOG_HANDLE_APP);
         memset(newType,0,sizeof(ClCpmCompInfoT));
         
@@ -494,14 +494,14 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                 rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
                 CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR, "property",
-                               rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                               rc, rc, CL_LOG_HANDLE_APP);
             }
         }
         else
         {
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
             CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR,
-                           "property", rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           "property", rc, rc, CL_LOG_HANDLE_APP);
         }
 
         CPM_PARSER_NULL_CHECK(temp,
@@ -524,7 +524,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                 rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
                 CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR,
-                               "processRel", rc, rc, CL_LOG_SEV_DEBUG,
+                               "processRel", rc, rc,
                                CL_LOG_HANDLE_APP);
             }
         }
@@ -532,7 +532,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
         {
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
             CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR,
-                           "processRel", rc, rc, CL_LOG_SEV_DEBUG,
+                           "processRel", rc, rc,
                            CL_LOG_HANDLE_APP);
         }
 
@@ -555,7 +555,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                 rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
                 CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR,
-                               "instantiateCommand", rc, rc, CL_LOG_SEV_DEBUG,
+                               "instantiateCommand", rc, rc,
                                CL_LOG_HANDLE_APP);
             }
         }
@@ -594,7 +594,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
             if (newType->compConfig.argv[argIndex] == NULL)
                 CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                                CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                               CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                               CL_CPM_RC(CL_ERR_NO_MEMORY), 
                                CL_LOG_HANDLE_APP);
             if (cpmIsValgrindBuild(newType->compConfig.instantiationCMD))
             {
@@ -655,7 +655,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                 if (newType->compConfig.argv[argIndex] == NULL)
                     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                                   CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                                   CL_CPM_RC(CL_ERR_NO_MEMORY),
                                    CL_LOG_HANDLE_APP);
                 strcpy(newType->compConfig.argv[argIndex], evalvalue);
                 argIndex++;
@@ -691,7 +691,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                 if (newType->compConfig.env[envIndex] == NULL)
                     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                                   CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                                   CL_CPM_RC(CL_ERR_NO_MEMORY),
                                    CL_LOG_HANDLE_APP);
 
                 strncpy(newType->compConfig.env[envIndex]->envName,
@@ -1079,12 +1079,12 @@ ClRcT cpmTableInitialize(void)
                             cpmCompStoreHashFunc, cpmCompDelete, cpmCompDelete,
                             CL_CNT_NON_UNIQUE_KEY, &gpClCpm->compTable);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_1_CNT_CREATE_FAILED, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     gpClCpm->noOfComponent = 0;
     rc = clOsalMutexCreate(&(gpClCpm->compTableMutex));
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     return CL_OK;
 
@@ -1242,7 +1242,7 @@ ClRcT cpmParseNodeInfo(ClParserPtrT file)
                                 cpmNodeDelete, CL_CNT_NON_UNIQUE_KEY,
                                 &gpClCpm->cpmTable);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_1_CNT_CREATE_FAILED, rc,
-                       rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
 
         CPM_PARSER_NULL_CHECK(nodeInstances,
                               clParserChild(file, CL_CPM_PARSER_TAG_NODE_INSTS),
@@ -1270,7 +1270,7 @@ ClRcT cpmParseNodeInfo(ClParserPtrT file)
                 {
                     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                                   CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                                   CL_CPM_RC(CL_ERR_NO_MEMORY),
                                    CL_LOG_HANDLE_APP);
                 }
 
@@ -1278,7 +1278,7 @@ ClRcT cpmParseNodeInfo(ClParserPtrT file)
                 rc = clCksm16bitCompute((ClUint8T *) cpmL->nodeName,
                                         strlen(cpmL->nodeName), &nodeKey);
                 CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_CKSM_ERR,
-                               cpmL->nodeName, rc, rc, CL_LOG_SEV_DEBUG,
+                               cpmL->nodeName, rc, rc,
                                CL_LOG_HANDLE_APP);
 
                 cpmL->pCpmLocalInfo = NULL;
@@ -1306,7 +1306,7 @@ ClRcT cpmParseNodeInfo(ClParserPtrT file)
                                   (ClCntDataHandleT) cpmL, NULL);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                                CL_LOG_MESSAGE_1_CNT_DATA_ADD_FAILED, rc, rc,
-                               CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                               CL_LOG_HANDLE_APP);
                 gpClCpm->noOfCpm += 1;
 #if 0
                 clOsalPrintf("%s %d key %d\n", nodeName, gpClCpm->noOfCpm,
@@ -1324,7 +1324,7 @@ ClRcT cpmParseNodeInfo(ClParserPtrT file)
     else
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_1_INVALID_PARAMETER,
                        "cpmParseCompInfo", CL_CPM_RC(CL_ERR_INVALID_PARAMETER),
-                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       CL_LOG_HANDLE_APP);
     /*
      * clOsalPrintf("CPM type : %s\n", temp);
      */
@@ -1391,7 +1391,7 @@ void cpmParseUserConfigCompArgs(ClParserPtrT componentInstance,
         if (compConfig->argv[0] == NULL)
             CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                           CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                           CL_CPM_RC(CL_ERR_NO_MEMORY),
                            CL_LOG_HANDLE_APP);
 
         strncpy(compConfig->argv[0], value, strlen(value));
@@ -1428,7 +1428,7 @@ void cpmParseUserConfigCompArgs(ClParserPtrT componentInstance,
             if (compConfig->argv[argIndex] == NULL)
                 CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                                CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                               CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                               CL_CPM_RC(CL_ERR_NO_MEMORY),
                                CL_LOG_HANDLE_APP);
 
             strncpy(compConfig->argv[argIndex], value, strlen(value));
@@ -1579,7 +1579,7 @@ ClRcT cpmParseConfig(ClParserPtrT file)
                     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                    CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR,
                                    pCompList->compConfig.compName, rc,
-                                   rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                                   rc, CL_LOG_HANDLE_APP);
 
                     /*
                      * Can be enabled in future if required.
@@ -1596,13 +1596,13 @@ ClRcT cpmParseConfig(ClParserPtrT file)
                     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                    CL_CPM_LOG_2_CNT_CKSM_ERR,
                                    comp->compConfig->compName, rc, rc,
-                                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                                   CL_LOG_HANDLE_APP);
                     rc = clCntNodeAdd(gpClCpm->compTable,
                                       (ClCntKeyHandleT)(ClWordT)compKey,
                                       (ClCntDataHandleT) comp, NULL);
                     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                                    CL_LOG_MESSAGE_1_CNT_DATA_ADD_FAILED,
-                                   rc, rc, CL_LOG_SEV_DEBUG,
+                                   rc, rc, 
                                    CL_LOG_HANDLE_APP);
                     /*
                      * Add component reference to the service unit 
@@ -1614,7 +1614,7 @@ ClRcT cpmParseConfig(ClParserPtrT file)
                         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
                                        CL_CPM_RC(CL_ERR_NO_MEMORY),
-                                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                                       CL_LOG_HANDLE_APP);
                     compRef->ref = comp;
                     compRef->pNext = NULL;
                     /*
@@ -1804,7 +1804,7 @@ ClRcT cpmParseAspConfig(ClParserPtrT configFile,
     {
         rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
         CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR,
-                       "classType", rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       "classType", rc, rc, CL_LOG_HANDLE_APP);
     }
     else
     {
@@ -1907,7 +1907,7 @@ ClRcT cpmParseAspConfig(ClParserPtrT configFile,
                     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                    CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR,
                                    pCompList->compConfig.compName, rc,
-                                   rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                                   rc, CL_LOG_HANDLE_APP);
 
                     rc = clCksm16bitCompute((ClUint8T *) comp->
                                             compConfig->compName,
@@ -1916,13 +1916,13 @@ ClRcT cpmParseAspConfig(ClParserPtrT configFile,
                     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
                                    CL_CPM_LOG_2_CNT_CKSM_ERR,
                                    comp->compConfig->compName, rc, rc,
-                                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                                   CL_LOG_HANDLE_APP);
                     rc = clCntNodeAdd(gpClCpm->compTable,
                                       (ClCntKeyHandleT)(ClWordT)compKey,
                                       (ClCntDataHandleT) comp, NULL);
                     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                                    CL_LOG_MESSAGE_1_CNT_DATA_ADD_FAILED,
-                                   rc, rc, CL_LOG_SEV_DEBUG,
+                                   rc, rc,
                                    CL_LOG_HANDLE_APP);
                     /*
                      * Add component reference to the service unit 
@@ -1932,7 +1932,7 @@ ClRcT cpmParseAspConfig(ClParserPtrT configFile,
                         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
                                        CL_CPM_RC(CL_ERR_NO_MEMORY),
-                                       CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                                       CL_LOG_HANDLE_APP);
                     compRef->ref = comp;
                     compRef->pNext = NULL;
                     /*
@@ -2023,7 +2023,7 @@ ClRcT cpmBmInitTable(ClUint32T maxBootRow)
         if (newDList == NULL)
             CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                           CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                           CL_CPM_RC(CL_ERR_NO_MEMORY),
                            CL_LOG_HANDLE_APP);
 
         /*
@@ -2090,7 +2090,7 @@ ClRcT cpmBmAddComponent(const ClCharT *compName, ClUint32T bootLevel)
             if (newComp == NULL)
                 CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                                CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                               CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                               CL_CPM_RC(CL_ERR_NO_MEMORY),
                                CL_LOG_HANDLE_APP);
             strcpy(newComp->compName, compName);
             newComp->pNext = NULL;
@@ -2448,7 +2448,7 @@ ClRcT cpmBmParseDeployConfigFile(ClParserPtrT configFile)
      */
     rc = cpmBmInitTable(gpClCpm->bmTable->maxBootLevel);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_INIT_TABLE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     /*
      * First populate the ASP components. 
@@ -2463,7 +2463,7 @@ ClRcT cpmBmParseDeployConfigFile(ClParserPtrT configFile)
 
             rc = cpmBmAddComponent(aspCompName, 5);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_COMP_ADD_ERR, rc, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
         }
 
         if (cpmIsAspSUPresent(cpmConfig, "msgSU"))
@@ -2474,7 +2474,7 @@ ClRcT cpmBmParseDeployConfigFile(ClParserPtrT configFile)
 
             rc = cpmBmAddComponent(aspCompName, 5);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_COMP_ADD_ERR, rc, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
         }
         
         suCompToLevelMapping = scSUCompToLevelMapping;
@@ -2490,7 +2490,7 @@ ClRcT cpmBmParseDeployConfigFile(ClParserPtrT configFile)
 
             rc = cpmBmAddComponent(aspCompName, 5);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_COMP_ADD_ERR, rc, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
         }
         
         suCompToLevelMapping = wbSUCompToLevelMapping;
@@ -2519,7 +2519,7 @@ ClRcT cpmBmParseDeployConfigFile(ClParserPtrT configFile)
                         gpClCpm->pCpmConfig->nodeName);
                 rc = cpmBmAddComponent(aspCompName, compMap->level);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_COMP_ADD_ERR, rc, rc,
-                               CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                               CL_LOG_HANDLE_APP);
             }
         }
     }
@@ -2570,7 +2570,7 @@ ClRcT cpmBmParseDeployConfigFile(ClParserPtrT configFile)
                 
                 rc = cpmBmAddComponent(compName, levelNum);
                 CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_COMP_ADD_ERR,
-                               rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                               rc, rc, CL_LOG_HANDLE_APP);
                 
                 componentInstance = componentInstance->next;
             }
@@ -2651,19 +2651,19 @@ ClRcT cpmGetConfig(void)
     {
         configFile = clParserOpenFile(filePath, CL_CPM_CONFIG_FILE_NAME);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc,
-                       rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
 
         defFile = clParserOpenFile(filePath, CL_CPM_DEF_FILE_NAME);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc,
-                       rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
 
         aspDefFile = clParserOpenFile(filePath, CL_CPM_ASP_DEF_FILE_NAME);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc,
-                       rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
 
         aspInstFile = clParserOpenFile(filePath, CL_CPM_ASP_INST_FILE_NAME);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc,
-                       rc, CL_LOG_SEV_ERROR, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
     }
     else
     {
@@ -2677,11 +2677,11 @@ ClRcT cpmGetConfig(void)
      */
     rc = cpmParseCompInfo(defFile, CL_FALSE);
     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INFO_PARSE_ERR,
-                   "component", rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   "component", rc, rc, CL_LOG_HANDLE_APP);
 
     rc = cpmParseCompInfo(aspDefFile, CL_TRUE);
     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INFO_PARSE_ERR,
-                   "component", rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   "component", rc, rc, CL_LOG_HANDLE_APP);
 
 #if CPM_DEBUG
     displayCompList(cpmCompList);
@@ -2786,7 +2786,7 @@ ClRcT cpmGetConfig(void)
     }
 
     CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INFO_PARSE_ERR, "node",
-                   rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   rc, rc, CL_LOG_HANDLE_APP);
 
     rc = cpmTableInitialize();
     CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to initialize the bmTable failed\n"),
@@ -2889,7 +2889,7 @@ ClRcT cpmParseSlotFile(void)
     {
         slotFile = clParserOpenFile(filePath, CL_CPM_SLOT_FILE_NAME);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc,
-                       rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       rc, CL_LOG_HANDLE_APP);
     }
     else
     {
@@ -2902,7 +2902,7 @@ ClRcT cpmParseSlotFile(void)
                             cpmSlotStoreHashFunc, NULL, cpmSlotDelete,
                             CL_CNT_NON_UNIQUE_KEY, &gpClCpm->slotTable);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_1_CNT_CREATE_FAILED, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     CPM_PARSER_NULL_CHECK(slots, clParserChild(slotFile, CL_CPM_PARSER_TAG_SLOTS),
                           "slots tag does not exist");
@@ -2927,7 +2927,7 @@ ClRcT cpmParseSlotFile(void)
             if (nodeClassType == NULL)
                 CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                                CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                               CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                               CL_CPM_RC(CL_ERR_NO_MEMORY),
                                CL_LOG_HANDLE_APP);
 
             CPM_PARSER_NULL_CHECK(temp,
@@ -2954,7 +2954,7 @@ ClRcT cpmParseSlotFile(void)
             clOsalMutexUnlock(&gpClCpm->cpmMutex);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR,
                            CL_LOG_MESSAGE_1_CNT_DATA_ADD_FAILED, rc, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
 
             classType = classType->next;
         }
@@ -2998,7 +2998,7 @@ ClRcT cpmSlotClassTypesGet(ClCntHandleT slotTable,
     
     rc = clCntKeySizeGet(slotTable, (ClCntKeyHandleT) (ClWordT)slotNumber, &numSlot);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_KEY_SIZE_GET_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     slotClassTypes->numItems = numSlot;
     slotClassTypes->nodeClassTypes = 
@@ -3006,7 +3006,7 @@ ClRcT cpmSlotClassTypesGet(ClCntHandleT slotTable,
     if (slotClassTypes->nodeClassTypes == NULL)
         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                       CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_SEV_DEBUG,
+                       CL_CPM_RC(CL_ERR_NO_MEMORY),
                        CL_LOG_HANDLE_APP);
     i = 0;
     while (numSlot > 0)
@@ -3014,7 +3014,7 @@ ClRcT cpmSlotClassTypesGet(ClCntHandleT slotTable,
         rc = clCntNodeUserDataGet(slotTable, hSlot,
                                   (ClCntDataHandleT *) &tempNodeClassType);
         CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR,
-                       rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                       rc, rc, CL_LOG_HANDLE_APP);
         memcpy(&(slotClassTypes->nodeClassTypes[i]), tempNodeClassType, 
                 sizeof(ClCpmNodeClassTypeT));
         i++;
@@ -3023,7 +3023,7 @@ ClRcT cpmSlotClassTypesGet(ClCntHandleT slotTable,
         {
             rc = clCntNextNodeGet(slotTable, hSlot, &hSlot);
             CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR,
-                           "slot", rc, rc, CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           "slot", rc, rc, CL_LOG_HANDLE_APP);
         }
     }
 

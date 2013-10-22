@@ -80,23 +80,23 @@ ClRcT clCpmEventPayLoadExtract(ClEventHandleT eventHandle,
         
     rc = clBufferCreate(&payLoadMsg);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_CREATE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
     rc = clBufferNBytesWrite(payLoadMsg, (ClUint8T *)eventData,
                                     eventDataSize);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,
-                   CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                   CL_LOG_HANDLE_APP);
 
     switch(cpmEventType)
     {
         case CL_CPM_COMP_EVENT:
             rc = VDECL_VER(clXdrUnmarshallClCpmEventPayLoadT, 4, 0, 0)(payLoadMsg, payLoad);
             CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
             break;
         case CL_CPM_NODE_EVENT:
             rc = VDECL_VER(clXdrUnmarshallClCpmEventNodePayLoadT, 4, 0, 0)(payLoadMsg, payLoad);
             CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                           CL_LOG_SEV_DEBUG, CL_LOG_HANDLE_APP);
+                           CL_LOG_HANDLE_APP);
             break;
         default:
             clOsalPrintf("Invalid event type received.\n");
