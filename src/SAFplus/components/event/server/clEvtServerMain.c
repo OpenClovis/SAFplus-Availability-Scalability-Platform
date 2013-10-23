@@ -1026,7 +1026,7 @@ ClRcT VDECL(clEvtInitializeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle, 
 	if(!clCpmIsMaster() && evtInitReq.isExternal==1)
 	{
 		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore initial broadcast from external app");
-		sleep(20);
+		sleep(2);
 		return CL_EVENTS_RC(CL_ERR_NOT_SUPPORTED);
 	}
 	if(evtInitReq.isExternal==1)
@@ -1190,7 +1190,7 @@ ClRcT VDECL(clEvtChannelOpenLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle,
 	if(!clCpmIsMaster() && evtChannelOpenRequest.isExternal==1)
 	{
 		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore openchannel broadcast from external app");
-		sleep(20);
+		sleep(2);
 		return CL_EVENTS_RC(CL_ERR_NOT_SUPPORTED);
 	}
 	if(evtChannelOpenRequest.isExternal==1)
@@ -2066,7 +2066,7 @@ ClRcT VDECL(clEvtEventPublishExternal)(ClEoDataT cData,
 	if(!clCpmIsMaster())
 	{
 		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore event public broadcast from external app");
-		sleep(20);
+		sleep(2);
 		return CL_EVENTS_RC(CL_ERR_NOT_SUPPORTED);
 	}
 	return VDECL(clEvtEventPublishLocal)(cData,inMsgHandle,outMsgHandle);
@@ -2989,7 +2989,16 @@ ClRcT VDECL(clEvtEventUnsubscribeAllLocal)(ClEoDataT cData, ClBufferHandleT inMs
         clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", "Failed to unmarshall buffer, error [%#X]", rc);
         goto failure;
     }
-
+	if(!clCpmIsMaster() && evtUnsubsReq.isExternal==1)
+	{
+		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore unsubscriber broadcast from external app");
+		sleep(2);
+		return CL_EVENTS_RC(CL_ERR_NOT_SUPPORTED);
+	}
+	if(evtUnsubsReq.isExternal==1)
+	{
+		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "Unsubscribe broadcast from external app");
+	}
     /*
      * Verify if the Version is Compatible 
      */

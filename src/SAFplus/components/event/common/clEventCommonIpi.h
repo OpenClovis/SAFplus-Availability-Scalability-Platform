@@ -262,6 +262,7 @@ do{\
         ClEventSubscriptionIdT subscriptionId;
         SaNameT evtChannelName;
         ClUint8T reqFlag;
+        ClUint8T isExternal;
 
     } ClEvtUnsubscribeEventRequestT;
 

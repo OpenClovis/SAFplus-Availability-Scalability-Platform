@@ -100,6 +100,12 @@ ClRcT clXdrMarshallClEvtUnsubscribeEventRequestT_4_0_0(void* pGenVar, ClBufferHa
     {
         return rc;
     }
+    rc = clXdrMarshallClUint8T(&(pVar->isExternal),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
 
     }
 

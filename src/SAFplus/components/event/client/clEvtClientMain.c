@@ -1841,6 +1841,12 @@ ClRcT clEventFinalize(ClEventInitHandleT evtHandle)
             unsubscribeRequest.userId.eoIocPort,
             unsubscribeRequest.userId.evtHandle);
 
+#ifdef NO_SAF
+    unsubscribeRequest.isExternal=1;
+#else
+    unsubscribeRequest.isExternal=0;
+#endif
+
     /*
      * Create message handle and pack the user input 
      */
@@ -1862,6 +1868,10 @@ ClRcT clEventFinalize(ClEventInitHandleT evtHandle)
 
     destAddr.iocPhyAddress.nodeAddress = localIocAddress;
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
+#ifdef NO_SAF
+    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    clLogNotice("LOG", "OPE", "broadcast unsubscribe external ");
+#endif
 
     do
     {
@@ -2700,6 +2710,11 @@ ClRcT clEventChannelClose(ClEventChannelHandleT channelHandle)
     /*
      * Create message handle and pack the user input 
      */
+#ifdef NO_SAF
+    unsubscribeRequest.isExternal=1;
+#else
+    unsubscribeRequest.isExternal=0;
+#endif
     rc = clBufferCreate(&inMsgHandle);
     rc = clBufferCreate(&outMsgHandle);
     rc = VDECL_VER(clXdrMarshallClEvtUnsubscribeEventRequestT, 4, 0, 0)(&unsubscribeRequest,
@@ -2721,6 +2736,11 @@ ClRcT clEventChannelClose(ClEventChannelHandleT channelHandle)
     destAddr.iocPhyAddress.nodeAddress = localIocAddress;
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
 
+
+#ifdef NO_SAF
+    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    clLogNotice("LOG", "OPE", "broadcast unsubscribe external ");
+#endif
     do
     {
         rc = clRmdWithMsg(destAddr, EO_CL_EVT_UNSUBSCRIBE, inMsgHandle,
@@ -3182,6 +3202,12 @@ ClRcT clEventUnsubscribe(ClEventChannelHandleT channelHandle,
     clEvtUtilsNameCpy(&unsubscribeRequest.evtChannelName,
             &pEvtChannelInfo->evtChannelName);
 
+#ifdef NO_SAF
+    unsubscribeRequest.isExternal=1;
+#else
+    unsubscribeRequest.isExternal=0;
+#endif
+
     rc = clBufferCreate(&inMsgHandle);
     rc = clBufferCreate(&outMsgHandle);
     rc = VDECL_VER(clXdrMarshallClEvtUnsubscribeEventRequestT, 4, 0, 0)(&unsubscribeRequest,
@@ -3202,7 +3228,10 @@ ClRcT clEventUnsubscribe(ClEventChannelHandleT channelHandle,
     rmdOptions.timeout = CL_EVT_RMD_TIME_OUT;
     destAddr.iocPhyAddress.nodeAddress = localIocAddress;
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
-
+#ifdef NO_SAF
+    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    clLogNotice("LOG", "OPE", "broadcast unsubscribe external ");
+#endif
     do
     {
         rc = clRmdWithMsg(destAddr, EO_CL_EVT_UNSUBSCRIBE, inMsgHandle,
