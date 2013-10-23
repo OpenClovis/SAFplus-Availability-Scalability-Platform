@@ -781,6 +781,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
     ClUint32T segmentSize = getpagesize();
     ClCharT *exceptionSegment = NULL;
     ucontext_t *uc = (ucontext_t *)param;
+    ClInt32T bytes = 0;
     
     switch(signum)
     {
@@ -853,7 +854,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             {
                 snprintf(logBuffer, sizeof(logBuffer), "Opening shared segment [%s] returned [%#x]\n", 
                          shmName, rc);
-                write(logfd, logBuffer, strlen(logBuffer));
+                bytes = write(logfd, logBuffer, strlen(logBuffer));
             }
             goto out;
         }
@@ -864,7 +865,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             {
                 snprintf(logBuffer, sizeof(logBuffer), "Ftruncate on shared segment [%s] returned [%#x]\n",
                          shmName, rc);
-                write(logfd, logBuffer, strlen(logBuffer));
+                bytes = write(logfd, logBuffer, strlen(logBuffer));
             }
             goto out;
         }
@@ -875,7 +876,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             {
                 snprintf(logBuffer, sizeof(logBuffer), "Mmap on shared segment [%s] returned [%#x]\n",
                          shmName, rc);
-                write(logfd, logBuffer, strlen(logBuffer));
+                bytes = write(logfd, logBuffer, strlen(logBuffer));
             }
             goto out;
         }
@@ -925,6 +926,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
     logfd = 0;
     if(fd >= 0) close(fd);
     fd = 0;
+    (void )bytes ; /* fool the compiler accepting this compiler */
     raise(signum);
 }
 

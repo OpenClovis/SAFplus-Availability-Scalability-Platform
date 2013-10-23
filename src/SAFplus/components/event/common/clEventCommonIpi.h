@@ -152,7 +152,7 @@ extern "C"
 do{\
     if((X & CL_EVENT_CHANNEL_SUBSCRIBER) == 0)\
     {\
-        clLog(CL_LOG_ERROR, "CLT", "VAL", CL_EVENT_LOG_MSG_1_BAD_FLAGS, X);\
+        clLog(CL_LOG_SEV_ERROR, "CLT", "VAL", CL_EVENT_LOG_MSG_1_BAD_FLAGS, X);\
         rc = CL_EVENT_ERR_NOT_OPENED_FOR_SUBSCRIPTION;\
         goto failure;\
     }\
@@ -163,8 +163,8 @@ do{\
 do{\
     if((X & CL_EVENT_CHANNEL_PUBLISHER) == 0)\
     {\
-        clLog(CL_LOG_ERROR, "CLT", "VAL","This channel is not opened it for Publish event");\
-        clLog(CL_LOG_ERROR, "CLT", "VAL", CL_EVENT_LOG_MSG_1_BAD_FLAGS, X);\
+        clLog(CL_LOG_SEV_ERROR, "CLT", "VAL","This channel is not opened it for Publish event");\
+        clLog(CL_LOG_SEV_ERROR, "CLT", "VAL", CL_EVENT_LOG_MSG_1_BAD_FLAGS, X);\
         rc = CL_EVENT_ERR_NOT_OPENED_FOR_PUBLISH;\
         goto failure;\
     }\
@@ -186,7 +186,7 @@ do{\
 do{\
     if(CL_EVT_FALSE == gEvtInitDone)\
     {\
-        clLog(CL_LOG_ERROR, "CLT", "VAL","EM Init is not done\n");\
+        clLog(CL_LOG_SEV_ERROR, "CLT", "VAL","EM Init is not done\n");\
         return CL_EVENT_ERR_INIT_NOT_DONE;\
     }\
 }while(0);

@@ -2628,7 +2628,7 @@ ClRcT VDECL(clEvtEventPublishProxy)(ClEoDataT cData,
     clOsalMutexUnlock(mutexId);
 
 // success:
-    clLogMultiline(CL_LOG_TRACE, CL_EVENT_LOG_AREA_SRV, "PUB", 
+    clLogMultiline(CL_LOG_SEV_TRACE, CL_EVENT_LOG_AREA_SRV, "PUB", 
             "Event{\n"
             "\tno of patterns[%d]\n"
             "\teventId[%#llX]\n"
