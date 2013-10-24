@@ -752,7 +752,11 @@ extern ClEoPayloadWithReplyCallbackTableClientT EO_CLIENT_SYM(gAspFuncTable)[];
  * This API enables the "old" style EO that did not contain a "main" function
  */
     ClRcT clEoInitialize(ClInt32T argc, ClCharT *argv[]);
-    
+
+/* Internal Initialization Function for Openclovis */
+    void clEoStaticQueueInit(void);
+
+    void clEoStaticMutexInit(void);
     
 ClRcT clEoClientInstallTables(ClEoExecutionObjT *pThis,
                               ClEoPayloadWithReplyCallbackTableServerT *table);

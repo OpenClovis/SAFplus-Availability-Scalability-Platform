@@ -531,7 +531,7 @@ ClRcT clEoCrashNotificationRegister(ClEoCrashNotificationCallbackT callback)
 }
 
 /**************   Action Related Functionality      ***************************/
-static ClRcT eoStaticQueueInit(void)
+void  clEoStaticMutexInit(void)
 {
     ClRcT rc = CL_OK;
     
@@ -539,7 +539,7 @@ static ClRcT eoStaticQueueInit(void)
     if(CL_OK != rc)
     {
         clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clOsalMutexInit Failed 0x%x\n", rc);
-        return rc;
+        CL_ASSERT(0);
     }
 
     rc = clOsalCondInit(&(gEoStaticQueue.jobQueueCond));
@@ -547,9 +547,11 @@ static ClRcT eoStaticQueueInit(void)
     {
         clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Message Write Failed 0x%x\n", rc);
         clOsalMutexDestroy(&gEoStaticQueue.jobQueueLock);
-        return rc;
+        CL_ASSERT(0);
     }
-
+}
+void clEoStaticQueueInit(void)
+{
     gEoStaticQueue.running = CL_FALSE;
     gEoStaticQueue.jobCount = 0;
     gEoStaticQueue.eoStaticJobQueue[0].jobCount = 0;
@@ -562,7 +564,7 @@ static ClRcT eoStaticQueueInit(void)
     gEoStaticQueue.eoStaticJobQueue[1].pJobQueue = gEoActionStaticQueueInfo;
     
     gClEoStaticQueueInitialized = CL_TRUE;
-    return CL_OK;
+    
 }
 
 static ClRcT eoStaticQueueExit(void)
@@ -1363,7 +1365,7 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
                    "clOsalCondInit() failed, error [0x%x]", rc);
         goto eoPrivateDataCntAllocated;
     }
-
+    #if 0 /* Move this code into clEoInitialize Function */
     /*
      * Initialize the Action Queue
      */
@@ -1374,7 +1376,7 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
                    "\nEO: eoStaticQueueInit() failed, rc[0x%x]\n", rc);
         goto eoPrivateDataCntAllocated;
     }
-
+    #endif
 
     pClient =
         (ClEoClientObjT *) clHeapAllocate(sizeof(ClEoClientObjT) *

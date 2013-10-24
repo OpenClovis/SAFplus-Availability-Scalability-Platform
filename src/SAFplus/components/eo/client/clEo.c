@@ -767,6 +767,8 @@ ClRcT clEoSetup(void)
         clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "The ASP_COMPNAME environment variable is not set.");
         return CL_ERR_NULL_POINTER;
     }
+ 
+    clEoStaticMutexInit();
 
     rc = clEoCreate(&eoConfig, &pThis);
     if (rc != CL_OK)
@@ -946,6 +948,8 @@ ClRcT clEoInitialize(ClInt32T argc, ClCharT *argv[])
     clEoProgName = argv[0];
     
     clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Process [%s] started. PID [%d]", clEoProgName, (int)getpid());
+    
+    clEoStaticQueueInit();
 
     clASPInitialize();
     
