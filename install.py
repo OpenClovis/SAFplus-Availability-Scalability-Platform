@@ -1502,26 +1502,26 @@ class ASPInstaller:
               pass
 
 
-        for dirname, dirnames, filenames in os.walk(self.BIN_ROOT):
-          for filename in filenames:
-            if filename == 'cl-log-viewer': continue
+           for dirname, dirnames, filenames in os.walk(self.BIN_ROOT):
+                for filename in filenames:
+                    if filename == 'cl-log-viewer': continue
             
-            src = os.path.join(dirname, filename)
-            dst = os.path.join(self.DEFAULT_SYM_LINK, filename)
-            #self.feedback("%s -> %s" % (src,dst))
-            try:
-              os.remove(dst)  # remove it since it may point to another SDK version
-            except OSError,e:
-              pass # its ok if the file does not exist
-            try:
-              os.symlink(src,dst)
-            except OSError,e:  
-              if e.errno == errno.EPERM or e.errno == errno.EEXIST:  # EEXIST means that os.remove() failed for some reason
-                self.feedback('No permission to change %s' % dst)
-              else:
-                self.feedback('Cannot create symlink %s, error %s' % (dst,str(e)))  
+                src = os.path.join(dirname, filename)
+                dst = os.path.join(self.DEFAULT_SYM_LINK, filename)
+                #self.feedback("%s -> %s" % (src,dst))
+                try:
+                    os.remove(dst)  # remove it since it may point to another SDK version
+                except OSError,e:
+                    pass # its ok if the file does not exist
+                try:
+                    os.symlink(src,dst)
+                except OSError,e:  
+                    if e.errno == errno.EPERM or e.errno == errno.EEXIST:  # EEXIST means that os.remove() failed for some reason
+                        self.feedback('No permission to change %s' % dst)
+                    else:
+                        self.feedback('Cannot create symlink %s, error %s' % (dst,str(e)))  
 
-        self.feedback('Symbolic links for the  binaries are created in %s\n' % self.DEFAULT_SYM_LINK)
+           self.feedback('Symbolic links for the  binaries are created in %s\n' % self.DEFAULT_SYM_LINK)
 
 
     def read_file(self, filepath):
