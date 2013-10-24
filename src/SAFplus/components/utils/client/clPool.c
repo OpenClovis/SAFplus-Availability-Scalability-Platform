@@ -64,7 +64,9 @@
 /* Note DO NOT USE normal logging in this module because it is used BY logging, resulting in a deadlock */
 #undef clLog
 #define clLog(severity, area, context, ...)  ***ERROR Do not use logging in this module.  Use CL_POOL_LOG***
-#define CL_POOL_LOG(sev,...) clEoLibLog(CL_CID_POOL,sev,__VA_ARGS__)
+#define CL_POOL_LOG(sev,...) 
+
+/*clEoLibLog(CL_CID_POOL,sev,__VA_ARGS__)*/
 
 #define CL_POOL_ALLOC_EXT(size) malloc(size)
 
