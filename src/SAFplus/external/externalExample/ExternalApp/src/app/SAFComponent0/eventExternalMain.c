@@ -135,7 +135,6 @@ int main(int argc, char **argv)
         {
             printf("Failure opening event channel[0x%x] at %ld\n",
                     rc, time(0L));
-            printf("Failure opening event channel[0x%x]\n", rc);
             goto errorexit;
         }
         sleep(20);
@@ -145,18 +144,22 @@ int main(int argc, char **argv)
         {
             printf("Failed to subscribe to event channel [0x%x]\n",
                         rc);
-            printf("Failed to subscribe to event channel [0x%x]\n",
-                    rc);
             goto errorexit;
         }
-
         //open a global log stream and write several records
         printf("Open a global log stream and write several records\n");        
         alarmClockLogInitialize();
+        printf("close a global log stream and write several records\n");        
+        //alarmClockLogFinalize();
         printf("open a publisher event channel\n");        
         // open a publisher event channel and 
         openPublisherChannel();
         printf("start public event\n");        
+        testEvtMainLoop();
+        printf("unsubscript public event\n");        
+        rc = saEvtChannelClose(evtChannelHandle);
+	if (rc != SA_AIS_OK) 
+		printf("Channel unsubscribe result: %d\n", rc);
         testEvtMainLoop();
 
     }    
@@ -304,19 +307,18 @@ appPublishEvent()
 static void
 testEvtMainLoop()
 {
-    
-    printf("Waiting for CSI assignment...\n");
     /* Main loop: Keep printing and publishing unless we are suspended */
+    int i=0;
     while (1)
     {
         appPublishEvent();        
         sleep(10);
+        i++;
+        if(i==10)
+        {
+            return;
+        }
     }
-
-    /* Letting the world know that we exited from mainloop */
-    //    clprintf(CL_LOG_DEBUG, "%s exited main loop", appname);
-
-   
 }    
 
 static void

@@ -1326,9 +1326,8 @@ VDECL_VER(clLogSvrStreamOpen, 4, 0, 0)(
 {
 	if(!clCpmIsMaster() && isExternal==1)
 	{
-		sleep(10);
 		clLogDebug("SVR", "OPE", "ignore openstream broadcast from external app");
-		return CL_LOG_RC(CL_ERR_NO_MEMORY);
+		return CL_ERR_IGNORE_REQUEST;
 	}
     ClRcT                   rc                 = CL_OK;
     ClLogSvrEoDataT         *pSvrEoEntry       = NULL;

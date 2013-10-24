@@ -4149,7 +4149,6 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
 {
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     ClEoJobT *pJob = NULL;
-    ClUint32T priority ;
 
     if(recvMsg == CL_HANDLE_INVALID_VALUE
        ||
@@ -4168,7 +4167,6 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
     }
     pJob->msg = recvMsg;
     memcpy(&pJob->msgParam, pRecvParam, sizeof(pJob->msgParam));
-    clLogNotice("CALLBACK", "TASKS","clEoEnqueueJob %d  -- %d -- %d  --%d " , pRecvParam->srcAddr.iocPhyAddress.nodeAddress ,pRecvParam->srcAddr.iocPhyAddress.portId,(int)pRecvParam->srcAddr.iocLogicalAddress,pRecvParam->protoType);
 #ifdef NO_SAF
     rc = CL_RMD_RC(CL_ERR_INVALID_STATE);
     clOsalMutexLock(&gClEoJobMutex);
@@ -4183,6 +4181,7 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
     rc = clJobQueuePush(pQ,(ClCallbackT) clEoJobHandler, pJob);
 
 #else
+    ClUint32T priority =0 ;
     if (1)
     {        
         ClJobQueueT* pQueue = NULL;
@@ -4485,6 +4484,88 @@ ClBoolT clEoQueueAmfResponseFind(ClUint32T pri)
 }
 
 #ifdef NO_SAF
+extern ClIocConfigT pAllConfig;
+//extern ClBoolT gIsNodeRepresentative;
+extern ClInt32T clAspLocalId;
+extern ClHeapConfigT *pHeapConfigUser;
+static ClHeapConfigT heapConfig;
+static ClEoMemConfigT memConfig;
+static ClIocConfigT *gpClIocConfig;
+
+ClEoConfigT extRmdConfig =
+{
+    CL_OSAL_THREAD_PRI_MEDIUM,    /* EO Thread Priority                       */
+    2,                            /* No of EO thread needed                   */
+    0,                            /* Required Ioc Port                        */
+    (CL_EO_USER_CLIENT_ID_START + 0),
+    CL_EO_USE_THREAD_FOR_APP,     /* Thread Model                             */
+    NULL,                         /* Application Initialize Callback          */
+    NULL,                         /* Application Terminate Callback           */
+    NULL,                         /* Application State Change Callback        */
+    NULL                          /* Application Health Check Callback        */
+};
+
+static ClRcT clMemInitialize(void)
+{
+    ClRcT rc;
+
+    if((rc = clMemStatsInitialize(&memConfig)) != CL_OK)
+    {
+        return rc;
+    }
+    pHeapConfigUser =  &heapConfig;
+    if((rc = clHeapInit()) != CL_OK)
+    {
+        return rc;
+    }
+    return CL_OK;
+}
+
+ClRcT
+clExtInitialize ( ClInt32T ioc_address_local )
+{
+    ClRcT rc = CL_OK;
+    clAspLocalId = ioc_address_local;
+    heapConfig.mode = CL_HEAP_NATIVE_MODE;
+    memConfig.memLimit = 0;
+    rc = clIocParseConfig(NULL, &gpClIocConfig);
+    if(rc != CL_OK)
+    {
+        clOsalPrintf("Error : Failed to parse clIocConfig.xml file. error code = 0x%x\n",rc);
+        exit(1);
+    }
+
+    if ((rc = clOsalInitialize(NULL)) != CL_OK)
+    {
+        printf("Error: OSAL initialization failed\n");
+        return rc;
+    }
+    if ((rc = clMemInitialize()) != CL_OK)
+    {
+        printf("Error: Heap initialization failed\n");
+        return rc;
+    }
+    if ((rc = clTimerInitialize(NULL)) != CL_OK)
+    {
+        printf("Error: Timer initialization failed\n");
+        return rc;
+    }
+    if ((rc = clBufferInitialize(NULL)) != CL_OK)
+    {
+        printf("Error: Buffer initialization failed\n");
+        return rc;
+    }
+    pAllConfig.iocConfigInfo.isNodeRepresentative = CL_TRUE;
+    gIsNodeRepresentative = CL_TRUE;
+    if ((rc = clIocLibInitialize(NULL)) != CL_OK)
+    {
+        printf("Error: IOC initialization failed with rc = 0x%x\n", rc);
+        exit(1);
+    }
+    return rc;
+}
+
+
 static ClRcT clRmdServerStart(ClEoExecutionObjT *pThis)
 {
     ClRcT rc = CL_OK;
@@ -4717,7 +4798,12 @@ ClRcT clRmdServerCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
 }
 #define MAX_PENDING 0
 #define MAX_THREAD 8
-ClRcT rmdSeverInit(ClEoConfigT pConfig)
+ClRcT clExtRmdServerInitDefault()
+{
+	return clExtRmdServerInit(extRmdConfig);
+}
+
+ClRcT clExtRmdServerInit(ClEoConfigT pConfig)
 {
 
 	clLogDebug("RMDSERVER", "rmdSeverInit","Enter startRmdServerSever");
@@ -4744,8 +4830,8 @@ ClRcT rmdSeverInit(ClEoConfigT pConfig)
         return rc;
     }
 	eoProtoInit();
-	rc=clRmdServerCreate(&pConfig,&pThis);
-	if(rc != CL_OK)
+    rc=clRmdServerCreate(&pConfig,&pThis);
+    if(rc != CL_OK)
 	{
 	    clLogError("RMDSERVER", "rmdSeverInit","failed to create rmd Server");
 	    return rc;
