@@ -4969,7 +4969,7 @@ VDECL_VER(_clAmsMgmtComputedAdminStateGet, 5, 0, 0)(ClEoDataT userData,
         {
             ClAmsSGT *sg = (ClAmsSGT*)entityRef.ptr;
             AMS_CHECKPTR(!sg);
-            rc = clAmsPeSGComputeAdminState(sg, &computedAdminState);
+            computedAdminState = clAmsPeSGComputeAdminState(sg);
         }
         break;
 

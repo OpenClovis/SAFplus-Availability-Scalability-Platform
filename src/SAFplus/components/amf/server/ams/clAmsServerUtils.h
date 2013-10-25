@@ -58,6 +58,14 @@ extern "C" {
  * Debug Defines
  *****************************************************************************/
 
+/* object management functions */
+
+extern ClAmsEntityRefT* clAmsAllocEntityRef();
+extern void clAmsFreeEntityRef(ClAmsEntityRefT* ref);
+extern ClAmsEntityRefT* clAmsCreateEntityRef(ClAmsEntityT* ent);
+    
+/* Log formatting */    
+    
 extern char *clAmsFormatMsg (char *fmt, ...);    
 extern void clAmsLogMsgServer( const ClUint32T level, char *buffer, const ClCharT* file, ClUint32T line );
 extern ClAmsT   gAms;
@@ -75,22 +83,25 @@ extern ClAmsT   gAms;
  * Common Error Checking Defines
  *****************************************************************************/
 
+#if 0  /* AMS_CALL should not abort if the function is a no op */
+        if (CL_GET_ERROR_CODE(returnCode) == CL_ERR_NO_OP)                  \
+    {                                                                   \
+        AMS_SERVER_LOG(CL_LOG_SEV_DEBUG, ("Function [%s] returned NoOp", #fn)); \
+        return returnCode;                                              \
+    }
+    
+#endif
+    
 #define AMS_CALL(fn)                                                    \
 do {                                                                    \
     ClRcT returnCode = CL_OK;                                           \
                                                                         \
-    returnCode = (fn);                                                  \
-    if (CL_GET_ERROR_CODE(returnCode) == CL_ERR_NO_OP)                  \
-    {                                                                   \
-        AMS_SERVER_LOG(CL_LOG_SEV_DEBUG, ("Function [%s] returned NoOp", #fn)); \
-        return returnCode;                                              \
-    }                                                                   \
-                                                                        \
-    if (returnCode != CL_OK) clDbgCodeError(CL_DEBUG_ERROR, ("Fn [%s] returned [0x%x]", #fn, returnCode) ); \
+    returnCode = (fn);                                                                        \
+    if (returnCode != CL_OK) clDbgCodeError(CL_LOG_SEV_ERROR, ("Fn [%s] returned [0x%x]", #fn, returnCode) ); \
                                                                         \
     if (returnCode != CL_OK)                                            \
     {                                                                   \
-        AMS_SERVER_LOG(CL_DEBUG_ERROR,                                  \
+        AMS_SERVER_LOG(CL_LOG_SEV_ERROR,                                  \
             ("ALERT [%s:%d] : Fn [%s] returned [0x%x]\n",               \
              __FUNCTION__, __LINE__, #fn, returnCode));                 \
         return returnCode;                                              \

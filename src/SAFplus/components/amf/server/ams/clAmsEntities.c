@@ -1255,10 +1255,7 @@ clAmsEntityPrint(
         {
             ClAmsSGT  *sg = (ClAmsSGT *) entity;
 
-            if (clAmsPeSGComputeAdminState(sg, &adminState) != CL_OK)
-            {
-                adminState = sg->config.adminState;
-            }
+            adminState = clAmsPeSGComputeAdminState(sg);
 
             CL_AMS_PRINT_TWO_COL("Configuration -------------------------------",
                     "%s","---------------------------");
@@ -1987,16 +1984,11 @@ clAmsEntityXMLPrint(
 
             CL_AMS_PRINT_OPEN_TAG_ATTR("sg", "%s", entity->name.value);
 
-            if( clAmsPeSGComputeAdminState(sg, &adminState) != CL_OK)
-            {
-                adminState = sg->config.adminState;
-            }
-
+            adminState = clAmsPeSGComputeAdminState(sg);
+            
             CL_AMS_PRINT_OPEN_TAG("config");
 
-            CL_AMS_PRINT_TAG_VALUE("admin_state", "%s",
-                                   CL_AMS_STRING_A_STATE(sg->config.
-                                                         adminState));
+            CL_AMS_PRINT_TAG_VALUE("admin_state", "%s", CL_AMS_STRING_A_STATE(sg->config. adminState));
 
             CL_AMS_PRINT_TAG_VALUE("computed_admin_state", "%s",
                                    CL_AMS_STRING_A_STATE(adminState));
@@ -2634,32 +2626,23 @@ clAmsEntityXMLPrint(
  * default key if no other key is provided.
  */
 
-ClRcT
-clAmsEntityGetKey(
-        CL_IN  ClAmsEntityT  *entity,
-        CL_INOUT  ClCntKeyHandleT  *entityKeyHandle )
+ClCntKeyHandleT clAmsEntityGetKey(CL_IN  const ClAmsEntityT  *entity)
 {
-
     ClUint32T  entityKey = 0;
     ClUint32T  keyLength = 0;
 
-    AMS_CHECKPTR ( !entity || !entityKeyHandle );
+    CL_ASSERT(entity);
 
-    AMS_CALL ( clCrc32bitCompute(
-                 ( ClUint8T *)entity->name.value, 
-                 entity->name.length,
-                 &entityKey,
-                 &keyLength) );
+    /* Always succeeds */
+    clCrc32bitCompute( ( ClUint8T *)entity->name.value, entity->name.length, &entityKey, &keyLength);
+
     /*
      * Endianesss considerations. entityKey is 16bit but handle is either 32 or
      * 64 depending on flavor of the month. Want to make sure the key value is
      * not mutilated.
      */
 
-    *entityKeyHandle = (ClCntKeyHandleT) (ClWordT)entityKey;
-
-    return CL_OK;
-
+    return (ClCntKeyHandleT) ((ClWordT)entityKey);
 }
 
 static ClRcT amsCompClearOps(ClAmsCompT *comp)
@@ -4651,7 +4634,7 @@ clAmsEntityRefGetKey(
 
 #endif
 
-    AMS_CALL ( clAmsEntityGetKey(entity, entityKeyHandle) );
+    entityKeyHandle = clAmsEntityGetKey(entity);
 
     return CL_OK;
 

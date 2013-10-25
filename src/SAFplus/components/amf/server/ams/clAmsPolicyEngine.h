@@ -408,9 +408,7 @@ extern ClRcT clAmsPeSGRemoveWork(
 extern ClRcT clAmsPeSGUpdateSIDependents(
         CL_IN       ClAmsSGT            *sg);
 
-extern ClRcT clAmsPeSGComputeAdminState(
-        CL_IN       ClAmsSGT            *sg,
-        CL_IN       ClAmsAdminStateT    *adminState);
+extern ClAmsAdminStateT clAmsPeSGComputeAdminState(CL_IN   ClAmsSGT *sg);
 
 extern ClRcT clAmsPeSGUpdateReadinessState(
         CL_IN       ClAmsSGT            *sg);

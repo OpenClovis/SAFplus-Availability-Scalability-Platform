@@ -50,6 +50,7 @@
 #include <clAmsCkpt.h>
 #include <clCpmCommon.h>
 #include <clCpmInternal.h>
+#include <clDebugApi.h>
 /******************************************************************************
  * Externs
  *****************************************************************************/
@@ -677,7 +678,7 @@ clAmsEntityDbAddEntity(
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
 
-    AMS_CALL ( clAmsEntityGetKey(&entityRef->entity, &entityKeyHandle) );
+    entityKeyHandle = clAmsEntityGetKey(&entityRef->entity);
 
     /*
      * Allocate a new entity with default values and initialize it appropriately.
@@ -857,7 +858,7 @@ clAmsEntityDbFindEntity(
     }
 
 
-    AMS_CALL ( clAmsEntityGetKey( &entityRef->entity, &entityKeyHandle) );
+    entityKeyHandle = clAmsEntityGetKey( &entityRef->entity);
 
 
     rc = clCntNodeFind( entityDb->db, entityKeyHandle, &entityNodeHandle);
@@ -1161,7 +1162,7 @@ clAmsEntityListAddEntityRef(
 
     if ( !entityKeyHandle )
     {
-        AMS_CALL ( clAmsEntityGetKey( &entityRef->entity, &entityKeyHandle) );
+        entityKeyHandle = clAmsEntityGetKey( &entityRef->entity);
     }
 
     /*
@@ -1262,7 +1263,7 @@ clAmsEntityListDeleteCallback(
 ClRcT
 clAmsEntityListFindEntityRef(
         CL_IN  ClAmsEntityListT  *entityList,
-        CL_IN  ClAmsEntityRefT  *entityRef,
+        CL_IN  const ClAmsEntityRefT  *entityRef,
         CL_IN  ClCntKeyHandleT  entityKeyHandle,
         CL_OUT  ClAmsEntityRefT  **foundRef )
 {
@@ -1282,6 +1283,7 @@ clAmsEntityListFindEntityRef(
          ( entityList->type < 0 ) ||
          ( entityList->type > CL_AMS_ENTITY_TYPE_MAX ) )
     {
+        clDbgCodeError(CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY),("Passed EntityList parameter is invalid"));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
 
@@ -1293,9 +1295,7 @@ clAmsEntityListFindEntityRef(
 
     if ( !entityKeyHandle )
     {
-
-        AMS_CALL ( clAmsEntityGetKey( &entityRef->entity, &entityKeyHandle) );
-
+        entityKeyHandle = clAmsEntityGetKey( &entityRef->entity);
     } 
     
     rc = clCntNodeFind( entityList->list, entityKeyHandle, &entityNodeHandle);
@@ -2172,12 +2172,8 @@ clAmsXMLPrintHAState(
  * Service Group
  *---------------------------------------------------------------------------*/
 
-ClRcT
-clAmsSGAddSURefToSUList(
-        CL_IN  ClAmsEntityListT  *entityList,
-        CL_IN  ClAmsSUT  *su )
+ClRcT clAmsSGAddSURefToSUList(CL_IN  ClAmsEntityListT  *entityList, CL_IN  ClAmsSUT  *su )
 {
-
     ClAmsEntityRefT  *suRef = NULL, *foundRef = NULL;
     ClRcT  rc = CL_OK;
     ClCntKeyHandleT  entityKeyHandle = 0;
@@ -2185,52 +2181,37 @@ clAmsSGAddSURefToSUList(
     AMS_CHECK_SU ( su );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &su->config.entity,
-                su->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList ));
+    clAmsEntityRefGetKey(&su->config.entity, su->config.rank, &entityKeyHandle, entityList->isRankedList );
     
-    suRef = clHeapAllocate(sizeof(ClAmsEntityRefT));
-
-    AMS_CHECK_NO_MEMORY (suRef);
-
-    memcpy(&suRef->entity, &su->config.entity, sizeof(ClAmsEntityT) ); 
-
-    suRef->ptr = (ClAmsEntityT *) su;
-
     /*
      * Make sure the SU is not already on the list
      */
+    suRef = clAmsCreateEntityRef(&su->config.entity);    
 
     rc = clAmsEntityListFindEntityRef(
             entityList,
             suRef,
             entityKeyHandle,
             &foundRef); 
+    if (rc == CL_OK) goto cleanup; /* SU is already on the list -- probably NO_OP should be returned but for now keep it as CL_OK for stability */
 
-    if ( CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST ) 
+    
+    else if ( CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST )
     {
-        clHeapFree(suRef);
-        return rc;
+        clLogWarning("AMS","DB","clAmsSGAddSURefToSUList added SURef to list multiple times");
+        goto cleanup;
     }
 
     rc = clAmsEntityListAddEntityRef( entityList, suRef, entityKeyHandle);
-
-    if ( rc != CL_OK ) 
-    {
-        clHeapFree(suRef);
-        return rc;
-    }
+    if ( rc != CL_OK ) goto cleanup;
 
     return CL_OK;
-
+cleanup:
+    if (suRef) clAmsFreeEntityRef(suRef);
+    return rc;
 }
 
-ClRcT
-clAmsSGDeleteSURefFromSUList(
-        CL_IN  ClAmsEntityListT  *entityList,
-        CL_IN  ClAmsSUT  *su ) 
+ClRcT clAmsSGDeleteSURefFromSUList(CL_IN  ClAmsEntityListT  *entityList, CL_IN  ClAmsSUT  *su ) 
 {
 
     ClAmsEntityRefT  suRef = {{0},0,0};

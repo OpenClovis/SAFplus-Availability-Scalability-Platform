@@ -1482,6 +1482,10 @@ ClRcT clTimerInitialize(ClPtrT config)
             callbackTasks = CL_TIMER_MAX_CALLBACK_TASKS;
         clLogNotice("CALLBACK", "TASKS", "Setting timer callback pool to [%d] tasks", callbackTasks);
     }
+    
+    rc = clTaskPoolInitialize();
+    CL_ASSERT(rc == CL_OK);
+    
     rc = clJobQueueInit(&gTimerBase.timerCallbackQueue, 0, callbackTasks);
     if(rc != CL_OK)
     {
