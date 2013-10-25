@@ -205,13 +205,6 @@ static void clMsgNotificationReceiveCallback(ClIocNotificationIdT event, ClPtrT 
 static void *clMsgCachedCkptInitAsync(void *pParam)
 {
     ClRcT rc, retCode;
-    /* Initialize cached ckpt for MSG queue & MSG queue group */
-    rc = clMsgQCkptInitialize();
-    if(rc != CL_OK)
-    {
-        clLogError("MSG", "INI", "Failed to initialize cached checkpoints. error code [0x%x].", rc);
-        goto error_out;
-    }
 
     rc = clMsgQCkptSynch();
     if(rc != CL_OK)
@@ -227,7 +220,7 @@ error_out_1:
     retCode = clMsgQCkptFinalize();
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "clMsgQCkptFinalize(): error code [0x%x].", retCode);
-error_out:
+
     return NULL;
 }
 
@@ -342,11 +335,24 @@ static ClRcT clMsgInitialize(ClUint32T argc, ClCharT *argv[])
 
     clMsgRegisterWithCpm();
 
+    /* Initialize cached ckpt for MSG queue & MSG queue group */
+    rc = clMsgQCkptInitialize();
+    if(rc != CL_OK)
+    {
+        clLogError("MSG", "INI", "Failed to initialize cached checkpoints. error code [0x%x].", rc);
+        goto error_out_12;
+    }
+
     rc = clOsalTaskCreateDetached("MsgCkptInitAsync", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0,
                                  clMsgCachedCkptInitAsync, NULL);
     CL_ASSERT(rc == CL_OK);
 
     goto out;
+
+error_out_12:
+    retCode = clMsgDebugCliDeregister();
+    if(retCode != CL_OK)
+        clLogError("MSG", "INI", "Failed to deregister debug CLI. error code [0x%x].", retCode);
 
 error_out_11:
     retCode = clMsgCltSrvClientTableDeregister();

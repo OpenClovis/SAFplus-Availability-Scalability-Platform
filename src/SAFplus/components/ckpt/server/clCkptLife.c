@@ -263,7 +263,6 @@ ClRcT  clCkptRestart()
  
 ClRcT   ckptShutDown()
 {
-    ClOsalMutexIdT  ckptActiveSem = CL_HANDLE_INVALID_VALUE;
     /*
      * Uninstall the notification callback function
      */
@@ -295,15 +294,9 @@ ClRcT   ckptShutDown()
      * Cleanup the resources acquired bu the ckpt server.
      */
     clOsalMutexLock(&gCkptSvr->ckptClusterSem);
-    CKPT_LOCK(gCkptSvr->ckptActiveSem);
-    /* the server is going down setting this flag as FALSE */
-    gCkptSvr->serverUp = CL_FALSE;
-    ckptActiveSem = gCkptSvr->ckptActiveSem;
     ckptSvrCbFree(gCkptSvr);
-    CKPT_UNLOCK(ckptActiveSem);
     clOsalMutexUnlock(&gCkptSvr->ckptClusterSem);
-    clOsalMutexDelete(ckptActiveSem);
-    
+    clOsalMutexDelete(gCkptSvr->ckptActiveSem);
     return CL_OK;
 }
 

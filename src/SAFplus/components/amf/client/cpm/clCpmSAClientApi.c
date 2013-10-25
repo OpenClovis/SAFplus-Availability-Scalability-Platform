@@ -880,6 +880,7 @@ static ClRcT cpmCompCSIListDel(const ClNameT *pCompName)
 {
     ClRcT rc = CL_OK;
     ClCntNodeHandleT nodeHandle=0;
+    ClCpmCompCSIListT *pCompCSIList = NULL;
 
     clOsalMutexLock(gCpmCompCSIListMutex);
     rc = cpmCompCSIListGet(pCompName,NULL,&nodeHandle);
@@ -887,6 +888,17 @@ static ClRcT cpmCompCSIListDel(const ClNameT *pCompName)
     {
         goto out_unlock;
     }
+
+    rc = cpmCompCSIListGet(pCompName,&pCompCSIList,NULL);
+    if(rc != CL_OK)
+    {
+        /*
+         * Its okay here to call apps. csi remove.
+         */
+        rc = CL_OK;
+        goto out_unlock;
+    }
+
     /*
      * Rip off the csi cache node
      */
