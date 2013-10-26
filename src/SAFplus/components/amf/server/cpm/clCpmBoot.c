@@ -262,8 +262,7 @@ static void *bmInitialize(void *threadArg)
                 }
                 if (pBootOp->srcAddress.portId != 0)
                 {
-                    ClRcT rc2 = cpmGetMasterAddrIfRequired(&pBootOp->
-                                                    srcAddress.nodeAddress);
+                    ClRcT rc2 = cpmGetMasterAddrIfRequired(&pBootOp->srcAddress.nodeAddress);
                     if (CL_OK != rc2)
                     {
                         clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
@@ -300,11 +299,7 @@ static void *bmInitialize(void *threadArg)
                          */
                         if(gpClCpm->bmTable->currentBootLevel != CL_CPM_BOOT_LEVEL_2)
                         {
-                            clLogWarning("REG", "ACT", 
-                                         "Resetting boot level from [%d] to [%d] before "
-                                         "trying to register with active",
-                                         gpClCpm->bmTable->currentBootLevel,
-                                         CL_CPM_BOOT_LEVEL_2);
+                            clLogWarning("REG", "ACT", "Resetting boot level from [%d] to [%d] before trying to register with active", gpClCpm->bmTable->currentBootLevel, CL_CPM_BOOT_LEVEL_2);
                             gpClCpm->bmTable->currentBootLevel = CL_CPM_BOOT_LEVEL_2;
                         }
                         cpmRegisterWithActive();
@@ -1247,9 +1242,7 @@ void cpmBmRespTimerStop(void)
         rc = clTimerStop(gpClCpm->bmTable->bmRespTimer);
         if (CL_OK != rc)
         {
-            clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                       "Unable to restart timer, error [%#x]",
-                       rc);
+            clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,"Unable to stop timer, error [%#x]",rc);
         }
     }
 }
